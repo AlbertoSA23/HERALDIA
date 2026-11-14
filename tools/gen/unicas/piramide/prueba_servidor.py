@@ -73,7 +73,16 @@ def main():
         tx, ty, tz = o.marks["trampa:cable"][0]
         cmd(f"summon minecraft:armor_stand {O[0] + tx + 0.5} {O[1] + ty} {O[2] + tz + 0.5}")
         time.sleep(2)
-        check("cable trampa dispara", f"execute unless data block {w((tx, ty + 1, tz - 2))} Items[{{count:9}}]", tries=6)
+        disp = w((tx, ty + 1, tz - 2))
+        for _ in range(6):        # 3 ranuras de 6 flechas (piezas.tripwire_trap): alguna debe haber bajado
+            fired = any(cmd(f"execute unless data block {disp} Items[{{Slot:{i}b,count:6}}]").startswith("Test passed")
+                        for i in range(3))
+            if fired:
+                break
+            time.sleep(1)
+        print(("OK   " if fired else "FALLA ") + "cable trampa dispara")
+        if not fired:
+            fails.append("cable trampa dispara")
         px, py, pz = o.marks["trampa:foso"][0]
         cmd(f"summon minecraft:armor_stand {O[0] + px + 0.5} {O[1] + py} {O[2] + pz + 0.5}")
         time.sleep(1)

@@ -582,8 +582,7 @@ def subsuelo(t):
     for x in (26, 30):
         hang(t, x, -9, 11, "soul_lantern")
     # pasillo de las losas (trampa 2)
-    piezas.plate_trap(t.set, [(20, -13, 10), (22, -13, 10)],
-                      [((x, -13, z), f) for x in (20, 22) for z, f in ((9, "south"), (11, "north"))])
+    piezas.plate_trap(t.set, [(20, -13, 10), (22, -13, 10)], "north")
     # sala del guardián
     for x in (10, 14):
         for z in (7, 13):

@@ -14,169 +14,18 @@ from collections import deque
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from lint import passable, top_height, bname, prop, support_issues
+from lint import passable, bname, support_issues
 from unicas.coliseo import plano
-from unicas.coliseo.plano import CX, CZ, NX, NZ, COLS, is_full
+from unicas.coliseo.plano import CX, CZ, NX, NZ, COLS
+from unicas._comun import recorrido as R, redstone
 
-FACE = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
-H4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
-
-
-class Vista:
-    """Mundo con suelo virtual fuera de la estructura y, opcionalmente, los puzles resueltos."""
-
-    def __init__(self, o, solved):
-        self.b = {p: v[0] for p, v in o.t.blocks.items()}
-        if solved:
-            for p, st in o.solved.items():
-                self.b[p] = "minecraft:" + st if ":" not in st else st
-
-    def get(self, x, y, z):
-        st = self.b.get((x, y, z))
-        if st is None and y == -1:
-            return "minecraft:grass_block"
-        if st is not None and bname(st) == "air":
-            return None
-        return st
-
-
-def walker(v, start):
-    g = v.get
-
-    def surf(x, y, z, mdx, mdz):
-        st = g(x, y, z)
-        h = top_height(st)
-        if st is not None and bname(st).endswith("_stairs") and "half=bottom" in st:
-            fx, fz = FACE[prop(st, "facing")]
-            return (y + 0.5 if (mdx, mdz) == (fx, fz) else y + 1.0, y + 1.0)
-        if h is not None and h <= 0.6:
-            return (y + h, y + h)
-        if h is not None:
-            return None
-        below = g(x, y - 1, z)
-        if below is None:
-            return None
-        hb = top_height(below)
-        if hb is None:
-            return (float(y), float(y)) if bname(below) == "ladder" else None
-        if hb != 1.0 or (bname(below).endswith("_stairs") and "half=bottom" in below):
-            return None
-        return (float(y), float(y))
-
-    def headroom(x, y, z, s):
-        top = s + 1.8
-        cy = y + 1
-        while cy < top:
-            st = g(x, cy, z)
-            if not passable(st):
-                low = cy + (0.5 if ("half=top" in st or "type=top" in st) else 0.0)
-                if low < top:
-                    return False
-            cy += 1
-        return True
-
-    seen = {start: float(start[1])}
-    edges = {}
-    q = deque([start])
-    while q:
-        x, y, z = q.popleft()
-        s = seen[(x, y, z)]
-        out = []
-        for dx, dz in H4:
-            nx, nz = x + dx, z + dz
-            if not (-2 <= nx <= NX + 1 and -2 <= nz <= NZ + 1):
-                continue
-            for ny in (y + 1, y, y - 1, y - 2):
-                r = surf(nx, ny, nz, dx, dz)
-                if r is None:
-                    continue
-                enter, stand = r
-                if enter - s > 0.6 or stand > s + 1.01 or stand < s - 1.01:
-                    continue
-                if not headroom(nx, ny, nz, stand):
-                    continue
-                out.append(((nx, ny if stand < ny + 1 else ny + 1, nz), stand))
-                break
-        here = g(x, y, z)
-        if bname(here) == "ladder" or (bname(g(x, y - 1, z)) == "ladder" and passable(here)):
-            for ny in (y + 1, y - 1):
-                st = g(x, ny, z)
-                if bname(st) == "ladder" or (bname(here) == "ladder" and passable(st)):
-                    out.append(((x, ny, z), float(ny)))
-        edges[(x, y, z)] = [c for c, _ in out]
-        for c, st in out:
-            if c not in seen:
-                seen[c] = st
-                q.append(c)
-    return seen, edges
-
-
-def back_reach(edges, start):
-    rev = {}
-    for a, bs in edges.items():
-        for b in bs:
-            rev.setdefault(b, []).append(a)
-    ok = {start}
-    q = deque([start])
-    while q:
-        c = q.popleft()
-        for a in rev.get(c, ()):
-            if a not in ok:
-                ok.add(a)
-                q.append(a)
-    return ok
-
-
-def near(cells, p, r=1):
-    x, y, z = p
-    return any((x + a, y + b, z + c) in cells for a in range(-r, r + 1) for c in range(-r, r + 1)
-               for b in (-1, 0, 1) if abs(a) + abs(c) <= r)
-
-
+H4 = R.H4
 START = (CX + 43, 0, CZ)
-LIGHT = {"lantern": 15, "torch": 14, "wall_torch": 14, "redstone_torch": 7, "redstone_wall_torch": 7, "glowstone": 15}
+LIMITES = (-2, NX + 1, -2, NZ + 1)
 
 
-def light_map(o):
-    b = o.t.blocks
-    lv = {}
-    q = deque()
-    for p, (st, _) in b.items():
-        n = LIGHT.get(bname(st))
-        if n and "lit=false" not in st:
-            lv[p] = n
-            q.append(p)
-    while q:
-        p = q.popleft()
-        n = lv[p] - 1
-        if n <= 0:
-            continue
-        x, y, z = p
-        for a, c, d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
-            np_ = (x + a, y + c, z + d)
-            st = b.get(np_, (None,))[0]
-            if st is None or is_full(st):
-                continue
-            if lv.get(np_, 0) < n:
-                lv[np_] = n
-                q.append(np_)
-    return lv
-
-
-def floating(o):
-    b = o.t.blocks
-    solid = {p for p, (st, _) in b.items() if bname(st) not in ("air",)}
-    seeds = [p for p in solid if p[1] in (0, plano.HYP[4])]
-    seen = set(seeds)
-    q = deque(seeds)
-    while q:
-        x, y, z = q.popleft()
-        for a, c, d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
-            n = (x + a, y + c, z + d)
-            if n in solid and n not in seen:
-                seen.add(n)
-                q.append(n)
-    return sorted(solid - seen)
+def vista(o, solved):
+    return R.Vista({p: v[0] for p, v in o.t.blocks.items()}, o.solved if solved else None, suelo_y=-1)
 
 
 def ruin_ratio(o):
@@ -218,55 +67,48 @@ def auditar(o, main, hyp, report=None):
     if (jm[0], jm[1] - 1, jm[2]) != jh:
         msgs.append(f"jigsaws desalineados {jm} {jh}")
     # recorrido con puzles resueltos
-    vs = Vista(o, True)
-    seen, edges = walker(vs, START)
+    seen, edges = R.andar(vista(o, True), START, LIMITES)
     cells = set(seen)
-    back = back_reach(edges, START)
-    noret = [c for c in cells if c not in back and (c[0], c[2]) not in o.ruined]
+    noret = R.sin_vuelta(edges, START, o.ruined)
     if noret:
         msgs.append(f"{len(noret)} celdas sin vuelta a la entrada, p. ej. {sorted(noret)[:5]}")
     for label, table, p in o.feat["cofre"]:
-        if not near(cells, P(*p)):
+        if not R.cerca(cells, P(*p)):
             msgs.append(f"cofre inaccesible: {label} {p}")
     for kind in ("palanca", "marco", "guardian", "puzle", "trampa", "escalera", "puerta"):
         for label, p in o.feat[kind]:
-            if not near(cells, P(*p), 2):
+            if not R.cerca(cells, P(*p), 2):
                 msgs.append(f"{kind} inaccesible: {label} {p}")
     for p, (st, _) in o.t.blocks.items():
         if bname(st) == "ladder" and p not in cells:
             msgs.append(f"escalera de mano inaccesible en {p}")
-        if bname(st) in ("barrel",) and not near(cells, p):
+        if bname(st) in ("barrel",) and not R.cerca(cells, p):
             msgs.append(f"barril inaccesible en {p}")
     # con los puzles cerrados lo oculto no se alcanza
-    seen_c, _ = walker(Vista(o, False), START)
+    seen_c, _ = R.andar(vista(o, False), START, LIMITES)
     hidden = [f for f in o.feat["cofre"] if "oculto" in f[0] or f[1] == "premium"]
     for label, table, p in hidden:
-        if near(set(seen_c), P(*p)):
+        if R.cerca(set(seen_c), P(*p)):
             msgs.append(f"cofre oculto alcanzable sin resolver puzles: {label}")
     # nada flotando
-    fl = floating(o)
+    fl = R.flotantes({p: v[0] for p, v in o.t.blocks.items()}, (0, plano.HYP[4]))
     if fl:
         msgs.append(f"{len(fl)} bloques flotando, p. ej. {[(p, o.t.blocks[p][0]) for p in fl[:4]]}")
     # luz en los generadores
-    lv = light_map(o)
+    lv = R.luz({p: v[0] for p, v in o.t.blocks.items()})
     for label, mob, p in o.feat["generador"]:
-        x, y, z = P(*p)
-        mx = max([lv.get((x + a, y + b, z + c), 0) for a in range(-4, 5) for c in range(-4, 5) for b in (-1, 0, 1)])
+        mx = R.luz_generador(lv, P(*p))
         if mx > 0:
             msgs.append(f"luz {mx} junto al generador {label}")
-    # redstone coherente
-    for p, (st, _) in o.t.blocks.items():
-        b = bname(st)
-        if b == "sticky_piston" and "extended=true" in st:
-            f = prop(st, "facing")
-            d = {"north": (0, 0, -1), "south": (0, 0, 1), "east": (1, 0, 0), "west": (-1, 0, 0)}[f]
-            h = o.t.get(p[0] + d[0], p[1], p[2] + d[2])
-            if not h or "piston_head" not in h or f"facing={f}" not in h:
-                msgs.append(f"pistón extendido sin cabeza en {p}")
-        if b in ("lever", "comparator", "stone_pressure_plate", "tripwire_hook", "tripwire") and "powered=true" in st:
-            msgs.append(f"{b} encendido al generarse en {p}")
-        if b == "dispenser" and "triggered=true" in st:
-            msgs.append(f"dispensador disparado en {p}")
+    # redstone: estados estables al generarse (simulación común) y la palanca del puzle 2 abre la puerta
+    errs, _ = redstone.check_static(o.t)
+    msgs += errs
+    lever = P(*o.feat["palanca"][0][1])
+    sim = redstone.Sim(o.t, {lever: True})
+    door = P(*o.feat["puzle"][1][1]) if "pistones" in o.feat["puzle"][1][0] else P(*o.feat["puzle"][0][1])
+    for (x, y, z), (st, _) in o.t.blocks.items():
+        if bname(st) == "sticky_piston" and abs(x - door[0]) + abs(z - door[2]) <= 2 and sim.powered((x, y, z)):
+            msgs.append(f"con la palanca encendida el pistón {(x, y, z)} sigue con señal")
     # ruina
     dmg, tot = ruin_ratio(o)
     pct = 100.0 * dmg / tot

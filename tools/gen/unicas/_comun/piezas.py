@@ -111,16 +111,6 @@ def tripwire_trap(put, hook_a, hook_b, y, along, dispensers, arrows=6):
             {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(3)]})
 
 
-def plate_trap(put, plates, dispensers, arrows=6):
-    """Trampa de losas: placas de presión de piedra en `plates` [(x, y, z)]; cada dispensador ((x, y, z), facing) va
-    junto a una placa, que lo activa al pisarla (la placa da señal a sus vecinos)."""
-    for p in plates:
-        put(*p, "stone_pressure_plate[powered=false]")
-    for (p, facing) in dispensers:
-        put(*p, f"dispenser[facing={facing},triggered=false]",
-            {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(3)]})
-
-
 def door(put, x, y, z, facing, kind="spruce_door", hinge="left"):
     """Puerta de dos bloques cerrada (también de hierro: se abre al recibir señal)."""
     for h, dy in (("lower", 0), ("upper", 1)):
@@ -134,6 +124,57 @@ def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
     put(x, y - 2, z, "tnt[unstable=false]")
     for p in warn or ():
         put(*p, "cracked_stone_bricks")
+
+
+def lever_door(put, door, slide, face, block, wall):
+    """Puerta secreta enrasada de 1 x 2 al fondo de un nicho, con su palanca (Coliseo, probada en servidor).
+
+    door: bloque inferior de la puerta; slide: dirección (dentro del muro) hacia la que se recoge; face: dirección de
+    la sala, donde quedan el nicho y la palanca. Usa `piston_door` y la alimenta con una antorcha de redstone en la cara
+    oculta del bloque de la palanca (y el bloque macizo de encima para el pistón superior): palanca encendida ->
+    antorcha apagada -> la puerta se abre. El resto del muro lo pone quien llama. Devuelve las posiciones y el estado
+    con la puerta abierta (pos -> estado) para auditar el recorrido."""
+    sx, sz = DIRV[slide]
+    fx, fz = DIRV[face]
+    x, y, z = door
+    cells = [(x, y, z), (x, y + 1, z)]
+    piston_door(put, cells, (sx, sz), OPP[slide], block)
+    torch = (x + 3 * sx, y, z + 3 * sz)
+    base = (torch[0] + fx, y, torch[2] + fz)
+    lever = (base[0] + fx, y, base[2] + fz)
+    put(*torch, f"redstone_wall_torch[facing={OPP[face]},lit=true]")
+    put(torch[0], y + 1, torch[2], wall)
+    put(*base, wall)
+    put(*lever, f"lever[face=wall,facing={face},powered=false]")
+    for c in cells:
+        put(c[0] + fx, c[1], c[2] + fz, "air")
+    opened = {}
+    for (cx, cy, cz) in cells:
+        opened[(cx, cy, cz)] = "minecraft:air"
+        opened[(cx + sx, cy, cz + sz)] = block if ":" in block else "minecraft:" + block
+        opened[(cx + 2 * sx, cy, cz + 2 * sz)] = f"minecraft:sticky_piston[extended=false,facing={OPP[slide]}]"
+    opened[torch] = f"minecraft:redstone_wall_torch[facing={OPP[face]},lit=false]"
+    opened[lever] = f"minecraft:lever[face=wall,facing={face},powered=true]"
+    return {"door": door, "lever": lever, "torch": torch, "opened": opened}
+
+
+def plate_trap(put, plates, side, arrows=6, plate="stone_pressure_plate"):
+    """Trampa de placas con flechas: cada placa (x, y, z) activa los dos dispensadores a ras de suelo que tiene a
+    los lados (`side` y su opuesto), que disparan hacia ella."""
+    for (x, y, z) in plates:
+        put(x, y, z, f"{plate}[powered=false]")
+        for d in (side, OPP[side]):
+            a, c = DIRV[d]
+            put(x + a, y, z + c, f"dispenser[facing={OPP[d]},triggered=false]",
+                {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": arrows}]})
+
+
+def item_frame(x, y, z, facing_byte, item=None):
+    """NBT de un marco: sin `block_pos` el juego descarta la entidad al colocar la plantilla."""
+    n = {"id": "minecraft:item_frame", "Facing": B(facing_byte), "block_pos": [x, y, z]}
+    if item:
+        n["Item"] = {"id": "minecraft:" + item, "count": 1}
+    return n
 
 
 # ------------------------------------------------------------------ escalera de caracol
