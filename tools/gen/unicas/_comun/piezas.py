@@ -1,241 +1,186 @@
-"""Piezas comunes y parametrizadas para las estructuras únicas (uso: from unicas._comun.piezas import ...).
+"""Piezas comunes de las estructuras únicas: todas quedan en un estado coherente al colocarse (sin depender de
+actualizaciones de bloque que no ocurren al generar)."""
+from core import B, F
 
-- Construcción: door, dispenser (con flechas), spawner, guardian, hang, stair.
-- Botín: pool, table, named (con `solo_sin_lootr` en el grupo extra).
-- Redstone: simulate (punto fijo con palancas, antorchas de pared, polvo con escalones y puertas de hierro; devuelve
-  None en las puertas si el circuito oscila), settle_redstone (escribe el estado de reposo coherente), wire_links.
-- Acabado: connect (conexiones de vallas, muros y cristales según sus vecinos), processors (lista de reglas al azar).
-- Auditoría: shifted/walk (recorrido a pie de lint en plantillas con sótano en y < 0).
-"""
-from collections import deque
-from core import Template, B, F, parse_state, state_str
-import lint
+DIRV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
+VDIR = {v: k for k, v in DIRV.items()}
+OPP = {"north": "south", "south": "north", "east": "west", "west": "east"}
 
 
-def door(t, x, y, z, facing, kind="spruce_door", hinge="left"):
-    for h, dy in (("lower", 0), ("upper", 1)):
-        t.set(x, y + dy, z, f"{kind}[facing={facing},half={h},hinge={hinge},open=false,powered=false]")
+def text(key, fallback):
+    return {"translate": key, "fallback": fallback}
 
 
-def dispenser(t, x, y, z, facing, n=16, item="minecraft:arrow"):
-    t.set(x, y, z, f"dispenser[facing={facing},triggered=false]",
-          {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": item, "count": n}]})
+# ------------------------------------------------------------------ entidades de bloque
+def spawner(put, x, y, z, mob, potentials=False):
+    """Generador de monstruos de un solo tipo."""
+    e = {"entity": {"id": "minecraft:" + mob}}
+    nbt = {"id": "minecraft:mob_spawner", "SpawnData": e}
+    if potentials:
+        nbt["SpawnPotentials"] = [{"weight": 1, "data": e}]
+    put(x, y, z, "spawner", nbt)
 
 
-def spawner(t, x, y, z, mob):
-    t.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}}})
+def chest(put, x, y, z, facing, loot, kind="chest"):
+    """Cofre o barril con tabla de botín."""
+    st = f"barrel[facing={facing}]" if kind == "barrel" else f"{kind}[facing={facing}]"
+    put(x, y, z, st, {"id": "minecraft:" + ("barrel" if kind == "barrel" else kind), "LootTable": loot})
 
 
-def guardian(mob, name, health=40.0, equipment=None, drop=0.15):
-    """Guardián final: mob vanilla persistente con nombre (componente de texto), vida y equipo moderados."""
-    eq = equipment or {}
-    return {"id": "minecraft:" + mob, "PersistenceRequired": B(1), "CustomName": name, "CustomNameVisible": B(1),
-            "Health": F(health), "attributes": [{"id": "minecraft:max_health", "base": float(health)}],
-            "equipment": eq, "drop_chances": {k: F(drop) for k in eq}}
+def sign(put, x, y, z, facing, lines, wood="dark_oak"):
+    """Cartel de pared encerado; `lines`: hasta 4 componentes de texto (translate + fallback)."""
+    msgs = list(lines) + [{"text": ""}] * (4 - len(lines))
+    put(x, y, z, f"{wood}_wall_sign[facing={facing}]",
+        {"id": "minecraft:sign", "is_waxed": B(1),
+         "front_text": {"messages": msgs, "color": "black", "has_glowing_text": B(0)},
+         "back_text": {"messages": [{"text": ""}] * 4, "color": "black", "has_glowing_text": B(0)}})
 
 
-def hang(t, x, y, z, kind="lantern"):
-    t.set(x, y, z, f"{kind}[hanging=true]")
+def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chances=None, death_loot=None):
+    """NBT de un guardián con nombre, persistente y con atributos moderados."""
+    n = {"id": "minecraft:" + mob, "PersistenceRequired": B(1), "CustomNameVisible": B(1),
+         "CustomName": text(key, fallback), "Health": F(float(health)),
+         "attributes": [{"id": "minecraft:max_health", "base": float(health)}]}
+    if armor:
+        n["attributes"].append({"id": "minecraft:armor", "base": float(armor)})
+    if equipment:
+        n["equipment"] = equipment
+    if drop_chances:
+        n["drop_chances"] = {k: F(v) for k, v in drop_chances.items()}
+    if death_loot:
+        n["DeathLootTable"] = death_loot
+    return n
 
 
-def stair(kind, facing, half="bottom"):
-    return f"{kind}[facing={facing},half={half},shape=straight]"
+# ------------------------------------------------------------------ redstone
+def piston_door(put, door, axis, side, block):
+    """Puerta secreta: cada bloque de `door` (x, y, z) queda sujeto por un pistón pegajoso EXTENDIDO situado a dos
+    casillas en la dirección `axis` (dx, dz), con la cabeza entre ambos mirando a `side`. La alimentación (palanca,
+    antorcha...) la pone quien llama; al quitarla, los pistones retiran los bloques y dejan la puerta abierta."""
+    ax, az = axis
+    for (x, y, z) in door:
+        put(x, y, z, block)
+        put(x + ax, y, z + az, f"piston_head[facing={side},short=false,type=sticky]")
+        put(x + 2 * ax, y, z + 2 * az, f"sticky_piston[extended=true,facing={side}]")
 
 
+def wire(put, path, y, ends=()):
+    """Polvo de redstone apagado a lo largo de `path` [(x, z)...]; `ends` da, para el primero y el último, la
+    dirección extra a la que apunta (p. ej. hacia un comparador o hacia el bloque que alimenta)."""
+    extra = dict(ends)
+    for i, (x, z) in enumerate(path):
+        sides = set()
+        for j in (i - 1, i + 1):
+            if 0 <= j < len(path):
+                sides.add(VDIR[(path[j][0] - x, path[j][1] - z)])
+        if i in extra:
+            sides.add(extra[i])
+        if len(sides) == 1:                       # un tramo suelto apunta en línea recta
+            sides.add(OPP[next(iter(sides))])
+        put(x, y, z, "redstone_wire[" + ",".join(f"{d}={'side' if d in sides else 'none'}"
+                                                  for d in ("north", "south", "east", "west")) + ",power=0]")
 
 
-# ------------------------------------------------------------------ botín
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
+def comparator(put, x, y, z, facing):
+    """Comparador apagado que lee el bloque en `facing` y emite hacia el lado contrario."""
+    put(x, y, z, f"comparator[facing={facing},mode=compare,powered=false]", {"id": "minecraft:comparator", "OutputSignal": 0})
 
 
-def table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
+def tripwire_trap(put, hook_a, hook_b, y, along, dispensers, arrows=6):
+    """Trampa de hilo (templo de la jungla): ganchos en hook_a y hook_b (x, z) unidos en línea recta a lo largo de
+    `along` ('x' o 'z'); cada dispensador ((x, y, z), facing) va junto al bloque al que se agarra un gancho."""
+    (ax, az), (bx, bz) = hook_a, hook_b
+    if along == "z":
+        put(ax, y, az, f"tripwire_hook[attached=true,facing={'south' if bz > az else 'north'},powered=false]")
+        put(bx, y, bz, f"tripwire_hook[attached=true,facing={'north' if bz > az else 'south'},powered=false]")
+        cells = [(ax, z) for z in range(min(az, bz) + 1, max(az, bz))]
+        props = "north=true,south=true,east=false,west=false"
+    else:
+        put(ax, y, az, f"tripwire_hook[attached=true,facing={'east' if bx > ax else 'west'},powered=false]")
+        put(bx, y, bz, f"tripwire_hook[attached=true,facing={'west' if bx > ax else 'east'},powered=false]")
+        cells = [(x, az) for x in range(min(ax, bx) + 1, max(ax, bx))]
+        props = "north=false,south=false,east=true,west=true"
+    for (x, z) in cells:
+        put(x, y, z, f"tripwire[attached=true,disarmed=false,powered=false,{props}]")
+    for (p, facing) in dispensers:
+        put(*p, f"dispenser[facing={facing},triggered=false]",
+            {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(3)]})
 
 
-
-def named(e, text):
-    """Añade un nombre (componente de texto traducible) a una entrada de botín de loot.item."""
-    mods = e.get("modifier", [])
-    mods = mods if isinstance(mods, list) else [mods]
-    e["modifier"] = mods + [{"type": "minecraft:set_name", "name": text, "target": "item_name"}]
-    return e
-
-
-# ------------------------------------------------------------------ redstone y acabado
-SIDES = ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0))
-HOR = {"east": (1, 0), "west": (-1, 0), "south": (0, 1), "north": (0, -1)}
+def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
+    """Trampa de losa (templo del desierto): placa en (x, y, z) sobre el suelo y TNT dos bloques más abajo;
+    `warn` [(x, y, z)] recibe ladrillos agrietados como aviso."""
+    put(x, y, z, f"{plate}[powered=false]")
+    put(x, y - 2, z, "tnt[unstable=false]")
+    for p in warn or ():
+        put(*p, "cracked_stone_bricks")
 
 
-def _b(st):
-    return lint.bname(st)
+# ------------------------------------------------------------------ escalera de caracol
+RING = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]
+HOLES = (RING[5], RING[6])
+GUARD = [(-2, 0), (-2, 1), (-2, 2), (-1, 2)]
 
 
-def wire_links(t, x, y, z):
-    """Direcciones en que conecta el polvo: (dirección, dy del vecino) con polvo, antorcha o palanca."""
-    out = []
-    for name, (dx, dz) in HOR.items():
-        n = t.get(x + dx, y, z + dz)
-        if n and _b(n) in ("redstone_wire", "redstone_wall_torch", "redstone_torch", "lever"):
-            out.append((name, 0))
-            continue
-        up, above = t.get(x + dx, y + 1, z + dz), t.get(x, y + 1, z)
-        if up and _b(up) == "redstone_wire" and (above is None or lint.passable(above)):
-            out.append((name, 1))
-            continue
-        down, side = t.get(x + dx, y - 1, z + dz), t.get(x + dx, y, z + dz)
-        if down and _b(down) == "redstone_wire" and (side is None or lint.passable(side)):
-            out.append((name, -1))
-    return out
+def spiral_stair(put, cx, cz, feet, stair, newel, landing, newel_top=None):
+    """Escalera de caracol de una casilla alrededor de un machón de 1x1 en (cx, cz): seis peldaños por tramo de 6 de
+    altura y rellano de dos casillas al norte. `feet`: alturas de los pies de cada planta de salida (cada 6). Abre el
+    hueco del forjado de llegada (HOLES) y devuelve las celdas a proteger con barandilla (GUARD) relativas al eje."""
+    top = newel_top if newel_top is not None else feet[-1] + 6
+    for y in range(feet[0] - 1, top + 1):
+        put(cx, y, cz, newel)
+    for f in feet:
+        for k in range(2, 8):
+            x, z = RING[k]
+            px, pz = RING[k - 1]
+            facing = VDIR[(x - px, z - pz)]
+            put(cx + x, f + k - 2, cz + z, f"{stair}[facing={facing},half=bottom]")
+            if k >= 3:
+                put(cx + x, f + k - 3, cz + z, f"{stair}[facing={OPP[facing]},half=top]")
+        for k in (0, 1):
+            put(cx + RING[k][0], f - 1, cz + RING[k][1], landing)
+        for (x, z) in HOLES:
+            if f != feet[0]:
+                put(cx + x, f - 1, cz + z, "air")
+    for (x, z) in HOLES:
+        put(cx + x, feet[-1] + 5, cz + z, "air")
+    return GUARD
 
 
-def wire_conn(t, x, y, z):
-    links = dict(wire_links(t, x, y, z))
-    return {n: ("up" if links.get(n) == 1 else "side" if n in links else "none") for n in HOR}
-
-
-def simulate(t, levers_on):
-    """Evalúa el circuito del puzle (y la puerta de pistones) hasta un punto fijo.
-    Devuelve (potencia de cada polvo, antorchas encendidas, puertas de hierro alimentadas)."""
-    blocks = {p: st for p, (st, _) in t.blocks.items()}
-    wires = [p for p, st in blocks.items() if _b(st) == "redstone_wire"]
-    torches = {p: st for p, st in blocks.items() if _b(st) == "redstone_wall_torch"}
-    levers = {p: st for p, st in blocks.items() if _b(st) == "lever"}
-    lit = {p: True for p in torches}
-    links = {w: wire_links(t, *w) for w in wires}
-    stable = False
-
-    def attached(p, st, opposite=True):
-        dx, dz = HOR[parse_state(st)[1]["facing"]]
-        return (p[0] - dx, p[1], p[2] - dz)
-
-    power = {}
-    for _ in range(40):
-        strong = set()
-        for p, st in levers.items():
-            if p in levers_on:
-                strong.add(attached(p, st))
-        for p, on in lit.items():
-            if on:
-                strong.add((p[0], p[1] + 1, p[2]))
-        # polvo: fuentes = antorcha encendida vecina (salvo su soporte), palanca activa o bloque fuertemente alimentado
-        power = {w: 0 for w in wires}
-        q = deque()
-        for w in wires:
-            src = 0
-            for dx, dy, dz in SIDES:
-                n = (w[0] + dx, w[1] + dy, w[2] + dz)
-                if n in torches and lit[n] and attached(n, torches[n]) != w:
-                    src = 15
-                if n in levers and n in levers_on:
-                    src = 15
-                if n in strong and n not in torches and n not in levers and blocks.get(n) and _b(blocks[n]) != "redstone_wire":
-                    src = 15
-            if src:
-                power[w] = src
-                q.append(w)
-        while q:
-            w = q.popleft()
-            for name, dy in links[w]:
-                dx, dz = HOR[name]
-                n = (w[0] + dx, w[1] + dy, w[2] + dz)
-                if n in power and power[n] < power[w] - 1:
-                    power[n] = power[w] - 1
-                    q.append(n)
-        # bloques alimentados por el polvo: el de debajo y aquel al que apunta un extremo de línea
-        powered = set(strong)
-        for w, pw in power.items():
-            if pw <= 0:
-                continue
-            powered.add((w[0], w[1] - 1, w[2]))
-            c = [d for d, _ in links[w]]
-            if len(c) == 1:
-                dx, dz = HOR[c[0]]
-                powered.add((w[0] - dx, w[1], w[2] - dz))
-        new = {p: attached(p, st) not in powered for p, st in torches.items()}
-        if new == lit:
-            stable = True
-            break
-        lit = new
-    if not stable:                         # el circuito oscila: un reloj fundiría las antorchas
-        return power, lit, None
-    doors = {}
-    for p, st in blocks.items():
-        if _b(st) == "iron_door" and "half=lower" in st:
-            on = False
-            for hp in (p, (p[0], p[1] + 1, p[2])):
-                for dx, dy, dz in SIDES:
-                    n = (hp[0] + dx, hp[1] + dy, hp[2] + dz)
-                    if n in torches and lit[n] and attached(n, torches[n]) != hp:
-                        on = True
-                    if n in powered and blocks.get(n) and not lint.passable(blocks[n]):
-                        on = True
-            doors[p] = on
-    return power, lit, doors
-
-
-def settle_redstone(t):
-    """Escribe en el polvo y las antorchas el estado de reposo que da la simulación (todo coherente al colocarse)."""
-    power, lit, _ = simulate(t, set())
-    for p, pw in power.items():
-        c = wire_conn(t, *p)
-        t.set(*p, state_str("minecraft:redstone_wire", dict(c, power=str(pw))))
-    for p, on in lit.items():
-        bid, props = parse_state(t.get(*p))
-        props["lit"] = "true" if on else "false"
-        t.set(*p, state_str(bid, props))
-
-
-THIN = ("_fence", "_wall", "_pane")
+# ------------------------------------------------------------------ conexiones
+NONFULL = ("air", "stairs", "slab", "fence", "pane", "bars", "_wall", "door", "carpet", "lantern", "torch",
+           "chest", "lectern", "cauldron", "pot", "sign", "banner", "bed", "candle", "chain", "rod", "plate",
+           "cobweb", "wire", "comparator", "hook", "tripwire", "skull", "brewing", "cluster", "enchanting",
+           "fern", "blossom", "azalea", "orchid", "allium", "valley", "pitcher", "eyeblossom", "torchflower",
+           "vine", "piston_head", "composter", "water", "lava", "lever", "button", "ladder")
 
 
 def connect(t):
+    """Vallas, cristales, barrotes y muros de piedra conectan con sus vecinos (el juego no los actualiza al colocar)."""
+    def name(st):
+        return st.split("[")[0].replace("minecraft:", "") if st else ""
+
+    def full(st):
+        return bool(st) and not any(k in name(st) for k in NONFULL)
+
     for (x, y, z), (st, nbt) in list(t.blocks.items()):
-        b = _b(st)
-        kind = next((k for k in THIN if b.endswith(k)), None)
-        if not kind or "fence_gate" in b:
+        b = name(st)
+        fam = "fence" if b.endswith("_fence") else "pane" if (b.endswith("_pane") or b == "iron_bars") else \
+            "wall" if (b.endswith("_wall") and "wall_" not in b) else None
+        if not fam:
             continue
-        props = parse_state(st)[1]
-        for name, (dx, dz) in HOR.items():
-            n = t.get(x + dx, y, z + dz)
-            nb = _b(n) if n else None
-            ok = nb is not None and (nb.endswith(kind) or (not lint.passable(n) and lint.solid_full(n)
-                                                         and not nb.endswith(THIN) and "stairs" not in nb))
-            if kind == "_wall":
-                props[name] = "low" if ok else "none"
-            else:
-                props[name] = "true" if ok else "false"
-        if kind == "_wall":
-            props["up"] = "true"
-        props.setdefault("waterlogged", "false")
-        t.set(x, y, z, state_str(parse_state(st)[0], props))
-
-
-# ------------------------------------------------------------------ montaje y auditoría
-def processors(rules):
-    return {"processors": [{"processor_type": "minecraft:rule", "rules": [
-        {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + a, "probability": p},
-         "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + b}
-        for a, b, p in rules]}]}
-
-
-
-# ------------------------------------------------------------------ auditoría
-DY = 20     # desplazamiento vertical para el recorrido a pie: lint.walk toma y < 0 como suelo natural
-
-
-def shifted(t):
-    s = Template(t.name)
-    s.blocks = {(x, y + DY, z): v for (x, y, z), v in t.blocks.items()}
-    s.jigsaws = [dict(j, pos=(j["pos"][0], j["pos"][1] + DY, j["pos"][2])) for j in t.jigsaws]
-    return s
-
-
-def walk(t):
-    return {(x, y - DY, z) for (x, y, z) in lint.walk(shifted(t))}
-
-
+        props = {}
+        for d, (a, c) in DIRV.items():
+            o = t.get(x + a, y, z + c)
+            ob = name(o)
+            same = (fam == "fence" and (ob.endswith("_fence") or "fence_gate" in ob)) or \
+                   (fam == "pane" and (ob.endswith("_pane") or ob == "iron_bars")) or \
+                   (fam == "wall" and ob.endswith("_wall") and "wall_" not in ob)
+            con = same or full(o)
+            props[d] = ("low" if con else "none") if fam == "wall" else ("true" if con else "false")
+        if fam == "wall":
+            ns, ew = props["north"] != "none" and props["south"] != "none", props["east"] != "none" and props["west"] != "none"
+            straight = (ns and props["east"] == props["west"] == "none") or (ew and props["north"] == props["south"] == "none")
+            props["up"] = "false" if straight else "true"
+        props["waterlogged"] = "false"
+        t.blocks[(x, y, z)] = (f"minecraft:{b}[" + ",".join(f"{k}={v}" for k, v in sorted(props.items())) + "]", nbt)

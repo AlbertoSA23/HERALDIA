@@ -12,9 +12,9 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core import Template, parse_state
-from unicas._comun.piezas import (door, dispenser, spawner, guardian as guardian_mob, hang, stair, pool as _pool,
-                            table as _table, named as _named, simulate, settle_redstone, connect, processors,
-                            shifted, walk, SIDES, DY, _b)
+from unicas._comun.herramientas import (door, dispenser, hang, stair, pool as _pool, table as _table,
+                                  named as _named, simulate, settle_redstone, processors, shifted, walk, SIDES, DY, _b)
+from unicas._comun import piezas
 from loot import item, empty
 import lint
 
@@ -508,8 +508,8 @@ def subsuelo(t):
         for z in (20, 33):
             if x not in (17, 20) and (x + z) % 3:
                 t.fill(x, -6, z, x, -5, z, "bookshelf")
-    spawner(t, 20, -6, 31, "zombie")
-    spawner(t, 20, -6, 25, "spider")
+    piezas.spawner(t.set, 20, -6, 31, "zombie")
+    piezas.spawner(t.set, 20, -6, 25, "spider")
     chest(t, 14, -6, 21, "east", "archivo")
     chest(t, 26, -6, 33, "west", "archivo")
     t.set(14, -6, 27, "lectern[facing=east,has_book=false,powered=false]")
@@ -569,7 +569,7 @@ def subsuelo(t):
     for x in (10, 14):
         for z in (7, 13):
             t.fill(x, -13, z, x, -9, z, "polished_deepslate")
-    spawner(t, 12, -13, 6, "skeleton")
+    piezas.spawner(t.set, 12, -13, 6, "skeleton")
     door(t, 7, -13, 10, "west", "iron_door")
     t.set(8, -12, 11, "stone_button[face=wall,facing=east,powered=false]")
     t.set(6, -12, 11, "stone_button[face=wall,facing=west,powered=false]")
@@ -583,7 +583,9 @@ def subsuelo(t):
 
 
 def guardian():
-    return guardian_mob("skeleton", text("guardian"), 40.0, {
+    k = text("guardian")
+    return piezas.guardian("skeleton", k["translate"], k["fallback"], 40.0, drop_chances={
+        "mainhand": 0.15, "head": 0.15, "chest": 0.15}, equipment={
         "mainhand": {"id": "minecraft:bow", "count": 1, "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
         "head": {"id": "minecraft:golden_helmet", "count": 1},
         "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}})
@@ -636,7 +638,7 @@ def build_full():
     t = Template(P + "/_completa")
     surface(t)
     subsuelo(t)
-    connect(t)
+    piezas.connect(t)
     settle_redstone(t)
     # jigsaws al final: entrada (para la auditoría a pie) y unión vertical superficie-subsuelo
     t.jigsaw(20, 0, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty",
