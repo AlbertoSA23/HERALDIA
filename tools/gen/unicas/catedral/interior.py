@@ -89,12 +89,12 @@ def furnish_symmetric(c):
         c.lamp(int(round(cx - 1.5 * ca)), 1, int(round(cz - 1.5 * sa)) + (1 if a else 0))
     # --- torres: un farol por estancia
     for f in (1, 12, 17, 28, 40):
-        c.hang(14, f + 2, 20, f + 3) if f in (12,) else c.lamp(15, f, 21)
-    c.lamp(15, 56, 21)
+        c.hang(14, f + 2, 20, f + 4) if f in (12,) else c.lamp(15, f, 21)
+    c.lamp(9, 56, 21)
     # --- nártex y tribuna (órgano)
     for x in (10, 14):
         c.hang(x, 8, 27, 10)
-    for x in range(9, 15):
+    for x in (8, 9, 10, 14):
         h = 6 + (3 - abs(x - 11.5)) * 2
         for y in range(12, 12 + int(h)):
             c.set(x, y, 24, s("lightning_rod", facing="up"))
@@ -169,13 +169,14 @@ def annex(c):
     c.door(80, 1, 17, "north", "left", wood="spruce")
     # escalera sacristía -> biblioteca (z = 16, sube hacia el este)
     for k in range(8):
-        x = 80 + k
+        x = 82 + k
         c.stair_flight([(x, 1 + k, 16, stairs("spruce", "east"))])
-        c.fill(x, 1, 16, x, k, 16, "spruce_planks")
-    c.air(85, 8, 16, 86, 8, 16)
-    for x in (85, 86):
+        if k:
+            c.fill(x, 1, 16, x, k, 16, "spruce_planks")
+    c.air(87, 8, 16, 88, 8, 16)
+    for x in (87, 88):
         c.set(x, 9, 15, "spruce_fence")
-    c.set(84, 9, 16, "spruce_fence")
+    c.set(86, 9, 16, "spruce_fence")
     # salida a la terraza del coro por la cubierta del anejo
     c.air(85, 17, 18, 86, 17, 18)
     # sacristía: armarios, cofres, pila, facistol
@@ -190,8 +191,8 @@ def annex(c):
     for x in range(81, 90, 4):
         c.hang(x, 6, 10, 8)
     c.lamp(93, 1, 15)
-    for x in range(88, 93):
-        c.set(x, 1, 16, "white_carpet" if x % 2 else "red_carpet")
+    for x in range(90, 93):
+        c.set(x, 1, 15, "white_carpet" if x % 2 else "red_carpet")
     # biblioteca: estanterías en los muros, mesas de lectura y atriles
     for x in range(79, 86):
         for y in range(9, 12):
@@ -227,6 +228,8 @@ def annex(c):
     c.set(93, 9, 10, "spruce_planks")
     c.candles(93, 10, 10, 3)
     c.set(89, 9, 5, s("cartography_table"))
+    c.hang(91, 13, 7, 15)
+    c.hang(84, 13, 9, 15)
     # torreta de servicio (escalera de caracol: sacristía -> triforio del coro -> terraza)
     tb(c)
 
@@ -289,7 +292,7 @@ def cloister(c):
                 c.set(x, 9, z, WALLB if (x + z) % 2 else SB)
             elif GX0 < x < GX1 and GZ0 < z < GZ1:
                 c.set(x, 0, z, "grass_block")
-            elif x in (GX0, GX1) or z in (GZ0, GZ1):
+            elif (x in (GX0, GX1) and GZ0 <= z <= GZ1) or (z in (GZ0, GZ1) and GX0 <= x <= GX1):
                 c.set(x, 0, z, PA)
                 along = x if z in (GZ0, GZ1) else z
                 mid = (GX0 + GX1) // 2 if z in (GZ0, GZ1) else (GZ0 + GZ1) // 2
@@ -375,6 +378,8 @@ def cloister(c):
     c.hang(64, 5, 65, 9)
     c.hang(60, 6, 61, 9)
     c.hang(68, 6, 69, 9)
+    c.hang(60, 6, 69, 9)
+    c.hang(68, 6, 61, 9)
     c.chest(58, 1, 71, "north", "menor", "sala capitular")
     for z in (62, 68):
         c.fill(S1, 3, z, S1, 6, z, "white_stained_glass_pane")

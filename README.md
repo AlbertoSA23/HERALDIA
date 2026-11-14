@@ -9,6 +9,7 @@ Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
 - **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+  - **Catedral gótica** (bosques y bosques de flores): fachada con dos torres y rosetón, nave con triforio y arbotantes, crucero con aguja, girola con capillas, sacristía, biblioteca, claustro y, bajo tierra, cripta, osarios y cámara del tesoro con puzle, trampas, generadores y guardián. Diseño en [docs/unicas/catedral.md](docs/unicas/catedral.md).
 
 ## Instalación
 

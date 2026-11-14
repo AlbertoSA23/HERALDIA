@@ -115,7 +115,7 @@ def ossuary(c):
     c.spawners.append(((82, -7, 43), "cave_spider"))
     for (x, y, z) in ((81, -7, 42), (83, -6, 44), (81, -5, 44), (83, -5, 42), (82, -4, 42)):
         c.set(x, y, z, "cobweb")
-    for (x, y, z) in ((83, -7, 42), (81, -7, 44)):
+    for (x, y, z) in ((81, -7, 44),):
         c.set(x, y, z, "gravel")
         c.ruin.add((x, y, z))
     # trampa 1: cable trampa en el eje (x = 82) con dos dispensadores de flechas
@@ -222,7 +222,7 @@ def treasury(c):
         c.set(lx, -6, 31, CSB)
         c.set(lx, -5, 30, s("oak_wall_sign", facing="north"), sign_nbt([f"heraldia.unicas.catedral.sello.{name}"]))
         c.candles(lx - 1, -7, 30, 2) if False else None
-    for (x, z) in ((103, 30), (113, 24), (103, 24)):
+    for (x, z) in ((105, 24), (113, 24), (103, 24)):
         c.candles(x, -7, z, 3)
     c.set(102, -5, 27, s("oak_wall_sign", facing="east"), sign_nbt(["heraldia.unicas.catedral.sello.pista1",
                                                                      "heraldia.unicas.catedral.sello.pista2"]))
@@ -347,7 +347,7 @@ def ruin_details(c):
     c.set(45, 28, 33, "cobblestone")
     c.set(44, 28, 32, "gravel")
     # panda sur del claustro hundida en parte
-    for x in range(40, 48):
+    for x in range(40, 47):
         for z in range(73, 77):
             for y in (6, 7, 8):
                 if c.get(x, y, z):

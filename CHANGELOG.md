@@ -8,6 +8,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Jugadores
 
+- Nueva estructura única: la catedral gótica, en bosques y bosques de flores. Torres con escalera de caracol hasta la azotea, triforio y pasarelas altas, terrazas y desván, campanario, sacristía con biblioteca y gabinete secreto, claustro, y bajo tierra cripta, osarios y una cámara del tesoro cerrada por un puzle de palancas, con trampas de flechas, generadores de monstruos y un guardián con nombre. 19 cofres, más ricos cuanto más escondidos.
 - Primera versión del mod: 72 aldeas enormes (36 estilos por bioma, cada uno en tamaño estándar y grande) que aparecen en chunks nuevos del Overworld, una cada 1000-2000 bloques.
 - Comandos de prueba `/function heraldia:muestrario` y `/function heraldia:familia/<familia>` para ver los estilos colocados en fila; sus mensajes salen en español o inglés según el idioma del cliente.
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
@@ -16,6 +17,8 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Técnico
 
+- Catedral (`tools/gen/unicas/catedral/`): modelo único en coordenadas propias dividido en dos piezas rígidas (superficie y cripta) unidas por un jigsaw vertical; auditoría propia como condición para generar (recorrido a pie, estancias sin acceso, bloques flotando, luz, redstone, proporción de ruina), planos por nivel y renders en `docs/unicas/catedral/`, y prueba de mecanismos en servidor real (`prueba_juego.py`).
+- `writer.py` suma a los textos traducibles el diccionario `LANG` de cada módulo de estructura única.
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
 - La ruta de los registros de 26.3 para validar es configurable (`--registries`, `MCMETA_SUMMARY` o `-Pmcmeta_summary`); por defecto se clona `misode/mcmeta` rama `26.3-summary` en `build/` y no se sube al repositorio.

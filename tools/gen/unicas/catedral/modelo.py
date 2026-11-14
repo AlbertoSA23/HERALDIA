@@ -55,10 +55,11 @@ class Catedral:
         return self.t.get(x, y, z)
 
     def fill(self, x1, y1, z1, x2, y2, z2, st):
-        self.t.fill(x1, y1, z1, x2, y2, z2, st)
+        if y2 >= y1:                       # un intervalo vacío (y2 < y1) no coloca nada
+            self.t.fill(x1, y1, z1, x2, y2, z2, st)
 
     def air(self, x1, y1, z1, x2, y2, z2):
-        self.t.fill(x1, y1, z1, x2, y2, z2, "air")
+        self.fill(x1, y1, z1, x2, y2, z2, "air")
 
     def chest(self, x, y, z, facing, tabla, sitio, kind="chest"):
         loot = f"heraldia:unicas/catedral/{tabla}"
@@ -136,10 +137,8 @@ class Catedral:
             self.air(x, 1, z, x, U - 1, z)
             self.fill(x, U, z, x, 27, z, PA if post else SB)
             H = roofh(r)
-            self.air(x, 28, z, x, H - 2, z)
-            if r == 5 and nave_part:
-                self.set(x, 28, z, ROOF)
-            self.fill(x, H - 1, z, x, H, z, ROOF)
+            self.air(x, 28, z, x, H - 3, z)
+            self.fill(x, H - 2, z, x, H, z, ROOF)
         elif r == 6:
             self.fill(x, 0, z, x, 27, z, SB)
             self.set(x, 0, z, PA)
@@ -201,9 +200,9 @@ class Catedral:
             U = vault(ri)
             self.air(x, 1, z, x, U - 1, z)
             self.fill(x, U, z, x, 27, z, SB)
-            H = roofh(ri)
-            self.air(x, 28, z, x, H - 2, z)
-            self.fill(x, H - 1, z, x, H, z, ROOF)
+            H = int(round(40 - 2 * d))
+            self.air(x, 28, z, x, H - 4, z)
+            self.fill(x, max(28, H - 3), z, x, H, z, ROOF)
         elif d <= 6.5:
             self.fill(x, 0, z, x, 27, z, SB)
             self.set(x, 0, z, PA)
@@ -257,8 +256,8 @@ class Catedral:
             self.air(x, 1, z, x, U - 1, z)
             self.fill(x, U, z, x, 27, z, SB)
             H = max(roofh(r), roofh(min(rx, 6)))
-            self.air(x, 28, z, x, H - 2, z)
-            self.fill(x, H - 1, z, x, H, z, ROOF)
+            self.air(x, 28, z, x, H - 3, z)
+            self.fill(x, H - 2, z, x, H, z, ROOF)
             return
         if r in (6, 7) and rx in (5, 6):
             self.fill(x, 0, z, x, 27, z, PA)          # pilar del crucero
@@ -302,8 +301,8 @@ class Catedral:
             self.air(x, 1, z, x, U - 1, z)
             self.fill(x, U, z, x, 27, z, SB)
             H = roofh(rx)
-            self.air(x, 28, z, x, H - 2, z)
-            self.fill(x, H - 1, z, x, H, z, ROOF)
+            self.air(x, 28, z, x, H - 3, z)
+            self.fill(x, H - 2, z, x, H, z, ROOF)
             return
         # hastial del brazo (z = 7..8): muro de dos capas hasta la cubierta, rosetón y portada
         H = roofh(rx)
@@ -313,7 +312,7 @@ class Catedral:
         for y in range(12, 26):
             dist = math.hypot(x - 65, y - cy)
             if dist <= rr:
-                self.set(x, y, z, self.rose_cell(x - 65, y - cy, dist, z == 7))
+                self.set(x, y, z, self.rose_cell(x - 65, y - cy, dist, True))
         if rx <= 1:
             self.air(x, 1, z, x, 2, z)
             self.fill(x, 3, z, x, 6, z, CSB)
@@ -368,6 +367,12 @@ class Catedral:
         self.fill(tx0 + 1, 0, tz0 + 1, tx0 + 3, 0, tz0 + 3, PA)
         self.fill(10, 0, 16, 10, 58, 16, SB)
         self.spiral(10, 16, start=0, k_max=110)
+        for k in range(4, 110, 12):                       # antorchas en el núcleo, a la altura de la cabeza
+            dx, dz = RING[k % 8]
+            if dx == 0 or dz == 0:
+                y = int(0.5 * (k + 1)) + 2
+                f = {(1, 0): "east", (-1, 0): "west", (0, 1): "south", (0, -1): "north"}[(dx, dz)]
+                self.set(10 + dx, y, 16 + dz, s("wall_torch", facing=f))
         for x in range(tx0, tx0 + 5):
             for z in range(tz0, tz0 + 5):
                 d = max(abs(x - 10), abs(z - 16))
@@ -390,10 +395,8 @@ class Catedral:
         # ventanas en saetera
         for (y0, y1) in ((4, 8), (13, 14), (19, 24), (30, 36)):
             if y0 != 4:
-                self.fill(6, y0, 20, 6, y1, 20, "white_stained_glass_pane")
-                self.fill(7, y0, 20, 7, y1, 20, "air")
-            self.fill(14, y0, 12, 14, y1, 12, "white_stained_glass_pane")
-            self.fill(14, y0, 13, 14, y1, 13, "air")
+                self.fill(6, y0, 20, 7, y1, 20, "white_stained_glass_pane")
+            self.fill(14, y0, 12, 14, y1, 13, "white_stained_glass_pane")
         # campanario: vanos altos con celosía en las cuatro caras
         for y in range(42, 52):
             for (x, z) in ((6, 20), (6, 21), (13, 12), (14, 12), (17, 19), (17, 20), (13, 23), (14, 23)):
@@ -439,7 +442,7 @@ class Catedral:
                 dist = math.hypot(z - 30, y - cy)
                 if dist <= rr:
                     self.set(6, y, z, self.rose_cell(z - 30, y - cy, dist, True))
-                    self.set(7, y, z, "air")
+                    self.set(7, y, z, self.rose_cell(z - 30, y - cy, dist, True))
         # galería superior abierta y terraza entre torres (pies en 28)
         for z in range(24, 31):
             self.set(6, 28, z, WALLB if z % 2 else PA)
@@ -490,14 +493,18 @@ class Catedral:
                     seen.add(p)
                     outs.append((p[0], p[1], min(16, max(13, int(round(t))))))
                 t += 0.2
-            arch, seen = [], set()
-            t = 6.6
-            while t <= 12.5:
+            arch, seen, last = [], set(), None
+            t = 12.5
+            while t >= 6.6:
                 p = (int(round(AX + t * ca)), int(round(AZ + t * sa)))
+                y = 19 + int(round(12.5 - t))
                 if p not in seen:
                     seen.add(p)
-                    arch.append((p[0], p[1], 19 + int(round(12.5 - t))))
-                t += 0.2
+                    if last and last[0] != p[0] and last[1] != p[1]:
+                        arch.append((p[0], last[1], y))      # celda de unión: sin ella el arco solo se toca por aristas
+                    arch.append((p[0], p[1], y))
+                    last = p
+                t -= 0.2
             self.buttress(outs, arch)
 
     # ------------------------------------------------------------------ capillas radiales
