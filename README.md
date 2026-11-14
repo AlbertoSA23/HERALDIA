@@ -26,6 +26,11 @@ Contenido:
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
     sótano de experimentos con generadores y trampas, el guardián Archimago Malvarius y 16 cofres. Diseño:
     [docs/unicas/torre_mago.md](docs/unicas/torre_mago.md).
+  - **Coliseo en ruinas** (sabana y meseta de sabana): anfiteatro elíptico con graderíos, palcos e hipogeo con celdas de fieras, armería, dos puzles de redstone, dos trampas, cuatro generadores, el Campeón de la Arena y una cámara del tesoro oculta. Diseño: [docs/unicas/coliseo.md](docs/unicas/coliseo.md).
+  - **Castillo** (`heraldia:unicas/castillo`): llanuras, llanuras de girasoles y praderas. Fortaleza de 100 x 100 con foso,
+    muralla, barbacana, patio de armas, torre del homenaje y mazmorra con calabozos, trampas, tres generadores, el guardián
+    Sir Aldric y la cámara del tesoro oculta; 36 cofres. Diseño: [docs/unicas/castillo.md](docs/unicas/castillo.md).
+  - **Monasterio de montaña** (`heraldia:unicas/monasterio`; prados de montaña y arboledas): terrazas sobre un risco, iglesia, claustro y cuevas con puzles, trampas, guardián y cofre premium. Diseño en `docs/unicas/monasterio.md`.
 
 ## Instalación
 
@@ -33,7 +38,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 72 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 75 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
