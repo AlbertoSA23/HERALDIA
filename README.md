@@ -34,6 +34,10 @@ Contenido:
     arruinado y cementerio con panteón; bajo la casa, tras una estantería secreta, un sótano con laboratorio y cámara del
     tesoro cerrada por una combinación de palancas; dos trampas, tres generadores, el guardián El Conde Malaquías y 33 cofres.
     Diseño: [docs/unicas/mansion.md](docs/unicas/mansion.md).
+  - **Catedral gótica** (`heraldia:unicas/catedral`): bosques y bosques de flores. Fachada con dos torres y rosetón, nave con
+    triforio y arbotantes, crucero con aguja, girola con capillas, sacristía, biblioteca, claustro y, bajo tierra, cripta,
+    osarios y cámara del tesoro; dos puertas secretas, una trampilla oculta, dos trampas, tres generadores, el guardián
+    Fray Osmundo y 19 cofres. Diseño: [docs/unicas/catedral.md](docs/unicas/catedral.md).
 
 ## Instalación
 
