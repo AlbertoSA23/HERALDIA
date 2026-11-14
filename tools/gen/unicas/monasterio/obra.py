@@ -3,7 +3,8 @@
 Coordenadas de plantilla: x 0..58, z 0..91 (la entrada en z = 0; se sube hacia z creciente), y 0..~70.
 """
 import random
-from core import Template, villager, B, F
+from core import Template, villager, B
+from .._comun import piezas
 
 ID = "monasterio"
 P = f"heraldia:unicas/{ID}/"
@@ -38,10 +39,7 @@ def stair(mat, facing, half="bottom"):
 
 
 def text(key, fallback):
-    return {"translate": f"heraldia.unicas.{ID}.{key}", "fallback": fallback}
-
-
-EMPTY = {"text": ""}
+    return piezas.text(f"heraldia.unicas.{ID}.{key}", fallback)
 
 
 class Obra(Template):
@@ -78,19 +76,14 @@ class Obra(Template):
         self.set(x, y, z, f"{'soul_lantern' if soul else 'lantern'}[hanging=true,waterlogged=false]")
 
     def chest(self, x, y, z, facing, tabla, kind="chest"):
-        st = f"{kind}[facing={facing},type=single,waterlogged=false]" if kind == "chest" else f"barrel[facing={facing},open=false]"
-        self.set(x, y, z, st, {"id": f"minecraft:{kind}", "LootTable": P + tabla})
+        piezas.chest(self.set, x, y, z, facing, P + tabla, kind)
         self.cofres.append(((x, y, z), tabla))
 
     def candle(self, x, y, z, n=1, lit=True, color=""):
         self.set(x, y, z, f"{color + '_' if color else ''}candle[candles={n},lit={'true' if lit else 'false'},waterlogged=false]")
 
     def sign(self, x, y, z, facing, key, lines):
-        msgs = [text(f"{key}.{i + 1}", l) if l else EMPTY for i, l in enumerate(lines)]
-        side = {"messages": msgs, "color": "black", "has_glowing_text": B(0)}
-        self.set(x, y, z, f"spruce_wall_sign[facing={facing},waterlogged=false]",
-                 {"id": "minecraft:sign", "front_text": side, "back_text": {"messages": [EMPTY] * 4, "color": "black",
-                                                                               "has_glowing_text": B(0)}, "is_waxed": B(1)})
+        piezas.sign(self.set, x, y, z, facing, [text(f"{key}.{i + 1}", l) for i, l in enumerate(lines)], wood="spruce")
 
     def bed(self, x, z, y, facing, color="brown"):
         dx, dz = {"west": (-1, 0), "east": (1, 0), "north": (0, -1), "south": (0, 1)}[facing]
@@ -98,11 +91,7 @@ class Obra(Template):
         self.set(x, y, z, f"{color}_bed[facing={facing},occupied=false,part=foot]")
 
     def spawner(self, x, y, z, mob):
-        self.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {
-            "entity": {"id": f"minecraft:{mob}"},
-            "custom_spawn_rules": {"block_light_limit": {"min_inclusive": 0, "max_inclusive": 11},
-                                   "sky_light_limit": {"min_inclusive": 0, "max_inclusive": 15}}},
-            "MaxNearbyEntities": 5, "SpawnCount": 3, "RequiredPlayerRange": 14})
+        piezas.spawner(self.set, x, y, z, mob, luz=11)
 
     def gable_z(self, x1, x2, z1, z2, y0, end=SB):
         """Tejado a dos aguas con la cumbrera a lo largo de z; aleros de 1 bloque. Rellena los hastiales."""
@@ -934,11 +923,8 @@ class Obra(Template):
                 self.set(x, yy, zm, DS)
                 self.set(x, yy, zp, DS)
         self.box(xd, y, zc, xd, y + 1, zc, "air")                      # nicho
-        self.box(xd, y, zm, xd, y + 1, zm, "chiseled_deepslate")       # lápida
+        piezas.piston_door(self.set, [(xd, y, zm), (xd, y + 1, zm)], (1, 0), "west", "chiseled_deepslate")   # lápida
         self.box(xd, y, zp, xd, y + 1, zp, "air")
-        for yy in (y, y + 1):
-            self.set(xd + 1, yy, zm, "piston_head[facing=west,short=false,type=sticky]")
-            self.set(xd + 2, yy, zm, "sticky_piston[extended=true,facing=west]")
         levers = (45, 47)
         dust = {}
         for x in range(44, 48):
@@ -1096,14 +1082,10 @@ class Obra(Template):
     def trampa_cable(self, xc, z):
         """Trampa 1 (como el templo de la jungla): cable trampa entre dos ganchos; cada gancho activa el dispensador de encima."""
         y = CAVE + 1
-        self.set(xc - 1, y, z, "tripwire_hook[attached=true,facing=east,powered=false]")
-        self.set(xc + 1, y, z, "tripwire_hook[attached=true,facing=west,powered=false]")
-        self.set(xc, y, z, "tripwire[attached=true,disarmed=false,east=true,north=false,powered=false,south=false,west=true]")
-        for x, f in ((xc - 2, "east"), (xc + 2, "west")):
+        for x in (xc - 2, xc + 2):
             self.set(x, y, z, "stone_bricks")
-            self.set(x, y + 1, z, f"dispenser[facing={f},triggered=false]",
-                     {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 8},
-                                                            {"Slot": B(4), "id": "minecraft:arrow", "count": 8}]})
+        piezas.tripwire_trap(self.set, (xc - 1, z), (xc + 1, z), y, "x",
+                             [((xc - 2, y + 1, z), "east"), ((xc + 2, y + 1, z), "west")], arrows=5)
         self.circuitos["cable"] = dict(ganchos=[(xc - 1, y, z), (xc + 1, y, z)], dispensadores=[(xc - 2, y + 1, z), (xc + 2, y + 1, z)])
 
     def aranas(self):
@@ -1263,39 +1245,6 @@ class Obra(Template):
         self.entity(10, F2 + 1, 58, villager("librarian", "plains"))
         self.entity(14, F1 + 1, 35, villager("farmer", "plains"))
 
-    def connect(self):
-        """Estados de unión de cristales, verjas, vallas y muros según sus vecinos."""
-        def solid(st):
-            if not st:
-                return False
-            b = st.split("[")[0].replace("minecraft:", "")
-            return b not in ("air", "water", "lantern", "candle", "torch") and not any(
-                k in b for k in ("_carpet", "door", "sign", "banner", "candle", "lantern", "chain", "skull", "flower", "trapdoor",
-                                 "fence_gate", "ladder", "lever", "wire", "pressure_plate", "tripwire", "bed", "slab",
-                                 "stairs", "bell", "rod", "azalea") + tuple(FLOWERS))
-        for (x, y, z), (st, nbt) in list(self.blocks.items()):
-            b = st.split("[")[0].replace("minecraft:", "")
-            if b.endswith("_pane") or b == "iron_bars" or b.endswith("_fence"):
-                props = {}
-                for d, (dx, dz) in (("north", (0, -1)), ("south", (0, 1)), ("west", (-1, 0)), ("east", (1, 0))):
-                    n = self.get(x + dx, y, z + dz)
-                    nb = n.split("[")[0].replace("minecraft:", "") if n else ""
-                    same = nb.endswith("_pane") or nb == "iron_bars" if not b.endswith("_fence") else nb.endswith("_fence") or "fence_gate" in nb
-                    props[d] = "true" if same or solid(n) else "false"
-                self.set(x, y, z, f"{b}[east={props['east']},north={props['north']},south={props['south']},waterlogged=false,west={props['west']}]")
-            elif b.endswith("_wall") and "sign" not in b and "banner" not in b and "torch" not in b:
-                props = {}
-                for d, (dx, dz) in (("north", (0, -1)), ("south", (0, 1)), ("west", (-1, 0)), ("east", (1, 0))):
-                    n = self.get(x + dx, y, z + dz)
-                    nb = n.split("[")[0].replace("minecraft:", "") if n else ""
-                    ok = (nb.endswith("_wall") and "sign" not in nb and "banner" not in nb and "torch" not in nb) or solid(n) or "fence_gate" in nb
-                    props[d] = "low" if ok else "none"
-                above = self.get(x, y + 1, z)
-                straight = (props["north"] == props["south"] == "low" and props["east"] == props["west"] == "none") or \
-                           (props["east"] == props["west"] == "low" and props["north"] == props["south"] == "none")
-                up = "false" if straight and not (above and above != "minecraft:air") else "true"
-                self.set(x, y, z, f"{b}[east={props['east']},north={props['north']},south={props['south']},up={up},waterlogged=false,west={props['west']}]")
-
     def puzles_ajuste(self):
         """Forma y potencia de los cables y estado de las antorchas: el estable que calcula el simulador común."""
         from .._comun import redstone
@@ -1309,14 +1258,13 @@ class Obra(Template):
 
 
 def guardian():
-    return {"id": "minecraft:skeleton", "PersistenceRequired": B(1),
-            "CustomName": text("guardian", "Fray Tenebrio, guardián del relicario"), "CustomNameVisible": B(1),
-            "Health": F(40.0), "attributes": [{"id": "minecraft:max_health", "base": 40.0}],
-            "equipment": {"mainhand": {"id": "minecraft:iron_sword", "count": 1,
-                                       "components": {"minecraft:enchantments": {"minecraft:sharpness": 1}}},
-                          "head": {"id": "minecraft:golden_helmet", "count": 1},
-                          "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}},
-            "drop_chances": {"mainhand": F(0.15), "head": F(0.5), "chest": F(0.1)}}
+    return piezas.guardian(
+        "skeleton", f"heraldia.unicas.{ID}.guardian", "Fray Tenebrio, guardián del relicario", 40,
+        equipment={"mainhand": {"id": "minecraft:iron_sword", "count": 1,
+                                "components": {"minecraft:enchantments": {"minecraft:sharpness": 1}}},
+                   "head": {"id": "minecraft:golden_helmet", "count": 1},
+                   "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}},
+        drop_chances={"mainhand": 0.15, "head": 0.5, "chest": 0.1})
 
 
 def construir():
@@ -1332,7 +1280,7 @@ def construir():
     o.t2()
     o.cuevas()
     o.monjes()
-    o.connect()
+    piezas.connect(o)
     o.entrada()
     from pack import fix_supports
     fix_supports(o)
