@@ -35,8 +35,10 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Generador y auditoría
 
+- Piezas comunes en `tools/gen/unicas/_comun/` (`botin.py`, `piezas.py`): reciben `put(x, y, z, estado, nbt=None)` y valen para cualquier sistema de coordenadas. Antes de escribir una escalera de caracol, una puerta de pistones, una trampa, un generador, un guardián o una tabla de cofre, mira ahí. Verificado: la fortaleza, la ciudadela y la torre generan los mismos bloques y botín tras migrar.
+
 - En los procesadores `rule`, `output_state` es una cadena (`"minecraft:cracked_stone_bricks"`); el formato antiguo `{"Name": ...}` rompe la carga del paquete entero en 26.3. Verificado con «Registry loading errors» en la prueba de humo.
-- `lint.py`: `tripwire` y `redstone_wire` cuentan como pisables, y una plantilla puede declarar `t.lint_open = {pos: estado}` para auditar el recorrido con sus puertas secretas resueltas. Verificado con la auditoría de la torre de mago.
+- `lint.py`: `redstone_wire` cuenta como pisable (el polvo escondido en un pasadizo no corta el recorrido). Verificado con la auditoría de la torre de mago.
 - `/place template` responde «Loaded template ... at x, y, z» (no «placed»). Verificado en servidor dedicado.
 
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.

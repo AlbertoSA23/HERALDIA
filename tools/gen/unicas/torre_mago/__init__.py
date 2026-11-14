@@ -8,8 +8,9 @@ a ras del terreno y el sótano bajo tierra sin que el beard excave alrededor. Un
 pendientes suaves.
 """
 import math
-from core import Template, B, F
-from loot import item, empty
+from core import Template, B
+from unicas._comun import piezas
+from unicas._comun.botin import item, empty, cofre as t2, named as _named, potion as _potion, random_ench, lang
 
 SID = "torre_mago"
 NSP = f"unicas/{SID}"
@@ -62,7 +63,7 @@ def tr(k):
     return {"translate": KEY + k, "fallback": TXT[k][0]}
 
 
-LANG = {"es_es": {KEY + k: v[0] for k, v in TXT.items()}, "en_us": {KEY + k: v[1] for k, v in TXT.items()}}
+LANG = lang(KEY, TXT)
 
 
 # ------------------------------------------------------------------ geometría
@@ -71,9 +72,7 @@ CIRCLE = {(x, z) for x in range(-9, 10) for z in range(-9, 10) if x * x + z * z 
 WALLC = {c for c in CIRCLE if any((c[0] + a, c[1] + b) not in CIRCLE for a, b in N4)}
 INT = CIRCLE - WALLC
 PERIM = {c for c in INT if any((c[0] + a, c[1] + b) in WALLC for a, b in N4)}
-RING = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]   # escalera alrededor del machón
-HOLES = (RING[5], RING[6])        # hueco del forjado por donde sube el tramo inferior
-GUARD = [(-2, 0), (-2, 1), (-2, 2), (-1, 2)]   # barandilla del hueco
+RING = piezas.RING                    # escalera de caracol alrededor del machón (pieza común)
 GALLERY_FREE = set()
 ANNEX = {(x, z) for x in range(-13, -7) for z in range(-5, 5)} - CIRCLE
 
@@ -84,19 +83,6 @@ def cheb(c):
 
 def r2(c):
     return c[0] * c[0] + c[1] * c[1]
-
-
-DIRV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
-VDIR = {v: k for k, v in DIRV.items()}
-OPP = {"north": "south", "south": "north", "east": "west", "west": "east"}
-
-
-def inward(c):
-    """Dirección cardinal desde la celda hacia el eje (para orientar muebles contra el muro)."""
-    x, z = c
-    if abs(x) >= abs(z):
-        return "west" if x > 0 else "east"
-    return "north" if z > 0 else "south"
 
 
 # materiales
@@ -133,23 +119,13 @@ class Torre:
                     self.s(x, y, z, st)
 
     def chest(self, x, y, z, facing, name, kind="chest"):
-        if kind == "barrel":
-            self.s(x, y, z, f"barrel[facing={facing}]", {"id": "minecraft:barrel", "LootTable": self.loot(name)})
-        else:
-            self.s(x, y, z, f"chest[facing={facing}]", {"id": "minecraft:chest", "LootTable": self.loot(name)})
+        piezas.chest(self.s, x, y, z, facing, self.loot(name), kind)
 
     def sign(self, x, y, z, facing, keys):
-        msgs = [tr(k) for k in keys] + [{"text": ""}] * (4 - len(keys))
-        empty4 = [{"text": ""}] * 4
-        self.s(x, y, z, f"dark_oak_wall_sign[facing={facing}]",
-               {"id": "minecraft:sign", "is_waxed": B(1),
-                "front_text": {"messages": msgs, "color": "black", "has_glowing_text": B(0)},
-                "back_text": {"messages": empty4, "color": "black", "has_glowing_text": B(0)}})
+        piezas.sign(self.s, x, y, z, facing, [tr(k) for k in keys])
 
     def spawner(self, x, y, z, mob):
-        e = {"entity": {"id": "minecraft:" + mob}}
-        self.s(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": e,
-                                     "SpawnPotentials": [{"weight": 1, "data": e}]})
+        piezas.spawner(self.s, x, y, z, mob, potentials=True)
 
 
 # ------------------------------------------------------------------ terreno: cimiento, terraza
@@ -263,10 +239,8 @@ def sotano1_detalle(T):
     y = FEET["B1"]
     # puzle del caldero: caldero -> comparador -> 3 de polvo -> puerta de hierro (solo nivel 3 la abre)
     T.s(-1, y, 5, "cauldron")
-    T.s(0, y, 5, "comparator[facing=west,mode=compare,powered=false]", {"id": "minecraft:comparator", "OutputSignal": 0})
-    T.s(1, y, 5, "redstone_wire[east=side,west=side,north=none,south=none,power=0]")
-    T.s(2, y, 5, "redstone_wire[east=side,west=side,north=none,south=none,power=0]")
-    T.s(3, y, 5, "redstone_wire[east=side,west=side,north=none,south=none,power=0]")
+    piezas.comparator(T.s, 0, y, 5, "west")
+    piezas.wire(T.s, [(1, 5), (2, 5), (3, 5)], y, ends={0: "west", 2: "east"})
     T.s(4, y, 5, "iron_door[facing=south,half=lower,hinge=left,open=false,powered=false]")
     T.s(4, y + 1, 5, "iron_door[facing=south,half=upper,hinge=left,open=false,powered=false]")
     T.sign(-1, y + 1, 4, "north", ["cartel.caldero.1", "cartel.caldero.2", "cartel.caldero.3", "cartel.caldero.4"])
@@ -275,13 +249,7 @@ def sotano1_detalle(T):
     T.s(1, y + 1, 4, "brewing_stand")
     T.s(3, y + 1, 4, "candle[candles=3,lit=false]")
     # trampa del ala oeste (como en los templos de la jungla): hilo de lado a lado, dispensadores con flechas
-    T.s(-6, y, -4, "tripwire_hook[attached=true,facing=south,powered=false]")
-    T.s(-6, y, 4, "tripwire_hook[attached=true,facing=north,powered=false]")
-    for z in range(-3, 4):
-        T.s(-6, y, z, "tripwire[attached=true,disarmed=false,powered=false,north=true,south=true,east=false,west=false]")
-    arrows = {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": 6} for i in range(3)]}
-    T.s(-6, y + 1, -5, "dispenser[facing=south,triggered=false]", dict(arrows))
-    T.s(-6, y + 1, 5, "dispenser[facing=north,triggered=false]", dict(arrows))
+    piezas.tripwire_trap(T.s, (-6, -4), (-6, 4), y, "z", [((-6, y + 1, -5), "south"), ((-6, y + 1, 5), "north")])
     # generadores en la mazmorra
     T.spawner(-7, y, -6, "zombie_villager")
     T.spawner(8, y, 2, "cave_spider")
@@ -325,10 +293,7 @@ def sotano1_detalle(T):
 def sotano2_detalle(T):
     y = FEET["B2"]
     # trampa de la losa (como en los templos del desierto): placa sobre el suelo y TNT debajo
-    T.s(0, y, 11, "stone_pressure_plate[powered=false]")
-    T.s(0, 0, 11, "tnt[unstable=false]")
-    T.s(-1, 1, 11, "cracked_stone_bricks")
-    T.s(1, 1, 11, "cracked_stone_bricks")
+    piezas.tnt_trap(T.s, 0, y, 11, warn=[(-1, 1, 11), (1, 1, 11)])
     # cámara del tesoro
     for x, z in ((-8, 3), (-2, 3), (-8, 8), (-2, 8)):
         for yy in range(y, y + 5):
@@ -350,11 +315,8 @@ def sotano2_detalle(T):
         T.s(x, y + 4, z, SLANT)
     T.s(4, y + 4, 11, SLANT)
     # guardián: evocador con nombre, persistente, algo más resistente que uno normal
-    T.t.entity(-5 + OX, y, 6 + OZ, {
-        "id": "minecraft:evoker", "PersistenceRequired": B(1), "CustomName": tr("guardian"),
-        "CustomNameVisible": B(1), "Health": F(48.0),
-        "attributes": [{"id": "minecraft:max_health", "base": 48.0}, {"id": "minecraft:armor", "base": 4.0}],
-        "DeathLootTable": "minecraft:entities/witch"})
+    T.t.entity(-5 + OX, y, 6 + OZ, piezas.guardian("evoker", KEY + "guardian", TXT["guardian"][0], 48, armor=4,
+                                                    death_loot="minecraft:entities/witch"))
 
 
 # ------------------------------------------------------------------ torre
@@ -406,27 +368,12 @@ def ventanas(T):
 
 
 def escalera(T):
-    for y in range(7, FEET["f7"] + 1):
-        T.s(0, y, 0, NEWEL)
-    for f in REVS:
-        for k in range(2, 8):
-            x, z = RING[k]
-            px, pz = RING[k - 1]
-            facing = VDIR[(x - px, z - pz)]
-            T.s(x, f + k - 2, z, f"{STAIR}[facing={facing},half=bottom]")
-            if k >= 3:
-                T.s(x, f + k - 3, z, f"{STAIR}[facing={OPP[facing]},half=top]")
-        for k in (0, 1):
-            x, z = RING[k]
-            T.s(x, f - 1, z, FLOOR if f != FEET["B1"] else DUN)
-        if f != FEET["B1"]:
-            for (x, z) in HOLES:
-                T.s(x, f - 1, z, "air")
-    for (x, z) in HOLES:
-        T.s(x, FEET["f7"] - 1, z, "air")
+    guard = piezas.spiral_stair(T.s, 0, 0, REVS, STAIR, NEWEL, FLOOR, newel_top=FEET["f7"])
+    for (x, z) in RING[:2]:
+        T.s(x, FEET["B1"] - 1, z, DUN)
     # barandilla junto al hueco en cada planta a la que llega la escalera (salvo la galería, que tiene la suya)
     for fl in ("f0", "f1", "f3", "f4", "f5", "f6", "f7"):
-        for (x, z) in GUARD + ([RING[4]] if fl == "f7" else []):
+        for (x, z) in guard + ([RING[4]] if fl == "f7" else []):
             T.s(x, FEET[fl], z, "dark_oak_fence")
 
 
@@ -533,22 +480,15 @@ def anexo(T):
     # hornacina en el muro de la torre y puerta secreta
     T.s(-8, y, 0, "air")
     T.s(-8, y + 1, 0, "air")
-    for yy in (y, y + 1):
-        T.s(-9, yy, 0, "bookshelf")
-        T.s(-9, yy, -1, "piston_head[facing=south,short=false,type=sticky]")
-        T.s(-9, yy, -2, "sticky_piston[facing=south,extended=true]")
+    piezas.piston_door(T.s, [(-9, y, 0), (-9, y + 1, 0)], (0, -1), "south", "bookshelf")
     T.s(-8, y + 1, -1, "chiseled_bookshelf[facing=south," + ",".join(
         f"slot_{i}_occupied={'true' if i < 5 else 'false'}" for i in range(6)) + "]",
         {"id": "minecraft:chiseled_bookshelf", "last_interacted_slot": -1,
          "Items": [{"Slot": B(i), "id": "minecraft:book", "count": 1} for i in range(5)]})
     T.s(-8, y, -1, "bookshelf")
     yy = y + 1
-    T.s(-8, yy, -2, "comparator[facing=south,mode=compare,powered=false]", {"id": "minecraft:comparator", "OutputSignal": 0})
-    wire = [((-8, -3), "north", "south"), ((-8, -4), "south", "west"), ((-9, -4), "east", "west"),
-            ((-10, -4), "east", "west"), ((-11, -4), "east", "south"), ((-11, -3), "north", "south")]
-    for (x, z), a, b in wire:
-        sides = {d: ("side" if d in (a, b) else "none") for d in ("north", "south", "east", "west")}
-        T.s(x, yy, z, "redstone_wire[" + ",".join(f"{d}={v}" for d, v in sides.items()) + ",power=0]")
+    piezas.comparator(T.s, -8, yy, -2, "south")
+    piezas.wire(T.s, [(-8, -3), (-8, -4), (-9, -4), (-10, -4), (-11, -4), (-11, -3)], yy, ends={0: "south", 5: "south"})
     T.s(-11, yy, -2, "polished_andesite")                         # bloque que sujeta la antorcha
     T.s(-10, yy, -2, "redstone_wall_torch[facing=east,lit=true]")
     T.sign(-7, y + 2, 0, "east", ["cartel.estante.1", "cartel.estante.2", "cartel.estante.3"])
@@ -723,52 +663,7 @@ def ruina(T):
 
 
 def conexiones(T):
-    """Vallas, cristales, barrotes y muros conectan con sus vecinos (el juego no los actualiza al colocar)."""
-    t = T.t
-
-    nonfull = ("air", "stairs", "slab", "fence", "pane", "bars", "_wall", "door", "carpet", "lantern", "torch",
-               "chest", "lectern", "cauldron", "pot", "sign", "banner", "bed", "candle", "chain", "rod", "plate",
-               "cobweb", "wire", "comparator", "hook", "tripwire", "skull", "brewing", "cluster", "enchanting",
-               "fern", "blossom", "azalea", "orchid", "allium", "valley", "pitcher", "eyeblossom", "torchflower",
-               "vine", "piston_head", "composter", "water", "lava")
-
-    def full(st):
-        if st is None:
-            return False
-        b = st.split("[")[0].replace("minecraft:", "")
-        return not any(k in b for k in nonfull)
-
-    for (x, y, z), (st, nbt) in list(t.blocks.items()):
-        b = st.split("[")[0].replace("minecraft:", "")
-        fam = None
-        if b.endswith("_fence"):
-            fam = "fence"
-        elif b.endswith("_pane") or b == "iron_bars":
-            fam = "pane"
-        elif b.endswith("_wall") and "wall_" not in b:
-            fam = "wall"
-        if not fam:
-            continue
-        props = {}
-        n = 0
-        for d, (a, c) in DIRV.items():
-            o = t.get(x + a, y, z + c)
-            ob = o.split("[")[0].replace("minecraft:", "") if o else ""
-            same = (fam == "fence" and (ob.endswith("_fence") or "fence_gate" in ob)) or \
-                   (fam == "pane" and (ob.endswith("_pane") or ob == "iron_bars")) or \
-                   (fam == "wall" and ob.endswith("_wall") and "wall_" not in ob)
-            con = same or full(o)
-            n += con
-            if fam == "wall":
-                props[d] = "low" if con else "none"
-            else:
-                props[d] = "true" if con else "false"
-        if fam == "wall":
-            straight = (props["north"] != "none" and props["south"] != "none" and props["east"] == props["west"] == "none") or \
-                       (props["east"] != "none" and props["west"] != "none" and props["north"] == props["south"] == "none")
-            props["up"] = "false" if straight else "true"
-        props["waterlogged"] = "false"
-        t.blocks[(x, y, z)] = (f"minecraft:{b}[" + ",".join(f"{k}={v}" for k, v in sorted(props.items())) + "]", nbt)
+    piezas.connect(T.t)
 
 
 # ------------------------------------------------------------------ auditoría propia
@@ -851,10 +746,7 @@ def build(reg):
 
 # ------------------------------------------------------------------ botín
 def named(name, key, w, mods=()):
-    e = item(name, w)
-    m = [{"type": "minecraft:set_name", "name": tr(key), "target": "item_name"}] + list(mods)
-    e["modifier"] = m if len(m) > 1 else m[0]
-    return e
+    return _named(name, w, KEY + key, TXT[key][0], mods=mods)
 
 
 def ench(d):
@@ -862,20 +754,7 @@ def ench(d):
 
 
 def potion(pid, w, name=None):
-    mods = [{"type": "minecraft:set_potion", "id": "minecraft:" + pid}]
-    if name:
-        mods.insert(0, {"type": "minecraft:set_name", "name": tr(name), "target": "item_name"})
-    e = item("potion", w)
-    e["modifier"] = mods if len(mods) > 1 else mods[0]
-    return e
-
-
-def t2(base, extra):
-    """Tabla de cofre: grupo base (siempre) y grupo extra que se omite con Lootr."""
-    return {"type": "minecraft:chest", "pools": [
-        {"rolls": {"type": "minecraft:uniform", "min": base[0][0], "max": base[0][1]}, "entries": base[1]},
-        {"rolls": {"type": "minecraft:uniform", "min": extra[0][0], "max": extra[0][1]}, "entries": extra[1],
-         "solo_sin_lootr": True}]}
+    return _potion(pid, w, KEY + name if name else None, TXT[name][0] if name else None)
 
 
 BOOKS = [item("book", 8, 1, 3), item("paper", 8, 2, 6), item("feather", 4, 1, 3), item("ink_sac", 4, 1, 2),
@@ -931,7 +810,7 @@ LOOT = {
         # 90 % vistoso
         {"rolls": 1, "entries": [
             named("blaze_rod", "baculo", 14, [ench({"minecraft:knockback": 2})]),
-            named("book", "grimorio", 14, [{"type": "minecraft:enchant_randomly", "options": "#minecraft:on_random_loot"}]),
+            named("book", "grimorio", 14, [random_ench()]),
             named("leather_helmet", "capucha", 10, [ench({"minecraft:protection": 2, "minecraft:unbreaking": 1})]),
             named("spyglass", "catalejo", 10),
             named("clock", "reloj", 8),
