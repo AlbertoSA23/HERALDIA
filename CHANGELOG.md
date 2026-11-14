@@ -20,7 +20,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 ### Técnico
 
 - `tools/gen/unicas/piramide/`: Templo-pirámide en dos piezas (superficie rígida con `beard_thin` y subsuelo macizo colgado de un jigsaw vertical), auditoría propia (recorrido a pie con buceo, puerta secreta que cierra de verdad el tesoro, salida del foso, nada flotando, agua encerrada, circuitos en reposo, 80-85 % de superficie intacta), planos y renders (`planos.py`) y prueba en servidor real de circuitos, guardián y agua (`prueba_servidor.py`). Diseño en `docs/unicas/piramide.md`.
-- `lint.walk`: al buscar dónde pisar ya no atraviesa bloques macizos (antes daba por alcanzables salas bajo un techo de un bloque); `tripwire` cuenta como pasable.
+- `lint.walk`: al buscar dónde pisar ya no atraviesa bloques macizos (antes daba por alcanzables salas bajo un techo de un bloque).
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
 - La ruta de los registros de 26.3 para validar es configurable (`--registries`, `MCMETA_SUMMARY` o `-Pmcmeta_summary`); por defecto se clona `misode/mcmeta` rama `26.3-summary` en `build/` y no se sube al repositorio.
