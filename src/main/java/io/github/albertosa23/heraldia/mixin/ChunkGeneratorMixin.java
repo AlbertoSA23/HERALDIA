@@ -2,7 +2,9 @@ package io.github.albertosa23.heraldia.mixin;
 
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
+import java.util.Optional;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.StructureManager;
@@ -10,6 +12,7 @@ import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import net.minecraft.world.level.ChunkPos;
@@ -30,11 +33,15 @@ abstract class ChunkGeneratorMixin {
 									   RegistryAccess registryAccess, RandomState randomState, StructureTemplateManager templateManager,
 									   long seed, ChunkAccess centerChunk, ChunkPos sourceChunkPos, ResourceKey<Level> level,
 									   Climate.Sampler climateSampler, CallbackInfoReturnable<Boolean> cir) {
-		selected.structure().unwrapKey().ifPresent(key -> {
-			if (!HeraldiaConfig.get().villages().allows(key.identifier(), seed, sourceChunkPos.x(), sourceChunkPos.z())
-					|| AtlantisAnchor.excludes(key.identifier(), level, seed, sourceChunkPos.x(), sourceChunkPos.z())) {
-				cir.setReturnValue(false);
-			}
-		});
+		// sin lambda que capture (ruta caliente de la generación): dos búsquedas en tablas hash y salida temprana
+		Optional<ResourceKey<Structure>> key = selected.structure().unwrapKey();
+		if (key.isEmpty()) {
+			return;
+		}
+		Identifier id = key.get().identifier();
+		if (!HeraldiaConfig.get().villages().allows(id, seed, sourceChunkPos.x(), sourceChunkPos.z())
+				|| AtlantisAnchor.excludes(id, level, seed, sourceChunkPos.x(), sourceChunkPos.z())) {
+			cir.setReturnValue(false);
+		}
 	}
 }
