@@ -9,6 +9,7 @@
 		"sources": "https://github.com/AlbertoSA23/HERALDIA"
 	},
 	"license": "LicenseRef-All-Rights-Reserved",
+	"icon": "assets/heraldia/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": ["io.github.albertosa23.heraldia.Heraldia"]

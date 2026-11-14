@@ -1,0 +1,52 @@
+name: Publicar en CurseForge
+
+# Se ejecuta en cada push a main, pero solo publica si mod_version (gradle.properties)
+# es nueva, es decir, si todavía no existe el tag v<mod_version>.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Leer versión
+        id: ver
+        run: |
+          V=$(grep '^mod_version=' gradle.properties | cut -d= -f2)
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if git rev-parse "v$V" >/dev/null 2>&1; then echo "new=false" >> "$GITHUB_OUTPUT"; else echo "new=true" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/setup-java@v4
+        if: steps.ver.outputs.new == 'true'
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Compilar
+        if: steps.ver.outputs.new == 'true'
+        run: ./gradlew build
+
+      - name: Publicar en CurseForge y GitHub Releases
+        if: steps.ver.outputs.new == 'true'
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          github-tag: v${{ steps.ver.outputs.version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: Heraldia ${{ steps.ver.outputs.version }}
+          version: ${{ steps.ver.outputs.version }}
+          version-type: release
+          changelog-file: CHANGELOG.md
+          files: |
+            build/libs/!(*-@(dev|sources|javadoc)).jar
+          loaders: fabric
+          java: 25
