@@ -51,6 +51,9 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Generador y auditoría
 
+- Tras `/place template`, las entidades de la plantilla tardan unos segundos más que los bloques en aparecer: una comprobación de entidad inmediata falla. En la prueba de la catedral se reintenta durante unos 30 s. Verificado en un servidor dedicado.
+- Piezas comunes en `tools/gen/unicas/_comun/` (escalera de caracol, puerta de pistones con palancas, trampas de flechas, generador, guardián, cartel, botín con nombre): úsalas en vez de copiarlas.
+
 - En los procesadores `rule`, `output_state` es una cadena (`"minecraft:cracked_stone_bricks"`); el formato antiguo `{"Name": ...}` rompe la carga del paquete entero en 26.3. Verificado con «Registry loading errors» en la prueba de humo.
 - `lint.py`: `tripwire` y `redstone_wire` cuentan como pisables, y una plantilla puede declarar `t.lint_open = {pos: estado}` para auditar el recorrido con sus puertas secretas resueltas. Verificado con la auditoría de la torre de mago.
 - `/place template` responde «Loaded template ... at x, y, z» (no «placed»). Verificado en servidor dedicado.
