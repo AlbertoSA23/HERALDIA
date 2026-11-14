@@ -33,6 +33,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.unicas.ciudadela.Ciudadela.register();
 		io.github.albertosa23.heraldia.unicas.faro.Faro.init();
 		io.github.albertosa23.heraldia.unicas.acueducto.HastaElSueloProcessor.register();
+		io.github.albertosa23.heraldia.unicas.galeon.GaleonUnica.registrar();
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::logRegisteredStructures);
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::publishGolemSettings);
 	}
