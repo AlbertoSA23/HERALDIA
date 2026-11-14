@@ -318,7 +318,8 @@ def lint_registry(reg, only=None):
     for name, t in reg.templates.items():
         if only and not only(name):
             continue
-        iss = support_issues(t) + access_issues(t)
+        # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
+        iss = support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
         if iss:
             res[name] = iss
     return res
