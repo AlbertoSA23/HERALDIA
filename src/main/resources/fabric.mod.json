@@ -13,6 +13,7 @@
 	"entrypoints": {
 		"main": ["io.github.albertosa23.heraldia.Heraldia"]
 	},
+	"mixins": ["heraldia.mixins.json"],
 	"depends": {
 		"fabricloader": ">=${loader_version}",
 		"minecraft": "~${minecraft_version}",

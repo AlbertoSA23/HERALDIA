@@ -6,7 +6,7 @@ Repositorio público, **sin licencia (todos los derechos reservados)**. **No hay
 
 ## Flujo de ramas
 - Rama común: `develop`. Cada sesión trabaja en su propia rama creada desde `develop` y abre su PR **contra `develop`** (nunca contra `main`).
-- Los PR contra `develop` **no necesitan autorización**: cuando tus comprobaciones estén en verde, cada sesión hace el merge de su propio PR en `develop`.
+- Los PR contra `develop` **no necesitan autorización de Alberto**: cuando tus comprobaciones estén en verde, haz el merge de tu propio PR en `develop`. Si tus reglas de sesión no te dejan hacerlo, envía un mensaje al orquestador (session_01XFkUTbYXFfbMazJnFH8g53) con el enlace del PR y su head: él hace el merge en tu nombre y borra la rama.
 - Sincronízate para no pisar a nadie: justo antes de hacer el merge, `git merge origin/develop` en tu rama, resuelve los conflictos (en `CHANGELOG.md`, `README.md` y `docs/APRENDIZAJES.md` se suman las entradas de todos), vuelve a pasar las comprobaciones y haz push. Si `develop` cambia entre tanto, repítelo. Nunca reescribas el historial de `develop` ni el de las ramas ajenas.
 - Si tu cambio toca algo compartido (`writer.py`, `lint.py`, `core.py`, `Heraldia.java`, la prueba de humo), haz el merge pronto y en un PR pequeño para que las demás lo reciban cuanto antes.
 - Solo `develop` se lleva a `main`, y lo hace la sesión orquestadora.

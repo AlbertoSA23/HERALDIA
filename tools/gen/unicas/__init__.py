@@ -9,6 +9,9 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
       step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG" (o None),
       spacing=250, separation=190,   # chunks; por defecto una cada ~3.000-5.000 bloques
   )
+  # La rejilla es heraldia:rejilla: activada y separación en bloques se configuran en config/heraldia.json
+  # (unicas.<id>.activada, unicas.<id>.separacion_bloques) sin escribir código; spacing/separation dan el valor por defecto.
+  # Opcional: STRUCTURE["placement"] = colocación propia (dict JSON); la estructura deja entonces de ser configurable.
   # Opcional: STRUCTURE["json"] = dict completo de la estructura (tipo propio en Java, por ejemplo); sustituye al anterior.
   def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.
   LOOT = {"premium": tabla, ...}   -> heraldia:unicas/<id>/<nombre>
