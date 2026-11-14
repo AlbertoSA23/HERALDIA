@@ -121,6 +121,34 @@ def run(proc, lines, seen, cmd, ok):
     return wait_for(lines, f"{ok}|{ERROR_PATTERN}", COMMAND_TIMEOUT_S, seen)
 
 
+class Context:
+    """Lo que necesita un módulo de estructura única para sus comprobaciones propias (tools/gen/unicas/<id>/humo.py)."""
+
+    def __init__(self, proc, lines, seen):
+        self.proc, self.lines, self.seen = proc, lines, seen
+
+    def run(self, cmd, ok):
+        return run(self.proc, self.lines, self.seen, cmd, ok)
+
+    def log(self):
+        return "".join(self.seen)
+
+
+def unique_hook(sid):
+    """Función comprobar(ctx) -> lista de fallos del módulo unicas.<id>.humo, si existe."""
+    import importlib, importlib.util
+    gen = os.path.join(ROOT, "tools", "gen")
+    if gen not in sys.path:
+        sys.path.insert(0, gen)
+    name = f"unicas.{sid.split('/')[-1]}.humo"
+    try:
+        if importlib.util.find_spec(name) is None:
+            return None
+    except ModuleNotFoundError:
+        return None
+    return importlib.import_module(name).comprobar
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
@@ -179,6 +207,10 @@ def main():
             failures.append("la aldea colocada no tiene aldeanos")
         # Cada estructura única se coloca (se superponen en el mismo sitio: solo importa que se generen).
         for sid in UNIQUE_STRUCTURES:
+            hook = unique_hook(sid)
+            if hook:    # estructuras que no se colocan con /place (tipo propio): su módulo trae sus comprobaciones
+                failures += [f"{sid}: {f}" for f in hook(Context(proc, lines, seen))]
+                continue
             m = run(proc, lines, seen, f"place structure {sid} 0 ~ 0", r"Generated structure")
             if not m.group(0).startswith("Generated"):
                 failures.append(f"place structure {sid} falló: {m.string.strip()}")

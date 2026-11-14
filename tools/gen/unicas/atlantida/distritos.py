@@ -76,6 +76,9 @@ def agora(v):
     C.cofre(v, u1 + 1, 1, w1 + 4, "east", "media")
     v.set(u2 - 1, 1, w1 + 4, "lectern[facing=west]", {"id": "minecraft:lectern"})
     v.marca("seca", u1 + 3, 1, w1 + 3)
+    E.ventanas(v, u1, "w", w1, w2, 3, 4)
+    E.ventanas(v, u2, "w", w1, w2, 3, 4)
+    E.ornamentar(v, u1, w1, u2, w2, 0, 7, paso=5)
     # mercado en ruinas (inundado), al fondo oeste
     for k in range(4):
         cu, cw = -18 - (k % 2) * 10, 14 + (k // 2) * 10
@@ -147,6 +150,12 @@ def termas(v):
         v.marca("burbuja", ex, 9, 26)
         v.entity(cu, 4, 18, C.guardian())
         C.generador(v, u1 + 1 if lado == 1 else u2 - 1, 1, 27, "guardian")
+        fondo = u2 if lado == 1 else u1
+        E.ventanas(v, fondo, "w", -8, 8, 3, 4)
+        E.ventanas(v, fondo, "w", 8, 28, 11, 13)
+        E.ornamentar(v, u1, -28, u2, -8, 0, 9)
+        E.ornamentar(v, u1, -8, u2, 8, 0, 7, peto=False)
+        E.ornamentar(v, u1, 8, u2, 28, 0, 16)
     v.entity(0, 4, -18, C.guardian())
     v.entity(0, 4, 18, C.guardian())
 
@@ -236,6 +245,7 @@ def academia(v):
         v.set((ua + ub) // 2, 1, -24, "lectern[facing=south]", {"id": "minecraft:lectern"})
         v.set((ua + ub) // 2, 1, 24, "lectern[facing=north]", {"id": "minecraft:lectern"})
         v.marca("seca", (ua + ub) // 2, 1, 0)
+        E.ornamentar(v, ua, -26, ub, 26, 0, 9)
         v.entity((ua + ub) // 2, 1, 10, C.ahogado(lado == 1))
         if lado == 1:
             C.generador(v, ua + 2, 1, 20, "drowned", tridente=False)
@@ -327,6 +337,7 @@ def arsenal(v):
     C.cartel(v, cu2 - 1, 2, aw + 8, "west", pista(1, "I: alzada", "I: raised"))
     v.marca("seca", cu1 + 3, 1, aw + 6)
     v.marca("camara_arsenal", cu1 + 2, 1, aw + 6)
+    E.ornamentar(v, u1, w1, u2, w2, 0, 8)
     v.marca("palanca_arsenal", cu1 - 1, 2, aw + 5)
     v.marca("toque_arsenal", cu1, 3, aw + 6)
     v.marca("puerta_arsenal", cu1, 2, aw + 6)
@@ -460,6 +471,7 @@ def artesanos(v):
         for w in (w1 + 1, w2 - 1):
             v.set(u, 7, w, LINTERNA)
     v.set(0, 8, 0, LINTERNA)
+    E.ornamentar(v, u1, w1, u2, w2, 0, 8)
     v.fill(-4, 1, 0, 4, 1, 0, "warped_slab[type=top]")                      # mesa larga
     C.cofre(v, u1 + 1, 1, 0, "east", "media")
     v.marca("seca", 0, 1, -4)

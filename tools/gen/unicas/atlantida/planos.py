@@ -37,10 +37,30 @@ def plano(m, y, ruta, caja=None, escala=2):
     img.save(ruta)
 
 
+def vista(m, nombre_sitio, ruta, escala=3, y_min=None):
+    """Render isométrico de lo construido en la caja de un sitio (sin agua ni aire)."""
+    import render
+    from core import Template
+    _, x1, y1, z1, x2, y2, z2, _ = next(s for s in m.sitios if s[0] == nombre_sitio)
+    y1 = y1 if y_min is None else max(y1, y_min)
+    t = Template(nombre_sitio)
+    for (x, y, z), (st, _) in m.blocks.items():
+        if x1 <= x <= x2 and y1 <= y <= y2 and z1 <= z <= z2 and nombre(st) not in ("air", "water", "bubble_column"):
+            t.blocks[(x - x1, y - y1, z - z1)] = (st, None)
+    render.render(t, ruta, scale=escala)
+
+
+NIVELES = (("n1_plantas_altas_y38", 38, None), ("n0_calle_y33", 33, None), ("n-1_galerias_y15", 15, (-176, -176, 175, 175)),
+           ("n-2_camaras_y-5", -5, (-16, -40, 111, 71)), ("n-2_cripta_y-12", -12, (40, -8, 103, 39)))
+VISTAS = (("templo", 2), ("agora", 3), ("termas", 3), ("academia", 3), ("arsenal", 3), ("anfiteatro", 3), ("jardines", 3),
+          ("puerto", 3), ("lonja", 4))
+
 if __name__ == "__main__":
     from . import plano as _plano
     destino = sys.argv[1]
     os.makedirs(destino, exist_ok=True)
     m = _plano()
-    for nombre_, y in (("n0_calle_y33", 33), ("n1_alta_y38", 38), ("n1_cubiertas_y44", 44)):
-        plano(m, y, os.path.join(destino, f"plano_{nombre_}.png"), escala=1)
+    for nombre_, y, caja in NIVELES:
+        plano(m, y, os.path.join(destino, f"plano_{nombre_}.png"), caja=caja, escala=1 if caja is None else 4)
+    for sitio, escala in VISTAS:
+        vista(m, sitio, os.path.join(destino, f"vista_{sitio}.png"), escala, y_min=U.SUELO)

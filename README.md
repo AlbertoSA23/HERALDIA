@@ -8,6 +8,7 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
+- **La Atlántida**: una única ciudad sumergida por mundo (ver abajo).
 - **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
 
 ## Instalación
@@ -61,6 +62,20 @@ Cada aldea tiene:
 
 Límites de población: hay unas 1,25 camas por aldeano inicial, así que la población crece como mucho un 25 %.
 La función `heraldia:golems` revisa cada 30 s las aldeas cargadas y retira un gólem natural cada vez que hay 8 o más (estándar) o 9 o más (grande); no toca los construidos por jugadores. Límites y limpieza se cambian en la [configuración](#configuración).
+
+## La Atlántida
+
+Una sola por mundo, siempre, sin opción de configuración. Es una ciudad amurallada de unos 770 × 770 bloques, totalmente sumergida, en la cuenca de océano profundo más cercana al origen que esté a 1.500 bloques o más y sin explorar (en un mundo ya existente solo aparece en chunks nuevos). La posición se calcula la primera vez que se carga el mundo y se guarda en `data/heraldia/atlantida.json`.
+
+- Se encuentra con `/locate structure heraldia:unicas/atlantida` o con su mapa del tesoro.
+- Calles y plazas inundadas, y más de 200 casas, torres y salas **secas** a las que se entra por puertas o buceando desde abajo. Si se rompe un muro, la sala se inunda.
+- Ocho distritos (ágora, lonja, termas, arsenal, puerto hundido, jardines de coral, academia y anfiteatro), un templo en el centro, galerías subterráneas y, al fondo, el guardián final.
+- Defensores: guardianes, ahogados con tridente, 48 generadores, guardianes ancianos en los distritos clave y el Guardián de Poseidón.
+- Tres sellos con sus llaves, puertas de combinación, trampas de flechas, agua y TNT.
+- 185 cofres con botín avanzado y un cofre único, oculto y cerrado con la llave del guardián final, con dos tridentes legendarios. Su contenido es fijo: el primer grupo que llegue se lo lleva.
+- Dentro de la ciudad no nacen otras estructuras (monumentos, naufragios, ruinas).
+
+Detalle, planos y qué se ha comprobado: `docs/unicas/atlantida.md`.
 
 ## Mapas del tesoro
 

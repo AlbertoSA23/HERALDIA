@@ -185,3 +185,36 @@ def plazuela(v, lado=9, sal=0):
     v.set(c, 1, c, CORALES[h(v.ox, v.oz, sal) % 5])
     v.set(c, 2, c, LINTERNA)
     v.sitio("plazuela", 0, 0, 0, lado - 1, 8, lado - 1)
+
+
+def ornamentar(v, u1, w1, u2, w2, y1, y2, paso=6, peto=True):
+    """Articula una caja lisa sin tocar su estanqueidad: pilastras de cuarzo en esquinas y cada «paso», zócalo oscuro y
+    peto almenado. Solo sustituye ladrillo de muro (respeta puertas, cristales y mecanismos)."""
+    def muro(u, y, w):
+        return v.built(u, y, w) == "minecraft:prismarine_bricks"
+    for u in range(u1, u2 + 1):
+        for w in range(w1, w2 + 1):
+            if not (u in (u1, u2) or w in (w1, w2)):
+                continue
+            esquina = u in (u1, u2) and w in (w1, w2)
+            a = (u - u1) if w in (w1, w2) else (w - w1)
+            largo = (u2 - u1) if w in (w1, w2) else (w2 - w1)
+            pilastra = esquina or (a % paso == 0 and 0 < a < largo)
+            for y in range(y1 + 1, y2):
+                if muro(u, y, w):
+                    if pilastra:
+                        v.set(u, y, w, CUARZO)
+                    elif y == y1 + 1:
+                        v.set(u, y, w, OSCURA)
+            if peto and (pilastra or (a % 2 == 0)) and v.built(u, y2 + 1, w) is None:
+                v.set(u, y2 + 1, w, OSCURA if not pilastra else CUARZO)
+
+
+def ventanas(v, fijo, eje, a, b, y1, y2, paso=6):
+    """Ventanas de cristal macizo de 2 de ancho en un muro (eje 'u': muro w = fijo, de u = a a b; eje 'w': muro u = fijo)."""
+    for t in range(a + 3, b - 2, paso):
+        for k in (0, 1):
+            for y in range(y1, y2 + 1):
+                u, w = (t + k, fijo) if eje == "u" else (fijo, t + k)
+                if v.built(u, y, w) == "minecraft:prismarine_bricks":
+                    v.set(u, y, w, CRISTAL)
