@@ -1,6 +1,5 @@
 """Piezas comunes y parametrizadas para las estructuras únicas (no es una estructura: el prefijo _ la excluye):
-escalera de caracol,
-puerta secreta de pistones, trampas de flechas, generadores, guardianes, carteles traducibles y ayudas de botín).
+escalera de caracol, puerta secreta de pistones, trampas de flechas, generadores, guardianes, carteles traducibles y ayudas de botín).
 
 Las funciones reciben cualquier objeto con set(x, y, z, estado, nbt=None) y get(x, y, z), como core.Template.
 Todo se coloca en un estado de reposo coherente: funciona al generarse sin actualizaciones de bloque.
