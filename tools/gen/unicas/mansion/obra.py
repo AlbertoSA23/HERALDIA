@@ -6,7 +6,7 @@ Todo se construye en una plantilla única (la «obra») que luego se parte en la
 import random
 from nbtlib import Compound, String, Byte, IntArray, Float, Int, List, Double
 from core import Template, B, F
-from .._comun.piezas import S, escalera_caracol, generador, cofre, guardian, cuadro
+from .._comun.piezas import spawner, chest, guardian, painting, spiral_continuous
 
 X0, X1, Z0, Z1 = 12, 49, 14, 40          # muros de la casa principal
 GF, P1, P2, AT, CS = 2, 8, 13, 18, -5    # pies en cada planta (sótano CS)
@@ -17,6 +17,12 @@ CW = {"north": "east", "east": "south", "south": "west", "west": "north"}
 OPP = {"north": "south", "south": "north", "east": "west", "west": "east"}
 D = {"north": (0, -1), "south": (0, 1), "east": (1, 0), "west": (-1, 0)}
 LOOT = "heraldia:unicas/mansion/"
+
+
+def S(name, **p):
+    if not p:
+        return name
+    return name + "[" + ",".join(f"{k}={str(v).lower() if isinstance(v, bool) else v}" for k, v in p.items()) + "]"
 
 
 class Obra:
@@ -63,11 +69,11 @@ class Obra:
         self.s(x + dx, y, z + dz, S(f"{color}_bed", facing=facing, part="head", occupied=False))
 
     def chest(self, x, y, z, facing, table, kind="chest"):
-        cofre(self.t, x, y, z, facing, LOOT + table, kind)
+        chest(self.t.set, x, y, z, facing, LOOT + table, kind)
         self.chests.append(((x, y, z), table))
 
     def spawner(self, x, y, z, mob):
-        self.s(x, y, z, "spawner", generador(mob))
+        spawner(self.t.set, x, y, z, mob, potentials=True)
         self.spawners.append((x, y, z))
 
     def lamp(self, x, y, z):
@@ -91,7 +97,7 @@ class Obra:
                 self.web(x, y, z)
 
     def painting(self, x, y, z, facing, variant):
-        self.t.entity(x, y, z, cuadro(x, y, z, facing, variant))
+        self.t.entity(x, y, z, painting(x, y, z, facing, variant))
 
     # ------------------------------------------------------------ construcción
     def build(self):
@@ -539,7 +545,7 @@ class Obra:
                         self.s(x, y, z, FLOOR)
         self.f(10, 1, 12, 12, 1, 14, FLOOR)
         self.f(11, 1, 13, 11, 23, 13, TRIM)       # machón central
-        escalera_caracol(self.t, self.RING, 2, 22)
+        spiral_continuous(self.t.set, self.RING, 2, 22, "minecraft:spruce_stairs", "stripped_spruce_wood")
         for x, z in (self.RING[6], self.RING[7]):
             self.s(x, 23, z, FLOOR)
         for y in (GF, P1, P2):
@@ -972,8 +978,12 @@ class Obra:
         self.s(46, -6, 29, "tuff")
 
     def criaturas(self):
-        self.t.entity(43, CS, 35, guardian("wither_skeleton", "heraldia.mansion.conde", "El Conde Malaquías", 60.0,
-                                           {"head": "leather_helmet", "chest": "leather_chestplate", "legs": "leather_leggings",
-                                            "feet": "leather_boots"}, "heraldia_mansion_guardian", 1908001))
+        cuero = lambda i: {"id": "minecraft:" + i, "count": 1, "components": {"minecraft:dyed_color": 1908001}}
+        g = guardian("wither_skeleton", "heraldia.mansion.conde", "El Conde Malaquías", 60,
+                     equipment={k: cuero(i) for k, i in (("head", "leather_helmet"), ("chest", "leather_chestplate"),
+                                                          ("legs", "leather_leggings"), ("feet", "leather_boots"))},
+                     drop_chances={k: 0.0 for k in ("head", "chest", "legs", "feet")})
+        g["Tags"] = ["heraldia_mansion_guardian"]
+        self.t.entity(43, CS, 35, g)
         self.t.entity(29, AT, 30, Compound({"id": String("minecraft:cat"), "PersistenceRequired": Byte(1),
                                             "variant": String("minecraft:all_black")}))

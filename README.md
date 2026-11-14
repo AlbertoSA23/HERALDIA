@@ -22,10 +22,27 @@ Contenido:
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
     sótano de experimentos con generadores y trampas, el guardián Archimago Malvarius y 16 cofres. Diseño:
     [docs/unicas/torre_mago.md](docs/unicas/torre_mago.md).
+  - **Coliseo en ruinas** (sabana y meseta de sabana): anfiteatro elíptico con graderíos, palcos e hipogeo con celdas de fieras, armería, dos puzles de redstone, dos trampas, cuatro generadores, el Campeón de la Arena y una cámara del tesoro oculta. Diseño: [docs/unicas/coliseo.md](docs/unicas/coliseo.md).
+  - **Castillo** (`heraldia:unicas/castillo`): llanuras, llanuras de girasoles y praderas. Fortaleza de 100 x 100 con foso,
+    muralla, barbacana, patio de armas, torre del homenaje y mazmorra con calabozos, trampas, tres generadores, el guardián
+    Sir Aldric y la cámara del tesoro oculta; 36 cofres. Diseño: [docs/unicas/castillo.md](docs/unicas/castillo.md).
+  - **Monasterio de montaña** (`heraldia:unicas/monasterio`; prados de montaña y arboledas): terrazas sobre un risco, iglesia, claustro y cuevas con puzles, trampas, guardián y cofre premium. Diseño en `docs/unicas/monasterio.md`.
+  - **Observatorio** (`heraldia:unicas/observatorio`): colinas ventosas y meseta de sabana ventosa. Cúpula de cobre con
+    telescopio, planetario, taller de óptica, reloj de sol y, bajo la roca, archivo con dos salas ocultas, puzle de las fases
+    lunares, dos trampas, tres generadores y el guardián Custodio de las Estrellas. Diseño: [docs/unicas/observatorio.md](docs/unicas/observatorio.md).
   - **Mansión encantada** (`heraldia:unicas/mansion`): pantano y manglar. Finca victoriana con torreón, invernadero
     arruinado y cementerio con panteón; bajo la casa, tras una estantería secreta, un sótano con laboratorio y cámara del
     tesoro cerrada por una combinación de palancas; dos trampas, tres generadores, el guardián El Conde Malaquías y 33 cofres.
     Diseño: [docs/unicas/mansion.md](docs/unicas/mansion.md).
+  - **Catedral gótica** (`heraldia:unicas/catedral`): bosques y bosques de flores. Fachada con dos torres y rosetón, nave con
+    triforio y arbotantes, crucero con aguja, girola con capillas, sacristía, biblioteca, claustro y, bajo tierra, cripta,
+    osarios y cámara del tesoro; dos puertas secretas, una trampilla oculta, dos trampas, tres generadores, el guardián
+    Fray Osmundo y 19 cofres. Diseño: [docs/unicas/catedral.md](docs/unicas/catedral.md).
+  - **Acueducto en ruinas** (`heraldia:unicas/acueducto`, desierto y badlands): acueducto de dos pisos, ciudad romana abandonada, cisterna y cloacas con la cámara del tesoro. Diseño en [docs/unicas/acueducto.md](docs/unicas/acueducto.md).
+  - **Galeón varado** (`heraldia:unicas/galeon`, playas y playas nevadas): galeón de tres palos encallado en la orilla
+    (se sitúa buscando el agua), con bodega, cubierta de cañones, castillos, camarote y cámara secreta del tesorero;
+    campamento de náufragos con arqueología y una cueva con el puzle de los faroles, trampas, cuatro generadores y el
+    guardián El capitán ahogado; 18 cofres. Diseño: [docs/unicas/galeon.md](docs/unicas/galeon.md).
 
 ## Instalación
 
@@ -33,7 +50,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 72 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 75 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
