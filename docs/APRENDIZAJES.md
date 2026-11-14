@@ -48,7 +48,7 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 - Muro circular de 1 bloque con vecindad de 4: las diagonales quedan en escalera y no admiten ventanas limpias; pon las ventanas en los tramos rectos (los cuatro puntos cardinales). Verificado con los planos y renders de la torre de mago.
 
 - Sótanos con `beard_thin`: el núcleo del adaptador se centra en la base de cada pieza (`minY` + 1). Una pieza de superficie con cimientos de 5 bloques solo hunde el borde ~1 bloque; para algo más hondo, pieza aparte bajo la principal con un jigsaw vertical y la caja entera con bloques explícitos. `start_height` negativo (-(capa de terreno + 1)) sitúa la capa de hierba de la plantilla a ras de suelo. Deducido del código del adaptador; sin verificar en generación real.
-- Puerta secreta de 1 x 2 sin componentes a la vista: en el rincón de una sala con muros de 3, la puerta en el muro lateral y los pistones dentro del muro perpendicular; las piezas se retiran al bloque del rincón, que no se ve desde ningún lado (castillo, `util.hidden_door`).
+- Puerta secreta de 1 x 2 sin componentes a la vista: en el rincón de una sala con muros de 3, la puerta en el muro lateral y los pistones dentro del muro perpendicular; las piezas se retiran al bloque del rincón, que no se ve desde ningún lado (`unicas/_comun/piezas.hidden_door`, usada por el castillo).
 
 ## Generador y auditoría
 
@@ -58,7 +58,7 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
 - Opciones del mod: se definen en `tools/gen/opciones.py` (por defecto, rango y textos en los dos idiomas), que las escribe en `heraldia/opciones.json` dentro del `.jar`. El Java las valida de forma genérica: una opción nueva no necesita código, salvo para usarla. Verificado en la prueba de humo (corrección de un valor fuera de rango).
-- Auditoría de recorrido de ida y vuelta (`unicas/castillo/util.walk_graph`): grafo dirigido (subir 0,5, bajar 1, agua y escaleras de mano en vertical) y búsqueda inversa; detecta caídas sin retorno, que `lint.walk` no ve. Con los mecanismos cerrados, comprueba además que las salas secretas no se alcanzan.
+- Auditoría de recorrido de ida y vuelta (`unicas/_comun/piezas.walk_graph`): grafo dirigido (subir 0,5, bajar 1, agua y escaleras de mano en vertical) y búsqueda inversa; detecta caídas sin retorno, que `lint.walk` no ve. Con los mecanismos cerrados, comprueba además que las salas secretas no se alcanzan.
 - Puzles de redstone sin actualizaciones al generar: `tools/gen/unicas/ciudadela/redstone.py` calcula como el juego la forma de cada cable y la señal de antorchas, pistones (con cuasiconectividad), puertas, dispensadores y TNT, comprueba que el estado colocado es estable y simula entradas. Reutilizable por otras estructuras. Verificado contra la puerta de pistones, la cerradura (16 combinaciones) y las trampas de la ciudadela; no se ha accionado en el juego.
 - `lint.walk` admite `t.lint_open` (posiciones -> estado abierto) para recorrer salas tras puertas secretas; para comprobar que el puzle cierra de verdad, recorre otra vista sin `lint_open`. Verificado en la auditoría de la ciudadela.
 

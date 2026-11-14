@@ -1,7 +1,7 @@
 """Castillo en superficie: foso, muralla con torres y adarve, puerta con rastrillo, patio de armas y torre del homenaje.
 Coordenadas de la plantilla: x, z en 0..99 (norte z=0, la puerta mira al sur); y=5 es la capa de terreno, los pies a y=6."""
 import random
-from .util import Lienzo, circle, spiral, hidden_door, connect
+from .._comun.piezas import Lienzo, circle, spiral, hidden_door, connect
 
 N = 100
 G, L, W = 5, 6, 17          # capa de terreno, pies en el patio, pies en el adarve

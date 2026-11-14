@@ -23,6 +23,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Técnico
 
+- Piezas comunes y parametrizadas en `tools/gen/unicas/_comun/piezas.py` (caracol de losas, puerta secreta de pistones, polvo de redstone, conexiones de vallas y barrotes, generador, guardián y recorrido a pie de ida y vuelta), para que las demás estructuras únicas las reutilicen.
 - Castillo (`tools/gen/unicas/castillo/`): dos plantillas rígidas unidas por un jigsaw vertical (castillo de 100 x 100 x 28 y mazmorra de 48 x 56 x 16 debajo), `beard_thin` con `start_height` -6 para que el foso y los cimientos queden bajo el terreno, procesador de musgo y grietas (ruina esperada 17 %), auditoría propia (recorrido a pie de ida y vuelta, salas ocultas inalcanzables con el mecanismo cerrado, redstone en reposo, nada flotando), planos y renders en `docs/unicas/castillo/` y prueba de los mecanismos en servidor (`prueba_redstone.py`).
 - `writer.py`: se quita la segunda mezcla duplicada de los textos `LANG` de las estructuras únicas, que había entrado por dos PR paralelos.
 - Faro (`tools/gen/unicas/faro/`): plantilla única de 44 x 52 x 48 y tipo de estructura propio `heraldia:faro` (Java) que busca la línea de costa con los mapas de alturas de generación y gira la plantilla hacia el mar; con `/place structure` se coloca aunque no haya costa. Comprobaciones propias: simulación de redstone de puzles y trampas, cueva estanca, ruina estimada (15,8 %) y recorrido a pie.

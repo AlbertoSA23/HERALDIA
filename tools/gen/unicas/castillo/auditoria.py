@@ -2,7 +2,7 @@
 salas ocultas que solo se abren con su mecanismo, redstone en reposo y nada flotando."""
 from collections import deque
 from core import parse_state
-from .util import walk_graph, bn, passable
+from .._comun.piezas import walk_graph, bn, passable
 from .mazmorra import OFF
 from . import superficie
 

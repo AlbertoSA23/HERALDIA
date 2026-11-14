@@ -2,7 +2,7 @@
 pasillo de saetas, sala del guardián con el acertijo de las tres palancas y la cámara del tesoro oculta.
 Coordenadas locales: x 0..47, z 0..55, y 0..15 (y=15 toca la base del castillo; pies a y=3)."""
 import random
-from .util import Lienzo, hidden_door, wire_line, connect
+from .._comun.piezas import Lienzo, hidden_door, wire_line, connect, guardian as _guardian, spawner as _spawner
 from .superficie import NEWEL, LOOT
 
 OFF = (26, -16, 14)          # local + OFF = coordenadas del castillo
@@ -34,8 +34,7 @@ def build(below, rnd=None):
         meta["chests"].append(((x, y, z), table))
 
     def spawner(x, y, z, mob):
-        t.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}},
-                                   "SpawnRange": 4, "RequiredPlayerRange": 16})
+        _spawner(t, x, y, z, mob)
         meta["spawners"].append(((x, y, z), mob))
 
     def hang(x, y, z, soul=True):
@@ -228,16 +227,6 @@ def build(below, rnd=None):
 
 
 def guardian():
-    armor = lambda n: {"id": "minecraft:" + n, "count": 1}
-    from core import F, B
-    return {"id": "minecraft:zombie", "PersistenceRequired": B(1), "CanPickUpLoot": B(0), "IsBaby": B(0),
-            "CustomName": {"translate": "heraldia.castillo.guardian", "fallback": "Sir Aldric, el Castellano Maldito"},
-            "Health": F(60.0),
-            "attributes": [{"id": "minecraft:max_health", "base": 60.0},
-                           {"id": "minecraft:attack_damage", "base": 5.0},
-                           {"id": "minecraft:knockback_resistance", "base": 0.4},
-                           {"id": "minecraft:follow_range", "base": 24.0}],
-            "equipment": {"mainhand": armor("iron_sword"), "head": armor("iron_helmet"),
-                          "chest": armor("chainmail_chestplate"), "legs": armor("iron_leggings"),
-                          "feet": armor("chainmail_boots")},
-            "drop_chances": {"mainhand": F(0.2), "head": F(0.1), "chest": F(0.1), "legs": F(0.1), "feet": F(0.1)}}
+    return _guardian("zombie", "heraldia.castillo.guardian", "Sir Aldric, el Castellano Maldito",
+                     {"mainhand": "iron_sword", "head": "iron_helmet", "chest": "chainmail_chestplate",
+                      "legs": "iron_leggings", "feet": "chainmail_boots"}, extra={"IsBaby": __import__("core").B(0)})

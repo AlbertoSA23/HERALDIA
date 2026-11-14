@@ -250,3 +250,26 @@ def connect(t):
                     ok = nb == "iron_bars" or nb.endswith("_pane") or is_full(n) or nb.endswith("_wall")
             props[d] = "true" if ok else "false"
         t.blocks[(x, y, z)] = (ss(bid, props), nbt)
+
+
+# ---------------------------------------------------------------- generadores y guardianes
+def spawner(t, x, y, z, mob, required_range=16, spawn_range=4):
+    """Generador de monstruos de un solo tipo."""
+    t.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}},
+                               "SpawnRange": spawn_range, "RequiredPlayerRange": required_range})
+
+
+def guardian(mob, key, fallback, equipment, health=60.0, attack=5.0, knockback=0.4, follow=24.0, drop=0.1, extra=None):
+    """NBT de un guardián (formato 26.3): nombre traducible, equipo, atributos moderados y persistente.
+    equipment = {"mainhand": "iron_sword", "head": "iron_helmet", ...}."""
+    from core import F, B
+    n = {"id": "minecraft:" + mob, "PersistenceRequired": B(1), "CanPickUpLoot": B(0),
+         "CustomName": {"translate": key, "fallback": fallback}, "Health": F(health),
+         "attributes": [{"id": "minecraft:max_health", "base": float(health)},
+                        {"id": "minecraft:attack_damage", "base": float(attack)},
+                        {"id": "minecraft:knockback_resistance", "base": float(knockback)},
+                        {"id": "minecraft:follow_range", "base": float(follow)}],
+         "equipment": {slot: {"id": "minecraft:" + item, "count": 1} for slot, item in equipment.items()},
+         "drop_chances": {slot: F(drop * 2 if slot == "mainhand" else drop) for slot in equipment}}
+    n.update(extra or {})
+    return n
