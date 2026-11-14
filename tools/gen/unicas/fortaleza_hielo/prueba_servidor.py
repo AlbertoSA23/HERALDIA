@@ -29,9 +29,13 @@ CHECKS = [  # (descripción, orden, debe pasar)
     ("cofre premium con botín", f"execute if data block {p(6, 1, 62)} LootTable", True),
 ]
 ACTIONS = [
-    ("abrir la cripta", f"setblock {p(17, 7, 54)} minecraft:lever[face=wall,facing=east,powered=false]",
+    # /setblock solo avisa a los vecinos de la palanca; un jugador que la usa avisa también a los del bloque al que va
+    # enganchada. Se emula cambiando ese bloque (de piedra a ladrillo, de hielo compacto a azul) justo después.
+    ("abrir la cripta", f"setblock {p(17, 7, 54)} minecraft:lever[face=wall,facing=east,powered=false]\n"
+                        f"setblock {p(16, 7, 54)} minecraft:stone_bricks",
      [(f"execute if block {p(15, 6, 51)} minecraft:air", True), (f"execute if block {p(15, 7, 51)} minecraft:air", True)]),
-    ("abrir el salón", f"setblock {p(32, 12, 53)} minecraft:lever[face=wall,facing=north,powered=false]",
+    ("abrir el salón", f"setblock {p(32, 12, 53)} minecraft:lever[face=wall,facing=north,powered=false]\n"
+                       f"setblock {p(32, 12, 54)} minecraft:blue_ice",
      [(f"execute if block {p(29, 11, 55)} minecraft:air", True), (f"execute if block {p(29, 12, 55)} minecraft:air", True)]),
     ("pisar la placa del tesoro", f"summon minecraft:zombie 6.5 {1 + Y} 55.5 {{NoAI:1b,Silent:1b}}",
      [(f"execute if data block {p(5, 1, 55)} {ARROWS}", False), (f"execute if data block {p(7, 1, 55)} {ARROWS}", False)]),
@@ -72,7 +76,8 @@ def main():
         for desc, cmd, want in CHECKS:
             test(desc, cmd, want)
         for desc, cmd, expects in ACTIONS:
-            S.send(proc, cmd)
+            for c in cmd.split("\n"):
+                S.send(proc, c)
             time.sleep(2)
             for k, (c, want) in enumerate(expects):
                 test(f"{desc} ({k + 1})", c, want)
