@@ -96,8 +96,9 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Generador y auditoría
 
+- `_comun/recorrido.py`: `lint.walk` toma como suelo cualquier celda vacía con y < 0; `walk(t)` audita una copia desplazada hacia arriba. `_comun/piezas.py` tiene `plate_trap` y `door`. Verificado con la auditoría del Observatorio.
+
 - Piezas comunes en `tools/gen/unicas/_comun/` (`botin.py`, `piezas.py`): reciben `put(x, y, z, estado, nbt=None)` y valen para cualquier sistema de coordenadas. Antes de escribir una escalera de caracol, una puerta de pistones, una trampa, un generador, un guardián o una tabla de cofre, mira ahí. Verificado: la fortaleza, la ciudadela y la torre generan los mismos bloques y botín tras migrar.
-- Herramientas comunes en `tools/gen/unicas/_comun/herramientas.py` (sacadas del Observatorio): `simulate`/`settle_redstone` evalúan palancas, antorchas de pared, polvo con escalones y puertas de hierro hasta un punto fijo y avisan si el circuito oscila; `walk` desplaza la plantilla para auditar sótanos en y < 0. Verificado con la auditoría y la prueba en servidor del Observatorio.
 
 - En los procesadores `rule`, `output_state` es una cadena (`"minecraft:cracked_stone_bricks"`); el formato antiguo `{"Name": ...}` rompe la carga del paquete entero en 26.3. Verificado con «Registry loading errors» en la prueba de humo.
 - `lint.py`: `redstone_wire` cuenta como pisable (el polvo escondido en un pasadizo no corta el recorrido). Verificado con la auditoría de la torre de mago.
@@ -131,4 +132,3 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 - `/place template <id> x y z` responde «Loaded template …» (no «Placed»). Verificado en un servidor dedicado.
 
 ## Fallos pendientes
-- Hay dos simuladores de redstone comunes: `_comun/redstone.py` (`Sim`, cables planos) y `_comun/herramientas.py` (`simulate`, admite cables que suben o bajan un escalón y detecta oscilaciones). Conviene unificarlos en `redstone.py`.

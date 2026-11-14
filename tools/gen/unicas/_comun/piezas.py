@@ -107,6 +107,22 @@ def tripwire_trap(put, hook_a, hook_b, y, along, dispensers, arrows=6):
             {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(3)]})
 
 
+def plate_trap(put, plates, dispensers, arrows=6):
+    """Trampa de losas: placas de presión de piedra en `plates` [(x, y, z)]; cada dispensador ((x, y, z), facing) va
+    junto a una placa, que lo activa al pisarla (la placa da señal a sus vecinos)."""
+    for p in plates:
+        put(*p, "stone_pressure_plate[powered=false]")
+    for (p, facing) in dispensers:
+        put(*p, f"dispenser[facing={facing},triggered=false]",
+            {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(3)]})
+
+
+def door(put, x, y, z, facing, kind="spruce_door", hinge="left"):
+    """Puerta de dos bloques cerrada (también de hierro: se abre al recibir señal)."""
+    for h, dy in (("lower", 0), ("upper", 1)):
+        put(x, y + dy, z, f"{kind}[facing={facing},half={h},hinge={hinge},open=false,powered=false]")
+
+
 def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
     """Trampa de losa (templo del desierto): placa en (x, y, z) sobre el suelo y TNT dos bloques más abajo;
     `warn` [(x, y, z)] recibe ladrillos agrietados como aviso."""
