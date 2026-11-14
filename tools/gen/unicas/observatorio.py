@@ -25,6 +25,8 @@ STRUCTURE = dict(
     step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG",
     spacing=250, separation=190)
 
+NOMBRE = {"es_es": "Observatorio", "en_us": "Observatory"}
+
 # ------------------------------------------------------------------ textos
 _T = {
     "guardian": ("Custodio de las Estrellas", "Keeper of the Stars"),
@@ -659,8 +661,10 @@ def phase_puzzle(t):
             t.set(29, -4, z, "redstone_wire")
     for z in range(22, 32):
         t.set(30, -4, z, "redstone_wire")
-    t.set(29, -4, 22, "redstone_wire")
-    t.set(28, -4, 22, "redstone_wire")
+    # el último polvo baja un escalón y entra por el lado del soporte: si fuera encima de él, el bloque que la
+    # antorcha de salida alimenta por arriba le daría potencia y el circuito oscilaría hasta fundirla
+    t.set(29, -4, 22, "air")
+    t.set(29, -5, 22, "redstone_wire")
     t.set(27, -5, 22, "redstone_wall_torch[facing=west,lit=false]")
     door(t, 27, -6, 21, "east", "iron_door")
     t.air(28, -6, 21, 28, -5, 21)
@@ -677,13 +681,27 @@ def _b(st):
     return lint.bname(st)
 
 
-def wire_conn(t, x, y, z):
-    out = {}
+def wire_links(t, x, y, z):
+    """Direcciones en que conecta el polvo: (dirección, dy del vecino) con polvo, antorcha o palanca."""
+    out = []
     for name, (dx, dz) in HOR.items():
         n = t.get(x + dx, y, z + dz)
-        nb = _b(n) if n else None
-        out[name] = "side" if nb in ("redstone_wire", "redstone_wall_torch", "redstone_torch", "lever") else "none"
+        if n and _b(n) in ("redstone_wire", "redstone_wall_torch", "redstone_torch", "lever"):
+            out.append((name, 0))
+            continue
+        up, above = t.get(x + dx, y + 1, z + dz), t.get(x, y + 1, z)
+        if up and _b(up) == "redstone_wire" and (above is None or lint.passable(above)):
+            out.append((name, 1))
+            continue
+        down, side = t.get(x + dx, y - 1, z + dz), t.get(x + dx, y, z + dz)
+        if down and _b(down) == "redstone_wire" and (side is None or lint.passable(side)):
+            out.append((name, -1))
     return out
+
+
+def wire_conn(t, x, y, z):
+    links = dict(wire_links(t, x, y, z))
+    return {n: ("up" if links.get(n) == 1 else "side" if n in links else "none") for n in HOR}
 
 
 def simulate(t, levers_on):
@@ -694,6 +712,8 @@ def simulate(t, levers_on):
     torches = {p: st for p, st in blocks.items() if _b(st) == "redstone_wall_torch"}
     levers = {p: st for p, st in blocks.items() if _b(st) == "lever"}
     lit = {p: True for p in torches}
+    links = {w: wire_links(t, *w) for w in wires}
+    stable = False
 
     def attached(p, st, opposite=True):
         dx, dz = HOR[parse_state(st)[1]["facing"]]
@@ -726,8 +746,9 @@ def simulate(t, levers_on):
                 q.append(w)
         while q:
             w = q.popleft()
-            for dx, dz in HOR.values():
-                n = (w[0] + dx, w[1], w[2] + dz)
+            for name, dy in links[w]:
+                dx, dz = HOR[name]
+                n = (w[0] + dx, w[1] + dy, w[2] + dz)
                 if n in power and power[n] < power[w] - 1:
                     power[n] = power[w] - 1
                     q.append(n)
@@ -737,15 +758,17 @@ def simulate(t, levers_on):
             if pw <= 0:
                 continue
             powered.add((w[0], w[1] - 1, w[2]))
-            c = [d for d, (dx, dz) in HOR.items() if _b(blocks.get((w[0] + dx, w[1], w[2] + dz), "air")) in
-                 ("redstone_wire", "redstone_wall_torch", "lever")]
+            c = [d for d, _ in links[w]]
             if len(c) == 1:
                 dx, dz = HOR[c[0]]
                 powered.add((w[0] - dx, w[1], w[2] - dz))
         new = {p: attached(p, st) not in powered for p, st in torches.items()}
         if new == lit:
+            stable = True
             break
         lit = new
+    if not stable:                         # el circuito oscila: un reloj fundiría las antorchas
+        return power, lit, None
     doors = {}
     for p, st in blocks.items():
         if _b(st) == "iron_door" and "half=lower" in st:
@@ -922,7 +945,10 @@ def audit(t):
     opens = []
     for mask in range(16):
         on = {(26, -4, z) for k, z in enumerate(sorted(LEVERS)) if mask >> k & 1}
-        if simulate(t, on)[2].get(door_p):
+        res = simulate(t, on)[2]
+        if res is None:
+            issues.append(("puzle: el circuito oscila", sorted(on)))
+        elif res.get(door_p):
             opens.append(on)
     want = {(26, -4, z) for z, g in LEVERS.items() if g}
     if opens != [want]:
@@ -931,7 +957,7 @@ def audit(t):
     for p, pw in power.items():
         if parse_state(t.get(*p))[1].get("power") != str(pw):
             issues.append(("polvo con potencia incoherente", p))
-    if any(doors.values()):
+    if doors is None or any(doors.values()):
         issues.append(("puerta de hierro abierta en reposo", door_p))
     # puerta de pistones: la antorcha alimenta el pistón de arriba y la palanca apaga la antorcha
     _, lit2, _ = simulate(t, {(17, -5, 20)})

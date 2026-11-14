@@ -8,7 +8,8 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+- **Estructuras únicas** (una cada 3000-5000 bloques por defecto, cada una en su bioma):
+  - **Observatorio** (colinas ventosas y meseta de sabana ventosa): cúpula con telescopio, planetario, reloj de sol, archivo subterráneo con salas ocultas, puzle de fases lunares, trampas y guardián. Diseño en `docs/unicas/observatorio.md`.
 
 ## Instalación
 

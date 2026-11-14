@@ -80,7 +80,9 @@ reloj de sol marcan esas dos fases con los mismos bloques.
 Circuito (todo en reposo y coherente al colocarse, sin depender de actualizaciones):
 - Palancas de las fases «buenas» → bloque → antorcha de redstone (NO) → línea O.
 - Palancas «malas» → bloque → polvo → línea O.
-- Línea O → bloque → antorcha de salida (NO) junto a la hoja superior de la puerta.
+- Línea O → (el último polvo baja un escalón y entra por el lado) → bloque → antorcha de salida (NO) junto a la hoja
+  superior de la puerta. Si el polvo fuera encima de ese bloque, la antorcha encendida alimentaría el bloque de encima y
+  este al polvo: reloj de redstone y antorcha fundida (fallo real encontrado en la prueba en servidor).
 - En reposo la línea O está alimentada por las dos antorchas encendidas, con la potencia calculada en
   cada polvo; la antorcha de salida está apagada y la puerta cerrada. La auditoría simula el circuito
   para las 16 combinaciones y exige que solo una abra.
@@ -111,12 +113,12 @@ se retraen, tiran de las estanterías y abren el paso. La auditoría comprueba l
 | `premium` | 1, cámara final | 90 % vistoso: catalejo, reloj y brújula con nombre, casco de hierro con nombre y encantamiento moderado, adornos *wayfinder* y *shaper*, disco *far* o *mall*, estandarte del globo, oro y amatista. 10 %: diamantes, libro encantado 25-30 o peto de diamante encantado 15-25. Sin netherita ni élitros |
 
 ## Estado (80-85 % en buen estado)
-- Procesador en la pieza de superficie: ladrillo de piedra → agrietado (9 %) o musgoso (5 %).
+- Procesador en la pieza de superficie: ladrillo de piedra → agrietado (14 %) o, del resto, musgoso (9 %). En el subsuelo: ladrillo y baldosa de pizarra agrietados y algo de andesita en la roca.
 - Ruina diseñada con sentido: paneles de cobre caídos en el sureste de la cúpula (con escombros sobre el
   suelo del telescopio, no colgando), esquina noreste del pretil derrumbada con cascotes en la azotea,
-  ventanas rotas en la fachada oeste, telarañas en el subsuelo.
+  ventanas rotas en las fachadas oeste y este, tramo del pretil sur caído, telarañas en el subsuelo.
 - La auditoría calcula la fracción dañada de la envolvente exterior (bloques visibles desde fuera) y exige
-  que quede entre el 15 y el 20 %.
+  que quede entre el 15 y el 20 % (resultado: 84,0 % en buen estado sobre 2.976 bloques visibles).
 
 ## Contraste con el criterio de Alberto
 - Escaleras completas sin saltos; cada puerta con salida; ninguna sala inaccesible (auditoría a pie).
@@ -124,3 +126,13 @@ se retraen, tiran de las estanterías y abren el paso. La auditoría comprueba l
 - Faroles colgados con cadena hasta el techo; el planetario mecánico cuelga de cadenas; escombros en el suelo.
 - Simetría en la fachada, la rotonda y las alas; cada elemento tiene función (telescopio, reloj de sol,
   catalejos, vidrieras de taller, archivo).
+
+## Comprobaciones
+- `build(reg)` audita la plantilla completa antes de partirla y cualquier aviso detiene la generación: apoyos
+  (`lint.support_issues`), recorrido a pie en estado resuelto (puertas, cofres, barriles, palancas, botones,
+  escaleras de mano y cada peldaño de los tramos), salas ocultas inalcanzables sin resolver, simulación del
+  circuito (16 combinaciones, sin oscilaciones, potencias de reposo iguales a las colocadas), puerta de pistones,
+  nada flotando (todo bloque unido al resto) y estado exterior entre 80 y 85 %.
+- `tools/smoke/observatorio_smoke.py`: en un servidor dedicado 26.3 coloca el subsuelo y comprueba reposo, puzle,
+  pistones, trampas, cámara del tesoro y guardián, y que `/place structure` coloca también el subsuelo.
+- No comprobado: el aspecto en el juego (faltan capturas de Alberto) ni la colocación natural en los biomas.

@@ -46,7 +46,7 @@ def main():
 
     def put(pos, state):
         S.run(proc, lines, seen, f"setblock {at(*pos)} {state}", r"Changed the block|Could not set")
-        time.sleep(1.5)
+        time.sleep(4)
 
     def count(sel):
         m = S.run(proc, lines, seen, f"execute if entity {sel}", r"Test passed\. Count: (\d+)|Test failed")
@@ -62,7 +62,7 @@ def main():
             if "not loaded" not in m.group(0):
                 break
             time.sleep(S.PLACE_RETRY_S)
-        time.sleep(3)
+        time.sleep(10)
         door, vault = (27, -6, 21), (7, -13, 10)
         check("puerta del puzle cerrada en reposo", door, "minecraft:iron_door[open=false]")
         check("antorcha de salida apagada", (27, -5, 22), "minecraft:redstone_wall_torch[lit=false]")
@@ -73,6 +73,11 @@ def main():
         # puzle
         put((27, -4, 25), "minecraft:redstone_block")
         put((27, -4, 29), "minecraft:redstone_block")
+        for z in (25, 29):
+            check(f"antorcha de la fase {z} apagada al resolver", (28, -4, z), "minecraft:redstone_wall_torch[lit=false]")
+        for p in ((29, -4, 25), (30, -4, 25), (30, -4, 22), (29, -5, 22)):
+            check(f"polvo {p} sin potencia al resolver", p, "minecraft:redstone_wire[power=0]")
+        check("antorcha de salida encendida al resolver", (27, -5, 22), "minecraft:redstone_wall_torch[lit=true]")
         check("puzle resuelto abre la puerta", door, "minecraft:iron_door[open=true]")
         put((27, -4, 27), "minecraft:redstone_block")
         check("fase de más cierra la puerta", door, "minecraft:iron_door[open=false]")
@@ -92,11 +97,12 @@ def main():
         put((7, -12, 11), "minecraft:redstone_block")
         check("puerta de la cámara del tesoro", vault, "minecraft:iron_door[open=true]")
         sel = "@e[type=minecraft:skeleton,nbt={PersistenceRequired:1b,Health:40.0f}]"
-        if count(sel) != 1:
-            fails.append("guardián ausente o sin sus atributos")
+        n = count(sel)
+        if n != 1:
+            fails.append(f"guardián ausente o sin sus atributos ({n})")
         S.run(proc, lines, seen, f"data get entity {sel[:-1]},limit=1] CustomName", r"has the following|No entity|found")
         S.run(proc, lines, seen, "place structure heraldia:unicas/observatorio 64 ~ 64", r"Generated structure")
-        time.sleep(2)
+        time.sleep(8)
         if count(sel) != 2:
             fails.append("/place structure no coloca el subsuelo (falta el segundo guardián)")
     finally:

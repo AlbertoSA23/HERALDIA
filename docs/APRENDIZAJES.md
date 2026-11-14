@@ -21,7 +21,16 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Diseño de estructuras
 
+- Circuitos de redstone en plantillas: una antorcha encendida alimenta con fuerza el bloque de encima, y un polvo vecino de ese bloque recibe potencia. Una antorcha NO cuyo soporte se alimenta con polvo puesto *encima del soporte* forma así un reloj y se funde (queda apagada). Lleva el último polvo por el lado del soporte (bajando un escalón si hace falta). Verificado en un servidor dedicado con `tools/smoke/observatorio_smoke.py`.
+- Las plantillas se colocan sin actualizaciones de bloque: el estado de reposo del circuito (polvo con su `power`, antorchas `lit`) debe escribirse coherente. Calcularlo con una simulación y comparar en el servidor con `/execute if block` funciona. Para simular una palanca desde la consola, pon un bloque de redstone en su soporte (`setblock` de una palanca con `powered=true` no actualiza el bloque al que está sujeta). Verificado en servidor.
+- Puerta secreta de pistones estable al colocarse: pistones pegajosos extendidos con su cabeza y el sello delante, alimentados por una antorcha de redstone (el de arriba directo, el de abajo por casi-conectividad); la palanca apaga la antorcha y los pistones tiran del sello. Verificado en servidor.
+- `lint.walk` toma como suelo natural cualquier celda vacía con y < 0: para auditar piezas con sótano en coordenadas negativas, desplaza la plantilla hacia arriba antes del recorrido. Verificado con la auditoría del Observatorio.
+- Sótano sin cráter: pieza de subsuelo aparte bajo la de superficie, unida con un jigsaw vertical (`down_north`/`up_north`, `aligned`, así hereda el giro). La adaptación `beard_thin` solo actúa a ±12 bloques de la base de cada pieza. Comprobado que `/place structure` coloca ambas piezas (el guardián del subsuelo aparece).
+
 ## Generador y auditoría
+
+- `validate_structures` solo miraba `worldgen/structure/` (no `unicas/`): ahora revisa también las estructuras únicas. Verificado al generar.
+- `lint` contaba la linterna marina como farol («farol de pie sin apoyo») y el cable trampa y la palanca como bloques macizos; corregido. Verificado con la auditoría del Observatorio.
 
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
 - Opciones del mod: se definen en `tools/gen/opciones.py` (por defecto, rango y textos en los dos idiomas), que las escribe en `heraldia/opciones.json` dentro del `.jar`. El Java las valida de forma genérica: una opción nueva no necesita código, salvo para usarla. Verificado en la prueba de humo (corrección de un valor fuera de rango).
