@@ -7,6 +7,7 @@ están en reposo coherente; y la fracción de superficie exterior en buen estado
 from collections import deque
 from core import Template, parse_state
 from lint import walk, access_issues, passable, bname
+from unicas._comun import redstone
 from .obra import CX
 
 ENTRANCE = (CX, 1, 0)
@@ -203,6 +204,12 @@ def audit(o, wear):
     issues += [("bloque flotando", p) for p in fl[:10]]
     issues += water_issues(o)[:10]
     issues += redstone_issues(o)
+    # simulador común: estados estables al colocarse y la palanca abre la puerta (y solo ella)
+    t = Template("redstone")
+    t.blocks = {p: v for p, v in o.t.blocks.items() if p[1] < -20 or 0 <= p[1] <= 3}
+    errs, _ = redstone.check_static(t)
+    errs += redstone.check_puzzle(t, "puerta del tesoro", [o.door["lever"]], (True,), o.door["pistons"], "sin_potencia")
+    issues += [(e, None) for e in errs]
     total, bad = good_fraction(o, wear)
     good = 1 - bad / total
     if not GOOD_RANGE[0] <= good <= GOOD_RANGE[1]:
