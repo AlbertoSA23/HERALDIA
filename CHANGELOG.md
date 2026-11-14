@@ -10,6 +10,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 - Primera versión del mod: 72 aldeas enormes (36 estilos por bioma, cada uno en tamaño estándar y grande) que aparecen en chunks nuevos del Overworld, una cada 1000-2000 bloques.
 - Comandos de prueba `/function heraldia:muestrario` y `/function heraldia:familia/<familia>` para ver los estilos colocados en fila; sus mensajes salen en español o inglés según el idioma del cliente.
+- Nueva estructura única: la **Fortaleza de hielo**, en picos de hielo, llanuras nevadas y taigas nevadas. Murallas, torres afiladas, gran salón con trono de hielo, barracones, cocinas, perrera con lobos de las nieves, galería de esculturas de hielo, criptas con generadores de strays y esqueletos, el guardián Rey Escarcha y una cámara del tesoro tras una puerta secreta. Dos puzles de palanca y pistones, trampas de cable y de placa, y botín creciente hasta el cofre final.
 
 ### Técnico
 
@@ -23,3 +24,5 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Base para estructuras únicas: el generador descubre los módulos de `tools/gen/unicas/` y escribe su estructura, su rejilla de colocación, su etiqueta (para mapas) y su botín bajo `heraldia:unicas/<id>`.
 - Condición de botín `heraldia:sin_lootr`: los grupos marcados `solo_sin_lootr` se omiten si Lootr está cargado.
 - La prueba de humo coloca también cada estructura única y abre todas las tablas de botín.
+- Fortaleza de hielo (`tools/gen/unicas/fortaleza_hielo/`): una pieza rígida de 51 × 65 × 46 sobre zócalo macizo (sin excavar el terreno), procesador de degradación y auditoría propia (redstone simulada en reposo y accionada, luz de bloque para hielo y generadores, superficie dañada 15-20 %, recorrido con las puertas secretas abiertas). Planos y renders en `docs/unicas/fortaleza_hielo/`; prueba de mecanismos en servidor con `prueba_servidor.py`.
+- `lint.py` admite `lint_view` (recorrido sobre la pieza con sus mecanismos accionados) y trata ganchos de cable trampa y palancas como transitables; `writer.py` añade los textos `LANG` de cada estructura única; `render.py` colorea hielo y nieve.

@@ -203,6 +203,8 @@ def write(reg, out):
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     for lang, texts in LANG.items():
+        for _, mod in unicas.modules():             # textos propios de cada estructura única
+            texts = {**texts, **getattr(mod, "LANG", {}).get(lang, {})}
         jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
 
 
