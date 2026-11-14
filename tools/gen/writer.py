@@ -5,6 +5,7 @@ from themes import THEMES, FAMILIES
 from pack import ALL_PROFS
 import loot
 import unicas
+import mapas
 import opciones
 
 STD = dict(size=6, maxdist=92)
@@ -133,8 +134,12 @@ def write(reg, out):
     for sid, mod in unicas.modules():
         write_unique(out, sid, mod.STRUCTURE)
     # botín
+    uniques = unicas.modules()
     for name, table in loot.TABLES.items():
+        if name == "epico":
+            table = mapas.with_maps(table, uniques)
         jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
+    mapas.write(out, uniques, jdump)
     for sid, mod in unicas.modules():
         for name, table in getattr(mod, "LOOT", {}).items():
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
@@ -210,8 +215,9 @@ def write(reg, out):
         with open(os.path.join(fdir, fn), "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
+    maps_lang = mapas.lang(uniques)
     for lang, texts in LANG.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
+        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang]))
 
 
 def write_unique(out, sid, st):
@@ -240,7 +246,9 @@ def lootr_aware(table):
     for p in table["pools"]:
         p = dict(p)
         if p.pop("solo_sin_lootr", False):
-            p["conditions"] = p.get("conditions", []) + [{"condition": f"{NS}:sin_lootr"}]
+            # 26.3: un grupo lleva una sola "condition" con "type" (varias, con all_of).
+            cond = {"type": f"{NS}:sin_lootr"}
+            p["condition"] = {"type": "minecraft:all_of", "terms": [p["condition"], cond]} if "condition" in p else cond
         pools.append(p)
     return dict(table, pools=pools)
 

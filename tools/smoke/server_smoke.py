@@ -2,7 +2,8 @@
 
 Uso: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-X.jar --work build/smoke
 Comprueba: el servidor arranca sin errores de registro, están las 72 estructuras del mod,
-/place structure coloca una aldea con aldeanos, todas las tablas de botín se leen y las funciones existen.
+/place structure coloca una aldea con aldeanos, todas las tablas de botín se leen, los mapas del tesoro
+responden en menos de 30 s (con o sin destino), el filtro de los tratos de cartógrafo funciona y las funciones existen.
 También la configuración (config/heraldia.json): se migra un fichero sin versión, un valor fuera de rango se corrige al de
 por defecto, los valores válidos llegan a la rejilla y a los gólems, y /locate solo encuentra aldeas en las casillas permitidas.
 Código 0 si todo pasa.
@@ -23,6 +24,8 @@ UNIQUE_STRUCTURES = sorted(
     "heraldia:unicas/" + f[:-5] for f in (os.listdir(os.path.join(GENERATED_DATA, "worldgen", "structure", "unicas"))
                                           if os.path.isdir(os.path.join(GENERATED_DATA, "worldgen", "structure", "unicas")) else [])
     if f.endswith(".json"))
+# Un mapa del tesoro busca su estructura al generarse el botín, en el hilo del servidor: debe responder pronto.
+MAP_TIMEOUT_S, EPIC_ROLLS = 30, 20
 # Configuración de prueba: sin versión (migración), separación fuera de rango, máximo de 12 casillas, familia pantano
 # desactivada (sin ella, la aldea más cercana a la semilla de prueba es heraldia:pantano_brujas) y opción desconocida.
 TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"pantano": False}}, "golems": {"limite_estandar": 7}, "inventada": 1}
@@ -131,7 +134,7 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=reader, args=(proc, lines), daemon=True).start()
-    failures, villagers, located = [], 0, "/locate sin comprobar"
+    failures, villagers, located, maps_found = [], 0, "/locate sin comprobar", []
     try:
         # El mod lo escribe en SERVER_STARTED, después de "Done": el servidor ya acepta órdenes.
         m = wait_for(lines, r"Heraldia: (\d+) estructuras registradas", START_TIMEOUT_S, seen)
@@ -181,9 +184,39 @@ def main():
                 failures.append(f"place structure {sid} falló: {m.string.strip()}")
         # Las tablas de botín se leen (y la condición heraldia:sin_lootr está registrada si alguna la usa).
         for table in LOOT_TABLES:
-            m = run(proc, lines, seen, f"loot spawn 0 200 0 loot {table}", r"Dropped \d+")
-            if not m.group(0).startswith("Dropped"):
+            t0 = time.monotonic()
+            m = run(proc, lines, seen, f"loot spawn 0 200 0 loot {table}", r"Dropped \d+|No items")
+            found = bool(re.match(r"Dropped [1-9]", m.group(0)))
+            took = time.monotonic() - t0
+            if not m.group(0).startswith(("Dropped", "No items")) or ("No items" in m.group(0) and ":mapas/" not in table):
                 failures.append(f"botín {table} falló: {m.string.strip()}")
+            if ":mapas/" in table:
+                # Sin estructura alcanzable el mapa se descarta ("No items"), pero nunca debe colgar el servidor.
+                print(f"mapa {table}: {'con destino' if found else 'sin destino'} en {took:.1f} s")
+                if found:
+                    maps_found.append(table)
+                if took > MAP_TIMEOUT_S:
+                    failures.append(f"mapa {table} tardó {took:.0f} s (> {MAP_TIMEOUT_S} s)")
+        # El cofre épico (con su grupo de mapas) se tira varias veces seguidas.
+        t0 = time.monotonic()
+        for _ in range(EPIC_ROLLS):
+            m = run(proc, lines, seen, "loot spawn 0 200 0 loot heraldia:cofres/epico", r"Dropped \d+")
+            if not m.group(0).startswith("Dropped"):
+                failures.append(f"cofre épico falló: {m.string.strip()}")
+                break
+        if time.monotonic() - t0 > MAP_TIMEOUT_S:
+            failures.append(f"{EPIC_ROLLS} cofres épicos tardaron {time.monotonic() - t0:.0f} s")
+        # Tratos de mapas: el registro villager_trade se carga (o el log muestra errores) y el filtro de cartógrafos
+        # de Heraldia reconoce a los aldeanos de la aldea colocada y rechaza a uno vanilla.
+        m = run(proc, lines, seen, "execute if entity @e[type=minecraft:villager,tag=heraldia,predicate=heraldia:aldeano_heraldia]",
+                r"Test passed|Test failed")
+        if "passed" not in m.group(0):
+            failures.append("los aldeanos de Heraldia no cumplen heraldia:aldeano_heraldia")
+        run(proc, lines, seen, "summon minecraft:villager 0 200 0 {Tags:[\"heraldia_vanilla\"],NoAI:1b}", r"Summoned")
+        m = run(proc, lines, seen, "execute if entity @e[type=minecraft:villager,tag=heraldia_vanilla,predicate=heraldia:aldeano_heraldia]",
+                r"Test passed|Test failed")
+        if "failed" not in m.group(0):
+            failures.append("un aldeano vanilla cumple heraldia:aldeano_heraldia")
         m = run(proc, lines, seen, "function heraldia:golems", r"Running function|Ran \d+ command")
         if not m.group(0).startswith(("Running", "Ran")):
             failures.append(f"function heraldia:golems falló: {m.string.strip()}")
@@ -202,7 +235,8 @@ def main():
     if failures:
         print("PRUEBA DE HUMO FALLIDA:\n  " + "\n  ".join(failures))
         return 1
-    print(f"PRUEBA DE HUMO OK: {expected} estructuras registradas, {PLACE_TARGET} colocada con {villagers} aldeanos, botín, funciones y configuración correctos ({located})")
+    sys.stdout.flush()
+    print(f"PRUEBA DE HUMO OK: {expected} estructuras registradas, {PLACE_TARGET} colocada con {villagers} aldeanos, botín, {len(maps_found)} mapas con destino, funciones y configuración correctos ({located})")
     return 0
 
 
