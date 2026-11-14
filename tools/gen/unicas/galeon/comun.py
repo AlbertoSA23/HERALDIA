@@ -19,6 +19,7 @@ class Obra:
         self.ruina = set()        # celdas dañadas a mano (huecos, desgarros, percebes)
         self.superficie = set()   # celdas de obra expuesta (casco, cubiertas, velas)
         self.circuitos = []       # escenarios de redstone a comprobar
+        self.rasgado = {}         # desgarro de cada columna de vela
         t.solved_open = set()
 
     # --- básicos

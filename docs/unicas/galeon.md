@@ -18,7 +18,7 @@ El jigsaw no ve el agua, así que la estructura usa un tipo propio, `heraldia:ga
    del mar debe caer en un intervalo. Banda de mar del casco: agua de 2 a 9 de fondo; mar abierto: agua; banda de tierra del
    casco, campamento y peñón: tierra entre el nivel del mar y +4 (+12 en el peñón). Las del casco son obligatorias; del resto se
    admiten 3 fallos. Gana el candidato con menos fallos y terreno más llano. Las alturas se cachean por columna.
-3. El giro de `JigsawPlacement` es la primera tirada de `context.random()`. Se le pasa un `GenerationContext` copia con un
+3. Se llama a `JigsawPlacement.addPieces` con `maxDepth` 1 (con 0 no añade ni la pieza central). El giro de `JigsawPlacement` es la primera tirada de `context.random()`. Se le pasa un `GenerationContext` copia con un
    `WorldgenRandom` sembrado de forma determinista cuya primera tirada da el giro elegido: el resultado no depende de que el
    juego cambie su semilla interna.
 4. La pieza se coloca sin proyección: el ancla de la plantilla (línea de flotación en crujía) queda a `seaLevel`. El bioma se
@@ -85,8 +85,8 @@ Sin aldeanos ni gólems: el campamento está abandonado (las tumbas cuentan qué
 
 Ruina a mano: la brecha del costado de tierra (casco y cañones arrancados, arena en la bodega), mastelero de trinquete
 partido y caído, velas rasgadas, tramos de barandilla rotos, cristales de popa rotos, percebes (coral muerto) en el casco.
-Procesador: 6 % de las tablas exteriores del casco desaparecen; 20 % del adoquín de la cueva se cubre de musgo. La auditoría
-calcula el porcentaje de superficie dañada y exige 15-20 %.
+Procesador: 10 % de las tablas exteriores del casco desaparecen; 20 % del adoquín de la cueva se cubre de musgo. La auditoría
+calcula el porcentaje de superficie dañada y exige 15-20 % (resultado actual: 15,3 %: 337 celdas a mano —brecha, tracas arrancadas, velas rasgadas, tablas partidas, percebes— más el 10 % esperado del procesador sobre 953 tablas, de 2.833 celdas de superficie).
 
 ## Botín (solo vanilla; extra por cofre marcado `solo_sin_lootr`)
 
@@ -114,3 +114,12 @@ Nada de netherita ni élitros. Cuanto más escondido, más rico: playa < cubiert
 - Simetría: tramos de escalera dobles a babor y estribor en ambos castillos, batería simétrica (salvo la brecha), faroles de popa.
 - Muebles contra los mamparos; mesas con sillas de respaldo hacia fuera; faroles colgados de vigas.
 - Nada flotando: la auditoría exige que todo bloque esté unido al suelo y que la arena tenga apoyo.
+
+## Qué se ha comprobado
+
+- Generación con auditoría (`lint.py` + `auditoria.py` del módulo) sin avisos; el simulador detecta una antorcha o palanca mal colocada (prueba de mutación hecha a mano).
+- Prueba de humo en servidor dedicado 26.3: se registra, `/place` la coloca y las 14 tablas de botín se abren.
+- `tools/smoke/galeon_test.py` en servidor dedicado: `/locate` encuentra un galeón natural (búsqueda de orilla en 0,5 s), `/place` lo
+  coloca en ese sitio con el mar a 20 bloques hacia fuera y arena a 24 hacia tierra, y están el capitán ahogado y el bote.
+- Sin comprobar: el aspecto en el juego (falta captura de Alberto), que los ahogados de los generadores aparezcan fuera del agua y el
+  comportamiento de los circuitos en el juego (solo simulados).

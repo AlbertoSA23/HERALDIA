@@ -6,35 +6,22 @@ from .textos import LANG
 
 def named(name, w, key, ench=None, lo=1, hi=1):
     e = item(name, w, lo, hi, ench=ench)
-    f = {"function": "minecraft:set_name", "target": "item_name",
+    f = {"type": "minecraft:set_name", "target": "item_name",
          "name": {"translate": f"heraldia.galeon.{key}", "fallback": LANG["es_es"][f"heraldia.galeon.{key}"]}}
     mods = e.pop("modifier", None)
     mods = [] if mods is None else (mods if isinstance(mods, list) else [mods])
-    e["functions"] = [f] + [{k if k != "type" else "function": v for k, v in m.items()} for m in mods]
+    e["modifier"] = [f] + mods
     return e
 
 
 def potion(pid, w):
     return {"type": "minecraft:item", "name": "minecraft:potion", "weight": w,
-            "functions": [{"function": "minecraft:set_potion", "id": f"minecraft:{pid}"}]}
-
-
-def fix(entries):
-    """loot.item usa la clave "modifier"; las tablas de 26.3 llaman "functions" a los modificadores."""
-    out = []
-    for e in entries:
-        e = dict(e)
-        m = e.pop("modifier", None)
-        if m is not None:
-            ms = m if isinstance(m, list) else [m]
-            e["functions"] = [{("function" if k == "type" else k): v for k, v in x.items()} for x in ms]
-        out.append(e)
-    return out
+            "modifier": {"type": "minecraft:set_potion", "id": f"minecraft:{pid}"}}
 
 
 def pool(rolls, entries, extra=False):
     p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": fix(entries)}
+         "entries": entries}
     if extra:
         p["solo_sin_lootr"] = True
     return p

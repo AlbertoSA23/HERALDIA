@@ -19,7 +19,16 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 - `BuiltInRegistries.STRUCTURE_PLACEMENT` también guarda directamente el `MapCodec`. Los datapacks de worldgen se leen después de `onInitialize`, así que una configuración leída ahí ya está disponible cuando se decodifica la colocación. Verificado en un servidor dedicado (orden de las líneas en el log).
 - En un `structure_set` con varias estructuras, si `tryGenerateStructure` devuelve falso (bioma inválido o un mixin que la rechaza), se quita esa entrada y se sortea otra con la misma semilla de la casilla. Rechazar entradas es la forma limpia de desactivar estilos o fijar el tamaño. Verificado en el código de 26.3.
 
+- `JigsawPlacement.addPieces` solo añade piezas (ni la central) si `maxDepth > 0`: con 0 devuelve un stub vacío y `/place` dice «Failed to place structure». Verificado en el código de 26.3 y en un servidor dedicado (galeón).
+- `JigsawPlacement.addPieces` sortea el giro con la primera tirada de `context.random()`; un tipo propio puede fijar el giro pasando un `GenerationContext` copia con un `WorldgenRandom` cuya primera tirada da el giro deseado. El bioma se valida en `stub.position()`, que se puede rehacer (`new GenerationStub(pos, stub.generator())`). Verificado con el galeón en un servidor dedicado (orientación mar/arena comprobada con `execute if block`).
+- `/place structure` pasa como predicado de bioma `b -> true`: un tipo propio lo distingue de la generación natural probando un bioma que no está en su lista (p. ej. `the_void`). Verificado en el código de 26.3 y en la prueba de humo.
+- En los procesadores `rule`, `output_state` se escribe como cadena (`"minecraft:air"`); la forma `{"Name": ...}` hace fallar la carga de todo el paquete. Verificado en un servidor dedicado.
+- El selector `name=` no encuentra un mob cuyo `CustomName` es `{"translate", "fallback"}` (en servidor); para buscarlo, usa `nbt=` u otra marca. Verificado en un servidor dedicado.
+
 ## Diseño de estructuras
+
+- Galeón: una sola plantilla grande (76 x 49 x 89) con su propio suelo (arena con base de arenisca), lecho bajo la quilla y coraza de roca de 2 bloques alrededor de la cueva, con adaptación `none`, resuelve sótanos y orilla sin que el `beard` hunda el terreno. La auditoría del módulo exige que todo aire bajo el nivel del mar tenga bloques de la plantilla en sus 6 caras (el mar no entra) y que la arena tenga apoyo. Verificado con la auditoría y colocándolo en un servidor dedicado.
+- Circuitos sin polvo de redstone (antorchas inversoras, bloques alimentados, palancas sobre el bloque que mueve el mecanismo) se pueden colocar en un estado estable y verificar con un simulador sencillo (`tools/gen/unicas/galeon/circuitos.py`, reutilizable). Puerta de pistones oculta: pistones en la esquina entre dos muros, invisibles desde la sala.
 
 ## Generador y auditoría
 

@@ -126,7 +126,7 @@ def vela(o, z, x1, x2, y1, y2, cruz=False, torn=()):
         for y in range(y1, y2 + 1):
             if o.g(x, y, z) and "log" in o.g(x, y, z):
                 continue
-            if (x, y) in torn:
+            if (x, y) in torn or y < y1 + o.rasgado.setdefault((z, x), o.rng.choice((1, 1, 2, 2, 3, 5))):
                 o.ruina.add((x, y, z))
                 o.superficie.add((x, y, z))
                 continue
@@ -196,9 +196,9 @@ def bodega(o):
     for x in range(SC - 3, SC + 5):
         if x != SC:
             for y in (-4, -3, -2, -1):
-                o.barrel(x, y, 16)
+                o.barrel(x, y, 16) if y <= -3 else o.s(x, y, 16, "stripped_spruce_wood[axis=y]")
     for y in (-4, -3, -2, -1):
-        o.barrel(SC - 3, y, 17)
+        o.barrel(SC - 3, y, 17) if y <= -3 else o.s(SC - 3, y, 17, "stripped_spruce_wood[axis=y]")
     o.chest(SC - 2, -4, 14, "south", "contrabando")
     o.barrel(SC - 1, -4, 14)
     o.barrel(SC + 1, -4, 15, "bodega")
@@ -410,9 +410,27 @@ def brecha(o):
         o.romper(SC - 6, -3, z, "sand")
     for x, z in ((SC - 7, 26), (SC - 7, 31), (SC - 6, 28)):
         o.s(x, 1, z, "sand")
-    # percebes en la línea de flotación del costado de mar
-    for z in range(6, 58, 5):
-        o.romper(SC + hw(0, z), 0, z, "dead_brain_coral_block")
+    # percebes y algas en la línea de flotación del costado de mar
+    for z in range(3, 60):
+        for y in (0, 1):
+            if o.rng.random() < (0.6 if y == 0 else 0.35):
+                o.romper(SC + hw(y, z), y, z, o.rng.choice(("dead_brain_coral_block", "dead_tube_coral_block")))
+    # tablas de cubierta partidas (se pisa medio bloque más abajo) en el combés, la proa y la toldilla
+    for (y, z1, z2) in ((4, 14, 44), (8, 1, 12), (14, 51, 60)):
+        for z in range(z1, z2 + 1):
+            for x in interior_row(y, z):
+                if o.g(x, y, z) == "minecraft:spruce_planks" and o.g(x, y + 1, z) == "minecraft:air" and o.rng.random() < 0.15:
+                    o.romper(x, y, z, "spruce_slab[type=bottom,waterlogged=false]")
+    # borda de estribor desfondada por un golpe de mar
+    for z in range(36, 42):
+        o.romper(SC + 8, 5, z)
+        o.romper(SC + 8, 6, z)
+    # tracas arrancadas en el costado de tierra, junto a la brecha y hacia popa
+    for x0, y0, z0, w, h in ((SC - 8, 1, 21, 2, 2), (SC - 8, 2, 37, 3, 1), (SC - 8, 6, 52, 2, 2), (SC + 8, 2, 46, 1, 1), (SC + 8, 6, 50, 3, 2), (SC + 8, 6, 8, 3, 3), (SC - 8, 6, 56, 3, 2), (SC + 8, 1, 30, 2, 1), (SC + 8, 6, 55, 3, 2), (SC + 8, 2, 13, 1, 2)):
+        for z in range(z0, z0 + w):
+            for y in range(y0, y0 + h):
+                xx = x0 if abs(x0 - SC) == hw(y, z) else (SC - hw(y, z) if x0 < SC else SC + hw(y, z))
+                o.romper(xx, y, z)
 
 
 def construir(o):

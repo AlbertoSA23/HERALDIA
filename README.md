@@ -9,6 +9,7 @@ Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
 - **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+  - **Galeón varado** (playas y playas nevadas): galeón encallado en la orilla, campamento de náufragos y cueva del tesoro. Diseño en `docs/unicas/galeon.md`.
 
 ## Instalación
 
