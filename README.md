@@ -18,6 +18,10 @@ Contenido:
     cuatro salas ocultas, dos puzles de redstone, dos trampas, tres generadores y el guardián Borin Barbahierro.
     Diseño: [docs/unicas/ciudadela.md](docs/unicas/ciudadela.md).
   - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en `docs/unicas/faro.md`.
+  - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
+    biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
+    sótano de experimentos con generadores y trampas, el guardián Archimago Malvarius y 16 cofres. Diseño:
+    [docs/unicas/torre_mago.md](docs/unicas/torre_mago.md).
 
 ## Instalación
 
