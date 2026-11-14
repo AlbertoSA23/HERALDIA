@@ -20,6 +20,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 ### Técnico
 
 - Coliseo (`tools/gen/unicas/coliseo/`): dos piezas (principal a ras de suelo y un hipogeo hijo que rellena toda su caja, unido por un jigsaw vertical), 11 cofres con tablas propias y grupo `solo_sin_lootr`, procesadores de meteorización. Auditoría propia como condición para generar (recorrido sin saltos con vuelta a la entrada, puzles abiertos y cerrados, nada flotando, luz 0 en los generadores, redstone coherente, 15-20 % de ruina), planos y renders en `docs/unicas/coliseo/` y prueba en servidor real de puzles y trampas (`tools/smoke/coliseo_redstone.py`).
+- `writer.py`: se quita la segunda mezcla duplicada de los textos `LANG` de las estructuras únicas, que había entrado por dos PR paralelos.
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
 - La ruta de los registros de 26.3 para validar es configurable (`--registries`, `MCMETA_SUMMARY` o `-Pmcmeta_summary`); por defecto se clona `misode/mcmeta` rama `26.3-summary` en `build/` y no se sube al repositorio.
