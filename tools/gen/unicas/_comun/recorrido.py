@@ -3,6 +3,8 @@
 - `Vista`: bloques de una o varias plantillas en coordenadas comunes, con suelo virtual y estados "resueltos".
 - `andar`: recorrido a pie estricto (sin caídas de más de un bloque, peldaños de escalera, escaleras de mano que no
   atraviesan trampillas cerradas) y `sin_vuelta`: celdas alcanzadas desde las que no se vuelve a la entrada.
+- `vista_lint`: plantilla con cambios (mecanismos abiertos o cerrados) y una entrada para usar `lint.walk` y
+  `lint.access_issues` sobre varias piezas unidas.
 - `cerca`, `flotantes` (bloques sin unión con el suelo) y `luz` (luz de bloque propagada) para cofres y generadores.
 Más estricto que lint.walk, que permite caer hasta 4 bloques y bajar escaleras de mano a través de trampillas cerradas.
 """
@@ -136,6 +138,21 @@ def sin_vuelta(edges, start, exentas=()):
                 ok.add(a)
                 q.append(a)
     return [c for c in edges if c not in ok and (c[0], c[2]) not in exentas]
+
+
+def vista_lint(blocks, cambios=None, entrada=(0, 0, 0)):
+    """Template para lint.walk/access_issues: blocks {pos: (estado, nbt)}, cambios {pos: estado o None (quitar)} y
+    un jigsaw de entrada en `entrada`."""
+    from core import Template
+    v = Template("vista")
+    v.blocks = dict(blocks)
+    for p, st in (cambios or {}).items():
+        if st is None:
+            v.blocks.pop(p, None)
+        else:
+            v.blocks[p] = (st, None)
+    v.jigsaw(*entrada, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty", final_state="cobblestone")
+    return v
 
 
 def cerca(cells, p, r=1):

@@ -121,7 +121,7 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 - `validate_structures` solo miraba `worldgen/structure/` (no `unicas/`): ahora revisa también las estructuras únicas. Verificado al generar.
 - `lint` contaba la linterna marina como farol («farol de pie sin apoyo») y el cable trampa y la palanca como bloques macizos; corregido. Verificado con la auditoría del Observatorio.
 
-- Auditoría de varias piezas: unir las piezas en una «obra» en coordenadas comunes, pasar `lint.walk`/`lint.access_issues` a vistas con los mecanismos cerrados y abiertos (zonas ocultas alcanzables solo en la segunda) y partir en piezas después. Simulador de redstone de los mecanismos en `tools/gen/unicas/mansion/redstone.py` (reutilizable). Verificado contrastándolo con el juego (prueba de la mansión).
+- Auditoría de varias piezas: unir las piezas en una «obra» en coordenadas comunes, pasar `lint.walk`/`lint.access_issues` a vistas con los mecanismos cerrados y abiertos (zonas ocultas alcanzables solo en la segunda) y partir en piezas después. Simulador de redstone de los mecanismos en `tools/gen/unicas/_comun/redstone.py` (con repetidores, botones y `retract`) y `vista_lint` en `_comun/recorrido.py`. Verificado contrastándolo con el juego (prueba de la mansión).
 - `core.to_tag` acepta cualquier etiqueta de `nbtlib` ya construida (necesario para `IntArray`).
 - Tras `/place template`, las entidades de la plantilla tardan unos segundos más que los bloques en aparecer: una comprobación de entidad inmediata falla. En la prueba de la catedral se reintenta durante unos 30 s. Verificado en un servidor dedicado.
 

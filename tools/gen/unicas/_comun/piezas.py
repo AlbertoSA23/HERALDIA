@@ -202,6 +202,33 @@ def spiral_stair(put, cx, cz, feet, stair, newel, landing, newel_top=None):
     return GUARD
 
 
+def spiral_continuous(put, ring, y0, n, stair, support=None):
+    """Caracol continuo de `n` peldaños desde y0 por las casillas contiguas de `ring` (absolutas, alrededor de un
+    machón), sin rellanos propios: sirve cuando las plantas no van cada 6 y los rellanos están fuera del anillo.
+    Cada peldaño mira hacia donde se llega, así que en las esquinas también se entra por el lado bajo; los de
+    esquina no tocan el machón y llevan `support` debajo. Devuelve las posiciones de los peldaños."""
+    out, k = [], len(ring)
+    for i in range(n):
+        x, z = ring[i % k]
+        px, pz = ring[(i - 1) % k]
+        nx, nz = ring[(i + 1) % k]
+        put(x, y0 + i, z, f"{stair}[facing={VDIR[(x - px, z - pz)]},half=bottom]")
+        if support and i and (nx - x, nz - z) != (x - px, z - pz):
+            put(x, y0 + i - 1, z, support)
+        out.append((x, y0 + i, z))
+    return out
+
+
+# ------------------------------------------------------------------ entidades
+def painting(x, y, z, facing, variant):
+    """NBT de un cuadro para Template.entity: `facing` en código 2D y `block_pos` como IntArray (verificado en 26.3;
+    1x2 ocupa la casilla y la de encima)."""
+    from nbtlib import Compound, String, Byte, IntArray
+    f2d = {"south": 0, "west": 1, "north": 2, "east": 3}[facing]
+    return Compound({"id": String("minecraft:painting"), "variant": String("minecraft:" + variant),
+                     "facing": Byte(f2d), "block_pos": IntArray([x, y, z])})
+
+
 # ------------------------------------------------------------------ conexiones
 NONFULL = ("air", "stairs", "slab", "fence", "pane", "bars", "_wall", "door", "carpet", "lantern", "torch",
            "chest", "lectern", "cauldron", "pot", "sign", "banner", "bed", "candle", "chain", "rod", "plate",
