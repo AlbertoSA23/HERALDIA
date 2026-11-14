@@ -32,6 +32,10 @@ public final class Heraldia implements ModInitializer {
 		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("sin_lootr"), WithoutLootrCondition.CODEC);
 		Registry.register(BuiltInRegistries.STRUCTURE_PLACEMENT, id("rejilla"), GridPlacement.CODEC);
 		Atlantida.register();
+		io.github.albertosa23.heraldia.unicas.ciudadela.Ciudadela.register();
+		io.github.albertosa23.heraldia.unicas.faro.Faro.init();
+		io.github.albertosa23.heraldia.unicas.acueducto.HastaElSueloProcessor.register();
+		io.github.albertosa23.heraldia.unicas.galeon.GaleonUnica.registrar();
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::logRegisteredStructures);
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::publishGolemSettings);
 	}

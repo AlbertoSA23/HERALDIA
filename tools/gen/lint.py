@@ -2,10 +2,11 @@
 from collections import deque, Counter
 from core import parse_state
 
-PASS_WORDS = ("_carpet", "torch", "_banner", "rail", "pressure_plate", "button",
+PASS_WORDS = ("_carpet", "torch", "_banner", "rail", "pressure_plate", "button", "tripwire",
               "ladder", "_door", "poppy", "dandelion", "allium", "azure_bluet", "tulip", "orchid", "cornflower",
               "oxeye", "lily_of_the_valley", "rose_bush", "fern", "dead_bush", "sweet_berry", "wheat", "carrots",
-              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass")
+              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass", "lever",
+              "redstone_wire")
 
 
 def bname(st):
@@ -87,6 +88,9 @@ def resolved(t):
         if nbt and nbt.get("id") == "minecraft:jigsaw":
             fs = nbt["final_state"]
             blocks[pos] = (None if "structure_void" in fs else fs, None)
+    # Estado "resuelto" que declara la plantilla (puzles abiertos): {pos: estado o None}
+    for pos, st in getattr(t, "lint_open", {}).items():
+        blocks[pos] = (st, None)
     v.blocks = {p: b for p, b in blocks.items() if b[0] is not None}
     v.get = lambda x, y, z: (v.blocks.get((x, y, z)) or (None,))[0]
     v.jigsaws = t.jigsaws
@@ -107,7 +111,7 @@ def support_issues(t):
     for (x, y, z), (st, nbt) in t.blocks.items():
         b = bname(st)
         below, above = g(x, y - 1, z), g(x, y + 1, z)
-        if "lantern" in b:
+        if "lantern" in b and b != "sea_lantern":
             if prop(st, "hanging") == "true":
                 if above is None or passable(above) and "iron_chain" not in above:
                     out.append(("farol colgante sin techo", (x, y, z)))
@@ -166,6 +170,14 @@ def support_issues(t):
 
 
 # ---------------------------------------------------------------- recorrido a pie
+def climbable(g, x, y, z):
+    """Escalera de mano, o trampilla abierta justo encima de una (en el juego también se trepa)."""
+    st = g(x, y, z)
+    if bname(st) == "ladder":
+        return True
+    return bool(st) and "trapdoor" in bname(st) and "open=true" in st and bname(g(x, y - 1, z)) == "ladder"
+
+
 FACE = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 
 
@@ -194,7 +206,7 @@ def walk(t, extra_ground=True):
             return (float(y), float(y)) if (extra_ground and y - 1 < 0) else None
         hb = top_height(below)
         if hb is None:
-            return (float(y), float(y)) if bname(below) in ("ladder", "water") else None
+            return (float(y), float(y)) if bname(below) == "water" or climbable(g, x, y - 1, z) else None
         if hb != 1.0 or (bname(below).endswith("_stairs") and "half=bottom" in below):
             return None
         return (float(y), float(y))
@@ -233,23 +245,25 @@ def walk(t, extra_ground=True):
             nx, nz = x + dx, z + dz
             if not (x0 - 1 <= nx <= x1 + 1 and z0 - 1 <= nz <= z1 + 1):
                 continue
-            for ny in range(y + 2, y - 5, -1):
+            for ny in range(y + 1, y - 5, -1):
                 r = surf(nx, ny, nz, dx, dz)
                 if r is None:
+                    if ny < y and not passable(g(nx, ny, nz)):
+                        break           # al bajar no se atraviesa un bloque macizo (techo de la sala de abajo)
                     continue
                 enter, stand = r
-                if enter - s > 0.6 or stand > s + 1.01:
-                    continue
-                if not headroom(nx, ny, nz, stand):
-                    continue
+                if enter - s > 0.6 or stand > s + 1.01 or not headroom(nx, ny, nz, stand):
+                    if passable(g(nx, ny, nz)):
+                        continue        # aire o escalera de mano: se sigue bajando por la misma columna
+                    break
                 # el paso debe estar libre a la altura del cuerpo
                 cand.append((nx, ny if stand < ny + 1 else ny + 1, nz, stand))
                 break
         here = g(x, y, z)
-        if bname(here) == "ladder" or bname(g(x, y + 1, z)) == "ladder" or bname(g(x, y - 1, z)) == "ladder":
+        if climbable(g, x, y, z) or climbable(g, x, y + 1, z) or climbable(g, x, y - 1, z):
             for ny in (y + 1, y - 1):
                 st = g(x, ny, z)
-                if bname(st) == "ladder" or (bname(here) == "ladder" and passable(st)):
+                if climbable(g, x, ny, z) or (climbable(g, x, y, z) and passable(st)):
                     cand.append((x, ny, z, float(ny)))
         for (nx, ny, nz, ns) in cand:
             if (nx, ny, nz) not in seen:
@@ -290,7 +304,7 @@ def access_issues(t):
             if not (a and c):
                 out.append(("puerta sin salida o sin acceso", (x, y, z)))
         elif b == "ladder":
-            if bname(g(x, y + 1, z)) != "ladder":
+            if not climbable(g, x, y + 1, z):
                 # final de la escalera: debe dar a un suelo
                 if not any((x + dx, y + 1, z + dz) in cells or (x + dx, y, z + dz) in cells
                            for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1), (0, 0))) or \
@@ -318,7 +332,8 @@ def lint_registry(reg, only=None):
             continue
         if getattr(t, "sin_auditoria_generica", False):   # estructuras que se auditan enteras en su módulo
             continue
-        iss = support_issues(t) + access_issues(t)
+        # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
+        iss = support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
         if iss:
             res[name] = iss
     return res

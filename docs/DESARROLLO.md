@@ -31,7 +31,13 @@ Repositorio público, **sin licencia (todos los derechos reservados)**. **No hay
 - Si un aprendizaje revela un fallo en algo ya hecho (aldeas u otra estructura), corrígelo si es pequeño y está claro; si no, apúntalo en el apartado «Fallos pendientes».
 - No borres ni reescribas viñetas ajenas; si una resulta falsa, márcala como corregida y explica por qué.
 
+## Código común (`tools/gen/unicas/_comun/`): turno único
+- Solo hay un módulo por función: `redstone.py` (simulación y puzles), `botin.py` (tablas, objetos con nombre, libros, pociones) y `piezas.py` (generador, guardián, cofre, cartel, puertas de pistones, trampas, escalera de caracol, conexiones). Si hace falta un recorrido de auditoría común, va en `recorrido.py`.
+- Nunca crees otro módulo que haga lo mismo. Amplía el existente y conserva la compatibilidad con quien ya lo usa.
+- Los PR que tocan `_comun/` se fusionan **de uno en uno y por turno**: antes de empezar, `git fetch origin develop && git merge origin/develop`, y construye sobre lo que haya en ese momento. Si al terminar `develop` ha cambiado en `_comun/`, vuelve a fusionar y adapta tu código, no el de develop.
+
 ## Reglas del proyecto
+- **Reutiliza siempre que se pueda.** Antes de escribir una función o una clase, busca si ya existe algo que haga lo mismo (en `tools/gen/core.py`, `build.py`, `loot.py`, `lint.py`, `render.py`, en otros módulos de `tools/gen/unicas/` o en el Java del mod) e impórtalo. Si lo que necesitas es casi igual que algo de otra estructura, saca lo común a un módulo compartido (por ejemplo `tools/gen/unicas/_comun/` o `build.py`; en Java, un paquete común) y haz que las dos lo usen, en lugar de copiarlo. Sin duplicados: escaleras de caracol, puertas secretas, trampas, generadores, guardianes, cofres y tablas de botín deben salir de piezas comunes y parametrizadas.
 - Todo cambio en `src/`, recursos o generador va en `CHANGELOG.md` en el mismo commit: viñeta para jugadores si se nota en el juego, viñeta técnica siempre que sea interno. No reescribas viñetas ajenas.
 - README al día si cambian funciones, comandos, configuración o cifras.
 - Datos primero (JSON, datapack, generador en Python); Java solo donde los datos no llegan. Mixins solo como último recurso, justificados en una línea.

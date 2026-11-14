@@ -9,7 +9,45 @@ Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
 - **La Atlántida**: una única ciudad sumergida por mundo (ver abajo).
-- **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+- **Estructuras únicas** (una cada 3.000-5.000 bloques, cada una en sus biomas):
+  - **Palacio oriental** (`heraldia:unicas/palacio`, cerezales y junglas de bambú): recinto amurallado de 81 × 123 con tres patios en eje, salón del trono sobre plataforma de tres gradas, biblioteca con estudio secreto, tesorería con cámara acorazada, jardín con estanque, pagoda de cinco pisos y pabellones de las concubinas; bajo el trono, la cámara del tesoro con su guardián. Puertas secretas de pistones, trampas de flechas y dos generadores. Diseño y planos en `docs/unicas/palacio.md`.
+  - **Fortaleza de hielo** (`heraldia:unicas/fortaleza_hielo`): picos de hielo, llanura nevada y taiga nevada. Murallas y
+    torres de hielo sobre un zócalo con criptas, dos puertas secretas de pistones, trampas, generadores de strays y
+    esqueletos, el guardián Rey Escarcha y 11 cofres. Diseño: [docs/unicas/fortaleza_hielo.md](docs/unicas/fortaleza_hielo.md).
+  - **Ciudadela enana** (`heraldia:unicas/ciudadela`): picos pedregosos y dentados. Ciudad excavada en una montaña con
+    la puerta en la ladera: salón de columnas, trono, forjas, cervecería, minas, puente sobre un abismo y bóveda del tesoro;
+    cuatro salas ocultas, dos puzles de redstone, dos trampas, tres generadores y el guardián Borin Barbahierro.
+    Diseño: [docs/unicas/ciudadela.md](docs/unicas/ciudadela.md).
+  - **Templo-pirámide** (`heraldia:unicas/piramide`): jungla y jungla dispersa. Pirámide escalonada mesoamericana con
+    templo y crestería, juego de pelota, escalera oculta, cenote interior con cámara sumergida y la tumba del Rey Jaguar
+    tras una puerta secreta de pistones; trampas de cable, foso y dardos, 4 generadores y 13 cofres.
+    Diseño: [docs/unicas/piramide.md](docs/unicas/piramide.md).
+  - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en `docs/unicas/faro.md`.
+  - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
+    biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
+    sótano de experimentos con generadores y trampas, el guardián Archimago Malvarius y 16 cofres. Diseño:
+    [docs/unicas/torre_mago.md](docs/unicas/torre_mago.md).
+  - **Coliseo en ruinas** (sabana y meseta de sabana): anfiteatro elíptico con graderíos, palcos e hipogeo con celdas de fieras, armería, dos puzles de redstone, dos trampas, cuatro generadores, el Campeón de la Arena y una cámara del tesoro oculta. Diseño: [docs/unicas/coliseo.md](docs/unicas/coliseo.md).
+  - **Castillo** (`heraldia:unicas/castillo`): llanuras, llanuras de girasoles y praderas. Fortaleza de 100 x 100 con foso,
+    muralla, barbacana, patio de armas, torre del homenaje y mazmorra con calabozos, trampas, tres generadores, el guardián
+    Sir Aldric y la cámara del tesoro oculta; 36 cofres. Diseño: [docs/unicas/castillo.md](docs/unicas/castillo.md).
+  - **Monasterio de montaña** (`heraldia:unicas/monasterio`; prados de montaña y arboledas): terrazas sobre un risco, iglesia, claustro y cuevas con puzles, trampas, guardián y cofre premium. Diseño en `docs/unicas/monasterio.md`.
+  - **Observatorio** (`heraldia:unicas/observatorio`): colinas ventosas y meseta de sabana ventosa. Cúpula de cobre con
+    telescopio, planetario, taller de óptica, reloj de sol y, bajo la roca, archivo con dos salas ocultas, puzle de las fases
+    lunares, dos trampas, tres generadores y el guardián Custodio de las Estrellas. Diseño: [docs/unicas/observatorio.md](docs/unicas/observatorio.md).
+  - **Mansión encantada** (`heraldia:unicas/mansion`): pantano y manglar. Finca victoriana con torreón, invernadero
+    arruinado y cementerio con panteón; bajo la casa, tras una estantería secreta, un sótano con laboratorio y cámara del
+    tesoro cerrada por una combinación de palancas; dos trampas, tres generadores, el guardián El Conde Malaquías y 33 cofres.
+    Diseño: [docs/unicas/mansion.md](docs/unicas/mansion.md).
+  - **Catedral gótica** (`heraldia:unicas/catedral`): bosques y bosques de flores. Fachada con dos torres y rosetón, nave con
+    triforio y arbotantes, crucero con aguja, girola con capillas, sacristía, biblioteca, claustro y, bajo tierra, cripta,
+    osarios y cámara del tesoro; dos puertas secretas, una trampilla oculta, dos trampas, tres generadores, el guardián
+    Fray Osmundo y 19 cofres. Diseño: [docs/unicas/catedral.md](docs/unicas/catedral.md).
+  - **Acueducto en ruinas** (`heraldia:unicas/acueducto`, desierto y badlands): acueducto de dos pisos, ciudad romana abandonada, cisterna y cloacas con la cámara del tesoro. Diseño en [docs/unicas/acueducto.md](docs/unicas/acueducto.md).
+  - **Galeón varado** (`heraldia:unicas/galeon`, playas y playas nevadas): galeón de tres palos encallado en la orilla
+    (se sitúa buscando el agua), con bodega, cubierta de cañones, castillos, camarote y cámara secreta del tesorero;
+    campamento de náufragos con arqueología y una cueva con el puzle de los faroles, trampas, cuatro generadores y el
+    guardián El capitán ahogado; 18 cofres. Diseño: [docs/unicas/galeon.md](docs/unicas/galeon.md).
 
 ## Instalación
 
@@ -17,7 +55,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 72 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 75 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
