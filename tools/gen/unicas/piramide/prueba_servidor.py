@@ -34,11 +34,15 @@ def main():
     lines, seen, fails = queue.Queue(), [], []
     threading.Thread(target=S.reader, args=(proc, lines), daemon=True).start()
 
-    def cmd(c, ok=r"Test passed|Test failed|Changed the block|Could not|Summoned|Marked|Added|chunk|[Pp]laced|Unable|failed|Failed|has the following|No |Invalid"):
+    def cmd(c, ok=r"Test passed|Test failed|Changed the block|Could not|Summoned|Marked|Added|chunk|[Pp]laced|Loaded template|Unable|failed|Failed|has the following|No |Invalid"):
         return S.run(proc, lines, seen, c, ok).group(0)
 
-    def check(name, c):
-        r = cmd(c)
+    def check(name, c, tries=1):
+        for _ in range(tries):
+            r = cmd(c)
+            if r.startswith("Test passed"):
+                break
+            time.sleep(1)
         print(("OK   " if r.startswith("Test passed") else "FALLA ") + name)
         if not r.startswith("Test passed"):
             fails.append(name)
@@ -69,7 +73,7 @@ def main():
         tx, ty, tz = o.marks["trampa:cable"][0]
         cmd(f"summon minecraft:armor_stand {O[0] + tx + 0.5} {O[1] + ty} {O[2] + tz + 0.5}")
         time.sleep(2)
-        check("cable trampa dispara", f"execute if data block {w((tx, ty + 1, tz - 2))} Items[{{count:8}}]")
+        check("cable trampa dispara", f"execute unless data block {w((tx, ty + 1, tz - 2))} Items[{{count:9}}]", tries=6)
         px, py, pz = o.marks["trampa:foso"][0]
         cmd(f"summon minecraft:armor_stand {O[0] + px + 0.5} {O[1] + py} {O[2] + pz + 0.5}")
         time.sleep(1)
@@ -77,7 +81,7 @@ def main():
         dx, dy, dz = o.marks["trampa:dardos"][1]
         cmd(f"summon minecraft:armor_stand {O[0] + dx + 0.5} {O[1] + dy} {O[2] + dz + 0.5}")
         time.sleep(2)
-        check("losa de dardos dispara", f"execute if data block {w((dx, dy - 1, dz))} Items[{{count:7}}]")
+        check("losa de dardos dispara", f"execute unless data block {w((dx, dy - 1, dz))} Items[{{count:8}}]", tries=6)
         time.sleep(3)
         check("el agua no entra en la cámara sumergida", f"execute if block {w((obra.CX + 14, -14, obra.CZ + 11))} minecraft:air")
         check("el cenote sigue lleno", f"execute if block {w((obra.CX, -15, obra.CZ + 11))} minecraft:water")

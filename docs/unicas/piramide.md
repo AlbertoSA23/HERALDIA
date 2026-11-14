@@ -96,7 +96,7 @@ plantillas y fuerza cada circuito).
 
 ## Generadores y enemigos
 
-Arañas de cueva (guarida), esqueletos (osario), zombis (Sala de los Guardianes) y esqueletos (Cámara del Juicio),
+Arañas de cueva (guarida), esqueletos (osario), zombis (Sala de los Guardianes) y esqueletos cenagosos (Cámara del Juicio),
 todos en el subsuelo. Guardián final en la tumba. Sin aldeanos ni gólems: es una ruina sellada.
 
 ## Estado (80-85 % en buen estado)
@@ -129,7 +129,19 @@ Sin netherita en equipo, sin élitros, sin tótems.
 - Simetría en la pirámide, el templo, las plataformas y el juego de pelota; los derrumbes rompen la simetría a
   propósito.
 
-## Resultado
+## Resultado y comprobaciones
+
+- Auditoría (condición para generar): 13 cofres y 4 generadores alcanzables a pie desde la plaza (7.942 celdas),
+  con la palanca, las trampas, el guardián y las tres salas ocultas; sin abrir la puerta secreta el tesoro no se
+  alcanza y sin romper el tapiado la cámara tapiada tampoco; desde el fondo del foso se vuelve a la plaza; nada
+  flota; el agua está encerrada; ningún bloque tiene corriente salvo la antorcha de la puerta. Superficie exterior
+  en buen estado: 0,825 (erosión del ladrillo y la toba pulida calculada para el centro del intervalo: 13,7 %).
+- Servidor dedicado 26.3 (`prueba_servidor.py`, plantillas sin rotación): guardián con 40 de vida; puerta cerrada
+  en reposo, abierta al cargar el bloque de la antorcha y cerrada otra vez; cable trampa, placas del foso y losas
+  de dardos disparan con un soporte de armadura encima; el agua no se sale; el cofre premium lleva su tabla.
+- Prueba de humo: la estructura se coloca con `/place structure` y todas sus tablas de botín se abren.
+- Sin comprobar: el aspecto en el juego (faltan capturas de Alberto) y el ajuste del terreno en una jungla real
+  con `/place structure` en distintos relieves.
 
 Planos de planta por nivel en [`piramide/planos.txt`](piramide/planos.txt) (`.` alcanzable a pie) y renders en
 `piramide/*.png`. Se regeneran con `python3 tools/gen/unicas/piramide/planos.py`.
