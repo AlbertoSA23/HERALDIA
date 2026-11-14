@@ -5,7 +5,7 @@ from core import parse_state
 PASS_WORDS = ("_carpet", "torch", "_banner", "rail", "pressure_plate", "button",
               "ladder", "_door", "poppy", "dandelion", "allium", "azure_bluet", "tulip", "orchid", "cornflower",
               "oxeye", "lily_of_the_valley", "rose_bush", "fern", "dead_bush", "sweet_berry", "wheat", "carrots",
-              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass")
+              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass", "tripwire", "lever")
 
 
 def bname(st):
@@ -107,7 +107,7 @@ def support_issues(t):
     for (x, y, z), (st, nbt) in t.blocks.items():
         b = bname(st)
         below, above = g(x, y - 1, z), g(x, y + 1, z)
-        if "lantern" in b:
+        if "lantern" in b and b != "sea_lantern":
             if prop(st, "hanging") == "true":
                 if above is None or passable(above) and "iron_chain" not in above:
                     out.append(("farol colgante sin techo", (x, y, z)))
