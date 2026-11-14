@@ -4,6 +4,7 @@ Se sitúa junto al mar con el tipo de estructura propio heraldia:faro (Java), qu
 plantilla para que la boca de la cueva mire al agua.
 """
 from loot import item, empty
+from unicas._comun import botin
 import unicas
 
 SID = "faro"
@@ -50,22 +51,14 @@ STRUCTURE = dict(spacing=unicas.DEFAULT_SPACING, separation=unicas.DEFAULT_SEPAR
 })
 
 
-def named(name, w, key, **kw):
-    e = item(name, w, **kw)
-    mods = e.pop("modifier", [])
-    mods = mods if isinstance(mods, list) else [mods]
-    mods.append({"type": "minecraft:set_name", "target": "custom_name",
-                 "name": {"translate": key, "fallback": LANG["es_es"][key]}})
-    e["modifier"] = mods
-    return e
+def named(name, w, key, ench=None, rand_ench=False):
+    """Objeto con nombre traducible; ench = niveles (mín, máx) de encantamiento al azar."""
+    return botin.named(name, w, key, LANG["es_es"][key], levels=ench, mods=(botin.random_ench(),) if rand_ench else ())
 
 
 def chest(base, extra, rolls=(3, 6), extra_rolls=(1, 3)):
-    """Grupo base (siempre) y grupo extra marcado solo_sin_lootr (con Lootr, cada jugador abre el base)."""
-    r = lambda v: {"type": "minecraft:uniform", "min": v[0], "max": v[1]} if isinstance(v, tuple) else v
-    return {"type": "minecraft:chest", "pools": [
-        {"rolls": r(rolls), "entries": base},
-        {"rolls": r(extra_rolls), "entries": extra, "solo_sin_lootr": True}]}
+    """Grupo base (siempre) y grupo extra solo_sin_lootr (con Lootr, cada jugador abre el base)."""
+    return botin.cofre((rolls, base), (extra_rolls, extra))
 
 
 FOOD = [item("bread", 10, 1, 3), item("cooked_cod", 8, 1, 3), item("dried_kelp", 8, 2, 6), item("apple", 6, 1, 3),
@@ -106,19 +99,19 @@ LOOT = {
     "tesoro": chest([item("gold_nugget", 10, 3, 10), item("gold_ingot", 8, 1, 4), item("raw_gold", 6, 1, 4),
                      item("emerald", 8, 2, 5)], [item("emerald", 4, 1, 3), item("gold_ingot", 4, 1, 2), empty(4)]),
     # premium: grupo vistoso siempre; 10 % algo más fuerte; extra sin Lootr
-    "premium": {"type": "minecraft:chest", "pools": [
-        {"rolls": {"type": "minecraft:uniform", "min": 3, "max": 4}, "entries": [
+    "premium": botin.table(
+        botin.pool((3, 4), [
             named("iron_sword", 6, "heraldia.unicas.faro.objeto.sable", ench=(10, 20)),
             named("spyglass", 5, "heraldia.unicas.faro.objeto.catalejo"),
             named("compass", 5, "heraldia.unicas.faro.objeto.brujula"),
             named("book", 3, "heraldia.unicas.faro.objeto.libro", rand_ench=True),
             item("coast_armor_trim_smithing_template", 6), item("music_disc_mellohi", 3), item("music_disc_strad", 3),
-            item("golden_apple", 4), item("emerald", 5, 4, 9), item("gold_ingot", 5, 3, 7)]},
-        {"rolls": 1, "entries": [empty(90), item("diamond_sword", 3, ench=(20, 30)), item("trident", 2),
-                                 item("enchanted_golden_apple", 2), item("diamond", 3, 3, 5)]},
-        {"rolls": {"type": "minecraft:uniform", "min": 1, "max": 2}, "solo_sin_lootr": True, "entries": [
+            item("golden_apple", 4), item("emerald", 5, 4, 9), item("gold_ingot", 5, 3, 7)]),
+        botin.pool(1, [empty(90), item("diamond_sword", 3, ench=(20, 30)), item("trident", 2),
+                       item("enchanted_golden_apple", 2), item("diamond", 3, 3, 5)]),
+        botin.pool((1, 2), [
             item("emerald", 5, 2, 6), item("gold_ingot", 5, 2, 4), item("coast_armor_trim_smithing_template", 2),
-            item("experience_bottle", 4, 3, 8)]}]},
+            item("experience_bottle", 4, 3, 8)], extra=True)),
 }
 
 
