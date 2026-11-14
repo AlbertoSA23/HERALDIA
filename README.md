@@ -62,6 +62,15 @@ Cada aldea tiene:
 Límites de población: hay unas 1,25 camas por aldeano inicial, así que la población crece como mucho un 25 %.
 La función `heraldia:golems` revisa cada 30 s las aldeas cargadas y retira un gólem natural cada vez que hay 8 o más (estándar) o 9 o más (grande); no toca los construidos por jugadores. Límites y limpieza se cambian en la [configuración](#configuración).
 
+## Mapas del tesoro
+
+Cada estructura única tiene su mapa del tesoro, que marca la más cercana con una X (u otra marca propia de la estructura) y lleva su nombre traducido:
+
+- En los cofres épicos de las aldeas: un 5 % de los cofres lleva uno (de una estructura única al azar).
+- A la venta en los cartógrafos maestros (nivel 5) **de las aldeas Heraldia** (no en las vanilla): 24 esmeraldas y una brújula, 2 por reposición. Los aldeanos de aldeas generadas antes de esta versión no lo ofrecen.
+- La búsqueda abarca unos 10.000 bloques y no salta chunks ya explorados (así no traba el servidor). Si no hay ninguna estructura de ese tipo al alcance, no sale el mapa (el cofre lo deja vacío y el cartógrafo no ofrece ese trato).
+- Para probar: `/loot give @s loot heraldia:mapas/<id>` da el mapa de la estructura `heraldia:unicas/<id>` desde donde estés.
+
 Limitaciones conocidas: el puerto sale recto desde la calle sin buscar el agua; en laderas puede haber escalones y cimientos altos; no se ha comprobado el solape con estructuras de otros mods.
 
 ## Configuración

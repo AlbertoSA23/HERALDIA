@@ -15,10 +15,13 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # Opcional: STRUCTURE["json"] = dict completo de la estructura (tipo propio en Java, por ejemplo); sustituye al anterior.
   def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.
   LOOT = {"premium": tabla, ...}   -> heraldia:unicas/<id>/<nombre>
+  # Opcional (mapas del tesoro, ver mapas.py): nombre para el mapa y su marca en el mapa.
+  NOMBRE = {"es_es": "Atlántida", "en_us": "Atlantis"}           # por defecto, el id
+  MAPA = {"decoration": "minecraft:monument"}                     # por defecto minecraft:red_x
 
 Botín y Lootr: un grupo (pool) con "solo_sin_lootr": True se omite si el servidor lleva Lootr
 (condición heraldia:sin_lootr). Úsalo para el extra por cofre, de modo que con Lootr cada jugador reciba lo modesto.
-El generador escribe además la etiqueta heraldia:unicas/<id> (para mapas del tesoro) y su structure_set.
+El generador escribe además la etiqueta heraldia:unicas/<id> y su structure_set, y el mapa del tesoro\n(cofre épico de las aldeas y trato de maestro cartógrafo; mapas.py).
 """
 import importlib, pkgutil, zlib
 
