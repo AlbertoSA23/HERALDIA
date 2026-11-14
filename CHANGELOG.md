@@ -1,7 +1,10 @@
 # Registro de cambios
 
 Formato: cada versión es `## [X.Y.Z]` (con ` - AAAA-MM-DD` al publicarla) y lleva dos apartados:
-`### Jugadores` (lo que nota quien juega) y `### Técnico` (cambios internos). La versión de arriba
+`### Jugadores` (lo que nota quien juega) y `
+- La Atlántida: una única ciudad sumergida por mundo, de unos 770 × 770 bloques, en un océano grande y profundo a 1.500 bloques o más del origen, solo en zona sin explorar. Se encuentra con `/locate structure heraldia:unicas/atlantida`.
+
+### Técnico` (cambios internos). La versión de arriba
 coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo comprueba y extrae las notas de publicación.
 
 ## [0.1.0]
@@ -34,3 +37,5 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Dos mixins (último recurso: un `structure_set` no permite saltarse entradas ni elegir el tamaño): `ChunkGenerator.tryGenerateStructure` y `StructureCheck.canCreateStructure` rechazan estilos desactivados y el tamaño que no toca en la casilla, así el set prueba el siguiente y `/locate` coincide con la generación. Los pesos estándar/grande del set pasan a 1:1.
 - Las funciones de gólems leen la limpieza y los límites del marcador `heraldia_cfg`, que el mod rellena al arrancar. Etiqueta nueva `heraldia:aldeas` con todas las aldeas.
 - La prueba de humo escribe una configuración de prueba (sin versión, con un valor fuera de rango, una opción desconocida, una familia desactivada y máximo 12) y comprueba la migración, la corrección, el fichero reescrito, el marcador de gólems y que `/locate` desde 20000, 20000 solo encuentra aldeas activadas dentro de las casillas permitidas.
+- Atlántida: tipo de colocación `heraldia:mundial` (hereda de `random_spread`; una sola por mundo, ancla calculada al cargar el Overworld fuera del hilo del servidor y guardada en `data/heraldia/atlantida.json`), tipo de estructura `heraldia:atlantida` (plano fijo repartido en 3 × 3 distritos, cada uno con su inicio, por el límite de ±8 chunks) y pieza `heraldia:atlantida_base` (agua, pavimento, zócalo y muralla por columnas). El plano se construye en vóxeles en `tools/gen/unicas/atlantida/` y se corta en teselas de 32 × 32.
+- `lint.lint_registry` omite las plantillas marcadas `sin_auditoria_generica` (estructuras que se auditan enteras en su módulo).

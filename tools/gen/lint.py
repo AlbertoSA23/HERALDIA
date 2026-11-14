@@ -316,6 +316,8 @@ def lint_registry(reg, only=None):
     for name, t in reg.templates.items():
         if only and not only(name):
             continue
+        if getattr(t, "sin_auditoria_generica", False):   # estructuras que se auditan enteras en su módulo
+            continue
         iss = support_issues(t) + access_issues(t)
         if iss:
             res[name] = iss
