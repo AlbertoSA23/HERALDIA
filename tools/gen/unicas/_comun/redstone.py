@@ -235,6 +235,8 @@ def check_static(t):
                 errs.append(f"puerta de hierro inestable en {pos}")
         elif b == "dispenser" and sim.powered(pos) != (p["triggered"] == "true"):
             errs.append(f"dispensador inestable en {pos}")
+        elif b == "redstone_lamp" and (p["lit"] == "true") != sim.powered(pos):
+            errs.append(f"lámpara inestable en {pos}")
         elif b == "tnt" and sim.powered(pos):
             errs.append(f"TNT con señal al colocarse en {pos}")
         elif b in ("lever", "tripwire_hook", "redstone_wall_torch"):
@@ -251,3 +253,28 @@ def set_wire_power(t):
         _, p = parse_state(s)
         p["power"] = str(pw)
         t.blocks[pos] = (state_str("minecraft:redstone_wire", p), nbt)
+
+
+def check_puzzle(t, nombre, levers, solucion, salida, abre_si="con_potencia"):
+    """Prueba todas las combinaciones de las palancas de un puzle: solo la solución debe abrirlo.
+    salida: componentes (pistón, puerta...) que mueve el puzle; abre_si: "con_potencia" (puerta que se abre con
+    señal) o "sin_potencia" (pistones que sostienen la pared mientras reciben señal)."""
+    import itertools
+    errs = []
+    for combo in itertools.product((False, True), repeat=len(levers)):
+        sim = Sim(t, dict(zip(levers, combo)))
+        on = [sim.powered(p) for p in salida]
+        abre = all(on) if abre_si == "con_potencia" else not any(on)
+        if abre != (tuple(combo) == tuple(solucion)):
+            errs.append(f"puzle {nombre}: con palancas {combo} {'abre' if abre else 'no abre'}")
+    return errs
+
+
+def set_torches(t):
+    """Fija el estado lit de cada antorcha de redstone al estable (tras set_wire_power)."""
+    sim = Sim(t)
+    for pos, lit in sim.torch.items():
+        s, nbt = t.blocks[pos]
+        b, p = parse_state(s)
+        p["lit"] = "true" if lit else "false"
+        t.blocks[pos] = (state_str(b, p), nbt)
