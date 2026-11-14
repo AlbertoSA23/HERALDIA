@@ -34,7 +34,7 @@ Usa el muestrario solo en un mundo de prueba: lo colocado se queda.
 
 ## Aldeas enormes
 
-Una aldea cada 1000-2000 bloques (nunca a menos de 10 chunks de una aldea vanilla). La versión estándar sale 3 veces más que la grande.
+Por defecto, una aldea cada 1000-2000 bloques (separación media 1500), como mucho 100 por mundo (las más cercanas al 0,0) y nunca a menos de 10 chunks de una aldea vanilla. La versión estándar sale 3 veces más que la grande. Todo ello se cambia en la [configuración](#configuración).
 
 | Familia | Biomas | Estilos (ID `heraldia:<estilo>` y `heraldia:<estilo>_grande`) |
 | --- | --- | --- |
@@ -60,9 +60,32 @@ Cada aldea tiene:
 - Aldeanos: la mitad del número de casas, más del 80 % con oficio. Gólems: al menos uno por cada 3 aldeanos.
 
 Límites de población: hay unas 1,25 camas por aldeano inicial, así que la población crece como mucho un 25 %.
-La función `heraldia:golems` revisa cada 30 s las aldeas cargadas y retira los gólems naturales por encima de 8 (estándar) o 9 (grande); no toca los construidos por jugadores.
+La función `heraldia:golems` revisa cada 30 s las aldeas cargadas y retira un gólem natural cada vez que hay 8 o más (estándar) o 9 o más (grande); no toca los construidos por jugadores. Límites y limpieza se cambian en la [configuración](#configuración).
 
 Limitaciones conocidas: el puerto sale recto desde la calle sin buscar el agua; en laderas puede haber escalones y cimientos altos; no se ha comprobado el solape con estructuras de otros mods.
+
+## Configuración
+
+Fichero `config/heraldia.json` del servidor (en un mundo de un jugador, el de la carpeta del juego). Se crea al arrancar con todos los valores por defecto
+y se reescribe en cada arranque con los valores en uso y una ayuda (`_ayuda`) en español e inglés. Un valor que no sea válido (fuera de rango o de otro tipo)
+se avisa en el log y se sustituye por el de por defecto; una opción desconocida se avisa y se ignora. El campo `version` permite migrar el fichero
+cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chunks que se generen después (no a lo ya generado).
+
+| Opción | Por defecto | Rango | Qué hace |
+| --- | --- | --- | --- |
+| `aldeas.separacion_bloques` | 1500 | 1000-10000 | Separación media entre aldeas; la mínima guarda la proporción 62/94 de la rejilla. |
+| `aldeas.maximo` | 100 | 0-100 | Máximo de aldeas por mundo: solo valen las casillas de la rejilla más cercanas al 0,0 (determinista, sin datos guardados). |
+| `aldeas.porcentaje_grandes` | 25 | 0-100 | Porcentaje de aldeas grandes; el resto son estándar. |
+| `aldeas.distancia_aldeas_vanilla_bloques` | 160 | 0-256 | Distancia mínima a una aldea vanilla (se redondea a chunks); 0 la desactiva. |
+| `aldeas.familias.<familia>` | `true` | `true`/`false` | Activa una familia entera (sus 3 estilos). |
+| `aldeas.estilos.<estilo>` | `true` | `true`/`false` | Activa un estilo (estándar y grande). Si una casilla elige uno desactivado, se prueba otro estilo de su bioma. |
+| `golems.limpieza` | `true` | `true`/`false` | Activa la retirada periódica de gólems naturales. |
+| `golems.limite_estandar` | 8 | 1-64 | Con tantos gólems naturales o más, una aldea estándar retira uno cada 30 s. |
+| `golems.limite_grande` | 9 | 1-64 | Igual para las aldeas grandes. |
+| `unicas.<id>.activada` | `true` | `true`/`false` | Activa una estructura única. Aparece una entrada por cada estructura única del mod. |
+| `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). |
+
+La Atlántida no aparece: es siempre una sola por mundo.
 
 ## Compilar
 
