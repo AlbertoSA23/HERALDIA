@@ -1297,14 +1297,11 @@ class Obra(Template):
                 self.set(x, y, z, f"{b}[east={props['east']},north={props['north']},south={props['south']},up={up},waterlogged=false,west={props['west']}]")
 
     def puzles_ajuste(self):
-        """Niveles de polvo y antorchas del estado estable (calculados por el simulador de auditoria)."""
-        from .auditoria import simular
-        dust, _, torches = simular(self, {})
-        for p, pw in dust.items():
-            self.set(*p, self.get(*p).replace(f"power={self.get(*p).split('power=')[1].split(',')[0].split(']')[0]}", f"power={pw}"))
-        for p, lit in torches.items():
-            st = self.get(*p)
-            self.set(*p, st.replace("lit=true", f"lit={'true' if lit else 'false'}").replace("lit=false", f"lit={'true' if lit else 'false'}"))
+        """Forma y potencia de los cables y estado de las antorchas: el estable que calcula el simulador común."""
+        from .._comun import redstone
+        redstone.wire_shapes(self)
+        redstone.set_wire_power(self)
+        redstone.set_torches(self)
 
     def entrada(self):
         self.jigsaw(29, F0, 0, "north_up", "heraldia:entrance", "heraldia:entrance", "minecraft:empty",
