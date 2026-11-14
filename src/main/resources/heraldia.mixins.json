@@ -1,0 +1,9 @@
+{
+	"required": true,
+	"package": "io.github.albertosa23.heraldia.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": ["ChunkGeneratorMixin", "StructureCheckMixin"],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

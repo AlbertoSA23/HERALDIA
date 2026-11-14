@@ -47,3 +47,6 @@ def build(reg):
     for msg, pos in audit(t):
         reg.warnings.append(f"{name}: {msg} {pos}")
     reg.pool("unicas/fortaleza_hielo/inicio", [(name, 1, "rigid", PROCESSORS)])
+
+NOMBRE = {"es_es": "Fortaleza de hielo", "en_us": "Ice Fortress"}
+MAPA = {"decoration": "minecraft:red_x"}
