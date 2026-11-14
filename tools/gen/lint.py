@@ -248,8 +248,8 @@ def walk(t, extra_ground=True):
             for ny in range(y + 1, y - 5, -1):
                 r = surf(nx, ny, nz, dx, dz)
                 if r is None:
-                    if not passable(g(nx, ny, nz)):
-                        break           # no se atraviesa un bloque macizo al bajar
+                    if ny < y and not passable(g(nx, ny, nz)):
+                        break           # al bajar no se atraviesa un bloque macizo (techo de la sala de abajo)
                     continue
                 enter, stand = r
                 if enter - s > 0.6 or stand > s + 1.01 or not headroom(nx, ny, nz, stand):

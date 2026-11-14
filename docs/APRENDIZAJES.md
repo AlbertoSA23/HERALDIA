@@ -48,7 +48,7 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Generador y auditoría
 
-- Corregido: `lint.walk` buscaba dónde pisar bajando hasta 5 bloques aunque hubiera un bloque macizo en medio, así que una sala bajo un techo de un bloque salía «alcanzable» desde la terraza de encima. Ahora para en el primer bloque macizo. Verificado: la Cámara tapiada del Templo-pirámide dejó de ser alcanzable sin romper el tapiado y las 72 aldeas siguen pasando la auditoría.
+- Corregido: `lint.walk` buscaba dónde pisar bajando hasta 5 bloques aunque hubiera un bloque macizo en medio, así que una sala bajo un techo de un bloque salía «alcanzable» desde la terraza de encima. Ahora no atraviesa un bloque macizo por debajo de los pies. Verificado: la Cámara tapiada del Templo-pirámide dejó de ser alcanzable sin romper el tapiado y las 72 aldeas siguen pasando la auditoría.
 - Para auditar el buceo con `lint.walk`, sustituye en una vista el agua por escaleras de mano: el recorrido se mueve entonces en las tres direcciones. Los túneles bajo el agua necesitan 2 de alto libres (con pepinos de mar en el suelo, 3).
 - En los procesadores `rule`, `output_state` es una cadena (`"minecraft:cracked_stone_bricks"`); el formato antiguo `{"Name": ...}` rompe la carga del paquete entero en 26.3. Verificado con «Registry loading errors» en la prueba de humo.
 - `lint.py`: `tripwire` y `redstone_wire` cuentan como pisables, y una plantilla puede declarar `t.lint_open = {pos: estado}` para auditar el recorrido con sus puertas secretas resueltas. Verificado con la auditoría de la torre de mago.

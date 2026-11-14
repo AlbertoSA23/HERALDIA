@@ -131,7 +131,7 @@ Sin netherita en equipo, sin élitros, sin tótems.
 
 ## Resultado y comprobaciones
 
-- Auditoría (condición para generar): 13 cofres y 4 generadores alcanzables a pie desde la plaza (7.942 celdas),
+- Auditoría (condición para generar): 13 cofres y 4 generadores alcanzables a pie desde la plaza (10.854 celdas),
   con la palanca, las trampas, el guardián y las tres salas ocultas; sin abrir la puerta secreta el tesoro no se
   alcanza y sin romper el tapiado la cámara tapiada tampoco; desde el fondo del foso se vuelve a la plaza; nada
   flota; el agua está encerrada; ningún bloque tiene corriente salvo la antorcha de la puerta. Superficie exterior

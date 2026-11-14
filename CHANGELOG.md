@@ -24,7 +24,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 ### Técnico
 
 - `tools/gen/unicas/piramide/`: Templo-pirámide en dos piezas (superficie rígida con `beard_thin` y subsuelo macizo colgado de un jigsaw vertical), auditoría propia (recorrido a pie con buceo, puerta secreta que cierra de verdad el tesoro, salida del foso, nada flotando, agua encerrada, circuitos en reposo, 80-85 % de superficie intacta), planos y renders (`planos.py`) y prueba en servidor real de circuitos, guardián y agua (`prueba_servidor.py`). Diseño en `docs/unicas/piramide.md`.
-- `lint.walk`: al buscar dónde pisar ya no atraviesa bloques macizos (antes daba por alcanzables salas bajo un techo de un bloque).
+- `lint.walk`: al buscar dónde pisar ya no atraviesa bloques macizos de los pies (antes daba por alcanzables salas bajo un techo de un bloque).
 - `writer.py`: se quita la segunda mezcla duplicada de los textos `LANG` de las estructuras únicas, que había entrado por dos PR paralelos.
 - Faro (`tools/gen/unicas/faro/`): plantilla única de 44 x 52 x 48 y tipo de estructura propio `heraldia:faro` (Java) que busca la línea de costa con los mapas de alturas de generación y gira la plantilla hacia el mar; con `/place structure` se coloca aunque no haya costa. Comprobaciones propias: simulación de redstone de puzles y trampas, cueva estanca, ruina estimada (15,8 %) y recorrido a pie.
 - `lint.py`: el cable trampa y las palancas no estorban el paso, la trampilla abierta sobre una escalera de mano se trepa, y una plantilla puede declarar `lint_open` (estado con los puzles resueltos) para el recorrido a pie. `writer.py` suma los textos `LANG` de cada estructura única.

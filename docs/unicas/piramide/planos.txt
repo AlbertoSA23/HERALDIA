@@ -1,6 +1,6 @@
 Templo-pirámide: planos de planta generados por planos.py. . alcanzable a pie   # muro o macizo   ~ agua   C cofre   S generador   G guardián   L palanca
 d dispensador   _ placa   - cable trampa   t trampilla   e peldaño   T tapiado   P puerta secreta   o otro
-Auditoría: celdas=7942, buen_estado=0.825, erosion=0.137, superficie=8779, cofre=13, generador=4; sin problemas
+Auditoría: celdas=10854, buen_estado=0.825, erosion=0.137, superficie=8779, cofre=13, generador=4; sin problemas
 
 == Cota 1: Exterior y Sala del Cenote (x 0..78 de oeste a este, z 0..69 de norte a sur)
 ...............................................................................
