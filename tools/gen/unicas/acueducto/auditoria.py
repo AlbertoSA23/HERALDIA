@@ -6,7 +6,11 @@ import os, sys
 from collections import deque
 from core import Template, parse_state
 import lint
-from .redstone import Sim, name
+from unicas._comun import redstone as R
+
+
+def name(st):
+    return R.bn(st) or "air"
 
 ENTRADA = (47, 0, 98)          # fuera de la puerta sur
 
@@ -62,54 +66,35 @@ def flotantes(o):
 
 
 def redstone(o):
-    """Comprueba puzles y trampas con el simulador; devuelve la lista de fallos."""
-    g = lambda p: o.t.get(*p)
+    """Comprueba puzles y trampas con el simulador común; devuelve la lista de fallos."""
     r = o.red
-    cells = [p for p, (st, _) in o.t.blocks.items()
-             if any(k in name(st) for k in ("redstone", "lever", "button", "pressure_plate", "tripwire_hook"))]
-    sim = Sim(g)
-    errs = []
+    errs, sim = R.check_static(o.t)
     A, I, T = r["palanca_A"], r["palanca_I"], r["palanca_T"]
     for a in (0, 1):
         for i in (0, 1):
             for tt in (0, 1):
-                s = sim.run(cells, {A: a, I: i, T: tt})
-                cerrada = all(s.mech_powered(p) for p in (r["piston_1"], r["piston_2"]))
-                if cerrada != (not (a and not i and tt)):
-                    errs.append(f"puzle 1: AQVA={a} IGNIS={i} TERRA={tt} -> {'cerrada' if cerrada else 'abierta'}")
-                if s.mech_powered(r["piston_1"]) != s.mech_powered(r["piston_2"]):
+                s = R.Sim(o.t, {A: bool(a), I: bool(i), T: bool(tt)})
+                p1, p2 = s.powered(r["piston_1"]), s.powered(r["piston_2"])
+                if p1 != p2:
                     errs.append(f"puzle 1: los pistones no van a la par ({a}{i}{tt})")
-    s = sim.run(cells, {})
-    for p, lit in s.lit.items():
-        if (o.t.get(*p) or "").find(f"lit={'true' if lit else 'false'}") < 0:
-            errs.append(f"antorcha {p} colocada en un estado inestable")
-    for w, pw in s.dust.items():
-        if f"power={pw}," not in o.t.get(*w) and not o.t.get(*w).endswith(f"power={pw}]"):
-            errs.append(f"polvo {w} colocado con potencia distinta de {pw}")
+                if p1 != (not (a and not i and tt)):
+                    errs.append(f"puzle 1: AQVA={a} IGNIS={i} TERRA={tt} -> {'cerrada' if p1 else 'abierta'}")
     mechs = r["dispensadores_1"] + r["dispensadores_28"] + r["dispensadores_30"] + r["puerta_2"] + [r["reja"]]
-    for p in mechs:
-        if s.mech_powered(p):
-            errs.append(f"{p} recibe señal sin que nadie lo active")
-    checks = [({r["gancho_O"]: 1, r["gancho_E"]: 1}, r["dispensadores_1"]),
-              ({r["placa_28"]: 1}, r["dispensadores_28"]), ({r["placa_30"]: 1}, r["dispensadores_30"]),
-              ({r["placa_ofrenda"]: 1}, r["puerta_2"][:1]), ({r["boton"]: 1}, r["puerta_2"][:1]),
-              ({r["palanca_reja"]: 1}, [r["reja"]])]
+    errs += [f"{p} recibe señal sin que nadie lo active" for p in mechs if sim.powered(p)]
+    checks = [({r["gancho_O"]: True, r["gancho_E"]: True}, r["dispensadores_1"]),
+              ({r["placa_28"]: True}, r["dispensadores_28"]), ({r["placa_30"]: True}, r["dispensadores_30"]),
+              ({r["placa_ofrenda"]: True}, r["puerta_2"][:1]), ({r["boton"]: True}, r["puerta_2"][:1]),
+              ({r["palanca_reja"]: True}, [r["reja"]])]
     for inp, outs in checks:
-        s = sim.run(cells, inp)
-        for p in outs:
-            if not s.mech_powered(p):
-                errs.append(f"{list(inp)} no activa {p}")
+        s = R.Sim(o.t, inp)
+        errs += [f"{list(inp)} no activa {p}" for p in outs if not s.powered(p)]
     return errs
 
 
 def estabilizar(o):
-    """Escribe en la plantilla el nivel de señal estable del polvo con todas las entradas apagadas."""
-    cells = [p for p, (st, _) in o.t.blocks.items() if "redstone" in name(st)]
-    s = Sim(lambda p: o.t.get(*p)).run(cells, {})
-    for w, pw in s.dust.items():
-        bid, pr = parse_state(o.t.get(*w))
-        pr["power"] = str(pw)
-        o.s(*w, bid + "[" + ",".join(f"{k}={v}" for k, v in sorted(pr.items())) + "]")
+    """Forma y nivel de señal estables del polvo, calculados como el juego (todo apagado)."""
+    R.wire_shapes(o.t)
+    R.set_wire_power(o.t)
 
 
 def auditar(o):

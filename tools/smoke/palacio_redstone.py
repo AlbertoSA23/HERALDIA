@@ -3,7 +3,7 @@
 Uso: python3 tools/smoke/palacio_redstone.py --jar build/libs/heraldia-X.jar  (después de ./gradlew build)
 Coloca la plantilla sin rotar en (0, 100, 0), quita cada palanca (su retirada actualiza a los vecinos del bloque
 de apoyo, como al accionarla) y comprueba que las puertas se abren; dispara los cables con un objeto y la placa con
-un cerdo, y comprueba que los dispensadores gastan una flecha. Código 0 si todo pasa.
+un cerdo, y comprueba que los dispensadores gastan una flecha (los de cable llevan 3 × 6 flechas, los de la placa 8). Código 0 si todo pasa.
 """
 import argparse, os, queue, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -71,16 +71,10 @@ def main():
             cmd(f"summon minecraft:item {30.5} {2.1 + OY} {z + 0.5} {{Item:{{id:\"minecraft:stick\",count:1}},PickupDelay:32767}}", 2)
             for x in (28, 32):
                 test(f"block {at(x, 3, z)} minecraft:dispenser", f"cable z={z}: dispensador {x}")
-                m = run(proc, lines, seen, f"data get block {at(x, 3, z)} Items[0].count", r"has the following|(\d+)$|found no")
-                n = [int(s) for s in m.string.split() if s.isdigit()]
-                if not n or n[-1] != 7:
-                    fails.append(f"cable z={z}: el dispensador {x} no disparó ({m.string.strip()})")
+                test(f"data block {at(x, 3, z)} Items[{{count:5}}]", f"cable z={z}: el dispensador {x} no disparó")
         cmd(f"summon minecraft:pig 71.5 {3 + OY} 38.5 {{NoAI:1b}}", 2)
         for x in (70, 72):
-            m = run(proc, lines, seen, f"data get block {at(x, 3, 38)} Items[0].count", r"has the following|(\d+)$|found no")
-            n = [int(s) for s in m.string.split() if s.isdigit()]
-            if not n or n[-1] != 7:
-                fails.append(f"placa: el dispensador {x} no disparó ({m.string.strip()})")
+            test(f"data block {at(x, 3, 38)} Items[{{count:7}}]", f"placa: el dispensador {x} no disparó")
         cmd("stop", 0)
         proc.wait(timeout=120)
     finally:

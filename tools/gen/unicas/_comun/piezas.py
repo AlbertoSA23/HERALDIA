@@ -12,9 +12,13 @@ def text(key, fallback):
 
 
 # ------------------------------------------------------------------ entidades de bloque
-def spawner(put, x, y, z, mob, potentials=False):
-    """Generador de monstruos de un solo tipo."""
+def spawner(put, x, y, z, mob, potentials=False, luz=None):
+    """Generador de monstruos de un solo tipo. `luz` (máx. de luz de bloque, 0-15) añade custom_spawn_rules para que
+    los monstruos salgan aunque haya algo de luz cerca (por defecto exigen luz de bloque 0)."""
     e = {"entity": {"id": "minecraft:" + mob}}
+    if luz is not None:
+        e["custom_spawn_rules"] = {"block_light_limit": {"min_inclusive": 0, "max_inclusive": luz},
+                                   "sky_light_limit": {"min_inclusive": 0, "max_inclusive": 15}}
     nbt = {"id": "minecraft:mob_spawner", "SpawnData": e}
     if potentials:
         nbt["SpawnPotentials"] = [{"weight": 1, "data": e}]
