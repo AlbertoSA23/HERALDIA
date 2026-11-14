@@ -203,7 +203,8 @@ def write(reg, out):
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     for lang, texts in LANG.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
+        extra = {k: v for _, m in unicas.modules() for k, v in getattr(m, "LANG", {}).get(lang, {}).items()}
+        jdump(out, f"assets/{NS}/lang/{lang}.json", {**texts, **extra})
 
 
 def write_unique(out, sid, st):
