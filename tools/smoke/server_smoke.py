@@ -211,8 +211,8 @@ def check_keys(ctx):
         keys = json.load(f)["llaves"]
     if not keys:
         return ["heraldia/llaves.json sin llaves"]
-    m = ctx.run("heraldia llave @a inventada", r"No hay ninguna llave")
-    if not m.group(0).startswith("No hay"):
+    m = ctx.run("heraldia llave @a inventada", r"No hay ninguna llave|There is no key")   # el servidor traduce (en_us)
+    if not m.group(0).startswith(("No hay", "There is no")):
         fails.append(f"/heraldia llave no rechaza una llave inventada: {m.string.strip()}")
     m = ctx.run("heraldia llave @a todas", r"No player was found")
     if not m.group(0).startswith("No player"):
