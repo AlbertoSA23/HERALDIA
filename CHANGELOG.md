@@ -1,10 +1,7 @@
 # Registro de cambios
 
 Formato: cada versión es `## [X.Y.Z]` (con ` - AAAA-MM-DD` al publicarla) y lleva dos apartados:
-`### Jugadores` (lo que nota quien juega) y `
-- La Atlántida: una única ciudad sumergida por mundo, de unos 770 × 770 bloques, en un océano grande y profundo a 1.500 bloques o más del origen, solo en zona sin explorar. Se encuentra con `/locate structure heraldia:unicas/atlantida`.
-
-### Técnico` (cambios internos). La versión de arriba
+`### Jugadores` (lo que nota quien juega) y `### Técnico` (cambios internos). La versión de arriba
 coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo comprueba y extrae las notas de publicación.
 
 ## [0.1.0]
@@ -16,6 +13,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
 
 - Fichero de configuración `config/heraldia.json`: separación entre aldeas (1000-10000 bloques, por defecto 1500), máximo de aldeas por mundo (hasta 100, las más cercanas al 0,0), porcentaje de grandes, distancia a las aldeas vanilla, familias y estilos activables, límites y limpieza de gólems, y activación y separación de cada estructura única. Los valores no válidos se avisan en el log y se cambian por los de por defecto.
+- La Atlántida: una única ciudad sumergida por mundo, de unos 770 × 770 bloques, en un océano grande y profundo a 1.500 bloques o más del origen, solo en zona sin explorar. Se encuentra con `/locate structure heraldia:unicas/atlantida`.
 
 ### Técnico
 
