@@ -42,7 +42,7 @@ def mirror_state(st):
 class Obra:
     def __init__(self):
         self.t = Template(NAME)
-        self.audit_open = {}      # estado de los mecanismos abiertos (para la auditoría de recorrido)
+        self.lint_open = {}      # estado de los mecanismos abiertos (para la auditoría de recorrido)
         self.secret = []          # posiciones que solo se alcanzan resolviendo un puzle
         self.mech = []            # mecanismos de redstone para la auditoría
         self.protect = set()      # celdas que la ruina no puede tocar
@@ -174,9 +174,9 @@ class Obra:
             self.s(x, y, z, f"sticky_piston[extended=true,facing={facing}]")
             self.s(x + dx, y, z + dz, f"piston_head[facing={facing},short=false,type=sticky]")
             self.s(x + 2 * dx, y, z + 2 * dz, mat)
-            self.audit_open[(x, y, z)] = f"sticky_piston[extended=false,facing={facing}]"
-            self.audit_open[(x + dx, y, z + dz)] = mat
-            self.audit_open[(x + 2 * dx, y, z + 2 * dz)] = "air"
+            self.lint_open[(x, y, z)] = f"sticky_piston[extended=false,facing={facing}]"
+            self.lint_open[(x + dx, y, z + dz)] = mat
+            self.lint_open[(x + 2 * dx, y, z + 2 * dz)] = "air"
             self.protect |= {(x, y, z), (x + dx, y, z + dz), (x + 2 * dx, y, z + 2 * dz)}
         self.mech.append(dict(kind="puerta", label=label, pistons=list(piston), facing=facing, door=door_blocks))
 

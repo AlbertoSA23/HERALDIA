@@ -36,7 +36,7 @@ def palacio():
     # el acceso para la auditoría de recorrido: escalón central de la escalinata
     o.t.jigsaw(40, 0, 0, "north_up", "heraldia:entrance", "heraldia:entrance", "minecraft:empty",
                final_state=o.t.get(40, 0, 0))
-    o.t.audit_open = o.audit_open
+    o.t.lint_open = o.lint_open
     from pack import fix_supports
     fix_supports(o.t)
     errs = auditoria.check_redstone(o) + auditoria.check_floating(o) + auditoria.check_ruin(good, o.t)
