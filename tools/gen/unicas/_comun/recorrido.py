@@ -205,3 +205,22 @@ def luz_generador(lv, p, rango=4):
     x, y, z = p
     return max([lv.get((x + a, y + b, z + c), 0) for a in range(-rango, rango + 1)
                 for c in range(-rango, rango + 1) for b in (-1, 0, 1)])
+
+
+# ------------------------------------------------------------------ lint.walk en plantillas con sótano
+DY = 20     # lint.walk toma cualquier celda vacía con y < 0 como suelo natural: se audita una copia desplazada
+
+
+def shifted(t):
+    """Copia de la plantilla desplazada DY bloques hacia arriba (para lint.walk / lint.access_issues)."""
+    from core import Template
+    s = Template(t.name)
+    s.blocks = {(x, y + DY, z): v for (x, y, z), v in t.blocks.items()}
+    s.jigsaws = [dict(j, pos=(j["pos"][0], j["pos"][1] + DY, j["pos"][2])) for j in t.jigsaws]
+    return s
+
+
+def walk(t):
+    """lint.walk sobre una plantilla con sótano en y < 0; devuelve las celdas en las coordenadas originales."""
+    import lint
+    return {(x, y - DY, z) for (x, y, z) in lint.walk(shifted(t))}

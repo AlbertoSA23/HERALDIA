@@ -111,6 +111,12 @@ def tripwire_trap(put, hook_a, hook_b, y, along, dispensers, arrows=6):
             {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(3)]})
 
 
+def door(put, x, y, z, facing, kind="spruce_door", hinge="left"):
+    """Puerta de dos bloques cerrada (también de hierro: se abre al recibir señal)."""
+    for h, dy in (("lower", 0), ("upper", 1)):
+        put(x, y + dy, z, f"{kind}[facing={facing},half={h},hinge={hinge},open=false,powered=false]")
+
+
 def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
     """Trampa de losa (templo del desierto): placa en (x, y, z) sobre el suelo y TNT dos bloques más abajo;
     `warn` [(x, y, z)] recibe ladrillos agrietados como aviso."""
