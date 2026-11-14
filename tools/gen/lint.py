@@ -5,7 +5,8 @@ from core import parse_state
 PASS_WORDS = ("_carpet", "torch", "_banner", "rail", "pressure_plate", "button",
               "ladder", "_door", "poppy", "dandelion", "allium", "azure_bluet", "tulip", "orchid", "cornflower",
               "oxeye", "lily_of_the_valley", "rose_bush", "fern", "dead_bush", "sweet_berry", "wheat", "carrots",
-              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass", "tripwire", "redstone_wire")
+              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass", "tripwire", "lever",
+              "redstone_wire")
 
 
 def bname(st):
@@ -319,7 +320,8 @@ def lint_registry(reg, only=None):
     for name, t in reg.templates.items():
         if only and not only(name):
             continue
-        iss = support_issues(t) + access_issues(t)
+        # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
+        iss = support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
         if iss:
             res[name] = iss
     return res

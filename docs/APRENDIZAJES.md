@@ -21,9 +21,16 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Diseño de estructuras
 
+<<<<<<< HEAD
 - Sótanos sin cráter: con una sola plantilla, `start_height: {"absolute": -N}` + `terrain_adaptation: "none"` hunde la pieza N bloques (la capa N queda a ras del terreno) y el terreno alrededor no se toca. Para pendientes, una terraza con cimiento y unos bloques de aire encima. Verificado en la torre de mago (`/place structure` en la prueba de humo).
 - Puerta secreta estable: pistones pegajosos *extendidos* sujetando los bloques de la puerta y alimentados por una antorcha de redstone encendida; la señal del puzle apaga la antorcha y retraen. Un pistón que extiende nunca libera la celda contigua, así que hace falta esta inversión. Umbral exacto con polvo: N de polvo tras un comparador solo deja pasar señal >= N (estantería cincelada: hueco 6 = señal 6; caldero lleno = 3). Verificado en servidor real con `prueba_redstone.py` de la torre de mago.
 - Muro circular de 1 bloque con vecindad de 4: las diagonales quedan en escalera y no admiten ventanas limpias; pon las ventanas en los tramos rectos (los cuatro puntos cardinales). Verificado con los planos y renders de la torre de mago.
+=======
+- Sótanos sin hundir el terreno (fortaleza de hielo): meter las criptas dentro de un **zócalo macizo** que empieza en y = 0 de la plantilla; la fortaleza se alza encima y se sube por una escalinata. `beard_thin` solo rellena bajo la base. Verificado con `/place structure` en la prueba de humo.
+- Puertas secretas que funcionan al generarse sin actualizaciones de bloque: guardar el estado **en reposo encendido y coherente** (palanca `powered=true`, polvo con su potencia exacta, pistones pegajosos `extended=true` con su `piston_head` y el bloque delante). Apagar la palanca los retrae. Un polvo en cruz sobre un bloque alimenta el pistón al que apunta y, a través del bloque de debajo (débilmente alimentado), el pistón contiguo. Verificado con `/place template` y `setblock` de la palanca en un servidor dedicado (ojo: `/setblock` de la palanca no avisa a los vecinos del bloque enganchado; la prueba cambia ese bloque justo después para emular el uso real) (`tools/gen/unicas/fortaleza_hielo/prueba_servidor.py`).
+- Trampas como las de los templos: un dispensador junto al bloque al que está enganchado el gancho del cable, o junto a una placa de presión, recibe señal al pisarse. Verificado en un servidor dedicado (un zombi sin IA pisa la placa y cruza el cable; los dispensadores pierden flechas).
+- Picos de hielo: el rasgo nace sobre `snow_block` en la superficie. No pongas bloques de nieve en cimas expuestas (ni como salida de un procesador que pueda caer en una cima) en estructuras de biomas nevados. Verificado en el código de 26.3 (`IceSpikeFeature`); la auditoría de la fortaleza lo comprueba.
+>>>>>>> origin/develop
 
 ## Generador y auditoría
 
@@ -33,5 +40,8 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
 - Opciones del mod: se definen en `tools/gen/opciones.py` (por defecto, rango y textos en los dos idiomas), que las escribe en `heraldia/opciones.json` dentro del `.jar`. El Java las valida de forma genérica: una opción nueva no necesita código, salvo para usarla. Verificado en la prueba de humo (corrección de un valor fuera de rango).
+
+- `lint.py` admite `t.lint_view`: el recorrido a pie se hace sobre otra vista de la pieza (p. ej. con las puertas secretas abiertas), mientras los apoyos se auditan sobre la pieza real. Ganchos de cable trampa y palancas cuentan como transitables. Verificado con la auditoría de la fortaleza.
+- `/place template <id> x y z` responde «Loaded template …» (no «Placed»). Verificado en un servidor dedicado.
 
 ## Fallos pendientes
