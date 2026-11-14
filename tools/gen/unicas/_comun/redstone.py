@@ -1,4 +1,4 @@
-"""Redstone común de las estructuras únicas: forma de los cables y evaluación estática de la señal, con las reglas del juego.
+"""Redstone común: forma de los cables y evaluación estática de la señal con las reglas del juego (uso: from unicas._comun import redstone).
 
 Al generar no hay actualizaciones de bloque: lo que se coloca debe ser ya un estado estable. Este módulo calcula
 lo que el juego calcularía (conexiones de cada cable, potencia, antorchas, pistones, puertas, dispensadores, TNT)

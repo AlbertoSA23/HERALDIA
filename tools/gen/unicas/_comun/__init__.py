@@ -1,2 +1,1 @@
-"""Piezas comunes y parametrizadas de las estructuras únicas (redstone, botín). No es una estructura:
-unicas.modules() salta los paquetes que empiezan por «_»."""
+"""Piezas comunes y parametrizadas para las estructuras únicas (no es una estructura: el prefijo _ la excluye)."""
