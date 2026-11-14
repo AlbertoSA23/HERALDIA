@@ -12,7 +12,7 @@ OPP = {"north": "south", "south": "north", "west": "east", "east": "west", "up":
 NON_CONDUCTOR = ("air", "glass", "slab", "stairs", "fence", "_wall", "bars", "pane", "torch", "lever", "rail", "carpet",
                  "door", "lantern", "chain", "banner", "redstone_wire", "tripwire", "ladder", "bed", "campfire",
                  "cauldron", "anvil", "grindstone", "brewing_stand", "lectern", "plate", "piston", "spawner", "lava",
-                 "water", "cobweb", "chest", "barrel", "dispenser", "tnt", "leaves", "pot", "button")
+                 "water", "cobweb", "chest", "barrel", "dispenser", "tnt", "leaves", "pot", "button", "repeater")
 
 
 def bn(s):
@@ -43,6 +43,8 @@ def attached_dir(s):
 
 def is_source_connectable(s, d_from_wire):
     b = bn(s)
+    if b == "repeater":                      # solo a lo largo de su eje
+        return parse_state(s)[1]["facing"] in (d_from_wire, OPP[d_from_wire])
     return b in ("redstone_torch", "redstone_wall_torch", "lever", "tripwire_hook", "redstone_block") \
         or b.endswith("pressure_plate") or b.endswith("_button")
 
@@ -97,6 +99,7 @@ class Sim:
         self.blocks = t.blocks
         self.inputs = inputs or {}            # pos -> powered (bool) para palancas, ganchos y placas
         self.torch = {}
+        self.rep = {}                         # repetidores: pos -> encendido
         self.wire = {}
         self.conn = {}
         self.links = {}
@@ -104,6 +107,8 @@ class Sim:
             b = bn(s)
             if b in ("redstone_torch", "redstone_wall_torch"):
                 self.torch[pos] = True
+            elif b == "repeater":
+                self.rep[pos] = False
             elif b == "redstone_wire":
                 self.wire[pos] = 0
                 self.conn[pos] = wire_connections(t.get, pos)
@@ -122,12 +127,18 @@ class Sim:
             return parse_state(s)[1].get("powered") == "true"
         return False
 
+    def rep_out(self, n):
+        """Casilla a la que da un repetidor (el lado opuesto a `facing`, que mira a su entrada)."""
+        return add(n, D6[OPP[parse_state(self.get(*n))[1]["facing"]]])
+
     def direct(self, n, target, wires=True):
         """Señal fuerte que el componente en n da al bloque target."""
         s = self.get(*n)
         b = bn(s)
         if b in ("lever", "tripwire_hook") or b.endswith("_button"):
             return 15 if self.src_on(n) and add(n, D6[attached_dir(s)]) == target else 0
+        if b == "repeater":
+            return 15 if self.rep[n] and self.rep_out(n) == target else 0
         if b.endswith("pressure_plate"):
             return 15 if self.src_on(n) and target == add(n, D6["down"]) else 0
         if b in ("redstone_torch", "redstone_wall_torch"):
@@ -142,6 +153,8 @@ class Sim:
         b = bn(s)
         if b in ("lever", "tripwire_hook") or b.endswith("pressure_plate") or b.endswith("_button"):
             return 15 if self.src_on(n) else 0
+        if b == "repeater":
+            return 15 if self.rep[n] and self.rep_out(n) == target else 0
         if b in ("redstone_torch", "redstone_wall_torch"):
             return 15 if self.torch[n] and add(n, D6[attached_dir(s)]) != target else 0
         if b == "redstone_wire":
@@ -172,6 +185,12 @@ class Sim:
                 lit = self.weak(add(pos, D6[attached_dir(s)]), pos) == 0
                 if lit != self.torch[pos]:
                     self.torch[pos] = lit
+                    changed = True
+            for pos in self.rep:
+                f = parse_state(self.get(*pos))[1]["facing"]
+                on = self.weak(add(pos, D6[f]), pos) > 0
+                if on != self.rep[pos]:
+                    self.rep[pos] = on
                     changed = True
             # potencia de los cables: fuentes no cable y vecinos cable - 1
             base = {w: self.signal_at(w, wires=False) for w in self.wire}
@@ -220,6 +239,9 @@ def check_static(t):
                     errs.append(f"cable con forma distinta de la calculada en {pos}")
             if int(p.get("power", 0)) != sim.wire[pos]:
                 errs.append(f"cable con potencia {p.get('power')} y debería tener {sim.wire[pos]} en {pos}")
+        elif b == "repeater":
+            if (p["powered"] == "true") != sim.rep[pos]:
+                errs.append(f"repetidor inestable en {pos}")
         elif b in ("redstone_torch", "redstone_wall_torch"):
             if (p["lit"] == "true") != sim.torch[pos]:
                 errs.append(f"antorcha de redstone inestable en {pos}")
@@ -278,3 +300,32 @@ def set_torches(t):
         b, p = parse_state(s)
         p["lit"] = "true" if lit else "false"
         t.blocks[pos] = (state_str(b, p), nbt)
+
+
+def set_repeaters(t):
+    """Fija el estado powered de cada repetidor al estable."""
+    sim = Sim(t)
+    for pos, on in sim.rep.items():
+        s, nbt = t.blocks[pos]
+        b, p = parse_state(s)
+        p["powered"] = "true" if on else "false"
+        t.blocks[pos] = (state_str(b, p), nbt)
+
+
+def retract(t, sim):
+    """Bloques (pos -> estado) tras recoger los pistones extendidos que `sim` deja sin señal; los pegajosos tiran del
+    bloque que sujetan (para comprobar a pie que una puerta de pistones queda abierta)."""
+    b = {p: s for p, (s, _) in t.blocks.items()}
+    for pos, s in list(b.items()):
+        n, p = parse_state(s)
+        n = bn(n)
+        if n in ("piston", "sticky_piston") and p.get("extended") == "true" and not sim.powered(pos):
+            head = add(pos, D6[p["facing"]])
+            front = add(head, D6[p["facing"]])
+            p["extended"] = "false"
+            b[pos] = state_str("minecraft:" + n, p)
+            if n == "sticky_piston" and front in b and conductor(b[front]):
+                b[head] = b.pop(front)
+            else:
+                b.pop(head, None)
+    return b

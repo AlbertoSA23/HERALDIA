@@ -121,6 +121,12 @@ def tripwire_trap(put, hook_a, hook_b, y, along, dispensers, arrows=6):
             {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(3)]})
 
 
+def door(put, x, y, z, facing, kind="spruce_door", hinge="left"):
+    """Puerta de dos bloques cerrada (también de hierro: se abre al recibir señal)."""
+    for h, dy in (("lower", 0), ("upper", 1)):
+        put(x, y + dy, z, f"{kind}[facing={facing},half={h},hinge={hinge},open=false,powered=false]")
+
+
 def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
     """Trampa de losa (templo del desierto): placa en (x, y, z) sobre el suelo y TNT dos bloques más abajo;
     `warn` [(x, y, z)] recibe ladrillos agrietados como aviso."""
@@ -236,6 +242,33 @@ def circle(cx, cz, r):
     """Celdas (x, z) de un círculo de radio r."""
     R = int(r) + 1
     return [(cx + dx, cz + dz) for dx in range(-R, R + 1) for dz in range(-R, R + 1) if dx * dx + dz * dz <= r * r]
+
+
+def spiral_continuous(put, ring, y0, n, stair, support=None):
+    """Caracol continuo de `n` peldaños desde y0 por las casillas contiguas de `ring` (absolutas, alrededor de un
+    machón), sin rellanos propios: sirve cuando las plantas no van cada 6 y los rellanos están fuera del anillo.
+    Cada peldaño mira hacia donde se llega, así que en las esquinas también se entra por el lado bajo; los de
+    esquina no tocan el machón y llevan `support` debajo. Devuelve las posiciones de los peldaños."""
+    out, k = [], len(ring)
+    for i in range(n):
+        x, z = ring[i % k]
+        px, pz = ring[(i - 1) % k]
+        nx, nz = ring[(i + 1) % k]
+        put(x, y0 + i, z, f"{stair}[facing={VDIR[(x - px, z - pz)]},half=bottom]")
+        if support and i and (nx - x, nz - z) != (x - px, z - pz):
+            put(x, y0 + i - 1, z, support)
+        out.append((x, y0 + i, z))
+    return out
+
+
+# ------------------------------------------------------------------ entidades
+def painting(x, y, z, facing, variant):
+    """NBT de un cuadro para Template.entity: `facing` en código 2D y `block_pos` como IntArray (verificado en 26.3;
+    1x2 ocupa la casilla y la de encima)."""
+    from nbtlib import Compound, String, Byte, IntArray
+    f2d = {"south": 0, "west": 1, "north": 2, "east": 3}[facing]
+    return Compound({"id": String("minecraft:painting"), "variant": String("minecraft:" + variant),
+                     "facing": Byte(f2d), "block_pos": IntArray([x, y, z])})
 
 
 # ------------------------------------------------------------------ conexiones

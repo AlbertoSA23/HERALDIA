@@ -3,6 +3,8 @@
 - `Vista`: bloques de una o varias plantillas en coordenadas comunes, con suelo virtual y estados "resueltos".
 - `andar`: recorrido a pie estricto (sin caídas de más de un bloque, peldaños de escalera, escaleras de mano que no
   atraviesan trampillas cerradas) y `sin_vuelta`: celdas alcanzadas desde las que no se vuelve a la entrada.
+- `vista_lint`: plantilla con cambios (mecanismos abiertos o cerrados) y una entrada para usar `lint.walk` y
+  `lint.access_issues` sobre varias piezas unidas.
 - `cerca`, `flotantes` (bloques sin unión con el suelo) y `luz` (luz de bloque propagada) para cofres y generadores.
 Más estricto que lint.walk, que permite caer hasta 4 bloques y bajar escaleras de mano a través de trampillas cerradas.
 """
@@ -152,6 +154,21 @@ def sin_vuelta(edges, start, exentas=()):
     return [c for c in edges if c not in ok and (c[0], c[2]) not in exentas]
 
 
+def vista_lint(blocks, cambios=None, entrada=(0, 0, 0)):
+    """Template para lint.walk/access_issues: blocks {pos: (estado, nbt)}, cambios {pos: estado o None (quitar)} y
+    un jigsaw de entrada en `entrada`."""
+    from core import Template
+    v = Template("vista")
+    v.blocks = dict(blocks)
+    for p, st in (cambios or {}).items():
+        if st is None:
+            v.blocks.pop(p, None)
+        else:
+            v.blocks[p] = (st, None)
+    v.jigsaw(*entrada, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty", final_state="cobblestone")
+    return v
+
+
 def cerca(cells, p, r=1):
     x, y, z = p
     return any((x + a, y + b, z + c) in cells for a in range(-r, r + 1) for c in range(-r, r + 1)
@@ -202,3 +219,22 @@ def luz_generador(lv, p, rango=4):
     x, y, z = p
     return max([lv.get((x + a, y + b, z + c), 0) for a in range(-rango, rango + 1)
                 for c in range(-rango, rango + 1) for b in (-1, 0, 1)])
+
+
+# ------------------------------------------------------------------ lint.walk en plantillas con sótano
+DY = 20     # lint.walk toma cualquier celda vacía con y < 0 como suelo natural: se audita una copia desplazada
+
+
+def shifted(t):
+    """Copia de la plantilla desplazada DY bloques hacia arriba (para lint.walk / lint.access_issues)."""
+    from core import Template
+    s = Template(t.name)
+    s.blocks = {(x, y + DY, z): v for (x, y, z), v in t.blocks.items()}
+    s.jigsaws = [dict(j, pos=(j["pos"][0], j["pos"][1] + DY, j["pos"][2])) for j in t.jigsaws]
+    return s
+
+
+def walk(t):
+    """lint.walk sobre una plantilla con sótano en y < 0; devuelve las celdas en las coordenadas originales."""
+    import lint
+    return {(x, y - DY, z) for (x, y, z) in lint.walk(shifted(t))}

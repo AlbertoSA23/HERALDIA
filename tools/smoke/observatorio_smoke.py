@@ -67,21 +67,21 @@ def main():
         check("puerta del puzle cerrada en reposo", door, "minecraft:iron_door[open=false]")
         check("antorcha de salida apagada", (27, -5, 22), "minecraft:redstone_wall_torch[lit=false]")
         for z in (25, 29):
-            check(f"antorcha de la fase {z} encendida", (28, -4, z), "minecraft:redstone_wall_torch[lit=true]")
+            check(f"antorcha de la fase {z} encendida", (28, -5, z), "minecraft:redstone_wall_torch[lit=true]")
         check("pistón extendido", (18, -6, 18), "minecraft:sticky_piston[extended=true]")
         check("sello en su sitio", (20, -6, 18), "minecraft:bookshelf")
         # puzle
-        put((27, -4, 25), "minecraft:redstone_block")
-        put((27, -4, 29), "minecraft:redstone_block")
+        put((27, -5, 25), "minecraft:redstone_block")
+        put((27, -5, 29), "minecraft:redstone_block")
         for z in (25, 29):
-            check(f"antorcha de la fase {z} apagada al resolver", (28, -4, z), "minecraft:redstone_wall_torch[lit=false]")
-        for p in ((29, -4, 25), (30, -4, 25), (30, -4, 22), (29, -5, 22)):
+            check(f"antorcha de la fase {z} apagada al resolver", (28, -5, z), "minecraft:redstone_wall_torch[lit=false]")
+        for p in ((29, -5, 25), (30, -5, 25), (30, -5, 22), (29, -5, 22)):
             check(f"polvo {p} sin potencia al resolver", p, "minecraft:redstone_wire[power=0]")
         check("antorcha de salida encendida al resolver", (27, -5, 22), "minecraft:redstone_wall_torch[lit=true]")
         check("puzle resuelto abre la puerta", door, "minecraft:iron_door[open=true]")
-        put((27, -4, 27), "minecraft:redstone_block")
+        put((27, -5, 27), "minecraft:redstone_block")
         check("fase de más cierra la puerta", door, "minecraft:iron_door[open=false]")
-        put((27, -4, 27), "minecraft:" + O.WALLB)
+        put((27, -5, 27), "minecraft:" + O.WALLB)
         check("al quitarla se vuelve a abrir", door, "minecraft:iron_door[open=true]")
         # puerta de pistones
         put((17, -5, 19), "minecraft:redstone_block")

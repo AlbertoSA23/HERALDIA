@@ -11,7 +11,11 @@ from collections import deque
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core import Template, B, F, parse_state, state_str
+from core import Template
+from unicas._comun import piezas, redstone, botin
+from unicas._comun.piezas import door
+from unicas._comun.recorrido import shifted, walk, DY
+from unicas._comun.botin import pool as _pool, table as _table
 from loot import item, empty
 import lint
 
@@ -44,23 +48,8 @@ def text(k):
 
 
 # ------------------------------------------------------------------ botín
-def named(e, k):
-    mods = e.get("modifier", [])
-    mods = mods if isinstance(mods, list) else [mods]
-    e["modifier"] = mods + [{"type": "minecraft:set_name", "name": text(k), "target": "item_name"}]
-    return e
-
-
-def _pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
-def _table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
+def nm(name, w, k, levels=None):
+    return botin.named(name, w, f"heraldia.{SID}.{k}", _T[k][0], levels=levels)
 
 
 LOOT = {
@@ -89,8 +78,8 @@ LOOT = {
               extra=True)),
     # 90 % vistoso (primer grupo siempre; el segundo da algo fuerte solo el 10 % de las veces)
     "premium": _table(
-        _pool((4, 6), [named(item("spyglass", 8), "catalejo"), named(item("clock", 6), "reloj"),
-                       named(item("compass", 6), "brujula"), named(item("iron_helmet", 5, ench=(10, 20)), "yelmo"),
+        _pool((4, 6), [nm("spyglass", 8, "catalejo"), nm("clock", 6, "reloj"),
+                       nm("compass", 6, "brujula"), nm("iron_helmet", 5, "yelmo", (10, 20)),
                        item("wayfinder_armor_trim_smithing_template", 4), item("shaper_armor_trim_smithing_template", 4),
                        item("music_disc_far", 3), item("music_disc_mall", 3), item("globe_banner_pattern", 4),
                        item("gold_ingot", 8, 3, 8), item("amethyst_shard", 8, 4, 12), item("emerald", 8, 4, 10),
@@ -106,26 +95,32 @@ WALL, TRIM, ROOF = "stone_bricks", "polished_andesite", "stone_bricks"
 PLANK, DARK = "spruce_planks", "dark_oak_planks"
 CU, CU2, CU3 = "waxed_oxidized_cut_copper", "waxed_weathered_cut_copper", "waxed_oxidized_copper"
 WALLB, FLOORB, CEILB, SHELL = "deepslate_bricks", "deepslate_tiles", "polished_deepslate", "stone"
+SIDES = ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0))
 CX, CZ = 20, 20                    # centro de la rotonda
 R_IN, R_OUT = 8.5 ** 2, 9.5 ** 2
 
 
+def _b(st):
+    return lint.bname(st)
+
+
+def hang(t, x, y, z, kind="lantern"):
+    t.set(x, y, z, f"{kind}[hanging=true]")
+
+
+def stair(kind, facing, half="bottom"):
+    return f"{kind}[facing={facing},half={half},shape=straight]"
+
+
+def processors(rules):
+    return {"processors": [{"processor_type": "minecraft:rule", "rules": [
+        {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + a, "probability": p},
+         "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + b}
+        for a, b, p in rules]}]}
+
+
 def d2(x, z):
     return (x - CX) ** 2 + (z - CZ) ** 2
-
-
-def dispenser(t, x, y, z, facing, n=16):
-    t.set(x, y, z, f"dispenser[facing={facing},triggered=false]",
-          {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": n}]})
-
-
-def spawner(t, x, y, z, mob):
-    t.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}}})
-
-
-def door(t, x, y, z, facing, kind="spruce_door", hinge="left"):
-    for h, dy in (("lower", 0), ("upper", 1)):
-        t.set(x, y + dy, z, f"{kind}[facing={facing},half={h},hinge={hinge},open=false,powered=false]")
 
 
 def window(t, x, y, z, kind="glass_pane", h=2):
@@ -135,14 +130,6 @@ def window(t, x, y, z, kind="glass_pane", h=2):
 
 def chest(t, x, y, z, facing, table):
     t.chest(x, y, z, facing, f"{NSP}/{table}")
-
-
-def hang(t, x, y, z, kind="lantern"):
-    t.set(x, y, z, f"{kind}[hanging=true]")
-
-
-def stair(kind, facing, half="bottom"):
-    return f"{kind}[facing={facing},half={half},shape=straight]"
 
 
 # ------------------------------------------------------------------ superficie
@@ -261,7 +248,7 @@ def surface(t):
     t.fill(21, 1, 6, 21, 4, 6, TRIM)
     t.set(20, 3, 6, "chiseled_stone_bricks")
     t.set(20, 4, 6, "chiseled_stone_bricks")
-    door(t, 20, 1, 6, "south", "dark_oak_door")
+    door(t.set, 20, 1, 6, "south", "dark_oak_door")
     t.set(19, 3, 5, "wall_torch[facing=north]")
     t.set(21, 3, 5, "wall_torch[facing=north]")
     for x in range(19, 22):
@@ -280,7 +267,7 @@ def surface(t):
                          (34, 1, 20, "south"), (11, 1, 32, "east"), (29, 1, 32, "east"), (20, 1, 30, "south"),
                          (11, 7, 9, "west"), (29, 7, 9, "east"), (20, 7, 11, "south"), (6, 7, 20, "south"),
                          (34, 7, 20, "south"), (11, 7, 32, "east"), (29, 7, 32, "east"), (20, 7, 30, "south")):
-        door(t, x, y, z, f)
+        door(t.set, x, y, z, f)
     t.air(20, 1, 29, 20, 2, 29)
     t.air(20, 7, 29, 20, 8, 29)
 
@@ -533,11 +520,7 @@ def subsuelo(t):
                 t.set(x, y, z, "air")
             FLIGHTS.append((x, -i, z))
     # pasillo con cable trampa (trampa 1)
-    for z, f in ((30, "south"), (33, "north")):
-        t.set(11, -6, z, f"tripwire_hook[attached=true,facing={f},powered=false]")
-        dispenser(t, 11, -5, z, f)
-    for z in (31, 32):
-        t.set(11, -6, z, "tripwire[attached=true,disarmed=false,east=false,north=true,powered=false,south=true,west=false]")
+    piezas.tripwire_trap(t.set, (11, 30), (11, 33), -6, "z", [((11, -5, 30), "south"), ((11, -5, 33), "north")])
     # archivo
     for z in (23, 26, 29):
         for x in list(range(15, 19)) + list(range(22, 26)):
@@ -546,8 +529,8 @@ def subsuelo(t):
         for z in (20, 33):
             if x not in (17, 20) and (x + z) % 3:
                 t.fill(x, -6, z, x, -5, z, "bookshelf")
-    spawner(t, 20, -6, 31, "zombie")
-    spawner(t, 20, -6, 25, "spider")
+    piezas.spawner(t.set, 20, -6, 31, "zombie")
+    piezas.spawner(t.set, 20, -6, 25, "spider")
     chest(t, 14, -6, 21, "east", "archivo")
     chest(t, 26, -6, 33, "west", "archivo")
     t.set(14, -6, 27, "lectern[facing=east,has_book=false,powered=false]")
@@ -599,16 +582,13 @@ def subsuelo(t):
     for x in (26, 30):
         hang(t, x, -9, 11, "soul_lantern")
     # pasillo de las losas (trampa 2)
-    for x in (20, 22):
-        t.set(x, -13, 10, "stone_pressure_plate[powered=false]")
-        dispenser(t, x, -13, 9, "south")
-        dispenser(t, x, -13, 11, "north")
+    piezas.plate_trap(t.set, [(20, -13, 10), (22, -13, 10)], "north")
     # sala del guardián
     for x in (10, 14):
         for z in (7, 13):
             t.fill(x, -13, z, x, -9, z, "polished_deepslate")
-    spawner(t, 12, -13, 6, "skeleton")
-    door(t, 7, -13, 10, "west", "iron_door")
+    piezas.spawner(t.set, 12, -13, 6, "skeleton")
+    door(t.set, 7, -13, 10, "west", "iron_door")
     t.set(8, -12, 11, "stone_button[face=wall,facing=east,powered=false]")
     t.set(6, -12, 11, "stone_button[face=wall,facing=west,powered=false]")
     t.set(16, -13, 5, "skeleton_skull[rotation=6]")
@@ -621,14 +601,12 @@ def subsuelo(t):
 
 
 def guardian():
-    return {"id": "minecraft:skeleton", "PersistenceRequired": B(1), "CustomName": text("guardian"),
-            "CustomNameVisible": B(1), "Health": F(40.0),
-            "attributes": [{"id": "minecraft:max_health", "base": 40.0}],
-            "equipment": {"mainhand": {"id": "minecraft:bow", "count": 1,
-                                       "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
-                          "head": {"id": "minecraft:golden_helmet", "count": 1},
-                          "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}},
-            "drop_chances": {"mainhand": F(0.15), "head": F(0.15), "chest": F(0.15)}}
+    k = text("guardian")
+    return piezas.guardian("skeleton", k["translate"], k["fallback"], 40.0, drop_chances={
+        "mainhand": 0.15, "head": 0.15, "chest": 0.15}, equipment={
+        "mainhand": {"id": "minecraft:bow", "count": 1, "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
+        "head": {"id": "minecraft:golden_helmet", "count": 1},
+        "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}})
 
 
 def piston_door(t):
@@ -648,188 +626,38 @@ def piston_door(t):
 
 
 def phase_puzzle(t):
+    """Palancas buenas -> antorcha (NO) -> línea O; malas -> polvo -> línea O; línea O -> soporte de la antorcha de
+    salida (NO), que abre la puerta. Todo a y = -5 y el último polvo entra por el lado del soporte: encima de él, la
+    antorcha de salida encendida le daría potencia a través del bloque de arriba y el circuito oscilaría."""
     t.fill(28, -7, 22, 31, -2, 33, SHELL)       # macizo que envuelve el circuito
     for z, good in LEVERS.items():
-        t.set(26, -4, z, "lever[face=wall,facing=west,powered=false]")
-        t.set(27, -3, z, {25: "black_concrete", 27: "light_gray_concrete", 29: "white_concrete",
+        t.set(26, -5, z, "lever[face=wall,facing=west,powered=false]")
+        t.set(27, -4, z, {25: "black_concrete", 27: "light_gray_concrete", 29: "white_concrete",
                           31: "gray_concrete"}[z])
         if good:
-            t.set(28, -4, z, "redstone_wall_torch[facing=east,lit=true]")
-            t.set(29, -4, z, "redstone_wire")
+            t.set(28, -5, z, "redstone_wall_torch[facing=east,lit=true]")
         else:
-            t.set(28, -4, z, "redstone_wire")
-            t.set(29, -4, z, "redstone_wire")
+            t.set(28, -5, z, "redstone_wire")
+        t.set(29, -5, z, "redstone_wire")
     for z in range(22, 32):
-        t.set(30, -4, z, "redstone_wire")
-    # el último polvo baja un escalón y entra por el lado del soporte: si fuera encima de él, el bloque que la
-    # antorcha de salida alimenta por arriba le daría potencia y el circuito oscilaría hasta fundirla
-    t.set(29, -4, 22, "air")
+        t.set(30, -5, z, "redstone_wire")
     t.set(29, -5, 22, "redstone_wire")
     t.set(27, -5, 22, "redstone_wall_torch[facing=west,lit=false]")
-    door(t, 27, -6, 21, "east", "iron_door")
+    door(t.set, 27, -6, 21, "east", "iron_door")
     t.air(28, -6, 21, 28, -5, 21)
     t.fill(28, -13, 21, 28, -7, 21, WALLB)
     t.set(28, -7, 21, FLOORB)
 
 
-# ------------------------------------------------------------------ redstone: simulación sencilla
-SIDES = ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0))
-HOR = {"east": (1, 0), "west": (-1, 0), "south": (0, 1), "north": (0, -1)}
-
-
-def _b(st):
-    return lint.bname(st)
-
-
-def wire_links(t, x, y, z):
-    """Direcciones en que conecta el polvo: (dirección, dy del vecino) con polvo, antorcha o palanca."""
-    out = []
-    for name, (dx, dz) in HOR.items():
-        n = t.get(x + dx, y, z + dz)
-        if n and _b(n) in ("redstone_wire", "redstone_wall_torch", "redstone_torch", "lever"):
-            out.append((name, 0))
-            continue
-        up, above = t.get(x + dx, y + 1, z + dz), t.get(x, y + 1, z)
-        if up and _b(up) == "redstone_wire" and (above is None or lint.passable(above)):
-            out.append((name, 1))
-            continue
-        down, side = t.get(x + dx, y - 1, z + dz), t.get(x + dx, y, z + dz)
-        if down and _b(down) == "redstone_wire" and (side is None or lint.passable(side)):
-            out.append((name, -1))
-    return out
-
-
-def wire_conn(t, x, y, z):
-    links = dict(wire_links(t, x, y, z))
-    return {n: ("up" if links.get(n) == 1 else "side" if n in links else "none") for n in HOR}
-
-
-def simulate(t, levers_on):
-    """Evalúa el circuito del puzle (y la puerta de pistones) hasta un punto fijo.
-    Devuelve (potencia de cada polvo, antorchas encendidas, puertas de hierro alimentadas)."""
-    blocks = {p: st for p, (st, _) in t.blocks.items()}
-    wires = [p for p, st in blocks.items() if _b(st) == "redstone_wire"]
-    torches = {p: st for p, st in blocks.items() if _b(st) == "redstone_wall_torch"}
-    levers = {p: st for p, st in blocks.items() if _b(st) == "lever"}
-    lit = {p: True for p in torches}
-    links = {w: wire_links(t, *w) for w in wires}
-    stable = False
-
-    def attached(p, st, opposite=True):
-        dx, dz = HOR[parse_state(st)[1]["facing"]]
-        return (p[0] - dx, p[1], p[2] - dz)
-
-    power = {}
-    for _ in range(40):
-        strong = set()
-        for p, st in levers.items():
-            if p in levers_on:
-                strong.add(attached(p, st))
-        for p, on in lit.items():
-            if on:
-                strong.add((p[0], p[1] + 1, p[2]))
-        # polvo: fuentes = antorcha encendida vecina (salvo su soporte), palanca activa o bloque fuertemente alimentado
-        power = {w: 0 for w in wires}
-        q = deque()
-        for w in wires:
-            src = 0
-            for dx, dy, dz in SIDES:
-                n = (w[0] + dx, w[1] + dy, w[2] + dz)
-                if n in torches and lit[n] and attached(n, torches[n]) != w:
-                    src = 15
-                if n in levers and n in levers_on:
-                    src = 15
-                if n in strong and n not in torches and n not in levers and blocks.get(n) and _b(blocks[n]) != "redstone_wire":
-                    src = 15
-            if src:
-                power[w] = src
-                q.append(w)
-        while q:
-            w = q.popleft()
-            for name, dy in links[w]:
-                dx, dz = HOR[name]
-                n = (w[0] + dx, w[1] + dy, w[2] + dz)
-                if n in power and power[n] < power[w] - 1:
-                    power[n] = power[w] - 1
-                    q.append(n)
-        # bloques alimentados por el polvo: el de debajo y aquel al que apunta un extremo de línea
-        powered = set(strong)
-        for w, pw in power.items():
-            if pw <= 0:
-                continue
-            powered.add((w[0], w[1] - 1, w[2]))
-            c = [d for d, _ in links[w]]
-            if len(c) == 1:
-                dx, dz = HOR[c[0]]
-                powered.add((w[0] - dx, w[1], w[2] - dz))
-        new = {p: attached(p, st) not in powered for p, st in torches.items()}
-        if new == lit:
-            stable = True
-            break
-        lit = new
-    if not stable:                         # el circuito oscila: un reloj fundiría las antorchas
-        return power, lit, None
-    doors = {}
-    for p, st in blocks.items():
-        if _b(st) == "iron_door" and "half=lower" in st:
-            on = False
-            for hp in (p, (p[0], p[1] + 1, p[2])):
-                for dx, dy, dz in SIDES:
-                    n = (hp[0] + dx, hp[1] + dy, hp[2] + dz)
-                    if n in torches and lit[n] and attached(n, torches[n]) != hp:
-                        on = True
-                    if n in powered and blocks.get(n) and not lint.passable(blocks[n]):
-                        on = True
-            doors[p] = on
-    return power, lit, doors
-
-
-def settle_redstone(t):
-    """Escribe en el polvo y las antorchas el estado de reposo que da la simulación (todo coherente al colocarse)."""
-    power, lit, _ = simulate(t, set())
-    for p, pw in power.items():
-        c = wire_conn(t, *p)
-        t.set(*p, state_str("minecraft:redstone_wire", dict(c, power=str(pw))))
-    for p, on in lit.items():
-        bid, props = parse_state(t.get(*p))
-        props["lit"] = "true" if on else "false"
-        t.set(*p, state_str(bid, props))
-
-
-# ------------------------------------------------------------------ conexiones de vallas, muros y cristales
-THIN = ("_fence", "_wall", "_pane")
-
-
-def connect(t):
-    for (x, y, z), (st, nbt) in list(t.blocks.items()):
-        b = _b(st)
-        kind = next((k for k in THIN if b.endswith(k)), None)
-        if not kind or "fence_gate" in b:
-            continue
-        props = parse_state(st)[1]
-        for name, (dx, dz) in HOR.items():
-            n = t.get(x + dx, y, z + dz)
-            nb = _b(n) if n else None
-            ok = nb is not None and (nb.endswith(kind) or (not lint.passable(n) and lint.solid_full(n)
-                                                         and not nb.endswith(THIN) and "stairs" not in nb))
-            if kind == "_wall":
-                props[name] = "low" if ok else "none"
-            else:
-                props[name] = "true" if ok else "false"
-        if kind == "_wall":
-            props["up"] = "true"
-        props.setdefault("waterlogged", "false")
-        t.set(x, y, z, state_str(parse_state(st)[0], props))
-
-
-# ------------------------------------------------------------------ montaje y auditoría
 def build_full():
     FLIGHTS.clear(); DAMAGE.clear(); SOLVE.clear()
     t = Template(P + "/_completa")
     surface(t)
     subsuelo(t)
-    connect(t)
-    settle_redstone(t)
+    piezas.connect(t)
+    redstone.wire_shapes(t)
+    redstone.set_wire_power(t)
+    redstone.set_torches(t)
     # jigsaws al final: entrada (para la auditoría a pie) y unión vertical superficie-subsuelo
     t.jigsaw(20, 0, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty",
              final_state="minecraft:polished_andesite")
@@ -898,20 +726,6 @@ CRACK, MOSS = 0.14, 0.09
 PROC_P = CRACK + (1 - CRACK) * MOSS     # agrietado y, del resto, musgoso
 
 
-DY = 20     # desplazamiento vertical para el recorrido a pie: lint.walk toma y < 0 como suelo natural
-
-
-def shifted(t):
-    s = Template(t.name)
-    s.blocks = {(x, y + DY, z): v for (x, y, z), v in t.blocks.items()}
-    s.jigsaws = [dict(j, pos=(j["pos"][0], j["pos"][1] + DY, j["pos"][2])) for j in t.jigsaws]
-    return s
-
-
-def walk(t):
-    return {(x, y - DY, z) for (x, y, z) in lint.walk(shifted(t))}
-
-
 def audit(t):
     issues = []
     issues += [("apoyo: " + m, p) for m, p in lint.support_issues(t)]
@@ -939,33 +753,12 @@ def audit(t):
             issues.append(("sala oculta alcanzable sin resolver", p))
         if p not in cells:
             issues.append(("sala no alcanzable resuelta", p))
-    # puzle: una sola combinación abre la puerta de hierro; en reposo el estado colocado es el simulado
-    lev = {(26, -4, z) for z in LEVERS}
-    door_p = (27, -6, 21)
-    opens = []
-    for mask in range(16):
-        on = {(26, -4, z) for k, z in enumerate(sorted(LEVERS)) if mask >> k & 1}
-        res = simulate(t, on)[2]
-        if res is None:
-            issues.append(("puzle: el circuito oscila", sorted(on)))
-        elif res.get(door_p):
-            opens.append(on)
-    want = {(26, -4, z) for z, g in LEVERS.items() if g}
-    if opens != [want]:
-        issues.append(("puzle: combinaciones que abren", len(opens)))
-    power, lit, doors = simulate(t, set())
-    for p, pw in power.items():
-        if parse_state(t.get(*p))[1].get("power") != str(pw):
-            issues.append(("polvo con potencia incoherente", p))
-    if doors is None or any(doors.values()):
-        issues.append(("puerta de hierro abierta en reposo", door_p))
-    # puerta de pistones: la antorcha alimenta el pistón de arriba y la palanca apaga la antorcha
-    _, lit2, _ = simulate(t, {(17, -5, 20)})
-    if not lit[(17, -5, 18)] or lit2[(17, -5, 18)]:
-        issues.append(("puerta de pistones: antorcha mal conectada", (17, -5, 18)))
-    for y in (-6, -5):
-        if "extended=true" not in t.get(18, y, 18) or _b(t.get(19, y, 18)) != "piston_head":
-            issues.append(("puerta de pistones incompleta", (18, y, 18)))
+    # redstone: estado colocado estable, puzle de las fases y puerta de pistones (simulador común)
+    errs, _ = redstone.check_static(t)
+    levers = [(26, -5, z) for z in sorted(LEVERS)]
+    errs += redstone.check_puzzle(t, "fases", levers, tuple(LEVERS[z] for z in sorted(LEVERS)), [(27, -6, 21)])
+    errs += redstone.check_puzzle(t, "pistones", [(17, -5, 20)], (True,), [(18, -6, 18), (18, -5, 18)], "sin_potencia")
+    issues += [("redstone: " + e, None) for e in errs]
     # nada flotando: todo bloque unido a los demás
     solid = {p for p, (st, _) in t.blocks.items() if _b(st) not in ("air", "structure_void")}
     start = next(iter(solid))
@@ -984,13 +777,6 @@ def audit(t):
     if not 0.15 <= frac <= 0.20:
         issues.append(("estado exterior fuera de 80-85 %", round(1 - frac, 3)))
     return issues
-
-
-def processors(rules):
-    return {"processors": [{"processor_type": "minecraft:rule", "rules": [
-        {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + a, "probability": p},
-         "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + b}
-        for a, b, p in rules]}]}
 
 
 def build(reg):

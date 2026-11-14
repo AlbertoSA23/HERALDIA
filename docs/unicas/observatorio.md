@@ -80,7 +80,7 @@ reloj de sol marcan esas dos fases con los mismos bloques.
 Circuito (todo en reposo y coherente al colocarse, sin depender de actualizaciones):
 - Palancas de las fases «buenas» → bloque → antorcha de redstone (NO) → línea O.
 - Palancas «malas» → bloque → polvo → línea O.
-- Línea O → (el último polvo baja un escalón y entra por el lado) → bloque → antorcha de salida (NO) junto a la hoja
+- Línea O → (el último polvo entra por el lado del soporte) → bloque → antorcha de salida (NO) junto a la hoja
   superior de la puerta. Si el polvo fuera encima de ese bloque, la antorcha encendida alimentaría el bloque de encima y
   este al polvo: reloj de redstone y antorcha fundida (fallo real encontrado en la prueba en servidor).
 - En reposo la línea O está alimentada por las dos antorchas encendidas, con la potencia calculada en
@@ -128,10 +128,12 @@ se retraen, tiran de las estanterías y abren el paso. La auditoría comprueba l
   catalejos, vidrieras de taller, archivo).
 
 ## Comprobaciones
+- Construcción con `_comun/piezas.py` (puertas, generadores, guardián, trampa de cable y de losas, conexiones),
+  botín con `_comun/botin.py`, circuito con `_comun/redstone.py` y recorrido con sótano con `_comun/recorrido.py`.
 - `build(reg)` audita la plantilla completa antes de partirla y cualquier aviso detiene la generación: apoyos
   (`lint.support_issues`), recorrido a pie en estado resuelto (puertas, cofres, barriles, palancas, botones,
   escaleras de mano y cada peldaño de los tramos), salas ocultas inalcanzables sin resolver, simulación del
-  circuito (16 combinaciones, sin oscilaciones, potencias de reposo iguales a las colocadas), puerta de pistones,
+  circuito con `redstone.check_static` y `check_puzzle` (16 combinaciones; estado colocado estable), puerta de pistones,
   nada flotando (todo bloque unido al resto) y estado exterior entre 80 y 85 %.
 - `tools/smoke/observatorio_smoke.py`: en un servidor dedicado 26.3 coloca el subsuelo y comprueba reposo, puzle,
   pistones, trampas, cámara del tesoro y guardián, y que `/place structure` coloca también el subsuelo.
