@@ -64,6 +64,7 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Generador y auditoría
 
+- Piezas comunes listas para usar: `unicas/_comun/piezas.py` (puerta de pistones, trampas de flechas, generador, guardián, cofre, marco) y `unicas/_comun/recorrido.py` (recorrido estricto con puzles abiertos o cerrados, `sin_vuelta`, `flotantes`, `luz`). Reciben `put(x, y, z, estado, nbt)`, así que valen con cualquier sistema de coordenadas. Verificadas en servidor con `tools/smoke/coliseo_redstone.py`.
 - En los procesadores `rule`, `output_state` es una cadena (`"minecraft:cracked_stone_bricks"`); el formato antiguo `{"Name": ...}` rompe la carga del paquete entero en 26.3. Verificado con «Registry loading errors» en la prueba de humo.
 - `lint.py`: `tripwire` y `redstone_wire` cuentan como pisables, y una plantilla puede declarar `t.lint_open = {pos: estado}` para auditar el recorrido con sus puertas secretas resueltas. Verificado con la auditoría de la torre de mago.
 - `/place template` responde «Loaded template ... at x, y, z» (no «placed»). Verificado en servidor dedicado.

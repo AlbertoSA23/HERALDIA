@@ -6,6 +6,8 @@ de diseño. `construir()` devuelve el mundo, las dos plantillas y el inventario 
 """
 import math, random
 from core import Template, parse_state, state_str, B, F
+from .._comun import piezas
+from .._comun.recorrido import is_full
 
 A0, B0 = 16.5, 9.5          # semiejes del borde de la arena
 CX, CZ = 43, 36             # centro de la arena en la plantilla principal (87 x 73)
@@ -177,15 +179,14 @@ class Obra:
             self.set(x, y, z, f"{mat}[facing={facing},half=bottom]")
 
     def chest(self, dx, y, dz, facing, table, label):
-        self.set(dx, y, dz, f"chest[facing={facing}]", {"id": "minecraft:chest", "LootTable": f"heraldia:unicas/coliseo/{table}"})
+        self.set(dx, y, dz, *piezas.cofre(f"heraldia:unicas/coliseo/{table}", facing))
         self.feat["cofre"].append((label, table, (dx, y, dz)))
 
     def barrel(self, dx, y, dz, facing="up"):
         self.set(dx, y, dz, f"barrel[facing={facing}]", {"id": "minecraft:barrel"})
 
     def spawner(self, dx, y, dz, mob, label):
-        self.set(dx, y, dz, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": f"minecraft:{mob}"}},
-                                         "SpawnRange": 4, "RequiredPlayerRange": 16, "Delay": 20})
+        self.set(dx, y, dz, *piezas.generador(mob))
         self.feat["generador"].append((label, mob, (dx, y, dz)))
 
     def lantern(self, dx, y, dz):
@@ -193,9 +194,10 @@ class Obra:
         self.set(dx, y, dz, "lantern[hanging=true]")
 
     def entity(self, dx, y, dz, nbt):
-        if nbt["id"].endswith("item_frame"):          # entidad colgada: sin block_pos el juego la descarta
-            nbt = dict(nbt, block_pos=[CX + dx, y, CZ + dz])
         self.t.entity(CX + dx, y, CZ + dz, nbt)
+
+    def frame(self, dx, y, dz, facing_byte, objeto=None):
+        self.entity(dx, y, dz, piezas.marco(CX + dx, y, CZ + dz, facing_byte, objeto))
 
 
 def cols_ring(pred):
@@ -427,25 +429,10 @@ def palcos(o):
     o.lantern(2, 8, 13)
     # --- puzle 2: nicho + puerta de pistones enrasada en el muro oeste; palanca en el muro (x=-4, z=12)
     a = 5
-    o.set(-6, a, 15, "chiseled_quartz_block")
-    o.set(-6, a + 1, 15, "chiseled_quartz_block")
-    o.set(-5, a, 15, "air")
-    o.set(-5, a + 1, 15, "air")
-    for y in (a, a + 1):
-        o.set(-6, y, 14, "piston_head[facing=south,short=false,type=sticky]")
-        o.set(-6, y, 13, "sticky_piston[extended=true,facing=south]")
-    o.set(-6, a, 12, "redstone_wall_torch[facing=west,lit=true]")
-    o.set(-6, a + 1, 12, MARBLE)
-    o.set(-5, a, 12, MARBLE)
-    o.set(-4, a, 12, "lever[face=wall,facing=east,powered=false]")
-    o.feat["palanca"].append(("puzle 2: palanca del palco", (-4, a, 12)))
-    o.feat["puzle"].append(("puzle 2: puerta de pistones", (-6, a, 15)))
-    for y in (a, a + 1):
-        o.solved[o.P(-6, y, 15)] = "air"
-        o.solved[o.P(-6, y, 14)] = "chiseled_quartz_block"
-        o.solved[o.P(-6, y, 13)] = "sticky_piston[extended=false,facing=south]"
-    o.solved[o.P(-6, a, 12)] = "redstone_wall_torch[facing=west,lit=false]"
-    o.solved[o.P(-4, a, 12)] = "lever[face=wall,facing=east,powered=true]"
+    m = piezas.puerta_pistones(o.set, (-6, a, 15), "north", "east", "minecraft:chiseled_quartz_block", "minecraft:" + MARBLE)
+    o.feat["palanca"].append(("puzle 2: palanca del palco", m["palanca"]))
+    o.feat["puzle"].append(("puzle 2: puerta de pistones", m["puerta"]))
+    o.solved.update({o.P(*p): st for p, st in m["solved"].items()})
     o.carve_box(-7, a, 15, -7, a + 1, 15)
     # --- palco del editor (norte): interior dx -3..3, dz -15..-11, muros de 1
     for x in range(-4, 5):
@@ -558,12 +545,7 @@ def hypogeum(o):
         o.set(0, y, -1, "ladder[facing=south]")
     o.feat["escalera"].append(("pozo de la arena", (0, 0, -1)))
     # trampa 1: cable trampa en el corredor de la armería (dx=16)
-    o.set(16, H1, -1, "tripwire_hook[attached=true,facing=south,powered=false]")
-    o.set(16, H1, 0, "tripwire[attached=true,disarmed=false,east=false,north=true,powered=false,south=true,west=false]")
-    o.set(16, H1, 1, "tripwire_hook[attached=true,facing=north,powered=false]")
-    for sz, face in ((-1, "south"), (1, "north")):
-        o.set(16, H1 + 1, sz * 2, f"dispenser[facing={face},triggered=false]",
-              {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 9}]})
+    piezas.trampa_cable(o.set, (16, H1, -1), "south", 1, flechas=9)
     o.feat["trampa"].append(("trampa 1: cable y flechas", (16, H1, 0)))
     # armería (este)
     room("armería", 19, 23, -7, 7, H1, 4)
@@ -573,7 +555,7 @@ def hypogeum(o):
                              "equipment": {"head": {"id": f"minecraft:{gear}_helmet", "count": 1},
                                            "chest": {"id": f"minecraft:{gear}_chestplate", "count": 1}}})
     for z, it in ((-5, "iron_sword"), (-3, "bow"), (3, "stone_sword")):
-        o.entity(19, H1 + 1, z, {"id": "minecraft:item_frame", "Facing": B(5), "Item": {"id": f"minecraft:{it}", "count": 1}})
+        o.frame(19, H1 + 1, z, 5, it)
         o.set(18, H1 + 1, z, LINING)
     o.set(23, H1, -7, "smithing_table"); o.set(22, H1, -7, "grindstone[face=floor,facing=north]")
     o.chest(19, H1, -7, "south", "armeria", "armería")
@@ -581,7 +563,7 @@ def hypogeum(o):
     o.lantern(21, H1 + 3, -4); o.lantern(21, H1 + 3, 0)
     # puzle 1: pedestal con marco vacío -> comparador -> trampilla de hierro sobre el pozo al despacho
     o.set(20, H1, 5, "chiseled_stone_bricks")
-    o.entity(20, H1, 4, {"id": "minecraft:item_frame", "Facing": B(2)})
+    o.frame(20, H1, 4, 2)
     o.set(20, H1, 6, "comparator[facing=north,mode=compare,powered=false]")
     o.set(20, H1, 7, "iron_trapdoor[facing=north,half=bottom,open=false,powered=false]")
     o.feat["marco"].append(("puzle 1: marco de la ofrenda", (20, H1, 4)))
@@ -608,12 +590,7 @@ def hypogeum(o):
     o.lantern(19, H2 + 3, 4)
     o.carve_box(15, H2, 3, 15, H2 + 1, 3)
     room("pasillo de las placas", 10, 14, 3, 3, H2, 2)
-    for x in (11, 12, 13):
-        o.set(x, H2, 3, "stone_pressure_plate[powered=false]")
-        o.set(x, H2, 2, "dispenser[facing=south,triggered=false]",
-              {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 6}]})
-        o.set(x, H2, 4, "dispenser[facing=north,triggered=false]",
-              {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 6}]})
+    piezas.trampa_placas(o.set, [(x, H2, 3) for x in (11, 12, 13)], "north", flechas=6)
     o.feat["trampa"].append(("trampa 2: placas y flechas", (12, H2, 3)))
     o.carve_box(9, H2, 3, 9, H2 + 1, 3)
     room("cámara del tesoro", -8, 8, -4, 4, H2, 5)
@@ -652,20 +629,12 @@ def hypogeum(o):
 
 
 def champion():
-    return {"id": "minecraft:husk", "PersistenceRequired": B(1), "CustomNameVisible": B(1),
-            "CustomName": {"translate": "heraldia.coliseo.campeon", "fallback": "Campeón de la Arena"},
-            "Health": F(40.0),
-            "attributes": [{"id": "minecraft:max_health", "base": 40.0},
-                           {"id": "minecraft:knockback_resistance", "base": 0.3},
-                           {"id": "minecraft:follow_range", "base": 24.0}],
-            "equipment": {"mainhand": {"id": "minecraft:iron_sword", "count": 1},
-                          "offhand": {"id": "minecraft:shield", "count": 1},
-                          "head": {"id": "minecraft:golden_helmet", "count": 1},
-                          "chest": {"id": "minecraft:iron_chestplate", "count": 1},
-                          "legs": {"id": "minecraft:chainmail_leggings", "count": 1},
-                          "feet": {"id": "minecraft:iron_boots", "count": 1}},
-            "drop_chances": {"mainhand": F(0.25), "offhand": F(0.05), "head": F(0.5), "chest": F(0.05),
-                             "legs": F(0.05), "feet": F(0.05)}}
+    return piezas.guardian("husk", "heraldia.coliseo.campeon", "Campeón de la Arena", vida=40.0,
+                           equipo={"mainhand": "iron_sword", "offhand": "shield", "head": "golden_helmet",
+                                   "chest": "iron_chestplate", "legs": "chainmail_leggings", "feet": "iron_boots"},
+                           caida={"mainhand": 0.25, "head": 0.5},
+                           extra_atributos=[{"id": "minecraft:knockback_resistance", "base": 0.3},
+                                            {"id": "minecraft:follow_range", "base": 24.0}])
 
 
 def lining(o):
@@ -750,19 +719,6 @@ def ruin(o):
 
 
 # ------------------------------------------------------------------ conexiones de muros, rejas y vallas
-NONFULL = ("_stairs", "_slab", "_wall", "_fence", "iron_bars", "_pane", "trapdoor", "_door", "chest", "lantern",
-           "iron_chain", "ladder", "torch", "carpet", "lever", "button", "pressure_plate", "tripwire", "comparator",
-           "repeater", "bed", "banner", "pot", "cobweb", "dead_bush", "spawner", "candle", "piston_head", "grindstone",
-           "lectern", "composter", "jigsaw", "frame")
-
-
-def is_full(st):
-    if st is None:
-        return False
-    b = st.split("[")[0].replace("minecraft:", "")
-    return b not in ("air", "cave_air") and not any(k in b for k in NONFULL)
-
-
 def connect(t):
     for (x, y, z), (st, nbt) in list(t.blocks.items()):
         bid, props = parse_state(st)
@@ -794,21 +750,9 @@ def connect(t):
 
 def drop_floating(o):
     """Tras la ruina, los fragmentos que quedan sin unión con el suelo de su pieza se caen (se quitan)."""
-    from collections import deque
-    b = o.t.blocks
-    solid = {p for p, (st, _) in b.items() if st != "minecraft:air"}
-    seeds = [p for p in solid if p[1] in (0, HYP[4])]
-    seen = set(seeds)
-    q = deque(seeds)
-    while q:
-        x, y, z = q.popleft()
-        for a, c, d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
-            n = (x + a, y + c, z + d)
-            if n in solid and n not in seen:
-                seen.add(n)
-                q.append(n)
-    for p in solid - seen:
-        b[p] = ("minecraft:air", None)
+    from .._comun.recorrido import flotantes
+    for p in flotantes({p: st for p, (st, _) in o.t.blocks.items()}, (0, HYP[4])):
+        o.t.blocks[p] = ("minecraft:air", None)
 
 
 # ------------------------------------------------------------------ montaje
