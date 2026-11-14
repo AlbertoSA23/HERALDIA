@@ -223,8 +223,8 @@ def inscriptions(o):
     # rellano (cota 12) y tramo B
     o.carve(CX - 5, 12, CZ - 10, CX + 5, 14, CZ - 9, "pir")
     o.flight("z", CX - 1, CX + 1, CZ - 9, 1, 12, 11, "pir")           # z 34..44 -> cota 1
-    o.set(CX + 3, 12, CZ - 10, "lantern[hanging=false,waterlogged=false]")
-    o.set(CX - 5, 12, CZ - 10, "lantern[hanging=false,waterlogged=false]")
+    o.set(CX - 2, 14, CZ - 10, "lantern[hanging=true,waterlogged=false]")
+    o.set(CX + 3, 14, CZ - 10, "lantern[hanging=true,waterlogged=false]")
     # Cámara de las Ofrendas (oeste)
     o.carve(CX - 13, 12, CZ - 12, CX - 7, 14, CZ - 7, "pir")
     o.carve(CX - 6, 12, CZ - 10, CX - 6, 13, CZ - 10, "pir")

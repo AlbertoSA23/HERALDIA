@@ -12,6 +12,8 @@ STRUCTURE = dict(
     spacing=DEFAULT_SPACING, separation=DEFAULT_SEPARATION,
 )
 
+NOMBRE = {"es_es": "Templo-pirámide", "en_us": "Pyramid Temple"}
+
 K = "heraldia.piramide."
 LANG = {
     "es_es": {K + "guardian": "El Rey Jaguar", K + "corona": "Corona del Rey Jaguar", K + "cetro": "Cetro de la Selva",

@@ -8,6 +8,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Jugadores
 
+- Nueva estructura única: **Templo-pirámide** (jungla y jungla dispersa). Pirámide escalonada de seis cuerpos con escalinata, templo con crestería, plataformas laterales y juego de pelota; por dentro, escalera oculta, Sala del Cenote, galerías con osario y guarida de arañas, un cenote con cámara sumergida y la tumba del Rey Jaguar con su cámara del tesoro tras una puerta secreta. 13 cofres, 4 generadores, guardián con nombre y trampas de cable, de foso y de dardos.
 - Primera versión del mod: 72 aldeas enormes (36 estilos por bioma, cada uno en tamaño estándar y grande) que aparecen en chunks nuevos del Overworld, una cada 1000-2000 bloques.
 - Comandos de prueba `/function heraldia:muestrario` y `/function heraldia:familia/<familia>` para ver los estilos colocados en fila; sus mensajes salen en español o inglés según el idioma del cliente.
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
@@ -16,6 +17,9 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Técnico
 
+- `tools/gen/unicas/piramide/`: Templo-pirámide en dos piezas (superficie rígida con `beard_thin` y subsuelo macizo colgado de un jigsaw vertical), auditoría propia (recorrido a pie con buceo, puerta secreta que cierra de verdad el tesoro, salida del foso, nada flotando, agua encerrada, circuitos en reposo, 80-85 % de superficie intacta), planos y renders (`planos.py`) y prueba en servidor real de circuitos, guardián y agua (`prueba_servidor.py`). Diseño en `docs/unicas/piramide.md`.
+- `lint.walk`: al buscar dónde pisar ya no atraviesa bloques macizos (antes daba por alcanzables salas bajo un techo de un bloque); `tripwire` cuenta como pasable.
+- `writer.py`: escribe también los textos `LANG` de cada módulo de `tools/gen/unicas/`.
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
 - La ruta de los registros de 26.3 para validar es configurable (`--registries`, `MCMETA_SUMMARY` o `-Pmcmeta_summary`); por defecto se clona `misode/mcmeta` rama `26.3-summary` en `build/` y no se sube al repositorio.

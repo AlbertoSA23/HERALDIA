@@ -8,7 +8,8 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+- **Estructuras únicas** (castillos, catedrales...): una de cada tipo cada 3.000-5.000 bloques, en su bioma.
+  - **Templo-pirámide** (`heraldia:unicas/piramide`, jungla y jungla dispersa): pirámide escalonada mesoamericana con templo, juego de pelota, cenote interior y la tumba del Rey Jaguar. Diseño y planos en `docs/unicas/piramide.md`.
 
 ## Instalación
 

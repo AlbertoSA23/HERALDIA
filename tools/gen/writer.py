@@ -217,7 +217,10 @@ def write(reg, out):
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     maps_lang = mapas.lang(uniques)
     for lang, texts in LANG.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang]))
+        extra = {}
+        for _, mod in uniques:                 # textos propios de cada estructura única (LANG del módulo)
+            extra.update(getattr(mod, "LANG", {}).get(lang, {}))
+        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang], **extra))
 
 
 def write_unique(out, sid, st):
