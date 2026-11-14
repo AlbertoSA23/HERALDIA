@@ -12,6 +12,8 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # Opcional: STRUCTURE["json"] = dict completo de la estructura (tipo propio en Java, por ejemplo); sustituye al anterior.
   def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.
   LOOT = {"premium": tabla, ...}   -> heraldia:unicas/<id>/<nombre>
+  LANG = {"es_es": {...}, "en_us": {...}}   # opcional: textos propios, se suman a assets/heraldia/lang
+  Plantilla con atributo solved_open = {posiciones}: la auditoría las trata como aire (puertas de puzle resueltas).
 
 Botín y Lootr: un grupo (pool) con "solo_sin_lootr": True se omite si el servidor lleva Lootr
 (condición heraldia:sin_lootr). Úsalo para el extra por cofre, de modo que con Lootr cada jugador reciba lo modesto.
