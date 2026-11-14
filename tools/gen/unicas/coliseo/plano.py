@@ -7,7 +7,7 @@ de diseño. `construir()` devuelve el mundo, las dos plantillas y el inventario 
 import math, random
 from core import Template, parse_state, state_str, B, F
 from .._comun import piezas
-from .._comun.recorrido import is_full
+from .._comun.auditoria import is_full
 
 A0, B0 = 16.5, 9.5          # semiejes del borde de la arena
 CX, CZ = 43, 36             # centro de la arena en la plantilla principal (87 x 73)
@@ -179,14 +179,14 @@ class Obra:
             self.set(x, y, z, f"{mat}[facing={facing},half=bottom]")
 
     def chest(self, dx, y, dz, facing, table, label):
-        self.set(dx, y, dz, *piezas.cofre(f"heraldia:unicas/coliseo/{table}", facing))
+        piezas.chest(self.set, dx, y, dz, facing, f"heraldia:unicas/coliseo/{table}")
         self.feat["cofre"].append((label, table, (dx, y, dz)))
 
     def barrel(self, dx, y, dz, facing="up"):
         self.set(dx, y, dz, f"barrel[facing={facing}]", {"id": "minecraft:barrel"})
 
     def spawner(self, dx, y, dz, mob, label):
-        self.set(dx, y, dz, *piezas.generador(mob))
+        piezas.spawner(self.set, dx, y, dz, mob)
         self.feat["generador"].append((label, mob, (dx, y, dz)))
 
     def lantern(self, dx, y, dz):
@@ -197,7 +197,7 @@ class Obra:
         self.t.entity(CX + dx, y, CZ + dz, nbt)
 
     def frame(self, dx, y, dz, facing_byte, objeto=None):
-        self.entity(dx, y, dz, piezas.marco(CX + dx, y, CZ + dz, facing_byte, objeto))
+        self.entity(dx, y, dz, piezas.item_frame(CX + dx, y, CZ + dz, facing_byte, objeto))
 
 
 def cols_ring(pred):
@@ -429,10 +429,10 @@ def palcos(o):
     o.lantern(2, 8, 13)
     # --- puzle 2: nicho + puerta de pistones enrasada en el muro oeste; palanca en el muro (x=-4, z=12)
     a = 5
-    m = piezas.puerta_pistones(o.set, (-6, a, 15), "north", "east", "minecraft:chiseled_quartz_block", "minecraft:" + MARBLE)
-    o.feat["palanca"].append(("puzle 2: palanca del palco", m["palanca"]))
-    o.feat["puzle"].append(("puzle 2: puerta de pistones", m["puerta"]))
-    o.solved.update({o.P(*p): st for p, st in m["solved"].items()})
+    m = piezas.lever_door(o.set, (-6, a, 15), "north", "east", "chiseled_quartz_block", MARBLE)
+    o.feat["palanca"].append(("puzle 2: palanca del palco", m["lever"]))
+    o.feat["puzle"].append(("puzle 2: puerta de pistones", m["door"]))
+    o.solved.update({o.P(*p): st for p, st in m["opened"].items()})
     o.carve_box(-7, a, 15, -7, a + 1, 15)
     # --- palco del editor (norte): interior dx -3..3, dz -15..-11, muros de 1
     for x in range(-4, 5):
@@ -545,7 +545,7 @@ def hypogeum(o):
         o.set(0, y, -1, "ladder[facing=south]")
     o.feat["escalera"].append(("pozo de la arena", (0, 0, -1)))
     # trampa 1: cable trampa en el corredor de la armería (dx=16)
-    piezas.trampa_cable(o.set, (16, H1, -1), "south", 1, flechas=9)
+    piezas.tripwire_trap(o.set, (16, -1), (16, 1), H1, "z", [((16, H1 + 1, -2), "south"), ((16, H1 + 1, 2), "north")], arrows=3)
     o.feat["trampa"].append(("trampa 1: cable y flechas", (16, H1, 0)))
     # armería (este)
     room("armería", 19, 23, -7, 7, H1, 4)
@@ -590,7 +590,7 @@ def hypogeum(o):
     o.lantern(19, H2 + 3, 4)
     o.carve_box(15, H2, 3, 15, H2 + 1, 3)
     room("pasillo de las placas", 10, 14, 3, 3, H2, 2)
-    piezas.trampa_placas(o.set, [(x, H2, 3) for x in (11, 12, 13)], "north", flechas=6)
+    piezas.plate_trap(o.set, [(x, H2, 3) for x in (11, 12, 13)], "north", arrows=6)
     o.feat["trampa"].append(("trampa 2: placas y flechas", (12, H2, 3)))
     o.carve_box(9, H2, 3, 9, H2 + 1, 3)
     room("cámara del tesoro", -8, 8, -4, 4, H2, 5)
@@ -629,12 +629,13 @@ def hypogeum(o):
 
 
 def champion():
-    return piezas.guardian("husk", "heraldia.coliseo.campeon", "Campeón de la Arena", vida=40.0,
-                           equipo={"mainhand": "iron_sword", "offhand": "shield", "head": "golden_helmet",
-                                   "chest": "iron_chestplate", "legs": "chainmail_leggings", "feet": "iron_boots"},
-                           caida={"mainhand": 0.25, "head": 0.5},
-                           extra_atributos=[{"id": "minecraft:knockback_resistance", "base": 0.3},
-                                            {"id": "minecraft:follow_range", "base": 24.0}])
+    eq = {"mainhand": "iron_sword", "offhand": "shield", "head": "golden_helmet", "chest": "iron_chestplate",
+          "legs": "chainmail_leggings", "feet": "iron_boots"}
+    n = piezas.guardian("husk", "heraldia.coliseo.campeon", "Campeón de la Arena", 40.0,
+                        equipment={k: {"id": "minecraft:" + v, "count": 1} for k, v in eq.items()},
+                        drop_chances={k: {"mainhand": 0.25, "head": 0.5}.get(k, 0.05) for k in eq})
+    n["attributes"] += [{"id": "minecraft:knockback_resistance", "base": 0.3}, {"id": "minecraft:follow_range", "base": 24.0}]
+    return n
 
 
 def lining(o):
@@ -719,38 +720,9 @@ def ruin(o):
 
 
 # ------------------------------------------------------------------ conexiones de muros, rejas y vallas
-def connect(t):
-    for (x, y, z), (st, nbt) in list(t.blocks.items()):
-        bid, props = parse_state(st)
-        b = bid.replace("minecraft:", "")
-        fam = "wall" if b.endswith("_wall") else "bars" if b == "iron_bars" else "fence" if b.endswith("_fence") else None
-        if not fam:
-            continue
-        con = {}
-        for d, (ax, az) in OUT.items():
-            n = t.get(x + ax, y, z + az)
-            nb = n.split("[")[0] if n else ""
-            ok = is_full(n) or (fam == "wall" and nb.endswith("_wall")) or (fam == "bars" and nb.endswith("iron_bars")) \
-                or (fam == "fence" and nb.endswith("_fence"))
-            con[d] = ok
-        if fam == "wall":
-            for d in OUT:
-                props[d] = "low" if con[d] else "none"
-            straight = (con["east"] and con["west"] and not con["north"] and not con["south"]) or \
-                       (con["north"] and con["south"] and not con["east"] and not con["west"])
-            above = t.get(x, y + 1, z)
-            props["up"] = "false" if straight and above in (None, "minecraft:air") else "true"
-            props["waterlogged"] = "false"
-        else:
-            for d in OUT:
-                props[d] = "true" if con[d] else "false"
-            props["waterlogged"] = "false"
-        t.blocks[(x, y, z)] = (state_str(bid, props), nbt)
-
-
 def drop_floating(o):
     """Tras la ruina, los fragmentos que quedan sin unión con el suelo de su pieza se caen (se quitan)."""
-    from .._comun.recorrido import flotantes
+    from .._comun.auditoria import flotantes
     for p in flotantes({p: st for p, (st, _) in o.t.blocks.items()}, (0, HYP[4])):
         o.t.blocks[p] = ("minecraft:air", None)
 
@@ -776,7 +748,7 @@ def construir(ruina=True):
     lining(o)
     if ruina:
         ruin(o)
-    connect(o.t)
+    piezas.connect(o.t)
     fix_supports(o.t)
     if ruina:
         drop_floating(o)

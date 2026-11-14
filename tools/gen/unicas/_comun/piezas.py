@@ -1,123 +1,237 @@
-"""Piezas comunes y parametrizadas de las estructuras únicas: puerta de pistones enrasada, trampas de flechas,
-generador, guardián con nombre y cofre (uso: from unicas._comun import piezas).
-
-Todas reciben `put(x, y, z, estado, nbt=None)` (por ejemplo Template.set o un envoltorio con coordenadas propias)
-y colocan estados ya estables al generarse (ver _comun/redstone.py para comprobarlo). Las que tienen mecanismo
-devuelven un dict con sus posiciones y el estado "resuelto" (pos -> estado) para auditar el recorrido abierto.
-Verificadas en un servidor dedicado 26.3 con tools/smoke/coliseo_redstone.py.
-"""
+"""Piezas comunes de las estructuras únicas: todas quedan en un estado coherente al colocarse (sin depender de
+actualizaciones de bloque que no ocurren al generar)."""
 from core import B, F
 
-DIRS = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
-OPP = {"north": "south", "south": "north", "west": "east", "east": "west"}
+DIRV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
+VDIR = {v: k for k, v in DIRV.items()}
+OPP = {"north": "south", "south": "north", "east": "west", "west": "east"}
 
 
-def _off(p, d, n=1, dy=0):
-    x, y, z = p
-    ax, az = DIRS[d]
-    return (x + ax * n, y + dy, z + az * n)
+def text(key, fallback):
+    return {"translate": key, "fallback": fallback}
 
 
-def puerta_pistones(put, puerta, lado, cara, bloque, muro, antorcha_lado="minecraft:quartz_bricks"):
-    """Puerta secreta de 1 x 2 enrasada en el fondo de un nicho, abierta por una palanca.
-
-    puerta: posición del bloque inferior de la puerta (en el plano del muro, detrás del nicho).
-    lado:   dirección hacia la que se recogen los bloques (dentro del muro, a lo largo de él).
-    cara:   dirección hacia la sala desde la que se ve el nicho y se acciona la palanca.
-    bloque: material de la puerta (empujable); muro: material del muro que oculta el mecanismo.
-    Mecanismo: dos pistones pegajosos extendidos a dos bloques de la puerta, alimentados por una antorcha de
-    redstone (en la cara oculta del bloque de la palanca) y por el bloque macizo de encima. Palanca encendida ->
-    antorcha apagada -> los pistones recogen la puerta. El muro alrededor (plano de la puerta y capa de la sala,
-    salvo el nicho) debe ser macizo y lo pone quien llama.
-    """
-    up = lambda p: (p[0], p[1] + 1, p[2])
-    head = _off(puerta, lado)
-    piston = _off(puerta, lado, 2)
-    torch = _off(puerta, lado, 3)
-    apoyo = _off(torch, cara)
-    lever = _off(apoyo, cara)
-    nicho = _off(puerta, cara)
-    for p in (puerta, up(puerta)):
-        put(*p, bloque)
-    for p in (nicho, up(nicho)):
-        put(*p, "minecraft:air")
-    f = OPP[lado]
-    for p in (head, up(head)):
-        put(*p, f"minecraft:piston_head[facing={f},short=false,type=sticky]")
-    for p in (piston, up(piston)):
-        put(*p, f"minecraft:sticky_piston[extended=true,facing={f}]")
-    put(*torch, f"minecraft:redstone_wall_torch[facing={OPP[cara]},lit=true]")
-    put(*up(torch), muro)
-    put(*apoyo, muro)
-    put(*lever, f"minecraft:lever[face=wall,facing={cara},powered=false]")
-    solved = {puerta: "minecraft:air", up(puerta): "minecraft:air", head: bloque, up(head): bloque,
-              piston: f"minecraft:sticky_piston[extended=false,facing={f}]",
-              up(piston): f"minecraft:sticky_piston[extended=false,facing={f}]",
-              torch: f"minecraft:redstone_wall_torch[facing={OPP[cara]},lit=false]",
-              lever: f"minecraft:lever[face=wall,facing={cara},powered=true]"}
-    return dict(puerta=puerta, palanca=lever, antorcha=torch, apoyo=apoyo, piston=piston, nicho=nicho, solved=solved)
+# ------------------------------------------------------------------ entidades de bloque
+def spawner(put, x, y, z, mob, potentials=False):
+    """Generador de monstruos de un solo tipo."""
+    e = {"entity": {"id": "minecraft:" + mob}}
+    nbt = {"id": "minecraft:mob_spawner", "SpawnData": e}
+    if potentials:
+        nbt["SpawnPotentials"] = [{"weight": 1, "data": e}]
+    put(x, y, z, "spawner", nbt)
 
 
-def dispensador(facing, flechas=8, objeto="minecraft:arrow"):
-    return (f"minecraft:dispenser[facing={facing},triggered=false]",
-            {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": objeto, "count": flechas}]})
+def chest(put, x, y, z, facing, loot, kind="chest"):
+    """Cofre o barril con tabla de botín."""
+    st = f"barrel[facing={facing}]" if kind == "barrel" else f"{kind}[facing={facing}]"
+    put(x, y, z, st, {"id": "minecraft:" + ("barrel" if kind == "barrel" else kind), "LootTable": loot})
 
 
-def trampa_cable(put, gancho, hacia, largo, flechas=9):
-    """Cable trampa de `largo` bloques entre dos ganchos (gancho: posición del primero, `hacia`: dirección al otro).
-    Cada gancho activa el bloque al que está sujeto, y este el dispensador que tiene encima, que dispara al pasillo.
-    Los dos bloques de sujeción deben ser macizos (los pone quien llama)."""
-    g2 = _off(gancho, hacia, largo + 1)
-    axis_ns = hacia in ("north", "south")
-    put(*gancho, f"minecraft:tripwire_hook[attached=true,facing={hacia},powered=false]")
-    put(*g2, f"minecraft:tripwire_hook[attached=true,facing={OPP[hacia]},powered=false]")
-    for i in range(1, largo + 1):
-        st = "north=true,south=true,east=false,west=false" if axis_ns else "north=false,south=false,east=true,west=true"
-        put(*_off(gancho, hacia, i), f"minecraft:tripwire[attached=true,disarmed=false,{st},powered=false]")
-    for g, d in ((gancho, OPP[hacia]), (g2, hacia)):
-        a = _off(g, d)
-        put(a[0], a[1] + 1, a[2], *dispensador(OPP[d], flechas))
-    return dict(ganchos=(gancho, g2))
+def sign(put, x, y, z, facing, lines, wood="dark_oak"):
+    """Cartel de pared encerado; `lines`: hasta 4 componentes de texto (translate + fallback)."""
+    msgs = list(lines) + [{"text": ""}] * (4 - len(lines))
+    put(x, y, z, f"{wood}_wall_sign[facing={facing}]",
+        {"id": "minecraft:sign", "is_waxed": B(1),
+         "front_text": {"messages": msgs, "color": "black", "has_glowing_text": B(0)},
+         "back_text": {"messages": [{"text": ""}] * 4, "color": "black", "has_glowing_text": B(0)}})
 
 
-def trampa_placas(put, placas, lado, flechas=6, placa="minecraft:stone_pressure_plate"):
-    """Placas de presión en el suelo; a cada lado (`lado` y su opuesto) un dispensador a ras de suelo que dispara
-    a la placa vecina. Las placas necesitan suelo macizo debajo."""
-    for p in placas:
-        put(*p, f"{placa}[powered=false]")
-        for d in (lado, OPP[lado]):
-            put(*_off(p, d), *dispensador(OPP[d], flechas))
-    return dict(placas=list(placas))
-
-
-def generador(mob, rango=4, jugador=16, retraso=20):
-    """(estado, nbt) de un generador de monstruos vanilla. Necesita luz de bloque 0 alrededor."""
-    return "minecraft:spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": f"minecraft:{mob}"}},
-                                 "SpawnRange": rango, "RequiredPlayerRange": jugador, "Delay": retraso}
-
-
-def guardian(mob, clave, nombre, vida=40.0, equipo=None, caida=None, extra_atributos=None):
-    """NBT de un guardián con nombre traducible (clave de idioma + respaldo en español), persistente y con
-    atributos moderados. equipo: {ranura: objeto}; caida: {ranura: probabilidad} (0,05 por defecto)."""
-    equipo = equipo or {}
-    caida = caida or {}
-    attrs = [{"id": "minecraft:max_health", "base": float(vida)}] + list(extra_atributos or [])
-    return {"id": f"minecraft:{mob}", "PersistenceRequired": B(1), "CustomNameVisible": B(1),
-            "CustomName": {"translate": clave, "fallback": nombre}, "Health": F(float(vida)), "attributes": attrs,
-            "equipment": {k: {"id": f"minecraft:{v}", "count": 1} for k, v in equipo.items()},
-            "drop_chances": {k: F(caida.get(k, 0.05)) for k in equipo}}
-
-
-def cofre(tabla, facing, tipo="chest"):
-    """(estado, nbt) de un cofre o barril con tabla de botín."""
-    if tipo == "barrel":
-        return f"minecraft:barrel[facing={facing}]", {"id": "minecraft:barrel", "LootTable": tabla}
-    return f"minecraft:{tipo}[facing={facing}]", {"id": f"minecraft:{tipo}", "LootTable": tabla}
-
-
-def marco(x, y, z, facing_byte, objeto=None):
-    """NBT de un marco (entidad colgada): sin block_pos el juego lo descarta al colocar la plantilla."""
-    n = {"id": "minecraft:item_frame", "Facing": B(facing_byte), "block_pos": [x, y, z]}
-    if objeto:
-        n["Item"] = {"id": f"minecraft:{objeto}", "count": 1}
+def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chances=None, death_loot=None):
+    """NBT de un guardián con nombre, persistente y con atributos moderados."""
+    n = {"id": "minecraft:" + mob, "PersistenceRequired": B(1), "CustomNameVisible": B(1),
+         "CustomName": text(key, fallback), "Health": F(float(health)),
+         "attributes": [{"id": "minecraft:max_health", "base": float(health)}]}
+    if armor:
+        n["attributes"].append({"id": "minecraft:armor", "base": float(armor)})
+    if equipment:
+        n["equipment"] = equipment
+    if drop_chances:
+        n["drop_chances"] = {k: F(v) for k, v in drop_chances.items()}
+    if death_loot:
+        n["DeathLootTable"] = death_loot
     return n
+
+
+# ------------------------------------------------------------------ redstone
+def piston_door(put, door, axis, side, block):
+    """Puerta secreta: cada bloque de `door` (x, y, z) queda sujeto por un pistón pegajoso EXTENDIDO situado a dos
+    casillas en la dirección `axis` (dx, dz), con la cabeza entre ambos mirando a `side`. La alimentación (palanca,
+    antorcha...) la pone quien llama; al quitarla, los pistones retiran los bloques y dejan la puerta abierta."""
+    ax, az = axis
+    for (x, y, z) in door:
+        put(x, y, z, block)
+        put(x + ax, y, z + az, f"piston_head[facing={side},short=false,type=sticky]")
+        put(x + 2 * ax, y, z + 2 * az, f"sticky_piston[extended=true,facing={side}]")
+
+
+def wire(put, path, y, ends=()):
+    """Polvo de redstone apagado a lo largo de `path` [(x, z)...]; `ends` da, para el primero y el último, la
+    dirección extra a la que apunta (p. ej. hacia un comparador o hacia el bloque que alimenta)."""
+    extra = dict(ends)
+    for i, (x, z) in enumerate(path):
+        sides = set()
+        for j in (i - 1, i + 1):
+            if 0 <= j < len(path):
+                sides.add(VDIR[(path[j][0] - x, path[j][1] - z)])
+        if i in extra:
+            sides.add(extra[i])
+        if len(sides) == 1:                       # un tramo suelto apunta en línea recta
+            sides.add(OPP[next(iter(sides))])
+        put(x, y, z, "redstone_wire[" + ",".join(f"{d}={'side' if d in sides else 'none'}"
+                                                  for d in ("north", "south", "east", "west")) + ",power=0]")
+
+
+def comparator(put, x, y, z, facing):
+    """Comparador apagado que lee el bloque en `facing` y emite hacia el lado contrario."""
+    put(x, y, z, f"comparator[facing={facing},mode=compare,powered=false]", {"id": "minecraft:comparator", "OutputSignal": 0})
+
+
+def tripwire_trap(put, hook_a, hook_b, y, along, dispensers, arrows=6):
+    """Trampa de hilo (templo de la jungla): ganchos en hook_a y hook_b (x, z) unidos en línea recta a lo largo de
+    `along` ('x' o 'z'); cada dispensador ((x, y, z), facing) va junto al bloque al que se agarra un gancho."""
+    (ax, az), (bx, bz) = hook_a, hook_b
+    if along == "z":
+        put(ax, y, az, f"tripwire_hook[attached=true,facing={'south' if bz > az else 'north'},powered=false]")
+        put(bx, y, bz, f"tripwire_hook[attached=true,facing={'north' if bz > az else 'south'},powered=false]")
+        cells = [(ax, z) for z in range(min(az, bz) + 1, max(az, bz))]
+        props = "north=true,south=true,east=false,west=false"
+    else:
+        put(ax, y, az, f"tripwire_hook[attached=true,facing={'east' if bx > ax else 'west'},powered=false]")
+        put(bx, y, bz, f"tripwire_hook[attached=true,facing={'west' if bx > ax else 'east'},powered=false]")
+        cells = [(x, az) for x in range(min(ax, bx) + 1, max(ax, bx))]
+        props = "north=false,south=false,east=true,west=true"
+    for (x, z) in cells:
+        put(x, y, z, f"tripwire[attached=true,disarmed=false,powered=false,{props}]")
+    for (p, facing) in dispensers:
+        put(*p, f"dispenser[facing={facing},triggered=false]",
+            {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(3)]})
+
+
+def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
+    """Trampa de losa (templo del desierto): placa en (x, y, z) sobre el suelo y TNT dos bloques más abajo;
+    `warn` [(x, y, z)] recibe ladrillos agrietados como aviso."""
+    put(x, y, z, f"{plate}[powered=false]")
+    put(x, y - 2, z, "tnt[unstable=false]")
+    for p in warn or ():
+        put(*p, "cracked_stone_bricks")
+
+
+def lever_door(put, door, slide, face, block, wall):
+    """Puerta secreta enrasada de 1 x 2 al fondo de un nicho, con su palanca (Coliseo, probada en servidor).
+
+    door: bloque inferior de la puerta; slide: dirección (dentro del muro) hacia la que se recoge; face: dirección de
+    la sala, donde quedan el nicho y la palanca. Usa `piston_door` y la alimenta con una antorcha de redstone en la cara
+    oculta del bloque de la palanca (y el bloque macizo de encima para el pistón superior): palanca encendida ->
+    antorcha apagada -> la puerta se abre. El resto del muro lo pone quien llama. Devuelve las posiciones y el estado
+    con la puerta abierta (pos -> estado) para auditar el recorrido."""
+    sx, sz = DIRV[slide]
+    fx, fz = DIRV[face]
+    x, y, z = door
+    cells = [(x, y, z), (x, y + 1, z)]
+    piston_door(put, cells, (sx, sz), OPP[slide], block)
+    torch = (x + 3 * sx, y, z + 3 * sz)
+    base = (torch[0] + fx, y, torch[2] + fz)
+    lever = (base[0] + fx, y, base[2] + fz)
+    put(*torch, f"redstone_wall_torch[facing={OPP[face]},lit=true]")
+    put(torch[0], y + 1, torch[2], wall)
+    put(*base, wall)
+    put(*lever, f"lever[face=wall,facing={face},powered=false]")
+    for c in cells:
+        put(c[0] + fx, c[1], c[2] + fz, "air")
+    opened = {}
+    for (cx, cy, cz) in cells:
+        opened[(cx, cy, cz)] = "minecraft:air"
+        opened[(cx + sx, cy, cz + sz)] = block if ":" in block else "minecraft:" + block
+        opened[(cx + 2 * sx, cy, cz + 2 * sz)] = f"minecraft:sticky_piston[extended=false,facing={OPP[slide]}]"
+    opened[torch] = f"minecraft:redstone_wall_torch[facing={OPP[face]},lit=false]"
+    opened[lever] = f"minecraft:lever[face=wall,facing={face},powered=true]"
+    return {"door": door, "lever": lever, "torch": torch, "opened": opened}
+
+
+def plate_trap(put, plates, side, arrows=6, plate="stone_pressure_plate"):
+    """Trampa de placas con flechas: cada placa (x, y, z) activa los dos dispensadores a ras de suelo que tiene a
+    los lados (`side` y su opuesto), que disparan hacia ella."""
+    for (x, y, z) in plates:
+        put(x, y, z, f"{plate}[powered=false]")
+        for d in (side, OPP[side]):
+            a, c = DIRV[d]
+            put(x + a, y, z + c, f"dispenser[facing={OPP[d]},triggered=false]",
+                {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": arrows}]})
+
+
+def item_frame(x, y, z, facing_byte, item=None):
+    """NBT de un marco: sin `block_pos` el juego descarta la entidad al colocar la plantilla."""
+    n = {"id": "minecraft:item_frame", "Facing": B(facing_byte), "block_pos": [x, y, z]}
+    if item:
+        n["Item"] = {"id": "minecraft:" + item, "count": 1}
+    return n
+
+
+# ------------------------------------------------------------------ escalera de caracol
+RING = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]
+HOLES = (RING[5], RING[6])
+GUARD = [(-2, 0), (-2, 1), (-2, 2), (-1, 2)]
+
+
+def spiral_stair(put, cx, cz, feet, stair, newel, landing, newel_top=None):
+    """Escalera de caracol de una casilla alrededor de un machón de 1x1 en (cx, cz): seis peldaños por tramo de 6 de
+    altura y rellano de dos casillas al norte. `feet`: alturas de los pies de cada planta de salida (cada 6). Abre el
+    hueco del forjado de llegada (HOLES) y devuelve las celdas a proteger con barandilla (GUARD) relativas al eje."""
+    top = newel_top if newel_top is not None else feet[-1] + 6
+    for y in range(feet[0] - 1, top + 1):
+        put(cx, y, cz, newel)
+    for f in feet:
+        for k in range(2, 8):
+            x, z = RING[k]
+            px, pz = RING[k - 1]
+            facing = VDIR[(x - px, z - pz)]
+            put(cx + x, f + k - 2, cz + z, f"{stair}[facing={facing},half=bottom]")
+            if k >= 3:
+                put(cx + x, f + k - 3, cz + z, f"{stair}[facing={OPP[facing]},half=top]")
+        for k in (0, 1):
+            put(cx + RING[k][0], f - 1, cz + RING[k][1], landing)
+        for (x, z) in HOLES:
+            if f != feet[0]:
+                put(cx + x, f - 1, cz + z, "air")
+    for (x, z) in HOLES:
+        put(cx + x, feet[-1] + 5, cz + z, "air")
+    return GUARD
+
+
+# ------------------------------------------------------------------ conexiones
+NONFULL = ("air", "stairs", "slab", "fence", "pane", "bars", "_wall", "door", "carpet", "lantern", "torch",
+           "chest", "lectern", "cauldron", "pot", "sign", "banner", "bed", "candle", "chain", "rod", "plate",
+           "cobweb", "wire", "comparator", "hook", "tripwire", "skull", "brewing", "cluster", "enchanting",
+           "fern", "blossom", "azalea", "orchid", "allium", "valley", "pitcher", "eyeblossom", "torchflower",
+           "vine", "piston_head", "composter", "water", "lava", "lever", "button", "ladder")
+
+
+def connect(t):
+    """Vallas, cristales, barrotes y muros de piedra conectan con sus vecinos (el juego no los actualiza al colocar)."""
+    def name(st):
+        return st.split("[")[0].replace("minecraft:", "") if st else ""
+
+    def full(st):
+        return bool(st) and not any(k in name(st) for k in NONFULL)
+
+    for (x, y, z), (st, nbt) in list(t.blocks.items()):
+        b = name(st)
+        fam = "fence" if b.endswith("_fence") else "pane" if (b.endswith("_pane") or b == "iron_bars") else \
+            "wall" if (b.endswith("_wall") and "wall_" not in b) else None
+        if not fam:
+            continue
+        props = {}
+        for d, (a, c) in DIRV.items():
+            o = t.get(x + a, y, z + c)
+            ob = name(o)
+            same = (fam == "fence" and (ob.endswith("_fence") or "fence_gate" in ob)) or \
+                   (fam == "pane" and (ob.endswith("_pane") or ob == "iron_bars")) or \
+                   (fam == "wall" and ob.endswith("_wall") and "wall_" not in ob)
+            con = same or full(o)
+            props[d] = ("low" if con else "none") if fam == "wall" else ("true" if con else "false")
+        if fam == "wall":
+            ns, ew = props["north"] != "none" and props["south"] != "none", props["east"] != "none" and props["west"] != "none"
+            straight = (ns and props["east"] == props["west"] == "none") or (ew and props["north"] == props["south"] == "none")
+            props["up"] = "false" if straight else "true"
+        props["waterlogged"] = "false"
+        t.blocks[(x, y, z)] = (f"minecraft:{b}[" + ",".join(f"{k}={v}" for k, v in sorted(props.items())) + "]", nbt)

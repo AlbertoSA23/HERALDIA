@@ -17,7 +17,7 @@ if __name__ == "__main__":
 from lint import passable, bname, support_issues
 from unicas.coliseo import plano
 from unicas.coliseo.plano import CX, CZ, NX, NZ, COLS
-from unicas._comun import recorrido as R, redstone
+from unicas._comun import auditoria as R, redstone
 
 H4 = R.H4
 START = (CX + 43, 0, CZ)
