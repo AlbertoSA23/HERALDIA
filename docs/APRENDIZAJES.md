@@ -21,6 +21,10 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Diseño de estructuras
 
+- Para situar algo junto al mar basta un tipo de estructura propio de una sola pieza: precomprobar el bioma en los candidatos (barato, `ctx.biomeResolver()`), consultar `OCEAN_FLOOR_WG` y `WORLD_SURFACE_WG` (agua = la segunda más alta y la primera bajo el mar), y crear el `PoolElementStructurePiece` con la rotación elegida y `move` para centrarlo. `/place structure` pasa un predicado de bioma que lo acepta todo: así se distingue de la generación normal. Verificado con `/locate` y `/place` en un servidor dedicado (faro).
+- Redstone que funciona al generar: dejar el circuito en su estado estable (palancas, antorchas encendidas o no, potencia del polvo calculada) y probar en el servidor cambiando las palancas con `setblock` y luego **sustituyendo el bloque al que van pegadas** (`setblock` de una palanca no avisa a ese bloque, un clic sí). Verificado: puertas y trampilla del faro responden solo a la combinación buena.
+- Una cueva al nivel del mar no se inunda si todo su aire está por encima de la fila de agua y el agua del canal es de fuentes colocadas a ras del mar. Verificado en el servidor (aire en la gruta, agua en el canal y fuera de la boca).
+
 ## Generador y auditoría
 
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
