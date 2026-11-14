@@ -17,7 +17,8 @@ ROOMS = [  # nombre, x0, x1, z0, z1, cota superior del aire
     ("antecámara de los sellos", 102, 114, 24, 30, -3), ("cámara del tesoro", 102, 114, 34, 40, -3),
     ("relicario", 89, 93, 24, 27, -4),
 ]
-LEVERS = [(108, "fe", True), (110, "esperanza", True), (112, "codicia", False), (114, "caridad", True)]
+# la palanca falsa va junto al tramo de polvo que llega al pistón: las antorchas cortan la línea en tramos
+LEVERS = [(107, "codicia", False), (109, "fe", True), (111, "esperanza", True), (113, "caridad", True)]
 
 
 def crypt(c):

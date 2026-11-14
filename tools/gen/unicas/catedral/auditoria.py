@@ -276,9 +276,17 @@ def redstone(c):
                 out.append(f"{m['sitio']}: el polvo no llega al pistón superior")
             # solución: con las correctas activadas las antorchas se apagan; la falsa alimenta la línea si se activa
             line = {p for (p, _) in m["polvo"]}
+            seg, todo = {first}, [first]          # tramo continuo de polvo que llega al pistón (las antorchas lo cortan)
+            while todo:
+                p = todo.pop()
+                for d in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    n = (p[0] + d[0], p[1], p[2] + d[1])
+                    if n in line and n not in seg:
+                        seg.add(n)
+                        todo.append(n)
             for (lp, bp) in m["falsas"]:
-                if not any(abs(bp[0] - p[0]) + abs(bp[2] - p[2]) == 1 and bp[1] == p[1] for p in line):
-                    out.append(f"{m['sitio']}: la palanca falsa {lp} no alimenta la línea")
+                if not any(abs(bp[0] - p[0]) + abs(bp[2] - p[2]) == 1 and bp[1] == p[1] for p in seg):
+                    out.append(f"{m['sitio']}: la palanca falsa {lp} no alimenta el tramo que llega al pistón")
             for (lp, bp) in m["palancas"]:
                 t = (2 * bp[0] - lp[0], bp[1], 2 * bp[2] - lp[2])
                 if t not in m["antorchas"]:
