@@ -12,6 +12,10 @@ Contenido:
   - **Fortaleza de hielo** (`heraldia:unicas/fortaleza_hielo`): picos de hielo, llanura nevada y taiga nevada. Murallas y
     torres de hielo sobre un zócalo con criptas, dos puertas secretas de pistones, trampas, generadores de strays y
     esqueletos, el guardián Rey Escarcha y 11 cofres. Diseño: [docs/unicas/fortaleza_hielo.md](docs/unicas/fortaleza_hielo.md).
+  - **Ciudadela enana** (`heraldia:unicas/ciudadela`): picos pedregosos y dentados. Ciudad excavada en una montaña con
+    la puerta en la ladera: salón de columnas, trono, forjas, cervecería, minas, puente sobre un abismo y bóveda del tesoro;
+    cuatro salas ocultas, dos puzles de redstone, dos trampas, tres generadores y el guardián Borin Barbahierro.
+    Diseño: [docs/unicas/ciudadela.md](docs/unicas/ciudadela.md).
   - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en `docs/unicas/faro.md`.
 
 ## Instalación
