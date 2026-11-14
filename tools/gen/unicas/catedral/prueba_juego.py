@@ -97,6 +97,11 @@ def main():
             cmd(f"data get entity @e[type=minecraft:skeleton,x={px},y={py},z={pz},distance=..8,limit=1] CustomName", r"has the following|No entity|Found no")
         # 2) puertas de pistones: solución abre, la palanca falsa vuelve a cerrar
         for mch in [m for m in c.mech if m["tipo"] == "puerta de pistones"]:
+            if len(mch["palancas"]) > 1:            # una sola palanca no basta
+                setb(mch["palancas"][0][1], "redstone_block")
+                wait()
+                for p in mch["puerta"]:
+                    check(f"una sola palanca no abre {mch['sitio']}", p, g(*p).replace("minecraft:", ""))
             for (lp, bp) in mch["palancas"]:
                 setb(bp, "redstone_block")
             wait()
