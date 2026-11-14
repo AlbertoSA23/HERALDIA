@@ -3,6 +3,8 @@
 Mod de Fabric para **Minecraft 26.3** dedicado solo a generar estructuras nuevas en el Overworld.
 Todo el contenido actual es vanilla (bloques, objetos y botín del juego base).
 
+Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
+
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
