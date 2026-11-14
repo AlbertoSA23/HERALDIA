@@ -219,9 +219,12 @@ def write(reg, out):
         for lang, texts in getattr(mod, "LANG", {}).items():
             LANG[lang].update(texts)
     maps_lang = mapas.lang(uniques)
+    for sid, mod in unicas.modules():
+        extra = getattr(mod, "LANG", {})
+        assert extra.get("es_es", {}).keys() == extra.get("en_us", {}).keys(), sid
+        for lang, texts in extra.items():
+            LANG[lang].update(texts)
     for lang, texts in LANG.items():
-        for _, mod in unicas.modules():             # textos propios de cada estructura única
-            texts = {**texts, **getattr(mod, "LANG", {}).get(lang, {})}
         jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang]))
 
 
