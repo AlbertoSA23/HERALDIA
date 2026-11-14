@@ -27,6 +27,9 @@ Contenido:
     muralla, barbacana, patio de armas, torre del homenaje y mazmorra con calabozos, trampas, tres generadores, el guardián
     Sir Aldric y la cámara del tesoro oculta; 36 cofres. Diseño: [docs/unicas/castillo.md](docs/unicas/castillo.md).
   - **Monasterio de montaña** (`heraldia:unicas/monasterio`; prados de montaña y arboledas): terrazas sobre un risco, iglesia, claustro y cuevas con puzles, trampas, guardián y cofre premium. Diseño en `docs/unicas/monasterio.md`.
+  - **Observatorio** (`heraldia:unicas/observatorio`): colinas ventosas y meseta de sabana ventosa. Cúpula de cobre con
+    telescopio, planetario, taller de óptica, reloj de sol y, bajo la roca, archivo con dos salas ocultas, puzle de las fases
+    lunares, dos trampas, tres generadores y el guardián Custodio de las Estrellas. Diseño: [docs/unicas/observatorio.md](docs/unicas/observatorio.md).
 
 ## Instalación
 
