@@ -4,7 +4,8 @@ Coordenadas de plantilla: x este, z sur (la puerta está en z = 0), y = 0 zócal
 Ver docs/unicas/palacio.md para el recorrido y la función de cada sala.
 """
 import math, random
-from core import Template, parse_state, state_str, B, F
+from core import Template, parse_state, state_str, B
+from .._comun import piezas
 
 W, D, CX = 81, 123, 40
 NAME = "unicas/palacio/palacio"
@@ -63,15 +64,17 @@ class Obra:
     def air(self, *a, sym=False):
         self.f(*a, "air", sym=sym)
 
+    def put(self, sym):
+        return lambda x, y, z, st, nbt=None: self.s(x, y, z, st, nbt, sym=sym)
+
     def chest(self, x, y, z, facing, tabla, sym=False, kind="chest"):
-        nbt = {"id": "minecraft:" + kind, "LootTable": L + tabla}
-        self.s(x, y, z, f"{kind}[facing={facing},type=single,waterlogged=false]", nbt, sym=sym)
+        piezas.chest(self.put(sym), x, y, z, facing, L + tabla, kind=kind)
         self.chests.append(((x, y, z), tabla))
         if sym:
             self.chests.append(((W - 1 - x, y, z), tabla))
 
     def barrel(self, x, y, z, tabla, sym=False, facing="up"):
-        self.s(x, y, z, f"barrel[facing={facing},open=false]", {"id": "minecraft:barrel", "LootTable": L + tabla}, sym=sym)
+        piezas.chest(self.put(sym), x, y, z, facing, L + tabla, kind="barrel")
         self.chests.append(((x, y, z), tabla))
         if sym:
             self.chests.append(((W - 1 - x, y, z), tabla))
@@ -170,10 +173,8 @@ class Obra:
         """Puerta de pistones pegajosos cerrada (extendidos y alimentados). `piston` es la lista de bases;
         cada una empuja su bloque de puerta hacia `facing`. Se registra el estado abierto para auditar."""
         dx, dz = {"east": (1, 0), "west": (-1, 0), "south": (0, 1), "north": (0, -1)}[facing]
+        piezas.piston_door(self.put(False), door_blocks, (-dx, -dz), facing, mat)
         for (x, y, z) in piston:
-            self.s(x, y, z, f"sticky_piston[extended=true,facing={facing}]")
-            self.s(x + dx, y, z + dz, f"piston_head[facing={facing},short=false,type=sticky]")
-            self.s(x + 2 * dx, y, z + 2 * dz, mat)
             self.lint_open[(x, y, z)] = f"sticky_piston[extended=false,facing={facing}]"
             self.lint_open[(x + dx, y, z + dz)] = mat
             self.lint_open[(x + 2 * dx, y, z + 2 * dz)] = "air"
@@ -194,12 +195,8 @@ class Obra:
 
     def tripwire(self, z, x0, x1, y=2, label=""):
         """Cable trampa a lo ancho de un pasillo norte-sur entre los muros x0 y x1 (ganchos en x0+1 y x1-1)."""
-        self.s(x0 + 1, y, z, "tripwire_hook[attached=true,facing=east,powered=false]")
-        self.s(x1 - 1, y, z, "tripwire_hook[attached=true,facing=west,powered=false]")
-        for x in range(x0 + 2, x1 - 1):
-            self.s(x, y, z, "tripwire[attached=true,disarmed=false,east=true,north=false,powered=false,south=false,west=true]")
-        self.dispenser(x0, y + 1, z, "east")
-        self.dispenser(x1, y + 1, z, "west")
+        piezas.tripwire_trap(self.put(False), (x0 + 1, z), (x1 - 1, z), y, "x",
+                             [((x0, y + 1, z), "east"), ((x1, y + 1, z), "west")])
         self.protect |= {(x, yy, z) for x in range(x0, x1 + 1) for yy in (y, y + 1)}
         self.mech.append(dict(kind="cable", label=label, z=z, x0=x0, x1=x1, y=y))
 
@@ -531,8 +528,8 @@ def bajo_el_salon(o):
     for x in (34, 36, 38, 42, 44, 46):
         o.f(x, 2, 42, x, 3, 42, "terracotta")
         o.s(x, 4, 42, "brown_terracotta")
-    o.s(35, 2, 45, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:zombie"}}})
-    o.s(45, 2, 45, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:skeleton"}}})
+    piezas.spawner(o.s, 35, 2, 45, "zombie")
+    piezas.spawner(o.s, 45, 2, 45, "skeleton")
     o.protect |= {(35, 2, 45), (45, 2, 45)}
     # cerradura de dos palancas: bloque bajo hacia el oeste, alto hacia el este
     o.f(38, 2, 47, 39, 5, 47, DUNGEON)
@@ -555,15 +552,12 @@ def bajo_el_salon(o):
     o.guardian = (40, 2, 53)
 
 
-GUARDIAN = {
-    "id": "minecraft:vindicator", "PersistenceRequired": B(1),
-    "CustomName": {"translate": "heraldia.palacio.guardian", "fallback": "Comandante de la Guardia Imperial"},
-    "Health": F(40.0), "attributes": [{"id": "minecraft:max_health", "base": 40.0}],
-    "equipment": {"mainhand": {"id": "minecraft:iron_axe", "count": 1},
-                  "chest": {"id": "minecraft:chainmail_chestplate", "count": 1},
-                  "head": {"id": "minecraft:golden_helmet", "count": 1}},
-    "drop_chances": {"mainhand": F(0.0), "chest": F(0.0), "head": F(0.0)},
-}
+GUARDIAN = piezas.guardian(
+    "vindicator", "heraldia.palacio.guardian", "Comandante de la Guardia Imperial", 40,
+    equipment={"mainhand": {"id": "minecraft:iron_axe", "count": 1},
+               "chest": {"id": "minecraft:chainmail_chestplate", "count": 1},
+               "head": {"id": "minecraft:golden_helmet", "count": 1}},
+    drop_chances={"mainhand": 0.0, "chest": 0.0, "head": 0.0})
 
 
 def muro_jardin(o):

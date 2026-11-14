@@ -1,5 +1,6 @@
 """Botín del palacio: solo vanilla, más rico cuanto más escondido. El grupo extra de cada cofre es solo_sin_lootr."""
 from loot import item, empty
+from .._comun.botin import pool, table, lang, named as _named
 
 NAMES = {   # clave -> (es_es, en_us)
     "hoja": ("Hoja del Dragón Celeste", "Blade of the Celestial Dragon"),
@@ -15,26 +16,8 @@ NAMES = {   # clave -> (es_es, en_us)
 
 
 def named(name, w, key, ench=None):
-    """Objeto con nombre traducible (con respaldo en español), sin cursiva (item_name)."""
-    e = item(name, w, ench=ench)
-    mods = e.pop("modifier", None)
-    mods = [] if mods is None else (mods if isinstance(mods, list) else [mods])
-    mods.append({"type": "minecraft:set_name", "target": "item_name",
-                 "name": {"translate": f"item.heraldia.palacio.{key}", "fallback": NAMES[key][0]}})
-    e["modifier"] = mods[0] if len(mods) == 1 else mods
-    return e
-
-
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": list(entries)}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
-def table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
+    """Objeto con nombre del palacio (clave item.heraldia.palacio.<key>, respaldo en español)."""
+    return _named(name, w, f"item.heraldia.palacio.{key}", NAMES[key][0], levels=ench)
 
 
 FOOD = [item("bread", 10, 1, 3), item("cooked_cod", 6, 1, 3), item("baked_potato", 6, 1, 3), item("sweet_berries", 6, 2, 6),
@@ -109,7 +92,6 @@ LOOT = {
                       item("wild_armor_trim_smithing_template", 1), item("music_disc_relic", 1)], extra=True)),
 }
 
-LANG = {"es_es": {f"item.heraldia.palacio.{k}": v[0] for k, v in NAMES.items()},
-        "en_us": {f"item.heraldia.palacio.{k}": v[1] for k, v in NAMES.items()}}
+LANG = lang("item.heraldia.palacio.", NAMES)
 LANG["es_es"]["heraldia.palacio.guardian"] = "Comandante de la Guardia Imperial"
 LANG["en_us"]["heraldia.palacio.guardian"] = "Commander of the Imperial Guard"
