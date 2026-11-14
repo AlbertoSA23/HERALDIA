@@ -1,5 +1,6 @@
 """Objetos con datos: textos traducibles, cofres, llaves, generadores, mobs, carteles y dispensadores (NBT de 26.3)."""
 from core import B, F
+from .._comun import piezas as P
 
 LANG = {"es_es": {}, "en_us": {}}
 TABLA = "heraldia:unicas/atlantida/"
@@ -9,7 +10,7 @@ def texto(clave, es, en, **estilo):
     """Componente de texto traducible con respaldo en español; registra la clave en los dos idiomas."""
     k = "heraldia.atlantida." + clave
     LANG["es_es"][k], LANG["en_us"][k] = es, en
-    c = {"translate": k, "fallback": es}
+    c = P.text(k, es)
     c.update(estilo)
     return c
 
@@ -52,12 +53,10 @@ def cerradura(cual):
 
 # --- cofres ---
 def cofre(v, u, y, w, mira, tabla, llave=None, tipo="chest"):
-    nbt = {"id": "minecraft:" + ("chest" if tipo == "trapped_chest" else tipo), "LootTable": TABLA + tabla}
-    if tipo == "trapped_chest":
-        nbt["id"] = "minecraft:trapped_chest"
-    if llave:
-        nbt["lock"] = cerradura(llave)
-    v.set(u, y, w, f"{tipo}[facing={mira}]" if tipo != "barrel" else f"barrel[facing={mira}]", nbt)
+    """Cofre, cofre trampa o barril con tabla de botín (pieza común), opcionalmente cerrado con una llave."""
+    def put(x, y_, z, st, nbt):
+        v.set(x, y_, z, st, dict(nbt, lock=cerradura(llave)) if llave else nbt)
+    P.chest(put, u, y, w, mira, TABLA + tabla, kind=tipo)
     v.marca("cofre", u, y, w)
 
 
@@ -120,23 +119,19 @@ def jefe():
 
 
 def generador(v, u, y, w, tipo, tridente=False):
-    ent = {"id": "minecraft:" + tipo}
-    if tridente:
-        ent["equipment"] = {"mainhand": {"id": "minecraft:trident", "count": 1}}
-        ent["drop_chances"] = {"mainhand": F(0.03)}
-    v.set(u, y, w, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": ent}, "Delay": 40, "MinSpawnDelay": 300,
-                               "MaxSpawnDelay": 900, "SpawnCount": 2, "MaxNearbyEntities": 5, "RequiredPlayerRange": 14, "SpawnRange": 3})
+    """Generador (pieza común); con tridente, los ahogados salen armados."""
+    def put(x, y_, z, st, nbt):
+        if tridente:
+            nbt["SpawnData"]["entity"].update(equipment={"mainhand": {"id": "minecraft:trident", "count": 1}}, drop_chances={"mainhand": F(0.03)})
+        v.set(x, y_, z, st, nbt)
+    P.spawner(put, u, y, w, tipo)
     v.marca("generador", u, y, w)
 
 
 # --- carteles y dispensadores ---
 def cartel(v, u, y, w, mira, lineas, madera="warped"):
-    """Cartel de pared (mira = hacia dónde da la cara). lineas = hasta 4 componentes de texto."""
-    vacio = {"text": ""}
-    msgs = list(lineas) + [vacio] * (4 - len(lineas))
-    v.set(u, y, w, f"{madera}_wall_sign[facing={mira}]", {"id": "minecraft:sign", "is_waxed": B(1),
-                                                         "front_text": {"messages": msgs, "color": "black", "has_glowing_text": B(0)},
-                                                         "back_text": {"messages": [vacio] * 4}})
+    """Cartel de pared (pieza común). mira = hacia dónde da la cara; lineas = hasta 4 componentes de texto."""
+    P.sign(v.set, u, y, w, mira, lineas, wood=madera)
 
 
 def dispensador(v, u, y, w, mira, objeto, n, comp=None):

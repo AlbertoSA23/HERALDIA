@@ -1,6 +1,7 @@
 """Edificios genéricos de la Atlántida. Sistema local de Vista: fachada en v = 0, y = 0 es el pavimento."""
 from . import urbanismo as U
 from . import cosas as C
+from .._comun import piezas as P
 
 LADRILLO, OSCURA, PRISMARINA, LINTERNA = "prismarine_bricks", "dark_prismarine", "prismarine", "sea_lantern"
 CRISTAL, CUARZO, PILAR = "light_blue_stained_glass", "quartz_bricks", "quartz_pillar[axis=y]"
@@ -13,9 +14,8 @@ def h(u, v, sal):
 
 
 def puerta(v, u, y, w, mira, material=PUERTA, bisagra="left"):
-    """Puerta cerrada; mira = hacia dónde mira quien sale por ella (cara exterior)."""
-    v.set(u, y, w, f"{material}[facing={mira},half=lower,hinge={bisagra},open=false]")
-    v.set(u, y + 1, w, f"{material}[facing={mira},half=upper,hinge={bisagra},open=false]")
+    """Puerta cerrada (pieza común); mira = hacia dónde mira quien sale por ella (cara exterior)."""
+    P.door(v.set, u, y, w, mira, kind=material, hinge=bisagra)
 
 
 def columna(v, u, w, y1, y2):

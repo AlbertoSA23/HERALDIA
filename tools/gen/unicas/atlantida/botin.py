@@ -1,12 +1,11 @@
 """Botín de la Atlántida: más alto que el del resto de estructuras únicas, sin netherita, élitros ni maza."""
-from loot import item, table, empty
-from core import B
+from .._comun import botin as CB
+from .._comun.botin import item, empty, pool, table
 from . import cosas as C
 
 
 def _libro(ench, nivel, w):
-    return {"type": "minecraft:item", "name": "minecraft:enchanted_book", "weight": w, "modifier": {
-        "type": "minecraft:set_components", "components": {"minecraft:stored_enchantments": {"minecraft:" + ench: nivel}}}}
+    return CB.book(w, {"minecraft:" + ench: nivel})
 
 
 MARINO = [item("prismarine_shard", 10, 2, 8), item("prismarine_crystals", 8, 2, 6), item("nautilus_shell", 5, 1, 2),
@@ -19,32 +18,22 @@ VALIOSO = [item("diamond", 8, 1, 3), item("emerald", 8, 3, 8), item("gold_block"
            item("turtle_helmet", 2), item("tide_armor_trim_smithing_template", 1), item("coast_armor_trim_smithing_template", 1)]
 
 
-def _extra(pool_rolls, entries):
-    p = table((pool_rolls, entries))["pools"][0]
-    p["solo_sin_lootr"] = True
-    return p
-
-
-def _con_extra(t, rolls, entries):
-    t["pools"].append(_extra(rolls, entries))
-    return t
-
-
 def _sello(cual):
     t = C.tabla_llave(cual)
-    t["pools"] += table(((3, 5), VALIOSO))["pools"]
-    t["pools"].append(_extra((2, 3), VALIOSO))
+    t["pools"] += [pool((3, 5), VALIOSO), pool((2, 3), VALIOSO, extra=True)]
     return t
 
 
 def tablas():
+    """Todas con un grupo extra solo_sin_lootr (con Lootr cada jugador recibe solo lo fijo)."""
     return {
-        "menor": _con_extra(table(((3, 5), MARINO), (1, [item("diamond", 2), item("potion", 3), empty(6)] + VALIOSO[:3])), (1, 2), MARINO),
-        "media": _con_extra(table(((3, 5), MARINO), ((1, 2), VALIOSO)), (1, 2), VALIOSO),
-        "tesoro": _con_extra(table(((4, 6), VALIOSO), (1, [item("trident", 1), item("diamond", 3, 2, 5), item("enchanted_golden_apple", 1)])),
-                             (2, 3), VALIOSO),
-        "arca": _con_extra(table(((4, 6), VALIOSO), (2, [item("golden_apple", 3, 1, 2), item("experience_bottle", 3, 8, 16), item("diamond", 3, 2, 4)])),
-                           (2, 3), VALIOSO),
+        "menor": table(pool((3, 5), MARINO), pool(1, [item("diamond", 2), CB.potion("water_breathing", 3), empty(6)] + VALIOSO[:3]),
+                       pool((1, 2), MARINO, extra=True)),
+        "media": table(pool((3, 5), MARINO), pool((1, 2), VALIOSO), pool((1, 2), VALIOSO, extra=True)),
+        "tesoro": table(pool((4, 6), VALIOSO), pool(1, [item("trident", 1), item("diamond", 3, 2, 5), item("enchanted_golden_apple", 1)]),
+                        pool((2, 3), VALIOSO, extra=True)),
+        "arca": table(pool((4, 6), VALIOSO), pool(2, [item("golden_apple", 3, 1, 2), item("experience_bottle", 3, 8, 16), item("diamond", 3, 2, 4)]),
+                      pool((2, 3), VALIOSO, extra=True)),
         "sello_arsenal": _sello("arsenal"), "sello_academia": _sello("academia"), "sello_anfiteatro": _sello("anfiteatro"),
         "jefe": C.tabla_llave("poseidon"),
     }
