@@ -49,17 +49,28 @@ def is_source_connectable(s, d_from_wire):
         or b.endswith("pressure_plate") or b.endswith("_button")
 
 
+def wire_links(get, pos):
+    """Cables vecinos de un cable: {dirección: posición}, incluidos los que suben o bajan un bloque."""
+    out = {}
+    for d, v in H4.items():
+        n = add(pos, v)
+        up, dn = add(n, (0, 1, 0)), add(n, (0, -1, 0))
+        if bn(get(*n)) == "redstone_wire":
+            out[d] = n
+        elif bn(get(*up)) == "redstone_wire" and not conductor(get(*add(pos, (0, 1, 0)))):
+            out[d] = up
+        elif bn(get(*dn)) == "redstone_wire" and not conductor(get(*n)):
+            out[d] = dn
+    return out
+
+
 def wire_connections(get, pos):
-    """Conexiones que el juego calcula para un cable plano (sin subidas ni bajadas)."""
+    """Conexiones que el juego calcula para un cable (también los que suben o bajan un peldaño)."""
+    links = wire_links(get, pos)
     c = {}
     for d, v in H4.items():
         n = get(*add(pos, v))
-        c[d] = bn(n) == "redstone_wire" or (n is not None and is_source_connectable(n, d))
-        if not c[d]:
-            below = get(*add(add(pos, v), (0, -1, 0)))
-            above = get(*add(add(pos, v), (0, 1, 0)))
-            if bn(below) == "redstone_wire" and not conductor(n) or bn(above) == "redstone_wire":
-                raise ValueError(f"cable con subida o bajada en {pos}: no está modelado")
+        c[d] = d in links or (n is not None and is_source_connectable(n, d))
     ns_empty = not c["north"] and not c["south"]
     ew_empty = not c["east"] and not c["west"]
     if ns_empty:
@@ -74,7 +85,8 @@ def wire_shapes(t):
         if bn(s) == "redstone_wire":
             c = wire_connections(t.get, pos)
             _, p = parse_state(s)
-            p.update({d: ("side" if v else "none") for d, v in c.items()})
+            up = {d for d, q in wire_links(t.get, pos).items() if q[1] > pos[1]}
+            p.update({d: ("up" if d in up else "side" if v else "none") for d, v in c.items()})
             p.setdefault("power", "0")
             t.blocks[pos] = (state_str("minecraft:redstone_wire", p), nbt)
 
@@ -90,6 +102,7 @@ class Sim:
         self.rep = {}                         # repetidores: pos -> encendido
         self.wire = {}
         self.conn = {}
+        self.links = {}
         for pos, (s, _) in t.blocks.items():
             b = bn(s)
             if b in ("redstone_torch", "redstone_wall_torch"):
@@ -99,6 +112,7 @@ class Sim:
             elif b == "redstone_wire":
                 self.wire[pos] = 0
                 self.conn[pos] = wire_connections(t.get, pos)
+                self.links[pos] = list(wire_links(t.get, pos).values())
         self.solve()
 
     def get(self, *p):
@@ -182,7 +196,7 @@ class Sim:
             base = {w: self.signal_at(w, wires=False) for w in self.wire}
             power = dict(base)
             for _ in range(16):
-                nxt = {w: max([base[w]] + [power[add(w, v)] - 1 for v in H4.values() if add(w, v) in power]) for w in power}
+                nxt = {w: max([base[w]] + [power[q] - 1 for q in self.links[w] if q in power]) for w in power}
                 if nxt == power:
                     break
                 power = nxt

@@ -8,7 +8,7 @@ from pack import fix_supports
 from .._comun import redstone as rs
 from .._comun.redstone import bn
 from .._comun.piezas import connect
-from .._comun.recorrido import vista, near, flotantes
+from .._comun.recorrido import vista_lint as vista, cerca, flotantes
 
 ENTRADA = (30, 0, 0)
 JIG_ABAJO = (30, 0, 35)
@@ -83,18 +83,18 @@ def preparar(obra):
         n = bn(st)
         y = p[1]
         if n == "spawner" or n == "lever" or n == "stone_button":
-            if not near(cells, p, 1, (-2, -1, 0, 1)):
+            if not cerca(cells, p):
                 errs.append(f"{n} inalcanzable {p}")
         elif n.endswith("_stairs") and not n.startswith("deepslate_tile") and not (n.startswith("stone_brick") and y >= 11) \
                 and "half=bottom" in st:
-            if not near(cells, p, 1, (0, 1)):
+            if not cerca(cells, p):
                 errs.append(f"escalera inalcanzable {p} {n}")
     for p, _ in obra.chests:
-        if not near(cells, p, 1, (-1, 0, 1)):
+        if not cerca(cells, p):
             errs.append(f"cofre inalcanzable {p}")
     for msg, pos in lint.support_issues(sol):
         errs.append(f"{msg} en {pos}")
-    fl = flotantes(t.blocks, (0, -7))
+    fl = flotantes({p: st for p, (st, _) in t.blocks.items()}, (0, -7))
     if fl:
         errs.append(f"{len(fl)} bloques flotando, p. ej. {fl[:5]}")
     obra.cells, obra.cells_pub = cells, cells_pub

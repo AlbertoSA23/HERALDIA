@@ -69,7 +69,7 @@ cofa. Desde el campamento, la cueva: galería con trampa, cueva de los huesos, p
 - **Santabárbara**: placa de presión ante el cofre con 4 TNT bajo el suelo (como el templo del desierto).
 - **Cable trampa** en la galería de la cueva: dos ganchos y dos dispensadores con flechas a la altura de la cabeza.
 
-El generador incluye un simulador de estos componentes que comprueba que el estado colocado es estable y que cada acción
+El generador comprueba con el simulador común (`unicas/_comun/redstone.py`) que el estado colocado es estable y que cada acción
 produce su efecto (pistones retraídos, puertas abiertas, dispensadores y TNT activados). Si falla, no se genera nada.
 
 ## Enemigos
