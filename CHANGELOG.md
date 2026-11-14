@@ -10,6 +10,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 - Nueva estructura única: faro con cueva de contrabandistas en costas pedregosas y playas. Faro visitable hasta la linterna, casa del farero y, bajo el promontorio, una cueva al nivel del mar con muelle, almacenes, dormitorio, calabozo, despacho del capitán y cámara del tesoro con su guardián, el Capitán Bruma. Dos puzles de palancas, dos trampas, dos generadores, una sala oculta y un bote con cofre.
 
+- Nueva estructura única: el Coliseo en ruinas, en sabanas y mesetas de sabana. Anfiteatro elíptico con galerías, graderíos, palco imperial y palco del editor; bajo la arena, un hipogeo con montacargas, celdas de fieras, barracones y armería, y una parte oculta (despacho del lanista, pasadizo de Cómodo y cámara del tesoro) a la que se llega resolviendo uno de sus dos puzles. Trampas de flechas, generadores de monstruos y el Campeón de la Arena guardando el cofre premium.
 - Primera versión del mod: 72 aldeas enormes (36 estilos por bioma, cada uno en tamaño estándar y grande) que aparecen en chunks nuevos del Overworld, una cada 1000-2000 bloques.
 - Comandos de prueba `/function heraldia:muestrario` y `/function heraldia:familia/<familia>` para ver los estilos colocados en fila; sus mensajes salen en español o inglés según el idioma del cliente.
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
@@ -22,6 +23,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Técnico
 
+- Coliseo (`tools/gen/unicas/coliseo/`): dos piezas (principal a ras de suelo y un hipogeo hijo que rellena toda su caja, unido por un jigsaw vertical), 11 cofres con tablas propias y grupo `solo_sin_lootr`, procesadores de meteorización. Auditoría propia como condición para generar (recorrido sin saltos con vuelta a la entrada, puzles abiertos y cerrados, nada flotando, luz 0 en los generadores, redstone coherente, 15-20 % de ruina), planos y renders en `docs/unicas/coliseo/` y prueba en servidor real de puzles y trampas (`tools/smoke/coliseo_redstone.py`).
 - `writer.py`: se quita la segunda mezcla duplicada de los textos `LANG` de las estructuras únicas, que había entrado por dos PR paralelos.
 - Faro (`tools/gen/unicas/faro/`): plantilla única de 44 x 52 x 48 y tipo de estructura propio `heraldia:faro` (Java) que busca la línea de costa con los mapas de alturas de generación y gira la plantilla hacia el mar; con `/place structure` se coloca aunque no haya costa. Comprobaciones propias: simulación de redstone de puzles y trampas, cueva estanca, ruina estimada (15,8 %) y recorrido a pie.
 - `lint.py`: el cable trampa y las palancas no estorban el paso, la trampilla abierta sobre una escalera de mano se trepa, y una plantilla puede declarar `lint_open` (estado con los puzles resueltos) para el recorrido a pie. `writer.py` suma los textos `LANG` de cada estructura única.
