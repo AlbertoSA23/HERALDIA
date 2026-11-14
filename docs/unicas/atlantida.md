@@ -1,6 +1,6 @@
 # Atlántida — Fase 0: análisis y preguntas
 
-Estado: **análisis terminado, nada construido**. Pendiente de las respuestas de Alberto (al final).
+Estado: **análisis terminado y diseño por niveles propuesto; nada construido**. Respuestas recibidas a través del orquestador (ver «Respuestas»); pendiente de que Alberto las confirme en la sesión de la Atlántida antes de construir.
 Id `heraldia:unicas/atlantida`, generador en `tools/gen/unicas/atlantida/`, Java en `io.github.albertosa23.heraldia.unicas.atlantida`.
 
 Cómo se ha comprobado cada cosa:
@@ -47,7 +47,7 @@ Diseño propuesto:
 
 Sin comprobar todavía (se probará al construir): que el ancla esté calculada antes de que se genere el primer chunk al arrancar (se obtiene la fuente de biomas al cargar el mundo; los hilos de generación esperan al resultado), y `/locate` de punta a punta con la colocación propia.
 
-Cambio genérico necesario en el generador: `writer.write_unique` fija hoy la colocación `random_spread`; hay que permitir que el módulo aporte la suya (cambio pequeño, compatible).
+El generador ya lo permite: `STRUCTURE["placement"]` sustituye a la rejilla configurable (está en `develop`).
 
 ## 3. Zonas estancas bajo el agua
 
@@ -116,3 +116,68 @@ Lootr y el cofre «único»: Lootr convierte los cofres con tabla de botín en c
 4. **Muros y fatiga minera.** Romper un muro inunda la sala y no se puede impedir en vanilla. ¿Vale con **guardianes ancianos en los distritos clave** (fatiga minera: allí no se puede picar, hay que resolver los puzles) y aceptar que en el resto se pueda picar e inundar (**recomendado**), o prefieres ancianos por toda la ciudad?
 5. **Botín legendario.** ¿Conforme con la lista del punto 5 (tridentes al máximo, conducto, tótem, manzanas encantadas, equipo de diamante acuático; **sin netherita, élitros ni maza**)? Di si quieres quitar o añadir algo.
 6. **Ubicación.** Recomiendo: a **1.500 bloques o más del 0,0**, en la cuenca de océano profundo válida más cercana (puede quedar lejos, hasta ~12.000 bloques si la semilla no tiene océanos grandes cerca), solo en zona sin explorar, y **guardando la posición en los datos del mundo** para garantizar que nunca haya dos. ¿De acuerdo con esas tres cosas?
+
+## Respuestas (14-11-2026, transmitidas por el orquestador)
+
+1. Tamaño **B**, ≈ 770 × 770 (3 × 3 distritos). 2. **Totalmente sumergida.** 3. Cofre premium de **contenido fijo y único**.
+4. Guardianes ancianos **solo en distritos clave**. 5. Botín legendario: la lista del punto 5 **tal cual**.
+6. Ubicación: a ≥ 1.500 bloques del 0,0, cuenca válida más cercana en zona sin explorar, posición **guardada en los datos del mundo**.
+
+## Diseño por niveles (propuesta para la opción B)
+
+### Retícula y alturas
+- Ancla = chunk central. Nueve distritos de 16 × 16 chunks (256 bloques) en 3 × 3; cada uno con su inicio en su chunk central (cubre −8..+7 chunks, dentro del límite de ±8). Huella total 768 × 768.
+- Alturas absolutas fijas (no se proyecta al terreno; `terrain_adaptation: none`, `ignore_waterlogging`):
+
+| Nivel | y | Contenido |
+|---|---|---|
+| N1 | 46-58 | cúpulas, torres y pasarelas altas; techo máximo y = 58 (4 bloques bajo la superficie) |
+| N0 | 32-44 | calles y plazas inundadas, plantas principales de los edificios |
+| N−1 | 12-28 | galerías, cisternas y catacumbas: alternan sifones inundados y tramos secos |
+| N−2 | −8-6 | solo bajo la acrópolis: antesala del guardián final y cámara del tesoro |
+
+- Bajo N0 va un zócalo macizo hasta y = 24 para que nada flote donde el lecho quede más bajo; donde quede más alto, los edificios se encajan en él.
+
+### Distritos
+| Posición | Distrito | Carácter | Estado |
+|---|---|---|---|
+| Centro | Acrópolis y templo de Poseidón | gran cúpula, descenso a N−2, **guardián final y cofre premium** | íntegro |
+| N | Puerta del Tridente y ágora | entrada principal: avenida inundada y primer edificio seco (piscina lunar) | íntegro |
+| NE | Barrio de los artesanos | casas secas pequeñas, cofres menores, primera sala oculta | ruina ligera |
+| E | Termas y cisternas | puzles de agua (sifones, burbujas de magma y arena de almas) | íntegro |
+| SE | Arsenal | salas secas con trampas, guardián anciano, **primera llave** | íntegro |
+| S | Puerto hundido | muelles y dos barcos naufragados, ahogados con tridente | ruinoso |
+| SO | Jardines de coral | cúpulas rotas invadidas por coral y algas, guardianes | ruinoso |
+| O | Academia y biblioteca | la mayor zona seca; puzles de redstone, **segunda llave** | íntegro |
+| NO | Anfiteatro | arena con generadores por oleadas, guardián anciano, **tercera llave** | ruina ligera |
+
+- Muralla circular de radio ≈ 370 con cuatro puertas; dos avenidas en cruz hasta la acrópolis. Simetría axial en el trazado; la ruina (15-20 % de la superficie) se concentra en S y SO y en detalles: columnas caídas, cúpulas abiertas, ladrillo agrietado, coral y algas.
+- Materiales: familia de la prismarina (ladrillo en muros, oscura en cubiertas), linternas de mar, columnas de cuarzo y calcita, cobre oxidado en remates, oro solo en la acrópolis.
+
+### Agua y aire
+- Calles, plazas y patios: inundados (mar abierto). Edificios: aproximadamente la mitad secos, con entrada por piscina lunar desde abajo o por puerta doble desde un vestíbulo inundado.
+- N−1 enlaza los distritos por debajo alternando tramos: quien no lleve respiración encuentra una sala seca cada 20-25 bloques de buceo.
+- Salas clave con doble muro. Todo el aire rodeado de bloque completo, puerta o agua por debajo (lo comprueba la auditoría).
+
+### Puzles, trampas y progresión
+- El enlace entre distritos no puede ser de redstone (más de 256 bloques, chunks sin cargar): la progresión usa **llaves vanilla**. Tres llaves (objetos con nombre) en SE, O y NO abren, mediante cofres cerrados con `lock`, el paso por el templo; el cofre premium también va cerrado con la llave del guardián final. Sin comprobar todavía en 26.3 que `lock` acepte un objeto con nombre concreto: se probará en servidor.
+- Puzles locales de redstone: combinación de palancas (academia), placas y puertas de pistones (arsenal), nivel de agua que abre un paso (termas).
+- Trampas: dispensadores de flechas en pasillos secos, sala que se inunda (dispensadores con cubo de agua), suelo de grava que cede, columnas de burbujas que arrastran al fondo, TNT bajo placa en una sala seca del arsenal.
+- Salas ocultas: una por distrito, tras un muro falso o bajo una losa, con cofre menor mejorado.
+
+### Defensores
+- `spawn_overrides`: guardianes en toda la caja. Generadores: ≈ 6 por distrito (ahogados en seco, guardianes en inundado). Colocados con nombre: ≈ 10-12 por distrito.
+- Guardianes ancianos: arsenal, anfiteatro, acceso a N−2 y templo. Guardián final en la antesala de N−2 con escolta de ahogados de élite.
+
+### Auditoría propia (condición para generar)
+- Estanqueidad: relleno por inundación desde el agua exterior y desde cada bloque de agua o anegado de la plantilla; no puede alcanzar ninguna celda de aire salvo por abajo (piscina lunar) y nunca a través de bloques no completos distintos de puertas.
+- Alcanzabilidad: toda sala, cofre y llave alcanzable desde una puerta de la muralla, contando buceo; ningún tramo de buceo sin aire de más de 25 bloques.
+- Sin bloques sin soporte, sin arena o grava sobre huecos (salvo trampas), sin piezas fuera de ±8 chunks de su inicio, jigsaws no usados.
+- Proporción en buen estado entre 80 y 85 %.
+
+### Orden de construcción
+1. Java: colocación mundial, búsqueda y guardado del ancla, tipo de estructura por distritos; prueba de humo ampliada (`/locate`, generación natural de un distrito, celdas secas).
+2. Kit de piezas y plano de la ciudad en Python, con la auditoría.
+3. Planos por nivel y renders en `docs/unicas/atlantida/`.
+4. Botín, defensores, puzles y trampas; prueba en servidor de cada mecanismo.
+5. CHANGELOG, README, aprendizajes y PR contra `develop`.
