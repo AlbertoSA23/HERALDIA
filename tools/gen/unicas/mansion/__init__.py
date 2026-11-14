@@ -4,6 +4,7 @@ Dos piezas rígidas: la casa (finca, casa, invernadero, cementerio y panteón; y
 un jigsaw vertical bajo el comedor. La auditoría propia (auditoria.py) es condición para generar.
 """
 from loot import item, empty
+from .._comun.botin import tabla, con_nombre, pocion as potion
 from .obra import Obra
 from . import auditoria
 
@@ -30,26 +31,7 @@ LANG = {"es_es": {k: v[0] for k, v in TEXTOS.items()}, "en_us": {k: v[1] for k, 
 
 
 def named(name, key, w, ench=None, count=1):
-    mods = [{"type": "minecraft:set_name", "target": "item_name", "name": {"translate": key, "fallback": TEXTOS[key][0]}}]
-    if ench:
-        mods.append({"type": "minecraft:enchant_with_levels", "levels": {"type": "minecraft:uniform", "min": ench[0], "max": ench[1]},
-                     "options": "#minecraft:on_random_loot"})
-    if count > 1:
-        mods.append({"type": "minecraft:set_count", "count": count})
-    return {"type": "minecraft:item", "name": "minecraft:" + name, "weight": w, "modifier": mods}
-
-
-def potion(pid, w):
-    return {"type": "minecraft:item", "name": "minecraft:potion", "weight": w,
-            "modifier": {"type": "minecraft:set_potion", "id": "minecraft:" + pid}}
-
-
-def tabla(base, extra):
-    """base: (tiradas, entradas) siempre; extra: (tiradas, entradas) solo sin Lootr."""
-    pools = [{"rolls": r if isinstance(r, int) else {"type": "minecraft:uniform", "min": r[0], "max": r[1]}, "entries": e}
-             for r, e in (base, extra)]
-    pools[1]["solo_sin_lootr"] = True
-    return {"type": "minecraft:chest", "pools": pools}
+    return con_nombre(name, key, TEXTOS[key][0], w, ench, count)
 
 
 SEEDS = [item("wheat_seeds", 8, 2, 6), item("pumpkin_seeds", 5, 1, 3), item("melon_seeds", 4, 1, 3), item("bone_meal", 8, 2, 5),
@@ -91,27 +73,19 @@ LOOT = {
                                item("gold_nugget", 6, 3, 9)]),
                      ((1, 2), [named("tripwire_hook", "heraldia.mansion.llave", 3), named("black_banner", "heraldia.mansion.capa", 2),
                                item("host_armor_trim_smithing_template", 2), item("golden_apple", 3), item("diamond", 2), empty(4)])),
-    "premium": {"type": "minecraft:chest", "pools": [
-        {"rolls": {"type": "minecraft:uniform", "min": 3, "max": 5}, "entries": [
-            named("clock", "heraldia.mansion.reloj", 6),
-            named("painting", "heraldia.mansion.retrato", 4),
-            named("iron_sword", "heraldia.mansion.espada", 5, ench=(10, 20)),
-            named("bow", "heraldia.mansion.arco", 4, ench=(10, 20)),
-            item("host_armor_trim_smithing_template", 3), item("raiser_armor_trim_smithing_template", 3),
-            item("shaper_armor_trim_smithing_template", 3), item("wayfinder_armor_trim_smithing_template", 3),
-            item("music_disc_11", 3), item("music_disc_13", 3), item("music_disc_mall", 3),
-            item("gold_ingot", 6, 2, 6), item("emerald", 6, 3, 8), item("book", 4, ench=(10, 20)),
-            item("golden_apple", 3)]},
-        {"rolls": 1, "entries": [   # 10 %: algo más fuerte sin romper la progresión
-            empty(90), item("diamond_chestplate", 3, ench=(20, 30)), item("diamond_sword", 3, ench=(20, 30)),
-            item("enchanted_golden_apple", 2), item("totem_of_undying", 2)]},
-        {"rolls": (2, 4), "solo_sin_lootr": True, "entries": [
-            item("gold_ingot", 6, 1, 4), item("diamond", 3, 1, 2), item("emerald", 6, 2, 5), item("experience_bottle", 5, 2, 6),
-            item("golden_carrot", 4, 1, 3)]},
-    ]},
+    "premium": tabla(
+        ((3, 5), [named("clock", "heraldia.mansion.reloj", 6), named("painting", "heraldia.mansion.retrato", 4),
+                  named("iron_sword", "heraldia.mansion.espada", 5, ench=(10, 20)),
+                  named("bow", "heraldia.mansion.arco", 4, ench=(10, 20)),
+                  item("host_armor_trim_smithing_template", 3), item("raiser_armor_trim_smithing_template", 3),
+                  item("shaper_armor_trim_smithing_template", 3), item("wayfinder_armor_trim_smithing_template", 3),
+                  item("music_disc_11", 3), item("music_disc_13", 3), item("music_disc_mall", 3),
+                  item("gold_ingot", 6, 2, 6), item("emerald", 6, 3, 8), item("book", 4, ench=(10, 20)), item("golden_apple", 3)]),
+        ((2, 4), [item("gold_ingot", 6, 1, 4), item("diamond", 3, 1, 2), item("emerald", 6, 2, 5),
+                  item("experience_bottle", 5, 2, 6), item("golden_carrot", 4, 1, 3)]),
+        (1, [empty(90), item("diamond_chestplate", 3, ench=(20, 30)), item("diamond_sword", 3, ench=(20, 30)),   # 10 % más fuerte
+             item("enchanted_golden_apple", 2), item("totem_of_undying", 2)])),
 }
-_p = LOOT["premium"]["pools"][2]
-_p["rolls"] = {"type": "minecraft:uniform", "min": 2, "max": 4}
 
 
 def build(reg):

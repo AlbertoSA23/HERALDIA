@@ -22,6 +22,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 - Estructura única `mansion` (`tools/gen/unicas/mansion/`): dos piezas rígidas (casa y sótano unidos por un jigsaw vertical; el sótano rellena toda su caja para que `beard_thin` no abra fosos ni cavidades), auditoría propia (recorrido a pie sobre las dos piezas con y sin mecanismos, nada flotando, simulador de redstone que comprueba el reposo y cada mecanismo), planos y renders (`python3 -m unicas.mansion.planos`) y prueba en servidor (`tools/gen/unicas/mansion/prueba_servidor.py`).
 - `core.to_tag` acepta cualquier etiqueta NBT ya construida (p. ej. `IntArray` para el `block_pos` de los cuadros).
+- Piezas comunes en `tools/gen/unicas/_comun/` (las usa la mansión): simulador de redstone, escalera de caracol, generador, cofre, guardián con nombre, cuadro, tablas de botín con extra sin Lootr, objetos con nombre, pociones, acabado de conexiones, vistas para `lint.walk` y bloques flotantes.
 
 - `writer.py`: se quita la segunda mezcla duplicada de los textos `LANG` de las estructuras únicas, que había entrado por dos PR paralelos.
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.

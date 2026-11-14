@@ -8,7 +8,7 @@ from core import Template
 import render
 from .obra import Obra
 from . import auditoria
-from .redstone import name
+from .._comun.redstone import name
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "docs", "unicas", "mansion")
 NIVELES = [("Sótano (pies y=-5)", -5), ("Planta baja (y=2; cripta del panteón)", 2), ("Primera (y=8; capilla del panteón y=6)", 8),

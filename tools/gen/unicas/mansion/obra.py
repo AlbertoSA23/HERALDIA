@@ -6,6 +6,7 @@ Todo se construye en una plantilla única (la «obra») que luego se parte en la
 import random
 from nbtlib import Compound, String, Byte, IntArray, Float, Int, List, Double
 from core import Template, B, F
+from .._comun.piezas import S, escalera_caracol, generador, cofre, guardian, cuadro
 
 X0, X1, Z0, Z1 = 12, 49, 14, 40          # muros de la casa principal
 GF, P1, P2, AT, CS = 2, 8, 13, 18, -5    # pies en cada planta (sótano CS)
@@ -16,12 +17,6 @@ CW = {"north": "east", "east": "south", "south": "west", "west": "north"}
 OPP = {"north": "south", "south": "north", "east": "west", "west": "east"}
 D = {"north": (0, -1), "south": (0, 1), "east": (1, 0), "west": (-1, 0)}
 LOOT = "heraldia:unicas/mansion/"
-
-
-def S(name, **p):
-    if not p:
-        return name
-    return name + "[" + ",".join(f"{k}={str(v).lower() if isinstance(v, bool) else v}" for k, v in p.items()) + "]"
 
 
 class Obra:
@@ -68,17 +63,11 @@ class Obra:
         self.s(x + dx, y, z + dz, S(f"{color}_bed", facing=facing, part="head", occupied=False))
 
     def chest(self, x, y, z, facing, table, kind="chest"):
-        if kind == "barrel":
-            self.s(x, y, z, S("barrel", facing=facing, open=False), {"id": "minecraft:barrel", "LootTable": LOOT + table})
-        else:
-            self.s(x, y, z, S("chest", facing=facing, type="single", waterlogged=False),
-                   {"id": "minecraft:chest", "LootTable": LOOT + table})
+        cofre(self.t, x, y, z, facing, LOOT + table, kind)
         self.chests.append(((x, y, z), table))
 
     def spawner(self, x, y, z, mob):
-        e = {"entity": {"id": "minecraft:" + mob}}
-        self.s(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": e,
-                                    "SpawnPotentials": [{"data": e, "weight": 1}]})
+        self.s(x, y, z, "spawner", generador(mob))
         self.spawners.append((x, y, z))
 
     def lamp(self, x, y, z):
@@ -102,9 +91,7 @@ class Obra:
                 self.web(x, y, z)
 
     def painting(self, x, y, z, facing, variant):
-        f2d = {"south": 0, "west": 1, "north": 2, "east": 3}[facing]
-        self.t.entity(x, y, z, Compound({"id": String("minecraft:painting"), "variant": String("minecraft:" + variant),
-                                         "facing": Byte(f2d), "block_pos": IntArray([x, y, z])}))
+        self.t.entity(x, y, z, cuadro(x, y, z, facing, variant))
 
     # ------------------------------------------------------------ construcción
     def build(self):
@@ -552,13 +539,7 @@ class Obra:
                         self.s(x, y, z, FLOOR)
         self.f(10, 1, 12, 12, 1, 14, FLOOR)
         self.f(11, 1, 13, 11, 23, 13, TRIM)       # machón central
-        for i in range(22):
-            x, z = self.RING[i % 8]
-            px, pz = self.RING[(i - 1) % 8]
-            fdir = {(1, 0): "east", (-1, 0): "west", (0, 1): "south", (0, -1): "north"}[(x - px, z - pz)]
-            self.stair(x, 2 + i, z, "spruce", fdir)
-            if (x, z) in (self.RING[0], self.RING[2], self.RING[4], self.RING[6]) and i:
-                self.s(x, 1 + i, z, "stripped_spruce_wood")
+        escalera_caracol(self.t, self.RING, 2, 22)
         for x, z in (self.RING[6], self.RING[7]):
             self.s(x, 23, z, FLOOR)
         for y in (GF, P1, P2):
@@ -991,25 +972,8 @@ class Obra:
         self.s(46, -6, 29, "tuff")
 
     def criaturas(self):
-        name = Compound({"translate": String("heraldia.mansion.conde"), "fallback": String("El Conde Malaquías")})
-        black = Int(1908001)
-
-        def item(i, **comp):
-            d = {"id": String("minecraft:" + i), "count": Int(1)}
-            if comp:
-                d["components"] = Compound(comp)
-            return Compound(d)
-        eq = Compound({
-            "head": item("leather_helmet", **{"minecraft:dyed_color": black}),
-            "chest": item("leather_chestplate", **{"minecraft:dyed_color": black}),
-            "legs": item("leather_leggings", **{"minecraft:dyed_color": black}),
-            "feet": item("leather_boots", **{"minecraft:dyed_color": black}),
-        })
-        drops = Compound({k: Float(0.0) for k in ("head", "chest", "legs", "feet")})
-        self.t.entity(43, CS, 35, Compound({
-            "id": String("minecraft:wither_skeleton"), "PersistenceRequired": Byte(1), "CustomName": name,
-            "CustomNameVisible": Byte(1), "equipment": eq, "drop_chances": drops, "Health": Float(60.0),
-            "attributes": List[Compound]([Compound({"id": String("minecraft:max_health"), "base": Double(60.0)})]),
-            "Tags": List[String]([String("heraldia_mansion_guardian")])}))
+        self.t.entity(43, CS, 35, guardian("wither_skeleton", "heraldia.mansion.conde", "El Conde Malaquías", 60.0,
+                                           {"head": "leather_helmet", "chest": "leather_chestplate", "legs": "leather_leggings",
+                                            "feet": "leather_boots"}, "heraldia_mansion_guardian", 1908001))
         self.t.entity(29, AT, 30, Compound({"id": String("minecraft:cat"), "PersistenceRequired": Byte(1),
                                             "variant": String("minecraft:all_black")}))

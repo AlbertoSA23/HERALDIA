@@ -42,7 +42,7 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Generador y auditoría
 
-- Auditoría de varias piezas: unir las piezas en una «obra» en coordenadas comunes, pasar `lint.walk`/`lint.access_issues` a vistas con los mecanismos cerrados y abiertos (zonas ocultas alcanzables solo en la segunda) y partir en piezas después. Simulador de redstone de los mecanismos en `tools/gen/unicas/mansion/redstone.py` (reutilizable). Verificado contrastándolo con el juego (prueba de la mansión).
+- Auditoría de varias piezas: unir las piezas en una «obra» en coordenadas comunes, pasar `lint.walk`/`lint.access_issues` a vistas con los mecanismos cerrados y abiertos (zonas ocultas alcanzables solo en la segunda) y partir en piezas después. Simulador de redstone de los mecanismos en `tools/gen/unicas/_comun/redstone.py`, con el resto de piezas comunes en `_comun/`. Verificado contrastándolo con el juego (prueba de la mansión).
 - `core.to_tag` acepta cualquier etiqueta de `nbtlib` ya construida (necesario para `IntArray`).
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
 - Opciones del mod: se definen en `tools/gen/opciones.py` (por defecto, rango y textos en los dos idiomas), que las escribe en `heraldia/opciones.json` dentro del `.jar`. El Java las valida de forma genérica: una opción nueva no necesita código, salvo para usarla. Verificado en la prueba de humo (corrección de un valor fuera de rango).
