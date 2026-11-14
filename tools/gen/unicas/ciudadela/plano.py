@@ -614,8 +614,7 @@ def guardian():
             "CustomName": {"translate": "heraldia.ciudadela.guardian", "fallback": "Borin Barbahierro, último guardián"},
             "Health": F(60.0), "Rotation": [F(180.0), F(0.0)],
             "attributes": [{"id": "minecraft:max_health", "base": 60.0}],
-            "equipment": {"mainhand": {"id": "minecraft:iron_axe", "count": 1,
-                                       "components": {"minecraft:enchantments": {"minecraft:sharpness": 2}}},
+            "equipment": {"mainhand": {"id": "minecraft:iron_axe", "count": 1},
                           "head": {"id": "minecraft:iron_helmet", "count": 1},
                           "chest": {"id": "minecraft:iron_chestplate", "count": 1}},
             "drop_chances": {"mainhand": F(0.5), "head": F(0.25), "chest": F(0.25)}}

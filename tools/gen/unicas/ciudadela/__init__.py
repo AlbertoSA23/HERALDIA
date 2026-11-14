@@ -8,6 +8,7 @@ import functools
 from .botin import TABLES as LOOT
 from . import plano, auditoria
 
+NOMBRE = {"es_es": "Ciudadela enana", "en_us": "Dwarven Citadel"}
 ROOF_CELL = 8
 PORCH_DEPTH = 8          # filas del pórtico (z < 8): al aire libre, no cuentan para la cubierta de roca
 
@@ -39,7 +40,7 @@ DEGRADE = {"deepslate_bricks": ("cracked_deepslate_bricks", 0.25), "deepslate_ti
            "polished_deepslate": ("cobbled_deepslate", 0.10), "polished_blackstone_bricks": ("cracked_polished_blackstone_bricks", 0.20)}
 PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + a, "probability": p},
-     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": {"Name": "minecraft:" + b}}
+     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + b}
     for a, (b, p) in DEGRADE.items()]}]}
 
 

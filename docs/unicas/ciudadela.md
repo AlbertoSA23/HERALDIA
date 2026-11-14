@@ -87,7 +87,7 @@ Suelo de cada nivel (el jugador pisa en suelo+1):
   subidas y las dos de pizarra bajadas (puerta = A y B y no C y no D, con inversores de antorcha tras el muro).
 - **Bóveda del tesoro** (x 59-69, z 69-80): pasillo de 4 por el muro grueso, montones de oro, 2 cofres de bóveda
   a los lados y el **cofre premium** en un estrado al fondo. **Guardián**: Borin Barbahierro (vindicador con
-  nombre, 60 de vida, hacha de hierro Filo II, casco y peto de hierro, `PersistenceRequired`).
+  nombre, 60 de vida, hacha de hierro, casco y peto de hierro, `PersistenceRequired`).
 
 ## Recorrido del jugador
 Pórtico → salón de columnas (barracones al oeste, almacén y sala oculta 1 al este, trono y sala oculta 2 al

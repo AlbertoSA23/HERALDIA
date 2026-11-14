@@ -8,7 +8,8 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+- **Estructuras únicas** (castillos, catedrales...): en diseño. Hechas:
+  - **Ciudadela enana** (picos pedregosos y dentados): ciudad excavada en una montaña con la puerta en la ladera, cuatro niveles, puzles de redstone, trampas y bóveda del tesoro.
 
 ## Instalación
 
