@@ -1,7 +1,8 @@
 """Castillo en superficie: foso, muralla con torres y adarve, puerta con rastrillo, patio de armas y torre del homenaje.
 Coordenadas de la plantilla: x, z en 0..99 (norte z=0, la puerta mira al sur); y=5 es la capa de terreno, los pies a y=6."""
 import random
-from .._comun.piezas import Lienzo, circle, spiral, hidden_door, connect
+from .util import Lienzo, hidden_door
+from .._comun.piezas import circle, spiral_slabs, connect, chest as put_chest
 
 N = 100
 G, L, W = 5, 6, 17          # capa de terreno, pies en el patio, pies en el adarve
@@ -21,11 +22,7 @@ def build(rnd=None):
     meta = {"chests": [], "secret": {}, "spirals": [], "doors_open": []}
 
     def chest(x, y, z, f, table, kind="chest", water=False):
-        if kind == "barrel":
-            t.barrel(x, y, z, f, LOOT + table)
-        else:
-            t.set(x, y, z, f"chest[facing={f},type=single,waterlogged={str(water).lower()}]",
-                  {"id": "minecraft:chest", "LootTable": LOOT + table})
+        put_chest(t.set, x, y, z, f, LOOT + table, kind, waterlogged=water)
         meta["chests"].append(((x, y, z), table))
 
     def hang(x, y, z, soul=False):
@@ -425,8 +422,7 @@ def keep(t, chest, hang, meta):
             t.air(x, 0, z, x, 24, z)
     t.fill(NEWEL[0], 1, NEWEL[1], NEWEL[0], 24, NEWEL[1], SB)
     put = lambda x, y, z, s: t.set(x, y, z, s) if y >= 0 else meta.setdefault("below", []).append((x, y, z, s))
-    meta["spirals"].append(spiral(put, NEWEL[0], NEWEL[1], SPIRAL["s0"], SPIRAL["s1"], SPIRAL["phase"],
-                                  "stone_brick_slab", SB))
+    meta["spirals"].append(spiral_slabs(put, NEWEL[0], NEWEL[1], SPIRAL["s0"], SPIRAL["s1"], SPIRAL["phase"], "stone_brick_slab"))
     t.opening(42, L, 37)
     t.opening(43, L, 37)
     t.opening(40, F1, 39)

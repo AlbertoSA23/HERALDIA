@@ -198,7 +198,7 @@ class F(float):
 
 
 def to_tag(v):
-    if isinstance(v, (Compound, List, String, Int, Byte, Double, Float)):
+    if isinstance(v, nbtlib.tag.Base):      # cualquier etiqueta NBT ya construida (p. ej. IntArray)
         return v
     if isinstance(v, B):
         return Byte(int(v))

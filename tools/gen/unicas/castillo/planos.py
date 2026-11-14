@@ -20,7 +20,7 @@ def main():
     load_registries(a.registries)
     from pack import build_all
     import unicas.castillo as c
-    from unicas._comun.piezas import bn, passable
+    from unicas.castillo.util import bn, passable
     from render import render
     reg = build_all()
     assert not reg.warnings, reg.warnings

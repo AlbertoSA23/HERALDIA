@@ -2,7 +2,7 @@
 
 Fortaleza medieval de 100 x 100 bloques en llanuras, llanuras de girasoles y praderas, una cada 3.000-5.000 bloques
 (rejilla configurable, `spacing` 250 / `separation` 190 chunks). Una sola variante, diseñada a mano.
-Código: `tools/gen/unicas/castillo/` (piezas comunes en `tools/gen/unicas/_comun/piezas.py`) · Planos por nivel: [`castillo/planos.md`](castillo/planos.md) · Renders: `castillo/*.png`.
+Código: `tools/gen/unicas/castillo/` (usa las piezas comunes de `tools/gen/unicas/_comun/`) · Planos por nivel: [`castillo/planos.md`](castillo/planos.md) · Renders: `castillo/*.png`.
 
 ## Adaptación al terreno
 - Dos plantillas rígidas: el castillo (x, z 0..99, y 0..27; terreno en y=5, pies a y=6) y la mazmorra (48 x 56 x 16)

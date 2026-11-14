@@ -1,32 +1,6 @@
 """Botín de la ciudadela (solo vanilla). Cada tabla lleva un grupo extra marcado solo_sin_lootr."""
 from loot import item, empty
-
-
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
-def table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
-
-
-def named(name, w, key, fallback, ench=None, lo=1, hi=1):
-    e = item(name, w, lo, hi)
-    mods = [{"type": "minecraft:set_name", "name": {"translate": key, "fallback": fallback}, "target": "item_name"}]
-    if ench:
-        mods.append({"type": "minecraft:set_enchantments", "enchantments": ench})
-    old = e.pop("modifier", None)
-    e["modifier"] = ([old] if isinstance(old, dict) else (old or [])) + mods
-    return e
-
-
-def book(w, ench):
-    return {"type": "minecraft:item", "name": "minecraft:book", "weight": w,
-            "modifier": {"type": "minecraft:set_enchantments", "enchantments": ench}}
+from unicas._comun.botin import pool, table, named, book  # noqa: F401  (piezas comunes)
 
 
 FOOD = [item("bread", 12, 1, 3), item("cooked_mutton", 8, 1, 2), item("baked_potato", 8, 1, 3), item("carrot", 6, 1, 3)]
