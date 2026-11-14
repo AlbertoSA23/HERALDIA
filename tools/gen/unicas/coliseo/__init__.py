@@ -1,4 +1,5 @@
 """Coliseo en ruinas: anfiteatro elíptico con hipogeo (sabana). Diseño en docs/unicas/coliseo.md."""
+from .._comun.piezas import open_stairwells
 from .botin import LOOT, LANG_ITEMS
 
 STRUCTURE = dict(
@@ -35,6 +36,8 @@ def build(reg):
     from . import plano, auditoria
     o, main, hyp, _ = plano.construir()
     reg.warnings.extend(f"coliseo: {m}" for m in auditoria.auditar(o, main, hyp))
+    open_stairwells(main)
+    open_stairwells(hyp)   # huecos de escalera cortos
     a = reg.add(main, "unica:coliseo")
     b = reg.add(hyp, "unica:coliseo")
     reg.pool("unicas/coliseo/inicio", [(a, 1, "rigid", PROC_MAIN)])

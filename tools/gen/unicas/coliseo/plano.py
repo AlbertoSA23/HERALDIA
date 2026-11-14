@@ -171,10 +171,11 @@ class Obra:
                     self.carve(x, y, z, open_)
 
     def flight(self, cells, y0, facing, mat=SEAT, head=2):
-        """Tramo de escalera: cells en orden ascendente; peldaño i en y0+i mirando hacia `facing` (lado alto)."""
+        """Tramo de escalera: cells en orden ascendente; peldaño i en y0+i mirando hacia `facing` (lado alto).
+        Sobre cada peldaño que sigue subiendo se despejan `head` + 1 bloques: al subir, el cuerpo aún está encima."""
         for i, (x, z) in enumerate(cells):
             y = y0 + i
-            for hy in range(1, head + 1):
+            for hy in range(1, head + 1 + (i < len(cells) - 1)):
                 self.carve(x, y + hy, z)
             self.set(x, y, z, f"{mat}[facing={facing},half=bottom]")
 

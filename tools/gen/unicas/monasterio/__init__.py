@@ -1,4 +1,5 @@
 """Monasterio de montaña: una sola plantilla rígida con su propio risco, terrazas, iglesia y cuevas (ver docs/unicas/monasterio.md)."""
+from .._comun.piezas import open_stairwells
 from . import obra, auditoria
 from .botin import LOOT, LANG_ITEMS
 from .._comun.botin import lang
@@ -37,6 +38,7 @@ def build(reg):
     t = obra.construir()
     errores = auditoria.comprobar(t)
     reg.warnings.extend(f"monasterio: {e}" for e in errores)
+    open_stairwells(t)   # huecos de escalera cortos
     name = reg.add(t, f"unica:{ID}")
     reg.templates[name].lint_open = dict(t.abiertos)          # convención común de lint.py: puertas secretas abiertas
     reg.pool(f"unicas/{ID}/inicio", [(name, 1, "rigid", AGING)])

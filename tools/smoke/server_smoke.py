@@ -197,6 +197,43 @@ def check_separation(ctx):
     return failures
 
 
+def snbt(v):
+    if isinstance(v, dict):
+        return "{" + ",".join(f"{k}:{snbt(x)}" for k, x in v.items()) + "}"
+    return json.dumps(v) if isinstance(v, str) else str(v)
+
+
+def check_keys(ctx):
+    """/heraldia llave: registrado (pide jugadores y rechaza una llave inventada) y cada tabla de llave da un objeto que
+    cumple la cerradura de sus cofres. Sin cliente no hay jugadores: el reparto al inventario no se prueba aquí."""
+    fails = []
+    with open(os.path.join(ROOT, "build", "generated", "heraldia", "heraldia", "llaves.json"), encoding="utf-8") as f:
+        keys = json.load(f)["llaves"]
+    if not keys:
+        return ["heraldia/llaves.json sin llaves"]
+    m = ctx.run("heraldia llave @a inventada", r"No hay ninguna llave|There is no key")   # el servidor traduce (en_us)
+    if not m.group(0).startswith(("No hay", "There is no")):
+        fails.append(f"/heraldia llave no rechaza una llave inventada: {m.string.strip()}")
+    m = ctx.run("heraldia llave @a todas", r"No player was found")
+    if not m.group(0).startswith("No player"):
+        fails.append(f"/heraldia llave @a todas sin jugadores: {m.string.strip()}")
+    for kid, d in keys.items():
+        lock = d["cerradura"]
+        pred = lock["items"] + "[" + ",".join(f"{k}~{snbt(v)}" for k, v in lock["predicates"].items()) + "]"
+        ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
+        m = ctx.run(f"loot spawn 0 200 0 loot {d['tabla']}", r"Dropped \d+")
+        if not m.group(0).startswith("Dropped 1"):
+            fails.append(f"llave {kid}: {m.string.strip()}")
+            continue
+        m = ctx.run(f"execute positioned 0 200 0 if items entity @e[type=minecraft:item,distance=..4] contents {pred}",
+                    r"Test passed|Test failed")
+        if "passed" not in m.group(0):
+            fails.append(f"llave {kid}: el objeto no abre su cerradura ({pred}): {m.string.strip()}")
+    ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
+    print(f"llaves: {len(keys)} comprobadas con su cerradura")
+    return fails
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
@@ -278,6 +315,7 @@ def main():
                     maps_found.append(table)
                 if took > MAP_TIMEOUT_S:
                     failures.append(f"mapa {table} tardó {took:.0f} s (> {MAP_TIMEOUT_S} s)")
+        failures += check_keys(Context(proc, lines, seen))
         # El cofre épico (con su grupo de mapas) se tira varias veces seguidas.
         t0 = time.monotonic()
         for _ in range(EPIC_ROLLS):

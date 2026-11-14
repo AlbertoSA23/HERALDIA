@@ -7,6 +7,7 @@ La plantilla se hunde 14 bloques (start_height -14, sin adaptación del terreno)
 a ras del terreno y el sótano bajo tierra sin que el beard excave alrededor. Una terraza con cimiento absorbe
 pendientes suaves.
 """
+from .._comun.piezas import open_stairwells
 import math
 from core import Template, B
 from unicas._comun import piezas
@@ -737,6 +738,7 @@ PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
 
 def build(reg):
     t = construir()
+    open_stairwells(t)   # huecos de escalera cortos
     name = reg.add(t, "unica")
     errs = auditar(t)
     if errs:

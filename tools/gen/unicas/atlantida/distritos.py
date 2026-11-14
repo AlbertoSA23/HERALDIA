@@ -5,6 +5,7 @@ from . import urbanismo as U
 from . import cosas as C
 from . import edificios as E
 from . import redstone as R
+from .._comun import piezas as P
 from .edificios import LADRILLO, OSCURA, PRISMARINA, LINTERNA, CRISTAL, CUARZO, PILAR, CORALES, h, puerta, columna
 
 COMBINACION_CENTRAL = [True, False, True, True]         # palancas del vestíbulo del templo: I, III y IV alzadas
@@ -224,9 +225,7 @@ def academia(v):
         # ala: vestíbulo + biblioteca, toda seca; puerta doble a la avenida
         sala(v, ua, -26, ub, 26, 0, 9)
         frente = u1 if lado == 1 else u2
-        for w in (-1, 0):
-            v.set(frente, 1, w, f"warped_door[facing={'west' if lado == 1 else 'east'},half=lower,hinge={'left' if w else 'right'},open=false]")
-            v.set(frente, 2, w, f"warped_door[facing={'west' if lado == 1 else 'east'},half=upper,hinge={'left' if w else 'right'},open=false]")
+        P.double_door(v.set, frente, 1, -1, "west" if lado == 1 else "east", "south", E.PUERTA)
         for w in (-22, -14, -6, 6, 14, 22):                                   # ventanales
             fondo = u2 if lado == 1 else u1
             v.fill(fondo, 3, w - 1, fondo, 6, w + 1, CRISTAL)
@@ -456,8 +455,7 @@ def artesanos(v):
     u1, u2, w1, w2 = -17, 17, -9, 9
     v.sitio("lonja", u1, -6, w1, u2, 12, w2)
     sala(v, u1, w1, u2, w2, 0, 8)
-    puerta(v, -1, 1, w1, "north", bisagra="right")
-    puerta(v, 0, 1, w1, "north")
+    P.double_door(v.set, -1, 1, w1, "north", "east", E.PUERTA)
     for u in range(u1 + 3, u2 - 2, 6):
         v.fill(u, 3, w1, u + 1, 5, w1, CRISTAL) if abs(u) > 3 else None
         v.fill(u, 3, w2, u + 1, 5, w2, CRISTAL)

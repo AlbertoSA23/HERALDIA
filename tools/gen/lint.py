@@ -330,10 +330,11 @@ def lint_registry(reg, only=None):
     for name, t in reg.templates.items():
         if only and not only(name):
             continue
-        if getattr(t, "sin_auditoria_generica", False):   # estructuras que se auditan enteras en su módulo
-            continue
-        # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
-        iss = support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
+        # puertas dobles y altura libre de las escaleras: en todas las plantillas, también las que se auditan aparte
+        iss = door_pair_issues(t) + stair_headroom_issues(t)
+        if not getattr(t, "sin_auditoria_generica", False):   # estructuras que se auditan enteras en su módulo
+            # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
+            iss += support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
         if iss:
             res[name] = iss
     return res
@@ -348,3 +349,96 @@ def summarize(res):
             c[(kind, msg)] += 1
             ex.setdefault((kind, msg), (name, pos))
     return c, ex
+
+
+# ---------------------------------------------------------------- puertas dobles y escaleras con techo
+LEFT_OF = {"north": "west", "west": "south", "south": "east", "east": "north"}   # izquierda de quien mira hacia `facing`
+RIGHT_OF = {v: k for k, v in LEFT_OF.items()}
+OPPOSITE = {"north": "south", "south": "north", "east": "west", "west": "east"}
+
+
+def door_hinge(facing, side):
+    """Bisagra de la hoja de una puerta doble que mira a `facing`; `side` es hacia dónde queda la otra hoja.
+    Cada hoja lleva la bisagra en su lado de fuera (como al colocarlas a mano en el juego): así se abren en espejo."""
+    if side == LEFT_OF[facing]:
+        return "right"
+    if side == RIGHT_OF[facing]:
+        return "left"
+    raise ValueError(f"la otra hoja ({side}) no está al lado de una puerta que mira a {facing}")
+
+
+def door_pair_issues(t):
+    """Parejas de puertas contiguas (lado con lado) que no forman una puerta doble correcta:
+    mismo `facing` y bisagras opuestas con la bisagra en el lado de fuera de cada hoja."""
+    out = []
+    for (x, y, z), (st, _) in t.blocks.items():
+        if not st or not bname(st).endswith("_door") or prop(st, "half") != "lower":
+            continue
+        f = prop(st, "facing")
+        for side in (LEFT_OF[f], RIGHT_OF[f]):
+            dx, dz = FACE[side]
+            o = t.get(x + dx, y, z + dz)
+            if not o or not bname(o).endswith("_door") or prop(o, "half") != "lower":
+                continue
+            if prop(o, "facing") not in (f, OPPOSITE[f]):
+                continue
+            if prop(o, "facing") != f or prop(st, "hinge") != door_hinge(f, side):
+                out.append(("puerta doble con la bisagra mal emparejada", (x, y, z)))
+    return out
+
+
+def _bottom_stair(st, facing=None):
+    return bool(st) and bname(st).endswith("_stairs") and "half=bottom" in st and (
+        facing is None or prop(st, "facing") == facing)
+
+
+def _blocks_body(st):
+    return not passable(st)
+
+
+def stair_headroom_issues(t):
+    """Escaleras de peldaños por las que no se pasa sin romper nada. Un tramo es una fila de dos o más peldaños
+    (escalón abajo, mismo `facing`) que sube de uno en uno y arranca de un suelo pisable (así se descartan los tejados).
+    Sobre cada peldaño hacen falta dos bloques pasables y, si sigue otro peldaño, un tercero: al subir, el jugador
+    (1,8 de alto y 0,6 de ancho) apoya los pies en el escalón siguiente (a +1,5 y +2) con el cuerpo aún sobre este.
+    En el rellano de arriba, dos bloques pasables sobre el suelo."""
+    v = resolved(t)
+    g = v.get
+    out = []
+    for (x, y, z), (st, _) in v.blocks.items():
+        if not _bottom_stair(st):
+            continue
+        f = prop(st, "facing")
+        fx, fz = FACE[f]
+        if _bottom_stair(g(x - fx, y - 1, z - fz), f) or not _bottom_stair(g(x + fx, y + 1, z + fz), f):
+            continue        # solo desde el primer peldaño de cada tramo
+        bx, by, bz = x - fx, y, z - fz      # celda desde la que se pisa el primer peldaño
+        base, under = g(bx, by, bz), g(bx, by - 1, bz)
+        if not (passable(base) and (under is None and by <= 0 or under and top_height(under) == 1.0
+                                     or bname(under) == "water" or _bottom_stair(under))
+                or base and bname(base).endswith("_slab") and "type=bottom" in base
+                or base and "_carpet" in bname(base)):
+            continue        # no arranca de un suelo: tejado o adorno
+        steps, cx, cy, cz = [], x, y, z
+        while _bottom_stair(g(cx, cy, cz), f):
+            steps.append((cx, cy, cz))
+            cx, cy, cz = cx + fx, cy + 1, cz + fz
+        if any(_bottom_stair(g(a, b + 1, c), f) for a, b, c in steps):
+            continue        # peldaños apilados: masa de un tejado, no una escalera
+        for cx, cy, cz in steps:
+            nxt = _bottom_stair(g(cx + fx, cy + 1, cz + fz), f)
+            if any(_blocks_body(g(cx, cy + k, cz)) for k in (1, 2)):
+                out.append(("escalera con techo bajo", (cx, cy, cz)))
+            elif nxt and _blocks_body(g(cx, cy + 3, cz)):
+                out.append(("escalera con techo bajo en la subida", (cx, cy, cz)))
+            if not nxt:
+                ax, az = cx + fx, cz + fz
+                land, up = g(ax, cy, az), g(ax, cy + 1, az)
+                if up and (_bottom_stair(up) or bname(up).endswith("_slab") and "type=bottom" in up):
+                    # medio escalón más: pies a +1,5 con el cuerpo aún sobre el último peldaño
+                    if any(_blocks_body(g(q, cy + k, r)) for k in (2, 3) for q, r in ((ax, az), (cx, cz))):
+                        out.append(("escalera con techo bajo al llegar arriba", (cx, cy, cz)))
+                elif land and top_height(land) == 1.0 and not passable(land) and passable(up) \
+                        and _blocks_body(g(ax, cy + 2, az)):
+                    out.append(("escalera con techo bajo al llegar arriba", (cx, cy, cz)))
+    return out

@@ -7,6 +7,7 @@ import random
 from nbtlib import Compound, String, Byte, IntArray, Float, Int, List, Double
 from core import Template, B, F
 from .._comun.piezas import spawner, chest, guardian, painting, spiral_continuous
+from .._comun import piezas
 
 X0, X1, Z0, Z1 = 12, 49, 14, 40          # muros de la casa principal
 GF, P1, P2, AT, CS = 2, 8, 13, 18, -5    # pies en cada planta (sótano CS)
@@ -56,12 +57,7 @@ class Obra:
 
     def ddoor(self, x, y, z, facing, m="spruce"):
         """Puerta doble: hoja en x/z y su pareja al este (muro norte-sur) o al sur (muro este-oeste)."""
-        if facing in ("north", "south"):
-            self.door(x, y, z, facing, m, "right" if facing == "south" else "left")
-            self.door(x + 1, y, z, facing, m, "left" if facing == "south" else "right")
-        else:
-            self.door(x, y, z, facing, m, "left" if facing == "east" else "right")
-            self.door(x, y, z + 1, facing, m, "right" if facing == "east" else "left")
+        piezas.double_door(self.s, x, y, z, facing, "east" if facing in ("north", "south") else "south", f"{m}_door")
 
     def bed(self, x, y, z, facing, color="red"):
         dx, dz = D[facing]

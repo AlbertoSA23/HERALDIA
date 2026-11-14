@@ -1,6 +1,7 @@
 """Catedral gótica (estructura única): fachada con dos torres y rosetón, nave con colaterales y triforio,
 arbotantes, crucero con aguja, coro con girola y capillas, sacristía, biblioteca, claustro; bajo tierra,
 cripta, osarios y cámara del tesoro. Diseño y recorrido en docs/unicas/catedral.md."""
+from .._comun.piezas import open_stairwells
 from core import Template
 from .botin import LOOT, LANG
 from .modelo import Catedral
@@ -63,6 +64,8 @@ def build(reg):
     if problems:
         reg.warnings.extend(f"catedral: {p}" for p in problems[:30])
     top, low = pieces(c)
+    open_stairwells(top)
+    open_stairwells(low)   # huecos de escalera cortos
     a = reg.add(top, "unica:catedral")
     b = reg.add(low, "unica:catedral")
     reg.pool("unicas/catedral/inicio", [(a, 1, "rigid", PROCESSORS)])

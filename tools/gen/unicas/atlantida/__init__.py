@@ -24,6 +24,8 @@ STRUCTURE = dict(
 from . import botin
 LANG = cosas.LANG
 LOOT = botin.tablas()
+# /heraldia llave: la tabla da el mismo objeto que sueltan el guardián y los cofres, y la cerradura es la de los cofres
+LLAVES = {cual: {"tabla": cosas.tabla_llave(cual), "cerradura": cosas.cerradura(cual)} for cual in cosas.LLAVES}
 _plano = None
 
 
