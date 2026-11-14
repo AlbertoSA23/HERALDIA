@@ -8,6 +8,8 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Jugadores
 
+- Nueva estructura única: faro con cueva de contrabandistas en costas pedregosas y playas. Faro visitable hasta la linterna, casa del farero y, bajo el promontorio, una cueva al nivel del mar con muelle, almacenes, dormitorio, calabozo, despacho del capitán y cámara del tesoro con su guardián, el Capitán Bruma. Dos puzles de palancas, dos trampas, dos generadores, una sala oculta y un bote con cofre.
+
 - Primera versión del mod: 72 aldeas enormes (36 estilos por bioma, cada uno en tamaño estándar y grande) que aparecen en chunks nuevos del Overworld, una cada 1000-2000 bloques.
 - Comandos de prueba `/function heraldia:muestrario` y `/function heraldia:familia/<familia>` para ver los estilos colocados en fila; sus mensajes salen en español o inglés según el idioma del cliente.
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
@@ -20,6 +22,9 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 ### Técnico
 
 - `writer.py`: se quita la segunda mezcla duplicada de los textos `LANG` de las estructuras únicas, que había entrado por dos PR paralelos.
+- Faro (`tools/gen/unicas/faro/`): plantilla única de 44 x 52 x 48 y tipo de estructura propio `heraldia:faro` (Java) que busca la línea de costa con los mapas de alturas de generación y gira la plantilla hacia el mar; con `/place structure` se coloca aunque no haya costa. Comprobaciones propias: simulación de redstone de puzles y trampas, cueva estanca, ruina estimada (15,8 %) y recorrido a pie.
+- `lint.py`: el cable trampa y las palancas no estorban el paso, la trampilla abierta sobre una escalera de mano se trepa, y una plantilla puede declarar `lint_open` (estado con los puzles resueltos) para el recorrido a pie. `writer.py` suma los textos `LANG` de cada estructura única.
+
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
 - La ruta de los registros de 26.3 para validar es configurable (`--registries`, `MCMETA_SUMMARY` o `-Pmcmeta_summary`); por defecto se clona `misode/mcmeta` rama `26.3-summary` en `build/` y no se sube al repositorio.

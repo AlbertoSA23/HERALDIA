@@ -19,6 +19,8 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # Opcional (mapas del tesoro, ver mapas.py): nombre para el mapa y su marca en el mapa.
   NOMBRE = {"es_es": "Atlántida", "en_us": "Atlantis"}           # por defecto, el id
   MAPA = {"decoration": "minecraft:monument"}                     # por defecto minecraft:red_x
+  LANG = {"es_es": {...}, "en_us": {...}}   # opcional: textos propios (mismas claves en los dos idiomas)
+  # Opcional en una plantilla: t.lint_open = {pos: estado o None}, estado con los puzles resueltos para el recorrido a pie.
 
 Botín y Lootr: un grupo (pool) con "solo_sin_lootr": True se omite si el servidor lleva Lootr
 (condición heraldia:sin_lootr). Úsalo para el extra por cofre, de modo que con Lootr cada jugador reciba lo modesto.
