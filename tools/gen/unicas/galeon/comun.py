@@ -20,7 +20,7 @@ class Obra:
         self.superficie = set()   # celdas de obra expuesta (casco, cubiertas, velas)
         self.circuitos = []       # escenarios de redstone a comprobar
         self.rasgado = {}         # desgarro de cada columna de vela
-        t.solved_open = set()
+        t.lint_open = {}       # puertas de puzle abiertas para el recorrido a pie
 
     # --- básicos
     def s(self, x, y, z, st, nbt=None):

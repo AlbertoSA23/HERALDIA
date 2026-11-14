@@ -68,7 +68,7 @@ def build(reg):
     o = construir()
     d = o.t.bounds()[:3]
     reg.add(o.t, "unica")                       # normaliza a coordenadas >= 0
-    o.t.solved_open = {shift(p, d) for p in o.t.solved_open}
+    o.t.lint_open = {shift(p, d): v for p, v in o.t.lint_open.items()}
     o.ruina = {shift(p, d) for p in o.ruina}
     o.superficie = {shift(p, d) for p in o.superficie}
     o.circuitos = [(n, [(k, shift(p, d)) for k, p in a], [(k, shift(p, d)) for k, p in e]) for n, a, e in o.circuitos]

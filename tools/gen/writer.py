@@ -215,12 +215,17 @@ def write(reg, out):
         with open(os.path.join(fdir, fn), "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
+    for _, mod in unicas.modules():                 # textos propios de cada estructura única
+        for lang, texts in getattr(mod, "LANG", {}).items():
+            LANG[lang].update(texts)
     maps_lang = mapas.lang(uniques)
+    for sid, mod in unicas.modules():
+        extra = getattr(mod, "LANG", {})
+        assert extra.get("es_es", {}).keys() == extra.get("en_us", {}).keys(), sid
+        for lang, texts in extra.items():
+            LANG[lang].update(texts)
     for lang, texts in LANG.items():
-        texts = dict(texts, **maps_lang[lang])
-        for _, mod in unicas.modules():          # textos propios de cada estructura única (LANG del módulo)
-            texts.update(getattr(mod, "LANG", {}).get(lang, {}))
-        jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
+        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang]))
 
 
 def write_unique(out, sid, st):

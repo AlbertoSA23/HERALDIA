@@ -356,7 +356,7 @@ def castillo_popa(o):
         o.s(x_w, y, 52, "sticky_piston[extended=true,facing=south]")
         o.s(x_w, y, 53, "piston_head[facing=south,short=false,type=sticky]")
         o.s(x_w, y, 54, "bookshelf")
-        o.t.solved_open.add((x_w, y, 54))
+        o.t.lint_open[(x_w, y, 54)] = None
     o.s(x_w + 1, 10, 52, "redstone_wall_torch[facing=north,lit=true]")
     o.s(x_w + 1, 10, 54, "lever[face=wall,facing=south,powered=false]")
     o.circuitos.append(("estanteria", [("palanca", (x_w + 1, 10, 54))],
