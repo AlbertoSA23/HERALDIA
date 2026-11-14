@@ -5,6 +5,8 @@ from themes import THEMES, FAMILIES
 from pack import ALL_PROFS
 import loot
 import unicas
+import mapas
+import opciones
 
 STD = dict(size=6, maxdist=92)
 GRANDE = dict(size=7, maxdist=116)
@@ -40,6 +42,8 @@ LANG = {
         "heraldia.familia.terminada": "Family finished.",
     },
 }
+for _lang, _texts in opciones.lang().items():
+    LANG[_lang].update(_texts)
 assert LANG["es_es"].keys() == LANG["en_us"].keys()
 
 
@@ -115,19 +119,27 @@ def write(reg, out):
         jdump(out, f"data/{NS}/worldgen/structure/{tid}_grande.json", dict(base, start_pool=f"{NS}:{tid}/plaza_grande",
                                                                             size=grande["size"], max_distance_from_center=grande["maxdist"],
                                                                             pool_aliases=aliases))
-        set_entries.append({"structure": f"{NS}:{tid}", "weight": 3})
+        # mismo peso: la proporción estándar/grande la decide el mod en cada casilla (aldeas.porcentaje_grandes)
+        set_entries.append({"structure": f"{NS}:{tid}", "weight": 1})
         set_entries.append({"structure": f"{NS}:{tid}_grande", "weight": 1})
-    # separación media ~1500 bloques: distancias entre aldeas vecinas de ~1000 a ~2000
+    # heraldia:rejilla = random_spread con separación, máximo y zona de exclusión leídos de config/heraldia.json
     jdump(out, f"data/{NS}/worldgen/structure_set/aldeas.json", {
         "structures": set_entries,
-        "placement": {"type": "minecraft:random_spread", "spacing": 94, "separation": 62, "salt": 261112013,
-                      "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": 10}}})
+        "placement": {"type": f"{NS}:rejilla", "grupo": "aldeas", "spacing": opciones.VILLAGE_SPACING,
+                      "separation": opciones.VILLAGE_SEPARATION, "salt": opciones.VILLAGE_SALT,
+                      "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": opciones.VANILLA_EXCLUSION_CHUNKS}}})
+    jdump(out, f"data/{NS}/tags/worldgen/structure/aldeas.json", {"values": [e["structure"] for e in set_entries]})
+    jdump(out, f"{NS}/opciones.json", opciones.schema())
     # estructuras únicas
     for sid, mod in unicas.modules():
         write_unique(out, sid, mod.STRUCTURE)
     # botín
+    uniques = unicas.modules()
     for name, table in loot.TABLES.items():
+        if name == "epico":
+            table = mapas.with_maps(table, uniques)
         jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
+    mapas.write(out, uniques, jdump)
     for sid, mod in unicas.modules():
         for name, table in getattr(mod, "LOOT", {}).items():
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
@@ -139,14 +151,15 @@ def write(reg, out):
             "# Aldeas enormes: inicialización",
             "scoreboard objectives add heraldia_g dummy",
             "schedule function heraldia:golems 600t replace"],
+        # heraldia_cfg lo rellena el mod al arrancar desde config/heraldia.json (#limpieza 0/1, #limite_estandar, #limite_grande)
         "golems.mcfunction": [
             "# Cada 30 s revisa las aldeas cargadas y limita los gólems naturales (+25 % sobre la dotación inicial)",
-            "execute as @e[type=minecraft:armor_stand,tag=heraldia_centro] at @s run function heraldia:golem_check",
+            "execute if score #limpieza heraldia_cfg matches 1 as @e[type=minecraft:armor_stand,tag=heraldia_centro] at @s run function heraldia:golem_check",
             "schedule function heraldia:golems 600t replace"],
         "golem_check.mcfunction": [
             "execute store result score @s heraldia_g if entity @e[type=minecraft:iron_golem,distance=..112,nbt={PlayerCreated:0b}]",
-            "execute if entity @s[tag=heraldia_std] if score @s heraldia_g matches 8.. as @e[type=minecraft:iron_golem,distance=..112,nbt={PlayerCreated:0b},sort=random,limit=1] at @s run tp @s ~ -200 ~",
-            "execute if entity @s[tag=heraldia_grande] if score @s heraldia_g matches 9.. as @e[type=minecraft:iron_golem,distance=..112,nbt={PlayerCreated:0b},sort=random,limit=1] at @s run tp @s ~ -200 ~"],
+            "execute if entity @s[tag=heraldia_std] if score @s heraldia_g >= #limite_estandar heraldia_cfg as @e[type=minecraft:iron_golem,distance=..112,nbt={PlayerCreated:0b},sort=random,limit=1] at @s run tp @s ~ -200 ~",
+            "execute if entity @s[tag=heraldia_grande] if score @s heraldia_g >= #limite_grande heraldia_cfg as @e[type=minecraft:iron_golem,distance=..112,nbt={PlayerCreated:0b},sort=random,limit=1] at @s run tp @s ~ -200 ~"],
     }
     # --- muestrario: coloca los 72 estilos en una cuadrícula, uno cada 8 s, guiando al jugador
     STEP, WAIT = 300, 160
@@ -202,9 +215,10 @@ def write(reg, out):
         with open(os.path.join(fdir, fn), "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
+    maps_lang = mapas.lang(uniques)
     for lang, texts in LANG.items():
         extra = {k: v for _, m in unicas.modules() for k, v in getattr(m, "LANG", {}).get(lang, {}).items()}
-        jdump(out, f"assets/{NS}/lang/{lang}.json", {**texts, **extra})
+        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang], **extra))
 
 
 def write_unique(out, sid, st):
@@ -220,8 +234,10 @@ def write_unique(out, sid, st):
     jdump(out, f"data/{NS}/worldgen/structure/unicas/{sid}.json", structure)
     jdump(out, f"data/{NS}/worldgen/structure_set/unicas/{sid}.json", {
         "structures": [{"structure": sid_full, "weight": 1}],
-        "placement": {"type": "minecraft:random_spread", "spacing": st.get("spacing", unicas.DEFAULT_SPACING),
-                      "separation": st.get("separation", unicas.DEFAULT_SEPARATION), "salt": unicas.salt(sid)}})
+        # colocación propia de la estructura (p. ej. la Atlántida, siempre una) o rejilla configurable heraldia:rejilla
+        "placement": st.get("placement") or {
+            "type": f"{NS}:rejilla", "grupo": f"unicas/{sid}", "spacing": st.get("spacing", unicas.DEFAULT_SPACING),
+            "separation": st.get("separation", unicas.DEFAULT_SEPARATION), "salt": unicas.salt(sid)}})
     jdump(out, f"data/{NS}/tags/worldgen/structure/unicas/{sid}.json", {"values": [sid_full]})
 
 
@@ -231,7 +247,9 @@ def lootr_aware(table):
     for p in table["pools"]:
         p = dict(p)
         if p.pop("solo_sin_lootr", False):
-            p["conditions"] = p.get("conditions", []) + [{"condition": f"{NS}:sin_lootr"}]
+            # 26.3: un grupo lleva una sola "condition" con "type" (varias, con all_of).
+            cond = {"type": f"{NS}:sin_lootr"}
+            p["condition"] = {"type": "minecraft:all_of", "terms": [p["condition"], cond]} if "condition" in p else cond
         pools.append(p)
     return dict(table, pools=pools)
 

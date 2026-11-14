@@ -9,14 +9,20 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
       step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG" (o None),
       spacing=250, separation=190,   # chunks; por defecto una cada ~3.000-5.000 bloques
   )
+  # La rejilla es heraldia:rejilla: activada y separación en bloques se configuran en config/heraldia.json
+  # (unicas.<id>.activada, unicas.<id>.separacion_bloques) sin escribir código; spacing/separation dan el valor por defecto.
+  # Opcional: STRUCTURE["placement"] = colocación propia (dict JSON); la estructura deja entonces de ser configurable.
   # Opcional: STRUCTURE["json"] = dict completo de la estructura (tipo propio en Java, por ejemplo); sustituye al anterior.
   def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.
   LOOT = {"premium": tabla, ...}   -> heraldia:unicas/<id>/<nombre>
   LANG = {"es_es": {...}, "en_us": {...}}   (opcional) claves de traducción propias que se suman al idioma del mod.
+  # Opcional (mapas del tesoro, ver mapas.py): nombre para el mapa y su marca en el mapa.
+  NOMBRE = {"es_es": "Atlántida", "en_us": "Atlantis"}           # por defecto, el id
+  MAPA = {"decoration": "minecraft:monument"}                     # por defecto minecraft:red_x
 
 Botín y Lootr: un grupo (pool) con "solo_sin_lootr": True se omite si el servidor lleva Lootr
 (condición heraldia:sin_lootr). Úsalo para el extra por cofre, de modo que con Lootr cada jugador reciba lo modesto.
-El generador escribe además la etiqueta heraldia:unicas/<id> (para mapas del tesoro) y su structure_set.
+El generador escribe además la etiqueta heraldia:unicas/<id> y su structure_set, y el mapa del tesoro\n(cofre épico de las aldeas y trato de maestro cartógrafo; mapas.py).
 """
 import importlib, pkgutil, zlib
 

@@ -224,7 +224,7 @@ def to_tag(v):
 
 # --- entidades comunes ---
 def villager(prof, vtype, employed=True):
-    n = {"id": "minecraft:villager", "PersistenceRequired": B(1),
+    n = {"id": "minecraft:villager", "PersistenceRequired": B(1), "Tags": ["heraldia"],   # los tratos de mapas (mapas.py) la piden
          "VillagerData": {"profession": "minecraft:" + (prof if employed else "none"),
                           "level": 1, "type": "minecraft:" + vtype}}
     if employed:
