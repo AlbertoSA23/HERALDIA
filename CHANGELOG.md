@@ -14,8 +14,12 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 - Fichero de configuración `config/heraldia.json`: separación entre aldeas (1000-10000 bloques, por defecto 1500), máximo de aldeas por mundo (hasta 100, las más cercanas al 0,0), porcentaje de grandes, distancia a las aldeas vanilla, familias y estilos activables, límites y limpieza de gólems, y activación y separación de cada estructura única. Los valores no válidos se avisan en el log y se cambian por los de por defecto.
 
+- Estructura única **Monasterio de montaña** (prados de montaña y arboledas, una cada 3000-5000 bloques): monasterio sobre su propio risco con tres terrazas, portería, cementerio, huerto, refectorio, bodega, claustro, biblioteca, dormitorio, iglesia y campanario; debajo, cripta y cuevas con ermitas, osario, archivo secreto, catacumbas y el relicario con su guardián. Tres monjes, dos puzles de palancas, dos trampas, cuatro generadores de monstruos, salas ocultas y cofre premium.
+
 ### Técnico
 
+- `tools/gen/unicas/monasterio/`: una sola plantilla rígida (59 × 92 × 71) que trae su propio macizo de roca y aire sobre las terrazas, `terrain_adaptation: none`, `start_height: -25` proyectado a la superficie. Auditoría propia (`auditoria.py`): simulador de redstone que exige estados coherentes al colocarse y prueba las 2^n combinaciones de cada puzle, trampas bien conectadas, nada flotando, 15-20 % de ruinas, cofres y enemigos; planos por nivel y renders en `docs/unicas/monasterio/`. Prueba en servidor de los puzles: `tools/gen/unicas/monasterio/prueba_servidor.py`.
+- Generador: un módulo de `unicas/` puede aportar textos traducibles con `LANG`; `lint.py` acepta `audit_view` (vista de auditoría con las puertas secretas abiertas) y trata ganchos, cable trampa y palancas como transitables.
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
 - La ruta de los registros de 26.3 para validar es configurable (`--registries`, `MCMETA_SUMMARY` o `-Pmcmeta_summary`); por defecto se clona `misode/mcmeta` rama `26.3-summary` en `build/` y no se sube al repositorio.

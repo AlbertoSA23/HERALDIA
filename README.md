@@ -8,7 +8,8 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+- **Estructuras únicas** (una de cada tipo cada 3000-5000 bloques, en su bioma):
+  - **Monasterio de montaña** (`heraldia:unicas/monasterio`; prados de montaña y arboledas): terrazas sobre un risco, iglesia, claustro y cuevas con puzles, trampas, guardián y cofre premium. Diseño en `docs/unicas/monasterio.md`.
 
 ## Instalación
 

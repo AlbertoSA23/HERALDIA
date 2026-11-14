@@ -5,7 +5,7 @@ from core import parse_state
 PASS_WORDS = ("_carpet", "torch", "_banner", "rail", "pressure_plate", "button",
               "ladder", "_door", "poppy", "dandelion", "allium", "azure_bluet", "tulip", "orchid", "cornflower",
               "oxeye", "lily_of_the_valley", "rose_bush", "fern", "dead_bush", "sweet_berry", "wheat", "carrots",
-              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass")
+              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass", "tripwire", "lever")
 
 
 def bname(st):
@@ -316,6 +316,7 @@ def lint_registry(reg, only=None):
     for name, t in reg.templates.items():
         if only and not only(name):
             continue
+        t = getattr(t, "audit_view", None) or t      # vista con las puertas secretas abiertas, si la plantilla la da
         iss = support_issues(t) + access_issues(t)
         if iss:
             res[name] = iss

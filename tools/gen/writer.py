@@ -44,6 +44,9 @@ LANG = {
 }
 for _lang, _texts in opciones.lang().items():
     LANG[_lang].update(_texts)
+for _sid, _mod in unicas.modules():          # textos propios de cada estructura única (LANG del módulo)
+    for _lang, _texts in getattr(_mod, "LANG", {}).items():
+        LANG[_lang].update(_texts)
 assert LANG["es_es"].keys() == LANG["en_us"].keys()
 
 

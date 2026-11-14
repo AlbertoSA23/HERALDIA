@@ -229,7 +229,7 @@ class Obra(Template):
         for z in range(16, 20):                              # tramo caído de la cerca oriental
             self.set(54, y + 2, z, "air")
             self.set(54, y + 1, z, "air" if z % 2 else "mossy_stone_bricks")
-        self.set(53, y + 1, 17, "mossy_cobblestone")
+        self.set(53, y, 17, "mossy_cobblestone")
         self.ruinas.append((53, 16, 54, 19))
 
     def porteria(self):
@@ -449,7 +449,7 @@ class Obra(Template):
         for x in range(x1 + 1, x2):
             for z in range(z1, 44):
                 if z == z1:
-                    self.box(x, yb + 4, z, x, yb + 5, z, "air")
+                    self.box(x, yb + 4, z, x, yb + 7, z, "air")
         self.ruinas.append((x1, z1, x2, 43))
         self.set(6, yb + 1, 42, "hay_block[axis=y]")
         self.set(7, yb + 1, 42, f"{PLSL}[type=bottom,waterlogged=false]")
@@ -680,6 +680,7 @@ class Obra(Template):
         self.box(x1, y, z1, x2, y, z2, PL)
         self.walls(x1, z1, x2, z2, y + 1, y + 8, SB, corner=TR)
         self.box(x1 + 1, y + 1, 62, x2 - 1, y + 8, 62, SB)
+        self.door(x2, y + 1, 57, "west")                               # puerta desde el claustro
         self.box(x1 + 1, y + 7, z1 + 1, x2 - 1, y + 7, z2 - 1, PL)     # techo / suelo del desván
         self.gable_z(x1, x2, z1, z2, y + 9)
         self.box(x1 + 1, y + 9, z1, x2 - 1, y + 9, z1, SB)
@@ -737,7 +738,7 @@ class Obra(Template):
         self.set(8, y + 1, 70, SB)
         self.set(8, y + 2, 70, stair(SBS, "south"))
         self.set(8, y + 4, 70, "white_wall_banner[facing=north]")
-        self.hang(8, y + 6, 66)
+        self.hang(11, y + 6, 66)
         # media cubierta caída sobre la sala capitular
         for x in range(x1 - 1, 9):
             for z in range(66, z2 + 2):
@@ -757,6 +758,7 @@ class Obra(Template):
         self.huella.append((x1, z1, x2, z2))
         self.box(x1 + 1, y, z1, x2, y, z2, PL)
         self.walls(x1, z1, x2, z2, y + 1, y + 5, SB, corner=TR)
+        self.door(x1, y + 1, 52, "east")                               # puerta desde el claustro
         self.box(x1 + 1, y + 5, z1 + 1, x2 - 1, y + 5, z2 - 1, PL)
         self.gable_z(x1, x2, z1, z2, y + 6)
         self.box(x1 + 1, y + 6, z1, x2 - 1, y + 6, z1, SB)
@@ -800,7 +802,7 @@ class Obra(Template):
         self.box(45, y + 1, 51, 47, y + 4, 53, "air")
         # dos celdas del norte (este) sin techo: cubierta hundida
         for x in range(52, x2 + 2):
-            for z in range(62, z2 + 1):
+            for z in range(62, z2 + 2):
                 for yy in range(y + 5, y + 14):
                     if (x, yy, z) in self.blocks and not (x == x2 and yy == y + 5) and not (z == z2 and yy <= y + 5):
                         if x >= 53 or yy > y + 5:
@@ -917,8 +919,8 @@ class Obra(Template):
             self.box(x0, yb + 1, 84, x0 + 1, yb + 1, 84, "polished_deepslate")
             self.box(x0, yb + 2, 84, x0 + 1, yb + 2, 84, f"{RSL}[type=bottom,waterlogged=false]")
         self.spawner(46, yb + 1, 82, "zombie")
-        self.set(47, yb + 1, 84, "cobweb")
-        self.set(40, yb + 5, 76, "cobweb")
+        self.cobweb(47, yb + 1, 84)
+        self.cobweb(40, yb + 5, 76)
         self.set(47, yb + 1, 74, "skeleton_skull[rotation=4]")
         self.candle(41, yb + 3, 79, 2, lit=False)
         self.puzle_cripta()
@@ -1010,6 +1012,13 @@ class Obra(Template):
         self.ruinas.append((x2 - 1, z2 - 1, x2, z2))
 
     # ------------------------------------------------------------ cuevas
+    def cobweb(self, x, y, z):
+        for k in range(6):
+            above = self.get(x, y + k + 1, z)
+            if above and above != "minecraft:air":
+                self.set(x, y + k, z, "cobweb")
+                return
+
     def carve(self, x1, y1, z1, x2, y2, z2):
         self.box(x1, y1, z1, x2, y2, z2, "air")
 
@@ -1044,8 +1053,8 @@ class Obra(Template):
         self.ermita(33, 38, 23, 28, "south", (34, 36, 29, 34))
         self.trampa_cable(35, 31)
         self.aranas()
-        self.osario()
         self.archivo()
+        self.osario()
         self.catacumbas()
 
     def ermita(self, x1, x2, z1, z2, door, passage):
@@ -1082,7 +1091,7 @@ class Obra(Template):
             self.chest(x2, y + 1, z1, "west", "ermita")
             self.set(x1, y + 1, z2 - 1, "hay_block[axis=y]")
             self.set(x1, y + 2, z2 - 1, "white_carpet")
-        self.set(x1, y + 4, z1, "cobweb")
+        self.cobweb(x1, y + 4, z1)
 
     def trampa_cable(self, xc, z):
         """Trampa 1 (como el templo de la jungla): cable trampa entre dos ganchos; cada gancho activa el dispensador de encima."""
@@ -1110,7 +1119,7 @@ class Obra(Template):
         self.spawner(17, y + 1, 57, "cave_spider")
         self.chest(14, y + 1, 56, "east", "menor")
         for x, z, yy in ((15, 54, 2), (20, 58, 1), (16, 59, 2), (21, 55, 3), (18, 53, 3), (14, 57, 2), (19, 56, 1)):
-            self.set(x, y + yy, z, "cobweb")
+            self.cobweb(x, y + yy, z)
         self.set(16, y + 1, 54, "skeleton_skull[rotation=2]")
 
     def osario(self):
@@ -1130,45 +1139,48 @@ class Obra(Template):
             self.set(x2 - 1, y + 1, z, "skeleton_skull[rotation=4]")
         self.spawner(48, y + 1, 41, "skeleton")
         for x, z, yy in ((44, 39, 4), (52, 44, 4), (50, 38, 1), (47, 45, 3)):
-            self.set(x, y + yy, z, "cobweb")
+            self.cobweb(x, y + yy, z)
         self.puzle_osario()
 
     def puzle_osario(self):
-        """Puzle 2: abre la puerta del archivo solo con las palancas 1 y 3 subidas y la 2 bajada."""
+        """Puzle 2: abre la puerta del archivo solo con las palancas 1 y 3 subidas y la 2 bajada.
+        Palancas 1 y 3 -> antorchas inversoras; palanca 2 -> polvo; las tres salidas se suman en la línea z=49,
+        que alimenta el bloque de la antorcha final; esa antorcha abre la puerta de hierro."""
         y = CAVE + 1
-        zl, zw, zm, zb = 46, 47, 48, 49
+        zl, zw, zt, zs, zb = 46, 47, 48, 49, 50
         a = 43
-        for x in range(a - 1, a + 11):
+        for x in range(a - 1, a + 12):
             for yy in range(CAVE, CAVE + 4):
                 self.set(x, yy, zw, "stone_bricks" if yy > CAVE else "stone")
-                self.set(x, yy, zm, "stone")
+                self.set(x, yy, zt, "stone")
+                self.set(x, yy, zs, "stone")
                 self.set(x, yy, zb, "stone_bricks")
         levers = [a, a + 2, a + 4]
         for x in levers:
             self.set(x, y, zl, "lever[face=wall,facing=north,powered=false]")
-        self.set(a, y, zm, "redstone_wall_torch[facing=south,lit=true]")
-        self.set(a + 4, y, zm, "redstone_wall_torch[facing=south,lit=true]")
-        power = {a + 1: 15, a + 2: 14, a + 3: 15, a + 5: 15, a + 6: 14}
-        for x, p in power.items():
-            self.set(x, y, zm, f"redstone_wire[east=side,north=none,power={p},south=none,west=side]")
-        bf = a + 7
-        self.set(bf, y, zm, "stone")
-        self.set(bf + 1, y, zm, "redstone_wall_torch[facing=east,lit=false]")
+        self.set(a, y, zt, "redstone_wall_torch[facing=south,lit=true]")
+        self.set(a + 4, y, zt, "redstone_wall_torch[facing=south,lit=true]")
+        self.set(a + 2, y, zt, "redstone_wire[east=none,north=side,power=0,south=side,west=none]")
+        for x in range(a, a + 8):
+            ns = "side" if x == a + 2 else "none"
+            self.set(x, y, zs, f"redstone_wire[east=side,north={ns},power=0,south=none,west=side]")
+        bf = a + 8
+        self.set(bf, y, zs, "stone")
+        self.set(bf + 1, y, zs, "redstone_wall_torch[facing=east,lit=false]")
         xd = bf + 2
-        self.set(xd, y, zw, "air")
-        self.set(xd, y + 1, zw, "air")
-        self.set(xd, y, zb, "air")
-        self.set(xd, y + 1, zb, "air")
-        self.set(xd, y, zm, "iron_door[facing=north,half=lower,hinge=left,open=false,powered=false]")
-        self.set(xd, y + 1, zm, "iron_door[facing=north,half=upper,hinge=left,open=false,powered=false]")
+        for z in (zw, zt, zb):
+            self.set(xd, y, z, "air")
+            self.set(xd, y + 1, z, "air")
+        self.set(xd, y, zs, "iron_door[facing=north,half=lower,hinge=left,open=false,powered=false]")
+        self.set(xd, y + 1, zs, "iron_door[facing=north,half=upper,hinge=left,open=false,powered=false]")
         self.sign(a + 2, y + 2, zl, "north", "osario", ["Velan el primero", "y el último;", "el del medio", "duerme."])
         self.circuitos["osario"] = dict(levers=[(x, y, zl) for x in levers], solucion=(True, False, True),
-                                        salida=[(xd, y, zm)], abre_si="con_potencia")
+                                        salida=[(xd, y, zs)], abre_si="con_potencia")
 
     def archivo(self):
         y = CAVE
-        x1, x2, z1, z2 = 43, 54, 49, 58
-        self.box(x1, y, z1 + 1, x2, y + 6, z2, "stone_bricks")
+        x1, x2, z1, z2 = 43, 54, 50, 58
+        self.box(x1, y, z1, x2, y + 6, z2, "stone_bricks")
         self.carve(x1 + 1, y + 1, z1 + 1, x2 - 1, y + 5, z2 - 1)
         self.box(x1 + 1, y, z1 + 1, x2 - 1, y, z2 - 1, "dark_oak_planks")
         for z in range(z1 + 1, z2):
@@ -1208,7 +1220,7 @@ class Obra(Template):
         self.chest(46, y + 1, 71, "east", "catacumba")
         self.spawner(50, y + 1, 70, "zombie")
         for x, z, yy in ((47, 68, 4), (50, 73, 4), (48, 72, 1)):
-            self.set(x, y + yy, z, "cobweb")
+            self.cobweb(x, y + yy, z)
         # antecámara con la trampa 2: losas de presión sobre dispensadores que disparan hacia arriba
         self.box(45, y, 75, 52, y + 6, 79, "polished_blackstone_bricks")
         self.carve(47, y + 1, 75, 50, y + 5, 78)
@@ -1284,6 +1296,16 @@ class Obra(Template):
                 up = "false" if straight and not (above and above != "minecraft:air") else "true"
                 self.set(x, y, z, f"{b}[east={props['east']},north={props['north']},south={props['south']},up={up},waterlogged=false,west={props['west']}]")
 
+    def puzles_ajuste(self):
+        """Niveles de polvo y antorchas del estado estable (calculados por el simulador de auditoria)."""
+        from .auditoria import simular
+        dust, _, torches = simular(self, {})
+        for p, pw in dust.items():
+            self.set(*p, self.get(*p).replace(f"power={self.get(*p).split('power=')[1].split(',')[0].split(']')[0]}", f"power={pw}"))
+        for p, lit in torches.items():
+            st = self.get(*p)
+            self.set(*p, st.replace("lit=true", f"lit={'true' if lit else 'false'}").replace("lit=false", f"lit={'true' if lit else 'false'}"))
+
     def entrada(self):
         self.jigsaw(29, F0, 0, "north_up", "heraldia:entrance", "heraldia:entrance", "minecraft:empty",
                     final_state="minecraft:stone_bricks")
@@ -1315,4 +1337,7 @@ def construir():
     o.monjes()
     o.connect()
     o.entrada()
+    from pack import fix_supports
+    fix_supports(o)
+    o.puzles_ajuste()
     return o

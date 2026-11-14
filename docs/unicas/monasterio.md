@@ -121,6 +121,18 @@ Nada de netherita en equipo ni élitros. Los nombres de objeto y del guardián u
 - Simetría en iglesia, claustro, portería y refectorio; cada estancia con su función.
 - Nada flotando: comprobación propia de bloques sueltos (todo debe tocar el macizo).
 
+## Comprobado
+
+- Auditoría propia (condición para generar): estados de redstone coherentes al colocarse, las 4 y 8 combinaciones de
+  palancas de los dos puzles (solo la solución abre), ganchos y losas con su dispensador, nada flotando, ruinas al 15,7 %
+  de la huella, cofres con tabla existente, generadores y guardián. `lint.py` sobre la vista con las puertas secretas
+  abiertas: recorrido a pie desde la entrada hasta cada puerta, cofre, mueble y escala; jigsaw intacto.
+- Servidor dedicado 26.3 (`prueba_servidor.py`): la plantilla se coloca; pistones extendidos, lámparas encendidas,
+  antorchas y puerta en su estado; generador y guardián presentes; el puzle 1 abre solo con las dos palancas
+  apagadas y el 2 solo con 1 y 3 subidas.
+- Sin comprobar en el juego: que las trampas disparen al pisarlas o cruzarlas, que los generadores saquen mobs, el
+  encaje en laderas reales y el aspecto (faltan capturas de Alberto).
+
 ## Planos y renders
 
 En `docs/unicas/monasterio/`: planos por nivel en texto (`planos.txt`, celdas alcanzables marcadas) y
