@@ -15,6 +15,7 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # Opcional: STRUCTURE["json"] = dict completo de la estructura (tipo propio en Java, por ejemplo); sustituye al anterior.
   def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.
   LOOT = {"premium": tabla, ...}   -> heraldia:unicas/<id>/<nombre>
+  LANG = {"es_es": {...}, "en_us": {...}}   (opcional) claves de traducción propias que se suman al idioma del mod.
   # Opcional (mapas del tesoro, ver mapas.py): nombre para el mapa y su marca en el mapa.
   NOMBRE = {"es_es": "Atlántida", "en_us": "Atlantis"}           # por defecto, el id
   MAPA = {"decoration": "minecraft:monument"}                     # por defecto minecraft:red_x
