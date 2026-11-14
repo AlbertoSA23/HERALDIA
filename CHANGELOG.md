@@ -20,6 +20,8 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Técnico
 
+- Piezas comunes de las estructuras únicas en `tools/gen/unicas/_comun/` (puertas, faroles, mesas y sillas, carteles, generadores, guardianes, dispensadores, cable trampa, grupos de cofre con extra sin Lootr, objetos con nombre y simulación sencilla de redstone). Faro, fortaleza de hielo y ciudadela las usan; la salida de la fortaleza y de la ciudadela es idéntica a la anterior (comparada fichero a fichero).
+
 - Faro (`tools/gen/unicas/faro/`): plantilla única de 44 x 52 x 48 y tipo de estructura propio `heraldia:faro` (Java) que busca la línea de costa con los mapas de alturas de generación y gira la plantilla hacia el mar; con `/place structure` se coloca aunque no haya costa. Comprobaciones propias: simulación de redstone de puzles y trampas, cueva estanca, ruina estimada (15,8 %) y recorrido a pie.
 - `lint.py`: el cable trampa y las palancas no estorban el paso, la trampilla abierta sobre una escalera de mano se trepa, y una plantilla puede declarar `lint_open` (estado con los puzles resueltos) para el recorrido a pie. `writer.py` suma los textos `LANG` de cada estructura única.
 

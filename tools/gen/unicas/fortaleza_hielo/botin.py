@@ -1,6 +1,7 @@
 """Botín de la fortaleza de hielo: solo vanilla, modesto en los cofres menores y más rico cuanto más escondido.
 Cada tabla termina con un grupo extra marcado solo_sin_lootr (con Lootr cada jugador recibe solo lo demás)."""
 from loot import item, empty
+from unicas._comun import botin as _comun
 
 K = "heraldia.unicas.fortaleza_hielo."
 NAMES = {   # clave -> (es_es, en_us)
@@ -17,25 +18,12 @@ LANG = {"es_es": {K + k: v[0] for k, v in NAMES.items()}, "en_us": {K + k: v[1] 
 
 
 def named(name, key, w, ench=None):
-    e = item(name, w, ench=ench)
-    mods = e.pop("modifier", None)
-    mods = [] if mods is None else (mods if isinstance(mods, list) else [mods])
-    mods.append({"type": "minecraft:set_name", "target": "item_name",
-                 "name": {"translate": K + key, "fallback": NAMES[key][0]}})
-    e["modifier"] = mods
-    return e
+    return _comun.named(name, w, K + key, NAMES[key][0], ench=ench)
 
 
 def pools(*groups):
     """groups: (rolls, entries[, solo_sin_lootr])."""
-    out = []
-    for g in groups:
-        r = g[0]
-        p = {"rolls": r if isinstance(r, int) else {"type": "minecraft:uniform", "min": r[0], "max": r[1]}, "entries": g[1]}
-        if len(g) > 2 and g[2]:
-            p["solo_sin_lootr"] = True
-        out.append(p)
-    return {"type": "minecraft:chest", "pools": out}
+    return _comun.table(*(_comun.pool(*g) for g in groups))
 
 
 FOOD = [item("bread", 10, 1, 3), item("cooked_mutton", 6, 1, 2), item("cooked_rabbit", 5, 1, 2),

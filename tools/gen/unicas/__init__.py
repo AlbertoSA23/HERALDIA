@@ -21,6 +21,8 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   LANG = {"es_es": {...}, "en_us": {...}}   # opcional: textos propios (mismas claves en los dos idiomas)
   # Opcional en una plantilla: t.lint_open = {pos: estado o None}, estado con los puzles resueltos para el recorrido a pie.
 
+Piezas comunes (reutilízalas antes de escribir otras): unicas/_comun/ (piezas.py, botin.py, redstone.py).
+
 Botín y Lootr: un grupo (pool) con "solo_sin_lootr": True se omite si el servidor lleva Lootr
 (condición heraldia:sin_lootr). Úsalo para el extra por cofre, de modo que con Lootr cada jugador reciba lo modesto.
 El generador escribe además la etiqueta heraldia:unicas/<id> y su structure_set, y el mapa del tesoro\n(cofre épico de las aldeas y trato de maestro cartógrafo; mapas.py).

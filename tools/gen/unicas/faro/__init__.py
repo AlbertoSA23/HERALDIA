@@ -4,6 +4,8 @@ Se sitúa junto al mar con el tipo de estructura propio heraldia:faro (Java), qu
 plantilla para que la boca de la cueva mire al agua.
 """
 from loot import item, empty
+from unicas._comun import botin as _botin
+from unicas._comun.botin import chest
 import unicas
 
 SID = "faro"
@@ -51,21 +53,9 @@ STRUCTURE = dict(spacing=unicas.DEFAULT_SPACING, separation=unicas.DEFAULT_SEPAR
 
 
 def named(name, w, key, **kw):
-    e = item(name, w, **kw)
-    mods = e.pop("modifier", [])
-    mods = mods if isinstance(mods, list) else [mods]
-    mods.append({"type": "minecraft:set_name", "target": "custom_name",
-                 "name": {"translate": key, "fallback": LANG["es_es"][key]}})
-    e["modifier"] = mods
-    return e
+    return _botin.named(name, w, key, LANG["es_es"][key], **kw)
 
 
-def chest(base, extra, rolls=(3, 6), extra_rolls=(1, 3)):
-    """Grupo base (siempre) y grupo extra marcado solo_sin_lootr (con Lootr, cada jugador abre el base)."""
-    r = lambda v: {"type": "minecraft:uniform", "min": v[0], "max": v[1]} if isinstance(v, tuple) else v
-    return {"type": "minecraft:chest", "pools": [
-        {"rolls": r(rolls), "entries": base},
-        {"rolls": r(extra_rolls), "entries": extra, "solo_sin_lootr": True}]}
 
 
 FOOD = [item("bread", 10, 1, 3), item("cooked_cod", 8, 1, 3), item("dried_kelp", 8, 2, 6), item("apple", 6, 1, 3),

@@ -6,6 +6,7 @@ una piel de dos bloques: muro labrado por dentro y piedra por fuera.
 """
 import random
 from core import Template, B, F
+from unicas._comun import piezas
 from . import redstone
 
 NAME = "unicas/ciudadela/ciudadela"
@@ -80,9 +81,8 @@ class Plano:
         self.set(x, y, z, "lantern[hanging=true]")
 
     def spawner(self, x, y, z, mob, name):
-        self.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}},
-                                      "SpawnRange": 4, "MinSpawnDelay": 200, "MaxSpawnDelay": 800,
-                                      "SpawnCount": 3, "MaxNearbyEntities": 6, "RequiredPlayerRange": 16})
+        piezas.spawner(self.t, x, y, z, mob, SpawnRange=4, MinSpawnDelay=200, MaxSpawnDelay=800,
+                       SpawnCount=3, MaxNearbyEntities=6, RequiredPlayerRange=16)
         self.marks[name] = (x, y, z)
 
     def pillar(self, x, z, y0, y1, cap=C):
@@ -474,14 +474,11 @@ class Plano:
         zt = 43
         self.fill(62, F2 + 1, 39, 62, F2 + 4, 47, W)
         self.fill(66, F2 + 1, 39, 66, F2 + 4, 47, W)
-        self.set(63, F2 + 1, zt, "tripwire_hook[attached=true,facing=east,powered=false]")
-        self.set(65, F2 + 1, zt, "tripwire_hook[attached=true,facing=west,powered=false]")
-        self.set(64, F2 + 1, zt, "tripwire[attached=true,disarmed=false,east=true,west=true,north=false,south=false,powered=false]")
-        arrows = {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 9}]}
+        piezas.tripwire(self.t, (63, F2 + 1, zt), (65, F2 + 1, zt))
         disp = []
         for x, f in ((62, "east"), (66, "west")):
             for z in (zt - 1, zt + 1):
-                self.set(x, F2 + 1, z, f"dispenser[facing={f},triggered=false]", dict(arrows))
+                piezas.dispenser(self.t, x, F2 + 1, z, f)
                 disp.append((x, F2 + 1, z))
         self.circuits["flechas"] = dict(hooks=[(63, F2 + 1, zt), (65, F2 + 1, zt)], dispensers=disp)
         self.stairs_down(63, 65, 48, 1, F2, F2 - F3)
@@ -609,16 +606,13 @@ class Plano:
         redstone.set_wire_power(self.t)
 
 
-def guardian():
-    return {"id": "minecraft:vindicator", "PersistenceRequired": B(1),
-            "CustomName": {"translate": "heraldia.ciudadela.guardian", "fallback": "Borin Barbahierro, último guardián"},
-            "Health": F(60.0), "Rotation": [F(180.0), F(0.0)],
-            "attributes": [{"id": "minecraft:max_health", "base": 60.0}],
-            "equipment": {"mainhand": {"id": "minecraft:iron_axe", "count": 1},
-                          "head": {"id": "minecraft:iron_helmet", "count": 1},
-                          "chest": {"id": "minecraft:iron_chestplate", "count": 1}},
-            "drop_chances": {"mainhand": F(0.5), "head": F(0.25), "chest": F(0.25)}}
 
 
 def construir():
     return Plano().build()
+
+
+def guardian():
+    return piezas.guardian("vindicator", "heraldia.ciudadela.guardian", "Borin Barbahierro, último guardián", 60,
+                           {"mainhand": "iron_axe", "head": "iron_helmet", "chest": "iron_chestplate"},
+                           {"mainhand": 0.5, "head": 0.25, "chest": 0.25}, Rotation=[F(180.0), F(0.0)])

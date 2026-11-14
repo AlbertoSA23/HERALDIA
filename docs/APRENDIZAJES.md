@@ -35,6 +35,8 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Generador y auditoría
 
+- Piezas comunes en `tools/gen/unicas/_comun/`: `piezas.door/hang/table/chair/sign/spawner/guardian/dispenser/tripwire`, `botin.pool/table/chest/named` y `redstone.simulate` (palancas, antorchas y polvo plano; no pistones ni repetidores). Para refactorizar sin miedo: generar antes y después y comparar NBT y JSON ya leídos (no los bytes); así se comprobó que la fortaleza y la ciudadela no cambiaron.
+
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
 - Opciones del mod: se definen en `tools/gen/opciones.py` (por defecto, rango y textos en los dos idiomas), que las escribe en `heraldia/opciones.json` dentro del `.jar`. El Java las valida de forma genérica: una opción nueva no necesita código, salvo para usarla. Verificado en la prueba de humo (corrección de un valor fuera de rango).
 - Puzles de redstone sin actualizaciones al generar: `tools/gen/unicas/ciudadela/redstone.py` calcula como el juego la forma de cada cable y la señal de antorchas, pistones (con cuasiconectividad), puertas, dispensadores y TNT, comprueba que el estado colocado es estable y simula entradas. Reutilizable por otras estructuras. Verificado contra la puerta de pistones, la cerradura (16 combinaciones) y las trampas de la ciudadela; no se ha accionado en el juego.
@@ -44,3 +46,5 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 - `/place template <id> x y z` responde «Loaded template …» (no «Placed»). Verificado en un servidor dedicado.
 
 ## Fallos pendientes
+
+- Hay tres simulaciones de redstone (faro → `_comun/redstone.py`, `fortaleza_hielo/auditoria.py` con pistones, `ciudadela/redstone.py`): unificarlas en `_comun/redstone.py` ampliando la común con pistones.

@@ -4,6 +4,7 @@ Coordenadas de la plantilla: x de oeste a este (0..50), z de norte a sur (0..64)
 Zócalo macizo y = 0..10; patio a pie 11; criptas a pie 6; cámara del tesoro a pie 1; adarve a pie 20.
 """
 from core import Template, B, F
+from unicas._comun.piezas import door, hang, chair, table, spawner, dispenser, tripwire, guardian as _guardian
 
 SID = "fortaleza_hielo"
 L = f"heraldia:unicas/{SID}/"
@@ -28,26 +29,16 @@ def ruin(t, x, y, z, st="air"):
     RUIN.add((x, y, z))
 
 
-def door(t, x, y, z, facing, hinge="left", kind="spruce_door"):
-    t.set(x, y, z, f"{kind}[facing={facing},half=lower,hinge={hinge},open=false,powered=false]")
-    t.set(x, y + 1, z, f"{kind}[facing={facing},half=upper,hinge={hinge},open=false,powered=false]")
 
 
-def hang(t, x, y, z, soul=False):
-    t.set(x, y, z, f"{'soul_lantern' if soul else 'lantern'}[hanging=true,waterlogged=false]")
 
 
 def pane(t, x, y, z):
     t.set(x, y, z, "light_blue_stained_glass_pane")
 
 
-def chair(t, x, y, z, back):
-    t.set(x, y, z, f"spruce_stairs[facing={back},half=bottom,shape=straight]")
 
 
-def table(t, x, y, z):
-    t.set(x, y, z, "spruce_fence")
-    t.set(x, y + 1, z, "spruce_pressure_plate[powered=false]")
 
 
 def chest(t, x, y, z, facing, name):
@@ -447,13 +438,10 @@ def crypts(t):
     hang(t, 42, 9, 52, soul=True)
     cave(31, 50, 38, 52)                           # pasillo del cable trampa
     cave(30, 50, 30, 52)
-    t.set(35, 6, 50, "tripwire_hook[attached=true,facing=south,powered=false]")
-    t.set(35, 6, 52, "tripwire_hook[attached=true,facing=north,powered=false]")
-    t.set(35, 6, 51, "tripwire[attached=true,disarmed=false,east=false,north=true,powered=false,south=true,west=false]")
-    arrows = {"Items": [{"Slot": B(s), "id": "minecraft:arrow", "count": 16} for s in range(3)]}
+    tripwire(t, (35, 6, 50), (35, 6, 52))
     for x in (34, 36):
-        t.set(x, 6, 49, "dispenser[facing=south,triggered=false]", dict(id="minecraft:dispenser", **arrows))
-        t.set(x, 6, 53, "dispenser[facing=north,triggered=false]", dict(id="minecraft:dispenser", **arrows))
+        dispenser(t, x, 6, 49, "south", count=16, stacks=3)
+        dispenser(t, x, 6, 53, "north", count=16, stacks=3)
     # osario (strays)
     cave(31, 42, 37, 47)
     air(t, 32, 6, 48, 32, 7, 49)
@@ -501,8 +489,8 @@ def crypts(t):
     hang(t, 6, 4, 51, soul=True)
     air(t, 6, 1, 55, 6, 2, 56)
     t.set(6, 1, 55, "stone_pressure_plate[powered=false]")
-    t.set(5, 1, 55, "dispenser[facing=east,triggered=false]", dict(id="minecraft:dispenser", **arrows))
-    t.set(7, 1, 55, "dispenser[facing=west,triggered=false]", dict(id="minecraft:dispenser", **arrows))
+    dispenser(t, 5, 1, 55, "east", count=16, stacks=3)
+    dispenser(t, 7, 1, 55, "west", count=16, stacks=3)
     air(t, 3, 1, 57, 9, 4, 62)
     for (x, z) in ((3, 57), (9, 57), (3, 62), (9, 62)):
         box(t, x, 1, z, x, 4, z, BI)
@@ -512,21 +500,8 @@ def crypts(t):
     hang(t, 6, 4, 59, soul=True)
 
 
-def spawner(t, x, y, z, mob):
-    t.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}}})
 
 
-def guardian():
-    return {
-        "id": "minecraft:stray", "PersistenceRequired": B(1), "CustomNameVisible": B(1),
-        "CustomName": {"translate": "heraldia.unicas.fortaleza_hielo.guardian", "fallback": "El Rey Escarcha"},
-        "Health": F(40.0), "attributes": [{"id": "minecraft:max_health", "base": 40.0}],
-        "equipment": {
-            "mainhand": {"id": "minecraft:bow", "count": 1, "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
-            "head": {"id": "minecraft:iron_helmet", "count": 1},
-            "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}},
-        "drop_chances": {"mainhand": F(0.25), "head": F(0.15), "chest": F(0.15)},
-    }
 
 
 def wall_ruins(t):
@@ -582,3 +557,10 @@ def build_template():
     t.jigsaw(25, 0, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty",
              final_state="minecraft:stone_brick_slab[type=bottom]")
     return t
+
+
+def guardian():
+    return _guardian("stray", "heraldia.unicas.fortaleza_hielo.guardian", "El Rey Escarcha", 40,
+                     {"mainhand": {"id": "minecraft:bow", "count": 1, "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
+                      "head": "iron_helmet", "chest": "chainmail_chestplate"},
+                     {"mainhand": 0.25, "head": 0.15, "chest": 0.15}, CustomNameVisible=B(1))
