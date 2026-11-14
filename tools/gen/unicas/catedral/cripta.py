@@ -1,10 +1,10 @@
 """Cripta y osarios (pieza bajo tierra), mecanismos de redstone, trampas, generadores, guardián,
-campanario, aguja, daños de ruina y conexiones de cristales y muretes."""
+campanario, aguja y daños de ruina. Las piezas salen de tools/gen/unicas/_comun/piezas.py."""
 import math
 from core import B, F
 from lint import passable, top_height, bname
 from .base import *
-from .. import _comun as comun
+from .._comun import piezas
 
 FLOOR, TOP = -8, -1
 ROOMS = [  # nombre, x0, x1, z0, z1, cota superior del aire
@@ -15,10 +15,10 @@ ROOMS = [  # nombre, x0, x1, z0, z1, cota superior del aire
     ("osario de los esqueletos", 81, 83, 16, 18, -4), ("paso N", 82, 82, 19, 19, -6),
     ("galería hundida", 81, 83, 42, 44, -4), ("paso S", 82, 82, 41, 41, -6),
     ("pasadizo estrecho", 97, 101, 30, 30, -6),
-    ("antecámara de los sellos", 102, 114, 24, 30, -3), ("cámara del tesoro", 102, 114, 34, 40, -3),
+    ("antecámara de los sellos", 102, 114, 24, 30, -3), ("cámara del tesoro", 102, 114, 35, 41, -3),
     ("relicario", 89, 93, 24, 27, -4),
 ]
-# la palanca falsa va junto al tramo de polvo que llega al pistón: las antorchas cortan la línea en tramos
+# tres virtudes abren; la codicia es una palanca trampa (dispara una flecha desde detrás de su cartel)
 LEVERS = [(107, "codicia", False), (109, "fe", True), (111, "esperanza", True), (113, "caridad", True)]
 
 
@@ -81,7 +81,7 @@ def hall(c):
     c.chest(60, -7, 24, "east", "cripta", "cripta, nicho noroeste")
     c.chest(70, -7, 36, "west", "cripta", "cripta, nicho sureste")
     # cámara oeste: generador de zombis, a oscuras
-    comun.spawner(c, (53, -7, 30), "zombie")
+    piezas.spawner(c.set, *(53, -7, 30), "zombie")
     c.spawners.append(((53, -7, 30), "zombie"))
     for (x, z) in ((51, 27), (56, 33), (51, 33)):
         c.set(x, -7, z, "bone_block")
@@ -110,9 +110,9 @@ def ossuary(c):
     c.hang(90, -3, 30, -2, soul=True)
     c.chest(84, -7, 20, "south", "osario", "osario, bucle norte")
     # generadores: esqueletos (norte) y arañas de cueva entre telarañas (sur, galería hundida)
-    comun.spawner(c, (82, -7, 17), "skeleton")
+    piezas.spawner(c.set, *(82, -7, 17), "skeleton")
     c.spawners.append(((82, -7, 17), "skeleton"))
-    comun.spawner(c, (82, -7, 43), "cave_spider")
+    piezas.spawner(c.set, *(82, -7, 43), "cave_spider")
     c.spawners.append(((82, -7, 43), "cave_spider"))
     for (x, y, z) in ((81, -7, 42), (83, -6, 44), (81, -5, 44), (83, -5, 42), (82, -4, 42)):
         c.set(x, y, z, "cobweb")
@@ -120,9 +120,13 @@ def ossuary(c):
         c.set(x, y, z, "gravel")
         c.ruin.add((x, y, z))
     # trampa 1: cable trampa en el eje (x = 82) con un dispensador de flechas sobre cada gancho
-    c.mech.append(comun.tripwire_trap(c, (82, -7, 28), (82, -7, 32), "eje del osario"))
+    piezas.tripwire_trap(c.set, (82, 28), (82, 32), -7, "z", [((82, -6, 28), "south"), ((82, -6, 32), "north")])
+    c.mech.append({"tipo": "cable trampa", "sitio": "eje del osario", "ganchos": [(82, -7, 28), (82, -7, 32)],
+                   "cable": [(82, -7, z) for z in (29, 30, 31)], "dispensadores": [(82, -6, 28), (82, -6, 32)]})
     # trampa 2: placa de presión en el pasadizo estrecho, dispensadores a ras de suelo
-    c.mech.append(comun.plate_trap(c, (99, -7, 30), [((99, -7, 29), "south"), ((99, -7, 31), "north")], "pasadizo estrecho"))
+    piezas.plate_trap(c.set, (99, -7, 30), [((99, -7, 29), "south"), ((99, -7, 31), "north")])
+    c.mech.append({"tipo": "placa de presión", "sitio": "pasadizo estrecho", "placa": (99, -7, 30),
+                   "dispensadores": [(99, -7, 29), (99, -7, 31)]})
 
 
 def reliquary(c):
@@ -143,43 +147,44 @@ def reliquary(c):
 
 
 def piston_door(c, nombre, door, axis, sign, levers):
-    rec = comun.piston_door(c, door, axis, sign, levers, nombre)
+    rec = piezas.lever_door(c.set, door, axis, sign, levers, nombre)
     c.mech.append(rec)
     return rec
 
 
 def treasury(c):
-    # sellos (palancas) de la antecámara, en el muro norte de la cámara del tesoro
-    levers = [((lx, -6, 30), (lx, -6, 31), ok) for (lx, _, ok) in LEVERS]
+    # sellos (palancas) de la antecámara, en el muro de cuatro de grueso (z 31..34) de la cámara del tesoro
     for (lx, name, ok) in LEVERS:
         c.set(lx, -6, 31, CSB)
-        c.set(lx, -5, 30, s("oak_wall_sign", facing="north"), sign_nbt([f"heraldia.unicas.catedral.sello.{name}"]))
+        sign(c, lx, -5, 30, "north", [f"heraldia.unicas.catedral.sello.{name}"])
     for (x, z) in ((105, 24), (113, 24), (103, 24)):
         c.candles(x, -7, z, 3)
-    c.set(102, -5, 27, s("oak_wall_sign", facing="east"), sign_nbt(["heraldia.unicas.catedral.sello.pista1",
-                                                                     "heraldia.unicas.catedral.sello.pista2"]))
-    for x in (103, ):
-        for dy in (0, 1):
-            c.set(x, -7 + dy, 31, "air")
-            c.set(x, -7 + dy, 33, "air")
-            c.set(x, -7 + dy, 32, CSB)
-    piston_door(c, "cámara del tesoro", (103, -7, 32), "x", 1, levers)
+    sign(c, 102, -5, 27, "east", ["heraldia.unicas.catedral.sello.pista1",
+          "heraldia.unicas.catedral.sello.pista2"])
+    for dy in (0, 1):
+        for zz in (31, 32, 34):
+            c.set(103, -7 + dy, zz, "air")
+        c.set(103, -7 + dy, 33, CSB)
+    piston_door(c, "cámara del tesoro", (103, -7, 33), "x", 1,
+                [((lx, -6, 30), (lx, -6, 31)) for (lx, _, ok) in LEVERS if ok])
+    piezas.lever_trap(c.set, (107, -6, 30), (107, -6, 31), (107, -5, 31), "north")
+    c.mech.append({"tipo": "palanca trampa", "sitio": "sello de la codicia", "apoyo": (107, -6, 31),
+                   "palanca": (107, -6, 30), "dispensadores": [(107, -5, 31)]})
     # cámara del tesoro: cofre principal, dos cofres laterales y el guardián
-    c.set(108, -7, 40, "air")
-    c.chest(108, -7, 40, "north", "premium", "cámara del tesoro (cofre principal)")
-    c.chest(104, -7, 40, "north", "tesoro", "cámara del tesoro, oeste")
-    c.chest(112, -7, 40, "north", "tesoro", "cámara del tesoro, este")
+    c.chest(108, -7, 41, "north", "premium", "cámara del tesoro (cofre principal)")
+    c.chest(104, -7, 41, "north", "tesoro", "cámara del tesoro, oeste")
+    c.chest(112, -7, 41, "north", "tesoro", "cámara del tesoro, este")
     for x in (106, 110):
-        c.set(x, -7, 40, CSB)
-        c.candles(x, -6, 40, 4)
-    for (x, z) in ((102, 34), (114, 34)):
+        c.set(x, -7, 41, CSB)
+        c.candles(x, -6, 41, 4)
+    for (x, z) in ((102, 35), (114, 35)):
         c.set(x, -7, z, CSB)
         c.lamp(x, -6, z, soul=True)
-    c.entities.append((108, -7, 37, guardian()))
+    c.entities.append((108, -7, 38, guardian()))
 
 
 def guardian():
-    return comun.guardian("skeleton", "heraldia.unicas.catedral.guardian", "Fray Osmundo, custodio del tesoro", 40.0, 4.0,
+    return piezas.guardian("skeleton", "heraldia.unicas.catedral.guardian", "Fray Osmundo, custodio del tesoro", 40.0, 4.0,
                           {"mainhand": {"id": "minecraft:bow", "count": 1,
                                         "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
                            "head": {"id": "minecraft:chainmail_helmet", "count": 1},
@@ -187,9 +192,9 @@ def guardian():
                           {"mainhand": 0.15, "head": 0.15, "chest": 0.25})
 
 
-def sign_nbt(keys):
+def sign(c, x, y, z, facing, keys):
     from .botin import LANG
-    return comun.sign_nbt([(k, LANG["es_es"][k]) for k in keys])
+    piezas.sign(c.set, x, y, z, facing, [piezas.text(k, LANG["es_es"][k]) for k in keys], wood="oak")
 
 
 # ---------------------------------------------------------------------- superficie: detalles finales
@@ -202,7 +207,7 @@ def library_door(c):
         c.set(86, 9 + dy, 9, "air")
         c.set(88, 9 + dy, 9, "air")
         c.set(87, 9 + dy, 9, "bookshelf")
-    piston_door(c, "gabinete secreto de la biblioteca", (87, 9, 9), "z", -1, [((85, 10, 5), (86, 10, 5), True)])
+    piston_door(c, "gabinete secreto de la biblioteca", (87, 9, 9), "z", -1, [((85, 10, 5), (86, 10, 5))])
 
 
 def belfry(c):
@@ -284,51 +289,3 @@ def ruin_details(c):
             c.set(x, y, z, "air")
             c.ruin.add((x, y, z))
         c.set(x, 1, z, "cobblestone")
-
-
-# ---------------------------------------------------------------------- formas de conexión
-def connects(st, kind):
-    if st is None:
-        return False
-    b = bname(st)
-    if b in ("air", "water", "structure_void"):
-        return False
-    if "pane" in b or b == "iron_bars" or b.endswith("_bars"):
-        return kind in ("pane", "wall")
-    if b.endswith("_wall"):
-        return kind in ("wall", "pane")
-    if b.endswith("_fence"):
-        return kind == "fence"
-    if "fence_gate" in b:
-        return kind in ("fence", "wall")
-    if b.endswith(("_stairs", "_slab", "_trapdoor", "_door", "_carpet", "_sign", "_button")) or "lantern" in b or "chain" in b:
-        return False
-    if passable(st):
-        return False
-    return top_height(st) == 1.0 and b not in ("chest", "barrel", "lectern", "bell", "spawner", "skeleton_skull", "lightning_rod",
-                                              "bookshelf") or b == "bookshelf"
-
-
-def fix_shapes(c):
-    t = c.t
-    N = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
-    for (x, y, z), (st, nbt) in list(t.blocks.items()):
-        b = bname(st)
-        if "pane" in b or b == "iron_bars":
-            kind = "pane"
-        elif b.endswith("_wall"):
-            kind = "wall"
-        elif b.endswith("_fence"):
-            kind = "fence"
-        else:
-            continue
-        con = {d: connects(t.get(x + dx, y, z + dz), kind) for d, (dx, dz) in N.items()}
-        if kind == "wall":
-            above = t.get(x, y + 1, z)
-            straight = (con["north"] and con["south"] and not con["east"] and not con["west"]) or \
-                       (con["east"] and con["west"] and not con["north"] and not con["south"])
-            up = not straight or (above is not None and bname(above).endswith(("_wall", "lantern")) and bname(above) != "air")
-            props = {d: ("low" if v else "none") for d, v in con.items()}
-            t.set(x, y, z, s(b, up=up, **props))
-        else:
-            t.set(x, y, z, s(b, **{d: v for d, v in con.items()}))

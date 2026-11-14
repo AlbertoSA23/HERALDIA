@@ -71,10 +71,11 @@ Cada tabla tiene su grupo extra marcado `solo_sin_lootr`.
 ## Puzles, trampas, generadores y guardián
 
 - **Puzle de los sellos** (antecámara → tesoro): cuatro palancas en el muro, cada una bajo un cartel: Codicia, Fe, Esperanza,
-  Caridad; un cartel lateral dice «Tres virtudes abren / y la codicia sella». La puerta es un bloque doble de piedra cincelada
-  sujeto por dos pistones pegajosos extendidos dentro de un muro de tres de grueso. Tras cada palanca correcta hay una antorcha
-  de redstone (inversor) y las tres alimentan una línea de polvo que mantiene los pistones extendidos; la palanca de la codicia
-  alimenta la línea directamente. Se abre solo con las tres virtudes activadas y la codicia en reposo.
+  Caridad; un cartel lateral dice «Tres virtudes abren / y la codicia castiga». La puerta es un bloque doble de piedra cincelada
+  sujeto por dos pistones pegajosos extendidos en un muro de cuatro de grueso (palancas | antorchas | puerta, pistones y polvo |
+  cara del tesoro). Tras cada virtud hay una antorcha de redstone (inversor) junto a una línea de polvo continua que mantiene
+  los pistones extendidos: solo se abre con las tres virtudes activadas. La palanca de la codicia es una trampa: dispara una
+  flecha desde un dispensador escondido tras su cartel. El simulador común (`_comun/redstone.py`) prueba las 8 combinaciones.
 - **Gabinete secreto** (biblioteca): el mismo mecanismo con una palanca entre las estanterías del rincón noreste; la puerta es
   una estantería que retrocede dentro del muro.
 - **Relicario**: trampilla de hierro en el estrado del altar mayor, abierta por la palanca de suelo de al lado; escala hasta el relicario.
@@ -108,7 +109,7 @@ galería hundida de la cripta.
 ## Comprobaciones
 
 - Escalera de caracol, puertas de pistones, trampas, generadores, guardián, carteles y ayudas de botín salen de las piezas
-  comunes de `tools/gen/unicas/_comun/`.
+  comunes de `tools/gen/unicas/_comun/` (`piezas.py` y `botin.py`).
 
 - `tools/gen/unicas/catedral/auditoria.py` (condición para generar): recorrido a pie desde el atrio con los mecanismos
   accionados, acceso a cofres, generadores, palancas, campanas, atriles, puertas y peldaños; estancias sin acceso; bloques

@@ -2,15 +2,13 @@
 nada flotando, proporción de ruinas, cofres y enemigos. Uso a mano para planos y renders:
     python3 -m unicas.monasterio.auditoria --docs ../../docs/unicas/monasterio   (desde tools/gen)
 """
-import copy, itertools, os
+import copy, os
 from collections import deque
 from core import parse_state
 
 DIRS6 = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
 HOR = {"east": (1, 0, 0), "west": (-1, 0, 0), "south": (0, 0, 1), "north": (0, 0, -1)}
 OPP = {"east": "west", "west": "east", "north": "south", "south": "north", "up": "down", "down": "up"}
-COMPONENTS = ("lever", "redstone_wall_torch", "redstone_torch", "redstone_wire", "sticky_piston", "piston", "piston_head",
-              "redstone_lamp", "iron_door")
 
 
 def bid(st):
@@ -30,119 +28,17 @@ def vista_abierta(t):
     return v
 
 
-# ------------------------------------------------------------------ redstone
-def simular(t, palancas):
-    """Estado estable de los circuitos con las palancas dadas {pos: bool}. Devuelve (polvo, potenciados, antorchas)."""
-    g = lambda p: (t.blocks.get(p) or (None,))[0]
-    red = {p: st for p, (st, _) in t.blocks.items() if bid(st) in COMPONENTS}
-    lever_on = {p: palancas.get(p, props(st)["powered"] == "true") for p, st in red.items() if bid(st) == "lever"}
-    torches = {p: props(st)["lit"] == "true" for p, st in red.items() if "torch" in bid(st)}
-
-    def add(p, d):
-        return (p[0] + d[0], p[1] + d[1], p[2] + d[2])
-
-    def attached(p, st):
-        f = props(st)["facing"]
-        return add(p, HOR[OPP[f]])
-
-    def conductor(p):
-        st = g(p)
-        b = bid(st)
-        return st is not None and b not in ("air",) and b not in COMPONENTS and "glass" not in b
-
-    for _ in range(40):
-        strong = set()
-        for p, on in lever_on.items():
-            if on:
-                strong.add(attached(p, red[p]))
-        for p, lit in torches.items():
-            if lit:
-                strong.add(add(p, (0, 1, 0)))
-        dust = {p: 0 for p, st in red.items() if bid(st) == "redstone_wire"}
-        q = deque()
-        for p in dust:
-            src = 0
-            for d in DIRS6:
-                n = add(p, d)
-                if n in strong and conductor(n):
-                    src = 15
-                if n in lever_on and lever_on[n]:
-                    src = 15
-                if n in torches and torches[n] and attached(n, red[n]) != p:
-                    src = 15
-            if src:
-                dust[p] = src
-                q.append(p)
-        while q:
-            p = q.popleft()
-            for d in HOR.values():
-                n = add(p, d)
-                if n in dust and dust[n] < dust[p] - 1:
-                    dust[n] = dust[p] - 1
-                    q.append(n)
-        weak = set()
-        for p, pw in dust.items():
-            if pw:
-                weak.add(add(p, (0, -1, 0)))
-                for k, d in HOR.items():
-                    if props(red[p]).get(k, "none") != "none":
-                        weak.add(add(p, d))
-
-        def powered_block(n):
-            return conductor(n) and (n in strong or n in weak)
-
-        new = {p: not powered_block(attached(p, red[p])) for p in torches}
-        if new == torches:
-            break
-        torches = new
-    else:
-        raise RuntimeError("el circuito no se estabiliza")
-
-    def powered(p):
-        for d in DIRS6:
-            n = add(p, d)
-            if powered_block(n) or (n in lever_on and lever_on[n]):
-                return True
-            if n in torches and torches[n] and attached(n, red[n]) != p:
-                return True
-        for k, d in HOR.items():
-            n = add(p, d)
-            if n in dust and dust[n] and props(red[n]).get(OPP[k], "none") != "none":
-                return True
-        return False
-
-    comp = {p: powered(p) for p, st in red.items() if bid(st) in ("sticky_piston", "piston", "redstone_lamp", "iron_door")}
-    return dust, comp, torches
-
-
+# ------------------------------------------------------------------ redstone (simulador común: unicas/_comun/redstone.py)
 def comprobar_redstone(t):
-    errs = []
-    dust, comp, torches = simular(t, {})
-    for p, pw in dust.items():
-        if int(props(t.get(*p))["power"]) != pw:
-            errs.append(f"polvo en {p} colocado con {props(t.get(*p))['power']}, debería tener {pw}")
-    for p, lit in torches.items():
-        if (props(t.get(*p))["lit"] == "true") != lit:
-            errs.append(f"antorcha en {p} con estado incoherente al colocarse")
-    for p, on in comp.items():
-        st, b = t.get(*p), bid(t.get(*p))
-        placed = {"sticky_piston": "extended", "piston": "extended", "redstone_lamp": "lit", "iron_door": "open"}[b]
-        if (props(st)[placed] == "true") != on:
-            errs.append(f"{b} en {p}: {placed}={props(st)[placed]} pero {'recibe' if on else 'no recibe'} señal al colocarse")
+    from .._comun import redstone
+    errs, _ = redstone.check_static(t)
     for nombre, c in getattr(t, "circuitos", {}).items():
-        if "levers" not in c:
-            continue
-        for combo in itertools.product((False, True), repeat=len(c["levers"])):
-            _, comp, _ = simular(t, dict(zip(c["levers"], combo)))
-            señal = all(comp[p] for p in c["salida"])
-            abre = señal if c["abre_si"] == "con_potencia" else not any(comp[p] for p in c["salida"])
-            if abre != (combo == tuple(c["solucion"])):
-                errs.append(f"puzle {nombre}: con palancas {combo} {'abre' if abre else 'no abre'}")
+        if "levers" in c:
+            errs += redstone.check_puzzle(t, nombre, c["levers"], c["solucion"], c["salida"], c["abre_si"])
     c = t.circuitos.get("cable")
     if c:
         for h in c["ganchos"]:
-            st = t.get(*h)
-            f = props(st)["facing"]
+            f = props(t.get(*h))["facing"]
             wall = (h[0] - HOR[f][0], h[1], h[2] - HOR[f][2])
             if bid(t.get(*wall)) in (None, "air") or not any(
                     (wall[0] + d[0], wall[1] + d[1], wall[2] + d[2]) in [tuple(x) for x in c["dispensadores"]] for d in DIRS6):

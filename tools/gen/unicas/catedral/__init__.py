@@ -5,6 +5,7 @@ from core import Template
 from .botin import LOOT, LANG
 from .modelo import Catedral
 from . import interior, cripta
+from .._comun import piezas
 
 STRUCTURE = dict(biomes=["minecraft:forest", "minecraft:flower_forest"], start_pool="unicas/catedral/inicio",
                  size=2, max_distance=80, terrain_adaptation="beard_thin", step="surface_structures",
@@ -36,7 +37,7 @@ def model():
     cripta.crypt(c)
     cripta.library_door(c)
     cripta.ruin_details(c)
-    cripta.fix_shapes(c)
+    piezas.connect(c.t)
     return c
 
 

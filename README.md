@@ -17,6 +17,10 @@ Contenido:
     la puerta en la ladera: salón de columnas, trono, forjas, cervecería, minas, puente sobre un abismo y bóveda del tesoro;
     cuatro salas ocultas, dos puzles de redstone, dos trampas, tres generadores y el guardián Borin Barbahierro.
     Diseño: [docs/unicas/ciudadela.md](docs/unicas/ciudadela.md).
+  - **Templo-pirámide** (`heraldia:unicas/piramide`): jungla y jungla dispersa. Pirámide escalonada mesoamericana con
+    templo y crestería, juego de pelota, escalera oculta, cenote interior con cámara sumergida y la tumba del Rey Jaguar
+    tras una puerta secreta de pistones; trampas de cable, foso y dardos, 4 generadores y 13 cofres.
+    Diseño: [docs/unicas/piramide.md](docs/unicas/piramide.md).
   - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en `docs/unicas/faro.md`.
   - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
@@ -38,6 +42,11 @@ Contenido:
     triforio y arbotantes, crucero con aguja, girola con capillas, sacristía, biblioteca, claustro y, bajo tierra, cripta,
     osarios y cámara del tesoro; dos puertas secretas, una trampilla oculta, dos trampas, tres generadores, el guardián
     Fray Osmundo y 19 cofres. Diseño: [docs/unicas/catedral.md](docs/unicas/catedral.md).
+  - **Acueducto en ruinas** (`heraldia:unicas/acueducto`, desierto y badlands): acueducto de dos pisos, ciudad romana abandonada, cisterna y cloacas con la cámara del tesoro. Diseño en [docs/unicas/acueducto.md](docs/unicas/acueducto.md).
+  - **Galeón varado** (`heraldia:unicas/galeon`, playas y playas nevadas): galeón de tres palos encallado en la orilla
+    (se sitúa buscando el agua), con bodega, cubierta de cañones, castillos, camarote y cámara secreta del tesorero;
+    campamento de náufragos con arqueología y una cueva con el puzle de los faroles, trampas, cuatro generadores y el
+    guardián El capitán ahogado; 18 cofres. Diseño: [docs/unicas/galeon.md](docs/unicas/galeon.md).
 
 ## Instalación
 

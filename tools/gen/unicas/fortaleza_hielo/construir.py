@@ -4,6 +4,7 @@ Coordenadas de la plantilla: x de oeste a este (0..50), z de norte a sur (0..64)
 Zócalo macizo y = 0..10; patio a pie 11; criptas a pie 6; cámara del tesoro a pie 1; adarve a pie 20.
 """
 from core import Template, B, F
+from unicas._comun import piezas
 
 SID = "fortaleza_hielo"
 L = f"heraldia:unicas/{SID}/"
@@ -407,11 +408,7 @@ def hidden_room(t):
 def piston_door(t, door, axis, side, dust, lever):
     """Puerta de dos bloques sujetos por pistones pegajosos extendidos y alimentados por una palanca encendida.
     axis: dirección de la cabeza al pistón (los pistones miran hacia la puerta, `side`)."""
-    ax, ay, az = axis
-    for (x, y, z) in door:
-        t.set(x, y, z, CSB)
-        t.set(x + ax, y, z + az, f"piston_head[facing={side},short=false,type=sticky]")
-        t.set(x + 2 * ax, y, z + 2 * az, f"sticky_piston[extended=true,facing={side}]")
+    piezas.piston_door(t.set, door, (axis[0], axis[2]), side, CSB)
     dx, dy, dz = dust
     t.set(dx, dy - 1, dz, ST)
     t.set(dx, dy, dz, "redstone_wire[east=side,north=side,power=15,south=side,west=side]")
@@ -513,20 +510,17 @@ def crypts(t):
 
 
 def spawner(t, x, y, z, mob):
-    t.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}}})
+    piezas.spawner(t.set, x, y, z, mob)
 
 
 def guardian():
-    return {
-        "id": "minecraft:stray", "PersistenceRequired": B(1), "CustomNameVisible": B(1),
-        "CustomName": {"translate": "heraldia.unicas.fortaleza_hielo.guardian", "fallback": "El Rey Escarcha"},
-        "Health": F(40.0), "attributes": [{"id": "minecraft:max_health", "base": 40.0}],
-        "equipment": {
+    return piezas.guardian(
+        "stray", "heraldia.unicas.fortaleza_hielo.guardian", "El Rey Escarcha", 40,
+        equipment={
             "mainhand": {"id": "minecraft:bow", "count": 1, "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
             "head": {"id": "minecraft:iron_helmet", "count": 1},
             "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}},
-        "drop_chances": {"mainhand": F(0.25), "head": F(0.15), "chest": F(0.15)},
-    }
+        drop_chances={"mainhand": 0.25, "head": 0.15, "chest": 0.15})
 
 
 def wall_ruins(t):

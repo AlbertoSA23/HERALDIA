@@ -300,13 +300,38 @@ def redstone(c):
                     out.append(f"{m['sitio']}: dispensador {p} mal")
                 fx, fz = FACE[prop(g(*p), "facing")]
                 if g(p[0] + fx, p[1], p[2] + fz) not in (None, "minecraft:air") and bname(g(p[0] + fx, p[1], p[2] + fz)) not in (
-                        "tripwire", "stone_pressure_plate"):
+                        "tripwire", "stone_pressure_plate") and not bname(g(p[0] + fx, p[1], p[2] + fz)).endswith("_sign"):
                     out.append(f"{m['sitio']}: el dispensador {p} dispara contra un bloque")
-            src = m.get("ganchos", []) + ([m["placa"]] if "placa" in m else [])
+            src = m.get("ganchos", []) + [m[k] for k in ("placa", "apoyo") if k in m]
             for p in m["dispensadores"]:
                 if not any(abs(p[0] - q[0]) + abs(p[1] - q[1]) + abs(p[2] - q[2]) == 1 for q in src):
                     out.append(f"{m['sitio']}: el dispensador {p} no está junto al gancho o la placa")
     return out
+
+
+def common_redstone(c):
+    """Simulador común (_comun/redstone.py): estado colocado estable y, por puerta de pistones, que solo la solución
+    abra (las 2^n combinaciones de palancas, falsas incluidas)."""
+    from .._comun.redstone import check_static, check_puzzle
+    from core import Template
+    t = Template("redstone")
+    zone = set()
+    for m in c.mech:
+        for k in ("pistones", "cabezas", "antorchas", "puerta", "ganchos", "cable", "dispensadores"):
+            zone.update(m.get(k, []))
+        zone.update(p for p, _ in m.get("polvo", []))
+        zone.update(p for pair in m.get("palancas", []) + m.get("falsas", []) for p in pair)
+        zone.update(m[k] for k in ("trampilla", "palanca", "placa", "apoyo") if k in m)
+    near = {(x + a, y + b, z + d) for (x, y, z) in zone for a in (-2, -1, 0, 1, 2) for b in (-2, -1, 0, 1, 2)
+            for d in (-2, -1, 0, 1, 2)}
+    t.blocks = {p: c.t.blocks[p] for p in near if p in c.t.blocks}
+    errs, _ = check_static(t)
+    for m in c.mech:
+        if m["tipo"] == "puerta de pistones":
+            levers = [lp for lp, _ in m["palancas"]] + [lp for lp, _ in m["falsas"]]
+            sol = [True] * len(m["palancas"]) + [False] * len(m["falsas"])
+            errs += check_puzzle(t, m["sitio"], levers, sol, m["pistones"], abre_si="sin_potencia")
+    return errs
 
 
 def ruin_share(c):
@@ -355,6 +380,7 @@ def audit(c, verbose=False):
     if dark:
         probs.append(f"{len(dark)} celdas cubiertas a oscuras en superficie, p. ej. {sorted(dark)[:8]}")
     probs += redstone(c)
+    probs += common_redstone(c)
     share = ruin_share(c)
     if not 0.15 <= share <= 0.20:
         probs.append(f"proporción de ruina {share:.1%} fuera del 15-20 %")

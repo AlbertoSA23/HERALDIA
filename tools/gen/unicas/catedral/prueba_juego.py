@@ -125,10 +125,13 @@ def main():
                 wait()
                 check("trampilla del altar abierta", mch["trampilla"], "iron_trapdoor[open=true]")
                 setb(mch["apoyo"], g(*mch["apoyo"]).replace("minecraft:", ""))
-            elif mch["tipo"] in ("cable trampa", "placa de presión"):
-                p = mch["cable"][1] if "cable" in mch else mch["placa"]
+            elif mch["tipo"] in ("cable trampa", "placa de presión", "palanca trampa"):
+                p = mch["cable"][1] if "cable" in mch else mch.get("placa") or mch["palanca"]
                 x, y, z = w(p)
-                cmd(f"summon minecraft:zombie {x}.5 {y} {z}.5 {{NoAI:1b,PersistenceRequired:1b,Tags:[\"prueba\"]}}", r"Summoned|Unable|error")
+                if "apoyo" in mch:
+                    setb(mch["apoyo"], "redstone_block")
+                else:
+                    cmd(f"summon minecraft:zombie {x}.5 {y} {z}.5 {{NoAI:1b,PersistenceRequired:1b,Tags:[\"prueba\"]}}", r"Summoned|Unable|error")
                 wait(30)
                 m = cmd(f"execute if entity @e[type=minecraft:arrow,x={x},y={y},z={z},distance=..8]")
                 if "passed" in m.group(0):

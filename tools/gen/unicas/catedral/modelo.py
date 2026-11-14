@@ -6,7 +6,7 @@ añaden las partes asimétricas (sacristía y biblioteca al norte, claustro al s
 import math
 from core import Template
 from .base import *
-from .. import _comun as comun
+from .._comun import piezas
 
 NAVE_POSTS = [17, 23, 29, 35, 41, 47, 53, 59]
 CHOIR_POSTS = [71, 77, 83, 89]
@@ -15,7 +15,7 @@ OPEN_A = [-72, -36, 0, 36, 72]
 CHAPEL_A = [-36, 0, 36]
 BUTT_A = [-54, -18, 18, 54]
 TOWER_FLOORS = [0, 11, 16, 27, 39, 55]
-RING = comun.RING
+RING = piezas.SLAB_RING
 
 
 def vault(r):
@@ -92,7 +92,7 @@ class Catedral:
             self.flights.add((x, y, z))
 
     def spiral(self, cx, cz, start, k_max, y0=0, mat="stone_brick"):
-        self.flights.update(comun.spiral(self, cx, cz, start, k_max, y0, mat))
+        self.flights.update(piezas.slab_spiral(self.set, cx, cz, start, k_max, y0, mat))
 
     # ------------------------------------------------------------------ cuerpo simétrico (mitad norte)
     def build_symmetric(self):

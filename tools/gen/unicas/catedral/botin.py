@@ -1,6 +1,6 @@
 """Botín (solo vanilla) y textos de la catedral."""
 from loot import item, empty
-from .._comun import named as comun_named, pool, table
+from .._comun.botin import named as comun_named, pool, table
 
 
 def named(name, w, key, ench=None, lo=1, hi=1):
@@ -16,7 +16,7 @@ LANG = {
         K + "sello.codicia": "Codicia",
         K + "sello.caridad": "Caridad",
         K + "sello.pista1": "Tres virtudes abren",
-        K + "sello.pista2": "y la codicia sella",
+        K + "sello.pista2": "y la codicia castiga",
         K + "obj.baculo": "Báculo del obispo Ermengol",
         K + "obj.espada": "Espada del cabildo",
         K + "obj.yelmo": "Yelmo del capitán de la guardia",
@@ -34,7 +34,7 @@ LANG = {
         K + "sello.codicia": "Greed",
         K + "sello.caridad": "Charity",
         K + "sello.pista1": "Three virtues open",
-        K + "sello.pista2": "and greed seals",
+        K + "sello.pista2": "and greed is punished",
         K + "obj.baculo": "Crosier of Bishop Ermengol",
         K + "obj.espada": "Sword of the Chapter",
         K + "obj.yelmo": "Helm of the Guard Captain",
