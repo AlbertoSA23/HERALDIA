@@ -8,6 +8,8 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Jugadores
 
+- Nueva estructura única: la **Mansión encantada**, en pantanos y manglares (una cada 3000-5000 bloques). Finca amurallada con casa victoriana de tres plantas, buhardilla y torreón, invernadero arruinado y cementerio con panteón. Bajo la casa, tras una estantería secreta, un sótano con trampas, generadores, un laboratorio y una cámara del tesoro cerrada con una combinación de palancas y guardada por «El Conde Malaquías».
+
 - Primera versión del mod: 72 aldeas enormes (36 estilos por bioma, cada uno en tamaño estándar y grande) que aparecen en chunks nuevos del Overworld, una cada 1000-2000 bloques.
 - Comandos de prueba `/function heraldia:muestrario` y `/function heraldia:familia/<familia>` para ver los estilos colocados en fila; sus mensajes salen en español o inglés según el idioma del cliente.
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
@@ -15,6 +17,9 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Fichero de configuración `config/heraldia.json`: separación entre aldeas (1000-10000 bloques, por defecto 1500), máximo de aldeas por mundo (hasta 100, las más cercanas al 0,0), porcentaje de grandes, distancia a las aldeas vanilla, familias y estilos activables, límites y limpieza de gólems, y activación y separación de cada estructura única. Los valores no válidos se avisan en el log y se cambian por los de por defecto.
 
 ### Técnico
+
+- Estructura única `mansion` (`tools/gen/unicas/mansion/`): dos piezas rígidas (casa y sótano unidos por un jigsaw vertical; el sótano rellena toda su caja para que `beard_thin` no abra fosos ni cavidades), auditoría propia (recorrido a pie sobre las dos piezas con y sin mecanismos, nada flotando, simulador de redstone que comprueba el reposo y cada mecanismo), planos y renders (`python3 -m unicas.mansion.planos`) y prueba en servidor (`tools/gen/unicas/mansion/prueba_servidor.py`).
+- `core.to_tag` acepta cualquier etiqueta NBT ya construida (p. ej. `IntArray` para el `block_pos` de los cuadros).
 
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
