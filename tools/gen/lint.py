@@ -2,7 +2,7 @@
 from collections import deque, Counter
 from core import parse_state
 
-PASS_WORDS = ("_carpet", "torch", "_banner", "rail", "pressure_plate", "button",
+PASS_WORDS = ("_carpet", "torch", "_banner", "rail", "pressure_plate", "button", "tripwire",
               "ladder", "_door", "poppy", "dandelion", "allium", "azure_bluet", "tulip", "orchid", "cornflower",
               "oxeye", "lily_of_the_valley", "rose_bush", "fern", "dead_bush", "sweet_berry", "wheat", "carrots",
               "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass")
@@ -87,6 +87,8 @@ def resolved(t):
         if nbt and nbt.get("id") == "minecraft:jigsaw":
             fs = nbt["final_state"]
             blocks[pos] = (None if "structure_void" in fs else fs, None)
+    for pos, st in getattr(t, "lint_open", {}).items():     # estados abiertos de puzles (puertas secretas)
+        blocks[pos] = (st, None)
     v.blocks = {p: b for p, b in blocks.items() if b[0] is not None}
     v.get = lambda x, y, z: (v.blocks.get((x, y, z)) or (None,))[0]
     v.jigsaws = t.jigsaws
