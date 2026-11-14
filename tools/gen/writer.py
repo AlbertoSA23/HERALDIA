@@ -33,6 +33,9 @@ LANG = {
         "heraldia.muestrario.terminado": "Muestrario terminado.",
         "heraldia.muestrario.detenido": "Muestrario detenido.",
         "heraldia.familia.terminada": "Familia terminada.",
+        # /heraldia llave (los textos de respaldo del Java son estos mismos)
+        "heraldia.llave.dada": "Entregadas %s llaves (%s) a %s jugadores",
+        "heraldia.llave.desconocida": "No hay ninguna llave «%s». Opciones: %s",
     },
     "en_us": {
         "heraldia.muestrario.inicio": "Village showcase: %s styles in a %s x %s grid, %s blocks apart. Takes about %s min. Eastwards: styles; southwards: families.",
@@ -40,6 +43,8 @@ LANG = {
         "heraldia.muestrario.terminado": "Showcase finished.",
         "heraldia.muestrario.detenido": "Showcase stopped.",
         "heraldia.familia.terminada": "Family finished.",
+        "heraldia.llave.dada": "Gave %s keys (%s) to %s players",
+        "heraldia.llave.desconocida": "There is no key «%s». Options: %s",
     },
 }
 for _lang, _texts in opciones.lang().items():
@@ -143,6 +148,7 @@ def write(reg, out):
     for sid, mod in unicas.modules():
         for name, table in getattr(mod, "LOOT", {}).items():
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
+    jdump(out, f"{NS}/llaves.json", write_keys(out))
     # funciones
     fdir = os.path.join(out, "data", NS, "function")
     os.makedirs(fdir, exist_ok=True)
@@ -226,6 +232,19 @@ def write(reg, out):
             LANG[lang].update(texts)
     for lang, texts in LANG.items():
         jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang]))
+
+
+def write_keys(out):
+    """Llaves de los cofres cerrados de las únicas (LLAVES de cada módulo): una tabla de botín por llave,
+    heraldia:llaves/<id>/<llave>, que da exactamente el objeto que pide la cerradura, y el índice que lee el comando
+    /heraldia llave al arrancar el servidor: {"<id>.<llave>": {"tabla": "heraldia:llaves/<id>/<llave>", "cerradura": lock}}
+    (la cerradura la usa la prueba de humo para comprobar que la llave la abre)."""
+    index = {}
+    for sid, mod in unicas.modules():
+        for key, d in getattr(mod, "LLAVES", {}).items():
+            jdump(out, f"data/{NS}/loot_table/llaves/{sid}/{key}.json", d["tabla"])
+            index[f"{sid}.{key}"] = {"tabla": f"{NS}:llaves/{sid}/{key}", "cerradura": d["cerradura"]}
+    return {"llaves": index}
 
 
 def write_unique(out, sid, st):

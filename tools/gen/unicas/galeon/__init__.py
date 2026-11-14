@@ -3,6 +3,7 @@
 Una sola plantilla (barco + campamento + peñón) colocada por el tipo propio heraldia:galeon, que busca la orilla
 en Java (el jigsaw no ve el agua). Diseño: docs/unicas/galeon.md.
 """
+from .._comun.piezas import open_stairwells
 from core import Template
 from .comun import Obra, ANCHOR, ZMIN
 from . import barco, tierra
@@ -67,6 +68,7 @@ def shift(p, d):
 def build(reg):
     o = construir()
     d = o.t.bounds()[:3]
+    open_stairwells(o.t)   # huecos de escalera cortos
     reg.add(o.t, "unica")                       # normaliza a coordenadas >= 0
     o.t.lint_open = {shift(p, d): v for p, v in o.t.lint_open.items()}
     o.ruina = {shift(p, d) for p in o.ruina}

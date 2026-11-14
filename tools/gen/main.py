@@ -25,7 +25,8 @@ def main():
 
     reg = build_all()
     errs = validate_registry(reg)
-    lerrs = validate_loot([loot.TABLES] + [getattr(m, "LOOT", {}) for _, m in unicas.modules()])
+    lerrs = validate_loot([loot.TABLES] + [getattr(m, "LOOT", {}) for _, m in unicas.modules()]
+                         + [{k: d["tabla"] for k, d in getattr(m, "LLAVES", {}).items()} for _, m in unicas.modules()])
     if errs or lerrs or reg.warnings:
         print("ERRORES:", errs, lerrs, reg.warnings[:20])
         return 1

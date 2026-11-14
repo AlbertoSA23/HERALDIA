@@ -1,4 +1,5 @@
 """Acueducto con ciudad en ruinas (desierto y badlands). Diseño: docs/unicas/acueducto.md."""
+from .._comun.piezas import open_stairwells
 from loot import item, empty, table
 from .obra import Obra
 from . import ciudad, agua, subsuelo, auditoria
@@ -187,6 +188,7 @@ def build(reg):
     errs += e2
     reg.warnings += [f"acueducto: {e}" for e in errs]
     for n, t in out.items():
+        open_stairwells(t)   # huecos de escalera cortos
         name = reg.add(t, "unica:acueducto")
         reg.pool(P + n, [(name, 1, "rigid", PROC.get(n))])
     reg.pool(P + "inicio", [(P + "castellum", 1, "rigid", None)])

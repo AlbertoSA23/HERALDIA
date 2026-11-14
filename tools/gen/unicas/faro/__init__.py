@@ -3,6 +3,7 @@
 Se sitúa junto al mar con el tipo de estructura propio heraldia:faro (Java), que busca la línea de costa y gira la
 plantilla para que la boca de la cueva mire al agua.
 """
+from .._comun.piezas import open_stairwells
 from loot import item, empty
 from unicas._comun import botin
 import unicas
@@ -118,6 +119,7 @@ LOOT = {
 def build(reg):
     from unicas.faro import plano, checks
     t = plano.make()
+    open_stairwells(t)   # huecos de escalera cortos
     name = reg.add(t, "unica:faro")
     errs = checks.run(t)
     if errs:

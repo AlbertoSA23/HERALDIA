@@ -3,6 +3,7 @@ Coordenadas de la plantilla: x, z en 0..99 (norte z=0, la puerta mira al sur); y
 import random
 from .util import Lienzo, hidden_door
 from .._comun.piezas import circle, spiral_slabs, connect, chest as put_chest
+from .._comun import piezas
 
 N = 100
 G, L, W = 5, 6, 17          # capa de terreno, pies en el patio, pies en el adarve
@@ -409,8 +410,7 @@ def keep(t, chest, hang, meta):
     t.door(35, F1, 34, "south")
     t.door(62, F1, 30, "south")
     t.air(50, L, 43, 51, 9, 45)
-    t.door(50, L, 45, "south", "dark_oak", "left")
-    t.door(51, L, 45, "south", "dark_oak", "right")
+    piezas.double_door(t.set, 50, L, 45, "south", "east", "dark_oak_door")
     for x in range(50, 52):
         for z in range(43, 46):
             t.set(x, G, z, "polished_andesite")

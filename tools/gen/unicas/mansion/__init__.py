@@ -3,6 +3,7 @@
 Dos piezas rígidas: la casa (finca, casa, invernadero, cementerio y panteón; y=0 es el suelo) y el sótano, unido por
 un jigsaw vertical bajo el comedor. La auditoría propia (auditoria.py) es condición para generar.
 """
+from .._comun.piezas import open_stairwells
 from loot import item, empty
 from .._comun.botin import cofre, table, pool, potion, named as _named
 from .obra import Obra
@@ -92,6 +93,8 @@ def build(reg):
     obra = Obra().build()
     casa, sotano, errores = auditoria.preparar(obra)
     proc = {"processors": [auditoria.DEGRADACION]}
+    open_stairwells(casa)
+    open_stairwells(sotano)   # huecos de escalera cortos
     reg.add(casa, "unica:mansion")
     reg.add(sotano, "unica:mansion")
     reg.pool("unicas/mansion/inicio", [(casa.name, 1, "rigid", proc)])

@@ -127,6 +127,16 @@ def door(put, x, y, z, facing, kind="spruce_door", hinge="left"):
         put(x, y + dy, z, f"{kind}[facing={facing},half={h},hinge={hinge},open=false,powered=false]")
 
 
+def double_door(put, x, y, z, facing, side, kind="spruce_door"):
+    """Puerta doble cerrada: una hoja en (x, y, z) y la otra en la casilla contigua hacia `side` (dirección horizontal
+    perpendicular a `facing`). Las dos con el mismo `facing` y la bisagra en el lado de fuera (`lint.door_hinge`),
+    para que se abran en espejo y no choquen. `lint.door_pair_issues` audita todas las parejas."""
+    from lint import FACE, OPPOSITE, door_hinge
+    dx, dz = FACE[side]
+    door(put, x, y, z, facing, kind, door_hinge(facing, side))
+    door(put, x + dx, y, z + dz, facing, kind, door_hinge(facing, OPPOSITE[side]))
+
+
 def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
     """Trampa de losa (templo del desierto): placa en (x, y, z) sobre el suelo y TNT dos bloques más abajo;
     `warn` [(x, y, z)] recibe ladrillos agrietados como aviso."""
@@ -382,3 +392,27 @@ def lever_trap(put, lever, block, dispenser, facing, arrows=16):
 
 
 SLAB_RING = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]   # E, NE, N, NO, O, SO, S, SE
+
+
+def open_stairwells(t):
+    """Alarga el hueco de escalera donde el forjado de arriba queda a 3 bloques del peldaño anterior al que sigue
+    subiendo (`lint.stair_headroom_issues`, «en la subida»): al pasar al peldaño siguiente el cuerpo del jugador
+    (1,8 de alto) aún está sobre ese peldaño y la cabeza llega a +3,3. Quita el bloque (x, y + 3, z) de la plantilla
+    acabada; si es un bloque con datos o un jigsaw, falla en vez de romperlo. Devuelve las posiciones abiertas."""
+    import lint
+    abiertas = []
+    for msg, (x, y, z) in lint.stair_headroom_issues(t):
+        if msg != "escalera con techo bajo en la subida":
+            continue
+        st, nbt = t.blocks.get((x, y + 3, z), (None, None))
+        if nbt is not None or lint.bname(st) == "jigsaw":
+            raise ValueError(f"{t.name}: el techo bajo de la escalera en {(x, y, z)} es un bloque con datos")
+        hueco = t.get(x, y + 2, z)      # mismo medio que el hueco de debajo (aire o agua); sin bloque no se conserva el terreno
+        t.set(x, y + 3, z, hueco if lint.bname(hueco) in ("air", "water", "cave_air") else "minecraft:air")
+        abiertas.append((x, y + 3, z))
+        encima, _ = t.blocks.get((x, y + 4, z), (None, None))
+        b = lint.bname(encima)
+        if b and (b.endswith(("_fence", "_wall", "_pane")) or any(w in b for w in lint.NEEDS_FLOOR)):
+            t.set(x, y + 4, z, "minecraft:air")     # barandilla o adorno que se apoyaba en el forjado quitado
+            abiertas.append((x, y + 4, z))
+    return abiertas
