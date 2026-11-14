@@ -1,6 +1,7 @@
 """Construcción del Templo-pirámide en coordenadas globales (y >= 0 superficie, y < 0 subsuelo)."""
 import zlib
 from core import Template, B, F, OPP
+from unicas._comun import piezas
 
 CX, CZ = 30, 42                 # eje de la pirámide
 W, D = 79, 70                   # huella: x 0..78, z 0..69
@@ -56,17 +57,12 @@ class Obra:
         self.marks.setdefault(name, []).append(tuple(pos))
 
     def chest(self, x, y, z, facing, table, name):
-        self.t.chest(x, y, z, facing, LOOT + table)
+        piezas.chest(self.set, x, y, z, facing, LOOT + table)
         self.mark("cofre:" + name, x, y, z)
 
     def spawner(self, x, y, z, mob, name):
-        self.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner",
-                                      "SpawnData": {"entity": {"id": "minecraft:" + mob}}})
+        piezas.spawner(self.set, x, y, z, mob)
         self.mark("generador:" + name, x, y, z)
-
-    def dispenser(self, x, y, z, facing, n=9):
-        self.set(x, y, z, f"dispenser[facing={facing},triggered=false]",
-                 {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": n}]})
 
     def flight(self, axis, lo, hi, u0, d, w0, n, zone, st="tuff_brick_stairs"):
         """Tramo que baja n peldaños desde la cota w0 avanzando en el eje (x|z) con sentido d (+1/-1).
@@ -293,11 +289,8 @@ def hall(o):
     o.ruin.add((CX - 25, 2, cz - 2))
     # trampa de cable: dos dispensadores de flechas a la altura de la cabeza
     tx = CX - 19
-    o.set(tx, 1, cz - 1, "tripwire_hook[attached=true,facing=south,powered=false]")
-    o.set(tx, 1, cz + 1, "tripwire_hook[attached=true,facing=north,powered=false]")
-    o.set(tx, 1, cz, "tripwire[attached=true,disarmed=false,east=false,north=true,powered=false,south=true,west=false]")
-    o.dispenser(tx, 2, cz - 2, "south")
-    o.dispenser(tx, 2, cz + 2, "north")
+    piezas.tripwire_trap(o.set, (tx, cz - 1), (tx, cz + 1), 1, "z",
+                         [((tx, 2, cz - 2), "south"), ((tx, 2, cz + 2), "north")])
     o.mark("trampa:cable", tx, 1, cz)
 
 
@@ -537,11 +530,8 @@ def secret_door(o):
     cx, F, z = CX, -24, 8                  # capa central del muro z 7..9
     o.carve(cx, F, z + 1, cx, F + 1, z + 1, "l3")      # nicho hacia la tumba (z 9)
     o.carve(cx, F, z - 1, cx, F + 1, z - 1, "l3")      # vano hacia el tesoro (z 7)
-    for y in (F, F + 1):
-        o.set(cx, y, z, "deepslate_tiles")
-        o.puzzle.append((cx, y, z))
-        o.set(cx + 1, y, z, "piston_head[facing=west,short=false,type=sticky]")
-        o.set(cx + 2, y, z, "sticky_piston[extended=true,facing=west]")
+    piezas.piston_door(o.set, [(cx, F, z), (cx, F + 1, z)], (1, 0), "west", "deepslate_tiles")
+    o.puzzle += [(cx, F, z), (cx, F + 1, z)]
     o.set(cx + 3, F, z, "redstone_wall_torch[facing=west,lit=true]")
     o.set(cx + 3, F + 1, z, "deepslate_tiles")                       # Y: carga fuerte desde la antorcha
     o.set(cx + 4, F, z, "deepslate_tiles")                           # X: bloque de la antorcha
@@ -553,20 +543,17 @@ def secret_door(o):
 
 
 def guardian():
-    return {"id": "minecraft:zombie", "PersistenceRequired": B(1), "CanPickUpLoot": B(0), "IsBaby": B(0),
-            "CanBreakDoors": B(0), "CustomNameVisible": B(1),
-            "CustomName": {"translate": "heraldia.piramide.guardian", "fallback": "El Rey Jaguar"},
-            "Tags": ["heraldia_piramide_guardian"],
-            "equipment": {"head": {"id": "minecraft:golden_helmet", "count": 1},
-                          "chest": {"id": "minecraft:golden_chestplate", "count": 1},
-                          "mainhand": {"id": "minecraft:iron_sword", "count": 1}},
-            "drop_chances": {"head": F(0.0), "chest": F(0.0), "mainhand": F(0.0)},
-            "attributes": [{"id": "minecraft:max_health", "base": 40.0},
-                           {"id": "minecraft:attack_damage", "base": 5.0},
-                           {"id": "minecraft:armor", "base": 4.0},
-                           {"id": "minecraft:knockback_resistance", "base": 0.4},
-                           {"id": "minecraft:spawn_reinforcements", "base": 0.0}],
-            "Health": F(40.0)}
+    """El Rey Jaguar: zombi con corona y pectoral de oro y espada de hierro; sin refuerzos ni botín de equipo."""
+    n = piezas.guardian("zombie", "heraldia.piramide.guardian", "El Rey Jaguar", 40, armor=4,
+                        equipment={"head": {"id": "minecraft:golden_helmet", "count": 1},
+                                   "chest": {"id": "minecraft:golden_chestplate", "count": 1},
+                                   "mainhand": {"id": "minecraft:iron_sword", "count": 1}},
+                        drop_chances={"head": 0.0, "chest": 0.0, "mainhand": 0.0})
+    n["attributes"] += [{"id": "minecraft:attack_damage", "base": 5.0},
+                        {"id": "minecraft:knockback_resistance", "base": 0.4},
+                        {"id": "minecraft:spawn_reinforcements", "base": 0.0}]
+    n.update({"CanPickUpLoot": B(0), "IsBaby": B(0), "CanBreakDoors": B(0), "Tags": ["heraldia_piramide_guardian"]})
+    return n
 
 
 # ====================================================================== acabado
