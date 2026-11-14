@@ -1,4 +1,4 @@
-"""Comprobaciones comunes de recorrido para las estructuras únicas (uso: from unicas._comun import auditoria).
+"""Comprobaciones comunes de recorrido para las estructuras únicas (uso: from unicas._comun import recorrido).
 
 - `Vista`: bloques de una o varias plantillas en coordenadas comunes, con suelo virtual y estados "resueltos".
 - `andar`: recorrido a pie estricto (sin caídas de más de un bloque, peldaños de escalera, escaleras de mano que no

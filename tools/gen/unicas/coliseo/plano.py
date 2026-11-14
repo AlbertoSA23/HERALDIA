@@ -7,7 +7,7 @@ de diseño. `construir()` devuelve el mundo, las dos plantillas y el inventario 
 import math, random
 from core import Template, parse_state, state_str, B, F
 from .._comun import piezas
-from .._comun.auditoria import is_full
+from .._comun.recorrido import is_full
 
 A0, B0 = 16.5, 9.5          # semiejes del borde de la arena
 CX, CZ = 43, 36             # centro de la arena en la plantilla principal (87 x 73)
@@ -722,7 +722,7 @@ def ruin(o):
 # ------------------------------------------------------------------ conexiones de muros, rejas y vallas
 def drop_floating(o):
     """Tras la ruina, los fragmentos que quedan sin unión con el suelo de su pieza se caen (se quitan)."""
-    from .._comun.auditoria import flotantes
+    from .._comun.recorrido import flotantes
     for p in flotantes({p: st for p, (st, _) in o.t.blocks.items()}, (0, HYP[4])):
         o.t.blocks[p] = ("minecraft:air", None)
 
