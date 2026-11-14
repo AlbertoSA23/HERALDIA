@@ -311,7 +311,7 @@ def connect(t):
 
 
 # ------------------------------------------------------------------ añadidos de la catedral
-def combo_door(put, door, axis, sign, levers, name=""):
+def combo_door(put, door, axis, sign, levers, name="", block=None):
     """Puerta secreta de combinación (varias palancas; con una sola, mejor lever_door): dos bloques (door = bloque
     inferior) con su alimentación: dos pistones pegajosos extendidos
     (como piston_door) y, por cada palanca [(palanca, bloque al que se fija)], una antorcha de redstone al otro lado
@@ -322,7 +322,8 @@ def combo_door(put, door, axis, sign, levers, name=""):
     en la línea la corta en tramos y solo su tramo llega al pistón (se abriría con una sola palanca). Así, un muro de
     cuatro de grueso: palancas | antorchas | puerta, pistones y polvo | cara opuesta. Con una palanca basta un muro
     de tres (la antorcha cierra la línea). El polvo lleva escritas su forma y su potencia.
-    axis 'x' o 'z' y sign ±1: hacia dónde quedan los pistones. El bloque de la puerta lo pone quien llama.
+    axis 'x' o 'z' y sign ±1: hacia dónde quedan los pistones. Con `block`, la puerta y sus pistones salen de
+    piston_door; sin él, el bloque de la puerta lo pone quien llama.
     Devuelve un registro con posiciones (puerta, cabezas, pistones, antorchas, polvo, palancas)."""
     x, y, z = door
     step = (sign, 0) if axis == "x" else (0, sign)
@@ -331,9 +332,12 @@ def combo_door(put, door, axis, sign, levers, name=""):
     rec = {"tipo": "puerta de pistones", "sitio": name, "puerta": [pos(0), pos(0, 1)],
            "cabezas": [pos(1), pos(1, 1)], "pistones": [pos(2), pos(2, 1)], "antorchas": [], "polvo": [],
            "palancas": [], "falsas": []}
-    for dy in (0, 1):
-        put(*pos(1, dy), f"piston_head[facing={toward},short=false,type=sticky]")
-        put(*pos(2, dy), f"sticky_piston[extended=true,facing={toward}]")
+    if block:
+        piston_door(put, [pos(0), pos(0, 1)], step, toward, block)
+    else:                                     # la puerta la pone quien llama
+        for dy in (0, 1):
+            put(*pos(1, dy), f"piston_head[facing={toward},short=false,type=sticky]")
+            put(*pos(2, dy), f"sticky_piston[extended=true,facing={toward}]")
     torches = {}
     for (lp, bp) in levers:
         out = VDIR[(lp[0] - bp[0], lp[2] - bp[2])]
