@@ -5,7 +5,7 @@ Planos y renders: cd tools/gen && python3 -m unicas.ciudadela.documentar ../../d
 import itertools, os, sys
 from collections import deque
 from lint import walk, passable, bname
-from . import redstone
+from .._comun import redstone
 from .plano import F0, FT, F1, FB, F2, F3, ROCA
 
 LIGHT = {"lantern": 15, "campfire": 15, "lava": 15, "redstone_wall_torch": 7, "redstone_torch": 7, "magma_block": 3,
