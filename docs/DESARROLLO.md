@@ -6,8 +6,10 @@ Repositorio público, **sin licencia (todos los derechos reservados)**. **No hay
 
 ## Flujo de ramas
 - Rama común: `develop`. Cada sesión trabaja en su propia rama creada desde `develop` y abre su PR **contra `develop`** (nunca contra `main`).
+- Los PR contra `develop` **no necesitan autorización**: cuando tus comprobaciones estén en verde, cada sesión hace el merge de su propio PR en `develop`.
+- Sincronízate para no pisar a nadie: justo antes de hacer el merge, `git merge origin/develop` en tu rama, resuelve los conflictos (en `CHANGELOG.md`, `README.md` y `docs/APRENDIZAJES.md` se suman las entradas de todos), vuelve a pasar las comprobaciones y haz push. Si `develop` cambia entre tanto, repítelo. Nunca reescribas el historial de `develop` ni el de las ramas ajenas.
+- Si tu cambio toca algo compartido (`writer.py`, `lint.py`, `core.py`, `Heraldia.java`, la prueba de humo), haz el merge pronto y en un PR pequeño para que las demás lo reciban cuanto antes.
 - Solo `develop` se lleva a `main`, y lo hace la sesión orquestadora.
-- Antes de abrir el PR: `git merge origin/develop` en tu rama y resuelve conflictos (en `CHANGELOG.md` y `README.md` se suman las entradas de todos).
 
 ## Entorno (contenedor nuevo)
 - Java 25: `curl -sSL -o /tmp/jdk.tgz "https://api.adoptium.net/v3/binary/latest/25/ga/linux/x64/jdk/hotspot/normal/eclipse" && mkdir -p ~/jdk25 && tar xzf /tmp/jdk.tgz -C ~/jdk25 --strip-components=1 && export JAVA_HOME=~/jdk25 PATH=~/jdk25/bin:$PATH`
@@ -22,6 +24,12 @@ Repositorio público, **sin licencia (todos los derechos reservados)**. **No hay
 - Botín con Lootr: marca con `"solo_sin_lootr": True` el grupo extra de cada cofre.
 - Si necesitas Java propio, ponlo en el paquete `io.github.albertosa23.heraldia.unicas.<id>` y regístralo desde una clase propia llamada en `Heraldia.onInitialize` con una sola línea.
 - Si la auditoría de `lint.py` no cubre algo de tu estructura, añade sus comprobaciones en tu módulo; los cambios en `lint.py` deben ser genéricos y pequeños.
+
+## Memoria compartida: `docs/APRENDIZAJES.md`
+- Léela antes de empezar y vuelve a mirarla tras cada `git merge origin/develop`.
+- Todo lo que aprendas que sirva para diseñar mejores estructuras o evite un fallo (comportamiento del juego verificado, error que te costó tiempo, técnica de diseño que funcionó, comprobación nueva del auditor) va ahí en el mismo PR, como una viñeta breve en su apartado, con cómo se verificó.
+- Si un aprendizaje revela un fallo en algo ya hecho (aldeas u otra estructura), corrígelo si es pequeño y está claro; si no, apúntalo en el apartado «Fallos pendientes».
+- No borres ni reescribas viñetas ajenas; si una resulta falsa, márcala como corregida y explica por qué.
 
 ## Reglas del proyecto
 - Todo cambio en `src/`, recursos o generador va en `CHANGELOG.md` en el mismo commit: viñeta para jugadores si se nota en el juego, viñeta técnica siempre que sea interno. No reescribas viñetas ajenas.
