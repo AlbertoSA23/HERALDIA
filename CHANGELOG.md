@@ -13,6 +13,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
 
 - Fichero de configuración `config/heraldia.json`: separación entre aldeas (1000-10000 bloques, por defecto 1500), máximo de aldeas por mundo (hasta 100, las más cercanas al 0,0), porcentaje de grandes, distancia a las aldeas vanilla, familias y estilos activables, límites y limpieza de gólems, y activación y separación de cada estructura única. Los valores no válidos se avisan en el log y se cambian por los de por defecto.
+- Nueva estructura única **Acueducto en ruinas** (desierto y badlands): acueducto romano de dos pisos de arcos que llega al castellum de una ciudad abandonada con foro, templo, termas, villa del gobernador, casas, tiendas, cisterna y cloacas. Puzles de palancas y de ofrenda, trampas de flechas, generadores, el guardián Centurión Aquilio y la cámara del tesoro. Un 85 % en buen estado.
 
 ### Técnico
 
@@ -34,3 +35,6 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Dos mixins (último recurso: un `structure_set` no permite saltarse entradas ni elegir el tamaño): `ChunkGenerator.tryGenerateStructure` y `StructureCheck.canCreateStructure` rechazan estilos desactivados y el tamaño que no toca en la casilla, así el set prueba el siguiente y `/locate` coincide con la generación. Los pesos estándar/grande del set pasan a 1:1.
 - Las funciones de gólems leen la limpieza y los límites del marcador `heraldia_cfg`, que el mod rellena al arrancar. Etiqueta nueva `heraldia:aldeas` con todas las aldeas.
 - La prueba de humo escribe una configuración de prueba (sin versión, con un valor fuera de rango, una opción desconocida, una familia desactivada y máximo 12) y comprueba la migración, la corrección, el fichero reescrito, el marcador de gólems y que `/locate` desde 20000, 20000 solo encuentra aldeas activadas dentro de las casillas permitidas.
+- Estructura única `acueducto` (`tools/gen/unicas/acueducto/`): se construye en coordenadas globales y se corta en 5 piezas jigsaw (castellum de inicio, acueducto, ciudad, cloaca y cisterna; las subterráneas rellenas bloque a bloque para que `beard_box` no las vacíe). Auditoría propia previa a la generación: recorrido a pie con los puzles cerrados y resueltos, nada flotando, simulador de redstone y porcentaje de ruina; planos y renders en `docs/unicas/acueducto/`.
+- Procesador `heraldia:acueducto_hasta_el_suelo` (Java, `finalizeProcessing`): prolonga los cimientos de la fila inferior de una pieza hasta el suelo firme dentro del chunk que se genera.
+- `writer.py` añade a los idiomas los textos `LANG` de cada estructura única; `lint.py` considera transitables el cable trampa, las palancas y el polvo de redstone.

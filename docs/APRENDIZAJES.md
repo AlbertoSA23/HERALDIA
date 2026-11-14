@@ -21,7 +21,15 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Diseño de estructuras
 
+- Sótanos sin hundir el terreno: poner lo subterráneo en piezas aparte colgadas por jigsaw vertical (`down_south` → `up_south`, `aligned`) y rellenar su caja entera bloque a bloque; la pieza de superficie no baja de y = 0. Diseñar en coordenadas globales y cortar en piezas por cajas permite auditar la estructura completa. Verificado con `place structure` (acueducto) en un servidor dedicado.
+- Pilares que llegan al suelo en una pieza rígida: un procesador propio con `finalizeProcessing` puede añadir bloques a la lista (columnas hacia abajo) leyendo el mundo solo dentro de `settings.getBoundingBox()` (el chunk en generación). Se registra en `BuiltInRegistries.STRUCTURE_PROCESSOR` con el `MapCodec` directamente. Verificado en un servidor dedicado: los 52 cimientos del acueducto quedan apoyados.
+- Puertas secretas que cierran sin energía externa: pistones pegajosos **extendidos al colocarse** (con su `piston_head`) alimentados por antorchas inversoras; en la generación no hay actualizaciones, así que basta con colocar el estado estable (antorcha `lit=true`, polvo con su `power` calculado). Al cambiar una palanca el circuito reacciona normal. Verificado en un servidor dedicado con `place template`.
+- Probar redstone sin jugador: `setblock` de la palanca con `powered=true` solo avisa a sus vecinos; para que reaccione una antorcha a dos bloques hay que cambiar y restaurar un bloque vecino suyo. Las placas se prueban con un mob con `NoAI` (no con dificultad pacífica, que los borra) y las de madera con un objeto `summon item`. Verificado en un servidor dedicado.
+
 ## Generador y auditoría
+
+- `lint.walk` toma como suelo cualquier celda con y - 1 < 0 sin bloque debajo: con piezas por debajo de y = 0, el recorrido "camina" por el vacío. Para auditar subsuelos hay que poner tierra explícita bajo lo que no tiene subsuelo (lo hace `unicas/acueducto/auditoria.py`). Verificado con la auditoría del acueducto.
+- No existe `cut_sandstone_stairs` (sí `smooth_sandstone_stairs` y `sandstone_stairs`). Verificado con la validación contra los registros.
 
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
 - Opciones del mod: se definen en `tools/gen/opciones.py` (por defecto, rango y textos en los dos idiomas), que las escribe en `heraldia/opciones.json` dentro del `.jar`. El Java las valida de forma genérica: una opción nueva no necesita código, salvo para usarla. Verificado en la prueba de humo (corrección de un valor fuera de rango).
