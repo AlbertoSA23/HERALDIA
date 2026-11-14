@@ -147,7 +147,7 @@ def reliquary(c):
 
 
 def piston_door(c, nombre, door, axis, sign, levers):
-    rec = piezas.combo_door(c.set, door, axis, sign, levers, nombre)
+    rec = piezas.combo_door(c.set, door, axis, sign, levers, nombre, block=CSB)
     c.mech.append(rec)
     return rec
 
@@ -164,7 +164,6 @@ def treasury(c):
     for dy in (0, 1):
         for zz in (31, 32, 34):
             c.set(103, -7 + dy, zz, "air")
-        c.set(103, -7 + dy, 33, CSB)
     piston_door(c, "cámara del tesoro", (103, -7, 33), "x", 1,
                 [((lx, -6, 30), (lx, -6, 31)) for (lx, _, ok) in LEVERS if ok])
     piezas.lever_trap(c.set, (107, -6, 30), (107, -6, 31), (107, -5, 31), "north")
