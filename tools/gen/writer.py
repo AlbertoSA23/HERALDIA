@@ -4,6 +4,7 @@ from core import NS, nsid
 from themes import THEMES, FAMILIES
 from pack import ALL_PROFS
 import loot
+import unicas
 
 STD = dict(size=6, maxdist=92)
 GRANDE = dict(size=7, maxdist=116)
@@ -121,9 +122,15 @@ def write(reg, out):
         "structures": set_entries,
         "placement": {"type": "minecraft:random_spread", "spacing": 94, "separation": 62, "salt": 261112013,
                       "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": 10}}})
+    # estructuras únicas
+    for sid, mod in unicas.modules():
+        write_unique(out, sid, mod.STRUCTURE)
     # botín
     for name, table in loot.TABLES.items():
-        jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", table)
+        jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
+    for sid, mod in unicas.modules():
+        for name, table in getattr(mod, "LOOT", {}).items():
+            jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
     # funciones
     fdir = os.path.join(out, "data", NS, "function")
     os.makedirs(fdir, exist_ok=True)
@@ -197,6 +204,35 @@ def write(reg, out):
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     for lang, texts in LANG.items():
         jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
+
+
+def write_unique(out, sid, st):
+    """JSON de una estructura única, su rejilla de colocación y su etiqueta (para mapas del tesoro)."""
+    sid_full = f"{NS}:unicas/{sid}"
+    structure = st.get("json") or {
+        "type": "minecraft:jigsaw", "biomes": st["biomes"], "step": st.get("step", "surface_structures"),
+        "spawn_overrides": st.get("spawn_overrides", {}), "terrain_adaptation": st.get("terrain_adaptation", "beard_thin"),
+        "start_pool": nsid(st["start_pool"]), "size": st["size"], "max_distance_from_center": st["max_distance"],
+        "start_height": st.get("start_height", {"absolute": 0}), "use_expansion_hack": False}
+    if not st.get("json") and st.get("project_to", "WORLD_SURFACE_WG"):
+        structure["project_start_to_heightmap"] = st.get("project_to", "WORLD_SURFACE_WG")
+    jdump(out, f"data/{NS}/worldgen/structure/unicas/{sid}.json", structure)
+    jdump(out, f"data/{NS}/worldgen/structure_set/unicas/{sid}.json", {
+        "structures": [{"structure": sid_full, "weight": 1}],
+        "placement": {"type": "minecraft:random_spread", "spacing": st.get("spacing", unicas.DEFAULT_SPACING),
+                      "separation": st.get("separation", unicas.DEFAULT_SEPARATION), "salt": unicas.salt(sid)}})
+    jdump(out, f"data/{NS}/tags/worldgen/structure/unicas/{sid}.json", {"values": [sid_full]})
+
+
+def lootr_aware(table):
+    """Convierte la marca "solo_sin_lootr" de cada grupo en la condición heraldia:sin_lootr."""
+    pools = []
+    for p in table["pools"]:
+        p = dict(p)
+        if p.pop("solo_sin_lootr", False):
+            p["conditions"] = p.get("conditions", []) + [{"condition": f"{NS}:sin_lootr"}]
+        pools.append(p)
+    return dict(table, pools=pools)
 
 
 def rule(inp, loc, outb):

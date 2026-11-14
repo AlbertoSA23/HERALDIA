@@ -1,5 +1,6 @@
 """Construye todas las piezas, pools y JSON del datapack."""
 import json, os, random, shutil
+import unicas
 from core import Template, nsid, NS
 from lint import passable
 from themes import THEMES, FAMILIES
@@ -160,4 +161,6 @@ def build_all(seed=2026):
     build_common(reg)
     for i, th in enumerate(THEMES):
         build_theme(reg, th, seed * 100 + i)
+    for _, mod in unicas.modules():
+        mod.build(reg)
     return reg

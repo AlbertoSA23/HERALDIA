@@ -20,3 +20,6 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Al arrancar el servidor, el log indica cuántas estructuras `heraldia` hay registradas.
 - Comprobaciones locales: `tools/changelog.py check` valida este registro y `tools/smoke/server_smoke.py` arranca un servidor dedicado 26.3 real con el mod como prueba de humo.
 - Sin licencia: todos los derechos reservados.
+- Base para estructuras únicas: el generador descubre los módulos de `tools/gen/unicas/` y escribe su estructura, su rejilla de colocación, su etiqueta (para mapas) y su botín bajo `heraldia:unicas/<id>`.
+- Condición de botín `heraldia:sin_lootr`: los grupos marcados `solo_sin_lootr` se omiten si Lootr está cargado.
+- La prueba de humo coloca también cada estructura única y abre todas las tablas de botín.

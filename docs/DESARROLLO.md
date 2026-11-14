@@ -16,6 +16,13 @@ Repositorio público, **sin licencia (todos los derechos reservados)**. **No hay
 - Prueba de humo en servidor dedicado 26.3 real: `python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-<versión>.jar`
 - Registro de cambios: `python3 tools/changelog.py check`
 
+## Estructuras únicas: dónde va cada cosa
+- Una estructura = un módulo `tools/gen/unicas/<id>.py` (o paquete `tools/gen/unicas/<id>/`). El contrato está en `tools/gen/unicas/__init__.py`. No hace falta tocar `main.py` ni `writer.py`.
+- Ids: estructura `heraldia:unicas/<id>`, plantillas y pools `heraldia:unicas/<id>/...`, botín `heraldia:unicas/<id>/<nombre>`, etiqueta `heraldia:unicas/<id>`.
+- Botín con Lootr: marca con `"solo_sin_lootr": True` el grupo extra de cada cofre.
+- Si necesitas Java propio, ponlo en el paquete `io.github.albertosa23.heraldia.unicas.<id>` y regístralo desde una clase propia llamada en `Heraldia.onInitialize` con una sola línea.
+- Si la auditoría de `lint.py` no cubre algo de tu estructura, añade sus comprobaciones en tu módulo; los cambios en `lint.py` deben ser genéricos y pequeños.
+
 ## Reglas del proyecto
 - Todo cambio en `src/`, recursos o generador va en `CHANGELOG.md` en el mismo commit: viñeta para jugadores si se nota en el juego, viñeta técnica siempre que sea interno. No reescribas viñetas ajenas.
 - README al día si cambian funciones, comandos, configuración o cifras.

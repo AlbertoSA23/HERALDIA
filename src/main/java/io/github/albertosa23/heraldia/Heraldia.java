@@ -1,20 +1,29 @@
 package io.github.albertosa23.heraldia;
 
+import io.github.albertosa23.heraldia.loot.WithoutLootrCondition;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Punto de entrada. El contenido es de datos (data/heraldia); aquí solo se informa de lo cargado. */
+/** Punto de entrada. El contenido es de datos (data/heraldia); aquí se registra lo que los datos no pueden expresar. */
 public final class Heraldia implements ModInitializer {
 	public static final String MOD_ID = "heraldia";
 	private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {
+		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("sin_lootr"), WithoutLootrCondition.CODEC);
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::logRegisteredStructures);
+	}
+
+	public static Identifier id(String path) {
+		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 
 	/** Deja en el log cuántas estructuras del mod están en el registro, para comprobar la carga sin entrar al juego. */

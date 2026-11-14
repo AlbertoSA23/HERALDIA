@@ -1,0 +1,36 @@
+"""Estructuras únicas: cada módulo de este paquete (unicas/<id>.py o unicas/<id>/) define una estructura.
+
+Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar main.py ni writer.py):
+  STRUCTURE = dict(
+      biomes="#minecraft:is_forest" o "#heraldia:<familia>" (etiqueta de biomas),
+      start_pool="unicas/<id>/inicio",
+      size=1..20, max_distance=1..116,
+      terrain_adaptation="beard_thin" | "beard_box" | "bury" | "encapsulate" | "none",
+      step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG" (o None),
+      spacing=250, separation=190,   # chunks; por defecto una cada ~3.000-5.000 bloques
+  )
+  # Opcional: STRUCTURE["json"] = dict completo de la estructura (tipo propio en Java, por ejemplo); sustituye al anterior.
+  def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.
+  LOOT = {"premium": tabla, ...}   -> heraldia:unicas/<id>/<nombre>
+
+Botín y Lootr: un grupo (pool) con "solo_sin_lootr": True se omite si el servidor lleva Lootr
+(condición heraldia:sin_lootr). Úsalo para el extra por cofre, de modo que con Lootr cada jugador reciba lo modesto.
+El generador escribe además la etiqueta heraldia:unicas/<id> (para mapas del tesoro) y su structure_set.
+"""
+import importlib, pkgutil, zlib
+
+DEFAULT_SPACING, DEFAULT_SEPARATION = 250, 190
+
+
+def modules():
+    """[(id, módulo)] ordenados por id, para una salida determinista."""
+    found = []
+    for info in pkgutil.iter_modules(__path__):
+        if not info.name.startswith("_"):
+            found.append((info.name, importlib.import_module(f"{__name__}.{info.name}")))
+    return sorted(found)
+
+
+def salt(sid):
+    """Sal estable por estructura para que cada tipo tenga su propia rejilla de colocación."""
+    return zlib.crc32(f"heraldia:unicas/{sid}".encode()) & 0x7FFFFFFF

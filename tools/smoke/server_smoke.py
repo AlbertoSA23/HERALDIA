@@ -2,17 +2,24 @@
 
 Uso: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-X.jar --work build/smoke
 Comprueba: el servidor arranca sin errores de registro, están las 72 estructuras del mod,
-/place structure coloca una aldea y las funciones del mod existen. Código 0 si todo pasa.
+/place structure coloca una aldea con aldeanos, todas las tablas de botín se leen y las funciones existen. Código 0 si todo pasa.
 """
 import argparse, json, os, queue, re, shutil, subprocess, sys, threading, time, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-GENERATED_STRUCTURES = os.path.join(ROOT, "build", "generated", "heraldia", "data", "heraldia", "worldgen", "structure")
+GENERATED_DATA = os.path.join(ROOT, "build", "generated", "heraldia", "data", "heraldia")
 START_TIMEOUT_S, COMMAND_TIMEOUT_S = 600, 300
 PLACE_ATTEMPTS, PLACE_RETRY_S = 30, 5
 PLACE_TARGET = "heraldia:llanuras_castellana"
 # /place structure exige cargados todos los chunks de la caja de la aldea (radio <= 116): se fuerza 16 x 16 chunks.
 FORCELOAD = "forceload add -128 -128 127 127"
+LOOT_TABLES = sorted(
+    "heraldia:" + os.path.relpath(os.path.join(r, f), os.path.join(GENERATED_DATA, "loot_table"))[:-5].replace(os.sep, "/")
+    for r, _, fs in os.walk(os.path.join(GENERATED_DATA, "loot_table")) for f in fs if f.endswith(".json"))
+UNIQUE_STRUCTURES = sorted(
+    "heraldia:unicas/" + f[:-5] for f in (os.listdir(os.path.join(GENERATED_DATA, "worldgen", "structure", "unicas"))
+                                          if os.path.isdir(os.path.join(GENERATED_DATA, "worldgen", "structure", "unicas")) else [])
+    if f.endswith(".json"))
 ERROR_PATTERN = r"Unknown|Incorrect|Failed|Invalid|error|not loaded"
 
 
@@ -99,7 +106,7 @@ def main():
     ap.add_argument("--work", default=os.path.join(ROOT, "build", "smoke"))
     args = ap.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    expected = len([f for f in os.listdir(GENERATED_STRUCTURES) if f.endswith(".json")])
+    expected = sum(f.endswith(".json") for _, _, fs in os.walk(os.path.join(GENERATED_DATA, "worldgen", "structure")) for f in fs)
     launcher = prepare(args.work, os.path.abspath(args.jar), gradle_properties())
 
     proc = subprocess.Popen(["java", "-Xmx2G", "-jar", launcher, "nogui"], cwd=args.work, text=True,
@@ -126,6 +133,16 @@ def main():
         villagers = int(m.group(1)) if m.group(1) else 0
         if villagers == 0:
             failures.append("la aldea colocada no tiene aldeanos")
+        # Cada estructura única se coloca (se superponen en el mismo sitio: solo importa que se generen).
+        for sid in UNIQUE_STRUCTURES:
+            m = run(proc, lines, seen, f"place structure {sid} 0 ~ 0", r"Generated structure")
+            if not m.group(0).startswith("Generated"):
+                failures.append(f"place structure {sid} falló: {m.string.strip()}")
+        # Las tablas de botín se leen (y la condición heraldia:sin_lootr está registrada si alguna la usa).
+        for table in LOOT_TABLES:
+            m = run(proc, lines, seen, f"loot spawn 0 200 0 loot {table}", r"Dropped \d+")
+            if not m.group(0).startswith("Dropped"):
+                failures.append(f"botín {table} falló: {m.string.strip()}")
         m = run(proc, lines, seen, "function heraldia:golems", r"Running function|Ran \d+ command")
         if not m.group(0).startswith(("Running", "Ran")):
             failures.append(f"function heraldia:golems falló: {m.string.strip()}")
@@ -144,7 +161,7 @@ def main():
     if failures:
         print("PRUEBA DE HUMO FALLIDA:\n  " + "\n  ".join(failures))
         return 1
-    print(f"PRUEBA DE HUMO OK: {expected} estructuras registradas, {PLACE_TARGET} colocada con {villagers} aldeanos, funciones presentes")
+    print(f"PRUEBA DE HUMO OK: {expected} estructuras registradas, {PLACE_TARGET} colocada con {villagers} aldeanos, botín y funciones correctos")
     return 0
 
 

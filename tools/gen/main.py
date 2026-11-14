@@ -9,6 +9,7 @@ from pack import build_all
 from validate import load_registries, validate_registry, validate_loot, validate_structures
 from writer import write
 import loot
+import unicas
 from lint import lint_registry, summarize
 
 
@@ -24,7 +25,7 @@ def main():
 
     reg = build_all()
     errs = validate_registry(reg)
-    lerrs = validate_loot(loot.TABLES)
+    lerrs = validate_loot([loot.TABLES] + [getattr(m, "LOOT", {}) for _, m in unicas.modules()])
     if errs or lerrs or reg.warnings:
         print("ERRORES:", errs, lerrs, reg.warnings[:20])
         return 1
