@@ -1,28 +1,10 @@
 """Botín (solo vanilla) y textos de la catedral."""
 from loot import item, empty
+from .._comun import named as comun_named, pool, table
 
 
 def named(name, w, key, ench=None, lo=1, hi=1):
-    e = item(name, w, lo, hi)
-    mods = [e.pop("modifier")] if "modifier" in e else []
-    mods.append({"type": "minecraft:set_name", "target": "item_name",
-                 "name": {"translate": key, "fallback": LANG["es_es"][key]}})
-    if ench:
-        mods.append({"type": "minecraft:set_enchantments", "enchantments": ench})
-    e["modifier"] = mods
-    return e
-
-
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
-def table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
+    return comun_named(name, w, key, LANG["es_es"][key], ench, lo, hi)
 
 
 K = "heraldia.unicas.catedral."

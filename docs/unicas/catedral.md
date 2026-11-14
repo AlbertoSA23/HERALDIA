@@ -107,6 +107,9 @@ galería hundida de la cripta.
 
 ## Comprobaciones
 
+- Escalera de caracol, puertas de pistones, trampas, generadores, guardián, carteles y ayudas de botín salen de las piezas
+  comunes de `tools/gen/unicas/_comun/`.
+
 - `tools/gen/unicas/catedral/auditoria.py` (condición para generar): recorrido a pie desde el atrio con los mecanismos
   accionados, acceso a cofres, generadores, palancas, campanas, atriles, puertas y peldaños; estancias sin acceso; bloques
   flotando; luz; coherencia estática de la redstone; proporción de ruina. Además pasa `lint.py` y la validación de registros.

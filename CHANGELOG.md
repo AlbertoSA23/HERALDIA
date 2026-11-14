@@ -23,6 +23,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Técnico
 
+- Piezas comunes y parametrizadas para estructuras únicas en `tools/gen/unicas/_comun/`: escalera de caracol, puerta secreta de pistones con palancas e inversores, cable trampa y placa de presión con dispensadores, generador, guardián con nombre traducible, cartel traducible y ayudas de botín (objeto con nombre, grupo `solo_sin_lootr`). La catedral las usa.
 - Catedral (`tools/gen/unicas/catedral/`): modelo único en coordenadas propias dividido en dos piezas rígidas (superficie y cripta) unidas por un jigsaw vertical; auditoría propia como condición para generar (recorrido a pie, estancias sin acceso, bloques flotando, luz, redstone, proporción de ruina), planos por nivel y renders en `docs/unicas/catedral/`, y prueba de mecanismos en servidor real (`prueba_juego.py`).
 - `writer.py`: se quita la segunda mezcla duplicada de los textos `LANG` de las estructuras únicas, que había entrado por dos PR paralelos.
 - Faro (`tools/gen/unicas/faro/`): plantilla única de 44 x 52 x 48 y tipo de estructura propio `heraldia:faro` (Java) que busca la línea de costa con los mapas de alturas de generación y gira la plantilla hacia el mar; con `/place structure` se coloca aunque no haya costa. Comprobaciones propias: simulación de redstone de puzles y trampas, cueva estanca, ruina estimada (15,8 %) y recorrido a pie.

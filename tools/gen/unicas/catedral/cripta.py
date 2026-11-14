@@ -4,6 +4,7 @@ import math
 from core import B, F
 from lint import passable, top_height, bname
 from .base import *
+from .. import _comun as comun
 
 FLOOR, TOP = -8, -1
 ROOMS = [  # nombre, x0, x1, z0, z1, cota superior del aire
@@ -72,7 +73,6 @@ def hall(c):
         for x in range(x0, x0 + 3):
             c.set(x, -7, z0, PA)
             c.set(x, -6, z0, slab("smooth_stone", "bottom"))
-        c.candles(x0 + 1, -5, z0, 2) if False else None
     c.set(65, -7, 30, CSB)
     c.set(65, -6, 30, "smooth_quartz")
     c.candles(65, -5, 30, 4)
@@ -81,7 +81,7 @@ def hall(c):
     c.chest(60, -7, 24, "east", "cripta", "cripta, nicho noroeste")
     c.chest(70, -7, 36, "west", "cripta", "cripta, nicho sureste")
     # cámara oeste: generador de zombis, a oscuras
-    c.set(53, -7, 30, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:zombie"}}})
+    comun.spawner(c, (53, -7, 30), "zombie")
     c.spawners.append(((53, -7, 30), "zombie"))
     for (x, z) in ((51, 27), (56, 33), (51, 33)):
         c.set(x, -7, z, "bone_block")
@@ -110,32 +110,19 @@ def ossuary(c):
     c.hang(90, -3, 30, -2, soul=True)
     c.chest(84, -7, 20, "south", "osario", "osario, bucle norte")
     # generadores: esqueletos (norte) y arañas de cueva entre telarañas (sur, galería hundida)
-    c.set(82, -7, 17, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:skeleton"}}})
+    comun.spawner(c, (82, -7, 17), "skeleton")
     c.spawners.append(((82, -7, 17), "skeleton"))
-    c.set(82, -7, 43, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:cave_spider"}}})
+    comun.spawner(c, (82, -7, 43), "cave_spider")
     c.spawners.append(((82, -7, 43), "cave_spider"))
     for (x, y, z) in ((81, -7, 42), (83, -6, 44), (81, -5, 44), (83, -5, 42), (82, -4, 42)):
         c.set(x, y, z, "cobweb")
     for (x, y, z) in ((81, -7, 44),):
         c.set(x, y, z, "gravel")
         c.ruin.add((x, y, z))
-    # trampa 1: cable trampa en el eje (x = 82) con dos dispensadores de flechas
-    arrows = {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 16},
-                                                     {"Slot": B(4), "id": "minecraft:arrow", "count": 16}]}
-    c.set(82, -7, 28, s("tripwire_hook", attached=True, facing="south", powered=False))
-    c.set(82, -7, 32, s("tripwire_hook", attached=True, facing="north", powered=False))
-    for z in (29, 30, 31):
-        c.set(82, -7, z, s("tripwire", attached=True, disarmed=False, powered=False, north=True, south=True, east=False, west=False))
-    c.set(82, -6, 28, s("dispenser", facing="south", triggered=False), dict(arrows))
-    c.set(82, -6, 32, s("dispenser", facing="north", triggered=False), dict(arrows))
-    c.mech.append({"tipo": "cable trampa", "sitio": "eje del osario", "ganchos": [(82, -7, 28), (82, -7, 32)],
-                   "cable": [(82, -7, z) for z in (29, 30, 31)], "dispensadores": [(82, -6, 28), (82, -6, 32)]})
-    # trampa 2: placa de presión en el pasadizo estrecho
-    c.set(99, -7, 30, s("stone_pressure_plate", powered=False))
-    c.set(99, -7, 29, s("dispenser", facing="south", triggered=False), dict(arrows))
-    c.set(99, -7, 31, s("dispenser", facing="north", triggered=False), dict(arrows))
-    c.mech.append({"tipo": "placa de presión", "sitio": "pasadizo estrecho", "placa": (99, -7, 30),
-                   "dispensadores": [(99, -7, 29), (99, -7, 31)]})
+    # trampa 1: cable trampa en el eje (x = 82) con un dispensador de flechas sobre cada gancho
+    c.mech.append(comun.tripwire_trap(c, (82, -7, 28), (82, -7, 32), "eje del osario"))
+    # trampa 2: placa de presión en el pasadizo estrecho, dispensadores a ras de suelo
+    c.mech.append(comun.plate_trap(c, (99, -7, 30), [((99, -7, 29), "south"), ((99, -7, 31), "north")], "pasadizo estrecho"))
 
 
 def reliquary(c):
@@ -155,63 +142,8 @@ def reliquary(c):
     c.candles(93, -6, 24, 2)
 
 
-def piston_door(c, nombre, door, axis, sign, levers, wire_end):
-    """Puerta secreta de dos bloques retenidos por pistones pegajosos extendidos.
-
-    door: (x, y, z) del bloque inferior de la puerta en la capa central de un muro de tres de grueso;
-    axis 'x' o 'z': dirección en que se mueven los pistones; sign: +1 o -1 (hacia dónde quedan los pistones).
-    levers: [(pos de la palanca, pos del bloque al que está fijada, correcta)] en la cara del muro.
-    Las antorchas encendidas (inversores) alimentan una línea de polvo que mantiene extendidos los pistones;
-    si se activan las palancas correctas (y ninguna falsa) la línea se apaga y los pistones recogen la puerta."""
-    x, y, z = door
-    step = (sign, 0) if axis == "x" else (0, sign)
-    pos = lambda k, dy=0: (x + step[0] * k, y + dy, z + step[1] * k)
-    toward = {(1, 0): "west", (-1, 0): "east", (0, 1): "north", (0, -1): "south"}[step]
-    rec = {"tipo": "puerta de pistones", "sitio": nombre, "puerta": [pos(0), pos(0, 1)], "cabezas": [], "pistones": [],
-           "antorchas": [], "polvo": [], "palancas": [], "falsas": []}
-    for dy in (0, 1):
-        c.set(*pos(1, dy), s("piston_head", facing=toward, type="sticky", short=False))
-        c.set(*pos(2, dy), s("sticky_piston", facing=toward, extended=True))
-        rec["cabezas"].append(pos(1, dy))
-        rec["pistones"].append(pos(2, dy))
-    torches = {}
-    for (lp, bp, ok) in levers:
-        out = {(-1, 0): "west", (1, 0): "east", (0, -1): "north", (0, 1): "south"}[(lp[0] - bp[0], lp[2] - bp[2])]
-        c.set(*lp, s("lever", face="wall", facing=out, powered=False))
-        rec["palancas" if ok else "falsas"].append((lp, bp))
-        mid = (2 * bp[0] - lp[0], bp[1], 2 * bp[2] - lp[2])
-        if ok:
-            c.set(*mid, s("redstone_wall_torch", facing=MIRROR.get(out, {"west": "east", "east": "west"}.get(out)), lit=True))
-            torches[mid] = True
-            rec["antorchas"].append(mid)
-    # línea de polvo a la altura del pistón superior, desde el pistón hasta la última antorcha
-    line = []
-    k = 3
-    while True:
-        p = pos(k, 1)
-        if p in torches:
-            if p == max(torches, key=lambda q: abs(q[0] - x) + abs(q[2] - z)):
-                break
-        else:
-            line.append(p)
-        k += 1
-        if k > 20:
-            raise ValueError("línea de polvo sin final")
-    # potencia inicial (todas las palancas en reposo, antorchas encendidas)
-    power = {p: 0 for p in line}
-    for p in line:
-        nb = [(p[0] + step[0], p[1], p[2] + step[1]), (p[0] - step[0], p[1], p[2] - step[1])]
-        if any(q in torches for q in nb):
-            power[p] = 15
-    for _ in range(20):
-        for p in line:
-            nb = [(p[0] + step[0], p[1], p[2] + step[1]), (p[0] - step[0], p[1], p[2] - step[1])]
-            power[p] = max(power[p], max(power.get(q, 0) - 1 for q in nb))
-    sides = ("east", "west") if axis == "x" else ("north", "south")
-    for p in line:
-        kw = {d: ("side" if d in sides else "none") for d in ("north", "south", "east", "west")}
-        c.set(*p, s("redstone_wire", power=power[p], **kw))
-        rec["polvo"].append((p, power[p]))
+def piston_door(c, nombre, door, axis, sign, levers):
+    rec = comun.piston_door(c, door, axis, sign, levers, nombre)
     c.mech.append(rec)
     return rec
 
@@ -222,7 +154,6 @@ def treasury(c):
     for (lx, name, ok) in LEVERS:
         c.set(lx, -6, 31, CSB)
         c.set(lx, -5, 30, s("oak_wall_sign", facing="north"), sign_nbt([f"heraldia.unicas.catedral.sello.{name}"]))
-        c.candles(lx - 1, -7, 30, 2) if False else None
     for (x, z) in ((105, 24), (113, 24), (103, 24)):
         c.candles(x, -7, z, 3)
     c.set(102, -5, 27, s("oak_wall_sign", facing="east"), sign_nbt(["heraldia.unicas.catedral.sello.pista1",
@@ -232,7 +163,7 @@ def treasury(c):
             c.set(x, -7 + dy, 31, "air")
             c.set(x, -7 + dy, 33, "air")
             c.set(x, -7 + dy, 32, CSB)
-    piston_door(c, "cámara del tesoro", (103, -7, 32), "x", 1, levers, None)
+    piston_door(c, "cámara del tesoro", (103, -7, 32), "x", 1, levers)
     # cámara del tesoro: cofre principal, dos cofres laterales y el guardián
     c.set(108, -7, 40, "air")
     c.chest(108, -7, 40, "north", "premium", "cámara del tesoro (cofre principal)")
@@ -248,26 +179,17 @@ def treasury(c):
 
 
 def guardian():
-    return {"id": "minecraft:skeleton", "PersistenceRequired": B(1), "CustomNameVisible": B(1),
-            "CustomName": {"translate": "heraldia.unicas.catedral.guardian", "fallback": "Fray Osmundo, custodio del tesoro"},
-            "Health": F(40.0), "attributes": [{"id": "minecraft:max_health", "base": 40.0},
-                                               {"id": "minecraft:armor", "base": 4.0}],
-            "equipment": {"mainhand": {"id": "minecraft:bow", "count": 1,
-                                       "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
-                          "head": {"id": "minecraft:chainmail_helmet", "count": 1},
-                          "chest": {"id": "minecraft:golden_chestplate", "count": 1}},
-            "drop_chances": {"mainhand": F(0.15), "head": F(0.15), "chest": F(0.25)}}
+    return comun.guardian("skeleton", "heraldia.unicas.catedral.guardian", "Fray Osmundo, custodio del tesoro", 40.0, 4.0,
+                          {"mainhand": {"id": "minecraft:bow", "count": 1,
+                                        "components": {"minecraft:enchantments": {"minecraft:power": 2}}},
+                           "head": {"id": "minecraft:chainmail_helmet", "count": 1},
+                           "chest": {"id": "minecraft:golden_chestplate", "count": 1}},
+                          {"mainhand": 0.15, "head": 0.15, "chest": 0.25})
 
 
 def sign_nbt(keys):
     from .botin import LANG
-    msgs = [{"translate": k, "fallback": LANG["es_es"][k]} for k in keys]
-    while len(msgs) < 4:
-        msgs.insert(0, {"text": ""}) if len(msgs) % 2 else msgs.append({"text": ""})
-    empty = [{"text": ""}] * 4
-    return {"id": "minecraft:sign", "is_waxed": B(1),
-            "front_text": {"messages": msgs, "color": "black", "has_glowing_text": B(0)},
-            "back_text": {"messages": empty, "color": "black", "has_glowing_text": B(0)}}
+    return comun.sign_nbt([(k, LANG["es_es"][k]) for k in keys])
 
 
 # ---------------------------------------------------------------------- superficie: detalles finales
@@ -280,7 +202,7 @@ def library_door(c):
         c.set(86, 9 + dy, 9, "air")
         c.set(88, 9 + dy, 9, "air")
         c.set(87, 9 + dy, 9, "bookshelf")
-    piston_door(c, "gabinete secreto de la biblioteca", (87, 9, 9), "z", -1, [((85, 10, 5), (86, 10, 5), True)], None)
+    piston_door(c, "gabinete secreto de la biblioteca", (87, 9, 9), "z", -1, [((85, 10, 5), (86, 10, 5), True)])
 
 
 def belfry(c):

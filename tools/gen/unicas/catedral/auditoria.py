@@ -2,14 +2,13 @@
 abiertos, accesos a cofres, puertas, escaleras, palancas y generadores; estancias sin acceso; bloques flotando;
 luz en las zonas cubiertas de superficie; coherencia estática de la redstone; proporción de ruina."""
 from collections import deque
-from lint import passable as _passable, top_height as _top, bname, prop
+from lint import passable as _passable, top_height as _top, bname, prop, climbable, FACE
 from .base import s
 
 START = (-1, 0, 30)
 FURNITURE = {"bookshelf", "chest", "barrel", "spawner", "note_block", "dispenser", "smooth_quartz", "gold_block",
              "cartography_table", "spruce_planks", "chiseled_stone_bricks", "water_cauldron", "bone_block", "polished_diorite"}
 EXTRA_PASS = {"lever", "tripwire", "redstone_wire", "tripwire_hook", "redstone_wall_torch", "redstone_torch"}
-FACE = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 
 
 def passable(st):
@@ -43,11 +42,7 @@ def opened(c):
     return g
 
 
-def is_ladder(g, x, y, z):
-    st = g(x, y, z)
-    if bname(st) == "ladder":
-        return True
-    return st is not None and "trapdoor" in bname(st) and "open=true" in st and bname(g(x, y - 1, z)) == "ladder"
+is_ladder = climbable
 
 
 def walk(c, g):
