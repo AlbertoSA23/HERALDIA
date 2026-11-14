@@ -38,6 +38,7 @@ Contenido:
     triforio y arbotantes, crucero con aguja, girola con capillas, sacristía, biblioteca, claustro y, bajo tierra, cripta,
     osarios y cámara del tesoro; dos puertas secretas, una trampilla oculta, dos trampas, tres generadores, el guardián
     Fray Osmundo y 19 cofres. Diseño: [docs/unicas/catedral.md](docs/unicas/catedral.md).
+  - **Acueducto en ruinas** (`heraldia:unicas/acueducto`, desierto y badlands): acueducto de dos pisos, ciudad romana abandonada, cisterna y cloacas con la cámara del tesoro. Diseño en [docs/unicas/acueducto.md](docs/unicas/acueducto.md).
 
 ## Instalación
 

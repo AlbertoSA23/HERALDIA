@@ -1,0 +1,21 @@
+# castellum_p1: pies en y = 8. · se alcanza a pie desde la puerta sur; o solo con los puzles resueltos;
+# C cofre, B barril, G generador, P puerta, E escalera de mano, e escalón, L palanca,
+# T placa o cable trampa, D dispensador, M pistón, ~ agua, # muro. Norte arriba; x de izquierda a derecha.
+
+###############
+#####·######C·#
+#####·········#
+#####·········#
+#####·········#
+#####·········#
+#####·········#
+#####·········#
+######··e#e··e#
+######······#·#
+######······# #
+######········#
+######········#
+######········#
+#####e········#
+#####··#···BB##
+###############
