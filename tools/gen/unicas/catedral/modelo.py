@@ -6,6 +6,7 @@ añaden las partes asimétricas (sacristía y biblioteca al norte, claustro al s
 import math
 from core import Template
 from .base import *
+from .._comun import piezas
 
 NAVE_POSTS = [17, 23, 29, 35, 41, 47, 53, 59]
 CHOIR_POSTS = [71, 77, 83, 89]
@@ -14,7 +15,7 @@ OPEN_A = [-72, -36, 0, 36, 72]
 CHAPEL_A = [-36, 0, 36]
 BUTT_A = [-54, -18, 18, 54]
 TOWER_FLOORS = [0, 11, 16, 27, 39, 55]
-RING = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]   # E, NE, N, NO, O, SO, S, SE
+RING = piezas.SLAB_RING
 
 
 def vault(r):
@@ -91,16 +92,7 @@ class Catedral:
             self.flights.add((x, y, z))
 
     def spiral(self, cx, cz, start, k_max, y0=0, mat="stone_brick"):
-        """Escalera de caracol de losas alrededor de un núcleo macizo: 8 celdas por vuelta, 0,5 bloques por celda."""
-        for k in range(k_max + 1):
-            dx, dz = RING[(start + k) % 8]
-            sv = y0 + 0.5 * (k + 1)
-            if sv % 1:
-                y, typ = int(sv - 0.5), "bottom"
-            else:
-                y, typ = int(sv) - 1, "top"
-            self.set(cx + dx, y, cz + dz, slab(mat, typ))
-            self.flights.add((cx + dx, y, cz + dz))
+        self.flights.update(piezas.slab_spiral(self.set, cx, cz, start, k_max, y0, mat))
 
     # ------------------------------------------------------------------ cuerpo simétrico (mitad norte)
     def build_symmetric(self):

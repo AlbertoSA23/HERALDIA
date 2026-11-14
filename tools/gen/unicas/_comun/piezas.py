@@ -275,3 +275,82 @@ def connect(t):
             props["up"] = "false" if straight else "true"
         props["waterlogged"] = "false"
         t.blocks[(x, y, z)] = (f"minecraft:{b}[" + ",".join(f"{k}={v}" for k, v in sorted(props.items())) + "]", nbt)
+
+
+# ------------------------------------------------------------------ añadidos de la catedral
+def combo_door(put, door, axis, sign, levers, name=""):
+    """Puerta secreta de combinación (varias palancas; con una sola, mejor lever_door): dos bloques (door = bloque
+    inferior) con su alimentación: dos pistones pegajosos extendidos
+    (como piston_door) y, por cada palanca [(palanca, bloque al que se fija)], una antorcha de redstone al otro lado
+    de ese bloque (inversor) que enciende una línea de polvo a la altura del pistón superior, en la capa de la puerta.
+    La puerta se abre solo con todas las palancas activadas.
+
+    Con varias palancas, las antorchas van en una capa intermedia, junto a la línea y no dentro de ella: una antorcha
+    en la línea la corta en tramos y solo su tramo llega al pistón (se abriría con una sola palanca). Así, un muro de
+    cuatro de grueso: palancas | antorchas | puerta, pistones y polvo | cara opuesta. Con una palanca basta un muro
+    de tres (la antorcha cierra la línea). El polvo lleva escritas su forma y su potencia.
+    axis 'x' o 'z' y sign ±1: hacia dónde quedan los pistones. El bloque de la puerta lo pone quien llama.
+    Devuelve un registro con posiciones (puerta, cabezas, pistones, antorchas, polvo, palancas)."""
+    x, y, z = door
+    step = (sign, 0) if axis == "x" else (0, sign)
+    pos = lambda k, dy=0: (x + step[0] * k, y + dy, z + step[1] * k)
+    toward = VDIR[(-step[0], -step[1])]
+    rec = {"tipo": "puerta de pistones", "sitio": name, "puerta": [pos(0), pos(0, 1)],
+           "cabezas": [pos(1), pos(1, 1)], "pistones": [pos(2), pos(2, 1)], "antorchas": [], "polvo": [],
+           "palancas": [], "falsas": []}
+    for dy in (0, 1):
+        put(*pos(1, dy), f"piston_head[facing={toward},short=false,type=sticky]")
+        put(*pos(2, dy), f"sticky_piston[extended=true,facing={toward}]")
+    torches = {}
+    for (lp, bp) in levers:
+        out = VDIR[(lp[0] - bp[0], lp[2] - bp[2])]
+        put(*lp, f"lever[face=wall,facing={out},powered=false]")
+        tp = (2 * bp[0] - lp[0], bp[1], 2 * bp[2] - lp[2])
+        put(*tp, f"redstone_wall_torch[facing={OPP[out]},lit=true]")
+        torches[tp] = OPP[out]
+        rec["palancas"].append((lp, bp))
+        rec["antorchas"].append(tp)
+    proj = lambda q: (q[0] - x) * step[0] + (q[2] - z) * step[1]
+    far = max(proj(q) for q in torches)
+    line = [pos(k, 1) for k in range(3, far + 1) if pos(k, 1) not in torches]
+    adj = lambda p: {VDIR[(q[0] - p[0], q[2] - p[2])] for q in torches
+                     if q[1] == p[1] and abs(q[0] - p[0]) + abs(q[2] - p[2]) == 1}
+    nb = lambda p: [(p[0] + step[0], p[1], p[2] + step[1]), (p[0] - step[0], p[1], p[2] - step[1])]
+    power = {p: (15 if adj(p) else 0) for p in line}
+    for _ in range(len(line)):
+        for p in line:
+            power[p] = max(power[p], max(power.get(q, 0) - 1 for q in nb(p)))
+    for p in line:
+        sides = {VDIR[(q[0] - p[0], q[2] - p[2])] for q in nb(p) if q in power} | adj(p)
+        if len(sides) == 1:                       # un extremo suelto apunta en línea recta (hacia el pistón)
+            sides.add(OPP[next(iter(sides))])
+        put(*p, "redstone_wire[" + ",".join(f"{d}={'side' if d in sides else 'none'}"
+                                            for d in ("north", "south", "east", "west")) + f",power={power[p]}]")
+        rec["polvo"].append((p, power[p]))
+    return rec
+
+
+def lever_trap(put, lever, block, dispenser, facing, arrows=16):
+    """Palanca trampa: el dispensador, contiguo al bloque al que se fija la palanca, dispara al accionarla."""
+    out = VDIR[(lever[0] - block[0], lever[2] - block[2])]
+    put(*lever, f"lever[face=wall,facing={out},powered=false]")
+    put(*dispenser, f"dispenser[facing={facing},triggered=false]",
+        {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": arrows}]})
+
+
+SLAB_RING = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]   # E, NE, N, NO, O, SO, S, SE
+
+
+def slab_spiral(put, cx, cz, start, k_max, y0=0, mat="stone_brick"):
+    """Escalera de caracol de losas en una caja de 3x3 con machón central (lo pone quien llama): 8 celdas por vuelta y
+    medio bloque por celda (4 de altura por vuelta). La celda k tiene la superficie y0 + 0,5 (k + 1); start elige la
+    celda inicial en SLAB_RING. Alternativa a spiral_stair para torres altas con salidas a cualquier altura.
+    Devuelve las posiciones de los peldaños."""
+    cells = []
+    for k in range(k_max + 1):
+        dx, dz = SLAB_RING[(start + k) % 8]
+        sv = y0 + 0.5 * (k + 1)
+        y, typ = (int(sv - 0.5), "bottom") if sv % 1 else (int(sv) - 1, "top")
+        put(cx + dx, y, cz + dz, f"{mat}_slab[type={typ}]")
+        cells.append((cx + dx, y, cz + dz))
+    return cells

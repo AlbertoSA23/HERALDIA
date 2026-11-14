@@ -1,28 +1,10 @@
 """Botín (solo vanilla) y textos de la catedral."""
 from loot import item, empty
+from .._comun.botin import named as comun_named, pool, table
 
 
 def named(name, w, key, ench=None, lo=1, hi=1):
-    e = item(name, w, lo, hi)
-    mods = [e.pop("modifier")] if "modifier" in e else []
-    mods.append({"type": "minecraft:set_name", "target": "item_name",
-                 "name": {"translate": key, "fallback": LANG["es_es"][key]}})
-    if ench:
-        mods.append({"type": "minecraft:set_enchantments", "enchantments": ench})
-    e["modifier"] = mods
-    return e
-
-
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
-def table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
+    return comun_named(name, w, key, LANG["es_es"][key], ench, lo, hi)
 
 
 K = "heraldia.unicas.catedral."
@@ -34,7 +16,7 @@ LANG = {
         K + "sello.codicia": "Codicia",
         K + "sello.caridad": "Caridad",
         K + "sello.pista1": "Tres virtudes abren",
-        K + "sello.pista2": "y la codicia sella",
+        K + "sello.pista2": "y la codicia castiga",
         K + "obj.baculo": "Báculo del obispo Ermengol",
         K + "obj.espada": "Espada del cabildo",
         K + "obj.yelmo": "Yelmo del capitán de la guardia",
@@ -52,7 +34,7 @@ LANG = {
         K + "sello.codicia": "Greed",
         K + "sello.caridad": "Charity",
         K + "sello.pista1": "Three virtues open",
-        K + "sello.pista2": "and greed seals",
+        K + "sello.pista2": "and greed is punished",
         K + "obj.baculo": "Crosier of Bishop Ermengol",
         K + "obj.espada": "Sword of the Chapter",
         K + "obj.yelmo": "Helm of the Guard Captain",

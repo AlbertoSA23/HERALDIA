@@ -78,8 +78,30 @@ def main():
                     ps.append(mch[k])
             for p in ps:
                 check(f"reposo {mch['sitio']}", p, g(*p).replace("minecraft:", ""))
+        # 2) generadores, cofres y guardián (antes de abrir puertas: el guardián podría salir)
+        for (pos, mob) in c.spawners:
+            check("generador", pos, f'spawner{{SpawnData:{{entity:{{id:"minecraft:{mob}"}}}}}}')
+        for (pos, tabla, sitio) in c.chests:
+            check(f"cofre {sitio}", pos, f'{g(*pos).split("[")[0].replace("minecraft:", "")}{{LootTable:"heraldia:unicas/catedral/{tabla}"}}')
+        for (x, y, z, n) in c.entities:
+            px, py, pz = w((x, y, z))
+            for _ in range(15):            # las entidades de la plantilla se cargan unos ticks después que los bloques
+                m = cmd(f"execute if entity @e[type=minecraft:skeleton,x={px},y={py},z={pz},distance=..8,nbt={{PersistenceRequired:1b,equipment:{{mainhand:{{id:\"minecraft:bow\"}}}}}}]")
+                if "passed" in m.group(0):
+                    break
+                time.sleep(2)
+            if "passed" in m.group(0):
+                oks += 1
+            else:
+                fails.append("guardián ausente o sin equipo")
+            cmd(f"data get entity @e[type=minecraft:skeleton,x={px},y={py},z={pz},distance=..8,limit=1] CustomName", r"has the following|No entity|Found no")
         # 2) puertas de pistones: solución abre, la palanca falsa vuelve a cerrar
         for mch in [m for m in c.mech if m["tipo"] == "puerta de pistones"]:
+            if len(mch["palancas"]) > 1:            # una sola palanca no basta
+                setb(mch["palancas"][0][1], "redstone_block")
+                wait()
+                for p in mch["puerta"]:
+                    check(f"una sola palanca no abre {mch['sitio']}", p, g(*p).replace("minecraft:", ""))
             for (lp, bp) in mch["palancas"]:
                 setb(bp, "redstone_block")
             wait()
@@ -108,10 +130,13 @@ def main():
                 wait()
                 check("trampilla del altar abierta", mch["trampilla"], "iron_trapdoor[open=true]")
                 setb(mch["apoyo"], g(*mch["apoyo"]).replace("minecraft:", ""))
-            elif mch["tipo"] in ("cable trampa", "placa de presión"):
-                p = mch["cable"][1] if "cable" in mch else mch["placa"]
+            elif mch["tipo"] in ("cable trampa", "placa de presión", "palanca trampa"):
+                p = mch["cable"][1] if "cable" in mch else mch.get("placa") or mch["palanca"]
                 x, y, z = w(p)
-                cmd(f"summon minecraft:zombie {x}.5 {y} {z}.5 {{NoAI:1b,PersistenceRequired:1b,Tags:[\"prueba\"]}}", r"Summoned|Unable|error")
+                if "apoyo" in mch:
+                    setb(mch["apoyo"], "redstone_block")
+                else:
+                    cmd(f"summon minecraft:zombie {x}.5 {y} {z}.5 {{NoAI:1b,PersistenceRequired:1b,Tags:[\"prueba\"]}}", r"Summoned|Unable|error")
                 wait(30)
                 m = cmd(f"execute if entity @e[type=minecraft:arrow,x={x},y={y},z={z},distance=..8]")
                 if "passed" in m.group(0):
@@ -119,19 +144,6 @@ def main():
                 else:
                     fails.append(f"la trampa {mch['sitio']} no dispara")
                 cmd("kill @e[tag=prueba]", r"Killed|No entity|error")
-        # 4) generadores, cofres, carteles y guardián
-        for (pos, mob) in c.spawners:
-            check("generador", pos, f'spawner{{SpawnData:{{entity:{{id:"minecraft:{mob}"}}}}}}')
-        for (pos, tabla, sitio) in c.chests:
-            check(f"cofre {sitio}", pos, f'{g(*pos).split("[")[0].replace("minecraft:", "")}{{LootTable:"heraldia:unicas/catedral/{tabla}"}}')
-        for (x, y, z, n) in c.entities:
-            px, py, pz = w((x, y, z))
-            m = cmd(f"execute if entity @e[type=minecraft:skeleton,x={px},y={py},z={pz},distance=..3,nbt={{PersistenceRequired:1b,equipment:{{mainhand:{{id:\"minecraft:bow\"}}}}}}]")
-            if "passed" in m.group(0):
-                oks += 1
-            else:
-                fails.append("guardián ausente o sin equipo")
-            cmd(f"data get entity @e[type=minecraft:skeleton,x={px},y={py},z={pz},distance=..3,limit=1] CustomName", r"has the following|No entity|Found no")
     finally:
         if proc.poll() is None:
             sm.send(proc, "stop")
