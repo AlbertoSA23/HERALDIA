@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "heraldia",
+	"version": "${version}",
+	"name": "Heraldia",
+	"description": "Estructuras nuevas para el Overworld: aldeas enormes en 36 estilos por bioma.",
+	"authors": ["AlbertoSA23"],
+	"contact": {
+		"sources": "https://github.com/AlbertoSA23/HERALDIA"
+	},
+	"environment": "*",
+	"entrypoints": {
+		"main": ["io.github.albertosa23.heraldia.Heraldia"]
+	},
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=${java_version}",
+		"fabric-api": "*"
+	}
+}

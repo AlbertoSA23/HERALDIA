@@ -1,0 +1,36 @@
+# Compila el .jar (con generación, validación y auditoría de estructuras), comprueba el registro de cambios
+# y arranca un servidor dedicado 26.3 real con el mod como prueba de humo.
+name: build
+on: [pull_request, push]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gradle/actions/wrapper-validation@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/gen/requirements.txt
+      - run: pip install -r tools/gen/requirements.txt
+      - name: registro de cambios
+        run: python3 tools/changelog.py check
+      - name: compilar, generar, validar y auditar
+        run: ./gradlew build
+      - name: prueba de humo en servidor dedicado
+        run: python3 -u tools/smoke/server_smoke.py --jar build/libs/heraldia-*.jar
+      - uses: actions/upload-artifact@v7
+        with:
+          name: heraldia
+          path: build/libs/
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-logs
+          path: build/smoke/logs/

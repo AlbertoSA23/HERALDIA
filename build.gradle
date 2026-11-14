@@ -1,0 +1,58 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+base.archivesName = project.archives_base_name
+
+// --- Recursos generados por tools/gen (estructuras, pools, botín, funciones, textos) ---
+// Registros de 26.3 para validar: -Pmcmeta_summary=<ruta>, variable MCMETA_SUMMARY o clon automático en build/.
+// No se suben al repositorio porque son datos de Mojang.
+def mcmetaOverride = providers.gradleProperty('mcmeta_summary').orElse(providers.environmentVariable('MCMETA_SUMMARY'))
+def mcmetaDir = mcmetaOverride.map { file(it) }.orElse(layout.buildDirectory.dir('mcmeta-summary').map { it.asFile })
+def generatedDir = layout.buildDirectory.dir('generated/heraldia')
+
+def fetchRegistries = tasks.register('fetchRegistries', Exec) {
+	description = 'Clona el resumen de registros de misode/mcmeta si no se ha indicado otro.'
+	def target = mcmetaDir.get()
+	def branch = project.mcmeta_summary_branch
+	onlyIf { !new File(target, 'registries/data.json').isFile() }
+	commandLine 'git', '-c', 'advice.detachedHead=false', 'clone', '--quiet', '--depth', '1', '--branch', branch,
+			'https://github.com/misode/mcmeta.git', target.absolutePath
+}
+
+def generateStructures = tasks.register('generateStructures', Exec) {
+	description = 'Genera, valida y audita las estructuras con tools/gen; falla ante cualquier aviso.'
+	dependsOn fetchRegistries
+	inputs.dir('tools/gen').withPropertyName('generator')
+	outputs.dir(generatedDir)
+	def out = generatedDir.get().asFile
+	commandLine project.python, '-I', file('tools/gen/main.py').absolutePath,
+			'--out', out.absolutePath, '--registries', mcmetaDir.get().absolutePath
+}
+
+sourceSets.main.resources.srcDir(generateStructures)
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+	def props = [version: project.version, minecraft_version: project.minecraft_version,
+				 loader_version: project.loader_version, java_version: project.java_version]
+	inputs.properties props
+	filesMatching('fabric.mod.json') {
+		expand props
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = project.java_version as int
+}
+
+java {
+	toolchain.languageVersion = JavaLanguageVersion.of(project.java_version as int)
+}
