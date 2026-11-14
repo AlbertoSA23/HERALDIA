@@ -12,7 +12,7 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core import Template, parse_state
-from unicas._comun import (door, dispenser, spawner, guardian as guardian_mob, hang, stair, pool as _pool,
+from unicas._comun.piezas import (door, dispenser, spawner, guardian as guardian_mob, hang, stair, pool as _pool,
                             table as _table, named as _named, simulate, settle_redstone, connect, processors,
                             shifted, walk, SIDES, DY, _b)
 from loot import item, empty
