@@ -236,7 +236,9 @@ def lootr_aware(table):
     for p in table["pools"]:
         p = dict(p)
         if p.pop("solo_sin_lootr", False):
-            p["conditions"] = p.get("conditions", []) + [{"condition": f"{NS}:sin_lootr"}]
+            # 26.3: un grupo lleva una sola "condition" con "type" (varias, con all_of).
+            cond = {"type": f"{NS}:sin_lootr"}
+            p["condition"] = {"type": "minecraft:all_of", "terms": [p["condition"], cond]} if "condition" in p else cond
         pools.append(p)
     return dict(table, pools=pools)
 

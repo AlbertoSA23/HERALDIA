@@ -25,4 +25,5 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Condición de botín `heraldia:sin_lootr`: los grupos marcados `solo_sin_lootr` se omiten si Lootr está cargado.
 - La prueba de humo coloca también cada estructura única y abre todas las tablas de botín.
 - `tools/gen/mapas.py`: por cada estructura única escribe `item_modifier` y `loot_table` `heraldia:mapas/<id>` (exploración hacia `#heraldia:unicas/<id>`, radio limitado a ~10.000 bloques y 8 anillos, `skip_existing_chunks` falso, descarte si no hay destino) y el trato `heraldia:cartografo/<id>`, añadido a `#minecraft:cartographer/level_5` con `merchant_predicate` que exige la etiqueta de entidad `heraldia`; los aldeanos de las plantillas la llevan. Contrato de `unicas/` ampliado con `NOMBRE` y `MAPA` opcionales.
+- Corregida la condición `heraldia:sin_lootr` en el botín: en 26.3 un grupo lleva `"condition": {"type": ...}`, no la lista `conditions`.
 - La prueba de humo mide cada mapa (máximo 30 s, con o sin destino), tira 20 veces el cofre épico y comprueba el filtro de cartógrafos con un aldeano de la aldea y otro vanilla.
