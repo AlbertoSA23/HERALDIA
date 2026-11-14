@@ -6,9 +6,10 @@ Comprueba: el servidor arranca sin errores de registro, están las 72 estructura
 responden en menos de 30 s (con o sin destino), el filtro de los tratos de cartógrafo funciona y las funciones existen.
 También la configuración (config/heraldia.json): se migra un fichero sin versión, un valor fuera de rango se corrige al de
 por defecto, los valores válidos llegan a la rejilla y a los gólems, y /locate solo encuentra aldeas en las casillas permitidas.
+Las estructuras únicas que comparten bioma, localizadas con /locate, quedan a la distancia mínima configurada.
 Código 0 si todo pasa.
 """
-import argparse, json, os, queue, re, shutil, subprocess, sys, threading, time, urllib.request
+import argparse, json, math, os, queue, re, shutil, subprocess, sys, threading, time, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GENERATED_DATA = os.path.join(ROOT, "build", "generated", "heraldia", "data", "heraldia")
@@ -28,7 +29,15 @@ UNIQUE_STRUCTURES = sorted(
 MAP_TIMEOUT_S, EPIC_ROLLS = 30, 20
 # Configuración de prueba: sin versión (migración), separación fuera de rango, máximo de 12 casillas, familia pantano
 # desactivada (sin ella, la aldea más cercana a la semilla de prueba es heraldia:pantano_brujas) y opción desconocida.
-TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"pantano": False}}, "golems": {"limite_estandar": 7}, "inventada": 1}
+# Las parejas de estructuras únicas que comparten bioma van en la rejilla mínima (1.000 bloques) para que compitan de
+# verdad por el sitio, con una distancia mínima distinta de la de por defecto.
+SEPARATION_PAIRS = [("castillo", "monasterio"), ("faro", "galeon")]
+UNIQUE_MIN_DISTANCE = 1200
+LOCATE_POINTS = [(0, 0), (6000, 0), (0, -6000), (-6000, 6000)]
+TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"pantano": False}}, "golems": {"limite_estandar": 7},
+               "unicas": {"distancia_minima": {"bloques": UNIQUE_MIN_DISTANCE},
+                          **{sid: {"separacion_bloques": 1000} for pair in SEPARATION_PAIRS for sid in pair}},
+               "inventada": 1}
 CONFIG_LOG = [
     r"configuración migrada de la versión 0 a la 1",
     r"valor no válido aldeas\.separacion_bloques=50 .*se usa el valor por defecto 1500",
@@ -149,6 +158,45 @@ def unique_hook(sid):
     return importlib.import_module(name).comprobar
 
 
+def locate(ctx, sid, x, z):
+    """(x, z, segundos) de la estructura sid más cercana a x, z, o None si /locate no la encuentra."""
+    t0 = time.monotonic()
+    m = ctx.run(f"execute positioned {x} 64 {z} run locate structure heraldia:unicas/{sid}",
+                r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
+    return (int(m.group(1)), int(m.group(2)), time.monotonic() - t0) if m.group(1) else None
+
+
+def check_separation(ctx):
+    """Las parejas que comparten bioma, localizadas desde varios puntos y una desde la otra, quedan a >= N bloques."""
+    failures, found, took = [], {sid: set() for pair in SEPARATION_PAIRS for sid in pair}, []
+    for a, b in SEPARATION_PAIRS:
+        measured = 0
+        for first, second in ((a, b), (b, a)):
+            for x, z in LOCATE_POINTS:
+                p = locate(ctx, first, x, z)
+                if not p:
+                    continue
+                q = locate(ctx, second, p[0], p[1])
+                took += [p[2]] + ([q[2]] if q else [])
+                found[first].add(p[:2])
+                if q:
+                    found[second].add(q[:2])
+                    measured += 1
+        pairs = [(p, q) for p in found[a] for q in found[b]]
+        close = [(p, q) for p, q in pairs if math.dist(p, q) < UNIQUE_MIN_DISTANCE]
+        if measured == 0:
+            failures.append(f"/locate no encontró ninguna pareja {a}/{b} para medir la separación")
+        for p, q in close:
+            failures.append(f"{a} en {p} y {b} en {q} a {math.dist(p, q):.0f} bloques (< {UNIQUE_MIN_DISTANCE})")
+        print(f"separación {a}/{b}: {len(pairs)} parejas medidas, mínima "
+              f"{min((math.dist(p, q) for p, q in pairs), default=0):.0f} bloques")
+    if took:
+        print(f"/locate de estructuras únicas: {len(took)} búsquedas, media {sum(took) / len(took):.2f} s, máxima {max(took):.2f} s")
+    if not re.search(rf"distancia mínima entre estructuras únicas: activada, {UNIQUE_MIN_DISTANCE} bloques", ctx.log()):
+        failures.append("falta en el log la distancia mínima entre estructuras únicas configurada")
+    return failures
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
@@ -191,6 +239,7 @@ def main():
             failures.append(f"/locate encontró una aldea fuera de las casillas permitidas: {m.string.strip()}")
         else:
             located = f"/locate en {m.group(1)}, {m.group(2)}"
+        failures += check_separation(Context(proc, lines, seen))
         send(proc, FORCELOAD)
         wait_for(lines, r"Marked|Added|chunks? .*force", COMMAND_TIMEOUT_S, seen)
         for _ in range(PLACE_ATTEMPTS):

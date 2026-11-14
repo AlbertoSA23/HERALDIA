@@ -4,10 +4,12 @@ Formato: cada versión es `## [X.Y.Z]` (con ` - AAAA-MM-DD` al publicarla) y lle
 `### Jugadores` (lo que nota quien juega) y `### Técnico` (cambios internos). La versión de arriba
 coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo comprueba y extrae las notas de publicación.
 
+- `UniqueSeparation` (paquete `config`): antes de colocar una `heraldia:unicas/*` se calculan con `getPotentialStructureChunk` las candidatas de las demás rejillas a menos de N y se descarta si alguna de rango mayor (hash de semilla, tipo y chunk; la Atlántida gana siempre) sobrevive, es decir, pasa `findValidGenerationPoint` (bioma y terreno reales) y no la descarta otra a su vez. Se aplica en `ChunkGeneratorMixin` (generación) y `StructureCheckMixin` (`/locate` y mapas), sin mixins nuevos ni datos guardados. Primeras pruebas JUnit del mod (`./gradlew test`, dentro de `build`): `UniqueSeparationTest` simula 300 semillas con las rejillas del datapack. La prueba de humo localiza las parejas castillo/monasterio y faro/galeón y comprueba la distancia.
 ## [0.1.0]
 
 ### Jugadores
 
+- Dos estructuras únicas distintas (castillo y monasterio, faro y galeón, y cualquier otra pareja, también la Atlántida) ya no aparecen pegadas: quedan al menos a 1.000 bloques, configurable en `config/heraldia.json` (`unicas.distancia_minima`, de 100 a 3.000 bloques, o desactivada). `/locate` y los mapas del tesoro nunca señalan una descartada.
 - Atlántida: las tres arcas del vestíbulo bajo el templo ya no tapan la puerta de la galería oeste, y las fortalezas (con el portal del End) pueden aparecer aunque caigan bajo la ciudad.
 - Nueva estructura única: **Templo-pirámide** (jungla y jungla dispersa). Pirámide escalonada de seis cuerpos con escalinata, templo con crestería, plataformas laterales y juego de pelota; por dentro, escalera oculta, Sala del Cenote, galerías con osario y guarida de arañas, un cenote con cámara sumergida y la tumba del Rey Jaguar con su cámara del tesoro tras una puerta secreta. 13 cofres, 4 generadores, guardián con nombre y trampas de cable, de foso y de dardos.
 - Nueva estructura única: faro con cueva de contrabandistas en costas pedregosas y playas. Faro visitable hasta la linterna, casa del farero y, bajo el promontorio, una cueva al nivel del mar con muelle, almacenes, dormitorio, calabozo, despacho del capitán y cámara del tesoro con su guardián, el Capitán Bruma. Dos puzles de palancas, dos trampas, dos generadores, una sala oculta y un bote con cofre.

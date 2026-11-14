@@ -35,6 +35,12 @@ _FIXED = [
     ("golems.limite_grande", 9, 1, 64,
      "Con tantos gólems naturales o más, una aldea grande retira uno cada 30 s",
      "With this many natural golems or more, a large village removes one every 30 s"),
+    ("unicas.distancia_minima.activada", True, None, None,
+     "Impide que dos estructuras únicas distintas salgan a menos de la distancia mínima",
+     "Keeps two different unique structures from spawning closer than the minimum distance"),
+    ("unicas.distancia_minima.bloques", 1000, 100, 3000,
+     "Distancia mínima entre estructuras únicas distintas (también la Atlántida), en bloques",
+     "Minimum distance between different unique structures (Atlantis included), in blocks"),
 ]
 # Opciones repetidas: (patrón, clave de texto, es_es, en_us); %s es el nombre de la familia, el estilo o la estructura.
 _GROUPS = {
