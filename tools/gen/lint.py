@@ -5,7 +5,7 @@ from core import parse_state
 PASS_WORDS = ("_carpet", "torch", "_banner", "rail", "pressure_plate", "button", "tripwire",
               "ladder", "_door", "poppy", "dandelion", "allium", "azure_bluet", "tulip", "orchid", "cornflower",
               "oxeye", "lily_of_the_valley", "rose_bush", "fern", "dead_bush", "sweet_berry", "wheat", "carrots",
-              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass", "tripwire", "lever",
+              "potatoes", "beetroots", "cobweb", "lily_pad", "vine", "_sign", "short_grass", "lever",
               "redstone_wire")
 
 
