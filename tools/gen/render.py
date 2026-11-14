@@ -10,6 +10,8 @@ COL = {
     "cobblestone": (120, 120, 120), "stone_bricks": (125, 125, 125), "bricks": (150, 75, 60),
     "white_terracotta": (210, 180, 160), "calcite": (225, 225, 220), "white_concrete": (230, 232, 233),
     "hay_block": (200, 170, 40), "brick_stairs": (150, 75, 60), "brick_slab": (150, 75, 60), "bookshelf": (120, 80, 50), "lava": (230, 100, 20),
+    "packed_ice": (150, 185, 235), "blue_ice": (80, 130, 225), "snow": (245, 248, 250), "snow_block": (240, 245, 250),
+    "powder_snow": (235, 240, 245),
 }
 WOODCOL = {"oak": (162, 130, 78), "spruce": (110, 80, 50), "birch": (200, 185, 125), "jungle": (160, 115, 80),
            "acacia": (170, 90, 50), "dark_oak": (66, 43, 20), "mangrove": (117, 54, 48), "cherry": (225, 175, 170),
