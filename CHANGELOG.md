@@ -8,6 +8,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Jugadores
 
+- Nueva estructura única: el Coliseo en ruinas, en sabanas y mesetas de sabana. Anfiteatro elíptico con galerías, graderíos, palco imperial y palco del editor; bajo la arena, un hipogeo con montacargas, celdas de fieras, barracones y armería, y una parte oculta (despacho del lanista, pasadizo de Cómodo y cámara del tesoro) a la que se llega resolviendo uno de sus dos puzles. Trampas de flechas, generadores de monstruos y el Campeón de la Arena guardando el cofre premium.
 - Primera versión del mod: 72 aldeas enormes (36 estilos por bioma, cada uno en tamaño estándar y grande) que aparecen en chunks nuevos del Overworld, una cada 1000-2000 bloques.
 - Comandos de prueba `/function heraldia:muestrario` y `/function heraldia:familia/<familia>` para ver los estilos colocados en fila; sus mensajes salen en español o inglés según el idioma del cliente.
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
@@ -16,6 +17,8 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Técnico
 
+- Coliseo (`tools/gen/unicas/coliseo/`): dos piezas (principal a ras de suelo y un hipogeo hijo que rellena toda su caja, unido por un jigsaw vertical), 11 cofres con tablas propias y grupo `solo_sin_lootr`, procesadores de meteorización. Auditoría propia como condición para generar (recorrido sin saltos con vuelta a la entrada, puzles abiertos y cerrados, nada flotando, luz 0 en los generadores, redstone coherente, 15-20 % de ruina), planos y renders en `docs/unicas/coliseo/` y prueba en servidor real de puzles y trampas (`tools/smoke/coliseo_redstone.py`).
+- `writer.py` añade a los idiomas los textos `LANG` de cada estructura única; `lint.py` trata el cable trampa como transitable.
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
 - La ruta de los registros de 26.3 para validar es configurable (`--registries`, `MCMETA_SUMMARY` o `-Pmcmeta_summary`); por defecto se clona `misode/mcmeta` rama `26.3-summary` en `build/` y no se sube al repositorio.
