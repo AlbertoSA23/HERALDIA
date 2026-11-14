@@ -12,7 +12,7 @@ Contenido:
 
 Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probado con 0.166.2+26.3).
 
-1. Descarga `heraldia-<versión>.jar` (de los artefactos de la CI en GitHub Actions o compilándolo, ver abajo).
+1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
 3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 72 estructuras registradas`.
 
@@ -74,7 +74,7 @@ El `.jar` queda en `build/libs/`. La compilación ejecuta el generador `tools/ge
 
 Los registros de 26.3 (resumen de [misode/mcmeta](https://github.com/misode/mcmeta), rama `26.3-summary`) no se incluyen en el repositorio porque son datos de Mojang. Se clonan solos en `build/mcmeta-summary`; para usar otra copia: `-Pmcmeta_summary=<ruta>` o la variable `MCMETA_SUMMARY`.
 
-Comprobaciones (las mismas que la CI):
+Comprobaciones antes de publicar:
 
 ```bash
 python3 tools/changelog.py check
@@ -90,5 +90,5 @@ Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen
 
 ## Licencia y créditos
 
-El repositorio aún no tiene licencia: hasta que se elija una, el código no es de uso libre.
+Sin licencia: todos los derechos reservados. El código es visible pero no se concede permiso para usarlo, copiarlo ni redistribuirlo.
 Todo el contenido usa solo bloques y objetos de Minecraft; no se incluyen recursos de terceros.
