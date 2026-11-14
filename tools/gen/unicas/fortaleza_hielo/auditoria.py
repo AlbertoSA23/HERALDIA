@@ -1,0 +1,221 @@
+"""Comprobaciones propias de la fortaleza: redstone en reposo y al accionarse, vista abierta para el recorrido,
+luz de bloque (hielo que se derrite, generadores a oscuras), cimas de nieve y estado de conservación."""
+import copy
+from collections import deque
+from core import parse_state, state_str
+from lint import bname, passable, top_height
+
+N6 = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
+HOR = {"north": (0, 0, -1), "south": (0, 0, 1), "west": (-1, 0, 0), "east": (1, 0, 0), "up": (0, 1, 0), "down": (0, -1, 0)}
+OPP = {"north": "south", "south": "north", "east": "west", "west": "east", "up": "down", "down": "up"}
+MECH = ("piston", "sticky_piston", "dispenser", "dropper", "iron_door", "iron_trapdoor", "redstone_lamp")
+
+
+def add(p, d):
+    return (p[0] + d[0], p[1] + d[1], p[2] + d[2])
+
+
+def props(st):
+    return parse_state(st)[1]
+
+
+def conductor(st):
+    return st is not None and not passable(st) and top_height(st) == 1.0 and not any(
+        k in st for k in ("stairs", "slab", "chest", "spawner", "lantern", "campfire", "glass", "barrel", "dispenser",
+                          "piston", "lever", "redstone", "fence", "_wall", "pane", "bars", "bed", "skull", "pot",
+                          "lectern", "cauldron", "grindstone", "lightning_rod", "smoker", "crafting"))
+
+
+def simulate(blocks, extra_on=()):
+    """Devuelve (potencia del polvo, {mecanismo: alimentado}). extra_on: posiciones de placas o ganchos pulsados."""
+    g = lambda p: (blocks.get(p) or (None,))[0]
+    strong, emit = set(), set()
+    for p, (st, _) in blocks.items():
+        b = bname(st)
+        on = (b == "lever" and props(st).get("powered") == "true") or p in extra_on
+        if not on:
+            continue
+        emit.add(p)
+        pr = props(st)
+        if b == "lever":
+            face = pr["face"]
+            att = add(p, HOR[OPP[pr["facing"]]]) if face == "wall" else add(p, (0, -1 if face == "floor" else 1, 0))
+        elif b == "tripwire_hook":
+            att = add(p, HOR[OPP[pr["facing"]]])
+        else:                                       # placa de presión
+            att = add(p, (0, -1, 0))
+        strong.add(att)
+    dust = {p: 0 for p, (st, _) in blocks.items() if bname(st) == "redstone_wire"}
+    changed = True
+    while changed:
+        changed = False
+        for p in dust:
+            v = 0
+            for d in N6:
+                q = add(p, d)
+                if q in emit or (q in strong and conductor(g(q))):
+                    v = 15
+                if d[1] == 0 and q in dust:
+                    v = max(v, dust[q] - 1)
+            if v > dust[p]:
+                dust[p], changed = v, True
+
+    def points(dp, q):
+        if q == add(dp, (0, -1, 0)):
+            return True
+        pr = props(g(dp))
+        for k, d in HOR.items():
+            if k in ("up", "down"):
+                continue
+            if add(dp, d) == q:
+                return pr.get(k, "none") != "none"
+        return False
+
+    weak = {q for dp, v in dust.items() if v > 0 for d in N6 if conductor(g(q := add(dp, d))) and points(dp, q)}
+    powered = {}
+    for p, (st, _) in blocks.items():
+        if bname(st) not in MECH:
+            continue
+        on = False
+        for d in N6:
+            q = add(p, d)
+            if q in emit or (q in dust and dust[q] > 0 and points(q, p)) or (conductor(g(q)) and (q in strong or q in weak)):
+                on = True
+        powered[p] = on
+    return dust, powered
+
+
+def check_redstone(t):
+    errs = []
+    blocks = t.blocks
+    dust, powered = simulate(blocks)
+    for p, v in dust.items():
+        if int(props(blocks[p][0])["power"]) != v:
+            errs.append(("polvo con potencia guardada distinta de la calculada", p))
+    for p, on in powered.items():
+        st = blocks[p][0]
+        b, pr = bname(st), props(st)
+        if "piston" in b:
+            if (pr["extended"] == "true") != on:
+                errs.append(("pistón extendido sin alimentar o al revés", p))
+            if pr["extended"] == "true":
+                h = blocks.get(add(p, HOR[pr["facing"]]), (None,))[0]
+                if bname(h) != "piston_head" or props(h)["facing"] != pr["facing"] or \
+                        props(h)["type"] != ("sticky" if b == "sticky_piston" else "normal"):
+                    errs.append(("pistón extendido sin su cabeza", p))
+        elif b in ("dispenser", "dropper"):
+            if on or pr["triggered"] != "false":
+                errs.append(("dispensador alimentado en reposo", p))
+    # cada trampa dispara al menos un dispensador
+    for p, (st, _) in blocks.items():
+        if bname(st) in ("tripwire_hook", "stone_pressure_plate"):
+            if props(st).get("powered") != "false":
+                errs.append(("trampa armada en estado pulsado", p))
+            _, pw = simulate(blocks, extra_on={p})
+            if not any(v and bname(blocks[q][0]) == "dispenser" for q, v in pw.items()):
+                errs.append(("trampa que no dispara ningún dispensador", p))
+    return errs
+
+
+def opened(t):
+    """Vista de la plantilla con todas las palancas apagadas y los pistones retraídos (puertas secretas abiertas)."""
+    v = copy.copy(t)
+    v.blocks = dict(t.blocks)
+    v.jigsaws = t.jigsaws
+    for p, (st, n) in list(v.blocks.items()):
+        if bname(st) == "lever":
+            v.blocks[p] = (st.replace("powered=true", "powered=false"), n)
+    _, powered = simulate(v.blocks)
+    moved = []
+    for p, on in powered.items():
+        st = v.blocks[p][0]
+        if bname(st) == "sticky_piston" and not on and "extended=true" in st:
+            d = HOR[props(st)["facing"]]
+            head, front = add(p, d), add(p, (2 * d[0], 2 * d[1], 2 * d[2]))
+            v.blocks[p] = (st.replace("extended=true", "extended=false"), None)
+            v.blocks[head] = v.blocks[front]
+            v.blocks[front] = ("minecraft:air", None)
+            moved.append(front)
+    return v, moved
+
+
+# ------------------------------------------------------------------ luz
+LIGHT = {"lantern": 15, "campfire": 15, "soul_lantern": 10, "soul_campfire": 10, "torch": 14, "wall_torch": 14,
+         "glowstone": 15, "sea_lantern": 15}
+
+
+def opaque(st):
+    return conductor(st) or bname(st) in ("spawner",) and False
+
+
+def block_light(t):
+    lvl = {}
+    q = deque()
+    for p, (st, _) in t.blocks.items():
+        b = bname(st)
+        e = LIGHT.get(b, 0)
+        if b == "candle" and "lit=true" in st:
+            e = 3 * int(props(st)["candles"])
+        if b == "campfire" and "lit=false" in st:
+            e = 0
+        if e:
+            lvl[p] = e
+            q.append(p)
+    while q:
+        p = q.popleft()
+        for d in N6:
+            n = add(p, d)
+            st = t.get(*n)
+            if st is None or opaque(st):
+                continue
+            if lvl.get(n, 0) < lvl[p] - 1:
+                lvl[n] = lvl[p] - 1
+                q.append(n)
+    return lvl
+
+
+def check_light(t):
+    errs, lvl = [], block_light(t)
+    for p, (st, _) in t.blocks.items():
+        b = bname(st)
+        if b in ("ice", "snow") and lvl.get(p, 0) > 11:
+            errs.append((b + " que se derrite con la luz", p))
+        if b == "spawner":
+            near = max(lvl.get(add(p, (dx, dy, dz)), 0) for dx in range(-4, 5) for dy in range(0, 3) for dz in range(-4, 5))
+            if near > 0:
+                errs.append(("generador con luz de bloque cerca", p))
+        if b == "snow_block" and (t.get(p[0], p[1] + 1, p[2]) in (None, "minecraft:air")):
+            errs.append(("bloque de nieve como cima (nacen picos de hielo)", p))
+    return errs, lvl
+
+
+# ------------------------------------------------------------------ estado de conservación
+DECAY = {"stone_bricks": 0.2, "stone_brick_wall": 0.3, "polished_diorite": 0.2}
+
+
+def condition(t, ruined):
+    """Estimación de la superficie a la vista dañada: procesador (esperanza) + ruinas hechas a mano."""
+    g = t.get
+    seen, q = set(), deque()
+    x0, y0, z0, x1, y1, z1 = t.bounds()
+    for x in range(x0, x1 + 1):
+        for z in range(z0, z1 + 1):
+            q.append((x, y1, z))
+            seen.add((x, y1, z))
+    while q:                                         # aire exterior, desde el cielo
+        p = q.popleft()
+        for d in N6:
+            n = add(p, d)
+            if n in seen or not (x0 <= n[0] <= x1 and y0 <= n[1] <= y1 and z0 <= n[2] <= z1):
+                continue
+            if passable(g(*n)) or not conductor(g(*n)):
+                seen.add(n)
+                q.append(n)
+    surf, bad = 0, 0.0
+    for p, (st, _) in t.blocks.items():
+        if passable(st) or not any(add(p, d) in seen for d in N6):
+            continue
+        surf += 1
+        bad += DECAY.get(bname(st), 0.0)
+    nearby = sum(1 for p in ruined if any(add(p, d) in seen for d in N6) or p in seen)
+    return surf, (bad + nearby) / max(surf, 1)

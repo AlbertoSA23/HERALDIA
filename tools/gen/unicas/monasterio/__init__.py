@@ -38,5 +38,5 @@ def build(reg):
     errores = auditoria.comprobar(t)
     reg.warnings.extend(f"monasterio: {e}" for e in errores)
     name = reg.add(t, f"unica:{ID}")
-    reg.templates[name].audit_view = auditoria.vista_abierta(reg.templates[name])
+    reg.templates[name].lint_view = auditoria.vista_abierta(reg.templates[name])
     reg.pool(f"unicas/{ID}/inicio", [(name, 1, "rigid", AGING)])
