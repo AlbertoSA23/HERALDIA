@@ -20,6 +20,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 ### Técnico
 
 - Castillo (`tools/gen/unicas/castillo/`): dos plantillas rígidas unidas por un jigsaw vertical (castillo de 100 x 100 x 28 y mazmorra de 48 x 56 x 16 debajo), `beard_thin` con `start_height` -6 para que el foso y los cimientos queden bajo el terreno, procesador de musgo y grietas (ruina esperada 17 %), auditoría propia (recorrido a pie de ida y vuelta, salas ocultas inalcanzables con el mecanismo cerrado, redstone en reposo, nada flotando), planos y renders en `docs/unicas/castillo/` y prueba de los mecanismos en servidor (`prueba_redstone.py`).
+- `writer.py`: se quita la segunda mezcla duplicada de los textos `LANG` de las estructuras únicas, que había entrado por dos PR paralelos.
 - Proyecto Fabric para Minecraft 26.3 (Loom 1.19-SNAPSHOT, Loader 0.20.1, Fabric API 0.166.2+26.3, Java 25), id `heraldia`.
 - El generador del datapack "Aldeas enormes" pasa a `tools/gen/` y escribe sus recursos en el `.jar` durante la compilación; namespace `aldeas` cambiado a `heraldia` en estructuras, pools, botín, funciones y etiquetas.
 - La ruta de los registros de 26.3 para validar es configurable (`--registries`, `MCMETA_SUMMARY` o `-Pmcmeta_summary`); por defecto se clona `misode/mcmeta` rama `26.3-summary` en `build/` y no se sube al repositorio.
