@@ -124,7 +124,7 @@ def ossuary(c):
     c.mech.append({"tipo": "cable trampa", "sitio": "eje del osario", "ganchos": [(82, -7, 28), (82, -7, 32)],
                    "cable": [(82, -7, z) for z in (29, 30, 31)], "dispensadores": [(82, -6, 28), (82, -6, 32)]})
     # trampa 2: placa de presión en el pasadizo estrecho, dispensadores a ras de suelo
-    piezas.plate_trap(c.set, (99, -7, 30), [((99, -7, 29), "south"), ((99, -7, 31), "north")])
+    piezas.plate_trap(c.set, [(99, -7, 30)], "south", arrows=16)
     c.mech.append({"tipo": "placa de presión", "sitio": "pasadizo estrecho", "placa": (99, -7, 30),
                    "dispensadores": [(99, -7, 29), (99, -7, 31)]})
 
@@ -147,7 +147,7 @@ def reliquary(c):
 
 
 def piston_door(c, nombre, door, axis, sign, levers):
-    rec = piezas.lever_door(c.set, door, axis, sign, levers, nombre)
+    rec = piezas.combo_door(c.set, door, axis, sign, levers, nombre)
     c.mech.append(rec)
     return rec
 
@@ -199,15 +199,18 @@ def sign(c, x, y, z, facing, keys):
 
 # ---------------------------------------------------------------------- superficie: detalles finales
 def library_door(c):
+    """Gabinete secreto: puerta de estantería de una palanca (lever_door común), escondida entre estanterías."""
     for z in range(5, 11):
         for y in range(9, 12):
             c.set(86, y, z, "bookshelf")
-    c.set(86, 10, 5, SB)                 # bloque de la palanca (oculta entre estanterías)
-    for dy in (0, 1):
-        c.set(86, 9 + dy, 9, "air")
-        c.set(88, 9 + dy, 9, "air")
-        c.set(87, 9 + dy, 9, "bookshelf")
-    piston_door(c, "gabinete secreto de la biblioteca", (87, 9, 9), "z", -1, [((85, 10, 5), (86, 10, 5))])
+    m = piezas.lever_door(c.set, (87, 9, 9), "north", "west", "bookshelf", SB)
+    c.set(88, 9, 9, "air")
+    c.set(88, 10, 9, "air")
+    (x, y, z), lv, tc = m["door"], m["lever"], m["torch"]
+    c.mech.append({"tipo": "puerta de pistones", "sitio": "gabinete secreto de la biblioteca",
+                   "puerta": [(x, y, z), (x, y + 1, z)], "cabezas": [(x, y, z - 1), (x, y + 1, z - 1)],
+                   "pistones": [(x, y, z - 2), (x, y + 1, z - 2)], "antorchas": [tc], "polvo": [],
+                   "palancas": [(lv, (lv[0] + 1, lv[1], lv[2]))], "falsas": []})
 
 
 def belfry(c):

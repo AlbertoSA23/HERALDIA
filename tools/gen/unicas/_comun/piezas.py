@@ -242,8 +242,9 @@ def connect(t):
 
 
 # ------------------------------------------------------------------ añadidos de la catedral
-def lever_door(put, door, axis, sign, levers, name=""):
-    """Puerta secreta de dos bloques (door = bloque inferior) con su alimentación: dos pistones pegajosos extendidos
+def combo_door(put, door, axis, sign, levers, name=""):
+    """Puerta secreta de combinación (varias palancas; con una sola, mejor lever_door): dos bloques (door = bloque
+    inferior) con su alimentación: dos pistones pegajosos extendidos
     (como piston_door) y, por cada palanca [(palanca, bloque al que se fija)], una antorcha de redstone al otro lado
     de ese bloque (inversor) que enciende una línea de polvo a la altura del pistón superior, en la capa de la puerta.
     La puerta se abre solo con todas las palancas activadas.
@@ -299,15 +300,6 @@ def lever_trap(put, lever, block, dispenser, facing, arrows=16):
     put(*lever, f"lever[face=wall,facing={out},powered=false]")
     put(*dispenser, f"dispenser[facing={facing},triggered=false]",
         {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": arrows}]})
-
-
-def plate_trap(put, plate, dispensers, plate_block="stone_pressure_plate", arrows=16):
-    """Trampa de placa de presión: los dispensadores [((x, y, z), facing)] contiguos a la placa disparan flechas
-    directamente al pisarla (sin cableado)."""
-    put(*plate, f"{plate_block}[powered=false]")
-    for (p, facing) in dispensers:
-        put(*p, f"dispenser[facing={facing},triggered=false]",
-            {"id": "minecraft:dispenser", "Items": [{"Slot": B(i), "id": "minecraft:arrow", "count": arrows} for i in range(2)]})
 
 
 SLAB_RING = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]   # E, NE, N, NO, O, SO, S, SE

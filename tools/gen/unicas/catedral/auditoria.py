@@ -265,9 +265,9 @@ def redstone(c):
             for (p, pw) in m["polvo"]:
                 if pw <= 0 or f"power={pw}" not in g(*p) or not opaque(g(p[0], p[1] - 1, p[2])):
                     out.append(f"{m['sitio']}: polvo sin señal o sin apoyo en {p}")
-            first = m["polvo"][0][0]
+            first = m["polvo"][0][0] if m["polvo"] else m["pistones"][1]
             pu = m["pistones"][1]
-            if abs(first[0] - pu[0]) + abs(first[2] - pu[2]) != 1 or first[1] != pu[1]:
+            if m["polvo"] and (abs(first[0] - pu[0]) + abs(first[2] - pu[2]) != 1 or first[1] != pu[1]):
                 out.append(f"{m['sitio']}: el polvo no llega al pistón superior")
             # solución: con las correctas activadas las antorchas se apagan; la falsa alimenta la línea si se activa
             line = {p for (p, _) in m["polvo"]}
