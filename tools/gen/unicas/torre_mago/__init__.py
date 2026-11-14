@@ -62,11 +62,7 @@ def tr(k):
     return {"translate": KEY + k, "fallback": TXT[k][0]}
 
 
-def register_lang():
-    import writer
-    for k, (es, en) in TXT.items():
-        writer.LANG["es_es"][KEY + k] = es
-        writer.LANG["en_us"][KEY + k] = en
+LANG = {"es_es": {KEY + k: v[0] for k, v in TXT.items()}, "en_us": {KEY + k: v[1] for k, v in TXT.items()}}
 
 
 # ------------------------------------------------------------------ geometría
@@ -845,7 +841,6 @@ PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
 
 
 def build(reg):
-    register_lang()
     t = construir()
     name = reg.add(t, "unica")
     errs = auditar(t)
