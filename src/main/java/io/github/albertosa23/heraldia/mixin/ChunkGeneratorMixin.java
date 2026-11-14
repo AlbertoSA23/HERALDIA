@@ -1,6 +1,7 @@
 package io.github.albertosa23.heraldia.mixin;
 
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
@@ -20,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /**
  * Mixin (último recurso): un structure_set no tiene forma de saltarse entradas desactivadas ni de elegir el tamaño
  * según la configuración; al fallar aquí, el set prueba la siguiente estructura igual que cuando no vale el bioma.
+ * También impide que otras estructuras (monumentos, naufragios, ruinas) nazcan dentro de la Atlántida.
  */
 @Mixin(ChunkGenerator.class)
 abstract class ChunkGeneratorMixin {
@@ -29,7 +31,8 @@ abstract class ChunkGeneratorMixin {
 									   long seed, ChunkAccess centerChunk, ChunkPos sourceChunkPos, ResourceKey<Level> level,
 									   Climate.Sampler climateSampler, CallbackInfoReturnable<Boolean> cir) {
 		selected.structure().unwrapKey().ifPresent(key -> {
-			if (!HeraldiaConfig.get().villages().allows(key.identifier(), seed, sourceChunkPos.x(), sourceChunkPos.z())) {
+			if (!HeraldiaConfig.get().villages().allows(key.identifier(), seed, sourceChunkPos.x(), sourceChunkPos.z())
+					|| AtlantisAnchor.excludes(key.identifier(), level, seed, sourceChunkPos.x(), sourceChunkPos.z())) {
 				cir.setReturnValue(false);
 			}
 		});

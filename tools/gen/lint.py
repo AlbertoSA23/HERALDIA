@@ -330,6 +330,8 @@ def lint_registry(reg, only=None):
     for name, t in reg.templates.items():
         if only and not only(name):
             continue
+        if getattr(t, "sin_auditoria_generica", False):   # estructuras que se auditan enteras en su módulo
+            continue
         # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
         iss = support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
         if iss:
