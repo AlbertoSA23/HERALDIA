@@ -17,6 +17,10 @@ Contenido:
     la puerta en la ladera: salón de columnas, trono, forjas, cervecería, minas, puente sobre un abismo y bóveda del tesoro;
     cuatro salas ocultas, dos puzles de redstone, dos trampas, tres generadores y el guardián Borin Barbahierro.
     Diseño: [docs/unicas/ciudadela.md](docs/unicas/ciudadela.md).
+  - **Templo-pirámide** (`heraldia:unicas/piramide`): jungla y jungla dispersa. Pirámide escalonada mesoamericana con
+    templo y crestería, juego de pelota, escalera oculta, cenote interior con cámara sumergida y la tumba del Rey Jaguar
+    tras una puerta secreta de pistones; trampas de cable, foso y dardos, 4 generadores y 13 cofres.
+    Diseño: [docs/unicas/piramide.md](docs/unicas/piramide.md).
   - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en `docs/unicas/faro.md`.
   - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
