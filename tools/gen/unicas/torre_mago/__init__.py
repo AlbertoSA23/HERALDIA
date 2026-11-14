@@ -834,13 +834,13 @@ def construir():
 
 PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:deepslate_bricks", "probability": 0.12},
-     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": {"Name": "minecraft:cracked_deepslate_bricks"}},
+     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:cracked_deepslate_bricks"},
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:stone_bricks", "probability": 0.12},
-     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": {"Name": "minecraft:mossy_stone_bricks"}},
+     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:mossy_stone_bricks"},
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:stone_bricks", "probability": 0.09},
-     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": {"Name": "minecraft:cracked_stone_bricks"}},
+     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:cracked_stone_bricks"},
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:cobbled_deepslate", "probability": 0.10},
-     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": {"Name": "minecraft:mossy_cobblestone"}},
+     "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:mossy_cobblestone"},
 ]}]}
 
 

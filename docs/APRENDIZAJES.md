@@ -21,7 +21,15 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 
 ## Diseño de estructuras
 
+- Sótanos sin cráter: con una sola plantilla, `start_height: {"absolute": -N}` + `terrain_adaptation: "none"` hunde la pieza N bloques (la capa N queda a ras del terreno) y el terreno alrededor no se toca. Para pendientes, una terraza con cimiento y unos bloques de aire encima. Verificado en la torre de mago (`/place structure` en la prueba de humo).
+- Puerta secreta estable: pistones pegajosos *extendidos* sujetando los bloques de la puerta y alimentados por una antorcha de redstone encendida; la señal del puzle apaga la antorcha y retraen. Un pistón que extiende nunca libera la celda contigua, así que hace falta esta inversión. Umbral exacto con polvo: N de polvo tras un comparador solo deja pasar señal >= N (estantería cincelada: hueco 6 = señal 6; caldero lleno = 3). Verificado en servidor real con `prueba_redstone.py` de la torre de mago.
+- Muro circular de 1 bloque con vecindad de 4: las diagonales quedan en escalera y no admiten ventanas limpias; pon las ventanas en los tramos rectos (los cuatro puntos cardinales). Verificado con los planos y renders de la torre de mago.
+
 ## Generador y auditoría
+
+- En los procesadores `rule`, `output_state` es una cadena (`"minecraft:cracked_stone_bricks"`); el formato antiguo `{"Name": ...}` rompe la carga del paquete entero en 26.3. Verificado con «Registry loading errors» en la prueba de humo.
+- `lint.py`: `tripwire` y `redstone_wire` cuentan como pisables, y una plantilla puede declarar `t.lint_open = {pos: estado}` para auditar el recorrido con sus puertas secretas resueltas. Verificado con la auditoría de la torre de mago.
+- `/place template` responde «Loaded template ... at x, y, z» (no «placed»). Verificado en servidor dedicado.
 
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
 - Opciones del mod: se definen en `tools/gen/opciones.py` (por defecto, rango y textos en los dos idiomas), que las escribe en `heraldia/opciones.json` dentro del `.jar`. El Java las valida de forma genérica: una opción nueva no necesita código, salvo para usarla. Verificado en la prueba de humo (corrección de un valor fuera de rango).

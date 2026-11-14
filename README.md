@@ -8,7 +8,8 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+- **Estructuras únicas** (castillos, catedrales...): en diseño. Hechas:
+  - **Torre de mago** (bosque oscuro y jardín pálido): torre de ocho plantas con sótano de experimentos, puzles de redstone, trampas, generadores, guardián y cámara del tesoro. Diseño en `docs/unicas/torre_mago.md`.
 
 ## Instalación
 

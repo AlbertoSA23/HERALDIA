@@ -13,6 +13,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
 
 - Fichero de configuración `config/heraldia.json`: separación entre aldeas (1000-10000 bloques, por defecto 1500), máximo de aldeas por mundo (hasta 100, las más cercanas al 0,0), porcentaje de grandes, distancia a las aldeas vanilla, familias y estilos activables, límites y limpieza de gólems, y activación y separación de cada estructura única. Los valores no válidos se avisan en el log y se cambian por los de por defecto.
+- Estructura única **Torre de mago** en bosques oscuros y jardines pálidos: ocho plantas (vestíbulo, biblioteca con galería, laboratorio, encantamientos, invernadero, dormitorio y observatorio), escalera de caracol, estudio oculto tras una estantería cincelada, sótano de experimentos fallidos con generadores y trampas, y cámara del tesoro guardada por el Archimago Malvarius.
 
 ### Técnico
 
@@ -34,3 +35,5 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Dos mixins (último recurso: un `structure_set` no permite saltarse entradas ni elegir el tamaño): `ChunkGenerator.tryGenerateStructure` y `StructureCheck.canCreateStructure` rechazan estilos desactivados y el tamaño que no toca en la casilla, así el set prueba el siguiente y `/locate` coincide con la generación. Los pesos estándar/grande del set pasan a 1:1.
 - Las funciones de gólems leen la limpieza y los límites del marcador `heraldia_cfg`, que el mod rellena al arrancar. Etiqueta nueva `heraldia:aldeas` con todas las aldeas.
 - La prueba de humo escribe una configuración de prueba (sin versión, con un valor fuera de rango, una opción desconocida, una familia desactivada y máximo 12) y comprueba la migración, la corrección, el fichero reescrito, el marcador de gólems y que `/locate` desde 20000, 20000 solo encuentra aldeas activadas dentro de las casillas permitidas.
+- Módulo `tools/gen/unicas/torre_mago/` (plantilla única de 27×79×25, `start_height` −14 sin adaptación del terreno, procesador de degradación), auditoría propia de sus circuitos, planos y renders en `docs/unicas/torre_mago/` y prueba de redstone en servidor real (`prueba_redstone.py`).
+- `lint.py`: el hilo y el polvo de redstone se pueden pisar, y una plantilla puede declarar en `lint_open` sus puertas secretas abiertas para el recorrido a pie.
