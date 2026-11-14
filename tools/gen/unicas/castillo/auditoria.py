@@ -1,8 +1,8 @@
 """Auditoría propia del castillo: recorrido a pie (ida y vuelta) desde el puente, puertas, cofres, escaleras,
 salas ocultas que solo se abren con su mecanismo, redstone en reposo y nada flotando."""
-from collections import deque
 from core import parse_state
-from .util import walk_graph, bn, passable
+from .util import bn, passable, NOCOLLIDE
+from .._comun import recorrido
 from .mazmorra import OFF
 from . import superficie
 
@@ -44,20 +44,23 @@ def combined(t, d, cmeta, dmeta, opened):
 def audit(t, d, cmeta, dmeta):
     errs = []
     start = cmeta["entrance"]
-    bounds = (0, -16, 0, 99, 40, 99)
+    lim = (0, 99, 0, 99)
     opened = combined(t, d, cmeta, dmeta, True)
     closed = combined(t, d, cmeta, dmeta, False)
-    S, back = walk_graph(opened, start, bounds)
-    ok = set(S) & back
-    Sc, backc = walk_graph(closed, start, bounds)
-    okc = set(Sc) & backc
+
+    def walk(blocks):
+        # sin colisión (cable, palancas, polvo, antorchas de redstone): paso libre para el recorrido
+        v = recorrido.Vista({p: st for p, st in blocks.items() if bn(st) not in NOCOLLIDE})
+        seen, edges = recorrido.andar(v, start, lim, agua=True)
+        bad = set(recorrido.sin_vuelta(edges, start))
+        return seen, set(seen) - bad, bad
+
+    S, ok, one_way = walk(opened)
+    Sc, okc, _ = walk(closed)
 
     def near(cells, p, r=1):
-        x, y, z = p
-        return any((x + dx, y + dy, z + dz) in cells for dx in range(-r, r + 1) for dz in range(-r, r + 1)
-                   for dy in (-2, -1, 0, 1) if abs(dx) + abs(dz) <= r)
+        return recorrido.cerca(cells, p, r) or recorrido.cerca(cells, (p[0], p[1] - 1, p[2]), r)
 
-    one_way = set(S) - back
     if one_way:
         errs.append(f"celdas sin vuelta ({len(one_way)}), p. ej. {sorted(one_way)[:3]}")
     for p, st in opened.items():
@@ -103,20 +106,11 @@ def audit(t, d, cmeta, dmeta):
                 below_s = [tt.get(p[0] + a, p[1] - 1, p[2] + e) for a, c, e in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1))]
                 if not any(bn(s) == "redstone_torch" for s in src) and not any(bn(s) == "redstone_torch" for s in below_s):
                     errs.append(f"{name}: pistón sin alimentación en reposo {p}")
-    # nada flotando: todo bloque conectado con la base
+    # nada flotando: todo bloque conectado con la base de su plantilla
     for name, tt in (("castillo", t), ("mazmorra", d)):
-        solid = {p for p, (st, _) in tt.blocks.items() if bn(st) not in ("air", "water")}
-        seen = {p for p in solid if p[1] == 0}
-        q = deque(seen)
-        while q:
-            x, y, z = q.popleft()
-            for n in ((x + 1, y, z), (x - 1, y, z), (x, y + 1, z), (x, y - 1, z), (x, y, z + 1), (x, y, z - 1)):
-                if n in solid and n not in seen:
-                    seen.add(n)
-                    q.append(n)
-        loose = solid - seen
+        loose = recorrido.flotantes({p: st for p, (st, _) in tt.blocks.items()}, {0})
         if loose:
-            errs.append(f"{name}: {len(loose)} bloques flotando, p. ej. {sorted(loose)[:3]}")
+            errs.append(f"{name}: {len(loose)} bloques flotando, p. ej. {loose[:3]}")
     return errs, dict(S=S, ok=ok, okc=okc, opened=opened, closed=closed)
 
 

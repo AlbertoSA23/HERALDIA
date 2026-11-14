@@ -245,15 +245,17 @@ def walk(t, extra_ground=True):
             nx, nz = x + dx, z + dz
             if not (x0 - 1 <= nx <= x1 + 1 and z0 - 1 <= nz <= z1 + 1):
                 continue
-            for ny in range(y + 2, y - 5, -1):
+            for ny in range(y + 1, y - 5, -1):
                 r = surf(nx, ny, nz, dx, dz)
                 if r is None:
+                    if ny < y and not passable(g(nx, ny, nz)):
+                        break           # al bajar no se atraviesa un bloque macizo (techo de la sala de abajo)
                     continue
                 enter, stand = r
-                if enter - s > 0.6 or stand > s + 1.01:
-                    continue
-                if not headroom(nx, ny, nz, stand):
-                    continue
+                if enter - s > 0.6 or stand > s + 1.01 or not headroom(nx, ny, nz, stand):
+                    if passable(g(nx, ny, nz)):
+                        continue        # aire o escalera de mano: se sigue bajando por la misma columna
+                    break
                 # el paso debe estar libre a la altura del cuerpo
                 cand.append((nx, ny if stand < ny + 1 else ny + 1, nz, stand))
                 break
