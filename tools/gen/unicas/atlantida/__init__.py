@@ -5,6 +5,7 @@ base (agua, pavimento, zócalo y muralla) y las teselas de 32 x 32 que salen de 
 """
 from . import urbanismo as U
 from . import ciudad
+from . import cosas
 
 ID = "unicas/atlantida"
 NOMBRE = {"es_es": "La Atlántida", "en_us": "Atlantis"}
@@ -20,7 +21,9 @@ STRUCTURE = dict(
         "radio": U.RADIO, "suelo": U.SUELO, "base": U.BASE, "techo": U.TECHO, "piezas": [],
     },
 )
-LOOT = {}
+from . import botin
+LANG = cosas.LANG
+LOOT = botin.tablas()
 _plano = None
 
 
@@ -32,6 +35,8 @@ def plano():
 
 
 def build(reg):
+    from . import auditoria
+    reg.warnings.extend(f"atlantida: {a}" for a in auditoria.auditar(plano()))
     piezas = STRUCTURE["json"]["piezas"]
     piezas.clear()
     for t, (x, y, z) in plano().teselas(ID):

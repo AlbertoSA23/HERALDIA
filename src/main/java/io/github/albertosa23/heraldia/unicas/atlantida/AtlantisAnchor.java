@@ -12,6 +12,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BiomeTags;
@@ -37,6 +39,8 @@ public final class AtlantisAnchor {
 	public static final int DISTRICT_CHUNKS = 16, DISTRICTS_PER_SIDE = 3;
 	private static final int STEP = 64, SEARCH_RADIUS = 12288, MIN_DISTANCE = 1500, SAMPLE_Y = 40;
 	private static final int HALF_CELLS = 7, DEEP_HALF_CELLS = 4; // 448 bloques de océano desde el centro (384 de ciudad + margen)
+	private static final int EXCLUSION_RADIUS = 372 + 72; // muralla + medio monumento oceánico y holgura
+	private static final Identifier STRUCTURE_ID = Identifier.fromNamespaceAndPath("heraldia", "unicas/atlantida");
 	private static final Map<Long, CompletableFuture<ChunkPos>> BY_SEED = new ConcurrentHashMap<>();
 
 	private AtlantisAnchor() {
@@ -94,6 +98,22 @@ public final class AtlantisAnchor {
 		}
 		int dx = chunkX - anchor.x(), dz = chunkZ - anchor.z(), reach = DISTRICT_CHUNKS * (DISTRICTS_PER_SIDE / 2);
 		return Math.floorMod(dx, DISTRICT_CHUNKS) == 0 && Math.floorMod(dz, DISTRICT_CHUNKS) == 0 && Math.abs(dx) <= reach && Math.abs(dz) <= reach;
+	}
+
+	/**
+	 * Ninguna otra estructura puede nacer dentro de la ciudad ni pegada a ella (monumentos, naufragios, ruinas oceánicas):
+	 * su chunk de inicio queda excluido en un radio de la muralla más un margen.
+	 */
+	public static boolean excludes(Identifier structure, ResourceKey<Level> dimension, long seed, int chunkX, int chunkZ) {
+		if (dimension != Level.OVERWORLD || STRUCTURE_ID.equals(structure)) {
+			return false;
+		}
+		ChunkPos anchor = get(seed);
+		if (anchor == null) {
+			return false;
+		}
+		long dx = (chunkX - anchor.x()) * 16L + 8, dz = (chunkZ - anchor.z()) * 16L + 8;
+		return dx * dx + dz * dz <= (long) EXCLUSION_RADIUS * EXCLUSION_RADIUS;
 	}
 
 	private static @Nullable ChunkPos read(Path file, long seed) throws IOException {
