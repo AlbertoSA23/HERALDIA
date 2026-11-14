@@ -1,39 +1,14 @@
 """Botín del monasterio (solo vanilla). Más rico cuanto más escondido; el grupo extra de cada cofre se omite con Lootr."""
-from loot import item, empty
+from .._comun.botin import item, empty, pool, table, named as _named
 
 ID = "monasterio"
 LANG_ITEMS = {}     # clave -> (es, en)
 
 
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
-def table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
-
-
-def named(name, w, key, es, en, ench=None, levels=None, lo=1, hi=1, extra=()):
-    """Objeto con nombre propio (clave de traducción con respaldo en español)."""
+def named(name, w, key, es, en, ench=None, levels=None, lo=1, hi=1):
+    """Objeto con nombre propio (pieza común), registrando su texto en los dos idiomas."""
     LANG_ITEMS[key] = (es, en)
-    e = item(name, w, lo, hi)
-    mods = e.pop("modifier", [])
-    mods = [mods] if isinstance(mods, dict) else list(mods)
-    mods.append({"type": "minecraft:set_name", "target": "item_name",
-                 "name": {"translate": f"heraldia.unicas.{ID}.{key}", "fallback": es}})
-    if ench:
-        mods.append({"type": "minecraft:set_enchantments", "enchantments": ench})
-    if levels:
-        mods.append({"type": "minecraft:enchant_with_levels", "levels": {"type": "minecraft:uniform", "min": levels[0],
-                                                                         "max": levels[1]},
-                     "options": "#minecraft:on_random_loot"})
-    mods += list(extra)
-    e["modifier"] = mods[0] if len(mods) == 1 else mods
-    return e
+    return _named(name, w, f"heraldia.unicas.{ID}.{key}", es, ench=ench, lo=lo, hi=hi, levels=levels)
 
 
 def sub(name, w):
@@ -95,7 +70,7 @@ LOOT = {
         named("golden_helmet", 8, "mitra", "Mitra del relicario", "Mitre of the Reliquary",
               ench={"minecraft:protection": 2, "minecraft:unbreaking": 2}),
         named("book", 8, "evangeliario", "Evangeliario iluminado", "Illuminated Gospel Book",
-              ench={"minecraft:mending": 1} if False else {"minecraft:unbreaking": 3}),
+              ench={"minecraft:unbreaking": 3}),
         named("golden_apple", 6, "fruto", "Fruto del huerto del claustro", "Fruit of the Cloister Garden", lo=1, hi=2),
         named("lantern", 5, "lampara", "Lámpara del eremita", "Hermit's Lamp"),
         named("bell", 3, "esquila", "Esquila del campanario", "Belfry Handbell"),

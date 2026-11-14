@@ -1,6 +1,7 @@
 """Monasterio de montaña: una sola plantilla rígida con su propio risco, terrazas, iglesia y cuevas (ver docs/unicas/monasterio.md)."""
 from . import obra, auditoria
 from .botin import LOOT, LANG_ITEMS
+from .._comun.botin import lang
 
 ID = obra.ID
 STRUCTURE = dict(
@@ -21,8 +22,7 @@ _TEXTS = {
     "guardian": ("Fray Tenebrio, guardián del relicario", "Brother Tenebrio, Warden of the Reliquary"),
 }
 _TEXTS.update(LANG_ITEMS)
-LANG = {"es_es": {f"heraldia.unicas.{ID}.{k}": v[0] for k, v in _TEXTS.items()},
-        "en_us": {f"heraldia.unicas.{ID}.{k}": v[1] for k, v in _TEXTS.items()}}
+LANG = lang(f"heraldia.unicas.{ID}.", _TEXTS)
 
 # Procesador de envejecimiento (solo cosmético: no abre huecos ni quita apoyos)
 AGING = {"processors": [{"processor_type": "minecraft:rule", "rules": [
