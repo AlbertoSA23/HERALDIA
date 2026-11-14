@@ -8,15 +8,14 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-<<<<<<< HEAD
-- **Estructuras únicas** (castillos, catedrales...): en diseño. Hechas:
-  - **Torre de mago** (bosque oscuro y jardín pálido): torre de ocho plantas con sótano de experimentos, puzles de redstone, trampas, generadores, guardián y cámara del tesoro. Diseño en `docs/unicas/torre_mago.md`.
-=======
 - **Estructuras únicas** (una cada 3.000-5.000 bloques, cada una en sus biomas):
   - **Fortaleza de hielo** (`heraldia:unicas/fortaleza_hielo`): picos de hielo, llanura nevada y taiga nevada. Murallas y
     torres de hielo sobre un zócalo con criptas, dos puertas secretas de pistones, trampas, generadores de strays y
     esqueletos, el guardián Rey Escarcha y 11 cofres. Diseño: [docs/unicas/fortaleza_hielo.md](docs/unicas/fortaleza_hielo.md).
->>>>>>> origin/develop
+  - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
+    biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
+    sótano de experimentos con generadores y trampas, el guardián Archimago Malvarius y 16 cofres. Diseño:
+    [docs/unicas/torre_mago.md](docs/unicas/torre_mago.md).
 
 ## Instalación
 
