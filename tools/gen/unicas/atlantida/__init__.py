@@ -39,7 +39,11 @@ def build(reg):
     reg.warnings.extend(f"atlantida: {a}" for a in auditoria.auditar(plano()))
     piezas = STRUCTURE["json"]["piezas"]
     piezas.clear()
-    for t, (x, y, z) in plano().teselas(ID):
+    teselas = list(plano().teselas(ID))
+    out = []
+    auditoria.jigsaws([t for t, _ in teselas], out)
+    reg.warnings.extend(f"atlantida: {a}" for a in out)
+    for t, (x, y, z) in teselas:
         reg.templates[t.name] = t
         reg.kinds[t.name] = "unica"
         piezas.append({"plantilla": f"heraldia:{t.name}", "x": x, "y": y, "z": z})

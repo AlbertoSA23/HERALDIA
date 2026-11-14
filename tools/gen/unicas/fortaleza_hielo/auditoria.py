@@ -4,6 +4,7 @@ import copy
 from collections import deque
 from core import parse_state, state_str
 from lint import bname, passable, top_height
+from .._comun import redstone
 
 N6 = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
 HOR = {"north": (0, 0, -1), "south": (0, 0, 1), "west": (-1, 0, 0), "east": (1, 0, 0), "up": (0, 1, 0), "down": (0, -1, 0)}
@@ -26,63 +27,20 @@ def conductor(st):
                           "lectern", "cauldron", "grindstone", "lightning_rod", "smoker", "crafting"))
 
 
+class _Vista:
+    def __init__(self, blocks):
+        self.blocks = blocks
+
+    def get(self, x, y, z):
+        b = self.blocks.get((x, y, z))
+        return b[0] if b else None
+
+
 def simulate(blocks, extra_on=()):
-    """Devuelve (potencia del polvo, {mecanismo: alimentado}). extra_on: posiciones de placas o ganchos pulsados."""
-    g = lambda p: (blocks.get(p) or (None,))[0]
-    strong, emit = set(), set()
-    for p, (st, _) in blocks.items():
-        b = bname(st)
-        on = (b == "lever" and props(st).get("powered") == "true") or p in extra_on
-        if not on:
-            continue
-        emit.add(p)
-        pr = props(st)
-        if b == "lever":
-            face = pr["face"]
-            att = add(p, HOR[OPP[pr["facing"]]]) if face == "wall" else add(p, (0, -1 if face == "floor" else 1, 0))
-        elif b == "tripwire_hook":
-            att = add(p, HOR[OPP[pr["facing"]]])
-        else:                                       # placa de presión
-            att = add(p, (0, -1, 0))
-        strong.add(att)
-    dust = {p: 0 for p, (st, _) in blocks.items() if bname(st) == "redstone_wire"}
-    changed = True
-    while changed:
-        changed = False
-        for p in dust:
-            v = 0
-            for d in N6:
-                q = add(p, d)
-                if q in emit or (q in strong and conductor(g(q))):
-                    v = 15
-                if d[1] == 0 and q in dust:
-                    v = max(v, dust[q] - 1)
-            if v > dust[p]:
-                dust[p], changed = v, True
-
-    def points(dp, q):
-        if q == add(dp, (0, -1, 0)):
-            return True
-        pr = props(g(dp))
-        for k, d in HOR.items():
-            if k in ("up", "down"):
-                continue
-            if add(dp, d) == q:
-                return pr.get(k, "none") != "none"
-        return False
-
-    weak = {q for dp, v in dust.items() if v > 0 for d in N6 if conductor(g(q := add(dp, d))) and points(dp, q)}
-    powered = {}
-    for p, (st, _) in blocks.items():
-        if bname(st) not in MECH:
-            continue
-        on = False
-        for d in N6:
-            q = add(p, d)
-            if q in emit or (q in dust and dust[q] > 0 and points(q, p)) or (conductor(g(q)) and (q in strong or q in weak)):
-                on = True
-        powered[p] = on
-    return dust, powered
+    """Devuelve (potencia del polvo, {mecanismo: alimentado}) con el simulador común (_comun.redstone.Sim).
+    extra_on: posiciones de placas o ganchos pulsados."""
+    sim = redstone.Sim(_Vista(blocks), {p: True for p in extra_on})
+    return dict(sim.wire), {p: sim.powered(p) for p, (st, _) in blocks.items() if bname(st) in MECH}
 
 
 def check_redstone(t):

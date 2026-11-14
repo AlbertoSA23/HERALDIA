@@ -3,7 +3,7 @@
 	"id": "heraldia",
 	"version": "${version}",
 	"name": "Heraldia",
-	"description": "Estructuras nuevas para el Overworld: aldeas enormes en 36 estilos por bioma.",
+	"description": "Estructuras nuevas para el Overworld: aldeas enormes en 36 estilos por bioma, 14 estructuras únicas y la Atlántida.",
 	"authors": ["AlbertoSA23"],
 	"contact": {
 		"sources": "https://github.com/AlbertoSA23/HERALDIA"

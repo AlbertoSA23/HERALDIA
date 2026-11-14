@@ -93,9 +93,8 @@ def vestibulo(v):
     v.set(0, G0 + 3, -1, CRISTAL)
     for u, w in ((-L + 1, -L + 1), (L - 1, -L + 1), (-L + 1, L - 1), (L - 1, L - 1), (-5, -5), (5, 5), (-5, 5), (5, -5)):
         v.set(u, G1 + 1, w, LINTERNA)
-    # arcas (muro oeste) con su cartel
-    for k, cual in enumerate(("arsenal", "academia", "anfiteatro")):
-        w = -4 + 4 * k
+    # arcas (muro oeste, a los lados de la puerta de la galería oeste en w = 0) con su cartel
+    for w, cual in zip((-6, -3, 3), ("arsenal", "academia", "anfiteatro")):
         C.cofre(v, -L + 1, G0 + 1, w, "east", "arca", llave=cual)
         C.cartel(v, -L + 1, G0 + 2, w + 1, "east", [C.texto("arca." + cual, *{"arsenal": ("Arca del Arsenal", "Arsenal Coffer"),
                                                                               "academia": ("Arca de la Academia", "Academy Coffer"),

@@ -92,7 +92,9 @@ class Catedral:
             self.flights.add((x, y, z))
 
     def spiral(self, cx, cz, start, k_max, y0=0, mat="stone_brick"):
-        self.flights.update(piezas.slab_spiral(self.set, cx, cz, start, k_max, y0, mat))
+        steps = piezas.spiral_slabs(self.set, cx, cz, y0 + 0.5, y0 + 0.5 * (k_max + 1), start, f"{mat}_slab",
+                                    ring=piezas.SLAB_RING, props="")
+        self.flights.update((x, piezas.slab_y(sv)[0], z) for (_, x, z, sv) in steps)
 
     # ------------------------------------------------------------------ cuerpo simétrico (mitad norte)
     def build_symmetric(self):

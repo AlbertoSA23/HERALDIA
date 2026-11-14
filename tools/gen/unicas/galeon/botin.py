@@ -2,6 +2,7 @@
 un grupo "solo_sin_lootr" (con Lootr cada jugador abre el suyo y recibe solo lo modesto)."""
 from loot import item, empty, FOOD
 from .textos import LANG
+from .._comun.botin import pool, potion, cofre  # noqa: F401
 
 
 def named(name, w, key, ench=None, lo=1, hi=1):
@@ -14,21 +15,8 @@ def named(name, w, key, ench=None, lo=1, hi=1):
     return e
 
 
-def potion(pid, w):
-    return {"type": "minecraft:item", "name": "minecraft:potion", "weight": w,
-            "modifier": {"type": "minecraft:set_potion", "id": f"minecraft:{pid}"}}
-
-
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
 def chest(base, extra, rb=(2, 4), re=(1, 2)):
-    return {"type": "minecraft:chest", "pools": [pool(rb, base), pool(re, extra, extra=True)]}
+    return cofre((rb, base), (re, extra))
 
 
 PLAYA = [item("cooked_cod", 10, 1, 3), item("dried_kelp", 10, 2, 6), item("string", 8, 1, 4), item("stick", 8, 2, 5),

@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.Holder;
@@ -41,6 +42,8 @@ public final class AtlantisAnchor {
 	private static final int HALF_CELLS = 7, DEEP_HALF_CELLS = 4; // 448 bloques de océano desde el centro (384 de ciudad + margen)
 	private static final int EXCLUSION_RADIUS = 372 + 72; // muralla + medio monumento oceánico y holgura
 	private static final Identifier STRUCTURE_ID = Identifier.fromNamespaceAndPath("heraldia", "unicas/atlantida");
+	/** Estructuras que el juego necesita (la fortaleza lleva el portal del End y su anillo no tiene otro sitio): nunca se excluyen. */
+	private static final Set<Identifier> REQUIRED = Set.of(Identifier.fromNamespaceAndPath("minecraft", "stronghold"));
 	private static final Map<Long, CompletableFuture<ChunkPos>> BY_SEED = new ConcurrentHashMap<>();
 
 	private AtlantisAnchor() {
@@ -102,10 +105,10 @@ public final class AtlantisAnchor {
 
 	/**
 	 * Ninguna otra estructura puede nacer dentro de la ciudad ni pegada a ella (monumentos, naufragios, ruinas oceánicas):
-	 * su chunk de inicio queda excluido en un radio de la muralla más un margen.
+	 * su chunk de inicio queda excluido en un radio de la muralla más un margen. Las fortalezas (REQUIRED) no se excluyen.
 	 */
 	public static boolean excludes(Identifier structure, ResourceKey<Level> dimension, long seed, int chunkX, int chunkZ) {
-		if (dimension != Level.OVERWORLD || STRUCTURE_ID.equals(structure)) {
+		if (dimension != Level.OVERWORLD || STRUCTURE_ID.equals(structure) || REQUIRED.contains(structure)) {
 			return false;
 		}
 		ChunkPos anchor = get(seed);

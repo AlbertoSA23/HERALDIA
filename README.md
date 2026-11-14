@@ -27,7 +27,7 @@ Contenido:
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
     sótano de experimentos con generadores y trampas, el guardián Archimago Malvarius y 16 cofres. Diseño:
     [docs/unicas/torre_mago.md](docs/unicas/torre_mago.md).
-  - **Coliseo en ruinas** (sabana y meseta de sabana): anfiteatro elíptico con graderíos, palcos e hipogeo con celdas de fieras, armería, dos puzles de redstone, dos trampas, cuatro generadores, el Campeón de la Arena y una cámara del tesoro oculta. Diseño: [docs/unicas/coliseo.md](docs/unicas/coliseo.md).
+  - **Coliseo en ruinas** (`heraldia:unicas/coliseo`, sabana y meseta de sabana): anfiteatro elíptico con graderíos, palcos e hipogeo con celdas de fieras, armería, dos puzles de redstone, dos trampas, cuatro generadores, el Campeón de la Arena y una cámara del tesoro oculta. Diseño: [docs/unicas/coliseo.md](docs/unicas/coliseo.md).
   - **Castillo** (`heraldia:unicas/castillo`): llanuras, llanuras de girasoles y praderas. Fortaleza de 100 x 100 con foso,
     muralla, barbacana, patio de armas, torre del homenaje y mazmorra con calabozos, trampas, tres generadores, el guardián
     Sir Aldric y la cámara del tesoro oculta; 36 cofres. Diseño: [docs/unicas/castillo.md](docs/unicas/castillo.md).
@@ -55,7 +55,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 75 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 87 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
@@ -111,7 +111,7 @@ Una sola por mundo, siempre, sin opción de configuración. Es una ciudad amural
 - Defensores: guardianes, ahogados con tridente, 48 generadores, guardianes ancianos en los distritos clave y el Guardián de Poseidón.
 - Tres sellos con sus llaves, puertas de combinación, trampas de flechas, agua y TNT.
 - 185 cofres con botín avanzado y un cofre único, oculto y cerrado con la llave del guardián final, con dos tridentes legendarios. Su contenido es fijo: el primer grupo que llegue se lo lleva.
-- Dentro de la ciudad no nacen otras estructuras (monumentos, naufragios, ruinas).
+- Dentro de la ciudad no nacen otras estructuras (monumentos, naufragios, ruinas), salvo las fortalezas, que el juego necesita para llegar al End.
 
 Detalle, planos y qué se ha comprobado: `docs/unicas/atlantida.md`.
 
@@ -171,7 +171,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 72 estructuras estén registradas, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 87 estructuras estén registradas, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+
+Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio` y `piramide`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`).
 
 Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen/sim.py` (simula el ensamblado jigsaw), `tools/gen/render.py` (renders isométricos), `tools/gen/lint.py` (auditoría de diseño).
 

@@ -80,6 +80,8 @@ def apoyos(m, out):
             falla("alga cortada", (x, y, z))
         elif b.endswith("_bed") and not macizo(bajo):
             falla("cama sin suelo", (x, y, z))
+        elif b in CORALES and not macizo(bajo):
+            falla("coral sin apoyo", (x, y, z))
         elif b == "bubble_column":
             if nombre(bajo) not in ("bubble_column", "soul_sand", "magma_block"):
                 falla("columna de burbujas sin base", (x, y, z))
@@ -154,6 +156,35 @@ def accesos(m, out, visto):
             out.append(f"{marca} inaccesible: {len(mal)}, p. ej. {mal[:4]}")
 
 
+CORALES = ("brain_coral", "bubble_coral", "fire_coral", "horn_coral", "tube_coral")
+# lo mismo que lint.access_issues exige en las demás plantillas: nada de esto puede quedar fuera del recorrido
+ACCESIBLES = ("ladder", "cyan_bed", "chest", "trapped_chest", "barrel", "lectern", "lever")
+
+
+def bloques_accesibles(m, out, visto):
+    """Escaleras de mano, camas, cofres, barriles, atriles y palancas, y las dos caras de cada puerta, alcanzables."""
+    mal = {}
+    for (x, y, z), (st, _) in m.blocks.items():
+        b = nombre(st)
+        if b.endswith("_door") and "half=lower" in st:
+            f = st.split("facing=")[1].split(",")[0].rstrip("]")
+            dx, dz = {"north": (0, -1), "south": (0, 1), "east": (1, 0), "west": (-1, 0)}[f]
+            if (x + dx, y, z + dz) not in visto or (x - dx, y, z - dz) not in visto:
+                mal.setdefault("puerta sin salida o sin acceso", []).append((x, y, z))
+        elif b in ACCESIBLES and not any(p in visto for p in [(x, y, z)] + [(x + a, y + c, z + d) for a, c, d in VECINOS]):
+            mal.setdefault(b + " inaccesible", []).append((x, y, z))
+    for que, ps in mal.items():
+        out.append(f"{que}: {len(ps)}, p. ej. {ps[:3]}")
+
+
+def jigsaws(teselas, out):
+    """Ningún bloque posterior ha sobrescrito un jigsaw (la misma comprobación que lint.support_issues)."""
+    for t in teselas:
+        for j in t.jigsaws:
+            if nombre(t.get(*j["pos"]) or "air") != "jigsaw":
+                out.append(f"jigsaw sobrescrito en {t.name} {j['pos']}")
+
+
 def objetos(m, out):
     for (x, y, z), (st, nbt) in m.blocks.items():
         for it in (nbt or {}).get("Items", ()):
@@ -181,12 +212,11 @@ def auditar(m):
     apoyos(m, out)
     visto = alcanzables(m)
     accesos(m, out, visto)
+    bloques_accesibles(m, out, visto)
     objetos(m, out)
     pct = estado(m)
     if not 15.0 <= pct <= 20.0:
         out.append(f"superficie en ruinas {pct:.1f} % (debe quedar entre 15 y 20)")
-    for nombre_, lista in m.marcas.items():
-        pass
     m.alcanzables = visto
     m.pct_ruina = pct
     return out

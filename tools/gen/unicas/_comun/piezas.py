@@ -196,18 +196,14 @@ GUARD = [(-2, 0), (-2, 1), (-2, 2), (-1, 2)]
 def spiral_stair(put, cx, cz, feet, stair, newel, landing, newel_top=None):
     """Escalera de caracol de una casilla alrededor de un machón de 1x1 en (cx, cz): seis peldaños por tramo de 6 de
     altura y rellano de dos casillas al norte. `feet`: alturas de los pies de cada planta de salida (cada 6). Abre el
-    hueco del forjado de llegada (HOLES) y devuelve las celdas a proteger con barandilla (GUARD) relativas al eje."""
+    hueco del forjado de llegada (HOLES) y devuelve las celdas a proteger con barandilla (GUARD) relativas al eje.
+    Cada tramo es un spiral_continuous de 6 peldaños con contrapeldaño invertido."""
     top = newel_top if newel_top is not None else feet[-1] + 6
     for y in range(feet[0] - 1, top + 1):
         put(cx, y, cz, newel)
+    ring = [(cx + x, cz + z) for (x, z) in RING]
     for f in feet:
-        for k in range(2, 8):
-            x, z = RING[k]
-            px, pz = RING[k - 1]
-            facing = VDIR[(x - px, z - pz)]
-            put(cx + x, f + k - 2, cz + z, f"{stair}[facing={facing},half=bottom]")
-            if k >= 3:
-                put(cx + x, f + k - 3, cz + z, f"{stair}[facing={OPP[facing]},half=top]")
+        spiral_continuous(put, ring, f, 6, stair, start=2, under=True)
         for k in (0, 1):
             put(cx + RING[k][0], f - 1, cz + RING[k][1], landing)
         for (x, z) in HOLES:
@@ -221,19 +217,24 @@ def spiral_stair(put, cx, cz, feet, stair, newel, landing, newel_top=None):
 RING8 = [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
 
 
-def spiral_slabs(put, nx, nz, s0, s1, phase, slab):
-    """Caracol continuo de 3 x 3 alrededor de un machón en (nx, nz) (lo pone quien llama): cada peldaño es una losa
-    que sube media altura, de los pies s0 a s1, sin rellanos. El peldaño i ocupa RING8[(i + phase) % 8]; `phase`
-    elige el lado de cada salida. Devuelve [(i, x, z, pies)]."""
+def slab_y(s):
+    """(y, tipo) de la losa cuya superficie queda a la altura s (múltiplo de 0,5)."""
+    return (int(s) - 1, "top") if s == int(s) else (int(s - 0.5), "bottom")
+
+
+def spiral_slabs(put, nx, nz, s0, s1, phase, slab, ring=None, props=",waterlogged=false"):
+    """Caracol continuo de losas de 3 x 3 alrededor de un machón en (nx, nz) (lo pone quien llama): cada peldaño sube
+    media altura, de los pies s0 a s1, sin rellanos. El peldaño i ocupa ring[(i + phase) % 8] (por defecto RING8,
+    sentido horario; SLAB_RING, antihorario); `phase` elige el lado de cada salida y `props` añade propiedades al
+    estado de la losa. Devuelve [(i, x, z, pies)]; la y de cada losa es slab_y(pies)[0]."""
+    ring = ring or RING8
     steps = []
     for i in range(int(round((s1 - s0) * 2)) + 1):
         s = s0 + 0.5 * i
-        dx, dz = RING8[(i + phase) % 8]
+        dx, dz = ring[(i + phase) % 8]
         x, z = nx + dx, nz + dz
-        if s == int(s):
-            put(x, int(s) - 1, z, f"{slab}[type=top,waterlogged=false]")
-        else:
-            put(x, int(s - 0.5), z, f"{slab}[type=bottom,waterlogged=false]")
+        y, typ = slab_y(s)
+        put(x, y, z, f"{slab}[type={typ}{props}]")
         steps.append((i, x, z, s))
     return steps
 
@@ -244,20 +245,25 @@ def circle(cx, cz, r):
     return [(cx + dx, cz + dz) for dx in range(-R, R + 1) for dz in range(-R, R + 1) if dx * dx + dz * dz <= r * r]
 
 
-def spiral_continuous(put, ring, y0, n, stair, support=None):
+def spiral_continuous(put, ring, y0, n, stair, support=None, start=0, under=False):
     """Caracol continuo de `n` peldaños desde y0 por las casillas contiguas de `ring` (absolutas, alrededor de un
-    machón), sin rellanos propios: sirve cuando las plantas no van cada 6 y los rellanos están fuera del anillo.
-    Cada peldaño mira hacia donde se llega, así que en las esquinas también se entra por el lado bajo; los de
-    esquina no tocan el machón y llevan `support` debajo. Devuelve las posiciones de los peldaños."""
+    machón), empezando en ring[start], sin rellanos propios: sirve cuando las plantas no van cada 6 y los rellanos
+    están fuera del anillo. Cada peldaño mira hacia donde se llega, así que en las esquinas también se entra por el
+    lado bajo; los de esquina no tocan el machón y llevan `support` debajo; con `under`, todos menos el primero
+    llevan debajo un peldaño invertido. Devuelve las posiciones de los peldaños."""
     out, k = [], len(ring)
-    for i in range(n):
+    for i in range(start, start + n):
         x, z = ring[i % k]
         px, pz = ring[(i - 1) % k]
         nx, nz = ring[(i + 1) % k]
-        put(x, y0 + i, z, f"{stair}[facing={VDIR[(x - px, z - pz)]},half=bottom]")
-        if support and i and (nx - x, nz - z) != (x - px, z - pz):
-            put(x, y0 + i - 1, z, support)
-        out.append((x, y0 + i, z))
+        facing = VDIR[(x - px, z - pz)]
+        y = y0 + i - start
+        put(x, y, z, f"{stair}[facing={facing},half=bottom]")
+        if under and i > start:
+            put(x, y - 1, z, f"{stair}[facing={OPP[facing]},half=top]")
+        elif support and i > start and (nx - x, nz - z) != (x - px, z - pz):
+            put(x, y - 1, z, support)
+        out.append((x, y, z))
     return out
 
 
@@ -376,18 +382,3 @@ def lever_trap(put, lever, block, dispenser, facing, arrows=16):
 
 
 SLAB_RING = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]   # E, NE, N, NO, O, SO, S, SE
-
-
-def slab_spiral(put, cx, cz, start, k_max, y0=0, mat="stone_brick"):
-    """Escalera de caracol de losas en una caja de 3x3 con machón central (lo pone quien llama): 8 celdas por vuelta y
-    medio bloque por celda (4 de altura por vuelta). La celda k tiene la superficie y0 + 0,5 (k + 1); start elige la
-    celda inicial en SLAB_RING. Alternativa a spiral_stair para torres altas con salidas a cualquier altura.
-    Devuelve las posiciones de los peldaños."""
-    cells = []
-    for k in range(k_max + 1):
-        dx, dz = SLAB_RING[(start + k) % 8]
-        sv = y0 + 0.5 * (k + 1)
-        y, typ = (int(sv - 0.5), "bottom") if sv % 1 else (int(sv) - 1, "top")
-        put(cx + dx, y, cz + dz, f"{mat}_slab[type={typ}]")
-        cells.append((cx + dx, y, cz + dz))
-    return cells

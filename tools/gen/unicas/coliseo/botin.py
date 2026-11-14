@@ -1,18 +1,7 @@
 """Botín del Coliseo: menores modestos, más ricos cuanto más escondidos; premium 90 % vistoso y 10 % algo más fuerte.
 Solo vanilla. Cada tabla tiene un grupo extra marcado solo_sin_lootr (con Lootr cada jugador abre el suyo)."""
 from loot import item, empty
-
-
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
-def table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
+from .._comun.botin import pool, table  # noqa: F401
 
 
 def named(name, key, fallback, w=1, ench=None, dmg=None):

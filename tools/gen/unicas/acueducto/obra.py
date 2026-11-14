@@ -1,5 +1,6 @@
 """Herramientas de obra sobre una plantilla global (coordenadas: x este, z sur, y = 0 el enlosado)."""
 from core import Template
+from .._comun import piezas
 
 NS_LOOT = "heraldia:unicas/acueducto/"
 FACE = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
@@ -75,9 +76,7 @@ class Obra:
         self.s(x, y, z, f"{mat}_wall_sign[facing={facing},waterlogged=false]", nbt)
 
     def spawner(self, x, y, z, mob):
-        nbt = {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}},
-               "SpawnPotentials": [{"weight": 1, "data": {"entity": {"id": "minecraft:" + mob}}}]}
-        self.s(x, y, z, "spawner", nbt)
+        piezas.spawner(self.s, x, y, z, mob, potentials=True)
 
     def dispenser(self, x, y, z, facing, n=24):
         from core import B
