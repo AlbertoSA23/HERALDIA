@@ -1,6 +1,5 @@
 """Castillo: fortaleza medieval de 100 x 100 en llanuras y praderas, con mazmorra bajo la torre del homenaje.
 Diseño completo en docs/unicas/castillo.md."""
-import writer
 from . import superficie, mazmorra, auditoria
 from .botin import LOOT, NAMES
 
@@ -12,6 +11,7 @@ STRUCTURE = dict(
 NOMBRE = {"es_es": "Castillo", "en_us": "Castle"}
 TEXTOS = {"heraldia.castillo.guardian": ("Sir Aldric, el Castellano Maldito", "Sir Aldric, the Cursed Castellan")}
 TEXTOS.update(NAMES)
+LANG = {"es_es": {k: v[0] for k, v in TEXTOS.items()}, "en_us": {k: v[1] for k, v in TEXTOS.items()}}
 
 
 def _rule(block, out, p):
@@ -35,9 +35,6 @@ def build(reg):
     reg.add(d, "unica")
     reg.pool("unicas/castillo/inicio", [(t.name, 1, "rigid", PROC)])
     reg.pool("unicas/castillo/mazmorra", [(d.name, 1, "rigid", PROC)])
-    for key, (es, en) in TEXTOS.items():
-        writer.LANG["es_es"][key] = es
-        writer.LANG["en_us"][key] = en
     errs, res = auditoria.audit(t, d, cmeta, dmeta)
     reg.warnings += [f"castillo: {e}" for e in errs]
     LAST.update(t=t, d=d, cmeta=cmeta, dmeta=dmeta, res=res)

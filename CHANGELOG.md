@@ -36,6 +36,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 ### Técnico
 
+- Castillo migrado a las piezas comunes de `tools/gen/unicas/_comun/` (cofre, generador, guardián, puerta de pistones, polvo, trampas de hilo y de TNT, conexiones, botín con nombre, recorrido de ida y vuelta, bloques flotantes). `_comun/recorrido.andar` admite `agua=True` para recorrer nadando. `_comun/piezas.py` gana: `spiral_slabs` (caracol continuo de losas), `circle`, polvo con escalones en `wire` (rutas (x, y, z)), cofre anegado en `chest` y atributos y NBT extra en `guardian`; todo compatible con lo anterior.
 - `tools/gen/unicas/_comun/`: `piezas.py` gana `lever_door` (puerta enrasada con palanca y antorcha inversora), `plate_trap` e `item_frame`; nuevo `recorrido.py` con el recorrido a pie estricto (con vuelta a la entrada y puzles abiertos o cerrados), bloques flotantes y luz junto a los generadores. El Coliseo usa las piezas comunes, `redstone.check_static`/`Sim` y `connect`.
 - El faro usa las piezas comunes de `tools/gen/unicas/_comun/` (cartel, generador, guardián, trampas de cable y de TNT, botín y simulación de redstone con `redstone.Sim`/`check_static`) en lugar de sus copias propias.
 - Templo-pirámide migrado a `unicas/_comun`: cofres, generadores, guardián, trampa de cable y puerta de pistones salen de `piezas.py`, el botín de `botin.py`, y la auditoría añade `redstone.check_static` y `check_puzzle` (solo la palanca abre la puerta del tesoro). Sin cambios en el juego salvo la trampa de cable, que ahora lleva 3 × 6 flechas por dispensador.

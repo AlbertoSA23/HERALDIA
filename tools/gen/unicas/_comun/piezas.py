@@ -25,9 +25,11 @@ def spawner(put, x, y, z, mob, potentials=False, luz=None):
     put(x, y, z, "spawner", nbt)
 
 
-def chest(put, x, y, z, facing, loot, kind="chest"):
-    """Cofre o barril con tabla de botín."""
+def chest(put, x, y, z, facing, loot, kind="chest", waterlogged=False):
+    """Cofre o barril con tabla de botín; `waterlogged` para un cofre bajo el agua."""
     st = f"barrel[facing={facing}]" if kind == "barrel" else f"{kind}[facing={facing}]"
+    if waterlogged:
+        st = st[:-1] + ",type=single,waterlogged=true]"
     put(x, y, z, st, {"id": "minecraft:" + ("barrel" if kind == "barrel" else kind), "LootTable": loot})
 
 
@@ -40,8 +42,10 @@ def sign(put, x, y, z, facing, lines, wood="dark_oak"):
          "back_text": {"messages": [{"text": ""}] * 4, "color": "black", "has_glowing_text": B(0)}})
 
 
-def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chances=None, death_loot=None):
-    """NBT de un guardián con nombre, persistente y con atributos moderados."""
+def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chances=None, death_loot=None,
+             attributes=None, extra=None):
+    """NBT de un guardián con nombre, persistente y con atributos moderados. `attributes` {id: base} añade
+    atributos (attack_damage, knockback_resistance...); `extra` se mezcla en el NBT."""
     n = {"id": "minecraft:" + mob, "PersistenceRequired": B(1), "CustomNameVisible": B(1),
          "CustomName": text(key, fallback), "Health": F(float(health)),
          "attributes": [{"id": "minecraft:max_health", "base": float(health)}]}
@@ -53,6 +57,9 @@ def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chance
         n["drop_chances"] = {k: F(v) for k, v in drop_chances.items()}
     if death_loot:
         n["DeathLootTable"] = death_loot
+    for aid, base in (attributes or {}).items():
+        n["attributes"].append({"id": "minecraft:" + aid, "base": float(base)})
+    n.update(extra or {})
     return n
 
 
@@ -68,21 +75,24 @@ def piston_door(put, door, axis, side, block):
         put(x + 2 * ax, y, z + 2 * az, f"sticky_piston[extended=true,facing={side}]")
 
 
-def wire(put, path, y, ends=()):
-    """Polvo de redstone apagado a lo largo de `path` [(x, z)...]; `ends` da, para el primero y el último, la
-    dirección extra a la que apunta (p. ej. hacia un comparador o hacia el bloque que alimenta)."""
+def wire(put, path, y=None, ends=()):
+    """Polvo de redstone apagado a lo largo de `path` [(x, z)...] a la altura `y`, o [(x, y, z)...] con escalones de
+    un bloque (el polvo de abajo «sube» hacia el de arriba; quien llama deja aire sobre el polvo de abajo).
+    `ends` da, para el primero y el último, la dirección extra a la que apunta."""
     extra = dict(ends)
-    for i, (x, z) in enumerate(path):
-        sides = set()
+    pts = [(p[0], y, p[1]) if len(p) == 2 else tuple(p) for p in path]
+    for i, (x, py, z) in enumerate(pts):
+        sides = {}
         for j in (i - 1, i + 1):
-            if 0 <= j < len(path):
-                sides.add(VDIR[(path[j][0] - x, path[j][1] - z)])
+            if 0 <= j < len(pts):
+                nx, ny, nz = pts[j]
+                sides[VDIR[(nx - x, nz - z)]] = "up" if ny > py else "side"
         if i in extra:
-            sides.add(extra[i])
+            sides[extra[i]] = "side"
         if len(sides) == 1:                       # un tramo suelto apunta en línea recta
-            sides.add(OPP[next(iter(sides))])
-        put(x, y, z, "redstone_wire[" + ",".join(f"{d}={'side' if d in sides else 'none'}"
-                                                  for d in ("north", "south", "east", "west")) + ",power=0]")
+            sides[OPP[next(iter(sides))]] = "side"
+        put(x, py, z, "redstone_wire[" + ",".join(f"{d}={sides.get(d, 'none')}"
+                                                   for d in ("north", "south", "east", "west")) + ",power=0]")
 
 
 def comparator(put, x, y, z, facing):
@@ -208,6 +218,32 @@ def spiral_stair(put, cx, cz, feet, stair, newel, landing, newel_top=None):
     return GUARD
 
 
+RING8 = [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
+
+
+def spiral_slabs(put, nx, nz, s0, s1, phase, slab):
+    """Caracol continuo de 3 x 3 alrededor de un machón en (nx, nz) (lo pone quien llama): cada peldaño es una losa
+    que sube media altura, de los pies s0 a s1, sin rellanos. El peldaño i ocupa RING8[(i + phase) % 8]; `phase`
+    elige el lado de cada salida. Devuelve [(i, x, z, pies)]."""
+    steps = []
+    for i in range(int(round((s1 - s0) * 2)) + 1):
+        s = s0 + 0.5 * i
+        dx, dz = RING8[(i + phase) % 8]
+        x, z = nx + dx, nz + dz
+        if s == int(s):
+            put(x, int(s) - 1, z, f"{slab}[type=top,waterlogged=false]")
+        else:
+            put(x, int(s - 0.5), z, f"{slab}[type=bottom,waterlogged=false]")
+        steps.append((i, x, z, s))
+    return steps
+
+
+def circle(cx, cz, r):
+    """Celdas (x, z) de un círculo de radio r."""
+    R = int(r) + 1
+    return [(cx + dx, cz + dz) for dx in range(-R, R + 1) for dz in range(-R, R + 1) if dx * dx + dz * dz <= r * r]
+
+
 def spiral_continuous(put, ring, y0, n, stair, support=None):
     """Caracol continuo de `n` peldaños desde y0 por las casillas contiguas de `ring` (absolutas, alrededor de un
     machón), sin rellanos propios: sirve cuando las plantas no van cada 6 y los rellanos están fuera del anillo.
@@ -275,7 +311,7 @@ def connect(t):
 
 
 # ------------------------------------------------------------------ añadidos de la catedral
-def combo_door(put, door, axis, sign, levers, name=""):
+def combo_door(put, door, axis, sign, levers, name="", block=None):
     """Puerta secreta de combinación (varias palancas; con una sola, mejor lever_door): dos bloques (door = bloque
     inferior) con su alimentación: dos pistones pegajosos extendidos
     (como piston_door) y, por cada palanca [(palanca, bloque al que se fija)], una antorcha de redstone al otro lado
@@ -286,7 +322,8 @@ def combo_door(put, door, axis, sign, levers, name=""):
     en la línea la corta en tramos y solo su tramo llega al pistón (se abriría con una sola palanca). Así, un muro de
     cuatro de grueso: palancas | antorchas | puerta, pistones y polvo | cara opuesta. Con una palanca basta un muro
     de tres (la antorcha cierra la línea). El polvo lleva escritas su forma y su potencia.
-    axis 'x' o 'z' y sign ±1: hacia dónde quedan los pistones. El bloque de la puerta lo pone quien llama.
+    axis 'x' o 'z' y sign ±1: hacia dónde quedan los pistones. Con `block`, la puerta y sus pistones salen de
+    piston_door; sin él, el bloque de la puerta lo pone quien llama.
     Devuelve un registro con posiciones (puerta, cabezas, pistones, antorchas, polvo, palancas)."""
     x, y, z = door
     step = (sign, 0) if axis == "x" else (0, sign)
@@ -295,9 +332,12 @@ def combo_door(put, door, axis, sign, levers, name=""):
     rec = {"tipo": "puerta de pistones", "sitio": name, "puerta": [pos(0), pos(0, 1)],
            "cabezas": [pos(1), pos(1, 1)], "pistones": [pos(2), pos(2, 1)], "antorchas": [], "polvo": [],
            "palancas": [], "falsas": []}
-    for dy in (0, 1):
-        put(*pos(1, dy), f"piston_head[facing={toward},short=false,type=sticky]")
-        put(*pos(2, dy), f"sticky_piston[extended=true,facing={toward}]")
+    if block:
+        piston_door(put, [pos(0), pos(0, 1)], step, toward, block)
+    else:                                     # la puerta la pone quien llama
+        for dy in (0, 1):
+            put(*pos(1, dy), f"piston_head[facing={toward},short=false,type=sticky]")
+            put(*pos(2, dy), f"sticky_piston[extended=true,facing={toward}]")
     torches = {}
     for (lp, bp) in levers:
         out = VDIR[(lp[0] - bp[0], lp[2] - bp[2])]

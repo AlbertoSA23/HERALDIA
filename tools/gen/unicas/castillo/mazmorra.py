@@ -2,7 +2,10 @@
 pasillo de saetas, sala del guardián con el acertijo de las tres palancas y la cámara del tesoro oculta.
 Coordenadas locales: x 0..47, z 0..55, y 0..15 (y=15 toca la base del castillo; pies a y=3)."""
 import random
-from .util import Lienzo, hidden_door, wire_line, connect
+from core import B
+from .util import Lienzo, hidden_door
+from .._comun.piezas import (wire, connect, guardian as _guardian, spawner as _spawner, chest as put_chest,
+                             tripwire_trap, tnt_trap)
 from .superficie import NEWEL, LOOT
 
 OFF = (26, -16, 14)          # local + OFF = coordenadas del castillo
@@ -27,15 +30,11 @@ def build(below, rnd=None):
         rooms.append((x1, z1, x2, z2, h, floor, wall))
 
     def chest(x, y, z, f, table, kind="chest"):
-        if kind == "barrel":
-            t.barrel(x, y, z, f, LOOT + table)
-        else:
-            t.chest(x, y, z, f, LOOT + table)
+        put_chest(t.set, x, y, z, f, LOOT + table, kind)
         meta["chests"].append(((x, y, z), table))
 
     def spawner(x, y, z, mob):
-        t.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": {"entity": {"id": "minecraft:" + mob}},
-                                   "SpawnRange": 4, "RequiredPlayerRange": 16})
+        _spawner(t.set, x, y, z, mob)
         meta["spawners"].append(((x, y, z), mob))
 
     def hang(x, y, z, soul=True):
@@ -156,8 +155,8 @@ def build(below, rnd=None):
     t.set(39, D, 4, "polished_andesite")
     t.set(39, D + 1, 4, "air")
     chest(39, D + 1, 4, "south", "mazmorra")
-    t.set(39, D, 5, "stone_pressure_plate[powered=false]")
-    for x, z in ((39, 5), (38, 5), (40, 5), (39, 6), (39, 4)):
+    tnt_trap(t.set, 39, D, 5)
+    for x, z in ((38, 5), (40, 5), (39, 6), (39, 4)):
         t.set(x, 1, z, "tnt[unstable=false]")
     for x in (34, 44):
         for z in (6, 9, 12):
@@ -169,14 +168,9 @@ def build(below, rnd=None):
     hang(39, D + 3, 9, soul=False)
 
     # ---------------------------------------------------------------- pasillo de las saetas
-    t.set(12, D, 40, "tripwire_hook[attached=true,facing=east,powered=false]")
-    t.set(16, D, 40, "tripwire_hook[attached=true,facing=west,powered=false]")
-    for x in range(13, 16):
-        t.set(x, D, 40, "tripwire[attached=true,disarmed=false,east=true,north=false,powered=false,south=false,west=true]")
-    arrows = {"id": "minecraft:dispenser", "Items": [{"Slot": 0, "id": "minecraft:arrow", "count": 16}]}
-    for x, f in ((12, "east"), (16, "west")):
-        for y, z in ((D + 1, 40), (D, 41), (D, 39)):
-            t.set(x, y, z, f"dispenser[facing={f},triggered=false]", dict(arrows))
+    arrows = {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 16}]}
+    tripwire_trap(t.set, (12, 40), (16, 40), D, "x",
+                  [((x, y, z), f) for x, f in ((12, "east"), (16, "west")) for y, z in ((D + 1, 40), (D, 41), (D, 39))])
     t.set(14, D + 3, 35, "cobweb")
 
     # ---------------------------------------------------------------- sala del guardián
@@ -204,7 +198,7 @@ def build(below, rnd=None):
     xr = levers["red"]
     t.set(xr + 1, D + 1, c - 2, "air")
     t.set(xr + 2, D, c - 2, "air")
-    wire_line(t.set, [(xr, D + 1, c - 2), (xr + 1, D, c - 2), (xr + 2, D - 1, c - 2), (xr + 3, D - 1, c - 2),
+    wire(t.set, [(xr, D + 1, c - 2), (xr + 1, D, c - 2), (xr + 2, D - 1, c - 2), (xr + 3, D - 1, c - 2),
                       (xr + 4, D - 1, c - 2)])
     meta["levers"] = {k: (x, D + 1, c) for k, x in levers.items()}
     # guardián
@@ -228,16 +222,10 @@ def build(below, rnd=None):
 
 
 def guardian():
-    armor = lambda n: {"id": "minecraft:" + n, "count": 1}
-    from core import F, B
-    return {"id": "minecraft:zombie", "PersistenceRequired": B(1), "CanPickUpLoot": B(0), "IsBaby": B(0),
-            "CustomName": {"translate": "heraldia.castillo.guardian", "fallback": "Sir Aldric, el Castellano Maldito"},
-            "Health": F(60.0),
-            "attributes": [{"id": "minecraft:max_health", "base": 60.0},
-                           {"id": "minecraft:attack_damage", "base": 5.0},
-                           {"id": "minecraft:knockback_resistance", "base": 0.4},
-                           {"id": "minecraft:follow_range", "base": 24.0}],
-            "equipment": {"mainhand": armor("iron_sword"), "head": armor("iron_helmet"),
-                          "chest": armor("chainmail_chestplate"), "legs": armor("iron_leggings"),
-                          "feet": armor("chainmail_boots")},
-            "drop_chances": {"mainhand": F(0.2), "head": F(0.1), "chest": F(0.1), "legs": F(0.1), "feet": F(0.1)}}
+    eq = {k: {"id": "minecraft:" + v, "count": 1} for k, v in
+          (("mainhand", "iron_sword"), ("head", "iron_helmet"), ("chest", "chainmail_chestplate"),
+           ("legs", "iron_leggings"), ("feet", "chainmail_boots"))}
+    return _guardian("zombie", "heraldia.castillo.guardian", "Sir Aldric, el Castellano Maldito", 60, equipment=eq,
+                     drop_chances={k: (0.2 if k == "mainhand" else 0.1) for k in eq},
+                     attributes={"attack_damage": 5, "knockback_resistance": 0.4, "follow_range": 24},
+                     extra={"IsBaby": B(0), "CanPickUpLoot": B(0)})

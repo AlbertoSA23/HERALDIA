@@ -50,13 +50,20 @@ class Vista:
         return st
 
 
-def andar(v, start, limites):
-    """Recorrido desde start. limites = (x0, x1, z0, z1). Devuelve ({celda: altura de los pies}, {celda: [vecinas]})."""
+def andar(v, start, limites, agua=False):
+    """Recorrido desde start. limites = (x0, x1, z0, z1). Devuelve ({celda: altura de los pies}, {celda: [vecinas]}).
+    Con agua=True se nada: en el agua se sube y se baja en vertical, se sale subiendo hasta 1,1 y se puede caer al
+    agua desde hasta 4 bloques (sin agua, el agua es paso libre sin flotación, como antes)."""
     g = v.get
     x0, x1, z0, z1 = limites
 
+    def wet(x, y, z):
+        return agua and bname(g(x, y, z)) == "water"
+
     def surf(x, y, z, mdx, mdz):
         st = g(x, y, z)
+        if wet(x, y, z) or (wet(x, y - 1, z) and passable(st)):
+            return (float(y), float(y))
         h = top_height(st)
         if st is not None and bname(st).endswith("_stairs") and "half=bottom" in st:
             fx, fz = FACE[prop(st, "facing")]
@@ -94,22 +101,29 @@ def andar(v, start, limites):
         x, y, z = q.popleft()
         s = seen[(x, y, z)]
         out = []
+        swim = wet(x, y, z) or wet(x, y - 1, z)
         for dx, dz in H4:
             nx, nz = x + dx, z + dz
             if not (x0 <= nx <= x1 and z0 <= nz <= z1):
                 continue
-            for ny in (y + 1, y, y - 1, y - 2):
+            for ny in (y + 1, y, y - 1, y - 2) + ((y - 3, y - 4, y - 5) if agua else ()):
                 r = surf(nx, ny, nz, dx, dz)
                 if r is None:
                     continue
                 enter, stand = r
-                if enter - s > 0.6 or stand > s + 1.01 or stand < s - 1.01:
+                into_water = wet(nx, ny, nz) or wet(nx, ny - 1, nz)
+                if enter - s > (1.1 if swim else 0.6) or stand > s + (1.11 if swim else 1.01) or \
+                        stand < s - (4.01 if into_water else 1.01):
                     continue
                 if not headroom(nx, ny, nz, stand):
                     continue
                 out.append(((nx, ny if stand < ny + 1 else ny + 1, nz), stand))
                 break
         here = g(x, y, z)
+        if wet(x, y, z) or wet(x, y - 1, z):
+            for ny in (y + 1, y - 1):
+                if wet(x, ny, z) or (ny > y and passable(g(x, ny, z))):
+                    out.append(((x, ny, z), float(ny)))
         if bname(here) == "ladder" or (bname(g(x, y - 1, z)) == "ladder" and passable(here)):
             for ny in (y + 1, y - 1):
                 st = g(x, ny, z)

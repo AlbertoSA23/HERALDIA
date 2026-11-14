@@ -1,31 +1,16 @@
 """Botín del castillo (solo vanilla). Cada cofre tiene un grupo extra marcado solo_sin_lootr."""
-from loot import item, empty
+from .._comun.botin import item, empty, pool, table, named
 
 NAMES = {}      # clave -> (es, en)
 
 
 def it(name, w, lo=1, hi=1, ench=None, dmg=None, nm=None):
-    e = item(name, w, lo, hi, ench=ench, dmg=dmg)
+    """Objeto con niveles de encantamiento o desgaste opcionales; con nm=(clave, es, en), con nombre traducible."""
     if nm:
         key, es, en = nm
         NAMES[f"heraldia.castillo.objeto.{key}"] = (es, en)
-        mod = {"type": "minecraft:set_name", "target": "item_name",
-               "name": {"translate": f"heraldia.castillo.objeto.{key}", "fallback": es}}
-        prev = e.get("modifier")
-        e["modifier"] = [mod] if prev is None else ([prev, mod] if isinstance(prev, dict) else prev + [mod])
-    return e
-
-
-def pool(rolls, entries, extra=False):
-    p = {"rolls": rolls if isinstance(rolls, int) else {"type": "minecraft:uniform", "min": rolls[0], "max": rolls[1]},
-         "entries": entries}
-    if extra:
-        p["solo_sin_lootr"] = True
-    return p
-
-
-def table(*pools):
-    return {"type": "minecraft:chest", "pools": list(pools)}
+        return named(name, w, f"heraldia.castillo.objeto.{key}", es, lo=lo, hi=hi, levels=ench)
+    return item(name, w, lo, hi, ench=ench, dmg=dmg)
 
 
 FOOD = [it("bread", 12, 1, 3), it("apple", 8, 1, 3), it("carrot", 6, 1, 4), it("baked_potato", 6, 1, 3),
