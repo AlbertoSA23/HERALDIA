@@ -1,6 +1,6 @@
 """Botín del palacio: solo vanilla, más rico cuanto más escondido. El grupo extra de cada cofre es solo_sin_lootr."""
 from loot import item, empty
-from .._comun.botin import pool, table, named as _named
+from .._comun.botin import pool, table, lang, named as _named
 
 NAMES = {   # clave -> (es_es, en_us)
     "hoja": ("Hoja del Dragón Celeste", "Blade of the Celestial Dragon"),
@@ -92,7 +92,6 @@ LOOT = {
                       item("wild_armor_trim_smithing_template", 1), item("music_disc_relic", 1)], extra=True)),
 }
 
-LANG = {"es_es": {f"item.heraldia.palacio.{k}": v[0] for k, v in NAMES.items()},
-        "en_us": {f"item.heraldia.palacio.{k}": v[1] for k, v in NAMES.items()}}
+LANG = lang("item.heraldia.palacio.", NAMES)
 LANG["es_es"]["heraldia.palacio.guardian"] = "Comandante de la Guardia Imperial"
 LANG["en_us"]["heraldia.palacio.guardian"] = "Commander of the Imperial Guard"

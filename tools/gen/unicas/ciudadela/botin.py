@@ -1,6 +1,6 @@
 """Botín de la ciudadela (solo vanilla). Cada tabla lleva un grupo extra marcado solo_sin_lootr."""
 from loot import item, empty
-from .._comun.botin import pool, table, named, book
+from unicas._comun.botin import pool, table, named, book  # noqa: F401  (piezas comunes)
 
 
 FOOD = [item("bread", 12, 1, 3), item("cooked_mutton", 8, 1, 2), item("baked_potato", 8, 1, 3), item("carrot", 6, 1, 3)]

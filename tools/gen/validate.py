@@ -27,7 +27,8 @@ def validate_structures(out):
     errs = []
     sdir = os.path.join(out, "data")
     for root, _, files in os.walk(sdir):
-        if not root.replace(os.sep, "/").endswith("worldgen/structure"):
+        rel = root.replace(os.sep, "/").split("/worldgen/")[-1]
+        if rel != "structure" and not rel.startswith("structure/"):     # incluye worldgen/structure/unicas
             continue
         for fn in files:
             with open(os.path.join(root, fn), encoding="utf-8") as f:
