@@ -5,7 +5,9 @@ Ejes de la plantilla: x hacia el este, z hacia el mar (sur), y hacia arriba. y=S
 Coordenadas citadas en docs/unicas/faro.md.
 """
 import zlib
-from core import Template, B, F
+from core import Template
+from unicas._comun import piezas
+from unicas._comun.piezas import spawner
 
 NAME = "unicas/faro/faro"
 LOOT = "heraldia:unicas/faro/"
@@ -30,18 +32,13 @@ def rock(x, y, z):
     return "stone" if r < 70 else "andesite" if r < 85 else "tuff" if r < 93 else "diorite"
 
 
-def text(*keys):
-    """Mensajes de cartel (4 líneas) como componentes traducibles."""
+
+
+
+
+def sign(t, x, y, z, facing, *keys):
     from unicas.faro import LANG
-    msgs = [{"translate": k, "fallback": LANG["es_es"][k]} if k else {"text": ""} for k in keys]
-    msgs += [{"text": ""}] * (4 - len(msgs))
-    return {"id": "minecraft:sign", "is_waxed": B(1),
-            "front_text": {"messages": msgs, "has_glowing_text": B(0), "color": "black"},
-            "back_text": {"messages": [{"text": ""}] * 4, "has_glowing_text": B(0), "color": "black"}}
-
-
-def sign(t, x, y, z, facing, nbt):
-    t.set(x, y, z, f"spruce_wall_sign[facing={facing},waterlogged=false]", nbt)
+    piezas.sign(t.set, x, y, z, facing, [piezas.text(k, LANG["es_es"][k]) for k in keys], wood="spruce")
 
 
 def door(t, x, y, z, facing, mat="spruce", hinge="left"):
@@ -126,7 +123,7 @@ def cave(t):
     t.chest(3, f + 1, 30, "east", LOOT + "almacen")
     for x in range(5, 10):
         t.barrel(x, f + 1, 38)
-    spawner(t, 7, f + 1, 35, "skeleton")
+    spawner(t.set, 7, f + 1, 35, "skeleton")
     hang(t, 7, f + 4, 29)
     # almacén este (derrumbe y cofre señuelo con TNT)
     t.air(33, f + 1, 26, 41, f + 4, 38)
@@ -140,8 +137,8 @@ def cave(t):
     t.air(37, f + 1, 39, 37, f + 2, 39)
     t.chest(37, f + 1, 40, "north", LOOT + "senuelo")
     t.set(37, f, 39, "stone")
-    t.set(37, f + 1, 39, "stone_pressure_plate[powered=false]")
-    for x in (36, 37, 38):
+    piezas.tnt_trap(t.set, 37, f + 1, 39)
+    for x in (36, 38):
         t.set(x, f - 1, 39, "tnt[unstable=false]")
     hang(t, 37, f + 4, 30)
     # dormitorio (y rendija a la gruta del alijo)
@@ -182,7 +179,7 @@ def cave(t):
     t.set(32, f + 1, 14, "bone_block[axis=y]")
     for p in ((32, 16), (37, 14), (34, 21), (40, 21)):
         t.set(p[0], f + 4, p[1], "cobweb")
-    spawner(t, 36, f + 1, 19, "zombie")
+    spawner(t.set, 36, f + 1, 19, "zombie")
     hang(t, 33, f + 4, 20)
     # despacho del capitán (puzle 2) y cámara del tesoro
     t.air(18, f + 1, 14, 26, f + 4, 21)
@@ -214,22 +211,16 @@ def cave(t):
     for x in (15, 21):
         t.set(x, f + 1, 3, "candle[candles=4,lit=true]")
         hang(t, x, f + 5, 6)
-    t.entity(18, f + 1, 7, guardian())
+    t.entity(18, f + 1, 7, piezas.guardian(
+        "drowned", "heraldia.unicas.faro.guardian", "Capitán Bruma", 40,
+        equipment={"mainhand": {"id": "minecraft:iron_sword", "count": 1},
+                   "head": {"id": "minecraft:chainmail_helmet", "count": 1},
+                   "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}},
+        drop_chances={"mainhand": 0.0, "head": 0.0, "chest": 0.0}))
 
 
-def spawner(t, x, y, z, mob):
-    t.set(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "Delay": 20,
-                                "SpawnData": {"entity": {"id": "minecraft:" + mob}}})
 
 
-def guardian():
-    return {"id": "minecraft:drowned", "PersistenceRequired": B(1),
-            "CustomName": {"translate": "heraldia.unicas.faro.guardian", "fallback": "Capitán Bruma"},
-            "Health": F(40.0), "attributes": [{"id": "minecraft:max_health", "base": 40.0}],
-            "equipment": {"mainhand": {"id": "minecraft:iron_sword", "count": 1},
-                          "head": {"id": "minecraft:chainmail_helmet", "count": 1},
-                          "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}},
-            "drop_chances": {"mainhand": F(0.0), "head": F(0.0), "chest": F(0.0)}}
 
 
 # Puzle 2: tres palancas (A, B, C) en el muro norte del despacho (z=13). La puerta abre con A y C bajadas y B subida.
@@ -252,7 +243,7 @@ def circuit(t):
     for (x, z), c in dust.items():
         props = {d: ("side" if k in c else "none") for k, d in names.items()}
         t.set(x, y, z, "redstone_wire[" + ",".join(f"{d}={v}" for d, v in props.items()) + ",power=0]")
-    sign(t, 24, y + 1, 14, "south", text("heraldia.unicas.faro.cartel.despacho1", "heraldia.unicas.faro.cartel.despacho2"))
+    sign(t, 24, y + 1, 14, "south", "heraldia.unicas.faro.cartel.despacho1", "heraldia.unicas.faro.cartel.despacho2")
 
 
 # ------------------------------------------------------------------ pasadizo secreto y sótano
@@ -263,12 +254,8 @@ def passage(t):
         t.set(15, y, 16, "ladder[facing=east,waterlogged=false]")
     t.air(15, f + 1, 17, 15, f + 2, 22)
     # trampa 1: cable trampa con un dispensador encima de cada gancho
-    t.set(14, f + 1, 19, "tripwire_hook[attached=true,facing=east,powered=false]")
-    t.set(16, f + 1, 19, "tripwire_hook[attached=true,facing=west,powered=false]")
-    t.set(15, f + 1, 19, "tripwire[attached=true,disarmed=false,east=true,north=false,powered=false,south=false,west=true]")
-    for x, fc in ((14, "east"), (16, "west")):
-        t.set(x, f + 2, 19, f"dispenser[facing={fc},triggered=false]",
-              {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 9}]})
+    piezas.tripwire_trap(t.set, (14, 19), (16, 19), f + 1, "x",
+                         [((14, f + 2, 19), "east"), ((16, f + 2, 19), "west")], arrows=9)
 
 
 def cellar(t):
@@ -286,7 +273,7 @@ def cellar(t):
         t.barrel(28, 18, z)
     t.barrel(20, 17, 23)
     t.barrel(21, 17, 23)
-    sign(t, 19, 18, 15, "south", text("heraldia.unicas.faro.cartel.bodega1", "heraldia.unicas.faro.cartel.bodega2"))
+    sign(t, 19, 18, 15, "south", "heraldia.unicas.faro.cartel.bodega1", "heraldia.unicas.faro.cartel.bodega2")
     hang(t, 20, 20, 19)
     hang(t, 25, 20, 19)
 
