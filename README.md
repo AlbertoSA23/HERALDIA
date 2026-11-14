@@ -8,7 +8,8 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+- **Estructuras únicas**:
+  - **Castillo** (llanuras y praderas): fortaleza con foso, patio de armas, torre del homenaje y mazmorra con cámara del tesoro oculta. Diseño en `docs/unicas/castillo.md`.
 
 ## Instalación
 

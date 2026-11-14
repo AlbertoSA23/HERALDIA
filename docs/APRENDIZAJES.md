@@ -18,12 +18,20 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 - `ChunkGenerator.findNearestMapStructure` solo sabe buscar en `concentric_rings` y en `random_spread` (con `instanceof`): un tipo de colocación propio debe heredar de `RandomSpreadStructurePlacement` para que `/locate` y los mapas lo encuentren. Su `codec()` tiene que devolver `MapCodec<RandomSpreadStructurePlacement>` (conversión sin comprobar). Verificado al compilar y con `/locate`.
 - `BuiltInRegistries.STRUCTURE_PLACEMENT` también guarda directamente el `MapCodec`. Los datapacks de worldgen se leen después de `onInitialize`, así que una configuración leída ahí ya está disponible cuando se decodifica la colocación. Verificado en un servidor dedicado (orden de las líneas en el log).
 - En un `structure_set` con varias estructuras, si `tryGenerateStructure` devuelve falso (bioma inválido o un mixin que la rechaza), se quita esa entrada y se sortea otra con la misma semilla de la casilla. Rechazar entradas es la forma limpia de desactivar estilos o fijar el tamaño. Verificado en el código de 26.3.
+- Una plantilla colocada sin actualizaciones de bloque (como al generar) conserva un circuito «encendido en reposo»: antorcha de redstone encendida sobre su bloque, pistones pegajosos extendidos con `piston_head` y polvo a 0. Tras forzar actualizaciones junto a ellos sigue igual, y potenciar el bloque de la antorcha retrae los dos pistones (uno junto a la antorcha y otro junto al bloque que la antorcha potencia por encima). Verificado en servidor dedicado (castillo, `prueba_redstone.py`).
+- Cable trampa colocado ya tenso (`attached=true` en ganchos y cable) dispara al meter una gallina; los dispensadores al lado del gancho reciben su señal. Una placa de piedra prende la dinamita que está justo bajo el bloque que pisa. Verificado en servidor dedicado.
+- Formato de entidad 26.3 que carga bien en una plantilla: `equipment` (`mainhand`, `head`...), `drop_chances` como compuesto, `attributes` con `id` y `base`, `CustomName` como compuesto `{translate, fallback}`. Verificado con `data get entity`.
+- `/place template` responde «Loaded template ... at x, y, z»; `gamerule doMobSpawning` ya no existe con ese nombre en 26.3 (da «Incorrect argument»). Verificado en servidor dedicado.
 
 ## Diseño de estructuras
+
+- Sótanos con `beard_thin`: el núcleo del adaptador se centra en la base de cada pieza (`minY` + 1). Una pieza de superficie con cimientos de 5 bloques solo hunde el borde ~1 bloque; para algo más hondo, pieza aparte bajo la principal con un jigsaw vertical y la caja entera con bloques explícitos. `start_height` negativo (-(capa de terreno + 1)) sitúa la capa de hierba de la plantilla a ras de suelo. Deducido del código del adaptador; sin verificar en generación real.
+- Puerta secreta de 1 x 2 sin componentes a la vista: en el rincón de una sala con muros de 3, la puerta en el muro lateral y los pistones dentro del muro perpendicular; las piezas se retiran al bloque del rincón, que no se ve desde ningún lado (castillo, `util.hidden_door`).
 
 ## Generador y auditoría
 
 - Corregido: `writer.lootr_aware` escribía `"conditions": [{"condition": "heraldia:sin_lootr"}]`, que 26.3 no acepta; ahora escribe `"condition": {"type": "heraldia:sin_lootr"}` (con `all_of` si ya había otra). Verificado con un módulo temporal: `loot spawn` del cofre da el extra sin Lootr.
 - Opciones del mod: se definen en `tools/gen/opciones.py` (por defecto, rango y textos en los dos idiomas), que las escribe en `heraldia/opciones.json` dentro del `.jar`. El Java las valida de forma genérica: una opción nueva no necesita código, salvo para usarla. Verificado en la prueba de humo (corrección de un valor fuera de rango).
+- Auditoría de recorrido de ida y vuelta (`unicas/castillo/util.walk_graph`): grafo dirigido (subir 0,5, bajar 1, agua y escaleras de mano en vertical) y búsqueda inversa; detecta caídas sin retorno, que `lint.walk` no ve. Con los mecanismos cerrados, comprueba además que las salas secretas no se alcanzan.
 
 ## Fallos pendientes
