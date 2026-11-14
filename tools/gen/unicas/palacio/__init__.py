@@ -14,6 +14,7 @@ STRUCTURE = dict(
     step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG",
     spacing=250, separation=190,
 )
+NOMBRE = {"es_es": "Palacio oriental", "en_us": "Eastern Palace"}
 
 
 def fill_air(t):

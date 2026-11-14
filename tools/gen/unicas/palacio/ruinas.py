@@ -4,13 +4,13 @@ import random
 # Procesador de desgaste: solo piedra de construcción; nunca toca mecanismos, cofres ni madera.
 WEAR = [("stone_bricks", "cracked_stone_bricks", 0.2), ("stone_bricks", "mossy_stone_bricks", 0.2),
         ("polished_andesite", "andesite", 0.25), ("mossy_cobblestone", "cobblestone", 0.15),
-        ("red_terracotta", "terracotta", 0.10), ("deepslate_bricks", "cracked_deepslate_bricks", 0.15)]
+        ("red_terracotta", "terracotta", 0.12), ("deepslate_bricks", "cracked_deepslate_bricks", 0.15)]
 
 
 def processors():
     return {"processors": [{"processor_type": "minecraft:rule", "rules": [
         {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + a, "probability": p},
-         "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": {"Name": "minecraft:" + b}}
+         "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + b}
         for a, b, p in WEAR]}]}
 
 
@@ -140,7 +140,7 @@ def arruinar(o):
     # j) tejas sueltas: falta alguna teja en todos los tejados (debajo queda el macizo del tejado)
     for p, (st, _) in list(t.blocks.items()):
         if ("bamboo_mosaic_stairs" in st or "prismarine_brick_stairs" in st) and "outer" not in st and p not in keepset \
-                and t.get(p[0], p[1] - 1, p[2]) not in (None, "minecraft:air") and rng.random() < 0.12:
+                and t.get(p[0], p[1] - 1, p[2]) not in (None, "minecraft:air") and rng.random() < 0.15:
             t.set(*p, "air")
     # k) hierba y musgo que rompen el pavimento junto a los muros de los patios
     for (x0, z0, x1, z1) in ((3, 5, 77, 27), (3, 31, 77, 79)):

@@ -19,7 +19,15 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 - `BuiltInRegistries.STRUCTURE_PLACEMENT` también guarda directamente el `MapCodec`. Los datapacks de worldgen se leen después de `onInitialize`, así que una configuración leída ahí ya está disponible cuando se decodifica la colocación. Verificado en un servidor dedicado (orden de las líneas en el log).
 - En un `structure_set` con varias estructuras, si `tryGenerateStructure` devuelve falso (bioma inválido o un mixin que la rechaza), se quita esa entrada y se sortea otra con la misma semilla de la casilla. Rechazar entradas es la forma limpia de desactivar estilos o fijar el tamaño. Verificado en el código de 26.3.
 
+- En los procesadores (`rule`), `output_state` es una cadena (`"minecraft:cracked_stone_bricks"`) o `{"id": ...}`; el formato antiguo `{"Name": ...}` hace que el juego rechace el pool entero («Failed to parse either ... No key id»). Verificado en un servidor dedicado (palacio).
+- `/place template` responde «Loaded template "<id>" at x, y, z» (no «Placed»). Verificado en un servidor dedicado.
+
 ## Diseño de estructuras
+
+- Sótanos sin hundir el entorno: si el concepto pide algo «bajo» un edificio, se puede meter dentro de una plataforma o zócalo por encima del terreno (el palacio guarda su cámara del tesoro dentro de la plataforma de tres gradas); la caja empieza en el zócalo y `beard_box` solo rellena por debajo. Aire explícito en todo el volumen de la pieza evita que una ladera asome en patios y salas. Verificado con la auditoría y colocando la estructura en la prueba de humo; el aspecto en ladera no está comprobado en el juego.
+- Puertas secretas de pistones que funcionan al generarse: dejarlas cerradas con los pistones extendidos y la palanca encendida (estado estable: nada espera una actualización), sin polvo de redstone. La palanca da energía fuerte a su bloque de apoyo y este al pistón contiguo; el pistón de encima de otro activa al de abajo por cuasiconectividad. Una columna delante tapa pistones y cabezas. Verificado en un servidor dedicado (`tools/smoke/palacio_redstone.py`: al quitar la palanca la puerta se abre).
+- Trampas sin polvo: un gancho de cable trampa da energía fuerte al muro en que se apoya, y ese bloque activa un dispensador contiguo; una placa de presión activa los dispensadores que la tocan. Verificado en el mismo servidor de prueba.
+- Tejados escalonados: cada hilada se apoya solo por una arista en la de debajo; rellenar el tejado macizo bajo cada hilada evita bloques «flotando» y permite quitar tejas sueltas como ruina sin abrir agujeros. Verificado con la comprobación de conexión por caras del palacio.
 
 ## Generador y auditoría
 

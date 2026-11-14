@@ -8,7 +8,8 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **Estructuras únicas** (castillos, catedrales...): pendientes de diseño.
+- **Estructuras únicas** (una cada 3.000-5.000 bloques, cada una en sus biomas):
+  - **Palacio oriental** (`heraldia:unicas/palacio`, cerezales y junglas de bambú): recinto amurallado de 81 × 123 con tres patios en eje, salón del trono sobre plataforma de tres gradas, biblioteca con estudio secreto, tesorería con cámara acorazada, jardín con estanque, pagoda de cinco pisos y pabellones de las concubinas; bajo el trono, la cámara del tesoro con su guardián. Puertas secretas de pistones, trampas de flechas y dos generadores. Diseño y planos en `docs/unicas/palacio.md`.
 
 ## Instalación
 
