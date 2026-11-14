@@ -43,7 +43,7 @@ def auditar(o, sea):
     if loose:
         errs.append(f"{len(loose)} bloques flotando, p. ej. {loose[:5]} {[blocks[p] for p in loose[:3]]}")
     # 3. redstone
-    errs += circuitos.check(blocks, o.circuitos)
+    errs += circuitos.check(t, o.circuitos)
     # 4. recorrido: palancas, generadores y arena sospechosa al alcance
     cells = walk(t)
     for p, s in blocks.items():

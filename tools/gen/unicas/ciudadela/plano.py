@@ -6,7 +6,7 @@ una piel de dos bloques: muro labrado por dentro y piedra por fuera.
 """
 import random
 from core import Template, B, F
-from . import redstone
+from .._comun import redstone
 
 NAME = "unicas/ciudadela/ciudadela"
 LOOT = "heraldia:unicas/ciudadela/"
