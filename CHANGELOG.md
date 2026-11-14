@@ -10,6 +10,7 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 
 - Primera versión del mod: 72 aldeas enormes (36 estilos por bioma, cada uno en tamaño estándar y grande) que aparecen en chunks nuevos del Overworld, una cada 1000-2000 bloques.
 - Comandos de prueba `/function heraldia:muestrario` y `/function heraldia:familia/<familia>` para ver los estilos colocados en fila; sus mensajes salen en español o inglés según el idioma del cliente.
+- Mapas del tesoro hacia cada estructura única: en el 5 % de los cofres épicos de las aldeas y a la venta en los cartógrafos maestros de las aldeas Heraldia (24 esmeraldas y una brújula); con nombre en español o inglés.
 
 ### Técnico
 
@@ -23,3 +24,5 @@ coincide con `mod_version` de `gradle.properties`; `tools/changelog.py` lo compr
 - Base para estructuras únicas: el generador descubre los módulos de `tools/gen/unicas/` y escribe su estructura, su rejilla de colocación, su etiqueta (para mapas) y su botín bajo `heraldia:unicas/<id>`.
 - Condición de botín `heraldia:sin_lootr`: los grupos marcados `solo_sin_lootr` se omiten si Lootr está cargado.
 - La prueba de humo coloca también cada estructura única y abre todas las tablas de botín.
+- `tools/gen/mapas.py`: por cada estructura única escribe `item_modifier` y `loot_table` `heraldia:mapas/<id>` (exploración hacia `#heraldia:unicas/<id>`, radio limitado a ~10.000 bloques y 8 anillos, `skip_existing_chunks` falso, descarte si no hay destino) y el trato `heraldia:cartografo/<id>`, añadido a `#minecraft:cartographer/level_5` con `merchant_predicate` que exige la etiqueta de entidad `heraldia`; los aldeanos de las plantillas la llevan. Contrato de `unicas/` ampliado con `NOMBRE` y `MAPA` opcionales.
+- La prueba de humo mide cada mapa (máximo 30 s, con o sin destino), tira 20 veces el cofre épico y comprueba el filtro de cartógrafos con un aldeano de la aldea y otro vanilla.

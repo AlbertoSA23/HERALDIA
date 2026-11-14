@@ -5,6 +5,7 @@ from themes import THEMES, FAMILIES
 from pack import ALL_PROFS
 import loot
 import unicas
+import mapas
 
 STD = dict(size=6, maxdist=92)
 GRANDE = dict(size=7, maxdist=116)
@@ -126,8 +127,12 @@ def write(reg, out):
     for sid, mod in unicas.modules():
         write_unique(out, sid, mod.STRUCTURE)
     # botín
+    uniques = unicas.modules()
     for name, table in loot.TABLES.items():
+        if name == "epico":
+            table = mapas.with_maps(table, uniques)
         jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
+    mapas.write(out, uniques, jdump)
     for sid, mod in unicas.modules():
         for name, table in getattr(mod, "LOOT", {}).items():
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
@@ -202,8 +207,9 @@ def write(reg, out):
         with open(os.path.join(fdir, fn), "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
+    maps_lang = mapas.lang(uniques)
     for lang, texts in LANG.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
+        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang]))
 
 
 def write_unique(out, sid, st):
