@@ -1,167 +1,169 @@
 # Heraldia
 
-Mod de Fabric para **Minecraft 26.3** dedicado solo a generar estructuras nuevas en el Overworld.
-Todo el contenido actual es vanilla (bloques, objetos y botín del juego base).
+**English** · [Español](README.es.md)
 
-Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
+Fabric mod for **Minecraft 26.3** dedicated solely to generating new structures in the Overworld.
+All current content is vanilla (blocks, items and loot from the base game).
 
-Contenido:
+Development guide (in Spanish): [docs/DESARROLLO.md](docs/DESARROLLO.md).
 
-- **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **La Atlántida**: una única ciudad sumergida por mundo (ver abajo).
-- **Estructuras únicas** (una cada 3.000-5.000 bloques, cada una en sus biomas):
-  - **Palacio oriental** (`heraldia:unicas/palacio`, cerezales y junglas de bambú): recinto amurallado de 81 × 123 con tres patios en eje, salón del trono sobre plataforma de tres gradas, biblioteca con estudio secreto, tesorería con cámara acorazada, jardín con estanque, pagoda de cinco pisos y pabellones de las concubinas; bajo el trono, la cámara del tesoro con su guardián. Puertas secretas de pistones, trampas de flechas y dos generadores. Diseño y planos en `docs/unicas/palacio.md`.
-  - **Fortaleza de hielo** (`heraldia:unicas/fortaleza_hielo`): picos de hielo, llanura nevada y taiga nevada. Murallas y
-    torres de hielo sobre un zócalo con criptas, dos puertas secretas de pistones, trampas, generadores de strays y
-    esqueletos, el guardián Rey Escarcha y 11 cofres. Diseño: [docs/unicas/fortaleza_hielo.md](docs/unicas/fortaleza_hielo.md).
-  - **Ciudadela enana** (`heraldia:unicas/ciudadela`): picos pedregosos y dentados. Ciudad excavada en una montaña con
-    la puerta en la ladera: salón de columnas, trono, forjas, cervecería, minas, puente sobre un abismo y bóveda del tesoro;
-    cuatro salas ocultas, dos puzles de redstone, dos trampas, tres generadores y el guardián Borin Barbahierro.
-    Diseño: [docs/unicas/ciudadela.md](docs/unicas/ciudadela.md).
-  - **Templo-pirámide** (`heraldia:unicas/piramide`): jungla y jungla dispersa. Pirámide escalonada mesoamericana con
-    templo y crestería, juego de pelota, escalera oculta, cenote interior con cámara sumergida y la tumba del Rey Jaguar
-    tras una puerta secreta de pistones; trampas de cable, foso y dardos, 4 generadores y 13 cofres.
-    Diseño: [docs/unicas/piramide.md](docs/unicas/piramide.md).
-  - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en `docs/unicas/faro.md`.
-  - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
-    biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
-    sótano de experimentos con generadores y trampas, el guardián Archimago Malvarius y 16 cofres. Diseño:
+Contents:
+
+- **Huge villages**: 72 structures (36 biome styles, each in a standard and a large size).
+- **Atlantis**: a single sunken city per world (see below).
+- **Unique structures** (one every 3,000-5,000 blocks, each in its own biomes):
+  - **Eastern palace** (`heraldia:unicas/palacio`, cherry groves and bamboo jungles): walled compound of 81 × 123 with three courtyards on one axis, a throne room on a three-step platform, a library with a secret study, a treasury with a vault, a garden with a pond, a five-storey pagoda and the concubines' pavilions; beneath the throne, the treasure chamber with its guardian. Secret piston doors, arrow traps and two spawners. Design and plans: [docs/unicas/palacio.md](docs/unicas/palacio.md).
+  - **Ice fortress** (`heraldia:unicas/fortaleza_hielo`): ice spikes, snowy plains and snowy taiga. Ice walls and
+    towers on a plinth with crypts, two secret piston doors, traps, stray and skeleton spawners, the guardian
+    Frost King and 11 chests. Design: [docs/unicas/fortaleza_hielo.md](docs/unicas/fortaleza_hielo.md).
+  - **Dwarven citadel** (`heraldia:unicas/ciudadela`): stony and jagged peaks. A city carved into a mountain with
+    its gate on the hillside: pillared hall, throne, forges, brewery, mines, a bridge over a chasm and a treasure vault;
+    four hidden rooms, two redstone puzzles, two traps, three spawners and the guardian Borin Ironbeard.
+    Design: [docs/unicas/ciudadela.md](docs/unicas/ciudadela.md).
+  - **Pyramid temple** (`heraldia:unicas/piramide`): jungle and sparse jungle. A stepped Mesoamerican pyramid with a
+    temple and roof comb, a ball court, a hidden staircase, an inner cenote with a submerged chamber and the tomb of the
+    Jaguar King behind a secret piston door; tripwire, pit and dart traps, 4 spawners and 13 chests.
+    Design: [docs/unicas/piramide.md](docs/unicas/piramide.md).
+  - **Lighthouse with smugglers' cave** (`heraldia:unicas/faro`, stony shore and beaches): a lighthouse and keeper's house on a headland; a secret passage to a sea-level cave with a dock, storerooms, a dungeon, the captain's office and a treasure chamber. It is always placed on the coastline, with the cave mouth facing the sea. Design: [docs/unicas/faro.md](docs/unicas/faro.md).
+  - **Wizard's tower** (`heraldia:unicas/torre_mago`): dark forest and pale garden. An eight-storey tower with a
+    double-height library, a laboratory, a greenhouse and an observatory, a study hidden behind a chiseled bookshelf,
+    an experiments basement with spawners and traps, the guardian Archmage Malvarius and 16 chests. Design:
     [docs/unicas/torre_mago.md](docs/unicas/torre_mago.md).
-  - **Coliseo en ruinas** (`heraldia:unicas/coliseo`, sabana y meseta de sabana): anfiteatro elíptico con graderíos, palcos e hipogeo con celdas de fieras, armería, dos puzles de redstone, dos trampas, cuatro generadores, el Campeón de la Arena y una cámara del tesoro oculta. Diseño: [docs/unicas/coliseo.md](docs/unicas/coliseo.md).
-  - **Castillo** (`heraldia:unicas/castillo`): llanuras, llanuras de girasoles y praderas. Fortaleza de 100 x 100 con foso,
-    muralla, barbacana, patio de armas, torre del homenaje y mazmorra con calabozos, trampas, tres generadores, el guardián
-    Sir Aldric y la cámara del tesoro oculta; 36 cofres. Diseño: [docs/unicas/castillo.md](docs/unicas/castillo.md).
-  - **Monasterio de montaña** (`heraldia:unicas/monasterio`; prados de montaña y arboledas): terrazas sobre un risco, iglesia, claustro y cuevas con puzles, trampas, guardián y cofre premium. Diseño en `docs/unicas/monasterio.md`.
-  - **Observatorio** (`heraldia:unicas/observatorio`): colinas ventosas y meseta de sabana ventosa. Cúpula de cobre con
-    telescopio, planetario, taller de óptica, reloj de sol y, bajo la roca, archivo con dos salas ocultas, puzle de las fases
-    lunares, dos trampas, tres generadores y el guardián Custodio de las Estrellas. Diseño: [docs/unicas/observatorio.md](docs/unicas/observatorio.md).
-  - **Mansión encantada** (`heraldia:unicas/mansion`): pantano y manglar. Finca victoriana con torreón, invernadero
-    arruinado y cementerio con panteón; bajo la casa, tras una estantería secreta, un sótano con laboratorio y cámara del
-    tesoro cerrada por una combinación de palancas; dos trampas, tres generadores, el guardián El Conde Malaquías y 33 cofres.
-    Diseño: [docs/unicas/mansion.md](docs/unicas/mansion.md).
-  - **Catedral gótica** (`heraldia:unicas/catedral`): bosques y bosques de flores. Fachada con dos torres y rosetón, nave con
-    triforio y arbotantes, crucero con aguja, girola con capillas, sacristía, biblioteca, claustro y, bajo tierra, cripta,
-    osarios y cámara del tesoro; dos puertas secretas, una trampilla oculta, dos trampas, tres generadores, el guardián
-    Fray Osmundo y 19 cofres. Diseño: [docs/unicas/catedral.md](docs/unicas/catedral.md).
-  - **Acueducto en ruinas** (`heraldia:unicas/acueducto`, desierto y badlands): acueducto de dos pisos, ciudad romana abandonada, cisterna y cloacas con la cámara del tesoro. Diseño en [docs/unicas/acueducto.md](docs/unicas/acueducto.md).
-  - **Galeón varado** (`heraldia:unicas/galeon`, playas y playas nevadas): galeón de tres palos encallado en la orilla
-    (se sitúa buscando el agua), con bodega, cubierta de cañones, castillos, camarote y cámara secreta del tesorero;
-    campamento de náufragos con arqueología y una cueva con el puzle de los faroles, trampas, cuatro generadores y el
-    guardián El capitán ahogado; 18 cofres. Diseño: [docs/unicas/galeon.md](docs/unicas/galeon.md).
+  - **Ruined coliseum** (`heraldia:unicas/coliseo`, savanna and savanna plateau): an elliptical amphitheater with stands, boxes and a hypogeum with beast cells, an armory, two redstone puzzles, two traps, four spawners, the Arena Champion and a hidden treasure chamber. Design: [docs/unicas/coliseo.md](docs/unicas/coliseo.md).
+  - **Castle** (`heraldia:unicas/castillo`): plains, sunflower plains and meadows. A 100 x 100 fortress with a moat,
+    curtain wall, barbican, bailey, keep and a dungeon with cells, traps, three spawners, the guardian
+    Sir Aldric and the hidden treasure chamber; 36 chests. Design: [docs/unicas/castillo.md](docs/unicas/castillo.md).
+  - **Mountain monastery** (`heraldia:unicas/monasterio`; meadows and groves): terraces on a crag, a church, a cloister and caves with puzzles, traps, a guardian and a premium chest. Design: [docs/unicas/monasterio.md](docs/unicas/monasterio.md).
+  - **Observatory** (`heraldia:unicas/observatorio`): windswept hills and windswept savanna plateau. A copper dome with a
+    telescope, a planetarium, an optics workshop, a sundial and, beneath the rock, an archive with two hidden rooms, the moon-phase
+    puzzle, two traps, three spawners and the guardian Keeper of the Stars. Design: [docs/unicas/observatorio.md](docs/unicas/observatorio.md).
+  - **Haunted mansion** (`heraldia:unicas/mansion`): swamp and mangrove swamp. A Victorian estate with a turret, a ruined
+    greenhouse and a cemetery with a mausoleum; beneath the house, behind a secret bookshelf, a basement with a laboratory and a treasure
+    chamber locked by a lever combination; two traps, three spawners, the guardian Count Malachias and 33 chests.
+    Design: [docs/unicas/mansion.md](docs/unicas/mansion.md).
+  - **Gothic cathedral** (`heraldia:unicas/catedral`): forests and flower forests. A facade with two towers and a rose window, a nave with
+    triforium and flying buttresses, a crossing with a spire, an ambulatory with chapels, a sacristy, a library, a cloister and, underground, a crypt,
+    ossuaries and a treasure chamber; two secret doors, a hidden trapdoor, two traps, three spawners, the guardian
+    Friar Osmundo and 19 chests. Design: [docs/unicas/catedral.md](docs/unicas/catedral.md).
+  - **Ruined aqueduct** (`heraldia:unicas/acueducto`, desert and badlands): a two-tier aqueduct, an abandoned Roman city, a cistern and sewers with the treasure chamber. Design: [docs/unicas/acueducto.md](docs/unicas/acueducto.md).
+  - **Stranded galleon** (`heraldia:unicas/galeon`, beaches and snowy beaches): a three-masted galleon run aground on the shore
+    (placed by looking for water), with a hold, a cannon deck, castles, a cabin and the treasurer's secret chamber;
+    a castaway camp with archaeology and a cave with the lantern puzzle, traps, four spawners and the
+    guardian The Drowned Captain; 18 chests. Design: [docs/unicas/galeon.md](docs/unicas/galeon.md).
 
-## Instalación
+## Installation
 
-Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probado con 0.166.2+26.3).
+Requirements: Minecraft 26.3, Fabric Loader 0.20.1 or later and Fabric API (tested with 0.166.2+26.3).
 
-1. Compila `heraldia-<versión>.jar` (ver abajo).
-2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 87 estructuras registradas`.
+1. Build `heraldia-<version>.jar` (see below).
+2. Copy it into the `mods` folder of the server and of every client.
+3. Start the server. `logs/latest.log` should show `Heraldia: 87 estructuras registradas`.
 
-En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
-`/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
+In an existing world, structures only appear in chunks that have not been generated yet.
+`/reload` does not reload world generation: you must restart the server (or leave and re-enter the world in single player).
 
-## Comandos de prueba
+## Test commands
 
-- Colocar una aldea donde estés: `/place structure heraldia:llanuras_castellana` (o `..._grande`). Funciona aunque no estés en su bioma.
-- Buscar la más cercana: `/locate structure heraldia:llanuras_castellana`
-- Colocar una pieza suelta: `/place template heraldia:llanuras_castellana/specials/church`
-- `/function heraldia:muestrario`: coloca las 72 aldeas en cuadrícula a partir de donde estés (cada fila, hacia el sur, es una familia; en cada fila van los 3 estilos y luego sus versiones grandes, hacia el este, separadas 300 bloques). Te pone en espectador y te lleva de una a otra, una cada 8 s (unos 10 min). Al terminar vuelves a creativo.
-- `/function heraldia:familia/<familia>` (`llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa`): lo mismo con las 6 aldeas de una familia, en fila hacia el este.
-- `/function heraldia:muestrario/parar`: lo detiene.
+- Place a village where you stand: `/place structure heraldia:llanuras_castellana` (or `..._grande`). It works even outside its biome.
+- Find the nearest one: `/locate structure heraldia:llanuras_castellana`
+- Place a single piece: `/place template heraldia:llanuras_castellana/specials/church`
+- `/function heraldia:muestrario`: places all 72 villages in a grid starting where you stand (each row, heading south, is a family; in each row go the 3 styles and then their large versions, heading east, 300 blocks apart). It puts you in spectator mode and takes you from one to the next, one every 8 s (about 10 min). When it finishes you return to creative.
+- `/function heraldia:familia/<family>` (`llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa`): the same with the 6 villages of one family, in a row heading east.
+- `/function heraldia:muestrario/parar`: stops it.
 
-Usa el muestrario solo en un mundo de prueba: lo colocado se queda.
+Use the showcase only in a test world: whatever it places stays.
 
-## Aldeas enormes
+## Huge villages
 
-Por defecto, una aldea cada 1000-2000 bloques (separación media 1500), como mucho 100 por mundo (las más cercanas al 0,0) y nunca a menos de 10 chunks de una aldea vanilla. La versión estándar sale 3 veces más que la grande. Todo ello se cambia en la [configuración](#configuración).
+By default, one village every 1000-2000 blocks (average spacing 1500), at most 100 per world (the ones closest to 0,0) and never within 10 chunks of a vanilla village. The standard version appears 3 times as often as the large one. All of this can be changed in the [configuration](#configuration).
 
-| Familia | Biomas | Estilos (ID `heraldia:<estilo>` y `heraldia:<estilo>_grande`) |
+| Family | Biomes | Styles (ID `heraldia:<style>` and `heraldia:<style>_grande`) |
 | --- | --- | --- |
-| Llanuras | llanura, girasoles, pradera | `llanuras_castellana`, `llanuras_gallega`, `llanuras_entramado` |
-| Bosque templado | bosque, de flores, abedules (y antiguo), bosque moteado | `bosque_lenadores`, `bosque_elfica`, `bosque_abadia` |
-| Bosque oscuro | bosque oscuro, jardín pálido | `oscuro_gotica`, `oscuro_alquimistas`, `oscuro_fortificada` |
-| Taiga | taiga, taigas ancestrales | `taiga_nordica`, `taiga_eslava`, `taiga_cazadores` |
-| Nieve | llanura y taiga nevadas, arboleda, picos de hielo | `nieve_alpina`, `nieve_fortaleza`, `nieve_pastores` |
-| Desierto | desierto | `desierto_andalusi`, `desierto_obelisco`, `desierto_caravanera` |
-| Sabana | sabana, meseta de sabana | `sabana_paja`, `sabana_terracota`, `sabana_pastores` |
-| Jungla | jungla, dispersa, bambú | `jungla_arboles`, `jungla_templos`, `jungla_bambu` |
-| Pantano | pantano, manglar | `pantano_palafitos`, `pantano_brujas`, `pantano_turba` |
-| Cerezos | cerezal | `cerezos_japonesa`, `cerezos_templo`, `cerezos_artesanos` |
-| Badlands | badlands, erosionadas, boscosas | `badlands_minera`, `badlands_roca`, `badlands_canon` |
-| Costa | playa, playa nevada, costa pedregosa | `costa_pescadores`, `costa_mercante`, `costa_mediterranea` |
+| Plains | plains, sunflower plains, meadow | `llanuras_castellana`, `llanuras_gallega`, `llanuras_entramado` |
+| Temperate forest | forest, flower forest, birch forest (and old growth), wooded hills | `bosque_lenadores`, `bosque_elfica`, `bosque_abadia` |
+| Dark forest | dark forest, pale garden | `oscuro_gotica`, `oscuro_alquimistas`, `oscuro_fortificada` |
+| Taiga | taiga, old growth taigas | `taiga_nordica`, `taiga_eslava`, `taiga_cazadores` |
+| Snow | snowy plains and taiga, grove, ice spikes | `nieve_alpina`, `nieve_fortaleza`, `nieve_pastores` |
+| Desert | desert | `desierto_andalusi`, `desierto_obelisco`, `desierto_caravanera` |
+| Savanna | savanna, savanna plateau | `sabana_paja`, `sabana_terracota`, `sabana_pastores` |
+| Jungle | jungle, sparse jungle, bamboo jungle | `jungla_arboles`, `jungla_templos`, `jungla_bambu` |
+| Swamp | swamp, mangrove swamp | `pantano_palafitos`, `pantano_brujas`, `pantano_turba` |
+| Cherry | cherry grove | `cerezos_japonesa`, `cerezos_templo`, `cerezos_artesanos` |
+| Badlands | badlands, eroded and wooded badlands | `badlands_minera`, `badlands_roca`, `badlands_canon` |
+| Coast | beach, snowy beach, stony shore | `costa_pescadores`, `costa_mercante`, `costa_mediterranea` |
 
-Cada aldea tiene:
+Each village has:
 
-- Plaza mayor con fuente, bancos, árboles, campana y dos gólems.
-- Cuatro avenidas con los edificios especiales: iglesia o templo según el estilo (con cementerio y cripta), ayuntamiento, mercado, taberna, herrería, biblioteca, granja con molino y posada (o puerto en la costa).
-- Unas 20 casas en la estándar y unas 30 en la grande, amuebladas, con cofres en algunas y botín de común a épico (tablas `heraldia:cofres/comun`, `poco_comun`, `raro`, `epico`).
-- Torres de vigilancia y puertas de muralla al final de las calles; decoración temática entre casas.
-- Aldeanos: la mitad del número de casas, más del 80 % con oficio. Gólems: al menos uno por cada 3 aldeanos.
+- A main square with a fountain, benches, trees, a bell and two golems.
+- Four avenues with the special buildings: a church or temple depending on the style (with cemetery and crypt), town hall, market, tavern, smithy, library, farm with windmill and inn (or a port on the coast).
+- About 20 houses in the standard size and about 30 in the large one, furnished, with chests in some and loot from common to epic (tables `heraldia:cofres/comun`, `poco_comun`, `raro`, `epico`).
+- Watchtowers and wall gates at the ends of the streets; themed decoration between houses.
+- Villagers: half the number of houses, over 80 % with a profession. Golems: at least one per 3 villagers.
 
-Límites de población: hay unas 1,25 camas por aldeano inicial, así que la población crece como mucho un 25 %.
-La función `heraldia:golems` revisa cada 30 s las aldeas cargadas y retira un gólem natural cada vez que hay 8 o más (estándar) o 9 o más (grande); no toca los construidos por jugadores. Límites y limpieza se cambian en la [configuración](#configuración).
+Population limits: there are about 1.25 beds per initial villager, so the population grows by 25 % at most.
+The function `heraldia:golems` checks loaded villages every 30 s and removes one natural golem each time there are 8 or more (standard) or 9 or more (large); it does not touch player-built ones. Limits and cleanup can be changed in the [configuration](#configuration).
 
-## La Atlántida
+## Atlantis
 
-Una sola por mundo, siempre, sin opción de configuración. Es una ciudad amurallada de unos 770 × 770 bloques, totalmente sumergida, en la cuenca de océano profundo más cercana al origen que esté a 1.500 bloques o más y sin explorar (en un mundo ya existente solo aparece en chunks nuevos). La posición se calcula la primera vez que se carga el mundo y se guarda en `data/heraldia/atlantida.json`.
+Exactly one per world, always, with no configuration option. It is a walled city of about 770 × 770 blocks, fully submerged, in the deep-ocean basin closest to the origin that is 1,500 blocks or more away and unexplored (in an existing world it only appears in new chunks). The position is computed the first time the world loads and saved in `data/heraldia/atlantida.json`.
 
-- Se encuentra con `/locate structure heraldia:unicas/atlantida` o con su mapa del tesoro.
-- Calles y plazas inundadas, y más de 200 casas, torres y salas **secas** a las que se entra por puertas o buceando desde abajo. Si se rompe un muro, la sala se inunda.
-- Ocho distritos (ágora, lonja, termas, arsenal, puerto hundido, jardines de coral, academia y anfiteatro), un templo en el centro, galerías subterráneas y, al fondo, el guardián final.
-- Defensores: guardianes, ahogados con tridente, 48 generadores, guardianes ancianos en los distritos clave y el Guardián de Poseidón.
-- Tres sellos con sus llaves, puertas de combinación, trampas de flechas, agua y TNT.
-- 185 cofres con botín avanzado y un cofre único, oculto y cerrado con la llave del guardián final, con dos tridentes legendarios. Su contenido es fijo: el primer grupo que llegue se lo lleva.
-- Dentro de la ciudad no nacen otras estructuras (monumentos, naufragios, ruinas), salvo las fortalezas, que el juego necesita para llegar al End.
+- Find it with `/locate structure heraldia:unicas/atlantida` or with its treasure map.
+- Flooded streets and squares, and more than 200 houses, towers and rooms that are **dry**, entered through doors or by diving up from below. If a wall is broken, the room floods.
+- Eight districts (agora, fish market, baths, arsenal, sunken harbor, coral gardens, academy and amphitheater), a temple in the center, underground galleries and, at the bottom, the final guardian.
+- Defenders: guardians, drowned with tridents, 48 spawners, elder guardians in the key districts and the Guardian of Poseidon.
+- Three seals with their keys, combination doors, arrow traps, water and TNT.
+- 185 chests with advanced loot and a unique chest, hidden and locked with the final guardian's key, holding two legendary tridents. Its contents are fixed: the first group to arrive takes them.
+- No other structures (monuments, shipwrecks, ruins) generate inside the city, except strongholds, which the game needs to reach the End.
 
-Detalle, planos y qué se ha comprobado: `docs/unicas/atlantida.md`.
+Details, plans and what has been verified: [docs/unicas/atlantida.md](docs/unicas/atlantida.md).
 
-## Mapas del tesoro
+## Treasure maps
 
-Cada estructura única tiene su mapa del tesoro, que marca la más cercana con una X (u otra marca propia de la estructura) y lleva su nombre traducido:
+Every unique structure has its own treasure map, which marks the nearest one with an X (or another mark specific to the structure) and carries its translated name:
 
-- En los cofres épicos de las aldeas: un 5 % de los cofres lleva uno (de una estructura única al azar).
-- A la venta en los cartógrafos maestros (nivel 5) **de las aldeas Heraldia** (no en las vanilla): 24 esmeraldas y una brújula, 2 por reposición. Los aldeanos de aldeas generadas antes de esta versión no lo ofrecen.
-- La búsqueda abarca unos 10.000 bloques y no salta chunks ya explorados (así no traba el servidor). Si no hay ninguna estructura de ese tipo al alcance, no sale el mapa (el cofre lo deja vacío y el cartógrafo no ofrece ese trato).
-- Para probar: `/loot give @s loot heraldia:mapas/<id>` da el mapa de la estructura `heraldia:unicas/<id>` desde donde estés.
+- In village epic chests: 5 % of the chests hold one (for a random unique structure).
+- For sale from master cartographers (level 5) **in Heraldia villages** (not vanilla ones): 24 emeralds and a compass, 2 per restock. Villagers in villages generated before this version do not offer it.
+- The search covers about 10,000 blocks and does not load already explored chunks (so it does not stall the server). If no structure of that type is within reach, no map appears (the chest leaves it empty and the cartographer does not offer that trade).
+- To test: `/loot give @s loot heraldia:mapas/<id>` gives the map for structure `heraldia:unicas/<id>` from where you stand.
 
-Limitaciones conocidas: el puerto sale recto desde la calle sin buscar el agua; en laderas puede haber escalones y cimientos altos; no se ha comprobado el solape con estructuras de otros mods.
+Known limitations: the port is laid out straight from the street without looking for water; on slopes there may be steps and tall foundations; overlap with structures from other mods has not been checked.
 
-## Configuración
+## Configuration
 
-Fichero `config/heraldia.json` del servidor (en un mundo de un jugador, el de la carpeta del juego). Se crea al arrancar con todos los valores por defecto
-y se reescribe en cada arranque con los valores en uso y una ayuda (`_ayuda`) en español e inglés. Un valor que no sea válido (fuera de rango o de otro tipo)
-se avisa en el log y se sustituye por el de por defecto; una opción desconocida se avisa y se ignora. El campo `version` permite migrar el fichero
-cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chunks que se generen después (no a lo ya generado).
+File `config/heraldia.json` on the server (in a single-player world, the one in the game folder). It is created at startup with all default values
+and rewritten on every startup with the values in use and a help text (`_ayuda`) in Spanish and English. An invalid value (out of range or of another type)
+is reported in the log and replaced by its default; an unknown option is reported and ignored. The `version` field allows migrating the file
+when its format changes. It is read only when the server starts and affects chunks generated afterwards (not what is already generated).
 
-| Opción | Por defecto | Rango | Qué hace |
+| Option | Default | Range | What it does |
 | --- | --- | --- | --- |
-| `aldeas.separacion_bloques` | 1500 | 1000-10000 | Separación media entre aldeas; la mínima guarda la proporción 62/94 de la rejilla. |
-| `aldeas.maximo` | 100 | 0-100 | Máximo de aldeas por mundo: solo valen las casillas de la rejilla más cercanas al 0,0 (determinista, sin datos guardados). |
-| `aldeas.porcentaje_grandes` | 25 | 0-100 | Porcentaje de aldeas grandes; el resto son estándar. |
-| `aldeas.distancia_aldeas_vanilla_bloques` | 160 | 0-256 | Distancia mínima a una aldea vanilla (se redondea a chunks); 0 la desactiva. |
-| `aldeas.familias.<familia>` | `true` | `true`/`false` | Activa una familia entera (sus 3 estilos). |
-| `aldeas.estilos.<estilo>` | `true` | `true`/`false` | Activa un estilo (estándar y grande). Si una casilla elige uno desactivado, se prueba otro estilo de su bioma. |
-| `golems.limpieza` | `true` | `true`/`false` | Activa la retirada periódica de gólems naturales. |
-| `golems.limite_estandar` | 8 | 1-64 | Con tantos gólems naturales o más, una aldea estándar retira uno cada 30 s. |
-| `golems.limite_grande` | 9 | 1-64 | Igual para las aldeas grandes. |
-| `unicas.<id>.activada` | `true` | `true`/`false` | Activa una estructura única. Aparece una entrada por cada estructura única del mod. |
-| `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). |
+| `aldeas.separacion_bloques` | 1500 | 1000-10000 | Average spacing between villages; the minimum keeps the 62/94 ratio of the grid. |
+| `aldeas.maximo` | 100 | 0-100 | Maximum villages per world: only the grid cells closest to 0,0 count (deterministic, no saved data). |
+| `aldeas.porcentaje_grandes` | 25 | 0-100 | Percentage of large villages; the rest are standard. |
+| `aldeas.distancia_aldeas_vanilla_bloques` | 160 | 0-256 | Minimum distance to a vanilla village (rounded to chunks); 0 disables it. |
+| `aldeas.familias.<family>` | `true` | `true`/`false` | Enables a whole family (its 3 styles). |
+| `aldeas.estilos.<style>` | `true` | `true`/`false` | Enables a style (standard and large). If a cell picks a disabled one, another style of its biome is tried. |
+| `golems.limpieza` | `true` | `true`/`false` | Enables the periodic removal of natural golems. |
+| `golems.limite_estandar` | 8 | 1-64 | At this many natural golems or more, a standard village removes one every 30 s. |
+| `golems.limite_grande` | 9 | 1-64 | Same for large villages. |
+| `unicas.<id>.activada` | `true` | `true`/`false` | Enables a unique structure. There is one entry for each unique structure in the mod. |
+| `unicas.<id>.separacion_bloques` | the structure's own (4000) | 1000-10000 | Average spacing between structures of that type (by default, one every 3000-5000 blocks). |
 
-La Atlántida no aparece: es siempre una sola por mundo.
+Atlantis is not listed: there is always exactly one per world.
 
-## Compilar
+## Building
 
-Requisitos: Java 25, Python 3.11+ y `pip install -r tools/gen/requirements.txt`, git.
+Requirements: Java 25, Python 3.11+ and `pip install -r tools/gen/requirements.txt`, git.
 
 ```bash
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/`. La compilación ejecuta el generador `tools/gen/main.py`, que crea las estructuras, las valida contra los registros de 26.3 y las audita; si hay un solo error o aviso, la compilación falla.
+The `.jar` ends up in `build/libs/`. The build runs the generator `tools/gen/main.py`, which creates the structures, validates them against the 26.3 registries and audits them; a single error or warning fails the build.
 
-Los registros de 26.3 (resumen de [misode/mcmeta](https://github.com/misode/mcmeta), rama `26.3-summary`) no se incluyen en el repositorio porque son datos de Mojang. Se clonan solos en `build/mcmeta-summary`; para usar otra copia: `-Pmcmeta_summary=<ruta>` o la variable `MCMETA_SUMMARY`.
+The 26.3 registries (summary from [misode/mcmeta](https://github.com/misode/mcmeta), branch `26.3-summary`) are not included in the repository because they are Mojang data. They are cloned automatically into `build/mcmeta-summary`; to use another copy: `-Pmcmeta_summary=<path>` or the `MCMETA_SUMMARY` variable.
 
-Comprobaciones antes de publicar:
+Checks before publishing:
 
 ```bash
 python3 tools/changelog.py check
@@ -171,13 +173,13 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 87 estructuras estén registradas, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 87 structures are registered, that `/place structure` places a village with villagers and that the functions exist.
 
-Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio` y `piramide`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`).
+Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio` and `piramide`. Atlantis is checked within the smoke test (`atlantida/humo.py`).
 
-Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen/sim.py` (simula el ensamblado jigsaw), `tools/gen/render.py` (renders isométricos), `tools/gen/lint.py` (auditoría de diseño).
+Versions are pinned in `gradle.properties`. Generator tools: `tools/gen/sim.py` (simulates jigsaw assembly), `tools/gen/render.py` (isometric renders), `tools/gen/lint.py` (design audit).
 
-## Licencia y créditos
+## License and credits
 
-Sin licencia: todos los derechos reservados. El código es visible pero no se concede permiso para usarlo, copiarlo ni redistribuirlo.
-Todo el contenido usa solo bloques y objetos de Minecraft; no se incluyen recursos de terceros.
+No license: all rights reserved. The code is visible but no permission is granted to use, copy or redistribute it.
+All content uses only Minecraft blocks and items; no third-party assets are included.
