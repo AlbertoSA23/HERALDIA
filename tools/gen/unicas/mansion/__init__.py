@@ -26,6 +26,8 @@ TEXTOS = {   # clave: (es_es, en_us)
     "heraldia.mansion.capa": ("Capa de luto", "Mourning Cloak"),
 }
 
+LANG = {"es_es": {k: v[0] for k, v in TEXTOS.items()}, "en_us": {k: v[1] for k, v in TEXTOS.items()}}
+
 
 def named(name, key, w, ench=None, count=1):
     mods = [{"type": "minecraft:set_name", "target": "item_name", "name": {"translate": key, "fallback": TEXTOS[key][0]}}]
@@ -113,10 +115,6 @@ _p["rolls"] = {"type": "minecraft:uniform", "min": 2, "max": 4}
 
 
 def build(reg):
-    import writer
-    for k, (es, en) in TEXTOS.items():
-        writer.LANG["es_es"][k] = es
-        writer.LANG["en_us"][k] = en
     obra = Obra().build()
     casa, sotano, errores = auditoria.preparar(obra)
     proc = {"processors": [auditoria.DEGRADACION]}

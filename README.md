@@ -8,8 +8,18 @@ Guía para desarrollar: [docs/DESARROLLO.md](docs/DESARROLLO.md).
 Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
-- **Estructuras únicas** (castillos, catedrales...): en diseño. Hechas:
-  - **Mansión encantada** (`heraldia:unicas/mansion`, pantano y manglar): finca victoriana con torreón, invernadero arruinado, cementerio con panteón y un sótano oculto con laboratorio y cámara del tesoro tras una estantería secreta y una combinación de palancas; trampas de cable y de dinamita, tres generadores y un guardián, «El Conde Malaquías».
+- **Estructuras únicas** (una cada 3.000-5.000 bloques, cada una en sus biomas):
+  - **Fortaleza de hielo** (`heraldia:unicas/fortaleza_hielo`): picos de hielo, llanura nevada y taiga nevada. Murallas y
+    torres de hielo sobre un zócalo con criptas, dos puertas secretas de pistones, trampas, generadores de strays y
+    esqueletos, el guardián Rey Escarcha y 11 cofres. Diseño: [docs/unicas/fortaleza_hielo.md](docs/unicas/fortaleza_hielo.md).
+  - **Ciudadela enana** (`heraldia:unicas/ciudadela`): picos pedregosos y dentados. Ciudad excavada en una montaña con
+    la puerta en la ladera: salón de columnas, trono, forjas, cervecería, minas, puente sobre un abismo y bóveda del tesoro;
+    cuatro salas ocultas, dos puzles de redstone, dos trampas, tres generadores y el guardián Borin Barbahierro.
+    Diseño: [docs/unicas/ciudadela.md](docs/unicas/ciudadela.md).
+  - **Mansión encantada** (`heraldia:unicas/mansion`): pantano y manglar. Finca victoriana con torreón, invernadero
+    arruinado y cementerio con panteón; bajo la casa, tras una estantería secreta, un sótano con laboratorio y cámara del
+    tesoro cerrada por una combinación de palancas; dos trampas, tres generadores, el guardián El Conde Malaquías y 33 cofres.
+    Diseño: [docs/unicas/mansion.md](docs/unicas/mansion.md).
 
 ## Instalación
 
