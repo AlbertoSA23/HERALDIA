@@ -7,7 +7,7 @@ from lint import passable
 from themes import THEMES, FAMILIES
 from houses import make_house, PROFS_HOUSE
 from streets import (straight, crossroad, terminator_end, watchtower, gate, plaza, avenue, decor_piece, P)
-from specials import SPECIALS
+from specials import SPECIALS, VARIANTS
 from fillers import filler, villager_piece, golem_piece, rug_piece
 
 SPARE = 22        # peso de "cama libre" en las casas
@@ -75,6 +75,39 @@ class Registry:
         self.pools[nsid(pid)] = dict(elements=elements, fallback=nsid(fallback) if fallback != "minecraft:empty" else fallback)
 
 
+VARIANT_WEIGHTS = (2, 1, 1, 1, 1, 1, 1, 1)   # la original algo más frecuente que cada variante nueva
+
+
+def function_signature(t):
+    """Lo que hace un edificio especial: huecos de aldeano y gólem (con su pool), conectores a otras piezas,
+    tablas de botín, campanas y puestos de trabajo (cada uno da oficio a un aldeano; salvo los toneles, que en todas
+    partes son también almacén y adorno). Todas las variantes de un especial deben tener la misma."""
+    from collections import Counter
+    from build import WORKSTATION
+    jobs = {b: p for p, b in WORKSTATION.items()}
+    sig = Counter()
+    for j in t.jigsaws:
+        if j["name"] != "heraldia:entrance":
+            sig[("jigsaw", j["name"], j["pool"])] += 1
+    for st, nbt in t.blocks.values():
+        if nbt and nbt.get("LootTable"):
+            sig[("botín", str(nbt["LootTable"]))] += 1
+        b = st.split("[")[0].replace("minecraft:", "")
+        if b == "bell":
+            sig[("campana",)] += 1
+        b = "cauldron" if b.endswith("_cauldron") else b
+        if b in jobs and b != "barrel":
+            sig[("oficio", jobs[b])] += 1
+    return sig
+
+
+def variant_errors(reg, names):
+    base = function_signature(reg.templates[names[0]])
+    return [f"{n}: no hace lo mismo que {names[0]} ({function_signature(reg.templates[n]) - base} de más, "
+            f"{base - function_signature(reg.templates[n])} de menos)"
+            for n in names[1:] if function_signature(reg.templates[n]) != base]
+
+
 def build_theme(reg, th, seed):
     rng = random.Random(seed)
     tid = th["id"]
@@ -118,13 +151,20 @@ def build_theme(reg, th, seed):
     # ---- especiales
     # la costa tiene posada en la avenida como las demás; su puerto (caseta + muelle) lo pone aparte, en la orilla,
     # AldeaStructure (Java), que usa los pools special/port y port_pier
+    # cada especial tiene VARIANTS[kind] variantes (la 0 es la original, con el rng común del estilo para que no
+    # cambie; las demás con su propio rng determinista) y el pool las sortea con VARIANT_WEIGHTS
     for kind in ("church", "townhall", "market", "tavern", "blacksmith", "library", "farm", "inn", "port", "cemetery", "mill"):
         if kind == "port" and th["family"] != "costa":
             continue
-        t = SPECIALS[kind](th, rng, f"{tid}/specials/{kind}")
-        name = reg.add(t, "special:" + kind)
+        els = []
+        for v in range(VARIANTS.get(kind, 1)):
+            vrng = rng if v == 0 else random.Random(f"{seed}/{tid}/{kind}/{v}")
+            t = SPECIALS[kind](th, vrng, f"{tid}/specials/{kind}" + ("" if v == 0 else f"_{'abcdefgh'[v]}"), v=v)
+            els.append((reg.add(t, "special:" + kind), VARIANT_WEIGHTS[v] if VARIANTS.get(kind, 1) > 1 else 1,
+                        "rigid", bld_proc))
+        reg.warnings += variant_errors(reg, [e[0] for e in els])
         pid = f"{tid}/{kind}" if kind in ("cemetery", "mill") else f"{tid}/special/{kind}"
-        reg.pool(pid, [(name, 1, "rigid", bld_proc)])
+        reg.pool(pid, els)
     if th["family"] == "costa":
         t = SPECIALS["port_pier"](th, rng, f"{tid}/specials/port_pier")
         reg.pool(f"{tid}/port_pier", [(reg.add(t, "special:port_pier"), 1, "terrain_matching", nsid(f"{tid}/pier"))])
