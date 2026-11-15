@@ -12,7 +12,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 public record WithoutLootrCondition() implements LootItemCondition {
 	public static final WithoutLootrCondition INSTANCE = new WithoutLootrCondition();
 	public static final MapCodec<WithoutLootrCondition> CODEC = MapCodec.unit(INSTANCE);
-	private static final boolean LOOTR_LOADED = FabricLoader.getInstance().isModLoaded("lootr");
+	public static final boolean LOOTR_LOADED = FabricLoader.getInstance().isModLoaded("lootr");
 
 	@Override
 	public MapCodec<WithoutLootrCondition> codec() {

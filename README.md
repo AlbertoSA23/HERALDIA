@@ -71,6 +71,9 @@ In an existing world, structures only appear in chunks that have not been genera
 - `/function heraldia:familia/<family>` (`llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa`): the same with the 6 villages of one family, in a row heading east.
 - `/function heraldia:muestrario/parar`: stops it.
 - `/heraldia llave <players> <key>` (operators, level 2): gives the keys of the locked chests of the unique structures, the same item you get in the game. `<key>` autocompletes: `todas` (all), a structure (`atlantida`: its four keys) or a single key (`atlantida.arsenal`, `atlantida.academia`, `atlantida.anfiteatro`, `atlantida.poseidon`). If the inventory is full, the key drops on the ground for that player.
+- `/heraldia info` (operators, level 2): summary of the configuration in use (villages, enabled unique structures and their spacing, minimum distance, per-player chest, whether Lootr is installed) and how many structures are registered.
+- `/heraldia info cerca [radius]`: the nearest unique structure of each type and the nearest Heraldia village, with distance, direction and coordinates (click them to get a `/tp` command). It uses the same check as `/locate`, so it never points to a structure that the minimum distance discards, but it neither loads nor generates chunks: what has not been generated yet is shown as "predicted" (for a predicted village only its family is known). Default radius 3,000 blocks, maximum 10,000; the message says how long the search took.
+- `/heraldia info aqui`: which Heraldia structure you are standing in (name and id) and, in a unique structure, whether its guardian is alive (only answered when the whole structure is loaded).
 
 Use the showcase only in a test world: whatever it places stays.
 
@@ -113,7 +116,7 @@ Exactly one per world, always, with no configuration option. It is a walled city
 - Eight districts (agora, fish market, baths, arsenal, sunken harbor, coral gardens, academy and amphitheater), a temple in the center, underground galleries and, at the bottom, the final guardian.
 - Defenders: guardians, drowned with tridents, 48 spawners, elder guardians in the key districts and the Guardian of Poseidon.
 - Three seals with their keys, combination doors, arrow traps, water and TNT.
-- 185 chests with advanced loot and a unique chest, hidden and locked with the final guardian's key, holding two legendary tridents. Its contents are fixed: the first group to arrive takes them.
+- 185 chests with advanced loot and a unique chest, hidden and locked with the final guardian's key, holding two legendary tridents. Its contents are fixed: the first group to arrive takes them, unless `unicas.atlantida.cofre_unico_por_jugador` is enabled (see Configuration): then each player opens their own copy.
 - No other structures (monuments, shipwrecks, ruins) generate inside the city, except strongholds, which the game needs to reach the End.
 
 Details, plans and what has been verified: [docs/unicas/atlantida.md](docs/unicas/atlantida.md).
@@ -185,8 +188,9 @@ when its format changes. It is read only when the server starts and affects chun
 | `unicas.<id>.separacion_bloques` | the structure's own (4000) | 1000-10000 | Average spacing between structures of that type (by default, one every 3000-5000 blocks). Each type spreads over its whole grid cell (grid origin shifted per type), and two of the same type are never closer than `unicas.distancia_minima.bloques`. |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Keeps two different unique structures (Atlantis included) from spawning closer than the minimum distance. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Minimum distance between the start chunks of two different unique structures. When two candidates are too close, a deterministic draw (seed and position) keeps one; if the winner cannot spawn there (wrong biome or terrain), the other one is kept. `/locate` and treasure maps follow the same rule. |
+| `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Per-player Atlantis premium chest. The first opening turns its contents into a template stored in the chest itself (the chest is left empty, so breaking or emptying it duplicates nothing) and each player opens their own copy: the whole contents the first time, and afterwards whatever they left. The Poseidon key is still needed. It works the same with or without Lootr (Lootr does not convert this chest because it has no loot table). Turning it off later puts the contents back in the chest once (the first time someone uses it), and it behaves as before. |
 
-Atlantis is not listed: there is always exactly one per world.
+Atlantis has no placement options: there is always exactly one per world.
 
 ## Building
 
