@@ -33,6 +33,15 @@ jobs:
           distribution: temurin
           java-version: 25
 
+      - uses: actions/setup-python@v5
+        if: steps.ver.outputs.new == 'true'
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias del generador
+        if: steps.ver.outputs.new == 'true'
+        run: pip install -r tools/gen/requirements.txt
+
       - name: Compilar
         if: steps.ver.outputs.new == 'true'
         run: ./gradlew build
