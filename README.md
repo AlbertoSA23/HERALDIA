@@ -24,6 +24,13 @@ Contents:
     temple and roof comb, a ball court, a hidden staircase, an inner cenote with a submerged chamber and the tomb of the
     Jaguar King behind a secret piston door; tripwire, pit and dart traps, 4 spawners and 13 chests.
     Design: [docs/unicas/piramide.md](docs/unicas/piramide.md).
+  - **Jarl's Hall** (`heraldia:unicas/salon_jarl`): taiga and old growth taigas. A 74 × 74 fortified Norse settlement with
+    a log palisade, four towers and a gatehouse with a guard room, a longhouse with a central hearth, a dais and two
+    thrones, a smithy, stables, a shipyard with a half-built longship, warriors' houses, a storehouse and rune stones;
+    behind a tapestry, the jarl's hidden bedchamber. Under the longhouse lies the barrow of the kings: a gallery of burial
+    niches, an ossuary, the offerings hall, the wall of runes (puzzle) and the chamber of Jarl Ulfgrim the Unburied, with
+    the treasure; a secret door to the skald's chamber, tripwire and TNT traps, 3 spawners and 18 chests.
+    Design: [docs/unicas/salon_jarl.md](docs/unicas/salon_jarl.md).
   - **Lighthouse with smugglers' cave** (`heraldia:unicas/faro`, stony shore and beaches): a lighthouse and keeper's house on a headland; a secret passage to a sea-level cave with a dock, storerooms, a dungeon, the captain's office and a treasure chamber. It is always placed on the coastline, with the cave mouth facing the sea. Design: [docs/unicas/faro.md](docs/unicas/faro.md).
   - **Wizard's tower** (`heraldia:unicas/torre_mago`): dark forest and pale garden. An eight-storey tower with a
     double-height library, a laboratory, a greenhouse and an observatory, a study hidden behind a chiseled bookshelf,
@@ -57,7 +64,7 @@ Requirements: Minecraft 26.3, Fabric Loader 0.20.1 or later and Fabric API (test
 
 1. Build `heraldia-<version>.jar` (see below).
 2. Copy it into the `mods` folder of the server and of every client.
-3. Start the server. `logs/latest.log` should show `Heraldia: 87 estructuras registradas`.
+3. Start the server. `logs/latest.log` should show `Heraldia: 88 estructuras registradas`.
 
 In an existing world, structures only appear in chunks that have not been generated yet.
 `/reload` does not reload world generation: you must restart the server (or leave and re-enter the world in single player).
@@ -141,7 +148,7 @@ Each village family and each unique structure finds its biomes through its own t
 | `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
 | `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
 
-Taiga, savanna, cherry and the coliseum, observatory, pyramid, monastery, citadel and palace uniques keep only their vanilla biomes: no convention tag is narrow enough (for example, `#c:is_taiga` includes snowy taiga, which belongs to the snow family, and `#c:is_savanna` includes windswept savanna, the observatory's). Which biomes of a mod go into each tag is that mod's choice (with Terralith, for example, plains include its steppes and highlands, and forest its lavender and sakura forests). The Atlantis search also accepts the oceans in `#c:is_ocean` and `#c:is_deep_ocean`. Tested with Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
+Taiga, savanna, cherry and the coliseum, observatory, pyramid, monastery, citadel, palace and jarl's hall uniques keep only their vanilla biomes: no convention tag is narrow enough (for example, `#c:is_taiga` includes snowy taiga, which belongs to the snow family, and `#c:is_savanna` includes windswept savanna, the observatory's). Which biomes of a mod go into each tag is that mod's choice (with Terralith, for example, plains include its steppes and highlands, and forest its lavender and sakura forests). The Atlantis search also accepts the oceans in `#c:is_ocean` and `#c:is_deep_ocean`. Tested with Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
 
 ## Treasure maps
 
@@ -176,6 +183,7 @@ Every named guardian of a unique structure (and Atlantis' Warden of Poseidon) dr
 | Observatory | The Keeper's Astrolabe | `compass` | — |
 | Eastern Palace | Ceremonial Sword of the Imperial Guard | `golden_sword` | sharpness 2, unbreaking 3 |
 | Pyramid Temple | Breastplate of the Jaguar King | `golden_chestplate` | protection 1 |
+| Jarl's Hall | Ulfgrim's Shieldbreaker | `iron_axe` | sharpness 2, unbreaking 2 |
 | Wizard Tower | Staff of Archmage Malvarius | `blaze_rod` | — |
 
 All of them carry `custom_data` `{heraldia_trofeo:"<id>"}`. To test: `/loot give @s loot heraldia:trofeos/<id>`. The **Hall of Trophies** challenge (see [Advancements](#advancements)) asks for all of them.
@@ -198,7 +206,8 @@ An optional story thread links the unique structures (full background in [`docs/
 | Mountain Monastery | library | Observatory |
 | Observatory | hidden room | Eastern Palace |
 | Eastern Palace | secret library | Pyramid Temple |
-| Pyramid Temple | tomb | Wizard Tower |
+| Pyramid Temple | tomb | Jarl's Hall |
+| Jarl's Hall | offerings hall | Wizard Tower |
 | Wizard Tower | hideout | Atlantis |
 | Atlantis | Academy seal | Ruined Aqueduct |
 
@@ -206,7 +215,7 @@ Pages are shown in each player's language (Spanish if the client does not have t
 
 ## Advancements
 
-A **Heraldia** advancement tab (65 advancements), with texts in Spanish and English. They only give experience, never items:
+A **Heraldia** advancement tab (68 advancements), with texts in Spanish and English. They only give experience, never items:
 
 - **Heraldia** (root): enter any Heraldia village or unique structure.
 - A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
@@ -276,9 +285,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 87 structures and all 65 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 88 structures and all 68 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
-Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio` and `piramide`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one.
+Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide` and `salon_jarl`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one.
 
 Versions are pinned in `gradle.properties`. Generator tools: `tools/gen/sim.py` (simulates jigsaw assembly), `tools/gen/render.py` (isometric renders), `tools/gen/lint.py` (design audit).
 

@@ -24,6 +24,13 @@ Contenido:
     templo y crestería, juego de pelota, escalera oculta, cenote interior con cámara sumergida y la tumba del Rey Jaguar
     tras una puerta secreta de pistones; trampas de cable, foso y dardos, 4 generadores y 13 cofres.
     Diseño: [docs/unicas/piramide.md](docs/unicas/piramide.md).
+  - **Salón del Jarl** (`heraldia:unicas/salon_jarl`): taiga y taigas ancestrales. Asentamiento nórdico fortificado de
+    74 × 74 con empalizada de troncos, cuatro torres y puerta con sala de guardia, casa larga con hogar central, estrado y
+    dos tronos, herrería, establos, astillero con un barco largo a medio hacer, casas de los guerreros, despensa y piedras
+    rúnicas; tras un tapiz, la alcoba oculta del jarl. Bajo la casa larga, el túmulo de los reyes: galería de nichos,
+    osario, sala de las ofrendas, el muro de las runas (puzle) y la cámara del jarl Ulfgrim, el Insepulto, con el tesoro;
+    puerta secreta a la cámara del escaldo, trampas de cable y de dinamita, 3 generadores y 18 cofres.
+    Diseño: [docs/unicas/salon_jarl.md](docs/unicas/salon_jarl.md).
   - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en [docs/unicas/faro.md](docs/unicas/faro.md).
   - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
@@ -57,7 +64,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 87 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 88 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
@@ -141,7 +148,7 @@ Cada familia de aldeas y cada estructura única busca sus biomas con una etiquet
 | `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
 | `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
 
-Taiga, sabana, cerezos y las únicas coliseo, observatorio, pirámide, monasterio, ciudadela y palacio se quedan solo con sus biomas vanilla: no hay ninguna etiqueta convencional lo bastante estrecha (por ejemplo, `#c:is_taiga` incluye la taiga nevada, de la familia nieve, y `#c:is_savanna` la sabana ventosa, del observatorio). Qué bioma de un mod entra en cada etiqueta lo decide ese mod (con Terralith, por ejemplo, la llanura incluye sus estepas y tierras altas, y el bosque, sus bosques de lavanda y de cerezos). La búsqueda de la Atlántida acepta también los océanos de `#c:is_ocean` y `#c:is_deep_ocean`. Probado con Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
+Taiga, sabana, cerezos y las únicas coliseo, observatorio, pirámide, monasterio, ciudadela, palacio y salón del jarl se quedan solo con sus biomas vanilla: no hay ninguna etiqueta convencional lo bastante estrecha (por ejemplo, `#c:is_taiga` incluye la taiga nevada, de la familia nieve, y `#c:is_savanna` la sabana ventosa, del observatorio). Qué bioma de un mod entra en cada etiqueta lo decide ese mod (con Terralith, por ejemplo, la llanura incluye sus estepas y tierras altas, y el bosque, sus bosques de lavanda y de cerezos). La búsqueda de la Atlántida acepta también los océanos de `#c:is_ocean` y `#c:is_deep_ocean`. Probado con Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
 
 ## Mapas del tesoro
 
@@ -176,6 +183,7 @@ Cada guardián con nombre de una estructura única (y el Guardián de Poseidón 
 | Observatorio | Astrolabio del Custodio | `compass` | — |
 | Palacio oriental | Espada ceremonial de la Guardia Imperial | `golden_sword` | filo 2, irrompibilidad 3 |
 | Templo-pirámide | Pectoral del Rey Jaguar | `golden_chestplate` | protección 1 |
+| Salón del Jarl | Rompeescudos de Ulfgrim | `iron_axe` | filo 2, irrompibilidad 2 |
 | Torre de mago | Báculo del Archimago Malvarius | `blaze_rod` | — |
 
 Todos llevan `custom_data` `{heraldia_trofeo:"<id>"}`. Para probar: `/loot give @s loot heraldia:trofeos/<id>`. El desafío **Sala de trofeos** (ver [Logros](#logros)) pide tenerlos todos.
@@ -198,7 +206,8 @@ Un hilo narrativo opcional une las estructuras únicas (trasfondo completo en [`
 | Monasterio de montaña | biblioteca | Observatorio |
 | Observatorio | sala oculta | Palacio oriental |
 | Palacio oriental | biblioteca secreta | Templo-pirámide |
-| Templo-pirámide | tumba | Torre de mago |
+| Templo-pirámide | tumba | Salón del Jarl |
+| Salón del Jarl | sala de las ofrendas | Torre de mago |
 | Torre de mago | escondite | La Atlántida |
 | La Atlántida | sello de la Academia | Acueducto en ruinas |
 
@@ -206,7 +215,7 @@ Las páginas se leen en el idioma de cada jugador (español si el cliente no tie
 
 ## Logros
 
-Pestaña de logros **Heraldia** (65 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
+Pestaña de logros **Heraldia** (68 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia o estructura única.
 - Una aldea de cada familia (12 logros, 20 de experiencia) y el desafío **Trotamundos de Heraldia**: las 12 familias (250).
@@ -276,9 +285,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 87 estructuras estén registradas y los 65 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 88 estructuras estén registradas y los 68 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
 
-Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio` y `piramide`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último.
+Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide` y `salon_jarl`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último.
 
 Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen/sim.py` (simula el ensamblado jigsaw), `tools/gen/render.py` (renders isométricos), `tools/gen/lint.py` (auditoría de diseño).
 
