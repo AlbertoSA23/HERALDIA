@@ -30,7 +30,16 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
            "tesoro_objeto": {predicado de objeto},   # o conseguir un objeto (cofre de contenido fijo, sin tabla)
            "extra": [{"id", "icono", "titulo": (es, en), "descripcion": (es, en), "criterios": {...},
                       "requisitos": [[...]], "padre": "descubrir", "marco": "task", "xp": 30}]}   # logros propios
-  # El guardián final se crea con _comun/piezas.guardian (etiqueta heraldia_guardian): sin él la compilación falla.
+  # El guardián final se crea con _comun/piezas.guardian (etiqueta heraldia_guardian): sin él la compilación falla,
+  # y también si hay más de uno (cada guardián suelta un trofeo).
+  TROFEO = {"objeto": "iron_axe",                       # OBLIGATORIO: trofeo que suelta el guardián (_comun/botin.trofeo)
+            "nombre": (es, en), "lore": [(es, en)],      # una o dos líneas de lore
+            "rareza": "rare",                            # common | uncommon | rare | epic (color del nombre)
+            "encantamientos": {"minecraft:efficiency": 2},   # opcional, niveles 1-3
+            "componentes": {"minecraft:trim": {...}}}    # opcional: adorno, blasón... (no nombre, lore, rareza ni custom_data)
+  # El trofeo (heraldia:trofeos/<id>, custom_data {heraldia_trofeo: "<id>"}) solo cae si mata al guardián un jugador:
+  # pack.tag_guardians le pone la DeathLootTable heraldia:guardianes/<id>/<mob> (su botín de siempre + el trofeo).
+  # Sin TROFEO (o sin nombre, lore..., o con netherita/élitros) la compilación falla. El logro unicas/trofeos sale solo.
   LANG = {"es_es": {...}, "en_us": {...}}   # opcional: textos propios (mismas claves en los dos idiomas)
   # Opcional en una plantilla: t.lint_open = {pos: estado o None}, estado con los puzles resueltos para el recorrido a pie.
 

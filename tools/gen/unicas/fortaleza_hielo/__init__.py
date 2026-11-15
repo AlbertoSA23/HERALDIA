@@ -49,5 +49,11 @@ def build(reg):
     reg.pool("unicas/fortaleza_hielo/inicio", [(name, 1, "rigid", PROCESSORS)])
 
 NOMBRE = {"es_es": "Fortaleza de hielo", "en_us": "Ice Fortress"}
+TROFEO = {"objeto": "golden_helmet", "rareza": "epic",
+          "nombre": ("Corona de escarcha", "Frost Crown"),
+          "lore": [("Fría al tacto incluso junto al fuego.", "Cold to the touch even beside a fire."),
+                   ("La ciñó el Rey Escarcha.", "Once worn by the Frost King.")],
+          "encantamientos": {"minecraft:unbreaking": 2},
+          "componentes": {"minecraft:trim": {"material": "minecraft:diamond", "pattern": "minecraft:spire"}}}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:blue_ice"}   # logros.py
 MAPA = {"decoration": "minecraft:red_x"}

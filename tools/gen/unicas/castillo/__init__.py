@@ -9,6 +9,11 @@ STRUCTURE = dict(
     step="surface_structures", start_height={"absolute": -(superficie.G + 1)}, project_to="WORLD_SURFACE_WG",
     spacing=250, separation=190)
 NOMBRE = {"es_es": "Castillo", "en_us": "Castle"}
+TROFEO = {"objeto": "iron_helmet", "rareza": "rare",
+          "nombre": ("Yelmo de Sir Aldric", "Helm of Sir Aldric"),
+          "lore": [("Abollado por mil asedios, nunca rendido.", "Dented by a thousand sieges, never surrendered.")],
+          "encantamientos": {"minecraft:protection": 1},
+          "componentes": {"minecraft:trim": {"material": "minecraft:gold", "pattern": "minecraft:sentry"}}}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:stone_bricks"}   # logros.py
 TEXTOS = {"heraldia.castillo.guardian": ("Sir Aldric, el Castellano Maldito", "Sir Aldric, the Cursed Castellan")}
 TEXTOS.update(NAMES)

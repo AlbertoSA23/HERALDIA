@@ -10,6 +10,10 @@ import unicas
 
 SID = "faro"
 NOMBRE = {"es_es": "Faro de los contrabandistas", "en_us": "Smugglers' Lighthouse"}
+TROFEO = {"objeto": "iron_sword", "rareza": "uncommon",
+          "nombre": ("Alfanje del Capitán Bruma", "Captain Mist's Cutlass"),
+          "lore": [("Con él se apagaban los faros ajenos.", "With it, rival lighthouses went dark.")],
+          "encantamientos": {"minecraft:sharpness": 1, "minecraft:unbreaking": 1}}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:lantern"}   # logros.py
 LANG = {
     "es_es": {

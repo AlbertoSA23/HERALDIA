@@ -11,6 +11,14 @@ STRUCTURE = dict(
     spacing=250, separation=190,
 )
 NOMBRE = {"es_es": "Coliseo en ruinas", "en_us": "Ruined Colosseum"}
+TROFEO = {"objeto": "shield", "rareza": "rare",
+          "nombre": ("Escudo del Campeón de la Arena", "Shield of the Arena Champion"),
+          "lore": [("Cien combates y ni una sola derrota.", "A hundred bouts and not a single defeat.")],
+          "encantamientos": {"minecraft:unbreaking": 2},
+          # sin base_color: con él el escudo se llama «Escudo rojo» e ignora item_name; el fondo es la capa «base»
+          "componentes": {"minecraft:banner_patterns": [
+              {"pattern": "minecraft:base", "color": "red"}, {"pattern": "minecraft:triangles_bottom", "color": "yellow"}, {"pattern": "minecraft:circle", "color": "yellow"},
+              {"pattern": "minecraft:border", "color": "black"}]}}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:shield"}   # logros.py
 
 LANG = {

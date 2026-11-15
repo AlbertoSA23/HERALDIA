@@ -14,6 +14,11 @@ STRUCTURE = dict(
 )
 
 NOMBRE = {"es_es": "Templo-pirámide", "en_us": "Pyramid Temple"}
+TROFEO = {"objeto": "golden_chestplate", "rareza": "rare",
+          "nombre": ("Pectoral del Rey Jaguar", "Breastplate of the Jaguar King"),
+          "lore": [("El oro de la selva aún guarda su rugido.", "The jungle's gold still holds his roar.")],
+          "encantamientos": {"minecraft:protection": 1},
+          "componentes": {"minecraft:trim": {"material": "minecraft:emerald", "pattern": "minecraft:wild"}}}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:mossy_stone_bricks"}   # logros.py
 
 K = "heraldia.piramide."

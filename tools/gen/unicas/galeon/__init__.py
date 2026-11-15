@@ -13,6 +13,9 @@ from .textos import LANG
 
 NAME = "unicas/galeon/galeon"
 NOMBRE = {"es_es": "Galeón varado", "en_us": "Stranded Galleon"}
+TROFEO = {"objeto": "spyglass", "rareza": "uncommon",
+          "nombre": ("Catalejo del capitán ahogado", "The Drowned Captain's Spyglass"),
+          "lore": [("Aún busca un puerto al que nunca llegó.", "Still searching for a harbour it never reached.")]}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:oak_boat"}   # logros.py
 STRUCTURE = dict(spacing=250, separation=190)
 PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
