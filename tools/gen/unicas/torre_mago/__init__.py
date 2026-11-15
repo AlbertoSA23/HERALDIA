@@ -19,6 +19,24 @@ NOMBRE = {"es_es": "Torre de mago", "en_us": "Wizard Tower"}
 TROFEO = {"objeto": "blaze_rod", "rareza": "epic",
           "nombre": ("Báculo del Archimago Malvarius", "Staff of Archmage Malvarius"),
           "lore": [("Todavía chisporrotea con su último conjuro.", "It still crackles with his final spell.")]}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "escondite",
+    "relato": [
+        ("En el bosque oscuro vive el archimago Malvarius, en una torre llena de libros, calderos y "
+         "experimentos. Me ayudó a escribir los pliegos con una tinta que el agua no borra. A cambio, "
+         "quiso leerlos todos.",
+         "In the dark forest lives Archmage Malvarius, in a tower full of books, cauldrons and "
+         "experiments. He helped me write the leaves in an ink that water cannot wash away. In return, he"
+         " wished to read them all."),
+        ("No se lo permití. Le confié uno solo, que escondió en un cuarto secreto de la torre, y juró no "
+         "abrirlo. Creo que lo abrió: desde entonces no deja de buscar el resto.",
+         "I did not allow it. I entrusted him with one alone, which he hid in a secret room of the tower,"
+         " and he swore not to open it. I believe he did: ever since, he has not stopped seeking the "
+         "rest."),
+    ],
+    "pista": ("el bosque oscuro, donde un archimago sigue con sus experimentos en lo alto de una torre",
+              "the dark forest, where an archmage carries on his experiments atop a tower"),
+}
 LOGRO = {"icono": "minecraft:enchanting_table"}   # logros.py
 OX, OZ = 13, 12                      # desplazamiento: coordenadas relativas al eje de la torre -> plantilla >= 0
 FEET = dict(B2=2, B1=8, f0=14, f1=20, f2=26, f3=32, f4=38, f5=44, f6=50, f7=56)

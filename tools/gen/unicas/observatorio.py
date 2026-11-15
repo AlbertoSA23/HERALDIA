@@ -33,6 +33,22 @@ NOMBRE = {"es_es": "Observatorio", "en_us": "Observatory"}
 TROFEO = {"objeto": "compass", "rareza": "uncommon",
           "nombre": ("Astrolabio del Custodio", "The Keeper's Astrolabe"),
           "lore": [("Las estrellas giran; su aguja, no.", "The stars wheel; its needle does not.")]}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "oculto",
+    "relato": [
+        ("En las colinas azotadas por el viento hay un observatorio que vigila el cielo. Su custodio "
+         "medía las estrellas para corregir mis mapas. «Las estrellas giran», me dijo, «pero el norte no "
+         "se mueve».",
+         "On the wind-lashed hills stands an observatory that watches the sky. Its keeper measured the "
+         "stars to correct my maps. “The stars wheel,” he told me, “but north does not move.”"),
+        ("Escondimos el pliego en una sala oculta, lejos de los curiosos. El custodio juró guardarlo "
+         "mientras hubiera estrellas que contar. Aún las cuenta, noche tras noche, sin dormir.",
+         "We hid the leaf in a hidden room, far from prying eyes. The keeper swore to guard it while "
+         "there were stars to count. He counts them still, night after night, without sleep."),
+    ],
+    "pista": ("las colinas ventosas, donde un observatorio vigila las estrellas",
+              "the windswept hills, where an observatory watches the stars"),
+}
 LOGRO = {"icono": "minecraft:spyglass"}   # logros.py
 
 # ------------------------------------------------------------------ textos

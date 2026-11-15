@@ -73,6 +73,7 @@ jobs:
           - tools/smoke/ciudadela_check.py
           - tools/smoke/coliseo_redstone.py
           - tools/smoke/galeon_test.py
+          - tools/smoke/historia.py
           - tools/smoke/observatorio_smoke.py
           - tools/smoke/palacio_redstone.py
           - tools/smoke/terralith_biomas.py

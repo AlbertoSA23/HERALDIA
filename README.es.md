@@ -178,9 +178,33 @@ Cada guardián con nombre de una estructura única (y el Guardián de Poseidón 
 
 Todos llevan `custom_data` `{heraldia_trofeo:"<id>"}`. Para probar: `/loot give @s loot heraldia:trofeos/<id>`. El desafío **Sala de trofeos** (ver [Logros](#logros)) pide tenerlos todos.
 
+## Crónica de los Heraldos
+
+Un hilo narrativo opcional une las estructuras únicas (trasfondo completo en [`docs/historia.md`](docs/historia.md)): Ysolda, la última heraldo de la Atlántida, escribió el camino de vuelta a la ciudad hundida en pliegos y confió cada uno al guardián de una estructura, que juró custodiarlo. Cada única guarda su **pliego**, un libro escrito («Crónica de los Heraldos: <estructura>») en un cofre que ya tenía, que cuenta su parte de la historia y termina señalando la siguiente estructura con una pista de bioma y rasgo; a veces (10 %) viene con su mapa del tesoro. La cadena pasa por todas y la de la Torre de mago señala la Atlántida, cuyo pliego vuelve a señalar la primera.
+
+| Estructura | Cofre del pliego | Señala |
+|---|---|---|
+| Acueducto en ruinas | cisterna | Castillo |
+| Castillo | capilla | Catedral gótica |
+| Catedral gótica | biblioteca | Ciudadela enana |
+| Ciudadela enana | cámara real | Coliseo en ruinas |
+| Coliseo en ruinas | despacho del lanista | Faro de los contrabandistas |
+| Faro de los contrabandistas | despacho del capitán | Fortaleza de hielo |
+| Fortaleza de hielo | galería | Galeón varado |
+| Galeón varado | camarote del capitán | Mansión encantada |
+| Mansión encantada | biblioteca | Monasterio de montaña |
+| Monasterio de montaña | biblioteca | Observatorio |
+| Observatorio | sala oculta | Palacio oriental |
+| Palacio oriental | biblioteca secreta | Templo-pirámide |
+| Templo-pirámide | tumba | Torre de mago |
+| Torre de mago | escondite | La Atlántida |
+| La Atlántida | sello de la Academia | Acueducto en ruinas |
+
+Las páginas se leen en el idioma de cada jugador (español si el cliente no tiene el mod). Con Lootr cada jugador encuentra su propio pliego. Todos llevan `custom_data` `{heraldia_historia:"<id>"}`; para probar: `/loot give @s loot heraldia:historia/<id>`. El desafío **Cronista** (ver [Logros](#logros)) pide tenerlos todos. **En un mundo ya creado, solo salen en los cofres que aún no se hayan abierto.**
+
 ## Logros
 
-Pestaña de logros **Heraldia** (64 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
+Pestaña de logros **Heraldia** (65 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia o estructura única.
 - Una aldea de cada familia (12 logros, 20 de experiencia) y el desafío **Trotamundos de Heraldia**: las 12 familias (250).
@@ -188,6 +212,7 @@ Pestaña de logros **Heraldia** (64 logros), con textos en español e inglés. S
 - La Atlántida, además: sus tres sellos (abrir el cofre del sello o tener su llave, 30 cada uno); el guardián es el Guardián de Poseidón y el tesoro cuenta al coger uno de los objetos con nombre del cofre único.
 - Desafío final **Cartógrafo de leyendas**: descubrir todas las estructuras únicas (500).
 - Desafío **Sala de trofeos**: conseguir el [trofeo](#trofeos-de-los-guardianes) de cada guardián de las estructuras únicas (500); cuenta al tenerlo en el inventario.
+- Desafío **Cronista**: reunir los pliegos de la [Crónica de los Heraldos](#crónica-de-los-heraldos), uno por estructura única (500); cuenta al tenerlo en el inventario.
 
 Notas: una estructura cuenta al entrar en sus piezas, no basta con verla. Si se desactiva una familia o una estructura en la [configuración](#configuración), su logro y el desafío correspondiente no se pueden conseguir. Con Lootr, el logro del tesoro depende de que Lootr avise al juego al abrir el cofre (sin comprobar). Los logros de las estructuras únicas se generan solos a partir del registro de únicas, así que una estructura nueva trae los suyos.
 
@@ -249,9 +274,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 87 estructuras estén registradas y los 64 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 87 estructuras estén registradas y los 65 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
 
-Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio` y `piramide`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último.
+Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio` y `piramide`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último.
 
 Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen/sim.py` (simula el ensamblado jigsaw), `tools/gen/render.py` (renders isométricos), `tools/gen/lint.py` (auditoría de diseño).
 

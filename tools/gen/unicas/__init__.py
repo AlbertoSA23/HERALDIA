@@ -40,6 +40,15 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # El trofeo (heraldia:trofeos/<id>, custom_data {heraldia_trofeo: "<id>"}) solo cae si mata al guardián un jugador:
   # pack.tag_guardians le pone la DeathLootTable heraldia:guardianes/<id>/<mob> (su botín de siempre + el trofeo).
   # Sin TROFEO (o sin nombre, lore..., o con netherita/élitros) la compilación falla. El logro unicas/trofeos sale solo.
+  HISTORIA = {"cofre": "biblioteca",                   # OBLIGATORIO: su pliego de la Crónica de los Heraldos (docs/historia.md)
+              # cofre: tabla de LOOT de un cofre menor o de una sala oculta que ya esté en sus plantillas (mejor uno solo)
+              "relato": [(es, en), (es, en)],              # 1-2 páginas (máx. botin.MAX_PAGINA caracteres): su parte
+              "pista": (es, en),                           # cómo la señala el pliego anterior: bioma y rasgo, sin nombre
+              "final": True}                               # solo la Atlántida: cierra la cadena
+  # La cadena se calcula sola (botin.historia_cadena: por id y la final al cabo, que señala la primera): el pliego de
+  # cada única (heraldia:historia/<id>, custom_data {heraldia_historia: "<id>"}) añade una página con la pista de la
+  # siguiente y, a veces, su mapa del tesoro; la tabla de su cofre lo anida. Sin HISTORIA (o con un cofre que no está
+  # en sus plantillas, o páginas demasiado largas) la compilación falla. El logro unicas/cronista sale solo.
   LANG = {"es_es": {...}, "en_us": {...}}   # opcional: textos propios (mismas claves en los dos idiomas)
   # Opcional en una plantilla: t.lint_open = {pos: estado o None}, estado con los puzles resueltos para el recorrido a pie.
 

@@ -13,6 +13,23 @@ TROFEO = {"objeto": "iron_axe", "rareza": "rare",
           "nombre": ("Hacha de Borin Barbahierro", "Borin Ironbeard's Axe"),
           "lore": [("Ha partido roca, hierro y orgullo de trasgo.", "It has cleaved stone, iron and goblin pride.")],
           "encantamientos": {"minecraft:efficiency": 3, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "real",
+    "relato": [
+        ("Subí a las cumbres de piedra hasta la ciudadela que los enanos excavaron en la montaña. Borin "
+         "Barbahierro me invitó a una jarra en la cervecería y me habló de vetas, de forjas y de su rey "
+         "bajo la montaña.",
+         "I climbed the stony peaks to the citadel the dwarves carved into the mountain. Borin Ironbeard "
+         "stood me a tankard in the brewery and told me of veins, of forges and of his king beneath the "
+         "mountain."),
+        ("Los enanos guardan bien lo que se mete en la roca. Borin escondió el pliego en la cámara real y"
+         " juró ser el último en abandonar la ciudadela. Cumplió: nunca salió de ella.",
+         "Dwarves keep well what is set in stone. Borin hid the leaf in the royal chamber and swore to be"
+         " the last to leave the citadel. He kept his word: he never left."),
+    ],
+    "pista": ("las cumbres de piedra, donde los enanos excavaron una ciudadela en la roca",
+              "the stony peaks, where dwarves carved a citadel into the rock"),
+}
 LOGRO = {"icono": "minecraft:iron_pickaxe"}   # logros.py
 ROOF_CELL = 8
 PORCH_DEPTH = 8          # filas del pórtico (z < 8): al aire libre, no cuentan para la cubierta de roca
