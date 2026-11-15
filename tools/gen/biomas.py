@@ -7,7 +7,7 @@ que añaden sus biomas a esas etiquetas reciben la estructura. Todas las entrada
 "required": false: si un mod o Fabric API no la define, el paquete carga igual. `comprobar` lo verifica al generar.
 
 Sin etiqueta extra (no hay ninguna lo bastante estrecha; queda solo la lista vanilla):
-  taiga, sabana, cerezos y las únicas coliseo, observatorio, piramide, monasterio, ciudadela y palacio:
+  taiga, sabana, cerezos y las únicas coliseo, observatorio, piramide, monasterio, ciudadela, palacio y salon_jarl:
   #c:is_taiga (= #minecraft:is_taiga) incluye snowy_taiga (familia nieve); #c:is_savanna incluye windswept_savanna
   (observatorio); #c:is_windswept, windswept_forest; #c:is_jungle, bamboo_jungle (palacio); #c:is_mountain/slope,
   snowy_slopes y cherry_grove; #c:is_mountain/peak, frozen_peaks; #c:is_forest, dark_forest, pale_garden y grove
