@@ -38,6 +38,15 @@ Contents:
     bookshelf to the archive, the herbalist's room, an ossuary, the offerings niche, the chamber of the sun (puzzle: light
     the solstices) and the rite chamber of Archdruid Cadoc the Withered, with the treasure; tripwire and pressure-plate
     traps, 3 spawners and 18 chests. Design: [docs/unicas/santuario.md](docs/unicas/santuario.md).
+  - **Mycologist's Laboratory** (`heraldia:unicas/laboratorio_micelio`): mushroom fields. An old botanical garden built
+    among and inside three giant mushrooms: the mycologist's house in the cap of the big red one (behind a tapestry, his
+    hidden alcove), with a spiral stair down its stem; the helpers' dormitory in a small red cap and the spore library in
+    the stem of a brown one, with a drying terrace on its cap, all linked by walkways; a glass greenhouse with rare crops
+    (nether wart, torchflower, cocoa, chorus), a potion distillery and the mooshroom pen. Under the mycelium, damp
+    glowing galleries: the nurseries, the laboratory with a secret stem panel to the strain archive, a tripwire corridor,
+    the cocoon room, the failed experiments, the reagent room (puzzle: mix the cure) and the chamber of the mother strain
+    with Master Ambrose the Spore-Ridden and the treasure; tripwire and pressure-plate traps, 3 spawners and 22 chests.
+    Design: [docs/unicas/laboratorio_micelio.md](docs/unicas/laboratorio_micelio.md).
   - **Lighthouse with smugglers' cave** (`heraldia:unicas/faro`, stony shore and beaches): a lighthouse and keeper's house on a headland; a secret passage to a sea-level cave with a dock, storerooms, a dungeon, the captain's office and a treasure chamber. It is always placed on the coastline, with the cave mouth facing the sea. Design: [docs/unicas/faro.md](docs/unicas/faro.md).
   - **Wizard's tower** (`heraldia:unicas/torre_mago`): dark forest and pale garden. An eight-storey tower with a
     double-height library, a laboratory, a greenhouse and an observatory, a study hidden behind a chiseled bookshelf,
@@ -71,7 +80,7 @@ Requirements: Minecraft 26.3, Fabric Loader 0.20.1 or later and Fabric API (test
 
 1. Build `heraldia-<version>.jar` (see below).
 2. Copy it into the `mods` folder of the server and of every client.
-3. Start the server. `logs/latest.log` should show `Heraldia: 88 estructuras registradas`.
+3. Start the server. `logs/latest.log` should show `Heraldia: 90 estructuras registradas`.
 
 In an existing world, structures only appear in chunks that have not been generated yet.
 `/reload` does not reload world generation: you must restart the server (or leave and re-enter the world in single player).
@@ -152,6 +161,7 @@ Each village family and each unique structure finds its biomes through its own t
 | `costa` | `#minecraft:is_beach`, `#c:is_beach`, `#c:is_stony_shores` |
 | `unicas/catedral` | `#c:is_flower_forest` |
 | `unicas/santuario` | `#c:is_birch_forest` |
+| `unicas/laboratorio_micelio` | `#c:is_mushroom` |
 | `unicas/faro` | `#c:is_stony_shores` |
 | `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
 | `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
@@ -186,6 +196,7 @@ Every named guardian of a unique structure (and Atlantis' Warden of Poseidon) dr
 | Smugglers' Lighthouse | Captain Mist's Cutlass | `iron_sword` | sharpness 1, unbreaking 1 |
 | Ice Fortress | Frost Crown | `golden_helmet` | unbreaking 2 |
 | Stranded Galleon | The Drowned Captain's Spyglass | `spyglass` | — |
+| Mycologist's Laboratory | Master Ambrose's Shears | `shears` | efficiency 2, unbreaking 2 |
 | Haunted Mansion | Count Malachi's Pocket Watch | `clock` | — |
 | Mountain Monastery | Tear of the Reliquary | `amethyst_shard` | — |
 | Observatory | The Keeper's Astrolabe | `compass` | — |
@@ -210,7 +221,8 @@ An optional story thread links the unique structures (full background in [`docs/
 | Ruined Colosseum | lanista's office | Smugglers' Lighthouse |
 | Smugglers' Lighthouse | captain's office | Ice Fortress |
 | Ice Fortress | gallery | Stranded Galleon |
-| Stranded Galleon | captain's cabin | Haunted Mansion |
+| Stranded Galleon | captain's cabin | Mycologist's Laboratory |
+| Mycologist's Laboratory | spore library | Haunted Mansion |
 | Haunted Mansion | library | Mountain Monastery |
 | Mountain Monastery | library | Observatory |
 | Observatory | hidden room | Eastern Palace |
@@ -225,7 +237,7 @@ Pages are shown in each player's language (Spanish if the client does not have t
 
 ## Advancements
 
-A **Heraldia** advancement tab (71 advancements), with texts in Spanish and English. They only give experience, never items:
+A **Heraldia** advancement tab (74 advancements), with texts in Spanish and English. They only give experience, never items:
 
 - **Heraldia** (root): enter any Heraldia village or unique structure.
 - A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
@@ -256,7 +268,7 @@ when its format changes. It is read only when the server starts and affects chun
 | `golems.limite_estandar` | 8 | 1-64 | At this many natural golems or more, a standard village removes one every 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Same for large villages. |
 | `unicas.<id>.activada` | `true` | `true`/`false` | Enables a unique structure. There is one entry for each unique structure in the mod. |
-| `unicas.<id>.separacion_bloques` | the structure's own (4000) | 1000-10000 | Average spacing between structures of that type (by default, one every 3000-5000 blocks). Each type spreads over its whole grid cell (grid origin shifted per type), and two of the same type are never closer than `unicas.distancia_minima.bloques`. |
+| `unicas.<id>.separacion_bloques` | the structure's own (4000) | 1000-10000 | Average spacing between structures of that type (by default, one every 3000-5000 blocks). Each type spreads over its whole grid cell (grid origin shifted per type), and two of the same type are never closer than `unicas.distancia_minima.bloques`. For the Mycologist's Laboratory (mushroom fields, a very rare biome) the candidate of each cell is not random: it is the spot of the cell deepest inside that biome, so it appears on a good share of mushroom islands (at most one per cell). |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Keeps two different unique structures (Atlantis included) from spawning closer than the minimum distance. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Minimum distance between the start chunks of two different unique structures. When two candidates are too close, a deterministic draw (seed and position) keeps one; if the winner cannot spawn there (wrong biome or terrain), the other one is kept. `/locate` and treasure maps follow the same rule. |
 | `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Per-player Atlantis premium chest. The first opening turns its contents into a template stored in the chest itself (the chest is left empty, so breaking or emptying it duplicates nothing) and each player opens their own copy: the whole contents the first time, and afterwards whatever they left. The Poseidon key is still needed. It works the same with or without Lootr (Lootr does not convert this chest because it has no loot table). Turning it off later puts the contents back in the chest once (the first time someone uses it), and it behaves as before. |
@@ -295,9 +307,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 89 structures and all 71 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 90 structures and all 74 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
-Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl` and `santuario`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one.
+Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario` and `laboratorio_micelio`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one.
 
 Versions are pinned in `gradle.properties`. Generator tools: `tools/gen/sim.py` (simulates jigsaw assembly), `tools/gen/render.py` (isometric renders), `tools/gen/lint.py` (design audit).
 

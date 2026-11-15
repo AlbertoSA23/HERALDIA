@@ -38,6 +38,16 @@ Contenido:
     sala de las raíces, la biblioteca con una estantería secreta al archivo, el herbolario, un osario, el nicho de las
     ofrendas, la cámara del sol (puzle: enciende los solsticios) y la cámara del rito del archidruida Cadoc, el Marchito,
     con el tesoro; trampas de cable y de placas, 3 generadores y 18 cofres. Diseño: [docs/unicas/santuario.md](docs/unicas/santuario.md).
+  - **Laboratorio del micólogo** (`heraldia:unicas/laboratorio_micelio`): campos de champiñones. Un antiguo jardín
+    botánico construido entre y dentro de tres champiñones gigantes: la casa del micólogo en el sombrero del rojo grande
+    (tras un tapiz, su alcoba oculta), con una escalera de caracol por el tallo; el dormitorio de los ayudantes en un
+    sombrero rojo pequeño y la biblioteca de esporas en el tallo de uno pardo, con el secadero en su sombrero, todos
+    unidos por pasarelas; un invernadero de cristal con cultivos raros (verruga del Nether, flor antorcha, cacao, coro),
+    una destilería de pociones y el corral de los champiñocas. Bajo el micelio, galerías húmedas y luminosas: los
+    criaderos, el laboratorio con un panel secreto de tallo al cepario, un pasillo con cable trampa, la sala de los
+    capullos, los experimentos fallidos, la sala de los reactivos (puzle: mezcla la cura) y la cámara de la cepa madre con
+    Maese Ambrosio, el Esporado, y el tesoro; trampas de cable y de placas, 3 generadores y 22 cofres.
+    Diseño: [docs/unicas/laboratorio_micelio.md](docs/unicas/laboratorio_micelio.md).
   - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en [docs/unicas/faro.md](docs/unicas/faro.md).
   - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
@@ -71,7 +81,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 88 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 90 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
@@ -152,6 +162,7 @@ Cada familia de aldeas y cada estructura única busca sus biomas con una etiquet
 | `costa` | `#minecraft:is_beach`, `#c:is_beach`, `#c:is_stony_shores` |
 | `unicas/catedral` | `#c:is_flower_forest` |
 | `unicas/santuario` | `#c:is_birch_forest` |
+| `unicas/laboratorio_micelio` | `#c:is_mushroom` |
 | `unicas/faro` | `#c:is_stony_shores` |
 | `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
 | `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
@@ -186,6 +197,7 @@ Cada guardián con nombre de una estructura única (y el Guardián de Poseidón 
 | Faro de los contrabandistas | Alfanje del Capitán Bruma | `iron_sword` | filo 1, irrompibilidad 1 |
 | Fortaleza de hielo | Corona de escarcha | `golden_helmet` | irrompibilidad 2 |
 | Galeón varado | Catalejo del capitán ahogado | `spyglass` | — |
+| Laboratorio del micólogo | Tijeras de Maese Ambrosio | `shears` | eficiencia 2, irrompibilidad 2 |
 | Mansión encantada | Reloj del Conde Malaquías | `clock` | — |
 | Monasterio de montaña | Lágrima del relicario | `amethyst_shard` | — |
 | Observatorio | Astrolabio del Custodio | `compass` | — |
@@ -210,7 +222,8 @@ Un hilo narrativo opcional une las estructuras únicas (trasfondo completo en [`
 | Coliseo en ruinas | despacho del lanista | Faro de los contrabandistas |
 | Faro de los contrabandistas | despacho del capitán | Fortaleza de hielo |
 | Fortaleza de hielo | galería | Galeón varado |
-| Galeón varado | camarote del capitán | Mansión encantada |
+| Galeón varado | camarote del capitán | Laboratorio del micólogo |
+| Laboratorio del micólogo | biblioteca de esporas | Mansión encantada |
 | Mansión encantada | biblioteca | Monasterio de montaña |
 | Monasterio de montaña | biblioteca | Observatorio |
 | Observatorio | sala oculta | Palacio oriental |
@@ -225,7 +238,7 @@ Las páginas se leen en el idioma de cada jugador (español si el cliente no tie
 
 ## Logros
 
-Pestaña de logros **Heraldia** (71 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
+Pestaña de logros **Heraldia** (74 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia o estructura única.
 - Una aldea de cada familia (12 logros, 20 de experiencia) y el desafío **Trotamundos de Heraldia**: las 12 familias (250).
@@ -256,7 +269,7 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `golems.limite_estandar` | 8 | 1-64 | Con tantos gólems naturales o más, una aldea estándar retira uno cada 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Igual para las aldeas grandes. |
 | `unicas.<id>.activada` | `true` | `true`/`false` | Activa una estructura única. Aparece una entrada por cada estructura única del mod. |
-| `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). Cada tipo se reparte por toda su casilla de la rejilla (con el origen desplazado por tipo) y dos del mismo tipo nunca quedan a menos de `unicas.distancia_minima.bloques`. |
+| `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). Cada tipo se reparte por toda su casilla de la rejilla (con el origen desplazado por tipo) y dos del mismo tipo nunca quedan a menos de `unicas.distancia_minima.bloques`. En el Laboratorio del micólogo (campos de champiñones, un bioma muy raro) la candidata de cada casilla no se sortea: es el sitio de la casilla más metido en ese bioma, así que sale en buena parte de las islas de champiñones (como mucho una por casilla). |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Impide que dos estructuras únicas distintas (también la Atlántida) salgan a menos de la distancia mínima. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Distancia mínima entre los chunks de inicio de dos estructuras únicas distintas. Si dos candidatas quedan demasiado cerca, un sorteo determinista (semilla y posición) se queda con una; si la ganadora no puede salir ahí (bioma o terreno), se conserva la otra. `/locate` y los mapas del tesoro siguen la misma regla. |
 | `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Cofre premium de la Atlántida por jugador. La primera apertura convierte su contenido en una plantilla guardada en el propio cofre (que queda vacío: romperlo o vaciarlo con una tolva no duplica nada) y cada jugador abre su propia copia: la recibe entera la primera vez y después encuentra lo que dejó. Sigue haciendo falta la llave de Poseidón. Con Lootr o sin él funciona igual (Lootr no convierte este cofre porque no tiene tabla de botín). Si se desactiva después, el contenido vuelve al cofre una vez (la primera vez que alguien lo usa) y se comporta como antes. |
@@ -295,9 +308,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 89 estructuras estén registradas y los 71 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 90 estructuras estén registradas y los 74 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
 
-Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl` y `santuario`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último.
+Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario` y `laboratorio_micelio`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último.
 
 Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen/sim.py` (simula el ensamblado jigsaw), `tools/gen/render.py` (renders isométricos), `tools/gen/lint.py` (auditoría de diseño).
 
