@@ -1,4 +1,4 @@
-package io.github.albertosa23.heraldia.unicas.acueducto;
+package io.github.albertosa23.heraldia.comun;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -19,9 +19,12 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 
 /**
- * Prolonga hacia abajo, hasta el suelo firme, los bloques indicados de la fila inferior de la pieza: así los pilares
- * del acueducto (pieza rígida, canal horizontal) llegan siempre al terreno aunque este baje. Solo lee y escribe
- * dentro del chunk que se está generando.
+ * Prolonga hacia abajo, hasta el suelo firme (atraviesa aire, agua y plantas), los bloques indicados de la fila inferior
+ * de la plantilla: así los pilares del acueducto, los cimientos de las casas de las aldeas en ladera y los pilotes del
+ * muelle llegan siempre al terreno. La fila inferior se mira en la plantilla (lista {@code original}, alineada con
+ * {@code processed} mientras los procesadores anteriores solo añaden al final), así que vale también para piezas
+ * {@code terrain_matching}, cuyos bloques ya bajó la gravedad. Solo lee y escribe dentro del chunk que se está generando.
+ * Id publicado {@code heraldia:acueducto_hasta_el_suelo} (no se renombra).
  */
 public record HastaElSueloProcessor(List<Block> bloques, int profundidadMaxima) implements StructureProcessor {
 	public static final MapCodec<HastaElSueloProcessor> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -43,9 +46,11 @@ public record HastaElSueloProcessor(List<Block> bloques, int profundidadMaxima) 
 			List<StructureBlockInfo> original, List<StructureBlockInfo> processed, StructurePlaceSettings settings) {
 		BoundingBox box = settings.getBoundingBox();
 		List<StructureBlockInfo> out = new ArrayList<>(processed);
-		for (StructureBlockInfo info : processed) {
+		int n = Math.min(original.size(), processed.size());
+		for (int i = 0; i < n; i++) {
+			StructureBlockInfo info = processed.get(i);
 			BlockPos pos = info.pos();
-			if (pos.getY() != offset.getY() || !bloques.contains(info.state().getBlock())
+			if (original.get(i).pos().getY() != 0 || !bloques.contains(info.state().getBlock())
 					|| (box != null && !box.isInside(pos))) {
 				continue;
 			}

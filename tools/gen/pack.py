@@ -16,7 +16,7 @@ ALL_PROFS = ["armorer", "butcher", "cartographer", "cleric", "farmer", "fisherma
              "librarian", "mason", "shepherd", "toolsmith", "weaponsmith"]
 
 AVENUES = {"a": ("church", "townhall"), "b": ("market", "tavern"), "c": ("blacksmith", "library"),
-           "d": ("farm", None)}  # derecha de D: puerto (costa) o posada
+           "d": ("farm", None)}  # derecha de D: posada (el puerto de la costa va aparte, en la orilla)
 
 
 def fix_supports(t):
@@ -116,19 +116,22 @@ def build_theme(reg, th, seed):
         els.append((reg.add(t, "filler"), 1, "rigid", bld_proc))
     reg.pool(f"{tid}/houses", els)
     # ---- especiales
+    # la costa tiene posada en la avenida como las demás; su puerto (caseta + muelle) lo pone aparte, en la orilla,
+    # AldeaStructure (Java), que usa los pools special/port y port_pier
     for kind in ("church", "townhall", "market", "tavern", "blacksmith", "library", "farm", "inn", "port", "cemetery", "mill"):
         if kind == "port" and th["family"] != "costa":
-            continue
-        if kind == "inn" and th["family"] == "costa":
             continue
         t = SPECIALS[kind](th, rng, f"{tid}/specials/{kind}")
         name = reg.add(t, "special:" + kind)
         pid = f"{tid}/{kind}" if kind in ("cemetery", "mill") else f"{tid}/special/{kind}"
         reg.pool(pid, [(name, 1, "rigid", bld_proc)])
+    if th["family"] == "costa":
+        t = SPECIALS["port_pier"](th, rng, f"{tid}/specials/port_pier")
+        reg.pool(f"{tid}/port_pier", [(reg.add(t, "special:port_pier"), 1, "terrain_matching", nsid(f"{tid}/pier"))])
     # ---- avenidas
     for a, (lft, rgt) in AVENUES.items():
         if a == "d":
-            rgt = "port" if th["family"] == "costa" else "inn"
+            rgt = "inn"
         t = avenue(th, rng, f"{tid}/avenues/{a}", P(th, f"special/{lft}"), P(th, f"special/{rgt}"))
         reg.pool(f"{tid}/avenue_{a}", [(reg.add(t, "avenue"), 1, "terrain_matching", street_proc)])
     # ---- plaza
