@@ -12,6 +12,9 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # El token y el ID del proyecto viven en este Environment de GitHub
+    # (Settings > Environments). Solo se permite desplegar desde main.
+    environment: Configure Curse Forge
     steps:
       - uses: actions/checkout@v4
         with:
