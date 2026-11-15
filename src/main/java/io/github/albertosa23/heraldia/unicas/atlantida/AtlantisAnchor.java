@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import net.fabricmc.fabric.api.tag.convention.v2.ConventionalBiomeTags;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.resources.Identifier;
@@ -148,7 +149,9 @@ public final class AtlantisAnchor {
 			for (int j = 0; j < n; j++) {
 				Holder<Biome> biome = resolver.getNoiseBiome(QuartPos.fromBlock(i * STEP - SEARCH_RADIUS + STEP / 2), QuartPos.fromBlock(SAMPLE_Y),
 						QuartPos.fromBlock(j * STEP - SEARCH_RADIUS + STEP / 2));
-				int l = biome.is(BiomeTags.IS_OCEAN) ? 0 : 1, d = biome.is(BiomeTags.IS_DEEP_OCEAN) ? 1 : 0;
+				// etiquetas vanilla y convencionales (océanos de otros mods); en vanilla #c:is_ocean = #minecraft:is_ocean
+				int l = biome.is(BiomeTags.IS_OCEAN) || biome.is(ConventionalBiomeTags.IS_OCEAN) ? 0 : 1;
+				int d = biome.is(BiomeTags.IS_DEEP_OCEAN) || biome.is(ConventionalBiomeTags.IS_DEEP_OCEAN) ? 1 : 0;
 				land[i + 1][j + 1] = l + land[i][j + 1] + land[i + 1][j] - land[i][j];
 				deep[i + 1][j + 1] = d + deep[i][j + 1] + deep[i + 1][j] - deep[i][j];
 			}

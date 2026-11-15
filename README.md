@@ -84,7 +84,7 @@ By default, one village every 1000-2000 blocks (average spacing 1500), at most 1
 | Family | Biomes | Styles (ID `heraldia:<style>` and `heraldia:<style>_grande`) |
 | --- | --- | --- |
 | Plains | plains, sunflower plains, meadow | `llanuras_castellana`, `llanuras_gallega`, `llanuras_entramado` |
-| Temperate forest | forest, flower forest, birch forest (and old growth), wooded hills | `bosque_lenadores`, `bosque_elfica`, `bosque_abadia` |
+| Temperate forest | forest, flower forest, birch forest (and old growth), dappled forest | `bosque_lenadores`, `bosque_elfica`, `bosque_abadia` |
 | Dark forest | dark forest, pale garden | `oscuro_gotica`, `oscuro_alquimistas`, `oscuro_fortificada` |
 | Taiga | taiga, old growth taigas | `taiga_nordica`, `taiga_eslava`, `taiga_cazadores` |
 | Snow | snowy plains and taiga, grove, ice spikes | `nieve_alpina`, `nieve_fortaleza`, `nieve_pastores` |
@@ -121,6 +121,28 @@ Exactly one per world, always, with no configuration option. It is a walled city
 
 Details, plans and what has been verified: [docs/unicas/atlantida.md](docs/unicas/atlantida.md).
 
+## Biomes from other mods
+
+Each village family and each unique structure finds its biomes through its own tag (`#heraldia:<family>` and `#heraldia:unicas/<id>`): the vanilla biomes in the tables above plus the Fabric/NeoForge convention tags (`#c:...`) and `#minecraft:is_*` tags that biome mods (Terralith, Biomes O' Plenty...) add their biomes to. Only tags that add no biome to the list in vanilla are used, so **without biome mods everything generates exactly where it did before**; all of them are `"required": false` (the pack loads fine if a mod is missing).
+
+| Tag | On top of its vanilla biomes |
+| --- | --- |
+| `llanuras`, `unicas/castillo` | `#c:is_plains` |
+| `bosque` | `#c:is_birch_forest`, `#c:is_flower_forest` |
+| `oscuro` (and the wizard tower) | `#c:is_dark_forest` |
+| `nieve`, `unicas/fortaleza_hielo` | `#c:is_snowy_plains` |
+| `desierto`, `unicas/acueducto` | `#c:is_desert` |
+| `jungla` | `#minecraft:is_jungle`, `#c:is_jungle` |
+| `pantano` (and the mansion) | `#c:is_swamp` |
+| `badlands` | `#minecraft:is_badlands`, `#c:is_badlands` |
+| `costa` | `#minecraft:is_beach`, `#c:is_beach`, `#c:is_stony_shores` |
+| `unicas/catedral` | `#c:is_flower_forest` |
+| `unicas/faro` | `#c:is_stony_shores` |
+| `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
+| `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
+
+Taiga, savanna, cherry and the coliseum, observatory, pyramid, monastery, citadel and palace uniques keep only their vanilla biomes: no convention tag is narrow enough (for example, `#c:is_taiga` includes snowy taiga, which belongs to the snow family, and `#c:is_savanna` includes windswept savanna, the observatory's). Which biomes of a mod go into each tag is that mod's choice (with Terralith, for example, plains include its steppes and highlands, and forest its lavender and sakura forests). The Atlantis search also accepts the oceans in `#c:is_ocean` and `#c:is_deep_ocean`. Tested with Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
+
 ## Treasure maps
 
 Every unique structure has its own treasure map, which marks the nearest one with an X (or another mark specific to the structure) and carries its translated name:
@@ -130,7 +152,7 @@ Every unique structure has its own treasure map, which marks the nearest one wit
 - The search covers about 10,000 blocks and does not load already explored chunks (so it does not stall the server). If no structure of that type is within reach, no map appears (the chest leaves it empty and the cartographer does not offer that trade).
 - To test: `/loot give @s loot heraldia:mapas/<id>` gives the map for structure `heraldia:unicas/<id>` from where you stand.
 
-Known limitations: the port is laid out straight from the street without looking for water; on slopes there may be steps and tall foundations; overlap with structures from other mods has not been checked.
+Known limitations: the port is laid out straight from the street without looking for water; on slopes there may be steps and tall foundations; overlap with structures from other mods has not been checked (biomes from other mods have, see [Biomes from other mods](#biomes-from-other-mods)).
 
 ## Advancements
 
