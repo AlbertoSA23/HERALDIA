@@ -272,6 +272,24 @@ def guardian_placed(ctx, sid):
     return False
 
 
+def guardian_trophy(ctx, sid):
+    """El guardián colocado conserva su DeathLootTable (la del trofeo, heraldia:guardianes/<id>/<mob>) y, muerto sin
+    jugador (/loot ... kill desde la consola), no suelta el trofeo (condición killed_by_player). Que lo suelte al
+    matarlo un jugador lo prueba tools/smoke/trofeos.py con un jugador simulado."""
+    sid = sid.split("/")[-1]
+    g = f"@e[tag=heraldia_guardian.{sid},limit=1]"
+    m = ctx.run(f"data get entity {g} DeathLootTable", r'has the following entity data: "([^"]+)"|No entity')
+    if not (m.group(1) or "").startswith(f"heraldia:guardianes/{sid}/"):
+        return [f"el guardián no tiene la tabla del trofeo: {m.string.strip()}"]
+    ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
+    m = ctx.run(f"execute at {g} run loot spawn ~ ~1 ~ kill {g}", r"Dropped \d+|No items")
+    if not m.group(0).startswith(("Dropped", "No items")):
+        return [f"/loot kill del guardián falló: {m.string.strip()}"]
+    m = ctx.run(f'execute if entity @e[type=minecraft:item,nbt={{Item:{{components:{{"minecraft:custom_data":{{heraldia_trofeo:"{sid}"}}}}}}}}]',
+                r"Test passed|Test failed")
+    return [] if "failed" in m.group(0) else ["suelta el trofeo sin que lo mate un jugador"]
+
+
 def snbt(v):
     if isinstance(v, dict):
         return "{" + ",".join(f"{k}:{snbt(x)}" for k, x in v.items()) + "}"
@@ -386,13 +404,17 @@ def main():
                 failures.append(f"place structure {sid} falló: {m.string.strip()}")
             elif not guardian_placed(Context(proc, lines, seen), sid):
                 failures.append(f"{sid}: no aparece su guardián con la etiqueta del logro")
+            else:
+                failures += [f"{sid}: {f}" for f in guardian_trophy(Context(proc, lines, seen), sid)]
         # Las tablas de botín se leen (y la condición heraldia:sin_lootr está registrada si alguna la usa).
         for table in LOOT_TABLES:
             t0 = time.monotonic()
             m = run(proc, lines, seen, f"loot spawn 0 200 0 loot {table}", r"Dropped \d+|No items")
             found = bool(re.match(r"Dropped [1-9]", m.group(0)))
             took = time.monotonic() - t0
-            if not m.group(0).startswith(("Dropped", "No items")) or ("No items" in m.group(0) and ":mapas/" not in table):
+            # mapas sin destino y tablas de muerte de los guardianes (sin el mob, su botín vanilla puede salir vacío)
+            if not m.group(0).startswith(("Dropped", "No items")) or ("No items" in m.group(0) and not
+                                                                   re.search(":(mapas|guardianes)/", table)):
                 failures.append(f"botín {table} falló: {m.string.strip()}")
             if ":mapas/" in table:
                 # Sin estructura alcanzable el mapa se descarta ("No items"), pero nunca debe colgar el servidor.

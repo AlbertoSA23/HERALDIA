@@ -76,6 +76,7 @@ jobs:
           - tools/smoke/observatorio_smoke.py
           - tools/smoke/palacio_redstone.py
           - tools/smoke/terralith_biomas.py
+          - tools/smoke/trofeos.py
           - tools/gen/unicas/castillo/prueba_redstone.py
           - tools/gen/unicas/catedral/prueba_juego.py
           - tools/gen/unicas/fortaleza_hielo/prueba_servidor.py

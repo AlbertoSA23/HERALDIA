@@ -154,15 +154,40 @@ Cada estructura única tiene su mapa del tesoro, que marca la más cercana con u
 
 Limitaciones conocidas: el puerto sale recto desde la calle sin buscar el agua; en laderas puede haber escalones y cimientos altos; no se ha comprobado el solape con estructuras de otros mods (los biomas de otros mods sí, ver [Biomas de otros mods](#biomas-de-otros-mods)).
 
+## Trofeos de los guardianes
+
+Cada guardián con nombre de una estructura única (y el Guardián de Poseidón de la Atlántida) suelta al morir su **trofeo**, un objeto vanilla con nombre propio, una o dos líneas de historia, rareza (color del nombre) y, a veces, un adorno de armadura o un escudo con blasón. La mayoría son de adorno; unos pocos (el Tridente de Poseidón, el Hacha de Borin Barbahierro) son algo mejores que un objeto normal, sin romper la progresión. Solo cae si lo mata un jugador (con `/kill` o una trampa sin jugador, no) y hay uno por guardián: colocar la estructura otra vez con `/place` crea otro guardián y, por tanto, otro trofeo.
+
+| Estructura | Trofeo | Objeto | Encantamientos |
+|---|---|---|---|
+| Acueducto en ruinas | Lorica del Centurión Aquilio | `iron_chestplate` | protección 1 |
+| La Atlántida | Tridente de Poseidón | `trident` | lealtad 2, empalamiento 2 |
+| Castillo | Yelmo de Sir Aldric | `iron_helmet` | protección 1 |
+| Catedral gótica | Brújula de ánimas de Fray Osmundo | `recovery_compass` | — |
+| Ciudadela enana | Hacha de Borin Barbahierro | `iron_axe` | eficiencia 3, irrompibilidad 2 |
+| Coliseo en ruinas | Escudo del Campeón de la Arena | `shield` | irrompibilidad 2 |
+| Faro de los contrabandistas | Alfanje del Capitán Bruma | `iron_sword` | filo 1, irrompibilidad 1 |
+| Fortaleza de hielo | Corona de escarcha | `golden_helmet` | irrompibilidad 2 |
+| Galeón varado | Catalejo del capitán ahogado | `spyglass` | — |
+| Mansión encantada | Reloj del Conde Malaquías | `clock` | — |
+| Monasterio de montaña | Lágrima del relicario | `amethyst_shard` | — |
+| Observatorio | Astrolabio del Custodio | `compass` | — |
+| Palacio oriental | Espada ceremonial de la Guardia Imperial | `golden_sword` | filo 2, irrompibilidad 3 |
+| Templo-pirámide | Pectoral del Rey Jaguar | `golden_chestplate` | protección 1 |
+| Torre de mago | Báculo del Archimago Malvarius | `blaze_rod` | — |
+
+Todos llevan `custom_data` `{heraldia_trofeo:"<id>"}`. Para probar: `/loot give @s loot heraldia:trofeos/<id>`. El desafío **Sala de trofeos** (ver [Logros](#logros)) pide tenerlos todos.
+
 ## Logros
 
-Pestaña de logros **Heraldia** (63 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
+Pestaña de logros **Heraldia** (64 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia o estructura única.
 - Una aldea de cada familia (12 logros, 20 de experiencia) y el desafío **Trotamundos de Heraldia**: las 12 familias (250).
 - Por cada estructura única: descubrirla (50), derrotar a su guardián con nombre (100) y abrir su cofre del tesoro (50).
 - La Atlántida, además: sus tres sellos (abrir el cofre del sello o tener su llave, 30 cada uno); el guardián es el Guardián de Poseidón y el tesoro cuenta al coger uno de los objetos con nombre del cofre único.
 - Desafío final **Cartógrafo de leyendas**: descubrir todas las estructuras únicas (500).
+- Desafío **Sala de trofeos**: conseguir el [trofeo](#trofeos-de-los-guardianes) de cada guardián de las estructuras únicas (500); cuenta al tenerlo en el inventario.
 
 Notas: una estructura cuenta al entrar en sus piezas, no basta con verla. Si se desactiva una familia o una estructura en la [configuración](#configuración), su logro y el desafío correspondiente no se pueden conseguir. Con Lootr, el logro del tesoro depende de que Lootr avise al juego al abrir el cofre (sin comprobar). Los logros de las estructuras únicas se generan solos a partir del registro de únicas, así que una estructura nueva trae los suyos.
 
@@ -224,9 +249,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 87 estructuras estén registradas y los 63 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 87 estructuras estén registradas y los 64 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
 
-Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio` y `piramide`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`).
+Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio` y `piramide`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último.
 
 Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen/sim.py` (simula el ensamblado jigsaw), `tools/gen/render.py` (renders isométricos), `tools/gen/lint.py` (auditoría de diseño).
 

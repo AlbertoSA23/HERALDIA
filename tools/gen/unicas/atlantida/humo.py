@@ -77,7 +77,8 @@ def comprobar(ctx):
         fallos.append(f"cofre premium incorrecto: {r.string.strip()[:300]}")
 
     # guardián final: existe y suelta la llave de Poseidón
-    jefe = '@e[type=minecraft:elder_guardian,nbt={DeathLootTable:"heraldia:unicas/atlantida/jefe"}]'
+    # (su DeathLootTable es la del trofeo, _comun/botin.guardian_tabla, que incluye la de la llave)
+    jefe = '@e[type=minecraft:elder_guardian,nbt={DeathLootTable:"heraldia:guardianes/atlantida/elder_guardian"}]'
     if "passed" not in ctx.run(f"execute if entity {jefe}", r"Test passed|Test failed").group(0):
         fallos.append("no está el guardián final")
     fallos += _info_aqui(ctx, X, Z, r"Guardian: alive|Guardián: vivo")
@@ -88,6 +89,9 @@ def comprobar(ctx):
     llave = '@e[type=minecraft:item,nbt={Item:{id:"minecraft:nautilus_shell",components:{"minecraft:custom_data":{heraldia_llave:"poseidon"}}}}]'
     if "passed" not in ctx.run(f"execute if entity {llave}", r"Test passed|Test failed").group(0):
         fallos.append("el guardián final no suelta la llave de Poseidón")
+    trofeo = '@e[type=minecraft:item,nbt={Item:{components:{"minecraft:custom_data":{heraldia_trofeo:"atlantida"}}}}]'
+    if "failed" not in ctx.run(f"execute if entity {trofeo}", r"Test passed|Test failed").group(0):
+        fallos.append("el guardián final suelta su trofeo con /kill (sin jugador)")
     ctx.run(f"forceload remove {X - MEDIO} {Z - MEDIO} {X + MEDIO - 1} {Z + MEDIO - 1}", r"Unmarked|Removed|No chunks|force")
     return fallos
 

@@ -14,6 +14,10 @@ STRUCTURE = dict(
     spacing=250, separation=190,
 )
 NOMBRE = {"es_es": "Monasterio de montaña", "en_us": "Mountain Monastery"}
+TROFEO = {"objeto": "amethyst_shard", "rareza": "rare",
+          "nombre": ("Lágrima del relicario", "Tear of the Reliquary"),
+          "lore": [("Dicen que lloró cuando cayó el último monje.", "They say it wept when the last monk fell."),
+                   ("La custodiaba Fray Tenebrio.", "Guarded by Friar Tenebrius.")]}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:writable_book"}   # logros.py
 
 _TEXTS = {

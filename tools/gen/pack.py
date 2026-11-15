@@ -1,6 +1,7 @@
 """Construye todas las piezas, pools y JSON del datapack."""
 import json, os, random, shutil
 import unicas
+from unicas._comun import botin
 from core import Template, nsid, NS
 from lint import passable
 from themes import THEMES, FAMILIES
@@ -46,6 +47,7 @@ class Registry:
         self.pools = {}           # id -> dict(elements=[(loc|None, weight, projection, processors)], fallback)
         self.kinds = {}           # nombre plantilla -> tipo (house, special:x, filler, street...)
         self.warnings = []
+        self.guardianes = {}      # id de única -> {tipo de mob: tabla de muerte original} (tag_guardians, trofeos)
 
     def add(self, t, kind):
         fix_supports(t)
@@ -164,14 +166,16 @@ def build_all(seed=2026):
     for sid, mod in unicas.modules():
         mod.build(reg)
         tag_guardians(reg, sid)
+        reg.warnings += botin.trofeo_errores(sid, getattr(mod, "TROFEO", None))
     return reg
 
 
 def tag_guardians(reg, sid):
     """Añade a los guardianes de una única (Tags con piezas.GUARDIAN_TAG) la etiqueta heraldia_guardian.<id>, con la
-    que su logro los reconoce al morir (logros.py). Toda única debe tener al menos uno."""
+    que su logro los reconoce al morir (logros.py), y les pone como DeathLootTable la tabla de su trofeo
+    (botin.guardian_tabla: su botín de siempre + el trofeo si lo mata un jugador). Toda única debe tener al menos uno."""
     from unicas._comun.piezas import GUARDIAN_TAG
-    found = 0
+    found, orig = 0, reg.guardianes.setdefault(sid, {})
     for name, t in reg.templates.items():
         if not name.startswith(f"unicas/{sid}/"):
             continue
@@ -180,6 +184,14 @@ def tag_guardians(reg, sid):
             if GUARDIAN_TAG in tags:
                 if f"{GUARDIAN_TAG}.{sid}" not in tags:
                     n["Tags"] = list(tags) + [f"{GUARDIAN_TAG}.{sid}"]
+                mob = str(n["id"])
+                prev = str(n.get("DeathLootTable") or f"minecraft:entities/{mob.split(':')[-1]}")
+                if prev != botin.guardian_tabla_id(sid, mob):
+                    if orig.setdefault(mob, prev) != prev:
+                        reg.warnings.append(f"unicas/{sid}: guardianes {mob} con tablas de muerte distintas")
+                    n["DeathLootTable"] = botin.guardian_tabla_id(sid, mob)
                 found += 1
     if not found:
         reg.warnings.append(f"unicas/{sid}: ningún guardián con la etiqueta {GUARDIAN_TAG} (usa _comun/piezas.guardian)")
+    elif found > 1:   # cada guardián suelta un trofeo: uno por estructura
+        reg.warnings.append(f"unicas/{sid}: {found} guardianes con la etiqueta {GUARDIAN_TAG}; debe haber uno (su trofeo)")

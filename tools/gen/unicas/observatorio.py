@@ -30,6 +30,9 @@ STRUCTURE = dict(
     spacing=250, separation=190)
 
 NOMBRE = {"es_es": "Observatorio", "en_us": "Observatory"}
+TROFEO = {"objeto": "compass", "rareza": "uncommon",
+          "nombre": ("Astrolabio del Custodio", "The Keeper's Astrolabe"),
+          "lore": [("Las estrellas giran; su aguja, no.", "The stars wheel; its needle does not.")]}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:spyglass"}   # logros.py
 
 # ------------------------------------------------------------------ textos

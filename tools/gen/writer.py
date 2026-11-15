@@ -9,6 +9,7 @@ import mapas
 import opciones
 import biomas
 import logros
+from unicas._comun import botin
 
 STD = dict(size=6, maxdist=92)
 GRANDE = dict(size=7, maxdist=116)
@@ -222,6 +223,7 @@ def write(reg, out):
         for name, table in getattr(mod, "LOOT", {}).items():
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
     jdump(out, f"{NS}/llaves.json", write_keys(out))
+    trophy_lang = write_trophies(out, reg)
     # funciones
     fdir = os.path.join(out, "data", NS, "function")
     os.makedirs(fdir, exist_ok=True)
@@ -302,7 +304,7 @@ def write(reg, out):
         for lang, texts in extra.items():
             LANG[lang].update(texts)
     for lang, texts in LANG.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang], **adv_lang[lang]))
+        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang], **adv_lang[lang], **trophy_lang[lang]))
 
 
 def write_keys(out):
@@ -316,6 +318,21 @@ def write_keys(out):
             jdump(out, f"data/{NS}/loot_table/llaves/{sid}/{key}.json", d["tabla"])
             index[f"{sid}.{key}"] = {"tabla": f"{NS}:llaves/{sid}/{key}", "cerradura": d["cerradura"]}
     return {"llaves": index}
+
+
+def write_trophies(out, reg):
+    """Trofeos de los guardianes (TROFEO de cada módulo, _comun/botin): heraldia:trofeos/<id> (el trofeo solo) y
+    heraldia:guardianes/<id>/<mob> (DeathLootTable que pack.tag_guardians pone a cada guardián). Devuelve los textos."""
+    texts = {"es_es": {}, "en_us": {}}
+    for sid, mod in unicas.modules():
+        d = mod.TROFEO
+        jdump(out, f"data/{NS}/loot_table/trofeos/{sid}.json", botin.trofeo(sid, d))
+        for mob, original in reg.guardianes.get(sid, {}).items():
+            jdump(out, f"data/{NS}/loot_table/{botin.guardian_tabla_id(sid, mob).split(':')[1]}.json",
+                  botin.guardian_tabla(sid, original))
+        for lang, t in botin.trofeo_lang(sid, d).items():
+            texts[lang].update(t)
+    return texts
 
 
 def write_unique(out, sid, st):
