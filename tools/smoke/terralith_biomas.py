@@ -6,7 +6,7 @@ Comprueba: el servidor arranca sin errores de registro y con todas las estructur
 sus etiquetas convencionales (#c:...) entran en las etiquetas de Heraldia (/locate biome + execute if biome) y los que
 no deben, no; y /locate sigue encontrando las únicas cuyo bioma comparte Terralith.
 """
-import argparse, hashlib, os, queue, shutil, subprocess, sys, threading
+import argparse, hashlib, os, queue, shutil, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 
@@ -23,7 +23,7 @@ MODS = [
 EXPECTED = [
     ("terralith:steppe", "llanuras", True), ("terralith:highlands", "unicas/castillo", True),
     ("terralith:lavender_forest", "unicas/catedral", True), ("terralith:birch_taiga", "bosque", True),
-    ("terralith:desert_oasis", "desierto", True), ("terralith:sandstone_valley", "unicas/acueducto", True),
+    ("terralith:desert_oasis", "desierto", True), ("terralith:desert_oasis", "unicas/acueducto", True),
     ("terralith:white_mesa", "badlands", True), ("terralith:tropical_jungle", "jungla", True),
     ("terralith:orchid_swamp", "pantano", True), ("terralith:gravel_beach", "unicas/faro", True),
     ("terralith:steppe", "bosque", False), ("terralith:desert_oasis", "unicas/piramide", False),
@@ -49,7 +49,9 @@ def main():
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-terralith"))
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
-    expected = sum(f.endswith(".json") for _, _, fs in os.walk(os.path.join(s.GENERATED_DATA, "worldgen", "structure")) for f in fs)
+    # en la CI este job solo tiene el .jar: las estructuras se cuentan dentro de él
+    with zipfile.ZipFile(a.jar) as z:
+        expected = sum(n.startswith("data/heraldia/worldgen/structure/") and n.endswith(".json") for n in z.namelist())
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     for mod in MODS:
         shutil.copy(fetch(a.work, *mod), os.path.join(a.work, "mods"))
@@ -70,9 +72,15 @@ def main():
                 fails.append(f"no se encuentra {biome}")
                 continue
             x, y, z = where[biome]
-            m = s.run(proc, lines, seen, f"execute if biome {x} {y} {z} #heraldia:{tag}", r"Test passed|Test failed")
-            if ("passed" in m.group(0)) != inside:
-                fails.append(f"{biome} {'debería' if inside else 'no debería'} estar en #heraldia:{tag}")
+            s.run(proc, lines, seen, f"forceload add {x} {z}", r"Marked|force|already")
+            for _ in range(s.PLACE_ATTEMPTS):     # el chunk tarda en cargarse: «That position is not loaded»
+                m = s.run(proc, lines, seen, f"execute if biome {x} {y} {z} #heraldia:{tag}", r"Test passed|Test failed")
+                if "not loaded" not in m.string:
+                    break
+                time.sleep(s.PLACE_RETRY_S)
+            s.run(proc, lines, seen, f"forceload remove {x} {z}", r"Unmarked|force|not")
+            if "Test " not in m.group(0) or ("passed" in m.group(0)) != inside:
+                fails.append(f"{biome} {'debería' if inside else 'no debería'} estar en #heraldia:{tag}: {m.string.strip()}")
             else:
                 ok += 1
         for sid in LOCATE:
