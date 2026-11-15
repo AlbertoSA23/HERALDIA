@@ -31,6 +31,13 @@ Contenido:
     osario, sala de las ofrendas, el muro de las runas (puzle) y la cámara del jarl Ulfgrim, el Insepulto, con el tesoro;
     puerta secreta a la cámara del escaldo, trampas de cable y de dinamita, 3 generadores y 18 cofres.
     Diseño: [docs/unicas/salon_jarl.md](docs/unicas/salon_jarl.md).
+  - **Santuario druídico** (`heraldia:unicas/santuario`): bosque de abedules y bosque de abedules antiguo. Un claro
+    rodeado de menhires alrededor de un abedul sagrado enorme, cuyo tronco hueco guarda una escalera de caracol hasta una
+    plataforma bajo la copa y hasta las raíces; cabañas redondas de los druidas (tras un tapiz, la alcoba oculta del
+    archidruida), huerto de hierbas con colmenas, estanque de piedra y observatorio de piedras alineadas. Bajo el árbol: la
+    sala de las raíces, la biblioteca con una estantería secreta al archivo, el herbolario, un osario, el nicho de las
+    ofrendas, la cámara del sol (puzle: enciende los solsticios) y la cámara del rito del archidruida Cadoc, el Marchito,
+    con el tesoro; trampas de cable y de placas, 3 generadores y 18 cofres. Diseño: [docs/unicas/santuario.md](docs/unicas/santuario.md).
   - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en [docs/unicas/faro.md](docs/unicas/faro.md).
   - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
@@ -144,6 +151,7 @@ Cada familia de aldeas y cada estructura única busca sus biomas con una etiquet
 | `badlands` | `#minecraft:is_badlands`, `#c:is_badlands` |
 | `costa` | `#minecraft:is_beach`, `#c:is_beach`, `#c:is_stony_shores` |
 | `unicas/catedral` | `#c:is_flower_forest` |
+| `unicas/santuario` | `#c:is_birch_forest` |
 | `unicas/faro` | `#c:is_stony_shores` |
 | `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
 | `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
@@ -184,6 +192,7 @@ Cada guardián con nombre de una estructura única (y el Guardián de Poseidón 
 | Palacio oriental | Espada ceremonial de la Guardia Imperial | `golden_sword` | filo 2, irrompibilidad 3 |
 | Templo-pirámide | Pectoral del Rey Jaguar | `golden_chestplate` | protección 1 |
 | Salón del Jarl | Rompeescudos de Ulfgrim | `iron_axe` | filo 2, irrompibilidad 2 |
+| Santuario druídico | Hoz de oro de Cadoc | `golden_hoe` | eficiencia 2, irrompibilidad 2 |
 | Torre de mago | Báculo del Archimago Malvarius | `blaze_rod` | — |
 
 Todos llevan `custom_data` `{heraldia_trofeo:"<id>"}`. Para probar: `/loot give @s loot heraldia:trofeos/<id>`. El desafío **Sala de trofeos** (ver [Logros](#logros)) pide tenerlos todos.
@@ -207,7 +216,8 @@ Un hilo narrativo opcional une las estructuras únicas (trasfondo completo en [`
 | Observatorio | sala oculta | Palacio oriental |
 | Palacio oriental | biblioteca secreta | Templo-pirámide |
 | Templo-pirámide | tumba | Salón del Jarl |
-| Salón del Jarl | sala de las ofrendas | Torre de mago |
+| Salón del Jarl | sala de las ofrendas | Santuario druídico |
+| Santuario druídico | biblioteca | Torre de mago |
 | Torre de mago | escondite | La Atlántida |
 | La Atlántida | sello de la Academia | Acueducto en ruinas |
 
@@ -215,7 +225,7 @@ Las páginas se leen en el idioma de cada jugador (español si el cliente no tie
 
 ## Logros
 
-Pestaña de logros **Heraldia** (68 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
+Pestaña de logros **Heraldia** (71 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia o estructura única.
 - Una aldea de cada familia (12 logros, 20 de experiencia) y el desafío **Trotamundos de Heraldia**: las 12 familias (250).
@@ -285,9 +295,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 88 estructuras estén registradas y los 68 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 89 estructuras estén registradas y los 71 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
 
-Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide` y `salon_jarl`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último.
+Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl` y `santuario`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último.
 
 Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen/sim.py` (simula el ensamblado jigsaw), `tools/gen/render.py` (renders isométricos), `tools/gen/lint.py` (auditoría de diseño).
 

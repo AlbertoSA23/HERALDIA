@@ -238,3 +238,78 @@ def walk(t):
     """lint.walk sobre una plantilla con sótano en y < 0; devuelve las celdas en las coordenadas originales."""
     import lint
     return {(x, y - DY, z) for (x, y, z) in lint.walk(shifted(t))}
+
+
+# ------------------------------------------------------------------ estado de conservación (Salón del Jarl, Santuario)
+N6 = D6
+
+
+def regla(block, prob, out):
+    """Regla de un procesador `minecraft:rule`: `block` pasa a `out` con probabilidad `prob` (output_state en cadena)."""
+    return {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + block,
+                                "probability": prob},
+            "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + out}
+
+
+def procesador(decay):
+    """Procesador de reglas a partir de [(bloque, probabilidad, salida)] (en orden: la primera que acierta)."""
+    return {"processor_type": "minecraft:rule", "rules": [regla(b, p, o) for b, p, o in decay]}
+
+
+def esperanza(st, decay):
+    """Probabilidad de que el procesador `decay` cambie el bloque `st`."""
+    b, left, out = bname(st), 1.0, 0.0
+    for blk, p, _ in decay:
+        if blk == b:
+            out += left * p
+            left *= 1 - p
+    return out
+
+
+def abrir(t, sim):
+    """Bloques (pos -> estado) tras recoger los pistones sin señal (redstone.retract), con aire explícito donde estaba
+    la puerta (si no, lint.walk toma la celda vacía del subsuelo por suelo natural)."""
+    from . import redstone as rs
+    b = rs.retract(t, sim)
+    for p in t.blocks:
+        b.setdefault(p, "minecraft:air")
+    return b
+
+
+def superficie_danada(blocks, ruined, decay, limites, suelo=()):
+    """(superficie, fracción dañada) de los bloques `blocks` {pos: estado} (y >= 0) con una cara al aire exterior, que
+    llega desde el cielo dentro de `limites` (x0, x1, z0, z1): la ruina hecha a mano (`ruined`, también lo que ya es
+    aire) más lo que se espera del procesador `decay`. Los bloques de la capa y = 0 cuyo nombre está en `suelo` no
+    cuentan (el suelo pisado)."""
+    from .redstone import conductor
+    x0, x1, z0, z1 = limites
+    y1 = max(p[1] for p in blocks) + 1
+
+    def libre(p):
+        st = blocks.get(p)
+        return st is None or passable(st) or not conductor(st)
+    out, q = set(), deque()
+    for x in range(x0, x1 + 1):
+        for z in range(z0, z1 + 1):
+            out.add((x, y1, z))
+            q.append((x, y1, z))
+    while q:
+        p = q.popleft()
+        for d in N6:
+            n = (p[0] + d[0], p[1] + d[1], p[2] + d[2])
+            if n in out or not (x0 <= n[0] <= x1 and 0 <= n[1] <= y1 and z0 <= n[2] <= z1):
+                continue
+            if libre(n):
+                out.add(n)
+                q.append(n)
+    expuesto = lambda p: any((p[0] + d[0], p[1] + d[1], p[2] + d[2]) in out for d in N6)
+    surf, bad = 0, 0.0
+    for p, st in blocks.items():
+        if bname(st) == "air" or not expuesto(p):
+            continue
+        if p[1] == 0 and bname(st) in suelo:
+            continue
+        surf += 1
+        bad += 1.0 if p in ruined else esperanza(st, decay)
+    near = sum(1 for p in ruined if p[1] >= 0 and blocks.get(p) and bname(blocks[p]) == "air" and expuesto(p))
+    return surf, (bad + near) / max(surf, 1)

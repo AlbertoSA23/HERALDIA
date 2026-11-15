@@ -86,6 +86,7 @@ jobs:
           - tools/gen/unicas/monasterio/prueba_servidor.py
           - tools/gen/unicas/piramide/prueba_servidor.py
           - tools/gen/unicas/salon_jarl/prueba_servidor.py
+          - tools/gen/unicas/santuario/prueba_servidor.py
           - tools/gen/unicas/torre_mago/prueba_redstone.py
     steps:
       - uses: actions/checkout@v4

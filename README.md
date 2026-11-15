@@ -31,6 +31,13 @@ Contents:
     niches, an ossuary, the offerings hall, the wall of runes (puzzle) and the chamber of Jarl Ulfgrim the Unburied, with
     the treasure; a secret door to the skald's chamber, tripwire and TNT traps, 3 spawners and 18 chests.
     Design: [docs/unicas/salon_jarl.md](docs/unicas/salon_jarl.md).
+  - **Druid Sanctuary** (`heraldia:unicas/santuario`): birch forest and old growth birch forest. A glade ringed by
+    standing stones around a huge sacred birch, whose hollow trunk holds a spiral stair up to a platform under the crown
+    and down to the roots; round druid huts (behind a tapestry, the archdruid's hidden alcove), a herb garden with
+    beehives, a stone pond and an observatory of aligned stones. Under the tree: the root hall, the library with a secret
+    bookshelf to the archive, the herbalist's room, an ossuary, the offerings niche, the chamber of the sun (puzzle: light
+    the solstices) and the rite chamber of Archdruid Cadoc the Withered, with the treasure; tripwire and pressure-plate
+    traps, 3 spawners and 18 chests. Design: [docs/unicas/santuario.md](docs/unicas/santuario.md).
   - **Lighthouse with smugglers' cave** (`heraldia:unicas/faro`, stony shore and beaches): a lighthouse and keeper's house on a headland; a secret passage to a sea-level cave with a dock, storerooms, a dungeon, the captain's office and a treasure chamber. It is always placed on the coastline, with the cave mouth facing the sea. Design: [docs/unicas/faro.md](docs/unicas/faro.md).
   - **Wizard's tower** (`heraldia:unicas/torre_mago`): dark forest and pale garden. An eight-storey tower with a
     double-height library, a laboratory, a greenhouse and an observatory, a study hidden behind a chiseled bookshelf,
@@ -144,6 +151,7 @@ Each village family and each unique structure finds its biomes through its own t
 | `badlands` | `#minecraft:is_badlands`, `#c:is_badlands` |
 | `costa` | `#minecraft:is_beach`, `#c:is_beach`, `#c:is_stony_shores` |
 | `unicas/catedral` | `#c:is_flower_forest` |
+| `unicas/santuario` | `#c:is_birch_forest` |
 | `unicas/faro` | `#c:is_stony_shores` |
 | `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
 | `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
@@ -184,6 +192,7 @@ Every named guardian of a unique structure (and Atlantis' Warden of Poseidon) dr
 | Eastern Palace | Ceremonial Sword of the Imperial Guard | `golden_sword` | sharpness 2, unbreaking 3 |
 | Pyramid Temple | Breastplate of the Jaguar King | `golden_chestplate` | protection 1 |
 | Jarl's Hall | Ulfgrim's Shieldbreaker | `iron_axe` | sharpness 2, unbreaking 2 |
+| Druid Sanctuary | Cadoc's Golden Sickle | `golden_hoe` | efficiency 2, unbreaking 2 |
 | Wizard Tower | Staff of Archmage Malvarius | `blaze_rod` | — |
 
 All of them carry `custom_data` `{heraldia_trofeo:"<id>"}`. To test: `/loot give @s loot heraldia:trofeos/<id>`. The **Hall of Trophies** challenge (see [Advancements](#advancements)) asks for all of them.
@@ -207,7 +216,8 @@ An optional story thread links the unique structures (full background in [`docs/
 | Observatory | hidden room | Eastern Palace |
 | Eastern Palace | secret library | Pyramid Temple |
 | Pyramid Temple | tomb | Jarl's Hall |
-| Jarl's Hall | offerings hall | Wizard Tower |
+| Jarl's Hall | offerings hall | Druid Sanctuary |
+| Druid Sanctuary | library | Wizard Tower |
 | Wizard Tower | hideout | Atlantis |
 | Atlantis | Academy seal | Ruined Aqueduct |
 
@@ -215,7 +225,7 @@ Pages are shown in each player's language (Spanish if the client does not have t
 
 ## Advancements
 
-A **Heraldia** advancement tab (68 advancements), with texts in Spanish and English. They only give experience, never items:
+A **Heraldia** advancement tab (71 advancements), with texts in Spanish and English. They only give experience, never items:
 
 - **Heraldia** (root): enter any Heraldia village or unique structure.
 - A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
@@ -285,9 +295,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 88 structures and all 68 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 89 structures and all 71 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
-Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide` and `salon_jarl`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one.
+Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl` and `santuario`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one.
 
 Versions are pinned in `gradle.properties`. Generator tools: `tools/gen/sim.py` (simulates jigsaw assembly), `tools/gen/render.py` (isometric renders), `tools/gen/lint.py` (design audit).
 
