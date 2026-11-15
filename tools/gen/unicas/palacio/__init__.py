@@ -19,6 +19,24 @@ TROFEO = {"objeto": "golden_sword", "rareza": "rare",
           "nombre": ("Espada ceremonial de la Guardia Imperial", "Ceremonial Sword of the Imperial Guard"),
           "lore": [("Su filo solo se desenvainaba ante el emperador.", "Its blade was drawn only before the emperor.")],
           "encantamientos": {"minecraft:sharpness": 2, "minecraft:unbreaking": 3}}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "biblioteca_secreta",
+    "relato": [
+        ("Entre cerezos en flor se alza un palacio de tejados curvos. El emperador, al que llaman Hijo "
+         "del Cielo, me recibió en su salón y quiso saber cómo eran los reinos del otro lado del mar.",
+         "Among blossoming cherry trees rises a palace of curved roofs. The emperor, whom they call the "
+         "Son of Heaven, received me in his hall and wished to know what the realms across the sea were "
+         "like."),
+        ("Le regalé un mapa a cambio de guardar el pliego, que escondieron en la biblioteca secreta. El "
+         "comandante de la guardia imperial juró desenvainar su espada solo ante el emperador y ante "
+         "quien viniera a buscarlo.",
+         "I gave him a map in exchange for keeping the leaf, which they hid in the secret library. The "
+         "commander of the imperial guard swore to draw his sword only before the emperor and before "
+         "whoever came seeking it."),
+    ],
+    "pista": ("los cerezales en flor, donde se alza un palacio de tejados curvos",
+              "the blossoming cherry groves, where a palace of curved roofs stands"),
+}
 LOGRO = {"icono": "minecraft:bamboo"}   # logros.py
 
 

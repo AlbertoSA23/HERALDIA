@@ -14,6 +14,23 @@ TROFEO = {"objeto": "iron_helmet", "rareza": "rare",
           "lore": [("Abollado por mil asedios, nunca rendido.", "Dented by a thousand sieges, never surrendered.")],
           "encantamientos": {"minecraft:protection": 1},
           "componentes": {"minecraft:trim": {"material": "minecraft:gold", "pattern": "minecraft:sentry"}}}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "capilla",
+    "relato": [
+        ("En las llanuras me abrió la puerta Sir Aldric, castellano de una fortaleza que había resistido "
+         "mil asedios. Ninguno lo había rendido. Me pareció el guardián perfecto: nadie le quitaría lo "
+         "que él no quisiera dar.",
+         "On the plains Sir Aldric opened his gate to me, castellan of a fortress that had withstood a "
+         "thousand sieges. None had made him yield. He seemed the perfect guardian: no one would take "
+         "from him what he would not give."),
+        ("Juró sobre su espada guardar el pliego mientras quedara en pie una almena, y lo dejamos en la "
+         "capilla. Hoy dicen que el castellano está maldito. Tal vez su juramento sea la maldición.",
+         "He swore on his sword to keep the leaf while a single battlement stood, and we left it in the "
+         "chapel. Now they say the castellan is cursed. Perhaps his oath is the curse."),
+    ],
+    "pista": ("las llanuras abiertas, donde un castillo de altas murallas no se ha rendido nunca",
+              "the open plains, where a high-walled castle has never surrendered"),
+}
 LOGRO = {"icono": "minecraft:stone_bricks"}   # logros.py
 TEXTOS = {"heraldia.castillo.guardian": ("Sir Aldric, el Castellano Maldito", "Sir Aldric, the Cursed Castellan")}
 TEXTOS.update(NAMES)

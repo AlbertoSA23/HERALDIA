@@ -178,9 +178,33 @@ Every named guardian of a unique structure (and Atlantis' Warden of Poseidon) dr
 
 All of them carry `custom_data` `{heraldia_trofeo:"<id>"}`. To test: `/loot give @s loot heraldia:trofeos/<id>`. The **Hall of Trophies** challenge (see [Advancements](#advancements)) asks for all of them.
 
+## Chronicle of the Heralds
+
+An optional story thread links the unique structures (full background in [`docs/historia.md`](docs/historia.md)): Ysolda, the last herald of Atlantis, wrote the way back to the sunken city on leaves and entrusted each to the guardian of a structure, who swore to keep it. Every unique structure holds its **leaf**, a written book (“Chronicle of the Heralds: <structure>”) in a chest it already had, which tells its part of the story and ends by pointing to the next structure with a biome-and-feature clue; sometimes (10 %) it comes with that structure's treasure map. The chain goes through all of them, the Wizard Tower's leaf points to Atlantis, and Atlantis' leaf points back to the first.
+
+| Structure | Leaf chest | Points to |
+|---|---|---|
+| Ruined Aqueduct | cistern | Castle |
+| Castle | chapel | Gothic cathedral |
+| Gothic cathedral | library | Dwarven Citadel |
+| Dwarven Citadel | royal chamber | Ruined Colosseum |
+| Ruined Colosseum | lanista's office | Smugglers' Lighthouse |
+| Smugglers' Lighthouse | captain's office | Ice Fortress |
+| Ice Fortress | gallery | Stranded Galleon |
+| Stranded Galleon | captain's cabin | Haunted Mansion |
+| Haunted Mansion | library | Mountain Monastery |
+| Mountain Monastery | library | Observatory |
+| Observatory | hidden room | Eastern Palace |
+| Eastern Palace | secret library | Pyramid Temple |
+| Pyramid Temple | tomb | Wizard Tower |
+| Wizard Tower | hideout | Atlantis |
+| Atlantis | Academy seal | Ruined Aqueduct |
+
+Pages are shown in each player's language (Spanish if the client does not have the mod). With Lootr every player finds their own leaf. All of them carry `custom_data` `{heraldia_historia:"<id>"}`; to test: `/loot give @s loot heraldia:historia/<id>`. The **Chronicler** challenge (see [Advancements](#advancements)) asks for all of them. **In an existing world they only appear in chests that have not been opened yet.**
+
 ## Advancements
 
-A **Heraldia** advancement tab (64 advancements), with texts in Spanish and English. They only give experience, never items:
+A **Heraldia** advancement tab (65 advancements), with texts in Spanish and English. They only give experience, never items:
 
 - **Heraldia** (root): enter any Heraldia village or unique structure.
 - A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
@@ -188,6 +212,7 @@ A **Heraldia** advancement tab (64 advancements), with texts in Spanish and Engl
 - Atlantis also has its three seals (open the seal chest or hold its key, 30 each); its guardian is the Warden of Poseidon and the treasure counts when you take one of the named items from the unique chest.
 - Final challenge **Cartographer of Legends**: discover every unique structure (500).
 - **Hall of Trophies** challenge: collect the [trophy](#guardian-trophies) of every unique structure's guardian (500); it counts when you hold it in your inventory.
+- **Chronicler** challenge: gather the leaves of the [Chronicle of the Heralds](#chronicle-of-the-heralds), one per unique structure (500); it counts when you hold it in your inventory.
 
 Notes: a structure counts when you step inside its pieces; seeing it is not enough. If a family or a structure is disabled in the [configuration](#configuration), its advancement and the related challenge cannot be earned. With Lootr, the treasure advancement depends on Lootr notifying the game when the chest is opened (not checked). The unique-structure advancements are generated from the unique-structure registry, so a new structure brings its own.
 
@@ -239,9 +264,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 87 structures and all 64 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 87 structures and all 65 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
-Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio` and `piramide`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one.
+Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio` and `piramide`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one.
 
 Versions are pinned in `gradle.properties`. Generator tools: `tools/gen/sim.py` (simulates jigsaw assembly), `tools/gen/render.py` (isometric renders), `tools/gen/lint.py` (design audit).
 

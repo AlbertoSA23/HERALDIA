@@ -221,7 +221,10 @@ def write(reg, out):
     mapas.write(out, uniques, jdump)
     for sid, mod in unicas.modules():
         for name, table in getattr(mod, "LOOT", {}).items():
+            if name == mod.HISTORIA["cofre"]:
+                table = botin.con_historia(table, sid)   # su pliego de la Crónica de los Heraldos
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
+    history_lang = write_history(out, uniques)
     jdump(out, f"{NS}/llaves.json", write_keys(out))
     trophy_lang = write_trophies(out, reg)
     # funciones
@@ -304,7 +307,7 @@ def write(reg, out):
         for lang, texts in extra.items():
             LANG[lang].update(texts)
     for lang, texts in LANG.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang], **adv_lang[lang], **trophy_lang[lang]))
+        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang], **adv_lang[lang], **trophy_lang[lang], **history_lang[lang]))
 
 
 def write_keys(out):
@@ -333,6 +336,27 @@ def write_trophies(out, reg):
         for lang, t in botin.trofeo_lang(sid, d).items():
             texts[lang].update(t)
     return texts
+
+
+def history_tables(modules):
+    """{id: tabla heraldia:historia/<id>} de la Crónica de los Heraldos (HISTORIA de cada módulo, _comun/botin): el
+    pliego de cada única señala la siguiente de la cadena (botin.historia_cadena) y a veces trae su mapa del tesoro."""
+    mods = dict(modules)
+    chain = botin.historia_cadena(modules)
+    out = {}
+    for i, sid in enumerate(chain):
+        nxt = chain[(i + 1) % len(chain)]
+        name = {"translate": logros.name_key(sid), "fallback": logros.unique_name(sid, mods[sid])[0]}
+        book = botin.historia_libro(sid, mods[sid].HISTORIA, i + 1, len(chain), nxt, mods[nxt].HISTORIA, name)
+        out[sid] = botin.historia_tabla(book, mapas.map_entry(nxt, mods[nxt], 1))
+    return out
+
+
+def write_history(out, modules):
+    """Escribe heraldia:historia/<id> y devuelve los textos de la crónica."""
+    for sid, table in history_tables(modules).items():
+        jdump(out, f"data/{NS}/loot_table/{botin.historia_tabla_id(sid).split(':')[1]}.json", table)
+    return botin.historia_lang(modules)
 
 
 def write_unique(out, sid, st):

@@ -14,6 +14,24 @@ TROFEO = {"objeto": "iron_sword", "rareza": "uncommon",
           "nombre": ("Alfanje del Capitán Bruma", "Captain Mist's Cutlass"),
           "lore": [("Con él se apagaban los faros ajenos.", "With it, rival lighthouses went dark.")],
           "encantamientos": {"minecraft:sharpness": 1, "minecraft:unbreaking": 1}}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "despacho",
+    "relato": [
+        ("En la costa rocosa hay un faro que no siempre guía a los barcos. Su dueño, el capitán Bruma, "
+         "enciende la luz que le conviene y apaga la de los demás. Una heraldo no elige a sus "
+         "anfitriones.",
+         "On the rocky shore stands a lighthouse that does not always guide ships. Its master, Captain "
+         "Mist, lights the lamp that suits him and puts out everyone else's. A herald does not choose her"
+         " hosts."),
+        ("Bruma guardó el pliego en su despacho, entre cartas de navegación robadas. No juró por honor "
+         "sino por oro: le pagué para que no lo vendiera nunca. Los contrabandistas cumplen lo que se les"
+         " paga.",
+         "Mist kept the leaf in his office, among stolen sea charts. He swore not by honour but by gold: "
+         "I paid him never to sell it. Smugglers keep what they are paid to keep."),
+    ],
+    "pista": ("la costa rocosa, donde los contrabandistas de un faro encienden la luz que les conviene",
+              "the rocky shore, where the smugglers of a lighthouse light whatever lamp suits them"),
+}
 LOGRO = {"icono": "minecraft:lantern"}   # logros.py
 LANG = {
     "es_es": {

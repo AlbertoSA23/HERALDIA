@@ -13,6 +13,8 @@
   unicas/todas                 (desafío) descubrir todas las únicas
   unicas/trofeos               (desafío) conseguir el trofeo de cada guardián (TROFEO de cada módulo, custom_data
                                heraldia_trofeo; un criterio inventory_changed por trofeo, todos requeridos)
+  unicas/cronista              (desafío) reunir los pliegos de la Crónica de los Heraldos (HISTORIA de cada módulo,
+                               custom_data heraldia_historia; un criterio inventory_changed por pliego, todos requeridos)
 Contrato opcional en cada módulo de unicas/ (ver unicas/__init__.py): LOGRO = {"icono", "tesoro", "tesoro_objeto", "extra"}.
 Recompensas: solo experiencia (Decisiones de Alberto: nada que rompa la progresión).
 """
@@ -26,8 +28,8 @@ ROOT_ICON, VILLAGES_ICON, UNIQUES_ICON = "minecraft:filled_map", "minecraft:bell
 DEFAULT_ICON, GUARDIAN_ICON, TREASURE_ICON = "minecraft:filled_map", "minecraft:iron_sword", "minecraft:chest"
 # Experiencia (moderada): una aldea vale lo que un logro vanilla sencillo, los desafíos lo que uno vanilla grande.
 XP = {"familia": 20, "aldeas": 250, "descubrir": 50, "guardian": 100, "tesoro": 50, "extra": 30, "unicas": 500,
-      "trofeos": 500}
-TROPHIES_ICON = "minecraft:armor_stand"
+      "trofeos": 500, "cronista": 500}
+TROPHIES_ICON, CHRONICLE_ICON = "minecraft:armor_stand", "minecraft:written_book"
 DEFAULT_TREASURE_TABLES = ("premium",)
 TREASURE_MARK = "heraldia_tesoro"   # custom_data de los objetos de un cofre de contenido fijo (tesoro_objeto)
 
@@ -46,6 +48,9 @@ TEXTS = {
     "trofeos": (("Sala de trofeos", "Hall of Trophies"),
                 ("Consigue el trofeo de cada guardián de las estructuras únicas",
                  "Collect the trophy of every unique structure's guardian")),
+    "cronista": (("Cronista", "Chronicler"),
+                 ("Reúne todos los pliegos de la Crónica de los Heraldos",
+                  "Gather every leaf of the Chronicle of the Heralds")),
 }
 
 
@@ -178,6 +183,12 @@ def build(reg, modules):
     title, desc = text("unicas/trofeos", "trofeos")
     advs["unicas/trofeos"] = advancement("raiz", TROPHIES_ICON, title, desc, crit,
                                          requirements=[[sid] for sid in sorted(crit)], frame="challenge", xp=XP["trofeos"])
+    # crónica: un pliego por única (HISTORIA es obligatorio, pack.build_all lo comprueba), todos requeridos
+    crit = {sid: {"trigger": "minecraft:inventory_changed", "conditions": {"items": [botin.historia_predicado(sid)]}}
+            for sid, mod in modules}
+    title, desc = text("unicas/cronista", "cronista")
+    advs["unicas/cronista"] = advancement("raiz", CHRONICLE_ICON, title, desc, crit,
+                                          requirements=[[sid] for sid in sorted(crit)], frame="challenge", xp=XP["cronista"])
     return advs, lang
 
 

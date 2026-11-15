@@ -16,6 +16,24 @@ NOMBRE = {"es_es": "Mansión encantada", "en_us": "Haunted Mansion"}
 TROFEO = {"objeto": "clock", "rareza": "rare",
           "nombre": ("Reloj del Conde Malaquías", "Count Malachi's Pocket Watch"),
           "lore": [("Se detuvo a medianoche y nunca volvió a andar.", "It stopped at midnight and never ran again.")]}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "biblioteca",
+    "relato": [
+        ("En el pantano me acogió el conde Malaquías, en una mansión llena de relojes. La condesa "
+         "escribía su diario cada noche. Eran amables, aunque nunca vi a nadie comer ni dormir en aquella"
+         " casa.",
+         "In the swamp Count Malachi took me in, in a mansion full of clocks. The countess wrote in her "
+         "diary every night. They were kind, though I never saw anyone eat or sleep in that house."),
+        ("El conde guardó el pliego en la biblioteca y juró velarlo hasta la medianoche del fin del "
+         "mundo. Esa misma noche se pararon todos los relojes de la casa. No he vuelto a saber de la "
+         "condesa.",
+         "The count kept the leaf in the library and swore to watch over it until the midnight at the end"
+         " of the world. That very night every clock in the house stopped. I have heard nothing of the "
+         "countess since."),
+    ],
+    "pista": ("el pantano, donde los relojes de una mansión se pararon a medianoche",
+              "the swamp, where the clocks of a mansion stopped at midnight"),
+}
 LOGRO = {"icono": "minecraft:jack_o_lantern"}   # logros.py
 MAPA = {"decoration": "minecraft:mansion"}
 

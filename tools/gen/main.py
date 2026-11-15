@@ -7,7 +7,7 @@ import argparse, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from pack import build_all
 from validate import load_registries, validate_registry, validate_loot, validate_structures, validate_advancements
-from writer import write
+from writer import write, history_tables
 import loot
 import unicas
 from unicas._comun import botin
@@ -29,7 +29,8 @@ def main():
     errs = validate_registry(reg)
     lerrs = validate_loot([loot.TABLES] + [getattr(m, "LOOT", {}) for _, m in unicas.modules()]
                          + [{k: d["tabla"] for k, d in getattr(m, "LLAVES", {}).items()} for _, m in unicas.modules()]
-                         + [{s: botin.trofeo(s, m.TROFEO) for s, m in unicas.modules() if getattr(m, "TROFEO", None)}])
+                         + [{s: botin.trofeo(s, m.TROFEO) for s, m in unicas.modules() if getattr(m, "TROFEO", None)}]
+                         + [history_tables(unicas.modules()) if not reg.warnings else {}])
     if errs or lerrs or reg.warnings:
         print("ERRORES:", errs, lerrs, reg.warnings[:20])
         return 1
