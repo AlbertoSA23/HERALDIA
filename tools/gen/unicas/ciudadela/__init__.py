@@ -9,6 +9,7 @@ from .botin import TABLES as LOOT
 from . import plano, auditoria
 
 NOMBRE = {"es_es": "Ciudadela enana", "en_us": "Dwarven Citadel"}
+LOGRO = {"icono": "minecraft:iron_pickaxe"}   # logros.py
 ROOF_CELL = 8
 PORCH_DEPTH = 8          # filas del pórtico (z < 8): al aire libre, no cuentan para la cubierta de roca
 

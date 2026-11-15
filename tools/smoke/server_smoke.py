@@ -27,6 +27,7 @@ UNIQUE_STRUCTURES = sorted(
     if f.endswith(".json"))
 # Un mapa del tesoro busca su estructura al generarse el botín, en el hilo del servidor: debe responder pronto.
 MAP_TIMEOUT_S, EPIC_ROLLS = 30, 20
+GUARDIAN_ATTEMPTS = 15   # con PLACE_RETRY_S entre intentos
 # Configuración de prueba: sin versión (migración), separación fuera de rango, máximo de 12 casillas, familia pantano
 # desactivada (sin ella, la aldea más cercana a la semilla de prueba es heraldia:pantano_brujas) y opción desconocida.
 # Las parejas de estructuras únicas que comparten bioma van en la rejilla mínima (1.000 bloques) para que compitan de
@@ -197,6 +198,18 @@ def check_separation(ctx):
     return failures
 
 
+def guardian_placed(ctx, sid):
+    """El guardián de la única conserva en el mundo la etiqueta heraldia_guardian.<id> con la que lo reconoce su logro
+    (logros.py). Las entidades de una plantilla tardan unos segundos más que los bloques: se reintenta."""
+    tag = "heraldia_guardian." + sid.split("/")[-1]
+    for _ in range(GUARDIAN_ATTEMPTS):
+        m = ctx.run(f"execute if entity @e[tag={tag}]", r"Test passed|Test failed")
+        if "passed" in m.group(0):
+            return True
+        time.sleep(PLACE_RETRY_S)
+    return False
+
+
 def snbt(v):
     if isinstance(v, dict):
         return "{" + ",".join(f"{k}:{snbt(x)}" for k, x in v.items()) + "}"
@@ -241,6 +254,7 @@ def main():
     args = ap.parse_args()
     os.makedirs(args.work, exist_ok=True)
     expected = sum(f.endswith(".json") for _, _, fs in os.walk(os.path.join(GENERATED_DATA, "worldgen", "structure")) for f in fs)
+    expected_advancements = sum(f.endswith(".json") for _, _, fs in os.walk(os.path.join(GENERATED_DATA, "advancement")) for f in fs)
     launcher = prepare(args.work, os.path.abspath(args.jar), gradle_properties())
 
     proc = subprocess.Popen(["java", "-Xmx2G", "-jar", launcher, "nogui"], cwd=args.work, text=True,
@@ -253,6 +267,10 @@ def main():
         m = wait_for(lines, r"Heraldia: (\d+) estructuras registradas", START_TIMEOUT_S, seen)
         if int(m.group(1)) != expected:
             failures.append(f"estructuras registradas {m.group(1)}, esperadas {expected}")
+        # Logros (logros.py): en 26.3 son un registro; se cargan todos los generados y sin avisos de validación.
+        m = wait_for(lines, r"Heraldia: (\d+) logros cargados", COMMAND_TIMEOUT_S, seen)
+        if int(m.group(1)) != expected_advancements:
+            failures.append(f"logros cargados {m.group(1)}, esperados {expected_advancements}")
         with open(os.path.join(args.work, "config", "heraldia.json"), encoding="utf-8") as f:
             written = json.load(f)
         if (written.get("version"), written["aldeas"]["separacion_bloques"], written["aldeas"]["maximo"]) != (1, 1500, 12):
@@ -300,6 +318,8 @@ def main():
             m = run(proc, lines, seen, f"place structure {sid} 0 ~ 0", r"Generated structure")
             if not m.group(0).startswith("Generated"):
                 failures.append(f"place structure {sid} falló: {m.string.strip()}")
+            elif not guardian_placed(Context(proc, lines, seen), sid):
+                failures.append(f"{sid}: no aparece su guardián con la etiqueta del logro")
         # Las tablas de botín se leen (y la condición heraldia:sin_lootr está registrada si alguna la usa).
         for table in LOOT_TABLES:
             t0 = time.monotonic()
@@ -348,14 +368,15 @@ def main():
                 proc.kill()
     log = os.path.join(args.work, "logs", "latest.log")
     text = open(log, encoding="utf-8", errors="replace").read() if os.path.isfile(log) else "".join(seen)
-    for bad in ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse"):
+    for bad in ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse",
+                "Found validation problems in advancement heraldia:"):
         if bad in text:
             failures.append(f"el log contiene {bad!r}")
     if failures:
         print("PRUEBA DE HUMO FALLIDA:\n  " + "\n  ".join(failures))
         return 1
     sys.stdout.flush()
-    print(f"PRUEBA DE HUMO OK: {expected} estructuras registradas, {PLACE_TARGET} colocada con {villagers} aldeanos, botín, {len(maps_found)} mapas con destino, funciones y configuración correctos ({located})")
+    print(f"PRUEBA DE HUMO OK: {expected} estructuras registradas, {expected_advancements} logros, {PLACE_TARGET} colocada con {villagers} aldeanos, botín, {len(maps_found)} mapas con destino, funciones y configuración correctos ({located})")
     return 0
 
 

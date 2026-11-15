@@ -10,6 +10,7 @@ import unicas
 
 SID = "faro"
 NOMBRE = {"es_es": "Faro de los contrabandistas", "en_us": "Smugglers' Lighthouse"}
+LOGRO = {"icono": "minecraft:lantern"}   # logros.py
 LANG = {
     "es_es": {
         "heraldia.unicas.faro.guardian": "Capitán Bruma",

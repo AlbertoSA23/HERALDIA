@@ -49,4 +49,5 @@ def build(reg):
     reg.pool("unicas/fortaleza_hielo/inicio", [(name, 1, "rigid", PROCESSORS)])
 
 NOMBRE = {"es_es": "Fortaleza de hielo", "en_us": "Ice Fortress"}
+LOGRO = {"icono": "minecraft:blue_ice"}   # logros.py
 MAPA = {"decoration": "minecraft:red_x"}

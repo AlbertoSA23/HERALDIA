@@ -46,12 +46,16 @@ def main():
             m = s.run(proc, lines, seen, f"execute if block {ax + ex * dist} {y} {az + ez * dist} {block}", r"Test passed|Test failed")
             if "passed" not in m.group(0):
                 fails.append(f"orientación: no hay {block} a {dist} del ancla")
-        m = s.run(proc, lines, seen, "execute if entity @e[type=minecraft:drowned,nbt={CustomNameVisible:1b,PersistenceRequired:1b}]",
-                  r"Test passed\. Count: (\d+)|Test failed")
-        if not m.group(1):
+        # Las entidades de la plantilla aparecen unos segundos después de los bloques: se reintenta (como en la
+        # prueba de humo). El capitán se reconoce por la etiqueta de guardián que usa su logro.
+        if not s.guardian_placed(s.Context(proc, lines, seen), "heraldia:unicas/galeon"):
             fails.append("no está el capitán ahogado")
-        m = s.run(proc, lines, seen, "execute if entity @e[type=minecraft:oak_boat]", r"Test passed\. Count: (\d+)|Test failed")
-        if not m.group(1):
+        for _ in range(s.GUARDIAN_ATTEMPTS):
+            m = s.run(proc, lines, seen, "execute if entity @e[type=minecraft:oak_boat]", r"Test passed\. Count: (\d+)|Test failed")
+            if m.group(1):
+                break
+            import time; time.sleep(s.PLACE_RETRY_S)
+        else:
             fails.append("no está el bote")
     finally:
         if proc.poll() is None:

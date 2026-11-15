@@ -152,16 +152,14 @@ def cueva(o):
 
 
 def capitan(langs):
-    from core import B, F
-    name = {"translate": "heraldia.galeon.capitan", "fallback": langs["heraldia.galeon.capitan"]}
-    return {"id": "minecraft:drowned", "CustomName": name, "CustomNameVisible": B(1), "PersistenceRequired": B(1),
-            "CanPickUpLoot": B(0), "Health": F(50.0),
-            "attributes": [{"id": "minecraft:max_health", "base": 50.0}, {"id": "minecraft:armor", "base": 4.0},
-                           {"id": "minecraft:attack_damage", "base": 4.0}],
-            "equipment": {"mainhand": {"id": "minecraft:iron_sword", "count": 1},
-                          "offhand": {"id": "minecraft:nautilus_shell", "count": 1},
-                          "head": {"id": "minecraft:golden_helmet", "count": 1}},
-            "drop_chances": {"mainhand": F(0.25), "offhand": F(1.0), "head": F(0.1)}}
+    from core import B
+    from .._comun import piezas
+    return piezas.guardian("drowned", "heraldia.galeon.capitan", langs["heraldia.galeon.capitan"], 50, armor=4,
+                           equipment={"mainhand": {"id": "minecraft:iron_sword", "count": 1},
+                                      "offhand": {"id": "minecraft:nautilus_shell", "count": 1},
+                                      "head": {"id": "minecraft:golden_helmet", "count": 1}},
+                           drop_chances={"mainhand": 0.25, "offhand": 1.0, "head": 0.1},
+                           attributes={"attack_damage": 4}, extra={"CanPickUpLoot": B(0)})
 
 
 def campamento(o):

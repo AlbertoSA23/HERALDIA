@@ -13,6 +13,7 @@ from .textos import LANG
 
 NAME = "unicas/galeon/galeon"
 NOMBRE = {"es_es": "Galeón varado", "en_us": "Stranded Galleon"}
+LOGRO = {"icono": "minecraft:oak_boat"}   # logros.py
 STRUCTURE = dict(spacing=250, separation=190)
 PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:dark_oak_planks", "probability": 0.10},

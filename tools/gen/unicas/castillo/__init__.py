@@ -9,6 +9,7 @@ STRUCTURE = dict(
     step="surface_structures", start_height={"absolute": -(superficie.G + 1)}, project_to="WORLD_SURFACE_WG",
     spacing=250, separation=190)
 NOMBRE = {"es_es": "Castillo", "en_us": "Castle"}
+LOGRO = {"icono": "minecraft:stone_bricks"}   # logros.py
 TEXTOS = {"heraldia.castillo.guardian": ("Sir Aldric, el Castellano Maldito", "Sir Aldric, the Cursed Castellan")}
 TEXTOS.update(NAMES)
 LANG = {"es_es": {k: v[0] for k, v in TEXTOS.items()}, "en_us": {k: v[1] for k, v in TEXTOS.items()}}

@@ -552,7 +552,8 @@ def guardian():
     n["attributes"] += [{"id": "minecraft:attack_damage", "base": 5.0},
                         {"id": "minecraft:knockback_resistance", "base": 0.4},
                         {"id": "minecraft:spawn_reinforcements", "base": 0.0}]
-    n.update({"CanPickUpLoot": B(0), "IsBaby": B(0), "CanBreakDoors": B(0), "Tags": ["heraldia_piramide_guardian"]})
+    n.update({"CanPickUpLoot": B(0), "IsBaby": B(0), "CanBreakDoors": B(0)})
+    n["Tags"].append("heraldia_piramide_guardian")
     return n
 
 

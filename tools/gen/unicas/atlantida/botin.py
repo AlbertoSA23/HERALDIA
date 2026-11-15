@@ -43,8 +43,16 @@ def _nombre(clave, es, en):
     return C.nombre_objeto("premium." + clave, es, en, "gold")
 
 
+TESORO = {"heraldia_tesoro": "atlantida"}   # custom_data de los objetos con nombre: logro unicas/atlantida/tesoro
+
+
 def premium():
-    """Contenido fijo del cofre premium: [(objeto, cantidad, componentes)]. Es único: no lleva tabla de botín."""
+    """Contenido fijo del cofre premium: [(objeto, cantidad, componentes)]. Es único: no lleva tabla de botín. Los
+    objetos con nombre llevan además custom_data TESORO (el logro del tesoro los reconoce)."""
+    return [(o, n, dict(c, **{"minecraft:custom_data": TESORO}) if c else c) for o, n, c in _premium()]
+
+
+def _premium():
     def ench(**e):
         return {"minecraft:" + k: v for k, v in e.items()}
     return [

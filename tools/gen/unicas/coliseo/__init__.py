@@ -11,6 +11,7 @@ STRUCTURE = dict(
     spacing=250, separation=190,
 )
 NOMBRE = {"es_es": "Coliseo en ruinas", "en_us": "Ruined Colosseum"}
+LOGRO = {"icono": "minecraft:shield"}   # logros.py
 
 LANG = {
     "es_es": {"heraldia.coliseo.campeon": "Campeón de la Arena"},

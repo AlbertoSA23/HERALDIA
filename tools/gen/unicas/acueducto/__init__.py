@@ -12,6 +12,7 @@ STRUCTURE = dict(
     step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG",
 )
 NOMBRE = {"es_es": "Acueducto en ruinas", "en_us": "Ruined Aqueduct"}
+LOGRO = {"icono": "minecraft:water_bucket"}   # logros.py
 
 K = "heraldia.unicas.acueducto."
 TEXTOS = {   # clave: (español, inglés)
