@@ -71,6 +71,7 @@ jobs:
       matrix:
         prueba:
           - tools/smoke/aldeas_terreno.py
+          - tools/smoke/aldeas_variantes.py
           - tools/smoke/ciudadela_check.py
           - tools/smoke/coliseo_redstone.py
           - tools/smoke/galeon_test.py

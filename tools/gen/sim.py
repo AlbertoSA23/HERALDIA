@@ -153,3 +153,50 @@ def stats(reg, pieces):
                 c["camas"] += 1
     # las camas de piezas de aldeano: la cabecera se cuenta arriba
     return c
+
+
+def variant_report(reg, seeds=40, themes=None):
+    """Ensambla `seeds` aldeas de cada estilo (estándar y grande) y cuenta, por edificio especial, cuántas veces sale
+    cada variante (y cuántas no cabe), además de casas, aldeanos, gólems y camas por aldea."""
+    from themes import THEMES
+    from writer import sizes, ALL_PROFS
+    out = {}
+    for th in THEMES:
+        if themes and th["id"] not in themes:
+            continue
+        tid = th["id"]
+        std, grande = sizes(th)
+        al = {f"heraldia:villagers/{th['vtype']}/{p}": f"heraldia:villagers/{th['vtype']}/{p}_grande" for p in ALL_PROFS}
+        var, pop = Counter(), Counter()
+        for pool, sz, aliases in (("plaza", std, None), ("plaza_grande", grande, al)):
+            for s in range(seeds):
+                pieces, _, errors = simulate(reg, f"heraldia:{tid}/{pool}", sz["size"], sz["maxdist"], seed=s,
+                                             aliases=aliases)
+                if errors:
+                    raise RuntimeError(errors[:3])
+                pop += stats(reg, pieces)
+                for p in pieces:
+                    k = reg.kinds[p.tpl.name]
+                    if k.startswith("special:"):
+                        var[p.tpl.name.split("/")[-1]] += 1
+        out[tid] = (var, {k: pop[k] / (2 * seeds) for k in ("house", "aldeanos", "con_oficio", "golems", "camas")})
+    return out
+
+
+if __name__ == "__main__":
+    import argparse, os, sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from pack import Registry, build_common, build_theme
+    from themes import THEMES
+    ap = argparse.ArgumentParser(description="Diversidad de los edificios especiales en ensamblados simulados")
+    ap.add_argument("--seeds", type=int, default=40)
+    ap.add_argument("themes", nargs="*")
+    a = ap.parse_args()
+    reg = Registry()
+    build_common(reg)
+    for i, th in enumerate(THEMES):
+        if not a.themes or th["id"] in a.themes:
+            build_theme(reg, th, 2026 * 100 + i)
+    for tid, (var, pop) in variant_report(reg, a.seeds, a.themes).items():
+        print(tid, " ".join(f"{k}={v:.1f}" for k, v in pop.items()))
+        print("   ", " ".join(f"{k}:{n}" for k, n in sorted(var.items())))

@@ -95,3 +95,45 @@ def render_many(ts, path, scale=4, cols=4, cut_y=None, flip=False):
     for k, im in enumerate(ims):
         out.paste(im, ((k % cols) * w, (k // cols) * h))
     out.save(path)
+
+
+def variant_sheet(th, path, scale=3, seed=2026):
+    """Lámina de un estilo: una fila por edificio especial con sus variantes (vista desde la entrada)."""
+    import os, sys, tempfile
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from themes import THEMES
+    from pack import Registry, build_theme
+    reg = Registry()
+    build_theme(reg, th, seed * 100 + THEMES.index(th))
+    from specials import VARIANTS
+    rows = []
+    for kind in VARIANTS:
+        names = [n for n in reg.templates if n.startswith(f"{th['id']}/specials/{kind}")
+                 and n.split("/")[-1].split("_")[0] == kind]
+        ims = []
+        for n in sorted(names):
+            p = tempfile.mktemp(suffix=".png")
+            render(reg.templates[n], p, scale=scale, flip=True)
+            ims.append(Image.open(p))
+        rows.append(ims)
+    w = max(i.width for r in rows for i in r)
+    h = [max(i.height for i in r) for r in rows]
+    out = Image.new("RGB", (w * max(len(r) for r in rows), sum(h)), (245, 245, 240))
+    y = 0
+    for r, hh in zip(rows, h):
+        for k, im in enumerate(r):
+            out.paste(im, (k * w + (w - im.width) // 2, y + hh - im.height))
+        y += hh
+    out.save(path, optimize=True)
+
+
+if __name__ == "__main__":
+    # python3 tools/gen/render.py <carpeta> [estilo ...]: láminas de variantes de los especiales de cada estilo
+    import os, sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from themes import THEMES
+    out_dir = sys.argv[1]
+    os.makedirs(out_dir, exist_ok=True)
+    for th in THEMES:
+        if len(sys.argv) <= 2 or th["id"] in sys.argv[2:]:
+            variant_sheet(th, os.path.join(out_dir, f"{th['id']}.png"))
