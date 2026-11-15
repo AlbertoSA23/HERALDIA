@@ -164,7 +164,7 @@ En los planos: azul = agua, amarillo = aire (zona seca), verdes = prismarina, gr
 
 ### Botín
 - 185 cofres y barriles. Tablas `menor`, `media`, `tesoro`, `arca` y `sello_*`, todas con un grupo extra `solo_sin_lootr`.
-- **Cofre premium, contenido fijo (no lleva tabla: Lootr no puede convertirlo)**: Tridente de Poseidón (Lealtad III, Canalización, Empalamiento V, Irrompible III, Reparación), Tridente de las Mareas (Propulsión acuática III, Empalamiento V, Irrompible III, Reparación), conducto, 3 corazones del mar, 2 manzanas doradas encantadas, tótem, Yelmo de las Profundidades (tortuga), Botas de la Corriente (diamante), Lanza de Tritón (diamante), armadura de nautilo de diamante, 2 plantillas Marea, disco, 8 esponjas, 16 conchas de nautilo, 12 diamantes, 4 bloques de esmeralda, 8 de oro y 32 frascos de experiencia. Sin netherita, élitros ni maza.
+- **Cofre premium, contenido fijo (no lleva tabla: Lootr no puede convertirlo)**: Tridente de Poseidón (Lealtad III, Canalización, Empalamiento V, Irrompible III, Reparación), Tridente de las Mareas (Propulsión acuática III, Empalamiento V, Irrompible III, Reparación), conducto, 3 corazones del mar, 2 manzanas doradas encantadas, tótem, Yelmo de las Profundidades (tortuga), Botas de la Corriente (diamante), Lanza de Tritón (diamante), armadura de nautilo de diamante, 2 plantillas Marea, disco, 8 esponjas, 16 conchas de nautilo, 12 diamantes, 4 bloques de esmeralda, 8 de oro y 32 frascos de experiencia. Sin netherita, élitros ni maza. Con la opción `unicas.atlantida.cofre_unico_por_jugador` (por defecto `false`) cada jugador abre su propia copia (`loot/CofrePorJugador.java`; el cofre lleva la marca `custom_data` `heraldia_cofre_unico`).
 
 ### Auditoría (condición para generar; `auditoria.py`, unos 15 s)
 - **Estanqueidad**: ninguna celda de aire, ni de bloque que el agua arranca (redstone, palancas, placas, alfombras), toca agua o un bloque anegado por los lados o por arriba, ni terreno natural.
@@ -188,6 +188,7 @@ No comprobado:
 - **Nada se ha visto dentro del juego**: aspecto, escala, iluminación y jugabilidad necesitan capturas y una partida de Alberto.
 - Las cerraduras y los mecanismos no se han accionado con un jugador: las cerraduras se han leído como datos y las palancas se han movido con `setblock` «tocando» después los bloques contiguos (lo que hace el juego al accionarlas). Trampas de flechas, de agua y de TNT, ascensor de burbujas y generadores: generados y auditados, no disparados.
 - Lootr: no se ha probado con el mod instalado que deje intacto el cofre de contenido fijo.
+- Cofre por jugador (`unicas.atlantida.cofre_unico_por_jugador`): la lógica se ha probado con dos y tres jugadores simulados (`CofrePorJugadorTest`) y la marca del cofre en el servidor (prueba de humo), pero no se ha abierto con jugadores reales ni con Lootr instalado.
 - Mundo ya existente: el filtro de regiones exploradas está escrito pero solo se ha probado en mundo nuevo. Tampoco se han probado semillas sin océanos grandes (niveles 1 a 4 de la búsqueda) ni mods de biomas.
 - En la prueba aparecen algas sueltas flotando (unas 170 en toda la zona, también fuera de la ciudad); no he determinado si son del juego o del corte de la pieza base en el borde.
 - Rendimiento con jugadores reales y memoria con toda la ciudad cargada: sin medir.

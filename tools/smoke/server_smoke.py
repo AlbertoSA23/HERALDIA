@@ -7,6 +7,8 @@ responden en menos de 30 s (con o sin destino), el filtro de los tratos de cart�
 También la configuración (config/heraldia.json): se migra un fichero sin versión, un valor fuera de rango se corrige al de
 por defecto, los valores válidos llegan a la rejilla y a los gólems, y /locate solo encuentra aldeas en las casillas permitidas.
 Las estructuras únicas que comparten bioma, localizadas con /locate, quedan a la distancia mínima configurada.
+/heraldia info: el resumen cuenta las estructuras registradas y refleja la opción del cofre por jugador; «cerca» da para
+cada única una posición igual o más cercana que /locate (y dentro del radio), con su tiempo medido.
 Código 0 si todo pasa.
 """
 import argparse, json, math, os, queue, re, shutil, subprocess, sys, threading, time, urllib.request
@@ -37,6 +39,7 @@ UNIQUE_MIN_DISTANCE = 1200
 LOCATE_POINTS = [(0, 0), (6000, 0), (0, -6000), (-6000, 6000)]
 TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"pantano": False}}, "golems": {"limite_estandar": 7},
                "unicas": {"distancia_minima": {"bloques": UNIQUE_MIN_DISTANCE},
+                          "atlantida": {"cofre_unico_por_jugador": True},
                           **{sid: {"separacion_bloques": 1000} for pair in SEPARATION_PAIRS for sid in pair}},
                "inventada": 1}
 CONFIG_LOG = [
@@ -49,6 +52,11 @@ CONFIG_LOG = [
 # Con 12 casillas (las 4 que tocan el 0,0 y sus 8 vecinas en cruz, de 94 chunks), toda aldea queda a menos de 2 x 94 x 16 bloques.
 LOCATE_LIMIT = 2 * 94 * 16
 ERROR_PATTERN = r"Unknown|Incorrect|Failed|Invalid|error|not loaded"
+# /heraldia info cerca: (punto, radio); el último, con el radio máximo, mide el peor caso. La búsqueda va fuera del hilo
+# del servidor; en él solo se confirma (INFO_MAIN_MS como mucho). INFO_MAX_MS es el tope de la respuesta completa.
+INFO_POINTS = [((0, 0), None), ((6000, 0), 6000), ((0, -6000), 10000)]
+INFO_DEFAULT_RADIUS, INFO_MAX_MS, INFO_MAIN_MS = 3000, 20000, 20
+INFO_LINE = re.compile(r" - .+? \((heraldia:[^)]+)\): (\d+) (?:blocks|bloques) .*?\[(-?\d+), ~, (-?\d+)\]")
 
 
 def gradle_properties():
@@ -198,6 +206,60 @@ def check_separation(ctx):
     return failures
 
 
+def drain(ctx, wait=1.5):
+    """Las líneas que el servidor haya escrito en los próximos segundos (las de una orden que responde con varias)."""
+    time.sleep(wait)
+    out = []
+    while True:
+        try:
+            line = ctx.lines.get_nowait()
+        except queue.Empty:
+            return out
+        if line is None:
+            raise SystemExit("el servidor se cerró antes de tiempo")
+        ctx.seen.append(line)
+        out.append(line)
+
+
+def check_info(ctx, expected):
+    """/heraldia info: resumen (estructuras registradas, opción del cofre por jugador) y «cerca» comparado con /locate."""
+    fails = []
+    m = ctx.run("heraldia info", r"Registered structures: (\d+)|Estructuras registradas: (\d+)")
+    n = m.group(1) or m.group(2) if m.lastindex else None
+    if n is None or int(n) != expected:
+        fails.append(f"/heraldia info: estructuras registradas {n}, esperadas {expected}: {m.string.strip()}")
+    text = "".join(ctx.seen[-40:])
+    if not re.search(r"Per-player Atlantis premium chest: yes|Cofre premium de la Atlántida por jugador: sí", text):
+        fails.append("/heraldia info no refleja unicas.atlantida.cofre_unico_por_jugador = true")
+    for (x, z), radius in INFO_POINTS:
+        r = radius or INFO_DEFAULT_RADIUS
+        cmd = f"execute positioned {x} 64 {z} run heraldia info cerca" + (f" {radius}" if radius else "")
+        m = ctx.run(cmd, r"info cerca \d+ en [^:]+: \d+ estructuras en (\d+) ms \((\d+) ms en el hilo del servidor\)")
+        if not m.lastindex:
+            fails.append(f"{cmd}: {m.string.strip()}")
+            continue
+        ms, main_ms = int(m.group(1)), int(m.group(2))
+        found = {g[0]: (int(g[1]), int(g[2]), int(g[3])) for g in INFO_LINE.findall("".join(drain(ctx)))}
+        print(f"/heraldia info cerca {r} desde {x}, {z}: {len(found)} estructuras en {ms} ms ({main_ms} ms en el hilo del servidor)")
+        if ms > INFO_MAX_MS or main_ms > INFO_MAIN_MS:
+            fails.append(f"{cmd}: {ms} ms, {main_ms} ms en el hilo del servidor (máximo {INFO_MAX_MS} y {INFO_MAIN_MS})")
+        if any(d > r for d, _, _ in found.values()):
+            fails.append(f"{cmd}: da estructuras fuera del radio: {found}")
+        for sid in sorted({sid for pair in SEPARATION_PAIRS for sid in pair} | {"atlantida"}):
+            p = locate(ctx, sid, x, z)
+            if not p or math.dist(p[:2], (x, z)) > r:
+                continue
+            ours = found.get(f"heraldia:unicas/{sid}")
+            if ours is None or ours[0] > math.dist(p[:2], (x, z)) + 1:
+                fails.append(f"{cmd}: /locate da {sid} en {p[:2]}, pero info cerca da {ours}")
+        if (x, z) == (0, 0) and "heraldia:aldeas" not in found and not any(":unicas/" not in k for k in found):
+            fails.append(f"{cmd}: no da ninguna aldea cerca del 0,0 (12 casillas permitidas): {found}")
+    m = ctx.run("execute positioned 5000 64 5000 run heraldia info aqui", r"not loaded|no está cargada")
+    if m.group(0) not in ("not loaded", "no está cargada"):
+        fails.append(f"/heraldia info aqui en un chunk sin cargar: {m.string.strip()}")
+    return fails
+
+
 def guardian_placed(ctx, sid):
     """El guardián de la única conserva en el mundo la etiqueta heraldia_guardian.<id> con la que lo reconoce su logro
     (logros.py). Las entidades de una plantilla tardan unos segundos más que los bloques: se reintenta."""
@@ -295,6 +357,9 @@ def main():
             failures.append(f"config/heraldia.json reescrito mal: {written.get('version')} {written['aldeas']}")
         if "inventada" in written or "es_es" not in written.get("_ayuda", {}):
             failures.append("config/heraldia.json sin ayuda o con la opción desconocida")
+        if written["unicas"]["atlantida"].get("cofre_unico_por_jugador") is not True or not all(
+                "unicas.atlantida.cofre_unico_por_jugador" in written["_ayuda"][lang] for lang in ("es_es", "en_us")):
+            failures.append("config/heraldia.json: unicas.atlantida.cofre_unico_por_jugador sin conservar o sin ayuda")
         m = run(proc, lines, seen, "scoreboard players get #limite_estandar heraldia_cfg", r"has (\d+)")
         log_so_far = "".join(seen)   # la línea de gólems se escribe en SERVER_STARTED, ya antes de esta respuesta
         for pat in CONFIG_LOG:
@@ -313,6 +378,7 @@ def main():
         else:
             located = f"/locate en {m.group(1)}, {m.group(2)}"
         failures += check_separation(Context(proc, lines, seen))
+        failures += check_info(Context(proc, lines, seen), expected)
         send(proc, FORCELOAD)
         wait_for(lines, r"Marked|Added|chunks? .*force", COMMAND_TIMEOUT_S, seen)
         for _ in range(PLACE_ATTEMPTS):

@@ -332,7 +332,7 @@ def camaras(v, fin):
     v.set(hu - 4, piso - 2, hw + 2, LINTERNA)
     v.fill(hu - 4, piso - 6, hw - 1, hu - 4, piso - 6, hw + 1, "gold_block")
     from . import botin
-    C.cofre_fijo(v, hu - 4, piso - 5, hw, "east", botin.premium(), llave="poseidon")
+    C.cofre_fijo(v, hu - 4, piso - 5, hw, "east", botin.premium(), llave="poseidon", por_jugador="atlantida")
     v.marca("premium", hu - 4, piso - 5, hw)
     v.marca("seca", hu - 2, piso - 6, hw)
     v.marca("oculta", hu - 2, piso - 6, hw)

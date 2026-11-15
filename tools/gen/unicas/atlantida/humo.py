@@ -68,11 +68,12 @@ def comprobar(ctx):
         if not abierta(debe):
             fallos.append(f"puerta del vestíbulo {nombre}: debería estar {'abierta' if debe else 'cerrada'}")
 
-    # cofre premium: contenido fijo (dos tridentes) y cerradura
+    # cofre premium: contenido fijo (dos tridentes), cerradura y marca del cofre por jugador (custom_data del bloque)
     px, py, pz = pl.marcas["premium"][0]
     r = ctx.run(f"data get block {X + px} {py} {Z + pz}", r"has the following block data: (.*)")
     datos = r.group(1) if r.group(0).startswith("has") else ""
-    if datos.count('id: "minecraft:trident"') < 2 or "LootTable" in datos or 'heraldia_llave:"poseidon"' not in datos.replace("\\", ""):
+    if (datos.count('id: "minecraft:trident"') < 2 or "LootTable" in datos or 'heraldia_llave:"poseidon"' not in datos.replace("\\", "")
+            or not re.search(r'heraldia_cofre_unico:\s*"atlantida"', datos.replace("\\", ""))):
         fallos.append(f"cofre premium incorrecto: {r.string.strip()[:300]}")
 
     # guardián final: existe y suelta la llave de Poseidón
@@ -80,9 +81,11 @@ def comprobar(ctx):
     jefe = '@e[type=minecraft:elder_guardian,nbt={DeathLootTable:"heraldia:guardianes/atlantida/elder_guardian"}]'
     if "passed" not in ctx.run(f"execute if entity {jefe}", r"Test passed|Test failed").group(0):
         fallos.append("no está el guardián final")
+    fallos += _info_aqui(ctx, X, Z, r"Guardian: alive|Guardián: vivo")
     ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity")
     ctx.run(f"kill {jefe}", r"Killed|No entity")
     time.sleep(1)
+    fallos += _info_aqui(ctx, X, Z, r"Guardian: defeated|Guardián: derrotado")
     llave = '@e[type=minecraft:item,nbt={Item:{id:"minecraft:nautilus_shell",components:{"minecraft:custom_data":{heraldia_llave:"poseidon"}}}}]'
     if "passed" not in ctx.run(f"execute if entity {llave}", r"Test passed|Test failed").group(0):
         fallos.append("el guardián final no suelta la llave de Poseidón")
@@ -91,3 +94,17 @@ def comprobar(ctx):
         fallos.append("el guardián final suelta su trofeo con /kill (sin jugador)")
     ctx.run(f"forceload remove {X - MEDIO} {Z - MEDIO} {X + MEDIO - 1} {Z + MEDIO - 1}", r"Unmarked|Removed|No chunks|force")
     return fallos
+
+
+def _info_aqui(ctx, X, Z, guardian):
+    """/heraldia info aqui dentro del distrito central (generado por worldgen, con el distrito forzado): dice que es la
+    Atlántida y el estado del guardián (se busca por su etiqueta en la caja del distrito central)."""
+    c = f"execute positioned {X} {U.SUELO} {Z + 104} run heraldia info aqui"
+    m = ctx.run(c, r"(?:You are in|Estás en) .*\(heraldia:unicas/atlantida\)|no Heraldia structure|ninguna estructura Heraldia")
+    if "atlantida" not in m.group(0):
+        return [f"/heraldia info aqui no reconoce la Atlántida: {m.string.strip()}"]
+    m = ctx.run("say fin de info aqui", r"(?:Guardian|Guardián): .*|fin de info aqui")
+    if not re.search(guardian, m.group(0)):
+        return [f"/heraldia info aqui: se esperaba «{guardian}»: {m.string.strip()}"]
+    return []
+

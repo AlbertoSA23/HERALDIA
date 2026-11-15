@@ -71,6 +71,9 @@ En un mundo existente las estructuras solo aparecen en chunks que todavía no se
 - `/function heraldia:familia/<familia>` (`llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa`): lo mismo con las 6 aldeas de una familia, en fila hacia el este.
 - `/function heraldia:muestrario/parar`: lo detiene.
 - `/heraldia llave <jugadores> <llave>` (operadores, nivel 2): da las llaves de los cofres cerrados de las estructuras únicas, el mismo objeto que se consigue en el juego. `<llave>` se autocompleta: `todas`, una estructura (`atlantida`: sus cuatro llaves) o una llave suelta (`atlantida.arsenal`, `atlantida.academia`, `atlantida.anfiteatro`, `atlantida.poseidon`). Si el inventario está lleno, la llave cae al suelo a nombre del jugador.
+- `/heraldia info` (operadores, nivel 2): resumen de la configuración en uso (aldeas, estructuras únicas activadas y su separación, distancia mínima, cofre por jugador, si está instalado Lootr) y de cuántas estructuras hay registradas.
+- `/heraldia info cerca [radio]`: la estructura única más cercana de cada tipo y la aldea Heraldia más cercana, con distancia, rumbo y coordenadas (al pulsarlas se propone un `/tp`). Usa la misma comprobación que `/locate`, así que nunca señala una estructura que la distancia mínima descarta, pero no carga ni genera chunks: lo que aún no se ha generado sale como «prevista» (de una aldea prevista solo se sabe la familia). Radio por defecto 3.000 bloques, máximo 10.000; el mensaje dice cuánto ha tardado la búsqueda.
+- `/heraldia info aqui`: en qué estructura Heraldia estás (nombre e id) y, en una única, si su guardián vive (solo se responde si toda la estructura está cargada).
 
 Usa el muestrario solo en un mundo de prueba: lo colocado se queda.
 
@@ -113,7 +116,7 @@ Una sola por mundo, siempre, sin opción de configuración. Es una ciudad amural
 - Ocho distritos (ágora, lonja, termas, arsenal, puerto hundido, jardines de coral, academia y anfiteatro), un templo en el centro, galerías subterráneas y, al fondo, el guardián final.
 - Defensores: guardianes, ahogados con tridente, 48 generadores, guardianes ancianos en los distritos clave y el Guardián de Poseidón.
 - Tres sellos con sus llaves, puertas de combinación, trampas de flechas, agua y TNT.
-- 185 cofres con botín avanzado y un cofre único, oculto y cerrado con la llave del guardián final, con dos tridentes legendarios. Su contenido es fijo: el primer grupo que llegue se lo lleva.
+- 185 cofres con botín avanzado y un cofre único, oculto y cerrado con la llave del guardián final, con dos tridentes legendarios. Su contenido es fijo: el primer grupo que llegue se lo lleva, salvo que se active `unicas.atlantida.cofre_unico_por_jugador` (ver Configuración): entonces cada jugador abre su propia copia.
 - Dentro de la ciudad no nacen otras estructuras (monumentos, naufragios, ruinas), salvo las fortalezas, que el juego necesita para llegar al End.
 
 Detalle, planos y qué se ha comprobado: [docs/unicas/atlantida.md](docs/unicas/atlantida.md).
@@ -210,8 +213,9 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). Cada tipo se reparte por toda su casilla de la rejilla (con el origen desplazado por tipo) y dos del mismo tipo nunca quedan a menos de `unicas.distancia_minima.bloques`. |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Impide que dos estructuras únicas distintas (también la Atlántida) salgan a menos de la distancia mínima. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Distancia mínima entre los chunks de inicio de dos estructuras únicas distintas. Si dos candidatas quedan demasiado cerca, un sorteo determinista (semilla y posición) se queda con una; si la ganadora no puede salir ahí (bioma o terreno), se conserva la otra. `/locate` y los mapas del tesoro siguen la misma regla. |
+| `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Cofre premium de la Atlántida por jugador. La primera apertura convierte su contenido en una plantilla guardada en el propio cofre (que queda vacío: romperlo o vaciarlo con una tolva no duplica nada) y cada jugador abre su propia copia: la recibe entera la primera vez y después encuentra lo que dejó. Sigue haciendo falta la llave de Poseidón. Con Lootr o sin él funciona igual (Lootr no convierte este cofre porque no tiene tabla de botín). Si se desactiva después, el contenido vuelve al cofre una vez (la primera vez que alguien lo usa) y se comporta como antes. |
 
-La Atlántida no aparece: es siempre una sola por mundo.
+La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
 
 ## Compilar
 
