@@ -115,7 +115,8 @@ def anciano():
 def jefe():
     return mob("elder_guardian", texto("mob.jefe", "Guardián de Poseidón", "Warden of Poseidon", color="gold"), vida=240, botin="jefe",
                attributes=[{"id": "minecraft:max_health", "base": 240.0}, {"id": "minecraft:attack_damage", "base": 12.0},
-                           {"id": "minecraft:armor", "base": 8.0}, {"id": "minecraft:scale", "base": 1.5}])
+                           {"id": "minecraft:armor", "base": 8.0}, {"id": "minecraft:scale", "base": 1.5}],
+               Tags=[P.GUARDIAN_TAG])   # el guardián final: logro heraldia:unicas/atlantida/guardian
 
 
 def generador(v, u, y, w, tipo, tridente=False):

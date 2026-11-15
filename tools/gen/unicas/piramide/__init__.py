@@ -14,6 +14,7 @@ STRUCTURE = dict(
 )
 
 NOMBRE = {"es_es": "Templo-pirámide", "en_us": "Pyramid Temple"}
+LOGRO = {"icono": "minecraft:mossy_stone_bricks"}   # logros.py
 
 K = "heraldia.piramide."
 LANG = botin.lang(K, {

@@ -129,6 +129,18 @@ Every unique structure has its own treasure map, which marks the nearest one wit
 
 Known limitations: the port is laid out straight from the street without looking for water; on slopes there may be steps and tall foundations; overlap with structures from other mods has not been checked.
 
+## Advancements
+
+A **Heraldia** advancement tab (63 advancements), with texts in Spanish and English. They only give experience, never items:
+
+- **Heraldia** (root): enter any Heraldia village or unique structure.
+- A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
+- For each unique structure: discover it (50), defeat its named guardian (100) and open its treasure chest (50).
+- Atlantis also has its three seals (open the seal chest or hold its key, 30 each); its guardian is the Warden of Poseidon and the treasure counts when you take one of the named items from the unique chest.
+- Final challenge **Cartographer of Legends**: discover every unique structure (500).
+
+Notes: a structure counts when you step inside its pieces; seeing it is not enough. If a family or a structure is disabled in the [configuration](#configuration), its advancement and the related challenge cannot be earned. With Lootr, the treasure advancement depends on Lootr notifying the game when the chest is opened (not checked). The unique-structure advancements are generated from the unique-structure registry, so a new structure brings its own.
+
 ## Configuration
 
 File `config/heraldia.json` on the server (in a single-player world, the one in the game folder). It is created at startup with all default values
@@ -162,7 +174,7 @@ Requirements: Java 25, Python 3.11+ and `pip install -r tools/gen/requirements.t
 ./gradlew build
 ```
 
-The `.jar` ends up in `build/libs/`. The build runs the generator `tools/gen/main.py`, which creates the structures, validates them against the 26.3 registries and audits them; a single error or warning fails the build.
+The `.jar` ends up in `build/libs/`. The build runs the generator `tools/gen/main.py`, which creates the structures and the advancements, validates them against the 26.3 registries and audits the structures; a single error or warning fails the build.
 
 The 26.3 registries (summary from [misode/mcmeta](https://github.com/misode/mcmeta), branch `26.3-summary`) are not included in the repository because they are Mojang data. They are cloned automatically into `build/mcmeta-summary`; to use another copy: `-Pmcmeta_summary=<path>` or the `MCMETA_SUMMARY` variable.
 
@@ -176,7 +188,7 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 87 structures are registered, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 87 structures and all 63 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
 Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio` and `piramide`. Atlantis is checked within the smoke test (`atlantida/humo.py`).
 

@@ -12,6 +12,7 @@ STRUCTURE = dict(biomes=["minecraft:forest", "minecraft:flower_forest"], start_p
                  size=2, max_distance=80, terrain_adaptation="beard_thin", step="surface_structures",
                  start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG", spacing=250, separation=190)
 NOMBRE = {"es_es": "Catedral gótica", "en_us": "Gothic cathedral"}
+LOGRO = {"icono": "minecraft:bell"}   # logros.py
 JIG = (65, 0, 30)             # jigsaw de la cripta (bajo el crucero)
 
 # degradación: 80-85 % en buen estado (ver docs/unicas/catedral.md)

@@ -26,6 +26,25 @@ LANG = cosas.LANG
 LOOT = botin.tablas()
 # /heraldia llave: la tabla da el mismo objeto que sueltan el guardián y los cofres, y la cerradura es la de los cofres
 LLAVES = {cual: {"tabla": cosas.tabla_llave(cual), "cerradura": cosas.cerradura(cual)} for cual in cosas.LLAVES}
+# Logros (logros.py): el cofre único no tiene tabla de botín; cuenta conseguir uno de sus objetos con nombre. Cada sello
+# cuenta al abrir su cofre o al tener su llave (también con Lootr o si otro jugador la saca). El de Poseidón es el guardián.
+LOGRO = {
+    "icono": "minecraft:trident",
+    "tesoro": (),
+    "tesoro_objeto": {"predicates": {"minecraft:custom_data": botin.TESORO}},
+    "extra": [{
+        "id": f"sello_{cual}", "icono": "minecraft:nautilus_shell", "xp": 30,
+        "titulo": (cosas.LLAVES[cual][0].replace("Llave", "Sello"), cosas.LLAVES[cual][1].replace("Key", "Seal")),
+        "descripcion": (f"Abre el cofre del sello o consigue la {cosas.LLAVES[cual][0]}",
+                        f"Open the seal chest or obtain the {cosas.LLAVES[cual][1]}"),
+        "criterios": {
+            "cofre": {"trigger": "minecraft:player_generates_container_loot",
+                      "conditions": {"loot_tables": f"heraldia:unicas/atlantida/sello_{cual}"}},
+            "llave": {"trigger": "minecraft:inventory_changed",
+                      "conditions": {"items": [{"items": cosas.OBJETO_LLAVE, "predicates": cosas.cerradura(cual)["predicates"]}]}}},
+        "requisitos": [["cofre", "llave"]],
+    } for cual in ("arsenal", "academia", "anfiteatro")],
+}
 _plano = None
 
 

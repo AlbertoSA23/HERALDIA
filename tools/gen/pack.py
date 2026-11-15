@@ -161,6 +161,25 @@ def build_all(seed=2026):
     build_common(reg)
     for i, th in enumerate(THEMES):
         build_theme(reg, th, seed * 100 + i)
-    for _, mod in unicas.modules():
+    for sid, mod in unicas.modules():
         mod.build(reg)
+        tag_guardians(reg, sid)
     return reg
+
+
+def tag_guardians(reg, sid):
+    """Añade a los guardianes de una única (Tags con piezas.GUARDIAN_TAG) la etiqueta heraldia_guardian.<id>, con la
+    que su logro los reconoce al morir (logros.py). Toda única debe tener al menos uno."""
+    from unicas._comun.piezas import GUARDIAN_TAG
+    found = 0
+    for name, t in reg.templates.items():
+        if not name.startswith(f"unicas/{sid}/"):
+            continue
+        for *_, n in t.entities:
+            tags = n.get("Tags") or []
+            if GUARDIAN_TAG in tags:
+                if f"{GUARDIAN_TAG}.{sid}" not in tags:
+                    n["Tags"] = list(tags) + [f"{GUARDIAN_TAG}.{sid}"]
+                found += 1
+    if not found:
+        reg.warnings.append(f"unicas/{sid}: ningún guardián con la etiqueta {GUARDIAN_TAG} (usa _comun/piezas.guardian)")

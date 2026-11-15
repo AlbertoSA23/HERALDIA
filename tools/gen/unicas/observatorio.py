@@ -30,6 +30,7 @@ STRUCTURE = dict(
     spacing=250, separation=190)
 
 NOMBRE = {"es_es": "Observatorio", "en_us": "Observatory"}
+LOGRO = {"icono": "minecraft:spyglass"}   # logros.py
 
 # ------------------------------------------------------------------ textos
 _T = {

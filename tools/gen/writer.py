@@ -7,6 +7,7 @@ import loot
 import unicas
 import mapas
 import opciones
+import logros
 
 STD = dict(size=6, maxdist=92)
 GRANDE = dict(size=7, maxdist=116)
@@ -221,17 +222,15 @@ def write(reg, out):
         with open(os.path.join(fdir, fn), "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
-    for _, mod in unicas.modules():                 # textos propios de cada estructura única
-        for lang, texts in getattr(mod, "LANG", {}).items():
-            LANG[lang].update(texts)
     maps_lang = mapas.lang(uniques)
+    adv_lang = logros.write(out, reg, uniques, jdump)
     for sid, mod in unicas.modules():
         extra = getattr(mod, "LANG", {})
         assert extra.get("es_es", {}).keys() == extra.get("en_us", {}).keys(), sid
         for lang, texts in extra.items():
             LANG[lang].update(texts)
     for lang, texts in LANG.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang]))
+        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang], **adv_lang[lang]))
 
 
 def write_keys(out):

@@ -15,6 +15,7 @@ STRUCTURE = dict(
     spacing=250, separation=190,
 )
 NOMBRE = {"es_es": "Palacio oriental", "en_us": "Eastern Palace"}
+LOGRO = {"icono": "minecraft:bamboo"}   # logros.py
 
 
 def fill_air(t):

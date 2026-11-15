@@ -45,12 +45,17 @@ public final class Heraldia implements ModInitializer {
 		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 
-	/** Deja en el log cuántas estructuras del mod están en el registro, para comprobar la carga sin entrar al juego. */
+	/** Deja en el log cuántas estructuras y logros del mod se han cargado, para comprobar la carga sin entrar al juego
+	 *  (sin jugadores, /advancement no llega a mirar el logro). Una vez, al arrancar. */
 	private static void logRegisteredStructures(MinecraftServer server) {
 		long count = server.registryAccess().lookupOrThrow(Registries.STRUCTURE).keySet().stream()
 				.filter(id -> MOD_ID.equals(id.getNamespace()))
 				.count();
 		LOGGER.info("Heraldia: {} estructuras registradas", count);
+		long advancements = server.getAdvancements().getAllAdvancements().stream()
+				.filter(a -> MOD_ID.equals(a.id().getNamespace()))
+				.count();
+		LOGGER.info("Heraldia: {} logros cargados", advancements);
 	}
 
 	/** Pasa a las funciones de gólems (marcador heraldia_cfg) la limpieza y los límites de la configuración. */
