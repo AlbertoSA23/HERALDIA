@@ -1,0 +1,111 @@
+name: CI
+
+# Comprobaciones de cada PR contra develop o main y de cada push a develop.
+# No publica nada (la publicación es .github/workflows/publish.yml, en main).
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compilar:
+    name: Compilación, registro de cambios y prueba de humo
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/preparar
+
+      - name: Leer versión y rama de mcmeta
+        id: ver
+        run: |
+          echo "version=$(grep '^mod_version=' gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+          echo "mcmeta=$(grep '^mcmeta_summary_branch=' gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
+      # Resumen de registros de misode/mcmeta (datos de Mojang: nunca en el repositorio). build.gradle solo lo clona si falta.
+      - uses: actions/cache@v4
+        with:
+          path: build/mcmeta-summary
+          key: mcmeta-${{ steps.ver.outputs.mcmeta }}
+
+      - name: Registro de cambios
+        run: python3 tools/changelog.py check
+
+      - name: Compilar (genera, valida, audita y pasa JUnit)
+        run: ./gradlew build
+
+      - name: Prueba de humo en servidor dedicado
+        run: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-${{ steps.ver.outputs.version }}.jar --work build/smoke
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jar
+          path: build/libs/heraldia-${{ steps.ver.outputs.version }}.jar
+          retention-days: 7
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: log-prueba-de-humo
+          path: build/smoke/logs/latest.log
+          if-no-files-found: ignore
+
+  unicas:
+    name: Servidor · ${{ matrix.prueba }}
+    needs: compilar
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        prueba:
+          - tools/smoke/ciudadela_check.py
+          - tools/smoke/coliseo_redstone.py
+          - tools/smoke/galeon_test.py
+          - tools/smoke/observatorio_smoke.py
+          - tools/smoke/palacio_redstone.py
+          - tools/gen/unicas/castillo/prueba_redstone.py
+          - tools/gen/unicas/catedral/prueba_juego.py
+          - tools/gen/unicas/fortaleza_hielo/prueba_servidor.py
+          - tools/gen/unicas/mansion/prueba_servidor.py
+          - tools/gen/unicas/monasterio/prueba_servidor.py
+          - tools/gen/unicas/piramide/prueba_servidor.py
+          - tools/gen/unicas/torre_mago/prueba_redstone.py
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/preparar
+        with:
+          gradle: 'false'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: jar
+          path: build/libs
+
+      # Todas en build/smoke para compartir la caché del servidor Fabric.
+      - name: Prueba
+        run: python3 ${{ matrix.prueba }} --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work build/smoke
+
+      - name: Nombre del artefacto
+        if: failure()
+        id: nombre
+        run: echo "nombre=log-$(echo '${{ matrix.prueba }}' | tr '/.' '--')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ${{ steps.nombre.outputs.nombre }}
+          path: build/smoke/logs/latest.log
+          if-no-files-found: ignore

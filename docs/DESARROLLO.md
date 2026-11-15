@@ -2,7 +2,7 @@
 
 Mod de Fabric para Minecraft 26.3 solo de estructuras, para el servidor privado de Alberto (mundo ya existente,
 modpack de CurseForge con Fabric API 0.166.2+26.3). El mod va en servidor y clientes. Contenido **solo vanilla**.
-Repositorio público, **sin licencia (todos los derechos reservados)**. **No hay CI**: las comprobaciones se ejecutan a mano.
+Repositorio público, **sin licencia (todos los derechos reservados)**. Hay CI en GitHub Actions (`.github/workflows/ci.yml`, ver «Entorno»); las comprobaciones también se pueden ejecutar a mano.
 
 ## Flujo de ramas
 - Rama común: `develop`. Cada sesión trabaja en su propia rama creada desde `develop` y abre su PR **contra `develop`** (nunca contra `main`).
@@ -17,6 +17,7 @@ Repositorio público, **sin licencia (todos los derechos reservados)**. **No hay
 - Compilar (genera, valida y audita; falla ante cualquier aviso): `./gradlew build`
 - Prueba de humo en servidor dedicado 26.3 real: `python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-<versión>.jar`
 - Registro de cambios: `python3 tools/changelog.py check`
+- CI (`.github/workflows/ci.yml`): en cada PR contra `develop` o `main` y en cada push a `develop`. Job `compilar`: Java 25 (Temurin) y Python 3.12 con `tools/gen/requirements.txt` (acción común `.github/actions/preparar`), cachés de Gradle, pip, el servidor Fabric de prueba (`build/smoke`) y el clon de mcmeta (`build/mcmeta-summary`); `tools/changelog.py check`, `./gradlew build` (genera, valida, audita y pasa JUnit) y la prueba de humo con el `.jar` de la versión de `gradle.properties`. Job `unicas`: una entrada de matriz por cada prueba de servidor de estructura única (`tools/smoke/*.py` salvo `server_smoke.py` y `tools/gen/unicas/*/prueba_*.py`), en paralelo, con el `.jar` del primer job y `--work build/smoke`. Si una prueba falla, su `logs/latest.log` se sube como artefacto. **Una prueba nueva de una única se añade a la matriz `unicas.strategy.matrix.prueba`** (debe aceptar `--jar` y `--work`). `publish.yml` (en `main`) no cambia. La CI no sustituye las capturas de Alberto.
 
 ## Estructuras únicas: dónde va cada cosa
 - Una estructura = un módulo `tools/gen/unicas/<id>.py` (o paquete `tools/gen/unicas/<id>/`). El contrato está en `tools/gen/unicas/__init__.py`. No hace falta tocar `main.py` ni `writer.py`.
