@@ -11,7 +11,9 @@
 	"license": "LicenseRef-All-Rights-Reserved",
 	"environment": "*",
 	"entrypoints": {
-		"main": ["io.github.albertosa23.heraldia.Heraldia"]
+		"main": ["io.github.albertosa23.heraldia.Heraldia"],
+		"client": ["io.github.albertosa23.heraldia.client.HeraldiaClient"],
+		"modmenu": ["io.github.albertosa23.heraldia.client.ModMenuIntegration"]
 	},
 	"mixins": ["heraldia.mixins.json"],
 	"depends": {
@@ -19,5 +21,8 @@
 		"minecraft": "~${minecraft_version}",
 		"java": ">=${java_version}",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "*"
 	}
 }

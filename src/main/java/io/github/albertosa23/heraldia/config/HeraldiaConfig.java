@@ -11,9 +11,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +41,7 @@ public final class HeraldiaConfig {
 	private final VillageRules villages;
 
 	private HeraldiaConfig(Map<String, JsonPrimitive> values, JsonObject schema) {
-		this.values = Map.copyOf(values);
+		this.values = Collections.unmodifiableMap(new LinkedHashMap<>(values));
 		this.schema = schema;
 		this.villages = new VillageRules(this);
 	}
@@ -86,9 +89,90 @@ public final class HeraldiaConfig {
 		return values.keySet();
 	}
 
+	/** Valores en uso, en el orden del esquema. */
+	public Map<String, JsonPrimitive> values() {
+		return values;
+	}
+
+	/** Opciones del esquema del .jar, en orden (de ellas sale la pantalla de configuración del cliente). */
+	public static List<ConfigOption> options() {
+		return Schema.OPTIONS;
+	}
+
+	/** Secciones de la pantalla, en orden: id → clave de traducción del título. */
+	public static Map<String, String> sections() {
+		return Schema.SECTIONS;
+	}
+
+	/** Valores por defecto de todas las opciones, en orden. */
+	public static Map<String, JsonPrimitive> defaults() {
+		Map<String, JsonPrimitive> out = new LinkedHashMap<>();
+		for (ConfigOption o : Schema.OPTIONS) {
+			out.put(o.key(), o.defaultValue());
+		}
+		return out;
+	}
+
+	/**
+	 * Lee el fichero como al arrancar (migración, validación y valores por defecto para lo que falte o no valga),
+	 * pero sin reescribirlo ni cambiar la configuración en uso. Lo usa la pantalla del cliente para mostrarlo.
+	 */
+	public static Map<String, JsonPrimitive> readValues(Path file) {
+		return parse(file);
+	}
+
+	/**
+	 * Escribe el fichero con el mismo formato que al arrancar (versión, valores y ayuda) sin cambiar la configuración
+	 * en uso. Exige un valor válido para cada opción del esquema (el resto se ignora).
+	 *
+	 * @throws IllegalArgumentException si falta una opción o su valor no es válido
+	 * @throws IOException si no se puede escribir
+	 */
+	public static void save(Path file, Map<String, JsonPrimitive> given) throws IOException {
+		Map<String, JsonPrimitive> values = new LinkedHashMap<>();
+		for (ConfigOption o : Schema.OPTIONS) {
+			JsonPrimitive v = given.get(o.key());
+			if (v == null) {
+				throw new IllegalArgumentException("Falta la opción " + o.key());
+			}
+			values.put(o.key(), o.accept(v).orElseThrow(() -> new IllegalArgumentException("Valor no válido " + o.key() + "=" + v)));
+		}
+		writeOrThrow(file, values);
+	}
+
+	/** El esquema se lee una vez del .jar. */
+	private static final class Schema {
+		static final JsonObject JSON = readResource(SCHEMA);
+		static final int VERSION = JSON.get("version").getAsInt();
+		static final List<ConfigOption> OPTIONS;
+		static final Map<String, String> SECTIONS;
+
+		static {
+			List<ConfigOption> options = new ArrayList<>();
+			JSON.getAsJsonArray("opciones").forEach(o -> options.add(ConfigOption.of(o.getAsJsonObject())));
+			OPTIONS = List.copyOf(options);
+			Map<String, String> sections = new LinkedHashMap<>();
+			JSON.getAsJsonArray("secciones").forEach(e -> sections.put(e.getAsJsonObject().get("id").getAsString(),
+					e.getAsJsonObject().get("nombre").getAsString()));
+			SECTIONS = Collections.unmodifiableMap(sections);
+		}
+	}
+
 	private static HeraldiaConfig read(Path file) {
-		JsonObject schema = readResource(SCHEMA);
-		int version = schema.get("version").getAsInt();
+		Map<String, JsonPrimitive> values = parse(file);
+		if (file != null) {
+			try {
+				writeOrThrow(file, values);
+			} catch (IOException e) {
+				LOGGER.warn("Heraldia: no se pudo escribir {} ({})", file, e.getMessage());
+			}
+		}
+		LOGGER.info("Heraldia: configuración leída ({} opciones, versión {})", values.size(), Schema.VERSION);
+		return new HeraldiaConfig(values, Schema.JSON);
+	}
+
+	private static Map<String, JsonPrimitive> parse(Path file) {
+		int version = Schema.VERSION;
 		JsonObject root = new JsonObject();
 		boolean exists = file != null && Files.isRegularFile(file);
 		if (exists) {
@@ -114,41 +198,25 @@ public final class HeraldiaConfig {
 		Map<String, JsonPrimitive> flat = new LinkedHashMap<>();
 		flatten("", root, flat);
 		Map<String, JsonPrimitive> values = new LinkedHashMap<>();
-		List<JsonObject> options = new ArrayList<>();
-		schema.getAsJsonArray("opciones").forEach(o -> options.add(o.getAsJsonObject()));
-		for (JsonObject o : options) {
-			String key = o.get("clave").getAsString();
-			JsonPrimitive def = o.getAsJsonPrimitive("defecto");
-			JsonPrimitive given = flat.remove(key);
-			values.put(key, given == null ? def : validate(key, given, def, o));
+		for (ConfigOption o : Schema.OPTIONS) {
+			JsonPrimitive given = flat.remove(o.key());
+			values.put(o.key(), given == null ? o.defaultValue() : validate(given, o));
 		}
 		flat.keySet().stream().filter(k -> !k.equals("version") && !k.startsWith("_ayuda"))
 				.forEach(k -> LOGGER.warn("Heraldia: opción desconocida {} en la configuración; se ignora", k));
-
-		if (file != null) {
-			write(file, values, options, version);
-		}
-		LOGGER.info("Heraldia: configuración leída ({} opciones, versión {})", values.size(), version);
-		return new HeraldiaConfig(values, schema);
+		return values;
 	}
 
-	private static JsonPrimitive validate(String key, JsonPrimitive given, JsonPrimitive def, JsonObject o) {
-		if (def.isBoolean()) {
-			if (given.isBoolean()) {
-				return given;
+	private static JsonPrimitive validate(JsonPrimitive given, ConfigOption o) {
+		return o.accept(given).orElseGet(() -> {
+			if (o.isBoolean()) {
+				LOGGER.warn("Heraldia: valor no válido {}={} (true o false); se usa el valor por defecto {}", o.key(), given, o.defaultValue());
+			} else {
+				LOGGER.warn("Heraldia: valor no válido {}={} (entero de {} a {}); se usa el valor por defecto {}", o.key(), given, o.min(), o.max(),
+						o.defaultValue());
 			}
-			LOGGER.warn("Heraldia: valor no válido {}={} (true o false); se usa el valor por defecto {}", key, given, def);
-			return def;
-		}
-		int min = o.get("min").getAsInt(), max = o.get("max").getAsInt();
-		if (given.isNumber()) {
-			double d = given.getAsDouble();
-			if (d == Math.rint(d) && d >= min && d <= max) {
-				return new JsonPrimitive((int) d);
-			}
-		}
-		LOGGER.warn("Heraldia: valor no válido {}={} (entero de {} a {}); se usa el valor por defecto {}", key, given, min, max, def);
-		return def;
+			return o.defaultValue();
+		});
 	}
 
 	/** Cambios de formato entre versiones del fichero. La versión 0 (sin campo) es la de un fichero escrito a mano. */
@@ -176,9 +244,9 @@ public final class HeraldiaConfig {
 	}
 
 	/** Reescribe el fichero con los valores en uso y una ayuda en español e inglés (se regenera en cada arranque). */
-	private static void write(Path file, Map<String, JsonPrimitive> values, List<JsonObject> options, int version) {
+	private static void writeOrThrow(Path file, Map<String, JsonPrimitive> values) throws IOException {
 		JsonObject root = new JsonObject();
-		root.addProperty("version", version);
+		root.addProperty("version", Schema.VERSION);
 		for (Map.Entry<String, JsonPrimitive> e : values.entrySet()) {
 			String[] parts = e.getKey().split("\\.");
 			JsonObject node = root;
@@ -194,25 +262,28 @@ public final class HeraldiaConfig {
 		for (String lang : LANGS) {
 			JsonObject texts = readResource("/assets/heraldia/lang/" + lang + ".json");
 			JsonObject h = new JsonObject();
-			for (JsonObject o : options) {
-				String shown = o.has("patron") ? o.get("patron").getAsString() : o.get("clave").getAsString();
+			for (ConfigOption o : Schema.OPTIONS) {
+				String shown = o.pattern() != null ? o.pattern() : o.key();
 				if (h.has(shown)) {
 					continue;
 				}
-				String desc = text(texts, o.get("ayuda").getAsString(), o.has("patron") ? shown.substring(shown.indexOf('<'), shown.indexOf('>') + 1) : null);
-				String range = o.has("min")
-						? text(texts, "heraldia.config.rango", o.get("defecto").getAsString(), o.get("min").getAsString(), o.get("max").getAsString())
-						: text(texts, "heraldia.config.si_no", o.get("defecto").getAsString());
+				String desc = text(texts, o.help(), o.pattern() != null ? shown.substring(shown.indexOf('<'), shown.indexOf('>') + 1) : null);
+				String range = o.min() != null
+						? text(texts, "heraldia.config.rango", o.defaultValue().getAsString(), o.min().toString(), o.max().toString())
+						: text(texts, "heraldia.config.si_no", o.defaultValue().getAsString());
 				h.addProperty(shown, desc + " (" + range + ")");
 			}
 			help.add(lang, h);
 		}
 		root.add("_ayuda", help);
+		Files.createDirectories(file.toAbsolutePath().getParent());
+		// Primero a un temporal y luego se sustituye: un corte a medias no deja el fichero roto.
+		Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
+		Files.writeString(tmp, GSON.toJson(root) + "\n", StandardCharsets.UTF_8);
 		try {
-			Files.createDirectories(file.getParent());
-			Files.writeString(file, GSON.toJson(root) + "\n", StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			LOGGER.warn("Heraldia: no se pudo escribir {} ({})", file, e.getMessage());
+			Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+		} catch (AtomicMoveNotSupportedException e) {
+			Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING);
 		}
 	}
 
