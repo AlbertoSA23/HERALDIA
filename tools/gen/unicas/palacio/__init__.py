@@ -15,6 +15,10 @@ STRUCTURE = dict(
     spacing=250, separation=190,
 )
 NOMBRE = {"es_es": "Palacio oriental", "en_us": "Eastern Palace"}
+TROFEO = {"objeto": "golden_sword", "rareza": "rare",
+          "nombre": ("Espada ceremonial de la Guardia Imperial", "Ceremonial Sword of the Imperial Guard"),
+          "lore": [("Su filo solo se desenvainaba ante el emperador.", "Its blade was drawn only before the emperor.")],
+          "encantamientos": {"minecraft:sharpness": 2, "minecraft:unbreaking": 3}}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:bamboo"}   # logros.py
 
 

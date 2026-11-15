@@ -9,6 +9,11 @@ from . import cosas
 
 ID = "unicas/atlantida"
 NOMBRE = {"es_es": "La Atlántida", "en_us": "Atlantis"}
+TROFEO = {"objeto": "trident", "rareza": "epic",
+          "nombre": ("Tridente de Poseidón", "Trident of Poseidon"),
+          "lore": [("Aún huele a sal y a tormenta.", "It still smells of salt and storm."),
+                   ("Lo empuñó el último guardián de la ciudad hundida.", "Wielded by the last warden of the sunken city.")],
+          "encantamientos": {"minecraft:loyalty": 2, "minecraft:impaling": 2}}   # trofeo del guardián (_comun/botin.trofeo)
 STRUCTURE = dict(
     placement={"type": "heraldia:mundial"},   # siempre una, sin configuración
     json={

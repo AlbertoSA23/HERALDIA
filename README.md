@@ -151,15 +151,40 @@ Every unique structure has its own treasure map, which marks the nearest one wit
 
 Known limitations: the port is laid out straight from the street without looking for water; on slopes there may be steps and tall foundations; overlap with structures from other mods has not been checked (biomes from other mods have, see [Biomes from other mods](#biomes-from-other-mods)).
 
+## Guardian trophies
+
+Every named guardian of a unique structure (and Atlantis' Warden of Poseidon) drops its own **trophy** on death: a vanilla item with its own name, one or two lines of lore, a rarity (name colour) and sometimes an armour trim or an emblazoned shield. Most are decorative; a few (the Trident of Poseidon, Borin Ironbeard's Axe) are slightly better than a regular item without breaking progression. It only drops when a player kills the guardian (not with `/kill` or a trap with no player involved), and there is one per guardian: placing the structure again with `/place` creates another guardian and therefore another trophy.
+
+| Structure | Trophy | Item | Enchantments |
+|---|---|---|---|
+| Ruined Aqueduct | Lorica of Centurion Aquilius | `iron_chestplate` | protection 1 |
+| Atlantis | Trident of Poseidon | `trident` | loyalty 2, impaling 2 |
+| Castle | Helm of Sir Aldric | `iron_helmet` | protection 1 |
+| Gothic cathedral | Friar Osmund's Soul Compass | `recovery_compass` | — |
+| Dwarven Citadel | Borin Ironbeard's Axe | `iron_axe` | efficiency 3, unbreaking 2 |
+| Ruined Colosseum | Shield of the Arena Champion | `shield` | unbreaking 2 |
+| Smugglers' Lighthouse | Captain Mist's Cutlass | `iron_sword` | sharpness 1, unbreaking 1 |
+| Ice Fortress | Frost Crown | `golden_helmet` | unbreaking 2 |
+| Stranded Galleon | The Drowned Captain's Spyglass | `spyglass` | — |
+| Haunted Mansion | Count Malachi's Pocket Watch | `clock` | — |
+| Mountain Monastery | Tear of the Reliquary | `amethyst_shard` | — |
+| Observatory | The Keeper's Astrolabe | `compass` | — |
+| Eastern Palace | Ceremonial Sword of the Imperial Guard | `golden_sword` | sharpness 2, unbreaking 3 |
+| Pyramid Temple | Breastplate of the Jaguar King | `golden_chestplate` | protection 1 |
+| Wizard Tower | Staff of Archmage Malvarius | `blaze_rod` | — |
+
+All of them carry `custom_data` `{heraldia_trofeo:"<id>"}`. To test: `/loot give @s loot heraldia:trofeos/<id>`. The **Hall of Trophies** challenge (see [Advancements](#advancements)) asks for all of them.
+
 ## Advancements
 
-A **Heraldia** advancement tab (63 advancements), with texts in Spanish and English. They only give experience, never items:
+A **Heraldia** advancement tab (64 advancements), with texts in Spanish and English. They only give experience, never items:
 
 - **Heraldia** (root): enter any Heraldia village or unique structure.
 - A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
 - For each unique structure: discover it (50), defeat its named guardian (100) and open its treasure chest (50).
 - Atlantis also has its three seals (open the seal chest or hold its key, 30 each); its guardian is the Warden of Poseidon and the treasure counts when you take one of the named items from the unique chest.
 - Final challenge **Cartographer of Legends**: discover every unique structure (500).
+- **Hall of Trophies** challenge: collect the [trophy](#guardian-trophies) of every unique structure's guardian (500); it counts when you hold it in your inventory.
 
 Notes: a structure counts when you step inside its pieces; seeing it is not enough. If a family or a structure is disabled in the [configuration](#configuration), its advancement and the related challenge cannot be earned. With Lootr, the treasure advancement depends on Lootr notifying the game when the chest is opened (not checked). The unique-structure advancements are generated from the unique-structure registry, so a new structure brings its own.
 
@@ -210,9 +235,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 87 structures and all 63 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 87 structures and all 64 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
-Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio` and `piramide`. Atlantis is checked within the smoke test (`atlantida/humo.py`).
+Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio` and `piramide`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one.
 
 Versions are pinned in `gradle.properties`. Generator tools: `tools/gen/sim.py` (simulates jigsaw assembly), `tools/gen/render.py` (isometric renders), `tools/gen/lint.py` (design audit).
 

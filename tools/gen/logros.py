@@ -11,18 +11,23 @@
                                un objeto que solo hay en él (cofres de contenido fijo)
   unicas/<id>/<extra>          logros propios del módulo
   unicas/todas                 (desafío) descubrir todas las únicas
+  unicas/trofeos               (desafío) conseguir el trofeo de cada guardián (TROFEO de cada módulo, custom_data
+                               heraldia_trofeo; un criterio inventory_changed por trofeo, todos requeridos)
 Contrato opcional en cada módulo de unicas/ (ver unicas/__init__.py): LOGRO = {"icono", "tesoro", "tesoro_objeto", "extra"}.
 Recompensas: solo experiencia (Decisiones de Alberto: nada que rompa la progresión).
 """
 from themes import FAMILIES, THEMES
 from unicas._comun.piezas import GUARDIAN_TAG
+from unicas._comun import botin
 
 NS = "heraldia"
 BACKGROUND = "minecraft:gui/advancements/backgrounds/adventure"
 ROOT_ICON, VILLAGES_ICON, UNIQUES_ICON = "minecraft:filled_map", "minecraft:bell", "minecraft:compass"
 DEFAULT_ICON, GUARDIAN_ICON, TREASURE_ICON = "minecraft:filled_map", "minecraft:iron_sword", "minecraft:chest"
 # Experiencia (moderada): una aldea vale lo que un logro vanilla sencillo, los desafíos lo que uno vanilla grande.
-XP = {"familia": 20, "aldeas": 250, "descubrir": 50, "guardian": 100, "tesoro": 50, "extra": 30, "unicas": 500}
+XP = {"familia": 20, "aldeas": 250, "descubrir": 50, "guardian": 100, "tesoro": 50, "extra": 30, "unicas": 500,
+      "trofeos": 500}
+TROPHIES_ICON = "minecraft:armor_stand"
 DEFAULT_TREASURE_TABLES = ("premium",)
 TREASURE_MARK = "heraldia_tesoro"   # custom_data de los objetos de un cofre de contenido fijo (tesoro_objeto)
 
@@ -38,6 +43,9 @@ TEXTS = {
     "tesoro": (("Tesoro: %s", "Treasure: %s"), ("Abre la cámara del tesoro de «%s»", "Open the treasure chamber of “%s”")),
     "unicas": (("Cartógrafo de leyendas", "Cartographer of Legends"),
                ("Descubre todas las estructuras únicas", "Discover every unique structure")),
+    "trofeos": (("Sala de trofeos", "Hall of Trophies"),
+                ("Consigue el trofeo de cada guardián de las estructuras únicas",
+                 "Collect the trophy of every unique structure's guardian")),
 }
 
 
@@ -164,6 +172,12 @@ def build(reg, modules):
     advs["unicas/todas"] = advancement("raiz", UNIQUES_ICON, title, desc,
                                        {sid: location(f"{NS}:unicas/{sid}") for sid, _ in modules},
                                        requirements=[[sid] for sid, _ in modules], frame="challenge", xp=XP["unicas"])
+    # trofeos: uno por única (TROFEO es obligatorio, pack.build_all lo comprueba), todos requeridos
+    crit = {sid: {"trigger": "minecraft:inventory_changed",
+                  "conditions": {"items": [botin.trofeo_predicado(sid, mod.TROFEO)]}} for sid, mod in modules}
+    title, desc = text("unicas/trofeos", "trofeos")
+    advs["unicas/trofeos"] = advancement("raiz", TROPHIES_ICON, title, desc, crit,
+                                         requirements=[[sid] for sid in sorted(crit)], frame="challenge", xp=XP["trofeos"])
     return advs, lang
 
 

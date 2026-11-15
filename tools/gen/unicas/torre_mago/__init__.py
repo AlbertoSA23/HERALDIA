@@ -16,6 +16,9 @@ from unicas._comun.botin import item, empty, cofre as t2, named as _named, potio
 SID = "torre_mago"
 NSP = f"unicas/{SID}"
 NOMBRE = {"es_es": "Torre de mago", "en_us": "Wizard Tower"}
+TROFEO = {"objeto": "blaze_rod", "rareza": "epic",
+          "nombre": ("Báculo del Archimago Malvarius", "Staff of Archmage Malvarius"),
+          "lore": [("Todavía chisporrotea con su último conjuro.", "It still crackles with his final spell.")]}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:enchanting_table"}   # logros.py
 OX, OZ = 13, 12                      # desplazamiento: coordenadas relativas al eje de la torre -> plantilla >= 0
 FEET = dict(B2=2, B1=8, f0=14, f1=20, f2=26, f3=32, f4=38, f5=44, f6=50, f7=56)

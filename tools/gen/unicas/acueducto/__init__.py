@@ -12,6 +12,11 @@ STRUCTURE = dict(
     step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG",
 )
 NOMBRE = {"es_es": "Acueducto en ruinas", "en_us": "Ruined Aqueduct"}
+TROFEO = {"objeto": "iron_chestplate", "rareza": "uncommon",
+          "nombre": ("Lorica del Centurión Aquilio", "Lorica of Centurion Aquilius"),
+          "lore": [("Forjada para la legión que custodiaba el agua.", "Forged for the legion that guarded the water.")],
+          "encantamientos": {"minecraft:protection": 1},
+          "componentes": {"minecraft:trim": {"material": "minecraft:gold", "pattern": "minecraft:dune"}}}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:water_bucket"}   # logros.py
 
 K = "heraldia.unicas.acueducto."

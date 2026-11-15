@@ -4,6 +4,7 @@ from core import parse_state
 
 BLOCKS, ITEMS, ENTITIES, TRIGGERS, ENTITY_PREDICATES = {}, set(), set(), set(), set()
 # El juego suma 12 bloques de adaptación al terreno al radio y rechaza el paquete entero si pasa de 128.
+DATA = {"enchantment": set(), "trim_pattern": set(), "trim_material": set(), "banner_pattern": set()}   # registros de datos
 TERRAIN_ADAPTATION_MARGIN, MAX_RADIUS_WITH_MARGIN, MAX_JIGSAW_SIZE = 12, 128, 20
 
 
@@ -22,6 +23,8 @@ def load_registries(summary_dir):
     ENTITIES.update(reg["entity_type"])
     TRIGGERS.update(reg["trigger_type"])
     ENTITY_PREDICATES.update(reg["entity_sub_predicate_type"])
+    for k, v in DATA.items():
+        v.update(reg.get(k, ()))
 
 
 def validate_structures(out):
@@ -93,6 +96,14 @@ def validate_loot(tables):
                 n = o["name"].replace("minecraft:", "")
                 if n not in ITEMS:
                     errs.append("objeto inexistente " + n)
+            elif o.get("type") == "minecraft:set_enchantments":
+                errs.extend("encantamiento inexistente " + e for e in o["enchantments"] if _short(e) not in DATA["enchantment"])
+            elif o.get("type") == "minecraft:set_components":
+                c = o["components"]
+                trim = c.get("minecraft:trim") or {}
+                refs = [("trim_pattern", trim.get("pattern")), ("trim_material", trim.get("material"))]
+                refs += [("banner_pattern", b["pattern"]) for b in c.get("minecraft:banner_patterns", ())]
+                errs.extend(f"{k} inexistente {v}" for k, v in refs if v and _short(v) not in DATA[k])
             for v in o.values():
                 walk(v)
         elif isinstance(o, list):

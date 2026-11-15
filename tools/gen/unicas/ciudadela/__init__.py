@@ -9,6 +9,10 @@ from .botin import TABLES as LOOT
 from . import plano, auditoria
 
 NOMBRE = {"es_es": "Ciudadela enana", "en_us": "Dwarven Citadel"}
+TROFEO = {"objeto": "iron_axe", "rareza": "rare",
+          "nombre": ("Hacha de Borin Barbahierro", "Borin Ironbeard's Axe"),
+          "lore": [("Ha partido roca, hierro y orgullo de trasgo.", "It has cleaved stone, iron and goblin pride.")],
+          "encantamientos": {"minecraft:efficiency": 3, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:iron_pickaxe"}   # logros.py
 ROOF_CELL = 8
 PORCH_DEPTH = 8          # filas del pórtico (z < 8): al aire libre, no cuentan para la cubierta de roca

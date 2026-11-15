@@ -13,6 +13,9 @@ STRUCTURE = dict(biomes="#heraldia:pantano", start_pool="unicas/mansion/inicio",
                  terrain_adaptation="beard_thin", step="surface_structures", start_height={"absolute": 0},
                  project_to="WORLD_SURFACE_WG", spacing=250, separation=190)
 NOMBRE = {"es_es": "Mansión encantada", "en_us": "Haunted Mansion"}
+TROFEO = {"objeto": "clock", "rareza": "rare",
+          "nombre": ("Reloj del Conde Malaquías", "Count Malachi's Pocket Watch"),
+          "lore": [("Se detuvo a medianoche y nunca volvió a andar.", "It stopped at midnight and never ran again.")]}   # trofeo del guardián (_comun/botin.trofeo)
 LOGRO = {"icono": "minecraft:jack_o_lantern"}   # logros.py
 MAPA = {"decoration": "minecraft:mansion"}
 
