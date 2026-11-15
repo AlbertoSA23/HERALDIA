@@ -60,8 +60,14 @@ def cofre(v, u, y, w, mira, tabla, llave=None, tipo="chest"):
     v.marca("cofre", u, y, w)
 
 
-def cofre_fijo(v, u, y, w, mira, objetos, llave=None):
-    """Cofre con contenido fijo (sin tabla: Lootr no lo convierte). objetos = [(id, cantidad, componentes | None)]."""
+# Marca (custom_data del bloque) de un cofre de contenido fijo que, con la opción unicas.<id>.cofre_unico_por_jugador,
+# da a cada jugador su propia copia (loot/CofrePorJugador.java lee la misma clave).
+MARCA_POR_JUGADOR = "heraldia_cofre_unico"
+
+
+def cofre_fijo(v, u, y, w, mira, objetos, llave=None, por_jugador=None):
+    """Cofre con contenido fijo (sin tabla: Lootr no lo convierte). objetos = [(id, cantidad, componentes | None)].
+    por_jugador = id de la estructura: marca el cofre para la opción unicas.<id>.cofre_unico_por_jugador."""
     items = []
     for i, (oid, n, comp) in enumerate(objetos):
         it = {"Slot": B(i), "id": "minecraft:" + oid, "count": n}
@@ -71,6 +77,8 @@ def cofre_fijo(v, u, y, w, mira, objetos, llave=None):
     nbt = {"id": "minecraft:chest", "Items": items}
     if llave:
         nbt["lock"] = cerradura(llave)
+    if por_jugador:
+        nbt["components"] = {"minecraft:custom_data": {MARCA_POR_JUGADOR: por_jugador}}
     v.set(u, y, w, f"chest[facing={mira}]", nbt)
     v.marca("cofre", u, y, w)
 

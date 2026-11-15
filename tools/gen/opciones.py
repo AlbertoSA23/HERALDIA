@@ -41,6 +41,9 @@ _FIXED = [
     ("unicas.distancia_minima.bloques", 1000, 100, 3000,
      "Distancia mínima entre estructuras únicas distintas (también la Atlántida), en bloques",
      "Minimum distance between different unique structures (Atlantis included), in blocks"),
+    ("unicas.atlantida.cofre_unico_por_jugador", False, None, None,
+     "Cofre premium de la Atlántida por jugador: cada jugador saca su propia copia del contenido una vez (si no, el primero que llega se lo lleva)",
+     "Per-player Atlantis premium chest: each player takes their own copy of its contents once (otherwise the first to arrive takes it all)"),
 ]
 # Opciones repetidas: (patrón, clave de texto, es_es, en_us); %s es el nombre de la familia, el estilo o la estructura.
 _GROUPS = {
