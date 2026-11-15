@@ -822,54 +822,74 @@ def mill(th, rng, name):
 
 
 # ======================================================================= PUERTO
+# Dos piezas: la caseta con el embarcadero (rígida, en tierra) y el muelle (terrain_matching). El muelle no puede ser
+# rígido: con beard_thin el juego rellena de tierra hasta 12 bloques por debajo de toda pieza rígida, y en el mar
+# levantaría una lengua de tierra bajo las tablas. terrain_matching apoya cada columna en la superficie (el agua cuenta):
+# la tabla (y=1) queda justo sobre el agua o el suelo, y los pilotes (fila inferior, y=0) bajan hasta el fondo con el
+# procesador hasta_el_suelo. No cuelgan de la aldea: AldeaStructure (Java) las pone en la orilla más cercana a la plaza,
+# con el muelle hacia el mar, uniéndolas por sus jigsaws heraldia:pier (writer.village_with_port).
+PIER_W, PIER_L = 9, 18
+
+
 def port(th, rng, name):
     t = Template(name)
-    W, Lp, c = 9, 26, 6
+    W, D = PIER_W, 9
     pw = th["pier"]
-    t.jigsaw(c, 0, 0, "north_up", "heraldia:entrance", "heraldia:side", "minecraft:empty",
+    t.jigsaw(6, 0, 0, "north_up", "heraldia:entrance", "heraldia:side", "minecraft:empty",
              final_state=stairs(pw["wstairs"], "south"))
-    # caseta del puerto a la entrada, con la puerta al muelle
+    # caseta del puerto a la entrada, con la puerta al embarcadero
     shell(t, th, 0, 2, 4, 6, 0, 3)
     door(t, 4, 1, 4, th["door"], "east")
     t.chest(1, 1, 5, "north", L("puerto"))
     t.set(3, 1, 5, "barrel[facing=up]")
     t.set(1, 1, 3, "crafting_table")
     t.set(2, 3, 4, lantern(th, True))
-    # muelle
-    for z in range(1, Lp):
+    # embarcadero: tablas a ras de la caseta, barandilla al este y carga apilada en un rincón
+    for z in range(1, D):
         for x in range(5 if z < 7 else 0, W):
             t.set(x, 0, z, pw["planks"])
+    for z in (1, 5):
+        t.set(W - 1, 1, z, pw["fence"])
+    t.set(W - 1, 2, 1, lantern(th, False))
+    for (x, y, z) in ((0, 1, 8), (1, 1, 8), (0, 1, 7)):
+        t.set(x, y, z, "barrel[facing=up]")
+    t.jigsaw(4, 0, D - 1, "south_up", "heraldia:pier", "heraldia:pier", P(th, "port_pier"), final_state=pw["planks"])
+    return t
+
+
+def port_pier(th, rng, name):
+    t = Template(name)
+    W, Lp = PIER_W, PIER_L
+    pw = th["pier"]
+    for z in range(Lp):
+        for x in range(W):
+            t.set(x, 1, z, pw["planks"])
+    # pilotes (fila inferior: hasta_el_suelo los alarga hasta el fondo) con barandilla y faroles
     for z in range(1, Lp, 4):
-        for x in ((0 if z >= 7 else 5), W - 1):
-            for y in (-2, -1):
-                t.set(x, y, z, log(pw["log"], "y"))
-            t.set(x, 1, z, pw["fence"])
-            if z % 8 == 1:
-                t.set(x, 2, z, lantern(th, False))
-    for (x, z) in ((0, 2), (4, 2), (0, 6), (4, 6)):
-        for y in (-2, -1):
-            t.set(x, y, z, log(pw["log"], "y"))
-    # grúa con un tonel colgado
-    gx, gz = W - 2, Lp - 4
-    for y in range(1, 6):
+        for x in (0, W - 1):
+            t.set(x, 0, z, log(pw["log"], "y"))
+            t.set(x, 2, z, pw["fence"])
+            if z % 8 == 5:
+                t.set(x, 3, z, lantern(th, False))
+    # grúa con un tonel colgado en la punta
+    gx, gz = W - 2, Lp - 3
+    for y in range(2, 7):
         t.set(gx, y, gz, log(pw["log"], "y"))
     for x in range(gx - 3, gx + 1):
-        t.set(x, 6, gz, log(pw["log"], "x"))
-    for y in (5, 4):
+        t.set(x, 7, gz, log(pw["log"], "x"))
+    for y in (6, 5):
         t.set(gx - 3, y, gz, "iron_chain[axis=y]")
-    t.set(gx - 3, 3, gz, "barrel[facing=up]")
-    # carga apilada en un rincón
-    for (x, y, z) in ((1, 1, 10), (2, 1, 10), (1, 1, 11), (1, 2, 10)):
-        t.set(x, y, z, "barrel[facing=up]")
-    staff(t, th, 3, 0, 14, "fisherman", final=pw["planks"])
+    t.set(gx - 3, 4, gz, "barrel[facing=up]")
+    t.set(1, 2, Lp - 1, "barrel[facing=up]")
+    t.jigsaw(4, 1, 0, "north_up", "heraldia:pier", "heraldia:pier", "minecraft:empty", final_state=pw["planks"])
     wk = th["wood_kind"] if th["wood_kind"] not in ("bamboo", "pale_oak") else "oak"
-    t.entity(-1, 0, 16, {"id": f"minecraft:{wk}_boat"})
-    t.entity(W, 0, 20, {"id": "minecraft:oak_boat"})
+    t.entity(-1, 1, Lp - 8, {"id": f"minecraft:{wk}_boat"})
+    t.entity(W, 1, Lp - 4, {"id": "minecraft:oak_boat"})
     return t
 
 
 SPECIALS = {
     "church": church, "cemetery": cemetery, "townhall": townhall, "market": market, "blacksmith": blacksmith,
     "tavern": tavern, "inn": lambda th, rng, n: tavern(th, rng, n, inn=True), "library": library,
-    "farm": farm, "mill": mill, "port": port,
+    "farm": farm, "mill": mill, "port": port, "port_pier": port_pier,
 }

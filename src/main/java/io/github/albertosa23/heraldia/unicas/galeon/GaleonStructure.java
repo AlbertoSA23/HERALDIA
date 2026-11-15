@@ -1,6 +1,7 @@
 package io.github.albertosa23.heraldia.unicas.galeon;
 
 import com.mojang.serialization.Codec;
+import io.github.albertosa23.heraldia.comun.Generacion;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
@@ -8,16 +9,10 @@ import java.util.Optional;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.QuartPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.LegacyRandomSource;
-import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pools.DimensionPadding;
@@ -78,7 +73,7 @@ public final class GaleonStructure extends Structure {
 		int sea = context.chunkGenerator().getSeaLevel();
 		Optional<Site> site = findSite(context, chunk.getMiddleBlockX(), chunk.getMiddleBlockZ(), sea);
 		if (site.isEmpty()) {
-			if (!isForced(context)) {
+			if (!Generacion.forzada(context, this.biomes())) {
 				return Optional.empty();
 			}
 			// /place structure: sin orilla cerca se coloca igualmente en el centro del chunk (para pruebas)
@@ -91,45 +86,18 @@ public final class GaleonStructure extends Structure {
 		LOGGER.info("Heraldia: galeón en la orilla, ancla {} {} {} giro {}", s.anchor().getX(), s.anchor().getY(), s.anchor().getZ(), s.rotation());
 		BlockPos origin = s.anchor().subtract(StructureTemplate.transform(this.anchor, Mirror.NONE, s.rotation(), BlockPos.ZERO));
 		// maxDepth >= 1: con 0, addPieces no añade ni la pieza central. JigsawPlacement deja la base de la pieza un bloque por debajo de la posición (getGroundLevelDelta = 1)
-		Optional<Structure.GenerationStub> stub = JigsawPlacement.addPieces(withRotation(context, s.rotation()), this.startPool,
+		Optional<Structure.GenerationStub> stub = JigsawPlacement.addPieces(Generacion.conGiro(context, s.rotation()), this.startPool,
 				Optional.empty(), 1, origin.above(), false, Optional.empty(), new JigsawStructure.MaxDistance(116),
 				PoolAliasLookup.EMPTY, DimensionPadding.ZERO, LiquidSettings.IGNORE_WATERLOGGING);
 		// el bioma se valida en el ancla (a nivel del mar), no en el centro de la caja, que queda bajo tierra
 		return stub.map(g -> new Structure.GenerationStub(s.anchor(), g.generator()));
 	}
 
-	/** Copia del contexto cuyo azar da como primera tirada el giro elegido (JigsawPlacement sortea el giro primero). */
-	private static Structure.GenerationContext withRotation(Structure.GenerationContext c, Rotation rotation) {
-		for (long k = 0; ; k++) {
-			if (Rotation.getRandom(seeded(c, k)) == rotation) {
-				return new Structure.GenerationContext(c.registryAccess(), c.chunkGenerator(), c.biomeSource(), c.climateSampler(),
-						c.biomeResolver(), c.randomState(), c.structureTemplateManager(), seeded(c, k), c.seed(), c.chunkPos(),
-						c.heightAccessor(), c.validBiome());
-			}
-		}
-	}
-
-	private static WorldgenRandom seeded(Structure.GenerationContext c, long k) {
-		WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(0L));
-		random.setLargeFeatureSeed(c.seed() + k * 0x9E3779B97F4A7C15L, c.chunkPos().x(), c.chunkPos().z());
-		return random;
-	}
-
-	/** /place structure acepta cualquier bioma: así se distingue de la generación natural. */
-	private boolean isForced(Structure.GenerationContext c) {
-		Holder<Biome> voidBiome = c.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.THE_VOID);
-		return !this.biomes().contains(voidBiome) && c.validBiome().test(voidBiome);
-	}
-
-	private boolean biomeOk(Structure.GenerationContext c, int x, int y, int z) {
-		return this.biomes().contains(c.biomeResolver().getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z)));
-	}
-
 	private Optional<Site> findSite(Structure.GenerationContext c, int cx, int cz, int sea) {
 		boolean anyBeach = false;
 		for (int dx = -64; dx <= 64 && !anyBeach; dx += 16) {
 			for (int dz = -64; dz <= 64 && !anyBeach; dz += 16) {
-				anyBeach = biomeOk(c, cx + dx, sea, cz + dz);
+				anyBeach = Generacion.bioma(c, this.biomes(), cx + dx, sea, cz + dz);
 			}
 		}
 		if (!anyBeach) {
@@ -141,7 +109,7 @@ public final class GaleonStructure extends Structure {
 		for (int ox = -this.searchRadius; ox <= this.searchRadius; ox += 8) {
 			for (int oz = -this.searchRadius; oz <= this.searchRadius; oz += 8) {
 				int ax = cx + ox, az = cz + oz;
-				if (!biomeOk(c, ax, sea, az)) {
+				if (!Generacion.bioma(c, this.biomes(), ax, sea, az)) {
 					continue;
 				}
 				for (Rotation rotation : Rotation.values()) {

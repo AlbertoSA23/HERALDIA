@@ -38,13 +38,21 @@ def validate_structures(out):
         for fn in files:
             with open(os.path.join(root, fn), encoding="utf-8") as f:
                 s = json.load(f)
-            if s.get("type") != "minecraft:jigsaw":
-                continue
-            if s["max_distance_from_center"] + TERRAIN_ADAPTATION_MARGIN > MAX_RADIUS_WITH_MARGIN:
-                errs.append(f"{fn}: max_distance_from_center {s['max_distance_from_center']} + 12 > 128")
-            if not 0 < s["size"] <= MAX_JIGSAW_SIZE:
-                errs.append(f"{fn}: size {s['size']} fuera de 1..20")
+            for name, j in jigsaws(fn, s):
+                if j["max_distance_from_center"] + TERRAIN_ADAPTATION_MARGIN > MAX_RADIUS_WITH_MARGIN:
+                    errs.append(f"{name}: max_distance_from_center {j['max_distance_from_center']} + 12 > 128")
+                if not 0 < j["size"] <= MAX_JIGSAW_SIZE:
+                    errs.append(f"{name}: size {j['size']} fuera de 1..20")
     return errs
+
+
+def jigsaws(fn, s):
+    """Configuración jigsaw de una estructura: la propia (minecraft:jigsaw) o la que envuelve heraldia:aldea."""
+    if s.get("type") == "minecraft:jigsaw":
+        return [(fn, s)]
+    if s.get("type") == "heraldia:aldea":
+        return [(f"{fn} (aldea)", s["aldea"])]
+    return []
 
 
 def check_state(s):

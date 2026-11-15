@@ -178,8 +178,11 @@ def write(reg, out):
                               "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": f"minecraft:{b}"})
             rules.append({"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:stone_bricks", "probability": 0.06},
                           "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:cracked_stone_bricks"})
-        jdump(out, f"data/{NS}/worldgen/processor_list/{tid}/building.json",
-              {"processors": [{"processor_type": "minecraft:rule", "rules": rules}] if rules else []})
+        procs = [{"processor_type": "minecraft:rule", "rules": rules}] if rules else []
+        jdump(out, f"data/{NS}/worldgen/processor_list/{tid}/building.json", {"processors": procs + [cimientos(th)]})
+        if th["family"] == "costa":
+            jdump(out, f"data/{NS}/worldgen/processor_list/{tid}/pier.json", {"processors": [
+                hasta_el_suelo([log_block(th["pier"]["log"])], PILOTES_MAX)]})
     # etiquetas de biomas
     for fam, d in FAMILIES.items():
         biomas.etiqueta(out, fam, d["biomes"])
@@ -191,13 +194,15 @@ def write(reg, out):
                 "spawn_overrides": {}, "terrain_adaptation": "beard_thin", "start_height": {"absolute": 0},
                 "project_start_to_heightmap": "WORLD_SURFACE_WG", "use_expansion_hack": False}
         std, grande = sizes(th)
-        jdump(out, f"data/{NS}/worldgen/structure/{tid}.json", dict(base, start_pool=f"{NS}:{tid}/plaza",
-                                                                     size=std["size"], max_distance_from_center=std["maxdist"]))
         aliases = [{"type": "minecraft:direct", "alias": f"{NS}:villagers/{th['vtype']}/{p}",
                     "target": f"{NS}:villagers/{th['vtype']}/{p}_grande"} for p in ALL_PROFS]
-        jdump(out, f"data/{NS}/worldgen/structure/{tid}_grande.json", dict(base, start_pool=f"{NS}:{tid}/plaza_grande",
-                                                                            size=grande["size"], max_distance_from_center=grande["maxdist"],
-                                                                            pool_aliases=aliases))
+        for suffix, pool, sz, al in (("", "plaza", std, []), ("_grande", "plaza_grande", grande, aliases)):
+            jig = dict(base, start_pool=f"{NS}:{tid}/{pool}", size=sz["size"], max_distance_from_center=sz["maxdist"])
+            if al:
+                jig["pool_aliases"] = al
+            if th["family"] == "costa":
+                jig = village_with_port(reg, th, jig)
+            jdump(out, f"data/{NS}/worldgen/structure/{tid}{suffix}.json", jig)
         # mismo peso: la proporción estándar/grande la decide el mod en cada casilla (aldeas.porcentaje_grandes)
         set_entries.append({"structure": f"{NS}:{tid}", "weight": 1})
         set_entries.append({"structure": f"{NS}:{tid}_grande", "weight": 1})
@@ -397,3 +402,48 @@ def rule(inp, loc, outb):
     return {"input_predicate": {"predicate_type": "minecraft:block_match", "block": "minecraft:" + inp.split("[")[0].replace("minecraft:", "")},
             "location_predicate": {"predicate_type": "minecraft:block_match", "block": "minecraft:" + loc},
             "output_state": "minecraft:" + outb.split("[")[0].replace("minecraft:", "")}
+
+
+# ---------------------------------------------------------------- cimientos y puerto (aldeas)
+CIMIENTOS_MAX = 16     # bloques que puede bajar un cimiento (con /place en un barranco no se hace una torre)
+PILOTES_MAX = 24       # pilotes del muelle hasta el fondo del mar
+
+
+def log_block(state):
+    return "minecraft:" + state.split("[")[0].replace("minecraft:", "")
+
+
+def hasta_el_suelo(blocks, depth):
+    """Procesador heraldia:acueducto_hasta_el_suelo (Java comun/HastaElSueloProcessor): alarga hasta el suelo firme los
+    bloques de la lista que estén en la fila inferior de la plantilla."""
+    return {"processor_type": f"{NS}:acueducto_hasta_el_suelo", "bloques": sorted(set(blocks)), "profundidad_maxima": depth}
+
+
+def cimientos(th):
+    """Cimientos de los edificios de la aldea en ladera: la fila inferior de cimiento (th["found"]) y, en los estilos de
+    pilotes, los pilotes y la barandilla de la escalera bajan hasta el terreno con el material del estilo, en vez de
+    quedar al aire (con /place) o sobre un talud de tierra suelto."""
+    blocks = [log_block(th["found"])]
+    if th["stilts"]:
+        blocks += [log_block(th["log"]), log_block(th["fence"])]
+    return hasta_el_suelo(blocks, CIMIENTOS_MAX)
+
+
+PORT_REACH = 80        # bloques desde el centro de la plaza en que se busca la orilla (piezas a <= 8 chunks del inicio)
+
+
+def jigsaw_pos(t, name):
+    return next(list(j["pos"]) for j in t.jigsaws if j["name"] == name)
+
+
+def village_with_port(reg, th, jig):
+    """Aldea de la costa: tipo heraldia:aldea (Java aldeas/AldeaStructure), que pone la caseta y el muelle del puerto
+    (pools special/port y port_pier) en la orilla más cercana a la plaza, con el muelle hacia el mar."""
+    from specials import PIER_L
+    tid = th["id"]
+    settings = {k: jig[k] for k in ("biomes", "step", "spawn_overrides", "terrain_adaptation")}
+    return dict({"type": f"{NS}:aldea"}, **settings, aldea={k: v for k, v in jig.items() if k != "type"}, puerto={
+        "caseta": f"{NS}:{tid}/special/port", "muelle": f"{NS}:{tid}/port_pier",
+        "union_caseta": jigsaw_pos(reg.templates[f"{tid}/specials/port"], f"{NS}:pier"),
+        "union_muelle": jigsaw_pos(reg.templates[f"{tid}/specials/port_pier"], f"{NS}:pier"),
+        "largo": PIER_L, "alcance": PORT_REACH})

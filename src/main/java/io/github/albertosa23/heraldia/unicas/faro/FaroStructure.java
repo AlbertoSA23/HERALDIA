@@ -3,22 +3,17 @@ package io.github.albertosa23.heraldia.unicas.faro;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.albertosa23.heraldia.comun.Alturas;
+import io.github.albertosa23.heraldia.comun.Generacion;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.QuartPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -72,12 +67,11 @@ public final class FaroStructure extends Structure {
 		ChunkGenerator gen = ctx.chunkGenerator();
 		int sea = gen.getSeaLevel();
 		int cx = ctx.chunkPos().getMiddleBlockX(), cz = ctx.chunkPos().getMiddleBlockZ();
-		boolean forced = forcedPlacement(ctx);
-		Heights heights = new Heights(ctx, sea);
+		boolean forced = Generacion.forzada(ctx, biomes());
+		Alturas heights = new Alturas(ctx);
 		for (int[] c : CANDIDATES) {
 			int px = cx + c[0], pz = cz + c[1];
-			if (!forced && !biomes().contains(ctx.biomeResolver().getNoiseBiome(QuartPos.fromBlock(px), QuartPos.fromBlock(sea),
-					QuartPos.fromBlock(pz)))) {
+			if (!forced && !Generacion.bioma(ctx, biomes(), px, sea, pz)) {
 				continue;
 			}
 			for (Direction d : Direction.Plane.HORIZONTAL) {
@@ -91,7 +85,7 @@ public final class FaroStructure extends Structure {
 	}
 
 	/** Tierra detrás (ni baja ni alta), mar con fondo delante y nada más alto que la cima en la huella. */
-	private static boolean coast(Heights h, int px, int pz, Direction d) {
+	private static boolean coast(Alturas h, int px, int pz, Direction d) {
 		Direction e = d.getClockWise();
 		for (int k = 8; k <= 16; k += 8) {
 			for (int s = -8; s <= 8; s += 8) {
@@ -140,38 +134,5 @@ public final class FaroStructure extends Structure {
 				rotation, box, LiquidSettings.IGNORE_WATERLOGGING);
 		piece.move(px - box.getCenter().getX(), 0, pz - box.getCenter().getZ());
 		return new GenerationStub(new BlockPos(px, sea, pz), builder -> builder.addPiece(piece));
-	}
-
-	/** /place structure pasa un predicado de bioma que lo acepta todo; la generación normal, solo los de la estructura. */
-	private boolean forcedPlacement(GenerationContext ctx) {
-		Optional<? extends Holder<Biome>> voidBiome = ctx.registryAccess().lookupOrThrow(Registries.BIOME).get(Biomes.THE_VOID);
-		return voidBiome.isPresent() && !biomes().contains(voidBiome.get()) && ctx.validBiome().test(voidBiome.get());
-	}
-
-	/** Alturas de generación con caché (cada consulta evalúa el ruido de una columna). */
-	private static final class Heights {
-		final int sea;
-		private final GenerationContext ctx;
-		private final Map<Long, int[]> cache = new HashMap<>();
-
-		Heights(GenerationContext ctx, int sea) {
-			this.ctx = ctx;
-			this.sea = sea;
-		}
-
-		private int[] at(int x, int z) {
-			return cache.computeIfAbsent(BlockPos.asLong(x, 0, z), k -> new int[]{
-					ctx.chunkGenerator().getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, ctx.heightAccessor(), ctx.randomState()),
-					ctx.chunkGenerator().getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, ctx.heightAccessor(), ctx.randomState())});
-		}
-
-		int floor(int x, int z) {
-			return at(x, z)[0];
-		}
-
-		boolean water(int x, int z) {
-			int[] h = at(x, z);
-			return h[1] > h[0] && h[0] < sea;
-		}
 	}
 }
