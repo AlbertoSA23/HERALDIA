@@ -16,6 +16,23 @@ NOMBRE = {"es_es": "Galeón varado", "en_us": "Stranded Galleon"}
 TROFEO = {"objeto": "spyglass", "rareza": "uncommon",
           "nombre": ("Catalejo del capitán ahogado", "The Drowned Captain's Spyglass"),
           "lore": [("Aún busca un puerto al que nunca llegó.", "Still searching for a harbour it never reached.")]}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "capitan",
+    "relato": [
+        ("Embarqué en un galeón para cruzar el mar. Su capitán buscaba un puerto que no salía en ninguna "
+         "carta, y yo le prometí que mis mapas lo encontrarían. La tormenta nos lanzó contra una playa.",
+         "I boarded a galleon to cross the sea. Its captain sought a harbour that appeared on no chart, "
+         "and I promised him my maps would find it. The storm hurled us onto a beach."),
+        ("El barco quedó varado en la arena y el capitán se negó a abandonarlo. Guardó el pliego en su "
+         "camarote y juró seguir al timón hasta llegar a puerto. Se ahogó con la marea, pero sigue a "
+         "bordo.",
+         "The ship ran aground on the sand and the captain refused to abandon her. He kept the leaf in "
+         "his cabin and swore to stay at the helm until he made port. He drowned with the tide, but he is"
+         " still aboard."),
+    ],
+    "pista": ("una playa, donde un galeón quedó varado con su capitán a bordo",
+              "a beach, where a galleon ran aground with her captain still aboard"),
+}
 LOGRO = {"icono": "minecraft:oak_boat"}   # logros.py
 STRUCTURE = dict(spacing=250, separation=190)
 PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [

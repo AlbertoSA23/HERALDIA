@@ -19,6 +19,21 @@ TROFEO = {"objeto": "golden_chestplate", "rareza": "rare",
           "lore": [("El oro de la selva aún guarda su rugido.", "The jungle's gold still holds his roar.")],
           "encantamientos": {"minecraft:protection": 1},
           "componentes": {"minecraft:trim": {"material": "minecraft:emerald", "pattern": "minecraft:wild"}}}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "tumba",
+    "relato": [
+        ("En lo más espeso de la selva, un templo-pirámide escalonado asoma sobre los árboles. Sus "
+         "sacerdotes servían al Rey Jaguar, que gobernaba desde lo alto con un pectoral de oro.",
+         "In the thick of the jungle, a stepped pyramid temple rises above the trees. Its priests served "
+         "the Jaguar King, who ruled from on high wearing a golden breastplate."),
+        ("El rey aceptó el pliego como ofrenda y mandó sellarlo en una tumba bajo el templo. Juró rugir "
+         "contra cualquier ladrón hasta el fin de los tiempos. En la selva aún se oye su rugido.",
+         "The king accepted the leaf as an offering and had it sealed in a tomb beneath the temple. He "
+         "swore to roar at every thief until the end of time. In the jungle his roar is still heard."),
+    ],
+    "pista": ("la selva, donde un templo-pirámide escalonado asoma sobre los árboles",
+              "the jungle, where a stepped pyramid temple rises above the trees"),
+}
 LOGRO = {"icono": "minecraft:mossy_stone_bricks"}   # logros.py
 
 K = "heraldia.piramide."

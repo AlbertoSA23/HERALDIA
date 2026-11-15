@@ -15,6 +15,24 @@ NOMBRE = {"es_es": "Catedral gótica", "en_us": "Gothic cathedral"}
 TROFEO = {"objeto": "recovery_compass", "rareza": "uncommon",
           "nombre": ("Brújula de ánimas de Fray Osmundo", "Friar Osmund's Soul Compass"),
           "lore": [("Señala siempre el lugar de tu última caída.", "It always points to where you last fell.")]}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "biblioteca",
+    "relato": [
+        ("Entre los árboles del bosque se alza una catedral de agujas altísimas. Fray Osmundo, su "
+         "custodio, me enseñó la biblioteca y la cripta. «Tres virtudes abren», me dijo, «y la codicia "
+         "castiga». No lo entendí hasta después.",
+         "Among the trees of the forest rises a cathedral of soaring spires. Friar Osmund, its keeper, "
+         "showed me the library and the crypt. “Three virtues open,” he told me, “and greed is punished.”"
+         " I only understood later."),
+        ("Le confié el pliego porque no quiso saber qué contenía: le bastaba la fe. Lo guardó entre los "
+         "libros de la biblioteca. Si lo has encontrado sin ceder a la codicia, eres quien yo esperaba.",
+         "I entrusted him with the leaf because he did not wish to know what it held: faith was enough. "
+         "He kept it among the books of the library. If you found it without yielding to greed, you are "
+         "the one I awaited."),
+    ],
+    "pista": ("el bosque, donde una catedral gótica alza sus agujas entre los árboles",
+              "the forest, where a gothic cathedral raises its spires among the trees"),
+}
 LOGRO = {"icono": "minecraft:bell"}   # logros.py
 JIG = (65, 0, 30)             # jigsaw de la cripta (bajo el crucero)
 

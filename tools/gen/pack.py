@@ -47,6 +47,7 @@ class Registry:
         self.pools = {}           # id -> dict(elements=[(loc|None, weight, projection, processors)], fallback)
         self.kinds = {}           # nombre plantilla -> tipo (house, special:x, filler, street...)
         self.warnings = []
+        self.historia = {}        # id de única -> cofres con la tabla de su pliego (HISTORIA["cofre"])
         self.guardianes = {}      # id de única -> {tipo de mob: tabla de muerte original} (tag_guardians, trofeos)
 
     def add(self, t, kind):
@@ -167,7 +168,23 @@ def build_all(seed=2026):
         mod.build(reg)
         tag_guardians(reg, sid)
         reg.warnings += botin.trofeo_errores(sid, getattr(mod, "TROFEO", None))
+        reg.warnings += historia_cofre(reg, sid, mod)
+    reg.warnings += botin.historia_cadena_errores(unicas.modules())
     return reg
+
+
+def historia_cofre(reg, sid, mod):
+    """Contrato HISTORIA (botin.historia_errores) y que su cofre exista: algún contenedor de las plantillas de la única
+    usa la tabla HISTORIA["cofre"] (el pliego no cambia la geometría: va en un cofre que ya estaba)."""
+    d = getattr(mod, "HISTORIA", None)
+    e = botin.historia_errores(sid, d, getattr(mod, "LOOT", {}))
+    if e:
+        return e
+    tabla = f"{NS}:unicas/{sid}/{d['cofre']}"
+    n = sum(1 for name, t in reg.templates.items() if name.startswith(f"unicas/{sid}/")
+            for _, nbt in t.blocks.values() if nbt and str(nbt.get("LootTable", "")) == tabla)
+    reg.historia[sid] = n
+    return [] if n else [f"unicas/{sid}: ningún cofre de sus plantillas usa {tabla} (HISTORIA.cofre)"]
 
 
 def tag_guardians(reg, sid):

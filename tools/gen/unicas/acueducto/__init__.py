@@ -17,6 +17,25 @@ TROFEO = {"objeto": "iron_chestplate", "rareza": "uncommon",
           "lore": [("Forjada para la legión que custodiaba el agua.", "Forged for the legion that guarded the water.")],
           "encantamientos": {"minecraft:protection": 1},
           "componentes": {"minecraft:trim": {"material": "minecraft:gold", "pattern": "minecraft:dune"}}}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "cisterna",
+    "relato": [
+        ("La colonia se llamaba Aquae Siccae, «aguas secas», y aun así su acueducto llevaba agua por el "
+         "desierto. El centurión Aquilio y su legión la custodiaban como si fuera oro. Me dieron de beber"
+         " sin preguntar de dónde venía.",
+         "The colony was called Aquae Siccae, “dry waters”, and still its aqueduct carried water across "
+         "the desert. Centurion Aquilius and his legion guarded it as if it were gold. They gave me drink"
+         " without asking where I came from."),
+        ("Aquilio aceptó el pliego a cambio de un óbolo para las aguas. Juró por la tierra y el agua no "
+         "entregarlo jamás, y que el fuego consumiera la colonia si faltaba a su palabra. Lo escondimos "
+         "junto a la cisterna.",
+         "Aquilius took the leaf in exchange for an obol to the waters. He swore by earth and water never"
+         " to give it up, and that fire might consume the colony should he break his word. We hid it by "
+         "the cistern."),
+    ],
+    "pista": ("el desierto, donde un acueducto de arcos lleva agua a una colonia de legionarios",
+              "the desert, where an arched aqueduct carries water to a colony of legionaries"),
+}
 LOGRO = {"icono": "minecraft:water_bucket"}   # logros.py
 
 K = "heraldia.unicas.acueducto."

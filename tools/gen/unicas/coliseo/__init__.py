@@ -19,6 +19,23 @@ TROFEO = {"objeto": "shield", "rareza": "rare",
           "componentes": {"minecraft:banner_patterns": [
               {"pattern": "minecraft:base", "color": "red"}, {"pattern": "minecraft:triangles_bottom", "color": "yellow"}, {"pattern": "minecraft:circle", "color": "yellow"},
               {"pattern": "minecraft:border", "color": "black"}]}}   # trofeo del guardián (_comun/botin.trofeo)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "lanista",
+    "relato": [
+        ("En la sabana se levanta un coliseo donde luchaba un campeón con cien combates y ni una sola "
+         "derrota. El lanista, su amo, me lo presentó como su mejor inversión.",
+         "In the savanna stands a colosseum where a champion fought, with a hundred bouts and not a "
+         "single defeat. The lanista, his master, introduced him as his finest investment."),
+        ("Al campeón le ofrecí la libertad, pero prefirió el pliego: dijo que guardarlo era una lucha "
+         "digna. El lanista lo cerró en su cofre. Para recuperarlo habrá que vencer a quien nunca ha "
+         "perdido.",
+         "I offered the champion his freedom, but he chose the leaf: he said guarding it was a worthy "
+         "fight. The lanista locked it in his chest. To win it back you must defeat one who has never "
+         "lost."),
+    ],
+    "pista": ("la sabana, donde un coliseo en ruinas aún oye el clamor de la arena",
+              "the savanna, where a ruined colosseum still hears the roar of the arena"),
+}
 LOGRO = {"icono": "minecraft:shield"}   # logros.py
 
 LANG = {

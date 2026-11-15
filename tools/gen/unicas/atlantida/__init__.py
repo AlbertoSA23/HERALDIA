@@ -35,6 +35,26 @@ LOOT = botin.tablas()
 LLAVES = {cual: {"tabla": cosas.tabla_llave(cual), "cerradura": cosas.cerradura(cual)} for cual in cosas.LLAVES}
 # Logros (logros.py): el cofre único no tiene tabla de botín; cuenta conseguir uno de sus objetos con nombre. Cada sello
 # cuenta al abrir su cofre o al tener su llave (también con Lootr o si otro jugador la saca). El de Poseidón es el guardián.
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+    "cofre": "sello_academia",
+    "final": True,   # cierra la cadena: el último pliego la señala y este señala el primero
+    "relato": [
+        ("Soy Ysolda, la última heraldo de la Atlántida. Nuestra orden trazaba los mapas del mundo y "
+         "guardaba los blasones de cada reino. Cuando el mar se tragó la ciudad, salvé lo único que el "
+         "océano no debía guardar: el camino de vuelta.",
+         "I am Ysolda, last herald of Atlantis. Our order drew the maps of the world and kept the arms of"
+         " every realm. When the sea swallowed the city, I saved the one thing the ocean must not keep: "
+         "the way back."),
+        ("Lo repartí en pliegos y confié cada uno a un guardián que juró custodiarlo hasta que llegara "
+         "alguien digno. Sus juramentos sobrevivieron a sus vidas: por eso aún velan. Este pliego se "
+         "quedó en casa, en la Academia.",
+         "I set it down on leaves and entrusted each to a guardian sworn to keep it until someone worthy "
+         "came. Their oaths outlived their lives: that is why they still keep watch. This leaf stayed "
+         "home, in the Academy."),
+    ],
+    "pista": ("el océano más hondo, donde una ciudad de mármol duerme bajo las olas",
+              "the deepest ocean, where a marble city sleeps beneath the waves"),
+}
 LOGRO = {
     "icono": "minecraft:trident",
     "tesoro": (),
