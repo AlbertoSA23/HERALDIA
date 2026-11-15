@@ -2,7 +2,7 @@
 import json, os
 from core import parse_state
 
-BLOCKS, ITEMS, ENTITIES = {}, set(), set()
+BLOCKS, ITEMS, ENTITIES, TRIGGERS, ENTITY_PREDICATES = {}, set(), set(), set(), set()
 # El juego suma 12 bloques de adaptación al terreno al radio y rechaza el paquete entero si pasa de 128.
 TERRAIN_ADAPTATION_MARGIN, MAX_RADIUS_WITH_MARGIN, MAX_JIGSAW_SIZE = 12, 128, 20
 
@@ -20,6 +20,8 @@ def load_registries(summary_dir):
         reg = json.load(f)
     ITEMS.update(reg["item"])
     ENTITIES.update(reg["entity_type"])
+    TRIGGERS.update(reg["trigger_type"])
+    ENTITY_PREDICATES.update(reg["entity_sub_predicate_type"])
 
 
 def validate_structures(out):
@@ -97,4 +99,94 @@ def validate_loot(tables):
             for v in o:
                 walk(v)
     walk(tables)
+    return errs
+
+
+FRAMES = ("task", "goal", "challenge")
+
+
+def _short(i):
+    return i.removeprefix("minecraft:")
+
+
+def validate_advancements(out, ns="heraldia"):
+    """Comprueba los logros escritos (data/<ns>/advancement) contra el formato de 26.3 (en 26.3 los logros son un
+    registro: uno ilegible puede tumbar la carga): padre, disparadores, requisitos, icono, marco, fondo de la raíz,
+    claves de texto en es_es y en_us, y que existan las estructuras, etiquetas, tablas, objetos y mobs que citan."""
+    errs = []
+    base = os.path.join(out, "data", ns, "advancement")
+    langs = {}
+    for lang in ("es_es", "en_us"):
+        with open(os.path.join(out, "assets", ns, "lang", f"{lang}.json"), encoding="utf-8") as f:
+            langs[lang] = json.load(f)
+
+    def exists(kind, rid):
+        tag = rid.startswith("#")
+        n, path = rid.lstrip("#").split(":", 1) if ":" in rid else ("minecraft", rid.lstrip("#"))
+        if n != ns:
+            return True   # vanilla: lo valida el juego
+        rel = {"structure": ("tags/worldgen/structure" if tag else "worldgen/structure"),
+               "loot_table": "loot_table", "advancement": "advancement"}[kind]
+        return os.path.isfile(os.path.join(out, "data", n, rel, path + ".json"))
+
+    def text(name, c):
+        if not isinstance(c, dict) or "translate" not in c:
+            return [f"{name}: texto sin clave de traducción"]
+        e = [f"{name}: falta la clave {c['translate']} en {lang}" for lang, t in langs.items()
+             if c["translate"] not in t and not c["translate"].startswith(("advancements.minecraft", "item.minecraft"))]
+        return e + [x for a in c.get("with", []) for x in text(name, a)]
+
+    def refs(name, o):
+        e = []
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == "structures" and isinstance(v, str) and not exists("structure", v):
+                    e.append(f"{name}: estructura o etiqueta inexistente {v}")
+                elif k == "loot_tables" and isinstance(v, str) and not exists("loot_table", v):
+                    e.append(f"{name}: tabla de botín inexistente {v}")
+                elif k == "minecraft:entity_type" and _short(v) not in ENTITIES:
+                    e.append(f"{name}: entidad inexistente {v}")
+                elif k == "items" and isinstance(v, str) and _short(v) not in ITEMS:
+                    e.append(f"{name}: objeto inexistente {v}")
+                elif k == "predicate" and isinstance(v, dict):
+                    e += [f"{name}: predicado de entidad desconocido {p}" for p in v if _short(p) not in ENTITY_PREDICATES]
+                e += refs(name, v)
+        elif isinstance(o, list):
+            for v in o:
+                e += refs(name, v)
+        return e
+
+    for root, _, files in os.walk(base):
+        for fn in files:
+            name = os.path.relpath(os.path.join(root, fn), base).replace(os.sep, "/")
+            with open(os.path.join(root, fn), encoding="utf-8") as f:
+                a = json.load(f)
+            unknown = set(a) - {"parent", "criteria", "display", "requirements", "rewards", "sends_telemetry_event"}
+            if unknown:
+                errs.append(f"{name}: campos desconocidos {sorted(unknown)}")
+            crit = a.get("criteria") or {}
+            if not crit:
+                errs.append(f"{name}: sin criterios")
+            for c, d in crit.items():
+                if _short(d.get("trigger", "")) not in TRIGGERS:
+                    errs.append(f"{name}: disparador desconocido {d.get('trigger')} en {c}")
+            req = a.get("requirements", [[c] for c in crit])
+            named = [c for group in req for c in group]
+            if any(not g for g in req) or set(named) != set(crit):
+                errs.append(f"{name}: requisitos {req} no cubren exactamente los criterios {sorted(crit)}")
+            if "parent" in a and not exists("advancement", a["parent"]):
+                errs.append(f"{name}: padre inexistente {a['parent']}")
+            d = a.get("display")
+            if d:
+                if _short(d.get("icon", {}).get("id", "")) not in ITEMS:
+                    errs.append(f"{name}: icono inexistente {d.get('icon')}")
+                if d.get("frame", "task") not in FRAMES:
+                    errs.append(f"{name}: marco {d.get('frame')} no es {FRAMES}")
+                if "parent" not in a and not d.get("background"):
+                    errs.append(f"{name}: la raíz de la pestaña necesita fondo (background)")
+                errs += text(name, d.get("title")) + text(name, d.get("description"))
+            xp = a.get("rewards", {}).get("experience", 0)
+            if set(a.get("rewards", {})) - {"experience"} or not isinstance(xp, int) or xp < 0:
+                errs.append(f"{name}: recompensa no permitida {a['rewards']} (solo experiencia)")
+            errs += refs(name, crit)
     return errs

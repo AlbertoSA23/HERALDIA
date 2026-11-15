@@ -6,7 +6,7 @@ Termina con código 1 ante cualquier error de validación o aviso de auditoría;
 import argparse, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from pack import build_all
-from validate import load_registries, validate_registry, validate_loot, validate_structures
+from validate import load_registries, validate_registry, validate_loot, validate_structures, validate_advancements
 from writer import write
 import loot
 import unicas
@@ -36,9 +36,9 @@ def main():
         print("AUDITORÍA DE DISEÑO:", {k: (n, ex[k]) for k, n in c.items()})
         return 1
     write(reg, args.out)
-    serr = validate_structures(args.out)
+    serr = validate_structures(args.out) + validate_advancements(args.out)
     if serr:
-        print("ESTRUCTURAS NO CARGABLES:", serr)
+        print("ESTRUCTURAS O LOGROS NO CARGABLES:", serr)
         return 1
     n = sum(len(f) for _, _, f in os.walk(args.out))
     print(f"OK: {len(reg.templates)} plantillas, {len(reg.pools)} pools, {n} ficheros en {args.out}")

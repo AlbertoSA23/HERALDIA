@@ -15,6 +15,8 @@ from unicas._comun.botin import item, empty, cofre as t2, named as _named, potio
 
 SID = "torre_mago"
 NSP = f"unicas/{SID}"
+NOMBRE = {"es_es": "Torre de mago", "en_us": "Wizard Tower"}
+LOGRO = {"icono": "minecraft:enchanting_table"}   # logros.py
 OX, OZ = 13, 12                      # desplazamiento: coordenadas relativas al eje de la torre -> plantilla >= 0
 FEET = dict(B2=2, B1=8, f0=14, f1=20, f2=26, f3=32, f4=38, f5=44, f6=50, f7=56)
 REVS = [8, 14, 20, 26, 32, 38, 44, 50]   # tramos de la escalera de caracol (pies al salir de cada planta)

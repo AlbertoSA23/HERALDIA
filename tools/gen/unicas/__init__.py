@@ -21,6 +21,13 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # Opcional (mapas del tesoro, ver mapas.py): nombre para el mapa y su marca en el mapa.
   NOMBRE = {"es_es": "Atlántida", "en_us": "Atlantis"}           # por defecto, el id
   MAPA = {"decoration": "minecraft:monument"}                     # por defecto minecraft:red_x
+  # Opcional (logros, ver logros.py): descubrir, guardián y tesoro salen solos; esto solo los ajusta.
+  LOGRO = {"icono": "minecraft:trident",       # icono de «descubrir»; por defecto minecraft:filled_map
+           "tesoro": ["premium"],              # tablas de LOOT cuyo cofre cuenta como tesoro; por defecto ["premium"]
+           "tesoro_objeto": {predicado de objeto},   # o conseguir un objeto (cofre de contenido fijo, sin tabla)
+           "extra": [{"id", "icono", "titulo": (es, en), "descripcion": (es, en), "criterios": {...},
+                      "requisitos": [[...]], "padre": "descubrir", "marco": "task", "xp": 30}]}   # logros propios
+  # El guardián final se crea con _comun/piezas.guardian (etiqueta heraldia_guardian): sin él la compilación falla.
   LANG = {"es_es": {...}, "en_us": {...}}   # opcional: textos propios (mismas claves en los dos idiomas)
   # Opcional en una plantilla: t.lint_open = {pos: estado o None}, estado con los puzles resueltos para el recorrido a pie.
 

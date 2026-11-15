@@ -1,5 +1,4 @@
 """Cloacas con la cámara del tesoro (bajo el castellum) y cisterna del foro. Cajas rellenas bloque a bloque."""
-from core import B, F
 
 CLOACA = (64, -11, -5, 92, -1, 44)       # x0, y0, z0, x1, y1, z1
 CISTERNA = (33, -9, 42, 63, -1, 60)
@@ -36,15 +35,12 @@ class Hueco:
 def guardian():
     eq = {"head": "golden_helmet", "chest": "iron_chestplate", "legs": "chainmail_leggings",
           "feet": "iron_boots", "mainhand": "iron_sword", "offhand": "shield"}
-    return {"id": "minecraft:husk", "PersistenceRequired": B(1),
-            "CustomName": {"translate": "heraldia.unicas.acueducto.guardian", "fallback": "Centurión Aquilio",
-                           "color": "gold"},
-            "equipment": {k: {"id": "minecraft:" + v, "count": 1} for k, v in eq.items()},
-            "drop_chances": {k: F(0.0) for k in eq},
-            "attributes": [{"id": "minecraft:max_health", "base": 60.0},
-                           {"id": "minecraft:attack_damage", "base": 5.0},
-                           {"id": "minecraft:knockback_resistance", "base": 0.4}],
-            "Health": F(60.0)}
+    from .._comun import piezas
+    n = piezas.guardian("husk", "heraldia.unicas.acueducto.guardian", "Centurión Aquilio", 60,
+                        equipment={k: {"id": "minecraft:" + v, "count": 1} for k, v in eq.items()},
+                        drop_chances={k: 0.0 for k in eq}, attributes={"attack_damage": 5, "knockback_resistance": 0.4})
+    n["CustomName"]["color"] = "gold"
+    return n
 
 
 def cloaca(o):

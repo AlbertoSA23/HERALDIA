@@ -14,6 +14,7 @@ STRUCTURE = dict(
     spacing=250, separation=190,
 )
 NOMBRE = {"es_es": "Monasterio de montaña", "en_us": "Mountain Monastery"}
+LOGRO = {"icono": "minecraft:writable_book"}   # logros.py
 
 _TEXTS = {
     "cripta.1": ("Apagad las luces", "Put out the lights"), "cripta.2": ("de los difuntos", "of the departed"),

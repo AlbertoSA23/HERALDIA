@@ -610,14 +610,13 @@ class Plano:
 
 
 def guardian():
-    return {"id": "minecraft:vindicator", "PersistenceRequired": B(1),
-            "CustomName": {"translate": "heraldia.ciudadela.guardian", "fallback": "Borin Barbahierro, último guardián"},
-            "Health": F(60.0), "Rotation": [F(180.0), F(0.0)],
-            "attributes": [{"id": "minecraft:max_health", "base": 60.0}],
-            "equipment": {"mainhand": {"id": "minecraft:iron_axe", "count": 1},
-                          "head": {"id": "minecraft:iron_helmet", "count": 1},
-                          "chest": {"id": "minecraft:iron_chestplate", "count": 1}},
-            "drop_chances": {"mainhand": F(0.5), "head": F(0.25), "chest": F(0.25)}}
+    from .._comun import piezas
+    return piezas.guardian("vindicator", "heraldia.ciudadela.guardian", "Borin Barbahierro, último guardián", 60,
+                           equipment={"mainhand": {"id": "minecraft:iron_axe", "count": 1},
+                                      "head": {"id": "minecraft:iron_helmet", "count": 1},
+                                      "chest": {"id": "minecraft:iron_chestplate", "count": 1}},
+                           drop_chances={"mainhand": 0.5, "head": 0.25, "chest": 0.25},
+                           extra={"Rotation": [F(180.0), F(0.0)]})
 
 
 def construir():

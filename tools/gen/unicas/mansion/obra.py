@@ -979,7 +979,7 @@ class Obra:
                      equipment={k: cuero(i) for k, i in (("head", "leather_helmet"), ("chest", "leather_chestplate"),
                                                           ("legs", "leather_leggings"), ("feet", "leather_boots"))},
                      drop_chances={k: 0.0 for k in ("head", "chest", "legs", "feet")})
-        g["Tags"] = ["heraldia_mansion_guardian"]
+        g["Tags"].append("heraldia_mansion_guardian")
         self.t.entity(43, CS, 35, g)
         self.t.entity(29, AT, 30, Compound({"id": String("minecraft:cat"), "PersistenceRequired": Byte(1),
                                             "variant": String("minecraft:all_black")}))

@@ -42,10 +42,14 @@ def sign(put, x, y, z, facing, lines, wood="dark_oak"):
          "back_text": {"messages": [{"text": ""}] * 4, "color": "black", "has_glowing_text": B(0)}})
 
 
+GUARDIAN_TAG = "heraldia_guardian"   # etiqueta (Tags) de todo guardián final; el generador añade heraldia_guardian.<id>
+
+
 def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chances=None, death_loot=None,
              attributes=None, extra=None):
     """NBT de un guardián con nombre, persistente y con atributos moderados. `attributes` {id: base} añade
-    atributos (attack_damage, knockback_resistance...); `extra` se mezcla en el NBT."""
+    atributos (attack_damage, knockback_resistance...); `extra` se mezcla en el NBT (sus `Tags` se suman a la de
+    guardián, GUARDIAN_TAG, que usan los logros: pack.py añade además la de la estructura)."""
     n = {"id": "minecraft:" + mob, "PersistenceRequired": B(1), "CustomNameVisible": B(1),
          "CustomName": text(key, fallback), "Health": F(float(health)),
          "attributes": [{"id": "minecraft:max_health", "base": float(health)}]}
@@ -59,7 +63,9 @@ def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chance
         n["DeathLootTable"] = death_loot
     for aid, base in (attributes or {}).items():
         n["attributes"].append({"id": "minecraft:" + aid, "base": float(base)})
-    n.update(extra or {})
+    extra = dict(extra or {})
+    n["Tags"] = [GUARDIAN_TAG] + [t for t in extra.pop("Tags", []) if t != GUARDIAN_TAG]
+    n.update(extra)
     return n
 
 

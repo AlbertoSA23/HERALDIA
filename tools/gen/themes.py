@@ -236,18 +236,18 @@ THEMES = [
 ]
 
 FAMILIES = {
-    "llanuras": dict(biomes=["plains", "sunflower_plains", "meadow"], vtype="plains"),
-    "bosque": dict(biomes=["forest", "flower_forest", "birch_forest", "old_growth_birch_forest", "dappled_forest"], vtype="plains"),
-    "oscuro": dict(biomes=["dark_forest", "pale_garden"], vtype="plains"),
-    "taiga": dict(biomes=["taiga", "old_growth_pine_taiga", "old_growth_spruce_taiga"], vtype="taiga"),
-    "nieve": dict(biomes=["snowy_plains", "snowy_taiga", "grove", "ice_spikes"], vtype="snow"),
-    "desierto": dict(biomes=["desert"], vtype="desert"),
-    "sabana": dict(biomes=["savanna", "savanna_plateau"], vtype="savanna"),
-    "jungla": dict(biomes=["jungle", "sparse_jungle", "bamboo_jungle"], vtype="jungle"),
-    "pantano": dict(biomes=["swamp", "mangrove_swamp"], vtype="swamp"),
-    "cerezos": dict(biomes=["cherry_grove"], vtype="plains"),
-    "badlands": dict(biomes=["badlands", "eroded_badlands", "wooded_badlands"], vtype="desert"),
-    "costa": dict(biomes=["beach", "snowy_beach", "stony_shore"], vtype="plains"),
+    "llanuras": dict(biomes=["plains", "sunflower_plains", "meadow"], vtype="plains", nombre=("Llanuras", "Plains"), icono="minecraft:wheat"),
+    "bosque": dict(biomes=["forest", "flower_forest", "birch_forest", "old_growth_birch_forest", "dappled_forest"], vtype="plains", nombre=("Bosque", "Forest"), icono="minecraft:oak_sapling"),
+    "oscuro": dict(biomes=["dark_forest", "pale_garden"], vtype="plains", nombre=("Bosque oscuro", "Dark Forest"), icono="minecraft:dark_oak_sapling"),
+    "taiga": dict(biomes=["taiga", "old_growth_pine_taiga", "old_growth_spruce_taiga"], vtype="taiga", nombre=("Taiga", "Taiga"), icono="minecraft:spruce_sapling"),
+    "nieve": dict(biomes=["snowy_plains", "snowy_taiga", "grove", "ice_spikes"], vtype="snow", nombre=("Nieve", "Snow"), icono="minecraft:snowball"),
+    "desierto": dict(biomes=["desert"], vtype="desert", nombre=("Desierto", "Desert"), icono="minecraft:cactus"),
+    "sabana": dict(biomes=["savanna", "savanna_plateau"], vtype="savanna", nombre=("Sabana", "Savanna"), icono="minecraft:acacia_sapling"),
+    "jungla": dict(biomes=["jungle", "sparse_jungle", "bamboo_jungle"], vtype="jungle", nombre=("Jungla", "Jungle"), icono="minecraft:cocoa_beans"),
+    "pantano": dict(biomes=["swamp", "mangrove_swamp"], vtype="swamp", nombre=("Pantano", "Swamp"), icono="minecraft:lily_pad"),
+    "cerezos": dict(biomes=["cherry_grove"], vtype="plains", nombre=("Cerezos", "Cherry Grove"), icono="minecraft:cherry_sapling"),
+    "badlands": dict(biomes=["badlands", "eroded_badlands", "wooded_badlands"], vtype="desert", nombre=("Badlands", "Badlands"), icono="minecraft:terracotta"),
+    "costa": dict(biomes=["beach", "snowy_beach", "stony_shore"], vtype="plains", nombre=("Costa", "Coast"), icono="minecraft:sand"),
 }
 
 for _t in THEMES:
