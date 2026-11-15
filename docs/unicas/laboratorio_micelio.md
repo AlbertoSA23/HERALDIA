@@ -33,8 +33,9 @@ tierra.
     laboratorio, tablones y tallo en los pasillos, pizarra abismal labrada en la cámara de la cepa madre) en toda cara que
     da al aire, para que no salgan manantiales ni liquen dentro.
 - Adaptación `beard_thin`: el terreno se ajusta a la base del jardín y las galerías quedan a su profundidad, sin cráter.
-  Las islas de champiñones son bajas: si un borde del disco cae sobre el agua, el ajuste levanta la orilla bajo él (como
-  una playa) en vez de dejarlo colgando. Dentro del jardín (radio 28) hay aire explícito hasta 8 bloques sobre el suelo.
+  Las islas de champiñones son bajas: si un borde del disco cae sobre el agua, el ajuste debería levantar la orilla bajo
+  él en vez de dejarlo colgando (deducido del código de `Beardifier`; el aspecto en una costa real no está visto con
+  capturas). Dentro del jardín (radio 28) hay aire explícito hasta 8 bloques sobre el suelo.
 - **No nacen champiñones gigantes en el jardín**: el suelo es tierra de camino (los champiñones gigantes piden micelio,
   tierra o podsol debajo); el corral es de tierra de camino y barro compacto. Fuera del radio 28 el suelo es micelio con
   setas sueltas: ahí la isla vuelve a crecer y el jardín se funde con ella. La auditoría falla si queda micelio o tierra
@@ -196,7 +197,15 @@ vista en el subsuelo, suelo fértil descubierto en el jardín, el número de cof
 
 ## Rendimiento
 
-RENDIMIENTO
+- Generación: dos plantillas (unos 26.200 + 45.500 bloques, del orden del Santuario) con un procesador de reglas y sin
+  Java propio de estructura. Generar el módulo tarda unos 3,5 s en Python. `/place structure` de la estructura entera
+  tardó 694 ms en el servidor de prueba (lo imprime `prueba_servidor.py`).
+- Colocación: la búsqueda del bioma de cada casilla tardó 5-7 ms (unas 600 muestras del ruido de biomas, sin cargar
+  chunks), una sola vez por casilla y en caché; en `isPlacementChunk` solo los chunks de la malla (1 de cada 64) llegan a
+  consultarla. `/locate` desde el 0,0 encontró el laboratorio en 1.168, -9.168 (a 9.242 bloques) en 444 ms, y al cargar
+  esos chunks la estructura se generó de verdad (su guardián estaba allí, en campo de champiñones). La isla más cercana al
+  0,0 (a unos 5.800 bloques) cae fuera de la ventana de su casilla: por eso no todas las islas tienen laboratorio.
+- Entidades: 4 (el guardián y tres champiñocas). 3 generadores con el radio y el límite vanilla. Nada por tick.
 
 ## Pruebas
 

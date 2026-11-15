@@ -125,13 +125,14 @@ def main():
             fails.append("place structure")
         print(f"TIEMPO de /place structure del Laboratorio del micólogo: {dt * 1000:.0f} ms")
         time.sleep(10)
-        m = check("guardián con su etiqueta", f"execute if entity {GUARDIAN}")
+        cerca = GUARDIAN.replace("]", ",x=0,y=0,z=0,distance=..200]")   # el del laboratorio natural sigue cargado
+        m = check("guardián con su etiqueta", f"execute if entity {cerca}")
         print("  cuenta:", m.group(1))
         if m.group(1) != "1":
             fails.append("un solo guardián")
-        check("el guardián es persistente", f"execute if entity {GUARDIAN.replace(']', ',nbt={PersistenceRequired:1b}]')}")
+        check("el guardián es persistente", f"execute if entity {cerca.replace(']', ',nbt={PersistenceRequired:1b}]')}")
         check("el guardián lleva su sombrero de champiñón",
-              f"execute if entity {GUARDIAN.replace(']', ',nbt={equipment:{head:{id:\"minecraft:red_mushroom_block\"}}}]')}")
+              f"execute if entity {cerca.replace(']', ',nbt={equipment:{head:{id:\"minecraft:red_mushroom_block\"}}}]')}")
         m = check("los champiñocas del corral",
                   "execute if entity @e[type=minecraft:mooshroom,x=0,y=0,z=0,distance=..120,nbt={PersistenceRequired:1b}]")
         print("  CHAMPIÑOCAS:", m.group(1))
