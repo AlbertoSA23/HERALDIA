@@ -10,6 +10,7 @@ from validate import load_registries, validate_registry, validate_loot, validate
 from writer import write
 import loot
 import unicas
+import biomas
 from lint import lint_registry, summarize
 
 
@@ -36,7 +37,7 @@ def main():
         print("AUDITORÍA DE DISEÑO:", {k: (n, ex[k]) for k, n in c.items()})
         return 1
     write(reg, args.out)
-    serr = validate_structures(args.out) + validate_advancements(args.out)
+    serr = validate_structures(args.out) + validate_advancements(args.out) + biomas.comprobar(args.out, args.registries)
     if serr:
         print("ESTRUCTURAS O LOGROS NO CARGABLES:", serr)
         return 1

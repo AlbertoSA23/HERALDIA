@@ -80,7 +80,7 @@ def build(reg):
     reg.pool("unicas/galeon/inicio", [(NAME, 1, "rigid", PROCESSORS)])
     anchor = list(shift(ANCHOR, d))
     STRUCTURE["json"] = {
-        "type": "heraldia:galeon", "biomes": "#minecraft:is_beach", "step": "surface_structures",
+        "type": "heraldia:galeon", "biomes": ["minecraft:beach", "minecraft:snowy_beach"], "step": "surface_structures",
         "spawn_overrides": {}, "terrain_adaptation": "none", "start_pool": "heraldia:unicas/galeon/inicio",
         "anchor": anchor, "probes": sorted(PROBES, key=lambda p: not p["required"]), "max_misses": 3, "search_radius": 56}
     build.obra = o

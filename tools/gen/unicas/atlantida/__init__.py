@@ -12,7 +12,9 @@ NOMBRE = {"es_es": "La Atlántida", "en_us": "Atlantis"}
 STRUCTURE = dict(
     placement={"type": "heraldia:mundial"},   # siempre una, sin configuración
     json={
-        "type": "heraldia:atlantida", "biomes": "#minecraft:is_ocean", "step": "surface_structures",
+        "type": "heraldia:atlantida", "biomes": ["minecraft:deep_frozen_ocean", "minecraft:deep_cold_ocean", "minecraft:deep_ocean",
+                   "minecraft:deep_lukewarm_ocean", "minecraft:frozen_ocean", "minecraft:ocean", "minecraft:cold_ocean",
+                   "minecraft:lukewarm_ocean", "minecraft:warm_ocean"], "step": "surface_structures",
         "terrain_adaptation": "none",
         "spawn_overrides": {
             "monster": {"bounding_box": "full", "spawns": [{"type": "minecraft:guardian", "weight": 1, "count": {"type": "minecraft:uniform", "min_inclusive": 2, "max_inclusive": 4}}]},

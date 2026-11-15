@@ -108,7 +108,7 @@ class _Lazy(dict):
         return self.get(k) if k == "json" else super().__getitem__(k)
 
 
-STRUCTURE = _Lazy(biomes="#heraldia:ciudadela", start_pool="unicas/ciudadela/inicio", size=1, max_distance=1,
+STRUCTURE = _Lazy(start_pool="unicas/ciudadela/inicio", size=1, max_distance=1,
                   terrain_adaptation="none", step="underground_structures", spacing=250, separation=190)
 
 

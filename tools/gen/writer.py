@@ -7,6 +7,7 @@ import loot
 import unicas
 import mapas
 import opciones
+import biomas
 import logros
 
 STD = dict(size=6, maxdist=92)
@@ -109,7 +110,7 @@ def write(reg, out):
               {"processors": [{"processor_type": "minecraft:rule", "rules": rules}] if rules else []})
     # etiquetas de biomas
     for fam, d in FAMILIES.items():
-        jdump(out, f"data/{NS}/tags/worldgen/biome/{fam}.json", {"values": [f"minecraft:{b}" for b in d["biomes"]]})
+        biomas.etiqueta(out, fam, d["biomes"])
     # estructuras
     set_entries = []
     for th in THEMES:
@@ -254,6 +255,7 @@ def write_unique(out, sid, st):
         "spawn_overrides": st.get("spawn_overrides", {}), "terrain_adaptation": st.get("terrain_adaptation", "beard_thin"),
         "start_pool": nsid(st["start_pool"]), "size": st["size"], "max_distance_from_center": st["max_distance"],
         "start_height": st.get("start_height", {"absolute": 0}), "use_expansion_hack": False}
+    structure = dict(structure, biomes=biomas.de_unica(out, sid, structure["biomes"]))     # lista vanilla -> #heraldia:unicas/<id>
     if not st.get("json") and st.get("project_to", "WORLD_SURFACE_WG"):
         structure["project_start_to_heightmap"] = st.get("project_to", "WORLD_SURFACE_WG")
     jdump(out, f"data/{NS}/worldgen/structure/unicas/{sid}.json", structure)
