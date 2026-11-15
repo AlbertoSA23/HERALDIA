@@ -106,7 +106,7 @@ Por defecto, una aldea cada 1000-2000 bloques (separación media 1500), como muc
 Cada aldea tiene:
 
 - Plaza mayor con fuente, bancos, árboles, campana y dos gólems.
-- Cuatro avenidas con los edificios especiales: iglesia o templo según el estilo (con cementerio y cripta), ayuntamiento, mercado, taberna, herrería, biblioteca, granja con molino y posada (o puerto en la costa).
+- Cuatro avenidas con los edificios especiales: iglesia o templo según el estilo (con cementerio y cripta), ayuntamiento, mercado, taberna, herrería, biblioteca, granja con molino y posada. En la costa, además, un puerto (caseta y muelle con pilotes, grúa y botes) en la orilla más cercana a la plaza, con el muelle hacia el mar; si no hay orilla a unos 80 bloques, la aldea sale sin puerto.
 - Unas 20 casas en la estándar y unas 30 en la grande, amuebladas, con cofres en algunas y botín de común a épico (tablas `heraldia:cofres/comun`, `poco_comun`, `raro`, `epico`).
 - Torres de vigilancia y puertas de muralla al final de las calles; decoración temática entre casas.
 - Aldeanos: la mitad del número de casas, más del 80 % con oficio. Gólems: al menos uno por cada 3 aldeanos.
@@ -159,7 +159,9 @@ Cada estructura única tiene su mapa del tesoro, que marca la más cercana con u
 - La búsqueda abarca unos 10.000 bloques y no salta chunks ya explorados (así no traba el servidor). Si no hay ninguna estructura de ese tipo al alcance, no sale el mapa (el cofre lo deja vacío y el cartógrafo no ofrece ese trato).
 - Para probar: `/loot give @s loot heraldia:mapas/<id>` da el mapa de la estructura `heraldia:unicas/<id>` desde donde estés.
 
-Limitaciones conocidas: el puerto sale recto desde la calle sin buscar el agua; en laderas puede haber escalones y cimientos altos; no se ha comprobado el solape con estructuras de otros mods (los biomas de otros mods sí, ver [Biomas de otros mods](#biomas-de-otros-mods)).
+En laderas, los cimientos de los edificios (y los pilotes de los estilos sobre pilotes) bajan hasta el suelo con el material del estilo, hasta 16 bloques.
+
+Limitaciones conocidas: en laderas las calles siguen el terreno con peldaños de un bloque y, en un risco de más de 16 bloques, un cimiento puede quedar al aire; el puerto a veces no cabe (la orilla cercana la ocupa la plaza o un edificio especial) y la aldea sale sin él; no se ha comprobado el solape con estructuras de otros mods (los biomas de otros mods sí, ver [Biomas de otros mods](#biomas-de-otros-mods)).
 
 ## Trofeos de los guardianes
 

@@ -106,7 +106,7 @@ By default, one village every 1000-2000 blocks (average spacing 1500), at most 1
 Each village has:
 
 - A main square with a fountain, benches, trees, a bell and two golems.
-- Four avenues with the special buildings: a church or temple depending on the style (with cemetery and crypt), town hall, market, tavern, smithy, library, farm with windmill and inn (or a port on the coast).
+- Four avenues with the special buildings: a church or temple depending on the style (with cemetery and crypt), town hall, market, tavern, smithy, library, farm with windmill and inn. On the coast there is also a harbor (harbor house and a pier with piles, crane and boats) on the shore nearest to the square, with the pier facing the sea; if there is no shore within about 80 blocks, the village has no harbor.
 - About 20 houses in the standard size and about 30 in the large one, furnished, with chests in some and loot from common to epic (tables `heraldia:cofres/comun`, `poco_comun`, `raro`, `epico`).
 - Watchtowers and wall gates at the ends of the streets; themed decoration between houses.
 - Villagers: half the number of houses, over 80 % with a profession. Golems: at least one per 3 villagers.
@@ -159,7 +159,9 @@ Every unique structure has its own treasure map, which marks the nearest one wit
 - The search covers about 10,000 blocks and does not load already explored chunks (so it does not stall the server). If no structure of that type is within reach, no map appears (the chest leaves it empty and the cartographer does not offer that trade).
 - To test: `/loot give @s loot heraldia:mapas/<id>` gives the map for structure `heraldia:unicas/<id>` from where you stand.
 
-Known limitations: the port is laid out straight from the street without looking for water; on slopes there may be steps and tall foundations; overlap with structures from other mods has not been checked (biomes from other mods have, see [Biomes from other mods](#biomes-from-other-mods)).
+On slopes, building foundations (and the piles of the stilted styles) reach down to the ground in the style's material, up to 16 blocks.
+
+Known limitations: on slopes the streets follow the terrain with one-block steps and, on a cliff higher than 16 blocks, a foundation may be left hanging; sometimes the harbor does not fit (the nearby shore is taken by the square or a special building) and the village has no harbor; overlap with structures from other mods has not been checked (biomes from other mods have, see [Biomes from other mods](#biomes-from-other-mods)).
 
 ## Guardian trophies
 
