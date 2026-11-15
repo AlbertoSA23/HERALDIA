@@ -166,7 +166,7 @@ The `.jar` ends up in `build/libs/`. The build runs the generator `tools/gen/mai
 
 The 26.3 registries (summary from [misode/mcmeta](https://github.com/misode/mcmeta), branch `26.3-summary`) are not included in the repository because they are Mojang data. They are cloned automatically into `build/mcmeta-summary`; to use another copy: `-Pmcmeta_summary=<path>` or the `MCMETA_SUMMARY` variable.
 
-Checks before publishing:
+Checks before publishing (the GitHub Actions CI, `.github/workflows/ci.yml`, runs all of them, including each unique structure's, on every PR against `develop` or `main` and on every push to `develop`):
 
 ```bash
 python3 tools/changelog.py check

@@ -166,7 +166,7 @@ El `.jar` queda en `build/libs/`. La compilación ejecuta el generador `tools/ge
 
 Los registros de 26.3 (resumen de [misode/mcmeta](https://github.com/misode/mcmeta), rama `26.3-summary`) no se incluyen en el repositorio porque son datos de Mojang. Se clonan solos en `build/mcmeta-summary`; para usar otra copia: `-Pmcmeta_summary=<ruta>` o la variable `MCMETA_SUMMARY`.
 
-Comprobaciones antes de publicar:
+Comprobaciones antes de publicar (la CI de GitHub Actions, `.github/workflows/ci.yml`, las ejecuta todas, también las de cada estructura única, en cada PR contra `develop` o `main` y en cada push a `develop`):
 
 ```bash
 python3 tools/changelog.py check
