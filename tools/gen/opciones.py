@@ -55,17 +55,94 @@ _GROUPS = {
 }
 UNIQUE_RANGE = (1000, 10000)
 
+# Nombre corto de cada opción en la pantalla de configuración del cliente (la ayuda larga va en el tooltip).
+_NAMES = {
+    "aldeas.separacion_bloques": ("Separación (bloques)", "Spacing (blocks)"),
+    "aldeas.maximo": ("Máximo de aldeas", "Maximum villages"),
+    "aldeas.porcentaje_grandes": ("Aldeas grandes (%)", "Large villages (%)"),
+    "aldeas.distancia_aldeas_vanilla_bloques": ("Distancia a aldeas vanilla (bloques)", "Distance to vanilla villages (blocks)"),
+    "golems.limpieza": ("Limpieza de gólems", "Golem cleanup"),
+    "golems.limite_estandar": ("Límite en aldea estándar", "Limit in standard village"),
+    "golems.limite_grande": ("Límite en aldea grande", "Limit in large village"),
+    "unicas.distancia_minima.activada": ("Distancia mínima activada", "Minimum distance enabled"),
+    "unicas.distancia_minima.bloques": ("Distancia mínima (bloques)", "Minimum distance (blocks)"),
+    "unicas.atlantida.cofre_unico_por_jugador": ("Cofre premium por jugador", "Per-player premium chest"),
+}
+# Grupos: nombre corto (%s = nombre de la familia, el estilo o la estructura) y clave del nombre del argumento
+# (None: el id tal cual, como en el README).
+_GROUP_NAMES = {
+    "aldeas.familias.<familia>": ("%s", "%s", "heraldia.familia.%s"),
+    "aldeas.estilos.<estilo>": ("%s", "%s", None),
+    "unicas.<id>.activada": ("%s", "%s", "heraldia.unicas.%s.nombre"),
+    "unicas.<id>.separacion_bloques": ("%s: separación (bloques)", "%s: spacing (blocks)", "heraldia.unicas.%s.nombre"),
+}
+# Secciones de la pantalla, en orden de aparición: (id, es_es, en_us).
+SECTIONS = [
+    ("aldeas", "Aldeas", "Villages"),
+    ("familias", "Familias de aldeas", "Village families"),
+    ("estilos", "Estilos de aldea", "Village styles"),
+    ("golems", "Gólems", "Golems"),
+    ("unicas", "Estructuras únicas", "Unique structures"),
+    ("distancia_minima", "Distancia mínima entre únicas", "Minimum distance between unique structures"),
+    ("atlantida", "Atlántida", "Atlantis"),
+]
+# Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
+# (si no encaja en ninguna, la generación falla).
+_SECTION_PREFIXES = [
+    ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.", "aldeas"), ("golems.", "golems"),
+    ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"),
+]
+
+
+# Textos de la propia pantalla (cliente).
+PANTALLA_ES = {
+    "heraldia.config.pantalla.titulo": "Configuración de Heraldia",
+    "heraldia.config.pantalla.buscar": "Buscar opciones…",
+    "heraldia.config.pantalla.guardar": "Guardar",
+    "heraldia.config.pantalla.restaurar": "Valores por defecto",
+    "heraldia.config.pantalla.aviso": "Los cambios se aplican al volver a abrir el mundo o reiniciar el servidor, y solo en los chunks que se generen después.",
+    "heraldia.config.pantalla.aviso_mundo": "Tienes un mundo abierto: los cambios se aplicarán cuando salgas y vuelvas a entrar, solo en chunks nuevos.",
+    "heraldia.config.pantalla.aviso_servidor": "Estás en un servidor: esto edita la configuración local de tu cliente (tus mundos de un jugador), no la del servidor. La del servidor está en su config/heraldia.json.",
+    "heraldia.config.pantalla.invalido": "Valor no válido: entero de %s a %s",
+    "heraldia.config.pantalla.clave": "Opción: %s",
+    "heraldia.config.pantalla.guardado": "Configuración de Heraldia guardada",
+    "heraldia.config.pantalla.error": "No se pudo guardar config/heraldia.json: %s",
+}
+PANTALLA_EN = {
+    "heraldia.config.pantalla.titulo": "Heraldia configuration",
+    "heraldia.config.pantalla.buscar": "Search options…",
+    "heraldia.config.pantalla.guardar": "Save",
+    "heraldia.config.pantalla.restaurar": "Reset to defaults",
+    "heraldia.config.pantalla.aviso": "Changes apply when you reopen the world or restart the server, and only to chunks generated afterwards.",
+    "heraldia.config.pantalla.aviso_mundo": "A world is open: changes will apply after you leave and rejoin it, only to new chunks.",
+    "heraldia.config.pantalla.aviso_servidor": "You are on a server: this edits your client's local configuration (your single-player worlds), not the server's. The server's is in its config/heraldia.json.",
+    "heraldia.config.pantalla.invalido": "Invalid value: whole number from %s to %s",
+    "heraldia.config.pantalla.clave": "Option: %s",
+    "heraldia.config.pantalla.guardado": "Heraldia configuration saved",
+    "heraldia.config.pantalla.error": "Could not save config/heraldia.json: %s",
+}
+
+
+def _section(key):
+    for prefix, sec in _SECTION_PREFIXES:
+        if key.startswith(prefix):
+            return sec
+    raise ValueError(f"opción {key} sin sección en la pantalla de configuración (añádela a opciones._SECTION_PREFIXES)")
+
 
 def _key(k):
     return "heraldia.config." + k
 
 
 def _option(key, default, lo, hi, lang, args=(), pattern=None):
-    o = {"clave": key, "defecto": default, "ayuda": lang, "args": list(args)}
+    o = {"clave": key, "defecto": default, "ayuda": lang, "args": list(args), "seccion": _section(key),
+         "nombre": _key((_GROUPS[pattern][0] if pattern else key) + ".nombre")}
     if lo is not None:
         o.update(min=lo, max=hi)
     if pattern:
         o["patron"] = pattern
+        name_arg = _GROUP_NAMES[pattern][2]
+        o["args_nombre"] = [name_arg % a if name_arg else None for a in args]
     return o
 
 
@@ -88,8 +165,10 @@ def schema():
         default = min(max(spacing * 16, UNIQUE_RANGE[0]), UNIQUE_RANGE[1])
         opts.append(_option(f"unicas.{sid}.separacion_bloques", default, *UNIQUE_RANGE, g["unicas.<id>.separacion_bloques"], [sid],
                             "unicas.<id>.separacion_bloques"))
+    assert set(_NAMES) == {k for k, *_ in _FIXED}, "cada opción fija necesita su nombre corto en _NAMES"
     return {
         "version": VERSION,
+        "secciones": [{"id": sec, "nombre": _key("seccion." + sec)} for sec, _, _ in SECTIONS],
         "opciones": opts,
         "aldeas": {"spacing": VILLAGE_SPACING, "separation": VILLAGE_SEPARATION,
                    "estilos": {th["id"]: th["family"] for th in THEMES}},
@@ -104,6 +183,14 @@ def lang():
         out["es_es"][_key(k)], out["en_us"][_key(k)] = es, en
     for key, es, en in _GROUPS.values():
         out["es_es"][_key(key)], out["en_us"][_key(key)] = es, en
+    for k, (es, en) in _NAMES.items():
+        out["es_es"][_key(k + ".nombre")], out["en_us"][_key(k + ".nombre")] = es, en
+    for p, (es, en, _) in _GROUP_NAMES.items():
+        out["es_es"][_key(_GROUPS[p][0] + ".nombre")], out["en_us"][_key(_GROUPS[p][0] + ".nombre")] = es, en
+    for sec, es, en in SECTIONS:
+        out["es_es"][_key("seccion." + sec)], out["en_us"][_key("seccion." + sec)] = es, en
+    out["es_es"].update(PANTALLA_ES)
+    out["en_us"].update(PANTALLA_EN)
     out["es_es"]["heraldia.config.rango"] = "por defecto %s, de %s a %s"
     out["en_us"]["heraldia.config.rango"] = "default %s, from %s to %s"
     out["es_es"]["heraldia.config.si_no"] = "por defecto %s; true o false"

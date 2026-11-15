@@ -34,10 +34,32 @@ def generateStructures = tasks.register('generateStructures', Exec) {
 
 sourceSets.main.resources.srcDir(generateStructures)
 
+// Código de cliente (pantalla de configuración) en su propio source set: el servidor dedicado nunca carga sus clases
+// y Loom impide que el código común las use.
+loom {
+	splitEnvironmentSourceSets()
+	mods {
+		heraldia {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+repositories {
+	// Mod Menu (opcional, solo para compilar su punto de entrada; no va dentro del .jar)
+	maven {
+		name = 'TerraformersMC'
+		url = 'https://maven.terraformersmc.com/releases/'
+		content { includeGroup 'com.terraformersmc' }
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	clientCompileOnly("com.terraformersmc:modmenu:${project.modmenu_version}") { transitive = false }
 	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
