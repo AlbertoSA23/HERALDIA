@@ -32,6 +32,7 @@ CONVENCIONALES = {
     "unicas/castillo": ["c:is_plains"],
     "unicas/fortaleza_hielo": ["c:is_snowy_plains"],
     "unicas/catedral": ["c:is_flower_forest"],
+    "unicas/santuario": ["c:is_birch_forest"],
     "unicas/faro": ["c:is_stony_shores"],
     "unicas/acueducto": ["c:is_desert"],
     "unicas/galeon": ["minecraft:is_beach", "c:is_beach"],

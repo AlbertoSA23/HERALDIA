@@ -47,9 +47,10 @@ así que es un solo ciclo: se puede empezar por cualquiera y se llega a todas. U
 | 11 | Observatorio | `oculto` | el Custodio de las Estrellas, mientras haya estrellas | Palacio oriental |
 | 12 | Palacio oriental | `biblioteca_secreta` | el emperador y el comandante de la Guardia Imperial | Templo-pirámide |
 | 13 | Templo-pirámide | `tumba` | el Rey Jaguar, como ofrenda | Salón del Jarl |
-| 14 | Salón del Jarl | `ofrendas` | el jarl Ulfgrim, por sus antepasados; ni muerto lo suelta | Torre de mago |
-| 15 | Torre de mago | `escondite` | el archimago Malvarius (que lo abrió y busca el resto) | La Atlántida |
-| 16 | La Atlántida | `sello_academia` | Ysolda, en casa: prólogo y epílogo | Acueducto (vuelve a empezar) |
+| 14 | Salón del Jarl | `ofrendas` | el jarl Ulfgrim, por sus antepasados; ni muerto lo suelta | Santuario druídico |
+| 15 | Santuario druídico | `biblioteca` | el archidruida Cadoc, por las raíces del árbol (se corrompió al secarse el árbol) | Torre de mago |
+| 16 | Torre de mago | `escondite` | el archimago Malvarius (que lo abrió y busca el resto) | La Atlántida |
+| 17 | La Atlántida | `sello_academia` | Ysolda, en casa: prólogo y epílogo | Acueducto (vuelve a empezar) |
 
 ## Cómo se juega
 

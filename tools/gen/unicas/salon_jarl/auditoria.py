@@ -5,14 +5,14 @@ preparar(obra) devuelve (superficie, tumulo, errores, informe). Si hay errores, 
 compilación falla. Las dos piezas se auditan aquí enteras (sin la auditoría genérica por plantilla, que no ve la
 escalera que cruza de una a otra).
 """
-from collections import deque
 from core import Template
 import lint
 from pack import fix_supports
 from .._comun import redstone as rs
 from .._comun.redstone import bn
 from .._comun.piezas import connect
-from .._comun.recorrido import vista_lint, cerca, flotantes, luz, luz_generador, Vista, andar, sin_vuelta
+from .._comun.recorrido import (vista_lint, cerca, flotantes, luz, luz_generador, Vista, andar, sin_vuelta, procesador,
+                                superficie_danada, abrir)
 from .obra import W, D, CRYPT, SID
 
 ENTRADA = (36, 0, 0)
@@ -20,37 +20,13 @@ NS = f"heraldia:unicas/{SID}/"
 N6 = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
 
 
-def regla(block, prob, out):
-    return {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + block,
-                                "probability": prob},
-            "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + out}
-
-
 # Desgaste repartido (con la ruina hecha a mano, 15-20 % de la superficie a la vista); nada que sostenga un mecanismo.
 DECAY = [("cobblestone", 0.35, "mossy_cobblestone"), ("stone_bricks", 0.12, "cracked_stone_bricks"),
          ("stone_bricks", 0.08, "mossy_stone_bricks"), ("glass_pane", 0.3, "air")]
-PROCESADOR = {"processor_type": "minecraft:rule", "rules": [regla(b, p, o) for b, p, o in DECAY]}
-
-
-def esperanza(st):
-    """Probabilidad de que el procesador cambie un bloque (las reglas se aplican en orden: la primera que acierta)."""
-    b, left, out = bn(st), 1.0, 0.0
-    for blk, p, _ in DECAY:
-        if blk == b:
-            out += left * p
-            left *= 1 - p
-    return out
+PROCESADOR = procesador(DECAY)
 
 
 # ------------------------------------------------------------------ preparar
-def abrir(t, sim):
-    """Bloques tras recoger los pistones sin señal (rs.retract), con aire explícito donde estaba la puerta."""
-    b = rs.retract(t, sim)
-    for p in t.blocks:
-        b.setdefault(p, "minecraft:air")
-    return b
-
-
 def preparar(obra):
     t = obra.t
     fix_supports(t)
@@ -174,38 +150,7 @@ def preparar(obra):
 
 # ------------------------------------------------------------------ estado de conservación
 def estado(t, ruined):
-    """Fracción de la superficie a la vista (bloques de la superficie con una cara al aire exterior, que llega desde el
-    cielo) que está dañada: la ruina hecha a mano más lo que se espera del procesador."""
+    """Fracción de la superficie a la vista del salón que está dañada (recorrido.superficie_danada); el suelo del
+    patio no cuenta."""
     blocks = {p: st for p, (st, _) in t.blocks.items() if p[1] >= 0}
-    x0, x1 = -1, W
-    z0, z1 = -1, D
-    y1 = max(p[1] for p in blocks) + 1
-
-    def libre(p):
-        st = blocks.get(p)
-        return st is None or lint.passable(st) or not rs.conductor(st)
-    out, q = set(), deque()
-    for x in range(x0, x1 + 1):
-        for z in range(z0, z1 + 1):
-            out.add((x, y1, z))
-            q.append((x, y1, z))
-    while q:
-        p = q.popleft()
-        for d in N6:
-            n = (p[0] + d[0], p[1] + d[1], p[2] + d[2])
-            if n in out or not (x0 <= n[0] <= x1 and 0 <= n[1] <= y1 and z0 <= n[2] <= z1):
-                continue
-            if libre(n):
-                out.add(n)
-                q.append(n)
-    surf, bad = 0, 0.0
-    for p, st in blocks.items():
-        if bn(st) == "air" or not any((p[0] + d[0], p[1] + d[1], p[2] + d[2]) in out for d in N6):
-            continue
-        if p[1] == 0 and bn(st) in ("dirt_path", "gravel", "packed_mud"):
-            continue                          # el suelo del patio no cuenta
-        surf += 1
-        bad += 1.0 if p in ruined else esperanza(st)
-    near = sum(1 for p in ruined if p[1] >= 0 and blocks.get(p) and bn(blocks[p]) == "air"
-               and any((p[0] + d[0], p[1] + d[1], p[2] + d[2]) in out for d in N6))
-    return surf, (bad + near) / max(surf, 1)
+    return superficie_danada(blocks, ruined, DECAY, (-1, W, -1, D), ("dirt_path", "gravel", "packed_mud"))
