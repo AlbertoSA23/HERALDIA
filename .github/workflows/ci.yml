@@ -46,7 +46,7 @@ jobs:
         run: ./gradlew build
 
       - name: Prueba de humo en servidor dedicado
-        run: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-${{ steps.ver.outputs.version }}.jar --work build/smoke
+        run: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-${{ steps.ver.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -94,9 +94,10 @@ jobs:
           name: jar
           path: build/libs
 
-      # Todas en build/smoke para compartir la caché del servidor Fabric.
+      # Todas en build/smoke para compartir la caché del servidor Fabric. Ruta absoluta: los scripts arrancan el
+      # servidor con cwd=--work, así que una ruta relativa al lanzador no se encontraría.
       - name: Prueba
-        run: python3 ${{ matrix.prueba }} --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work build/smoke
+        run: python3 ${{ matrix.prueba }} --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke"
 
       - name: Nombre del artefacto
         if: failure()
