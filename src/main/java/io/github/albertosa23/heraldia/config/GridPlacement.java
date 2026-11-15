@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
  * config/heraldia.json. Los valores del JSON del datapack (spacing, separation, exclusion_zone) son los de por defecto
  * y marcan la proporción; el grupo ("aldeas" o "unicas/&lt;id&gt;") dice qué opciones se aplican. Todo se calcula al
  * leer el datapack y queda inmutable. Hereda de random_spread para que /locate la recorra como a las vanilla.
+ * <p>En las únicas la separación del datapack no se usa: la mínima es la distancia mínima entre únicas (así dos del
+ * mismo tipo tampoco quedan más cerca) y el origen de la rejilla se desplaza por tipo (según la sal). Con la proporción
+ * 190/250 y origen común, las candidatas de todos los tipos caían en la misma esquina de 960 bloques de cada casilla.
  */
 @SuppressWarnings("deprecation") // ExclusionZone está marcada obsoleta en vanilla, pero es la que usan sus aldeas
 public final class GridPlacement extends RandomSpreadStructurePlacement {
@@ -40,6 +43,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	private final Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion;
 	private final boolean enabled;
 	private final Set<Long> cells; // null = sin límite
+	private final int offsetX, offsetZ; // desfase del origen de la rejilla, en chunks (0 en las aldeas)
 
 	private GridPlacement(String group, int baseSpacing, int baseSeparation, int salt,
 						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Settings s) {
@@ -52,10 +56,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		this.baseExclusion = baseExclusion;
 		this.enabled = s.enabled;
 		this.cells = s.maxCells < 0 ? null : Set.copyOf(nearestCells(s.maxCells));
+		this.offsetX = s.shifted ? (int) Math.floorMod(UniqueSeparation.mix(salt * 0x9E3779B97F4A7C15L), (long) s.spacing) : 0;
+		this.offsetZ = s.shifted ? (int) Math.floorMod(UniqueSeparation.mix(salt * 0xC2B2AE3D27D4EB4FL + 1), (long) s.spacing) : 0;
 	}
 
 	private record Settings(boolean enabled, int spacing, int separation, int maxCells,
-							Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion) {
+							Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion, boolean shifted) {
 	}
 
 	private static GridPlacement create(String group, int spacing, int separation, int salt,
@@ -67,17 +73,18 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			int distance = cfg.getInt("aldeas.distancia_aldeas_vanilla_bloques");
 			Optional<AbstractSpreadingStructurePlacement.ExclusionZone> ex = distance == 0 ? Optional.empty()
 					: exclusion.map(z -> new AbstractSpreadingStructurePlacement.ExclusionZone(z.otherSet(), Math.clamp((distance + 15) / 16, 1, 16)));
-			s = new Settings(true, sp, scaled(sp, spacing, separation), cfg.getInt("aldeas.maximo"), ex);
+			s = new Settings(true, sp, scaled(sp, spacing, separation), cfg.getInt("aldeas.maximo"), ex, false);
 		} else if (group.startsWith("unicas/") && cfg.has(group.replace('/', '.') + ".separacion_bloques")) {
 			String key = group.replace('/', '.');
 			int sp = chunks(cfg.getInt(key + ".separacion_bloques"));
-			s = new Settings(cfg.getBool(key + ".activada"), sp, scaled(sp, spacing, separation), -1, exclusion);
+			int sep = Math.clamp((cfg.getInt("unicas.distancia_minima.bloques") + 15) / 16, 0, sp - 1);
+			s = new Settings(cfg.getBool(key + ".activada"), sp, sep, -1, exclusion, true);
 		} else {
 			LOGGER.warn("Heraldia: grupo de colocación sin opciones {}; se usan los valores del datapack", group);
-			s = new Settings(true, spacing, Math.min(separation, spacing - 1), -1, exclusion);
+			s = new Settings(true, spacing, Math.min(separation, spacing - 1), -1, exclusion, false);
 		}
-		LOGGER.info("Heraldia: rejilla {}: {}, cada {} chunks (separación mínima {}), {}, exclusión {}", group,
-				s.enabled ? "activada" : "desactivada", s.spacing, s.separation,
+		LOGGER.info("Heraldia: rejilla {}: {}, cada {} chunks (separación mínima {}{}), {}, exclusión {}", group,
+				s.enabled ? "activada" : "desactivada", s.spacing, s.separation, s.shifted ? ", origen desplazado" : "",
 				s.maxCells < 0 ? "sin máximo" : "máximo " + s.maxCells + " casillas",
 				s.exclusion.map(z -> z.chunkCount() + " chunks").orElse("ninguna"));
 		return new GridPlacement(group, spacing, separation, salt, exclusion, s);
@@ -111,12 +118,36 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	}
 
 	private boolean allowed(int chunkX, int chunkZ) {
-		return enabled && (cells == null || cells.contains(ChunkPos.pack(Math.floorDiv(chunkX, spacing()), Math.floorDiv(chunkZ, spacing()))));
+		return enabled && (cells == null || cells.contains(ChunkPos.pack(Math.floorDiv(chunkX - offsetX, spacing()), Math.floorDiv(chunkZ - offsetZ, spacing()))));
+	}
+
+	/** Desfase del origen de la rejilla en chunks: la casilla de un chunk x es floorDiv(x - offsetX(), spacing()). */
+	public int offsetX() {
+		return offsetX;
+	}
+
+	public int offsetZ() {
+		return offsetZ;
+	}
+
+	/** La de random_spread con la rejilla desplazada: la usan /locate, los mapas y UniqueSeparation. */
+	@Override
+	public ChunkPos getPotentialStructureChunk(long seed, int chunkX, int chunkZ) {
+		if (offsetX == 0 && offsetZ == 0) {
+			return super.getPotentialStructureChunk(seed, chunkX, chunkZ);
+		}
+		ChunkPos c = super.getPotentialStructureChunk(seed, chunkX - offsetX, chunkZ - offsetZ);
+		return new ChunkPos(c.x() + offsetX, c.z() + offsetZ);
 	}
 
 	@Override
 	protected boolean isPlacementChunk(ChunkGeneratorStructureState state, int chunkX, int chunkZ) {
-		return allowed(chunkX, chunkZ) && super.isPlacementChunk(state, chunkX, chunkZ);
+		if (!allowed(chunkX, chunkZ)) {
+			return false;
+		}
+		// Ruta caliente (cada chunk): mismo coste que vanilla, una sola ChunkPos y sin pasar por la versión desplazada.
+		ChunkPos c = super.getPotentialStructureChunk(state.getLevelSeed(), chunkX - offsetX, chunkZ - offsetZ);
+		return c.x() + offsetX == chunkX && c.z() + offsetZ == chunkZ;
 	}
 
 	/** /locate no pasa por isPlacementChunk sino por aquí: así no señala casillas desactivadas o fuera del máximo. */
