@@ -1,0 +1,35 @@
+name: Preparar entorno
+description: Java 25 (Temurin) con caché de Gradle y Python con caché de pip y las dependencias del generador.
+
+inputs:
+  gradle:
+    description: "'true' para restaurar y guardar la caché de Gradle (solo hace falta si se compila)."
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 25
+        cache: ${{ inputs.gradle == 'true' && 'gradle' || '' }}
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: pip
+        cache-dependency-path: tools/gen/requirements.txt
+
+    - name: Instalar dependencias del generador
+      shell: bash
+      run: pip install -r tools/gen/requirements.txt
+
+    # Servidor Fabric de las pruebas (lanzador, Fabric API, servidor vanilla y bibliotecas): siempre en build/smoke.
+    - uses: actions/cache@v4
+      with:
+        path: |
+          build/smoke/fabric-*.jar
+          build/smoke/.fabric
+          build/smoke/libraries
+        key: servidor-fabric-${{ hashFiles('gradle.properties') }}
