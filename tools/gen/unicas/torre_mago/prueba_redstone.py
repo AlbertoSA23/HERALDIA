@@ -87,7 +87,8 @@ def main():
         wait(1)
         check("caldero lleno abre la puerta de hierro", P(4, b1, 5), "minecraft:iron_door[open=true]")
         # hilo del ala oeste
-        cmd(f"summon minecraft:chicken {P(-6, b1, 0)}", r"Summoned|Unable")
+        # sin IA, la gallina se queda sobre el hilo: si se va, el gancho se apaga y el dispensador deja de estar «triggered»
+        cmd(f"summon minecraft:chicken {P(-6, b1, 0)} {{NoAI:1b,Silent:1b}}", r"Summoned|Unable")
         wait(1)
         check("el hilo acciona el gancho", P(-6, b1, -4), "minecraft:tripwire_hook[powered=true]")
         check("el dispensador ha disparado", P(-6, b1 + 1, -5), "minecraft:dispenser[triggered=true]")

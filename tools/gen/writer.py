@@ -376,12 +376,16 @@ def write_unique(out, sid, st):
     if not st.get("json") and st.get("project_to", "WORLD_SURFACE_WG"):
         structure["project_start_to_heightmap"] = st.get("project_to", "WORLD_SURFACE_WG")
     jdump(out, f"data/{NS}/worldgen/structure/unicas/{sid}.json", structure)
+    placement = st.get("placement") or {
+        "type": f"{NS}:rejilla", "grupo": f"unicas/{sid}", "spacing": st.get("spacing", unicas.DEFAULT_SPACING),
+        "separation": st.get("separation", unicas.DEFAULT_SEPARATION), "salt": unicas.salt(sid)}
+    if st.get("candidata_en_bioma"):     # bioma raro: la candidata de cada casilla se busca en sus biomas (GridPlacement)
+        assert placement["type"] == f"{NS}:rejilla", f"{sid}: candidata_en_bioma solo con la rejilla heraldia:rejilla"
+        placement = dict(placement, bioma=structure["biomes"].lstrip("#"))
     jdump(out, f"data/{NS}/worldgen/structure_set/unicas/{sid}.json", {
         "structures": [{"structure": sid_full, "weight": 1}],
         # colocación propia de la estructura (p. ej. la Atlántida, siempre una) o rejilla configurable heraldia:rejilla
-        "placement": st.get("placement") or {
-            "type": f"{NS}:rejilla", "grupo": f"unicas/{sid}", "spacing": st.get("spacing", unicas.DEFAULT_SPACING),
-            "separation": st.get("separation", unicas.DEFAULT_SEPARATION), "salt": unicas.salt(sid)}})
+        "placement": placement})
     jdump(out, f"data/{NS}/tags/worldgen/structure/unicas/{sid}.json", {"values": [sid_full]})
 
 

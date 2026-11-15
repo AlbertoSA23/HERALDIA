@@ -9,12 +9,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.core.Holder;
+import net.minecraft.core.QuartPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeResolver;
 import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
+import net.minecraft.world.level.levelgen.densityfunction.SamplerContext;
 import net.minecraft.world.level.levelgen.structure.placement.AbstractSpreadingStructurePlacement;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +38,11 @@ import org.slf4j.LoggerFactory;
  * <p>En las únicas la separación del datapack no se usa: la mínima es la distancia mínima entre únicas (así dos del
  * mismo tipo tampoco quedan más cerca) y el origen de la rejilla se desplaza por tipo (según la sal). Con la proporción
  * 190/250 y origen común, las candidatas de todos los tipos caían en la misma esquina de 960 bloques de cada casilla.
+ * <p>Con «bioma» (una etiqueta de biomas, opcional) la candidata de cada casilla deja de ser un chunk al azar: es el
+ * punto de una malla de 128 bloques, dentro de la misma ventana que el random_spread (así se conserva la separación
+ * mínima), que cae en ese bioma y tiene más vecinos a 64 bloques también en él (el más metido en el bioma). Sirve para
+ * biomas tan raros que una candidata al azar casi nunca acierta (los campos de champiñones). La búsqueda solo lee el
+ * ruido de biomas del mundo principal (sin cargar chunks), se hace una vez por casilla y queda en memoria.
  */
 @SuppressWarnings("deprecation") // ExclusionZone está marcada obsoleta en vanilla, pero es la que usan sus aldeas
 public final class GridPlacement extends RandomSpreadStructurePlacement {
@@ -35,8 +52,16 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			Codec.intRange(1, 4096).fieldOf("spacing").forGetter(p -> p.baseSpacing),
 			Codec.intRange(0, 4095).fieldOf("separation").forGetter(p -> p.baseSeparation),
 			Codec.INT.fieldOf("salt").forGetter(p -> p.baseSalt),
-			AbstractSpreadingStructurePlacement.ExclusionZone.CODEC.optionalFieldOf("exclusion_zone").forGetter(p -> p.baseExclusion)
+			AbstractSpreadingStructurePlacement.ExclusionZone.CODEC.optionalFieldOf("exclusion_zone").forGetter(p -> p.baseExclusion),
+			TagKey.codec(Registries.BIOME).optionalFieldOf("bioma").forGetter(p -> p.biome)
 	).apply(i, GridPlacement::create));
+	/** Malla de la búsqueda de bioma (chunks), vecinos a medio paso y vecinos mínimos (de 9) para aceptar un punto. */
+	private static final int STEP = 8, HALF = STEP / 2, MIN_SCORE = 6, SAMPLE_Y = 64, CACHE_MAX = 1 << 14;
+	private static final long NONE = Long.MIN_VALUE;
+	private record BiomeContext(long seed, BiomeResolver resolver) {
+	}
+	private static volatile @Nullable BiomeContext context;
+	private static volatile int searchesLogged;
 
 	private final String group;
 	private final int baseSpacing, baseSeparation, baseSalt;
@@ -44,9 +69,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	private final boolean enabled;
 	private final Set<Long> cells; // null = sin límite
 	private final int offsetX, offsetZ; // desfase del origen de la rejilla, en chunks (0 en las aldeas)
+	private final Optional<TagKey<Biome>> biome;
+	private final ConcurrentHashMap<Long, Long> candidates = new ConcurrentHashMap<>(); // casilla -> chunk (o NONE)
+	private volatile @Nullable BiomeContext cachedFor;
 
 	private GridPlacement(String group, int baseSpacing, int baseSeparation, int salt,
-						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Settings s) {
+						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Optional<TagKey<Biome>> biome, Settings s) {
 		super(Vec3i.ZERO, AbstractSpreadingStructurePlacement.FrequencyReductionMethod.DEFAULT, 1.0F, salt, s.exclusion,
 				s.spacing, s.separation, RandomSpreadType.LINEAR);
 		this.group = group;
@@ -54,6 +82,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		this.baseSeparation = baseSeparation;
 		this.baseSalt = salt;
 		this.baseExclusion = baseExclusion;
+		this.biome = biome;
 		this.enabled = s.enabled;
 		this.cells = s.maxCells < 0 ? null : Set.copyOf(nearestCells(s.maxCells));
 		this.offsetX = s.shifted ? (int) Math.floorMod(UniqueSeparation.mix(salt * 0x9E3779B97F4A7C15L), (long) s.spacing) : 0;
@@ -65,7 +94,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	}
 
 	private static GridPlacement create(String group, int spacing, int separation, int salt,
-										Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion) {
+										Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion, Optional<TagKey<Biome>> biome) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		Settings s;
 		if (group.equals("aldeas")) {
@@ -83,11 +112,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			LOGGER.warn("Heraldia: grupo de colocación sin opciones {}; se usan los valores del datapack", group);
 			s = new Settings(true, spacing, Math.min(separation, spacing - 1), -1, exclusion, false);
 		}
-		LOGGER.info("Heraldia: rejilla {}: {}, cada {} chunks (separación mínima {}{}), {}, exclusión {}", group,
+		LOGGER.info("Heraldia: rejilla {}: {}, cada {} chunks (separación mínima {}{}), {}, exclusión {}{}", group,
 				s.enabled ? "activada" : "desactivada", s.spacing, s.separation, s.shifted ? ", origen desplazado" : "",
 				s.maxCells < 0 ? "sin máximo" : "máximo " + s.maxCells + " casillas",
-				s.exclusion.map(z -> z.chunkCount() + " chunks").orElse("ninguna"));
-		return new GridPlacement(group, spacing, separation, salt, exclusion, s);
+				s.exclusion.map(z -> z.chunkCount() + " chunks").orElse("ninguna"),
+				biome.map(b -> ", candidata en el bioma #" + b.location()).orElse(""));
+		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, s);
 	}
 
 	private static int chunks(int blocks) {
@@ -133,6 +163,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	/** La de random_spread con la rejilla desplazada: la usan /locate, los mapas y UniqueSeparation. */
 	@Override
 	public ChunkPos getPotentialStructureChunk(long seed, int chunkX, int chunkZ) {
+		if (biome.isPresent()) {
+			long c = biomeCandidate(seed, chunkX, chunkZ);
+			if (c != NONE) {
+				return new ChunkPos((int) (c >> 32), (int) c);
+			}
+		}
 		if (offsetX == 0 && offsetZ == 0) {
 			return super.getPotentialStructureChunk(seed, chunkX, chunkZ);
 		}
@@ -145,6 +181,15 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		if (!allowed(chunkX, chunkZ)) {
 			return false;
 		}
+		if (biome.isPresent() && context != null) {
+			// Solo los puntos de la malla pueden ser candidatos: los demás chunks salen sin tocar la memoria.
+			int wx = Math.floorMod(chunkX - offsetX, spacing()) - first(), wz = Math.floorMod(chunkZ - offsetZ, spacing()) - first();
+			if (wx < 0 || wz < 0 || wx % STEP != 0 || wz % STEP != 0) {
+				return false;
+			}
+			long c = biomeCandidate(state.getLevelSeed(), chunkX, chunkZ);
+			return c != NONE && (int) (c >> 32) == chunkX && (int) c == chunkZ;
+		}
 		// Ruta caliente (cada chunk): mismo coste que vanilla, una sola ChunkPos y sin pasar por la versión desplazada.
 		ChunkPos c = super.getPotentialStructureChunk(state.getLevelSeed(), chunkX - offsetX, chunkZ - offsetZ);
 		return c.x() + offsetX == chunkX && c.z() + offsetZ == chunkZ;
@@ -153,7 +198,102 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	/** /locate no pasa por isPlacementChunk sino por aquí: así no señala casillas desactivadas o fuera del máximo. */
 	@Override
 	public boolean applyAdditionalChunkRestrictions(int chunkX, int chunkZ, long seed) {
-		return allowed(chunkX, chunkZ) && super.applyAdditionalChunkRestrictions(chunkX, chunkZ, seed);
+		return allowed(chunkX, chunkZ) && (biome.isEmpty() || context == null || biomeCandidate(seed, chunkX, chunkZ) != NONE)
+				&& super.applyAdditionalChunkRestrictions(chunkX, chunkZ, seed);
+	}
+
+	/** Ancho (chunks) de la ventana donde random_spread pone la candidata de cada casilla. */
+	private int window() {
+		return spacing() - separation();
+	}
+
+	/**
+	 * Candidata de la casilla del chunk (chunkX, chunkZ) según el bioma, empaquetada (x << 32 | z), o NONE si la casilla
+	 * no tiene un sitio bueno. Sin mundo cargado (o con otra semilla), NONE: se usa la candidata de siempre.
+	 */
+	private long biomeCandidate(long seed, int chunkX, int chunkZ) {
+		BiomeContext ctx = context;
+		if (ctx == null || ctx.seed != seed) {
+			return NONE;
+		}
+		if (cachedFor != ctx) {
+			candidates.clear();
+			cachedFor = ctx;
+		}
+		int gx = Math.floorDiv(chunkX - offsetX, spacing()), gz = Math.floorDiv(chunkZ - offsetZ, spacing());
+		long cell = ChunkPos.pack(gx, gz);
+		Long hit = candidates.get(cell);
+		if (hit != null) {
+			return hit;
+		}
+		long t = System.nanoTime();
+		long found = search(ctx, seed, gx * spacing() + offsetX, gz * spacing() + offsetZ);
+		if (candidates.size() > CACHE_MAX) {
+			candidates.clear();
+		}
+		candidates.put(cell, found);
+		if (searchesLogged < 3) {
+			searchesLogged++;
+			LOGGER.info("Heraldia: rejilla {}: búsqueda del bioma en la casilla {}, {}: {} ({} ms)", group, gx, gz,
+					found == NONE ? "sin sitio" : "chunk " + (int) (found >> 32) + ", " + (int) found, (System.nanoTime() - t) / 1_000_000);
+		}
+		return found;
+	}
+
+	/** Primer punto de la malla dentro de la ventana (chunks desde el origen de la casilla). */
+	private int first() {
+		return window() >= STEP ? HALF : window() / 2;
+	}
+
+	/** Malla de STEP chunks en la ventana de la casilla; puntuación = vecinos (de 9, a HALF chunks) en el bioma. */
+	private long search(BiomeContext ctx, long seed, int x0, int z0) {
+		int win = window(), n = Math.max(1, win / STEP), first = first();
+		TagKey<Biome> tag = biome.orElseThrow();
+		long best = NONE, bestKey = Long.MIN_VALUE;
+		for (int a = 0; a < n; a++) {
+			for (int b = 0; b < n; b++) {
+				int cx = x0 + first + a * STEP, cz = z0 + first + b * STEP;
+				if (!in(ctx, tag, cx, cz)) {
+					continue;
+				}
+				int score = 1;
+				for (int dx = -HALF; dx <= HALF; dx += HALF) {
+					for (int dz = -HALF; dz <= HALF; dz += HALF) {
+						if ((dx != 0 || dz != 0) && in(ctx, tag, cx + dx, cz + dz)) {
+							score++;
+						}
+					}
+				}
+				if (score < MIN_SCORE) {
+					continue;
+				}
+				long key = (long) score << 56 | (UniqueSeparation.mix(seed ^ ChunkPos.pack(cx, cz) ^ baseSalt) >>> 8);
+				if (best == NONE || key > bestKey) {
+					best = (long) cx << 32 | (cz & 0xFFFFFFFFL);
+					bestKey = key;
+				}
+			}
+		}
+		return best;
+	}
+
+	/** El bioma en la esquina del chunk (donde el jigsaw comprueba el suyo), a la altura del mar. */
+	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, int chunkX, int chunkZ) {
+		Holder<Biome> b = ctx.resolver.getNoiseBiome(QuartPos.fromBlock(chunkX * 16), QuartPos.fromBlock(SAMPLE_Y), QuartPos.fromBlock(chunkZ * 16));
+		return b.is(tag);
+	}
+
+	/** Prepara la búsqueda de bioma al cargar el mundo principal (y la olvida al parar el servidor). Una línea en Heraldia. */
+	public static void registerBiomeSearch() {
+		ServerLevelEvents.LOAD.register((server, level) -> {
+			if (level.dimension() == Level.OVERWORLD) {
+				var randomState = level.getChunkSource().getGeneratorState().randomState();
+				context = new BiomeContext(level.getSeed(), level.getChunkSource().getGenerator().getBiomeSource()
+						.createResolver(randomState.createClimateSampler(SamplerContext.EMPTY_UNCACHED)));
+				searchesLogged = 0;
+			}
+		});
+		ServerLifecycleEvents.SERVER_STOPPED.register(server -> context = null);
 	}
 
 	@Override
