@@ -118,6 +118,28 @@ Una sola por mundo, siempre, sin opción de configuración. Es una ciudad amural
 
 Detalle, planos y qué se ha comprobado: [docs/unicas/atlantida.md](docs/unicas/atlantida.md).
 
+## Biomas de otros mods
+
+Cada familia de aldeas y cada estructura única busca sus biomas con una etiqueta propia (`#heraldia:<familia>` y `#heraldia:unicas/<id>`): los biomas vanilla de las tablas de arriba más las etiquetas convencionales de Fabric/NeoForge (`#c:...`) y `#minecraft:is_*` en las que los mods de biomas (Terralith, Biomes O' Plenty...) meten los suyos. Solo se usan las que en vanilla no añaden ningún bioma a la lista, así que **sin mods de biomas todo sale exactamente donde antes**; todas van con `"required": false` (si un mod no está, el paquete carga igual).
+
+| Etiqueta | Además de sus biomas vanilla |
+| --- | --- |
+| `llanuras`, `unicas/castillo` | `#c:is_plains` |
+| `bosque` | `#c:is_birch_forest`, `#c:is_flower_forest` |
+| `oscuro` (y la torre de mago) | `#c:is_dark_forest` |
+| `nieve`, `unicas/fortaleza_hielo` | `#c:is_snowy_plains` |
+| `desierto`, `unicas/acueducto` | `#c:is_desert` |
+| `jungla` | `#minecraft:is_jungle`, `#c:is_jungle` |
+| `pantano` (y la mansión) | `#c:is_swamp` |
+| `badlands` | `#minecraft:is_badlands`, `#c:is_badlands` |
+| `costa` | `#minecraft:is_beach`, `#c:is_beach`, `#c:is_stony_shores` |
+| `unicas/catedral` | `#c:is_flower_forest` |
+| `unicas/faro` | `#c:is_stony_shores` |
+| `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
+| `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
+
+Taiga, sabana, cerezos y las únicas coliseo, observatorio, pirámide, monasterio, ciudadela y palacio se quedan solo con sus biomas vanilla: no hay ninguna etiqueta convencional lo bastante estrecha (por ejemplo, `#c:is_taiga` incluye la taiga nevada, de la familia nieve, y `#c:is_savanna` la sabana ventosa, del observatorio). Qué bioma de un mod entra en cada etiqueta lo decide ese mod (con Terralith, por ejemplo, la llanura incluye sus estepas y tierras altas, y el bosque, sus bosques de lavanda y de cerezos). La búsqueda de la Atlántida acepta también los océanos de `#c:is_ocean` y `#c:is_deep_ocean`. Probado con Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
+
 ## Mapas del tesoro
 
 Cada estructura única tiene su mapa del tesoro, que marca la más cercana con una X (u otra marca propia de la estructura) y lleva su nombre traducido:
@@ -127,7 +149,7 @@ Cada estructura única tiene su mapa del tesoro, que marca la más cercana con u
 - La búsqueda abarca unos 10.000 bloques y no salta chunks ya explorados (así no traba el servidor). Si no hay ninguna estructura de ese tipo al alcance, no sale el mapa (el cofre lo deja vacío y el cartógrafo no ofrece ese trato).
 - Para probar: `/loot give @s loot heraldia:mapas/<id>` da el mapa de la estructura `heraldia:unicas/<id>` desde donde estés.
 
-Limitaciones conocidas: el puerto sale recto desde la calle sin buscar el agua; en laderas puede haber escalones y cimientos altos; no se ha comprobado el solape con estructuras de otros mods.
+Limitaciones conocidas: el puerto sale recto desde la calle sin buscar el agua; en laderas puede haber escalones y cimientos altos; no se ha comprobado el solape con estructuras de otros mods (los biomas de otros mods sí, ver [Biomas de otros mods](#biomas-de-otros-mods)).
 
 ## Configuración
 

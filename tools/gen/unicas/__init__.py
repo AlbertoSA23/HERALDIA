@@ -2,7 +2,8 @@
 
 Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar main.py ni writer.py):
   STRUCTURE = dict(
-      biomes="#minecraft:is_forest" o "#heraldia:<familia>" (etiqueta de biomas),
+      biomes=["minecraft:forest", ...] (pasa a la etiqueta heraldia:unicas/<id>, con las #c: de biomas.CONVENCIONALES)
+             o "#heraldia:<familia>" (etiqueta de una familia de aldeas); también en STRUCTURE["json"]["biomes"],
       start_pool="unicas/<id>/inicio",
       size=1..20, max_distance=1..116,
       terrain_adaptation="beard_thin" | "beard_box" | "bury" | "encapsulate" | "none",
