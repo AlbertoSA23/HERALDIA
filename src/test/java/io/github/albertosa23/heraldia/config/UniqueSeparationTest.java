@@ -100,12 +100,29 @@ class UniqueSeparationTest {
 		return out;
 	}
 
+	/** Las rejillas de antes (separación 190 de 250 y origen común): solo para comparar en la salida de la prueba. */
+	private static List<RandomSpreadStructurePlacement> legacy() {
+		List<RandomSpreadStructurePlacement> out = new ArrayList<>();
+		for (int i = 0; i < grids.size(); i++) {
+			int s = grids.get(i).spacing();
+			out.add(always.get(i) ? grids.get(i) : new RandomSpreadStructurePlacement(s, Math.round(s * 190F / 250), RandomSpreadType.LINEAR, 1000 + 7919 * i));
+		}
+		return out;
+	}
+
 	@Test
 	void defaultGrids() throws IOException {
 		loadSets();
 		int n = HeraldiaConfig.get().getInt("unicas.distancia_minima.bloques");
 		assertEquals(1000, n);
-		simulate(grids, n, "rejillas por defecto", 300, 24_000);
+		for (int i = 0; i < grids.size(); i++) {
+			if (!always.get(i)) {
+				assertEquals((n + 15) / 16, grids.get(i).separation(), "separación interna de " + ids.get(i));
+			}
+		}
+		double lost = simulate(grids, n, "rejillas por defecto", 300, 24_000);
+		double before = simulate(legacy(), n, "antes: separación 190 y origen común", 300, 24_000);
+		assertTrue(lost < 0.40 && lost < before - 0.3, "descartes: " + lost + " (antes " + before + ")");
 	}
 
 	@Test
@@ -130,10 +147,11 @@ class UniqueSeparationTest {
 		return out;
 	}
 
-	private static void simulate(List<RandomSpreadStructurePlacement> placements, int n, String label, int seeds, int areaBlocks) {
+	/** Fracción de candidatas viables descartadas. */
+	private static double simulate(List<RandomSpreadStructurePlacement> placements, int n, String label, int seeds, int areaBlocks) {
 		UniqueSeparation sep = new UniqueSeparation(label, ids, nulls(), placements, always, true, n);
 		int area = areaBlocks / 16, bucket = (n + 15) / 16, margin = 2 * ((n + 15) / 16) + 8;
-		long nSq = (long) n * n, totalNanos = 0, calls = 0, kept = 0, lost = 0, validCalls[] = {0};
+		long nSq = (long) n * n, totalNanos = 0, calls = 0, kept = 0, lost = 0, sameTypeClose = 0, validCalls[] = {0};
 		for (int k = 0; k < seeds; k++) {
 			long seed = mix(k * 0x9E3779B97F4A7C15L + 17);
 			UniqueSeparation.Viability viability = (j, x, z) -> {
@@ -148,10 +166,10 @@ class UniqueSeparationTest {
 					cands.add(new Cand(i, a.x(), a.z(), true, true));
 					continue;
 				}
-				int s = p.spacing();
-				for (int gx = Math.floorDiv(-area - margin, s); gx <= Math.floorDiv(area + margin, s); gx++) {
-					for (int gz = Math.floorDiv(-area - margin, s); gz <= Math.floorDiv(area + margin, s); gz++) {
-						ChunkPos c = p.getPotentialStructureChunk(seed, gx * s, gz * s);
+				int s = p.spacing(), ox = UniqueSeparation.offsetX(p), oz = UniqueSeparation.offsetZ(p);
+				for (int gx = Math.floorDiv(-area - margin - ox, s); gx <= Math.floorDiv(area + margin - ox, s); gx++) {
+					for (int gz = Math.floorDiv(-area - margin - oz, s); gz <= Math.floorDiv(area + margin - oz, s); gz++) {
+						ChunkPos c = p.getPotentialStructureChunk(seed, gx * s + ox, gz * s + oz);
 						if (!p.applyAdditionalChunkRestrictions(c.x(), c.z(), seed)) {
 							continue;
 						}
@@ -182,6 +200,9 @@ class UniqueSeparationTest {
 					}
 				}
 				for (Cand b : near) {
+					if (b.type == a.type && b != a && dist2(a, b) <= 1024L * 1024 && placements.get(a.type) instanceof GridPlacement) {
+						sameTypeClose++; // la separación interna de la rejilla debe impedirlo
+					}
 					if (b.type != a.type && b.survives && dist2(a, b) < nSq) {
 						survivorNear = true;
 						assertTrue(!a.survives, () -> label + ", semilla " + seed + ": " + ids.get(a.type) + " en " + a.x + "," + a.z
@@ -197,10 +218,14 @@ class UniqueSeparationTest {
 				}
 			}
 		}
-		System.out.printf("Separación (%s, N = %d): %d semillas, %d supervivientes, %d descartadas (%.1f %%), %.2f µs por comprobación,"
-						+ " %.2f viabilidades por candidata%n", label, n, seeds, kept, lost, 100.0 * lost / Math.max(1, kept + lost),
+		double cells = seeds * Math.pow(2.0 * areaBlocks / 4000, 2); // casillas de 4.000 bloques (la separación por defecto)
+		System.out.printf("Separación (%s, N = %d): %d semillas, %d supervivientes, %d descartadas (%.1f %%), %.2f supervivientes"
+						+ " por casilla de 4.000 bloques (%.2f viables), %.2f µs por comprobación, %.2f viabilidades por candidata%n", label, n,
+				seeds, kept, lost, 100.0 * lost / Math.max(1, kept + lost), kept / cells, (kept + lost) / cells,
 				totalNanos / 1000.0 / calls, (double) (validCalls[0] - calls) / calls);
 		assertTrue(kept > 0);
+		assertEquals(0, sameTypeClose, label + ": dos del mismo tipo a menos de 1.024 bloques");
+		return (double) lost / Math.max(1, kept + lost);
 	}
 
 	private static long dist2(Cand a, Cand b) {

@@ -171,10 +171,10 @@ public final class UniqueSeparation {
 				continue;
 			}
 			RandomSpreadStructurePlacement p = placements[j];
-			int s = p.spacing();
-			for (int gx = Math.floorDiv(cx - reachChunks, s), gxMax = Math.floorDiv(cx + reachChunks, s); gx <= gxMax; gx++) {
-				for (int gz = Math.floorDiv(cz - reachChunks, s), gzMax = Math.floorDiv(cz + reachChunks, s); gz <= gzMax; gz++) {
-					ChunkPos c = p.getPotentialStructureChunk(seed, gx * s, gz * s);
+			int s = p.spacing(), ox = offsetX(p), oz = offsetZ(p);
+			for (int gx = Math.floorDiv(cx - reachChunks - ox, s), gxMax = Math.floorDiv(cx + reachChunks - ox, s); gx <= gxMax; gx++) {
+				for (int gz = Math.floorDiv(cz - reachChunks - oz, s), gzMax = Math.floorDiv(cz + reachChunks - oz, s); gz <= gzMax; gz++) {
+					ChunkPos c = p.getPotentialStructureChunk(seed, gx * s + ox, gz * s + oz);
 					long dx = (c.x() - (long) cx) * 16, dz = (c.z() - (long) cz) * 16;
 					if (dx * dx + dz * dz >= distanceSq) {
 						continue;
@@ -215,12 +215,21 @@ public final class UniqueSeparation {
 		return false;
 	}
 
+	/** Desfase del origen de la rejilla (las casillas de p empiezan en gx * spacing + offsetX). */
+	public static int offsetX(RandomSpreadStructurePlacement p) {
+		return p instanceof GridPlacement g ? g.offsetX() : 0;
+	}
+
+	public static int offsetZ(RandomSpreadStructurePlacement p) {
+		return p instanceof GridPlacement g ? g.offsetZ() : 0;
+	}
+
 	/** Rango de desempate: determinista por semilla, tipo y chunk; las de colocación propia, el máximo. */
 	public long rank(int i, int chunkX, int chunkZ, long seed) {
 		return always[i] ? Long.MAX_VALUE : mix(seed ^ salts[i] ^ mix(ChunkPos.pack(chunkX, chunkZ)));
 	}
 
-	private static long mix(long z) { // finalizador de SplitMix64
+	static long mix(long z) { // finalizador de SplitMix64 (también lo usa GridPlacement)
 		z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
 		z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
 		return z ^ (z >>> 31);

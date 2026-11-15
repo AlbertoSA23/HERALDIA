@@ -160,7 +160,7 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `golems.limite_estandar` | 8 | 1-64 | Con tantos gólems naturales o más, una aldea estándar retira uno cada 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Igual para las aldeas grandes. |
 | `unicas.<id>.activada` | `true` | `true`/`false` | Activa una estructura única. Aparece una entrada por cada estructura única del mod. |
-| `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). |
+| `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). Cada tipo se reparte por toda su casilla de la rejilla (con el origen desplazado por tipo) y dos del mismo tipo nunca quedan a menos de `unicas.distancia_minima.bloques`. |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Impide que dos estructuras únicas distintas (también la Atlántida) salgan a menos de la distancia mínima. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Distancia mínima entre los chunks de inicio de dos estructuras únicas distintas. Si dos candidatas quedan demasiado cerca, un sorteo determinista (semilla y posición) se queda con una; si la ganadora no puede salir ahí (bioma o terreno), se conserva la otra. `/locate` y los mapas del tesoro siguen la misma regla. |
 
