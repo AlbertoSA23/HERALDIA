@@ -72,13 +72,10 @@ def coast(ctx, fails, medir):
         if not test(ctx, f"execute if block {tx} {SEA} {tz} #minecraft:planks"):
             fails.append(f"puerto: no hay tablas en la punta del muelle ({tx} {SEA} {tz})")
         if not test(ctx, f"execute if block {tx} {SEA - 1} {tz} minecraft:water"):
-            # fallo pendiente conocido (docs/APRENDIZAJES.md): una calle que llega al mar (tablas sobre el agua por su
-            # procesador) puede pasar bajo el muelle; se avisa y se exige el agua un bloque más abajo
-            if test(ctx, f"execute if block {tx} {SEA - 1} {tz} #minecraft:planks") and \
-                    test(ctx, f"execute if block {tx} {SEA - 2} {tz} minecraft:water"):
-                print(f"AVISO puerto: una calle pasa bajo la punta del muelle ({tx} {SEA - 1} {tz})")
-            else:
-                fails.append(f"puerto: no hay agua bajo la punta del muelle ({tx} {SEA - 1} {tz})")
+            # una calle que llega al mar (tablas sobre el agua por su procesador) bajo el muelle dejaría aquí sus tablas:
+            # AldeaStructure descarta esas orillas
+            under = "tablas de una calle" if test(ctx, f"execute if block {tx} {SEA - 1} {tz} #minecraft:planks") else "otra cosa"
+            fails.append(f"puerto: no hay agua bajo la punta del muelle ({tx} {SEA - 1} {tz}): {under}")
         # pilotes: troncos bajo la fila de la superficie del agua junto a la punta
         logs = count(ctx, tx - 6, SEA - 24, tz - 6, tx + 6, SEA - 2, tz + 6, "#minecraft:logs", (tx - 6, 250, tz - 6))
         print("costa: troncos de pilote bajo el agua en la punta:", logs)

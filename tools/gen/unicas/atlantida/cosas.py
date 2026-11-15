@@ -1,5 +1,5 @@
 """Objetos con datos: textos traducibles, cofres, llaves, generadores, mobs, carteles y dispensadores (NBT de 26.3)."""
-from core import B, F
+from core import B, F, adulto
 from .._comun import piezas as P
 
 LANG = {"es_es": {}, "en_us": {}}
@@ -102,7 +102,7 @@ def mob(tipo, nombre=None, mano=None, vida=None, armadura=None, botin=None, **ex
     if botin:
         n["DeathLootTable"] = TABLA + botin
     n.update(extra)
-    return n
+    return adulto(n)
 
 
 def ahogado(elite=False):

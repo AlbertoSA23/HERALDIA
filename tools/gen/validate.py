@@ -1,6 +1,6 @@
 """Validación contra los registros reales de Minecraft 26.3 (resumen de misode/mcmeta, rama 26.3-summary)."""
 import json, os
-from core import parse_state
+from core import parse_state, ADULTO_TAG, BEBE_ZOMBI, BEBE_SIN_PROTECCION
 
 BLOCKS, ITEMS, ENTITIES, TRIGGERS, ENTITY_PREDICATES = {}, set(), set(), set(), set()
 # El juego suma 12 bloques de adaptación al terreno al radio y rechaza el paquete entero si pasa de 128.
@@ -83,6 +83,10 @@ def validate_registry(reg):
         for x, y, z, n in t.entities:
             if n["id"].replace("minecraft:", "") not in ENTITIES:
                 errs.setdefault("entidad " + n["id"], []).append(t.name)
+            if n["id"] in BEBE_ZOMBI and ADULTO_TAG not in (n.get("Tags") or []):
+                errs.setdefault(f"{n['id']} sin la etiqueta {ADULTO_TAG} (saldría bebé el 5 %: core.adulto)", []).append(t.name)
+            if n["id"] in BEBE_SIN_PROTECCION:
+                errs.setdefault(f"{n['id']} en una plantilla (saldría bebé el 20 %, sin protección)", []).append(t.name)
         for j in t.jigsaws:
             p = j["pool"]
             if p != "minecraft:empty" and p not in reg.pools:
