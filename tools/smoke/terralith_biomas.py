@@ -23,6 +23,7 @@ MODS = [
 EXPECTED = [
     ("terralith:steppe", "llanuras", True), ("terralith:highlands", "unicas/castillo", True),
     ("terralith:lavender_forest", "unicas/catedral", True), ("terralith:birch_taiga", "bosque", True),
+    ("terralith:birch_taiga", "unicas/santuario", True),
     ("terralith:desert_oasis", "desierto", True), ("terralith:desert_oasis", "unicas/acueducto", True),
     ("terralith:white_mesa", "badlands", True), ("terralith:tropical_jungle", "jungla", True),
     ("terralith:orchid_swamp", "pantano", True), ("terralith:gravel_beach", "unicas/faro", True),
