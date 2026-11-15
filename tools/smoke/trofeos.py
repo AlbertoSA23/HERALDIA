@@ -72,6 +72,14 @@ def main():
             time.sleep(RETRY_S)
         return False
 
+    def settle():
+        """El jugador, en el suelo, sin golpe reciente y de vuelta en (X, Y, Z): ya no se desliza ni vuela."""
+        quiet = f"execute if entity @a[name={PLAYER},nbt={{OnGround:1b,HurtTime:0s}}]"
+        if not until(quiet):
+            return False
+        ctx.run(f"tp {PLAYER} {X + 0.5} {Y} {Z + 0.5}", r"Teleported")
+        return until(f"execute if entity @a[name={PLAYER},x={X + 0.5},y={Y},z={Z + 0.5},distance=..0.01]") and until(quiet)
+
     try:
         s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
         ctx.run(f"forceload add {X} {Z}", r"Marked|force|already")
@@ -123,11 +131,21 @@ def main():
                 ok += 1
             # 3) el jugador lo recoge (el mensaje de /tp muestra el nombre que ve el jugador: item_name en en_us) y el
             #    desafío solo se concede con el último trofeo
+            # Las espinas del guardián anciano (Guardian.hurtServer: 2 de daño al atacante cuerpo a cuerpo si no se
+            # mueve, siempre con NoAI) empujan al jugador ~2 bloques: antes de acercarle el trofeo, se espera a que
+            # aterrice y pase su invulnerabilidad (HurtTime 0) y se le devuelve a su sitio, quieto.
+            if not settle():
+                fails.append(f"{sid}: el jugador no queda quieto tras el golpe")
+                continue
             m = ctx.run(f"tp {near} {PLAYER}", r"Teleported (.+) to |No entity")
             if m.group(1) != lang.get(key):
                 fails.append(f"{sid}: el trofeo se ve como «{m.group(1)}», no «{lang.get(key)}»")
             if not until(f"execute if entity @a[name={PLAYER},advancements={{{ADV}={{{sid}=true}}}}]"):
                 fails.append(f"{sid}: recogido, no cuenta para {ADV}")
+                mark_sel = f"@e[type=minecraft:item,nbt={{Item:{{components:{mark}}}}},limit=1]"
+                for q in (f"data get entity {mark_sel}", f"data get entity {PLAYER} Pos", f"data get entity {PLAYER} Inventory",
+                          f"data get entity {PLAYER} Health"):
+                    print("DIAG", ctx.run(q, r"entity data: .*|No entity").group(0)[:300])
             elif test(f"execute if entity @a[name={PLAYER},advancements={{{ADV}=true}}]") != (i == len(found) - 1):
                 fails.append(f"{sid}: {ADV} concedido antes de tiempo o no concedido al final")
             else:
