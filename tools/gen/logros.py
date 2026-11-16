@@ -13,6 +13,9 @@
   unicas/todas                 (desafío) descubrir todas las únicas
   unicas/trofeos               (desafío) conseguir el trofeo de cada guardián (TROFEO de cada módulo, custom_data
                                heraldia_trofeo; un criterio inventory_changed por trofeo, todos requeridos)
+  medianas/descubrir           entrar en una estructura mediana cualquiera; medianas/todas: una de cada tipo
+  medianas/<id>/<extra>        logros propios de un tipo de mediana (LOGROS del módulo: abrir uno de sus contenedores o
+                               criterios propios)
   unicas/cronista              (desafío) reunir los pliegos de la Crónica de los Heraldos (HISTORIA de cada módulo,
                                custom_data heraldia_historia; un criterio inventory_changed por pliego, todos requeridos)
 Contrato opcional en cada módulo de unicas/ (ver unicas/__init__.py): LOGRO = {"icono", "tesoro", "tesoro_objeto", "extra"}.
@@ -28,7 +31,7 @@ ROOT_ICON, VILLAGES_ICON, UNIQUES_ICON = "minecraft:filled_map", "minecraft:bell
 DEFAULT_ICON, GUARDIAN_ICON, TREASURE_ICON = "minecraft:filled_map", "minecraft:iron_sword", "minecraft:chest"
 # Experiencia (moderada): una aldea vale lo que un logro vanilla sencillo, los desafíos lo que uno vanilla grande.
 XP = {"familia": 20, "aldeas": 250, "descubrir": 50, "guardian": 100, "tesoro": 50, "extra": 30, "unicas": 500,
-      "trofeos": 500, "cronista": 500, "mediana": 10, "medianas": 150}
+      "trofeos": 500, "cronista": 500, "mediana": 10, "medianas": 150, "mediana_extra": 20}
 MEDIANAS_ICON = "minecraft:oak_sign"
 TROPHIES_ICON, CHRONICLE_ICON = "minecraft:armor_stand", "minecraft:written_book"
 DEFAULT_TREASURE_TABLES = ("premium",)
@@ -138,6 +141,16 @@ def build(reg, modules, medianas_mods=None):
         title, desc = text("medianas/todas", "medianas")
         advs["medianas/todas"] = advancement("medianas/descubrir", MEDIANAS_ICON, title, desc, crit,
                                              requirements=[[mid] for mid in sorted(crit)], frame="goal", xp=XP["medianas"])
+        for mid, mod in medianas_mods:      # logros propios de cada tipo (LOGROS, opcional; ver medianas/__init__.py)
+            for ex in getattr(mod, "LOGROS", ()):
+                path = f"medianas/{mid}/{ex['id']}"
+                for part, field in (("title", "titulo"), ("description", "descripcion")):
+                    lang["es_es"][key(path, part)], lang["en_us"][key(path, part)] = ex[field]
+                crit = ex.get("criterios") or {ex["tabla"]: {"trigger": "minecraft:player_generates_container_loot",
+                                                             "conditions": {"loot_tables": f"{NS}:medianas/{mid}/{ex['tabla']}"}}}
+                advs[path] = advancement("medianas/descubrir", ex["icono"], comp(key(path, "title"), ex["titulo"][0]),
+                                         comp(key(path, "description"), ex["descripcion"][0]), crit,
+                                         xp=ex.get("xp", XP["mediana_extra"]), requirements=[sorted(crit)])
     # aldeas por familia
     for fam, d in FAMILIES.items():
         es, en = d["nombre"]

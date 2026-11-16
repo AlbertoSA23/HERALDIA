@@ -93,8 +93,8 @@ Contents:
     boat through the cliff), the guardroom, the map room with the **compass rose puzzle**, the armoury with the secret
     powder room, the dungeons and, below sea level and dry, the treasure chamber with Roque Salitre, the Corsair;
     tripwire and pressure-plate traps, 3 spawners and 21 chests. Design: [docs/unicas/isla_corsario.md](docs/unicas/isla_corsario.md).
-- **Medium structures** (all types together, one every 650-700 blocks, each in its own biomes): watchtowers, roadside
-  inns, bandit camps and hermitages, with a style for each biome. See [Medium structures](#medium-structures).
+- **Medium structures** (all types together, one every 550-580 blocks, each in its own biomes): watchtowers, roadside
+  inns, bandit camps, hermitages, mills, fisher's huts, hunters' lodges and ruined shrines, with a style for each biome. See [Medium structures](#medium-structures).
 
 ## Installation
 
@@ -102,7 +102,7 @@ Requirements: Minecraft 26.3, Fabric Loader 0.20.1 or later and Fabric API (test
 
 1. Build `heraldia-<version>.jar` (see below).
 2. Copy it into the `mods` folder of the server and of every client.
-3. Start the server. `logs/latest.log` should show `Heraldia: 103 estructuras registradas`.
+3. Start the server. `logs/latest.log` should show `Heraldia: 112 estructuras registradas`.
 
 In an existing world, structures only appear in chunks that have not been generated yet.
 `/reload` does not reload world generation: you must restart the server (or leave and re-enter the world in single player).
@@ -190,7 +190,7 @@ Details, plans and what has been verified: [docs/unicas/atlantida.md](docs/unica
 
 ## Medium structures
 
-Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every 650-700 blocks** (measured, see below), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batch 1:
+Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every 550-580 blocks** (measured, see below), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
 
 | Type | Id | Styles (biomes) | Variants |
 | --- | --- | --- | --- |
@@ -198,11 +198,15 @@ Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more comm
 | **Roadside inn** | `heraldia:medianas/posada/<style>` | plains (oak); oak, birch and flower forests (birch and dark oak); savannas (acacia and terracotta) | common room with hearth, tables and counter, the innkeeper (a villager without AI who sells bread, cooked pork and a bed, and buys wheat), a room with two beds and a chest; with a hay paddock and trough or with a vegetable garden |
 | **Bandit camp** | `heraldia:medianas/campamento/<style>` | forests; taigas; badlands | canvas tents around a campfire with log benches, a barrel with the stolen goods and a banner; two pillagers, or a palisade, three tents, a vindicator chief and a pillager. They are persistent and anchored (they stay in the camp until attacked), never form a patrol and do not respawn |
 | **Hermitage** | `heraldia:medianas/ermita/<style>` | groves and snowy slopes (stone bricks); dark forest and pale garden (mossy cobblestone); cherry groves (cherry and white terracotta) | chapel with bell gable and bell, pews, an altar with candles and the hermit's cell (bed, lectern and the chest with his diary, a written book in each player's language); a fenced garden with a water channel and, in one variant, a small graveyard |
+| **Mill** | `heraldia:medianas/molino/<style>` | plains (oak and white terracotta); swamps (mangrove and mud bricks) | water mill with its paddle wheel in a race of still water, the millstone and the miller (a villager without AI who buys wheat and sells bread, sugar and cake), or a three-storey windmill with sails and a wheat field with its ditch |
+| **Fisher's Hut** | `heraldia:medianas/pescador/<style>` | beaches (birch and sandstone); snowy beaches (spruce and cobblestone); stony shores (oak and stone bricks) | hut with a fish-drying rack and a jetty on piles, with the fisher (buys string and cod, sells cooked cod and a fishing rod) and their cat, or empty, with a smokehouse and a longer jetty with fish traps |
+| **Hunters' Lodge** | `heraldia:medianas/cazadores/<style>` | snowy plains and ice spikes (spruce); savannas (acacia) | log cabin with a chimney, bunks and the pelt chest, a drying rack, a chopping block and a hunting stand; with the hunter (buys rabbit hides, sells leather, arrows and a leather tunic) and their wolf, or empty, with a meat smoker |
+| **Ruined Shrine** | `heraldia:medianas/templete/<style>` | jungles (mossy stone bricks); desert (sandstone) | colonnaded shrine on a podium, with the side columns broken, their drums fallen and pots with offerings (break them to get them out); with the altar and two keepers (skeletons with helmets in the jungle, husks in the desert, anchored like the bandits), or with a sacred well and nobody |
 
 - They never spawn inside a village, a unique structure, Atlantis or the Corsair's Isle: not within `medianas.distancia_aldeas_unicas_bloques` (256) of the start of a Heraldia village or unique structure that spawns there, nor within `medianas.distancia_minima.bloques` (192) of another medium structure of a different type (a deterministic draw keeps one, the same rule as the minimum distance between unique structures), nor within 128 blocks of a vanilla village candidate. They also give way to structures that show above ground, vanilla or from other mods (pillager outposts, temples, ruined portals, other mods' villages...): one is discarded if such a structure spawns within 80 blocks (vanilla) or 128 (other mods).
 - Find them with `/locate structure #heraldia:medianas/<type>` (or `heraldia:medianas/<type>/<style>`) and `/heraldia info cerca`; `/heraldia info` shows their configuration. To test one: `/place structure heraldia:medianas/<type>/<style>`.
 - Frequency, measured with `MedianasFrecuenciaTest` (the placement grids on the real 26.3 Overworld biome noise, with villages, unique structures and vanilla structures around them, 3 seeds, 16,000 × 16,000 blocks): see the [changelog](CHANGELOG.md) and the pull request for the figures per type. Each grid looks for its candidate inside the type's biomes (the spot of the cell most inside them), so a type appears wherever its biomes are, at most once per cell.
-- Configuration: `medianas.*` options (see [Configuration](#configuration)). Advancements: **By the Wayside** and **Wayfarer** (see [Advancements](#advancements)). **In an existing world they only appear in new chunks.**
+- Configuration: `medianas.*` options (see [Configuration](#configuration)). Advancements: **By the Wayside**, **Wayfarer** and one of its own for each type of batch 2 (see [Advancements](#advancements)). **In an existing world they only appear in new chunks.**
 
 ## Biomes from other mods
 
@@ -334,10 +338,10 @@ Pages are shown in each player's language (Spanish if the client does not have t
 
 ## Advancements
 
-A **Heraldia** advancement tab (84 advancements), with texts in Spanish and English. They only give experience, except the two job-board deeds:
+A **Heraldia** advancement tab (88 advancements), with texts in Spanish and English. They only give experience, except the two job-board deeds:
 
 - **Heraldia** (root): enter any Heraldia village, unique structure or medium structure.
-- [Medium structures](#medium-structures): **By the Wayside**, find any one (10), and **Wayfarer**, one of each type (150).
+- [Medium structures](#medium-structures): **By the Wayside**, find any one (10), and **Wayfarer**, one of each type (150). And, as children of By the Wayside, one for each type of batch 2 (20 each): **Grist for the Mill** (open the sacks of a mill), **Catch of the Day** (the catch barrel of a fisher's hut), **Winter Pelts** (the pelt chest of a hunters' lodge) and **Unguarded** (defeat a keeper of a ruined shrine).
 - A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
 - For each unique structure: discover it (50), defeat its named guardian (100) and open its treasure chest (50).
 - Atlantis also has its three seals (open the seal chest or hold its key, 30 each); its guardian is the Warden of Poseidon and the treasure counts when you take one of the named items from the unique chest.
@@ -382,8 +386,8 @@ when its format changes. It is read only when the server starts and affects chun
 | `medianas.frecuencia_porcentaje` | 100 | 25-400 | Frequency of all medium structures, as a % of the default: 200 = twice as many (each type's spacing is divided by the square root). |
 | `medianas.distancia_minima.bloques` | 192 | 64-1024 | Minimum distance between two medium structures of different types (and between two of the same type, at most half a grid cell). |
 | `medianas.distancia_aldeas_unicas_bloques` | 256 | 128-1024 | A medium structure does not spawn closer than this to the start of a Heraldia village or unique structure that spawns there. |
-| `medianas.<id>.activada` | `true` | `true`/`false` | Enables a type of medium structure (`torre_vigia`, `posada`, `campamento`, `ermita`). |
-| `medianas.<id>.separacion_bloques` | the type's own (640-768) | 256-4000 | Average spacing between two of that type (at 100 % frequency); each grid cell looks for its candidate inside the type's biomes. |
+| `medianas.<id>.activada` | `true` | `true`/`false` | Enables a type of medium structure (`torre_vigia`, `posada`, `campamento`, `ermita`, `molino`, `pescador`, `cazadores`, `templete`). |
+| `medianas.<id>.separacion_bloques` | the type's own (576-832) | 256-4000 | Average spacing between two of that type (at 100 % frequency); each grid cell looks for its candidate inside the type's biomes. |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Structures from other mods that show above ground do not spawn closer than this to the start of a Heraldia village or unique structure that spawns there; 0 disables it ([Compatibility with other mods](#compatibility-with-other-mods)). |
 
 Atlantis has no placement options: there is always exactly one per world.
@@ -424,7 +428,7 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 103 structures and all 84 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 112 structures and all 88 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
 Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario`, `laboratorio_micelio`, `mina_perdida` and `isla_corsario`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one. `tools/smoke/aldeas_variantes.py` places several villages of the same style, reads the saved regions and identifies, by comparing blocks with the templates in the `.jar`, which variant of each special building came out; it checks that each one matches exactly one variant and that different variants come out, and measures each `/place`. `tools/smoke/guardianes_adultos.py` places 200 times, through the same path as world generation, every zombie-type mob of the templates (zombie, husk, drowned) and checks that none comes out as a baby, with another weapon or on a mount. `tools/smoke/guardianes_anclados.py` (with Carpet) places 30 times, through the same path, every mob of the templates tagged `heraldia_anclado` (the guardians and the drowned of Atlantis) and checks that none can pick up items and that after 200 ticks, and again after unloading and reloading the chunks, all are still where they appeared (a control batch without the tag must wander and pick up items); then that each one attacks the simulated player 8 blocks away, and that each guardian is still in its room 200 ticks after placing its real template in daylight. `tools/smoke/rejilla_compatible.py` turns on `unicas.rejilla_compatible` and checks that `/locate` of several unique structures from 0.1.0 gives exactly the coordinates of the 0.1.0 `.jar` (fixed in the script, with how they were obtained).
 

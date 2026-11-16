@@ -13,6 +13,10 @@ Contrato de cada módulo:
   LOOT = {"<tabla>": tabla}     # heraldia:medianas/<id>/<tabla>; nada de «premium» ni de PROHIBIDO (botín modesto)
   LANG = {"es_es": {...}, "en_us": {...}}          # opcional: textos propios (mismas claves en los dos idiomas)
   LOGRO_ICONO = "minecraft:spyglass"               # opcional: icono del tipo en el logro de las medianas
+  BIOMA_VECINOS = 2                                # opcional: biomas en franja (playas); ver colocacion
+  LOGROS = [dict(id="pesca", icono="minecraft:cod", titulo=(es, en), descripcion=(es, en),   # opcional: logros
+                tabla="pesca")]       # propios (heraldia:medianas/<id>/<id del logro>, hijos de «Al borde del camino»):
+                                      # abrir un contenedor de esa tabla de LOOT, o `criterios` propios en vez de `tabla`
 Plantillas (nombres medianas/<id>/<estilo>/<variante>): una sola pieza rígida con y = 0 a ras de suelo, la entrada
 (jigsaw heraldia:entrance, mediana.entrada) en la cara norte (z = 0) y nada que dé vida al suelo del patio (camino,
 grava, barro compacto...: dentro no nacen árboles). Las entidades (pocas: MAX_ENTIDADES) llevan las etiquetas
@@ -110,6 +114,9 @@ def errores(reg, mid, mod):
     n = getattr(mod, "NOMBRE", None) or {}
     if not (n.get("es_es") and n.get("en_us")):
         errs.append(f"{pre}: NOMBRE sin es_es o en_us")
+    vec = getattr(mod, "BIOMA_VECINOS", None)
+    if vec is not None and not (isinstance(vec, int) and 1 <= vec <= 9):
+        errs.append(f"{pre}: BIOMA_VECINOS {vec!r} fuera de 1-9")
     sep = getattr(mod, "SEPARACION", None)
     if not (isinstance(sep, int) and SEPARACION_RANGO[0] <= sep <= SEPARACION_RANGO[1]):
         errs.append(f"{pre}: SEPARACION {sep!r} fuera de {SEPARACION_RANGO}")
@@ -122,6 +129,11 @@ def errores(reg, mid, mod):
         for obj in _objetos(tabla):
             if any(p in obj for p in PROHIBIDO):
                 errs.append(f"{pre}/{name}: {obj} no es botín modesto (medianas.PROHIBIDO)")
+    for ex in getattr(mod, "LOGROS", ()):
+        if not all(ex.get(k) for k in ("id", "icono", "titulo", "descripcion")) or not (ex.get("tabla") or ex.get("criterios")):
+            errs.append(f"{pre}: logro {ex.get('id')!r} sin id, icono, titulo, descripcion o tabla/criterios")
+        elif ex.get("tabla") and ex["tabla"] not in loot:
+            errs.append(f"{pre}: el logro {ex['id']} pide la tabla {ex['tabla']}, que no está en LOOT")
     lang = getattr(mod, "LANG", None)
     if lang and set(lang.get("es_es", {})) != set(lang.get("en_us", {})):
         errs.append(f"{pre}: LANG con claves distintas en es_es y en_us")
@@ -196,11 +208,16 @@ def colocacion(mid, mod):
     """heraldia:rejilla del tipo; spacing y separation son los de por defecto (el Java los recalcula con la config).
     Con «bioma» (la etiqueta de todos sus estilos) la candidata de cada casilla es el punto de la ventana más metido en
     sus biomas, no un chunk al azar (GridPlacement): con biomas que cubren el 5-30 % del mundo, al azar casi todas las
-    casillas se pierden (medido con MedianasFrecuenciaTest). Mirado a y = BIOMA_Y (sobre el terreno de casi todo)."""
+    casillas se pierden (medido con MedianasFrecuenciaTest). Mirado a y = BIOMA_Y (sobre el terreno de casi todo).
+    El punto debe tener 6 de sus 9 vecinos de la malla (a 64 bloques) en los biomas; un tipo de biomas en franja (las
+    playas, de pocas decenas de bloques) pide menos con BIOMA_VECINOS (bioma_vecinos en la rejilla)."""
     spacing = round(mod.SEPARACION / 16)
-    return {"type": f"{NS}:rejilla", "grupo": f"{PREFIJO}/{mid}", "spacing": spacing, "separation": spacing // 3,
-            "salt": salt(mid), "bioma": f"{NS}:{PREFIJO}/{mid}", "bioma_y": BIOMA_Y,
-            "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": EXCLUSION_ALDEAS_VANILLA}}
+    out = {"type": f"{NS}:rejilla", "grupo": f"{PREFIJO}/{mid}", "spacing": spacing, "separation": spacing // 3,
+           "salt": salt(mid), "bioma": f"{NS}:{PREFIJO}/{mid}", "bioma_y": BIOMA_Y,
+           "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": EXCLUSION_ALDEAS_VANILLA}}
+    if getattr(mod, "BIOMA_VECINOS", None):
+        out["bioma_vecinos"] = mod.BIOMA_VECINOS
+    return out
 
 
 def write(out, jdump):
