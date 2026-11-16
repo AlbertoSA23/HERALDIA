@@ -75,4 +75,53 @@ class SitioTest {
 		assertTrue(e.suelo() == 70 || e.suelo() == 74);
 		assertEquals(250, e.distancia());
 	}
+
+	@Test
+	void evitaLasEstructurasYaGeneradas() {
+		Sitio.Eleccion libre = elegir(0, 0, new Terreno((x, z) -> 70, (x, z) -> false)).orElseThrow();
+		// la mejor posición sin estructuras pasa a estar ocupada (una aldea, una entrada de mina...): se elige otra
+		int ocx = libre.x() >> 4, ocz = libre.z() >> 4;
+		Sitio.Alturas conAldea = new Terreno((x, z) -> 70, (x, z) -> false);
+		Sitio.Alturas ocupado = new Sitio.Alturas() {
+			@Override
+			public int superficie(int x, int z) {
+				return conAldea.superficie(x, z);
+			}
+
+			@Override
+			public int fondo(int x, int z) {
+				return conAldea.fondo(x, z);
+			}
+
+			@Override
+			public boolean ocupado(int cx, int cz) {
+				return Math.abs(cx - ocx) <= 1 && Math.abs(cz - ocz) <= 1;
+			}
+		};
+		Sitio.Eleccion otra = elegir(0, 0, ocupado).orElseThrow();
+		assertTrue(Math.hypot(otra.x() - libre.x(), otra.z() - libre.z()) > 40, "no se aparta de la estructura: " + otra);
+		for (int cx = (otra.x() - 33) >> 4; cx <= (otra.x() + 33) >> 4; cx++) {
+			for (int cz = (otra.z() - 33) >> 4; cz <= (otra.z() + 33) >> 4; cz++) {
+				assertTrue(!ocupado.ocupado(cx, cz), "chunk ocupado en la huella: " + cx + ", " + cz);
+			}
+		}
+		// todo ocupado: sin sitio
+		Sitio.Alturas todo = new Sitio.Alturas() {
+			@Override
+			public int superficie(int x, int z) {
+				return 71;
+			}
+
+			@Override
+			public int fondo(int x, int z) {
+				return 71;
+			}
+
+			@Override
+			public boolean ocupado(int cx, int cz) {
+				return true;
+			}
+		};
+		assertTrue(elegir(0, 0, todo).isEmpty());
+	}
 }

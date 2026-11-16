@@ -439,7 +439,7 @@ Un coliseo cerca del spawn, uno por mundo, para jugar por oleadas con los amigos
 
 **Colocarla** (operadores, nivel 2):
 
-- `/heraldia arena colocar`: busca un sitio llano y sin agua a 200-300 bloques del spawn del mundo (sin cargar chunks), dice sus coordenadas y marca sus esquinas y su centro con columnas de partículas durante 5 minutos. `/heraldia arena colocar confirmar` la construye: **despeja y nivela el terreno** (lo que haya encima, también construcciones, se pierde), así que **haz antes una copia de seguridad del mundo**. Se construye por partes, un chunk por tick (unos 3 s).
+- `/heraldia arena colocar`: busca un sitio llano, sin agua y sin estructuras ya generadas (aldeas, entradas de mina, únicas, las de otros mods; las subterráneas no cuentan) a 200-300 bloques del spawn del mundo (sin cargar ni generar chunks), dice sus coordenadas y marca sus esquinas y su centro con columnas de partículas durante 5 minutos. `/heraldia arena colocar confirmar` la construye: **despeja y nivela el terreno** (lo que haya encima, también construcciones, se pierde), así que **haz antes una copia de seguridad del mundo**. Se construye por partes, un chunk por tick (unos 3 s).
 - `/heraldia arena mover` y `mover confirmar`: igual, quitando la vieja. `/heraldia arena quitar` y `quitar confirmar`: la quita (el terreno queda llano).
 - `/heraldia arena empezar` y `/heraldia arena parar`: empiezan o detienen una partida.
 - `/heraldia arena` (cualquiera): dónde está, si hay partida y los récords.

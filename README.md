@@ -437,7 +437,7 @@ A coliseum near spawn, one per world, to play in waves with your friends. Server
 
 **Placing it** (operators, level 2):
 
-- `/heraldia arena colocar`: finds a flat, dry site 200-300 blocks from the world spawn (without loading chunks), gives its coordinates and marks its corners and centre with particle columns for 5 minutes. `/heraldia arena colocar confirmar` builds it: **it clears and levels the ground** (whatever is on top, builds included, is lost), so **make a backup of the world first**. It is built in parts, one chunk per tick (about 3 s).
+- `/heraldia arena colocar`: finds a flat, dry site with no structures already generated (villages, mine entrances, unique structures, other mods'; underground ones do not count) 200-300 blocks from the world spawn (without loading or generating chunks), gives its coordinates and marks its corners and centre with particle columns for 5 minutes. `/heraldia arena colocar confirmar` builds it: **it clears and levels the ground** (whatever is on top, builds included, is lost), so **make a backup of the world first**. It is built in parts, one chunk per tick (about 3 s).
 - `/heraldia arena mover` and `mover confirmar`: the same, removing the old one. `/heraldia arena quitar` and `quitar confirmar`: removes it (the ground stays flat).
 - `/heraldia arena empezar` and `/heraldia arena parar`: start or stop a match.
 - `/heraldia arena` (anyone): where it is, whether there is a match, and the records.

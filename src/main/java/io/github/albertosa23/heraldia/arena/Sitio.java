@@ -7,7 +7,7 @@ import java.util.Optional;
  * Elección del sitio de la arena, sin clases del juego (lo prueban los tests con un terreno inventado): candidatos en
  * anillos de {@link #RADIO_MIN} a {@link #RADIO_MAX} bloques del spawn, cada {@link #PASO_GRADOS}°, y en cada uno una
  * malla de {@link #MUESTRAS}² alturas sobre la huella de la arena y un margen. Vale el que no tiene agua y menos desnivel
- * (como mucho {@link #DESNIVEL_MAX}); a igualdad, el más cercano a {@link #RADIO_PREFERIDO} y luego el primero en orden.
+ * (como mucho {@link #DESNIVEL_MAX}) y ninguna estructura ya generada en sus chunks; a igualdad, el más cercano a {@link #RADIO_PREFERIDO} y luego el primero en orden.
  * Las alturas salen del generador del mundo ({@code ChunkGenerator.getBaseHeight}: solo ruido, sin cargar chunks), así
  * que la búsqueda puede ir fuera del hilo del servidor.
  */
@@ -25,6 +25,11 @@ public final class Sitio {
 
 		/** Primer bloque libre o con agua sobre el suelo sólido. */
 		int fondo(int x, int z);
+
+		/** ¿Hay ya en ese chunk alguna pieza de una estructura de superficie (aldea, entrada de mina...)? */
+		default boolean ocupado(int chunkX, int chunkZ) {
+			return false;
+		}
 	}
 
 	/**
@@ -50,7 +55,7 @@ public final class Sitio {
 				if (e == null || e.suelo() - bajo <= minY || e.suelo() + alto >= maxY) {
 					continue;
 				}
-				if (mejor == null || mejor(e, mejor)) {
+				if ((mejor == null || mejor(e, mejor)) && libre(e, lado, a)) {
 					mejor = e;
 				}
 			}
@@ -81,6 +86,19 @@ public final class Sitio {
 		}
 		int dist = (int) Math.round(Math.hypot(cx - spawnX, cz - spawnZ));
 		return new Eleccion(cx, cz, alturas[alturas.length / 2], desnivel, dist);
+	}
+
+	/** ¿Ningún chunk de la huella y su margen tiene ya una estructura? (solo se mira si el sitio mejora al elegido) */
+	static boolean libre(Eleccion e, int lado, Alturas a) {
+		int m = lado / 2 + MARGEN;
+		for (int cx = (e.x() - m) >> 4; cx <= (e.x() + m) >> 4; cx++) {
+			for (int cz = (e.z() - m) >> 4; cz <= (e.z() + m) >> 4; cz++) {
+				if (a.ocupado(cx, cz)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	/** ¿{@code a} es mejor que {@code b}? Menos desnivel; a igualdad, más cerca de {@link #RADIO_PREFERIDO}. */

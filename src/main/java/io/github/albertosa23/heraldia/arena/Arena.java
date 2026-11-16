@@ -305,6 +305,11 @@ public final class Arena {
 			public int fondo(int x, int z) {
 				return gen.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, ow, rs);
 			}
+
+			@Override
+			public boolean ocupado(int chunkX, int chunkZ) {
+				return Estructuras.ocupado(ow, chunkX, chunkZ);
+			}
 		};
 		Plano pl = plano;
 		int lado = Math.max(pl.tamano()[0], pl.tamano()[2]);
