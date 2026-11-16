@@ -25,7 +25,9 @@ def fetchRegistries = tasks.register('fetchRegistries', Exec) {
 def generateStructures = tasks.register('generateStructures', Exec) {
 	description = 'Genera, valida y audita las estructuras con tools/gen; falla ante cualquier aviso.'
 	dependsOn fetchRegistries
-	inputs.dir('tools/gen').withPropertyName('generator')
+	// sin las pruebas unitarias ni la caché de bytecode: tocarlas no obliga a regenerar el datapack
+	inputs.files(fileTree('tools/gen') { exclude 'tests/**', '**/__pycache__/**', '**/.pytest_cache/**' })
+			.withPropertyName('generator')
 	outputs.dir(generatedDir)
 	def out = generatedDir.get().asFile
 	commandLine project.python, '-I', file('tools/gen/main.py').absolutePath,
@@ -66,11 +68,41 @@ dependencies {
 }
 
 // Pruebas unitarias (JUnit) con las clases del juego en el classpath: p. ej. la separación entre estructuras únicas.
+// Las simulaciones largas (minutos) van en su propia tarea, testPesado: ./gradlew build (check) pasa las dos; la CI
+// pasa testPesado en un job aparte, a la vez que el resto, para que no alargue la compilación.
+def junitPesadas = ['io.github.albertosa23.heraldia.config.UniqueSeparationTest']
 test {
 	useJUnitPlatform()
 	systemProperty 'heraldia.generated', generatedDir.get().asFile.absolutePath
 	testLogging { events 'failed'; showStandardStreams = true; exceptionFormat = 'full' }
+	filter { junitPesadas.each { excludeTestsMatching it } }
 }
+
+def testPesado = tasks.register('testPesado', Test) {
+	description = 'Pruebas JUnit largas (simulación de la separación entre únicas con muchas semillas).'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform()
+	systemProperty 'heraldia.generated', generatedDir.get().asFile.absolutePath
+	testLogging { events 'failed'; showStandardStreams = true; exceptionFormat = 'full' }
+	filter { junitPesadas.each { includeTestsMatching it } }
+	mustRunAfter tasks.named('test')
+}
+
+// Tests unitarios del generador (pytest, tools/gen/tests): segundos, sin generar el datapack ni tocar el juego.
+def testGen = tasks.register('testGen', Exec) {
+	description = 'Tests unitarios del generador en Python (pytest): python3 -m pytest tools/gen/tests'
+	group = 'verification'
+	inputs.files(fileTree('tools/gen') { exclude '**/__pycache__/**', '**/.pytest_cache/**' }).withPropertyName('generator')
+	inputs.file('tools/test.py').withPropertyName('selector')
+	def marker = layout.buildDirectory.file('test-results/testGen/ok').get().asFile
+	outputs.file(marker)
+	commandLine project.python, '-m', 'pytest', '-q', '-p', 'no:cacheprovider', file('tools/gen/tests').absolutePath
+	doLast { marker.parentFile.mkdirs(); marker.text = 'ok' }
+}
+
+tasks.named('check') { dependsOn testGen, testPesado }
 
 processResources {
 	def props = [version: project.version, minecraft_version: project.minecraft_version,

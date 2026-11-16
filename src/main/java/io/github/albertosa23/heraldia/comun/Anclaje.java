@@ -18,6 +18,8 @@ import net.minecraft.world.entity.Mob;
  * mira {@code noActionTime}), y al recibir daño el juego lo pone a 0 y vuelve a moverse con normalidad.</li>
  * </ul>
  * Sin mixin: un evento de Fabric API con salida temprana (conjunto de etiquetas, casi siempre vacío); nada por tick.
+ * Los ahogados tienen además dos objetivos que los mueven sin mirar {@code noActionTime} (ir al agua de día, a la orilla
+ * de noche): {@code DrownedAguaMixin} y {@code DrownedPlayaMixin} los apagan con {@link #quieto(Mob)}.
  */
 public final class Anclaje {
 	/** Etiqueta (Tags) de los mobs anclados; la misma que core.ANCLADO_TAG. */
@@ -40,6 +42,16 @@ public final class Anclaje {
 		if (mob.getTarget() == null) {
 			mob.setNoActionTime(quieto(mob.getNoActionTime()));
 		}
+	}
+
+	/** ¿Mob anclado que aún no ha entrado en combate (sin objetivo y sin daño desde que se cargó)? */
+	public static boolean quieto(Mob mob) {
+		return anclado(mob.entityTags()) && quieto(mob.getTarget() != null, mob.getNoActionTime());
+	}
+
+	/** Sin objetivo y sin daño reciente (el daño pone {@code noActionTime} a 0). */
+	static boolean quieto(boolean conObjetivo, int noActionTime) {
+		return !conObjetivo && noActionTime >= QUIETO;
 	}
 
 	/** ¿Lleva la etiqueta de anclado? */

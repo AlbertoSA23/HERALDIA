@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -115,7 +117,12 @@ public final class AldeaStructure extends Structure {
 	/** Pieza del tablón de encargos (atril con su libro y el alguacil): plantilla {@code <estilo>/tablon}. */
 	private static boolean tablon(StructurePiece piece) {
 		return piece instanceof PoolElementStructurePiece pe && pe.getElement() instanceof SinglePoolElement e
-				&& e.getTemplateLocation().getPath().endsWith("/tablon");
+				&& esTablon(e.getTemplateLocation().getPath());
+	}
+
+	/** Ruta de plantilla del tablón de encargos ({@code <estilo>/tablon}). */
+	static boolean esTablon(String path) {
+		return path.endsWith("/tablon");
 	}
 
 	/** Orilla candidata: último punto de tierra baja antes del agua en un rayo, con la dirección hacia el mar. */
@@ -130,9 +137,19 @@ public final class AldeaStructure extends Structure {
 		if (!(piece instanceof PoolElementStructurePiece pe)) {
 			return false;
 		}
-		String path = pe.getElement() instanceof SinglePoolElement e ? e.getTemplateLocation().getPath() : "";
+		return removable(pe.getElement() instanceof SinglePoolElement e ? e.getTemplateLocation().getPath() : "");
+	}
+
+	/** Lo mismo por la ruta de la plantilla (sin la pieza): lo único que decide. */
+	static boolean removable(String path) {
 		return path.contains("/houses/") || path.contains("/fillers/") || path.contains("/decor/") || path.contains("/terminators/")
 				|| path.startsWith("villagers/") || path.equals("golem");
+	}
+
+	/** Calle o avenida: pieza de pool que se adapta al terreno (terrain_matching). */
+	private static boolean street(StructurePiece piece) {
+		return piece instanceof PoolElementStructurePiece pe
+				&& pe.getElement().getProjection() == StructureTemplatePool.Projection.TERRAIN_MATCHING;
 	}
 
 	/**
@@ -144,11 +161,16 @@ public final class AldeaStructure extends Structure {
 	 * aldeano, su cama).
 	 */
 	private static List<StructurePiece> displaced(List<StructurePiece> village, BoundingBox caseta, BoundingBox muelle) {
-		List<StructurePiece> out = new ArrayList<>();
-		for (StructurePiece piece : village) {
-			BoundingBox b = piece.getBoundingBox();
-			if (piece instanceof PoolElementStructurePiece pe
-					&& pe.getElement().getProjection() == StructureTemplatePool.Projection.TERRAIN_MATCHING) {
+		return displaced(village, StructurePiece::getBoundingBox, AldeaStructure::street, AldeaStructure::removable, caseta, muelle);
+	}
+
+	/** displaced sin piezas del juego (para las pruebas): caja, si es calle y si se puede quitar, de cada pieza. */
+	static <P> List<P> displaced(List<P> village, Function<P, BoundingBox> box, Predicate<P> street, Predicate<P> removable,
+								 BoundingBox caseta, BoundingBox muelle) {
+		List<P> out = new ArrayList<>();
+		for (P piece : village) {
+			BoundingBox b = box.apply(piece);
+			if (street.test(piece)) {
 				if (b.intersects(muelle.minX(), muelle.minZ(), muelle.maxX(), muelle.maxZ())) {
 					return null;
 				}
@@ -157,15 +179,15 @@ public final class AldeaStructure extends Structure {
 			if (!b.intersects(caseta) && !b.intersects(muelle)) {
 				continue;
 			}
-			if (!removable(piece)) {
+			if (!removable.test(piece)) {
 				return null;
 			}
 			out.add(piece);
 		}
-		for (StructurePiece piece : village) {
+		for (P piece : village) {
 			for (int i = 0, n = out.size(); i < n && !out.contains(piece); i++) {
-				BoundingBox house = out.get(i).getBoundingBox();
-				BoundingBox b = piece.getBoundingBox();
+				BoundingBox house = box.apply(out.get(i));
+				BoundingBox b = box.apply(piece);
 				if (house.minX() <= b.minX() && b.maxX() <= house.maxX() && house.minZ() <= b.minZ() && b.maxZ() <= house.maxZ()
 						&& house.minY() <= b.minY() && b.maxY() <= house.maxY()) {
 					out.add(piece);
@@ -261,7 +283,7 @@ public final class AldeaStructure extends Structure {
 	}
 
 	/** Giro que lleva el +z de las plantillas (de la caseta hacia el muelle) a la dirección dada. */
-	private static Rotation facing(Direction d) {
+	static Rotation facing(Direction d) {
 		for (Rotation r : Rotation.values()) {
 			BlockPos v = new BlockPos(0, 0, 1).rotate(r);
 			if (v.getX() == d.getStepX() && v.getZ() == d.getStepZ()) {

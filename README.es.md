@@ -337,7 +337,11 @@ El `.jar` queda en `build/libs/`. La compilación ejecuta el generador `tools/ge
 
 Los registros de 26.3 (resumen de [misode/mcmeta](https://github.com/misode/mcmeta), rama `26.3-summary`) no se incluyen en el repositorio porque son datos de Mojang. Se clonan solos en `build/mcmeta-summary`; para usar otra copia: `-Pmcmeta_summary=<ruta>` o la variable `MCMETA_SUMMARY`.
 
-Comprobaciones antes de publicar (la CI de GitHub Actions, `.github/workflows/ci.yml`, las ejecuta todas, también las de cada estructura única, en cada PR contra `develop` o `main` y en cada push a `develop`):
+`./gradlew build` pasa también las pruebas unitarias: las del generador (pytest, `tools/gen/tests`, también con `python3 -m pytest tools/gen/tests`, unos segundos), las JUnit (`./gradlew test`) y las simulaciones JUnit largas (`./gradlew testPesado`, unos minutos). El generador reparte su trabajo entre procesos (`HERALDIA_PROCESOS=1` lo hace en serie, con la misma salida).
+
+`python3 tools/test.py --afectados` pasa las pruebas unitarias y solo las pruebas de servidor afectadas por los ficheros cambiados frente a `origin/develop` (`--listar` solo las enumera); `python3 tools/test.py --todo` pasa la batería completa. El mapa de rutas es el mismo que usa la CI (ver `docs/DESARROLLO.md`, «Política de pruebas»).
+
+Comprobaciones antes de publicar (la CI de GitHub Actions, `.github/workflows/ci.yml`, las ejecuta en cada PR contra `develop` o `main`, con solo las pruebas de servidor afectadas por el PR, y todas en cada push a `develop`, a mano o en un PR con la etiqueta `bateria-completa`):
 
 ```bash
 python3 tools/changelog.py check

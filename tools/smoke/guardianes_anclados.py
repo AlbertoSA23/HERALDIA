@@ -7,11 +7,12 @@ CanPickUpLoot sin mirar el NBT. El mod (comun/Anclaje.java) lo evita en los que 
 distinto con la etiqueta en las plantillas del .jar (los guardianes y los ahogados de la Atlántida):
   1) lo coloca --veces veces como pieza de pool (/place jigsaw: finalizeSpawn, como al generar) en su casilla de una
      plataforma, de noche y en difícil; ninguno puede recoger objetos y, tras 200 ticks, todos siguen en su casilla
-     (±1,8 bloques; el guardián anciano, en una piscina, ±6: deriva en el agua y vuelve a su casa de 16 bloques). Un lote de control sin la etiqueta (el mismo esqueleto y el mismo zombi) debe pasear y recoger
+     (±1,8 bloques; el guardián anciano, en una piscina, dentro de la casa de 16 bloques que el juego le pone). Un lote de control sin la etiqueta (el mismo esqueleto y el mismo zombi) debe pasear y recoger
      objetos alguna vez: si no, la prueba no comprobaría nada;
   2) descarga y vuelve a cargar los chunks (noActionTime vuelve a 0) y, tras otros 200 ticks, siguen en su casilla;
   3) con un jugador simulado (Carpet) a 8 bloques, cada uno lo ataca (le quita vida): anclado no quiere decir tonto;
-  4) coloca de día la plantilla real de cada guardián (/place template) y, tras 200 ticks, sigue donde apareció.
+  4) coloca de día la plantilla real de cada guardián (/place template; de noche otra vez las de los ahogados) y, tras
+     200 ticks, sigue donde la plantilla lo pone.
 """
 import argparse, gzip, io, json, os, queue, shutil, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -35,7 +36,7 @@ CONTROL = "heraldia_prueba_control"
 
 def mobs(jar):
     """[(nombre, nbt)]: un mob de cada NBT distinto (sin posición) con core.ANCLADO_TAG en las plantillas del .jar, y
-    [(plantilla, id, tamaño, nbt)] de las plantillas que tienen un guardián final."""
+    [(plantilla, etiqueta del guardián, tamaño, tipo, posición en la plantilla)] de las que tienen un guardián final."""
     out, seen, rooms = [], set(), []
     with zipfile.ZipFile(jar) as z:
         for n in sorted(z.namelist()):
@@ -50,7 +51,7 @@ def mobs(jar):
                     continue
                 if "heraldia_guardian" in tags:
                     rooms.append((name, next(x for x in tags if x.startswith("heraldia_guardian.")),
-                                  [int(v) for v in t["size"]], str(nbt["id"])))
+                                  [int(v) for v in t["size"]], str(nbt["id"]), [float(v) for v in e["pos"]]))
                 nbt.pop("Pos", None)
                 nbt.pop("UUID", None)
                 key = nbt.snbt()
@@ -119,10 +120,11 @@ def main():
     z = Z1
     for lote in lotes:
         if str(lote["nbt"]["id"]) in ACUATICOS:
-            # En el agua derivan unos bloques (no es el paseo, que también tienen bloqueado), y el guardián anciano se
-            # pone él solo una casa de 16 bloques adonde vuelve: ±6 bloques bastan para seguir en su sala (la del
-            # Guardián de Poseidón mide 25 x 25). Casillas a 20 bloques y menos colocaciones (el agua cuesta).
-            paso, cols, veces, lote["tol"] = 20, 5, min(a.veces, 10), 6
+            # El guardián anciano se pone él solo una casa de 16 bloques (ElderGuardian.customServerAiStep) y vuelve a
+            # ella (MoveTowardsRestrictionGoal); en una de cuatro pruebas, 3 de 10 anclados derivaron unos 9 bloques al
+            # aparecer y luego nada, y uno vanilla 12. Se pide que siga en su casa. Casillas a 40 bloques y menos
+            # colocaciones (el agua cuesta).
+            paso, cols, veces, lote["tol"] = 40, 5, min(a.veces, 10), 16
         else:
             paso, cols, veces, lote["tol"] = PASO, COLS, a.veces * (4 if lote["control"] else 1), 1
         lote["celdas"] = [(X1 + (k % cols) * paso, z + (k // cols) * paso) for k in range(veces)]
@@ -143,12 +145,24 @@ def main():
         ctx.run(f"forceload {'add' if add else 'remove'} {x0} {z0} {x1} {z1}", r"Marked|Added|Removed|force|already|Unmarked")
 
     def fill(x0, y0, z0, x1, y1, z1, block, mode=""):
-        for _ in range(s.PLACE_ATTEMPTS):   # los chunks forzados tardan en cargarse
-            m = ctx.run(f"fill {x0} {y0} {z0} {x1} {y1} {z1} {block} {mode}".strip(), r"Successfully filled|No blocks|not loaded|too many")
-            if "not loaded" not in m.string:
-                return m
-            time.sleep(s.PLACE_RETRY_S)
-        raise SystemExit(f"no se cargan los chunks de {x0} {z0}")
+        """/fill en franjas de z que no pasen de 32.768 bloques; «outline» como suelo, techo y cuatro paredes."""
+        if mode == "outline":
+            for c in ((x0, y0, z0, x1, y0, z1), (x0, y1, z0, x1, y1, z1), (x0, y0, z0, x0, y1, z1),
+                      (x1, y0, z0, x1, y1, z1), (x0, y0, z0, x1, y1, z0), (x0, y0, z1, x1, y1, z1)):
+                fill(*c, block)
+            return
+        paso = max(1, 32768 // ((x1 - x0 + 1) * (y1 - y0 + 1)))
+        for za in range(z0, z1 + 1, paso):
+            zb = min(z1, za + paso - 1)
+            for _ in range(s.PLACE_ATTEMPTS):   # los chunks forzados tardan en cargarse
+                m = ctx.run(f"fill {x0} {y0} {za} {x1} {y1} {zb} {block}", r"Successfully filled|No blocks|not loaded|Too many")
+                if "not loaded" not in m.string:
+                    break
+                time.sleep(s.PLACE_RETRY_S)
+            else:
+                raise SystemExit(f"no se cargan los chunks de {x0} {za}")
+            if m.group(0).startswith("Too many"):
+                raise SystemExit(f"/fill demasiado grande: {m.string.strip()}")
 
     def sel(i, extra=""):
         return f"@e[tag=heraldia_prueba_m{i}{extra}]"
@@ -273,34 +287,42 @@ def main():
         ctx.run(f"player {PLAYER} kill", r"left the game|Killed|died|No player|Unknown|Incorrect|Can only manipulate")
         ctx.run("forceload remove all", r"Unmarked|Removed|No force|force")
 
-        # 4) la plantilla real de cada guardián, de día: sigue donde apareció
-        ctx.run("time set noon", r"Set .*time")
-        for k, (name, tag, size, mob) in enumerate(rooms):
-            x4 = X4 + 320 * k                        # cada plantilla en su sitio: sin restos de la anterior
-            if mob in ACUATICOS:
-                print(f"anclados: sala: {name}: {mob} (acuático) se omite; probado en la piscina de la fase 1")
-                continue
-            sx, sy, sz = size
-            forceload(x4 - 1, Z4 - 1, x4 + sx, Z4 + sz)
-            for _ in range(s.PLACE_ATTEMPTS):
-                m = ctx.run(f"place template heraldia:{name} {x4} {Y4} {Z4}", r"Loaded template|placed|Failed|not loaded|Unknown|Invalid")
-                if "not loaded" not in m.string:
-                    break
-                time.sleep(s.PLACE_RETRY_S)
-            g = f"@e[tag={tag}]"
-            if not ctx.wait_entity(g):
-                fails.append(f"sala: {name}: no aparece el guardián")
-                continue
-            p0 = ctx.pos(g)
+        # 4) la plantilla real de cada guardián (todas a la vez), de día, y otra vez de noche las de los ahogados (sus
+        # objetivos de ir al agua y a la orilla dependen de la hora): tras 200 ticks sigue donde la plantilla lo pone.
+        def salas(hora, cuales, k0):
+            ctx.run(f"time set {hora}", r"Set .*time")
+            puestas = []
+            for k, (name, tag, size, mob, pos) in enumerate(cuales):
+                x4 = X4 + 320 * (k0 + k)                 # cada plantilla en su sitio: sin restos de otra
+                sx, sy, sz = size
+                forceload(x4 - 1, Z4 - 1, x4 + sx, Z4 + sz)
+                for _ in range(s.PLACE_ATTEMPTS):
+                    m = ctx.run(f"place template heraldia:{name} {x4} {Y4} {Z4}", r"Loaded template|placed|Failed|not loaded|Unknown|Invalid")
+                    if "not loaded" not in m.string:
+                        break
+                    time.sleep(s.PLACE_RETRY_S)
+                puestas.append((name, tag, size, (x4 + pos[0], Y4 + pos[1], Z4 + pos[2]), x4))
             ctx.ticks(200)
-            p1 = ctx.pos(g)
-            d = ((p1[0] - p0[0]) ** 2 + (p1[2] - p0[2]) ** 2) ** 0.5 if p0 and p1 else None
-            print(f"anclados: sala: {name}: {p0} -> {p1} ({d if d is None else round(d, 2)} bloques)")
-            if d is None or d > 1.5:
-                fails.append(f"sala: {name}: el guardián se ha movido de {p0} a {p1}")
-            ctx.run(f"kill @e[type=!minecraft:player,x={x4 - 2},y={Y4 - 2},z={Z4 - 2},dx={sx + 4},dy={sy + 4},dz={sz + 4}]",
-                    r"Killed|No entity was found")
+            for name, tag, (sx, sy, sz), p0, x4 in puestas:
+                g = f"@e[tag={tag}]"
+                if not ctx.wait_entity(g):
+                    fails.append(f"sala ({hora}): {name}: no aparece el guardián")
+                    continue
+                p1 = ctx.pos(g)
+                d = ((p1[0] - p0[0]) ** 2 + (p1[2] - p0[2]) ** 2) ** 0.5
+                print(f"anclados: sala ({hora}): {name}: puesto en {p0}, tras 200 ticks en {p1} ({d:.2f} bloques)")
+                if d > 1.5:
+                    fails.append(f"sala ({hora}): {name}: el guardián se ha movido de {p0} a {p1}")
+                ctx.run(f"kill @e[type=!minecraft:player,x={x4 - 2},y={Y4 - 2},z={Z4 - 2},dx={sx + 4},dy={sy + 4},dz={sz + 4}]",
+                        r"Killed|No entity was found")
             ctx.run("forceload remove all", r"Unmarked|Removed|No force|force")
+
+        for r in rooms:
+            if r[3] in ACUATICOS:
+                print(f"anclados: sala: {r[0]}: {r[3]} (acuático) se omite; probado en la piscina de la fase 1")
+        tierra = [r for r in rooms if r[3] not in ACUATICOS]
+        salas("noon", tierra, 0)
+        salas("midnight", [r for r in tierra if r[3] == "minecraft:drowned"], len(tierra))
     finally:
         try:
             s.send(proc, "stop")

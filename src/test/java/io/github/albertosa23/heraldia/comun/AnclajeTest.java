@@ -84,6 +84,15 @@ class AnclajeTest {
 	}
 
 	@Test
+	void quietoHastaElCombate() {
+		assertTrue(Anclaje.quieto(false, Anclaje.QUIETO));
+		assertTrue(Anclaje.quieto(false, 5000));
+		assertFalse(Anclaje.quieto(true, Anclaje.QUIETO), "con objetivo: combate");
+		assertFalse(Anclaje.quieto(false, 0), "recién golpeado: noActionTime a 0");
+		assertFalse(Anclaje.quieto(false, Anclaje.QUIETO - 1));
+	}
+
+	@Test
 	void mismaEtiquetaQueElGenerador() throws IOException {
 		String core = Files.readString(Path.of("tools/gen/core.py"));
 		Matcher m = Pattern.compile("^ANCLADO_TAG = \"([^\"]+)\"", Pattern.MULTILINE).matcher(core);

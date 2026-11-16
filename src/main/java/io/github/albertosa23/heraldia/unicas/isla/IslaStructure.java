@@ -77,7 +77,7 @@ public final class IslaStructure extends Structure {
 	}
 
 	/** Puntos en anillos de radio r[k] con n[k] muestras cada uno (precalculado: nada se calcula por chunk). */
-	private static int[][] ring(int[] r, int[] n) {
+	static int[][] ring(int[] r, int[] n) {
 		List<int[]> out = new ArrayList<>();
 		for (int k = 0; k < r.length; k++) {
 			for (int j = 0; j < n[k]; j++) {

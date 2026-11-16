@@ -11,6 +11,7 @@ import tablon
 import opciones
 import biomas
 import logros
+import paralelo
 from unicas._comun import botin
 
 STD = dict(size=6, maxdist=92)
@@ -156,9 +157,8 @@ def write(reg, out):
     if os.path.exists(out):
         shutil.rmtree(out)
     os.makedirs(out)
-    # plantillas
-    for t in reg.templates.values():
-        t.save(out)
+    # plantillas (en paralelo: cada una en su fichero, el resultado no depende del orden)
+    paralelo.mapa(lambda t: t.save(out), reg.templates.values(), chunksize=16)
     # pools
     for pid, p in reg.pools.items():
         ns, path = pid.split(":")

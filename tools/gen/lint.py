@@ -325,19 +325,21 @@ def access_issues(t):
     return out
 
 
+def template_issues(t):
+    # puertas dobles y altura libre de las escaleras: en todas las plantillas, también las que se auditan aparte
+    iss = door_pair_issues(t) + stair_headroom_issues(t)
+    if not getattr(t, "sin_auditoria_generica", False):   # estructuras que se auditan enteras en su módulo
+        # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
+        iss += support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
+    return iss
+
+
 def lint_registry(reg, only=None):
-    res = {}
-    for name, t in reg.templates.items():
-        if only and not only(name):
-            continue
-        # puertas dobles y altura libre de las escaleras: en todas las plantillas, también las que se auditan aparte
-        iss = door_pair_issues(t) + stair_headroom_issues(t)
-        if not getattr(t, "sin_auditoria_generica", False):   # estructuras que se auditan enteras en su módulo
-            # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
-            iss += support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
-        if iss:
-            res[name] = iss
-    return res
+    """{plantilla: avisos} de la auditoría genérica, en el orden del registro (repartida entre procesos)."""
+    import paralelo
+    names = [n for n in reg.templates if not only or only(n)]
+    found = paralelo.mapa(lambda n: template_issues(reg.templates[n]), names, chunksize=8)
+    return {n: iss for n, iss in zip(names, found) if iss}
 
 
 def summarize(res):

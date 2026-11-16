@@ -46,3 +46,4 @@ __pycache__/
 # graphify
 graphify-out/
 logs/
+.pytest_cache/
