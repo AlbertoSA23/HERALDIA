@@ -45,6 +45,11 @@ import org.slf4j.LoggerFactory;
  * ruido de biomas del mundo principal (sin cargar chunks), se hace una vez por casilla y queda en memoria.
  * «bioma_y» (opcional, por defecto 64) es la altura a la que se mira el bioma: para los de cueva (la Mina perdida),
  * la del centro de la estructura.
+ * <p>«rejilla_antigua» marca las únicas que ya estaban en la 0.1.0. Con la opción unicas.rejilla_compatible (mundos
+ * creados con esa versión) usan la rejilla de entonces: separación interna con la proporción del datapack (190/250),
+ * origen común y sin búsqueda de bioma; isPlacementChunk y getPotentialStructureChunk acaban en el random_spread de
+ * vanilla con desfase 0, el mismo coste que entonces. Así /locate, los mapas y la distancia mínima vuelven a dar con las
+ * ya generadas. Las demás siguen con la rejilla nueva (y {@link UniqueSeparation} da prioridad a las antiguas).
  */
 @SuppressWarnings("deprecation") // ExclusionZone está marcada obsoleta en vanilla, pero es la que usan sus aldeas
 public final class GridPlacement extends RandomSpreadStructurePlacement {
@@ -56,7 +61,8 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			Codec.INT.fieldOf("salt").forGetter(p -> p.baseSalt),
 			AbstractSpreadingStructurePlacement.ExclusionZone.CODEC.optionalFieldOf("exclusion_zone").forGetter(p -> p.baseExclusion),
 			TagKey.codec(Registries.BIOME).optionalFieldOf("bioma").forGetter(p -> p.biome),
-			Codec.intRange(-64, 320).optionalFieldOf("bioma_y", 64).forGetter(p -> p.sampleY)
+			Codec.intRange(-64, 320).optionalFieldOf("bioma_y", 64).forGetter(p -> p.sampleY),
+			Codec.BOOL.optionalFieldOf("rejilla_antigua", false).forGetter(p -> p.oldGrid)
 	).apply(i, GridPlacement::create));
 	/** Malla de la búsqueda de bioma (chunks), vecinos a medio paso y vecinos mínimos (de 9) para aceptar un punto. */
 	private static final int STEP = 8, HALF = STEP / 2, MIN_SCORE = 6, SAMPLE_Y = 64, CACHE_MAX = 1 << 14;
@@ -67,6 +73,8 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	private static volatile int searchesLogged;
 
 	private final String group;
+	private final boolean oldGrid; // marcada en el datapack (existía en la 0.1.0)
+	private final boolean legacy;  // y la opción unicas.rejilla_compatible está activada: rejilla de la 0.1.0
 	private final int baseSpacing, baseSeparation, baseSalt;
 	private final Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion;
 	private final boolean enabled;
@@ -78,15 +86,18 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	private volatile @Nullable BiomeContext cachedFor;
 
 	private GridPlacement(String group, int baseSpacing, int baseSeparation, int salt,
-						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Optional<TagKey<Biome>> biome, int sampleY, Settings s) {
+						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Optional<TagKey<Biome>> biome, int sampleY,
+						  boolean oldGrid, Settings s) {
 		super(Vec3i.ZERO, AbstractSpreadingStructurePlacement.FrequencyReductionMethod.DEFAULT, 1.0F, salt, s.exclusion,
 				s.spacing, s.separation, RandomSpreadType.LINEAR);
 		this.group = group;
+		this.oldGrid = oldGrid;
+		this.legacy = s.legacy;
 		this.baseSpacing = baseSpacing;
 		this.baseSeparation = baseSeparation;
 		this.baseSalt = salt;
 		this.baseExclusion = baseExclusion;
-		this.biome = biome;
+		this.biome = s.legacy ? Optional.empty() : biome;
 		this.sampleY = sampleY;
 		this.enabled = s.enabled;
 		this.cells = s.maxCells < 0 ? null : Set.copyOf(nearestCells(s.maxCells));
@@ -95,12 +106,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	}
 
 	private record Settings(boolean enabled, int spacing, int separation, int maxCells,
-							Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion, boolean shifted) {
+							Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion, boolean shifted, boolean legacy) {
 	}
 
 	private static GridPlacement create(String group, int spacing, int separation, int salt,
 										Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion, Optional<TagKey<Biome>> biome,
-										int sampleY) {
+										int sampleY, boolean oldGrid) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		Settings s;
 		if (group.equals("aldeas")) {
@@ -108,22 +119,35 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			int distance = cfg.getInt("aldeas.distancia_aldeas_vanilla_bloques");
 			Optional<AbstractSpreadingStructurePlacement.ExclusionZone> ex = distance == 0 ? Optional.empty()
 					: exclusion.map(z -> new AbstractSpreadingStructurePlacement.ExclusionZone(z.otherSet(), Math.clamp((distance + 15) / 16, 1, 16)));
-			s = new Settings(true, sp, scaled(sp, spacing, separation), cfg.getInt("aldeas.maximo"), ex, false);
+			s = new Settings(true, sp, scaled(sp, spacing, separation), cfg.getInt("aldeas.maximo"), ex, false, false);
 		} else if (group.startsWith("unicas/") && cfg.has(group.replace('/', '.') + ".separacion_bloques")) {
 			String key = group.replace('/', '.');
 			int sp = chunks(cfg.getInt(key + ".separacion_bloques"));
-			int sep = Math.clamp((cfg.getInt("unicas.distancia_minima.bloques") + 15) / 16, 0, sp - 1);
-			s = new Settings(cfg.getBool(key + ".activada"), sp, sep, -1, exclusion, true);
+			if (oldGrid && cfg.getBool(LEGACY_OPTION)) { // la de la 0.1.0, tal cual: proporción del datapack y origen común
+				s = new Settings(cfg.getBool(key + ".activada"), sp, scaled(sp, spacing, separation), -1, exclusion, false, true);
+			} else {
+				int sep = Math.clamp((cfg.getInt("unicas.distancia_minima.bloques") + 15) / 16, 0, sp - 1);
+				s = new Settings(cfg.getBool(key + ".activada"), sp, sep, -1, exclusion, true, false);
+			}
 		} else {
 			LOGGER.warn("Heraldia: grupo de colocación sin opciones {}; se usan los valores del datapack", group);
-			s = new Settings(true, spacing, Math.min(separation, spacing - 1), -1, exclusion, false);
+			s = new Settings(true, spacing, Math.min(separation, spacing - 1), -1, exclusion, false, false);
 		}
 		LOGGER.info("Heraldia: rejilla {}: {}, cada {} chunks (separación mínima {}{}), {}, exclusión {}{}", group,
-				s.enabled ? "activada" : "desactivada", s.spacing, s.separation, s.shifted ? ", origen desplazado" : "",
+				s.enabled ? "activada" : "desactivada", s.spacing, s.separation,
+				s.shifted ? ", origen desplazado" : s.legacy ? ", rejilla antigua" : "",
 				s.maxCells < 0 ? "sin máximo" : "máximo " + s.maxCells + " casillas",
 				s.exclusion.map(z -> z.chunkCount() + " chunks").orElse("ninguna"),
-				biome.map(b -> ", candidata en el bioma #" + b.location() + (sampleY != SAMPLE_Y ? " a y = " + sampleY : "")).orElse(""));
-		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, sampleY, s);
+				biome.filter(b -> !s.legacy).map(b -> ", candidata en el bioma #" + b.location() + (sampleY != SAMPLE_Y ? " a y = " + sampleY : "")).orElse(""));
+		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, sampleY, oldGrid, s);
+	}
+
+	/** Opción de los mundos creados con la 0.1.0: las únicas de entonces vuelven a su rejilla. */
+	public static final String LEGACY_OPTION = "unicas.rejilla_compatible";
+
+	/** Usa la rejilla de la 0.1.0 (marcada en el datapack y con unicas.rejilla_compatible activada). */
+	public boolean legacy() {
+		return legacy;
 	}
 
 	private static int chunks(int blocks) {

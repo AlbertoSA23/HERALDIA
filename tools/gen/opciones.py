@@ -44,6 +44,14 @@ _FIXED = [
     ("golems.limite_grande", 9, 1, 64,
      "Con tantos gólems naturales o más, una aldea grande retira uno cada 30 s",
      "With this many natural golems or more, a large village removes one every 30 s"),
+    ("unicas.rejilla_compatible", False, None, None,
+     "Rejilla antigua de las únicas: ponlo a true en un mundo creado con una versión anterior de Heraldia (antes de las "
+     "rejillas desplazadas) para que /locate, los mapas y los pliegos encuentren las únicas que ya se generaron; las "
+     "añadidas después siguen con la rejilla nueva sin salir a menos de la distancia mínima de las antiguas. En un mundo "
+     "nuevo, false",
+     "Old unique-structure grid: set it to true in a world created with an earlier Heraldia version (before the shifted "
+     "grids) so /locate, maps and folios find the unique structures already generated; those added later keep the new "
+     "grid without spawning closer than the minimum distance to the old ones. In a new world, false"),
     ("unicas.distancia_minima.activada", True, None, None,
      "Impide que dos estructuras únicas distintas salgan a menos de la distancia mínima",
      "Keeps two different unique structures from spawning closer than the minimum distance"),
@@ -76,6 +84,7 @@ _NAMES = {
     "golems.limpieza": ("Limpieza de gólems", "Golem cleanup"),
     "golems.limite_estandar": ("Límite en aldea estándar", "Limit in standard village"),
     "golems.limite_grande": ("Límite en aldea grande", "Limit in large village"),
+    "unicas.rejilla_compatible": ("Rejilla antigua (mundo de una versión anterior)", "Old grid (world from an earlier version)"),
     "unicas.distancia_minima.activada": ("Distancia mínima activada", "Minimum distance enabled"),
     "unicas.distancia_minima.bloques": ("Distancia mínima (bloques)", "Minimum distance (blocks)"),
     "unicas.atlantida.cofre_unico_por_jugador": ("Cofre premium por jugador", "Per-player premium chest"),
@@ -173,6 +182,7 @@ def schema():
     for th in THEMES:
         opts.append(_option(f"aldeas.estilos.{th['id']}", True, None, None, g["aldeas.estilos.<estilo>"], [th["id"]], "aldeas.estilos.<estilo>"))
     unique = unique_placements()
+    assert unicas.REJILLA_ANTIGUA <= set(unique), f"rejilla antigua de únicas que no existen: {unicas.REJILLA_ANTIGUA - set(unique)}"
     for sid, (spacing, _) in unique.items():
         opts.append(_option(f"unicas.{sid}.activada", True, None, None, g["unicas.<id>.activada"], [sid], "unicas.<id>.activada"))
         default = min(max(spacing * 16, UNIQUE_RANGE[0]), UNIQUE_RANGE[1])
