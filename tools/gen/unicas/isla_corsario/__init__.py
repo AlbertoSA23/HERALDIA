@@ -17,6 +17,8 @@ from .obra import Obra, K, SID, BASE
 from . import auditoria
 
 NOMBRE = {"es_es": "Isla del corsario", "en_us": "Corsair's Isle"}
+# Refuerzos del guardián en cada fase (jefes.py): su tripulación.
+REFUERZOS = [{"mob": "skeleton", "equipo": {"mainhand": "iron_sword"}}, "skeleton", "drowned"]
 TROFEO = {"objeto": "bow", "rareza": "rare",
           "nombre": ("Arco de Roque Salitre", "Roque Salitre's Bow"),
           "lore": [("Disparó la última andanada de la isla.", "It loosed the isle's last broadside."),

@@ -19,9 +19,9 @@ import net.minecraft.network.chat.MutableComponent;
  * Textos traducibles de los comandos con el español del propio .jar como respaldo (un cliente sin el mod ve el
  * español, como en los tellraw del generador). Para lo que se entrega a un jugador concreto (la Guía del Heraldo), el
  * respaldo puede ir en su idioma: {@link #idioma(String)} y {@link #t(Map, String, Object...)}. Cada idioma del .jar se
- * lee una vez, la primera vez que se usa.
+ * lee una vez, la primera vez que se usa. También lo usan los avisos de los jefes (jefes/Jefes).
  */
-final class Textos {
+public final class Textos {
 	static final String ES = "es_es", EN = "en_us";
 	private static final Map<String, Optional<Map<String, String>>> IDIOMAS = new ConcurrentHashMap<>();
 	private static final Map<String, String> ES_TEXTOS = idioma(ES);
@@ -29,7 +29,7 @@ final class Textos {
 	private Textos() {
 	}
 
-	static MutableComponent t(String key, Object... args) {
+	public static MutableComponent t(String key, Object... args) {
 		return t(ES_TEXTOS, key, args);
 	}
 

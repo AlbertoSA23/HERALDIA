@@ -13,8 +13,8 @@ public final class Dificultad {
 	public static final double EXTRA_POR_JUGADOR = 0.25, EXTRA_MAXIMO = 1.0;
 	/** Radio (bloques) en el que se cuentan los jugadores que luchan contra el mob. */
 	public static final double RADIO_JUGADORES = 32;
-	/** Etiquetas (Tags) de los mobs a los que se aplica: anclados (comun/Anclaje) y guardianes finales. */
-	public static final String ANCLADO = "heraldia_anclado", GUARDIAN = "heraldia_guardian";
+	/** Etiquetas (Tags) de los mobs a los que se aplica: anclados (comun/Anclaje), guardianes finales y refuerzos de los jefes. */
+	public static final String ANCLADO = "heraldia_anclado", GUARDIAN = "heraldia_guardian", REFUERZO = "heraldia_refuerzo";
 
 	private Dificultad() {
 	}
@@ -55,9 +55,9 @@ public final class Dificultad {
 		}
 	}
 
-	/** ¿Se le aplica la dificultad? Mobs hostiles con la etiqueta de anclado o de guardián (no los animales anclados). */
+	/** ¿Se le aplica la dificultad? Mobs hostiles anclados, guardianes o refuerzos de un jefe (no los animales anclados). */
 	public static boolean aplica(Set<String> tags, boolean hostil) {
-		return hostil && !tags.isEmpty() && (tags.contains(ANCLADO) || tags.contains(GUARDIAN));
+		return hostil && !tags.isEmpty() && (tags.contains(ANCLADO) || tags.contains(GUARDIAN) || tags.contains(REFUERZO));
 	}
 
 	/**

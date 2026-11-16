@@ -11,6 +11,9 @@ STRUCTURE = dict(
     spacing=250, separation=190,
 )
 NOMBRE = {"es_es": "Coliseo en ruinas", "en_us": "Ruined Colosseum"}
+# Refuerzos del guardián en cada fase (jefes.py): gladiadores de la arena.
+REFUERZOS = [{"mob": "husk", "equipo": {"mainhand": "iron_sword"}},
+             {"mob": "husk", "equipo": {"mainhand": "stone_sword", "offhand": "shield"}}]
 TROFEO = {"objeto": "shield", "rareza": "rare",
           "nombre": ("Escudo del Campeón de la Arena", "Shield of the Arena Champion"),
           "lore": [("Cien combates y ni una sola derrota.", "A hundred bouts and not a single defeat.")],

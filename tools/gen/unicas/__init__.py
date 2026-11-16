@@ -42,6 +42,8 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # El trofeo (heraldia:trofeos/<id>, custom_data {heraldia_trofeo: "<id>"}) solo cae si mata al guardián un jugador:
   # pack.tag_guardians le pone la DeathLootTable heraldia:guardianes/<id>/<mob> (su botín de siempre + el trofeo).
   # Sin TROFEO (o sin nombre, lore..., o con netherita/élitros) la compilación falla. El logro unicas/trofeos sale solo.
+  REFUERZOS = ["husk", {"mob": "husk", "equipo": {"mainhand": "iron_sword"}}]   # opcional (jefes.py): 2-3 mobs que el
+  # guardián llama en cada fase (al bajar del 66 % y del 33 %); sin él, los de la familia del tipo de su guardián.
   HISTORIA = {"cofre": "biblioteca",                   # OBLIGATORIO: su pliego de la Crónica de los Heraldos (docs/historia.md)
               # cofre: tabla de LOOT de un cofre menor o de una sala oculta que ya esté en sus plantillas (mejor uno solo)
               "relato": [(es, en), (es, en)],              # 1-2 páginas (máx. botin.MAX_PAGINA caracteres): su parte

@@ -3,7 +3,8 @@
 Uso: python3 tools/smoke/dificultad.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
 Invoca (con NBT, sin finalizeSpawn) zombis anclados (heraldia_anclado), un guardián (heraldia_guardian, vida base 60),
 uno herido, un zombi sin etiquetas y un lobo anclado, y reinicia el mismo mundo con cada nivel:
-  - heroica: el anclado tiene vida 40 y daño 4,5 (modificadores heraldia:dificultad_vida y _dano), el guardián 120, el
+  - heroica: el anclado (y un refuerzo de jefe, heraldia_refuerzo) tiene vida 40 y daño 4,5; con fuerza I (un efecto de
+    fase de los jefes) el daño es (3 + 3) x 1,5 y al quitarla vuelve a 4,5 (modificadores heraldia:dificultad_vida y _dano), el guardián 120, el
     herido conserva su proporción (10/20 -> 20/40), el zombi sin etiquetas y el lobo no cambian; el botín de una tabla de
     cofre de Heraldia (datapack de prueba, 10 flechas) sale x1,5 y un objeto con nombre o una tabla de otra carpeta, igual;
   - fácil (tras reiniciar: los ya generados se recalculan al cargar): 15, 45 y el herido 7,5/15; 7 u 8 flechas;
@@ -26,6 +27,7 @@ MOBS = {   # etiqueta de prueba: (tipo, etiquetas de Heraldia, vida base, vida i
     "p_guardian": ("zombie", ["heraldia_guardian", "heraldia_guardian.prueba", "heraldia_anclado", "heraldia_adulto"], 60, 60, 2),
     "p_herido": ("zombie", ["heraldia_anclado", "heraldia_adulto"], 20, 10, 4),
     "p_libre": ("zombie", [], 20, 20, 6),
+    "p_refuerzo": ("zombie", ["heraldia_refuerzo", "heraldia_anclado", "heraldia_adulto"], 20, 20, 10),
     "p_lobo": ("wolf", ["heraldia_anclado"], 8, 8, 8),
 }
 NUM = r"(-?\d+(?:\.\d+)?)"
@@ -148,25 +150,33 @@ def main():
             ctx.run(f'summon minecraft:{tipo} {X + dx} {Y} {Z} {{NoAI:1b,PersistenceRequired:1b,Silent:1b,Tags:[{etiquetas}],'
                     f'Health:{v}f,attributes:[{{id:"minecraft:max_health",base:{base}}}]}}', r"Summoned|Unable")
         esperar_mobs(ctx)
-        mobs(ctx, "heroica", {"p_anclado": (40, 40), "p_guardian": (120, 120), "p_herido": (40, 20), "p_libre": (20, 20), "p_lobo": (8, 8)})
+        mobs(ctx, "heroica", {"p_anclado": (40, 40), "p_guardian": (120, 120), "p_herido": (40, 20), "p_libre": (20, 20), "p_lobo": (8, 8), "p_refuerzo": (40, 40)})
         dano = num(ctx, f"attribute {sel('p_anclado')} minecraft:attack_damage get")
         check(dano is not None and abs(dano - 4.5) < 1e-3, f"heroica: daño del anclado {dano} (debe ser 4,5)")
         check(modificador(ctx, "p_anclado", "max_health", "dificultad_vida") == 1.0, "heroica: sin modificador heraldia:dificultad_vida = 1")
         check(modificador(ctx, "p_anclado", "attack_damage", "dificultad_dano") == 0.5, "heroica: sin modificador heraldia:dificultad_dano = 0,5")
         check(modificador(ctx, "p_libre", "max_health", "dificultad_vida") is None, "heroica: el zombi sin etiquetas tiene modificador")
+        # con un efecto de fase de los jefes (fuerza I: +3 de daño, su propio modificador): se suman, sin pisarse
+        ctx.run(f"effect give {sel('p_anclado')} minecraft:strength 60 0", r"Applied effect|Gave")
+        dano = num(ctx, f"attribute {sel('p_anclado')} minecraft:attack_damage get")
+        check(dano is not None and abs(dano - 9) < 1e-3, f"heroica con fuerza: daño {dano} (debe ser (3 + 3) x 1,5 = 9)")
+        check(modificador(ctx, "p_anclado", "attack_damage", "dificultad_dano") == 0.5, "con fuerza: se pierde heraldia:dificultad_dano")
+        ctx.run(f"effect clear {sel('p_anclado')}", r"Removed|effect")
+        dano = num(ctx, f"attribute {sel('p_anclado')} minecraft:attack_damage get")
+        check(dano is not None and abs(dano - 4.5) < 1e-3, f"heroica tras quitar la fuerza: daño {dano} (debe ser 4,5)")
         botin(ctx, "heroica", {15})
 
         # fácil, tras reiniciar: los mobs ya generados se recalculan al cargar
         ctx = arrancar("facil")
         esperar_mobs(ctx)
-        mobs(ctx, "fácil", {"p_anclado": (15, 15), "p_guardian": (45, 45), "p_herido": (15, 7.5), "p_libre": (20, 20), "p_lobo": (8, 8)})
+        mobs(ctx, "fácil", {"p_anclado": (15, 15), "p_guardian": (45, 45), "p_herido": (15, 7.5), "p_libre": (20, 20), "p_lobo": (8, 8), "p_refuerzo": (15, 15)})
         check(modificador(ctx, "p_anclado", "max_health", "dificultad_vida") == -0.25, "fácil: el modificador no es -0,25")
         botin(ctx, "fácil", {7, 8})
 
         # normal: exactamente como siempre
         ctx = arrancar("normal")
         esperar_mobs(ctx)
-        mobs(ctx, "normal", {"p_anclado": (20, 20), "p_guardian": (60, 60), "p_herido": (20, 10), "p_libre": (20, 20), "p_lobo": (8, 8)})
+        mobs(ctx, "normal", {"p_anclado": (20, 20), "p_guardian": (60, 60), "p_herido": (20, 10), "p_libre": (20, 20), "p_lobo": (8, 8), "p_refuerzo": (20, 20)})
         dano = num(ctx, f"attribute {sel('p_anclado')} minecraft:attack_damage get")
         check(dano is not None and abs(dano - 3) < 1e-3, f"normal: daño del anclado {dano} (debe ser 3)")
         for mod, attr in (("dificultad_vida", "max_health"), ("dificultad_dano", "attack_damage"), ("dificultad_jugadores", "max_health")):

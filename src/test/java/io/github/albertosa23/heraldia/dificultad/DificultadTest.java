@@ -76,6 +76,11 @@ class DificultadTest {
 	void aQuienSeAplica() {
 		assertTrue(Dificultad.aplica(Set.of("heraldia_anclado"), true));
 		assertTrue(Dificultad.aplica(Set.of("heraldia_guardian", "heraldia_guardian.castillo"), true));
+		assertTrue(Dificultad.aplica(Set.of("heraldia_refuerzo", "heraldia_anclado", "heraldia_adulto"), true), "refuerzo de un jefe");
+		assertTrue(Dificultad.aplica(Set.of("heraldia_refuerzo"), true));
+		assertEquals(io.github.albertosa23.heraldia.jefes.Fases.REFUERZO, Dificultad.REFUERZO);
+		assertEquals(io.github.albertosa23.heraldia.jefes.Fases.GUARDIAN, Dificultad.GUARDIAN);
+		assertEquals(io.github.albertosa23.heraldia.comun.Anclaje.TAG, Dificultad.ANCLADO);
 		assertFalse(Dificultad.aplica(Set.of("heraldia_anclado"), false), "un gato o un lobo anclado no");
 		assertFalse(Dificultad.aplica(Set.of(), true));
 		assertFalse(Dificultad.aplica(Set.of("heraldia_adulto", "otra"), true));
