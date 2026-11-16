@@ -48,9 +48,9 @@ LANG = {
     "en_us": {
         "heraldia.unicas.faro.guardian": "Captain Brume",
         "heraldia.unicas.faro.cartel.bodega1": "The wine",
-        "heraldia.unicas.faro.cartel.bodega2": "goes down to the sea",
-        "heraldia.unicas.faro.cartel.despacho1": "Neither bow nor stern:",
-        "heraldia.unicas.faro.cartel.despacho2": "the middle commands",
+        "heraldia.unicas.faro.cartel.bodega2": "goes down to sea",
+        "heraldia.unicas.faro.cartel.despacho1": "No bow, no stern:",
+        "heraldia.unicas.faro.cartel.despacho2": "the middle rules",
         "heraldia.unicas.faro.objeto.sable": "Captain Brume's Cutlass",
         "heraldia.unicas.faro.objeto.catalejo": "Keeper's Spyglass",
         "heraldia.unicas.faro.objeto.brujula": "Smugglers' Compass",

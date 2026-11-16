@@ -191,17 +191,15 @@ def claves_de_carteles(objetos):
     return out
 
 
-def errores_carteles(claves, base, textos, codigo):
-    """Líneas de cartel más anchas que el cartel (90 px) y que el texto más ancho de es/en para esa línea (algunas de
-    es/en ya se pasan un poco: una traducción no debe ir a peor)."""
+def errores_carteles(claves, textos, codigo):
+    """Líneas de cartel más anchas que el cartel (90 px) en este idioma, también en es/en: el cliente (SignRenderer)
+    corta la línea por palabras a 90 px y lo que sobra no se ve."""
     from unicas._comun import botin
     e = []
     for k in sorted(claves):
-        if k in textos:
-            limite = max([CARTEL_ANCHO] + [botin.ancho(base[c][k]) for c in BASE if k in base[c]])
-            if botin.ancho(textos[k]) > limite:
-                e.append(f"{codigo}: la línea de cartel {k} no cabe ({botin.ancho(textos[k])} de {limite} px): "
-                         f"{textos[k]!r}")
+        if k in textos and botin.ancho(textos[k]) > CARTEL_ANCHO:
+            e.append(f"{codigo}: la línea de cartel {k} no cabe ({botin.ancho(textos[k])} de {CARTEL_ANCHO} px): "
+                     f"{textos[k]!r}")
     return e
 
 
@@ -218,11 +216,11 @@ def completar(base, paginas=(), carteles=()):
     es, en = base["es_es"], base["en_us"]
     out, e = {"es_es": es, "en_us": en}, []
     for codigo in BASE:
-        e += errores_libros(paginas, base[codigo], codigo)
+        e += errores_libros(paginas, base[codigo], codigo) + errores_carteles(carteles, base[codigo], codigo)
     for codigo in TRADUCCIONES:
         trad = cargar(codigo)
         e += errores_claves(es, trad, codigo) + errores_marcadores(en, trad, codigo)
-        e += errores_libros(paginas, {**en, **trad}, codigo) + errores_carteles(carteles, base, trad, codigo)
+        e += errores_libros(paginas, {**en, **trad}, codigo) + errores_carteles(carteles, trad, codigo)
         out[codigo] = ordenar(es, trad)
     if e:
         raise SystemExit("IDIOMAS:\n" + "\n".join(e[:200]) + (f"\n… y {len(e) - 200} más" if len(e) > 200 else ""))
@@ -249,11 +247,15 @@ def _comprobar(codigos):
     carteles = {k for k in base["es_es"] if ".cartel." in k}
     import guia, unicas
     malos = 0
+    for c in BASE:
+        e = errores_carteles(carteles, base[c], c)
+        print("\n".join(e) if e else f"{c}: carteles bien")
+        malos += len(e)
     for c in codigos or TRADUCCIONES:
         trad = cargar(c)
         e = (errores_claves(base["es_es"], trad, c) + errores_marcadores(base["en_us"], trad, c)
              + errores_libros(paginas, {**base["en_us"], **trad}, c)
-             + errores_carteles(carteles, base, trad, c))
+             + errores_carteles(carteles, trad, c))
         if not errores_claves(base["es_es"], trad, c):
             e += guia.errores(unicas.modules(), {c: trad})
         print("\n".join(e) if e else f"{c}: bien ({len(trad)} claves)")

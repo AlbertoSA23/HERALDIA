@@ -77,7 +77,7 @@ resueltos) se generan con la auditoría: `docs/unicas/acueducto/plano_*.txt`.
 ## Puzles (redstone; todo funciona tal como se coloca)
 
 **Puzle 1 — Las palancas del castellum.** Tres palancas en el muro oeste de la sala (rótulos AQVA, IGNIS, TERRA).
-Pista en el templo: *«El agua y la tierra sostienen la ciudad; el fuego la consume»*. La hornacina se abre solo con
+Pista en el templo: *«Agua y tierra alzan la ciudad; el fuego la consume»*. La hornacina se abre solo con
 AQVA y TERRA bajadas e IGNIS subida.
 Mecanismo (dentro del muro doble x 75-76 y del pasillo oculto x 73-74): dos pistones pegajosos apilados (75, 1-2, -7)
 mirando al norte, **extendidos al colocarse** y sujetando los dos bloques de la hornacina (75, 1-2, -9). Están

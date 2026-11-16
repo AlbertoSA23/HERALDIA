@@ -59,7 +59,7 @@ def templo(v):
     v.entity(6, top + 6, 6, C.anciano())
     for u, w in ((8, -8), (-8, 8), (-8, -8)):
         v.entity(u, top + 2, w, C.ahogado(True))
-    C.cartel(v, 3, top + 2, 0, "east", [C.texto("templo.1", "Bajo el templo,", "Beneath the temple,"),
+    C.cartel(v, 3, top + 2, 0, "east", [C.texto("templo.1", "Bajo el templo,", "Below the temple,"),
                                          C.texto("templo.2", "cuatro palancas.", "four levers."),
                                          C.texto("templo.3", "Cada sello dice", "Each seal tells"),
                                          C.texto("templo.4", "cómo dejar una.", "how to leave one.")])
@@ -96,9 +96,9 @@ def vestibulo(v):
     # arcas (muro oeste, a los lados de la puerta de la galería oeste en w = 0) con su cartel
     for w, cual in zip((-6, -3, 3), ("arsenal", "academia", "anfiteatro")):
         C.cofre(v, -L + 1, G0 + 1, w, "east", "arca", llave=cual)
-        C.cartel(v, -L + 1, G0 + 2, w + 1, "east", [C.texto("arca." + cual, *{"arsenal": ("Arca del Arsenal", "Arsenal Coffer"),
-                                                                              "academia": ("Arca de la Academia", "Academy Coffer"),
-                                                                              "anfiteatro": ("Arca del Anfiteatro", "Amphitheatre Coffer")}[cual])])
+        C.cartel(v, -L + 1, G0 + 2, w + 1, "east", [C.texto("arca." + cual, *{"arsenal": ("Arca: Arsenal", "Arsenal Coffer"),
+                                                                              "academia": ("Arca: Academia", "Academy Coffer"),
+                                                                              "anfiteatro": ("Arca: Anfiteatro", "Theatre Coffer")}[cual])])
     # combinación en el muro sur, hacia el este; el paso baja a N-2
     fin = R.combinacion(v, -3, G0 + 2, L, COMBINACION_CENTRAL, "templo")
     v.marca("seca", 4, G0 + 1, -4)

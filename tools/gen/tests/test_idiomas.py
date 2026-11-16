@@ -92,12 +92,34 @@ def test_pagina_o_cartel_que_no_cabe_falla():
     largo = "palabra " * 60
     assert idiomas.errores_libros([("x", {"translate": "p"})], {"p": largo}, "fr_fr")
     assert not idiomas.errores_libros([("x", {"translate": "p"})], {"p": "corta"}, "fr_fr")
-    base = {"es_es": {"c": "Corto"}, "en_us": {"c": "Short"}}
-    assert idiomas.errores_carteles({"c"}, base, {"c": "Une ligne beaucoup trop longue"}, "fr_fr")
-    assert not idiomas.errores_carteles({"c"}, base, {"c": "Court"}, "fr_fr")
-    # una línea de es/en que ya se pasa marca el límite: la traducción no puede ir a peor
-    ancho = {"es_es": {"c": "Una línea larguísima"}, "en_us": {"c": "x"}}
-    assert not idiomas.errores_carteles({"c"}, ancho, {"c": "Une ligne longue"}, "fr_fr")
+    assert idiomas.errores_carteles({"c"}, {"c": "Une ligne beaucoup trop longue"}, "fr_fr")
+    assert not idiomas.errores_carteles({"c"}, {"c": "Court"}, "fr_fr")
+
+
+def test_cartel_de_90_px_cabe_y_de_91_no():
+    exacta = "x" * 15                      # 15 × 6 px = 90 px
+    assert botin.ancho(exacta) == idiomas.CARTEL_ANCHO
+    assert not idiomas.errores_carteles({"c"}, {"c": exacta}, "es_es")
+    assert idiomas.errores_carteles({"c"}, {"c": exacta + "!"}, "es_es")      # 92 px
+
+
+def test_cartel_de_es_en_que_no_cabe_hace_fallar_la_generacion(monkeypatch):
+    monkeypatch.setattr(idiomas, "cargar", lambda c: {"c": "Corto"})
+    for largo in ("es_es", "en_us"):
+        base = {"es_es": {"c": "Corto"}, "en_us": {"c": "Short"}}
+        base[largo]["c"] = "Una línea larguísima de cartel"
+        with pytest.raises(SystemExit, match=f"{largo}: la línea de cartel c no cabe"):
+            idiomas.completar(base, carteles={"c"})
+
+
+def test_traduccion_de_cartel_que_no_cabe_falla_aunque_es_sea_mas_ancha(monkeypatch):
+    # antes se toleraba si es/en ya se pasaban; ahora el límite es siempre 90 px
+    base = {"es_es": {"c": "Una línea larguísima de cartel"}, "en_us": {"c": "x"}}
+    assert idiomas.errores_carteles({"c"}, {"c": "Une ligne trop longue ici"}, "fr_fr")
+    monkeypatch.setattr(idiomas, "cargar", lambda c: {"c": "Une ligne trop longue ici"})
+    base["es_es"]["c"] = "Corto"
+    with pytest.raises(SystemExit, match="fr_fr: la línea de cartel c no cabe"):
+        idiomas.completar(base, carteles={"c"})
 
 
 def test_completar_falla_con_una_traduccion_incompleta(monkeypatch):
@@ -210,7 +232,9 @@ def test_tablon_cabe(codigo, trad):
 def test_carteles_caben(codigo, base, trad):
     carteles = {k for k in trad[codigo] if ".cartel." in k and k in base["es_es"]}
     assert carteles
-    assert idiomas.errores_carteles(carteles, base, trad[codigo], codigo) == []
+    assert idiomas.errores_carteles(carteles, trad[codigo], codigo) == []
+    for c in idiomas.BASE:
+        assert idiomas.errores_carteles(carteles, base[c], c) == []
 
 
 @pytest.mark.parametrize("codigo", CODIGOS)
