@@ -14,6 +14,8 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # (unicas.<id>.activada, unicas.<id>.separacion_bloques) sin escribir código; spacing da el valor por defecto. En las
   # configurables el Java no usa separation: la separación interna es la distancia mínima entre únicas y el origen de la
   # rejilla se desplaza por tipo (GridPlacement), para que cada tipo se reparta por toda la casilla.
+  # Opcional: STRUCTURE["candidata_en_bioma"] = True para biomas muy raros (campos de champiñones): la candidata de cada
+  # casilla no es un chunk al azar, sino el sitio de la ventana de la casilla más metido en sus biomas (GridPlacement).
   # Opcional: STRUCTURE["placement"] = colocación propia (dict JSON); la estructura deja entonces de ser configurable.
   # Opcional: STRUCTURE["json"] = dict completo de la estructura (tipo propio en Java, por ejemplo); sustituye al anterior.
   def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.

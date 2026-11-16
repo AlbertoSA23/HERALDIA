@@ -41,16 +41,17 @@ así que es un solo ciclo: se puede empezar por cualquiera y se llega a todas. U
 | 5 | Coliseo en ruinas | `lanista` | el Campeón de la Arena, que prefirió el pliego a la libertad | Faro de los contrabandistas |
 | 6 | Faro de los contrabandistas | `despacho` | el capitán Bruma, por oro y no por honor | Fortaleza de hielo |
 | 7 | Fortaleza de hielo | `galeria` | el Rey Escarcha: el hielo lo conserva | Galeón varado |
-| 8 | Galeón varado | `capitan` | el capitán ahogado, que sigue al timón | Mansión encantada |
-| 9 | Mansión encantada | `biblioteca` | el conde Malaquías, hasta la medianoche del fin del mundo | Monasterio de montaña |
-| 10 | Monasterio de montaña | `biblioteca` | Fray Tenebrio, junto al relicario | Observatorio |
-| 11 | Observatorio | `oculto` | el Custodio de las Estrellas, mientras haya estrellas | Palacio oriental |
-| 12 | Palacio oriental | `biblioteca_secreta` | el emperador y el comandante de la Guardia Imperial | Templo-pirámide |
-| 13 | Templo-pirámide | `tumba` | el Rey Jaguar, como ofrenda | Salón del Jarl |
-| 14 | Salón del Jarl | `ofrendas` | el jarl Ulfgrim, por sus antepasados; ni muerto lo suelta | Santuario druídico |
-| 15 | Santuario druídico | `biblioteca` | el archidruida Cadoc, por las raíces del árbol (se corrompió al secarse el árbol) | Torre de mago |
-| 16 | Torre de mago | `escondite` | el archimago Malvarius (que lo abrió y busca el resto) | La Atlántida |
-| 17 | La Atlántida | `sello_academia` | Ysolda, en casa: prólogo y epílogo | Acueducto (vuelve a empezar) |
+| 8 | Galeón varado | `capitan` | el capitán ahogado, que sigue al timón | Laboratorio del micólogo |
+| 9 | Laboratorio del micólogo | `biblioteca` | Maese Ambrosio, entre los frascos de su biblioteca de esporas (probó en sí mismo su último remedio) | Mansión encantada |
+| 10 | Mansión encantada | `biblioteca` | el conde Malaquías, hasta la medianoche del fin del mundo | Monasterio de montaña |
+| 11 | Monasterio de montaña | `biblioteca` | Fray Tenebrio, junto al relicario | Observatorio |
+| 12 | Observatorio | `oculto` | el Custodio de las Estrellas, mientras haya estrellas | Palacio oriental |
+| 13 | Palacio oriental | `biblioteca_secreta` | el emperador y el comandante de la Guardia Imperial | Templo-pirámide |
+| 14 | Templo-pirámide | `tumba` | el Rey Jaguar, como ofrenda | Salón del Jarl |
+| 15 | Salón del Jarl | `ofrendas` | el jarl Ulfgrim, por sus antepasados; ni muerto lo suelta | Santuario druídico |
+| 16 | Santuario druídico | `biblioteca` | el archidruida Cadoc, por las raíces del árbol (se corrompió al secarse el árbol) | Torre de mago |
+| 17 | Torre de mago | `escondite` | el archimago Malvarius (que lo abrió y busca el resto) | La Atlántida |
+| 18 | La Atlántida | `sello_academia` | Ysolda, en casa: prólogo y epílogo | Acueducto (vuelve a empezar) |
 
 ## Cómo se juega
 

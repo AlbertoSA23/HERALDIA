@@ -59,7 +59,11 @@ def main():
         check((52, 14, 49), "minecraft:redstone_wall_torch[lit=false]", "antorcha final del osario encendida")
         check((53, 14, 49), "minecraft:iron_door[open=false]", "puerta del archivo abierta al colocarse")
         check((46, 30, 82), "minecraft:spawner", "falta el generador de la cripta")
-        r = cmd(f"execute if entity @e[type=minecraft:skeleton,x={O[0] + 40},y={O[1]},z={O[2] + 78},dx=18,dy=10,dz=12]")
+        for _ in range(15):     # las entidades de una plantilla aparecen unos segundos después que los bloques
+            r = cmd(f"execute if entity @e[type=minecraft:skeleton,x={O[0] + 40},y={O[1]},z={O[2] + 78},dx=18,dy=10,dz=12]")
+            if "passed" in r:
+                break
+            time.sleep(2)
         if "passed" not in r:
             fails.append("falta el guardián")
         # puzle 1: apagar una palanca no basta; las dos, sí

@@ -33,6 +33,7 @@ public final class Heraldia implements ModInitializer {
 		HeraldiaConfig.load(FabricLoader.getInstance().getConfigDir().resolve("heraldia.json"));
 		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("sin_lootr"), WithoutLootrCondition.CODEC);
 		Registry.register(BuiltInRegistries.STRUCTURE_PLACEMENT, id("rejilla"), GridPlacement.CODEC);
+		GridPlacement.registerBiomeSearch();
 		Atlantida.register();
 		io.github.albertosa23.heraldia.unicas.ciudadela.Ciudadela.register();
 		io.github.albertosa23.heraldia.unicas.faro.Faro.init();
