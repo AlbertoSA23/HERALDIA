@@ -59,10 +59,15 @@ def _tienda(t, p, x0, z0, abierta, color):
     return x0 + 3, fondo + paso
 
 
-def _comun(p, name, tiendas):
+def _claro(x, z):
+    """Claro redondo (sin empalizada): fuera queda el terreno natural."""
+    return (x - CX) ** 2 + (z - CX) ** 2 <= (CX + 0.5) ** 2
+
+
+def _comun(p, name, tiendas, redondo=True):
     t = Template(name)
     m = p["madera"]
-    c.patio(t, 0, 0, L - 1, L - 1, _suelo(p), aire=3)
+    c.patio(t, 0, 0, L - 1, L - 1, _suelo(p), aire=3, dentro=_claro if redondo else None)
     c.entrada(t, CX, "minecraft:dirt_path")
     t.set(CX, 1, CZ, "campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]")
     for dx, dz, ax in ((-2, 0, "z"), (2, 0, "z"), (0, 2, "x")):    # bancos de troncos alrededor (abierto al norte)
@@ -98,7 +103,7 @@ def dos_tiendas(p, name):
 
 def empalizada(p, name):
     t, huecos = _comun(p, name, [(2, 4, "south", p["lonas"][0]), (14, 4, "south", p["lonas"][1]),
-                                 (2, 14, "north", p["lonas"][0])])
+                                 (2, 14, "north", p["lonas"][0])], redondo=False)
     # empalizada de troncos en el borde (con la entrada abierta al norte, ancho 3)
     for x in range(L):
         for z in range(L):

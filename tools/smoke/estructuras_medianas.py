@@ -151,6 +151,7 @@ def comprobar_estructuras(ctx):
 
 def comprobar_botin(ctx):
     fails = []
+    forceload(ctx, PLACE_X, PLACE_Z, PLACE_X, PLACE_Z)      # los objetos sueltos solo se ven en un chunk cargado
     for mid, mod in medianas.modules():
         for tabla in mod.LOOT:
             m = ctx.run(f"loot spawn {PLACE_X} 120 {PLACE_Z} loot heraldia:medianas/{mid}/{tabla}", r"Dropped \d+|No items")
@@ -160,6 +161,7 @@ def comprobar_botin(ctx):
             and not _diario(ctx):
         fails.append("el cofre de la celda de la ermita no da el diario (libro escrito)")
     ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
+    forceload(ctx, PLACE_X, PLACE_Z, PLACE_X, PLACE_Z, quitar=True)
     return fails
 
 

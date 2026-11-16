@@ -12,12 +12,15 @@ def put(t):
     return lambda x, y, z, st, nbt=None: t.set(x, y, z, st, nbt)
 
 
-def patio(t, x0, z0, x1, z1, suelo, aire=2, borde=None):
+def patio(t, x0, z0, x1, z1, suelo, aire=2, borde=None, dentro=None):
     """Suelo del recinto en y = 0 (sin tierra fértil: no nacen árboles dentro) y aire explícito encima (lo que hubiera
     en el terreno, hierba o nieve, no asoma). `suelo` es un estado o una función (x, z) -> estado; `borde` el del
-    anillo exterior, si se quiere distinto."""
+    anillo exterior, si se quiere distinto; `dentro` (x, z) -> bool da otra forma (un claro redondo): fuera se queda el
+    terreno natural."""
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):
+            if dentro and not dentro(x, z):
+                continue
             edge = x in (x0, x1) or z in (z0, z1)
             st = borde if edge and borde else suelo(x, z) if callable(suelo) else suelo
             t.set(x, 0, z, st)
