@@ -101,6 +101,8 @@ MAPA = [
     # Guía del Heraldo: su Java (y los textos por idioma que usa), su generador y su prueba
     (JAVA + "comando/Guia*", ["tools/smoke/guia.py"]), (JAVA + "comando/Textos.java", ["tools/smoke/guia.py"]),
     ("tools/gen/guia.py", ["tools/smoke/guia.py"]),
+    # idiomas del mod (traducciones y su comprobación): la Guía es lo único que el servidor entrega en el idioma del cliente
+    ("tools/gen/idiomas.py", ["tools/smoke/guia.py"]), ("tools/gen/idiomas/*", ["tools/smoke/guia.py"]),
     (JAVA + "comando/*", []),
     # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
     (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),

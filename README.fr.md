@@ -1,0 +1,63 @@
+# Heraldia
+
+[English](README.md) · [Español](README.es.md) · **Français** · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português (Brasil)](README.pt-BR.md) · [Català](README.ca.md) · [Galego](README.gl.md)
+
+Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valent le voyage : des villages vivants reliés par des chemins, des ruines chargées d'histoire, des gardiens qui ont un nom et un trésor au bout de la carte. Tout est construit avec des blocs et des objets vanilla, pour se fondre naturellement dans votre monde.
+
+## Ce que vous trouverez dans votre monde
+
+- 🏘️ **Des villages vivants.** 72 villages dessinés à la main : 36 styles, un pour chaque type de biome (un village castillan dans les plaines, des maisons sur pilotis dans le marais, un village japonais parmi les cerisiers...), chacun en taille standard et en grande taille, regroupés en 12 familles. Une place avec fontaine et cloche, une église, un marché, une taverne, une forge, une bibliothèque, une auberge et vingt ou trente maisons. Chaque style a ses propres échanges, le tableau des contrats du bailli paie récoltes, bois et chemins purgés de leurs monstres, et les cartographes vendent des cartes au trésor.
+- 🛤️ **Des chemins.** Des sentiers bordés de lampadaires, avec des ponts de bois, relient les villages voisins. Près de chaque village, un panneau vous indique le nom du suivant et la distance en blocs.
+- 🏕️ **Au bord du chemin.** 8 types de structures moyennes entre les villages : tours de guet, auberges de bord de route, camps de brigands, ermitages, moulins, cabanes de pêcheur, relais de chasseurs et petits temples en ruine, chacun au style de son biome, avec un butin modeste et parfois un petit défi.
+- 🏰 **19 structures uniques**, très rares et chacune dans son biome : un château entouré de douves, une cathédrale gothique, une citadelle naine creusée dans la montagne, un galion échoué, un manoir hanté, un palais oriental, une tour de mage, une mine perdue au plus profond du sous-sol, un fort de corsaires sur son île en haute mer... À l'intérieur : salles cachées, énigmes de redstone, pièges et générateurs de créatures, et au bout, un **gardien nommé** qui veille sur la salle du trésor.
+- ⚔️ **Des gardiens qui combattent par phases.** En perdant de la vie, ils entrent en fureur et appellent des renforts de leur propre structure, avec une barre de boss pendant tout le combat. Chacun lâche son propre trophée.
+- ⛏️ **Des mines.** Sur de vrais flancs de colline s'ouvrent des bouches de mine, des camps de mineurs et des complexes miniers avec chevalement, en 3 tailles et au style de chaque biome, qui descendent vers des galeries avec rails, croisements et salles. Les puits de mine abandonnés vanilla sont aussi plus fréquents.
+- 🔱 **L'Atlantide.** Une seule par monde : une immense cité engloutie dans l'océan profond, avec des salles au sec, trois sceaux et leurs clés, et le Gardien de Poséidon, qui veille sur le plus grand trésor de Heraldia.
+- 🏟️ **L'arène des vagues.** Un colisée près du point d'apparition : sonnez la cloche et tenez bon face à des vagues toujours plus fortes, avec un champion toutes les cinq vagues, des records et des récompenses. Si vous tombez sur la piste, vous gardez votre inventaire.
+
+## Comment jouer
+
+- 📖 **Le Guide du Héraut.** Chaque joueur le reçoit en se connectant : un livre qui explique quoi chercher et tient votre journal, avec les structures uniques que vous avez découvertes et des indices sur celles qui manquent. Demandez un exemplaire à jour quand vous voulez avec `/heraldia guia`.
+- 🏆 **Progrès.** Un onglet Heraldia avec 94 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les structures moyennes, le tableau des contrats et l'arène.
+- 🗿 **Trophées.** Chacun des 20 gardiens lâche son trophée, un objet avec un nom et une histoire. Réunissez-les tous pour compléter la Salle des trophées.
+- 🗺️ **Cartes au trésor.** Chaque carte indique la structure unique de son type la plus proche. On les trouve dans les coffres épiques des villages, et les cartographes en vendent.
+- 📜 **La Chronique des Hérauts.** Chaque structure unique garde un feuillet de la chronique écrite par Ysolda, dernière héraut de l'Atlantide. Chaque feuillet mène au suivant : réunissez les 20 et vous saurez comment elle s'achève.
+
+Les textes du mod existent en 8 langues : anglais, espagnol, français, allemand, italien, portugais du Brésil, catalan et galicien.
+
+## Installation
+
+1. Il vous faut **Minecraft 26.3**, **Fabric Loader** 0.20.1 ou plus récent et **Fabric API**.
+2. Placez `heraldia-<version>.jar` dans le dossier `mods` du **serveur** et redémarrez-le.
+3. **Les joueurs n'ont pas besoin du mod** : ils peuvent se connecter avec un client vanilla. Les textes que le client ne connaît pas s'affichent en espagnol, sauf le Guide du Héraut, qui arrive dans la langue de chaque joueur. S'ils installent aussi le mod, ils voient tout dans leur langue et ont accès à l'écran de configuration (avec Mod Menu).
+
+**Un monde existant** fonctionne très bien : les nouvelles structures apparaissent dans les chunks qui n'ont pas encore été générés (explorez de nouvelles terres). Si votre monde a été créé avec Heraldia **0.1.0**, mettez `unicas.rejilla_compatible` à `true` avant de démarrer le serveur, pour que `/locate`, les cartes au trésor et le Guide continuent de trouver les structures uniques que vous avez déjà.
+
+## Options les plus utiles
+
+Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, avec un texte d'aide pour chaque option. Les modifications s'appliquent au redémarrage du serveur, dans les chunks nouvellement générés.
+
+| Option | Par défaut | Effet |
+| --- | --- | --- |
+| `aldeas.separacion_bloques` | 1500 | Distance moyenne entre villages (1000-10000). |
+| `aldeas.maximo` | 100 | Nombre maximal de villages dans le monde. |
+| `aldeas.caminos.activado` | `true` | Chemins entre villages. |
+| `unicas.<id>.activada` | `true` | Active ou désactive une structure unique. |
+| `unicas.rejilla_compatible` | `false` | `true` uniquement pour les mondes créés avec Heraldia 0.1.0. |
+| `medianas.frecuencia_porcentaje` | 100 | Quantité de structures moyennes (200 = deux fois plus). |
+| `dificultad.nivel` | `normal` | Gardiens et monstres : `facil`, `normal`, `dificil` ou `heroica`. |
+| `botin.reponer.activado` | `false` | Les coffres de Heraldia se remplissent à nouveau au bout de quelques jours. |
+| `arena.activado` | `true` | L'arène des vagues près du point d'apparition. |
+| `guia.entregar_al_entrar` | `true` | Donne le Guide du Héraut à chaque joueur à sa connexion. |
+
+## En savoir plus
+
+- [Référence complète du contenu](docs/CONTENT.md) (en anglais) : chaque style de village, structure unique, structure moyenne et mine, les combats de gardiens, les progrès, l'arène et plus encore.
+- [Installation, commandes et configuration](docs/CONFIGURATION.md) (en anglais) : commandes de test et d'administration (`/heraldia info`, `/heraldia llave`...), toutes les options et l'écran de configuration en jeu.
+- [Compatibilité avec d'autres mods](docs/COMPATIBILITY.md) (en anglais) : mods de biomes, mods de structures, Lootr et les autres.
+- [Compilation et tests](docs/BUILDING.md) (en anglais), [guide de développement](docs/DESARROLLO.md) (en espagnol) et [journal des modifications](CHANGELOG.md) (en anglais).
+
+## Licence et crédits
+
+Aucune licence : tous droits réservés. Le code est visible, mais aucune autorisation n'est accordée pour l'utiliser, le copier ou le redistribuer.
+Tout le contenu utilise uniquement des blocs et objets de Minecraft ; aucune ressource de tiers n'est incluse.
