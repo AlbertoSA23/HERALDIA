@@ -1,0 +1,12 @@
+{
+ "sobrecoste": 0.0176,
+ "umbral_relativo": 0.25,
+ "margen_absoluto": 0.08,
+ "ms_por_chunk_con": 55.57,
+ "ms_por_chunk_sin": 54.6,
+ "medida": "cpu",
+ "pasadas": 3,
+ "maquina": "4 núcleos, Linux",
+ "fecha": "2026-11-16",
+ "commit": "24bcc15"
+}

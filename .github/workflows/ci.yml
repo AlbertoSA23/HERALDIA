@@ -8,6 +8,8 @@ name: CI
 # local). La batería completa va en cada push a develop, a mano (la sesión auditora) y en un PR con la etiqueta
 # «bateria-completa» o con «[bateria completa]» en el título. Las de compatibilidad con otros mods
 # (tools/smoke/compat_mods.py) van en la batería completa y en un PR solo si tocan compatibilidad o colocación.
+# El coste de generación (tools/smoke/coste_generacion.py, job «coste») va en la batería completa y en un PR solo si
+# toca el Java de la generación o el generador (tools/test.py, COSTE_RUTAS), a la vez que los grupos de servidor.
 on:
   pull_request:
     branches: [develop, main]
@@ -31,6 +33,7 @@ jobs:
     outputs:
       matriz: ${{ steps.sel.outputs.matriz }}
       hay: ${{ steps.sel.outputs.hay }}
+      coste: ${{ steps.sel.outputs.coste }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,9 +65,10 @@ jobs:
           else
             m=$(python3 tools/test.py --ci-matriz --base "$BASE")
           fi
-          echo "$m" | python3 -c 'import json,sys; m=json.load(sys.stdin); print("Batería completa" if m["completa"] else "Pruebas afectadas"); [print(" -", g["pruebas"]) for g in m["include"]]'
+          echo "$m" | python3 -c 'import json,sys; m=json.load(sys.stdin); print("Batería completa" if m["completa"] else "Pruebas afectadas"); [print(" -", g["pruebas"]) for g in m["include"]]; print("Coste de generación:", "sí" if m["coste"] else "no")'
           echo "matriz=$(echo "$m" | python3 -c 'import json,sys; m=json.load(sys.stdin); print(json.dumps({"include": m["include"]}))')" >> "$GITHUB_OUTPUT"
           echo "hay=$(echo "$m" | python3 -c 'import json,sys; print("true" if json.load(sys.stdin)["include"] else "false")')" >> "$GITHUB_OUTPUT"
+          echo "coste=$(echo "$m" | python3 -c 'import json,sys; print("true" if json.load(sys.stdin)["coste"] else "false")')" >> "$GITHUB_OUTPUT"
 
   compilar:
     name: Compilación (genera, valida, audita y JUnit)
@@ -227,3 +231,47 @@ jobs:
           name: ${{ steps.nombre.outputs.nombre }}
           path: build/logs-pruebas
           if-no-files-found: ignore
+
+  coste:
+    name: Coste de generación (con y sin Heraldia)
+    needs: [compilar, seleccion]
+    if: needs.seleccion.outputs.coste == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/preparar
+        with:
+          gradle: 'false'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: jar
+          path: build/libs
+
+      # Chunky (tools/smoke/modrinth.py), con su sha512
+      - uses: actions/cache@v4
+        with:
+          path: build/smoke/modrinth
+          key: modrinth-${{ hashFiles('tools/smoke/modrinth.py') }}-coste
+          restore-keys: |
+            modrinth-${{ hashFiles('tools/smoke/modrinth.py') }}-
+            modrinth-
+
+      # Misma zona del mismo mundo con y sin Heraldia (3 pasadas de cada); compara con tools/smoke/coste_referencia.json
+      # y escribe el resumen del job. Para actualizar la referencia con esta medición: docs/DESARROLLO.md.
+      - name: Coste de generación
+        run: python3 tools/smoke/coste_generacion.py --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke" --salida build/coste
+
+      - name: Log del servidor
+        if: always()
+        run: cp build/smoke/logs/latest.log build/coste/ 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coste-generacion
+          path: build/coste
+          if-no-files-found: ignore
+          retention-days: 30

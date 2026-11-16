@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.albertosa23.heraldia.comun.Alturas;
 import io.github.albertosa23.heraldia.comun.Generacion;
+import io.github.albertosa23.heraldia.comun.Perfil;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,6 +75,7 @@ public final class MinaEntradaStructure extends Structure {
 		}
 		long t0 = System.nanoTime();
 		Ladera.Sitio sitio = Ladera.buscar(terreno, mx, mz, forma, ctx.heightAccessor().getMinY(), forzada);
+		Perfil.fin(Perfil.Tramo.LADERA, t0);
 		if (sitio == null) {
 			return Optional.empty();
 		}

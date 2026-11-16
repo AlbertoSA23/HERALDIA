@@ -188,3 +188,29 @@ def test_botin_que_se_repone_y_dificultad():
     assert elige(J + "dificultad/Dificultad.java", "tools/smoke/botin_reponer.py") == \
         (False, ["tools/smoke/botin_reponer.py", "tools/smoke/dificultad.py"])
     assert elige(J + "loot/CofrePorJugador.java")[0]         # el resto de loot/: común, batería completa
+
+
+def test_coste_de_generacion_por_rutas():
+    """La prueba de coste (job propio de la CI) va en un PR si cambia el Java de la generación, el generador o la propia
+    prueba; no con documentación, tests, comandos ni mobs. No entra en los grupos de servidor."""
+    assert sel.COSTE not in TODAS and "tools/smoke/coste_generacion.py" in [sel.rel(p) for p in
+                                                                            sel.glob.glob(os.path.join(sel.ROOT, "tools", "smoke", "*.py"))]
+    for r in [J + "mixin/ChunkGeneratorMixin.java", J + "mixin/StructureCheckMixin.java", J + "comun/Medianas.java",
+              J + "caminos/Trazado.java", J + "minas/Ladera.java", J + "aldeas/Orilla.java", J + "unicas/isla/IslaZona.java",
+              J + "config/GridPlacement.java", "tools/gen/houses.py", "tools/gen/medianas/posada.py", "tools/gen/unicas/castillo.py",
+              "tools/smoke/coste_generacion.py", "tools/smoke/coste_referencia.json", "gradle.properties"]:
+        assert sel.coste([r]), r
+    for r in ["docs/DESARROLLO.md", "CHANGELOG.md", "tools/gen/tests/test_core.py", "tools/gen/LEEME.md", "tools/gen/render.py",
+              J + "comando/Guia.java", J + "mixin/ZombieMixin.java", J + "jefes/Fases.java", J + "loot/BotinRepuesto.java",
+              "src/test/java/io/github/albertosa23/heraldia/comun/PerfilTest.java", "tools/smoke/trofeos.py", ".github/workflows/ci.yml"]:
+        assert not sel.coste([r]), r
+    assert sel.coste(["docs/DESARROLLO.md", J + "minas/Ladera.java"]) and not sel.coste([])
+
+
+def test_ci_matriz_dice_si_va_el_coste():
+    out = subprocess.run([sys.executable, os.path.join(TOOLS, "test.py"), "--ci-matriz", "--completa"],
+                         capture_output=True, text=True, check=True).stdout
+    assert json.loads(out)["coste"] is True
+    out = subprocess.run([sys.executable, os.path.join(TOOLS, "test.py"), "--listar", "--completa"],
+                         capture_output=True, text=True, check=True).stdout.split()
+    assert out[-1] == sel.COSTE and sorted(out[:-1]) == TODAS

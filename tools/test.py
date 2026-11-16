@@ -16,13 +16,16 @@ Las pruebas de servidor se descubren solas: tools/smoke/*.py (salvo server_smoke
 módulos de NO_SON_PRUEBAS) y tools/gen/unicas/*/prueba_*.py. compat_mods.py es una prueba por grupo de mods
 («tools/smoke/compat_mods.py::<grupo>», con --grupo): en un PR solo va si cambia algo de COMPAT_RUTAS. Una prueba nueva entra en la batería completa sin tocar nada; para que la elija también la
 selección por rutas, basta con que esté en la carpeta de su única (o, si va en tools/smoke/, en SMOKE_DE_UNICA o en MAPA).
+La de coste de generación (tools/smoke/coste_generacion.py) no va en los grupos: tiene su job en la CI («coste» en la
+salida de --ci-matriz) y en local va al final de --afectados (si lo cambiado toca COSTE_RUTAS) y de --todo (--sin-coste
+la quita).
 """
 import argparse, fnmatch, glob, json, os, shutil, subprocess, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HUMO = "tools/smoke/server_smoke.py"
 TODO = "*"            # en el mapa: el cambio afecta a todo (código común) -> batería completa
-NO_SON_PRUEBAS = {"server_smoke.py", "modrinth.py"}     # módulos comunes de tools/smoke/
+NO_SON_PRUEBAS = {"server_smoke.py", "modrinth.py", "coste_generacion.py"}  # módulos comunes y la de coste (job propio)
 # Compatibilidad con otros mods (una prueba por grupo, con mods de Modrinth): larga y con descargas, así que en un PR
 # solo va si cambia la propia prueba, la lista de mods o el código común de colocación (lo que decide dónde sale cada
 # estructura y si choca con las de otros mods). En la batería completa (push a develop, workflow_dispatch, etiqueta) siempre.
@@ -49,6 +52,14 @@ COMPAT_RUTAS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/g
                 JAVA + "config/GridPlacement.java", JAVA + "config/UniqueSeparation.java", JAVA + "config/VillageRules.java",
                 JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java", JAVA + "comun/ZonaAjenas.java",
                 JAVA + "unicas/isla/IslaZona.java", JAVA + "unicas/atlantida/AtlantisAnchor.java", JAVA + "comun/Medianas.java"]
+# Coste de generación (con y sin Heraldia, comparado con tools/smoke/coste_referencia.json): job propio de la CI, en
+# paralelo con los grupos de servidor. En la batería completa siempre; en un PR solo si cambia algo de COSTE_RUTAS (el
+# Java de la generación, el generador o la propia prueba), salvo lo de COSTE_SIN (tests y documentación).
+COSTE = "tools/smoke/coste_generacion.py"
+COSTE_RUTAS = [COSTE, "tools/smoke/coste_referencia.json", "tools/gen/*", "gradle.properties",
+               JAVA + "aldeas/*", JAVA + "caminos/*", JAVA + "comun/*", JAVA + "config/*", JAVA + "minas/*", JAVA + "unicas/*",
+               JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java"]
+COSTE_SIN = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
 MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
 # Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
 MINAS = ["tools/smoke/entradas_mina.py"]
@@ -180,6 +191,12 @@ def seleccionar(cambiados, todas=None):
     return False, sorted(elegidas)
 
 
+def coste(cambiados):
+    """¿Pide la lista de rutas cambiadas la prueba de coste de generación (COSTE_RUTAS sin COSTE_SIN)?"""
+    return any(any(fnmatch.fnmatch(r, p) for p in COSTE_RUTAS) and not any(fnmatch.fnmatch(r, p) for p in COSTE_SIN)
+               for r in cambiados)
+
+
 def cambiados(base):
     """Ficheros cambiados frente a `base` (merge-base), más los del árbol de trabajo sin confirmar."""
     def git(*a):
@@ -299,6 +316,7 @@ def main(argv=None):
     ap.add_argument("--work", default=os.path.join(ROOT, "build", "smoke"), help="carpeta del servidor de prueba")
     ap.add_argument("--logs", help="carpeta donde copiar el log de cada prueba")
     ap.add_argument("--sin-unitarios", action="store_true", help="con --afectados/--todo: no pasa los unitarios")
+    ap.add_argument("--sin-coste", action="store_true", help="con --afectados/--todo: no pasa la prueba de coste de generación")
     a = ap.parse_args(argv)
     work = os.path.abspath(a.work)       # los scripts arrancan Java con cwd=--work: ruta absoluta
     jar = os.path.abspath(a.jar or jar_por_defecto())
@@ -311,20 +329,23 @@ def main(argv=None):
         return 1 if malas else 0
 
     if a.todo or a.completa:
-        completa, pruebas, cambios = True, descubrir(), []
+        completa, pruebas, cambios, con_coste = True, descubrir(), [], True
     else:
         cambios = cambiados(a.base)
-        completa, pruebas = seleccionar(cambios)
+        (completa, pruebas), con_coste = seleccionar(cambios), coste(cambios)
     if a.ci_matriz:
-        print(json.dumps(dict(matriz(completa, pruebas), completa=completa), ensure_ascii=False))
+        print(json.dumps(dict(matriz(completa, pruebas), completa=completa, coste=con_coste), ensure_ascii=False))
         return 0
     if a.listar or a.afectados:
         print(f"{len(cambios)} ficheros cambiados frente a {a.base}" if cambios else "batería completa", file=sys.stderr)
         print(("Batería completa: " if completa else "Pruebas de servidor afectadas: ") + (", ".join(pruebas) or "ninguna"),
               file=sys.stderr)
+        print(f"Coste de generación ({COSTE}): {'sí' if con_coste else 'no'}", file=sys.stderr)
         if a.listar:
-            print("\n".join(pruebas))
+            print("\n".join(pruebas + ([COSTE] if con_coste else [])))
             return 0
+    if con_coste and not a.sin_coste:
+        pruebas = pruebas + [COSTE]
     if not a.sin_unitarios and unitarios():
         return 1
     if not os.path.isfile(jar):

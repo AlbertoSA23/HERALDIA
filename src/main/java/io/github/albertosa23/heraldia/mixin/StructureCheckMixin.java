@@ -1,6 +1,7 @@
 package io.github.albertosa23.heraldia.mixin;
 
 import io.github.albertosa23.heraldia.comun.Medianas;
+import io.github.albertosa23.heraldia.comun.Perfil;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
@@ -69,6 +70,15 @@ abstract class StructureCheckMixin {
 
 	@Inject(method = "canCreateStructure", at = @At("HEAD"), cancellable = true)
 	private void heraldia$villageRules(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
+		long t0 = Perfil.inicio();
+		try {
+			heraldia$reglas(pos, structure, cir);
+		} finally {
+			Perfil.fin(Perfil.Tramo.REGLAS_LOCATE, t0);
+		}
+	}
+
+	private void heraldia$reglas(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
 		Identifier id = registryAccess.lookupOrThrow(Registries.STRUCTURE).getKey(structure);
 		if (id != null && (!HeraldiaConfig.get().villages().allows(id, seed, pos.x(), pos.z())
 				|| AtlantisAnchor.excludes(id, dimension, seed, pos.x(), pos.z()))) {
