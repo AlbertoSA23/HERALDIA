@@ -13,7 +13,7 @@
    /setblock de una palanca no avisa al bloque al que está sujeta: se emula el clic cambiando ese bloque y devolviéndolo.
 Uso (desde la raíz): python3 tools/gen/unicas/mina_perdida/prueba_servidor.py --jar build/libs/heraldia-X.jar [--work DIR]
 """
-import argparse, os, subprocess, sys, threading, queue, time
+import argparse, math, os, subprocess, sys, threading, queue, time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "smoke"))
 sys.path.insert(0, os.path.join(HERE, "..", ".."))
@@ -161,10 +161,16 @@ def main():
                 fails.append("generación natural")
             else:
                 g = GUARDIAN.replace("]", "," + caja + "]")
-                check("el guardián está a la altura del filón madre (y 0-20)",
-                      f"execute as {g} at @s if entity @s[y=0,dy=20]")
+                # sin «execute as/at <selector>»: bifurcan la orden y un «Test failed» en una rama no responde nada
+                pm = cmd(f"data get entity {g.replace(']', ',limit=1]')} Pos",
+                         r"has the following entity data: \[(-?[\d.]+)d, (-?[\d.]+)d, (-?[\d.]+)d\]")
+                gx, gy, gz = (math.floor(float(v)) for v in pm.groups())
+                ok = 0 <= gy <= 20
+                print(f"[{'OK' if ok else 'FALLO'}] el guardián está a la altura del filón madre (y 0-20: {gy})")
+                if not ok:
+                    fails.append("guardián a la altura del filón madre")
                 check("la caverna está en las cuevas exuberantes o de espeleotemas",
-                      f"execute as {g} at @s positioned ~ ~16 ~ if biome ~ ~ ~ #heraldia:unicas/{SID}")
+                      f"execute if biome {gx} {gy + 16} {gz} #heraldia:unicas/{SID}")
                 pozo_ok(lx, lz)
                 for line in seen:
                     if "búsqueda del bioma" in line and SID in line:

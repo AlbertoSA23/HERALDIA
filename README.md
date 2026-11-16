@@ -150,6 +150,16 @@ Each village has:
 Population limits: there are about 1.25 beds per initial villager, so the population grows by 25 % at most.
 The function `heraldia:golems` checks loaded villages every 30 s and removes one natural golem each time there are 8 or more (standard) or 9 or more (large); it does not touch player-built ones. Limits and cleanup can be changed in the [configuration](#configuration).
 
+## Village life
+
+Heraldia villages have trades with character, a job board and, in the fortified ones, sieges. Everything can be turned off in the [configuration](#configuration) (`aldeas.vida.*`).
+
+- **Style trades** (`aldeas.vida.tratos_estilo`, on): in each style, one profession offers a trade with its character (vanilla items only, with a name, trims or moderate enchantments): the Militia Sword of the Castilian weaponsmith, the Copy of the Chronicle of the Heralds of the abbey librarian, the Dune Breastplate (sand-dyed leather with a gold trim) of the obelisk armorer, the Jarl's Mead of the Norse butcher, the Skipper's Rod of the fishermen... Besides, the cartographer of each family sells at level 3 (16 emeralds and a compass) the map of the unique structure of its area (castle in the plains, Jarl's Hall in the taiga, Stranded Galleon on the coast...). The trades are drawn like the vanilla ones when the villager levels up: a villager of that profession and level offers it with a probability of 1/2 to 2/3 (or always, at levels with a single vanilla trade), so a large village usually has one. Only Heraldia villagers inside a village of that style; also in villages already generated, for villagers that level up from now on.
+- **Job board** (`aldeas.vida.tablon`, on): on the square, next to the fountain, a lectern with the book "Job Board" and, behind it, the **bailiff** (a named villager who neither moves nor takes damage) who pays for delivery jobs with his trades: *Harvest for the granary* (32 of the family's crop: wheat, potatoes, berries, cactus, cocoa... for 4 emeralds), *Firewood for winter* (32 logs of the style's wood for 3) and *Clear the roads* (16 rotten flesh and 8 bones for the Watch Cloak, a leather chestplate in the banner colour with Protection II). He has work for a few deliveries (no restocking). Deeds are paid by the village once per player when they get their advancement: *Night watch* (slay a threat inside a Heraldia village: 3 emeralds) and *Defend the village* (become Hero of the Village after a raid on a Heraldia village: 8 emeralds and the Defender's Horn). **New villages only.**
+- **Sieges** (`aldeas.vida.asedios`, **off**: it affects balance): in fortified villages (`oscuro_fortificada`, `nieve_fortaleza`, `badlands_canon`) the weaponsmith sells at level 3 the "Siege Challenge", a level I ominous bottle (10 emeralds, once): whoever drinks it and returns to the village triggers a vanilla raid. There is no raider outpost next to the village: raiders attack villagers within 32 blocks even without seeing them, so it would have to sit outside the village, and a large village already reaches almost the 8 chunks from its start, the furthest the game places pieces; they would also be persistent mobs loaded all the time.
+
+Cost: one more entity per village (the bailiff, without AI) and no periodic function; trades and deeds are only evaluated when a villager levels up or a player kills, wins a raid or picks something up (vanilla advancement criteria).
+
 ## Atlantis
 
 Exactly one per world, always, with no configuration option. It is a walled city of about 770 × 770 blocks, fully submerged, in the deep-ocean basin closest to the origin that is 1,500 blocks or more away and unexplored (in an existing world it only appears in new chunks). The position is computed the first time the world loads and saved in `data/heraldia/atlantida.json`.
@@ -261,12 +271,13 @@ Pages are shown in each player's language (Spanish if the client does not have t
 
 ## Advancements
 
-A **Heraldia** advancement tab (80 advancements), with texts in Spanish and English. They only give experience, never items:
+A **Heraldia** advancement tab (82 advancements), with texts in Spanish and English. They only give experience, except the two job-board deeds:
 
 - **Heraldia** (root): enter any Heraldia village or unique structure.
 - A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
 - For each unique structure: discover it (50), defeat its named guardian (100) and open its treasure chest (50).
 - Atlantis also has its three seals (open the seal chest or hold its key, 30 each); its guardian is the Warden of Poseidon and the treasure counts when you take one of the named items from the unique chest.
+- [Job board](#village-life) jobs: **Night Watch** (slay a threat inside a Heraldia village: 3 emeralds and 30 experience) and **Village Defender** (become the hero of a Heraldia village after a raid: 8 emeralds, the Defender's Horn and 100 experience).
 - Final challenge **Cartographer of Legends**: discover every unique structure (500).
 - **Hall of Trophies** challenge: collect the [trophy](#guardian-trophies) of every unique structure's guardian (500); it counts when you hold it in your inventory.
 - **Chronicler** challenge: gather the leaves of the [Chronicle of the Heralds](#chronicle-of-the-heralds), one per unique structure (500); it counts when you hold it in your inventory.
@@ -288,6 +299,9 @@ when its format changes. It is read only when the server starts and affects chun
 | `aldeas.distancia_aldeas_vanilla_bloques` | 160 | 0-256 | Minimum distance to a vanilla village (rounded to chunks); 0 disables it. |
 | `aldeas.familias.<family>` | `true` | `true`/`false` | Enables a whole family (its 3 styles). |
 | `aldeas.estilos.<style>` | `true` | `true`/`false` | Enables a style (standard and large). If a cell picks a disabled one, another style of its biome is tried. |
+| `aldeas.vida.tratos_estilo` | `true` | `true`/`false` | Style trades and the map of the area's unique structure at each family's cartographers ([Village life](#village-life)). |
+| `aldeas.vida.tablon` | `true` | `true`/`false` | Job board and bailiff on the square of new villages. |
+| `aldeas.vida.asedios` | `false` | `true`/`false` | The weaponsmith of fortified villages sells an ominous bottle to trigger a raid. |
 | `golems.limpieza` | `true` | `true`/`false` | Enables the periodic removal of natural golems. |
 | `golems.limite_estandar` | 8 | 1-64 | At this many natural golems or more, a standard village removes one every 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Same for large villages. |
@@ -303,7 +317,7 @@ Atlantis has no placement options: there is always exactly one per world.
 
 On the client the file can also be edited from a screen inside the game. With [Mod Menu](https://modrinth.com/mod/modmenu) installed (optional; the mod works the same without it, the screen just has no button) it opens from the configuration button of Heraldia in the mod list. It is built from the same option list as the file, so new options appear on their own:
 
-- Sections: Villages, Village families, Village styles, Golems, Unique structures, Minimum distance between unique structures and Atlantis, with a search box (by name, key, help or section).
+- Sections: Villages, Village families, Village styles, Village life, Golems, Unique structures, Minimum distance between unique structures and Atlantis, with a search box (by name, key, help or section).
 - Each option shows its value (on/off button or number box). Its tooltip shows the key, the help text (the same as `_ayuda`) and the default and range. An invalid number turns red, its tooltip says why and **Save** stays disabled until it is fixed.
 - **Save** writes `config/heraldia.json` in the same format as at startup (with `version` and `_ayuda`); **Reset to defaults** puts every option back to its default (nothing is written until you save); **Cancel** discards the changes.
 - Changes apply when the world is opened again or the server is restarted, and only to chunks generated afterwards; the screen says so. With no world open they are used from the next world you open (no need to restart the game); with a single-player world open, after leaving and re-entering it.
@@ -331,7 +345,7 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 92 structures and all 80 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 92 structures and all 82 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
 Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario`, `laboratorio_micelio`, `mina_perdida` and `isla_corsario`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one. `tools/smoke/aldeas_variantes.py` places several villages of the same style, reads the saved regions and identifies, by comparing blocks with the templates in the `.jar`, which variant of each special building came out; it checks that each one matches exactly one variant and that different variants come out, and measures each `/place`. `tools/smoke/guardianes_adultos.py` places 200 times, through the same path as world generation, every zombie-type mob of the templates (zombie, husk, drowned) and checks that none comes out as a baby, with another weapon or on a mount.
 

@@ -4,9 +4,11 @@ Por cada módulo de unicas/ se escriben:
   item_modifier heraldia:mapas/<id>   exploración (etiqueta heraldia:unicas/<id>) + nombre traducido; sin destino, se descarta
   loot_table    heraldia:mapas/<id>   un mapa (lo usa el cofre épico; sirve también para /loot give)
   villager_trade heraldia:cartografo/<id>, en la etiqueta minecraft:cartographer/level_5, solo para cartógrafos de Heraldia
+                                      (lo escribe tratos.write; el trato sale de tratos.trato)
 Opcional en el módulo: NOMBRE = {"es_es": ..., "en_us": ...} y MAPA = {"decoration": "minecraft:<map_decoration_type>"}.
 """
 import math
+import tratos
 
 NS = "heraldia"
 # La búsqueda recorre celdas de la rejilla de colocación (una por "spacing" chunks), en anillos hasta search_radius.
@@ -17,7 +19,6 @@ DEFAULT_DECORATION = "minecraft:red_x"
 EPIC_MAP_CHANCE = 0.05
 # Precio del trato de maestro cartógrafo: alto (una vez y media un mapa de mansión) y sin apenas rebaja por reputación.
 PRICE_EMERALDS, MAX_USES, TRADE_XP, REPUTATION_DISCOUNT = 24, 2, 30, 0.05
-VILLAGER_TAG = NS   # core.villager pone esta etiqueta a los aldeanos de Heraldia
 PREDICATE = f"{NS}:aldeano_heraldia"
 
 
@@ -74,22 +75,18 @@ def with_maps(table, modules):
 
 
 def villager_predicate():
-    return {"type": "minecraft:entity_properties", "entity": "this", "predicate": {"nbt": "{Tags:[\"%s\"]}" % VILLAGER_TAG}}
+    return tratos.villager_predicate()
 
 
 def trade(sid, mod):
-    return {"wants": {"id": "minecraft:emerald", "count": PRICE_EMERALDS}, "additional_wants": {"id": "minecraft:compass"},
-            "gives": {"id": "minecraft:filled_map"},
-            "given_item_modifier": item_modifier(sid, mod), "merchant_predicate": villager_predicate(),
-            "max_uses": MAX_USES, "xp": TRADE_XP, "reputation_discount": REPUTATION_DISCOUNT}
+    return tratos.trato(PRICE_EMERALDS, {"id": "minecraft:filled_map"}, extra={"id": "minecraft:compass"},
+                        modifier=item_modifier(sid, mod), pred=villager_predicate(), usos=MAX_USES, xp=TRADE_XP,
+                        descuento=REPUTATION_DISCOUNT)
 
 
 def write(out, modules, jdump):
+    """Modificadores y tablas de los mapas; los tratos (heraldia:cartografo/<id>) los escribe tratos.write con los demás."""
     for sid, mod in modules:
         jdump(out, f"data/{NS}/item_modifier/mapas/{sid}.json", {"type": "minecraft:sequence", "functions": item_modifier(sid, mod)})
         jdump(out, f"data/{NS}/loot_table/mapas/{sid}.json", {"type": "minecraft:chest", "pools": [{"rolls": 1, "entries": [map_entry(sid, mod, 1)]}]})
-        jdump(out, f"data/{NS}/villager_trade/cartografo/{sid}.json", trade(sid, mod))
     jdump(out, f"data/{NS}/predicate/aldeano_heraldia.json", villager_predicate())   # el mismo filtro, para probarlo
-    if modules:
-        jdump(out, "data/minecraft/tags/villager_trade/cartographer/level_5.json",
-              {"replace": False, "values": [f"{NS}:cartografo/{sid}" for sid, _ in modules]})

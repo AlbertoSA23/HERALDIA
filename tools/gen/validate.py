@@ -149,7 +149,7 @@ def validate_advancements(out, ns="heraldia"):
         if n != ns:
             return True   # vanilla: lo valida el juego
         rel = {"structure": ("tags/worldgen/structure" if tag else "worldgen/structure"),
-               "loot_table": "loot_table", "advancement": "advancement"}[kind]
+               "loot_table": "loot_table", "advancement": "advancement", "entity_type": "tags/entity_type"}[kind]
         return os.path.isfile(os.path.join(out, "data", n, rel, path + ".json"))
 
     def text(name, c):
@@ -167,7 +167,8 @@ def validate_advancements(out, ns="heraldia"):
                     e.append(f"{name}: estructura o etiqueta inexistente {v}")
                 elif k == "loot_tables" and isinstance(v, str) and not exists("loot_table", v):
                     e.append(f"{name}: tabla de botín inexistente {v}")
-                elif k == "minecraft:entity_type" and _short(v) not in ENTITIES:
+                elif k == "minecraft:entity_type" and (not exists("entity_type", v) if v.startswith("#")
+                                                       else _short(v) not in ENTITIES):
                     e.append(f"{name}: entidad inexistente {v}")
                 elif k == "items" and isinstance(v, str) and _short(v) not in ITEMS:
                     e.append(f"{name}: objeto inexistente {v}")
@@ -209,7 +210,12 @@ def validate_advancements(out, ns="heraldia"):
                     errs.append(f"{name}: la raíz de la pestaña necesita fondo (background)")
                 errs += text(name, d.get("title")) + text(name, d.get("description"))
             xp = a.get("rewards", {}).get("experience", 0)
-            if set(a.get("rewards", {})) - {"experience"} or not isinstance(xp, int) or xp < 0:
+            # Solo experiencia (Decisiones de Alberto), salvo los encargos del tablón de las aldeas (tablon.py), que
+            # pagan con su tabla de recompensa (esmeraldas y algún objeto con nombre)
+            allowed = {"experience", "loot"} if name.startswith("aldeas/encargos/") else {"experience"}
+            if set(a.get("rewards", {})) - allowed or not isinstance(xp, int) or xp < 0:
                 errs.append(f"{name}: recompensa no permitida {a['rewards']} (solo experiencia)")
+            errs += [f"{name}: tabla de recompensa inexistente {t}" for t in a.get("rewards", {}).get("loot", [])
+                     if not exists("loot_table", t)]
             errs += refs(name, crit)
     return errs

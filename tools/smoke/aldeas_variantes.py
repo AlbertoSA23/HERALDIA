@@ -20,6 +20,7 @@ KINDS = ("church", "cemetery", "townhall", "market", "tavern", "blacksmith", "li
 SITES = ((0, 0), (450, 0), (0, 450), (450, 450), (-450, 0), (0, -450))
 YMIN = 40               # por debajo solo hay terreno: no se lee
 MATCH = 0.85            # fracción de bloques de la plantilla que deben estar en el mundo
+TIE = 0.03              # con varias por encima de MATCH, empatan las que quedan a menos de esto de la mejor
 # Bloques del terreno (y de lo que el terreno puede cambiar) que no cuentan al comparar: el mundo los tiene por todas
 # partes y la plantilla puede quedar en parte bajo tierra
 NATURAL = {"stone", "deepslate", "dirt", "grass_block", "gravel", "sand", "water", "andesite", "diorite", "granite",
@@ -155,6 +156,11 @@ def main():
             for k in KINDS:
                 scores = {v: find(world, by_name, tpls[(k, v)]) for v in variants[k]}
                 hits = [v for v, sc in scores.items() if sc >= MATCH]
+                # una variante puede contener casi entera a otra (ayuntamiento c de llanuras_castellana: con c colocada,
+                # a coincide al 94 %): si una destaca sobre las demás (TIE), cuenta solo esa
+                if len(hits) > 1:
+                    top = max(scores[v] for v in hits)
+                    hits = [v for v in hits if scores[v] >= top - TIE]
                 row.append(f"{k}={'/'.join(hits) or '?'}")
                 if len(hits) != 1:
                     fails.append(f"aldea en {x} {z}: {k} coincide con {hits or 'ninguna'} "

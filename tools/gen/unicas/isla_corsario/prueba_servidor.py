@@ -149,9 +149,22 @@ def main():
                 fails.append("generación natural")
             else:
                 time.sleep(20)                      # si el mar entrase en la cámara del tesoro, ya habría entrado
-                check("la cámara del tesoro sigue seca y bajo el nivel del mar",
-                      f"execute as {sel} at @s if block ~ ~ ~ minecraft:air if block ~ ~1 ~ minecraft:air "
-                      f"if entity @s[y=0,dy=62]")
+                # Sin «execute as/at <selector>»: bifurcan la orden y en una rama el «Test failed» no responde (la
+                # prueba se quedaba esperando). Se lee su posición y se miran esas coordenadas.
+                if not check("el corsario sigue en la isla tras 20 s", f"execute if entity {sel}")[0]:
+                    print("  DIAG", cmd(f"execute if entity {GUARDIAN}", r"Test passed(?:\. Count: \d+)?|Test failed").group(0))
+                else:
+                    lim = sel.replace("]", ",limit=1]")
+                    pm = cmd(f"data get entity {lim} Pos", r"has the following entity data: \[(-?[\d.]+)d, (-?[\d.]+)d, (-?[\d.]+)d\]")
+                    gx, gy, gz = (math.floor(float(v)) for v in pm.groups())
+                    # una condición por orden: un «if» intermedio que falla tampoco responde. El corsario anda por la
+                    # cámara (puede pisar una losa o un cofre): lo que se exige es que no haya agua donde está
+                    for y in (gy, gy + 1):
+                        check(f"sin agua en la cámara del tesoro ({gx}, {y}, {gz})", f"execute unless block {gx} {y} {gz} minecraft:water")
+                    ok = gy < 62
+                    print(f"[{'OK' if ok else 'FALLO'}] el corsario sigue bajo el nivel del mar (y = {gy})")
+                    if not ok:
+                        fails.append("corsario bajo el nivel del mar")
             for line in seen:
                 if "isla del corsario en" in line or "búsqueda del bioma" in line:
                     print("  ", line.split("]: ", 1)[-1])

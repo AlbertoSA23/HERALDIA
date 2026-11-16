@@ -9,6 +9,8 @@ from houses import make_house, PROFS_HOUSE
 from streets import (straight, crossroad, terminator_end, watchtower, gate, plaza, avenue, decor_piece, P)
 from specials import SPECIALS, VARIANTS
 from fillers import filler, villager_piece, golem_piece, rug_piece
+import tablon
+import tratos
 
 SPARE = 22        # peso de "cama libre" en las casas
 
@@ -174,6 +176,8 @@ def build_theme(reg, th, seed):
             rgt = "inn"
         t = avenue(th, rng, f"{tid}/avenues/{a}", P(th, f"special/{lft}"), P(th, f"special/{rgt}"))
         reg.pool(f"{tid}/avenue_{a}", [(reg.add(t, "avenue"), 1, "terrain_matching", street_proc)])
+    # ---- tablón de encargos (colgado de la plaza)
+    tablon.build(reg, th)
     # ---- plaza
     reg.pool(f"{tid}/plaza", [(reg.add(plaza(th, rng, f"{tid}/plaza/std"), "plaza"), 1, "rigid", bld_proc)])
     reg.pool(f"{tid}/plaza_grande", [(reg.add(plaza(th, rng, f"{tid}/plaza/grande", grande=True), "plaza"), 1, "rigid", bld_proc)])
@@ -213,6 +217,7 @@ def build_all(seed=2026):
         reg.warnings += botin.trofeo_errores(sid, getattr(mod, "TROFEO", None))
         reg.warnings += historia_cofre(reg, sid, mod)
     reg.warnings += botin.historia_cadena_errores(unicas.modules())
+    reg.warnings += tratos.errores(unicas.modules()) + tablon.errores(THEMES)
     return reg
 
 
