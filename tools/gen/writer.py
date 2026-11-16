@@ -12,6 +12,7 @@ import tablon
 import guia
 import caminos
 import opciones
+import jefes
 import biomas
 import logros
 import paralelo
@@ -135,6 +136,8 @@ LANG = {
 }
 for _lang, _texts in opciones.lang().items():
     LANG[_lang].update(_texts)
+for _lang, _texts in jefes.lang().items():
+    LANG[_lang].update(_texts)
 assert LANG["es_es"].keys() == LANG["en_us"].keys()
 
 
@@ -245,6 +248,8 @@ def write(reg, out):
     history_lang = write_history(out, uniques)
     jdump(out, f"{NS}/llaves.json", write_keys(out))
     trophy_lang = write_trophies(out, reg)
+    # fases y refuerzos de los guardianes (comun/jefes en Java)
+    jdump(out, f"{NS}/jefes.json", jefes.schema(unicas.modules(), reg.guardianes))
     # funciones
     fdir = os.path.join(out, "data", NS, "function")
     os.makedirs(fdir, exist_ok=True)

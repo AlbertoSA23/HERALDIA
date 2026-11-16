@@ -85,6 +85,8 @@ MAPA = [
     (JAVA + "comando/Guia*", ["tools/smoke/guia.py"]), (JAVA + "comando/Textos.java", ["tools/smoke/guia.py"]),
     ("tools/gen/guia.py", ["tools/smoke/guia.py"]),
     (JAVA + "comando/*", []),
+    # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
+    (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
     # caminos entre aldeas: su Java y sus datos
     (JAVA + "caminos/*", ["tools/smoke/caminos.py"]), ("tools/gen/caminos.py", ["tools/smoke/caminos.py"]),
     # código común: batería completa
@@ -196,6 +198,7 @@ DURACION_S = {
     "tools/smoke/coliseo_redstone.py": 39, "tools/smoke/rejilla_compatible.py": 80, "tools/smoke/caminos.py": 300,
     "tools/gen/unicas/torre_mago/prueba_redstone.py": 33,
     "tools/gen/unicas/piramide/prueba_servidor.py": 28, "tools/smoke/galeon_test.py": 26,
+    "tools/smoke/jefes_fases.py": 70,                     # medida en local: 60 s con dos arranques (el segundo, con las opciones desactivadas)
     # compatibilidad (medidas en local en 4 núcleos con las descargas en caché, más un 30 % para la CI)
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
                                          "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},

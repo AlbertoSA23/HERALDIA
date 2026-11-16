@@ -16,6 +16,8 @@ from unicas._comun.botin import item, empty, cofre as t2, named as _named, potio
 SID = "torre_mago"
 NSP = f"unicas/{SID}"
 NOMBRE = {"es_es": "Torre de mago", "en_us": "Wizard Tower"}
+# Refuerzos del guardián en cada fase (jefes.py): su escolta y su aprendiza.
+REFUERZOS = ["vindicator", "witch"]
 TROFEO = {"objeto": "blaze_rod", "rareza": "epic",
           "nombre": ("Báculo del Archimago Malvarius", "Staff of Archmage Malvarius"),
           "lore": [("Todavía chisporrotea con su último conjuro.", "It still crackles with his final spell.")]}   # trofeo del guardián (_comun/botin.trofeo)

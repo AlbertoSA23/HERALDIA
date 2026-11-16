@@ -92,6 +92,19 @@ _FIXED = [
      "de Heraldia (tampoco dentro de la Atlántida)",
      "A medium structure does not spawn closer than this distance, in blocks, to the start of a Heraldia village or unique "
      "structure (nor inside Atlantis)"),
+    ("jefes.fases.activado", True, None, None,
+     "Fases de los guardianes de las estructuras únicas: al bajar del 66 % y del 33 % de vida se enfurecen (velocidad, "
+     "resistencia y fuerza breve, con partículas, sonido y aviso a los jugadores cercanos); también los ya generados",
+     "Phases of the unique-structure guardians: below 66 % and 33 % health they become enraged (speed, resistance and a "
+     "short strength boost, with particles, sound and a notice to nearby players); also those already generated"),
+    ("jefes.refuerzos.activado", True, None, None,
+     "Refuerzos de los guardianes: en cada fase (una sola vez) llaman a 2 o 3 mobs propios de su estructura, que no "
+     "sueltan su botín; nunca más de 4 vivos a la vez",
+     "Guardian reinforcements: at each phase (only once) they call 2 or 3 mobs that suit their structure, which do not "
+     "drop the guardian's loot; never more than 4 alive at once"),
+    ("jefes.barra.activado", True, None, None,
+     "Barra de jefe con el nombre del guardián para los jugadores cercanos mientras dura el combate",
+     "Boss bar with the guardian's name for nearby players while the fight lasts"),
     ("guia.entregar_al_entrar", True, None, None,
      "Guía del Heraldo: da a cada jugador el libro que explica el mod y lleva su diario la primera vez que entra tras "
      "instalar o actualizar Heraldia (una vez por versión; /heraldia guia da otra copia cuando quiera)",
@@ -135,6 +148,9 @@ _NAMES = {
     "unicas.distancia_minima.activada": ("Distancia mínima activada", "Minimum distance enabled"),
     "unicas.distancia_minima.bloques": ("Distancia mínima (bloques)", "Minimum distance (blocks)"),
     "unicas.atlantida.cofre_unico_por_jugador": ("Cofre premium por jugador", "Per-player premium chest"),
+    "jefes.fases.activado": ("Fases de los guardianes", "Guardian phases"),
+    "jefes.refuerzos.activado": ("Refuerzos de los guardianes", "Guardian reinforcements"),
+    "jefes.barra.activado": ("Barra de jefe", "Boss bar"),
     "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
     "medianas.activadas": ("Estructuras medianas", "Medium structures"),
     "medianas.frecuencia_porcentaje": ("Frecuencia (%)", "Frequency (%)"),
@@ -165,6 +181,7 @@ SECTIONS = [
     ("unicas", "Estructuras únicas", "Unique structures"),
     ("distancia_minima", "Distancia mínima entre únicas", "Minimum distance between unique structures"),
     ("atlantida", "Atlántida", "Atlantis"),
+    ("jefes", "Guardianes (jefes)", "Guardians (bosses)"),
     ("medianas", "Estructuras medianas", "Medium structures"),
     ("compatibilidad", "Compatibilidad con otros mods", "Compatibility with other mods"),
     ("guia", "Guía del Heraldo", "Herald's Guide"),
@@ -174,7 +191,7 @@ SECTIONS = [
 _SECTION_PREFIXES = [
     ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.caminos.", "caminos"),
     ("aldeas.", "aldeas"), ("golems.", "golems"),
-    ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"),
+    ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
 ]
 
