@@ -1,8 +1,9 @@
 """Mundo existente: lo ya generado no cambia al actualizar Heraldia ni su configuración (servidor dedicado 26.3 real).
 
 Uso: python3 tools/smoke/mundo_existente.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-mundo-existente"
-Tres arranques del mismo mundo (semilla de server_smoke), con la regla de ticks aleatorios a 0 y sin mobs nuevos (así lo
-único que puede cambiar un chunk ya generado es el mod):
+Tres arranques del mismo mundo (semilla de server_smoke), con la regla de ticks aleatorios a 0, sin mobs nuevos y, en los
+arranques 2 y 3, el mundo congelado (/tick freeze: se cargan y generan chunks, pero no corren los ticks de bloques,
+fluidos ni entidades), así que lo único que puede cambiar un chunk ya generado es el mod:
 1. «Versión anterior»: configuración con lo nuevo de la 0.1.0 sin publicar apagado (caminos, medianas, entradas a mina
    y multiplicador de minas vanilla 1, arena, botín que se repone; rejilla_compatible activada) y la Guía sin entregar.
    Se genera la zona A (LADO_A x LADO_A chunks) alrededor de la aldea Heraldia más cercana al 0,0 y se dejan pasar más
@@ -17,7 +18,7 @@ regiones (.mca): los bloques de cada sección, los bloques con datos (id y NBT, 
 alturas, los biomas y los inicios y referencias de estructuras. Las entidades: cada UUID de la zona sigue en el mundo
 (los mobs pueden andar). Código 0 si todo pasa.
 """
-import argparse, glob, io, json, os, queue, re, shutil, struct, subprocess, sys, threading, zlib
+import argparse, glob, io, json, os, queue, re, shutil, struct, subprocess, sys, threading, time, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s           # noqa: E402
 import nbtlib                      # noqa: E402
@@ -228,22 +229,55 @@ def parar(proc, ctx):
     if proc.poll() is None:
         s.send(proc, "stop")
         proc.wait(timeout=180)
+    while True:          # lo que escribió al parar (la línea de coste de los caminos) también a ctx.seen
+        try:
+            line = ctx.lines.get(timeout=10)
+        except queue.Empty:
+            return
+        if line is None:
+            return
+        ctx.seen.append(line)
 
 
 def cuadrado(c0x, c0z, lado):
     return {(x, z) for x in range(c0x, c0x + lado) for z in range(c0z, c0z + lado)}
 
 
-def cargar(ctx, chunks):
-    """Fuerza y carga los chunks (los genera si no lo están) y espera a que estén todos; luego los suelta."""
+FORCELOAD_MAX = 16          # /forceload acepta como mucho 256 chunks por orden: trozos de 16 x 16
+
+
+def trozos(chunks):
+    """Rectángulos (x0, z0, x1, z1) en bloques, de como mucho FORCELOAD_MAX x FORCELOAD_MAX chunks, que cubren los chunks."""
     xs, zs = [c[0] for c in chunks], [c[1] for c in chunks]
-    x0, z0, x1, z1 = min(xs) * 16, min(zs) * 16, max(xs) * 16 + 15, max(zs) * 16 + 15
-    ctx.run(f"forceload add {x0} {z0} {x1} {z1}", r"Marked|[Aa]dded|force|already")
+    out = []
+    for cx in range(min(xs), max(xs) + 1, FORCELOAD_MAX):
+        for cz in range(min(zs), max(zs) + 1, FORCELOAD_MAX):
+            ex, ez = min(cx + FORCELOAD_MAX - 1, max(xs)), min(cz + FORCELOAD_MAX - 1, max(zs))
+            out.append((cx * 16, cz * 16, ex * 16 + 15, ez * 16 + 15))
+    return out
+
+
+def congelar(ctx):
+    """/tick freeze: el mundo sigue cargando y generando chunks (y cargando sus entidades, que es cuando el mod las toca),
+    pero no corren los ticks de bloques, fluidos ni entidades. Sin esto, la lava y el agua de las cuevas de los bordes
+    siguen fluyendo, los aldeanos abren puertas y las bóvedas de las cámaras de pruebas cambian sus datos: cambios del
+    juego, no del mod, que taparían lo que se quiere ver."""
+    ctx.run("tick freeze", r"[Ff]rozen|freeze|[Gg]ame")
+
+
+def cargar(ctx, chunks, congelado=False):
+    """Fuerza y carga los chunks (los genera si no lo están) y espera a que estén todos; luego los suelta."""
+    for x0, z0, x1, z1 in trozos(chunks):
+        ctx.run(f"forceload add {x0} {z0} {x1} {z1}", r"Marked|[Aa]dded|force|already")
     for cx, cz in sorted(chunks):
         if not ctx.until(f"execute if loaded {cx * 16} 64 {cz * 16}", timeout=600):
             raise SystemExit(f"el chunk {cx}, {cz} no se carga")
-    ctx.ticks(60)
-    ctx.run(f"forceload remove {x0} {z0} {x1} {z1}", r"[Rr]emoved|[Uu]nmarked|force|not")
+    if congelado:
+        time.sleep(5)                 # con el mundo congelado el reloj no avanza: se deja terminar lo que quede
+    else:
+        ctx.ticks(60)
+    for x0, z0, x1, z1 in trozos(chunks):
+        ctx.run(f"forceload remove {x0} {z0} {x1} {z1}", r"[Rr]emoved|[Uu]nmarked|force|not")
 
 
 def main():
@@ -286,7 +320,8 @@ def main():
     try:
         if not re.search(r"arena: mundo existente", ctx.log()):
             fallos.append("la arena no reconoce el mundo existente (línea «arena: mundo existente» del log)")
-        cargar(ctx, B)
+        congelar(ctx)
+        cargar(ctx, B, congelado=True)
     finally:
         parar(proc, ctx)
     with open(os.path.join(a.work, "config", "heraldia.json"), encoding="utf-8") as f:
@@ -301,13 +336,19 @@ def main():
     print(f"Anillo B: {len(foto_b)} chunks nuevos guardados enteros")
     if re.search(r"arena: (mundo nuevo|colocada|sitio propuesto)", ctx.log()):
         fallos.append("arranque 2: la arena se construye sola en un mundo existente")
+    m = re.search(r"caminos: \d+ chunks, (\d+) junto a una ruta \((\d+) columnas", ctx.log())
+    if not m or int(m.group(2)) == 0:
+        fallos.append("arranque 2: no sale ningún camino en el anillo nuevo (la prueba no vería si toca lo viejo)")
+    else:
+        print(f"Anillo B: {m.group(1)} chunks junto a una ruta, {m.group(2)} columnas de camino puestas")
 
     # 3. otra configuración
     C = cuadrado(ax - LADO_A // 2 - ANILLO_B - ANILLO_C, az - LADO_A // 2 - ANILLO_B - ANILLO_C,
                  LADO_A + 2 * (ANILLO_B + ANILLO_C))
     proc, ctx = arrancar(a.work, launcher, CONFIG_OTRA)
     try:
-        cargar(ctx, C)
+        congelar(ctx)
+        cargar(ctx, C, congelado=True)
         if re.search(r"arena: (mundo nuevo|colocada|sitio propuesto)", ctx.log()):
             fallos.append("arranque 3: la arena se construye sola en un mundo existente")
     finally:

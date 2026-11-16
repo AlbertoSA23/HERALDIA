@@ -135,3 +135,11 @@ def test_lista_mixta_de_26_3():
     sec = {"palette": me._plano(mixta), "data": [0x10]}                 # índice 0 y luego 1
     est = me.estados(sec)
     assert est[0] == ("minecraft:air", ()) and est[1] == ("minecraft:oak_log", (("axis", "y"),))
+
+
+def test_trozos_de_forceload_de_256_chunks():
+    C = {(x, z) for x in range(-10, 12) for z in range(-90, -68)}         # 22 x 22 = 484 chunks
+    t = me.trozos(C)
+    assert all(((x1 - x0 + 1) // 16) * ((z1 - z0 + 1) // 16) <= 256 for x0, z0, x1, z1 in t)
+    cubiertos = {(x // 16, z // 16) for x0, z0, x1, z1 in t for x in range(x0, x1 + 1, 16) for z in range(z0, z1 + 1, 16)}
+    assert cubiertos == C
