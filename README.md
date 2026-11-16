@@ -84,6 +84,15 @@ Contents:
     (placed by looking for water), with a hold, a cannon deck, castles, a cabin and the treasurer's secret chamber;
     a castaway camp with archaeology and a cave with the lantern puzzle, traps, four spawners and the
     guardian The Drowned Captain; 18 chests. Design: [docs/unicas/galeon.md](docs/unicas/galeon.md).
+  - **Corsair's Isle** (`heraldia:unicas/isla_corsario`): temperate and warm oceans, in open sea, far from the coast
+    and outside Atlantis (found with the biome noise and the sea floor). Its own islet, about 84 × 74 blocks, with its
+    rock, sand and palm trees: on the hill, Roque Salitre's fort (curtain wall with a wall-walk, a bastion with four
+    cannons, the corsair's house, barracks and cistern); in the south, the harbour with the pier and a brigantine afloat
+    at its moorings, the Hanged Mermaid tavern (with a hideout behind a tapestry in the cellar), the warehouses and the
+    gallows, and a small lighthouse on the western point. Beneath the hill, the sea caves: the hidden cove (entered by
+    boat through the cliff), the guardroom, the map room with the **compass rose puzzle**, the armoury with the secret
+    powder room, the dungeons and, below sea level and dry, the treasure chamber with Roque Salitre, the Corsair;
+    tripwire and pressure-plate traps, 3 spawners and 21 chests. Design: [docs/unicas/isla_corsario.md](docs/unicas/isla_corsario.md).
 
 ## Installation
 
@@ -91,7 +100,7 @@ Requirements: Minecraft 26.3, Fabric Loader 0.20.1 or later and Fabric API (test
 
 1. Build `heraldia-<version>.jar` (see below).
 2. Copy it into the `mods` folder of the server and of every client.
-3. Start the server. `logs/latest.log` should show `Heraldia: 90 estructuras registradas`.
+3. Start the server. `logs/latest.log` should show `Heraldia: 92 estructuras registradas`.
 
 In an existing world, structures only appear in chunks that have not been generated yet.
 `/reload` does not reload world generation: you must restart the server (or leave and re-enter the world in single player).
@@ -177,7 +186,7 @@ Each village family and each unique structure finds its biomes through its own t
 | `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
 | `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
 
-Taiga, savanna, cherry and the coliseum, observatory, pyramid, monastery, citadel, palace, jarl's hall and lost mine uniques keep only their vanilla biomes: no convention tag is narrow enough (for example, `#c:is_cave` includes the deep dark; `#c:is_taiga` includes snowy taiga, which belongs to the snow family, and `#c:is_savanna` includes windswept savanna, the observatory's). Which biomes of a mod go into each tag is that mod's choice (with Terralith, for example, plains include its steppes and highlands, and forest its lavender and sakura forests). The Atlantis search also accepts the oceans in `#c:is_ocean` and `#c:is_deep_ocean`. Tested with Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
+Taiga, savanna, cherry and the coliseum, observatory, pyramid, monastery, citadel, palace, jarl's hall, lost mine and corsair's isle uniques keep only their vanilla biomes: no convention tag is narrow enough (for example, `#c:is_cave` includes the deep dark; `#c:is_taiga` includes snowy taiga, which belongs to the snow family, and `#c:is_savanna` includes windswept savanna, the observatory's). Which biomes of a mod go into each tag is that mod's choice (with Terralith, for example, plains include its steppes and highlands, and forest its lavender and sakura forests). The Atlantis search also accepts the oceans in `#c:is_ocean` and `#c:is_deep_ocean`. Tested with Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
 
 ## Treasure maps
 
@@ -207,6 +216,7 @@ Every named guardian of a unique structure (and Atlantis' Warden of Poseidon) dr
 | Smugglers' Lighthouse | Captain Mist's Cutlass | `iron_sword` | sharpness 1, unbreaking 1 |
 | Ice Fortress | Frost Crown | `golden_helmet` | unbreaking 2 |
 | Stranded Galleon | The Drowned Captain's Spyglass | `spyglass` | — |
+| Corsair's Isle | Roque Salitre's Bow | `bow` | power 2, unbreaking 2 |
 | Mycologist's Laboratory | Master Ambrose's Shears | `shears` | efficiency 2, unbreaking 2 |
 | Haunted Mansion | Count Malachi's Pocket Watch | `clock` | — |
 | Lost Mine of Hondavena | Tizon's Pickaxe | `iron_pickaxe` | efficiency 2, unbreaking 2 |
@@ -233,7 +243,8 @@ An optional story thread links the unique structures (full background in [`docs/
 | Ruined Colosseum | lanista's office | Smugglers' Lighthouse |
 | Smugglers' Lighthouse | captain's office | Ice Fortress |
 | Ice Fortress | gallery | Stranded Galleon |
-| Stranded Galleon | captain's cabin | Mycologist's Laboratory |
+| Stranded Galleon | captain's cabin | Corsair's Isle |
+| Corsair's Isle | map room | Mycologist's Laboratory |
 | Mycologist's Laboratory | spore library | Haunted Mansion |
 | Haunted Mansion | library | Lost Mine of Hondavena |
 | Lost Mine of Hondavena | foreman's hidden office | Mountain Monastery |
@@ -250,7 +261,7 @@ Pages are shown in each player's language (Spanish if the client does not have t
 
 ## Advancements
 
-A **Heraldia** advancement tab (77 advancements), with texts in Spanish and English. They only give experience, never items:
+A **Heraldia** advancement tab (80 advancements), with texts in Spanish and English. They only give experience, never items:
 
 - **Heraldia** (root): enter any Heraldia village or unique structure.
 - A village of each family (12 advancements, 20 experience) and the **Heraldia Globetrotter** challenge: all 12 families (250).
@@ -281,7 +292,7 @@ when its format changes. It is read only when the server starts and affects chun
 | `golems.limite_estandar` | 8 | 1-64 | At this many natural golems or more, a standard village removes one every 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Same for large villages. |
 | `unicas.<id>.activada` | `true` | `true`/`false` | Enables a unique structure. There is one entry for each unique structure in the mod. |
-| `unicas.<id>.separacion_bloques` | the structure's own (4000) | 1000-10000 | Average spacing between structures of that type (by default, one every 3000-5000 blocks). Each type spreads over its whole grid cell (grid origin shifted per type), and two of the same type are never closer than `unicas.distancia_minima.bloques`. For the Mycologist's Laboratory (mushroom fields, a very rare biome) the candidate of each cell is not random: it is the spot of the cell deepest inside that biome, so it appears on a good share of mushroom islands (at most one per cell). The Lost Mine does the same with lush and dripstone caves, looking at cavern height (y = 26) instead of sea level. |
+| `unicas.<id>.separacion_bloques` | the structure's own (4000) | 1000-10000 | Average spacing between structures of that type (by default, one every 3000-5000 blocks). Each type spreads over its whole grid cell (grid origin shifted per type), and two of the same type are never closer than `unicas.distancia_minima.bloques`. For the Mycologist's Laboratory (mushroom fields, a very rare biome) the candidate of each cell is not random: it is the spot of the cell deepest inside that biome, so it appears on a good share of mushroom islands (at most one per cell). The Lost Mine does the same with lush and dripstone caves, looking at cavern height (y = 26) instead of sea level, and the Corsair's Isle with its oceans (the spot deepest in open sea). |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Keeps two different unique structures (Atlantis included) from spawning closer than the minimum distance. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Minimum distance between the start chunks of two different unique structures. When two candidates are too close, a deterministic draw (seed and position) keeps one; if the winner cannot spawn there (wrong biome or terrain), the other one is kept. `/locate` and treasure maps follow the same rule. |
 | `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Per-player Atlantis premium chest. The first opening turns its contents into a template stored in the chest itself (the chest is left empty, so breaking or emptying it duplicates nothing) and each player opens their own copy: the whole contents the first time, and afterwards whatever they left. The Poseidon key is still needed. It works the same with or without Lootr (Lootr does not convert this chest because it has no loot table). Turning it off later puts the contents back in the chest once (the first time someone uses it), and it behaves as before. |
@@ -320,9 +331,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 91 structures and all 77 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
+The second one downloads a real Fabric 26.3 server into `build/smoke`, starts it with the mod and checks that all 92 structures and all 80 advancements are loaded, that `/place structure` places a village with villagers and that the functions exist.
 
-Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario`, `laboratorio_micelio` and `mina_perdida`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one. `tools/smoke/aldeas_variantes.py` places several villages of the same style, reads the saved regions and identifies, by comparing blocks with the templates in the `.jar`, which variant of each special building came out; it checks that each one matches exactly one variant and that different variants come out, and measures each `/place`.
+Server tests for each unique structure (same `--jar` argument): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` and `galeon_test.py`, and in `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` and `prueba_servidor.py` of `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario`, `laboratorio_micelio`, `mina_perdida` and `isla_corsario`. Atlantis is checked within the smoke test (`atlantida/humo.py`). `tools/smoke/trofeos.py` adds Carpet (pinned version) and, with a simulated player, kills each guardian and checks that it drops its trophy (and that `/kill` does not) and that the trophy challenge is granted with the last one. `tools/smoke/historia.py` (also with Carpet) checks that the Chronicle chain goes through every unique structure, that each one's chest drops its leaf and that the simulated player earns the Chronicler challenge with the last one. `tools/smoke/aldeas_variantes.py` places several villages of the same style, reads the saved regions and identifies, by comparing blocks with the templates in the `.jar`, which variant of each special building came out; it checks that each one matches exactly one variant and that different variants come out, and measures each `/place`.
 
 Versions are pinned in `gradle.properties`. Generator tools: `tools/gen/sim.py` (simulates jigsaw assembly; `python3 tools/gen/sim.py [style ...]` counts the variants of the special buildings, houses, villagers, golems and beds), `tools/gen/render.py` (isometric renders; `python3 tools/gen/render.py <folder> [style ...]` draws the variant sheets), `tools/gen/lint.py` (design audit).
 
