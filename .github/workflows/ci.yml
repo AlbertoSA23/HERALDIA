@@ -85,6 +85,7 @@ jobs:
           - tools/gen/unicas/fortaleza_hielo/prueba_servidor.py
           - tools/gen/unicas/laboratorio_micelio/prueba_servidor.py
           - tools/gen/unicas/mansion/prueba_servidor.py
+          - tools/gen/unicas/mina_perdida/prueba_servidor.py
           - tools/gen/unicas/monasterio/prueba_servidor.py
           - tools/gen/unicas/piramide/prueba_servidor.py
           - tools/gen/unicas/salon_jarl/prueba_servidor.py

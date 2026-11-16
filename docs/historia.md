@@ -43,15 +43,16 @@ así que es un solo ciclo: se puede empezar por cualquiera y se llega a todas. U
 | 7 | Fortaleza de hielo | `galeria` | el Rey Escarcha: el hielo lo conserva | Galeón varado |
 | 8 | Galeón varado | `capitan` | el capitán ahogado, que sigue al timón | Laboratorio del micólogo |
 | 9 | Laboratorio del micólogo | `biblioteca` | Maese Ambrosio, entre los frascos de su biblioteca de esporas (probó en sí mismo su último remedio) | Mansión encantada |
-| 10 | Mansión encantada | `biblioteca` | el conde Malaquías, hasta la medianoche del fin del mundo | Monasterio de montaña |
-| 11 | Monasterio de montaña | `biblioteca` | Fray Tenebrio, junto al relicario | Observatorio |
-| 12 | Observatorio | `oculto` | el Custodio de las Estrellas, mientras haya estrellas | Palacio oriental |
-| 13 | Palacio oriental | `biblioteca_secreta` | el emperador y el comandante de la Guardia Imperial | Templo-pirámide |
-| 14 | Templo-pirámide | `tumba` | el Rey Jaguar, como ofrenda | Salón del Jarl |
-| 15 | Salón del Jarl | `ofrendas` | el jarl Ulfgrim, por sus antepasados; ni muerto lo suelta | Santuario druídico |
-| 16 | Santuario druídico | `biblioteca` | el archidruida Cadoc, por las raíces del árbol (se corrompió al secarse el árbol) | Torre de mago |
-| 17 | Torre de mago | `escondite` | el archimago Malvarius (que lo abrió y busca el resto) | La Atlántida |
-| 18 | La Atlántida | `sello_academia` | Ysolda, en casa: prólogo y epílogo | Acueducto (vuelve a empezar) |
+| 10 | Mansión encantada | `biblioteca` | el conde Malaquías, hasta la medianoche del fin del mundo | Mina perdida de Hondavena |
+| 11 | Mina perdida de Hondavena | `despacho` | Tizón, el último capataz, tras la estantería de su despacho; se quedó picando junto al filón | Monasterio de montaña |
+| 12 | Monasterio de montaña | `biblioteca` | Fray Tenebrio, junto al relicario | Observatorio |
+| 13 | Observatorio | `oculto` | el Custodio de las Estrellas, mientras haya estrellas | Palacio oriental |
+| 14 | Palacio oriental | `biblioteca_secreta` | el emperador y el comandante de la Guardia Imperial | Templo-pirámide |
+| 15 | Templo-pirámide | `tumba` | el Rey Jaguar, como ofrenda | Salón del Jarl |
+| 16 | Salón del Jarl | `ofrendas` | el jarl Ulfgrim, por sus antepasados; ni muerto lo suelta | Santuario druídico |
+| 17 | Santuario druídico | `biblioteca` | el archidruida Cadoc, por las raíces del árbol (se corrompió al secarse el árbol) | Torre de mago |
+| 18 | Torre de mago | `escondite` | el archimago Malvarius (que lo abrió y busca el resto) | La Atlántida |
+| 19 | La Atlántida | `sello_academia` | Ysolda, en casa: prólogo y epílogo | Acueducto (vuelve a empezar) |
 
 ## Cómo se juega
 

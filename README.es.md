@@ -48,6 +48,17 @@ Contenido:
     capullos, los experimentos fallidos, la sala de los reactivos (puzle: mezcla la cura) y la cámara de la cepa madre con
     Maese Ambrosio, el Esporado, y el tesoro; trampas de cable y de placas, 3 generadores y 22 cofres.
     Diseño: [docs/unicas/laboratorio_micelio.md](docs/unicas/laboratorio_micelio.md).
+  - **Mina perdida de Hondavena** (`heraldia:unicas/mina_perdida`): la primera única **subterránea**, bajo las cuevas
+    exuberantes y de espeleotemas (el bioma se mira a la altura de la caverna, y ≈ 26; una cada 3.000-5.000 bloques).
+    En la superficie solo asoma el castillete de madera sobre el pozo maestro; el pozo (escalera de mano y cadena del
+    malacate) baja a una colonia minera de la Corona excavada en una gran caverna a y = 20: estación del pozo, almacén,
+    fundición con altos hornos, casas de los mineros en la roca, herrería y carpintería, un lago subterráneo con
+    embarcadero y barca, una sima con puente colgante, el cargadero con el **puzle de las agujas** (llevar la vagoneta
+    por dos agujas hasta la báscula, que abre la cámara del filón), el frente viejo con las vetas a la vista y un sector
+    derrumbado e inundado. El despacho secreto del capataz (tras una estantería), el alijo de los contrabandistas tras
+    un tapiz, un cable trampa y una carga de dinamita olvidada, 3 generadores, el guardián Tizón, el último capataz, y
+    21 cofres. La colonia está excavada en roca maciza con su propio casco: no entra agua ni lava y las cuevas vanilla
+    cercanas solo ven roca irregular. Diseño: [docs/unicas/mina_perdida.md](docs/unicas/mina_perdida.md).
   - **Faro con cueva de contrabandistas** (`heraldia:unicas/faro`, costa pedregosa y playas): faro y casa del farero sobre un promontorio; pasadizo secreto a una cueva al nivel del mar con muelle, almacenes, calabozo, despacho del capitán y cámara del tesoro. Se coloca siempre en la línea de costa, con la boca de la cueva hacia el mar. Diseño en [docs/unicas/faro.md](docs/unicas/faro.md).
   - **Torre de mago** (`heraldia:unicas/torre_mago`): bosque oscuro y jardín pálido. Torre de ocho plantas con
     biblioteca de doble altura, laboratorio, invernadero y observatorio, estudio oculto tras una estantería cincelada,
@@ -167,7 +178,7 @@ Cada familia de aldeas y cada estructura única busca sus biomas con una etiquet
 | `unicas/galeon` | `#minecraft:is_beach`, `#c:is_beach` |
 | `unicas/atlantida` | `#minecraft:is_ocean`, `#c:is_ocean` |
 
-Taiga, sabana, cerezos y las únicas coliseo, observatorio, pirámide, monasterio, ciudadela, palacio y salón del jarl se quedan solo con sus biomas vanilla: no hay ninguna etiqueta convencional lo bastante estrecha (por ejemplo, `#c:is_taiga` incluye la taiga nevada, de la familia nieve, y `#c:is_savanna` la sabana ventosa, del observatorio). Qué bioma de un mod entra en cada etiqueta lo decide ese mod (con Terralith, por ejemplo, la llanura incluye sus estepas y tierras altas, y el bosque, sus bosques de lavanda y de cerezos). La búsqueda de la Atlántida acepta también los océanos de `#c:is_ocean` y `#c:is_deep_ocean`. Probado con Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
+Taiga, sabana, cerezos y las únicas coliseo, observatorio, pirámide, monasterio, ciudadela, palacio, salón del jarl y mina perdida se quedan solo con sus biomas vanilla: no hay ninguna etiqueta convencional lo bastante estrecha (por ejemplo, `#c:is_cave` incluye el abismo; `#c:is_taiga` incluye la taiga nevada, de la familia nieve, y `#c:is_savanna` la sabana ventosa, del observatorio). Qué bioma de un mod entra en cada etiqueta lo decide ese mod (con Terralith, por ejemplo, la llanura incluye sus estepas y tierras altas, y el bosque, sus bosques de lavanda y de cerezos). La búsqueda de la Atlántida acepta también los océanos de `#c:is_ocean` y `#c:is_deep_ocean`. Probado con Terralith 2.6.5 (`tools/smoke/terralith_biomas.py`).
 
 ## Mapas del tesoro
 
@@ -199,6 +210,7 @@ Cada guardián con nombre de una estructura única (y el Guardián de Poseidón 
 | Galeón varado | Catalejo del capitán ahogado | `spyglass` | — |
 | Laboratorio del micólogo | Tijeras de Maese Ambrosio | `shears` | eficiencia 2, irrompibilidad 2 |
 | Mansión encantada | Reloj del Conde Malaquías | `clock` | — |
+| Mina perdida de Hondavena | Pico de Tizón | `iron_pickaxe` | eficiencia 2, irrompibilidad 2 |
 | Monasterio de montaña | Lágrima del relicario | `amethyst_shard` | — |
 | Observatorio | Astrolabio del Custodio | `compass` | — |
 | Palacio oriental | Espada ceremonial de la Guardia Imperial | `golden_sword` | filo 2, irrompibilidad 3 |
@@ -224,7 +236,8 @@ Un hilo narrativo opcional une las estructuras únicas (trasfondo completo en [`
 | Fortaleza de hielo | galería | Galeón varado |
 | Galeón varado | camarote del capitán | Laboratorio del micólogo |
 | Laboratorio del micólogo | biblioteca de esporas | Mansión encantada |
-| Mansión encantada | biblioteca | Monasterio de montaña |
+| Mansión encantada | biblioteca | Mina perdida de Hondavena |
+| Mina perdida de Hondavena | despacho oculto del capataz | Monasterio de montaña |
 | Monasterio de montaña | biblioteca | Observatorio |
 | Observatorio | sala oculta | Palacio oriental |
 | Palacio oriental | biblioteca secreta | Templo-pirámide |
@@ -238,7 +251,7 @@ Las páginas se leen en el idioma de cada jugador (español si el cliente no tie
 
 ## Logros
 
-Pestaña de logros **Heraldia** (74 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
+Pestaña de logros **Heraldia** (77 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia o estructura única.
 - Una aldea de cada familia (12 logros, 20 de experiencia) y el desafío **Trotamundos de Heraldia**: las 12 familias (250).
@@ -269,7 +282,7 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `golems.limite_estandar` | 8 | 1-64 | Con tantos gólems naturales o más, una aldea estándar retira uno cada 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Igual para las aldeas grandes. |
 | `unicas.<id>.activada` | `true` | `true`/`false` | Activa una estructura única. Aparece una entrada por cada estructura única del mod. |
-| `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). Cada tipo se reparte por toda su casilla de la rejilla (con el origen desplazado por tipo) y dos del mismo tipo nunca quedan a menos de `unicas.distancia_minima.bloques`. En el Laboratorio del micólogo (campos de champiñones, un bioma muy raro) la candidata de cada casilla no se sortea: es el sitio de la casilla más metido en ese bioma, así que sale en buena parte de las islas de champiñones (como mucho una por casilla). |
+| `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). Cada tipo se reparte por toda su casilla de la rejilla (con el origen desplazado por tipo) y dos del mismo tipo nunca quedan a menos de `unicas.distancia_minima.bloques`. En el Laboratorio del micólogo (campos de champiñones, un bioma muy raro) la candidata de cada casilla no se sortea: es el sitio de la casilla más metido en ese bioma, así que sale en buena parte de las islas de champiñones (como mucho una por casilla). La Mina perdida hace lo mismo con las cuevas exuberantes y de espeleotemas, mirando a la altura de la caverna (y = 26) en vez de al nivel del mar. |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Impide que dos estructuras únicas distintas (también la Atlántida) salgan a menos de la distancia mínima. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Distancia mínima entre los chunks de inicio de dos estructuras únicas distintas. Si dos candidatas quedan demasiado cerca, un sorteo determinista (semilla y posición) se queda con una; si la ganadora no puede salir ahí (bioma o terreno), se conserva la otra. `/locate` y los mapas del tesoro siguen la misma regla. |
 | `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Cofre premium de la Atlántida por jugador. La primera apertura convierte su contenido en una plantilla guardada en el propio cofre (que queda vacío: romperlo o vaciarlo con una tolva no duplica nada) y cada jugador abre su propia copia: la recibe entera la primera vez y después encuentra lo que dejó. Sigue haciendo falta la llave de Poseidón. Con Lootr o sin él funciona igual (Lootr no convierte este cofre porque no tiene tabla de botín). Si se desactiva después, el contenido vuelve al cofre una vez (la primera vez que alguien lo usa) y se comporta como antes. |
@@ -308,9 +321,9 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 90 estructuras estén registradas y los 74 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 91 estructuras estén registradas y los 77 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
 
-Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario` y `laboratorio_micelio`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último. `tools/smoke/aldeas_variantes.py` coloca varias aldeas del mismo estilo, lee las regiones guardadas e identifica, comparando los bloques con las plantillas del `.jar`, qué variante de cada edificio especial ha salido; comprueba que cada uno coincide con una sola variante y que salen variantes distintas, y mide cada `/place`.
+Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario`, `laboratorio_micelio` y `mina_perdida`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último. `tools/smoke/aldeas_variantes.py` coloca varias aldeas del mismo estilo, lee las regiones guardadas e identifica, comparando los bloques con las plantillas del `.jar`, qué variante de cada edificio especial ha salido; comprueba que cada uno coincide con una sola variante y que salen variantes distintas, y mide cada `/place`.
 
 Versiones fijadas en `gradle.properties`. Herramientas del generador: `tools/gen/sim.py` (simula el ensamblado jigsaw; `python3 tools/gen/sim.py [estilo ...]` cuenta las variantes de los especiales, casas, aldeanos, gólems y camas), `tools/gen/render.py` (renders isométricos; `python3 tools/gen/render.py <carpeta> [estilo ...]` dibuja las láminas de variantes), `tools/gen/lint.py` (auditoría de diseño).
 
