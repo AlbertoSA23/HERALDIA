@@ -1,12 +1,19 @@
 name: CI
 
-# Comprobaciones de cada PR contra develop o main y de cada push a develop.
+# Comprobaciones de cada PR contra develop o main, de cada push a develop y a mano (workflow_dispatch).
 # No publica nada (la publicación es .github/workflows/publish.yml, en main).
+#
+# Política de pruebas (docs/DESARROLLO.md): en un PR van la compilación, todos los tests unitarios, la prueba de humo
+# y solo las pruebas de servidor afectadas por los ficheros cambiados (tools/test.py, el mismo mapa de rutas que en
+# local). La batería completa va en cada push a develop, a mano (la sesión auditora) y en un PR con la etiqueta
+# «bateria-completa» o con «[bateria completa]» en el título.
 on:
   pull_request:
     branches: [develop, main]
+    types: [opened, synchronize, reopened, labeled, edited]
   push:
     branches: [develop]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,10 +23,52 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  compilar:
-    name: Compilación, registro de cambios y prueba de humo
+  seleccion:
+    name: Tests unitarios del generador y pruebas que tocan
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
+    outputs:
+      matriz: ${{ steps.sel.outputs.matriz }}
+      hay: ${{ steps.sel.outputs.hay }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # la base del PR, para saber qué ha cambiado
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/gen/requirements.txt
+
+      - name: Instalar dependencias del generador
+        run: pip install -r tools/gen/requirements.txt
+
+      - name: Tests unitarios del generador (pytest)
+        run: python3 -m pytest -q -p no:cacheprovider tools/gen/tests
+
+      - name: Elegir las pruebas de servidor
+        id: sel
+        env:
+          EVENTO: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          TITULO: ${{ github.event.pull_request.title }}
+          ETIQUETAS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          if [ "$EVENTO" != "pull_request" ] || echo "$ETIQUETAS" | grep -q '"bateria-completa"' \
+             || echo "$TITULO" | grep -qi '\[bateria completa\]'; then
+            m=$(python3 tools/test.py --ci-matriz --completa)
+          else
+            m=$(python3 tools/test.py --ci-matriz --base "$BASE")
+          fi
+          echo "$m" | python3 -c 'import json,sys; m=json.load(sys.stdin); print("Batería completa" if m["completa"] else "Pruebas afectadas"); [print(" -", g["pruebas"]) for g in m["include"]]'
+          echo "matriz=$(echo "$m" | python3 -c 'import json,sys; m=json.load(sys.stdin); print(json.dumps({"include": m["include"]}))')" >> "$GITHUB_OUTPUT"
+          echo "hay=$(echo "$m" | python3 -c 'import json,sys; print("true" if json.load(sys.stdin)["include"] else "false")')" >> "$GITHUB_OUTPUT"
+
+  compilar:
+    name: Compilación (genera, valida, audita y JUnit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     outputs:
       version: ${{ steps.ver.outputs.version }}
     steps:
@@ -42,17 +91,62 @@ jobs:
       - name: Registro de cambios
         run: python3 tools/changelog.py check
 
+      # testGen (pytest) va en «seleccion» y testPesado en su propio job, a la vez que este.
       - name: Compilar (genera, valida, audita y pasa JUnit)
-        run: ./gradlew build
-
-      - name: Prueba de humo en servidor dedicado
-        run: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-${{ steps.ver.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke"
+        run: ./gradlew build -x testGen -x testPesado --build-cache
 
       - uses: actions/upload-artifact@v4
         with:
           name: jar
           path: build/libs/heraldia-${{ steps.ver.outputs.version }}.jar
           retention-days: 7
+
+  junit-pesado:
+    name: JUnit largas (separación entre únicas)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/preparar
+
+      - name: Leer rama de mcmeta
+        id: ver
+        run: echo "mcmeta=$(grep '^mcmeta_summary_branch=' gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: build/mcmeta-summary
+          key: mcmeta-${{ steps.ver.outputs.mcmeta }}
+
+      - name: Pruebas JUnit largas (testPesado)
+        run: ./gradlew testPesado --build-cache
+
+  humo:
+    name: Prueba de humo en servidor dedicado
+    needs: compilar
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/preparar
+        with:
+          gradle: 'false'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: jar
+          path: build/libs
+
+      # server_smoke.py cuenta estructuras, logros y tablas en build/generated: son los mismos ficheros que lleva el .jar.
+      - name: Datos generados (del .jar)
+        run: |
+          mkdir -p build/generated/heraldia
+          unzip -q -o build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar 'data/*' 'assets/*' -d build/generated/heraldia
+
+      - name: Prueba de humo
+        run: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke"
 
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -61,39 +155,17 @@ jobs:
           path: build/smoke/logs/latest.log
           if-no-files-found: ignore
 
-  unicas:
-    name: Servidor · ${{ matrix.prueba }}
-    needs: compilar
+  servidor:
+    name: Servidor · ${{ matrix.nombre }}
+    needs: [compilar, seleccion]
+    if: needs.seleccion.outputs.hay == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      matrix:
-        prueba:
-          - tools/smoke/aldeas_terreno.py
-          - tools/smoke/aldeas_vida.py
-          - tools/smoke/aldeas_variantes.py
-          - tools/smoke/ciudadela_check.py
-          - tools/smoke/coliseo_redstone.py
-          - tools/smoke/galeon_test.py
-          - tools/smoke/guardianes_adultos.py
-          - tools/smoke/historia.py
-          - tools/smoke/observatorio_smoke.py
-          - tools/smoke/palacio_redstone.py
-          - tools/smoke/terralith_biomas.py
-          - tools/smoke/trofeos.py
-          - tools/gen/unicas/castillo/prueba_redstone.py
-          - tools/gen/unicas/catedral/prueba_juego.py
-          - tools/gen/unicas/fortaleza_hielo/prueba_servidor.py
-          - tools/gen/unicas/isla_corsario/prueba_servidor.py
-          - tools/gen/unicas/laboratorio_micelio/prueba_servidor.py
-          - tools/gen/unicas/mansion/prueba_servidor.py
-          - tools/gen/unicas/mina_perdida/prueba_servidor.py
-          - tools/gen/unicas/monasterio/prueba_servidor.py
-          - tools/gen/unicas/piramide/prueba_servidor.py
-          - tools/gen/unicas/salon_jarl/prueba_servidor.py
-          - tools/gen/unicas/santuario/prueba_servidor.py
-          - tools/gen/unicas/torre_mago/prueba_redstone.py
+      # Grupos de tools/test.py: las pruebas cortas van juntas en un job (en serie) mientras el grupo no pase de la
+      # más larga. Las pruebas se descubren solas (tools/smoke/*.py y tools/gen/unicas/*/prueba_*.py, con --jar y --work).
+      matrix: ${{ fromJSON(needs.seleccion.outputs.matriz) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -108,17 +180,17 @@ jobs:
 
       # Todas en build/smoke para compartir la caché del servidor Fabric. Ruta absoluta: los scripts arrancan el
       # servidor con cwd=--work, así que una ruta relativa al lanzador no se encontraría.
-      - name: Prueba
-        run: python3 ${{ matrix.prueba }} --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke"
+      - name: Pruebas
+        run: python3 tools/test.py --grupo "${{ matrix.pruebas }}" --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke" --logs build/logs-pruebas
 
       - name: Nombre del artefacto
         if: failure()
         id: nombre
-        run: echo "nombre=log-$(echo '${{ matrix.prueba }}' | tr '/.' '--')" >> "$GITHUB_OUTPUT"
+        run: echo "nombre=logs-$(echo '${{ matrix.nombre }}' | tr ' /.+' '----' | tr -s '-')" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: ${{ steps.nombre.outputs.nombre }}
-          path: build/smoke/logs/latest.log
+          path: build/logs-pruebas
           if-no-files-found: ignore
