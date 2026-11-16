@@ -162,6 +162,18 @@ Heraldia villages have trades with character, a job board and, in the fortified 
 
 Cost: one more entity per village (the bailiff, without AI) and no periodic function; trades and deeds are only evaluated when a villager levels up or a player kills, wins a raid or picks something up (vanilla advancement criteria).
 
+## Roads between villages
+
+Nearby Heraldia villages are joined by trails (`aldeas.caminos.*` in the [configuration](#configuration)):
+
+- **Which villages**: each village with its nearest neighbours closer than `aldeas.caminos.distancia_maxima_bloques` (2000 by default); two villages are joined if no third one is closer to both than they are to each other, so there are no triangles and no roads crossing each other. With the default spacing (1500) almost every village has two or three roads.
+- **Route**: it winds gently between the two squares, follows the terrain height and, when it fits, passes about 110 blocks from a unique structure lying halfway (with the grid in use, also the old one of `unicas.rejilla_compatible`). It stops at the pieces of a village or of any surface structure, without crossing them.
+- **Surface by terrain**: dirt path (with some coarse dirt and gravel) on grass and dirt, sandstone slabs in deserts and beaches, red sandstone in badlands, gravel and cobblestone on stone and snow, packed mud in mangroves. Width `aldeas.caminos.ancho` (3 by default), with ragged edges.
+- **Water**: a river or a short stretch of water (up to about 64 blocks) is crossed by a plank bridge one block above the water, with posts down to the bottom; a shallow marsh (2 blocks), by a boardwalk flush with the water; long and deep water (lakes, sea) cuts the road at the shore. It never goes over lava.
+- **Lamp posts and signs**: every 48 blocks or so, on alternating sides, a fence post with a lantern or a torch (depending on the road), in the biome's wood; about 128 blocks from each village, a sign with the name of the destination village (a place name such as "Torre del Roble" or "Vado de la Encina", the same on all its signs) and the blocks left, with an arrow towards it.
+
+Everything comes from the seed and the village grid, chunk by chunk, without loading or waiting for any other chunk: both sides of a chunk border always match. **In an existing world, new chunks only**: what is already generated does not change and the stretches that would fall in explored land do not exist (the road starts at the border). Cost, measured on the test server (`tools/smoke/caminos.py`, about 1,000 chunks): half of the chunks pay less than 32 µs and 90 % less than 128 µs; the only expensive parts are computed once per server start and kept in memory: whether a grid cell has a village (about 1.5 ms; at most 100 cells with a village), each road's waypoint (about 30 ms) and the bottom height at the vertices that fall in water (about 0.4 ms each). The mod writes these figures to the log when the server stops.
+
 ## Atlantis
 
 Exactly one per world, always, with no configuration option. It is a walled city of about 770 × 770 blocks, fully submerged, in the deep-ocean basin closest to the origin that is 1,500 blocks or more away and unexplored (in an existing world it only appears in new chunks). The position is computed the first time the world loads and saved in `data/heraldia/atlantida.json`.
@@ -354,6 +366,9 @@ when its format changes. It is read only when the server starts and affects chun
 | `aldeas.vida.tratos_estilo` | `true` | `true`/`false` | Style trades and the map of the area's unique structure at each family's cartographers ([Village life](#village-life)). |
 | `aldeas.vida.tablon` | `true` | `true`/`false` | Job board and bailiff on the square of new villages. |
 | `aldeas.vida.asedios` | `false` | `true`/`false` | The weaponsmith of fortified villages sells an ominous bottle to trigger a raid. |
+| `aldeas.caminos.activado` | `true` | `true`/`false` | Roads between nearby villages, with bridges, lamp posts and signs ([Roads between villages](#roads-between-villages)); new chunks only. When off, the feature is not even added to the biomes. |
+| `aldeas.caminos.distancia_maxima_bloques` | 2000 | 500-4000 | Only villages closer than this are joined. Two villages are never closer than about 670 blocks (with the minimum spacing, 1000), so below that there would be no roads at all. |
+| `aldeas.caminos.ancho` | 3 | 1-5 | Road width, in blocks. |
 | `golems.limpieza` | `true` | `true`/`false` | Enables the periodic removal of natural golems. |
 | `golems.limite_estandar` | 8 | 1-64 | At this many natural golems or more, a standard village removes one every 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Same for large villages. |
@@ -377,7 +392,7 @@ Atlantis has no placement options: there is always exactly one per world.
 
 On the client the file can also be edited from a screen inside the game. With [Mod Menu](https://modrinth.com/mod/modmenu) installed (optional; the mod works the same without it, the screen just has no button) it opens from the configuration button of Heraldia in the mod list. It is built from the same option list as the file, so new options appear on their own:
 
-- Sections: Villages, Village families, Village styles, Village life, Golems, Unique structures, Minimum distance between unique structures, Atlantis, Medium structures and Compatibility with other mods, with a search box (by name, key, help or section).
+- Sections: Villages, Village families, Village styles, Village life, Roads between villages, Golems, Unique structures, Minimum distance between unique structures, Atlantis, Medium structures and Compatibility with other mods, with a search box (by name, key, help or section).
 - Each option shows its value (on/off button or number box). Its tooltip shows the key, the help text (the same as `_ayuda`) and the default and range. An invalid number turns red, its tooltip says why and **Save** stays disabled until it is fixed.
 - **Save** writes `config/heraldia.json` in the same format as at startup (with `version` and `_ayuda`); **Reset to defaults** puts every option back to its default (nothing is written until you save); **Cancel** discards the changes.
 - Changes apply when the world is opened again or the server is restarted, and only to chunks generated afterwards; the screen says so. With no world open they are used from the next world you open (no need to restart the game); with a single-player world open, after leaving and re-entering it.

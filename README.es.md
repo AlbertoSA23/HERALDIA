@@ -163,6 +163,18 @@ Las aldeas Heraldia tienen comercio con carácter, un tablón de encargos y, en 
 
 Coste: una entidad más por aldea (el alguacil, sin IA) y ninguna función periódica; los tratos y las hazañas solo se evalúan cuando un aldeano sube de nivel o un jugador mata, gana un asalto o recoge algo (criterios de logros del juego).
 
+## Caminos entre aldeas
+
+Las aldeas Heraldia cercanas quedan unidas por senderos (`aldeas.caminos.*` en la [configuración](#configuración)):
+
+- **Qué aldeas**: cada aldea con sus vecinas más cercanas a menos de `aldeas.caminos.distancia_maxima_bloques` (2000 por defecto); dos aldeas se unen si ninguna tercera está más cerca de las dos que ellas entre sí, así que no hay triángulos ni caminos que se crucen. Con la separación por defecto (1500) casi toda aldea tiene dos o tres caminos.
+- **Trazado**: serpentea suavemente entre las dos plazas, sigue la altura del terreno y, si encaja, pasa a unos 110 bloques de una estructura única que quede a mitad de camino (con la rejilla en uso, también la antigua de `unicas.rejilla_compatible`). Se para al llegar a las piezas de una aldea o de cualquier estructura de superficie, sin atravesarlas.
+- **Firme según el terreno**: camino de tierra (con algo de tierra gruesa y grava) en la hierba y la tierra, losas de arenisca en el desierto y la playa, de arenisca roja en las badlands, grava y adoquín en la piedra y la nieve, barro compacto en los manglares. Ancho `aldeas.caminos.ancho` (3 por defecto), con los bordes mellados.
+- **Agua**: un río o un tramo de agua corto (hasta unos 64 bloques) se cruza con un puente de tablas un bloque por encima del agua, con postes hasta el fondo; una marisma poco honda (2 bloques), con una pasarela a ras del agua; el agua larga y honda (lagos, mar) corta el camino en la orilla. Nunca pasa por la lava.
+- **Farolas y carteles**: cada unos 48 bloques, a un lado y otro, un poste de valla con farol o con antorcha (según el camino), de la madera del bioma; a unos 128 bloques de cada aldea, un cartel con el nombre de la aldea de destino (un topónimo como «Torre del Roble» o «Vado de la Encina», el mismo en todos sus carteles) y los bloques que faltan, con una flecha hacia donde queda.
+
+Todo sale de la semilla y de la rejilla de las aldeas, chunk a chunk, sin cargar ni esperar a ningún otro chunk: los dos lados de una frontera de chunk casan siempre. **En un mundo ya creado, solo en los chunks nuevos**: lo ya generado no cambia y los tramos que caerían en lo explorado no existen (el camino empieza en el borde). Coste, medido en el servidor de prueba (`tools/smoke/caminos.py`, unos 1.000 chunks): la mitad de los chunks pagan menos de 32 µs y el 90 %, menos de 128 µs; lo único caro se calcula una vez por arranque del servidor y queda en memoria: saber si una casilla de la rejilla tiene aldea (unos 1,5 ms; como mucho 100 casillas con aldea), el punto de paso de cada ruta (unos 30 ms) y el fondo en los vértices que caen en el agua (unos 0,4 ms cada uno). El mod escribe estas cifras en el log al parar el servidor.
+
 ## La Atlántida
 
 Una sola por mundo, siempre, sin opción de configuración. Es una ciudad amurallada de unos 770 × 770 bloques, totalmente sumergida, en la cuenca de océano profundo más cercana al origen que esté a 1.500 bloques o más y sin explorar (en un mundo ya existente solo aparece en chunks nuevos). La posición se calcula la primera vez que se carga el mundo y se guarda en `data/heraldia/atlantida.json`.
@@ -355,6 +367,9 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `aldeas.vida.tratos_estilo` | `true` | `true`/`false` | Tratos propios de cada estilo y mapa de la única de la zona en los cartógrafos de cada familia ([Vida de las aldeas](#vida-de-las-aldeas)). |
 | `aldeas.vida.tablon` | `true` | `true`/`false` | Tablón de encargos y alguacil en la plaza de las aldeas nuevas. |
 | `aldeas.vida.asedios` | `false` | `true`/`false` | El armero de las aldeas fortificadas vende una botella ominosa para provocar un asalto de saqueadores. |
+| `aldeas.caminos.activado` | `true` | `true`/`false` | Caminos entre aldeas cercanas, con puentes, farolas y carteles ([Caminos entre aldeas](#caminos-entre-aldeas)); solo en los chunks nuevos. Desactivado, el rasgo ni se añade a los biomas. |
+| `aldeas.caminos.distancia_maxima_bloques` | 2000 | 500-4000 | Solo se unen aldeas a menos de esta distancia. Dos aldeas nunca están a menos de unos 670 bloques (con la separación mínima, 1000), así que con menos de eso no habría ningún camino. |
+| `aldeas.caminos.ancho` | 3 | 1-5 | Ancho de los caminos, en bloques. |
 | `golems.limpieza` | `true` | `true`/`false` | Activa la retirada periódica de gólems naturales. |
 | `golems.limite_estandar` | 8 | 1-64 | Con tantos gólems naturales o más, una aldea estándar retira uno cada 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Igual para las aldeas grandes. |
@@ -378,7 +393,7 @@ La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
 
 En el cliente el fichero también se puede editar desde una pantalla del juego. Con [Mod Menu](https://modrinth.com/mod/modmenu) instalado (opcional; sin él el mod funciona igual, solo que la pantalla no tiene botón) se abre desde el botón de configuración de Heraldia en la lista de mods. Se construye con la misma lista de opciones que el fichero, así que las opciones nuevas aparecen solas:
 
-- Secciones: Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas y Compatibilidad con otros mods, con un buscador (por nombre, clave, ayuda o sección).
+- Secciones: Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Caminos entre aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas y Compatibilidad con otros mods, con un buscador (por nombre, clave, ayuda o sección).
 - Cada opción muestra su valor (botón sí/no o casilla numérica). Su tooltip da la clave, la ayuda (la misma de `_ayuda`) y el valor por defecto y el rango. Un número no válido se pone en rojo, el tooltip dice por qué y **Guardar** queda desactivado hasta corregirlo.
 - **Guardar** escribe `config/heraldia.json` con el mismo formato que al arrancar (con `version` y `_ayuda`); **Valores por defecto** devuelve todas las opciones a su valor por defecto (no se escribe nada hasta guardar); **Cancelar** descarta los cambios.
 - Los cambios se aplican al volver a abrir el mundo o reiniciar el servidor, y solo en los chunks que se generen después; la pantalla lo avisa. Sin ningún mundo abierto se usan desde el siguiente mundo que abras (sin reiniciar el juego); con un mundo de un jugador abierto, al salir y volver a entrar.
