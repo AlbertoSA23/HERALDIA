@@ -12,8 +12,9 @@ Uso:
   python3 tools/test.py --ci-matriz --base SHA [--completa]   # JSON de la matriz de la CI (grupos de pruebas)
   python3 tools/test.py --grupo "a.py b.py" --jar ... --work DIR   # ejecuta un grupo en serie (lo usa la CI)
 
-Las pruebas de servidor se descubren solas: tools/smoke/*.py (salvo server_smoke.py, la de humo, que va siempre) y
-tools/gen/unicas/*/prueba_*.py. Una prueba nueva entra en la batería completa sin tocar nada; para que la elija también la
+Las pruebas de servidor se descubren solas: tools/smoke/*.py (salvo server_smoke.py, la de humo, que va siempre, y los
+módulos de NO_SON_PRUEBAS) y tools/gen/unicas/*/prueba_*.py. compat_mods.py es una prueba por grupo de mods
+(«tools/smoke/compat_mods.py::<grupo>», con --grupo): en un PR solo va si cambia algo de COMPAT_RUTAS. Una prueba nueva entra en la batería completa sin tocar nada; para que la elija también la
 selección por rutas, basta con que esté en la carpeta de su única (o, si va en tools/smoke/, en SMOKE_DE_UNICA o en MAPA).
 """
 import argparse, fnmatch, glob, json, os, shutil, subprocess, sys, time
@@ -21,6 +22,11 @@ import argparse, fnmatch, glob, json, os, shutil, subprocess, sys, time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HUMO = "tools/smoke/server_smoke.py"
 TODO = "*"            # en el mapa: el cambio afecta a todo (código común) -> batería completa
+NO_SON_PRUEBAS = {"server_smoke.py", "modrinth.py"}     # módulos comunes de tools/smoke/
+# Compatibilidad con otros mods (una prueba por grupo, con mods de Modrinth): larga y con descargas, así que en un PR
+# solo va si cambia la propia prueba, la lista de mods o el código común de colocación (lo que decide dónde sale cada
+# estructura y si choca con las de otros mods). En la batería completa (push a develop, workflow_dispatch, etiqueta) siempre.
+COMPAT = "tools/smoke/compat_mods.py"
 
 # Pruebas de tools/smoke/ que son de una única concreta (las de tools/gen/unicas/<id>/ se asocian solas por carpeta).
 SMOKE_DE_UNICA = {
@@ -37,6 +43,10 @@ JAVA_UNICA = {"atlantida": "atlantida", "ciudadela": "ciudadela", "faro": "faro"
               "isla": "isla_corsario", "mina": "mina_perdida"}
 ALDEAS = ["tools/smoke/aldeas_terreno.py", "tools/smoke/aldeas_vida.py", "tools/smoke/aldeas_variantes.py"]
 JAVA = "src/main/java/io/github/albertosa23/heraldia/"
+COMPAT_RUTAS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/gen/biomas.py", "tools/gen/etiquetas_c.json",
+                JAVA + "config/GridPlacement.java", JAVA + "config/UniqueSeparation.java", JAVA + "config/VillageRules.java",
+                JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java", JAVA + "comun/ZonaAjenas.java",
+                JAVA + "unicas/isla/IslaZona.java", JAVA + "unicas/atlantida/AtlantisAnchor.java"]
 
 # Mapa ruta -> pruebas de servidor. Se recorre en orden y gana la PRIMERA regla que casa (fnmatch: * cruza «/»).
 # Una lista vacía: el cambio no necesita pruebas de servidor (más allá de la de humo, que va siempre en la CI).
@@ -55,6 +65,9 @@ MAPA = [
     ("tools/gen/logros.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"]),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
     ("tools/gen/etiquetas_c.json", ["tools/smoke/terralith_biomas.py"]),
+    # los mods de Modrinth fijados: las pruebas que los descargan (las de compatibilidad, por COMPAT_RUTAS)
+    ("tools/smoke/modrinth.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py",
+                                 "tools/smoke/terralith_biomas.py"]),
     # mixins de los mobs de plantilla y comandos (la de humo prueba /heraldia info y llave)
     (JAVA + "mixin/Zombie*", ["tools/smoke/guardianes_adultos.py"]),
     (JAVA + "mixin/DrownedMixin.java", ["tools/smoke/guardianes_adultos.py"]),
@@ -73,11 +86,31 @@ def rel(p):
     return os.path.relpath(p, ROOT).replace(os.sep, "/")
 
 
+def grupos_compat():
+    """Grupos de compat_mods.py (lo importa sin ejecutar nada)."""
+    sys.path.insert(0, os.path.join(ROOT, "tools", "smoke"))
+    import compat_mods
+    return list(compat_mods.GRUPOS)
+
+
 def descubrir():
-    """Todas las pruebas de servidor (sin la de humo), ordenadas."""
-    smoke = [rel(p) for p in glob.glob(os.path.join(ROOT, "tools", "smoke", "*.py")) if not p.endswith("server_smoke.py")]
+    """Todas las pruebas de servidor (sin la de humo), ordenadas; compat_mods.py, una por grupo."""
+    smoke = [rel(p) for p in glob.glob(os.path.join(ROOT, "tools", "smoke", "*.py")) if os.path.basename(p) not in NO_SON_PRUEBAS]
     unicas = [rel(p) for p in glob.glob(os.path.join(ROOT, "tools", "gen", "unicas", "*", "prueba_*.py"))]
+    if COMPAT in smoke:
+        smoke.remove(COMPAT)
+        smoke += [f"{COMPAT}::{g}" for g in grupos_compat()]
     return sorted(smoke + unicas)
+
+
+def es_compat(prueba):
+    return prueba.split("::")[0] == COMPAT
+
+
+def orden(prueba):
+    """Orden para ejecutar una prueba: [script, argumentos...] («ruta::grupo» pasa --grupo grupo)."""
+    script, _, grupo = prueba.partition("::")
+    return [os.path.join(ROOT, script)] + (["--grupo", grupo] if grupo else [])
 
 
 def de_unica(sid, todas):
@@ -90,6 +123,8 @@ def para(ruta, todas):
     """Pruebas de servidor que pide un fichero cambiado: lista, o TODO."""
     if ruta in todas:                                           # la propia prueba
         return [ruta]
+    if ruta == COMPAT:
+        return [p for p in todas if es_compat(p)]
     partes = ruta.split("/")
     if ruta.startswith("tools/gen/unicas/") and len(partes) >= 4 and not partes[3].startswith("_"):
         sid = partes[3][:-3] if len(partes) == 4 and partes[3].endswith(".py") else partes[3]
@@ -107,14 +142,18 @@ def para(ruta, todas):
 
 
 def seleccionar(cambiados, todas=None):
-    """(completa, [pruebas]) para una lista de rutas cambiadas (relativas a la raíz, con «/»)."""
+    """(completa, [pruebas]) para una lista de rutas cambiadas (relativas a la raíz, con «/»). Las de compatibilidad
+    (COMPAT) solo entran si alguna ruta está en COMPAT_RUTAS, también cuando lo cambiado pide la batería completa."""
     todas = descubrir() if todas is None else todas
+    compat = any(fnmatch.fnmatch(r, pat) for r in cambiados for pat in COMPAT_RUTAS)
     elegidas = set()
     for r in cambiados:
         p = para(r, todas)
         if p == TODO:
-            return True, list(todas)
+            return True, [x for x in todas if compat or not es_compat(x)]
         elegidas.update(x for x in p if x in todas)
+    if compat:
+        elegidas.update(x for x in todas if es_compat(x))
     return False, sorted(elegidas)
 
 
@@ -142,6 +181,9 @@ DURACION_S = {
     "tools/smoke/coliseo_redstone.py": 39, "tools/smoke/rejilla_compatible.py": 80,
     "tools/gen/unicas/torre_mago/prueba_redstone.py": 33,
     "tools/gen/unicas/piramide/prueba_servidor.py": 28, "tools/smoke/galeon_test.py": 26,
+    # compatibilidad (medidas en local en 4 núcleos con las descargas en caché, más un 30 % para la CI)
+    **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
+                                         "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas
@@ -168,6 +210,8 @@ def grupos(pruebas, tope=TOPE_GRUPO_S):
 def nombre(g):
     """Nombre corto de un grupo para la CI: «isla_corsario + piramide»."""
     def corto(p):
+        if "::" in p:
+            return "compat " + p.split("::")[1]
         parts = p.split("/")
         return parts[3] if p.startswith("tools/gen/unicas/") else parts[-1][:-3]
     return " + ".join(corto(p) for p in g)
@@ -190,7 +234,7 @@ def ejecutar(pruebas, jar, work, logs=None):
     for p in pruebas:
         t0 = time.monotonic()
         print(f"::group::{p}" if os.environ.get("GITHUB_ACTIONS") else f"== {p}", flush=True)
-        r = subprocess.run([sys.executable, os.path.join(ROOT, p), "--jar", jar, "--work", work], cwd=ROOT).returncode
+        r = subprocess.run([sys.executable, *orden(p), "--jar", jar, "--work", work], cwd=ROOT).returncode
         if os.environ.get("GITHUB_ACTIONS"):
             print("::endgroup::")
         print(f"{'OK' if r == 0 else 'FALLA'} {p} ({time.monotonic() - t0:.0f} s)", flush=True)
@@ -198,7 +242,7 @@ def ejecutar(pruebas, jar, work, logs=None):
             os.makedirs(logs, exist_ok=True)
             src = os.path.join(work, "logs", "latest.log")
             if os.path.isfile(src):
-                shutil.copy(src, os.path.join(logs, p.replace("/", "-").replace(".py", ".log")))
+                shutil.copy(src, os.path.join(logs, p.replace("::", "-").replace("/", "-").replace(".py", "") + ".log"))
         if r:
             malas.append(p)
     return malas

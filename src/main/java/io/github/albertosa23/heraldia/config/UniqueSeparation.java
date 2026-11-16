@@ -150,6 +150,15 @@ public final class UniqueSeparation {
 		return enabled;
 	}
 
+	/** Colocación propia (la Atlántida): no sigue una rejilla y gana siempre. */
+	public boolean fixed(int i) {
+		return always[i];
+	}
+
+	public Identifier id(int i) {
+		return ids[i];
+	}
+
 	/** Viabilidad real en el juego: la misma comprobación que /locate (StructureCheck.canCreateStructure) más la Atlántida. */
 	public Viability viability(RegistryAccess registryAccess, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 							   RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height,

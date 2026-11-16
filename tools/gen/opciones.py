@@ -58,6 +58,11 @@ _FIXED = [
     ("unicas.distancia_minima.bloques", 1000, 100, 3000,
      "Distancia mínima entre estructuras únicas distintas (también la Atlántida), en bloques",
      "Minimum distance between different unique structures (Atlantis included), in blocks"),
+    ("compatibilidad.zona_estructuras_ajenas_bloques", 224, 0, 512,
+     "Estructuras de otros mods (que asoman a la superficie) a menos de esta distancia, en bloques, del inicio de una aldea "
+     "o una estructura única de Heraldia no se generan, para que no salgan unas encima de otras (0 lo desactiva)",
+     "Structures from other mods (those above ground) closer than this distance, in blocks, to the start of a Heraldia "
+     "village or unique structure are not generated, so they do not overlap (0 disables it)"),
     ("unicas.atlantida.cofre_unico_por_jugador", False, None, None,
      "Cofre premium de la Atlántida por jugador: cada jugador saca su propia copia del contenido una vez (si no, el primero que llega se lo lleva)",
      "Per-player Atlantis premium chest: each player takes their own copy of its contents once (otherwise the first to arrive takes it all)"),
@@ -88,6 +93,8 @@ _NAMES = {
     "unicas.distancia_minima.activada": ("Distancia mínima activada", "Minimum distance enabled"),
     "unicas.distancia_minima.bloques": ("Distancia mínima (bloques)", "Minimum distance (blocks)"),
     "unicas.atlantida.cofre_unico_por_jugador": ("Cofre premium por jugador", "Per-player premium chest"),
+    "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
+                                                       "Distance of other mods' structures (blocks)"),
 }
 # Grupos: nombre corto (%s = nombre de la familia, el estilo o la estructura) y clave del nombre del argumento
 # (None: el id tal cual, como en el README).
@@ -107,12 +114,14 @@ SECTIONS = [
     ("unicas", "Estructuras únicas", "Unique structures"),
     ("distancia_minima", "Distancia mínima entre únicas", "Minimum distance between unique structures"),
     ("atlantida", "Atlántida", "Atlantis"),
+    ("compatibilidad", "Compatibilidad con otros mods", "Compatibility with other mods"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
 # (si no encaja en ninguna, la generación falla).
 _SECTION_PREFIXES = [
     ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"),
+    ("compatibilidad.", "compatibilidad"),
 ]
 
 
