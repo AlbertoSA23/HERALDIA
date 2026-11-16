@@ -1,5 +1,6 @@
 package io.github.albertosa23.heraldia.mixin;
 
+import io.github.albertosa23.heraldia.comun.Medianas;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
@@ -28,8 +29,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Mixin (último recurso): un structure_set no tiene forma de saltarse entradas desactivadas ni de elegir el tamaño
  * según la configuración; al fallar aquí, el set prueba la siguiente estructura igual que cuando no vale el bioma.
  * También impide que otras estructuras (monumentos, naufragios, ruinas) nazcan dentro de la Atlántida o de la isla del
- * corsario ({@link IslaZona}), que las de otros mods nazcan encima de una aldea o una única ({@link ZonaAjenas}) y que dos
- * estructuras únicas distintas salgan a menos de la distancia mínima ({@link UniqueSeparation}).
+ * corsario ({@link IslaZona}), que las de otros mods nazcan encima de una aldea o una única ({@link ZonaAjenas}), que dos
+ * estructuras únicas distintas salgan a menos de la distancia mínima ({@link UniqueSeparation}) y que una mediana salga
+ * junto a una aldea, una única u otra mediana ({@link Medianas}).
  */
 @Mixin(ChunkGenerator.class)
 abstract class ChunkGeneratorMixin {
@@ -72,6 +74,13 @@ abstract class ChunkGeneratorMixin {
 			if (i >= 0 && sep.enabled() && sep.blocked(i, sourceChunkPos.x(), sourceChunkPos.z(), seed, sep.viability(registryAccess,
 					(ChunkGenerator) (Object) this, ((ChunkGenerator) (Object) this).getBiomeSource(), climateSampler, randomState,
 					templateManager, seed, centerChunk, level))) {
+				cir.setReturnValue(false);
+			}
+		}
+		if (Medianas.esMediana(id)) { // solo en los chunks candidatos de una mediana: lejos de aldeas, únicas y otras medianas
+			ChunkGenerator self = (ChunkGenerator) (Object) this;
+			if (Medianas.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
+					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level)) {
 				cir.setReturnValue(false);
 			}
 		}

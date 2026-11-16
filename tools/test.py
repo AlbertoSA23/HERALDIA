@@ -48,7 +48,8 @@ JAVA = "src/main/java/io/github/albertosa23/heraldia/"
 COMPAT_RUTAS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/gen/biomas.py", "tools/gen/etiquetas_c.json",
                 JAVA + "config/GridPlacement.java", JAVA + "config/UniqueSeparation.java", JAVA + "config/VillageRules.java",
                 JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java", JAVA + "comun/ZonaAjenas.java",
-                JAVA + "unicas/isla/IslaZona.java", JAVA + "unicas/atlantida/AtlantisAnchor.java"]
+                JAVA + "unicas/isla/IslaZona.java", JAVA + "unicas/atlantida/AtlantisAnchor.java", JAVA + "comun/Medianas.java"]
+MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
 
 # Mapa ruta -> pruebas de servidor. Se recorre en orden y gana la PRIMERA regla que casa (fnmatch: * cruza «/»).
 # Una lista vacía: el cambio no necesita pruebas de servidor (más allá de la de humo, que va siempre en la CI).
@@ -65,6 +66,8 @@ MAPA = [
     ("tools/gen/mapas.py", ["tools/smoke/aldeas_vida.py", "tools/smoke/historia.py"]),
     ("tools/gen/loot.py", []),                 # la de humo lee todas las tablas
     ("tools/gen/logros.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"]),
+    # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
+    ("tools/gen/medianas/*", MEDIANAS), (JAVA + "comun/Medianas.java", MEDIANAS),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
     ("tools/gen/etiquetas_c.json", ["tools/smoke/terralith_biomas.py"]),
     # los mods de Modrinth fijados: las pruebas que los descargan (las de compatibilidad, por COMPAT_RUTAS)
@@ -192,6 +195,7 @@ DURACION_S = {
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
                                          "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
     "tools/smoke/guardianes_anclados.py": 450,
+    "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas

@@ -32,7 +32,9 @@ import org.slf4j.LoggerFactory;
 /**
  * heraldia:rejilla: un random_spread cuya separación, activación, máximo de casillas y zona de exclusión salen de
  * config/heraldia.json. Los valores del JSON del datapack (spacing, separation, exclusion_zone) son los de por defecto
- * y marcan la proporción; el grupo ("aldeas" o "unicas/&lt;id&gt;") dice qué opciones se aplican. Todo se calcula al
+ * y marcan la proporción; el grupo ("aldeas", "unicas/&lt;id&gt;" o "medianas/&lt;id&gt;") dice qué opciones se aplican.
+ * Las medianas, como las únicas, con el origen desplazado por tipo; su separación se divide por la raíz de la frecuencia
+ * común (medianas.frecuencia_porcentaje) y la interna es la distancia mínima entre medianas. Todo se calcula al
  * leer el datapack y queda inmutable. Hereda de random_spread para que /locate la recorra como a las vanilla.
  * <p>En las únicas la separación del datapack no se usa: la mínima es la distancia mínima entre únicas (así dos del
  * mismo tipo tampoco quedan más cerca) y el origen de la rejilla se desplaza por tipo (según la sal). Con la proporción
@@ -136,6 +138,14 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 				int sep = Math.clamp((cfg.getInt("unicas.distancia_minima.bloques") + 15) / 16, 0, sp - 1);
 				s = new Settings(cfg.getBool(key + ".activada"), sp, sep, -1, exclusion, true, false);
 			}
+		} else if (group.startsWith("medianas/") && cfg.has(group.replace('/', '.') + ".separacion_bloques")) {
+			// estructuras medianas: su separación escalada por la frecuencia común (densidad x f -> separación / raíz de f);
+			// separación interna (dos del mismo tipo) = la distancia mínima entre medianas, como mucho media casilla
+			String key = group.replace('/', '.');
+			double f = cfg.getInt("medianas.frecuencia_porcentaje") / 100.0;
+			int sp = chunks((int) Math.round(cfg.getInt(key + ".separacion_bloques") / Math.sqrt(f)));
+			int sep = Math.clamp((cfg.getInt("medianas.distancia_minima.bloques") + 15) / 16, 0, sp / 2);
+			s = new Settings(cfg.getBool("medianas.activadas") && cfg.getBool(key + ".activada"), sp, sep, -1, exclusion, true, false);
 		} else {
 			LOGGER.warn("Heraldia: grupo de colocación sin opciones {}; se usan los valores del datapack", group);
 			s = new Settings(true, spacing, Math.min(separation, spacing - 1), -1, exclusion, false, false);

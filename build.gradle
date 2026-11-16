@@ -74,6 +74,8 @@ def junitPesadas = ['io.github.albertosa23.heraldia.config.UniqueSeparationTest'
 test {
 	useJUnitPlatform()
 	systemProperty 'heraldia.generated', generatedDir.get().asFile.absolutePath
+	systemProperty 'heraldia.mcmeta', mcmetaDir.get().absolutePath
+	dependsOn fetchRegistries
 	testLogging { events 'failed'; showStandardStreams = true; exceptionFormat = 'full' }
 	filter { junitPesadas.each { excludeTestsMatching it } }
 }

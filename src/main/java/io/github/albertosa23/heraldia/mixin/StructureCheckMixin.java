@@ -1,5 +1,6 @@
 package io.github.albertosa23.heraldia.mixin;
 
+import io.github.albertosa23.heraldia.comun.Medianas;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
@@ -99,6 +100,10 @@ abstract class StructureCheckMixin {
 					climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
 				cir.setReturnValue(false);
 			}
+		}
+		if (Medianas.esMediana(id) && Medianas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator,
+				biomeSource, climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
+			cir.setReturnValue(false); // como la generación: /locate no señala una mediana descartada
 		}
 	}
 }

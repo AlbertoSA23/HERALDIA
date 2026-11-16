@@ -5,6 +5,7 @@ from themes import THEMES, FAMILIES
 from pack import ALL_PROFS
 import loot
 import unicas
+import medianas
 import mapas
 import tratos
 import tablon
@@ -53,7 +54,9 @@ LANG = {
         "heraldia.info.distancia": "Distancia mínima entre únicas: %s, %s bloques",
         "heraldia.info.rejilla": "Rejilla antigua de las únicas (mundo de una versión anterior): %s",
         "heraldia.info.cofre": "Cofre premium de la Atlántida por jugador: %s; Lootr: %s",
-        "heraldia.info.registradas": "Estructuras registradas: %s (%s de aldeas y %s únicas)",
+        "heraldia.info.registradas": "Estructuras registradas: %s (%s de aldeas, %s únicas y %s medianas)",
+        "heraldia.info.medianas": "Estructuras medianas: %s; %s de %s tipos activados, frecuencia %s %%, a %s bloques de aldeas y únicas y a %s entre ellas",
+        "heraldia.info.mediana": " - %s: cada %s bloques",
         "heraldia.info.si": "sí",
         "heraldia.info.no": "no",
         "heraldia.info.activada": "activada",
@@ -98,7 +101,9 @@ LANG = {
         "heraldia.info.distancia": "Minimum distance between unique structures: %s, %s blocks",
         "heraldia.info.rejilla": "Old unique-structure grid (world from an earlier version): %s",
         "heraldia.info.cofre": "Per-player Atlantis premium chest: %s; Lootr: %s",
-        "heraldia.info.registradas": "Registered structures: %s (%s villages and %s unique)",
+        "heraldia.info.registradas": "Registered structures: %s (%s villages, %s unique and %s medium)",
+        "heraldia.info.medianas": "Medium structures: %s; %s of %s types enabled, frequency %s %%, %s blocks from villages and unique ones and %s from each other",
+        "heraldia.info.mediana": " - %s: every %s blocks",
         "heraldia.info.si": "yes",
         "heraldia.info.no": "no",
         "heraldia.info.activada": "enabled",
@@ -221,6 +226,8 @@ def write(reg, out):
     # estructuras únicas
     for sid, mod in unicas.modules():
         write_unique(out, sid, mod.STRUCTURE)
+    # estructuras medianas (medianas/): estructuras, etiquetas, structure_sets y botín
+    medianas_lang = medianas.write(out, jdump)
     # botín
     uniques = unicas.modules()
     for name, table in loot.TABLES.items():
@@ -311,7 +318,7 @@ def write(reg, out):
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     maps_lang = mapas.lang(uniques)
     adv_lang = logros.write(out, reg, uniques, jdump)
-    for extra in (tratos.lang(), tablon.write(out, jdump), caminos.write(out, jdump)):
+    for extra in (tratos.lang(), tablon.write(out, jdump), caminos.write(out, jdump), medianas_lang):
         for lang, texts in extra.items():
             adv_lang[lang].update(texts)
     for sid, mod in unicas.modules():

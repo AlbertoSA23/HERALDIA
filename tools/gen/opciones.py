@@ -5,6 +5,7 @@ en los idiomas; el Java lo lee al arrancar, valida cada valor contra su rango y 
 """
 from themes import THEMES, FAMILIES
 import unicas
+import medianas
 
 VERSION = 1   # súbelo (y añade la migración en HeraldiaConfig.migrate) si cambia el formato del fichero
 
@@ -74,6 +75,23 @@ _FIXED = [
      "o una estructura única de Heraldia no se generan, para que no salgan unas encima de otras (0 lo desactiva)",
      "Structures from other mods (those above ground) closer than this distance, in blocks, to the start of a Heraldia "
      "village or unique structure are not generated, so they do not overlap (0 disables it)"),
+    ("medianas.activadas", True, None, None,
+     "Estructuras medianas (torres de vigía, posadas de camino, campamentos de bandidos, ermitas...) entre las aldeas y "
+     "las únicas",
+     "Medium structures (watchtowers, roadside inns, bandit camps, hermitages...) between villages and unique structures"),
+    ("medianas.frecuencia_porcentaje", 100, 25, 400,
+     "Frecuencia de todas las estructuras medianas, en % de la de por defecto (200 = el doble; 50 = la mitad); se suma "
+     "a la separación de cada tipo",
+     "Frequency of all medium structures, as a % of the default (200 = twice as many; 50 = half); applied on top of "
+     "each type's spacing"),
+    ("medianas.distancia_minima.bloques", 192, 64, 1024,
+     "Distancia mínima entre dos estructuras medianas distintas, en bloques",
+     "Minimum distance between two different medium structures, in blocks"),
+    ("medianas.distancia_aldeas_unicas_bloques", 256, 128, 1024,
+     "Una estructura mediana no sale a menos de esta distancia, en bloques, del inicio de una aldea o una estructura única "
+     "de Heraldia (tampoco dentro de la Atlántida)",
+     "A medium structure does not spawn closer than this distance, in blocks, to the start of a Heraldia village or unique "
+     "structure (nor inside Atlantis)"),
     ("unicas.atlantida.cofre_unico_por_jugador", False, None, None,
      "Cofre premium de la Atlántida por jugador: cada jugador saca su propia copia del contenido una vez (si no, el primero que llega se lo lleva)",
      "Per-player Atlantis premium chest: each player takes their own copy of its contents once (otherwise the first to arrive takes it all)"),
@@ -85,8 +103,13 @@ _GROUPS = {
     "unicas.<id>.activada": ("unica.activada", "Activa la estructura única %s", "Enables the %s unique structure"),
     "unicas.<id>.separacion_bloques": ("unica.separacion", "Separación media entre estructuras %s, en bloques",
                                        "Average distance between %s structures, in blocks"),
+    "medianas.<id>.activada": ("mediana.activada", "Activa la estructura mediana %s", "Enables the %s medium structure"),
+    "medianas.<id>.separacion_bloques": ("mediana.separacion", "Separación media entre estructuras %s del mismo tipo, en "
+                                         "bloques (con la frecuencia al 100 %%)",
+                                         "Average distance between two %s structures, in blocks (at 100 %% frequency)"),
 }
 UNIQUE_RANGE = (1000, 10000)
+MEDIANA_RANGE = medianas.SEPARACION_RANGO
 
 # Nombre corto de cada opción en la pantalla de configuración del cliente (la ayuda larga va en el tooltip).
 _NAMES = {
@@ -107,6 +130,11 @@ _NAMES = {
     "unicas.distancia_minima.activada": ("Distancia mínima activada", "Minimum distance enabled"),
     "unicas.distancia_minima.bloques": ("Distancia mínima (bloques)", "Minimum distance (blocks)"),
     "unicas.atlantida.cofre_unico_por_jugador": ("Cofre premium por jugador", "Per-player premium chest"),
+    "medianas.activadas": ("Estructuras medianas", "Medium structures"),
+    "medianas.frecuencia_porcentaje": ("Frecuencia (%)", "Frequency (%)"),
+    "medianas.distancia_minima.bloques": ("Distancia entre medianas (bloques)", "Distance between medium ones (blocks)"),
+    "medianas.distancia_aldeas_unicas_bloques": ("Distancia a aldeas y únicas (bloques)",
+                                                 "Distance to villages and unique ones (blocks)"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
                                                        "Distance of other mods' structures (blocks)"),
 }
@@ -117,6 +145,8 @@ _GROUP_NAMES = {
     "aldeas.estilos.<estilo>": ("%s", "%s", None),
     "unicas.<id>.activada": ("%s", "%s", "heraldia.unicas.%s.nombre"),
     "unicas.<id>.separacion_bloques": ("%s: separación (bloques)", "%s: spacing (blocks)", "heraldia.unicas.%s.nombre"),
+    "medianas.<id>.activada": ("%s", "%s", "heraldia.medianas.%s.nombre"),
+    "medianas.<id>.separacion_bloques": ("%s: separación (bloques)", "%s: spacing (blocks)", "heraldia.medianas.%s.nombre"),
 }
 # Secciones de la pantalla, en orden de aparición: (id, es_es, en_us).
 SECTIONS = [
@@ -129,6 +159,7 @@ SECTIONS = [
     ("unicas", "Estructuras únicas", "Unique structures"),
     ("distancia_minima", "Distancia mínima entre únicas", "Minimum distance between unique structures"),
     ("atlantida", "Atlántida", "Atlantis"),
+    ("medianas", "Estructuras medianas", "Medium structures"),
     ("compatibilidad", "Compatibilidad con otros mods", "Compatibility with other mods"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
@@ -137,7 +168,7 @@ _SECTION_PREFIXES = [
     ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.caminos.", "caminos"),
     ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"),
-    ("compatibilidad.", "compatibilidad"),
+    ("medianas.", "medianas"), ("compatibilidad.", "compatibilidad"),
 ]
 
 
@@ -213,6 +244,10 @@ def schema():
         default = min(max(spacing * 16, UNIQUE_RANGE[0]), UNIQUE_RANGE[1])
         opts.append(_option(f"unicas.{sid}.separacion_bloques", default, *UNIQUE_RANGE, g["unicas.<id>.separacion_bloques"], [sid],
                             "unicas.<id>.separacion_bloques"))
+    for mid, mod in medianas.modules():
+        opts.append(_option(f"medianas.{mid}.activada", True, None, None, g["medianas.<id>.activada"], [mid], "medianas.<id>.activada"))
+        opts.append(_option(f"medianas.{mid}.separacion_bloques", mod.SEPARACION, *MEDIANA_RANGE,
+                            g["medianas.<id>.separacion_bloques"], [mid], "medianas.<id>.separacion_bloques"))
     assert set(_NAMES) == {k for k, *_ in _FIXED}, "cada opción fija necesita su nombre corto en _NAMES"
     return {
         "version": VERSION,
