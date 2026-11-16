@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.albertosa23.heraldia.Heraldia;
+import io.github.albertosa23.heraldia.config.GridPlacement;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.loot.WithoutLootrCondition;
@@ -138,6 +139,7 @@ public final class InfoCommand {
 		lines.addAll(uniqueLines);
 		lines.add(Textos.t("heraldia.info.distancia", onOff(cfg.getBool("unicas.distancia_minima.activada")),
 				cfg.getInt("unicas.distancia_minima.bloques")));
+		lines.add(Textos.t("heraldia.info.rejilla", onOff(cfg.getBool(GridPlacement.LEGACY_OPTION))));
 		lines.add(Textos.t("heraldia.info.cofre", yesNo(cfg.getBool("unicas.atlantida.cofre_unico_por_jugador")),
 				Textos.t(WithoutLootrCondition.LOOTR_LOADED ? "heraldia.info.cargado" : "heraldia.info.no_cargado")));
 		lines.add(Textos.t("heraldia.info.registradas", heraldia, heraldia - uniques.size(), uniques.size()));

@@ -80,6 +80,7 @@ jobs:
           - tools/smoke/historia.py
           - tools/smoke/observatorio_smoke.py
           - tools/smoke/palacio_redstone.py
+          - tools/smoke/rejilla_compatible.py
           - tools/smoke/terralith_biomas.py
           - tools/smoke/trofeos.py
           - tools/gen/unicas/castillo/prueba_redstone.py
