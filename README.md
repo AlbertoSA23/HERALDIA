@@ -375,6 +375,33 @@ A **Heraldia** advancement tab (88 advancements), with texts in Spanish and Engl
 
 Notes: a structure counts when you step inside its pieces; seeing it is not enough. If a family or a structure is disabled in the [configuration](#configuration), its advancement and the related challenge cannot be earned. With Lootr, the treasure advancement depends on Lootr notifying the game when the chest is opened (not checked). The unique-structure advancements are generated from the unique-structure registry, so a new structure brings its own.
 
+## Restocking loot and difficulty
+
+Two optional server-side features (vanilla clients are enough). Both also work in an **existing world**, on what is already generated.
+
+**Restocking loot** (`botin.reponer.activado`, **off by default**, so turning it on is your decision): chests and barrels of Heraldia villages, medium and unique structures are refilled from their loot table again when, **on opening**, all of these are true:
+
+- at least `botin.reponer.dias` in-game days (24,000 ticks of the world clock, the one `/time add` moves; sleeping through the night counts) have passed since it was last looted;
+- no other player is within 32 blocks (the one opening it does not count);
+- it is empty or almost empty (at most 3 occupied slots out of 27). Nothing is ever deleted: the loot only goes into free slots, so whatever a player stored there stays.
+
+How a chest is recognised: when a Heraldia chest that still has its loot table is opened, the mod stores in the block, as `custom_data` `heraldia_botin: {tabla, saqueado}`, its table and the clock of that looting (nothing else). A chest **already looted before the option was turned on** no longer has its table: the first time it is opened, the mod looks up the Heraldia structure that has a piece there (the chunk's structure references, like `/locate`), and in that piece's template, with its rotation, the loot table it put in that position; from then on it counts as looted at that moment. Lazy: it only works when a player uses a container, never per tick or scanning the world. Not restocked: the Atlantis premium chest (fixed contents, it has its own option `unicas.atlantida.cofre_unico_por_jugador`), trophies, vanilla tables and other mods' tables, and containers of non-template pieces (the Atlantis base) that were looted before turning it on. With **Lootr** installed it does nothing (detected at startup; Lootr already turns loot chests into per-player chests); the log says so if the option is on.
+
+**Difficulty** (`dificultad.nivel`): scales the health and melee damage of the [guardians](#guardian-trophies) and the template mobs of Heraldia (those tagged `heraldia_anclado` or `heraldia_guardian`, and the bosses' reinforcements, `heraldia_refuerzo`; hostile only: cats and wolves are untouched; spawner mobs are not affected).
+
+| Level | Health | Damage | Loot (`dificultad.escalar_botin`) |
+| --- | --- | --- | --- |
+| `facil` | x0.75 | x0.75 | x0.75 |
+| `normal` (default) | as always | as always | as always |
+| `dificil` | x1.5 | x1.25 | x1.25 |
+| `heroica` | x2 | x1.5 | x1.5 |
+
+- They are attribute modifiers with their own ids (`heraldia:dificultad_vida`, `heraldia:dificultad_dano`, `heraldia:dificultad_jugadores`, `add_multiplied_total`), added on top of whatever else the mob has (the effects of the boss phases, other mods) without touching it. They are set every time the mob loads (also the mobs already generated), so after changing the option and restarting the server they are recomputed; setting them twice changes nothing, and with `normal` they are removed (exactly the previous behaviour). The current health keeps its proportion (a guardian at half health stays at half).
+- `dificultad.escalar_por_jugadores` (off): +25 % health per extra player within 32 blocks (up to +100 %), recomputed when the mob takes a hit.
+- Loot: only plain stackable items (no name or other components) of Heraldia chest tables change their amount (the fractional part with its probability, never below 1 or above a stack). Skeleton arrows and other ranged damage do not change.
+
+Cost: an event when a block is used (leaves at once if it is not a container with a table, or the option is off), on each entity load and on each hit (leaves at once if the mob has no Heraldia tag); measured with `tools/smoke/botin_reponer.py` and `tools/smoke/dificultad.py`.
+
 ## Configuration
 
 File `config/heraldia.json` on the server (in a single-player world, the one in the game folder). It is created at startup with all default values
@@ -416,6 +443,11 @@ when its format changes. It is read only when the server starts and affects chun
 | `medianas.<id>.separacion_bloques` | the type's own (576-832) | 256-4000 | Average spacing between two of that type (at 100 % frequency); each grid cell looks for its candidate inside the type's biomes. |
 | `guia.entregar_al_entrar` | `true` | `true`/`false` | Gives the [Herald's Guide](#heralds-guide) to each player the first time they join with each mod version. When off, nobody gets it on joining, but `/heraldia guia` still hands it out. |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Structures from other mods that show above ground do not spawn closer than this to the start of a Heraldia village or unique structure that spawns there; 0 disables it ([Compatibility with other mods](#compatibility-with-other-mods)). |
+| `botin.reponer.activado` | `false` | `true`/`false` | [Restocking loot](#restocking-loot-and-difficulty): Heraldia chests and barrels are refilled on opening after the given days, with no other player nearby and when empty or almost empty; also chests already generated. Nothing with Lootr. |
+| `botin.reponer.dias` | 7 | 1-60 | In-game days (24,000 ticks of the world clock) after a looting before a chest is restocked. |
+| `dificultad.nivel` | `normal` | `facil`, `normal`, `dificil`, `heroica` | [Difficulty](#restocking-loot-and-difficulty) of Heraldia guardians and template mobs (health and damage); also those already generated, when they load. `normal` is the previous behaviour. |
+| `dificultad.escalar_por_jugadores` | `false` | `true`/`false` | +25 % health per extra player within 32 blocks (up to +100 %), when hit. |
+| `dificultad.escalar_botin` | `true` | `true`/`false` | With `facil`, `dificil` or `heroica`, plain stackable items of Heraldia chest loot come in x0.75, x1.25 or x1.5 amounts (nothing changes with `normal`). |
 
 Atlantis has no placement options: there is always exactly one per world.
 
@@ -423,8 +455,8 @@ Atlantis has no placement options: there is always exactly one per world.
 
 On the client the file can also be edited from a screen inside the game. With [Mod Menu](https://modrinth.com/mod/modmenu) installed (optional; the mod works the same without it, the screen just has no button) it opens from the configuration button of Heraldia in the mod list. It is built from the same option list as the file, so new options appear on their own:
 
-- Sections: Villages, Village families, Village styles, Village life, Roads between villages, Golems, Unique structures, Minimum distance between unique structures, Atlantis, Medium structures and Compatibility with other mods, with a search box (by name, key, help or section).
-- Each option shows its value (on/off button or number box). Its tooltip shows the key, the help text (the same as `_ayuda`) and the default and range. An invalid number turns red, its tooltip says why and **Save** stays disabled until it is fixed.
+- Sections: Villages, Village families, Village styles, Village life, Roads between villages, Golems, Unique structures, Minimum distance between unique structures, Atlantis, Medium structures, Compatibility with other mods, Loot and Difficulty, with a search box (by name, key, help or section).
+- Each option shows its value (on/off button, number box, or a button that cycles through the values of a list option such as `dificultad.nivel`). Its tooltip shows the key, the help text (the same as `_ayuda`) and the default and range. An invalid number turns red, its tooltip says why and **Save** stays disabled until it is fixed.
 - **Save** writes `config/heraldia.json` in the same format as at startup (with `version` and `_ayuda`); **Reset to defaults** puts every option back to its default (nothing is written until you save); **Cancel** discards the changes.
 - Changes apply when the world is opened again or the server is restarted, and only to chunks generated afterwards; the screen says so. With no world open they are used from the next world you open (no need to restart the game); with a single-player world open, after leaving and re-entering it.
 - When connected to a server the screen edits **the client's local file** (your single-player worlds), not the server's: the screen warns about it. The server's configuration is still edited in its own `config/heraldia.json`. Nothing is sent over the network.
