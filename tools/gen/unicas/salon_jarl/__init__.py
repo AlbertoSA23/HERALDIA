@@ -16,6 +16,9 @@ STRUCTURE = dict(biomes=["minecraft:taiga", "minecraft:old_growth_pine_taiga", "
                  step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG",
                  spacing=250, separation=190)
 NOMBRE = {"es_es": "Salón del Jarl", "en_us": "Jarl's Hall"}
+# Refuerzos del guardián en cada fase (jefes.py): su séquito de insepultos.
+REFUERZOS = [{"mob": "zombie", "equipo": {"mainhand": "stone_axe"}}, {"mob": "zombie", "equipo": {"mainhand": "stone_axe"}},
+             "stray"]
 TROFEO = {"objeto": "iron_axe", "rareza": "rare",
           "nombre": ("Rompeescudos de Ulfgrim", "Ulfgrim's Shieldbreaker"),
           "lore": [("Hendió cien escudos en su última incursión.", "It split a hundred shields on its last raid."),

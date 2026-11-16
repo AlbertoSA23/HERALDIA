@@ -17,6 +17,8 @@ from . import auditoria
 from .superficie import Castillete, pozo, ALTO_POZO, CIMIENTO, HUELLA
 
 NOMBRE = {"es_es": "Mina perdida de Hondavena", "en_us": "Lost Mine of Hondavena"}
+# Refuerzos del guardián en cada fase (jefes.py): mineros perdidos y arañas de las galerías.
+REFUERZOS = [{"mob": "zombie", "equipo": {"mainhand": "iron_pickaxe"}}, "cave_spider", "cave_spider"]
 TROFEO = {"objeto": "iron_pickaxe", "rareza": "rare",
           "nombre": ("Pico de Tizón", "Tizon's Pickaxe"),
           "lore": [("Abrió la última galería de Hondavena.", "It opened the last gallery of Hondavena."),

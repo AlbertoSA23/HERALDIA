@@ -18,6 +18,8 @@ STRUCTURE = dict(biomes=["minecraft:birch_forest", "minecraft:old_growth_birch_f
                  step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG",
                  spacing=250, separation=190)
 NOMBRE = {"es_es": "Santuario druídico", "en_us": "Druid Sanctuary"}
+# Refuerzos del guardián en cada fase (jefes.py): las criaturas del bosque marchito.
+REFUERZOS = ["witch", "spider"]
 TROFEO = {"objeto": "golden_hoe", "rareza": "rare",
           "nombre": ("Hoz de oro de Cadoc", "Cadoc's Golden Sickle"),
           "lore": [("Segaba el muérdago del árbol sagrado.", "It reaped the mistletoe of the sacred tree."),

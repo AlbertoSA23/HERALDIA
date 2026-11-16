@@ -14,15 +14,16 @@ import net.minecraft.network.chat.MutableComponent;
 
 /**
  * Textos traducibles de los comandos con el español del propio .jar como respaldo (un cliente sin el mod ve el
- * español, como en los tellraw del generador). El es_es se lee una vez, la primera vez que se usa.
+ * español, como en los tellraw del generador). El es_es se lee una vez, la primera vez que se usa. También lo usan
+ * los avisos de los jefes (jefes/Jefes).
  */
-final class Textos {
+public final class Textos {
 	private static final Map<String, String> ES = read();
 
 	private Textos() {
 	}
 
-	static MutableComponent t(String key, Object... args) {
+	public static MutableComponent t(String key, Object... args) {
 		return Component.translatableWithFallback(key, ES.getOrDefault(key, key), args);
 	}
 

@@ -9,6 +9,8 @@ from . import cosas
 
 ID = "unicas/atlantida"
 NOMBRE = {"es_es": "La Atlántida", "en_us": "Atlantis"}
+# Refuerzos del guardián en cada fase (jefes.py): vigías y un centinela con tridente.
+REFUERZOS = ["guardian", "guardian", {"mob": "drowned", "equipo": {"mainhand": "trident"}}]
 TROFEO = {"objeto": "trident", "rareza": "epic",
           "nombre": ("Tridente de Poseidón", "Trident of Poseidon"),
           "lore": [("Aún huele a sal y a tormenta.", "It still smells of salt and storm."),

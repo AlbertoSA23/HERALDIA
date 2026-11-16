@@ -21,6 +21,8 @@ STRUCTURE = dict(biomes=["minecraft:mushroom_fields"],
                  project_to="WORLD_SURFACE_WG", spacing=250, separation=190,
                  candidata_en_bioma=True)   # bioma raro: la candidata de cada casilla se busca en él (GridPlacement)
 NOMBRE = {"es_es": "Laboratorio del micólogo", "en_us": "Mycologist's Laboratory"}
+# Refuerzos del guardián en cada fase (jefes.py): sus experimentos fallidos.
+REFUERZOS = ["bogged", "witch"]
 TROFEO = {"objeto": "shears", "rareza": "rare",
           "nombre": ("Tijeras de Maese Ambrosio", "Master Ambrose's Shears"),
           "lore": [("Podaban las cepas de su jardín.", "They pruned the strains of his garden."),
