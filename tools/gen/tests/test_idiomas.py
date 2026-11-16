@@ -85,7 +85,7 @@ def test_paginas_y_carteles_dentro_de_cualquier_objeto():
     paginas = idiomas.paginas_de_libros([("botín", {"pools": [{"entries": [libro]}]}), ("atril", atril)])
     assert [p["translate"] for _, p in paginas] == ["p1", "p2", "p3"]
     cartel = {"front_text": {"messages": [{"translate": "c1"}, {"text": ""}]}, "back_text": {"messages": [{"translate": "c2"}]}}
-    assert idiomas.claves_de_carteles([cartel, {"otra": [cartel]}]) == {"c1", "c2"}
+    assert set(idiomas.claves_de_carteles([cartel, {"otra": [cartel]}])) == {"c1", "c2"}
 
 
 def test_pagina_o_cartel_que_no_cabe_falla():
@@ -260,3 +260,13 @@ def test_ficheros_de_traduccion_en_su_formato():
         with open(idiomas.ruta(c), encoding="utf-8") as f:
             texto = f.read()
         assert texto == json.dumps(json.loads(texto), indent=2, ensure_ascii=False) + "\n", c
+
+
+def test_cartel_en_negrita_suma_un_px_por_caracter():
+    cartel = {"front_text": {"messages": [{"translate": "n", "bold": True}, {"translate": "f"}]}}
+    claves = idiomas.claves_de_carteles([cartel])
+    assert claves == {"n": True, "f": False}
+    texto = "a" * 14                                   # 84 px; en negrita, 98
+    assert not idiomas.errores_carteles(claves, {"f": texto}, "es_es")
+    assert idiomas.errores_carteles(claves, {"n": texto}, "es_es")
+    assert idiomas.ancho_cartel("ab", True) == idiomas.ancho_cartel("ab") + 2

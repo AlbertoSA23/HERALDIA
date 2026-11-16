@@ -172,15 +172,16 @@ CARTEL_ANCHO = 90          # SignBlockEntity: ancho máximo de una línea de car
 
 
 def claves_de_carteles(objetos):
-    """Claves traducibles de las líneas de cartel (front_text/back_text) que haya dentro de `objetos` (NBT de bloques)."""
-    out = set()
+    """Claves traducibles de las líneas de cartel (front_text/back_text) que haya dentro de `objetos` (NBT de bloques):
+    {clave: en negrita}. La negrita suma 1 px a cada carácter (el desplazamiento de la negrita de la fuente)."""
+    out = {}
 
     def ver(o):
         if isinstance(o, dict):
             for lado in ("front_text", "back_text"):
                 for m in (o.get(lado) or {}).get("messages", []) if isinstance(o.get(lado), dict) else []:
                     if isinstance(m, dict) and "translate" in m:
-                        out.add(m["translate"])
+                        out[m["translate"]] = out.get(m["translate"], False) or bool(m.get("bold"))
             for v in o.values():
                 ver(v)
         elif isinstance(o, (list, tuple)):
@@ -193,14 +194,20 @@ def claves_de_carteles(objetos):
 
 def errores_carteles(claves, textos, codigo):
     """Líneas de cartel más anchas que el cartel (90 px) en este idioma, también en es/en: el cliente (SignRenderer)
-    corta la línea por palabras a 90 px y lo que sobra no se ve."""
-    from unicas._comun import botin
+    corta la línea por palabras a 90 px y lo que sobra no se ve.
+    `claves`: las de claves_de_carteles ({clave: en negrita}) o un conjunto de claves (sin negrita)."""
     e = []
     for k in sorted(claves):
-        if k in textos and botin.ancho(textos[k]) > CARTEL_ANCHO:
-            e.append(f"{codigo}: la línea de cartel {k} no cabe ({botin.ancho(textos[k])} de {CARTEL_ANCHO} px): "
-                     f"{textos[k]!r}")
+        if k in textos and ancho_cartel(textos[k], isinstance(claves, dict) and claves[k]) > CARTEL_ANCHO:
+            e.append(f"{codigo}: la línea de cartel {k} no cabe ({ancho_cartel(textos[k], isinstance(claves, dict) and claves[k])} "
+                     f"de {CARTEL_ANCHO} px): {textos[k]!r}")
     return e
+
+
+def ancho_cartel(texto, negrita=False):
+    """Ancho en px de una línea de cartel: el de botin.ancho, más 1 px por carácter en negrita."""
+    from unicas._comun import botin
+    return botin.ancho(texto) + (len(texto) if negrita else 0)
 
 
 def ordenar(base, trad):
