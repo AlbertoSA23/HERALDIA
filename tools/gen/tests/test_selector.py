@@ -117,6 +117,8 @@ def test_aldeas_y_datos():
     assert elige(J + "comun/Anclaje.java")[1] == ["tools/smoke/guardianes_anclados.py"]
     assert elige(J + "comun/HastaElSueloProcessor.java")[0]          # el resto de comun/: batería completa
     assert set(elige("tools/gen/logros.py")[1]) == {"tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"}
+    assert elige(J + "caminos/Trazado.java") == (False, ["tools/smoke/caminos.py"])
+    assert elige("tools/gen/caminos.py") == (False, ["tools/smoke/caminos.py"])
 
 
 def test_union_de_varios_cambios_y_uno_comun_lo_arrastra_todo():

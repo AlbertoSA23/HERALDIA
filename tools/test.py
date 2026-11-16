@@ -77,6 +77,8 @@ MAPA = [
     (JAVA + "mixin/DrownedPlayaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "comun/Anclaje.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "comando/*", []),
+    # caminos entre aldeas: su Java y sus datos
+    (JAVA + "caminos/*", ["tools/smoke/caminos.py"]), ("tools/gen/caminos.py", ["tools/smoke/caminos.py"]),
     # código común: batería completa
     ("tools/gen/unicas/_comun/*", TODO), ("tools/gen/unicas/__init__.py", TODO), ("tools/gen/writer.py", TODO),
     ("tools/gen/core.py", TODO), ("tools/gen/pack.py", TODO), ("tools/gen/lint.py", TODO), ("tools/gen/validate.py", TODO),
@@ -183,7 +185,7 @@ DURACION_S = {
     "tools/smoke/palacio_redstone.py": 57, "tools/smoke/terralith_biomas.py": 50,
     "tools/gen/unicas/fortaleza_hielo/prueba_servidor.py": 47, "tools/gen/unicas/monasterio/prueba_servidor.py": 45,
     "tools/gen/unicas/castillo/prueba_redstone.py": 44, "tools/gen/unicas/mansion/prueba_servidor.py": 40,
-    "tools/smoke/coliseo_redstone.py": 39, "tools/smoke/rejilla_compatible.py": 80,
+    "tools/smoke/coliseo_redstone.py": 39, "tools/smoke/rejilla_compatible.py": 80, "tools/smoke/caminos.py": 300,
     "tools/gen/unicas/torre_mago/prueba_redstone.py": 33,
     "tools/gen/unicas/piramide/prueba_servidor.py": 28, "tools/smoke/galeon_test.py": 26,
     # compatibilidad (medidas en local en 4 núcleos con las descargas en caché, más un 30 % para la CI)
