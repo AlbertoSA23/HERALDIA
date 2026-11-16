@@ -82,7 +82,7 @@ public final class DificultadMobs {
 	}
 
 	/** Pone (o quita, con cantidad 0) el modificador permanente {@code id}; idempotente. */
-	static void poner(@Nullable AttributeInstance attr, Identifier id, double cantidad) {
+	public static void poner(@Nullable AttributeInstance attr, Identifier id, double cantidad) {
 		if (attr == null) {
 			return;
 		}

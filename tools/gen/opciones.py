@@ -152,6 +152,30 @@ _FIXED = [
      "en cantidad x0,75, x1,25 o x1,5 (en normal no cambia nada)",
      "With easy, hard or heroic difficulty, plain stackable items in Heraldia chest loot come in x0.75, x1.25 or x1.5 "
      "amounts (normal changes nothing)"),
+    ("arena.activado", True, None, None,
+     "Arena de oleadas cerca del spawn: los operadores la colocan con /heraldia arena colocar (o se genera sola en un mundo "
+     "nuevo); cualquier jugador empieza una partida tocando su campana. Si se desactiva, no hay partidas ni protección",
+     "Wave arena near spawn: operators place it with /heraldia arena colocar (or it is built on its own in a new world); any "
+     "player starts a match by ringing its bell. When disabled, there are no matches and no protection"),
+    ("arena.generar_en_mundos_nuevos", True, None, None,
+     "En un mundo nuevo, la arena se construye sola a 200-300 bloques del spawn, en terreno llano (en un mundo ya existente, "
+     "nunca: la coloca un operador)",
+     "In a new world, the arena is built on its own 200-300 blocks from spawn, on flat ground (never in an existing world: "
+     "an operator places it)"),
+    ("arena.oleada.mobs_incremento", 50, 10, 200,
+     "Enemigos de más en cada oleada, en % de los de la primera (50: 4, 6, 8, 10...)",
+     "Extra enemies in each wave, as a % of the first wave's (50: 4, 6, 8, 10...)"),
+    ("arena.oleada.stats_incremento", 10, 1, 100,
+     "Vida y daño de más de los enemigos en cada oleada, en % (10: x1, x1,1, x1,2...); nunca más que el incremento de "
+     "enemigos (los enemigos crecen más que su fuerza)",
+     "Extra health and damage of the enemies in each wave, in % (10: x1, x1.1, x1.2...); never more than the enemy "
+     "increase (enemies grow faster than their strength)"),
+    ("arena.max_mobs_vivos", 20, 4, 64,
+     "Enemigos vivos a la vez en el ruedo como mucho: si una oleada trae más, salen en tandas",
+     "Maximum enemies alive at once in the ring: if a wave brings more, they come in batches"),
+    ("arena.experiencia_porcentaje", 15, 0, 100,
+     "Experiencia que dan los enemigos de la arena, en % de la normal (no sueltan objetos)",
+     "Experience given by arena enemies, as a % of the normal amount (they drop no items)"),
     ("unicas.atlantida.cofre_unico_por_jugador", False, None, None,
      "Cofre premium de la Atlántida por jugador: cada jugador saca su propia copia del contenido una vez (si no, el primero que llega se lo lleva)",
      "Per-player Atlantis premium chest: each player takes their own copy of its contents once (otherwise the first to arrive takes it all)"),
@@ -190,6 +214,12 @@ _NAMES = {
     "unicas.distancia_minima.activada": ("Distancia mínima activada", "Minimum distance enabled"),
     "unicas.distancia_minima.bloques": ("Distancia mínima (bloques)", "Minimum distance (blocks)"),
     "unicas.atlantida.cofre_unico_por_jugador": ("Cofre premium por jugador", "Per-player premium chest"),
+    "arena.activado": ("Arena de oleadas", "Wave arena"),
+    "arena.generar_en_mundos_nuevos": ("Generarla en mundos nuevos", "Build it in new worlds"),
+    "arena.oleada.mobs_incremento": ("Enemigos de más por oleada (%)", "Extra enemies per wave (%)"),
+    "arena.oleada.stats_incremento": ("Vida y daño de más por oleada (%)", "Extra health and damage per wave (%)"),
+    "arena.max_mobs_vivos": ("Enemigos vivos a la vez", "Enemies alive at once"),
+    "arena.experiencia_porcentaje": ("Experiencia de los enemigos (%)", "Enemy experience (%)"),
     "jefes.fases.activado": ("Fases de los guardianes", "Guardian phases"),
     "jefes.refuerzos.activado": ("Refuerzos de los guardianes", "Guardian reinforcements"),
     "jefes.barra.activado": ("Barra de jefe", "Boss bar"),
@@ -243,6 +273,7 @@ SECTIONS = [
     ("botin", "Botín", "Loot"),
     ("dificultad", "Dificultad", "Difficulty"),
     ("guia", "Guía del Heraldo", "Herald's Guide"),
+    ("arena", "Arena de oleadas", "Wave arena"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
 # (si no encaja en ninguna, la generación falla).
@@ -251,7 +282,7 @@ _SECTION_PREFIXES = [
     ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
-    ("botin.", "botin"), ("dificultad.", "dificultad"),
+    ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"),
 ]
 
 

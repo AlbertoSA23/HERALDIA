@@ -103,7 +103,7 @@ public final class LlaveCommand {
 	}
 
 	/** Como /give: al inventario y, si no cabe, al suelo a nombre del jugador. */
-	static void give(ServerPlayer player, ItemStack stack) {
+	public static void give(ServerPlayer player, ItemStack stack) {
 		if (player.getInventory().add(stack) && stack.isEmpty()) {
 			return;
 		}

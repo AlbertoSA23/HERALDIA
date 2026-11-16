@@ -188,3 +188,14 @@ def test_botin_que_se_repone_y_dificultad():
     assert elige(J + "dificultad/Dificultad.java", "tools/smoke/botin_reponer.py") == \
         (False, ["tools/smoke/botin_reponer.py", "tools/smoke/dificultad.py"])
     assert elige(J + "loot/CofrePorJugador.java")[0]         # el resto de loot/: común, batería completa
+
+
+def test_arena_de_oleadas():
+    arena = (False, ["tools/smoke/arena.py"])
+    assert elige(J + "arena/Juego.java") == arena
+    assert elige(J + "arena/Oleadas.java") == arena
+    assert elige(J + "mixin/ArenaExplosionMixin.java") == arena
+    assert elige("tools/gen/arena_oleadas.py") == arena
+    assert elige("tools/smoke/arena.py") == arena
+    assert elige(J + "mixin/ArenaPistonMixin.java", "tools/gen/guia.py") == \
+        (False, ["tools/smoke/arena.py", "tools/smoke/guia.py"])

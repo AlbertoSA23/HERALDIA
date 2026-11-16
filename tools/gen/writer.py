@@ -11,6 +11,7 @@ import mapas
 import tratos
 import tablon
 import guia
+import arena_oleadas
 import caminos
 import opciones
 import jefes
@@ -330,7 +331,7 @@ def write(reg, out):
     maps_lang = mapas.lang(uniques)
     adv_lang = logros.write(out, reg, uniques, jdump)
     for extra in (tratos.lang(), tablon.write(out, jdump), caminos.write(out, jdump), medianas_lang, minas_lang,
-                  guia.write(out, uniques, jdump)):
+                  guia.write(out, uniques, jdump), arena_oleadas.write(out, jdump)):
         for lang, texts in extra.items():
             adv_lang[lang].update(texts)
     for sid, mod in unicas.modules():

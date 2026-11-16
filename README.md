@@ -11,6 +11,7 @@ Contents:
 
 - **Huge villages**: 72 structures (36 biome styles, each in a standard and a large size).
 - **Atlantis**: a single sunken city per world (see below).
+- **Wave arena**: a coliseum near spawn to play in waves, with records and rewards (see [Wave arena](#wave-arena)).
 - **Unique structures** (one every 3,000-5,000 blocks, each in its own biomes):
   - **Eastern palace** (`heraldia:unicas/palacio`, cherry groves and bamboo jungles): walled compound of 81 × 123 with three courtyards on one axis, a throne room on a three-step platform, a library with a secret study, a treasury with a vault, a garden with a pond, a five-storey pagoda and the concubines' pavilions; beneath the throne, the treasure chamber with its guardian. Secret piston doors, arrow traps and two spawners. Design and plans: [docs/unicas/palacio.md](docs/unicas/palacio.md).
   - **Ice fortress** (`heraldia:unicas/fortaleza_hielo`): ice spikes, snowy plains and snowy taiga. Ice walls and
@@ -371,10 +372,10 @@ Pages are shown in each player's language (Spanish if the client does not have t
 
 A vanilla written book, the **Herald's Guide**, that explains the mod to players and keeps their diary. Every player gets it **once**, the first time they join after Heraldia is installed or updated (players who already existed in the world too; the version they received is stored on the player and kept on death). It is turned off with `guia.entregar_al_entrar` (see [Configuration](#configuration)), and any player can ask for an up-to-date copy with `/heraldia guia`.
 
-- **What it covers** (15 pages): a welcome; the villages and their life (trades, job board, cartographers); the roads; medium structures; the mines; unique structures; Atlantis; the corsair's isle; how advancements, trophies, boss fights (phases, reinforcements and the boss bar), treasure maps and the Chronicle of the Heralds work.
+- **What it covers** (16 pages): a welcome; the villages and their life (trades, job board, cartographers); the roads; medium structures; the mines; unique structures; Atlantis; the corsair's isle; the wave arena; how advancements, trophies, boss fights (phases, reinforcements and the boss bar), treasure maps and the Chronicle of the Heralds work.
 - **Your diary**: how many of this world's unique structures you have discovered (from the "discover" advancements, `heraldia:unicas/<id>/descubrir`) and how many are left, the discovered ones in alphabetical order and, for each missing one, a soft biome-and-feature clue (the same as its Chronicle leaf), **without coordinates** or its name. It counts the unique structures enabled in the configuration plus those you already discovered even if they were disabled later. The diary is a snapshot of the moment it is handed out: ask for a new copy to bring it up to date.
 - **Language**: pages are translatable texts whose fallback is in the client's language (Spanish for any Spanish variant; English otherwise), so a player **without the mod** reads it in their language.
-- Vanilla book limits: the generator checks that every page fits the 14 lines of a book page (with the same width calculation as the Chronicle leaves), that the title is at most 32 characters and that the book never exceeds 100 pages (with today's 20 unique structures, 20 to 26). It carries `custom_data` `{heraldia_guia_libro:"<version>"}` and the mod edition in its lore.
+- Vanilla book limits: the generator checks that every page fits the 14 lines of a book page (with the same width calculation as the Chronicle leaves), that the title is at most 32 characters and that the book never exceeds 100 pages (with today's 20 unique structures, 21 to 27). It carries `custom_data` `{heraldia_guia_libro:"<version>"}` and the mod edition in its lore.
 
 Cost: it only works when a player without this version's guide joins or when it is asked for (it reads their discovery advancements and builds the book; measured on the test server, see `tools/smoke/guia.py`); nothing per tick.
 
@@ -421,6 +422,27 @@ How a chest is recognised: when a Heraldia chest that still has its loot table i
 - Loot: only plain stackable items (no name or other components) of Heraldia chest tables change their amount (the fractional part with its probability, never below 1 or above a stack). Skeleton arrows and other ranged damage do not change.
 
 Cost: an event when a block is used (leaves at once if it is not a container with a table, or the option is off), on each entity load and on each hit (leaves at once if the mob has no Heraldia tag); measured with `tools/smoke/botin_reponer.py` and `tools/smoke/dificultad.py`.
+
+## Wave arena
+
+A coliseum near spawn, one per world, to play in waves with your friends. Server-side only (vanilla clients are enough).
+
+**What it looks like.** 57 x 57 blocks: the ring (radius 14) sunk 7 blocks below the ground, with a sandstone floor, sea lanterns and seven spawn points in front of barred cells; the ring wall, topped with glass up to an invisible barrier roof (neither arrows nor mobs reach the stands, nobody climbs out and spiders stay in); four tiers of seats; the outer promenade at ground level, open on all sides, with 16 pillars, arches and lanterns; and to the south the entrance: a ramp from the promenade down to the ring, closed by a barred gate while a match lasts. Next to the entrance, inside the ring, the bell.
+
+**Matches.** Any player steps into the ring and rings the bell: the gate closes and a 5 s countdown with titles starts; whoever is in the ring when it ends plays. Each wave brings more and stronger enemies (4 in the first and +50 % per wave; +10 % health and damage per wave: enemies grow faster than their strength). The types rotate: zombies, skeletons and spiders, a mix with creepers and a hard mix (husks, strays, cave spiders, vindicators and witches), then again. Every 5 waves a named mini-boss also comes (Gorbak the Bonebreaker, Black Arrow, the Arena Executioner and the Last Champion, in turn) with the [phases, bar and reinforcements of the guardians](#guardian-fights). At most `arena.max_mobs_vivos` (20) alive at once: if the wave brings more, they come in batches. 10 s pause between waves. `dificultad.nivel` is respected (the arena's modifiers, `heraldia:arena_*`, add up with those of the difficulty and the bosses). A boss bar shows the wave and the enemies left; the sidebar (objective `heraldia_arena`, only during the match and if nobody uses the sidebar) keeps each player's record and the server's, and breaking the server record is announced in chat. The match ends when every participant has fallen or left the ring (`/heraldia arena salir` takes you out); if the server stops or crashes in the middle of one, the arena is clean next time (no enemies, gate open).
+
+**Loot and death.** Enemies drop no items and give `arena.experiencia_porcentaje` % (15) of the normal experience. Rewards come from waves: every 5 cleared, items for each participant (better at 10, 15 and from 20 on: ingots, diamonds, golden apples, enchanted gear; no netherite or elytra), and advancements for clearing waves 5, 10 and 20. If you fall in the ring during a match, **you keep your inventory and experience** and respawn at the entrance.
+
+**Protection.** Nobody but operators can break, place or use the arena's blocks (except the bell) or use buckets near it, and during a match ender pearls cannot be thrown in the ring. Explosions (creepers, TNT, fireballs), pistons and endermen do not touch it, and fire does not catch on it (all its materials are stone, glass or metal). Only inside its box; outside, everything is normal.
+
+**Placing it** (operators, level 2):
+
+- `/heraldia arena colocar`: finds a flat, dry site with no structures already generated (villages, mine entrances, unique structures, other mods'; underground ones do not count) 200-300 blocks from the world spawn (without loading or generating chunks), gives its coordinates and marks its corners and centre with particle columns for 5 minutes. `/heraldia arena colocar confirmar` builds it: **it clears and levels the ground** (whatever is on top, builds included, is lost), so **make a backup of the world first**. It is built in parts, one chunk per tick (about 3 s).
+- `/heraldia arena mover` and `mover confirmar`: the same, removing the old one. `/heraldia arena quitar` and `quitar confirmar`: removes it (the ground stays flat).
+- `/heraldia arena empezar` and `/heraldia arena parar`: start or stop a match.
+- `/heraldia arena` (anyone): where it is, whether there is a match, and the records.
+
+In a **new world** it is built on its own on the first start (`arena.generar_en_mundos_nuevos`); in an **existing world**, only if an operator places it. Cost: with no match, build or proposal, nothing per tick (three checks); protection, an in-memory AABB per block with an early exit when there is no arena; a match, one check per second of its participants and enemies.
 
 ## Configuration
 
@@ -471,6 +493,12 @@ when its format changes. It is read only when the server starts and affects chun
 | `dificultad.nivel` | `normal` | `facil`, `normal`, `dificil`, `heroica` | [Difficulty](#restocking-loot-and-difficulty) of Heraldia guardians and template mobs (health and damage); also those already generated, when they load. `normal` is the previous behaviour. |
 | `dificultad.escalar_por_jugadores` | `false` | `true`/`false` | +25 % health per extra player within 32 blocks (up to +100 %), when hit. |
 | `dificultad.escalar_botin` | `true` | `true`/`false` | With `facil`, `dificil` or `heroica`, plain stackable items of Heraldia chest loot come in x0.75, x1.25 or x1.5 amounts (nothing changes with `normal`). |
+| `arena.activado` | `true` | `true`/`false` | [Wave arena](#wave-arena) near spawn. When disabled, no matches and no protection (a placed arena stays as it is). |
+| `arena.generar_en_mundos_nuevos` | `true` | `true`/`false` | In a new world, the arena is built on its own 200-300 blocks from spawn; in an existing one, never (an operator places it). |
+| `arena.oleada.mobs_incremento` | 50 | 10-200 | Extra enemies in each wave, as a % of the first wave's (4, 6, 8, 10... with 50), rounded up. |
+| `arena.oleada.stats_incremento` | 10 | 1-100 | Extra health and damage in each wave, in %; if it exceeds `mobs_incremento`, that one is used (enemies grow faster than their strength). |
+| `arena.max_mobs_vivos` | 20 | 4-64 | Enemies alive at once in the ring; if a wave brings more, they come in batches. |
+| `arena.experiencia_porcentaje` | 15 | 0-100 | Experience of arena enemies, as a % of the normal amount (after the game's own scaling); they drop no items. |
 
 Atlantis has no placement options: there is always exactly one per world.
 

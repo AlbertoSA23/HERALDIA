@@ -15,6 +15,7 @@ import minas
 from unicas._comun import botin
 import biomas
 import tratos, tablon
+import arena_oleadas
 from themes import THEMES
 from lint import lint_registry, summarize
 
@@ -35,7 +36,8 @@ def main():
                          + [{k: d["tabla"] for k, d in getattr(m, "LLAVES", {}).items()} for _, m in unicas.modules()]
                          + [{s: botin.trofeo(s, m.TROFEO) for s, m in unicas.modules() if getattr(m, "TROFEO", None)}]
                          + [history_tables(unicas.modules()) if not reg.warnings else {}]
-                         + [tratos.objetos(unicas.modules()), tablon.objetos(THEMES), tablon.tablas(), medianas.tablas(), minas.tablas()])
+                         + [tratos.objetos(unicas.modules()), tablon.objetos(THEMES), tablon.tablas(), medianas.tablas(), minas.tablas(),
+                            arena_oleadas.tablas()])
     if errs or lerrs or reg.warnings:
         print("ERRORES:", errs, lerrs, reg.warnings[:20])
         return 1

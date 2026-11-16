@@ -70,6 +70,11 @@ PAGINAS = [
       "unas cuevas marinas a las que se entra en barca por el acantilado.",
       "Out at sea, far from the coast, an islet hides the fort of Roque Salitre and its harbour. Beneath the hill lie "
       "sea caves, reached by boat through the cliff.")),
+    ("arena", ("La arena", "The arena"),
+     ("Cerca del spawn hay una arena de oleadas: entra en el ruedo y toca la campana. Cada oleada trae más monstruos y "
+      "más fuertes, y cada cinco, un campeón. Si caes en el ruedo, conservas tu inventario. Búscala con /heraldia arena.",
+      "Near spawn stands a wave arena. Step into the ring and ring the bell: each wave brings more and stronger monsters, "
+      "and every fifth, a champion. If you fall in the ring, you keep your inventory. Where it is: /heraldia arena.")),
     ("logros", ("Logros", "Advancements"),
      ("La pestaña Heraldia de los logros recoge tus viajes: una aldea de cada familia, cada estructura única, su "
       "guardián y su tesoro. Una estructura cuenta al entrar en ella: no basta con verla de lejos.",
