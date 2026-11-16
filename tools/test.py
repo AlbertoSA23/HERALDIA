@@ -81,6 +81,9 @@ MAPA = [
     (JAVA + "mixin/DrownedAguaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "mixin/DrownedPlayaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "comun/Anclaje.java", ["tools/smoke/guardianes_anclados.py"]),
+    # Guía del Heraldo: su Java (y los textos por idioma que usa), su generador y su prueba
+    (JAVA + "comando/Guia*", ["tools/smoke/guia.py"]), (JAVA + "comando/Textos.java", ["tools/smoke/guia.py"]),
+    ("tools/gen/guia.py", ["tools/smoke/guia.py"]),
     (JAVA + "comando/*", []),
     # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
     (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
@@ -201,6 +204,7 @@ DURACION_S = {
                                          "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
     "tools/smoke/guardianes_anclados.py": 450,
     "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque; 2 min 40 s con los 8 tipos
+    "tools/smoke/guia.py": 120,                      # tres arranques del servidor
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas
