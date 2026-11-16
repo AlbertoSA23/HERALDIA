@@ -388,7 +388,7 @@ def check_info(ctx, expected):
             ours = found.get(f"heraldia:unicas/{sid}")
             if ours is None or ours[0] > math.dist(p[:2], (x, z)) + 1:
                 fails.append(f"{cmd}: /locate da {sid} en {p[:2]}, pero info cerca da {ours}")
-        if (x, z) == (0, 0) and "heraldia:aldeas" not in found and not any(":unicas/" not in k for k in found):
+        if (x, z) == (0, 0) and "heraldia:aldeas" not in found and not any(":unicas/" not in k and ":medianas/" not in k for k in found):
             fails.append(f"{cmd}: no da ninguna aldea cerca del 0,0 (12 casillas permitidas): {found}")
     m = ctx.run("execute positioned 5000 64 5000 run heraldia info aqui", r"not loaded|no está cargada")
     if m.group(0) not in ("not loaded", "no está cargada"):

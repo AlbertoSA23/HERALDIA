@@ -98,8 +98,18 @@ public final class ZonaAjenas {
 	}
 
 	private static ZonaAjenas build(Registry<StructureSet> sets, RegistryAccess registryAccess) {
-		Registry<Structure> structures = registryAccess.lookupOrThrow(Registries.STRUCTURE);
 		int distance = HeraldiaConfig.get().getInt(OPCION);
+		LOGGER.info("Heraldia: estructuras de otros mods a {} bloques como mínimo de las de Heraldia{}", distance,
+				distance == 0 ? " (desactivado)" : "");
+		return conDistancia(sets, registryAccess, distance);
+	}
+
+	/**
+	 * Zona de otra distancia alrededor de las mismas candidatas (aldeas y únicas de Heraldia que salen de verdad), con su
+	 * propia memoria: la usan las estructuras medianas ({@link Medianas}). Una por registro de structure_set.
+	 */
+	static ZonaAjenas conDistancia(Registry<StructureSet> sets, RegistryAccess registryAccess, int distance) {
+		Registry<Structure> structures = registryAccess.lookupOrThrow(Registries.STRUCTURE);
 		RandomSpreadStructurePlacement placement = null;
 		List<Identifier> ids = new ArrayList<>();
 		List<Structure> list = new ArrayList<>();
@@ -115,8 +125,6 @@ public final class ZonaAjenas {
 				}
 			}
 		}
-		LOGGER.info("Heraldia: estructuras de otros mods a {} bloques como mínimo de las de Heraldia{}", distance,
-				distance == 0 ? " (desactivado)" : "");
 		return new ZonaAjenas(sets, distance, placement, ids, list);
 	}
 

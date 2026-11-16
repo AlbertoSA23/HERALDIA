@@ -28,7 +28,8 @@ ROOT_ICON, VILLAGES_ICON, UNIQUES_ICON = "minecraft:filled_map", "minecraft:bell
 DEFAULT_ICON, GUARDIAN_ICON, TREASURE_ICON = "minecraft:filled_map", "minecraft:iron_sword", "minecraft:chest"
 # Experiencia (moderada): una aldea vale lo que un logro vanilla sencillo, los desafíos lo que uno vanilla grande.
 XP = {"familia": 20, "aldeas": 250, "descubrir": 50, "guardian": 100, "tesoro": 50, "extra": 30, "unicas": 500,
-      "trofeos": 500, "cronista": 500}
+      "trofeos": 500, "cronista": 500, "mediana": 10, "medianas": 150}
+MEDIANAS_ICON = "minecraft:oak_sign"
 TROPHIES_ICON, CHRONICLE_ICON = "minecraft:armor_stand", "minecraft:written_book"
 DEFAULT_TREASURE_TABLES = ("premium",)
 TREASURE_MARK = "heraldia_tesoro"   # custom_data de los objetos de un cofre de contenido fijo (tesoro_objeto)
@@ -36,7 +37,8 @@ TREASURE_MARK = "heraldia_tesoro"   # custom_data de los objetos de un cofre de 
 # Textos comunes; %s es el nombre de la familia, de la estructura o del guardián.
 TEXTS = {
     "raiz": (("Heraldia", "Heraldia"),
-             ("Entra en una aldea Heraldia o en una estructura única", "Enter a Heraldia village or a unique structure")),
+             ("Entra en una aldea Heraldia, una estructura única o una mediana",
+              "Enter a Heraldia village, a unique structure or a medium structure")),
     "familia": (("%s", "%s"), ("Entra en una aldea Heraldia de la familia %s", "Enter a Heraldia village of the %s family")),
     "aldeas": (("Trotamundos de Heraldia", "Heraldia Globetrotter"),
                ("Entra en una aldea de cada una de las 12 familias", "Enter a village of each of the 12 families")),
@@ -48,6 +50,11 @@ TEXTS = {
     "trofeos": (("Sala de trofeos", "Hall of Trophies"),
                 ("Consigue el trofeo de cada guardián de las estructuras únicas",
                  "Collect the trophy of every unique structure's guardian")),
+    "mediana": (("Al borde del camino", "By the Wayside"),
+                ("Encuentra una estructura mediana: una torre de vigía, una posada, un campamento, una ermita...",
+                 "Find a medium structure: a watchtower, an inn, a camp, a hermitage...")),
+    "medianas": (("Caminante", "Wayfarer"),
+                 ("Encuentra una estructura mediana de cada tipo", "Find a medium structure of every type")),
     "cronista": (("Cronista", "Chronicler"),
                  ("Reúne todos los pliegos de la Crónica de los Heraldos",
                   "Gather every leaf of the Chronicle of the Heralds")),
@@ -103,7 +110,7 @@ def guardians(reg, sid):
     return sorted(found.items())
 
 
-def build(reg, modules):
+def build(reg, modules, medianas_mods=None):
     """{ruta: advancement} y textos {"es_es": {...}, "en_us": {...}} (claves con el texto propio; los %s del título y
     la descripción se rellenan con "with")."""
     advs, lang = {}, {"es_es": {}, "en_us": {}}
@@ -118,10 +125,19 @@ def build(reg, modules):
             comp(key(path, "description"), fb(des), *([args[0]] if "%s" in des else []))
 
     title, desc = text("raiz", "raiz")
-    advs["raiz"] = advancement(None, ROOT_ICON, title, desc,
-                               {"aldea": location(f"#{NS}:aldeas"), "unica": location(f"#{NS}:unicas")},
-                               requirements=[["aldea", "unica"]], background=BACKGROUND,
+    raiz = {"aldea": location(f"#{NS}:aldeas"), "unica": location(f"#{NS}:unicas")}
+    if medianas_mods:
+        raiz["mediana"] = location(f"#{NS}:medianas")
+    advs["raiz"] = advancement(None, ROOT_ICON, title, desc, raiz, requirements=[sorted(raiz)], background=BACKGROUND,
                                announce_to_chat=False, show_toast=False)
+    if medianas_mods:   # estructuras medianas (medianas/): una cualquiera y una de cada tipo
+        title, desc = text("medianas/descubrir", "mediana")
+        advs["medianas/descubrir"] = advancement("raiz", MEDIANAS_ICON, title, desc,
+                                                 {"mediana": location(f"#{NS}:medianas")}, xp=XP["mediana"])
+        crit = {mid: location(f"#{NS}:medianas/{mid}") for mid, _ in medianas_mods}
+        title, desc = text("medianas/todas", "medianas")
+        advs["medianas/todas"] = advancement("medianas/descubrir", MEDIANAS_ICON, title, desc, crit,
+                                             requirements=[[mid] for mid in sorted(crit)], frame="goal", xp=XP["medianas"])
     # aldeas por familia
     for fam, d in FAMILIES.items():
         es, en = d["nombre"]
@@ -204,7 +220,8 @@ def write(out, reg, modules, jdump):
     """Escribe los logros y sus etiquetas; devuelve los textos para sumarlos a los idiomas del mod."""
     for path, values in structure_tags(modules).items():
         jdump(out, f"data/{NS}/tags/worldgen/structure/{path}.json", {"values": values})
-    advs, lang = build(reg, modules)
+    import medianas
+    advs, lang = build(reg, modules, medianas.modules())
     for path, adv in advs.items():
         jdump(out, f"data/{NS}/advancement/{path}.json", adv)
     return lang

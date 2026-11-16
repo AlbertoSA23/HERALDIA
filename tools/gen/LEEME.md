@@ -12,6 +12,7 @@ Requisitos: Python 3.11+, `pip install -r requirements.txt`.
 - `logros.py` → pestaña de logros «Heraldia» (aldeas por familia y, por cada única del registro, descubrir, guardián y tesoro; desafíos de los trofeos y de la crónica).
 - Trofeos de los guardianes: `TROFEO` de cada única → `unicas/_comun/botin.trofeo` (`heraldia:trofeos/<id>`) y `guardian_tabla` (`heraldia:guardianes/<id>/<mob>`, la DeathLootTable que pone `pack.tag_guardians`).
 - Crónica de los Heraldos (`docs/historia.md`): `HISTORIA` de cada única → `unicas/_comun/botin.historia_*` (`heraldia:historia/<id>`, que anida la tabla de su cofre; cadena en `historia_cadena`) y `writer.history_tables`; desafío `unicas/cronista` en `logros.py`.
+- `medianas/` → estructuras medianas (torre de vigía, posada, campamento, ermita): contrato en `medianas/__init__.py`, un módulo por tipo; `medianas.write` escribe sus estructuras, rejillas, etiquetas y botín.
 - `tratos.py` → todos los tratos de aldeano (`trato`, `predicado`): los mapas de los cartógrafos maestros (`mapas.trade`), los tratos con carácter de cada estilo (`ESTILOS`), el mapa de la única de la zona de cada familia y la botella del asedio de las aldeas fortificadas; escribe las etiquetas `#minecraft:<oficio>/level_N`.
 - `tablon.py` → tablón de encargos de la plaza (atril con libro y alguacil con sus tratos fijos) y logros de las hazañas con su recompensa.
 - `sim.py` → simulador del ensamblado jigsaw para contar casas, aldeanos y gólems sin abrir el juego.
