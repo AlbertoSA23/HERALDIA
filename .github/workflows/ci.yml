@@ -84,6 +84,7 @@ jobs:
           - tools/gen/unicas/castillo/prueba_redstone.py
           - tools/gen/unicas/catedral/prueba_juego.py
           - tools/gen/unicas/fortaleza_hielo/prueba_servidor.py
+          - tools/gen/unicas/isla_corsario/prueba_servidor.py
           - tools/gen/unicas/laboratorio_micelio/prueba_servidor.py
           - tools/gen/unicas/mansion/prueba_servidor.py
           - tools/gen/unicas/mina_perdida/prueba_servidor.py
