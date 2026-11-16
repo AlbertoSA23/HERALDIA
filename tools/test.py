@@ -50,6 +50,8 @@ COMPAT_RUTAS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/g
                 JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java", JAVA + "comun/ZonaAjenas.java",
                 JAVA + "unicas/isla/IslaZona.java", JAVA + "unicas/atlantida/AtlantisAnchor.java", JAVA + "comun/Medianas.java"]
 MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
+# Los tipos de medianas traen mobs anclados (y zombis adultos): las pruebas que recorren todos los mobs de las plantillas.
+MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
 
 # Mapa ruta -> pruebas de servidor. Se recorre en orden y gana la PRIMERA regla que casa (fnmatch: * cruza «/»).
 # Una lista vacía: el cambio no necesita pruebas de servidor (más allá de la de humo, que va siempre en la CI).
@@ -67,7 +69,7 @@ MAPA = [
     ("tools/gen/loot.py", []),                 # la de humo lee todas las tablas
     ("tools/gen/logros.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"]),
     # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
-    ("tools/gen/medianas/*", MEDIANAS), (JAVA + "comun/Medianas.java", MEDIANAS),
+    ("tools/gen/medianas/*", MEDIANAS_MOBS), (JAVA + "comun/Medianas.java", MEDIANAS),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
     ("tools/gen/etiquetas_c.json", ["tools/smoke/terralith_biomas.py"]),
     # los mods de Modrinth fijados: las pruebas que los descargan (las de compatibilidad, por COMPAT_RUTAS)
@@ -198,8 +200,8 @@ DURACION_S = {
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
                                          "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
     "tools/smoke/guardianes_anclados.py": 450,
+    "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque; 2 min 40 s con los 8 tipos
     "tools/smoke/guia.py": 120,                      # tres arranques del servidor
-    "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas

@@ -157,8 +157,9 @@ def test_ci_matriz_por_linea_de_ordenes():
 
 
 def test_medianas():
-    assert elige("tools/gen/medianas/posada.py") == (False, ["tools/smoke/estructuras_medianas.py"])
-    assert elige("tools/gen/medianas/__init__.py") == (False, ["tools/smoke/estructuras_medianas.py"])
+    mobs = ["tools/smoke/estructuras_medianas.py", "tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
+    assert elige("tools/gen/medianas/posada.py") == (False, mobs)       # sus mobs entran en las pruebas de anclados
+    assert elige("tools/gen/medianas/__init__.py") == (False, mobs)
     assert elige("tools/smoke/estructuras_medianas.py") == (False, ["tools/smoke/estructuras_medianas.py"])
     completa, p = elige(J + "comun/Medianas.java")      # decide dónde salen: también las de compatibilidad
     assert not completa and set(p) == {"tools/smoke/estructuras_medianas.py"} | set(COMPAT)

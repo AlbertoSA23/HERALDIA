@@ -2,12 +2,15 @@
 
 Uso: python3 tools/smoke/estructuras_medianas.py --jar build/libs/heraldia-X.jar [--work build/smoke-estructuras-medianas]
 Comprueba:
-- el log: la regla de las medianas y la rejilla de cada tipo con su separación por defecto;
+- el log: la regla de las medianas y la rejilla de cada tipo con su separación por defecto, su búsqueda de bioma y, en los
+  de biomas en franja (pescador), los vecinos que pide (bioma_vecinos);
 - /locate de cada tipo (#heraldia:medianas/<tipo>) desde varios puntos, a una distancia razonable, y desde cada una
   /heraldia info cerca: ninguna aldea ni única a menos de medianas.distancia_aldeas_unicas_bloques ni otra mediana de
   otro tipo a menos de medianas.distancia_minima.bloques (info cerca da la más cercana de cada rejilla con las reglas de
   la generación); luego se genera de verdad (forceload) y la estructura está donde dijo /locate;
-- /place template de cada variante: cada contenedor con su tabla y las entidades esperadas (etiqueta heraldia_mediana.<tipo>);
+- /place template de cada variante (sobre una losa): cada contenedor con su tabla (también las vasijas del templete), las
+  entidades esperadas (etiqueta heraldia_mediana.<tipo>), el agua quieta (caz del molino, acequias, pozo del templete:
+  sigue siendo fuente y no corre) y los aldeanos (posadero, molinero, pescador, cazador) quietos y con sus tratos;
 - /place structure de cada estilo (el pool y la estructura cargan) y su tiempo;
 - loot spawn de cada tabla (el diario de la ermita es un libro escrito) y /heraldia info con su resumen.
 Código 0 si todo pasa.
@@ -107,6 +110,8 @@ def comprobar_plantillas(ctx, ts):
         x, z = PLACE_X + (k % 5) * PASO, PLACE_Z + (k // 5) * PASO
         y = 100
         forceload(ctx, x - 8, z - 8, x + 47, z + 47)
+        sx, _, sz = t.size()       # losa debajo: el agua de la fila y = 0 (caces, acequias, pozos) se apoya como en el suelo
+        ctx.run(f"fill {x} {y - 1} {z} {x + sx - 1} {y - 1} {z + sz - 1} minecraft:stone", r"Successfully filled|No blocks")
         m = ctx.run(f"place template heraldia:{name} {x} {y} {z}", r"Loaded template|Failed")
         if "Loaded" not in m.group(0):
             fails.append(f"{name}: place template: {m.string.strip()}")
@@ -122,7 +127,48 @@ def comprobar_plantillas(ctx, ts):
                 fails.append(f"{name}: no aparecen sus entidades")
             elif ctx.count(sel) != n:
                 fails.append(f"{name}: {ctx.count(sel)} entidades, esperadas {n}")
+        fails += comprobar_agua(ctx, name, t, (x, y, z))
+        fails += comprobar_aldeanos(ctx, name, t, (x, y, z))
         forceload(ctx, x - 8, z - 8, x + 47, z + 47, quitar=True)
+    return fails
+
+
+def comprobar_agua(ctx, name, t, origen):
+    """El agua de la plantilla (todo fuentes, entre bloques) no corre: unos ticks después, cada celda de agua sigue siendo
+    una fuente y las de aire de alrededor siguen vacías."""
+    agua = [p for p, (st, _) in t.blocks.items() if st.split("[")[0] == "minecraft:water"]   # no los calderos
+    if not agua:
+        return []
+    time.sleep(2)                         # el agua se extiende cada 5 ticks
+    x0, y0, z0 = origen
+    fails = []
+    for (x, y, z) in agua:
+        if not ctx.block((x0 + x, y0 + y, z0 + z), "minecraft:water[level=0]"):
+            fails.append(f"{name}: el agua de {x, y, z} ya no es una fuente")
+        for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0)):
+            v = t.get(x + dx, y + dy, z + dz)
+            if v in (None, "minecraft:air") and not ctx.block((x0 + x + dx, y0 + y + dy, z0 + z + dz), "minecraft:air"):
+                fails.append(f"{name}: el agua de {x, y, z} corre hacia {x + dx, y + dy, z + dz}")
+    return fails
+
+
+def comprobar_aldeanos(ctx, name, t, origen):
+    """Los aldeanos de las medianas (posadero, molinero, pescador, cazador): quietos, invulnerables y con sus tratos."""
+    fails = []
+    x0, y0, z0 = origen
+    mid = name.split("/")[1]
+    for *_, n in t.entities:
+        if n["id"] != "minecraft:villager":
+            continue
+        prof = n["VillagerData"]["profession"]
+        sel = (f"@e[type=minecraft:villager,tag=heraldia_mediana.{mid},x={x0},y={y0},z={z0},dx=40,dy=30,dz=40,"
+               f"nbt={{NoAI:1b,Invulnerable:1b,VillagerData:{{profession:\"{prof}\"}}}}]")
+        if not ctx.until(f"execute if entity {sel}"):
+            fails.append(f"{name}: falta el aldeano {prof} quieto e invulnerable")
+            continue
+        primero = n["Offers"]["Recipes"][0]["sell"]["id"]
+        if not ctx.test(f"execute if entity {sel[:-1]},nbt={{Offers:{{Recipes:[{{sell:{{id:\"{primero}\"}}}}]}}}}]"):
+            fails.append(f"{name}: el aldeano {prof} no tiene sus tratos (vende {primero})")
     return fails
 
 
@@ -191,9 +237,14 @@ def main():
         tipos = [mid for mid, _ in medianas.modules()]
         for mid, mod in medianas.modules():
             sp = round(mod.SEPARACION / 16)
-            if not re.search(rf"rejilla medianas/{mid}: activada, cada {sp} chunks \(separación mínima {(DISTANCIA + 15) // 16}, "
-                             r"origen desplazado\)", log):
-                fails.append(f"falta en el log la rejilla de medianas/{mid} (cada {sp} chunks)")
+            vec = getattr(mod, "BIOMA_VECINOS", None)    # biomas en franja (playas): la búsqueda pide menos vecinos
+            m = re.search(rf"rejilla medianas/{mid}: activada, cada {sp} chunks \(separación mínima {(DISTANCIA + 15) // 16}, "
+                          r"origen desplazado\)([^\n]*)", log)
+            resto = m.group(1) if m else ""
+            vecinos = re.search(r", (\d) de 9 vecinos", resto)
+            if not m or f"candidata en el bioma #heraldia:medianas/{mid}" not in resto \
+                    or (int(vecinos.group(1)) if vecinos else None) != (vec if vec and vec != 6 else None):
+                fails.append(f"falta en el log la rejilla de medianas/{mid} (cada {sp} chunks, bioma_vecinos {vec}): {resto}")
         ctx.run("gamerule spawn_mobs false", r"Gamerule|set to|now")
         fails += comprobar_plantillas(ctx, ts)
         fails += comprobar_estructuras(ctx)
@@ -209,7 +260,8 @@ def main():
         if n is None or int(n) != esperadas:
             fails.append(f"/heraldia info: {n} medianas registradas, esperadas {esperadas}: {m.string.strip()}")
         texto = "".join(ctx.seen[-40:])
-        if not re.search(r"Medium structures: enabled; 4 of 4 types enabled|Estructuras medianas: activada; 4 de 4 tipos", texto):
+        n = len(tipos)
+        if not re.search(rf"Medium structures: enabled; {n} of {n} types enabled|Estructuras medianas: activada; {n} de {n} tipos", texto):
             fails.append("/heraldia info no resume las medianas")
     finally:
         if proc.poll() is None:

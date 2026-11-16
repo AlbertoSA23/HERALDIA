@@ -45,7 +45,9 @@ import org.slf4j.LoggerFactory;
  * biomas tan raros que una candidata al azar casi nunca acierta (los campos de champiñones). La búsqueda solo lee el
  * ruido de biomas del mundo principal (sin cargar chunks), se hace una vez por casilla y queda en memoria.
  * «bioma_y» (opcional, por defecto 64) es la altura a la que se mira el bioma: para los de cueva (la Mina perdida),
- * la del centro de la estructura.
+ * la del centro de la estructura. «bioma_vecinos» (opcional, 1-9, por defecto 6) son los puntos de la malla, de los 9
+ * del punto y sus vecinos, que deben caer en el bioma: con 6 una franja de menos de ~100 bloques (las playas) casi
+ * nunca vale; con menos se acepta, y sigue ganando el punto con más vecinos.
  * <p>«rejilla_antigua» marca las únicas que ya estaban en la 0.1.0. Con la opción unicas.rejilla_compatible (mundos
  * creados con esa versión) usan la rejilla de entonces: separación interna con la proporción del datapack (190/250),
  * origen común y sin búsqueda de bioma; isPlacementChunk y getPotentialStructureChunk acaban en el random_spread de
@@ -63,6 +65,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			AbstractSpreadingStructurePlacement.ExclusionZone.CODEC.optionalFieldOf("exclusion_zone").forGetter(p -> p.baseExclusion),
 			TagKey.codec(Registries.BIOME).optionalFieldOf("bioma").forGetter(p -> p.biome),
 			Codec.intRange(-64, 320).optionalFieldOf("bioma_y", 64).forGetter(p -> p.sampleY),
+			Codec.intRange(1, 9).optionalFieldOf("bioma_vecinos", 6).forGetter(p -> p.minScore),
 			Codec.BOOL.optionalFieldOf("rejilla_antigua", false).forGetter(p -> p.oldGrid)
 	).apply(i, GridPlacement::create));
 	/** Malla de la búsqueda de bioma (chunks), vecinos a medio paso y vecinos mínimos (de 9) para aceptar un punto. */
@@ -92,11 +95,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	private final int offsetX, offsetZ; // desfase del origen de la rejilla, en chunks (0 en las aldeas)
 	private final Optional<TagKey<Biome>> biome;
 	private final int sampleY; // altura a la que se mira el bioma (la del mar; más abajo, para biomas de cueva)
+	private final int minScore; // puntos de la malla (de 9) que deben caer en el bioma (MIN_SCORE; menos, biomas en franja)
 	private volatile @Nullable Memory memory; // casilla -> chunk (o NONE) del contexto en uso
 
 	private GridPlacement(String group, int baseSpacing, int baseSeparation, int salt,
 						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Optional<TagKey<Biome>> biome, int sampleY,
-						  boolean oldGrid, Settings s) {
+						  int minScore, boolean oldGrid, Settings s) {
 		super(Vec3i.ZERO, AbstractSpreadingStructurePlacement.FrequencyReductionMethod.DEFAULT, 1.0F, salt, s.exclusion,
 				s.spacing, s.separation, RandomSpreadType.LINEAR);
 		this.group = group;
@@ -108,6 +112,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		this.baseExclusion = baseExclusion;
 		this.biome = s.legacy ? Optional.empty() : biome;
 		this.sampleY = sampleY;
+		this.minScore = minScore;
 		this.enabled = s.enabled;
 		this.cells = s.maxCells < 0 ? null : Set.copyOf(nearestCells(s.maxCells));
 		this.offsetX = s.shifted ? (int) Math.floorMod(UniqueSeparation.mix(salt * 0x9E3779B97F4A7C15L), (long) s.spacing) : 0;
@@ -120,7 +125,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 
 	private static GridPlacement create(String group, int spacing, int separation, int salt,
 										Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion, Optional<TagKey<Biome>> biome,
-										int sampleY, boolean oldGrid) {
+										int sampleY, int minScore, boolean oldGrid) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		Settings s;
 		if (group.equals("aldeas")) {
@@ -155,8 +160,9 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 				s.shifted ? ", origen desplazado" : s.legacy ? ", rejilla antigua" : "",
 				s.maxCells < 0 ? "sin máximo" : "máximo " + s.maxCells + " casillas",
 				s.exclusion.map(z -> z.chunkCount() + " chunks").orElse("ninguna"),
-				biome.filter(b -> !s.legacy).map(b -> ", candidata en el bioma #" + b.location() + (sampleY != SAMPLE_Y ? " a y = " + sampleY : "")).orElse(""));
-		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, sampleY, oldGrid, s);
+				biome.filter(b -> !s.legacy).map(b -> ", candidata en el bioma #" + b.location() + (sampleY != SAMPLE_Y ? " a y = " + sampleY : "")
+						+ (minScore != MIN_SCORE ? ", " + minScore + " de 9 vecinos" : "")).orElse(""));
+		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, sampleY, minScore, oldGrid, s);
 	}
 
 	/** Contexto de búsqueda de bioma sin mundo (pruebas): null lo quita. */
@@ -323,7 +329,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 						}
 					}
 				}
-				if (score < MIN_SCORE) {
+				if (score < minScore) {
 					continue;
 				}
 				long key = (long) score << 56 | (UniqueSeparation.mix(seed ^ ChunkPos.pack(cx, cz) ^ baseSalt) >>> 8);

@@ -26,8 +26,12 @@ def reg():
     return r
 
 
-def test_lote_1_y_descubrimiento():
-    assert IDS == sorted(IDS) == ["campamento", "ermita", "posada", "torre_vigia"]
+LOTE_1 = ["campamento", "ermita", "posada", "torre_vigia"]
+LOTE_2 = ["cazadores", "molino", "pescador", "templete"]
+
+
+def test_lotes_y_descubrimiento():
+    assert IDS == sorted(IDS) == sorted(LOTE_1 + LOTE_2)
     assert not any(m.startswith("_") for m in IDS)
 
 
@@ -78,7 +82,9 @@ def test_entidades_marcadas_persistentes_y_ancladas(reg):
             if n["id"] != "minecraft:villager":
                 mobs += 1
                 assert core.ANCLADO_TAG in tags, name
-    assert mobs == 2 * 6 + 1 * 2   # campamento: 2 en cada una de sus 6 plantillas; torre alta (2 estilos): el arquero
+    # campamento: 2 en cada una de sus 6 plantillas; torre alta (2 estilos): el arquero; pescador a (3 estilos): el gato;
+    # cazadores a (2 estilos): el lobo; templete a (2 estilos): dos custodios
+    assert mobs == 2 * 6 + 1 * 2 + 1 * 3 + 1 * 2 + 2 * 2
 
 
 def test_bandidos_sin_patrulla(reg):
@@ -184,6 +190,7 @@ def test_escritura(tmp_path):
         union = json.loads((tmp_path / f"data/heraldia/tags/worldgen/biome/medianas/{mid}.json").read_text())["values"]
         assert {v for v in union if isinstance(v, str)} == {f"minecraft:{b}" for d in m.ESTILOS.values() for b in d["biomas"]}
         assert 0 < pl["separation"] < pl["spacing"] == round(m.SEPARACION / 16)
+        assert pl.get("bioma_vecinos") == getattr(m, "BIOMA_VECINOS", None)
         assert [e["structure"] for e in st["structures"]] == [f"heraldia:medianas/{mid}/{e}" for e in m.ESTILOS]
         for estilo in m.ESTILOS:
             s = files[f"data/heraldia/worldgen/structure/medianas/{mid}/{estilo}.json"]
@@ -241,3 +248,153 @@ def test_textos():
     for mid, m in MODS:
         assert lang["en_us"][medianas.nombre_clave(mid)] == m.NOMBRE["en_us"]
     json.dumps(lang)
+
+
+# ---------------------------------------------------------------- lote 2: molino, pescador, cazadores, templete
+def _entidades(reg, mid):
+    return {name: [n for *_, n in t.entities] for name, t in reg.templates.items() if name.startswith(f"medianas/{mid}/")}
+
+
+def test_lote_2_estilos_y_biomas_poco_servidos():
+    """Cada tipo nuevo tiene varios estilos, 2 variantes en cada uno y biomas que el lote 1 no tenía (o casi)."""
+    lote_1 = {b for mid, m in MODS if mid in LOTE_1 for d in m.ESTILOS.values() for b in d["biomas"]}
+    for mid, m in MODS:
+        if mid not in LOTE_2:
+            continue
+        assert len(m.ESTILOS) >= 2 and all(len(d["variantes"]) == 2 for d in m.ESTILOS.values()), mid
+        nuevos = {b for d in m.ESTILOS.values() for b in d["biomas"]} - lote_1
+        assert nuevos, mid
+    nuevos = {b for mid, m in MODS if mid in LOTE_2 for d in m.ESTILOS.values() for b in d["biomas"]} - lote_1
+    assert {"swamp", "beach", "snowy_beach", "stony_shore", "snowy_plains", "ice_spikes", "jungle", "desert"} <= nuevos
+
+
+@pytest.mark.parametrize("mid", LOTE_2)
+def test_lote_2_tamano(reg, mid):
+    for name, t in reg.templates.items():
+        if name.startswith(f"medianas/{mid}/"):
+            sx, _, sz = t.size()
+            assert 15 <= sx <= 21 and 15 <= sz <= 21, (name, sx, sz)
+
+
+def test_aldeanos_del_lote_2_con_tratos_fijos(reg):
+    esperado = {"molino": ("farmer", "minecraft:bread"), "pescador": ("fisherman", "minecraft:fishing_rod"),
+                "cazadores": ("leatherworker", "minecraft:leather_chestplate")}
+    for mid, (prof, vende) in esperado.items():
+        for name, ns in _entidades(reg, mid).items():
+            vs = [n for n in ns if n["id"] == "minecraft:villager"]
+            if name.endswith("/a"):
+                (v,) = vs
+                assert v["NoAI"] == 1 and v["Invulnerable"] == 1, name
+                assert v["VillagerData"]["profession"] == f"minecraft:{prof}", name
+                assert vende in [o["sell"]["id"] for o in v["Offers"]["Recipes"]], name
+            else:
+                assert vs == [], name
+
+
+def test_animales_y_custodios_del_lote_2(reg):
+    for name, ns in _entidades(reg, "pescador").items():
+        gatos = [n for n in ns if n["id"] == "minecraft:cat"]
+        assert len(gatos) == (1 if name.endswith("/a") else 0), name
+    for name, ns in _entidades(reg, "cazadores").items():
+        assert len([n for n in ns if n["id"] == "minecraft:wolf"]) == (1 if name.endswith("/a") else 0), name
+    for name, ns in _entidades(reg, "templete").items():
+        if name.endswith("/b"):
+            assert ns == [], name
+            continue
+        assert len(ns) == 2, name
+        for n in ns:
+            assert n["id"] in ("minecraft:skeleton", "minecraft:husk"), name
+            if n["id"] == "minecraft:husk":
+                assert core.ADULTO_TAG in n["Tags"], name       # no sale bebé
+            else:
+                assert n["equipment"]["head"]["id"] == "minecraft:chainmail_helmet", name   # no arde de día
+
+
+def test_agua_quieta_y_contenida(reg):
+    """El agua de las medianas (caz del molino, trigal, acequias, pozo del templete) es toda fuente y no tiene ninguna
+    cara lateral abierta dentro de la plantilla: no corre."""
+    for name, t in reg.templates.items():
+        if not name.startswith("medianas/"):
+            continue
+        for (x, y, z), (st, _) in t.blocks.items():
+            if lint.bname(st) != "water":
+                continue
+            assert "level=0" in st, (name, (x, y, z))
+            for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                vecino = t.get(x + dx, y, z + dz)
+                if vecino is None:
+                    assert y == 0, (name, (x, y, z), "agua sobre el terreno, junto al vacío")
+                    continue
+                assert lint.bname(vecino) == "water" or not lint.passable(vecino), (name, (x, y, z), vecino)
+            debajo = t.get(x, y - 1, z)
+            assert y == 0 or (debajo and not lint.passable(debajo)), (name, (x, y, z))
+
+
+def test_molino_rueda_y_aspas(reg):
+    a = reg.templates["medianas/molino/llanura/a"]
+    assert sum(1 for (x, _, _), (st, _) in a.blocks.items() if x == 12 and st == "minecraft:oak_planks") == 16  # aro
+    assert a.get(12, 0, 9).startswith("minecraft:water")              # la rueda moja en el caz
+    b = reg.templates["medianas/molino/llanura/b"]
+    lona = [p for p, (st, _) in b.blocks.items() if st == "minecraft:white_wool"]
+    assert len(lona) == 16 and all(z == 12 for _, _, z in lona)       # cuatro aspas en la cara sur
+
+
+def test_embarcadero_del_pescador(reg):
+    for v, largo in (("a", 17), ("b", 20)):
+        t = reg.templates[f"medianas/pescador/playa/{v}"]
+        tablas = [z for (x, y, z), (st, _) in t.blocks.items() if y == 1 and x == 12 and st == "minecraft:birch_planks"]
+        assert max(tablas) == largo and min(tablas) == 6
+
+
+def test_templete_columnas_rotas_y_arquitrabe(reg):
+    from medianas import templete as tp
+    t = reg.templates["medianas/templete/desierto/a"]
+    for x in range(tp.P0, tp.P1 + 1):
+        for z in (tp.P0, tp.P1):
+            assert t.get(x, 7, z) is not None          # arquitrabe entero al norte y al sur
+    rotas = {(x, z): max(y for (xx, y, zz), (st, _) in t.blocks.items() if (xx, zz) == (x, z) and st != "minecraft:air")
+             for x in (tp.P0, tp.P1)
+             for z in range(tp.P0 + 2, tp.P1 - 1, 2)}
+    assert all(h < 7 for h in rotas.values()) and len(set(rotas.values())) > 1
+
+
+def test_vasijas_con_botin(reg):
+    t = reg.templates["medianas/templete/jungla/b"]
+    vasijas = [nbt for (st, nbt) in t.blocks.values() if st.startswith("minecraft:decorated_pot") and nbt and nbt.get("LootTable")]
+    assert len(vasijas) == 2 and all(n["LootTable"] == "heraldia:medianas/templete/vasija" for n in vasijas)
+
+
+def test_logros_propios_del_lote_2(reg):
+    advs, lang = logros.build(reg, [], MODS)
+    for mid, m in MODS:
+        for ex in getattr(m, "LOGROS", ()):
+            adv = advs[f"medianas/{mid}/{ex['id']}"]
+            assert adv["parent"] == "heraldia:medianas/descubrir"
+            assert adv["rewards"]["experience"] == logros.XP["mediana_extra"]
+            k = f"advancements.heraldia.medianas.{mid}.{ex['id']}.title"
+            assert lang["es_es"][k] == ex["titulo"][0] and lang["en_us"][k] == ex["titulo"][1]
+            if ex.get("tabla"):
+                (crit,) = adv["criteria"].values()
+                assert crit["conditions"]["loot_tables"] == f"heraldia:medianas/{mid}/{ex['tabla']}"
+    assert {p for p in advs if p.startswith("medianas/") and p.count("/") == 2} == {
+        "medianas/molino/molienda", "medianas/pescador/pesca", "medianas/cazadores/pieles", "medianas/templete/custodios"}
+    custodios = advs["medianas/templete/custodios"]["criteria"]
+    assert set(custodios) == {"skeleton", "husk"}
+    assert custodios["husk"]["conditions"]["entity"]["predicate"]["minecraft:entity_tags"] == {"all_of": ["heraldia_mediana.templete"]}
+
+
+def test_logro_mal_definido():
+    class ConLogro(_Falsa):
+        LOGROS = [dict(id="x", icono="minecraft:cod", titulo=("a", "b"), descripcion=("c", "d"), tabla="no_existe"),
+                  dict(id="y", icono="minecraft:cod", titulo=("a", "b"))]
+    errs = _errores(ConLogro)
+    assert any("no está en LOOT" in e for e in errs) and any("logro 'y'" in e for e in errs)
+
+
+def test_bioma_vecinos_solo_en_el_pescador_y_en_rango():
+    """Las playas son franjas: solo el pescador pide menos vecinos a la búsqueda de bioma de su rejilla."""
+    assert {mid: m.BIOMA_VECINOS for mid, m in MODS if hasattr(m, "BIOMA_VECINOS")} == {"pescador": 2}
+
+    class Franja(_Falsa):
+        BIOMA_VECINOS = 0
+    assert any("BIOMA_VECINOS" in e for e in _errores(Franja))
