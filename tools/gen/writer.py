@@ -452,7 +452,7 @@ def cimientos(th):
     return hasta_el_suelo(blocks, CIMIENTOS_MAX)
 
 
-PORT_REACH = 80        # bloques desde el centro de la plaza en que se busca la orilla (piezas a <= 8 chunks del inicio)
+PORT_REACH = 96        # bloques desde el centro de la plaza en que se busca la orilla (el Java descarta lo que salga de los 8 chunks)
 
 
 def jigsaw_pos(t, name):
