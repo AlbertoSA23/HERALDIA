@@ -10,6 +10,7 @@ import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.loot.WithoutLootrCondition;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import io.github.albertosa23.heraldia.comun.Medianas;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.RegistryAccess;
@@ -62,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * /heraldia info [cerca [radio] | aqui] (operador, nivel 2). Solo trabaja cuando se ejecuta:
  * <ul>
  * <li>info: la configuración en uso y cuántas estructuras hay registradas.</li>
- * <li>info cerca [radio]: la estructura única más cercana de cada tipo y la aldea Heraldia más cercana. Recorre las
+ * <li>info cerca [radio]: la estructura única y la mediana más cercanas de cada tipo y la aldea Heraldia más cercana. Recorre las
  * casillas de cada rejilla dentro del radio con las reglas de la generación (las de StructureCheck y los mixins más la
  * zona de exclusión de las aldeas vanilla) y lee los chunks ya guardados con el escáner de StructureCheck: todo fuera
  * del hilo del servidor; en él solo se miran los chunks ya cargados. No carga ni genera chunks: una casilla sin generar
@@ -110,12 +111,14 @@ public final class InfoCommand {
 
 		Registry<Structure> registry = source.getServer().registryAccess().lookupOrThrow(Registries.STRUCTURE);
 		List<Identifier> uniques = new ArrayList<>();
-		int heraldia = 0;
+		int heraldia = 0, medium = 0;
 		for (Identifier id : registry.keySet()) {
 			if (Heraldia.MOD_ID.equals(id.getNamespace())) {
 				heraldia++;
 				if (UniqueSeparation.isUnique(id)) {
 					uniques.add(id);
+				} else if (Medianas.esMediana(id)) {
+					medium++;
 				}
 			}
 		}
@@ -142,9 +145,31 @@ public final class InfoCommand {
 		lines.add(Textos.t("heraldia.info.rejilla", onOff(cfg.getBool(GridPlacement.LEGACY_OPTION))));
 		lines.add(Textos.t("heraldia.info.cofre", yesNo(cfg.getBool("unicas.atlantida.cofre_unico_por_jugador")),
 				Textos.t(WithoutLootrCondition.LOOTR_LOADED ? "heraldia.info.cargado" : "heraldia.info.no_cargado")));
-		lines.add(Textos.t("heraldia.info.registradas", heraldia, heraldia - uniques.size(), uniques.size()));
+		lines.addAll(mediumLines(source, cfg));
+		lines.add(Textos.t("heraldia.info.registradas", heraldia, heraldia - uniques.size() - medium, uniques.size(), medium));
 		lines.forEach(l -> source.sendSuccess(() -> l, false));
 		return heraldia;
+	}
+
+	/** Estructuras medianas: la configuración común y, por tipo (un structure_set medianas/&lt;tipo&gt;), su separación. */
+	private static List<Component> mediumLines(CommandSourceStack source, HeraldiaConfig cfg) {
+		Medianas m = Medianas.of(source.getServer().registryAccess());
+		List<Component> out = new ArrayList<>(), types = new ArrayList<>();
+		int enabled = 0;
+		for (int i = 0; i < m.tipos(); i++) {
+			String tid = m.tipoId(i).getPath().substring(Medianas.PREFIJO.length());
+			String key = "medianas." + tid;
+			if (cfg.getBool(Medianas.ACTIVADAS) && cfg.getBool(key + ".activada")) {
+				enabled++;
+				types.add(Textos.t("heraldia.info.mediana", mediumName(tid), cfg.getInt(key + ".separacion_bloques")));
+			} else {
+				types.add(Textos.t("heraldia.info.unica.desactivada", mediumName(tid)).withStyle(ChatFormatting.GRAY));
+			}
+		}
+		out.add(Textos.t("heraldia.info.medianas", onOff(cfg.getBool(Medianas.ACTIVADAS)), enabled, m.tipos(),
+				cfg.getInt(Medianas.FRECUENCIA), cfg.getInt(Medianas.ZONA), cfg.getInt(Medianas.DISTANCIA)));
+		out.addAll(types);
+		return out;
 	}
 
 	// --- info cerca ---
@@ -318,7 +343,9 @@ public final class InfoCommand {
 				Structure st = h.value();
 				ok = !AtlantisAnchor.excludes(id, level.dimension(), seed, c.x(), c.z())
 						&& st.findValidGenerationPoint(new Structure.GenerationContext(access, generator, generator.getBiomeSource(), sampler,
-						randomState, level.getStructureTemplateManager(), seed, c, level, st.biomes()::contains)).isPresent();
+						randomState, level.getStructureTemplateManager(), seed, c, level, st.biomes()::contains)).isPresent()
+						&& !(Medianas.esMediana(id) && Medianas.of(access).rechaza(id, c.x(), c.z(), seed, access, generator,
+						generator.getBiomeSource(), sampler, randomState, level.getStructureTemplateManager(), level, level.dimension()));
 			}
 			if (ok) {
 				return h;
@@ -455,7 +482,13 @@ public final class InfoCommand {
 		if (id == null) {
 			return "?";
 		}
-		return f.generated || UniqueSeparation.isUnique(id) ? id.toString() : Heraldia.MOD_ID + ":aldeas";
+		if (f.generated || UniqueSeparation.isUnique(id)) {
+			return id.toString();
+		}
+		if (Medianas.esMediana(id)) { // prevista: el estilo lo sortea el structure_set del tipo al generarse
+			return Heraldia.MOD_ID + ":" + id.getPath().substring(0, id.getPath().lastIndexOf('/'));
+		}
+		return Heraldia.MOD_ID + ":aldeas";
 	}
 
 	/** Nombre traducido: el de la única (heraldia.unicas.&lt;id&gt;.nombre) o «Aldea Heraldia de &lt;familia&gt;». */
@@ -468,6 +501,9 @@ public final class InfoCommand {
 		if (UniqueSeparation.isUnique(id)) {
 			return uniqueName(path.substring("unicas/".length()));
 		}
+		if (Medianas.esMediana(id)) { // heraldia:medianas/<tipo>/<estilo>
+			return mediumName(path.split("/")[1]);
+		}
 		String style = path.endsWith("_grande") ? path.substring(0, path.length() - "_grande".length()) : path;
 		JsonObject styles = HeraldiaConfig.get().schema().getAsJsonObject("aldeas").getAsJsonObject("estilos");
 		if (styles.has(style)) {
@@ -478,6 +514,10 @@ public final class InfoCommand {
 
 	private static MutableComponent uniqueName(String sid) {
 		return Textos.t("heraldia.unicas." + sid + ".nombre");
+	}
+
+	private static MutableComponent mediumName(String tid) {
+		return Textos.t("heraldia.medianas." + tid + ".nombre");
 	}
 
 	private static Component onOff(boolean b) {

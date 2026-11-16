@@ -152,3 +152,11 @@ def test_ci_matriz_por_linea_de_ordenes():
     m = json.loads(out)
     assert m["completa"] is True
     assert sorted(p for g in m["include"] for p in g["pruebas"].split()) == TODAS
+
+
+def test_medianas():
+    assert elige("tools/gen/medianas/posada.py") == (False, ["tools/smoke/estructuras_medianas.py"])
+    assert elige("tools/gen/medianas/__init__.py") == (False, ["tools/smoke/estructuras_medianas.py"])
+    assert elige("tools/smoke/estructuras_medianas.py") == (False, ["tools/smoke/estructuras_medianas.py"])
+    completa, p = elige(J + "comun/Medianas.java")      # decide dónde salen: también las de compatibilidad
+    assert not completa and set(p) == {"tools/smoke/estructuras_medianas.py"} | set(COMPAT)
