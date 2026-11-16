@@ -3,8 +3,8 @@
 1. Generación natural: /locate desde el 0,0 (la candidata de cada casilla se busca en los océanos templados y cálidos,
    GridPlacement con «bioma»; el tipo heraldia:isla exige mar abierto con el fondo a profundidad media), mide la
    distancia y el tiempo, carga esos chunks y comprueba que el sitio es uno de sus océanos, que la estructura se ha
-   generado de verdad (el corsario está en la cámara del tesoro, bajo el nivel del mar y en seco) y que queda lejos de
-   la Atlántida (fuera de su zona de exclusión).
+   generado de verdad (el corsario está en la cámara del tesoro, bajo el nivel del mar y en seco), que queda lejos de
+   la Atlántida (fuera de su zona de exclusión) y que ningún naufragio ni ruina oceánica nace dentro de ella (IslaZona).
 2. Coloca la estructura entera con /place structure, mide cuánto tarda y cuenta sus entidades (el corsario y la barca
    de la ensenada).
 3. Coloca la plantilla sin girar en un sitio conocido y comprueba cofres, generadores, agua de la ensenada y salas
@@ -27,6 +27,7 @@ GUARDIAN = f"@e[type=minecraft:skeleton,tag=heraldia_guardian.{SID}]"
 OCEANOS = ("ocean", "lukewarm_ocean", "warm_ocean")
 MAX_LOCATE = 12000
 ATLANTIDA_EXCLUSION = 444 + 60                 # radio de exclusión de la Atlántida (AtlantisAnchor) + media isla
+ISLA_RADIO = 70                                # el islote y el bergantín, desde el centro (IslaZona excluye 7 chunks)
 DV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 
 
@@ -118,6 +119,14 @@ def main():
                 print(f"[{'OK' if ok else 'FALLO'}] la isla queda fuera de la Atlántida ({d:.0f} bloques de su centro)")
                 if not ok:
                     fails.append("isla dentro de la Atlántida")
+            for tag in ("shipwreck", "ocean_ruin"):   # IslaZona: nada ajeno dentro de la isla (igual en /locate)
+                mm = cmd(f"execute positioned {lx} 64 {lz} run locate structure #minecraft:{tag}",
+                         r"The nearest .* is at \[(-?\d+), [^,]+, (-?\d+)\] \((\d+) blocks away\)|Could not find")
+                d = 10 ** 9 if "Could not" in mm.group(0) else int(mm.group(3))
+                ok = d > ISLA_RADIO
+                print(f"[{'OK' if ok else 'FALLO'}] ningún {tag} dentro de la isla (el más cercano a {d} bloques)")
+                if not ok:
+                    fails.append(f"{tag} dentro de la isla")
             sm.send(proc, f"forceload add {lx - 80} {lz - 80} {lx + 80} {lz + 80}")
             sm.wait_for(lines, r"Marked|Added|chunks? .*force", 600, seen)
             for _ in range(30):                     # los chunks forzados se cargan en los ticks siguientes

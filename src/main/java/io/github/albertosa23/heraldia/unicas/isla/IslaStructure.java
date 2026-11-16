@@ -95,6 +95,7 @@ public final class IslaStructure extends Structure {
 
 	@Override
 	protected Optional<GenerationStub> findGenerationPoint(GenerationContext ctx) {
+		long t0 = System.nanoTime();
 		int sea = ctx.chunkGenerator().getSeaLevel();
 		int cx = ctx.chunkPos().getMiddleBlockX(), cz = ctx.chunkPos().getMiddleBlockZ();
 		boolean forced = Generacion.forzada(ctx, biomes());
@@ -103,11 +104,11 @@ public final class IslaStructure extends Structure {
 		for (int[] c : CANDIDATES) {
 			int px = cx + c[0], pz = cz + c[1];
 			if (biomes(ctx, px, pz, sea) && floors(alturas, px, pz)) {
-				return Optional.of(stub(ctx, px, pz, sea, rotation, false));
+				return Optional.of(stub(ctx, px, pz, sea, rotation, false, t0));
 			}
 		}
 		// /place structure acepta cualquier bioma: sin mar abierto a la vista se coloca igualmente, para probar.
-		return forced ? Optional.of(stub(ctx, cx, cz, sea, rotation, true)) : Optional.empty();
+		return forced ? Optional.of(stub(ctx, cx, cz, sea, rotation, true, t0)) : Optional.empty();
 	}
 
 	/** Toda la huella y el anillo exterior en los biomas de la estructura (barato: solo el ruido de biomas). */
@@ -138,7 +139,7 @@ public final class IslaStructure extends Structure {
 		return true;
 	}
 
-	private GenerationStub stub(GenerationContext ctx, int px, int pz, int sea, Rotation rotation, boolean forced) {
+	private GenerationStub stub(GenerationContext ctx, int px, int pz, int sea, Rotation rotation, boolean forced, long t0) {
 		StructureTemplateManager manager = ctx.structureTemplateManager();
 		StructurePoolElement element = startPool.value().getRandomTemplate(ctx.random());
 		BlockPos origin = new BlockPos(px, sea - filaMar, pz);
@@ -147,8 +148,9 @@ public final class IslaStructure extends Structure {
 				rotation, box, LiquidSettings.IGNORE_WATERLOGGING);
 		piece.move(px - box.getCenter().getX(), 0, pz - box.getCenter().getZ());
 		if (logged.getAndIncrement() < LOGGED) {
-			LOGGER.info("Heraldia: isla del corsario en {} {} (chunk {}, {}), giro {}{}", px, pz, ctx.chunkPos().x(),
-					ctx.chunkPos().z(), rotation, forced ? ", sin comprobar el mar (/place)" : "");
+			LOGGER.info("Heraldia: isla del corsario en {} {} (chunk {}, {}), giro {}{}, sitio buscado en {} µs", px, pz,
+					ctx.chunkPos().x(), ctx.chunkPos().z(), rotation, forced ? ", sin comprobar el mar (/place)" : "",
+					(System.nanoTime() - t0) / 1000);
 		}
 		return new GenerationStub(new BlockPos(px, sea - 1, pz), builder -> builder.addPiece(piece));
 	}

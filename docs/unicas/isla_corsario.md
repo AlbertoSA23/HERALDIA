@@ -30,6 +30,12 @@ marinas bajo el cerro, con una ensenada a la que se entra en barca.
 - **Fuera de la Atlántida**: `AtlantisAnchor.excludes` (en `ChunkGeneratorMixin` y `StructureCheckMixin`) ya rechaza
   toda estructura ajena cuyo inicio cae dentro de la zona de la ciudad, y `UniqueSeparation` la separa de las demás
   únicas, la Atlántida incluida. La prueba de servidor lo comprueba con `/locate`.
+- **Nada ajeno dentro de la isla** (`unicas/isla/IslaZona`, en los mismos dos mixins, sin mixins nuevos): un naufragio,
+  una ruina oceánica o un portal en ruinas cuyo inicio cae a menos de 7 chunks de la candidata de la isla de su casilla
+  se rechaza si la isla sale allí de verdad (la misma viabilidad que la distancia mínima entre únicas). Lo caro solo se
+  calcula junto a una candidata (unos pocos chunks por casilla) y queda en memoria; para el resto, una búsqueda en una
+  tabla y la candidata de la casilla (ya en memoria en `GridPlacement`). Las fortalezas no se excluyen (como en la
+  Atlántida). La prueba de servidor busca con `/locate` el naufragio y la ruina oceánica más cercanos a la isla.
 - **El islote nunca cuelga**: la plantilla baja hasta 18 bloques bajo el nivel del mar (`BASE`) y su fila inferior se
   prolonga hasta el fondo al colocarse (`heraldia:acueducto_hasta_el_suelo`, 24 bloques como mucho, solo con roca,
   arena, grava, arenisca y los pilotes del muelle). Alrededor de la costa, un talud de arena y grava baja hasta esa fila:
