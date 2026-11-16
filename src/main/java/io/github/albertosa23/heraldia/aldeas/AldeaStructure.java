@@ -39,7 +39,8 @@ import org.slf4j.LoggerFactory;
  * orilla se busca en rayos desde el centro de la plaza en las cuatro direcciones (cada uno se corta en la primera agua),
  * solo con el fondo de generación ({@code OCEAN_FLOOR_WG}, con caché), y solo al crear la aldea (no en /locate ni en
  * los mapas). Si el sitio lo ocupan casas, se quitan (el puerto ocupa su lugar); si no hay orilla al alcance o choca
- * con la plaza, un edificio especial o una torre, la aldea sale sin puerto (la avenida ya tiene la posada).
+ * con la plaza, un edificio especial, una torre o una calle bajo el muelle, la aldea sale sin puerto (la avenida ya
+ * tiene la posada).
  */
 public final class AldeaStructure extends Structure {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -122,20 +123,24 @@ public final class AldeaStructure extends Structure {
 
 	/**
 	 * Piezas de la aldea que habría que quitar para poner el puerto en estas cajas, o null si choca con algo que no se
-	 * quita (plaza, edificios especiales, torres). Las calles ({@code terrain_matching}) no cuentan: llegan a la orilla
-	 * (sobre el agua el procesador de calle pone tablas) y el puerto, que se coloca después, las cubre. Con cada casa se
-	 * van las piezas que quedan dentro de ella (su aldeano, su cama).
+	 * quita (plaza, edificios especiales, torres). Las calles ({@code terrain_matching}) llegan a la orilla (sobre el agua
+	 * el procesador de calle pone tablas): bajo la caseta no cuentan (la caseta, rígida y colocada después, las cubre),
+	 * pero una calle cuya planta pisa la del muelle descarta la orilla (sus tablas quedarían bajo las del muelle, un bloque
+	 * más abajo, y quitarla dejaría casas sin camino). Con cada casa se van las piezas que quedan dentro de ella (su
+	 * aldeano, su cama).
 	 */
-	private static List<StructurePiece> displaced(List<StructurePiece> village, BoundingBox... boxes) {
+	private static List<StructurePiece> displaced(List<StructurePiece> village, BoundingBox caseta, BoundingBox muelle) {
 		List<StructurePiece> out = new ArrayList<>();
 		for (StructurePiece piece : village) {
 			BoundingBox b = piece.getBoundingBox();
-			boolean hit = false;
-			for (BoundingBox box : boxes) {
-				hit |= b.intersects(box);
-			}
-			if (!hit || piece instanceof PoolElementStructurePiece pe
+			if (piece instanceof PoolElementStructurePiece pe
 					&& pe.getElement().getProjection() == StructureTemplatePool.Projection.TERRAIN_MATCHING) {
+				if (b.intersects(muelle.minX(), muelle.minZ(), muelle.maxX(), muelle.maxZ())) {
+					return null;
+				}
+				continue;
+			}
+			if (!b.intersects(caseta) && !b.intersects(muelle)) {
 				continue;
 			}
 			if (!removable(piece)) {
@@ -223,7 +228,7 @@ public final class AldeaStructure extends Structure {
 			}
 		}
 		return "sin orilla al alcance, sin puerto (" + shores.size() + " orillas: " + shallow + " sin fondo, " + blocked
-				+ " junto a edificios que no se quitan)";
+				+ " junto a edificios que no se quitan o sobre una calle)";
 	}
 
 	/** Afina con paso 2 entre la última tierra baja (r0) y la primera agua (r1); null si no queda tierra baja. */
