@@ -382,6 +382,8 @@ def write_unique(out, sid, st):
     if st.get("candidata_en_bioma"):     # bioma raro: la candidata de cada casilla se busca en sus biomas (GridPlacement)
         assert placement["type"] == f"{NS}:rejilla", f"{sid}: candidata_en_bioma solo con la rejilla heraldia:rejilla"
         placement = dict(placement, bioma=structure["biomes"].lstrip("#"))
+        if st.get("candidata_y") is not None:   # biomas subterráneos: la candidata se busca a esa altura (GridPlacement)
+            placement["bioma_y"] = st["candidata_y"]
     jdump(out, f"data/{NS}/worldgen/structure_set/unicas/{sid}.json", {
         "structures": [{"structure": sid_full, "weight": 1}],
         # colocación propia de la estructura (p. ej. la Atlántida, siempre una) o rejilla configurable heraldia:rejilla

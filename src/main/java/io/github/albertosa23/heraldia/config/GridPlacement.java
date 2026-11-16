@@ -43,6 +43,8 @@ import org.slf4j.LoggerFactory;
  * mínima), que cae en ese bioma y tiene más vecinos a 64 bloques también en él (el más metido en el bioma). Sirve para
  * biomas tan raros que una candidata al azar casi nunca acierta (los campos de champiñones). La búsqueda solo lee el
  * ruido de biomas del mundo principal (sin cargar chunks), se hace una vez por casilla y queda en memoria.
+ * «bioma_y» (opcional, por defecto 64) es la altura a la que se mira el bioma: para los de cueva (la Mina perdida),
+ * la del centro de la estructura.
  */
 @SuppressWarnings("deprecation") // ExclusionZone está marcada obsoleta en vanilla, pero es la que usan sus aldeas
 public final class GridPlacement extends RandomSpreadStructurePlacement {
@@ -53,7 +55,8 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			Codec.intRange(0, 4095).fieldOf("separation").forGetter(p -> p.baseSeparation),
 			Codec.INT.fieldOf("salt").forGetter(p -> p.baseSalt),
 			AbstractSpreadingStructurePlacement.ExclusionZone.CODEC.optionalFieldOf("exclusion_zone").forGetter(p -> p.baseExclusion),
-			TagKey.codec(Registries.BIOME).optionalFieldOf("bioma").forGetter(p -> p.biome)
+			TagKey.codec(Registries.BIOME).optionalFieldOf("bioma").forGetter(p -> p.biome),
+			Codec.intRange(-64, 320).optionalFieldOf("bioma_y", 64).forGetter(p -> p.sampleY)
 	).apply(i, GridPlacement::create));
 	/** Malla de la búsqueda de bioma (chunks), vecinos a medio paso y vecinos mínimos (de 9) para aceptar un punto. */
 	private static final int STEP = 8, HALF = STEP / 2, MIN_SCORE = 6, SAMPLE_Y = 64, CACHE_MAX = 1 << 14;
@@ -70,11 +73,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	private final Set<Long> cells; // null = sin límite
 	private final int offsetX, offsetZ; // desfase del origen de la rejilla, en chunks (0 en las aldeas)
 	private final Optional<TagKey<Biome>> biome;
+	private final int sampleY; // altura a la que se mira el bioma (la del mar; más abajo, para biomas de cueva)
 	private final ConcurrentHashMap<Long, Long> candidates = new ConcurrentHashMap<>(); // casilla -> chunk (o NONE)
 	private volatile @Nullable BiomeContext cachedFor;
 
 	private GridPlacement(String group, int baseSpacing, int baseSeparation, int salt,
-						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Optional<TagKey<Biome>> biome, Settings s) {
+						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Optional<TagKey<Biome>> biome, int sampleY, Settings s) {
 		super(Vec3i.ZERO, AbstractSpreadingStructurePlacement.FrequencyReductionMethod.DEFAULT, 1.0F, salt, s.exclusion,
 				s.spacing, s.separation, RandomSpreadType.LINEAR);
 		this.group = group;
@@ -83,6 +87,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		this.baseSalt = salt;
 		this.baseExclusion = baseExclusion;
 		this.biome = biome;
+		this.sampleY = sampleY;
 		this.enabled = s.enabled;
 		this.cells = s.maxCells < 0 ? null : Set.copyOf(nearestCells(s.maxCells));
 		this.offsetX = s.shifted ? (int) Math.floorMod(UniqueSeparation.mix(salt * 0x9E3779B97F4A7C15L), (long) s.spacing) : 0;
@@ -94,7 +99,8 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	}
 
 	private static GridPlacement create(String group, int spacing, int separation, int salt,
-										Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion, Optional<TagKey<Biome>> biome) {
+										Optional<AbstractSpreadingStructurePlacement.ExclusionZone> exclusion, Optional<TagKey<Biome>> biome,
+										int sampleY) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		Settings s;
 		if (group.equals("aldeas")) {
@@ -116,8 +122,8 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 				s.enabled ? "activada" : "desactivada", s.spacing, s.separation, s.shifted ? ", origen desplazado" : "",
 				s.maxCells < 0 ? "sin máximo" : "máximo " + s.maxCells + " casillas",
 				s.exclusion.map(z -> z.chunkCount() + " chunks").orElse("ninguna"),
-				biome.map(b -> ", candidata en el bioma #" + b.location()).orElse(""));
-		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, s);
+				biome.map(b -> ", candidata en el bioma #" + b.location() + (sampleY != SAMPLE_Y ? " a y = " + sampleY : "")).orElse(""));
+		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, sampleY, s);
 	}
 
 	private static int chunks(int blocks) {
@@ -253,13 +259,13 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		for (int a = 0; a < n; a++) {
 			for (int b = 0; b < n; b++) {
 				int cx = x0 + first + a * STEP, cz = z0 + first + b * STEP;
-				if (!in(ctx, tag, cx, cz)) {
+				if (!in(ctx, tag, cx, cz, sampleY)) {
 					continue;
 				}
 				int score = 1;
 				for (int dx = -HALF; dx <= HALF; dx += HALF) {
 					for (int dz = -HALF; dz <= HALF; dz += HALF) {
-						if ((dx != 0 || dz != 0) && in(ctx, tag, cx + dx, cz + dz)) {
+						if ((dx != 0 || dz != 0) && in(ctx, tag, cx + dx, cz + dz, sampleY)) {
 							score++;
 						}
 					}
@@ -277,9 +283,9 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		return best;
 	}
 
-	/** El bioma en la esquina del chunk (donde el jigsaw comprueba el suyo), a la altura del mar. */
-	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, int chunkX, int chunkZ) {
-		Holder<Biome> b = ctx.resolver.getNoiseBiome(QuartPos.fromBlock(chunkX * 16), QuartPos.fromBlock(SAMPLE_Y), QuartPos.fromBlock(chunkZ * 16));
+	/** El bioma en la esquina del chunk (donde el jigsaw comprueba el suyo), a la altura y (la del mar por defecto). */
+	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, int chunkX, int chunkZ, int y) {
+		Holder<Biome> b = ctx.resolver.getNoiseBiome(QuartPos.fromBlock(chunkX * 16), QuartPos.fromBlock(y), QuartPos.fromBlock(chunkZ * 16));
 		return b.is(tag);
 	}
 

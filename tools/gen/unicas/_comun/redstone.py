@@ -45,7 +45,7 @@ def is_source_connectable(s, d_from_wire):
     b = bn(s)
     if b == "repeater":                      # solo a lo largo de su eje
         return parse_state(s)[1]["facing"] in (d_from_wire, OPP[d_from_wire])
-    return b in ("redstone_torch", "redstone_wall_torch", "lever", "tripwire_hook", "redstone_block") \
+    return b in ("redstone_torch", "redstone_wall_torch", "lever", "tripwire_hook", "redstone_block", "detector_rail") \
         or b.endswith("pressure_plate") or b.endswith("_button")
 
 
@@ -97,7 +97,7 @@ class Sim:
     def __init__(self, t, inputs=None):
         self.get0 = t.get
         self.blocks = t.blocks
-        self.inputs = inputs or {}            # pos -> powered (bool) para palancas, ganchos y placas
+        self.inputs = inputs or {}            # pos -> powered (bool) para palancas, ganchos, placas y raíles detectores
         self.torch = {}
         self.rep = {}                         # repetidores: pos -> encendido
         self.wire = {}
@@ -123,7 +123,7 @@ class Sim:
         b = bn(s)
         if pos in self.inputs:
             return self.inputs[pos]
-        if b in ("lever", "tripwire_hook") or b.endswith("pressure_plate") or b.endswith("_button"):
+        if b in ("lever", "tripwire_hook", "detector_rail") or b.endswith("pressure_plate") or b.endswith("_button"):
             return parse_state(s)[1].get("powered") == "true"
         return False
 
@@ -139,7 +139,7 @@ class Sim:
             return 15 if self.src_on(n) and add(n, D6[attached_dir(s)]) == target else 0
         if b == "repeater":
             return 15 if self.rep[n] and self.rep_out(n) == target else 0
-        if b.endswith("pressure_plate"):
+        if b.endswith("pressure_plate") or b == "detector_rail":     # el raíl detector, como una placa
             return 15 if self.src_on(n) and target == add(n, D6["down"]) else 0
         if b in ("redstone_torch", "redstone_wall_torch"):
             return 15 if self.torch[n] and target == add(n, D6["up"]) else 0
@@ -151,7 +151,7 @@ class Sim:
         """Señal que n da a la posición vecina target (lo que lee un componente en target)."""
         s = self.get(*n)
         b = bn(s)
-        if b in ("lever", "tripwire_hook") or b.endswith("pressure_plate") or b.endswith("_button"):
+        if b in ("lever", "tripwire_hook", "detector_rail") or b.endswith("pressure_plate") or b.endswith("_button"):
             return 15 if self.src_on(n) else 0
         if b == "repeater":
             return 15 if self.rep[n] and self.rep_out(n) == target else 0
