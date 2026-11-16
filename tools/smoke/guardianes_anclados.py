@@ -204,8 +204,9 @@ def main():
             forceload(x0 - 1, z0 - 1, x1 + 1, z1 + 1)
             fill(x0, Y - 1, z0, x1, Y - 1, z1, "minecraft:stone")
             fill(x0 - 1, Y - 1, z0 - 1, x1 + 1, Y + 6, z1 + 1, "minecraft:barrier", "outline")
-            if str(lote["nbt"]["id"]) in ACUATICOS:
-                fill(x0, Y, z0, x1, Y + 5, z1, "minecraft:water")
+            # el interior, vacío: una caja puede caer dentro de un monte (con la semilla de prueba, en x = 2000 el terreno
+            # pasa de y = 150 hacia z = 500) y un mob que aparece en la roca se asfixia
+            fill(x0, Y, z0, x1, Y + 5, z1, "minecraft:water" if str(lote["nbt"]["id"]) in ACUATICOS else "minecraft:air")
         print(f"anclados: {len(found)} mobs distintos con {core.ANCLADO_TAG}; {len(rooms)} plantillas con guardián")
         for i, lote in enumerate(lotes):
             ctx.run(f"function {NS}:m{i}", r"Running function|Ran \d+ command")
