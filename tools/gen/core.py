@@ -223,6 +223,22 @@ def to_tag(v):
 
 
 # --- entidades comunes ---
+# Los mobs de una plantilla pasan por finalizeSpawn al colocarse. El de los zombis sortea un bebé (5 %, con jinete de
+# gallina) sin mirar el IsBaby del NBT: el mod (ZombieMixin) lo evita en los que llevan ADULTO_TAG, y validate.py exige
+# la etiqueta en todo mob de BEBE_ZOMBI de las plantillas. Hoglin y zoglin salen bebés el 20 % sin remedio en el mod: no
+# se pueden poner en plantillas. Los animales y aldeanos (AgeableMob) no: con un grupo nuevo el primero nunca es bebé.
+ADULTO_TAG = "heraldia_adulto"
+BEBE_ZOMBI = {"minecraft:" + m for m in ("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin")}
+BEBE_SIN_PROTECCION = {"minecraft:hoglin", "minecraft:zoglin"}
+
+
+def adulto(n):
+    """Pone ADULTO_TAG al NBT de un mob que podría salir bebé (BEBE_ZOMBI); devuelve el mismo NBT."""
+    if n["id"] in BEBE_ZOMBI and ADULTO_TAG not in n.get("Tags", []):
+        n["Tags"] = list(n.get("Tags", [])) + [ADULTO_TAG]
+    return n
+
+
 def villager(prof, vtype, employed=True):
     n = {"id": "minecraft:villager", "PersistenceRequired": B(1), "Tags": ["heraldia"],   # los tratos de mapas (mapas.py) la piden
          "VillagerData": {"profession": "minecraft:" + (prof if employed else "none"),
