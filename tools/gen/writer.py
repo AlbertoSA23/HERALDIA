@@ -6,6 +6,8 @@ from pack import ALL_PROFS
 import loot
 import unicas
 import mapas
+import tratos
+import tablon
 import opciones
 import biomas
 import logros
@@ -200,8 +202,7 @@ def write(reg, out):
             jig = dict(base, start_pool=f"{NS}:{tid}/{pool}", size=sz["size"], max_distance_from_center=sz["maxdist"])
             if al:
                 jig["pool_aliases"] = al
-            if th["family"] == "costa":
-                jig = village_with_port(reg, th, jig)
+            jig = village_with_port(reg, th, jig) if th["family"] == "costa" else village(jig)
             jdump(out, f"data/{NS}/worldgen/structure/{tid}{suffix}.json", jig)
         # mismo peso: la proporción estándar/grande la decide el mod en cada casilla (aldeas.porcentaje_grandes)
         set_entries.append({"structure": f"{NS}:{tid}", "weight": 1})
@@ -224,6 +225,7 @@ def write(reg, out):
             table = mapas.with_maps(table, uniques)
         jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
     mapas.write(out, uniques, jdump)
+    tratos.write(out, uniques, jdump)
     for sid, mod in unicas.modules():
         for name, table in getattr(mod, "LOOT", {}).items():
             if name == mod.HISTORIA["cofre"]:
@@ -306,6 +308,9 @@ def write(reg, out):
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     maps_lang = mapas.lang(uniques)
     adv_lang = logros.write(out, reg, uniques, jdump)
+    for extra in (tratos.lang(), tablon.write(out, jdump)):
+        for lang, texts in extra.items():
+            adv_lang[lang].update(texts)
     for sid, mod in unicas.modules():
         extra = getattr(mod, "LANG", {})
         assert extra.get("es_es", {}).keys() == extra.get("en_us", {}).keys(), sid
@@ -442,13 +447,19 @@ def jigsaw_pos(t, name):
     return next(list(j["pos"]) for j in t.jigsaws if j["name"] == name)
 
 
+def village(jig, **extra):
+    """Aldea de tipo heraldia:aldea (Java aldeas/AldeaStructure): el jigsaw de siempre en `aldea`; el Java quita el
+    tablón de encargos si está desactivado (aldeas.vida.tablon) y, con `puerto`, pone el de la costa."""
+    settings = {k: jig[k] for k in ("biomes", "step", "spawn_overrides", "terrain_adaptation")}
+    return dict({"type": f"{NS}:aldea"}, **settings, aldea={k: v for k, v in jig.items() if k != "type"}, **extra)
+
+
 def village_with_port(reg, th, jig):
-    """Aldea de la costa: tipo heraldia:aldea (Java aldeas/AldeaStructure), que pone la caseta y el muelle del puerto
-    (pools special/port y port_pier) en la orilla más cercana a la plaza, con el muelle hacia el mar."""
+    """Aldea de la costa: además pone la caseta y el muelle del puerto (pools special/port y port_pier) en la orilla
+    más cercana a la plaza, con el muelle hacia el mar."""
     from specials import PIER_L
     tid = th["id"]
-    settings = {k: jig[k] for k in ("biomes", "step", "spawn_overrides", "terrain_adaptation")}
-    return dict({"type": f"{NS}:aldea"}, **settings, aldea={k: v for k, v in jig.items() if k != "type"}, puerto={
+    return village(jig, puerto={
         "caseta": f"{NS}:{tid}/special/port", "muelle": f"{NS}:{tid}/port_pier",
         "union_caseta": jigsaw_pos(reg.templates[f"{tid}/specials/port"], f"{NS}:pier"),
         "union_muelle": jigsaw_pos(reg.templates[f"{tid}/specials/port_pier"], f"{NS}:pier"),

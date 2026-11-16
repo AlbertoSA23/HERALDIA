@@ -225,6 +225,9 @@ def plaza(th, rng, name, grande=False):
     golem_slot(t, c + 8, 0, c + 3, th["path"])
     if grande:
         golem_slot(t, c + 3, 0, c - 8, th["path"])
+    # tablón de encargos (pieza aparte: atril con su libro y el alguacil; tablon.py)
+    import tablon
+    tablon.slot(t, th)
     # salidas a avenidas
     for (x, z, f, av) in ((c, 0, "north", "a"), (N - 1, c, "east", "b"), (c, N - 1, "south", "c"), (0, c, "west", "d")):
         t.jigsaw(x, 1, z, f"{f}_up", "heraldia:street", "heraldia:avenue", P(th, f"avenue_{av}"), final_state=AIR,

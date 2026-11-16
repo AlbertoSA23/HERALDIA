@@ -26,6 +26,15 @@ _FIXED = [
     ("aldeas.distancia_aldeas_vanilla_bloques", VANILLA_EXCLUSION_CHUNKS * 16, 0, 256,
      "Distancia mínima a las aldeas vanilla, en bloques (0 la desactiva)",
      "Minimum distance to vanilla villages, in blocks (0 disables it)"),
+    ("aldeas.vida.tratos_estilo", True, None, None,
+     "Tratos propios del estilo: algunos oficios de cada estilo de aldea ofrecen uno o dos tratos con su carácter (al subir de nivel)",
+     "Style trades: some professions of each village style offer one or two trades with its character (when they level up)"),
+    ("aldeas.vida.tablon", True, None, None,
+     "Tablón de encargos en la plaza (atril con el libro de encargos y el alguacil que los paga); solo en aldeas nuevas",
+     "Job board on the square (lectern with the book of jobs and the bailiff who pays for them); new villages only"),
+    ("aldeas.vida.asedios", False, None, None,
+     "Asedios: en las aldeas fortificadas el armero vende una botella ominosa para provocar un asalto de saqueadores (cambia el equilibrio)",
+     "Sieges: in fortified villages the weaponsmith sells an ominous bottle to provoke a raid (affects balance)"),
     ("golems.limpieza", True, None, None,
      "Limita los gólems de hierro naturales de las aldeas cargadas",
      "Limits natural iron golems in loaded villages"),
@@ -61,6 +70,9 @@ _NAMES = {
     "aldeas.maximo": ("Máximo de aldeas", "Maximum villages"),
     "aldeas.porcentaje_grandes": ("Aldeas grandes (%)", "Large villages (%)"),
     "aldeas.distancia_aldeas_vanilla_bloques": ("Distancia a aldeas vanilla (bloques)", "Distance to vanilla villages (blocks)"),
+    "aldeas.vida.tratos_estilo": ("Tratos propios del estilo", "Style trades"),
+    "aldeas.vida.tablon": ("Tablón de encargos", "Job board"),
+    "aldeas.vida.asedios": ("Asedios en aldeas fortificadas", "Sieges in fortified villages"),
     "golems.limpieza": ("Limpieza de gólems", "Golem cleanup"),
     "golems.limite_estandar": ("Límite en aldea estándar", "Limit in standard village"),
     "golems.limite_grande": ("Límite en aldea grande", "Limit in large village"),
@@ -81,6 +93,7 @@ SECTIONS = [
     ("aldeas", "Aldeas", "Villages"),
     ("familias", "Familias de aldeas", "Village families"),
     ("estilos", "Estilos de aldea", "Village styles"),
+    ("vida", "Vida de las aldeas", "Village life"),
     ("golems", "Gólems", "Golems"),
     ("unicas", "Estructuras únicas", "Unique structures"),
     ("distancia_minima", "Distancia mínima entre únicas", "Minimum distance between unique structures"),
@@ -89,7 +102,7 @@ SECTIONS = [
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
 # (si no encaja en ninguna, la generación falla).
 _SECTION_PREFIXES = [
-    ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.", "aldeas"), ("golems.", "golems"),
+    ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"),
 ]
 

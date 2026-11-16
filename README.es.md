@@ -142,6 +142,16 @@ Cada aldea tiene:
 Límites de población: hay unas 1,25 camas por aldeano inicial, así que la población crece como mucho un 25 %.
 La función `heraldia:golems` revisa cada 30 s las aldeas cargadas y retira un gólem natural cada vez que hay 8 o más (estándar) o 9 o más (grande); no toca los construidos por jugadores. Límites y limpieza se cambian en la [configuración](#configuración).
 
+## Vida de las aldeas
+
+Las aldeas Heraldia tienen comercio con carácter, un tablón de encargos y, en las fortificadas, asedios. Todo se desactiva en la [configuración](#configuración) (`aldeas.vida.*`).
+
+- **Tratos propios del estilo** (`aldeas.vida.tratos_estilo`, activado): en cada estilo, un oficio ofrece un trato con su carácter (solo objetos vanilla con nombre, adornos o encantamientos moderados): la Espada de la mesnada del armero castellano, la Copia de la Crónica de los Heraldos del bibliotecario de la abadía, el Peto de las dunas (cuero teñido de arena con adorno de oro) del herrero del obelisco, el Hidromiel del jarl del carnicero nórdico, la Caña del patrón de los pescadores... Además, el cartógrafo de cada familia vende en el nivel 3 (16 esmeraldas y una brújula) el mapa de la estructura única de su zona (castillo en las llanuras, Salón del Jarl en la taiga, Galeón varado en la costa...). Los tratos se sortean como los vanilla al subir de nivel: un aldeano de ese oficio y nivel lo ofrece con una probabilidad de 1/2 a 2/3 (o siempre, en los niveles con un solo trato vanilla), así que en una aldea grande suele haber alguno. Solo los aldeanos de Heraldia dentro de una aldea de ese estilo; también en las aldeas ya generadas, en los aldeanos que suban de nivel desde ahora.
+- **Tablón de encargos** (`aldeas.vida.tablon`, activado): en la plaza, junto a la fuente, un atril con el libro «Tablón de encargos» y, detrás, el **alguacil** (aldeano con nombre que no se mueve ni recibe daño) que paga los encargos de entrega con sus tratos: *Cosecha para el granero* (32 del cultivo de la familia: trigo, patatas, bayas, cactus, cacao... por 4 esmeraldas), *Leña para el invierno* (32 troncos de la madera del estilo por 3) y *Limpia los caminos* (16 de carne podrida y 8 huesos por la Capa de la ronda, un peto de cuero del color del estandarte con protección II). Le queda trabajo para unas pocas entregas (no repone). Las hazañas las paga la aldea una vez a cada jugador al conseguir su logro: *Ronda nocturna* (matar una amenaza dentro de una aldea Heraldia: 3 esmeraldas) y *Defiende la aldea* (ser héroe de la aldea tras un asedio en una aldea Heraldia: 8 esmeraldas y el Cuerno del defensor). **Solo en las aldeas nuevas.**
+- **Asedios** (`aldeas.vida.asedios`, **desactivado**: cambia el equilibrio): en las aldeas fortificadas (`oscuro_fortificada`, `nieve_fortaleza`, `badlands_canon`) el armero vende en el nivel 3 el «Desafío del asedio», una botella ominosa de nivel I (10 esmeraldas, una vez): quien la bebe y vuelve a la aldea provoca un asalto de saqueadores del juego. No hay puesto de saqueadores junto a la aldea: los saqueadores atacan a los aldeanos a 32 bloques aunque no los vean, así que tendría que quedar fuera de la aldea, y una aldea grande ya llega casi a los 8 chunks de su inicio, el máximo al que el juego coloca piezas; además serían mobs persistentes cargados todo el tiempo.
+
+Coste: una entidad más por aldea (el alguacil, sin IA) y ninguna función periódica; los tratos y las hazañas solo se evalúan cuando un aldeano sube de nivel o un jugador mata, gana un asalto o recoge algo (criterios de logros del juego).
+
 ## La Atlántida
 
 Una sola por mundo, siempre, sin opción de configuración. Es una ciudad amurallada de unos 770 × 770 bloques, totalmente sumergida, en la cuenca de océano profundo más cercana al origen que esté a 1.500 bloques o más y sin explorar (en un mundo ya existente solo aparece en chunks nuevos). La posición se calcula la primera vez que se carga el mundo y se guarda en `data/heraldia/atlantida.json`.
@@ -251,12 +261,13 @@ Las páginas se leen en el idioma de cada jugador (español si el cliente no tie
 
 ## Logros
 
-Pestaña de logros **Heraldia** (77 logros), con textos en español e inglés. Solo dan experiencia, nunca objetos:
+Pestaña de logros **Heraldia** (79 logros), con textos en español e inglés. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia o estructura única.
 - Una aldea de cada familia (12 logros, 20 de experiencia) y el desafío **Trotamundos de Heraldia**: las 12 familias (250).
 - Por cada estructura única: descubrirla (50), derrotar a su guardián con nombre (100) y abrir su cofre del tesoro (50).
 - La Atlántida, además: sus tres sellos (abrir el cofre del sello o tener su llave, 30 cada uno); el guardián es el Guardián de Poseidón y el tesoro cuenta al coger uno de los objetos con nombre del cofre único.
+- Encargos del [tablón](#vida-de-las-aldeas): **Ronda nocturna** (matar una amenaza dentro de una aldea Heraldia: 3 esmeraldas y 30 de experiencia) y **Defensor de la aldea** (ser héroe de una aldea Heraldia tras un asedio: 8 esmeraldas, el Cuerno del defensor y 100 de experiencia).
 - Desafío final **Cartógrafo de leyendas**: descubrir todas las estructuras únicas (500).
 - Desafío **Sala de trofeos**: conseguir el [trofeo](#trofeos-de-los-guardianes) de cada guardián de las estructuras únicas (500); cuenta al tenerlo en el inventario.
 - Desafío **Cronista**: reunir los pliegos de la [Crónica de los Heraldos](#crónica-de-los-heraldos), uno por estructura única (500); cuenta al tenerlo en el inventario.
@@ -278,6 +289,9 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `aldeas.distancia_aldeas_vanilla_bloques` | 160 | 0-256 | Distancia mínima a una aldea vanilla (se redondea a chunks); 0 la desactiva. |
 | `aldeas.familias.<familia>` | `true` | `true`/`false` | Activa una familia entera (sus 3 estilos). |
 | `aldeas.estilos.<estilo>` | `true` | `true`/`false` | Activa un estilo (estándar y grande). Si una casilla elige uno desactivado, se prueba otro estilo de su bioma. |
+| `aldeas.vida.tratos_estilo` | `true` | `true`/`false` | Tratos propios de cada estilo y mapa de la única de la zona en los cartógrafos de cada familia ([Vida de las aldeas](#vida-de-las-aldeas)). |
+| `aldeas.vida.tablon` | `true` | `true`/`false` | Tablón de encargos y alguacil en la plaza de las aldeas nuevas. |
+| `aldeas.vida.asedios` | `false` | `true`/`false` | El armero de las aldeas fortificadas vende una botella ominosa para provocar un asalto de saqueadores. |
 | `golems.limpieza` | `true` | `true`/`false` | Activa la retirada periódica de gólems naturales. |
 | `golems.limite_estandar` | 8 | 1-64 | Con tantos gólems naturales o más, una aldea estándar retira uno cada 30 s. |
 | `golems.limite_grande` | 9 | 1-64 | Igual para las aldeas grandes. |
@@ -293,7 +307,7 @@ La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
 
 En el cliente el fichero también se puede editar desde una pantalla del juego. Con [Mod Menu](https://modrinth.com/mod/modmenu) instalado (opcional; sin él el mod funciona igual, solo que la pantalla no tiene botón) se abre desde el botón de configuración de Heraldia en la lista de mods. Se construye con la misma lista de opciones que el fichero, así que las opciones nuevas aparecen solas:
 
-- Secciones: Aldeas, Familias de aldeas, Estilos de aldea, Gólems, Estructuras únicas, Distancia mínima entre únicas y Atlántida, con un buscador (por nombre, clave, ayuda o sección).
+- Secciones: Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas y Atlántida, con un buscador (por nombre, clave, ayuda o sección).
 - Cada opción muestra su valor (botón sí/no o casilla numérica). Su tooltip da la clave, la ayuda (la misma de `_ayuda`) y el valor por defecto y el rango. Un número no válido se pone en rojo, el tooltip dice por qué y **Guardar** queda desactivado hasta corregirlo.
 - **Guardar** escribe `config/heraldia.json` con el mismo formato que al arrancar (con `version` y `_ayuda`); **Valores por defecto** devuelve todas las opciones a su valor por defecto (no se escribe nada hasta guardar); **Cancelar** descarta los cambios.
 - Los cambios se aplican al volver a abrir el mundo o reiniciar el servidor, y solo en los chunks que se generen después; la pantalla lo avisa. Sin ningún mundo abierto se usan desde el siguiente mundo que abras (sin reiniciar el juego); con un mundo de un jugador abierto, al salir y volver a entrar.
@@ -321,7 +335,7 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 91 estructuras estén registradas y los 77 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 91 estructuras estén registradas y los 79 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
 
 Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario`, `laboratorio_micelio` y `mina_perdida`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último. `tools/smoke/aldeas_variantes.py` coloca varias aldeas del mismo estilo, lee las regiones guardadas e identifica, comparando los bloques con las plantillas del `.jar`, qué variante de cada edificio especial ha salido; comprueba que cada uno coincide con una sola variante y que salen variantes distintas, y mide cada `/place`. `tools/smoke/guardianes_adultos.py` coloca 200 veces, por el mismo camino que la generación, cada mob de tipo zombi de las plantillas (zombi, husk, ahogado) y comprueba que ninguno sale bebé, con otra arma o montado.
 

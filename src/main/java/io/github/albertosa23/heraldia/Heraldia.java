@@ -32,6 +32,7 @@ public final class Heraldia implements ModInitializer {
 		// Antes de que se lea ningún datapack: la rejilla heraldia:rejilla toma sus valores de aquí.
 		HeraldiaConfig.load(FabricLoader.getInstance().getConfigDir().resolve("heraldia.json"));
 		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("sin_lootr"), WithoutLootrCondition.CODEC);
+		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("opcion"), io.github.albertosa23.heraldia.loot.OptionCondition.CODEC);
 		Registry.register(BuiltInRegistries.STRUCTURE_PLACEMENT, id("rejilla"), GridPlacement.CODEC);
 		GridPlacement.registerBiomeSearch();
 		Atlantida.register();

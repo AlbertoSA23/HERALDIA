@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.albertosa23.heraldia.Heraldia;
 import io.github.albertosa23.heraldia.comun.Alturas;
 import io.github.albertosa23.heraldia.comun.Generacion;
+import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,7 +41,8 @@ import org.slf4j.LoggerFactory;
  * solo con el fondo de generación ({@code OCEAN_FLOOR_WG}, con caché), y solo al crear la aldea (no en /locate ni en
  * los mapas). Si el sitio lo ocupan casas, se quitan (el puerto ocupa su lugar); si no hay orilla al alcance o choca
  * con la plaza, un edificio especial, una torre o una calle bajo el muelle, la aldea sale sin puerto (la avenida ya
- * tiene la posada).
+ * tiene la posada). Todas las aldeas usan este tipo: si el tablón de encargos está desactivado
+ * ({@code aldeas.vida.tablon}), su pieza se quita al crear la aldea; si no y no hay puerto, el stub es el del jigsaw.
  */
 public final class AldeaStructure extends Structure {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -82,26 +84,38 @@ public final class AldeaStructure extends Structure {
 	@Override
 	protected Optional<GenerationStub> findGenerationPoint(GenerationContext ctx) {
 		Optional<GenerationStub> stub = aldea.findGenerationPoint(ctx);
-		if (puerto.isEmpty() || stub.isEmpty()) {
-			return stub;
+		boolean sinTablon = !HeraldiaConfig.get().getBool(OPCION_TABLON);
+		if ((puerto.isEmpty() && !sinTablon) || stub.isEmpty()) {
+			return stub;   // lo normal tierra adentro: el stub del jigsaw tal cual, sin coste añadido
 		}
 		GenerationStub village = stub.get();
-		Puerto p = puerto.get();
 		boolean forzada = Generacion.forzada(ctx, biomes());
 		// El generador de piezas solo corre al crear la aldea de verdad: /locate y los mapas no pagan la búsqueda.
 		return Optional.of(new GenerationStub(village.position(), builder -> {
 			long t0 = System.nanoTime();
 			List<StructurePiece> pieces = new ArrayList<>(village.getPiecesBuilder().build().pieces());
+			if (sinTablon) {
+				pieces.removeIf(AldeaStructure::tablon);
+			}
 			long t1 = System.nanoTime();
-			String result = addPort(ctx, p, village.position(), pieces);
+			String result = puerto.isPresent() ? addPort(ctx, puerto.get(), village.position(), pieces) : null;
 			for (StructurePiece piece : pieces) {
 				builder.addPiece(piece);
 			}
-			if (forzada) {   // solo con /place structure: la prueba de humo lo lee
+			if (forzada && result != null) {   // solo con /place structure: la prueba de humo lo lee
 				LOGGER.info("Heraldia: aldea de costa en {} {}: {} en {} µs (ensamblar la aldea: {} µs)", village.position().getX(),
 						village.position().getZ(), result, (System.nanoTime() - t1) / 1000, (t1 - t0) / 1000);
 			}
 		}));
+	}
+
+	/** Opción que pone el tablón de encargos en la plaza (si está desactivada, la pieza se quita al crear la aldea). */
+	public static final String OPCION_TABLON = "aldeas.vida.tablon";
+
+	/** Pieza del tablón de encargos (atril con su libro y el alguacil): plantilla {@code <estilo>/tablon}. */
+	private static boolean tablon(StructurePiece piece) {
+		return piece instanceof PoolElementStructurePiece pe && pe.getElement() instanceof SinglePoolElement e
+				&& e.getTemplateLocation().getPath().endsWith("/tablon");
 	}
 
 	/** Orilla candidata: último punto de tierra baja antes del agua en un rayo, con la dirección hacia el mar. */
