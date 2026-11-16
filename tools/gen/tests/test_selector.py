@@ -162,3 +162,11 @@ def test_medianas():
     assert elige("tools/smoke/estructuras_medianas.py") == (False, ["tools/smoke/estructuras_medianas.py"])
     completa, p = elige(J + "comun/Medianas.java")      # decide dónde salen: también las de compatibilidad
     assert not completa and set(p) == {"tools/smoke/estructuras_medianas.py"} | set(COMPAT)
+
+
+def test_guia_del_heraldo():
+    assert elige(J + "comando/Guia.java") == (False, ["tools/smoke/guia.py"])
+    assert elige(J + "comando/Textos.java") == (False, ["tools/smoke/guia.py"])
+    assert elige("tools/gen/guia.py") == (False, ["tools/smoke/guia.py"])
+    assert elige("tools/smoke/guia.py") == (False, ["tools/smoke/guia.py"])
+    assert elige(J + "comando/InfoCommand.java") == (False, [])        # el resto de comando/: solo la de humo

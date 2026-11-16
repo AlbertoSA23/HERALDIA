@@ -118,6 +118,7 @@ In an existing world, structures only appear in chunks that have not been genera
 - `/heraldia llave <players> <key>` (operators, level 2): gives the keys of the locked chests of the unique structures, the same item you get in the game. `<key>` autocompletes: `todas` (all), a structure (`atlantida`: its four keys) or a single key (`atlantida.arsenal`, `atlantida.academia`, `atlantida.anfiteatro`, `atlantida.poseidon`). If the inventory is full, the key drops on the ground for that player.
 - `/heraldia info` (operators, level 2): summary of the configuration in use (villages, enabled unique structures and their spacing, minimum distance, per-player chest, whether Lootr is installed, medium structures) and how many structures are registered.
 - `/heraldia info cerca [radius]`: the nearest unique structure and medium structure of each type and the nearest Heraldia village, with distance, direction and coordinates (click them to get a `/tp` command). It uses the same check as `/locate`, so it never points to a structure that the minimum distance discards, but it neither loads nor generates chunks: what has not been generated yet is shown as "predicted" (for a predicted village only its family is known). Default radius 3,000 blocks, maximum 10,000; the message says how long the search took.
+- `/heraldia guia` (any player, no permissions needed): gives you an up-to-date copy of the [Herald's Guide](#heralds-guide) (if you carry one in your inventory, it is replaced by the new one).
 - `/heraldia info aqui`: which Heraldia structure you are standing in (name and id) and, in a unique structure, whether its guardian is alive (only answered when the whole structure is loaded).
 
 Use the showcase only in a test world: whatever it places stays.
@@ -332,6 +333,17 @@ An optional story thread links the unique structures (full background in [`docs/
 
 Pages are shown in each player's language (Spanish if the client does not have the mod). With Lootr every player finds their own leaf. All of them carry `custom_data` `{heraldia_historia:"<id>"}`; to test: `/loot give @s loot heraldia:historia/<id>`. The **Chronicler** challenge (see [Advancements](#advancements)) asks for all of them. **In an existing world they only appear in chests that have not been opened yet.**
 
+## Herald's Guide
+
+A vanilla written book, the **Herald's Guide**, that explains the mod to players and keeps their diary. Every player gets it **once**, the first time they join after Heraldia is installed or updated (players who already existed in the world too; the version they received is stored on the player and kept on death). It is turned off with `guia.entregar_al_entrar` (see [Configuration](#configuration)), and any player can ask for an up-to-date copy with `/heraldia guia`.
+
+- **What it covers** (13 pages): a welcome; the villages and their life (trades, job board, cartographers); the roads; medium structures; unique structures; Atlantis; the corsair's isle; how advancements, trophies, treasure maps and the Chronicle of the Heralds work.
+- **Your diary**: how many of this world's unique structures you have discovered (from the "discover" advancements, `heraldia:unicas/<id>/descubrir`) and how many are left, the discovered ones in alphabetical order and, for each missing one, a soft biome-and-feature clue (the same as its Chronicle leaf), **without coordinates** or its name. It counts the unique structures enabled in the configuration plus those you already discovered even if they were disabled later. The diary is a snapshot of the moment it is handed out: ask for a new copy to bring it up to date.
+- **Language**: pages are translatable texts whose fallback is in the client's language (Spanish for any Spanish variant; English otherwise), so a player **without the mod** reads it in their language.
+- Vanilla book limits: the generator checks that every page fits the 14 lines of a book page (with the same width calculation as the Chronicle leaves), that the title is at most 32 characters and that the book never exceeds 100 pages (with today's 20 unique structures, 18 to 24). It carries `custom_data` `{heraldia_guia_libro:"<version>"}` and the mod edition in its lore.
+
+Cost: it only works when a player without this version's guide joins or when it is asked for (it reads their discovery advancements and builds the book; measured on the test server, see `tools/smoke/guia.py`); nothing per tick.
+
 ## Advancements
 
 A **Heraldia** advancement tab (84 advancements), with texts in Spanish and English. They only give experience, except the two job-board deeds:
@@ -384,6 +396,7 @@ when its format changes. It is read only when the server starts and affects chun
 | `medianas.distancia_aldeas_unicas_bloques` | 256 | 128-1024 | A medium structure does not spawn closer than this to the start of a Heraldia village or unique structure that spawns there. |
 | `medianas.<id>.activada` | `true` | `true`/`false` | Enables a type of medium structure (`torre_vigia`, `posada`, `campamento`, `ermita`). |
 | `medianas.<id>.separacion_bloques` | the type's own (640-768) | 256-4000 | Average spacing between two of that type (at 100 % frequency); each grid cell looks for its candidate inside the type's biomes. |
+| `guia.entregar_al_entrar` | `true` | `true`/`false` | Gives the [Herald's Guide](#heralds-guide) to each player the first time they join with each mod version. When off, nobody gets it on joining, but `/heraldia guia` still hands it out. |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Structures from other mods that show above ground do not spawn closer than this to the start of a Heraldia village or unique structure that spawns there; 0 disables it ([Compatibility with other mods](#compatibility-with-other-mods)). |
 
 Atlantis has no placement options: there is always exactly one per world.

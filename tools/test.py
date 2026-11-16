@@ -79,6 +79,9 @@ MAPA = [
     (JAVA + "mixin/DrownedAguaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "mixin/DrownedPlayaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "comun/Anclaje.java", ["tools/smoke/guardianes_anclados.py"]),
+    # Guía del Heraldo: su Java (y los textos por idioma que usa), su generador y su prueba
+    (JAVA + "comando/Guia*", ["tools/smoke/guia.py"]), (JAVA + "comando/Textos.java", ["tools/smoke/guia.py"]),
+    ("tools/gen/guia.py", ["tools/smoke/guia.py"]),
     (JAVA + "comando/*", []),
     # caminos entre aldeas: su Java y sus datos
     (JAVA + "caminos/*", ["tools/smoke/caminos.py"]), ("tools/gen/caminos.py", ["tools/smoke/caminos.py"]),
@@ -195,6 +198,7 @@ DURACION_S = {
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
                                          "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
     "tools/smoke/guardianes_anclados.py": 450,
+    "tools/smoke/guia.py": 120,                      # tres arranques del servidor
     "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque
 }
 DEFECTO_S = 90

@@ -119,6 +119,7 @@ En un mundo existente las estructuras solo aparecen en chunks que todavía no se
 - `/heraldia llave <jugadores> <llave>` (operadores, nivel 2): da las llaves de los cofres cerrados de las estructuras únicas, el mismo objeto que se consigue en el juego. `<llave>` se autocompleta: `todas`, una estructura (`atlantida`: sus cuatro llaves) o una llave suelta (`atlantida.arsenal`, `atlantida.academia`, `atlantida.anfiteatro`, `atlantida.poseidon`). Si el inventario está lleno, la llave cae al suelo a nombre del jugador.
 - `/heraldia info` (operadores, nivel 2): resumen de la configuración en uso (aldeas, estructuras únicas activadas y su separación, distancia mínima, cofre por jugador, si está instalado Lootr, estructuras medianas) y de cuántas estructuras hay registradas.
 - `/heraldia info cerca [radio]`: la estructura única y la mediana más cercanas de cada tipo y la aldea Heraldia más cercana, con distancia, rumbo y coordenadas (al pulsarlas se propone un `/tp`). Usa la misma comprobación que `/locate`, así que nunca señala una estructura que la distancia mínima descarta, pero no carga ni genera chunks: lo que aún no se ha generado sale como «prevista» (de una aldea prevista solo se sabe la familia). Radio por defecto 3.000 bloques, máximo 10.000; el mensaje dice cuánto ha tardado la búsqueda.
+- `/heraldia guia` (cualquier jugador, sin permisos): te da una copia al día de la [Guía del Heraldo](#guía-del-heraldo) (si llevas una en el inventario, la cambia por la nueva).
 - `/heraldia info aqui`: en qué estructura Heraldia estás (nombre e id) y, en una única, si su guardián vive (solo se responde si toda la estructura está cargada).
 
 Usa el muestrario solo en un mundo de prueba: lo colocado se queda.
@@ -333,6 +334,17 @@ Un hilo narrativo opcional une las estructuras únicas (trasfondo completo en [`
 
 Las páginas se leen en el idioma de cada jugador (español si el cliente no tiene el mod). Con Lootr cada jugador encuentra su propio pliego. Todos llevan `custom_data` `{heraldia_historia:"<id>"}`; para probar: `/loot give @s loot heraldia:historia/<id>`. El desafío **Cronista** (ver [Logros](#logros)) pide tenerlos todos. **En un mundo ya creado, solo salen en los cofres que aún no se hayan abierto.**
 
+## Guía del Heraldo
+
+Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jugadores y lleva su diario. Cada jugador la recibe **una vez** al entrar por primera vez después de instalar o actualizar Heraldia (también los jugadores que ya existían en el mundo; se guarda en el propio jugador qué versión recibió, y se conserva al morir). Se desactiva con `guia.entregar_al_entrar` (ver [Configuración](#configuración)) y cualquier jugador pide una copia al día con `/heraldia guia`.
+
+- **Qué cuenta** (13 páginas): una bienvenida; las aldeas y su vida (tratos, tablón de encargos, cartógrafos); los caminos; las estructuras medianas; las únicas; la Atlántida; la isla del corsario; cómo funcionan los logros, los trofeos, los mapas del tesoro y la Crónica de los Heraldos.
+- **Tu diario**: cuántas estructuras únicas de este mundo has descubierto (las de los logros «descubrir», `heraldia:unicas/<id>/descubrir`) y cuántas te faltan, la lista de las descubiertas por orden alfabético y, de cada una que falta, una pista suave de bioma y rasgo (la misma de su pliego de la Crónica), **sin coordenadas** ni el nombre. Cuentan las únicas activadas en la configuración y las que ya has descubierto aunque se desactivaran después. El diario es una foto del momento en que se entrega: pide otra copia para ponerlo al día.
+- **Idioma**: las páginas son textos traducibles con el respaldo en el idioma del cliente (español para cualquier variante del español; inglés para el resto), así que un jugador **sin el mod** la lee en su idioma.
+- Límites del libro vanilla: el generador comprueba que cada página cabe en las 14 líneas de una página (con el mismo cálculo de anchos que los pliegos), que el título no pasa de 32 caracteres y que el libro, en el peor caso, no pasa de 100 páginas (con las 20 únicas actuales, de 18 a 24). Lleva `custom_data` `{heraldia_guia_libro:"<versión>"}` y, en el lore, la edición del mod.
+
+Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión o al pedirla (lee sus logros de descubrimiento y arma el libro; medido en el servidor de prueba, ver `tools/smoke/guia.py`); nada por tick.
+
 ## Logros
 
 Pestaña de logros **Heraldia** (84 logros), con textos en español e inglés. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
@@ -385,6 +397,7 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `medianas.distancia_aldeas_unicas_bloques` | 256 | 128-1024 | Una mediana no sale a menos de esta distancia del inicio de una aldea o una única de Heraldia que sale ahí. |
 | `medianas.<id>.activada` | `true` | `true`/`false` | Activa un tipo de mediana (`torre_vigia`, `posada`, `campamento`, `ermita`). |
 | `medianas.<id>.separacion_bloques` | la del tipo (640-768) | 256-4000 | Separación media entre dos de ese tipo (con la frecuencia al 100 %); cada casilla busca su candidata dentro de los biomas del tipo. |
+| `guia.entregar_al_entrar` | `true` | `true`/`false` | Da la [Guía del Heraldo](#guía-del-heraldo) a cada jugador la primera vez que entra con cada versión del mod. Desactivada, nadie la recibe al entrar, pero `/heraldia guia` sigue dándola. |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Las estructuras de otros mods que asoman a la superficie no nacen a menos de esta distancia del inicio de una aldea o una única de Heraldia que sale ahí; 0 lo desactiva ([Compatibilidad con otros mods](#compatibilidad-con-otros-mods)). |
 
 La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.

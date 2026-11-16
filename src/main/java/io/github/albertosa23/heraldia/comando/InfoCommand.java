@@ -512,6 +512,12 @@ public final class InfoCommand {
 		return Component.literal(id.toString());
 	}
 
+	/** ¿Puede salir la única en este mundo? Las de una por mundo (sin opción) siempre; las demás, si están activadas. */
+	static boolean uniqueEnabled(HeraldiaConfig cfg, String sid) {
+		String key = "unicas." + sid + ".activada";
+		return !cfg.has(key) || cfg.getBool(key);
+	}
+
 	private static MutableComponent uniqueName(String sid) {
 		return Textos.t("heraldia.unicas." + sid + ".nombre");
 	}
