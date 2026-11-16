@@ -50,12 +50,7 @@ def main():
         # prueba de humo). El capitán se reconoce por la etiqueta de guardián que usa su logro.
         if not s.guardian_placed(s.Context(proc, lines, seen), "heraldia:unicas/galeon"):
             fails.append("no está el capitán ahogado")
-        for _ in range(s.GUARDIAN_ATTEMPTS):
-            m = s.run(proc, lines, seen, "execute if entity @e[type=minecraft:oak_boat]", r"Test passed\. Count: (\d+)|Test failed")
-            if m.group(1):
-                break
-            import time; time.sleep(s.PLACE_RETRY_S)
-        else:
+        if not s.Context(proc, lines, seen).wait_entity("@e[type=minecraft:oak_boat]"):
             fails.append("no está el bote")
     finally:
         if proc.poll() is None:

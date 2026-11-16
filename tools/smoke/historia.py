@@ -18,7 +18,6 @@ from trofeos import CARPET
 PLAYER = "Testigo"          # el de trofeos.py (Carpet toma la grafía del perfil de Mojang)
 X, Y, Z = 0, 101, 0            # jugador sobre una plataforma; los objetos a ITEM_DZ bloques (no los recoge solo)
 ITEM_DZ = 6
-ATTEMPTS, RETRY_S = 20, 0.5
 ADV = "heraldia:unicas/cronista"
 MARK = "heraldia_historia"
 
@@ -86,15 +85,10 @@ def main():
     threading.Thread(target=s.reader, args=(proc, lines), daemon=True).start()
     ctx = s.Context(proc, lines, seen)
 
-    def test(cmd):
-        return "passed" in ctx.run(cmd, r"Test passed|Test failed").group(0)
+    test = ctx.test
 
     def until(cmd, want=True):
-        for _ in range(ATTEMPTS):
-            if test(cmd) == want:
-                return True
-            time.sleep(RETRY_S)
-        return False
+        return ctx.until(cmd, want)     # límite holgado (s.UNTIL_S): la CI va lenta
 
     try:
         s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
@@ -108,6 +102,9 @@ def main():
         if not until(f"execute if entity @a[name={PLAYER}]"):
             raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
         ctx.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
+        # Sin monstruos naturales ni noche: el jugador simulado (en supervivencia) no debe depender de la hora del día.
+        for rule in ("spawn_mobs", "advance_time"):
+            ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
         iz = Z + ITEM_DZ
         for i, (sid, d) in enumerate(found.items()):
             mark = f'{{"minecraft:custom_data":{{{MARK}:"{sid}"}}}}'

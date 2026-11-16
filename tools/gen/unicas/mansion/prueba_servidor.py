@@ -31,17 +31,17 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=sm.reader, args=(proc, lines), daemon=True).start()
+    ctx = sm.Context(proc, lines, seen)
     fails = []
 
     def cmd(c, ok=r"Test passed|Test failed|Generated|Changed|Loaded template|Marked|Added|Set the block|Could not|Dropped|Running|has the following"):
         return sm.run(proc, lines, seen, c, ok)
 
-    def check(desc, c):
-        m = cmd(c, r"Test passed(?:\. Count: (\d+))?|Test failed")
-        print(f"[{'OK' if 'passed' in m.group(0) else 'FALLO'}] {desc}")
-        if "passed" not in m.group(0):
+    def check(desc, c, until=False):
+        ok = ctx.until(c) if until else ctx.test(c)
+        print(f"[{'OK' if ok else 'FALLO'}] {desc}")
+        if not ok:
             fails.append(desc)
-        return m
     try:
         sm.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", sm.START_TIMEOUT_S, seen)
         for c in ("forceload add -128 -128 127 127", "forceload add 1990 -10 2200 120"):
@@ -53,34 +53,34 @@ def main():
             time.sleep(5)
         if "Generated" not in m.group(0):
             fails.append("place structure")
-        time.sleep(15)
-        m = check("los cuadros de la galería siguen colgados", "execute if entity @e[type=minecraft:painting]")
-        print("cuadros:", m.group(1))
-        check("guardián con nombre", "execute if entity @e[type=minecraft:wither_skeleton,tag=heraldia_mansion_guardian]")
-        check("gato negro", "execute if entity @e[type=minecraft:cat]")
+        # las entidades de la estructura aparecen unos segundos después que los bloques: se espera por condición
+        check("los cuadros de la galería siguen colgados", "execute if entity @e[type=minecraft:painting]", until=True)
+        print("cuadros:", ctx.count("@e[type=minecraft:painting]"))
+        check("guardián con nombre", "execute if entity @e[type=minecraft:wither_skeleton,tag=heraldia_mansion_guardian]", until=True)
+        check("gato negro", "execute if entity @e[type=minecraft:cat]", until=True)
         cmd("data get entity @e[type=minecraft:wither_skeleton,limit=1] equipment", r"has the following|No entity|error")
         # plantillas sin girar en sitios conocidos
         for name, base in (("casa", CASA), ("sotano", SOT)):
             m = cmd(f"place template heraldia:unicas/mansion/{name} {base[0]} {base[1]} {base[2]}", r"Loaded template|Failed|not loaded|error|Could not")
             if "Loaded" not in m.group(0):
                 fails.append("place template " + name)
-        time.sleep(2)
+        ctx.ticks(40)
         door = [(22, 2, 27), (22, 3, 27)]
         check("estantería cerrada al generarse", f"execute if block {at(CASA, door[0])} minecraft:bookshelf")
         cmd(f"setblock {at(CASA, (18, 3, 26))} minecraft:lever[face=wall,facing=north,powered=true]")
         cmd(f"setblock {at(CASA, (19, 3, 28))} minecraft:air"); cmd(f"setblock {at(CASA, (19, 3, 28))} minecraft:cobbled_deepslate")
-        time.sleep(3)
+        ctx.ticks(60)
         for p in door:
             check(f"la palanca abre la estantería {p}", f"execute if block {at(CASA, p)} minecraft:air")
         check("puerta de la cámara cerrada al generarse", f"execute if block {at(SOT, (47, -5, 28), True)} minecraft:iron_door[open=false]")
         for x in (39, 45):
             cmd(f"setblock {at(SOT, (x, -4, 27), True)} minecraft:lever[face=wall,facing=north,powered=true]")
             cmd(f"setblock {at(SOT, (x, -3, 29), True)} minecraft:stone"); cmd(f"setblock {at(SOT, (x, -3, 29), True)} minecraft:air")
-        time.sleep(3)
+        ctx.ticks(60)
         check("la combinación 1-4 abre la cámara", f"execute if block {at(SOT, (47, -5, 28), True)} minecraft:iron_door[open=true]")
         cmd(f"setblock {at(SOT, (41, -4, 27), True)} minecraft:lever[face=wall,facing=north,powered=true]")
         cmd(f"setblock {at(SOT, (42, -4, 29), True)} minecraft:stone"); cmd(f"setblock {at(SOT, (42, -4, 29), True)} minecraft:tuff")
-        time.sleep(3)
+        ctx.ticks(60)
         check("con la 2.ª palanca se vuelve a cerrar", f"execute if block {at(SOT, (47, -5, 28), True)} minecraft:iron_door[open=false]")
     finally:
         if proc.poll() is None:

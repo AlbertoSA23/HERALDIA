@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import server_smoke as S
 
 O = (0, 100, 0)
+MONASTERIO = (59, 71, 92)        # tamaño de la plantilla (x, y, z): el guardián no debe salir de ella
 
 
 def w(p):
@@ -27,19 +28,20 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen, fails = queue.Queue(), [], []
     threading.Thread(target=S.reader, args=(proc, lines), daemon=True).start()
+    ctx = S.Context(proc, lines, seen)
 
     def cmd(c, ok=r"Changed|Successfully|placed|Test passed|Test failed|Marked|Added|Set|Could not"):
         return S.run(proc, lines, seen, c, ok).group(0)
 
     def check(p, state, what):
-        if "passed" not in cmd(f"execute if block {w(p)} {state}"):
+        if not ctx.block(w(p), state):
             fails.append(what)
 
     def lever(p, on, attach, mat):
         cmd(f"setblock {w(p)} minecraft:lever[face=wall,facing={'south' if p[2] == 74 else 'north'},powered={'true' if on else 'false'}]")
         cmd(f"setblock {w(attach)} minecraft:polished_andesite")
         cmd(f"setblock {w(attach)} minecraft:{mat}")
-        time.sleep(1.5)
+        ctx.ticks(30)          # 1,5 s de juego: de sobra para pistones (2 ticks) y antorchas (2 ticks por paso)
 
     try:
         S.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", S.START_TIMEOUT_S, seen)
@@ -49,7 +51,7 @@ def main():
             if "not loaded" not in r:
                 break
             time.sleep(S.PLACE_RETRY_S)
-        time.sleep(3)
+        ctx.ticks(60)
         # estado estable al colocarse
         for y in (30, 31):
             check((43, y, 72), "minecraft:sticky_piston[extended=true]", f"pistón de la cripta y={y} recogido al colocarse")
@@ -59,13 +61,17 @@ def main():
         check((52, 14, 49), "minecraft:redstone_wall_torch[lit=false]", "antorcha final del osario encendida")
         check((53, 14, 49), "minecraft:iron_door[open=false]", "puerta del archivo abierta al colocarse")
         check((46, 30, 82), "minecraft:spawner", "falta el generador de la cripta")
-        for _ in range(15):     # las entidades de una plantilla aparecen unos segundos después que los bloques
-            r = cmd(f"execute if entity @e[type=minecraft:skeleton,x={O[0] + 40},y={O[1]},z={O[2] + 78},dx=18,dy=10,dz=12]")
-            if "passed" in r:
-                break
-            time.sleep(2)
-        if "passed" not in r:
+        # El guardián (esqueleto con IA) se busca por su etiqueta en todo el mundo, no en una caja junto al relicario:
+        # anda, y desde el relicario sale por la antecámara de las losas hacia las catacumbas. La CI falló así («falta
+        # el guardián» 30 s seguidos con la caja de 18 x 10 x 12). Se comprueba que siga dentro del monasterio.
+        g = "@e[type=minecraft:skeleton,tag=heraldia_guardian.monasterio]"
+        if not ctx.wait_entity(g):
             fails.append("falta el guardián")
+        else:
+            gp = ctx.pos(g)
+            print(f"guardián en {gp}")
+            if gp is None or not all(O[i] + lo <= v <= O[i] + hi for i, (v, lo, hi) in enumerate(zip(gp, (0, 0, 0), MONASTERIO))):
+                fails.append(f"el guardián ha salido del monasterio: {gp}")
         # puzle 1: apagar una palanca no basta; las dos, sí
         lever((45, 31, 74), False, (45, 31, 73), "deepslate_bricks")
         check((41, 30, 72), "minecraft:chiseled_deepslate", "la lápida se abre con una sola palanca")

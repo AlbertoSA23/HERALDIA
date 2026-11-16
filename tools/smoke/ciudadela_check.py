@@ -20,6 +20,7 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen, fails = queue.Queue(), [], []
     threading.Thread(target=s.reader, args=(proc, lines), daemon=True).start()
+    ctx = s.Context(proc, lines, seen)
     try:
         s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
         s.send(proc, f"forceload add {X - 112} {Z - 112} {X + 111} {Z + 111}")
@@ -31,7 +32,11 @@ def main():
             time.sleep(s.PLACE_RETRY_S)
         if not m.group(0).startswith("Generated"):
             fails.append(f"place falló: {m.string.strip()}")
-        m = s.run(proc, lines, seen, "data get entity @e[type=minecraft:vindicator,limit=1]", r"has the following entity data: .*|No entity")
+        # las entidades de la estructura aparecen unos segundos después que los bloques: se espera al guardián por su
+        # etiqueta antes de leer sus datos (leerlos en seguida daba «No entity» en un servidor lento)
+        g = "@e[type=minecraft:vindicator,tag=heraldia_guardian.ciudadela]"
+        ctx.wait_entity(g)
+        m = s.run(proc, lines, seen, f"data get entity {g[:-1]},limit=1]", r"has the following entity data: .*|No entity")
         d = m.group(0)
         for want in ("minecraft:iron_axe", "minecraft:iron_chestplate", "heraldia.ciudadela.guardian",
                      "max_health", "Health: 60.0f", "PersistenceRequired: 1b"):
@@ -40,9 +45,11 @@ def main():
         checks = [("@e[type=minecraft:chest_minecart]", 2), ("@e[type=minecraft:minecart]", 1),
                   ('@e[type=minecraft:armor_stand,nbt={equipment:{head:{id:"minecraft:chainmail_helmet"}}}]', 2)]
         for sel, n in checks:
-            m = s.run(proc, lines, seen, f"execute if entity {sel}", r"Test passed\. Count: (\d+)|Test failed")
-            if not m.group(1) or int(m.group(1)) < n:
-                fails.append(f"faltan entidades {sel}: {m.group(0)}")
+            end = time.monotonic() + s.UNTIL_S
+            while (got := ctx.count(sel)) < n and time.monotonic() < end:
+                time.sleep(s.POLL_S)
+            if got < n:
+                fails.append(f"faltan entidades {sel}: {got} de {n}")
         m = s.run(proc, lines, seen, "locate structure heraldia:unicas/ciudadela", r"is at \[.*|Could not find.*")
         print("locate:", m.group(0))
     finally:

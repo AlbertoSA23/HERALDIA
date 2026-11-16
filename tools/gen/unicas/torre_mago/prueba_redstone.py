@@ -36,19 +36,19 @@ def main():
             lines.put(line)
         lines.put(None)
     threading.Thread(target=rd, daemon=True).start()
+    ctx = sm.Context(proc, lines, seen)
 
     def cmd(c, ok=r"."):
-        return sm.wait_for(lines, f"{ok}|Unknown|Incorrect|Invalid|error", sm.COMMAND_TIMEOUT_S, seen) if not sm.send(proc, c) else None
+        return sm.run(proc, lines, seen, c, ok)
 
     def check(label, pos, block, want=True):
-        m = cmd(f"execute if block {pos} {block}", r"Test passed|Test failed")
-        got = "passed" in m.group(0)
+        got = ctx.block(pos, block)
         print(("OK   " if got == want else "FALLO"), label)
         if got != want:
             fails.append(label)
 
     def wait(t):
-        time.sleep(t)
+        ctx.ticks(20 * t)       # en ticks del juego: con el servidor atrasado, el reloj no basta
     try:
         sm.wait_for(lines, r"Heraldia: \d+ estructuras registradas", sm.START_TIMEOUT_S, seen)
         cmd("forceload add -16 -16 48 48", r"Marked|Added|force")
@@ -93,9 +93,9 @@ def main():
         check("el hilo acciona el gancho", P(-6, b1, -4), "minecraft:tripwire_hook[powered=true]")
         check("el dispensador ha disparado", P(-6, b1 + 1, -5), "minecraft:dispenser[triggered=true]")
         check("el guardián está", P(-5, FEET["B2"], 6), "minecraft:purple_carpet")
-        m = cmd("execute if entity @e[type=minecraft:evoker]", r"Test passed|Test failed")
-        print("OK   " if "passed" in m.group(0) else "FALLO", "evocador presente")
-        if "passed" not in m.group(0):
+        ok = ctx.wait_entity("@e[type=minecraft:evoker,tag=heraldia_guardian.torre_mago]")
+        print("OK   " if ok else "FALLO", "evocador presente")
+        if not ok:
             fails.append("evocador")
     finally:
         if proc.poll() is None:

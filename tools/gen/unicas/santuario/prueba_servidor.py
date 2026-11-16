@@ -39,6 +39,7 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=sm.reader, args=(proc, lines), daemon=True).start()
+    ctx = sm.Context(proc, lines, seen)
     fails = []
 
     def cmd(c, ok=r"Test passed|Test failed|Generated|Changed|Loaded template|Marked|Added|Set the block|Could not|"
@@ -81,7 +82,7 @@ def main():
         if "Generated" not in m.group(0):
             fails.append("place structure")
         print(f"TIEMPO de /place structure del Santuario druídico: {dt * 1000:.0f} ms")
-        time.sleep(10)
+        ctx.wait_entity(GUARDIAN)     # las entidades aparecen unos segundos después que los bloques
         m = check("guardián con su etiqueta", f"execute if entity {GUARDIAN}")
         print("  cuenta:", m.group(1))
         if m.group(1) != "1":
@@ -96,7 +97,7 @@ def main():
                     r"Loaded template|Failed|not loaded|error|Could not")
             if "Loaded" not in m.group(0):
                 fails.append("place template " + name)
-        time.sleep(5)
+        ctx.ticks(100)
         # el claro
         has_loot("cofre de la alcoba del archidruida", (61, 1, 21))
         is_block("tapiz ante el paso a la alcoba", (58, 3, 21), "minecraft:green_wall_banner")
@@ -122,17 +123,17 @@ def main():
         for z in (52, 54, 56, 58):
             blocks_at[(39, -10, z)] = "minecraft:chiseled_stone_bricks"
         lever((40, -10, 54), (39, -10, 54), "east", True)
-        time.sleep(2)
+        ctx.ticks(40)
         is_block("solo con el verano la puerta sigue cerrada", door[0], "minecraft:mossy_stone_bricks", True)
         lever((40, -10, 58), (39, -10, 58), "east", True)
-        time.sleep(3)
+        ctx.ticks(60)
         for p in door:
             is_block(f"verano e invierno abren la puerta {p}", p, "minecraft:air", True)
         lever((40, -10, 52), (39, -10, 52), "east", True)
-        time.sleep(3)
+        ctx.ticks(60)
         is_block("con la primavera encendida se vuelve a cerrar", door[0], "minecraft:mossy_stone_bricks", True)
         lever((40, -10, 52), (39, -10, 52), "east", False)
-        time.sleep(3)
+        ctx.ticks(60)
         is_block("y al apagarla se abre otra vez", door[0], "minecraft:air", True)
         # puzle 2: estantería secreta del archivo
         sec = [(20, -5, 18), (20, -4, 18)]
@@ -140,20 +141,20 @@ def main():
             is_block(f"estantería del archivo cerrada {p}", p, "minecraft:bookshelf", True)
         blocks_at[(23, -5, 19)] = "minecraft:birch_planks"
         lever((23, -5, 20), (23, -5, 19), "south", True)
-        time.sleep(3)
+        ctx.ticks(60)
         for p in sec:
             is_block(f"la palanca abre el archivo {p}", p, "minecraft:air", True)
         # trampas
         check("dispensadores del cable trampa cargados", f"execute if data block {at((35, -4, 16), True)} {TRES}")
         x, y, z = (int(c) for c in at((36, -5, 16), True).split())
         cmd(f"summon minecraft:zombie {x + 0.5} {y} {z + 0.5} {{NoAI:1b,Silent:1b,PersistenceRequired:1b}}")
-        time.sleep(3)
+        ctx.ticks(60)
         check("el cable trampa dispara (oeste)", f"execute if data block {at((35, -4, 16), True)} {TRES}", want=False)
         check("el cable trampa dispara (este)", f"execute if data block {at((38, -4, 16), True)} {TRES}", want=False)
         check("dispensadores de las placas cargados", f"execute if data block {at((55, -11, 34), True)} {UNA}")
         x, y, z = (int(c) for c in at((55, -11, 35), True).split())
         cmd(f"summon minecraft:zombie {x + 0.5} {y} {z + 0.5} {{NoAI:1b,Silent:1b,PersistenceRequired:1b}}")
-        time.sleep(3)
+        ctx.ticks(60)
         check("la placa dispara (norte)", f"execute if data block {at((55, -11, 34), True)} {UNA}", want=False)
         check("la placa dispara (sur)", f"execute if data block {at((55, -11, 36), True)} {UNA}", want=False)
     finally:

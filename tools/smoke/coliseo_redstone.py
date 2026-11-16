@@ -36,14 +36,14 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=S.reader, args=(proc, lines), daemon=True).start()
+    ctx = S.Context(proc, lines, seen)
     fails = []
 
     def cmd(c, ok=r"."):
         return S.run(proc, lines, seen, c, ok)
 
     def check(desc, pos, block):
-        m = cmd(f"execute if block {pos} {block}", r"Test passed|Test failed")
-        if "passed" not in m.group(0):
+        if not ctx.block(pos, block):
             fails.append(f"{desc}: se esperaba {block} en {pos}")
         else:
             print("OK", desc)
@@ -53,7 +53,7 @@ def main():
         cmd(f"setblock {pos} {orig}", r"Changed the block|Could not set")
 
     def wait(s):
-        time.sleep(s)
+        ctx.ticks(20 * s)       # en ticks del juego: con el servidor atrasado, el reloj no basta
 
     try:
         S.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", S.START_TIMEOUT_S, seen)
@@ -101,16 +101,12 @@ def main():
         check("puzle 1 abre la trampilla", W(20, -6, 7), "minecraft:iron_trapdoor[open=true]")
         # trampas
         cmd(f"summon minecraft:armor_stand {W(16, -6, 0)}", r"Summoned|Unable")
-        wait(2)
-        m = cmd("execute if entity @e[type=minecraft:arrow]", r"Test passed|Test failed")
-        (fails.append("trampa 1 (cable) no dispara") if "passed" not in m.group(0) else print("OK trampa 1"))
+        (fails.append("trampa 1 (cable) no dispara") if not ctx.until("execute if entity @e[type=minecraft:arrow]") else print("OK trampa 1"))
         cmd("kill @e[type=minecraft:arrow]", r"Killed|No entity")
         cmd(f"summon minecraft:armor_stand {W(12, -13, 3)}", r"Summoned|Unable")
-        wait(2)
-        m = cmd("execute if entity @e[type=minecraft:arrow]", r"Test passed|Test failed")
-        (fails.append("trampa 2 (placas) no dispara") if "passed" not in m.group(0) else print("OK trampa 2"))
-        m = cmd("execute if entity @e[type=minecraft:husk,tag=!x]", r"Test passed|Test failed")
-        (fails.append("no está el Campeón de la Arena") if "passed" not in m.group(0) else print("OK guardián"))
+        (fails.append("trampa 2 (placas) no dispara") if not ctx.until("execute if entity @e[type=minecraft:arrow]") else print("OK trampa 2"))
+        ok = ctx.wait_entity("@e[type=minecraft:husk,tag=heraldia_guardian.coliseo]")
+        (fails.append("no está el Campeón de la Arena") if not ok else print("OK guardián"))
     finally:
         if proc.poll() is None:
             S.send(proc, "stop")

@@ -54,6 +54,7 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=sm.reader, args=(proc, lines), daemon=True).start()
+    ctx = sm.Context(proc, lines, seen)
     fails = []
 
     def cmd(c, ok=r"Test passed|Test failed|Generated|Changed|Loaded template|Marked|Added|Set the block|Could not|"
@@ -69,7 +70,7 @@ def main():
                 fails.append(desc)
         return ok, mm
 
-    def until(desc, c, want=True, secs=20):
+    def until(desc, c, want=True, secs=sm.UNTIL_S):
         end = time.monotonic() + secs
         while True:
             ok, _ = check(desc, c, want, quiet=True)
@@ -182,8 +183,9 @@ def main():
         if "Generated" not in mm.group(0):
             fails.append("place structure")
         print(f"TIEMPO de /place structure de la Isla del corsario: {dt * 1000:.0f} ms")
-        time.sleep(10)
         cerca = GUARDIAN.replace("]", ",x=0,y=0,z=0,distance=..120]")
+        ctx.wait_entity(cerca)              # las entidades aparecen unos segundos después que los bloques
+        ctx.wait_entity("@e[type=minecraft:oak_boat,x=0,y=0,z=0,distance=..120]")
         ok, mm = check("corsario con su etiqueta", f"execute if entity {cerca}")
         print("  cuenta:", mm.group(1))
         if mm.group(1) != "1":
@@ -202,7 +204,7 @@ def main():
                  r"Loaded template|Failed|not loaded|error|Could not")
         if "Loaded" not in mm.group(0):
             fails.append("place template")
-        time.sleep(5)
+        ctx.ticks(100)
         for p, tabla in obra.chests:
             if tabla in ("premium", "cartas", "escondite", "santabarbara", "bergantin", "ensenada", "polvorin"):
                 has_loot(f"cofre {tabla}", p)
@@ -213,7 +215,7 @@ def main():
             is_block(f"cañón {p}", p, "minecraft:dispenser")
         bx0, bx1 = m["ensenada"]["boca"]
         lx0, lx1, lz0, lz1 = m["ensenada"]["laguna"]
-        time.sleep(10)
+        ctx.ticks(200)
         is_block("agua quieta en la ensenada", (lx0 + 5, -1, lz0 + 2), "minecraft:water[level=0]")
         is_block("aire seco sobre la ensenada", (lx0 + 5, 0, lz0 + 2), "minecraft:air")
         is_block("el muelle de la ensenada sin agua", (lx0, 0, lz1 - 1), "minecraft:air")
@@ -224,10 +226,10 @@ def main():
         for p in door:
             is_block(f"puerta del tesoro cerrada al generarse {p}", p, "minecraft:chiseled_stone_bricks")
         lever(n, True)
-        time.sleep(2)
+        ctx.ticks(40)
         is_block("solo con el norte sigue cerrada", door[0], "minecraft:chiseled_stone_bricks")
         lever(w, True)
-        time.sleep(1)
+        ctx.ticks(20)
         for p in door:
             until(f"norte y poniente abren la puerta del tesoro {p}", f"execute if block {at(p)} minecraft:air")
         lever(e, True)

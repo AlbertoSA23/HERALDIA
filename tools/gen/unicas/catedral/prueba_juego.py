@@ -33,6 +33,7 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen, fails, oks = queue.Queue(), [], [], 0
     threading.Thread(target=sm.reader, args=(proc, lines), daemon=True).start()
+    ctx = sm.Context(proc, lines, seen)
 
     def cmd(s, ok=r"Test passed|Test failed"):
         return sm.run(proc, lines, seen, s, ok)
@@ -51,7 +52,7 @@ def main():
         cmd(f"setblock {x} {y} {z} {st}", r"Changed the block|Could not set|error|Unknown")
 
     def wait(t=20):
-        time.sleep(t / 20 + 0.5)
+        ctx.ticks(t + 10)       # en ticks del juego (con el servidor atrasado, el reloj no basta)
 
     try:
         sm.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", sm.START_TIMEOUT_S, seen)
@@ -83,18 +84,17 @@ def main():
             check("generador", pos, f'spawner{{SpawnData:{{entity:{{id:"minecraft:{mob}"}}}}}}')
         for (pos, tabla, sitio) in c.chests:
             check(f"cofre {sitio}", pos, f'{g(*pos).split("[")[0].replace("minecraft:", "")}{{LootTable:"heraldia:unicas/catedral/{tabla}"}}')
+        # El guardián (esqueleto con IA) se busca por su etiqueta en todo el mundo, no junto a su sitio en la plantilla:
+        # anda. Las entidades de la plantilla aparecen unos segundos después que los bloques: se espera por condición.
         for (x, y, z, n) in c.entities:
-            px, py, pz = w((x, y, z))
-            for _ in range(15):            # las entidades de la plantilla se cargan unos ticks después que los bloques
-                m = cmd(f"execute if entity @e[type=minecraft:skeleton,x={px},y={py},z={pz},distance=..8,nbt={{PersistenceRequired:1b,equipment:{{mainhand:{{id:\"minecraft:bow\"}}}}}}]")
-                if "passed" in m.group(0):
-                    break
-                time.sleep(2)
-            if "passed" in m.group(0):
+            gs = ("@e[type=minecraft:skeleton,tag=heraldia_guardian.catedral,"
+                  "nbt={PersistenceRequired:1b,equipment:{mainhand:{id:\"minecraft:bow\"}}}]")
+            if ctx.wait_entity(gs):
                 oks += 1
+                print(f"guardián en {ctx.pos(gs)} (colocado en {w((x, y, z))})")
             else:
                 fails.append("guardián ausente o sin equipo")
-            cmd(f"data get entity @e[type=minecraft:skeleton,x={px},y={py},z={pz},distance=..8,limit=1] CustomName", r"has the following|No entity|Found no")
+            cmd(f"data get entity {gs[:-1]},limit=1] CustomName", r"has the following|No entity|Found no")
         # 2) puertas de pistones: solución abre, la palanca falsa vuelve a cerrar
         for mch in [m for m in c.mech if m["tipo"] == "puerta de pistones"]:
             if len(mch["palancas"]) > 1:            # una sola palanca no basta
@@ -133,13 +133,12 @@ def main():
             elif mch["tipo"] in ("cable trampa", "placa de presión", "palanca trampa"):
                 p = mch["cable"][1] if "cable" in mch else mch.get("placa") or mch["palanca"]
                 x, y, z = w(p)
+                cmd("kill @e[type=minecraft:arrow]", r"Killed|No entity|error")     # que no cuenten las de otra trampa
                 if "apoyo" in mch:
                     setb(mch["apoyo"], "redstone_block")
                 else:
                     cmd(f"summon minecraft:zombie {x}.5 {y} {z}.5 {{NoAI:1b,PersistenceRequired:1b,Tags:[\"prueba\"]}}", r"Summoned|Unable|error")
-                wait(30)
-                m = cmd(f"execute if entity @e[type=minecraft:arrow,x={x},y={y},z={z},distance=..8]")
-                if "passed" in m.group(0):
+                if ctx.until(f"execute if entity @e[type=minecraft:arrow,x={x},y={y},z={z},distance=..8]"):
                     oks += 1
                 else:
                     fails.append(f"la trampa {mch['sitio']} no dispara")
