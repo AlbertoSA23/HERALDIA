@@ -72,6 +72,11 @@ public final class HeraldiaConfig {
 		return values.get(key).getAsInt();
 	}
 
+	/** Valor de una opción con decimales (minas.vanilla.multiplicador); vale también para las enteras. */
+	public double getDouble(String key) {
+		return values.get(key).getAsDouble();
+	}
+
 	/** Valor de una opción de lista (uno de {@link ConfigOption#values()}). */
 	public String getString(String key) {
 		return values.get(key).getAsString();
@@ -219,8 +224,8 @@ public final class HeraldiaConfig {
 			} else if (o.isChoice()) {
 				LOGGER.warn("Heraldia: valor no válido {}={} (uno de {}); se usa el valor por defecto {}", o.key(), given, o.values(), o.defaultValue());
 			} else {
-				LOGGER.warn("Heraldia: valor no válido {}={} (entero de {} a {}); se usa el valor por defecto {}", o.key(), given, o.min(), o.max(),
-						o.defaultValue());
+				LOGGER.warn("Heraldia: valor no válido {}={} ({} de {} a {}); se usa el valor por defecto {}", o.key(), given,
+						o.decimal() ? "número" : "entero", o.min(), o.max(), o.defaultValue());
 			}
 			return o.defaultValue();
 		});

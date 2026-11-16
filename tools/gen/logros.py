@@ -16,6 +16,7 @@
   medianas/descubrir           entrar en una estructura mediana cualquiera; medianas/todas: una de cada tipo
   medianas/<id>/<extra>        logros propios de un tipo de mediana (LOGROS del módulo: abrir uno de sus contenedores o
                                criterios propios)
+  minas/pequena, minas/mediana, minas/grande   cadena de las entradas a mina (minas.LOGROS): entrar en una de cada tamaño
   unicas/cronista              (desafío) reunir los pliegos de la Crónica de los Heraldos (HISTORIA de cada módulo,
                                custom_data heraldia_historia; un criterio inventory_changed por pliego, todos requeridos)
 Contrato opcional en cada módulo de unicas/ (ver unicas/__init__.py): LOGRO = {"icono", "tesoro", "tesoro_objeto", "extra"}.
@@ -40,8 +41,8 @@ TREASURE_MARK = "heraldia_tesoro"   # custom_data de los objetos de un cofre de 
 # Textos comunes; %s es el nombre de la familia, de la estructura o del guardián.
 TEXTS = {
     "raiz": (("Heraldia", "Heraldia"),
-             ("Entra en una aldea Heraldia, una estructura única o una mediana",
-              "Enter a Heraldia village, a unique structure or a medium structure")),
+             ("Entra en una aldea Heraldia, una estructura única, una mediana o una mina",
+              "Enter a Heraldia village, a unique structure, a medium structure or a mine")),
     "familia": (("%s", "%s"), ("Entra en una aldea Heraldia de la familia %s", "Enter a Heraldia village of the %s family")),
     "aldeas": (("Trotamundos de Heraldia", "Heraldia Globetrotter"),
                ("Entra en una aldea de cada una de las 12 familias", "Enter a village of each of the 12 families")),
@@ -113,7 +114,7 @@ def guardians(reg, sid):
     return sorted(found.items())
 
 
-def build(reg, modules, medianas_mods=None):
+def build(reg, modules, medianas_mods=None, minas_mod=None):
     """{ruta: advancement} y textos {"es_es": {...}, "en_us": {...}} (claves con el texto propio; los %s del título y
     la descripción se rellenan con "with")."""
     advs, lang = {}, {"es_es": {}, "en_us": {}}
@@ -131,6 +132,8 @@ def build(reg, modules, medianas_mods=None):
     raiz = {"aldea": location(f"#{NS}:aldeas"), "unica": location(f"#{NS}:unicas")}
     if medianas_mods:
         raiz["mediana"] = location(f"#{NS}:medianas")
+    if minas_mod:
+        raiz["mina"] = location(f"#{NS}:minas")
     advs["raiz"] = advancement(None, ROOT_ICON, title, desc, raiz, requirements=[sorted(raiz)], background=BACKGROUND,
                                announce_to_chat=False, show_toast=False)
     if medianas_mods:   # estructuras medianas (medianas/): una cualquiera y una de cada tipo
@@ -151,6 +154,17 @@ def build(reg, modules, medianas_mods=None):
                 advs[path] = advancement("medianas/descubrir", ex["icono"], comp(key(path, "title"), ex["titulo"][0]),
                                          comp(key(path, "description"), ex["descripcion"][0]), crit,
                                          xp=ex.get("xp", XP["mediana_extra"]), requirements=[sorted(crit)])
+    if minas_mod:   # entradas a mina: cadena pequeña -> mediana -> grande (entrar en una de cada tamaño)
+        padre = "raiz"
+        for tam in minas_mod.TAMANOS:
+            d, path = minas_mod.LOGROS[tam], f"minas/{tam}"
+            for part, field in (("title", "titulo"), ("description", "descripcion")):
+                lang["es_es"][key(path, part)], lang["en_us"][key(path, part)] = d[field]
+            advs[path] = advancement(padre, d["icono"], comp(key(path, "title"), d["titulo"][0]),
+                                     comp(key(path, "description"), d["descripcion"][0]),
+                                     {tam: location(f"#{NS}:minas/{tam}")}, frame="goal" if tam == "grande" else "task",
+                                     xp=minas_mod.XP[tam])
+            padre = path
     # aldeas por familia
     for fam, d in FAMILIES.items():
         es, en = d["nombre"]
@@ -233,8 +247,8 @@ def write(out, reg, modules, jdump):
     """Escribe los logros y sus etiquetas; devuelve los textos para sumarlos a los idiomas del mod."""
     for path, values in structure_tags(modules).items():
         jdump(out, f"data/{NS}/tags/worldgen/structure/{path}.json", {"values": values})
-    import medianas
-    advs, lang = build(reg, modules, medianas.modules())
+    import medianas, minas
+    advs, lang = build(reg, modules, medianas.modules(), minas)
     for path, adv in advs.items():
         jdump(out, f"data/{NS}/advancement/{path}.json", adv)
     return lang

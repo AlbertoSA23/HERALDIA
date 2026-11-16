@@ -6,6 +6,7 @@ from pack import ALL_PROFS
 import loot
 import unicas
 import medianas
+import minas
 import mapas
 import tratos
 import tablon
@@ -57,7 +58,8 @@ LANG = {
         "heraldia.info.distancia": "Distancia mínima entre únicas: %s, %s bloques",
         "heraldia.info.rejilla": "Rejilla antigua de las únicas (mundo de una versión anterior): %s",
         "heraldia.info.cofre": "Cofre premium de la Atlántida por jugador: %s; Lootr: %s",
-        "heraldia.info.registradas": "Estructuras registradas: %s (%s de aldeas, %s únicas y %s medianas)",
+        "heraldia.info.registradas": "Estructuras registradas: %s (%s de aldeas, %s únicas, %s medianas y %s entradas a mina)",
+        "heraldia.info.minas": "Entradas a mina: %s, cada %s bloques (las pequeñas; las medianas y las grandes, en proporción); minas abandonadas vanilla: x%s en los chunks nuevos",
         "heraldia.info.medianas": "Estructuras medianas: %s; %s de %s tipos activados, frecuencia %s %%, a %s bloques de aldeas y únicas y a %s entre ellas",
         "heraldia.info.mediana": " - %s: cada %s bloques",
         "heraldia.info.si": "sí",
@@ -104,7 +106,8 @@ LANG = {
         "heraldia.info.distancia": "Minimum distance between unique structures: %s, %s blocks",
         "heraldia.info.rejilla": "Old unique-structure grid (world from an earlier version): %s",
         "heraldia.info.cofre": "Per-player Atlantis premium chest: %s; Lootr: %s",
-        "heraldia.info.registradas": "Registered structures: %s (%s villages, %s unique and %s medium)",
+        "heraldia.info.registradas": "Registered structures: %s (%s villages, %s unique, %s medium and %s mine entrances)",
+        "heraldia.info.minas": "Mine entrances: %s, every %s blocks (small ones; medium and large ones in proportion); vanilla abandoned mineshafts: x%s in new chunks",
         "heraldia.info.medianas": "Medium structures: %s; %s of %s types enabled, frequency %s %%, %s blocks from villages and unique ones and %s from each other",
         "heraldia.info.mediana": " - %s: every %s blocks",
         "heraldia.info.si": "yes",
@@ -233,6 +236,8 @@ def write(reg, out):
         write_unique(out, sid, mod.STRUCTURE)
     # estructuras medianas (medianas/): estructuras, etiquetas, structure_sets y botín
     medianas_lang = medianas.write(out, jdump)
+    # entradas a mina (minas/) y la colocación de las minas abandonadas vanilla
+    minas_lang = minas.write(out, jdump)
     # botín
     uniques = unicas.modules()
     for name, table in loot.TABLES.items():
@@ -325,7 +330,7 @@ def write(reg, out):
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     maps_lang = mapas.lang(uniques)
     adv_lang = logros.write(out, reg, uniques, jdump)
-    for extra in (tratos.lang(), tablon.write(out, jdump), caminos.write(out, jdump), medianas_lang,
+    for extra in (tratos.lang(), tablon.write(out, jdump), caminos.write(out, jdump), medianas_lang, minas_lang,
                   guia.write(out, uniques, jdump), arena_oleadas.write(out, jdump)):
         for lang, texts in extra.items():
             adv_lang[lang].update(texts)

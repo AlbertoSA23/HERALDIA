@@ -50,6 +50,11 @@ PAGINAS = [
       "ermitas... Tienen botín modesto y, a veces, un pequeño reto. Cuidado con los bandidos.",
       "Between villages you will come across medium structures: watchtowers, roadside inns, bandit camps, "
       "hermitages... They hold modest loot and, now and then, a small challenge. Beware of the bandits.")),
+    ("minas", ("Las minas", "The mines"),
+     ("En las laderas de montes, taigas, desiertos, badlands y picos se abren bocas de mina que bajan a galerías con "
+      "vías, cruces y salas. Las mayores tienen torre de extracción y un pozo con escalera. Ojo con las arañas del fondo.",
+      "On the slopes of hills, taigas, deserts, badlands and peaks, mine adits lead down to galleries with rails, "
+      "crossings and rooms. The largest have a headframe and a shaft with a spiral stair. Beware the spiders below.")),
     ("unicas", ("Las únicas", "Unique structures"),
      ("Muy raras, cada una en su bioma: un castillo, una catedral, una ciudadela enana, un galeón varado... Dentro hay "
       "salas ocultas, puzles, trampas, un guardián con nombre y su cámara del tesoro.",
@@ -80,6 +85,11 @@ PAGINAS = [
       "todos para completar la Sala de trofeos.",
       "Every named guardian drops its trophy, an item with a name and a story, when a player defeats it. Collect them "
       "all to complete the Hall of Trophies.")),
+    ("jefes", ("Combates de jefe", "Boss fights"),
+     ("Los guardianes con nombre pelean por fases: al perder vida se enfurecen (más rápidos y fuertes un rato) y llaman "
+      "a refuerzos propios de su estructura. Mientras dura el combate verás su barra de jefe.",
+      "Named guardians fight in phases: as they lose health they become enraged (faster and stronger for a while) and "
+      "call for reinforcements that suit their structure. While the fight lasts you will see their boss bar.")),
     ("mapas", ("Mapas del tesoro", "Treasure maps"),
      ("Cada mapa marca la estructura única más cercana de su tipo. Salen en los cofres épicos de las aldeas y los "
       "venden los cartógrafos de Heraldia.",

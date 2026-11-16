@@ -45,12 +45,17 @@ public record ConfigOption(String key, JsonPrimitive defaultValue, @Nullable Int
 		return defaultValue.isBoolean();
 	}
 
+	/** Opción con decimales: su valor por defecto se escribe con punto en el esquema (p. ej. 2.0). */
+	public boolean decimal() {
+		return defaultValue.isNumber() && defaultValue.getAsString().contains(".");
+	}
+
 	/** ¿Opción de lista (uno de {@link #values()})? */
 	public boolean isChoice() {
 		return !values.isEmpty();
 	}
 
-	/** El valor normalizado si es válido para esta opción (booleano, entero dentro del rango o uno de la lista). */
+	/** El valor normalizado si es válido para esta opción (booleano, entero o decimal dentro del rango, o uno de la lista). */
 	public Optional<JsonPrimitive> accept(JsonPrimitive given) {
 		if (isBoolean()) {
 			return given.isBoolean() ? Optional.of(given) : Optional.empty();
@@ -60,6 +65,9 @@ public record ConfigOption(String key, JsonPrimitive defaultValue, @Nullable Int
 		}
 		if (given.isNumber()) {
 			double d = given.getAsDouble();
+			if (decimal()) {
+				return Double.isFinite(d) && d >= min && d <= max ? Optional.of(new JsonPrimitive(d)) : Optional.empty();
+			}
 			if (d == Math.rint(d) && d >= min && d <= max) {
 				return Optional.of(new JsonPrimitive((int) d));
 			}
@@ -76,6 +84,13 @@ public record ConfigOption(String key, JsonPrimitive defaultValue, @Nullable Int
 			return accept(new JsonPrimitive(text.strip()));
 		}
 		String t = text.strip();
+		if (decimal()) {
+			if (t.isEmpty() || t.length() > 11 || !t.matches("-?\\d+(\\.\\d+)?")) {
+				return Optional.empty();
+			}
+			double d = Double.parseDouble(t);
+			return d >= min && d <= max ? Optional.of(new JsonPrimitive(d)) : Optional.empty();
+		}
 		if (t.isEmpty() || t.length() > 11 || !t.matches("-?\\d+")) {
 			return Optional.empty();
 		}

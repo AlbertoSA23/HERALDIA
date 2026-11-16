@@ -73,7 +73,10 @@ def comprobar_locate(ctx, tipos):
                 fails.append(f"/heraldia info cerca desde {mid} en {px}, {pz} no responde")
                 continue
             for sid, (dist, *_) in cerca.items():
-                if ":medianas/" not in sid:                   # aldeas (heraldia:aldeas o su estilo) y únicas
+                if ":minas/" in sid:                          # entradas a mina: ceden a las medianas a esta distancia
+                    if dist < DISTANCIA:
+                        fails.append(f"{mid} en {px}, {pz} a {dist} bloques de la mina {sid} (< {DISTANCIA})")
+                elif ":medianas/" not in sid:                 # aldeas (heraldia:aldeas o su estilo) y únicas
                     if dist < ZONA:
                         fails.append(f"{mid} en {px}, {pz} a {dist} bloques de {sid} (< {ZONA})")
                 elif f"medianas/{mid}" not in sid and dist < DISTANCIA:
@@ -253,8 +256,8 @@ def main():
         if not re.search(rf"estructuras medianas: activadas, {len(tipos)} tipos, frecuencia 100 %, a {ZONA} bloques de aldeas "
                          rf"y únicas y a {DISTANCIA} entre ellas", ctx.log()):
             fails.append("falta en el log la regla de las medianas con su configuración por defecto")
-        m = ctx.run("heraldia info", r"Registered structures: \d+ \(\d+ villages, \d+ unique and (\d+) medium\)|"
-                                     r"Estructuras registradas: \d+ \(\d+ de aldeas, \d+ únicas y (\d+) medianas\)")
+        m = ctx.run("heraldia info", r"Registered structures: \d+ \(\d+ villages, \d+ unique, (\d+) medium and \d+ mine|"
+                                     r"Estructuras registradas: \d+ \(\d+ de aldeas, \d+ únicas, (\d+) medianas y \d+ ")
         n = m.group(1) or m.group(2) if m.lastindex else None
         esperadas = sum(len(mod.ESTILOS) for _, mod in medianas.modules())
         if n is None or int(n) != esperadas:
