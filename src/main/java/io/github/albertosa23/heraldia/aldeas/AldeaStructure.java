@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.albertosa23.heraldia.Heraldia;
 import io.github.albertosa23.heraldia.comun.Alturas;
 import io.github.albertosa23.heraldia.comun.Generacion;
+import io.github.albertosa23.heraldia.comun.Perfil;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +84,9 @@ public final class AldeaStructure extends Structure {
 
 	@Override
 	protected Optional<GenerationStub> findGenerationPoint(GenerationContext ctx) {
+		long tp = Perfil.inicio();
 		Optional<GenerationStub> stub = aldea.findGenerationPoint(ctx);
+		Perfil.fin(Perfil.Tramo.ALDEA, tp);
 		boolean sinTablon = !HeraldiaConfig.get().getBool(OPCION_TABLON);
 		if ((puerto.isEmpty() && !sinTablon) || stub.isEmpty()) {
 			return stub;   // lo normal tierra adentro: el stub del jigsaw tal cual, sin coste añadido
@@ -99,6 +102,9 @@ public final class AldeaStructure extends Structure {
 			}
 			long t1 = System.nanoTime();
 			String result = puerto.isPresent() ? addPort(ctx, puerto.get(), pieces) : null;
+			if (puerto.isPresent()) {
+				Perfil.fin(Perfil.Tramo.ORILLA, t1);
+			}
 			for (StructurePiece piece : pieces) {
 				builder.addPiece(piece);
 			}

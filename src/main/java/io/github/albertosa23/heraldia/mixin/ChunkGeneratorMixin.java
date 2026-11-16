@@ -1,6 +1,7 @@
 package io.github.albertosa23.heraldia.mixin;
 
 import io.github.albertosa23.heraldia.comun.Medianas;
+import io.github.albertosa23.heraldia.comun.Perfil;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
@@ -41,6 +42,17 @@ abstract class ChunkGeneratorMixin {
 									   RegistryAccess registryAccess, RandomState randomState, StructureTemplateManager templateManager,
 									   long seed, ChunkAccess centerChunk, ChunkPos sourceChunkPos, ResourceKey<Level> level,
 									   Climate.Sampler climateSampler, CallbackInfoReturnable<Boolean> cir) {
+		long t0 = Perfil.inicio();
+		try {
+			heraldia$reglas(selected, registryAccess, randomState, templateManager, seed, centerChunk, sourceChunkPos, level, climateSampler, cir);
+		} finally {
+			Perfil.fin(Perfil.Tramo.REGLAS, t0);
+		}
+	}
+
+	private void heraldia$reglas(StructureSet.StructureSelectionEntry selected, RegistryAccess registryAccess, RandomState randomState,
+								 StructureTemplateManager templateManager, long seed, ChunkAccess centerChunk, ChunkPos sourceChunkPos,
+								 ResourceKey<Level> level, Climate.Sampler climateSampler, CallbackInfoReturnable<Boolean> cir) {
 		// sin lambda que capture (ruta caliente de la generación): dos búsquedas en tablas hash y salida temprana
 		Optional<ResourceKey<Structure>> key = selected.structure().unwrapKey();
 		if (key.isEmpty()) {
@@ -61,34 +73,46 @@ abstract class ChunkGeneratorMixin {
 		}
 		ZonaAjenas zona = ZonaAjenas.of(registryAccess);
 		if (zona.activa(level) && ZonaAjenas.deOtroMod(id) && ZonaAjenas.visible(selected.structure().value().step())) {
+			long tz = Perfil.inicio();
 			long[] cerca = zona.cercanas(sep, seed, sourceChunkPos.x(), sourceChunkPos.z());
 			ChunkGenerator self = (ChunkGenerator) (Object) this;
-			if (cerca != null && zona.ocupada(cerca, sep, seed,
+			boolean ocupada = cerca != null && zona.ocupada(cerca, sep, seed,
 					sep.viability(registryAccess, self, self.getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level),
-					zona.aldea(registryAccess, self, self.getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level))) {
+					zona.aldea(registryAccess, self, self.getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level));
+			Perfil.fin(Perfil.Tramo.ZONA_AJENAS, tz);
+			if (ocupada) {
 				cir.setReturnValue(false); // una estructura de otro mod junto a una aldea o una única de Heraldia que sale ahí
 				return;
 			}
 		}
 		if (UniqueSeparation.isUnique(id)) { // solo en los chunks candidatos de una estructura única: unos pocos por mundo
 			int i = sep.indexOf(id);
-			if (i >= 0 && sep.enabled() && sep.blocked(i, sourceChunkPos.x(), sourceChunkPos.z(), seed, sep.viability(registryAccess,
+			long ts = Perfil.inicio();
+			boolean bloqueada = i >= 0 && sep.enabled() && sep.blocked(i, sourceChunkPos.x(), sourceChunkPos.z(), seed, sep.viability(registryAccess,
 					(ChunkGenerator) (Object) this, ((ChunkGenerator) (Object) this).getBiomeSource(), climateSampler, randomState,
-					templateManager, seed, centerChunk, level))) {
+					templateManager, seed, centerChunk, level));
+			Perfil.fin(Perfil.Tramo.SEPARACION_UNICAS, ts);
+			if (bloqueada) {
 				cir.setReturnValue(false);
 			}
 		}
 		if (Medianas.esMediana(id)) { // solo en los chunks candidatos de una mediana: lejos de aldeas, únicas y otras medianas
 			ChunkGenerator self = (ChunkGenerator) (Object) this;
-			if (Medianas.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
-					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level)) {
+			long tm = Perfil.inicio();
+			boolean rechazada = Medianas.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
+					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level);
+			Perfil.fin(Perfil.Tramo.MEDIANAS, tm);
+			if (rechazada) {
 				cir.setReturnValue(false);
 			}
 		}
 		if (Minas.esMina(id)) { // solo en los chunks candidatos de una entrada a mina: cede a aldeas, únicas, medianas y vanilla
 			ChunkGenerator self = (ChunkGenerator) (Object) this;
-			if (Minas.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
-					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level)) {
+			long tm = Perfil.inicio();
+			boolean rechazada = Minas.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
+					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level);
+			Perfil.fin(Perfil.Tramo.MINAS, tm);
+			if (rechazada) {
 				cir.setReturnValue(false);
 			}
 		}

@@ -1,6 +1,7 @@
 package io.github.albertosa23.heraldia.caminos;
 
 import com.mojang.serialization.MapCodec;
+import io.github.albertosa23.heraldia.comun.Perfil;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,7 @@ public record CaminoFeature() implements Feature {
 			placed = pintar(region, ctx, cp, rutas);
 		}
 		long ns = System.nanoTime() - t0;
+		Perfil.contadores().anotar(Perfil.Tramo.CAMINOS, ns);
 		long n = Caminos.CHUNKS.incrementAndGet();
 		Caminos.CHUNKS_NS.addAndGet(ns);
 		Caminos.medir(ns);
