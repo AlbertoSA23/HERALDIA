@@ -136,7 +136,7 @@ def comprobar_plantillas(ctx, ts):
 def comprobar_agua(ctx, name, t, origen):
     """El agua de la plantilla (todo fuentes, entre bloques) no corre: unos ticks después, cada celda de agua sigue siendo
     una fuente y las de aire de alrededor siguen vacías."""
-    agua = [p for p, (st, _) in t.blocks.items() if st.startswith("minecraft:water")]
+    agua = [p for p, (st, _) in t.blocks.items() if st.split("[")[0] == "minecraft:water"]   # no los calderos
     if not agua:
         return []
     time.sleep(2)                         # el agua se extiende cada 5 ticks
