@@ -21,7 +21,6 @@ CARPET = ("fabric-carpet-26.3+v260915.jar",
 PLAYER = "Testigo"
 X, Y, Z = 0, 101, 0            # jugador sobre una plataforma; los mobs a MOB_DZ bloques (no recoge lo que cae)
 MOB_DZ = 6
-ATTEMPTS, RETRY_S = 20, 0.5
 ADV = "heraldia:unicas/trofeos"
 ITEMS = "@e[type=minecraft:item]"
 
@@ -62,15 +61,10 @@ def main():
     threading.Thread(target=s.reader, args=(proc, lines), daemon=True).start()
     ctx = s.Context(proc, lines, seen)
 
-    def test(cmd):
-        return "passed" in ctx.run(cmd, r"Test passed|Test failed").group(0)
+    test = ctx.test
 
     def until(cmd, want=True):
-        for _ in range(ATTEMPTS):
-            if test(cmd) == want:
-                return True
-            time.sleep(RETRY_S)
-        return False
+        return ctx.until(cmd, want)     # límite holgado (s.UNTIL_S): la CI va lenta
 
     def settle():
         """El jugador, en el suelo, sin golpe reciente y de vuelta en (X, Y, Z): ya no se desliza ni vuela."""
@@ -92,6 +86,9 @@ def main():
         if not until(f"execute if entity @a[name={PLAYER}]"):
             raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
         ctx.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
+        # Sin monstruos naturales ni noche: el jugador simulado (en supervivencia) no debe depender de la hora del día.
+        for rule in ("spawn_mobs", "advance_time"):
+            ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
         mz = Z + MOB_DZ
         for i, (sid, (mob, table, item, rarity)) in enumerate(found.items()):
             mark = f'{{"minecraft:custom_data":{{heraldia_trofeo:"{sid}"}}}}'
@@ -102,7 +99,7 @@ def main():
             ctx.run(f"kill {ITEMS}", r"Killed|No entity was found")
             ctx.run(summon, r"Summoned")
             ctx.run("kill @e[tag=heraldia_prueba]", r"Killed|No entity was found")
-            time.sleep(1)
+            ctx.ticks(20)           # el botín cae al morir: un segundo de juego basta para verlo (en ticks, no en reloj)
             if test(f"execute if entity {near}"):
                 fails.append(f"{sid}: /kill (sin jugador) suelta el trofeo")
             else:

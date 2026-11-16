@@ -106,7 +106,13 @@ def main():
             if "not loaded" not in m.string:
                 break
             time.sleep(s.PLACE_RETRY_S)
+        # Cerco de barrera alrededor de la plataforma (y techo a 5): los mobs tienen IA y, sin él, alguno podía caerse
+        # por el borde entre dos cuentas y faltar del área («N de 200 colocados» o «con otra arma» sin serlo).
+        ctx.run(f"fill {X0 - 3} {Y - 1} {Z0 - 3} {x1 + 3} {Y + 5} {z1 + 3} minecraft:barrier outline",
+                r"Successfully filled|No blocks")
+        # De noche y sin que avance el tiempo: al sol arden, y la prueba (un mob tras otro) puede durar más que la noche.
         ctx.run("time set midnight", r"Set .*time")
+        ctx.run("gamerule advance_time false", r"[Gg]ame ?rule .*advance_time")
         print(f"adultos: {len(found)} mobs distintos con posible bebé en las plantillas")
         for i, (name, nbt) in enumerate(found):
             mob = str(nbt["id"])
@@ -115,11 +121,12 @@ def main():
             ctx.run(f"function {NS}:m{i}", r"Running function|Ran \d+ command")
             sel = f"@e[type={mob},{area}]"
             total = 0
-            for _ in range(30):             # las entidades de la pieza tardan algo más que los bloques
+            end = time.monotonic() + s.UNTIL_S
+            while True:                     # las entidades de la pieza tardan algo más que los bloques
                 total = count(sel)
-                if total >= a.veces:
+                if total >= a.veces or time.monotonic() > end:
                     break
-                time.sleep(1)
+                time.sleep(s.POLL_S)
             babies = count(f"@e[type={mob},{area},nbt={{IsBaby:1b}}]")
             mounts = count(f"@e[type=!{mob},type=!minecraft:item,{area}]")     # gallinas, nautilos zombis...
             hand = str(nbt.get("equipment", {}).get("mainhand", {}).get("id", ""))

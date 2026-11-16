@@ -31,7 +31,7 @@ def comprobar(ctx):
     fin = time.monotonic() + 600
     while time.monotonic() < fin and not all(bloque(c, "minecraft:air") is not None for c in esquinas):
         time.sleep(5)
-    time.sleep(40)                      # margen para que el agua mal contenida, si la hubiera, llegase a correr
+    ctx.ticks(800)                      # margen (40 s de juego) para que el agua mal contenida, si la hubiera, llegase a correr
     dentro = lambda c: -MEDIO <= c[0] < MEDIO and -MEDIO <= c[2] < MEDIO
     for marca, estado in (("seca", "minecraft:air"), ("agua", "minecraft:water")):
         celdas = [c for c in pl.marcas[marca] if dentro(c)]
@@ -55,7 +55,7 @@ def comprobar(ctx):
             for c in toques:
                 for b in ("minecraft:glass", pl.blocks[c][0]):
                     ctx.run(f"setblock {X + c[0]} {c[1]} {Z + c[2]} {b}", r"Changed the block|Could not set")
-            time.sleep(1.5)
+            ctx.ticks(30)
 
     def abierta(valor):
         return bloque(puerta, f"minecraft:iron_door[open={'true' if valor else 'false'}]")
@@ -79,12 +79,12 @@ def comprobar(ctx):
     # guardián final: existe y suelta la llave de Poseidón
     # (su DeathLootTable es la del trofeo, _comun/botin.guardian_tabla, que incluye la de la llave)
     jefe = '@e[type=minecraft:elder_guardian,nbt={DeathLootTable:"heraldia:guardianes/atlantida/elder_guardian"}]'
-    if "passed" not in ctx.run(f"execute if entity {jefe}", r"Test passed|Test failed").group(0):
+    if not ctx.wait_entity(jefe):       # las entidades aparecen unos segundos después que los bloques
         fallos.append("no está el guardián final")
     fallos += _info_aqui(ctx, X, Z, r"Guardian: alive|Guardián: vivo")
     ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity")
     ctx.run(f"kill {jefe}", r"Killed|No entity")
-    time.sleep(1)
+    ctx.ticks(20)                       # un segundo de juego (en ticks: con el servidor atrasado, el reloj no basta)
     fallos += _info_aqui(ctx, X, Z, r"Guardian: defeated|Guardián: derrotado")
     llave = '@e[type=minecraft:item,nbt={Item:{id:"minecraft:nautilus_shell",components:{"minecraft:custom_data":{heraldia_llave:"poseidon"}}}}]'
     if "passed" not in ctx.run(f"execute if entity {llave}", r"Test passed|Test failed").group(0):

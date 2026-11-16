@@ -37,20 +37,23 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=S.reader, args=(proc, lines), daemon=True).start()
+    ctx = S.Context(proc, lines, seen)
     fails = []
 
     def check(desc, pos, state):
-        m = S.run(proc, lines, seen, f"execute if block {at(*pos)} {state}", r"Test passed|Test failed")
-        if "passed" not in m.group(0):
+        if not ctx.block(at(*pos), state):
             fails.append(desc)
 
     def put(pos, state):
         S.run(proc, lines, seen, f"setblock {at(*pos)} {state}", r"Changed the block|Could not set")
-        time.sleep(4)
+        ctx.ticks(80)           # en ticks del juego: con el servidor atrasado, el reloj no basta
 
-    def count(sel):
-        m = S.run(proc, lines, seen, f"execute if entity {sel}", r"Test passed\. Count: (\d+)|Test failed")
-        return int(m.group(1)) if m.group(1) else 0
+    def count_until(sel, n):
+        """Cuenta el selector hasta que dé `n` (las entidades de una plantilla aparecen tras los bloques)."""
+        end = time.monotonic() + S.UNTIL_S
+        while (got := ctx.count(sel)) != n and time.monotonic() < end:
+            time.sleep(S.POLL_S)
+        return got
 
     try:
         S.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", S.START_TIMEOUT_S, seen)
@@ -62,7 +65,7 @@ def main():
             if "not loaded" not in m.group(0):
                 break
             time.sleep(S.PLACE_RETRY_S)
-        time.sleep(10)
+        ctx.ticks(200)
         door, vault = (27, -6, 21), (7, -13, 10)
         check("puerta del puzle cerrada en reposo", door, "minecraft:iron_door[open=false]")
         check("antorcha de salida apagada", (27, -5, 22), "minecraft:redstone_wall_torch[lit=false]")
@@ -96,14 +99,20 @@ def main():
             check(f"placa activa el dispensador z={z}", (20, -13, z), "minecraft:dispenser[triggered=true]")
         put((7, -12, 11), "minecraft:redstone_block")
         check("puerta de la cámara del tesoro", vault, "minecraft:iron_door[open=true]")
-        sel = "@e[type=minecraft:skeleton,nbt={PersistenceRequired:1b,Health:40.0f}]"
-        n = count(sel)
+        # El guardián se busca por su etiqueta y su vida máxima (atributo), no por su vida actual: con IA puede pisar
+        # una trampa y herirse. Se espera a que aparezca (las entidades de una plantilla tardan más que los bloques).
+        sel = "@e[type=minecraft:skeleton,tag=heraldia_guardian.observatorio,nbt={PersistenceRequired:1b}]"
+        n = count_until(sel, 1)
         if n != 1:
-            fails.append(f"guardián ausente o sin sus atributos ({n})")
+            fails.append(f"guardián ausente o sin sus atributos ({n}; {ctx.diagnose(sel)})")
+        else:
+            m = S.run(proc, lines, seen, f"attribute {sel[:-1]},limit=1] minecraft:max_health base get",
+                      r"[Bb]ase value of attribute .* is (-?[\d.]+)|No entity")
+            if m.group(1) is None or float(m.group(1)) != 40.0:
+                fails.append(f"guardián sin 40 de vida máxima: {m.string.strip()}")
         S.run(proc, lines, seen, f"data get entity {sel[:-1]},limit=1] CustomName", r"has the following|No entity|found")
         S.run(proc, lines, seen, "place structure heraldia:unicas/observatorio 64 ~ 64", r"Generated structure")
-        time.sleep(8)
-        if count(sel) != 2:
+        if count_until(sel, 2) != 2:
             fails.append("/place structure no coloca el subsuelo (falta el segundo guardián)")
     finally:
         if proc.poll() is None:

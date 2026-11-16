@@ -7,7 +7,7 @@ un cerdo, y comprueba que los dispensadores gastan una flecha (los de cable llev
 """
 import argparse, os, queue, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from server_smoke import prepare, gradle_properties, reader, wait_for, run, send, ROOT, START_TIMEOUT_S
+from server_smoke import prepare, gradle_properties, reader, wait_for, run, send, Context, ROOT, START_TIMEOUT_S
 
 OY = 100
 CHECKS = []
@@ -28,15 +28,15 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen, fails = queue.Queue(), [], []
     threading.Thread(target=reader, args=(proc, lines), daemon=True).start()
+    ctx = Context(proc, lines, seen)
 
     def test(cond, what):
-        m = run(proc, lines, seen, f"execute if {cond}", r"Test (passed|failed)")
-        if m.group(1) != "passed":
+        if not ctx.test(f"execute if {cond}"):
             fails.append(what)
 
     def cmd(c, pause=1.5):
         send(proc, c)
-        time.sleep(pause)
+        ctx.ticks(int(pause * 20))      # en ticks del juego: con el servidor atrasado, el reloj no basta
 
     try:
         wait_for(lines, r"Heraldia: (\d+) estructuras registradas", START_TIMEOUT_S, seen)
@@ -49,7 +49,7 @@ def main():
             time.sleep(3)
         else:
             fails.append("no se pudo colocar la plantilla")
-        time.sleep(2)
+        ctx.ticks(40)
         test(f"block {at(9, 3, 41)} minecraft:bookshelf", "biblioteca: puerta cerrada al colocar")
         test(f"block {at(7, 3, 41)} minecraft:sticky_piston[extended=true]", "biblioteca: pistón extendido al colocar")
         test(f"block {at(40, 2, 48)} minecraft:deepslate_bricks", "cámara: puerta cerrada al colocar")
@@ -75,7 +75,7 @@ def main():
         cmd(f"summon minecraft:pig 71.5 {3 + OY} 38.5 {{NoAI:1b}}", 2)
         for x in (70, 72):
             test(f"data block {at(x, 3, 38)} Items[{{count:7}}]", f"placa: el dispensador {x} no disparó")
-        cmd("stop", 0)
+        send(proc, "stop")
         proc.wait(timeout=120)
     finally:
         if proc.poll() is None:

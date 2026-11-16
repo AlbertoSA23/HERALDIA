@@ -50,6 +50,7 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=sm.reader, args=(proc, lines), daemon=True).start()
+    ctx = sm.Context(proc, lines, seen)
     fails = []
 
     def cmd(c, ok=r"Test passed|Test failed|Generated|Changed|Loaded template|Marked|Added|Set the block|Could not|"
@@ -65,8 +66,9 @@ def main():
                 fails.append(desc)
         return ok, mm
 
-    def until(desc, c, want=True, secs=20):
-        """Repite la comprobación hasta que se cumpla (o se acabe el tiempo): las vagonetas y los pistones tardan."""
+    def until(desc, c, want=True, secs=sm.UNTIL_S):
+        """Repite la comprobación hasta que se cumpla (o se acabe el tiempo, holgado: la CI va lenta): las vagonetas y
+        los pistones tardan."""
         end = time.monotonic() + secs
         while True:
             ok, _ = check(desc, c, want, quiet=True)
@@ -93,10 +95,10 @@ def main():
         for lp, on in zip(v["palancas"], combo):
             palanca(lp, on)
         palanca(v["arranque"], False)
-        time.sleep(1)
+        ctx.ticks(20)
         x, y, z = (int(c) for c in at(v["salida"]).split())
         cmd(f"summon minecraft:minecart {x + 0.5} {y + 0.1} {z + 0.5}")
-        time.sleep(1)
+        ctx.ticks(20)
         palanca(v["arranque"], True)
 
     def carro_en(p, r=1):
@@ -217,7 +219,7 @@ def main():
                      r"Loaded template|Failed|not loaded|error|Could not")
             if "Loaded" not in mm.group(0):
                 fails.append("place template " + name)
-        time.sleep(5)
+        ctx.ticks(100)
         # cofres, generadores, agua
         for p, tabla in obra.chests:
             check(f"cofre {tabla}", f"execute if data block {at(p)} LootTable", quiet=False) if tabla in (
@@ -271,12 +273,12 @@ def main():
         x, y, z = (int(c) for c in at((81, 1, 36)).split())
         cmd(f"summon minecraft:zombie {x + 0.5} {y} {z + 0.5} {{NoAI:1b,Silent:1b,PersistenceRequired:1b}}")
         for p in m["dispensadores"]:
-            until(f"el cable trampa dispara {p}", f"execute if data block {at(p)} {tres}", want=False, secs=8)
+            until(f"el cable trampa dispara {p}", f"execute if data block {at(p)} {tres}", want=False)
         # trampa 2: la placa sobre la dinamita (la última: explota)
         is_block("la dinamita bajo la placa", m["tnt"], "minecraft:tnt")
         x, y, z = (int(c) for c in at(m["placa_tnt"]).split())
         cmd(f"summon minecraft:zombie {x + 0.5} {y} {z + 0.5} {{NoAI:1b,Silent:1b,PersistenceRequired:1b}}")
-        until("la placa prende la dinamita", f"execute if block {at(m['tnt'])} minecraft:tnt", want=False, secs=8)
+        until("la placa prende la dinamita", f"execute if block {at(m['tnt'])} minecraft:tnt", want=False)
     finally:
         if proc.poll() is None:
             sm.send(proc, "stop")

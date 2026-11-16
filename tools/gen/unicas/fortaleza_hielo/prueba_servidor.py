@@ -55,10 +55,11 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen, fails = queue.Queue(), [], []
     threading.Thread(target=S.reader, args=(proc, lines), daemon=True).start()
+    ctx = S.Context(proc, lines, seen)
 
     def test(desc, cmd, want):
-        m = S.run(proc, lines, seen, cmd, r"Test passed|Test failed")
-        ok = m.group(0).startswith("Test passed") == want
+        # las entidades de la plantilla aparecen unos segundos después que los bloques: se espera por condición
+        ok = ctx.until(cmd, want) if " entity " in cmd else ctx.test(cmd) == want
         print(("OK   " if ok else "FALLO") + " " + desc)
         if not ok:
             fails.append(desc)
@@ -72,13 +73,13 @@ def main():
             if "not loaded" not in m.group(0):
                 break
             time.sleep(S.PLACE_RETRY_S)
-        time.sleep(3)
+        ctx.ticks(60)
         for desc, cmd, want in CHECKS:
             test(desc, cmd, want)
         for desc, cmd, expects in ACTIONS:
             for c in cmd.split("\n"):
                 S.send(proc, c)
-            time.sleep(2)
+            ctx.ticks(40)
             for k, (c, want) in enumerate(expects):
                 test(f"{desc} ({k + 1})", c, want)
     finally:

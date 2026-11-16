@@ -45,6 +45,7 @@ def main():
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=sm.reader, args=(proc, lines), daemon=True).start()
+    ctx = sm.Context(proc, lines, seen)
     fails = []
 
     def cmd(c, ok=r"Test passed|Test failed|Generated|Changed|Loaded template|Marked|Added|Set the block|Could not|"
@@ -92,7 +93,7 @@ def main():
                 mm = cmd(f"execute if biome {lx} 64 {lz} minecraft:mushroom_fields", r"Test passed|Test failed")
                 if "not loaded" not in mm.group(0):
                     break
-                time.sleep(2)
+                ctx.ticks(40)
             ok = "passed" in mm.group(0)
             print(f"[{'OK' if ok else 'FALLO'}] el sitio de /locate es campo de champiñones")
             if not ok:
@@ -103,7 +104,7 @@ def main():
                          r"Test passed|Test failed")
                 found = "passed" in mm.group(0)
                 if not found:
-                    time.sleep(3)
+                    ctx.ticks(60)
             print(f"[{'OK' if found else 'FALLO'}] generación natural: el guardián está en el laboratorio de {lx}, {lz}")
             if not found:
                 fails.append("generación natural")
@@ -124,8 +125,13 @@ def main():
         if "Generated" not in m.group(0):
             fails.append("place structure")
         print(f"TIEMPO de /place structure del Laboratorio del micólogo: {dt * 1000:.0f} ms")
-        time.sleep(10)
         cerca = GUARDIAN.replace("]", ",x=0,y=0,z=0,distance=..200]")   # el del laboratorio natural sigue cargado
+        # las entidades de la estructura aparecen unos segundos después que los bloques: se espera por condición
+        ctx.wait_entity(cerca)
+        end = time.monotonic() + sm.UNTIL_S
+        while ctx.count("@e[type=minecraft:mooshroom,x=0,y=0,z=0,distance=..120,nbt={PersistenceRequired:1b}]") < 3 \
+                and time.monotonic() < end:
+            time.sleep(sm.POLL_S)
         m = check("guardián con su etiqueta", f"execute if entity {cerca}")
         print("  cuenta:", m.group(1))
         if m.group(1) != "1":
@@ -148,7 +154,7 @@ def main():
                     r"Loaded template|Failed|not loaded|error|Could not")
             if "Loaded" not in m.group(0):
                 fails.append("place template " + name)
-        time.sleep(5)
+        ctx.ticks(100)
         # el jardín
         has_loot("cofre de la alcoba del micólogo", (34, 13, 41))
         is_block("tapiz ante el paso a la alcoba", (32, 15, 38), "minecraft:red_wall_banner")
@@ -176,17 +182,17 @@ def main():
             blocks_at[(36, -10, z)] = "minecraft:polished_andesite"
         lever((37, -10, 46), (36, -10, 46), "east", True)
         lever((37, -10, 50), (36, -10, 50), "east", True)
-        time.sleep(2)
+        ctx.ticks(40)
         is_block("con espora y verruga la puerta sigue cerrada", door[0], "minecraft:chiseled_stone_bricks", True)
         lever((37, -10, 52), (36, -10, 52), "east", True)
-        time.sleep(3)
+        ctx.ticks(60)
         for p in door:
             is_block(f"espora, verruga y luz abren la puerta {p}", p, "minecraft:air", True)
         lever((37, -10, 44), (36, -10, 44), "east", True)
-        time.sleep(3)
+        ctx.ticks(60)
         is_block("con el ojo de araña se vuelve a cerrar", door[0], "minecraft:chiseled_stone_bricks", True)
         lever((37, -10, 44), (36, -10, 44), "east", False)
-        time.sleep(3)
+        ctx.ticks(60)
         is_block("y al quitarlo se abre otra vez", door[0], "minecraft:air", True)
         # puzle 2: el panel de tallo del cepario
         sec = [(13, -5, 16), (13, -4, 16)]
@@ -194,20 +200,20 @@ def main():
             is_block(f"panel del cepario cerrado {p}", p, "minecraft:mushroom_stem", True)
         blocks_at[(16, -5, 17)] = "minecraft:stone_bricks"
         lever((16, -5, 18), (16, -5, 17), "south", True)
-        time.sleep(3)
+        ctx.ticks(60)
         for p in sec:
             is_block(f"la palanca abre el cepario {p}", p, "minecraft:air", True)
         # trampas
         check("dispensadores del cable trampa cargados", f"execute if data block {at((48, -4, 21), True)} {TRES}")
         x, y, z = (int(c) for c in at((48, -5, 22), True).split())
         cmd(f"summon minecraft:zombie {x + 0.5} {y} {z + 0.5} {{NoAI:1b,Silent:1b,PersistenceRequired:1b}}")
-        time.sleep(3)
+        ctx.ticks(60)
         check("el cable trampa dispara (norte)", f"execute if data block {at((48, -4, 21), True)} {TRES}", want=False)
         check("el cable trampa dispara (sur)", f"execute if data block {at((48, -4, 24), True)} {TRES}", want=False)
         check("dispensadores de las placas cargados", f"execute if data block {at((44, -11, 37), True)} {UNA}")
         x, y, z = (int(c) for c in at((44, -11, 38), True).split())
         cmd(f"summon minecraft:zombie {x + 0.5} {y} {z + 0.5} {{NoAI:1b,Silent:1b,PersistenceRequired:1b}}")
-        time.sleep(3)
+        ctx.ticks(60)
         check("la placa dispara (norte)", f"execute if data block {at((44, -11, 37), True)} {UNA}", want=False)
         check("la placa dispara (sur)", f"execute if data block {at((44, -11, 39), True)} {UNA}", want=False)
     finally:
