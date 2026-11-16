@@ -226,6 +226,14 @@ class MinasTest {
 	}
 
 	@Test
+	void susCofresSeReponenComoLosDeHeraldia() {
+		for (String t : new String[] {"galeria", "boca", "capataz", "fundicion", "filon", "vagoneta"}) {
+			assertTrue(io.github.albertosa23.heraldia.loot.Reposicion.tablaRepone("heraldia:minas/" + t), t);
+		}
+		assertFalse(io.github.albertosa23.heraldia.loot.Reposicion.tablaRepone("heraldia:minas/"));
+	}
+
+	@Test
 	void claveDistingueTipoYChunk() {
 		assertTrue(Minas.clave(0, 1, 2) != Minas.clave(1, 1, 2));
 		assertTrue(Minas.clave(0, -1, 2) != Minas.clave(0, 1, 2));

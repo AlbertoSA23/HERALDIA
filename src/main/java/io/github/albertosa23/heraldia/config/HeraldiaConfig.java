@@ -77,6 +77,11 @@ public final class HeraldiaConfig {
 		return values.get(key).getAsDouble();
 	}
 
+	/** Valor de una opción de lista (uno de {@link ConfigOption#values()}). */
+	public String getString(String key) {
+		return values.get(key).getAsString();
+	}
+
 	public boolean getBool(String key) {
 		return values.get(key).getAsBoolean();
 	}
@@ -216,6 +221,8 @@ public final class HeraldiaConfig {
 		return o.accept(given).orElseGet(() -> {
 			if (o.isBoolean()) {
 				LOGGER.warn("Heraldia: valor no válido {}={} (true o false); se usa el valor por defecto {}", o.key(), given, o.defaultValue());
+			} else if (o.isChoice()) {
+				LOGGER.warn("Heraldia: valor no válido {}={} (uno de {}); se usa el valor por defecto {}", o.key(), given, o.values(), o.defaultValue());
 			} else {
 				LOGGER.warn("Heraldia: valor no válido {}={} ({} de {} a {}); se usa el valor por defecto {}", o.key(), given,
 						o.decimal() ? "número" : "entero", o.min(), o.max(), o.defaultValue());
@@ -273,7 +280,9 @@ public final class HeraldiaConfig {
 					continue;
 				}
 				String desc = text(texts, o.help(), o.pattern() != null ? shown.substring(shown.indexOf('<'), shown.indexOf('>') + 1) : null);
-				String range = o.min() != null
+				String range = o.isChoice()
+						? text(texts, "heraldia.config.valores", o.defaultValue().getAsString(), String.join(", ", o.values()))
+						: o.min() != null
 						? text(texts, "heraldia.config.rango", o.defaultValue().getAsString(), o.min().toString(), o.max().toString())
 						: text(texts, "heraldia.config.si_no", o.defaultValue().getAsString());
 				h.addProperty(shown, desc + " (" + range + ")");

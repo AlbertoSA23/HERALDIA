@@ -13,7 +13,8 @@ VERSION = 1   # súbelo (y añade la migración en HeraldiaConfig.migrate) si ca
 VILLAGE_SPACING, VILLAGE_SEPARATION, VILLAGE_SALT = 94, 62, 261112013
 VANILLA_EXCLUSION_CHUNKS = 10
 
-# (clave, por defecto, mínimo, máximo, texto es_es, texto en_us); mínimo y máximo None en las opciones sí/no.
+# (clave, por defecto, mínimo, máximo, texto es_es, texto en_us); mínimo y máximo None en las opciones sí/no. En las de
+# lista, «mínimo» es la lista de valores (cadenas) y «máximo» None; el nombre de cada valor va en _VALUE_NAMES.
 _FIXED = [
     ("aldeas.separacion_bloques", 1500, 1000, 10000,
      "Separación media entre aldeas, en bloques",
@@ -124,6 +125,33 @@ _FIXED = [
      "instalar o actualizar Heraldia (una vez por versión; /heraldia guia da otra copia cuando quiera)",
      "Herald's Guide: gives each player the book that explains the mod and keeps their diary the first time they join "
      "after Heraldia is installed or updated (once per version; /heraldia guia gives a new copy at any time)"),
+    ("botin.reponer.activado", False, None, None,
+     "Botín que se repone: los cofres y barriles de las aldeas, estructuras medianas y únicas de Heraldia vuelven a llenarse "
+     "con su tabla de botín cuando han pasado los días indicados desde que se saquearon, al abrirlos, si no hay otro jugador "
+     "cerca y el cofre está vacío o casi vacío (nunca se borra nada; también en los cofres ya generados). Sin efecto con "
+     "Lootr (ya da botín por jugador); no afecta a los trofeos ni al cofre premium de la Atlántida",
+     "Restocking loot: chests and barrels of Heraldia villages, medium and unique structures are refilled from their loot "
+     "table when the given days have passed since they were looted, on opening, if no other player is nearby and the chest "
+     "is empty or almost empty (nothing is ever deleted; also in chests already generated). No effect with Lootr (it "
+     "already gives per-player loot); trophies and the Atlantis premium chest are not affected"),
+    ("botin.reponer.dias", 7, 1, 60,
+     "Días de juego (24.000 ticks del reloj del mundo) que tienen que pasar desde que se saqueó un cofre para que se reponga",
+     "In-game days (24,000 ticks of the world clock) that must pass after a chest was looted before it is restocked"),
+    ("dificultad.nivel", "normal", ["facil", "normal", "dificil", "heroica"], None,
+     "Dificultad de los guardianes y los mobs de las plantillas de Heraldia: fácil (vida y daño x0,75), normal (como "
+     "siempre), difícil (vida x1,5, daño x1,25) o heroica (vida x2, daño x1,5); también los ya generados, al cargarse",
+     "Difficulty of Heraldia's guardians and template mobs: easy (health and damage x0.75), normal (as always), hard "
+     "(health x1.5, damage x1.25) or heroic (health x2, damage x1.5); also those already generated, when they load"),
+    ("dificultad.escalar_por_jugadores", False, None, None,
+     "Más vida para los guardianes y mobs de Heraldia cuantos más jugadores luchen cerca: +25 % por cada jugador de más a "
+     "32 bloques (hasta +100 %), al recibir un golpe",
+     "More health for Heraldia's guardians and mobs the more players fight nearby: +25 % per extra player within 32 blocks "
+     "(up to +100 %), when hit"),
+    ("dificultad.escalar_botin", True, None, None,
+     "Con la dificultad fácil, difícil o heroica, los objetos sencillos apilables del botín de los cofres de Heraldia salen "
+     "en cantidad x0,75, x1,25 o x1,5 (en normal no cambia nada)",
+     "With easy, hard or heroic difficulty, plain stackable items in Heraldia chest loot come in x0.75, x1.25 or x1.5 "
+     "amounts (normal changes nothing)"),
     ("unicas.atlantida.cofre_unico_por_jugador", False, None, None,
      "Cofre premium de la Atlántida por jugador: cada jugador saca su propia copia del contenido una vez (si no, el primero que llega se lo lleva)",
      "Per-player Atlantis premium chest: each player takes their own copy of its contents once (otherwise the first to arrive takes it all)"),
@@ -166,6 +194,11 @@ _NAMES = {
     "jefes.refuerzos.activado": ("Refuerzos de los guardianes", "Guardian reinforcements"),
     "jefes.barra.activado": ("Barra de jefe", "Boss bar"),
     "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
+    "botin.reponer.activado": ("Botín que se repone", "Restocking loot"),
+    "botin.reponer.dias": ("Días hasta reponerse", "Days until restocked"),
+    "dificultad.nivel": ("Nivel de dificultad", "Difficulty level"),
+    "dificultad.escalar_por_jugadores": ("Más vida con más jugadores", "More health with more players"),
+    "dificultad.escalar_botin": ("Botín según la dificultad", "Loot by difficulty"),
     "medianas.activadas": ("Estructuras medianas", "Medium structures"),
     "medianas.frecuencia_porcentaje": ("Frecuencia (%)", "Frequency (%)"),
     "medianas.distancia_minima.bloques": ("Distancia entre medianas (bloques)", "Distance between medium ones (blocks)"),
@@ -176,6 +209,11 @@ _NAMES = {
     "minas.vanilla.multiplicador": ("Minas vanilla (multiplicador)", "Vanilla mineshafts (multiplier)"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
                                                        "Distance of other mods' structures (blocks)"),
+}
+# Nombre de cada valor de las opciones de lista: {clave: {valor: (es_es, en_us)}}.
+_VALUE_NAMES = {
+    "dificultad.nivel": {"facil": ("Fácil", "Easy"), "normal": ("Normal", "Normal"), "dificil": ("Difícil", "Hard"),
+                         "heroica": ("Heroica", "Heroic")},
 }
 # Grupos: nombre corto (%s = nombre de la familia, el estilo o la estructura) y clave del nombre del argumento
 # (None: el id tal cual, como en el README).
@@ -202,6 +240,8 @@ SECTIONS = [
     ("medianas", "Estructuras medianas", "Medium structures"),
     ("minas", "Minas", "Mines"),
     ("compatibilidad", "Compatibilidad con otros mods", "Compatibility with other mods"),
+    ("botin", "Botín", "Loot"),
+    ("dificultad", "Dificultad", "Difficulty"),
     ("guia", "Guía del Heraldo", "Herald's Guide"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
@@ -211,6 +251,7 @@ _SECTION_PREFIXES = [
     ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
+    ("botin.", "botin"), ("dificultad.", "dificultad"),
 ]
 
 
@@ -257,7 +298,11 @@ def _key(k):
 def _option(key, default, lo, hi, lang, args=(), pattern=None):
     o = {"clave": key, "defecto": default, "ayuda": lang, "args": list(args), "seccion": _section(key),
          "nombre": _key((_GROUPS[pattern][0] if pattern else key) + ".nombre")}
-    if lo is not None:
+    if isinstance(lo, list):
+        assert default in lo and all(isinstance(v, str) for v in lo), f"{key}: valores de lista no válidos"
+        o["valores"] = list(lo)
+        o["nombres_valores"] = [_key(f"{key}.{v}") for v in lo]
+    elif lo is not None:
         o.update(min=lo, max=hi)
     if pattern:
         o["patron"] = pattern
@@ -291,6 +336,8 @@ def schema():
         opts.append(_option(f"medianas.{mid}.separacion_bloques", mod.SEPARACION, *MEDIANA_RANGE,
                             g["medianas.<id>.separacion_bloques"], [mid], "medianas.<id>.separacion_bloques"))
     assert set(_NAMES) == {k for k, *_ in _FIXED}, "cada opción fija necesita su nombre corto en _NAMES"
+    assert {k: list(v) for k, v in _VALUE_NAMES.items()} == {k: lo for k, _, lo, *_ in _FIXED if isinstance(lo, list)}, \
+        "cada opción de lista necesita el nombre de cada valor en _VALUE_NAMES"
     return {
         "version": VERSION,
         "secciones": [{"id": sec, "nombre": _key("seccion." + sec)} for sec, _, _ in SECTIONS],
@@ -312,6 +359,9 @@ def lang():
         out["es_es"][_key(k + ".nombre")], out["en_us"][_key(k + ".nombre")] = es, en
     for p, (es, en, _) in _GROUP_NAMES.items():
         out["es_es"][_key(_GROUPS[p][0] + ".nombre")], out["en_us"][_key(_GROUPS[p][0] + ".nombre")] = es, en
+    for k, vals in _VALUE_NAMES.items():
+        for v, (es, en) in vals.items():
+            out["es_es"][_key(f"{k}.{v}")], out["en_us"][_key(f"{k}.{v}")] = es, en
     for sec, es, en in SECTIONS:
         out["es_es"][_key("seccion." + sec)], out["en_us"][_key("seccion." + sec)] = es, en
     out["es_es"].update(PANTALLA_ES)
@@ -320,4 +370,6 @@ def lang():
     out["en_us"]["heraldia.config.rango"] = "default %s, from %s to %s"
     out["es_es"]["heraldia.config.si_no"] = "por defecto %s; true o false"
     out["en_us"]["heraldia.config.si_no"] = "default %s; true or false"
+    out["es_es"]["heraldia.config.valores"] = "por defecto %s; uno de: %s"
+    out["en_us"]["heraldia.config.valores"] = "default %s; one of: %s"
     return out

@@ -20,6 +20,25 @@ class ConfigOptionTest {
 	private static final ConfigOption SINO = of("""
 			{"clave": "a.c", "defecto": true, "ayuda": "k", "seccion": "s", "nombre": "n"}""");
 
+	private static final ConfigOption LISTA = of("""
+			{"clave": "a.d", "defecto": "normal", "valores": ["facil", "normal", "dificil"], "ayuda": "k", "seccion": "s",
+			 "nombre": "n", "nombres_valores": ["k.facil", "k.normal", "k.dificil"]}""");
+
+	@Test
+	void opcionDeLista() {
+		assertTrue(LISTA.isChoice() && !LISTA.isBoolean() && LISTA.min() == null);
+		assertEquals(java.util.List.of("facil", "normal", "dificil"), LISTA.values());
+		assertEquals(java.util.List.of("k.facil", "k.normal", "k.dificil"), LISTA.valueNames());
+		assertEquals(Optional.of(new JsonPrimitive("dificil")), LISTA.accept(new JsonPrimitive("dificil")));
+		for (JsonPrimitive bad : new JsonPrimitive[]{new JsonPrimitive("Dificil"), new JsonPrimitive("heroica"), new JsonPrimitive(1),
+				new JsonPrimitive(true), new JsonPrimitive("")}) {
+			assertTrue(LISTA.accept(bad).isEmpty(), bad.toString());
+		}
+		assertEquals(Optional.of(new JsonPrimitive("facil")), LISTA.parse(" facil "));
+		assertTrue(LISTA.parse("1").isEmpty());
+		assertTrue(!RANGO.isChoice() && !SINO.isChoice() && RANGO.values().isEmpty());
+	}
+
 	@Test
 	void leeTodosLosCampos() {
 		assertEquals("a.b", RANGO.key());

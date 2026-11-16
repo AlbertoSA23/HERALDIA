@@ -179,3 +179,12 @@ def test_guia_del_heraldo():
     assert elige("tools/gen/guia.py") == (False, ["tools/smoke/guia.py"])
     assert elige("tools/smoke/guia.py") == (False, ["tools/smoke/guia.py"])
     assert elige(J + "comando/InfoCommand.java") == (False, [])        # el resto de comando/: solo la de humo
+
+
+def test_botin_que_se_repone_y_dificultad():
+    assert elige(J + "loot/BotinRepuesto.java") == (False, ["tools/smoke/botin_reponer.py"])
+    assert elige(J + "loot/Reposicion.java") == (False, ["tools/smoke/botin_reponer.py"])
+    assert elige(J + "dificultad/DificultadMobs.java") == (False, ["tools/smoke/dificultad.py"])
+    assert elige(J + "dificultad/Dificultad.java", "tools/smoke/botin_reponer.py") == \
+        (False, ["tools/smoke/botin_reponer.py", "tools/smoke/dificultad.py"])
+    assert elige(J + "loot/CofrePorJugador.java")[0]         # el resto de loot/: común, batería completa
