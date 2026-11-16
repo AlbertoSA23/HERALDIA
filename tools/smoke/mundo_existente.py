@@ -77,6 +77,8 @@ def leer_chunk(world, cx, cz, carpeta="region"):
 def _plano(v):
     """NBT de nbtlib a tipos de Python comparables con == (los arrays de longs, que nbtlib da como numpy, a listas)."""
     if isinstance(v, dict):
+        if len(v) == 1 and "" in v:               # elemento de una lista mixta (26.3 los envuelve así)
+            return _plano(v[""])
         return {str(k): _plano(x) for k, x in v.items()}
     if isinstance(v, (nbtlib.tag.ByteArray, nbtlib.tag.IntArray, nbtlib.tag.LongArray)):
         return [int(x) for x in v]
@@ -118,7 +120,11 @@ def estados(bs):
     """Lista de 4096 estados (nombre + propiedades) de una sección, para comparar aunque cambie el orden de la paleta."""
     if bs is None:
         return None
-    pal = [(p["Name"], tuple(sorted((p.get("Properties") or {}).items()))) for p in bs["palette"]]
+    # 26.3: un estado sin propiedades es una cadena («minecraft:stone»; en una lista mixta, {"": ...}, que quita
+    # _plano) y uno con propiedades, {id, properties} (antes de 26.3, {Name, Properties})
+    pal = [(p, ()) if isinstance(p, str) else (p.get("Name", p.get("id")),
+                                                tuple(sorted((p.get("Properties") or p.get("properties") or {}).items())))
+           for p in bs["palette"]]
     if len(pal) == 1 or "data" not in bs:
         return [pal[0]] * 4096
     bits = max(4, (len(pal) - 1).bit_length())

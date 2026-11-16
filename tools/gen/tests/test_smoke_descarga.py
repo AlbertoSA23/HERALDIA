@@ -120,3 +120,18 @@ def test_bloques_con_datos_y_campos_volatiles():
     d = me.diferencias(a, _huella(["minecraft:air"], ind, [dict(cofre, LootTable="heraldia:otra")]))
     assert len(d) == 1 and "LootTable" in d[0]
     assert me.diferencias(a, _huella(["minecraft:air"], ind)) != []
+
+
+def test_paleta_de_cadenas_de_26_3():
+    ind = [i % 2 for i in range(4096)]
+    sec = _seccion(["minecraft:air", "minecraft:stone"], ind)
+    sec["palette"] = ["minecraft:air", "minecraft:stone"]               # como lo guarda 26.3
+    assert [e[0] for e in me.estados(sec)] == [["minecraft:air", "minecraft:stone"][i] for i in ind]
+
+
+def test_lista_mixta_de_26_3():
+    mixta = [{"": "minecraft:air"}, {"id": "minecraft:oak_log", "properties": {"axis": "y"}}]
+    assert me._plano(mixta) == ["minecraft:air", {"id": "minecraft:oak_log", "properties": {"axis": "y"}}]
+    sec = {"palette": me._plano(mixta), "data": [0x10]}                 # índice 0 y luego 1
+    est = me.estados(sec)
+    assert est[0] == ("minecraft:air", ()) and est[1] == ("minecraft:oak_log", (("axis", "y"),))
