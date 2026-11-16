@@ -1,6 +1,6 @@
 """Piezas comunes de las estructuras únicas: todas quedan en un estado coherente al colocarse (sin depender de
 actualizaciones de bloque que no ocurren al generar)."""
-from core import B, F, adulto
+from core import B, F, adulto, anclado
 
 DIRV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 VDIR = {v: k for k, v in DIRV.items()}
@@ -50,7 +50,8 @@ def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chance
     """NBT de un guardián con nombre, persistente y con atributos moderados. `attributes` {id: base} añade
     atributos (attack_damage, knockback_resistance...); `extra` se mezcla en el NBT (sus `Tags` se suman a la de
     guardián, GUARDIAN_TAG, que usan los logros: pack.py añade además la de la estructura). Los tipos que podrían salir
-    bebés llevan además core.ADULTO_TAG (el IsBaby del NBT no basta: lo ignora finalizeSpawn)."""
+    bebés llevan además core.ADULTO_TAG (el IsBaby del NBT no basta: lo ignora finalizeSpawn), y todos core.ANCLADO_TAG
+    (no pasean fuera de su sala hasta que los atacan ni recogen objetos)."""
     n = {"id": "minecraft:" + mob, "PersistenceRequired": B(1), "CustomNameVisible": B(1),
          "CustomName": text(key, fallback), "Health": F(float(health)),
          "attributes": [{"id": "minecraft:max_health", "base": float(health)}]}
@@ -67,7 +68,9 @@ def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chance
     extra = dict(extra or {})
     n["Tags"] = [GUARDIAN_TAG] + [t for t in extra.pop("Tags", []) if t != GUARDIAN_TAG]
     n.update(extra)
-    return adulto(n)   # zombis, husks y ahogados: nunca bebés (core.ADULTO_TAG)
+    # Zombis, husks y ahogados: nunca bebés (core.ADULTO_TAG). Todos: quietos en su sala hasta que los atacan y sin
+    # recoger objetos (core.ANCLADO_TAG).
+    return anclado(adulto(n), siempre=True)
 
 
 # ------------------------------------------------------------------ redstone
