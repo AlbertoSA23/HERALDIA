@@ -2,7 +2,8 @@
 galería en una sola plantilla por estilo y variante (ver obra.py para las coordenadas).
 
   pequeña  bajada de 14 a la galería (3 x 2 cruces, almacén y filón).
-  mediana  bajada de 16 a una galería de 5 x 3 cruces (almacén, filón, comedor y la sala de las arañas).
+  mediana  bajada de 16 a una galería de 5 x 3 cruces (almacén, filón, comedor y la sala de las arañas, con un
+           generador pequeño).
   grande   bajada de 20 y el pozo de la torre (escalera de caracol) a una red de 7 x 4 cruces (almacén, polvorín,
            comedor, filón) y, por otra rampa de 12, al nivel hondo (3 x 2): la sala del filón rico y la de las arañas
            con su generador pequeño.
@@ -11,7 +12,7 @@ import random
 from core import Template, B
 from unicas._comun import piezas
 from . import superficie as sup
-from .obra import Obra, PASO, ALTO, mob
+from .obra import Obra, PASO, ALTO
 
 # tamaño -> (profundidad de la bajada, cruces a cada lado, filas, salas, patio (x, z), aire sobre el patio)
 TAMANOS = {
@@ -171,16 +172,13 @@ def amueblar(o, tipo, cx, cz, pies, tam):
         o.s(x, pies, z, f"{o.p['madera']}_stairs[facing=south,half=bottom,shape=straight,waterlogged=false]")
     elif tipo == "aranas":
         o.telarañas(cx - 3, cx + 3, cz - 2, cz + 2, pies, 6, alto=4)
-        if tam == "grande":
-            o.s(cx, pies, cz + 2, o.mat(o.p["muro"], cx, pies, cz))
-            piezas.spawner(o.s, cx, pies + 1, cz + 2, "cave_spider", potentials=True, luz=11)
-            st, nbt = o.t.blocks[(cx, pies + 1, cz + 2)]
-            nbt.update({"SpawnCount": 2, "MaxNearbyEntities": 3, "RequiredPlayerRange": 12, "SpawnRange": 3,
-                        "MinSpawnDelay": 300, "MaxSpawnDelay": 700, "Delay": 20})
-            o.generadores.append((cx, pies + 1, cz + 2))
-        else:
-            for x, z, f in resto[:2]:
-                o.t.entity(x, pies, z + (1 if f == "south" else -1), mob("cave_spider"))
+        # generador pequeño (pocas arañas, cerca y despacio) sobre un pedestal junto al muro sur
+        o.s(cx, pies, cz + 2, o.mat(o.p["muro"], cx, pies, cz))
+        piezas.spawner(o.s, cx, pies + 1, cz + 2, "cave_spider", potentials=True, luz=11)
+        st, nbt = o.t.blocks[(cx, pies + 1, cz + 2)]
+        nbt.update({"SpawnCount": 2, "MaxNearbyEntities": 3, "RequiredPlayerRange": 12, "SpawnRange": 3,
+                    "MinSpawnDelay": 300, "MaxSpawnDelay": 700, "Delay": 20})
+        o.generadores.append((cx, pies + 1, cz + 2))
 
 
 def vetas_sala(o, x0, x1, z0, z1, pies):

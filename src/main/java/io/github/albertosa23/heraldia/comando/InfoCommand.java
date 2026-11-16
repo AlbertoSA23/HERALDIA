@@ -495,6 +495,9 @@ public final class InfoCommand {
 		if (Medianas.esMediana(id)) { // prevista: el estilo lo sortea el structure_set del tipo al generarse
 			return Heraldia.MOD_ID + ":" + id.getPath().substring(0, id.getPath().lastIndexOf('/'));
 		}
+		if (Minas.esMina(id)) { // prevista: el estilo (y la variante) los sortea el structure_set del tamaño
+			return Heraldia.MOD_ID + ":minas/" + id.getPath().split("/")[1];
+		}
 		return Heraldia.MOD_ID + ":aldeas";
 	}
 

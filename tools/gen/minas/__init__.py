@@ -118,7 +118,7 @@ for _t, ((_es1, _en1), (_es2, _en2)) in planos.sup.CARTELES.items():
     LANG["en_us"].update({f"{NS}.minas.cartel.{_t}.1": _en1, f"{NS}.minas.cartel.{_t}.2": _en2})
 
 MAX_ENTIDADES = 6
-MAX_GENERADORES = {"pequena": 0, "mediana": 0, "grande": 1}
+MAX_GENERADORES = {"pequena": 0, "mediana": 1, "grande": 1}
 
 
 def salt(tam):

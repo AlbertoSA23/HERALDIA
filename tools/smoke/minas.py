@@ -298,8 +298,8 @@ def comprobar_locate(ctx):
             fails.append(f"mina {tam} a {d:.0f} bloques (> {LOCATE_MAX[tam]})")
         cerca = info_cerca(ctx, x, z, 600) or {}
         for sid, (dist, *_) in cerca.items():
-            if ":minas/" in sid:
-                if f"minas/{tam}/" not in sid and dist < DISTANCIA:
+            if ":minas/" in sid:                       # prevista: heraldia:minas/<tamaño>; generada, con su estilo
+                if not (sid.endswith(f"minas/{tam}") or f"minas/{tam}/" in sid) and dist < DISTANCIA:
                     fails.append(f"mina {tam} en {x}, {z} a {dist} bloques de {sid} (< {DISTANCIA})")
             elif ":medianas/" in sid:
                 if dist < DISTANCIA:

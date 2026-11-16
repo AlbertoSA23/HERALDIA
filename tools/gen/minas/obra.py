@@ -7,7 +7,6 @@ manantiales ni liquen) y dos capas de casco alrededor; fuera, nada (structure_vo
 vanilla se quedan como estaban. Lo mismo que la Mina perdida (APRENDIZAJES, «Estructura subterránea sin caja»).
 """
 import zlib
-from core import B, anclado
 from unicas._comun import piezas
 
 N6 = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
@@ -265,8 +264,3 @@ class Obra:
             pts = [pts[int(k * paso)] for k in range(MUESTRAS_MAX)]
         return pts
 
-
-def mob(tipo, tags=()):
-    """NBT de un mob de la galería: persistente y anclado hasta que lo atacan (core.anclado)."""
-    n = {"id": f"minecraft:{tipo}", "PersistenceRequired": B(1), "Tags": ["heraldia_mina"] + list(tags)}
-    return anclado(n, siempre=True)

@@ -90,23 +90,23 @@ def test_cada_tamano_tiene_lo_suyo(obras):
         p, m, g = (obras[(t, est, "a")] for t in minas.TAMANOS)
         ids = lambda o: sorted(n["id"] for *_, n in o.t.entities)
         assert ids(p) == ["minecraft:minecart"], "la boca pequeña: una vagoneta en sus vías"
-        assert "minecraft:chest_minecart" in ids(m) and ids(m).count("minecraft:cave_spider") == 2
+        assert "minecraft:chest_minecart" in ids(m) and "minecraft:cave_spider" not in ids(m), "sin mobs: un generador"
         assert "minecraft:chest_minecart" in ids(g)
         assert {"blast_furnace", "furnace", "anvil", "campfire", "crafting_table"} <= nombres(m), "fundición y cabaña"
-        assert "spawner" in nombres(g) and "spawner" not in nombres(m) | nombres(p)
+        assert "spawner" in nombres(g) and "spawner" in nombres(m) and "spawner" not in nombres(p)
         assert "iron_chain" in nombres(g), "la cadena de la polea"
         assert g.bajada is not None and p.bajada is None and m.bajada is None, "solo la grande tiene pozo"
         assert len({y for _, y, _ in g.nodos}) == 2, "la grande tiene dos niveles"
 
 
 def test_generador_pequeno_de_aranas(obras):
-    for est in minas.ESTILOS:
-        o = obras[("grande", est, "a")]
+    for tam, est in [(t, e) for t in ("mediana", "grande") for e in minas.ESTILOS]:
+        o = obras[(tam, est, "a")]
         (x, y, z), = o.generadores
         st, nbt = o.t.blocks[(x, y, z)]
         assert nbt["SpawnData"]["entity"]["id"] == "minecraft:cave_spider"
         assert nbt["MaxNearbyEntities"] <= 4 and nbt["SpawnCount"] <= 2 and nbt["RequiredPlayerRange"] <= 16
-        assert y < -20, "en el nivel hondo"
+        assert y <= -planos.TAMANOS[tam]["hondo"] + 2, "en lo hondo de la galería"
 
 
 def test_mobs_persistentes_y_anclados(obras):
