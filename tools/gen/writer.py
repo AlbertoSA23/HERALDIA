@@ -50,6 +50,7 @@ LANG = {
         "heraldia.info.unica.desactivada": " - %s: desactivada",
         "heraldia.info.unica.mundial": " - %s: una por mundo",
         "heraldia.info.distancia": "Distancia mínima entre únicas: %s, %s bloques",
+        "heraldia.info.rejilla": "Rejilla antigua de las únicas (mundo de una versión anterior): %s",
         "heraldia.info.cofre": "Cofre premium de la Atlántida por jugador: %s; Lootr: %s",
         "heraldia.info.registradas": "Estructuras registradas: %s (%s de aldeas y %s únicas)",
         "heraldia.info.si": "sí",
@@ -94,6 +95,7 @@ LANG = {
         "heraldia.info.unica.desactivada": " - %s: disabled",
         "heraldia.info.unica.mundial": " - %s: one per world",
         "heraldia.info.distancia": "Minimum distance between unique structures: %s, %s blocks",
+        "heraldia.info.rejilla": "Old unique-structure grid (world from an earlier version): %s",
         "heraldia.info.cofre": "Per-player Atlantis premium chest: %s; Lootr: %s",
         "heraldia.info.registradas": "Registered structures: %s (%s villages and %s unique)",
         "heraldia.info.si": "yes",
@@ -384,6 +386,9 @@ def write_unique(out, sid, st):
     placement = st.get("placement") or {
         "type": f"{NS}:rejilla", "grupo": f"unicas/{sid}", "spacing": st.get("spacing", unicas.DEFAULT_SPACING),
         "separation": st.get("separation", unicas.DEFAULT_SEPARATION), "salt": unicas.salt(sid)}
+    if sid in unicas.REJILLA_ANTIGUA:    # ya estaba en la 0.1.0: con unicas.rejilla_compatible, su rejilla de entonces
+        assert placement["type"] == f"{NS}:rejilla" and not st.get("candidata_en_bioma"), f"{sid}: rejilla antigua sin la de entonces"
+        placement = dict(placement, rejilla_antigua=True)
     if st.get("candidata_en_bioma"):     # bioma raro: la candidata de cada casilla se busca en sus biomas (GridPlacement)
         assert placement["type"] == f"{NS}:rejilla", f"{sid}: candidata_en_bioma solo con la rejilla heraldia:rejilla"
         placement = dict(placement, bioma=structure["biomes"].lstrip("#"))

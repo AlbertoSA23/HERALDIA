@@ -139,7 +139,8 @@ DURACION_S = {
     "tools/smoke/palacio_redstone.py": 57, "tools/smoke/terralith_biomas.py": 50,
     "tools/gen/unicas/fortaleza_hielo/prueba_servidor.py": 47, "tools/gen/unicas/monasterio/prueba_servidor.py": 45,
     "tools/gen/unicas/castillo/prueba_redstone.py": 44, "tools/gen/unicas/mansion/prueba_servidor.py": 40,
-    "tools/smoke/coliseo_redstone.py": 39, "tools/gen/unicas/torre_mago/prueba_redstone.py": 33,
+    "tools/smoke/coliseo_redstone.py": 39, "tools/smoke/rejilla_compatible.py": 80,
+    "tools/gen/unicas/torre_mago/prueba_redstone.py": 33,
     "tools/gen/unicas/piramide/prueba_servidor.py": 28, "tools/smoke/galeon_test.py": 26,
 }
 DEFECTO_S = 90

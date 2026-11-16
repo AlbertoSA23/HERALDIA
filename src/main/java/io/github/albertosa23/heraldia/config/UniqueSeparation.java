@@ -35,6 +35,11 @@ import org.slf4j.LoggerFactory;
  * las de colocación propia (la Atlántida) ganan siempre. Como la recursión sigue rangos estrictamente crecientes, la
  * relación es la misma la evalúe quien la evalúe: dos supervivientes nunca quedan a menos de N y toda descartada tiene
  * cerca una superviviente. Inmutable una vez construida: la consultan varios hilos de generación a la vez.
+ * <p>Con unicas.rejilla_compatible ({@link GridPlacement#legacy()}) el orden tiene un escalón más: colocación propia,
+ * luego las únicas de la rejilla antigua y luego las nuevas; el rango solo desempata dentro del mismo escalón. Una
+ * antigua no ve a las nuevas (se descarta exactamente como en la 0.1.0, donde no existían: las ya generadas siguen
+ * donde /locate las busca) y una nueva se descarta si cae a menos de N de una antigua que sobrevive (no sale encima de
+ * una ya generada). Sin la opción todas son del mismo escalón y nada cambia.
  */
 public final class UniqueSeparation {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -52,6 +57,7 @@ public final class UniqueSeparation {
 	private final RandomSpreadStructurePlacement[] placements;
 	private final long[] salts;
 	private final boolean[] always;
+	private final byte[] tier; // 2 colocación propia, 1 rejilla antigua, 0 el resto: gana el escalón y luego el rango
 	private final Map<Identifier, Integer> index;
 	private final boolean enabled;
 	private final int reachChunks;
@@ -67,10 +73,12 @@ public final class UniqueSeparation {
 		this.placements = placements.toArray(new RandomSpreadStructurePlacement[0]);
 		this.salts = new long[n];
 		this.always = new boolean[n];
+		this.tier = new byte[n];
 		Map<Identifier, Integer> idx = new HashMap<>();
 		for (int i = 0; i < n; i++) {
 			this.salts[i] = mix(this.ids[i].toString().hashCode() * 0x9E3779B97F4A7C15L);
 			this.always[i] = always.get(i);
+			this.tier[i] = (byte) (this.always[i] ? 2 : this.placements[i] instanceof GridPlacement g && g.legacy() ? 1 : 0);
 			idx.put(this.ids[i], i);
 		}
 		this.index = Map.copyOf(idx);
@@ -119,8 +127,9 @@ public final class UniqueSeparation {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		boolean on = cfg.getBool("unicas.distancia_minima.activada");
 		int distance = cfg.getInt("unicas.distancia_minima.bloques");
-		LOGGER.info("Heraldia: distancia mínima entre estructuras únicas: {}, {} bloques entre {} estructuras",
-				on ? "activada" : "desactivada", distance, ids.size());
+		long old = placements.stream().filter(p -> p instanceof GridPlacement g && g.legacy()).count();
+		LOGGER.info("Heraldia: distancia mínima entre estructuras únicas: {}, {} bloques entre {} estructuras{}",
+				on ? "activada" : "desactivada", distance, ids.size(), old > 0 ? " (" + old + " con la rejilla antigua, con prioridad)" : "");
 		return new UniqueSeparation(sets, ids, structures, placements, always, on, distance);
 	}
 
@@ -180,8 +189,9 @@ public final class UniqueSeparation {
 						continue;
 					}
 					long r = rank(j, c.x(), c.z(), seed);
-					if (r < rank || r == rank && j < i || !p.applyAdditionalChunkRestrictions(c.x(), c.z(), seed)) {
-						continue; // rango menor o casilla desactivada
+					if (tier[j] < tier[i] || tier[j] == tier[i] && (r < rank || r == rank && j < i)
+							|| !p.applyAdditionalChunkRestrictions(c.x(), c.z(), seed)) {
+						continue; // escalón o rango menor, o casilla desactivada
 					}
 					if (always[j]) {
 						return true;
@@ -196,7 +206,7 @@ public final class UniqueSeparation {
 		if (near == null) {
 			return false;
 		}
-		near.sort((a, b) -> Long.compare(b[3], a[3]));
+		near.sort((a, b) -> tier[(int) a[0]] != tier[(int) b[0]] ? tier[(int) b[0]] - tier[(int) a[0]] : Long.compare(b[3], a[3]));
 		if (memo == null) {
 			memo = new HashMap<>();
 		}

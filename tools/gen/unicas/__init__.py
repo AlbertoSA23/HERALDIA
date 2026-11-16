@@ -61,6 +61,11 @@ El generador escribe además la etiqueta heraldia:unicas/<id> y su structure_set
 import importlib, pkgutil, zlib
 
 DEFAULT_SPACING, DEFAULT_SEPARATION = 250, 190
+# Únicas que ya estaban en la 0.1.0 (rama main, antes de las rejillas desplazadas): con unicas.rejilla_compatible se
+# colocan con la rejilla de entonces para que se encuentren las ya generadas en los mundos de esa versión. No se añade
+# ninguna: una única nueva nunca se generó con la rejilla antigua. Las demás llevan siempre la rejilla nueva.
+REJILLA_ANTIGUA = frozenset({"acueducto", "castillo", "catedral", "ciudadela", "coliseo", "faro", "fortaleza_hielo", "galeon",
+                             "mansion", "monasterio", "observatorio", "palacio", "piramide", "torre_mago"})
 
 
 def modules():
