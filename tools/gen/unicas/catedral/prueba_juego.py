@@ -87,14 +87,14 @@ def main():
         # El guardián (esqueleto con IA) se busca por su etiqueta en todo el mundo, no junto a su sitio en la plantilla:
         # anda. Las entidades de la plantilla aparecen unos segundos después que los bloques: se espera por condición.
         for (x, y, z, n) in c.entities:
-            g = ("@e[type=minecraft:skeleton,tag=heraldia_guardian.catedral,"
-                 "nbt={PersistenceRequired:1b,equipment:{mainhand:{id:\"minecraft:bow\"}}}]")
-            if ctx.wait_entity(g):
+            gs = ("@e[type=minecraft:skeleton,tag=heraldia_guardian.catedral,"
+                  "nbt={PersistenceRequired:1b,equipment:{mainhand:{id:\"minecraft:bow\"}}}]")
+            if ctx.wait_entity(gs):
                 oks += 1
-                print(f"guardián en {ctx.pos(g)} (colocado en {w((x, y, z))})")
+                print(f"guardián en {ctx.pos(gs)} (colocado en {w((x, y, z))})")
             else:
                 fails.append("guardián ausente o sin equipo")
-            cmd(f"data get entity {g[:-1]},limit=1] CustomName", r"has the following|No entity|Found no")
+            cmd(f"data get entity {gs[:-1]},limit=1] CustomName", r"has the following|No entity|Found no")
         # 2) puertas de pistones: solución abre, la palanca falsa vuelve a cerrar
         for mch in [m for m in c.mech if m["tipo"] == "puerta de pistones"]:
             if len(mch["palancas"]) > 1:            # una sola palanca no basta
