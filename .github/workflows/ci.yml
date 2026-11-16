@@ -139,6 +139,21 @@ jobs:
           name: jar
           path: build/libs
 
+      # La prueba de la Atlántida (atlantida/humo.py) rehace su plano, que valida contra los registros de mcmeta.
+      - name: Leer rama de mcmeta
+        id: ver
+        run: echo "mcmeta=$(grep '^mcmeta_summary_branch=' gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: build/mcmeta-summary
+          key: mcmeta-${{ steps.ver.outputs.mcmeta }}
+
+      - name: Resumen de mcmeta (si no estaba en caché)
+        run: |
+          [ -f build/mcmeta-summary/registries/data.json ] || git -c advice.detachedHead=false clone --quiet --depth 1 \
+            --branch "${{ steps.ver.outputs.mcmeta }}" https://github.com/misode/mcmeta.git build/mcmeta-summary
+
       # server_smoke.py cuenta estructuras, logros y tablas en build/generated: son los mismos ficheros que lleva el .jar.
       - name: Datos generados (del .jar)
         run: |
