@@ -11,6 +11,7 @@ from specials import SPECIALS, VARIANTS
 from fillers import filler, villager_piece, golem_piece, rug_piece
 import tablon
 import tratos
+import paralelo
 
 SPARE = 22        # peso de "cama libre" en las casas
 
@@ -206,16 +207,45 @@ def build_common(reg):
     reg.pool("golem", [(g, 1, "rigid", None)], fallback="golem")
 
 
-def build_all(seed=2026):
+# Coste relativo de construir cada única (medido): las más largas se reparten antes entre los procesos.
+COSTE = {"isla_corsario": 9, "atlantida": 8, "acueducto": 6, "piramide": 6, "mina_perdida": 5, "ciudadela": 4}
+
+
+def _parte(tarea, seed):
+    """Construye una parte del registro (lo común, un estilo o una única) en un registro propio."""
     reg = Registry()
-    build_common(reg)
-    for i, th in enumerate(THEMES):
-        build_theme(reg, th, seed * 100 + i)
-    for sid, mod in unicas.modules():
+    kind, x = tarea
+    if kind == "comun":
+        build_common(reg)
+    elif kind == "estilo":
+        build_theme(reg, THEMES[x], seed * 100 + x)
+    else:
+        mod = dict(unicas.modules())[x]
         mod.build(reg)
-        tag_guardians(reg, sid)
-        reg.warnings += botin.trofeo_errores(sid, getattr(mod, "TROFEO", None))
-        reg.warnings += historia_cofre(reg, sid, mod)
+        tag_guardians(reg, x)
+        reg.warnings += botin.trofeo_errores(x, getattr(mod, "TROFEO", None))
+        reg.warnings += historia_cofre(reg, x, mod)
+    return reg
+
+
+def build_all(seed=2026):
+    """Registro completo: lo común, cada estilo y cada única (en este orden, como en serie), construidos en paralelo
+    (paralelo.mapa_con_estado: los datos que un build deja en su módulo vuelven al padre). Mismo resultado en serie
+    (HERALDIA_PROCESOS=1)."""
+    tareas = [("comun", None)] + [("estilo", i) for i in range(len(THEMES))] + [("unica", sid) for sid, _ in unicas.modules()]
+    partes = paralelo.mapa_con_estado(lambda t: _parte(t, seed), tareas,
+                                      prioridad=lambda t: COSTE.get(t[1], 1) if t[0] == "unica" else 0)
+    reg = Registry()
+    for p in partes:
+        for k, v in p.templates.items():
+            if k in reg.templates:
+                reg.warnings.append(f"plantilla repetida: {k}")
+        reg.templates.update(p.templates)
+        reg.pools.update(p.pools)
+        reg.kinds.update(p.kinds)
+        reg.warnings += p.warnings
+        reg.historia.update(p.historia)
+        reg.guardianes.update(p.guardianes)
     reg.warnings += botin.historia_cadena_errores(unicas.modules())
     reg.warnings += tratos.errores(unicas.modules()) + tablon.errores(THEMES)
     return reg
