@@ -120,16 +120,20 @@ def main():
         return int(m.group(1)) if m.lastindex and m.group(1) else None
 
     def botin(ctx, nivel, flechas):
-        """La tabla de cofre de Heraldia da `flechas` (conjunto de valores válidos); la otra y el palo con nombre, 10."""
+        """La tabla de cofre de Heraldia da `flechas` (conjunto de valores válidos); la otra y el palo con nombre, 10.
+        Se espera por condición (no por la respuesta de cada orden): el suelo vacío antes y las dos pilas después."""
+        zona = f"@e[type=minecraft:item,x={X},y={Y + 1},z={Z + 6},distance=..4]"
         for tabla, want in ((TABLA, flechas), (OTRA, {10})):
-            ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
+            ctx.run(f"kill {zona}", r"Killed|No entity was found")
+            check(ctx.until(f"execute if entity {zona}", want=False), f"{nivel}: no se vacía el suelo antes de {tabla}")
             ctx.run(f"loot spawn {X} {Y + 3} {Z + 6} loot {tabla}", r"Dropped|No items")
-            ctx.ticks(2)
+            ctx.until(f'execute if entity {zona[:-1]},nbt={{Item:{{id:"minecraft:stick"}}}}]')
+            ctx.until(f'execute if entity {zona[:-1]},nbt={{Item:{{id:"minecraft:arrow"}}}}]')
             flechas_n = cuenta(ctx, "minecraft:arrow")
             check(flechas_n in want, f"{nivel}: {tabla} da {flechas_n} flechas (debe ser {sorted(want)})")
             palos_n = cuenta(ctx, "minecraft:stick")
             check(palos_n == 10, f"{nivel}: {tabla}: el palo con nombre sale con {palos_n} (debe ser 10)")
-        ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
+        ctx.run(f"kill {zona}", r"Killed|No entity was found")
 
     try:
         # heroica: se invocan los mobs (ENTITY_LOAD al añadirse al mundo)
@@ -199,6 +203,7 @@ def main():
         for n in nombres[1:]:
             ctx.run(f"player {n} kill", r"left the game|Unknown|Incorrect")
             ctx.until(f"execute if entity @a[name={n}]", want=False)
+        ctx.ticks(20)       # pasada la invulnerabilidad del golpe anterior (10 ticks): si no, no hay AFTER_DAMAGE
         ctx.run(f"damage {sel('p_anclado')} 1 minecraft:player_attack by Testigo", r"Applied|damage")
         ctx.ticks(2)
         vm = vida_max(ctx, "p_anclado")
