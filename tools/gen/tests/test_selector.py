@@ -178,6 +178,10 @@ def test_guia_del_heraldo():
     assert elige(J + "comando/Textos.java") == (False, ["tools/smoke/guia.py"])
     assert elige("tools/gen/guia.py") == (False, ["tools/smoke/guia.py"])
     assert elige("tools/smoke/guia.py") == (False, ["tools/smoke/guia.py"])
+    # idiomas: las traducciones y su comprobación solo pasan la de la Guía (el respaldo en el idioma del cliente)
+    assert elige("tools/gen/idiomas.py") == (False, ["tools/smoke/guia.py"])
+    assert elige("tools/gen/idiomas/fr_fr.json", "tools/gen/idiomas/gl_es.json") == (False, ["tools/smoke/guia.py"])
+    assert elige("README.fr.md", "docs/CONFIGURACION.md", "tools/gen/tests/test_readme.py") == (False, [])
     assert elige(J + "comando/InfoCommand.java") == (False, [])        # el resto de comando/: solo la de humo
 
 

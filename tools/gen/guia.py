@@ -14,6 +14,7 @@ Páginas del libro:
 """
 from unicas._comun import botin
 import logros
+import idiomas
 
 NS = "heraldia"
 CLAVE = f"{NS}.guia"
@@ -157,11 +158,20 @@ def lineas_pagina(titulo, texto):
     return lineas_titulo(titulo) + 1 + botin.lineas_libro(texto)
 
 
-def _entradas(modules):
-    """Por idioma (0 = es, 1 = en): [(nombre de cada única)], [(pista de cada única)] con el formato de su entrada."""
+def _entradas(modules, traducciones=None):
+    """Por idioma (0 = es, 1 = en y luego cada traducción, {código: textos}): [(nombre de cada única)], [(pista de cada
+    única)] con el formato de su entrada."""
     nombres = [[DIARIO["descubierta"][i] % logros.unique_name(sid, m)[i] for sid, m in modules] for i in (0, 1)]
     pistas = [[DIARIO["pista"][i] % m.HISTORIA["pista"][i] for sid, m in modules] for i in (0, 1)]
+    for t in (traducciones or {}).values():
+        nombres.append([idiomas.formatear(t[clave("descubierta")], [t[logros.name_key(sid)]]) for sid, _ in modules])
+        pistas.append([idiomas.formatear(t[clave("pista")], [t[botin.historia_clave(sid) + ".pista"]]) for sid, _ in modules])
     return nombres, pistas
+
+
+def _cabecera(k, traducciones):
+    """El título de una página del diario en todos los idiomas."""
+    return list(DIARIO[k]) + [t[clave(k)] for t in (traducciones or {}).values()]
 
 
 def por_pagina(cabecera, entradas):
@@ -171,53 +181,66 @@ def por_pagina(cabecera, entradas):
     return libres // peor
 
 
-def datos(modules):
-    """Lo que lee el Java (heraldia/guia.json): páginas fijas en orden y entradas por página del diario."""
-    nombres, pistas = _entradas(modules)
+def datos(modules, traducciones=None):
+    """Lo que lee el Java (heraldia/guia.json): páginas fijas en orden y entradas por página del diario (con el peor caso
+    de todos los idiomas: los base y las traducciones, {código: textos})."""
+    nombres, pistas = _entradas(modules, traducciones)
     return {
         "paginas": [pid for pid, _, _ in PAGINAS],
-        "nombres_por_pagina": por_pagina(DIARIO["descubiertas"], nombres[0] + nombres[1]),
-        "pistas_por_pagina": por_pagina(DIARIO["pistas"], pistas[0] + pistas[1]),
+        "nombres_por_pagina": por_pagina(_cabecera("descubiertas", traducciones), sum(nombres, [])),
+        "pistas_por_pagina": por_pagina(_cabecera("pistas", traducciones), sum(pistas, [])),
         "marca": MARCA,
         "autor": AUTOR,
     }
 
 
-def paginas_max(modules):
+def paginas_max(modules, traducciones=None):
     """Páginas del libro en el peor caso (todas descubiertas o ninguna): fijas + resumen + listas."""
-    d, n = datos(modules), len(modules)
+    d, n = datos(modules, traducciones), len(modules)
     listas = max(-(-n // d["nombres_por_pagina"]), -(-n // d["pistas_por_pagina"]))
     return len(PAGINAS) + 1 + listas
 
 
-def errores(modules):
-    """[] si todo cabe: cada página fija y el resumen (con números de dos cifras y la frase más larga), el título del
-    libro, al menos una entrada por página del diario y el total de páginas."""
+def _textos_por_idioma(traducciones):
+    """[(nombre del idioma, {clave: texto} de la guía)] de los base y de cada traducción."""
+    base = lang()
+    return [("es", base["es_es"]), ("en", base["en_us"])] + [(c, t) for c, t in (traducciones or {}).items()]
+
+
+def errores(modules, traducciones=None):
+    """[] si todo cabe en cada idioma: cada página fija y el resumen (con números de dos cifras y la frase más larga),
+    el título del libro (el nombre de la guía), al menos una entrada por página del diario y el total de páginas.
+    `traducciones`: {código: textos} de los idiomas que no son es/en (idiomas.completar)."""
     e = []
-    for pid, titulo, texto in PAGINAS:
-        for i in (0, 1):
-            if lineas_pagina(titulo[i], texto[i]) > botin.LIBRO_LINEAS:
-                e.append(f"guía: la página «{pid}» ({'es en'.split()[i]}) no cabe: "
-                         f"{lineas_pagina(titulo[i], texto[i])} de {botin.LIBRO_LINEAS} líneas")
-    for i in (0, 1):
+    for idioma, t in _textos_por_idioma(traducciones):
+        for pid, _, _ in PAGINAS:
+            titulo, texto = t[clave(f"pagina.{pid}.titulo")], t[clave(f"pagina.{pid}")]
+            if lineas_pagina(titulo, texto) > botin.LIBRO_LINEAS:
+                e.append(f"guía: la página «{pid}» ({idioma}) no cabe: "
+                         f"{lineas_pagina(titulo, texto)} de {botin.LIBRO_LINEAS} líneas")
+            if lineas_titulo(titulo) > 1:
+                e.append(f"guía: el título de la página «{pid}» ({idioma}) no cabe en una línea: {titulo}")
         for cola in ("resumen.ninguna", "resumen.faltan", "resumen.todas"):
-            texto = DIARIO["resumen"][i] % (99, 99) + "\n\n" + DIARIO[cola][i].replace("%s", "99")
-            if lineas_pagina(DIARIO["resumen.titulo"][i], texto) > botin.LIBRO_LINEAS:
-                e.append(f"guía: el resumen con «{cola}» ({'es en'.split()[i]}) no cabe")
+            texto = idiomas.formatear(t[clave("resumen")], ["99", "99"]) + "\n\n" + idiomas.formatear(t[clave(cola)], ["99"])
+            if lineas_pagina(t[clave("resumen.titulo")], texto) > botin.LIBRO_LINEAS:
+                e.append(f"guía: el resumen con «{cola}» ({idioma}) no cabe")
+        if not 1 <= len(t[clave("nombre")]) <= TITULO_MAX:
+            e.append(f"guía: el título «{t[clave('nombre')]}» ({idioma}) pasa de {TITULO_MAX} caracteres")
+    for i in (0, 1):
         if len(TITULO[i]) > TITULO_MAX:
             e.append(f"guía: el título «{TITULO[i]}» pasa de {TITULO_MAX} caracteres")
-    d = datos(modules)
+    d = datos(modules, traducciones)
     if d["nombres_por_pagina"] < 1 or d["pistas_por_pagina"] < 1:
         e.append(f"guía: una entrada del diario no cabe en una página ({d})")
-    elif paginas_max(modules) > MAX_PAGINAS:
-        e.append(f"guía: {paginas_max(modules)} páginas, más de {MAX_PAGINAS}")
+    elif paginas_max(modules, traducciones) > MAX_PAGINAS:
+        e.append(f"guía: {paginas_max(modules, traducciones)} páginas, más de {MAX_PAGINAS}")
     return e
 
 
-def write(out, modules, jdump):
-    """Escribe heraldia/guia.json y devuelve sus textos; falla si algo no cabe en el libro."""
-    e = errores(modules)
+def write(out, modules, jdump, traducciones=None):
+    """Escribe heraldia/guia.json y devuelve sus textos; falla si algo no cabe en el libro en algún idioma."""
+    e = errores(modules, traducciones)
     if e:
         raise SystemExit("\n".join(e))
-    jdump(out, f"{NS}/guia.json", datos(modules))
+    jdump(out, f"{NS}/guia.json", datos(modules, traducciones))
     return lang()
