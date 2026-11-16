@@ -174,7 +174,7 @@ def cambiados(base):
 # Duración medida de cada prueba en la CI (s, solo el paso de la prueba; servidor ya en caché). Sirve para repartirlas
 # en grupos parecidos; una prueba que no está aquí cuenta como DEFECTO_S.
 DURACION_S = {
-    "tools/smoke/aldeas_vida.py": 170, "tools/smoke/aldeas_variantes.py": 135, "tools/smoke/aldeas_terreno.py": 105,
+    "tools/smoke/aldeas_vida.py": 170, "tools/smoke/aldeas_variantes.py": 135, "tools/smoke/aldeas_terreno.py": 185,
     "tools/gen/unicas/isla_corsario/prueba_servidor.py": 100, "tools/gen/unicas/mina_perdida/prueba_servidor.py": 95,
     "tools/smoke/trofeos.py": 90, "tools/smoke/ciudadela_check.py": 80, "tools/smoke/observatorio_smoke.py": 75,
     "tools/smoke/guardianes_adultos.py": 72, "tools/gen/unicas/santuario/prueba_servidor.py": 70,

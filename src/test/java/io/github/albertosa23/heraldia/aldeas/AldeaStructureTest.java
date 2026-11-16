@@ -38,8 +38,13 @@ class AldeaStructureTest {
 	private static final BoundingBox CASETA = new BoundingBox(0, 60, 0, 9, 68, 9);
 	private static final BoundingBox MUELLE = new BoundingBox(2, 60, 10, 6, 63, 30);
 
+	/** Mar libre del muelle de prueba (no en un campo estático: tocaría AldeaStructure antes del Bootstrap). */
+	private static BoundingBox mar() {
+		return AldeaStructure.marLibre(MUELLE, Direction.SOUTH);
+	}
+
 	private static List<P> run(List<P> village) {
-		return AldeaStructure.displaced(village, P::box, P::street, q -> AldeaStructure.removable(q.path), CASETA, MUELLE);
+		return AldeaStructure.displaced(village, P::box, P::street, q -> AldeaStructure.removable(q.path), CASETA, MUELLE, mar());
 	}
 
 	@Test
@@ -64,6 +69,29 @@ class AldeaStructureTest {
 	void unaCalleBajoElMuelleDescartaLaOrilla() {
 		assertNull(run(List.of(street("calle", 4, 20, 5, 40))));
 		assertEquals(List.of(), run(List.of(street("lejos", 40, 20, 41, 40))));
+	}
+
+	@Test
+	void marLibreAlrededorDelMuelle() {
+		assertEquals(new BoundingBox(-2, 60, 10, 10, 63, 36), mar());                      // 6 tras la punta, 4 a los lados
+		assertEquals(new BoundingBox(-8, 60, 2, 30, 63, 14),
+				AldeaStructure.marLibre(new BoundingBox(-2, 60, 6, 30, 63, 10), Direction.WEST));
+		// un edificio especial en el agua pasada la punta (su ajuste del terreno taparía la punta) descarta la orilla
+		assertNull(run(List.of(p("mercado", "costa_pescadores/specials/market_b", 0, 32, 12, 44))));
+		// una casa al lado del muelle se quita; una calle al lado (tablas sobre el agua) no estorba
+		P casa = p("casa", "costa_pescadores/houses/small_0", 8, 14, 14, 20);
+		assertEquals(List.of(casa), run(List.of(casa, street("calle", 8, 12, 9, 40))));
+		assertEquals(List.of(), run(List.of(p("lejos", "costa_pescadores/houses/small_1", 12, 14, 20, 20))));
+	}
+
+	@Test
+	void elPuertoCabeEnLosOchoChunksDelInicio() {
+		// chunk de inicio desde el bloque 160, 320: valen los bloques de 32 a 303 en x y de 192 a 463 en z
+		assertTrue(AldeaStructure.enVentana(new BoundingBox(32, 60, 192, 303, 70, 463), 160, 320));
+		assertFalse(AldeaStructure.enVentana(new BoundingBox(31, 60, 200, 40, 70, 210), 160, 320));
+		assertFalse(AldeaStructure.enVentana(new BoundingBox(290, 60, 200, 304, 70, 210), 160, 320));
+		assertFalse(AldeaStructure.enVentana(new BoundingBox(100, 60, 191, 110, 70, 200), 160, 320));
+		assertFalse(AldeaStructure.enVentana(new BoundingBox(100, 60, 400, 110, 70, 464), 160, 320));
 	}
 
 	@Test
