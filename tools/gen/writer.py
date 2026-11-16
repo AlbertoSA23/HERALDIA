@@ -9,6 +9,7 @@ import medianas
 import mapas
 import tratos
 import tablon
+import caminos
 import opciones
 import biomas
 import logros
@@ -317,7 +318,7 @@ def write(reg, out):
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     maps_lang = mapas.lang(uniques)
     adv_lang = logros.write(out, reg, uniques, jdump)
-    for extra in (tratos.lang(), tablon.write(out, jdump), medianas_lang):
+    for extra in (tratos.lang(), tablon.write(out, jdump), caminos.write(out, jdump), medianas_lang):
         for lang, texts in extra.items():
             adv_lang[lang].update(texts)
     for sid, mod in unicas.modules():
