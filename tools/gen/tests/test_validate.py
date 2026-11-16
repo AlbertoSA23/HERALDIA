@@ -2,7 +2,8 @@
 import json, os
 import pytest
 import validate
-from core import Template, ADULTO_TAG
+from core import Template, ADULTO_TAG, ANCLADO_TAG
+from unicas._comun import piezas
 
 
 class Reg:
@@ -42,8 +43,24 @@ def test_validate_registry_negativos(mcmeta):
 def test_validate_registry_limpio(mcmeta):
     t = Template("a")
     t.set(0, 0, 0, "stone")
-    t.entity(0, 1, 0, {"id": "minecraft:zombie", "Tags": [ADULTO_TAG]})
+    t.entity(0, 1, 0, {"id": "minecraft:zombie", "Tags": [ADULTO_TAG, ANCLADO_TAG]})
+    t.entity(0, 1, 0, piezas.guardian("evoker", "k", "f", 40))
+    t.entity(0, 1, 0, {"id": "minecraft:villager"})                  # los aldeanos recogen cosechas: sin anclar
+    t.entity(0, 1, 0, {"id": "minecraft:guardian"})                  # los peces guardianes de la Atlántida tampoco
     assert validate.validate_registry(Reg(t)) == {}
+
+
+@pytest.mark.parametrize("nbt, por", [
+    ({"id": "minecraft:zombie", "Tags": [ADULTO_TAG]}, "recogería objetos"),            # zombi sin anclar
+    ({"id": "minecraft:skeleton"}, "recogería objetos"),                                 # esqueleto sin anclar
+    ({"id": "minecraft:evoker", "Tags": [piezas.GUARDIAN_TAG]}, "guardián"),             # guardián sin anclar
+])
+def test_validate_registry_sin_anclar(mcmeta, nbt, por):
+    t = Template("a")
+    t.entity(0, 1, 0, nbt)
+    errs = validate.validate_registry(Reg(t))
+    assert list(errs) == [f"{nbt['id']} sin la etiqueta {ANCLADO_TAG} ({por}: core.anclado)"]
+    assert errs[next(iter(errs))] == ["a"]
 
 
 def test_validate_loot(mcmeta):

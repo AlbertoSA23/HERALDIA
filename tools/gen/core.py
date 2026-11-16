@@ -325,6 +325,23 @@ def adulto(n):
     return n
 
 
+# Mobs anclados (el mod, comun/Anclaje.java, al cargarlos): no recogen objetos y no pasean hasta que los atacan. El
+# finalizeSpawn de zombis y esqueletos sortea CanPickUpLoot sin mirar el NBT (los piglins lo traen siempre), y un mob
+# persistente pasea hasta 10 bloques en los 100 primeros ticks de cada carga (a veces fuera de su sala). validate.py
+# exige ANCLADO_TAG en todo guardián final (piezas.GUARDIAN_TAG) y en todo mob de RECOGE_BOTIN de las plantillas.
+ANCLADO_TAG = "heraldia_anclado"
+RECOGE_BOTIN = BEBE_ZOMBI | {"minecraft:" + m for m in ("skeleton", "stray", "bogged", "wither_skeleton", "parched",
+                                                         "piglin", "piglin_brute")}
+
+
+def anclado(n, siempre=False):
+    """Pone ANCLADO_TAG al NBT de un mob que recogería objetos (RECOGE_BOTIN) o, con `siempre`, de cualquier tipo (los
+    guardianes finales); devuelve el mismo NBT."""
+    if (siempre or n["id"] in RECOGE_BOTIN) and ANCLADO_TAG not in n.get("Tags", []):
+        n["Tags"] = list(n.get("Tags", [])) + [ANCLADO_TAG]
+    return n
+
+
 def villager(prof, vtype, employed=True):
     n = {"id": "minecraft:villager", "PersistenceRequired": B(1), "Tags": ["heraldia"],   # los tratos de mapas (mapas.py) la piden
          "VillagerData": {"profession": "minecraft:" + (prof if employed else "none"),

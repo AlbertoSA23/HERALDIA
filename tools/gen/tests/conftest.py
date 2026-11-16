@@ -45,7 +45,7 @@ def mcmeta(tmp_path, monkeypatch):
         "jigsaw": [{"orientation": ["north_up", "south_up"]}, {}],
         "oak_stairs": [{"facing": ["north", "south", "east", "west"], "half": ["top", "bottom"]}, {}]})
     escribir_json(str(root / "registries" / "data.json"), {
-        "item": ["stone", "bread", "iron_axe", "filled_map", "written_book", "compass"], "entity_type": ["zombie", "cat", "hoglin", "villager"],
+        "item": ["stone", "bread", "iron_axe", "filled_map", "written_book", "compass"], "entity_type": ["zombie", "cat", "hoglin", "villager", "skeleton", "evoker", "guardian"],
         "trigger_type": ["location", "inventory_changed", "player_killed_entity"],
         "entity_sub_predicate_type": ["entity_type", "entity_tags"], "enchantment": ["sharpness", "efficiency"],
         "trim_pattern": ["coast"], "trim_material": ["gold"], "banner_pattern": ["stripe_top"],

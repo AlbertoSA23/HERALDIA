@@ -36,8 +36,10 @@ SMOKE_DE_UNICA = {
     "observatorio": ["tools/smoke/observatorio_smoke.py"],
     "palacio": ["tools/smoke/palacio_redstone.py"],
 }
-# Lo que toda única nueva o cambiada debe pasar además de lo suyo: su trofeo, su pliego de la crónica y sus guardianes adultos.
-DE_TODA_UNICA = ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/guardianes_adultos.py"]
+# Lo que toda única nueva o cambiada debe pasar además de lo suyo: su trofeo, su pliego de la crónica y sus guardianes
+# adultos y anclados.
+DE_TODA_UNICA = ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/guardianes_adultos.py",
+                 "tools/smoke/guardianes_anclados.py"]
 # Paquete Java de cada única con código propio (src/main/java/.../unicas/<paquete>/).
 JAVA_UNICA = {"atlantida": "atlantida", "ciudadela": "ciudadela", "faro": "faro", "galeon": "galeon",
               "isla": "isla_corsario", "mina": "mina_perdida"}
@@ -71,6 +73,9 @@ MAPA = [
     # mixins de los mobs de plantilla y comandos (la de humo prueba /heraldia info y llave)
     (JAVA + "mixin/Zombie*", ["tools/smoke/guardianes_adultos.py"]),
     (JAVA + "mixin/DrownedMixin.java", ["tools/smoke/guardianes_adultos.py"]),
+    (JAVA + "mixin/DrownedAguaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
+    (JAVA + "mixin/DrownedPlayaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
+    (JAVA + "comun/Anclaje.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "comando/*", []),
     # código común: batería completa
     ("tools/gen/unicas/_comun/*", TODO), ("tools/gen/unicas/__init__.py", TODO), ("tools/gen/writer.py", TODO),
@@ -184,6 +189,7 @@ DURACION_S = {
     # compatibilidad (medidas en local en 4 núcleos con las descargas en caché, más un 30 % para la CI)
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
                                          "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
+    "tools/smoke/guardianes_anclados.py": 450,
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas

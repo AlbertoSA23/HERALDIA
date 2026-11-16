@@ -1,7 +1,7 @@
 """core.py: estados, NBT de plantillas y utilidades de Template."""
 import nbtlib
 import pytest
-from core import (parse_state, state_str, with_props, nsid, norm_id, to_tag, B, F, Template, adulto, ADULTO_TAG,
+from core import (parse_state, state_str, with_props, nsid, norm_id, to_tag, B, F, Template, adulto, ADULTO_TAG, anclado, ANCLADO_TAG, RECOGE_BOTIN, BEBE_ZOMBI,
                   villager, DATA_VERSION)
 
 
@@ -74,6 +74,18 @@ def test_to_nbt_rechaza_negativos():
     t.set(-1, 0, 0, "stone")
     with pytest.raises(AssertionError):
         t.to_nbt()
+
+
+def test_anclado():
+    z = anclado({"id": "minecraft:zombie", "Tags": ["a"]})
+    assert z["Tags"] == ["a", ANCLADO_TAG]
+    assert anclado(dict(z))["Tags"].count(ANCLADO_TAG) == 1       # idempotente
+    assert anclado({"id": "minecraft:skeleton"})["Tags"] == [ANCLADO_TAG]
+    assert "Tags" not in anclado({"id": "minecraft:evoker"})          # no recoge objetos: solo si es guardián
+    assert anclado({"id": "minecraft:evoker"}, siempre=True)["Tags"] == [ANCLADO_TAG]
+    assert "Tags" not in anclado({"id": "minecraft:villager"})        # los aldeanos recogen cosechas
+    assert BEBE_ZOMBI <= RECOGE_BOTIN and "minecraft:wither_skeleton" in RECOGE_BOTIN
+    assert all(m.startswith("minecraft:") for m in RECOGE_BOTIN)
 
 
 def test_adulto_y_aldeano():

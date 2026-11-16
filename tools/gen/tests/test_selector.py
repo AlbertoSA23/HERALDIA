@@ -114,6 +114,8 @@ def test_aldeas_y_datos():
     assert elige("tools/gen/tablon.py")[1] == ["tools/smoke/aldeas_vida.py"]
     assert "tools/smoke/terralith_biomas.py" in elige("tools/gen/biomas.py")[1]
     assert elige(J + "mixin/ZombieMixin.java")[1] == ["tools/smoke/guardianes_adultos.py"]
+    assert elige(J + "comun/Anclaje.java")[1] == ["tools/smoke/guardianes_anclados.py"]
+    assert elige(J + "comun/HastaElSueloProcessor.java")[0]          # el resto de comun/: batería completa
     assert set(elige("tools/gen/logros.py")[1]) == {"tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"}
 
 
