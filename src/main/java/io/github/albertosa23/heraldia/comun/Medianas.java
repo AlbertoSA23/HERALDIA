@@ -222,14 +222,54 @@ public final class Medianas {
 		if (i < 0 || dimension != Level.OVERWORLD) {
 			return false;
 		}
+		Contexto c = contexto(id, access, generator, biomeSource, sampler, randomState, templates, seed, height, dimension);
+		return rechaza(i, chunkX, chunkZ, seed, c.zona(), c.estilos(), c.atlantida());
+	}
+
+	/** Lo que decide si sale una mediana: la zona de aldeas, únicas y estructuras ajenas, sus estilos y la Atlántida. */
+	public record Contexto(Zona zona, Estilos estilos, Zona atlantida) {
+	}
+
+	/** El contexto del juego (las mismas comprobaciones que la generación y /locate); id: la estructura que pregunta. */
+	public Contexto contexto(Identifier id, RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource,
+							 Climate.Sampler sampler, RandomState randomState, StructureTemplateManager templates, long seed,
+							 LevelHeightAccessor height, ResourceKey<Level> dimension) {
 		UniqueSeparation unicas = UniqueSeparation.of(access);
 		UniqueSeparation.Viability unica = unicas.viability(access, generator, biomeSource, sampler, randomState, templates, seed, height, dimension);
 		ZonaAjenas.Aldea aldea = zona == null ? null : zona.aldea(access, generator, biomeSource, sampler, randomState, templates, seed, height, dimension);
-		return rechaza(i, chunkX, chunkZ, seed, (x, z) -> zona != null && enZona(unicas, seed, x, z, unica, aldea)
+		return new Contexto((x, z) -> zona != null && enZona(unicas, seed, x, z, unica, aldea)
 						|| cedeAjena(x, z, seed, (s, cx, cz) -> s.findValidGenerationPoint(new Structure.GenerationContext(access, generator,
 						biomeSource, sampler, randomState, templates, seed, new ChunkPos(cx, cz), height, s.biomes()::contains)).isPresent()),
 				estilos(access, generator, biomeSource, sampler, randomState, templates, seed, height),
 				(x, z) -> AtlantisAnchor.excludes(id, dimension, seed, x, z));
+	}
+
+	/**
+	 * ¿Sale una mediana (de cualquier tipo) a menos de `bloques` del chunk? La usan las entradas a mina (comun/Minas en
+	 * minas/), que ceden el sitio a las medianas sin que estas sepan de ellas: así su regla no cambia. Pública para las
+	 * pruebas (con el contexto inyectado).
+	 */
+	public boolean cerca(int chunkX, int chunkZ, int bloques, long seed, Contexto c) {
+		int alcance = (bloques + 15) / 16;
+		long d2 = (long) bloques * bloques;
+		for (int j = 0; j < tipos.length; j++) {
+			RandomSpreadStructurePlacement p = entre.placement(j);
+			int s = p.spacing(), ox = UniqueSeparation.offsetX(p), oz = UniqueSeparation.offsetZ(p);
+			for (int gx = Math.floorDiv(chunkX - alcance - ox, s), gxMax = Math.floorDiv(chunkX + alcance - ox, s); gx <= gxMax; gx++) {
+				for (int gz = Math.floorDiv(chunkZ - alcance - oz, s), gzMax = Math.floorDiv(chunkZ + alcance - oz, s); gz <= gzMax; gz++) {
+					ChunkPos m = p.getPotentialStructureChunk(seed, gx * s + ox, gz * s + oz);
+					long dx = (m.x() - (long) chunkX) * 16, dz = (m.z() - (long) chunkZ) * 16;
+					if (dx * dx + dz * dz >= d2 || !p.applyAdditionalChunkRestrictions(m.x(), m.z(), seed)) {
+						continue;
+					}
+					if (!c.atlantida().ocupada(m.x(), m.z()) && c.estilos().sale(j, m.x(), m.z())
+							&& !rechaza(j, m.x(), m.z(), seed, c.zona(), c.estilos(), c.atlantida())) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	/** ¿Cae el chunk en la zona de una aldea o una única que sale? */

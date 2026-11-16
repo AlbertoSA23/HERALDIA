@@ -21,7 +21,7 @@ public final class Reposicion {
 	/** «Casi vacío»: como mucho tantas casillas ocupadas (de 27). Lo que haya se queda: el botín va a las libres. */
 	public static final int MAX_OCUPADAS = 3;
 	private static final String NS = "heraldia:";
-	private static final String[] PREFIJOS = {"cofres/", "unicas/", "medianas/"};
+	private static final String[] PREFIJOS = {"cofres/", "unicas/", "medianas/", "minas/"};
 
 	private Reposicion() {
 	}
@@ -41,8 +41,8 @@ public final class Reposicion {
 	}
 
 	/**
-	 * ¿Se repone un cofre con esta tabla? Solo las de cofre de las aldeas ({@code heraldia:cofres/}), las medianas y las
-	 * únicas; nunca los trofeos (ni nada que no sea de Heraldia).
+	 * ¿Se repone un cofre con esta tabla? Solo las de cofre de las aldeas ({@code heraldia:cofres/}), las medianas, las
+	 * entradas a mina ({@code heraldia:minas/}) y las únicas; nunca los trofeos (ni nada que no sea de Heraldia).
 	 */
 	public static boolean tablaRepone(String tabla) {
 		if (tabla == null || !tabla.startsWith(NS) || tabla.contains("trofeo")) {
