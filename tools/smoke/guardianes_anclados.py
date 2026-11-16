@@ -10,7 +10,8 @@ distinto con la etiqueta en las plantillas del .jar (los guardianes y los ahogad
      (±1,8 bloques; el guardián anciano, en una piscina, dentro de la casa de 16 bloques que el juego le pone). Un lote de control sin la etiqueta (el mismo esqueleto y el mismo zombi) debe pasear y recoger
      objetos alguna vez: si no, la prueba no comprobaría nada;
   2) descarga y vuelve a cargar los chunks (noActionTime vuelve a 0) y, tras otros 200 ticks, siguen en su casilla;
-  3) con un jugador simulado (Carpet) a 8 bloques, cada uno lo ataca (le quita vida): anclado no quiere decir tonto;
+  3) con un jugador simulado (Carpet) a 8 bloques, cada uno lo ataca (le quita vida): anclado no quiere decir tonto
+     (salvo los animales de las medianas, PACIFICOS, que no atacan a nadie);
   4) coloca de día la plantilla real de cada guardián (/place template; de noche otra vez las de los ahogados) y, tras
      200 ticks, sigue donde la plantilla lo pone.
 """
@@ -26,6 +27,9 @@ import core
 
 PACK, NS, ANCLA = "heraldia_prueba_anclados", "heraldia_prueba", "heraldia_prueba:ancla"
 ACUATICOS = {"minecraft:guardian", "minecraft:elder_guardian"}    # fuera del agua coletean: van en una piscina
+# Animales de las medianas (el gato del pescador, el lobo de los cazadores): anclados para que no se vayan, pero no
+# atacan a quien no los ataca; en la fase 3 no se espera que ataquen.
+PACIFICOS = {"minecraft:cat", "minecraft:wolf"}
 Y = 150
 X1, Z1, PASO, COLS = 2000, 0, 4, 10                  # fases 1 y 2: un bloque de COLS x filas casillas por mob
 X3, Z3 = 4000, 0                                     # fase 3: jugador y mob
@@ -268,7 +272,7 @@ def main():
             return False
 
         for i, lote in enumerate(lotes):
-            if lote["control"] or str(lote["nbt"]["id"]) in ACUATICOS:
+            if lote["control"] or str(lote["nbt"]["id"]) in ACUATICOS | PACIFICOS:
                 continue
             if not jugador():
                 fails.append(f"ataque: el jugador no recupera la vida antes de {lote['nombre']}")

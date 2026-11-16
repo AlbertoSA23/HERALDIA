@@ -271,4 +271,6 @@ Memoria común de las sesiones que diseñan estructuras para Heraldia. Cada viñ
 - Vasijas (`decorated_pot`) como contenedor de botín: el bloque acepta `LootTable` en su NBT como un cofre (`piezas.chest(..., kind="decorated_pot")`, estado `decorated_pot[facing=...]`); el botín sale al romperla. Usado en el templete; la prueba de servidor comprueba el NBT con `execute if block`. Que `player_generates_container_loot` salte al romperla no está comprobado (el logro del templete es matar a un custodio, no abrirla).
 - Un mob de mediana en un bioma soleado: el esqueleto arde de día salvo con casco (custodio de la jungla, como el arquero de la torre); en el desierto, una momia (`husk`) no arde pero es de `BEBE_ZOMBI`: necesita `core.adulto` (`heraldia_adulto`) o sale bebé el 5 %. `test_medianas` lo comprueba.
 
+- `guardianes_anclados.py` recoge cada mob con `heraldia_anclado` de todas las plantillas del `.jar`, también los animales de las medianas (gato del pescador, lobo de los cazadores): se quedan en su casilla y no recogen objetos (30 de 30), pero su fase 3 exigía que todo anclado atacara al jugador, y un gato o un lobo no provocado no ataca (5 fallos y 2 min de espera por cada uno). La fase 3 se salta ahora los `PACIFICOS`. Detectado al pasar la prueba con el lote 2 de medianas.
+
 ## Fallos pendientes
