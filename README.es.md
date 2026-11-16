@@ -94,8 +94,9 @@ Contenido:
     por el acantilado), el cuerpo de guardia, la sala del mapa con el **puzle de la rosa de los vientos**, la armería con
     la santabárbara secreta, los calabozos y, bajo el nivel del mar y en seco, la cámara del tesoro con Roque Salitre, el
     corsario; trampas de cable y de placas, 3 generadores y 21 cofres. Diseño: [docs/unicas/isla_corsario.md](docs/unicas/isla_corsario.md).
-- **Estructuras medianas** (entre todos los tipos, una cada 650-700 bloques, cada uno en sus biomas): torres de vigía,
-  posadas de camino, campamentos de bandidos y ermitas, con un estilo por bioma. Ver [Estructuras medianas](#estructuras-medianas).
+- **Estructuras medianas** (entre todos los tipos, una cada 550-580 bloques, cada uno en sus biomas): torres de vigía,
+  posadas de camino, campamentos de bandidos, ermitas, molinos, cabañas de pescador, puestos de cazadores y templetes en
+  ruinas, con un estilo por bioma. Ver [Estructuras medianas](#estructuras-medianas).
 
 ## Instalación
 
@@ -103,7 +104,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 103 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 112 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
@@ -179,7 +180,7 @@ Detalle, planos y qué se ha comprobado: [docs/unicas/atlantida.md](docs/unicas/
 
 ## Estructuras medianas
 
-Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada 650-700 bloques** (medido, ver abajo), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lote 1:
+Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada 550-580 bloques** (medido, ver abajo), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
 
 | Tipo | Id | Estilos (biomas) | Variantes |
 | --- | --- | --- | --- |
@@ -187,11 +188,15 @@ Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frec
 | **Posada de camino** | `heraldia:medianas/posada/<estilo>` | llanuras (roble); bosques de robles, abedules y flores (abedul y roble oscuro); sabanas (acacia y terracota) | sala común con hogar, mesas y mostrador, el posadero (un aldeano sin IA que vende pan, cerdo asado y una cama, y compra trigo), un cuarto con dos camas y un cofre; con corral de paja y abrevadero o con huerto |
 | **Campamento de bandidos** | `heraldia:medianas/campamento/<estilo>` | bosques; taigas; badlands | tiendas de lona alrededor de una fogata con bancos de troncos, un tonel con lo robado y un estandarte; dos saqueadores, o una empalizada, tres tiendas, un vindicador jefe y un saqueador. Son persistentes y anclados (se quedan en el campamento hasta que los atacan), no forman patrulla y no vuelven a salir |
 | **Ermita** | `heraldia:medianas/ermita/<estilo>` | arboledas y laderas nevadas (ladrillo de piedra); bosque oscuro y jardín pálido (piedra musgosa); cerezales (cerezo y terracota blanca) | capilla con espadaña y campana, bancos, altar con velas y la celda del ermitaño (cama, atril y el cofre con su diario, un libro escrito en el idioma de cada jugador); huerto vallado con acequia y, en una variante, un pequeño camposanto |
+| **Molino** | `heraldia:medianas/molino/<estilo>` | llanuras (roble y terracota blanca); pantanos (mangle y ladrillo de barro) | molino de agua con la rueda de paletas en un caz de agua quieta, la muela y el molinero (un aldeano sin IA que compra trigo y vende pan, azúcar y tarta), o molino de viento de tres plantas con aspas y un trigal con su acequia |
+| **Cabaña de pescador** | `heraldia:medianas/pescador/<estilo>` | playas (abedul y arenisca); playas nevadas (abeto y piedra); costas rocosas (roble y ladrillo de piedra) | cabaña con secadero de pescado y un embarcadero sobre pilotes, con el pescador (compra cuerda y bacalao, vende bacalao asado y una caña) y su gato, o sin nadie, con un ahumadero y un embarcadero más largo con nasas |
+| **Puesto de cazadores** | `heraldia:medianas/cazadores/<estilo>` | llanuras nevadas y picos de hielo (abeto); sabanas (acacia) | cabaña de troncos con chimenea, literas y el arcón de las pieles, un tendedero, un tajo y una atalaya de caza; con el cazador (compra pieles de conejo, vende cuero, flechas y una pechera de cuero) y su lobo, o vacío, con un ahumadero de carne |
+| **Templete en ruinas** | `heraldia:medianas/templete/<estilo>` | junglas (ladrillo de piedra musgoso); desierto (arenisca) | templete de columnas sobre un podio, con las de los lados rotas y sus tambores caídos y vasijas con ofrendas (se rompen para sacarlas); con el altar y dos custodios (esqueletos con casco en la jungla, momias en el desierto, anclados como los bandidos), o con un pozo sagrado y sin nadie |
 
 - Nunca salen dentro de una aldea, una única, la Atlántida o la isla del corsario: no a menos de `medianas.distancia_aldeas_unicas_bloques` (256) del inicio de una aldea o una única de Heraldia que sale ahí, ni a menos de `medianas.distancia_minima.bloques` (192) de otra mediana de otro tipo (un sorteo determinista deja una, la misma regla que la distancia mínima entre únicas), ni a menos de 128 bloques de una candidata de aldea vanilla. Además ceden el sitio a las estructuras que asoman a la superficie, vanilla o de otros mods (puestos de saqueadores, templos, portales en ruinas, aldeas de otros mods...): se descarta una si sale una de esas a menos de 80 bloques (vanilla) o de 128 (de otro mod).
 - Se encuentran con `/locate structure #heraldia:medianas/<tipo>` (o `heraldia:medianas/<tipo>/<estilo>`) y `/heraldia info cerca`; `/heraldia info` resume su configuración. Para probar una: `/place structure heraldia:medianas/<tipo>/<estilo>`.
 - Frecuencia, medida con `MedianasFrecuenciaTest` (las rejillas sobre el ruido de biomas real del mundo principal de 26.3, con las aldeas, las únicas y las estructuras vanilla alrededor, 3 semillas, 16.000 × 16.000 bloques): las cifras por tipo, en el [registro de cambios](CHANGELOG.md) y el PR. Cada rejilla busca su candidata dentro de los biomas del tipo (el sitio de la casilla más metido en ellos), así que un tipo aparece allí donde están sus biomas, como mucho una vez por casilla.
-- Configuración: opciones `medianas.*` (ver [Configuración](#configuración)). Logros: **Al borde del camino** y **Caminante** (ver [Logros](#logros)). **En un mundo ya creado, solo en los chunks nuevos.**
+- Configuración: opciones `medianas.*` (ver [Configuración](#configuración)). Logros: **Al borde del camino**, **Caminante** y uno propio de cada tipo del lote 2 (ver [Logros](#logros)). **En un mundo ya creado, solo en los chunks nuevos.**
 
 ## Biomas de otros mods
 
@@ -323,10 +328,10 @@ Las páginas se leen en el idioma de cada jugador (español si el cliente no tie
 
 ## Logros
 
-Pestaña de logros **Heraldia** (84 logros), con textos en español e inglés. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
+Pestaña de logros **Heraldia** (88 logros), con textos en español e inglés. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia, estructura única o mediana.
-- [Estructuras medianas](#estructuras-medianas): **Al borde del camino**, encontrar una cualquiera (10), y **Caminante**, una de cada tipo (150).
+- [Estructuras medianas](#estructuras-medianas): **Al borde del camino**, encontrar una cualquiera (10), y **Caminante**, una de cada tipo (150). Y, hijos de Al borde del camino, uno por tipo del lote 2 (20 cada uno): **Grano y muela** (abrir los costales de un molino), **La pesca del día** (el tonel de la pesca de una cabaña de pescador), **Piel de invierno** (el arcón de las pieles de un puesto de cazadores) y **Sin custodia** (derrotar a un custodio de un templete en ruinas).
 - Una aldea de cada familia (12 logros, 20 de experiencia) y el desafío **Trotamundos de Heraldia**: las 12 familias (250).
 - Por cada estructura única: descubrirla (50), derrotar a su guardián con nombre (100) y abrir su cofre del tesoro (50).
 - La Atlántida, además: sus tres sellos (abrir el cofre del sello o tener su llave, 30 cada uno); el guardián es el Guardián de Poseidón y el tesoro cuenta al coger uno de los objetos con nombre del cofre único.
@@ -368,8 +373,8 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `medianas.frecuencia_porcentaje` | 100 | 25-400 | Frecuencia de todas las medianas, en % de la de por defecto: 200 = el doble (la separación de cada tipo se divide por la raíz). |
 | `medianas.distancia_minima.bloques` | 192 | 64-1024 | Distancia mínima entre dos medianas de tipos distintos (y entre dos del mismo, como mucho media casilla de su rejilla). |
 | `medianas.distancia_aldeas_unicas_bloques` | 256 | 128-1024 | Una mediana no sale a menos de esta distancia del inicio de una aldea o una única de Heraldia que sale ahí. |
-| `medianas.<id>.activada` | `true` | `true`/`false` | Activa un tipo de mediana (`torre_vigia`, `posada`, `campamento`, `ermita`). |
-| `medianas.<id>.separacion_bloques` | la del tipo (640-768) | 256-4000 | Separación media entre dos de ese tipo (con la frecuencia al 100 %); cada casilla busca su candidata dentro de los biomas del tipo. |
+| `medianas.<id>.activada` | `true` | `true`/`false` | Activa un tipo de mediana (`torre_vigia`, `posada`, `campamento`, `ermita`, `molino`, `pescador`, `cazadores`, `templete`). |
+| `medianas.<id>.separacion_bloques` | la del tipo (576-832) | 256-4000 | Separación media entre dos de ese tipo (con la frecuencia al 100 %); cada casilla busca su candidata dentro de los biomas del tipo. |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Las estructuras de otros mods que asoman a la superficie no nacen a menos de esta distancia del inicio de una aldea o una única de Heraldia que sale ahí; 0 lo desactiva ([Compatibilidad con otros mods](#compatibilidad-con-otros-mods)). |
 
 La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
@@ -410,7 +415,7 @@ python3 tools/changelog.py check
 python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-0.1.0.jar
 ```
 
-La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 103 estructuras estén registradas y los 84 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
+La segunda descarga un servidor Fabric 26.3 real en `build/smoke`, arranca con el mod y comprueba que las 112 estructuras estén registradas y los 88 logros cargados, que `/place structure` coloque una aldea con aldeanos y que las funciones existan.
 
 Pruebas en servidor de cada estructura única (mismo argumento `--jar`): `tools/smoke/coliseo_redstone.py`, `observatorio_smoke.py`, `palacio_redstone.py`, `ciudadela_check.py` y `galeon_test.py`, y en `tools/gen/unicas/`: `castillo/prueba_redstone.py`, `torre_mago/prueba_redstone.py`, `catedral/prueba_juego.py` y `prueba_servidor.py` de `fortaleza_hielo`, `mansion`, `monasterio`, `piramide`, `salon_jarl`, `santuario`, `laboratorio_micelio`, `mina_perdida` e `isla_corsario`. La Atlántida se comprueba dentro de la prueba de humo (`atlantida/humo.py`). `tools/smoke/trofeos.py` añade Carpet (versión fijada) y, con un jugador simulado, mata a cada guardián y comprueba que suelta su trofeo (y que con `/kill` no) y que el desafío de los trofeos se concede con el último. `tools/smoke/historia.py` (también con Carpet) comprueba que la cadena de la Crónica pasa por todas las únicas y que el cofre de cada una suelta su pliego, y que el jugador simulado consigue el desafío Cronista con el último. `tools/smoke/aldeas_variantes.py` coloca varias aldeas del mismo estilo, lee las regiones guardadas e identifica, comparando los bloques con las plantillas del `.jar`, qué variante de cada edificio especial ha salido; comprueba que cada uno coincide con una sola variante y que salen variantes distintas, y mide cada `/place`. `tools/smoke/guardianes_adultos.py` coloca 200 veces, por el mismo camino que la generación, cada mob de tipo zombi de las plantillas (zombi, husk, ahogado) y comprueba que ninguno sale bebé, con otra arma o montado. `tools/smoke/guardianes_anclados.py` (con Carpet) coloca 30 veces, por el mismo camino, cada mob de las plantillas con la etiqueta `heraldia_anclado` (los guardianes y los ahogados de la Atlántida) y comprueba que ninguno puede recoger objetos y que tras 200 ticks, y otra vez tras descargar y volver a cargar los chunks, todos siguen donde aparecieron (un lote de control sin la etiqueta debe pasear y recoger objetos); luego, que cada uno ataca al jugador simulado a 8 bloques, y que cada guardián sigue en su sala 200 ticks después de colocar su plantilla real de día. `tools/smoke/rejilla_compatible.py` activa `unicas.rejilla_compatible` y comprueba que `/locate` de varias únicas de la 0.1.0 da exactamente las coordenadas del `.jar` de la 0.1.0 (fijadas en el script, con cómo se sacaron).
 
