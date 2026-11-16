@@ -72,6 +72,11 @@ public final class HeraldiaConfig {
 		return values.get(key).getAsInt();
 	}
 
+	/** Valor de una opción con decimales (minas.vanilla.multiplicador); vale también para las enteras. */
+	public double getDouble(String key) {
+		return values.get(key).getAsDouble();
+	}
+
 	public boolean getBool(String key) {
 		return values.get(key).getAsBoolean();
 	}
@@ -212,8 +217,8 @@ public final class HeraldiaConfig {
 			if (o.isBoolean()) {
 				LOGGER.warn("Heraldia: valor no válido {}={} (true o false); se usa el valor por defecto {}", o.key(), given, o.defaultValue());
 			} else {
-				LOGGER.warn("Heraldia: valor no válido {}={} (entero de {} a {}); se usa el valor por defecto {}", o.key(), given, o.min(), o.max(),
-						o.defaultValue());
+				LOGGER.warn("Heraldia: valor no válido {}={} ({} de {} a {}); se usa el valor por defecto {}", o.key(), given,
+						o.decimal() ? "número" : "entero", o.min(), o.max(), o.defaultValue());
 			}
 			return o.defaultValue();
 		});

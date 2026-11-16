@@ -38,6 +38,7 @@ public final class Heraldia implements ModInitializer {
 		Atlantida.register();
 		io.github.albertosa23.heraldia.unicas.ciudadela.Ciudadela.register();
 		io.github.albertosa23.heraldia.unicas.mina.Mina.register();
+		io.github.albertosa23.heraldia.minas.Minas.registrar();
 		io.github.albertosa23.heraldia.unicas.faro.Faro.init();
 		io.github.albertosa23.heraldia.comun.HastaElSueloProcessor.register();
 		io.github.albertosa23.heraldia.comun.Anclaje.registrar();

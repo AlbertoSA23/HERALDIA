@@ -2,6 +2,7 @@
 import json, os, random, shutil
 import unicas
 import medianas
+import minas
 from unicas._comun import botin
 from core import Template, nsid, NS
 from lint import passable
@@ -222,6 +223,8 @@ def _parte(tarea, seed):
         build_theme(reg, THEMES[x], seed * 100 + x)
     elif kind == "mediana":
         medianas.build(reg, x)
+    elif kind == "mina":
+        minas.build(reg, x)
     else:
         mod = dict(unicas.modules())[x]
         mod.build(reg)
@@ -232,11 +235,11 @@ def _parte(tarea, seed):
 
 
 def build_all(seed=2026):
-    """Registro completo: lo común, cada estilo, cada única y cada mediana (en este orden, como en serie), construidos en paralelo
+    """Registro completo: lo común, cada estilo, cada única, cada mediana y cada tamaño de mina (en este orden, como en serie), construidos en paralelo
     (paralelo.mapa_con_estado: los datos que un build deja en su módulo vuelven al padre). Mismo resultado en serie
     (HERALDIA_PROCESOS=1)."""
     tareas = [("comun", None)] + [("estilo", i) for i in range(len(THEMES))] + [("unica", sid) for sid, _ in unicas.modules()] \
-        + [("mediana", mid) for mid, _ in medianas.modules()]
+        + [("mediana", mid) for mid, _ in medianas.modules()] + [("mina", tam) for tam in minas.TAMANOS]
     partes = paralelo.mapa_con_estado(lambda t: _parte(t, seed), tareas,
                                       prioridad=lambda t: COSTE.get(t[1], 1) if t[0] == "unica" else 0)
     reg = Registry()

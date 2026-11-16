@@ -4,6 +4,7 @@ import io.github.albertosa23.heraldia.comun.Medianas;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
+import io.github.albertosa23.heraldia.minas.Minas;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import io.github.albertosa23.heraldia.unicas.isla.IslaZona;
 import java.util.Optional;
@@ -31,7 +32,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * También impide que otras estructuras (monumentos, naufragios, ruinas) nazcan dentro de la Atlántida o de la isla del
  * corsario ({@link IslaZona}), que las de otros mods nazcan encima de una aldea o una única ({@link ZonaAjenas}), que dos
  * estructuras únicas distintas salgan a menos de la distancia mínima ({@link UniqueSeparation}) y que una mediana salga
- * junto a una aldea, una única u otra mediana ({@link Medianas}).
+ * junto a una aldea, una única u otra mediana ({@link Medianas}), ni una entrada a mina junto a ellas ({@link Minas}).
  */
 @Mixin(ChunkGenerator.class)
 abstract class ChunkGeneratorMixin {
@@ -80,6 +81,13 @@ abstract class ChunkGeneratorMixin {
 		if (Medianas.esMediana(id)) { // solo en los chunks candidatos de una mediana: lejos de aldeas, únicas y otras medianas
 			ChunkGenerator self = (ChunkGenerator) (Object) this;
 			if (Medianas.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
+					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level)) {
+				cir.setReturnValue(false);
+			}
+		}
+		if (Minas.esMina(id)) { // solo en los chunks candidatos de una entrada a mina: cede a aldeas, únicas, medianas y vanilla
+			ChunkGenerator self = (ChunkGenerator) (Object) this;
+			if (Minas.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
 					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level)) {
 				cir.setReturnValue(false);
 			}

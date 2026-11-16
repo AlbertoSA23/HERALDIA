@@ -165,6 +165,14 @@ def test_medianas():
     assert not completa and set(p) == {"tools/smoke/estructuras_medianas.py"} | set(COMPAT)
 
 
+def test_minas():
+    m = ["tools/smoke/minas.py"]
+    assert elige("tools/gen/minas/planos.py") == (False, m)
+    assert elige("tools/gen/minas/__init__.py") == (False, m)
+    assert elige(J + "minas/Ladera.java") == (False, m)
+    assert elige("tools/smoke/minas.py") == (False, m)
+
+
 def test_guia_del_heraldo():
     assert elige(J + "comando/Guia.java") == (False, ["tools/smoke/guia.py"])
     assert elige(J + "comando/Textos.java") == (False, ["tools/smoke/guia.py"])

@@ -4,6 +4,7 @@ import io.github.albertosa23.heraldia.comun.Medianas;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
+import io.github.albertosa23.heraldia.minas.Minas;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import io.github.albertosa23.heraldia.unicas.isla.IslaZona;
 import net.minecraft.core.RegistryAccess;
@@ -104,6 +105,10 @@ abstract class StructureCheckMixin {
 		if (Medianas.esMediana(id) && Medianas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator,
 				biomeSource, climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
 			cir.setReturnValue(false); // como la generación: /locate no señala una mediana descartada
+		}
+		if (Minas.esMina(id) && Minas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator,
+				biomeSource, climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
+			cir.setReturnValue(false); // ni una entrada a mina descartada
 		}
 	}
 }

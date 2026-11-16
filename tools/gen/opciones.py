@@ -92,6 +92,20 @@ _FIXED = [
      "de Heraldia (tampoco dentro de la Atlántida)",
      "A medium structure does not spawn closer than this distance, in blocks, to the start of a Heraldia village or unique "
      "structure (nor inside Atlantis)"),
+    ("minas.entradas.activado", True, None, None,
+     "Entradas a mina en laderas (bocas, campamentos mineros y complejos con torre de extracción) que bajan a una "
+     "galería propia; solo en los chunks nuevos",
+     "Mine entrances on hillsides (adits, mining camps and complexes with a headframe) leading down to their own "
+     "gallery; new chunks only"),
+    ("minas.entradas.separacion_bloques", 768, 256, 4000,
+     "Separación media entre dos entradas a mina pequeñas, en bloques; las medianas y las grandes guardan la proporción "
+     "(x1,5 y x2,5)",
+     "Average distance between two small mine entrances, in blocks; medium and large ones keep the ratio (x1.5 and x2.5)"),
+    ("minas.vanilla.multiplicador", 2.0, 1, 5,
+     "Multiplica la frecuencia de las minas abandonadas vanilla en los chunks nuevos (1 = como en vanilla; admite "
+     "decimales, p. ej. 1.5); no cambia los chunks ya generados ni otras estructuras",
+     "Multiplies how often vanilla abandoned mineshafts appear in new chunks (1 = as in vanilla; decimals allowed, e.g. "
+     "1.5); does not change chunks already generated or other structures"),
     ("jefes.fases.activado", True, None, None,
      "Fases de los guardianes de las estructuras únicas: al bajar del 66 % y del 33 % de vida se enfurecen (velocidad, "
      "resistencia y fuerza breve, con partículas, sonido y aviso a los jugadores cercanos); también los ya generados",
@@ -157,6 +171,9 @@ _NAMES = {
     "medianas.distancia_minima.bloques": ("Distancia entre medianas (bloques)", "Distance between medium ones (blocks)"),
     "medianas.distancia_aldeas_unicas_bloques": ("Distancia a aldeas y únicas (bloques)",
                                                  "Distance to villages and unique ones (blocks)"),
+    "minas.entradas.activado": ("Entradas a mina", "Mine entrances"),
+    "minas.entradas.separacion_bloques": ("Separación de las entradas (bloques)", "Entrance spacing (blocks)"),
+    "minas.vanilla.multiplicador": ("Minas vanilla (multiplicador)", "Vanilla mineshafts (multiplier)"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
                                                        "Distance of other mods' structures (blocks)"),
 }
@@ -183,6 +200,7 @@ SECTIONS = [
     ("atlantida", "Atlántida", "Atlantis"),
     ("jefes", "Guardianes (jefes)", "Guardians (bosses)"),
     ("medianas", "Estructuras medianas", "Medium structures"),
+    ("minas", "Minas", "Mines"),
     ("compatibilidad", "Compatibilidad con otros mods", "Compatibility with other mods"),
     ("guia", "Guía del Heraldo", "Herald's Guide"),
 ]
@@ -192,7 +210,7 @@ _SECTION_PREFIXES = [
     ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.caminos.", "caminos"),
     ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
-    ("medianas.", "medianas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
+    ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
 ]
 
 

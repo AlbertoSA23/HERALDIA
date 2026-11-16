@@ -11,6 +11,7 @@ import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.loot.WithoutLootrCondition;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import io.github.albertosa23.heraldia.comun.Medianas;
+import io.github.albertosa23.heraldia.minas.Minas;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.RegistryAccess;
@@ -111,7 +112,7 @@ public final class InfoCommand {
 
 		Registry<Structure> registry = source.getServer().registryAccess().lookupOrThrow(Registries.STRUCTURE);
 		List<Identifier> uniques = new ArrayList<>();
-		int heraldia = 0, medium = 0;
+		int heraldia = 0, medium = 0, mines = 0;
 		for (Identifier id : registry.keySet()) {
 			if (Heraldia.MOD_ID.equals(id.getNamespace())) {
 				heraldia++;
@@ -119,6 +120,8 @@ public final class InfoCommand {
 					uniques.add(id);
 				} else if (Medianas.esMediana(id)) {
 					medium++;
+				} else if (Minas.esMina(id)) {
+					mines++;
 				}
 			}
 		}
@@ -146,7 +149,9 @@ public final class InfoCommand {
 		lines.add(Textos.t("heraldia.info.cofre", yesNo(cfg.getBool("unicas.atlantida.cofre_unico_por_jugador")),
 				Textos.t(WithoutLootrCondition.LOOTR_LOADED ? "heraldia.info.cargado" : "heraldia.info.no_cargado")));
 		lines.addAll(mediumLines(source, cfg));
-		lines.add(Textos.t("heraldia.info.registradas", heraldia, heraldia - uniques.size() - medium, uniques.size(), medium));
+		lines.add(Textos.t("heraldia.info.minas", onOff(cfg.getBool(Minas.ACTIVADO)), cfg.getInt(Minas.SEPARACION),
+				cfg.getDouble(Minas.MULTIPLICADOR)));
+		lines.add(Textos.t("heraldia.info.registradas", heraldia, heraldia - uniques.size() - medium - mines, uniques.size(), medium, mines));
 		lines.forEach(l -> source.sendSuccess(() -> l, false));
 		return heraldia;
 	}
@@ -345,6 +350,8 @@ public final class InfoCommand {
 						&& st.findValidGenerationPoint(new Structure.GenerationContext(access, generator, generator.getBiomeSource(), sampler,
 						randomState, level.getStructureTemplateManager(), seed, c, level, st.biomes()::contains)).isPresent()
 						&& !(Medianas.esMediana(id) && Medianas.of(access).rechaza(id, c.x(), c.z(), seed, access, generator,
+						generator.getBiomeSource(), sampler, randomState, level.getStructureTemplateManager(), level, level.dimension()))
+						&& !(Minas.esMina(id) && Minas.of(access).rechaza(id, c.x(), c.z(), seed, access, generator,
 						generator.getBiomeSource(), sampler, randomState, level.getStructureTemplateManager(), level, level.dimension()));
 			}
 			if (ok) {
@@ -503,6 +510,9 @@ public final class InfoCommand {
 		}
 		if (Medianas.esMediana(id)) { // heraldia:medianas/<tipo>/<estilo>
 			return mediumName(path.split("/")[1]);
+		}
+		if (Minas.esMina(id)) { // heraldia:minas/<tamaño>/<estilo>/<variante>
+			return Textos.t("heraldia.minas." + path.split("/")[1] + ".nombre");
 		}
 		String style = path.endsWith("_grande") ? path.substring(0, path.length() - "_grande".length()) : path;
 		JsonObject styles = HeraldiaConfig.get().schema().getAsJsonObject("aldeas").getAsJsonObject("estilos");
