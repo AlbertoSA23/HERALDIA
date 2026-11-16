@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
@@ -67,7 +66,16 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	/** Malla de la búsqueda de bioma (chunks), vecinos a medio paso y vecinos mínimos (de 9) para aceptar un punto. */
 	private static final int STEP = 8, HALF = STEP / 2, MIN_SCORE = 6, SAMPLE_Y = 64, CACHE_MAX = 1 << 14;
 	private static final long NONE = Long.MIN_VALUE;
-	private record BiomeContext(long seed, BiomeResolver resolver) {
+	/** ¿Está el punto (en cuartos de bloque) en la etiqueta? En el juego, el ruido de biomas del mundo principal. */
+	@FunctionalInterface
+	interface BiomeSample {
+		boolean in(TagKey<Biome> tag, int quartX, int quartY, int quartZ);
+	}
+	private record BiomeContext(long seed, BiomeSample sample) {
+	}
+	/** Candidatas por casilla de un contexto: van juntas para que un hilo que aún calcula con el contexto anterior (otro
+	 *  mundo) nunca deje su resultado en la memoria del nuevo. */
+	private record Memory(BiomeContext ctx, ConcurrentHashMap<Long, Long> candidates) {
 	}
 	private static volatile @Nullable BiomeContext context;
 	private static volatile int searchesLogged;
@@ -82,8 +90,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	private final int offsetX, offsetZ; // desfase del origen de la rejilla, en chunks (0 en las aldeas)
 	private final Optional<TagKey<Biome>> biome;
 	private final int sampleY; // altura a la que se mira el bioma (la del mar; más abajo, para biomas de cueva)
-	private final ConcurrentHashMap<Long, Long> candidates = new ConcurrentHashMap<>(); // casilla -> chunk (o NONE)
-	private volatile @Nullable BiomeContext cachedFor;
+	private volatile @Nullable Memory memory; // casilla -> chunk (o NONE) del contexto en uso
 
 	private GridPlacement(String group, int baseSpacing, int baseSeparation, int salt,
 						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Optional<TagKey<Biome>> biome, int sampleY,
@@ -140,6 +147,16 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 				s.exclusion.map(z -> z.chunkCount() + " chunks").orElse("ninguna"),
 				biome.filter(b -> !s.legacy).map(b -> ", candidata en el bioma #" + b.location() + (sampleY != SAMPLE_Y ? " a y = " + sampleY : "")).orElse(""));
 		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, sampleY, oldGrid, s);
+	}
+
+	/** Contexto de búsqueda de bioma sin mundo (pruebas): null lo quita. */
+	static void testContext(long seed, @Nullable BiomeSample sample) {
+		context = sample == null ? null : new BiomeContext(seed, sample);
+	}
+
+	/** Grupo de opciones de la rejilla («aldeas» o «unicas/&lt;id&gt;»). */
+	public String group() {
+		return group;
 	}
 
 	/** Opción de los mundos creados con la 0.1.0: las únicas de entonces vuelven a su rejilla. */
@@ -246,10 +263,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		if (ctx == null || ctx.seed != seed) {
 			return NONE;
 		}
-		if (cachedFor != ctx) {
-			candidates.clear();
-			cachedFor = ctx;
+		Memory mem = memory;
+		if (mem == null || mem.ctx != ctx) { // otro mundo: memoria nueva (la anterior se queda con los hilos que aún la usen)
+			mem = new Memory(ctx, new ConcurrentHashMap<>());
+			memory = mem;
 		}
+		ConcurrentHashMap<Long, Long> candidates = mem.candidates;
 		int gx = Math.floorDiv(chunkX - offsetX, spacing()), gz = Math.floorDiv(chunkZ - offsetZ, spacing());
 		long cell = ChunkPos.pack(gx, gz);
 		Long hit = candidates.get(cell);
@@ -309,8 +328,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 
 	/** El bioma en la esquina del chunk (donde el jigsaw comprueba el suyo), a la altura y (la del mar por defecto). */
 	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, int chunkX, int chunkZ, int y) {
-		Holder<Biome> b = ctx.resolver.getNoiseBiome(QuartPos.fromBlock(chunkX * 16), QuartPos.fromBlock(y), QuartPos.fromBlock(chunkZ * 16));
-		return b.is(tag);
+		return ctx.sample.in(tag, QuartPos.fromBlock(chunkX * 16), QuartPos.fromBlock(y), QuartPos.fromBlock(chunkZ * 16));
 	}
 
 	/** Prepara la búsqueda de bioma al cargar el mundo principal (y la olvida al parar el servidor). Una línea en Heraldia. */
@@ -318,8 +336,9 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		ServerLevelEvents.LOAD.register((server, level) -> {
 			if (level.dimension() == Level.OVERWORLD) {
 				var randomState = level.getChunkSource().getGeneratorState().randomState();
-				context = new BiomeContext(level.getSeed(), level.getChunkSource().getGenerator().getBiomeSource()
-						.createResolver(randomState.createClimateSampler(SamplerContext.EMPTY_UNCACHED)));
+				BiomeResolver resolver = level.getChunkSource().getGenerator().getBiomeSource()
+						.createResolver(randomState.createClimateSampler(SamplerContext.EMPTY_UNCACHED));
+				context = new BiomeContext(level.getSeed(), (tag, x, y, z) -> resolver.getNoiseBiome(x, y, z).is(tag));
 				searchesLogged = 0;
 			}
 		});

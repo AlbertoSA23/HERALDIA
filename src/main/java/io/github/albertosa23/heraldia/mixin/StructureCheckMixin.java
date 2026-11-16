@@ -1,5 +1,6 @@
 package io.github.albertosa23.heraldia.mixin;
 
+import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
@@ -81,6 +82,16 @@ abstract class StructureCheckMixin {
 				climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
 			cir.setReturnValue(false); // como la generación: nada ajeno dentro de la isla del corsario
 			return;
+		}
+		ZonaAjenas zona = ZonaAjenas.of(registryAccess);
+		if (zona.activa(dimension) && ZonaAjenas.deOtroMod(id) && ZonaAjenas.visible(structure.step())) {
+			long[] cerca = zona.cercanas(sep, seed, pos.x(), pos.z());
+			if (cerca != null && zona.ocupada(cerca, sep, seed, sep.viability(registryAccess, chunkGenerator, biomeSource, climateSampler,
+					randomState, structureTemplateManager, seed, heightAccessor, dimension), zona.aldea(registryAccess, chunkGenerator,
+					biomeSource, climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
+				cir.setReturnValue(false); // como la generación: nada de otros mods encima de una aldea o una única
+				return;
+			}
 		}
 		if (UniqueSeparation.isUnique(id)) { // misma separación que la generación: /locate y los mapas no señalan descartadas
 			int i = sep.indexOf(id);

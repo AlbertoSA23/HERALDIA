@@ -13,11 +13,10 @@ Que el guardián colocado con /place structure conserve esa DeathLootTable lo co
 import argparse, json, os, queue, shutil, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
-from terralith_biomas import fetch
+from modrinth import MODS, fetch
 
-CARPET = ("fabric-carpet-26.3+v260915.jar",
-          "https://cdn.modrinth.com/data/TQTTVgYE/versions/yt9oDFOj/fabric-carpet-26.3%2Bv260915.jar",
-          "7a479ba69eb5049cb94365d5044bd58c9f970c50b3484861fe3675f1917f7c99c1b1f50a5e01bdd9ded940d76a995539009a3656e05be2f513f20ec14de991a7")
+# Carpet (jugador simulado), fijado en modrinth.py: (fichero, url, sha512) para fetch()
+CARPET = (MODS["carpet"].file, MODS["carpet"].url, MODS["carpet"].sha512)
 PLAYER = "Testigo"
 X, Y, Z = 0, 101, 0            # jugador sobre una plataforma; los mobs a MOB_DZ bloques (no recoge lo que cae)
 MOB_DZ = 6

@@ -33,13 +33,3 @@ runs:
           build/smoke/.fabric
           build/smoke/libraries
         key: servidor-fabric-${{ hashFiles('gradle.properties') }}
-
-    # Mods de Modrinth fijados de las pruebas (Carpet para el jugador simulado; Terralith y Lithostitched): cada script
-    # los descarga en build/smoke y comprueba su sha512. La clave cambia si cambia la versión fijada en los scripts.
-    - uses: actions/cache@v4
-      with:
-        path: |
-          build/smoke/fabric-carpet-*.jar
-          build/smoke/Terralith_*.jar
-          build/smoke/lithostitched-*.jar
-        key: mods-prueba-${{ hashFiles('tools/smoke/trofeos.py', 'tools/smoke/terralith_biomas.py') }}
