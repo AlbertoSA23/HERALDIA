@@ -149,9 +149,16 @@ def main():
                 fails.append("generación natural")
             else:
                 time.sleep(20)                      # si el mar entrase en la cámara del tesoro, ya habría entrado
-                check("la cámara del tesoro sigue seca y bajo el nivel del mar",
-                      f"execute as {sel} at @s if block ~ ~ ~ minecraft:air if block ~ ~1 ~ minecraft:air "
-                      f"if entity @s[y=0,dy=62]")
+                # «execute as <nadie> ...» no responde nada en la consola (la espera se agotaría): antes, que siga ahí
+                if not check("el corsario sigue en la isla tras 20 s", f"execute if entity {sel}")[0]:
+                    for q in (f"execute if entity {GUARDIAN}", f"data get entity {GUARDIAN.replace(']', ',limit=1]')} Pos",
+                              f"data get entity {GUARDIAN.replace(']', ',limit=1]')} Health"):
+                        print("  DIAG", q, "->", cmd(q, r"Test passed(?:\. Count: \d+)?|Test failed|has the following|"
+                                                       r"No entity").group(0))
+                else:
+                    check("la cámara del tesoro sigue seca y bajo el nivel del mar",
+                          f"execute as {sel} at @s if block ~ ~ ~ minecraft:air if block ~ ~1 ~ minecraft:air "
+                          f"if entity @s[y=0,dy=62]")
             for line in seen:
                 if "isla del corsario en" in line or "búsqueda del bioma" in line:
                     print("  ", line.split("]: ", 1)[-1])
