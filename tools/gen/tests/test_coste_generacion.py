@@ -238,3 +238,12 @@ def test_la_cpu_decide_si_esta_en_las_dos():
     assert c.sobrecoste(con, sin) == pytest.approx(0.1) and c.metrica(sin) == 60
     r = {"con": con, "sin": dict(sin, cpu_ms_por_chunk=30.0), "sobrecoste": 0.1}
     assert c.referencia_nueva(r)["medida"] == "cpu" and c.referencia_nueva(r)["ms_por_chunk_con"] == 33
+
+
+def test_configuracion_por_defecto_sin_la_arena():
+    """Lo que se mide es la configuración por defecto, salvo la arena de oleadas (una obra única junto al spawn de un
+    mundo nuevo, no generación); la opción existe y por defecto está activada."""
+    import opciones                                   # tools/gen está en sys.path (conftest)
+    fijas = {o[0]: o[1] for o in opciones._FIXED}
+    assert fijas["arena.generar_en_mundos_nuevos"] is True
+    assert c.CONFIG == {"arena": {"generar_en_mundos_nuevos": False}}

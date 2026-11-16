@@ -190,6 +190,17 @@ def test_botin_que_se_repone_y_dificultad():
     assert elige(J + "loot/CofrePorJugador.java")[0]         # el resto de loot/: común, batería completa
 
 
+def test_arena_de_oleadas():
+    arena = (False, ["tools/smoke/arena.py"])
+    assert elige(J + "arena/Juego.java") == arena
+    assert elige(J + "arena/Oleadas.java") == arena
+    assert elige(J + "mixin/ArenaExplosionMixin.java") == arena
+    assert elige("tools/gen/arena_oleadas.py") == arena
+    assert elige("tools/smoke/arena.py") == arena
+    assert elige(J + "mixin/ArenaPistonMixin.java", "tools/gen/guia.py") == \
+        (False, ["tools/smoke/arena.py", "tools/smoke/guia.py"])
+
+
 def test_coste_de_generacion_por_rutas():
     """La prueba de coste (job propio de la CI) va en un PR si cambia el Java de la generación, el generador o la propia
     prueba; no con documentación, tests, comandos ni mobs. No entra en los grupos de servidor."""

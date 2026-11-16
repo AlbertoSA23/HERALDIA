@@ -104,6 +104,9 @@ MAPA = [
     (JAVA + "comando/*", []),
     # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
     (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
+    # arena de oleadas (T31): su Java, sus mixins y su generador (plantilla, datos, botín y logros)
+    (JAVA + "arena/*", ["tools/smoke/arena.py"]), (JAVA + "mixin/Arena*", ["tools/smoke/arena.py"]),
+    ("tools/gen/arena_oleadas.py", ["tools/smoke/arena.py"]),
     # caminos entre aldeas: su Java y sus datos
     (JAVA + "caminos/*", ["tools/smoke/caminos.py"]), ("tools/gen/caminos.py", ["tools/smoke/caminos.py"]),
     # código común: batería completa
@@ -231,6 +234,7 @@ DURACION_S = {
     "tools/smoke/entradas_mina.py": 240,                     # dos arranques (multiplicador 1 y 5) y la generación de las minas
     "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
+    "tools/smoke/arena.py": 150,                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas

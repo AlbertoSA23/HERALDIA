@@ -49,6 +49,10 @@ LOCATES = [("aldea", "#heraldia:aldeas", True), ("unica", "heraldia:unicas/casti
            ("mediana", "#heraldia:medianas", True), ("mina", "#heraldia:minas", True),
            ("aldea_vanilla", "#minecraft:village", False)]
 PASADAS = 3
+# Configuración de Heraldia: la de por defecto (la del servidor de verdad), salvo la arena de oleadas, que en un mundo
+# nuevo se construye sola junto al spawn (una obra de un chunk por tick, en el hilo del servidor, justo mientras se
+# mide): no es coste de generación y en el mundo ya existente del servidor no se genera.
+CONFIG = {"arena": {"generar_en_mundos_nuevos": False}}
 XMX = "3G"
 CHUNKY_TIMEOUT_S = 900
 _CHUNKY_FIN = re.compile(r"Task finished for (\S+)\. Processed: (\d+) chunks")
@@ -444,7 +448,7 @@ def medir(jar, work, pasadas):
     with open(os.path.join(work, "server.properties"), "w", encoding="utf-8") as f:
         f.write(props)
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
-        f.write("{}")      # configuración por defecto: lo que tendrá el servidor de verdad
+        json.dump(CONFIG, f)
     modrinth.instalar(work, ["chunky"])
     sin, con = [], []
     for i in range(pasadas):
