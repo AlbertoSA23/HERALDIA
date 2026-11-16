@@ -236,8 +236,8 @@ DURACION_S = {
     "tools/smoke/entradas_mina.py": 240,                     # dos arranques (multiplicador 1 y 5) y la generación de las minas
     "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
-    "tools/smoke/arena.py": 150,
-    "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)
+    "tools/smoke/arena.py": 150,                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)
+    "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas
