@@ -75,7 +75,20 @@ def leer_chunk(world, cx, cz, carpeta="region"):
 
 
 def _plano(v):
-    return v.unpack() if hasattr(v, "unpack") else v
+    """NBT de nbtlib a tipos de Python comparables con == (los arrays de longs, que nbtlib da como numpy, a listas)."""
+    if isinstance(v, dict):
+        return {str(k): _plano(x) for k, x in v.items()}
+    if isinstance(v, (nbtlib.tag.ByteArray, nbtlib.tag.IntArray, nbtlib.tag.LongArray)):
+        return [int(x) for x in v]
+    if isinstance(v, (list, tuple)):
+        return [_plano(x) for x in v]
+    if isinstance(v, nbtlib.tag.String):
+        return str(v)
+    if isinstance(v, (nbtlib.tag.Float, nbtlib.tag.Double)):
+        return float(v)
+    if isinstance(v, int):
+        return int(v)
+    return v
 
 
 def _sin(d, quitar):
@@ -257,7 +270,9 @@ def main():
     print(f"Zona A: {len(foto_a)} de {len(A)} chunks guardados enteros, {len(ents_a)} entidades")
     if len(foto_a) < len(A) * 3 // 4:
         fallos.append(f"solo {len(foto_a)} chunks de A guardados enteros")
-    shutil.copytree(world, os.path.join(a.work, "world-tras-1"), dirs_exist_ok=True)
+    copia = os.path.join(a.work, "world-tras-1")         # para mirar a mano qué cambió si falla
+    shutil.rmtree(copia, ignore_errors=True)
+    shutil.copytree(world, copia)
 
     # 2. versión nueva con la configuración por defecto
     B = cuadrado(ax - LADO_A // 2 - ANILLO_B, az - LADO_A // 2 - ANILLO_B, LADO_A + 2 * ANILLO_B)
