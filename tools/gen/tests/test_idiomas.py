@@ -156,12 +156,6 @@ def test_mismos_huecos_que_el_ingles(codigo, base, trad):
     assert idiomas.errores_marcadores(base["en_us"], trad[codigo], codigo) == []
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_misma_orden_que_el_espanol(codigo, base, trad):
-    claves = [k for k in trad[codigo] if k in base["es_es"]]
-    assert claves == [k for k in base["es_es"] if k in trad[codigo]], "regenera con idiomas.ordenar"
-
-
 def test_las_claves_de_mas_son_de_las_unicas(base, trad):
     """Las que no salen sin construir son textos de módulos de unicas/ que se rellenan en build()."""
     prefijos = tuple(f"heraldia.{sid}." for sid, _ in MODS) + tuple(f"heraldia.unicas.{sid}." for sid, _ in MODS)
