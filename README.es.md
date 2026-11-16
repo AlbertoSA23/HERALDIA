@@ -11,6 +11,7 @@ Contenido:
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
 - **La Atlántida**: una única ciudad sumergida por mundo (ver abajo).
+- **Arena de oleadas**: un coliseo cerca del spawn para jugar por oleadas, con récords y recompensas (ver [Arena de oleadas](#arena-de-oleadas)).
 - **Estructuras únicas** (una cada 3.000-5.000 bloques, cada una en sus biomas):
   - **Palacio oriental** (`heraldia:unicas/palacio`, cerezales y junglas de bambú): recinto amurallado de 81 × 123 con tres patios en eje, salón del trono sobre plataforma de tres gradas, biblioteca con estudio secreto, tesorería con cámara acorazada, jardín con estanque, pagoda de cinco pisos y pabellones de las concubinas; bajo el trono, la cámara del tesoro con su guardián. Puertas secretas de pistones, trampas de flechas y dos generadores. Diseño y planos en [docs/unicas/palacio.md](docs/unicas/palacio.md).
   - **Fortaleza de hielo** (`heraldia:unicas/fortaleza_hielo`): picos de hielo, llanura nevada y taiga nevada. Murallas y
@@ -354,10 +355,10 @@ Las páginas se leen en el idioma de cada jugador (español si el cliente no tie
 
 Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jugadores y lleva su diario. Cada jugador la recibe **una vez** al entrar por primera vez después de instalar o actualizar Heraldia (también los jugadores que ya existían en el mundo; se guarda en el propio jugador qué versión recibió, y se conserva al morir). Se desactiva con `guia.entregar_al_entrar` (ver [Configuración](#configuración)) y cualquier jugador pide una copia al día con `/heraldia guia`.
 
-- **Qué cuenta** (13 páginas): una bienvenida; las aldeas y su vida (tratos, tablón de encargos, cartógrafos); los caminos; las estructuras medianas; las únicas; la Atlántida; la isla del corsario; cómo funcionan los logros, los trofeos, los mapas del tesoro y la Crónica de los Heraldos.
+- **Qué cuenta** (14 páginas): una bienvenida; las aldeas y su vida (tratos, tablón de encargos, cartógrafos); los caminos; las estructuras medianas; las únicas; la Atlántida; la isla del corsario; la arena de oleadas; cómo funcionan los logros, los trofeos, los mapas del tesoro y la Crónica de los Heraldos.
 - **Tu diario**: cuántas estructuras únicas de este mundo has descubierto (las de los logros «descubrir», `heraldia:unicas/<id>/descubrir`) y cuántas te faltan, la lista de las descubiertas por orden alfabético y, de cada una que falta, una pista suave de bioma y rasgo (la misma de su pliego de la Crónica), **sin coordenadas** ni el nombre. Cuentan las únicas activadas en la configuración y las que ya has descubierto aunque se desactivaran después. El diario es una foto del momento en que se entrega: pide otra copia para ponerlo al día.
 - **Idioma**: las páginas son textos traducibles con el respaldo en el idioma del cliente (español para cualquier variante del español; inglés para el resto), así que un jugador **sin el mod** la lee en su idioma.
-- Límites del libro vanilla: el generador comprueba que cada página cabe en las 14 líneas de una página (con el mismo cálculo de anchos que los pliegos), que el título no pasa de 32 caracteres y que el libro, en el peor caso, no pasa de 100 páginas (con las 20 únicas actuales, de 18 a 24). Lleva `custom_data` `{heraldia_guia_libro:"<versión>"}` y, en el lore, la edición del mod.
+- Límites del libro vanilla: el generador comprueba que cada página cabe en las 14 líneas de una página (con el mismo cálculo de anchos que los pliegos), que el título no pasa de 32 caracteres y que el libro, en el peor caso, no pasa de 100 páginas (con las 20 únicas actuales, de 19 a 25). Lleva `custom_data` `{heraldia_guia_libro:"<versión>"}` y, en el lore, la edición del mod.
 
 Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión o al pedirla (lee sus logros de descubrimiento y arma el libro; medido en el servidor de prueba, ver `tools/smoke/guia.py`); nada por tick.
 
@@ -403,6 +404,27 @@ Cómo se reconoce un cofre: al abrir un cofre de Heraldia que aún tiene su tabl
 - Botín: solo cambia la cantidad de los objetos sencillos apilables (sin nombre ni otros componentes) de las tablas de cofre de Heraldia (la parte fraccionaria, con su probabilidad; nunca menos de 1 ni más de una pila). Las flechas de los esqueletos y el resto del daño a distancia no cambian.
 
 Coste: un evento al usar un bloque (sale en el acto si no es un contenedor con tabla o la opción está desactivada), en cada carga de entidad y en cada golpe (sale en el acto si el mob no lleva etiqueta de Heraldia); medido con `tools/smoke/botin_reponer.py` y `tools/smoke/dificultad.py`.
+
+## Arena de oleadas
+
+Un coliseo cerca del spawn, uno por mundo, para jugar por oleadas con los amigos. Solo en el servidor (bastan clientes vanilla).
+
+**Cómo es.** 57 x 57 bloques: el ruedo (radio 14) hundido 7 bloques bajo el terreno, con suelo de arenisca, faroles de mar y siete puntos de aparición ante celdas con rejas; el muro del ruedo, con cristal encima hasta un techo de barreras invisible (ni flechas ni mobs llegan a las gradas, nadie trepa fuera y las arañas no salen); cuatro escalones de gradas con asientos; el paseo exterior a ras de suelo, abierto por todos lados, con 16 pilares, arcos y faroles; y al sur la entrada: una rampa del paseo al ruedo cerrada por una puerta de rejas mientras dura una partida. Junto a la entrada, dentro del ruedo, la campana.
+
+**Partidas.** Cualquier jugador entra en el ruedo y toca la campana: la puerta se cierra y empieza una cuenta atrás de 5 s con títulos; juegan los que estén en el ruedo al acabar. Cada oleada trae más enemigos y más fuertes (4 en la primera y +50 % por oleada; +10 % de vida y daño por oleada: los enemigos crecen más que su fuerza). Los tipos rotan: zombis, esqueletos y arañas, una mezcla con creepers y una mezcla dura (husks, strays, arañas de cueva, vindicadores y brujas), y vuelta a empezar. Cada 5 oleadas sale además un mini-jefe con nombre (Gorbak el Rompehuesos, Saeta Negra, el Verdugo de la Arena y el Último Campeón, en rotación) con las [fases, la barra y los refuerzos de los guardianes](#combates-contra-los-guardianes). Como mucho `arena.max_mobs_vivos` (20) vivos a la vez: si la oleada trae más, salen en tandas. 10 s de pausa entre oleadas. Se respeta `dificultad.nivel` (los modificadores de la arena, `heraldia:arena_*`, se suman a los de la dificultad y los jefes). Una barra de jefe dice la oleada y los enemigos que quedan; el marcador lateral (objetivo `heraldia_arena`, solo durante la partida y si nadie usa la barra lateral) guarda el récord de cada jugador y el del servidor, y batir el del servidor se anuncia en el chat. La partida acaba cuando todos los participantes han caído o salido del ruedo (`/heraldia arena salir` te saca); si el servidor se para o se cae en mitad de una, la siguiente vez la arena está limpia (sin enemigos y con la puerta abierta).
+
+**Botín y muerte.** Los enemigos no sueltan objetos y dan el `arena.experiencia_porcentaje` % (15) de la experiencia normal. Las recompensas son por oleadas: cada 5 superadas, objetos para cada participante (mejores en la 10, la 15 y desde la 20: lingotes, diamantes, manzanas de oro, equipo encantado; sin netherita ni élitros), y logros por superar la 5, la 10 y la 20. Si caes en el ruedo durante una partida, **conservas tu inventario y tu experiencia** y reapareces en la entrada.
+
+**Protección.** Nadie que no sea operador puede romper, colocar ni usar bloques de la arena (salvo la campana) ni usar cubos cerca de ella, y durante una partida no se pueden lanzar perlas de ender en el ruedo. Las explosiones (creepers, TNT, bolas de fuego), los pistones y los endermen no la tocan, y el fuego no prende en ella (todos sus materiales son de piedra, cristal o metal). Solo dentro de su caja; fuera, todo es normal.
+
+**Colocarla** (operadores, nivel 2):
+
+- `/heraldia arena colocar`: busca un sitio llano y sin agua a 200-300 bloques del spawn del mundo (sin cargar chunks), dice sus coordenadas y marca sus esquinas y su centro con columnas de partículas durante 5 minutos. `/heraldia arena colocar confirmar` la construye: **despeja y nivela el terreno** (lo que haya encima, también construcciones, se pierde), así que **haz antes una copia de seguridad del mundo**. Se construye por partes, un chunk por tick (unos 3 s).
+- `/heraldia arena mover` y `mover confirmar`: igual, quitando la vieja. `/heraldia arena quitar` y `quitar confirmar`: la quita (el terreno queda llano).
+- `/heraldia arena empezar` y `/heraldia arena parar`: empiezan o detienen una partida.
+- `/heraldia arena` (cualquiera): dónde está, si hay partida y los récords.
+
+En un **mundo nuevo** se construye sola al arrancar por primera vez (`arena.generar_en_mundos_nuevos`); en un **mundo ya existente**, solo si un operador la coloca. Coste: sin partida, obra ni propuesta, nada por tick (tres comprobaciones); la protección, una AABB en memoria por bloque y salida temprana sin arena; la partida, un repaso por segundo de sus participantes y sus enemigos.
 
 ## Configuración
 
@@ -450,6 +472,12 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `dificultad.nivel` | `normal` | `facil`, `normal`, `dificil`, `heroica` | [Dificultad](#botín-que-se-repone-y-dificultad) de los guardianes y mobs de plantilla de Heraldia (vida y daño); también los ya generados, al cargarse. `normal` es lo de antes. |
 | `dificultad.escalar_por_jugadores` | `false` | `true`/`false` | +25 % de vida por cada jugador de más a 32 bloques (hasta +100 %), al recibir un golpe. |
 | `dificultad.escalar_botin` | `true` | `true`/`false` | Con `facil`, `dificil` o `heroica`, los objetos sencillos apilables del botín de los cofres de Heraldia salen en cantidad x0,75, x1,25 o x1,5 (en `normal` no cambia nada). |
+| `arena.activado` | `true` | `true`/`false` | [Arena de oleadas](#arena-de-oleadas) cerca del spawn. Desactivada, no hay partidas ni protección (la arena colocada se queda como está). |
+| `arena.generar_en_mundos_nuevos` | `true` | `true`/`false` | En un mundo nuevo, la arena se construye sola a 200-300 bloques del spawn; en uno existente, nunca (la coloca un operador). |
+| `arena.oleada.mobs_incremento` | 50 | 10-200 | Enemigos de más en cada oleada, en % de los de la primera (4, 6, 8, 10... con 50), redondeando hacia arriba. |
+| `arena.oleada.stats_incremento` | 10 | 1-100 | Vida y daño de más en cada oleada, en %; si pasa de `mobs_incremento`, se usa ese (los enemigos crecen más que su fuerza). |
+| `arena.max_mobs_vivos` | 20 | 4-64 | Enemigos vivos a la vez en el ruedo; si una oleada trae más, salen en tandas. |
+| `arena.experiencia_porcentaje` | 15 | 0-100 | Experiencia de los enemigos de la arena, en % de la normal (sobre la ya escalada por el juego); no sueltan objetos. |
 
 La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
 

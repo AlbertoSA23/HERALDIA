@@ -40,6 +40,8 @@ TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"
                "unicas": {"distancia_minima": {"bloques": UNIQUE_MIN_DISTANCE},
                           "atlantida": {"cofre_unico_por_jugador": True},
                           **{sid: {"separacion_bloques": 1000} for pair in SEPARATION_PAIRS for sid in pair}},
+               # la arena de oleadas no se genera sola en los mundos nuevos de las pruebas (tools/smoke/arena.py la prueba)
+               "arena": {"generar_en_mundos_nuevos": False},
                "inventada": 1}
 CONFIG_LOG = [
     r"configuración migrada de la versión 0 a la 1",
