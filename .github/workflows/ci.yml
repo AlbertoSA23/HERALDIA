@@ -154,11 +154,11 @@ jobs:
           [ -f build/mcmeta-summary/registries/data.json ] || git -c advice.detachedHead=false clone --quiet --depth 1 \
             --branch "${{ steps.ver.outputs.mcmeta }}" https://github.com/misode/mcmeta.git build/mcmeta-summary
 
-      # server_smoke.py cuenta estructuras, logros y tablas en build/generated: son los mismos ficheros que lleva el .jar.
+      # server_smoke.py lee build/generated (estructuras, logros, tablas, heraldia/llaves.json): son los ficheros que lleva el .jar.
       - name: Datos generados (del .jar)
         run: |
           mkdir -p build/generated/heraldia
-          unzip -q -o build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar 'data/*' 'assets/*' -d build/generated/heraldia
+          unzip -q -o build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar -x '*.class' 'META-INF/*' -d build/generated/heraldia
 
       - name: Prueba de humo
         run: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke"
