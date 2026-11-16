@@ -92,6 +92,11 @@ _FIXED = [
      "de Heraldia (tampoco dentro de la Atlántida)",
      "A medium structure does not spawn closer than this distance, in blocks, to the start of a Heraldia village or unique "
      "structure (nor inside Atlantis)"),
+    ("guia.entregar_al_entrar", True, None, None,
+     "Guía del Heraldo: da a cada jugador el libro que explica el mod y lleva su diario la primera vez que entra tras "
+     "instalar o actualizar Heraldia (una vez por versión; /heraldia guia da otra copia cuando quiera)",
+     "Herald's Guide: gives each player the book that explains the mod and keeps their diary the first time they join "
+     "after Heraldia is installed or updated (once per version; /heraldia guia gives a new copy at any time)"),
     ("unicas.atlantida.cofre_unico_por_jugador", False, None, None,
      "Cofre premium de la Atlántida por jugador: cada jugador saca su propia copia del contenido una vez (si no, el primero que llega se lo lleva)",
      "Per-player Atlantis premium chest: each player takes their own copy of its contents once (otherwise the first to arrive takes it all)"),
@@ -130,6 +135,7 @@ _NAMES = {
     "unicas.distancia_minima.activada": ("Distancia mínima activada", "Minimum distance enabled"),
     "unicas.distancia_minima.bloques": ("Distancia mínima (bloques)", "Minimum distance (blocks)"),
     "unicas.atlantida.cofre_unico_por_jugador": ("Cofre premium por jugador", "Per-player premium chest"),
+    "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
     "medianas.activadas": ("Estructuras medianas", "Medium structures"),
     "medianas.frecuencia_porcentaje": ("Frecuencia (%)", "Frequency (%)"),
     "medianas.distancia_minima.bloques": ("Distancia entre medianas (bloques)", "Distance between medium ones (blocks)"),
@@ -161,6 +167,7 @@ SECTIONS = [
     ("atlantida", "Atlántida", "Atlantis"),
     ("medianas", "Estructuras medianas", "Medium structures"),
     ("compatibilidad", "Compatibilidad con otros mods", "Compatibility with other mods"),
+    ("guia", "Guía del Heraldo", "Herald's Guide"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
 # (si no encaja en ninguna, la generación falla).
@@ -168,7 +175,7 @@ _SECTION_PREFIXES = [
     ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.caminos.", "caminos"),
     ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"),
-    ("medianas.", "medianas"), ("compatibilidad.", "compatibilidad"),
+    ("medianas.", "medianas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
 ]
 
 
