@@ -166,11 +166,11 @@ def test_medianas():
 
 
 def test_minas():
-    m = ["tools/smoke/minas.py"]
+    m = ["tools/smoke/entradas_mina.py"]
     assert elige("tools/gen/minas/planos.py") == (False, m)
     assert elige("tools/gen/minas/__init__.py") == (False, m)
     assert elige(J + "minas/Ladera.java") == (False, m)
-    assert elige("tools/smoke/minas.py") == (False, m)
+    assert elige("tools/smoke/entradas_mina.py") == (False, m)
 
 
 def test_guia_del_heraldo():

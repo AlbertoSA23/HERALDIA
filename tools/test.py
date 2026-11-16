@@ -51,7 +51,7 @@ COMPAT_RUTAS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/g
                 JAVA + "unicas/isla/IslaZona.java", JAVA + "unicas/atlantida/AtlantisAnchor.java", JAVA + "comun/Medianas.java"]
 MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
 # Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
-MINAS = ["tools/smoke/minas.py"]
+MINAS = ["tools/smoke/entradas_mina.py"]
 # Los tipos de medianas traen mobs anclados (y zombis adultos): las pruebas que recorren todos los mobs de las plantillas.
 MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
 
@@ -211,7 +211,7 @@ DURACION_S = {
     "tools/smoke/guardianes_anclados.py": 450,
     "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque; 2 min 40 s con los 8 tipos
     "tools/smoke/guia.py": 120,                      # tres arranques del servidor
-    "tools/smoke/minas.py": 240,                     # dos arranques (multiplicador 1 y 5) y la generación de las minas
+    "tools/smoke/entradas_mina.py": 240,                     # dos arranques (multiplicador 1 y 5) y la generación de las minas
     "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
 }

@@ -1,7 +1,7 @@
 """Entradas a mina (tools/gen/minas) y minas vanilla multiplicadas en un servidor dedicado 26.3 real (determinista: semilla
 fija de server_smoke y zonas elegidas de antemano).
 
-Uso: python3 tools/smoke/minas.py --jar build/libs/heraldia-X.jar [--work build/smoke-minas]
+Uso: python3 tools/smoke/entradas_mina.py --jar build/libs/heraldia-X.jar [--work build/smoke-entradas-mina]
 Dos arranques del mismo mundo:
 1. minas.vanilla.multiplicador = 1 (la colocación vanilla exacta):
    - el log: la rejilla de cada tamaño (separación, búsqueda de bioma), la regla de las minas y la frecuencia vanilla;
