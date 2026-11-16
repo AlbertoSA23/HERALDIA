@@ -3,6 +3,7 @@ package io.github.albertosa23.heraldia.mixin;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
+import io.github.albertosa23.heraldia.unicas.isla.IslaZona;
 import java.util.Optional;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
@@ -25,8 +26,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /**
  * Mixin (último recurso): un structure_set no tiene forma de saltarse entradas desactivadas ni de elegir el tamaño
  * según la configuración; al fallar aquí, el set prueba la siguiente estructura igual que cuando no vale el bioma.
- * También impide que otras estructuras (monumentos, naufragios, ruinas) nazcan dentro de la Atlántida y que dos
- * estructuras únicas distintas salgan a menos de la distancia mínima ({@link UniqueSeparation}).
+ * También impide que otras estructuras (monumentos, naufragios, ruinas) nazcan dentro de la Atlántida o de la isla del
+ * corsario ({@link IslaZona}) y que dos estructuras únicas distintas salgan a menos de la distancia mínima
+ * ({@link UniqueSeparation}).
  */
 @Mixin(ChunkGenerator.class)
 abstract class ChunkGeneratorMixin {
@@ -46,8 +48,14 @@ abstract class ChunkGeneratorMixin {
 			cir.setReturnValue(false);
 			return;
 		}
+		UniqueSeparation sep = UniqueSeparation.of(registryAccess);
+		long isla = IslaZona.candidata(id, level, sep, seed, sourceChunkPos.x(), sourceChunkPos.z());
+		if (isla != IslaZona.NINGUNA && IslaZona.sale(sep, isla, seed, sep.viability(registryAccess, (ChunkGenerator) (Object) this,
+				((ChunkGenerator) (Object) this).getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level))) {
+			cir.setReturnValue(false); // un inicio ajeno junto a una isla que sale de verdad (raro: solo cerca de sus candidatas)
+			return;
+		}
 		if (UniqueSeparation.isUnique(id)) { // solo en los chunks candidatos de una estructura única: unos pocos por mundo
-			UniqueSeparation sep = UniqueSeparation.of(registryAccess);
 			int i = sep.indexOf(id);
 			if (i >= 0 && sep.enabled() && sep.blocked(i, sourceChunkPos.x(), sourceChunkPos.z(), seed, sep.viability(registryAccess,
 					(ChunkGenerator) (Object) this, ((ChunkGenerator) (Object) this).getBiomeSource(), climateSampler, randomState,

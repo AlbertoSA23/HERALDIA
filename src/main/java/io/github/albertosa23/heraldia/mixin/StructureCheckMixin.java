@@ -3,6 +3,7 @@ package io.github.albertosa23.heraldia.mixin;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
+import io.github.albertosa23.heraldia.unicas.isla.IslaZona;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -71,8 +72,17 @@ abstract class StructureCheckMixin {
 			cir.setReturnValue(false);
 			return;
 		}
-		if (id != null && UniqueSeparation.isUnique(id)) { // misma separación que la generación: /locate y los mapas no señalan descartadas
-			UniqueSeparation sep = UniqueSeparation.of(registryAccess);
+		if (id == null) {
+			return;
+		}
+		UniqueSeparation sep = UniqueSeparation.of(registryAccess);
+		long isla = IslaZona.candidata(id, dimension, sep, seed, pos.x(), pos.z());
+		if (isla != IslaZona.NINGUNA && IslaZona.sale(sep, isla, seed, sep.viability(registryAccess, chunkGenerator, biomeSource,
+				climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
+			cir.setReturnValue(false); // como la generación: nada ajeno dentro de la isla del corsario
+			return;
+		}
+		if (UniqueSeparation.isUnique(id)) { // misma separación que la generación: /locate y los mapas no señalan descartadas
 			int i = sep.indexOf(id);
 			if (i >= 0 && sep.enabled() && sep.blocked(i, pos.x(), pos.z(), seed, sep.viability(registryAccess, chunkGenerator, biomeSource,
 					climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
