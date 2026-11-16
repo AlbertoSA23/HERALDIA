@@ -6,7 +6,8 @@ name: CI
 # Política de pruebas (docs/DESARROLLO.md): en un PR van la compilación, todos los tests unitarios, la prueba de humo
 # y solo las pruebas de servidor afectadas por los ficheros cambiados (tools/test.py, el mismo mapa de rutas que en
 # local). La batería completa va en cada push a develop, a mano (la sesión auditora) y en un PR con la etiqueta
-# «bateria-completa» o con «[bateria completa]» en el título.
+# «bateria-completa» o con «[bateria completa]» en el título. Las de compatibilidad con otros mods
+# (tools/smoke/compat_mods.py) van en la batería completa y en un PR solo si tocan compatibilidad o colocación.
 on:
   pull_request:
     branches: [develop, main]
@@ -180,6 +181,8 @@ jobs:
       fail-fast: false
       # Grupos de tools/test.py: las pruebas cortas van juntas en un job (en serie) mientras el grupo no pase de la
       # más larga. Las pruebas se descubren solas (tools/smoke/*.py y tools/gen/unicas/*/prueba_*.py, con --jar y --work).
+      # Las de compatibilidad con otros mods (compat_mods.py, una por grupo de mods) solo van en un PR si cambian sus
+      # ficheros o el código común de colocación (tools/test.py, COMPAT_RUTAS); en push a develop y a mano, siempre.
       matrix: ${{ fromJSON(needs.seleccion.outputs.matriz) }}
     steps:
       - uses: actions/checkout@v4
@@ -192,6 +195,21 @@ jobs:
         with:
           name: jar
           path: build/libs
+
+      # Mods de Modrinth de las pruebas (tools/smoke/modrinth.py: Carpet, Terralith, los de compatibilidad...): cada
+      # prueba los descarga en build/smoke/modrinth y comprueba su sha512. Una caché por grupo (cada uno descarga solo
+      # los suyos) que empieza desde la de cualquier otro; la clave cambia si cambia la lista fijada.
+      - name: Clave de la caché de mods
+        id: mods
+        run: echo "grupo=$(echo '${{ matrix.nombre }}' | tr -c 'a-zA-Z0-9_\n' '-')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: build/smoke/modrinth
+          key: modrinth-${{ hashFiles('tools/smoke/modrinth.py') }}-${{ steps.mods.outputs.grupo }}
+          restore-keys: |
+            modrinth-${{ hashFiles('tools/smoke/modrinth.py') }}-
+            modrinth-
 
       # Todas en build/smoke para compartir la caché del servidor Fabric. Ruta absoluta: los scripts arrancan el
       # servidor con cwd=--work, así que una ruta relativa al lanzador no se encontraría.

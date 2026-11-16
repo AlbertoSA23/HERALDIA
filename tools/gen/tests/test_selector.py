@@ -12,6 +12,8 @@ _spec.loader.exec_module(sel)
 TODAS = sel.descubrir()
 J = sel.JAVA
 TODA_UNICA = set(sel.DE_TODA_UNICA)
+COMPAT = [p for p in TODAS if sel.es_compat(p)]
+SIN_COMPAT = [p for p in TODAS if not sel.es_compat(p)]
 
 
 def elige(*rutas):
@@ -26,6 +28,8 @@ def test_descubre_todas_las_pruebas_de_servidor():
     assert all(p in TODAS for p in sel.DE_TODA_UNICA + sel.ALDEAS)
     for p in TODAS:                                       # toda prueba conocida tiene duración medida
         assert p in sel.DURACION_S, p
+    assert "tools/smoke/modrinth.py" not in TODAS and sel.COMPAT not in TODAS   # módulo común; la de compat, por grupos
+    assert {p.split("::")[1] for p in COMPAT} == set(sel.grupos_compat()) and "tools/smoke/compat_mods.py::base" in COMPAT
 
 
 @pytest.mark.parametrize("rutas", [
@@ -46,8 +50,34 @@ def test_sin_pruebas_de_servidor(rutas):
     J + "mixin/ChunkGeneratorMixin.java", J + "unicas/paquete_nuevo/X.java", "fichero/que/nadie/conoce.txt",
 ])
 def test_codigo_comun_pide_la_bateria_completa(ruta):
+    """La batería completa de un PR lleva las de compatibilidad solo si lo cambiado es de colocación (COMPAT_RUTAS)."""
     completa, pruebas = elige(ruta)
-    assert completa and pruebas == TODAS
+    de_colocacion = any(sel.fnmatch.fnmatch(ruta, p) for p in sel.COMPAT_RUTAS)
+    assert completa and pruebas == (TODAS if de_colocacion else SIN_COMPAT)
+
+
+@pytest.mark.parametrize("ruta", [J + "mixin/ChunkGeneratorMixin.java", J + "config/GridPlacement.java",
+                                  J + "comun/ZonaAjenas.java", "gradle.properties"])
+def test_colocacion_comun_arrastra_las_de_compatibilidad(ruta):
+    assert elige(ruta) == (True, TODAS)
+
+
+def test_compatibilidad_solo_con_sus_rutas():
+    assert elige(sel.COMPAT) == (False, COMPAT)                                  # la propia prueba: todos sus grupos
+    assert elige("tools/smoke/compat_mods.py::rendimiento") == (False, ["tools/smoke/compat_mods.py::rendimiento"])
+    completa, p = elige("tools/smoke/modrinth.py")                               # los mods fijados: quien los descarga
+    assert not completa and set(p) == set(COMPAT) | {"tools/smoke/trofeos.py", "tools/smoke/historia.py",
+                                                      "tools/smoke/aldeas_vida.py", "tools/smoke/terralith_biomas.py"}
+    assert set(elige("tools/gen/biomas.py")[1]) == {"tools/smoke/terralith_biomas.py"} | set(COMPAT)
+    assert elige("tools/gen/writer.py") == (True, SIN_COMPAT)                    # común, pero no de colocación
+    assert elige(J + "comando/InfoCommand.java") == (False, [])
+
+
+def test_orden_de_una_prueba_por_grupo():
+    assert sel.orden("tools/smoke/compat_mods.py::terreno")[1:] == ["--grupo", "terreno"]
+    assert sel.orden("tools/smoke/compat_mods.py::terreno")[0].endswith(os.path.join("tools", "smoke", "compat_mods.py"))
+    assert sel.orden("tools/smoke/trofeos.py")[1:] == []
+    assert sel.nombre(["tools/smoke/compat_mods.py::base", "tools/smoke/galeon_test.py"]) == "compat base + galeon_test"
 
 
 def test_una_unica_con_carpeta():
@@ -66,7 +96,9 @@ def test_unica_sin_prueba_propia():
 
 
 def test_java_de_una_unica():
-    assert set(elige(J + "unicas/isla/IslaZona.java")[1]) == {"tools/gen/unicas/isla_corsario/prueba_servidor.py"} | TODA_UNICA
+    assert set(elige(J + "unicas/isla/IslaStructure.java")[1]) == {"tools/gen/unicas/isla_corsario/prueba_servidor.py"} | TODA_UNICA
+    # la zona de la isla también decide qué estructuras ajenas nacen cerca: arrastra las de compatibilidad
+    assert set(elige(J + "unicas/isla/IslaZona.java")[1]) == {"tools/gen/unicas/isla_corsario/prueba_servidor.py"} | TODA_UNICA | set(COMPAT)
     assert set(elige(J + "unicas/galeon/GaleonStructure.java")[1]) == {"tools/smoke/galeon_test.py"} | TODA_UNICA
     assert set(elige(J + "unicas/mina/Mina.java")[1]) == {"tools/gen/unicas/mina_perdida/prueba_servidor.py"} | TODA_UNICA
 
@@ -80,7 +112,7 @@ def test_aldeas_y_datos():
     assert set(elige("tools/gen/houses.py")[1]) == set(sel.ALDEAS)
     assert set(elige(J + "aldeas/AldeaStructure.java")[1]) == set(sel.ALDEAS)
     assert elige("tools/gen/tablon.py")[1] == ["tools/smoke/aldeas_vida.py"]
-    assert elige("tools/gen/biomas.py")[1] == ["tools/smoke/terralith_biomas.py"]
+    assert "tools/smoke/terralith_biomas.py" in elige("tools/gen/biomas.py")[1]
     assert elige(J + "mixin/ZombieMixin.java")[1] == ["tools/smoke/guardianes_adultos.py"]
     assert elige(J + "comun/Anclaje.java")[1] == ["tools/smoke/guardianes_anclados.py"]
     assert elige(J + "comun/HastaElSueloProcessor.java")[0]          # el resto de comun/: batería completa
@@ -90,7 +122,8 @@ def test_aldeas_y_datos():
 def test_union_de_varios_cambios_y_uno_comun_lo_arrastra_todo():
     completa, p = elige("tools/gen/unicas/palacio/plano.py", "tools/gen/tablon.py", "docs/x.md")
     assert not completa and set(p) == {"tools/smoke/palacio_redstone.py", "tools/smoke/aldeas_vida.py"} | TODA_UNICA
-    assert elige("tools/gen/unicas/palacio/plano.py", "tools/gen/writer.py") == (True, TODAS)
+    assert elige("tools/gen/unicas/palacio/plano.py", "tools/gen/writer.py") == (True, SIN_COMPAT)
+    assert elige("tools/gen/writer.py", J + "config/UniqueSeparation.java") == (True, TODAS)
 
 
 def test_grupos_reparten_sin_pasar_del_tope():
@@ -100,6 +133,7 @@ def test_grupos_reparten_sin_pasar_del_tope():
     tope = max(sel.TOPE_GRUPO_S, largo)
     assert all(sum(sel.DURACION_S[p] for p in x) <= tope for x in g)
     assert len(g) <= 18                     # con la compilación y la de humo, en una tanda de 20 jobs gratis
+    assert len(sel.grupos(SIN_COMPAT)) <= 12  # un PR con cambios comunes (sin las de compatibilidad) deja máquinas libres
     assert sel.grupos([]) == [] and sel.grupos(TODAS) == g                # determinista
     assert sel.grupos(["x/nueva.py"]) == [["x/nueva.py"]]                  # sin duración medida: DEFECTO_S
 

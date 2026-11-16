@@ -1,5 +1,6 @@
 package io.github.albertosa23.heraldia.mixin;
 
+import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
@@ -27,8 +28,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Mixin (último recurso): un structure_set no tiene forma de saltarse entradas desactivadas ni de elegir el tamaño
  * según la configuración; al fallar aquí, el set prueba la siguiente estructura igual que cuando no vale el bioma.
  * También impide que otras estructuras (monumentos, naufragios, ruinas) nazcan dentro de la Atlántida o de la isla del
- * corsario ({@link IslaZona}) y que dos estructuras únicas distintas salgan a menos de la distancia mínima
- * ({@link UniqueSeparation}).
+ * corsario ({@link IslaZona}), que las de otros mods nazcan encima de una aldea o una única ({@link ZonaAjenas}) y que dos
+ * estructuras únicas distintas salgan a menos de la distancia mínima ({@link UniqueSeparation}).
  */
 @Mixin(ChunkGenerator.class)
 abstract class ChunkGeneratorMixin {
@@ -54,6 +55,17 @@ abstract class ChunkGeneratorMixin {
 				((ChunkGenerator) (Object) this).getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level))) {
 			cir.setReturnValue(false); // un inicio ajeno junto a una isla que sale de verdad (raro: solo cerca de sus candidatas)
 			return;
+		}
+		ZonaAjenas zona = ZonaAjenas.of(registryAccess);
+		if (zona.activa(level) && ZonaAjenas.deOtroMod(id) && ZonaAjenas.visible(selected.structure().value().step())) {
+			long[] cerca = zona.cercanas(sep, seed, sourceChunkPos.x(), sourceChunkPos.z());
+			ChunkGenerator self = (ChunkGenerator) (Object) this;
+			if (cerca != null && zona.ocupada(cerca, sep, seed,
+					sep.viability(registryAccess, self, self.getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level),
+					zona.aldea(registryAccess, self, self.getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level))) {
+				cir.setReturnValue(false); // una estructura de otro mod junto a una aldea o una única de Heraldia que sale ahí
+				return;
+			}
 		}
 		if (UniqueSeparation.isUnique(id)) { // solo en los chunks candidatos de una estructura única: unos pocos por mundo
 			int i = sep.indexOf(id);
