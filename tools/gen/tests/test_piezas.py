@@ -1,6 +1,7 @@
 """_comun/piezas.py: piezas comunes en estado coherente al colocarse."""
+import pytest
 import lint
-from core import Template, ADULTO_TAG
+from core import Template, ADULTO_TAG, ANCLADO_TAG
 from unicas._comun import piezas, redstone as rs
 
 
@@ -46,6 +47,12 @@ def test_guardian_etiquetas_y_atributos():
     assert ids == {"minecraft:max_health": 40.0, "minecraft:armor": 4.0, "minecraft:attack_damage": 5.0}
     assert g["NoAI"] == 1 and g["CustomName"] == {"translate": "k", "fallback": "Fb"}
     assert ADULTO_TAG not in piezas.guardian("skeleton", "k", "f", 20)["Tags"]
+
+
+@pytest.mark.parametrize("mob", ["zombie", "drowned", "skeleton", "evoker", "vindicator", "elder_guardian"])
+def test_guardian_siempre_anclado(mob):
+    g = piezas.guardian(mob, "k", "f", 40, extra={"Tags": ["otra"]})
+    assert g["Tags"].count(ANCLADO_TAG) == 1 and piezas.GUARDIAN_TAG in g["Tags"] and "otra" in g["Tags"]
 
 
 def test_wire_formas():

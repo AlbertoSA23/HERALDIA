@@ -1,6 +1,6 @@
 """Validación contra los registros reales de Minecraft 26.3 (resumen de misode/mcmeta, rama 26.3-summary)."""
 import json, os
-from core import parse_state, ADULTO_TAG, BEBE_ZOMBI, BEBE_SIN_PROTECCION
+from core import parse_state, ADULTO_TAG, BEBE_ZOMBI, BEBE_SIN_PROTECCION, ANCLADO_TAG, RECOGE_BOTIN
 
 BLOCKS, ITEMS, ENTITIES, TRIGGERS, ENTITY_PREDICATES = {}, set(), set(), set(), set()
 # El juego suma 12 bloques de adaptación al terreno al radio y rechaza el paquete entero si pasa de 128.
@@ -70,6 +70,7 @@ def check_state(s):
 
 
 def validate_registry(reg):
+    from unicas._comun.piezas import GUARDIAN_TAG
     errs = {}
     for t in reg.templates.values():
         for pos, (st, nbt) in t.blocks.items():
@@ -85,6 +86,10 @@ def validate_registry(reg):
                 errs.setdefault("entidad " + n["id"], []).append(t.name)
             if n["id"] in BEBE_ZOMBI and ADULTO_TAG not in (n.get("Tags") or []):
                 errs.setdefault(f"{n['id']} sin la etiqueta {ADULTO_TAG} (saldría bebé el 5 %: core.adulto)", []).append(t.name)
+            tags = n.get("Tags") or []
+            if ANCLADO_TAG not in tags and (n["id"] in RECOGE_BOTIN or GUARDIAN_TAG in tags):
+                why = "guardián" if GUARDIAN_TAG in tags else "recogería objetos"
+                errs.setdefault(f"{n['id']} sin la etiqueta {ANCLADO_TAG} ({why}: core.anclado)", []).append(t.name)
             if n["id"] in BEBE_SIN_PROTECCION:
                 errs.setdefault(f"{n['id']} en una plantilla (saldría bebé el 20 %, sin protección)", []).append(t.name)
         for j in t.jigsaws:

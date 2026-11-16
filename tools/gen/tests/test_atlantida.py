@@ -22,3 +22,16 @@ def test_muralla_como_en_java():
             assert w == ALTO_MURO or 3 <= w <= 7
             s = (s * 31 + w) & 0xFFFFFFFF
     assert s == 4003156210
+
+
+def test_mobs_anclados():
+    """Ahogados (centinelas, hoplitas) y el jefe: adultos y anclados (core.ANCLADO_TAG); los peces guardianes, no."""
+    from core import ADULTO_TAG, ANCLADO_TAG
+    from unicas._comun.piezas import GUARDIAN_TAG
+    from unicas.atlantida import cosas
+    for n in (cosas.ahogado(), cosas.ahogado(elite=True)):
+        assert ADULTO_TAG in n["Tags"] and ANCLADO_TAG in n["Tags"]
+    jefe = cosas.jefe()
+    assert GUARDIAN_TAG in jefe["Tags"] and ANCLADO_TAG in jefe["Tags"]
+    for n in (cosas.guardian(), cosas.anciano()):
+        assert ANCLADO_TAG not in n.get("Tags", [])

@@ -1,5 +1,5 @@
 """Objetos con datos: textos traducibles, cofres, llaves, generadores, mobs, carteles y dispensadores (NBT de 26.3)."""
-from core import B, F, adulto
+from core import B, F, adulto, anclado
 from .._comun import piezas as P
 
 LANG = {"es_es": {}, "en_us": {}}
@@ -102,7 +102,8 @@ def mob(tipo, nombre=None, mano=None, vida=None, armadura=None, botin=None, **ex
     if botin:
         n["DeathLootTable"] = TABLA + botin
     n.update(extra)
-    return adulto(n)
+    # Ahogados: adultos y anclados (core.ANCLADO_TAG: sin recoger objetos ni pasear hasta que los atacan); el jefe también.
+    return anclado(adulto(n), siempre=P.GUARDIAN_TAG in n.get("Tags", []))
 
 
 def ahogado(elite=False):
