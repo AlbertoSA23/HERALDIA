@@ -197,7 +197,10 @@ public final class ConfigScreen extends Screen {
 		List<FormattedCharSequence> lines = new ArrayList<>();
 		lines.add(Component.translatable("heraldia.config.pantalla.clave", o.key()).withStyle(ChatFormatting.YELLOW).getVisualOrderText());
 		lines.addAll(this.font.split(help, 200));
-		Component range = o.isBoolean()
+		Component range = o.isChoice()
+				? Component.translatable("heraldia.config.valores", Component.translatable(o.valueNames().get(o.values().indexOf(o.defaultValue().getAsString()))),
+						Component.literal(String.join(", ", o.values())))
+				: o.isBoolean()
 				? Component.translatable("heraldia.config.si_no", o.defaultValue().getAsString())
 				: Component.translatable("heraldia.config.rango", o.defaultValue().getAsString(), o.min(), o.max());
 		lines.addAll(this.font.split(range.copy().withStyle(ChatFormatting.GRAY), 200));
@@ -226,7 +229,8 @@ public final class ConfigScreen extends Screen {
 						|| contains(sectionTitle, f))) {
 					continue;
 				}
-				Row e = o.isBoolean() ? new BooleanEntry(o, name, tooltip(o, help)) : new IntegerEntry(o, name, tooltip(o, help));
+				Row e = o.isChoice() ? new ChoiceEntry(o, name, tooltip(o, help))
+						: o.isBoolean() ? new BooleanEntry(o, name, tooltip(o, help)) : new IntegerEntry(o, name, tooltip(o, help));
 				bySection.computeIfAbsent(o.section(), k -> new ArrayList<>()).add(e);
 			}
 			bySection.forEach((section, entries) -> {
@@ -347,6 +351,26 @@ public final class ConfigScreen extends Screen {
 		BooleanEntry(ConfigOption option, Component name, List<FormattedCharSequence> tooltip) {
 			super(option, name, tooltip);
 			this.button = CycleButton.onOffBuilder(ConfigScreen.this.working.get(option.key()).getAsBoolean())
+					.displayOnlyValue()
+					.create(0, 0, WIDGET_WIDTH, 20, name, (b, value) -> ConfigScreen.this.working.put(option.key(), new JsonPrimitive(value)));
+		}
+
+		@Override
+		protected AbstractWidget widget() {
+			return this.button;
+		}
+	}
+
+	/** Opción de lista: botón que recorre sus valores, cada uno con su nombre traducido. */
+	@Environment(EnvType.CLIENT)
+	private final class ChoiceEntry extends OptionEntry {
+		private final CycleButton<String> button;
+
+		ChoiceEntry(ConfigOption option, Component name, List<FormattedCharSequence> tooltip) {
+			super(option, name, tooltip);
+			this.button = CycleButton.<String>builder(v -> Component.translatable(option.valueNames().get(option.values().indexOf(v))),
+							ConfigScreen.this.working.get(option.key()).getAsString())
+					.withValues(option.values())
 					.displayOnlyValue()
 					.create(0, 0, WIDGET_WIDTH, 20, name, (b, value) -> ConfigScreen.this.working.put(option.key(), new JsonPrimitive(value)));
 		}

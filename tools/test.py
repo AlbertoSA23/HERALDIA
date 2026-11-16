@@ -81,6 +81,9 @@ MAPA = [
     (JAVA + "mixin/DrownedAguaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "mixin/DrownedPlayaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
     (JAVA + "comun/Anclaje.java", ["tools/smoke/guardianes_anclados.py"]),
+    # botín que se repone y dificultad configurable (T29)
+    (JAVA + "loot/BotinRepuesto.java", ["tools/smoke/botin_reponer.py"]), (JAVA + "loot/Reposicion.java", ["tools/smoke/botin_reponer.py"]),
+    (JAVA + "dificultad/*", ["tools/smoke/dificultad.py"]),
     # Guía del Heraldo: su Java (y los textos por idioma que usa), su generador y su prueba
     (JAVA + "comando/Guia*", ["tools/smoke/guia.py"]), (JAVA + "comando/Textos.java", ["tools/smoke/guia.py"]),
     ("tools/gen/guia.py", ["tools/smoke/guia.py"]),
@@ -202,6 +205,8 @@ DURACION_S = {
     "tools/smoke/guardianes_anclados.py": 450,
     "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque; 2 min 40 s con los 8 tipos
     "tools/smoke/guia.py": 120,                      # tres arranques del servidor
+    "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
+    "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas

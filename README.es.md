@@ -366,6 +366,33 @@ Pestaña de logros **Heraldia** (88 logros), con textos en español e inglés. S
 
 Notas: una estructura cuenta al entrar en sus piezas, no basta con verla. Si se desactiva una familia o una estructura en la [configuración](#configuración), su logro y el desafío correspondiente no se pueden conseguir. Con Lootr, el logro del tesoro depende de que Lootr avise al juego al abrir el cofre (sin comprobar). Los logros de las estructuras únicas se generan solos a partir del registro de únicas, así que una estructura nueva trae los suyos.
 
+## Botín que se repone y dificultad
+
+Dos funciones opcionales del servidor (bastan clientes vanilla). Las dos valen también en un **mundo ya creado**, en lo ya generado.
+
+**Botín que se repone** (`botin.reponer.activado`, **desactivado por defecto**, para que activarlo sea decisión tuya): los cofres y barriles de las aldeas, las estructuras medianas y las únicas de Heraldia vuelven a llenarse con su tabla de botín cuando, **al abrirlos**, se cumple todo esto:
+
+- han pasado al menos `botin.reponer.dias` días de juego (24.000 ticks del reloj del mundo, el que mueve `/time add`; dormir la noche cuenta) desde el último saqueo;
+- no hay otro jugador a 32 bloques (el que lo abre no cuenta);
+- está vacío o casi vacío (como mucho 3 casillas ocupadas de 27). Nunca se borra nada: el botín solo va a las casillas libres, así que lo que haya guardado un jugador se queda.
+
+Cómo se reconoce un cofre: al abrir un cofre de Heraldia que aún tiene su tabla, el mod guarda en el bloque, como `custom_data` `heraldia_botin: {tabla, saqueado}`, su tabla y el reloj de ese saqueo (nada más). Un cofre **ya saqueado antes de activar la opción** ya no tiene su tabla: la primera vez que se abre, el mod busca la estructura de Heraldia que tiene una pieza ahí (las referencias del chunk, como `/locate`) y, en la plantilla de esa pieza y con su giro, la tabla que puso en esa posición; desde entonces cuenta como saqueado en ese momento. Perezoso: solo trabaja cuando un jugador usa un contenedor, nunca por tick ni recorriendo el mundo. No se reponen: el cofre premium de la Atlántida (contenido fijo, tiene su propia opción `unicas.atlantida.cofre_unico_por_jugador`), los trofeos, las tablas vanilla y las de otros mods, ni los contenedores de piezas que no son plantillas (la base de la Atlántida) saqueados antes de activarla. Con **Lootr** instalado no hace nada (se detecta al arrancar; Lootr ya convierte los cofres de botín en cofres por jugador); el log lo dice si la opción está activada.
+
+**Dificultad** (`dificultad.nivel`): escala la vida y el daño cuerpo a cuerpo de los [guardianes](#trofeos-de-los-guardianes) y los mobs de las plantillas de Heraldia (los que llevan `heraldia_anclado` o `heraldia_guardian`, solo los hostiles: gatos y lobos no cambian; los de los generadores, tampoco).
+
+| Nivel | Vida | Daño | Botín (`dificultad.escalar_botin`) |
+| --- | --- | --- | --- |
+| `facil` | x0,75 | x0,75 | x0,75 |
+| `normal` (por defecto) | como siempre | como siempre | como siempre |
+| `dificil` | x1,5 | x1,25 | x1,25 |
+| `heroica` | x2 | x1,5 | x1,5 |
+
+- Son modificadores de atributo con su propio identificador (`heraldia:dificultad_vida`, `heraldia:dificultad_dano`, `heraldia:dificultad_jugadores`, `add_multiplied_total`), que se suman a lo que ya tenga el mob (fases de los jefes, efectos, otros mods) sin tocarlo. Se ponen cada vez que el mob se carga (también los ya generados), así que al cambiar la opción y reiniciar el servidor se recalculan; ponerlos dos veces no cambia nada, y en `normal` se quitan (exactamente lo de antes). La vida actual conserva su proporción (un guardián a media vida sigue a media vida).
+- `dificultad.escalar_por_jugadores` (desactivada): +25 % de vida por cada jugador de más a 32 bloques (hasta +100 %), recalculado cuando el mob recibe un golpe.
+- Botín: solo cambia la cantidad de los objetos sencillos apilables (sin nombre ni otros componentes) de las tablas de cofre de Heraldia (la parte fraccionaria, con su probabilidad; nunca menos de 1 ni más de una pila). Las flechas de los esqueletos y el resto del daño a distancia no cambian.
+
+Coste: un evento al usar un bloque (sale en el acto si no es un contenedor con tabla o la opción está desactivada), en cada carga de entidad y en cada golpe (sale en el acto si el mob no lleva etiqueta de Heraldia); medido con `tools/smoke/botin_reponer.py` y `tools/smoke/dificultad.py`.
+
 ## Configuración
 
 Fichero `config/heraldia.json` del servidor (en un mundo de un jugador, el de la carpeta del juego). Se crea al arrancar con todos los valores por defecto
@@ -404,6 +431,11 @@ cuando cambie su formato. Se lee solo al arrancar el servidor y afecta a los chu
 | `medianas.<id>.separacion_bloques` | la del tipo (576-832) | 256-4000 | Separación media entre dos de ese tipo (con la frecuencia al 100 %); cada casilla busca su candidata dentro de los biomas del tipo. |
 | `guia.entregar_al_entrar` | `true` | `true`/`false` | Da la [Guía del Heraldo](#guía-del-heraldo) a cada jugador la primera vez que entra con cada versión del mod. Desactivada, nadie la recibe al entrar, pero `/heraldia guia` sigue dándola. |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Las estructuras de otros mods que asoman a la superficie no nacen a menos de esta distancia del inicio de una aldea o una única de Heraldia que sale ahí; 0 lo desactiva ([Compatibilidad con otros mods](#compatibilidad-con-otros-mods)). |
+| `botin.reponer.activado` | `false` | `true`/`false` | [Botín que se repone](#botín-que-se-repone-y-dificultad): los cofres y barriles de Heraldia se rellenan al abrirlos pasados los días indicados, sin otro jugador cerca y si están vacíos o casi; también los ya generados. Nada con Lootr. |
+| `botin.reponer.dias` | 7 | 1-60 | Días de juego (24.000 ticks del reloj del mundo) desde un saqueo hasta que el cofre se repone. |
+| `dificultad.nivel` | `normal` | `facil`, `normal`, `dificil`, `heroica` | [Dificultad](#botín-que-se-repone-y-dificultad) de los guardianes y mobs de plantilla de Heraldia (vida y daño); también los ya generados, al cargarse. `normal` es lo de antes. |
+| `dificultad.escalar_por_jugadores` | `false` | `true`/`false` | +25 % de vida por cada jugador de más a 32 bloques (hasta +100 %), al recibir un golpe. |
+| `dificultad.escalar_botin` | `true` | `true`/`false` | Con `facil`, `dificil` o `heroica`, los objetos sencillos apilables del botín de los cofres de Heraldia salen en cantidad x0,75, x1,25 o x1,5 (en `normal` no cambia nada). |
 
 La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
 
@@ -411,8 +443,8 @@ La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
 
 En el cliente el fichero también se puede editar desde una pantalla del juego. Con [Mod Menu](https://modrinth.com/mod/modmenu) instalado (opcional; sin él el mod funciona igual, solo que la pantalla no tiene botón) se abre desde el botón de configuración de Heraldia en la lista de mods. Se construye con la misma lista de opciones que el fichero, así que las opciones nuevas aparecen solas:
 
-- Secciones: Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Caminos entre aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas y Compatibilidad con otros mods, con un buscador (por nombre, clave, ayuda o sección).
-- Cada opción muestra su valor (botón sí/no o casilla numérica). Su tooltip da la clave, la ayuda (la misma de `_ayuda`) y el valor por defecto y el rango. Un número no válido se pone en rojo, el tooltip dice por qué y **Guardar** queda desactivado hasta corregirlo.
+- Secciones: Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Caminos entre aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas, Compatibilidad con otros mods, Botín y Dificultad, con un buscador (por nombre, clave, ayuda o sección).
+- Cada opción muestra su valor (botón sí/no, casilla numérica o un botón que recorre los valores de una opción de lista como `dificultad.nivel`). Su tooltip da la clave, la ayuda (la misma de `_ayuda`) y el valor por defecto y el rango. Un número no válido se pone en rojo, el tooltip dice por qué y **Guardar** queda desactivado hasta corregirlo.
 - **Guardar** escribe `config/heraldia.json` con el mismo formato que al arrancar (con `version` y `_ayuda`); **Valores por defecto** devuelve todas las opciones a su valor por defecto (no se escribe nada hasta guardar); **Cancelar** descarta los cambios.
 - Los cambios se aplican al volver a abrir el mundo o reiniciar el servidor, y solo en los chunks que se generen después; la pantalla lo avisa. Sin ningún mundo abierto se usan desde el siguiente mundo que abras (sin reiniciar el juego); con un mundo de un jugador abierto, al salir y volver a entrar.
 - Conectado a un servidor, la pantalla edita **el fichero local del cliente** (tus mundos de un jugador), no el del servidor: la pantalla lo avisa. La configuración del servidor se sigue editando en su propio `config/heraldia.json`. No se envía nada por la red.

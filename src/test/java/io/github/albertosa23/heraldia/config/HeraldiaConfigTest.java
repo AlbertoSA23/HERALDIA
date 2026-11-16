@@ -157,7 +157,11 @@ class HeraldiaConfigTest {
 			for (String key : o.argNames()) {
 				assertTrue(key == null || es.has(key) && en.has(key), o.key() + ": falta el nombre " + key);
 			}
-			assertEquals(o.isBoolean(), o.min() == null, o.key());
+			assertEquals(o.isBoolean() || o.isChoice(), o.min() == null, o.key());
+			for (String key : o.valueNames()) {
+				assertTrue(es.has(key) && en.has(key), o.key() + ": falta el nombre del valor " + key);
+			}
+			assertEquals(o.values().size(), o.valueNames().size(), o.key());
 		}
 		for (String key : List.of("titulo", "buscar", "guardar", "restaurar", "aviso", "aviso_mundo", "aviso_servidor", "invalido",
 				"clave", "guardado", "error")) {

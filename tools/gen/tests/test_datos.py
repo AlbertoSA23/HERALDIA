@@ -123,6 +123,8 @@ def test_opciones_esquema():
         assert o["seccion"] in secciones
         if isinstance(o["defecto"], bool):
             assert "min" not in o
+        elif isinstance(o["defecto"], str):        # opción de lista
+            assert "min" not in o and o["defecto"] in o["valores"], o["clave"]
         else:
             assert o["min"] <= o["defecto"] <= o["max"], o["clave"]
     configurables = opciones.unique_placements()
