@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * <li>/heraldia guia (cualquier jugador, sin permisos): otra copia al día.</li>
  * </ul>
  * Las páginas son componentes traducibles con el respaldo en el idioma del cliente (los textos del .jar): un cliente sin el
- * mod ve el libro en su idioma (español o inglés). Los textos, las páginas fijas y cuántas entradas caben en cada página
+ * mod ve el libro en su idioma (cualquiera de los del .jar; si no lo trae, el de su lengua o el inglés). Los textos, las páginas fijas y cuántas entradas caben en cada página
  * del diario los da el generador (tools/gen/guia.py, heraldia/guia.json), que comprueba que todo cabe. Solo trabaja al
  * entrar un jugador o al pedir la guía: lee sus logros de descubrimiento (heraldia:unicas/&lt;id&gt;/descubrir).
  */
@@ -110,8 +110,9 @@ public final class Guia {
 	public static void register() {
 		LOGGER.debug("Heraldia: adjunto {} registrado", Entrega.ENTREGADA.identifier());
 		// los textos del .jar se leen al arrancar, no en la primera entrega (en el hilo del servidor)
-		collator(Textos.idioma(Textos.EN));
-		collator(Textos.idioma(Textos.ES));
+		for (String idioma : Textos.idiomas()) {
+			collator(Textos.idioma(idioma));
+		}
 		// En la cola de tareas del servidor, no en el propio JOIN: Carpet (jugadores falsos) carga los datos del jugador
 		// después de placeNewPlayer, y sin ellos aún no se sabe si ya tenía la guía. Corre en este mismo tick.
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.schedule(server.wrapRunnable(() -> {
@@ -265,7 +266,7 @@ public final class Guia {
 	}
 
 	private static Comparator<String> collator(Map<String, String> textos) {
-		Collator c = Collator.getInstance(Locale.forLanguageTag(textos == Textos.idioma(Textos.ES) ? "es" : "en"));
+		Collator c = Collator.getInstance(Locale.forLanguageTag(Textos.codigoDe(textos).replace('_', '-')));
 		c.setStrength(Collator.PRIMARY);
 		return c::compare;
 	}

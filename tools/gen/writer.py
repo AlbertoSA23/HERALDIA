@@ -17,6 +17,7 @@ import opciones
 import jefes
 import biomas
 import logros
+import idiomas
 import paralelo
 from unicas._comun import botin
 
@@ -235,9 +236,9 @@ def write(reg, out):
     for sid, mod in unicas.modules():
         write_unique(out, sid, mod.STRUCTURE)
     # estructuras medianas (medianas/): estructuras, etiquetas, structure_sets y botín
-    medianas_lang = medianas.write(out, jdump)
+    medianas.write(out, jdump)
     # entradas a mina (minas/) y la colocación de las minas abandonadas vanilla
-    minas_lang = minas.write(out, jdump)
+    minas.write(out, jdump)
     # botín
     uniques = unicas.modules()
     for name, table in loot.TABLES.items():
@@ -251,9 +252,9 @@ def write(reg, out):
             if name == mod.HISTORIA["cofre"]:
                 table = botin.con_historia(table, sid)   # su pliego de la Crónica de los Heraldos
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
-    history_lang = write_history(out, uniques)
+    write_history(out, uniques)
     jdump(out, f"{NS}/llaves.json", write_keys(out))
-    trophy_lang = write_trophies(out, reg)
+    write_trophies(out, reg)
     # fases y refuerzos de los guardianes (comun/jefes en Java)
     jdump(out, f"{NS}/jefes.json", jefes.schema(unicas.modules(), reg.guardianes))
     # funciones
@@ -328,19 +329,54 @@ def write(reg, out):
         with open(os.path.join(fdir, fn), "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
-    maps_lang = mapas.lang(uniques)
-    adv_lang = logros.write(out, reg, uniques, jdump)
-    for extra in (tratos.lang(), tablon.write(out, jdump), caminos.write(out, jdump), medianas_lang, minas_lang,
-                  guia.write(out, uniques, jdump), arena_oleadas.write(out, jdump)):
-        for lang, texts in extra.items():
-            adv_lang[lang].update(texts)
-    for sid, mod in unicas.modules():
+    logros.write(out, reg, uniques, jdump)
+    for escribe in (tablon.write, caminos.write, arena_oleadas.write):
+        escribe(out, jdump)
+    traducidos = idiomas.completar(textos(reg), paginas_de_libros(reg, out),
+                                   idiomas.claves_de_carteles(nbt for t in reg.templates.values() for _, nbt in t.blocks.values() if nbt))
+    guia.write(out, uniques, jdump, {c: t for c, t in traducidos.items() if c not in idiomas.BASE})
+    jdump(out, f"{NS}/idiomas.json", {"lenguas": idiomas.lenguas()})
+    for lang, texts in traducidos.items():
+        jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
+
+
+def textos(reg):
+    """{"es_es": {...}, "en_us": {...}} con todos los textos del mod (lo que escribe write en assets/heraldia/lang),
+    sin escribir nada: la fuente única de las claves de cada idioma (idiomas.completar). Solo depende de `reg` por los
+    guardianes de las únicas (logros.guardians)."""
+    uniques = unicas.modules()
+    out = {lang: dict(texts) for lang, texts in LANG.items()}
+    for sid, mod in uniques:
         extra = getattr(mod, "LANG", {})
         assert extra.get("es_es", {}).keys() == extra.get("en_us", {}).keys(), sid
         for lang, texts in extra.items():
-            LANG[lang].update(texts)
-    for lang, texts in LANG.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", dict(texts, **maps_lang[lang], **adv_lang[lang], **trophy_lang[lang], **history_lang[lang]))
+            out[lang].update(texts)
+    partes = [mapas.lang(uniques), logros.build(reg, uniques, medianas.modules(), minas)[1], tratos.lang(),
+              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), guia.lang(), arena_oleadas.lang(),
+              trophies_lang(), botin.historia_lang(uniques)]
+    for parte in partes:
+        assert parte["es_es"].keys() == parte["en_us"].keys()
+        for lang, texts in parte.items():
+            out[lang].update(texts)
+    return out
+
+
+def paginas_de_libros(reg, out):
+    """[(dónde, página)] de todos los libros escritos del datapack (botín y tratos ya escritos en `out`, y los de los
+    atriles de las plantillas), para medirlos en cada idioma (idiomas.completar)."""
+    objetos = []
+    for d, _, fs in os.walk(os.path.join(out, "data", NS)):
+        for f in fs:
+            if f.endswith(".json"):
+                with open(os.path.join(d, f), encoding="utf-8") as fh:
+                    texto = fh.read()
+                if "written_book_content" in texto:
+                    objetos.append((os.path.relpath(os.path.join(d, f), out), json.loads(texto)))
+    for name, t in reg.templates.items():
+        for _, nbt in t.blocks.values():
+            if nbt and "Book" in nbt:
+                objetos.append((name, nbt))
+    return idiomas.paginas_de_libros(objetos)
 
 
 def write_keys(out):
@@ -359,14 +395,20 @@ def write_keys(out):
 def write_trophies(out, reg):
     """Trofeos de los guardianes (TROFEO de cada módulo, _comun/botin): heraldia:trofeos/<id> (el trofeo solo) y
     heraldia:guardianes/<id>/<mob> (DeathLootTable que pack.tag_guardians pone a cada guardián). Devuelve los textos."""
-    texts = {"es_es": {}, "en_us": {}}
     for sid, mod in unicas.modules():
         d = mod.TROFEO
         jdump(out, f"data/{NS}/loot_table/trofeos/{sid}.json", botin.trofeo(sid, d))
         for mob, original in reg.guardianes.get(sid, {}).items():
             jdump(out, f"data/{NS}/loot_table/{botin.guardian_tabla_id(sid, mob).split(':')[1]}.json",
                   botin.guardian_tabla(sid, original))
-        for lang, t in botin.trofeo_lang(sid, d).items():
+    return trophies_lang()
+
+
+def trophies_lang():
+    """Textos de los trofeos de los guardianes."""
+    texts = {"es_es": {}, "en_us": {}}
+    for sid, mod in unicas.modules():
+        for lang, t in botin.trofeo_lang(sid, mod.TROFEO).items():
             texts[lang].update(t)
     return texts
 

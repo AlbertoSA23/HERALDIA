@@ -208,12 +208,20 @@ def objetos(themes):
     return out
 
 
+def lang():
+    """Textos (es_es, en_us) del tablón, del alguacil y de los logros de las hazañas."""
+    out = {"es_es": {}, "en_us": {}}
+    for k, (es, en) in TEXTOS.items():
+        out["es_es"][f"{K}.{k}"], out["en_us"][f"{K}.{k}"] = es, en
+    out["es_es"][f"entity.{NS}.alguacil"], out["en_us"][f"entity.{NS}.alguacil"] = TEXTOS["alguacil"]
+    for k, ((tes, ten), (des, den), _) in LOGROS.items():
+        for part, es, en in (("title", tes, ten), ("description", des, den)):
+            out["es_es"][adv_key(f"aldeas/encargos/{k}", part)], out["en_us"][adv_key(f"aldeas/encargos/{k}", part)] = es, en
+    return out
+
+
 def write(out, jdump):
     """Logros de las hazañas, sus recompensas y la etiqueta de amenazas; devuelve los textos (es_es, en_us)."""
-    lang = {"es_es": {}, "en_us": {}}
-    for k, (es, en) in TEXTOS.items():
-        lang["es_es"][f"{K}.{k}"], lang["en_us"][f"{K}.{k}"] = es, en
-    lang["es_es"][f"entity.{NS}.alguacil"], lang["en_us"][f"entity.{NS}.alguacil"] = TEXTOS["alguacil"]
     jdump(out, f"data/{NS}/tags/entity_type/amenazas_aldea.json", {"values": [f"minecraft:{m}" for m in AMENAZAS]})
     aldea = {"minecraft:location": {"structures": f"#{NS}:aldeas"}}
     crit = {
@@ -224,13 +232,11 @@ def write(out, jdump):
             "type": "minecraft:entity_properties", "entity": "this", "predicate": aldea}}}},
     }
     rewards = tablas()
-    for k, ((tes, ten), (des, den), icon) in LOGROS.items():
+    for k, ((tes, _), (des, _), icon) in LOGROS.items():
         path = f"aldeas/encargos/{k}"
-        for part, es, en in (("title", tes, ten), ("description", des, den)):
-            lang["es_es"][adv_key(path, part)], lang["en_us"][adv_key(path, part)] = es, en
         adv = advancement("raiz", icon, comp(adv_key(path, "title"), tes), comp(adv_key(path, "description"), des),
                           crit[k], frame="goal" if k == "asedio" else "task")
         adv["rewards"] = {"loot": [f"{NS}:encargos/{k}"], "experience": 30 if k == "ronda" else 100}
         jdump(out, f"data/{NS}/advancement/{path}.json", adv)
         jdump(out, f"data/{NS}/loot_table/encargos/{k}.json", rewards[k])
-    return lang
+    return lang()

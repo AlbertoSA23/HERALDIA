@@ -303,16 +303,49 @@ class GuiaTest {
 
 	@Test
 	void idiomaDelCliente() {
-		Set<String> hay = Set.of("es_es", "en_us");
-		assertEquals("es_es", Textos.codigo("es_es", hay::contains));
-		assertEquals("es_es", Textos.codigo("es_MX", hay::contains));
-		assertEquals("es_es", Textos.codigo("es_ar", hay::contains));
-		assertEquals("en_us", Textos.codigo("en_gb", hay::contains));
-		assertEquals("en_us", Textos.codigo("fr_fr", hay::contains));
-		assertEquals("en_us", Textos.codigo(null, hay::contains));
-		assertEquals("en_us", Textos.codigo("", hay::contains));
+		Map<String, String> hay = Map.of("es", "es_es", "en", "en_us");
+		assertEquals("es_es", Textos.codigo("es_es", hay));
+		assertEquals("es_es", Textos.codigo("es_MX", hay));
+		assertEquals("es_es", Textos.codigo("es_ar", hay));
+		assertEquals("en_us", Textos.codigo("en_gb", hay));
+		assertEquals("en_us", Textos.codigo("fr_fr", hay));
+		assertEquals("en_us", Textos.codigo(null, hay));
+		assertEquals("en_us", Textos.codigo("", hay));
 		assertEquals("Guía del Heraldo", Textos.idioma("es_mx").get("heraldia.guia.nombre"));
-		assertEquals("The Herald's Guide", Textos.idioma("de_de").get("heraldia.guia.nombre"));
+		assertEquals("The Herald's Guide", Textos.idioma("ja_jp").get("heraldia.guia.nombre"));
 		assertEquals("The Herald's Guide", Textos.idioma("../../x").get("heraldia.guia.nombre"));
+	}
+
+	/** En cada idioma del .jar: el libro vanilla es válido, sus páginas salen en ese idioma y las descubiertas, en su orden. */
+	@ParameterizedTest
+	@ValueSource(strings = {"es_es", "en_us", "fr_fr", "de_de", "it_it", "pt_br", "ca_es", "gl_es"})
+	void libroEnCadaIdioma(String idioma) {
+		Map<String, String> textos = Textos.idioma(idioma);
+		assertEquals(idioma, Textos.codigoDe(textos));
+		String titulo = textos.get("heraldia.guia.nombre");
+		assertTrue(titulo != null && !titulo.isBlank() && titulo.length() <= WrittenBookContent.TITLE_MAX_LENGTH, titulo);
+		ItemStack libro = Guia.libro(Guia.DATOS, textos, unicas(ids.size() / 2), "1.0");
+		WrittenBookContent contenido = libro.get(DataComponents.WRITTEN_BOOK_CONTENT);
+		assertEquals(titulo, contenido.title().raw());
+		assertEquals(paginasEsperadas(ids.size() / 2, ids.size() - ids.size() / 2), contenido.pages().size());
+		assertTrue(contenido.pages().size() <= 100);   // máximo de páginas de un libro vanilla
+		List<Component> paginas = Guia.paginas(Guia.DATOS, textos, unicas(ids.size()));
+		assertEquals(textos.get("heraldia.guia.pagina.bienvenida.titulo") + "\n\n" + textos.get("heraldia.guia.pagina.bienvenida"),
+				vista(paginas.get(0)));
+		List<String> nombres = new ArrayList<>();
+		for (Component c : paginas) {
+			String[] l = vista(c).split("\n");
+			if (l[0].equals(textos.get("heraldia.guia.descubiertas"))) {
+				for (int i = 2; i < l.length; i++) {
+					nombres.add(l[i]);
+				}
+			}
+		}
+		assertEquals(ids.size(), nombres.size());
+		java.text.Collator c = java.text.Collator.getInstance(java.util.Locale.forLanguageTag(idioma.replace('_', '-')));
+		c.setStrength(java.text.Collator.PRIMARY);
+		List<String> ordenados = new ArrayList<>(nombres);
+		ordenados.sort(c);
+		assertEquals(ordenados, nombres);
 	}
 }
