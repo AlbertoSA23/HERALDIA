@@ -1,5 +1,5 @@
 """Núcleo: plantillas de estructura (NBT 26.3), jigsaws y entidades."""
-import gzip, io, json, os, re
+import gzip, io, json, os, re, struct
 import nbtlib
 from nbtlib import Compound, List, Int, String, Double, Byte, Float, File
 
@@ -175,12 +175,98 @@ class Template:
         })
         return root
 
+    def nbt_raw(self):
+        """Los bytes NBT (sin comprimir) de to_nbt(), escritos directamente: mismos bytes que File(self.to_nbt()).write,
+        pero sin construir un Compound de nbtlib por bloque (eso era casi todo el tiempo del generador). Lo que va dentro
+        de cada bloque o entidad (su nbt) sí pasa por to_tag y nbtlib, igual que antes. tests/test_core.py lo compara."""
+        x0, y0, z0, *_ = self.bounds()
+        assert (x0, y0, z0) >= (0, 0, 0) and min(x0, y0, z0) >= 0, (self.name, x0, y0, z0)
+        out = io.BytesIO()
+        w = out.write
+        _tag(w, 10, "")                                               # File: compuesto raíz sin nombre
+        _tag(w, 3, "DataVersion")
+        w(_I.pack(DATA_VERSION))
+        _tag(w, 9, "size")
+        _ints(w, self.size())
+        palette, index, blocks = [], {}, []
+        for pos in sorted(self.blocks, key=lambda p: (p[1], p[2], p[0])):
+            st, nbt = self.blocks[pos]
+            if st not in index:
+                index[st] = len(palette)
+                palette.append(st)
+            blocks.append((pos, index[st], nbt))
+        _tag(w, 9, "palette")
+        w(b"\x0a" + _I.pack(len(palette)))
+        for st in palette:
+            bid, props = parse_state(st)
+            _tag(w, 8, "id")
+            _str(w, bid)
+            if props:
+                _tag(w, 10, "properties")
+                for k, v in props.items():
+                    _tag(w, 8, k)
+                    _str(w, v)
+                w(b"\x00")
+            w(b"\x00")
+        _tag(w, 9, "blocks")
+        w(b"\x0a" + _I.pack(len(blocks)))
+        for pos, i, nbt in blocks:
+            _tag(w, 9, "pos")
+            _ints(w, pos)
+            _tag(w, 3, "state")
+            w(_I.pack(i))
+            if nbt:
+                t = to_tag(nbt)
+                _tag(w, t.tag_id, "nbt")
+                t.write(out, "big")
+            w(b"\x00")
+        _tag(w, 9, "entities")
+        w(b"\x0a" + _I.pack(len(self.entities)))
+        for x, y, z, n in self.entities:
+            fx, fz = x + 0.5, z + 0.5
+            n = dict(n)
+            n.setdefault("Pos", [float(fx), float(y), float(fz)])
+            _tag(w, 9, "pos")
+            w(b"\x06" + _I.pack(3) + _D.pack(float(fx)) + _D.pack(float(y)) + _D.pack(float(fz)))
+            _tag(w, 9, "blockPos")
+            _ints(w, (x, y, z))
+            t = to_tag(n)
+            _tag(w, t.tag_id, "nbt")
+            t.write(out, "big")
+            w(b"\x00")
+        w(b"\x00")                                                    # fin del compuesto raíz
+        return out.getvalue()
+
+    def nbt_bytes(self):
+        """El .nbt de la plantilla (gzip), comprimido de una vez y sin hora en la cabecera (mtime 0): dos generaciones del
+        mismo código dan los mismos bytes (antes cambiaba la cabecera en cada compilación)."""
+        return gzip.compress(self.nbt_raw(), compresslevel=9, mtime=0)
+
     def save(self, root_dir):
         path = os.path.join(root_dir, "data", NS, "structure", self.name + ".nbt")
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        f = File(self.to_nbt(), gzipped=True)
-        f.save(path)
+        with open(path, "wb") as f:
+            f.write(self.nbt_bytes())
         return path
+
+
+_I, _D, _H = struct.Struct(">i"), struct.Struct(">d"), struct.Struct(">H")
+
+
+def _str(w, s):
+    b = s.encode("utf-8")
+    w(_H.pack(len(b)) + b)
+
+
+def _tag(w, tid, name):
+    """Cabecera de una etiqueta con nombre dentro de un compuesto: tipo y nombre."""
+    w(bytes((tid,)))
+    _str(w, name)
+
+
+def _ints(w, vals):
+    """Lista de enteros (List[Int])."""
+    w(b"\x03" + _I.pack(len(vals)) + b"".join(_I.pack(int(v)) for v in vals))
 
 
 def nsid(s):

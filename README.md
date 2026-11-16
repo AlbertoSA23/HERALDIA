@@ -336,7 +336,11 @@ The `.jar` ends up in `build/libs/`. The build runs the generator `tools/gen/mai
 
 The 26.3 registries (summary from [misode/mcmeta](https://github.com/misode/mcmeta), branch `26.3-summary`) are not included in the repository because they are Mojang data. They are cloned automatically into `build/mcmeta-summary`; to use another copy: `-Pmcmeta_summary=<path>` or the `MCMETA_SUMMARY` variable.
 
-Checks before publishing (the GitHub Actions CI, `.github/workflows/ci.yml`, runs all of them, including each unique structure's, on every PR against `develop` or `main` and on every push to `develop`):
+`./gradlew build` also runs the unit tests: the generator's (pytest, `tools/gen/tests`, also with `python3 -m pytest tools/gen/tests`, a few seconds), the JUnit tests (`./gradlew test`) and the long JUnit simulations (`./gradlew testPesado`, a few minutes). The generator splits its work across processes (`HERALDIA_PROCESOS=1` runs it serially, with the same output).
+
+`python3 tools/test.py --afectados` runs the unit tests and only the server tests affected by the files changed against `origin/develop` (`--listar` just lists them); `python3 tools/test.py --todo` runs the full battery. The path map is the same one the CI uses (see `docs/DESARROLLO.md`, «Política de pruebas»).
+
+Checks before publishing (the GitHub Actions CI, `.github/workflows/ci.yml`, runs them on every PR against `develop` or `main`, with only the server tests affected by the PR, and all of them on every push to `develop`, when run by hand or on a PR labelled `bateria-completa`):
 
 ```bash
 python3 tools/changelog.py check
