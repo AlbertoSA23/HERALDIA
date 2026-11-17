@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /locate de las entradas a mina en paralelo. Vanilla (ChunkGenerator.getNearestGeneratedStructure) recorre cada anillo
+ * /locate de las entradas a mina (y de los faros y naufragios de la costa) en paralelo. Vanilla (ChunkGenerator.getNearestGeneratedStructure) recorre cada anillo
  * de casillas en orden y, en cada una, comprueba si la entrada sale (bioma y ladera) en el hilo del servidor: casi todo
  * el tiempo es la altura del terreno de las columnas de la ladera. Al empezar un anillo de una rejilla de minas, aquí se
  * mandan sus casillas, en el mismo orden, a unos hilos aparte que solo <em>precalculan</em> esas columnas en la caché
@@ -93,17 +93,26 @@ public final class LocateParalelo {
 		return out;
 	}
 
-	/** Al empezar un anillo (HEAD de getNearestGeneratedStructure): manda sus casillas si la rejilla es de minas. */
+	/**
+	 * Una estructura que sabe adelantar lo caro de su búsqueda (las alturas de la caché compartida) sin crear nada: las
+	 * entradas a mina (la ladera) y los faros y naufragios (la orilla, costa/CostaStructure).
+	 */
+	public interface Precalculable {
+		void precalcular(Structure.GenerationContext ctx);
+	}
+
+	/** Al empezar un anillo (HEAD de getNearestGeneratedStructure): manda sus casillas si la rejilla es de minas o de la costa. */
 	public static void empezar(Set<Holder<Structure>> structures, LevelReader level, int x, int z, int r, long seed,
 							   RandomSpreadStructurePlacement placement) {
 		terminar();
-		if (!(placement instanceof GridPlacement g) || !g.group().startsWith(Minas.PREFIJO) || !(level instanceof ServerLevel sl)) {
+		if (!(placement instanceof GridPlacement g) || !(g.group().startsWith(Minas.PREFIJO) || g.group().startsWith("costa/"))
+				|| !(level instanceof ServerLevel sl)) {
 			return;
 		}
-		List<MinaEntradaStructure> minas = new ArrayList<>();
+		List<Structure> minas = new ArrayList<>();
 		for (Holder<Structure> h : structures) {
-			if (h.value() instanceof MinaEntradaStructure m) {
-				minas.add(m);
+			if (h.value() instanceof Precalculable) {
+				minas.add(h.value());
 			}
 		}
 		if (minas.isEmpty()) {
@@ -125,9 +134,9 @@ public final class LocateParalelo {
 				ChunkPos pos = placement.getPotentialStructureChunk(seed, c[0], c[1]);
 				// el muestreador del clima de StructureCheck guarda caché (no es para varios hilos): uno sin caché por tarea
 				var clima = randomState.createClimateSampler(SamplerContext.EMPTY_UNCACHED);
-				for (MinaEntradaStructure m : minas) {
-					m.precalcular(new Structure.GenerationContext(access, generator, generator.getBiomeSource(), clima, randomState,
-							templates, seed, pos, sl, m.biomes()::contains));
+				for (Structure m : minas) {
+					((Precalculable) m).precalcular(new Structure.GenerationContext(access, generator, generator.getBiomeSource(), clima,
+							randomState, templates, seed, pos, sl, m.biomes()::contains));
 				}
 				return null;
 			});

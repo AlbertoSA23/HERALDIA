@@ -11,6 +11,7 @@ import io.github.albertosa23.heraldia.comun.Medianas;
 import io.github.albertosa23.heraldia.config.ConfigOption;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.loot.WithoutLootrCondition;
+import io.github.albertosa23.heraldia.costa.Costa;
 import io.github.albertosa23.heraldia.minas.Minas;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -67,7 +68,8 @@ public final class EstadoCommand {
 	}
 
 	/** Lo que se cuenta, por clase de estructura: ids en orden y el logro (o criterio) que dice si alguien la descubrió. */
-	private record Tipos(List<String> familias, List<String> unicas, List<String> medianas, List<String> minas, List<String> guardianes) {
+	private record Tipos(List<String> familias, List<String> unicas, List<String> medianas, List<String> minas, List<String> costa,
+						 List<String> guardianes) {
 	}
 
 	private static int mostrar(CommandSourceStack src, int pagina) {
@@ -149,9 +151,11 @@ public final class EstadoCommand {
 				minas.add(t);
 			}
 		}
+		List<String> costa = Costa.TIPOS.stream()
+				.filter(c -> ids.stream().anyMatch(p -> p.startsWith(Costa.PREFIJO + c + "/"))).toList();
 		List<String> guardianes = unicas.stream()
 				.filter(u -> server.getAdvancements().get(Heraldia.id("unicas/" + u + "/guardian")) != null).toList();
-		return new Tipos(List.copyOf(familias), List.copyOf(unicas), List.copyOf(medianas), List.copyOf(minas), guardianes);
+		return new Tipos(List.copyOf(familias), List.copyOf(unicas), List.copyOf(medianas), List.copyOf(minas), costa, guardianes);
 	}
 
 	private static void enviar(CommandSourceStack src, MinecraftServer server, boolean op, Tipos t, Estado.Logros l, int pagina) {
@@ -174,6 +178,8 @@ public final class EstadoCommand {
 				InfoCommand::mediumName);
 		tipo(lineas, op, "heraldia.estado.tipo.minas", Estado.contar(t.minas(), m -> l.hecho(Estado.NS + "minas/" + m)),
 				m -> Textos.t("heraldia.minas." + m + ".nombre"));
+		tipo(lineas, op, "heraldia.estado.tipo.costa", Estado.contar(t.costa(), c -> l.hecho(Estado.NS + "costa/" + c)),
+				c -> Textos.t("heraldia.costa." + c + ".nombre"));
 		tipo(lineas, op, "heraldia.estado.guardianes", Estado.contar(t.guardianes(), u -> l.hecho(Estado.NS + "unicas/" + u + "/guardian")),
 				InfoCommand::uniqueName);
 		boolean arena = cfg.getBool("arena.activado");

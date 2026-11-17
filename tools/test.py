@@ -57,7 +57,8 @@ COMPAT_RUTAS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/g
 # Java de la generación, el generador o la propia prueba), salvo lo de COSTE_SIN (tests y documentación).
 COSTE = "tools/smoke/coste_generacion.py"
 COSTE_RUTAS = [COSTE, "tools/smoke/coste_referencia.json", "tools/gen/*", "gradle.properties",
-               JAVA + "aldeas/*", JAVA + "caminos/*", JAVA + "comun/*", JAVA + "config/*", JAVA + "minas/*", JAVA + "unicas/*",
+               JAVA + "aldeas/*", JAVA + "caminos/*", JAVA + "comun/*", JAVA + "config/*", JAVA + "minas/*", JAVA + "costa/*",
+               JAVA + "unicas/*",
                JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java"]
 COSTE_SIN = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
 MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
@@ -71,6 +72,10 @@ ARENA = ["tools/smoke/arena.py", "tools/smoke/arena_modos.py"]
 COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py"] + ARENA
 # Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
 MINAS = ["tools/smoke/entradas_mina.py"]
+# Faros y naufragios de la costa (T42): su generador (tools/gen/litoral/) y su Java (paquete costa/); su regla es la de las
+# minas (minas/Minas.familia), y el ahogado del semihundido entra en las pruebas que recorren los mobs de las plantillas.
+COSTA = ["tools/smoke/costa.py"]
+COSTA_MOBS = COSTA + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
 # Perfiles de juego (opción «perfil», T36): su prueba de servidor (reinicios con cada perfil y una opción fijada a mano).
 PERFILES = ["tools/smoke/perfiles.py"]
 # Encargos del tablón y reputación por aldea (T38): su Java, el mixin de los precios y sus textos y logros.
@@ -97,7 +102,8 @@ MAPA = [
     ("tools/gen/logros.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"]),
     # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
     ("tools/gen/medianas/*", MEDIANAS_MOBS), (JAVA + "comun/Medianas.java", MEDIANAS),
-    ("tools/gen/minas/*", MINAS), (JAVA + "minas/*", MINAS),
+    ("tools/gen/minas/*", MINAS), (JAVA + "minas/*", MINAS + COSTA),
+    ("tools/gen/litoral/*", COSTA_MOBS), (JAVA + "costa/*", COSTA),
     # /locate de las minas (T36): la caché compartida de alturas y el cálculo adelantado en paralelo solo los usan las minas
     (JAVA + "comun/CacheAlturas.java", MINAS), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINAS),
     # encargos del tablón y reputación (T38)
@@ -268,6 +274,7 @@ DURACION_S = {
     "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque; 2 min 40 s con los 8 tipos
     "tools/smoke/guia.py": 120,                      # tres arranques del servidor
     "tools/smoke/entradas_mina.py": 250,                     # dos arranques (multiplicador 1 y 5), la generación de las minas y /locate lejos
+    "tools/smoke/costa.py": 280,                     # medida en local: ~3 min 50 s (dos arranques, cuatro /locate con su generación y /place junto a playas)
     "tools/smoke/perfiles.py": 110,                  # cuatro arranques del mismo mundo
     "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)

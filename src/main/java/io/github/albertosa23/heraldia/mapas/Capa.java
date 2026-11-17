@@ -7,7 +7,7 @@ import java.util.Locale;
  * (mapas_web.capas.&lt;id&gt;), sale como capa propia que se puede ocultar en el mapa y lleva su icono y su color.
  */
 public enum Capa {
-	UNICAS(0xFFE0B030), ALDEAS(0xFF4CAF50), MEDIANAS(0xFF3F8FD8), MINAS(0xFF8D6E63), ARENA(0xFFD84343);
+	UNICAS(0xFFE0B030), ALDEAS(0xFF4CAF50), MEDIANAS(0xFF3F8FD8), MINAS(0xFF8D6E63), COSTA(0xFF26A69A), ARENA(0xFFD84343);
 
 	/** Color del icono (ARGB). */
 	public final int color;

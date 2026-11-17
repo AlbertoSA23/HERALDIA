@@ -42,7 +42,11 @@ public final class Perfil {
 		/** Búsqueda de la orilla y colocación del puerto de una aldea de costa. */
 		ORILLA,
 		/** Rasgo de los caminos entre aldeas, por chunk. */
-		CAMINOS
+		CAMINOS,
+		/** Regla de colocación de los faros y naufragios (costa/Costa: la de las minas con su familia). */
+		COSTA,
+		/** Búsqueda de la orilla de un faro o un naufragio (costa/Orilla). */
+		COSTA_ORILLA
 	}
 
 	/** Contadores de un perfil (instancia aparte para poder probarlos sin la propiedad del sistema). */

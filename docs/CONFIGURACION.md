@@ -10,7 +10,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor. En los clientes es opcional: con el cliente vanilla se juega igual (los textos que no conoce salen en español, salvo la Guía, que llega en el idioma de cada jugador); con el mod, todo sale en su idioma y está la pantalla de configuración.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 142 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 158 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
@@ -157,6 +157,10 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `minas.entradas.activado` | `true` | `true`/`false` | Activa las [entradas a mina](CONTENIDO.md#entradas-a-mina) (solo en chunks nuevos). |
 | `minas.entradas.separacion_bloques` | 768 | 256-4000 | Separación media entre dos entradas a mina pequeñas; las medianas y las grandes guardan la proporción (x1,5 y x2,5). |
 | `minas.vanilla.multiplicador` | 2.0 | 1-5 | Multiplica la frecuencia de las minas abandonadas vanilla en los chunks nuevos (1 = vanilla; admite decimales, p. ej. 1.5). No cambia los chunks ya generados ni otras estructuras. |
+| `faros.activado` | `true` | `true`/`false` | Activa los [faros](CONTENIDO.md#faros-y-naufragios) de la costa (solo en chunks nuevos). |
+| `faros.separacion_bloques` | 1024 | 256-4000 | Separación media entre dos faros (solo salen donde hay costa: en la práctica, menos). |
+| `naufragios.activado` | `true` | `true`/`false` | Activa los [galeones naufragados](CONTENIDO.md#faros-y-naufragios) (solo en chunks nuevos). |
+| `naufragios.separacion_bloques` | 768 | 256-4000 | Separación media entre dos galeones naufragados (solo salen donde hay costa: en la práctica, menos). |
 | `guia.entregar_al_entrar` | `true` | `true`/`false` | Da la [Guía del Heraldo](CONTENIDO.md#guía-del-heraldo) a cada jugador la primera vez que entra con cada versión del mod. Desactivada, nadie la recibe al entrar, pero `/heraldia guide` sigue dándola. |
 | `update_check.activado` | `true` | `true`/`false` | [Aviso de versión nueva](#aviso-de-versión-nueva-heraldia-update-check): mira GitHub Releases al arrancar y cada 24 h y avisa a los operadores al entrar. Se aplica al reiniciar. |
 | `update_check.prereleases` | `false` | `true`/`false` | Avisa también de las pre-publicaciones (alfa, beta, candidatas). |
@@ -189,7 +193,7 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `mapas_web.activado` | `true` | `true`/`false` | [Marcadores en los mapas web](#mapas-web-heraldia-webmap-refresh) (BlueMap, Dynmap o squaremap); sin ninguno de ellos no hace nada. Desactivado, quita las capas de Heraldia del mapa. |
 | `mapas_web.solo_descubiertas` | `true` | `true`/`false` | Solo salen las de un tipo que algún jugador ha descubierto (los logros de `/heraldia status`); con `false`, todas las ya generadas en chunks que se han cargado. |
 | `mapas_web.idioma` | `auto` | `auto`, `es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es` | Idioma de los nombres, descripciones y capas; `auto` usa el del sistema del servidor (la JVM). |
-| `mapas_web.capas.<capa>` | `true` | `true`/`false` | Una por capa (`unicas`, `aldeas`, `medianas`, `minas`, `arena`): apagada, la capa no sale. |
+| `mapas_web.capas.<capa>` | `true` | `true`/`false` | Una por capa (`unicas`, `aldeas`, `medianas`, `minas`, `costa`, `arena`): apagada, la capa no sale. |
 | `tesoro.activado` | `true` | `true`/`false` | [Caza del tesoro](CONTENIDO.md#caza-del-tesoro): fragmentos de mapa en el botín que llevan por varias estructuras reales hasta un cofre enterrado. Desactivada, no salen fragmentos y los que haya no hacen nada. |
 | `tesoro.probabilidad` | 3.0 | 0-100 (admite decimales) | Probabilidad, en %, de un fragmento en cada cofre de medianas y minas; en los de las únicas, la mitad; en las recompensas de las hazañas del tablón, cinco veces más. |
 | `tesoro.radio_max` | 1500 | 300-4000 | Distancia máxima de cada marca del mapa a la anterior (o a donde se descifra el fragmento), en bloques. |

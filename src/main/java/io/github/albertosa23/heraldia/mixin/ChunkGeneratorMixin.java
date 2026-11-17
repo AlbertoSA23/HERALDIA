@@ -5,6 +5,7 @@ import io.github.albertosa23.heraldia.comun.Perfil;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
+import io.github.albertosa23.heraldia.costa.Costa;
 import io.github.albertosa23.heraldia.minas.Minas;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import io.github.albertosa23.heraldia.unicas.isla.IslaZona;
@@ -112,6 +113,16 @@ abstract class ChunkGeneratorMixin {
 			boolean rechazada = Minas.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
 					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level);
 			Perfil.fin(Perfil.Tramo.MINAS, tm);
+			if (rechazada) {
+				cir.setReturnValue(false);
+			}
+		}
+		if (Costa.esCosta(id)) { // solo en los chunks candidatos de un faro o naufragio: cede a todo lo anterior y a las minas
+			ChunkGenerator self = (ChunkGenerator) (Object) this;
+			long tc = Perfil.inicio();
+			boolean rechazada = Costa.of(registryAccess).rechaza(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
+					self.getBiomeSource(), climateSampler, randomState, templateManager, centerChunk, level);
+			Perfil.fin(Perfil.Tramo.COSTA, tc);
 			if (rechazada) {
 				cir.setReturnValue(false);
 			}

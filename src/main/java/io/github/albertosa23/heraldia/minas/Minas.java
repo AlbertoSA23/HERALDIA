@@ -107,13 +107,28 @@ public final class Minas {
 	}
 
 	private static Minas build(Registry<StructureSet> sets, RegistryAccess access) {
+		HeraldiaConfig cfg = HeraldiaConfig.get();
+		int distancia = cfg.getInt(Medianas.DISTANCIA);
+		Minas m = familia(sets, access, PREFIJO, distancia);
+		LOGGER.info("Heraldia: entradas a mina: {}, {} tamaños, cada {} bloques las pequeñas, a {} bloques de aldeas y únicas y a {} de "
+						+ "las medianas y entre ellas; minas vanilla x{}", cfg.getBool(ACTIVADO) ? "activadas" : "desactivadas", m.tipos(),
+				cfg.getInt(SEPARACION), cfg.getInt(Medianas.ZONA), distancia, cfg.getDouble(MULTIPLICADOR));
+		return m;
+	}
+
+	/**
+	 * La regla de una familia de estructuras con rejilla heraldia:rejilla de grupo «&lt;prefijo&gt;&lt;tipo&gt;» (las minas;
+	 * también los faros y naufragios de costa/Costa, que la reutilizan tal cual): un tipo por structure_set, separados
+	 * entre sí por {@code distancia}. Sin escribir en el log.
+	 */
+	public static Minas familia(Registry<StructureSet> sets, RegistryAccess access, String prefijo, int distancia) {
 		Registry<Structure> structures = access.lookupOrThrow(Registries.STRUCTURE);
 		List<Identifier> tipos = new ArrayList<>();
 		List<List<Identifier>> ids = new ArrayList<>();
 		List<List<Structure>> estilos = new ArrayList<>();
 		List<RandomSpreadStructurePlacement> placements = new ArrayList<>();
 		sets.listElements().forEach(set -> {
-			if (set.value().placement() instanceof GridPlacement g && g.group().startsWith(PREFIJO)) {
+			if (set.value().placement() instanceof GridPlacement g && g.group().startsWith(prefijo)) {
 				List<Identifier> i = new ArrayList<>();
 				List<Structure> s = new ArrayList<>();
 				for (StructureSet.StructureSelectionEntry e : set.value().structures()) {
@@ -129,11 +144,6 @@ public final class Minas {
 				placements.add(g);
 			}
 		});
-		HeraldiaConfig cfg = HeraldiaConfig.get();
-		int distancia = cfg.getInt(Medianas.DISTANCIA);
-		LOGGER.info("Heraldia: entradas a mina: {}, {} tamaños, cada {} bloques las pequeñas, a {} bloques de aldeas y únicas y a {} de "
-						+ "las medianas y entre ellas; minas vanilla x{}", cfg.getBool(ACTIVADO) ? "activadas" : "desactivadas", tipos.size(),
-				cfg.getInt(SEPARACION), cfg.getInt(Medianas.ZONA), distancia, cfg.getDouble(MULTIPLICADOR));
 		return new Minas(sets, tipos, ids, estilos, placements, distancia);
 	}
 
@@ -151,7 +161,7 @@ public final class Minas {
 	}
 
 	/** En el juego: ¿sale algún estilo del tamaño j ahí (bioma y ladera)? En memoria: es la búsqueda de ladera. */
-	private Medianas.Estilos estilos(RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
+	public Medianas.Estilos estilos(RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 									 RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height) {
 		return (j, x, z) -> {
 			Memoria m = memoria(seed);
@@ -204,6 +214,40 @@ public final class Minas {
 			m.decisiones.put(key, v);
 		}
 		return v;
+	}
+
+	/**
+	 * ¿Sale una entrada (de cualquier tipo de la familia) a menos de `bloques` del chunk? La usan los faros y naufragios
+	 * (costa/Costa), que ceden el sitio a las minas sin que estas sepan de ellos: así su regla no cambia. Lógica pura
+	 * (pruebas): con la zona, los estilos, la Atlántida y las medianas cercanas de {@link #rechaza(int, int, int, long,
+	 * Medianas.Zona, Medianas.Estilos, Medianas.Zona, Medianas.Zona)}.
+	 */
+	public boolean cerca(int chunkX, int chunkZ, int bloques, long seed, Medianas.Zona zona, Medianas.Estilos estilos,
+						 Medianas.Zona atlantida, Medianas.Zona medianas) {
+		int alcance = (bloques + 15) / 16;
+		long d2 = (long) bloques * bloques;
+		for (int j = 0; j < tipos.length; j++) {
+			RandomSpreadStructurePlacement p = entre.placement(j);
+			int s = p.spacing(), ox = UniqueSeparation.offsetX(p), oz = UniqueSeparation.offsetZ(p);
+			for (int gx = Math.floorDiv(chunkX - alcance - ox, s), gxMax = Math.floorDiv(chunkX + alcance - ox, s); gx <= gxMax; gx++) {
+				for (int gz = Math.floorDiv(chunkZ - alcance - oz, s), gzMax = Math.floorDiv(chunkZ + alcance - oz, s); gz <= gzMax; gz++) {
+					ChunkPos m = p.getPotentialStructureChunk(seed, gx * s + ox, gz * s + oz);
+					long dx = (m.x() - (long) chunkX) * 16, dz = (m.z() - (long) chunkZ) * 16;
+					if (dx * dx + dz * dz >= d2 || !p.applyAdditionalChunkRestrictions(m.x(), m.z(), seed)) {
+						continue;
+					}
+					if (!atlantida.ocupada(m.x(), m.z()) && estilos.sale(j, m.x(), m.z())
+							&& !rechaza(j, m.x(), m.z(), seed, zona, estilos, atlantida, medianas)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	public int distancia() {
+		return distancia;
 	}
 
 	private Memoria memoria(long seed) {

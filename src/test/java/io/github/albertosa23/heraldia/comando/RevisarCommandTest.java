@@ -46,6 +46,10 @@ class RevisarCommandTest {
 		Parada mina = new Parada("mina/pequena", Tipo.MINA, "pequena");
 		assertTrue(RevisarCommand.deLaParada(mina, h("minas/pequena/roca/a"), estilos));
 		assertFalse(RevisarCommand.deLaParada(mina, h("minas/mediana/roca/a"), estilos));
+		Parada faro = new Parada("costa/faro", Tipo.COSTA, "faro");
+		assertTrue(RevisarCommand.deLaParada(faro, h("costa/faro/templada/a"), estilos));
+		assertFalse(RevisarCommand.deLaParada(faro, h("costa/naufragio/templada/a"), estilos));
+		assertFalse(RevisarCommand.deLaParada(faro, h("unicas/faro"), estilos), "el faro único es su propia parada");
 		assertFalse(RevisarCommand.deLaParada(new Parada("arena", Tipo.ARENA, ""), h("arena"), estilos));
 	}
 

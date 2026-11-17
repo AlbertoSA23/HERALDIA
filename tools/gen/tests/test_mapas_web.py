@@ -45,7 +45,7 @@ def _traduccion(code):
 
 
 def test_capas_del_java():
-    assert capas() == ["unicas", "aldeas", "medianas", "minas", "arena"]
+    assert capas() == ["unicas", "aldeas", "medianas", "minas", "costa", "arena"]
 
 
 def test_el_java_solo_pide_claves_que_existen():

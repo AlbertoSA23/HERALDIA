@@ -30,6 +30,7 @@ class RevisionTest {
 	static final List<String> ESTRUCTURAS = List.of("unicas/torre_mago", "unicas/atlantida", "unicas/castillo",
 			"medianas/posada/llanura", "medianas/ermita/bosque", "medianas/ermita/taiga",
 			"minas/grande/roca/a", "minas/pequena/roca/a", "minas/mediana/arena/b",
+			"costa/naufragio/fria/b", "costa/faro/templada/a", "costa/faro/nevada/b",
 			"bosque_lenadores", "llanuras_castellana_grande", "taiga_pinar", "aldeas_sin_estilo");
 
 	static Map<String, String> estilos() {
@@ -52,6 +53,7 @@ class RevisionTest {
 						"unica/atlantida", "unica/castillo", "unica/torre_mago",
 						"mediana/ermita", "mediana/posada",
 						"mina/pequena", "mina/mediana", "mina/grande",
+						"costa/faro", "costa/naufragio",
 						"arena", "camino"),
 				ruta().stream().map(Parada::id).toList());
 		Parada a = ruta().getFirst();
@@ -67,9 +69,10 @@ class RevisionTest {
 
 	@Test
 	void sinArenaNiCaminosYLoDesactivadoFuera() {
-		List<Parada> r = Revision.ruta(ESTRUCTURAS, estilos(), p -> !p.id().equals("unica/castillo") && p.tipo() != Tipo.MINA, false, false);
+		List<Parada> r = Revision.ruta(ESTRUCTURAS, estilos(), p -> !p.id().equals("unica/castillo") && p.tipo() != Tipo.MINA
+				&& !p.id().equals("costa/faro"), false, false);
 		assertEquals(List.of("aldea/llanuras", "aldea/bosque", "aldea/taiga", "unica/atlantida", "unica/torre_mago",
-				"mediana/ermita", "mediana/posada"), r.stream().map(Parada::id).toList());
+				"mediana/ermita", "mediana/posada", "costa/naufragio"), r.stream().map(Parada::id).toList());
 		assertTrue(Revision.ruta(List.of(), Map.of(), p -> true, false, false).isEmpty());
 	}
 
