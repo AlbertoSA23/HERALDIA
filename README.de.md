@@ -21,9 +21,10 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 - 📊 **Was der Server gefunden hat.** `/heraldia status` zeigt, wie viele Dörfer, einzigartige und mittelgroße Bauwerke und Minen die Spieler entdeckt haben, die besiegten Wächter, den Arenarekord und die abgegebenen Aufträge.
 - 📋 **Dorfaufträge.** Berühre das Pult des Auftragsbretts auf einem Dorfplatz (oder nutze dort `/heraldia quest`): 2 bis 4 Aufträge erscheinen im Chat (Gegenstände bringen, einen Wächter besiegen, erkunden, ins Nachbardorf reisen, die Arena) und wechseln alle paar Tage. Sie zahlen Smaragde, Erfahrung und Ruf bei diesem Dorf: als Bekannter, Freund und Held des Dorfes senken seine Dorfbewohner ihre Preise um 10, 20 und 30 %. Wer seine Dorfbewohner oder Golems angreift, verliert Ruf.
 - 🐪 **Karawanen.** Ab und zu zieht in deiner Nähe ein Händler von Heraldia mit seinen Lamas (und manchmal einer Wache) über den Weg zwischen zwei benachbarten Dörfern. Überfallen ihn Banditen, verteidige ihn: Bei der Ankunft zahlt er Smaragde und Ruf bei seinem Zieldorf. Stirbt der Händler, ist die Karawane verloren.
-- 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 99 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die mittelgroßen Bauwerke, das Auftragsbrett, die Arena und die Karawanen.
+- 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 101 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die mittelgroßen Bauwerke, das Auftragsbrett, die Arena und die Karawanen.
 - 🗿 **Trophäen.** Jeder der 20 Hüter lässt seine Trophäe fallen, einen Gegenstand mit Namen und Geschichte. Sammle sie alle, um den Trophäensaal zu vervollständigen.
 - 🗺️ **Schatzkarten.** Jede Karte zeigt das nächstgelegene einzigartige Bauwerk ihrer Art. Du findest sie in den epischen Truhen der Dörfer, und die Kartografen verkaufen sie.
+- 🧭 **Schatzsuche.** Manchmal liegt in einer Truhe ein Schatzkartenfragment. Benutze es, und es wird eine Karte mit einer Markierung: Jede Markierung ist ein echtes Heraldia-Bauwerk, das den nächsten Hinweis verbirgt, und die letzte führt zu einer von Ysolda vergrabenen Truhe mit guter Beute und einem Andenken.
 - 📜 **Die Chronik der Herolde.** Jedes einzigartige Bauwerk birgt ein Blatt der Chronik, die Ysolda geschrieben hat, die letzte Heroldin von Atlantis. Jedes Blatt weist auf das nächste: Sammle alle 20, und du erfährst, wie sie endet.
 
 Die Texte des Mods gibt es in 8 Sprachen: Englisch, Spanisch, Französisch, Deutsch, Italienisch, brasilianisches Portugiesisch, Katalanisch und Galicisch.
@@ -64,6 +65,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `guia.entregar_al_entrar` | `true` | Gibt jedem Spieler beim Betreten den Leitfaden des Herolds. |
 | `update_check.activado` | `true` | Meldet Operatoren, wenn es eine neue Version gibt. |
 | `mapas_web.solo_descubiertas` | `true` | Auf der Webkarte nur bereits entdeckte Bauwerke. |
+| `tesoro.probabilidad` | 3.0 | Wahrscheinlichkeit (%) eines Schatzkartenfragments in jeder Truhe der mittelgroßen Bauwerke und Minen. |
 
 ## Mehr erfahren
 

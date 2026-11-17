@@ -91,12 +91,21 @@ Si el servidor tiene [BlueMap](https://modrinth.com/plugin/bluemap), [Dynmap](ht
 - Qué sale: las estructuras de Heraldia de los chunks que se han cargado alguna vez desde que hay un mapa web (se apuntan al cargarse cada chunk y se guardan en `heraldia_mapas_web.json`, en la carpeta del mundo) y la arena colocada. Con `mapas_web.solo_descubiertas` (por defecto), solo las de un tipo que algún jugador ya ha descubierto, con los mismos logros que cuenta [`/heraldia status`](#estado-del-servidor-heraldia-status-page): una aldea, cuando alguien tiene el logro de su familia; una única, el de descubrirla; una mediana, el criterio de su tipo; una entrada de mina, el de su tamaño. La arena sale siempre.
 - Cuándo se actualiza: al arrancar, en cuanto alguien consigue un logro de Heraldia, al aparecer una estructura nueva, tras [`/heraldia reload`](#recarga-en-caliente-heraldia-reload) (las opciones `mapas_web.*` se recargan) y con `/heraldia webmap refresh` (operadores, nivel 2: vuelve a leer los logros de todos los jugadores y dice cuántos marcadores ha puesto). Todo va en un hilo propio, como mucho una actualización cada 2 s; en el hilo del servidor solo se mira la lista de inicios de estructura de cada chunk que se carga.
 
+### Búsqueda del tesoro: `/heraldia treasure`
+
+Para operadores (nivel 2), para probar la [caza del tesoro](CONTENIDO.md#caza-del-tesoro):
+
+- `/heraldia treasure give [players]`: da un fragmento de mapa del tesoro sin descifrar (la tabla `heraldia:tesoro/fragmento`) a los jugadores (sin argumento, a quien lo ejecuta).
+- `/heraldia treasure info`: la cadena del mapa que llevas en la mano principal: semilla, marca en curso y cada destino (tipo, coordenadas clicables, estructura o bioma, generada o prevista) y, si ya está, dónde se enterró el cofre. También la deja en el log («Heraldia: tesoro: info {…}»).
+
+El jugador no necesita comandos: usa el fragmento y el mapa con clic derecho. El log dice cuánto tardó en elegirse cada cadena (fuera del hilo del servidor) y en buscarse el sitio de cada cofre.
+
 ### Recarga en caliente: `/heraldia reload`
 
 Para operadores (nivel 2). Vuelve a leer `config/heraldia.json` sin reiniciar el servidor (sin reescribirlo) y aplica lo que no afecta a la generación:
 
 - `dificultad.*`: se recalculan los modificadores de vida y daño de los mobs de Heraldia ya cargados (los demás, al cargarse), conservando la proporción de su vida actual.
-- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (los tratos se sortean al subir de nivel un aldeano), `unicas.atlantida.cofre_unico_por_jugador`, `mapas_web.*` (los marcadores se rehacen al recargar), `encargos.*`, `reputacion.*` y `caravanas.*` (con `caravanas.activado` a `false`, la caravana en camino se va): se leen cada vez que se usan.
+- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (los tratos se sortean al subir de nivel un aldeano), `unicas.atlantida.cofre_unico_por_jugador`, `mapas_web.*` (los marcadores se rehacen al recargar), `tesoro.*` (al tirar el botín y al usar una pista), `encargos.*`, `reputacion.*` y `caravanas.*` (con `caravanas.activado` a `false`, la caravana en camino se va): se leen cada vez que se usan.
 - `perfil` (el [perfil de juego](#perfiles-de-juego)): se aplica entero, con lo fijado a mano encima (todas sus opciones son de estas).
 - `golems.*`: se publican otra vez los límites a las funciones de los gólems.
 - `arena.*` (salvo `arena.generar_en_mundos_nuevos`, que solo cuenta al arrancar un mundo nuevo): incrementos, máximo de vivos, experiencia y si está activada. Con una partida en marcha no cambian hasta que acabe (vuelve a recargar entonces).
@@ -174,6 +183,9 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `mapas_web.solo_descubiertas` | `true` | `true`/`false` | Solo salen las de un tipo que algún jugador ha descubierto (los logros de `/heraldia status`); con `false`, todas las ya generadas en chunks que se han cargado. |
 | `mapas_web.idioma` | `auto` | `auto`, `es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es` | Idioma de los nombres, descripciones y capas; `auto` usa el del sistema del servidor (la JVM). |
 | `mapas_web.capas.<capa>` | `true` | `true`/`false` | Una por capa (`unicas`, `aldeas`, `medianas`, `minas`, `arena`): apagada, la capa no sale. |
+| `tesoro.activado` | `true` | `true`/`false` | [Caza del tesoro](CONTENIDO.md#caza-del-tesoro): fragmentos de mapa en el botín que llevan por varias estructuras reales hasta un cofre enterrado. Desactivada, no salen fragmentos y los que haya no hacen nada. |
+| `tesoro.probabilidad` | 3.0 | 0-100 (admite decimales) | Probabilidad, en %, de un fragmento en cada cofre de medianas y minas; en los de las únicas, la mitad; en las recompensas de las hazañas del tablón, cinco veces más. |
+| `tesoro.radio_max` | 1500 | 300-4000 | Distancia máxima de cada marca del mapa a la anterior (o a donde se descifra el fragmento), en bloques. |
 
 La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
 
@@ -208,7 +220,7 @@ La opción `perfil` fija de golpe un conjunto de opciones de juego (nunca de la 
 
 En el cliente el fichero también se puede editar desde una pantalla del juego. Con [Mod Menu](https://modrinth.com/mod/modmenu) instalado (opcional; sin él el mod funciona igual, solo que la pantalla no tiene botón) se abre desde el botón de configuración de Heraldia en la lista de mods. Se construye con la misma lista de opciones que el fichero, así que las opciones nuevas aparecen solas:
 
-- Secciones: Perfil de juego, Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Caminos entre aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas, Compatibilidad con otros mods, Botín, Dificultad y Mapas web, con un buscador (por nombre, clave, ayuda o sección).
+- Secciones: Perfil de juego, Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Caminos entre aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas, Compatibilidad con otros mods, Botín, Dificultad, Mapas web y Búsqueda del tesoro, con un buscador (por nombre, clave, ayuda o sección).
 - Cada opción muestra su valor (botón sí/no, casilla numérica o un botón que recorre los valores de una opción de lista como `dificultad.nivel`). Su tooltip da la clave, la ayuda (la misma de `_ayuda`) y el valor por defecto y el rango. Un número no válido se pone en rojo, el tooltip dice por qué y **Guardar** queda desactivado hasta corregirlo.
 - Perfil de juego: al cambiarlo, las opciones que tenían el valor del perfil anterior pasan al del nuevo; las que tenían otro (fijadas a mano) se quedan como estaban, con el nombre en dorado, y su tooltip dice el valor del perfil y que mandan sobre él. El tooltip del propio perfil dice el perfil efectivo y qué opciones difieren. Al guardar, solo se escriben como fijadas a mano las que no tienen el valor del perfil.
 - **Guardar** escribe `config/heraldia.json` con el mismo formato que al arrancar (con `version` y `_ayuda`); **Valores por defecto** devuelve todas las opciones a su valor por defecto (no se escribe nada hasta guardar); **Cancelar** descarta los cambios.

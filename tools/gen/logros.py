@@ -19,6 +19,7 @@
   minas/pequena, minas/mediana, minas/grande   cadena de las entradas a mina (minas.LOGROS): entrar en una de cada tamaño
   unicas/cronista              (desafío) reunir los pliegos de la Crónica de los Heraldos (HISTORIA de cada módulo,
                                custom_data heraldia_historia; un criterio inventory_changed por pliego, todos requeridos)
+  tesoro/fragmento, tesoro/cofre   búsqueda del tesoro (tesoro.py): conseguir un fragmento y abrir el cofre enterrado
 Contrato opcional en cada módulo de unicas/ (ver unicas/__init__.py): LOGRO = {"icono", "tesoro", "tesoro_objeto", "extra"}.
 Recompensas: solo experiencia (Decisiones de Alberto: nada que rompa la progresión).
 """
@@ -232,6 +233,10 @@ def build(reg, modules, medianas_mods=None, minas_mod=None):
     title, desc = text("unicas/cronista", "cronista")
     advs["unicas/cronista"] = advancement("raiz", CHRONICLE_ICON, title, desc, crit,
                                           requirements=[[sid] for sid in sorted(crit)], frame="challenge", xp=XP["cronista"])
+    import tesoro   # búsqueda del tesoro (T40): tesoro/fragmento y tesoro/cofre (y sus textos, tesoro.lang_logros)
+    advs.update(tesoro.logros())
+    for idioma, textos in tesoro.lang_logros().items():
+        lang[idioma].update(textos)
     return advs, lang
 
 

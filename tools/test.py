@@ -64,6 +64,8 @@ MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
 MAPAS_WEB = ["tools/smoke/mapas_web.py"]
+# Búsqueda del tesoro (T40): su Java (paquete tesoro/) y su generador (tablas, textos, logros).
+TESORO = ["tools/smoke/tesoro.py"]
 COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py", "tools/smoke/arena.py"]
 # Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
 MINAS = ["tools/smoke/entradas_mina.py"]
@@ -132,6 +134,8 @@ MAPA = [
     (JAVA + "comando/AvisoVersion.java", UPDATE), (JAVA + "version/*", UPDATE),
     # mapas web (T37): su Java (con los adaptadores), el mixin de los logros y su prueba con squaremap y sin mapas
     (JAVA + "mapas/*", MAPAS_WEB), (JAVA + "mixin/PlayerAdvancementsMixin.java", MAPAS_WEB),
+    # búsqueda del tesoro (T40): su Java y su generador; la recompensa de las hazañas del tablón va en tablon.py (arriba)
+    (JAVA + "tesoro/*", TESORO), ("tools/gen/tesoro.py", TESORO),
     (JAVA + "comando/*", []),
     # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
     (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
@@ -272,6 +276,7 @@ DURACION_S = {
     "tools/smoke/mapas_web.py": 240,                 # tres arranques (sin mapas, con squaremap y Carpet, y tras reiniciar)
     "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
     "tools/smoke/encargos.py": 150,                  # dos arranques del mismo mundo y una aldea generada
+    "tools/smoke/tesoro.py": 130,                    # medida en local: ~1 min 40 s (tres arranques, la cadena entera y el cofre)
     "tools/smoke/caravanas.py": 240,                 # medida en local: ~3,5 min (dos arranques, 387 chunks de pasillo y 5 caravanas)
 }
 DEFECTO_S = 90

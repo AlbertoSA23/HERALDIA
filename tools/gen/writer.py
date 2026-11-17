@@ -21,6 +21,7 @@ import jefes
 import biomas
 import logros
 import idiomas
+import tesoro
 import paralelo
 from unicas._comun import botin
 
@@ -250,12 +251,16 @@ def write(reg, out):
         jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
     mapas.write(out, uniques, jdump)
     tratos.write(out, uniques, jdump)
+    con_pista = tesoro.tablas_en_contenedores(reg)       # el fragmento del tesoro, solo en cofres, barriles y vasijas
     for sid, mod in unicas.modules():
         for name, table in getattr(mod, "LOOT", {}).items():
             if name == mod.HISTORIA["cofre"]:
                 table = botin.con_historia(table, sid)   # su pliego de la Crónica de los Heraldos
+            if f"{NS}:unicas/{sid}/{name}" in con_pista:
+                table = tesoro.con_pista(table, "unicas")
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
     write_history(out, uniques)
+    tesoro.write(out, jdump)                            # búsqueda del tesoro: fragmento, cofre final y logros
     jdump(out, f"{NS}/llaves.json", write_keys(out))
     write_trophies(out, reg)
     # fases y refuerzos de los guardianes (comun/jefes en Java)
@@ -338,6 +343,9 @@ def write(reg, out):
     traducidos = idiomas.completar(textos(reg), paginas_de_libros(reg, out),
                                    idiomas.claves_de_carteles(nbt for t in reg.templates.values() for _, nbt in t.blocks.values() if nbt))
     guia.write(out, uniques, jdump, {c: t for c, t in traducidos.items() if c not in idiomas.BASE})
+    e = tesoro.errores({c: t for c, t in traducidos.items() if c not in idiomas.BASE})
+    if e:
+        raise SystemExit("\n".join(e))
     jdump(out, f"{NS}/idiomas.json", {"lenguas": idiomas.lenguas()})
     for lang, texts in traducidos.items():
         jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
@@ -356,7 +364,7 @@ def textos(reg):
             out[lang].update(texts)
     partes = [mapas.lang(uniques), logros.build(reg, uniques, medianas.modules(), minas)[1], tratos.lang(),
               tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), encargos.lang(), caravanas.lang(),
-              trophies_lang(), botin.historia_lang(uniques)]
+              trophies_lang(), botin.historia_lang(uniques), tesoro.lang()]
     for parte in partes:
         assert parte["es_es"].keys() == parte["en_us"].keys()
         for lang, texts in parte.items():

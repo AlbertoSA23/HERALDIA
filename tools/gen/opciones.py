@@ -265,6 +265,22 @@ _FIXED = [
      "Capa de las entradas de mina en los mapas web", "Mine entrances layer on the web maps"),
     ("mapas_web.capas.arena", True, None, None,
      "Capa de la arena de oleadas en los mapas web", "Wave arena layer on the web maps"),
+    ("tesoro.activado", True, None, None,
+     "Búsqueda del tesoro: a veces sale un fragmento de mapa en los cofres de las medianas, las minas y las únicas (y "
+     "como recompensa de las hazañas del tablón); descifrado, lleva por varias estructuras reales hasta un cofre "
+     "enterrado. Desactivada, no salen fragmentos y los que haya no hacen nada",
+     "Treasure hunt: now and then a map fragment turns up in the chests of medium structures, mines and unique ones (and "
+     "as a reward for job-board feats); once deciphered it leads through several real structures to a buried chest. "
+     "Disabled, no fragments appear and existing ones do nothing"),
+    ("tesoro.probabilidad", 3.0, 0, 100,
+     "Probabilidad de que un cofre de una mediana o de una mina lleve un fragmento de mapa del tesoro, en % (admite "
+     "decimales; en los de las únicas, la mitad; en las recompensas del tablón, cinco veces más)",
+     "Chance that a chest of a medium structure or a mine holds a treasure map fragment, in % (decimals allowed; half "
+     "that in unique structures' chests, five times that in job-board rewards)"),
+    ("tesoro.radio_max", 1500, 300, 4000,
+     "Distancia máxima, en bloques, de cada marca del mapa del tesoro a la anterior (o a donde se descifra el fragmento)",
+     "Maximum distance, in blocks, from each mark of the treasure map to the previous one (or to where the fragment is "
+     "deciphered)"),
 ]
 # Perfiles de juego (opción «perfil»): cada uno fija de golpe estas opciones de juego (nunca de la generación). «estandar»
 # es exactamente el comportamiento de siempre (los valores por defecto); «personalizado» no fija nada (cada opción con su
@@ -409,6 +425,9 @@ _NAMES = {
     "mapas_web.capas.medianas": ("Capa: estructuras medianas", "Layer: medium structures"),
     "mapas_web.capas.minas": ("Capa: entradas de mina", "Layer: mine entrances"),
     "mapas_web.capas.arena": ("Capa: arena", "Layer: arena"),
+    "tesoro.activado": ("Búsqueda del tesoro", "Treasure hunt"),
+    "tesoro.probabilidad": ("Fragmentos por cofre (%)", "Fragments per chest (%)"),
+    "tesoro.radio_max": ("Distancia máxima entre marcas (bloques)", "Maximum distance between marks (blocks)"),
 }
 # Nombre de cada valor de las opciones de lista: {clave: {valor: (es_es, en_us)}}.
 _VALUE_NAMES = {
@@ -456,6 +475,7 @@ SECTIONS = [
     ("caravanas", "Caravanas", "Caravans"),
     ("actualizaciones", "Actualizaciones", "Updates"),
     ("mapas_web", "Mapas web", "Web maps"),
+    ("tesoro", "Búsqueda del tesoro", "Treasure hunt"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
 # (si no encaja en ninguna, la generación falla).
@@ -467,7 +487,7 @@ _SECTION_PREFIXES = [
     ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
     ("caravanas.", "caravanas"),
-    ("update_check.", "actualizaciones"), ("mapas_web.", "mapas_web"),
+    ("update_check.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
 ]
 
 

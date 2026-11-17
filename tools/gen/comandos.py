@@ -36,6 +36,7 @@ CANONICOS = [
     "status", "status <page>", "reload", "update", "update check",
     "profile",                                   # T36: el perfil de juego
     "webmap", "webmap refresh",
+    "treasure", "treasure give", "treasure give <players>", "treasure info",   # T40: búsqueda del tesoro (operadores)
     "quest", "quest list", "quest accept", "quest accept <number>", "quest abandon", "quest abandon <number>",
     "quest turnin",                              # T38: los encargos del tablón
     "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",

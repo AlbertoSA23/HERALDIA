@@ -196,6 +196,7 @@ def write(out, jdump):
     """Estructuras, etiquetas de biomas y de estructura, structure_sets, botín y la colocación de las minas vanilla."""
     import biomas
     from writer import lootr_aware
+    import tesoro
     todas = []
     biomas.CONVENCIONALES[PREFIJO] = sorted({c for d in ESTILOS.values() for c in d.get("convencionales", [])})
     biomas.etiqueta(out, PREFIJO, sorted({b for d in ESTILOS.values() for b in d["biomas"]}))
@@ -216,7 +217,7 @@ def write(out, jdump):
         todas += ids
     jdump(out, f"data/{NS}/tags/worldgen/structure/{PREFIJO}.json", {"values": todas})
     for name, tabla in LOOT.items():
-        jdump(out, f"data/{NS}/loot_table/{PREFIJO}/{name}.json", lootr_aware(tabla))
+        jdump(out, f"data/{NS}/loot_table/{PREFIJO}/{name}.json", lootr_aware(tesoro.con_pista(tabla, "minas")))
     jdump(out, "data/minecraft/worldgen/structure_set/mineshafts.json", VANILLA_SET)
     return lang()
 

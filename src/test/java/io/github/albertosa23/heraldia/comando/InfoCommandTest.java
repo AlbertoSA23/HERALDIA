@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -34,5 +36,14 @@ class InfoCommandTest {
 		assertEquals("ne", InfoCommand.direction(47, -100)); // ~25,2°
 		assertEquals("e", InfoCommand.direction(100, 36));
 		assertEquals("s", InfoCommand.direction(0, 0)); // sin desplazamiento: atan2(0, 0) = 0, el sur
+	}
+
+	@Test
+	void unChunkGuardadoAMedioGenerarNoCuentaComoGenerado() {
+		assertFalse(InfoCommand.conEstructuras("minecraft:empty"));
+		assertTrue(InfoCommand.conEstructuras("minecraft:structure_starts"));
+		assertTrue(InfoCommand.conEstructuras("minecraft:features"));
+		assertTrue(InfoCommand.conEstructuras("minecraft:full"));
+		assertTrue(InfoCommand.conEstructuras(""), "sin estado, como antes");
 	}
 }

@@ -21,9 +21,10 @@ Un mod de Fabric para **Minecraft 26.3** que llena el Overworld de sitios por lo
 - 📊 **Lo que ha encontrado el servidor.** `/heraldia status` dice cuántas aldeas, estructuras únicas, medianas y minas han descubierto los jugadores, los guardianes vencidos, el récord de la arena y los encargos entregados.
 - 📋 **Encargos de las aldeas.** Toca el atril del tablón de la plaza de una aldea (o usa allí `/heraldia quest`): salen en el chat de 2 a 4 encargos (traer objetos, vencer a un guardián, explorar, viajar a una aldea vecina, la arena) que cambian cada pocos días. Pagan esmeraldas, experiencia y reputación con esa aldea: como conocido, amigo y héroe de la aldea, sus aldeanos rebajan los precios un 10, 20 y 30 %. Atacar a sus aldeanos o gólems la baja.
 - 🐪 **Caravanas.** De vez en cuando, cerca de ti, un mercader de Heraldia con sus llamas (y a veces un guardia) recorre el camino entre dos aldeas vecinas. Si lo asaltan los bandidos, defiéndelo: al llegar te paga esmeraldas y reputación con su aldea de destino. Si el mercader muere, la caravana se pierde.
-- 🏆 **Logros.** Una pestaña Heraldia con 99 logros: una aldea de cada familia, cada estructura única con su guardián y su tesoro, las minas, las estructuras medianas, el tablón de encargos, la arena y las caravanas.
+- 🏆 **Logros.** Una pestaña Heraldia con 101 logros: una aldea de cada familia, cada estructura única con su guardián y su tesoro, las minas, las estructuras medianas, el tablón de encargos, la arena y las caravanas.
 - 🗿 **Trofeos.** Cada uno de los 20 guardianes suelta su trofeo, un objeto con nombre e historia. Reúnelos todos para completar la Sala de trofeos.
 - 🗺️ **Mapas del tesoro.** Cada mapa marca la estructura única más cercana de su tipo. Salen en los cofres épicos de las aldeas y los venden los cartógrafos.
+- 🧭 **Caza del tesoro.** A veces un cofre guarda un fragmento de mapa del tesoro. Úsalo y se volverá un mapa con una marca: cada marca es una estructura real de Heraldia que esconde la siguiente pista, y la última lleva a un cofre que enterró Ysolda, con buen botín y un recuerdo.
 - 📜 **La Crónica de los Heraldos.** Cada estructura única guarda un pliego de la crónica que escribió Ysolda, la última heraldo de la Atlántida. Cada pliego señala el siguiente: reúne los 20 y sabrás cómo acaba.
 
 Los textos del mod están en 8 idiomas: inglés, español, francés, alemán, italiano, portugués de Brasil, catalán y gallego.
@@ -64,6 +65,7 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 | `guia.entregar_al_entrar` | `true` | Da la Guía del Heraldo a cada jugador al entrar. |
 | `update_check.activado` | `true` | Avisa a los operadores cuando hay una versión nueva. |
 | `mapas_web.solo_descubiertas` | `true` | En el mapa web solo salen las estructuras ya descubiertas. |
+| `tesoro.probabilidad` | 3.0 | Probabilidad (%) de un fragmento de mapa del tesoro en cada cofre de medianas y minas. |
 
 ## Para saber más
 
