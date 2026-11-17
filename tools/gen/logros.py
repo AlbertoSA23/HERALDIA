@@ -17,6 +17,8 @@
   medianas/<id>/<extra>        logros propios de un tipo de mediana (LOGROS del módulo: abrir uno de sus contenedores o
                                criterios propios)
   minas/pequena, minas/mediana, minas/grande   cadena de las entradas a mina (minas.LOGROS): entrar en una de cada tamaño
+  costa/faro, costa/naufragio, costa/camarote  faros y naufragios (costa.LOGROS): entrar en un faro, en un galeón
+                               naufragado y abrir el cofre de su camarote
   unicas/cronista              (desafío) reunir los pliegos de la Crónica de los Heraldos (HISTORIA de cada módulo,
                                custom_data heraldia_historia; un criterio inventory_changed por pliego, todos requeridos)
   tesoro/fragmento, tesoro/cofre   búsqueda del tesoro (tesoro.py): conseguir un fragmento y abrir el cofre enterrado
@@ -115,7 +117,7 @@ def guardians(reg, sid):
     return sorted(found.items())
 
 
-def build(reg, modules, medianas_mods=None, minas_mod=None):
+def build(reg, modules, medianas_mods=None, minas_mod=None, costa_mod=None):
     """{ruta: advancement} y textos {"es_es": {...}, "en_us": {...}} (claves con el texto propio; los %s del título y
     la descripción se rellenan con "with")."""
     advs, lang = {}, {"es_es": {}, "en_us": {}}
@@ -135,6 +137,8 @@ def build(reg, modules, medianas_mods=None, minas_mod=None):
         raiz["mediana"] = location(f"#{NS}:medianas")
     if minas_mod:
         raiz["mina"] = location(f"#{NS}:minas")
+    if costa_mod:
+        raiz["costa"] = location(f"#{NS}:costa")
     advs["raiz"] = advancement(None, ROOT_ICON, title, desc, raiz, requirements=[sorted(raiz)], background=BACKGROUND,
                                announce_to_chat=False, show_toast=False)
     if medianas_mods:   # estructuras medianas (medianas/): una cualquiera y una de cada tipo
@@ -166,6 +170,20 @@ def build(reg, modules, medianas_mods=None, minas_mod=None):
                                      {tam: location(f"#{NS}:minas/{tam}")}, frame="goal" if tam == "grande" else "task",
                                      xp=minas_mod.XP[tam])
             padre = path
+    if costa_mod:   # faros y naufragios: entrar en uno de cada tipo y abrir el cofre del camarote del galeón
+        for lid, d in costa_mod.LOGROS.items():
+            path = f"costa/{lid}"
+            for part, field in (("title", "titulo"), ("description", "descripcion")):
+                lang["es_es"][key(path, part)], lang["en_us"][key(path, part)] = d[field]
+            if "tabla" in d:
+                crit = {d["tabla"]: {"trigger": "minecraft:player_generates_container_loot",
+                                     "conditions": {"loot_tables": costa_mod.tabla_id(d["tabla"])}}}
+            else:
+                crit = {d["criterio"][0]: location(d["criterio"][1])}
+            padre = f"costa/{d['padre']}" if d.get("padre") else "raiz"
+            advs[path] = advancement(padre, d["icono"], comp(key(path, "title"), d["titulo"][0]),
+                                     comp(key(path, "description"), d["descripcion"][0]), crit, xp=costa_mod.XP[lid],
+                                     requirements=[sorted(crit)])
     # aldeas por familia
     for fam, d in FAMILIES.items():
         es, en = d["nombre"]
@@ -253,7 +271,8 @@ def write(out, reg, modules, jdump):
     for path, values in structure_tags(modules).items():
         jdump(out, f"data/{NS}/tags/worldgen/structure/{path}.json", {"values": values})
     import medianas, minas
-    advs, lang = build(reg, modules, medianas.modules(), minas)
+    import litoral as costa
+    advs, lang = build(reg, modules, medianas.modules(), minas, costa)
     for path, adv in advs.items():
         jdump(out, f"data/{NS}/advancement/{path}.json", adv)
     return lang

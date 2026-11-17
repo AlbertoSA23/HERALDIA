@@ -135,7 +135,7 @@ def test_grupos_reparten_sin_pasar_del_tope():
     tope = max(sel.TOPE_GRUPO_S, largo)
     assert all(sum(sel.DURACION_S[p] for p in x) <= tope for x in g)
     assert len(g) <= 18                     # con la compilación y la de humo, en una tanda de 20 jobs gratis
-    assert len(sel.grupos(SIN_COMPAT)) <= 12  # un PR con cambios comunes (sin las de compatibilidad) deja máquinas libres
+    assert len(sel.grupos(SIN_COMPAT)) <= 13  # un PR con cambios comunes (sin las de compatibilidad) deja máquinas libres (13 con T43: + compilación, humo, JUnit largas, coste y selección = 18 de 20)
     assert sel.grupos([]) == [] and sel.grupos(TODAS) == g                # determinista
     assert sel.grupos(["x/nueva.py"]) == [["x/nueva.py"]]                  # sin duración medida: DEFECTO_S
 
@@ -169,12 +169,22 @@ def test_minas():
     m = ["tools/smoke/entradas_mina.py"]
     assert elige("tools/gen/minas/planos.py") == (False, m)
     assert elige("tools/gen/minas/__init__.py") == (False, m)
-    assert elige(J + "minas/Ladera.java") == (False, m)
+    assert elige(J + "minas/Ladera.java") == (False, sorted(m + ["tools/smoke/costa.py"])), "la regla de la costa es la de las minas"
     assert elige("tools/smoke/entradas_mina.py") == (False, m)
     # T36: la caché compartida de alturas y el /locate en paralelo (solo los usan las minas)
     assert elige(J + "comun/CacheAlturas.java") == (False, m)
     assert elige(J + "mixin/ChunkGeneratorLocateMixin.java") == (False, m)
-    assert elige(J + "minas/LocateParalelo.java") == (False, m)
+    assert elige(J + "minas/LocateParalelo.java") == (False, sorted(m + ["tools/smoke/costa.py"]))
+
+
+def test_costa():
+    c = ["tools/smoke/costa.py"]
+    mobs = c + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
+    assert elige("tools/gen/litoral/obras.py") == (False, mobs), "el ahogado del semihundido"
+    assert elige("tools/gen/litoral/__init__.py") == (False, mobs)
+    assert elige(J + "costa/Orilla.java") == (False, c)
+    assert elige("tools/smoke/costa.py") == (False, c)
+    assert sel.coste([J + "costa/Orilla.java"]) and sel.coste(["tools/gen/litoral/obras.py"])
 
 
 def test_perfiles():

@@ -27,12 +27,14 @@ LADO_A, ANILLO_B, ANILLO_C = 8, 4, 3          # chunks
 # «Antes»: lo que no existía en la versión con la que se generó el mundo, apagado.
 CONFIG_ANTES = {"unicas": {"rejilla_compatible": True}, "aldeas": {"caminos": {"activado": False}},
                 "medianas": {"activadas": False}, "minas": {"entradas": {"activado": False}, "vanilla": {"multiplicador": 1.0}},
+                "faros": {"activado": False}, "naufragios": {"activado": False},
                 "arena": {"activado": False}, "botin": {"reponer": {"activado": False}}, "guia": {"entregar_al_entrar": False}}
 # Tercer arranque: casi todo distinto de lo de por defecto.
 CONFIG_OTRA = {"unicas": {"rejilla_compatible": False, "distancia_minima": {"bloques": 1500}},
                "aldeas": {"porcentaje_grandes": 60, "caminos": {"activado": True, "ancho": 5, "distancia_maxima_bloques": 4000},
                           "vida": {"tablon": False}},
                "medianas": {"activadas": False}, "minas": {"entradas": {"separacion_bloques": 1024}, "vanilla": {"multiplicador": 5.0}},
+               "faros": {"separacion_bloques": 256}, "naufragios": {"separacion_bloques": 256},
                "golems": {"limpieza": False}, "jefes": {"fases": {"activado": False}, "refuerzos": {"activado": False}},
                "botin": {"reponer": {"activado": True, "dias": 1}},
                "dificultad": {"nivel": "heroica", "escalar_por_jugadores": True, "escalar_botin": False},

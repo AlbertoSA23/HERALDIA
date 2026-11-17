@@ -10,7 +10,7 @@ Requirements: Minecraft 26.3, Fabric Loader 0.20.1 or later and Fabric API (test
 
 1. Build `heraldia-<version>.jar` (see below).
 2. Copy it into the server's `mods` folder. On clients it is optional: a vanilla client plays the same (texts it does not know show in Spanish, except the Guide, which arrives in each player's language); with the mod everything shows in its language and the configuration screen is available.
-3. Start the server. `logs/latest.log` should show `Heraldia: 148 estructuras registradas`.
+3. Start the server. `logs/latest.log` should show `Heraldia: 164 estructuras registradas`.
 
 In an existing world, structures only appear in chunks that have not been generated yet.
 `/reload` does not reload world generation: you must restart the server (or leave and re-enter the world in single player).
@@ -158,6 +158,10 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `minas.entradas.activado` | `true` | `true`/`false` | Enables the [mine entrances](CONTENT.md#mine-entrances) (new chunks only). |
 | `minas.entradas.separacion_bloques` | 768 | 256-4000 | Average spacing between two small mine entrances; medium and large ones keep the ratio (x1.5 and x2.5). |
 | `minas.vanilla.multiplicador` | 2.0 | 1-5 | Multiplies how often vanilla abandoned mineshafts appear in new chunks (1 = vanilla; decimals allowed, e.g. 1.5). Does not change chunks already generated or other structures. |
+| `faros.activado` | `true` | `true`/`false` | Turns on the coastal [lighthouses](CONTENT.md#lighthouses-and-wrecks) (new chunks only). |
+| `faros.separacion_bloques` | 1024 | 256-4000 | Average spacing between two lighthouses (they only spawn where there is coast: fewer in practice). |
+| `naufragios.activado` | `true` | `true`/`false` | Turns on the [wrecked galleons](CONTENT.md#lighthouses-and-wrecks) (new chunks only). |
+| `naufragios.separacion_bloques` | 768 | 256-4000 | Average spacing between two wrecked galleons (they only spawn where there is coast: fewer in practice). |
 | `guia.entregar_al_entrar` | `true` | `true`/`false` | Gives the [Herald's Guide](CONTENT.md#heralds-guide) to each player the first time they join with each mod version. When off, nobody gets it on joining, but `/heraldia guide` still hands it out. |
 | `update_check.activado` | `true` | `true`/`false` | [New version notice](#new-version-notice-heraldia-update-check): checks GitHub Releases at startup and every 24 h and tells operators when they join. Applies on restart. |
 | `update_check.prereleases` | `false` | `true`/`false` | Also announce pre-releases (alpha, beta, release candidates). |
@@ -192,7 +196,7 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `mapas_web.activado` | `true` | `true`/`false` | [Markers on the web maps](#web-maps-heraldia-webmap-refresh) (BlueMap, Dynmap or squaremap); without any of them it does nothing. Disabled, it removes Heraldia's layers from the map. |
 | `mapas_web.solo_descubiertas` | `true` | `true`/`false` | Only those of a kind some player has discovered are shown (the `/heraldia status` advancements); with `false`, every one already generated in chunks that have been loaded. |
 | `mapas_web.idioma` | `auto` | `auto`, `es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es` | Language of the names, descriptions and layers; `auto` uses the server system's (the JVM's). |
-| `mapas_web.capas.<capa>` | `true` | `true`/`false` | One per layer (`unicas`, `aldeas`, `medianas`, `minas`, `arena`): when off, the layer is not shown. |
+| `mapas_web.capas.<capa>` | `true` | `true`/`false` | One per layer (`unicas`, `aldeas`, `medianas`, `minas`, `costa`, `arena`): when off, the layer is not shown. |
 | `tesoro.activado` | `true` | `true`/`false` | [Treasure hunt](CONTENT.md#treasure-hunt): map fragments in the loot that lead through several real structures to a buried chest. Disabled, no fragments appear and existing ones do nothing. |
 | `tesoro.probabilidad` | 3.0 | 0-100 (decimals allowed) | Chance, in %, of a fragment in each chest of medium structures and mines; half that in unique structures' chests; five times that in job-board feat rewards. |
 | `tesoro.radio_max` | 1500 | 300-4000 | Maximum distance from each mark of the map to the previous one (or to where the fragment is deciphered), in blocks. |

@@ -18,7 +18,7 @@ public record Sitio(String estructura, Capa capa, String sub, int x, int y, int 
 	/**
 	 * Clasifica una estructura de Heraldia por la ruta de su id (sin «heraldia:»): las aldeas son «&lt;estilo&gt;» o
 	 * «&lt;estilo&gt;_grande» (familia de {@code estiloFamilia}), las únicas «unicas/&lt;id&gt;», las medianas
-	 * «medianas/&lt;tipo&gt;/&lt;estilo&gt;» y las entradas de mina «minas/&lt;tamaño&gt;/...». Lo demás (la arena no es una
+	 * «medianas/&lt;tipo&gt;/&lt;estilo&gt;» las entradas de mina «minas/&lt;tamaño&gt;/...» y los faros y naufragios «costa/&lt;tipo&gt;/...». Lo demás (la arena no es una
 	 * estructura del registro), null.
 	 */
 	public static @Nullable Sitio de(String ruta, Map<String, String> estiloFamilia, int x, int y, int z) {
@@ -31,6 +31,9 @@ public record Sitio(String estructura, Capa capa, String sub, int x, int y, int 
 		}
 		if (s.length >= 3 && s[0].equals("minas") && !s[1].isEmpty()) {
 			return new Sitio(ruta, Capa.MINAS, s[1], x, y, z);
+		}
+		if (s.length >= 3 && s[0].equals("costa") && !s[1].isEmpty()) {
+			return new Sitio(ruta, Capa.COSTA, s[1], x, y, z);
 		}
 		if (s.length == 1) {
 			String estilo = ruta.endsWith("_grande") ? ruta.substring(0, ruta.length() - "_grande".length()) : ruta;

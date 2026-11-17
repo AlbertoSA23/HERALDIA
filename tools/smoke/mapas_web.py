@@ -27,7 +27,7 @@ SQUAREMAP = Mod("squaremap", "1.4.3", "squaremap-fabric-mc26.3-1.4.3.jar",
                 "c20e76d91a1c3a26d1985240c4199b6955180a6fbaf2f13bef25e06dd9c2c01df22d51a845f4bd2d36aa953559c29532ec8c3390432fb3faa34e73bff00d8533")
 CARPET = MODS["carpet"]
 PLAYER = "Cartografa"
-CAPAS = ["unicas", "aldeas", "medianas", "minas", "arena"]
+CAPAS = ["unicas", "aldeas", "medianas", "minas", "costa", "arena"]
 REGISTRO = "heraldia_mapas_web.json"
 _LOCATE = r"is at \[(-?\d+), [~\d-]+, (-?\d+)\]|Could not find|There is no structure"
 
@@ -182,7 +182,7 @@ def main():
         check("las estructuras generadas entran en el registro del mundo", {e["capa"] for e in reg} >= set(sitios),
               json.dumps(reg)[:400])
         c = esperar_capas(port, lambda c: set(c) >= set(CAPAS))
-        check("squaremap tiene las 5 capas de Heraldia", set(c) >= set(CAPAS), sorted(c))
+        check(f"squaremap tiene las {len(CAPAS)} capas de Heraldia", set(c) >= set(CAPAS), sorted(c))
         check("las capas llevan su nombre traducido", c.get("unicas", {}).get("name") == es.get("heraldia.mapas_web.capa.unicas"),
               str(c.get("unicas", {}).get("name")))
         check("con solo_descubiertas, nada sin descubrir", all(not v.get("markers") for v in c.values()),

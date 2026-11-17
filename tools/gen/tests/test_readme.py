@@ -7,6 +7,7 @@ import re
 import pytest
 import arena_oleadas
 import caravanas
+import litoral as costa
 import encargos
 import idiomas
 import logros
@@ -117,7 +118,7 @@ def test_enlaza_la_documentacion(codigo):
 # ------------------------------------------------------------------ cifras del generador
 def cifras():
     estructuras = (2 * len(THEMES) + len(MODS) + sum(len(m.ESTILOS) for _, m in medianas.modules())
-                   + len(minas.estructuras()))
+                   + len(minas.estructuras()) + len(costa.estructuras()))
 
     class _Plantilla:
         def __init__(self, sid):
@@ -125,7 +126,7 @@ def cifras():
 
     class _Reg:     # todas las únicas tienen guardián (el de la Atlántida incluido)
         templates = {f"unicas/{sid}/x": _Plantilla(sid) for sid, _ in MODS}
-    advs, _ = logros.build(_Reg, MODS, medianas.modules(), minas)
+    advs, _ = logros.build(_Reg, MODS, medianas.modules(), minas, costa)
     logros_n = len(advs) + len(tablon.LOGROS) + len(arena_oleadas.logros()) + len(encargos.LOGROS) + len(caravanas.LOGROS)
     return {"estructuras": estructuras, "logros": logros_n}
 
@@ -133,7 +134,7 @@ def cifras():
 def test_cifras_del_generador():
     c = cifras()
     # las que se comprueban también en el servidor (server_smoke.py cuenta los ficheros generados)
-    assert c == {"estructuras": 148, "logros": 109}, "si cambian, cámbialas en los README y en docs/"
+    assert c == {"estructuras": 164, "logros": 112}, "si cambian, cámbialas en los README y en docs/"
 
 
 def test_cifras_del_readme():

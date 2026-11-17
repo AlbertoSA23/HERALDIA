@@ -3,7 +3,7 @@
 
 Uso: python3 tools/smoke/admin.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
   - review list: todas las paradas, en orden (aldeas por familia sin la desactivada, únicas con la Atlántida,
-    medianas, minas pequeña-mediana-grande, la arena y el camino);
+    medianas, minas pequeña-mediana-grande, faro y naufragio, la arena y el camino);
   - review goto arena: sin arena colocada lo dice y no mueve al jugador;
   - review goto unica/atlantida: prevista (sin generar), avisa de que ir genera terreno y no mueve al jugador; la
     búsqueda va fuera del hilo del servidor (se mide);
@@ -118,12 +118,13 @@ def main():
         print(f"review list: {total} paradas: {ids}")
         check(total > 20 and len(ids) == total, f"lista: {total} paradas, {len(ids)} leídas")
         tipos = [i.split("/")[0] for i in ids]
-        orden = ["aldea", "unica", "mediana", "mina", "arena", "camino"]
+        orden = ["aldea", "unica", "mediana", "mina", "costa", "arena", "camino"]
         check(tipos == sorted(tipos, key=orden.index), f"lista: tipos fuera de orden: {tipos}")
         check(set(tipos) == set(orden), f"lista: faltan tipos: {set(orden) - set(tipos)}")
         check("aldea/pantano" not in ids, "lista: sale la familia pantano, desactivada en la configuración de prueba")
         check("unica/atlantida" in ids and "unica/isla_corsario" in ids, "lista: faltan la Atlántida o la isla")
         check([i for i in ids if i.startswith("mina/")] == ["mina/pequena", "mina/mediana", "mina/grande"], "lista: minas fuera de orden")
+        check([i for i in ids if i.startswith("costa/")] == ["costa/faro", "costa/naufragio"], "lista: faro y naufragio fuera de orden")
 
         # --- la arena, sin colocar ---
         antes = pos(ctx)

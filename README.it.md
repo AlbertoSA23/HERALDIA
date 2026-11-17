@@ -12,6 +12,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 - 🏰 **19 strutture uniche**, rarissime e ognuna nel suo bioma: un castello con il fossato, una cattedrale gotica, una cittadella nanica scavata nella montagna, un galeone arenato, una villa infestata, un palazzo orientale, una torre del mago, una miniera perduta nelle profondità, un forte di pirati sulla sua isola in mare aperto... All'interno: sale nascoste, enigmi di redstone, trappole e generatori di mostri e, alla fine, un **guardiano con un nome** a difesa della camera del tesoro.
 - ⚔️ **Guardiani che combattono a fasi.** Perdendo salute si infuriano e chiamano rinforzi dalla loro struttura, con una barra del boss finché dura lo scontro. Ognuno lascia il proprio trofeo.
 - ⛏️ **Miniere.** Su veri pendii si aprono imbocchi, accampamenti minerari e complessi minerari con castelletto di estrazione, in 3 dimensioni e nello stile di ogni bioma, che scendono a gallerie con binari, incroci e sale. Anche le miniere abbandonate vanilla sono più frequenti.
+- 🗼 **Fari e relitti.** Fari sulla terraferma vicino al mare, con la luce sempre accesa, la casa del guardiano e un pontile, e galeoni spezzati, arenati sulla spiaggia o semiaffondati nelle secche, con la stiva e la cabina del capitano. Ognuno nello stile della sua costa: temperata, calda, fredda o innevata.
 - 🔱 **Atlantide.** Una sola per mondo: un'immensa città sommersa nell'oceano profondo, con sale asciutte, tre sigilli con le loro chiavi e il Guardiano di Poseidone, custode del più grande tesoro di Heraldia.
 - 🏟️ **Arena a ondate.** Un colosseo vicino allo spawn: suona la campana e resisti a ondate sempre più forti, con un campione ogni quinta ondata, record e ricompense. Se cadi nell'arena, conservi l'inventario. Tre modalità (cooperativa, a tempo e sopravvivenza) con una classifica settimanale, `/heraldia arena leaderboard`: i campioni della settimana precedente compaiono sui cartelli dell'albo d'oro dell'arena e nella Guida dell'Araldo.
 
@@ -21,7 +22,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 - 📊 **Cosa ha trovato il server.** `/heraldia status` dice quanti villaggi, strutture uniche, strutture medie e miniere hanno scoperto i giocatori, i guardiani sconfitti, il record dell'arena e gli incarichi consegnati.
 - 📋 **Incarichi dei villaggi.** Tocca il leggio della bacheca nella piazza di un villaggio (o usa lì `/heraldia quest`): in chat compaiono da 2 a 4 incarichi (portare oggetti, sconfiggere un guardiano, esplorare, viaggiare al villaggio vicino, l'arena) che cambiano ogni pochi giorni. Pagano smeraldi, esperienza e reputazione con quel villaggio: da conosciuto, amico ed eroe del villaggio, i suoi abitanti abbassano i prezzi del 10, 20 e 30 %. Attaccare i suoi abitanti o golem la fa scendere.
 - 🐪 **Carovane.** Di tanto in tanto, vicino a te, un mercante di Heraldia con i suoi lama (e a volte una guardia) percorre la strada tra due villaggi vicini. Se i banditi lo assaltano, difendilo: all'arrivo ti paga smeraldi e reputazione con il suo villaggio di destinazione. Se il mercante muore, la carovana è perduta.
-- 🏆 **Progressi.** Una scheda Heraldia con 109 progressi: un villaggio di ogni famiglia, ogni struttura unica con il suo guardiano e il suo tesoro, le miniere, le strutture medie, la bacheca degli incarichi, l'arena e le carovane.
+- 🏆 **Progressi.** Una scheda Heraldia con 112 progressi: un villaggio di ogni famiglia, ogni struttura unica con il suo guardiano e il suo tesoro, le miniere, i fari e i relitti, le strutture medie, la bacheca degli incarichi, l'arena e le carovane.
 - 🗿 **Trofei.** Ognuno dei 20 guardiani lascia il suo trofeo, un oggetto con un nome e una storia. Raccoglili tutti per completare la Sala dei trofei.
 - 🗺️ **Mappe del tesoro.** Ogni mappa indica la struttura unica più vicina del suo tipo. Si trovano nei forzieri epici dei villaggi e le vendono i cartografi.
 - 🧭 **Caccia al tesoro.** A volte un forziere contiene un frammento di mappa del tesoro. Usalo e diventerà una mappa con un segno: ogni segno è una vera struttura di Heraldia che nasconde l'indizio successivo, e l'ultimo porta a un forziere sepolto da Ysolda, con un buon bottino e un ricordo.
@@ -41,7 +42,7 @@ I **comandi** sono in inglese su tutti i server: `/heraldia guide`, `/heraldia k
 
 **Nuove versioni:** il server controlla una volta al giorno se c'è una nuova versione di Heraldia per il suo Minecraft e lo dice agli operatori quando entrano, con il link per scaricarla. **Fai un backup del server prima di aggiornare.** Si disattiva con `update_check.activado`.
 
-**Mappe web:** se il server ha BlueMap, Dynmap o squaremap, le strutture di Heraldia compaiono sulla mappa web, ogni tipo nel suo livello (strutture uniche, villaggi, strutture medie, miniere e l'arena), solo quando un giocatore le ha scoperte. Gli operatori la aggiornano con `/heraldia webmap refresh`.
+**Mappe web:** se il server ha BlueMap, Dynmap o squaremap, le strutture di Heraldia compaiono sulla mappa web, ogni tipo nel suo livello (strutture uniche, villaggi, strutture medie, miniere, fari e relitti e l'arena), solo quando un giocatore le ha scoperte. Gli operatori la aggiornano con `/heraldia webmap refresh`.
 
 ## Le opzioni più utili
 
@@ -56,6 +57,7 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `unicas.<id>.activada` | `true` | Attiva o disattiva una struttura unica. |
 | `unicas.rejilla_compatible` | `false` | `true` solo per i mondi creati con Heraldia 0.1.0. |
 | `medianas.frecuencia_porcentaje` | 100 | Quante strutture medie (200 = il doppio). |
+| `faros.activado`, `naufragios.activado` | `true` | Fari e galeoni naufragati sulla costa. |
 | `dificultad.nivel` | `normal` | Guardiani e mostri: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | I forzieri di Heraldia si riempiono di nuovo dopo qualche giorno. |
 | `arena.activado` | `true` | L'arena a ondate vicino allo spawn. |

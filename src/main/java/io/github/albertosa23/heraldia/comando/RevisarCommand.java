@@ -11,6 +11,7 @@ import io.github.albertosa23.heraldia.caminos.Caminos;
 import io.github.albertosa23.heraldia.comando.Revision.Marca;
 import io.github.albertosa23.heraldia.comando.Revision.Parada;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.costa.Costa;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -84,7 +85,7 @@ public final class RevisarCommand {
 	static final int RADIO = InfoCommand.MAX_RADIUS, RADIO_ATLANTIDA = 1 << 20;
 	/** Puntos de la lista de cada tipo de parada (claves heraldia.revisar.mirar.&lt;tipo&gt;.&lt;n&gt;). */
 	static final Map<Revision.Tipo, Integer> PUNTOS = Map.of(Revision.Tipo.ALDEA, 4, Revision.Tipo.UNICA, 4,
-			Revision.Tipo.MEDIANA, 3, Revision.Tipo.MINA, 3, Revision.Tipo.ARENA, 3, Revision.Tipo.CAMINO, 3);
+			Revision.Tipo.MEDIANA, 3, Revision.Tipo.MINA, 3, Revision.Tipo.COSTA, 3, Revision.Tipo.ARENA, 3, Revision.Tipo.CAMINO, 3);
 	/** Únicas con un punto propio en la lista (heraldia.revisar.mirar.unica.&lt;id&gt;). */
 	static final Set<String> CON_PUNTO_PROPIO = Set.of("atlantida", "isla_corsario");
 
@@ -150,6 +151,7 @@ public final class RevisarCommand {
 			case UNICA -> InfoCommand.uniqueEnabled(cfg, p.sub());
 			case MEDIANA -> opcion(cfg, "medianas.activadas") && opcion(cfg, "medianas." + p.sub() + ".activada");
 			case MINA -> opcion(cfg, "minas.entradas.activado");
+			case COSTA -> Costa.opcion(p.sub()) == null || opcion(cfg, Costa.opcion(p.sub()) + ".activado");
 			case ARENA, CAMINO -> true;
 		};
 		return Revision.ruta(ids, estilos, activa, cfg.getBool("arena.activado"), cfg.getBool(Caminos.ACTIVADO));
@@ -173,6 +175,7 @@ public final class RevisarCommand {
 			case UNICA -> InfoCommand.uniqueName(p.sub());
 			case MEDIANA -> InfoCommand.mediumName(p.sub());
 			case MINA -> Textos.t("heraldia.minas." + p.sub() + ".nombre");
+			case COSTA -> Textos.t("heraldia.costa." + p.sub() + ".nombre");
 			case ARENA -> Textos.t("heraldia.revisar.parada.arena");
 			case CAMINO -> Textos.t("heraldia.revisar.parada.camino");
 		};
@@ -186,6 +189,7 @@ public final class RevisarCommand {
 			case UNICA -> es.getOrDefault("heraldia.unicas." + p.sub() + ".nombre", p.sub());
 			case MEDIANA -> es.getOrDefault("heraldia.medianas." + p.sub() + ".nombre", p.sub());
 			case MINA -> es.getOrDefault("heraldia.minas." + p.sub() + ".nombre", p.sub());
+			case COSTA -> es.getOrDefault("heraldia.costa." + p.sub() + ".nombre", p.sub());
 			case ARENA -> es.getOrDefault("heraldia.revisar.parada.arena", "arena");
 			case CAMINO -> es.getOrDefault("heraldia.revisar.parada.camino", "camino");
 		};
@@ -218,6 +222,7 @@ public final class RevisarCommand {
 			case UNICA -> path.equals("unicas/" + p.sub());
 			case MEDIANA -> path.startsWith("medianas/" + p.sub() + "/");
 			case MINA -> path.startsWith("minas/" + p.sub() + "/");
+			case COSTA -> path.startsWith("costa/" + p.sub() + "/");
 			case ARENA, CAMINO -> false;
 		};
 	}

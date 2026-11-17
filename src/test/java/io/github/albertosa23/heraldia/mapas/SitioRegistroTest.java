@@ -34,6 +34,9 @@ class SitioRegistroTest {
 		assertEquals("torre_vigia", Sitio.de("medianas/torre_vigia/taiga", ESTILOS, 0, 0, 0).sub());
 		assertEquals("pequena", Sitio.de("minas/pequena/llanura", ESTILOS, 0, 0, 0).sub());
 		assertEquals(Capa.MINAS, Sitio.de("minas/pequena/llanura", ESTILOS, 0, 0, 0).capa());
+		assertEquals(Capa.COSTA, Sitio.de("costa/faro/templada/a", ESTILOS, 0, 0, 0).capa());
+		assertEquals("naufragio", Sitio.de("costa/naufragio/nevada/b", ESTILOS, 0, 0, 0).sub());
+		assertEquals(Capa.UNICAS, Sitio.de("unicas/faro", ESTILOS, 0, 0, 0).capa(), "el faro único sigue en las únicas");
 		assertEquals("llanuras", Sitio.de("llanura", ESTILOS, 0, 0, 0).sub());
 		assertEquals("llanuras", Sitio.de("llanura_grande", ESTILOS, 0, 0, 0).sub());
 		assertEquals(Capa.ALDEAS, Sitio.de("puerto_grande", ESTILOS, 0, 0, 0).capa());

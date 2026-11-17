@@ -31,7 +31,7 @@ COFRE = f"{NS}:tesoro/cofre"
 CONDICION = f"{NS}:tesoro_pista"
 # Factor de cada familia de tablas sobre tesoro.probabilidad: las únicas tienen muchos cofres (la mitad por cofre); los
 # encargos del tablón, como un cofre; las hazañas del tablón, pocas y difíciles (cinco veces más).
-FACTOR = {"medianas": 1.0, "minas": 1.0, "unicas": 0.5, "encargos": 1.0, "hazanas": 5.0}
+FACTOR = {"medianas": 1.0, "minas": 1.0, "costa": 0.5, "unicas": 0.5, "encargos": 1.0, "hazanas": 5.0}
 ENCARGO = f"{NS}:tesoro/encargo"   # la paga de cada encargo entregado del tablón (T38, Encargos.pagar -> Tesoro.recompensa)
 PROBABILIDAD_DEFECTO, RADIO_DEFECTO = 3.0, 1500     # % por cofre y bloques (opciones.py)
 LORE_MAX_PX = 250                                    # ancho máximo de una línea de lore (el juego no la parte: que quepa en pantalla)

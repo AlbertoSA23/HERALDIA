@@ -73,6 +73,11 @@ PAGINAS = [
       "vías, cruces y salas. Las mayores tienen torre de extracción y un pozo con escalera. Ojo con las arañas del fondo.",
       "On the slopes of hills, taigas, deserts, badlands and peaks, mine adits lead down to galleries with rails, "
       "crossings and rooms. The largest have a headframe and a shaft with a spiral stair. Beware the spiders below.")),
+    ("costa", ("La costa", "The coast"),
+     ("En la costa hay faros con la luz siempre encendida, la casa del farero y un embarcadero. En playas y bajíos "
+      "yacen galeones partidos: aún queda algo en la bodega y en el camarote del capitán.",
+      "Lighthouses stand on the coast with their light always lit, the keeper's house and a jetty. On beaches and "
+      "shallows lie broken galleons: their hold and the captain's cabin still hold something.")),
     ("unicas", ("Las únicas", "Unique structures"),
      ("Muy raras, cada una en su bioma: un castillo, una catedral, una ciudadela enana, un galeón varado... Dentro hay "
       "salas ocultas, puzles, trampas, un guardián con nombre y su cámara del tesoro.",

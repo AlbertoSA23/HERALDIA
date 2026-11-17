@@ -158,6 +158,13 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			int sp = chunks((int) Math.round((double) cfg.getInt("minas.entradas.separacion_bloques") * spacing * 16 / defecto));
 			int sep = Math.clamp((cfg.getInt("medianas.distancia_minima.bloques") + 15) / 16, 0, sp / 2);
 			s = new Settings(cfg.getBool("minas.entradas.activado"), sp, sep, -1, exclusion, true, false);
+		} else if (group.startsWith("costa/") && io.github.albertosa23.heraldia.costa.Costa.opcion(group.substring("costa/".length())) != null) {
+			// faros y naufragios: su separación (bloques) y su activación; separación interna = la distancia mínima entre
+			// medianas, como mucho media casilla
+			String key = io.github.albertosa23.heraldia.costa.Costa.opcion(group.substring("costa/".length()));
+			int sp = chunks(cfg.getInt(key + ".separacion_bloques"));
+			int sep = Math.clamp((cfg.getInt("medianas.distancia_minima.bloques") + 15) / 16, 0, sp / 2);
+			s = new Settings(cfg.getBool(key + ".activado"), sp, sep, -1, exclusion, true, false);
 		} else {
 			LOGGER.warn("Heraldia: grupo de colocación sin opciones {}; se usan los valores del datapack", group);
 			s = new Settings(true, spacing, Math.min(separation, spacing - 1), -1, exclusion, false, false);
@@ -177,7 +184,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		context = sample == null ? null : new BiomeContext(seed, sample);
 	}
 
-	/** Grupo de opciones de la rejilla («aldeas», «unicas/&lt;id&gt;», «medianas/&lt;id&gt;» o «minas/&lt;tamaño&gt;»). */
+	/** Grupo de opciones de la rejilla («aldeas», «unicas/&lt;id&gt;», «medianas/&lt;id&gt;», «minas/&lt;tamaño&gt;» o «costa/&lt;tipo&gt;»). */
 	public String group() {
 		return group;
 	}

@@ -32,7 +32,7 @@ public final class Marcadores {
 	/**
 	 * ¿Ha descubierto algún jugador el tipo de este sitio? Las mismas reglas que /heraldia status: aldeas, el logro de su
 	 * familia (heraldia:aldeas/&lt;familia&gt;); únicas, heraldia:unicas/&lt;id&gt;/descubrir; medianas, el criterio de su tipo en
-	 * heraldia:medianas/todas; minas, heraldia:minas/&lt;tamaño&gt;. La arena la coloca un operador: siempre cuenta.
+	 * heraldia:medianas/todas; minas, heraldia:minas/&lt;tamaño&gt;; faros y naufragios, heraldia:costa/&lt;tipo&gt;. La arena la coloca un operador: siempre cuenta.
 	 */
 	public static boolean descubierto(Capa capa, String sub, Estado.Logros l) {
 		return switch (capa) {
@@ -40,6 +40,7 @@ public final class Marcadores {
 			case UNICAS -> l.hecho(Estado.NS + "unicas/" + sub + "/descubrir");
 			case MEDIANAS -> l.criterio(Estado.NS + "medianas/todas", sub);
 			case MINAS -> l.hecho(Estado.NS + "minas/" + sub);
+			case COSTA -> l.hecho(Estado.NS + "costa/" + sub);
 			case ARENA -> true;
 		};
 	}
@@ -51,6 +52,7 @@ public final class Marcadores {
 			case UNICAS -> "heraldia.unicas." + sub + ".nombre";
 			case MEDIANAS -> "heraldia.medianas." + sub + ".nombre";
 			case MINAS -> "heraldia.minas." + sub + ".nombre";
+			case COSTA -> "heraldia.costa." + sub + ".nombre";
 			case ARENA -> "heraldia.arena.nombre";
 		};
 	}

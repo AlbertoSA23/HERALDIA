@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * son de ese bioma salen sin pagar la búsqueda. La boca (z = 0 de la plantilla) mira cuesta abajo; si nada sirve no se
  * genera, salvo con /place (que acepta cualquier bioma), que la coloca igualmente.
  */
-public final class MinaEntradaStructure extends Structure {
+public final class MinaEntradaStructure extends Structure implements LocateParalelo.Precalculable {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	private static final AtomicInteger REGISTRADAS = new AtomicInteger(); // las primeras, en el registro (pruebas)
 	private static final int LOGGED = 6;
@@ -87,6 +87,7 @@ public final class MinaEntradaStructure extends Structure {
 	 * búsqueda de ladera): solo llena la caché compartida de alturas, sin crear nada ni escribir en el log. Lo usa
 	 * {@link LocateParalelo} desde otros hilos para que /locate encuentre las columnas ya calculadas.
 	 */
+	@Override
 	public void precalcular(GenerationContext ctx) {
 		Ladera.Terreno terreno = terreno(CacheAlturas.de(ctx));
 		int mx = ctx.chunkPos().getMiddleBlockX(), mz = ctx.chunkPos().getMiddleBlockZ();

@@ -9,7 +9,7 @@ RevisarCommand.PUNTOS) y los propios de una única, heraldia.revisar.mirar.unica
 NS = "heraldia"
 
 # tipo de parada -> puntos de su lista (RevisarCommand.PUNTOS)
-PUNTOS = {"aldea": 4, "unica": 4, "mediana": 3, "mina": 3, "arena": 3, "camino": 3}
+PUNTOS = {"aldea": 4, "unica": 4, "mediana": 3, "mina": 3, "costa": 3, "arena": 3, "camino": 3}
 # únicas con un punto propio en la lista (RevisarCommand.CON_PUNTO_PROPIO)
 CON_PUNTO_PROPIO = ("atlantida", "isla_corsario")
 # botones de la ruta (heraldia.revisar.boton.<id> y su ayuda, .ayuda)
@@ -120,6 +120,12 @@ _TEXTOS = {
                              "The adit fits the hillside, with no odd cuts in the terrain"),
     "revisar.mirar.mina.2": ("Baja por la galería: vías, cruces y salas completas, sin huecos al vacío",
                              "Go down the gallery: complete rails, crossings and rooms, no holes into the void"),
+    "revisar.mirar.costa.1": ("La luz de lo alto del faro está encendida y se ve desde lejos",
+                              "The light at the top of the lighthouse is lit and visible from afar"),
+    "revisar.mirar.costa.2": ("En tierra firme junto al agua, con el embarcadero o la popa sobre el mar",
+                              "On firm ground by the water, with the jetty or the stern over the sea"),
+    "revisar.mirar.costa.3": ("Sin agua derramada fuera del casco ni del embarcadero, y los cofres en su sitio",
+                              "No water spilling outside the hull or the jetty, and the chests in place"),
     "revisar.mirar.mina.3": ("Iluminación, apuntalado y los cofres del fondo",
                              "Lighting, timbering and the chests at the bottom"),
     "revisar.mirar.arena.1": ("Ruedo, gradas y campana completos (y protegidos contra romperlos)",
@@ -146,6 +152,7 @@ _TEXTOS = {
     "estado.tipo.unicas": (" - Estructuras únicas: %s de %s", " - Unique structures: %s of %s"),
     "estado.tipo.medianas": (" - Estructuras medianas (por tipo): %s de %s", " - Medium structures (by type): %s of %s"),
     "estado.tipo.minas": (" - Entradas a mina (por tamaño): %s de %s", " - Mine entrances (by size): %s of %s"),
+    "estado.tipo.costa": (" - Costa (faro y naufragio): %s de %s", " - Coast (lighthouse and wreck): %s of %s"),
     "estado.faltan": ("   Faltan: %s", "   Missing: %s"),
     "estado.guardianes": ("Guardianes vencidos: %s de %s", "Guardians defeated: %s of %s"),
     "estado.arena": ("Arena: %s; récord del servidor: %s oleadas", "Arena: %s; server record: %s waves"),
@@ -176,6 +183,7 @@ _TEXTOS = {
     "mapas_web.capa.aldeas": ("Heraldia: aldeas", "Heraldia: villages"),
     "mapas_web.capa.medianas": ("Heraldia: estructuras medianas", "Heraldia: medium structures"),
     "mapas_web.capa.minas": ("Heraldia: entradas de mina", "Heraldia: mine entrances"),
+    "mapas_web.capa.costa": ("Heraldia: faros y naufragios", "Heraldia: lighthouses and wrecks"),
     "mapas_web.capa.arena": ("Heraldia: arena", "Heraldia: arena"),
     "mapas_web.aldea": ("Aldea: %s", "Village: %s"),
     "mapas_web.descripcion.unicas": ("Estructura única: guardián, puzles y un cofre premium al final.",
@@ -186,6 +194,8 @@ _TEXTOS = {
                                        "Medium structure: a stop along the way with a little loot."),
     "mapas_web.descripcion.minas": ("Entrada de mina: galerías con vías, cofres y arañas.",
                                     "Mine entrance: tunnels with rails, chests and spiders."),
+    "mapas_web.descripcion.costa": ("Faro o galeón naufragado en la costa, con botín marinero.",
+                                    "Lighthouse or wrecked galleon on the coast, with seafaring loot."),
     "mapas_web.descripcion.arena": ("Arena de oleadas: toca la campana para empezar una partida.",
                                     "Wave arena: ring the bell to start a match."),
     "mapas_web.ninguno": ("No hay ningún mapa web cargado (%s).",
