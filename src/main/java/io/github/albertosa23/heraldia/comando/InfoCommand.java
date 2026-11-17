@@ -11,6 +11,7 @@ import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.loot.WithoutLootrCondition;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import io.github.albertosa23.heraldia.comun.Medianas;
+import io.github.albertosa23.heraldia.costa.Costa;
 import io.github.albertosa23.heraldia.minas.Minas;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import java.util.concurrent.CompletableFuture;
@@ -109,7 +110,7 @@ public final class InfoCommand {
 
 		Registry<Structure> registry = source.getServer().registryAccess().lookupOrThrow(Registries.STRUCTURE);
 		List<Identifier> uniques = new ArrayList<>();
-		int heraldia = 0, medium = 0, mines = 0;
+		int heraldia = 0, medium = 0, mines = 0, coast = 0;
 		for (Identifier id : registry.keySet()) {
 			if (Heraldia.MOD_ID.equals(id.getNamespace())) {
 				heraldia++;
@@ -119,6 +120,8 @@ public final class InfoCommand {
 					medium++;
 				} else if (Minas.esMina(id)) {
 					mines++;
+				} else if (Costa.esCosta(id)) {
+					coast++;
 				}
 			}
 		}
@@ -148,7 +151,9 @@ public final class InfoCommand {
 		lines.addAll(mediumLines(source, cfg));
 		lines.add(Textos.t("heraldia.info.minas", onOff(cfg.getBool(Minas.ACTIVADO)), cfg.getInt(Minas.SEPARACION),
 				cfg.getDouble(Minas.MULTIPLICADOR)));
-		lines.add(Textos.t("heraldia.info.registradas", heraldia, heraldia - uniques.size() - medium - mines, uniques.size(), medium, mines));
+		lines.add(Textos.t("heraldia.info.costa", onOff(cfg.getBool(Costa.FAROS + ".activado")), cfg.getInt(Costa.FAROS + ".separacion_bloques"),
+				onOff(cfg.getBool(Costa.NAUFRAGIOS + ".activado")), cfg.getInt(Costa.NAUFRAGIOS + ".separacion_bloques"), coast));
+		lines.add(Textos.t("heraldia.info.registradas", heraldia, heraldia - uniques.size() - medium - mines - coast, uniques.size(), medium, mines));
 		lines.forEach(l -> source.sendSuccess(() -> l, false));
 		return heraldia;
 	}
@@ -362,6 +367,8 @@ public final class InfoCommand {
 						&& !(Medianas.esMediana(id) && Medianas.of(access).rechaza(id, c.x(), c.z(), seed, access, generator,
 						generator.getBiomeSource(), sampler, randomState, level.getStructureTemplateManager(), level, level.dimension()))
 						&& !(Minas.esMina(id) && Minas.of(access).rechaza(id, c.x(), c.z(), seed, access, generator,
+						generator.getBiomeSource(), sampler, randomState, level.getStructureTemplateManager(), level, level.dimension()))
+						&& !(Costa.esCosta(id) && Costa.of(access).rechaza(id, c.x(), c.z(), seed, access, generator,
 						generator.getBiomeSource(), sampler, randomState, level.getStructureTemplateManager(), level, level.dimension()));
 			}
 			if (ok) {
@@ -508,6 +515,9 @@ public final class InfoCommand {
 		if (Minas.esMina(id)) { // prevista: el estilo (y la variante) los sortea el structure_set del tamaño
 			return Heraldia.MOD_ID + ":minas/" + id.getPath().split("/")[1];
 		}
+		if (Costa.esCosta(id)) { // prevista: el estilo lo da el clima de la costa al generarse
+			return Heraldia.MOD_ID + ":costa/" + Costa.tipo(id);
+		}
 		return Heraldia.MOD_ID + ":aldeas";
 	}
 
@@ -526,6 +536,9 @@ public final class InfoCommand {
 		}
 		if (Minas.esMina(id)) { // heraldia:minas/<tamaño>/<estilo>/<variante>
 			return Textos.t("heraldia.minas." + path.split("/")[1] + ".nombre");
+		}
+		if (Costa.esCosta(id)) { // heraldia:costa/<tipo>/<estilo>/<variante>
+			return Textos.t("heraldia.costa." + Costa.tipo(id) + ".nombre");
 		}
 		String style = path.endsWith("_grande") ? path.substring(0, path.length() - "_grande".length()) : path;
 		JsonObject styles = HeraldiaConfig.get().schema().getAsJsonObject("aldeas").getAsJsonObject("estilos");

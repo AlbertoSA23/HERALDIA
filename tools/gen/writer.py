@@ -7,6 +7,7 @@ import loot
 import unicas
 import medianas
 import minas
+import costa
 import mapas
 import tratos
 import tablon
@@ -243,6 +244,8 @@ def write(reg, out):
     medianas.write(out, jdump)
     # entradas a mina (minas/) y la colocación de las minas abandonadas vanilla
     minas.write(out, jdump)
+    # faros y naufragios de la costa (costa/)
+    costa.write(out, jdump)
     # botín
     uniques = unicas.modules()
     for name, table in loot.TABLES.items():
@@ -362,8 +365,8 @@ def textos(reg):
         assert extra.get("es_es", {}).keys() == extra.get("en_us", {}).keys(), sid
         for lang, texts in extra.items():
             out[lang].update(texts)
-    partes = [mapas.lang(uniques), logros.build(reg, uniques, medianas.modules(), minas)[1], tratos.lang(),
-              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), encargos.lang(), caravanas.lang(),
+    partes = [mapas.lang(uniques), logros.build(reg, uniques, medianas.modules(), minas, costa)[1], tratos.lang(),
+              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), costa.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), encargos.lang(), caravanas.lang(),
               trophies_lang(), botin.historia_lang(uniques), tesoro.lang()]
     for parte in partes:
         assert parte["es_es"].keys() == parte["en_us"].keys()

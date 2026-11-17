@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 
 /**
  * Iconos de las capas, dibujados una vez en memoria (sin ficheros en el .jar): un círculo del color de la capa con borde
- * oscuro y un dibujo blanco de 8 x 8 píxeles a doble tamaño (corona, casa, torre, pico, espadas cruzadas).
+ * oscuro y un dibujo blanco de 8 x 8 píxeles a doble tamaño (corona, casa, torre, pico, faro, espadas cruzadas).
  */
 public final class Iconos {
 	/** Lado del icono, en píxeles. */
@@ -20,6 +20,7 @@ public final class Iconos {
 			Capa.ALDEAS, new String[]{"...##...", "..####..", ".######.", "########", ".##..##.", ".##..##.", ".######.", "........"},
 			Capa.MEDIANAS, new String[]{"#.#.#.#.", "#######.", ".#####..", ".##.##..", ".#####..", ".##.##..", ".#####..", "........"},
 			Capa.MINAS, new String[]{".#####..", "#.....#.", "...#....", "...#....", "...#....", "...#....", "...#....", "........"},
+			Capa.COSTA, new String[]{"..###...", "..#.#...", "..###...", "..#.#...", ".##.##..", ".#...#..", "#######.", "........"},
 			Capa.ARENA, new String[]{"#......#", ".#....#.", "..#..#..", "...##...", "...##...", "..#..#..", ".#....#.", "##....##"}));
 	private static final Map<Capa, BufferedImage> CACHE = new EnumMap<>(Capa.class);
 

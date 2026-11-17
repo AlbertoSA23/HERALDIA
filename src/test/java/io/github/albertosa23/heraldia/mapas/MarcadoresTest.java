@@ -126,7 +126,7 @@ class MarcadoresTest {
 
 	@Test
 	void reglasDeDescubiertoDeCadaCapa() {
-		Estado.Logros l = logros("heraldia:aldeas/llanuras", "heraldia:unicas/faro/descubrir", "heraldia:minas/grande");
+		Estado.Logros l = logros("heraldia:aldeas/llanuras", "heraldia:unicas/faro/descubrir", "heraldia:minas/grande", "heraldia:costa/faro");
 		l.sumar("heraldia:medianas/todas", false, List.of("molino"));
 		assertTrue(Marcadores.descubierto(Capa.ALDEAS, "llanuras", l));
 		assertFalse(Marcadores.descubierto(Capa.ALDEAS, "taiga", l));
@@ -136,6 +136,8 @@ class MarcadoresTest {
 		assertFalse(Marcadores.descubierto(Capa.MEDIANAS, "posada", l));
 		assertTrue(Marcadores.descubierto(Capa.MINAS, "grande", l));
 		assertFalse(Marcadores.descubierto(Capa.MINAS, "pequena", l));
+		assertTrue(Marcadores.descubierto(Capa.COSTA, "faro", l));
+		assertFalse(Marcadores.descubierto(Capa.COSTA, "naufragio", l), "cada tipo con su logro");
 		assertTrue(Marcadores.descubierto(Capa.ARENA, "", new Estado.Logros()));
 	}
 

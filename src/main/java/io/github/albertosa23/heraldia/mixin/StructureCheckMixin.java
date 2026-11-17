@@ -5,6 +5,7 @@ import io.github.albertosa23.heraldia.comun.Perfil;
 import io.github.albertosa23.heraldia.comun.ZonaAjenas;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
+import io.github.albertosa23.heraldia.costa.Costa;
 import io.github.albertosa23.heraldia.minas.Minas;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import io.github.albertosa23.heraldia.unicas.isla.IslaZona;
@@ -119,7 +120,7 @@ abstract class StructureCheckMixin {
 	}
 
 	/**
-	 * Las entradas a mina, al final: su regla (aldeas, únicas, medianas y minas vecinas cerca) es mucho más cara que ver
+	 * Las entradas a mina (y los faros y naufragios, con la misma regla), al final: su regla (aldeas, únicas, medianas y minas vecinas cerca) es mucho más cara que ver
 	 * si la propia entrada sale (bioma y ladera), y /locate solo necesita la regla donde la entrada sale. Mismo resultado
 	 * que mirarla antes (las dos condiciones tienen que cumplirse), sin pagarla en los candidatos sin bioma ni ladera.
 	 */
@@ -129,14 +130,16 @@ abstract class StructureCheckMixin {
 			return;
 		}
 		Identifier id = registryAccess.lookupOrThrow(Registries.STRUCTURE).getKey(structure);
-		if (id == null || !Minas.esMina(id)) {
+		if (id == null || !Minas.esMina(id) && !Costa.esCosta(id)) {
 			return;
 		}
 		long t0 = Perfil.inicio();
 		try {
-			if (Minas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource, climateSampler,
-					randomState, structureTemplateManager, heightAccessor, dimension)) {
-				cir.setReturnValue(false); // ni una entrada a mina descartada
+			if (Minas.esMina(id) ? Minas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource,
+					climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)
+					: Costa.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource,
+					climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
+				cir.setReturnValue(false); // ni una entrada a mina, faro o naufragio descartados
 			}
 		} finally {
 			Perfil.fin(Perfil.Tramo.REGLAS_LOCATE, t0);

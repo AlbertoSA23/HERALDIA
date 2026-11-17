@@ -118,6 +118,21 @@ _FIXED = [
      "decimales, p. ej. 1.5); no cambia los chunks ya generados ni otras estructuras",
      "Multiplies how often vanilla abandoned mineshafts appear in new chunks (1 = as in vanilla; decimals allowed, e.g. "
      "1.5); does not change chunks already generated or other structures"),
+    ("faros.activado", True, None, None,
+     "Faros en la costa (torre con la luz encendida, casa del farero y embarcadero), en tierra firme junto al mar; solo "
+     "en los chunks nuevos",
+     "Lighthouses on the coast (a tower with its light lit, the keeper's house and a jetty), on firm ground by the sea; "
+     "new chunks only"),
+    ("faros.separacion_bloques", 1024, 256, 4000,
+     "Separación media entre dos faros, en bloques (solo salen donde hay costa: en la práctica, menos)",
+     "Average distance between two lighthouses, in blocks (they only spawn where there is coast: fewer in practice)"),
+    ("naufragios.activado", True, None, None,
+     "Galeones naufragados de Heraldia (encallados en la playa o semihundidos en aguas poco profundas); solo en los "
+     "chunks nuevos",
+     "Heraldia wrecked galleons (run aground on the beach or half-sunk in shallow water); new chunks only"),
+    ("naufragios.separacion_bloques", 768, 256, 4000,
+     "Separación media entre dos galeones naufragados, en bloques (solo salen donde hay costa: en la práctica, menos)",
+     "Average distance between two wrecked galleons, in blocks (they only spawn where there is coast: fewer in practice)"),
     ("jefes.fases.activado", True, None, None,
      "Fases de los guardianes de las estructuras únicas: al bajar del 66 % y del 33 % de vida se enfurecen (velocidad, "
      "resistencia y fuerza breve, con partículas, sonido y aviso a los jugadores cercanos); también los ya generados",
@@ -263,6 +278,8 @@ _FIXED = [
      "Capa de las estructuras medianas en los mapas web", "Medium structures layer on the web maps"),
     ("mapas_web.capas.minas", True, None, None,
      "Capa de las entradas de mina en los mapas web", "Mine entrances layer on the web maps"),
+    ("mapas_web.capas.costa", True, None, None,
+     "Capa de los faros y naufragios en los mapas web", "Lighthouses and wrecks layer on the web maps"),
     ("mapas_web.capas.arena", True, None, None,
      "Capa de la arena de oleadas en los mapas web", "Wave arena layer on the web maps"),
     ("tesoro.activado", True, None, None,
@@ -311,7 +328,7 @@ PERSONALIZADO = "personalizado"
 # Lo único que un perfil puede tocar: opciones de juego. La generación del mundo (dónde y cómo salen las estructuras, la
 # arena que se construye sola) queda siempre fuera; GENERACION marca esas opciones en el esquema (y los tests lo comprueban).
 PERFIL_PREFIJOS = ("dificultad.", "botin.", "jefes.", "arena.", "caravanas.")
-GENERACION = ("aldeas.", "unicas.", "medianas.", "minas.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
+GENERACION = ("aldeas.", "unicas.", "medianas.", "minas.", "faros.", "naufragios.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
               "arena.activado")
 
 
@@ -406,6 +423,10 @@ _NAMES = {
     "minas.entradas.activado": ("Entradas a mina", "Mine entrances"),
     "minas.entradas.separacion_bloques": ("Separación de las entradas (bloques)", "Entrance spacing (blocks)"),
     "minas.vanilla.multiplicador": ("Minas vanilla (multiplicador)", "Vanilla mineshafts (multiplier)"),
+    "faros.activado": ("Faros", "Lighthouses"),
+    "faros.separacion_bloques": ("Separación de los faros (bloques)", "Lighthouse spacing (blocks)"),
+    "naufragios.activado": ("Galeones naufragados", "Wrecked galleons"),
+    "naufragios.separacion_bloques": ("Separación de los naufragios (bloques)", "Wreck spacing (blocks)"),
     "encargos.activado": ("Encargos del tablón", "Job board quests"),
     "encargos.rotacion_dias": ("Días hasta cambiar el tablón", "Days until the board changes"),
     "reputacion.activado": ("Reputación por aldea", "Reputation per village"),
@@ -424,6 +445,7 @@ _NAMES = {
     "mapas_web.capas.aldeas": ("Capa: aldeas", "Layer: villages"),
     "mapas_web.capas.medianas": ("Capa: estructuras medianas", "Layer: medium structures"),
     "mapas_web.capas.minas": ("Capa: entradas de mina", "Layer: mine entrances"),
+    "mapas_web.capas.costa": ("Capa: faros y naufragios", "Layer: lighthouses and wrecks"),
     "mapas_web.capas.arena": ("Capa: arena", "Layer: arena"),
     "tesoro.activado": ("Búsqueda del tesoro", "Treasure hunt"),
     "tesoro.probabilidad": ("Fragmentos por cofre (%)", "Fragments per chest (%)"),
@@ -466,6 +488,7 @@ SECTIONS = [
     ("jefes", "Guardianes (jefes)", "Guardians (bosses)"),
     ("medianas", "Estructuras medianas", "Medium structures"),
     ("minas", "Minas", "Mines"),
+    ("costa", "Faros y naufragios", "Lighthouses and wrecks"),
     ("compatibilidad", "Compatibilidad con otros mods", "Compatibility with other mods"),
     ("botin", "Botín", "Loot"),
     ("dificultad", "Dificultad", "Difficulty"),
@@ -484,7 +507,8 @@ _SECTION_PREFIXES = [
     ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.caminos.", "caminos"),
     ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
-    ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
+    ("medianas.", "medianas"), ("minas.", "minas"), ("faros.", "costa"), ("naufragios.", "costa"),
+    ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
     ("caravanas.", "caravanas"),
     ("update_check.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),

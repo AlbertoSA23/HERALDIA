@@ -99,6 +99,8 @@ Volver al [README](../README.es.md).
 - **Entradas a mina** (en laderas reales de montes, taigas, desiertos, badlands y picos): bocas de mina, campamentos
   mineros y complejos con torre de extracción, cada uno con su galería propia bajo tierra; y más minas abandonadas
   vanilla en los chunks nuevos (x2 por defecto). Ver [Entradas a mina](#entradas-a-mina).
+- **Faros y naufragios** (en la costa, en tierra firme junto al mar o en los bajíos): faros con la luz siempre encendida y
+  galeones partidos, encallados o semihundidos, con un estilo por clima. Ver [Faros y naufragios](#faros-y-naufragios).
 
 ## Aldeas enormes
 
@@ -216,6 +218,21 @@ Bocas de mina excavadas en **laderas reales**: la boca mira cuesta abajo, con te
 - **Más minas vanilla**: `minas.vanilla.multiplicador` (2.0 por defecto, de 1 a 5, admite decimales) multiplica la frecuencia de las minas abandonadas vanilla. Heraldia sustituye la colocación del structure_set `minecraft:mineshafts` con los mismos valores de 26.3 (con 1 es exactamente la vanilla); con más, salen todas las minas que habrían salido, en el mismo sitio, y algunas más. No cambia otras estructuras, y los chunks ya generados conservan lo que tenían (comprobado en el servidor de prueba). Si otro mod también reescribe `minecraft:mineshafts`, solo se aplica uno de los dos.
 - Encuéntralas con `/locate structure #heraldia:minas/<tamaño>` y `/heraldia info nearby`. `/locate` de las minas tarda menos de un segundo (medido: 0,8 s desde un punto sin minas cerca; antes, 4,3 s): la ladera de cada candidata se busca por adelantado en otros hilos y las alturas se comparten, con exactamente las mismas minas en los mismos sitios; `/heraldia info nearby` busca fuera del hilo del servidor y no lo para; `/heraldia info` muestra su configuración. Para probar una: `/place structure heraldia:minas/<tamaño>/<estilo>/a` (se coloca aunque el terreno sea llano). Logros: **Bajo la ladera**, **Campamento minero** y **Señor de las galerías** (uno por tamaño, en cadena). **En un mundo ya creado, solo en los chunks nuevos.**
 
+## Faros y naufragios
+
+Dos tipos de estructura de la **costa**, siempre en una orilla de verdad: el tipo propio `heraldia:costa` busca la orilla alrededor de la candidata (tierra baja con agua al lado, en una malla de 8 bloques hasta 32 alrededor, afinada al último bloque de tierra) y gira la plantilla para que mire al mar.
+
+| Tipo | Id | Qué hay |
+| --- | --- | --- |
+| **Faro** | `heraldia:costa/faro/<estilo>/<variante>` | Sobre **tierra firme** junto al agua (15 × 20 de tierra baja y casi llana, con agua honda delante): una torre de **27 bloques** con la **luz siempre encendida** arriba (una lámpara de redstone sobre un bloque de redstone y piedra luminosa encima, sin circuitos: se ve de lejos de noche), escalera de mano por dentro, sala de guardia con cofre y mesa de cartografía, galería con barandilla y linterna acristalada; la **casa del farero** (cama, mesa, horno y tonel) y un **embarcadero** de 3 × 11 sobre pilotes que bajan al fondo. Variante a: torre octogonal con bandas y el **farero** (aldeano quieto, invulnerable, con tratos marinos: compra bacalao y algas, vende mapas vacíos, brújula y catalejo); b: torre cuadrada a franjas, la casa al otro lado y sin nadie. |
+| **Galeón naufragado** | `heraldia:costa/naufragio/<estilo>/<variante>` | Un galeón de Heraldia de 9 × 31, **partido** por la mitad (sin cubierta y con el costado de estribor abierto), con el **mástil mayor** en pie, la verga y la vela rota, el muñón del de mesana, el castillo de proa y el **camarote del capitán** a popa. Variante a, **encallado**: la proa en la arena de la playa y la popa en un bajío; b, **semihundido** en aguas de 3 a 9 de hondo, con la cubierta a ras del agua, la **bodega inundada** (el cofre, bajo el agua) y **un ahogado** anclado (con las etiquetas de adulto y de anclado: no sale bebé ni se va de la bodega hasta que lo atacan). |
+
+- **Estilos según la costa** (el bioma de la tierra en la orilla y el del mar de delante; cada pareja tiene un solo estilo): **templada** (ladrillo de piedra con bandas de ladrillo; galeón de roble) en las playas y tierras templadas frente al océano; **cálida** (arenisca con bandas de arenisca roja; galeón de jungla con velas amarillas) en el desierto, la sabana, la jungla, el manglar o frente a un mar cálido; **fría** (ladrillo de pizarra profunda y piedra negra; galeón de roble oscuro) en la costa rocosa, las colinas ventosas y la taiga o frente a un mar frío; **nevada** (abeto, troncos y nieve; galeón de abeto con nieve en cubierta) en la playa nevada y las tierras nevadas.
+- **Nada se derrama**: el faro va a la altura de lo más alto de su huella, con los cimientos y los pilotes bajando hasta el suelo (`heraldia:acueducto_hasta_el_suelo`); el naufragio, con la fila del agua de la plantilla en el nivel del mar, y por debajo no hay aire en la plantilla: dentro del casco se quedan el agua o la arena del sitio (lo comprueba la auditoría del generador y, en el servidor, que no hay agua por encima del nivel del mar en su caja).
+- **Botín** modesto y marinero (tablas `heraldia:costa/<tabla>`, que se reponen con `botin.reponer.activado` y escala la dificultad): el **faro** (mapas, brújula, catalejo, velas, comida); la **bodega** del galeón (víveres y pertrechos); el **camarote** del capitán (mapas, instrumentos, oro, esmeraldas, un libro encantado) y, rara vez, un **fragmento de mapa del tesoro** (la mitad de `tesoro.probabilidad`). Sin diamantes, tridentes ni corazones del mar.
+- **Colocación**: una rejilla por tipo (`heraldia:costa/<tipo>`; por defecto, un faro cada 1.024 bloques y un naufragio cada 768, con `faros.separacion_bloques` y `naufragios.separacion_bloques`) con la candidata en las playas (`#heraldia:litoral`). Como solo salen donde hay costa, en la práctica son menos. La regla es la de las minas sin cambiar ninguna otra: nunca a menos de 256 bloques de una aldea o una única de Heraldia, ni a menos de 192 de una mediana, una entrada a mina o el otro tipo de la costa, ni junto a estructuras que asoman (vanilla o de otros mods: los naufragios y ruinas marinas vanilla incluidos), ni en la Atlántida; los caminos se saltan sus piezas. Los faros no buscan las aldeas con muelle (esas quedan fuera de su zona): prefieren los **cabos**, la orilla con más agua alrededor de las cuatro primeras que valen.
+- Encuéntralos con `/locate structure #heraldia:costa/faro` (o `naufragio`) y `/heraldia info nearby`; `/heraldia info` muestra su configuración. Para probar uno: `/place structure heraldia:costa/<tipo>/<estilo>/<variante>` junto a una playa (sin orilla cerca, se coloca en el centro mirando al sur). Logros: **Luz en la costa** (un faro), **Restos del naufragio** (un galeón naufragado) y **El cofre del capitán** (abrir el cofre de su camarote). Mapas web: capa «faros y naufragios» (`mapas_web.capas.costa`). `/heraldia review`: paradas `costa/faro` y `costa/naufragio`. **En un mundo ya creado, solo en los chunks nuevos.**
+
 ## Mapas del tesoro
 
 Cada estructura única tiene su mapa del tesoro, que marca la más cercana con una X (u otra marca propia de la estructura) y lleva su nombre traducido:
@@ -324,7 +341,7 @@ Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión 
 
 ## Logros
 
-Pestaña de logros **Heraldia** (101 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
+Pestaña de logros **Heraldia** (104 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia, estructura única, mediana o entrada a mina.
 - [Entradas a mina](#entradas-a-mina), en cadena: **Bajo la ladera** (entrar en una boca de mina, 20), **Campamento minero** (en un campamento minero, 40) y **Señor de las galerías** (en un complejo minero, 80).

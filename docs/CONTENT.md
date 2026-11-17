@@ -97,6 +97,8 @@ Back to the [README](../README.md).
 - **Mine entrances** (on real hillsides of hills, taigas, deserts, badlands and peaks): adits, mining camps and mining
   complexes with a headframe, each leading down to its own gallery; and more vanilla abandoned mineshafts in new chunks
   (x2 by default). See [Mine entrances](#mine-entrances).
+- **Lighthouses and wrecks** (on the coast, on firm ground by the sea or in the shallows): lighthouses with their light
+  always lit and broken galleons, run aground or half-sunk, with a style for each climate. See [Lighthouses and wrecks](#lighthouses-and-wrecks).
 
 ## Huge villages
 
@@ -214,6 +216,21 @@ Mine entrances dug into **real hillsides**: the mouth faces downhill, with flat,
 - **More vanilla mineshafts**: `minas.vanilla.multiplicador` (2.0 by default, 1-5, decimals allowed) multiplies how often vanilla abandoned mineshafts appear. Heraldia replaces the placement of the `minecraft:mineshafts` structure set with the same 26.3 values (with 1 it is exactly vanilla); a higher value keeps every mineshaft that would have spawned, in the same place, and adds more. It does not change other structures, and chunks already generated keep what they had (checked on the test server). If another mod also rewrites `minecraft:mineshafts`, only one of the two applies.
 - Find them with `/locate structure #heraldia:minas/<size>` and `/heraldia info nearby`. `/locate` of mines takes under a second (measured: 0.8 s from a point with no mine nearby, 4.3 s before): the hillside of each candidate is searched ahead on other threads and the heights are shared, with exactly the same mines in the same places; `/heraldia info nearby` searches off the server thread and does not stall it; `/heraldia info` shows their configuration. To test one: `/place structure heraldia:minas/<size>/<style>/a` (it is placed even on flat land). Advancements: **Under the Hillside**, **Mining Camp** and **Lord of the Galleries** (one per size, in a chain). **In an existing world they only appear in new chunks.**
 
+## Lighthouses and wrecks
+
+Two kinds of **coastal** structure, always on a real shoreline: the custom type `heraldia:costa` looks for the shore around the candidate (low land with water next to it, on an 8-block grid up to 32 blocks around, refined to the last block of land) and turns the template to face the sea.
+
+| Kind | Id | What is there |
+| --- | --- | --- |
+| **Lighthouse** | `heraldia:costa/faro/<style>/<variant>` | On **firm ground** by the water (15 × 20 of low, almost flat land with deep water in front): a **27-block** tower with its **light always lit** at the top (a redstone lamp on a block of redstone with glowstone above, no circuits: visible from afar at night), a ladder inside, a watch room with a chest and a cartography table, a gallery with a railing and the glazed lantern; the **keeper's house** (bed, table, furnace and barrel) and a 3 × 11 **jetty** on piles that reach the sea floor. Variant a: octagonal tower with bands and the **lighthouse keeper** (a still, invulnerable villager with seafaring trades: buys cod and kelp, sells empty maps, a compass and a spyglass); b: square striped tower, the house on the other side and nobody there. |
+| **Wrecked galleon** | `heraldia:costa/naufragio/<style>/<variant>` | A 9 × 31 Heraldia galleon **broken** in two (no deck and the starboard side open), with the **main mast** standing, its yard and torn sail, the stump of the mizzen, the forecastle and the **captain's cabin** at the stern. Variant a, **run aground**: the bow in the beach sand and the stern in the shallows; b, **half-sunk** in water 3 to 9 blocks deep, with the deck awash, the **flooded hold** (its chest under water) and **one drowned** anchored there (with the adult and anchored tags: it never spawns as a baby and stays in the hold until attacked). |
+
+- **Styles by coast** (the land biome on the shore and the sea biome in front; each pair has exactly one style): **temperate** (stone bricks with brick bands; oak galleon) on beaches and temperate lands facing the ocean; **warm** (sandstone with red sandstone bands; jungle-wood galleon with yellow sails) in desert, savanna, jungle, mangrove or facing a warm sea; **cold** (deepslate bricks and blackstone; dark oak galleon) on stony shores, windswept hills and taiga or facing a cold sea; **snowy** (spruce, logs and snow; spruce galleon with snow on deck) on snowy beaches and snowy lands.
+- **Nothing spills**: the lighthouse sits at the height of the highest point of its footprint, with foundations and piles going down to the ground (`heraldia:acueducto_hasta_el_suelo`); the wreck has the template's water row at sea level, and below it the template has no air: the water or sand of the site stays inside the hull (checked by the generator's audit and, on the server, by finding no water above sea level in its box).
+- **Loot**, modest and seafaring (tables `heraldia:costa/<table>`, restocked with `botin.reponer.activado` and scaled by the difficulty): the **lighthouse** (maps, compass, spyglass, candles, food); the galleon's **hold** (supplies and stores); the captain's **cabin** (maps, instruments, gold, emeralds, an enchanted book) and, rarely, a **treasure map fragment** (half of `tesoro.probabilidad`). No diamonds, tridents or hearts of the sea.
+- **Placement**: one grid per kind (`heraldia:costa/<kind>`; by default a lighthouse every 1,024 blocks and a wreck every 768, with `faros.separacion_bloques` and `naufragios.separacion_bloques`) with the candidate on beaches (`#heraldia:litoral`). As they only spawn where there is coast, there are fewer in practice. The rule is the mines' one without changing any other: never within 256 blocks of a Heraldia village or unique structure, nor within 192 of a medium structure, a mine entrance or the other coastal kind, nor next to structures that show above ground (vanilla or other mods': vanilla shipwrecks and ocean ruins included), nor inside Atlantis; roads skip their pieces. Lighthouses do not look for villages with a dock (those are outside their zone): they prefer **capes**, the shore with most water around among the first four that fit.
+- Find them with `/locate structure #heraldia:costa/faro` (or `naufragio`) and `/heraldia info nearby`; `/heraldia info` shows their configuration. To try one: `/place structure heraldia:costa/<kind>/<style>/<variant>` next to a beach (with no shore nearby it is placed at the centre facing south). Advancements: **Light on the Coast** (a lighthouse), **Flotsam and Jetsam** (a wrecked galleon) and **The Captain's Chest** (open its cabin chest). Web maps: "lighthouses and wrecks" layer (`mapas_web.capas.costa`). `/heraldia review`: stops `costa/faro` and `costa/naufragio`. **In an existing world, only in new chunks.**
+
 ## Treasure maps
 
 Every unique structure has its own treasure map, which marks the nearest one with an X (or another mark specific to the structure) and carries its translated name:
@@ -322,7 +339,7 @@ Cost: it only works when a player without this version's guide joins or when it 
 
 ## Advancements
 
-A **Heraldia** advancement tab (101 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
+A **Heraldia** advancement tab (104 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
 
 - **Heraldia** (root): enter any Heraldia village, unique structure, medium structure or mine entrance.
 - [Mine entrances](#mine-entrances), a chain: **Under the Hillside** (enter a mine adit, 20), **Mining Camp** (a mining camp, 40) and **Lord of the Galleries** (a mining complex, 80).

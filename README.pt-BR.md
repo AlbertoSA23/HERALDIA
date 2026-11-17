@@ -12,6 +12,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - 🏰 **19 estruturas únicas**, muito raras e cada uma em seu bioma: um castelo com fosso, uma catedral gótica, uma cidadela anã escavada na montanha, um galeão encalhado, uma mansão assombrada, um palácio oriental, uma torre de mago, uma mina perdida nas profundezas, um forte de piratas em sua própria ilha em mar aberto... Lá dentro: salas ocultas, enigmas de redstone, armadilhas e geradores de criaturas e, no fim, um **guardião com nome** protegendo a câmara do tesouro.
 - ⚔️ **Guardiões que lutam em fases.** Ao perder vida, eles se enfurecem e chamam reforços da própria estrutura, com barra de chefe enquanto durar o combate. Cada um solta seu próprio troféu.
 - ⛏️ **Minas.** Em encostas de verdade se abrem bocas de mina, acampamentos mineiros e complexos mineiros com torre de extração, em 3 tamanhos e no estilo de cada bioma, que descem a galerias com trilhos, cruzamentos e salas. As minas abandonadas do vanilla também ficam mais comuns.
+- 🗼 **Faróis e naufrágios.** Faróis em terra firme junto ao mar, com a luz sempre acesa, a casa do faroleiro e um píer, e galeões partidos, encalhados na praia ou meio afundados nos baixios, com o porão e a cabine do capitão. Cada um no estilo da sua costa: temperada, quente, fria ou nevada.
 - 🔱 **Atlântida.** Só uma por mundo: uma cidade enorme afundada no oceano profundo, com salões secos, três selos com suas chaves e o Guardião de Poseidon, que guarda o maior tesouro de Heraldia.
 - 🏟️ **Arena de hordas.** Um coliseu perto do spawn: toque o sino e resista a hordas cada vez mais fortes, com um campeão a cada cinco hordas, recordes e recompensas. Se você cair na arena, mantém o seu inventário.
 
@@ -21,7 +22,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - 📊 **O que o servidor já encontrou.** `/heraldia status` mostra quantas vilas, estruturas únicas, estruturas médias e minas os jogadores descobriram, os guardiões derrotados, o recorde da arena e as tarefas entregues.
 - 📋 **Tarefas das vilas.** Toque no atril do quadro na praça de uma vila (ou use `/heraldia quest` ali): aparecem no chat de 2 a 4 tarefas (trazer itens, derrotar um guardião, explorar, viajar a uma vila vizinha, a arena) que mudam a cada poucos dias. Pagam esmeraldas, experiência e reputação com essa vila: como conhecido, amigo e herói da vila, seus aldeões baixam os preços em 10, 20 e 30 %. Atacar seus aldeões ou golens a faz cair.
 - 🐪 **Caravanas.** De vez em quando, perto de você, um mercador de Heraldia com suas lhamas (e às vezes um guarda) percorre a estrada entre duas vilas vizinhas. Se bandidos o atacarem, defenda-o: ao chegar, ele paga esmeraldas e reputação com a vila de destino. Se o mercador morrer, a caravana se perde.
-- 🏆 **Progressos.** Uma aba Heraldia com 101 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, as estruturas médias, o quadro de tarefas, a arena e as caravanas.
+- 🏆 **Progressos.** Uma aba Heraldia com 104 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, os faróis e naufrágios, as estruturas médias, o quadro de tarefas, a arena e as caravanas.
 - 🗿 **Troféus.** Cada um dos 20 guardiões solta seu troféu, um item com nome e história. Reúna todos para completar a Sala de troféus.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única mais próxima do seu tipo. Eles aparecem nos baús épicos das vilas e os cartógrafos os vendem.
 - 🧭 **Caça ao tesouro.** Às vezes um baú traz um fragmento de mapa do tesouro. Use-o e ele vira um mapa com uma marca: cada marca é uma estrutura real de Heraldia que esconde a próxima pista, e a última leva a um baú enterrado por Ysolda, com bom saque e uma lembrança.
@@ -41,7 +42,7 @@ Os **comandos** estão em inglês em todos os servidores: `/heraldia guide`, `/h
 
 **Versões novas:** o servidor verifica uma vez por dia se há uma versão nova do Heraldia para o seu Minecraft e avisa os operadores ao entrar, com o link de download. **Faça um backup do servidor antes de atualizar.** Desativa-se com `update_check.activado`.
 
-**Mapas web:** se o servidor tem BlueMap, Dynmap ou squaremap, as estruturas do Heraldia aparecem no mapa web, cada tipo na sua camada (estruturas únicas, vilas, estruturas médias, minas e a arena), só quando algum jogador as descobriu. Os operadores o atualizam com `/heraldia webmap refresh`.
+**Mapas web:** se o servidor tem BlueMap, Dynmap ou squaremap, as estruturas do Heraldia aparecem no mapa web, cada tipo na sua camada (estruturas únicas, vilas, estruturas médias, minas, faróis e naufrágios e a arena), só quando algum jogador as descobriu. Os operadores o atualizam com `/heraldia webmap refresh`.
 
 ## Opções mais úteis
 
@@ -56,6 +57,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `unicas.<id>.activada` | `true` | Ativa ou desativa uma estrutura única. |
 | `unicas.rejilla_compatible` | `false` | `true` só para mundos criados com o Heraldia 0.1.0. |
 | `medianas.frecuencia_porcentaje` | 100 | Quantidade de estruturas médias (200 = o dobro). |
+| `faros.activado`, `naufragios.activado` | `true` | Faróis e galeões naufragados na costa. |
 | `dificultad.nivel` | `normal` | Guardiões e monstros: `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Os baús do Heraldia são repostos depois de alguns dias. |
 | `arena.activado` | `true` | A arena de hordas perto do spawn. |

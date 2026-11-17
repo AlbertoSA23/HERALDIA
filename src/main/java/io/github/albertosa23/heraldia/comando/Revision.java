@@ -30,20 +30,22 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Ruta de revisión de /heraldia review, lógica pura (sin clases del juego): las paradas, en orden, de cada tipo de
- * contenido visual (aldeas por familia, cada única, cada tipo de mediana, minas de cada tamaño, la arena y un tramo de
+ * contenido visual (aldeas por familia, cada única, cada tipo de mediana, minas de cada tamaño, el faro y el naufragio, la arena y un tramo de
  * camino), la navegación, el progreso de cada jugador (marcas y notas), su fichero JSON y el resumen en Markdown.
  */
 public final class Revision {
 	public static final String FICHERO = "heraldia_revision.json", INFORME = "heraldia_revision.md";
 	/** Tamaños de las minas en el orden de la ruta (los de tools/gen/minas: pequeña, mediana, grande). */
 	static final List<String> TAMANOS = List.of("pequena", "mediana", "grande");
+	/** Tipos de la costa en el orden de la ruta (los de tools/gen/costa). */
+	static final List<String> COSTA = List.of("faro", "naufragio");
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private static final int NOTA_MAX = 256;
 
 	private Revision() {
 	}
 
-	public enum Tipo { ALDEA, UNICA, MEDIANA, MINA, ARENA, CAMINO }
+	public enum Tipo { ALDEA, UNICA, MEDIANA, MINA, COSTA, ARENA, CAMINO }
 
 	/** Una parada: id estable (p. ej. «unica/castillo»), su tipo y lo que la distingue (familia, única, tipo o tamaño). */
 	public record Parada(String id, Tipo tipo, String sub) {
@@ -69,7 +71,8 @@ public final class Revision {
 				familias.add(e.getValue());
 			}
 		}
-		Set<String> unicas = new TreeSet<>(), medianas = new TreeSet<>(), minas = new TreeSet<>(Revision::ordenMina);
+		Set<String> unicas = new TreeSet<>(), medianas = new TreeSet<>(), minas = new TreeSet<>(Revision::ordenMina),
+				costa = new TreeSet<>(Revision::ordenCosta);
 		for (String p : presentes) {
 			String[] s = p.split("/");
 			if (s.length >= 2 && s[0].equals("unicas")) {
@@ -78,6 +81,8 @@ public final class Revision {
 				medianas.add(s[1]);
 			} else if (s.length >= 3 && s[0].equals("minas")) {
 				minas.add(s[1]);
+			} else if (s.length >= 3 && s[0].equals("costa")) {
+				costa.add(s[1]);
 			}
 		}
 		List<Parada> out = new ArrayList<>();
@@ -85,6 +90,7 @@ public final class Revision {
 		unicas.forEach(u -> out.add(Parada.de(Tipo.UNICA, u)));
 		medianas.forEach(m -> out.add(Parada.de(Tipo.MEDIANA, m)));
 		minas.forEach(m -> out.add(Parada.de(Tipo.MINA, m)));
+		costa.forEach(c -> out.add(Parada.de(Tipo.COSTA, c)));
 		if (arena) {
 			out.add(Parada.de(Tipo.ARENA, ""));
 		}
@@ -93,6 +99,15 @@ public final class Revision {
 		}
 		out.removeIf(activa.negate());
 		return List.copyOf(out);
+	}
+
+	/** Faro antes que naufragio (y, si hubiera otros, por id). */
+	private static int ordenCosta(String a, String b) {
+		int ia = COSTA.indexOf(a), ib = COSTA.indexOf(b);
+		if (ia >= 0 || ib >= 0) {
+			return ia < 0 ? 1 : ib < 0 ? -1 : Integer.compare(ia, ib);
+		}
+		return a.compareTo(b);
 	}
 
 	private static int ordenMina(String a, String b) {

@@ -169,12 +169,22 @@ def test_minas():
     m = ["tools/smoke/entradas_mina.py"]
     assert elige("tools/gen/minas/planos.py") == (False, m)
     assert elige("tools/gen/minas/__init__.py") == (False, m)
-    assert elige(J + "minas/Ladera.java") == (False, m)
+    assert elige(J + "minas/Ladera.java") == (False, sorted(m + ["tools/smoke/costa.py"])), "la regla de la costa es la de las minas"
     assert elige("tools/smoke/entradas_mina.py") == (False, m)
     # T36: la caché compartida de alturas y el /locate en paralelo (solo los usan las minas)
     assert elige(J + "comun/CacheAlturas.java") == (False, m)
     assert elige(J + "mixin/ChunkGeneratorLocateMixin.java") == (False, m)
-    assert elige(J + "minas/LocateParalelo.java") == (False, m)
+    assert elige(J + "minas/LocateParalelo.java") == (False, sorted(m + ["tools/smoke/costa.py"]))
+
+
+def test_costa():
+    c = ["tools/smoke/costa.py"]
+    mobs = c + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
+    assert elige("tools/gen/costa/obras.py") == (False, mobs), "el ahogado del semihundido"
+    assert elige("tools/gen/costa/__init__.py") == (False, mobs)
+    assert elige(J + "costa/Orilla.java") == (False, c)
+    assert elige("tools/smoke/costa.py") == (False, c)
+    assert sel.coste([J + "costa/Orilla.java"]) and sel.coste(["tools/gen/costa/obras.py"])
 
 
 def test_perfiles():
