@@ -12,9 +12,9 @@ Aquí van los datos y los textos:
                                 leída al tirar el botín (recargable con /heraldia reload) y nunca con tesoro.activado = false.
   - los logros tesoro/fragmento y tesoro/cofre (los escribe logros.write con los demás), la página «tesoro» de la Guía (guia.py) y los textos heraldia.tesoro.*.
 
-Lo usan: las tablas de cofre de las medianas, de las entradas a mina y de las únicas, y la recompensa de las hazañas del
-tablón (encargos de las aldeas). Para otro origen (p. ej. los encargos de T38), basta con anidar la tabla
-heraldia:tesoro/fragmento (o llamar a tesoro.Tesoro.fragmento en Java).
+Lo usan: las tablas de cofre de las medianas, de las entradas a mina y de las únicas, la recompensa de las hazañas del
+tablón y la paga de los encargos del tablón (T38: heraldia:tesoro/encargo, que tira Tesoro.recompensa en Encargos.pagar).
+Para otro origen, basta con anidar la tabla heraldia:tesoro/fragmento (o llamar a tesoro.Tesoro.fragmento en Java).
 """
 from loot import item
 from unicas._comun import botin
@@ -29,9 +29,10 @@ MARCA_RECUERDO = "{%s: 1b}" % RECUERDO_MARCA
 FRAGMENTO = f"{NS}:tesoro/fragmento"
 COFRE = f"{NS}:tesoro/cofre"
 CONDICION = f"{NS}:tesoro_pista"
-# Factor de cada familia de tablas sobre tesoro.probabilidad: las únicas tienen muchos cofres (la mitad por cofre); las
-# hazañas del tablón, pocas y difíciles (cinco veces más).
-FACTOR = {"medianas": 1.0, "minas": 1.0, "unicas": 0.5, "encargos": 5.0}
+# Factor de cada familia de tablas sobre tesoro.probabilidad: las únicas tienen muchos cofres (la mitad por cofre); los
+# encargos del tablón, como un cofre; las hazañas del tablón, pocas y difíciles (cinco veces más).
+FACTOR = {"medianas": 1.0, "minas": 1.0, "unicas": 0.5, "encargos": 1.0, "hazanas": 5.0}
+ENCARGO = f"{NS}:tesoro/encargo"   # la paga de cada encargo entregado del tablón (T38, Encargos.pagar -> Tesoro.recompensa)
 PROBABILIDAD_DEFECTO, RADIO_DEFECTO = 3.0, 1500     # % por cofre y bloques (opciones.py)
 LORE_MAX_PX = 250                                    # ancho máximo de una línea de lore (el juego no la parte: que quepa en pantalla)
 
@@ -205,6 +206,12 @@ def tablas_en_contenedores(reg):
     return out
 
 
+def encargo():
+    """Tabla heraldia:tesoro/encargo: solo el fragmento, con la probabilidad de los encargos (la tira Tesoro.recompensa
+    al pagar cada encargo entregado del tablón)."""
+    return con_pista({"type": "minecraft:chest", "pools": []}, "encargos")
+
+
 def logros():
     """{ruta: advancement} de la búsqueda del tesoro (cuelgan de la raíz de la pestaña Heraldia)."""
     import logros as lg
@@ -241,4 +248,5 @@ def errores(traducciones=None):
 def write(out, jdump):
     jdump(out, f"data/{NS}/loot_table/tesoro/fragmento.json", fragmento())
     jdump(out, f"data/{NS}/loot_table/tesoro/cofre.json", cofre())   # los logros los escribe logros.write con los demás
+    jdump(out, f"data/{NS}/loot_table/tesoro/encargo.json", encargo())
     return lang()

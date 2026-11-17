@@ -164,6 +164,24 @@ public final class Trazado {
 		return v;
 	}
 
+	/**
+	 * Vecinas (como {@link #vecinas}) de la aldea con la plaza en (bx, bz) bloques (el centro del chunk de su inicio):
+	 * busca su casilla entre las de alrededor. Vacío si ahí no sale ninguna aldea de la rejilla. Para los encargos de
+	 * viaje del tablón (T38); en memoria, como lo demás.
+	 */
+	public long[] vecinasDe(int bx, int bz) {
+		long p = pack(bx, bz);
+		int gx = cellOf(bx), gz = cellOf(bz);
+		for (int x = gx - 2; x <= gx + 2; x++) {
+			for (int z = gz - 2; z <= gz + 2; z++) {
+				if (aldea(x, z) == p) {
+					return vecinas(x, z);
+				}
+			}
+		}
+		return new long[0];
+	}
+
 	private int cellOf(int block) {
 		return Math.floorDiv(block, cell);
 	}

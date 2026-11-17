@@ -96,6 +96,22 @@ public final class Caminos {
 		return p == Trazado.NONE ? null : new BlockPos(Trazado.px(p), c.sea(), Trazado.pz(p));
 	}
 
+	/**
+	 * Para los encargos de viaje del tablón (T38): las aldeas vecinas (las que une un camino) de la aldea con el inicio
+	 * en el chunk (chunkX, chunkZ), como posiciones empaquetadas ({@link Trazado#pack}) de sus plazas. Vacío con los
+	 * caminos desactivados o fuera del mundo principal. Seguro fuera del hilo del servidor; no carga ni genera chunks.
+	 */
+	public static long[] vecinas(ServerLevel level, int chunkX, int chunkZ) {
+		if (!HeraldiaConfig.get().getBool(ACTIVADO)) {
+			return new long[0];
+		}
+		Contexto c = de(level, level.getChunkSource().getGenerator());
+		if (c == null || c.trazado() == null) {
+			return new long[0];
+		}
+		return c.trazado().vecinasDe(chunkX * 16 + 8, chunkZ * 16 + 8);
+	}
+
 	/** Histograma del coste por chunk: casilla k = de 2^k a 2^(k+1) µs (la 0, menos de 2 µs). */
 	static final AtomicLongArray HISTOGRAMA = new AtomicLongArray(24);
 

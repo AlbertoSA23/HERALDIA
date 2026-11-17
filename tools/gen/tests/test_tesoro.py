@@ -48,7 +48,8 @@ def test_probabilidad_de_la_primera_pista():
     assert tesoro.probabilidad(3.0, tesoro.FACTOR["medianas"]) == pytest.approx(0.03)
     assert tesoro.probabilidad(3.0, tesoro.FACTOR["minas"]) == pytest.approx(0.03)
     assert tesoro.probabilidad(3.0, tesoro.FACTOR["unicas"]) == pytest.approx(0.015)
-    assert tesoro.probabilidad(3.0, tesoro.FACTOR["encargos"]) == pytest.approx(0.15)
+    assert tesoro.probabilidad(3.0, tesoro.FACTOR["hazanas"]) == pytest.approx(0.15)
+    assert tesoro.probabilidad(3.0, tesoro.FACTOR["encargos"]) == pytest.approx(0.03)
     assert tesoro.probabilidad(0, 5) == 0 and tesoro.probabilidad(100, 5) == 1 and tesoro.probabilidad(50, 0.5) == 0.25
 
 
@@ -103,7 +104,16 @@ def test_solo_en_cofres_barriles_y_vasijas():
 def test_recompensa_de_las_hazanas_del_tablon():
     for nombre, t in tablon.tablas().items():
         assert t["type"] == "minecraft:advancement_reward"
-        assert t["pools"][-1] == tesoro.pool_pista("encargos"), nombre
+        assert t["pools"][-1] == tesoro.pool_pista("hazanas"), nombre
+
+
+def test_paga_de_los_encargos_del_tablon():
+    """T38: cada encargo entregado tira heraldia:tesoro/encargo (solo el fragmento, con el factor de los encargos)."""
+    t = tesoro.encargo()
+    assert t["pools"] == [tesoro.pool_pista("encargos")]
+    assert tesoro.ENCARGO == "heraldia:tesoro/encargo"
+    assert 'Heraldia.id("tesoro/encargo")' in _java("tesoro/Tesoro.java")
+    assert "Tesoro.recompensa(p)" in _java("encargos/Encargos.java")
 
 
 def test_el_escritor_aplica_la_pista_a_las_unicas():

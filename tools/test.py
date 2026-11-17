@@ -71,6 +71,8 @@ COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py", "tools/smoke/arena.py"]
 MINAS = ["tools/smoke/entradas_mina.py"]
 # Perfiles de juego (opción «perfil», T36): su prueba de servidor (reinicios con cada perfil y una opción fijada a mano).
 PERFILES = ["tools/smoke/perfiles.py"]
+# Encargos del tablón y reputación por aldea (T38): su Java, el mixin de los precios y sus textos y logros.
+ENCARGOS = ["tools/smoke/encargos.py"]
 # Los tipos de medianas traen mobs anclados (y zombis adultos): las pruebas que recorren todos los mobs de las plantillas.
 MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
 
@@ -94,6 +96,8 @@ MAPA = [
     ("tools/gen/minas/*", MINAS), (JAVA + "minas/*", MINAS),
     # /locate de las minas (T36): la caché compartida de alturas y el cálculo adelantado en paralelo solo los usan las minas
     (JAVA + "comun/CacheAlturas.java", MINAS), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINAS),
+    # encargos del tablón y reputación (T38)
+    (JAVA + "encargos/*", ENCARGOS), (JAVA + "mixin/VillagerPreciosMixin.java", ENCARGOS), ("tools/gen/encargos.py", ENCARGOS),
     # perfiles de juego (T36): su lógica y su comando (el resto de la configuración es común: batería completa)
     (JAVA + "config/Perfiles.java", PERFILES), (JAVA + "comando/ProfileCommand.java", PERFILES),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
@@ -267,6 +271,7 @@ DURACION_S = {
     "tools/smoke/update_check.py": 120,              # tres arranques (con la API de mentira, sin red y desactivado)
     "tools/smoke/mapas_web.py": 240,                 # tres arranques (sin mapas, con squaremap y Carpet, y tras reiniciar)
     "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
+    "tools/smoke/encargos.py": 150,                  # dos arranques del mismo mundo y una aldea generada
     "tools/smoke/tesoro.py": 130,                    # medida en local: ~1 min 40 s (tres arranques, la cadena entera y el cofre)
 }
 DEFECTO_S = 90

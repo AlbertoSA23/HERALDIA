@@ -69,6 +69,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,13 +87,16 @@ import org.slf4j.LoggerFactory;
  * chunks ya cargados, nunca dentro ni encima de construcciones, con margen) y la cadena queda completada: su semilla se
  * apunta en el mundo (adjunto heraldia:tesoros del mundo principal), así que ni una copia del mapa da otro cofre.</li>
  * </ol>
- * Nada por tick: solo trabaja al usar una pista o con /heraldia treasure. Enganche para otros orígenes (p. ej. los
- * encargos): {@link #fragmento(ServerLevel)} o anidar la tabla heraldia:tesoro/fragmento.
+ * Nada por tick: solo trabaja al usar una pista o con /heraldia treasure. Los encargos del tablón (T38) llaman a
+ * {@link #recompensa(ServerPlayer)} al pagar; para otros orígenes, {@link #fragmento(ServerLevel)} o anidar la tabla
+ * heraldia:tesoro/fragmento.
  */
 public final class Tesoro {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
 	public static final ResourceKey<LootTable> FRAGMENTO = ResourceKey.create(Registries.LOOT_TABLE, Heraldia.id("tesoro/fragmento"));
 	public static final ResourceKey<LootTable> COFRE = ResourceKey.create(Registries.LOOT_TABLE, Heraldia.id("tesoro/cofre"));
+	/** La paga de un encargo del tablón (T38): a veces, un fragmento (tesoro.FACTOR["encargos"] del generador). */
+	public static final ResourceKey<LootTable> ENCARGO = ResourceKey.create(Registries.LOOT_TABLE, Heraldia.id("tesoro/encargo"));
 	static final String CLAVE = "heraldia.tesoro.";
 	/** Jugadores con un fragmento descifrándose (en otro hilo): uno a la vez por jugador. */
 	private static final Set<UUID> BUSCANDO = ConcurrentHashMap.newKeySet();
@@ -124,6 +128,19 @@ public final class Tesoro {
 		LootParams params = new LootParams.Builder(level).create(LootContextParamSets.EMPTY);
 		List<ItemStack> items = level.getServer().reloadableRegistries().getLootTable(FRAGMENTO).getRandomItems(params);
 		return items.isEmpty() ? ItemStack.EMPTY : items.getFirst();
+	}
+
+	/**
+	 * Enganche de los encargos del tablón (T38, Encargos.pagar): con la probabilidad de la tabla heraldia:tesoro/encargo
+	 * (tesoro.probabilidad, si tesoro.activado), le da un fragmento al jugador. Barato: una tirada de botín.
+	 */
+	public static void recompensa(ServerPlayer p) {
+		ServerLevel level = p.level();
+		LootParams params = new LootParams.Builder(level).withParameter(LootContextParams.ORIGIN, p.position())
+				.withOptionalParameter(LootContextParams.THIS_ENTITY, p).create(LootContextParamSets.CHEST);
+		for (ItemStack s : level.getServer().reloadableRegistries().getLootTable(ENCARGO).getRandomItems(params)) {
+			LlaveCommand.give(p, s);
+		}
 	}
 
 	/** La marca de pista de un objeto ({@value Cadena#MARCA}), o null si no es una pista. */
