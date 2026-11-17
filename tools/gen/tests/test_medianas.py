@@ -30,10 +30,11 @@ LOTE_1 = ["campamento", "ermita", "posada", "torre_vigia"]
 LOTE_2 = ["cazadores", "molino", "pescador", "templete"]
 NETHER = ["altar_magma", "atalaya_basalto", "puesto_piglin", "santuario_hongos"]      # T44 (test_nether_end.py)
 END = ["embarcadero_shulker", "mausoleo_purpura", "observatorio_vacio"]
+CHOZAS = ["choza_mago"]                 # T43: las chozas de mago
 
 
 def test_lotes_y_descubrimiento():
-    assert IDS == sorted(IDS) == sorted(LOTE_1 + LOTE_2 + NETHER + END)
+    assert IDS == sorted(IDS) == sorted(LOTE_1 + LOTE_2 + CHOZAS + NETHER + END)
     assert not any(m.startswith("_") for m in IDS)
 
 
@@ -88,7 +89,8 @@ def test_entidades_marcadas_persistentes_y_ancladas(reg):
     # cazadores a (2 estilos): el lobo; templete a (2 estilos): dos custodios
     # T44: puesto de piglins (2 renegados en a y 1 en b, 2 estilos), altar roto (2 cubos de magma, 2 estilos), atalaya
     # entera (el vigía, 2 estilos) y embarcadero a (el shulker, 2 estilos)
-    assert mobs == 2 * 6 + 1 * 2 + 1 * 3 + 1 * 2 + 2 * 2 + 3 * 2 + 2 * 2 + 1 * 2 + 1 * 2
+    # choza de mago a (6 estilos): el gato
+    assert mobs == 2 * 6 + 1 * 2 + 1 * 3 + 1 * 2 + 2 * 2 + 3 * 2 + 2 * 2 + 1 * 2 + 1 * 2 + 1 * 6
 
 
 def test_bandidos_sin_patrulla(reg):
@@ -242,7 +244,7 @@ def test_logros(reg):
     advs, lang = logros.build(reg, [], MODS)
     assert set(advs["raiz"]["criteria"]) == {"aldea", "unica", "mediana"}
     todas = advs["medianas/todas"]
-    assert todas["parent"] == "heraldia:medianas/descubrir" and todas["requirements"] == [[m] for m in sorted(LOTE_1 + LOTE_2)]
+    assert todas["parent"] == "heraldia:medianas/descubrir" and todas["requirements"] == [[m] for m in sorted(LOTE_1 + LOTE_2 + CHOZAS)]
     assert todas["criteria"]["posada"]["conditions"]["player"]["predicate"]["minecraft:location"]["structures"] == "#heraldia:medianas/posada"
     assert set(lang["es_es"]) == set(lang["en_us"])
 
@@ -383,6 +385,7 @@ def test_logros_propios_del_lote_2(reg):
                 assert crit["conditions"]["loot_tables"] == f"heraldia:medianas/{mid}/{ex['tabla']}"
     assert {p for p in advs if p.startswith("medianas/") and p.count("/") == 2} == {
         "medianas/molino/molienda", "medianas/pescador/pesca", "medianas/cazadores/pieles", "medianas/templete/custodios",
+        "medianas/choza_mago/tratos", "medianas/choza_mago/malvado",
         "medianas/puesto_piglin/renegados", "medianas/santuario_hongos/ofrendas"}      # los dos últimos, del Nether (T44)
     custodios = advs["medianas/templete/custodios"]["criteria"]
     assert set(custodios) == {"skeleton", "husk"}
@@ -404,3 +407,10 @@ def test_bioma_vecinos_solo_en_el_pescador_y_en_rango():
     class Franja(_Falsa):
         BIOMA_VECINOS = 0
     assert any("BIOMA_VECINOS" in e for e in _errores(Franja))
+
+
+def test_solo_las_chozas_ceden_a_las_minas(tmp_path):
+    """Las chozas de mago buscan el interior de los mismos biomas que las minas: ceden ellas (etiqueta para el Java)."""
+    assert medianas.ceden_a_minas() == [f"heraldia:medianas/choza_mago/{e}" for e in dict(MODS)["choza_mago"].ESTILOS]
+    assert all(not getattr(m, "CEDE_A_MINAS", False) for mid, m in MODS if mid != "choza_mago")
+    assert medianas.CEDEN_A_MINAS == "medianas/ceden_a_minas"

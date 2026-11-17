@@ -187,6 +187,7 @@ public final class EstadoCommand {
 				: Arena.centro() != null ? "heraldia.estado.arena.colocada" : "heraldia.estado.arena.sin_colocar"), Arena.record(server)));
 		lineas.addAll(io.github.albertosa23.heraldia.encargos.Encargos.estado(server, src.getPlayer()));   // T38
 		lineas.addAll(io.github.albertosa23.heraldia.caravanas.Caravanas.estado());                         // T39
+		lineas.addAll(io.github.albertosa23.heraldia.chozas.Magos.estado());                                // T43
 		lineas.add(WithoutLootrCondition.LOOTR_LOADED
 				? Textos.t("heraldia.estado.reponer.lootr")
 				: cfg.getBool("botin.reponer.activado")

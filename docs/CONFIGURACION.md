@@ -10,7 +10,7 @@ Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probad
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
 2. Cópialo en la carpeta `mods` del servidor. En los clientes es opcional: con el cliente vanilla se juega igual (los textos que no conoce salen en español, salvo la Guía, que llega en el idioma de cada jugador); con el mod, todo sale en su idioma y está la pantalla de configuración.
-3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 174 estructuras registradas`.
+3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 180 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.
 `/reload` no recarga la generación del mundo: hay que reiniciar el servidor (o salir y volver a entrar al mundo en un solo jugador).
@@ -27,6 +27,7 @@ En un mundo existente las estructuras solo aparecen en chunks que todavía no se
 - `/heraldia info` (operadores, nivel 2): resumen de la configuración en uso (aldeas, estructuras únicas activadas y su separación, distancia mínima, cofre por jugador, si está instalado Lootr, estructuras medianas, entradas a mina y el multiplicador de las minas vanilla) y de cuántas estructuras hay registradas.
 - `/heraldia info nearby [radius]`: la estructura única y la mediana más cercanas de cada tipo, la entrada a mina más cercana de cada tamaño y la aldea Heraldia más cercana, con distancia, rumbo y coordenadas (al pulsarlas se propone un `/tp`). Usa la misma comprobación que `/locate`, así que nunca señala una estructura que la distancia mínima descarta, pero no carga ni genera chunks: lo que aún no se ha generado sale como «prevista» (de una aldea prevista solo se sabe la familia). Radio por defecto 3.000 bloques, máximo 10.000; el mensaje dice cuánto ha tardado la búsqueda.
 - `/heraldia quest [list | accept <number> | abandon <number> | turnin]` (cualquier jugador, sin permisos): dentro de una aldea de Heraldia, sin argumentos, su [tablón de encargos](CONTENIDO.md#vida-de-las-aldeas) (lo mismo que tocar el atril); fuera, tus encargos. `accept <number>` coge el encargo número N del tablón de la aldea en la que estás; `list`, tus encargos (hasta 5), cómo van y tu reputación con cada aldea; `abandon <number>` deja uno de los tuyos; `turnin` entrega, en la aldea que los dio, los cumplidos (los de traer, si llevas los objetos). Los botones del tablón ejecutan estas mismas órdenes.
+- `/heraldia wizard [reveal]` (operadores, nivel 2): las [chozas de mago](CONTENIDO.md#chozas-de-mago). Sin nada, los magos a menos de 32 bloques con su estado (bondadoso, malvado sin revelar, aún sin decidir); `reveal` revela el más cercano sin revelar aunque sea bondadoso (para probar el Mago Malvado y su botín).
 - `/heraldia caravan [spawn [raid | peaceful] | raid | list | clear]` (operadores, nivel 2): las [caravanas](CONTENIDO.md#caravanas). `spawn` saca una junto a ti (a menos de 80 bloques de un camino de Heraldia, con su salida en chunks cargados y el camino de verdad en el mundo; sin esperar al sorteo de `caravanas.frecuencia`, pero con `caravanas.activado` y `caravanas.max_activas`); `spawn raid` la saca con asalto seguro y `spawn peaceful`, sin asalto. `raid` fuerza ya el asalto de la más cercana; `list`, las que están en camino (de qué aldea a cuál, si la asaltan, por qué vértice van y dónde está el mercader); `clear` las quita todas, con sus entidades.
 - `/heraldia guide` (cualquier jugador, sin permisos): te da una copia al día de la [Guía del Heraldo](CONTENIDO.md#guía-del-heraldo) (si llevas una en el inventario, la cambia por la nueva).
 - `/heraldia profile` (operadores, nivel 2): el [perfil de juego](#perfiles-de-juego) en uso (el efectivo y el elegido en el fichero) y el valor que da a cada una de sus opciones, marcando las fijadas a mano en el fichero, que mandan sobre él.
@@ -105,7 +106,7 @@ El jugador no necesita comandos: usa el fragmento y el mapa con clic derecho. El
 Para operadores (nivel 2). Vuelve a leer `config/heraldia.json` sin reiniciar el servidor (sin reescribirlo) y aplica lo que no afecta a la generación:
 
 - `dificultad.*`: se recalculan los modificadores de vida y daño de los mobs de Heraldia ya cargados (los demás, al cargarse), conservando la proporción de su vida actual.
-- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (los tratos se sortean al subir de nivel un aldeano), `unicas.atlantida.cofre_unico_por_jugador`, `mapas_web.*` (los marcadores se rehacen al recargar), `tesoro.*` (al tirar el botín y al usar una pista), `encargos.*`, `reputacion.*` y `caravanas.*` (con `caravanas.activado` a `false`, la caravana en camino se va): se leen cada vez que se usan.
+- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (los tratos se sortean al subir de nivel un aldeano), `unicas.atlantida.cofre_unico_por_jugador`, `mapas_web.*` (los marcadores se rehacen al recargar), `tesoro.*` (al tirar el botín y al usar una pista), `encargos.*`, `reputacion.*`, `chozas_mago.*` (al decidir cada choza) y `caravanas.*` (con `caravanas.activado` a `false`, la caravana en camino se va): se leen cada vez que se usan.
 - `perfil` (el [perfil de juego](#perfiles-de-juego)): se aplica entero, con lo fijado a mano encima (todas sus opciones son de estas).
 - `golems.*`: se publican otra vez los límites a las funciones de los gólems.
 - `arena.*` (salvo `arena.generar_en_mundos_nuevos`, que solo cuenta al arrancar un mundo nuevo): incrementos, máximo de vivos, experiencia, modos y si está activada. Con una partida en marcha no cambian hasta que acabe (vuelve a recargar entonces), salvo `arena.temporada.*`, que se aplica siempre (el histórico se recorta en el acto; el día y la hora cuentan desde ese momento).
@@ -189,6 +190,8 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `caravanas.frecuencia` | 10 | 0-100 | Probabilidad (%) de que salga una caravana en cada sorteo (uno por minuto, junto a un jugador a menos de 80 bloques de un camino, al menos 2 min después de la anterior). 0: solo con `/heraldia caravan spawn`. |
 | `caravanas.prob_asalto` | 35 | 0-100 | Probabilidad (%) de que la asalten los bandidos a media ruta. La fija el [perfil](#perfiles-de-juego). |
 | `caravanas.max_activas` | 1 | 1-3 | Caravanas en camino a la vez en todo el servidor. |
+| `chozas_mago.prob_malvado` | 20 | 0-100 | Probabilidad (%) de que el mago de una [choza de mago](CONTENIDO.md#chozas-de-mago) sea malvado; por choza, siempre igual, y se guarda en el mago al cargarse. 0: todos comercian. La fija el [perfil](#perfiles-de-juego). |
+| `chozas_mago.prob_botin_premium` | 30 | 0-100 | Probabilidad (%) de que el Mago Malvado lleve además el premio (Reparación, pociones difíciles, tótem o un libro alto); por choza, al revelarse. |
 | `reputacion.activado` | `true` | `true`/`false` | Reputación por aldea: sube con los encargos y baja al atacar a sus aldeanos o gólems; conocido, amigo y héroe de la aldea rebajan sus tratos un 10, 20 y 30 % (sin sumarse a Héroe de la aldea). Desactivada, ni descuentos ni cambios (la reputación ganada se conserva). |
 | `mapas_web.activado` | `true` | `true`/`false` | [Marcadores en los mapas web](#mapas-web-heraldia-webmap-refresh) (BlueMap, Dynmap o squaremap); sin ninguno de ellos no hace nada. Desactivado, quita las capas de Heraldia del mapa. |
 | `mapas_web.solo_descubiertas` | `true` | `true`/`false` | Solo salen las de un tipo que algún jugador ha descubierto (los logros de `/heraldia status`); con `false`, todas las ya generadas en chunks que se han cargado. |
@@ -220,6 +223,7 @@ La opción `perfil` fija de golpe un conjunto de opciones de juego (nunca de la 
 | `arena.max_mobs_vivos` | 12 | 20 | 28 |
 | `arena.experiencia_porcentaje` | 30 | 15 | 5 |
 | `caravanas.prob_asalto` | 15 | 35 | 60 |
+| `chozas_mago.prob_malvado` | 10 | 20 | 35 |
 
 - **Una opción escrita en el fichero manda sobre el perfil** (está «fijada a mano»). Si su valor no es el del perfil, el perfil pasa a ser **personalizado** (`personalizado`): lo dice el log al arrancar, con las opciones que difieren y lo que daría el perfil, y también `/heraldia profile` y el bloque `_perfil` del fichero. El resto de las opciones siguen con los valores del perfil.
 - Las opciones que fija un perfil solo se escriben en el fichero si están fijadas a mano; así, cambiar `perfil` en el fichero las cambia de verdad. Para volver al valor del perfil, borra la opción del fichero.

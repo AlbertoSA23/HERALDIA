@@ -17,6 +17,8 @@ Contrato de cada módulo:
   DIMENSION = "nether"                             # opcional: "nether" o "end" (dimensiones.py; por defecto el mundo
                                                    # principal): tipo heraldia:dimension, que busca el suelo bajo el
                                                    # techo del Nether o sobre una isla exterior del End
+  CEDE_A_MINAS = True                              # opcional: cede el sitio a las entradas a mina (etiqueta
+                                                   # heraldia:medianas/ceden_a_minas; comun/Medianas.cedeMina en Java)
   LOGROS = [dict(id="pesca", icono="minecraft:cod", titulo=(es, en), descripcion=(es, en),   # opcional: logros
                 tabla="pesca")]       # propios (heraldia:medianas/<id>/<id del logro>, hijos de «Al borde del camino»):
                                       # abrir un contenedor de esa tabla de LOOT, o `criterios` propios en vez de `tabla`
@@ -46,6 +48,7 @@ PROHIBIDO = ("diamond", "netherite", "elytra", "enchanted_golden_apple", "totem_
              "heart_of_the_sea", "trident", "music_disc")
 SEPARACION_RANGO = (256, 4000)
 EXCLUSION_ALDEAS_VANILLA = 8                   # chunks (128 bloques) hasta la candidata de una aldea vanilla
+CEDEN_A_MINAS = f"{PREFIJO}/ceden_a_minas"     # etiqueta de estructura (comun/Medianas.CEDEN_A_MINAS en Java)
 BIOMA_Y = 96                                   # altura a la que la rejilla busca el bioma de la candidata
 
 
@@ -273,6 +276,7 @@ def write(out, jdump):
         for name, tabla in mod.LOOT.items():
             jdump(out, f"data/{NS}/loot_table/{PREFIJO}/{mid}/{name}.json", lootr_aware(tesoro.con_pista(tabla, "medianas")))
     jdump(out, f"data/{NS}/tags/worldgen/structure/{PREFIJO}.json", {"values": todas})
+    jdump(out, f"data/{NS}/tags/worldgen/structure/{CEDEN_A_MINAS}.json", {"values": ceden_a_minas()})
     return lang()
 
 
@@ -284,6 +288,10 @@ def _medidas(mid, estilo, d):
         sx, sy, sz = fn(d["paleta"], plantilla(mid, estilo, v)).size()
         alto, lado = max(alto, sy), max(lado, sx, sz)
     return alto, lado
+def ceden_a_minas():
+    """Estructuras (estilos) de los tipos que ceden el sitio a las entradas a mina (CEDE_A_MINAS)."""
+    return [f"{NS}:{PREFIJO}/{mid}/{estilo}" for mid, mod in modules() if getattr(mod, "CEDE_A_MINAS", False)
+            for estilo in mod.ESTILOS]
 
 
 def lang():

@@ -87,6 +87,8 @@ CARAVANAS = ["tools/smoke/caravanas.py"]
 MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
 # contenido del Nether y el End (T44): medianas y únicas con DIMENSION, su tipo de estructura y su colocación
 NETHER_END = ["tools/smoke/nether_end.py"]
+# Chozas de mago (T43): el Mago Malvado (Java chozas/) y su botín y textos; su plantilla es una mediana.
+CHOZAS = ["tools/smoke/chozas_mago.py"]
 
 # Mapa ruta -> pruebas de servidor. Se recorre en orden y gana la PRIMERA regla que casa (fnmatch: * cruza «/»).
 # Una lista vacía: el cambio no necesita pruebas de servidor (más allá de la de humo, que va siempre en la CI).
@@ -106,6 +108,7 @@ MAPA = [
     # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
     ("tools/gen/dimensiones.py", NETHER_END + MEDIANAS), (JAVA + "dimensiones/*", NETHER_END),
     ("tools/gen/unicas/_recinto.py", NETHER_END + DE_TODA_UNICA),
+    ("tools/gen/medianas/choza_mago.py", MEDIANAS_MOBS + CHOZAS),
     ("tools/gen/medianas/*", MEDIANAS_MOBS + NETHER_END), (JAVA + "comun/Medianas.java", MEDIANAS + NETHER_END),
     ("tools/gen/minas/*", MINAS), (JAVA + "minas/*", MINAS + COSTA),
     ("tools/gen/litoral/*", COSTA_MOBS), (JAVA + "costa/*", COSTA),
@@ -115,6 +118,8 @@ MAPA = [
     (JAVA + "encargos/*", ENCARGOS), (JAVA + "mixin/VillagerPreciosMixin.java", ENCARGOS), ("tools/gen/encargos.py", ENCARGOS),
     # caravanas por los caminos (T39)
     (JAVA + "caravanas/*", CARAVANAS), ("tools/gen/caravanas.py", CARAVANAS),
+    # chozas de mago (T43)
+    (JAVA + "chozas/*", CHOZAS), ("tools/gen/chozas_mago.py", CHOZAS),
     # perfiles de juego (T36): su lógica y su comando (el resto de la configuración es común: batería completa)
     (JAVA + "config/Perfiles.java", PERFILES), (JAVA + "comando/ProfileCommand.java", PERFILES),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
@@ -292,6 +297,7 @@ DURACION_S = {
     "tools/smoke/encargos.py": 150,                  # dos arranques del mismo mundo y una aldea generada
     "tools/smoke/tesoro.py": 130,                    # medida en local: ~1 min 40 s (tres arranques, la cadena entera y el cofre)
     "tools/smoke/nether_end.py": 300,                # T44: un arranque, /locate y generación en el Nether y el End, /place de 16 estilos
+    "tools/smoke/chozas_mago.py": 100,               # medida en local: ~75 s (dos arranques, cuatro chozas y tres Magos Malvados)
     "tools/smoke/caravanas.py": 240,                 # medida en local: ~3,5 min (dos arranques, 387 chunks de pasillo y 5 caravanas)
 }
 DEFECTO_S = 90

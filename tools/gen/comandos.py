@@ -45,6 +45,7 @@ CANONICOS = [
     "quest turnin",                              # T38: los encargos del tablón
     "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",
     "caravan clear",                             # T39: las caravanas (operadores)
+    "wizard", "wizard reveal",                   # T43: las chozas de mago (operadores)
 ]
 
 

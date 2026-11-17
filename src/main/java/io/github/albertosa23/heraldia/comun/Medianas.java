@@ -16,6 +16,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelHeightAccessor;
@@ -75,6 +76,13 @@ public final class Medianas {
 	private final UniqueSeparation entre;
 	private final @Nullable ZonaAjenas zona;
 	private final Ajena[] ajenas;
+	/** Tipos que ceden el sitio a las entradas a mina (etiqueta #heraldia:medianas/ceden_a_minas) y las rejillas de las minas. */
+	private final boolean[] cedenMinas;
+	private final Ajena[] minas;
+	/** Etiqueta de estructura de los estilos de un tipo que cede a las minas (medianas/<id>.CEDE_A_MINAS en el generador). */
+	public static final String CEDEN_A_MINAS = "medianas/ceden_a_minas";
+	/** En la memoria de las ajenas, las candidatas de mina van con su índice desplazado (no chocan con las ajenas). */
+	private static final int MINA_CLAVE = 1000;
 	private volatile Memoria memoria = new Memoria(0, new ConcurrentHashMap<>(), new ConcurrentHashMap<>());
 	/** Las del Nether y el End: la misma tabla con su propia memoria (y su propia zona), una por dimensión. */
 	private final ConcurrentHashMap<ResourceKey<Level>, Medianas> otras = new ConcurrentHashMap<>();
@@ -97,8 +105,17 @@ public final class Medianas {
 	/** Pública para las pruebas: con las rejillas de las estructuras ajenas a las que cede el sitio. */
 	public Medianas(Object source, List<Identifier> tipos, List<List<Identifier>> ids, List<List<Structure>> estilos,
 					List<RandomSpreadStructurePlacement> placements, @Nullable ZonaAjenas zona, int distancia, List<Ajena> ajenas) {
+		this(source, tipos, ids, estilos, placements, zona, distancia, ajenas, new boolean[tipos.size()], List.of());
+	}
+
+	/** Pública para las pruebas: además, qué tipos ceden el sitio a las entradas a mina y las rejillas de las minas. */
+	public Medianas(Object source, List<Identifier> tipos, List<List<Identifier>> ids, List<List<Structure>> estilos,
+					List<RandomSpreadStructurePlacement> placements, @Nullable ZonaAjenas zona, int distancia, List<Ajena> ajenas,
+					boolean[] cedenMinas, List<Ajena> minas) {
 		this.source = source;
 		this.ajenas = ajenas.toArray(new Ajena[0]);
+		this.cedenMinas = cedenMinas.clone();
+		this.minas = minas.toArray(new Ajena[0]);
 
 		this.tipos = tipos.toArray(new Identifier[0]);
 		Map<Identifier, Integer> m = new HashMap<>();
@@ -137,8 +154,15 @@ public final class Medianas {
 		List<List<Identifier>> ids = new ArrayList<>();
 		List<List<Structure>> estilos = new ArrayList<>();
 		List<RandomSpreadStructurePlacement> placements = new ArrayList<>();
-		List<Ajena> ajenas = new ArrayList<>();
+		List<Ajena> ajenas = new ArrayList<>(), minas = new ArrayList<>();
+		List<Boolean> ceden = new ArrayList<>();
+		TagKey<Structure> cedenTag = TagKey.create(Registries.STRUCTURE, Identifier.fromNamespaceAndPath("heraldia", CEDEN_A_MINAS));
+		int distanciaMinas = HeraldiaConfig.get().getInt(DISTANCIA);
 		sets.listElements().forEach(set -> {
+			if (set.value().placement() instanceof GridPlacement g && g.group().startsWith("minas/")) {
+				minas.add(new Ajena(g, set.value().structures().stream().map(e -> e.structure().value()).toArray(Structure[]::new),
+						distanciaMinas));
+			}
 			Ajena a = ajena(set.key().identifier(), set.value());
 			if (a != null) {
 				ajenas.add(a);
@@ -146,6 +170,7 @@ public final class Medianas {
 			if (set.value().placement() instanceof GridPlacement g && g.group().startsWith(PREFIJO)) {
 				List<Identifier> i = new ArrayList<>();
 				List<Structure> s = new ArrayList<>();
+				ceden.add(set.value().structures().stream().anyMatch(e -> e.structure().is(cedenTag)));
 				for (StructureSet.StructureSelectionEntry e : set.value().structures()) {
 					Identifier id = structures.getKey(e.structure().value());
 					if (id != null) {
@@ -164,7 +189,12 @@ public final class Medianas {
 		LOGGER.info("Heraldia: estructuras medianas: {}, {} tipos, frecuencia {} %, a {} bloques de aldeas y únicas y a {} entre ellas; "
 						+ "ceden el sitio a {} rejillas de estructuras vanilla o de otros mods", cfg.getBool(ACTIVADAS) ? "activadas" : "desactivadas",
 				tipos.size(), cfg.getInt(FRECUENCIA), zona, distancia, ajenas.size());
-		return new Medianas(sets, tipos, ids, estilos, placements, ZonaAjenas.conDistancia(sets, registryAccess, zona), distancia, ajenas);
+		boolean[] cedenMinas = new boolean[ceden.size()];
+		for (int k = 0; k < cedenMinas.length; k++) {
+			cedenMinas[k] = ceden.get(k);
+		}
+		return new Medianas(sets, tipos, ids, estilos, placements, ZonaAjenas.conDistancia(sets, registryAccess, zona), distancia, ajenas,
+				cedenMinas, minas);
 	}
 
 	/** Rejilla de un structure_set vanilla o de otro mod con estructuras que asoman (random_spread), o null. */
@@ -203,15 +233,23 @@ public final class Medianas {
 	/** En el juego: la misma comprobación que /locate (findValidGenerationPoint con su bioma) para cada estilo. */
 	public Estilos estilos(RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 						   RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height) {
+		Sale sale = sale(access, generator, biomeSource, sampler, randomState, templates, seed, height);
 		return (j, x, z) -> {
 			for (Structure s : estilos[j]) {
 				if (Dimensiones.posible(s, biomeSource) && s.findValidGenerationPoint(new Structure.GenerationContext(access, generator, biomeSource, sampler, randomState,
 						templates, seed, new ChunkPos(x, z), height, s.biomes()::contains)).isPresent()) {
-					return true;
+					return !cedeMina(j, x, z, seed, sale);
 				}
 			}
 			return false;
 		};
+	}
+
+	/** findValidGenerationPoint de una estructura en un chunk (lo que mira /locate). */
+	private static Sale sale(RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
+							 RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height) {
+		return (s, cx, cz) -> s.findValidGenerationPoint(new Structure.GenerationContext(access, generator, biomeSource, sampler,
+				randomState, templates, seed, new ChunkPos(cx, cz), height, s.biomes()::contains)).isPresent();
 	}
 
 	/**
@@ -243,7 +281,8 @@ public final class Medianas {
 								BiomeSource biomeSource, Climate.Sampler sampler, RandomState randomState, StructureTemplateManager templates,
 								LevelHeightAccessor height, ResourceKey<Level> dimension) {
 		Contexto c = contexto(id, access, generator, biomeSource, sampler, randomState, templates, seed, height, dimension);
-		return rechaza(i, chunkX, chunkZ, seed, c.zona(), c.estilos(), c.atlantida());
+		return cedeMina(i, chunkX, chunkZ, seed, sale(access, generator, biomeSource, sampler, randomState, templates, seed, height))
+				|| rechaza(i, chunkX, chunkZ, seed, c.zona(), c.estilos(), c.atlantida());
 	}
 
 	/** Lo que decide si sale una mediana: la zona de aldeas, únicas y estructuras ajenas, sus estilos y la Atlántida. */
@@ -335,6 +374,21 @@ public final class Medianas {
 	 * Barato salvo junto a una candidata (findValidGenerationPoint), que queda en memoria. Pública para las pruebas.
 	 */
 	public boolean cedeAjena(int chunkX, int chunkZ, long seed, Sale sale) {
+		return cede(ajenas, 0, chunkX, chunkZ, seed, sale);
+	}
+
+	/**
+	 * ¿Cede el tipo j el sitio a una entrada a mina? Solo los de #heraldia:medianas/ceden_a_minas (las chozas de mago, que
+	 * buscan el mismo interior de los mismos biomas que las minas: sin esto, cada una le quitaría el sitio a la mina de al
+	 * lado, porque las minas ceden siempre a las medianas). Sale una candidata de mina (findValidGenerationPoint, sin sus
+	 * propias reglas: cede de más, nunca de menos) a menos de medianas.distancia_minima.bloques. Sin ciclo: las minas no
+	 * miran a las medianas para eso. Pública para las pruebas.
+	 */
+	public boolean cedeMina(int j, int chunkX, int chunkZ, long seed, Sale sale) {
+		return j >= 0 && j < cedenMinas.length && cedenMinas[j] && cede(minas, MINA_CLAVE, chunkX, chunkZ, seed, sale);
+	}
+
+	private boolean cede(Ajena[] ajenas, int base, int chunkX, int chunkZ, long seed, Sale sale) {
 		for (int k = 0; k < ajenas.length; k++) {
 			RandomSpreadStructurePlacement p = ajenas[k].placement;
 			int ajenasReach = (ajenas[k].bloques + 15) / 16;
@@ -348,7 +402,7 @@ public final class Medianas {
 						continue;
 					}
 					Memoria m = memoria(seed);
-					long key = ZonaAjenas.clave(k, c.x(), c.z());
+					long key = ZonaAjenas.clave(base + k, c.x(), c.z());
 					Boolean v = m.ajenas.get(key);
 					if (v == null) {
 						v = false;

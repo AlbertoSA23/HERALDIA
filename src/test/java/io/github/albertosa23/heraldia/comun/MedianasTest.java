@@ -180,6 +180,31 @@ class MedianasTest {
 	}
 
 	@Test
+	void soloLasQueLoPidenCedenALasMinas() throws IOException {
+		config("{}");
+		GridPlacement mina = grid("posada", 48, 11);    // hace de rejilla de una entrada a mina
+		List<Identifier> tipos = List.of(Identifier.fromNamespaceAndPath("heraldia", "medianas/choza_mago"),
+				Identifier.fromNamespaceAndPath("heraldia", "medianas/ermita"));
+		Medianas m = new Medianas(new Object(), tipos, List.of(List.of(), List.of()), List.of(List.of(), List.of()),
+				List.of(grid("choza_mago", 64, 1), grid("ermita", 48, 2)), null, 192, List.of(), new boolean[]{true, false},
+				List.of(new Medianas.Ajena(mina, new Structure[]{null}, 192)));
+		ChunkPos c = mina.getPotentialStructureChunk(5, mina.offsetX(), mina.offsetZ());
+		int cerca = (192 - 16) / 16, lejos = 192 / 16 + 2;
+		assertTrue(m.cedeMina(0, c.x() + cerca, c.z(), 5, (st, x, z) -> true), "la choza cede a una mina que sale cerca");
+		assertFalse(m.cedeMina(1, c.x() + cerca, c.z(), 5, (st, x, z) -> true), "la ermita no lo pide: no cede");
+		assertFalse(m.cedeMina(0, c.x() + lejos, c.z(), 5, (st, x, z) -> true), "más lejos que la distancia mínima: no");
+		assertFalse(m.cedeMina(-1, c.x(), c.z(), 5, (st, x, z) -> true), "tipo desconocido: no");
+		Medianas n = new Medianas(new Object(), tipos, List.of(List.of(), List.of()), List.of(List.of(), List.of()),
+				List.of(grid("choza_mago", 64, 1), grid("ermita", 48, 2)), null, 192, List.of(), new boolean[]{true, false},
+				List.of(new Medianas.Ajena(mina, new Structure[]{null}, 192)));
+		assertFalse(n.cedeMina(0, c.x() + cerca, c.z(), 5, (st, x, z) -> false), "si la mina no sale (bioma o ladera), no cede");
+		// sin la lista de las que ceden (el constructor de siempre), ninguna cede
+		Medianas o = new Medianas(new Object(), tipos, List.of(List.of(), List.of()), List.of(List.of(), List.of()),
+				List.of(grid("choza_mago", 64, 1), grid("ermita", 48, 2)), null, 192, List.of());
+		assertFalse(o.cedeMina(0, c.x() + cerca, c.z(), 5, (st, x, z) -> true));
+	}
+
+	@Test
 	void zonaYEstilosDescartan() throws IOException {
 		config("{}");
 		Medianas m = medianas(192);

@@ -271,6 +271,19 @@ _FIXED = [
     ("caravanas.max_activas", 1, 1, 3,
      "Caravanas en camino a la vez en todo el servidor, como mucho",
      "Maximum caravans on the road at once on the whole server"),
+    ("chozas_mago.prob_malvado", 20, 0, 100,
+     "Probabilidad (%) de que el mago de una choza de mago sea malvado: se decide con la semilla y la choza (siempre "
+     "igual para la misma choza) y, si lo es, al acercarse un jugador o al intentar comerciar se revela y se convierte "
+     "en el Mago Malvado (un evocador con fases de jefe que invoca vexes); 0: todos comercian",
+     "Chance (%) that the wizard of a wizard's hut is evil: decided from the seed and the hut (always the same for the "
+     "same hut) and, if so, when a player comes close or tries to trade he reveals himself and becomes the Evil Wizard "
+     "(an evoker with boss phases that summons vexes); 0: all of them trade"),
+    ("chozas_mago.prob_botin_premium", 30, 0, 100,
+     "Probabilidad (%) de que el Mago Malvado suelte además un objeto fuerte que no rompe la progresión (libro de "
+     "Reparación, una poción difícil, un tótem de la inmortalidad o un libro de encantamiento alto); se decide por "
+     "choza, al revelarse",
+     "Chance (%) that the Evil Wizard also drops a strong item that does not break progression (a Mending book, a hard "
+     "potion, a totem of undying or a high-level enchanted book); decided per hut, when he reveals himself"),
     ("update_check.activado", True, None, None,
      "Aviso de versión nueva: al arrancar y cada 24 h mira en GitHub Releases si hay una versión más nueva de Heraldia "
      "para este Minecraft y lo dice en la consola y a los operadores al entrar (sin telemetría; se aplica al reiniciar)",
@@ -337,6 +350,7 @@ PERFILES = {
         "arena.oleada.mobs_incremento": 30, "arena.oleada.stats_incremento": 5, "arena.max_mobs_vivos": 12,
         "arena.experiencia_porcentaje": 30,
         "caravanas.prob_asalto": 15,
+        "chozas_mago.prob_malvado": 10,
     },
     "estandar": {},          # se rellena con los valores por defecto (abajo): idéntico al comportamiento de siempre
     "hardcore": {
@@ -347,12 +361,13 @@ PERFILES = {
         "arena.oleada.mobs_incremento": 75, "arena.oleada.stats_incremento": 20, "arena.max_mobs_vivos": 28,
         "arena.experiencia_porcentaje": 5,
         "caravanas.prob_asalto": 60,
+        "chozas_mago.prob_malvado": 35,
     },
 }
 PERSONALIZADO = "personalizado"
 # Lo único que un perfil puede tocar: opciones de juego. La generación del mundo (dónde y cómo salen las estructuras, la
 # arena que se construye sola) queda siempre fuera; GENERACION marca esas opciones en el esquema (y los tests lo comprueban).
-PERFIL_PREFIJOS = ("dificultad.", "botin.", "jefes.", "arena.", "caravanas.")
+PERFIL_PREFIJOS = ("dificultad.", "botin.", "jefes.", "arena.", "caravanas.", "chozas_mago.")
 GENERACION = ("aldeas.", "unicas.", "medianas.", "minas.", "faros.", "naufragios.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
               "arena.activado")
 
@@ -466,6 +481,8 @@ _NAMES = {
     "caravanas.frecuencia": ("Frecuencia de las caravanas (%)", "Caravan frequency (%)"),
     "caravanas.prob_asalto": ("Probabilidad de asalto (%)", "Ambush chance (%)"),
     "caravanas.max_activas": ("Caravanas a la vez", "Caravans at once"),
+    "chozas_mago.prob_malvado": ("Magos malvados (%)", "Evil wizards (%)"),
+    "chozas_mago.prob_botin_premium": ("Botín premium del Mago Malvado (%)", "Evil Wizard premium loot (%)"),
     "update_check.activado": ("Aviso de versión nueva", "New version notice"),
     "update_check.prereleases": ("Avisar de pre-publicaciones", "Announce pre-releases"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
@@ -532,6 +549,7 @@ SECTIONS = [
     ("arena", "Arena de oleadas", "Wave arena"),
     ("encargos", "Encargos y reputación", "Quests and reputation"),
     ("caravanas", "Caravanas", "Caravans"),
+    ("chozas_mago", "Chozas de mago", "Wizard's huts"),
     ("actualizaciones", "Actualizaciones", "Updates"),
     ("mapas_web", "Mapas web", "Web maps"),
     ("tesoro", "Búsqueda del tesoro", "Treasure hunt"),
@@ -546,7 +564,7 @@ _SECTION_PREFIXES = [
     ("medianas.", "medianas"), ("minas.", "minas"), ("faros.", "costa"), ("naufragios.", "costa"),
     ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
-    ("caravanas.", "caravanas"),
+    ("caravanas.", "caravanas"), ("chozas_mago.", "chozas_mago"),
     ("update_check.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
 ]
 
