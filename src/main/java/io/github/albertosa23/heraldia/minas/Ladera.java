@@ -25,6 +25,8 @@ import org.jspecify.annotations.Nullable;
 public final class Ladera {
 	public static final int RADIO = 16, DESNIVEL = 4, SUBIDA_MIN = 5, ALTO_MIN = 3, SUBIDA_TOPE = 16, PASO = 8;
 	/** Muestras detrás de la boca (dx, dz en coordenadas de la plantilla, desde la boca). */
+	/** Orden de las nueve muestras del patio (índices en {x0, x1, centro} × {z0, z1, centro}): esquinas, bordes y centro. */
+	private static final int[][] PATIO = {{0, 0}, {1, 1}, {0, 1}, {1, 0}, {2, 0}, {2, 1}, {0, 2}, {1, 2}, {2, 2}};
 	private static final int[][] DETRAS = {{-2, 3}, {0, 3}, {2, 3}, {-2, 6}, {0, 6}, {2, 6}, {-2, 10}, {0, 10}, {2, 10}};
 	/** Giros con los que el fondo de la plantilla (+z) mira al sur, al oeste, al norte y al este. */
 	private static final Rotation[] GIRO = {Rotation.NONE, Rotation.CLOCKWISE_90, Rotation.CLOCKWISE_180, Rotation.COUNTERCLOCKWISE_90};
@@ -88,26 +90,37 @@ public final class Ladera {
 		return mejor;
 	}
 
-	/** Nota de la boca en (bx, bz) con ese giro, o null si el terreno no sirve (o no puede ganar a `superar`). */
+	/**
+	 * Nota de la boca en (bx, bz) con ese giro, o null si el terreno no sirve (o no puede ganar a `superar`). Las
+	 * comprobaciones que descartan van de la más barata a la más cara (el agua pide una segunda altura de la columna, la
+	 * superficie, y solo hace falta mirarla si todo lo demás vale); como todas dan null, el orden no cambia el resultado.
+	 */
 	static @Nullable Sitio evaluar(Terreno t, Forma f, Rotation giro, int bx, int bz, int minY, double superar) {
-		int[] xs = {f.patioX0(), (f.patioX0() + f.patioX1()) / 2, f.patioX1()};
-		int[] zs = {f.patioZ0(), (f.patioZ0() + f.patioZ1()) / 2, f.patioZ1()};
+		if (SUBIDA_TOPE <= superar) {
+			return null;                                // la nota nunca pasa de SUBIDA_TOPE
+		}
+		int[] xs = {f.patioX0(), f.patioX1(), (f.patioX0() + f.patioX1()) / 2};
+		int[] zs = {f.patioZ0(), f.patioZ1(), (f.patioZ0() + f.patioZ1()) / 2};
 		int[] delante = new int[9];
-		int i = 0;
-		for (int lx : xs) {
-			for (int lz : zs) {
-				int[] p = mundo(f, giro, bx, bz, lx, lz);
-				if (t.agua(p[0], p[1])) {
-					return null;                        // agua en el patio
-				}
-				delante[i++] = t.suelo(p[0], p[1]);
+		int[][] patio = new int[9][];
+		int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+		for (int i = 0; i < 9; i++) {
+			int[] ij = PATIO[i];                        // las esquinas primero: lo que más se separa
+			int[] p = mundo(f, giro, bx, bz, xs[ij[0]], zs[ij[1]]);
+			patio[i] = p;
+			int h = t.suelo(p[0], p[1]);
+			delante[i] = h;
+			min = Math.min(min, h);
+			max = Math.max(max, h);
+			if (max - min > DESNIVEL) {
+				return null;                            // patio en cuesta (sin mirar el resto de sus columnas)
 			}
 		}
 		int[] orden = delante.clone();
 		java.util.Arrays.sort(orden);
 		int desnivel = orden[8] - orden[0];
-		if (desnivel > DESNIVEL) {
-			return null;
+		if (SUBIDA_TOPE - desnivel <= superar) {
+			return null;                                // ni con el monte más alto ganaría a la que ya hay
 		}
 		int pies = orden[4];                            // la mediana: el patio corta lo que sobra y su cimiento rellena
 		if (pies - 1 - f.entrada().getY() < minY + 2) {
@@ -134,6 +147,11 @@ public final class Ladera {
 			int[] p = mundo(f, giro, bx, bz, m[0], m[1]);
 			if (t.suelo(p[0], p[1]) < pies + m[2]) {
 				return null;                            // el casco de la galería asomaría
+			}
+		}
+		for (int[] p : patio) {
+			if (t.agua(p[0], p[1])) {
+				return null;                            // agua en el patio
 			}
 		}
 		return new Sitio(giro, bx, bz, pies, nota);

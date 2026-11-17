@@ -35,6 +35,8 @@ public final class Perfil {
 		MINAS,
 		/** Búsqueda de la ladera de una entrada a mina (Ladera.buscar). */
 		LADERA,
+		/** La misma búsqueda, adelantada en otros hilos para /locate (minas/LocateParalelo; no cuenta en LADERA). */
+		LADERA_ANTICIPADA,
 		/** Punto de inicio de una aldea (el jigsaw de vanilla más lo propio). */
 		ALDEA,
 		/** Búsqueda de la orilla y colocación del puerto de una aldea de costa. */

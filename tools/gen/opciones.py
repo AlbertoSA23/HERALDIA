@@ -7,7 +7,9 @@ from themes import THEMES, FAMILIES
 import unicas
 import medianas
 
-VERSION = 1   # súbelo (y añade la migración en HeraldiaConfig.migrate) si cambia el formato del fichero
+VERSION = 2   # súbelo (y añade la migración en HeraldiaConfig.migrate) si cambia el formato del fichero
+# 1 → 2 (T36, perfiles): las opciones que fija el perfil solo se escriben si están fijadas a mano (presentes en el fichero);
+# al migrar se quitan las que tenían el valor por defecto (las escribía el mod), y las demás quedan fijadas.
 
 # Rejilla de las aldeas (heraldia:aldeas): 94 x 16 = 1.504 bloques; la separación mínima guarda la proporción 62/94.
 VILLAGE_SPACING, VILLAGE_SEPARATION, VILLAGE_SALT = 94, 62, 261112013
@@ -16,6 +18,15 @@ VANILLA_EXCLUSION_CHUNKS = 10
 # (clave, por defecto, mínimo, máximo, texto es_es, texto en_us); mínimo y máximo None en las opciones sí/no. En las de
 # lista, «mínimo» es la lista de valores (cadenas) y «máximo» None; el nombre de cada valor va en _VALUE_NAMES.
 _FIXED = [
+    ("perfil", "estandar", ["casual", "estandar", "hardcore", "personalizado"], None,
+     "Perfil de juego: fija de una vez la dificultad, los refuerzos de los guardianes, el botín que se repone y la arena "
+     "(casual, más fácil y con el botín que se repone; estándar, lo de siempre; hardcore, heroica, con más refuerzos y "
+     "menos experiencia; personalizado, cada opción con su valor). Una de esas opciones escrita en el fichero manda sobre "
+     "el perfil. Nunca cambia la generación del mundo",
+     "Gameplay profile: sets the difficulty, the guardians' reinforcements, restocking loot and the arena in one go "
+     "(casual, easier and with restocking loot; standard, as always; hardcore, heroic, with more reinforcements and less "
+     "experience; custom, each option with its own value). One of those options written in the file overrides the "
+     "profile. It never changes world generation"),
     ("aldeas.separacion_bloques", 1500, 1000, 10000,
      "Separación media entre aldeas, en bloques",
      "Average distance between villages, in blocks"),
@@ -117,6 +128,12 @@ _FIXED = [
      "sueltan su botín; nunca más de 4 vivos a la vez",
      "Guardian reinforcements: at each phase (only once) they call 2 or 3 mobs that suit their structure, which do not "
      "drop the guardian's loot; never more than 4 alive at once"),
+    ("jefes.refuerzos.porcentaje", 100, 0, 300,
+     "Cuántos refuerzos llama un guardián en cada fase, en % de los suyos (100: los 2 o 3 de siempre; 150: uno o dos más)",
+     "How many reinforcements a guardian calls at each phase, as a % of its own (100: the usual 2 or 3; 150: one or two more)"),
+    ("jefes.refuerzos.maximo_vivos", 4, 1, 12,
+     "Refuerzos vivos a la vez junto a un guardián como mucho",
+     "Maximum reinforcements alive at once near a guardian"),
     ("jefes.barra.activado", True, None, None,
      "Barra de jefe con el nombre del guardián para los jugadores cercanos mientras dura el combate",
      "Boss bar with the guardian's name for nearby players while the fight lasts"),
@@ -211,6 +228,68 @@ _FIXED = [
     ("mapas_web.capas.arena", True, None, None,
      "Capa de la arena de oleadas en los mapas web", "Wave arena layer on the web maps"),
 ]
+# Perfiles de juego (opción «perfil»): cada uno fija de golpe estas opciones de juego (nunca de la generación). «estandar»
+# es exactamente el comportamiento de siempre (los valores por defecto); «personalizado» no fija nada (cada opción con su
+# valor del fichero o, si no está, el de por defecto). Una opción escrita en el fichero manda sobre el perfil.
+PERFIL = "perfil"
+PERFILES = {
+    "casual": {
+        "dificultad.nivel": "facil", "dificultad.escalar_por_jugadores": False, "dificultad.escalar_botin": False,
+        "botin.reponer.activado": True, "botin.reponer.dias": 3,
+        "jefes.fases.activado": True, "jefes.refuerzos.activado": True, "jefes.refuerzos.porcentaje": 50,
+        "jefes.refuerzos.maximo_vivos": 2,
+        "arena.oleada.mobs_incremento": 30, "arena.oleada.stats_incremento": 5, "arena.max_mobs_vivos": 12,
+        "arena.experiencia_porcentaje": 30,
+    },
+    "estandar": {},          # se rellena con los valores por defecto (abajo): idéntico al comportamiento de siempre
+    "hardcore": {
+        "dificultad.nivel": "heroica", "dificultad.escalar_por_jugadores": True, "dificultad.escalar_botin": True,
+        "botin.reponer.activado": False, "botin.reponer.dias": 14,
+        "jefes.fases.activado": True, "jefes.refuerzos.activado": True, "jefes.refuerzos.porcentaje": 150,
+        "jefes.refuerzos.maximo_vivos": 6,
+        "arena.oleada.mobs_incremento": 75, "arena.oleada.stats_incremento": 20, "arena.max_mobs_vivos": 28,
+        "arena.experiencia_porcentaje": 5,
+    },
+}
+PERSONALIZADO = "personalizado"
+# Lo único que un perfil puede tocar: opciones de juego. La generación del mundo (dónde y cómo salen las estructuras, la
+# arena que se construye sola) queda siempre fuera; GENERACION marca esas opciones en el esquema (y los tests lo comprueban).
+PERFIL_PREFIJOS = ("dificultad.", "botin.", "jefes.", "arena.")
+GENERACION = ("aldeas.", "unicas.", "medianas.", "minas.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
+              "arena.activado")
+
+
+def es_generacion(clave):
+    return clave.startswith(GENERACION)
+
+
+def opciones_perfil():
+    """Claves que fijan los perfiles, en el orden del esquema."""
+    claves = set().union(*(set(v) for k, v in PERFILES.items() if k != "estandar"))
+    return [k for k, *_ in _FIXED if k in claves]
+
+
+def perfiles():
+    """{perfil: {clave: valor}} con «estandar» = los valores por defecto (comprueba que no tocan la generación)."""
+    defecto = {k: d for k, d, *_ in _FIXED}
+    claves = opciones_perfil()
+    out = {}
+    for nombre, valores in PERFILES.items():
+        if nombre == "estandar":
+            valores = {k: defecto[k] for k in claves}
+        assert set(valores) == set(claves), f"perfil {nombre}: tiene que fijar justo {claves}"
+        for k, v in valores.items():
+            assert k.startswith(PERFIL_PREFIJOS) and not es_generacion(k), f"perfil {nombre}: {k} no es una opción de juego"
+            lo, hi = next((lo, hi) for kk, _, lo, hi, *_ in _FIXED if kk == k)
+            assert type(v) is type(defecto[k]), f"perfil {nombre}: {k}={v!r} no es del tipo de la opción"
+            if isinstance(lo, list):
+                assert v in lo, f"perfil {nombre}: {k}={v!r} no es uno de {lo}"
+            elif lo is not None:
+                assert lo <= v <= hi, f"perfil {nombre}: {k}={v} fuera de {lo}-{hi}"
+        out[nombre] = {k: valores[k] for k in claves}
+    return out
+
+
 # Opciones repetidas: (patrón, clave de texto, es_es, en_us); %s es el nombre de la familia, el estilo o la estructura.
 _GROUPS = {
     "aldeas.familias.<familia>": ("familia", "Activa la familia de aldeas %s (sus 3 estilos)", "Enables the %s village family (its 3 styles)"),
@@ -228,6 +307,7 @@ MEDIANA_RANGE = medianas.SEPARACION_RANGO
 
 # Nombre corto de cada opción en la pantalla de configuración del cliente (la ayuda larga va en el tooltip).
 _NAMES = {
+    "perfil": ("Perfil de juego", "Gameplay profile"),
     "aldeas.separacion_bloques": ("Separación (bloques)", "Spacing (blocks)"),
     "aldeas.maximo": ("Máximo de aldeas", "Maximum villages"),
     "aldeas.porcentaje_grandes": ("Aldeas grandes (%)", "Large villages (%)"),
@@ -253,6 +333,8 @@ _NAMES = {
     "arena.experiencia_porcentaje": ("Experiencia de los enemigos (%)", "Enemy experience (%)"),
     "jefes.fases.activado": ("Fases de los guardianes", "Guardian phases"),
     "jefes.refuerzos.activado": ("Refuerzos de los guardianes", "Guardian reinforcements"),
+    "jefes.refuerzos.porcentaje": ("Refuerzos por fase (%)", "Reinforcements per phase (%)"),
+    "jefes.refuerzos.maximo_vivos": ("Refuerzos vivos a la vez", "Reinforcements alive at once"),
     "jefes.barra.activado": ("Barra de jefe", "Boss bar"),
     "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
     "botin.reponer.activado": ("Botín que se repone", "Restocking loot"),
@@ -283,6 +365,8 @@ _NAMES = {
 }
 # Nombre de cada valor de las opciones de lista: {clave: {valor: (es_es, en_us)}}.
 _VALUE_NAMES = {
+    "perfil": {"casual": ("Casual", "Casual"), "estandar": ("Estándar", "Standard"), "hardcore": ("Hardcore", "Hardcore"),
+               "personalizado": ("Personalizado", "Custom")},
     "dificultad.nivel": {"facil": ("Fácil", "Easy"), "normal": ("Normal", "Normal"), "dificil": ("Difícil", "Hard"),
                          "heroica": ("Heroica", "Heroic")},
     "mapas_web.idioma": {"auto": ("Automático (el del sistema)", "Automatic (the system's)"),
@@ -303,6 +387,7 @@ _GROUP_NAMES = {
 }
 # Secciones de la pantalla, en orden de aparición: (id, es_es, en_us).
 SECTIONS = [
+    ("perfil", "Perfil de juego", "Gameplay profile"),
     ("aldeas", "Aldeas", "Villages"),
     ("familias", "Familias de aldeas", "Village families"),
     ("estilos", "Estilos de aldea", "Village styles"),
@@ -326,6 +411,7 @@ SECTIONS = [
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
 # (si no encaja en ninguna, la generación falla).
 _SECTION_PREFIXES = [
+    ("perfil", "perfil"),
     ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.caminos.", "caminos"),
     ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
@@ -348,6 +434,9 @@ PANTALLA_ES = {
     "heraldia.config.pantalla.clave": "Opción: %s",
     "heraldia.config.pantalla.guardado": "Configuración de Heraldia guardada",
     "heraldia.config.pantalla.error": "No se pudo guardar config/heraldia.json: %s",
+    "heraldia.config.pantalla.perfil_valor": "Perfil %s: %s",
+    "heraldia.config.pantalla.fijada": "Fijada a mano: manda sobre el perfil",
+    "heraldia.config.pantalla.perfil_efectivo": "Perfil efectivo: %s. Distintas del perfil: %s",
 }
 PANTALLA_EN = {
     "heraldia.config.pantalla.titulo": "Heraldia configuration",
@@ -361,6 +450,26 @@ PANTALLA_EN = {
     "heraldia.config.pantalla.clave": "Option: %s",
     "heraldia.config.pantalla.guardado": "Heraldia configuration saved",
     "heraldia.config.pantalla.error": "Could not save config/heraldia.json: %s",
+    "heraldia.config.pantalla.perfil_valor": "%s profile: %s",
+    "heraldia.config.pantalla.fijada": "Set by hand: overrides the profile",
+    "heraldia.config.pantalla.perfil_efectivo": "Effective profile: %s. Different from the profile: %s",
+}
+# /heraldia profile (comando nuevo, en inglés) y la ayuda del fichero.
+PERFIL_ES = {
+    "heraldia.perfil.titulo": "Perfil de juego: %s (en el fichero: %s)",
+    "heraldia.perfil.opcion": " - %s = %s",
+    "heraldia.perfil.opcion.fijada": " - %s = %s (fijada a mano; el perfil da %s)",
+    "heraldia.perfil.ninguna": "Ninguna opción fijada a mano: manda el perfil.",
+    "heraldia.perfil.personalizado": "Con opciones fijadas a mano, el perfil queda como personalizado.",
+    "heraldia.config.perfiles": "casual %s, estándar %s, hardcore %s",
+}
+PERFIL_EN = {
+    "heraldia.perfil.titulo": "Gameplay profile: %s (in the file: %s)",
+    "heraldia.perfil.opcion": " - %s = %s",
+    "heraldia.perfil.opcion.fijada": " - %s = %s (set by hand; the profile gives %s)",
+    "heraldia.perfil.ninguna": "No option set by hand: the profile rules.",
+    "heraldia.perfil.personalizado": "With options set by hand, the profile becomes custom.",
+    "heraldia.config.perfiles": "casual %s, standard %s, hardcore %s",
 }
 
 
@@ -378,6 +487,8 @@ def _key(k):
 def _option(key, default, lo, hi, lang, args=(), pattern=None):
     o = {"clave": key, "defecto": default, "ayuda": lang, "args": list(args), "seccion": _section(key),
          "nombre": _key((_GROUPS[pattern][0] if pattern else key) + ".nombre")}
+    if es_generacion(key):
+        o["generacion"] = True
     if isinstance(lo, list):
         assert default in lo and all(isinstance(v, str) for v in lo), f"{key}: valores de lista no válidos"
         o["valores"] = list(lo)
@@ -418,10 +529,15 @@ def schema():
     assert set(_NAMES) == {k for k, *_ in _FIXED}, "cada opción fija necesita su nombre corto en _NAMES"
     assert {k: list(v) for k, v in _VALUE_NAMES.items()} == {k: lo for k, _, lo, *_ in _FIXED if isinstance(lo, list)}, \
         "cada opción de lista necesita el nombre de cada valor en _VALUE_NAMES"
+    perf = perfiles()
+    for o in opts:
+        if o["clave"] in perf["estandar"]:
+            o["perfil"] = True
     return {
         "version": VERSION,
         "secciones": [{"id": sec, "nombre": _key("seccion." + sec)} for sec, _, _ in SECTIONS],
         "opciones": opts,
+        "perfiles": perf,
         "aldeas": {"spacing": VILLAGE_SPACING, "separation": VILLAGE_SEPARATION,
                    "estilos": {th["id"]: th["family"] for th in THEMES}},
         "unicas": {sid: {"spacing": sp, "separation": se} for sid, (sp, se) in unique.items()},
@@ -446,6 +562,8 @@ def lang():
         out["es_es"][_key("seccion." + sec)], out["en_us"][_key("seccion." + sec)] = es, en
     out["es_es"].update(PANTALLA_ES)
     out["en_us"].update(PANTALLA_EN)
+    out["es_es"].update(PERFIL_ES)
+    out["en_us"].update(PERFIL_EN)
     out["es_es"]["heraldia.config.rango"] = "por defecto %s, de %s a %s"
     out["en_us"]["heraldia.config.rango"] = "default %s, from %s to %s"
     out["es_es"]["heraldia.config.si_no"] = "por defecto %s; true o false"

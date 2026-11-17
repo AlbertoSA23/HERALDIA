@@ -34,6 +34,7 @@ CANONICOS = [
     "review goto <id> generate", "review mark", "review mark checked", "review mark checked <note>", "review mark problem",
     "review mark problem <note>", "review list", "review status", "review reset",
     "status", "status <page>", "reload", "update", "update check",
+    "profile",                                   # T36: el perfil de juego
     "webmap", "webmap refresh",
 ]
 

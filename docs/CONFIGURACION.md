@@ -27,6 +27,7 @@ En un mundo existente las estructuras solo aparecen en chunks que todavía no se
 - `/heraldia info` (operadores, nivel 2): resumen de la configuración en uso (aldeas, estructuras únicas activadas y su separación, distancia mínima, cofre por jugador, si está instalado Lootr, estructuras medianas, entradas a mina y el multiplicador de las minas vanilla) y de cuántas estructuras hay registradas.
 - `/heraldia info nearby [radius]`: la estructura única y la mediana más cercanas de cada tipo, la entrada a mina más cercana de cada tamaño y la aldea Heraldia más cercana, con distancia, rumbo y coordenadas (al pulsarlas se propone un `/tp`). Usa la misma comprobación que `/locate`, así que nunca señala una estructura que la distancia mínima descarta, pero no carga ni genera chunks: lo que aún no se ha generado sale como «prevista» (de una aldea prevista solo se sabe la familia). Radio por defecto 3.000 bloques, máximo 10.000; el mensaje dice cuánto ha tardado la búsqueda.
 - `/heraldia guide` (cualquier jugador, sin permisos): te da una copia al día de la [Guía del Heraldo](CONTENIDO.md#guía-del-heraldo) (si llevas una en el inventario, la cambia por la nueva).
+- `/heraldia profile` (operadores, nivel 2): el [perfil de juego](#perfiles-de-juego) en uso (el efectivo y el elegido en el fichero) y el valor que da a cada una de sus opciones, marcando las fijadas a mano en el fichero, que mandan sobre él.
 - `/heraldia info here`: en qué estructura Heraldia estás (nombre e id) y, en una única, si su guardián vive (solo se responde si toda la estructura está cargada).
 
 Usa el muestrario solo en un mundo de prueba: lo colocado se queda.
@@ -94,6 +95,7 @@ Para operadores (nivel 2). Vuelve a leer `config/heraldia.json` sin reiniciar el
 
 - `dificultad.*`: se recalculan los modificadores de vida y daño de los mobs de Heraldia ya cargados (los demás, al cargarse), conservando la proporción de su vida actual.
 - `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (los tratos se sortean al subir de nivel un aldeano) `unicas.atlantida.cofre_unico_por_jugador` y `mapas_web.*` (los marcadores se rehacen al recargar): se leen cada vez que se usan.
+- `perfil` (el [perfil de juego](#perfiles-de-juego)): se aplica entero, con lo fijado a mano encima (todas sus opciones son de estas).
 - `golems.*`: se publican otra vez los límites a las funciones de los gólems.
 - `arena.*` (salvo `arena.generar_en_mundos_nuevos`, que solo cuenta al arrancar un mundo nuevo): incrementos, máximo de vivos, experiencia y si está activada. Con una partida en marcha no cambian hasta que acabe (vuelve a recargar entonces).
 
@@ -102,12 +104,13 @@ Todo lo demás (rejillas y separaciones, aldeas, familias y estilos, el tablón,
 ## Configuración
 
 Fichero `config/heraldia.json` del servidor (en un mundo de un jugador, el de la carpeta del juego). Se crea al arrancar con todos los valores por defecto
-y se reescribe en cada arranque con los valores en uso y una ayuda (`_ayuda`) en español e inglés. Un valor que no sea válido (fuera de rango o de otro tipo)
+y se reescribe en cada arranque con los valores en uso y una ayuda (`_ayuda`) en español e inglés (las opciones del [perfil de juego](#perfiles-de-juego), solo si están fijadas a mano; el bloque `_perfil`, informativo, dice el perfil efectivo y sus valores). Un valor que no sea válido (fuera de rango o de otro tipo)
 se avisa en el log y se sustituye por el de por defecto; una opción desconocida se avisa y se ignora. El campo `version` permite migrar el fichero
 cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks que se generen después (no a lo ya generado); lo que no afecta a la generación se puede aplicar sin reiniciar con [`/heraldia reload`](#recarga-en-caliente-heraldia-reload).
 
 | Opción | Por defecto | Rango | Qué hace |
 | --- | --- | --- | --- |
+| `perfil` | `estandar` | `casual`, `estandar`, `hardcore`, `personalizado` | [Perfil de juego](#perfiles-de-juego): fija de golpe la dificultad, los refuerzos, el botín que se repone y la arena; nunca la generación del mundo. |
 | `aldeas.separacion_bloques` | 1500 | 1000-10000 | Separación media entre aldeas; la mínima guarda la proporción 62/94 de la rejilla. |
 | `aldeas.maximo` | 100 | 0-100 | Máximo de aldeas por mundo: solo valen las casillas de la rejilla más cercanas al 0,0 (determinista, sin datos guardados). |
 | `aldeas.porcentaje_grandes` | 25 | 0-100 | Porcentaje de aldeas grandes; el resto son estándar. |
@@ -130,7 +133,9 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Distancia mínima entre los chunks de inicio de dos estructuras únicas distintas. Si dos candidatas quedan demasiado cerca, un sorteo determinista (semilla y posición) se queda con una; si la ganadora no puede salir ahí (bioma o terreno), se conserva la otra. `/locate` y los mapas del tesoro siguen la misma regla. |
 | `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Cofre premium de la Atlántida por jugador. La primera apertura convierte su contenido en una plantilla guardada en el propio cofre (que queda vacío: romperlo o vaciarlo con una tolva no duplica nada) y cada jugador abre su propia copia: la recibe entera la primera vez y después encuentra lo que dejó. Sigue haciendo falta la llave de Poseidón. Con Lootr o sin él funciona igual (Lootr no convierte este cofre porque no tiene tabla de botín). Si se desactiva después, el contenido vuelve al cofre una vez (la primera vez que alguien lo usa) y se comporta como antes. |
 | `jefes.fases.activado` | `true` | `true`/`false` | Fases de los guardianes al bajar del 66 % y del 33 % de vida: efectos, partículas, sonido y aviso en la barra de acción ([Combates contra los guardianes](CONTENIDO.md#combates-contra-los-guardianes)); también los de las estructuras ya generadas. |
-| `jefes.refuerzos.activado` | `true` | `true`/`false` | Refuerzos de los guardianes: 2 o 3 mobs de su estructura una vez por fase, como mucho 4 vivos a la vez; no sueltan el botín del guardián. Funciona aunque las fases estén desactivadas (entonces sin efectos y con otro aviso). |
+| `jefes.refuerzos.activado` | `true` | `true`/`false` | Refuerzos de los guardianes: 2 o 3 mobs de su estructura una vez por fase, como mucho `jefes.refuerzos.maximo_vivos` vivos a la vez; no sueltan el botín del guardián. Funciona aunque las fases estén desactivadas (entonces sin efectos y con otro aviso). |
+| `jefes.refuerzos.porcentaje` | 100 | 0-300 | Cuántos refuerzos por fase, en % de los del guardián (redondeando; por encima de 100 su lista se repite): 150 = uno o dos más. |
+| `jefes.refuerzos.maximo_vivos` | 4 | 1-12 | Refuerzos vivos a la vez junto a un guardián como mucho. |
 | `jefes.barra.activado` | `true` | `true`/`false` | Barra de jefe con el nombre del guardián para los jugadores a menos de 32 bloques mientras dura el combate. |
 | `medianas.activadas` | `true` | `true`/`false` | Activa las [estructuras medianas](CONTENIDO.md#estructuras-medianas). |
 | `medianas.frecuencia_porcentaje` | 100 | 25-400 | Frecuencia de todas las medianas, en % de la de por defecto: 200 = el doble (la separación de cada tipo se divide por la raíz). |
@@ -163,12 +168,39 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 
 La Atlántida no tiene opciones de colocación: es siempre una sola por mundo.
 
+### Perfiles de juego
+
+La opción `perfil` fija de golpe un conjunto de opciones de juego (nunca de la generación del mundo: dónde y cómo salen las estructuras, o la arena que se construye sola en un mundo nuevo, no los toca ningún perfil). `estandar`, el de por defecto, es exactamente el comportamiento de antes.
+
+| Opción | `casual` | `estandar` | `hardcore` |
+| --- | --- | --- | --- |
+| `dificultad.nivel` | `facil` | `normal` | `heroica` |
+| `dificultad.escalar_por_jugadores` | `false` | `false` | `true` |
+| `dificultad.escalar_botin` | `false` | `true` | `true` |
+| `botin.reponer.activado` | `true` | `false` | `false` |
+| `botin.reponer.dias` | 3 | 7 | 14 |
+| `jefes.fases.activado` | `true` | `true` | `true` |
+| `jefes.refuerzos.activado` | `true` | `true` | `true` |
+| `jefes.refuerzos.porcentaje` | 50 | 100 | 150 |
+| `jefes.refuerzos.maximo_vivos` | 2 | 4 | 6 |
+| `arena.oleada.mobs_incremento` | 30 | 50 | 75 |
+| `arena.oleada.stats_incremento` | 5 | 10 | 20 |
+| `arena.max_mobs_vivos` | 12 | 20 | 28 |
+| `arena.experiencia_porcentaje` | 30 | 15 | 5 |
+
+- **Una opción escrita en el fichero manda sobre el perfil** (está «fijada a mano»). Si su valor no es el del perfil, el perfil pasa a ser **personalizado** (`personalizado`): lo dice el log al arrancar, con las opciones que difieren y lo que daría el perfil, y también `/heraldia profile` y el bloque `_perfil` del fichero. El resto de las opciones siguen con los valores del perfil.
+- Las opciones que fija un perfil solo se escriben en el fichero si están fijadas a mano; así, cambiar `perfil` en el fichero las cambia de verdad. Para volver al valor del perfil, borra la opción del fichero.
+- `personalizado` no fija nada: cada opción toma su valor del fichero o, si no está, el de por defecto.
+- Los ficheros de la 0.1.0 (`version` 1) se migran sin cambiar nada: el mod escribía todas las opciones, así que las del perfil que tenían su valor por defecto se quitan (con `estandar` dan lo mismo) y las que tenían otro se quedan como fijadas a mano.
+- Se aplica siempre que se lee el fichero (al arrancar y con `/heraldia reload`), nunca a mitad de un chunk; los mobs ya generados toman la dificultad al cargarse, como antes.
+
 ### Pantalla de configuración (cliente)
 
 En el cliente el fichero también se puede editar desde una pantalla del juego. Con [Mod Menu](https://modrinth.com/mod/modmenu) instalado (opcional; sin él el mod funciona igual, solo que la pantalla no tiene botón) se abre desde el botón de configuración de Heraldia en la lista de mods. Se construye con la misma lista de opciones que el fichero, así que las opciones nuevas aparecen solas:
 
-- Secciones: Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Caminos entre aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas, Compatibilidad con otros mods, Botín, Dificultad y Mapas web, con un buscador (por nombre, clave, ayuda o sección).
+- Secciones: Perfil de juego, Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Caminos entre aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas, Compatibilidad con otros mods, Botín, Dificultad y Mapas web, con un buscador (por nombre, clave, ayuda o sección).
 - Cada opción muestra su valor (botón sí/no, casilla numérica o un botón que recorre los valores de una opción de lista como `dificultad.nivel`). Su tooltip da la clave, la ayuda (la misma de `_ayuda`) y el valor por defecto y el rango. Un número no válido se pone en rojo, el tooltip dice por qué y **Guardar** queda desactivado hasta corregirlo.
+- Perfil de juego: al cambiarlo, las opciones que tenían el valor del perfil anterior pasan al del nuevo; las que tenían otro (fijadas a mano) se quedan como estaban, con el nombre en dorado, y su tooltip dice el valor del perfil y que mandan sobre él. El tooltip del propio perfil dice el perfil efectivo y qué opciones difieren. Al guardar, solo se escriben como fijadas a mano las que no tienen el valor del perfil.
 - **Guardar** escribe `config/heraldia.json` con el mismo formato que al arrancar (con `version` y `_ayuda`); **Valores por defecto** devuelve todas las opciones a su valor por defecto (no se escribe nada hasta guardar); **Cancelar** descarta los cambios.
 - Los cambios se aplican al volver a abrir el mundo o reiniciar el servidor, y solo en los chunks que se generen después; la pantalla lo avisa. Sin ningún mundo abierto se usan desde el siguiente mundo que abras (sin reiniciar el juego). Con un mundo de un jugador abierto, al guardar se recarga en caliente lo que no afecta a la generación, por el mismo camino que [`/heraldia reload`](#recarga-en-caliente-heraldia-reload) (el informe sale en el chat); lo demás, al salir y volver a entrar.
 - Conectado a un servidor, la pantalla edita **el fichero local del cliente** (tus mundos de un jugador), no el del servidor: la pantalla lo avisa. La configuración del servidor se sigue editando en su propio `config/heraldia.json`. No se envía nada por la red.

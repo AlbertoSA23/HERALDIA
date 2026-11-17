@@ -27,6 +27,7 @@ In an existing world, structures only appear in chunks that have not been genera
 - `/heraldia info` (operators, level 2): summary of the configuration in use (villages, enabled unique structures and their spacing, minimum distance, per-player chest, whether Lootr is installed, medium structures, mine entrances and the vanilla mineshaft multiplier) and how many structures are registered.
 - `/heraldia info nearby [radius]`: the nearest unique structure and medium structure of each type, mine entrance of each size and the nearest Heraldia village, with distance, direction and coordinates (click them to get a `/tp` command). It uses the same check as `/locate`, so it never points to a structure that the minimum distance discards, but it neither loads nor generates chunks: what has not been generated yet is shown as "predicted" (for a predicted village only its family is known). Default radius 3,000 blocks, maximum 10,000; the message says how long the search took.
 - `/heraldia guide` (any player, no permissions needed): gives you an up-to-date copy of the [Herald's Guide](CONTENT.md#heralds-guide) (if you carry one in your inventory, it is replaced by the new one).
+- `/heraldia profile` (operators, level 2): the [gameplay profile](#gameplay-profiles) in use (the effective one and the one chosen in the file) and the value it gives to each of its options, marking the ones set by hand in the file that override it.
 - `/heraldia info here`: which Heraldia structure you are standing in (name and id) and, in a unique structure, whether its guardian is alive (only answered when the whole structure is loaded).
 
 Use the showcase only in a test world: whatever it places stays.
@@ -94,6 +95,7 @@ For operators (level 2). Reads `config/heraldia.json` again without restarting t
 
 - `dificultad.*`: the health and damage modifiers of the Heraldia mobs already loaded are recalculated (the rest, when they load), keeping the proportion of their current health.
 - `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (trades are rolled when a villager levels up) `unicas.atlantida.cofre_unico_por_jugador` and `mapas_web.*` (the markers are rebuilt on reload): read every time they are used.
+- `perfil` (the [gameplay profile](#gameplay-profiles)): applied whole, with whatever is set by hand on top (all its options are among these).
 - `golems.*`: the limits are published again to the golem functions.
 - `arena.*` (except `arena.generar_en_mundos_nuevos`, which only counts when a new world starts): increments, maximum alive, experience and whether it is enabled. With a match running they do not change until it ends (reload again then).
 
@@ -102,12 +104,13 @@ Everything else (grids and spacings, villages, families and styles, the job boar
 ## Configuration
 
 File `config/heraldia.json` on the server (in a single-player world, the one in the game folder). It is created at startup with all default values
-and rewritten on every startup with the values in use and a help text (`_ayuda`) in Spanish and English. An invalid value (out of range or of another type)
+and rewritten on every startup with the values in use and a help text (`_ayuda`) in Spanish and English (the options of the [gameplay profile](#gameplay-profiles) only if they were set by hand; the `_perfil` block, informative, shows the effective profile and its values). An invalid value (out of range or of another type)
 is reported in the log and replaced by its default; an unknown option is reported and ignored. The `version` field allows migrating the file
 when its format changes. It is read when the server starts and affects chunks generated afterwards (not what is already generated); whatever does not affect generation can be applied without restarting with [`/heraldia reload`](#live-reload-heraldia-reload).
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
+| `perfil` | `estandar` | `casual`, `estandar`, `hardcore`, `personalizado` | [Gameplay profile](#gameplay-profiles): sets difficulty, reinforcements, restocking loot and the arena in one go; never world generation. |
 | `aldeas.separacion_bloques` | 1500 | 1000-10000 | Average spacing between villages; the minimum keeps the 62/94 ratio of the grid. |
 | `aldeas.maximo` | 100 | 0-100 | Maximum villages per world: only the grid cells closest to 0,0 count (deterministic, no saved data). |
 | `aldeas.porcentaje_grandes` | 25 | 0-100 | Percentage of large villages; the rest are standard. |
@@ -130,7 +133,9 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Minimum distance between the start chunks of two different unique structures. When two candidates are too close, a deterministic draw (seed and position) keeps one; if the winner cannot spawn there (wrong biome or terrain), the other one is kept. `/locate` and treasure maps follow the same rule. |
 | `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Per-player Atlantis premium chest. The first opening turns its contents into a template stored in the chest itself (the chest is left empty, so breaking or emptying it duplicates nothing) and each player opens their own copy: the whole contents the first time, and afterwards whatever they left. The Poseidon key is still needed. It works the same with or without Lootr (Lootr does not convert this chest because it has no loot table). Turning it off later puts the contents back in the chest once (the first time someone uses it), and it behaves as before. |
 | `jefes.fases.activado` | `true` | `true`/`false` | Guardian phases below 66 % and 33 % health: effects, particles, sound and an action-bar notice ([Guardian fights](CONTENT.md#guardian-fights)); also for structures already generated. |
-| `jefes.refuerzos.activado` | `true` | `true`/`false` | Guardian reinforcements: 2 or 3 mobs of its structure once per phase, at most 4 alive at once; they do not drop the guardian's loot. Works even with phases off (then without effects and with another notice). |
+| `jefes.refuerzos.activado` | `true` | `true`/`false` | Guardian reinforcements: 2 or 3 mobs of its structure once per phase, at most `jefes.refuerzos.maximo_vivos` alive at once; they do not drop the guardian's loot. Works even with phases off (then without effects and with another notice). |
+| `jefes.refuerzos.porcentaje` | 100 | 0-300 | How many reinforcements per phase, as a % of the guardian's own (rounded; above 100 its list repeats): 150 = one or two more. |
+| `jefes.refuerzos.maximo_vivos` | 4 | 1-12 | Maximum reinforcements alive at once near a guardian. |
 | `jefes.barra.activado` | `true` | `true`/`false` | Boss bar with the guardian's name for players within 32 blocks while the fight lasts. |
 | `medianas.activadas` | `true` | `true`/`false` | Enables the [medium structures](CONTENT.md#medium-structures). |
 | `medianas.frecuencia_porcentaje` | 100 | 25-400 | Frequency of all medium structures, as a % of the default: 200 = twice as many (each type's spacing is divided by the square root). |
@@ -163,12 +168,39 @@ when its format changes. It is read when the server starts and affects chunks ge
 
 Atlantis has no placement options: there is always exactly one per world.
 
+### Gameplay profiles
+
+The `perfil` option sets a group of gameplay options in one go (never world generation: where and how structures spawn, or the arena that builds itself in a new world, are never touched by a profile). `estandar`, the default, is exactly the previous behaviour.
+
+| Option | `casual` | `estandar` | `hardcore` |
+| --- | --- | --- | --- |
+| `dificultad.nivel` | `facil` | `normal` | `heroica` |
+| `dificultad.escalar_por_jugadores` | `false` | `false` | `true` |
+| `dificultad.escalar_botin` | `false` | `true` | `true` |
+| `botin.reponer.activado` | `true` | `false` | `false` |
+| `botin.reponer.dias` | 3 | 7 | 14 |
+| `jefes.fases.activado` | `true` | `true` | `true` |
+| `jefes.refuerzos.activado` | `true` | `true` | `true` |
+| `jefes.refuerzos.porcentaje` | 50 | 100 | 150 |
+| `jefes.refuerzos.maximo_vivos` | 2 | 4 | 6 |
+| `arena.oleada.mobs_incremento` | 30 | 50 | 75 |
+| `arena.oleada.stats_incremento` | 5 | 10 | 20 |
+| `arena.max_mobs_vivos` | 12 | 20 | 28 |
+| `arena.experiencia_porcentaje` | 30 | 15 | 5 |
+
+- **An option written in the file overrides the profile** (it is "set by hand"). If its value is not the profile's, the profile becomes **custom** (`personalizado`): the log says so at startup, listing which options differ and what the profile would give, and so do `/heraldia profile` and the `_perfil` block of the file. The other options keep the profile's values.
+- The options a profile sets are only written to the file when they are set by hand; that way changing `perfil` in the file actually changes them. To go back to the profile's value, delete the option from the file.
+- `personalizado` sets nothing: each option takes its value from the file or, if it is not there, its default.
+- Files from 0.1.0 (`version` 1) are migrated without changing anything: the mod used to write every option, so the profile options that had their default are removed (with `estandar` they give the same) and the ones with another value stay as set by hand.
+- It is applied whenever the file is read (at startup and with `/heraldia reload`), never in the middle of a chunk; mobs already generated take the difficulty when they load, as before.
+
 ### Configuration screen (client)
 
 On the client the file can also be edited from a screen inside the game. With [Mod Menu](https://modrinth.com/mod/modmenu) installed (optional; the mod works the same without it, the screen just has no button) it opens from the configuration button of Heraldia in the mod list. It is built from the same option list as the file, so new options appear on their own:
 
-- Sections: Villages, Village families, Village styles, Village life, Roads between villages, Golems, Unique structures, Minimum distance between unique structures, Atlantis, Medium structures, Compatibility with other mods, Loot, Difficulty and Web maps, with a search box (by name, key, help or section).
+- Sections: Gameplay profile, Villages, Village families, Village styles, Village life, Roads between villages, Golems, Unique structures, Minimum distance between unique structures, Atlantis, Medium structures, Compatibility with other mods, Loot, Difficulty and Web maps, with a search box (by name, key, help or section).
 - Each option shows its value (on/off button, number box, or a button that cycles through the values of a list option such as `dificultad.nivel`). Its tooltip shows the key, the help text (the same as `_ayuda`) and the default and range. An invalid number turns red, its tooltip says why and **Save** stays disabled until it is fixed.
+- Gameplay profile: changing it moves the options that had the previous profile's value to the new one's; the ones with another value (set by hand) stay as they are, with their name in gold, and their tooltip shows the profile's value and that they override it. The tooltip of the profile itself shows the effective profile and which options differ. On saving, only the options whose value is not the profile's are written as set by hand.
 - **Save** writes `config/heraldia.json` in the same format as at startup (with `version` and `_ayuda`); **Reset to defaults** puts every option back to its default (nothing is written until you save); **Cancel** discards the changes.
 - Changes apply when the world is opened again or the server is restarted, and only to chunks generated afterwards; the screen says so. With no world open they are used from the next world you open (no need to restart the game). With a single-player world open, saving reloads live whatever does not affect generation, the same way as [`/heraldia reload`](#live-reload-heraldia-reload) (the report shows in the chat); the rest, after leaving and re-entering it.
 - When connected to a server the screen edits **the client's local file** (your single-player worlds), not the server's: the screen warns about it. The server's configuration is still edited in its own `config/heraldia.json`. Nothing is sent over the network.

@@ -3,6 +3,7 @@ package io.github.albertosa23.heraldia.client;
 import com.google.gson.JsonPrimitive;
 import io.github.albertosa23.heraldia.config.ConfigOption;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.config.Perfiles;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -41,6 +42,9 @@ import org.jspecify.annotations.Nullable;
  * Pantalla de configuración (widgets vanilla, al estilo de la de reglas del juego). Se construye entera a partir del
  * esquema del .jar ({@link HeraldiaConfig#options()}): una opción nueva en tools/gen/opciones.py sale sola, en su
  * sección, con su rango y su ayuda. Edita config/heraldia.json de este cliente; no envía nada al servidor.
+ * <p>Perfil de juego: al cambiarlo, las opciones del perfil que tenían el valor del perfil anterior toman el del nuevo; las
+ * que no (fijadas a mano) se quedan como estaban, en dorado, y mandan sobre el perfil. Al guardar se escriben fijadas a
+ * mano las que no tienen el valor del perfil ({@link HeraldiaConfig#save(Path, Map)}).
  */
 @Environment(EnvType.CLIENT)
 public final class ConfigScreen extends Screen {
@@ -48,6 +52,7 @@ public final class ConfigScreen extends Screen {
 	private static final int VALID_COLOR = 0xFFE0E0E0;
 	private static final int INVALID_COLOR = 0xFFFF5555;
 	private static final int WIDGET_WIDTH = 44;
+	private static final int FIXED_COLOR = 0xFFFFAA00;
 
 	private final @Nullable Screen parent;
 	private final Path file;
@@ -183,6 +188,53 @@ public final class ConfigScreen extends Screen {
 		}
 	}
 
+	private String profile() {
+		JsonPrimitive p = this.working.get(Perfiles.CLAVE);
+		return p != null ? p.getAsString() : Perfiles.ESTANDAR;
+	}
+
+	/** ¿Opción del perfil con un valor que no es el del perfil elegido? (se guardará fijada a mano) */
+	private boolean fixedByHand(String key) {
+		Map<String, JsonPrimitive> p = HeraldiaConfig.profiles().valores(profile());
+		return p.containsKey(key) && !Perfiles.PERSONALIZADO.equals(profile()) && !p.get(key).equals(this.working.get(key));
+	}
+
+	/** Cambia el perfil: lo que tenía el valor del perfil anterior pasa al del nuevo; lo fijado a mano se queda. */
+	private void changeProfile(String perfil) {
+		Perfiles ps = HeraldiaConfig.profiles();
+		Map<String, JsonPrimitive> antes = ps.valores(profile()), ahora = ps.valores(perfil);
+		for (String k : ps.claves()) {
+			if (Perfiles.PERSONALIZADO.equals(profile()) || antes.get(k).equals(this.working.get(k))) {
+				this.working.put(k, Perfiles.PERSONALIZADO.equals(perfil) ? this.working.get(k) : ahora.get(k));
+				this.typed.remove(k);
+				this.invalid.remove(k);
+			}
+		}
+		this.working.put(Perfiles.CLAVE, new JsonPrimitive(perfil));
+		filter(this.search == null ? "" : this.search.getValue());
+		updateSaveButton();
+	}
+
+	/** Líneas del perfil en la ayuda de una opción: el valor que da el perfil y si está fijada a mano. */
+	private List<FormattedCharSequence> profileLines(ConfigOption o) {
+		List<FormattedCharSequence> out = new ArrayList<>();
+		Perfiles ps = HeraldiaConfig.profiles();
+		if (o.key().equals(Perfiles.CLAVE)) {
+			List<String> distintas = ps.claves().stream().filter(this::fixedByHand).toList();
+			Component efectivo = Component.translatable("heraldia.config.perfil." + (distintas.isEmpty() ? profile() : Perfiles.PERSONALIZADO));
+			out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.perfil_efectivo", efectivo,
+					distintas.isEmpty() ? "-" : String.join(", ", distintas)).withStyle(ChatFormatting.AQUA), 200));
+		} else if (ps.claves().contains(o.key()) && !Perfiles.PERSONALIZADO.equals(profile())) {
+			out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.perfil_valor",
+					Component.translatable("heraldia.config.perfil." + profile()), ps.valores(profile()).get(o.key()).getAsString())
+					.withStyle(ChatFormatting.AQUA), 200));
+			if (fixedByHand(o.key())) {
+				out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.fijada").withStyle(ChatFormatting.GOLD), 200));
+			}
+		}
+		return out;
+	}
+
 	/** Nombre (con el de la familia o la estructura traducido) y ayuda de una opción, como componentes traducibles. */
 	private static Object[] args(ConfigOption o) {
 		Object[] out = new Object[o.args().size()];
@@ -315,17 +367,24 @@ public final class ConfigScreen extends Screen {
 
 		@Override
 		@Nullable List<FormattedCharSequence> tooltip() {
-			return this.tooltip;
+			List<FormattedCharSequence> extra = profileLines(this.option);
+			if (extra.isEmpty()) {
+				return this.tooltip;
+			}
+			List<FormattedCharSequence> out = new ArrayList<>(this.tooltip);
+			out.addAll(extra);
+			return out;
 		}
 
 		@Override
 		public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float a) {
 			int x = getContentX(), y = getContentY();
+			int color = fixedByHand(this.option.key()) ? FIXED_COLOR : -1;
 			if (this.label.size() == 1) {
-				graphics.text(ConfigScreen.this.font, this.label.get(0), x, y + 5, -1);
+				graphics.text(ConfigScreen.this.font, this.label.get(0), x, y + 5, color);
 			} else if (this.label.size() >= 2) {
-				graphics.text(ConfigScreen.this.font, this.label.get(0), x, y, -1);
-				graphics.text(ConfigScreen.this.font, this.label.get(1), x, y + 10, -1);
+				graphics.text(ConfigScreen.this.font, this.label.get(0), x, y, color);
+				graphics.text(ConfigScreen.this.font, this.label.get(1), x, y + 10, color);
 			}
 			AbstractWidget w = widget();
 			w.setX(getContentRight() - WIDGET_WIDTH - 1);
@@ -372,7 +431,13 @@ public final class ConfigScreen extends Screen {
 							ConfigScreen.this.working.get(option.key()).getAsString())
 					.withValues(option.values())
 					.displayOnlyValue()
-					.create(0, 0, WIDGET_WIDTH, 20, name, (b, value) -> ConfigScreen.this.working.put(option.key(), new JsonPrimitive(value)));
+					.create(0, 0, WIDGET_WIDTH, 20, name, (b, value) -> {
+						if (option.key().equals(Perfiles.CLAVE)) {
+							ConfigScreen.this.minecraft.schedule(() -> changeProfile(value)); // rehace la lista: después del clic
+						} else {
+							ConfigScreen.this.working.put(option.key(), new JsonPrimitive(value));
+						}
+					});
 		}
 
 		@Override
