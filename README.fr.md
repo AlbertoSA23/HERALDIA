@@ -13,7 +13,7 @@ Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valen
 - ⚔️ **Des gardiens qui combattent par phases.** En perdant de la vie, ils entrent en fureur et appellent des renforts de leur propre structure, avec une barre de boss pendant tout le combat. Chacun lâche son propre trophée.
 - ⛏️ **Des mines.** Sur de vrais flancs de colline s'ouvrent des bouches de mine, des camps de mineurs et des complexes miniers avec chevalement, en 3 tailles et au style de chaque biome, qui descendent vers des galeries avec rails, croisements et salles. Les puits de mine abandonnés vanilla sont aussi plus fréquents.
 - 🔱 **L'Atlantide.** Une seule par monde : une immense cité engloutie dans l'océan profond, avec des salles au sec, trois sceaux et leurs clés, et le Gardien de Poséidon, qui veille sur le plus grand trésor de Heraldia.
-- 🏟️ **L'arène des vagues.** Un colisée près du point d'apparition : sonnez la cloche et tenez bon face à des vagues toujours plus fortes, avec un champion toutes les cinq vagues, des records et des récompenses. Si vous tombez sur la piste, vous gardez votre inventaire.
+- 🏟️ **L'arène des vagues.** Un colisée près du point d'apparition : sonnez la cloche et tenez bon face à des vagues toujours plus fortes, avec un champion toutes les cinq vagues, des records et des récompenses. Si vous tombez sur la piste, vous gardez votre inventaire. Trois modes (coopératif, contre-la-montre et survie) avec un classement hebdomadaire, `/heraldia arena leaderboard` : les champions de la semaine précédente s'affichent sur les panneaux du panthéon de l'arène et dans le Guide du Héraut.
 
 ## Comment jouer
 
@@ -58,6 +58,7 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `dificultad.nivel` | `normal` | Gardiens et monstres : `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Les coffres de Heraldia se remplissent à nouveau au bout de quelques jours. |
 | `arena.activado` | `true` | L'arène des vagues près du point d'apparition. |
+| `arena.temporada.dia_reinicio` | `lunes` | Jour de clôture du classement hebdomadaire de l'arène et d'annonce de ses champions (à minuit, heure du serveur). |
 | `encargos.activado` | `true` | Missions du tableau (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Réputation par village et ses réductions. |
 | `guia.entregar_al_entrar` | `true` | Donne le Guide du Héraut à chaque joueur à sa connexion. |

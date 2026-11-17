@@ -13,7 +13,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 - ⚔️ **Guardians that fight in phases.** As they lose health they become enraged and call reinforcements from their own structure, with a boss bar while the fight lasts. Each one drops its own trophy.
 - ⛏️ **Mines.** On real hillsides open adits, mining camps and mining complexes with a headframe, in 3 sizes and in the style of each biome, leading down to galleries with rails, crossings and rooms. Vanilla abandoned mineshafts are also more common.
 - 🔱 **Atlantis.** Only one per world: a vast city sunk in the deep ocean, with dry halls, three seals with their keys and the Guardian of Poseidon, keeper of the greatest treasure in Heraldia.
-- 🏟️ **Wave arena.** A coliseum near spawn: ring the bell and hold out against ever stronger waves, with a champion every fifth wave, records and rewards. If you fall in the ring, you keep your inventory.
+- 🏟️ **Wave arena.** A coliseum near spawn: ring the bell and hold out against ever stronger waves, with a champion every fifth wave, records and rewards. If you fall in the ring, you keep your inventory. Three modes (co-op, time attack and survival) with a weekly leaderboard, `/heraldia arena leaderboard`: last week's champions go up on the signs of the arena's hall of fame and in the Herald's Guide.
 
 ## How to play
 
@@ -58,6 +58,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `dificultad.nivel` | `normal` | Guardians and monsters: `facil`, `normal`, `dificil` or `heroica`. |
 | `botin.reponer.activado` | `false` | Heraldia chests are restocked after a few days. |
 | `arena.activado` | `true` | The wave arena near spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Day the arena's weekly leaderboard closes and its champions are announced (at midnight, server time). |
 | `encargos.activado` | `true` | Job board quests (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputation per village and its discounts. |
 | `guia.entregar_al_entrar` | `true` | Gives the Herald's Guide to each player on joining. |

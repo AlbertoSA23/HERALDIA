@@ -107,7 +107,7 @@ Para operadores (nivel 2). Vuelve a leer `config/heraldia.json` sin reiniciar el
 - `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (los tratos se sortean al subir de nivel un aldeano), `unicas.atlantida.cofre_unico_por_jugador`, `mapas_web.*` (los marcadores se rehacen al recargar), `tesoro.*` (al tirar el botín y al usar una pista), `encargos.*` y `reputacion.*`: se leen cada vez que se usan.
 - `perfil` (el [perfil de juego](#perfiles-de-juego)): se aplica entero, con lo fijado a mano encima (todas sus opciones son de estas).
 - `golems.*`: se publican otra vez los límites a las funciones de los gólems.
-- `arena.*` (salvo `arena.generar_en_mundos_nuevos`, que solo cuenta al arrancar un mundo nuevo): incrementos, máximo de vivos, experiencia y si está activada. Con una partida en marcha no cambian hasta que acabe (vuelve a recargar entonces).
+- `arena.*` (salvo `arena.generar_en_mundos_nuevos`, que solo cuenta al arrancar un mundo nuevo): incrementos, máximo de vivos, experiencia, modos y si está activada. Con una partida en marcha no cambian hasta que acabe (vuelve a recargar entonces), salvo `arena.temporada.*`, que se aplica siempre (el histórico se recorta en el acto; el día y la hora cuentan desde ese momento).
 
 Todo lo demás (rejillas y separaciones, aldeas, familias y estilos, el tablón, los caminos, las únicas, las medianas, las minas, la compatibilidad y la distancia mínima) afecta a la generación: si cambiara a medias, dos chunks vecinos se generarían con reglas distintas y `/locate` y los mapas dejarían de coincidir con lo generado. Esas opciones no se aplican: la respuesta las lista con su valor en uso y el del fichero, y se aplican al reiniciar. Una opción nueva del mod es de este grupo salvo que se declare recargable.
 
@@ -171,6 +171,13 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `arena.oleada.stats_incremento` | 10 | 1-100 | Vida y daño de más en cada oleada, en %; si pasa de `mobs_incremento`, se usa ese (los enemigos crecen más que su fuerza). |
 | `arena.max_mobs_vivos` | 20 | 4-64 | Enemigos vivos a la vez en el ruedo; si una oleada trae más, salen en tandas. |
 | `arena.experiencia_porcentaje` | 15 | 0-100 | Experiencia de los enemigos de la arena, en % de la normal (sobre la ya escalada por el juego); no sueltan objetos. |
+| `arena.modos.cooperativo` | `true` | `true`/`false` | [Modo](CONTENIDO.md#arena-de-oleadas) cooperativo de la arena (el de siempre). |
+| `arena.modos.contrarreloj` | `true` | `true`/`false` | Modo contrarreloj: `arena.modos.oleadas_contrarreloj` oleadas contra el reloj. |
+| `arena.modos.supervivencia` | `true` | `true`/`false` | Modo supervivencia: oleadas sin pausa hasta que caen todos. |
+| `arena.modos.oleadas_contrarreloj` | 10 | 1-50 | Oleadas del contrarreloj (sus logros piden al menos 10). |
+| `arena.temporada.dia_reinicio` | `lunes` | `lunes`, `martes`, `miercoles`, `jueves`, `viernes`, `sabado`, `domingo` | Día en que se cierra la clasificación semanal de la arena (hora del servidor): se anuncian los campeones y se ponen al día los carteles y la Guía. |
+| `arena.temporada.hora_reinicio` | 0 | 0-23 | Hora (del servidor) a la que se cierra. |
+| `arena.temporada.historico` | 8 | 1-52 | Semanas cerradas que se guardan en el mundo (`/heraldia arena leaderboard <modo> <semana>`); al bajarlo se recortan en el acto. |
 | `encargos.activado` | `true` | `true`/`false` | [Encargos del tablón](CONTENIDO.md#vida-de-las-aldeas) (`/heraldia quest`), en todas las aldeas de Heraldia (también las ya generadas). Desactivado, el atril solo abre su libro y las órdenes lo dicen; lo que lleva cada jugador se conserva. |
 | `encargos.rotacion_dias` | 3 | 1-30 | Días de juego que dura cada tablón antes de cambiar sus encargos (los aceptados se conservan). |
 | `reputacion.activado` | `true` | `true`/`false` | Reputación por aldea: sube con los encargos y baja al atacar a sus aldeanos o gólems; conocido, amigo y héroe de la aldea rebajan sus tratos un 10, 20 y 30 % (sin sumarse a Héroe de la aldea). Desactivada, ni descuentos ni cambios (la reputación ganada se conserva). |

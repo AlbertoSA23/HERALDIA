@@ -109,7 +109,7 @@ def hora(log, patron, veces=1):
 def empezar(p, modo, en_ruedo):
     ctx = p.ctx
     ctx.run(f"tp {P} {en_ruedo[0] + 0.5} {en_ruedo[1]} {en_ruedo[2] + 0.5}", r"Teleported")
-    ctx.run(f"effect give {P} minecraft:resistance infinite 255 true", r"Applied effect|Gave")
+    ctx.run(f"effect give {P} minecraft:resistance infinite 255 true", r"Applied effect|Gave|Unable to apply")
     ctx.run(f"execute as {P} run heraldia arena start {modo}", r"Prepárate|Get ready")
     return p.esperar_log(rf"arena: cuenta atrás \(la empieza {P}, modo {modo}", timeout=60)
 
@@ -120,7 +120,7 @@ def primer_arranque(p, pl, work):
     p.check(p.esperar_log(r"arena: desactivada", timeout=60), "la arena no arranca desactivada")
     ctx.run("scoreboard objectives add heraldia_arena dummy", r"Created new objective|already exists")
     for nombre, n in (("Veterano", 7), ("Otra", 3), ("-servidor-", 7)):
-        ctx.run(f"scoreboard players set {nombre} heraldia_arena {n}", r"Set score")
+        ctx.run(f"scoreboard players set {nombre} heraldia_arena {n}", r"Set \[heraldia_arena\]|Set score")
     config(work, True, HACE_DOS)
     ctx.run("heraldia reload", r"[Rr]eload|[Rr]ecarg|[Cc]onfig")
     p.check(p.esperar_log(r"arena: récords migrados del marcador \(3 jugadores; cooperativo: Veterano 7\)", timeout=60),

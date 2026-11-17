@@ -107,7 +107,7 @@ For operators (level 2). Reads `config/heraldia.json` again without restarting t
 - `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (trades are rolled when a villager levels up), `unicas.atlantida.cofre_unico_por_jugador`, `mapas_web.*` (the markers are rebuilt on reload), `tesoro.*` (when loot is rolled and when a clue is used), `encargos.*` and `reputacion.*`: read every time they are used.
 - `perfil` (the [gameplay profile](#gameplay-profiles)): applied whole, with whatever is set by hand on top (all its options are among these).
 - `golems.*`: the limits are published again to the golem functions.
-- `arena.*` (except `arena.generar_en_mundos_nuevos`, which only counts when a new world starts): increments, maximum alive, experience and whether it is enabled. With a match running they do not change until it ends (reload again then).
+- `arena.*` (except `arena.generar_en_mundos_nuevos`, which only counts when a new world starts): increments, maximum alive, experience, modes and whether it is enabled. With a match running they do not change until it ends (reload again then), except `arena.temporada.*`, which always applies (the history is trimmed at once; the day and hour count from then on).
 
 Everything else (grids and spacings, villages, families and styles, the job board, roads, unique structures, medium structures, mines, compatibility and the minimum distance) affects generation: if it changed halfway, two neighbouring chunks would be generated with different rules and `/locate` and maps would no longer match what was generated. Those options are not applied: the answer lists them with their value in use and the one in the file, and they apply on restart. A new option of the mod belongs to this group unless it is declared reloadable.
 
@@ -171,6 +171,13 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `arena.oleada.stats_incremento` | 10 | 1-100 | Extra health and damage in each wave, in %; if it exceeds `mobs_incremento`, that one is used (enemies grow faster than their strength). |
 | `arena.max_mobs_vivos` | 20 | 4-64 | Enemies alive at once in the ring; if a wave brings more, they come in batches. |
 | `arena.experiencia_porcentaje` | 15 | 0-100 | Experience of arena enemies, as a % of the normal amount (after the game's own scaling); they drop no items. |
+| `arena.modos.cooperativo` | `true` | `true`/`false` | Co-op [arena mode](CONTENT.md#wave-arena) (the usual one). |
+| `arena.modos.contrarreloj` | `true` | `true`/`false` | Time attack mode: `arena.modos.oleadas_contrarreloj` waves against the clock. |
+| `arena.modos.supervivencia` | `true` | `true`/`false` | Survival mode: waves with no break until everyone falls. |
+| `arena.modos.oleadas_contrarreloj` | 10 | 1-50 | Waves in a time attack (its advancements need at least 10). |
+| `arena.temporada.dia_reinicio` | `lunes` | `lunes`, `martes`, `miercoles`, `jueves`, `viernes`, `sabado`, `domingo` | Day the arena's weekly leaderboard closes (server time): champions announced, signs and Guide updated. |
+| `arena.temporada.hora_reinicio` | 0 | 0-23 | Hour (server time) at which it closes. |
+| `arena.temporada.historico` | 8 | 1-52 | Closed weeks kept in the world (`/heraldia arena leaderboard <mode> <week>`); lowering it trims them at once. |
 | `encargos.activado` | `true` | `true`/`false` | [Job board quests](CONTENT.md#village-life) (`/heraldia quest`), in every Heraldia village (also those already generated). When disabled, the lectern only opens its book and the commands say so; what each player carries is kept. |
 | `encargos.rotacion_dias` | 3 | 1-30 | In-game days each board lasts before its quests change (accepted ones are kept). |
 | `reputacion.activado` | `true` | `true`/`false` | Reputation per village: it rises with quests and falls when you attack its villagers or golems; known, friend and village hero lower its trades by 10, 20 and 30 % (not stacking with Hero of the Village). When disabled, no discounts or changes (the reputation earned is kept). |

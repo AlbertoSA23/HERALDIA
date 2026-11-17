@@ -13,7 +13,7 @@ Un mod de Fabric para **Minecraft 26.3** que llena el Overworld de sitios por lo
 - ⚔️ **Guardianes que pelean por fases.** Al perder vida se enfurecen y llaman a refuerzos de su propia estructura, con barra de jefe mientras dura el combate. Cada uno suelta su propio trofeo.
 - ⛏️ **Minas.** En laderas de verdad se abren bocas de mina, campamentos mineros y complejos con torre de extracción, en 3 tamaños y al estilo de cada bioma, que bajan a galerías con vías, cruces y salas. Además, las minas abandonadas vanilla salen más a menudo.
 - 🔱 **La Atlántida.** Solo hay una en el mundo: una ciudad enorme hundida en el océano profundo, con salas secas, tres sellos con sus llaves y el Guardián de Poseidón, que custodia el mayor tesoro de Heraldia.
-- 🏟️ **Arena de oleadas.** Un coliseo cerca del spawn: toca la campana y aguanta oleadas cada vez más fuertes, con un campeón cada cinco, récords y recompensas. Si caes en el ruedo, conservas tu inventario.
+- 🏟️ **Arena de oleadas.** Un coliseo cerca del spawn: toca la campana y aguanta oleadas cada vez más fuertes, con un campeón cada cinco, récords y recompensas. Si caes en el ruedo, conservas tu inventario. Tres modos (cooperativo, contrarreloj y supervivencia) con clasificación semanal, `/heraldia arena leaderboard`: los campeones de la semana anterior salen en los carteles del salón de la fama de la arena y en la Guía del Heraldo.
 
 ## Cómo se juega
 
@@ -58,6 +58,7 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 | `dificultad.nivel` | `normal` | Guardianes y monstruos: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | Los cofres de Heraldia se reponen al cabo de unos días. |
 | `arena.activado` | `true` | La arena de oleadas cerca del spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Día en que se cierra la clasificación semanal de la arena y se anuncian sus campeones (a medianoche, hora del servidor). |
 | `encargos.activado` | `true` | Encargos del tablón (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea y sus descuentos. |
 | `guia.entregar_al_entrar` | `true` | Da la Guía del Heraldo a cada jugador al entrar. |

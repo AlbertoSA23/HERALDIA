@@ -13,7 +13,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - ⚔️ **Guardiões que lutam em fases.** Ao perder vida, eles se enfurecem e chamam reforços da própria estrutura, com barra de chefe enquanto durar o combate. Cada um solta seu próprio troféu.
 - ⛏️ **Minas.** Em encostas de verdade se abrem bocas de mina, acampamentos mineiros e complexos mineiros com torre de extração, em 3 tamanhos e no estilo de cada bioma, que descem a galerias com trilhos, cruzamentos e salas. As minas abandonadas do vanilla também ficam mais comuns.
 - 🔱 **Atlântida.** Só uma por mundo: uma cidade enorme afundada no oceano profundo, com salões secos, três selos com suas chaves e o Guardião de Poseidon, que guarda o maior tesouro de Heraldia.
-- 🏟️ **Arena de hordas.** Um coliseu perto do spawn: toque o sino e resista a hordas cada vez mais fortes, com um campeão a cada cinco hordas, recordes e recompensas. Se você cair na arena, mantém o seu inventário.
+- 🏟️ **Arena de hordas.** Um coliseu perto do spawn: toque o sino e resista a hordas cada vez mais fortes, com um campeão a cada cinco hordas, recordes e recompensas. Se você cair na arena, mantém o seu inventário. Três modos (cooperativo, contra o relógio e sobrevivência) com classificação semanal, `/heraldia arena leaderboard`: os campeões da semana anterior aparecem nas placas do hall da fama da arena e no Guia do Arauto.
 
 ## Como jogar
 
@@ -58,6 +58,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `dificultad.nivel` | `normal` | Guardiões e monstros: `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Os baús do Heraldia são repostos depois de alguns dias. |
 | `arena.activado` | `true` | A arena de hordas perto do spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Dia em que fecha a classificação semanal da arena e seus campeões são anunciados (à meia-noite, horário do servidor). |
 | `encargos.activado` | `true` | Tarefas do quadro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputação por vila e seus descontos. |
 | `guia.entregar_al_entrar` | `true` | Dá o Guia do Arauto a cada jogador ao entrar. |

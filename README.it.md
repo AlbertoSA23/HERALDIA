@@ -13,7 +13,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 - ⚔️ **Guardiani che combattono a fasi.** Perdendo salute si infuriano e chiamano rinforzi dalla loro struttura, con una barra del boss finché dura lo scontro. Ognuno lascia il proprio trofeo.
 - ⛏️ **Miniere.** Su veri pendii si aprono imbocchi, accampamenti minerari e complessi minerari con castelletto di estrazione, in 3 dimensioni e nello stile di ogni bioma, che scendono a gallerie con binari, incroci e sale. Anche le miniere abbandonate vanilla sono più frequenti.
 - 🔱 **Atlantide.** Una sola per mondo: un'immensa città sommersa nell'oceano profondo, con sale asciutte, tre sigilli con le loro chiavi e il Guardiano di Poseidone, custode del più grande tesoro di Heraldia.
-- 🏟️ **Arena a ondate.** Un colosseo vicino allo spawn: suona la campana e resisti a ondate sempre più forti, con un campione ogni quinta ondata, record e ricompense. Se cadi nell'arena, conservi l'inventario.
+- 🏟️ **Arena a ondate.** Un colosseo vicino allo spawn: suona la campana e resisti a ondate sempre più forti, con un campione ogni quinta ondata, record e ricompense. Se cadi nell'arena, conservi l'inventario. Tre modalità (cooperativa, a tempo e sopravvivenza) con una classifica settimanale, `/heraldia arena leaderboard`: i campioni della settimana precedente compaiono sui cartelli dell'albo d'oro dell'arena e nella Guida dell'Araldo.
 
 ## Come si gioca
 
@@ -58,6 +58,7 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `dificultad.nivel` | `normal` | Guardiani e mostri: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | I forzieri di Heraldia si riempiono di nuovo dopo qualche giorno. |
 | `arena.activado` | `true` | L'arena a ondate vicino allo spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Giorno in cui si chiude la classifica settimanale dell'arena e si annunciano i suoi campioni (a mezzanotte, ora del server). |
 | `encargos.activado` | `true` | Incarichi della bacheca (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputazione per villaggio e i suoi sconti. |
 | `guia.entregar_al_entrar` | `true` | Dà la Guida dell'Araldo a ogni giocatore quando entra. |

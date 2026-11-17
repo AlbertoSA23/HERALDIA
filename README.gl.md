@@ -13,7 +13,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 - ⚔️ **Gardiáns que loitan por fases.** Ao perderen vida enfurécense e chaman reforzos da súa propia estrutura, cunha barra de xefe mentres dura o combate. Cada un solta o seu propio trofeo.
 - ⛏️ **Minas.** En ladeiras de verdade ábrense bocaminas, campamentos mineiros e complexos mineiros con castelete, en 3 tamaños e co estilo de cada bioma, que baixan a galerías con vías, cruces e salas. Ademais, as minas abandonadas vanilla son máis frecuentes.
 - 🔱 **A Atlántida.** Só unha por mundo: unha cidade enorme afundida no océano profundo, con salas secas, tres selos coas súas chaves e o Gardián de Poseidón, custodio do maior tesouro de Heraldia.
-- 🏟️ **Area de vagas.** Un coliseo preto do punto de aparición: toca a campá e resiste vagas cada vez máis fortes, cun campión cada cinco vagas, récords e recompensas. Se caes no redondel, conservas o inventario.
+- 🏟️ **Area de vagas.** Un coliseo preto do punto de aparición: toca a campá e resiste vagas cada vez máis fortes, cun campión cada cinco vagas, récords e recompensas. Se caes no redondel, conservas o inventario. Tres modos (cooperativo, contrarreloxo e supervivencia) con clasificación semanal, `/heraldia arena leaderboard`: os campións da semana anterior saen nos carteis do salón da fama da area e na Guía do Heraldo.
 
 ## Como se xoga
 
@@ -58,6 +58,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `dificultad.nivel` | `normal` | Gardiáns e monstros: `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Os cofres de Heraldia vólvense encher ao cabo duns días. |
 | `arena.activado` | `true` | A area de vagas preto do punto de aparición. |
+| `arena.temporada.dia_reinicio` | `lunes` | Día no que se pecha a clasificación semanal da area e se anuncian os seus campións (á medianoite, hora do servidor). |
 | `encargos.activado` | `true` | Encargos do taboleiro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea e os seus descontos. |
 | `guia.entregar_al_entrar` | `true` | Dálle a Guía do Heraldo a cada xogador ao entrar. |

@@ -13,7 +13,7 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 - ⚔️ **Guardians que lluiten per fases.** Quan perden vida s'enfureixen i criden reforços de la seva pròpia estructura, amb una barra de cap mentre dura el combat. Cadascun deixa anar el seu propi trofeu.
 - ⛏️ **Mines.** En vessants de debò s'obren boques de mina, campaments miners i complexos miners amb castellet d'extracció, en 3 mides i amb l'estil de cada bioma, que baixen a galeries amb vies, cruïlles i sales. Les mines abandonades vanilla també són més freqüents.
 - 🔱 **L'Atlàntida.** Només n'hi ha una per món: una ciutat enorme enfonsada a l'oceà profund, amb sales seques, tres segells amb les seves claus i el Guardià de Posidó, que custodia el tresor més gran d'Heraldia.
-- 🏟️ **Arena d'onades.** Un colosseu prop del punt d'aparició: toca la campana i resisteix onades cada cop més fortes, amb un campió cada cinc onades, rècords i recompenses. Si caus a la pista, conserves l'inventari.
+- 🏟️ **Arena d'onades.** Un colosseu prop del punt d'aparició: toca la campana i resisteix onades cada cop més fortes, amb un campió cada cinc onades, rècords i recompenses. Si caus a la pista, conserves l'inventari. Tres modes (cooperatiu, contrarellotge i supervivència) amb classificació setmanal, `/heraldia arena leaderboard`: els campions de la setmana anterior surten als cartells del saló de la fama de l'arena i a la Guia de l'Herald.
 
 ## Com es juga
 
@@ -58,6 +58,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `dificultad.nivel` | `normal` | Guardians i monstres: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | Els cofres d'Heraldia es tornen a omplir al cap d'uns dies. |
 | `arena.activado` | `true` | L'arena d'onades prop del punt d'aparició. |
+| `arena.temporada.dia_reinicio` | `lunes` | Dia en què es tanca la classificació setmanal de l'arena i se n'anuncien els campions (a mitjanit, hora del servidor). |
 | `encargos.activado` | `true` | Encàrrecs del tauler (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputació per poble i els seus descomptes. |
 | `guia.entregar_al_entrar` | `true` | Dona la Guia de l'Herald a cada jugador en entrar. |

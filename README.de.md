@@ -13,7 +13,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 - ⚔️ **Hüter, die in Phasen kämpfen.** Verlieren sie Leben, geraten sie in Raserei und rufen Verstärkung aus ihrem eigenen Bauwerk herbei; solange der Kampf dauert, siehst du eine Bossleiste. Jeder lässt seine eigene Trophäe fallen.
 - ⛏️ **Minen.** An echten Hängen öffnen sich Stolleneingänge, Bergbaulager und Bergbauanlagen mit Förderturm, in 3 Größen und im Stil des jeweiligen Bioms, und führen hinab zu Stollen mit Gleisen, Kreuzungen und Kammern. Auch verlassene Vanilla-Minen sind häufiger.
 - 🔱 **Atlantis.** Nur eines pro Welt: eine riesige Stadt, versunken im tiefen Ozean, mit trockenen Hallen, drei Siegeln samt Schlüsseln und dem Hüter des Poseidon, der den größten Schatz von Heraldia bewacht.
-- 🏟️ **Wellenarena.** Ein Kolosseum nahe dem Spawn: Läute die Glocke und halte immer stärkeren Wellen stand, mit einem Champion in jeder fünften Welle, Rekorden und Belohnungen. Fällst du im Rund, behältst du dein Inventar.
+- 🏟️ **Wellenarena.** Ein Kolosseum nahe dem Spawn: Läute die Glocke und halte immer stärkeren Wellen stand, mit einem Champion in jeder fünften Welle, Rekorden und Belohnungen. Fällst du im Rund, behältst du dein Inventar. Drei Modi (Koop, Zeitrennen und Überleben) mit einer Wochenrangliste, `/heraldia arena leaderboard`: Die Champions der Vorwoche stehen auf den Schildern der Ruhmeshalle der Arena und im Leitfaden des Herolds.
 
 ## So spielst du
 
@@ -58,6 +58,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `dificultad.nivel` | `normal` | Hüter und Monster: `facil`, `normal`, `dificil` oder `heroica`. |
 | `botin.reponer.activado` | `false` | Heraldia-Truhen füllen sich nach einigen Tagen wieder auf. |
 | `arena.activado` | `true` | Die Wellenarena nahe dem Spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Tag, an dem die Wochenrangliste der Arena endet und ihre Champions verkündet werden (um Mitternacht, Serverzeit). |
 | `encargos.activado` | `true` | Aufträge des Auftragsbretts (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Ruf je Dorf und seine Rabatte. |
 | `guia.entregar_al_entrar` | `true` | Gibt jedem Spieler beim Betreten den Leitfaden des Herolds. |
