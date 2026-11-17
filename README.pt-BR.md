@@ -18,6 +18,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 ## Como jogar
 
 - 📖 **O Guia do Arauto.** Todo jogador o recebe ao entrar: um livro que explica o que procurar e guarda o seu diário, com as estruturas únicas que você descobriu e pistas das que ainda faltam. Peça uma cópia atualizada quando quiser com `/heraldia guia`.
+- 📊 **O que o servidor já encontrou.** `/heraldia status` mostra quantas vilas, estruturas únicas, estruturas médias e minas os jogadores descobriram, os guardiões derrotados e o recorde da arena.
 - 🏆 **Progressos.** Uma aba Heraldia com 94 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, as estruturas médias, o quadro de tarefas e a arena.
 - 🗿 **Troféus.** Cada um dos 20 guardiões solta seu troféu, um item com nome e história. Reúna todos para completar a Sala de troféus.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única mais próxima do seu tipo. Eles aparecem nos baús épicos das vilas e os cartógrafos os vendem.
@@ -35,7 +36,7 @@ Os textos do mod estão em 8 idiomas: inglês, espanhol, francês, alemão, ital
 
 ## Opções mais úteis
 
-O arquivo `config/heraldia.json` é criado na primeira inicialização do servidor, com um texto de ajuda para cada opção. As mudanças entram em vigor quando o servidor é reiniciado, nos chunks gerados depois.
+O arquivo `config/heraldia.json` é criado na primeira inicialização do servidor, com um texto de ajuda para cada opção. As mudanças entram em vigor quando o servidor é reiniciado, nos chunks gerados depois. As que não afetam a geração (dificuldade, chefes, saque, arena, Guia...) podem ser aplicadas sem reiniciar com `/heraldia reload`.
 
 | Opção | Padrão | O que faz |
 | --- | --- | --- |
@@ -54,7 +55,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 ## Saiba mais
 
 - [Referência completa do conteúdo](docs/CONTENT.md) (em inglês): cada estilo de vila, estrutura única, estrutura média e mina, as lutas contra os guardiões, os progressos, a arena e mais.
-- [Instalação, comandos e configuração](docs/CONFIGURATION.md) (em inglês): comandos de teste e de administração (`/heraldia info`, `/heraldia llave`...), todas as opções e a tela de configuração no jogo.
+- [Instalação, comandos e configuração](docs/CONFIGURATION.md) (em inglês): comandos de teste e de administração (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), todas as opções e a tela de configuração no jogo.
 - [Compatibilidade com outros mods](docs/COMPATIBILITY.md) (em inglês): mods de biomas, mods de estruturas, Lootr e os demais.
 - [Compilação e testes](docs/BUILDING.md) (em inglês), [guia de desenvolvimento](docs/DESARROLLO.md) (em espanhol) e [registro de mudanças](CHANGELOG.md) (em inglês).
 

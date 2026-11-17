@@ -18,6 +18,7 @@ Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valen
 ## Comment jouer
 
 - 📖 **Le Guide du Héraut.** Chaque joueur le reçoit en se connectant : un livre qui explique quoi chercher et tient votre journal, avec les structures uniques que vous avez découvertes et des indices sur celles qui manquent. Demandez un exemplaire à jour quand vous voulez avec `/heraldia guia`.
+- 📊 **Ce que le serveur a trouvé.** `/heraldia status` indique combien de villages, de structures uniques, de structures moyennes et de mines les joueurs ont découverts, les gardiens vaincus et le record de l'arène.
 - 🏆 **Progrès.** Un onglet Heraldia avec 94 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les structures moyennes, le tableau des contrats et l'arène.
 - 🗿 **Trophées.** Chacun des 20 gardiens lâche son trophée, un objet avec un nom et une histoire. Réunissez-les tous pour compléter la Salle des trophées.
 - 🗺️ **Cartes au trésor.** Chaque carte indique la structure unique de son type la plus proche. On les trouve dans les coffres épiques des villages, et les cartographes en vendent.
@@ -35,7 +36,7 @@ Les textes du mod existent en 8 langues : anglais, espagnol, français, allemand
 
 ## Options les plus utiles
 
-Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, avec un texte d'aide pour chaque option. Les modifications s'appliquent au redémarrage du serveur, dans les chunks nouvellement générés.
+Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, avec un texte d'aide pour chaque option. Les modifications s'appliquent au redémarrage du serveur, dans les chunks nouvellement générés. Celles qui ne touchent pas à la génération (difficulté, boss, butin, arène, Guide...) peuvent s'appliquer sans redémarrer avec `/heraldia reload`.
 
 | Option | Par défaut | Effet |
 | --- | --- | --- |
@@ -54,7 +55,7 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 ## En savoir plus
 
 - [Référence complète du contenu](docs/CONTENT.md) (en anglais) : chaque style de village, structure unique, structure moyenne et mine, les combats de gardiens, les progrès, l'arène et plus encore.
-- [Installation, commandes et configuration](docs/CONFIGURATION.md) (en anglais) : commandes de test et d'administration (`/heraldia info`, `/heraldia llave`...), toutes les options et l'écran de configuration en jeu.
+- [Installation, commandes et configuration](docs/CONFIGURATION.md) (en anglais) : commandes de test et d'administration (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), toutes les options et l'écran de configuration en jeu.
 - [Compatibilité avec d'autres mods](docs/COMPATIBILITY.md) (en anglais) : mods de biomes, mods de structures, Lootr et les autres.
 - [Compilation et tests](docs/BUILDING.md) (en anglais), [guide de développement](docs/DESARROLLO.md) (en espagnol) et [journal des modifications](CHANGELOG.md) (en anglais).
 

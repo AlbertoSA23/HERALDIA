@@ -18,6 +18,7 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 ## Com es juga
 
 - 📖 **La Guia de l'Herald.** Tots els jugadors la reben en entrar: un llibre que explica què has de buscar i porta el teu diari, amb les estructures úniques que has descobert i pistes de les que et falten. Demana'n una còpia al dia quan vulguis amb `/heraldia guia`.
+- 📊 **El que ha trobat el servidor.** `/heraldia status` diu quants pobles, estructures úniques, estructures mitjanes i mines han descobert els jugadors, els guardians vençuts i el rècord de l'arena.
 - 🏆 **Assoliments.** Una pestanya Heraldia amb 94 assoliments: un poble de cada família, cada estructura única amb el seu guardià i el seu tresor, les mines, les estructures mitjanes, el tauler d'encàrrecs i l'arena.
 - 🗿 **Trofeus.** Cadascun dels 20 guardians deixa anar el seu trofeu, un objecte amb nom i història. Reuneix-los tots per completar la Sala de trofeus.
 - 🗺️ **Mapes del tresor.** Cada mapa marca l'estructura única més propera del seu tipus. Surten als cofres èpics dels pobles i els venen els cartògrafs.
@@ -35,7 +36,7 @@ Els textos del mod estan en 8 llengües: anglès, castellà, francès, alemany, 
 
 ## Opcions més útils
 
-El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, amb un text d'ajuda per a cada opció. Els canvis s'apliquen en reiniciar el servidor, als chunks que es generin de nou.
+El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, amb un text d'ajuda per a cada opció. Els canvis s'apliquen en reiniciar el servidor, als chunks que es generin de nou. Les que no afecten la generació (dificultat, caps, botí, arena, Guia...) es poden aplicar sense reiniciar amb `/heraldia reload`.
 
 | Opció | Per defecte | Què fa |
 | --- | --- | --- |
@@ -54,7 +55,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 ## Per saber-ne més
 
 - [Referència completa del contingut](docs/CONTENT.md) (en anglès): tots els estils de poble, les estructures úniques, les mitjanes i les mines, els combats amb els guardians, els assoliments, l'arena i més.
-- [Instal·lació, ordres i configuració](docs/CONFIGURATION.md) (en anglès): ordres de prova i d'administració (`/heraldia info`, `/heraldia llave`...), totes les opcions i la pantalla de configuració del joc.
+- [Instal·lació, ordres i configuració](docs/CONFIGURATION.md) (en anglès): ordres de prova i d'administració (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), totes les opcions i la pantalla de configuració del joc.
 - [Compatibilitat amb altres mods](docs/COMPATIBILITY.md) (en anglès): mods de biomes, mods d'estructures, Lootr i la resta.
 - [Compilació i proves](docs/BUILDING.md) (en anglès), [guia de desenvolupament (en castellà)](docs/DESARROLLO.md) i [registre de canvis](CHANGELOG.md).
 

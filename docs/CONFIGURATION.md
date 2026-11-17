@@ -32,12 +32,41 @@ In an existing world, structures only appear in chunks that have not been genera
 
 Use the showcase only in a test world: whatever it places stays.
 
+## Admin tools
+
+### Review route: `/heraldia review`
+
+For operators (level 2). A guided route to check all the visual content of the mod in one afternoon, stop by stop: a village of each family, every unique structure (Atlantis and the Corsair's Isle included), each type of medium structure, a mine entrance of each size, the arena (if enabled) and a stretch of road (if there are roads). Whatever is disabled in the configuration is left out.
+
+- `/heraldia review`: goes to the stop you are at (the first one, the first time). At each stop you get an on-screen title, the list of what to check in the chat (translated, like everything else) and buttons to mark it: **Checked**, **+ Note** (checked, with a note) and **Problem** (type what is wrong after the command), plus **Skip**, **Previous**, **Next** and **List**.
+- `/heraldia review next`, `previous`, `skip [note]` (marks it as skipped and goes to the next one), `goto <id>` (e.g. `goto unica/castillo`; it autocompletes), `list` (every stop with its status; click one to go there), `reset` (clears your marks) and `status` (the summary: how many are checked, with a problem, skipped and pending, and the list of problems).
+- `/heraldia review mark checked [note]` and `/heraldia review mark problem [note]`: what the buttons do.
+- The search runs off the server thread, with the same rules as `/heraldia info cerca` (from the world spawn, up to 10,000 blocks; Atlantis, anywhere in the world), and never loads or generates chunks: it prefers a structure that is already generated, even if farther away, to a predicted one. If the nearest one has not been generated yet, it warns you that going there generates new terrain and waits until you click **Go and generate** (`goto <id> generate`).
+- The teleport loads the destination without blocking the server and leaves you above ground, with no suffocation: feet and head free, solid ground or water below (floating on the sea at Atlantis or the isle), never in lava, fire, magma, cactus or powder snow, searching in a spiral up to 8 blocks around. If there is no safe spot, you are not moved.
+- Progress is per player and saved in `heraldia_revision.json`, in the world folder (it survives restarts). Every change also writes `heraldia_revision.md` in the same folder: per player, every stop with its status, its note and the date, those with a problem first.
+
+### Server status: `/heraldia status [page]`
+
+For any player, translated and paged (8 lines per page, with buttons to turn the page): the Heraldia version, how many structures of each kind some player has discovered out of the total (villages, one of each family; unique structures; medium structures, by type; mines, by size), the guardians defeated, the state of the arena with the server record, whether restocking loot is enabled and whether Lootr is installed. Operators also see the difficulty, the key generation, boss and Guide options, what is still undiscovered of each kind and the other mods loaded. Discoveries come from advancements: those of online players, from memory; the rest, from their files in the world folder (read off the server thread).
+
+### Live reload: `/heraldia reload`
+
+For operators (level 2). Reads `config/heraldia.json` again without restarting the server (and without rewriting it) and applies whatever does not affect generation:
+
+- `dificultad.*`: the health and damage modifiers of the Heraldia mobs already loaded are recalculated (the rest, when they load), keeping the proportion of their current health.
+- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (trades are rolled when a villager levels up) and `unicas.atlantida.cofre_unico_por_jugador`: read every time they are used.
+- `perfil` (the [gameplay profile](#gameplay-profiles)): applied whole, with whatever is set by hand on top (all its options are among these).
+- `golems.*`: the limits are published again to the golem functions.
+- `arena.*` (except `arena.generar_en_mundos_nuevos`, which only counts when a new world starts): increments, maximum alive, experience and whether it is enabled. With a match running they do not change until it ends (reload again then).
+
+Everything else (grids and spacings, villages, families and styles, the job board, roads, unique structures, medium structures, mines, compatibility and the minimum distance) affects generation: if it changed halfway, two neighbouring chunks would be generated with different rules and `/locate` and maps would no longer match what was generated. Those options are not applied: the answer lists them with their value in use and the one in the file, and they apply on restart. A new option of the mod belongs to this group unless it is declared reloadable.
+
 ## Configuration
 
 File `config/heraldia.json` on the server (in a single-player world, the one in the game folder). It is created at startup with all default values
 and rewritten on every startup with the values in use and a help text (`_ayuda`) in Spanish and English (the options of the [gameplay profile](#gameplay-profiles) only if they were set by hand; the `_perfil` block, informative, shows the effective profile and its values). An invalid value (out of range or of another type)
 is reported in the log and replaced by its default; an unknown option is reported and ignored. The `version` field allows migrating the file
-when its format changes. It is read only when the server starts and affects chunks generated afterwards (not what is already generated).
+when its format changes. It is read when the server starts and affects chunks generated afterwards (not what is already generated); whatever does not affect generation can be applied without restarting with [`/heraldia reload`](#live-reload-heraldia-reload).
 
 | Option | Default | Range | What it does |
 | --- | --- | --- | --- |
@@ -117,7 +146,7 @@ The `perfil` option sets a group of gameplay options in one go (never world gene
 - The options a profile sets are only written to the file when they are set by hand; that way changing `perfil` in the file actually changes them. To go back to the profile's value, delete the option from the file.
 - `personalizado` sets nothing: each option takes its value from the file or, if it is not there, its default.
 - Files from 0.1.0 (`version` 1) are migrated without changing anything: the mod used to write every option, so the profile options that had their default are removed (with `estandar` they give the same) and the ones with another value stay as set by hand.
-- It is applied whenever the file is read (at startup, and on the reload command when there is one), never in the middle of a chunk; mobs already generated take the difficulty when they load, as before.
+- It is applied whenever the file is read (at startup and with `/heraldia reload`), never in the middle of a chunk; mobs already generated take the difficulty when they load, as before.
 
 ### Configuration screen (client)
 
@@ -127,5 +156,5 @@ On the client the file can also be edited from a screen inside the game. With [M
 - Each option shows its value (on/off button, number box, or a button that cycles through the values of a list option such as `dificultad.nivel`). Its tooltip shows the key, the help text (the same as `_ayuda`) and the default and range. An invalid number turns red, its tooltip says why and **Save** stays disabled until it is fixed.
 - Gameplay profile: changing it moves the options that had the previous profile's value to the new one's; the ones with another value (set by hand) stay as they are, with their name in gold, and their tooltip shows the profile's value and that they override it. The tooltip of the profile itself shows the effective profile and which options differ. On saving, only the options whose value is not the profile's are written as set by hand.
 - **Save** writes `config/heraldia.json` in the same format as at startup (with `version` and `_ayuda`); **Reset to defaults** puts every option back to its default (nothing is written until you save); **Cancel** discards the changes.
-- Changes apply when the world is opened again or the server is restarted, and only to chunks generated afterwards; the screen says so. With no world open they are used from the next world you open (no need to restart the game); with a single-player world open, after leaving and re-entering it.
+- Changes apply when the world is opened again or the server is restarted, and only to chunks generated afterwards; the screen says so. With no world open they are used from the next world you open (no need to restart the game). With a single-player world open, saving reloads live whatever does not affect generation, the same way as [`/heraldia reload`](#live-reload-heraldia-reload) (the report shows in the chat); the rest, after leaving and re-entering it.
 - When connected to a server the screen edits **the client's local file** (your single-player worlds), not the server's: the screen warns about it. The server's configuration is still edited in its own `config/heraldia.json`. Nothing is sent over the network.

@@ -35,7 +35,7 @@ def test_descubre_todas_las_pruebas_de_servidor():
 @pytest.mark.parametrize("rutas", [
     ["docs/DESARROLLO.md"], ["README.md", "CHANGELOG.md"], ["tools/gen/tests/test_core.py"],
     ["src/test/java/io/github/albertosa23/heraldia/config/X.java"], ["src/client/java/x/ConfigScreen.java"],
-    ["tools/gen/render.py"], ["tools/gen/loot.py"], [J + "comando/InfoCommand.java"],
+    ["tools/gen/render.py"], ["tools/gen/loot.py"], [J + "comando/LlaveCommand.java"],
 ])
 def test_sin_pruebas_de_servidor(rutas):
     assert elige(*rutas) == (False, [])
@@ -70,7 +70,7 @@ def test_compatibilidad_solo_con_sus_rutas():
                                                       "tools/smoke/aldeas_vida.py", "tools/smoke/terralith_biomas.py"}
     assert set(elige("tools/gen/biomas.py")[1]) == {"tools/smoke/terralith_biomas.py"} | set(COMPAT)
     assert elige("tools/gen/writer.py") == (True, SIN_COMPAT)                    # común, pero no de colocación
-    assert elige(J + "comando/InfoCommand.java") == (False, [])
+    assert elige(J + "comando/InfoCommand.java") == (False, ["tools/smoke/admin.py"])   # no es de colocación
 
 
 def test_orden_de_una_prueba_por_grupo():
@@ -195,7 +195,18 @@ def test_guia_del_heraldo():
     assert elige("tools/gen/idiomas.py") == (False, ["tools/smoke/guia.py"])
     assert elige("tools/gen/idiomas/fr_fr.json", "tools/gen/idiomas/gl_es.json") == (False, ["tools/smoke/guia.py"])
     assert elige("README.fr.md", "docs/CONFIGURACION.md", "tools/gen/tests/test_readme.py") == (False, [])
-    assert elige(J + "comando/InfoCommand.java") == (False, [])        # el resto de comando/: solo la de humo
+    assert elige(J + "comando/LlaveCommand.java") == (False, [])       # el resto de comando/: solo la de humo
+
+
+def test_herramientas_de_administracion():
+    admin = (False, ["tools/smoke/admin.py"])
+    for r in ("comando/Admin.java", "comando/RevisarCommand.java", "comando/Revision.java", "comando/Seguro.java",
+              "comando/Estado.java", "comando/EstadoCommand.java", "comando/RecargarCommand.java",
+              "comando/InfoCommand.java", "config/Recarga.java"):
+        assert elige(J + r) == admin, r
+    assert elige("tools/gen/admin.py") == admin
+    assert elige("tools/smoke/admin.py") == admin
+    assert elige(J + "config/HeraldiaConfig.java")[0]           # el resto de config/: común, batería completa
 
 
 def test_botin_que_se_repone_y_dificultad():

@@ -26,9 +26,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Configuración del servidor (config/heraldia.json). El esquema (opciones, valores por defecto, rangos y textos de ayuda)
- * lo genera tools/gen/opciones.py dentro del .jar. Se lee una vez al arrancar y queda inmutable: la colocación de
- * estructuras la consultan varios hilos de generación a la vez. El perfil de juego ({@link Perfiles}) se aplica al leer
- * (en {@link #load}, también al recargar): los valores en uso ya son los del perfil con lo fijado a mano encima.
+ * lo genera tools/gen/opciones.py dentro del .jar. Se lee al arrancar y queda inmutable: la colocación de
+ * estructuras la consultan varios hilos de generación a la vez. /heraldia reload ({@link #recargar}) la sustituye por
+ * otra con los valores nuevos de las opciones que no afectan a la generación. El perfil de juego ({@link Perfiles}) se
+ * aplica al leer (al arrancar y al recargar): los valores en uso ya son los del perfil con lo fijado a mano encima.
  */
 public final class HeraldiaConfig {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -86,6 +87,25 @@ public final class HeraldiaConfig {
 		HeraldiaConfig c = read(file);
 		instance = c;
 		return c;
+	}
+
+	/**
+	 * Recarga en caliente (/heraldia reload): lee el fichero como al arrancar, sin reescribirlo, y pone en uso los
+	 * valores nuevos de las opciones recargables ({@link Recarga#recargable}); las que afectan a la generación conservan
+	 * el valor en uso hasta el siguiente arranque y salen en {@link Recarga.Resultado#pendientes()}. La configuración en
+	 * uso se sustituye entera (es inmutable), así que los hilos de generación nunca ven una a medias.
+	 */
+	public static synchronized Recarga.Resultado recargar(Path file) {
+		HeraldiaConfig actual = get();
+		Lectura l = parse(file);                         // con el perfil ya aplicado: recargar el perfil lo cambia todo junto
+		Recarga.Resultado r = Recarga.mezclar(actual.values, l.values());
+		if (r.cambia()) {
+			instance = new HeraldiaConfig(new Lectura(r.valores(), l.perfil()), actual.schema);
+			logPerfil(l.perfil());
+		}
+		LOGGER.info("Heraldia: configuración recargada: {} opciones aplicadas {}, {} esperan al reinicio {}", r.aplicadas().size(),
+				r.aplicadas(), r.pendientes().size(), r.pendientes().stream().map(Recarga.Pendiente::clave).toList());
+		return r;
 	}
 
 	public int getInt(String key) {
