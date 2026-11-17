@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Faros y naufragios de la costa (heraldia:costa/&lt;tipo&gt;/&lt;estilo&gt;/&lt;variante&gt;, tools/gen/costa, T42): un
+ * Faros y naufragios de la costa (heraldia:costa/&lt;tipo&gt;/&lt;estilo&gt;/&lt;variante&gt;, tools/gen/litoral, T42): un
  * structure_set por tipo con su rejilla heraldia:rejilla (grupo costa/&lt;tipo&gt;, opciones faros.* y naufragios.*) y el
  * tipo propio {@link CostaStructure}, que busca la orilla. La regla de colocación es la de las minas ({@link Minas#familia}),
  * con su familia propia, y cede además a las minas:

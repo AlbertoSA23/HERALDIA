@@ -70,7 +70,7 @@ TESORO = ["tools/smoke/tesoro.py"]
 COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py", "tools/smoke/arena.py"]
 # Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
 MINAS = ["tools/smoke/entradas_mina.py"]
-# Faros y naufragios de la costa (T42): su generador (tools/gen/costa/) y su Java (paquete costa/); su regla es la de las
+# Faros y naufragios de la costa (T42): su generador (tools/gen/litoral/) y su Java (paquete costa/); su regla es la de las
 # minas (minas/Minas.familia), y el ahogado del semihundido entra en las pruebas que recorren los mobs de las plantillas.
 COSTA = ["tools/smoke/costa.py"]
 COSTA_MOBS = COSTA + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
@@ -101,7 +101,7 @@ MAPA = [
     # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
     ("tools/gen/medianas/*", MEDIANAS_MOBS), (JAVA + "comun/Medianas.java", MEDIANAS),
     ("tools/gen/minas/*", MINAS), (JAVA + "minas/*", MINAS + COSTA),
-    ("tools/gen/costa/*", COSTA_MOBS), (JAVA + "costa/*", COSTA),
+    ("tools/gen/litoral/*", COSTA_MOBS), (JAVA + "costa/*", COSTA),
     # /locate de las minas (T36): la caché compartida de alturas y el cálculo adelantado en paralelo solo los usan las minas
     (JAVA + "comun/CacheAlturas.java", MINAS), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINAS),
     # encargos del tablón y reputación (T38)

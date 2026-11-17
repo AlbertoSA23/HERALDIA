@@ -270,7 +270,8 @@ def write(out, reg, modules, jdump):
     """Escribe los logros y sus etiquetas; devuelve los textos para sumarlos a los idiomas del mod."""
     for path, values in structure_tags(modules).items():
         jdump(out, f"data/{NS}/tags/worldgen/structure/{path}.json", {"values": values})
-    import medianas, minas, costa
+    import medianas, minas
+    import litoral as costa
     advs, lang = build(reg, modules, medianas.modules(), minas, costa)
     for path, adv in advs.items():
         jdump(out, f"data/{NS}/advancement/{path}.json", adv)

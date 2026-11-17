@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Faro o naufragio de la costa (heraldia:costa, tools/gen/costa): una sola plantilla que se pone en la orilla que busca
+ * Faro o naufragio de la costa (heraldia:costa, tools/gen/litoral): una sola plantilla que se pone en la orilla que busca
  * {@link Orilla} con la caché compartida de alturas de generación ({@link CacheAlturas}), girada para que su +z mire al
  * mar y con su ancla en el último bloque de tierra. El faro queda a la altura del terreno (la plataforma; sus cimientos y
  * pilotes bajan hasta el suelo con el procesador de la plantilla); el naufragio, con la fila {@code fila_mar} en el nivel

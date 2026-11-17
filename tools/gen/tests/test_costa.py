@@ -5,15 +5,15 @@ etiquetas, procesadores, botín), sus opciones, sus logros, la página de la Gu�
 negativos de la auditoría (aire bajo el agua, la luz apagada, sin escalera) para que un cambio que lo rompa falle aquí."""
 import json
 import pytest
-import costa
+import litoral as costa
 import guia
 import idiomas
 import lint
 import logros
 import opciones
 import unicas
-from costa import auditoria, obras
-from costa.botin import LOOT, PROHIBIDO
+from litoral import auditoria, obras
+from litoral.botin import LOOT, PROHIBIDO
 from pack import Registry
 
 TODAS = [(t, e, v) for t in costa.TIPOS for e in costa.ESTILOS for v in costa.VARIANTES]

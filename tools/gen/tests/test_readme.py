@@ -7,7 +7,7 @@ import re
 import pytest
 import arena_oleadas
 import caravanas
-import costa
+import litoral as costa
 import encargos
 import idiomas
 import logros

@@ -3,7 +3,7 @@ import json, os, random, shutil
 import unicas
 import medianas
 import minas
-import costa
+import litoral as costa
 from unicas._comun import botin
 from core import Template, nsid, NS
 from lint import passable

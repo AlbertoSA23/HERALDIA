@@ -12,7 +12,7 @@ import loot
 import unicas
 import medianas
 import minas
-import costa
+import litoral as costa
 from unicas._comun import botin
 import biomas
 import tratos, tablon

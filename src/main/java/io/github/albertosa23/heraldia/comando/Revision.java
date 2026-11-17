@@ -37,7 +37,7 @@ public final class Revision {
 	public static final String FICHERO = "heraldia_revision.json", INFORME = "heraldia_revision.md";
 	/** Tamaños de las minas en el orden de la ruta (los de tools/gen/minas: pequeña, mediana, grande). */
 	static final List<String> TAMANOS = List.of("pequena", "mediana", "grande");
-	/** Tipos de la costa en el orden de la ruta (los de tools/gen/costa). */
+	/** Tipos de la costa en el orden de la ruta (los de tools/gen/litoral). */
 	static final List<String> COSTA = List.of("faro", "naufragio");
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private static final int NOTA_MAX = 256;

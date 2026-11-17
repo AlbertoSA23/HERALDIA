@@ -27,8 +27,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 
 sys.path.insert(0, os.path.join(s.ROOT, "tools", "gen"))
-import costa                                    # noqa: E402  (el generador: plantillas, botín y huellas)
-from costa import obras                         # noqa: E402
+import litoral as costa                                    # noqa: E402  (el generador: plantillas, botín y huellas)
+from litoral import obras                         # noqa: E402
 
 SEA = 63
 ZONA, DISTANCIA = 256, 192                      # opciones.py, por defecto

@@ -180,11 +180,11 @@ def test_minas():
 def test_costa():
     c = ["tools/smoke/costa.py"]
     mobs = c + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
-    assert elige("tools/gen/costa/obras.py") == (False, mobs), "el ahogado del semihundido"
-    assert elige("tools/gen/costa/__init__.py") == (False, mobs)
+    assert elige("tools/gen/litoral/obras.py") == (False, mobs), "el ahogado del semihundido"
+    assert elige("tools/gen/litoral/__init__.py") == (False, mobs)
     assert elige(J + "costa/Orilla.java") == (False, c)
     assert elige("tools/smoke/costa.py") == (False, c)
-    assert sel.coste([J + "costa/Orilla.java"]) and sel.coste(["tools/gen/costa/obras.py"])
+    assert sel.coste([J + "costa/Orilla.java"]) and sel.coste(["tools/gen/litoral/obras.py"])
 
 
 def test_perfiles():

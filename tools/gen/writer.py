@@ -7,7 +7,7 @@ import loot
 import unicas
 import medianas
 import minas
-import costa
+import litoral as costa
 import mapas
 import tratos
 import tablon
