@@ -400,3 +400,10 @@ def test_bioma_vecinos_solo_en_el_pescador_y_en_rango():
     class Franja(_Falsa):
         BIOMA_VECINOS = 0
     assert any("BIOMA_VECINOS" in e for e in _errores(Franja))
+
+
+def test_solo_las_chozas_ceden_a_las_minas(tmp_path):
+    """Las chozas de mago buscan el interior de los mismos biomas que las minas: ceden ellas (etiqueta para el Java)."""
+    assert medianas.ceden_a_minas() == [f"heraldia:medianas/choza_mago/{e}" for e in dict(MODS)["choza_mago"].ESTILOS]
+    assert all(not getattr(m, "CEDE_A_MINAS", False) for mid, m in MODS if mid != "choza_mago")
+    assert medianas.CEDEN_A_MINAS == "medianas/ceden_a_minas"

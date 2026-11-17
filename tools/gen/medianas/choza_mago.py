@@ -18,6 +18,9 @@ MID = "choza_mago"
 NOMBRE = {"es_es": "Choza de mago", "en_us": "Wizard's Hut"}
 SEPARACION = 1024
 LOGRO_ICONO = "minecraft:brewing_stand"
+# Busca el mismo interior de los mismos biomas que las entradas a mina (taigas, colinas, picos, cerezal, desierto): sin
+# esto le quitaría el sitio a la mina de al lado (las minas ceden siempre a las medianas). Así cede ella.
+CEDE_A_MINAS = True
 TAG_MAGO = "heraldia_mago"           # la etiqueta que busca el Java (chozas/Magos.TAG)
 TAG_MALVADO = "heraldia_mago_malvado"  # la del evocador en que se convierte (chozas/Magos.MALVADO)
 _K = f"heraldia.medianas.{MID}."
