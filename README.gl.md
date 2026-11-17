@@ -8,7 +8,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 
 - 🏘️ **Aldeas con vida.** 72 aldeas deseñadas a man: 36 estilos, un para cada tipo de bioma (unha vila castelá nas chairas, palafitos no pantano, unha aldea xaponesa entre as cerdeiras...), cada un en tamaño estándar e grande, agrupados en 12 familias. Praza con fonte e campá, igrexa, mercado, taberna, ferraría, biblioteca, pousada e vinte ou trinta casas. Cada estilo ten os seus propios tratos, o taboleiro de encargos do alguacil paga colleitas, leña e limpar os camiños, e os cartógrafos venden mapas do tesouro.
 - 🛤️ **Camiños.** Carreiros con farois e pontes de madeira unen as aldeas veciñas. Preto de cada aldea, un letreiro dicche o nome da seguinte e cantos bloques faltan.
-- 🏕️ **Á beira do camiño.** 8 tipos de estruturas medianas entre aldea e aldea: torres de vixía, pousadas de camiño, campamentos de bandidos, ermidas, muíños, cabanas de pescador, postos de cazadores e templetes en ruínas, cada un co estilo do seu bioma, cun botín modesto e, de cando en vez, un pequeno reto.
+- 🏕️ **Á beira do camiño.** 9 tipos de estruturas medianas entre aldea e aldea: torres de vixía, pousadas de camiño, campamentos de bandidos, ermidas, muíños, cabanas de pescador, postos de cazadores, templetes en ruínas e chozas de mago, cada un co estilo do seu bioma, cun botín modesto e, de cando en vez, un pequeno reto.
 - 🏰 **19 estruturas únicas**, moi raras e cada unha no seu bioma: un castelo con foxo, unha catedral gótica, unha cidadela anana escavada na montaña, un galeón varado, unha mansión encantada, un palacio oriental, unha torre de mago, unha mina perdida nas profundidades, un forte pirata na súa propia illa en mar aberto... Dentro: salas ocultas, quebracabezas de redstone, trampas e xeradores de criaturas e, ao final, un **gardián con nome** que custodia a cámara do tesouro.
 - ⚔️ **Gardiáns que loitan por fases.** Ao perderen vida enfurécense e chaman reforzos da súa propia estrutura, cunha barra de xefe mentres dura o combate. Cada un solta o seu propio trofeo.
 - ⛏️ **Minas.** En ladeiras de verdade ábrense bocaminas, campamentos mineiros e complexos mineiros con castelete, en 3 tamaños e co estilo de cada bioma, que baixan a galerías con vías, cruces e salas. Ademais, as minas abandonadas vanilla son máis frecuentes.
@@ -21,7 +21,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 - 📊 **O que atopou o servidor.** `/heraldia status` di cantas aldeas, estruturas únicas, estruturas medianas e minas descubriron os xogadores, os gardiáns vencidos, o récord da area e os encargos entregados.
 - 📋 **Encargos das aldeas.** Toca o atril do taboleiro da praza dunha aldea (ou usa alí `/heraldia quest`): saen no chat de 2 a 4 encargos (traer obxectos, vencer un gardián, explorar, viaxar a unha aldea veciña, a area) que cambian cada poucos días. Pagan esmeraldas, experiencia e reputación con esa aldea: como coñecido, amigo e heroe da aldea, os seus aldeáns rebaixan os prezos un 10, 20 e 30 %. Atacar os seus aldeáns ou gólems faina baixar.
 - 🐪 **Caravanas.** De cando en vez, preto de ti, un mercador de Heraldia coas súas llamas (e ás veces un garda) percorre o camiño entre dúas aldeas veciñas. Se o asaltan os bandidos, defendeo: ao chegar págache esmeraldas e reputación coa súa aldea de destino. Se o mercador morre, a caravana pérdese.
-- 🏆 **Logros.** Unha lapela Heraldia con 107 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos, a area e as caravanas.
+- 🏆 **Logros.** Unha lapela Heraldia con 109 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos, a area e as caravanas.
 - 🗿 **Trofeos.** Cada un dos 20 gardiáns solta o seu trofeo, un obxecto con nome e historia. Reúneos todos para completar a Sala de trofeos.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única máis próxima do seu tipo. Saen nos cofres épicos das aldeas e véndenos os cartógrafos.
 - 🧭 **Busca do tesouro.** Ás veces un cofre garda un fragmento de mapa do tesouro. Úsao e volverase un mapa cunha marca: cada marca é unha estrutura real de Heraldia que agocha a seguinte pista, e a última leva a un cofre que enterrou Ysolda, con bo botín e unha lembranza.
@@ -63,6 +63,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `encargos.activado` | `true` | Encargos do taboleiro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea e os seus descontos. |
 | `caravanas.activado` | `true` | Caravanas polos camiños (operadores: `/heraldia caravan`). |
+| `chozas_mago.prob_malvado` | 20 | Probabilidade (%) de que o mago dunha choza de mago sexa un mago malvado disfrazado. |
 | `guia.entregar_al_entrar` | `true` | Dálle a Guía do Heraldo a cada xogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores cando hai unha versión nova. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web só saen as estruturas xa descubertas. |

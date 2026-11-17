@@ -15,6 +15,7 @@ import arena_oleadas
 import admin
 import encargos
 import caravanas
+import chozas_mago
 import caminos
 import opciones
 import jefes
@@ -338,7 +339,8 @@ def write(reg, out):
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     logros.write(out, reg, uniques, jdump)
-    for escribe in (tablon.write, caminos.write, arena_oleadas.write, encargos.write, caravanas.write):
+    for escribe in (tablon.write, caminos.write, arena_oleadas.write, encargos.write, caravanas.write,
+                    chozas_mago.write):
         escribe(out, jdump)
     traducidos = idiomas.completar(textos(reg), paginas_de_libros(reg, out),
                                    idiomas.claves_de_carteles(nbt for t in reg.templates.values() for _, nbt in t.blocks.values() if nbt))
@@ -363,7 +365,7 @@ def textos(reg):
         for lang, texts in extra.items():
             out[lang].update(texts)
     partes = [mapas.lang(uniques), logros.build(reg, uniques, medianas.modules(), minas)[1], tratos.lang(),
-              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), encargos.lang(), caravanas.lang(),
+              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), encargos.lang(), caravanas.lang(), chozas_mago.lang(),
               trophies_lang(), botin.historia_lang(uniques), tesoro.lang()]
     for parte in partes:
         assert parte["es_es"].keys() == parte["en_us"].keys()

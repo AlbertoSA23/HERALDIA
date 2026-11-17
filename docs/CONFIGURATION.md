@@ -10,7 +10,7 @@ Requirements: Minecraft 26.3, Fabric Loader 0.20.1 or later and Fabric API (test
 
 1. Build `heraldia-<version>.jar` (see below).
 2. Copy it into the server's `mods` folder. On clients it is optional: a vanilla client plays the same (texts it does not know show in Spanish, except the Guide, which arrives in each player's language); with the mod everything shows in its language and the configuration screen is available.
-3. Start the server. `logs/latest.log` should show `Heraldia: 142 estructuras registradas`.
+3. Start the server. `logs/latest.log` should show `Heraldia: 148 estructuras registradas`.
 
 In an existing world, structures only appear in chunks that have not been generated yet.
 `/reload` does not reload world generation: you must restart the server (or leave and re-enter the world in single player).

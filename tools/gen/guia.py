@@ -63,6 +63,11 @@ PAGINAS = [
       "ermitas... Tienen botín modesto y, a veces, un pequeño reto. Cuidado con los bandidos.",
       "Between villages you will come across medium structures: watchtowers, roadside inns, bandit camps, "
       "hermitages... They hold modest loot and, now and then, a small challenge. Beware of the bandits.")),
+    ("magos", ("Chozas de mago", "Wizard's huts"),
+     ("En bosques, pantanos, taigas, montes, cerezales y desiertos viven magos en chozas con jardín de hierbas. "
+      "Venden pociones, frascos y libros. Pero alguno es un mago malvado disfrazado: si se descubre, prepárate.",
+      "In forests, swamps, taigas, hills, cherry groves and deserts, wizards live in huts with herb gardens. They "
+      "sell potions, flasks and books. But some are evil wizards in disguise: if one unmasks, be ready.")),
     ("minas", ("Las minas", "The mines"),
      ("En las laderas de montes, taigas, desiertos, badlands y picos se abren bocas de mina que bajan a galerías con "
       "vías, cruces y salas. Las mayores tienen torre de extracción y un pozo con escalera. Ojo con las arañas del fondo.",

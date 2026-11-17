@@ -60,6 +60,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.comun.Perfil.registrar();
 		io.github.albertosa23.heraldia.mapas.MapasWeb.registrar();
 		io.github.albertosa23.heraldia.tesoro.Tesoro.registrar();
+		io.github.albertosa23.heraldia.chozas.Magos.registrar();
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::logRegisteredStructures);
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::publishGolemSettings);
 	}

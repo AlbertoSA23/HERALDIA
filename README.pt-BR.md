@@ -8,7 +8,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 
 - 🏘️ **Vilas cheias de vida.** 72 vilas desenhadas à mão: 36 estilos, um para cada tipo de bioma (uma vila castelhana nas planícies, palafitas no pântano, uma vila japonesa entre as cerejeiras...), cada um em tamanho padrão e grande, agrupados em 12 famílias. Praça com fonte e sino, igreja, mercado, taverna, ferraria, biblioteca, estalagem e vinte ou trinta casas. Cada estilo tem suas próprias trocas, o quadro de tarefas do meirinho paga por colheitas, lenha e por livrar os caminhos de monstros, e os cartógrafos vendem mapas do tesouro.
 - 🛤️ **Caminhos.** Trilhas com postes de luz e pontes de madeira ligam as vilas vizinhas. Perto de cada vila, uma placa diz o nome da próxima e quantos blocos faltam.
-- 🏕️ **Beira da estrada.** 8 tipos de estruturas médias entre as vilas: torres de vigia, estalagens de estrada, acampamentos de bandidos, ermidas, moinhos, cabanas de pescador, postos de caçadores e oratórios em ruínas, cada um no estilo do seu bioma, com saque modesto e, às vezes, um pequeno desafio.
+- 🏕️ **Beira da estrada.** 9 tipos de estruturas médias entre as vilas: torres de vigia, estalagens de estrada, acampamentos de bandidos, ermidas, moinhos, cabanas de pescador, postos de caçadores, oratórios em ruínas e cabanas de mago, cada um no estilo do seu bioma, com saque modesto e, às vezes, um pequeno desafio.
 - 🏰 **19 estruturas únicas**, muito raras e cada uma em seu bioma: um castelo com fosso, uma catedral gótica, uma cidadela anã escavada na montanha, um galeão encalhado, uma mansão assombrada, um palácio oriental, uma torre de mago, uma mina perdida nas profundezas, um forte de piratas em sua própria ilha em mar aberto... Lá dentro: salas ocultas, enigmas de redstone, armadilhas e geradores de criaturas e, no fim, um **guardião com nome** protegendo a câmara do tesouro.
 - ⚔️ **Guardiões que lutam em fases.** Ao perder vida, eles se enfurecem e chamam reforços da própria estrutura, com barra de chefe enquanto durar o combate. Cada um solta seu próprio troféu.
 - ⛏️ **Minas.** Em encostas de verdade se abrem bocas de mina, acampamentos mineiros e complexos mineiros com torre de extração, em 3 tamanhos e no estilo de cada bioma, que descem a galerias com trilhos, cruzamentos e salas. As minas abandonadas do vanilla também ficam mais comuns.
@@ -21,7 +21,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - 📊 **O que o servidor já encontrou.** `/heraldia status` mostra quantas vilas, estruturas únicas, estruturas médias e minas os jogadores descobriram, os guardiões derrotados, o recorde da arena e as tarefas entregues.
 - 📋 **Tarefas das vilas.** Toque no atril do quadro na praça de uma vila (ou use `/heraldia quest` ali): aparecem no chat de 2 a 4 tarefas (trazer itens, derrotar um guardião, explorar, viajar a uma vila vizinha, a arena) que mudam a cada poucos dias. Pagam esmeraldas, experiência e reputação com essa vila: como conhecido, amigo e herói da vila, seus aldeões baixam os preços em 10, 20 e 30 %. Atacar seus aldeões ou golens a faz cair.
 - 🐪 **Caravanas.** De vez em quando, perto de você, um mercador de Heraldia com suas lhamas (e às vezes um guarda) percorre a estrada entre duas vilas vizinhas. Se bandidos o atacarem, defenda-o: ao chegar, ele paga esmeraldas e reputação com a vila de destino. Se o mercador morrer, a caravana se perde.
-- 🏆 **Progressos.** Uma aba Heraldia com 107 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, as estruturas médias, o quadro de tarefas, a arena e as caravanas.
+- 🏆 **Progressos.** Uma aba Heraldia com 109 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, as estruturas médias, o quadro de tarefas, a arena e as caravanas.
 - 🗿 **Troféus.** Cada um dos 20 guardiões solta seu troféu, um item com nome e história. Reúna todos para completar a Sala de troféus.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única mais próxima do seu tipo. Eles aparecem nos baús épicos das vilas e os cartógrafos os vendem.
 - 🧭 **Caça ao tesouro.** Às vezes um baú traz um fragmento de mapa do tesouro. Use-o e ele vira um mapa com uma marca: cada marca é uma estrutura real de Heraldia que esconde a próxima pista, e a última leva a um baú enterrado por Ysolda, com bom saque e uma lembrança.
@@ -63,6 +63,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `encargos.activado` | `true` | Tarefas do quadro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputação por vila e seus descontos. |
 | `caravanas.activado` | `true` | Caravanas pelas estradas (operadores: `/heraldia caravan`). |
+| `chozas_mago.prob_malvado` | 20 | Probabilidade (%) de o mago de uma cabana de mago ser um mago maligno disfarçado. |
 | `guia.entregar_al_entrar` | `true` | Dá o Guia do Arauto a cada jogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores quando há uma versão nova. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web, só as estruturas já descobertas. |
