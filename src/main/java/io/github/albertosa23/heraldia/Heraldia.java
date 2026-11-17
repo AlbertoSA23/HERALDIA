@@ -77,7 +77,7 @@ public final class Heraldia implements ModInitializer {
 		LOGGER.info("Heraldia: {} logros cargados", advancements);
 	}
 
-	/** Pasa a las funciones de gólems (marcador heraldia_cfg) la limpieza y los límites de la configuración (al arrancar y con /heraldia recargar). */
+	/** Pasa a las funciones de gólems (marcador heraldia_cfg) la limpieza y los límites de la configuración (al arrancar y con /heraldia reload). */
 	public static void publishGolemSettings(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		Scoreboard board = server.getScoreboard();

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Recarga en caliente de la configuración (/heraldia recargar y la pantalla del cliente), lógica pura: qué opciones se
+ * Recarga en caliente de la configuración (/heraldia reload y la pantalla del cliente), lógica pura: qué opciones se
  * pueden aplicar sin reiniciar y cómo se mezclan los valores leídos con los que están en uso.
  * <p>Las que afectan a la generación (rejillas, frecuencias, estilos, caminos, zonas de exclusión, colocación de la arena
  * en un mundo nuevo, el tablón de las aldeas nuevas...) se leen al arrancar y las consultan los hilos de generación: si

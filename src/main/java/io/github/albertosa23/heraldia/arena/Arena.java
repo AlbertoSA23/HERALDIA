@@ -253,7 +253,7 @@ public final class Arena {
 		}
 	}
 
-	/** La arena guardada en {@code o} pasa a estar en uso (al arrancar o al activarla con /heraldia recargar). */
+	/** La arena guardada en {@code o} pasa a estar en uso (al arrancar o al activarla con /heraldia reload). */
 	private static void cargar(ServerLevel ow, BlockPos o) {
 		nivel = ow;
 		zona = new Zona(o.getX(), o.getY(), o.getZ(), plano);
@@ -262,7 +262,7 @@ public final class Arena {
 	}
 
 	/**
-	 * /heraldia recargar: aplica las opciones arena.* en uso (incrementos, máximo de vivos, experiencia y arena.activado;
+	 * /heraldia reload: aplica las opciones arena.* en uso (incrementos, máximo de vivos, experiencia y arena.activado;
 	 * arena.generar_en_mundos_nuevos solo cuenta al arrancar). Con una partida en marcha no cambia nada (sus oleadas
 	 * siguen con lo que empezaron) y devuelve false: se aplica con otra recarga al acabar.
 	 */

@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
  * <ul>
  * <li>en cada {@code ENTITY_LOAD} (al colocarse la plantilla, al generarse el chunk y en cada carga) se ponen los del
  * nivel en uso, o se quitan en normal: así valen para los mobs ya generados y se recalculan si cambia la opción (la
- * configuración se lee al arrancar; /heraldia recargar los recalcula en los mobs ya cargados con {@link #aplicar}). Ponerlos
+ * configuración se lee al arrancar; /heraldia reload los recalcula en los mobs ya cargados con {@link #aplicar}). Ponerlos
  * dos veces no cambia nada ({@code addOrReplacePermanentModifier}).</li>
  * <li>con dificultad.escalar_por_jugadores, al recibir un golpe se cuenta a los jugadores a 32 bloques (no por tick).</li>
  * <li>con dificultad.escalar_botin, el botín de los cofres de Heraldia (tablas cofres/, unicas/, medianas/) sale con la
@@ -56,7 +56,7 @@ public final class DificultadMobs {
 
 	/**
 	 * Pone en el mob los modificadores de la configuración en uso (los recalcula si cambió): al cargarse y, tras
-	 * /heraldia recargar, en todos los ya cargados. True si es un mob de Heraldia al que se aplica la dificultad.
+	 * /heraldia reload, en todos los ya cargados. True si es un mob de Heraldia al que se aplica la dificultad.
 	 */
 	public static boolean aplicar(Entity entity) {
 		if (!(entity instanceof Mob mob) || !Dificultad.aplica(mob.entityTags(), mob instanceof Enemy)) {

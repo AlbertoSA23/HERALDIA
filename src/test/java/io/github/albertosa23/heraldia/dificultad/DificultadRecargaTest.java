@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * /heraldia recargar y la dificultad: tras recargar, {@link DificultadMobs#ajustar} (lo que se hace con cada mob de
+ * /heraldia reload y la dificultad: tras recargar, {@link DificultadMobs#ajustar} (lo que se hace con cada mob de
  * Heraldia cargado) deja los modificadores del nivel nuevo, sin acumular los del anterior, y en normal los quita.
  */
 class DificultadRecargaTest {

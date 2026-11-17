@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Configuración del servidor (config/heraldia.json). El esquema (opciones, valores por defecto, rangos y textos de ayuda)
  * lo genera tools/gen/opciones.py dentro del .jar. Se lee al arrancar y queda inmutable: la colocación de
- * estructuras la consultan varios hilos de generación a la vez. /heraldia recargar ({@link #recargar}) la sustituye por
+ * estructuras la consultan varios hilos de generación a la vez. /heraldia reload ({@link #recargar}) la sustituye por
  * otra con los valores nuevos de las opciones que no afectan a la generación.
  */
 public final class HeraldiaConfig {
@@ -70,7 +70,7 @@ public final class HeraldiaConfig {
 	}
 
 	/**
-	 * Recarga en caliente (/heraldia recargar): lee el fichero como al arrancar, sin reescribirlo, y pone en uso los
+	 * Recarga en caliente (/heraldia reload): lee el fichero como al arrancar, sin reescribirlo, y pone en uso los
 	 * valores nuevos de las opciones recargables ({@link Recarga#recargable}); las que afectan a la generación conservan
 	 * el valor en uso hasta el siguiente arranque y salen en {@link Recarga.Resultado#pendientes()}. La configuración en
 	 * uso se sustituye entera (es inmutable), así que los hilos de generación nunca ven una a medias.

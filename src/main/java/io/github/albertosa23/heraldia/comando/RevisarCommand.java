@@ -70,11 +70,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /heraldia revisar (operador, nivel 2): ruta guiada para validar en una tarde todo el contenido visual ({@link Revision}).
+ * /heraldia review (operador, nivel 2): ruta guiada para validar en una tarde todo el contenido visual ({@link Revision}).
  * En cada parada: búsqueda fuera del hilo del servidor (la rejilla de cada tipo, como /heraldia info cerca: sin cargar
  * ni generar nada), teletransporte seguro ({@link Seguro}), un título, la lista de qué mirar y botones para marcarla.
  * <p>Busca desde el punto de aparición del mundo. Prefiere una estructura ya generada (aunque esté más lejos) a una
- * prevista; ir a una prevista genera terreno nuevo, así que antes se avisa y hace falta pulsar «Ir y generar». El
+ * prevista; ir a una prevista genera terreno nuevo, así que antes se avisa y hace falta pulsar «Ir y generar» (goto &lt;id&gt; generate). El
  * progreso de cada jugador se guarda en heraldia_revision.json y el resumen en heraldia_revision.md (carpeta del mundo),
  * escritos fuera del hilo del servidor.
  */
@@ -108,31 +108,31 @@ public final class RevisarCommand {
 	}
 
 	static LiteralArgumentBuilder<CommandSourceStack> nodo() {
-		return Commands.literal("revisar")
+		return Commands.literal("review")
 				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 				.executes(ctx -> ir(ctx, null, false))
-				.then(Commands.literal("siguiente").executes(ctx -> mover(ctx, +1)))
-				.then(Commands.literal("anterior").executes(ctx -> mover(ctx, -1)))
-				.then(Commands.literal("saltar").executes(ctx -> saltar(ctx, ""))
-						.then(Commands.argument("nota", StringArgumentType.greedyString())
-								.executes(ctx -> saltar(ctx, StringArgumentType.getString(ctx, "nota")))))
-				.then(Commands.literal("ir")
+				.then(Commands.literal("next").executes(ctx -> mover(ctx, +1)))
+				.then(Commands.literal("previous").executes(ctx -> mover(ctx, -1)))
+				.then(Commands.literal("skip").executes(ctx -> saltar(ctx, ""))
+						.then(Commands.argument("note", StringArgumentType.greedyString())
+								.executes(ctx -> saltar(ctx, StringArgumentType.getString(ctx, "note")))))
+				.then(Commands.literal("goto")
 						.then(Commands.argument("id", IdentifierArgument.id())
 								.suggests((ctx, b) -> SharedSuggestionProvider.suggest(
 										ruta(ctx.getSource().getServer()).stream().map(Parada::id), b))
 								.executes(ctx -> ir(ctx, IdentifierArgument.getId(ctx, "id").getPath(), false))
-								.then(Commands.literal("generar")
+								.then(Commands.literal("generate")
 										.executes(ctx -> ir(ctx, IdentifierArgument.getId(ctx, "id").getPath(), true)))))
-				.then(Commands.literal("marcar")
-						.then(Commands.literal("revisada").executes(ctx -> marcar(ctx, Marca.REVISADA, ""))
-								.then(Commands.argument("nota", StringArgumentType.greedyString())
-										.executes(ctx -> marcar(ctx, Marca.REVISADA, StringArgumentType.getString(ctx, "nota")))))
-						.then(Commands.literal("problema").executes(ctx -> marcar(ctx, Marca.PROBLEMA, ""))
-								.then(Commands.argument("nota", StringArgumentType.greedyString())
-										.executes(ctx -> marcar(ctx, Marca.PROBLEMA, StringArgumentType.getString(ctx, "nota"))))))
-				.then(Commands.literal("lista").executes(RevisarCommand::lista))
-				.then(Commands.literal("estado").executes(RevisarCommand::estado))
-				.then(Commands.literal("reiniciar").executes(RevisarCommand::reiniciar));
+				.then(Commands.literal("mark")
+						.then(Commands.literal("checked").executes(ctx -> marcar(ctx, Marca.REVISADA, ""))
+								.then(Commands.argument("note", StringArgumentType.greedyString())
+										.executes(ctx -> marcar(ctx, Marca.REVISADA, StringArgumentType.getString(ctx, "note")))))
+						.then(Commands.literal("problem").executes(ctx -> marcar(ctx, Marca.PROBLEMA, ""))
+								.then(Commands.argument("note", StringArgumentType.greedyString())
+										.executes(ctx -> marcar(ctx, Marca.PROBLEMA, StringArgumentType.getString(ctx, "note"))))))
+				.then(Commands.literal("list").executes(RevisarCommand::lista))
+				.then(Commands.literal("status").executes(RevisarCommand::estado))
+				.then(Commands.literal("reset").executes(RevisarCommand::reiniciar));
 	}
 
 	// --- la ruta ---
@@ -302,7 +302,7 @@ public final class RevisarCommand {
 					n == null ? Textos.t("heraldia.revisar.estado.pendiente") : estado(n.marca()));
 			l.withStyle(s -> s.withColor(aqui ? ChatFormatting.AQUA : n == null ? ChatFormatting.WHITE
 							: n.marca() == Marca.PROBLEMA ? ChatFormatting.RED : ChatFormatting.GRAY)
-					.withClickEvent(new ClickEvent.RunCommand("/heraldia revisar ir " + x.id()))
+					.withClickEvent(new ClickEvent.RunCommand("/heraldia review goto " + x.id()))
 					.withHoverEvent(new HoverEvent.ShowText(Textos.t("heraldia.revisar.boton.ir.ayuda"))));
 			src.sendSuccess(() -> l, false);
 		}
@@ -381,7 +381,7 @@ public final class RevisarCommand {
 		}
 		busqueda.thenAcceptAsync(d -> {
 			long ms = (System.nanoTime() - t0) / 1_000_000;
-			LOGGER.info("Heraldia: /heraldia revisar {}: {} en {} ms", parada.id(), d == null ? "nada" : d, ms);
+			LOGGER.info("Heraldia: /heraldia review {}: {} en {} ms", parada.id(), d == null ? "nada" : d, ms);
 			Destino dest = d == null ? null : confirmar(level, parada, d, estiloFamilia(HeraldiaConfig.get()));
 			if (dest == null) {
 				BUSCANDO.remove(p.getUUID());
@@ -395,7 +395,7 @@ public final class RevisarCommand {
 				int dist = (int) Math.sqrt(dest.pos().distSqr(new BlockPos(origen.getX(), dest.pos().getY(), origen.getZ())));
 				src.sendSuccess(() -> Textos.t("heraldia.revisar.prevista", InfoCommand.coordinates(dest.pos()), dist)
 						.withStyle(ChatFormatting.YELLOW), false);
-				src.sendSuccess(() -> boton("heraldia.revisar.boton.generar", "/heraldia revisar ir " + parada.id() + " generar",
+				src.sendSuccess(() -> boton("heraldia.revisar.boton.generar", "/heraldia review goto " + parada.id() + " generate",
 						true, ChatFormatting.GOLD), false);
 				src.sendSuccess(() -> botones(true), false);
 			} else {
@@ -407,7 +407,7 @@ public final class RevisarCommand {
 			}
 		}, server).exceptionally(e -> {
 			BUSCANDO.remove(p.getUUID());
-			LOGGER.error("Heraldia: /heraldia revisar falló", e);
+			LOGGER.error("Heraldia: /heraldia review falló", e);
 			src.sendFailure(Component.literal(String.valueOf(e.getMessage())));
 			return null;
 		});
@@ -541,13 +541,13 @@ public final class RevisarCommand {
 				Seguro.Sitio s = sitio.get();
 				p.teleportTo(level, s.x() + 0.5, s.y(), s.z() + 0.5, Set.of(), p.getYRot(), p.getXRot(), true);
 				p.resetFallDistance();
-				LOGGER.info("Heraldia: /heraldia revisar: {} a {} {} {}", p.getGameProfile().name(), s.x(), s.y(), s.z());
+				LOGGER.info("Heraldia: /heraldia review: {} a {} {} {}", p.getGameProfile().name(), s.x(), s.y(), s.z());
 				src.sendSuccess(() -> Textos.t("heraldia.revisar.teletransportado", s.x(), s.y(), s.z()).withStyle(ChatFormatting.GRAY), false);
 			}
 			despues.run();
 		}, level.getServer()).exceptionally(e -> {
 			BUSCANDO.remove(p.getUUID());
-			LOGGER.error("Heraldia: /heraldia revisar: no se pudo cargar el destino", e);
+			LOGGER.error("Heraldia: /heraldia review: no se pudo cargar el destino", e);
 			src.sendFailure(Component.literal(String.valueOf(e.getMessage())));
 			return null;
 		});
@@ -629,14 +629,14 @@ public final class RevisarCommand {
 	private static Component botones(boolean sinDestino) {
 		MutableComponent out = Component.empty();
 		if (!sinDestino) {
-			out.append(boton("heraldia.revisar.boton.revisada", "/heraldia revisar marcar revisada", true, ChatFormatting.GREEN)).append(" ");
-			out.append(boton("heraldia.revisar.boton.nota", "/heraldia revisar marcar revisada ", false, ChatFormatting.DARK_GREEN)).append(" ");
-			out.append(boton("heraldia.revisar.boton.problema", "/heraldia revisar marcar problema ", false, ChatFormatting.RED)).append(" ");
+			out.append(boton("heraldia.revisar.boton.revisada", "/heraldia review mark checked", true, ChatFormatting.GREEN)).append(" ");
+			out.append(boton("heraldia.revisar.boton.nota", "/heraldia review mark checked ", false, ChatFormatting.DARK_GREEN)).append(" ");
+			out.append(boton("heraldia.revisar.boton.problema", "/heraldia review mark problem ", false, ChatFormatting.RED)).append(" ");
 		}
-		out.append(boton("heraldia.revisar.boton.saltar", "/heraldia revisar saltar", true, ChatFormatting.GRAY)).append(" ");
-		out.append(boton("heraldia.revisar.boton.anterior", "/heraldia revisar anterior", true, ChatFormatting.AQUA)).append(" ");
-		out.append(boton("heraldia.revisar.boton.siguiente", "/heraldia revisar siguiente", true, ChatFormatting.AQUA)).append(" ");
-		out.append(boton("heraldia.revisar.boton.lista", "/heraldia revisar lista", true, ChatFormatting.GRAY));
+		out.append(boton("heraldia.revisar.boton.saltar", "/heraldia review skip", true, ChatFormatting.GRAY)).append(" ");
+		out.append(boton("heraldia.revisar.boton.anterior", "/heraldia review previous", true, ChatFormatting.AQUA)).append(" ");
+		out.append(boton("heraldia.revisar.boton.siguiente", "/heraldia review next", true, ChatFormatting.AQUA)).append(" ");
+		out.append(boton("heraldia.revisar.boton.lista", "/heraldia review list", true, ChatFormatting.GRAY));
 		return out;
 	}
 

@@ -78,9 +78,9 @@ PAGINAS = [
       "and every fifth, a champion. If you fall in the ring, you keep your inventory. Where it is: /heraldia arena.")),
     ("logros", ("Logros", "Advancements"),
      ("La pestaña Heraldia de los logros recoge tus viajes: una aldea de cada familia, cada estructura única, su "
-      "guardián y su tesoro. Una estructura cuenta al entrar en ella. Lo que ha hallado todo el servidor: /heraldia estado.",
+      "guardián y su tesoro. Una estructura cuenta al entrar en ella. Lo que ha hallado todo el servidor: /heraldia status.",
       "The Heraldia advancement tab records your travels: a village of each family, every unique structure, its "
-      "guardian and its treasure. A structure counts once you step inside. What the whole server has found: /heraldia estado.")),
+      "guardian and its treasure. A structure counts once you step inside. What the whole server has found: /heraldia status.")),
     ("trofeos", ("Trofeos", "Trophies"),
      ("Cada guardián con nombre suelta su trofeo, un objeto con nombre e historia, si lo derrota un jugador. Reúnelos "
       "todos para completar la Sala de trofeos.",

@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** /heraldia estado (lógica pura): logros de los ficheros de los jugadores, recuento por tipo y paginación. */
+/** /heraldia status (lógica pura): logros de los ficheros de los jugadores, recuento por tipo y paginación. */
 class EstadoTest {
 	@TempDir
 	Path dir;

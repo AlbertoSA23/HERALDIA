@@ -33,22 +33,22 @@ Usa el muestrario solo en un mundo de prueba: lo colocado se queda.
 
 ## Herramientas de administración
 
-### Ruta de revisión: `/heraldia revisar`
+### Ruta de revisión: `/heraldia review`
 
 Para operadores (nivel 2). Una ruta guiada para validar en una tarde todo el contenido visual del mod, parada a parada: una aldea de cada familia, cada estructura única (con la Atlántida y la Isla del corsario), cada tipo de estructura mediana, una entrada a mina de cada tamaño, la arena (si está activada) y un tramo de camino (si hay caminos). Lo desactivado en la configuración no sale.
 
-- `/heraldia revisar`: va a la parada en la que estás (la primera, la primera vez). En cada parada sale un título en pantalla, la lista de qué mirar en el chat (traducida, como todo) y botones para marcarla: **Revisada**, **+ Nota** (revisada con una nota) y **Problema** (escribe qué falla detrás de la orden), además de **Saltar**, **Anterior**, **Siguiente** y **Lista**.
-- `/heraldia revisar siguiente`, `anterior`, `saltar [nota]` (la deja como saltada y pasa a la siguiente), `ir <id>` (p. ej. `ir unica/castillo`; se autocompleta), `lista` (todas las paradas con su estado; al pulsar una vas a ella), `reiniciar` (borra tus marcas) y `estado` (el resumen: cuántas revisadas, con problema, saltadas y pendientes, y la lista de problemas).
-- `/heraldia revisar marcar revisada [nota]` y `/heraldia revisar marcar problema [nota]`: lo que hacen los botones.
-- La búsqueda va fuera del hilo del servidor, con las mismas reglas que `/heraldia info cerca` (desde el punto de aparición, hasta 10.000 bloques; la Atlántida, en todo el mundo), y nunca carga ni genera chunks: prefiere una estructura ya generada, aunque esté más lejos, a una prevista. Si la más cercana aún no se ha generado, te avisa de que ir allí genera terreno nuevo y espera a que pulses **Ir y generar** (`ir <id> generar`).
+- `/heraldia review`: va a la parada en la que estás (la primera, la primera vez). En cada parada sale un título en pantalla, la lista de qué mirar en el chat (traducida, como todo) y botones para marcarla: **Revisada**, **+ Nota** (revisada con una nota) y **Problema** (escribe qué falla detrás de la orden), además de **Saltar**, **Anterior**, **Siguiente** y **Lista**.
+- `/heraldia review next`, `previous`, `skip [note]` (la deja como saltada y pasa a la siguiente), `goto <id>` (p. ej. `goto unica/castillo`; se autocompleta), `list` (todas las paradas con su estado; al pulsar una vas a ella), `reset` (borra tus marcas) y `status` (el resumen: cuántas revisadas, con problema, saltadas y pendientes, y la lista de problemas).
+- `/heraldia review mark checked [note]` y `/heraldia review mark problem [note]`: lo que hacen los botones.
+- La búsqueda va fuera del hilo del servidor, con las mismas reglas que `/heraldia info cerca` (desde el punto de aparición, hasta 10.000 bloques; la Atlántida, en todo el mundo), y nunca carga ni genera chunks: prefiere una estructura ya generada, aunque esté más lejos, a una prevista. Si la más cercana aún no se ha generado, te avisa de que ir allí genera terreno nuevo y espera a que pulses **Ir y generar** (`goto <id> generate`).
 - El teletransporte carga el destino sin bloquear el servidor y te deja encima del suelo, sin asfixia: pies y cabeza libres, suelo firme o agua debajo (flotando en el mar en la Atlántida o la isla), nunca en lava, fuego, magma, cactus ni nieve polvo, buscando en espiral hasta 8 bloques alrededor. Si no hay ningún sitio seguro, no te mueve.
 - El progreso es de cada jugador y se guarda en `heraldia_revision.json`, en la carpeta del mundo (sobrevive a los reinicios). Cada cambio escribe también `heraldia_revision.md` en la misma carpeta: por jugador, todas las paradas con su estado, su nota y la fecha, primero las que tienen un problema.
 
-### Estado del servidor: `/heraldia estado [página]`
+### Estado del servidor: `/heraldia status [page]`
 
 Para cualquier jugador, traducido y paginado (8 líneas por página, con botones para pasar de página): la versión de Heraldia, cuántas estructuras de cada clase ha descubierto algún jugador frente al total (aldeas, una de cada familia; únicas; medianas, por tipo; minas, por tamaño), los guardianes vencidos, el estado de la arena con el récord del servidor, si está activado el botín que se repone y si está Lootr. Los operadores ven además la dificultad, las opciones clave de la generación, de los jefes y de la Guía, qué falta por descubrir de cada clase y los otros mods cargados. Lo descubierto sale de los logros: los de los jugadores conectados, de memoria; los de los demás, de sus ficheros en la carpeta del mundo (leídos fuera del hilo del servidor).
 
-### Recarga en caliente: `/heraldia recargar`
+### Recarga en caliente: `/heraldia reload`
 
 Para operadores (nivel 2). Vuelve a leer `config/heraldia.json` sin reiniciar el servidor (sin reescribirlo) y aplica lo que no afecta a la generación:
 
@@ -64,7 +64,7 @@ Todo lo demás (rejillas y separaciones, aldeas, familias y estilos, el tablón,
 Fichero `config/heraldia.json` del servidor (en un mundo de un jugador, el de la carpeta del juego). Se crea al arrancar con todos los valores por defecto
 y se reescribe en cada arranque con los valores en uso y una ayuda (`_ayuda`) en español e inglés. Un valor que no sea válido (fuera de rango o de otro tipo)
 se avisa en el log y se sustituye por el de por defecto; una opción desconocida se avisa y se ignora. El campo `version` permite migrar el fichero
-cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks que se generen después (no a lo ya generado); lo que no afecta a la generación se puede aplicar sin reiniciar con [`/heraldia recargar`](#recarga-en-caliente-heraldia-recargar).
+cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks que se generen después (no a lo ya generado); lo que no afecta a la generación se puede aplicar sin reiniciar con [`/heraldia reload`](#recarga-en-caliente-heraldia-reload).
 
 | Opción | Por defecto | Rango | Qué hace |
 | --- | --- | --- | --- |
@@ -124,5 +124,5 @@ En el cliente el fichero también se puede editar desde una pantalla del juego. 
 - Secciones: Aldeas, Familias de aldeas, Estilos de aldea, Vida de las aldeas, Caminos entre aldeas, Gólems, Estructuras únicas, Distancia mínima entre únicas, Atlántida, Estructuras medianas, Compatibilidad con otros mods, Botín y Dificultad, con un buscador (por nombre, clave, ayuda o sección).
 - Cada opción muestra su valor (botón sí/no, casilla numérica o un botón que recorre los valores de una opción de lista como `dificultad.nivel`). Su tooltip da la clave, la ayuda (la misma de `_ayuda`) y el valor por defecto y el rango. Un número no válido se pone en rojo, el tooltip dice por qué y **Guardar** queda desactivado hasta corregirlo.
 - **Guardar** escribe `config/heraldia.json` con el mismo formato que al arrancar (con `version` y `_ayuda`); **Valores por defecto** devuelve todas las opciones a su valor por defecto (no se escribe nada hasta guardar); **Cancelar** descarta los cambios.
-- Los cambios se aplican al volver a abrir el mundo o reiniciar el servidor, y solo en los chunks que se generen después; la pantalla lo avisa. Sin ningún mundo abierto se usan desde el siguiente mundo que abras (sin reiniciar el juego). Con un mundo de un jugador abierto, al guardar se recarga en caliente lo que no afecta a la generación, por el mismo camino que [`/heraldia recargar`](#recarga-en-caliente-heraldia-recargar) (el informe sale en el chat); lo demás, al salir y volver a entrar.
+- Los cambios se aplican al volver a abrir el mundo o reiniciar el servidor, y solo en los chunks que se generen después; la pantalla lo avisa. Sin ningún mundo abierto se usan desde el siguiente mundo que abras (sin reiniciar el juego). Con un mundo de un jugador abierto, al guardar se recarga en caliente lo que no afecta a la generación, por el mismo camino que [`/heraldia reload`](#recarga-en-caliente-heraldia-reload) (el informe sale en el chat); lo demás, al salir y volver a entrar.
 - Conectado a un servidor, la pantalla edita **el fichero local del cliente** (tus mundos de un jugador), no el del servidor: la pantalla lo avisa. La configuración del servidor se sigue editando en su propio `config/heraldia.json`. No se envía nada por la red.

@@ -4,8 +4,8 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.Commands;
 
 /**
- * Herramientas de administración: /heraldia revisar (ruta guiada de revisión, operadores), /heraldia estado (resumen
- * del servidor, todos; los operadores ven más) y /heraldia recargar (recarga en caliente, operadores). Una línea en
+ * Herramientas de administración: /heraldia review (ruta guiada de revisión, operadores), /heraldia status (resumen
+ * del servidor, todos; los operadores ven más) y /heraldia reload (recarga en caliente, operadores). Una línea en
  * Heraldia.onInitialize.
  */
 public final class Admin {

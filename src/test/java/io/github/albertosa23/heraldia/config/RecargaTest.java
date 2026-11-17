@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Recarga en caliente (/heraldia recargar): qué opciones se aplican sin reiniciar, la mezcla con lo que está en uso y
+ * Recarga en caliente (/heraldia reload): qué opciones se aplican sin reiniciar, la mezcla con lo que está en uso y
  * {@link HeraldiaConfig#recargar} con un fichero real (sin reescribirlo).
  */
 class RecargaTest {

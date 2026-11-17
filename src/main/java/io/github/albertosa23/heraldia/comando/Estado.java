@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Lógica pura de /heraldia estado: qué logros de Heraldia tiene algún jugador (los conectados, de memoria; los demás,
+ * Lógica pura de /heraldia status: qué logros de Heraldia tiene algún jugador (los conectados, de memoria; los demás,
  * de sus ficheros de logros), cuántos tipos de cada clase se han descubierto y la paginación del informe.
  */
 public final class Estado {

@@ -208,7 +208,7 @@ public final class Trazado {
 
 	/**
 	 * Punto medio (el vértice central) de la ruta más cercana a (x, z) de las que salen de las aldeas de las casillas a
-	 * {@code casillas} o menos de la suya; {@link #NONE} si no hay ninguna. Para /heraldia revisar: solo calcula (las
+	 * {@code casillas} o menos de la suya; {@link #NONE} si no hay ninguna. Para /heraldia review: solo calcula (las
 	 * aldeas y las rutas, en memoria), sin tocar el mundo.
 	 */
 	public long tramoCercano(int x, int z, int casillas) {

@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
  * En un jugador la configuración se lee al arrancar el juego ({@code Heraldia.onInitialize}); para que lo guardado en la
  * pantalla se aplique al volver a abrir un mundo sin reiniciar el juego, se vuelve a leer al cerrar el servidor
  * integrado y, si no hay ninguno abierto, nada más guardar; con uno abierto, al guardar se recarga en caliente lo que no
- * afecta a la generación (como /heraldia recargar).
+ * afecta a la generación (como /heraldia reload).
  */
 @Environment(EnvType.CLIENT)
 public final class HeraldiaClient implements ClientModInitializer {
@@ -33,7 +33,7 @@ public final class HeraldiaClient implements ClientModInitializer {
 
 	/**
 	 * Tras guardar: si no hay un mundo de un jugador abierto, la configuración nueva pasa a estar en uso ya. Si lo hay, el
-	 * mismo camino que /heraldia recargar (en el hilo de su servidor): se aplican ya las opciones que no afectan a la
+	 * mismo camino que /heraldia reload (en el hilo de su servidor): se aplican ya las opciones que no afectan a la
 	 * generación y el informe sale en el chat; las demás esperan a volver a abrir el mundo.
 	 */
 	static void applyIfIdle(Minecraft minecraft) {

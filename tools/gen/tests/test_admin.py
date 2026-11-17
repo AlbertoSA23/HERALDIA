@@ -121,8 +121,8 @@ def test_opciones_recargables_existen_y_las_de_generacion_no_lo_son():
 def test_el_aviso_de_la_pantalla_menciona_la_recarga_en_todos_los_idiomas():
     es = opciones.PANTALLA_ES["heraldia.config.pantalla.aviso_mundo"]
     en = opciones.PANTALLA_EN["heraldia.config.pantalla.aviso_mundo"]
-    assert "/heraldia recargar" in es and "/heraldia recargar" in en
+    assert "/heraldia reload" in es and "/heraldia reload" in en
     for codigo in idiomas.TRADUCCIONES:
-        assert "/heraldia recargar" in idiomas.cargar(codigo)["heraldia.config.pantalla.aviso_mundo"], codigo
+        assert "/heraldia reload" in idiomas.cargar(codigo)["heraldia.config.pantalla.aviso_mundo"], codigo
     with open(os.path.join(CLIENTE, "HeraldiaClient.java"), encoding="utf-8") as f:
         assert "RecargarCommand.aplicar" in f.read()

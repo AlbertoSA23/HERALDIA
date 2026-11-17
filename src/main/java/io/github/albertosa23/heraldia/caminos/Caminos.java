@@ -80,7 +80,7 @@ public final class Caminos {
 	}
 
 	/**
-	 * Para /heraldia revisar: el centro del tramo de camino más cercano a (x, z) (punto medio de una ruta entre dos
+	 * Para /heraldia review: el centro del tramo de camino más cercano a (x, z) (punto medio de una ruta entre dos
 	 * aldeas vecinas), o null si los caminos están desactivados o no hay ninguna ruta cerca. Seguro fuera del hilo del
 	 * servidor (el contexto es el de la generación); no carga ni genera chunks.
 	 */

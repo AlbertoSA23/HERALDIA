@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /heraldia recargar (operador, nivel 2): vuelve a leer config/heraldia.json y aplica en caliente lo que no afecta a la
+ * /heraldia reload (operador, nivel 2): vuelve a leer config/heraldia.json y aplica en caliente lo que no afecta a la
  * generación ({@link Recarga}); lo que sí la afecta se lista y no se aplica. Después de cambiar la configuración:
  * <ul>
  * <li>dificultad: se recalculan los modificadores de los mobs de Heraldia ya cargados (los demás, al cargarse);</li>
@@ -38,7 +38,7 @@ public final class RecargarCommand {
 	}
 
 	static LiteralArgumentBuilder<CommandSourceStack> nodo() {
-		return Commands.literal("recargar")
+		return Commands.literal("reload")
 				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 				.executes(ctx -> {
 					List<Component> lines = aplicar(ctx.getSource().getServer());
@@ -84,7 +84,7 @@ public final class RecargarCommand {
 		if (!Arena.recargar(server)) {
 			out.add(Textos.t("heraldia.recargar.arena_partida").withStyle(ChatFormatting.YELLOW));
 		}
-		LOGGER.info("Heraldia: /heraldia recargar: {} aplicadas, {} pendientes de reinicio, {} mobs recalculados",
+		LOGGER.info("Heraldia: /heraldia reload: {} aplicadas, {} pendientes de reinicio, {} mobs recalculados",
 				r.aplicadas().size(), r.pendientes().size(), mobs);
 		return out;
 	}

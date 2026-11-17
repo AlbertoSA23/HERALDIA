@@ -18,7 +18,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 ## So spielst du
 
 - 📖 **Der Leitfaden des Herolds.** Jeder Spieler erhält ihn beim Betreten: ein Buch, das erklärt, wonach du suchen kannst, und dein Tagebuch führt – mit den einzigartigen Bauwerken, die du entdeckt hast, und Hinweisen auf die fehlenden. Ein aktuelles Exemplar bekommst du jederzeit mit `/heraldia guia`.
-- 📊 **Was der Server gefunden hat.** `/heraldia estado` zeigt, wie viele Dörfer, einzigartige und mittelgroße Bauwerke und Minen die Spieler entdeckt haben, die besiegten Wächter und den Arenarekord.
+- 📊 **Was der Server gefunden hat.** `/heraldia status` zeigt, wie viele Dörfer, einzigartige und mittelgroße Bauwerke und Minen die Spieler entdeckt haben, die besiegten Wächter und den Arenarekord.
 - 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 94 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die mittelgroßen Bauwerke, das Auftragsbrett und die Arena.
 - 🗿 **Trophäen.** Jeder der 20 Hüter lässt seine Trophäe fallen, einen Gegenstand mit Namen und Geschichte. Sammle sie alle, um den Trophäensaal zu vervollständigen.
 - 🗺️ **Schatzkarten.** Jede Karte zeigt das nächstgelegene einzigartige Bauwerk ihrer Art. Du findest sie in den epischen Truhen der Dörfer, und die Kartografen verkaufen sie.
@@ -36,7 +36,7 @@ Die Texte des Mods gibt es in 8 Sprachen: Englisch, Spanisch, Französisch, Deut
 
 ## Die nützlichsten Optionen
 
-Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit einem Hilfetext zu jeder Option. Änderungen gelten nach einem Neustart des Servers, in neu generierten Chunks. Optionen, die die Generierung nicht betreffen (Schwierigkeit, Bosse, Beute, Arena, Leitfaden ...), lassen sich ohne Neustart mit `/heraldia recargar` anwenden.
+Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit einem Hilfetext zu jeder Option. Änderungen gelten nach einem Neustart des Servers, in neu generierten Chunks. Optionen, die die Generierung nicht betreffen (Schwierigkeit, Bosse, Beute, Arena, Leitfaden ...), lassen sich ohne Neustart mit `/heraldia reload` anwenden.
 
 | Option | Standard | Wirkung |
 | --- | --- | --- |
@@ -54,7 +54,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 ## Mehr erfahren
 
 - [Vollständige Übersicht der Inhalte](docs/CONTENT.md) (auf Englisch): alle Dorfstile, einzigartigen Bauwerke, mittelgroßen Bauwerke und Minen, die Hüterkämpfe, Fortschritte, die Arena und mehr.
-- [Installation, Befehle und Konfiguration](docs/CONFIGURATION.md) (auf Englisch): Test- und Adminbefehle (`/heraldia info`, `/heraldia revisar`, `/heraldia estado`, `/heraldia recargar`, `/heraldia llave` ...), alle Optionen und der Konfigurationsbildschirm im Spiel.
+- [Installation, Befehle und Konfiguration](docs/CONFIGURATION.md) (auf Englisch): Test- und Adminbefehle (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave` ...), alle Optionen und der Konfigurationsbildschirm im Spiel.
 - [Kompatibilität mit anderen Mods](docs/COMPATIBILITY.md) (auf Englisch): Biom-Mods, Bauwerk-Mods, Lootr und der Rest.
 - [Bauen und Testen](docs/BUILDING.md) (auf Englisch), [Entwicklerhandbuch](docs/DESARROLLO.md) (auf Spanisch) und [Änderungsprotokoll](CHANGELOG.md) (auf Englisch).
 

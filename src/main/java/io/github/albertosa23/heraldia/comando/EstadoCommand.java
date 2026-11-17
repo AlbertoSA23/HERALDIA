@@ -47,7 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /heraldia estado [página] (cualquier jugador; los operadores ven más): versión, estructuras de Heraldia descubiertas
+ * /heraldia status [page] (cualquier jugador; los operadores ven más): versión, estructuras de Heraldia descubiertas
  * por algún jugador frente al total por tipo, guardianes vencidos, récord de la arena, reposición del botín, Lootr y,
  * para los operadores, las opciones clave, lo que falta por descubrir y los otros mods cargados.
  * <p>Los logros de los jugadores conectados se leen de memoria (en el hilo del servidor); los de los demás, de sus
@@ -60,10 +60,10 @@ public final class EstadoCommand {
 	}
 
 	static LiteralArgumentBuilder<CommandSourceStack> nodo() {
-		return Commands.literal("estado")
+		return Commands.literal("status")
 				.executes(ctx -> mostrar(ctx.getSource(), 1))
-				.then(Commands.argument("pagina", IntegerArgumentType.integer(1, 99))
-						.executes(ctx -> mostrar(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "pagina"))));
+				.then(Commands.argument("page", IntegerArgumentType.integer(1, 99))
+						.executes(ctx -> mostrar(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "page"))));
 	}
 
 	/** Lo que se cuenta, por clase de estructura: ids en orden y el logro (o criterio) que dice si alguien la descubrió. */
@@ -93,7 +93,7 @@ public final class EstadoCommand {
 		CompletableFuture.runAsync(() -> leerFicheros(dir, conectados, logros), Util.ioPool())
 				.thenRunAsync(() -> enviar(src, server, op, tipos, logros, pagina), server)
 				.exceptionally(e -> {
-					LOGGER.error("Heraldia: /heraldia estado falló", e);
+					LOGGER.error("Heraldia: /heraldia status falló", e);
 					src.sendFailure(Component.literal(String.valueOf(e.getMessage())));
 					return null;
 				});
@@ -121,7 +121,7 @@ public final class EstadoCommand {
 				}
 			}
 		} catch (IOException e) {
-			LOGGER.warn("Heraldia: /heraldia estado: no se pudo leer {} ({})", dir, e.getMessage());
+			LOGGER.warn("Heraldia: /heraldia status: no se pudo leer {} ({})", dir, e.getMessage());
 		}
 	}
 
@@ -201,10 +201,10 @@ public final class EstadoCommand {
 		if (paginas > 1) {
 			MutableComponent nav = Component.empty();
 			if (p > 1) {
-				nav.append(boton("heraldia.estado.anterior", "/heraldia estado " + (p - 1))).append(" ");
+				nav.append(boton("heraldia.estado.anterior", "/heraldia status " + (p - 1))).append(" ");
 			}
 			if (p < paginas) {
-				nav.append(boton("heraldia.estado.siguiente", "/heraldia estado " + (p + 1)));
+				nav.append(boton("heraldia.estado.siguiente", "/heraldia status " + (p + 1)));
 			}
 			src.sendSuccess(() -> nav, false);
 		}

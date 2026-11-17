@@ -1,5 +1,5 @@
-"""Textos de las herramientas de administración (Java, comando/): /heraldia revisar (ruta guiada de revisión),
-/heraldia estado (resumen del servidor) y /heraldia recargar (recarga en caliente de la configuración).
+"""Textos de las herramientas de administración (Java, comando/): /heraldia review (ruta guiada de revisión),
+/heraldia status (resumen del servidor) y /heraldia reload (recarga en caliente de la configuración).
 
 El Java toma el texto de respaldo de es_es (comando/Textos); las traducciones van en idiomas/<código>.json. Los puntos
 de la lista de cada tipo de parada son heraldia.revisar.mirar.<tipo>.<n> (cuántos: PUNTOS, el mismo número que
@@ -15,7 +15,7 @@ CON_PUNTO_PROPIO = ("atlantida", "isla_corsario")
 BOTONES = ("revisada", "nota", "problema", "saltar", "anterior", "siguiente", "lista", "generar", "ir")
 
 _TEXTOS = {
-    # --- /heraldia revisar ---
+    # --- /heraldia review ---
     "revisar.parada.arena": ("La arena de oleadas", "The wave arena"),
     "revisar.parada.camino": ("Un tramo de camino", "A stretch of road"),
     "revisar.buscando": ("Buscando %s fuera del hilo del servidor (sin generar nada)...",
@@ -40,10 +40,10 @@ _TEXTOS = {
     "revisar.marcada": ("%s (%s): %s%s", "%s (%s): %s%s"),
     "revisar.sin_parada": ("No estás en ninguna parada: has llegado al final de la ruta.",
                            "You are not at any stop: you have reached the end of the route."),
-    "revisar.fin": ("Has llegado al final de la ruta. El resumen: /heraldia revisar estado.",
-                    "You have reached the end of the route. Summary: /heraldia revisar estado."),
+    "revisar.fin": ("Has llegado al final de la ruta. El resumen: /heraldia review status.",
+                    "You have reached the end of the route. Summary: /heraldia review status."),
     "revisar.ocupado": ("Ya hay una búsqueda en marcha: espera a que termine.", "A search is already running: wait for it to finish."),
-    "revisar.desconocida": ("No hay ninguna parada «%s». Mira /heraldia revisar lista.", "There is no stop “%s”. See /heraldia revisar lista."),
+    "revisar.desconocida": ("No hay ninguna parada «%s». Mira /heraldia review list.", "There is no stop “%s”. See /heraldia review list."),
     "revisar.lista.titulo": ("Ruta de revisión (%s paradas; pulsa una para ir):", "Review route (%s stops; click one to go there):"),
     "revisar.lista.linea": ("%s. %s (%s): %s", "%s. %s (%s): %s"),
     "revisar.resumen": ("Revisión de %s: %s de %s revisadas, %s con problema, %s saltadas, %s pendientes",
@@ -118,7 +118,7 @@ _TEXTOS = {
                                "Lamp posts, bridges and walkways with no floating blocks"),
     "revisar.mirar.camino.3": ("Carteles con el nombre de la aldea de destino y su distancia",
                                "Signs with the destination village's name and its distance"),
-    # --- /heraldia estado ---
+    # --- /heraldia status ---
     "estado.titulo": ("Heraldia %s: estado del servidor (página %s de %s)", "Heraldia %s: server status (page %s of %s)"),
     "estado.dificultad": ("Dificultad: %s; más vida por jugador: %s; botín escalado: %s",
                           "Difficulty: %s; more health per player: %s; scaled loot: %s"),
@@ -145,7 +145,7 @@ _TEXTOS = {
     "estado.mods": ("Otros mods (%s): %s", "Other mods (%s): %s"),
     "estado.anterior": ("[« Página anterior]", "[« Previous page]"),
     "estado.siguiente": ("[Página siguiente »]", "[Next page »]"),
-    # --- /heraldia recargar ---
+    # --- /heraldia reload ---
     "recargar.titulo": ("Configuración recargada de %s", "Configuration reloaded from %s"),
     "recargar.nada": ("No ha cambiado ninguna opción que se pueda aplicar en caliente.",
                       "No option that can be applied live has changed."),

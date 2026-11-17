@@ -1,18 +1,18 @@
 """Herramientas de administración en un servidor dedicado 26.3 real con un jugador simulado (Carpet):
-/heraldia revisar, /heraldia estado y /heraldia recargar.
+/heraldia review, /heraldia status y /heraldia reload.
 
 Uso: python3 tools/smoke/admin.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-  - revisar lista: todas las paradas, en orden (aldeas por familia sin la desactivada, únicas con la Atlántida,
+  - review list: todas las paradas, en orden (aldeas por familia sin la desactivada, únicas con la Atlántida,
     medianas, minas pequeña-mediana-grande, la arena y el camino);
-  - revisar ir arena: sin arena colocada lo dice y no mueve al jugador;
-  - revisar ir unica/atlantida: prevista (sin generar), avisa de que ir genera terreno y no mueve al jugador; la
+  - review goto arena: sin arena colocada lo dice y no mueve al jugador;
+  - review goto unica/atlantida: prevista (sin generar), avisa de que ir genera terreno y no mueve al jugador; la
     búsqueda va fuera del hilo del servidor (se mide);
-  - revisar ir <mediana> (y «generar» si está prevista): teletransporte a un sitio seguro (pies y cabeza libres, suelo
+  - review goto <mediana> (y «generate» si está prevista): teletransporte a un sitio seguro (pies y cabeza libres, suelo
     debajo) que coincide con lo que dice el log;
-  - revisar marcar problema <nota>, siguiente, saltar: el progreso se guarda (heraldia_revision.json y .md en la
+  - review mark problem <nota>, next, skip: el progreso se guarda (heraldia_revision.json y .md en la
     carpeta del mundo) y sobrevive a un reinicio;
-  - estado (y su página 2): versión, descubiertas por tipo, reposición del botín, Lootr y, como operador, los mods;
-  - recargar: cambiando dificultad.nivel de heroica a fácil, el zombi anclado ya cargado pasa de 40 a 15 de vida
+  - status (y sus otras páginas): versión, descubiertas por tipo, reposición del botín, Lootr y, como operador, los mods;
+  - reload: cambiando dificultad.nivel de heroica a fácil, el zombi anclado ya cargado pasa de 40 a 15 de vida
     máxima sin reiniciar; aldeas.separacion_bloques se lista como pendiente y /heraldia info sigue con el valor en uso.
 """
 import argparse, copy, json, os, re, shutil, sys, time
@@ -26,8 +26,8 @@ JUGADOR = "Revisor"
 X, Y, Z = 0, 120, 0                       # el zombi de la prueba de la recarga (NoAI: no cae)
 NUM = r"(-?\d+(?:\.\d+)?)"
 TITULO = r"(?:Review|Revisión) (\d+)/(\d+): "
-LOG_BUSQUEDA = r"Heraldia: /heraldia revisar ([a-z_/]+): (.+) en (\d+) ms"
-LOG_TP = rf"Heraldia: /heraldia revisar: {JUGADOR} a (-?\d+) (-?\d+) (-?\d+)"
+LOG_BUSQUEDA = r"Heraldia: /heraldia review ([a-z_/]+): (.+) en (\d+) ms"
+LOG_TP = rf"Heraldia: /heraldia review: {JUGADOR} a (-?\d+) (-?\d+) (-?\d+)"
 NOTA = "la puerta del patio no abre"
 
 
@@ -64,7 +64,7 @@ def main():
             print("FALLA:", msg)
 
     def como(cmd):
-        return f"execute as {JUGADOR} run heraldia revisar {cmd}"
+        return f"execute as {JUGADOR} run heraldia review {cmd}"
 
     def busqueda(ctx, parada):
         """Espera a que termine la búsqueda (fuera del hilo del servidor) de una parada: (resultado, ms)."""
@@ -111,11 +111,11 @@ def main():
         jugador(ctx)
 
         # --- lista: paradas en orden ---
-        m = ctx.run(como("lista"), r"(?:Review route|Ruta de revisión) \((\d+)")
+        m = ctx.run(como("list"), r"(?:Review route|Ruta de revisión) \((\d+)")
         total = int(m.group(1)) if m.lastindex else 0
         lineas = "".join(s.drain(ctx))
         ids = re.findall(r"\d+\. .+? \(([a-z_]+(?:/[a-z_]+)?)\): ", lineas)
-        print(f"revisar lista: {total} paradas: {ids}")
+        print(f"review list: {total} paradas: {ids}")
         check(total > 20 and len(ids) == total, f"lista: {total} paradas, {len(ids)} leídas")
         tipos = [i.split("/")[0] for i in ids]
         orden = ["aldea", "unica", "mediana", "mina", "arena", "camino"]
@@ -127,13 +127,13 @@ def main():
 
         # --- la arena, sin colocar ---
         antes = pos(ctx)
-        m = ctx.run(como("ir arena"), r"has not been placed|no está colocada")
+        m = ctx.run(como("goto arena"), r"has not been placed|no está colocada")
         check(m.lastindex is None and m.group(0) in ("has not been placed", "no está colocada"), f"ir arena: {m.string.strip()}")
 
         # --- la Atlántida: prevista, se avisa y no se mueve ---
-        ctx.run(como("ir unica/atlantida"), r"(?:Looking for|Buscando) ")
+        ctx.run(como("goto unica/atlantida"), r"(?:Looking for|Buscando) ")
         res, ms = busqueda(ctx, "unica/atlantida")
-        print(f"revisar ir unica/atlantida: {res} en {ms} ms (fuera del hilo del servidor)")
+        print(f"review goto unica/atlantida: {res} en {ms} ms (fuera del hilo del servidor)")
         texto = "".join(s.drain(ctx))
         check("generada=false" in res, f"atlántida: debería estar prevista: {res}")
         check(re.search(r"has not been generated yet|aún no se ha generado", texto), "atlántida: no avisa de que se generaría terreno")
@@ -147,20 +147,20 @@ def main():
         # --- una mediana: teletransporte seguro ---
         mediana = next(i for i in ids if i.startswith("mediana/"))
         idx = ids.index(mediana)
-        ctx.run(como(f"ir {mediana}"), r"(?:Looking for|Buscando) ")
+        ctx.run(como(f"goto {mediana}"), r"(?:Looking for|Buscando) ")
         res, ms = busqueda(ctx, mediana)
-        print(f"revisar ir {mediana}: {res} en {ms} ms")
+        print(f"review goto {mediana}: {res} en {ms} ms")
         check("Destino" in res, f"{mediana}: no se encuentra ninguna: {res}")
         if "generada=false" in res:
             s.drain(ctx)
-            ctx.run(como(f"ir {mediana} generar"), r"(?:Looking for|Buscando) ")
+            ctx.run(como(f"goto {mediana} generate"), r"(?:Looking for|Buscando) ")
             busqueda(ctx, mediana)
         llega(ctx, mediana, idx)
 
         # --- marcar, siguiente y saltar ---
-        m = ctx.run(como(f"marcar problema {NOTA}"), r"with a problem|con problema")
+        m = ctx.run(como(f"mark problem {NOTA}"), r"with a problem|con problema")
         check(m.lastindex is None and NOTA in m.string, f"marcar: {m.string.strip()}")
-        for orden_, esperado in (("siguiente", idx + 2), ("saltar", idx + 3)):
+        for orden_, esperado in (("next", idx + 2), ("skip", idx + 3)):
             ctx.run(como(orden_), r"(?:Looking for|Buscando) ")
             busqueda(ctx, ids[esperado - 1])
             texto = "".join(s.drain(ctx, 3))
@@ -171,13 +171,13 @@ def main():
             check(t and int(t.group(1)) == esperado, f"{orden_}: debería ir a la parada {esperado}: {t and t.group(0)}")
 
         def resumen(ctx, cuando):
-            m = ctx.run("heraldia revisar estado", rf"(?:Review by|Revisión de) {JUGADOR}: (\d+) \D+ (\d+) \D+, (\d+) \D+, (\d+) \D+, (\d+)")
+            m = ctx.run("heraldia review status", rf"(?:Review by|Revisión de) {JUGADOR}: (\d+) \D+ (\d+) \D+, (\d+) \D+, (\d+) \D+, (\d+)")
             check(m.lastindex and (int(m.group(3)), int(m.group(4))) == (1, 1) and int(m.group(2)) == total,
                   f"{cuando}: resumen {m.group(0) if m else None} (debe tener 1 con problema y 1 saltada de {total})")
             texto = "".join(s.drain(ctx))
             check(NOTA in texto, f"{cuando}: el resumen no lista el problema")
 
-        resumen(ctx, "revisar estado")
+        resumen(ctx, "review status")
         md, js = os.path.join(mundo, "heraldia_revision.md"), os.path.join(mundo, "heraldia_revision.json")
         fin = time.monotonic() + 30
         while time.monotonic() < fin and not (os.path.exists(md) and NOTA in open(md, encoding="utf-8").read()):
@@ -198,7 +198,7 @@ def main():
         for i in ids[idx + 1:]:
             if not i.startswith("mediana/"):
                 break
-            ctx.run(como(f"ir {i}"), r"(?:Looking for|Buscando) ")
+            ctx.run(como(f"goto {i}"), r"(?:Looking for|Buscando) ")
             res, _ = busqueda(ctx, i)
             if "generada=false" in res:
                 s.drain(ctx)
@@ -209,13 +209,13 @@ def main():
             s.drain(ctx)
         check(prevista, "no hay ninguna mediana prevista para probar «Ir y generar»")
         if prevista:
-            ctx.run(como(f"ir {prevista} generar"), r"(?:Looking for|Buscando) ")
+            ctx.run(como(f"goto {prevista} generate"), r"(?:Looking for|Buscando) ")
             res, ms = busqueda(ctx, prevista)
-            print(f"revisar ir {prevista} generar: {res} en {ms} ms")
+            print(f"review goto {prevista} generate: {res} en {ms} ms")
             llega(ctx, prevista, ids.index(prevista))
 
-        # --- /heraldia estado ---
-        m = ctx.run("heraldia estado", r"Heraldia (\S+): (?:server status|estado del servidor) \((?:page|página) 1 (?:of|de) (\d+)\)")
+        # --- /heraldia status ---
+        m = ctx.run("heraldia status", r"Heraldia (\S+): (?:server status|estado del servidor) \((?:page|página) 1 (?:of|de) (\d+)\)")
         paginas = int(m.group(2)) if m.lastindex else 0
         texto = "".join(s.drain(ctx))
         check(paginas >= 2, f"estado: {m.string.strip()}")
@@ -223,17 +223,17 @@ def main():
         check(re.search(r"(?:Unique structures|Estructuras únicas): 0 (?:of|de) \d+", texto), "estado: falta el recuento de únicas")
         check(re.search(r"(?:Difficulty|Dificultad): ", texto), "estado (operador): falta la dificultad")
         for n in range(2, paginas + 1):
-            m = ctx.run(f"heraldia estado {n}", rf"\((?:page|página) {n} (?:of|de) {paginas}\)")
+            m = ctx.run(f"heraldia status {n}", rf"\((?:page|página) {n} (?:of|de) {paginas}\)")
             check(m.lastindex is None and f"{n} " in m.group(0), f"estado {n}: {m.string.strip()}")
             texto += "".join(s.drain(ctx))
-        m = ctx.run("heraldia estado 99", rf"\((?:page|página) {paginas} (?:of|de) {paginas}\)")
+        m = ctx.run("heraldia status 99", rf"\((?:page|página) {paginas} (?:of|de) {paginas}\)")
         check(m.lastindex is None and str(paginas) in m.group(0), f"estado 99: debería dar la última página: {m.string.strip()}")
         s.drain(ctx)
         check(re.search(r"(?:Guardians defeated|Guardianes vencidos): 0 (?:of|de) \d+", texto), "estado: faltan los guardianes")
         check(re.search(r"(?:Restocking loot|Botín que se repone): (?:disabled|desactivado)", texto), "estado: falta la reposición")
         check(re.search(r"(?:Other mods|Otros mods) \(\d+\): .*Carpet", texto), "estado (operador): no lista Carpet entre los mods")
 
-        # --- /heraldia recargar: dificultad sin reiniciar ---
+        # --- /heraldia reload: dificultad sin reiniciar ---
         ctx.run(f"forceload add {X - 16} {Z - 16} {X + 16} {Z + 16}", r"Marked|force|already|[Aa]dded")
         for rule in ("spawn_mobs", "advance_time"):
             ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
@@ -248,7 +248,7 @@ def main():
         cfg["dificultad"]["nivel"] = "facil"
         cfg["aldeas"]["separacion_bloques"] = 3000
         escribir(a.work, cfg)
-        m = ctx.run("heraldia recargar", r"(?:Configuration reloaded from|Configuración recargada de) heraldia\.json")
+        m = ctx.run("heraldia reload", r"(?:Configuration reloaded from|Configuración recargada de) heraldia\.json")
         texto = "".join(s.drain(ctx))
         check(m.lastindex is None and "heraldia.json" in m.group(0), f"recargar: {m.string.strip()}")
         check("dificultad.nivel = facil" in texto, "recargar: no lista dificultad.nivel como aplicada")
@@ -262,7 +262,7 @@ def main():
         m = ctx.run("heraldia info", r"(?:Villages: every|Aldeas: cada) (\d+)")
         check(m.lastindex and m.group(1) == "1500", f"recargar aplicó la separación de las aldeas: {m.group(0)}")
         s.drain(ctx)
-        m = ctx.run("heraldia recargar", r"(?:No option that can be applied live|No ha cambiado ninguna opción)")
+        m = ctx.run("heraldia reload", r"(?:No option that can be applied live|No ha cambiado ninguna opción)")
         check(m.lastindex is None, f"segunda recarga: {m.string.strip()}")
         s.drain(ctx)
 

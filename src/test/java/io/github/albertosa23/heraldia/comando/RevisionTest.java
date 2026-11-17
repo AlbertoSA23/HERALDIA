@@ -20,7 +20,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Ruta de /heraldia revisar (lógica pura): orden de las paradas, navegación, marcas, fichero y resumen en Markdown. */
+/** Ruta de /heraldia review (lógica pura): orden de las paradas, navegación, marcas, fichero y resumen en Markdown. */
 class RevisionTest {
 	@TempDir
 	Path dir;

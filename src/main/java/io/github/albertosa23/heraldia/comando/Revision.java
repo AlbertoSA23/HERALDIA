@@ -29,7 +29,7 @@ import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Ruta de revisión de /heraldia revisar, lógica pura (sin clases del juego): las paradas, en orden, de cada tipo de
+ * Ruta de revisión de /heraldia review, lógica pura (sin clases del juego): las paradas, en orden, de cada tipo de
  * contenido visual (aldeas por familia, cada única, cada tipo de mediana, minas de cada tamaño, la arena y un tramo de
  * camino), la navegación, el progreso de cada jugador (marcas y notas), su fichero JSON y el resumen en Markdown.
  */
@@ -302,7 +302,7 @@ public final class Revision {
 		DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC);
 		StringBuilder sb = new StringBuilder();
 		sb.append("# Revisión de Heraldia\n\n");
-		sb.append("Generado el ").append(f.format(Instant.ofEpochMilli(ahora))).append(" (UTC) con /heraldia revisar. ")
+		sb.append("Generado el ").append(f.format(Instant.ofEpochMilli(ahora))).append(" (UTC) con /heraldia review. ")
 				.append(ruta.size()).append(" paradas.\n");
 		if (r.jugadores.isEmpty()) {
 			sb.append("\nNadie ha marcado aún ninguna parada.\n");

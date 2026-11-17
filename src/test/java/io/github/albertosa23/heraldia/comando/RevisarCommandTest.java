@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * La parte de /heraldia revisar que toca clases del juego sin un mundo: qué estructuras son de cada parada, cómo se
+ * La parte de /heraldia review que toca clases del juego sin un mundo: qué estructuras son de cada parada, cómo se
  * clasifica cada bloque para el teletransporte seguro y la lista de qué mirar.
  */
 class RevisarCommandTest {
