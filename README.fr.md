@@ -20,7 +20,8 @@ Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valen
 - 📖 **Le Guide du Héraut.** Chaque joueur le reçoit en se connectant : un livre qui explique quoi chercher et tient votre journal, avec les structures uniques que vous avez découvertes et des indices sur celles qui manquent. Demandez un exemplaire à jour quand vous voulez avec `/heraldia guide`.
 - 📊 **Ce que le serveur a trouvé.** `/heraldia status` indique combien de villages, de structures uniques, de structures moyennes et de mines les joueurs ont découverts, les gardiens vaincus, le record de l'arène et les missions remises.
 - 📋 **Missions des villages.** Touche le lutrin du tableau sur la place d'un village (ou utilise `/heraldia quest` sur place) : 2 à 4 missions apparaissent dans le chat (apporter des objets, vaincre un gardien, explorer, aller au village voisin, l'arène) et changent tous les quelques jours. Elles paient en émeraudes, expérience et réputation auprès de ce village : connu, ami et héros du village, ses villageois baissent leurs prix de 10, 20 et 30 %. Attaquer ses villageois ou ses golems la fait baisser.
-- 🏆 **Progrès.** Un onglet Heraldia avec 106 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les structures moyennes, le tableau des contrats et l'arène.
+- 🐪 **Caravanes.** De temps en temps, près de toi, un marchand d'Heraldia avec ses lamas (et parfois un garde) parcourt la route entre deux villages voisins. Si des brigands l'attaquent, défends-le : à l'arrivée, il te paie en émeraudes et en réputation avec son village de destination. Si le marchand meurt, la caravane est perdue.
+- 🏆 **Progrès.** Un onglet Heraldia avec 107 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les structures moyennes, le tableau des contrats, l'arène et les caravanes.
 - 🗿 **Trophées.** Chacun des 20 gardiens lâche son trophée, un objet avec un nom et une histoire. Réunissez-les tous pour compléter la Salle des trophées.
 - 🗺️ **Cartes au trésor.** Chaque carte indique la structure unique de son type la plus proche. On les trouve dans les coffres épiques des villages, et les cartographes en vendent.
 - 🧭 **Chasse au trésor.** Parfois, un coffre cache un fragment de carte au trésor. Utilise-le et il devient une carte avec une marque : chaque marque est une vraie structure de Heraldia qui cache l'indice suivant, et la dernière mène à un coffre enterré par Ysolda, avec un beau butin et un souvenir.
@@ -61,6 +62,7 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `arena.temporada.dia_reinicio` | `lunes` | Jour de clôture du classement hebdomadaire de l'arène et d'annonce de ses champions (à minuit, heure du serveur). |
 | `encargos.activado` | `true` | Missions du tableau (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Réputation par village et ses réductions. |
+| `caravanas.activado` | `true` | Caravanes sur les routes (opérateurs : `/heraldia caravan`). |
 | `guia.entregar_al_entrar` | `true` | Donne le Guide du Héraut à chaque joueur à sa connexion. |
 | `update_check.activado` | `true` | Prévient les opérateurs quand une nouvelle version existe. |
 | `mapas_web.solo_descubiertas` | `true` | Sur la carte web, seulement les structures déjà découvertes. |

@@ -20,7 +20,8 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 - 📖 **A Guía do Heraldo.** Cada xogador recíbea ao entrar: un libro que explica que buscar e leva o teu diario, coas estruturas únicas que descubriches e pistas das que che faltan. Pide unha copia ao día cando queiras con `/heraldia guide`.
 - 📊 **O que atopou o servidor.** `/heraldia status` di cantas aldeas, estruturas únicas, estruturas medianas e minas descubriron os xogadores, os gardiáns vencidos, o récord da area e os encargos entregados.
 - 📋 **Encargos das aldeas.** Toca o atril do taboleiro da praza dunha aldea (ou usa alí `/heraldia quest`): saen no chat de 2 a 4 encargos (traer obxectos, vencer un gardián, explorar, viaxar a unha aldea veciña, a area) que cambian cada poucos días. Pagan esmeraldas, experiencia e reputación con esa aldea: como coñecido, amigo e heroe da aldea, os seus aldeáns rebaixan os prezos un 10, 20 e 30 %. Atacar os seus aldeáns ou gólems faina baixar.
-- 🏆 **Logros.** Unha lapela Heraldia con 106 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos e a area.
+- 🐪 **Caravanas.** De cando en vez, preto de ti, un mercador de Heraldia coas súas llamas (e ás veces un garda) percorre o camiño entre dúas aldeas veciñas. Se o asaltan os bandidos, defendeo: ao chegar págache esmeraldas e reputación coa súa aldea de destino. Se o mercador morre, a caravana pérdese.
+- 🏆 **Logros.** Unha lapela Heraldia con 107 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos, a area e as caravanas.
 - 🗿 **Trofeos.** Cada un dos 20 gardiáns solta o seu trofeo, un obxecto con nome e historia. Reúneos todos para completar a Sala de trofeos.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única máis próxima do seu tipo. Saen nos cofres épicos das aldeas e véndenos os cartógrafos.
 - 🧭 **Busca do tesouro.** Ás veces un cofre garda un fragmento de mapa do tesouro. Úsao e volverase un mapa cunha marca: cada marca é unha estrutura real de Heraldia que agocha a seguinte pista, e a última leva a un cofre que enterrou Ysolda, con bo botín e unha lembranza.
@@ -61,6 +62,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `arena.temporada.dia_reinicio` | `lunes` | Día no que se pecha a clasificación semanal da area e se anuncian os seus campións (á medianoite, hora do servidor). |
 | `encargos.activado` | `true` | Encargos do taboleiro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea e os seus descontos. |
+| `caravanas.activado` | `true` | Caravanas polos camiños (operadores: `/heraldia caravan`). |
 | `guia.entregar_al_entrar` | `true` | Dálle a Guía do Heraldo a cada xogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores cando hai unha versión nova. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web só saen as estruturas xa descubertas. |

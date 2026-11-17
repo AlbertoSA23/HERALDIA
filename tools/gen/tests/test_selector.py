@@ -266,3 +266,12 @@ def test_ci_matriz_dice_si_va_el_coste():
     out = subprocess.run([sys.executable, os.path.join(TOOLS, "test.py"), "--listar", "--completa"],
                          capture_output=True, text=True, check=True).stdout.split()
     assert out[-1] == sel.COSTE and sorted(out[:-1]) == TODAS
+
+
+def test_caravanas():
+    p = ["tools/smoke/caravanas.py"]
+    assert elige(J + "caravanas/Caravanas.java") == (False, p)
+    assert elige(J + "caravanas/Viaje.java") == (False, p)
+    assert elige("tools/gen/caravanas.py") == (False, p)
+    assert elige("tools/smoke/caravanas.py") == (False, p)
+    assert sel.DURACION_S["tools/smoke/caravanas.py"] > 0
