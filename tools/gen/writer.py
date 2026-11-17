@@ -47,7 +47,7 @@ LANG = {
         "heraldia.muestrario.terminado": "Muestrario terminado.",
         "heraldia.muestrario.detenido": "Muestrario detenido.",
         "heraldia.familia.terminada": "Familia terminada.",
-        # /heraldia llave (los textos de respaldo del Java son estos mismos)
+        # /heraldia key (los textos de respaldo del Java son estos mismos)
         "heraldia.llave.dada": "Entregadas %s llaves (%s) a %s jugadores",
         "heraldia.llave.desconocida": "No hay ninguna llave «%s». Opciones: %s",
         # /heraldia info (el Java toma el texto de respaldo de este es_es)
@@ -383,7 +383,7 @@ def paginas_de_libros(reg, out):
 def write_keys(out):
     """Llaves de los cofres cerrados de las únicas (LLAVES de cada módulo): una tabla de botín por llave,
     heraldia:llaves/<id>/<llave>, que da exactamente el objeto que pide la cerradura, y el índice que lee el comando
-    /heraldia llave al arrancar el servidor: {"<id>.<llave>": {"tabla": "heraldia:llaves/<id>/<llave>", "cerradura": lock}}
+    /heraldia key al arrancar el servidor: {"<id>.<llave>": {"tabla": "heraldia:llaves/<id>/<llave>", "cerradura": lock}}
     (la cerradura la usa la prueba de humo para comprobar que la llave la abre)."""
     index = {}
     for sid, mod in unicas.modules():

@@ -247,7 +247,7 @@ def test_carteles_de_los_caminos(codigo, trad):
 
 @pytest.mark.parametrize("codigo", CODIGOS)
 def test_comandos_sin_traducir(codigo, base, trad):
-    """Un comando que sale en un texto (/heraldia guia, /heraldia arena...) sigue igual en la traducción."""
+    """Un comando que sale en un texto (/heraldia guide, /heraldia arena...) sigue igual en la traducción."""
     import re
     for k, es in base["es_es"].items():
         for cmd in re.findall(r"/heraldia(?: \w+)?", es):

@@ -17,7 +17,7 @@ Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valen
 
 ## Comment jouer
 
-- 📖 **Le Guide du Héraut.** Chaque joueur le reçoit en se connectant : un livre qui explique quoi chercher et tient votre journal, avec les structures uniques que vous avez découvertes et des indices sur celles qui manquent. Demandez un exemplaire à jour quand vous voulez avec `/heraldia guia`.
+- 📖 **Le Guide du Héraut.** Chaque joueur le reçoit en se connectant : un livre qui explique quoi chercher et tient votre journal, avec les structures uniques que vous avez découvertes et des indices sur celles qui manquent. Demandez un exemplaire à jour quand vous voulez avec `/heraldia guide`.
 - 📊 **Ce que le serveur a trouvé.** `/heraldia status` indique combien de villages, de structures uniques, de structures moyennes et de mines les joueurs ont découverts, les gardiens vaincus et le record de l'arène.
 - 🏆 **Progrès.** Un onglet Heraldia avec 94 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les structures moyennes, le tableau des contrats et l'arène.
 - 🗿 **Trophées.** Chacun des 20 gardiens lâche son trophée, un objet avec un nom et une histoire. Réunissez-les tous pour compléter la Salle des trophées.
@@ -33,6 +33,10 @@ Les textes du mod existent en 8 langues : anglais, espagnol, français, allemand
 3. **Les joueurs n'ont pas besoin du mod** : ils peuvent se connecter avec un client vanilla. Les textes que le client ne connaît pas s'affichent en espagnol, sauf le Guide du Héraut, qui arrive dans la langue de chaque joueur. S'ils installent aussi le mod, ils voient tout dans leur langue et ont accès à l'écran de configuration (avec Mod Menu).
 
 **Un monde existant** fonctionne très bien : les nouvelles structures apparaissent dans les chunks qui n'ont pas encore été générés (explorez de nouvelles terres). Si votre monde a été créé avec Heraldia **0.1.0**, mettez `unicas.rejilla_compatible` à `true` avant de démarrer le serveur, pour que `/locate`, les cartes au trésor et le Guide continuent de trouver les structures uniques que vous avez déjà.
+
+Les **commandes** sont en anglais sur tous les serveurs : `/heraldia guide`, `/heraldia key`, `/heraldia arena place`... Les anciens noms en espagnol (`/heraldia guia`...) fonctionnent encore pour l'instant : ils font la même chose et vous donnent le nouveau nom.
+
+**Nouvelles versions :** le serveur vérifie une fois par jour s'il existe une nouvelle version de Heraldia pour son Minecraft et prévient les opérateurs à leur connexion, avec le lien de téléchargement. **Faites une sauvegarde du serveur avant de mettre à jour.** Se désactive avec `update_check.activado`.
 
 ## Options les plus utiles
 
@@ -50,11 +54,12 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `botin.reponer.activado` | `false` | Les coffres de Heraldia se remplissent à nouveau au bout de quelques jours. |
 | `arena.activado` | `true` | L'arène des vagues près du point d'apparition. |
 | `guia.entregar_al_entrar` | `true` | Donne le Guide du Héraut à chaque joueur à sa connexion. |
+| `update_check.activado` | `true` | Prévient les opérateurs quand une nouvelle version existe. |
 
 ## En savoir plus
 
 - [Référence complète du contenu](docs/CONTENT.md) (en anglais) : chaque style de village, structure unique, structure moyenne et mine, les combats de gardiens, les progrès, l'arène et plus encore.
-- [Installation, commandes et configuration](docs/CONFIGURATION.md) (en anglais) : commandes de test et d'administration (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), toutes les options et l'écran de configuration en jeu.
+- [Installation, commandes et configuration](docs/CONFIGURATION.md) (en anglais) : commandes de test et d'administration (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key`...), toutes les options et l'écran de configuration en jeu.
 - [Compatibilité avec d'autres mods](docs/COMPATIBILITY.md) (en anglais) : mods de biomes, mods de structures, Lootr et les autres.
 - [Compilation et tests](docs/BUILDING.md) (en anglais), [guide de développement](docs/DESARROLLO.md) (en espagnol) et [journal des modifications](CHANGELOG.md) (en anglais).
 

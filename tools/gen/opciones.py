@@ -122,9 +122,9 @@ _FIXED = [
      "Boss bar with the guardian's name for nearby players while the fight lasts"),
     ("guia.entregar_al_entrar", True, None, None,
      "Guía del Heraldo: da a cada jugador el libro que explica el mod y lleva su diario la primera vez que entra tras "
-     "instalar o actualizar Heraldia (una vez por versión; /heraldia guia da otra copia cuando quiera)",
+     "instalar o actualizar Heraldia (una vez por versión; /heraldia guide da otra copia cuando quiera)",
      "Herald's Guide: gives each player the book that explains the mod and keeps their diary the first time they join "
-     "after Heraldia is installed or updated (once per version; /heraldia guia gives a new copy at any time)"),
+     "after Heraldia is installed or updated (once per version; /heraldia guide gives a new copy at any time)"),
     ("botin.reponer.activado", False, None, None,
      "Botín que se repone: los cofres y barriles de las aldeas, estructuras medianas y únicas de Heraldia vuelven a llenarse "
      "con su tabla de botín cuando han pasado los días indicados desde que se saquearon, al abrirlos, si no hay otro jugador "
@@ -153,9 +153,9 @@ _FIXED = [
      "With easy, hard or heroic difficulty, plain stackable items in Heraldia chest loot come in x0.75, x1.25 or x1.5 "
      "amounts (normal changes nothing)"),
     ("arena.activado", True, None, None,
-     "Arena de oleadas cerca del spawn: los operadores la colocan con /heraldia arena colocar (o se genera sola en un mundo "
+     "Arena de oleadas cerca del spawn: los operadores la colocan con /heraldia arena place (o se genera sola en un mundo "
      "nuevo); cualquier jugador empieza una partida tocando su campana. Si se desactiva, no hay partidas ni protección",
-     "Wave arena near spawn: operators place it with /heraldia arena colocar (or it is built on its own in a new world); any "
+     "Wave arena near spawn: operators place it with /heraldia arena place (or it is built on its own in a new world); any "
      "player starts a match by ringing its bell. When disabled, there are no matches and no protection"),
     ("arena.generar_en_mundos_nuevos", True, None, None,
      "En un mundo nuevo, la arena se construye sola a 200-300 bloques del spawn, en terreno llano (en un mundo ya existente, "
@@ -176,6 +176,14 @@ _FIXED = [
     ("arena.experiencia_porcentaje", 15, 0, 100,
      "Experiencia que dan los enemigos de la arena, en % de la normal (no sueltan objetos)",
      "Experience given by arena enemies, as a % of the normal amount (they drop no items)"),
+    ("update_check.activado", True, None, None,
+     "Aviso de versión nueva: al arrancar y cada 24 h mira en GitHub Releases si hay una versión más nueva de Heraldia "
+     "para este Minecraft y lo dice en la consola y a los operadores al entrar (sin telemetría; se aplica al reiniciar)",
+     "New version notice: at startup and every 24 h checks GitHub Releases for a newer Heraldia version for this "
+     "Minecraft and says so in the console and to operators when they join (no telemetry; applies on restart)"),
+    ("update_check.prereleases", False, None, None,
+     "Avisa también de las pre-publicaciones (alfa, beta, candidatas)",
+     "Also announce pre-releases (alpha, beta, release candidates)"),
     ("unicas.atlantida.cofre_unico_por_jugador", False, None, None,
      "Cofre premium de la Atlántida por jugador: cada jugador saca su propia copia del contenido una vez (si no, el primero que llega se lo lleva)",
      "Per-player Atlantis premium chest: each player takes their own copy of its contents once (otherwise the first to arrive takes it all)"),
@@ -237,6 +245,8 @@ _NAMES = {
     "minas.entradas.activado": ("Entradas a mina", "Mine entrances"),
     "minas.entradas.separacion_bloques": ("Separación de las entradas (bloques)", "Entrance spacing (blocks)"),
     "minas.vanilla.multiplicador": ("Minas vanilla (multiplicador)", "Vanilla mineshafts (multiplier)"),
+    "update_check.activado": ("Aviso de versión nueva", "New version notice"),
+    "update_check.prereleases": ("Avisar de pre-publicaciones", "Announce pre-releases"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
                                                        "Distance of other mods' structures (blocks)"),
 }
@@ -274,6 +284,7 @@ SECTIONS = [
     ("dificultad", "Dificultad", "Difficulty"),
     ("guia", "Guía del Heraldo", "Herald's Guide"),
     ("arena", "Arena de oleadas", "Wave arena"),
+    ("actualizaciones", "Actualizaciones", "Updates"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
 # (si no encaja en ninguna, la generación falla).
@@ -283,6 +294,7 @@ _SECTION_PREFIXES = [
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"),
+    ("update_check.", "actualizaciones"),
 ]
 
 

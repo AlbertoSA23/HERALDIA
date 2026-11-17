@@ -103,9 +103,9 @@ PAGINAS = [
       "Atlantis. Each leaf points to the next: gather them all and you will learn how it ends.")),
     ("diario", ("Tu diario", "Your diary"),
      ("Las páginas que siguen son tuyas: qué estructuras únicas has descubierto y pistas de las que te faltan. Para "
-      "tenerlas al día, pide otra copia cuando quieras con /heraldia guia.",
+      "tenerlas al día, pide otra copia cuando quieras con /heraldia guide.",
       "The pages that follow are yours: which unique structures you have found and clues to the ones still missing. "
-      "To bring them up to date, ask for a new copy whenever you like with /heraldia guia.")),
+      "To bring them up to date, ask for a new copy whenever you like with /heraldia guide.")),
 ]
 
 # Textos del diario y del objeto (heraldia.guia.<clave>). %s: números o componentes (nombre, pista).

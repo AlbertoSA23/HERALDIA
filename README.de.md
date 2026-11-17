@@ -17,7 +17,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 
 ## So spielst du
 
-- 📖 **Der Leitfaden des Herolds.** Jeder Spieler erhält ihn beim Betreten: ein Buch, das erklärt, wonach du suchen kannst, und dein Tagebuch führt – mit den einzigartigen Bauwerken, die du entdeckt hast, und Hinweisen auf die fehlenden. Ein aktuelles Exemplar bekommst du jederzeit mit `/heraldia guia`.
+- 📖 **Der Leitfaden des Herolds.** Jeder Spieler erhält ihn beim Betreten: ein Buch, das erklärt, wonach du suchen kannst, und dein Tagebuch führt – mit den einzigartigen Bauwerken, die du entdeckt hast, und Hinweisen auf die fehlenden. Ein aktuelles Exemplar bekommst du jederzeit mit `/heraldia guide`.
 - 📊 **Was der Server gefunden hat.** `/heraldia status` zeigt, wie viele Dörfer, einzigartige und mittelgroße Bauwerke und Minen die Spieler entdeckt haben, die besiegten Wächter und den Arenarekord.
 - 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 94 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die mittelgroßen Bauwerke, das Auftragsbrett und die Arena.
 - 🗿 **Trophäen.** Jeder der 20 Hüter lässt seine Trophäe fallen, einen Gegenstand mit Namen und Geschichte. Sammle sie alle, um den Trophäensaal zu vervollständigen.
@@ -33,6 +33,10 @@ Die Texte des Mods gibt es in 8 Sprachen: Englisch, Spanisch, Französisch, Deut
 3. **Die Spieler brauchen den Mod nicht**: Sie können mit einem Vanilla-Client beitreten. Texte, die der Client nicht kennt, erscheinen auf Spanisch – außer dem Leitfaden des Herolds, der in der Sprache jedes Spielers ankommt. Installieren sie den Mod ebenfalls, sehen sie alles in ihrer eigenen Sprache und erhalten den Konfigurationsbildschirm (mit Mod Menu).
 
 **Eine bestehende Welt** funktioniert problemlos: Die neuen Bauwerke erscheinen in Chunks, die noch nicht generiert wurden (erkunde neues Land). Wurde deine Welt mit Heraldia **0.1.0** erstellt, setze `unicas.rejilla_compatible` auf `true`, bevor du den Server startest, damit `/locate`, die Schatzkarten und der Leitfaden die einzigartigen Bauwerke, die du schon hast, weiterhin finden.
+
+Die **Befehle** sind auf jedem Server auf Englisch: `/heraldia guide`, `/heraldia key`, `/heraldia arena place`... Die alten spanischen Namen (`/heraldia guia`...) funktionieren vorerst weiter: Sie tun dasselbe und nennen dir den neuen Namen.
+
+**Neue Versionen:** Der Server prüft einmal am Tag, ob es eine neue Heraldia-Version für sein Minecraft gibt, und sagt es Operatoren beim Betreten, mit dem Download-Link. **Erstelle vor dem Aktualisieren eine Sicherung des Servers.** Abschalten mit `update_check.activado`.
 
 ## Die nützlichsten Optionen
 
@@ -50,11 +54,12 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `botin.reponer.activado` | `false` | Heraldia-Truhen füllen sich nach einigen Tagen wieder auf. |
 | `arena.activado` | `true` | Die Wellenarena nahe dem Spawn. |
 | `guia.entregar_al_entrar` | `true` | Gibt jedem Spieler beim Betreten den Leitfaden des Herolds. |
+| `update_check.activado` | `true` | Meldet Operatoren, wenn es eine neue Version gibt. |
 
 ## Mehr erfahren
 
 - [Vollständige Übersicht der Inhalte](docs/CONTENT.md) (auf Englisch): alle Dorfstile, einzigartigen Bauwerke, mittelgroßen Bauwerke und Minen, die Hüterkämpfe, Fortschritte, die Arena und mehr.
-- [Installation, Befehle und Konfiguration](docs/CONFIGURATION.md) (auf Englisch): Test- und Adminbefehle (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave` ...), alle Optionen und der Konfigurationsbildschirm im Spiel.
+- [Installation, Befehle und Konfiguration](docs/CONFIGURATION.md) (auf Englisch): Test- und Adminbefehle (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key` ...), alle Optionen und der Konfigurationsbildschirm im Spiel.
 - [Kompatibilität mit anderen Mods](docs/COMPATIBILITY.md) (auf Englisch): Biom-Mods, Bauwerk-Mods, Lootr und der Rest.
 - [Bauen und Testen](docs/BUILDING.md) (auf Englisch), [Entwicklerhandbuch](docs/DESARROLLO.md) (auf Spanisch) und [Änderungsprotokoll](CHANGELOG.md) (auf Englisch).
 
