@@ -35,6 +35,8 @@ CANONICOS = [
     "review mark problem <note>", "review list", "review status", "review reset",
     "status", "status <page>", "reload", "update", "update check",
     "profile",                                   # T36: el perfil de juego
+    "quest", "quest list", "quest accept", "quest accept <number>", "quest abandon", "quest abandon <number>",
+    "quest turnin",                              # T38: los encargos del tablón
 ]
 
 

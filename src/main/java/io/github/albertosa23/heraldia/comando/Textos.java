@@ -37,7 +37,7 @@ public final class Textos {
 	}
 
 	/** Traducible con el texto de `textos` como respaldo (el que ve un cliente sin el mod); si falta, el español. */
-	static MutableComponent t(Map<String, String> textos, String key, Object... args) {
+	public static MutableComponent t(Map<String, String> textos, String key, Object... args) {
 		String fallback = textos.get(key);
 		return Component.translatableWithFallback(key, fallback != null ? fallback : ES_TEXTOS.getOrDefault(key, key), args);
 	}
@@ -47,7 +47,7 @@ public final class Textos {
 	 * («fr_fr» para cualquier francés, «pt_br» para cualquier portugués, «es_es» para cualquier español) y, si tampoco,
 	 * el inglés. Qué código corresponde a cada lengua lo dice el generador en heraldia/idiomas.json.
 	 */
-	static Map<String, String> idioma(String cliente) {
+	public static Map<String, String> idioma(String cliente) {
 		return leer(codigo(cliente, LENGUAS)).orElseThrow(
 				() -> new IllegalStateException("Falta el idioma " + cliente + " en el .jar de Heraldia"));
 	}

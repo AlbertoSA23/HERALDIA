@@ -27,6 +27,7 @@ In an existing world, structures only appear in chunks that have not been genera
 - `/heraldia info` (operators, level 2): summary of the configuration in use (villages, enabled unique structures and their spacing, minimum distance, per-player chest, whether Lootr is installed, medium structures, mine entrances and the vanilla mineshaft multiplier) and how many structures are registered.
 - `/heraldia info nearby [radius]`: the nearest unique structure and medium structure of each type, mine entrance of each size and the nearest Heraldia village, with distance, direction and coordinates (click them to get a `/tp` command). It uses the same check as `/locate`, so it never points to a structure that the minimum distance discards, but it neither loads nor generates chunks: what has not been generated yet is shown as "predicted" (for a predicted village only its family is known). Default radius 3,000 blocks, maximum 10,000; the message says how long the search took.
 - `/heraldia guide` (any player, no permissions needed): gives you an up-to-date copy of the [Herald's Guide](CONTENT.md#heralds-guide) (if you carry one in your inventory, it is replaced by the new one).
+- `/heraldia quest [list | accept <number> | abandon <number> | turnin]` (any player, no permissions needed): inside a Heraldia village, without arguments, its [job board](CONTENT.md#village-life) (the same as touching the lectern); elsewhere, your quests. `accept <number>` takes quest number N from the board of the village you are in; `list`, your quests (up to 5), their state and your reputation with each village; `abandon <number>` drops one of yours; `turnin` hands in, at the village that gave them, the ones that are done (the bring quests, if you carry the items). The board's buttons run these same commands.
 - `/heraldia profile` (operators, level 2): the [gameplay profile](#gameplay-profiles) in use (the effective one and the one chosen in the file) and the value it gives to each of its options, marking the ones set by hand in the file that override it.
 - `/heraldia info here`: which Heraldia structure you are standing in (name and id) and, in a unique structure, whether its guardian is alive (only answered when the whole structure is loaded).
 
@@ -66,7 +67,7 @@ For operators (level 2). A guided route to check all the visual content of the m
 
 ### Server status: `/heraldia status [page]`
 
-For any player, translated and paged (8 lines per page, with buttons to turn the page): the Heraldia version, how many structures of each kind some player has discovered out of the total (villages, one of each family; unique structures; medium structures, by type; mines, by size), the guardians defeated, the state of the arena with the server record, whether restocking loot is enabled and whether Lootr is installed. Operators also see the difficulty, the key generation, boss and Guide options, what is still undiscovered of each kind and the other mods loaded. Discoveries come from advancements: those of online players, from memory; the rest, from their files in the world folder (read off the server thread).
+For any player, translated and paged (8 lines per page, with buttons to turn the page): the Heraldia version, how many structures of each kind some player has discovered out of the total (villages, one of each family; unique structures; medium structures, by type; mines, by size), the guardians defeated, the state of the arena with the server record, the job board quests handed in by everyone and by you (with how many villages are friends of yours and of how many you are the hero), whether restocking loot is enabled and whether Lootr is installed. Operators also see the difficulty, the key generation, boss and Guide options, what is still undiscovered of each kind and the other mods loaded. Discoveries come from advancements: those of online players, from memory; the rest, from their files in the world folder (read off the server thread).
 
 ### New version notice: `/heraldia update check`
 
@@ -87,7 +88,7 @@ off with `update_check.activado = false`.
 For operators (level 2). Reads `config/heraldia.json` again without restarting the server (and without rewriting it) and applies whatever does not affect generation:
 
 - `dificultad.*`: the health and damage modifiers of the Heraldia mobs already loaded are recalculated (the rest, when they load), keeping the proportion of their current health.
-- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (trades are rolled when a villager levels up) and `unicas.atlantida.cofre_unico_por_jugador`: read every time they are used.
+- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (trades are rolled when a villager levels up), `unicas.atlantida.cofre_unico_por_jugador`, `encargos.*` and `reputacion.*`: read every time they are used.
 - `perfil` (the [gameplay profile](#gameplay-profiles)): applied whole, with whatever is set by hand on top (all its options are among these).
 - `golems.*`: the limits are published again to the golem functions.
 - `arena.*` (except `arena.generar_en_mundos_nuevos`, which only counts when a new world starts): increments, maximum alive, experience and whether it is enabled. With a match running they do not change until it ends (reload again then).
@@ -154,6 +155,9 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `arena.oleada.stats_incremento` | 10 | 1-100 | Extra health and damage in each wave, in %; if it exceeds `mobs_incremento`, that one is used (enemies grow faster than their strength). |
 | `arena.max_mobs_vivos` | 20 | 4-64 | Enemies alive at once in the ring; if a wave brings more, they come in batches. |
 | `arena.experiencia_porcentaje` | 15 | 0-100 | Experience of arena enemies, as a % of the normal amount (after the game's own scaling); they drop no items. |
+| `encargos.activado` | `true` | `true`/`false` | [Job board quests](CONTENT.md#village-life) (`/heraldia quest`), in every Heraldia village (also those already generated). When disabled, the lectern only opens its book and the commands say so; what each player carries is kept. |
+| `encargos.rotacion_dias` | 3 | 1-30 | In-game days each board lasts before its quests change (accepted ones are kept). |
+| `reputacion.activado` | `true` | `true`/`false` | Reputation per village: it rises with quests and falls when you attack its villagers or golems; known, friend and village hero lower its trades by 10, 20 and 30 % (not stacking with Hero of the Village). When disabled, no discounts or changes (the reputation earned is kept). |
 
 Atlantis has no placement options: there is always exactly one per world.
 

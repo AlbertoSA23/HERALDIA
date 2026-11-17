@@ -193,6 +193,25 @@ _FIXED = [
     ("arena.experiencia_porcentaje", 15, 0, 100,
      "Experiencia que dan los enemigos de la arena, en % de la normal (no sueltan objetos)",
      "Experience given by arena enemies, as a % of the normal amount (they drop no items)"),
+    ("encargos.activado", True, None, None,
+     "Encargos del tablón: el atril del tablón de la plaza de cada aldea de Heraldia (también de las ya generadas) "
+     "ofrece de 2 a 4 encargos en el chat (traer objetos, vencer a un guardián, explorar, viajar a una aldea vecina, "
+     "la arena) con /heraldia quest; pagan esmeraldas, experiencia y reputación",
+     "Job board quests: the job board lectern on the square of every Heraldia village (also those already generated) "
+     "offers 2 to 4 quests in chat (bring items, defeat a guardian, explore, travel to a neighbouring village, the "
+     "arena) with /heraldia quest; they pay emeralds, experience and reputation"),
+    ("encargos.rotacion_dias", 3, 1, 30,
+     "Días de juego (24.000 ticks del reloj del mundo) que dura cada tablón antes de cambiar sus encargos (los ya "
+     "aceptados se conservan)",
+     "In-game days (24,000 ticks of the world clock) each board lasts before its quests change (accepted ones are "
+     "kept)"),
+    ("reputacion.activado", True, None, None,
+     "Reputación por aldea: sube con sus encargos y baja al atacar a sus aldeanos o gólems; con conocido, amigo y "
+     "héroe de la aldea, sus aldeanos rebajan los tratos un 10, 20 y 30 % (como Héroe de la aldea, sin acumularse) "
+     "y te saludan",
+     "Reputation per village: it rises with its quests and falls when you attack its villagers or golems; as known, "
+     "friend and village hero, its villagers lower their trades by 10, 20 and 30 % (like Hero of the Village, not "
+     "stacking) and greet you"),
     ("update_check.activado", True, None, None,
      "Aviso de versión nueva: al arrancar y cada 24 h mira en GitHub Releases si hay una versión más nueva de Heraldia "
      "para este Minecraft y lo dice en la consola y a los operadores al entrar (sin telemetría; se aplica al reiniciar)",
@@ -327,6 +346,9 @@ _NAMES = {
     "minas.entradas.activado": ("Entradas a mina", "Mine entrances"),
     "minas.entradas.separacion_bloques": ("Separación de las entradas (bloques)", "Entrance spacing (blocks)"),
     "minas.vanilla.multiplicador": ("Minas vanilla (multiplicador)", "Vanilla mineshafts (multiplier)"),
+    "encargos.activado": ("Encargos del tablón", "Job board quests"),
+    "encargos.rotacion_dias": ("Días hasta cambiar el tablón", "Days until the board changes"),
+    "reputacion.activado": ("Reputación por aldea", "Reputation per village"),
     "update_check.activado": ("Aviso de versión nueva", "New version notice"),
     "update_check.prereleases": ("Avisar de pre-publicaciones", "Announce pre-releases"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
@@ -369,6 +391,7 @@ SECTIONS = [
     ("dificultad", "Dificultad", "Difficulty"),
     ("guia", "Guía del Heraldo", "Herald's Guide"),
     ("arena", "Arena de oleadas", "Wave arena"),
+    ("encargos", "Encargos y reputación", "Quests and reputation"),
     ("actualizaciones", "Actualizaciones", "Updates"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
@@ -379,7 +402,7 @@ _SECTION_PREFIXES = [
     ("aldeas.", "aldeas"), ("golems.", "golems"),
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
-    ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"),
+    ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
     ("update_check.", "actualizaciones"),
 ]
 

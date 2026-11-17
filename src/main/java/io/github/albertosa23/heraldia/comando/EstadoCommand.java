@@ -179,6 +179,7 @@ public final class EstadoCommand {
 		boolean arena = cfg.getBool("arena.activado");
 		lineas.add(Textos.t("heraldia.estado.arena", Textos.t(!arena ? "heraldia.info.desactivada"
 				: Arena.centro() != null ? "heraldia.estado.arena.colocada" : "heraldia.estado.arena.sin_colocar"), Arena.record(server)));
+		lineas.addAll(io.github.albertosa23.heraldia.encargos.Encargos.estado(server, src.getPlayer()));   // T38
 		lineas.add(WithoutLootrCondition.LOOTR_LOADED
 				? Textos.t("heraldia.estado.reponer.lootr")
 				: cfg.getBool("botin.reponer.activado")

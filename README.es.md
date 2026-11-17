@@ -18,8 +18,9 @@ Un mod de Fabric para **Minecraft 26.3** que llena el Overworld de sitios por lo
 ## Cómo se juega
 
 - 📖 **La Guía del Heraldo.** Cada jugador la recibe al entrar: un libro que explica qué buscar y lleva tu diario, con las estructuras únicas que has descubierto y pistas de las que te faltan. Pide una copia al día cuando quieras con `/heraldia guide`.
-- 📊 **Lo que ha encontrado el servidor.** `/heraldia status` dice cuántas aldeas, estructuras únicas, medianas y minas han descubierto los jugadores, los guardianes vencidos y el récord de la arena.
-- 🏆 **Logros.** Una pestaña Heraldia con 94 logros: una aldea de cada familia, cada estructura única con su guardián y su tesoro, las minas, las estructuras medianas, el tablón de encargos y la arena.
+- 📊 **Lo que ha encontrado el servidor.** `/heraldia status` dice cuántas aldeas, estructuras únicas, medianas y minas han descubierto los jugadores, los guardianes vencidos, el récord de la arena y los encargos entregados.
+- 📋 **Encargos de las aldeas.** Toca el atril del tablón de la plaza de una aldea (o usa allí `/heraldia quest`): salen en el chat de 2 a 4 encargos (traer objetos, vencer a un guardián, explorar, viajar a una aldea vecina, la arena) que cambian cada pocos días. Pagan esmeraldas, experiencia y reputación con esa aldea: como conocido, amigo y héroe de la aldea, sus aldeanos rebajan los precios un 10, 20 y 30 %. Atacar a sus aldeanos o gólems la baja.
+- 🏆 **Logros.** Una pestaña Heraldia con 98 logros: una aldea de cada familia, cada estructura única con su guardián y su tesoro, las minas, las estructuras medianas, el tablón de encargos y la arena.
 - 🗿 **Trofeos.** Cada uno de los 20 guardianes suelta su trofeo, un objeto con nombre e historia. Reúnelos todos para completar la Sala de trofeos.
 - 🗺️ **Mapas del tesoro.** Cada mapa marca la estructura única más cercana de su tipo. Salen en los cofres épicos de las aldeas y los venden los cartógrafos.
 - 📜 **La Crónica de los Heraldos.** Cada estructura única guarda un pliego de la crónica que escribió Ysolda, la última heraldo de la Atlántida. Cada pliego señala el siguiente: reúne los 20 y sabrás cómo acaba.
@@ -54,6 +55,8 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 | `dificultad.nivel` | `normal` | Guardianes y monstruos: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | Los cofres de Heraldia se reponen al cabo de unos días. |
 | `arena.activado` | `true` | La arena de oleadas cerca del spawn. |
+| `encargos.activado` | `true` | Encargos del tablón (`/heraldia quest`). |
+| `reputacion.activado` | `true` | Reputación por aldea y sus descuentos. |
 | `guia.entregar_al_entrar` | `true` | Da la Guía del Heraldo a cada jugador al entrar. |
 | `update_check.activado` | `true` | Avisa a los operadores cuando hay una versión nueva. |
 

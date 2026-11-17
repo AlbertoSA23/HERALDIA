@@ -175,10 +175,10 @@ public final class InfoCommand {
 	// --- info nearby ---
 
 	/** generated: la estructura está en el chunk guardado o cargado; si no, está prevista (chunk sin generar). */
-	record Found(Holder<Structure> structure, ChunkPos chunk, BlockPos pos, long distanceSq, boolean generated) {
+	public record Found(Holder<Structure> structure, ChunkPos chunk, BlockPos pos, long distanceSq, boolean generated) {
 	}
 
-	record Group(RandomSpreadStructurePlacement placement, List<Holder<Structure>> structures) {
+	public record Group(RandomSpreadStructurePlacement placement, List<Holder<Structure>> structures) {
 	}
 
 	/** Qué dice el chunk guardado: null = no existe en disco; si existe, las estructuras cuyo inicio guarda. */
@@ -226,7 +226,7 @@ public final class InfoCommand {
 	}
 
 	/** Estructuras del mod agrupadas por colocación: una por tipo de única; las aldeas comparten la suya. */
-	static List<Group> groups(ServerLevel level) {
+	public static List<Group> groups(ServerLevel level) {
 		ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
 		Map<RandomSpreadStructurePlacement, List<Holder<Structure>>> byPlacement = new LinkedHashMap<>();
 		level.registryAccess().lookupOrThrow(Registries.STRUCTURE).listElements().forEach(h -> {
@@ -252,7 +252,7 @@ public final class InfoCommand {
 	 * reales. Todo es seguro entre hilos (lo consultan los hilos de generación); el disco se lee con el mismo escáner que
 	 * StructureCheck. No carga ni genera chunks.
 	 */
-	static List<Found> search(ServerLevel level, List<Group> groups, BlockPos origin, int radius) {
+	public static List<Found> search(ServerLevel level, List<Group> groups, BlockPos origin, int radius) {
 		ChunkGenerator generator = level.getChunkSource().getGenerator();
 		RandomState randomState = level.getChunkSource().randomState();
 		ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
