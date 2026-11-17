@@ -3,11 +3,13 @@ puntos de aparición, campana, puerta, reaparición, luz), solo materiales que n
 recompensas y logros, y su página en la Guía del Heraldo."""
 import json
 import math
+import os
 import re
 
 import pytest
 
 import arena_oleadas as a
+RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 import guia
 import loot
 from unicas._comun import botin
@@ -148,7 +150,7 @@ def test_recompensas_mejoran_con_la_oleada():
 
 
 def test_logros_5_10_20():
-    ls = a.logros()
+    ls = {k: v for k, v in a.logros().items() if k.startswith("arena/oleada_")}
     assert sorted(ls) == ["arena/oleada_10", "arena/oleada_20", "arena/oleada_5"]
     assert ls["arena/oleada_5"]["parent"] == "heraldia:raiz"
     assert ls["arena/oleada_10"]["parent"] == "heraldia:arena/oleada_5"
@@ -166,3 +168,81 @@ def test_pagina_de_la_guia():
         assert guia.lineas_pagina(titulo[i], texto[i]) <= botin.LIBRO_LINEAS
         assert "/heraldia arena" in texto[i]
     assert guia.lang()["es_es"]["heraldia.guia.pagina.arena.titulo"] == "La arena"
+
+
+# --- T41: modos, salón de la fama y logros de los modos ---
+
+def test_carteles_del_salon_de_la_fama(t):
+    d = a.datos()
+    assert len(d["fama"]) == len(a.MODOS) == 3 and d["fama_rotacion"] == 0
+    for p in d["fama"]:
+        assert nombre(t.get(*p)) == "crimson_sign"
+        assert t.get(*p) == "minecraft:crimson_sign[rotation=0]" or "rotation=0" in t.get(*p)
+        assert nombre(t.get(p[0], p[1] - 1, p[2])) not in ("air", None)      # sobre suelo
+        assert nombre(t.get(p[0], p[1], p[2] + 1)) == "air"                   # con sitio delante (al sur) para leerlo
+        assert a.R_GRADAS <= a.dist(p[0], p[2]) < 27 and not a.en_entrada(p[0], p[2])
+    assert "crimson_sign" in a.PALETA                                         # madera del Nether: no arde
+
+
+def test_errores_detecta_un_cartel_mal_puesto(t):
+    d = dict(a.datos(), fama=[list(a.CAMPANA)] * 3)
+    assert any("salón de la fama" in e for e in a.errores(t, d))
+    d = dict(a.datos(), fama=a.datos()["fama"][:2])
+    assert any("uno por modo" in e for e in a.errores(t, d))
+
+
+def test_logros_de_los_modos():
+    ls = a.logros()
+    nuevos = {f"arena/{lid}" for lid, *_ in a.LOGROS_MODOS}
+    assert nuevos == {"arena/contrarreloj", "arena/contrarreloj_rapido", "arena/supervivencia_15", "arena/campeon_coop",
+                      "arena/campeon_timeattack", "arena/campeon_survival"}
+    assert nuevos <= set(ls)
+    for lid in nuevos:
+        l = ls[lid]
+        assert l["criteria"] == {"logro": {"trigger": "minecraft:impossible"}}
+        assert l["parent"].removeprefix("heraldia:") in ls                       # el padre existe
+    # los campeones, uno por modo (Java: Marcas.logroCampeon = arena/campeon_<id del modo>)
+    assert {f"arena/campeon_{m}" for m in a.MODOS} <= nuevos
+    # las cifras de los textos son las del Java (arena/Marcas)
+    marcas = open(os.path.join(RAIZ, "src/main/java/io/github/albertosa23/heraldia/arena/Marcas.java"), encoding="utf-8").read()
+    assert f"CONTRARRELOJ_OLEADAS = {a.CONTRARRELOJ_OLEADAS};" in marcas
+    assert f"CONTRARRELOJ_RAPIDO_TICKS = {a.CONTRARRELOJ_RAPIDO_MIN} * 60 * 20;" in marcas
+    assert f"SUPERVIVENCIA_OLEADAS = {a.SUPERVIVENCIA_OLEADAS};" in marcas
+    lang = a.lang()
+    for lid in nuevos:
+        assert f"advancements.heraldia.{lid.replace('/', '.')}.title" in lang["es_es"]
+
+
+def test_modos_y_sus_textos():
+    lang = a.lang()
+    java = open(os.path.join(RAIZ, "src/main/java/io/github/albertosa23/heraldia/arena/Modo.java"), encoding="utf-8").read()
+    for m in a.MODOS:
+        assert f'"{m}"' in java                                                  # el id del comando (Modo.id)
+        for idioma in ("es_es", "en_us"):
+            assert lang[idioma][f"heraldia.arena.modo.{m}"]
+            assert lang[idioma][f"heraldia.arena.modo.{m}.ayuda"]
+    assert "%s" in lang["es_es"]["heraldia.arena.modo.timeattack.ayuda"]       # las oleadas del contrarreloj
+
+
+def test_el_cartel_cabe_y_se_comprueba():
+    assert a.errores_textos() == []
+    largo = {**a.lang()["en_us"], "heraldia.arena.cartel.titulo": "Champion of the whole week"}
+    assert any("cartel.titulo" in e for e in a.errores_textos({"xx_xx": largo}))
+    # el nombre del jugador va solo en su línea: uno típico cabe
+    import idiomas
+    assert idiomas.ancho_cartel(a.NOMBRE_TIPICO) <= idiomas.CARTEL_ANCHO
+
+
+def test_el_cartel_cabe_en_cada_idioma():
+    import json as _json, glob
+    for f in glob.glob(os.path.join(RAIZ, "tools/gen/idiomas/*.json")):
+        textos = _json.load(open(f, encoding="utf-8"))
+        assert a.errores_textos({os.path.basename(f): textos}) == [], f
+
+
+def test_comandos_nuevos_en_ingles():
+    import comandos
+    for r in ("arena start coop", "arena start timeattack", "arena start survival", "arena leaderboard",
+              "arena leaderboard coop <week>", "arena leaderboard timeattack <week>", "arena leaderboard survival <week>",
+              "arena season", "arena season reset"):
+        assert r in comandos.CANONICOS, r

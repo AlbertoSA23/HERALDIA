@@ -8,7 +8,8 @@ Primer arranque (mundo nuevo, con arena.generar_en_mundos_nuevos):
   2. protección: el jugador simulado (creativo, sin ser operador) no rompe un bloque ni coloca piedra; como operador sí
      rompe; una TNT dentro no rompe nada (y fuera sí); un pistón no empuja su muro (y otro fuera sí); un dispensador
      pegado a la arena no vacía su cubo de lava (lo suelta como objeto) y otro lejos sí;
-  3. partida: el jugador (supervivencia, resistencia 255) toca la campana: cuenta atrás, puerta cerrada, oleada 1 con 4
+  3. partida: el jugador (supervivencia, resistencia 255) toca la campana (T41: le ofrece los modos y se elige el
+     cooperativo con /heraldia arena start coop en su nombre): cuenta atrás, puerta cerrada, oleada 1 con 4
      enemigos sin modificador de oleada y oleada 2 con 6 y +10 % de vida (heraldia:arena_vida 0,1); los mata
      (/damage ... by el jugador): no sueltan objetos y dan el 15 % de la experiencia vanilla (log de cada oleada);
      en la 5, el mini-jefe (heraldia_guardian) pasa de fase y sus refuerzos entran en la oleada; al superarla, récord
@@ -242,7 +243,13 @@ def primer_arranque(p, pl):
     s.send(ctx.proc, f"player {P} look at {bell[0] + 0.5} {bell[1] + 0.4} {bell[2] + 0.5}")
     ctx.ticks(5)
     s.send(ctx.proc, f"player {P} use once")
-    if not p.check(p.esperar_log(rf"arena: cuenta atrás \(la empieza {P}\)", timeout=60), "la campana no empieza la partida"):
+    # T41: con los tres modos activados, la campana ofrece un botón por modo (/heraldia arena start <modo>); el jugador
+    # simulado no puede pulsarlo: se manda la orden en su nombre
+    if not p.check(p.esperar_log(rf"arena: {P} elige modo \(coop, timeattack, survival\)", timeout=60),
+                   "la campana no ofrece los modos"):
+        return caja
+    ctx.run(f"execute as {P} run heraldia arena start coop", r"Prepárate|Get ready")
+    if not p.check(p.esperar_log(rf"arena: cuenta atrás \(la empieza {P}, modo coop\)", timeout=60), "la campana no empieza la partida"):
         return caja
     p.check(ctx.block(puerta, "minecraft:iron_bars"), "la puerta no se cierra al empezar")
     p.check(p.esperar_log(r"arena: partida empieza con 1 participantes"), "la partida no empieza con el jugador")

@@ -13,7 +13,7 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 - ⚔️ **Guardians que lluiten per fases.** Quan perden vida s'enfureixen i criden reforços de la seva pròpia estructura, amb una barra de cap mentre dura el combat. Cadascun deixa anar el seu propi trofeu.
 - ⛏️ **Mines.** En vessants de debò s'obren boques de mina, campaments miners i complexos miners amb castellet d'extracció, en 3 mides i amb l'estil de cada bioma, que baixen a galeries amb vies, cruïlles i sales. Les mines abandonades vanilla també són més freqüents.
 - 🔱 **L'Atlàntida.** Només n'hi ha una per món: una ciutat enorme enfonsada a l'oceà profund, amb sales seques, tres segells amb les seves claus i el Guardià de Posidó, que custodia el tresor més gran d'Heraldia.
-- 🏟️ **Arena d'onades.** Un colosseu prop del punt d'aparició: toca la campana i resisteix onades cada cop més fortes, amb un campió cada cinc onades, rècords i recompenses. Si caus a la pista, conserves l'inventari.
+- 🏟️ **Arena d'onades.** Un colosseu prop del punt d'aparició: toca la campana i resisteix onades cada cop més fortes, amb un campió cada cinc onades, rècords i recompenses. Si caus a la pista, conserves l'inventari. Tres modes (cooperatiu, contrarellotge i supervivència) amb classificació setmanal, `/heraldia arena leaderboard`: els campions de la setmana anterior surten als cartells del saló de la fama de l'arena i a la Guia de l'Herald.
 
 ## Com es juga
 
@@ -21,7 +21,7 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 - 📊 **El que ha trobat el servidor.** `/heraldia status` diu quants pobles, estructures úniques, estructures mitjanes i mines han descobert els jugadors, els guardians vençuts, el rècord de l'arena i els encàrrecs lliurats.
 - 📋 **Encàrrecs dels pobles.** Toca el faristol del tauler de la plaça d'un poble (o fes-hi servir `/heraldia quest`): surten al xat de 2 a 4 encàrrecs (portar objectes, vèncer un guardià, explorar, viatjar a un poble veí, l'arena) que canvien cada pocs dies. Paguen maragdes, experiència i reputació amb aquell poble: com a conegut, amic i heroi del poble, els seus vilatans rebaixen els preus un 10, 20 i 30 %. Atacar els seus vilatans o gòlems la fa baixar.
 - 🐪 **Caravanes.** De tant en tant, a prop teu, un mercader d'Heraldia amb les seves llames (i a vegades un guarda) recorre el camí entre dos pobles veïns. Si l'assalten els bandits, defensa'l: en arribar et paga maragdes i reputació amb el seu poble de destinació. Si el mercader mor, la caravana es perd.
-- 🏆 **Assoliments.** Una pestanya Heraldia amb 101 assoliments: un poble de cada família, cada estructura única amb el seu guardià i el seu tresor, les mines, les estructures mitjanes, el tauler d'encàrrecs, l'arena i les caravanes.
+- 🏆 **Assoliments.** Una pestanya Heraldia amb 107 assoliments: un poble de cada família, cada estructura única amb el seu guardià i el seu tresor, les mines, les estructures mitjanes, el tauler d'encàrrecs, l'arena i les caravanes.
 - 🗿 **Trofeus.** Cadascun dels 20 guardians deixa anar el seu trofeu, un objecte amb nom i història. Reuneix-los tots per completar la Sala de trofeus.
 - 🗺️ **Mapes del tresor.** Cada mapa marca l'estructura única més propera del seu tipus. Surten als cofres èpics dels pobles i els venen els cartògrafs.
 - 🧭 **Caça del tresor.** De vegades un cofre amaga un fragment de mapa del tresor. Fes-lo servir i es tornarà un mapa amb una marca: cada marca és una estructura real de Heraldia que amaga la pista següent, i l'última porta a un cofre que va enterrar l'Ysolda, amb un bon botí i un record.
@@ -59,6 +59,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `dificultad.nivel` | `normal` | Guardians i monstres: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | Els cofres d'Heraldia es tornen a omplir al cap d'uns dies. |
 | `arena.activado` | `true` | L'arena d'onades prop del punt d'aparició. |
+| `arena.temporada.dia_reinicio` | `lunes` | Dia en què es tanca la classificació setmanal de l'arena i se n'anuncien els campions (a mitjanit, hora del servidor). |
 | `encargos.activado` | `true` | Encàrrecs del tauler (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputació per poble i els seus descomptes. |
 | `caravanas.activado` | `true` | Caravanes pels camins (operadors: `/heraldia caravan`). |

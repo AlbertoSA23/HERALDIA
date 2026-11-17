@@ -66,7 +66,9 @@ UPDATE = ["tools/smoke/update_check.py"]
 MAPAS_WEB = ["tools/smoke/mapas_web.py"]
 # Búsqueda del tesoro (T40): su Java (paquete tesoro/) y su generador (tablas, textos, logros).
 TESORO = ["tools/smoke/tesoro.py"]
-COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py", "tools/smoke/arena.py"]
+# Arena de oleadas (T31) y sus modos, clasificación semanal y salón de la fama (T41).
+ARENA = ["tools/smoke/arena.py", "tools/smoke/arena_modos.py"]
+COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py"] + ARENA
 # Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
 MINAS = ["tools/smoke/entradas_mina.py"]
 # Perfiles de juego (opción «perfil», T36): su prueba de servidor (reinicios con cada perfil y una opción fijada a mano).
@@ -139,9 +141,8 @@ MAPA = [
     (JAVA + "comando/*", []),
     # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
     (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
-    # arena de oleadas (T31): su Java, sus mixins y su generador (plantilla, datos, botín y logros)
-    (JAVA + "arena/*", ["tools/smoke/arena.py"]), (JAVA + "mixin/Arena*", ["tools/smoke/arena.py"]),
-    ("tools/gen/arena_oleadas.py", ["tools/smoke/arena.py"]),
+    # arena de oleadas (T31) y sus modos (T41): su Java, sus mixins y su generador (plantilla, datos, botín y logros)
+    (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_oleadas.py", ARENA),
     # caminos entre aldeas: su Java y sus datos
     (JAVA + "caminos/*", ["tools/smoke/caminos.py"]), ("tools/gen/caminos.py", ["tools/smoke/caminos.py"]),
     # código común: batería completa
@@ -271,6 +272,7 @@ DURACION_S = {
     "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
     "tools/smoke/arena.py": 150,                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)
+    "tools/smoke/arena_modos.py": 200,               # dos arranques, una obra, siete oleadas cortas y el cierre de dos semanas
     "tools/smoke/admin.py": 80,                      # medida en local: 60 s (dos arranques y dos medianas cargadas o generadas)
     "tools/smoke/update_check.py": 120,              # tres arranques (con la API de mentira, sin red y desactivado)
     "tools/smoke/mapas_web.py": 240,                 # tres arranques (sin mapas, con squaremap y Carpet, y tras reiniciar)

@@ -13,7 +13,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 - ⚔️ **Guardians that fight in phases.** As they lose health they become enraged and call reinforcements from their own structure, with a boss bar while the fight lasts. Each one drops its own trophy.
 - ⛏️ **Mines.** On real hillsides open adits, mining camps and mining complexes with a headframe, in 3 sizes and in the style of each biome, leading down to galleries with rails, crossings and rooms. Vanilla abandoned mineshafts are also more common.
 - 🔱 **Atlantis.** Only one per world: a vast city sunk in the deep ocean, with dry halls, three seals with their keys and the Guardian of Poseidon, keeper of the greatest treasure in Heraldia.
-- 🏟️ **Wave arena.** A coliseum near spawn: ring the bell and hold out against ever stronger waves, with a champion every fifth wave, records and rewards. If you fall in the ring, you keep your inventory.
+- 🏟️ **Wave arena.** A coliseum near spawn: ring the bell and hold out against ever stronger waves, with a champion every fifth wave, records and rewards. If you fall in the ring, you keep your inventory. Three modes (co-op, time attack and survival) with a weekly leaderboard, `/heraldia arena leaderboard`: last week's champions go up on the signs of the arena's hall of fame and in the Herald's Guide.
 
 ## How to play
 
@@ -21,7 +21,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 - 📊 **What the server has found.** `/heraldia status` shows how many villages, unique structures, medium structures and mines the players have discovered, the guardians defeated, the arena record and the quests handed in.
 - 📋 **Village quests.** Touch the job board lectern on a village square (or use `/heraldia quest` there): 2 to 4 quests show up in chat (bring items, defeat a guardian, explore, travel to a neighbouring village, the arena) and change every few days. They pay emeralds, experience and reputation with that village: as known, friend and village hero, its villagers lower their prices by 10, 20 and 30 %. Attacking its villagers or golems lowers it.
 - 🐪 **Caravans.** Now and then a Heraldia merchant with its llamas (and sometimes a guard) travels the road between two neighbouring villages near you. If bandits ambush it, defend it: when it arrives it pays emeralds and reputation with its destination village. If the merchant dies, the caravan is lost.
-- 🏆 **Advancements.** A Heraldia tab with 101 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the medium structures, the job board, the arena and the caravans.
+- 🏆 **Advancements.** A Heraldia tab with 107 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the medium structures, the job board, the arena and the caravans.
 - 🗿 **Trophies.** Each of the 20 guardians drops its trophy, an item with a name and a story. Collect them all to complete the Hall of Trophies.
 - 🗺️ **Treasure maps.** Each map marks the nearest unique structure of its kind. They turn up in the villages' epic chests and the cartographers sell them.
 - 🧭 **Treasure hunt.** Now and then a chest holds a treasure map fragment. Use it and it becomes a map with a mark: each mark is a real Heraldia structure that hides the next clue, and the last one leads to a chest buried by Ysolda, with good loot and a keepsake.
@@ -59,6 +59,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `dificultad.nivel` | `normal` | Guardians and monsters: `facil`, `normal`, `dificil` or `heroica`. |
 | `botin.reponer.activado` | `false` | Heraldia chests are restocked after a few days. |
 | `arena.activado` | `true` | The wave arena near spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Day the arena's weekly leaderboard closes and its champions are announced (at midnight, server time). |
 | `encargos.activado` | `true` | Job board quests (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputation per village and its discounts. |
 | `caravanas.activado` | `true` | Caravans along the roads (operators: `/heraldia caravan`). |

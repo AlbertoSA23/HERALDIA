@@ -13,7 +13,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - ⚔️ **Guardiões que lutam em fases.** Ao perder vida, eles se enfurecem e chamam reforços da própria estrutura, com barra de chefe enquanto durar o combate. Cada um solta seu próprio troféu.
 - ⛏️ **Minas.** Em encostas de verdade se abrem bocas de mina, acampamentos mineiros e complexos mineiros com torre de extração, em 3 tamanhos e no estilo de cada bioma, que descem a galerias com trilhos, cruzamentos e salas. As minas abandonadas do vanilla também ficam mais comuns.
 - 🔱 **Atlântida.** Só uma por mundo: uma cidade enorme afundada no oceano profundo, com salões secos, três selos com suas chaves e o Guardião de Poseidon, que guarda o maior tesouro de Heraldia.
-- 🏟️ **Arena de hordas.** Um coliseu perto do spawn: toque o sino e resista a hordas cada vez mais fortes, com um campeão a cada cinco hordas, recordes e recompensas. Se você cair na arena, mantém o seu inventário.
+- 🏟️ **Arena de hordas.** Um coliseu perto do spawn: toque o sino e resista a hordas cada vez mais fortes, com um campeão a cada cinco hordas, recordes e recompensas. Se você cair na arena, mantém o seu inventário. Três modos (cooperativo, contra o relógio e sobrevivência) com classificação semanal, `/heraldia arena leaderboard`: os campeões da semana anterior aparecem nas placas do hall da fama da arena e no Guia do Arauto.
 
 ## Como jogar
 
@@ -21,7 +21,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - 📊 **O que o servidor já encontrou.** `/heraldia status` mostra quantas vilas, estruturas únicas, estruturas médias e minas os jogadores descobriram, os guardiões derrotados, o recorde da arena e as tarefas entregues.
 - 📋 **Tarefas das vilas.** Toque no atril do quadro na praça de uma vila (ou use `/heraldia quest` ali): aparecem no chat de 2 a 4 tarefas (trazer itens, derrotar um guardião, explorar, viajar a uma vila vizinha, a arena) que mudam a cada poucos dias. Pagam esmeraldas, experiência e reputação com essa vila: como conhecido, amigo e herói da vila, seus aldeões baixam os preços em 10, 20 e 30 %. Atacar seus aldeões ou golens a faz cair.
 - 🐪 **Caravanas.** De vez em quando, perto de você, um mercador de Heraldia com suas lhamas (e às vezes um guarda) percorre a estrada entre duas vilas vizinhas. Se bandidos o atacarem, defenda-o: ao chegar, ele paga esmeraldas e reputação com a vila de destino. Se o mercador morrer, a caravana se perde.
-- 🏆 **Progressos.** Uma aba Heraldia com 101 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, as estruturas médias, o quadro de tarefas, a arena e as caravanas.
+- 🏆 **Progressos.** Uma aba Heraldia com 107 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, as estruturas médias, o quadro de tarefas, a arena e as caravanas.
 - 🗿 **Troféus.** Cada um dos 20 guardiões solta seu troféu, um item com nome e história. Reúna todos para completar a Sala de troféus.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única mais próxima do seu tipo. Eles aparecem nos baús épicos das vilas e os cartógrafos os vendem.
 - 🧭 **Caça ao tesouro.** Às vezes um baú traz um fragmento de mapa do tesouro. Use-o e ele vira um mapa com uma marca: cada marca é uma estrutura real de Heraldia que esconde a próxima pista, e a última leva a um baú enterrado por Ysolda, com bom saque e uma lembrança.
@@ -59,6 +59,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `dificultad.nivel` | `normal` | Guardiões e monstros: `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Os baús do Heraldia são repostos depois de alguns dias. |
 | `arena.activado` | `true` | A arena de hordas perto do spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Dia em que fecha a classificação semanal da arena e seus campeões são anunciados (à meia-noite, horário do servidor). |
 | `encargos.activado` | `true` | Tarefas do quadro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputação por vila e seus descontos. |
 | `caravanas.activado` | `true` | Caravanas pelas estradas (operadores: `/heraldia caravan`). |

@@ -324,7 +324,7 @@ Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión 
 
 ## Logros
 
-Pestaña de logros **Heraldia** (101 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
+Pestaña de logros **Heraldia** (107 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia, estructura única, mediana o entrada a mina.
 - [Entradas a mina](#entradas-a-mina), en cadena: **Bajo la ladera** (entrar en una boca de mina, 20), **Campamento minero** (en un campamento minero, 40) y **Señor de las galerías** (en un complejo minero, 80).
@@ -378,13 +378,21 @@ Un coliseo cerca del spawn, uno por mundo, para jugar por oleadas con los amigos
 
 **Botín y muerte.** Los enemigos no sueltan objetos y dan el `arena.experiencia_porcentaje` % (15) de la experiencia normal. Las recompensas son por oleadas: cada 5 superadas, objetos para cada participante (mejores en la 10, la 15 y desde la 20: lingotes, diamantes, manzanas de oro, equipo encantado; sin netherita ni élitros), y logros por superar la 5, la 10 y la 20. Si caes en el ruedo durante una partida, **conservas tu inventario y tu experiencia** y reapareces en la entrada.
 
+**Modos** (T41). La campana ofrece en el chat un botón por modo activado (`arena.modos.*`; con uno solo, empieza directamente); los botones mandan `/heraldia arena start coop|timeattack|survival`, que cualquier jugador puede usar desde el ruedo (los operadores y la consola, desde donde sea). Los tres guardan las reglas de siempre: sin botín, 15 % de experiencia, inventario conservado, mini-jefe cada 5 oleadas, dificultad y perfil.
+- **Cooperativo** (`coop`): el de siempre, sin cambios: oleadas sin fin con 10 s de pausa; puntúa la oleada superada y su récord sigue en el marcador lateral (`heraldia_arena`).
+- **Contrarreloj** (`timeattack`): `arena.modos.oleadas_contrarreloj` oleadas (10) contra el reloj, con 5 s de pausa; la partida acaba sola tras la última y puntúa el tiempo (de la primera oleada a la última superada; la cuenta atrás no cuenta). La barra de jefe dice la oleada, los enemigos que quedan y el tiempo.
+- **Supervivencia** (`survival`): oleadas sin pausa (la siguiente empieza al superar la anterior) hasta que caen todos; puntúa la oleada más alta superada.
+
+**Clasificación semanal y salón de la fama.** La marca de cada participante (oleadas superadas y tiempo) entra en la clasificación de la semana de su modo cuando su partida acaba (al caer, al salir o al terminar): una por jugador, la mejor; primero más oleadas, luego menos tiempo, luego antes. `/heraldia arena leaderboard [modo [semana]]` (cualquiera) enseña las 3 primeras de cada modo (o las 10 de uno) y el récord de siempre; `semana` es cuántas semanas atrás (`0`, la en curso). La semana se cierra el `arena.temporada.dia_reinicio` a la hora `arena.temporada.hora_reinicio` (lunes a las 00:00 por defecto, hora del servidor; si el servidor estaba apagado, al arrancar) o con `/heraldia arena season reset` (operadores; `/heraldia arena season` dice la semana en curso y el próximo reinicio): se anuncian sus campeones en el chat, ganan su logro (los que no están, al entrar) y salen en el **salón de la fama**: tres carteles de madera carmesí (no arde) en el paseo junto a la entrada, uno por modo, y dos páginas de la Guía del Heraldo (campeones de la semana anterior y récords). Se guardan en el mundo las últimas `arena.temporada.historico` semanas cerradas (8). Seis logros: terminar un contrarreloj de 10 oleadas, hacerlo en menos de 15 minutos, superar la oleada 15 en supervivencia y ganar una semana en cada modo (107 en la pestaña). **En un mundo existente**: una arena colocada antes recibe sus carteles si su sitio (el del plano de la arena) está vacío y con suelo; si hay otra cosa, no se toca. El récord anterior del marcador lateral pasa a ser el del cooperativo (una vez, al arrancar por primera vez con esta versión).
+
 **Protección.** Nadie que no sea operador puede romper, colocar ni usar bloques de la arena (salvo la campana) ni usar cubos cerca de ella, y durante una partida no se pueden lanzar perlas de ender en el ruedo. Las explosiones (creepers, TNT, bolas de fuego), los pistones y los endermen no la tocan, y el fuego no prende en ella (todos sus materiales son de piedra, cristal o metal). Solo dentro de su caja; fuera, todo es normal.
 
 **Colocarla** (operadores, nivel 2):
 
 - `/heraldia arena place`: busca un sitio llano, sin agua y sin estructuras ya generadas (aldeas, entradas de mina, únicas, las de otros mods; las subterráneas no cuentan) a 200-300 bloques del spawn del mundo (sin cargar ni generar chunks), dice sus coordenadas y marca sus esquinas y su centro con columnas de partículas durante 5 minutos. `/heraldia arena place confirm` la construye: **despeja y nivela el terreno** (lo que haya encima, también construcciones, se pierde), así que **haz antes una copia de seguridad del mundo**. Se construye por partes, un chunk por tick (unos 3 s).
 - `/heraldia arena move` y `mover confirmar`: igual, quitando la vieja. `/heraldia arena remove` y `quitar confirmar`: la quita (el terreno queda llano).
-- `/heraldia arena start` y `/heraldia arena stop`: empiezan o detienen una partida.
+- `/heraldia arena start [coop|timeattack|survival]` y `/heraldia arena stop`: empiezan (sin modo, la cooperativa) o detienen una partida.
+- `/heraldia arena season` y `season reset`: la semana en curso y su próximo reinicio; la cierran ya (campeones, carteles y logros).
 - `/heraldia arena` (cualquiera): dónde está, si hay partida y los récords.
 
 En un **mundo nuevo** se construye sola al arrancar por primera vez (`arena.generar_en_mundos_nuevos`); en un **mundo ya existente**, solo si un operador la coloca. Coste: sin partida, obra ni propuesta, nada por tick (tres comprobaciones); la protección, una AABB en memoria por bloque y salida temprana sin arena; la partida, un repaso por segundo de sus participantes y sus enemigos.

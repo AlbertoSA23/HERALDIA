@@ -126,14 +126,14 @@ def cifras():
     class _Reg:     # todas las únicas tienen guardián (el de la Atlántida incluido)
         templates = {f"unicas/{sid}/x": _Plantilla(sid) for sid, _ in MODS}
     advs, _ = logros.build(_Reg, MODS, medianas.modules(), minas)
-    logros_n = len(advs) + len(tablon.LOGROS) + len(arena_oleadas.LOGROS) + len(encargos.LOGROS) + len(caravanas.LOGROS)
+    logros_n = len(advs) + len(tablon.LOGROS) + len(arena_oleadas.logros()) + len(encargos.LOGROS) + len(caravanas.LOGROS)
     return {"estructuras": estructuras, "logros": logros_n}
 
 
 def test_cifras_del_generador():
     c = cifras()
     # las que se comprueban también en el servidor (server_smoke.py cuenta los ficheros generados)
-    assert c == {"estructuras": 142, "logros": 101}, "si cambian, cámbialas en los README y en docs/"
+    assert c == {"estructuras": 142, "logros": 107}, "si cambian, cámbialas en los README y en docs/"
 
 
 def test_cifras_del_readme():

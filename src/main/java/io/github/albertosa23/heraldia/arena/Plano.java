@@ -27,9 +27,12 @@ import java.util.List;
  * @param puerta     esquinas mínima y máxima de la puerta (rejas mientras dura una partida)
  * @param reaparicion sitio (pies) donde reaparece quien cae y adonde va quien sale
  * @param jefes      nombres de mini-jefe que hay (heraldia.arena.jefe.0..n-1)
+ * @param fama       sitios (pies) de los carteles del salón de la fama, uno por modo en el orden de {@link Modo} (T41;
+ *                   vacío en un plano anterior)
+ * @param famaRotacion rotación (0-15) de esos carteles de pie
  */
 public record Plano(String plantilla, int[] tamano, int suelo, int[] centro, int radio, int[] ruedoY, List<int[]> puntos,
-		int[] campana, int[][] puerta, int[] reaparicion, int jefes) {
+		int[] campana, int[][] puerta, int[] reaparicion, int jefes, List<int[]> fama, int famaRotacion) {
 
 	public static Plano leer(Reader r) {
 		JsonObject o = JsonParser.parseReader(r).getAsJsonObject();
@@ -38,11 +41,18 @@ public record Plano(String plantilla, int[] tamano, int suelo, int[] centro, int
 			puntos.add(ints(e.getAsJsonArray()));
 		}
 		JsonArray puerta = o.getAsJsonArray("puerta");
+		List<int[]> fama = new ArrayList<>();
+		if (o.has("fama")) {
+			for (JsonElement e : o.getAsJsonArray("fama")) {
+				fama.add(ints(e.getAsJsonArray()));
+			}
+		}
 		return new Plano(o.get("plantilla").getAsString(), ints(o.getAsJsonArray("tamano")), o.get("suelo").getAsInt(),
 				ints(o.getAsJsonArray("centro")), o.get("radio_ruedo").getAsInt(), ints(o.getAsJsonArray("ruedo_y")),
 				List.copyOf(puntos), ints(o.getAsJsonArray("campana")),
 				new int[][] {ints(puerta.get(0).getAsJsonArray()), ints(puerta.get(1).getAsJsonArray())},
-				ints(o.getAsJsonArray("reaparicion")), o.has("jefes") ? o.get("jefes").getAsInt() : 1);
+				ints(o.getAsJsonArray("reaparicion")), o.has("jefes") ? o.get("jefes").getAsInt() : 1, List.copyOf(fama),
+				o.has("fama_rotacion") ? o.get("fama_rotacion").getAsInt() : 0);
 	}
 
 	/** El del .jar (heraldia/arena.json). */

@@ -13,7 +13,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 - ⚔️ **Gardiáns que loitan por fases.** Ao perderen vida enfurécense e chaman reforzos da súa propia estrutura, cunha barra de xefe mentres dura o combate. Cada un solta o seu propio trofeo.
 - ⛏️ **Minas.** En ladeiras de verdade ábrense bocaminas, campamentos mineiros e complexos mineiros con castelete, en 3 tamaños e co estilo de cada bioma, que baixan a galerías con vías, cruces e salas. Ademais, as minas abandonadas vanilla son máis frecuentes.
 - 🔱 **A Atlántida.** Só unha por mundo: unha cidade enorme afundida no océano profundo, con salas secas, tres selos coas súas chaves e o Gardián de Poseidón, custodio do maior tesouro de Heraldia.
-- 🏟️ **Area de vagas.** Un coliseo preto do punto de aparición: toca a campá e resiste vagas cada vez máis fortes, cun campión cada cinco vagas, récords e recompensas. Se caes no redondel, conservas o inventario.
+- 🏟️ **Area de vagas.** Un coliseo preto do punto de aparición: toca a campá e resiste vagas cada vez máis fortes, cun campión cada cinco vagas, récords e recompensas. Se caes no redondel, conservas o inventario. Tres modos (cooperativo, contrarreloxo e supervivencia) con clasificación semanal, `/heraldia arena leaderboard`: os campións da semana anterior saen nos carteis do salón da fama da area e na Guía do Heraldo.
 
 ## Como se xoga
 
@@ -21,7 +21,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 - 📊 **O que atopou o servidor.** `/heraldia status` di cantas aldeas, estruturas únicas, estruturas medianas e minas descubriron os xogadores, os gardiáns vencidos, o récord da area e os encargos entregados.
 - 📋 **Encargos das aldeas.** Toca o atril do taboleiro da praza dunha aldea (ou usa alí `/heraldia quest`): saen no chat de 2 a 4 encargos (traer obxectos, vencer un gardián, explorar, viaxar a unha aldea veciña, a area) que cambian cada poucos días. Pagan esmeraldas, experiencia e reputación con esa aldea: como coñecido, amigo e heroe da aldea, os seus aldeáns rebaixan os prezos un 10, 20 e 30 %. Atacar os seus aldeáns ou gólems faina baixar.
 - 🐪 **Caravanas.** De cando en vez, preto de ti, un mercador de Heraldia coas súas llamas (e ás veces un garda) percorre o camiño entre dúas aldeas veciñas. Se o asaltan os bandidos, defendeo: ao chegar págache esmeraldas e reputación coa súa aldea de destino. Se o mercador morre, a caravana pérdese.
-- 🏆 **Logros.** Unha lapela Heraldia con 101 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos, a area e as caravanas.
+- 🏆 **Logros.** Unha lapela Heraldia con 107 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos, a area e as caravanas.
 - 🗿 **Trofeos.** Cada un dos 20 gardiáns solta o seu trofeo, un obxecto con nome e historia. Reúneos todos para completar a Sala de trofeos.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única máis próxima do seu tipo. Saen nos cofres épicos das aldeas e véndenos os cartógrafos.
 - 🧭 **Busca do tesouro.** Ás veces un cofre garda un fragmento de mapa do tesouro. Úsao e volverase un mapa cunha marca: cada marca é unha estrutura real de Heraldia que agocha a seguinte pista, e a última leva a un cofre que enterrou Ysolda, con bo botín e unha lembranza.
@@ -59,6 +59,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `dificultad.nivel` | `normal` | Gardiáns e monstros: `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Os cofres de Heraldia vólvense encher ao cabo duns días. |
 | `arena.activado` | `true` | A area de vagas preto do punto de aparición. |
+| `arena.temporada.dia_reinicio` | `lunes` | Día no que se pecha a clasificación semanal da area e se anuncian os seus campións (á medianoite, hora do servidor). |
 | `encargos.activado` | `true` | Encargos do taboleiro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea e os seus descontos. |
 | `caravanas.activado` | `true` | Caravanas polos camiños (operadores: `/heraldia caravan`). |
