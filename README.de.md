@@ -14,7 +14,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 - ⛏️ **Minen.** An echten Hängen öffnen sich Stolleneingänge, Bergbaulager und Bergbauanlagen mit Förderturm, in 3 Größen und im Stil des jeweiligen Bioms, und führen hinab zu Stollen mit Gleisen, Kreuzungen und Kammern. Auch verlassene Vanilla-Minen sind häufiger.
 - 🗼 **Leuchttürme und Wracks.** Leuchttürme auf festem Boden am Meer mit stets brennendem Licht, dem Haus des Wärters und einem Steg, und zerbrochene Galeonen, am Strand auf Grund gelaufen oder halb versunken im seichten Wasser, mit Laderaum und Kapitänskajüte. Jeweils im Stil ihrer Küste: gemäßigt, warm, kalt oder verschneit.
 - 🔱 **Atlantis.** Nur eines pro Welt: eine riesige Stadt, versunken im tiefen Ozean, mit trockenen Hallen, drei Siegeln samt Schlüsseln und dem Hüter des Poseidon, der den größten Schatz von Heraldia bewacht.
-- 🏟️ **Wellenarena.** Ein Kolosseum nahe dem Spawn: Läute die Glocke und halte immer stärkeren Wellen stand, mit einem Champion in jeder fünften Welle, Rekorden und Belohnungen. Fällst du im Rund, behältst du dein Inventar.
+- 🏟️ **Wellenarena.** Ein Kolosseum nahe dem Spawn: Läute die Glocke und halte immer stärkeren Wellen stand, mit einem Champion in jeder fünften Welle, Rekorden und Belohnungen. Fällst du im Rund, behältst du dein Inventar. Drei Modi (Koop, Zeitrennen und Überleben) mit einer Wochenrangliste, `/heraldia arena leaderboard`: Die Champions der Vorwoche stehen auf den Schildern der Ruhmeshalle der Arena und im Leitfaden des Herolds.
 
 ## So spielst du
 
@@ -22,7 +22,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 - 📊 **Was der Server gefunden hat.** `/heraldia status` zeigt, wie viele Dörfer, einzigartige und mittelgroße Bauwerke und Minen die Spieler entdeckt haben, die besiegten Wächter, den Arenarekord und die abgegebenen Aufträge.
 - 📋 **Dorfaufträge.** Berühre das Pult des Auftragsbretts auf einem Dorfplatz (oder nutze dort `/heraldia quest`): 2 bis 4 Aufträge erscheinen im Chat (Gegenstände bringen, einen Wächter besiegen, erkunden, ins Nachbardorf reisen, die Arena) und wechseln alle paar Tage. Sie zahlen Smaragde, Erfahrung und Ruf bei diesem Dorf: als Bekannter, Freund und Held des Dorfes senken seine Dorfbewohner ihre Preise um 10, 20 und 30 %. Wer seine Dorfbewohner oder Golems angreift, verliert Ruf.
 - 🐪 **Karawanen.** Ab und zu zieht in deiner Nähe ein Händler von Heraldia mit seinen Lamas (und manchmal einer Wache) über den Weg zwischen zwei benachbarten Dörfern. Überfallen ihn Banditen, verteidige ihn: Bei der Ankunft zahlt er Smaragde und Ruf bei seinem Zieldorf. Stirbt der Händler, ist die Karawane verloren.
-- 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 104 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die Leuchttürme und Wracks, die mittelgroßen Bauwerke, das Auftragsbrett, die Arena und die Karawanen.
+- 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 110 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die Leuchttürme und Wracks, die mittelgroßen Bauwerke, das Auftragsbrett, die Arena und die Karawanen.
 - 🗿 **Trophäen.** Jeder der 20 Hüter lässt seine Trophäe fallen, einen Gegenstand mit Namen und Geschichte. Sammle sie alle, um den Trophäensaal zu vervollständigen.
 - 🗺️ **Schatzkarten.** Jede Karte zeigt das nächstgelegene einzigartige Bauwerk ihrer Art. Du findest sie in den epischen Truhen der Dörfer, und die Kartografen verkaufen sie.
 - 🧭 **Schatzsuche.** Manchmal liegt in einer Truhe ein Schatzkartenfragment. Benutze es, und es wird eine Karte mit einer Markierung: Jede Markierung ist ein echtes Heraldia-Bauwerk, das den nächsten Hinweis verbirgt, und die letzte führt zu einer von Ysolda vergrabenen Truhe mit guter Beute und einem Andenken.
@@ -61,6 +61,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `dificultad.nivel` | `normal` | Hüter und Monster: `facil`, `normal`, `dificil` oder `heroica`. |
 | `botin.reponer.activado` | `false` | Heraldia-Truhen füllen sich nach einigen Tagen wieder auf. |
 | `arena.activado` | `true` | Die Wellenarena nahe dem Spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Tag, an dem die Wochenrangliste der Arena endet und ihre Champions verkündet werden (um Mitternacht, Serverzeit). |
 | `encargos.activado` | `true` | Aufträge des Auftragsbretts (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Ruf je Dorf und seine Rabatte. |
 | `caravanas.activado` | `true` | Karawanen auf den Wegen (Operatoren: `/heraldia caravan`). |

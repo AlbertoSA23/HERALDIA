@@ -150,7 +150,8 @@ public final class Guia {
 		long t0 = System.nanoTime();
 		Map<String, String> textos = Textos.idioma(player.clientInformation().language());
 		String version = version();
-		ItemStack libro = libro(DATOS, textos, unicas(player), version);
+		List<Map.Entry<String, Component>> fama = io.github.albertosa23.heraldia.arena.Fama.paginas(player.level().getServer(), textos);
+		ItemStack libro = libro(DATOS, textos, unicas(player), version, fama);
 		Inventory inv = player.getInventory();
 		boolean cambiada = false;
 		for (int i = 0; i < inv.getContainerSize() && !cambiada; i++) {
@@ -196,8 +197,14 @@ public final class Guia {
 
 	/** El libro: written_book con su nombre, la edición en el lore y la marca (custom_data) de la guía. */
 	static ItemStack libro(Datos datos, Map<String, String> textos, List<Unica> unicas, String version) {
+		return libro(datos, textos, unicas, version, List.of());
+	}
+
+	/** El libro con las páginas del salón de la fama de la arena (T41: título y cuerpo, tras el resumen del diario). */
+	static ItemStack libro(Datos datos, Map<String, String> textos, List<Unica> unicas, String version,
+			List<Map.Entry<String, Component>> fama) {
 		ItemStack stack = new ItemStack(Items.WRITTEN_BOOK);
-		List<Filterable<Component>> paginas = paginas(datos, textos, unicas).stream().map(Filterable::passThrough).toList();
+		List<Filterable<Component>> paginas = paginas(datos, textos, unicas, fama).stream().map(Filterable::passThrough).toList();
 		String titulo = textos.getOrDefault(CLAVE + "nombre", "Guía del Heraldo");
 		stack.set(DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContent(Filterable.passThrough(titulo), datos.autor(), 0,
 				paginas, true));
@@ -218,6 +225,12 @@ public final class Guia {
 	 * que faltan, en páginas de datos.nombresPorPagina() y datos.pistasPorPagina() entradas.
 	 */
 	static List<Component> paginas(Datos datos, Map<String, String> textos, List<Unica> unicas) {
+		return paginas(datos, textos, unicas, List.of());
+	}
+
+	/** Lo mismo con las páginas del salón de la fama de la arena (tras el resumen del diario). */
+	static List<Component> paginas(Datos datos, Map<String, String> textos, List<Unica> unicas,
+			List<Map.Entry<String, Component>> fama) {
 		List<Component> out = new ArrayList<>();
 		for (String p : datos.paginas()) {
 			out.add(pagina(textos, CLAVE + "pagina." + p + ".titulo", Textos.t(textos, CLAVE + "pagina." + p)));
@@ -230,6 +243,9 @@ public final class Guia {
 				.append(Textos.t(textos, CLAVE + "resumen", hechas.size(), unicas.size()))
 				.append("\n\n")
 				.append(Textos.t(textos, CLAVE + cola, faltan.size()))));
+		for (Map.Entry<String, Component> f : fama) {
+			out.add(pagina(textos, f.getKey(), f.getValue()));
+		}
 		lista(out, textos, "descubiertas", hechas, datos.nombresPorPagina(),
 				sid -> Textos.t(textos, CLAVE + "descubierta", Textos.t(textos, nombreClave(sid))));
 		lista(out, textos, "pistas", faltan, datos.pistasPorPagina(),
@@ -252,7 +268,7 @@ public final class Guia {
 	}
 
 	/** «título (negrita)\n\ncuerpo»: lo que mide tools/gen/guia.lineas_pagina. */
-	private static Component pagina(Map<String, String> textos, String titulo, Component cuerpo) {
+	static Component pagina(Map<String, String> textos, String titulo, Component cuerpo) {
 		return Component.empty()
 				.append(Textos.t(textos, titulo).withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_RED))
 				.append("\n\n")

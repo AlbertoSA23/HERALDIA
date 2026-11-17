@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import io.github.albertosa23.heraldia.Heraldia;
 import io.github.albertosa23.heraldia.comando.Textos;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
@@ -69,6 +70,7 @@ public final class Arena {
 	private static @Nullable Plano plano;
 	private static volatile @Nullable Zona zona;
 	private static @Nullable ServerLevel nivel;
+	private static @Nullable MinecraftServer servidor;
 	private static boolean activada;
 
 	/** Un sitio propuesto que espera confirmación (o se coloca solo, en un mundo nuevo). */
@@ -83,13 +85,24 @@ public final class Arena {
 	public static void registrar() {
 		plano = Plano.delJar();
 		Guardada.Tipo.ARENA.identifier();   // registra los adjuntos al arrancar
+		Fama.registrarAdjunto();
 		ServerLifecycleEvents.SERVER_STARTED.register(Arena::alArrancar);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			Juego.alParar();
+			Fama.alParar();
 			zona = null;
 			nivel = null;
+			servidor = null;
 			propuesta = null;
 		});
+		// los logros de campeón de las semanas que se cerraron sin él (en la cola del servidor: Carpet carga los datos
+		// del jugador falso después del JOIN; ver comando/Guia)
+		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+				server.schedule(server.wrapRunnable(() -> {
+					if (activada && !handler.player.hasDisconnected()) {
+						Fama.alEntrar(handler.player);
+					}
+				})));
 		ServerTickEvents.END_SERVER_TICK.register(Arena::tick);
 		ServerEntityEvents.ENTITY_LOAD.register(Juego::alCargar);
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> Juego.alMorir(entity));
@@ -118,6 +131,15 @@ public final class Arena {
 		return nivel;
 	}
 
+	static @Nullable MinecraftServer servidor() {
+		return servidor;
+	}
+
+	/** ¿Arena activada (arena.activado)? */
+	public static boolean activada() {
+		return activada;
+	}
+
 	static void fijarZona(@Nullable Zona z) {
 		zona = z;
 	}
@@ -128,6 +150,9 @@ public final class Arena {
 		level.setAttached(Guardada.Tipo.ARENA, g.conOrigen(z == null ? null : new BlockPos(z.ox(), z.oy(), z.oz())));
 		nivel = level;
 		zona = z;
+		if (z != null) {
+			Fama.carteles(level.getServer());   // el salón de la fama de la arena recién colocada
+		}
 		io.github.albertosa23.heraldia.mapas.MapasWeb.programar();   // su marcador en los mapas web (si hay)
 	}
 
@@ -243,8 +268,10 @@ public final class Arena {
 
 	private static void alArrancar(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
+		servidor = server;
 		activada = cfg.getBool("arena.activado");
 		Juego.configurar(cfg);
+		Fama.configurar(cfg);
 		ServerLevel ow = server.overworld();
 		Guardada g = Optional.ofNullable(ow.getAttached(Guardada.Tipo.ARENA)).orElse(Guardada.VACIA);
 		if (!activada) {
@@ -254,7 +281,9 @@ public final class Arena {
 		Marcador.objetivo(server);
 		if (g.origen().isPresent()) {
 			cargar(ow, g.origen().get());
-		} else if (!g.decidida()) {
+		}
+		Fama.alArrancar(server);          // migración de los récords, cierre de la semana y carteles
+		if (g.origen().isEmpty() && !g.decidida()) {
 			boolean nuevo = ow.getGameTime() < MUNDO_NUEVO_TICKS;
 			ow.setAttached(Guardada.Tipo.ARENA, g.decidir());
 			if (nuevo && cfg.getBool("arena.generar_en_mundos_nuevos")) {
@@ -281,10 +310,14 @@ public final class Arena {
 	 * siguen con lo que empezaron) y devuelve false: se aplica con otra recarga al acabar.
 	 */
 	public static boolean recargar(MinecraftServer server) {
+		HeraldiaConfig cfg = HeraldiaConfig.get();
+		Fama.configurar(cfg);              // la semana (día, hora, histórico) se aplica aunque haya partida
+		if (activada) {
+			Fama.recargar(server);
+		}
 		if (Juego.partida().estado() != Partida.Estado.LIBRE) {
 			return false;
 		}
-		HeraldiaConfig cfg = HeraldiaConfig.get();
 		boolean antes = activada;
 		activada = cfg.getBool("arena.activado");
 		Juego.configurar(cfg);
@@ -292,6 +325,7 @@ public final class Arena {
 		if (activada && !antes) {
 			Marcador.objetivo(server);
 			Optional.ofNullable(ow.getAttached(Guardada.Tipo.ARENA)).flatMap(Guardada::origen).ifPresent(o -> cargar(ow, o));
+			Fama.alArrancar(server);
 		} else if (!activada && antes) {
 			zona = null;                         // sin partidas ni protección, como si arrancara desactivada
 			nivel = null;
@@ -314,6 +348,9 @@ public final class Arena {
 	private static void tick(MinecraftServer server) {
 		Obras.tick(server);
 		Juego.tick(server);
+		if (activada) {
+			Fama.tick(server);               // una comparación por minuto
+		}
 		Propuesta pr = propuesta;
 		if (pr != null && server.getTickCount() % CADA_PARTICULAS == 0) {
 			if (server.overworld().getGameTime() > pr.hasta()) {
@@ -406,7 +443,11 @@ public final class Arena {
 
 	// --- comandos ---
 
-	/** /heraldia arena [leave | place [confirm] | move [confirm] | remove [confirm] | start | stop] (lo registra comando/Comandos). */
+	/**
+	 * /heraldia arena [leave | leaderboard [modo [semana]] | place [confirm] | move [confirm] | remove [confirm] |
+	 * start [coop | timeattack | survival] | stop | season [reset]] (lo registra comando/Comandos). start lo puede usar
+	 * cualquiera desde el ruedo (los botones del menú de modos de la campana); los operadores y la consola, desde donde sea.
+	 */
 	public static LiteralArgumentBuilder<CommandSourceStack> nodo() {
 		return Commands.literal("arena")
 				.executes(Arena::info)
@@ -424,7 +465,8 @@ public final class Arena {
 						.then(Commands.literal("confirm").executes(ctx -> confirmar(ctx, true))))
 				.then(Commands.literal("remove").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(Arena::quitarAviso)
 						.then(Commands.literal("confirm").executes(Arena::quitar)))
-				.then(Commands.literal("start").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(Arena::empezarCmd))
+				.then(Fama.leaderboard())
+				.then(empezarNodo())
 				.then(Commands.literal("stop").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> {
 					if (Juego.partida().estado() == Partida.Estado.LIBRE) {
 						ctx.getSource().sendFailure(Textos.t("heraldia.arena.info.libre"));
@@ -433,7 +475,16 @@ public final class Arena {
 					Juego.terminar(nivel, zona, "parada por un operador");
 					ctx.getSource().sendSuccess(() -> Textos.t("heraldia.arena.parada"), true);
 					return 1;
-				}));
+				}))
+				.then(Fama.season());
+	}
+
+	private static LiteralArgumentBuilder<CommandSourceStack> empezarNodo() {
+		LiteralArgumentBuilder<CommandSourceStack> n = Commands.literal("start").executes(ctx -> empezarCmd(ctx, null));
+		for (Modo m : Modo.values()) {
+			n.then(Commands.literal(m.id()).executes(ctx -> empezarCmd(ctx, m)));
+		}
+		return n;
 	}
 
 	private static boolean comprobar(CommandSourceStack src, boolean libre) {
@@ -462,7 +513,8 @@ public final class Arena {
 		src.sendSuccess(() -> Textos.t("heraldia.arena.info", z.columnaX(), z.sueloY() + 1, z.columnaZ()).withStyle(ChatFormatting.GOLD), false);
 		Partida pa = Juego.partida();
 		src.sendSuccess(() -> pa.estado() == Partida.Estado.LIBRE ? Textos.t("heraldia.arena.info.libre")
-				: Textos.t("heraldia.arena.info.partida", Math.max(1, pa.oleada()), pa.participantes().size()), false);
+				: Textos.t("heraldia.arena.info.partida.modo", Textos.t(pa.modo().texto()), Math.max(1, pa.oleada()),
+						pa.participantes().size()), false);
 		ServerPlayer p = src.getPlayer();
 		MinecraftServer server = src.getServer();
 		int propio = p == null ? 0 : Marcador.leer(server, p.getScoreboardName());
@@ -541,7 +593,12 @@ public final class Arena {
 		return Obras.empezar(src.getServer().overworld(), z, null, src.getPlayer()) ? 1 : 0;
 	}
 
-	private static int empezarCmd(CommandContext<CommandSourceStack> ctx) {
+	/**
+	 * /heraldia arena start [modo]. Un operador (o la consola) la empieza desde donde sea (sin modo: la cooperativa, como
+	 * siempre, o el primer modo activado). Cualquier otro jugador, solo desde el ruedo (son los botones del menú de la
+	 * campana); sin modo, le enseña ese menú.
+	 */
+	private static int empezarCmd(CommandContext<CommandSourceStack> ctx, @Nullable Modo modo) {
 		CommandSourceStack src = ctx.getSource();
 		Zona z = zona;
 		if (!comprobar(src, false) || z == null || nivel == null) {
@@ -550,11 +607,38 @@ public final class Arena {
 			}
 			return 0;
 		}
-		if (!Juego.empezar(nivel, z, src.getTextName())) {
+		boolean op = Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(src);
+		ServerPlayer p = src.getPlayer();
+		if (!op && (p == null || p.level() != nivel || !p.isAlive() || p.isSpectator() || !z.enRuedo(p.getX(), p.getY(), p.getZ()))) {
+			src.sendFailure(Textos.t("heraldia.arena.modo.ruedo"));
+			return 0;
+		}
+		if (Juego.partida().estado() != Partida.Estado.LIBRE) {
 			src.sendFailure(Textos.t("heraldia.arena.en_marcha"));
 			return 0;
 		}
-		src.sendSuccess(() -> Textos.t("heraldia.arena.cuenta"), false);
+		List<Modo> activos = Juego.modos();
+		if (activos.isEmpty()) {
+			src.sendFailure(Textos.t("heraldia.arena.modo.ninguno"));
+			return 0;
+		}
+		if (modo == null) {
+			if (!op && activos.size() > 1) {
+				Juego.menu(p);
+				return 1;
+			}
+			modo = activos.contains(Modo.COOPERATIVO) ? Modo.COOPERATIVO : activos.get(0);
+		}
+		if (!Juego.activado(modo)) {
+			src.sendFailure(Textos.t("heraldia.arena.modo.desactivado", Textos.t(modo.texto())));
+			return 0;
+		}
+		Modo m = modo;
+		if (!Juego.empezar(nivel, z, src.getTextName(), m)) {
+			src.sendFailure(Textos.t("heraldia.arena.en_marcha"));
+			return 0;
+		}
+		src.sendSuccess(() -> Textos.t("heraldia.arena.cuenta.modo", Textos.t(m.texto())), false);
 		return 1;
 	}
 

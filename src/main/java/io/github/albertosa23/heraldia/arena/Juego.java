@@ -78,6 +78,11 @@ final class Juego {
 	/** Experiencia de la oleada en curso: la que daría vanilla y la que se da (para el log). */
 	private static long xpVanilla, xpDada;
 	private static int mobsPct = 50, statsPct = 10, maxVivos = 20, xpPct = 15;
+	/** Modos activados (arena.modos.*) y oleadas del contrarreloj (arena.modos.oleadas_contrarreloj). */
+	private static java.util.EnumSet<Modo> modos = java.util.EnumSet.allOf(Modo.class);
+	private static int oleadasContrarreloj = 10;
+	/** Nombre de cada participante de la partida en curso (para su marca aunque se desconecte). */
+	private static final Map<UUID, String> NOMBRES = new HashMap<>();
 
 	private Juego() {
 	}
@@ -93,8 +98,30 @@ final class Juego {
 		}
 		maxVivos = cfg.getInt("arena.max_mobs_vivos");
 		xpPct = cfg.getInt("arena.experiencia_porcentaje");
+		java.util.EnumSet<Modo> m = java.util.EnumSet.noneOf(Modo.class);
+		for (Modo x : Modo.values()) {
+			if (cfg.getBool(x.opcion())) {
+				m.add(x);
+			}
+		}
+		modos = m;
+		oleadasContrarreloj = cfg.getInt("arena.modos.oleadas_contrarreloj");
 		partida = new Partida(mobsPct);
 		MOBS.clear();
+		NOMBRES.clear();
+	}
+
+	/** Modos activados, en orden (cooperativo, contrarreloj, supervivencia). */
+	static java.util.List<Modo> modos() {
+		return List.copyOf(modos);
+	}
+
+	static boolean activado(Modo m) {
+		return modos.contains(m);
+	}
+
+	static int oleadasContrarreloj() {
+		return oleadasContrarreloj;
 	}
 
 	static Partida partida() {
@@ -112,22 +139,60 @@ final class Juego {
 
 	// --- empezar y acabar ---
 
-	/** Alguien toca la campana. */
+	/**
+	 * Alguien toca la campana: con un solo modo activado empieza su cuenta atrás (como siempre); con varios, le ofrece en
+	 * el chat un botón por modo (/heraldia arena start &lt;modo&gt;, que puede usar cualquiera desde el ruedo).
+	 */
 	static void campana(ServerPlayer p, Zona z) {
 		if (partida.estado() != Partida.Estado.LIBRE) {
 			p.sendOverlayMessage(Textos.t("heraldia.arena.en_marcha"));
 			return;
 		}
-		empezar((ServerLevel) p.level(), z, p.getGameProfile().name());
+		List<Modo> activos = modos();
+		if (activos.isEmpty()) {
+			p.sendOverlayMessage(Textos.t("heraldia.arena.modo.ninguno").withStyle(ChatFormatting.RED));
+			return;
+		}
+		if (activos.size() == 1) {
+			empezar((ServerLevel) p.level(), z, p.getGameProfile().name(), activos.get(0));
+			return;
+		}
+		menu(p);
 	}
 
-	/** Empieza la cuenta atrás (con la campana o con /heraldia arena start). Falso si ya hay partida. */
+	/** El menú de modos en el chat: un botón por modo activado (lo escribe en el log para las pruebas). */
+	static void menu(ServerPlayer p) {
+		java.util.Map<String, String> textos = Textos.idioma(p.clientInformation().language());
+		net.minecraft.network.chat.MutableComponent linea = Component.empty();
+		for (Modo m : modos()) {
+			String orden = "/heraldia arena start " + m.id();
+			linea.append(Component.literal("[").append(Textos.t(textos, m.texto())).append("]").withStyle(s -> s
+					.withColor(ChatFormatting.GREEN).withBold(true)
+					.withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand(orden))
+					.withHoverEvent(new net.minecraft.network.chat.HoverEvent.ShowText(
+							Textos.t(textos, m.texto() + ".ayuda", oleadasContrarreloj)))));
+			linea.append(" ");
+		}
+		p.sendSystemMessage(Textos.t(textos, "heraldia.arena.modo.elige").withStyle(ChatFormatting.GOLD));
+		p.sendSystemMessage(linea);
+		LOGGER.info("Heraldia: arena: {} elige modo ({})", p.getGameProfile().name(),
+				String.join(", ", modos().stream().map(Modo::id).toList()));
+	}
+
+	/** Empieza la cuenta atrás de una partida cooperativa (/heraldia arena start sin modo). */
 	static boolean empezar(ServerLevel level, Zona z, String quien) {
-		if (!partida.empezar()) {
+		return empezar(level, z, quien, Modo.COOPERATIVO);
+	}
+
+	/** Empieza la cuenta atrás (con la campana o con /heraldia arena start [modo]). Falso si ya hay partida. */
+	static boolean empezar(ServerLevel level, Zona z, String quien, Modo modo) {
+		if (!partida.empezar(modo, oleadasContrarreloj)) {
 			return false;
 		}
+		NOMBRES.clear();
 		puerta(level, z, true);
-		LOGGER.info("Heraldia: arena: cuenta atrás (la empieza {})", quien);
+		LOGGER.info("Heraldia: arena: cuenta atrás (la empieza {}, modo {}{})", quien, modo.id(),
+				modo == Modo.CONTRARRELOJ ? ", " + partida.objetivo() + " oleadas" : "");
 		for (ServerPlayer p : enRuedo(level, z)) {
 			titulo(p, Component.literal(String.valueOf(partida.segundos())).withStyle(ChatFormatting.GOLD),
 					Textos.t("heraldia.arena.cuenta"));
@@ -142,6 +207,15 @@ final class Juego {
 			return;
 		}
 		int superadas = partida.superadas();
+		Modo modo = partida.modo();
+		boolean completada = partida.completada();
+		long tiempo = partida.ticksSuperada();
+		MinecraftServer server = level != null ? level.getServer() : Arena.servidor();
+		if (partida.enJuego() && server != null) {
+			for (UUID u : partida.participantes()) {
+				marca(server, u);                 // los que siguen en el ruedo (los que salieron ya tienen la suya)
+			}
+		}
 		for (Mob m : MOBS.values()) {
 			m.discard();
 		}
@@ -152,7 +226,9 @@ final class Juego {
 				m.discard();
 			}
 			puerta(level, z, false);
-			Component fin = Textos.t("heraldia.arena.fin", superadas).withStyle(ChatFormatting.GOLD);
+			Component fin = (completada ? Textos.t("heraldia.arena.fin.contrarreloj", superadas, Marcas.tiempo(tiempo))
+					: modo == Modo.CONTRARRELOJ ? Textos.t("heraldia.arena.fin.contrarreloj.no", superadas, partida.objetivo())
+					: Textos.t("heraldia.arena.fin", superadas)).withStyle(ChatFormatting.GOLD);
 			for (ServerPlayer p : level.players()) {
 				if (z.cerca(p.getBlockX(), p.getBlockY(), p.getBlockZ(), RADIO_BARRA)) {
 					p.sendSystemMessage(fin);
@@ -165,7 +241,30 @@ final class Juego {
 			barra = null;
 		}
 		partida.terminar();
-		LOGGER.info("Heraldia: arena: partida terminada ({}) con {} oleadas superadas", motivo, superadas);
+		NOMBRES.clear();
+		LOGGER.info("Heraldia: arena: partida terminada ({}) con {} oleadas superadas (modo {}, {} ticks)", motivo, superadas,
+				modo.id(), tiempo);
+	}
+
+	/**
+	 * La marca de un participante al acabar su partida (al caer, salir o terminarse): oleadas superadas y su tiempo, a la
+	 * clasificación de la semana ({@link Fama}); sus logros del modo. Nada si no superó ninguna.
+	 */
+	private static void marca(MinecraftServer server, UUID u) {
+		int oleadas = partida.superadas();
+		if (oleadas <= 0) {
+			return;
+		}
+		String nombre = NOMBRES.getOrDefault(u, u.toString());
+		Temporada.Entrada e = new Temporada.Entrada(u, nombre, oleadas, partida.ticksSuperada(), System.currentTimeMillis(),
+				partida.objetivo());
+		Fama.registrar(server, partida.modo(), e);
+		ServerPlayer p = server.getPlayerList().getPlayer(u);
+		if (p != null) {
+			for (String logro : Marcas.logros(partida.modo(), oleadas, partida.ticksSuperada(), partida.objetivo())) {
+				Fama.conceder(server, p, logro);
+			}
+		}
 	}
 
 	// --- cada tick ---
@@ -202,6 +301,9 @@ final class Juego {
 	}
 
 	private static void segundo(ServerLevel level, Zona z, boolean enCuenta) {
+		if (!enCuenta && partida.modo() != Modo.COOPERATIVO) {
+			return;                          // pausas cortas o sin pausa: sin aviso por segundo
+		}
 		int s = partida.segundos();
 		for (ServerPlayer p : enRuedo(level, z)) {
 			if (enCuenta) {
@@ -229,8 +331,13 @@ final class Juego {
 			LOGGER.info("Heraldia: arena: nadie en el ruedo al acabar la cuenta atrás");
 			return false;
 		}
-		Marcador.mostrar(level.getServer());
-		LOGGER.info("Heraldia: arena: partida empieza con {} participantes", dentro.size());
+		if (partida.modo() == Modo.COOPERATIVO) {
+			Marcador.mostrar(level.getServer());   // el marcador vanilla es el récord del cooperativo
+		}
+		for (ServerPlayer p : enRuedo(level, z)) {
+			NOMBRES.put(p.getUUID(), p.getGameProfile().name());
+		}
+		LOGGER.info("Heraldia: arena: partida empieza con {} participantes (modo {})", dentro.size(), partida.modo().id());
 		return true;
 	}
 
@@ -238,7 +345,8 @@ final class Juego {
 		int n = partida.oleada();
 		salidos = 0;
 		xpVanilla = xpDada = 0;
-		Component sub = Oleadas.conJefe(n)
+		Component sub = partida.modo() == Modo.CONTRARRELOJ ? Textos.t("heraldia.arena.oleada.de", n, partida.objetivo())
+				: Oleadas.conJefe(n)
 				? Textos.t("heraldia.arena.oleada.jefe", Textos.t("heraldia.arena.jefe." + Oleadas.jefe(n).indice()))
 				: Textos.t("heraldia.arena.oleada.mobs", partida.total());
 		for (ServerPlayer p : participantes(level)) {
@@ -364,6 +472,9 @@ final class Juego {
 				MOBS.remove(m.getUUID());     // quitado sin morir (no debería pasar): cuenta como uno menos
 				if (partida.muere()) {
 					superada(level, z);
+					if (partida.estado() == Partida.Estado.LIBRE) {
+						return;                   // el contrarreloj acabó con esta oleada
+					}
 				}
 				continue;
 			}
@@ -402,7 +513,12 @@ final class Juego {
 				barra.setColor(BossEvent.BossBarColor.GREEN);
 			}
 			default -> {
-				barra.setName(Textos.t("heraldia.arena.barra", partida.oleada(), partida.restantes()));
+				barra.setName(switch (partida.modo()) {
+					case CONTRARRELOJ -> Textos.t("heraldia.arena.barra.contrarreloj", partida.oleada(), partida.objetivo(),
+							partida.restantes(), Marcas.tiempo(partida.ticks()));
+					case SUPERVIVENCIA -> Textos.t("heraldia.arena.barra.supervivencia", partida.oleada(), partida.restantes());
+					default -> Textos.t("heraldia.arena.barra", partida.oleada(), partida.restantes());
+				});
 				barra.setProgress(partida.total() > 0 ? Math.clamp((float) partida.restantes() / partida.total(), 0f, 1f) : 0f);
 				barra.setColor(Oleadas.conJefe(partida.oleada()) ? BossEvent.BossBarColor.PURPLE : BossEvent.BossBarColor.RED);
 			}
@@ -477,6 +593,9 @@ final class Juego {
 
 	private static void sale(ServerLevel level, Zona z, UUID u, String nombre, String como) {
 		LOGGER.info("Heraldia: arena: {} {} en la oleada {}", nombre, como, partida.oleada());
+		if (partida.participa(u) && partida.enJuego()) {
+			marca(level.getServer(), u);
+		}
 		if (partida.sale(u)) {
 			terminar(level, z, "sin participantes");
 		}
@@ -487,10 +606,14 @@ final class Juego {
 		int n = partida.oleada();
 		LOGGER.info("Heraldia: arena: oleada {} superada (experiencia: {} de vanilla, {} dada, al {} %)", n, xpVanilla, xpDada, xpPct);
 		int nivel = Oleadas.recompensa(n);
+		Component sub = partida.completada() ? Textos.t("heraldia.arena.tiempo", Marcas.tiempo(partida.ticksSuperada()))
+				: partida.modo() == Modo.SUPERVIVENCIA ? Textos.t("heraldia.arena.sin_pausa")
+				: Textos.t("heraldia.arena.oleada.siguiente", partida.segundos());
 		for (ServerPlayer p : participantes(level)) {
-			titulo(p, Textos.t("heraldia.arena.oleada.superada", n).withStyle(ChatFormatting.GREEN),
-					Textos.t("heraldia.arena.oleada.siguiente", partida.segundos()));
-			Marcador.superada(level.getServer(), p, n);
+			titulo(p, Textos.t("heraldia.arena.oleada.superada", n).withStyle(ChatFormatting.GREEN), sub);
+			if (partida.modo() == Modo.COOPERATIVO) {
+				Marcador.superada(level.getServer(), p, n);   // el récord de siempre (marcador vanilla), solo del cooperativo
+			}
 			io.github.albertosa23.heraldia.encargos.Encargos.oleadaSuperada(p, n);   // encargos del tablón (T38)
 			if (nivel > 0) {
 				recompensa(level, p, n, nivel);
@@ -503,6 +626,11 @@ final class Juego {
 			}
 		}
 		level.playSound(null, z.centroX(), z.minY() + 2, z.centroZ(), SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 1.5f, 1f);
+		if (partida.completada()) {
+			LOGGER.info("Heraldia: arena: contrarreloj completado: {} oleadas en {} ticks ({})", n, partida.ticksSuperada(),
+					Marcas.tiempo(partida.ticksSuperada()));
+			terminar(level, z, "contrarreloj completado");
+		}
 	}
 
 	private static void recompensa(ServerLevel level, ServerPlayer p, int oleada, int nivel) {

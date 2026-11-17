@@ -14,7 +14,7 @@ Un mod de Fabric para **Minecraft 26.3** que llena el Overworld de sitios por lo
 - ⛏️ **Minas.** En laderas de verdad se abren bocas de mina, campamentos mineros y complejos con torre de extracción, en 3 tamaños y al estilo de cada bioma, que bajan a galerías con vías, cruces y salas. Además, las minas abandonadas vanilla salen más a menudo.
 - 🗼 **Faros y naufragios.** Faros en tierra firme junto al mar, con la luz siempre encendida, la casa del farero y un embarcadero, y galeones partidos, encallados en la playa o semihundidos en los bajíos, con su bodega y el camarote del capitán. Cada uno al estilo de su costa: templada, cálida, fría o nevada.
 - 🔱 **La Atlántida.** Solo hay una en el mundo: una ciudad enorme hundida en el océano profundo, con salas secas, tres sellos con sus llaves y el Guardián de Poseidón, que custodia el mayor tesoro de Heraldia.
-- 🏟️ **Arena de oleadas.** Un coliseo cerca del spawn: toca la campana y aguanta oleadas cada vez más fuertes, con un campeón cada cinco, récords y recompensas. Si caes en el ruedo, conservas tu inventario.
+- 🏟️ **Arena de oleadas.** Un coliseo cerca del spawn: toca la campana y aguanta oleadas cada vez más fuertes, con un campeón cada cinco, récords y recompensas. Si caes en el ruedo, conservas tu inventario. Tres modos (cooperativo, contrarreloj y supervivencia) con clasificación semanal, `/heraldia arena leaderboard`: los campeones de la semana anterior salen en los carteles del salón de la fama de la arena y en la Guía del Heraldo.
 
 ## Cómo se juega
 
@@ -22,7 +22,7 @@ Un mod de Fabric para **Minecraft 26.3** que llena el Overworld de sitios por lo
 - 📊 **Lo que ha encontrado el servidor.** `/heraldia status` dice cuántas aldeas, estructuras únicas, medianas y minas han descubierto los jugadores, los guardianes vencidos, el récord de la arena y los encargos entregados.
 - 📋 **Encargos de las aldeas.** Toca el atril del tablón de la plaza de una aldea (o usa allí `/heraldia quest`): salen en el chat de 2 a 4 encargos (traer objetos, vencer a un guardián, explorar, viajar a una aldea vecina, la arena) que cambian cada pocos días. Pagan esmeraldas, experiencia y reputación con esa aldea: como conocido, amigo y héroe de la aldea, sus aldeanos rebajan los precios un 10, 20 y 30 %. Atacar a sus aldeanos o gólems la baja.
 - 🐪 **Caravanas.** De vez en cuando, cerca de ti, un mercader de Heraldia con sus llamas (y a veces un guardia) recorre el camino entre dos aldeas vecinas. Si lo asaltan los bandidos, defiéndelo: al llegar te paga esmeraldas y reputación con su aldea de destino. Si el mercader muere, la caravana se pierde.
-- 🏆 **Logros.** Una pestaña Heraldia con 104 logros: una aldea de cada familia, cada estructura única con su guardián y su tesoro, las minas, los faros y naufragios, las estructuras medianas, el tablón de encargos, la arena y las caravanas.
+- 🏆 **Logros.** Una pestaña Heraldia con 110 logros: una aldea de cada familia, cada estructura única con su guardián y su tesoro, las minas, los faros y naufragios, las estructuras medianas, el tablón de encargos, la arena y las caravanas.
 - 🗿 **Trofeos.** Cada uno de los 20 guardianes suelta su trofeo, un objeto con nombre e historia. Reúnelos todos para completar la Sala de trofeos.
 - 🗺️ **Mapas del tesoro.** Cada mapa marca la estructura única más cercana de su tipo. Salen en los cofres épicos de las aldeas y los venden los cartógrafos.
 - 🧭 **Caza del tesoro.** A veces un cofre guarda un fragmento de mapa del tesoro. Úsalo y se volverá un mapa con una marca: cada marca es una estructura real de Heraldia que esconde la siguiente pista, y la última lleva a un cofre que enterró Ysolda, con buen botín y un recuerdo.
@@ -61,6 +61,7 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 | `dificultad.nivel` | `normal` | Guardianes y monstruos: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | Los cofres de Heraldia se reponen al cabo de unos días. |
 | `arena.activado` | `true` | La arena de oleadas cerca del spawn. |
+| `arena.temporada.dia_reinicio` | `lunes` | Día en que se cierra la clasificación semanal de la arena y se anuncian sus campeones (a medianoche, hora del servidor). |
 | `encargos.activado` | `true` | Encargos del tablón (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea y sus descuentos. |
 | `caravanas.activado` | `true` | Caravanas por los caminos (operadores: `/heraldia caravan`). |

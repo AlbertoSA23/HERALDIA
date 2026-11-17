@@ -7,6 +7,8 @@ idioma, la generación falla.
 
 Páginas del libro:
   - fijas (PAGINAS): un título en negrita y su texto, en este orden;
+  - el salón de la fama de la arena (T41, si está activada): los campeones de la semana anterior y los récords de cada
+    modo, en dos páginas tras el resumen del diario (las arma arena/Fama; errores_fama comprueba el peor caso);
   - el diario: el resumen (cuántas únicas has descubierto de cuántas), la lista de las descubiertas (su nombre,
     heraldia.unicas.<id>.nombre) y las pistas de las que faltan (la pista de su pliego de la crónica,
     heraldia.historia.<id>.pista: bioma y rasgo, sin nombre ni coordenadas), repartidas en páginas de
@@ -148,7 +150,19 @@ DIARIO = {
     "entregada": ("Te damos la Guía del Heraldo: ábrela para saber qué te espera en este mundo.",
                   "Here is the Herald's Guide: open it to learn what awaits you in this world."),
     "copia": ("Aquí tienes una copia al día de la Guía del Heraldo.", "Here is an up-to-date copy of the Herald's Guide."),
+    # T41: el salón de la fama de la arena (dos páginas tras el resumen, si la arena está activada; las arma arena/Fama)
+    "fama.titulo": ("Salón de la fama", "Hall of fame"),
+    "fama.ninguno": ("Aún no hay campeones de la arena. Quien acabe esta semana en cabeza de cada modo será el campeón de "
+                     "la que viene: /heraldia arena leaderboard.",
+                     "There are no arena champions yet. Whoever ends this week on top of each mode will be next week's "
+                     "champion: /heraldia arena leaderboard."),
+    "fama.semana": ("Campeones de la arena de la semana del %s:", "Arena champions of the week of %s:"),
+    "fama.entrada": ("• %s: %s, %s", "• %s: %s, %s"),
+    "fama.vacio": ("• %s: nadie", "• %s: nobody"),
+    "records.titulo": ("Récords", "Records"),
+    "records.intro": ("La mejor marca de siempre en cada modo de la arena:", "The best result ever in each arena mode:"),
 }
+FAMA_PAGINAS = 2                                         # páginas del salón de la fama (Java: arena/Fama.paginas)
 
 
 def clave(k):
@@ -218,7 +232,35 @@ def paginas_max(modules, traducciones=None):
     """Páginas del libro en el peor caso (todas descubiertas o ninguna): fijas + resumen + listas."""
     d, n = datos(modules, traducciones), len(modules)
     listas = max(-(-n // d["nombres_por_pagina"]), -(-n // d["pistas_por_pagina"]))
-    return len(PAGINAS) + 1 + listas
+    return len(PAGINAS) + 1 + FAMA_PAGINAS + listas
+
+
+def errores_fama(traducciones=None):
+    """[] si las páginas del salón de la fama caben en cada idioma con el peor caso: los tres modos con el nombre de
+    jugador más ancho (16 «W») y la marca más larga de cada modo."""
+    import arena_oleadas
+    a = arena_oleadas.lang()
+    e = []
+    peor_nombre = "W" * 16
+    for idioma, t in _textos_por_idioma(traducciones):
+        t = {**(a["es_es"] if idioma == "es" else a["en_us"]), **t}
+        modos = [t[f"{NS}.arena.modo.{m}"] for m in arena_oleadas.MODOS]
+        puntos = [idiomas.formatear(t[f"{NS}.arena.puntos.oleadas"], ["999"]),
+                  idiomas.formatear(t[f"{NS}.arena.puntos.tiempo"], ["59:59", "99"]),
+                  idiomas.formatear(t[f"{NS}.arena.puntos.parcial"], ["99", "99"])]
+        entrada = [idiomas.formatear(t[clave("fama.entrada")], [m, peor_nombre, p]) for m in modos for p in puntos]
+        peor = max(botin.lineas_libro(x) for x in entrada)
+        paginas = {
+            "fama": (t[clave("fama.titulo")], idiomas.formatear(t[clave("fama.semana")], ["99/99/9999"]), 3 * peor),
+            "records": (t[clave("records.titulo")], t[clave("records.intro")], 3 * peor),
+        }
+        for pid, (titulo, intro, lineas) in paginas.items():
+            n = lineas_titulo(titulo) + 1 + botin.lineas_libro(intro) + lineas
+            if n > botin.LIBRO_LINEAS or lineas_titulo(titulo) > 1:
+                e.append(f"guía: la página del salón de la fama «{pid}» ({idioma}) no cabe: {n} de {botin.LIBRO_LINEAS} líneas")
+        if lineas_pagina(t[clave("fama.titulo")], t[clave("fama.ninguno")]) > botin.LIBRO_LINEAS:
+            e.append(f"guía: la página del salón de la fama sin campeones ({idioma}) no cabe")
+    return e
 
 
 def _textos_por_idioma(traducciones):
@@ -246,6 +288,9 @@ def errores(modules, traducciones=None):
                 e.append(f"guía: el resumen con «{cola}» ({idioma}) no cabe")
         if not 1 <= len(t[clave("nombre")]) <= TITULO_MAX:
             e.append(f"guía: el título «{t[clave('nombre')]}» ({idioma}) pasa de {TITULO_MAX} caracteres")
+    e += errores_fama(traducciones)
+    import arena_oleadas
+    e += arena_oleadas.errores_textos(traducciones)          # T41: las líneas de los carteles del salón de la fama
     for i in (0, 1):
         if len(TITULO[i]) > TITULO_MAX:
             e.append(f"guía: el título «{TITULO[i]}» pasa de {TITULO_MAX} caracteres")

@@ -76,7 +76,7 @@ def test_resumen_cabe_con_cualquier_cola():
 def test_paginas_maximas():
     d = guia.datos(MODULOS)
     n = len(MODULOS)
-    esperado = len(guia.PAGINAS) + 1 + max(-(-n // d["nombres_por_pagina"]), -(-n // d["pistas_por_pagina"]))
+    esperado = len(guia.PAGINAS) + 1 + guia.FAMA_PAGINAS + max(-(-n // d["nombres_por_pagina"]), -(-n // d["pistas_por_pagina"]))
     assert guia.paginas_max(MODULOS) == esperado <= guia.MAX_PAGINAS
 
 
@@ -125,3 +125,25 @@ def test_opcion_de_entrega():
     lang = opciones.lang()
     assert "heraldia.config.guia.entregar_al_entrar" in lang["es_es"]
     assert "heraldia.config.guia.entregar_al_entrar.nombre" in lang["en_us"]
+
+
+# --- T41: el salón de la fama de la arena ---
+
+def test_salon_de_la_fama_cabe_en_es_y_en():
+    assert guia.errores_fama() == []
+    assert guia.FAMA_PAGINAS == 2
+
+
+def test_salon_de_la_fama_textos():
+    es, en = guia.lang()["es_es"], guia.lang()["en_us"]
+    for k in ("fama.titulo", "fama.ninguno", "fama.semana", "fama.entrada", "fama.vacio", "records.titulo", "records.intro"):
+        assert guia.clave(k) in es and guia.clave(k) in en
+        assert es[guia.clave(k)].count("%s") == en[guia.clave(k)].count("%s"), k
+    assert es[guia.clave("fama.entrada")].count("%s") == 3          # modo, jugador, marca (arena/Fama)
+    assert "/heraldia arena leaderboard" in es[guia.clave("fama.ninguno")]
+
+
+def test_salon_de_la_fama_detecta_lo_que_no_cabe():
+    largo = {guia.clave("records.intro"): "palabra " * 60}
+    trad = {"xx_xx": {**guia.lang()["en_us"], **__import__("arena_oleadas").lang()["en_us"], **largo}}
+    assert any("records" in e for e in guia.errores_fama(trad))
