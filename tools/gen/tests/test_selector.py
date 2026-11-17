@@ -171,6 +171,19 @@ def test_minas():
     assert elige("tools/gen/minas/__init__.py") == (False, m)
     assert elige(J + "minas/Ladera.java") == (False, m)
     assert elige("tools/smoke/entradas_mina.py") == (False, m)
+    # T36: la caché compartida de alturas y el /locate en paralelo (solo los usan las minas)
+    assert elige(J + "comun/CacheAlturas.java") == (False, m)
+    assert elige(J + "mixin/ChunkGeneratorLocateMixin.java") == (False, m)
+    assert elige(J + "minas/LocateParalelo.java") == (False, m)
+
+
+def test_perfiles():
+    p = ["tools/smoke/perfiles.py"]
+    assert elige(J + "config/Perfiles.java") == (False, p)
+    assert elige(J + "comando/ProfileCommand.java") == (False, p)
+    assert elige("tools/smoke/perfiles.py") == (False, p)
+    assert elige(J + "config/HeraldiaConfig.java")[0]          # el resto de la configuración: común, batería completa
+    assert elige("tools/gen/opciones.py")[0]
 
 
 def test_guia_del_heraldo():

@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Todos los comandos del mod, bajo /heraldia y con nombres en inglés (los textos que ve el jugador siguen traducidos):
- * info [nearby [radius] | here], guide, key, arena, review, status, reload y update check. Los nombres antiguos en
+ * info [nearby [radius] | here], guide, key, arena, review, status, reload, update check y profile. Los nombres antiguos en
  * español siguen funcionando como alias ocultos ({@link Alias}). Una línea en Heraldia.onInitialize.
  */
 public final class Comandos {
@@ -36,7 +36,8 @@ public final class Comandos {
 				.then(RevisarCommand.nodo())
 				.then(EstadoCommand.nodo())
 				.then(RecargarCommand.nodo())
-				.then(AvisoVersion.nodo()));
+				.then(AvisoVersion.nodo())
+				.then(ProfileCommand.nodo()));
 		CommandNode<CommandSourceStack> raiz = dispatcher.getRoot().getChild("heraldia");
 		Alias.anadir(raiz, Alias.ANTIGUOS, Comandos::avisar);
 		return raiz;

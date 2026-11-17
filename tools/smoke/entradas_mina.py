@@ -13,6 +13,9 @@ Dos arranques del mismo mundo:
    - /locate de cada tamaño desde el 0,0, que la genera de verdad (forceload) donde dijo /locate, y /heraldia info nearby
      desde allí: ninguna aldea ni única a menos de medianas.distancia_aldeas_unicas_bloques, ni otra mina de otro tamaño
      ni una mediana a menos de medianas.distancia_minima.bloques;
+   - /locate lejos (desde 8000, -8000, como tools/smoke/coste_generacion.py) de #heraldia:minas y de cada tamaño: lo que
+     tarda (el juego lo dice en el log; con la caché compartida de alturas y el cálculo adelantado en paralelo de T36,
+     por debajo de LOCATE_LEJOS_MS) y que encuentra las mismas minas que la 0.1.0 (LOCATE_LEJOS, medido con su .jar);
    - /heraldia info: la línea de las minas y las 30 entradas registradas;
    - genera la zona A (12 x 12 chunks) y guarda sus inicios de mina vanilla: todos están entre los que predice el
      sorteo vanilla (legacy_type_3) con la frecuencia de 26.3.
@@ -37,6 +40,13 @@ LADO = 12                                        # chunks de lado de las zonas A
 GIROS = {"NONE": lambda x, z: (x, z), "CLOCKWISE_90": lambda x, z: (-z, x), "CLOCKWISE_180": lambda x, z: (-x, -z),
          "COUNTERCLOCKWISE_90": lambda x, z: (z, -x)}
 ENTRADA = re.compile(r"entrada a mina en (-?\d+) (-?\d+) (-?\d+) \(giro (\w+)")
+# /locate lejos: desde dónde, qué encuentra con la semilla de prueba (el mismo resultado que la 0.1.0, antes de T36: lo
+# que cambió es solo cuánto tarda) y el tope de lo que puede tardar el primero (la 0.1.0 tardaba unos 5 s en local).
+LOCATE_DESDE = (8000, -8000)
+LOCATE_LEJOS = {"#heraldia:minas": (14560, -5664), "#heraldia:minas/pequena": (3888, -7296),
+                "#heraldia:minas/mediana": (-4080, -16512), "#heraldia:minas/grande": (14560, -5664)}
+LOCATE_LEJOS_MS = 2500
+_LOCATE_MS = re.compile(r"Locating element (\S+) .*?took (\d+) ms")
 
 
 # ------------------------------------------------------------------ sorteo vanilla de las minas (legacy_type_3)
@@ -318,6 +328,30 @@ def comprobar_locate(ctx):
     return fails
 
 
+def comprobar_locate_lejos(ctx):
+    """/locate desde LOCATE_DESDE: el tiempo que dice el juego y que encuentra lo mismo que la 0.1.0."""
+    fails, (x0, z0) = [], LOCATE_DESDE
+    for objetivo, esperado in LOCATE_LEJOS.items():
+        s.pending(ctx.lines, ctx.seen)
+        s.send(ctx.proc, f"execute positioned {x0} 64 {z0} run locate structure {objetivo}")
+        ms, pos = None, None
+        while ms is None or pos is None:
+            m = s.wait_for(ctx.lines, _LOCATE_MS.pattern + r"|is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find|" + s.ERROR_PATTERN,
+                           s.COMMAND_TIMEOUT_S, ctx.seen)
+            if m.group(0).startswith("Locating element"):
+                ms = int(m.group(2))
+            elif m.group(0).startswith("is at"):
+                pos = (int(m.group(3)), int(m.group(4)))
+            else:
+                pos, ms = "nada", ms if ms is not None else -1
+        print(f"/locate {objetivo} desde {x0}, {z0}: {ms} ms -> {pos}")
+        if pos != esperado:
+            fails.append(f"/locate {objetivo} desde {x0}, {z0}: {pos}, la 0.1.0 daba {esperado}")
+        if objetivo == "#heraldia:minas" and ms > LOCATE_LEJOS_MS:
+            fails.append(f"/locate {objetivo} desde {x0}, {z0} tarda {ms} ms (> {LOCATE_LEJOS_MS})")
+    return fails
+
+
 def comprobar_log(ctx, multiplicador):
     fails, log = [], ctx.log()
     for tam in minas.TAMANOS:
@@ -346,6 +380,7 @@ def main():
         print(f"semilla {seed}; zona A en el chunk {ax}, {az} ({len(a1)} minas vanilla, {len(a5)} con x5); "
               f"zona B en {bx}, {bz} ({len(b1)} y {len(b5)})")
         fails += comprobar_log(ctx, 1)
+        fails += comprobar_locate_lejos(ctx)          # lo primero: el /locate con el servidor recién arrancado
         fails += comprobar_colocadas(ctx)
         fails += comprobar_botin(ctx)
         fails += comprobar_locate(ctx)

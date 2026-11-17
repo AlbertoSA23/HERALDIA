@@ -176,7 +176,7 @@ class ComandosTest {
 	void ningunAliasEnElArbolDelCliente() {
 		var cliente = new CommandDispatcher<>(AliasTest.delCliente(d.getRoot(), op));
 		List<String> raiz = AliasTest.sugerencias(cliente, "heraldia ", op);
-		assertEquals(List.of("arena", "guide", "info", "key", "reload", "review", "status", "update"), raiz);
+		assertEquals(List.of("arena", "guide", "info", "key", "profile", "reload", "review", "status", "update"), raiz);
 		assertEquals(List.of("leave", "move", "place", "remove", "start", "stop"), AliasTest.sugerencias(cliente, "heraldia arena ", op));
 		assertEquals(List.of("here", "nearby"), AliasTest.sugerencias(cliente, "heraldia info ", op));
 		assertEquals(List.of("check"), AliasTest.sugerencias(cliente, "heraldia update ", op));

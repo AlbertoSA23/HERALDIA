@@ -111,4 +111,19 @@ class FasesTest {
 		assertEquals(net.minecraft.world.BossEvent.BossBarColor.RED, Barras.color(2));
 		assertEquals(net.minecraft.world.BossEvent.BossBarColor.PURPLE, Barras.color(3));
 	}
+
+	@Test
+	void refuerzosConfigurablesPorDefectoComoAntes() {
+		for (int listados = 0; listados <= 5; listados++) {
+			for (int vivos = 0; vivos <= 6; vivos++) {
+				assertEquals(Math.max(0, Math.min(listados, Fases.MAX_VIVOS - vivos)), Fases.cuantos(listados, vivos, 100, 4));
+				assertEquals(Fases.cuantos(listados, vivos), Fases.cuantos(listados, vivos, 100, Fases.MAX_VIVOS));
+			}
+		}
+		assertEquals(5, Fases.cuantos(3, 0, 150, 6), "hardcore: 3 x 1,5 = 4,5 -> 5");
+		assertEquals(1, Fases.cuantos(3, 5, 150, 6), "con el tope de vivos");
+		assertEquals(2, Fases.cuantos(3, 0, 50, 2), "casual: 1,5 -> 2, tope 2");
+		assertEquals(0, Fases.cuantos(3, 0, 0, 4));
+		assertEquals(0, Fases.cuantos(3, 9, 300, 4), "nunca negativo");
+	}
 }

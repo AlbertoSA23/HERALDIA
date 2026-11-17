@@ -84,7 +84,16 @@ public final class Fases {
 
 	/** Cuántos refuerzos de los {@code listados} se llaman con {@code vivos} ya cerca (tope {@link #MAX_VIVOS}). */
 	public static int cuantos(int listados, int vivos) {
-		return Math.max(0, Math.min(listados, MAX_VIVOS - vivos));
+		return cuantos(listados, vivos, 100, MAX_VIVOS);
+	}
+
+	/**
+	 * Con las opciones jefes.refuerzos.porcentaje (de los listados, redondeando; 100 = los de siempre) y
+	 * jefes.refuerzos.maximo_vivos (el tope; 4 = el de siempre). Con 100 y 4, lo mismo que {@link #cuantos(int, int)}.
+	 */
+	public static int cuantos(int listados, int vivos, int porcentaje, int maximo) {
+		int pedidos = (int) Math.round(listados * porcentaje / 100.0);
+		return Math.max(0, Math.min(pedidos, maximo - vivos));
 	}
 
 	/**

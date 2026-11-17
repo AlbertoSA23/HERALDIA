@@ -116,9 +116,30 @@ abstract class StructureCheckMixin {
 				biomeSource, climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
 			cir.setReturnValue(false); // como la generación: /locate no señala una mediana descartada
 		}
-		if (Minas.esMina(id) && Minas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator,
-				biomeSource, climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
-			cir.setReturnValue(false); // ni una entrada a mina descartada
+	}
+
+	/**
+	 * Las entradas a mina, al final: su regla (aldeas, únicas, medianas y minas vecinas cerca) es mucho más cara que ver
+	 * si la propia entrada sale (bioma y ladera), y /locate solo necesita la regla donde la entrada sale. Mismo resultado
+	 * que mirarla antes (las dos condiciones tienen que cumplirse), sin pagarla en los candidatos sin bioma ni ladera.
+	 */
+	@Inject(method = "canCreateStructure", at = @At("RETURN"), cancellable = true)
+	private void heraldia$reglasMinas(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
+		if (!cir.getReturnValueZ()) {
+			return;
+		}
+		Identifier id = registryAccess.lookupOrThrow(Registries.STRUCTURE).getKey(structure);
+		if (id == null || !Minas.esMina(id)) {
+			return;
+		}
+		long t0 = Perfil.inicio();
+		try {
+			if (Minas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource, climateSampler,
+					randomState, structureTemplateManager, heightAccessor, dimension)) {
+				cir.setReturnValue(false); // ni una entrada a mina descartada
+			}
+		} finally {
+			Perfil.fin(Perfil.Tramo.REGLAS_LOCATE, t0);
 		}
 	}
 }

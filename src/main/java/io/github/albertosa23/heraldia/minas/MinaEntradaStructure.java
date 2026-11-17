@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.albertosa23.heraldia.comun.Alturas;
+import io.github.albertosa23.heraldia.comun.CacheAlturas;
 import io.github.albertosa23.heraldia.comun.Generacion;
 import io.github.albertosa23.heraldia.comun.Perfil;
 import java.util.List;
@@ -57,19 +58,8 @@ public final class MinaEntradaStructure extends Structure {
 	@Override
 	protected Optional<GenerationStub> findGenerationPoint(GenerationContext ctx) {
 		boolean forzada = Generacion.forzada(ctx, biomes());
-		Alturas alturas = new Alturas(ctx);
+		Ladera.Terreno terreno = terreno(CacheAlturas.de(ctx));
 		int mx = ctx.chunkPos().getMiddleBlockX(), mz = ctx.chunkPos().getMiddleBlockZ();
-		Ladera.Terreno terreno = new Ladera.Terreno() {
-			@Override
-			public int suelo(int x, int z) {
-				return alturas.floor(malla(x), malla(z));
-			}
-
-			@Override
-			public boolean agua(int x, int z) {
-				return alturas.water(malla(x), malla(z));
-			}
-		};
 		if (!forzada && !Generacion.bioma(ctx, biomes(), mx, terreno.suelo(mx, mz), mz)) {
 			return Optional.empty();                    // otro estilo del set: sin buscar nada
 		}
@@ -92,8 +82,51 @@ public final class MinaEntradaStructure extends Structure {
 						element.getBoundingBox(manager, origen, sitio.giro()), LiquidSettings.IGNORE_WATERLOGGING))));
 	}
 
+	/**
+	 * Precalcula lo que miraría {@link #findGenerationPoint} en ese chunk (el bioma del centro y, si es el suyo, la
+	 * búsqueda de ladera): solo llena la caché compartida de alturas, sin crear nada ni escribir en el log. Lo usa
+	 * {@link LocateParalelo} desde otros hilos para que /locate encuentre las columnas ya calculadas.
+	 */
+	public void precalcular(GenerationContext ctx) {
+		Ladera.Terreno terreno = terreno(CacheAlturas.de(ctx));
+		int mx = ctx.chunkPos().getMiddleBlockX(), mz = ctx.chunkPos().getMiddleBlockZ();
+		if (Generacion.bioma(ctx, biomes(), mx, terreno.suelo(mx, mz), mz)) {
+			long t0 = Perfil.inicio();
+			Ladera.buscar(terreno, mx, mz, forma, ctx.heightAccessor().getMinY(), false);
+			Perfil.fin(Perfil.Tramo.LADERA_ANTICIPADA, t0);
+		}
+	}
+
+	/**
+	 * El terreno de la búsqueda sobre la caché compartida del mundo ({@link CacheAlturas}): los estilos y variantes del
+	 * structure_set, /locate y la regla de colocación miran las mismas columnas y ya no las vuelven a calcular. Mismos
+	 * valores que con una caché por búsqueda ({@link Alturas}, lo de antes): lo comprueba MinasDeterminismoTest.
+	 */
+	public static Ladera.Terreno terreno(CacheAlturas c) {
+		return terreno(c::floor, c::water);
+	}
+
+	/** Lo de antes (una caché por búsqueda): solo para comparar en las pruebas. */
+	public static Ladera.Terreno terreno(Alturas a) {
+		return terreno(a::floor, a::water);
+	}
+
+	private static Ladera.Terreno terreno(java.util.function.IntBinaryOperator floor, java.util.function.BiPredicate<Integer, Integer> water) {
+		return new Ladera.Terreno() {
+			@Override
+			public int suelo(int x, int z) {
+				return floor.applyAsInt(malla(x), malla(z));
+			}
+
+			@Override
+			public boolean agua(int x, int z) {
+				return water.test(malla(x), malla(z));
+			}
+		};
+	}
+
 	/** Columnas en una malla de 4 bloques (centro de cada celda): las muestras vecinas comparten caché. */
-	private static int malla(int v) {
+	static int malla(int v) {
 		return (v >> 2 << 2) + 2;
 	}
 
