@@ -97,14 +97,14 @@ def comprobar(ctx):
 
 
 def _info_aqui(ctx, X, Z, guardian):
-    """/heraldia info aqui dentro del distrito central (generado por worldgen, con el distrito forzado): dice que es la
+    """/heraldia info here dentro del distrito central (generado por worldgen, con el distrito forzado): dice que es la
     Atlántida y el estado del guardián (se busca por su etiqueta en la caja del distrito central)."""
-    c = f"execute positioned {X} {U.SUELO} {Z + 104} run heraldia info aqui"
+    c = f"execute positioned {X} {U.SUELO} {Z + 104} run heraldia info here"
     m = ctx.run(c, r"(?:You are in|Estás en) .*\(heraldia:unicas/atlantida\)|no Heraldia structure|ninguna estructura Heraldia")
     if "atlantida" not in m.group(0):
-        return [f"/heraldia info aqui no reconoce la Atlántida: {m.string.strip()}"]
+        return [f"/heraldia info here no reconoce la Atlántida: {m.string.strip()}"]
     m = ctx.run("say fin de info aqui", r"(?:Guardian|Guardián): .*|fin de info aqui")
     if not re.search(guardian, m.group(0)):
-        return [f"/heraldia info aqui: se esperaba «{guardian}»: {m.string.strip()}"]
+        return [f"/heraldia info here: se esperaba «{guardian}»: {m.string.strip()}"]
     return []
 

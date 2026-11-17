@@ -10,7 +10,7 @@ Dos arranques del mismo mundo:
      tierra (aire a la altura de la cabeza y casco encima, por debajo del suelo de la boca), cada cofre con su tabla
      heraldia:minas/<tabla>, la vagoneta de carga, las arañas de la mediana y el generador de la grande;
    - loot spawn de cada tabla;
-   - /locate de cada tamaño desde el 0,0, que la genera de verdad (forceload) donde dijo /locate, y /heraldia info cerca
+   - /locate de cada tamaño desde el 0,0, que la genera de verdad (forceload) donde dijo /locate, y /heraldia info nearby
      desde allí: ninguna aldea ni única a menos de medianas.distancia_aldeas_unicas_bloques, ni otra mina de otro tamaño
      ni una mediana a menos de medianas.distancia_minima.bloques;
    - /heraldia info: la línea de las minas y las 30 entradas registradas;
@@ -262,7 +262,7 @@ def comprobar_botin(ctx):
 
 
 def info_cerca(ctx, x, z, radio):
-    m = ctx.run(f"execute positioned {x} 64 {z} run heraldia info cerca {radio}", r"info cerca \d+ en [^:]+: \d+ estructuras en (\d+) ms")
+    m = ctx.run(f"execute positioned {x} 64 {z} run heraldia info nearby {radio}", r"info nearby \d+ en [^:]+: \d+ estructuras en (\d+) ms")
     if not m.lastindex:
         return None
     return {g[0]: (int(g[1]), int(g[2]), int(g[3])) for g in s.INFO_LINE.findall("".join(s.drain(ctx)))}
@@ -274,7 +274,7 @@ def generada(ctx, x, z, tam):
         for dx, dz in ((0, 0), (8, 8), (-8, 8), (8, -8), (-8, -8)):
             for dy in (-2, -8, -14):
                 m = ctx.run(f"execute positioned {x + dx} 0 {z + dz} positioned over world_surface positioned ~ ~{dy} ~ "
-                            f"run heraldia info aqui", r"\((heraldia:[^)]+)\)|no hay ninguna|no Heraldia|not loaded|no está cargada")
+                            f"run heraldia info here", r"\((heraldia:[^)]+)\)|no hay ninguna|no Heraldia|not loaded|no está cargada")
                 if m.group(1) and f"minas/{tam}/" in m.group(1):
                     return m.group(1)
         time.sleep(2)

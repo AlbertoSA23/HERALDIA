@@ -5,8 +5,8 @@ Comprueba:
 - el log: la regla de las medianas y la rejilla de cada tipo con su separación por defecto, su búsqueda de bioma y, en los
   de biomas en franja (pescador), los vecinos que pide (bioma_vecinos);
 - /locate de cada tipo (#heraldia:medianas/<tipo>) desde varios puntos, a una distancia razonable, y desde cada una
-  /heraldia info cerca: ninguna aldea ni única a menos de medianas.distancia_aldeas_unicas_bloques ni otra mediana de
-  otro tipo a menos de medianas.distancia_minima.bloques (info cerca da la más cercana de cada rejilla con las reglas de
+  /heraldia info nearby: ninguna aldea ni única a menos de medianas.distancia_aldeas_unicas_bloques ni otra mediana de
+  otro tipo a menos de medianas.distancia_minima.bloques (info nearby da la más cercana de cada rejilla con las reglas de
   la generación); luego se genera de verdad (forceload) y la estructura está donde dijo /locate;
 - /place template de cada variante (sobre una losa): cada contenedor con su tabla (también las vasijas del templete), las
   entidades esperadas (etiqueta heraldia_mediana.<tipo>), el agua quieta (caz del molino, acequias, pozo del templete:
@@ -42,9 +42,9 @@ def forceload(ctx, x0, z0, x1, z1, quitar=False):
 
 
 def info_cerca(ctx, x, z, radio):
-    """{id: (distancia, x, z)} de /heraldia info cerca desde x, z."""
-    m = ctx.run(f"execute positioned {x} 64 {z} run heraldia info cerca {radio}",
-                r"info cerca \d+ en [^:]+: \d+ estructuras en (\d+) ms")
+    """{id: (distancia, x, z)} de /heraldia info nearby desde x, z."""
+    m = ctx.run(f"execute positioned {x} 64 {z} run heraldia info nearby {radio}",
+                r"info nearby \d+ en [^:]+: \d+ estructuras en (\d+) ms")
     if not m.lastindex:
         return None
     return {g[0]: (int(g[1]), int(g[2]), int(g[3])) for g in s.INFO_LINE.findall("".join(s.drain(ctx)))}
@@ -70,7 +70,7 @@ def comprobar_locate(ctx, tipos):
             encontradas += 1
             cerca = info_cerca(ctx, px, pz, 600)
             if cerca is None:
-                fails.append(f"/heraldia info cerca desde {mid} en {px}, {pz} no responde")
+                fails.append(f"/heraldia info nearby desde {mid} en {px}, {pz} no responde")
                 continue
             for sid, (dist, *_) in cerca.items():
                 if ":minas/" in sid:                          # entradas a mina: ceden a las medianas a esta distancia
@@ -93,13 +93,13 @@ def comprobar_locate(ctx, tipos):
 
 
 def wait_generated(ctx, x, z, mid):
-    """/heraldia info aqui junto al inicio (la pieza sale hacia un cuadrante u otro según su giro), a la altura del
+    """/heraldia info here junto al inicio (la pieza sale hacia un cuadrante u otro según su giro), a la altura del
     terreno (dentro de la caja de la pieza), dice que estás en la mediana. Solo mira chunks ya cargados."""
     end = time.monotonic() + s.UNTIL_S
     while time.monotonic() < end:
         for dx, dz in ((6, 6), (-6, 6), (6, -6), (-6, -6)):
             m = ctx.run(f"execute positioned {x + dx} 0 {z + dz} positioned over world_surface positioned ~ ~-2 ~ "
-                        f"run heraldia info aqui",
+                        f"run heraldia info here",
                         r"\((heraldia:[^)]+)\)|no hay ninguna|no Heraldia|not loaded|no está cargada")
             if m.group(1) and f"medianas/{mid}/" in m.group(1):
                 return True

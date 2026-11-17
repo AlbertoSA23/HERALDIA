@@ -33,7 +33,7 @@ STRUCTURE = dict(
 from . import botin
 LANG = cosas.LANG
 LOOT = botin.tablas()
-# /heraldia llave: la tabla da el mismo objeto que sueltan el guardián y los cofres, y la cerradura es la de los cofres
+# /heraldia key: la tabla da el mismo objeto que sueltan el guardián y los cofres, y la cerradura es la de los cofres
 LLAVES = {cual: {"tabla": cosas.tabla_llave(cual), "cerradura": cosas.cerradura(cual)} for cual in cosas.LLAVES}
 # Logros (logros.py): el cofre único no tiene tabla de botín; cuenta conseguir uno de sus objetos con nombre. Cada sello
 # cuenta al abrir su cofre o al tener su llave (también con Lootr o si otro jugador la saca). El de Poseidón es el guardián.

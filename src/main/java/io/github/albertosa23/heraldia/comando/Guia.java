@@ -19,7 +19,6 @@ import java.util.Locale;
 import java.util.Map;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
@@ -53,7 +52,7 @@ import org.slf4j.LoggerFactory;
  * <li>Se da una vez a cada jugador al entrar por primera vez con cada versión del mod (opción guia.entregar_al_entrar);
  * la versión entregada se guarda en el propio jugador (adjunto persistente de Fabric heraldia:guia_entregada, que se
  * conserva al morir).</li>
- * <li>/heraldia guia (cualquier jugador, sin permisos): otra copia al día.</li>
+ * <li>/heraldia guide (cualquier jugador, sin permisos): otra copia al día.</li>
  * </ul>
  * Las páginas son componentes traducibles con el respaldo en el idioma del cliente (los textos del .jar): un cliente sin el
  * mod ve el libro en su idioma (cualquiera de los del .jar; si no lo trae, el de su lengua o el inglés). Los textos, las páginas fijas y cuántas entradas caben en cada página
@@ -120,15 +119,14 @@ public final class Guia {
 				alEntrar(handler.player);
 			}
 		})));
-		CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> dispatcher.register(comando()));
 	}
 
-	/** /heraldia guia: sin requisito de permisos (cualquier jugador). */
-	static LiteralArgumentBuilder<CommandSourceStack> comando() {
-		return Commands.literal("heraldia").then(Commands.literal("guia").executes(ctx -> {
+	/** /heraldia guide: sin requisito de permisos (cualquier jugador; lo registra {@link Comandos}). */
+	static LiteralArgumentBuilder<CommandSourceStack> nodo() {
+		return Commands.literal("guide").executes(ctx -> {
 			entregar(ctx.getSource().getPlayerOrException(), true);
 			return 1;
-		}));
+		});
 	}
 
 	/** ¿Hay que darle la guía al entrar? Si la opción está activada y no tiene la de esta versión. */

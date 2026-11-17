@@ -2,11 +2,10 @@ package io.github.albertosa23.heraldia.comando;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -35,13 +34,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * /heraldia llave &lt;jugadores&gt; &lt;todas|estructura|estructura.llave&gt; (operador, nivel 2): da las llaves de los cofres
+ * /heraldia key &lt;players&gt; &lt;all|estructura|estructura.llave&gt; (operador, nivel 2): da las llaves de los cofres
  * cerrados de las estructuras únicas. Cada llave es la tabla de botín heraldia:llaves/&lt;estructura&gt;/&lt;llave&gt; que
  * escribe el generador (la misma que suelta el juego), así que el objeto es exactamente el que pide la cerradura.
  * El índice /heraldia/llaves.json se lee una vez al iniciar; el comando solo trabaja cuando se ejecuta.
  */
 public final class LlaveCommand {
-	private static final String TODAS = "todas";
+	private static final String TODAS = "all", TODAS_ANTIGUO = "todas";
 	/** "atlantida.poseidon" -> heraldia:llaves/atlantida/poseidon, en el orden del generador. */
 	private static final Map<String, ResourceKey<LootTable>> KEYS = new LinkedHashMap<>();
 	private static final Set<String> OPTIONS = new LinkedHashSet<>();
@@ -58,22 +57,30 @@ public final class LlaveCommand {
 			OPTIONS.add(id.substring(0, id.indexOf('.')));
 		}
 		OPTIONS.addAll(KEYS.keySet());
-		CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> build(dispatcher));
 	}
 
-	private static void build(CommandDispatcher<CommandSourceStack> dispatcher) {
-		dispatcher.register(Commands.literal("heraldia")
-				.then(Commands.literal("llave")
-						.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-						.then(Commands.argument("jugadores", EntityArgument.players())
-								.then(Commands.argument("llave", StringArgumentType.word())
-										.suggests((ctx, b) -> SharedSuggestionProvider.suggest(OPTIONS, b))
-										.executes(LlaveCommand::give)))));
+	/** /heraldia key &lt;players&gt; &lt;all|estructura|estructura.llave&gt; (lo registra {@link Comandos}). */
+	static LiteralArgumentBuilder<CommandSourceStack> nodo() {
+		return Commands.literal("key")
+				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+				.then(Commands.argument("players", EntityArgument.players())
+						.then(Commands.argument("key", StringArgumentType.word())
+								.suggests((ctx, b) -> SharedSuggestionProvider.suggest(OPTIONS, b))
+								.executes(LlaveCommand::give)));
+	}
+
+	/** El valor escrito, con el nombre antiguo «todas» como «all» (sin sugerirlo: ver {@link Alias}). */
+	static String opcion(String escrita) {
+		return TODAS_ANTIGUO.equals(escrita) ? TODAS : escrita;
 	}
 
 	private static int give(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		CommandSourceStack source = ctx.getSource();
-		String which = StringArgumentType.getString(ctx, "llave");
+		String escrita = StringArgumentType.getString(ctx, "key");
+		String which = opcion(escrita);
+		if (!which.equals(escrita)) {
+			Comandos.avisar(source, escrita, which);
+		}
 		List<ResourceKey<LootTable>> tables = new ArrayList<>();
 		KEYS.forEach((id, table) -> {
 			if (which.equals(TODAS) || which.equals(id) || id.startsWith(which + ".")) {
@@ -85,7 +92,7 @@ public final class LlaveCommand {
 					"No hay ninguna llave «%s». Opciones: %s", which, String.join(", ", OPTIONS)));
 			return 0;
 		}
-		Collection<ServerPlayer> players = EntityArgument.getPlayers(ctx, "jugadores");
+		Collection<ServerPlayer> players = EntityArgument.getPlayers(ctx, "players");
 		int given = 0;
 		for (ServerPlayer player : players) {
 			LootParams params = new LootParams.Builder(player.level()).create(LootContextParamSets.EMPTY);

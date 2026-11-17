@@ -187,13 +187,23 @@ def test_guia_del_heraldo():
 
 def test_herramientas_de_administracion():
     admin = (False, ["tools/smoke/admin.py"])
-    for r in ("comando/Admin.java", "comando/RevisarCommand.java", "comando/Revision.java", "comando/Seguro.java",
+    for r in ("comando/RevisarCommand.java", "comando/Revision.java", "comando/Seguro.java",
               "comando/Estado.java", "comando/EstadoCommand.java", "comando/RecargarCommand.java",
               "comando/InfoCommand.java", "config/Recarga.java"):
         assert elige(J + r) == admin, r
     assert elige("tools/gen/admin.py") == admin
     assert elige("tools/smoke/admin.py") == admin
     assert elige(J + "config/HeraldiaConfig.java")[0]           # el resto de config/: común, batería completa
+
+
+def test_comandos_en_ingles_y_aviso_de_version():
+    update = (False, ["tools/smoke/update_check.py"])
+    for r in ("comando/AvisoVersion.java", "version/Version.java", "version/Publicaciones.java", "version/Avisados.java"):
+        assert elige(J + r) == update, r
+    assert elige("tools/smoke/update_check.py") == update
+    comandos = (False, sorted(["tools/smoke/update_check.py", "tools/smoke/admin.py", "tools/smoke/guia.py", "tools/smoke/arena.py"]))
+    for r in (J + "comando/Comandos.java", J + "comando/Alias.java", J + "mixin/CommandsMixin.java", "tools/gen/comandos.py"):
+        assert (elige(r)[0], sorted(elige(r)[1])) == comandos, r
 
 
 def test_botin_que_se_repone_y_dificultad():

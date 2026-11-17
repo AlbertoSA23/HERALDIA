@@ -48,9 +48,9 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.unicas.galeon.GaleonUnica.registrar();
 		io.github.albertosa23.heraldia.unicas.isla.Isla.register();
 		io.github.albertosa23.heraldia.comando.LlaveCommand.register();
-		io.github.albertosa23.heraldia.comando.InfoCommand.register();
 		io.github.albertosa23.heraldia.comando.Guia.register();
-		io.github.albertosa23.heraldia.comando.Admin.register();
+		io.github.albertosa23.heraldia.comando.Comandos.registrar();
+		io.github.albertosa23.heraldia.comando.AvisoVersion.registrar();
 		io.github.albertosa23.heraldia.loot.CofrePorJugador.register();
 		io.github.albertosa23.heraldia.loot.BotinRepuesto.registrar();
 		io.github.albertosa23.heraldia.dificultad.DificultadMobs.registrar();

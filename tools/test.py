@@ -62,6 +62,8 @@ COSTE_RUTAS = [COSTE, "tools/smoke/coste_referencia.json", "tools/gen/*", "gradl
 COSTE_SIN = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
 MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
 ADMIN = ["tools/smoke/admin.py"]
+UPDATE = ["tools/smoke/update_check.py"]
+COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py", "tools/smoke/arena.py"]
 # Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
 MINAS = ["tools/smoke/entradas_mina.py"]
 # Los tipos de medianas traen mobs anclados (y zombis adultos): las pruebas que recorren todos los mobs de las plantillas.
@@ -104,10 +106,15 @@ MAPA = [
     ("tools/gen/guia.py", ["tools/smoke/guia.py"]),
     # idiomas del mod (traducciones y su comprobación): la Guía es lo único que el servidor entrega en el idioma del cliente
     ("tools/gen/idiomas.py", ["tools/smoke/guia.py"]), ("tools/gen/idiomas/*", ["tools/smoke/guia.py"]),
-    # herramientas de administración (T35): /heraldia revisar, estado y recargar (y la búsqueda de info cerca que reutilizan)
-    (JAVA + "comando/Admin.java", ADMIN), (JAVA + "comando/Revis*", ADMIN), (JAVA + "comando/Seguro.java", ADMIN),
+    # herramientas de administración (T35): /heraldia review, status y reload (y la búsqueda de info nearby que reutilizan)
+    (JAVA + "comando/Revis*", ADMIN), (JAVA + "comando/Seguro.java", ADMIN),
     (JAVA + "comando/Estado*", ADMIN), (JAVA + "comando/Recargar*", ADMIN), (JAVA + "comando/InfoCommand.java", ADMIN),
     (JAVA + "config/Recarga.java", ADMIN), ("tools/gen/admin.py", ADMIN),
+    # comandos en inglés y sus alias antiguos (T35b): el árbol de /heraldia lo usan todas las pruebas de comandos; el
+    # aviso de versión nueva, su prueba con la API de mentira
+    (JAVA + "comando/Comandos.java", COMANDOS), (JAVA + "comando/Alias.java", COMANDOS),
+    (JAVA + "mixin/CommandsMixin.java", COMANDOS), ("tools/gen/comandos.py", COMANDOS),
+    (JAVA + "comando/AvisoVersion.java", UPDATE), (JAVA + "version/*", UPDATE),
     (JAVA + "comando/*", []),
     # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
     (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
@@ -243,6 +250,7 @@ DURACION_S = {
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
     "tools/smoke/arena.py": 150,                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)
     "tools/smoke/admin.py": 80,                      # medida en local: 60 s (dos arranques y dos medianas cargadas o generadas)
+    "tools/smoke/update_check.py": 120,              # tres arranques (con la API de mentira, sin red y desactivado)
     "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
 }
 DEFECTO_S = 90
