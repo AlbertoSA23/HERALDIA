@@ -84,6 +84,7 @@ public final class RecargarCommand {
 		if (!Arena.recargar(server)) {
 			out.add(Textos.t("heraldia.recargar.arena_partida").withStyle(ChatFormatting.YELLOW));
 		}
+		io.github.albertosa23.heraldia.mapas.MapasWeb.programar();   // mapas_web.* (y la arena) en los mapas web, si hay
 		LOGGER.info("Heraldia: /heraldia reload: {} aplicadas, {} pendientes de reinicio, {} mobs recalculados",
 				r.aplicadas().size(), r.pendientes().size(), mobs);
 		return out;

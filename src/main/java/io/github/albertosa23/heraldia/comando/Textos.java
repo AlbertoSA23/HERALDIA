@@ -52,6 +52,11 @@ public final class Textos {
 				() -> new IllegalStateException("Falta el idioma " + cliente + " en el .jar de Heraldia"));
 	}
 
+	/** Los textos del .jar del idioma {@code codigo} (o el de su lengua, o el inglés): ver {@link #idioma(String)}. */
+	public static Map<String, String> textos(String codigo) {
+		return idioma(codigo);
+	}
+
 	/** Los códigos de idioma que trae el .jar (es_es, en_us y las traducciones). */
 	public static Collection<String> idiomas() {
 		return new TreeSet<>(LENGUAS.values());

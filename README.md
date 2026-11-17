@@ -38,6 +38,8 @@ The texts of the mod are in 8 languages: English, Spanish, French, German, Itali
 
 **New versions:** the server checks once a day whether there is a new Heraldia version for its Minecraft and tells operators when they join, with a download link. **Back up the server before updating.** Turn it off with `update_check.activado`.
 
+**Web maps:** if the server has BlueMap, Dynmap or squaremap, Heraldia's structures appear on the web map, each kind on its own layer (unique structures, villages, medium structures, mines and the arena), only once a player has discovered them. Operators update it with `/heraldia webmap refresh`.
+
 ## Most useful options
 
 The file `config/heraldia.json` is created on the server's first start, with a help text for every option. Changes apply when the server is restarted, in newly generated chunks. Options that do not affect generation (difficulty, bosses, loot, arena, Guide...) can be applied without restarting with `/heraldia reload`.
@@ -55,6 +57,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `arena.activado` | `true` | The wave arena near spawn. |
 | `guia.entregar_al_entrar` | `true` | Gives the Herald's Guide to each player on joining. |
 | `update_check.activado` | `true` | Tells operators when there is a new version. |
+| `mapas_web.solo_descubiertas` | `true` | Only structures already discovered appear on the web map. |
 
 ## Learn more
 

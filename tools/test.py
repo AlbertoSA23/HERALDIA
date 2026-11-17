@@ -63,6 +63,7 @@ COSTE_SIN = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
 MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
+MAPAS_WEB = ["tools/smoke/mapas_web.py"]
 COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py", "tools/smoke/arena.py"]
 # Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
 MINAS = ["tools/smoke/entradas_mina.py"]
@@ -115,6 +116,8 @@ MAPA = [
     (JAVA + "comando/Comandos.java", COMANDOS), (JAVA + "comando/Alias.java", COMANDOS),
     (JAVA + "mixin/CommandsMixin.java", COMANDOS), ("tools/gen/comandos.py", COMANDOS),
     (JAVA + "comando/AvisoVersion.java", UPDATE), (JAVA + "version/*", UPDATE),
+    # mapas web (T37): su Java (con los adaptadores), el mixin de los logros y su prueba con squaremap y sin mapas
+    (JAVA + "mapas/*", MAPAS_WEB), (JAVA + "mixin/PlayerAdvancementsMixin.java", MAPAS_WEB),
     (JAVA + "comando/*", []),
     # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
     (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
@@ -251,6 +254,7 @@ DURACION_S = {
     "tools/smoke/arena.py": 150,                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)
     "tools/smoke/admin.py": 80,                      # medida en local: 60 s (dos arranques y dos medianas cargadas o generadas)
     "tools/smoke/update_check.py": 120,              # tres arranques (con la API de mentira, sin red y desactivado)
+    "tools/smoke/mapas_web.py": 240,                 # tres arranques (sin mapas, con squaremap y Carpet, y tras reiniciar)
     "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
 }
 DEFECTO_S = 90

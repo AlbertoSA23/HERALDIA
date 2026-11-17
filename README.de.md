@@ -38,6 +38,8 @@ Die **Befehle** sind auf jedem Server auf Englisch: `/heraldia guide`, `/heraldi
 
 **Neue Versionen:** Der Server prüft einmal am Tag, ob es eine neue Heraldia-Version für sein Minecraft gibt, und sagt es Operatoren beim Betreten, mit dem Download-Link. **Erstelle vor dem Aktualisieren eine Sicherung des Servers.** Abschalten mit `update_check.activado`.
 
+**Webkarten:** Hat der Server BlueMap, Dynmap oder squaremap, erscheinen die Bauwerke von Heraldia auf der Webkarte, jede Art auf ihrer eigenen Ebene (einzigartige Bauwerke, Dörfer, mittlere Bauwerke, Minen und die Arena), erst wenn ein Spieler sie entdeckt hat. Operatoren aktualisieren sie mit `/heraldia webmap refresh`.
+
 ## Die nützlichsten Optionen
 
 Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit einem Hilfetext zu jeder Option. Änderungen gelten nach einem Neustart des Servers, in neu generierten Chunks. Optionen, die die Generierung nicht betreffen (Schwierigkeit, Bosse, Beute, Arena, Leitfaden ...), lassen sich ohne Neustart mit `/heraldia reload` anwenden.
@@ -55,6 +57,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `arena.activado` | `true` | Die Wellenarena nahe dem Spawn. |
 | `guia.entregar_al_entrar` | `true` | Gibt jedem Spieler beim Betreten den Leitfaden des Herolds. |
 | `update_check.activado` | `true` | Meldet Operatoren, wenn es eine neue Version gibt. |
+| `mapas_web.solo_descubiertas` | `true` | Auf der Webkarte nur bereits entdeckte Bauwerke. |
 
 ## Mehr erfahren
 

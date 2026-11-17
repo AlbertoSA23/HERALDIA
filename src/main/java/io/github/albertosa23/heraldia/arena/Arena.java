@@ -128,6 +128,7 @@ public final class Arena {
 		level.setAttached(Guardada.Tipo.ARENA, g.conOrigen(z == null ? null : new BlockPos(z.ox(), z.oy(), z.oz())));
 		nivel = level;
 		zona = z;
+		io.github.albertosa23.heraldia.mapas.MapasWeb.programar();   // su marcador en los mapas web (si hay)
 	}
 
 	// --- protección ---
@@ -270,6 +271,7 @@ public final class Arena {
 		nivel = ow;
 		zona = new Zona(o.getX(), o.getY(), o.getZ(), plano);
 		Juego.puerta(ow, zona, false);           // por si el servidor se paró en mitad de una partida
+		io.github.albertosa23.heraldia.mapas.MapasWeb.programar();
 		LOGGER.info("Heraldia: arena: en {} {} {}", zona.columnaX(), zona.sueloY(), zona.columnaZ());
 	}
 
