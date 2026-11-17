@@ -273,7 +273,7 @@ DURACION_S = {
     "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque; 2 min 40 s con los 8 tipos
     "tools/smoke/guia.py": 120,                      # tres arranques del servidor
     "tools/smoke/entradas_mina.py": 250,                     # dos arranques (multiplicador 1 y 5), la generación de las minas y /locate lejos
-    "tools/smoke/costa.py": 300,                     # dos arranques, cuatro /locate con su generación y cuatro /place junto a playas
+    "tools/smoke/costa.py": 280,                     # medida en local: ~3 min 50 s (dos arranques, cuatro /locate con su generación y /place junto a playas)
     "tools/smoke/perfiles.py": 110,                  # cuatro arranques del mismo mundo
     "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)

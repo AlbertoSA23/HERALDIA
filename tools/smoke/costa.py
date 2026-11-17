@@ -17,7 +17,8 @@ y hacia dónde mira el mar):
    - /place structure de las cuatro variantes (estilo templado) junto a playas que da /locate biome: en la orilla, con las
      mismas comprobaciones;
    - loot spawn de cada tabla, y /heraldia info con su línea y las 16 estructuras de la costa.
-2. Con faros.activado = false y naufragios.separacion_bloques = 2048: /locate ya no da ningún faro, y la rejilla de los
+2. Con faros.activado = false y naufragios.separacion_bloques = 2048: /locate ya no da ningún faro nuevo (solo el ya
+   generado, que se queda como en un mundo existente), y la rejilla de los
    naufragios sale con la separación nueva.
 Código 0 si todo pasa.
 """
@@ -328,11 +329,14 @@ def main():
     proc, ctx = arrancar(a.work, jar, {"faros": {"activado": False}, "naufragios": {"separacion_bloques": 2048}}, False)
     try:
         fails += comprobar_log(ctx, faros=False, sep_naufragio=2048)
-        # lejos de lo ya generado (lo generado se queda y /locate lo sigue encontrando, como en un mundo existente)
+        # lo ya generado se queda y /locate lo sigue encontrando (como en un mundo existente): solo no debe salir uno nuevo
         m = ctx.run("execute positioned -40000 64 40000 run locate structure #heraldia:costa/faro",
                     r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
-        if m.group(1):
+        generados = {(st.x // 16, st.z // 16) for st in vistos.get("faro", [])}
+        if m.group(1) and not any(abs(int(m.group(1)) // 16 - cx) <= 6 and abs(int(m.group(2)) // 16 - cz) <= 6
+                                  for cx, cz in generados):
             fails.append(f"faros desactivados y /locate da uno nuevo en {m.group(1)}, {m.group(2)}")
+        print(f"faros desactivados: /locate da {m.group(1) and (m.group(1), m.group(2))} (los ya generados: {sorted(generados)})")
     finally:
         parar(proc)
     print(f"costa: {time.monotonic() - t0:.0f} s")
