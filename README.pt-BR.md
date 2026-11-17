@@ -19,9 +19,10 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 
 - 📖 **O Guia do Arauto.** Todo jogador o recebe ao entrar: um livro que explica o que procurar e guarda o seu diário, com as estruturas únicas que você descobriu e pistas das que ainda faltam. Peça uma cópia atualizada quando quiser com `/heraldia guide`.
 - 📊 **O que o servidor já encontrou.** `/heraldia status` mostra quantas vilas, estruturas únicas, estruturas médias e minas os jogadores descobriram, os guardiões derrotados e o recorde da arena.
-- 🏆 **Progressos.** Uma aba Heraldia com 94 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, as estruturas médias, o quadro de tarefas e a arena.
+- 🏆 **Progressos.** Uma aba Heraldia com 96 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, as estruturas médias, o quadro de tarefas e a arena.
 - 🗿 **Troféus.** Cada um dos 20 guardiões solta seu troféu, um item com nome e história. Reúna todos para completar a Sala de troféus.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única mais próxima do seu tipo. Eles aparecem nos baús épicos das vilas e os cartógrafos os vendem.
+- 🧭 **Caça ao tesouro.** Às vezes um baú traz um fragmento de mapa do tesouro. Use-o e ele vira um mapa com uma marca: cada marca é uma estrutura real de Heraldia que esconde a próxima pista, e a última leva a um baú enterrado por Ysolda, com bom saque e uma lembrança.
 - 📜 **A Crônica dos Arautos.** Cada estrutura única guarda um fólio da crônica escrita por Ysolda, a última dos arautos da Atlântida. Cada fólio aponta o seguinte: reúna os 20 e você saberá como ela termina.
 
 Os textos do mod estão em 8 idiomas: inglês, espanhol, francês, alemão, italiano, português do Brasil, catalão e galego.
@@ -59,6 +60,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `guia.entregar_al_entrar` | `true` | Dá o Guia do Arauto a cada jogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores quando há uma versão nova. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web, só as estruturas já descobertas. |
+| `tesoro.probabilidad` | 3.0 | Chance (%) de um fragmento de mapa do tesouro em cada baú das estruturas médias e das minas. |
 
 ## Saiba mais
 

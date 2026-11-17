@@ -19,9 +19,10 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 
 - 📖 **Der Leitfaden des Herolds.** Jeder Spieler erhält ihn beim Betreten: ein Buch, das erklärt, wonach du suchen kannst, und dein Tagebuch führt – mit den einzigartigen Bauwerken, die du entdeckt hast, und Hinweisen auf die fehlenden. Ein aktuelles Exemplar bekommst du jederzeit mit `/heraldia guide`.
 - 📊 **Was der Server gefunden hat.** `/heraldia status` zeigt, wie viele Dörfer, einzigartige und mittelgroße Bauwerke und Minen die Spieler entdeckt haben, die besiegten Wächter und den Arenarekord.
-- 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 94 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die mittelgroßen Bauwerke, das Auftragsbrett und die Arena.
+- 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 96 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die mittelgroßen Bauwerke, das Auftragsbrett und die Arena.
 - 🗿 **Trophäen.** Jeder der 20 Hüter lässt seine Trophäe fallen, einen Gegenstand mit Namen und Geschichte. Sammle sie alle, um den Trophäensaal zu vervollständigen.
 - 🗺️ **Schatzkarten.** Jede Karte zeigt das nächstgelegene einzigartige Bauwerk ihrer Art. Du findest sie in den epischen Truhen der Dörfer, und die Kartografen verkaufen sie.
+- 🧭 **Schatzsuche.** Manchmal liegt in einer Truhe ein Schatzkartenfragment. Benutze es, und es wird eine Karte mit einer Markierung: Jede Markierung ist ein echtes Heraldia-Bauwerk, das den nächsten Hinweis verbirgt, und die letzte führt zu einer von Ysolda vergrabenen Truhe mit guter Beute und einem Andenken.
 - 📜 **Die Chronik der Herolde.** Jedes einzigartige Bauwerk birgt ein Blatt der Chronik, die Ysolda geschrieben hat, die letzte Heroldin von Atlantis. Jedes Blatt weist auf das nächste: Sammle alle 20, und du erfährst, wie sie endet.
 
 Die Texte des Mods gibt es in 8 Sprachen: Englisch, Spanisch, Französisch, Deutsch, Italienisch, brasilianisches Portugiesisch, Katalanisch und Galicisch.
@@ -59,6 +60,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `guia.entregar_al_entrar` | `true` | Gibt jedem Spieler beim Betreten den Leitfaden des Herolds. |
 | `update_check.activado` | `true` | Meldet Operatoren, wenn es eine neue Version gibt. |
 | `mapas_web.solo_descubiertas` | `true` | Auf der Webkarte nur bereits entdeckte Bauwerke. |
+| `tesoro.probabilidad` | 3.0 | Wahrscheinlichkeit (%) eines Schatzkartenfragments in jeder Truhe der mittelgroßen Bauwerke und Minen. |
 
 ## Mehr erfahren
 

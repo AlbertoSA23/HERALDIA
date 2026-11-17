@@ -19,9 +19,10 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 
 - 📖 **A Guía do Heraldo.** Cada xogador recíbea ao entrar: un libro que explica que buscar e leva o teu diario, coas estruturas únicas que descubriches e pistas das que che faltan. Pide unha copia ao día cando queiras con `/heraldia guide`.
 - 📊 **O que atopou o servidor.** `/heraldia status` di cantas aldeas, estruturas únicas, estruturas medianas e minas descubriron os xogadores, os gardiáns vencidos e o récord da area.
-- 🏆 **Logros.** Unha lapela Heraldia con 94 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos e a area.
+- 🏆 **Logros.** Unha lapela Heraldia con 96 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos e a area.
 - 🗿 **Trofeos.** Cada un dos 20 gardiáns solta o seu trofeo, un obxecto con nome e historia. Reúneos todos para completar a Sala de trofeos.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única máis próxima do seu tipo. Saen nos cofres épicos das aldeas e véndenos os cartógrafos.
+- 🧭 **Busca do tesouro.** Ás veces un cofre garda un fragmento de mapa do tesouro. Úsao e volverase un mapa cunha marca: cada marca é unha estrutura real de Heraldia que agocha a seguinte pista, e a última leva a un cofre que enterrou Ysolda, con bo botín e unha lembranza.
 - 📜 **A Crónica dos Heraldos.** Cada estrutura única garda un prego da crónica que escribiu Ysolda, a última heraldo da Atlántida. Cada prego sinala o seguinte: reúne os 20 e saberás como remata.
 
 Os textos do mod están en 8 linguas: inglés, castelán, francés, alemán, italiano, portugués do Brasil, catalán e galego.
@@ -59,6 +60,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `guia.entregar_al_entrar` | `true` | Dálle a Guía do Heraldo a cada xogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores cando hai unha versión nova. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web só saen as estruturas xa descubertas. |
+| `tesoro.probabilidad` | 3.0 | Probabilidade (%) dun fragmento de mapa do tesouro en cada cofre das estruturas medianas e das minas. |
 
 ## Para saber máis
 

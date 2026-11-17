@@ -36,6 +36,7 @@ CANONICOS = [
     "status", "status <page>", "reload", "update", "update check",
     "profile",                                   # T36: el perfil de juego
     "webmap", "webmap refresh",
+    "treasure", "treasure give", "treasure give <players>", "treasure info",   # T40: búsqueda del tesoro (operadores)
 ]
 
 

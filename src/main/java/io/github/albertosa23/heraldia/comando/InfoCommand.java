@@ -17,6 +17,8 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.nbt.visitors.CollectFields;
 import net.minecraft.nbt.visitors.FieldSelector;
 import net.minecraft.world.level.chunk.storage.ChunkScanAccess;
@@ -178,11 +180,11 @@ public final class InfoCommand {
 	record Found(Holder<Structure> structure, ChunkPos chunk, BlockPos pos, long distanceSq, boolean generated) {
 	}
 
-	record Group(RandomSpreadStructurePlacement placement, List<Holder<Structure>> structures) {
+	public record Group(RandomSpreadStructurePlacement placement, List<Holder<Structure>> structures) {
 	}
 
 	/** Qué dice el chunk guardado: null = no existe en disco; si existe, las estructuras cuyo inicio guarda. */
-	record Stored(List<Identifier> starts) {
+	public record Stored(List<Identifier> starts) {
 	}
 
 	private static int near(CommandContext<CommandSourceStack> ctx, int radius) {
@@ -226,7 +228,7 @@ public final class InfoCommand {
 	}
 
 	/** Estructuras del mod agrupadas por colocación: una por tipo de única; las aldeas comparten la suya. */
-	static List<Group> groups(ServerLevel level) {
+	public static List<Group> groups(ServerLevel level) {
 		ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
 		Map<RandomSpreadStructurePlacement, List<Holder<Structure>>> byPlacement = new LinkedHashMap<>();
 		level.registryAccess().lookupOrThrow(Registries.STRUCTURE).listElements().forEach(h -> {
@@ -304,16 +306,24 @@ public final class InfoCommand {
 		return out;
 	}
 
-	/** Inicios de estructura del chunk guardado (solo esos campos, como StructureCheck), o null si no está en disco. */
-	static Stored stored(ChunkScanAccess scanner, ChunkPos pos) {
+	/**
+	 * Inicios de estructura del chunk guardado (solo esos campos, como StructureCheck), o null si no está en disco o se
+	 * guardó antes de decidir sus estructuras (estado anterior a structure_starts, p. ej. un chunk a medio generar al
+	 * parar el servidor): entonces aún no se sabe y se da como previsto (T40: si no, la misma búsqueda daba resultados
+	 * distintos según en qué estado se hubieran guardado los chunks cercanos al spawn).
+	 */
+	public static Stored stored(ChunkScanAccess scanner, ChunkPos pos) {
 		CollectFields fields = new CollectFields(new FieldSelector(IntTag.TYPE, "DataVersion"),
-				new FieldSelector("structures", CompoundTag.TYPE, "starts"));
+				new FieldSelector(StringTag.TYPE, "Status"), new FieldSelector("structures", CompoundTag.TYPE, "starts"));
 		try {
 			scanner.scanChunk(pos, fields).join();
 		} catch (RuntimeException e) {
 			return null;
 		}
 		if (!(fields.getResult() instanceof CompoundTag tag)) {
+			return null;
+		}
+		if (!conEstructuras(tag.getStringOr("Status", ""))) {
 			return null;
 		}
 		List<Identifier> starts = new ArrayList<>();
@@ -326,7 +336,12 @@ public final class InfoCommand {
 		return new Stored(starts);
 	}
 
-	static Holder<Structure> firstViable(Group g, ChunkPos c, long seed, ServerLevel level, RegistryAccess access,
+	/** ¿Un chunk guardado con este estado ya tiene decididas sus estructuras? (Sin estado: sí, como lo leía antes.) */
+	static boolean conEstructuras(String status) {
+		return status.isEmpty() || ChunkStatus.byName(status).isOrAfter(ChunkStatus.STRUCTURE_STARTS);
+	}
+
+	public static Holder<Structure> firstViable(Group g, ChunkPos c, long seed, ServerLevel level, RegistryAccess access,
 												 ChunkGenerator generator, RandomState randomState, Climate.Sampler sampler,
 												 UniqueSeparation sep, UniqueSeparation.Viability viability) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
@@ -384,13 +399,13 @@ public final class InfoCommand {
 
 
 	/** Rumbo de 8 puntos (norte = -z). */
-	static String direction(int dx, int dz) {
+	public static String direction(int dx, int dz) {
 		double angle = Math.toDegrees(Math.atan2(-dx, dz)); // 0 = sur, 90 = oeste, 180 = norte, -90 = este
 		int i = Math.floorMod((int) Math.round(angle / 45.0), 8);
 		return DIRECTIONS[i];
 	}
 
-	static Component coordinates(BlockPos pos) {
+	public static Component coordinates(BlockPos pos) {
 		return ComponentUtils.wrapInSquareBrackets(Component.translatable("chat.coordinates", pos.getX(), "~", pos.getZ()))
 				.withStyle(s -> s.withColor(ChatFormatting.GREEN)
 						.withClickEvent(new ClickEvent.SuggestCommand("/tp @s " + pos.getX() + " ~ " + pos.getZ()))

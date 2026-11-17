@@ -131,7 +131,7 @@ def cifras():
 def test_cifras_del_generador():
     c = cifras()
     # las que se comprueban también en el servidor (server_smoke.py cuenta los ficheros generados)
-    assert c == {"estructuras": 142, "logros": 94}, "si cambian, cámbialas en los README y en docs/"
+    assert c == {"estructuras": 142, "logros": 96}, "si cambian, cámbialas en los README y en docs/"
 
 
 def test_cifras_del_readme():

@@ -37,7 +37,7 @@ public final class Textos {
 	}
 
 	/** Traducible con el texto de `textos` como respaldo (el que ve un cliente sin el mod); si falta, el español. */
-	static MutableComponent t(Map<String, String> textos, String key, Object... args) {
+	public static MutableComponent t(Map<String, String> textos, String key, Object... args) {
 		String fallback = textos.get(key);
 		return Component.translatableWithFallback(key, fallback != null ? fallback : ES_TEXTOS.getOrDefault(key, key), args);
 	}

@@ -184,7 +184,8 @@ def _recompensa(n, extra=None):
     if extra:
         pools.append({"rolls": 1, "entries": [{"type": "minecraft:item", "name": extra[0],
                                                "modifier": [{"type": "minecraft:set_components", "components": extra[1]}]}]})
-    return {"type": "minecraft:advancement_reward", "pools": pools}
+    import tesoro   # a veces, un fragmento de mapa del tesoro (tesoro.FACTOR["encargos"])
+    return tesoro.con_pista({"type": "minecraft:advancement_reward", "pools": pools}, "encargos")
 
 
 def tablas():

@@ -19,9 +19,10 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 
 - 📖 **The Herald's Guide.** Every player gets it on joining: a book that explains what to look for and keeps your diary, with the unique structures you have discovered and clues to the ones still missing. Ask for an up-to-date copy at any time with `/heraldia guide`.
 - 📊 **What the server has found.** `/heraldia status` shows how many villages, unique structures, medium structures and mines the players have discovered, the guardians defeated and the arena record.
-- 🏆 **Advancements.** A Heraldia tab with 94 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the medium structures, the job board and the arena.
+- 🏆 **Advancements.** A Heraldia tab with 96 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the medium structures, the job board and the arena.
 - 🗿 **Trophies.** Each of the 20 guardians drops its trophy, an item with a name and a story. Collect them all to complete the Hall of Trophies.
 - 🗺️ **Treasure maps.** Each map marks the nearest unique structure of its kind. They turn up in the villages' epic chests and the cartographers sell them.
+- 🧭 **Treasure hunt.** Now and then a chest holds a treasure map fragment. Use it and it becomes a map with a mark: each mark is a real Heraldia structure that hides the next clue, and the last one leads to a chest buried by Ysolda, with good loot and a keepsake.
 - 📜 **The Chronicle of the Heralds.** Each unique structure keeps a leaf of the chronicle written by Ysolda, the last herald of Atlantis. Each leaf points to the next: gather all 20 and you will learn how it ends.
 
 The texts of the mod are in 8 languages: English, Spanish, French, German, Italian, Brazilian Portuguese, Catalan and Galician.
@@ -59,6 +60,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `guia.entregar_al_entrar` | `true` | Gives the Herald's Guide to each player on joining. |
 | `update_check.activado` | `true` | Tells operators when there is a new version. |
 | `mapas_web.solo_descubiertas` | `true` | Only structures already discovered appear on the web map. |
+| `tesoro.probabilidad` | 3.0 | Chance (%) of a treasure map fragment in each chest of medium structures and mines. |
 
 ## Learn more
 
