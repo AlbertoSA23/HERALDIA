@@ -24,6 +24,11 @@ def at(base, p, crypt=False):
     return f"{base[0] + x} {base[1] + y} {base[2] + z}"
 
 
+def caja(base):
+    """Selector de volumen (x, y, z, dx, dy, dz) que cubre de sobra una plantilla colocada en `base`."""
+    return f"x={base[0] - 4},y={base[1] - 4},z={base[2] - 4},dx=100,dy=60,dz=100"
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
@@ -95,12 +100,20 @@ def main():
         check("el guardián lleva su hacha",
               "execute if entity @e[type=minecraft:zombie,tag=heraldia_guardian.salon_jarl,nbt={equipment:{mainhand:{id:\"minecraft:iron_axe\"}}}]")
         check("el guardián es adulto", "execute if entity @e[type=minecraft:zombie,tag=heraldia_guardian.salon_jarl,nbt={IsBaby:0b}]")
-        # 2. plantillas sin girar
+        # 2. plantillas sin girar. Se colocan con el mundo congelado: /place template en terreno ya generado arranca las
+        # plantas que se quedan sin suelo (hierba, hojarasca...) y las suelta como objetos dentro de la plantilla; uno
+        # que caía sobre el cable trampa lo disparaba antes de comprobarlo (fallo intermitente de la CI, ver
+        # APRENDIZAJES). En la generación normal no pasa: la región de generación no suelta objetos.
+        cmd("tick freeze", r"frozen|already")
         for name, base in (("salon", SALON), ("tumulo", TUM)):
             m = cmd(f"place template heraldia:unicas/salon_jarl/{name} {base[0]} {base[1]} {base[2]}",
                     r"Loaded template|Failed|not loaded|error|Could not")
             if "Loaded" not in m.group(0):
                 fails.append("place template " + name)
+        for name, base in (("salon", SALON), ("tumulo", TUM)):
+            m = cmd(f"kill @e[type=minecraft:item,{caja(base)}]", r"Killed (\d+)|No entity was found")
+            print(f"OBJETOS sueltos al colocar la plantilla {name}: {m.group(1) or 0}")
+        cmd("tick unfreeze", r"running|not frozen")
         ctx.ticks(60)
         check("cofre de la alcoba del jarl", f"execute if data block {at(SALON, (40, 2, 62))} LootTable")
         check("tapiz ante el paso a la alcoba", f"execute if block {at(SALON, (34, 4, 57))} minecraft:black_wall_banner")

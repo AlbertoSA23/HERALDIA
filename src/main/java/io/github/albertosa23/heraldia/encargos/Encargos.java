@@ -745,20 +745,61 @@ public final class Encargos {
 			return;
 		}
 		Aldea a = aldeaEn(level, e.blockPosition());
-		if (a == null) {
-			return;
+		if (a != null) {
+			sumar(p, a, Reputacion.ataque(golem, muerte), (muerte ? "mata" : "golpea") + " a un " + (golem ? "gólem" : "aldeano"));
 		}
+	}
+
+	// --- API para otros sistemas (p. ej. las caravanas) ---
+
+	/**
+	 * Suma (o resta) reputación del jugador con la aldea de Heraldia cuyo inicio está en el chunk (chunkX, chunkZ), sin
+	 * salirse de [{@link Reputacion#MIN}, {@link Reputacion#MAX}]: avisa al jugador si cambia de nivel, concede los
+	 * logros de amigo y héroe y lo apunta en el log con {@code motivo}. Sin efecto (devuelve la reputación que tenía) con
+	 * reputacion.activado a false. En el hilo del servidor. Devuelve la reputación nueva.
+	 */
+	public static int sumarReputacion(ServerPlayer p, int chunkX, int chunkZ, int puntos, String motivo) {
+		Aldea a = new Aldea(chunkX, chunkZ, "", nombre(p.level().getSeed(), chunkX, chunkZ));
+		if (!conReputacion()) {
+			return datos(p).reputacion(a.clave());
+		}
+		return sumar(p, a, puntos, motivo);
+	}
+
+	/** Como {@link #sumarReputacion(ServerPlayer, int, int, int, String)} con la aldea en cuya caja está {@code pos};
+	 *  devuelve null si ahí no hay ninguna aldea de Heraldia (o el chunk no está cargado). */
+	public static @Nullable Integer sumarReputacion(ServerPlayer p, ServerLevel level, BlockPos pos, int puntos, String motivo) {
+		Aldea a = aldeaEn(level, pos);
+		return a == null ? null : sumarReputacion(p, a.cx(), a.cz(), puntos, motivo);
+	}
+
+	/** Reputación del jugador con la aldea del chunk (chunkX, chunkZ) (0 si nunca ha tratado con ella). */
+	public static int reputacion(Player p, int chunkX, int chunkZ) {
+		return datos(p).reputacion(Reputacion.clave(chunkX, chunkZ));
+	}
+
+	/** El chunk del inicio de la aldea de Heraldia en cuya caja está {@code pos}, o null (para usar con lo de arriba). */
+	public static net.minecraft.world.level.@Nullable ChunkPos aldea(ServerLevel level, BlockPos pos) {
+		Aldea a = aldeaEn(level, pos);
+		return a == null ? null : new net.minecraft.world.level.ChunkPos(a.cx(), a.cz());
+	}
+
+	static int sumar(ServerPlayer p, Aldea a, int puntos, String motivo) {
 		Datos d = datos(p);
 		Reputacion.Nivel antes = d.nivel(a.clave());
-		Datos nuevo = d.sumarReputacion(a.clave(), Reputacion.ataque(golem, muerte));
+		Datos nuevo = d.sumarReputacion(a.clave(), puntos);
 		guardar(p, nuevo);
 		Reputacion.Nivel despues = nuevo.nivel(a.clave());
 		if (despues != antes) {
 			Map<String, String> l = idioma(p);
-			p.sendSystemMessage(Textos.t(l, "heraldia.encargos.baja", a.nombre(), nivel(l, despues)).withStyle(ChatFormatting.RED));
+			p.sendSystemMessage(despues.compareTo(antes) > 0
+					? Textos.t(l, "heraldia.encargos.sube", a.nombre(), nivel(l, despues)).withStyle(ChatFormatting.LIGHT_PURPLE)
+					: Textos.t(l, "heraldia.encargos.baja", a.nombre(), nivel(l, despues)).withStyle(ChatFormatting.RED));
+			logros(p, nuevo);
 		}
-		LOGGER.info("Heraldia: encargos: {} {} a un {} de {}: reputación {}", p.getGameProfile().name(), muerte ? "mata" : "golpea",
-				golem ? "gólem" : "aldeano", a.nombre(), nuevo.reputacion(a.clave()));
+		LOGGER.info("Heraldia: encargos: {} {} de {}: reputación {}", p.getGameProfile().name(), motivo, a.nombre(),
+				nuevo.reputacion(a.clave()));
+		return nuevo.reputacion(a.clave());
 	}
 
 	/**
