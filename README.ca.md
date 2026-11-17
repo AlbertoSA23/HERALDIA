@@ -17,7 +17,7 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 
 ## Com es juga
 
-- 📖 **La Guia de l'Herald.** Tots els jugadors la reben en entrar: un llibre que explica què has de buscar i porta el teu diari, amb les estructures úniques que has descobert i pistes de les que et falten. Demana'n una còpia al dia quan vulguis amb `/heraldia guia`.
+- 📖 **La Guia de l'Herald.** Tots els jugadors la reben en entrar: un llibre que explica què has de buscar i porta el teu diari, amb les estructures úniques que has descobert i pistes de les que et falten. Demana'n una còpia al dia quan vulguis amb `/heraldia guide`.
 - 📊 **El que ha trobat el servidor.** `/heraldia status` diu quants pobles, estructures úniques, estructures mitjanes i mines han descobert els jugadors, els guardians vençuts i el rècord de l'arena.
 - 🏆 **Assoliments.** Una pestanya Heraldia amb 94 assoliments: un poble de cada família, cada estructura única amb el seu guardià i el seu tresor, les mines, les estructures mitjanes, el tauler d'encàrrecs i l'arena.
 - 🗿 **Trofeus.** Cadascun dels 20 guardians deixa anar el seu trofeu, un objecte amb nom i història. Reuneix-los tots per completar la Sala de trofeus.
@@ -33,6 +33,10 @@ Els textos del mod estan en 8 llengües: anglès, castellà, francès, alemany, 
 3. **Els jugadors no necessiten el mod**: poden entrar amb un client vanilla. Els textos que el client no coneix surten en castellà, excepte la Guia de l'Herald, que arriba en la llengua de cada jugador. Si també instal·len el mod, ho veuen tot en la seva llengua i tenen la pantalla de configuració (amb Mod Menu).
 
 **Un món ja existent** funciona sense problemes: les estructures noves apareixen als chunks que encara no s'han generat (explora terres noves). Si el teu món es va crear amb Heraldia **0.1.0**, posa `unicas.rejilla_compatible` a `true` abans d'engegar el servidor, perquè `/locate`, els mapes del tresor i la Guia continuïn trobant les estructures úniques que ja tens.
+
+Les **ordres** són en anglès a tots els servidors: `/heraldia guide`, `/heraldia key`, `/heraldia arena place`... Els noms antics en castellà (`/heraldia guia`...) encara funcionen de moment: fan el mateix i et diuen el nom nou.
+
+**Versions noves:** el servidor mira un cop al dia si hi ha una versió nova de Heraldia per al seu Minecraft i ho diu als operadors en entrar, amb l'enllaç de baixada. **Fes una còpia de seguretat del servidor abans d'actualitzar.** Es desactiva amb `update_check.activado`.
 
 ## Opcions més útils
 
@@ -51,11 +55,12 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `botin.reponer.activado` | `false` | Els cofres d'Heraldia es tornen a omplir al cap d'uns dies. |
 | `arena.activado` | `true` | L'arena d'onades prop del punt d'aparició. |
 | `guia.entregar_al_entrar` | `true` | Dona la Guia de l'Herald a cada jugador en entrar. |
+| `update_check.activado` | `true` | Avisa els operadors quan hi ha una versió nova. |
 
 ## Per saber-ne més
 
 - [Referència completa del contingut](docs/CONTENT.md) (en anglès): tots els estils de poble, les estructures úniques, les mitjanes i les mines, els combats amb els guardians, els assoliments, l'arena i més.
-- [Instal·lació, ordres i configuració](docs/CONFIGURATION.md) (en anglès): ordres de prova i d'administració (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), totes les opcions i la pantalla de configuració del joc.
+- [Instal·lació, ordres i configuració](docs/CONFIGURATION.md) (en anglès): ordres de prova i d'administració (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key`...), totes les opcions i la pantalla de configuració del joc.
 - [Compatibilitat amb altres mods](docs/COMPATIBILITY.md) (en anglès): mods de biomes, mods d'estructures, Lootr i la resta.
 - [Compilació i proves](docs/BUILDING.md) (en anglès), [guia de desenvolupament (en castellà)](docs/DESARROLLO.md) i [registre de canvis](CHANGELOG.md).
 

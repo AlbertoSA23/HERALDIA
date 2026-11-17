@@ -17,7 +17,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 
 ## Como se xoga
 
-- 📖 **A Guía do Heraldo.** Cada xogador recíbea ao entrar: un libro que explica que buscar e leva o teu diario, coas estruturas únicas que descubriches e pistas das que che faltan. Pide unha copia ao día cando queiras con `/heraldia guia`.
+- 📖 **A Guía do Heraldo.** Cada xogador recíbea ao entrar: un libro que explica que buscar e leva o teu diario, coas estruturas únicas que descubriches e pistas das que che faltan. Pide unha copia ao día cando queiras con `/heraldia guide`.
 - 📊 **O que atopou o servidor.** `/heraldia status` di cantas aldeas, estruturas únicas, estruturas medianas e minas descubriron os xogadores, os gardiáns vencidos e o récord da area.
 - 🏆 **Logros.** Unha lapela Heraldia con 94 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, as estruturas medianas, o taboleiro de encargos e a area.
 - 🗿 **Trofeos.** Cada un dos 20 gardiáns solta o seu trofeo, un obxecto con nome e historia. Reúneos todos para completar a Sala de trofeos.
@@ -33,6 +33,10 @@ Os textos do mod están en 8 linguas: inglés, castelán, francés, alemán, ita
 3. **Os xogadores non precisan o mod**: poden entrar cun cliente vanilla. Os textos que o cliente non coñece saen en castelán, agás a Guía do Heraldo, que chega na lingua de cada xogador. Se tamén instalan o mod, verán todo na súa lingua e terán a pantalla de configuración (con Mod Menu).
 
 **Un mundo xa existente** funciona sen problema: as estruturas novas aparecen nos chunks que aínda non se xeraron (explora terras novas). Se o teu mundo se creou con Heraldia **0.1.0**, pon `unicas.rejilla_compatible` en `true` antes de arrincar o servidor, para que `/locate`, os mapas do tesouro e a Guía sigan atopando as estruturas únicas que xa tes.
+
+Os **comandos** están en inglés en todos os servidores: `/heraldia guide`, `/heraldia key`, `/heraldia arena place`... Os nomes antigos en castelán (`/heraldia guia`...) seguen funcionando polo de agora: fan o mesmo e dinche o nome novo.
+
+**Versións novas:** o servidor mira unha vez ao día se hai unha versión nova de Heraldia para o seu Minecraft e avisa os operadores ao entrar, coa ligazón de descarga. **Fai unha copia de seguridade do servidor antes de actualizar.** Desactívase con `update_check.activado`.
 
 ## Opcións máis útiles
 
@@ -51,11 +55,12 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `botin.reponer.activado` | `false` | Os cofres de Heraldia vólvense encher ao cabo duns días. |
 | `arena.activado` | `true` | A area de vagas preto do punto de aparición. |
 | `guia.entregar_al_entrar` | `true` | Dálle a Guía do Heraldo a cada xogador ao entrar. |
+| `update_check.activado` | `true` | Avisa os operadores cando hai unha versión nova. |
 
 ## Para saber máis
 
 - [Referencia completa do contido](docs/CONTENT.md) (en inglés): todos os estilos de aldea, estruturas únicas, estruturas medianas e minas, os combates cos gardiáns, os logros, a area e moito máis.
-- [Instalación, comandos e configuración](docs/CONFIGURATION.md) (en inglés): comandos de proba e de administración (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), todas as opcións e a pantalla de configuración do xogo.
+- [Instalación, comandos e configuración](docs/CONFIGURATION.md) (en inglés): comandos de proba e de administración (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key`...), todas as opcións e a pantalla de configuración do xogo.
 - [Compatibilidade con outros mods](docs/COMPATIBILITY.md) (en inglés): mods de biomas, mods de estruturas, Lootr e o resto.
 - [Compilación e probas](docs/BUILDING.md) (en inglés), [guía de desenvolvemento](docs/DESARROLLO.md) (en castelán) e [rexistro de cambios](CHANGELOG.md) (en inglés).
 

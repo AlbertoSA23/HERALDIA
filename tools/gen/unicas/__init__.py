@@ -21,7 +21,7 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.
   LOOT = {"premium": tabla, ...}   -> heraldia:unicas/<id>/<nombre>
   LLAVES = {"<llave>": {"tabla": tabla, "cerradura": lock}}   (opcional) llaves de cofres cerrados con `lock`: la tabla
-      da exactamente el objeto que pide la cerradura; va a heraldia:llaves/<id>/<llave> y la ofrece /heraldia llave.
+      da exactamente el objeto que pide la cerradura; va a heraldia:llaves/<id>/<llave> y la ofrece /heraldia key.
   LANG = {"es_es": {...}, "en_us": {...}}   (opcional) claves de traducción propias que se suman al idioma del mod.
   # Opcional (mapas del tesoro, ver mapas.py): nombre para el mapa y su marca en el mapa.
   NOMBRE = {"es_es": "Atlántida", "en_us": "Atlantis"}           # por defecto, el id

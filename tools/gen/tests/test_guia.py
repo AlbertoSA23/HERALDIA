@@ -44,7 +44,7 @@ def test_paginas_fijas_sin_repetir_y_con_el_comando():
     assert len(ids) == len(set(ids))
     assert ids[0] == "bienvenida" and ids[-1] == "diario"
     diario = dict((p[0], p[2]) for p in guia.PAGINAS)["diario"]
-    assert all("/heraldia guia" in t for t in diario)
+    assert all("/heraldia guide" in t for t in diario)
 
 
 def test_titulo_del_libro():

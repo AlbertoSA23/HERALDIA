@@ -2,9 +2,9 @@
 
 Uso: python3 tools/smoke/arena.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-arena"
 Primer arranque (mundo nuevo, con arena.generar_en_mundos_nuevos):
-  1. la arena se genera sola a 200-300 bloques del spawn; /heraldia arena quitar (con confirmación) la quita; confirmar
-     sin propuesta falla; /heraldia arena colocar propone el sitio y «colocar confirmar» la coloca (la campana, la
-     puerta abierta y el cristal, donde dice arena.json); otra vez «colocar» dice que ya hay una;
+  1. la arena se genera sola a 200-300 bloques del spawn; /heraldia arena remove (con confirmación) la quita; confirmar
+     sin propuesta falla; /heraldia arena place propone el sitio y «place confirm» la coloca (la campana, la
+     puerta abierta y el cristal, donde dice arena.json); otra vez «place» dice que ya hay una;
   2. protección: el jugador simulado (creativo, sin ser operador) no rompe un bloque ni coloca piedra; como operador sí
      rompe; una TNT dentro no rompe nada (y fuera sí); un pistón no empuja su muro (y otro fuera sí); un dispensador
      pegado a la arena no vacía su cubo de lava (lo suelta como objeto) y otro lejos sí;
@@ -17,7 +17,7 @@ Primer arranque (mundo nuevo, con arena.generar_en_mundos_nuevos):
      diamantes y los niveles (Carpet desconecta al jugador simulado al morir: la reaparición vanilla, COPY_FROM y el
      teletransporte a la entrada no se pueden probar aquí) y la partida acaba (sin mobs, puerta abierta);
   Lo que el servidor escribe en la consola sale en inglés (el servidor dedicado carga el en_us del mod).
-  5. otra partida (/heraldia arena empezar) con mobs vivos y la puerta cerrada; se guarda y se mata el proceso (como un
+  5. otra partida (/heraldia arena start) con mobs vivos y la puerta cerrada; se guarda y se mata el proceso (como un
      cierre en seco).
 Segundo arranque (el mismo mundo): los mobs de la arena se quitan al cargarse, la puerta está abierta y no hay partida.
 """
@@ -142,20 +142,20 @@ def primer_arranque(p, pl):
         ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
     ctx.run("difficulty normal", r"difficulty|Difficulty")
     # quitar, con confirmación
-    ctx.run("heraldia arena quitar", r"Se quitará la arena|will be removed")
-    ctx.run("heraldia arena quitar confirmar", r"arena: quitada de|arena: obra terminada")
+    ctx.run("heraldia arena remove", r"Se quitará la arena|will be removed")
+    ctx.run("heraldia arena remove confirm", r"arena: quitada de|arena: obra terminada")
     p.check(p.esperar_log(r"arena: quitada de"), "no se quita la arena")
-    ctx.run("heraldia arena colocar confirmar", r"Primero pide un sitio|First ask for a site")
-    # colocar: propuesta y confirmación
-    m = ctx.run("heraldia arena colocar", r"arena: sitio propuesto en (-?\d+) (-?\d+) (-?\d+) \(a (\d+) bloques")
+    ctx.run("heraldia arena place confirm", r"Primero pide un sitio|First ask for a site")
+    # place: propuesta y confirmación
+    m = ctx.run("heraldia arena place", r"arena: sitio propuesto en (-?\d+) (-?\d+) (-?\d+) \(a (\d+) bloques")
     p.check(200 <= int(m.group(4)) <= 300, f"propuesta a {m.group(4)} bloques del spawn")
-    ctx.run("heraldia arena colocar confirmar", r"Colocando la arena en|Building the arena at")
-    if not p.check(p.esperar_veces(r"arena: colocada en", 2), "«colocar confirmar» no coloca la arena"):
+    ctx.run("heraldia arena place confirm", r"Colocando la arena en|Building the arena at")
+    if not p.check(p.esperar_veces(r"arena: colocada en", 2), "«place confirm» no coloca la arena"):
         return None
     caja = sola[3:]
     p.check(re.findall(r"arena: colocada en .*\(caja ([-\d ]+) a", ctx.log())[-1].split() == [str(c) for c in caja[:3]],
             "la arena colocada a mano no está donde la generada (la búsqueda es determinista)")
-    ctx.run("heraldia arena colocar", r"Ya hay una arena en|There is already an arena")
+    ctx.run("heraldia arena place", r"Ya hay una arena en|There is already an arena")
     minx, miny, minz, maxx, maxy, maxz = caja
     ctx.run(f"forceload add {minx - 16} {minz - 16} {maxx + 16} {maxz + 16}", r"Marked|force|already")
     bell, reap = rel(caja, pl, "campana"), rel(caja, pl, "reaparicion")
@@ -315,7 +315,7 @@ def a_medias(p, pl, caja):
     ctx = p.ctx
     cx, cz = caja[0] + pl["centro"][0], caja[2] + pl["centro"][2]
     ctx.run(f"tp {P} {cx + 0.5} {caja[1] + 1} {cz + 0.5}", r"Teleported")
-    ctx.run("heraldia arena empezar", r"Prepárate|Get ready")
+    ctx.run("heraldia arena start", r"Prepárate|Get ready")
     ctx.run(f"effect give {P} minecraft:resistance infinite 255 true", r"Applied effect|Gave")
     p.check(p.esperar_veces(r"arena: oleada 1: 4 enemigos", 2, timeout=60), "la segunda partida no empieza")
     p.check(wait_count(ctx, ARENA, 4), "la segunda partida no saca sus mobs")

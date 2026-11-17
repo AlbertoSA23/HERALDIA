@@ -71,7 +71,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * /heraldia review (operador, nivel 2): ruta guiada para validar en una tarde todo el contenido visual ({@link Revision}).
- * En cada parada: búsqueda fuera del hilo del servidor (la rejilla de cada tipo, como /heraldia info cerca: sin cargar
+ * En cada parada: búsqueda fuera del hilo del servidor (la rejilla de cada tipo, como /heraldia info nearby: sin cargar
  * ni generar nada), teletransporte seguro ({@link Seguro}), un título, la lista de qué mirar y botones para marcarla.
  * <p>Busca desde el punto de aparición del mundo. Prefiere una estructura ya generada (aunque esté más lejos) a una
  * prevista; ir a una prevista genera terreno nuevo, así que antes se avisa y hace falta pulsar «Ir y generar» (goto &lt;id&gt; generate). El
@@ -417,7 +417,7 @@ public final class RevisarCommand {
 	/**
 	 * Fuera del hilo del servidor: la estructura de la parada más cercana a {@code origen}, recorriendo las casillas de
 	 * su rejilla de la más cercana a la más lejana. Una ya generada (chunk guardado con su inicio) gana a cualquier
-	 * prevista; de las previstas, la más cercana (las mismas reglas de la generación que /heraldia info cerca). No carga
+	 * prevista; de las previstas, la más cercana (las mismas reglas de la generación que /heraldia info nearby). No carga
 	 * ni genera chunks: el disco se lee con el escáner de StructureCheck.
 	 */
 	static @Nullable Destino buscar(ServerLevel level, List<InfoCommand.Group> grupos, Predicate<Holder<Structure>> filtro,

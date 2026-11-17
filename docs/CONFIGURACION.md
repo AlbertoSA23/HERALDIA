@@ -23,14 +23,33 @@ En un mundo existente las estructuras solo aparecen en chunks que todavía no se
 - `/function heraldia:muestrario`: coloca las 72 aldeas en cuadrícula a partir de donde estés (cada fila, hacia el sur, es una familia; en cada fila van los 3 estilos y luego sus versiones grandes, hacia el este, separadas 300 bloques). Te pone en espectador y te lleva de una a otra, una cada 8 s (unos 10 min). Al terminar vuelves a creativo.
 - `/function heraldia:familia/<familia>` (`llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa`): lo mismo con las 6 aldeas de una familia, en fila hacia el este.
 - `/function heraldia:muestrario/parar`: lo detiene.
-- `/heraldia llave <jugadores> <llave>` (operadores, nivel 2): da las llaves de los cofres cerrados de las estructuras únicas, el mismo objeto que se consigue en el juego. `<llave>` se autocompleta: `todas`, una estructura (`atlantida`: sus cuatro llaves) o una llave suelta (`atlantida.arsenal`, `atlantida.academia`, `atlantida.anfiteatro`, `atlantida.poseidon`). Si el inventario está lleno, la llave cae al suelo a nombre del jugador.
+- `/heraldia key <players> <key>` (operadores, nivel 2): da las llaves de los cofres cerrados de las estructuras únicas, el mismo objeto que se consigue en el juego. `<key>` se autocompleta: `all` (todas), una estructura (`atlantida`: sus cuatro llaves) o una llave suelta (`atlantida.arsenal`, `atlantida.academia`, `atlantida.anfiteatro`, `atlantida.poseidon`). Si el inventario está lleno, la llave cae al suelo a nombre del jugador.
 - `/heraldia info` (operadores, nivel 2): resumen de la configuración en uso (aldeas, estructuras únicas activadas y su separación, distancia mínima, cofre por jugador, si está instalado Lootr, estructuras medianas, entradas a mina y el multiplicador de las minas vanilla) y de cuántas estructuras hay registradas.
-- `/heraldia info cerca [radio]`: la estructura única y la mediana más cercanas de cada tipo, la entrada a mina más cercana de cada tamaño y la aldea Heraldia más cercana, con distancia, rumbo y coordenadas (al pulsarlas se propone un `/tp`). Usa la misma comprobación que `/locate`, así que nunca señala una estructura que la distancia mínima descarta, pero no carga ni genera chunks: lo que aún no se ha generado sale como «prevista» (de una aldea prevista solo se sabe la familia). Radio por defecto 3.000 bloques, máximo 10.000; el mensaje dice cuánto ha tardado la búsqueda.
-- `/heraldia guia` (cualquier jugador, sin permisos): te da una copia al día de la [Guía del Heraldo](CONTENIDO.md#guía-del-heraldo) (si llevas una en el inventario, la cambia por la nueva).
+- `/heraldia info nearby [radius]`: la estructura única y la mediana más cercanas de cada tipo, la entrada a mina más cercana de cada tamaño y la aldea Heraldia más cercana, con distancia, rumbo y coordenadas (al pulsarlas se propone un `/tp`). Usa la misma comprobación que `/locate`, así que nunca señala una estructura que la distancia mínima descarta, pero no carga ni genera chunks: lo que aún no se ha generado sale como «prevista» (de una aldea prevista solo se sabe la familia). Radio por defecto 3.000 bloques, máximo 10.000; el mensaje dice cuánto ha tardado la búsqueda.
+- `/heraldia guide` (cualquier jugador, sin permisos): te da una copia al día de la [Guía del Heraldo](CONTENIDO.md#guía-del-heraldo) (si llevas una en el inventario, la cambia por la nueva).
 - `/heraldia profile` (operadores, nivel 2): el [perfil de juego](#perfiles-de-juego) en uso (el efectivo y el elegido en el fichero) y el valor que da a cada una de sus opciones, marcando las fijadas a mano en el fichero, que mandan sobre él.
-- `/heraldia info aqui`: en qué estructura Heraldia estás (nombre e id) y, en una única, si su guardián vive (solo se responde si toda la estructura está cargada).
+- `/heraldia info here`: en qué estructura Heraldia estás (nombre e id) y, en una única, si su guardián vive (solo se responde si toda la estructura está cargada).
 
 Usa el muestrario solo en un mundo de prueba: lo colocado se queda.
+
+Todos los comandos y subcomandos del mod tienen nombre en inglés, para que sean los mismos en cualquier servidor sea
+cual sea su idioma (lo que lee el jugador sigue traducido). Los nombres en español de antes (`/heraldia guia`, `llave`,
+`info cerca`, `info aqui`, `arena colocar`/`mover`/`quitar` [`confirmar`], `arena empezar`/`parar`/`salir` y la llave
+`todas`) siguen funcionando como alias ocultos: hacen lo mismo, no salen en el autocompletado y avisan de que están
+obsoletos, con el nombre nuevo. Se quitarán en una versión futura.
+
+| Nombre antiguo | Nombre nuevo |
+|---|---|
+| `/heraldia guia` | `/heraldia guide` |
+| `/heraldia llave <jugadores> <todas\|...>` | `/heraldia key <players> <all\|...>` |
+| `/heraldia info cerca [radio]` | `/heraldia info nearby [radius]` |
+| `/heraldia info aqui` | `/heraldia info here` |
+| `/heraldia arena colocar [confirmar]` | `/heraldia arena place [confirm]` |
+| `/heraldia arena mover [confirmar]` | `/heraldia arena move [confirm]` |
+| `/heraldia arena quitar [confirmar]` | `/heraldia arena remove [confirm]` |
+| `/heraldia arena empezar` | `/heraldia arena start` |
+| `/heraldia arena parar` | `/heraldia arena stop` |
+| `/heraldia arena salir` | `/heraldia arena leave` |
 
 ## Herramientas de administración
 
@@ -41,13 +60,27 @@ Para operadores (nivel 2). Una ruta guiada para validar en una tarde todo el con
 - `/heraldia review`: va a la parada en la que estás (la primera, la primera vez). En cada parada sale un título en pantalla, la lista de qué mirar en el chat (traducida, como todo) y botones para marcarla: **Revisada**, **+ Nota** (revisada con una nota) y **Problema** (escribe qué falla detrás de la orden), además de **Saltar**, **Anterior**, **Siguiente** y **Lista**.
 - `/heraldia review next`, `previous`, `skip [note]` (la deja como saltada y pasa a la siguiente), `goto <id>` (p. ej. `goto unica/castillo`; se autocompleta), `list` (todas las paradas con su estado; al pulsar una vas a ella), `reset` (borra tus marcas) y `status` (el resumen: cuántas revisadas, con problema, saltadas y pendientes, y la lista de problemas).
 - `/heraldia review mark checked [note]` y `/heraldia review mark problem [note]`: lo que hacen los botones.
-- La búsqueda va fuera del hilo del servidor, con las mismas reglas que `/heraldia info cerca` (desde el punto de aparición, hasta 10.000 bloques; la Atlántida, en todo el mundo), y nunca carga ni genera chunks: prefiere una estructura ya generada, aunque esté más lejos, a una prevista. Si la más cercana aún no se ha generado, te avisa de que ir allí genera terreno nuevo y espera a que pulses **Ir y generar** (`goto <id> generate`).
+- La búsqueda va fuera del hilo del servidor, con las mismas reglas que `/heraldia info nearby` (desde el punto de aparición, hasta 10.000 bloques; la Atlántida, en todo el mundo), y nunca carga ni genera chunks: prefiere una estructura ya generada, aunque esté más lejos, a una prevista. Si la más cercana aún no se ha generado, te avisa de que ir allí genera terreno nuevo y espera a que pulses **Ir y generar** (`goto <id> generate`).
 - El teletransporte carga el destino sin bloquear el servidor y te deja encima del suelo, sin asfixia: pies y cabeza libres, suelo firme o agua debajo (flotando en el mar en la Atlántida o la isla), nunca en lava, fuego, magma, cactus ni nieve polvo, buscando en espiral hasta 8 bloques alrededor. Si no hay ningún sitio seguro, no te mueve.
 - El progreso es de cada jugador y se guarda en `heraldia_revision.json`, en la carpeta del mundo (sobrevive a los reinicios). Cada cambio escribe también `heraldia_revision.md` en la misma carpeta: por jugador, todas las paradas con su estado, su nota y la fecha, primero las que tienen un problema.
 
 ### Estado del servidor: `/heraldia status [page]`
 
 Para cualquier jugador, traducido y paginado (8 líneas por página, con botones para pasar de página): la versión de Heraldia, cuántas estructuras de cada clase ha descubierto algún jugador frente al total (aldeas, una de cada familia; únicas; medianas, por tipo; minas, por tamaño), los guardianes vencidos, el estado de la arena con el récord del servidor, si está activado el botín que se repone y si está Lootr. Los operadores ven además la dificultad, las opciones clave de la generación, de los jefes y de la Guía, qué falta por descubrir de cada clase y los otros mods cargados. Lo descubierto sale de los logros: los de los jugadores conectados, de memoria; los de los demás, de sus ficheros en la carpeta del mundo (leídos fuera del hilo del servidor).
+
+### Aviso de versión nueva: `/heraldia update check`
+
+Al arrancar el servidor y cada 24 horas, en un hilo propio (nunca retrasa el arranque ni el servidor), el mod pregunta a
+la API de GitHub Releases del proyecto (donde se publica, junto con CurseForge) si hay una versión más nueva de Heraldia
+para la versión de Minecraft del servidor: comparación semántica de versiones, sin las pre-publicaciones (salvo con
+`update_check.prereleases`), y la versión de Minecraft de cada publicación sacada del `gradle.properties` de su etiqueta.
+Si la hay, lo dice en la consola y, en el chat, a cada operador al entrar (una vez por sesión del servidor), en su
+idioma, con un enlace clicable a la descarga y la recomendación de **hacer una copia de seguridad del servidor antes de
+actualizar**. `/heraldia update check` (operadores, nivel 2) lo comprueba en el momento y responde en el chat.
+
+Sin telemetría: una petición GET con un `User-Agent` genérico y sin datos del servidor ni de sus jugadores, con tiempos
+de espera cortos (5 s para conectar, 10 s para responder). Sin red o con una respuesta rara, solo deja una línea en el
+log. Se desactiva con `update_check.activado = false`.
 
 ### Recarga en caliente: `/heraldia reload`
 
@@ -88,7 +121,7 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `golems.limite_grande` | 9 | 1-64 | Igual para las aldeas grandes. |
 | `unicas.<id>.activada` | `true` | `true`/`false` | Activa una estructura única. Aparece una entrada por cada estructura única del mod. |
 | `unicas.<id>.separacion_bloques` | la de la estructura (4000) | 1000-10000 | Separación media entre estructuras de ese tipo (por defecto, una cada 3000-5000 bloques). Cada tipo se reparte por toda su casilla de la rejilla (con el origen desplazado por tipo) y dos del mismo tipo nunca quedan a menos de `unicas.distancia_minima.bloques`. En el Laboratorio del micólogo (campos de champiñones, un bioma muy raro) la candidata de cada casilla no se sortea: es el sitio de la casilla más metido en ese bioma, así que sale en buena parte de las islas de champiñones (como mucho una por casilla). La Mina perdida hace lo mismo con las cuevas exuberantes y de espeleotemas, mirando a la altura de la caverna (y = 26) en vez de al nivel del mar, y la Isla del corsario con sus océanos (el sitio más metido en mar abierto). |
-| `unicas.rejilla_compatible` | `false` | `true`/`false` | **Ponlo a `true` en un mundo creado con una versión anterior de Heraldia (0.1.0)**; déjalo en `false` en un mundo nuevo. Las rejillas de colocación de las únicas cambiaron después de la 0.1.0 (el origen de la rejilla de cada tipo va desplazado y la separación interna es la distancia mínima), así que en un mundo antiguo `/locate`, los mapas del tesoro, los pliegos de la Crónica, `/heraldia info cerca` y la distancia mínima ya no encuentran las únicas ya generadas en lo explorado (aunque siguen ahí). Activada, las 14 únicas que ya estaban en la 0.1.0 (acueducto, castillo, catedral, ciudadela, coliseo, faro, fortaleza de hielo, galeón, mansión, monasterio, observatorio, palacio, pirámide y torre de mago) vuelven a la rejilla de esa versión, bit a bit, para la misma semilla y configuración y con el mismo coste. Las añadidas después (Salón del Jarl, Santuario druídico, Laboratorio del micólogo, Mina perdida e Isla del corsario) siguen con la rejilla nueva, y las antiguas tienen prioridad sobre ellas: una nueva se descarta si cae a menos de la distancia mínima de una antigua que sale, así que nunca aparece encima de una ya generada. No afecta a las aldeas ni a la Atlántida (su colocación no cambió; la Atlántida conserva su posición guardada). |
+| `unicas.rejilla_compatible` | `false` | `true`/`false` | **Ponlo a `true` en un mundo creado con una versión anterior de Heraldia (0.1.0)**; déjalo en `false` en un mundo nuevo. Las rejillas de colocación de las únicas cambiaron después de la 0.1.0 (el origen de la rejilla de cada tipo va desplazado y la separación interna es la distancia mínima), así que en un mundo antiguo `/locate`, los mapas del tesoro, los pliegos de la Crónica, `/heraldia info nearby` y la distancia mínima ya no encuentran las únicas ya generadas en lo explorado (aunque siguen ahí). Activada, las 14 únicas que ya estaban en la 0.1.0 (acueducto, castillo, catedral, ciudadela, coliseo, faro, fortaleza de hielo, galeón, mansión, monasterio, observatorio, palacio, pirámide y torre de mago) vuelven a la rejilla de esa versión, bit a bit, para la misma semilla y configuración y con el mismo coste. Las añadidas después (Salón del Jarl, Santuario druídico, Laboratorio del micólogo, Mina perdida e Isla del corsario) siguen con la rejilla nueva, y las antiguas tienen prioridad sobre ellas: una nueva se descarta si cae a menos de la distancia mínima de una antigua que sale, así que nunca aparece encima de una ya generada. No afecta a las aldeas ni a la Atlántida (su colocación no cambió; la Atlántida conserva su posición guardada). |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Impide que dos estructuras únicas distintas (también la Atlántida) salgan a menos de la distancia mínima. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Distancia mínima entre los chunks de inicio de dos estructuras únicas distintas. Si dos candidatas quedan demasiado cerca, un sorteo determinista (semilla y posición) se queda con una; si la ganadora no puede salir ahí (bioma o terreno), se conserva la otra. `/locate` y los mapas del tesoro siguen la misma regla. |
 | `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Cofre premium de la Atlántida por jugador. La primera apertura convierte su contenido en una plantilla guardada en el propio cofre (que queda vacío: romperlo o vaciarlo con una tolva no duplica nada) y cada jugador abre su propia copia: la recibe entera la primera vez y después encuentra lo que dejó. Sigue haciendo falta la llave de Poseidón. Con Lootr o sin él funciona igual (Lootr no convierte este cofre porque no tiene tabla de botín). Si se desactiva después, el contenido vuelve al cofre una vez (la primera vez que alguien lo usa) y se comporta como antes. |
@@ -106,7 +139,9 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `minas.entradas.activado` | `true` | `true`/`false` | Activa las [entradas a mina](CONTENIDO.md#entradas-a-mina) (solo en chunks nuevos). |
 | `minas.entradas.separacion_bloques` | 768 | 256-4000 | Separación media entre dos entradas a mina pequeñas; las medianas y las grandes guardan la proporción (x1,5 y x2,5). |
 | `minas.vanilla.multiplicador` | 2.0 | 1-5 | Multiplica la frecuencia de las minas abandonadas vanilla en los chunks nuevos (1 = vanilla; admite decimales, p. ej. 1.5). No cambia los chunks ya generados ni otras estructuras. |
-| `guia.entregar_al_entrar` | `true` | `true`/`false` | Da la [Guía del Heraldo](CONTENIDO.md#guía-del-heraldo) a cada jugador la primera vez que entra con cada versión del mod. Desactivada, nadie la recibe al entrar, pero `/heraldia guia` sigue dándola. |
+| `guia.entregar_al_entrar` | `true` | `true`/`false` | Da la [Guía del Heraldo](CONTENIDO.md#guía-del-heraldo) a cada jugador la primera vez que entra con cada versión del mod. Desactivada, nadie la recibe al entrar, pero `/heraldia guide` sigue dándola. |
+| `update_check.activado` | `true` | `true`/`false` | [Aviso de versión nueva](#aviso-de-versión-nueva-heraldia-update-check): mira GitHub Releases al arrancar y cada 24 h y avisa a los operadores al entrar. Se aplica al reiniciar. |
+| `update_check.prereleases` | `false` | `true`/`false` | Avisa también de las pre-publicaciones (alfa, beta, candidatas). |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Las estructuras de otros mods que asoman a la superficie no nacen a menos de esta distancia del inicio de una aldea o una única de Heraldia que sale ahí; 0 lo desactiva ([Compatibilidad con otros mods](COMPATIBILIDAD.md#compatibilidad-con-otros-mods)). |
 | `botin.reponer.activado` | `false` | `true`/`false` | [Botín que se repone](CONTENIDO.md#botín-que-se-repone-y-dificultad): los cofres y barriles de Heraldia se rellenan al abrirlos pasados los días indicados, sin otro jugador cerca y si están vacíos o casi; también los ya generados. Nada con Lootr. |
 | `botin.reponer.dias` | 7 | 1-60 | Días de juego (24.000 ticks del reloj del mundo) desde un saqueo hasta que el cofre se repone. |

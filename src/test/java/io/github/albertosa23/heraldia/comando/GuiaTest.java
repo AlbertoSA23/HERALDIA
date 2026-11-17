@@ -294,7 +294,8 @@ class GuiaTest {
 
 	@Test
 	void comandoSinPermisos() {
-		var guia = Guia.comando().build().getChild("guia");
+		var guia = Guia.nodo().build();
+		assertEquals("guide", guia.getName());
 		assertNotNull(guia);
 		assertNotNull(guia.getCommand());
 		// sin .requires: el requisito por defecto acepta cualquier fuente, también la de un jugador sin permisos

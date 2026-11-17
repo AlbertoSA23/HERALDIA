@@ -2,7 +2,7 @@
 	"required": true,
 	"package": "io.github.albertosa23.heraldia.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": ["ArenaCuboMixin", "ArenaEndermanMixin", "ArenaExperienciaMixin", "ArenaExplosionMixin", "ArenaJugadorMixin", "ArenaPistonMixin", "ChunkGeneratorLocateMixin", "ChunkGeneratorMixin", "DrownedAguaMixin", "DrownedMixin", "DrownedPlayaMixin", "StructureCheckMixin", "ZombieEquipoMixin", "ZombieMixin"],
+	"mixins": ["ArenaCuboMixin", "ArenaEndermanMixin", "ArenaExperienciaMixin", "ArenaExplosionMixin", "ArenaJugadorMixin", "ArenaPistonMixin", "ChunkGeneratorLocateMixin", "ChunkGeneratorMixin", "CommandsMixin", "DrownedAguaMixin", "DrownedMixin", "DrownedPlayaMixin", "StructureCheckMixin", "ZombieEquipoMixin", "ZombieMixin"],
 	"injectors": {
 		"defaultRequire": 1
 	}

@@ -6,7 +6,7 @@ Lee del .jar heraldia/guia.json, las únicas y los textos en_us, y comprueba:
     del mod), con el título, el autor, sus páginas traducibles con el respaldo en inglés (el idioma del jugador simulado),
     tantas páginas como dice guia.json para 0 únicas descubiertas, y la pista de cada única;
   - al salir y volver a entrar (y tras reiniciar el servidor) no se le da otra: «ya entregada» se guarda en el jugador;
-  - /heraldia guia da una copia al día: con una única descubierta (/advancement grant) sale su nombre en el diario y no
+  - /heraldia guide da una copia al día: con una única descubierta (/advancement grant) sale su nombre en el diario y no
     su pista; pedida otra vez, cambia la del inventario en vez de sumar otra;
   - con guia.entregar_al_entrar = false, un jugador nuevo no la recibe al entrar, pero sí al pedirla.
 Mide lo que tarda en armarse y entregarse (línea «Guía del Heraldo ... entregada a ... en N µs» del log).
@@ -131,10 +131,10 @@ def main():
         srv.spawn(PLAYER)
         if srv.books(PLAYER) or len(ENTREGA.findall("".join(srv.seen))) != antes:
             fails.append("al volver a entrar recibe otra guía")
-        # 3) /heraldia guia con una única descubierta; pedida dos veces, sigue habiendo una
+        # 3) /heraldia guide con una única descubierta; pedida dos veces, sigue habiendo una
         ctx.run(f"advancement grant {PLAYER} only heraldia:unicas/{DESCUBIERTA}/descubrir", r"Granted|granted|Couldn't")
         for _ in range(2):
-            ctx.run(f"execute as {PLAYER} run heraldia guia", r"entregada a \w+ en \d+ µs|Unknown|Incorrect")
+            ctx.run(f"execute as {PLAYER} run heraldia guide", r"entregada a \w+ en \d+ µs|Unknown|Incorrect")
         if srv.books(PLAYER, version) != 1:
             fails.append(f"tras pedirla dos veces lleva {srv.books(PLAYER)} guías, no 1")
         else:
@@ -171,9 +171,9 @@ def main():
         srv.spawn(NUEVO)
         if srv.books(NUEVO):
             fails.append("con guia.entregar_al_entrar = false, un jugador nuevo la recibe al entrar")
-        ctx.run(f"execute as {NUEVO} run heraldia guia", r"entregada a \w+ en \d+ µs|Unknown|Incorrect")
+        ctx.run(f"execute as {NUEVO} run heraldia guide", r"entregada a \w+ en \d+ µs|Unknown|Incorrect")
         if srv.books(NUEVO, version) != 1:
-            fails.append("con la opción desactivada, /heraldia guia no da la guía")
+            fails.append("con la opción desactivada, /heraldia guide no da la guía")
         srv.leave(NUEVO)
     finally:
         srv.stop()

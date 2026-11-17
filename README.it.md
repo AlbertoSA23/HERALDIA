@@ -17,7 +17,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 
 ## Come si gioca
 
-- 📖 **La Guida dell'Araldo.** Ogni giocatore la riceve entrando: un libro che spiega cosa cercare e tiene il tuo diario, con le strutture uniche che hai scoperto e indizi su quelle che ti mancano. Chiedine una copia aggiornata quando vuoi con `/heraldia guia`.
+- 📖 **La Guida dell'Araldo.** Ogni giocatore la riceve entrando: un libro che spiega cosa cercare e tiene il tuo diario, con le strutture uniche che hai scoperto e indizi su quelle che ti mancano. Chiedine una copia aggiornata quando vuoi con `/heraldia guide`.
 - 📊 **Cosa ha trovato il server.** `/heraldia status` dice quanti villaggi, strutture uniche, strutture medie e miniere hanno scoperto i giocatori, i guardiani sconfitti e il record dell'arena.
 - 🏆 **Progressi.** Una scheda Heraldia con 94 progressi: un villaggio di ogni famiglia, ogni struttura unica con il suo guardiano e il suo tesoro, le miniere, le strutture medie, la bacheca degli incarichi e l'arena.
 - 🗿 **Trofei.** Ognuno dei 20 guardiani lascia il suo trofeo, un oggetto con un nome e una storia. Raccoglili tutti per completare la Sala dei trofei.
@@ -33,6 +33,10 @@ I testi della mod sono in 8 lingue: inglese, spagnolo, francese, tedesco, italia
 3. **I giocatori non hanno bisogno della mod**: possono entrare con un client vanilla. I testi che il client non conosce appaiono in spagnolo, tranne la Guida dell'Araldo, che arriva nella lingua di ciascun giocatore. Se installano anche loro la mod, vedono tutto nella propria lingua e hanno la schermata di configurazione (con Mod Menu).
 
 **Un mondo già esistente** va benissimo: le nuove strutture compaiono nei chunk non ancora generati (esplora nuove terre). Se il tuo mondo è stato creato con Heraldia **0.1.0**, imposta `unicas.rejilla_compatible` a `true` prima di avviare il server, così `/locate`, le mappe del tesoro e la Guida continuano a trovare le strutture uniche che hai già.
+
+I **comandi** sono in inglese su tutti i server: `/heraldia guide`, `/heraldia key`, `/heraldia arena place`... I vecchi nomi in spagnolo (`/heraldia guia`...) per ora funzionano ancora: fanno lo stesso e ti dicono il nome nuovo.
+
+**Nuove versioni:** il server controlla una volta al giorno se c'è una nuova versione di Heraldia per il suo Minecraft e lo dice agli operatori quando entrano, con il link per scaricarla. **Fai un backup del server prima di aggiornare.** Si disattiva con `update_check.activado`.
 
 ## Le opzioni più utili
 
@@ -51,11 +55,12 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `botin.reponer.activado` | `false` | I forzieri di Heraldia si riempiono di nuovo dopo qualche giorno. |
 | `arena.activado` | `true` | L'arena a ondate vicino allo spawn. |
 | `guia.entregar_al_entrar` | `true` | Dà la Guida dell'Araldo a ogni giocatore quando entra. |
+| `update_check.activado` | `true` | Avvisa gli operatori quando c'è una nuova versione. |
 
 ## Per saperne di più
 
 - [Riferimento completo dei contenuti](docs/CONTENT.md) (in inglese): ogni stile di villaggio, struttura unica, struttura media e miniera, gli scontri con i guardiani, i progressi, l'arena e altro ancora.
-- [Installazione, comandi e configurazione](docs/CONFIGURATION.md) (in inglese): comandi di prova e di amministrazione (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), tutte le opzioni e la schermata di configurazione nel gioco.
+- [Installazione, comandi e configurazione](docs/CONFIGURATION.md) (in inglese): comandi di prova e di amministrazione (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key`...), tutte le opzioni e la schermata di configurazione nel gioco.
 - [Compatibilità con altre mod](docs/COMPATIBILITY.md) (in inglese): mod di biomi, mod di strutture, Lootr e le altre.
 - [Compilazione e test](docs/BUILDING.md) (in inglese), [guida allo sviluppo](docs/DESARROLLO.md) (in spagnolo) e [registro delle modifiche](CHANGELOG.md) (in inglese).
 

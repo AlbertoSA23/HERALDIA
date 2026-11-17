@@ -14,7 +14,7 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 /**
  * ¿Tiene ya un chunk guardado piezas de alguna estructura de superficie (aldeas, entradas de mina, únicas, estructuras
  * vanilla o de otros mods)? Lee solo las referencias del chunk en disco con el escáner de StructureCheck (como
- * /heraldia info cerca): seguro fuera del hilo del servidor, sin cargar ni generar chunks. Las subterráneas (minas
+ * /heraldia info nearby): seguro fuera del hilo del servidor, sin cargar ni generar chunks. Las subterráneas (minas
  * vanilla, fortalezas del End...) no cuentan: no asoman donde va la arena. Un chunk sin guardar no tiene nada.
  */
 final class Estructuras {

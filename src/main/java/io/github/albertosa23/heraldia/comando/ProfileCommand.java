@@ -1,13 +1,12 @@
 package io.github.albertosa23.heraldia.comando;
 
 import com.google.gson.JsonPrimitive;
-import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.Perfiles;
 import java.util.ArrayList;
 import java.util.List;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -22,15 +21,11 @@ public final class ProfileCommand {
 	private ProfileCommand() {
 	}
 
-	public static void register() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> build(dispatcher));
-	}
-
-	private static void build(CommandDispatcher<CommandSourceStack> dispatcher) {
-		dispatcher.register(Commands.literal("heraldia")
-				.then(Commands.literal("profile")
-						.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-						.executes(ProfileCommand::show)));
+	/** /heraldia profile (lo cuelga {@link Comandos#arbol}). */
+	static LiteralArgumentBuilder<CommandSourceStack> nodo() {
+		return Commands.literal("profile")
+				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+				.executes(ProfileCommand::show);
 	}
 
 	private static int show(CommandContext<CommandSourceStack> ctx) {

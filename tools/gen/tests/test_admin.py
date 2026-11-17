@@ -1,4 +1,4 @@
-"""admin.py: textos de /heraldia revisar, estado y recargar en los 8 idiomas, y que el Java (comando/) pide solo claves
+"""admin.py: textos de /heraldia review, status y reload en los 8 idiomas, y que el Java (comando/) pide solo claves
 que existen (las listas de qué mirar, los botones con su ayuda) y que la lista de opciones recargables (config/Recarga)
 nombra opciones reales."""
 import os
@@ -13,7 +13,7 @@ RAIZ = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."
 JAVA = os.path.join(RAIZ, "src", "main", "java", "io", "github", "albertosa23", "heraldia")
 CLIENTE = os.path.join(RAIZ, "src", "client", "java", "io", "github", "albertosa23", "heraldia", "client")
 TEXTOS = admin.lang()
-PREFIJOS = ("heraldia.revisar.", "heraldia.estado.", "heraldia.recargar.")
+PREFIJOS = ("heraldia.revisar.", "heraldia.estado.", "heraldia.recargar.", "heraldia.version.", "heraldia.comando.")
 
 
 def _java(*partes):
@@ -78,12 +78,12 @@ def test_botones_con_su_ayuda():
 
 
 def test_el_java_solo_pide_claves_que_existen():
-    """Toda cadena literal «heraldia.revisar|estado|recargar.*» del Java (completa: sin las que se terminan de armar
+    """Toda cadena literal «heraldia.revisar|estado|recargar|version|comando.*» del Java (completa: sin las que se terminan de armar
     con + en el código) está en los textos."""
-    fuentes = ["RevisarCommand.java", "EstadoCommand.java", "RecargarCommand.java"]
+    fuentes = ["RevisarCommand.java", "EstadoCommand.java", "RecargarCommand.java", "AvisoVersion.java", "Comandos.java"]
     pedidas = set()
     for f in fuentes:
-        for k in re.findall(r'"(heraldia\.(?:revisar|estado|recargar)\.[\w.]+)"', _java("comando", f)):
+        for k in re.findall(r'"(heraldia\.(?:revisar|estado|recargar|version|comando)\.[\w.]+)"', _java("comando", f)):
             if not k.endswith("."):
                 pedidas.add(k)
     assert pedidas, "no se encontró ninguna clave en el Java"

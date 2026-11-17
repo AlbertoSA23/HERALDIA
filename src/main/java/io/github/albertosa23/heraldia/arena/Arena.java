@@ -7,7 +7,6 @@ import io.github.albertosa23.heraldia.comando.Textos;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -48,7 +47,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Arena de oleadas cerca del spawn (T31). Una por mundo, en el mundo principal; la colocan los operadores
- * (/heraldia arena colocar, con confirmación) o se genera sola en un mundo nuevo (arena.generar_en_mundos_nuevos).
+ * (/heraldia arena place, con confirmación) o se genera sola en un mundo nuevo (arena.generar_en_mundos_nuevos).
  * <ul>
  * <li>Protección ({@link #protegido}): la caja de la plantilla, una AABB de enteros en memoria ({@link Zona}). Ningún
  * jugador que no sea operador puede romper, colocar ni usar bloques (salvo la campana), ni usar cubos cerca; las
@@ -105,7 +104,6 @@ public final class Arena {
 				drops.clear();                       // los mobs de la arena no sueltan nada
 			}
 		});
-		CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> dispatcher.register(comando()));
 	}
 
 	static Plano plano() {
@@ -262,7 +260,7 @@ public final class Arena {
 				LOGGER.info("Heraldia: arena: mundo nuevo: se busca sitio para la arena");
 				buscar(server, null, true);
 			} else {
-				LOGGER.info("Heraldia: arena: mundo existente: sin arena hasta que un operador la coloque (/heraldia arena colocar)");
+				LOGGER.info("Heraldia: arena: mundo existente: sin arena hasta que un operador la coloque (/heraldia arena place)");
 			}
 		}
 	}
@@ -396,7 +394,7 @@ public final class Arena {
 	}
 
 	private static void proponer(ServerPlayer p, Sitio.Eleccion e, boolean mover) {
-		String orden = "/heraldia arena " + (mover ? "mover" : "colocar") + " confirmar";
+		String orden = "/heraldia arena " + (mover ? "move" : "place") + " confirm";
 		p.sendSystemMessage(Textos.t("heraldia.arena.propuesta", e.x(), e.suelo() + 1, e.z(), e.distancia()).withStyle(ChatFormatting.GOLD));
 		p.sendSystemMessage(Textos.t("heraldia.arena.copia").withStyle(ChatFormatting.YELLOW));
 		MutableComponent cmd = Component.literal(orden).withStyle(s -> s.withColor(ChatFormatting.GREEN).withUnderlined(true)
@@ -406,11 +404,11 @@ public final class Arena {
 
 	// --- comandos ---
 
-	/** /heraldia arena [salir | colocar [confirmar] | mover [confirmar] | quitar [confirmar] | empezar | parar]. */
-	static LiteralArgumentBuilder<CommandSourceStack> comando() {
-		return Commands.literal("heraldia").then(Commands.literal("arena")
+	/** /heraldia arena [leave | place [confirm] | move [confirm] | remove [confirm] | start | stop] (lo registra comando/Comandos). */
+	public static LiteralArgumentBuilder<CommandSourceStack> nodo() {
+		return Commands.literal("arena")
 				.executes(Arena::info)
-				.then(Commands.literal("salir").executes(ctx -> {
+				.then(Commands.literal("leave").executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
 					if (!Juego.salir(p)) {
 						ctx.getSource().sendFailure(Textos.t("heraldia.arena.salir.no"));
@@ -418,14 +416,14 @@ public final class Arena {
 					}
 					return 1;
 				}))
-				.then(Commands.literal("colocar").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> proponerCmd(ctx, false))
-						.then(Commands.literal("confirmar").executes(ctx -> confirmar(ctx, false))))
-				.then(Commands.literal("mover").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> proponerCmd(ctx, true))
-						.then(Commands.literal("confirmar").executes(ctx -> confirmar(ctx, true))))
-				.then(Commands.literal("quitar").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(Arena::quitarAviso)
-						.then(Commands.literal("confirmar").executes(Arena::quitar)))
-				.then(Commands.literal("empezar").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(Arena::empezarCmd))
-				.then(Commands.literal("parar").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> {
+				.then(Commands.literal("place").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> proponerCmd(ctx, false))
+						.then(Commands.literal("confirm").executes(ctx -> confirmar(ctx, false))))
+				.then(Commands.literal("move").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> proponerCmd(ctx, true))
+						.then(Commands.literal("confirm").executes(ctx -> confirmar(ctx, true))))
+				.then(Commands.literal("remove").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(Arena::quitarAviso)
+						.then(Commands.literal("confirm").executes(Arena::quitar)))
+				.then(Commands.literal("start").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(Arena::empezarCmd))
+				.then(Commands.literal("stop").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> {
 					if (Juego.partida().estado() == Partida.Estado.LIBRE) {
 						ctx.getSource().sendFailure(Textos.t("heraldia.arena.info.libre"));
 						return 0;
@@ -433,7 +431,7 @@ public final class Arena {
 					Juego.terminar(nivel, zona, "parada por un operador");
 					ctx.getSource().sendSuccess(() -> Textos.t("heraldia.arena.parada"), true);
 					return 1;
-				})));
+				}));
 	}
 
 	private static boolean comprobar(CommandSourceStack src, boolean libre) {
@@ -494,7 +492,7 @@ public final class Arena {
 			return 0;
 		}
 		Propuesta pr = propuesta;
-		String orden = "/heraldia arena " + (mover ? "mover" : "colocar");
+		String orden = "/heraldia arena " + (mover ? "move" : "place");
 		if (pr == null) {
 			src.sendFailure(Textos.t("heraldia.arena.sin_propuesta", orden));
 			return 0;

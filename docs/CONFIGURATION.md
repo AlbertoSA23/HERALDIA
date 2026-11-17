@@ -23,14 +23,33 @@ In an existing world, structures only appear in chunks that have not been genera
 - `/function heraldia:muestrario`: places all 72 villages in a grid starting where you stand (each row, heading south, is a family; in each row go the 3 styles and then their large versions, heading east, 300 blocks apart). It puts you in spectator mode and takes you from one to the next, one every 8 s (about 10 min). When it finishes you return to creative.
 - `/function heraldia:familia/<family>` (`llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa`): the same with the 6 villages of one family, in a row heading east.
 - `/function heraldia:muestrario/parar`: stops it.
-- `/heraldia llave <players> <key>` (operators, level 2): gives the keys of the locked chests of the unique structures, the same item you get in the game. `<key>` autocompletes: `todas` (all), a structure (`atlantida`: its four keys) or a single key (`atlantida.arsenal`, `atlantida.academia`, `atlantida.anfiteatro`, `atlantida.poseidon`). If the inventory is full, the key drops on the ground for that player.
+- `/heraldia key <players> <key>` (operators, level 2): gives the keys of the locked chests of the unique structures, the same item you get in the game. `<key>` autocompletes: `all`, a structure (`atlantida`: its four keys) or a single key (`atlantida.arsenal`, `atlantida.academia`, `atlantida.anfiteatro`, `atlantida.poseidon`). If the inventory is full, the key drops on the ground for that player.
 - `/heraldia info` (operators, level 2): summary of the configuration in use (villages, enabled unique structures and their spacing, minimum distance, per-player chest, whether Lootr is installed, medium structures, mine entrances and the vanilla mineshaft multiplier) and how many structures are registered.
-- `/heraldia info cerca [radius]`: the nearest unique structure and medium structure of each type, mine entrance of each size and the nearest Heraldia village, with distance, direction and coordinates (click them to get a `/tp` command). It uses the same check as `/locate`, so it never points to a structure that the minimum distance discards, but it neither loads nor generates chunks: what has not been generated yet is shown as "predicted" (for a predicted village only its family is known). Default radius 3,000 blocks, maximum 10,000; the message says how long the search took.
-- `/heraldia guia` (any player, no permissions needed): gives you an up-to-date copy of the [Herald's Guide](CONTENT.md#heralds-guide) (if you carry one in your inventory, it is replaced by the new one).
+- `/heraldia info nearby [radius]`: the nearest unique structure and medium structure of each type, mine entrance of each size and the nearest Heraldia village, with distance, direction and coordinates (click them to get a `/tp` command). It uses the same check as `/locate`, so it never points to a structure that the minimum distance discards, but it neither loads nor generates chunks: what has not been generated yet is shown as "predicted" (for a predicted village only its family is known). Default radius 3,000 blocks, maximum 10,000; the message says how long the search took.
+- `/heraldia guide` (any player, no permissions needed): gives you an up-to-date copy of the [Herald's Guide](CONTENT.md#heralds-guide) (if you carry one in your inventory, it is replaced by the new one).
 - `/heraldia profile` (operators, level 2): the [gameplay profile](#gameplay-profiles) in use (the effective one and the one chosen in the file) and the value it gives to each of its options, marking the ones set by hand in the file that override it.
-- `/heraldia info aqui`: which Heraldia structure you are standing in (name and id) and, in a unique structure, whether its guardian is alive (only answered when the whole structure is loaded).
+- `/heraldia info here`: which Heraldia structure you are standing in (name and id) and, in a unique structure, whether its guardian is alive (only answered when the whole structure is loaded).
 
 Use the showcase only in a test world: whatever it places stays.
+
+Every command and subcommand of the mod has an English name, so the same commands work on every server whatever its
+language (what the player reads is still translated). The Spanish names used up to now (`/heraldia guia`, `llave`,
+`info cerca`, `info aqui`, `arena colocar`/`mover`/`quitar` [`confirmar`], `arena empezar`/`parar`/`salir` and the
+`todas` key) still work as hidden aliases: they do the same, do not show up in autocompletion and warn that they are
+deprecated, giving the new name. They will be removed in a future version.
+
+| Old name | New name |
+|---|---|
+| `/heraldia guia` | `/heraldia guide` |
+| `/heraldia llave <jugadores> <todas\|...>` | `/heraldia key <players> <all\|...>` |
+| `/heraldia info cerca [radio]` | `/heraldia info nearby [radius]` |
+| `/heraldia info aqui` | `/heraldia info here` |
+| `/heraldia arena colocar [confirmar]` | `/heraldia arena place [confirm]` |
+| `/heraldia arena mover [confirmar]` | `/heraldia arena move [confirm]` |
+| `/heraldia arena quitar [confirmar]` | `/heraldia arena remove [confirm]` |
+| `/heraldia arena empezar` | `/heraldia arena start` |
+| `/heraldia arena parar` | `/heraldia arena stop` |
+| `/heraldia arena salir` | `/heraldia arena leave` |
 
 ## Admin tools
 
@@ -41,13 +60,27 @@ For operators (level 2). A guided route to check all the visual content of the m
 - `/heraldia review`: goes to the stop you are at (the first one, the first time). At each stop you get an on-screen title, the list of what to check in the chat (translated, like everything else) and buttons to mark it: **Checked**, **+ Note** (checked, with a note) and **Problem** (type what is wrong after the command), plus **Skip**, **Previous**, **Next** and **List**.
 - `/heraldia review next`, `previous`, `skip [note]` (marks it as skipped and goes to the next one), `goto <id>` (e.g. `goto unica/castillo`; it autocompletes), `list` (every stop with its status; click one to go there), `reset` (clears your marks) and `status` (the summary: how many are checked, with a problem, skipped and pending, and the list of problems).
 - `/heraldia review mark checked [note]` and `/heraldia review mark problem [note]`: what the buttons do.
-- The search runs off the server thread, with the same rules as `/heraldia info cerca` (from the world spawn, up to 10,000 blocks; Atlantis, anywhere in the world), and never loads or generates chunks: it prefers a structure that is already generated, even if farther away, to a predicted one. If the nearest one has not been generated yet, it warns you that going there generates new terrain and waits until you click **Go and generate** (`goto <id> generate`).
+- The search runs off the server thread, with the same rules as `/heraldia info nearby` (from the world spawn, up to 10,000 blocks; Atlantis, anywhere in the world), and never loads or generates chunks: it prefers a structure that is already generated, even if farther away, to a predicted one. If the nearest one has not been generated yet, it warns you that going there generates new terrain and waits until you click **Go and generate** (`goto <id> generate`).
 - The teleport loads the destination without blocking the server and leaves you above ground, with no suffocation: feet and head free, solid ground or water below (floating on the sea at Atlantis or the isle), never in lava, fire, magma, cactus or powder snow, searching in a spiral up to 8 blocks around. If there is no safe spot, you are not moved.
 - Progress is per player and saved in `heraldia_revision.json`, in the world folder (it survives restarts). Every change also writes `heraldia_revision.md` in the same folder: per player, every stop with its status, its note and the date, those with a problem first.
 
 ### Server status: `/heraldia status [page]`
 
 For any player, translated and paged (8 lines per page, with buttons to turn the page): the Heraldia version, how many structures of each kind some player has discovered out of the total (villages, one of each family; unique structures; medium structures, by type; mines, by size), the guardians defeated, the state of the arena with the server record, whether restocking loot is enabled and whether Lootr is installed. Operators also see the difficulty, the key generation, boss and Guide options, what is still undiscovered of each kind and the other mods loaded. Discoveries come from advancements: those of online players, from memory; the rest, from their files in the world folder (read off the server thread).
+
+### New version notice: `/heraldia update check`
+
+When the server starts and every 24 hours, in a thread of its own (it never slows down the start or the server), the
+mod asks the GitHub Releases API of the project (where releases are published, together with CurseForge) whether there
+is a newer version of Heraldia for the server's Minecraft version: semantic version comparison, pre-releases ignored
+(unless `update_check.prereleases`), and the Minecraft version of each release read from the `gradle.properties` of its
+tag. If there is one, it says so in the console and, in the chat, to each operator when they join (once per server
+session), in their language, with a clickable download link and the recommendation to **back up the server before
+updating**. `/heraldia update check` (operators, level 2) checks right away and answers in the chat.
+
+No telemetry: one GET request with a generic `User-Agent` and no data about the server or its players, with short
+timeouts (5 s to connect, 10 s to answer). With no network or an odd answer it only writes one line in the log. Turn it
+off with `update_check.activado = false`.
 
 ### Live reload: `/heraldia reload`
 
@@ -88,7 +121,7 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `golems.limite_grande` | 9 | 1-64 | Same for large villages. |
 | `unicas.<id>.activada` | `true` | `true`/`false` | Enables a unique structure. There is one entry for each unique structure in the mod. |
 | `unicas.<id>.separacion_bloques` | the structure's own (4000) | 1000-10000 | Average spacing between structures of that type (by default, one every 3000-5000 blocks). Each type spreads over its whole grid cell (grid origin shifted per type), and two of the same type are never closer than `unicas.distancia_minima.bloques`. For the Mycologist's Laboratory (mushroom fields, a very rare biome) the candidate of each cell is not random: it is the spot of the cell deepest inside that biome, so it appears on a good share of mushroom islands (at most one per cell). The Lost Mine does the same with lush and dripstone caves, looking at cavern height (y = 26) instead of sea level, and the Corsair's Isle with its oceans (the spot deepest in open sea). |
-| `unicas.rejilla_compatible` | `false` | `true`/`false` | **Set it to `true` in a world created with an earlier Heraldia version (0.1.0)**; leave it `false` in a new world. Placement grids of unique structures changed after 0.1.0 (each type's grid origin is now shifted and the internal separation is the minimum distance), so in an old world `/locate`, treasure maps, the Chronicle folios, `/heraldia info cerca` and the minimum distance no longer find the unique structures already generated in explored areas (they are still there). Turned on, the 14 unique structures that existed in 0.1.0 (aqueduct, castle, cathedral, citadel, colosseum, lighthouse, ice fortress, galleon, mansion, monastery, observatory, palace, pyramid, wizard tower) use that version's grid again, bit for bit, for the same seed and configuration, at the same cost. The ones added later (Jarl's Hall, Druidic Sanctuary, Mycologist's Laboratory, Lost Mine, Corsair's Isle) keep the new grid, and the old ones take precedence over them: a new one is discarded if it falls within the minimum distance of an old one that spawns, so it never appears on top of one already generated. Villages and Atlantis are not affected (their placement did not change; Atlantis keeps its saved position). |
+| `unicas.rejilla_compatible` | `false` | `true`/`false` | **Set it to `true` in a world created with an earlier Heraldia version (0.1.0)**; leave it `false` in a new world. Placement grids of unique structures changed after 0.1.0 (each type's grid origin is now shifted and the internal separation is the minimum distance), so in an old world `/locate`, treasure maps, the Chronicle folios, `/heraldia info nearby` and the minimum distance no longer find the unique structures already generated in explored areas (they are still there). Turned on, the 14 unique structures that existed in 0.1.0 (aqueduct, castle, cathedral, citadel, colosseum, lighthouse, ice fortress, galleon, mansion, monastery, observatory, palace, pyramid, wizard tower) use that version's grid again, bit for bit, for the same seed and configuration, at the same cost. The ones added later (Jarl's Hall, Druidic Sanctuary, Mycologist's Laboratory, Lost Mine, Corsair's Isle) keep the new grid, and the old ones take precedence over them: a new one is discarded if it falls within the minimum distance of an old one that spawns, so it never appears on top of one already generated. Villages and Atlantis are not affected (their placement did not change; Atlantis keeps its saved position). |
 | `unicas.distancia_minima.activada` | `true` | `true`/`false` | Keeps two different unique structures (Atlantis included) from spawning closer than the minimum distance. |
 | `unicas.distancia_minima.bloques` | 1000 | 100-3000 | Minimum distance between the start chunks of two different unique structures. When two candidates are too close, a deterministic draw (seed and position) keeps one; if the winner cannot spawn there (wrong biome or terrain), the other one is kept. `/locate` and treasure maps follow the same rule. |
 | `unicas.atlantida.cofre_unico_por_jugador` | `false` | `true`/`false` | Per-player Atlantis premium chest. The first opening turns its contents into a template stored in the chest itself (the chest is left empty, so breaking or emptying it duplicates nothing) and each player opens their own copy: the whole contents the first time, and afterwards whatever they left. The Poseidon key is still needed. It works the same with or without Lootr (Lootr does not convert this chest because it has no loot table). Turning it off later puts the contents back in the chest once (the first time someone uses it), and it behaves as before. |
@@ -106,7 +139,9 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `minas.entradas.activado` | `true` | `true`/`false` | Enables the [mine entrances](CONTENT.md#mine-entrances) (new chunks only). |
 | `minas.entradas.separacion_bloques` | 768 | 256-4000 | Average spacing between two small mine entrances; medium and large ones keep the ratio (x1.5 and x2.5). |
 | `minas.vanilla.multiplicador` | 2.0 | 1-5 | Multiplies how often vanilla abandoned mineshafts appear in new chunks (1 = vanilla; decimals allowed, e.g. 1.5). Does not change chunks already generated or other structures. |
-| `guia.entregar_al_entrar` | `true` | `true`/`false` | Gives the [Herald's Guide](CONTENT.md#heralds-guide) to each player the first time they join with each mod version. When off, nobody gets it on joining, but `/heraldia guia` still hands it out. |
+| `guia.entregar_al_entrar` | `true` | `true`/`false` | Gives the [Herald's Guide](CONTENT.md#heralds-guide) to each player the first time they join with each mod version. When off, nobody gets it on joining, but `/heraldia guide` still hands it out. |
+| `update_check.activado` | `true` | `true`/`false` | [New version notice](#new-version-notice-heraldia-update-check): checks GitHub Releases at startup and every 24 h and tells operators when they join. Applies on restart. |
+| `update_check.prereleases` | `false` | `true`/`false` | Also announce pre-releases (alpha, beta, release candidates). |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Structures from other mods that show above ground do not spawn closer than this to the start of a Heraldia village or unique structure that spawns there; 0 disables it ([Compatibility with other mods](COMPATIBILITY.md#compatibility-with-other-mods)). |
 | `botin.reponer.activado` | `false` | `true`/`false` | [Restocking loot](CONTENT.md#restocking-loot-and-difficulty): Heraldia chests and barrels are refilled on opening after the given days, with no other player nearby and when empty or almost empty; also chests already generated. Nothing with Lootr. |
 | `botin.reponer.dias` | 7 | 1-60 | In-game days (24,000 ticks of the world clock) after a looting before a chest is restocked. |

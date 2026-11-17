@@ -121,7 +121,7 @@ final class Juego {
 		empezar((ServerLevel) p.level(), z, p.getGameProfile().name());
 	}
 
-	/** Empieza la cuenta atrás (con la campana o con /heraldia arena empezar). Falso si ya hay partida. */
+	/** Empieza la cuenta atrás (con la campana o con /heraldia arena start). Falso si ya hay partida. */
 	static boolean empezar(ServerLevel level, Zona z, String quien) {
 		if (!partida.empezar()) {
 			return false;
@@ -566,7 +566,7 @@ final class Juego {
 		LOGGER.info("Heraldia: arena: {} reaparece en la entrada de la arena", nuevo.getGameProfile().name());
 	}
 
-	/** /heraldia arena salir. */
+	/** /heraldia arena leave. */
 	static boolean salir(ServerPlayer p) {
 		Zona z = Arena.zona();
 		ServerLevel level = Arena.nivel();

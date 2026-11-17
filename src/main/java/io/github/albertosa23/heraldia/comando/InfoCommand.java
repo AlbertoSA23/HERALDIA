@@ -1,8 +1,8 @@
 package io.github.albertosa23.heraldia.comando;
 
 import com.google.gson.JsonObject;
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.albertosa23.heraldia.Heraldia;
 import io.github.albertosa23.heraldia.config.GridPlacement;
@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -61,15 +60,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /heraldia info [cerca [radio] | aqui] (operador, nivel 2). Solo trabaja cuando se ejecuta:
+ * /heraldia info [nearby [radius] | here] (operador, nivel 2). Solo trabaja cuando se ejecuta:
  * <ul>
  * <li>info: la configuración en uso y cuántas estructuras hay registradas.</li>
- * <li>info cerca [radio]: la estructura única y la mediana más cercanas de cada tipo y la aldea Heraldia más cercana. Recorre las
+ * <li>info nearby [radius]: la estructura única y la mediana más cercanas de cada tipo y la aldea Heraldia más cercana. Recorre las
  * casillas de cada rejilla dentro del radio con las reglas de la generación (las de StructureCheck y los mixins más la
  * zona de exclusión de las aldeas vanilla) y lee los chunks ya guardados con el escáner de StructureCheck: todo fuera
  * del hilo del servidor; en él solo se miran los chunks ya cargados. No carga ni genera chunks: una casilla sin generar
  * se da como «prevista». Radio acotado (MAX_RADIUS); el tiempo total y el del hilo del servidor se miden.</li>
- * <li>info aqui: la estructura Heraldia en cuyas piezas está la posición y, si es única, si vive su guardián (las
+ * <li>info here: la estructura Heraldia en cuyas piezas está la posición y, si es única, si vive su guardián (las
  * entidades con la etiqueta heraldia_guardian.&lt;id&gt; dentro de su caja, solo si toda la caja está cargada).</li>
  * </ul>
  */
@@ -82,20 +81,16 @@ public final class InfoCommand {
 	private InfoCommand() {
 	}
 
-	public static void register() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> build(dispatcher));
-	}
-
-	private static void build(CommandDispatcher<CommandSourceStack> dispatcher) {
-		dispatcher.register(Commands.literal("heraldia")
-				.then(Commands.literal("info")
-						.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-						.executes(InfoCommand::summary)
-						.then(Commands.literal("cerca")
-								.executes(ctx -> near(ctx, DEFAULT_RADIUS))
-								.then(Commands.argument("radio", IntegerArgumentType.integer(16, MAX_RADIUS))
-										.executes(ctx -> near(ctx, IntegerArgumentType.getInteger(ctx, "radio")))))
-						.then(Commands.literal("aqui").executes(InfoCommand::here))));
+	/** /heraldia info [nearby [radius] | here] (lo registra {@link Comandos}). */
+	static LiteralArgumentBuilder<CommandSourceStack> nodo() {
+		return Commands.literal("info")
+				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+				.executes(InfoCommand::summary)
+				.then(Commands.literal("nearby")
+						.executes(ctx -> near(ctx, DEFAULT_RADIUS))
+						.then(Commands.argument("radius", IntegerArgumentType.integer(16, MAX_RADIUS))
+								.executes(ctx -> near(ctx, IntegerArgumentType.getInteger(ctx, "radius")))))
+				.then(Commands.literal("here").executes(InfoCommand::here));
 	}
 
 	// --- info ---
@@ -177,7 +172,7 @@ public final class InfoCommand {
 		return out;
 	}
 
-	// --- info cerca ---
+	// --- info nearby ---
 
 	/** generated: la estructura está en el chunk guardado o cargado; si no, está prevista (chunk sin generar). */
 	record Found(Holder<Structure> structure, ChunkPos chunk, BlockPos pos, long distanceSq, boolean generated) {
@@ -206,7 +201,7 @@ public final class InfoCommand {
 					report(source, origin, radius, out, (t2 - t0) / 1_000_000, (t2 - t1) / 1_000_000);
 				}, source.getServer())
 				.exceptionally(e -> {
-					LOGGER.error("Heraldia: /heraldia info cerca falló", e);
+					LOGGER.error("Heraldia: /heraldia info nearby falló", e);
 					source.sendFailure(Component.literal(String.valueOf(e.getMessage())));
 					return null;
 				});
@@ -214,7 +209,7 @@ public final class InfoCommand {
 	}
 
 	private static void report(CommandSourceStack source, BlockPos origin, int radius, List<Found> found, long ms, long mainMs) {
-		LOGGER.info("Heraldia: /heraldia info cerca {} en {}, {}: {} estructuras en {} ms ({} ms en el hilo del servidor)",
+		LOGGER.info("Heraldia: /heraldia info nearby {} en {}, {}: {} estructuras en {} ms ({} ms en el hilo del servidor)",
 				radius, origin.getX(), origin.getZ(), found.size(), ms, mainMs);
 		if (found.isEmpty()) {
 			source.sendSuccess(() -> Textos.t("heraldia.info.cerca.nada", radius, origin.getX(), origin.getZ(), ms), false);
@@ -402,7 +397,7 @@ public final class InfoCommand {
 						.withHoverEvent(new HoverEvent.ShowText(Component.translatable("chat.coordinates.tooltip"))));
 	}
 
-	// --- info aqui ---
+	// --- info here ---
 
 	private static int here(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack source = ctx.getSource();

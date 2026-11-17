@@ -7,7 +7,7 @@ import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Rumbo de 8 puntos de /heraldia info cerca (norte = -z, como en el juego). */
+/** Rumbo de 8 puntos de /heraldia info nearby (norte = -z, como en el juego). */
 class InfoCommandTest {
 	@BeforeAll
 	static void bootstrap() {

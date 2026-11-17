@@ -17,7 +17,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 
 ## How to play
 
-- 📖 **The Herald's Guide.** Every player gets it on joining: a book that explains what to look for and keeps your diary, with the unique structures you have discovered and clues to the ones still missing. Ask for an up-to-date copy at any time with `/heraldia guia`.
+- 📖 **The Herald's Guide.** Every player gets it on joining: a book that explains what to look for and keeps your diary, with the unique structures you have discovered and clues to the ones still missing. Ask for an up-to-date copy at any time with `/heraldia guide`.
 - 📊 **What the server has found.** `/heraldia status` shows how many villages, unique structures, medium structures and mines the players have discovered, the guardians defeated and the arena record.
 - 🏆 **Advancements.** A Heraldia tab with 94 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the medium structures, the job board and the arena.
 - 🗿 **Trophies.** Each of the 20 guardians drops its trophy, an item with a name and a story. Collect them all to complete the Hall of Trophies.
@@ -33,6 +33,10 @@ The texts of the mod are in 8 languages: English, Spanish, French, German, Itali
 3. **Players do not need the mod**: they can join with a vanilla client. Texts the client does not know show in Spanish, except the Herald's Guide, which arrives in each player's language. If they install the mod as well, they see everything in their own language and get the configuration screen (with Mod Menu).
 
 **An existing world** works fine: the new structures appear in chunks that have not been generated yet (explore new land). If your world was created with Heraldia **0.1.0**, set `unicas.rejilla_compatible` to `true` before you start the server, so that `/locate`, treasure maps and the Guide keep finding the unique structures you already have.
+
+**Commands** are in English on every server: `/heraldia guide`, `/heraldia key`, `/heraldia arena place`... The old Spanish names (`/heraldia guia`...) still work for now: they do the same and tell you the new name.
+
+**New versions:** the server checks once a day whether there is a new Heraldia version for its Minecraft and tells operators when they join, with a download link. **Back up the server before updating.** Turn it off with `update_check.activado`.
 
 ## Most useful options
 
@@ -51,11 +55,12 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `botin.reponer.activado` | `false` | Heraldia chests are restocked after a few days. |
 | `arena.activado` | `true` | The wave arena near spawn. |
 | `guia.entregar_al_entrar` | `true` | Gives the Herald's Guide to each player on joining. |
+| `update_check.activado` | `true` | Tells operators when there is a new version. |
 
 ## Learn more
 
 - [Full reference of the content](docs/CONTENT.md): every village style, unique structure, medium structure and mine, the guardian fights, advancements, arena and more.
-- [Installation, commands and configuration](docs/CONFIGURATION.md): test and admin commands (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), every option and the in-game configuration screen.
+- [Installation, commands and configuration](docs/CONFIGURATION.md): test and admin commands (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key`...), every option and the in-game configuration screen.
 - [Compatibility with other mods](docs/COMPATIBILITY.md): biome mods, structure mods, Lootr and the rest.
 - [Building and testing](docs/BUILDING.md), [development guide (Spanish)](docs/DESARROLLO.md) and [changelog](CHANGELOG.md).
 

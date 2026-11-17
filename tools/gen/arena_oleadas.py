@@ -1,6 +1,6 @@
 """Arena de oleadas (T31): la plantilla del coliseo, los datos que lee el Java (arena/), su botín, sus logros y sus textos.
 
-La arena no es una estructura de la generación del mundo: la coloca el mod cerca del spawn (/heraldia arena colocar, o
+La arena no es una estructura de la generación del mundo: la coloca el mod cerca del spawn (/heraldia arena place, o
 sola en un mundo nuevo) con esta plantilla (heraldia:arena/arena). Es un coliseo de 57 x 14 x 57 bloques con el ruedo
 hundido bajo el terreno:
   - el ruedo (radio 14, suelo a y = 0) con 7 puntos de aparición de mobs (ante una celda con rejas en el muro), la
@@ -361,16 +361,16 @@ TEXTOS = {
     "sin_sitio": ("No hay ningún sitio llano y sin agua a 200-300 bloques del spawn.",
                   "There is no flat, dry site 200-300 blocks from spawn."),
     "sin_propuesta": ("Primero pide un sitio con %s.", "First ask for a site with %s."),
-    "ya_existe": ("Ya hay una arena en %s, %s, %s: quítala con /heraldia arena quitar o muévela con /heraldia arena mover.",
-                  "There is already an arena at %s, %s, %s: remove it with /heraldia arena quitar or move it with /heraldia arena mover."),
+    "ya_existe": ("Ya hay una arena en %s, %s, %s: quítala con /heraldia arena remove o muévela con /heraldia arena move.",
+                  "There is already an arena at %s, %s, %s: remove it with /heraldia arena remove or move it with /heraldia arena move."),
     "no_existe": ("No hay ninguna arena en este mundo.", "There is no arena in this world."),
     "colocando": ("Colocando la arena en %s, %s, %s…", "Building the arena at %s, %s, %s…"),
     "colocada": ("La arena está lista en %s, %s, %s.", "The arena is ready at %s, %s, %s."),
-    "quitar.confirmar": ("Se quitará la arena de %s, %s, %s (el terreno queda llano). Confirma con /heraldia arena quitar confirmar.",
-                         "The arena at %s, %s, %s will be removed (the ground stays flat). Confirm with /heraldia arena quitar confirmar."),
+    "quitar.confirmar": ("Se quitará la arena de %s, %s, %s (el terreno queda llano). Confirma con /heraldia arena remove confirm.",
+                         "The arena at %s, %s, %s will be removed (the ground stays flat). Confirm with /heraldia arena remove confirm."),
     "quitada": ("Arena quitada.", "Arena removed."),
-    "ocupada": ("Hay una partida en marcha: espera a que acabe o usa /heraldia arena parar.",
-                "A match is in progress: wait for it to end or use /heraldia arena parar."),
+    "ocupada": ("Hay una partida en marcha: espera a que acabe o usa /heraldia arena stop.",
+                "A match is in progress: wait for it to end or use /heraldia arena stop."),
     "trabajando": ("Ya se está colocando o quitando la arena.", "The arena is already being built or removed."),
     "desactivada": ("La arena está desactivada en la configuración (arena.activado).",
                     "The arena is disabled in the configuration (arena.activado)."),

@@ -1,5 +1,6 @@
 """Textos de las herramientas de administración (Java, comando/): /heraldia review (ruta guiada de revisión),
-/heraldia status (resumen del servidor) y /heraldia reload (recarga en caliente de la configuración).
+/heraldia status (resumen del servidor), /heraldia reload (recarga en caliente de la configuración), el aviso de versión
+nueva (/heraldia update check) y el aviso de los nombres antiguos de los comandos.
 
 El Java toma el texto de respaldo de es_es (comando/Textos); las traducciones van en idiomas/<código>.json. Los puntos
 de la lista de cada tipo de parada son heraldia.revisar.mirar.<tipo>.<n> (cuántos: PUNTOS, el mismo número que
@@ -15,6 +16,21 @@ CON_PUNTO_PROPIO = ("atlantida", "isla_corsario")
 BOTONES = ("revisada", "nota", "problema", "saltar", "anterior", "siguiente", "lista", "generar", "ir")
 
 _TEXTOS = {
+    # --- nombres antiguos de los comandos (comando/Alias): «/heraldia guia» -> «/heraldia guide» ---
+    "comando.obsoleto": ("«%s» está obsoleto y se quitará en una versión futura: usa %s.",
+                         "“%s” is deprecated and will be removed in a future version: use %s."),
+    # --- aviso de versión nueva (comando/AvisoVersion) y /heraldia update check ---
+    "version.nueva": ("Hay una versión nueva de Heraldia: %s (tienes la %s) para Minecraft %s.",
+                      "A new version of Heraldia is available: %s (you have %s) for Minecraft %s."),
+    "version.descargar": ("[Descargar]", "[Download]"),
+    "version.copia": ("Antes de actualizar, haz una copia de seguridad del servidor (el mundo y la carpeta config).",
+                      "Before updating, back up the server (the world and the config folder)."),
+    "version.al_dia": ("Heraldia está al día: no hay ninguna versión más nueva que la %s para Minecraft %s.",
+                       "Heraldia is up to date: there is no version newer than %s for Minecraft %s."),
+    "version.comprobando": ("Comprobando si hay una versión nueva de Heraldia...", "Checking for a new version of Heraldia..."),
+    "version.sin_respuesta": ("No se pudo comprobar si hay una versión nueva (sin red o con una respuesta inesperada): "
+                              "mira el log del servidor.",
+                              "Could not check for a new version (no network or an unexpected answer): see the server log."),
     # --- /heraldia review ---
     "revisar.parada.arena": ("La arena de oleadas", "The wave arena"),
     "revisar.parada.camino": ("Un tramo de camino", "A stretch of road"),
@@ -25,8 +41,8 @@ _TEXTOS = {
     "revisar.sin_sitio": ("No hay ningún sitio seguro cerca de %s: no te muevo.", "There is no safe spot near %s: you stay where you are."),
     "revisar.no_encontrada": ("%s: no hay ninguna a menos de %s bloques del punto de aparición (o no sale en este mundo).",
                               "%s: none within %s blocks of the world spawn (or it does not appear in this world)."),
-    "revisar.sin_arena": ("%s no está colocada: un operador la coloca con /heraldia arena colocar.",
-                          "%s has not been placed: an operator places it with /heraldia arena colocar."),
+    "revisar.sin_arena": ("%s no está colocada: un operador la coloca con /heraldia arena place.",
+                          "%s has not been placed: an operator places it with /heraldia arena place."),
     "revisar.prevista": ("La más cercana está en %s (a %s bloques del punto de aparición) y aún no se ha generado: ir allí "
                          "genera terreno nuevo en ese sitio.",
                          "The nearest one is at %s (%s blocks from the world spawn) and has not been generated yet: going "
