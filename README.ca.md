@@ -38,6 +38,8 @@ Les **ordres** són en anglès a tots els servidors: `/heraldia guide`, `/herald
 
 **Versions noves:** el servidor mira un cop al dia si hi ha una versió nova de Heraldia per al seu Minecraft i ho diu als operadors en entrar, amb l'enllaç de baixada. **Fes una còpia de seguretat del servidor abans d'actualitzar.** Es desactiva amb `update_check.activado`.
 
+**Mapes web:** si el servidor té BlueMap, Dynmap o squaremap, les estructures de Heraldia surten al mapa web, cada tipus a la seva capa (úniques, pobles, mitjanes, mines i l'arena), només quan algun jugador les ha descobertes. Els operadors l'actualitzen amb `/heraldia webmap refresh`.
+
 ## Opcions més útils
 
 El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, amb un text d'ajuda per a cada opció. Els canvis s'apliquen en reiniciar el servidor, als chunks que es generin de nou. Les que no afecten la generació (dificultat, caps, botí, arena, Guia...) es poden aplicar sense reiniciar amb `/heraldia reload`.
@@ -56,6 +58,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `arena.activado` | `true` | L'arena d'onades prop del punt d'aparició. |
 | `guia.entregar_al_entrar` | `true` | Dona la Guia de l'Herald a cada jugador en entrar. |
 | `update_check.activado` | `true` | Avisa els operadors quan hi ha una versió nova. |
+| `mapas_web.solo_descubiertas` | `true` | Al mapa web només surten les estructures ja descobertes. |
 
 ## Per saber-ne més
 

@@ -60,3 +60,13 @@ Probado en un servidor dedicado 26.3 real con las versiones de Modrinth para Min
 | JourneyMap | 6.0.10 | probado (servidor) | Igual. |
 
 En la CI estas pruebas van en cada push a `develop`, a mano y en los PR que cambian sus ficheros, los mods fijados o el código común de colocación. `python3 tools/smoke/modrinth.py --comprobar` dice si hay versiones 26.3 más nuevas.
+
+## Mapas web (BlueMap, Dynmap y squaremap)
+
+Dependencias opcionales: Heraldia mira al iniciar (`FabricLoader.isModLoaded`) si están `bluemap`, `dynmap` o `squaremap`, y solo entonces carga su adaptador (`mapas/bluemap/`, `mapas/dynmap/`, `mapas/squaremap/`), la única clase que nombra la API de ese mapa. Sin ninguno no se registra ningún evento, no se escribe nada en el mundo y no se carga ninguna clase de los mapas (lo comprueba `MapasWebAisladoTest` en el bytecode). Las API van como `compileOnly` (no entran en el `.jar`): `de.bluecolored:bluemap-api:2.8.2` (repo.bluecolored.de), `xyz.jpenilla:squaremap-api:1.4.3` (Maven Central) y `us.dynmap:DynmapCoreAPI:3.8` (repo.mikeprimm.com; no publica `maven-metadata.xml`, pero la versión fija se resuelve). Si un mapa trae otra versión de su API que no encaja, se avisa en el log y se sigue sin él. Qué sale y las opciones: [Mapas web](CONFIGURACION.md#mapas-web-heraldia-webmap-refresh).
+
+| Mapa | Versión probada | Estado | Notas |
+| --- | --- | --- | --- |
+| squaremap | 1.4.3 | probado | `tools/smoke/mapas_web.py`: las 5 capas, el marcador de una mediana al descubrirla con un jugador simulado (posición, icono, nombre y descripción en español), `solo_descubiertas`, las capas apagadas y la vuelta tras reiniciar (del fichero del mundo). Una capa (`SimpleLayerProvider`) por clase, con iconos de 24 px. |
+| BlueMap | 5.29 (API 2.8.2) | compilado, sin probar en servidor | Un `MarkerSet` por capa en cada mapa del Overworld, con marcadores de punto y los iconos en los recursos del mapa. BlueMap no arranca su API hasta aceptar la descarga de recursos (`accept-download` en su `core.conf`); Heraldia publica en cuanto se activa. |
+| Dynmap | — | sin versión 26.3 (última: 1.21.11) | Adaptador escrito contra DynmapCoreAPI 3.8 (conjuntos no persistentes, iconos propios, todo en el hilo del servidor porque su API no es segura entre hilos); el mundo del Overworld se busca por el nombre del nivel. Sin probar. |

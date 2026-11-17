@@ -55,6 +55,18 @@ repositories {
 		url = 'https://maven.terraformersmc.com/releases/'
 		content { includeGroup 'com.terraformersmc' }
 	}
+	// Mapas web (opcionales, solo para compilar sus adaptadores en mapas/<mapa>/; no van dentro del .jar). squaremap-api
+	// está en Maven Central.
+	maven {
+		name = 'BlueColored'
+		url = 'https://repo.bluecolored.de/releases'
+		content { includeGroup 'de.bluecolored' }
+	}
+	maven {
+		name = 'Dynmap'
+		url = 'https://repo.mikeprimm.com/'
+		content { includeGroup 'us.dynmap' }
+	}
 }
 
 dependencies {
@@ -62,6 +74,12 @@ dependencies {
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	clientCompileOnly("com.terraformersmc:modmenu:${project.modmenu_version}") { transitive = false }
+	// API de los mapas web: solo para compilar; en el servidor las pone cada mapa (mapas/MapasWeb solo carga su adaptador
+	// si el mod está). Sin transitivas: los adaptadores no usan nada más de ellas (squaremap trae Adventure; BlueMap, flow-math).
+	// (versiones aquí y no en gradle.properties, que mueve las pruebas de compatibilidad)
+	compileOnly("de.bluecolored:bluemap-api:2.8.2") { transitive = false }
+	compileOnly("xyz.jpenilla:squaremap-api:1.4.3") { transitive = false }
+	compileOnly("us.dynmap:DynmapCoreAPI:3.8") { transitive = false }
 	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"

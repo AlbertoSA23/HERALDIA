@@ -38,6 +38,8 @@ Los **comandos** están en inglés en todos los servidores: `/heraldia guide`, `
 
 **Versiones nuevas:** el servidor mira una vez al día si hay una versión nueva de Heraldia para su Minecraft y avisa a los operadores al entrar, con el enlace de descarga. **Haz una copia de seguridad del servidor antes de actualizar.** Se desactiva con `update_check.activado`.
 
+**Mapas web:** si el servidor tiene BlueMap, Dynmap o squaremap, las estructuras de Heraldia salen en el mapa web, cada clase en su capa (únicas, aldeas, medianas, minas y la arena), solo cuando algún jugador las ha descubierto. Los operadores lo actualizan con `/heraldia webmap refresh`.
+
 ## Opciones más útiles
 
 El fichero `config/heraldia.json` se crea en el primer arranque del servidor, con una ayuda para cada opción. Los cambios se aplican al reiniciar el servidor, en los chunks que se generen después. Las que no afectan a la generación (dificultad, jefes, botín, arena, Guía...) se pueden aplicar sin reiniciar con `/heraldia reload`.
@@ -56,6 +58,7 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 | `arena.activado` | `true` | La arena de oleadas cerca del spawn. |
 | `guia.entregar_al_entrar` | `true` | Da la Guía del Heraldo a cada jugador al entrar. |
 | `update_check.activado` | `true` | Avisa a los operadores cuando hay una versión nueva. |
+| `mapas_web.solo_descubiertas` | `true` | En el mapa web solo salen las estructuras ya descubiertas. |
 
 ## Para saber más
 

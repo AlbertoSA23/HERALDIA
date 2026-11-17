@@ -38,6 +38,8 @@ Les **commandes** sont en anglais sur tous les serveurs : `/heraldia guide`, `/h
 
 **Nouvelles versions :** le serveur vérifie une fois par jour s'il existe une nouvelle version de Heraldia pour son Minecraft et prévient les opérateurs à leur connexion, avec le lien de téléchargement. **Faites une sauvegarde du serveur avant de mettre à jour.** Se désactive avec `update_check.activado`.
 
+**Cartes web :** si le serveur a BlueMap, Dynmap ou squaremap, les structures de Heraldia apparaissent sur la carte web, chaque type sur son calque (structures uniques, villages, structures moyennes, mines et l'arène), seulement quand un joueur les a découvertes. Les opérateurs la mettent à jour avec `/heraldia webmap refresh`.
+
 ## Options les plus utiles
 
 Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, avec un texte d'aide pour chaque option. Les modifications s'appliquent au redémarrage du serveur, dans les chunks nouvellement générés. Celles qui ne touchent pas à la génération (difficulté, boss, butin, arène, Guide...) peuvent s'appliquer sans redémarrer avec `/heraldia reload`.
@@ -56,6 +58,7 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `arena.activado` | `true` | L'arène des vagues près du point d'apparition. |
 | `guia.entregar_al_entrar` | `true` | Donne le Guide du Héraut à chaque joueur à sa connexion. |
 | `update_check.activado` | `true` | Prévient les opérateurs quand une nouvelle version existe. |
+| `mapas_web.solo_descubiertas` | `true` | Sur la carte web, seulement les structures déjà découvertes. |
 
 ## En savoir plus
 

@@ -204,6 +204,29 @@ _FIXED = [
     ("unicas.atlantida.cofre_unico_por_jugador", False, None, None,
      "Cofre premium de la Atlántida por jugador: cada jugador saca su propia copia del contenido una vez (si no, el primero que llega se lo lleva)",
      "Per-player Atlantis premium chest: each player takes their own copy of its contents once (otherwise the first to arrive takes it all)"),
+    ("mapas_web.activado", True, None, None,
+     "Marcadores de Heraldia en los mapas web del servidor (BlueMap, Dynmap o squaremap, si alguno está instalado; sin "
+     "ellos no hace nada): aldeas, únicas, medianas, entradas de mina y la arena, cada tipo en su capa",
+     "Heraldia markers on the server's web maps (BlueMap, Dynmap or squaremap, if one is installed; without them it does "
+     "nothing): villages, unique and medium structures, mine entrances and the arena, each kind on its own layer"),
+    ("mapas_web.solo_descubiertas", True, None, None,
+     "Solo salen en el mapa las de un tipo que algún jugador ya ha descubierto (los mismos logros que cuenta /heraldia "
+     "status); si es false, todas las que se han generado en chunks ya cargados",
+     "Only those of a kind some player has already discovered are shown (the same advancements /heraldia status "
+     "counts); if false, every one generated in chunks already loaded"),
+    ("mapas_web.idioma", "auto", ["auto", "es_es", "en_us", "fr_fr", "de_de", "it_it", "pt_br", "ca_es", "gl_es"], None,
+     "Idioma de los nombres y descripciones de los marcadores (auto: el del sistema del servidor)",
+     "Language of the marker names and descriptions (auto: the server system's)"),
+    ("mapas_web.capas.unicas", True, None, None,
+     "Capa de las estructuras únicas en los mapas web", "Unique structures layer on the web maps"),
+    ("mapas_web.capas.aldeas", True, None, None,
+     "Capa de las aldeas de Heraldia en los mapas web", "Heraldia villages layer on the web maps"),
+    ("mapas_web.capas.medianas", True, None, None,
+     "Capa de las estructuras medianas en los mapas web", "Medium structures layer on the web maps"),
+    ("mapas_web.capas.minas", True, None, None,
+     "Capa de las entradas de mina en los mapas web", "Mine entrances layer on the web maps"),
+    ("mapas_web.capas.arena", True, None, None,
+     "Capa de la arena de oleadas en los mapas web", "Wave arena layer on the web maps"),
 ]
 # Perfiles de juego (opción «perfil»): cada uno fija de golpe estas opciones de juego (nunca de la generación). «estandar»
 # es exactamente el comportamiento de siempre (los valores por defecto); «personalizado» no fija nada (cada opción con su
@@ -331,6 +354,14 @@ _NAMES = {
     "update_check.prereleases": ("Avisar de pre-publicaciones", "Announce pre-releases"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
                                                        "Distance of other mods' structures (blocks)"),
+    "mapas_web.activado": ("Marcadores en los mapas web", "Web map markers"),
+    "mapas_web.solo_descubiertas": ("Solo las descubiertas", "Discovered only"),
+    "mapas_web.idioma": ("Idioma de los marcadores", "Marker language"),
+    "mapas_web.capas.unicas": ("Capa: estructuras únicas", "Layer: unique structures"),
+    "mapas_web.capas.aldeas": ("Capa: aldeas", "Layer: villages"),
+    "mapas_web.capas.medianas": ("Capa: estructuras medianas", "Layer: medium structures"),
+    "mapas_web.capas.minas": ("Capa: entradas de mina", "Layer: mine entrances"),
+    "mapas_web.capas.arena": ("Capa: arena", "Layer: arena"),
 }
 # Nombre de cada valor de las opciones de lista: {clave: {valor: (es_es, en_us)}}.
 _VALUE_NAMES = {
@@ -338,6 +369,11 @@ _VALUE_NAMES = {
                "personalizado": ("Personalizado", "Custom")},
     "dificultad.nivel": {"facil": ("Fácil", "Easy"), "normal": ("Normal", "Normal"), "dificil": ("Difícil", "Hard"),
                          "heroica": ("Heroica", "Heroic")},
+    "mapas_web.idioma": {"auto": ("Automático (el del sistema)", "Automatic (the system's)"),
+                         "es_es": ("Español", "Español"), "en_us": ("English", "English"), "fr_fr": ("Français", "Français"),
+                         "de_de": ("Deutsch", "Deutsch"), "it_it": ("Italiano", "Italiano"),
+                         "pt_br": ("Português (Brasil)", "Português (Brasil)"), "ca_es": ("Català", "Català"),
+                         "gl_es": ("Galego", "Galego")},
 }
 # Grupos: nombre corto (%s = nombre de la familia, el estilo o la estructura) y clave del nombre del argumento
 # (None: el id tal cual, como en el README).
@@ -370,6 +406,7 @@ SECTIONS = [
     ("guia", "Guía del Heraldo", "Herald's Guide"),
     ("arena", "Arena de oleadas", "Wave arena"),
     ("actualizaciones", "Actualizaciones", "Updates"),
+    ("mapas_web", "Mapas web", "Web maps"),
 ]
 # Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
 # (si no encaja en ninguna, la generación falla).
@@ -380,7 +417,7 @@ _SECTION_PREFIXES = [
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"),
-    ("update_check.", "actualizaciones"),
+    ("update_check.", "actualizaciones"), ("mapas_web.", "mapas_web"),
 ]
 
 

@@ -13,7 +13,8 @@ RAIZ = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."
 JAVA = os.path.join(RAIZ, "src", "main", "java", "io", "github", "albertosa23", "heraldia")
 CLIENTE = os.path.join(RAIZ, "src", "client", "java", "io", "github", "albertosa23", "heraldia", "client")
 TEXTOS = admin.lang()
-PREFIJOS = ("heraldia.revisar.", "heraldia.estado.", "heraldia.recargar.", "heraldia.version.", "heraldia.comando.")
+PREFIJOS = ("heraldia.revisar.", "heraldia.estado.", "heraldia.recargar.", "heraldia.version.", "heraldia.comando.",
+            "heraldia.mapas_web.")
 
 
 def _java(*partes):

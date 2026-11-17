@@ -101,7 +101,7 @@ public final class EstadoCommand {
 	}
 
 	/** Fuera del hilo del servidor: los ficheros de logros de los jugadores no conectados. */
-	static void leerFicheros(Path dir, Set<UUID> conectados, Estado.Logros logros) {
+	public static void leerFicheros(Path dir, Set<UUID> conectados, Estado.Logros logros) {
 		if (!Files.isDirectory(dir)) {
 			return;
 		}

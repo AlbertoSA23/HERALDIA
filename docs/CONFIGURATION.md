@@ -82,12 +82,19 @@ No telemetry: one GET request with a generic `User-Agent` and no data about the 
 timeouts (5 s to connect, 10 s to answer). With no network or an odd answer it only writes one line in the log. Turn it
 off with `update_check.activado = false`.
 
+### Web maps: `/heraldia webmap refresh`
+
+If the server has [BlueMap](https://modrinth.com/plugin/bluemap), [Dynmap](https://modrinth.com/plugin/dynmap) or [squaremap](https://modrinth.com/plugin/squaremap) (optional dependencies: without any of them nothing changes), Heraldia puts its structures on the web map, each kind on its own layer that can be hidden: unique structures, villages, medium structures, mine entrances and the wave arena. Each marker has its layer's icon, the structure's name in the language of `mapas_web.idioma` and a short description. Details and tested versions in [Compatibility](COMPATIBILITY.md#web-maps-bluemap-dynmap-and-squaremap).
+
+- What is shown: the Heraldia structures in the chunks that have been loaded at least once since there is a web map (they are noted down as each chunk loads and saved in `heraldia_mapas_web.json`, in the world folder) and the placed arena. With `mapas_web.solo_descubiertas` (the default), only those of a kind some player has already discovered, with the same advancements [`/heraldia status`](#server-status-heraldia-status-page) counts: a village, once someone has its family's advancement; a unique structure, the one for discovering it; a medium structure, its type's criterion; a mine entrance, the one for its size. The arena is always shown.
+- When it is updated: at startup, as soon as someone earns a Heraldia advancement, when a new structure appears, after [`/heraldia reload`](#live-reload-heraldia-reload) (the `mapas_web.*` options are reloadable) and with `/heraldia webmap refresh` (operators, level 2: reads every player's advancements again and says how many markers it placed). Everything runs on its own thread, at most one update every 2 s; on the server thread it only looks at the list of structure starts of each chunk that loads.
+
 ### Live reload: `/heraldia reload`
 
 For operators (level 2). Reads `config/heraldia.json` again without restarting the server (and without rewriting it) and applies whatever does not affect generation:
 
 - `dificultad.*`: the health and damage modifiers of the Heraldia mobs already loaded are recalculated (the rest, when they load), keeping the proportion of their current health.
-- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (trades are rolled when a villager levels up) and `unicas.atlantida.cofre_unico_por_jugador`: read every time they are used.
+- `jefes.*`, `botin.*`, `guia.*`, `aldeas.vida.tratos_estilo`, `aldeas.vida.asedios` (trades are rolled when a villager levels up) `unicas.atlantida.cofre_unico_por_jugador` and `mapas_web.*` (the markers are rebuilt on reload): read every time they are used.
 - `perfil` (the [gameplay profile](#gameplay-profiles)): applied whole, with whatever is set by hand on top (all its options are among these).
 - `golems.*`: the limits are published again to the golem functions.
 - `arena.*` (except `arena.generar_en_mundos_nuevos`, which only counts when a new world starts): increments, maximum alive, experience and whether it is enabled. With a match running they do not change until it ends (reload again then).
@@ -154,6 +161,10 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `arena.oleada.stats_incremento` | 10 | 1-100 | Extra health and damage in each wave, in %; if it exceeds `mobs_incremento`, that one is used (enemies grow faster than their strength). |
 | `arena.max_mobs_vivos` | 20 | 4-64 | Enemies alive at once in the ring; if a wave brings more, they come in batches. |
 | `arena.experiencia_porcentaje` | 15 | 0-100 | Experience of arena enemies, as a % of the normal amount (after the game's own scaling); they drop no items. |
+| `mapas_web.activado` | `true` | `true`/`false` | [Markers on the web maps](#web-maps-heraldia-webmap-refresh) (BlueMap, Dynmap or squaremap); without any of them it does nothing. Disabled, it removes Heraldia's layers from the map. |
+| `mapas_web.solo_descubiertas` | `true` | `true`/`false` | Only those of a kind some player has discovered are shown (the `/heraldia status` advancements); with `false`, every one already generated in chunks that have been loaded. |
+| `mapas_web.idioma` | `auto` | `auto`, `es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es` | Language of the names, descriptions and layers; `auto` uses the server system's (the JVM's). |
+| `mapas_web.capas.<capa>` | `true` | `true`/`false` | One per layer (`unicas`, `aldeas`, `medianas`, `minas`, `arena`): when off, the layer is not shown. |
 
 Atlantis has no placement options: there is always exactly one per world.
 
@@ -187,7 +198,7 @@ The `perfil` option sets a group of gameplay options in one go (never world gene
 
 On the client the file can also be edited from a screen inside the game. With [Mod Menu](https://modrinth.com/mod/modmenu) installed (optional; the mod works the same without it, the screen just has no button) it opens from the configuration button of Heraldia in the mod list. It is built from the same option list as the file, so new options appear on their own:
 
-- Sections: Gameplay profile, Villages, Village families, Village styles, Village life, Roads between villages, Golems, Unique structures, Minimum distance between unique structures, Atlantis, Medium structures, Compatibility with other mods, Loot and Difficulty, with a search box (by name, key, help or section).
+- Sections: Gameplay profile, Villages, Village families, Village styles, Village life, Roads between villages, Golems, Unique structures, Minimum distance between unique structures, Atlantis, Medium structures, Compatibility with other mods, Loot, Difficulty and Web maps, with a search box (by name, key, help or section).
 - Each option shows its value (on/off button, number box, or a button that cycles through the values of a list option such as `dificultad.nivel`). Its tooltip shows the key, the help text (the same as `_ayuda`) and the default and range. An invalid number turns red, its tooltip says why and **Save** stays disabled until it is fixed.
 - Gameplay profile: changing it moves the options that had the previous profile's value to the new one's; the ones with another value (set by hand) stay as they are, with their name in gold, and their tooltip shows the profile's value and that they override it. The tooltip of the profile itself shows the effective profile and which options differ. On saving, only the options whose value is not the profile's are written as set by hand.
 - **Save** writes `config/heraldia.json` in the same format as at startup (with `version` and `_ayuda`); **Reset to defaults** puts every option back to its default (nothing is written until you save); **Cancel** discards the changes.
