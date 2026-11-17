@@ -18,8 +18,9 @@ Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valen
 ## Comment jouer
 
 - 📖 **Le Guide du Héraut.** Chaque joueur le reçoit en se connectant : un livre qui explique quoi chercher et tient votre journal, avec les structures uniques que vous avez découvertes et des indices sur celles qui manquent. Demandez un exemplaire à jour quand vous voulez avec `/heraldia guide`.
-- 📊 **Ce que le serveur a trouvé.** `/heraldia status` indique combien de villages, de structures uniques, de structures moyennes et de mines les joueurs ont découverts, les gardiens vaincus et le record de l'arène.
-- 🏆 **Progrès.** Un onglet Heraldia avec 94 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les structures moyennes, le tableau des contrats et l'arène.
+- 📊 **Ce que le serveur a trouvé.** `/heraldia status` indique combien de villages, de structures uniques, de structures moyennes et de mines les joueurs ont découverts, les gardiens vaincus, le record de l'arène et les missions remises.
+- 📋 **Missions des villages.** Touche le lutrin du tableau sur la place d'un village (ou utilise `/heraldia quest` sur place) : 2 à 4 missions apparaissent dans le chat (apporter des objets, vaincre un gardien, explorer, aller au village voisin, l'arène) et changent tous les quelques jours. Elles paient en émeraudes, expérience et réputation auprès de ce village : connu, ami et héros du village, ses villageois baissent leurs prix de 10, 20 et 30 %. Attaquer ses villageois ou ses golems la fait baisser.
+- 🏆 **Progrès.** Un onglet Heraldia avec 98 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les structures moyennes, le tableau des contrats et l'arène.
 - 🗿 **Trophées.** Chacun des 20 gardiens lâche son trophée, un objet avec un nom et une histoire. Réunissez-les tous pour compléter la Salle des trophées.
 - 🗺️ **Cartes au trésor.** Chaque carte indique la structure unique de son type la plus proche. On les trouve dans les coffres épiques des villages, et les cartographes en vendent.
 - 📜 **La Chronique des Hérauts.** Chaque structure unique garde un feuillet de la chronique écrite par Ysolda, dernière héraut de l'Atlantide. Chaque feuillet mène au suivant : réunissez les 20 et vous saurez comment elle s'achève.
@@ -56,6 +57,8 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `dificultad.nivel` | `normal` | Gardiens et monstres : `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Les coffres de Heraldia se remplissent à nouveau au bout de quelques jours. |
 | `arena.activado` | `true` | L'arène des vagues près du point d'apparition. |
+| `encargos.activado` | `true` | Missions du tableau (`/heraldia quest`). |
+| `reputacion.activado` | `true` | Réputation par village et ses réductions. |
 | `guia.entregar_al_entrar` | `true` | Donne le Guide du Héraut à chaque joueur à sa connexion. |
 | `update_check.activado` | `true` | Prévient les opérateurs quand une nouvelle version existe. |
 | `mapas_web.solo_descubiertas` | `true` | Sur la carte web, seulement les structures déjà découvertes. |

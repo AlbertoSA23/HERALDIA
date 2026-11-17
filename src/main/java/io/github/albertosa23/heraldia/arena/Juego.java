@@ -491,6 +491,7 @@ final class Juego {
 			titulo(p, Textos.t("heraldia.arena.oleada.superada", n).withStyle(ChatFormatting.GREEN),
 					Textos.t("heraldia.arena.oleada.siguiente", partida.segundos()));
 			Marcador.superada(level.getServer(), p, n);
+			io.github.albertosa23.heraldia.encargos.Encargos.oleadaSuperada(p, n);   // encargos del tablón (T38)
 			if (nivel > 0) {
 				recompensa(level, p, n, nivel);
 			}

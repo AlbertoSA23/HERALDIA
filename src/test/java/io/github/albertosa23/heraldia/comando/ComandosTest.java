@@ -176,13 +176,15 @@ class ComandosTest {
 	void ningunAliasEnElArbolDelCliente() {
 		var cliente = new CommandDispatcher<>(AliasTest.delCliente(d.getRoot(), op));
 		List<String> raiz = AliasTest.sugerencias(cliente, "heraldia ", op);
-		assertEquals(List.of("arena", "guide", "info", "key", "profile", "reload", "review", "status", "update", "webmap"), raiz);
+		assertEquals(List.of("arena", "guide", "info", "key", "profile", "quest", "reload", "review", "status", "update", "webmap"), raiz);
+		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.sugerencias(cliente, "heraldia quest ", op));
 		assertEquals(List.of("leave", "move", "place", "remove", "start", "stop"), AliasTest.sugerencias(cliente, "heraldia arena ", op));
 		assertEquals(List.of("here", "nearby"), AliasTest.sugerencias(cliente, "heraldia info ", op));
 		assertEquals(List.of("check"), AliasTest.sugerencias(cliente, "heraldia update ", op));
 		// un jugador sin permisos ve solo lo suyo
 		var deJugador = new CommandDispatcher<>(AliasTest.delCliente(d.getRoot(), jugador));
-		assertEquals(List.of("arena", "guide", "status"), AliasTest.sugerencias(deJugador, "heraldia ", jugador));
+		assertEquals(List.of("arena", "guide", "quest", "status"), AliasTest.sugerencias(deJugador, "heraldia ", jugador));
+		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.sugerencias(deJugador, "heraldia quest ", jugador));
 		assertEquals(List.of("leave"), AliasTest.sugerencias(deJugador, "heraldia arena ", jugador));
 		// todos los alias están en el servidor
 		List<String> ocultos = new ArrayList<>();

@@ -41,6 +41,11 @@ PAGINAS = [
       "limpiar los caminos de monstruos. Y los cartógrafos venden mapas de las únicas.",
       "Each style has trades of its own. On the square stands a job board: the bailiff pays for harvests, firewood "
       "and clearing the roads of monsters. And the cartographers sell maps of the unique structures.")),
+    ("encargos", ("Encargos", "Quests"),
+     ("En el atril del tablón verás de 2 a 4 encargos, que cambian cada pocos días. Pagan esmeraldas y reputación: "
+      "conocido, amigo y héroe abaratan los tratos. No ataques a los vecinos. /heraldia quest.",
+      "The job board lectern lists 2 to 4 quests that change every few days. They pay emeralds and reputation: known, "
+      "friend and hero make trades cheaper. Do not attack the villagers. /heraldia quest.")),
     ("caminos", ("Los caminos", "The roads"),
      ("Senderos con farolas y puentes de madera unen las aldeas vecinas. Cerca de cada aldea, un cartel dice el nombre "
       "de la de destino y cuántos bloques faltan. Seguirlos es la forma más segura de viajar.",

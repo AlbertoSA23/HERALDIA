@@ -18,8 +18,9 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 ## Com es juga
 
 - 📖 **La Guia de l'Herald.** Tots els jugadors la reben en entrar: un llibre que explica què has de buscar i porta el teu diari, amb les estructures úniques que has descobert i pistes de les que et falten. Demana'n una còpia al dia quan vulguis amb `/heraldia guide`.
-- 📊 **El que ha trobat el servidor.** `/heraldia status` diu quants pobles, estructures úniques, estructures mitjanes i mines han descobert els jugadors, els guardians vençuts i el rècord de l'arena.
-- 🏆 **Assoliments.** Una pestanya Heraldia amb 94 assoliments: un poble de cada família, cada estructura única amb el seu guardià i el seu tresor, les mines, les estructures mitjanes, el tauler d'encàrrecs i l'arena.
+- 📊 **El que ha trobat el servidor.** `/heraldia status` diu quants pobles, estructures úniques, estructures mitjanes i mines han descobert els jugadors, els guardians vençuts, el rècord de l'arena i els encàrrecs lliurats.
+- 📋 **Encàrrecs dels pobles.** Toca el faristol del tauler de la plaça d'un poble (o fes-hi servir `/heraldia quest`): surten al xat de 2 a 4 encàrrecs (portar objectes, vèncer un guardià, explorar, viatjar a un poble veí, l'arena) que canvien cada pocs dies. Paguen maragdes, experiència i reputació amb aquell poble: com a conegut, amic i heroi del poble, els seus vilatans rebaixen els preus un 10, 20 i 30 %. Atacar els seus vilatans o gòlems la fa baixar.
+- 🏆 **Assoliments.** Una pestanya Heraldia amb 98 assoliments: un poble de cada família, cada estructura única amb el seu guardià i el seu tresor, les mines, les estructures mitjanes, el tauler d'encàrrecs i l'arena.
 - 🗿 **Trofeus.** Cadascun dels 20 guardians deixa anar el seu trofeu, un objecte amb nom i història. Reuneix-los tots per completar la Sala de trofeus.
 - 🗺️ **Mapes del tresor.** Cada mapa marca l'estructura única més propera del seu tipus. Surten als cofres èpics dels pobles i els venen els cartògrafs.
 - 📜 **La Crònica dels Heralds.** Cada estructura única guarda un plec de la crònica escrita per Ysolda, l'última herald de l'Atlàntida. Cada plec assenyala el següent: reuneix-ne els 20 i sabràs com acaba.
@@ -56,6 +57,8 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `dificultad.nivel` | `normal` | Guardians i monstres: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | Els cofres d'Heraldia es tornen a omplir al cap d'uns dies. |
 | `arena.activado` | `true` | L'arena d'onades prop del punt d'aparició. |
+| `encargos.activado` | `true` | Encàrrecs del tauler (`/heraldia quest`). |
+| `reputacion.activado` | `true` | Reputació per poble i els seus descomptes. |
 | `guia.entregar_al_entrar` | `true` | Dona la Guia de l'Herald a cada jugador en entrar. |
 | `update_check.activado` | `true` | Avisa els operadors quan hi ha una versió nova. |
 | `mapas_web.solo_descubiertas` | `true` | Al mapa web només surten les estructures ja descobertes. |
