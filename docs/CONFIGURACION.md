@@ -113,6 +113,39 @@ Para operadores (nivel 2). Vuelve a leer `config/heraldia.json` sin reiniciar el
 
 Todo lo demás (rejillas y separaciones, aldeas, familias y estilos, el tablón, los caminos, las únicas, las medianas, las minas, la compatibilidad y la distancia mínima) afecta a la generación: si cambiara a medias, dos chunks vecinos se generarían con reglas distintas y `/locate` y los mapas dejarían de coincidir con lo generado. Esas opciones no se aplican: la respuesta las lista con su valor en uso y el del fichero, y se aplican al reiniciar. Una opción nueva del mod es de este grupo salvo que se declare recargable.
 
+### Panel de configuración en el juego: `/heraldia config`
+
+Para operadores (nivel 2), **sin el mod en el cliente**: abre un diálogo vanilla (la Dialog API del servidor). Arriba, el perfil de juego en uso y un botón por perfil (casual, estándar, hardcore); debajo, siete apartados con 5 a 8 opciones cada uno: **Mundo y generación**, **Aldeas y caminos**, **Combate y jefes**, **Botín**, **Arena**, **Jugadores y Guía** y **Avanzado**. Cada opción lleva una frase que la explica, el valor recomendado (el del perfil elegido o el de por defecto) y, si no se aplica en caliente, el aviso «[se aplica al reiniciar]». **Guardar** escribe `config/heraldia.json` y aplica por el mismo camino que [`/heraldia reload`](#recarga-en-caliente-heraldia-reload): lo recargable ya, lo demás queda guardado y se dice que espera al reinicio. Lo que no está en los apartados se cambia en el fichero.
+
+Desde la consola, `/heraldia config` lista lo mismo en texto y `/heraldia config set <opción> <valor>` cambia cualquier opción (con el mismo camino de recarga).
+
+### Idioma de cada jugador: `/heraldia language`
+
+Para todos. `/heraldia language` dice en qué idioma te escribe Heraldia y da un botón por idioma (los 8 del mod); `/heraldia language <código>` (`es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es`) lo fija y `/heraldia language auto` vuelve al de tu juego. Se guarda con el jugador y manda sobre el idioma del cliente en los textos del mod (Guía, encargos, arena, caravanas, avisos). Un cliente sin el mod los ve en el idioma elegido; uno con el mod traduce las claves con su propio idioma.
+
+## Actualizar un servidor
+
+Guía para administradores (política permanente: ninguna versión cambia lo ya construido sin tu permiso).
+
+1. **Antes de actualizar**: para el servidor y haz una copia del mundo y de `config/`. Cambia el `.jar` de Heraldia y arranca.
+2. **Al arrancar** con la versión nueva, nada cambia en lo ya generado: lo nuevo de la generación sale en los chunks nuevos. El mod guarda en el mundo con qué versión se generó y con cuál se abrió (lo dice el log: «mundo generado con la versión …»; un mundo de antes de esto queda como `anterior`), migra `config/heraldia.json` si su formato cambió (dejando `heraldia.json.v<versión>.bak` con el de antes) y aplica, una sola vez por mob al cargarse, los **arreglos** de fallos ya corregidos que pudieran quedar de versiones anteriores: guardianes de la 0.1.0 sin marcas (se anclan para no pasear fuera de su sala, no recogen objetos y pasan a ser jefes), bebés, ahogados montados en nautilos zombis. El de las armas cambiadas solo avisa (no se sabe cuál era). `/heraldia update repair dry-run` dice qué cambiaría en lo cargado; `/heraldia update repair` lo fuerza.
+3. **`/heraldia update analyze`** (operadores): informe de qué haría llevar lo nuevo a lo ya generado. **No cambia nada.** Lee las regiones del mundo principal en un hilo propio (unos minutos en un mundo grande) y deja en `<mundo>/heraldia/actualizar/` el informe (`analisis-<fecha>.txt`), un mapa en texto y una imagen (`mapa-<fecha>.txt` y `.png`: `#` construcción, `P` protegido, `R` se regenera, `v` virgen que se conserva, `E` estructura nueva, `.` generado, `S` spawn). Detecta las construcciones de los jugadores combinando:
+   - bloques típicos de jugador (camas, cofres, barriles, carteles, mesas, hornos, raíles, vallas, puertas, antorchas, tablones, cristal…) fuera de las piezas de las estructuras guardadas;
+   - diferencias con la regeneración con la misma semilla (la cima de 16 columnas por chunk frente al terreno del generador, sin contar árboles, nieve, fluidos ni plantas) en los chunks por donde ha pasado alguien;
+   - el InhabitedTime (desde 1 hora de jugadores cerca, el chunk cuenta como construcción);
+   - el spawn del mundo, las camas y puntos de reaparición y la última posición de cada jugador (también de los desconectados);
+   - las zonas reclamadas con mods de protección: si hay uno conocido (Flan, GOML, FTB Chunks, Open Parties and Claims…), no se pueden leer, el informe lo dice y `apply` no se ejecuta.
+   Alrededor de cada construcción hay un **margen de 50 bloques** (`actualizar.margen_bloques`, de 16 a 256): ahí no se borra ni se coloca nada.
+   - **Vía A**: los chunks **vírgenes** (generados del todo, con menos de 1 minuto de jugadores cerca y sin construcciones ni margen) se borran para que se vuelvan a generar con lo nuevo cuando alguien se acerque. Solo los que no dejarían una estructura cortada: si lo que saldría ahora en ese chunk (o lo que había) toca un chunk que se queda, el chunk se conserva.
+   - **Vía B**: las estructuras nuevas de Heraldia que hoy saldrían en un chunk ya generado se colocan solo en sitios seguros: toda su caja fuera de cualquier chunk protegido y sin pisar otra estructura.
+4. **`/heraldia update apply`**: el mismo análisis y un diálogo (en la consola, las órdenes) para confirmar:
+   - **Copia y aplicar**: copia antes los ficheros de región, entidades y PDI afectados a `heraldia/actualizar/copia-<id>/`.
+   - **Aplicar sin copia**: pide una segunda confirmación explícita del riesgo (no se podrá deshacer).
+   Al confirmar, se avisa a los jugadores y **el servidor se para** a los 10 s. **Arráncalo tú a mano**: al arrancar, antes de cargar el mundo, se hace la copia y se borran los chunks vírgenes (si alguien pasó por uno desde el análisis, se deja); con el servidor en marcha se colocan las estructuras nuevas y queda el informe `informe-<id>.txt`.
+5. **Deshacer**: `/heraldia update undo` (si hubo copia) pide confirmación, para el servidor y, al arrancarlo a mano, restaura las regiones copiadas. Lo que cambió en ellas desde el apply se pierde.
+
+Limitaciones: solo el mundo principal; las estructuras colocadas en chunks ya generados no ajustan el terreno a su alrededor (como `/place structure`); si el mundo se generó con otra versión de Minecraft, los chunks regenerados pueden no casar con el terreno de al lado.
+
 ## Configuración
 
 Fichero `config/heraldia.json` del servidor (en un mundo de un jugador, el de la carpeta del juego). Se crea al arrancar con todos los valores por defecto
@@ -165,6 +198,7 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `guia.entregar_al_entrar` | `true` | `true`/`false` | Da la [Guía del Heraldo](CONTENIDO.md#guía-del-heraldo) a cada jugador la primera vez que entra con cada versión del mod. Desactivada, nadie la recibe al entrar, pero `/heraldia guide` sigue dándola. |
 | `update_check.activado` | `true` | `true`/`false` | [Aviso de versión nueva](#aviso-de-versión-nueva-heraldia-update-check): mira GitHub Releases al arrancar y cada 24 h y avisa a los operadores al entrar. Se aplica al reiniciar. |
 | `update_check.prereleases` | `false` | `true`/`false` | Avisa también de las pre-publicaciones (alfa, beta, candidatas). |
+| `actualizar.margen_bloques` | `50` | 16-256 | Margen de seguridad (bloques) alrededor de cada construcción que detecta [`/heraldia update analyze`](#actualizar-un-servidor): ahí no se regenera ni se coloca nada. |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Las estructuras de otros mods que asoman a la superficie no nacen a menos de esta distancia del inicio de una aldea o una única de Heraldia que sale ahí; 0 lo desactiva ([Compatibilidad con otros mods](COMPATIBILIDAD.md#compatibilidad-con-otros-mods)). |
 | `botin.reponer.activado` | `false` | `true`/`false` | [Botín que se repone](CONTENIDO.md#botín-que-se-repone-y-dificultad): los cofres y barriles de Heraldia se rellenan al abrirlos pasados los días indicados, sin otro jugador cerca y si están vacíos o casi; también los ya generados. Nada con Lootr. |
 | `botin.reponer.dias` | 7 | 1-60 | Días de juego (24.000 ticks del reloj del mundo) desde un saqueo hasta que el cofre se repone. |

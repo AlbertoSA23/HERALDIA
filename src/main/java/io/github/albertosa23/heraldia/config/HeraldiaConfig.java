@@ -234,7 +234,7 @@ public final class HeraldiaConfig {
 	}
 
 	private static HeraldiaConfig read(Path file) {
-		Lectura l = parse(file);
+		Lectura l = parse(file, true);
 		if (file != null) {
 			try {
 				writeOrThrow(file, l.values(), l.perfil().fijadas().keySet(), l.perfil());
@@ -259,6 +259,11 @@ public final class HeraldiaConfig {
 	}
 
 	private static Lectura parse(Path file) {
+		return parse(file, false);
+	}
+
+	/** @param copia si el fichero es de una versión anterior, guardar antes una copia (solo al arrancar, que lo reescribe) */
+	private static Lectura parse(Path file, boolean copia) {
 		int version = Schema.VERSION;
 		JsonObject root = new JsonObject();
 		boolean exists = file != null && Files.isRegularFile(file);
@@ -276,6 +281,13 @@ public final class HeraldiaConfig {
 		}
 		int fileVersion = root.has("version") && root.get("version").isJsonPrimitive() ? root.get("version").getAsInt() : 0;
 		if (exists && fileVersion < version) {
+			if (copia) {
+				try {
+					LOGGER.info("Heraldia: copia de la configuración de la versión {} en {}", fileVersion, MigracionConfig.copiar(file, fileVersion));
+				} catch (IOException e) {
+					LOGGER.warn("Heraldia: no se pudo copiar {} antes de migrarlo ({})", file, e.getMessage());
+				}
+			}
 			migrate(root, fileVersion, version);
 			LOGGER.info("Heraldia: configuración migrada de la versión {} a la {}", fileVersion, version);
 		} else if (fileVersion > version) {
@@ -324,20 +336,21 @@ public final class HeraldiaConfig {
 		});
 	}
 
-	/** Cambios de formato entre versiones del fichero. La versión 0 (sin campo) es la de un fichero escrito a mano. */
-	private static void migrate(JsonObject root, int from, int to) {
-		for (int v = from; v < to; v++) {
-			switch (v) {
-				case 0 -> { } // 0 → 1: mismo formato; solo se añade el campo de versión
-				case 1 -> { // 1 → 2: perfiles (T36); lo que escribía el mod deja de estar «fijado a mano» (uno a mano, el 0, no)
-					if (from == 1) {
-						quitarDelPerfil(root);
-					}
+	/**
+	 * Pasos de formato entre versiones del fichero ({@link MigracionConfig}). La versión 0 (sin campo) es la de un fichero
+	 * escrito a mano. Para un formato nuevo: sube opciones.VERSION y añade el paso aquí.
+	 */
+	static final MigracionConfig MIGRACION = new MigracionConfig(Map.of(
+			0, (root, desde) -> { },                     // 0 → 1: mismo formato; solo se añade el campo de versión
+			1, (root, desde) -> {                        // 1 → 2: perfiles (T36); lo que escribía el mod deja de estar «fijado a mano» (uno a mano, el 0, no)
+				if (desde == 1) {
+					quitarDelPerfil(root);
 				}
-				default -> LOGGER.warn("Heraldia: no hay migración de la versión {} de la configuración", v);
-			}
-		}
-		root.addProperty("version", to);
+			}));
+
+	private static void migrate(JsonObject root, int from, int to) {
+		MigracionConfig.Resultado r = MIGRACION.migrar(root, from, to);
+		r.sinPaso().forEach(v -> LOGGER.warn("Heraldia: no hay migración de la versión {} de la configuración", v));
 	}
 
 	/**
@@ -345,7 +358,7 @@ public final class HeraldiaConfig {
 	 * con su valor por defecto no las puso nadie a mano: se quitan (con el perfil estándar dan lo mismo). Las que tienen
 	 * otro valor se quedan, fijadas a mano: nada cambia en el mundo.
 	 */
-	private static void quitarDelPerfil(JsonObject root) {
+	static void quitarDelPerfil(JsonObject root) {
 		for (String k : Schema.PERFILES.claves()) {
 			String[] parts = k.split("\\.");
 			JsonObject node = root;

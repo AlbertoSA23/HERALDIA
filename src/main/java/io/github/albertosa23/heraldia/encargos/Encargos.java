@@ -169,7 +169,7 @@ public final class Encargos {
 	}
 
 	static Map<String, String> idioma(@Nullable ServerPlayer p) {
-		return Textos.idioma(p == null ? "es_es" : p.clientInformation().language());
+		return p == null ? Textos.idioma("es_es") : Textos.idioma(p);
 	}
 
 	// --- datos ---

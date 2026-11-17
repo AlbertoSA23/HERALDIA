@@ -162,7 +162,7 @@ final class Juego {
 
 	/** El menú de modos en el chat: un botón por modo activado (lo escribe en el log para las pruebas). */
 	static void menu(ServerPlayer p) {
-		java.util.Map<String, String> textos = Textos.idioma(p.clientInformation().language());
+		java.util.Map<String, String> textos = Textos.idioma(p);
 		net.minecraft.network.chat.MutableComponent linea = Component.empty();
 		for (Modo m : modos()) {
 			String orden = "/heraldia arena start " + m.id();

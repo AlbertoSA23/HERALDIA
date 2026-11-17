@@ -423,7 +423,7 @@ public final class Fama {
 			return 0;
 		}
 		Temporada t = leer(src.getServer());
-		Map<String, String> textos = src.getPlayer() != null ? Textos.idioma(src.getPlayer().clientInformation().language())
+		Map<String, String> textos = src.getPlayer() != null ? Textos.idioma(src.getPlayer())
 				: Textos.textos("es_es");
 		Map<String, List<Temporada.Entrada>> clas;
 		long inicio;

@@ -16,6 +16,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Textos traducibles de los comandos con el español del propio .jar como respaldo (un cliente sin el mod ve el
@@ -50,6 +51,19 @@ public final class Textos {
 	public static Map<String, String> idioma(String cliente) {
 		return leer(codigo(cliente, LENGUAS)).orElseThrow(
 				() -> new IllegalStateException("Falta el idioma " + cliente + " en el .jar de Heraldia"));
+	}
+
+	/**
+	 * Textos del idioma de un jugador: el que eligió con /heraldia language (T46, {@link Preferencias}), que manda sobre
+	 * el de su cliente; si no eligió ninguno, el de su cliente (ver {@link #idioma(String)}).
+	 */
+	public static Map<String, String> idioma(ServerPlayer p) {
+		return idioma(codigo(p));
+	}
+
+	/** El código de idioma del .jar con que se le escribe a un jugador (su preferencia o el de su cliente). */
+	public static String codigo(ServerPlayer p) {
+		return codigo(Preferencias.idioma(p).orElse(p.clientInformation().language()), LENGUAS);
 	}
 
 	/** Los textos del .jar del idioma {@code codigo} (o el de su lengua, o el inglés): ver {@link #idioma(String)}. */

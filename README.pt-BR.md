@@ -42,11 +42,13 @@ Os **comandos** estão em inglês em todos os servidores: `/heraldia guide`, `/h
 
 **Versões novas:** o servidor verifica uma vez por dia se há uma versão nova do Heraldia para o seu Minecraft e avisa os operadores ao entrar, com o link de download. **Faça um backup do servidor antes de atualizar.** Desativa-se com `update_check.activado`.
 
+**Atualizar o servidor:** ao atualizar, nada do que já foi construído muda. Para levar as novidades às terras já geradas, `/heraldia update analyze` mostra (sem mudar nada) o que seria regenerado ou colocado, sempre com uma margem de 50 blocos em volta do que os jogadores construíram, e `/heraldia update apply` faz isso após uma confirmação, com cópia de segurança opcional e `/heraldia update undo`. Passo a passo: [Updating a server](docs/CONFIGURATION.md#updating-a-server) (em inglês).
+
 **Mapas web:** se o servidor tem BlueMap, Dynmap ou squaremap, as estruturas do Heraldia aparecem no mapa web, cada tipo na sua camada (estruturas únicas, vilas, estruturas médias, minas, faróis e naufrágios e a arena), só quando algum jogador as descobriu. Os operadores o atualizam com `/heraldia webmap refresh`.
 
 ## Opções mais úteis
 
-O arquivo `config/heraldia.json` é criado na primeira inicialização do servidor, com um texto de ajuda para cada opção. As mudanças entram em vigor quando o servidor é reiniciado, nos chunks gerados depois. As que não afetam a geração (dificuldade, chefes, saque, arena, Guia...) podem ser aplicadas sem reiniciar com `/heraldia reload`.
+O arquivo `config/heraldia.json` é criado na primeira inicialização do servidor, com um texto de ajuda para cada opção. As mudanças entram em vigor quando o servidor é reiniciado, nos chunks gerados depois. As que não afetam a geração (dificuldade, chefes, saque, arena, Guia...) podem ser aplicadas sem reiniciar com `/heraldia reload`. Os operadores também podem mudar as mais úteis no jogo, sem o mod no cliente, com `/heraldia config` (um menu com o perfil e sete seções). Cada jogador pode escolher o idioma dos textos do Heraldia com `/heraldia language`.
 
 | Opção | Padrão | O que faz |
 | --- | --- | --- |
@@ -68,6 +70,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `chozas_mago.prob_malvado` | 20 | Probabilidade (%) de o mago de uma cabana de mago ser um mago maligno disfarçado. |
 | `guia.entregar_al_entrar` | `true` | Dá o Guia do Arauto a cada jogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores quando há uma versão nova. |
+| `actualizar.margen_bloques` | 50 | Margem de segurança em volta das construções dos jogadores para `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web, só as estruturas já descobertas. |
 | `tesoro.probabilidad` | 3.0 | Chance (%) de um fragmento de mapa do tesouro em cada baú das estruturas médias e das minas. |
 

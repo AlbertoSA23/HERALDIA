@@ -210,7 +210,7 @@ public final class AvisoVersion {
 			if (p == null) {
 				quien.sendSuccess(() -> Textos.t("heraldia.version.al_dia", actual, mc), false);
 			} else {
-				mensaje(p, actual, mc, Textos.idioma(quien.getPlayer() != null ? quien.getPlayer().clientInformation().language() : Textos.ES))
+				mensaje(p, actual, mc, (quien.getPlayer() != null ? Textos.idioma(quien.getPlayer()) : Textos.idioma(Textos.ES)))
 						.forEach(m -> quien.sendSystemMessage(m));
 				if (quien.getPlayer() != null) {
 					AVISADOS.marcar(quien.getPlayer().getUUID(), p.version().toString());
@@ -226,7 +226,7 @@ public final class AvisoVersion {
 				|| !AVISADOS.marcar(jugador.getUUID(), p.version().toString())) {
 			return;
 		}
-		mensaje(p, version(), SharedConstants.getCurrentVersion().name(), Textos.idioma(jugador.clientInformation().language()))
+		mensaje(p, version(), SharedConstants.getCurrentVersion().name(), Textos.idioma(jugador))
 				.forEach(jugador::sendSystemMessage);
 		LOGGER.info("Heraldia: aviso de la versión {} a {}", p.version(), jugador.getGameProfile().name());
 	}

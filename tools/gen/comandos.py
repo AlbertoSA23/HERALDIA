@@ -46,6 +46,13 @@ CANONICOS = [
     "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",
     "caravan clear",                             # T39: las caravanas (operadores)
     "wizard", "wizard reveal",                   # T43: las chozas de mago (operadores)
+    # T46: panel de configuración en diálogos, idioma de cada jugador y actualizaciones seguras
+    "config", "config menu", "config menu <menu>", "config profile", "config profile <profile>", "config save",
+    "config save <menu>", "config save <menu> <values>", "config set", "config set <option>", "config set <option> <value>",
+    "language", "language <language>",
+    "update analyze", "update apply", "update apply confirm", "update apply confirm <id>", "update apply confirm <id> backup",
+    "update apply confirm <id> nobackup", "update apply confirm <id> nobackup risk", "update undo", "update undo confirm",
+    "update undo confirm <id>", "update repair", "update repair dry-run",
 ]
 
 

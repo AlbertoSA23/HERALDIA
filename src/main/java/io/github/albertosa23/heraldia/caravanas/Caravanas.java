@@ -486,7 +486,7 @@ public final class Caravanas {
 			return;
 		}
 		for (ServerPlayer p : cerca(c.level, m, RADIO_JUGADORES)) {
-			p.sendSystemMessage(Textos.t(Textos.idioma(p.clientInformation().language()), clave, args).withStyle(color));
+			p.sendSystemMessage(Textos.t(Textos.idioma(p), clave, args).withStyle(color));
 		}
 	}
 
@@ -586,7 +586,7 @@ public final class Caravanas {
 		List<ServerPlayer> jugadores = cerca(c.level, m, RADIO_PREMIO);
 		for (ServerPlayer p : jugadores) {
 			Reglas.Recompensa r = Reglas.recompensa(c.tramo.vertices(), c.viaje.superada(), rnd.nextDouble());
-			Map<String, String> l = Textos.idioma(p.clientInformation().language());
+			Map<String, String> l = Textos.idioma(p);
 			p.getInventory().placeItemBackInInventory(new ItemStack(Items.EMERALD, r.esmeraldas()), Prediction.SERVER_ONLY);   // al suelo si no cabe
 			MutableComponent paga = Textos.t(l, "heraldia.caravanas.paga", r.esmeraldas());
 			if (r.conObjeto()) {
@@ -636,7 +636,7 @@ public final class Caravanas {
 
 	private static Map<String, String> idioma(CommandSourceStack src) {
 		ServerPlayer p = src.getPlayer();
-		return Textos.idioma(p == null ? "es_es" : p.clientInformation().language());
+		return p == null ? Textos.idioma("es_es") : Textos.idioma(p);
 	}
 
 	private static int spawn(CommandContext<CommandSourceStack> ctx, @Nullable Boolean asalto) {

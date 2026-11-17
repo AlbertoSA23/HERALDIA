@@ -289,6 +289,11 @@ _FIXED = [
      "para este Minecraft y lo dice en la consola y a los operadores al entrar (sin telemetría; se aplica al reiniciar)",
      "New version notice: at startup and every 24 h checks GitHub Releases for a newer Heraldia version for this "
      "Minecraft and says so in the console and to operators when they join (no telemetry; applies on restart)"),
+    ("actualizar.margen_bloques", 50, 16, 256,
+     "Margen de seguridad, en bloques, alrededor de cualquier construcción de jugador que detecta /heraldia update "
+     "analyze: ahí no se regenera ni se coloca nada",
+     "Safety margin, in blocks, around any player build that /heraldia update analyze detects: nothing is regenerated "
+     "or placed there"),
     ("update_check.prereleases", False, None, None,
      "Avisa también de las pre-publicaciones (alfa, beta, candidatas)",
      "Also announce pre-releases (alpha, beta, release candidates)"),
@@ -485,6 +490,7 @@ _NAMES = {
     "chozas_mago.prob_botin_premium": ("Botín premium del Mago Malvado (%)", "Evil Wizard premium loot (%)"),
     "update_check.activado": ("Aviso de versión nueva", "New version notice"),
     "update_check.prereleases": ("Avisar de pre-publicaciones", "Announce pre-releases"),
+    "actualizar.margen_bloques": ("Margen alrededor de construcciones (bloques)", "Margin around player builds (blocks)"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
                                                        "Distance of other mods' structures (blocks)"),
     "mapas_web.activado": ("Marcadores en los mapas web", "Web map markers"),
@@ -565,7 +571,7 @@ _SECTION_PREFIXES = [
     ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
     ("caravanas.", "caravanas"), ("chozas_mago.", "chozas_mago"),
-    ("update_check.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
+    ("update_check.", "actualizaciones"), ("actualizar.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
 ]
 
 
