@@ -317,21 +317,27 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		return window() >= STEP ? HALF : window() / 2;
 	}
 
-	/** Malla de STEP chunks en la ventana de la casilla; puntuación = vecinos (de 9, a HALF chunks) en el bioma. */
+	/**
+	 * Malla de STEP chunks en la ventana de la casilla; puntuación = vecinos (de 9, a HALF chunks) en el bioma. Los vecinos
+	 * de dos puntos de la malla se tocan (caen en la misma retícula de HALF chunks): cada punto de la retícula se mira una
+	 * sola vez por búsqueda ({@code visto}), con el mismo resultado que mirarlo cada vez.
+	 */
 	private long search(BiomeContext ctx, long seed, int x0, int z0) {
 		int win = window(), n = Math.max(1, win / STEP), first = first();
 		TagKey<Biome> tag = biome.orElseThrow();
+		int lado = 2 * n + 1;
+		byte[] visto = new byte[lado * lado];          // 0 sin mirar, 1 fuera, 2 dentro del bioma
 		long best = NONE, bestKey = Long.MIN_VALUE;
 		for (int a = 0; a < n; a++) {
 			for (int b = 0; b < n; b++) {
 				int cx = x0 + first + a * STEP, cz = z0 + first + b * STEP;
-				if (!in(ctx, tag, cx, cz, sampleY)) {
+				if (!in(ctx, tag, visto, lado, 2 * a + 1, 2 * b + 1, cx, cz, sampleY)) {
 					continue;
 				}
 				int score = 1;
 				for (int dx = -HALF; dx <= HALF; dx += HALF) {
 					for (int dz = -HALF; dz <= HALF; dz += HALF) {
-						if ((dx != 0 || dz != 0) && in(ctx, tag, cx + dx, cz + dz, sampleY)) {
+						if ((dx != 0 || dz != 0) && in(ctx, tag, visto, lado, 2 * a + 1 + dx / HALF, 2 * b + 1 + dz / HALF, cx + dx, cz + dz, sampleY)) {
 							score++;
 						}
 					}
@@ -347,6 +353,15 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			}
 		}
 		return best;
+	}
+
+	/** {@link #in(BiomeContext, TagKey, int, int, int)} con la memoria de la búsqueda (punto i, j de la retícula). */
+	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, byte[] visto, int lado, int i, int j, int chunkX, int chunkZ, int y) {
+		int k = i * lado + j;
+		if (visto[k] == 0) {
+			visto[k] = in(ctx, tag, chunkX, chunkZ, y) ? (byte) 2 : (byte) 1;
+		}
+		return visto[k] == 2;
 	}
 
 	/** El bioma en la esquina del chunk (donde el jigsaw comprueba el suyo), a la altura y (la del mar por defecto). */

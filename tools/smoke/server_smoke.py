@@ -44,7 +44,8 @@ TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"
                "arena": {"generar_en_mundos_nuevos": False},
                "inventada": 1}
 CONFIG_LOG = [
-    r"configuración migrada de la versión 0 a la 1",
+    r"configuración migrada de la versión 0 a la 2",
+    r"Heraldia: perfil estandar\r?\n",
     r"valor no válido aldeas\.separacion_bloques=50 .*se usa el valor por defecto 1500",
     r"opción desconocida inventada",
     r"rejilla aldeas: activada, cada 94 chunks \(separación mínima 62\), máximo 12 casillas, exclusión 10 chunks",
@@ -515,10 +516,15 @@ def main():
             failures.append(f"logros cargados {m.group(1)}, esperados {expected_advancements}")
         with open(os.path.join(args.work, "config", "heraldia.json"), encoding="utf-8") as f:
             written = json.load(f)
-        if (written.get("version"), written["aldeas"]["separacion_bloques"], written["aldeas"]["maximo"]) != (1, 1500, 12):
+        if (written.get("version"), written["aldeas"]["separacion_bloques"], written["aldeas"]["maximo"]) != (2, 1500, 12):
             failures.append(f"config/heraldia.json reescrito mal: {written.get('version')} {written['aldeas']}")
         if "inventada" in written or "es_es" not in written.get("_ayuda", {}):
             failures.append("config/heraldia.json sin ayuda o con la opción desconocida")
+        # perfiles (T36): el de por defecto, sin las opciones que da el perfil (no las fijó nadie a mano)
+        if written.get("perfil") != "estandar" or "nivel" in written.get("dificultad", {}) or \
+                written.get("_perfil", {}).get("efectivo") != "estandar":
+            failures.append(f"config/heraldia.json: perfil mal escrito: {written.get('perfil')} {written.get('dificultad')} "
+                            f"{written.get('_perfil', {}).get('efectivo')}")
         if written["unicas"]["atlantida"].get("cofre_unico_por_jugador") is not True or not all(
                 "unicas.atlantida.cofre_unico_por_jugador" in written["_ayuda"][lang] for lang in ("es_es", "en_us")):
             failures.append("config/heraldia.json: unicas.atlantida.cofre_unico_por_jugador sin conservar o sin ayuda")

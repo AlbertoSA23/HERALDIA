@@ -39,6 +39,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 
 | Option | Standard | Wirkung |
 | --- | --- | --- |
+| `perfil` | `estandar` | Spielprofil: `casual`, `estandar`, `hardcore` oder `personalizado`; Optionen in der Datei haben Vorrang. |
 | `aldeas.separacion_bloques` | 1500 | Durchschnittlicher Abstand zwischen Dörfern (1000-10000). |
 | `aldeas.maximo` | 100 | Höchstzahl an Dörfern in der Welt. |
 | `aldeas.caminos.activado` | `true` | Wege zwischen Dörfern. |

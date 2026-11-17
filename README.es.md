@@ -39,6 +39,7 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 
 | Opción | Por defecto | Qué hace |
 | --- | --- | --- |
+| `perfil` | `estandar` | Perfil de juego: `casual`, `estandar`, `hardcore` o `personalizado`; lo escrito en el fichero manda sobre él. |
 | `aldeas.separacion_bloques` | 1500 | Distancia media entre aldeas (1000-10000). |
 | `aldeas.maximo` | 100 | Número máximo de aldeas en el mundo. |
 | `aldeas.caminos.activado` | `true` | Caminos entre aldeas. |

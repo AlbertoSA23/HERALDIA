@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * <li>Refuerzos: en cada fase, los de su única ({@link Refuerzos}), con {@code heraldia_anclado} y
  * {@code heraldia_adulto} (las mismas protecciones que los mobs de plantilla: ni bebés, ni monturas, ni armas cambiadas,
  * ni recoger objetos), sin su tabla de botín ni su trofeo, sin persistencia (desaparecen como cualquier monstruo si
- * todos se van) y nunca más de {@link Fases#MAX_VIVOS} vivos cerca.</li>
+ * todos se van) y nunca más vivos cerca que el tope (jefes.refuerzos.maximo_vivos, 4 por defecto).</li>
  * </ul>
  */
 public final class Jefes {
@@ -146,17 +146,19 @@ public final class Jefes {
 		level.playSound(null, jefe.getX(), jefe.getY(), jefe.getZ(), SoundEvents.RAVAGER_ROAR, SoundSource.HOSTILE, 1.5f, ultima ? 0.7f : 0.9f);
 	}
 
-	/** Llama a los refuerzos de una fase, sin pasar de {@link Fases#MAX_VIVOS} vivos cerca. Devuelve cuántos. */
+	/** Llama a los refuerzos de una fase, sin pasar del tope de vivos cerca (jefes.refuerzos.maximo_vivos). Devuelve cuántos. */
 	private static int llamar(ServerLevel level, Mob jefe, @Nullable Entity atacante) {
 		Set<String> tags = jefe.entityTags();
 		List<Refuerzos.Refuerzo> lista = refuerzos.para(Fases.unica(tags), BuiltInRegistries.ENTITY_TYPE.getKey(jefe.getType()).toString());
 		AABB zona = jefe.getBoundingBox().inflate(Fases.RADIO);
 		int vivos = level.getEntitiesOfClass(Mob.class, zona, m -> m.isAlive() && m.entityTags().contains(Fases.REFUERZO)).size();
-		int n = Fases.cuantos(lista.size(), vivos);
+		HeraldiaConfig cfg = HeraldiaConfig.get();
+		int n = lista.isEmpty() ? 0 : Fases.cuantos(lista.size(), vivos, cfg.getInt("jefes.refuerzos.porcentaje"),
+				cfg.getInt("jefes.refuerzos.maximo_vivos"));
 		LivingEntity objetivo = atacante instanceof Player p && p.canBeSeenAsEnemy() ? p : null;
 		int hechos = 0;
 		for (int i = 0; i < n; i++) {
-			if (aparecer(level, jefe, lista.get(i), i, objetivo)) {
+			if (aparecer(level, jefe, lista.get(i % lista.size()), i, objetivo)) {   // con más del 100 %, la lista se repite
 				hechos++;
 			}
 		}

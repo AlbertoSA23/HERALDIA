@@ -39,6 +39,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 
 | Opció | Per defecte | Què fa |
 | --- | --- | --- |
+| `perfil` | `estandar` | Perfil de joc: `casual`, `estandar`, `hardcore` o `personalizado`; les opcions escrites al fitxer hi manen. |
 | `aldeas.separacion_bloques` | 1500 | Distància mitjana entre pobles (1000-10000). |
 | `aldeas.maximo` | 100 | Nombre màxim de pobles al món. |
 | `aldeas.caminos.activado` | `true` | Camins entre pobles. |

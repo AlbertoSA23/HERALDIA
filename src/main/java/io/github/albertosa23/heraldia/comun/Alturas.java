@@ -14,12 +14,18 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 public final class Alturas {
 	private static final int NO_SURFACE = Integer.MIN_VALUE;
 	public final int sea;
-	private final Structure.GenerationContext ctx;
+	private final CacheAlturas.Fuente fuente;
 	private final Long2LongOpenHashMap cache = new Long2LongOpenHashMap();
 
 	public Alturas(Structure.GenerationContext ctx) {
-		this.ctx = ctx;
-		this.sea = ctx.chunkGenerator().getSeaLevel();
+		this((x, z, type) -> ctx.chunkGenerator().getBaseHeight(x, z, type, ctx.heightAccessor(), ctx.randomState()),
+				ctx.chunkGenerator().getSeaLevel());
+	}
+
+	/** Sobre otra fuente de alturas (pruebas: la misma búsqueda sin la caché compartida, {@link CacheAlturas}). */
+	public Alturas(CacheAlturas.Fuente fuente, int sea) {
+		this.fuente = fuente;
+		this.sea = sea;
 	}
 
 	private long at(int x, int z) {
@@ -33,7 +39,7 @@ public final class Alturas {
 	}
 
 	private int height(int x, int z, Heightmap.Types type) {
-		return ctx.chunkGenerator().getBaseHeight(x, z, type, ctx.heightAccessor(), ctx.randomState());
+		return fuente.altura(x, z, type);
 	}
 
 	/** Primera altura libre sobre el fondo (sin contar el agua). Una sola evaluación del terreno por columna. */
