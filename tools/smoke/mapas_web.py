@@ -190,7 +190,7 @@ def main():
         mediana = next((e for e in reg if e["capa"] == "medianas"), None)
         if mediana:
             srv.run(f"player {PLAYER} spawn at {mediana['x']} {mediana['y']} {mediana['z']}", r"joined the game|already|Unknown|Incorrect")
-            srv.run(f"gamemode creative {PLAYER}", r"Set .* game mode|Unknown|No player")
+            s.send(srv.proc, f"gamemode creative {PLAYER}")     # sin asfixia ni caídas; no siempre contesta en la consola
             c = esperar_capas(port, lambda c: c.get("medianas", {}).get("markers"))
             marcas = c.get("medianas", {}).get("markers", [])
             check("al descubrir la mediana sale su marcador sin hacer nada más", len(marcas) == 1, marcas)
