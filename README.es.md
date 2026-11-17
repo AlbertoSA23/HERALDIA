@@ -18,6 +18,7 @@ Un mod de Fabric para **Minecraft 26.3** que llena el Overworld de sitios por lo
 ## Cómo se juega
 
 - 📖 **La Guía del Heraldo.** Cada jugador la recibe al entrar: un libro que explica qué buscar y lleva tu diario, con las estructuras únicas que has descubierto y pistas de las que te faltan. Pide una copia al día cuando quieras con `/heraldia guia`.
+- 📊 **Lo que ha encontrado el servidor.** `/heraldia status` dice cuántas aldeas, estructuras únicas, medianas y minas han descubierto los jugadores, los guardianes vencidos y el récord de la arena.
 - 🏆 **Logros.** Una pestaña Heraldia con 94 logros: una aldea de cada familia, cada estructura única con su guardián y su tesoro, las minas, las estructuras medianas, el tablón de encargos y la arena.
 - 🗿 **Trofeos.** Cada uno de los 20 guardianes suelta su trofeo, un objeto con nombre e historia. Reúnelos todos para completar la Sala de trofeos.
 - 🗺️ **Mapas del tesoro.** Cada mapa marca la estructura única más cercana de su tipo. Salen en los cofres épicos de las aldeas y los venden los cartógrafos.
@@ -35,7 +36,7 @@ Los textos del mod están en 8 idiomas: inglés, español, francés, alemán, it
 
 ## Opciones más útiles
 
-El fichero `config/heraldia.json` se crea en el primer arranque del servidor, con una ayuda para cada opción. Los cambios se aplican al reiniciar el servidor, en los chunks que se generen después.
+El fichero `config/heraldia.json` se crea en el primer arranque del servidor, con una ayuda para cada opción. Los cambios se aplican al reiniciar el servidor, en los chunks que se generen después. Las que no afectan a la generación (dificultad, jefes, botín, arena, Guía...) se pueden aplicar sin reiniciar con `/heraldia reload`.
 
 | Opción | Por defecto | Qué hace |
 | --- | --- | --- |
@@ -53,7 +54,7 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 ## Para saber más
 
 - [Referencia completa del contenido](docs/CONTENIDO.md): cada estilo de aldea, estructura única, estructura mediana y mina, los combates contra los guardianes, los logros, la arena y más.
-- [Instalación, comandos y configuración](docs/CONFIGURACION.md): comandos de prueba y de administración (`/heraldia info`, `/heraldia llave`...), todas las opciones y la pantalla de configuración del juego.
+- [Instalación, comandos y configuración](docs/CONFIGURACION.md): comandos de prueba y de administración (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia llave`...), todas las opciones y la pantalla de configuración del juego.
 - [Compatibilidad con otros mods](docs/COMPATIBILIDAD.md): mods de biomas, de estructuras, Lootr y los demás.
 - [Compilar y probar](docs/COMPILAR.md), [guía de desarrollo](docs/DESARROLLO.md) y [registro de cambios](CHANGELOG.md).
 

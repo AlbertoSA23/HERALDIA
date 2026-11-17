@@ -180,14 +180,14 @@ public final class InfoCommand {
 	// --- info cerca ---
 
 	/** generated: la estructura está en el chunk guardado o cargado; si no, está prevista (chunk sin generar). */
-	private record Found(Holder<Structure> structure, ChunkPos chunk, BlockPos pos, long distanceSq, boolean generated) {
+	record Found(Holder<Structure> structure, ChunkPos chunk, BlockPos pos, long distanceSq, boolean generated) {
 	}
 
-	private record Group(RandomSpreadStructurePlacement placement, List<Holder<Structure>> structures) {
+	record Group(RandomSpreadStructurePlacement placement, List<Holder<Structure>> structures) {
 	}
 
 	/** Qué dice el chunk guardado: null = no existe en disco; si existe, las estructuras cuyo inicio guarda. */
-	private record Stored(List<Identifier> starts) {
+	record Stored(List<Identifier> starts) {
 	}
 
 	private static int near(CommandContext<CommandSourceStack> ctx, int radius) {
@@ -231,7 +231,7 @@ public final class InfoCommand {
 	}
 
 	/** Estructuras del mod agrupadas por colocación: una por tipo de única; las aldeas comparten la suya. */
-	private static List<Group> groups(ServerLevel level) {
+	static List<Group> groups(ServerLevel level) {
 		ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
 		Map<RandomSpreadStructurePlacement, List<Holder<Structure>>> byPlacement = new LinkedHashMap<>();
 		level.registryAccess().lookupOrThrow(Registries.STRUCTURE).listElements().forEach(h -> {
@@ -310,7 +310,7 @@ public final class InfoCommand {
 	}
 
 	/** Inicios de estructura del chunk guardado (solo esos campos, como StructureCheck), o null si no está en disco. */
-	private static Stored stored(ChunkScanAccess scanner, ChunkPos pos) {
+	static Stored stored(ChunkScanAccess scanner, ChunkPos pos) {
 		CollectFields fields = new CollectFields(new FieldSelector(IntTag.TYPE, "DataVersion"),
 				new FieldSelector("structures", CompoundTag.TYPE, "starts"));
 		try {
@@ -331,7 +331,7 @@ public final class InfoCommand {
 		return new Stored(starts);
 	}
 
-	private static Holder<Structure> firstViable(Group g, ChunkPos c, long seed, ServerLevel level, RegistryAccess access,
+	static Holder<Structure> firstViable(Group g, ChunkPos c, long seed, ServerLevel level, RegistryAccess access,
 												 ChunkGenerator generator, RandomState randomState, Climate.Sampler sampler,
 												 UniqueSeparation sep, UniqueSeparation.Viability viability) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
@@ -395,7 +395,7 @@ public final class InfoCommand {
 		return DIRECTIONS[i];
 	}
 
-	private static Component coordinates(BlockPos pos) {
+	static Component coordinates(BlockPos pos) {
 		return ComponentUtils.wrapInSquareBrackets(Component.translatable("chat.coordinates", pos.getX(), "~", pos.getZ()))
 				.withStyle(s -> s.withColor(ChatFormatting.GREEN)
 						.withClickEvent(new ClickEvent.SuggestCommand("/tp @s " + pos.getX() + " ~ " + pos.getZ()))
@@ -502,7 +502,7 @@ public final class InfoCommand {
 	}
 
 	/** Nombre traducido: el de la única (heraldia.unicas.&lt;id&gt;.nombre) o «Aldea Heraldia de &lt;familia&gt;». */
-	private static MutableComponent name(Holder<Structure> h) {
+	static MutableComponent name(Holder<Structure> h) {
 		Identifier id = h.unwrapKey().map(k -> k.identifier()).orElse(null);
 		if (id == null) {
 			return Component.literal("?");
@@ -531,19 +531,19 @@ public final class InfoCommand {
 		return !cfg.has(key) || cfg.getBool(key);
 	}
 
-	private static MutableComponent uniqueName(String sid) {
+	static MutableComponent uniqueName(String sid) {
 		return Textos.t("heraldia.unicas." + sid + ".nombre");
 	}
 
-	private static MutableComponent mediumName(String tid) {
+	static MutableComponent mediumName(String tid) {
 		return Textos.t("heraldia.medianas." + tid + ".nombre");
 	}
 
-	private static Component onOff(boolean b) {
+	static Component onOff(boolean b) {
 		return Textos.t(b ? "heraldia.info.activada" : "heraldia.info.desactivada");
 	}
 
-	private static Component yesNo(boolean b) {
+	static Component yesNo(boolean b) {
 		return Textos.t(b ? "heraldia.info.si" : "heraldia.info.no");
 	}
 }
