@@ -28,11 +28,13 @@ def reg():
 
 LOTE_1 = ["campamento", "ermita", "posada", "torre_vigia"]
 LOTE_2 = ["cazadores", "molino", "pescador", "templete"]
+NETHER = ["altar_magma", "atalaya_basalto", "puesto_piglin", "santuario_hongos"]      # T44 (test_nether_end.py)
+END = ["embarcadero_shulker", "mausoleo_purpura", "observatorio_vacio"]
 CHOZAS = ["choza_mago"]                 # T43: las chozas de mago
 
 
 def test_lotes_y_descubrimiento():
-    assert IDS == sorted(IDS) == sorted(LOTE_1 + LOTE_2 + CHOZAS)
+    assert IDS == sorted(IDS) == sorted(LOTE_1 + LOTE_2 + CHOZAS + NETHER + END)
     assert not any(m.startswith("_") for m in IDS)
 
 
@@ -84,8 +86,11 @@ def test_entidades_marcadas_persistentes_y_ancladas(reg):
                 mobs += 1
                 assert core.ANCLADO_TAG in tags, name
     # campamento: 2 en cada una de sus 6 plantillas; torre alta (2 estilos): el arquero; pescador a (3 estilos): el gato;
-    # cazadores a (2 estilos): el lobo; templete a (2 estilos): dos custodios; choza de mago a (6 estilos): el gato
-    assert mobs == 2 * 6 + 1 * 2 + 1 * 3 + 1 * 2 + 2 * 2 + 1 * 6
+    # cazadores a (2 estilos): el lobo; templete a (2 estilos): dos custodios
+    # T44: puesto de piglins (2 renegados en a y 1 en b, 2 estilos), altar roto (2 cubos de magma, 2 estilos), atalaya
+    # entera (el vigía, 2 estilos) y embarcadero a (el shulker, 2 estilos)
+    # choza de mago a (6 estilos): el gato
+    assert mobs == 2 * 6 + 1 * 2 + 1 * 3 + 1 * 2 + 2 * 2 + 3 * 2 + 2 * 2 + 1 * 2 + 1 * 2 + 1 * 6
 
 
 def test_bandidos_sin_patrulla(reg):
@@ -186,8 +191,9 @@ def test_escritura(tmp_path):
         st = files[f"data/heraldia/worldgen/structure_set/medianas/{mid}.json"]
         pl = st["placement"]
         assert pl["type"] == "heraldia:rejilla" and pl["grupo"] == f"medianas/{mid}" and pl["salt"] == medianas.salt(mid)
-        assert pl["exclusion_zone"]["other_set"] == "minecraft:villages"
-        assert pl["bioma"] == f"heraldia:medianas/{mid}" and pl["bioma_y"] == medianas.BIOMA_Y
+        if medianas.dimension(m) == "overworld":        # las del Nether y el End: test_nether_end.py
+            assert pl["exclusion_zone"]["other_set"] == "minecraft:villages"
+            assert pl["bioma"] == f"heraldia:medianas/{mid}" and pl["bioma_y"] == medianas.BIOMA_Y
         union = json.loads((tmp_path / f"data/heraldia/tags/worldgen/biome/medianas/{mid}.json").read_text())["values"]
         assert {v for v in union if isinstance(v, str)} == {f"minecraft:{b}" for d in m.ESTILOS.values() for b in d["biomas"]}
         assert 0 < pl["separation"] < pl["spacing"] == round(m.SEPARACION / 16)
@@ -238,7 +244,7 @@ def test_logros(reg):
     advs, lang = logros.build(reg, [], MODS)
     assert set(advs["raiz"]["criteria"]) == {"aldea", "unica", "mediana"}
     todas = advs["medianas/todas"]
-    assert todas["parent"] == "heraldia:medianas/descubrir" and todas["requirements"] == [[m] for m in IDS]
+    assert todas["parent"] == "heraldia:medianas/descubrir" and todas["requirements"] == [[m] for m in sorted(LOTE_1 + LOTE_2 + CHOZAS)]
     assert todas["criteria"]["posada"]["conditions"]["player"]["predicate"]["minecraft:location"]["structures"] == "#heraldia:medianas/posada"
     assert set(lang["es_es"]) == set(lang["en_us"])
 
@@ -379,7 +385,8 @@ def test_logros_propios_del_lote_2(reg):
                 assert crit["conditions"]["loot_tables"] == f"heraldia:medianas/{mid}/{ex['tabla']}"
     assert {p for p in advs if p.startswith("medianas/") and p.count("/") == 2} == {
         "medianas/molino/molienda", "medianas/pescador/pesca", "medianas/cazadores/pieles", "medianas/templete/custodios",
-        "medianas/choza_mago/tratos", "medianas/choza_mago/malvado"}
+        "medianas/choza_mago/tratos", "medianas/choza_mago/malvado",
+        "medianas/puesto_piglin/renegados", "medianas/santuario_hongos/ofrendas"}      # los dos últimos, del Nether (T44)
     custodios = advs["medianas/templete/custodios"]["criteria"]
     assert set(custodios) == {"skeleton", "husk"}
     assert custodios["husk"]["conditions"]["entity"]["predicate"]["minecraft:entity_tags"] == {"all_of": ["heraldia_mediana.templete"]}

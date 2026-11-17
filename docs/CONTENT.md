@@ -11,6 +11,7 @@ Back to the [README](../README.md).
 - **Caravans**: merchants with llamas travelling the roads between villages; defend them from bandits (see [Caravans](#caravans)).
 - **Wizard's huts**: a wizard with trades in a richly decorated hut; one in five is an evil wizard in disguise (see [Wizard's huts](#wizards-huts)).
 - **Wave arena**: a coliseum near spawn to play in waves, with records and rewards (see [Wave arena](#wave-arena)).
+- **Nether and End**: 7 medium structures and 2 unique structures beyond the portals (see [Nether and End](#nether-and-end)).
 - **Unique structures** (one every 3,000-5,000 blocks, each in its own biomes):
   - **Eastern palace** (`heraldia:unicas/palacio`, cherry groves and bamboo jungles): walled compound of 81 × 123 with three courtyards on one axis, a throne room on a three-step platform, a library with a secret study, a treasury with a vault, a garden with a pond, a five-storey pagoda and the concubines' pavilions; beneath the throne, the treasure chamber with its guardian. Secret piston doors, arrow traps and two spawners. Design and plans: [docs/unicas/palacio.md](unicas/palacio.md).
   - **Ice fortress** (`heraldia:unicas/fortaleza_hielo`): ice spikes, snowy plains and snowy taiga. Ice walls and
@@ -201,6 +202,53 @@ Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more comm
 - Frequency, measured with `MedianasFrecuenciaTest` (the placement grids on the real 26.3 Overworld biome noise, with villages, unique structures and vanilla structures around them, 3 seeds, 16,000 × 16,000 blocks): see the [changelog](../CHANGELOG.md) and the pull request for the figures per type. Each grid looks for its candidate inside the type's biomes (the spot of the cell most inside them), so a type appears wherever its biomes are, at most once per cell.
 - Configuration: `medianas.*` options (see [Configuration](CONFIGURATION.md#configuration)). Advancements: **By the Wayside**, **Wayfarer** and one of its own for each type of batch 2 (see [Advancements](#advancements)). **In an existing world they only appear in new chunks.**
 
+## Nether and End
+
+Heraldia also builds in the other two dimensions (T44). Everything below appears **only in new chunks** of the Nether
+and the End, never touches the End's central island or the dragon fight, and follows the same rules as in the Overworld
+(minimum distance between medium structures and between unique structures, giving way to vanilla structures such as
+bastions, fortresses and End cities, and to other mods' structures), counting only the ones of the same dimension.
+
+- **Height.** They use their own structure type, `heraldia:dimension`: in the Nether the surface heightmap is the
+  bedrock roof, so the start height is taken from the noise column (from y = 112 down to y = 34, above the lava sea),
+  the first solid floor with air for the whole template above it, with the four corners of the footprint within ±5
+  blocks (up to 4 stacked cave floors and 5 points of the candidate chunk are tried). In the End the four corners and
+  the centre must stand on an island (height ≥ 45, never over the void) and the site must be more than 1,024 blocks
+  from the centre of the End. `/place structure` places them anywhere (at y = 64 if there is no floor).
+- **Placement grids**: random candidate in each cell (the biome search of the Overworld grids only reads Overworld
+  noise) and no exclusion zone for vanilla villages. Options as usual: `medianas.<type>.*` and `unicas.<id>.*`.
+- **Medium structures of the Nether**: **Renegade Piglin Outpost** (`heraldia:medianas/puesto_piglin/<style>`; nether
+  wastes, crimson forest): a blackstone palisade with a hut and two renegade piglin brutes, or the empty hoglin pen
+  with a soul campfire; **Magma Altar** (`altar_magma`; basalt deltas, nether wastes): a ring of pillars and a
+  three-step altar with lava cauldrons, with a magma cube spawner or broken with two magma cubes; **Basalt
+  Watchtower** (`atalaya_basalto`; basalt deltas, soul sand valley): a four-storey tower with a skeleton lookout, or a
+  tower with a broken bridge; **Fungus Shrine** (`santuario_hongos`; crimson and warped forests): a closed wart-block
+  shrine or a fungus garden.
+- **Medium structures of the End** (outer islands: end highlands, midlands and barrens): **Void Observatory**
+  (`observatorio_vacio`): a telescope tower or an armillary ring of purpur pillars; **Purpur Mausoleum**
+  (`mausoleo_purpura`): a crypt with a sarcophagus and an endermite spawner, or an open mausoleum with two tombs;
+  **Fallen Shulker Wharf** (`embarcadero_shulker`): a purpur wharf with a mooring hut and a shulker guard, or with the
+  broken hull of an End boat and its cargo.
+- **Ashen Citadel** (`heraldia:unicas/ciudadela_ceniza`; basalt deltas and soul sand valley): a 35 × 35 blackstone
+  fortress with four corner towers (armoury, blaze cage with its spawner, pantry and a tower with no visible door:
+  the hidden room, behind a piston door opened by a lever), a courtyard with a forge, and the keep: a corridor with a
+  pressure-plate arrow trap, the hall of the guardian **Marshal of Ash** (wither skeleton with phases), the treasure
+  chamber behind an iron door with buttons and the upper floor with the library.
+- **Sanctum of the Void** (`heraldia:unicas/sagrario_vacio`; end highlands and midlands): a 33 × 33 platform with a
+  ring of purpur pillars crowned with end rods, three chapels and a hidden crypt behind a piston door, and the temple
+  with the same trap, the nave of the guardian **Hierophant of the Void** (evoker with phases), the treasure chamber
+  and the choir with the library.
+- **Loot** that does not break progression: no netherite gear, ingots or ancient debris, no elytra and nothing from
+  the dragon (`dimensiones.PROHIBIDO`); at most one netherite scrap in the Ashen Citadel's premium chest (as in a
+  bastion chest) and at most one shulker shell. The medium structures follow their usual modest-loot list.
+- **No treasure maps** to them (an exploration map only searches the dimension where it is created): cartographers,
+  epic chests and the Chronicle leaf only map Overworld unique structures; the Chronicle still points to them with its
+  clue. `/heraldia review` takes you to their dimension; web maps still show only the Overworld.
+- Advancements: their unique structures have the usual three (discover, guardian, treasure); **Nether Wayfarer** and
+  **Void Wayfarer** ask for one medium structure of each type of that dimension (**Wayfarer** keeps the Overworld
+  ones), plus **Cast Out of the Bastion** and **Spore Offering**.
+- Find them with `/execute in minecraft:the_nether run locate structure #heraldia:medianas/<type>` (or
+  `minecraft:the_end`) and `/execute in ... run heraldia info nearby`.
 ## Wizard's huts
 
 One more kind of [medium structure](#medium-structures) (`heraldia:medianas/choza_mago/<style>`, T43), with the same placement rules, options (`medianas.choza_mago.activada`, `medianas.choza_mago.separacion_bloques`: 1024) and lookup (`/locate structure #heraldia:medianas/choza_mago`). About one every ~2,000 blocks (`MedianasFrecuenciaTest`).
@@ -307,6 +355,8 @@ Every named guardian of a unique structure (and Atlantis' Warden of Poseidon) dr
 | Pyramid Temple | Breastplate of the Jaguar King | `golden_chestplate` | protection 1 |
 | Jarl's Hall | Ulfgrim's Shieldbreaker | `iron_axe` | sharpness 2, unbreaking 2 |
 | Druid Sanctuary | Cadoc's Golden Sickle | `golden_hoe` | efficiency 2, unbreaking 2 |
+| Ashen Citadel | The Marshal's Ember Blade | `golden_sword` | fire aspect 1, sharpness 2 |
+| Sanctum of the Void | The Hierophant's Eye | `ender_eye` | — |
 | Wizard Tower | Staff of Archmage Malvarius | `blaze_rod` | — |
 
 All of them carry `custom_data` `{heraldia_trofeo:"<id>"}`. To test: `/loot give @s loot heraldia:trofeos/<id>`. The **Hall of Trophies** challenge (see [Advancements](#advancements)) asks for all of them.
@@ -353,7 +403,7 @@ Cost: it only works when a player without this version's guide joins or when it 
 
 ## Advancements
 
-A **Heraldia** advancement tab (112 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
+A **Heraldia** advancement tab (122 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
 
 - **Heraldia** (root): enter any Heraldia village, unique structure, medium structure or mine entrance.
 - [Mine entrances](#mine-entrances), a chain: **Under the Hillside** (enter a mine adit, 20), **Mining Camp** (a mining camp, 40) and **Lord of the Galleries** (a mining complex, 80).

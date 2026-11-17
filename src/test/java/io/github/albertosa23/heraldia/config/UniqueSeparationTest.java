@@ -75,6 +75,11 @@ class UniqueSeparationTest {
 				JsonObject set = JsonParser.parseString(Files.readString(f)).getAsJsonObject();
 				JsonObject placement = set.getAsJsonObject("placement");
 				String type = placement.get("type").getAsString();
+				Path estructura = dir.getParent().getParent().resolve("structure").resolve("unicas").resolve(f.getFileName());
+				if (Files.isRegularFile(estructura) && JsonParser.parseString(Files.readString(estructura)).getAsJsonObject()
+						.get("type").getAsString().equals("heraldia:dimension")) {
+					continue; // del Nether o el End: no compiten con las del mundo principal (Dimensiones.posible)
+				}
 				ids.add(Identifier.parse(set.getAsJsonArray("structures").get(0).getAsJsonObject().get("structure").getAsString()));
 				if (type.equals("heraldia:rejilla")) {
 					grids.add(GridPlacement.CODEC.codec().parse(JsonOps.INSTANCE, placement).getOrThrow());

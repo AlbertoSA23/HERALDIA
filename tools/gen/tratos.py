@@ -243,7 +243,8 @@ def tratos_familia(fam, modules):
 def todos(modules):
     """[(id, oficio, nivel, trato)] de Heraldia: mapas de los maestros cartógrafos, de cada familia y de cada estilo."""
     import mapas
-    out = [(f"{NS}:cartografo/{sid}", "cartographer", 5, mapas.trade(sid, mod)) for sid, mod in modules]
+    import dimensiones
+    out = [(f"{NS}:cartografo/{sid}", "cartographer", 5, mapas.trade(sid, mod)) for sid, mod in dimensiones.del_mundo_principal(modules)]
     for fam in FAMILIES:
         out += tratos_familia(fam, modules)
     for th in THEMES:
