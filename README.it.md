@@ -20,7 +20,8 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 - 📖 **La Guida dell'Araldo.** Ogni giocatore la riceve entrando: un libro che spiega cosa cercare e tiene il tuo diario, con le strutture uniche che hai scoperto e indizi su quelle che ti mancano. Chiedine una copia aggiornata quando vuoi con `/heraldia guide`.
 - 📊 **Cosa ha trovato il server.** `/heraldia status` dice quanti villaggi, strutture uniche, strutture medie e miniere hanno scoperto i giocatori, i guardiani sconfitti, il record dell'arena e gli incarichi consegnati.
 - 📋 **Incarichi dei villaggi.** Tocca il leggio della bacheca nella piazza di un villaggio (o usa lì `/heraldia quest`): in chat compaiono da 2 a 4 incarichi (portare oggetti, sconfiggere un guardiano, esplorare, viaggiare al villaggio vicino, l'arena) che cambiano ogni pochi giorni. Pagano smeraldi, esperienza e reputazione con quel villaggio: da conosciuto, amico ed eroe del villaggio, i suoi abitanti abbassano i prezzi del 10, 20 e 30 %. Attaccare i suoi abitanti o golem la fa scendere.
-- 🏆 **Progressi.** Una scheda Heraldia con 98 progressi: un villaggio di ogni famiglia, ogni struttura unica con il suo guardiano e il suo tesoro, le miniere, le strutture medie, la bacheca degli incarichi e l'arena.
+- 🐪 **Carovane.** Di tanto in tanto, vicino a te, un mercante di Heraldia con i suoi lama (e a volte una guardia) percorre la strada tra due villaggi vicini. Se i banditi lo assaltano, difendilo: all'arrivo ti paga smeraldi e reputazione con il suo villaggio di destinazione. Se il mercante muore, la carovana è perduta.
+- 🏆 **Progressi.** Una scheda Heraldia con 99 progressi: un villaggio di ogni famiglia, ogni struttura unica con il suo guardiano e il suo tesoro, le miniere, le strutture medie, la bacheca degli incarichi, l'arena e le carovane.
 - 🗿 **Trofei.** Ognuno dei 20 guardiani lascia il suo trofeo, un oggetto con un nome e una storia. Raccoglili tutti per completare la Sala dei trofei.
 - 🗺️ **Mappe del tesoro.** Ogni mappa indica la struttura unica più vicina del suo tipo. Si trovano nei forzieri epici dei villaggi e le vendono i cartografi.
 - 📜 **La Cronaca degli Araldi.** Ogni struttura unica custodisce un foglio della cronaca scritta da Ysolda, l'ultima degli araldi di Atlantide. Ogni foglio indica il successivo: raccoglili tutti e 20 e saprai come finisce.
@@ -59,6 +60,7 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `arena.activado` | `true` | L'arena a ondate vicino allo spawn. |
 | `encargos.activado` | `true` | Incarichi della bacheca (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputazione per villaggio e i suoi sconti. |
+| `caravanas.activado` | `true` | Carovane lungo le strade (operatori: `/heraldia caravan`). |
 | `guia.entregar_al_entrar` | `true` | Dà la Guida dell'Araldo a ogni giocatore quando entra. |
 | `update_check.activado` | `true` | Avvisa gli operatori quando c'è una nuova versione. |
 | `mapas_web.solo_descubiertas` | `true` | Sulla mappa web solo le strutture già scoperte. |

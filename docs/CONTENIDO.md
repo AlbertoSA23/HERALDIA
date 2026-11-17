@@ -8,6 +8,7 @@ Volver al [README](../README.es.md).
 
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
 - **La Atlántida**: una única ciudad sumergida por mundo (ver abajo).
+- **Caravanas**: mercaderes con llamas que recorren los caminos entre aldeas; defiéndelos de los bandidos (ver [Caravanas](#caravanas)).
 - **Arena de oleadas**: un coliseo cerca del spawn para jugar por oleadas, con récords y recompensas (ver [Arena de oleadas](#arena-de-oleadas)).
 - **Estructuras únicas** (una cada 3.000-5.000 bloques, cada una en sus biomas):
   - **Palacio oriental** (`heraldia:unicas/palacio`, cerezales y junglas de bambú): recinto amurallado de 81 × 123 con tres patios en eje, salón del trono sobre plataforma de tres gradas, biblioteca con estudio secreto, tesorería con cámara acorazada, jardín con estanque, pagoda de cinco pisos y pabellones de las concubinas; bajo el trono, la cámara del tesoro con su guardián. Puertas secretas de pistones, trampas de flechas y dos generadores. Diseño y planos en [docs/unicas/palacio.md](unicas/palacio.md).
@@ -152,6 +153,19 @@ Las aldeas Heraldia cercanas quedan unidas por senderos (`aldeas.caminos.*` en l
 
 Todo sale de la semilla y de la rejilla de las aldeas, chunk a chunk, sin cargar ni esperar a ningún otro chunk: los dos lados de una frontera de chunk casan siempre. **En un mundo ya creado, solo en los chunks nuevos**: lo ya generado no cambia y los tramos que caerían en lo explorado no existen (el camino empieza en el borde). Coste, medido en el servidor de prueba (`tools/smoke/caminos.py`, unos 1.000 chunks): la mitad de los chunks pagan menos de 32 µs y el 90 %, menos de 128 µs; lo único caro se calcula una vez por arranque del servidor y queda en memoria: saber si una casilla de la rejilla tiene aldea (unos 1,5 ms; como mucho 100 casillas con aldea), el punto de paso de cada ruta (unos 30 ms) y el fondo en los vértices que caen en el agua (unos 0,4 ms cada uno). El mod escribe estas cifras en el log al parar el servidor.
 
+## Caravanas
+
+Por los [caminos](#caminos-entre-aldeas) viajan a veces caravanas (`caravanas.*` en la [configuración](CONFIGURACION.md#configuración); también en un mundo ya existente, pero solo por los caminos que existen de verdad):
+
+- **Cuándo**: cada minuto, si hay jugadores en el mundo principal y ninguna caravana en camino (`caravanas.max_activas`, 1 por defecto), se sortea una con probabilidad `caravanas.frecuencia` (10 %) junto a uno de ellos, al menos 2 minutos después de la anterior. Sale de un punto del camino a entre 24 y 80 bloques del jugador, en un chunk ya cargado (nunca carga ni genera chunks) y solo si en el mundo hay camino de verdad ahí: en los chunks generados antes que los caminos la ruta existe pero el camino no, y la caravana no sale (o acaba donde acaba el camino). Los operadores la sacan cuando quieran con `/heraldia caravan spawn`.
+- **Quién**: un **Mercader de Heraldia** (un vendedor ambulante con sus tratos, 40 de vida) con 1 a 3 llamas de carga y, una de cada cuatro, un gólem de hierro de guardia. Recorre unos 128 bloques del camino (8 vértices de la ruta canónica entre dos aldeas vecinas, lejos de las plazas) hacia la aldea de destino, pasando por delante del jugador; las llamas y el guardia lo siguen.
+- **Asalto** (`caravanas.prob_asalto`, 35 %; 15 % con el perfil casual y 60 % con hardcore): a media ruta salen a los dos lados del camino de 2 a 4 **bandidos** (uno más que jugadores cerca), los del [campamento de bandidos](#estructuras-medianas): saqueadores y, con 3 o más, su jefe vindicador, con las reglas de los mobs anclados y la [dificultad](#botín-que-se-repone-y-dificultad) de Heraldia. La caravana se para (el mercader huye de ellos) hasta que no queda ninguno.
+- **Premio**: al llegar, cada jugador a 48 bloques del mercader cobra 2 esmeraldas más una por cada 4 vértices (4 con el tramo entero) y +5 de [reputación](#vida-de-las-aldeas) con la aldea de destino; si la defendió de un asalto, 4 esmeraldas más, un objeto modesto (etiqueta, catalejo, riendas, zanahorias doradas, miel, mapa, saco o montura), +15 de reputación y el logro **Camino seguro**.
+- **Pérdida**: si el mercader muere (a manos de quien sea), la caravana se pierde: sin premio, y ni él, ni las llamas, ni el guardia sueltan nada.
+- **Despedida**: si no queda ningún jugador a 64 bloques durante 30 s, si sus chunks se descargan, si el camino se acaba, si se atasca o si pasan 10 minutos (3 de asalto), se despide y se quitan todas sus entidades (también los bandidos).
+
+Rendimiento: sin trabajo por tick salvo la caravana en camino (un paso por segundo con unas pocas entidades) y el sorteo de cada minuto; la ruta se busca fuera del hilo del servidor con el trazado de los caminos, que ya está en memoria. Nada se guarda: al parar el servidor se quitan sus entidades y, al arrancar, cualquier entidad de caravana que se cargue (de un chunk descargado a mitad de viaje) se quita, así que nunca quedan huérfanas ni duplicadas.
+
 ## La Atlántida
 
 Una sola por mundo, siempre, sin opción de configuración. Es una ciudad amurallada de unos 770 × 770 bloques, totalmente sumergida, en la cuenca de océano profundo más cercana al origen que esté a 1.500 bloques o más y sin explorar (en un mundo ya existente solo aparece en chunks nuevos). La posición se calcula la primera vez que se carga el mundo y se guarda en `data/heraldia/atlantida.json`.
@@ -288,7 +302,7 @@ Las páginas se leen en el idioma de cada jugador (español si el cliente no tie
 
 Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jugadores y lleva su diario. Cada jugador la recibe **una vez** al entrar por primera vez después de instalar o actualizar Heraldia (también los jugadores que ya existían en el mundo; se guarda en el propio jugador qué versión recibió, y se conserva al morir). Se desactiva con `guia.entregar_al_entrar` (ver [Configuración](CONFIGURACION.md#configuración)) y cualquier jugador pide una copia al día con `/heraldia guide`.
 
-- **Qué cuenta** (17 páginas): una bienvenida; las aldeas y su vida (tratos, tablón de encargos, cartógrafos); los encargos y la reputación; los caminos; las estructuras medianas; las minas; las únicas; la Atlántida; la isla del corsario; la arena de oleadas; cómo funcionan los logros, los trofeos, los combates de jefe (fases, refuerzos y barra de jefe), los mapas del tesoro y la Crónica de los Heraldos.
+- **Qué cuenta** (18 páginas): una bienvenida; las aldeas y su vida (tratos, tablón de encargos, cartógrafos); los encargos y la reputación; los caminos; las caravanas; las estructuras medianas; las minas; las únicas; la Atlántida; la isla del corsario; la arena de oleadas; cómo funcionan los logros, los trofeos, los combates de jefe (fases, refuerzos y barra de jefe), los mapas del tesoro y la Crónica de los Heraldos.
 - **Tu diario**: cuántas estructuras únicas de este mundo has descubierto (las de los logros «descubrir», `heraldia:unicas/<id>/descubrir`) y cuántas te faltan, la lista de las descubiertas por orden alfabético y, de cada una que falta, una pista suave de bioma y rasgo (la misma de su pliego de la Crónica), **sin coordenadas** ni el nombre. Cuentan las únicas activadas en la configuración y las que ya has descubierto aunque se desactivaran después. El diario es una foto del momento en que se entrega: pide otra copia para ponerlo al día.
 - **Idioma**: las páginas son textos traducibles con el respaldo en el idioma del cliente (cualquiera de los 8 del mod, elegido por su lengua: `fr_ca` recibe el francés, `pt_pt` el portugués de Brasil, `es_mx` el español; el resto, el inglés), así que un jugador **sin el mod** la lee en su idioma.
 - Límites del libro vanilla: el generador comprueba que cada página cabe en las 14 líneas de una página (con el mismo cálculo de anchos que los pliegos), que el título no pasa de 32 caracteres y que el libro, en el peor caso, no pasa de 100 páginas (con las 20 únicas actuales, de 21 a 27). Lleva `custom_data` `{heraldia_guia_libro:"<versión>"}` y, en el lore, la edición del mod.
@@ -297,7 +311,7 @@ Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión 
 
 ## Logros
 
-Pestaña de logros **Heraldia** (98 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
+Pestaña de logros **Heraldia** (99 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia, estructura única, mediana o entrada a mina.
 - [Entradas a mina](#entradas-a-mina), en cadena: **Bajo la ladera** (entrar en una boca de mina, 20), **Campamento minero** (en un campamento minero, 40) y **Señor de las galerías** (en un complejo minero, 80).
@@ -307,6 +321,7 @@ Pestaña de logros **Heraldia** (98 logros), con textos en los 8 idiomas del mod
 - La Atlántida, además: sus tres sellos (abrir el cofre del sello o tener su llave, 30 cada uno); el guardián es el Guardián de Poseidón y el tesoro cuenta al coger uno de los objetos con nombre del cofre único.
 - Encargos del [tablón](#vida-de-las-aldeas): **Ronda nocturna** (matar una amenaza dentro de una aldea Heraldia: 3 esmeraldas y 30 de experiencia) y **Defensor de la aldea** (ser héroe de una aldea Heraldia tras un asedio: 8 esmeraldas, el Cuerno del defensor y 100 de experiencia).
 - [Encargos](#vida-de-las-aldeas), los concede el mod: **Manos a la obra** (entregar un encargo, 20), **Recadero de confianza** (diez encargos, 60), **Amigo de la aldea** (ser amigo de una aldea, 60) y el desafío **Héroe de la aldea** (ser el héroe de una aldea, 150).
+- [Caravanas](#caravanas), lo concede el mod: **Camino seguro** (defender una caravana de los bandidos hasta que llegue a su aldea, 50).
 - Desafío final **Cartógrafo de leyendas**: descubrir todas las estructuras únicas (500).
 - Desafío **Sala de trofeos**: conseguir el [trofeo](#trofeos-de-los-guardianes) de cada guardián de las estructuras únicas (500); cuenta al tenerlo en el inventario.
 - Desafío **Cronista**: reunir los pliegos de la [Crónica de los Heraldos](#crónica-de-los-heraldos), uno por estructura única (500); cuenta al tenerlo en el inventario.

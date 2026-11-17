@@ -71,6 +71,8 @@ MINAS = ["tools/smoke/entradas_mina.py"]
 PERFILES = ["tools/smoke/perfiles.py"]
 # Encargos del tablón y reputación por aldea (T38): su Java, el mixin de los precios y sus textos y logros.
 ENCARGOS = ["tools/smoke/encargos.py"]
+# Caravanas por los caminos (T39): su Java y sus textos y logro.
+CARAVANAS = ["tools/smoke/caravanas.py"]
 # Los tipos de medianas traen mobs anclados (y zombis adultos): las pruebas que recorren todos los mobs de las plantillas.
 MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
 
@@ -96,6 +98,8 @@ MAPA = [
     (JAVA + "comun/CacheAlturas.java", MINAS), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINAS),
     # encargos del tablón y reputación (T38)
     (JAVA + "encargos/*", ENCARGOS), (JAVA + "mixin/VillagerPreciosMixin.java", ENCARGOS), ("tools/gen/encargos.py", ENCARGOS),
+    # caravanas por los caminos (T39)
+    (JAVA + "caravanas/*", CARAVANAS), ("tools/gen/caravanas.py", CARAVANAS),
     # perfiles de juego (T36): su lógica y su comando (el resto de la configuración es común: batería completa)
     (JAVA + "config/Perfiles.java", PERFILES), (JAVA + "comando/ProfileCommand.java", PERFILES),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
@@ -268,6 +272,7 @@ DURACION_S = {
     "tools/smoke/mapas_web.py": 240,                 # tres arranques (sin mapas, con squaremap y Carpet, y tras reiniciar)
     "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
     "tools/smoke/encargos.py": 150,                  # dos arranques del mismo mundo y una aldea generada
+    "tools/smoke/caravanas.py": 240,                 # medida en local: ~3,5 min (dos arranques, 387 chunks de pasillo y 5 caravanas)
 }
 DEFECTO_S = 90
 # Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas

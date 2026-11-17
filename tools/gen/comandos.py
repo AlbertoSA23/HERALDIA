@@ -38,6 +38,8 @@ CANONICOS = [
     "webmap", "webmap refresh",
     "quest", "quest list", "quest accept", "quest accept <number>", "quest abandon", "quest abandon <number>",
     "quest turnin",                              # T38: los encargos del tablón
+    "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",
+    "caravan clear",                             # T39: las caravanas (operadores)
 ]
 
 

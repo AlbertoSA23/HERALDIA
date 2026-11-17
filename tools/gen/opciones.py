@@ -19,12 +19,12 @@ VANILLA_EXCLUSION_CHUNKS = 10
 # lista, «mínimo» es la lista de valores (cadenas) y «máximo» None; el nombre de cada valor va en _VALUE_NAMES.
 _FIXED = [
     ("perfil", "estandar", ["casual", "estandar", "hardcore", "personalizado"], None,
-     "Perfil de juego: fija de una vez la dificultad, los refuerzos de los guardianes, el botín que se repone y la arena "
-     "(casual, más fácil y con el botín que se repone; estándar, lo de siempre; hardcore, heroica, con más refuerzos y "
+     "Perfil de juego: fija de una vez la dificultad, los refuerzos de los guardianes, el botín que se repone, la arena "
+     "y los asaltos a las caravanas (casual, más fácil y con el botín que se repone; estándar, lo de siempre; hardcore, heroica, con más refuerzos y "
      "menos experiencia; personalizado, cada opción con su valor). Una de esas opciones escrita en el fichero manda sobre "
      "el perfil. Nunca cambia la generación del mundo",
-     "Gameplay profile: sets the difficulty, the guardians' reinforcements, restocking loot and the arena in one go "
-     "(casual, easier and with restocking loot; standard, as always; hardcore, heroic, with more reinforcements and less "
+     "Gameplay profile: sets the difficulty, the guardians' reinforcements, restocking loot, the arena and "
+     "caravan ambushes in one go (casual, easier and with restocking loot; standard, as always; hardcore, heroic, with more reinforcements and less "
      "experience; custom, each option with its own value). One of those options written in the file overrides the "
      "profile. It never changes world generation"),
     ("aldeas.separacion_bloques", 1500, 1000, 10000,
@@ -212,6 +212,25 @@ _FIXED = [
      "Reputation per village: it rises with its quests and falls when you attack its villagers or golems; as known, "
      "friend and village hero, its villagers lower their trades by 10, 20 and 30 % (like Hero of the Village, not "
      "stacking) and greet you"),
+    ("caravanas.activado", True, None, None,
+     "Caravanas: de vez en cuando, con jugadores cerca, un mercader de Heraldia con sus llamas (y a veces un guardia) "
+     "recorre un tramo del camino entre dos aldeas vecinas; si la defiendes de los bandidos y llega, paga esmeraldas y "
+     "reputación con la aldea de destino. Solo por caminos que existan y en chunks ya cargados",
+     "Caravans: now and then, with players nearby, a Heraldia merchant with its llamas (and sometimes a guard) travels "
+     "a stretch of the road between two neighbouring villages; defend it from bandits until it arrives and it pays "
+     "emeralds and reputation with the destination village. Only along roads that exist and in chunks already loaded"),
+    ("caravanas.frecuencia", 10, 0, 100,
+     "Probabilidad (%) de que salga una caravana en cada sorteo (uno por minuto, junto a un jugador a menos de 80 "
+     "bloques de un camino, 2 min después de la anterior como pronto); 0: solo con /heraldia caravan spawn",
+     "Chance (%) of a caravan setting off at each draw (one per minute, next to a player within 80 blocks of a road, "
+     "no sooner than 2 min after the previous one); 0: only with /heraldia caravan spawn"),
+    ("caravanas.prob_asalto", 35, 0, 100,
+     "Probabilidad (%) de que los bandidos asalten una caravana a media ruta (de 2 a 4: saqueadores y un jefe "
+     "vindicador)",
+     "Chance (%) of bandits ambushing a caravan halfway (2 to 4: pillagers and a vindicator chief)"),
+    ("caravanas.max_activas", 1, 1, 3,
+     "Caravanas en camino a la vez en todo el servidor, como mucho",
+     "Maximum caravans on the road at once on the whole server"),
     ("update_check.activado", True, None, None,
      "Aviso de versión nueva: al arrancar y cada 24 h mira en GitHub Releases si hay una versión más nueva de Heraldia "
      "para este Minecraft y lo dice en la consola y a los operadores al entrar (sin telemetría; se aplica al reiniciar)",
@@ -259,6 +278,7 @@ PERFILES = {
         "jefes.refuerzos.maximo_vivos": 2,
         "arena.oleada.mobs_incremento": 30, "arena.oleada.stats_incremento": 5, "arena.max_mobs_vivos": 12,
         "arena.experiencia_porcentaje": 30,
+        "caravanas.prob_asalto": 15,
     },
     "estandar": {},          # se rellena con los valores por defecto (abajo): idéntico al comportamiento de siempre
     "hardcore": {
@@ -268,12 +288,13 @@ PERFILES = {
         "jefes.refuerzos.maximo_vivos": 6,
         "arena.oleada.mobs_incremento": 75, "arena.oleada.stats_incremento": 20, "arena.max_mobs_vivos": 28,
         "arena.experiencia_porcentaje": 5,
+        "caravanas.prob_asalto": 60,
     },
 }
 PERSONALIZADO = "personalizado"
 # Lo único que un perfil puede tocar: opciones de juego. La generación del mundo (dónde y cómo salen las estructuras, la
 # arena que se construye sola) queda siempre fuera; GENERACION marca esas opciones en el esquema (y los tests lo comprueban).
-PERFIL_PREFIJOS = ("dificultad.", "botin.", "jefes.", "arena.")
+PERFIL_PREFIJOS = ("dificultad.", "botin.", "jefes.", "arena.", "caravanas.")
 GENERACION = ("aldeas.", "unicas.", "medianas.", "minas.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
               "arena.activado")
 
@@ -372,6 +393,10 @@ _NAMES = {
     "encargos.activado": ("Encargos del tablón", "Job board quests"),
     "encargos.rotacion_dias": ("Días hasta cambiar el tablón", "Days until the board changes"),
     "reputacion.activado": ("Reputación por aldea", "Reputation per village"),
+    "caravanas.activado": ("Caravanas", "Caravans"),
+    "caravanas.frecuencia": ("Frecuencia de las caravanas (%)", "Caravan frequency (%)"),
+    "caravanas.prob_asalto": ("Probabilidad de asalto (%)", "Ambush chance (%)"),
+    "caravanas.max_activas": ("Caravanas a la vez", "Caravans at once"),
     "update_check.activado": ("Aviso de versión nueva", "New version notice"),
     "update_check.prereleases": ("Avisar de pre-publicaciones", "Announce pre-releases"),
     "compatibilidad.zona_estructuras_ajenas_bloques": ("Distancia de estructuras de otros mods (bloques)",
@@ -428,6 +453,7 @@ SECTIONS = [
     ("guia", "Guía del Heraldo", "Herald's Guide"),
     ("arena", "Arena de oleadas", "Wave arena"),
     ("encargos", "Encargos y reputación", "Quests and reputation"),
+    ("caravanas", "Caravanas", "Caravans"),
     ("actualizaciones", "Actualizaciones", "Updates"),
     ("mapas_web", "Mapas web", "Web maps"),
 ]
@@ -440,6 +466,7 @@ _SECTION_PREFIXES = [
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("minas.", "minas"), ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
+    ("caravanas.", "caravanas"),
     ("update_check.", "actualizaciones"), ("mapas_web.", "mapas_web"),
 ]
 
