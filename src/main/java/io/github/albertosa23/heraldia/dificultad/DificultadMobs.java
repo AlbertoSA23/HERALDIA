@@ -28,7 +28,8 @@ import org.jspecify.annotations.Nullable;
  * <ul>
  * <li>en cada {@code ENTITY_LOAD} (al colocarse la plantilla, al generarse el chunk y en cada carga) se ponen los del
  * nivel en uso, o se quitan en normal: así valen para los mobs ya generados y se recalculan si cambia la opción (la
- * configuración se lee al arrancar). Ponerlos dos veces no cambia nada ({@code addOrReplacePermanentModifier}).</li>
+ * configuración se lee al arrancar; /heraldia recargar los recalcula en los mobs ya cargados con {@link #aplicar}). Ponerlos
+ * dos veces no cambia nada ({@code addOrReplacePermanentModifier}).</li>
  * <li>con dificultad.escalar_por_jugadores, al recibir un golpe se cuenta a los jugadores a 32 bloques (no por tick).</li>
  * <li>con dificultad.escalar_botin, el botín de los cofres de Heraldia (tablas cofres/, unicas/, medianas/) sale con la
  * cantidad de sus objetos sencillos apilables multiplicada ({@link Dificultad.Nivel#botin}).</li>
@@ -50,18 +51,31 @@ public final class DificultadMobs {
 	}
 
 	static void alCargar(Entity entity) {
+		aplicar(entity);
+	}
+
+	/**
+	 * Pone en el mob los modificadores de la configuración en uso (los recalcula si cambió): al cargarse y, tras
+	 * /heraldia recargar, en todos los ya cargados. True si es un mob de Heraldia al que se aplica la dificultad.
+	 */
+	public static boolean aplicar(Entity entity) {
 		if (!(entity instanceof Mob mob) || !Dificultad.aplica(mob.entityTags(), mob instanceof Enemy)) {
-			return;
+			return false;
 		}
-		HeraldiaConfig cfg = HeraldiaConfig.get();
-		Dificultad.Nivel nivel = Dificultad.Nivel.de(cfg.getString("dificultad.nivel"));
 		double antes = mob.getMaxHealth();
-		poner(mob.getAttribute(Attributes.MAX_HEALTH), VIDA, nivel.modVida());
-		poner(mob.getAttribute(Attributes.ATTACK_DAMAGE), DANO, nivel.modDano());
-		if (!cfg.getBool("dificultad.escalar_por_jugadores")) {
-			poner(mob.getAttribute(Attributes.MAX_HEALTH), JUGADORES, 0);
-		}
+		ajustar(mob.getAttribute(Attributes.MAX_HEALTH), mob.getAttribute(Attributes.ATTACK_DAMAGE), HeraldiaConfig.get());
 		ajustarVida(mob, antes);
+		return true;
+	}
+
+	/** Los modificadores de vida y daño del nivel de {@code cfg} (y sin el extra por jugadores si está desactivado). */
+	static void ajustar(@Nullable AttributeInstance vida, @Nullable AttributeInstance dano, HeraldiaConfig cfg) {
+		Dificultad.Nivel nivel = Dificultad.Nivel.de(cfg.getString("dificultad.nivel"));
+		poner(vida, VIDA, nivel.modVida());
+		poner(dano, DANO, nivel.modDano());
+		if (!cfg.getBool("dificultad.escalar_por_jugadores")) {
+			poner(vida, JUGADORES, 0);
+		}
 	}
 
 	static void alRecibirDano(LivingEntity entity) {

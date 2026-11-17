@@ -50,6 +50,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.comando.LlaveCommand.register();
 		io.github.albertosa23.heraldia.comando.InfoCommand.register();
 		io.github.albertosa23.heraldia.comando.Guia.register();
+		io.github.albertosa23.heraldia.comando.Admin.register();
 		io.github.albertosa23.heraldia.loot.CofrePorJugador.register();
 		io.github.albertosa23.heraldia.loot.BotinRepuesto.registrar();
 		io.github.albertosa23.heraldia.dificultad.DificultadMobs.registrar();
@@ -76,8 +77,8 @@ public final class Heraldia implements ModInitializer {
 		LOGGER.info("Heraldia: {} logros cargados", advancements);
 	}
 
-	/** Pasa a las funciones de gólems (marcador heraldia_cfg) la limpieza y los límites de la configuración. */
-	private static void publishGolemSettings(MinecraftServer server) {
+	/** Pasa a las funciones de gólems (marcador heraldia_cfg) la limpieza y los límites de la configuración (al arrancar y con /heraldia recargar). */
+	public static void publishGolemSettings(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		Scoreboard board = server.getScoreboard();
 		Objective obj = board.getObjective("heraldia_cfg");

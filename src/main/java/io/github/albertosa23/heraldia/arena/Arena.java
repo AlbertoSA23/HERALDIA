@@ -240,11 +240,7 @@ public final class Arena {
 		}
 		Marcador.objetivo(server);
 		if (g.origen().isPresent()) {
-			BlockPos o = g.origen().get();
-			nivel = ow;
-			zona = new Zona(o.getX(), o.getY(), o.getZ(), plano);
-			Juego.puerta(ow, zona, false);           // por si el servidor se paró en mitad de una partida
-			LOGGER.info("Heraldia: arena: en {} {} {}", zona.columnaX(), zona.sueloY(), zona.columnaZ());
+			cargar(ow, g.origen().get());
 		} else if (!g.decidida()) {
 			boolean nuevo = ow.getGameTime() < MUNDO_NUEVO_TICKS;
 			ow.setAttached(Guardada.Tipo.ARENA, g.decidir());
@@ -255,6 +251,50 @@ public final class Arena {
 				LOGGER.info("Heraldia: arena: mundo existente: sin arena hasta que un operador la coloque (/heraldia arena colocar)");
 			}
 		}
+	}
+
+	/** La arena guardada en {@code o} pasa a estar en uso (al arrancar o al activarla con /heraldia recargar). */
+	private static void cargar(ServerLevel ow, BlockPos o) {
+		nivel = ow;
+		zona = new Zona(o.getX(), o.getY(), o.getZ(), plano);
+		Juego.puerta(ow, zona, false);           // por si el servidor se paró en mitad de una partida
+		LOGGER.info("Heraldia: arena: en {} {} {}", zona.columnaX(), zona.sueloY(), zona.columnaZ());
+	}
+
+	/**
+	 * /heraldia recargar: aplica las opciones arena.* en uso (incrementos, máximo de vivos, experiencia y arena.activado;
+	 * arena.generar_en_mundos_nuevos solo cuenta al arrancar). Con una partida en marcha no cambia nada (sus oleadas
+	 * siguen con lo que empezaron) y devuelve false: se aplica con otra recarga al acabar.
+	 */
+	public static boolean recargar(MinecraftServer server) {
+		if (Juego.partida().estado() != Partida.Estado.LIBRE) {
+			return false;
+		}
+		HeraldiaConfig cfg = HeraldiaConfig.get();
+		boolean antes = activada;
+		activada = cfg.getBool("arena.activado");
+		Juego.configurar(cfg);
+		ServerLevel ow = server.overworld();
+		if (activada && !antes) {
+			Marcador.objetivo(server);
+			Optional.ofNullable(ow.getAttached(Guardada.Tipo.ARENA)).flatMap(Guardada::origen).ifPresent(o -> cargar(ow, o));
+		} else if (!activada && antes) {
+			zona = null;                         // sin partidas ni protección, como si arrancara desactivada
+			nivel = null;
+			LOGGER.info("Heraldia: arena: desactivada (arena.activado = false)");
+		}
+		return true;
+	}
+
+	/** Centro del ruedo (columna de la campana, a la altura del suelo) de la arena en uso, o null si no hay. */
+	public static @Nullable BlockPos centro() {
+		Zona z = zona;
+		return z == null ? null : new BlockPos(z.columnaX(), z.sueloY(), z.columnaZ());
+	}
+
+	/** Récord del servidor (oleadas superadas en una partida), 0 si no hay o la arena está desactivada (no crea el marcador). */
+	public static int record(MinecraftServer server) {
+		return activada ? Marcador.record(server) : 0;
 	}
 
 	private static void tick(MinecraftServer server) {

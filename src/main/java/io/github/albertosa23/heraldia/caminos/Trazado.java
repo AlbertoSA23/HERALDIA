@@ -206,6 +206,35 @@ public final class Trazado {
 	private record Clave(long a, long b) {
 	}
 
+	/**
+	 * Punto medio (el vértice central) de la ruta más cercana a (x, z) de las que salen de las aldeas de las casillas a
+	 * {@code casillas} o menos de la suya; {@link #NONE} si no hay ninguna. Para /heraldia revisar: solo calcula (las
+	 * aldeas y las rutas, en memoria), sin tocar el mundo.
+	 */
+	public long tramoCercano(int x, int z, int casillas) {
+		long origen = pack(x, z), mejor = NONE, mejorD = Long.MAX_VALUE;
+		int gx0 = cellOf(x), gz0 = cellOf(z);
+		for (int gx = gx0 - casillas; gx <= gx0 + casillas; gx++) {
+			for (int gz = gz0 - casillas; gz <= gz0 + casillas; gz++) {
+				long a = aldea(gx, gz);
+				if (a == NONE) {
+					continue;
+				}
+				for (long b : vecinas(gx, gz)) {
+					Ruta r = ruta(a, b);
+					int m = r.vertices() / 2;
+					long p = pack((int) Math.round(r.x(m)), (int) Math.round(r.z(m)));
+					long d = distSq(p, origen);
+					if (d < mejorD || d == mejorD && p < mejor) {
+						mejor = p;
+						mejorD = d;
+					}
+				}
+			}
+		}
+		return mejor;
+	}
+
 	/** Ruta entre dos aldeas (en cualquier orden: la misma). */
 	public Ruta ruta(long a, long b) {
 		long lo = Math.min(a, b), hi = Math.max(a, b);

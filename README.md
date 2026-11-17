@@ -18,6 +18,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 ## How to play
 
 - 📖 **The Herald's Guide.** Every player gets it on joining: a book that explains what to look for and keeps your diary, with the unique structures you have discovered and clues to the ones still missing. Ask for an up-to-date copy at any time with `/heraldia guia`.
+- 📊 **What the server has found.** `/heraldia estado` shows how many villages, unique structures, medium structures and mines the players have discovered, the guardians defeated and the arena record.
 - 🏆 **Advancements.** A Heraldia tab with 94 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the medium structures, the job board and the arena.
 - 🗿 **Trophies.** Each of the 20 guardians drops its trophy, an item with a name and a story. Collect them all to complete the Hall of Trophies.
 - 🗺️ **Treasure maps.** Each map marks the nearest unique structure of its kind. They turn up in the villages' epic chests and the cartographers sell them.
@@ -35,7 +36,7 @@ The texts of the mod are in 8 languages: English, Spanish, French, German, Itali
 
 ## Most useful options
 
-The file `config/heraldia.json` is created on the server's first start, with a help text for every option. Changes apply when the server is restarted, in newly generated chunks.
+The file `config/heraldia.json` is created on the server's first start, with a help text for every option. Changes apply when the server is restarted, in newly generated chunks. Options that do not affect generation (difficulty, bosses, loot, arena, Guide...) can be applied without restarting with `/heraldia recargar`.
 
 | Option | Default | What it does |
 | --- | --- | --- |
@@ -53,7 +54,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 ## Learn more
 
 - [Full reference of the content](docs/CONTENT.md): every village style, unique structure, medium structure and mine, the guardian fights, advancements, arena and more.
-- [Installation, commands and configuration](docs/CONFIGURATION.md): test and admin commands (`/heraldia info`, `/heraldia llave`...), every option and the in-game configuration screen.
+- [Installation, commands and configuration](docs/CONFIGURATION.md): test and admin commands (`/heraldia info`, `/heraldia revisar`, `/heraldia estado`, `/heraldia recargar`, `/heraldia llave`...), every option and the in-game configuration screen.
 - [Compatibility with other mods](docs/COMPATIBILITY.md): biome mods, structure mods, Lootr and the rest.
 - [Building and testing](docs/BUILDING.md), [development guide (Spanish)](docs/DESARROLLO.md) and [changelog](CHANGELOG.md).
 

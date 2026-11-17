@@ -12,6 +12,7 @@ import tratos
 import tablon
 import guia
 import arena_oleadas
+import admin
 import caminos
 import opciones
 import jefes
@@ -352,7 +353,7 @@ def textos(reg):
         for lang, texts in extra.items():
             out[lang].update(texts)
     partes = [mapas.lang(uniques), logros.build(reg, uniques, medianas.modules(), minas)[1], tratos.lang(),
-              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), guia.lang(), arena_oleadas.lang(),
+              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(),
               trophies_lang(), botin.historia_lang(uniques)]
     for parte in partes:
         assert parte["es_es"].keys() == parte["en_us"].keys()

@@ -544,4 +544,33 @@ class TrazadoTest {
 		assertTrue(us < 200, us + " µs por chunk");
 		assertTrue(n >= 0);
 	}
+
+	@Test
+	void tramoCercanoParaLaRevision() {
+		Trazado t = trazado(7, 2000);
+		long p = t.tramoCercano(0, 0, 4);
+		assertTrue(p != Trazado.NONE, "con aldeas cada 1.500 bloques hay alguna ruta cerca");
+		// es el vértice central de una ruta entre dos aldeas vecinas, y la más cercana de las que se miran
+		boolean deUnaRuta = false;
+		double mejor = Double.MAX_VALUE;
+		for (long a : todas(t, 5)) {
+			int gx = Math.floorDiv(Trazado.px(a), CELL), gz = Math.floorDiv(Trazado.pz(a), CELL);
+			if (Math.abs(gx) > 4 || Math.abs(gz) > 4) {
+				continue;
+			}
+			for (long b : t.vecinas(gx, gz)) {
+				Trazado.Ruta r = t.ruta(a, b);
+				int m = r.vertices() / 2;
+				long q = Trazado.pack((int) Math.round(r.x(m)), (int) Math.round(r.z(m)));
+				deUnaRuta |= q == p;
+				mejor = Math.min(mejor, Math.hypot(Trazado.px(q), Trazado.pz(q)));
+			}
+		}
+		assertTrue(deUnaRuta);
+		assertEquals(mejor, Math.hypot(Trazado.px(p), Trazado.pz(p)), 1e-9);
+		assertEquals(p, trazado(7, 2000).tramoCercano(0, 0, 4), "determinista");
+		// sin aldeas, nada
+		Trazado vacio = new Trazado(7, CELL, 2000, (gx, gz) -> Trazado.NONE, Trazado.Hitos.NINGUNO);
+		assertEquals(Trazado.NONE, vacio.tramoCercano(0, 0, 4));
+	}
 }

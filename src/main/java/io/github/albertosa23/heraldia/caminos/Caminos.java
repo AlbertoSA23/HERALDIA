@@ -16,6 +16,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -76,6 +77,23 @@ public final class Caminos {
 			informe();
 			contexto = null;
 		});
+	}
+
+	/**
+	 * Para /heraldia revisar: el centro del tramo de camino más cercano a (x, z) (punto medio de una ruta entre dos
+	 * aldeas vecinas), o null si los caminos están desactivados o no hay ninguna ruta cerca. Seguro fuera del hilo del
+	 * servidor (el contexto es el de la generación); no carga ni genera chunks.
+	 */
+	public static @Nullable BlockPos tramoCercano(ServerLevel level, int x, int z) {
+		if (!HeraldiaConfig.get().getBool(ACTIVADO)) {
+			return null;
+		}
+		Contexto c = de(level, level.getChunkSource().getGenerator());
+		if (c == null || c.trazado() == null) {
+			return null;
+		}
+		long p = c.trazado().tramoCercano(x, z, 4);
+		return p == Trazado.NONE ? null : new BlockPos(Trazado.px(p), c.sea(), Trazado.pz(p));
 	}
 
 	/** Histograma del coste por chunk: casilla k = de 2^k a 2^(k+1) µs (la 0, menos de 2 µs). */
