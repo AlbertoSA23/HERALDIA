@@ -641,6 +641,7 @@ public final class Encargos {
 	static void pagar(ServerPlayer p, Encargo e) {
 		p.getInventory().placeItemBackInInventory(new ItemStack(Items.EMERALD, e.esmeraldas()), net.minecraft.util.Prediction.SERVER_ONLY);   // al suelo si no cabe
 		p.giveExperiencePoints(e.experiencia());
+		io.github.albertosa23.heraldia.tesoro.Tesoro.recompensa(p);   // a veces, un fragmento de mapa del tesoro (T40)
 	}
 
 	static void logros(ServerPlayer p, Datos d) {

@@ -20,12 +20,13 @@ public final class Recarga {
 	 * Prefijos (o claves exactas) de las opciones que se leen cada vez que se usan, fuera de la generación: la dificultad
 	 * (y su recálculo en los mobs cargados), los jefes, el botín y su reposición, la arena (salvo su colocación en un
 	 * mundo nuevo), la Guía, los tratos propios y el asedio (se sortean al subir de nivel un aldeano), los gólems y el
-	 * cofre por jugador de la Atlántida y los mapas web (qué marcadores salen). Y el perfil de juego (T36): solo fija opciones de esos prefijos (nunca de la
+	 * cofre por jugador de la Atlántida y los mapas web (qué marcadores salen) y la búsqueda del tesoro (T40: se leen al tirar el botín y al usar una pista). Y el perfil de juego (T36): solo fija opciones de esos prefijos (nunca de la
  * generación), así que cambiarlo se aplica entero sin reiniciar. Y los encargos del tablón y la reputación (T38): se
 	 * leen en cada uso.
 	 */
 	static final List<String> RECARGABLES = List.of("perfil", "dificultad.", "jefes.", "botin.", "arena.", "guia.", "golems.",
-			"aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "unicas.atlantida.cofre_unico_por_jugador", "mapas_web.", "encargos.", "reputacion.");
+			"aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "unicas.atlantida.cofre_unico_por_jugador", "mapas_web.", "encargos.", "reputacion.",
+			"tesoro.");
 	/** Excepciones dentro de un prefijo recargable: solo se miran al arrancar. */
 	static final List<String> SOLO_AL_ARRANCAR = List.of("arena.generar_en_mundos_nuevos");
 

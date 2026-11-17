@@ -224,6 +224,7 @@ def write(out, jdump):
     """Estructuras, etiquetas de biomas y de estructura, structure_sets y botín. Devuelve los textos."""
     import biomas
     from writer import lootr_aware
+    import tesoro
     todas = []
     for mid, mod in modules():
         ids = []
@@ -242,7 +243,7 @@ def write(out, jdump):
         jdump(out, f"data/{NS}/tags/worldgen/structure/{PREFIJO}/{mid}.json", {"values": ids})
         todas += ids
         for name, tabla in mod.LOOT.items():
-            jdump(out, f"data/{NS}/loot_table/{PREFIJO}/{mid}/{name}.json", lootr_aware(tabla))
+            jdump(out, f"data/{NS}/loot_table/{PREFIJO}/{mid}/{name}.json", lootr_aware(tesoro.con_pista(tabla, "medianas")))
     jdump(out, f"data/{NS}/tags/worldgen/structure/{PREFIJO}.json", {"values": todas})
     return lang()
 

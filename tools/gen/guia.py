@@ -101,6 +101,11 @@ PAGINAS = [
       "venden los cartógrafos de Heraldia.",
       "Each map marks the nearest unique structure of its kind. They turn up in the epic chests of the villages and "
       "Heraldia cartographers sell them.")),
+    ("tesoro", ("Caza del tesoro", "Treasure hunt"),
+     ("A veces un cofre guarda un fragmento de mapa del tesoro. Úsalo para descifrarlo: se volverá un mapa con una "
+      "marca. Ve hasta ella y úsalo otra vez. Cada marca lleva a la siguiente; la última, al cofre que enterró Ysolda.",
+      "Now and then a chest holds a treasure map fragment. Use it to decipher it and it becomes a map with a mark. Go "
+      "there and use it again: each mark leads to the next, and the last to the chest Ysolda buried.")),
     ("historia", ("La Crónica", "The Chronicle"),
      ("Cada estructura única guarda un pliego de la Crónica de los Heraldos, escrita por Ysolda, la última heraldo de "
       "la Atlántida. Cada pliego señala el siguiente: reúnelos todos y sabrás cómo acaba.",
