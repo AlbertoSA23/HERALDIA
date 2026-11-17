@@ -734,7 +734,7 @@ class Obra:
             self.f(x, 1, 18, x, 2, 18, TUFF)
             self.s(x, 3, 18, CTUFF)
         self.sign(31, 2, 17, "north", "runas", [("Despierta al", "Wake the raven"), ("cuervo y al lobo;", "and the wolf;"),
-                                               ("que duerman la", "let the serpent"), ("serpiente y el oso.", "and the bear sleep.")])
+                                               ("que la serpiente", "let the serpent"), ("y el oso duerman.", "and bear sleep.")])
         self.sign(42, 2, 17, "north", "salon", [("Aquí reina", "Here reigns"), ("Ulfgrim,", "Ulfgrim,"),
                                                 ("jarl de la taiga.", "jarl of the taiga.")])
         for (x, z) in ((24, 12), (49, 13)):        # dos piedras sueltas en el patio
@@ -873,8 +873,8 @@ class Obra:
         for z in (47, 50):
             self.banner(25, F1 + 2, z, "east", "black")
         self.sign(34, F1 + 1, 51, "west", "vestibulo",
-                  [("Aquí duermen", "Here sleep"), ("los reyes del salón.", "the kings of the hall."),
-                   ("Que nadie despierte", "Let no one wake"), ("al jarl.", "the jarl.")])
+                  [("Aquí duermen los", "Here sleep the"), ("reyes del salón.", "kings of the hall."),
+                   ("Nadie despierte", "Let no one wake"), ("al jarl.", "the jarl.")])
         for (x, z) in ((25, 52), (34, 45)):
             self.s(x, y, z, S("candle", candles=2, lit=False, waterlogged=False))
         self.s(25, y, 45, S("decorated_pot", cracked=True, facing="south", waterlogged=False))

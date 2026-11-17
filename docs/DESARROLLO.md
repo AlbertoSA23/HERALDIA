@@ -1,7 +1,7 @@
 # Guía de desarrollo de Heraldia (leer antes de tocar nada)
 
 Mod de Fabric para Minecraft 26.3 solo de estructuras, para el servidor privado de Alberto (mundo ya existente,
-modpack de CurseForge con Fabric API 0.166.2+26.3). El mod va en servidor y clientes. Contenido **solo vanilla**.
+modpack de CurseForge con Fabric API 0.166.2+26.3). El mod va en el servidor; en los clientes es opcional (los jugadores pueden entrar con el cliente vanilla: ver README). Contenido **solo vanilla**.
 Repositorio público, **sin licencia (todos los derechos reservados)**. Hay CI en GitHub Actions (`.github/workflows/ci.yml`, ver «Entorno»); las comprobaciones también se pueden ejecutar a mano.
 
 ## Flujo de ramas

@@ -125,7 +125,7 @@ class Cuevas:
         o.s(83, Y, 33, S("barrel", facing="up", open=False), {"id": "minecraft:barrel"})
         o.hang(79, 4, 31)
         o.sign(76, Y + 1, 34, "north", "guardia", [("Al oeste, el mapa", "West, the map"), ("y la armería.", "and the armoury."),
-                                                     ("Al norte, la ensenada.", "North, the cove.")])
+                                                     ("Al norte, la cala.", "North, the cove.")])
         # pasillo al oeste con la trampa de cable (trampa 1)
         self.sala(75, 75, 31, 32)
         piezas.tripwire_trap(o.s, (75, 30), (75, 33), Y, "z", [((75, Y + 1, 29), "south"), ((75, Y + 1, 34), "north")])

@@ -71,7 +71,7 @@ Cada tabla tiene su grupo extra marcado `solo_sin_lootr`.
 ## Puzles, trampas, generadores y guardián
 
 - **Puzle de los sellos** (antecámara → tesoro): cuatro palancas en el muro, cada una bajo un cartel: Codicia, Fe, Esperanza,
-  Caridad; un cartel lateral dice «Tres virtudes abren / y la codicia castiga». La puerta es un bloque doble de piedra cincelada
+  Caridad; un cartel lateral dice «3 virtudes abren / la codicia castiga». La puerta es un bloque doble de piedra cincelada
   sujeto por dos pistones pegajosos extendidos en un muro de cuatro de grueso (palancas | antorchas | puerta, pistones y polvo |
   cara del tesoro). Tras cada virtud hay una antorcha de redstone (inversor) junto a una línea de polvo continua que mantiene
   los pistones extendidos: solo se abre con las tres virtudes activadas. La palanca de la codicia es una trampa: dispara una

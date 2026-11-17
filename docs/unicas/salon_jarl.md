@@ -58,7 +58,7 @@ Coordenadas: x de oeste a este (0..73), z de norte a sur (0..73); la puerta est�
   ardió: tablones carbonizados, cubierta hundida sobre su extremo este y una hoguera apagada entre los escombros.
 - **Despensa** (suroeste): toneles, heno, compostador y un cofre y un tonel con víveres; parte de la cubierta caída.
 - **Piedras rúnicas**: dos a los lados de la explanada ante la casa larga (la del oeste lleva la **adivinanza** del muro
-  de las runas: «Despierta al cuervo y al lobo; que duerman la serpiente y el oso»; la del este, «Aquí reina Ulfgrim,
+  de las runas: «Despierta al cuervo y al lobo; que la serpiente y el oso duerman»; la del este, «Aquí reina Ulfgrim,
   jarl de la taiga») y dos sueltas en el patio.
 
 ## Túmulo de los reyes (pieza `tumulo`)
@@ -67,7 +67,7 @@ Nivel alto (pies a y = -6, salas de 4 de alto) y nivel bajo (pies a y = -12). Pl
 [`salon_jarl/planos.txt`](salon_jarl/planos.txt).
 
 1. **Vestíbulo de los antepasados**: llegada de la escalera; dos guerreros de piedra (soportes de armadura con yelmo,
-   cota y hacha de piedra), tapices, faroles de almas y un cartel: «Aquí duermen los reyes del salón. Que nadie despierte
+   cota y hacha de piedra), tapices, faroles de almas y un cartel: «Aquí duermen los reyes del salón. Nadie despierte
    al jarl».
 2. **Galería de los reyes**: 17 bloques con nichos funerarios en los dos muros (calaveras, huesos) y el cofre de un rey
    menor (`tumba`). **Generador de zombis**. Uno de los nichos del norte está sellado: es la **puerta secreta** (puzle

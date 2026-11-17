@@ -9,7 +9,7 @@ Volver al [README](../README.es.md).
 Requisitos: Minecraft 26.3, Fabric Loader 0.20.1 o superior y Fabric API (probado con 0.166.2+26.3). Opcional en el cliente: Mod Menu (compilado contra la 21.0.1), para la [pantalla de configuración](#pantalla-de-configuración-cliente).
 
 1. Compila `heraldia-<versión>.jar` (ver abajo).
-2. Cópialo en la carpeta `mods` del servidor y en la de cada cliente.
+2. Cópialo en la carpeta `mods` del servidor. En los clientes es opcional: con el cliente vanilla se juega igual (los textos que no conoce salen en español, salvo la Guía, que llega en el idioma de cada jugador); con el mod, todo sale en su idioma y está la pantalla de configuración.
 3. Arranca el servidor. En `logs/latest.log` debe aparecer `Heraldia: 142 estructuras registradas`.
 
 En un mundo existente las estructuras solo aparecen en chunks que todavía no se han generado.

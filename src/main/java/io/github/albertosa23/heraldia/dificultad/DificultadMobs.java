@@ -2,6 +2,7 @@ package io.github.albertosa23.heraldia.dificultad;
 
 import io.github.albertosa23.heraldia.Heraldia;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.loot.Reposicion;
 import java.util.List;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
@@ -31,7 +32,7 @@ import org.jspecify.annotations.Nullable;
  * configuración se lee al arrancar; /heraldia reload los recalcula en los mobs ya cargados con {@link #aplicar}). Ponerlos
  * dos veces no cambia nada ({@code addOrReplacePermanentModifier}).</li>
  * <li>con dificultad.escalar_por_jugadores, al recibir un golpe se cuenta a los jugadores a 32 bloques (no por tick).</li>
- * <li>con dificultad.escalar_botin, el botín de los cofres de Heraldia (tablas cofres/, unicas/, medianas/) sale con la
+ * <li>con dificultad.escalar_botin, el botín de los cofres de Heraldia (tablas cofres/, unicas/, medianas/, minas/) sale con la
  * cantidad de sus objetos sencillos apilables multiplicada ({@link Dificultad.Nivel#botin}).</li>
  * </ul>
  * Salida temprana barata (las etiquetas del mob, casi siempre vacías); sin mixins.
@@ -39,7 +40,6 @@ import org.jspecify.annotations.Nullable;
 public final class DificultadMobs {
 	public static final Identifier VIDA = Heraldia.id("dificultad_vida"), DANO = Heraldia.id("dificultad_dano"),
 			JUGADORES = Heraldia.id("dificultad_jugadores");
-	private static final List<String> BOTIN = List.of("cofres/", "unicas/", "medianas/");
 
 	private DificultadMobs() {
 	}
@@ -133,13 +133,12 @@ public final class DificultadMobs {
 		}
 	}
 
-	/** Tablas de cofre de Heraldia (aldeas, medianas y únicas); no las de los guardianes, trofeos, llaves ni tratos. */
+	/**
+	 * Tablas de cofre de Heraldia (aldeas, medianas, entradas a mina y únicas): las mismas que se reponen
+	 * ({@link Reposicion#tablaRepone}); no las de los guardianes, trofeos, llaves ni tratos.
+	 */
 	static boolean esBotinDeCofre(@Nullable ResourceKey<LootTable> key) {
-		if (key == null || !Heraldia.MOD_ID.equals(key.identifier().getNamespace())) {
-			return false;
-		}
-		String path = key.identifier().getPath();
-		return BOTIN.stream().anyMatch(path::startsWith);
+		return key != null && Reposicion.tablaRepone(key.identifier().toString());
 	}
 
 	/** Para los tests: la cantidad del modificador de un atributo (0 si no lo tiene). */

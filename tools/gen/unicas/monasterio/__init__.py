@@ -39,8 +39,8 @@ LOGRO = {"icono": "minecraft:writable_book"}   # logros.py
 
 _TEXTS = {
     "cripta.1": ("Apagad las luces", "Put out the lights"), "cripta.2": ("de los difuntos", "of the departed"),
-    "cripta.3": ("y la lápida", "and the tombstone"), "cripta.4": ("se apartará.", "will move aside."),
-    "osario.1": ("Velan el primero", "The first one wakes"), "osario.2": ("y el último;", "and so the last;"),
+    "cripta.3": ("y la lápida", "and the stone"), "cripta.4": ("se apartará.", "will move aside."),
+    "osario.1": ("Velan el primero", "The first wakes"), "osario.2": ("y el último;", "and so the last;"),
     "osario.3": ("el del medio", "the one between"), "osario.4": ("duerme.", "sleeps."),
     "guardian": ("Fray Tenebrio, guardián del relicario", "Brother Tenebrio, Warden of the Reliquary"),
 }

@@ -172,15 +172,16 @@ CARTEL_ANCHO = 90          # SignBlockEntity: ancho máximo de una línea de car
 
 
 def claves_de_carteles(objetos):
-    """Claves traducibles de las líneas de cartel (front_text/back_text) que haya dentro de `objetos` (NBT de bloques)."""
-    out = set()
+    """Claves traducibles de las líneas de cartel (front_text/back_text) que haya dentro de `objetos` (NBT de bloques):
+    {clave: en negrita}. La negrita suma 1 px a cada carácter (el desplazamiento de la negrita de la fuente)."""
+    out = {}
 
     def ver(o):
         if isinstance(o, dict):
             for lado in ("front_text", "back_text"):
                 for m in (o.get(lado) or {}).get("messages", []) if isinstance(o.get(lado), dict) else []:
                     if isinstance(m, dict) and "translate" in m:
-                        out.add(m["translate"])
+                        out[m["translate"]] = out.get(m["translate"], False) or bool(m.get("bold"))
             for v in o.values():
                 ver(v)
         elif isinstance(o, (list, tuple)):
@@ -191,18 +192,22 @@ def claves_de_carteles(objetos):
     return out
 
 
-def errores_carteles(claves, base, textos, codigo):
-    """Líneas de cartel más anchas que el cartel (90 px) y que el texto más ancho de es/en para esa línea (algunas de
-    es/en ya se pasan un poco: una traducción no debe ir a peor)."""
-    from unicas._comun import botin
+def errores_carteles(claves, textos, codigo):
+    """Líneas de cartel más anchas que el cartel (90 px) en este idioma, también en es/en: el cliente (SignRenderer)
+    corta la línea por palabras a 90 px y lo que sobra no se ve.
+    `claves`: las de claves_de_carteles ({clave: en negrita}) o un conjunto de claves (sin negrita)."""
     e = []
     for k in sorted(claves):
-        if k in textos:
-            limite = max([CARTEL_ANCHO] + [botin.ancho(base[c][k]) for c in BASE if k in base[c]])
-            if botin.ancho(textos[k]) > limite:
-                e.append(f"{codigo}: la línea de cartel {k} no cabe ({botin.ancho(textos[k])} de {limite} px): "
-                         f"{textos[k]!r}")
+        if k in textos and ancho_cartel(textos[k], isinstance(claves, dict) and claves[k]) > CARTEL_ANCHO:
+            e.append(f"{codigo}: la línea de cartel {k} no cabe ({ancho_cartel(textos[k], isinstance(claves, dict) and claves[k])} "
+                     f"de {CARTEL_ANCHO} px): {textos[k]!r}")
     return e
+
+
+def ancho_cartel(texto, negrita=False):
+    """Ancho en px de una línea de cartel: el de botin.ancho, más 1 px por carácter en negrita."""
+    from unicas._comun import botin
+    return botin.ancho(texto) + (len(texto) if negrita else 0)
 
 
 def ordenar(base, trad):
@@ -218,11 +223,11 @@ def completar(base, paginas=(), carteles=()):
     es, en = base["es_es"], base["en_us"]
     out, e = {"es_es": es, "en_us": en}, []
     for codigo in BASE:
-        e += errores_libros(paginas, base[codigo], codigo)
+        e += errores_libros(paginas, base[codigo], codigo) + errores_carteles(carteles, base[codigo], codigo)
     for codigo in TRADUCCIONES:
         trad = cargar(codigo)
         e += errores_claves(es, trad, codigo) + errores_marcadores(en, trad, codigo)
-        e += errores_libros(paginas, {**en, **trad}, codigo) + errores_carteles(carteles, base, trad, codigo)
+        e += errores_libros(paginas, {**en, **trad}, codigo) + errores_carteles(carteles, trad, codigo)
         out[codigo] = ordenar(es, trad)
     if e:
         raise SystemExit("IDIOMAS:\n" + "\n".join(e[:200]) + (f"\n… y {len(e) - 200} más" if len(e) > 200 else ""))
@@ -249,11 +254,15 @@ def _comprobar(codigos):
     carteles = {k for k in base["es_es"] if ".cartel." in k}
     import guia, unicas
     malos = 0
+    for c in BASE:
+        e = errores_carteles(carteles, base[c], c)
+        print("\n".join(e) if e else f"{c}: carteles bien")
+        malos += len(e)
     for c in codigos or TRADUCCIONES:
         trad = cargar(c)
         e = (errores_claves(base["es_es"], trad, c) + errores_marcadores(base["en_us"], trad, c)
              + errores_libros(paginas, {**base["en_us"], **trad}, c)
-             + errores_carteles(carteles, base, trad, c))
+             + errores_carteles(carteles, trad, c))
         if not errores_claves(base["es_es"], trad, c):
             e += guia.errores(unicas.modules(), {c: trad})
         print("\n".join(e) if e else f"{c}: bien ({len(trad)} claves)")
