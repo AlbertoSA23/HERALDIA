@@ -275,3 +275,14 @@ def test_caravanas():
     assert elige("tools/gen/caravanas.py") == (False, p)
     assert elige("tools/smoke/caravanas.py") == (False, p)
     assert sel.DURACION_S["tools/smoke/caravanas.py"] > 0
+
+
+def test_chozas_mago():
+    p = ["tools/smoke/chozas_mago.py"]
+    assert elige(J + "chozas/Magos.java") == (False, p)
+    assert elige(J + "chozas/Decision.java") == (False, p)
+    assert elige("tools/gen/chozas_mago.py") == (False, p)
+    assert elige("tools/smoke/chozas_mago.py") == (False, p)
+    completo, pruebas = elige("tools/gen/medianas/choza_mago.py")
+    assert not completo and set(p) <= set(pruebas) and "tools/smoke/estructuras_medianas.py" in pruebas
+    assert sel.DURACION_S["tools/smoke/chozas_mago.py"] > 0
