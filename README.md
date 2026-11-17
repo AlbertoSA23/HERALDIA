@@ -20,7 +20,8 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 - 📖 **The Herald's Guide.** Every player gets it on joining: a book that explains what to look for and keeps your diary, with the unique structures you have discovered and clues to the ones still missing. Ask for an up-to-date copy at any time with `/heraldia guide`.
 - 📊 **What the server has found.** `/heraldia status` shows how many villages, unique structures, medium structures and mines the players have discovered, the guardians defeated, the arena record and the quests handed in.
 - 📋 **Village quests.** Touch the job board lectern on a village square (or use `/heraldia quest` there): 2 to 4 quests show up in chat (bring items, defeat a guardian, explore, travel to a neighbouring village, the arena) and change every few days. They pay emeralds, experience and reputation with that village: as known, friend and village hero, its villagers lower their prices by 10, 20 and 30 %. Attacking its villagers or golems lowers it.
-- 🏆 **Advancements.** A Heraldia tab with 100 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the medium structures, the job board and the arena.
+- 🐪 **Caravans.** Now and then a Heraldia merchant with its llamas (and sometimes a guard) travels the road between two neighbouring villages near you. If bandits ambush it, defend it: when it arrives it pays emeralds and reputation with its destination village. If the merchant dies, the caravan is lost.
+- 🏆 **Advancements.** A Heraldia tab with 101 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the medium structures, the job board, the arena and the caravans.
 - 🗿 **Trophies.** Each of the 20 guardians drops its trophy, an item with a name and a story. Collect them all to complete the Hall of Trophies.
 - 🗺️ **Treasure maps.** Each map marks the nearest unique structure of its kind. They turn up in the villages' epic chests and the cartographers sell them.
 - 🧭 **Treasure hunt.** Now and then a chest holds a treasure map fragment. Use it and it becomes a map with a mark: each mark is a real Heraldia structure that hides the next clue, and the last one leads to a chest buried by Ysolda, with good loot and a keepsake.
@@ -60,6 +61,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `arena.activado` | `true` | The wave arena near spawn. |
 | `encargos.activado` | `true` | Job board quests (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputation per village and its discounts. |
+| `caravanas.activado` | `true` | Caravans along the roads (operators: `/heraldia caravan`). |
 | `guia.entregar_al_entrar` | `true` | Gives the Herald's Guide to each player on joining. |
 | `update_check.activado` | `true` | Tells operators when there is a new version. |
 | `mapas_web.solo_descubiertas` | `true` | Only structures already discovered appear on the web map. |

@@ -188,7 +188,15 @@ public final class Trazado {
 
 	/** Rutas cuya caja (con margen) toca el chunk. Barato: cuentas con las casillas cercanas, todo en memoria. */
 	public List<Ruta> rutas(int chunkX, int chunkZ) {
-		int x0 = chunkX * 16, z0 = chunkZ * 16, x1 = x0 + 15, z1 = z0 + 15;
+		int x0 = chunkX * 16, z0 = chunkZ * 16;
+		return rutasEn(x0, z0, x0 + 15, z0 + 15);
+	}
+
+	/**
+	 * Rutas que pasan (con el margen del ancho) por la caja de bloques [x0, x1] × [z0, z1]; lo mismo que
+	 * {@link #rutas(int, int)} con una caja cualquiera (las caravanas de T39 buscan así el camino junto a un jugador).
+	 */
+	public List<Ruta> rutasEn(int x0, int z0, int x1, int z1) {
 		int r = maxDist + pad;
 		List<Ruta> out = null;
 		// una casilla de más a cada lado: la rejilla puede tener el origen desplazado (las aldeas no)

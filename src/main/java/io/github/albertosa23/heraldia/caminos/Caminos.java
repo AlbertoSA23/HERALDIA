@@ -112,6 +112,19 @@ public final class Caminos {
 		return c.trazado().vecinasDe(chunkX * 16 + 8, chunkZ * 16 + 8);
 	}
 
+	/**
+	 * Para las caravanas (T39): el trazado de los caminos del mundo principal (las mismas rutas que la generación), o null
+	 * con los caminos desactivados, en otra dimensión o sin la rejilla de las aldeas. Seguro fuera del hilo del servidor;
+	 * no carga ni genera chunks.
+	 */
+	public static @Nullable Trazado trazado(ServerLevel level) {
+		if (!HeraldiaConfig.get().getBool(ACTIVADO)) {
+			return null;
+		}
+		Contexto c = de(level, level.getChunkSource().getGenerator());
+		return c == null ? null : c.trazado();
+	}
+
 	/** Histograma del coste por chunk: casilla k = de 2^k a 2^(k+1) µs (la 0, menos de 2 µs). */
 	static final AtomicLongArray HISTOGRAMA = new AtomicLongArray(24);
 

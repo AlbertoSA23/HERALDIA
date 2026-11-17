@@ -51,6 +51,11 @@ PAGINAS = [
       "de la de destino y cuántos bloques faltan. Seguirlos es la forma más segura de viajar.",
       "Trails with lamp posts and wooden bridges join neighbouring villages. Near each village, a sign gives the name "
       "of the destination and how many blocks are left. Following them is the safest way to travel.")),
+    ("caravanas", ("Caravanas", "Caravans"),
+     ("Por los caminos viajan a veces mercaderes con sus llamas. Si los asaltan bandidos, defiéndelos: al llegar a su "
+      "aldea te pagan esmeraldas y reputación. Si el mercader muere, la caravana se pierde.",
+      "Merchants with their llamas sometimes travel the roads. If bandits ambush them, defend them: when they reach "
+      "their village they pay you emeralds and reputation. If the merchant dies, the caravan is lost.")),
     ("medianas", ("Junto al camino", "By the wayside"),
      ("Entre aldea y aldea salen estructuras medianas: torres de vigía, posadas de camino, campamentos de bandidos, "
       "ermitas... Tienen botín modesto y, a veces, un pequeño reto. Cuidado con los bandidos.",
