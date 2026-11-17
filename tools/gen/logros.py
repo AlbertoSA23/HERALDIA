@@ -13,7 +13,8 @@
   unicas/todas                 (desafío) descubrir todas las únicas
   unicas/trofeos               (desafío) conseguir el trofeo de cada guardián (TROFEO de cada módulo, custom_data
                                heraldia_trofeo; un criterio inventory_changed por trofeo, todos requeridos)
-  medianas/descubrir           entrar en una estructura mediana cualquiera; medianas/todas: una de cada tipo
+  medianas/descubrir           entrar en una estructura mediana cualquiera; medianas/todas: una de cada tipo del
+                               mundo principal; medianas/nether y medianas/end: una de cada tipo de esa dimensión
   medianas/<id>/<extra>        logros propios de un tipo de mediana (LOGROS del módulo: abrir uno de sus contenedores o
                                criterios propios)
   minas/pequena, minas/mediana, minas/grande   cadena de las entradas a mina (minas.LOGROS): entrar en una de cada tamaño
@@ -62,6 +63,12 @@ TEXTS = {
                  "Find a medium structure: a watchtower, an inn, a camp, a hermitage...")),
     "medianas": (("Caminante", "Wayfarer"),
                  ("Encuentra una estructura mediana de cada tipo", "Find a medium structure of every type")),
+    "medianas_nether": (("Caminante del Nether", "Nether Wayfarer"),
+                        ("Encuentra una estructura mediana del Nether de cada tipo",
+                         "Find a Nether medium structure of every type")),
+    "medianas_end": (("Caminante del vacío", "Void Wayfarer"),
+                     ("Encuentra una estructura mediana del End de cada tipo",
+                      "Find an End medium structure of every type")),
     "cronista": (("Cronista", "Chronicler"),
                  ("Reúne todos los pliegos de la Crónica de los Heraldos",
                   "Gather every leaf of the Chronicle of the Heralds")),
@@ -145,10 +152,17 @@ def build(reg, modules, medianas_mods=None, minas_mod=None, costa_mod=None):
         title, desc = text("medianas/descubrir", "mediana")
         advs["medianas/descubrir"] = advancement("raiz", MEDIANAS_ICON, title, desc,
                                                  {"mediana": location(f"#{NS}:medianas")}, xp=XP["mediana"])
-        crit = {mid: location(f"#{NS}:medianas/{mid}") for mid, _ in medianas_mods}
-        title, desc = text("medianas/todas", "medianas")
-        advs["medianas/todas"] = advancement("medianas/descubrir", MEDIANAS_ICON, title, desc, crit,
-                                             requirements=[[mid] for mid in sorted(crit)], frame="goal", xp=XP["medianas"])
+        import dimensiones
+        # Caminante: una de cada tipo del mundo principal; las del Nether y el End tienen su propio logro (dimensiones.py)
+        for dim, path, kind, icono in ((dimensiones.PRINCIPAL, "medianas/todas", "medianas", MEDIANAS_ICON),
+                                       (dimensiones.NETHER, "medianas/nether", "medianas_nether", "minecraft:crimson_fungus"),
+                                       (dimensiones.END, "medianas/end", "medianas_end", "minecraft:end_rod")):
+            crit = {mid: location(f"#{NS}:medianas/{mid}") for mid, mod in medianas_mods if dimensiones.de(mod) == dim}
+            if not crit:
+                continue
+            title, desc = text(path, kind)
+            advs[path] = advancement("medianas/descubrir", icono, title, desc, crit,
+                                     requirements=[[mid] for mid in sorted(crit)], frame="goal", xp=XP["medianas"])
         for mid, mod in medianas_mods:      # logros propios de cada tipo (LOGROS, opcional; ver medianas/__init__.py)
             for ex in getattr(mod, "LOGROS", ()):
                 path = f"medianas/{mid}/{ex['id']}"

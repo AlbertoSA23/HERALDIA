@@ -14,6 +14,9 @@ Contrato de cada módulo:
   LANG = {"es_es": {...}, "en_us": {...}}          # opcional: textos propios (mismas claves en los dos idiomas)
   LOGRO_ICONO = "minecraft:spyglass"               # opcional: icono del tipo en el logro de las medianas
   BIOMA_VECINOS = 2                                # opcional: biomas en franja (playas); ver colocacion
+  DIMENSION = "nether"                             # opcional: "nether" o "end" (dimensiones.py; por defecto el mundo
+                                                   # principal): tipo heraldia:dimension, que busca el suelo bajo el
+                                                   # techo del Nether o sobre una isla exterior del End
   LOGROS = [dict(id="pesca", icono="minecraft:cod", titulo=(es, en), descripcion=(es, en),   # opcional: logros
                 tabla="pesca")]       # propios (heraldia:medianas/<id>/<id del logro>, hijos de «Al borde del camino»):
                                       # abrir un contenedor de esa tabla de LOOT, o `criterios` propios en vez de `tabla`
@@ -73,6 +76,11 @@ def tabla_id(mid, tabla):
 
 
 # ------------------------------------------------------------------ construcción
+def dimension(mod):
+    import dimensiones
+    return dimensiones.de(mod)
+
+
 def build(reg, mid):
     """Plantillas y pools de un tipo (una parte de pack.build_all) y sus errores de contrato."""
     mod = dict(modules())[mid]
@@ -110,7 +118,8 @@ def _objetos(tabla):
 
 def errores(reg, mid, mod):
     """Contrato de un tipo sobre sus plantillas ya construidas (y su módulo)."""
-    errs, pre = [], f"{PREFIJO}/{mid}"
+    import dimensiones
+    errs, pre = dimensiones.errores(f"{PREFIJO}/{mid}", mod), f"{PREFIJO}/{mid}"
     n = getattr(mod, "NOMBRE", None) or {}
     if not (n.get("es_es") and n.get("en_us")):
         errs.append(f"{pre}: NOMBRE sin es_es o en_us")
@@ -129,6 +138,9 @@ def errores(reg, mid, mod):
         for obj in _objetos(tabla):
             if any(p in obj for p in PROHIBIDO):
                 errs.append(f"{pre}/{name}: {obj} no es botín modesto (medianas.PROHIBIDO)")
+        if dimension(mod) != dimensiones.PRINCIPAL:
+            errs += [f"{pre}/{name}: {o} rompe la progresión (dimensiones.PROHIBIDO)"
+                     for o in dimensiones.objetos_prohibidos(_objetos(tabla))]
     for ex in getattr(mod, "LOGROS", ()):
         if not all(ex.get(k) for k in ("id", "icono", "titulo", "descripcion")) or not (ex.get("tabla") or ex.get("criterios")):
             errs.append(f"{pre}: logro {ex.get('id')!r} sin id, icono, titulo, descripcion o tabla/criterios")
@@ -149,7 +161,7 @@ def errores(reg, mid, mod):
             if t is None:
                 errs.append(f"{name}: no se ha construido")
                 continue
-            errs += [f"{name}: {e}" for e in plantilla_errores(t, mid, loot)]
+            errs += [f"{name}: {e}" for e in plantilla_errores(t, mid, loot, dimension(mod))]
             usadas |= {str(nbt["LootTable"]) for _, nbt in t.blocks.values() if nbt and nbt.get("LootTable")}
     for name in loot:
         if tabla_id(mid, name) not in usadas:
@@ -157,9 +169,11 @@ def errores(reg, mid, mod):
     return errs
 
 
-def plantilla_errores(t, mid, loot):
+def plantilla_errores(t, mid, loot, dim="overworld"):
     from unicas._comun.piezas import GUARDIAN_TAG
+    import dimensiones
     errs = []
+    vivo = SUELO_VIVO | (dimensiones.SUELO_VIVO if dim != dimensiones.PRINCIPAL else set())
     sx, sy, sz = t.size()
     if not (MIN_LADO <= sx <= MAX_LADO and MIN_LADO <= sz <= MAX_LADO and sy <= MAX_ALTO):
         errs.append(f"tamaño {sx} x {sy} x {sz} fuera de {MIN_LADO}-{MAX_LADO} (alto {MAX_ALTO})")
@@ -181,7 +195,7 @@ def plantilla_errores(t, mid, loot):
         lt = nbt.get("LootTable") if nbt else None
         if lt and not (str(lt).startswith(f"{NS}:{PREFIJO}/{mid}/") and str(lt).split("/")[-1] in loot):
             errs.append(f"contenedor en {(x, y, z)} con una tabla que no es de su LOOT: {lt}")
-        if y == 0 and st.split("[")[0] in SUELO_VIVO:
+        if y == 0 and st.split("[")[0] in vivo:
             errs.append(f"suelo fértil en {(x, 0, z)}: dentro nacerían árboles y matas")
     if generadores > MAX_GENERADORES:
         errs.append(f"{generadores} generadores (máximo {MAX_GENERADORES})")
@@ -197,7 +211,14 @@ SUELO_VIVO = {f"minecraft:{b}" for b in ("dirt", "coarse_dirt", "rooted_dirt", "
 
 
 # ------------------------------------------------------------------ escritura
-def estructura(mid, estilo, biomes):
+def estructura(mid, estilo, biomes, mod=None, alto=MAX_ALTO, lado=MAX_LADO):
+    """JSON de un estilo. En el Nether o el End (DIMENSION), heraldia:dimension (dimensiones.estructura): mira el suelo
+    en las esquinas de la huella (`lado`) y pide aire para el alto de la plantilla (`alto`) bajo el techo."""
+    import dimensiones
+    dim = dimensiones.de(mod) if mod else dimensiones.PRINCIPAL
+    if dim != dimensiones.PRINCIPAL:
+        return dimensiones.estructura(f"{PREFIJO}/{mid}/{estilo}", biomes, 1, 32, dim, lado // 2,
+                                      alto + dimensiones.HOLGURA)
     return {"type": "minecraft:jigsaw", "biomes": biomes, "step": "surface_structures", "spawn_overrides": {},
             "terrain_adaptation": "beard_thin", "start_pool": nsid(f"{PREFIJO}/{mid}/{estilo}"), "size": 1,
             "max_distance_from_center": 32, "start_height": {"absolute": 0},
@@ -211,10 +232,16 @@ def colocacion(mid, mod):
     casillas se pierden (medido con MedianasFrecuenciaTest). Mirado a y = BIOMA_Y (sobre el terreno de casi todo).
     El punto debe tener 6 de sus 9 vecinos de la malla (a 64 bloques) en los biomas; un tipo de biomas en franja (las
     playas, de pocas decenas de bloques) pide menos con BIOMA_VECINOS (bioma_vecinos en la rejilla)."""
+    import dimensiones
     spacing = round(mod.SEPARACION / 16)
     out = {"type": f"{NS}:rejilla", "grupo": f"{PREFIJO}/{mid}", "spacing": spacing, "separation": spacing // 3,
-           "salt": salt(mid), "bioma": f"{NS}:{PREFIJO}/{mid}", "bioma_y": BIOMA_Y,
-           "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": EXCLUSION_ALDEAS_VANILLA}}
+           "salt": salt(mid)}
+    if dimensiones.de(mod) != dimensiones.PRINCIPAL:
+        # Nether y End: candidata al azar en la casilla (la búsqueda de bioma solo lee el ruido del mundo principal; sus
+        # biomas son grandes) y sin la zona de las aldeas vanilla, que allí no hay
+        return out
+    out.update({"bioma": f"{NS}:{PREFIJO}/{mid}", "bioma_y": BIOMA_Y,
+                "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": EXCLUSION_ALDEAS_VANILLA}})
     if getattr(mod, "BIOMA_VECINOS", None):
         out["bioma_vecinos"] = mod.BIOMA_VECINOS
     return out
@@ -233,7 +260,8 @@ def write(out, jdump):
             if d.get("convencionales"):
                 biomas.CONVENCIONALES[tag] = list(d["convencionales"])
             sid = f"{NS}:{tag}"
-            jdump(out, f"data/{NS}/worldgen/structure/{tag}.json", estructura(mid, estilo, biomas.etiqueta(out, tag, d["biomas"])))
+            jdump(out, f"data/{NS}/worldgen/structure/{tag}.json", estructura(mid, estilo, biomas.etiqueta(out, tag, d["biomas"]),
+                                                                              mod, *(_medidas(mid, estilo, d) if dimension(mod) != "overworld" else ())))
             ids.append(sid)
         # etiqueta de todos sus estilos: la rejilla busca la candidata de cada casilla en ella
         biomas.CONVENCIONALES[f"{PREFIJO}/{mid}"] = sorted({c for d in mod.ESTILOS.values() for c in d.get("convencionales", [])})
@@ -246,6 +274,16 @@ def write(out, jdump):
             jdump(out, f"data/{NS}/loot_table/{PREFIJO}/{mid}/{name}.json", lootr_aware(tesoro.con_pista(tabla, "medianas")))
     jdump(out, f"data/{NS}/tags/worldgen/structure/{PREFIJO}.json", {"values": todas})
     return lang()
+
+
+def _medidas(mid, estilo, d):
+    """(alto, lado) mayores de las variantes de un estilo del Nether o el End (se construyen de nuevo: write no tiene
+    el registro)."""
+    alto = lado = 0
+    for v, fn in d["variantes"].items():
+        sx, sy, sz = fn(d["paleta"], plantilla(mid, estilo, v)).size()
+        alto, lado = max(alto, sy), max(lado, sx, sz)
+    return alto, lado
 
 
 def lang():

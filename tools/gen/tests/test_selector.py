@@ -135,7 +135,7 @@ def test_grupos_reparten_sin_pasar_del_tope():
     tope = max(sel.TOPE_GRUPO_S, largo)
     assert all(sum(sel.DURACION_S[p] for p in x) <= tope for x in g)
     assert len(g) <= 18                     # con la compilación y la de humo, en una tanda de 20 jobs gratis
-    assert len(sel.grupos(SIN_COMPAT)) <= 12  # un PR con cambios comunes (sin las de compatibilidad) deja máquinas libres
+    assert len(sel.grupos(SIN_COMPAT)) <= 13  # un PR con cambios comunes (sin las de compatibilidad) deja máquinas libres (13 con nether_end, T44)
     assert sel.grupos([]) == [] and sel.grupos(TODAS) == g                # determinista
     assert sel.grupos(["x/nueva.py"]) == [["x/nueva.py"]]                  # sin duración medida: DEFECTO_S
 
@@ -157,12 +157,24 @@ def test_ci_matriz_por_linea_de_ordenes():
 
 
 def test_medianas():
-    mobs = ["tools/smoke/estructuras_medianas.py", "tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
+    mobs = ["tools/smoke/estructuras_medianas.py", "tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py",
+            "tools/smoke/nether_end.py"]
     assert elige("tools/gen/medianas/posada.py") == (False, mobs)       # sus mobs entran en las pruebas de anclados
     assert elige("tools/gen/medianas/__init__.py") == (False, mobs)
     assert elige("tools/smoke/estructuras_medianas.py") == (False, ["tools/smoke/estructuras_medianas.py"])
     completa, p = elige(J + "comun/Medianas.java")      # decide dónde salen: también las de compatibilidad
-    assert not completa and set(p) == {"tools/smoke/estructuras_medianas.py"} | set(COMPAT)
+    assert not completa and set(p) == {"tools/smoke/estructuras_medianas.py", "tools/smoke/nether_end.py"} | set(COMPAT)
+
+
+def test_nether_end():
+    """T44: el contenido del Nether y el End pasa su prueba de servidor."""
+    ne = "tools/smoke/nether_end.py"
+    assert elige(J + "dimensiones/DimensionStructure.java") == (False, [ne])
+    completa, p = elige("tools/gen/dimensiones.py")
+    assert not completa and ne in p and "tools/smoke/estructuras_medianas.py" in p
+    completa, p = elige("tools/gen/unicas/ciudadela_ceniza.py")
+    assert not completa and ne in p and "tools/smoke/trofeos.py" in p
+    assert elige(ne) == (False, [ne])
 
 
 def test_minas():

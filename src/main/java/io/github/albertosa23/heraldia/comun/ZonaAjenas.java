@@ -3,6 +3,7 @@ package io.github.albertosa23.heraldia.comun;
 import io.github.albertosa23.heraldia.config.GridPlacement;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
+import io.github.albertosa23.heraldia.dimensiones.Dimensiones;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -211,7 +212,7 @@ public final class ZonaAjenas {
 			for (int j = 0; j < aldeaIds.length; j++) {
 				Structure s = aldeaStructures[j];
 				if (HeraldiaConfig.get().villages().allows(aldeaIds[j], seed, x, z) && !AtlantisAnchor.excludes(aldeaIds[j], dimension, seed, x, z)
-						&& s.findValidGenerationPoint(new Structure.GenerationContext(registryAccess, generator, biomeSource, sampler,
+						&& Dimensiones.posible(s, biomeSource) && s.findValidGenerationPoint(new Structure.GenerationContext(registryAccess, generator, biomeSource, sampler,
 						randomState, templates, seed, new ChunkPos(x, z), height, s.biomes()::contains)).isPresent()) {
 					return true;
 				}

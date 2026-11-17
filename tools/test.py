@@ -36,6 +36,7 @@ SMOKE_DE_UNICA = {
     "ciudadela": ["tools/smoke/ciudadela_check.py"],
     "coliseo": ["tools/smoke/coliseo_redstone.py"],
     "galeon": ["tools/smoke/galeon_test.py"],
+    "ciudadela_ceniza": ["tools/smoke/nether_end.py"], "sagrario_vacio": ["tools/smoke/nether_end.py"],
     "observatorio": ["tools/smoke/observatorio_smoke.py"],
     "palacio": ["tools/smoke/palacio_redstone.py"],
 }
@@ -84,6 +85,8 @@ ENCARGOS = ["tools/smoke/encargos.py"]
 CARAVANAS = ["tools/smoke/caravanas.py"]
 # Los tipos de medianas traen mobs anclados (y zombis adultos): las pruebas que recorren todos los mobs de las plantillas.
 MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
+# contenido del Nether y el End (T44): medianas y únicas con DIMENSION, su tipo de estructura y su colocación
+NETHER_END = ["tools/smoke/nether_end.py"]
 
 # Mapa ruta -> pruebas de servidor. Se recorre en orden y gana la PRIMERA regla que casa (fnmatch: * cruza «/»).
 # Una lista vacía: el cambio no necesita pruebas de servidor (más allá de la de humo, que va siempre en la CI).
@@ -101,7 +104,9 @@ MAPA = [
     ("tools/gen/loot.py", []),                 # la de humo lee todas las tablas
     ("tools/gen/logros.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"]),
     # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
-    ("tools/gen/medianas/*", MEDIANAS_MOBS), (JAVA + "comun/Medianas.java", MEDIANAS),
+    ("tools/gen/dimensiones.py", NETHER_END + MEDIANAS), (JAVA + "dimensiones/*", NETHER_END),
+    ("tools/gen/unicas/_recinto.py", NETHER_END + DE_TODA_UNICA),
+    ("tools/gen/medianas/*", MEDIANAS_MOBS + NETHER_END), (JAVA + "comun/Medianas.java", MEDIANAS + NETHER_END),
     ("tools/gen/minas/*", MINAS), (JAVA + "minas/*", MINAS + COSTA),
     ("tools/gen/litoral/*", COSTA_MOBS), (JAVA + "costa/*", COSTA),
     # /locate de las minas (T36): la caché compartida de alturas y el cálculo adelantado en paralelo solo los usan las minas
@@ -286,6 +291,7 @@ DURACION_S = {
     "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
     "tools/smoke/encargos.py": 150,                  # dos arranques del mismo mundo y una aldea generada
     "tools/smoke/tesoro.py": 130,                    # medida en local: ~1 min 40 s (tres arranques, la cadena entera y el cofre)
+    "tools/smoke/nether_end.py": 300,                # T44: un arranque, /locate y generación en el Nether y el End, /place de 16 estilos
     "tools/smoke/caravanas.py": 240,                 # medida en local: ~3,5 min (dos arranques, 387 chunks de pasillo y 5 caravanas)
 }
 DEFECTO_S = 90

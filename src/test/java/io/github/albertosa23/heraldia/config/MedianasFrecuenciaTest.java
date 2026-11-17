@@ -155,6 +155,11 @@ class MedianasFrecuenciaTest {
 				}
 				Set<String> b = new HashSet<>();
 				JsonArray structures = set.getAsJsonArray("structures");
+				String primera = structures.get(0).getAsJsonObject().get("structure").getAsString();
+				if (json(data.resolve("worldgen/structure/" + primera.substring("heraldia:".length()) + ".json")).get("type")
+						.getAsString().equals("heraldia:dimension")) {
+					continue; // del Nether o el End: ni en el mundo principal ni en su frecuencia
+				}
 				structures.forEach(e -> b.addAll(biomasDe(e.getAsJsonObject().get("structure").getAsString())));
 				String name = f.getFileName().toString().replace(".json", "");
 				out.add(new Tipo(Identifier.fromNamespaceAndPath("heraldia", dir + "/" + name), rejilla(set), b));

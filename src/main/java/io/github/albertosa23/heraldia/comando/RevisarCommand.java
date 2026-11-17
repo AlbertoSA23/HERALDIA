@@ -11,6 +11,7 @@ import io.github.albertosa23.heraldia.caminos.Caminos;
 import io.github.albertosa23.heraldia.comando.Revision.Marca;
 import io.github.albertosa23.heraldia.comando.Revision.Parada;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.dimensiones.Suelo;
 import io.github.albertosa23.heraldia.costa.Costa;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import java.io.IOException;
@@ -63,6 +64,7 @@ import net.minecraft.world.level.chunk.storage.ChunkScanAccess;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.minecraft.world.level.storage.LevelResource;
@@ -369,8 +371,9 @@ public final class RevisarCommand {
 		}
 		Parada parada = ruta.get(i);
 		MinecraftServer server = src.getServer();
-		ServerLevel level = server.overworld();
-		BlockPos origen = level.getRespawnData().pos();
+		ServerLevel level = nivel(server, parada, estiloFamilia(HeraldiaConfig.get()));
+		// en el Nether y el End no hay punto de reaparición: se busca desde el 0, 0
+		BlockPos origen = level.dimension() == Level.OVERWORLD ? level.getRespawnData().pos() : new BlockPos(0, 64, 0);
 		src.sendSuccess(() -> Textos.t("heraldia.revisar.buscando", nombre(parada)).withStyle(ChatFormatting.GRAY), false);
 		long t0 = System.nanoTime();
 		CompletableFuture<@Nullable Destino> busqueda;
@@ -509,6 +512,27 @@ public final class RevisarCommand {
 		return new Destino(p, InfoCommand.stored(level.getChunkSource().chunkScanner(), c) != null);
 	}
 
+	/**
+	 * Mundo de la parada: el primero (el principal, luego el Nether y el End) cuyas rejillas tienen alguna estructura de
+	 * la parada (las medianas y las únicas del Nether y el End solo están en las suyas). La arena y los caminos, en el
+	 * principal.
+	 */
+	static ServerLevel nivel(MinecraftServer server, Parada parada, Map<String, String> estilos) {
+		if (parada.tipo() == Revision.Tipo.ARENA || parada.tipo() == Revision.Tipo.CAMINO) {
+			return server.overworld();
+		}
+		for (ServerLevel l : server.getAllLevels()) {
+			for (InfoCommand.Group g : InfoCommand.groups(l)) {
+				for (Holder<Structure> h : g.structures()) {
+					if (h.unwrapKey().map(k -> deLaParada(parada, k.identifier(), estilos)).orElse(false)) {
+						return l;
+					}
+				}
+			}
+		}
+		return server.overworld();
+	}
+
 	/** En el hilo del servidor: un chunk cargado (aún sin guardar) puede tener ya la estructura que el disco no tiene. */
 	private static @Nullable Destino confirmar(ServerLevel level, Parada parada, Destino d, Map<String, String> estilos) {
 		if (d.generada()) {
@@ -533,7 +557,7 @@ public final class RevisarCommand {
 
 	/**
 	 * Carga (o, si el operador lo ha pedido, genera) el chunk del destino con un ticket temporal, sin bloquear el hilo del
-	 * servidor, y aparece en el sitio seguro más cercano. Siempre en el mundo principal.
+	 * servidor, y aparece en el sitio seguro más cercano, en el mundo de la parada ({@link #nivel}).
 	 */
 	private static void teletransportar(CommandSourceStack src, ServerPlayer p, ServerLevel level, Destino d, Runnable despues) {
 		ChunkPos c = ChunkPos.containing(d.pos());
@@ -574,6 +598,9 @@ public final class RevisarCommand {
 			@Override
 			public int altura(int x, int z) {
 				LevelChunk ch = level.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z));
+				if (ch != null && level.dimensionType().hasCeiling()) { // el Nether: bajo el techo de bedrock
+					return Seguro.bajoTecho(this, x, z, Suelo.NETHER_DESDE + 8, Suelo.NETHER_HASTA - 2);
+				}
 				return ch == null ? level.getMinY() : ch.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
 			}
 
