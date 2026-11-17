@@ -28,10 +28,11 @@ def reg():
 
 LOTE_1 = ["campamento", "ermita", "posada", "torre_vigia"]
 LOTE_2 = ["cazadores", "molino", "pescador", "templete"]
+CHOZAS = ["choza_mago"]                 # T43: las chozas de mago
 
 
 def test_lotes_y_descubrimiento():
-    assert IDS == sorted(IDS) == sorted(LOTE_1 + LOTE_2)
+    assert IDS == sorted(IDS) == sorted(LOTE_1 + LOTE_2 + CHOZAS)
     assert not any(m.startswith("_") for m in IDS)
 
 
@@ -83,8 +84,8 @@ def test_entidades_marcadas_persistentes_y_ancladas(reg):
                 mobs += 1
                 assert core.ANCLADO_TAG in tags, name
     # campamento: 2 en cada una de sus 6 plantillas; torre alta (2 estilos): el arquero; pescador a (3 estilos): el gato;
-    # cazadores a (2 estilos): el lobo; templete a (2 estilos): dos custodios
-    assert mobs == 2 * 6 + 1 * 2 + 1 * 3 + 1 * 2 + 2 * 2
+    # cazadores a (2 estilos): el lobo; templete a (2 estilos): dos custodios; choza de mago a (6 estilos): el gato
+    assert mobs == 2 * 6 + 1 * 2 + 1 * 3 + 1 * 2 + 2 * 2 + 1 * 6
 
 
 def test_bandidos_sin_patrulla(reg):
@@ -377,7 +378,8 @@ def test_logros_propios_del_lote_2(reg):
                 (crit,) = adv["criteria"].values()
                 assert crit["conditions"]["loot_tables"] == f"heraldia:medianas/{mid}/{ex['tabla']}"
     assert {p for p in advs if p.startswith("medianas/") and p.count("/") == 2} == {
-        "medianas/molino/molienda", "medianas/pescador/pesca", "medianas/cazadores/pieles", "medianas/templete/custodios"}
+        "medianas/molino/molienda", "medianas/pescador/pesca", "medianas/cazadores/pieles", "medianas/templete/custodios",
+        "medianas/choza_mago/tratos", "medianas/choza_mago/malvado"}
     custodios = advs["medianas/templete/custodios"]["criteria"]
     assert set(custodios) == {"skeleton", "husk"}
     assert custodios["husk"]["conditions"]["entity"]["predicate"]["minecraft:entity_tags"] == {"all_of": ["heraldia_mediana.templete"]}
@@ -398,3 +400,10 @@ def test_bioma_vecinos_solo_en_el_pescador_y_en_rango():
     class Franja(_Falsa):
         BIOMA_VECINOS = 0
     assert any("BIOMA_VECINOS" in e for e in _errores(Franja))
+
+
+def test_solo_las_chozas_ceden_a_las_minas(tmp_path):
+    """Las chozas de mago buscan el interior de los mismos biomas que las minas: ceden ellas (etiqueta para el Java)."""
+    assert medianas.ceden_a_minas() == [f"heraldia:medianas/choza_mago/{e}" for e in dict(MODS)["choza_mago"].ESTILOS]
+    assert all(not getattr(m, "CEDE_A_MINAS", False) for mid, m in MODS if mid != "choza_mago")
+    assert medianas.CEDEN_A_MINAS == "medianas/ceden_a_minas"

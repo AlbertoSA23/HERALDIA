@@ -84,6 +84,8 @@ ENCARGOS = ["tools/smoke/encargos.py"]
 CARAVANAS = ["tools/smoke/caravanas.py"]
 # Los tipos de medianas traen mobs anclados (y zombis adultos): las pruebas que recorren todos los mobs de las plantillas.
 MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
+# Chozas de mago (T43): el Mago Malvado (Java chozas/) y su botín y textos; su plantilla es una mediana.
+CHOZAS = ["tools/smoke/chozas_mago.py"]
 
 # Mapa ruta -> pruebas de servidor. Se recorre en orden y gana la PRIMERA regla que casa (fnmatch: * cruza «/»).
 # Una lista vacía: el cambio no necesita pruebas de servidor (más allá de la de humo, que va siempre en la CI).
@@ -101,6 +103,7 @@ MAPA = [
     ("tools/gen/loot.py", []),                 # la de humo lee todas las tablas
     ("tools/gen/logros.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"]),
     # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
+    ("tools/gen/medianas/choza_mago.py", MEDIANAS_MOBS + CHOZAS),
     ("tools/gen/medianas/*", MEDIANAS_MOBS), (JAVA + "comun/Medianas.java", MEDIANAS),
     ("tools/gen/minas/*", MINAS), (JAVA + "minas/*", MINAS + COSTA),
     ("tools/gen/litoral/*", COSTA_MOBS), (JAVA + "costa/*", COSTA),
@@ -110,6 +113,8 @@ MAPA = [
     (JAVA + "encargos/*", ENCARGOS), (JAVA + "mixin/VillagerPreciosMixin.java", ENCARGOS), ("tools/gen/encargos.py", ENCARGOS),
     # caravanas por los caminos (T39)
     (JAVA + "caravanas/*", CARAVANAS), ("tools/gen/caravanas.py", CARAVANAS),
+    # chozas de mago (T43)
+    (JAVA + "chozas/*", CHOZAS), ("tools/gen/chozas_mago.py", CHOZAS),
     # perfiles de juego (T36): su lógica y su comando (el resto de la configuración es común: batería completa)
     (JAVA + "config/Perfiles.java", PERFILES), (JAVA + "comando/ProfileCommand.java", PERFILES),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
@@ -286,6 +291,7 @@ DURACION_S = {
     "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
     "tools/smoke/encargos.py": 150,                  # dos arranques del mismo mundo y una aldea generada
     "tools/smoke/tesoro.py": 130,                    # medida en local: ~1 min 40 s (tres arranques, la cadena entera y el cofre)
+    "tools/smoke/chozas_mago.py": 100,               # medida en local: ~75 s (dos arranques, cuatro chozas y tres Magos Malvados)
     "tools/smoke/caravanas.py": 240,                 # medida en local: ~3,5 min (dos arranques, 387 chunks de pasillo y 5 caravanas)
 }
 DEFECTO_S = 90

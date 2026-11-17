@@ -135,7 +135,7 @@ def test_grupos_reparten_sin_pasar_del_tope():
     tope = max(sel.TOPE_GRUPO_S, largo)
     assert all(sum(sel.DURACION_S[p] for p in x) <= tope for x in g)
     assert len(g) <= 18                     # con la compilación y la de humo, en una tanda de 20 jobs gratis
-    assert len(sel.grupos(SIN_COMPAT)) <= 12  # un PR con cambios comunes (sin las de compatibilidad) deja máquinas libres
+    assert len(sel.grupos(SIN_COMPAT)) <= 13  # un PR con cambios comunes (sin las de compatibilidad) deja máquinas libres (13 con T43: + compilación, humo, JUnit largas, coste y selección = 18 de 20)
     assert sel.grupos([]) == [] and sel.grupos(TODAS) == g                # determinista
     assert sel.grupos(["x/nueva.py"]) == [["x/nueva.py"]]                  # sin duración medida: DEFECTO_S
 
@@ -285,3 +285,14 @@ def test_caravanas():
     assert elige("tools/gen/caravanas.py") == (False, p)
     assert elige("tools/smoke/caravanas.py") == (False, p)
     assert sel.DURACION_S["tools/smoke/caravanas.py"] > 0
+
+
+def test_chozas_mago():
+    p = ["tools/smoke/chozas_mago.py"]
+    assert elige(J + "chozas/Magos.java") == (False, p)
+    assert elige(J + "chozas/Decision.java") == (False, p)
+    assert elige("tools/gen/chozas_mago.py") == (False, p)
+    assert elige("tools/smoke/chozas_mago.py") == (False, p)
+    completo, pruebas = elige("tools/gen/medianas/choza_mago.py")
+    assert not completo and set(p) <= set(pruebas) and "tools/smoke/estructuras_medianas.py" in pruebas
+    assert sel.DURACION_S["tools/smoke/chozas_mago.py"] > 0
