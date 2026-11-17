@@ -308,7 +308,7 @@ Cost: it only works when a player without this version's guide joins or when it 
 
 ## Advancements
 
-A **Heraldia** advancement tab (100 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
+A **Heraldia** advancement tab (106 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
 
 - **Heraldia** (root): enter any Heraldia village, unique structure, medium structure or mine entrance.
 - [Mine entrances](#mine-entrances), a chain: **Under the Hillside** (enter a mine adit, 20), **Mining Camp** (a mining camp, 40) and **Lord of the Galleries** (a mining complex, 80).

@@ -12,7 +12,7 @@ import java.util.UUID;
  * sale del ruedo).
  */
 public final class Partida {
-	/** Cuenta atrás antes de la primera oleada y pausa entre oleadas, en ticks. */
+	/** Cuenta atrás antes de la primera oleada y pausa entre oleadas del cooperativo, en ticks (cada modo, la suya: {@link Modo#pausa()}). */
 	public static final int CUENTA_TICKS = 100, PAUSA_TICKS = 200;
 
 	public enum Estado { LIBRE, CUENTA_ATRAS, OLEADA, PAUSA }
@@ -25,16 +25,32 @@ public final class Partida {
 	private final Set<UUID> participantes = new LinkedHashSet<>();
 	private int oleada, total, pendientes, vivos, contador;
 	private boolean jefePendiente;
+	/** Modo (T41) y, en el contrarreloj, cuántas oleadas hay que superar (0 en los demás). */
+	private Modo modo = Modo.COOPERATIVO;
+	private int objetivo;
+	/** Ticks de partida (desde que empieza la primera oleada) y los que llevaba al superar la última oleada superada. */
+	private long ticks, ticksSuperada;
 
 	public Partida(int mobsPct) {
 		this.mobsPct = mobsPct;
 	}
 
-	/** Toca la campana: empieza la cuenta atrás (solo si no hay partida). */
+	/** Toca la campana: empieza la cuenta atrás de una partida cooperativa (solo si no hay partida). */
 	public boolean empezar() {
+		return empezar(Modo.COOPERATIVO, 0);
+	}
+
+	/**
+	 * Empieza la cuenta atrás de una partida del modo {@code modo} (solo si no hay partida); {@code oleadas}: las del
+	 * contrarreloj (al menos 1; en los demás modos no cuenta).
+	 */
+	public boolean empezar(Modo modo, int oleadas) {
 		if (estado != Estado.LIBRE) {
 			return false;
 		}
+		this.modo = modo;
+		this.objetivo = modo == Modo.CONTRARRELOJ ? Math.max(1, oleadas) : 0;
+		ticks = ticksSuperada = 0;
 		estado = Estado.CUENTA_ATRAS;
 		contador = CUENTA_TICKS;
 		return true;
@@ -52,6 +68,9 @@ public final class Partida {
 	 * llegar a cero (la partida ya está en la oleada siguiente, con sus enemigos pendientes).
 	 */
 	public Paso tick() {
+		if (enJuego()) {
+			ticks++;
+		}
 		if (estado != Estado.CUENTA_ATRAS && estado != Estado.PAUSA) {
 			return Paso.NADA;
 		}
@@ -102,7 +121,11 @@ public final class Partida {
 		}
 	}
 
-	/** Muere (o desaparece) un enemigo. True si con él se supera la oleada (empieza la pausa). */
+	/**
+	 * Muere (o desaparece) un enemigo. True si con él se supera la oleada: empieza la pausa del modo (en la supervivencia,
+	 * de 0 ticks: la siguiente oleada empieza en el tick siguiente). En el contrarreloj, tras la última oleada la partida
+	 * queda {@link #completada()} (en pausa, hasta que quien la mueve la termine).
+	 */
 	public boolean muere() {
 		if (estado != Estado.OLEADA || vivos <= 0) {
 			return false;
@@ -110,10 +133,16 @@ public final class Partida {
 		vivos--;
 		if (vivos == 0 && pendientes == 0) {
 			estado = Estado.PAUSA;
-			contador = PAUSA_TICKS;
+			contador = modo.pausa();
+			ticksSuperada = ticks;
 			return true;
 		}
 		return false;
+	}
+
+	/** ¿Contrarreloj acabado (superadas todas sus oleadas)? */
+	public boolean completada() {
+		return modo == Modo.CONTRARRELOJ && superadas() >= objetivo;
 	}
 
 	/** Un participante cae o sale del ruedo. True si ya no queda ninguno (la partida acaba). */
@@ -128,6 +157,9 @@ public final class Partida {
 		participantes.clear();
 		oleada = total = pendientes = vivos = contador = 0;
 		jefePendiente = false;
+		modo = Modo.COOPERATIVO;
+		objetivo = 0;
+		ticks = ticksSuperada = 0;
 	}
 
 	public boolean enJuego() {
@@ -140,6 +172,25 @@ public final class Partida {
 
 	public int oleada() {
 		return oleada;
+	}
+
+	public Modo modo() {
+		return modo;
+	}
+
+	/** Oleadas del contrarreloj (0 en los demás modos). */
+	public int objetivo() {
+		return objetivo;
+	}
+
+	/** Ticks de partida desde que empezó la primera oleada (la cuenta atrás no cuenta). */
+	public long ticks() {
+		return ticks;
+	}
+
+	/** Ticks de partida al superar la última oleada superada (lo que puntúa: el tiempo del contrarreloj). */
+	public long ticksSuperada() {
+		return ticksSuperada;
 	}
 
 	/** Oleadas ya superadas: en la pausa, la actual; durante una oleada, la anterior. */

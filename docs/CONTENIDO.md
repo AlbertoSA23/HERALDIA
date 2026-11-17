@@ -310,7 +310,7 @@ Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión 
 
 ## Logros
 
-Pestaña de logros **Heraldia** (100 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
+Pestaña de logros **Heraldia** (106 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia, estructura única, mediana o entrada a mina.
 - [Entradas a mina](#entradas-a-mina), en cadena: **Bajo la ladera** (entrar en una boca de mina, 20), **Campamento minero** (en un campamento minero, 40) y **Señor de las galerías** (en un complejo minero, 80).

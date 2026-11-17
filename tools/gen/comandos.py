@@ -30,6 +30,10 @@ CANONICOS = [
     "info", "info nearby", "info nearby <radius>", "info here", "guide", "key", "key <players>", "key <players> <key>",
     "arena", "arena leave", "arena place", "arena place confirm", "arena move", "arena move confirm", "arena remove",
     "arena remove confirm", "arena start", "arena stop",
+    "arena start coop", "arena start timeattack", "arena start survival",   # T41: modos de la arena
+    "arena leaderboard", "arena leaderboard coop", "arena leaderboard coop <week>", "arena leaderboard timeattack",
+    "arena leaderboard timeattack <week>", "arena leaderboard survival", "arena leaderboard survival <week>",
+    "arena season", "arena season reset",
     "review", "review next", "review previous", "review skip", "review skip <note>", "review goto", "review goto <id>",
     "review goto <id> generate", "review mark", "review mark checked", "review mark checked <note>", "review mark problem",
     "review mark problem <note>", "review list", "review status", "review reset",

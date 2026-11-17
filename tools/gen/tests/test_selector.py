@@ -214,7 +214,8 @@ def test_comandos_en_ingles_y_aviso_de_version():
     for r in ("comando/AvisoVersion.java", "version/Version.java", "version/Publicaciones.java", "version/Avisados.java"):
         assert elige(J + r) == update, r
     assert elige("tools/smoke/update_check.py") == update
-    comandos = (False, sorted(["tools/smoke/update_check.py", "tools/smoke/admin.py", "tools/smoke/guia.py", "tools/smoke/arena.py"]))
+    comandos = (False, sorted(["tools/smoke/update_check.py", "tools/smoke/admin.py", "tools/smoke/guia.py", "tools/smoke/arena.py",
+                               "tools/smoke/arena_modos.py"]))
     for r in (J + "comando/Comandos.java", J + "comando/Alias.java", J + "mixin/CommandsMixin.java", "tools/gen/comandos.py"):
         assert (elige(r)[0], sorted(elige(r)[1])) == comandos, r
 
@@ -229,14 +230,16 @@ def test_botin_que_se_repone_y_dificultad():
 
 
 def test_arena_de_oleadas():
-    arena = (False, ["tools/smoke/arena.py"])
+    arena = (False, ["tools/smoke/arena.py", "tools/smoke/arena_modos.py"])
     assert elige(J + "arena/Juego.java") == arena
     assert elige(J + "arena/Oleadas.java") == arena
+    assert elige(J + "arena/Fama.java") == arena                  # T41: modos, clasificación y salón de la fama
     assert elige(J + "mixin/ArenaExplosionMixin.java") == arena
     assert elige("tools/gen/arena_oleadas.py") == arena
-    assert elige("tools/smoke/arena.py") == arena
+    assert elige("tools/smoke/arena.py") == (False, ["tools/smoke/arena.py"])
+    assert elige("tools/smoke/arena_modos.py") == (False, ["tools/smoke/arena_modos.py"])
     assert elige(J + "mixin/ArenaPistonMixin.java", "tools/gen/guia.py") == \
-        (False, ["tools/smoke/arena.py", "tools/smoke/guia.py"])
+        (False, ["tools/smoke/arena.py", "tools/smoke/arena_modos.py", "tools/smoke/guia.py"])
 
 
 def test_coste_de_generacion_por_rutas():

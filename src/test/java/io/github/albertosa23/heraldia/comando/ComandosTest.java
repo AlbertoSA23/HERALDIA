@@ -166,6 +166,24 @@ class ComandosTest {
 	}
 
 	@Test
+	void comandosDeLosModosDeLaArena() {
+		for (String orden : List.of("heraldia arena start coop", "heraldia arena start timeattack", "heraldia arena start survival",
+				"heraldia arena leaderboard", "heraldia arena leaderboard timeattack", "heraldia arena leaderboard survival 3",
+				"heraldia arena season", "heraldia arena season reset", "heraldia arena empezar timeattack")) {
+			parsea(orden, op);
+		}
+		for (String orden : List.of("heraldia arena start", "heraldia arena start survival", "heraldia arena leaderboard",
+				"heraldia arena leaderboard coop 1")) {
+			parsea(orden, jugador);
+		}
+		// la temporada es de operadores; la semana tiene un tope
+		assertTrue(d.parse("heraldia arena season reset", jugador).getReader().canRead());
+		assertTrue(d.parse("heraldia arena leaderboard coop 99", op).getExceptions().size() > 0
+				|| d.parse("heraldia arena leaderboard coop 99", op).getReader().canRead());
+		assertTrue(d.parse("heraldia arena start contrarreloj", op).getReader().canRead(), "los modos, en inglés");
+	}
+
+	@Test
 	void elUltimoNodoDeUnaOrdenAntiguaEsUnaCopia() {
 		List<ParsedCommandNode<CommandSourceStack>> n = d.parse("heraldia arena colocar confirmar", op).getContext().getNodes();
 		assertEquals(List.of("heraldia", "arena", "colocar", "confirmar"), n.stream().map(x -> x.getNode().getName()).toList());
@@ -179,14 +197,19 @@ class ComandosTest {
 		assertEquals(List.of("arena", "guide", "info", "key", "profile", "quest", "reload", "review", "status", "treasure", "update", "webmap"), raiz);
 		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.sugerencias(cliente, "heraldia quest ", op));
 		assertEquals(List.of("give", "info"), AliasTest.sugerencias(cliente, "heraldia treasure ", op));
-		assertEquals(List.of("leave", "move", "place", "remove", "start", "stop"), AliasTest.sugerencias(cliente, "heraldia arena ", op));
+		assertEquals(List.of("leaderboard", "leave", "move", "place", "remove", "season", "start", "stop"),
+				AliasTest.sugerencias(cliente, "heraldia arena ", op));
+		assertEquals(List.of("coop", "survival", "timeattack"), AliasTest.sugerencias(cliente, "heraldia arena start ", op));
+		assertEquals(List.of("reset"), AliasTest.sugerencias(cliente, "heraldia arena season ", op));
 		assertEquals(List.of("here", "nearby"), AliasTest.sugerencias(cliente, "heraldia info ", op));
 		assertEquals(List.of("check"), AliasTest.sugerencias(cliente, "heraldia update ", op));
 		// un jugador sin permisos ve solo lo suyo
 		var deJugador = new CommandDispatcher<>(AliasTest.delCliente(d.getRoot(), jugador));
 		assertEquals(List.of("arena", "guide", "quest", "status"), AliasTest.sugerencias(deJugador, "heraldia ", jugador));
 		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.sugerencias(deJugador, "heraldia quest ", jugador));
-		assertEquals(List.of("leave"), AliasTest.sugerencias(deJugador, "heraldia arena ", jugador));
+		// T41: cualquiera ve la clasificación y start (los botones del menú de modos; el Java pide estar en el ruedo)
+		assertEquals(List.of("leaderboard", "leave", "start"), AliasTest.sugerencias(deJugador, "heraldia arena ", jugador));
+		assertEquals(List.of("coop", "survival", "timeattack"), AliasTest.sugerencias(deJugador, "heraldia arena leaderboard ", jugador));
 		// todos los alias están en el servidor
 		List<String> ocultos = new ArrayList<>();
 		recoger(raiz(), ocultos);
