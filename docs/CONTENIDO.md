@@ -11,6 +11,7 @@ Volver al [README](../README.es.md).
 - **Caravanas**: mercaderes con llamas que recorren los caminos entre aldeas; defiéndelos de los bandidos (ver [Caravanas](#caravanas)).
 - **Chozas de mago**: un mago con tratos en una choza muy decorada; uno de cada cinco es un mago malvado disfrazado (ver [Chozas de mago](#chozas-de-mago)).
 - **Arena de oleadas**: un coliseo cerca del spawn para jugar por oleadas, con récords y recompensas (ver [Arena de oleadas](#arena-de-oleadas)).
+- **Nether y End**: 7 medianas y 2 únicas al otro lado de los portales (ver [Nether y End](#nether-y-end)).
 - **Estructuras únicas** (una cada 3.000-5.000 bloques, cada una en sus biomas):
   - **Palacio oriental** (`heraldia:unicas/palacio`, cerezales y junglas de bambú): recinto amurallado de 81 × 123 con tres patios en eje, salón del trono sobre plataforma de tres gradas, biblioteca con estudio secreto, tesorería con cámara acorazada, jardín con estanque, pagoda de cinco pisos y pabellones de las concubinas; bajo el trono, la cámara del tesoro con su guardián. Puertas secretas de pistones, trampas de flechas y dos generadores. Diseño y planos en [docs/unicas/palacio.md](unicas/palacio.md).
   - **Fortaleza de hielo** (`heraldia:unicas/fortaleza_hielo`): picos de hielo, llanura nevada y taiga nevada. Murallas y
@@ -203,6 +204,54 @@ Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frec
 - Frecuencia, medida con `MedianasFrecuenciaTest` (las rejillas sobre el ruido de biomas real del mundo principal de 26.3, con las aldeas, las únicas y las estructuras vanilla alrededor, 3 semillas, 16.000 × 16.000 bloques): las cifras por tipo, en el [registro de cambios](../CHANGELOG.md) y el PR. Cada rejilla busca su candidata dentro de los biomas del tipo (el sitio de la casilla más metido en ellos), así que un tipo aparece allí donde están sus biomas, como mucho una vez por casilla.
 - Configuración: opciones `medianas.*` (ver [Configuración](CONFIGURACION.md#configuración)). Logros: **Al borde del camino**, **Caminante** y uno propio de cada tipo del lote 2 (ver [Logros](#logros)). **En un mundo ya creado, solo en los chunks nuevos.**
 
+## Nether y End
+
+Heraldia también construye en las otras dos dimensiones (T44). Todo lo de abajo sale **solo en chunks nuevos** del
+Nether y el End, nunca toca la isla central del End ni el combate del dragón, y sigue las mismas reglas que en el mundo
+principal (distancia mínima entre medianas y entre únicas, ceder el sitio a las estructuras vanilla, como bastiones,
+fortalezas y ciudades del End, y a las de otros mods), contando solo las de su misma dimensión.
+
+- **Altura.** Llevan su propio tipo de estructura, `heraldia:dimension`: en el Nether el heightmap de superficie es el
+  techo de bedrock, así que la altura del inicio sale de la columna de ruido (de y = 112 a y = 34, sobre el mar de
+  lava): el primer suelo firme con aire para toda la plantilla encima, con las cuatro esquinas de la huella a ±5 bloques
+  (se prueban hasta 4 suelos de cuevas superpuestas y 5 puntos del chunk candidato). En el End las cuatro esquinas y el
+  centro deben estar sobre una isla (altura ≥ 45, nunca sobre el vacío) y el sitio a más de 1.024 bloques del centro del
+  End. `/place structure` las coloca en cualquier sitio (a y = 64 si no hay suelo).
+- **Rejillas**: candidata al azar en cada casilla (la búsqueda de bioma de las del mundo principal solo lee su ruido) y
+  sin zona de exclusión de las aldeas vanilla. Opciones como siempre: `medianas.<tipo>.*` y `unicas.<id>.*`.
+- **Medianas del Nether**: **Puesto de piglins renegados** (`heraldia:medianas/puesto_piglin/<estilo>`; desiertos del
+  Nether, bosque carmesí): empalizada de piedra negra con una choza y dos piglins brutos renegados, o el corral vacío de
+  los hoglins con una hoguera de almas; **Altar de magma** (`altar_magma`; deltas de basalto, desiertos del Nether): un
+  anillo de pilares y un altar de tres gradas con calderos de lava, con un generador de cubos de magma o roto con dos
+  cubos de magma; **Atalaya de basalto** (`atalaya_basalto`; deltas de basalto, valle de arena de almas): una torre de
+  cuatro plantas con un vigía esqueleto, o una torre con un puente roto; **Santuario de los hongos**
+  (`santuario_hongos`; bosques carmesí y deformado): un templete cerrado de verrugas o un jardín de hongos.
+- **Medianas del End** (islas exteriores: tierras altas, medias y yermos del End): **Observatorio del vacío**
+  (`observatorio_vacio`): una torre con anteojo o una esfera armilar de pilares de púrpura; **Mausoleo púrpura**
+  (`mausoleo_purpura`): una cripta con sarcófago y un generador de endermites, o un mausoleo abierto con dos tumbas;
+  **Embarcadero de los shulkers caídos** (`embarcadero_shulker`): un muelle de púrpura con su caseta y un shulker de
+  guardia, o con el casco roto de una barca del End y su carga.
+- **Ciudadela de Ceniza** (`heraldia:unicas/ciudadela_ceniza`; deltas de basalto y valle de arena de almas): una
+  fortaleza de piedra negra de 35 × 35 con cuatro torres (armería, jaula de los blazes con su generador, despensa y una
+  torre sin puerta a la vista: la sala oculta, tras una puerta de pistones con palanca), un patio con la forja y el
+  torreón: pasillo con trampa de placa y flechas, salón del guardián **Mariscal de Ceniza** (esqueleto wither con
+  fases), cámara del tesoro tras una puerta de hierro con botones y planta alta con la biblioteca.
+- **Sagrario del Vacío** (`heraldia:unicas/sagrario_vacio`; tierras altas y medias del End): una plataforma de 33 × 33
+  con un anillo de pilares de púrpura coronados de varas del End, tres capillas y una cripta oculta tras una puerta de
+  pistones, y el templo con la misma trampa, la nave del guardián **Hierofante del Vacío** (evocador con fases), la
+  cámara del tesoro y el coro con la biblioteca.
+- **Botín** que no rompe el progreso: ni equipo de netherita, ni lingotes, ni restos antiguos, ni élitros, ni nada del
+  dragón (`dimensiones.PROHIBIDO`); como mucho un fragmento de netherita en el cofre premium de la Ciudadela de Ceniza
+  (como en un cofre de bastión) y como mucho un caparazón de shulker. Las medianas siguen su lista de botín modesto.
+- **Sin mapas del tesoro** hacia ellas (un mapa de exploración solo busca en la dimensión donde se crea): cartógrafos,
+  cofres épicos y el pliego de la Crónica solo trazan el mapa de las únicas del mundo principal; la Crónica sigue
+  señalándolas con su pista. `/heraldia review` lleva a su dimensión; los mapas web siguen mostrando solo el mundo
+  principal.
+- Logros: sus únicas tienen los tres de siempre (descubrir, guardián, tesoro); **Caminante del Nether** y **Caminante
+  del vacío** piden una mediana de cada tipo de esa dimensión (**Caminante** se queda con las del mundo principal), y
+  además **Desterrados del bastión** y **Ofrenda de esporas**.
+- Búscalas con `/execute in minecraft:the_nether run locate structure #heraldia:medianas/<tipo>` (o
+  `minecraft:the_end`) y `/execute in ... run heraldia info nearby`.
 ## Chozas de mago
 
 Un tipo más de [estructura mediana](#estructuras-medianas) (`heraldia:medianas/choza_mago/<estilo>`, T43), con las mismas reglas de colocación, opciones (`medianas.choza_mago.activada`, `medianas.choza_mago.separacion_bloques`: 1024) y búsqueda (`/locate structure #heraldia:medianas/choza_mago`). Una cada ~2.000 bloques (`MedianasFrecuenciaTest`).
@@ -309,6 +358,8 @@ Cada guardián con nombre de una estructura única (y el Guardián de Poseidón 
 | Templo-pirámide | Pectoral del Rey Jaguar | `golden_chestplate` | protección 1 |
 | Salón del Jarl | Rompeescudos de Ulfgrim | `iron_axe` | filo 2, irrompibilidad 2 |
 | Santuario druídico | Hoz de oro de Cadoc | `golden_hoe` | eficiencia 2, irrompibilidad 2 |
+| Ciudadela de Ceniza | Hoja de Brasa del Mariscal | `golden_sword` | aspecto ígneo 1, filo 2 |
+| Sagrario del Vacío | Ojo del Hierofante | `ender_eye` | — |
 | Torre de mago | Báculo del Archimago Malvarius | `blaze_rod` | — |
 
 Todos llevan `custom_data` `{heraldia_trofeo:"<id>"}`. Para probar: `/loot give @s loot heraldia:trofeos/<id>`. El desafío **Sala de trofeos** (ver [Logros](#logros)) pide tenerlos todos.
@@ -355,7 +406,7 @@ Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión 
 
 ## Logros
 
-Pestaña de logros **Heraldia** (112 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
+Pestaña de logros **Heraldia** (122 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia, estructura única, mediana o entrada a mina.
 - [Entradas a mina](#entradas-a-mina), en cadena: **Bajo la ladera** (entrar en una boca de mina, 20), **Campamento minero** (en un campamento minero, 40) y **Señor de las galerías** (en un complejo minero, 80).

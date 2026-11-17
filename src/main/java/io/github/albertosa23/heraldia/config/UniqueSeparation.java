@@ -1,5 +1,6 @@
 package io.github.albertosa23.heraldia.config;
 
+import io.github.albertosa23.heraldia.dimensiones.Dimensiones;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -159,13 +160,14 @@ public final class UniqueSeparation {
 		return ids[i];
 	}
 
-	/** Viabilidad real en el juego: la misma comprobación que /locate (StructureCheck.canCreateStructure) más la Atlántida. */
+	/** Viabilidad real en el juego: la misma comprobación que /locate (StructureCheck.canCreateStructure) más la Atlántida.
+	 *  Una única de otra dimensión (Nether, End o el mundo principal visto desde ellas) no sale: no se ensambla. */
 	public Viability viability(RegistryAccess registryAccess, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 							   RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height,
 							   ResourceKey<Level> dimension) {
 		return (j, x, z) -> {
 			Structure s = structures[j];
-			return s != null && !AtlantisAnchor.excludes(ids[j], dimension, seed, x, z)
+			return s != null && !AtlantisAnchor.excludes(ids[j], dimension, seed, x, z) && Dimensiones.posible(s, biomeSource)
 					&& s.findValidGenerationPoint(new Structure.GenerationContext(registryAccess, generator, biomeSource, sampler, randomState,
 					templates, seed, new ChunkPos(x, z), height, s.biomes()::contains)).isPresent();
 		};

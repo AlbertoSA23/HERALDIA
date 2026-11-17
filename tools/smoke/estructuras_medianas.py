@@ -179,6 +179,8 @@ def comprobar_estructuras(ctx):
     fails, tiempos = [], {}
     k = 0
     for mid, mod in medianas.modules():
+        if medianas.dimension(mod) != "overworld":
+            continue                                       # en su dimensión: tools/smoke/nether_end.py
         for estilo in mod.ESTILOS:
             x, z = PLACE_X + k * PASO, PLACE_Z - 400
             k += 1
@@ -238,7 +240,10 @@ def main():
         s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
         log = ctx.log()
         tipos = [mid for mid, _ in medianas.modules()]
+        principal = [mid for mid, mod in medianas.modules() if medianas.dimension(mod) == "overworld"]
         for mid, mod in medianas.modules():
+            if mid not in principal:
+                continue                                   # las del Nether y el End: tools/smoke/nether_end.py
             sp = round(mod.SEPARACION / 16)
             vec = getattr(mod, "BIOMA_VECINOS", None)    # biomas en franja (playas): la búsqueda pide menos vecinos
             m = re.search(rf"rejilla medianas/{mid}: activada, cada {sp} chunks \(separación mínima {(DISTANCIA + 15) // 16}, "
@@ -252,7 +257,7 @@ def main():
         fails += comprobar_plantillas(ctx, ts)
         fails += comprobar_estructuras(ctx)
         fails += comprobar_botin(ctx)
-        fails += comprobar_locate(ctx, tipos)
+        fails += comprobar_locate(ctx, principal)
         if not re.search(rf"estructuras medianas: activadas, {len(tipos)} tipos, frecuencia 100 %, a {ZONA} bloques de aldeas "
                          rf"y únicas y a {DISTANCIA} entre ellas", ctx.log()):
             fails.append("falta en el log la regla de las medianas con su configuración por defecto")

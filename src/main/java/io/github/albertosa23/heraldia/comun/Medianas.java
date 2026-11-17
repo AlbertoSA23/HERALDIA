@@ -3,6 +3,7 @@ package io.github.albertosa23.heraldia.comun;
 import io.github.albertosa23.heraldia.config.GridPlacement;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
+import io.github.albertosa23.heraldia.dimensiones.Dimensiones;
 import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,6 +84,8 @@ public final class Medianas {
 	/** En la memoria de las ajenas, las candidatas de mina van con su índice desplazado (no chocan con las ajenas). */
 	private static final int MINA_CLAVE = 1000;
 	private volatile Memoria memoria = new Memoria(0, new ConcurrentHashMap<>(), new ConcurrentHashMap<>());
+	/** Las del Nether y el End: la misma tabla con su propia memoria (y su propia zona), una por dimensión. */
+	private final ConcurrentHashMap<ResourceKey<Level>, Medianas> otras = new ConcurrentHashMap<>();
 
 	/** Por semilla: decisión por candidata de mediana y si sale cada candidata de estructura ajena. */
 	private record Memoria(long seed, ConcurrentHashMap<Long, Boolean> valores, ConcurrentHashMap<Long, Boolean> ajenas) {
@@ -233,7 +236,7 @@ public final class Medianas {
 		Sale sale = sale(access, generator, biomeSource, sampler, randomState, templates, seed, height);
 		return (j, x, z) -> {
 			for (Structure s : estilos[j]) {
-				if (s.findValidGenerationPoint(new Structure.GenerationContext(access, generator, biomeSource, sampler, randomState,
+				if (Dimensiones.posible(s, biomeSource) && s.findValidGenerationPoint(new Structure.GenerationContext(access, generator, biomeSource, sampler, randomState,
 						templates, seed, new ChunkPos(x, z), height, s.biomes()::contains)).isPresent()) {
 					return !cedeMina(j, x, z, seed, sale);
 				}
@@ -251,15 +254,32 @@ public final class Medianas {
 
 	/**
 	 * La mediana id con inicio en (chunkX, chunkZ) no sale: cae en la zona de una aldea o una única que sale de verdad,
-	 * o junto a otra mediana de rango mayor que sobrevive. Solo para medianas (esMediana); el resto, falso.
+	 * o junto a otra mediana de rango mayor que sobrevive. Solo para medianas (esMediana); el resto, falso. En cualquier
+	 * dimensión: las del Nether y el End (heraldia:dimension) siguen las mismas reglas con las de su dimensión (las
+	 * demás no salen ahí: {@link Dimensiones#posible}).
 	 */
 	public boolean rechaza(Identifier id, int chunkX, int chunkZ, long seed, RegistryAccess access, ChunkGenerator generator,
 						   BiomeSource biomeSource, Climate.Sampler sampler, RandomState randomState, StructureTemplateManager templates,
 						   LevelHeightAccessor height, ResourceKey<Level> dimension) {
 		int i = tipo(id);
-		if (i < 0 || dimension != Level.OVERWORLD) {
+		if (i < 0) {
 			return false;
 		}
+		if (dimension != Level.OVERWORLD) { // memoria aparte: un mismo chunk no vale lo mismo en otra dimensión
+			return otras.computeIfAbsent(dimension, d -> build(sets(), access)).rechazaAqui(i, id, chunkX, chunkZ, seed, access,
+					generator, biomeSource, sampler, randomState, templates, height, dimension);
+		}
+		return rechazaAqui(i, id, chunkX, chunkZ, seed, access, generator, biomeSource, sampler, randomState, templates, height, dimension);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Registry<StructureSet> sets() {
+		return (Registry<StructureSet>) source;
+	}
+
+	private boolean rechazaAqui(int i, Identifier id, int chunkX, int chunkZ, long seed, RegistryAccess access, ChunkGenerator generator,
+								BiomeSource biomeSource, Climate.Sampler sampler, RandomState randomState, StructureTemplateManager templates,
+								LevelHeightAccessor height, ResourceKey<Level> dimension) {
 		Contexto c = contexto(id, access, generator, biomeSource, sampler, randomState, templates, seed, height, dimension);
 		return cedeMina(i, chunkX, chunkZ, seed, sale(access, generator, biomeSource, sampler, randomState, templates, seed, height))
 				|| rechaza(i, chunkX, chunkZ, seed, c.zona(), c.estilos(), c.atlantida());
@@ -277,7 +297,7 @@ public final class Medianas {
 		UniqueSeparation.Viability unica = unicas.viability(access, generator, biomeSource, sampler, randomState, templates, seed, height, dimension);
 		ZonaAjenas.Aldea aldea = zona == null ? null : zona.aldea(access, generator, biomeSource, sampler, randomState, templates, seed, height, dimension);
 		return new Contexto((x, z) -> zona != null && enZona(unicas, seed, x, z, unica, aldea)
-						|| cedeAjena(x, z, seed, (s, cx, cz) -> s.findValidGenerationPoint(new Structure.GenerationContext(access, generator,
+						|| cedeAjena(x, z, seed, (s, cx, cz) -> Dimensiones.posible(s, biomeSource) && s.findValidGenerationPoint(new Structure.GenerationContext(access, generator,
 						biomeSource, sampler, randomState, templates, seed, new ChunkPos(cx, cz), height, s.biomes()::contains)).isPresent()),
 				estilos(access, generator, biomeSource, sampler, randomState, templates, seed, height),
 				(x, z) -> AtlantisAnchor.excludes(id, dimension, seed, x, z));

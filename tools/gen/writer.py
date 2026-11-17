@@ -5,6 +5,7 @@ from themes import THEMES, FAMILIES
 from pack import ALL_PROFS
 import loot
 import unicas
+import dimensiones
 import medianas
 import minas
 import litoral as costa
@@ -250,11 +251,12 @@ def write(reg, out):
     costa.write(out, jdump)
     # botín
     uniques = unicas.modules()
+    con_mapa = dimensiones.del_mundo_principal(uniques)   # un mapa de exploración solo busca en su dimensión
     for name, table in loot.TABLES.items():
         if name == "epico":
-            table = mapas.with_maps(table, uniques)
+            table = mapas.with_maps(table, con_mapa)
         jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
-    mapas.write(out, uniques, jdump)
+    mapas.write(out, con_mapa, jdump)
     tratos.write(out, uniques, jdump)
     con_pista = tesoro.tablas_en_contenedores(reg)       # el fragmento del tesoro, solo en cofres, barriles y vasijas
     for sid, mod in unicas.modules():
@@ -368,7 +370,7 @@ def textos(reg):
         assert extra.get("es_es", {}).keys() == extra.get("en_us", {}).keys(), sid
         for lang, texts in extra.items():
             out[lang].update(texts)
-    partes = [mapas.lang(uniques), logros.build(reg, uniques, medianas.modules(), minas, costa)[1], tratos.lang(),
+    partes = [mapas.lang(dimensiones.del_mundo_principal(uniques)), logros.build(reg, uniques, medianas.modules(), minas, costa)[1], tratos.lang(),
               tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), costa.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), actualizaciones.lang(), encargos.lang(), caravanas.lang(), chozas_mago.lang(),
               trophies_lang(), botin.historia_lang(uniques), tesoro.lang()]
     for parte in partes:
@@ -440,7 +442,9 @@ def history_tables(modules):
         nxt = chain[(i + 1) % len(chain)]
         name = {"translate": logros.name_key(sid), "fallback": logros.unique_name(sid, mods[sid])[0]}
         book = botin.historia_libro(sid, mods[sid].HISTORIA, i + 1, len(chain), nxt, mods[nxt].HISTORIA, name)
-        out[sid] = botin.historia_tabla(book, mapas.map_entry(nxt, mods[nxt], 1))
+        # el mapa de la siguiente, solo si las dos están en el mundo principal (un mapa busca en la dimensión del cofre)
+        mapa = mapas.map_entry(nxt, mods[nxt], 1) if dimensiones.de(mods[sid]) == dimensiones.de(mods[nxt]) == dimensiones.PRINCIPAL else None
+        out[sid] = botin.historia_tabla(book, mapa)
     return out
 
 

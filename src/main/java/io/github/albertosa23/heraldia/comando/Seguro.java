@@ -85,6 +85,20 @@ public final class Seguro {
 		return valido(m, x, y, z) ? Optional.of(new Sitio(x, y, z)) : Optional.empty();
 	}
 
+	/**
+	 * Mundos con techo (el Nether): el heightmap da el techo de bedrock, así que la «altura» de una columna es la primera
+	 * y, de {@code desde} hacia abajo hasta {@code hasta}, con los pies y la cabeza libres y suelo firme debajo; si no hay
+	 * ninguna, la mínima del mundo (la columna no vale). La usa /heraldia review para las paradas del Nether.
+	 */
+	public static int bajoTecho(Mundo m, int x, int z, int desde, int hasta) {
+		for (int y = desde; y > hasta; y--) {
+			if (m.en(x, y, z) == Celda.LIBRE && m.en(x, y + 1, z) == Celda.LIBRE && m.en(x, y - 1, z) == Celda.SOLIDO) {
+				return y;
+			}
+		}
+		return m.minY();
+	}
+
 	/** ¿Se puede estar de pie con los pies en y? Pies y cabeza libres; debajo, suelo firme o agua. */
 	static boolean valido(Mundo m, int x, int y, int z) {
 		Celda abajo = m.en(x, y - 1, z);
