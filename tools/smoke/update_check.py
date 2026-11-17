@@ -134,6 +134,9 @@ def main():
     Api.mc = props["minecraft_version"]
     launcher = s.prepare(a.work, os.path.abspath(a.jar), props)
     shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
+    for f in ("ops.json", "usercache.json"):     # de una pasada anterior: el operador debe entrar sin serlo
+        if os.path.exists(os.path.join(a.work, f)):
+            os.remove(os.path.join(a.work, f))
     api = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Api)
     threading.Thread(target=api.serve_forever, daemon=True).start()
     url = f"http://127.0.0.1:{api.server_address[1]}{RUTA}/releases?per_page=20"
@@ -199,10 +202,7 @@ def main():
         m = srv.esperar(rf"(?:A new version of Heraldia is available|Hay una versión nueva de Heraldia): {re.escape(NUEVA)}|"
                         r"Could not check|No se pudo comprobar|up to date|está al día")
         check(NUEVA in m.group(0), f"/heraldia update check: {m.string.strip()}")
-        # un jugador sin permisos no lo tiene
-        m = ctx.run(f"execute as {INVITADO} run heraldia update check", r"Checking for a new version|Comprobando si hay|"
-                                                                         r"Unknown or incomplete|Incorrect|Unknown command")
-        check(not m.group(0).startswith(("Checking", "Comprobando")), "un jugador sin permisos puede usar /heraldia update check")
+        # (que un jugador sin permisos no lo tiene lo comprueba ComandosTest: «execute as» conserva los de la consola)
 
         # ---------- 2: nombres antiguos ----------
         obsoleto = r"(?:“|«)([^”»]+)(?:”|») (?:is deprecated|está obsoleto)[^:]*: (?:use|usa) (/heraldia [\w ]+|\w+)"
@@ -210,7 +210,8 @@ def main():
                 ("heraldia guia", "/heraldia guide", r"player is required|jugador"),
                 ("heraldia info cerca 64", "/heraldia info nearby", r"info nearby 64 en|estructuras en"),
                 ("heraldia arena parar", "/heraldia arena stop", r"arena|Arena"),
-                ("heraldia llave @a todas", "all", r"llaves|keys|Entregadas|Given")]:
+                ("heraldia llave @a atlantida", "/heraldia key", r"llaves|keys|Entregadas|Given"),
+                ("heraldia key @a todas", "all", r"llaves|keys|Entregadas|Given")]:
             m = ctx.run(antigua, obsoleto)
             check(m.lastindex and m.group(2).strip() == nueva, f"{antigua}: aviso de obsoleto {m.string.strip()}")
             s.drain(ctx, 3)
@@ -249,8 +250,8 @@ def main():
         escribir(a.work, False)
         Api.peticiones.clear()
         srv = Servidor(a.work, launcher, url)
-        srv.esperar(r"aviso de versión nueva desactivado", 30)
         s.drain(srv.ctx, 3)
+        check("aviso de versión nueva desactivado" in "".join(srv.seen), "desactivado: falta la línea del log")
         check(not Api.peticiones, f"con update_check.activado = false se preguntó: {Api.peticiones}")
     finally:
         if srv:
