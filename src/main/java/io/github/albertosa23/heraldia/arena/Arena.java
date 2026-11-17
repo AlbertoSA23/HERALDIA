@@ -32,6 +32,7 @@ import net.minecraft.server.permissions.Permissions;
 import net.minecraft.util.Util;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
@@ -64,7 +65,7 @@ public final class Arena {
 	public static final String TAG = "heraldia_arena";
 	/** Un mundo es nuevo (la arena se genera sola) si al arrancar por primera vez con el mod no ha pasado este tiempo. */
 	static final long MUNDO_NUEVO_TICKS = 1200;
-	private static final int PROPUESTA_TICKS = 6000, CADA_PARTICULAS = 20, RADIO_CUBOS = 6;
+	private static final int PROPUESTA_TICKS = 6000, CADA_PARTICULAS = 20;
 
 	private static @Nullable Plano plano;
 	private static volatile @Nullable Zona zona;
@@ -146,6 +147,19 @@ public final class Arena {
 		return protegido(level, pos, null);
 	}
 
+	/**
+	 * Para ArenaCuboMixin: ¿se niega vaciar un cubo (de agua, lava, nieve polvo...) en {@code pos}? Sí a menos de
+	 * {@link Zona#RADIO_CUBOS} bloques de la arena si lo vacía un dispensador ({@code quien} null) o un jugador que no es
+	 * operador (a los jugadores ya los para {@link #usarObjeto}; esto cubre los dispensadores pegados a la arena).
+	 */
+	public static boolean cuboNegado(Level level, BlockPos pos, @Nullable LivingEntity quien) {
+		Zona z = zona;
+		if (z == null || level != nivel) {
+			return false;
+		}
+		return z.cuboNegado(pos.getX(), pos.getY(), pos.getZ(), quien instanceof Player p && esOperador(p));
+	}
+
 	/** ¿Hay arena en este mundo? (salida temprana de los mixins) */
 	public static boolean hayArena(Level level) {
 		return zona != null && level == nivel;
@@ -209,7 +223,7 @@ public final class Arena {
 			return InteractionResult.PASS;
 		}
 		ItemStack s = p.getItemInHand(hand);
-		if (s.getItem() instanceof BucketItem && z.cerca(p.getBlockX(), p.getBlockY(), p.getBlockZ(), RADIO_CUBOS)) {
+		if (s.getItem() instanceof BucketItem && z.cerca(p.getBlockX(), p.getBlockY(), p.getBlockZ(), Zona.RADIO_CUBOS)) {
 			negar(p, "heraldia.arena.prohibido");
 			return InteractionResult.FAIL;
 		}

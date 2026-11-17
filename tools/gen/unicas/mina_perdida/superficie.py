@@ -121,8 +121,8 @@ class Castillete:
         # escombrera junto a la casa y un cartel a la entrada
         for (x, y, z) in ((5, 1, 3), (6, 1, 3), (7, 1, 3), (6, 1, 4), (7, 1, 4), (8, 1, 4), (6, 2, 4), (7, 2, 3)):
             self.s(x, y, z, "gravel")
-        self.signs.append(("castillete", [("Mina de Hondavena", "Hondavena Mine"), ("Pozo maestro", "Master shaft"),
-                                          ("Cerrada por orden", "Closed by order"), ("de la Corona", "of the Crown")]))
+        self.signs.append(("castillete", [("Mina Hondavena", "Hondavena Mine"), ("Pozo maestro", "Master shaft"),
+                                          ("Cerrada por", "Closed by order"), ("orden real", "of the Crown")]))
         msgs = [text(f"{K}cartel.castillete.{i + 1}", es) for i, (es, _) in enumerate(self.signs[-1][1])]
         self.s(-4, 1, -2, S("spruce_sign", rotation=4, waterlogged=False),
                {"id": "minecraft:sign", "is_waxed": B(1),

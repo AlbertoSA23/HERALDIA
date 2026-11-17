@@ -11,7 +11,7 @@ Las estructuras únicas que comparten bioma, localizadas con /locate, quedan a l
 cada única una posición igual o más cercana que /locate (y dentro del radio), con su tiempo medido.
 Código 0 si todo pasa.
 """
-import argparse, json, math, os, queue, re, shutil, socket, subprocess, sys, threading, time, urllib.request
+import argparse, json, math, os, queue, re, shutil, socket, subprocess, sys, threading, time, urllib.request, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 GENERATED_DATA = os.path.join(ROOT, "build", "generated", "heraldia", "data", "heraldia")
@@ -52,6 +52,7 @@ CONFIG_LOG = [
 ]
 # Con 12 casillas (las 4 que tocan el 0,0 y sus 8 vecinas en cruz, de 94 chunks), toda aldea queda a menos de 2 x 94 x 16 bloques.
 LOCATE_LIMIT = 2 * 94 * 16
+DESCARGA_INTENTOS = 4         # una descarga cortada por la red (se ha visto con Fabric API) se repite
 ERROR_PATTERN = r"Unknown|Incorrect|Failed|Invalid|error|not loaded"
 # /heraldia info cerca: (punto, radio); el último, con el radio máximo, mide el peor caso. La búsqueda va fuera del hilo
 # del servidor; en él solo se confirma (INFO_MAIN_MS como mucho). INFO_MAX_MS es el tope de la respuesta completa.
@@ -70,12 +71,36 @@ def gradle_properties():
     return props
 
 
-def download(url, dest):
-    if not os.path.isfile(dest):
-        print("descargando", url)
-        with urllib.request.urlopen(url) as r, open(dest + ".part", "wb") as f:
-            shutil.copyfileobj(r, f)
-        os.replace(dest + ".part", dest)
+def jar_valido(path):
+    """¿Es un .jar (zip) entero? Una descarga cortada por la red no tiene el directorio central del final."""
+    try:
+        with zipfile.ZipFile(path) as z:
+            return z.testzip() is None
+    except (zipfile.BadZipFile, OSError):
+        return False
+
+
+def download(url, dest, intentos=DESCARGA_INTENTOS):
+    """Descarga `url` en `dest` si no está ya (entero). Una descarga cortada (menos bytes que Content-Length o un .jar
+    sin su final) se repite hasta `intentos` veces en vez de quedarse en la caché y romper las pruebas siguientes."""
+    if os.path.isfile(dest) and (not dest.endswith(".jar") or jar_valido(dest)):
+        return
+    for i in range(1, intentos + 1):
+        print("descargando", url, f"(intento {i})" if i > 1 else "")
+        try:
+            with urllib.request.urlopen(url) as r, open(dest + ".part", "wb") as f:
+                shutil.copyfileobj(r, f)
+                esperado = r.headers.get("Content-Length")
+            ok = (esperado is None or os.path.getsize(dest + ".part") == int(esperado)) and \
+                (not dest.endswith(".jar") or jar_valido(dest + ".part"))
+        except OSError as e:
+            print("descarga fallida:", e)
+            ok = False
+        if ok:
+            os.replace(dest + ".part", dest)
+            return
+        time.sleep(2 * i)
+    raise SystemExit(f"no se pudo descargar entero {url} en {intentos} intentos")
 
 
 def latest_installer():

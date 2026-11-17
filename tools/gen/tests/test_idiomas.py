@@ -85,19 +85,41 @@ def test_paginas_y_carteles_dentro_de_cualquier_objeto():
     paginas = idiomas.paginas_de_libros([("botín", {"pools": [{"entries": [libro]}]}), ("atril", atril)])
     assert [p["translate"] for _, p in paginas] == ["p1", "p2", "p3"]
     cartel = {"front_text": {"messages": [{"translate": "c1"}, {"text": ""}]}, "back_text": {"messages": [{"translate": "c2"}]}}
-    assert idiomas.claves_de_carteles([cartel, {"otra": [cartel]}]) == {"c1", "c2"}
+    assert set(idiomas.claves_de_carteles([cartel, {"otra": [cartel]}])) == {"c1", "c2"}
 
 
 def test_pagina_o_cartel_que_no_cabe_falla():
     largo = "palabra " * 60
     assert idiomas.errores_libros([("x", {"translate": "p"})], {"p": largo}, "fr_fr")
     assert not idiomas.errores_libros([("x", {"translate": "p"})], {"p": "corta"}, "fr_fr")
-    base = {"es_es": {"c": "Corto"}, "en_us": {"c": "Short"}}
-    assert idiomas.errores_carteles({"c"}, base, {"c": "Une ligne beaucoup trop longue"}, "fr_fr")
-    assert not idiomas.errores_carteles({"c"}, base, {"c": "Court"}, "fr_fr")
-    # una línea de es/en que ya se pasa marca el límite: la traducción no puede ir a peor
-    ancho = {"es_es": {"c": "Una línea larguísima"}, "en_us": {"c": "x"}}
-    assert not idiomas.errores_carteles({"c"}, ancho, {"c": "Une ligne longue"}, "fr_fr")
+    assert idiomas.errores_carteles({"c"}, {"c": "Une ligne beaucoup trop longue"}, "fr_fr")
+    assert not idiomas.errores_carteles({"c"}, {"c": "Court"}, "fr_fr")
+
+
+def test_cartel_de_90_px_cabe_y_de_91_no():
+    exacta = "x" * 15                      # 15 × 6 px = 90 px
+    assert botin.ancho(exacta) == idiomas.CARTEL_ANCHO
+    assert not idiomas.errores_carteles({"c"}, {"c": exacta}, "es_es")
+    assert idiomas.errores_carteles({"c"}, {"c": exacta + "!"}, "es_es")      # 92 px
+
+
+def test_cartel_de_es_en_que_no_cabe_hace_fallar_la_generacion(monkeypatch):
+    monkeypatch.setattr(idiomas, "cargar", lambda c: {"c": "Corto"})
+    for largo in ("es_es", "en_us"):
+        base = {"es_es": {"c": "Corto"}, "en_us": {"c": "Short"}}
+        base[largo]["c"] = "Una línea larguísima de cartel"
+        with pytest.raises(SystemExit, match=f"{largo}: la línea de cartel c no cabe"):
+            idiomas.completar(base, carteles={"c"})
+
+
+def test_traduccion_de_cartel_que_no_cabe_falla_aunque_es_sea_mas_ancha(monkeypatch):
+    # antes se toleraba si es/en ya se pasaban; ahora el límite es siempre 90 px
+    base = {"es_es": {"c": "Una línea larguísima de cartel"}, "en_us": {"c": "x"}}
+    assert idiomas.errores_carteles({"c"}, {"c": "Une ligne trop longue ici"}, "fr_fr")
+    monkeypatch.setattr(idiomas, "cargar", lambda c: {"c": "Une ligne trop longue ici"})
+    base["es_es"]["c"] = "Corto"
+    with pytest.raises(SystemExit, match="fr_fr: la línea de cartel c no cabe"):
+        idiomas.completar(base, carteles={"c"})
 
 
 def test_completar_falla_con_una_traduccion_incompleta(monkeypatch):
@@ -210,7 +232,9 @@ def test_tablon_cabe(codigo, trad):
 def test_carteles_caben(codigo, base, trad):
     carteles = {k for k in trad[codigo] if ".cartel." in k and k in base["es_es"]}
     assert carteles
-    assert idiomas.errores_carteles(carteles, base, trad[codigo], codigo) == []
+    assert idiomas.errores_carteles(carteles, trad[codigo], codigo) == []
+    for c in idiomas.BASE:
+        assert idiomas.errores_carteles(carteles, base[c], c) == []
 
 
 @pytest.mark.parametrize("codigo", CODIGOS)
@@ -236,3 +260,13 @@ def test_ficheros_de_traduccion_en_su_formato():
         with open(idiomas.ruta(c), encoding="utf-8") as f:
             texto = f.read()
         assert texto == json.dumps(json.loads(texto), indent=2, ensure_ascii=False) + "\n", c
+
+
+def test_cartel_en_negrita_suma_un_px_por_caracter():
+    cartel = {"front_text": {"messages": [{"translate": "n", "bold": True}, {"translate": "f"}]}}
+    claves = idiomas.claves_de_carteles([cartel])
+    assert claves == {"n": True, "f": False}
+    texto = "a" * 14                                   # 84 px; en negrita, 98
+    assert not idiomas.errores_carteles(claves, {"f": texto}, "es_es")
+    assert idiomas.errores_carteles(claves, {"n": texto}, "es_es")
+    assert idiomas.ancho_cartel("ab", True) == idiomas.ancho_cartel("ab") + 2

@@ -6,7 +6,8 @@ Primer arranque (mundo nuevo, con arena.generar_en_mundos_nuevos):
      sin propuesta falla; /heraldia arena colocar propone el sitio y «colocar confirmar» la coloca (la campana, la
      puerta abierta y el cristal, donde dice arena.json); otra vez «colocar» dice que ya hay una;
   2. protección: el jugador simulado (creativo, sin ser operador) no rompe un bloque ni coloca piedra; como operador sí
-     rompe; una TNT dentro no rompe nada (y fuera sí); un pistón no empuja su muro (y otro fuera sí);
+     rompe; una TNT dentro no rompe nada (y fuera sí); un pistón no empuja su muro (y otro fuera sí); un dispensador
+     pegado a la arena no vacía su cubo de lava (lo suelta como objeto) y otro lejos sí;
   3. partida: el jugador (supervivencia, resistencia 255) toca la campana: cuenta atrás, puerta cerrada, oleada 1 con 4
      enemigos sin modificador de oleada y oleada 2 con 6 y +10 % de vida (heraldia:arena_vida 0,1); los mata
      (/damage ... by el jugador): no sueltan objetos y dan el 15 % de la experiencia vanilla (log de cada oleada);
@@ -215,6 +216,22 @@ def primer_arranque(p, pl):
     p.check(ctx.block((maxx + 1, py, cz), "minecraft:piston[extended=false]"), "un pistón empuja el muro de la arena")
     p.check(not ctx.block(pilar, "minecraft:air"), "el pilar de la arena se movió")
     p.check(ctx.block((gx, py, cz), "minecraft:piston[extended=true]"), "control: el pistón de fuera no se mueve")
+    # dispensador con un cubo de lava pegado a la fachada (oeste) y otro lejos (control): ArenaCuboMixin
+    for x0, desc in ((minx - 2, "junto a la arena"), (maxx + 30, "lejos (control)")):
+        ctx.run(f"fill {x0 - 2} {py - 1} {cz - 1} {x0 + 1} {py + 1} {cz + 1} minecraft:air", r"Successfully filled|No blocks")
+        ctx.run(f"fill {x0 - 2} {py - 2} {cz - 1} {x0 + 1} {py - 2} {cz + 1} minecraft:stone", r"Successfully filled|No blocks")
+        ctx.run(f'setblock {x0} {py} {cz} minecraft:dispenser[facing=east]{{Items:[{{Slot:0b,id:"minecraft:lava_bucket",count:1}}]}}',
+                r"Changed the block|Could not set")
+        ctx.run(f"setblock {x0 - 1} {py} {cz} minecraft:redstone_block", r"Changed the block|Could not set")
+    ctx.ticks(10)
+    p.check(not ctx.block((minx - 1, py, cz), "minecraft:lava"), "un dispensador vacía un cubo de lava junto a la arena")
+    p.check(ctx.until(f"execute if entity @e[type=minecraft:item,x={minx - 1},y={py},z={cz},distance=..3,"
+                      f"nbt={{Item:{{id:\"minecraft:lava_bucket\"}}}}]"),
+            "el dispensador junto a la arena no suelta el cubo de lava como objeto")
+    p.check(ctx.block((maxx + 31, py, cz), "minecraft:lava"), "control: el dispensador lejos de la arena no vacía su cubo")
+    ctx.run(f"fill {maxx + 27} {py - 1} {cz - 1} {maxx + 33} {py + 1} {cz + 1} minecraft:air", r"Successfully filled|No blocks")
+    ctx.run(f"fill {minx - 4} {py - 1} {cz - 1} {minx - 1} {py + 1} {cz + 1} minecraft:air", r"Successfully filled|No blocks")
+    ctx.run(f"kill @e[type=minecraft:item,x={minx - 1},y={py},z={cz},distance=..6]", r"Killed|No entity")
 
     # 3. partida con la campana
     ctx.run(f"gamemode survival {P}", r"Set .* game mode|game mode")

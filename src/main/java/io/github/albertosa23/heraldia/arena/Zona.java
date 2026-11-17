@@ -6,6 +6,8 @@ package io.github.albertosa23.heraldia.arena;
  * posiciones del mundo de la campana, la puerta, los puntos de aparición y la reaparición. Sin clases del juego.
  */
 public record Zona(int ox, int oy, int oz, Plano plano) {
+	/** Bloques alrededor de la caja donde no se vacían cubos (jugadores que no son operadores y dispensadores). */
+	public static final int RADIO_CUBOS = 6;
 
 	/** Origen de la plantilla para que su centro caiga en la columna (cx, cz) y su suelo en la altura {@code suelo}. */
 	public static Zona centrada(int cx, int cz, int suelo, Plano plano) {
@@ -44,6 +46,14 @@ public record Zona(int ox, int oy, int oz, Plano plano) {
 	/** ¿Bloque dentro de la caja ampliada {@code m} bloques por cada lado? */
 	public boolean cerca(int x, int y, int z, int m) {
 		return x >= ox - m && y >= oy - m && z >= oz - m && x <= maxX() + m && y <= maxY() + m && z <= maxZ() + m;
+	}
+
+	/**
+	 * ¿Se niega vaciar un cubo en este bloque? A menos de {@link #RADIO_CUBOS} de la caja, salvo a un operador (un
+	 * dispensador nunca lo es): así un dispensador pegado a la arena no la inunda ni le echa lava.
+	 */
+	public boolean cuboNegado(int x, int y, int z, boolean operador) {
+		return !operador && cerca(x, y, z, RADIO_CUBOS);
 	}
 
 	/** Centro del ruedo (x, z del centro de su columna). */

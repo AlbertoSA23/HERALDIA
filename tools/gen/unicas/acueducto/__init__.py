@@ -45,7 +45,7 @@ TEXTOS = {   # clave: (español, inglés)
     "cartel.villa": ("DOMVS PRAEFECTI", "DOMVS PRAEFECTI"),
     "cartel.castellum1": ("CASTELLVM", "CASTELLVM"), "cartel.castellum2": ("AQVAE", "AQVAE"),
     "palanca.aqva": ("AQVA", "AQVA"), "palanca.ignis": ("IGNIS", "IGNIS"), "palanca.terra": ("TERRA", "TERRA"),
-    "pista1": ("El agua y la tierra", "Water and earth"), "pista2": ("sostienen la ciudad;", "uphold the city;"),
+    "pista1": ("Agua y tierra", "Water and earth"), "pista2": ("alzan la ciudad;", "uphold the city;"),
     "pista3": ("el fuego", "fire"), "pista4": ("la consume.", "consumes it."),
     "ofrenda1": ("OBOLVM AQVIS", "OBOLVM AQVIS"), "ofrenda2": ("Da tu óbolo", "Give your coin"),
     "ofrenda3": ("a las aguas", "to the waters"),

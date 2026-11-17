@@ -194,8 +194,8 @@ def cartel(o, x, z, tam):
 
 
 CARTELES = {"pequena": (("Boca de mina", "Mine adit"), ("Ojo con el grisú", "Mind the firedamp")),
-            "mediana": (("Campamento minero", "Mining camp"), ("Solo personal", "Staff only")),
-            "grande": (("Minas reales", "Royal mines"), ("Pozo y galerías", "Shaft and galleries"))}
+            "mediana": (("Poblado minero", "Mining camp"), ("Solo personal", "Staff only")),
+            "grande": (("Minas reales", "Royal mines"), ("Pozo y galerías", "Shaft & galleries"))}
 
 
 def torre(e, cx, cz, alto=14):

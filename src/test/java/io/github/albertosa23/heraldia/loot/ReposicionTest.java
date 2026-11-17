@@ -139,6 +139,7 @@ class ReposicionTest {
 		assertTrue(vistas.stream().anyMatch(v -> v.startsWith("heraldia:cofres/")), "ninguna de aldea");
 		assertTrue(vistas.stream().anyMatch(v -> v.startsWith("heraldia:medianas/")), "ninguna de mediana");
 		assertTrue(vistas.stream().anyMatch(v -> v.startsWith("heraldia:unicas/")), "ninguna de única");
+		assertTrue(vistas.stream().anyMatch(v -> v.startsWith("heraldia:minas/")), "ninguna de entrada a mina");
 		assertTrue(malas.isEmpty(), "tablas de cofre que no se repondrían: " + malas);
 	}
 }

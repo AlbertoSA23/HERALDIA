@@ -56,6 +56,20 @@ def main():
         cmd(f"setblock {at(base, bp, crypt)} {blocks_at[bp]}")
 
     blocks_at = {}
+
+    def diagnostico_trampa():
+        """Qué hay junto al cable trampa cuando sus dispensadores ya han disparado (fallo intermitente, ver APRENDIZAJES)."""
+        x, y, z = (int(c) for c in at(TUM, (55, -6, 58), True).split())
+        for d in ((54, -5, 58), (57, -5, 58)):
+            cmd(f"data get block {at(TUM, d, True)} Items", r"has the following block data|not a block entity|Items")
+        cmd(f"execute if entity @e[type=!minecraft:player,x={x},y={y},z={z},distance=..24]")
+        for _ in range(6):
+            m = cmd(f"data get entity @e[type=!minecraft:player,x={x},y={y},z={z},distance=..24,limit=1,sort=nearest]",
+                    r"has the following entity data|No entity was found")
+            if "No entity" in m.group(0):
+                break
+            print("DIAG trampa:", [l for l in seen[-3:]])
+            cmd(f"kill @e[type=!minecraft:player,x={x},y={y},z={z},distance=..24,limit=1,sort=nearest]", r"Killed|No entity")
     try:
         sm.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", sm.START_TIMEOUT_S, seen)
         for c in ("forceload add -96 -96 95 95", "forceload add 1990 -10 2080 80", "forceload add 2190 -10 2260 60"):
@@ -125,7 +139,9 @@ def main():
         for p in sec:
             check(f"la palanca abre la puerta del escaldo {p}", f"execute if block {at(TUM, p, True)} minecraft:air")
         # trampas
-        check("dispensadores del cable trampa cargados", f"execute if data block {at(TUM, (54, -5, 58), True)} {ARROWS}")
+        m = check("dispensadores del cable trampa cargados", f"execute if data block {at(TUM, (54, -5, 58), True)} {ARROWS}")
+        if "failed" in m.group(0):
+            diagnostico_trampa()
         x, y, z = (int(c) for c in at(TUM, (55, -6, 58), True).split())
         cmd(f"summon minecraft:zombie {x + 0.5} {y} {z + 0.5} {{NoAI:1b,Silent:1b,PersistenceRequired:1b}}")
         ctx.ticks(60)

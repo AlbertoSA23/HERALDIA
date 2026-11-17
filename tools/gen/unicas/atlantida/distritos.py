@@ -20,7 +20,7 @@ def sala(v, u1, v1, u2, v2, y1, y2, muro=LADRILLO, suelo=OSCURA, techo=OSCURA):
 
 def pista(n, es, en):
     """Cartel con una cifra de la combinación del templo."""
-    return [C.texto("pista.titulo", "Sello del templo", "Seal of the temple", bold=C.B(1)),
+    return [C.texto("pista.titulo", "Sello sagrado", "Temple seal", bold=C.B(1)),
             C.texto(f"pista.{n}", es, en)]
 
 
@@ -66,14 +66,14 @@ def agora(v):
     for u in (u1 + 1, u2 - 1):
         v.set(u, 6, w1 + 1, LINTERNA)
         v.set(u, 6, w2 - 1, LINTERNA)
-    C.cartel(v, u1 + 4, 2, w1 + 1, "south", [C.texto("agora.1", "Tres sellos guardan", "Three seals guard"),
-                                             C.texto("agora.2", "el paso al templo:", "the way to the temple:"),
+    C.cartel(v, u1 + 4, 2, w1 + 1, "south", [C.texto("agora.1", "Tres sellos dan", "Three seals open"),
+                                             C.texto("agora.2", "paso al templo:", "the temple path:"),
                                              C.texto("agora.3", "arsenal, academia", "arsenal, academy"),
                                              C.texto("agora.4", "y anfiteatro.", "and amphitheatre.")])
     C.cartel(v, u2 - 4, 2, w1 + 1, "south", [C.texto("agora.5", "Sus llaves abren", "Their keys open"),
-                                             C.texto("agora.6", "las arcas del templo.", "the temple coffers."),
-                                             C.texto("agora.7", "La de Poseidón", "The Key of Poseidon"),
-                                             C.texto("agora.8", "la guarda su guardián.", "lies with his warden.")])
+                                             C.texto("agora.6", "arcas del templo.", "temple coffers."),
+                                             C.texto("agora.7", "La de Poseidón", "Poseidon's key"),
+                                             C.texto("agora.8", "es del guardián.", "is with his warden.")])
     C.cofre(v, u1 + 1, 1, w1 + 4, "east", "media")
     v.set(u2 - 1, 1, w1 + 4, "lectern[facing=west]", {"id": "minecraft:lectern"})
     v.marca("seca", u1 + 3, 1, w1 + 3)
@@ -250,8 +250,8 @@ def academia(v):
             C.generador(v, ua + 2, 1, 20, "drowned", tridente=False)
             C.cofre(v, ub - 1, 1, 20, "west", "media")
     # ala norte (lado 1, hacia v negativo): las cuatro pistas de la combinación, repartidas tras las estanterías
-    pistas = [("academia.p1", "La primera, suelta", "The first, released"), ("academia.p2", "La segunda, alzada", "The second, raised"),
-              ("academia.p3", "La tercera, alzada", "The third, raised"), ("academia.p4", "La cuarta, suelta", "The fourth, released")]
+    pistas = [("academia.p1", "Primera: suelta", "First: released"), ("academia.p2", "Segunda: alzada", "Second: raised"),
+              ("academia.p3", "Tercera: alzada", "Third: raised"), ("academia.p4", "Cuarta: suelta", "Fourth: released")]
     for (clave, es, en), (u, w, mira) in zip(pistas, ((39, -20, "west"), (-39, -20, "east"), (39, 20, "west"), (-39, 20, "east"))):
         C.cartel(v, u, 2, w, mira, [C.texto(clave, es, en)])
     # cámara del sello: tras la puerta de combinación, en el testero sur del ala este

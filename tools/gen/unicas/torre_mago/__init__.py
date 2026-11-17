@@ -54,7 +54,7 @@ STRUCTURE = dict(biomes="#heraldia:oscuro", start_pool=f"{NSP}/inicio", size=1, 
 # ------------------------------------------------------------------ textos (es_es / en_us)
 TXT = {
     "guardian": ("Archimago Malvarius", "Archmage Malvarius"),
-    "cartel.caldero.1": ("Lo que el caldero", "What the cauldron"),
+    "cartel.caldero.1": ("Lo que el caldero", "What a cauldron"),
     "cartel.caldero.2": ("guarda lleno", "keeps when full"),
     "cartel.caldero.3": ("abre lo que", "opens what"),
     "cartel.caldero.4": ("el hierro cierra", "the iron shuts"),

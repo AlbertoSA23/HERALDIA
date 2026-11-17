@@ -59,6 +59,15 @@ class ZonaTest {
 	}
 
 	@Test
+	void cubosNegadosJuntoALaArenaSalvoAOperadores() {
+		Zona z = Zona.centrada(300, -100, 70, plano());     // caja x 272..328, como en el test de la caja
+		assertTrue(z.cuboNegado(300, 70, -100, false), "dentro");
+		assertTrue(z.cuboNegado(272 - Zona.RADIO_CUBOS, 70, -100, false), "un dispensador pegado por fuera, a 6 bloques");
+		assertFalse(z.cuboNegado(271 - Zona.RADIO_CUBOS, 70, -100, false), "más lejos, sí se puede");
+		assertFalse(z.cuboNegado(300, 70, -100, true), "un operador puede");
+	}
+
+	@Test
 	void permisosOperadorSiNoOperadorNo() {
 		Zona z = Zona.centrada(0, 0, 64, plano());
 		assertTrue(z.protegido(0, 64, 0, false), "un jugador normal no puede tocarla");

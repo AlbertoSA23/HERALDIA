@@ -64,8 +64,8 @@ Coordenadas de la obra: x de oeste a este, z de norte a sur; el pozo baja por x 
 
 - **Castillete** (superficie): cuatro pies derechos de abeto con vigas, tornapuntas y un tejadillo; de la viga maestra
   cuelga la cadena de la cubeta, que baja hasta el fondo. Brocal de adoquín con la escalera de mano, la **casa del
-  malacate** (el tambor del torno, cofre `malacate`) y la escombrera. Cartel: «Mina de Hondavena. Pozo maestro. Cerrada
-  por orden de la Corona».
+  malacate** (el tambor del torno, cofre `malacate`) y la escombrera. Cartel: «Mina Hondavena. Pozo maestro. Cerrada
+  por orden real».
 - **Pozo maestro**: hueco de 3 x 3 con la escalera de mano y la cadena, forro de tablas con un marco de troncos cada 4
   bloques. Abajo, la cubeta (un caldero) en la **estación del pozo** (cofre `estacion`, toneles, el cartel del pozo).
 - **La gran caverna** (superelipse de 55 x 43, bóveda de 5 a 16 bloques con ruido): suelo de adoquín, plaza de andesita

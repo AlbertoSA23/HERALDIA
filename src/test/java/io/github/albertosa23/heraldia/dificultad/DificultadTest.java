@@ -187,6 +187,8 @@ class DificultadTest {
 		assertTrue(DificultadMobs.esBotinDeCofre(key("heraldia:cofres/herreria")));
 		assertTrue(DificultadMobs.esBotinDeCofre(key("heraldia:unicas/castillo/armeria")));
 		assertTrue(DificultadMobs.esBotinDeCofre(key("heraldia:medianas/posada/despensa")));
+		assertTrue(DificultadMobs.esBotinDeCofre(key("heraldia:minas/capataz")), "las entradas a mina (T30) también");
+		assertFalse(DificultadMobs.esBotinDeCofre(key("heraldia:arena/recompensa_1")), "las recompensas de la arena no");
 		assertFalse(DificultadMobs.esBotinDeCofre(key("heraldia:guardianes/castillo/zombie")));
 		assertFalse(DificultadMobs.esBotinDeCofre(key("heraldia:trofeos/castillo")));
 		assertFalse(DificultadMobs.esBotinDeCofre(key("minecraft:chests/simple_dungeon")));

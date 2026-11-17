@@ -458,7 +458,7 @@ class Obra:
         self.s(ox1 + 2, 1, zd, slab("spruce", "top"))
         self.s(ox1 + 2, 2, zd, S("candle", candles=3, lit=False, waterlogged=False))
         self.hang(ox1 + 3, 4, zd, soul=True)
-        self.sign(ox2 - 1, 2, zd - 2, "south", "vias", [("A la báscula:", "To the weighbridge:"),
+        self.sign(ox2 - 1, 2, zd - 2, "south", "vias", [("A la báscula:", "Weighbridge:"),
                                                         ("aguja 1, norte;", "switch 1, north;"),
                                                         ("aguja 2, este.", "switch 2, east."),
                                                         ("— Tizón", "— Tizon")])

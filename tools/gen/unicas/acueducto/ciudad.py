@@ -362,8 +362,8 @@ def templo(o):
     o.f(47, 4, 27, 49, 4, 27, "smooth_quartz")
     o.f(48, 5, 27, 48, 6, 27, "quartz_pillar[axis=y]"); o.s(48, 7, 27, "chiseled_quartz_block")
     o.s(48, 4, 30, "chiseled_quartz_block"); o.s(48, 5, 30, "candle[candles=4,lit=false,waterlogged=false]")
-    o.sign(44, 5, 30, "east", [("heraldia.unicas.acueducto.pista1", "El agua y la tierra"),
-                              ("heraldia.unicas.acueducto.pista2", "sostienen la ciudad;"),
+    o.sign(44, 5, 30, "east", [("heraldia.unicas.acueducto.pista1", "Agua y tierra"),
+                              ("heraldia.unicas.acueducto.pista2", "alzan la ciudad;"),
                               ("heraldia.unicas.acueducto.pista3", "el fuego"),
                               ("heraldia.unicas.acueducto.pista4", "la consume.")])
     o.chest(52, 4, 33, "west", "menor")
