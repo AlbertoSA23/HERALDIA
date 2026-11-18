@@ -140,6 +140,8 @@ MAP = [
     (JAVA + "mixin/DrownedMixin.java", ["tools/smoke/adult_guardians.py"]),
     (JAVA + "mixin/DrownedWaterMixin.java", ["tools/smoke/anchored_guardians.py"]),
     (JAVA + "mixin/DrownedBeachMixin.java", ["tools/smoke/anchored_guardians.py"]),
+    (JAVA + "mixin/CubeMobJumpMixin.java", ["tools/smoke/anchored_guardians.py"]),
+    (JAVA + "mixin/PiglinStrollMixin.java", ["tools/smoke/anchored_guardians.py"]),
     (JAVA + "common/Anchoring.java", ["tools/smoke/anchored_guardians.py"]),
     # replenished loot and configurable difficulty (T29)
     (JAVA + "loot/RestockedLoot.java", ["tools/smoke/loot_restock.py"]), (JAVA + "loot/Restock.java", ["tools/smoke/loot_restock.py"]),

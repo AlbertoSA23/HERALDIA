@@ -19,7 +19,9 @@ import net.minecraft.world.entity.Mob;
  * </ul>
  * No mixin: a Fabric API event with an early exit (tag set, almost always empty); nothing per tick.
  * Drowned also have two goals that move them without looking at {@code noActionTime} (going to water by day, to the shore
- * by night): {@code DrownedWaterMixin} and {@code DrownedBeachMixin} switch them off with {@link #still(Mob)}.
+ * by night): {@code DrownedWaterMixin} and {@code DrownedBeachMixin} switch them off with {@link #still(Mob)}. The same
+ * for magma cubes and slimes, which hop forever instead of strolling ({@code CubeMobJumpMixin}), and for piglins and
+ * piglin brutes, whose brain picks walk targets without looking at {@code noActionTime} ({@code PiglinStrollMixin}).
  */
 public final class Anchoring {
 	/** Tag of the anchored mobs; the same as core.ANCHORED_TAG. */
