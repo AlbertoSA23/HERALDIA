@@ -4,8 +4,10 @@ import os, sys
 import pytest
 
 SMOKE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "smoke")
+_path = list(sys.path)      # tools/smoke only while importing (see test_compat_mods.py)
 sys.path.insert(0, SMOKE)
 import runtime_cost as r  # noqa: E402
+sys.path[:] = _path
 
 
 def test_tick_stats():
