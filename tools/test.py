@@ -322,51 +322,57 @@ def changed_list(base):
 
 
 # Measured duration of each test in CI (s, only the test step; server already cached). Used to distribute them
-# into similar groups; a test that is not here counts as DEFAULT_S.
+# into similar groups; a test that is not here counts as DEFAULT_S. Recalibrated from the "OK <test> (N s)" lines of a
+# full-suite run on develop (CI run 44355003539, Nov 2026): the CI time plus 10 %, rounded up to 5 s. Where that run is no
+# reference (the test failed in it, or changed afterwards: village_terrain.py) the higher of the old value and the
+# measurement is kept. Before, many values were local guesses far above CI (nether_end 300 vs 41 s, mine_entrances 250 vs
+# 79) and two were below (anchored_guardians 450 vs 509, caravans 330 vs 348). A new test: write its real CI time (the
+# "OK ... (N s)" line of its group's job), not an estimate. Note that the number of groups is about total / longest test:
+# making the longest test shorter means MORE groups (each group is at most as long as the longest test).
 DURATION_S = {
-    "tools/smoke/village_life.py": 170, "tools/smoke/village_variants.py": 135, "tools/smoke/village_terrain.py": 235,
-    "tools/smoke/village_routes.py": 110,          # measured locally: ~105 s (3 villages on a flat world, 14,000 ticks)
-    "tools/gen/uniques/corsair_island/smoke_server.py": 100, "tools/gen/uniques/lost_mine/smoke_server.py": 95,
-    "tools/smoke/trophies.py": 90, "tools/smoke/citadel_check.py": 80, "tools/smoke/observatory_smoke.py": 75,
-    "tools/smoke/adult_guardians.py": 72, "tools/gen/uniques/sanctuary/smoke_server.py": 70,
-    "tools/gen/uniques/cathedral/smoke_game.py": 65, "tools/gen/uniques/jarl_hall/smoke_server.py": 65,
-    "tools/gen/uniques/mycelium_lab/smoke_server.py": 64, "tools/smoke/story.py": 62,
-    "tools/smoke/palace_redstone.py": 57, "tools/smoke/terralith_biomes.py": 50,
-    "tools/gen/uniques/ice_fortress/smoke_server.py": 47, "tools/gen/uniques/monastery/smoke_server.py": 45,
-    "tools/gen/uniques/castle/smoke_redstone.py": 44, "tools/gen/uniques/mansion/smoke_server.py": 40,
-    "tools/smoke/colosseum_redstone.py": 39, "tools/smoke/compatible_grid.py": 80, "tools/smoke/roads.py": 300,
-    "tools/gen/uniques/wizard_tower/smoke_redstone.py": 33,
-    "tools/gen/uniques/pyramid/smoke_server.py": 28, "tools/smoke/galleon_test.py": 26,
-    "tools/smoke/cleared_spawners.py": 90,               # measured locally: 87 s (three starts and a generated castle)
-    "tools/smoke/boss_phases.py": 70,                     # measured locally: 60 s with two starts (the second, with the options disabled)
-    # compatibility (measured locally on 4 cores with downloads cached, plus 30 % for CI)
-    **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
-                                         "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
-    "tools/smoke/anchored_guardians.py": 450,
-    "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
-    "tools/smoke/guide.py": 120,                      # three server starts
-    "tools/smoke/search_cache.py": 90,                # measured locally (4 cores): 50 s, three starts, eleven searches
-    "tools/smoke/journal.py": 90,                     # one start and a few commands as simulated players (with the end of the Chronicle)
-    "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
-    "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
-    "tools/smoke/profiles.py": 110,                  # four starts of the same world
-    "tools/smoke/light_profile.py": 100,             # measured locally: ~1 min 40 s (three starts and 1,300 sprinted ticks)
-    "tools/smoke/update.py": 140,                # measured locally: ~2 min 15 s (two starts and a zone of 400 chunks)
-    "tools/smoke/update_path_b.py": 160,         # measured locally: ~2 min (five starts, a zone of ~200 chunks, path B and undo)
-    "tools/smoke/loot_restock.py": 100,             # measured locally: 72 s (two starts and a generated hermitage)
-    "tools/smoke/difficulty.py": 100,                # measured locally: ~70 s (four starts of the same world)
-    "tools/smoke/arena.py": 150,                     # measured locally: ~2 min (two starts, three builds and five waves)
-    "tools/smoke/arena_modes.py": 200,               # two starts, one build, seven short waves and the two-week close
-    "tools/smoke/admin.py": 80,                      # measured locally: 60 s (two starts and two medium structures loaded or generated)
-    "tools/smoke/update_check.py": 120,              # three starts (with the fake API, without network and disabled)
-    "tools/smoke/web_maps.py": 240,                 # three starts (without maps, with squaremap and Carpet, and after restarting)
-    "tools/smoke/existing_world.py": 150,           # measured locally: ~2 min (three starts of the same world)
-    "tools/smoke/quests.py": 150,                  # two starts of the same world and a generated village
-    "tools/smoke/treasure.py": 130,                    # measured locally: ~1 min 40 s (three starts, the whole chain and the chest)
-    "tools/smoke/nether_end.py": 300,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
-    "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)
-    "tools/smoke/caravans.py": 330,                 # measured locally: ~5.5 min (two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py)
-    "tools/smoke/ambience.py": 120,                 # measured locally: ~2 min (one start, three /locate'd structures, ~11,000 sprinted ticks)
+    "tools/smoke/village_life.py": 165, "tools/smoke/village_variants.py": 190, "tools/smoke/village_terrain.py": 235,
+    "tools/smoke/village_routes.py": 110,          # 3 villages on a flat world, 14,000 ticks
+    "tools/gen/uniques/corsair_island/smoke_server.py": 120, "tools/gen/uniques/lost_mine/smoke_server.py": 85,
+    "tools/smoke/trophies.py": 105, "tools/smoke/citadel_check.py": 85, "tools/smoke/observatory_smoke.py": 85,
+    "tools/smoke/adult_guardians.py": 125, "tools/gen/uniques/sanctuary/smoke_server.py": 80,
+    "tools/gen/uniques/cathedral/smoke_game.py": 70, "tools/gen/uniques/jarl_hall/smoke_server.py": 60,
+    "tools/gen/uniques/mycelium_lab/smoke_server.py": 65, "tools/smoke/story.py": 55,
+    "tools/smoke/palace_redstone.py": 50, "tools/smoke/terralith_biomes.py": 30,
+    "tools/gen/uniques/ice_fortress/smoke_server.py": 30, "tools/gen/uniques/monastery/smoke_server.py": 40,
+    "tools/gen/uniques/castle/smoke_redstone.py": 40, "tools/gen/uniques/mansion/smoke_server.py": 45,
+    "tools/smoke/colosseum_redstone.py": 55, "tools/smoke/compatible_grid.py": 35, "tools/smoke/roads.py": 295,
+    "tools/gen/uniques/wizard_tower/smoke_redstone.py": 45,
+    "tools/gen/uniques/pyramid/smoke_server.py": 45, "tools/smoke/galleon_test.py": 40,
+    "tools/smoke/cleared_spawners.py": 80,               # three starts and a generated castle
+    "tools/smoke/boss_phases.py": 75,                     # two starts (the second, with the options disabled)
+    # compatibility (Modrinth downloads cached)
+    **{f"{COMPAT}::{g}": s for g, s in {"base": 90, "rendimiento": 85, "biomas": 115, "servidor": 90, "distanthorizons": 80,
+                                         "estructuras": 115, "terreno": 105, "tectonic": 140, "wwoo": 215}.items()},
+    "tools/smoke/anchored_guardians.py": 560,
+    "tools/smoke/medium_structures.py": 200,          # one start and the 8 types (failed in the reference run: recorded value kept)
+    "tools/smoke/guide.py": 70,                      # three server starts
+    "tools/smoke/search_cache.py": 60,                # three starts, eleven searches
+    "tools/smoke/journal.py": 35,                     # one start and a few commands as simulated players (with the end of the Chronicle)
+    "tools/smoke/mine_entrances.py": 90,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
+    "tools/smoke/coast.py": 145,                     # two starts, four /locate with their generation and /place next to beaches
+    "tools/smoke/profiles.py": 85,                  # four starts of the same world
+    "tools/smoke/light_profile.py": 45,             # three starts and 1,300 sprinted ticks
+    "tools/smoke/update.py": 180,                # two starts and a zone of 400 chunks
+    "tools/smoke/update_path_b.py": 160,         # five starts, a zone of ~200 chunks, path B and undo
+    "tools/smoke/loot_restock.py": 70,             # two starts and a generated hermitage
+    "tools/smoke/difficulty.py": 100,                # four starts of the same world
+    "tools/smoke/arena.py": 140,                     # two starts, three builds and five waves
+    "tools/smoke/arena_modes.py": 155,               # two starts, one build, seven short waves and the two-week close
+    "tools/smoke/admin.py": 85,                      # two starts and two medium structures loaded or generated
+    "tools/smoke/update_check.py": 110,              # three starts (with the fake API, without network and disabled)
+    "tools/smoke/web_maps.py": 110,                 # three starts (without maps, with squaremap and Carpet, and after restarting)
+    "tools/smoke/existing_world.py": 120,           # three starts of the same world
+    "tools/smoke/quests.py": 80,                  # two starts of the same world and a generated village
+    "tools/smoke/treasure.py": 115,                    # three starts, the whole chain and the chest
+    "tools/smoke/nether_end.py": 50,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
+    "tools/smoke/wizard_huts.py": 75,               # two starts, four huts and three Evil Wizards
+    "tools/smoke/caravans.py": 350,                 # two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py
+    "tools/smoke/ambience.py": 135,                 # one start, three /locate'd structures, ~11,000 sprinted ticks
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined

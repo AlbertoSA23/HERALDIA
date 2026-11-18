@@ -32,6 +32,17 @@ def test_discovers_all_the_tests_of_server():
     assert {p.split("::")[1] for p in COMPAT} == set(sel.compat_groups()) and "tools/smoke/compat_mods.py::base" in COMPAT
 
 
+def test_discovering_leaves_the_import_path_alone():
+    """discover()/compat_groups() must not put tools/smoke on sys.path or import its modules: eight of them share a name
+    with a generator module (treasure, guide, quests...) and would shadow it for every test run afterwards."""
+    smoke = os.path.join(TOOLS, "smoke")
+    before = set(sys.modules)
+    sel.discover()
+    assert all(os.path.abspath(p) != smoke for p in sys.path)
+    new = [m for m in set(sys.modules) - before if (getattr(sys.modules[m], "__file__", None) or "").startswith(smoke)]
+    assert not new, new
+
+
 @pytest.mark.parametrize("routes", [
     ["docs/DEVELOPMENT.md"], ["README.md", "CHANGELOG.md"], ["tools/gen/tests/test_core.py"],
     ["src/test/java/io/github/albertosa23/heraldia/config/X.java"], ["src/client/java/x/ConfigScreen.java"],
