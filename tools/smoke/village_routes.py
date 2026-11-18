@@ -18,7 +18,7 @@ It fails (unless --measure, which only prints the table, e.g. to compare with an
 its MIN_* limit or above MAX_SAME_HOUSE. The heaviest part is the simulated day (14,000 ticks): about 3 minutes on 4
 cores with the 3 default villages, about 8 with --sites 8.
 """
-import argparse, math, os, queue, re, subprocess, sys, threading, time
+import argparse, json, math, os, queue, re, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 
@@ -67,6 +67,42 @@ def place(ctx, sid, x, z):
             return "Generated" in m.group(0)
         time.sleep(s.PLACE_RETRY_S)
     return False
+
+
+# --natural: villages of a real world, generated as in normal play (with the game's own terrain adaptation, which
+# /place leaves out): the minimum grid (aldeas.separacion_bloques), half of them large, searched with /locate around the
+# origin.
+NATURAL_GRID = 1000
+# Only the villages: no roads, caravans, wayfarers or medium structures, whose villagers are not the village's.
+NATURAL_CONFIG = {"aldeas": {"separacion_bloques": NATURAL_GRID, "maximo": 100, "porcentaje_grandes": 50,
+                             "caminos": {"activado": False}},
+                  "caravanas": {"activado": False}, "viajeros": {"activado": False}, "medianas": {"activadas": False}}
+
+
+def natural_sites(ctx, n):
+    """The n villages of the world closest to 0, 0 (structure, x, z), searched from a mesh of points with /locate."""
+    found = {}
+    r = 3 * NATURAL_GRID
+    pts = sorted(((x, z) for x in range(-r, r + 1, NATURAL_GRID) for z in range(-r, r + 1, NATURAL_GRID)),
+                 key=lambda p: (p[0] ** 2 + p[1] ** 2, p))
+    for x, z in pts:
+        m = ctx.run(f"execute positioned {x} 100 {z} run locate structure #heraldia:aldeas",
+                    r"The nearest \S+ \((\S+)\) is at \[(-?\d+), ~, (-?\d+)\]|Could not find")
+        if m.group(1):
+            found.setdefault((int(m.group(2)), int(m.group(3))), m.group(1))
+        if len(found) >= n:
+            break
+    return [(sid, x, z) for (x, z), sid in sorted(found.items(), key=lambda kv: kv[0][0] ** 2 + kv[0][1] ** 2)][:n]
+
+
+def load(ctx, x, z):
+    """Forces the box around (x, z) and waits until its chunks are generated (natural generation)."""
+    for x0, x1 in ((x - RADIUS, x - 1), (x, x + RADIUS - 1)):
+        ctx.run(f"forceload add {x0} {z - RADIUS} {x1} {z + RADIUS - 1}", r"Marked|Added|force|already")
+    for cx, cz in ((x - RADIUS, z - RADIUS), (x + RADIUS - 1, z + RADIUS - 1), (x, z)):
+        if not ctx.until(f"execute if loaded {cx} 0 {cz}", timeout=900):
+            return False
+    return True
 
 
 def villagers(ctx, x, z):
@@ -159,14 +195,38 @@ def main():
     ap.add_argument("--terrain", action="store_true",
                     help="the seed's terrain instead of a superflat world (its hills and lakes cut some paths: fewer "
                          "villagers find a bed; the default measures the placement alone)")
+    ap.add_argument("--natural", type=int, default=0, metavar="N",
+                    help="instead of /place, the N villages of the seed's world closest to the origin, generated naturally")
+    ap.add_argument("--verbose", action="store_true", help="also print each villager's first and last sample and memories")
+    ap.add_argument("--seed", default=None, help="world seed (default: the tests' seed)")
+    ap.add_argument("--structures", default=None, metavar="ID,ID,...",
+                    help="place these villages (at the SITES' coordinates) instead of the SITES' own: e.g. the styles that "
+                         "--natural found, on a flat world, as their reference")
     ap.add_argument("--sites", type=int, default=DEFAULT_SITES, help=f"how many of the SITES to place (up to {len(SITES)})")
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
-    if not a.terrain:
+    if a.natural:
+        cfg_path = os.path.join(a.work, "config", "heraldia.json")
+        with open(cfg_path) as f:
+            cfg = json.load(f)
+        for k, v in NATURAL_CONFIG.items():
+            cfg[k] = {**cfg.get(k, {}), **v}
+        with open(cfg_path, "w") as f:
+            json.dump(cfg, f)
+    if a.seed:
+        props = os.path.join(a.work, "server.properties")
+        with open(props) as f:
+            text = re.sub(r"level-seed=.*", f"level-seed={a.seed}", f.read())
+        with open(props, "w") as f:
+            f.write(text)
+    if not a.terrain and not a.natural:
         with open(os.path.join(a.work, "server.properties"), "a") as f:
             f.write("level-type=minecraft:flat\n")
-    proc = subprocess.Popen(["java", "-Xmx3G", "-jar", launcher, "nogui"], cwd=a.work, text=True,
+    # with natural generation the mod logs how each village fitted the terrain (with /place it always does)
+    # and the generation profile ("Heraldia: perfil: {...}" when it stops: the time of the villages and of their fit)
+    debug = ["-Dheraldia.depurar.puerto=true", "-Dheraldia.perfil=true"] if a.natural else []
+    proc = subprocess.Popen(["java", "-Xmx3G", *debug, "-jar", launcher, "nogui"], cwd=a.work, text=True,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
     threading.Thread(target=s.reader, args=(proc, lines), daemon=True).start()
@@ -177,13 +237,15 @@ def main():
         for cmd in ("difficulty peaceful", "gamerule advance_weather false", "weather clear", "gamerule spawn_mobs false",
                     "gamerule advance_time false", "time set 0"):
             ctx.run(cmd, r"Set|set|Changed|changed|Gamerule|now|weather|difficulty|already")
-        sites = SITES[:a.sites]
+        sites = natural_sites(ctx, a.natural) if a.natural else SITES[:a.sites]
+        if a.structures and not a.natural:
+            sites = [(sid, x, z) for sid, (_, x, z) in zip(a.structures.split(","), SITES)]
         placed = []
         for sid, x, z in sites:
-            if place(ctx, sid, x, z):
+            if (load(ctx, x, z) if a.natural else place(ctx, sid, x, z)):
                 placed.append((sid, x, z))
             else:
-                fails.append(f"/place structure {sid} failed at {x}, {z}")
+                fails.append(f"{'loading' if a.natural else '/place structure'} {sid} failed at {x}, {z}")
         ctx.ticks(100)    # the template entities appear a few ticks after the blocks
         who = {(sid, x, z): villagers(ctx, x, z) for sid, x, z in placed}
         for k, us in who.items():
@@ -208,6 +270,12 @@ def main():
         for (sid, x, z), us in who.items():
             mems = {u: memories(ctx, u) for u in us if samples[u]}
             rows = [analyse(samples[u], mems[u]) for u in mems]
+            if a.verbose:
+                for u in mems:
+                    first = samples[u][min(samples[u])][0]
+                    last = samples[u][max(samples[u])]
+                    print(f"RUTAS:     {u[:8]} from {tuple(round(v) for v in first)} to {tuple(round(v) for v in last[0])}"
+                          f"{' asleep' if last[1] else ''}: " + ", ".join(f"{k} {v}" for k, v in sorted(mems[u].items())))
             rows_all += rows
             print("RUTAS: " + line(sid, summary(rows)))
             bells = {}

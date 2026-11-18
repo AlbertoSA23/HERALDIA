@@ -39,6 +39,8 @@ public final class Profiler {
 		HILLSIDE_EARLY("ladera_anticipada"),
 		/** Start point of a village (vanilla's jigsaw plus our own). */
 		VILLAGE("aldea"),
+		/** Terrain fit of a village when it is created (villages/TerrainFit: which pieces a villager can walk to). */
+		VILLAGE_TERRAIN("aldea_terreno"),
 		/** Shore search and port placement of a coastal village. */
 		SHORE("orilla"),
 		/** Feature of the roads between villages, per chunk. */

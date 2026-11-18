@@ -8,6 +8,7 @@ import io.github.albertosa23.heraldia.common.Heights;
 import io.github.albertosa23.heraldia.common.Generation;
 import io.github.albertosa23.heraldia.common.Profiler;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,11 +21,13 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructureType;
+import net.minecraft.world.level.levelgen.structure.pools.JigsawJunction;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -88,8 +91,8 @@ public final class VillageStructure extends Structure {
 		Optional<GenerationStub> stub = theVillage.findGenerationPoint(ctx);
 		Profiler.end(Profiler.Segment.VILLAGE, tp);
 		boolean noBoard = !HeraldiaConfig.get().getBool(BOARD_OPTION);
-		if ((port.isEmpty() && !noBoard) || stub.isEmpty()) {
-			return stub;   // the normal case inland: the jigsaw's stub as is, at no extra cost
+		if (stub.isEmpty()) {
+			return stub;
 		}
 		GenerationStub village = stub.get();
 		boolean forced = Generation.forced(ctx, biomes());
@@ -99,6 +102,12 @@ public final class VillageStructure extends Structure {
 			List<StructurePiece> pieces = new ArrayList<>(village.getPiecesBuilder().build().pieces());
 			if (noBoard) {
 				pieces.removeIf(VillageStructure::board);
+			}
+			long tf = Profiler.start();
+			String fit = fitTerrain(ctx, pieces);
+			Profiler.end(Profiler.Segment.VILLAGE_TERRAIN, tf);
+			if (forced || DEBUG) {
+				LOGGER.info("Heraldia: aldea en {} {}: terrain fit: {}", village.position().getX(), village.position().getZ(), fit);
 			}
 			long t1 = System.nanoTime();
 			String result = port.isPresent() ? addPort(ctx, port.get(), pieces) : null;
@@ -113,6 +122,131 @@ public final class VillageStructure extends Structure {
 						village.position().getZ(), result, (System.nanoTime() - t1) / 1000, (t1 - t0) / 1000);
 			}
 		}));
+	}
+
+	/**
+	 * Fits the village to the terrain ({@link TerrainFit}): reads the parent of each piece from the jigsaw junctions,
+	 * decides with the generation heights, removes the dropped pieces and the junctions that pointed at them (so the terrain
+	 * adaptation does not shape the ground for a piece that is no longer there) and gives each graded street its grading
+	 * points as junctions, which the terrain adaptation of the new chunks follows (with /place, which does not adapt the
+	 * terrain, they change nothing). Junctions are saved with the structure start. Returns the summary.
+	 */
+	static String fitTerrain(GenerationContext ctx, List<StructurePiece> pieces) {
+		List<TerrainFit.Part> parts = parts(pieces);
+		TerrainFit.Result r = TerrainFit.fit(parts, new Ground(ctx));
+		List<BoundingBox> gone = new ArrayList<>();
+		List<StructurePiece> kept = new ArrayList<>();
+		for (int i = 0; i < pieces.size(); i++) {
+			if (r.kept(i)) {
+				kept.add(pieces.get(i));
+				// a graded street: the terrain adaptation (beard_thin) blends the ground towards each of its points
+				if (pieces.get(i) instanceof PoolElementStructurePiece pe) {
+					for (int[] q : r.grades().get(i)) {
+						pe.addJunction(new JigsawJunction(q[0], q[1], q[2], 0, StructureTemplatePool.Projection.TERRAIN_MATCHING));
+					}
+				}
+			} else {
+				gone.add(pieces.get(i).getBoundingBox());
+			}
+		}
+		if (!gone.isEmpty()) {
+			for (StructurePiece piece : kept) {
+				if (piece instanceof PoolElementStructurePiece pe) {
+					pe.getJunctions().removeIf(j -> gone.stream().anyMatch(b -> inside(b, j.getSourceX(), j.getSourceZ()))
+							&& !inside(pe.getBoundingBox(), j.getSourceX(), j.getSourceZ()));
+				}
+			}
+			pieces.clear();
+			pieces.addAll(kept);
+		}
+		return r.summary();
+	}
+
+	/** The pieces as {@link TerrainFit.Part}s: kind by template path and parent and joint from the junctions. */
+	static List<TerrainFit.Part> parts(List<StructurePiece> pieces) {
+		List<BoundingBox> boxes = new ArrayList<>();
+		List<List<int[]>> junctions = new ArrayList<>();
+		for (StructurePiece piece : pieces) {
+			boxes.add(piece.getBoundingBox());
+			List<int[]> js = new ArrayList<>();
+			if (piece instanceof PoolElementStructurePiece pe) {
+				for (JigsawJunction j : pe.getJunctions()) {
+					js.add(new int[] {j.getSourceX(), j.getSourceZ()});
+				}
+			}
+			junctions.add(js);
+		}
+		List<TerrainFit.Part> out = new ArrayList<>();
+		for (int i = 0; i < pieces.size(); i++) {
+			int[] link = parent(boxes, junctions, i);
+			out.add(TerrainFit.Part.of(boxes.get(i), kind(pieces.get(i), i), link == null ? -1 : link[0],
+					link == null ? 0 : link[1], link == null ? 0 : link[2]));
+		}
+		return out;
+	}
+
+	/**
+	 * The piece that piece {@code i} hangs from and the joint between them: {parent, x, z}, or null. The jigsaw places a
+	 * parent before its children and gives both a junction at the other's jigsaw block, so the parent is the latest earlier
+	 * piece whose footprint holds one of the child's junctions while the child's footprint holds one of the parent's.
+	 */
+	static int[] parent(List<BoundingBox> boxes, List<List<int[]>> junctions, int i) {
+		for (int j = i - 1; j >= 0; j--) {
+			for (int[] mine : junctions.get(i)) {
+				if (!inside(boxes.get(j), mine[0], mine[1])) {
+					continue;
+				}
+				for (int[] theirs : junctions.get(j)) {
+					if (inside(boxes.get(i), theirs[0], theirs[1])) {
+						return new int[] {j, mine[0], mine[1]};
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private static boolean inside(BoundingBox b, int x, int z) {
+		return x >= b.minX() && x <= b.maxX() && z >= b.minZ() && z <= b.maxZ();
+	}
+
+	private static TerrainFit.Kind kind(StructurePiece piece, int i) {
+		if (i == 0) {
+			return TerrainFit.Kind.ROOT;
+		}
+		if (street(piece)) {
+			return TerrainFit.Kind.STREET;
+		}
+		String path = piece instanceof PoolElementStructurePiece pe && pe.getElement() instanceof SinglePoolElement e
+				? e.getTemplateLocation().getPath() : "";
+		return kind(path);
+	}
+
+	/** Kind of a rigid piece by its template path: buildings that hang from streets; the rest goes with its parent. */
+	static TerrainFit.Kind kind(String path) {
+		return path.contains("/houses/") || path.contains("/fillers/") || path.contains("/specials/")
+				|| path.contains("/terminators/") ? TerrainFit.Kind.BUILDING : TerrainFit.Kind.CONTENT;
+	}
+
+	/** Generation heights of one village (each column once): first free height counting water. */
+	private static final class Ground implements TerrainFit.Ground {
+		private final GenerationContext ctx;
+		private final Long2IntOpenHashMap surface = new Long2IntOpenHashMap();
+
+		Ground(GenerationContext ctx) {
+			this.ctx = ctx;
+		}
+
+		@Override
+		public int surface(int x, int z) {
+			long key = BlockPos.asLong(x, 0, z);
+			if (surface.containsKey(key)) {
+				return surface.get(key);
+			}
+			int h = ctx.chunkGenerator().getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, ctx.heightAccessor(), ctx.randomState());
+			surface.put(key, h);
+			return h;
+		}
 	}
 
 	/** Option that puts the quest board in the plaza (if disabled, the piece is removed when the village is created). */
