@@ -15,12 +15,12 @@ import org.junit.jupiter.api.Test;
  * How the medium structures feel at several frequencies (the simulation of {@link MediumFrequencyTest}: real 26.3 biomes,
  * three seeds, 16 x 16 km each): average separation of everything, mediums passed per kilometre walked, and each type on its
  * own, so that lowering the density does not make one type disappear in practice. It prints the table used to choose the
- * default frequency (docs/CONFIGURATION.md, "Medium structures density") and checks that the old density (100 %) is still the
- * one of before and that every type keeps spawning in every seed at every frequency down to that of the light profile.
+ * default frequency (docs/CONFIGURATION.md, "Medium structures density") and checks that the light profile's frequency
+ * really thins them out against the default (100 %) and that every type keeps spawning in every seed at every frequency.
  * Long (one simulation per frequency): it runs in testPesado.
  */
 class MediumDensityComparisonTest {
-	/** The previous density (100 %), intermediate ones, the new default (60), the light profile (50) and lower ones. */
+	/** The default (100 %), intermediate ones (60: the default for a few hours), the light profile (50) and lower ones. */
 	static final int[] FREQUENCIES = {100, 85, 70, 60, 50, 40, 25};
 
 	@BeforeAll
@@ -76,9 +76,9 @@ class MediumDensityComparisonTest {
 					assertTrue(n >= MediumFrequencyTest.MIN_PER_TYPE * 0.6, e.getKey() + " casi desaparece al " + FREQUENCIES[i] + " %\n" + t);
 				}
 			}
-			if (FREQUENCIES[i] == HeraldiaConfig.defaults().get("medianas.frecuencia_porcentaje").getAsInt()) {
-				// the default really thins them out: at least 15 % fewer than the previous density (100 %, FREQUENCIES[0])
-				assertTrue(sims.get(i).total() <= 0.85 * sims.getFirst().total(), "el valor por defecto apenas cambia la densidad\n" + t);
+			if (FREQUENCIES[i] == HeraldiaConfig.profiles().optionValues(Profiles.LIGHT).get("medianas.frecuencia_porcentaje").getAsInt()) {
+				// the light profile really thins them out: at least 15 % fewer than the default (100 %, FREQUENCIES[0])
+				assertTrue(sims.get(i).total() <= 0.85 * sims.getFirst().total(), "el perfil ligero apenas cambia la densidad\n" + t);
 			}
 			if (i > 0) {
 				assertTrue(sims.get(i).total() < sims.get(i - 1).total(), "menos frecuencia, menos medianas\n" + t);

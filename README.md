@@ -58,7 +58,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `aldeas.caminos.activado` | `true` | Roads between villages. |
 | `unicas.<id>.activada` | `true` | Turns a unique structure on or off. |
 | `unicas.rejilla_compatible` | `false` | `true` only for worlds created with Heraldia 0.1.0. |
-| `medianas.frecuencia_porcentaje` | 60 | How many medium structures (100 = the previous, denser setting; 200 = twice that). |
+| `medianas.frecuencia_porcentaje` | 100 | How many medium structures (200 = twice as many). |
 | `faros.activado`, `naufragios.activado` | `true` | Lighthouses and wrecked galleons on the coast. |
 | `dificultad.nivel` | `normal` | Guardians and monsters: `facil`, `normal`, `dificil` or `heroica`. |
 | `botin.reponer.activado` | `false` | Heraldia chests are restocked after a few days. |

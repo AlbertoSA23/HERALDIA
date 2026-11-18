@@ -84,11 +84,14 @@ class MediumsTest {
 		assertTrue(g.offsetX() >= 0 && g.offsetX() < g.spacing() && g.offsetZ() < g.spacing());
 		config("{\"medianas\": {\"posada\": {\"separacion_bloques\": 800}, \"frecuencia_porcentaje\": 100, \"distancia_minima\": {\"bloques\": 1024}}}");
 		GridPlacement h = grid("posada", 48, 7);
-		assertEquals(50, h.spacing(), "100 % = the type's own spacing (the previous density)");
+		assertEquals(50, h.spacing(), "100 % = the type's own spacing");
 		assertEquals(25, h.separation(), "la interna, como mucho media casilla");
-		// the default frequency (60 %): the spacing divided by the square root of 0.6
+		// the default frequency (100 %): the type's own spacing
 		config("{\"medianas\": {\"posada\": {\"separacion_bloques\": 800}}}");
-		assertEquals(Math.round(Math.round(800 / Math.sqrt(0.6)) / 16.0), grid("posada", 48, 7).spacing());
+		assertEquals(50, grid("posada", 48, 7).spacing(), "the default: each type at its own spacing");
+		// the light profile's 50 %: the spacing divided by the square root of 0.5
+		config("{\"medianas\": {\"posada\": {\"separacion_bloques\": 800}, \"frecuencia_porcentaje\": 50}}");
+		assertEquals(Math.round(Math.round(800 / Math.sqrt(0.5)) / 16.0), grid("posada", 48, 7).spacing());
 	}
 
 	@Test
