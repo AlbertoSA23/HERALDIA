@@ -317,7 +317,7 @@ DURATION_S = {
     "tools/smoke/nether_end.py": 300,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
     "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)
     "tools/smoke/caravans.py": 240,                 # measured locally: ~3.5 min (two starts, 387 corridor chunks and 5 caravans)
-    "tools/smoke/wayfarers.py": 240,                # one start, the caravans' corridor and 7 wayfarers (estimate; see the PR)
+    "tools/smoke/wayfarers.py": 230,                # measured locally: ~3 min 45 s (one start, the caravans' corridor and 7 wayfarers)
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined
