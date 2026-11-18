@@ -97,7 +97,7 @@ public final class Treasure {
 	public static final ResourceKey<LootTable> CHEST = ResourceKey.create(Registries.LOOT_TABLE, Heraldia.id("tesoro/cofre"));
 	/** La paga de un encargo del tablón (T38): a veces, un fragmento (tesoro.FACTOR["encargos"] del generador). */
 	public static final ResourceKey<LootTable> QUEST = ResourceKey.create(Registries.LOOT_TABLE, Heraldia.id("tesoro/encargo"));
-	static final String CLAVE = "heraldia.tesoro.";
+	static final String KEY = "heraldia.tesoro.";
 	/** Jugadores con un fragmento descifrándose (en otro hilo): uno a la vez por jugador. */
 	private static final Set<UUID> SEARCHING = ConcurrentHashMap.newKeySet();
 
@@ -401,7 +401,7 @@ public final class Treasure {
 	}
 
 	static MutableComponent t(Map<String, String> texts, String k, Object... args) {
-		return Texts.t(texts, CLAVE + k, args);
+		return Texts.t(texts, KEY + k, args);
 	}
 
 	// --- /heraldia treasure ---
@@ -427,7 +427,7 @@ public final class Treasure {
 			}
 		}
 		int total = n;
-		ctx.getSource().sendSuccess(() -> Texts.t(CLAVE + "comando.dado", total), true);
+		ctx.getSource().sendSuccess(() -> Texts.t(KEY + "comando.dado", total), true);
 		return n;
 	}
 
@@ -436,24 +436,24 @@ public final class Treasure {
 		ServerPlayer p = src.getPlayerOrException();
 		CompoundTag tag = mark(p.getMainHandItem());
 		if (tag == null) {
-			src.sendFailure(Texts.t(CLAVE + "comando.sin_pista"));
+			src.sendFailure(Texts.t(KEY + "comando.sin_pista"));
 			return 0;
 		}
 		Optional<Chain> oc = Chain.fromTag(tag);
 		if (oc.isEmpty()) {
-			src.sendSuccess(() -> Texts.t(CLAVE + "comando.sin_descifrar"), false);
+			src.sendSuccess(() -> Texts.t(KEY + "comando.sin_descifrar"), false);
 			return 1;
 		}
 		Chain c = oc.get();
-		src.sendSuccess(() -> Texts.t(CLAVE + "comando.cadena", Long.toString(c.seed()), Math.min(c.step() + 1, c.marks()), c.marks()), false);
+		src.sendSuccess(() -> Texts.t(KEY + "comando.cadena", Long.toString(c.seed()), Math.min(c.step() + 1, c.marks()), c.marks()), false);
 		for (int i = 0; i < c.destinations().size(); i++) {
 			Destination d = c.destinations().get(i);
-			Component line = Texts.t(CLAVE + "comando.destino", i + 1, Texts.t(CLAVE + "tipo." + d.type().id()),
+			Component line = Texts.t(KEY + "comando.destino", i + 1, Texts.t(KEY + "tipo." + d.type().id()),
 					InfoCommand.coordinates(new BlockPos(d.x(), 0, d.z())), d.structure().isEmpty() ? biome(d.biome()) : Component.literal(d.structure()),
-					Texts.t(CLAVE + (d.generated() ? "estado.generada" : "estado.prevista")));
+					Texts.t(KEY + (d.generated() ? "estado.generada" : "estado.prevista")));
 			src.sendSuccess(() -> line, false);
 		}
-		c.chest().ifPresent(pos -> src.sendSuccess(() -> Texts.t(CLAVE + "comando.cofre", pos.getX(), pos.getY(), pos.getZ()), false));
+		c.chest().ifPresent(pos -> src.sendSuccess(() -> Texts.t(KEY + "comando.cofre", pos.getX(), pos.getY(), pos.getZ()), false));
 		LOGGER.info("Heraldia: tesoro: info {}", c.toTag());
 		return 1;
 	}

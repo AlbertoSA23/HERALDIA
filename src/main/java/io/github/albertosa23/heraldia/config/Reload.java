@@ -7,34 +7,35 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Recarga en caliente de la configuración (/heraldia reload y la pantalla del cliente), lógica pura: qué opciones se
- * pueden aplicar sin reiniciar y cómo se mezclan los valores leídos con los que están en uso.
- * <p>Las que afectan a la generación (rejillas, frecuencias, estilos, caminos, zonas de exclusión, colocación de la arena
- * en un mundo nuevo, el tablón de las aldeas nuevas...) se leen al arrancar y las consultan los hilos de generación: si
- * cambiaran a medias, dos chunks vecinos se generarían con reglas distintas y /locate y los mapas dejarían de coincidir
- * con lo generado. Esas se quedan con el valor en uso hasta el siguiente arranque y se listan como pendientes.
- * <p>Por defecto una opción NO es recargable: una opción nueva solo se recarga si se añade aquí a propósito.
+ * Hot reload of the configuration (/heraldia reload and the client's screen), pure logic: which options can
+ * be applied without restarting and how the read values are merged with the ones in use.
+ * <p>Those that affect generation (grids, frequencies, styles, roads, exclusion zones, arena placement
+ * in a new world, the board of new villages...) are read at startup and the generation threads query them: if
+ * they changed halfway, two neighboring chunks would be generated with different rules and /locate and the maps would no longer match
+ * what was generated. Those keep the value in use until the next startup and are listed as pending.
+ * <p>By default an option is NOT reloadable: a new option is only reloaded if it is added here on purpose.
  */
 public final class Reload {
 	/**
-	 * Prefijos (o claves exactas) de las opciones que se leen cada vez que se usan, fuera de la generación: la dificultad
-	 * (y su recálculo en los mobs cargados), los jefes, el botín y su reposición, la arena (salvo su colocación en un
-	 * mundo nuevo), la Guía, los tratos propios y el asedio (se sortean al subir de nivel un aldeano), los gólems y el
-	 * cofre por jugador de la Atlántida y los mapas web (qué marcadores salen) y la búsqueda del tesoro (T40: se leen al tirar el botín y al usar una pista). Y el perfil de juego (T36): solo fija opciones de esos prefijos (nunca de la
- * generación), así que cambiarlo se aplica entero sin reiniciar. Y los encargos del tablón y la reputación (T38) y las
-	 * caravanas (T39): se leen en cada uso. Y las chozas de mago (T43): la probabilidad de mago malvado y de premio se
-	 * leen al decidir cada choza. Y el margen de /heraldia update (T46): se lee en cada análisis.
+	 * Prefixes (or exact keys) of the options that are read every time they are used, outside generation: the difficulty
+	 * (and its recomputation on loaded mobs), the bosses, the loot and its restocking, the arena (except its placement in a
+	 * new world), the Guide, the own trades and the siege (rolled when a villager levels up), the golems and the
+	 * Atlantis per-player chest and the web maps (which markers show) and the treasure hunt (T40: read when the loot is
+	 * rolled and when a clue is used). And the gameplay profile (T36): it only sets options of those prefixes (never
+	 * generation ones), so changing it applies fully without restarting. And the board quests and reputation (T38) and the
+	 * caravans (T39): read on each use. And the wizard huts (T43): the probability of an evil wizard and of a prize is
+	 * read when each hut is decided. And the /heraldia update margin (T46): read on each analysis.
 	 */
 	static final List<String> RELOADABLE = List.of("perfil", "dificultad.", "jefes.", "botin.", "arena.", "guia.", "golems.",
 			"aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "unicas.atlantida.cofre_unico_por_jugador", "mapas_web.", "encargos.", "reputacion.",
 			"tesoro.", "caravanas.", "chozas_mago.", "actualizar.");
-	/** Excepciones dentro de un prefijo recargable: solo se miran al arrancar. */
+	/** Exceptions inside a reloadable prefix: only checked at startup. */
 	static final List<String> STARTUP_ONLY = List.of("arena.generar_en_mundos_nuevos");
 
 	private Reload() {
 	}
 
-	/** ¿Se aplica la opción sin reiniciar? */
+	/** Does the option apply without restarting? */
 	public static boolean reloadable(String key) {
 		if (STARTUP_ONLY.contains(key)) {
 			return false;
@@ -48,8 +49,8 @@ public final class Reload {
 	}
 
 	/**
-	 * Resultado de mezclar: los valores que pasan a estar en uso, las opciones cambiadas que se aplican ya y las
-	 * cambiadas que esperan al siguiente arranque (con su valor en uso y el leído).
+	 * Result of merging: the values that come into use, the changed options applied right away and the
+	 * changed ones waiting for the next startup (with their value in use and the read one).
 	 */
 	public record Result(Map<String, JsonPrimitive> optionValues, List<String> applied, List<Pending> pending) {
 		public boolean changes() {
@@ -61,9 +62,9 @@ public final class Reload {
 	}
 
 	/**
-	 * Mezcla los valores leídos del fichero con los que están en uso: de las recargables se toma el leído; de las demás,
-	 * el que está en uso (y si cambia, queda en pendientes). Mismo orden y mismas claves que {@code inUse}; una clave que
-	 * falte en {@code loaded} conserva su valor.
+	 * Merges the values read from the file with the ones in use: for reloadable ones the read one is taken; for the others,
+	 * the one in use (and if it changes, it goes into pending). Same order and same keys as {@code inUse}; a key
+	 * missing from {@code loaded} keeps its value.
 	 */
 	public static Result merge(Map<String, JsonPrimitive> inUse, Map<String, JsonPrimitive> loaded) {
 		Map<String, JsonPrimitive> out = new LinkedHashMap<>();
@@ -88,7 +89,7 @@ public final class Reload {
 		return new Result(out, List.copyOf(applied), List.copyOf(pending));
 	}
 
-	/** Igualdad de valores (2 y 2.0 son el mismo número). */
+	/** Value equality (2 and 2.0 are the same number). */
 	static boolean same(JsonPrimitive a, JsonPrimitive b) {
 		if (a.isNumber() && b.isNumber()) {
 			return a.getAsDouble() == b.getAsDouble();

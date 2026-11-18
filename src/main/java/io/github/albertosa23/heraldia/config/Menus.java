@@ -7,17 +7,17 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Los submenús del panel de configuración en el juego (/heraldia config, T46), lógica pura: en qué orden salen, qué
- * opciones lleva cada uno (de 5 a 8, las que más se tocan; lo técnico va en «avanzado» o en el fichero), el paso del
- * deslizador de cada número y cómo se leen los valores que devuelve el diálogo. El diálogo (comando/PanelConfig) solo
- * pinta lo que dice esta clase.
+ * The submenus of the in-game configuration panel (/heraldia config, T46), pure logic: the order they appear in, which
+ * options each one has (5 to 8, the most tweaked ones; the technical ones go in "advanced" or in the file), the
+ * slider step of each number and how the values the dialog returns are read. The dialog (command/ConfigPanel) only
+ * draws what this class says.
  */
 public final class Menus {
-	/** Un submenú: su id (heraldia.panel.menu.&lt;id&gt;) y sus opciones, en el orden en que salen. */
+	/** A submenu: its id (heraldia.panel.menu.&lt;id&gt;) and its options, in the order they appear. */
 	public record Menu(String id, List<String> keys) {
 	}
 
-	/** Los perfiles que se eligen arriba del panel, en orden (personalizado sale solo al fijar opciones a mano). */
+	/** The profiles chosen at the top of the panel, in order (custom only appears when options are set by hand). */
 	public static final List<String> PROFILES = List.of("casual", Profiles.STANDARD, "hardcore");
 	public static final int MIN_OPTIONS = 5, MAX_OPTIONS = 8;
 
@@ -39,7 +39,7 @@ public final class Menus {
 					"aldeas.distancia_aldeas_vanilla_bloques", "actualizar.margen_bloques", "update_check.activado",
 					"mapas_web.activado", "mapas_web.solo_descubiertas")));
 
-	/** Lo más que salta un deslizador de un extremo a otro: con más pasos no se puede elegir un valor concreto. */
+	/** The most a slider can jump from one end to the other: with more steps a specific value cannot be chosen. */
 	static final int MAX_STEPS = 100;
 
 	private Menus() {
@@ -49,7 +49,7 @@ public final class Menus {
 		return MENUS.stream().filter(m -> m.id().equals(id)).findFirst();
 	}
 
-	/** Paso del deslizador: 1 si el rango cabe en {@link #MAX_STEPS}; si no, un número redondo (2, 5, 10, 25, 50, 100...). */
+	/** Slider step: 1 if the range fits in {@link #MAX_STEPS}; otherwise, a round number (2, 5, 10, 25, 50, 100...). */
 	public static double step(ConfigOption o) {
 		if (o.decimal()) {
 			return 0.1;
@@ -63,7 +63,7 @@ public final class Menus {
 		return 1000;
 	}
 
-	/** El valor más cercano que puede dar el deslizador (los del rango múltiplos del paso desde el mínimo). */
+	/** The closest value the slider can give (those of the range that are multiples of the step from the minimum). */
 	public static double adjust(ConfigOption o, double v) {
 		double p = step(o);
 		double r = o.min() + Math.round((v - o.min()) / p) * p;
@@ -72,9 +72,9 @@ public final class Menus {
 	}
 
 	/**
-	 * Lo que devuelve el diálogo para una opción («true», «heroica», «1500», «1500.0», «2.5»), validado; vacío si no vale.
-	 * Si el valor en uso no cae en la rejilla del deslizador y lo devuelto es el valor ajustado a ella, se conserva el que
-	 * estaba (el jugador no lo ha movido: no se cambia una opción sin querer).
+	 * What the dialog returns for an option ("true", "heroica", "1500", "1500.0", "2.5"), validated; empty if invalid.
+	 * If the value in use does not fall on the slider's grid and what was returned is the value snapped to it, the existing
+	 * one is kept (the player did not move it: an option is not changed by accident).
 	 */
 	public static Optional<JsonPrimitive> read(ConfigOption o, String text, JsonPrimitive actual) {
 		String t = text == null ? "" : text.strip();
@@ -98,8 +98,8 @@ public final class Menus {
 	}
 
 	/**
-	 * Los valores de un submenú tal como los devuelve el diálogo (uno por opción, en el orden del menú), leídos con
-	 * {@link #read}. Las que no se entienden se dejan fuera (y salen en {@code invalid}).
+	 * The values of a submenu as the dialog returns them (one per option, in menu order), read with
+	 * {@link #read}. Those that cannot be understood are left out (and show up in {@code invalid}).
 	 */
 	public record Loaded(Map<String, JsonPrimitive> optionValues, List<String> invalid) {
 	}

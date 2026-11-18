@@ -12,21 +12,21 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Perfiles de juego (opción {@value #CLAVE}: casual, estándar, hardcore o personalizado; tools/gen/opciones.py): cada
- * uno fija de golpe un conjunto de opciones de juego (dificultad, refuerzos de los guardianes, botín que se repone,
- * arena), nunca de la generación del mundo. Lógica pura: el esquema llega como JSON y el fichero como las opciones que
- * trae.
+ * Gameplay profiles (option {@value #KEY}: casual, estandar, hardcore or personalizado; tools/gen/opciones.py): each
+ * one sets at once a set of gameplay options (difficulty, guardian reinforcements, restocking loot,
+ * arena), never world generation ones. Pure logic: the schema comes in as JSON and the file as the options it
+ * has.
  * <ul>
- * <li>«estándar» da los valores por defecto: exactamente el comportamiento de siempre.</li>
- * <li>Una opción del perfil escrita en el fichero está <em>fijada a mano</em> y manda sobre el perfil; si su valor no es
- * el del perfil, el perfil efectivo pasa a ser «personalizado» y se informa de cuáles difieren.</li>
- * <li>«personalizado» no fija nada: cada opción con su valor del fichero o, si no está, el de por defecto.</li>
+ * <li>"estandar" gives the default values: exactly the usual behavior.</li>
+ * <li>A profile option written in the file is <em>set by hand</em> and overrides the profile; if its value is not
+ * the profile's, the effective profile becomes "personalizado" and the differing ones are reported.</li>
+ * <li>"personalizado" sets nothing: each option with its value from the file or, if absent, the default.</li>
  * </ul>
- * Al escribir el fichero, las opciones del perfil solo se escriben si están fijadas a mano (si no, cambiar de perfil en el
- * fichero no haría nada).
+ * When the file is written, the profile options are only written if they are set by hand (otherwise, changing the profile in the
+ * file would do nothing).
  */
 public final class Profiles {
-	public static final String CLAVE = "perfil";
+	public static final String KEY = "perfil";
 	public static final String STANDARD = "estandar", CUSTOM = "personalizado";
 
 	private final Map<String, Map<String, JsonPrimitive>> profiles;
@@ -35,8 +35,8 @@ public final class Profiles {
 	private final Map<String, JsonPrimitive> defaults;
 
 	/**
-	 * @param esquema  el de heraldia/opciones.json: {@code perfiles} ({perfil: {clave: valor}}) y en cada opción
-	 *                 {@code perfil} (la fija el perfil) y {@code generacion} (es de la generación)
+	 * @param schema   the one from heraldia/opciones.json: {@code perfiles} ({profile: {key: value}}) and in each option
+	 *                 {@code perfil} (the profile sets it) and {@code generacion} (it is a generation option)
 	 */
 	Profiles(JsonObject schema) {
 		Map<String, Map<String, JsonPrimitive>> p = new LinkedHashMap<>();
@@ -71,37 +71,37 @@ public final class Profiles {
 		}
 	}
 
-	/** Opciones que fija un perfil, en el orden del esquema. */
+	/** Options a profile sets, in the schema's order. */
 	public List<String> keys() {
 		return keys;
 	}
 
-	/** Opciones de la generación del mundo (un perfil nunca las toca). */
+	/** World generation options (a profile never touches them). */
 	public Set<String> generation() {
 		return generation;
 	}
 
-	/** Nombres de los perfiles que fijan valores (sin «personalizado»), en orden. */
+	/** Names of the profiles that set values (without "personalizado"), in order. */
 	public Set<String> names() {
 		return profiles.keySet();
 	}
 
-	/** Valores que da el perfil a sus opciones; «personalizado» (o uno desconocido), los de por defecto. */
+	/** Values the profile gives its options; "personalizado" (or an unknown one), the defaults. */
 	public Map<String, JsonPrimitive> optionValues(String profile) {
 		return profiles.getOrDefault(profile, defaults);
 	}
 
 	/**
-	 * Resultado de aplicar un perfil: los valores de sus opciones, las fijadas a mano (con el valor del fichero) y las
-	 * que difieren del perfil ({clave: [fichero, perfil]}).
+	 * Result of applying a profile: the values of its options, those set by hand (with the file's value) and those
+	 * that differ from the profile ({key: [file, profile]}).
 	 */
 	public record Applied(String chosen, String effective, Map<String, JsonPrimitive> optionValues, Map<String, JsonPrimitive> pinned,
 						   Map<String, JsonPrimitive[]> differing) {
 	}
 
 	/**
-	 * Aplica el perfil elegido a sus opciones. {@code fromFile} son las opciones del perfil que trae el fichero, ya
-	 * validadas (las que no valen no deben llegar: no cuentan como fijadas).
+	 * Applies the chosen profile to its options. {@code fromFile} are the profile options the file has, already
+	 * validated (invalid ones must not get here: they do not count as set).
 	 */
 	public Applied apply(String chosen, Map<String, JsonPrimitive> fromFile) {
 		Map<String, JsonPrimitive> profile = optionValues(chosen);
@@ -123,8 +123,8 @@ public final class Profiles {
 	}
 
 	/**
-	 * Lo que la pantalla de configuración guarda como fijado a mano: las opciones del perfil cuyo valor no es el del
-	 * perfil elegido (lo que coincide con el perfil lo sigue dando el perfil).
+	 * What the configuration screen saves as set by hand: the profile options whose value is not the
+	 * chosen profile's (what matches the profile is still given by the profile).
 	 */
 	public Set<String> pinnedByDifference(String chosen, Map<String, JsonPrimitive> optionValues) {
 		Map<String, JsonPrimitive> profile = optionValues(chosen);
@@ -138,7 +138,7 @@ public final class Profiles {
 		return out;
 	}
 
-	/** Valor por defecto de una opción del perfil (el de «estándar»). */
+	/** Default value of a profile option (that of "estandar"). */
 	JsonPrimitive defaults(String key) {
 		return defaults.get(key);
 	}

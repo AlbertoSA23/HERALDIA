@@ -189,7 +189,7 @@ public final class ConfigScreen extends Screen {
 	}
 
 	private String profile() {
-		JsonPrimitive p = this.working.get(Profiles.CLAVE);
+		JsonPrimitive p = this.working.get(Profiles.KEY);
 		return p != null ? p.getAsString() : Profiles.STANDARD;
 	}
 
@@ -210,7 +210,7 @@ public final class ConfigScreen extends Screen {
 				this.invalid.remove(k);
 			}
 		}
-		this.working.put(Profiles.CLAVE, new JsonPrimitive(profile));
+		this.working.put(Profiles.KEY, new JsonPrimitive(profile));
 		filter(this.search == null ? "" : this.search.getValue());
 		updateSaveButton();
 	}
@@ -219,7 +219,7 @@ public final class ConfigScreen extends Screen {
 	private List<FormattedCharSequence> profileLines(ConfigOption o) {
 		List<FormattedCharSequence> out = new ArrayList<>();
 		Profiles ps = HeraldiaConfig.profiles();
-		if (o.key().equals(Profiles.CLAVE)) {
+		if (o.key().equals(Profiles.KEY)) {
 			List<String> distinct = ps.keys().stream().filter(this::fixedByHand).toList();
 			Component effective = Component.translatable("heraldia.config.perfil." + (distinct.isEmpty() ? profile() : Profiles.CUSTOM));
 			out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.perfil_efectivo", effective,
@@ -432,7 +432,7 @@ public final class ConfigScreen extends Screen {
 					.withValues(option.values())
 					.displayOnlyValue()
 					.create(0, 0, WIDGET_WIDTH, 20, name, (b, value) -> {
-						if (option.key().equals(Profiles.CLAVE)) {
+						if (option.key().equals(Profiles.KEY)) {
 							ConfigScreen.this.minecraft.schedule(() -> changeProfile(value)); // rebuild the list: after the click
 						} else {
 							ConfigScreen.this.working.put(option.key(), new JsonPrimitive(value));

@@ -28,25 +28,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Distancia mínima entre estructuras únicas distintas (heraldia:unicas/*), sin recorrer el mundo ni guardar datos.
- * Para una candidata se calculan las casillas de las demás rejillas a menos de N bloques (el mismo
- * getPotentialStructureChunk que usa el juego) y la candidata se descarta si alguna de rango mayor <em>sobrevive</em>:
- * se generaría de verdad (findValidGenerationPoint, el mismo cálculo que /locate, con su bioma real) y no la descarta a
- * su vez otra de rango aún mayor. El rango es un hash de la semilla, el tipo y el chunk (reparto justo entre tipos);
- * las de colocación propia (la Atlántida) ganan siempre. Como la recursión sigue rangos estrictamente crecientes, la
- * relación es la misma la evalúe quien la evalúe: dos supervivientes nunca quedan a menos de N y toda descartada tiene
- * cerca una superviviente. Inmutable una vez construida: la consultan varios hilos de generación a la vez.
- * <p>Con unicas.rejilla_compatible ({@link GridPlacement#legacy()}) el orden tiene un escalón más: colocación propia,
- * luego las únicas de la rejilla antigua y luego las nuevas; el rango solo desempata dentro del mismo escalón. Una
- * antigua no ve a las nuevas (se descarta exactamente como en la 0.1.0, donde no existían: las ya generadas siguen
- * donde /locate las busca) y una nueva se descarta si cae a menos de N de una antigua que sobrevive (no sale encima de
- * una ya generada). Sin la opción todas son del mismo escalón y nada cambia.
+ * Minimum distance between different unique structures (heraldia:unicas/*), without walking the world or saving data.
+ * For a candidate, the cells of the other grids within N blocks are computed (the same
+ * getPotentialStructureChunk the game uses) and the candidate is discarded if a higher-ranked one <em>survives</em>:
+ * it would really generate (findValidGenerationPoint, the same computation as /locate, with its real biome) and is not discarded
+ * in turn by another even higher-ranked one. The rank is a hash of the seed, the type and the chunk (fair share between types);
+ * the self-placed ones (Atlantis) always win. Since the recursion follows strictly increasing ranks, the
+ * relation is the same whoever evaluates it: two survivors are never within N and every discarded one has
+ * a survivor nearby. Immutable once built: several generation threads query it at once.
+ * <p>With unicas.rejilla_compatible ({@link GridPlacement#legacy()}) the order has one more tier: self-placed,
+ * then the uniques of the old grid and then the new ones; the rank only breaks ties within the same tier. An
+ * old one does not see the new ones (it is discarded exactly as in 0.1.0, where they did not exist: the already generated ones stay
+ * where /locate looks for them) and a new one is discarded if it falls within N of an old one that survives (it does not spawn on top of
+ * an already generated one). Without the option they are all in the same tier and nothing changes.
  */
 public final class UniqueSeparation {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	private static volatile @Nullable UniqueSeparation cached;
 
-	/** Si la estructura index saldría en ese chunk sin contar la separación (bioma, terreno, reglas del mod). */
+	/** Whether structure index would spawn in that chunk not counting the separation (biome, terrain, mod rules). */
 	@FunctionalInterface
 	public interface Viability {
 		boolean valid(int index, int chunkX, int chunkZ);
@@ -58,13 +58,13 @@ public final class UniqueSeparation {
 	private final RandomSpreadStructurePlacement[] placements;
 	private final long[] salts;
 	private final boolean[] always;
-	private final byte[] tier; // 2 colocación propia, 1 rejilla antigua, 0 el resto: gana el escalón y luego el rango
+	private final byte[] tier; // 2 self-placed, 1 old grid, 0 the rest: the tier wins and then the rank
 	private final Map<Identifier, Integer> index;
 	private final boolean enabled;
 	private final int reachChunks;
 	private final long distanceSq;
 
-	/** Tabla de las estructuras únicas: always = colocación propia (gana siempre). Pública para las pruebas. */
+	/** Table of the unique structures: always = self-placed (always wins). Public for the tests. */
 	public UniqueSeparation(Object source, List<Identifier> ids, List<@Nullable Structure> structures,
 							List<RandomSpreadStructurePlacement> placements, List<Boolean> always, boolean enabled, int distance) {
 		int n = ids.size();
@@ -88,12 +88,12 @@ public final class UniqueSeparation {
 		this.distanceSq = (long) distance * distance;
 	}
 
-	/** Barato y sin reservas: solo las heraldia:unicas/* pasan de aquí. */
+	/** Cheap and allocation-free: only heraldia:unicas/* get past here. */
 	public static boolean isUnique(Identifier id) {
 		return id.getNamespace().equals("heraldia") && id.getPath().startsWith("unicas/");
 	}
 
-	/** Tabla del registro de structure_set en uso; se construye una vez por mundo. */
+	/** Table of the structure_set registry in use; built once per world. */
 	public static UniqueSeparation of(RegistryAccess registryAccess) {
 		Registry<StructureSet> sets = registryAccess.lookupOrThrow(Registries.STRUCTURE_SET);
 		UniqueSeparation t = cached;
@@ -151,7 +151,7 @@ public final class UniqueSeparation {
 		return enabled;
 	}
 
-	/** Colocación propia (la Atlántida): no sigue una rejilla y gana siempre. */
+	/** Self-placed (Atlantis): it follows no grid and always wins. */
 	public boolean fixed(int i) {
 		return always[i];
 	}
@@ -160,8 +160,8 @@ public final class UniqueSeparation {
 		return ids[i];
 	}
 
-	/** Viabilidad real en el juego: la misma comprobación que /locate (StructureCheck.canCreateStructure) más la Atlántida.
-	 *  Una única de otra dimensión (Nether, End o el mundo principal visto desde ellas) no sale: no se ensambla. */
+	/** Real viability in the game: the same check as /locate (StructureCheck.canCreateStructure) plus Atlantis.
+	 *  A unique from another dimension (Nether, End or the overworld seen from them) does not spawn: it is not assembled. */
 	public Viability viability(RegistryAccess registryAccess, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 							   RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height,
 							   ResourceKey<Level> dimension) {
@@ -173,19 +173,19 @@ public final class UniqueSeparation {
 		};
 	}
 
-	/** La candidata i en (chunkX, chunkZ) se descarta: otra estructura única que sobrevive cae a menos de N bloques. */
+	/** Candidate i at (chunkX, chunkZ) is discarded: another unique structure that survives falls within N blocks. */
 	public boolean blocked(int i, int chunkX, int chunkZ, long seed, Viability viability) {
 		return enabled && !always[i] && blockedBy(i, chunkX, chunkZ, rank(i, chunkX, chunkZ, seed), seed, viability, null);
 	}
 
 	/**
-	 * Hay una vecina de rango mayor que sobrevive. Se prueban de mayor a menor rango: la de rango más alto casi nunca
-	 * tiene a su vez vecinas por encima, así que la recursión acaba enseguida; la memoria evita repetir viabilidades.
-	 * Solo corre en los chunks candidatos de una estructura única (unos pocos por mundo): las listas pequeñas que
-	 * reserva no están en la ruta caliente de la generación.
+	 * There is a higher-ranked neighbor that survives. They are tried from higher to lower rank: the highest-ranked one almost never
+	 * has neighbors above it in turn, so the recursion ends quickly; the memo avoids repeating viabilities.
+	 * It only runs in the candidate chunks of a unique structure (a few per world): the small lists it
+	 * allocates are not on the hot generation path.
 	 */
 	private boolean blockedBy(int i, int cx, int cz, long rank, long seed, Viability viability, @Nullable Map<Long, Boolean> memo) {
-		List<long[]> near = null; // {tipo, x, z, rango}
+		List<long[]> near = null; // {type, x, z, rank}
 		for (int j = 0; j < ids.length; j++) {
 			if (j == i) {
 				continue;
@@ -202,7 +202,7 @@ public final class UniqueSeparation {
 					long r = rank(j, c.x(), c.z(), seed);
 					if (tier[j] < tier[i] || tier[j] == tier[i] && (r < rank || r == rank && j < i)
 							|| !p.applyAdditionalChunkRestrictions(c.x(), c.z(), seed)) {
-						continue; // escalón o rango menor, o casilla desactivada
+						continue; // lower tier or rank, or disabled cell
 					}
 					if (always[j]) {
 						return true;
@@ -236,7 +236,7 @@ public final class UniqueSeparation {
 		return false;
 	}
 
-	/** Desfase del origen de la rejilla (las casillas de p empiezan en gx * spacing + offsetX). */
+	/** Offset of the grid's origin (the cells of p start at gx * spacing + offsetX). */
 	public static int offsetX(RandomSpreadStructurePlacement p) {
 		return p instanceof GridPlacement g ? g.offsetX() : 0;
 	}
@@ -245,12 +245,12 @@ public final class UniqueSeparation {
 		return p instanceof GridPlacement g ? g.offsetZ() : 0;
 	}
 
-	/** Rango de desempate: determinista por semilla, tipo y chunk; las de colocación propia, el máximo. */
+	/** Tiebreak rank: deterministic by seed, type and chunk; the self-placed ones, the maximum. */
 	public long rank(int i, int chunkX, int chunkZ, long seed) {
 		return always[i] ? Long.MAX_VALUE : mix(seed ^ salts[i] ^ mix(ChunkPos.pack(chunkX, chunkZ)));
 	}
 
-	static long mix(long z) { // finalizador de SplitMix64 (también lo usa GridPlacement)
+	static long mix(long z) { // SplitMix64 finalizer (GridPlacement uses it too)
 		z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
 		z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
 		return z ^ (z >>> 31);

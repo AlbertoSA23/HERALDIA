@@ -102,7 +102,7 @@ public final class ConfigPanel {
 			return 1;
 		}
 		Dialog d = m.isPresent() ? submenu(l, m.get(), options, optionValues, HeraldiaConfig.get().profile().chosen())
-				: main(l, optionValues.get(Profiles.CLAVE).getAsString(), HeraldiaConfig.get().profile().effective());
+				: main(l, optionValues.get(Profiles.KEY).getAsString(), HeraldiaConfig.get().profile().effective());
 		p.openDialog(Holder.direct(d));
 		LOGGER.info("Heraldia: panel de configuración abierto ({}, {})", p.getGameProfile().name(), m.map(Menus.Menu::id).orElse("principal"));
 		return 1;
@@ -113,7 +113,7 @@ public final class ConfigPanel {
 			ctx.getSource().sendFailure(Texts.t("heraldia.panel.no_existe", profile));
 			return 0;
 		}
-		return save(ctx.getSource(), Map.of(Profiles.CLAVE, new JsonPrimitive(profile)), List.of(), null);
+		return save(ctx.getSource(), Map.of(Profiles.KEY, new JsonPrimitive(profile)), List.of(), null);
 	}
 
 	private static int saveMenu(CommandContext<CommandSourceStack> ctx, String menu, String optionValues) {
@@ -186,11 +186,11 @@ public final class ConfigPanel {
 	 */
 	public static MultiActionDialog main(Map<String, String> l, String chosen, String effective) {
 		List<DialogBody> body = List.of(
-				new PlainMessage(Texts.t(l, "heraldia.panel.perfil", nameValue(l, Profiles.CLAVE, effective)), WIDTH),
+				new PlainMessage(Texts.t(l, "heraldia.panel.perfil", nameValue(l, Profiles.KEY, effective)), WIDTH),
 				new PlainMessage(Texts.t(l, "heraldia.panel.ayuda").withStyle(ChatFormatting.GRAY), WIDTH));
 		List<ActionButton> buttons = new ArrayList<>();
 		for (String profile : Menus.PROFILES) {
-			MutableComponent t = nameValue(l, Profiles.CLAVE, profile).copy();
+			MutableComponent t = nameValue(l, Profiles.KEY, profile).copy();
 			if (profile.equals(chosen)) {
 				t = Component.literal("✔ ").append(t).withStyle(ChatFormatting.GREEN);
 			}
@@ -304,7 +304,7 @@ public final class ConfigPanel {
 	static List<Component> text(Map<String, String> l, Menus.Menu m, Map<String, ConfigOption> options, Map<String, JsonPrimitive> optionValues) {
 		List<Component> out = new ArrayList<>();
 		out.add(Texts.t(l, "heraldia.panel.titulo").withStyle(ChatFormatting.GOLD));
-		out.add(Texts.t(l, "heraldia.panel.perfil", nameValue(l, Profiles.CLAVE, HeraldiaConfig.get().profile().effective())));
+		out.add(Texts.t(l, "heraldia.panel.perfil", nameValue(l, Profiles.KEY, HeraldiaConfig.get().profile().effective())));
 		for (Menus.Menu menu : m == null ? Menus.MENUS : List.of(m)) {
 			out.add(Texts.t(l, "heraldia.panel.menu." + menu.id()).withStyle(ChatFormatting.YELLOW));
 			for (String k : menu.keys()) {

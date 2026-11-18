@@ -23,19 +23,19 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Dificultad configurable de los mobs de Heraldia (opciones dificultad.*). Modificadores de atributo propios, con su
- * identificador ({@link #HEALTH}, {@link #DAMAGE}, {@link #PLAYERS}), que se suman a los que pongan otros (los jefes, el
- * juego, otros mods) sin tocarlos:
+ * Configurable difficulty of Heraldia's mobs (options dificultad.*). Own attribute modifiers, with their
+ * identifier ({@link #HEALTH}, {@link #DAMAGE}, {@link #PLAYERS}), added to those others set (the bosses, the
+ * game, other mods) without touching them:
  * <ul>
- * <li>en cada {@code ENTITY_LOAD} (al colocarse la plantilla, al generarse el chunk y en cada carga) se ponen los del
- * nivel en uso, o se quitan en normal: así valen para los mobs ya generados y se recalculan si cambia la opción (la
- * configuración se lee al arrancar; /heraldia reload los recalcula en los mobs ya cargados con {@link #apply}). Ponerlos
- * dos veces no cambia nada ({@code addOrReplacePermanentModifier}).</li>
- * <li>con dificultad.escalar_por_jugadores, al recibir un golpe se cuenta a los jugadores a 32 bloques (no por tick).</li>
- * <li>con dificultad.escalar_botin, el botín de los cofres de Heraldia (tablas cofres/, unicas/, medianas/, minas/) sale con la
- * cantidad de sus objetos sencillos apilables multiplicada ({@link ModDifficulty.Tier#loot}).</li>
+ * <li>on every {@code ENTITY_LOAD} (when the template is placed, when the chunk generates and on every load) those of the
+ * level in use are set, or removed on normal: so they apply to already generated mobs and are recomputed if the option changes (the
+ * configuration is read at startup; /heraldia reload recomputes them on already loaded mobs with {@link #apply}). Setting them
+ * twice changes nothing ({@code addOrReplacePermanentModifier}).</li>
+ * <li>with dificultad.escalar_por_jugadores, players within 32 blocks are counted when it takes a hit (not per tick).</li>
+ * <li>with dificultad.escalar_botin, the loot of Heraldia's chests (tables cofres/, unicas/, medianas/, minas/) comes with the
+ * amount of its simple stackable items multiplied ({@link ModDifficulty.Tier#loot}).</li>
  * </ul>
- * Salida temprana barata (las etiquetas del mob, casi siempre vacías); sin mixins.
+ * Cheap early exit (the mob's tags, almost always empty); no mixins.
  */
 public final class MobDifficulty {
 	public static final Identifier HEALTH = Heraldia.id("dificultad_vida"), DAMAGE = Heraldia.id("dificultad_dano"),
@@ -55,8 +55,8 @@ public final class MobDifficulty {
 	}
 
 	/**
-	 * Pone en el mob los modificadores de la configuración en uso (los recalcula si cambió): al cargarse y, tras
-	 * /heraldia reload, en todos los ya cargados. True si es un mob de Heraldia al que se aplica la dificultad.
+	 * Sets on the mob the modifiers of the configuration in use (recomputes them if it changed): when it loads and, after
+	 * /heraldia reload, on all the already loaded ones. True if it is a Heraldia mob the difficulty applies to.
 	 */
 	public static boolean apply(Entity entity) {
 		if (!(entity instanceof Mob mob) || !ModDifficulty.applies(mob.entityTags(), mob instanceof Enemy)) {
@@ -68,7 +68,7 @@ public final class MobDifficulty {
 		return true;
 	}
 
-	/** Los modificadores de vida y daño del nivel de {@code cfg} (y sin el extra por jugadores si está desactivado). */
+	/** The health and damage modifiers of {@code cfg}'s level (and without the per-player extra if disabled). */
 	static void adjust(@Nullable AttributeInstance health, @Nullable AttributeInstance damage, HeraldiaConfig cfg) {
 		ModDifficulty.Tier tier = ModDifficulty.Tier.of(cfg.getString("dificultad.nivel"));
 		put(health, HEALTH, tier.healthMod());
@@ -95,7 +95,7 @@ public final class MobDifficulty {
 		adjustHealth(mob, before);
 	}
 
-	/** Pone (o quita, con cantidad 0) el modificador permanente {@code id}; idempotente. */
+	/** Sets (or removes, with amount 0) the permanent modifier {@code id}; idempotent. */
 	public static void put(@Nullable AttributeInstance attr, Identifier id, double amount) {
 		if (attr == null) {
 			return;
@@ -134,14 +134,14 @@ public final class MobDifficulty {
 	}
 
 	/**
-	 * Tablas de cofre de Heraldia (aldeas, medianas, entradas a mina y únicas): las mismas que se reponen
-	 * ({@link Restock#tableRestocks}); no las de los guardianes, trofeos, llaves ni tratos.
+	 * Heraldia chest tables (villages, mediums, mine entrances and uniques): the same that get restocked
+	 * ({@link Restock#tableRestocks}); not those of the guardians, trophies, keys or trades.
 	 */
 	static boolean isChestLoot(@Nullable ResourceKey<LootTable> key) {
 		return key != null && Restock.tableRestocks(key.identifier().toString());
 	}
 
-	/** Para los tests: la cantidad del modificador de un atributo (0 si no lo tiene). */
+	/** For the tests: the amount of an attribute's modifier (0 if it has none). */
 	static double amount(@Nullable AttributeInstance attr, Identifier id) {
 		AttributeModifier m = attr == null ? null : attr.getModifier(id);
 		return m == null ? 0 : m.amount();

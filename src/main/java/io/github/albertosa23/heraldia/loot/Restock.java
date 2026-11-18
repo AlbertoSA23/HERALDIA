@@ -12,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
  */
 public final class Restock {
 	/** Clave del registro en el custom_data del cofre. */
-	public static final String CLAVE = "heraldia_botin";
+	public static final String KEY = "heraldia_botin";
 	static final String TABLE = "tabla", LOOTED = "saqueado";
 	/** Un día de juego, en ticks del reloj del mundo. */
 	public static final long DAY = 24000L;
@@ -96,7 +96,7 @@ public final class Restock {
 
 	/** El registro del custom_data de un cofre, si lo tiene y es válido. */
 	public static Optional<Ledger> ledger(CompoundTag customData) {
-		return customData.getCompound(CLAVE).flatMap(t -> {
+		return customData.getCompound(KEY).flatMap(t -> {
 			String table = t.getStringOr(TABLE, "");
 			Optional<Long> lootedAt = t.getLong(LOOTED);
 			return table.isEmpty() || lootedAt.isEmpty() ? Optional.empty() : Optional.of(new Ledger(table, lootedAt.get()));
@@ -106,7 +106,7 @@ public final class Restock {
 	/** Escribe el registro en una copia del custom_data (no toca el resto de claves, p. ej. las de otros sistemas). */
 	public static CompoundTag withLedger(CompoundTag customData, Ledger r) {
 		CompoundTag out = customData.copy();
-		out.put(CLAVE, r.tag());
+		out.put(KEY, r.tag());
 		return out;
 	}
 }

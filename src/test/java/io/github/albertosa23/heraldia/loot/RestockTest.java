@@ -99,14 +99,14 @@ class RestockTest {
 		CompoundTag with = Restock.withLedger(cd, new Ledger(UNIQUE, 987654321L));
 		assertEquals(Optional.of(new Ledger(UNIQUE, 987654321L)), Restock.ledger(with));
 		assertEquals("x", with.getStringOr(PerPlayerChest.MARK + "_no", ""));
-		assertFalse(cd.contains(Restock.CLAVE), "no modifica el original");
+		assertFalse(cd.contains(Restock.KEY), "no modifica el original");
 		// idempotente: volver a escribirlo deja lo mismo
 		assertEquals(with, Restock.withLedger(with, new Ledger(UNIQUE, 987654321L)));
 		// registros rotos: sin tabla o sin hora, se ignoran
 		CompoundTag broken = new CompoundTag();
 		CompoundTag r = new CompoundTag();
 		r.putString("tabla", VILLAGE);
-		broken.put(Restock.CLAVE, r);
+		broken.put(Restock.KEY, r);
 		assertTrue(Restock.ledger(broken).isEmpty());
 	}
 

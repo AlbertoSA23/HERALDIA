@@ -170,8 +170,8 @@ public final class Analysis {
 		List<Build> extra = new ArrayList<>(ini.extra());
 		extra.addAll(savedPlayers(ini.world().resolve("players").resolve("data")));
 		// 4) clasificar
-		Detector.Parameters par = Detector.Parameters.defaults(margin);
-		Detector.Result r = Detector.classify(chunks.values(), dif, extra, par);
+		Detector.Parameters params = Detector.Parameters.defaults(margin);
+		Detector.Result r = Detector.classify(chunks.values(), dif, extra, params);
 		// 5) estructuras: qué saldría hoy en cada chunk
 		Set<Long> pristine = new HashSet<>(), generated = chunks.keySet();
 		r.classes().forEach((k, c) -> {

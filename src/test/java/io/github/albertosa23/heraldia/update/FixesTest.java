@@ -18,7 +18,7 @@ class FixesTest {
 	static final class Fake implements MobFixes.Mob {
 		String type = "zombie", name, mount, weapon;
 		Set<String> tags = new HashSet<>();
-		boolean persistent = true, baby, picksUp, especial, ownMount, mountRemoved;
+		boolean persistent = true, baby, picksUp, special, ownMount, mountRemoved;
 
 		@Override public String type() { return type; }
 		@Override public Set<String> tags() { return tags; }
@@ -33,7 +33,7 @@ class FixesTest {
 		@Override public boolean picksUp() { return picksUp; }
 		@Override public void noPickup() { picksUp = false; }
 		@Override public String weapon() { return weapon; }
-		@Override public boolean specialWeapon() { return especial; }
+		@Override public boolean specialWeapon() { return special; }
 	}
 
 	/** Un guardián de la 0.1.0: nombre traducible, persistente, sin etiquetas, bebé, en una gallina, recogiendo. */
@@ -116,7 +116,7 @@ class FixesTest {
 		assertEquals("trident", a.weapon);                  // el arma no se cambia: solo se avisa
 		assertEquals(Map.of("armas", Effect.NOTICE), MobFixes.LEDGER.execute(a, 0, false, true));
 		// un tridente con nombre o encantado es de la plantilla
-		a.especial = true;
+		a.special = true;
 		assertTrue(MobFixes.LEDGER.execute(a, 0, false, true).isEmpty());
 		// un nautilo con nombre (de un jugador) no se quita
 		Fake b = new Fake();

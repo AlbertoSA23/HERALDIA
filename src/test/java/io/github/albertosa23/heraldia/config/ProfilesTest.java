@@ -70,7 +70,7 @@ class ProfilesTest {
 				"arena.oleada.stats_incremento", "jefes.refuerzos.porcentaje", "jefes.refuerzos.maximo_vivos")) {
 			assertTrue(keys.contains(k), k);
 		}
-		ConfigOption profile = HeraldiaConfig.options().stream().filter(o -> o.key().equals(Profiles.CLAVE)).findFirst().orElseThrow();
+		ConfigOption profile = HeraldiaConfig.options().stream().filter(o -> o.key().equals(Profiles.KEY)).findFirst().orElseThrow();
 		assertEquals(List.of("casual", "estandar", "hardcore", "personalizado"), profile.values());
 		assertEquals("estandar", profile.defaultValue().getAsString());
 	}
@@ -78,7 +78,7 @@ class ProfilesTest {
 	@Test
 	void standardIsExactlyTheUsualBehavior() {
 		Map<String, JsonPrimitive> defaults = HeraldiaConfig.defaults();
-		assertEquals("estandar", defaults.get(Profiles.CLAVE).getAsString());
+		assertEquals("estandar", defaults.get(Profiles.KEY).getAsString());
 		profiles().optionValues(Profiles.STANDARD).forEach((k, v) -> assertEquals(defaults.get(k), v, k));
 		// sin fichero y con un fichero que solo dice «estandar», los valores de por defecto
 		assertEquals(defaults, HeraldiaConfig.readValues(dir.resolve("no.json")));
@@ -106,7 +106,7 @@ class ProfilesTest {
 			for (String k : defaults.keySet()) {
 				if (profile.containsKey(k)) {
 					assertEquals(profile.get(k), v.get(k), name + ": " + k);
-				} else if (!k.equals(Profiles.CLAVE)) {
+				} else if (!k.equals(Profiles.KEY)) {
 					assertEquals(defaults.get(k), v.get(k), name + " no debe tocar " + k);
 				}
 			}
@@ -200,7 +200,7 @@ class ProfilesTest {
 		JsonObject root = new JsonObject();
 		root.addProperty("version", 1);
 		optionValues.forEach((k, v) -> {
-			if (k.equals(Profiles.CLAVE) || k.startsWith("jefes.refuerzos.porcentaje") || k.startsWith("jefes.refuerzos.maximo_vivos")) {
+			if (k.equals(Profiles.KEY) || k.startsWith("jefes.refuerzos.porcentaje") || k.startsWith("jefes.refuerzos.maximo_vivos")) {
 				return;                      // no existían
 			}
 			String[] p = k.split("\\.");
@@ -254,7 +254,7 @@ class ProfilesTest {
 	void screenSavesWhatDiffersFromProfile() throws IOException {
 		Path f = dir.resolve("pantalla.json");
 		Map<String, JsonPrimitive> v = new LinkedHashMap<>(HeraldiaConfig.defaults());
-		v.put(Profiles.CLAVE, new JsonPrimitive("hardcore"));
+		v.put(Profiles.KEY, new JsonPrimitive("hardcore"));
 		v.putAll(profiles().optionValues("hardcore"));
 		v.put("arena.max_mobs_vivos", new JsonPrimitive(40));
 		HeraldiaConfig.save(f, v);

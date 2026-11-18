@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
 public final class Guide {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
 	public static final String OPTION = "guia.entregar_al_entrar";
-	static final String CLAVE = "heraldia.guia.";
+	static final String KEY = "heraldia.guia.";
 	static final Data DATA = Data.read();
 
 	private Guide() {
@@ -165,7 +165,7 @@ public final class Guide {
 			KeyCommand.give(player, book);
 		}
 		player.setAttached(Delivery.DELIVERED, version);
-		player.sendSystemMessage(Texts.t(texts, CLAVE + (requested ? "copia" : "entregada")).withStyle(ChatFormatting.GOLD));
+		player.sendSystemMessage(Texts.t(texts, KEY + (requested ? "copia" : "entregada")).withStyle(ChatFormatting.GOLD));
 		LOGGER.info("Heraldia: Guía del Heraldo ({}, {}) entregada a {} en {} µs", version, Texts.code(player),
 				player.getGameProfile().name(), (System.nanoTime() - t0) / 1000);
 	}
@@ -206,13 +206,13 @@ public final class Guide {
 			List<Map.Entry<String, Component>> fame) {
 		ItemStack stack = new ItemStack(Items.WRITTEN_BOOK);
 		List<Filterable<Component>> pages = pages(data, texts, uniques, fame).stream().map(Filterable::passThrough).toList();
-		String title = texts.getOrDefault(CLAVE + "nombre", "Guía del Heraldo");
+		String title = texts.getOrDefault(KEY + "nombre", "Guía del Heraldo");
 		stack.set(DataComponents.WRITTEN_BOOK_CONTENT, new WrittenBookContent(Filterable.passThrough(title), data.author(), 0,
 				pages, true));
-		MutableComponent name = Texts.t(texts, CLAVE + "nombre");
+		MutableComponent name = Texts.t(texts, KEY + "nombre");
 		stack.set(DataComponents.ITEM_NAME, name);
 		stack.set(DataComponents.CUSTOM_NAME, name.copy().withStyle(s -> s.withItalic(false)));
-		stack.set(DataComponents.LORE, new ItemLore(List.of(Texts.t(texts, CLAVE + "lore", version)
+		stack.set(DataComponents.LORE, new ItemLore(List.of(Texts.t(texts, KEY + "lore", version)
 				.withStyle(s -> s.withItalic(false).withColor(ChatFormatting.GRAY)))));
 		stack.set(DataComponents.RARITY, Rarity.UNCOMMON);
 		CompoundTag mark = new CompoundTag();
@@ -234,23 +234,23 @@ public final class Guide {
 			List<Map.Entry<String, Component>> fame) {
 		List<Component> out = new ArrayList<>();
 		for (String p : data.pages()) {
-			out.add(page(texts, CLAVE + "pagina." + p + ".titulo", Texts.t(texts, CLAVE + "pagina." + p)));
+			out.add(page(texts, KEY + "pagina." + p + ".titulo", Texts.t(texts, KEY + "pagina." + p)));
 		}
 		Comparator<String> byName = Comparator.comparing(sid -> texts.getOrDefault(nameKey(sid), sid), collator(texts));
 		List<String> done = uniques.stream().filter(Unique::discovered).map(Unique::id).sorted(byName).toList();
 		List<String> missing = uniques.stream().filter(u -> !u.discovered()).map(Unique::id).sorted(byName).toList();
 		String queue = done.isEmpty() ? "resumen.ninguna" : missing.isEmpty() ? "resumen.todas" : "resumen.faltan";
-		out.add(page(texts, CLAVE + "resumen.titulo", Component.empty()
-				.append(Texts.t(texts, CLAVE + "resumen", done.size(), uniques.size()))
+		out.add(page(texts, KEY + "resumen.titulo", Component.empty()
+				.append(Texts.t(texts, KEY + "resumen", done.size(), uniques.size()))
 				.append("\n\n")
-				.append(Texts.t(texts, CLAVE + queue, missing.size()))));
+				.append(Texts.t(texts, KEY + queue, missing.size()))));
 		for (Map.Entry<String, Component> f : fame) {
 			out.add(page(texts, f.getKey(), f.getValue()));
 		}
 		list(out, texts, "descubiertas", done, data.namesPerPage(),
-				sid -> Texts.t(texts, CLAVE + "descubierta", Texts.t(texts, nameKey(sid))));
+				sid -> Texts.t(texts, KEY + "descubierta", Texts.t(texts, nameKey(sid))));
 		list(out, texts, "pistas", missing, data.cluesPerPage(),
-				sid -> Texts.t(texts, CLAVE + "pista", Texts.t(texts, "heraldia.historia." + sid + ".pista")));
+				sid -> Texts.t(texts, KEY + "pista", Texts.t(texts, "heraldia.historia." + sid + ".pista")));
 		return out;
 	}
 
@@ -264,7 +264,7 @@ public final class Guide {
 				}
 				body.append(entry.apply(ids.get(j)));
 			}
-			out.add(page(texts, CLAVE + title, body));
+			out.add(page(texts, KEY + title, body));
 		}
 	}
 
