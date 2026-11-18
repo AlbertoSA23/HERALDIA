@@ -292,7 +292,7 @@ DURACION_S = {
     "tools/smoke/entradas_mina.py": 250,                     # dos arranques (multiplicador 1 y 5), la generación de las minas y /locate lejos
     "tools/smoke/costa.py": 280,                     # medida en local: ~3 min 50 s (dos arranques, cuatro /locate con su generación y /place junto a playas)
     "tools/smoke/perfiles.py": 110,                  # cuatro arranques del mismo mundo
-    "tools/smoke/actualizar.py": 240,                # dos arranques y una zona de 400 chunks (estimada)
+    "tools/smoke/actualizar.py": 140,                # medida en local: ~2 min 15 s (dos arranques y una zona de 400 chunks)
     "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
     "tools/smoke/arena.py": 150,                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)
