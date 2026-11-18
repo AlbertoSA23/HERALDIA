@@ -1,32 +1,32 @@
-"""Arena de oleadas (T31, Java: arena/) en un servidor dedicado 26.3 real, con un jugador simulado (Carpet).
+"""Wave arena (T31, Java: arena/) on a real 26.3 dedicated server, with a simulated player (Carpet).
 
-Uso: python3 tools/smoke/arena.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-arena"
-Primer arranque (mundo nuevo, con arena.generar_en_mundos_nuevos):
-  1. la arena se genera sola a 200-300 bloques del spawn; /heraldia arena remove (con confirmación) la quita; confirmar
-     sin propuesta falla; /heraldia arena place propone el sitio y «place confirm» la coloca (la campana, la
-     puerta abierta y el cristal, donde dice arena.json); otra vez «place» dice que ya hay una;
-  2. protección: el jugador simulado (creativo, sin ser operador) no rompe un bloque ni coloca piedra; como operador sí
-     rompe; una TNT dentro no rompe nada (y fuera sí); un pistón no empuja su muro (y otro fuera sí); un dispensador
-     pegado a la arena no vacía su cubo de lava (lo suelta como objeto) y otro lejos sí;
-  3. partida: el jugador (supervivencia, resistencia 255) toca la campana (T41: le ofrece los modos y se elige el
-     cooperativo con /heraldia arena start coop en su nombre): cuenta atrás, puerta cerrada, oleada 1 con 4
-     enemigos sin modificador de oleada y oleada 2 con 6 y +10 % de vida (heraldia:arena_vida 0,1); los mata
-     (/damage ... by el jugador): no sueltan objetos y dan el 15 % de la experiencia vanilla (log de cada oleada);
-     en la 5, el mini-jefe (heraldia_guardian) pasa de fase y sus refuerzos entran en la oleada; al superarla, récord
-     en el marcador, recompensa y logro heraldia:arena/oleada_5;
-  4. muerte en el ruedo (daño en la pausa): no suelta objetos ni experiencia, sus datos guardados conservan los
-     diamantes y los niveles (Carpet desconecta al jugador simulado al morir: la reaparición vanilla, COPY_FROM y el
-     teletransporte a la entrada no se pueden probar aquí) y la partida acaba (sin mobs, puerta abierta);
-  Lo que el servidor escribe en la consola sale en inglés (el servidor dedicado carga el en_us del mod).
-  5. otra partida (/heraldia arena start) con mobs vivos y la puerta cerrada; se guarda y se mata el proceso (como un
-     cierre en seco).
-Segundo arranque (el mismo mundo): los mobs de la arena se quitan al cargarse, la puerta está abierta y no hay partida.
+Usage: python3 tools/smoke/arena.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-arena"
+First start (new world, with arena.generar_en_mundos_nuevos):
+  1. the arena generates by itself 200-300 blocks from spawn; /heraldia arena remove (with confirmation) removes it; confirming
+     without a proposal fails; /heraldia arena place proposes the site and "place confirm" places it (the bell, the open
+     door and the glass, where arena.json says); "place" again says there is already one;
+  2. protection: the simulated player (creative, not an operator) cannot break a block or place stone; as an operator it
+     can break; TNT inside breaks nothing (and outside it does); a piston does not push its wall (and another outside does); a dispenser
+     next to the arena does not empty its lava bucket (it drops it as an item) and another far away does;
+  3. game: the player (survival, resistance 255) rings the bell (T41: it offers the modes and the
+     cooperative one is chosen with /heraldia arena start coop on its behalf): countdown, door closed, wave 1 with 4
+     enemies without a wave modifier and wave 2 with 6 and +10 % health (heraldia:arena_vida 0.1); it kills them
+     (/damage ... by the player): they drop no items and give 15 % of the vanilla experience (log of each wave);
+     in wave 5, the mini-boss (heraldia_guardian) changes phase and its reinforcements join the wave; on clearing it, record
+     on the scoreboard, reward and advancement heraldia:arena/oleada_5;
+  4. death in the ring (damage during the pause): it drops no items or experience, its saved data keeps the
+     diamonds and the levels (Carpet disconnects the simulated player on death: the vanilla respawn, COPY_FROM and the
+     teleport to the entrance cannot be tested here) and the game ends (no mobs, door open);
+  What the server writes to the console is in English (the dedicated server loads the mod's en_us).
+  5. another game (/heraldia arena start) with live mobs and the door closed; it saves and the process is killed (like a
+     hard shutdown).
+Second start (same world): the arena's mobs are removed on load, the door is open and there is no game.
 """
 import argparse, json, math, os, re, shutil, sys, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
-from guia import Server
-from trofeos import CARPET
+from guide import Server
+from trophies import CARPET
 from modrinth import fetch
 
 P = "Testigo"
@@ -34,7 +34,7 @@ ARENA = "@e[tag=heraldia_arena]"
 NUM = r"(-?\d+(?:\.\d+)?)"
 
 
-def plano(jar):
+def blueprint(jar):
     with zipfile.ZipFile(jar) as z:
         return json.loads(z.read("heraldia/arena.json"))
 
@@ -46,21 +46,21 @@ def config(work):
         json.dump(cfg, f)
 
 
-class Prueba:
+class Test:
     def __init__(self, ctx, fails):
         self.ctx, self.fails = ctx, fails
 
     def check(self, ok, msg):
         if not ok:
             self.fails.append(msg)
-            print("FALLA:", msg)
+            print("FAIL:", msg)
         return ok
 
-    def esperar_log(self, patron, timeout=120):
-        """La primera coincidencia de `patron` en el log (lee lo que llega con órdenes baratas), o None."""
+    def wait_log(self, pattern, timeout=120):
+        """The first match of `pattern` in the log (reads what arrives using cheap commands), or None."""
         end = time.monotonic() + timeout
         while True:
-            m = re.search(patron, self.ctx.log())
+            m = re.search(pattern, self.ctx.log())
             if m:
                 return m
             if time.monotonic() > end:
@@ -68,13 +68,13 @@ class Prueba:
             self.ctx.run("time query gametime", r"[Tt]ime is \d+")
             time.sleep(0.5)
 
-    def veces(self, patron):
-        return len(re.findall(patron, self.ctx.log()))
+    def times(self, pattern):
+        return len(re.findall(pattern, self.ctx.log()))
 
-    def esperar_veces(self, patron, n, timeout=120):
-        """¿Aparece `patron` al menos n veces en el log antes de `timeout` segundos?"""
+    def wait_times(self, pattern, n, timeout=120):
+        """Does `pattern` appear at least n times in the log before `timeout` seconds?"""
         end = time.monotonic() + timeout
-        while self.veces(patron) < n:
+        while self.times(pattern) < n:
             if time.monotonic() > end:
                 return False
             self.ctx.run("time query gametime", r"[Tt]ime is \d+")
@@ -93,119 +93,119 @@ def main():
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-arena"))
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
-    pl = plano(a.jar)
+    pl = blueprint(a.jar)
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
     config(a.work)
-    fails, textos = [], []
+    fails, texts = [], []
     srv = Server(a.work, launcher)
     try:
-        caja = primer_arranque(Prueba(srv.ctx, fails), pl)
-        # 5. una partida a medias: se guarda y se mata el proceso
-        if caja:
-            a_medias(Prueba(srv.ctx, fails), pl, caja)
+        box = first_start(Test(srv.ctx, fails), pl)
+        # 5. a game in progress: it saves and the process is killed
+        if box:
+            half_done(Test(srv.ctx, fails), pl, box)
         srv.proc.kill()
         srv.proc.wait(timeout=60)
     finally:
         srv.stop()
-        textos.append(srv.ctx.log())
-    if caja:
+        texts.append(srv.ctx.log())
+    if box:
         srv = Server(a.work, launcher)
         try:
-            segundo_arranque(Prueba(srv.ctx, fails), pl, caja)
+            second_start(Test(srv.ctx, fails), pl, box)
         finally:
             srv.stop()
-            textos.append(srv.ctx.log())
+            texts.append(srv.ctx.log())
     for bad in ("Registry loading errors", "Failed to load datapacks", "at io.github.albertosa23", "arena: mob ", "falta la plantilla"):
-        if any(bad in t for t in textos):
-            fails.append(f"el log contiene {bad!r}")
+        if any(bad in t for t in texts):
+            fails.append(f"the log contains {bad!r}")
     print("ARENA:", "OK" if not fails else fails)
     return 1 if fails else 0
 
 
-def rel(caja, pl, clave):
-    o = caja[:3]
-    return tuple(o[i] + pl[clave][i] for i in range(3))
+def rel(box, pl, key):
+    o = box[:3]
+    return tuple(o[i] + pl[key][i] for i in range(3))
 
 
-def primer_arranque(p, pl):
+def first_start(p, pl):
     ctx = p.ctx
-    # 1. generada sola en un mundo nuevo, a 200-300 bloques del spawn
-    m = p.esperar_log(r"arena: sitio propuesto en (-?\d+) (-?\d+) (-?\d+) \(a (\d+) bloques del spawn")
+    # 1. generated by itself in a new world, 200-300 blocks from spawn
+    m = p.wait_log(r"arena: sitio propuesto en (-?\d+) (-?\d+) (-?\d+) \(a (\d+) bloques del spawn")
     if not p.check(m, "mundo nuevo: no se busca sitio para la arena"):
         return None
     p.check(200 <= int(m.group(4)) <= 300, f"arena a {m.group(4)} bloques del spawn (200-300)")
-    m = p.esperar_log(r"arena: colocada en (-?\d+) (-?\d+) (-?\d+) \(caja (-?\d+) (-?\d+) (-?\d+) a (-?\d+) (-?\d+) (-?\d+)\)")
+    m = p.wait_log(r"arena: colocada en (-?\d+) (-?\d+) (-?\d+) \(caja (-?\d+) (-?\d+) (-?\d+) a (-?\d+) (-?\d+) (-?\d+)\)")
     if not p.check(m, "mundo nuevo: la arena no se coloca sola"):
         return None
-    sola = tuple(int(g) for g in m.groups())
+    alone = tuple(int(g) for g in m.groups())
     for rule in ("spawn_mobs", "advance_time"):
         ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
     ctx.run("difficulty normal", r"difficulty|Difficulty")
-    # quitar, con confirmación
+    # remove, with confirmation
     ctx.run("heraldia arena remove", r"Se quitará la arena|will be removed")
     ctx.run("heraldia arena remove confirm", r"arena: quitada de|arena: obra terminada")
-    p.check(p.esperar_log(r"arena: quitada de"), "no se quita la arena")
+    p.check(p.wait_log(r"arena: quitada de"), "no se quita la arena")
     ctx.run("heraldia arena place confirm", r"Primero pide un sitio|First ask for a site")
-    # place: propuesta y confirmación
+    # place: proposal and confirmation
     m = ctx.run("heraldia arena place", r"arena: sitio propuesto en (-?\d+) (-?\d+) (-?\d+) \(a (\d+) bloques")
     p.check(200 <= int(m.group(4)) <= 300, f"propuesta a {m.group(4)} bloques del spawn")
     ctx.run("heraldia arena place confirm", r"Colocando la arena en|Building the arena at")
-    if not p.check(p.esperar_veces(r"arena: colocada en", 2), "«place confirm» no coloca la arena"):
+    if not p.check(p.wait_times(r"arena: colocada en", 2), "«place confirm» no coloca la arena"):
         return None
-    caja = sola[3:]
-    p.check(re.findall(r"arena: colocada en .*\(caja ([-\d ]+) a", ctx.log())[-1].split() == [str(c) for c in caja[:3]],
+    box = alone[3:]
+    p.check(re.findall(r"arena: colocada en .*\(caja ([-\d ]+) a", ctx.log())[-1].split() == [str(c) for c in box[:3]],
             "la arena colocada a mano no está donde la generada (la búsqueda es determinista)")
     ctx.run("heraldia arena place", r"Ya hay una arena en|There is already an arena")
-    minx, miny, minz, maxx, maxy, maxz = caja
+    minx, miny, minz, maxx, maxy, maxz = box
     ctx.run(f"forceload add {minx - 16} {minz - 16} {maxx + 16} {maxz + 16}", r"Marked|force|already")
-    bell, reap = rel(caja, pl, "campana"), rel(caja, pl, "reaparicion")
+    bell, reap = rel(box, pl, "campana"), rel(box, pl, "reaparicion")
     p.check(ctx.block(bell, "minecraft:bell"), f"sin campana en {bell}")
-    puerta = tuple(caja[i] + pl["puerta"][0][i] for i in range(3))
-    p.check(ctx.block(puerta, "minecraft:air"), "la puerta no está abierta")
-    cx, cz = caja[0] + pl["centro"][0], caja[2] + pl["centro"][2]
+    door = tuple(box[i] + pl["puerta"][0][i] for i in range(3))
+    p.check(ctx.block(door, "minecraft:air"), "la puerta no está abierta")
+    cx, cz = box[0] + pl["centro"][0], box[2] + pl["centro"][2]
     p.check(ctx.block((cx + 15, miny + 6, cz), "minecraft:glass"), "sin cristal sobre el muro del ruedo")
     p.check(ctx.block((cx, miny + 11, cz), "minecraft:barrier"), "sin techo de barreras sobre el ruedo")
     ctx.run("heraldia arena", r"Arena de oleadas en|Wave arena at")
 
-    # 2. protección
+    # 2. protection
     ctx.run(f"player {P} spawn at {reap[0] + 0.5} {reap[1]} {reap[2] + 0.5}", r"joined the game|Player .* spawn|Unknown|Incorrect")
     if not ctx.until(f"execute if entity @a[name={P}]"):
-        raise SystemExit(f"no aparece el jugador simulado {P} (Carpet)")
+        raise SystemExit(f"simulated player {P} does not appear (Carpet)")
     ctx.run(f"gamemode survival {P}", r"Set .* game mode|game mode")
     ctx.run(f"gamemode creative {P}", r"Set .* game mode|game mode")
-    suelo = (reap[0], reap[1] - 1, reap[2] + 1)
-    estado = "minecraft:polished_andesite"
-    p.check(ctx.block(suelo, estado), f"no hay {estado} en {suelo} (plano de la arena)")
-    s.send(ctx.proc, f"player {P} look at {suelo[0] + 0.5} {suelo[1] + 1} {suelo[2] + 0.5}")
+    floor = (reap[0], reap[1] - 1, reap[2] + 1)
+    state = "minecraft:polished_andesite"
+    p.check(ctx.block(floor, state), f"no hay {state} en {floor} (plano de la arena)")
+    s.send(ctx.proc, f"player {P} look at {floor[0] + 0.5} {floor[1] + 1} {floor[2] + 0.5}")
     ctx.ticks(5)
-    romper(ctx)
-    p.check(ctx.block(suelo, estado), "un jugador que no es operador rompe un bloque de la arena")
+    smash(ctx)
+    p.check(ctx.block(floor, state), "un jugador que no es operador rompe un bloque de la arena")
     ctx.run(f"item replace entity {P} weapon.mainhand with minecraft:stone", r"Replaced|replaced")
     s.send(ctx.proc, f"player {P} use once")
     ctx.ticks(10)
-    p.check(ctx.block((suelo[0], suelo[1] + 1, suelo[2]), "minecraft:air"), "un jugador que no es operador coloca un bloque")
+    p.check(ctx.block((floor[0], floor[1] + 1, floor[2]), "minecraft:air"), "un jugador que no es operador coloca un bloque")
     ctx.run(f"item replace entity {P} weapon.mainhand with minecraft:air", r"Replaced|replaced")
     ctx.run(f"op {P}", r"Made .* operator|already|Nothing changed")
-    romper(ctx)
-    p.check(ctx.block(suelo, "minecraft:air"), "un operador no puede romper un bloque de la arena")
+    smash(ctx)
+    p.check(ctx.block(floor, "minecraft:air"), "un operador no puede romper un bloque de la arena")
     ctx.run(f"deop {P}", r"no longer|Nothing changed|not an operator")
-    ctx.run(f"setblock {' '.join(map(str, suelo))} {estado}", r"Changed the block|Could not set")
-    # explosión dentro (en el paseo, al norte) y fuera (control)
+    ctx.run(f"setblock {' '.join(map(str, floor))} {state}", r"Changed the block|Could not set")
+    # explosion inside (on the walkway, to the north) and outside (control)
     tx, ty, tz = cx, miny + pl["suelo"] + 1, minz + 3
-    vecinos = [(tx + dx, ty - 1, tz + dz) for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
+    neighbors = [(tx + dx, ty - 1, tz + dz) for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
     ctx.run(f"summon minecraft:tnt {tx} {ty} {tz} {{fuse:1}}", r"Summoned")
     fx, fy, fz = maxx + 20, miny + pl["suelo"] + 6, cz
     ctx.run(f"fill {fx - 2} {fy - 1} {fz - 2} {fx + 2} {fy + 3} {fz + 2} minecraft:air", r"Successfully filled|No blocks")
     ctx.run(f"fill {fx - 1} {fy - 1} {fz - 1} {fx + 1} {fy - 1} {fz + 1} minecraft:stone", r"Successfully filled|No blocks")
     ctx.run(f"summon minecraft:tnt {fx} {fy} {fz} {{fuse:1}}", r"Summoned")
     ctx.ticks(30)
-    p.check(all(not ctx.block(v, "minecraft:air") for v in vecinos), "una TNT rompe bloques de la arena")
+    p.check(all(not ctx.block(v, "minecraft:air") for v in neighbors), "una TNT rompe bloques de la arena")
     p.check(ctx.block((fx, fy - 1, fz), "minecraft:air"), "control: la TNT de fuera no rompe nada (¿no explotó?)")
-    # pistón contra un pilar de la fachada (este) y otro fuera (control)
+    # piston against a facade pillar (east) and another outside (control)
     py = miny + pl["suelo"] + 3
-    pilar = (maxx, py, cz)
-    p.check(not ctx.block(pilar, "minecraft:air"), f"no hay pilar en {pilar}")
+    pillar = (maxx, py, cz)
+    p.check(not ctx.block(pillar, "minecraft:air"), f"no hay pilar en {pillar}")
     ctx.run(f"setblock {maxx + 1} {py} {cz} minecraft:piston[facing=west]", r"Changed the block|Could not set")
     ctx.run(f"setblock {maxx + 2} {py} {cz} minecraft:redstone_block", r"Changed the block|Could not set")
     gx = maxx + 12
@@ -215,9 +215,9 @@ def primer_arranque(p, pl):
     ctx.run(f"setblock {gx + 1} {py} {cz} minecraft:redstone_block", r"Changed the block|Could not set")
     ctx.ticks(10)
     p.check(ctx.block((maxx + 1, py, cz), "minecraft:piston[extended=false]"), "un pistón empuja el muro de la arena")
-    p.check(not ctx.block(pilar, "minecraft:air"), "el pilar de la arena se movió")
+    p.check(not ctx.block(pillar, "minecraft:air"), "el pilar de la arena se movió")
     p.check(ctx.block((gx, py, cz), "minecraft:piston[extended=true]"), "control: el pistón de fuera no se mueve")
-    # dispensador con un cubo de lava pegado a la fachada (oeste) y otro lejos (control): ArenaCuboMixin
+    # dispenser with a lava bucket next to the facade (west) and another far away (control): ArenaCuboMixin
     for x0, desc in ((minx - 2, "junto a la arena"), (maxx + 30, "lejos (control)")):
         ctx.run(f"fill {x0 - 2} {py - 1} {cz - 1} {x0 + 1} {py + 1} {cz + 1} minecraft:air", r"Successfully filled|No blocks")
         ctx.run(f"fill {x0 - 2} {py - 2} {cz - 1} {x0 + 1} {py - 2} {cz + 1} minecraft:stone", r"Successfully filled|No blocks")
@@ -234,7 +234,7 @@ def primer_arranque(p, pl):
     ctx.run(f"fill {minx - 4} {py - 1} {cz - 1} {minx - 1} {py + 1} {cz + 1} minecraft:air", r"Successfully filled|No blocks")
     ctx.run(f"kill @e[type=minecraft:item,x={minx - 1},y={py},z={cz},distance=..6]", r"Killed|No entity")
 
-    # 3. partida con la campana
+    # 3. game with the bell
     ctx.run(f"gamemode survival {P}", r"Set .* game mode|game mode")
     ctx.run(f"effect give {P} minecraft:resistance infinite 255 true", r"Applied effect|Gave")
     ctx.run(f"give {P} minecraft:diamond 7", r"Gave")
@@ -243,106 +243,106 @@ def primer_arranque(p, pl):
     s.send(ctx.proc, f"player {P} look at {bell[0] + 0.5} {bell[1] + 0.4} {bell[2] + 0.5}")
     ctx.ticks(5)
     s.send(ctx.proc, f"player {P} use once")
-    # T41: con los tres modos activados, la campana ofrece un botón por modo (/heraldia arena start <modo>); el jugador
-    # simulado no puede pulsarlo: se manda la orden en su nombre
-    if not p.check(p.esperar_log(rf"arena: {P} elige modo \(coop, timeattack, survival\)", timeout=60),
+    # T41: with the three modes enabled, the bell offers one button per mode (/heraldia arena start <mode>); the simulated
+    # player cannot press it: the command is sent on its behalf
+    if not p.check(p.wait_log(rf"arena: {P} elige modo \(coop, timeattack, survival\)", timeout=60),
                    "la campana no ofrece los modos"):
-        return caja
+        return box
     ctx.run(f"execute as {P} run heraldia arena start coop", r"Prepárate|Get ready")
-    if not p.check(p.esperar_log(rf"arena: cuenta atrás \(la empieza {P}, modo coop\)", timeout=60), "la campana no empieza la partida"):
-        return caja
-    p.check(ctx.block(puerta, "minecraft:iron_bars"), "la puerta no se cierra al empezar")
-    p.check(p.esperar_log(r"arena: partida empieza con 1 participantes"), "la partida no empieza con el jugador")
-    p.check(p.esperar_log(r"arena: oleada 1: 4 enemigos"), "la oleada 1 no trae 4 enemigos")
+    if not p.check(p.wait_log(rf"arena: cuenta atrás \(la empieza {P}, modo coop\)", timeout=60), "la campana no empieza la partida"):
+        return box
+    p.check(ctx.block(door, "minecraft:iron_bars"), "la puerta no se cierra al empezar")
+    p.check(p.wait_log(r"arena: partida empieza con 1 participantes"), "la partida no empieza con el jugador")
+    p.check(p.wait_log(r"arena: oleada 1: 4 enemigos"), "la oleada 1 no trae 4 enemigos")
     p.check(ctx.until(f"execute if entity {ARENA}") and wait_count(ctx, ARENA, 4), "no salen 4 enemigos en la oleada 1")
     p.check(p.num(f"attribute {ARENA[:-1]},limit=1] minecraft:max_health modifier value get heraldia:arena_vida") in (None, 0.0),
             "oleada 1 con modificador de vida")
-    limpiar(p, 1)
+    clean_up(p, 1)
     items = ctx.count(f"@e[type=item,x={minx},y={miny},z={minz},dx={maxx - minx},dy={maxy - miny},dz={maxz - minz}]")
     if not p.check(items == 0, f"los mobs de la arena sueltan objetos ({items})"):
         print("DIAG:", ctx.run(f"data get entity @e[type=item,limit=1,x={minx},y={miny},z={minz},dx={maxx - minx},dy={maxy - miny},"
                                f"dz={maxz - minz}]", r"entity data|No entity").string)
-    experiencia(p, 1)
-    p.check(p.esperar_log(r"arena: oleada 2: 6 enemigos", timeout=60), "la oleada 2 no trae 6 enemigos")
+    experience(p, 1)
+    p.check(p.wait_log(r"arena: oleada 2: 6 enemigos", timeout=60), "la oleada 2 no trae 6 enemigos")
     p.check(wait_count(ctx, ARENA, 6), "no salen 6 enemigos en la oleada 2")
     v = p.num(f"attribute {ARENA[:-1]},limit=1] minecraft:max_health modifier value get heraldia:arena_vida")
     p.check(v is not None and abs(v - 0.1) < 1e-6, f"oleada 2: heraldia:arena_vida {v} (debía ser 0,1)")
     v = p.num(f"attribute {ARENA[:-1]},limit=1] minecraft:attack_damage modifier value get heraldia:arena_dano")
     p.check(v is not None and abs(v - 0.1) < 1e-6, f"oleada 2: heraldia:arena_dano {v} (debía ser 0,1)")
-    limpiar(p, 2)
-    experiencia(p, 2)
+    clean_up(p, 2)
+    experience(p, 2)
     for n in (3, 4):
-        p.check(p.esperar_log(rf"arena: oleada {n}: \d+ enemigos", timeout=60), f"no empieza la oleada {n}")
-        limpiar(p, n)
-    # oleada 5: el mini-jefe
-    p.check(p.esperar_log(r"arena: oleada 5: 13 enemigos", timeout=60), "la oleada 5 no trae 12 enemigos y el mini-jefe")
-    jefe = "@e[tag=heraldia_arena,tag=heraldia_guardian,limit=1]"
-    if p.check(p.esperar_log(r"arena: mini-jefe minecraft:zombie en la oleada 5"), "no sale el mini-jefe en la oleada 5"):
-        ctx.wait_entity(jefe)
+        p.check(p.wait_log(rf"arena: oleada {n}: \d+ enemigos", timeout=60), f"no empieza la oleada {n}")
+        clean_up(p, n)
+    # wave 5: the mini-boss
+    p.check(p.wait_log(r"arena: oleada 5: 13 enemigos", timeout=60), "la oleada 5 no trae 12 enemigos y el mini-jefe")
+    boss = "@e[tag=heraldia_arena,tag=heraldia_guardian,limit=1]"
+    if p.check(p.wait_log(r"arena: mini-jefe minecraft:zombie en la oleada 5"), "no sale el mini-jefe en la oleada 5"):
+        ctx.wait_entity(boss)
         ctx.ticks(25)
-        ctx.run(f"damage {jefe} 70 minecraft:player_attack by {P}", r"Applied|damage")
-        p.check(p.esperar_log(r"jefes: zombie/\w+ pasa a la fase 2", timeout=30), "el mini-jefe no pasa a la fase 2")
-        p.check(p.esperar_log(r"arena: un refuerzo del mini-jefe entra en la oleada", timeout=30),
+        ctx.run(f"damage {boss} 70 minecraft:player_attack by {P}", r"Applied|damage")
+        p.check(p.wait_log(r"jefes: zombie/\w+ pasa a la fase 2", timeout=30), "el mini-jefe no pasa a la fase 2")
+        p.check(p.wait_log(r"arena: un refuerzo del mini-jefe entra en la oleada", timeout=30),
                 "los refuerzos del mini-jefe no entran en la oleada")
-    limpiar(p, 5)
-    p.check(p.esperar_log(rf"arena: recompensa 1 \(\d+ objetos\) para {P} en la oleada 5"), "sin recompensa en la oleada 5")
+    clean_up(p, 5)
+    p.check(p.wait_log(rf"arena: recompensa 1 \(\d+ objetos\) para {P} en la oleada 5"), "sin recompensa en la oleada 5")
     p.check(ctx.test(f"execute if entity @a[name={P},advancements={{heraldia:arena/oleada_5=true}}]"), "sin el logro de la oleada 5")
     p.check(p.num(f"scoreboard players get {P} heraldia_arena") == 5, "el marcador no tiene el récord 5 del jugador")
     p.check(p.num("scoreboard players get -servidor- heraldia_arena") == 5, "el marcador no tiene el récord 5 del servidor")
-    p.check(p.esperar_log(rf"arena: récord del servidor: {P} en la oleada 5"), "sin anuncio del récord")
+    p.check(p.wait_log(rf"arena: récord del servidor: {P} en la oleada 5"), "sin anuncio del récord")
 
-    # 4. muerte en el ruedo, en la pausa. Carpet desconecta al jugador simulado al morir (no pasa por la reaparición
-    # vanilla): se comprueba que no suelta nada y que, al volver a crearlo, sus datos guardados conservan lo que llevaba.
-    nivel_antes = p.num(f"experience query {P} levels")
-    muerte = ctx.pos(f"@a[name={P}]")
-    cerca = f"x={muerte[0]:.1f},y={muerte[1]:.1f},z={muerte[2]:.1f},distance=..4" if muerte else "distance=..0"
-    ctx.run("kill @e[type=experience_orb]", r"Killed|No entity")       # los de los mobs (en la pausa no salen más)
-    orbes_antes = ctx.count(f"@e[type=experience_orb,{cerca}]")
+    # 4. death in the ring, during the pause. Carpet disconnects the simulated player on death (it does not go through the vanilla
+    # respawn): it is checked that it drops nothing and that, when it is created again, its saved data keeps what it was carrying.
+    level_before = p.num(f"experience query {P} levels")
+    death = ctx.pos(f"@a[name={P}]")
+    nearby_flag = f"x={death[0]:.1f},y={death[1]:.1f},z={death[2]:.1f},distance=..4" if death else "distance=..0"
+    ctx.run("kill @e[type=experience_orb]", r"Killed|No entity")       # those of the mobs (no more come out during the pause)
+    orbs_before = ctx.count(f"@e[type=experience_orb,{nearby_flag}]")
     ctx.run(f"effect clear {P}", r"Removed|effect")
     ctx.run(f"damage {P} 1000 minecraft:generic", r"Applied|damage")
-    p.check(p.esperar_log(rf"arena: {P} cae en el ruedo y conserva", timeout=30), "al caer en el ruedo no conserva el inventario")
+    p.check(p.wait_log(rf"arena: {P} cae en el ruedo y conserva", timeout=30), "al caer en el ruedo no conserva el inventario")
     ctx.ticks(10)
     p.check(ctx.count('@e[type=item,nbt={Item:{id:"minecraft:diamond"}}]') == 0, "suelta sus diamantes al caer en el ruedo")
-    p.check(ctx.count(f"@e[type=experience_orb,{cerca}]") <= orbes_antes, "suelta experiencia al caer en el ruedo")
+    p.check(ctx.count(f"@e[type=experience_orb,{nearby_flag}]") <= orbs_before, "suelta experiencia al caer en el ruedo")
     ctx.until(f"execute if entity @a[name={P}]", want=False, timeout=30)
     ctx.run(f"player {P} spawn at {reap[0] + 0.5} {reap[1]} {reap[2] + 0.5}", r"joined the game|Player .* spawn|Unknown|Incorrect")
     ctx.until(f"execute if entity @a[name={P}]")
     p.check(ctx.test(f'execute if entity @a[name={P},nbt={{Inventory:[{{id:"minecraft:diamond",count:7}}]}}]'),
             "pierde los diamantes al caer en el ruedo")
-    nivel = p.num(f"experience query {P} levels")
-    p.check(nivel is not None and nivel_antes is not None and nivel >= nivel_antes and nivel >= 10,
-            f"pierde la experiencia al caer en el ruedo ({nivel_antes} -> {nivel})")
-    p.check(p.esperar_log(r"arena: partida terminada \(sin participantes\) con 5 oleadas superadas"), "la partida no acaba sin participantes")
+    level = p.num(f"experience query {P} levels")
+    p.check(level is not None and level_before is not None and level >= level_before and level >= 10,
+            f"pierde la experiencia al caer en el ruedo ({level_before} -> {level})")
+    p.check(p.wait_log(r"arena: partida terminada \(sin participantes\) con 5 oleadas superadas"), "la partida no acaba sin participantes")
     p.check(ctx.count(ARENA) == 0, "quedan mobs de la arena al acabar")
-    p.check(ctx.block(puerta, "minecraft:air"), "la puerta no se abre al acabar")
-    return caja
+    p.check(ctx.block(door, "minecraft:air"), "la puerta no se abre al acabar")
+    return box
 
 
-def a_medias(p, pl, caja):
+def half_done(p, pl, box):
     ctx = p.ctx
-    cx, cz = caja[0] + pl["centro"][0], caja[2] + pl["centro"][2]
-    ctx.run(f"tp {P} {cx + 0.5} {caja[1] + 1} {cz + 0.5}", r"Teleported")
+    cx, cz = box[0] + pl["centro"][0], box[2] + pl["centro"][2]
+    ctx.run(f"tp {P} {cx + 0.5} {box[1] + 1} {cz + 0.5}", r"Teleported")
     ctx.run("heraldia arena start", r"Prepárate|Get ready")
     ctx.run(f"effect give {P} minecraft:resistance infinite 255 true", r"Applied effect|Gave")
-    p.check(p.esperar_veces(r"arena: oleada 1: 4 enemigos", 2, timeout=60), "la segunda partida no empieza")
+    p.check(p.wait_times(r"arena: oleada 1: 4 enemigos", 2, timeout=60), "la segunda partida no empieza")
     p.check(wait_count(ctx, ARENA, 4), "la segunda partida no saca sus mobs")
-    puerta = tuple(caja[i] + pl["puerta"][0][i] for i in range(3))
-    p.check(ctx.block(puerta, "minecraft:iron_bars"), "segunda partida: la puerta no se cierra")
+    door = tuple(box[i] + pl["puerta"][0][i] for i in range(3))
+    p.check(ctx.block(door, "minecraft:iron_bars"), "segunda partida: la puerta no se cierra")
     ctx.run("save-all flush", r"Saved the game")
 
 
-def segundo_arranque(p, pl, caja):
+def second_start(p, pl, box):
     ctx = p.ctx
-    m = p.esperar_log(r"arena: en (-?\d+) (-?\d+) (-?\d+)", timeout=60)
+    m = p.wait_log(r"arena: en (-?\d+) (-?\d+) (-?\d+)", timeout=60)
     p.check(m, "tras reiniciar no se recuerda la arena")
-    p.check(p.esperar_log(r"arena: quitado un mob de arena de una partida anterior", timeout=120),
+    p.check(p.wait_log(r"arena: quitado un mob de arena de una partida anterior", timeout=120),
             "tras reiniciar no se quitan los mobs de la partida anterior")
     p.check(ctx.until(f"execute if entity {ARENA}", want=False, timeout=60), "tras reiniciar quedan mobs de la arena")
-    puerta = tuple(caja[i] + pl["puerta"][0][i] for i in range(3))
-    p.check(ctx.block(puerta, "minecraft:air"), "tras reiniciar la puerta sigue cerrada")
+    door = tuple(box[i] + pl["puerta"][0][i] for i in range(3))
+    p.check(ctx.block(door, "minecraft:air"), "tras reiniciar la puerta sigue cerrada")
     ctx.run("heraldia arena", r"Arena de oleadas en|Wave arena at")
-    p.check(p.esperar_log(r"Sin partida|No match", timeout=30), "tras reiniciar hay una partida")
-    p.check(ctx.block(tuple(caja[i] + pl["campana"][i] for i in range(3)), "minecraft:bell"), "tras reiniciar no está la campana")
+    p.check(p.wait_log(r"Sin partida|No match", timeout=30), "tras reiniciar hay una partida")
+    p.check(ctx.block(tuple(box[i] + pl["campana"][i] for i in range(3)), "minecraft:bell"), "tras reiniciar no está la campana")
 
 
 def wait_count(ctx, sel, n, timeout=60):
@@ -355,8 +355,8 @@ def wait_count(ctx, sel, n, timeout=60):
     return False
 
 
-def limpiar(p, n, timeout=180):
-    """Mata (a nombre del jugador) a los enemigos de la oleada n hasta que se supere."""
+def clean_up(p, n, timeout=180):
+    """Kills (in the player's name) the enemies of wave n until it is cleared."""
     ctx = p.ctx
     end = time.monotonic() + timeout
     while time.monotonic() < end:
@@ -370,18 +370,18 @@ def limpiar(p, n, timeout=180):
     return False
 
 
-def experiencia(p, n):
+def experience(p, n):
     m = re.search(rf"arena: oleada {n} superada \(experiencia: (\d+) de vanilla, (\d+) dada, al (\d+) %\)", p.ctx.log())
     if not p.check(m, f"oleada {n}: sin el resumen de experiencia"):
         return
-    vanilla, dada, pct = (int(g) for g in m.groups())
+    vanilla, given, pct = (int(g) for g in m.groups())
     mobs = 4 if n == 1 else 6
     p.check(pct == 15 and vanilla > 0, f"oleada {n}: experiencia vanilla {vanilla} al {pct} %")
-    p.check(abs(dada - vanilla * 0.15) <= mobs, f"oleada {n}: {dada} de experiencia de {vanilla} (debía ser el 15 %)")
+    p.check(abs(given - vanilla * 0.15) <= mobs, f"oleada {n}: {given} de experiencia de {vanilla} (debía ser el 15 %)")
 
 
-def romper(ctx):
-    """El jugador simulado pica el bloque al que mira (en creativo, al instante): «attack once» de Carpet no rompe nada."""
+def smash(ctx):
+    """The simulated player mines the block it is looking at (in creative, instantly): Carpet's "attack once" breaks nothing."""
     s.send(ctx.proc, f"player {P} attack continuous")
     ctx.ticks(20)
     s.send(ctx.proc, f"player {P} stop")

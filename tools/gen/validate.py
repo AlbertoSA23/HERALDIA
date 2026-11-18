@@ -1,20 +1,20 @@
-"""Validación contra los registros reales de Minecraft 26.3 (resumen de misode/mcmeta, rama 26.3-summary)."""
+"""Validation against the real Minecraft 26.3 registries (misode/mcmeta summary, branch 26.3-summary)."""
 import json, os
-from core import parse_state, ADULTO_TAG, BEBE_ZOMBI, BEBE_SIN_PROTECCION, ANCLADO_TAG, RECOGE_BOTIN
+from core import parse_state, ADULT_TAG, BABY_ZOMBIE, BABY_NO_PROTECTION, ANCHORED_TAG, PICKS_UP_LOOT
 
 BLOCKS, ITEMS, ENTITIES, TRIGGERS, ENTITY_PREDICATES = {}, set(), set(), set(), set()
-# El juego suma 12 bloques de adaptación al terreno al radio y rechaza el paquete entero si pasa de 128.
+# The game adds 12 terrain-adaptation blocks to the radius and rejects the whole package if it exceeds 128.
 DATA = {"enchantment": set(), "trim_pattern": set(), "trim_material": set(), "banner_pattern": set()}   # registros de datos
 TERRAIN_ADAPTATION_MARGIN, MAX_RADIUS_WITH_MARGIN, MAX_JIGSAW_SIZE = 12, 128, 20
 
 
 def load_registries(summary_dir):
-    """Carga bloques, objetos y entidades del resumen de mcmeta; falla con un mensaje claro si falta."""
+    """Loads blocks, items and entities from the mcmeta summary; fails with a clear message if it is missing."""
     blocks_file = os.path.join(summary_dir, "blocks", "data.json")
     registries_file = os.path.join(summary_dir, "registries", "data.json")
     for f in (blocks_file, registries_file):
         if not os.path.isfile(f):
-            raise SystemExit(f"No encuentro {f}. Clona misode/mcmeta (rama 26.3-summary) y pasa su ruta con --registries.")
+            raise SystemExit(f"Cannot find {f}. Clone misode/mcmeta (branch 26.3-summary) and pass its path with --registries.")
     with open(blocks_file, encoding="utf-8") as f:
         BLOCKS.update(json.load(f))
     with open(registries_file, encoding="utf-8") as f:
@@ -28,7 +28,7 @@ def load_registries(summary_dir):
 
 
 def validate_structures(out):
-    """Comprueba sobre los JSON escritos los límites de jigsaw que hacen que el juego rechace el paquete."""
+    """Checks the written JSONs for the jigsaw limits that make the game reject the package."""
     errs = []
     sdir = os.path.join(out, "data")
     for root, _, files in os.walk(sdir):
@@ -47,7 +47,7 @@ def validate_structures(out):
 
 
 def jigsaws(fn, s):
-    """Configuración jigsaw de una estructura: la propia (minecraft:jigsaw) o la que envuelve heraldia:aldea."""
+    """Jigsaw configuration of a structure: its own (minecraft:jigsaw) or the one wrapping heraldia:aldea."""
     if s.get("type") == "minecraft:jigsaw":
         return [(fn, s)]
     if s.get("type") == "heraldia:aldea":
@@ -70,7 +70,7 @@ def check_state(s):
 
 
 def validate_registry(reg):
-    from unicas._comun.piezas import GUARDIAN_TAG
+    from uniques._common.pieces import GUARDIAN_TAG
     errs = {}
     for t in reg.templates.values():
         for pos, (st, nbt) in t.blocks.items():
@@ -84,13 +84,13 @@ def validate_registry(reg):
         for x, y, z, n in t.entities:
             if n["id"].replace("minecraft:", "") not in ENTITIES:
                 errs.setdefault("entidad " + n["id"], []).append(t.name)
-            if n["id"] in BEBE_ZOMBI and ADULTO_TAG not in (n.get("Tags") or []):
-                errs.setdefault(f"{n['id']} sin la etiqueta {ADULTO_TAG} (saldría bebé el 5 %: core.adulto)", []).append(t.name)
+            if n["id"] in BABY_ZOMBIE and ADULT_TAG not in (n.get("Tags") or []):
+                errs.setdefault(f"{n['id']} sin la etiqueta {ADULT_TAG} (saldría bebé el 5 %: core.adulto)", []).append(t.name)
             tags = n.get("Tags") or []
-            if ANCLADO_TAG not in tags and (n["id"] in RECOGE_BOTIN or GUARDIAN_TAG in tags):
+            if ANCHORED_TAG not in tags and (n["id"] in PICKS_UP_LOOT or GUARDIAN_TAG in tags):
                 why = "guardián" if GUARDIAN_TAG in tags else "recogería objetos"
-                errs.setdefault(f"{n['id']} sin la etiqueta {ANCLADO_TAG} ({why}: core.anclado)", []).append(t.name)
-            if n["id"] in BEBE_SIN_PROTECCION:
+                errs.setdefault(f"{n['id']} sin la etiqueta {ANCHORED_TAG} ({why}: core.anclado)", []).append(t.name)
+            if n["id"] in BABY_NO_PROTECTION:
                 errs.setdefault(f"{n['id']} en una plantilla (saldría bebé el 20 %, sin protección)", []).append(t.name)
         for j in t.jigsaws:
             p = j["pool"]
@@ -138,9 +138,9 @@ def _short(i):
 
 
 def validate_advancements(out, ns="heraldia"):
-    """Comprueba los logros escritos (data/<ns>/advancement) contra el formato de 26.3 (en 26.3 los logros son un
-    registro: uno ilegible puede tumbar la carga): padre, disparadores, requisitos, icono, marco, fondo de la raíz,
-    claves de texto en es_es y en_us, y que existan las estructuras, etiquetas, tablas, objetos y mobs que citan."""
+    """Checks the written advancements (data/<ns>/advancement) against the 26.3 format (in 26.3 advancements are a
+    registry: an unreadable one can break loading): parent, triggers, requirements, icon, frame, root background,
+    text keys in es_es and en_us, and that the structures, tags, tables, items and mobs they cite exist."""
     errs = []
     base = os.path.join(out, "data", ns, "advancement")
     langs = {}
@@ -152,7 +152,7 @@ def validate_advancements(out, ns="heraldia"):
         tag = rid.startswith("#")
         n, path = rid.lstrip("#").split(":", 1) if ":" in rid else ("minecraft", rid.lstrip("#"))
         if n != ns:
-            return True   # vanilla: lo valida el juego
+            return True   # vanilla: validated by the game
         rel = {"structure": ("tags/worldgen/structure" if tag else "worldgen/structure"),
                "loot_table": "loot_table", "advancement": "advancement", "entity_type": "tags/entity_type"}[kind]
         return os.path.isfile(os.path.join(out, "data", n, rel, path + ".json"))
@@ -195,14 +195,14 @@ def validate_advancements(out, ns="heraldia"):
                 errs.append(f"{name}: campos desconocidos {sorted(unknown)}")
             crit = a.get("criteria") or {}
             if not crit:
-                errs.append(f"{name}: sin criterios")
+                errs.append(f"{name}: no criteria")
             for c, d in crit.items():
                 if _short(d.get("trigger", "")) not in TRIGGERS:
                     errs.append(f"{name}: disparador desconocido {d.get('trigger')} en {c}")
             req = a.get("requirements", [[c] for c in crit])
             named = [c for group in req for c in group]
             if any(not g for g in req) or set(named) != set(crit):
-                errs.append(f"{name}: requisitos {req} no cubren exactamente los criterios {sorted(crit)}")
+                errs.append(f"{name}: requirements {req} do not exactly cover the criteria {sorted(crit)}")
             if "parent" in a and not exists("advancement", a["parent"]):
                 errs.append(f"{name}: padre inexistente {a['parent']}")
             d = a.get("display")
@@ -210,16 +210,16 @@ def validate_advancements(out, ns="heraldia"):
                 if _short(d.get("icon", {}).get("id", "")) not in ITEMS:
                     errs.append(f"{name}: icono inexistente {d.get('icon')}")
                 if d.get("frame", "task") not in FRAMES:
-                    errs.append(f"{name}: marco {d.get('frame')} no es {FRAMES}")
+                    errs.append(f"{name}: frame {d.get('frame')} is not in {FRAMES}")
                 if "parent" not in a and not d.get("background"):
-                    errs.append(f"{name}: la raíz de la pestaña necesita fondo (background)")
+                    errs.append(f"{name}: the tab root needs a background (background)")
                 errs += text(name, d.get("title")) + text(name, d.get("description"))
             xp = a.get("rewards", {}).get("experience", 0)
-            # Solo experiencia (Decisiones del dueño), salvo los encargos del tablón de las aldeas (tablon.py), que
-            # pagan con su tabla de recompensa (esmeraldas y algún objeto con nombre)
+            # Experience only (Decisiones del dueño), except for the village board quests (board.py), which
+            # pay out with their reward table (emeralds and some named item)
             allowed = {"experience", "loot"} if name.startswith("aldeas/encargos/") else {"experience"}
             if set(a.get("rewards", {})) - allowed or not isinstance(xp, int) or xp < 0:
-                errs.append(f"{name}: recompensa no permitida {a['rewards']} (solo experiencia)")
+                errs.append(f"{name}: reward not allowed {a['rewards']} (experience only)")
             errs += [f"{name}: tabla de recompensa inexistente {t}" for t in a.get("rewards", {}).get("loot", [])
                      if not exists("loot_table", t)]
             errs += refs(name, crit)

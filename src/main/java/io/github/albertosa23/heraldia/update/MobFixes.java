@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public final class MobFixes {
 	public static final String ADULT = "heraldia_adulto", ANCHORED = "heraldia_anclado", GUARDIAN = "heraldia_guardian";
-	/** Types that can spawn as babies when placed (the generator's core.BEBE_ZOMBI). */
+	/** Types that can spawn as babies when placed (the generator's core.BABY_ZOMBIE). */
 	static final Set<String> ZOMBIES = Set.of("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin");
 	static final Set<String> DROWNED_WEAPONS = Set.of("trident", "fishing_rod");
 	static final Set<String> ZOMBIE_WEAPONS = Set.of("iron_shovel", "iron_sword", "iron_spear");

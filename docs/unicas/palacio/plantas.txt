@@ -1,8 +1,8 @@
-Palacio oriental: 18294 celdas alcanzables, ruina 15.8% de la superficie.
-Leyenda: . alcanzable (pies a esta altura, puzles resueltos)  # macizo  C cofre/barril  T cofre trampa  S generador  L palanca  P pistón  D dispensador  t cable/placa  H escalera de mano  d puerta  ~ agua  a atril  b cama
-Norte (puerta) arriba; x de oeste a este.
+Oriental palace: 18294 reachable cells, ruin 15.8% of the surface.
+Legend: . reachable (feet at this height, puzzles solved)  # solid  C chest/barrel  T trapped chest  S spawner  L lever  P piston  D dispenser  t wire/plate  H ladder  d door  ~ water  a lectern  b bed
+North (gate) at the top; x from west to east.
 
-=== y = 2: planta baja (patios) e interior de la plataforma ===
+=== y = 2: ground floor (courtyards) and interior of the platform ===
 
                                   .............
 #######################################...#######################################
@@ -127,7 +127,7 @@ Norte (puerta) arriba; x de oeste a este.
 #################################################################################
 #################################################################################
 
-=== y = 3: edificios sobre zócalo y jardín ===
+=== y = 3: buildings on the base and garden ===
 
 
 #######################################   #######################################
@@ -252,7 +252,7 @@ Norte (puerta) arriba; x de oeste a este.
 #################################################################################
 #################################################################################
 
-=== y = 8: salón del trono (pies a 8) ===
+=== y = 8: throne hall (feet at 8) ===
 
 
 ########################################################################
@@ -377,7 +377,7 @@ Norte (puerta) arriba; x de oeste a este.
 #################################################################################
 #################################################################################
 
-=== y = 10: pabellón de la Puerta del Mediodía ===
+=== y = 10: Midday Gate pavilion ===
 
 
  #                              #################
@@ -627,7 +627,7 @@ Norte (puerta) arriba; x de oeste a este.
 
 
 
-=== y = 23: pagoda, piso 5 (cofre) ===
+=== y = 23: pagoda, floor 5 (chest) ===
 
 
 

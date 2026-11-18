@@ -23,7 +23,7 @@ T26 medium structures 2 (#64), T27 Guide (#65), T28 bosses with phases (#66), T2
 Failures seen and why:
 - `arena.py` with the develop `.jar`: the two **new** dispenser checks (a dispenser next to the arena
   emptied a lava bucket into it). This is the real bug the PR fixes; with the branch `.jar` it passes (local and CI).
-- `mundo_existente.py` (new): first, bugs in the test itself (NBT arrays and the 26.3 palette, the
+- `existing_world.py` (new): first, bugs in the test itself (NBT arrays and the 26.3 palette, the
   256-chunk limit of `/forceload`), and then 78 differences that **are not the mod's** (lava and water still flowing in the
   caves at the edges, doors opened by villagers, vault `server_data`): with the world frozen
   (`/tick freeze`) on startups 2 and 3, 0 differences. It passes locally and on CI.
@@ -42,13 +42,13 @@ chunk, max memory after GC 368 → 390 MB, MSPT p99 2.8 → 10.0 ms (during gene
 |---|---|---|
 | Roads versus mines | code (`CaminoFeature.cajas`: pieces of `surface_structures` structures in 3D; mine mouths are, the galleries do not cover the surface) | ✅ the road stops at the mouth and passes over the galleries |
 | Roads versus arena | code (`Obras.nivelar`, `Estructuras.ocupado`) | ⚠️ the arena does not know about roads: if it is placed on one it cuts it (risk below) |
-| Medium structures versus mines | `entradas_mina.py` (no medium structure closer than `medianas.distancia_minima.bloques` to a mine) and `MinasTest` | ✅ |
+| Medium structures versus mines | `mine_entrances.py` (no medium structure closer than `medianas.distancia_minima.bloques` to a mine) and `MinasTest` | ✅ |
 | Difficulty and boss phases versus the arena | code (`Juego.crear/preparar`: own modifiers added to the difficulty's; the mini-boss carries `heraldia_guardian`) and `arena.py` (phases and reinforcements of the mini-boss) | ✅ |
 | Loot refill versus mines and arena | `ReposicionTest` (every chest table of the templates is refilled; it now also requires the mine ones) | ✅ refill; ❌→✅ the **difficulty** did not scale mine loot (fixed) |
-| Guide, all its pages, in the 8 languages | `GuiaTest.libroEnCadaIdioma` (8 languages), generator check (each page fits in each language) and `guia.py` | ✅ |
-| `rejilla_compatible` with the new content | `rejilla_compatible.py` (coordinates from main) and `CaminoFeature`/`Caminos` (they use the grid in use) | ✅ |
-| Existing world: nothing changes in what is already generated | **new test** `mundo_existente.py`: generates area A with the new content off, stops, starts with the default configuration (file deleted) and then with almost everything changed; compares A (and B) by reading the regions; checks that the new ring does get a road (16 chunks, 159 columns) | ✅ 64 of 64 chunks identical, no entity lost, the arena says "existing world" |
-| Overall performance | `coste_generacion.py` locally and on CI | ✅ +3.4 % |
+| Guide, all its pages, in the 8 languages | `GuiaTest.libroEnCadaIdioma` (8 languages), generator check (each page fits in each language) and `guide.py` | ✅ |
+| `rejilla_compatible` with the new content | `compatible_grid.py` (coordinates from main) and `CaminoFeature`/`Caminos` (they use the grid in use) | ✅ |
+| Existing world: nothing changes in what is already generated | **new test** `existing_world.py`: generates area A with the new content off, stops, starts with the default configuration (file deleted) and then with almost everything changed; compares A (and B) by reading the regions; checks that the new ring does get a road (16 chunks, 159 columns) | ✅ 64 of 64 chunks identical, no entity lost, the arena says "existing world" |
+| Overall performance | `generation_cost.py` locally and on CI | ✅ +3.4 % |
 | Mod compatibility | the 9 `compat_mods.py` groups (local and CI) | ✅ |
 
 ## Fixes (PR #72), each with its test
@@ -60,8 +60,8 @@ chunk, max memory after GC 368 → 390 MB, MSPT p99 2.8 → 10.0 ms (during gene
    T30). `DificultadMobs.esBotinDeCofre` uses the same list as the refill (`DificultadTest`, `ReposicionTest`).
 3. **Signs**: about 110 lines in the 8 languages were wider than 90 px (the "Pending bugs" list was incomplete) and
    the game cuts the words that do not fit. Rewritten without changing keys or blocks; generation now fails with
-   any line wider than 90 px in any language, counting bold (+1 px per character) (`test_idiomas.py`).
-4. **New test `tools/smoke/mundo_existente.py`** (above), with its pure functions in `test_smoke_descarga.py`.
+   any line wider than 90 px in any language, counting bold (+1 px per character) (`test_languages.py`).
+4. **New test `tools/smoke/existing_world.py`** (above), with its pure functions in `test_smoke_descarga.py`.
 5. **Test downloads**: `server_smoke.download` retries a cut download and does not leave a broken `.jar` in the cache
    (`test_smoke_descarga.py`).
 6. **Jarl's Hall**: diagnostics ("DIAG trampa": entities within 24 blocks of the tripwire and contents of the dispensers) if
@@ -86,7 +86,7 @@ chunk, max memory after GC 368 → 390 MB, MSPT p99 2.8 → 10.0 ms (during gene
 ## Recommended options for the owner's world
 
 Back up the world first. With the default values the existing world does not change in what is already generated
-(checked by `mundo_existente.py`), and:
+(checked by `existing_world.py`), and:
 - `unicas.rejilla_compatible`: **`true` only if the world already had Heraldia 0.1.0** (the one on `main`); if it never had it,
   `false` (default).
 - `arena.*`: default. In an existing world it does not build itself (checked by the "mundo existente" log); if

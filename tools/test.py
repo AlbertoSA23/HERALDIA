@@ -1,179 +1,179 @@
-"""Qué pruebas ejecutar según los ficheros cambiados (el mismo mapa en local y en la CI).
+"""Which tests to run depending on the changed files (the same map locally and in CI).
 
-Política de pruebas (docs/DEVELOPMENT.md): cada sesión prueba solo su trabajo (tests unitarios + las pruebas de servidor de
-lo que toca, que este script elige por rutas) y una sesión auditora ejecuta la batería completa.
+Testing policy (docs/DEVELOPMENT.md): each session tests only its own work (unit tests + the server tests of
+what it touches, which this script chooses by paths) and an auditing session runs the full suite.
 
-Uso:
-  python3 tools/test.py --afectados           # tests unitarios + pruebas de servidor de lo cambiado frente a origin/develop
-  python3 tools/test.py --afectados --base REF --jar build/libs/heraldia-X.jar
-  python3 tools/test.py --todo --jar ...      # batería completa (sesión auditora): unitarios, humo y todas las de servidor
-  python3 tools/test.py --listar [--todo]     # solo dice qué pruebas de servidor tocan (no ejecuta nada)
-  python3 tools/test.py --unitarios           # solo los tests unitarios rápidos (pytest del generador)
-  python3 tools/test.py --ci-matriz --base SHA [--completa]   # JSON de la matriz de la CI (grupos de pruebas)
-  python3 tools/test.py --grupo "a.py b.py" --jar ... --work DIR   # ejecuta un grupo en serie (lo usa la CI)
+Usage:
+  python3 tools/test.py --affected           # unit tests + server tests of what changed versus origin/develop
+  python3 tools/test.py --affected --base REF --jar build/libs/heraldia-X.jar
+  python3 tools/test.py --all --jar ...      # full suite (auditing session): unit, smoke and all server tests
+  python3 tools/test.py --list-only [--all]     # only says which server tests apply (runs nothing)
+  python3 tools/test.py --unit-tests           # only the quick unit tests (generator's pytest)
+  python3 tools/test.py --ci-matrix --base SHA [--full]   # JSON of the CI matrix (test groups)
+  python3 tools/test.py --group "a.py b.py" --jar ... --work DIR   # runs a group serially (used by CI)
 
-Las pruebas de servidor se descubren solas: tools/smoke/*.py (salvo server_smoke.py, la de humo, que va siempre, y los
-módulos de NO_SON_PRUEBAS) y tools/gen/unicas/*/prueba_*.py. compat_mods.py es una prueba por grupo de mods
-(«tools/smoke/compat_mods.py::<grupo>», con --grupo): en un PR solo va si cambia algo de COMPAT_RUTAS. Una prueba nueva entra en la batería completa sin tocar nada; para que la elija también la
-selección por rutas, basta con que esté en la carpeta de su única (o, si va en tools/smoke/, en SMOKE_DE_UNICA o en MAPA).
-La de coste de generación (tools/smoke/coste_generacion.py) no va en los grupos: tiene su job en la CI («coste» en la
-salida de --ci-matriz) y en local va al final de --afectados (si lo cambiado toca COSTE_RUTAS) y de --todo (--sin-coste
-la quita).
+The server tests are discovered automatically: tools/smoke/*.py (except server_smoke.py, the smoke test, which always runs, and the
+modules of NOT_TESTS) and tools/gen/uniques/*/smoke_*.py. compat_mods.py is one test per mod group
+("tools/smoke/compat_mods.py::<grupo>", with --group): in a PR it only runs if something in COMPAT_PATHS changes. A new test enters the full suite without touching anything; for the path
+selection to pick it too, it is enough for it to be in the folder of its unique structure (or, if it is in tools/smoke/, in SMOKE_OF_UNIQUE or in MAP).
+The generation cost one (tools/smoke/generation_cost.py) is not in the groups: it has its own job in CI ("coste" in the
+output of --ci-matrix) and locally it runs at the end of --affected (if what changed touches COST_PATHS) and of --all (--no-cost
+removes it).
 """
 import argparse, fnmatch, glob, json, os, shutil, subprocess, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HUMO = "tools/smoke/server_smoke.py"
-TODO = "*"            # en el mapa: el cambio afecta a todo (código común) -> batería completa
-NO_SON_PRUEBAS = {"server_smoke.py", "modrinth.py", "coste_generacion.py"}  # módulos comunes y la de coste (job propio)
-# Compatibilidad con otros mods (una prueba por grupo, con mods de Modrinth): larga y con descargas, así que en un PR
-# solo va si cambia la propia prueba, la lista de mods o el código común de colocación (lo que decide dónde sale cada
-# estructura y si choca con las de otros mods). En la batería completa (push a develop, workflow_dispatch, etiqueta) siempre.
+SMOKE = "tools/smoke/server_smoke.py"
+FULL = "*"            # in the map: the change affects everything (common code) -> full suite
+NOT_TESTS = {"server_smoke.py", "modrinth.py", "generation_cost.py"}  # common modules and the cost one (its own job)
+# Compatibility with other mods (one test per group, with Modrinth mods): long and with downloads, so in a PR
+# it only runs if the test itself, the mod list or the common placement code changes (what decides where each
+# structure appears and whether it clashes with those of other mods). In the full suite (push to develop, workflow_dispatch, label) always.
 COMPAT = "tools/smoke/compat_mods.py"
 
-# Pruebas de tools/smoke/ que son de una única concreta (las de tools/gen/unicas/<id>/ se asocian solas por carpeta).
-SMOKE_DE_UNICA = {
-    "ciudadela": ["tools/smoke/ciudadela_check.py"],
-    "coliseo": ["tools/smoke/coliseo_redstone.py"],
-    "galeon": ["tools/smoke/galeon_test.py"],
-    "ciudadela_ceniza": ["tools/smoke/nether_end.py"], "sagrario_vacio": ["tools/smoke/nether_end.py"],
-    "observatorio": ["tools/smoke/observatorio_smoke.py"],
-    "palacio": ["tools/smoke/palacio_redstone.py"],
+# Tests in tools/smoke/ that belong to one specific unique structure (those in tools/gen/uniques/<id>/ are associated automatically by folder).
+SMOKE_OF_UNIQUE = {
+    "citadel": ["tools/smoke/citadel_check.py"],
+    "colosseum": ["tools/smoke/colosseum_redstone.py"],
+    "galleon": ["tools/smoke/galleon_test.py"],
+    "ash_citadel": ["tools/smoke/nether_end.py"], "void_sanctum": ["tools/smoke/nether_end.py"],
+    "observatory": ["tools/smoke/observatory_smoke.py"],
+    "palace": ["tools/smoke/palace_redstone.py"],
 }
-# Lo que toda única nueva o cambiada debe pasar además de lo suyo: su trofeo, su pliego de la crónica y sus guardianes
-# adultos y anclados.
-DE_TODA_UNICA = ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/guardianes_adultos.py",
-                 "tools/smoke/guardianes_anclados.py"]
-# Paquete Java de cada única con código propio (src/main/java/.../uniques/<paquete>/).
-JAVA_UNICA = {"atlantis": "atlantida", "citadel": "ciudadela", "lighthouse": "faro", "galleon": "galeon",
-              "island": "isla_corsario", "mine": "mina_perdida"}
-ALDEAS = ["tools/smoke/aldeas_terreno.py", "tools/smoke/aldeas_vida.py", "tools/smoke/aldeas_variantes.py"]
+# What every new or changed unique structure must also pass besides its own: its trophy, its chronicle sheet and its adult
+# and anchored guardians.
+OF_EVERY_UNIQUE = ["tools/smoke/trophies.py", "tools/smoke/story.py", "tools/smoke/adult_guardians.py",
+                 "tools/smoke/anchored_guardians.py"]
+# Java package of each unique structure with its own code (src/main/java/.../uniques/<package>/).
+JAVA_UNIQUE = {"atlantis": "atlantis", "citadel": "citadel", "lighthouse": "lighthouse", "galleon": "galleon",
+               "island": "corsair_island", "mine": "lost_mine"}
+VILLAGES = ["tools/smoke/village_terrain.py", "tools/smoke/village_life.py", "tools/smoke/village_variants.py"]
 JAVA = "src/main/java/io/github/albertosa23/heraldia/"
-COMPAT_RUTAS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/gen/biomas.py", "tools/gen/etiquetas_c.json",
+COMPAT_PATHS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/gen/biomes.py", "tools/gen/c_tags.json",
                 JAVA + "config/GridPlacement.java", JAVA + "config/UniqueSeparation.java", JAVA + "config/VillageRules.java",
                 JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java", JAVA + "common/ForeignZone.java",
                 JAVA + "uniques/island/IslandZone.java", JAVA + "uniques/atlantis/AtlantisAnchor.java", JAVA + "common/MediumStructures.java"]
-# Coste de generación (con y sin Heraldia, comparado con tools/smoke/coste_referencia.json): job propio de la CI, en
-# paralelo con los grupos de servidor. En la batería completa siempre; en un PR solo si cambia algo de COSTE_RUTAS (el
-# Java de la generación, el generador o la propia prueba), salvo lo de COSTE_SIN (tests y documentación).
-COSTE = "tools/smoke/coste_generacion.py"
-COSTE_RUTAS = [COSTE, "tools/smoke/coste_referencia.json", "tools/gen/*", "gradle.properties",
+# Generation cost (with and without Heraldia, compared with tools/smoke/cost_reference.json): CI's own job, in
+# parallel with the server groups. In the full suite always; in a PR only if something in COST_PATHS changes (the
+# generation Java, the generator or the test itself), except for COST_WITHOUT (tests and documentation).
+COST = "tools/smoke/generation_cost.py"
+COST_PATHS = [COST, "tools/smoke/cost_reference.json", "tools/gen/*", "gradle.properties",
                JAVA + "villages/*", JAVA + "roads/*", JAVA + "common/*", JAVA + "config/*", JAVA + "mines/*", JAVA + "coast/*",
                JAVA + "uniques/*",
                JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java"]
-COSTE_SIN = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
-MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
+COST_WITHOUT = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
+MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
-MAPAS_WEB = ["tools/smoke/mapas_web.py"]
-# Búsqueda del tesoro (T40): su Java (paquete tesoro/) y su generador (tablas, textos, logros).
-TESORO = ["tools/smoke/tesoro.py"]
-# Arena de oleadas (T31) y sus modos, clasificación semanal y salón de la fama (T41).
-ARENA = ["tools/smoke/arena.py", "tools/smoke/arena_modos.py"]
-COMANDOS = UPDATE + ADMIN + ["tools/smoke/guia.py"] + ARENA
-# Entradas a mina: su generador (tools/gen/minas/) y su Java (paquete minas/); la regla de colocación toca la de las medianas.
-MINAS = ["tools/smoke/entradas_mina.py"]
-# Faros y naufragios de la costa (T42): su generador (tools/gen/litoral/) y su Java (paquete costa/); su regla es la de las
-# minas (minas/Minas.familia), y el ahogado del semihundido entra en las pruebas que recorren los mobs de las plantillas.
-COSTA = ["tools/smoke/costa.py"]
-COSTA_MOBS = COSTA + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
-# Perfiles de juego (opción «perfil», T36): su prueba de servidor (reinicios con cada perfil y una opción fijada a mano).
-PERFILES = ["tools/smoke/perfiles.py"]
-# Encargos del tablón y reputación por aldea (T38): su Java, el mixin de los precios y sus textos y logros.
-ENCARGOS = ["tools/smoke/encargos.py"]
-# Caravanas por los caminos (T39): su Java y sus textos y logro.
-CARAVANAS = ["tools/smoke/caravanas.py"]
-# Los tipos de medianas traen mobs anclados (y zombis adultos): las pruebas que recorren todos los mobs de las plantillas.
-MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/guardianes_anclados.py"]
-# contenido del Nether y el End (T44): medianas y únicas con DIMENSION, su tipo de estructura y su colocación
+WEB_MAPS = ["tools/smoke/web_maps.py"]
+# Treasure hunt (T40): its Java (tesoro/ package) and its generator (tables, texts, advancements).
+TREASURE = ["tools/smoke/treasure.py"]
+# Wave arena (T31) and its modes, weekly ranking and hall of fame (T41).
+ARENA = ["tools/smoke/arena.py", "tools/smoke/arena_modes.py"]
+COMMANDS = UPDATE + ADMIN + ["tools/smoke/guide.py"] + ARENA
+# Mine entrances: their generator (tools/gen/mines/) and their Java (minas/ package); the placement rule touches the medium structures' one.
+MINES = ["tools/smoke/mine_entrances.py"]
+# Coastal lighthouses and shipwrecks (T42): their generator (tools/gen/shore/) and their Java (costa/ package); their rule is that of the
+# mines (minas/Minas.familia), and the drowned of the half-sunk one enters the tests that go through the template mobs.
+COAST = ["tools/smoke/coast.py"]
+COAST_MOBS = COAST + ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"]
+# Game profiles ("perfil" option, T36): their server test (restarts with each profile and an option set by hand).
+PROFILES = ["tools/smoke/profiles.py"]
+# Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements.
+QUESTS = ["tools/smoke/quests.py"]
+# Caravans along the roads (T39): their Java and their texts and advancement.
+CARAVANS = ["tools/smoke/caravans.py"]
+# The medium structure types bring anchored mobs (and adult zombies): the tests that go through all the template mobs.
+MEDIUMS_MOBS = MEDIUMS + ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"]
+# Nether and End content (T44): medium and unique structures with DIMENSION, their structure type and their placement
 NETHER_END = ["tools/smoke/nether_end.py"]
-# Chozas de mago (T43): el Mago Malvado (Java chozas/) y su botín y textos; su plantilla es una mediana.
-CHOZAS = ["tools/smoke/chozas_mago.py"]
-# Actualizaciones seguras (T46): panel en diálogos, idioma por jugador, arreglos por versión y update analyze/apply.
-ACTUALIZAR = ["tools/smoke/actualizar.py"]
+# Wizard huts (T43): the Evil Wizard (Java chozas/) and its loot and texts; its template is a medium structure.
+HUTS = ["tools/smoke/wizard_huts.py"]
+# Safe updates (T46): dialog panel, per-player language, per-version fixes and update analyze/apply.
+SAFE_UPDATE = ["tools/smoke/update.py"]
 
-# Mapa ruta -> pruebas de servidor. Se recorre en orden y gana la PRIMERA regla que casa (fnmatch: * cruza «/»).
-# Una lista vacía: el cambio no necesita pruebas de servidor (más allá de la de humo, que va siempre en la CI).
-# Lo que no casa con ninguna regla se trata como común: batería completa (mejor de más que de menos).
-MAPA = [
-    # sin pruebas de servidor: documentación, tests unitarios, cliente, registro de cambios
+# Path -> server tests map. It is traversed in order and the FIRST rule that matches wins (fnmatch: * crosses "/").
+# An empty list: the change needs no server tests (beyond the smoke test, which always runs in CI).
+# Whatever matches no rule is treated as common: full suite (better too many than too few).
+MAP = [
+    # no server tests: documentation, unit tests, client, changelog
     ("docs/*", []), ("*.md", []), ("tools/gen/tests/*", []), ("src/test/*", []), ("src/client/*", []),
-    ("tools/changelog.py", []), ("tools/gen/render.py", []), ("tools/gen/LEEME.md", []), (".gitignore", []),
-    # aldeas: generador de piezas y su Java
-    ("tools/gen/houses.py", ALDEAS), ("tools/gen/streets.py", ALDEAS), ("tools/gen/specials.py", ALDEAS),
-    ("tools/gen/fillers.py", ALDEAS), ("tools/gen/themes.py", ALDEAS), ("tools/gen/sim.py", ALDEAS),
-    ("tools/gen/tablon.py", ["tools/smoke/aldeas_vida.py"]),
-    ("tools/gen/tratos.py", ["tools/smoke/aldeas_vida.py"]), (JAVA + "villages/*", ALDEAS),
-    ("tools/gen/mapas.py", ["tools/smoke/aldeas_vida.py", "tools/smoke/historia.py"]),
-    ("tools/gen/loot.py", []),                 # la de humo lee todas las tablas
-    ("tools/gen/logros.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"]),
-    # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
-    ("tools/gen/dimensiones.py", NETHER_END + MEDIANAS), (JAVA + "dimensions/*", NETHER_END),
-    ("tools/gen/unicas/_recinto.py", NETHER_END + DE_TODA_UNICA),
-    ("tools/gen/medianas/choza_mago.py", MEDIANAS_MOBS + CHOZAS),
-    ("tools/gen/medianas/*", MEDIANAS_MOBS + NETHER_END), (JAVA + "common/MediumStructures.java", MEDIANAS + NETHER_END),
-    ("tools/gen/minas/*", MINAS), (JAVA + "mines/*", MINAS + COSTA),
-    ("tools/gen/litoral/*", COSTA_MOBS), (JAVA + "coast/*", COSTA),
-    # /locate de las minas (T36): la caché compartida de alturas y el cálculo adelantado en paralelo solo los usan las minas
-    (JAVA + "common/HeightCache.java", MINAS), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINAS),
-    # encargos del tablón y reputación (T38)
-    (JAVA + "quests/*", ENCARGOS), (JAVA + "mixin/VillagerPricesMixin.java", ENCARGOS), ("tools/gen/encargos.py", ENCARGOS),
-    # caravanas por los caminos (T39)
-    (JAVA + "caravans/*", CARAVANAS), ("tools/gen/caravanas.py", CARAVANAS),
+    ("tools/changelog.py", []), ("tools/gen/render.py", []), ("tools/gen/README.md", []), (".gitignore", []),
+    # villages: piece generator and its Java
+    ("tools/gen/houses.py", VILLAGES), ("tools/gen/streets.py", VILLAGES), ("tools/gen/specials.py", VILLAGES),
+    ("tools/gen/fillers.py", VILLAGES), ("tools/gen/themes.py", VILLAGES), ("tools/gen/sim.py", VILLAGES),
+    ("tools/gen/board.py", ["tools/smoke/village_life.py"]),
+    ("tools/gen/trades.py", ["tools/smoke/village_life.py"]), (JAVA + "villages/*", VILLAGES),
+    ("tools/gen/maps.py", ["tools/smoke/village_life.py", "tools/smoke/story.py"]),
+    ("tools/gen/loot.py", []),                 # the smoke test reads all the tables
+    ("tools/gen/advancements.py", ["tools/smoke/trophies.py", "tools/smoke/story.py", "tools/smoke/village_life.py"]),
+    # medium structures: their types (tools/gen/mediums/) and their Java placement rule
+    ("tools/gen/dimensions.py", NETHER_END + MEDIUMS), (JAVA + "dimensions/*", NETHER_END),
+    ("tools/gen/uniques/_enclosure.py", NETHER_END + OF_EVERY_UNIQUE),
+    ("tools/gen/mediums/wizard_hut.py", MEDIUMS_MOBS + HUTS),
+    ("tools/gen/mediums/*", MEDIUMS_MOBS + NETHER_END), (JAVA + "common/MediumStructures.java", MEDIUMS + NETHER_END),
+    ("tools/gen/mines/*", MINES), (JAVA + "mines/*", MINES + COAST),
+    ("tools/gen/shore/*", COAST_MOBS), (JAVA + "coast/*", COAST),
+    # /locate of the mines (T36): the shared height cache and the parallel look-ahead computation are only used by the mines
+    (JAVA + "common/HeightCache.java", MINES), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINES),
+    # board quests and reputation (T38)
+    (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
+    # caravans along the roads (T39)
+    (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS),
     # chozas de mago (T43)
-    (JAVA + "huts/*", CHOZAS), ("tools/gen/chozas_mago.py", CHOZAS),
-    # actualizaciones seguras (T46): su Java, el panel, las preferencias, los menús, la migración y sus textos
-    (JAVA + "update/*", ACTUALIZAR), (JAVA + "command/ConfigPanel.java", ACTUALIZAR),
-    (JAVA + "command/Preferences.java", ACTUALIZAR), (JAVA + "config/Menus.java", ACTUALIZAR),
-    (JAVA + "config/ConfigMigration.java", ACTUALIZAR), ("tools/gen/actualizaciones.py", ACTUALIZAR),
-    # perfiles de juego (T36): su lógica y su comando (el resto de la configuración es común: batería completa)
-    (JAVA + "config/Profiles.java", PERFILES), (JAVA + "command/ProfileCommand.java", PERFILES),
-    ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
-    ("tools/gen/etiquetas_c.json", ["tools/smoke/terralith_biomas.py"]),
-    # los mods de Modrinth fijados: las pruebas que los descargan (las de compatibilidad, por COMPAT_RUTAS)
-    ("tools/smoke/modrinth.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py",
-                                 "tools/smoke/terralith_biomas.py"]),
-    # mixins de los mobs de plantilla y comandos (la de humo prueba /heraldia info y llave)
-    (JAVA + "mixin/Zombie*", ["tools/smoke/guardianes_adultos.py"]),
-    (JAVA + "mixin/DrownedMixin.java", ["tools/smoke/guardianes_adultos.py"]),
-    (JAVA + "mixin/DrownedWaterMixin.java", ["tools/smoke/guardianes_anclados.py"]),
-    (JAVA + "mixin/DrownedBeachMixin.java", ["tools/smoke/guardianes_anclados.py"]),
-    (JAVA + "common/Anchoring.java", ["tools/smoke/guardianes_anclados.py"]),
-    # botín que se repone y dificultad configurable (T29)
-    (JAVA + "loot/RestockedLoot.java", ["tools/smoke/botin_reponer.py"]), (JAVA + "loot/Restock.java", ["tools/smoke/botin_reponer.py"]),
-    (JAVA + "difficulty/*", ["tools/smoke/dificultad.py"]),
-    # Guía del Heraldo: su Java (y los textos por idioma que usa), su generador y su prueba
-    (JAVA + "command/Guide*", ["tools/smoke/guia.py"]), (JAVA + "command/Texts.java", ["tools/smoke/guia.py"]),
-    ("tools/gen/guia.py", ["tools/smoke/guia.py"]),
-    # idiomas del mod (traducciones y su comprobación): la Guía es lo único que el servidor entrega en el idioma del cliente
-    ("tools/gen/idiomas.py", ["tools/smoke/guia.py"]), ("tools/gen/idiomas/*", ["tools/smoke/guia.py"]),
-    # herramientas de administración (T35): /heraldia review, status y reload (y la búsqueda de info nearby que reutilizan)
+    (JAVA + "huts/*", HUTS), ("tools/gen/wizard_huts.py", HUTS),
+    # safe updates (T46): their Java, the panel, the preferences, the menus, the migration and their texts
+    (JAVA + "update/*", SAFE_UPDATE), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
+    (JAVA + "command/Preferences.java", SAFE_UPDATE), (JAVA + "config/Menus.java", SAFE_UPDATE),
+    (JAVA + "config/ConfigMigration.java", SAFE_UPDATE), ("tools/gen/updates.py", SAFE_UPDATE),
+    # game profiles (T36): their logic and their command (the rest of the configuration is common: full suite)
+    (JAVA + "config/Profiles.java", PROFILES), (JAVA + "command/ProfileCommand.java", PROFILES),
+    ("tools/gen/biomes.py", ["tools/smoke/terralith_biomes.py"]),
+    ("tools/gen/c_tags.json", ["tools/smoke/terralith_biomes.py"]),
+    # the pinned Modrinth mods: the tests that download them (the compatibility ones, via COMPAT_PATHS)
+    ("tools/smoke/modrinth.py", ["tools/smoke/trophies.py", "tools/smoke/story.py", "tools/smoke/village_life.py",
+                                 "tools/smoke/terralith_biomes.py"]),
+    # template mob mixins and commands (the smoke test tries /heraldia info and llave)
+    (JAVA + "mixin/Zombie*", ["tools/smoke/adult_guardians.py"]),
+    (JAVA + "mixin/DrownedMixin.java", ["tools/smoke/adult_guardians.py"]),
+    (JAVA + "mixin/DrownedWaterMixin.java", ["tools/smoke/anchored_guardians.py"]),
+    (JAVA + "mixin/DrownedBeachMixin.java", ["tools/smoke/anchored_guardians.py"]),
+    (JAVA + "common/Anchoring.java", ["tools/smoke/anchored_guardians.py"]),
+    # replenished loot and configurable difficulty (T29)
+    (JAVA + "loot/RestockedLoot.java", ["tools/smoke/loot_restock.py"]), (JAVA + "loot/Restock.java", ["tools/smoke/loot_restock.py"]),
+    (JAVA + "difficulty/*", ["tools/smoke/difficulty.py"]),
+    # Herald's Guide: its Java (and the per-language texts it uses), its generator and its test
+    (JAVA + "command/Guide*", ["tools/smoke/guide.py"]), (JAVA + "command/Texts.java", ["tools/smoke/guide.py"]),
+    ("tools/gen/guide.py", ["tools/smoke/guide.py"]),
+    # mod languages (translations and their check): the Guide is the only thing the server delivers in the client's language
+    ("tools/gen/languages.py", ["tools/smoke/guide.py"]), ("tools/gen/languages/*", ["tools/smoke/guide.py"]),
+    # administration tools (T35): /heraldia review, status and reload (and the info nearby search they reuse)
     (JAVA + "command/Revi*", ADMIN), (JAVA + "command/SafeSpot.java", ADMIN),
     (JAVA + "command/StatusCommand.java", ADMIN), (JAVA + "command/State.java", ADMIN), (JAVA + "command/ReloadCommand*", ADMIN), (JAVA + "command/InfoCommand.java", ADMIN),
     (JAVA + "config/Reload.java", ADMIN), ("tools/gen/admin.py", ADMIN),
-    # comandos en inglés y sus alias antiguos (T35b): el árbol de /heraldia lo usan todas las pruebas de comandos; el
-    # aviso de versión nueva, su prueba con la API de mentira
-    (JAVA + "command/HeraldiaCommands.java", COMANDOS), (JAVA + "command/Alias.java", COMANDOS),
-    (JAVA + "mixin/CommandsMixin.java", COMANDOS), ("tools/gen/comandos.py", COMANDOS),
+    # commands in English and their old aliases (T35b): the /heraldia tree is used by all the command tests; the
+    # new-version notice, its test with the fake API
+    (JAVA + "command/HeraldiaCommands.java", COMMANDS), (JAVA + "command/Alias.java", COMMANDS),
+    (JAVA + "mixin/CommandsMixin.java", COMMANDS), ("tools/gen/commands.py", COMMANDS),
     (JAVA + "command/VersionNotice.java", UPDATE), (JAVA + "version/*", UPDATE),
-    # mapas web (T37): su Java (con los adaptadores), el mixin de los logros y su prueba con squaremap y sin mapas
-    (JAVA + "maps/*", MAPAS_WEB), (JAVA + "mixin/PlayerAdvancementsMixin.java", MAPAS_WEB),
-    # búsqueda del tesoro (T40): su Java y su generador; la recompensa de las hazañas del tablón va en tablon.py (arriba)
-    (JAVA + "treasure/*", TESORO), ("tools/gen/tesoro.py", TESORO),
+    # web maps (T37): their Java (with the adapters), the advancements mixin and their test with squaremap and without maps
+    (JAVA + "maps/*", WEB_MAPS), (JAVA + "mixin/PlayerAdvancementsMixin.java", WEB_MAPS),
+    # treasure hunt (T40): its Java and its generator; the reward of the board's feats goes in board.py (above)
+    (JAVA + "treasure/*", TREASURE), ("tools/gen/treasure.py", TREASURE),
     (JAVA + "command/*", []),
-    # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
-    (JAVA + "bosses/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
-    # arena de oleadas (T31) y sus modos (T41): su Java, sus mixins y su generador (plantilla, datos, botín y logros)
-    (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_oleadas.py", ARENA),
-    # caminos entre aldeas: su Java y sus datos
-    (JAVA + "roads/*", ["tools/smoke/caminos.py"]), ("tools/gen/caminos.py", ["tools/smoke/caminos.py"]),
-    # código común: batería completa
-    ("tools/gen/unicas/_comun/*", TODO), ("tools/gen/unicas/__init__.py", TODO), ("tools/gen/writer.py", TODO),
-    ("tools/gen/core.py", TODO), ("tools/gen/pack.py", TODO), ("tools/gen/lint.py", TODO), ("tools/gen/validate.py", TODO),
-    ("tools/gen/main.py", TODO), ("tools/gen/build.py", TODO), ("tools/gen/opciones.py", TODO), ("tools/gen/requirements.txt", TODO),
-    ("tools/smoke/server_smoke.py", TODO), ("tools/test.py", TODO), (".github/*", TODO), ("build.gradle", TODO),
-    ("gradle.properties", TODO), ("settings.gradle", TODO), ("gradle/*", TODO), ("gradlew*", TODO),
-    ("src/main/resources/*", TODO), (JAVA + "*", TODO),
+    # bosses: phases, reinforcements and guardian bar (their Java and the generator's reinforcements contract)
+    (JAVA + "bosses/*", ["tools/smoke/boss_phases.py"]), ("tools/gen/bosses.py", ["tools/smoke/boss_phases.py"]),
+    # wave arena (T31) and its modes (T41): its Java, its mixins and its generator (template, data, loot and advancements)
+    (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_waves.py", ARENA),
+    # roads between villages: their Java and their data
+    (JAVA + "roads/*", ["tools/smoke/roads.py"]), ("tools/gen/roads.py", ["tools/smoke/roads.py"]),
+    # common code: full suite
+    ("tools/gen/uniques/_common/*", FULL), ("tools/gen/uniques/__init__.py", FULL), ("tools/gen/writer.py", FULL),
+    ("tools/gen/core.py", FULL), ("tools/gen/pack.py", FULL), ("tools/gen/lint.py", FULL), ("tools/gen/validate.py", FULL),
+    ("tools/gen/main.py", FULL), ("tools/gen/build.py", FULL), ("tools/gen/options.py", FULL), ("tools/gen/requirements.txt", FULL),
+    ("tools/smoke/server_smoke.py", FULL), ("tools/test.py", FULL), (".github/*", FULL), ("build.gradle", FULL),
+    ("gradle.properties", FULL), ("settings.gradle", FULL), ("gradle/*", FULL), ("gradlew*", FULL),
+    ("src/main/resources/*", FULL), (JAVA + "*", FULL),
 ]
 
 
@@ -181,85 +181,85 @@ def rel(p):
     return os.path.relpath(p, ROOT).replace(os.sep, "/")
 
 
-def grupos_compat():
-    """Grupos de compat_mods.py (lo importa sin ejecutar nada)."""
+def compat_groups():
+    """Groups of compat_mods.py (imported without running anything)."""
     sys.path.insert(0, os.path.join(ROOT, "tools", "smoke"))
     import compat_mods
-    return list(compat_mods.GRUPOS)
+    return list(compat_mods.GROUPS)
 
 
-def descubrir():
-    """Todas las pruebas de servidor (sin la de humo), ordenadas; compat_mods.py, una por grupo."""
-    smoke = [rel(p) for p in glob.glob(os.path.join(ROOT, "tools", "smoke", "*.py")) if os.path.basename(p) not in NO_SON_PRUEBAS]
-    unicas = [rel(p) for p in glob.glob(os.path.join(ROOT, "tools", "gen", "unicas", "*", "prueba_*.py"))]
+def discover():
+    """All the server tests (without the smoke test), sorted; compat_mods.py, one per group."""
+    smoke = [rel(p) for p in glob.glob(os.path.join(ROOT, "tools", "smoke", "*.py")) if os.path.basename(p) not in NOT_TESTS]
+    uniques = [rel(p) for p in glob.glob(os.path.join(ROOT, "tools", "gen", "uniques", "*", "smoke_*.py"))]
     if COMPAT in smoke:
         smoke.remove(COMPAT)
-        smoke += [f"{COMPAT}::{g}" for g in grupos_compat()]
-    return sorted(smoke + unicas)
+        smoke += [f"{COMPAT}::{g}" for g in compat_groups()]
+    return sorted(smoke + uniques)
 
 
-def es_compat(prueba):
-    return prueba.split("::")[0] == COMPAT
+def is_compat(test):
+    return test.split("::")[0] == COMPAT
 
 
-def orden(prueba):
-    """Orden para ejecutar una prueba: [script, argumentos...] («ruta::grupo» pasa --grupo grupo)."""
-    script, _, grupo = prueba.partition("::")
-    return [os.path.join(ROOT, script)] + (["--grupo", grupo] if grupo else [])
+def order(test):
+    """Order to run a test: [script, arguments...] ("path::group" passes --group group)."""
+    script, _, group = test.partition("::")
+    return [os.path.join(ROOT, script)] + (["--group", group] if group else [])
 
 
-def de_unica(sid, todas):
-    """Pruebas de servidor de una única: las de su carpeta, las de SMOKE_DE_UNICA y DE_TODA_UNICA."""
-    propias = [p for p in todas if p.startswith(f"tools/gen/unicas/{sid}/")]
-    return propias + SMOKE_DE_UNICA.get(sid, []) + DE_TODA_UNICA
+def for_unique(sid, all_items):
+    """Server tests of a unique structure: those in its folder, those of SMOKE_OF_UNIQUE and OF_EVERY_UNIQUE."""
+    own_ones = [p for p in all_items if p.startswith(f"tools/gen/uniques/{sid}/")]
+    return own_ones + SMOKE_OF_UNIQUE.get(sid, []) + OF_EVERY_UNIQUE
 
 
-def para(ruta, todas):
-    """Pruebas de servidor que pide un fichero cambiado: lista, o TODO."""
-    if ruta in todas:                                           # la propia prueba
-        return [ruta]
-    if ruta == COMPAT:
-        return [p for p in todas if es_compat(p)]
-    partes = ruta.split("/")
-    if ruta.startswith("tools/gen/unicas/") and len(partes) >= 4 and not partes[3].startswith("_"):
-        sid = partes[3][:-3] if len(partes) == 4 and partes[3].endswith(".py") else partes[3]
-        if len(partes) > 4 or ruta.endswith(".py"):
-            return de_unica(sid, todas)
-    if ruta.startswith(JAVA + "uniques/") and len(partes) > 9:      # src/main/java/io/github/albertosa23/heraldia/uniques/<paquete>/...
-        pkg = partes[8]
-        if pkg in JAVA_UNICA:
-            return de_unica(JAVA_UNICA[pkg], todas)
-        return TODO
-    for patron, pruebas in MAPA:
-        if fnmatch.fnmatch(ruta, patron):
-            return pruebas
-    return TODO
+def dest(route, all_items):
+    """Server tests required by a changed file: a list, or ALL."""
+    if route in all_items:                                           # the test itself
+        return [route]
+    if route == COMPAT:
+        return [p for p in all_items if is_compat(p)]
+    parts = route.split("/")
+    if route.startswith("tools/gen/uniques/") and len(parts) >= 4 and not parts[3].startswith("_"):
+        sid = parts[3][:-3] if len(parts) == 4 and parts[3].endswith(".py") else parts[3]
+        if len(parts) > 4 or route.endswith(".py"):
+            return for_unique(sid, all_items)
+    if route.startswith(JAVA + "uniques/") and len(parts) > 9:      # src/main/java/io/github/albertosa23/heraldia/uniques/<paquete>/...
+        pkg = parts[8]
+        if pkg in JAVA_UNIQUE:
+            return for_unique(JAVA_UNIQUE[pkg], all_items)
+        return FULL
+    for pattern, tests in MAP:
+        if fnmatch.fnmatch(route, pattern):
+            return tests
+    return FULL
 
 
-def seleccionar(cambiados, todas=None):
-    """(completa, [pruebas]) para una lista de rutas cambiadas (relativas a la raíz, con «/»). Las de compatibilidad
-    (COMPAT) solo entran si alguna ruta está en COMPAT_RUTAS, también cuando lo cambiado pide la batería completa."""
-    todas = descubrir() if todas is None else todas
-    compat = any(fnmatch.fnmatch(r, pat) for r in cambiados for pat in COMPAT_RUTAS)
-    elegidas = set()
-    for r in cambiados:
-        p = para(r, todas)
-        if p == TODO:
-            return True, [x for x in todas if compat or not es_compat(x)]
-        elegidas.update(x for x in p if x in todas)
+def choose(changed_list, all_items=None):
+    """(full, [tests]) for a list of changed paths (relative to the root, with "/"). The compatibility ones
+    (COMPAT) only enter if some path is in COMPAT_PATHS, also when what changed requires the full suite."""
+    all_items = discover() if all_items is None else all_items
+    compat = any(fnmatch.fnmatch(r, pat) for r in changed_list for pat in COMPAT_PATHS)
+    chosen_ones = set()
+    for r in changed_list:
+        p = dest(r, all_items)
+        if p == FULL:
+            return True, [x for x in all_items if compat or not is_compat(x)]
+        chosen_ones.update(x for x in p if x in all_items)
     if compat:
-        elegidas.update(x for x in todas if es_compat(x))
-    return False, sorted(elegidas)
+        chosen_ones.update(x for x in all_items if is_compat(x))
+    return False, sorted(chosen_ones)
 
 
-def coste(cambiados):
-    """¿Pide la lista de rutas cambiadas la prueba de coste de generación (COSTE_RUTAS sin COSTE_SIN)?"""
-    return any(any(fnmatch.fnmatch(r, p) for p in COSTE_RUTAS) and not any(fnmatch.fnmatch(r, p) for p in COSTE_SIN)
-               for r in cambiados)
+def cost(changed_list):
+    """Does the list of changed paths require the generation cost test (COST_PATHS without COST_WITHOUT)?"""
+    return any(any(fnmatch.fnmatch(r, p) for p in COST_PATHS) and not any(fnmatch.fnmatch(r, p) for p in COST_WITHOUT)
+               for r in changed_list)
 
 
-def cambiados(base):
-    """Ficheros cambiados frente a `base` (merge-base), más los del árbol de trabajo sin confirmar."""
+def changed_list(base):
+    """Files changed versus `base` (merge-base), plus those of the working tree not yet committed."""
     def git(*a):
         return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split("\n")
     mb = git("merge-base", base, "HEAD")[0].strip()
@@ -267,110 +267,110 @@ def cambiados(base):
     return sorted({l.strip() for l in out if l.strip()})
 
 
-# Duración medida de cada prueba en la CI (s, solo el paso de la prueba; servidor ya en caché). Sirve para repartirlas
-# en grupos parecidos; una prueba que no está aquí cuenta como DEFECTO_S.
-DURACION_S = {
-    "tools/smoke/aldeas_vida.py": 170, "tools/smoke/aldeas_variantes.py": 135, "tools/smoke/aldeas_terreno.py": 185,
-    "tools/gen/unicas/isla_corsario/prueba_servidor.py": 100, "tools/gen/unicas/mina_perdida/prueba_servidor.py": 95,
-    "tools/smoke/trofeos.py": 90, "tools/smoke/ciudadela_check.py": 80, "tools/smoke/observatorio_smoke.py": 75,
-    "tools/smoke/guardianes_adultos.py": 72, "tools/gen/unicas/santuario/prueba_servidor.py": 70,
-    "tools/gen/unicas/catedral/prueba_juego.py": 65, "tools/gen/unicas/salon_jarl/prueba_servidor.py": 65,
-    "tools/gen/unicas/laboratorio_micelio/prueba_servidor.py": 64, "tools/smoke/historia.py": 62,
-    "tools/smoke/palacio_redstone.py": 57, "tools/smoke/terralith_biomas.py": 50,
-    "tools/gen/unicas/fortaleza_hielo/prueba_servidor.py": 47, "tools/gen/unicas/monasterio/prueba_servidor.py": 45,
-    "tools/gen/unicas/castillo/prueba_redstone.py": 44, "tools/gen/unicas/mansion/prueba_servidor.py": 40,
-    "tools/smoke/coliseo_redstone.py": 39, "tools/smoke/rejilla_compatible.py": 80, "tools/smoke/caminos.py": 300,
-    "tools/gen/unicas/torre_mago/prueba_redstone.py": 33,
-    "tools/gen/unicas/piramide/prueba_servidor.py": 28, "tools/smoke/galeon_test.py": 26,
-    "tools/smoke/jefes_fases.py": 70,                     # medida en local: 60 s con dos arranques (el segundo, con las opciones desactivadas)
-    # compatibilidad (medidas en local en 4 núcleos con las descargas en caché, más un 30 % para la CI)
+# Measured duration of each test in CI (s, only the test step; server already cached). Used to distribute them
+# into similar groups; a test that is not here counts as DEFAULT_S.
+DURATION_S = {
+    "tools/smoke/village_life.py": 170, "tools/smoke/village_variants.py": 135, "tools/smoke/village_terrain.py": 185,
+    "tools/gen/uniques/corsair_island/smoke_server.py": 100, "tools/gen/uniques/lost_mine/smoke_server.py": 95,
+    "tools/smoke/trophies.py": 90, "tools/smoke/citadel_check.py": 80, "tools/smoke/observatory_smoke.py": 75,
+    "tools/smoke/adult_guardians.py": 72, "tools/gen/uniques/sanctuary/smoke_server.py": 70,
+    "tools/gen/uniques/cathedral/smoke_game.py": 65, "tools/gen/uniques/jarl_hall/smoke_server.py": 65,
+    "tools/gen/uniques/mycelium_lab/smoke_server.py": 64, "tools/smoke/story.py": 62,
+    "tools/smoke/palace_redstone.py": 57, "tools/smoke/terralith_biomes.py": 50,
+    "tools/gen/uniques/ice_fortress/smoke_server.py": 47, "tools/gen/uniques/monastery/smoke_server.py": 45,
+    "tools/gen/uniques/castle/smoke_redstone.py": 44, "tools/gen/uniques/mansion/smoke_server.py": 40,
+    "tools/smoke/colosseum_redstone.py": 39, "tools/smoke/compatible_grid.py": 80, "tools/smoke/roads.py": 300,
+    "tools/gen/uniques/wizard_tower/smoke_redstone.py": 33,
+    "tools/gen/uniques/pyramid/smoke_server.py": 28, "tools/smoke/galleon_test.py": 26,
+    "tools/smoke/boss_phases.py": 70,                     # measured locally: 60 s with two starts (the second, with the options disabled)
+    # compatibility (measured locally on 4 cores with downloads cached, plus 30 % for CI)
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
                                          "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
-    "tools/smoke/guardianes_anclados.py": 450,
-    "tools/smoke/estructuras_medianas.py": 200,          # medida en local (4 núcleos): 3 min 20 s con el arranque; 2 min 40 s con los 8 tipos
-    "tools/smoke/guia.py": 120,                      # tres arranques del servidor
-    "tools/smoke/entradas_mina.py": 250,                     # dos arranques (multiplicador 1 y 5), la generación de las minas y /locate lejos
-    "tools/smoke/costa.py": 280,                     # medida en local: ~3 min 50 s (dos arranques, cuatro /locate con su generación y /place junto a playas)
-    "tools/smoke/perfiles.py": 110,                  # cuatro arranques del mismo mundo
-    "tools/smoke/actualizar.py": 140,                # medida en local: ~2 min 15 s (dos arranques y una zona de 400 chunks)
-    "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
-    "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
-    "tools/smoke/arena.py": 150,                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)
-    "tools/smoke/arena_modos.py": 200,               # dos arranques, una obra, siete oleadas cortas y el cierre de dos semanas
-    "tools/smoke/admin.py": 80,                      # medida en local: 60 s (dos arranques y dos medianas cargadas o generadas)
-    "tools/smoke/update_check.py": 120,              # tres arranques (con la API de mentira, sin red y desactivado)
-    "tools/smoke/mapas_web.py": 240,                 # tres arranques (sin mapas, con squaremap y Carpet, y tras reiniciar)
-    "tools/smoke/mundo_existente.py": 150,           # medida en local: ~2 min (tres arranques del mismo mundo)
-    "tools/smoke/encargos.py": 150,                  # dos arranques del mismo mundo y una aldea generada
-    "tools/smoke/tesoro.py": 130,                    # medida en local: ~1 min 40 s (tres arranques, la cadena entera y el cofre)
-    "tools/smoke/nether_end.py": 300,                # T44: un arranque, /locate y generación en el Nether y el End, /place de 16 estilos
-    "tools/smoke/chozas_mago.py": 100,               # medida en local: ~75 s (dos arranques, cuatro chozas y tres Magos Malvados)
-    "tools/smoke/caravanas.py": 240,                 # medida en local: ~3,5 min (dos arranques, 387 chunks de pasillo y 5 caravanas)
+    "tools/smoke/anchored_guardians.py": 450,
+    "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
+    "tools/smoke/guide.py": 120,                      # three server starts
+    "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
+    "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
+    "tools/smoke/profiles.py": 110,                  # four starts of the same world
+    "tools/smoke/update.py": 140,                # measured locally: ~2 min 15 s (two starts and a zone of 400 chunks)
+    "tools/smoke/loot_restock.py": 100,             # measured locally: 72 s (two starts and a generated hermitage)
+    "tools/smoke/difficulty.py": 100,                # measured locally: ~70 s (four starts of the same world)
+    "tools/smoke/arena.py": 150,                     # measured locally: ~2 min (two starts, three builds and five waves)
+    "tools/smoke/arena_modes.py": 200,               # two starts, one build, seven short waves and the two-week close
+    "tools/smoke/admin.py": 80,                      # measured locally: 60 s (two starts and two medium structures loaded or generated)
+    "tools/smoke/update_check.py": 120,              # three starts (with the fake API, without network and disabled)
+    "tools/smoke/web_maps.py": 240,                 # three starts (without maps, with squaremap and Carpet, and after restarting)
+    "tools/smoke/existing_world.py": 150,           # measured locally: ~2 min (three starts of the same world)
+    "tools/smoke/quests.py": 150,                  # two starts of the same world and a generated village
+    "tools/smoke/treasure.py": 130,                    # measured locally: ~1 min 40 s (three starts, the whole chain and the chest)
+    "tools/smoke/nether_end.py": 300,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
+    "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)
+    "tools/smoke/caravans.py": 240,                 # measured locally: ~3.5 min (two starts, 387 corridor chunks and 5 caravans)
 }
-DEFECTO_S = 90
-# Cada job de la CI paga ~25 s de preparación (máquina, Java, Python, cachés) antes de la prueba: se juntan pruebas cortas
-# en un job mientras el grupo no pase de la más larga (así no se alarga la CI y se ocupan menos máquinas). GitHub
-# Actions gratis da 20 jobs a la vez: con la de humo y la compilación, la batería completa cabe en una sola tanda.
-TOPE_GRUPO_S = 170
+DEFAULT_S = 90
+# Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined
+# into one job as long as the group does not exceed the longest one (so CI is not lengthened and fewer machines are used). Free GitHub
+# Actions gives 20 concurrent jobs: with the smoke test and the build, the full suite fits in a single batch.
+GROUP_CAP_S = 170
 
 
-def grupos(pruebas, tope=TOPE_GRUPO_S):
-    """Reparte las pruebas en grupos (listas) de duración <= max(tope, la más larga): primero las largas, cada una en
-    el grupo más corto donde quepa (si no cabe en ninguno, abre otro). Determinista."""
-    dur = lambda p: DURACION_S.get(p, DEFECTO_S)
-    tope = max([tope] + [dur(p) for p in pruebas])
+def groups(tests, cap=GROUP_CAP_S):
+    """Distributes the tests into groups (lists) of duration <= max(cap, the longest): longest first, each into
+    the shortest group where it fits (if it fits in none, it opens another). Deterministic."""
+    dur = lambda p: DURATION_S.get(p, DEFAULT_S)
+    cap = max([cap] + [dur(p) for p in tests])
     out = []
-    for p in sorted(pruebas, key=lambda p: (-dur(p), p)):
-        cabe = [g for g in out if sum(map(dur, g)) + dur(p) <= tope]
-        if cabe:
-            min(cabe, key=lambda g: sum(map(dur, g))).append(p)
+    for p in sorted(tests, key=lambda p: (-dur(p), p)):
+        fits = [g for g in out if sum(map(dur, g)) + dur(p) <= cap]
+        if fits:
+            min(fits, key=lambda g: sum(map(dur, g))).append(p)
         else:
             out.append([p])
     return out
 
 
-def nombre(g):
-    """Nombre corto de un grupo para la CI: «isla_corsario + piramide»."""
-    def corto(p):
+def name(g):
+    """Short name of a group for CI: "isla_corsario + piramide"."""
+    def brief(p):
         if "::" in p:
             return "compat " + p.split("::")[1]
         parts = p.split("/")
-        return parts[3] if p.startswith("tools/gen/unicas/") else parts[-1][:-3]
-    return " + ".join(corto(p) for p in g)
+        return parts[3] if p.startswith("tools/gen/uniques/") else parts[-1][:-3]
+    return " + ".join(brief(p) for p in g)
 
 
-def matriz(completa, pruebas):
-    return {"include": [{"nombre": nombre(g), "pruebas": " ".join(g)} for g in grupos(pruebas)]} if pruebas else {"include": []}
+def matrix(full, tests):
+    return {"include": [{"name": name(g), "tests": " ".join(g)} for g in groups(tests)]} if tests else {"include": []}
 
 
-def unitarios():
-    """Tests unitarios rápidos del generador (pytest). Los JUnit van con ./gradlew test."""
+def unit_tests():
+    """Quick unit tests of the generator (pytest). The JUnit ones run with ./gradlew test."""
     return subprocess.run([sys.executable, "-m", "pytest", "-q", os.path.join(ROOT, "tools", "gen", "tests")],
                           cwd=ROOT).returncode
 
 
-def ejecutar(pruebas, jar, work, logs=None):
-    """Ejecuta las pruebas de servidor en serie (todas, aunque falle una) y devuelve las que fallan. Copia el
-    logs/latest.log de cada una a `logs` (si se da) para subirlo como artefacto."""
-    malas = []
-    for p in pruebas:
+def execute(tests, jar, work, logs=None):
+    """Runs the server tests serially (all of them, even if one fails) and returns those that fail. Copies the
+    logs/latest.log of each one to `logs` (if given) to upload it as an artifact."""
+    bad_all = []
+    for p in tests:
         t0 = time.monotonic()
         print(f"::group::{p}" if os.environ.get("GITHUB_ACTIONS") else f"== {p}", flush=True)
-        r = subprocess.run([sys.executable, *orden(p), "--jar", jar, "--work", work], cwd=ROOT).returncode
+        r = subprocess.run([sys.executable, *order(p), "--jar", jar, "--work", work], cwd=ROOT).returncode
         if os.environ.get("GITHUB_ACTIONS"):
             print("::endgroup::")
-        print(f"{'OK' if r == 0 else 'FALLA'} {p} ({time.monotonic() - t0:.0f} s)", flush=True)
+        print(f"{'OK' if r == 0 else 'FAIL'} {p} ({time.monotonic() - t0:.0f} s)", flush=True)
         if logs:
             os.makedirs(logs, exist_ok=True)
             src = os.path.join(work, "logs", "latest.log")
             if os.path.isfile(src):
                 shutil.copy(src, os.path.join(logs, p.replace("::", "-").replace("/", "-").replace(".py", "") + ".log"))
         if r:
-            malas.append(p)
-    return malas
+            bad_all.append(p)
+    return bad_all
 
 
-def jar_por_defecto():
+def default_jar():
     props = dict(l.strip().split("=", 1) for l in open(os.path.join(ROOT, "gradle.properties"), encoding="utf-8")
                  if "=" in l and not l.lstrip().startswith("#"))
     return os.path.join(ROOT, "build", "libs", f"heraldia-{props['mod_version']}.jar")
@@ -378,57 +378,57 @@ def jar_por_defecto():
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    modo = ap.add_mutually_exclusive_group(required=True)
-    modo.add_argument("--afectados", action="store_true", help="unitarios + pruebas de servidor de lo cambiado")
-    modo.add_argument("--todo", action="store_true", help="batería completa (sesión auditora)")
-    modo.add_argument("--listar", action="store_true", help="solo lista las pruebas de servidor elegidas")
-    modo.add_argument("--unitarios", action="store_true", help="solo los tests unitarios del generador")
-    modo.add_argument("--ci-matriz", action="store_true", help="matriz JSON para la CI")
-    modo.add_argument("--grupo", help="ejecuta en serie estas pruebas (separadas por espacios)")
-    ap.add_argument("--base", default="origin/develop", help="referencia con la que comparar (por defecto origin/develop)")
-    ap.add_argument("--completa", action="store_true", help="con --ci-matriz/--listar: batería completa")
-    ap.add_argument("--jar", help="el .jar del mod (por defecto el de la versión de gradle.properties)")
-    ap.add_argument("--work", default=os.path.join(ROOT, "build", "smoke"), help="carpeta del servidor de prueba")
-    ap.add_argument("--logs", help="carpeta donde copiar el log de cada prueba")
-    ap.add_argument("--sin-unitarios", action="store_true", help="con --afectados/--todo: no pasa los unitarios")
-    ap.add_argument("--sin-coste", action="store_true", help="con --afectados/--todo: no pasa la prueba de coste de generación")
+    mode = ap.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--affected", action="store_true", help="unit tests + server tests of what changed")
+    mode.add_argument("--all", action="store_true", help="full suite (auditing session)")
+    mode.add_argument("--list-only", action="store_true", help="only list the chosen server tests")
+    mode.add_argument("--unit-tests", action="store_true", help="only the generator's unit tests")
+    mode.add_argument("--ci-matrix", action="store_true", help="JSON matrix for CI")
+    mode.add_argument("--group", help="run these tests serially (separated by spaces)")
+    ap.add_argument("--base", default="origin/develop", help="reference to compare against (default origin/develop)")
+    ap.add_argument("--full", action="store_true", help="with --ci-matrix/--list-only: full suite")
+    ap.add_argument("--jar", help="the mod's .jar (default: that of the version in gradle.properties)")
+    ap.add_argument("--work", default=os.path.join(ROOT, "build", "smoke"), help="folder of the test server")
+    ap.add_argument("--logs", help="folder where to copy each test's log")
+    ap.add_argument("--no-unit", action="store_true", help="with --affected/--all: skip the unit tests")
+    ap.add_argument("--no-cost", action="store_true", help="with --affected/--all: skip the generation cost test")
     a = ap.parse_args(argv)
-    work = os.path.abspath(a.work)       # los scripts arrancan Java con cwd=--work: ruta absoluta
-    jar = os.path.abspath(a.jar or jar_por_defecto())
+    work = os.path.abspath(a.work)       # the scripts start Java with cwd=--work: absolute path
+    jar = os.path.abspath(a.jar or default_jar())
 
-    if a.unitarios:
-        return unitarios()
-    if a.grupo is not None:
-        malas = ejecutar(a.grupo.split(), jar, work, a.logs)
-        print("Fallan:" if malas else "Todas pasan.", " ".join(malas))
-        return 1 if malas else 0
+    if a.unit_tests:
+        return unit_tests()
+    if a.group is not None:
+        bad_all = execute(a.group.split(), jar, work, a.logs)
+        print("Fallan:" if bad_all else "All pass.", " ".join(bad_all))
+        return 1 if bad_all else 0
 
-    if a.todo or a.completa:
-        completa, pruebas, cambios, con_coste = True, descubrir(), [], True
+    if a.all or a.full:
+        full, tests, changes, with_cost = True, discover(), [], True
     else:
-        cambios = cambiados(a.base)
-        (completa, pruebas), con_coste = seleccionar(cambios), coste(cambios)
-    if a.ci_matriz:
-        print(json.dumps(dict(matriz(completa, pruebas), completa=completa, coste=con_coste), ensure_ascii=False))
+        changes = changed_list(a.base)
+        (full, tests), with_cost = choose(changes), cost(changes)
+    if a.ci_matrix:
+        print(json.dumps(dict(matrix(full, tests), full=full, cost=with_cost), ensure_ascii=False))
         return 0
-    if a.listar or a.afectados:
-        print(f"{len(cambios)} ficheros cambiados frente a {a.base}" if cambios else "batería completa", file=sys.stderr)
-        print(("Batería completa: " if completa else "Pruebas de servidor afectadas: ") + (", ".join(pruebas) or "ninguna"),
+    if a.list_only or a.affected:
+        print(f"{len(changes)} ficheros cambiados frente a {a.base}" if changes else "full suite", file=sys.stderr)
+        print(("Full suite: " if full else "Affected server tests: ") + (", ".join(tests) or "none"),
               file=sys.stderr)
-        print(f"Coste de generación ({COSTE}): {'sí' if con_coste else 'no'}", file=sys.stderr)
-        if a.listar:
-            print("\n".join(pruebas + ([COSTE] if con_coste else [])))
+        print(f"Generation cost ({COST}): {'sí' if with_cost else 'no'}", file=sys.stderr)
+        if a.list_only:
+            print("\n".join(tests + ([COST] if with_cost else [])))
             return 0
-    if con_coste and not a.sin_coste:
-        pruebas = pruebas + [COSTE]
-    if not a.sin_unitarios and unitarios():
+    if with_cost and not a.no_cost:
+        tests = tests + [COST]
+    if not a.no_unit and unit_tests():
         return 1
     if not os.path.isfile(jar):
-        print(f"No está el .jar {jar}: compila antes con ./gradlew build (o pasa --jar).", file=sys.stderr)
+        print(f"The .jar {jar} is missing: build first with ./gradlew build (or pass --jar).", file=sys.stderr)
         return 1
-    malas = ejecutar(([HUMO] if a.todo else []) + pruebas, jar, work, a.logs)
-    print("Fallan:" if malas else "Todas pasan.", " ".join(malas))
-    return 1 if malas else 0
+    bad_all = execute(([SMOKE] if a.all else []) + tests, jar, work, a.logs)
+    print("Fallan:" if bad_all else "All pass.", " ".join(bad_all))
+    return 1 if bad_all else 0
 
 
 if __name__ == "__main__":

@@ -95,9 +95,9 @@ public final class Quests {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	public static final String ENABLED = "encargos.activado", ROTATION = "encargos.rotacion_dias", REPUTATION = "reputacion.activado";
 	static final TagKey<Structure> VILLAGES = TagKey.create(Registries.STRUCTURE, Heraldia.id("aldeas"));
-	/** The board's bailiff (tablon.TAG_ALGUACIL): its trades are fixed and get no discount. */
+	/** The board's bailiff (board.TAG_CONSTABLE): its trades are fixed and get no discount. */
 	public static final String BAILIFF = "heraldia_alguacil";
-	/** Advancements (tools/gen/encargos.py): heraldia:encargos/<id>, criterion "hecho". */
+	/** Advancements (tools/gen/quests.py): heraldia:encargos/<id>, criterion "hecho". */
 	static final String FIRST_ADVANCEMENT = "encargos/primero", TEN_ADVANCEMENT = "encargos/diez", FRIEND_ADVANCEMENT = "encargos/amigo",
 			HERO_ADVANCEMENT = "encargos/heroe";
 	static final int TEN = 10;

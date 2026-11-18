@@ -5,7 +5,7 @@ with an attached turret and two basements. Dark forest and pale garden (`#herald
 (a 250/190 chunk grid). A single rigid template (`unicas/torre_mago/torre`, 27 × 79 × 25), designed by hand.
 
 Plans with reachable cells: [`torre_mago/plantas.txt`](torre_mago/plantas.txt). Renders: [`exterior.png`](torre_mago/exterior.png)
-and [`cortes.png`](torre_mago/cortes.png) (one cut per floor). They are regenerated with `python3 tools/gen/unicas/torre_mago/planos.py`.
+and [`cortes.png`](torre_mago/cortes.png) (one cut per floor). They are regenerated with `python3 tools/gen/uniques/wizard_tower/blueprints.py`.
 
 ## Terrain adaptation
 - `start_height` −14 and `terrain_adaptation: none`: the vestibule floor sits flush with the terrain and the basements below
@@ -91,4 +91,4 @@ in the south wing of the basement, a bar torn out of a cell, cobwebs, vines and 
 ## Audit
 `lint.py` (a walk from the entrance to every door, chest and staircase; supports; jigsaw) with the secret door
 considered open (`lint_open`), and the module's `auditar()`: the state of pistons, torch and dust, the pieces of the puzzles and
-traps, the presence of the guardian. Real server test: `tools/gen/unicas/torre_mago/prueba_redstone.py`.
+traps, the presence of the guardian. Real server test: `tools/gen/uniques/wizard_tower/smoke_redstone.py`.

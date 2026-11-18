@@ -89,7 +89,7 @@ public final class Caravans {
 			MAX_ACTIVE = "caravanas.max_activas";
 	/** Players who count as near the merchant (those escorting it), and those who get paid on arrival. */
 	public static final double PLAYER_RADIUS = 64, REWARD_RADIUS = 48;
-	/** Advancement (tools/gen/caravanas.py): heraldia:caravanas/defensa, criterion "hecho". */
+	/** Advancement (tools/gen/caravans.py): heraldia:caravanas/defensa, criterion "hecho". */
 	static final String ADVANCEMENT = "caravanas/defensa";
 	private static final Map<Integer, Caravan> ACTIVE = new LinkedHashMap<>();
 	/** Entity → its caravan: tagged entities missing from here are leftovers. */

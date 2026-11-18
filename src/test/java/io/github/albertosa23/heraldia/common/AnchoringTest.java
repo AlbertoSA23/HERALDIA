@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
  */
 class AnchoringTest {
 	private static final String GUARDIAN = "heraldia_guardian";
-	/** Types of core.RECOGE_BOTIN (those the game lets pick up items when placed). */
+	/** Types of core.PICKS_UP_LOOT (those the game lets pick up items when placed). */
 	private static final Set<String> PICKS_UP = Set.of("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin",
 			"skeleton", "stray", "bogged", "wither_skeleton", "parched", "piglin", "piglin_brute");
 	/** (template, NBT) of each entity of the generated templates. */
@@ -95,11 +95,11 @@ class AnchoringTest {
 	@Test
 	void sameTagAsTheGenerator() throws IOException {
 		String core = Files.readString(Path.of("tools/gen/core.py"));
-		Matcher m = Pattern.compile("^ANCLADO_TAG = \"([^\"]+)\"", Pattern.MULTILINE).matcher(core);
-		assertTrue(m.find(), "core.ANCLADO_TAG");
+		Matcher m = Pattern.compile("^ANCHORED_TAG = \"([^\"]+)\"", Pattern.MULTILINE).matcher(core);
+		assertTrue(m.find(), "core.ANCHORED_TAG");
 		assertEquals(m.group(1), Anchoring.TAG);
 		for (String mob : PICKS_UP) {
-			assertTrue(core.contains('"' + mob + '"'), mob + " no está en core.RECOGE_BOTIN");
+			assertTrue(core.contains('"' + mob + '"'), mob + " no está en core.PICKS_UP_LOOT");
 		}
 	}
 

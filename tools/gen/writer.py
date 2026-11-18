@@ -1,52 +1,52 @@
-"""Escribe los recursos de datos del mod (data/heraldia/...) en disco."""
+"""Writes the mod's data resources (data/heraldia/...) to disk."""
 import json, os, shutil
 from core import NS, nsid
 from themes import THEMES, FAMILIES
 from pack import ALL_PROFS
 import loot
-import unicas
-import dimensiones
-import medianas
-import minas
-import litoral as costa
-import mapas
-import tratos
-import tablon
-import guia
-import arena_oleadas
+import uniques
+import dimensions
+import mediums
+import mines
+import shore as coast
+import maps
+import trades
+import board
+import guide
+import arena_waves
 import admin
-import actualizaciones
-import encargos
-import caravanas
-import chozas_mago
-import caminos
-import opciones
-import jefes
-import biomas
-import logros
-import idiomas
-import tesoro
-import paralelo
-from unicas._comun import botin
+import updates
+import quests
+import caravans
+import wizard_huts
+import roads
+import options
+import bosses
+import biomes
+import advancements
+import languages
+import treasure
+import parallel
+from uniques._common import chest_loot
 
 STD = dict(size=6, maxdist=92)
-GRANDE = dict(size=7, maxdist=116)
+LARGE = dict(size=7, maxdist=116)
 
 
-MAX_DIST = 116   # el juego exige radio + adaptación al terreno (12) <= 128
+MAX_DIST = 116   # the game requires radius + terrain adaptation (12) <= 128
 
 
 def sizes(th):
-    """Temas con casas más voluminosas (pilotes, tejados de pagoda) necesitan un nivel más de calles."""
+    """Themes with bulkier houses (stilts, pagoda roofs) need one more street level."""
     if th["stilts"] >= 3 or th["roof_type"] == "pagoda":
         return dict(size=7, maxdist=100), dict(size=8, maxdist=116)
-    if th["roof_type"] == "flat":          # casas compactas: caben más por calle
+    if th["roof_type"] == "flat":          # compact houses: more fit per street
         return dict(size=5, maxdist=86), dict(size=6, maxdist=104)
-    return STD, GRANDE
+    return STD, LARGE
 
 
 GUIDE = "@a[tag=heraldia_guia]"
-# Textos para el jugador: el cliente con el mod los traduce; un cliente sin él ve el texto de respaldo (es_es).
+# Texts for the player: a client with the mod translates them; a client without it sees the fallback text (es_es).
 LANG = {
     "es_es": {
         "heraldia.muestrario.inicio": "Muestrario de aldeas: %s estilos en cuadrícula de %s x %s, separados %s bloques. Tarda unos %s min. Hacia el este: estilos; hacia el sur: familias.",
@@ -54,10 +54,10 @@ LANG = {
         "heraldia.muestrario.terminado": "Muestrario terminado.",
         "heraldia.muestrario.detenido": "Muestrario detenido.",
         "heraldia.familia.terminada": "Familia terminada.",
-        # /heraldia key (los textos de respaldo del Java son estos mismos)
+        # /heraldia key (the Java fallback texts are these same ones)
         "heraldia.llave.dada": "Entregadas %s llaves (%s) a %s jugadores",
         "heraldia.llave.desconocida": "No hay ninguna llave «%s». Opciones: %s",
-        # /heraldia info (el Java toma el texto de respaldo de este es_es)
+        # /heraldia info (the Java takes the fallback text from this es_es)
         "heraldia.info.titulo": "Heraldia: configuración en uso",
         "heraldia.info.aldeas": "Aldeas: cada %s bloques, máximo %s, %s %% grandes, %s de %s estilos activados, a %s bloques de las vanilla",
         "heraldia.info.unicas": "Estructuras únicas activadas: %s de %s",
@@ -147,15 +147,15 @@ LANG = {
         "heraldia.info.guardian.desconocido": "   Guardian: unknown (part of the structure is unloaded)",
     },
 }
-for _lang, _texts in opciones.lang().items():
+for _lang, _texts in options.lang().items():
     LANG[_lang].update(_texts)
-for _lang, _texts in jefes.lang().items():
+for _lang, _texts in bosses.lang().items():
     LANG[_lang].update(_texts)
 assert LANG["es_es"].keys() == LANG["en_us"].keys()
 
 
 def tell(target, key, *args):
-    """tellraw traducible con respaldo en español para clientes sin el mod."""
+    """Translatable tellraw with a Spanish fallback for clients without the mod."""
     comp = {"translate": key, "fallback": LANG["es_es"][key]}
     if args:
         comp["with"] = [str(a) for a in args]
@@ -180,8 +180,8 @@ def write(reg, out):
     if os.path.exists(out):
         shutil.rmtree(out)
     os.makedirs(out)
-    # plantillas (en paralelo: cada una en su fichero, el resultado no depende del orden)
-    paralelo.mapa(lambda t: t.save(out), reg.templates.values(), chunksize=16)
+    # templates (in parallel: each in its own file, the result does not depend on the order)
+    parallel.map_obj(lambda t: t.save(out), reg.templates.values(), chunksize=16)
     # pools
     for pid, p in reg.pools.items():
         ns, path = pid.split(":")
@@ -206,13 +206,13 @@ def write(reg, out):
             rules.append({"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:stone_bricks", "probability": 0.06},
                           "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:cracked_stone_bricks"})
         procs = [{"processor_type": "minecraft:rule", "rules": rules}] if rules else []
-        jdump(out, f"data/{NS}/worldgen/processor_list/{tid}/building.json", {"processors": procs + [cimientos(th)]})
+        jdump(out, f"data/{NS}/worldgen/processor_list/{tid}/building.json", {"processors": procs + [foundations(th)]})
         if th["family"] == "costa":
             jdump(out, f"data/{NS}/worldgen/processor_list/{tid}/pier.json", {"processors": [
-                hasta_el_suelo([log_block(th["pier"]["log"])], PILOTES_MAX)]})
+                down_to_floor([log_block(th["pier"]["log"])], PILES_MAX)]})
     # etiquetas de biomas
     for fam, d in FAMILIES.items():
-        biomas.etiqueta(out, fam, d["biomes"])
+        biomes.tag(out, fam, d["biomes"])
     # estructuras
     set_entries = []
     for th in THEMES:
@@ -220,58 +220,58 @@ def write(reg, out):
         base = {"type": "minecraft:jigsaw", "biomes": f"#{NS}:{th['family']}", "step": "surface_structures",
                 "spawn_overrides": {}, "terrain_adaptation": "beard_thin", "start_height": {"absolute": 0},
                 "project_start_to_heightmap": "WORLD_SURFACE_WG", "use_expansion_hack": False}
-        std, grande = sizes(th)
+        std, large = sizes(th)
         aliases = [{"type": "minecraft:direct", "alias": f"{NS}:villagers/{th['vtype']}/{p}",
                     "target": f"{NS}:villagers/{th['vtype']}/{p}_grande"} for p in ALL_PROFS]
-        for suffix, pool, sz, al in (("", "plaza", std, []), ("_grande", "plaza_grande", grande, aliases)):
+        for suffix, pool, sz, al in (("", "plaza", std, []), ("_grande", "plaza_grande", large, aliases)):
             jig = dict(base, start_pool=f"{NS}:{tid}/{pool}", size=sz["size"], max_distance_from_center=sz["maxdist"])
             if al:
                 jig["pool_aliases"] = al
             jig = village_with_port(reg, th, jig) if th["family"] == "costa" else village(jig)
             jdump(out, f"data/{NS}/worldgen/structure/{tid}{suffix}.json", jig)
-        # mismo peso: la proporción estándar/grande la decide el mod en cada casilla (aldeas.porcentaje_grandes)
+        # same weight: the standard/large ratio is decided by the mod in each cell (aldeas.porcentaje_grandes)
         set_entries.append({"structure": f"{NS}:{tid}", "weight": 1})
         set_entries.append({"structure": f"{NS}:{tid}_grande", "weight": 1})
-    # heraldia:rejilla = random_spread con separación, máximo y zona de exclusión leídos de config/heraldia.json
+    # heraldia:rejilla = random_spread with spacing, maximum and exclusion zone read from config/heraldia.json
     jdump(out, f"data/{NS}/worldgen/structure_set/aldeas.json", {
         "structures": set_entries,
-        "placement": {"type": f"{NS}:rejilla", "grupo": "aldeas", "spacing": opciones.VILLAGE_SPACING,
-                      "separation": opciones.VILLAGE_SEPARATION, "salt": opciones.VILLAGE_SALT,
-                      "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": opciones.VANILLA_EXCLUSION_CHUNKS}}})
+        "placement": {"type": f"{NS}:rejilla", "grupo": "aldeas", "spacing": options.VILLAGE_SPACING,
+                      "separation": options.VILLAGE_SEPARATION, "salt": options.VILLAGE_SALT,
+                      "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": options.VANILLA_EXCLUSION_CHUNKS}}})
     jdump(out, f"data/{NS}/tags/worldgen/structure/aldeas.json", {"values": [e["structure"] for e in set_entries]})
-    jdump(out, f"{NS}/opciones.json", opciones.schema())
-    # estructuras únicas
-    for sid, mod in unicas.modules():
+    jdump(out, f"{NS}/opciones.json", options.schema())
+    # unique structures
+    for sid, mod in uniques.modules():
         write_unique(out, sid, mod.STRUCTURE)
-    # estructuras medianas (medianas/): estructuras, etiquetas, structure_sets y botín
-    medianas.write(out, jdump)
-    # entradas a mina (minas/) y la colocación de las minas abandonadas vanilla
-    minas.write(out, jdump)
-    # faros y naufragios de la costa (costa/)
-    costa.write(out, jdump)
-    # botín
-    uniques = unicas.modules()
-    con_mapa = dimensiones.del_mundo_principal(uniques)   # un mapa de exploración solo busca en su dimensión
+    # medium structures (medianas/): structures, tags, structure_sets and loot
+    mediums.write(out, jdump)
+    # mine entrances (minas/) and the placement of vanilla abandoned mines
+    mines.write(out, jdump)
+    # coastal lighthouses and shipwrecks (costa/)
+    coast.write(out, jdump)
+    # loot
+    unique_mods = uniques.modules()
+    with_map = dimensions.overworld_only(unique_mods)   # an exploration map only searches in its own dimension
     for name, table in loot.TABLES.items():
         if name == "epico":
-            table = mapas.with_maps(table, con_mapa)
+            table = maps.with_maps(table, with_map)
         jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
-    mapas.write(out, con_mapa, jdump)
-    tratos.write(out, uniques, jdump)
-    con_pista = tesoro.tablas_en_contenedores(reg)       # el fragmento del tesoro, solo en cofres, barriles y vasijas
-    for sid, mod in unicas.modules():
+    maps.write(out, with_map, jdump)
+    trades.write(out, unique_mods, jdump)
+    with_hint = treasure.tables_in_containers(reg)       # the treasure fragment, only in chests, barrels and pots
+    for sid, mod in uniques.modules():
         for name, table in getattr(mod, "LOOT", {}).items():
-            if name == mod.HISTORIA["cofre"]:
-                table = botin.con_historia(table, sid)   # su pliego de la Crónica de los Heraldos
-            if f"{NS}:unicas/{sid}/{name}" in con_pista:
-                table = tesoro.con_pista(table, "unicas")
+            if name == mod.STORY["cofre"]:
+                table = chest_loot.with_story(table, sid)   # its sheet of the Chronicle of the Heralds
+            if f"{NS}:unicas/{sid}/{name}" in with_hint:
+                table = treasure.with_hint(table, "unicas")
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
-    write_history(out, uniques)
-    tesoro.write(out, jdump)                            # búsqueda del tesoro: fragmento, cofre final y logros
+    write_history(out, unique_mods)
+    treasure.write(out, jdump)                            # treasure hunt: fragment, final chest and advancements
     jdump(out, f"{NS}/llaves.json", write_keys(out))
     write_trophies(out, reg)
-    # fases y refuerzos de los guardianes (comun/jefes en Java)
-    jdump(out, f"{NS}/jefes.json", jefes.schema(unicas.modules(), reg.guardianes))
+    # guardian phases and reinforcements (comun/jefes in Java)
+    jdump(out, f"{NS}/jefes.json", bosses.schema(uniques.modules(), reg.guardians))
     # funciones
     fdir = os.path.join(out, "data", NS, "function")
     os.makedirs(fdir, exist_ok=True)
@@ -280,7 +280,7 @@ def write(reg, out):
             "# Aldeas enormes: inicialización",
             "scoreboard objectives add heraldia_g dummy",
             "schedule function heraldia:golems 600t replace"],
-        # heraldia_cfg lo rellena el mod al arrancar desde config/heraldia.json (#limpieza 0/1, #limite_estandar, #limite_grande)
+        # heraldia_cfg is filled in by the mod at startup from config/heraldia.json (#limpieza 0/1, #limite_estandar, #limite_grande)
         "golems.mcfunction": [
             "# Cada 30 s revisa las aldeas cargadas y limita los gólems naturales (+25 % sobre la dotación inicial)",
             "execute if score #limpieza heraldia_cfg matches 1 as @e[type=minecraft:armor_stand,tag=heraldia_centro] at @s run function heraldia:golem_check",
@@ -290,7 +290,7 @@ def write(reg, out):
             "execute if entity @s[tag=heraldia_std] if score @s heraldia_g >= #limite_estandar heraldia_cfg as @e[type=minecraft:iron_golem,distance=..112,nbt={PlayerCreated:0b},sort=random,limit=1] at @s run tp @s ~ -200 ~",
             "execute if entity @s[tag=heraldia_grande] if score @s heraldia_g >= #limite_grande heraldia_cfg as @e[type=minecraft:iron_golem,distance=..112,nbt={PlayerCreated:0b},sort=random,limit=1] at @s run tp @s ~ -200 ~"],
     }
-    # --- muestrario: coloca los 72 estilos en una cuadrícula, uno cada 8 s, guiando al jugador
+    # --- showcase: places the 72 styles on a grid, one every 8 s, guiding the player
     STEP, WAIT = 300, 160
     order = []
     fams = list(dict.fromkeys(th["family"] for th in THEMES))
@@ -323,7 +323,7 @@ def write(reg, out):
     files["muestrario/parar.mcfunction"] = (
         [f"schedule clear heraldia:muestrario/p{i + 1:02d}" for i in range(len(flat))] +
         ["gamemode creative @a[tag=heraldia_guia]", tell(GUIDE, "heraldia.muestrario.detenido"), "tag @a remove heraldia_guia"])
-    # una familia suelta (6 aldeas en fila): /function heraldia:familia/<nombre>
+    # a single family (6 villages in a row): /function heraldia:familia/<name>
     for fam, row in zip(fams, order):
         files[f"familia/{fam}.mcfunction"] = (
             ["tag @a remove heraldia_guia", "tag @s add heraldia_guia", "gamemode spectator @s"] +
@@ -344,154 +344,154 @@ def write(reg, out):
         with open(os.path.join(fdir, fn), "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
-    logros.write(out, reg, uniques, jdump)
-    for escribe in (tablon.write, caminos.write, arena_oleadas.write, encargos.write, caravanas.write,
-                    chozas_mago.write):
-        escribe(out, jdump)
-    traducidos = idiomas.completar(textos(reg), paginas_de_libros(reg, out),
-                                   idiomas.claves_de_carteles(nbt for t in reg.templates.values() for _, nbt in t.blocks.values() if nbt))
-    guia.write(out, uniques, jdump, {c: t for c, t in traducidos.items() if c not in idiomas.BASE})
-    e = tesoro.errores({c: t for c, t in traducidos.items() if c not in idiomas.BASE})
+    advancements.write(out, reg, unique_mods, jdump)
+    for writes in (board.write, roads.write, arena_waves.write, quests.write, caravans.write,
+                    wizard_huts.write):
+        writes(out, jdump)
+    translated = languages.complete(texts(reg), book_pages(reg, out),
+                                   languages.sign_keys(nbt for t in reg.templates.values() for _, nbt in t.blocks.values() if nbt))
+    guide.write(out, unique_mods, jdump, {c: t for c, t in translated.items() if c not in languages.BASE})
+    e = treasure.errors({c: t for c, t in translated.items() if c not in languages.BASE})
     if e:
         raise SystemExit("\n".join(e))
-    jdump(out, f"{NS}/idiomas.json", {"lenguas": idiomas.lenguas()})
-    for lang, texts in traducidos.items():
-        jdump(out, f"assets/{NS}/lang/{lang}.json", texts)
+    jdump(out, f"{NS}/idiomas.json", {"lenguas": languages.mc_locales()})
+    for lang, lang_texts in translated.items():
+        jdump(out, f"assets/{NS}/lang/{lang}.json", lang_texts)
 
 
-def textos(reg):
-    """{"es_es": {...}, "en_us": {...}} con todos los textos del mod (lo que escribe write en assets/heraldia/lang),
-    sin escribir nada: la fuente única de las claves de cada idioma (idiomas.completar). Solo depende de `reg` por los
-    guardianes de las únicas (logros.guardians)."""
-    uniques = unicas.modules()
-    out = {lang: dict(texts) for lang, texts in LANG.items()}
-    for sid, mod in uniques:
+def texts(reg):
+    """{"es_es": {...}, "en_us": {...}} with all the mod's texts (what write writes to assets/heraldia/lang),
+    without writing anything: the single source of the keys of each language (languages.complete). It only depends on `reg` for the
+    unique structures' guardians (advancements.guardians)."""
+    unique_mods = uniques.modules()
+    out = {lang: dict(lang_texts) for lang, lang_texts in LANG.items()}
+    for sid, mod in unique_mods:
         extra = getattr(mod, "LANG", {})
         assert extra.get("es_es", {}).keys() == extra.get("en_us", {}).keys(), sid
-        for lang, texts in extra.items():
-            out[lang].update(texts)
-    partes = [mapas.lang(dimensiones.del_mundo_principal(uniques)), logros.build(reg, uniques, medianas.modules(), minas, costa)[1], tratos.lang(),
-              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), costa.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), actualizaciones.lang(), encargos.lang(), caravanas.lang(), chozas_mago.lang(),
-              trophies_lang(), botin.historia_lang(uniques), tesoro.lang()]
-    for parte in partes:
-        assert parte["es_es"].keys() == parte["en_us"].keys()
-        for lang, texts in parte.items():
-            out[lang].update(texts)
+        for lang, lang_texts in extra.items():
+            out[lang].update(lang_texts)
+    parts = [maps.lang(dimensions.overworld_only(unique_mods)), advancements.build(reg, unique_mods, mediums.modules(), mines, coast)[1], trades.lang(),
+              board.lang(), roads.LANG, mediums.lang(), mines.lang(), coast.lang(), guide.lang(), arena_waves.lang(), admin.lang(), updates.lang(), quests.lang(), caravans.lang(), wizard_huts.lang(),
+              trophies_lang(), chest_loot.story_lang(unique_mods), treasure.lang()]
+    for part in parts:
+        assert part["es_es"].keys() == part["en_us"].keys()
+        for lang, lang_texts in part.items():
+            out[lang].update(lang_texts)
     return out
 
 
-def paginas_de_libros(reg, out):
-    """[(dónde, página)] de todos los libros escritos del datapack (botín y tratos ya escritos en `out`, y los de los
-    atriles de las plantillas), para medirlos en cada idioma (idiomas.completar)."""
-    objetos = []
+def book_pages(reg, out):
+    """[(where, page)] of all the written books in the datapack (loot and trades already written to `out`, and those on the
+    lecterns of the templates), to measure them in each language (languages.complete)."""
+    items = []
     for d, _, fs in os.walk(os.path.join(out, "data", NS)):
         for f in fs:
             if f.endswith(".json"):
                 with open(os.path.join(d, f), encoding="utf-8") as fh:
-                    texto = fh.read()
-                if "written_book_content" in texto:
-                    objetos.append((os.path.relpath(os.path.join(d, f), out), json.loads(texto)))
+                    text = fh.read()
+                if "written_book_content" in text:
+                    items.append((os.path.relpath(os.path.join(d, f), out), json.loads(text)))
     for name, t in reg.templates.items():
         for _, nbt in t.blocks.values():
             if nbt and "Book" in nbt:
-                objetos.append((name, nbt))
-    return idiomas.paginas_de_libros(objetos)
+                items.append((name, nbt))
+    return languages.book_pages(items)
 
 
 def write_keys(out):
-    """Llaves de los cofres cerrados de las únicas (LLAVES de cada módulo): una tabla de botín por llave,
-    heraldia:llaves/<id>/<llave>, que da exactamente el objeto que pide la cerradura, y el índice que lee el comando
-    /heraldia key al arrancar el servidor: {"<id>.<llave>": {"tabla": "heraldia:llaves/<id>/<llave>", "cerradura": lock}}
-    (la cerradura la usa la prueba de humo para comprobar que la llave la abre)."""
+    """Keys for the unique structures' locked chests (KEYS of each module): one loot table per key,
+    heraldia:llaves/<id>/<llave>, which gives exactly the item the lock asks for, and the index read by the command
+    /heraldia key when the server starts: {"<id>.<llave>": {"tabla": "heraldia:llaves/<id>/<llave>", "cerradura": lock}}
+    (the lock is used by the smoke test to check that the key opens it)."""
     index = {}
-    for sid, mod in unicas.modules():
-        for key, d in getattr(mod, "LLAVES", {}).items():
+    for sid, mod in uniques.modules():
+        for key, d in getattr(mod, "KEYS", {}).items():
             jdump(out, f"data/{NS}/loot_table/llaves/{sid}/{key}.json", d["tabla"])
             index[f"{sid}.{key}"] = {"tabla": f"{NS}:llaves/{sid}/{key}", "cerradura": d["cerradura"]}
     return {"llaves": index}
 
 
 def write_trophies(out, reg):
-    """Trofeos de los guardianes (TROFEO de cada módulo, _comun/botin): heraldia:trofeos/<id> (el trofeo solo) y
-    heraldia:guardianes/<id>/<mob> (DeathLootTable que pack.tag_guardians pone a cada guardián). Devuelve los textos."""
-    for sid, mod in unicas.modules():
-        d = mod.TROFEO
-        jdump(out, f"data/{NS}/loot_table/trofeos/{sid}.json", botin.trofeo(sid, d))
-        for mob, original in reg.guardianes.get(sid, {}).items():
-            jdump(out, f"data/{NS}/loot_table/{botin.guardian_tabla_id(sid, mob).split(':')[1]}.json",
-                  botin.guardian_tabla(sid, original))
+    """Guardian trophies (TROPHY of each module, _comun/botin): heraldia:trofeos/<id> (the trophy alone) and
+    heraldia:guardianes/<id>/<mob> (DeathLootTable that pack.tag_guardians gives to each guardian). Returns the texts."""
+    for sid, mod in uniques.modules():
+        d = mod.TROPHY
+        jdump(out, f"data/{NS}/loot_table/trofeos/{sid}.json", chest_loot.trophy(sid, d))
+        for mob, original in reg.guardians.get(sid, {}).items():
+            jdump(out, f"data/{NS}/loot_table/{chest_loot.guardian_table_id(sid, mob).split(':')[1]}.json",
+                  chest_loot.guardian_table(sid, original))
     return trophies_lang()
 
 
 def trophies_lang():
-    """Textos de los trofeos de los guardianes."""
-    texts = {"es_es": {}, "en_us": {}}
-    for sid, mod in unicas.modules():
-        for lang, t in botin.trofeo_lang(sid, mod.TROFEO).items():
-            texts[lang].update(t)
-    return texts
+    """Texts of the guardian trophies."""
+    lang_texts = {"es_es": {}, "en_us": {}}
+    for sid, mod in uniques.modules():
+        for lang, t in chest_loot.trophy_lang(sid, mod.TROPHY).items():
+            lang_texts[lang].update(t)
+    return lang_texts
 
 
 def history_tables(modules):
-    """{id: tabla heraldia:historia/<id>} de la Crónica de los Heraldos (HISTORIA de cada módulo, _comun/botin): el
-    pliego de cada única señala la siguiente de la cadena (botin.historia_cadena) y a veces trae su mapa del tesoro."""
+    """{id: table heraldia:historia/<id>} of the Chronicle of the Heralds (STORY of each module, _comun/botin): the
+    sheet of each unique structure points to the next one in the chain (chest_loot.story_chain) and sometimes carries its treasure map."""
     mods = dict(modules)
-    chain = botin.historia_cadena(modules)
+    chain = chest_loot.story_chain(modules)
     out = {}
     for i, sid in enumerate(chain):
         nxt = chain[(i + 1) % len(chain)]
-        name = {"translate": logros.name_key(sid), "fallback": logros.unique_name(sid, mods[sid])[0]}
-        book = botin.historia_libro(sid, mods[sid].HISTORIA, i + 1, len(chain), nxt, mods[nxt].HISTORIA, name)
-        # el mapa de la siguiente, solo si las dos están en el mundo principal (un mapa busca en la dimensión del cofre)
-        mapa = mapas.map_entry(nxt, mods[nxt], 1) if dimensiones.de(mods[sid]) == dimensiones.de(mods[nxt]) == dimensiones.PRINCIPAL else None
-        out[sid] = botin.historia_tabla(book, mapa)
+        name = {"translate": advancements.name_key(sid), "fallback": advancements.unique_name(sid, mods[sid])[0]}
+        book = chest_loot.story_book(sid, mods[sid].STORY, i + 1, len(chain), nxt, mods[nxt].STORY, name)
+        # the next one's map, only if both are in the overworld (a map searches in the chest's dimension)
+        map_obj = maps.map_entry(nxt, mods[nxt], 1) if dimensions.dimension_of(mods[sid]) == dimensions.dimension_of(mods[nxt]) == dimensions.MAIN else None
+        out[sid] = chest_loot.story_table(book, map_obj)
     return out
 
 
 def write_history(out, modules):
-    """Escribe heraldia:historia/<id> y devuelve los textos de la crónica."""
+    """Writes heraldia:historia/<id> and returns the chronicle texts."""
     for sid, table in history_tables(modules).items():
-        jdump(out, f"data/{NS}/loot_table/{botin.historia_tabla_id(sid).split(':')[1]}.json", table)
-    return botin.historia_lang(modules)
+        jdump(out, f"data/{NS}/loot_table/{chest_loot.story_table_id(sid).split(':')[1]}.json", table)
+    return chest_loot.story_lang(modules)
 
 
 def write_unique(out, sid, st):
-    """JSON de una estructura única, su rejilla de colocación y su etiqueta (para mapas del tesoro)."""
+    """JSON of a unique structure, its placement grid and its tag (for treasure maps)."""
     sid_full = f"{NS}:unicas/{sid}"
     structure = st.get("json") or {
         "type": "minecraft:jigsaw", "biomes": st["biomes"], "step": st.get("step", "surface_structures"),
         "spawn_overrides": st.get("spawn_overrides", {}), "terrain_adaptation": st.get("terrain_adaptation", "beard_thin"),
         "start_pool": nsid(st["start_pool"]), "size": st["size"], "max_distance_from_center": st["max_distance"],
         "start_height": st.get("start_height", {"absolute": 0}), "use_expansion_hack": False}
-    structure = dict(structure, biomes=biomas.de_unica(out, sid, structure["biomes"]))     # lista vanilla -> #heraldia:unicas/<id>
+    structure = dict(structure, biomes=biomes.for_unique(out, sid, structure["biomes"]))     # lista vanilla -> #heraldia:unicas/<id>
     if not st.get("json") and st.get("project_to", "WORLD_SURFACE_WG"):
         structure["project_start_to_heightmap"] = st.get("project_to", "WORLD_SURFACE_WG")
     jdump(out, f"data/{NS}/worldgen/structure/unicas/{sid}.json", structure)
     placement = st.get("placement") or {
-        "type": f"{NS}:rejilla", "grupo": f"unicas/{sid}", "spacing": st.get("spacing", unicas.DEFAULT_SPACING),
-        "separation": st.get("separation", unicas.DEFAULT_SEPARATION), "salt": unicas.salt(sid)}
-    if sid in unicas.REJILLA_ANTIGUA:    # ya estaba en la 0.1.0: con unicas.rejilla_compatible, su rejilla de entonces
-        assert placement["type"] == f"{NS}:rejilla" and not st.get("candidata_en_bioma"), f"{sid}: rejilla antigua sin la de entonces"
+        "type": f"{NS}:rejilla", "grupo": f"unicas/{sid}", "spacing": st.get("spacing", uniques.DEFAULT_SPACING),
+        "separation": st.get("separation", uniques.DEFAULT_SEPARATION), "salt": uniques.salt(sid)}
+    if sid in uniques.OLD_GRID:    # it was already in 0.1.0: with uniques.rejilla_compatible, its grid from back then
+        assert placement["type"] == f"{NS}:rejilla" and not st.get("candidata_en_bioma"), f"{sid}: old grid without the one from back then"
         placement = dict(placement, rejilla_antigua=True)
-    if st.get("candidata_en_bioma"):     # bioma raro: la candidata de cada casilla se busca en sus biomas (GridPlacement)
-        assert placement["type"] == f"{NS}:rejilla", f"{sid}: candidata_en_bioma solo con la rejilla heraldia:rejilla"
+    if st.get("candidata_en_bioma"):     # rare biome: each cell's candidate is searched for in its biomes (GridPlacement)
+        assert placement["type"] == f"{NS}:rejilla", f"{sid}: candidata_en_bioma only with the heraldia:rejilla grid"
         placement = dict(placement, bioma=structure["biomes"].lstrip("#"))
-        if st.get("candidata_y") is not None:   # biomas subterráneos: la candidata se busca a esa altura (GridPlacement)
+        if st.get("candidata_y") is not None:   # underground biomes: the candidate is searched for at that height (GridPlacement)
             placement["bioma_y"] = st["candidata_y"]
     jdump(out, f"data/{NS}/worldgen/structure_set/unicas/{sid}.json", {
         "structures": [{"structure": sid_full, "weight": 1}],
-        # colocación propia de la estructura (p. ej. la Atlántida, siempre una) o rejilla configurable heraldia:rejilla
+        # the structure's own placement (e.g. Atlantis, always unique) or configurable grid heraldia:rejilla
         "placement": placement})
     jdump(out, f"data/{NS}/tags/worldgen/structure/unicas/{sid}.json", {"values": [sid_full]})
 
 
 def lootr_aware(table):
-    """Convierte la marca "solo_sin_lootr" de cada grupo en la condición heraldia:sin_lootr."""
+    """Converts each group's "solo_sin_lootr" mark into the heraldia:sin_lootr condition."""
     pools = []
     for p in table["pools"]:
         p = dict(p)
         if p.pop("solo_sin_lootr", False):
-            # 26.3: un grupo lleva una sola "condition" con "type" (varias, con all_of).
+            # 26.3: a group carries a single "condition" with "type" (several, with all_of).
             cond = {"type": f"{NS}:sin_lootr"}
             p["condition"] = {"type": "minecraft:all_of", "terms": [p["condition"], cond]} if "condition" in p else cond
         pools.append(p)
@@ -504,32 +504,32 @@ def rule(inp, loc, outb):
             "output_state": "minecraft:" + outb.split("[")[0].replace("minecraft:", "")}
 
 
-# ---------------------------------------------------------------- cimientos y puerto (aldeas)
-CIMIENTOS_MAX = 16     # bloques que puede bajar un cimiento (con /place en un barranco no se hace una torre)
-PILOTES_MAX = 24       # pilotes del muelle hasta el fondo del mar
+# ---------------------------------------------------------------- foundations and harbor (villages)
+FOUNDATION_MAX = 16     # blocks a foundation may descend (with /place in a ravine a tower is not built)
+PILES_MAX = 24       # dock piles down to the sea floor
 
 
 def log_block(state):
     return "minecraft:" + state.split("[")[0].replace("minecraft:", "")
 
 
-def hasta_el_suelo(blocks, depth):
-    """Procesador heraldia:acueducto_hasta_el_suelo (Java comun/HastaElSueloProcessor): alarga hasta el suelo firme los
-    bloques de la lista que estén en la fila inferior de la plantilla."""
+def down_to_floor(blocks, depth):
+    """Processor heraldia:acueducto_hasta_el_suelo (Java comun/HastaElSueloProcessor): extends the blocks in the list
+    that are in the template's bottom row down to firm ground."""
     return {"processor_type": f"{NS}:acueducto_hasta_el_suelo", "bloques": sorted(set(blocks)), "profundidad_maxima": depth}
 
 
-def cimientos(th):
-    """Cimientos de los edificios de la aldea en ladera: la fila inferior de cimiento (th["found"]) y, en los estilos de
-    pilotes, los pilotes y la barandilla de la escalera bajan hasta el terreno con el material del estilo, en vez de
-    quedar al aire (con /place) o sobre un talud de tierra suelto."""
+def foundations(th):
+    """Foundations of the village buildings on a hillside: the bottom foundation row (th["found"]) and, in the stilt
+    styles, the stilts and the staircase railing go down to the terrain with the style's material, instead of
+    hanging in the air (with /place) or resting on a loose dirt slope."""
     blocks = [log_block(th["found"])]
     if th["stilts"]:
         blocks += [log_block(th["log"]), log_block(th["fence"])]
-    return hasta_el_suelo(blocks, CIMIENTOS_MAX)
+    return down_to_floor(blocks, FOUNDATION_MAX)
 
 
-PORT_REACH = 96        # bloques desde el centro de la plaza en que se busca la orilla (el Java descarta lo que salga de los 8 chunks)
+PORT_REACH = 96        # blocks from the plaza center within which the shore is searched for (the Java code discards anything outside the 8 chunks)
 
 
 def jigsaw_pos(t, name):
@@ -537,18 +537,18 @@ def jigsaw_pos(t, name):
 
 
 def village(jig, **extra):
-    """Aldea de tipo heraldia:aldea (Java aldeas/AldeaStructure): el jigsaw de siempre en `aldea`; el Java quita el
-    tablón de encargos si está desactivado (aldeas.vida.tablon) y, con `puerto`, pone el de la costa."""
+    """Village of type heraldia:aldea (Java aldeas/AldeaStructure): the usual jigsaw in `village`; the Java code removes the
+    quest board if disabled (aldeas.vida.tablon) and, with `harbor`, adds the coastal one."""
     settings = {k: jig[k] for k in ("biomes", "step", "spawn_overrides", "terrain_adaptation")}
     return dict({"type": f"{NS}:aldea"}, **settings, aldea={k: v for k, v in jig.items() if k != "type"}, **extra)
 
 
 def village_with_port(reg, th, jig):
-    """Aldea de la costa: además pone la caseta y el muelle del puerto (pools special/port y port_pier) en la orilla
-    más cercana a la plaza, con el muelle hacia el mar."""
+    """Coastal village: also places the harbor hut and pier (pools special/port and port_pier) on the shore
+    closest to the plaza, with the pier facing the sea."""
     from specials import PIER_L
     tid = th["id"]
-    return village(jig, puerto={
+    return village(jig, puerto={   # key of the Java config: stays in Spanish
         "caseta": f"{NS}:{tid}/special/port", "muelle": f"{NS}:{tid}/port_pier",
         "union_caseta": jigsaw_pos(reg.templates[f"{tid}/specials/port"], f"{NS}:pier"),
         "union_muelle": jigsaw_pos(reg.templates[f"{tid}/specials/port_pier"], f"{NS}:pier"),

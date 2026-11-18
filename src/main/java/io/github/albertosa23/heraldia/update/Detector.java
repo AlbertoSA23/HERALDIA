@@ -199,7 +199,7 @@ public final class Detector {
 		}
 		Set<Long> protectedChunks = protectedChunks(cs, p.margin());
 		// when regenerated, a chunk's features (veins, trees, rocks) also write into the 8 around it: a chunk
-		// next to a protected one is not regenerated (seen in tools/smoke/actualizar.py: andesite veins in a protected chunk)
+		// next to a protected one is not regenerated (seen in tools/smoke/update.py: andesite veins in a protected chunk)
 		Set<Long> beside = new HashSet<>();
 		for (long k : protectedChunks) {
 			for (int dx = -1; dx <= 1; dx++) {

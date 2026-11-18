@@ -25,7 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 /**
- * The .jar's languages (tools/gen/idiomas.py): all with the same keys and the same format placeholders as Spanish and
+ * The .jar's languages (tools/gen/languages.py): all with the same keys and the same format placeholders as Spanish and
  * English, and the language Texts picks for the fallback of a client without the mod according to its language (fr_ca -> fr_fr,
  * pt_pt -> pt_br...; a language without its own translation, English). The texts are read from the classpath, as from the .jar.
  */

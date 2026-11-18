@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 /** Entry point. The content is data (data/heraldia); this registers what the data cannot express. */
 public final class Heraldia implements ModInitializer {
 	public static final String MOD_ID = "heraldia";
-	/** Tag of the template mobs that must not spawn as babies (the generator's core.ADULTO_TAG; ZombieMixin, ZombieEquipmentMixin and DrownedMixin). */
+	/** Tag of the template mobs that must not spawn as babies (the generator's core.ADULT_TAG; ZombieMixin, ZombieEquipmentMixin and DrownedMixin). */
 	public static final String ADULT = "heraldia_adulto";
 	private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 

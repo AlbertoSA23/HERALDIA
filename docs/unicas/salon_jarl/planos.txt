@@ -1,9 +1,9 @@
-Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G generador  D dispensador
-         P pistón  L palanca  r redstone  i antorcha de redstone  R piedra rúnica  H escalera de mano
-         ^ cable trampa  _ placa  ! dinamita (bajo el suelo)  F hoguera  b tapiz
-         x de oeste a este, z de norte a sur (la puerta del recinto está al norte, z = 0)
+Legend: · reachable on foot (puzzles solved)  # wall  C chest  T barrel  G spawner  D dispenser
+         P piston  L lever  r redstone  i redstone torch  R runestone  H ladder
+         ^ trap wire  _ plate  ! dynamite (under the floor)  F bonfire  b tapestry
+         x from west to east, z from north to south (the enclosure gate is on the north, z = 0)
 
-== Túmulo, nivel bajo: cámara del jarl y tesoro (pies a y = -12) ==
+== Barrow, lower level: jarl's chamber and treasure (feet at y = -12) ==
     1         2         3         4
  44     ###########################
  45     ###########################
@@ -36,7 +36,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  72 
  73 
 
-== Túmulo, nivel alto: galerías, osario, ofrendas, runas (pies a y = -6) ==
+== Barrow, upper level: galleries, ossuary, offerings, runes (feet at y = -6) ==
     1         2         3         4         5         6    
  28 
  29 
@@ -85,7 +85,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  72 
  73 
 
-== Planta baja: patio, casa larga y talleres (pies a y = 1) ==
+== Ground floor: courtyard, longhouse and workshops (feet at y = 1) ==
     0         1         2         3         4         5         6         7   
   0 ###################################····###################################
   1 #·····#·#···#···#···#···#···#···###····###··#···#···#···#···#···#··#·····#
@@ -162,7 +162,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  72 #·····#·#···#···#···#···#···#···#···#···#···#···#···#···#···#···#··#·····#
  73 ##############################################····########################
 
-== Adarve, sala de la puerta y torres (pies a y = 5) ==
+== Wall walk, gatehouse and towers (feet at y = 5) ==
     0         1         2         3         4         5         6         7   
   0 ##########################################################################
   1 #·················································   ····················#
@@ -239,7 +239,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  72 #···················                              ·······················#
  73 ##############################################    ########################
 
-== Atalayas de las torres (pies a y = 10) ==
+== Tower lookouts (feet at y = 10) ==
     0         1         2         3         4         5         6         7   
   0 #######                                                            #######
   1 #C····#                                                            #······

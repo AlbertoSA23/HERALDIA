@@ -1,9 +1,9 @@
-Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G generador  D dispensador
-         P pistón  L palanca  r redstone  i antorcha de redstone  R frasco de reactivo  / escalera
-         ^ cable trampa  _ placa  b tapiz  A alambique  ~ agua  = bancal  | barrotes  + valla  d puerta
-         H escalera de mano; x de oeste a este, z de norte a sur (la entrada está al norte, z = 0)
+Legend: · reachable on foot (puzzles solved)  # wall  C chest  T barrel  G spawner  D dispenser
+         P piston  L lever  r redstone  i redstone torch  R reagent flask  / stairs
+         ^ tripwire  _ plate  b tapestry  A brewing stand  ~ water  = garden bed  | bars  + fence  d door
+         H ladder; x from west to east, z from north to south (the entrance is to the north, z = 0)
 
-== Galerías, nivel bajo: galería de la luz, capullos, experimentos, reactivos, cepa madre y tesoro (pies a y = -11) ==
+== Galleries, lower level: light gallery, cocoons, experiments, reagents, mother strain and treasure (feet at y = -11) ==
       1         2         3         4         5        
  16 ###################################################
  17 ###################################################
@@ -51,7 +51,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  59 ##############··TC#···#############################
  60 ###################################################
 
-== Galerías, nivel alto: criaderos, laboratorio, cepario, pasillo del cable trampa y criadero abandonado (pies a y = -5) ==
+== Galleries, upper level: nurseries, laboratory, strain vault, trap wire corridor and abandoned nursery (feet at y = -5) ==
       1         2         3         4         5         6 
   7 ######################################################
   8 ######################################################
@@ -81,7 +81,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  32 ########################·#############################
  33 #######################···############################
 
-== El jardín: champiñones, invernadero, destilería y corral (pies a y = 1) ==
+== The garden: mushrooms, greenhouse, distillery and pen (feet at y = 1) ==
     0         1         2         3         4         5         6   
   0 ···························#··#······#··························
   1 ······················#·········································
@@ -148,7 +148,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  62 ··························#······#······························
  63 ·····································#··························
 
-== Pasarela baja y dormitorio de los ayudantes (sombrero pequeño) (pies a y = 7) ==
+== Lower walkway and assistants' dormitory (small cap) (feet at y = 7) ==
             1         2         3         4
  20 
  21 
@@ -172,7 +172,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  39 
  40 
 
-== Casa del micólogo (sombrero grande), pasarela alta y secadero (pies a y = 13) ==
+== Mycologist's house (large cap), upper walkway and drying room (feet at y = 13) ==
     2         3         4         5         6
   5 
   6 

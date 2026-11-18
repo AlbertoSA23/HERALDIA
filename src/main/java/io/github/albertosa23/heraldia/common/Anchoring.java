@@ -6,7 +6,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 
 /**
- * Anchored template mobs (tag {@link #TAG}, the generator's core.ANCLADO_TAG: the final guardians and the
+ * Anchored template mobs (tag {@link #TAG}, the generator's core.ANCHORED_TAG: the final guardians and the
  * zombies and skeletons of the templates). Every time the world loads one ({@code ENTITY_LOAD}: when the template
  * is placed, when the generated chunk is promoted and on every chunk load):
  * <ul>
@@ -22,7 +22,7 @@ import net.minecraft.world.entity.Mob;
  * by night): {@code DrownedWaterMixin} and {@code DrownedBeachMixin} switch them off with {@link #still(Mob)}.
  */
 public final class Anchoring {
-	/** Tag of the anchored mobs; the same as core.ANCLADO_TAG. */
+	/** Tag of the anchored mobs; the same as core.ANCHORED_TAG. */
 	public static final String TAG = "heraldia_anclado";
 	/** {@code noActionTime} from which {@code RandomStrollGoal} no longer activates (26.3). */
 	public static final int STILL = 100;

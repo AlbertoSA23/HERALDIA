@@ -1,4 +1,4 @@
-"""Herramientas de construcción: muros, ventanas, puertas, tejados, mobiliario."""
+"""Building tools: walls, windows, doors, roofs, furniture."""
 import math
 from core import with_props, CW, CCW, OPP, DIRS
 
@@ -55,7 +55,7 @@ def leaves(th, kind=None):
 
 # ---------------------------------------------------------------- muros
 def wall_block(th, style, x, y, z, edge, ybase, ytop, axis, corner, col_index):
-    """Elige el bloque de muro según el estilo."""
+    """Chooses the wall block according to the style."""
     h = y - ybase  # 1..altura
     wall, wall2 = th["wall"], th["wall2"]
     if style == "frame":
@@ -87,7 +87,7 @@ def wall_block(th, style, x, y, z, edge, ybase, ytop, axis, corner, col_index):
 
 
 def rect_walls(t, th, x0, z0, x1, z1, ybase, height, style=None):
-    """Muros perimetrales del rectángulo [x0..x1]x[z0..z1] desde ybase+1 hasta ybase+height."""
+    """Perimeter walls of the rectangle [x0..x1]x[z0..z1] from ybase+1 to ybase+height."""
     style = style or th["wall_style"]
     ytop = ybase + height
     for y in range(ybase + 1, ytop + 1):
@@ -137,13 +137,13 @@ def windows_on_wall(t, th, x0, z0, x1, z1, side, y, rng, skip=(), tall=False, pa
 # ---------------------------------------------------------------- tejados
 def gable_roof(t, th, x0, z0, x1, z1, ybase, along="x", overhang=1, steep=False, gable_fill=None,
                mat=None, slabm=None, fullm=None):
-    """Tejado a dos aguas sobre la caja [x0..x1]x[z0..z1]; ybase = cota del alero (encima del muro)."""
+    """Gable roof over the box [x0..x1]x[z0..z1]; ybase = eave level (above the wall)."""
     rs = mat or th["roof_stairs"]
     rsl = slabm or th["roof_slab"]
     rf = fullm or th["roof_full"]
     gable_fill = gable_fill or th["wall"]
     if along == "x":
-        a0, a1 = x0 - overhang, x1 + overhang     # extensión de la cumbrera
+        a0, a1 = x0 - overhang, x1 + overhang     # ridge extension
         s0, s1 = z0 - 1, z1 + 1                    # pendiente
     else:
         a0, a1 = z0 - overhang, z1 + overhang
@@ -176,7 +176,7 @@ def gable_roof(t, th, x0, z0, x1, z1, ybase, along="x", overhang=1, steep=False,
                 else:
                     t.set(lo, y, a, stairs(rs, "east"))
                     t.set(hi, y, a, stairs(rs, "west"))
-        # relleno del hastial (dentro de los muros)
+        # gable fill (inside the walls)
         for s in range(lo + 1, hi):
             for yy in range(y, y + rise):
                 for a in (x0 if along == "x" else z0, x1 if along == "x" else z1):
@@ -233,7 +233,7 @@ def hip_roof(t, th, x0, z0, x1, z1, ybase, overhang=1, mat=None, slabm=None, ful
         if upturn and k == 0:
             for (cx, cz, f) in ((ax0, az0, "north"), (ax1, az0, "north"), (ax0, az1, "south"), (ax1, az1, "south")):
                 t.set(cx, y + 1, cz, stairs(rs, OPP[f], half="bottom"))
-        # relleno interior debajo del anillo superior
+        # interior fill below the top ring
         if ax1 - ax0 >= 2 and az1 - az0 >= 2:
             pass
         ax0 += 1; az0 += 1; ax1 -= 1; az1 -= 1
@@ -264,7 +264,7 @@ def flat_roof(t, th, x0, z0, x1, z1, y, parapet=None, light=True):
 
 
 def dome(t, cx, cy, cz, r, mat_full, mat_stairs=None, finial=None):
-    """Cúpula semiesférica centrada en (cx,cy,cz)."""
+    """Hemispherical dome centered at (cx,cy,cz)."""
     for dy in range(0, r + 1):
         rr = math.sqrt(max(0, r * r - dy * dy))
         for dx in range(-r, r + 1):
@@ -301,7 +301,7 @@ def cone_roof(t, th, cx, cz, r, ybase, mat=None, top="hay_block"):
 
 
 def spire(t, cx, cz, y, r, mat_stairs, mat_full, height=None):
-    """Chapitel piramidal estrecho sobre una torre (r = semilado)."""
+    """Narrow pyramidal spire over a tower (r = half-side)."""
     height = height or (r * 3 + 2)
     yy = y
     rad = r
@@ -325,14 +325,14 @@ def spire(t, cx, cz, y, r, mat_stairs, mat_full, height=None):
 
 
 def onion(t, cx, cy, cz, r, mat_full):
-    """Cúpula bulbosa."""
-    prof = [r - 1, r, r + 1, r + 1, r, r - 1, r - 2, max(1, r - 3), 0, 0]
-    for i, rr in enumerate(prof):
+    """Bulbous dome."""
+    depth = [r - 1, r, r + 1, r + 1, r, r - 1, r - 2, max(1, r - 3), 0, 0]
+    for i, rr in enumerate(depth):
         for dx in range(-rr, rr + 1):
             for dz in range(-rr, rr + 1):
                 if dx * dx + dz * dz <= rr * rr + 0.5:
                     t.set(cx + dx, cy + i, cz + dz, mat_full)
-    t.set(cx, cy + len(prof), cz, "lightning_rod[facing=up]")
+    t.set(cx, cy + len(depth), cz, "lightning_rod[facing=up]")
 
 
 def roof_for(t, th, x0, z0, x1, z1, ybase, kind=None, along=None):
@@ -363,7 +363,7 @@ def table(t, th, x, y, z):
 
 
 def chair(t, th, x, y, z, back):
-    """Silla: `back` es el lado donde queda el respaldo (el lado alto del escalón)."""
+    """Chair: `back` is the side where the backrest is (the high side of the step)."""
     t.set(x, y, z, stairs(th["wstairs"], back))
 
 

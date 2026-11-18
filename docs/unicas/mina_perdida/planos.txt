@@ -1,9 +1,9 @@
-Leyenda: · alcanzable a pie (puzles resueltos)  # roca o muro  C cofre  T tonel  G generador  D dispensador
-         P pistón  L palanca  i antorcha de redstone  = vía  + vía propulsora  B báscula (raíl detector)
-         ^ cable trampa  _ placa  ! dinamita  ~ agua  | barandilla  d puerta  F alto horno  A yunque
-         E estantería  H escalera de mano; x de oeste a este, z de norte a sur (el pozo baja en x 44, z 7)
+Legend: · reachable on foot (puzzles solved)  # rock or wall  C chest  T barrel  G spawner  D dispenser
+         P piston  L lever  i redstone torch  = track  + powered rail  B weighbridge (detector rail)
+         ^ tripwire  _ plate  ! dynamite  ~ water  | railing  d door  F blast furnace  A anvil
+         E bookshelf  H ladder; x from west to east, z from north to south (the shaft goes down at x 44, z 7)
 
-== La gran caverna (pies a y = 1): estación del pozo, almacén, fundición, casas, talleres, lago, sima, cargadero, frente viejo y sector derrumbado ==
+== The great cavern (feet at y = 1): shaft station, warehouse, smelter, houses, workshops, lake, chasm, loading dock, old face and collapsed sector ==
      0         1         2         3         4         5         6         7         8         9         0    
  -1 
   0                                             #########  ##  # ## #  ###
@@ -86,7 +86,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # roca o muro  C cofre  T tonel
  77 
  78 
 
-== La bajada al sector inundado ==
+== The descent to the flooded sector ==
     0         1         2
  58 
  59 
@@ -110,7 +110,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # roca o muro  C cofre  T tonel
  77   #################
  78    ###############
 
-== El sector inundado (pasarela y agua) ==
+== The flooded sector (walkway and water) ==
     0         1         2
  60 
  61 
@@ -132,7 +132,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # roca o muro  C cofre  T tonel
  77   #################
  78    ###############
 
-== El filón madre y la cámara del tesoro (pies a y = -10) ==
+== The mother lode and the treasure chamber (feet at y = -10) ==
         8         9         0    
  -2         ##################
  -1        ####################
@@ -164,7 +164,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # roca o muro  C cofre  T tonel
  25     ###
  26     ###
 
-== El fondo de la sima (pies a y = -15) ==
+== The bottom of the chasm (feet at y = -15) ==
     7         8    
  22      #####
  23     #######

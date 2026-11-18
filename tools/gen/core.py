@@ -1,4 +1,4 @@
-"""Núcleo: plantillas de estructura (NBT 26.3), jigsaws y entidades."""
+"""Core: structure templates (NBT 26.3), jigsaws and entities."""
 import gzip, io, json, os, re, struct
 import nbtlib
 from nbtlib import Compound, List, Int, String, Double, Byte, Float, File
@@ -16,7 +16,7 @@ def norm_id(i):
 def parse_state(s):
     m = _STATE_RE.match(s.strip())
     if not m:
-        raise ValueError("estado inválido: " + s)
+        raise ValueError("invalid state: " + s)
     bid = norm_id(m.group(1))
     props = {}
     if m.group(2):
@@ -48,12 +48,12 @@ CCW = {v: k for k, v in CW.items()}
 class Template:
     def __init__(self, name):
         self.name = name          # ruta relativa: <tema>/houses/h1
-        self.blocks = {}          # (x,y,z) -> (estado, nbt|None)
+        self.blocks = {}          # (x,y,z) -> (state, nbt|None)
         self.entities = []        # (x,y,z, nbt dict)
-        self.jigsaws = []         # info para el simulador
+        self.jigsaws = []         # info for the simulator
         self.min_size = (1, 1, 1)
 
-    # --- bloques ---
+    # --- blocks ---
     def set(self, x, y, z, state, nbt=None, keep=False):
         if state is None:
             return
@@ -82,7 +82,7 @@ class Template:
     def air(self, x1, y1, z1, x2, y2, z2):
         self.fill(x1, y1, z1, x2, y2, z2, "air")
 
-    # --- bloques con entidad ---
+    # --- blocks with an entity ---
     def chest(self, x, y, z, facing, loot, kind="chest"):
         st = f"{kind}[facing={facing}]"
         nbt = {"id": norm_id(kind), "LootTable": loot}
@@ -107,7 +107,7 @@ class Template:
                                  sel=sel, place=place))
 
     def edge_jigsaw(self, side, along, y, name, target, pool, final_state="minecraft:structure_void", **kw):
-        """Jigsaw horizontal en la cara exterior de la caja envolvente actual."""
+        """Horizontal jigsaw on the outer face of the current bounding box."""
         x0, y0, z0, x1, y1, z1 = self.bounds()
         pos = {"east": (x1, y, along), "west": (x0, y, along), "south": (along, y, z1), "north": (along, y, z0)}[side]
         self.jigsaw(*pos, f"{side}_up", name, target, pool, final_state=final_state, **kw)
@@ -124,7 +124,7 @@ class Template:
         return min(xs), min(ys), min(zs), max(xs), max(ys), max(zs)
 
     def normalize(self):
-        """Desplaza todo a coordenadas >= 0."""
+        """Shifts everything to coordinates >= 0."""
         x0, y0, z0, *_ = self.bounds()
         if (x0, y0, z0) == (0, 0, 0):
             return
@@ -176,14 +176,14 @@ class Template:
         return root
 
     def nbt_raw(self):
-        """Los bytes NBT (sin comprimir) de to_nbt(), escritos directamente: mismos bytes que File(self.to_nbt()).write,
-        pero sin construir un Compound de nbtlib por bloque (eso era casi todo el tiempo del generador). Lo que va dentro
-        de cada bloque o entidad (su nbt) sí pasa por to_tag y nbtlib, igual que antes. tests/test_core.py lo compara."""
+        """The (uncompressed) NBT bytes of to_nbt(), written directly: the same bytes as File(self.to_nbt()).write,
+        but without building an nbtlib Compound per block (that was almost all of the generator's time). What goes inside
+        each block or entity (its nbt) still goes through to_tag and nbtlib, as before. tests/test_core.py compares it."""
         x0, y0, z0, *_ = self.bounds()
         assert (x0, y0, z0) >= (0, 0, 0) and min(x0, y0, z0) >= 0, (self.name, x0, y0, z0)
         out = io.BytesIO()
         w = out.write
-        _tag(w, 10, "")                                               # File: compuesto raíz sin nombre
+        _tag(w, 10, "")                                               # File: unnamed root compound
         _tag(w, 3, "DataVersion")
         w(_I.pack(DATA_VERSION))
         _tag(w, 9, "size")
@@ -234,12 +234,12 @@ class Template:
             _tag(w, t.tag_id, "nbt")
             t.write(out, "big")
             w(b"\x00")
-        w(b"\x00")                                                    # fin del compuesto raíz
+        w(b"\x00")                                                    # end of the root compound
         return out.getvalue()
 
     def nbt_bytes(self):
-        """El .nbt de la plantilla (gzip), comprimido de una vez y sin hora en la cabecera (mtime 0): dos generaciones del
-        mismo código dan los mismos bytes (antes cambiaba la cabecera en cada compilación)."""
+        """The template's .nbt (gzip), compressed in one go and without a timestamp in the header (mtime 0): two generations of the
+        same code give the same bytes (the header used to change on every build)."""
         return gzip.compress(self.nbt_raw(), compresslevel=9, mtime=0)
 
     def save(self, root_dir):
@@ -259,7 +259,7 @@ def _str(w, s):
 
 
 def _tag(w, tid, name):
-    """Cabecera de una etiqueta con nombre dentro de un compuesto: tipo y nombre."""
+    """Header of a named tag inside a compound: type and name."""
     w(bytes((tid,)))
     _str(w, name)
 
@@ -309,45 +309,45 @@ def to_tag(v):
 
 
 # --- entidades comunes ---
-# Los mobs de una plantilla pasan por finalizeSpawn al colocarse. El de los zombis sortea un bebé (5 %, con jinete de
-# gallina) sin mirar el IsBaby del NBT: el mod (ZombieMixin) lo evita en los que llevan ADULTO_TAG, y validate.py exige
-# la etiqueta en todo mob de BEBE_ZOMBI de las plantillas. Hoglin y zoglin salen bebés el 20 % sin remedio en el mod: no
-# se pueden poner en plantillas. Los animales y aldeanos (AgeableMob) no: con un grupo nuevo el primero nunca es bebé.
-ADULTO_TAG = "heraldia_adulto"
-BEBE_ZOMBI = {"minecraft:" + m for m in ("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin")}
-BEBE_SIN_PROTECCION = {"minecraft:hoglin", "minecraft:zoglin"}
+# The mobs of a template go through finalizeSpawn when placed. The zombies' one rolls a baby (5 %, with a chicken
+# jockey) without looking at the NBT's IsBaby: the mod (ZombieMixin) prevents it for those carrying ADULT_TAG, and validate.py requires
+# the tag on every BABY_ZOMBIE mob in the templates. Hoglin and zoglin come out as babies 20 % of the time with no fix in the mod: they
+# cannot be put in templates. Animals and villagers (AgeableMob) are not affected: with a new group the first one is never a baby.
+ADULT_TAG = "heraldia_adulto"
+BABY_ZOMBIE = {"minecraft:" + m for m in ("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin")}
+BABY_NO_PROTECTION = {"minecraft:hoglin", "minecraft:zoglin"}
 
 
-def adulto(n):
-    """Pone ADULTO_TAG al NBT de un mob que podría salir bebé (BEBE_ZOMBI); devuelve el mismo NBT."""
-    if n["id"] in BEBE_ZOMBI and ADULTO_TAG not in n.get("Tags", []):
-        n["Tags"] = list(n.get("Tags", [])) + [ADULTO_TAG]
+def adult(n):
+    """Puts ADULT_TAG on the NBT of a mob that could spawn as a baby (BABY_ZOMBIE); returns the same NBT."""
+    if n["id"] in BABY_ZOMBIE and ADULT_TAG not in n.get("Tags", []):
+        n["Tags"] = list(n.get("Tags", [])) + [ADULT_TAG]
     return n
 
 
-# Mobs anclados (el mod, comun/Anclaje.java, al cargarlos): no recogen objetos y no pasean hasta que los atacan. El
-# finalizeSpawn de zombis y esqueletos sortea CanPickUpLoot sin mirar el NBT (los piglins lo traen siempre), y un mob
-# persistente pasea hasta 10 bloques en los 100 primeros ticks de cada carga (a veces fuera de su sala). validate.py
-# exige ANCLADO_TAG en todo guardián final (piezas.GUARDIAN_TAG) y en todo mob de RECOGE_BOTIN de las plantillas.
-ANCLADO_TAG = "heraldia_anclado"
-RECOGE_BOTIN = BEBE_ZOMBI | {"minecraft:" + m for m in ("skeleton", "stray", "bogged", "wither_skeleton", "parched",
+# Anchored mobs (the mod, comun/Anclaje.java, on loading them): they do not pick up items and do not wander until attacked. The
+# finalizeSpawn of zombies and skeletons rolls CanPickUpLoot without looking at the NBT (piglins always have it), and a
+# persistent mob wanders up to 10 blocks in the first 100 ticks of each load (sometimes outside its room). validate.py
+# requires ANCHORED_TAG on every final guardian (pieces.GUARDIAN_TAG) and on every PICKS_UP_LOOT mob in the templates.
+ANCHORED_TAG = "heraldia_anclado"
+PICKS_UP_LOOT = BABY_ZOMBIE | {"minecraft:" + m for m in ("skeleton", "stray", "bogged", "wither_skeleton", "parched",
                                                          "piglin", "piglin_brute")}
 
 
-def anclado(n, siempre=False):
-    """Pone ANCLADO_TAG al NBT de un mob que recogería objetos (RECOGE_BOTIN) o, con `siempre`, de cualquier tipo (los
-    guardianes finales); devuelve el mismo NBT."""
-    if (siempre or n["id"] in RECOGE_BOTIN) and ANCLADO_TAG not in n.get("Tags", []):
-        n["Tags"] = list(n.get("Tags", [])) + [ANCLADO_TAG]
+def anchored(n, always=False):
+    """Puts ANCHORED_TAG on the NBT of a mob that would pick up items (PICKS_UP_LOOT) or, with `always`, of any type (the
+    final guardians); returns the same NBT."""
+    if (always or n["id"] in PICKS_UP_LOOT) and ANCHORED_TAG not in n.get("Tags", []):
+        n["Tags"] = list(n.get("Tags", [])) + [ANCHORED_TAG]
     return n
 
 
-def villager(prof, vtype, employed=True):
-    n = {"id": "minecraft:villager", "PersistenceRequired": B(1), "Tags": ["heraldia"],   # los tratos de mapas (mapas.py) la piden
-         "VillagerData": {"profession": "minecraft:" + (prof if employed else "none"),
+def villager(depth, vtype, employed=True):
+    n = {"id": "minecraft:villager", "PersistenceRequired": B(1), "Tags": ["heraldia"],   # the map trades (maps.py) ask for it
+         "VillagerData": {"profession": "minecraft:" + (depth if employed else "none"),
                           "level": 1, "type": "minecraft:" + vtype}}
     if employed:
-        n["Xp"] = 1           # bloquea la profesión
+        n["Xp"] = 1           # locks the profession
     return n
 
 

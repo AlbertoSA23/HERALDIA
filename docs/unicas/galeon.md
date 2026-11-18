@@ -2,7 +2,7 @@
 
 A three-masted galleon (62 blocks long, 17 in the beam, a mainmast 40 m above the keel) run aground on its side on the
 shore, with its landward side burst open by the stranding, the castaways' camp on the sand and, behind, a crag with
-the cave where they hid the captain's treasure. A single variant, designed by hand (`tools/gen/unicas/galeon/`).
+the cave where they hid the captain's treasure. A single variant, designed by hand (`tools/gen/uniques/galleon/`).
 
 Differences from the vanilla shipwreck: ten times its volume; four habitable decks with 16 furnished rooms;
 a camp and a cave; puzzles, traps, spawners and a guardian; loot spread over 18 chests and 3 archaeology blocks.
@@ -69,7 +69,7 @@ crow's nest. From the camp, the cave: gallery with a trap, bone cave, puzzle and
 - **Powder magazine**: a pressure plate in front of the chest with 4 TNT under the floor (like the desert temple).
 - **Tripwire** in the cave gallery: two hooks and two dispensers with arrows at head height.
 
-The generator checks with the shared simulator (`unicas/_comun/redstone.py`) that the placed state is stable and that each action
+The generator checks with the shared simulator (`uniques/_common/redstone.py`) that the placed state is stable and that each action
 produces its effect (pistons retracted, doors opened, dispensers and TNT triggered). If it fails, nothing is generated.
 
 ## Enemies
@@ -117,9 +117,9 @@ No netherite or elytra. The more hidden, the richer: beach < decks < cabin < hid
 
 ## What has been checked
 
-- Generation with the audit (`lint.py` + the module's `auditoria.py`) without warnings; the simulator detects a misplaced torch or lever (a mutation test done by hand).
+- Generation with the audit (`lint.py` + the module's `audit.py`) without warnings; the simulator detects a misplaced torch or lever (a mutation test done by hand).
 - Smoke test on a 26.3 dedicated server: it registers, `/place` places it and the 14 loot tables open.
-- `tools/smoke/galeon_test.py` on a dedicated server: `/locate` finds a natural galleon (shore search in 0.5 s), `/place`
+- `tools/smoke/galleon_test.py` on a dedicated server: `/locate` finds a natural galleon (shore search in 0.5 s), `/place`
   places it at that spot with the sea 20 blocks seaward and sand 24 blocks landward, and the drowned captain and the boat are there.
 - Not checked: the look in game (missing a screenshot from the owner), whether the drowned from the spawners appear out of the water, and the
   behavior of the circuits in the game (only simulated).

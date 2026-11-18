@@ -1,6 +1,6 @@
-Planos del Observatorio (norte arriba, x hacia la derecha). Leyenda: '.' celda alcanzable a pie (estado resuelto), '#' muro, 'C' cofre o barril, 'S' generador, 'D' puerta, '=' escalera, 'L' palanca, 'T' trampa (gancho, placa o dispensador), 'H' escalera de mano, 'G' guardián, ' ' vacío o terreno.
+Observatory floor plans (north up, x to the right). Legend: '.' cell reachable on foot (solved state), '#' wall, 'C' chest or barrel, 'S' spawner, 'D' door, '=' stairs, 'L' lever, 'T' trap (hook, plate or dispenser), 'H' ladder, 'G' guardian, ' ' void or terrain.
 
-== Planta baja (pies a y = 1) ==
+== Ground floor (pies a y = 1) ==
                  .......
                  .......
                  #.....#
@@ -38,7 +38,7 @@ Planos del Observatorio (norte arriba, x hacia la derecha). Leyenda: '.' celda a
  #######################################
 
 
-== Planta alta (pies a y = 7) ==
+== Upper floor (pies a y = 7) ==
 
 
 
@@ -76,7 +76,7 @@ Planos del Observatorio (norte arriba, x hacia la derecha). Leyenda: '.' celda a
  #######################################
 
 
-== Azotea (pies a y = 13) ==
+== Roof terrace (pies a y = 13) ==
 
 
 
@@ -152,7 +152,7 @@ Planos del Observatorio (norte arriba, x hacia la derecha). Leyenda: '.' celda a
   ###########################
   ######### #################
 
-== Cámara del tesoro (pies a y = -13) ==
+== Treasure chamber (pies a y = -13) ==
 
 
 

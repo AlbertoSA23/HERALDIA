@@ -1,9 +1,9 @@
-Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G generador  D dispensador
-         P pistón  L palanca  r redstone  i antorcha de redstone  R piedra de las estaciones  / escalera
-         ^ cable trampa  _ placa  b tapiz  B colmena  ~ agua  = bancal  M menhir
-         x de oeste a este, z de norte a sur (la entrada del claro está al norte, z = 0)
+Legend: · reachable on foot (puzzles solved)  # wall  C chest  T barrel  G spawner  D dispenser
+         P piston  L lever  r redstone  i redstone torch  R season stone  / stairs
+         ^ tripwire  _ plate  b tapestry  B beehive  ~ water  = garden bed  M menhir
+         x from west to east, z from north to south (the clearing's entrance is to the north, z = 0)
 
-== Raíces, nivel bajo: ofrendas, cámara del sol, cámara del rito y tesoro (pies a y = -11) ==
+== Roots, lower level: offerings, sun chamber, rite chamber and treasure (feet at y = -11) ==
     2         3         4         5         6
  28 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
  29 MMMMMMMMMMMMMMMMMMMMMMMM###########MMMMMM
@@ -45,7 +45,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  65 MMMMMM########MMMMMMMMMMMMMMMMMMMMMMMMMMM
  66 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
-== Raíces, nivel alto: sala de las raíces, biblioteca, archivo, herbolario y osario (pies a y = -5) ==
+== Roots, upper level: root hall, library, archive, herbarium and ossuary (feet at y = -5) ==
             2         3         4         5         6
   4 MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   5 MMMMMMMMMMMMMMMMMM###############MMMMMMMMMMMMMMMM
@@ -81,7 +81,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  35 MMMMMMMMMMMMMMMMMMMMMM#···#MMMMMMMMMMMMMMMMMMMMMM
  36 MMMMMMMMMMMMMMMMMMMMMM#·#/MMMMMMMMMMMMMMMMMMMMMMM
 
-== El claro: árbol, menhires, cabañas, huerto, estanque y observatorio (pies a y = 1) ==
+== The clearing: tree, menhirs, cabins, garden, pond and observatory (feet at y = 1) ==
     0         1         2         3         4         5         6         7 
   0 ········································································
   1 ········································································
@@ -156,7 +156,7 @@ Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G gen
  70 ········································································
  71 ········································································
 
-== Plataforma de la copa (pies a y = 19) ==
+== Crown platform (feet at y = 19) ==
           3         4        
  24 
  25 

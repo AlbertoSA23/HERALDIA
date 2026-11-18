@@ -14,7 +14,7 @@ underground.
 ## Biome and placement
 
 - Biome: mushroom fields, plus `#c:is_mushroom` (which in vanilla is exactly that biome: biome mods' mushroom fields
-  come in; `biomas.comprobar` checks it). Until now there was no unique structure in it.
+  come in; `biomes.check` checks it). Until now there was no unique structure in it.
 - **A very rare biome.** Measured with `/locate biome minecraft:mushroom_fields` from 25 points of a grid of
   ±20,000 blocks (the test's seed): the nearest one was on average 3,600 blocks away (from 960 to 7,347). With the normal
   grid (one random candidate per 4,000-block cell) the candidate would almost never fall on an island. That is why this
@@ -48,7 +48,7 @@ Coordinates: x from west to east (0..63), z from north to south (0..63); the ent
 
 - A stone brick **path** from the entrance to the door of the large mushroom, with the sign "The mycologist's garden. Please
   do not step on the mushrooms".
-- **Large red mushroom** (center): a hollow stem 7 wide with the **spiral staircase** (`piezas.spiral_stair`)
+- **Large red mushroom** (center): a hollow stem 7 wide with the **spiral staircase** (`pieces.spiral_stair`)
   from the galleries (feet -11) to the cap (feet 13), with shroomlights in the wall; doors to the garden and to the lower
   walkway. In the **cap**, a dome 19 wide, the **mycologist's house**: bed, bookshelves, table, brewing stand,
   cauldron, barrel and the `estudio` chest. Behind the **red tapestry** of a stem partition, the **hidden alcove** (no other
@@ -94,7 +94,7 @@ Upper level (feet at y = -5) and lower level (feet at y = -11), joined by the la
    door only opens with **the cure: spore, wart and light** (and nothing else). The correct levers turn off three inverting torches
    that power the pistons' line; the fake ones power it directly with dust, so with
    any fake flask the door stays closed (or closes again). It is the piece of the rune wall and the
-   season stones (`piezas.combo_door` with fake levers), already tested on a server, here with five levers.
+   season stones (`pieces.combo_door` with fake levers), already tested on a server, here with five levers.
    To the east, the **reagent cabinet**: a niche with two pressure plates and an arrow dispenser on each side of
    each plate (**trap 2**), and at the back the `reactivos` chest.
 9. **Mother strain chamber** (hidden): six high, polished deepslate, a **giant mushroom growing
@@ -115,14 +115,14 @@ audit checks it; you get out of the greenhouse ditch by swimming).
 
 ## Puzzles and traps (everything at rest and consistent when generated)
 
-- **Puzzle 1, the reagents** (`piezas.combo_door` with three levers and two fake ones): extended sticky pistons holding
+- **Puzzle 1, the reagents** (`pieces.combo_door` with three levers and two fake ones): extended sticky pistons holding
   two blocks of chiseled stone; the line of dust runs inside the wall (four thick: levers, torches or the fake ones' dust,
   door and pistons with the line, and the face of the mother strain chamber). The 32 combinations are tried.
-- **Puzzle 2, the strain collection panel** (`piezas.lever_door`): two stem blocks at the back of a niche; the lever turns off the
+- **Puzzle 2, the strain collection panel** (`pieces.lever_door`): two stem blocks at the back of a niche; the lever turns off the
   inverting torch and the pistons pull them in. Pistons and torch stay inside the wall.
-- **Trap 1**: a taut tripwire between two hooks with a dispenser above each hook (`piezas.tripwire_trap`).
+- **Trap 1**: a taut tripwire between two hooks with a dispenser above each hook (`pieces.tripwire_trap`).
 - **Trap 2**: two stone plates in the reagent cabinet, each with a dispenser on each side
-  (`piezas.plate_trap`).
+  (`pieces.plate_trap`).
 
 ## Enemies and entities
 
@@ -185,7 +185,7 @@ panes (30 %). Nothing that holds up a mechanism changes its solidity.
 
 ## Audit (a condition for generating)
 
-`auditoria.py` fails the build if: the redstone is not in its stable state; any of the 32 combinations of the
+`audit.py` fails the build if: the redstone is not in its stable state; any of the 32 combinations of the
 reagents opens without being the correct one (or the correct one does not open); the lever does not open the strain collection; the wire or the plates do not fire (or
 a dispenser has a signal at rest); something hidden (strain collection, mother strain chamber, treasure) can be reached without
 solving the puzzles or cannot be reached by solving them; the alcove cannot be reached through the tapestry; there are chests, spawners or
@@ -199,7 +199,7 @@ sight underground, bare fertile ground in the garden, the number of chests falls
 
 - Generation: two templates (about 26,200 + 45,500 blocks, on the order of the Sanctuary) with a rule processor and without
   a custom Java structure. Generating the module takes about 3.5 s in Python. `/place structure` of the whole structure
-  took 694 ms on the test server (printed by `prueba_servidor.py`).
+  took 694 ms on the test server (printed by `smoke_server.py`).
 - Placement: the biome search of each cell took 5-7 ms (about 600 samples of the biome noise, without loading
   chunks), only once per cell and cached; in `isPlacementChunk` only the mesh's chunks (1 in 64) get to
   query it. `/locate` from 0,0 found the laboratory at 1,168, -9,168 (9,242 blocks away) in 444 ms, and when
@@ -209,9 +209,9 @@ sight underground, bare fertile ground in the garden, the number of chests falls
 
 ## Tests
 
-- `python3 tools/gen/unicas/laboratorio_micelio/planos.py` → plans by level and renders in
+- `python3 tools/gen/uniques/mycelium_lab/blueprints.py` → plans by level and renders in
   `docs/unicas/laboratorio_micelio/`.
-- `python3 tools/gen/unicas/laboratorio_micelio/prueba_servidor.py --jar build/libs/heraldia-<version>.jar --work "$PWD/build/smoke"`:
+- `python3 tools/gen/uniques/mycelium_lab/smoke_server.py --jar build/libs/heraldia-<version>.jar --work "$PWD/build/smoke"`:
   `/locate` from 0,0 (distance and time), loads that spot and checks that it is mushroom fields and that the
   laboratory has really been generated (its guardian is there); places the structure (measures the time and counts entities)
   and the templates unrotated to check chests, spawners, crops and water, and operate the reagents (also with

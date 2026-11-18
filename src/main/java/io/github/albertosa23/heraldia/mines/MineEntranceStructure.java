@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Heraldia mine entrance (heraldia:mina_entrada, tools/gen/minas): a single template with the yard, the mouth, the
+ * Heraldia mine entrance (heraldia:mina_entrada, tools/gen/mines): a single template with the yard, the mouth, the
  * descent and the gallery, placed on a hillside that {@link Hillside} finds with the generation height map (cached,
  * {@link Heights}, and columns on a 4-block lattice that share the samples). Before searching it checks the biome at the
  * chunk's center (one column): a structure_set with one style per biome tries its entries one by one, and those not

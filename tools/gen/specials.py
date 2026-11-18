@@ -1,5 +1,5 @@
-"""Edificios especiales: iglesia/templo, cementerio, ayuntamiento, mercado, herrería, taberna,
-posada, biblioteca, granja, molino, puerto."""
+"""Special buildings: church/temple, cemetery, town hall, market, smithy, tavern,
+inn, library, farm, mill, port."""
 import math
 from core import Template, nsid, villager, animal
 from themes import roofset
@@ -15,15 +15,15 @@ def entrance(t, th, x):
              final_state=stairs(th["trim"], "south"))
 
 
-def staff(t, th, x, y, z, prof, final=None):
-    """Aldeano con oficio de pie en su puesto (sin cama): el jigsaw va en el bloque del suelo."""
-    t.jigsaw(x, y, z, "up_south", "heraldia:slot", "heraldia:bottom", nsid(f"villagers/{th['vtype']}/nobed_{prof}"),
+def staff(t, th, x, y, z, depth, final=None):
+    """Villager with a profession standing at their workstation (no bed): the jigsaw goes in the floor block."""
+    t.jigsaw(x, y, z, "up_south", "heraldia:slot", "heraldia:bottom", nsid(f"villagers/{th['vtype']}/nobed_{depth}"),
              final_state=final or th["floor"], joint="aligned")
     t.set(x, y + 1, z, "air"); t.set(x, y + 2, z, "air")
 
 
 def shell(t, th, x0, z0, x1, z1, fy, H, roof=None, style=None, along=None, gable_fill=None, ceiling=True):
-    """Caja con muros, suelo, aire interior y tejado. Devuelve cota superior del tejado."""
+    """Box with walls, floor, interior air and roof. Returns the top height of the roof."""
     t.fill(x0, fy, z0, x1, fy, z1, log(th["found"], "y"))
     t.fill(x0 + 1, fy, z0 + 1, x1 - 1, fy, z1 - 1, th["floor"])
     rect_walls(t, th, x0, z0, x1, z1, fy, H, style=style)
@@ -61,7 +61,7 @@ def stone_of(th):
 
 # ======================================================================= IGLESIA / TEMPLO
 def bell_tower(t, th, nth, stone, tx0, tz0, tw, th_h):
-    """Torre de campanario de tw x tw desde y=0: muros, forjado, huecos, campana en una viga, escalera de mano y remate."""
+    """Bell tower of tw x tw from y=0: walls, floor slab, openings, bell on a beam, ladder and finial."""
     cx = tx0 + tw // 2
     twall = (nth["wall"] if th["church"] == "domed" else nth["wall2"]) if stone else th["log"]
     for y in range(0, th_h + 1):
@@ -111,8 +111,8 @@ def bell_tower_top(t, th, tx0, tz0, tw, th_h, ladder_y0=1):
         cone_roof(t, th, cx, tz0 + 2, 2, ty)
 
 
-def espadana(t, th, nth, cx, z, y, stone):
-    """Espadaña: muro de la fachada que sobresale del hastial, con un vano y la campana colgada de su dintel."""
+def bell_gable(t, th, nth, cx, z, y, stone):
+    """Bell gable: facade wall that projects above the gable, with an opening and the bell hung from its lintel."""
     m = nth["wall2"] if stone else th["wall2"]
     for x in range(cx - 1, cx + 2):
         for yy in range(y, y + 5):
@@ -125,7 +125,7 @@ def espadana(t, th, nth, cx, z, y, stone):
 
 
 def church(th, rng, name, v=0):
-    """v: 0 torre delantera (la original), 1 crucero con espadaña en la fachada, 2 pórtico y torre en la cabecera."""
+    """v: 0 front tower (the original), 1 transept with bell gable on the facade, 2 porch and tower at the head."""
     style = th["church"]
     if style == "pyramid":
         return pyramid_temple(th, rng, name, v)
@@ -153,20 +153,20 @@ def church(th, rng, name, v=0):
         nth["wall2"] = stone_of(th)
     roofk = "flat" if style == "domed" else ("steep" if style in ("gothic", "stave") else "gable")
     ta0 = ta1 = None
-    if v == 1:                             # crucero: brazos de 2 a cada lado delante del presbiterio
+    if v == 1:                             # transept: arms of 2 on each side in front of the chancel
         ta0, ta1 = nz1 - 9, nz1 - 5
         shell(t, nth, -2, ta0, W + 1, ta1, 0, H, roof=roofk, style=nave_style, along="x", ceiling=False)
-        for x in range(1, W - 1):          # el tejado de la nave cubre el cruce
+        for x in range(1, W - 1):          # the nave roof covers the crossing
             for y in range(H + 1, H + 12):
                 for z in range(ta0 - 1, ta1 + 2):
                     t.clear(x, y, z)
     top = shell(t, nth, 0, nz0, W - 1, nz1, 0, H, roof=roofk, style=nave_style, along="z", ceiling=False)
-    if v == 1:                             # abre los muros de la nave hacia los brazos
+    if v == 1:                             # opens the nave walls towards the arms
         for x in (0, W - 1):
             for z in range(ta0 + 1, ta1):
                 for y in range(1, H + 1):
                     t.set(x, y, z, "air")
-            for y in range(1, H + 1):      # pilares del cruce
+            for y in range(1, H + 1):      # crossing pillars
                 t.set(x, y, ta0, nth["wall2"]); t.set(x, y, ta1, nth["wall2"])
     if style == "gothic":
         for z in range(nz0 + 2, nz1, 4):
@@ -176,7 +176,7 @@ def church(th, rng, name, v=0):
                 for y in range(0, H - 1):
                     t.set(x, y, z, nth["wall2"])
                 t.set(x, H - 1, z, stairs(th["trim"], f))
-    # vidrieras altas, simétricas, y rosetón tras el altar
+    # tall stained-glass windows, symmetrical, and rose window behind the altar
     gl = f"{th['church_glass']}_stained_glass_pane"
     for z in range(nz0 + 4, nz1 - 2, 3):
         if ta0 is not None and ta0 <= z <= ta1:
@@ -187,7 +187,7 @@ def church(th, rng, name, v=0):
     for y in range(4, H - 1):
         t.set(cx, y, nz1, gl)
     t.set(cx - 1, H - 3, nz1, gl); t.set(cx + 1, H - 3, nz1, gl)
-    if v == 1:                             # vidrieras en los testeros del crucero
+    if v == 1:                             # stained-glass windows in the transept ends
         for x in (-2, W + 1):
             for y in range(3, H - 1):
                 t.set(x, y, ta0 + 2, gl)
@@ -206,9 +206,9 @@ def church(th, rng, name, v=0):
         for y in range(3, H - 1):
             t.set(cx, y + 1, nz0, gl)
         ridge = max(y for (x, y, z) in t.blocks if x == cx and z == nz0)
-        espadana(t, th, nth, cx, nz0, ridge + 1, stone)
+        bell_gable(t, th, nth, cx, nz0, ridge + 1, stone)
     else:
-        # pórtico delante de la puerta y torre adosada a la cabecera, con puerta desde el presbiterio
+        # porch in front of the door and tower attached to the head, with a door from the chancel
         for z in range(2, nz0):
             for x in range(cx - 1, cx + 2):
                 t.set(x, 0, z, stone_of(th))
@@ -234,14 +234,14 @@ def church(th, rng, name, v=0):
         dm = roofset(th["dome"] or "copper")[2]
         onion(t, cx, top + 1, nz1 - 4, 2, dm)
     # --- interior
-    # bancos a ambos lados del pasillo, mirando al altar
+    # pews on both sides of the aisle, facing the altar
     pz1 = nz1 - 6 if v != 1 else ta0 - 1
     for z in range(nz0 + 4 if v != 1 else nz0 + 2, pz1, 2):
         for x in list(range(1, cx - 1)) + list(range(cx + 2, W - 1)):
             t.set(x, 1, z, stairs(th["wstairs"], "north"))
     for z in range(nz0 + 2 if v != 1 else nz0 + 1, nz1 - 4):
         t.set(cx, 1, z, f"{th['carpet'][0]}_carpet")
-    # presbiterio: un escalón corrido y tarima
+    # chancel: a continuous step and platform
     plat = stone_of(th)
     az = nz1 - 4
     for x in range(1, W - 1):
@@ -249,19 +249,19 @@ def church(th, rng, name, v=0):
         for z in range(az + 1, nz1):
             t.set(x, 1, z, plat)
     t.set(cx, 2, az + 1, f"{th['carpet'][0]}_carpet")
-    # altar centrado con velas; el clérigo detrás
+    # altar centred with candles; the cleric behind
     t.set(cx, 2, nz1 - 2, "chiseled_stone_bricks" if stone else th["planks"])
     for dxx, f in ((-1, "west"), (1, "east")):
         t.set(cx + dxx, 2, nz1 - 2, stairs(th["trim"], f, half="top"))
         t.set(cx + dxx, 3, nz1 - 2, "candle[candles=3,lit=true]")
     staff(t, th, cx, 1, nz1 - 1, "cleric", final=plat)
-    if v == 1:                             # pila y cofre en los brazos del crucero
+    if v == 1:                             # font and chest in the transept arms
         t.set(-1, 1, ta0 + 2, "brewing_stand")
         t.chest(W, 1, ta0 + 2, "west", L("iglesia"))
     else:
         t.set(1, 2, nz1 - 1, "brewing_stand")
         t.chest(W - 2, 2, nz1 - 1, "north", L("iglesia"))
-    # lámparas colgadas de tirantes de madera (o del techo plano)
+    # lamps hung from wooden tie beams (or from the flat ceiling)
     for z in range(nz0 + 5, nz1 - 4, 5):
         if ta0 is not None and ta0 - 1 <= z <= ta1 + 1:
             z = ta0 + 2
@@ -278,9 +278,9 @@ def church(th, rng, name, v=0):
 
 
 def pyramid_temple(th, rng, name, v=0):
-    """Templo escalonado: escalinata frontal completa hasta un santuario en la cima.
-    v: 0 tres cuerpos anchos (el original); 1 cuatro cuerpos más empinados, escalinata tallada y crestería;
-    2 templo de pilonos (pylon_temple)."""
+    """Stepped temple: full front staircase up to a sanctuary at the top.
+    v: 0 three wide tiers (the original); 1 four steeper tiers, carved staircase and cresting;
+    2 pylon temple (pylon_temple)."""
     if v == 2:
         return pylon_temple(th, rng, name)
     t = Template(name)
@@ -293,23 +293,23 @@ def pyramid_temple(th, rng, name, v=0):
         for y in (2 * lv, 2 * lv + 1):
             t.fill(inset * lv, y, z0 + inset * lv, N - 1 - inset * lv, y, z0 + N - 1 - inset * lv,
                    th["wall2"] if y == 2 * lv else th["wall"])
-    py = 2 * lv_n                            # cota de la plataforma superior (pies)
-    # escalinata de 3 de ancho, despejada por encima
+    py = 2 * lv_n                            # height of the upper platform (feet)
+    # staircase 3 wide, clear above
     for k in range(py):
         for x in range(c - 1, c + 2):
             t.set(x, k, z0 + k, stairs(th["trim"], "south"))
             for y in range(k + 1, k + 4):
                 t.set(x, y, z0 + k, "air")
-    if v == 1:                               # zanca a los lados de la escalinata tallada
+    if v == 1:                               # stringer on the sides of the carved staircase
         for k in range(py):
             for x in (c - 2, c + 2):
                 for y in range(0, k + 1):
                     if t.get(x, y, z0 + k) is None:
                         t.set(x, y, z0 + k, th["wall"])
-    # braseros a los lados de la escalinata
+    # braziers on the sides of the staircase
     for x in (c - 3, c + 3):
         t.set(x, py, z0 + py - 1 if v == 0 else z0 + py, "campfire[lit=true,signal_fire=false]")
-    # santuario 7x7 (5x5 en la pirámide alta)
+    # sanctuary 7x7 (5x5 in the tall pyramid)
     r = 3 if v == 0 else 2
     sz0 = z0 + py + 1
     sx0, sx1, sz1 = c - r, c + r, sz0 + 2 * r
@@ -326,7 +326,7 @@ def pyramid_temple(th, rng, name, v=0):
         gl = f"{th['church_glass']}_stained_glass_pane"
         for x in (sx0, sx1):
             t.set(x, py + 1, sz0 + 3, gl); t.set(x, py + 2, sz0 + 3, gl)
-    else:                                    # cubierta plana con crestería calada
+    else:                                    # flat roof with openwork cresting
         t.fill(sx0, py + 4, sz0, sx1, py + 4, sz1, th["wall2"])
         for x in range(sx0, sx1 + 1):
             for y in (py + 5, py + 6, py + 7):
@@ -334,7 +334,7 @@ def pyramid_temple(th, rng, name, v=0):
             t.set(x, py + 8, sz0 + 2, slab(th["roof_slab"]))
         for x in (sx0, sx1):
             t.set(x, py + 2, sz0 + 2, f"{th['church_glass']}_stained_glass_pane")
-    # interior: altar al fondo, velas, puesto del clérigo y cofre
+    # interior: altar at the back, candles, cleric's station and chest
     t.set(c, py, sz1 - 1, "chiseled_sandstone" if "sandstone" in th["wall"] else "chiseled_stone_bricks")
     t.set(c, py + 1, sz1 - 1, "candle[candles=3,lit=true]")
     t.set(sx0 + 1, py, sz1 - 1, "brewing_stand")
@@ -349,18 +349,18 @@ def pyramid_temple(th, rng, name, v=0):
 
 
 def pylon_temple(th, rng, name):
-    """Templo de pilonos: dos torres en talud a los lados de la puerta, patio con pórticos y sala de columnas."""
+    """Pylon temple: two battered towers on the sides of the door, courtyard with porticoes and a hall of columns."""
     t = Template(name)
     W, c = 17, 8
     entrance(t, th, c)
     t.fill(c - 1, 0, 1, c + 1, 0, 1, th["wall2"])
-    # pilonos (z 2..4), en talud: pierden un bloque por fuera cada 3 de altura
+    # pylons (z 2..4), battered: they lose one block on the outside every 3 of height
     for y in range(0, 10):
         k = y // 3
         for z in range(2, 5):
             for x in list(range(k, 7)) + list(range(10, W - k)):
                 t.set(x, y, z, th["wall2"] if y in (0, 9) else th["wall"])
-    for z in range(2, 5):                    # puerta entre los pilonos con su dintel
+    for z in range(2, 5):                    # door between the pylons with its lintel
         for x in range(7, 10):
             t.set(x, 0, z, th["wall2"])
             for y in range(1, 5):
@@ -368,14 +368,14 @@ def pylon_temple(th, rng, name):
             for y in (5, 6):
                 t.set(x, y, z, th["wall"])
             t.set(x, 7, z, th["wall2"])
-    for x in (5, 11):                        # estandartes en los pilonos
+    for x in (5, 11):                        # banners on the pylons
         t.set(x, 6, 1, f"{th['banner']}_wall_banner[facing=north]")
     for x in (4, 12):                        # obeliscos delante
         t.set(x, 0, 1, th["wall2"])
         for y in range(1, 6):
             t.set(x, y, 1, th["wall"])
         t.set(x, 6, 1, slab(th["roof_slab"]))
-    # patio (z 5..12) con pórticos a los lados
+    # courtyard (z 5..12) with porticoes on the sides
     for z in range(5, 13):
         for x in range(W):
             t.set(x, 0, z, th["path"] if 7 <= x <= 9 else th["wall2"])
@@ -432,11 +432,11 @@ def torii(t, th, cx, z, red):
 
 
 def pagoda_hall(t, th, x0, zf, x1, zb):
-    """Sala de dos tejados curvos: cuerpo bajo, tejado ancho, cuerpo alto y tejado de remate."""
+    """Hall with two curved roofs: low body, wide roof, tall body and finishing roof."""
     shell(t, th, x0, zf, x1, zb, 1, 6, roof="none")
     t.fill(x0 + 1, 8, zf + 1, x1 - 1, 8, zb - 1, th["planks"])
     hip_roof(t, th, x0, zf, x1, zb, 8, overhang=2, upturn=True, max_rings=3)
-    for y in range(9, 13):                                    # cuerpo alto entre los dos tejados
+    for y in range(9, 13):                                    # tall body between the two roofs
         for x in range(x0 + 1, x1):
             for z in range(zf + 1, zb):
                 if x in (x0 + 1, x1 - 1) or z in (zf + 1, zb - 1):
@@ -446,7 +446,7 @@ def pagoda_hall(t, th, x0, zf, x1, zb):
 
 
 def pagoda_tower(t, th, px0, pz0, tiers=4):
-    """Pagoda de 5 x 5 con `tiers` cuerpos de 4 de alto, puerta al norte y escalera de mano hasta el último."""
+    """Pagoda of 5 x 5 with `tiers` bodies 4 tall, door to the north and a ladder up to the last."""
     pc = (px0 + 2, pz0 + 2)
     for k in range(tiers):
         y0 = k * 4
@@ -474,7 +474,7 @@ def pagoda_tower(t, th, px0, pz0, tiers=4):
 
 
 def shrine_interior(t, th, x0, x1, zf, zb, y, cushions=True):
-    """Altar al fondo con velas, pila, cofre, pasillo y cojines; el clérigo delante del altar."""
+    """Altar at the back with candles, font, chest, aisle and cushions; the cleric in front of the altar."""
     cx = (x0 + x1) // 2
     t.set(cx, y, zb - 1, "chiseled_stone_bricks")
     t.set(cx, y + 1, zb - 1, "candle[candles=4,lit=true]")
@@ -494,8 +494,8 @@ def shrine_interior(t, th, x0, x1, zf, zb, y, cushions=True):
 
 
 def pagoda_temple(th, rng, name, v=0):
-    """v: 0 sala y pagoda de cuatro cuerpos al lado (el original); 1 pagoda de cinco cuerpos en el patio y sala al
-    fondo; 2 sala con dos alas y pabellón del farol delante."""
+    """v: 0 hall and four-tier pagoda beside it (the original); 1 five-tier pagoda in the courtyard and hall at the
+    back; 2 hall with two wings and lantern pavilion in front."""
     t = Template(name)
     red = th["id"] != "cerezos_templo"
     if v == 1:
@@ -503,7 +503,7 @@ def pagoda_temple(th, rng, name, v=0):
         entrance(t, th, cx)
         t.fill(0, 0, 1, W - 1, 0, 21, th["found"])
         torii(t, th, cx, 1, red)
-        for z in range(2, 22):                   # muro bajo del recinto
+        for z in range(2, 22):                   # low enclosure wall
             for x in (0, W - 1):
                 t.set(x, 1, z, th["wall"] if z % 4 else log(th["log"], "y"))
         for x in range(W):
@@ -511,7 +511,7 @@ def pagoda_temple(th, rng, name, v=0):
         for z in range(2, 13):
             t.set(cx, 0, z, th["path"])
         pagoda_tower(t, th, cx - 2, 5, tiers=5)
-        for x in range(cx - 4, cx + 5):         # el camino rodea la pagoda
+        for x in range(cx - 4, cx + 5):         # the road goes around the pagoda
             t.set(x, 0, 10 if abs(x - cx) > 2 else 11, th["path"])
         for x in (cx - 3, cx + 3):
             for z in range(5, 11):
@@ -527,7 +527,7 @@ def pagoda_temple(th, rng, name, v=0):
             t.set(x, 3, zf, th["window"]); t.set(x, 4, zf, th["window"])
         shrine_interior(t, th, 2, W - 3, zf, zb, 2, cushions=False)
         chandelier(t, th, cx, 6, zf + 2)
-        for x in (2, W - 3):                     # faroles de piedra junto a la sala
+        for x in (2, W - 3):                     # stone lanterns next to the hall
             t.set(x, 1, zf - 2, stone_of(th)); t.set(x, 2, zf - 2, lantern(th, False))
         t.edge_jigsaw("east", 17, 0, "heraldia:side", "heraldia:entrance", P(th, "cemetery"),
                       final_state=th["found"], sel=8, place=8)
@@ -538,7 +538,7 @@ def pagoda_temple(th, rng, name, v=0):
         t.fill(0, 0, 1, W - 1, 0, zb + 1, th["found"])
         for z in range(1, zf):
             t.set(cx, 0, z, th["path"])
-        # pabellón abierto: cuatro postes, un farol grande colgado y tejado curvo
+        # open pavilion: four posts, a large hanging lantern and a curved roof
         bx = 2
         for (x, z) in ((bx - 1, 1), (bx + 1, 1), (bx - 1, 3), (bx + 1, 3)):
             for y in range(1, 5):
@@ -547,7 +547,7 @@ def pagoda_temple(th, rng, name, v=0):
         chandelier(t, th, bx, 4, 2)
         t.set(bx, 1, 2, stone_of(th))
         hip_roof(t, th, bx - 1, 1, bx + 1, 3, 6, overhang=1, upturn=True)
-        # alas bajas a los lados de la sala, abiertas a ella
+        # low wings on the sides of the hall, open to it
         for (x0, x1) in ((0, 5), (W - 6, W - 1)):
             shell(t, th, x0, zf + 3, x1, zb - 2, 1, 4, roof="none")
             t.fill(x0 + 1, 6, zf + 4, x1 - 1, 6, zb - 3, th["planks"])
@@ -555,7 +555,7 @@ def pagoda_temple(th, rng, name, v=0):
             t.fill(x0 + 1, 7, zf + 4, x1 - 1, 7, zb - 3, th["roof_full"])
             windows_on_wall(t, th, x0, zf + 3, x1, zb - 2, "north", 3, rng)
         pagoda_hall(t, th, 5, zf, W - 6, zb)
-        for x in (5, W - 6):                     # pasos de la sala a las alas
+        for x in (5, W - 6):                     # steps from the hall to the wings
             for z in range(zf + 5, zb - 3):
                 for y in (2, 3, 4):
                     t.set(x, y, z, "air")
@@ -577,7 +577,7 @@ def pagoda_temple(th, rng, name, v=0):
     # plataforma de piedra
     t.fill(-1, 0, zf - 1, W, 0, zb + 1, th["found"])
     t.fill(cx - 1, 0, 1, cx + 1, 0, 1, th["found"])
-    # torii sobre el camino de entrada
+    # torii over the entrance road
     torii(t, th, cx, 1, red)
     # sala principal
     pagoda_hall(t, th, 0, zf, W - 1, zb)
@@ -590,11 +590,11 @@ def pagoda_temple(th, rng, name, v=0):
             t.set(x, 3, z, gl); t.set(x, 4, z, gl)
     for x in (cx - 3, cx + 3):
         t.set(x, 3, zf, gl); t.set(x, 4, zf, gl)
-    # interior: altar al fondo, pasillo, cojines en filas
+    # interior: altar at the back, aisle, cushions in rows
     shrine_interior(t, th, 0, W - 1, zf, zb, 2)
     for z in (zf + 4, zb - 5):
         chandelier(t, th, cx, 7, z)
-    # pagoda de cuatro cuerpos, accesible por dentro
+    # four-tier pagoda, accessible from inside
     px0, pz0 = W + 2, zf + 4
     t.fill(W + 1, 0, pz0 - 1, px0 + 5, 0, pz0 + 5, th["found"])
     pagoda_tower(t, th, px0, pz0)
@@ -612,40 +612,40 @@ WALLS = {"cobblestone": "cobblestone_wall", "stone_bricks": "stone_brick_wall", 
 
 
 def cemetery(th, rng, name, v=0):
-    """v: 0 tumbas a los lados del camino y mausoleo al fondo (el original); 1 seto, caminos en cruz con un crucero
-    en medio, cipreses y cripta en un rincón; 2 hileras de tumbas y capilla de ánimas a lo ancho del fondo."""
+    """v: 0 graves on the sides of the path and mausoleum at the back (the original); 1 hedge, crossing paths with a stone cross
+    in the middle, cypresses and a crypt in a corner; 2 rows of graves and a chapel of souls across the width of the back."""
     t = Template(name)
     N, z0 = 15, 1
     c = N // 2
     entrance(t, th, c)
     wallb = WALLS.get(th["found"], "cobblestone_wall")
-    pil = stone_of(th)
+    pillar_block = stone_of(th)
     hedge = v == 1 and th["family"] not in ("desierto", "badlands")     # seto (muro bajo en tierras secas)
     for x in range(N):
         for z in range(z0, z0 + N):
             edge = x in (0, N - 1) or z in (z0, z0 + N - 1)
             t.set(x, 0, z, "coarse_dirt" if rng.random() < 0.75 else "podzol")
             if edge:
-                t.set(x, 0, z, pil)
+                t.set(x, 0, z, pillar_block)
                 t.set(x, 1, z, leaves(th) if hedge else wallb)
                 if hedge:
                     t.set(x, 2, z, leaves(th))
             else:
                 for y in (1, 2, 3):
                     t.set(x, y, z, "air")
-    # puerta con dos pilares y faroles
+    # gate with two pillars and lanterns
     t.set(c, 0, z0, th["path"])
     t.set(c, 1, z0, f"{th['gate']}[facing=north,open=false]")
     if hedge:
         t.set(c, 2, z0, "air")
     for x in (c - 1, c + 1):
-        t.set(x, 1, z0, pil); t.set(x, 2, z0, pil); t.set(x, 3, z0, lantern(th, False))
+        t.set(x, 1, z0, pillar_block); t.set(x, 2, z0, pillar_block); t.set(x, 3, z0, lantern(th, False))
     heads = ["stone_brick_wall", "cobblestone_wall", "mossy_stone_brick_wall", "mossy_cobblestone_wall"]
     flowers = ["poppy", "dandelion", "azure_bluet", "oxeye_daisy", "lily_of_the_valley"]
 
     def grave(x, z):
-        """Tumba de dos de largo hacia +z con la lápida al fondo."""
-        t.set(x, 0, z, "podzol"); t.set(x, 0, z + 1, "podzol"); t.set(x, 0, z + 2, pil)
+        """Grave two long towards +z with the headstone at the back."""
+        t.set(x, 0, z, "podzol"); t.set(x, 0, z + 1, "podzol"); t.set(x, 0, z + 2, pillar_block)
         t.set(x, 1, z + 2, rng.choice(heads))
         if rng.random() < 0.4:
             t.set(x, 1, z + 1, rng.choice(flowers))
@@ -654,11 +654,11 @@ def cemetery(th, rng, name, v=0):
         mz0 = z0 + N - 6
         for z in range(z0 + 1, mz0):
             t.set(c, 0, z, th["path"])
-        # tumbas en dos filas simétricas a cada lado del camino
+        # graves in two symmetrical rows on each side of the path
         for x in (2, 4, N - 5, N - 3):
             for z in (z0 + 2, z0 + 5):
                 grave(x, z)
-        # mausoleo con el cofre dentro
+        # mausoleum with the chest inside
         mx0 = c - 2
         t.fill(mx0, 0, mz0, mx0 + 4, 0, mz0 + 4, "stone_bricks")
         for y in range(1, 4):
@@ -679,14 +679,14 @@ def cemetery(th, rng, name, v=0):
             t.set(c, 0, z, th["path"])
         for x in range(1, N - 1):
             t.set(x, 0, cz, th["path"])
-        # crucero de piedra en el cruce, sobre una grada
-        t.set(c, 0, cz, pil)
+        # stone cross at the crossing, on a platform
+        t.set(c, 0, cz, pillar_block)
         for y in (1, 2, 3, 4):
             t.set(c, y, cz, wallb)
-        t.set(c, 5, cz, pil)
+        t.set(c, 5, cz, pillar_block)
         for x, f in ((c - 1, "west"), (c + 1, "east")):
             t.set(x, 4, cz, stairs(th["trim"], f, half="top"))
-        # una tumba por cuadrante a cada lado de los caminos, con un ciprés en el rincón interior
+        # one grave per quadrant on each side of the paths, with a cypress in the inner corner
         for (x, z) in ((2, z0 + 2), (4, z0 + 2), (N - 5, z0 + 2), (N - 3, z0 + 2),
                        (2, cz + 2), (N - 3, cz + 2)):
             grave(x, z)
@@ -696,7 +696,7 @@ def cemetery(th, rng, name, v=0):
             for y in (2, 3, 4):
                 t.set(x, y, z, leaves(th, "spruce_leaves"))
             t.set(x, 5, z, leaves(th, "spruce_leaves"))
-        # cripta en el rincón del fondo, con escalones y puerta hacia el camino
+        # crypt in the back corner, with steps and a door towards the path
         kx0, kz0 = N - 6, z0 + N - 6
         t.fill(kx0, 0, kz0, kx0 + 4, 0, kz0 + 4, "stone_bricks")
         for y in range(1, 4):
@@ -712,18 +712,18 @@ def cemetery(th, rng, name, v=0):
         for z in (kz0 + 1, kz0 + 3):
             t.set(kx0 + 3, 1, z, "candle[candles=2,lit=true]")
         t.set(kx0 + 2, 3, kz0 + 2, lantern(th, True))
-        # banco junto a la cripta
+        # bench next to the crypt
         t.set(2, 1, z0 + N - 3, stairs(th["wstairs"], "west"))
         t.set(2, 1, z0 + N - 4, stairs(th["wstairs"], "west"))
     else:
         for z in range(z0 + 1, z0 + N - 5):
             t.set(c, 0, z, th["path"])
-        # tres hileras de tumbas a lo ancho
+        # three rows of graves across the width
         for z in (z0 + 2, z0 + 5):
             for x in (1, 2, 3, 5, N - 6, N - 4, N - 3, N - 2):
                 if x != c and (x, z) not in ((1, z0 + 5), (N - 2, z0 + 5)):
                     grave(x, z)
-        # capilla de ánimas a lo ancho del fondo, con tejado a dos aguas y el cofre en el osario
+        # chapel of souls across the width of the back, with a gabled roof and the chest in the ossuary
         kx0, kx1, kz0, kz1 = 2, N - 3, z0 + N - 6, z0 + N - 2
         t.fill(kx0, 0, kz0, kx1, 0, kz1, "stone_bricks")
         for y in range(1, 4):
@@ -742,7 +742,7 @@ def cemetery(th, rng, name, v=0):
         for x in (kx0 + 1, kx1 - 1):
             t.set(x, 1, kz1 - 1, "skeleton_skull[rotation=8]")
         t.set(c, 3, kz0 + 2, lantern(th, True))
-        # tejo junto a la puerta
+        # yew next to the door
         for x in (c - 2, c + 2):
             t.set(x, 0, kz0 - 1, th["path"])
     return t
@@ -750,8 +750,8 @@ def cemetery(th, rng, name, v=0):
 
 # ======================================================================= AYUNTAMIENTO
 def townhall(th, rng, name, v=0):
-    """v: 0 pórtico con balcón y tejado a cuatro aguas (el original); 1 soportales bajo la planta alta y tejado a dos
-    aguas; 2 torre mirador sobre el tejado, con escalera de mano desde el despacho."""
+    """v: 0 porch with balcony and hipped roof (the original); 1 arcades under the upper floor and gabled
+    roof; 2 lookout tower on the roof, with a ladder from the office."""
     t = Template(name)
     W, D, zf = 15, 11, 3
     cx = W // 2
@@ -762,13 +762,13 @@ def townhall(th, rng, name, v=0):
     if v == 1 and rk == "hip":
         rk = "steep" if th["roof_type"] == "steep" else "gable"
     shell(t, th, 0, zf, W - 1, zb, 0, 8, roof=rk, along="x")
-    zi = zf if v != 1 else zf + 3            # fachada de la planta baja (retranqueada tras los soportales)
+    zi = zf if v != 1 else zf + 3            # ground floor facade (set back behind the arcades)
     door(t, cx, 1, zi, th["door"], "north")
     skip = [(cx, zf)]
     all_windows(t, th, 0, zf, W - 1, zb, 2, rng, skip=skip, tall=True, spacing=2)
     all_windows(t, th, 0, zf, W - 1, zb, 6, rng, skip=skip if v == 0 else (), spacing=2)
     if v == 1:
-        # soportales: la planta alta vuela sobre columnas; muro de la planta baja tres bloques más atrás
+        # arcades: the upper floor overhangs on columns; ground-floor wall three blocks further back
         for x in range(0, W):
             for z in range(zf, zi):
                 for y in range(1, 4):
@@ -790,7 +790,7 @@ def townhall(th, rng, name, v=0):
             t.set(x, 7, zf - 1, f"{th['banner']}_wall_banner[facing=north]")
         golem_slot(t, cx - 3, 0, zf + 1, stone_of(th))
     if v == 0:
-        # pórtico con balcón practicable encima
+        # porch with a usable balcony on top
         for x in (cx - 2, cx + 2):
             for y in range(1, 4):
                 t.set(x, y, 1, log(th["log"], "y"))
@@ -807,7 +807,7 @@ def townhall(th, rng, name, v=0):
     if v == 2:
         for x in (cx - 2, cx + 2):
             t.set(x, 3, zf - 1, f"{th['banner']}_wall_banner[facing=north]")
-    # forjado y escalera de mano en la esquina del fondo
+    # floor slab and ladder in the back corner
     t.fill(1, 4, zi + 1, W - 2, 4, zb - 1, th["planks"])
     if v == 1:
         t.fill(1, 4, zf, W - 2, 4, zi, th["planks"])
@@ -840,7 +840,7 @@ def townhall(th, rng, name, v=0):
         t.set(x, 5, zf + 1, potted(rng.choice(th["plants"])))
     t.set(cx, 8, zf + 4, lantern(th, True))
     if v == 2:
-        # torre mirador de 5 x 5 sobre el muro del fondo: sale del tejado, con óculos y remate
+        # lookout tower of 5 x 5 on the back wall: it rises from the roof, with oculi and finial
         tx0, tz0, ty0, ty1 = cx - 2, zb - 4, 9, 16
         for y in range(ty0, ty1 + 1):
             for x in range(tx0, tx0 + 5):
@@ -856,7 +856,7 @@ def townhall(th, rng, name, v=0):
                         t.set(x, y, z, "air")
         for (x, z) in ((cx, tz0), (cx, tz0 + 4), (tx0, tz0 + 2), (tx0 + 4, tz0 + 2)):
             t.set(x, 12, z, th["window"]); t.set(x, 13, z, th["window"])
-        for x in (cx - 1, cx + 1):           # óculo enmarcado en la cara delantera
+        for x in (cx - 1, cx + 1):           # framed oculus on the front face
             t.set(x, 15, tz0, stairs(th["trim"], "south", half="top"))
         t.set(cx, 15, tz0, th["window"])
         if rk == "flat":
@@ -878,8 +878,8 @@ MARKET_WARES = [("fletching_table", None), ("stonecutter[facing=east]", "melon")
 
 
 def stall(t, th, xb, xf, z0, i, awning=True, along="x"):
-    """Puesto de 4 de largo: postes, toldo de lana a rayas, mostrador en el frente (xf) y en el fondo (xb) su útil de
-    oficio y su género (o el tonel con botín del mercado). along="z": el mismo puesto girado (fondo en z=xb)."""
+    """Stall 4 long: posts, striped wool awning, counter at the front (xf) and at the back (xb) its profession
+    tool and its goods (or the barrel with the market loot). along="z": the same stall rotated (back at z=xb)."""
     wools = [th["carpet"][0], th["carpet"][1]]
     put = (lambda a, y, b, st: t.set(a, y, b, st)) if along == "x" else (lambda a, y, b, st: t.set(b, y, a, st))
     xa, xz = min(xb, xf), max(xb, xf)
@@ -907,8 +907,8 @@ def stall(t, th, xb, xf, z0, i, awning=True, along="x"):
 
 
 def market(th, rng, name, v=0):
-    """Plaza de mercado. v: 0 puestos a ambos lados de un pasillo central, con el pozo en medio (el original);
-    1 lonja cubierta: un gran tejado sobre pilares y los puestos debajo; 2 plaza porticada en U alrededor de una fuente."""
+    """Market square. v: 0 stalls on both sides of a central aisle, with the well in the middle (the original);
+    1 covered market hall: a large roof on pillars and the stalls underneath; 2 U-shaped arcaded square around a fountain."""
     t = Template(name)
     W, D = 17, 16
     cx = W // 2
@@ -926,10 +926,10 @@ def market(th, rng, name, v=0):
     i = 0
     for side in ("west", "east"):
         for z0 in (2, 7, 12):
-            xb, xf = (1, 4) if side == "west" else (W - 2, W - 5)      # fondo y mostrador
+            xb, xf = (1, 4) if side == "west" else (W - 2, W - 5)      # back and counter
             stall(t, th, xb, xf, z0, i)
             i += 1
-    # pozo central con brocal y tejadillo sobre cuatro postes
+    # central well with curb and small roof on four posts
     wz = 8
     for x in range(cx - 1, cx + 2):
         for z in range(wz - 1, wz + 2):
@@ -949,7 +949,7 @@ def market(th, rng, name, v=0):
 
 
 def market_hall(t, th, rng, W, D):
-    """Lonja cubierta: pilares en el perímetro, tejado a dos aguas a lo largo y puestos en dos filas bajo él."""
+    """Covered market hall: pillars on the perimeter, gabled roof lengthwise and stalls in two rows beneath it."""
     cx = W // 2
     post = log(th["log"], "y") if th["wall_style"] in ("frame", "logcabin") else stone_of(th)
     for x in range(W):
@@ -965,7 +965,7 @@ def market_hall(t, th, rng, W, D):
                     continue
                 for y in range(1, 5):
                     t.set(x, y, z, post)
-    for x in range(W):                       # durmientes sobre los pilares
+    for x in range(W):                       # beams on the pillars
         for z in (1, D):
             t.set(x, 5, z, log(th["log"], "x"))
     for z in range(1, D + 1):
@@ -1000,7 +1000,7 @@ def market_hall(t, th, rng, W, D):
 
 
 def market_square(t, th, rng, W, D):
-    """Plaza porticada: soportales en U (oeste, fondo y este) con los puestos dentro y una fuente en medio."""
+    """Arcaded square: U-shaped arcades (west, back and east) with the stalls inside and a fountain in the middle."""
     cx = W // 2
     post = log(th["log"], "y") if th["wall_style"] in ("frame", "logcabin") else stone_of(th)
     back = th["wall"] if not th["wall"].endswith("_log") else th["planks"]
@@ -1013,7 +1013,7 @@ def market_square(t, th, rng, W, D):
             outer = x in (0, W - 1) or z == D
             for y in range(1, 4):
                 t.set(x, y, z, back if outer else "air")
-            # cubierta en pendiente hacia la plaza
+            # roof sloping towards the square
             depth = min([k for k, c in ((x, west), (W - 1 - x, east), (D - z, south)) if c])
             t.set(x, 4, z, th["roof_full"] if depth == 0 else
                   slab(th["roof_slab"], "top") if depth < 3 else slab(th["roof_slab"]))
@@ -1021,7 +1021,7 @@ def market_square(t, th, rng, W, D):
                    (6, D - 3), (W - 7, D - 3)):
         for y in range(1, 4):
             t.set(x, y, z, post)
-    for z in range(2, D - 3):                # ventanas en el muro de fondo de los soportales
+    for z in range(2, D - 3):                # windows in the back wall of the arcades
         if z % 4 == 0:
             t.set(0, 2, z, th["window"]); t.set(W - 1, 2, z, th["window"])
     i = 0
@@ -1032,7 +1032,7 @@ def market_square(t, th, rng, W, D):
     for x0 in (1, W - 5):
         stall(t, th, D - 1, D - 3, x0, i, awning=False, along="z")
         i += 1
-    # fuente: pilón con agua y pilar central con farol
+    # fountain: basin with water and central pillar with a lantern
     fz = 7
     for x in range(cx - 2, cx + 3):
         for z in range(fz - 2, fz + 3):
@@ -1043,7 +1043,7 @@ def market_square(t, th, rng, W, D):
     for y in (1, 2):
         t.set(cx, y, fz, stone_of(th))
     t.set(cx, 3, fz, lantern(th, False))
-    for x in (cx - 4, cx + 4):               # árboles en macetero a los lados
+    for x in (cx - 4, cx + 4):               # trees in planters on the sides
         t.set(x, 0, fz + 4, "grass_block")
         t.set(x, 1, fz + 4, log(th["log"], "y"))
         for y in (2, 3):
@@ -1056,10 +1056,10 @@ def market_square(t, th, rng, W, D):
     return t
 
 
-# ======================================================================= HERRERÍA
+# ======================================================================= SMITHY
 def blacksmith(th, rng, name, v=0):
-    """v: 0 vivienda y fragua abierta bajo un mismo tejado (el original); 1 patio de fragua delante y vivienda al
-    fondo; 2 taller de piedra con la vivienda en la planta alta."""
+    """v: 0 dwelling and open forge under one roof (the original); 1 forge courtyard in front and dwelling at the
+    back; 2 stone workshop with the dwelling on the upper floor."""
     if v:
         return smithy_yard(th, rng, name) if v == 1 else smithy_tall(th, rng, name)
     t = Template(name)
@@ -1069,7 +1069,7 @@ def blacksmith(th, rng, name, v=0):
     H = 4
     entrance(t, th, cx)
     t.fill(cx - 1, 0, 1, cx + 1, 0, 1, stone_of(th))
-    # vivienda (izquierda) y fragua abierta (derecha) bajo un mismo tejado
+    # dwelling (left) and open forge (right) under one roof
     shell(t, th, 0, zf, 6, zb, 0, H, roof="none")
     t.fill(1, H + 1, zf + 1, 5, H + 1, zb - 1, th["planks"])
     t.fill(7, 0, zf, W - 1, 0, zb, "stone_bricks")
@@ -1105,7 +1105,7 @@ def blacksmith(th, rng, name, v=0):
         for z in range(zf + 4, zf + 7):
             t.set(x, 1, z, f"{th['carpet'][0]}_carpet")
     t.set(3, H, zf + 5, lantern(th, True))
-    # fragua: útiles en línea contra el muro de la vivienda, horno al fondo
+    # forge: tools in a line against the dwelling wall, furnace at the back
     t.set(7, 1, zf + 2, "anvil[facing=north]")
     t.set(7, 1, zf + 3, "water_cauldron[level=3]")
     t.set(7, 1, zf + 5, "blast_furnace[facing=east]")
@@ -1129,7 +1129,7 @@ def blacksmith(th, rng, name, v=0):
 
 
 def forge_hearth(t, th, x0, z0, y_top, mouth="north"):
-    """Fogón de ladrillo de 3 x 3 con caldero de lava tras una reja en la cara `mouth` y chimenea hasta y_top."""
+    """3 x 3 brick hearth with a lava cauldron behind a grate on the `mouth` face and a chimney up to y_top."""
     for x in range(x0, x0 + 3):
         for z in range(z0, z0 + 3):
             for y in range(1, 4):
@@ -1143,8 +1143,8 @@ def forge_hearth(t, th, x0, z0, y_top, mouth="north"):
 
 
 def smith_house(t, th, rng, bx, by, bz, flip=False):
-    """Mobiliario de la vivienda del herrero (cama del armero, cofre, mesa de trabajo, alfombra y maceta) en un
-    cuarto interior de 5 x 4 cuyo rincón noroeste es (bx, bz); la cama va pegada al muro oeste."""
+    """Furnishings of the smith's dwelling (armourer's bed, chest, crafting table, carpet and flower pot) in an
+    interior room of 5 x 4 whose northwest corner is (bx, bz); the bed goes against the west wall."""
     bed_slot(t, th, bx, by, bz + 1, villager_pool(th, "armorer", fixed=True))
     t.chest(bx + 4, by + 1, bz + 3, "north", L("herreria"))
     t.set(bx + 4, by + 1, bz, "crafting_table")
@@ -1160,7 +1160,7 @@ def smithy_yard(th, rng, name):
     W, cx = 13, 6
     entrance(t, th, cx)
     t.fill(cx - 1, 0, 1, cx + 1, 0, 1, stone_of(th))
-    # patio de la fragua (z 2..7): suelo de piedra, murete y tejadillo sobre la fragua del lado oeste
+    # forge courtyard (z 2..7): stone floor, low wall and small roof over the forge on the west side
     for x in range(W):
         for z in range(2, 8):
             t.set(x, 0, z, "stone_bricks")
@@ -1187,7 +1187,7 @@ def smithy_yard(th, rng, name):
     t.set(W - 2, 1, 5, "smithing_table")
     t.set(W - 2, 1, 7, "grindstone[face=floor,facing=west]")
     t.set(3, 3, 5, lantern(th, True))
-    # vivienda al fondo (z 8..12) con tejado a dos aguas a lo ancho
+    # dwelling at the back (z 8..12) with a gabled roof across the width
     H = 4
     rk = th["roof_type"] if th["roof_type"] not in ("cone", "pagoda") else "hip"
     shell(t, th, 0, 8, W - 1, 12, 0, H, roof=rk, along="x")
@@ -1211,7 +1211,7 @@ def smithy_tall(th, rng, name):
     nth["wall"] = nth["wall2"] = stone_of(th)
     rk = th["roof_type"] if th["roof_type"] not in ("cone",) else "hip"
     top = shell(t, nth, 0, zf, W - 1, zb, 0, 4, roof="none", style="plain")
-    for y in (5, 6, 7, 8):                   # planta alta con los muros del estilo
+    for y in (5, 6, 7, 8):                   # upper floor with the walls of the style
         for x in range(W):
             for z in (zf, zb):
                 t.set(x, y, z, th["wall"] if 0 < x < W - 1 else log(th["log"], "y") if th["wall_style"] in ("frame", "logcabin") else th["wall2"])
@@ -1222,7 +1222,7 @@ def smithy_tall(th, rng, name):
     t.air(1, 5, zf + 1, W - 2, 8, zb - 1)
     t.fill(1, 9, zf + 1, W - 2, 9, zb - 1, th["planks"])
     top = roof_for(t, th, 0, zf, W - 1, zb, 9, kind=rk, along="x")
-    # portalón de la fragua (3 de ancho) con dintel
+    # forge gate (3 wide) with lintel
     for x in range(cx - 1, cx + 2):
         for y in (1, 2, 3):
             t.set(x, y, zf, "air")
@@ -1230,7 +1230,7 @@ def smithy_tall(th, rng, name):
         windows_on_wall(t, th, 0, zf, W - 1, zb, side, 2, rng)
     for side in ("north", "south", "west", "east"):
         windows_on_wall(t, th, 0, zf, W - 1, zb, side, 6, rng)
-    # fragua: fogón junto al muro del fondo con la chimenea atravesando la vivienda, útiles alrededor
+    # forge: hearth next to the back wall with the chimney passing through the dwelling, tools around
     forge_hearth(t, th, cx - 1, zb - 3, top)
     t.set(cx - 3, 1, zb - 1, "anvil[facing=north]")
     t.set(cx - 3, 1, zb - 3, "water_cauldron[level=3]")
@@ -1239,7 +1239,7 @@ def smithy_tall(th, rng, name):
     t.set(W - 2, 1, zf + 2, "grindstone[face=floor,facing=west]")
     t.set(W - 2, 1, zf + 4, "barrel[facing=up]")
     t.set(cx, 3, zf + 2, lantern(th, True))
-    # escalera de mano a la vivienda de arriba
+    # ladder to the upstairs dwelling
     for y in range(1, 5):
         t.set(W - 2, y, zb - 1, "ladder[facing=north]")
     smith_house(t, th, rng, 1, 4, zf + 1)
@@ -1247,10 +1247,10 @@ def smithy_tall(th, rng, name):
     return t
 
 
-# ======================================================================= TABERNA / POSADA
+# ======================================================================= TAVERN / POSADA
 def tavern(th, rng, name, inn=False, v=0):
-    """Taberna (o posada con inn=True). v: 0 casa de dos plantas con hogar y chimenea exterior (la original);
-    1 casa más estrecha con terraza bajo una pérgola; 2 casa con la planta alta en voladizo y hastial a la calle."""
+    """Tavern (or inn with inn=True). v: 0 two-storey house with hearth and exterior chimney (the original);
+    1 narrower house with a terrace under a pergola; 2 house with the upper floor jettied and gable facing the street."""
     if v:
         return tavern_variant(th, rng, name, inn, v)
     t = Template(name)
@@ -1258,7 +1258,7 @@ def tavern(th, rng, name, inn=False, v=0):
     cx = W // 2
     zf = 2
     zb = zf + D - 1
-    hz = zf + 4                                  # hogar en el muro este
+    hz = zf + 4                                  # hearth on the east wall
     entrance(t, th, cx)
     t.fill(cx - 1, 0, 1, cx + 1, 0, 1, stone_of(th))
     top = shell(t, th, 0, zf, W - 1, zb, 0, 8)
@@ -1272,7 +1272,7 @@ def tavern(th, rng, name, inn=False, v=0):
     t.fill(1, 4, zf + 1, W - 2, 4, zb - 1, th["planks"])
     for y in range(1, 5):
         t.set(1, y, zf + 1, "ladder[facing=east]")
-    # hogar empotrado en el muro con chimenea exterior
+    # hearth built into the wall with an exterior chimney
     for y in range(0, top + 2):
         t.set(W, y, hz, "bricks")
     for y in range(1, top + 1):
@@ -1280,7 +1280,7 @@ def tavern(th, rng, name, inn=False, v=0):
             t.set(W - 1, y, hz, "bricks")
     t.set(W - 1, 1, hz, "campfire[lit=true,signal_fire=false]")
     t.set(W, top + 2, hz, "campfire[lit=true,signal_fire=false]")
-    # barra al fondo, toneles contra el muro y el tabernero detrás
+    # bar at the back, barrels against the wall and the innkeeper behind
     bz = zb - 3
     for x in range(3, W - 3):
         t.set(x, 1, bz, stairs(th["wstairs"], "north", half="top"))
@@ -1291,7 +1291,7 @@ def tavern(th, rng, name, inn=False, v=0):
     staff(t, th, cx, 0, zb - 2, "leatherworker" if inn else "butcher")
     if inn:
         t.set(W - 2, 1, zb - 1, "cauldron")
-    # mesas: dos junto a los muros y una central, sillas con el respaldo hacia fuera
+    # tables: two next to the walls and one central, chairs with their backs outwards
     for (x, z) in ((3, zf + 3), (W - 4, zf + 3), (cx, zf + (5 if inn else 6))):
         table(t, th, x, 1, z)
         chair(t, th, x - 1, 1, z, "west")
@@ -1300,12 +1300,12 @@ def tavern(th, rng, name, inn=False, v=0):
             t.set(x, 2, z, "candle[candles=2,lit=true]")
     t.set(cx, 3, zf + (5 if inn else 6), lantern(th, True))
     t.set(cx, 3, zb - 2, lantern(th, True))
-    # planta alta: camas contra el muro este, con mesilla
+    # upper floor: beds against the east wall, with bedside tables
     spots = [(W - 2, zf + 1, "farmer"), (W - 2, zf + 6, "librarian")]
     if inn:
         spots.append((1, zf + 5, "shepherd"))
-    for (x, z, prof) in spots:
-        bed_slot(t, th, x, 4, z, villager_pool(th, prof))
+    for (x, z, depth) in spots:
+        bed_slot(t, th, x, 4, z, villager_pool(th, depth))
         t.set(x, 5, z + 2, f"{th['wslab']}[type=top]")
         t.set(x, 6, z + 2, potted(rng.choice(th["plants"])))
     for x in range(cx - 1, cx + 2):
@@ -1320,10 +1320,10 @@ def tavern_variant(th, rng, name, inn, v):
     W, D = (13, 13) if not inn else (15, 11)
     zf = 2
     zb = zf + D - 1
-    if v == 1:                               # casa de x 4..W-1 y terraza al oeste
+    if v == 1:                               # house from x 4..W-1 and terrace to the west
         x0, x1, yb = 4, W - 1, 0
         bx0, bx1 = x0, x1
-    else:                                    # planta baja metida un bloque; la alta vuela sobre ella
+    else:                                    # ground floor set in one block; the upper one overhangs it
         x0, x1, yb = 1, W - 2, 0
         bx0, bx1 = 0, W - 1
     cx = (x0 + x1) // 2
@@ -1337,7 +1337,7 @@ def tavern_variant(th, rng, name, inn, v):
         for fl in (0, 1):
             for side in ("north", "south", "west", "east"):
                 windows_on_wall(t, th, x0, zf, x1, zb, side, 2 + 4 * fl, rng, skip=[(cx, zf), (x0, zf + 4)])
-        # terraza: entarimado, pérgola con parra y dos mesas
+        # terrace: decking, pergola with vine and two tables
         for x in range(0, x0):
             for z in range(zf, zb - 3):
                 t.set(x, 0, z, th["planks"])
@@ -1365,12 +1365,12 @@ def tavern_variant(th, rng, name, inn, v):
         nth["wall"] = nth["wall2"] = stone_of(th)
         t.fill(bx0, 0, zf, bx1, 0, zb, stone_of(th))
         shell(t, nth, x0, zf + 1, x1, zb - 1, 0, 3, roof="none", style="plain")
-        # planta alta en voladizo: forjado que sale un bloque por todos los lados, muros del estilo
+        # jettied upper floor: floor slab projecting one block on all sides, walls of the style
         t.fill(bx0, 4, zf, bx1, 4, zb, log(th["stripped"], "x"))
         t.fill(x0 + 1, 4, zf + 2, x1 - 1, 4, zb - 2, th["planks"])
         top = shell(t, th, bx0, zf, bx1, zb, 4, 4, along="z", roof="steep" if th["roof_type"] == "steep" else None)
         t.fill(x0 + 1, 4, zf + 2, x1 - 1, 4, zb - 2, th["planks"])
-        for x in range(bx0, bx1 + 1):        # vigas a la vista bajo el voladizo
+        for x in range(bx0, bx1 + 1):        # exposed beams under the jetty
             for z in (zf, zb):
                 t.set(x, 4, z, log(th["stripped"], "x"))
         door(t, cx, 1, zf + 1, th["door"], "north")
@@ -1387,7 +1387,7 @@ def tavern_variant(th, rng, name, inn, v):
     lx, lz, lf = ladder_at
     for y in range(1, yl + 1):
         t.set(lx, y, lz, f"ladder[facing={lf}]")
-    if hearth:                               # hogar con chimenea por fuera del muro este
+    if hearth:                               # hearth with chimney outside the east wall
         hx, hz = hearth
         for y in range(0, top + 2):
             t.set(hx + 1, y, hz, "bricks")
@@ -1396,14 +1396,14 @@ def tavern_variant(th, rng, name, inn, v):
                 t.set(hx, y, hz, "bricks")
         t.set(hx, 1, hz, "campfire[lit=true,signal_fire=false]")
         t.set(hx + 1, top + 2, hz, "campfire[lit=true,signal_fire=false]")
-    else:                                    # fogón en el rincón con chimenea por dentro hasta el tejado
+    else:                                    # hearth in the corner with the chimney inside up to the roof
         hx, hz = x0 + 1, zb - 2
         t.set(hx, 1, hz, "campfire[lit=true,signal_fire=false]")
         for y in range(2, top + 2):
             t.set(hx, y, hz, "bricks")
         t.set(hx, top + 2, hz, "campfire[lit=true,signal_fire=false]")
-    # barra al fondo, toneles contra el muro y el tabernero detrás
-    zin1 = zb - 1 if v == 1 else zb - 2       # último z interior de la planta baja
+    # bar at the back, barrels against the wall and the innkeeper behind
+    zin1 = zb - 1 if v == 1 else zb - 2       # last interior z of the ground floor
     bz = zin1 - 2
     for x in range(x0 + 3, x1 - 2):
         t.set(x, 1, bz, stairs(th["wstairs"], "north", half="top"))
@@ -1419,13 +1419,13 @@ def tavern_variant(th, rng, name, inn, v):
         chair(t, th, x + 1, 1, z, "east")
         t.set(x, 2, z, "candle[candles=2,lit=true]")
     t.set(cx, 3, zin0 + 4, lantern(th, True))
-    # planta alta: camas contra los muros, con mesilla
+    # upper floor: beds against the walls, with bedside tables
     ux0, ux1 = (x0 + 1, x1 - 1) if v == 1 else (bx0 + 1, bx1 - 1)
     spots = [(ux0, zf + 1, "farmer"), (ux0, zf + 5, "librarian")]
     if inn:
         spots.append((ux1 - 1 if v == 1 else ux1, zf + 5, "shepherd"))
-    for (x, z, prof) in spots:
-        bed_slot(t, th, x, 4, z, villager_pool(th, prof))
+    for (x, z, depth) in spots:
+        bed_slot(t, th, x, 4, z, villager_pool(th, depth))
         t.set(x, 5, z + 2, f"{th['wslab']}[type=top]")
         t.set(x, 6, z + 2, potted(rng.choice(th["plants"])))
     for x in range(cx - 1, cx + 2):
@@ -1438,8 +1438,8 @@ def tavern_variant(th, rng, name, inn, v):
 
 # ======================================================================= BIBLIOTECA
 def library(th, rng, name, v=0):
-    """v: 0 sala alargada con altillo en U (la original); 1 sala cuadrada de doble altura con linterna acristalada;
-    2 claustro: dos alas bajas delante y la sala al fondo, con un jardín en medio."""
+    """v: 0 elongated hall with a U-shaped mezzanine (the original); 1 square double-height hall with glazed lantern;
+    2 cloister: two low wings in front and the hall at the back, with a garden in the middle."""
     if v:
         return library_variant(th, rng, name, v)
     t = Template(name)
@@ -1456,7 +1456,7 @@ def library(th, rng, name, v=0):
         for x in (0, W - 1):
             for y in range(2, 6):
                 t.set(x, y, z, th["window"])
-    # estanterías de suelo a altillo en los muros largos, dejando libres las ventanas
+    # shelves from floor to mezzanine on the long walls, leaving the windows free
     for z in range(z0i, z1i + 1):
         if z in wrows:
             continue
@@ -1467,7 +1467,7 @@ def library(th, rng, name, v=0):
         if x != cx:
             for y in (1, 2, 3):
                 t.set(x, y, z1i, "bookshelf")
-    # altillo en U con barandilla
+    # U-shaped mezzanine with railing
     for z in range(z0i, z1i + 1):
         for x in (1, 2, 3, W - 4, W - 3, W - 2):
             t.set(x, 4, z, f"{th['wslab']}[type=top]")
@@ -1478,7 +1478,7 @@ def library(th, rng, name, v=0):
         t.set(3, 5, z, th["fence"]); t.set(W - 4, 5, z, th["fence"])
     for x in range(3, W - 3):
         t.set(x, 5, z1i - 1, th["fence"])
-    # escalera completa al altillo (4 peldaños) en el lado oeste
+    # full staircase to the mezzanine (4 steps) on the west side
     sz0 = z0i + 1
     for k in range(4):
         z = sz0 + k
@@ -1486,8 +1486,8 @@ def library(th, rng, name, v=0):
         t.set(3, 1 + k, z, stairs(th["wstairs"], "south"))
         for y in range(1, 1 + k):
             t.set(3, y, z, th["planks"])
-    t.set(3, 5, sz0 + 4, "air")                 # desembarco sin barandilla
-    # mesas de lectura en el eje central
+    t.set(3, 5, sz0 + 4, "air")                 # landing without railing
+    # reading tables on the central axis
     for z in (zf + 7, zf + 10):
         table(t, th, cx, 1, z)
         t.set(cx, 2, z, "candle[candles=1,lit=true]")
@@ -1504,8 +1504,8 @@ def library(th, rng, name, v=0):
 
 
 def shelves_on_walls(t, x0, z0, x1, z1, ys, skip_door=None, clear=()):
-    """Estanterías pegadas al interior de los muros de [x0..x1]x[z0..z1] en las alturas ys, salvo delante de
-    ventanas, puertas, lo que ya esté puesto y junto a las celdas `clear` (cofres, atriles), que quedan accesibles."""
+    """Bookshelves against the inside of the walls of [x0..x1]x[z0..z1] at heights ys, except in front of
+    windows, doors, what is already placed and next to the `clear` cells (chests, lecterns), which stay accessible."""
     for x in range(x0 + 1, x1):
         for z in range(z0 + 1, z1):
             if not (x in (x0 + 1, x1 - 1) or z in (z0 + 1, z1 - 1)):
@@ -1545,7 +1545,7 @@ def library_variant(th, rng, name, v):
         door(t, cx, 1, zf, th["door"], "north")
         for side in ("north", "south", "west", "east"):
             windows_on_wall(t, th, 0, zf, W - 1, zb, side, 5, rng, skip=[(cx, zf)])
-        # cubierta con linterna central acristalada de 5 x 5
+        # roof with a central glazed lantern of 5 x 5
         lx0, lz0, lx1, lz1 = cx - 2, zf + 4, cx + 2, zb - 4
         if th["roof_type"] == "flat":
             flat_roof(t, th, 0, zf, W - 1, zb, 8, light=False)
@@ -1570,7 +1570,7 @@ def library_variant(th, rng, name, v):
         else:
             t.fill(lx0, ly + 3, lz0, lx1, ly + 3, lz1, th["planks"])
             hip_roof(t, th, lx0 - 1, lz0 - 1, lx1 + 1, lz1 + 1, ly + 3, overhang=1, upturn=(th["roof_type"] == "pagoda"))
-        # estanterías de tres de alto en todo el perímetro, mesas bajo la linterna, atril y cofre
+        # shelves three tall around the whole perimeter, tables under the lantern, lectern and chest
         t.set(W - 2, 1, zf + 1, "air")
         t.chest(W - 2, 1, zf + 1, "west", L("biblioteca"))
         t.set(cx, 1, zb - 1, "lectern[facing=north]")
@@ -1584,7 +1584,7 @@ def library_variant(th, rng, name, v):
         for z in (zf + 3, zb - 3):
             t.set(cx, 7, z, lantern(th, True))
         return t
-    # claustro: alas delante (z 2..8), sala al fondo (z 9..16), jardín en medio
+    # cloister: wings in front (z 2..8), hall at the back (z 9..16), garden in the middle
     W, cx = 13, 6
     entrance(t, th, cx)
     t.fill(cx - 1, 0, 1, cx + 1, 0, 1, stone_of(th))
@@ -1594,11 +1594,11 @@ def library_variant(th, rng, name, v):
         windows_on_wall(t, th, x0, zf, x1, zm, "west" if x0 == 0 else "east", 2, rng)
         windows_on_wall(t, th, x0, zf, x1, zm, "north", 2, rng)
     shell(t, th, 0, zm, W - 1, zb, 0, 6, along="x")
-    for x in (0, W - 1):                      # paso entre las alas y la sala
+    for x in (0, W - 1):                      # passage between the wings and the hall
         for y in (1, 2, 3):
             t.set(x + (1 if x == 0 else -1), y, zm, "air")
             t.set(x + (2 if x == 0 else -2), y, zm, "air")
-    # jardín con murete y cancela delante
+    # garden with low wall and gate in front
     for x in range(4, W - 4):
         for z in range(zf, zm):
             t.set(x, 0, z, "grass_block")
@@ -1617,7 +1617,7 @@ def library_variant(th, rng, name, v):
     door(t, W - 4, 1, zf + 4, th["door"], "west")
     for side in ("south", "west", "east"):
         windows_on_wall(t, th, 0, zm, W - 1, zb, side, 3, rng)
-    # sala del fondo: estanterías, atril, cofre y mesas; alas con estanterías y una mesa de lectura
+    # back hall: shelves, lectern, chest and tables; wings with shelves and a reading table
     t.chest(W - 2, 1, zb - 1, "north", L("biblioteca"))
     t.set(cx, 1, zb - 1, "lectern[facing=north]")
     staff(t, th, cx, 0, zb - 3, "librarian")
@@ -1635,8 +1635,8 @@ def library_variant(th, rng, name, v):
 
 # ======================================================================= GRANJA
 def farm(th, rng, name, v=0):
-    """v: 0 dos bancales delante, granero y corral al fondo (el original); 1 corral y granero delante, bancales al
-    fondo con acequia entre ellos; 2 huerta en franjas, frutales en medio y granero largo y corral al fondo."""
+    """v: 0 two terraced plots in front, barn and pen at the back (the original); 1 pen and barn in front, terraced plots at the
+    back with an irrigation ditch between them; 2 market garden in strips, fruit trees in the middle and a long barn and pen at the back."""
     if v:
         return farm_variant(th, rng, name, v)
     t = Template(name)
@@ -1656,14 +1656,14 @@ def farm(th, rng, name, v=0):
     for z in range(1, D + 1):
         for x in (0, W - 1):
             t.set(x, 1, z, th["fence"])
-    # camino central de puerta a puerta (la del fondo da al molino)
+    # central path from door to door (the back one leads to the mill)
     for z in range(1, D + 1):
         t.set(cx, 0, z, th["path"])
     t.set(cx, 1, 1, f"{th['gate']}[facing=north,open=false]")
     t.set(cx, 1, D, f"{th['gate']}[facing=north,open=false]")
     t.jigsaw(cx, 0, D, "south_up", "heraldia:side", "heraldia:entrance", P(th, "mill"),
              final_state=th["path"], sel=6, place=6)
-    # dos bancales con acequia central
+    # two terraced plots with a central irrigation ditch
     crops = ["wheat", "carrots", "potatoes", "beetroots"]
     rng.shuffle(crops)
     for i, fx in enumerate((1, cx + 1)):
@@ -1676,7 +1676,7 @@ def farm(th, rng, name, v=0):
                     t.set(x, 0, z, "farmland[moisture=7]")
                     age = rng.randint(4, 7) if crop != "beetroots" else rng.randint(2, 3)
                     t.set(x, 1, z, f"{crop}[age={age}]")
-    # granero con la cama del granjero en un rincón
+    # barn with the farmer's bed in a corner
     bx0, bz0 = 1, 10
     rk = "flat" if th["roof_type"] == "flat" else "gable"
     shell(t, th, bx0, bz0, bx0 + 7, bz0 + 7, 0, 4, roof=rk, along="z")
@@ -1689,7 +1689,7 @@ def farm(th, rng, name, v=0):
     t.chest(bx0 + 6, 1, bz0 + 6, "north", L("granja"))
     bed_slot(t, th, bx0 + 1, 0, bz0 + 1, villager_pool(th, "farmer", fixed=True))
     t.set(bx0 + 4, 4, bz0 + 3, lantern(th, True))
-    # corral contra la valla exterior
+    # pen against the outer fence
     px0, pz0 = cx + 1, 10
     for x in range(px0, W - 1):
         t.set(x, 1, pz0, th["fence"])
@@ -1707,7 +1707,7 @@ def farm(th, rng, name, v=0):
 
 
 def crop_plot(t, rng, x0, z0, x1, z1, crop, water_x=None, water_z=None):
-    """Bancal de tierra labrada con una acequia en la columna water_x o en la fila water_z."""
+    """Terraced plot of farmland with an irrigation ditch in column water_x or in row water_z."""
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):
             if x == water_x or z == water_z:
@@ -1719,7 +1719,7 @@ def crop_plot(t, rng, x0, z0, x1, z1, crop, water_x=None, water_z=None):
 
 
 def farm_barn(t, th, rng, bx0, bz0, bx1, bz1, door_x, door_z, door_f, rk=None, along="z"):
-    """Granero con la cama del granjero, heno, compostador (su oficio), cofre de la granja y farol."""
+    """Barn with the farmer's bed, hay, composter (his profession), farm chest and lantern."""
     rk = rk or ("flat" if th["roof_type"] == "flat" else "gable")
     shell(t, th, bx0, bz0, bx1, bz1, 0, 4, roof=rk, along=along)
     door(t, door_x, 1, door_z, th["door"], door_f)
@@ -1777,12 +1777,12 @@ def farm_variant(th, rng, name, v):
     crops = ["wheat", "carrots", "potatoes", "beetroots"]
     rng.shuffle(crops)
     if v == 1:
-        # delante: corral a la izquierda y granero a lo ancho a la derecha
+        # in front: pen on the left and barn across the width on the right
         farm_pen(t, th, rng, 1, 2, cx - 2, 9, (cx - 2, 5), "west")
         for z in range(2, 10):
             t.set(cx + 1, 0, z, th["path"])
         farm_barn(t, th, rng, cx + 2, 2, W - 2, 9, cx + 2, 5, "west", along="x")
-        # detrás: cuatro bancales en surcos a lo ancho, con acequia a lo largo de cada uno
+        # behind: four terraced plots in furrows across the width, with an irrigation ditch along each one
         for i, (x0, x1) in enumerate(((1, cx - 1), (cx + 1, W - 2))):
             crop_plot(t, rng, x0, 11, x1, 13, crops[2 * i])
             for x in range(x0, x1 + 1):
@@ -1791,13 +1791,13 @@ def farm_variant(th, rng, name, v):
         for x in range(1, W - 1):
             t.set(x, 0, 10, th["path"])
     else:
-        # delante: huerta en franjas de dos surcos con acequias entre ellas
+        # in front: market garden in strips of two furrows with irrigation ditches between them
         for i, (x0, x1) in enumerate(((1, cx - 1), (cx + 1, W - 2))):
             crop_plot(t, rng, x0, 2, x1, 3, crops[2 * i])
             for x in range(x0, x1 + 1):
                 t.set(x, 0, 4, "water")
             crop_plot(t, rng, x0, 5, x1, 6, crops[2 * i + 1])
-        # frutales a los lados del camino
+        # fruit trees on the sides of the path
         for x in (2, 6, W - 7, W - 3):
             z = 9
             t.set(x, 1, z, log(th["log"], "y"))
@@ -1807,7 +1807,7 @@ def farm_variant(th, rng, name, v):
             t.set(x, 3, z, leaves(th))
         for x in range(1, W - 1):
             t.set(x, 0, 7, th["path"])
-        # detrás: corral a la izquierda y granero largo a la derecha, con la puerta al camino
+        # behind: pen on the left and long barn on the right, with the door to the path
         farm_pen(t, th, rng, 1, 11, cx - 2, D - 1, (cx - 2, 14), "west")
         farm_barn(t, th, rng, cx + 2, 11, W - 2, D - 1, cx + 2, 14, "west")
     t.min_size = (W, 6, D + 1)
@@ -1816,8 +1816,8 @@ def farm_variant(th, rng, name, v):
 
 # ======================================================================= MOLINO
 def sails(t, th, c, hub_y, hz, plane="z", arm=5):
-    """Aspas: eje de tronco que sale del muro (hz es la cara exterior), cuatro palos de valla y una vela a un lado de
-    cada uno. plane="z": en el plano z = hz - 1 (muro norte); plane="x": en el plano x = hz + 1 (muro este)."""
+    """Sails: log axle projecting from the wall (hz is the outer face), four fence-post blades and a sail on one side of
+    each. plane="z": in the plane z = hz - 1 (north wall); plane="x": in the plane x = hz + 1 (east wall)."""
     if plane == "z":
         put = lambda a, y: t.set(c + a, y, hz - 1, th["fence"])
         put_s = lambda a, y, st: t.set(c + a, y, hz - 1, st)
@@ -1840,8 +1840,8 @@ def sails(t, th, c, hub_y, hz, plane="z", arm=5):
 
 
 def mill(th, rng, name, v=0):
-    """v: 0 torre de planta casi cuadrada con aspas al frente (la original); 1 torre redonda encalada con tejado
-    cónico; 2 torre más baja con la casa del molinero delante y las aspas en el costado."""
+    """v: 0 almost square-plan tower with sails at the front (the original); 1 round whitewashed tower with a
+    conical roof; 2 lower tower with the miller's house in front and the sails on the side."""
     if v:
         return mill_variant(th, rng, name, v)
     t = Template(name)
@@ -1865,7 +1865,7 @@ def mill(th, rng, name, v=0):
     door(t, c, 1, zf, th["door"], "north")
     for y in (3, 8):
         t.set(0, y, zf + 3, th["window"]); t.set(6, y, zf + 3, th["window"])
-    # planta alta de molienda, a la que llega la escalera de mano
+    # upper milling floor, reached by the ladder
     t.fill(1, 6, zf + 1, 5, 6, zf + 5, th["planks"])
     for y in range(1, 7):
         t.set(5, y, zf + 5, "ladder[facing=north]")
@@ -1881,7 +1881,7 @@ def mill(th, rng, name, v=0):
         cone_roof(t, th, c, zf + c, 3, Ht + 1)
     else:
         hip_roof(t, th, 0, zf, N - 1, zf + N - 1, Ht + 1, overhang=1)
-    # aspas: cuatro palos de valla desde el eje y vela a un lado de cada uno
+    # sails: four fence posts from the axle and a sail on one side of each
     sails(t, th, c, Ht - 2, zf - 1)
     return t
 
@@ -1912,7 +1912,7 @@ def mill_variant(th, rng, name, v):
             t.set(c - r, y, cz, th["window"]); t.set(c + r, y, cz, th["window"])
         t.set(c, 9, cz + r, th["window"])
         t.fill(c - 2, 6, cz - 2, c + 2, 6, cz + 2, th["planks"])
-        for x in range(c - r, c + r + 1):    # el forjado solo dentro del círculo
+        for x in range(c - r, c + r + 1):    # the floor slab only inside the circle
             for z in range(cz - r, cz + r + 1):
                 if math.hypot(x - c, z - cz) > r - 0.5 and t.get(x, 6, z) == "minecraft:" + th["planks"]:
                     t.set(x, 6, z, body)
@@ -1929,7 +1929,7 @@ def mill_variant(th, rng, name, v):
         cone_roof(t, th, c, cz, r, Ht + 1)
         sails(t, th, c, Ht - 2, zf - 1, arm=6)
         return t
-    # casa del molinero delante (z 2..7) y torre de 5 x 5 detrás (z 8..12) con las aspas al este
+    # miller's house in front (z 2..7) and 5 x 5 tower behind (z 8..12) with the sails to the east
     W, cx = 9, 4
     entrance(t, th, cx)
     t.fill(cx - 1, 0, 1, cx + 1, 0, 1, th["path"])
@@ -1952,7 +1952,7 @@ def mill_variant(th, rng, name, v):
                     t.set(x, y, z, stone_of(th))
                 elif edge:
                     if z == tz0 and y <= 5:
-                        continue                 # el muro de la casa hace de frente de la torre
+                        continue                 # the house wall serves as the front of the tower
                     t.set(x, y, z, (th["wall2"] if y < 6 else th["wall"]) if stone else (th["planks"] if y > 5 else th["wall2"]))
                 else:
                     t.set(x, y, z, "air")
@@ -1974,13 +1974,13 @@ def mill_variant(th, rng, name, v):
     return t
 
 
-# ======================================================================= PUERTO
-# Dos piezas: la caseta con el embarcadero (rígida, en tierra) y el muelle (terrain_matching). El muelle no puede ser
-# rígido: con beard_thin el juego rellena de tierra hasta 12 bloques por debajo de toda pieza rígida, y en el mar
-# levantaría una lengua de tierra bajo las tablas. terrain_matching apoya cada columna en la superficie (el agua cuenta):
-# la tabla (y=1) queda justo sobre el agua o el suelo, y los pilotes (fila inferior, y=0) bajan hasta el fondo con el
-# procesador hasta_el_suelo. No cuelgan de la aldea: AldeaStructure (Java) las pone en la orilla más cercana a la plaza,
-# con el muelle hacia el mar, uniéndolas por sus jigsaws heraldia:pier (writer.village_with_port).
+# ======================================================================= HARBOR
+# Two pieces: the hut with the pier (rigid, on land) and the quay (terrain_matching). The quay cannot be
+# rigid: with beard_thin the game fills with earth up to 12 blocks below any rigid piece, and at sea it
+# would raise a tongue of earth under the planks. terrain_matching rests each column on the surface (water counts):
+# the plank (y=1) sits just above the water or the ground, and the piles (bottom row, y=0) go down to the bottom with the
+# hasta_el_suelo processor. They do not hang from the village: AldeaStructure (Java) places them on the shore closest to the square,
+# with the quay towards the sea, joining them by their heraldia:pier jigsaws (writer.village_with_port).
 PIER_W, PIER_L = 9, 18
 
 
@@ -1990,14 +1990,14 @@ def port(th, rng, name, v=0):
     pw = th["pier"]
     t.jigsaw(6, 0, 0, "north_up", "heraldia:entrance", "heraldia:side", "minecraft:empty",
              final_state=stairs(pw["wstairs"], "south"))
-    # caseta del puerto a la entrada, con la puerta al embarcadero
+    # port hut at the entrance, with the door to the pier
     shell(t, th, 0, 2, 4, 6, 0, 3)
     door(t, 4, 1, 4, th["door"], "east")
     t.chest(1, 1, 5, "north", L("puerto"))
     t.set(3, 1, 5, "barrel[facing=up]")
     t.set(1, 1, 3, "crafting_table")
     t.set(2, 3, 4, lantern(th, True))
-    # embarcadero: tablas a ras de la caseta, barandilla al este y carga apilada en un rincón
+    # pier: planks flush with the hut, railing to the east and cargo stacked in a corner
     for z in range(1, D):
         for x in range(5 if z < 7 else 0, W):
             t.set(x, 0, z, pw["planks"])
@@ -2017,14 +2017,14 @@ def port_pier(th, rng, name, v=0):
     for z in range(Lp):
         for x in range(W):
             t.set(x, 1, z, pw["planks"])
-    # pilotes (fila inferior: hasta_el_suelo los alarga hasta el fondo) con barandilla y faroles
+    # piles (bottom row: hasta_el_suelo extends them down to the bottom) with railing and lanterns
     for z in range(1, Lp, 4):
         for x in (0, W - 1):
             t.set(x, 0, z, log(pw["log"], "y"))
             t.set(x, 2, z, pw["fence"])
             if z % 8 == 5:
                 t.set(x, 3, z, lantern(th, False))
-    # grúa con un tonel colgado en la punta
+    # crane with a barrel hanging at the tip
     gx, gz = W - 2, Lp - 3
     for y in range(2, 7):
         t.set(gx, y, gz, log(pw["log"], "y"))
@@ -2046,6 +2046,6 @@ SPECIALS = {
     "tavern": tavern, "inn": lambda th, rng, n, v=0: tavern(th, rng, n, inn=True, v=v), "library": library,
     "farm": farm, "mill": mill, "port": port, "port_pier": port_pier,
 }
-# Variantes de cada especial (la 0 es la original); todas con la misma función y el mismo acceso
+# Variants of each special building (0 is the original); all with the same function and the same access
 VARIANTS = {"church": 3, "cemetery": 3, "townhall": 3, "market": 3, "blacksmith": 3, "tavern": 3, "inn": 3,
             "library": 3, "farm": 3, "mill": 3}

@@ -1,4 +1,4 @@
-"""Calles, plaza mayor, avenidas, remates (torres, puertas) y decoración."""
+"""Streets, main square, avenues, finishing pieces (towers, gates) and decoration."""
 import math
 from core import Template, nsid, golem, center_marker
 from build import *
@@ -44,7 +44,7 @@ def path_strip(t, th, rng, x0, x1, z0, z1):
             t.set(x, 1, z, "air")
 
 
-# ------------------------------------------------------------------ calles genéricas
+# ------------------------------------------------------------------ generic streets
 def straight(th, rng, name, L):
     t = Template(name); t.min_size = (7, 6, L)
     path_strip(t, th, rng, 1, 5, 0, L - 1)
@@ -109,7 +109,7 @@ def watchtower(th, rng, name, stone=True, with_golem=True):
     for y in (4, 8):
         for (x, z) in ((3, z1), (x0, 4), (x1, 4)):
             t.set(x, y, z, "iron_bars" if stone else th["window"])
-    # plataforma almenada; la escalera de mano atraviesa la plataforma y sale arriba
+    # crenellated platform; the ladder passes through the platform and comes out on top
     t.fill(0, Ht + 1, 1, 6, Ht + 1, 7, th["roof_full"] if stone else th["planks"])
     for y in range(1, Ht + 2):
         t.set(2, y, 5, "ladder[facing=north]")
@@ -128,7 +128,7 @@ def watchtower(th, rng, name, stone=True, with_golem=True):
 
 
 def gate(th, rng, name):
-    """Tramo de muralla con arco de paso y dos torreones macizos."""
+    """Section of wall with a passage arch and two solid turrets."""
     t = Template(name)
     W = 15
     wallm = stone_like(th)
@@ -168,7 +168,7 @@ def stone_like(th):
 
 
 # ------------------------------------------------------------------ plaza mayor
-def plaza(th, rng, name, grande=False):
+def plaza(th, rng, name, large=False):
     t = Template(name)
     N = 23
     c = N // 2
@@ -184,7 +184,7 @@ def plaza(th, rng, name, grande=False):
             t.set(x, 0, z, b)
             for y in range(1, 5):
                 t.set(x, y, z, "air")
-    # fuente: vaso de piedra con brocal y un pilar central con farol
+    # fountain: stone basin with curb and a central pillar with a lantern
     rim = stone_like(th)
     for x in range(c - 3, c + 4):
         for z in range(c - 3, c + 4):
@@ -193,13 +193,13 @@ def plaza(th, rng, name, grande=False):
             t.set(x, 1, z, rim if edge else "water")
     t.set(c, 1, c, rim); t.set(c, 2, c, rim)
     t.set(c, 3, c, lantern(th, False))
-    # bancos y farolas
+    # benches and street lamps
     for (x, z) in ((2, 2), (2, N - 3), (N - 3, 2), (N - 3, N - 3)):
         t.set(x, 1, z, th["fence"]); t.set(x, 2, z, th["fence"]); t.set(x, 3, z, lantern(th, False))
     for (x, z, f) in ((c - 2, c - 5, "north"), (c + 2, c - 5, "north"), (c - 2, c + 5, "south"), (c + 2, c + 5, "south"),
                       (c - 5, c - 2, "west"), (c - 5, c + 2, "west"), (c + 5, c - 2, "east"), (c + 5, c + 2, "east")):
         t.set(x, 1, z, stairs(th["wstairs"], f))
-    # árboles en maceteros
+    # trees in planters
     for (x, z) in ((5, 5), (5, N - 6), (N - 6, 5), (N - 6, N - 6)):
         for dx in (-1, 0, 1):
             for dz in (-1, 0, 1):
@@ -211,23 +211,23 @@ def plaza(th, rng, name, grande=False):
                 for y in (4, 5):
                     if not (y == 5 and abs(dx) + abs(dz) == 2):
                         t.set(x + dx, y, z + dz, leaves(th))
-    # campana colgada de un pórtico de madera
+    # bell hung from a wooden gantry
     for z in (c - 1, c + 1):
         for y in (1, 2, 3):
             t.set(c - 6, y, z, th["fence"])
     for z in (c - 1, c, c + 1):
         t.set(c - 6, 4, z, f"{th['wslab']}[type=bottom]")
     t.set(c - 6, 3, c, "bell[attachment=ceiling,facing=east]")
-    # marcador de centro (para la función de gólems)
-    t.entity(1, 1, 1, center_marker(["heraldia_centro", "heraldia_grande" if grande else "heraldia_std"]))
-    # gólems
+    # centre marker (for the golem function)
+    t.entity(1, 1, 1, center_marker(["heraldia_centro", "heraldia_grande" if large else "heraldia_std"]))
+    # golems
     golem_slot(t, c - 8, 0, c - 3, th["path"])
     golem_slot(t, c + 8, 0, c + 3, th["path"])
-    if grande:
+    if large:
         golem_slot(t, c + 3, 0, c - 8, th["path"])
-    # tablón de encargos (pieza aparte: atril con su libro y el alguacil; tablon.py)
-    import tablon
-    tablon.slot(t, th)
+    # quest board (separate piece: lectern with its book and the sheriff; board.py)
+    import board
+    board.slot(t, th)
     # salidas a avenidas
     for (x, z, f, av) in ((c, 0, "north", "a"), (N - 1, c, "east", "b"), (c, N - 1, "south", "c"), (0, c, "west", "d")):
         t.jigsaw(x, 1, z, f"{f}_up", "heraldia:street", "heraldia:avenue", P(th, f"avenue_{av}"), final_state=AIR,
@@ -253,7 +253,7 @@ def avenue(th, rng, name, left_pool, right_pool):
     return t
 
 
-# ------------------------------------------------------------------ decoración pequeña (1x1)
+# ------------------------------------------------------------------ small decoration (1x1)
 def decor_piece(th, rng, name, kind):
     t = Template(name)
     if kind == "lamp":

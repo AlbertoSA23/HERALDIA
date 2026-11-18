@@ -1,0 +1,331 @@
+"""Caravans along the roads between villages on a real 26.3 dedicated server (T39; complements the JUnit tests of caravanas/).
+
+Usage: python3 tools/smoke/caravans.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-caravanas"
+Deterministic: the seed and the minimal grid of villages from roads.py (the same route on dry land), the caravan
+roll turned off (caravans.frequency = 0: they only appear with the command) and a Carpet simulated player. The
+chunks of the route's central stretch are generated (forceload) and the player is placed next to the road.
+First start:
+  1. /heraldia caravan spawn raid: a caravan appears (merchant, 1 to 3 llamas, maybe a guard) that advances along the
+     road toward the destination village; /heraldia caravan raid forces the ambush: 2 to 4 bandits appear with the
+     tags of the anchored mobs; the player kills them, the caravan continues and, moved from vertex to vertex to
+     the end, arrives: the player collects the emeralds and the item, the reputation with the destination village rises by 15 (the
+     quest API) and the advancement is granted; no caravan entity remains.
+  2. Another caravan: the player kills the merchant; the caravan is lost, with no reward and nothing on the ground.
+  3. Another: the player moves 400 blocks away; after 30 s it is dismissed and its entities are removed.
+  4. An entity with the caravan tag that belongs to no active one is removed on load (what happens to
+     those from before a restart). And another caravan is left on the road when the server stops: it is removed on stopping.
+Second start (same world, the corridor is still forceloaded): no caravan entity; a new one appears (just one,
+no duplicates); /heraldia status counts it; with caravans.switched_on = false and /heraldia reload the existing one goes away, the
+command says they are disabled and so does /heraldia status.
+"""
+import argparse, json, math, os, re, shutil, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import server_smoke as s
+import village_terrain as at
+import importlib.util
+from terralith_biomes import fetch
+from trophies import CARPET
+
+# the road test by its route: plain "caminos" is the generator module (tools/gen, in sys.path)
+_spec = importlib.util.spec_from_file_location("roads_smoke", os.path.join(os.path.dirname(os.path.abspath(__file__)), "roads.py"))
+cabin_adv = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(cabin_adv)
+
+PLAYER = "Testigo"
+TAG, MERCHANT, FLAME, SENTRY, BANDIT = ("heraldia_caravana", "heraldia_caravana.mercader", "heraldia_caravana.llama",
+                                          "heraldia_caravana.guardia", "heraldia_caravana.bandido")
+DEPARTS = re.compile(r"sale la caravana (\d+) de (.+?) hacia (.+?): (\d+) vértices \((\d+) bloques\) desde (-?\d+) (-?\d+) (-?\d+) "
+                  r"hasta (-?\d+) (-?\d+), asalto (no|en el vértice \d+), (\d) llamas, (con|sin) guardia")
+VERTICES = re.compile(r"vértices de la caravana (\d+): (.*)")
+NO_ROAD = r"There is no Heraldia road|No hay ningún camino"
+ITEM_LIST = re.compile(r"waypoint (\d+) of (\d+)|vértice (\d+) de (\d+)")
+SEGMENT = (0.3, 0.7)          # central part of the route that is generated (the spawn looks 80 blocks from the player)
+
+
+def configure(work, extra=None):
+    cfg = {"aldeas": {"separacion_bloques": cabin_adv.GRID, "maximo": 100}, "caravanas": {"frecuencia": 0}}
+    for k, v in (extra or {}).items():
+        cfg.setdefault(k, {}).update(v)
+    with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
+        json.dump(cfg, f)
+
+
+def wait(ctx, pattern, start):
+    """The first line from `start` (index in ctx.seen) that matches `pattern`: already read (a later command moves
+    whatever was in the queue into ctx.seen) or the one that arrives."""
+    s.pending(ctx.lines, ctx.seen)
+    for line in ctx.seen[start:]:
+        m = re.search(pattern, line)
+        if m:
+            return m
+    return s.wait_for(ctx.lines, pattern, s.COMMAND_TIMEOUT_S, ctx.seen)
+
+
+def as_player(ctx, cmd, ok):
+    """The command run by the simulated player (the reply goes to the console: "execute as" keeps the source)."""
+    return ctx.run(f"execute as {PLAYER} at @s run {cmd}", ok)
+
+
+def on_floor(ctx, sel, x, z):
+    ctx.run(f"execute positioned {x} 300 {z} positioned over motion_blocking_no_leaves run tp {sel} ~ ~ ~", r"Teleported|No entity")
+
+
+def point(a, b, t):
+    return int(a[0] + (b[0] - a[0]) * t), int(a[1] + (b[1] - a[1]) * t)
+
+
+def new_one(ctx, fails, route, mode):
+    """Puts the player next to the road and spawns a caravan with /heraldia caravan spawn <mode>: its log line and its vertices."""
+    a, b, _ = route
+    for t in (0.5, 0.44, 0.56, 0.38, 0.62):
+        x, z = point(a, b, t)
+        on_floor(ctx, PLAYER, x, z)
+        ctx.ticks(10)
+        m = as_player(ctx, f"heraldia caravan spawn {mode}".strip(), rf"{DEPARTS.pattern}|{NO_ROAD}|already \d+ caravans|Ya hay \d+")
+        if m.group(1):
+            v = s.wait_for(ctx.lines, rf"vértices de la caravana {m.group(1)}: (.*)", s.COMMAND_TIMEOUT_S, ctx.seen)
+            vert = [tuple(int(n) for n in p.split()) for p in v.group(1).strip().split("; ")]
+            c = {"id": m.group(1), "origen": m.group(2), "destino": m.group(3), "n": int(m.group(4)), "largo": int(m.group(5)),
+                 "salida": (int(m.group(6)), int(m.group(7)), int(m.group(8))), "asalto": m.group(11), "llamas": int(m.group(12)),
+                 "guardia": m.group(13) == "con", "vertices": vert}
+            print(f"caravan {c['id']}: from {c['origen']} to {c['destino']}, {c['n']} vertices ({c['largo']} blocks) from "
+                  f"{c['salida']}, asalto {c['asalto']}, {c['llamas']} llamas, {'con' if c['guardia'] else 'sin'} guardia")
+            return c
+        print(f"no caravan near {x} {z} (t = {t}): {m.group(0).strip()[-90:]}")
+    fails.append(f"/heraldia caravan spawn {mode}: no caravan appears next to the road")
+    return None
+
+
+def following(ctx):
+    m = as_player(ctx, "heraldia caravan list", ITEM_LIST.pattern + r"|There are no caravans|No hay ninguna caravana")
+    return (int(m.group(1) or m.group(3)), int(m.group(2) or m.group(4))) if (m.group(1) or m.group(3)) else None
+
+
+def emeralds(ctx):
+    m = ctx.run(f"clear {PLAYER} minecraft:emerald 0", r"Found (\d+) matching|No items")
+    return int(m.group(1) or 0)
+
+
+def state(ctx, pattern):
+    """The first line of /heraldia status (going through its pages) that matches `pattern`, or None."""
+    pat = re.compile(pattern)
+    for page in range(1, 8):
+        m = as_player(ctx, f"heraldia status {page}", r"server status \(page (\d+) of (\d+)\)|estado del servidor \(página (\d+) de (\d+)\)")
+        for line in s.drain(ctx):
+            if pat.search(line):
+                return pat.search(line)
+        if (m.group(1) or m.group(3)) == (m.group(2) or m.group(4)):
+            return None
+    return None
+
+
+def defended(ctx, fails, route):
+    c = new_one(ctx, fails, route, "raid")
+    if c is None:
+        return
+    if ctx.count(f"@e[tag={MERCHANT}]") != 1:
+        fails.append(f"caravana {c['id']}: {ctx.count(f'@e[tag={MERCHANT}]')} mercaderes (debe haber 1)")
+    if ctx.count(f"@e[tag={FLAME},type=minecraft:trader_llama]") != c["llamas"]:
+        fails.append(f"caravana {c['id']}: {ctx.count(f'@e[tag={FLAME}]')} llamas (dice {c['llamas']})")
+    if ctx.count(f"@e[tag={SENTRY}]") != (1 if c["guardia"] else 0):
+        fails.append(f"caravan {c['id']}: guard count does not match")
+    if c["asalto"] == "no":
+        fails.append("spawn raid: the caravan appears with no ambush planned")
+    # advances along the road: it gets closer to the end
+    finish = c["vertices"][-1]
+    p0 = ctx.pos(f"@e[tag={MERCHANT}]")
+    ctx.ticks(300)
+    p1 = ctx.pos(f"@e[tag={MERCHANT}]")
+    d0, d1 = math.dist((p0[0], p0[2]), finish), math.dist((p1[0], p1[2]), finish)
+    print(f"the merchant advances: from {d0:.0f} to {d1:.0f} blocks from the end in 15 s; {following(ctx)}")
+    if d1 > d0 - 4:
+        fails.append(f"the merchant does not advance along the road: from {d0:.1f} to {d1:.1f} blocks from the end in 15 s")
+    line = state(ctx, r"(?:Caravans on the road|Caravanas en camino): (\d+)")
+    if line is None or line.group(1) != "1":
+        fails.append(f"/heraldia status does not count the caravan on the road: {line and line.group(0)}")
+    # asalto forzado
+    m = as_player(ctx, "heraldia caravan raid", r"asalto a la caravana (\d+): (\d+) bandidos")
+    n = int(m.group(2))
+    print(f"asalto: {n} bandidos")
+    if not 2 <= n <= 4:
+        fails.append(f"ambush with {n} bandits (should be 2 to 4)")
+    if ctx.count(f"@e[tag={BANDIT},tag=heraldia_anclado]") != n:
+        fails.append("the bandits do not have the tags of the anchored mobs (and of the difficulty)")
+    as_player(ctx, "heraldia caravan raid", r"no caravan on the road that can be ambushed|ninguna caravana en camino que se pueda asaltar")
+    mark = len(ctx.seen)
+    ctx.run(f"execute as @e[tag={BANDIT}] run damage @s 1000 minecraft:player_attack by {PLAYER}", r"Applied|damage|No entity")
+    wait(ctx, rf"la caravana {c['id']} supera el asalto", mark)
+    # let it arrive: the merchant (and the player) from vertex to vertex to the end
+    e0 = emeralds(ctx)
+    next_unique = following(ctx)
+    mark = len(ctx.seen)
+    arrives = re.compile(rf"la caravana {c['id']} llega a (.+?)( tras superar el asalto)? con (\d+) jugadores")
+    for k in range(next_unique[0] if next_unique else 1, len(c["vertices"])):
+        x, z = c["vertices"][k]
+        on_floor(ctx, f"@e[tag={MERCHANT}]", x, z)
+        on_floor(ctx, PLAYER, x + 3, z)
+        ctx.ticks(30)
+        if arrives.search("".join(ctx.seen[mark:])):
+            break
+    m = wait(ctx, arrives.pattern, mark)
+    if m.group(1) != c["destino"] or not m.group(2) or m.group(3) != "1":
+        fails.append(f"llegada: {m.group(0)}")
+    payout = re.search(rf"{PLAYER} cobra (\d+) esmeraldas(?: y (\d+) × (\S+))? y \+(\d+) de reputación con (.+?) \(ahora (-?\d+)\)", ctx.log())
+    rep = re.search(rf"Heraldia: encargos: {PLAYER} defiende la caravana de (.+?): reputación (-?\d+)", ctx.log())
+    if not payout:
+        fails.append("on arrival, the player is not paid")
+        return
+    paid = emeralds(ctx) - e0
+    print(f"arrives at {m.group(1)}: {payout.group(0)}; {paid} emeralds in the inventory; {rep and rep.group(0)}")
+    if paid != int(payout.group(1)) or paid != 2 + c["n"] // 4 + 4:
+        fails.append(f"emeralds: {paid} in the inventory, {payout.group(1)} in the log, should be {2 + c['n'] // 4 + 4}")
+    if not payout.group(3) or ctx.count(f"@a[name={PLAYER},nbt={{Inventory:[{{id:\"{payout.group(3)}\"}}]}}]") != 1:
+        fails.append(f"the defended caravan's item is not in the inventory ({payout.group(3)})")
+    if payout.group(4) != "15" or payout.group(5) != c["destino"] or not rep or rep.group(1) != c["destino"] or rep.group(2) != "15":
+        fails.append(f"reputation with the destination village {c['destino']}: {payout.group(0)} / {rep and rep.group(0)} (should rise by 15)")
+    if not ctx.test(f"execute if entity @a[name={PLAYER},advancements={{heraldia:caravanas/defensa=true}}]"):
+        fails.append("advancement caravanas/defensa not granted")
+    ctx.ticks(10)
+    if ctx.count(f"@e[tag={TAG}]"):
+        fails.append(f"after arriving, {ctx.count(f'@e[tag={TAG}]')} caravan entities remain")
+
+
+def lost(ctx, fails, route):
+    c = new_one(ctx, fails, route, "peaceful")
+    if c is None:
+        return
+    p = ctx.pos(f"@e[tag={MERCHANT}]")
+    before = len(re.findall(r" cobra \d+ esmeraldas", ctx.log()))
+    mark = len(ctx.seen)
+    ctx.run(f"damage @e[tag={MERCHANT},limit=1] 1000 minecraft:player_attack by {PLAYER}", r"Applied|damage")
+    m = wait(ctx, rf"termina la caravana {c['id']}: (\w+)", mark)
+    ctx.ticks(40)
+    floor = ctx.count(f"@e[type=minecraft:item,x={p[0]:.0f},y={p[1]:.0f},z={p[2]:.0f},distance=..24]")
+    print(f"merchant dead: {m.group(0)}; {floor} items on the ground; {ctx.count(f'@e[tag={TAG}]')} caravan entities")
+    if m.group(1) != "perdida":
+        fails.append(f"when the merchant is killed the caravan ends as '{m.group(1)}' (it should be lost)")
+    if floor:
+        fails.append(f"when the caravan is lost, {floor} items remain on the ground (no exploitation loot)")
+    if ctx.count(f"@e[tag={TAG}]"):
+        fails.append("when lost, caravan entities remain")
+    if len(re.findall(r" cobra \d+ esmeraldas", ctx.log())) != before:
+        fails.append("a lost caravan has paid out")
+
+
+def far(ctx, fails, route):
+    c = new_one(ctx, fails, route, "peaceful")
+    if c is None:
+        return
+    x, _, z = c["salida"]
+    mark = len(ctx.seen)
+    on_floor(ctx, PLAYER, x + 400, z)
+    m = wait(ctx, rf"termina la caravana {c['id']}: (\w+) \((\d+) entidades quitadas", mark)
+    print(f"the player moves away: {m.group(0)}")
+    if m.group(1) != "lejos":
+        fails.append(f"when the player moves away, the caravan ends as '{m.group(1)}' (it should be dismissed)")
+    if int(m.group(2)) != 1 + c["llamas"] + c["guardia"]:
+        fails.append(f"on dismissal it removes {m.group(2)} entities (should be {1 + c['llamas'] + c['guardia']})")
+    if ctx.count(f"@e[tag={TAG}]"):
+        fails.append("after dismissal, caravan entities remain")
+
+
+def orphan(ctx, fails, route):
+    x, z = point(route[0], route[1], 0.5)
+    on_floor(ctx, PLAYER, x, z)
+    ctx.ticks(10)
+    mark = len(ctx.seen)
+    ctx.run(f'execute at {PLAYER} run summon minecraft:trader_llama ~2 ~ ~ {{Tags:["{TAG}","{FLAME}"]}}', r"Summoned|Unable")
+    m = wait(ctx, r"quitada una entidad de una caravana que ya no está en camino \((\w+)", mark)
+    ctx.ticks(5)
+    if m.group(1) != "trader_llama" or ctx.count(f"@e[tag={TAG}]"):
+        fails.append(f"a stray caravan llama is not removed on load: {m.group(0)}")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--jar", required=True)
+    ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-caravanas"))
+    a = ap.parse_args()
+    a.work = os.path.abspath(a.work)
+    os.makedirs(a.work, exist_ok=True)
+    fails = []
+    launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
+    shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
+    configure(a.work)
+    proc, ctx = at.start_server(a.work, launcher)
+    route = c = None
+    try:
+        route = cabin_adv.find_path(ctx)
+        if route is None:
+            raise SystemExit("no overland route from the located villages")
+        va, vb, L = route
+        print(f"route from {va} to {vb}: {L} blocks")
+        corridor = [c for c in cabin_adv.chunks_of(va, vb) if SEGMENT[0] <= c[0] <= SEGMENT[1]]
+        cabin_adv.generate(ctx, corridor)
+        print(f"pasillo generado: {len(corridor)} chunks")
+        x, z = point(va, vb, 0.5)
+        ctx.run(f"player {PLAYER} spawn at {x} 200 {z}", r"joined the game")
+        if not ctx.until(f"execute if entity @a[name={PLAYER}]"):
+            raise SystemExit(f"simulated player {PLAYER} does not appear (Carpet)")
+        s.send(ctx.proc, f"gamemode creative {PLAYER}")   # it does not respond in the console
+        ctx.run(f"clear {PLAYER}", r"Removed|No items")
+        defended(ctx, fails, route)
+        lost(ctx, fails, route)
+        far(ctx, fails, route)
+        orphan(ctx, fails, route)
+        c = new_one(ctx, fails, route, "peaceful")      # it stays on the road when stopping
+    finally:
+        cabin_adv.halt(proc, ctx)
+    if c is not None:
+        m = re.search(rf"termina la caravana {c['id']}: (\w+) \((\d+) entidades quitadas", ctx.log())
+        print(f"on stopping: {m and m.group(0)}")
+        if not m or m.group(1) != "limpieza" or int(m.group(2)) != 1 + c["llamas"] + c["guardia"]:
+            fails.append(f"when the server stops, the caravan on the road is not removed: {m and m.group(0)}")
+    # segundo arranque
+    proc, ctx = at.start_server(a.work, launcher)
+    try:
+        va, vb, _ = route
+        x, z = point(va, vb, 0.5)
+        ctx.run(f"player {PLAYER} spawn at {x} 200 {z}", r"joined the game")
+        ctx.until(f"execute if entity @a[name={PLAYER}]")
+        s.send(ctx.proc, f"gamemode creative {PLAYER}")   # it does not respond in the console
+        ctx.ticks(40)
+        surplus = ctx.count(f"@e[tag={TAG}]")
+        loaded = len(re.findall(r"quitada una entidad de una caravana", ctx.log()))
+        print(f"after restarting: {surplus} caravan entities ({loaded} removed on load)")
+        if surplus:
+            fails.append(f"tras reiniciar quedan {surplus} entidades de caravana")
+        c = new_one(ctx, fails, route, "peaceful")
+        if c is not None:
+            if c["id"] != "1" or ctx.count(f"@e[tag={MERCHANT}]") != 1:
+                fails.append(f"after restarting: caravan {c['id']} with {ctx.count(f'@e[tag={MERCHANT}]')} merchants (should be number 1, with 1)")
+            as_player(ctx, "heraldia caravan spawn", r"already 1 caravans|Ya hay 1 caravanas")
+        # disabled and reloaded without restarting
+        configure(a.work, {"caravanas": {"activado": False}})
+        mark = len(ctx.seen)
+        ctx.run("heraldia reload", r"Heraldia: configuración recargada")
+        if c is not None:
+            m = wait(ctx, rf"termina la caravana {c['id']}: (\w+)", mark)
+            if m.group(1) != "limpieza":
+                fails.append(f"when disabled, the caravan on the road ends as '{m.group(1)}'")
+        ctx.ticks(10)
+        if ctx.count(f"@e[tag={TAG}]"):
+            fails.append("desactivadas, quedan entidades de caravana")
+        as_player(ctx, "heraldia caravan spawn", r"Caravans are disabled|caravanas están desactivadas")
+        if state(ctx, r"Caravans: disabled|Caravanas: desactivadas") is None:
+            fails.append("/heraldia status does not say the caravans are disabled")
+        ctx.run(f"player {PLAYER} kill", r"left the game")
+    finally:
+        cabin_adv.halt(proc, ctx)
+    if fails:
+        print("FALLOS:")
+        for f in fails:
+            print(" -", f)
+        return 1
+    print("OK: caravan that advances, defended ambush with reward, reputation and advancement, dead merchant, dismissal on "
+          "alejarse, entidades sueltas quitadas, reinicio limpio y caravanas desactivadas")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

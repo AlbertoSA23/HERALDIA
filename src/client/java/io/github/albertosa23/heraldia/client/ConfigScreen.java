@@ -40,7 +40,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Configuration screen (vanilla widgets, in the style of the game rules screen). It is built entirely from the .jar's
- * schema ({@link HeraldiaConfig#options()}): a new option in tools/gen/opciones.py shows up on its own, in its
+ * schema ({@link HeraldiaConfig#options()}): a new option in tools/gen/options.py shows up on its own, in its
  * section, with its range and its help. It edits this client's config/heraldia.json; it sends nothing to the server.
  * <p>Gameplay profile: when it changes, the profile options that had the previous profile's value take the new one's; the
  * ones that did not (set by hand) stay as they were, in gold, and override the profile. On save, the ones without the

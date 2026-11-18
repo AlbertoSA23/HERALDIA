@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 /**
  * BasePiece.hash and wallHeight must be identical to the generator's (Python) urbanismo.dispersion and alto_muro: the wall
  * the Java places has to match the one the generator audits. The checksums come from Python and the same
- * computation is in tools/gen/tests/test_atlantida.py: if one side changes, its test fails.
+ * computation is in tools/gen/tests/test_atlantis.py: if one side changes, its test fails.
  */
 class BasePieceTest {
 	@BeforeAll

@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Gameplay profiles (option {@value #KEY}: casual, estandar, hardcore or personalizado; tools/gen/opciones.py): each
+ * Gameplay profiles (option {@value #KEY}: casual, estandar, hardcore or personalizado; tools/gen/options.py): each
  * one sets at once a set of gameplay options (difficulty, guardian reinforcements, restocking loot,
  * arena), never world generation ones. Pure logic: the schema comes in as JSON and the file as the options it
  * has.

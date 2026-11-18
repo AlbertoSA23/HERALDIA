@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * </ul>
  * The pages are translatable components with the fallback in the client's language (the .jar's texts): a client without
  * the mod sees the book in its language (any of those in the .jar; if missing, that of its locale's language or English).
- * The texts, the fixed pages and how many entries fit on each journal page come from the generator (tools/gen/guia.py,
+ * The texts, the fixed pages and how many entries fit on each journal page come from the generator (tools/gen/guide.py,
  * heraldia/guia.json), which checks that everything fits. It only works when a player joins or asks for the guide: it
  * reads their discovery advancements (heraldia:unicas/&lt;id&gt;/descubrir).
  */
@@ -268,7 +268,7 @@ public final class Guide {
 		}
 	}
 
-	/** "title (bold)\n\nbody": what tools/gen/guia.lineas_pagina measures. */
+	/** "title (bold)\n\nbody": what tools/gen/guide.page_lines measures. */
 	static Component page(Map<String, String> texts, String title, Component body) {
 		return Component.empty()
 				.append(Texts.t(texts, title).withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_RED))

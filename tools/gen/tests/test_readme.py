@@ -1,163 +1,163 @@
-"""README de cada idioma del mod (idiomas.README) y documentación de docs/ en inglés y español: que existan todos, que
-lleven el selector de idiomas con todos los enlaces, que tengan las mismas secciones, las mismas cifras y los mismos
-nombres de opciones y comandos, que las cifras sean las del generador (estructuras, logros, guardianes...) y que todos
-los enlaces relativos lleven a un fichero y a un encabezado que existen."""
+"""README of each mod language (idiomas.README) and documentation in docs/ in English and Spanish: that they all exist, that
+they carry the language selector with all the links, that they have the same sections, the same figures and the same
+option and command names, that the figures are those of the generator (structures, advancements, guardians...) and that all
+relative links lead to a file and a heading that exist."""
 import os
 import re
 import pytest
-import arena_oleadas
-import caravanas
-import litoral as costa
-import encargos
-import idiomas
-import logros
-import medianas
-import minas
-import opciones
-import tablon
-import unicas
+import arena_waves
+import caravans
+import shore as coast
+import quests
+import languages
+import advancements
+import mediums
+import mines
+import options
+import board
+import uniques
 from themes import THEMES, FAMILIES
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-MODS = unicas.modules()
-README = idiomas.README
-# documentación movida desde el README: (inglés, español)
+MODS = uniques.modules()
+README = languages.README
+# documentation moved from the README: (English, Spanish)
 DOCS = [("CONTENT.md", "CONTENIDO.md"), ("CONFIGURATION.md", "CONFIGURACION.md"), ("COMPATIBILITY.md", "COMPATIBILIDAD.md"),
         ("BUILDING.md", "COMPILAR.md")]
 
 
-def leer(rel):
+def read(rel):
     with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
         return f.read()
 
 
-def ancla(encabezado):
-    """El ancla que GitHub da a un encabezado."""
-    a = re.sub(r"[^\w\- ]", "", encabezado.strip().lower())
+def anchor_point(header):
+    """The anchor that GitHub gives a heading."""
+    a = re.sub(r"[^\w\- ]", "", header.strip().lower())
     return a.replace(" ", "-")
 
 
-def encabezados(texto):
-    """[(nivel, texto)] fuera de los bloques de código."""
-    out, codigo = [], False
-    for linea in texto.split("\n"):
-        if linea.startswith("```"):
-            codigo = not codigo
-        elif not codigo:
-            m = re.match(r"(#{1,6}) (.*)", linea)
+def headers(text):
+    """[(level, text)] outside the code blocks."""
+    out, lang_code = [], False
+    for line in text.split("\n"):
+        if line.startswith("```"):
+            lang_code = not lang_code
+        elif not lang_code:
+            m = re.match(r"(#{1,6}) (.*)", line)
             if m:
                 out.append((len(m.group(1)), m.group(2)))
     return out
 
 
-def numeros(texto):
-    """Cifras del texto con los separadores de miles de cada idioma quitados (1,500 / 1.500 / 1 500 -> 1500)."""
-    texto = re.sub(r"(?<=\d)[,.   ](?=\d{3}\b)", "", texto)
-    return sorted(int(n) for n in re.findall(r"\d+", texto))
+def numbers(text):
+    """Figures in the text with the thousands separators of each language removed (1,500 / 1.500 / 1 500 -> 1500)."""
+    text = re.sub(r"(?<=\d)[,.   ](?=\d{3}\b)", "", text)
+    return sorted(int(n) for n in re.findall(r"\d+", text))
 
 
-def codigos(texto):
-    """Lo que va entre comillas invertidas (opciones, comandos, ids): igual en todos los idiomas."""
-    return re.findall(r"`([^`]+)`", texto)
+def lang_codes(text):
+    """What goes between backticks (options, commands, ids): the same in all languages."""
+    return re.findall(r"`([^`]+)`", text)
 
 
-def forma(texto):
-    """Esqueleto del documento: por cada sección, cuántas viñetas, filas de tabla y pasos numerados lleva."""
-    out, actual = [], None
-    for linea in texto.split("\n"):
-        if linea.startswith("#"):
-            actual = [linea.count("#", 0, linea.index(" ")), 0, 0, 0]
-            out.append(actual)
-        elif actual is not None:
-            actual[1] += linea.startswith("- ")
-            actual[2] += linea.startswith("|")
-            actual[3] += bool(re.match(r"\d+\. ", linea))
+def form(text):
+    """Skeleton of the document: for each section, how many bullets, table rows and numbered steps it has."""
+    out, current = [], None
+    for line in text.split("\n"):
+        if line.startswith("#"):
+            current = [line.count("#", 0, line.index(" ")), 0, 0, 0]
+            out.append(current)
+        elif current is not None:
+            current[1] += line.startswith("- ")
+            current[2] += line.startswith("|")
+            current[3] += bool(re.match(r"\d+\. ", line))
     return out
 
 
-def selector(codigo):
-    """La línea del selector de idiomas del README de `codigo`: el suyo en negrita y los demás enlazados."""
-    return " · ".join(f"**{idiomas.NOMBRES[c]}**" if c == codigo else f"[{idiomas.NOMBRES[c]}]({README[c]})" for c in README)
+def selector(lang_code):
+    """The language selector line of the README of `codigo`: its own in bold and the others linked."""
+    return " · ".join(f"**{languages.NAMES[c]}**" if c == lang_code else f"[{languages.NAMES[c]}]({README[c]})" for c in README)
 
 
-# ------------------------------------------------------------------ un README por idioma, con su selector
-def test_un_readme_por_idioma_del_mod():
-    assert set(README) == set(idiomas.todos())
+# ------------------------------------------------------------------ one README per language, with its selector
+def test_one_readme_per_mod_language():
+    assert set(README) == set(languages.everyone())
     assert README["en_us"] == "README.md"
     for c, f in README.items():
-        assert os.path.exists(os.path.join(ROOT, f)), f"falta {f} ({c})"
+        assert os.path.exists(os.path.join(ROOT, f)), f"missing {f} ({c})"
 
 
-@pytest.mark.parametrize("codigo", list(README))
-def test_selector_de_idiomas(codigo):
-    lineas = leer(README[codigo]).split("\n")
-    assert lineas[0] == "# Heraldia"
-    assert lineas[2] == selector(codigo)
-    enlazados = set(re.findall(r"\]\((README[^)]*)\)", lineas[2]))
-    assert enlazados == set(README.values()) - {README[codigo]}
+@pytest.mark.parametrize("lang_code", list(README))
+def test_language_selector(lang_code):
+    lines = read(README[lang_code]).split("\n")
+    assert lines[0] == "# Heraldia"
+    assert lines[2] == selector(lang_code)
+    linked = set(re.findall(r"\]\((README[^)]*)\)", lines[2]))
+    assert linked == set(README.values()) - {README[lang_code]}
 
 
-@pytest.mark.parametrize("codigo", [c for c in README if c != "en_us"])
-def test_misma_forma_que_el_ingles(codigo):
-    en, otro = leer(README["en_us"]), leer(README[codigo])
-    assert [n for n, _ in encabezados(otro)] == [n for n, _ in encabezados(en)]
-    assert forma(otro) == forma(en)
-    assert codigos(otro) == codigos(en)
-    assert numeros(otro) == numeros(en)
+@pytest.mark.parametrize("lang_code", [c for c in README if c != "en_us"])
+def test_same_shape_as_english(lang_code):
+    en, other_one = read(README["en_us"]), read(README[lang_code])
+    assert [n for n, _ in headers(other_one)] == [n for n, _ in headers(en)]
+    assert form(other_one) == form(en)
+    assert lang_codes(other_one) == lang_codes(en)
+    assert numbers(other_one) == numbers(en)
 
 
-@pytest.mark.parametrize("codigo", list(README))
-def test_enlaza_la_documentacion(codigo):
-    """Cada README enlaza la documentación (la española, el de español; la inglesa, los demás) y la guía de desarrollo."""
-    texto = leer(README[codigo])
-    docs = [es if codigo == "es_es" else en for en, es in DOCS]
+@pytest.mark.parametrize("lang_code", list(README))
+def test_links_the_documentation(lang_code):
+    """Each README links the documentation (the Spanish one, the Spanish README; the English one, the others) and the development guide."""
+    text = read(README[lang_code])
+    docs = [es if lang_code == "es_es" else en for en, es in DOCS]
     for d in docs + ["DEVELOPMENT.md"]:
-        assert f"(docs/{d})" in texto, (codigo, d)
+        assert f"(docs/{d})" in text, (lang_code, d)
 
 
-# ------------------------------------------------------------------ cifras del generador
-def cifras():
-    estructuras = (2 * len(THEMES) + len(MODS) + sum(len(m.ESTILOS) for _, m in medianas.modules())
-                   + len(minas.estructuras()) + len(costa.estructuras()))
+# ------------------------------------------------------------------ generator figures
+def figures():
+    structures = (2 * len(THEMES) + len(MODS) + sum(len(m.STYLES) for _, m in mediums.modules())
+                   + len(mines.structures()) + len(coast.structures()))
 
-    class _Plantilla:
+    class _Template:
         def __init__(self, sid):
-            self.entities = [(0, 0, 0, {"id": "minecraft:zombie", "Tags": [f"{logros.GUARDIAN_TAG}.{sid}"]})]
+            self.entities = [(0, 0, 0, {"id": "minecraft:zombie", "Tags": [f"{advancements.GUARDIAN_TAG}.{sid}"]})]
 
-    class _Reg:     # todas las únicas tienen guardián (el de la Atlántida incluido)
-        templates = {f"unicas/{sid}/x": _Plantilla(sid) for sid, _ in MODS}
-    advs, _ = logros.build(_Reg, MODS, medianas.modules(), minas, costa)
-    logros_n = len(advs) + len(tablon.LOGROS) + len(arena_oleadas.logros()) + len(encargos.LOGROS) + len(caravanas.LOGROS)
-    return {"estructuras": estructuras, "logros": logros_n}
-
-
-def test_cifras_del_generador():
-    c = cifras()
-    # las que se comprueban también en el servidor (server_smoke.py cuenta los ficheros generados)
-    assert c == {"estructuras": 180, "logros": 122}, "si cambian, cámbialas en los README y en docs/"
+    class _Registry:     # all unique structures have a guardian (Atlantis's included)
+        templates = {f"unicas/{sid}/x": _Template(sid) for sid, _ in MODS}
+    advs, _ = advancements.build(_Registry, MODS, mediums.modules(), mines, coast)
+    advancements_n = len(advs) + len(board.ADVANCEMENTS) + len(arena_waves.advancements()) + len(quests.ADVANCEMENTS) + len(caravans.ADVANCEMENTS)
+    return {"estructuras": structures, "logros": advancements_n}
 
 
-def test_cifras_del_readme():
-    texto = leer("README.md")
-    finales = [sid for sid, m in MODS if m.HISTORIA.get("final")]
-    esperado = {
+def test_figures_of_the_generator():
+    c = figures()
+    # those also checked on the server (server_smoke.py counts the generated files)
+    assert c == {"estructuras": 180, "logros": 122}, "if they change, change them in the READMEs and in docs/"
+
+
+def test_figures_of_the_readme():
+    text = read("README.md")
+    endings = [sid for sid, m in MODS if m.STORY.get("final")]
+    expected = {
         r"(\d+) hand-designed villages": 2 * len(THEMES),
         r"(\d+) styles, one for each": len(THEMES),
         r"grouped in (\d+) families": len(FAMILIES),
-        r"(\d+) kinds of medium structures": len(medianas.modules()),
-        r"(\d+) unique structures\*\*": len(MODS) - len(finales),
-        r"tab with (\d+) advancements": cifras()["logros"],
+        r"(\d+) kinds of medium structures": len(mediums.modules()),
+        r"(\d+) unique structures\*\*": len(MODS) - len(endings),
+        r"tab with (\d+) advancements": figures()["logros"],
         r"Each of the (\d+) guardians": len(MODS),
         r"gather all (\d+)": len(MODS),
-        r"in (\d+) sizes": len(minas.TAMANOS),
-        r"in (\d+) languages": len(idiomas.todos()),
+        r"in (\d+) sizes": len(mines.SIZES),
+        r"in (\d+) languages": len(languages.everyone()),
     }
-    for patron, n in esperado.items():
-        m = re.search(patron, texto)
-        assert m and int(m.group(1)) == n, (patron, m and m.group(1), n)
+    for pattern, n in expected.items():
+        m = re.search(pattern, text)
+        assert m and int(m.group(1)) == n, (pattern, m and m.group(1), n)
 
 
-@pytest.mark.parametrize("doc, patron, cual", [
+@pytest.mark.parametrize("doc, pattern, which", [
     ("CONTENT.md", r"\*\*Huge villages\*\*: (\d+) structures", "aldeas"),
     ("CONTENIDO.md", r"\*\*Aldeas enormes\*\*: (\d+) estructuras", "aldeas"),
     ("CONTENT.md", r"\((\d+) advancements\)", "logros"),
@@ -169,47 +169,47 @@ def test_cifras_del_readme():
     ("COMPILAR.md", r"las (\d+) estructuras", "estructuras"),
     ("COMPILAR.md", r"los (\d+) logros", "logros"),
 ])
-def test_cifras_de_la_documentacion(doc, patron, cual):
-    n = dict(cifras(), aldeas=2 * len(THEMES))[cual]
-    m = re.search(patron, leer(f"docs/{doc}"))
-    assert m and int(m.group(1)) == n, (doc, patron, m and m.group(1), n)
+def test_figures_of_the_documentation(doc, pattern, which):
+    n = dict(figures(), aldeas=2 * len(THEMES))[which]
+    m = re.search(pattern, read(f"docs/{doc}"))
+    assert m and int(m.group(1)) == n, (doc, pattern, m and m.group(1), n)
 
 
-@pytest.mark.parametrize("codigo", list(README))
-def test_tabla_de_opciones_con_los_valores_del_generador(codigo):
-    defectos = {o["clave"]: o["defecto"] for o in opciones.schema()["opciones"]}
-    filas = re.findall(r"^\| `([a-z_.<>]+)` \| ([^|]+) \|", leer(README[codigo]), re.M)
-    assert len(filas) >= 8
-    for clave, defecto in filas:
-        reales = [v for k, v in defectos.items() if re.fullmatch(re.escape(clave).replace("<id>", r"\w+"), k)]
-        assert reales, f"{clave} no es una opción"
-        d = defecto.strip().strip("`")
-        assert all(d == (str(v).lower() if isinstance(v, bool) else str(v)) for v in reales), (clave, d, reales)
+@pytest.mark.parametrize("lang_code", list(README))
+def test_options_table_with_the_generator_values(lang_code):
+    defaults = {o["clave"]: o["defecto"] for o in options.schema()["opciones"]}
+    rows = re.findall(r"^\| `([a-z_.<>]+)` \| ([^|]+) \|", read(README[lang_code]), re.M)
+    assert len(rows) >= 8
+    for key, default in rows:
+        real = [v for k, v in defaults.items() if re.fullmatch(re.escape(key).replace("<id>", r"\w+"), k)]
+        assert real, f"{key} is not an option"
+        d = default.strip().strip("`")
+        assert all(d == (str(v).lower() if isinstance(v, bool) else str(v)) for v in real), (key, d, real)
 
 
-# ------------------------------------------------------------------ docs/ en inglés y español
+# ------------------------------------------------------------------ docs/ in English and Spanish
 @pytest.mark.parametrize("en, es", DOCS)
-def test_documentacion_en_los_dos_idiomas(en, es):
-    ten, tes = leer(f"docs/{en}"), leer(f"docs/{es}")
+def test_documentation_in_the_two_languages(en, es):
+    ten, tes = read(f"docs/{en}"), read(f"docs/{es}")
     assert ten.split("\n")[2] == f"**English** · [Español]({es})"
     assert tes.split("\n")[2] == f"[English]({en}) · **Español**"
-    assert [n for n, _ in encabezados(ten)] == [n for n, _ in encabezados(tes)]
+    assert [n for n, _ in headers(ten)] == [n for n, _ in headers(tes)]
     assert len(re.findall(r"^\|", ten, re.M)) == len(re.findall(r"^\|", tes, re.M))
 
 
-def _enlaces(rel):
-    """[(destino, ancla)] de los enlaces relativos de un documento."""
+def _links(rel):
+    """[(target, anchor)] of the relative links of a document."""
     out = []
-    for destino in re.findall(r"\]\(([^)\s]+)\)", leer(rel)):
-        if not re.match(r"[a-z]+:", destino):
-            f, _, a = destino.partition("#")
+    for destination in re.findall(r"\]\(([^)\s]+)\)", read(rel)):
+        if not re.match(r"[a-z]+:", destination):
+            f, _, a = destination.partition("#")
             out.append((os.path.normpath(os.path.join(os.path.dirname(rel), f)) if f else rel, a))
     return out
 
 
-@pytest.mark.parametrize("rel", list(README.values()) + [f"docs/{d}" for par in DOCS for d in par])
-def test_enlaces_que_llevan_a_algo(rel):
-    for f, a in _enlaces(rel):
+@pytest.mark.parametrize("rel", list(README.values()) + [f"docs/{d}" for pair in DOCS for d in pair])
+def test_links_that_lead_to_somewhat(rel):
+    for f, a in _links(rel):
         assert os.path.exists(os.path.join(ROOT, f)), (rel, f)
         if a and f.endswith(".md"):
-            assert a in {ancla(t) for _, t in encabezados(leer(f))}, (rel, f, a)
+            assert a in {anchor_point(t) for _, t in headers(read(f))}, (rel, f, a)

@@ -1,6 +1,6 @@
 # Gothic cathedral (`heraldia:unicas/catedral`)
 
-A unique structure in the style of Notre-Dame, designed by hand in `tools/gen/unicas/catedral/` (a single variant).
+A unique structure in the style of Notre-Dame, designed by hand in `tools/gen/uniques/cathedral/` (a single variant).
 Biome: forest and flower forest (`minecraft:forest`, `minecraft:flower_forest`). Default rarity: a 250-chunk grid
 (separation 190), one every ~3,000-5,000 blocks.
 
@@ -75,7 +75,7 @@ Each table has its extra pool marked `solo_sin_lootr`.
   held by two extended sticky pistons in a four-thick wall (levers | torches | door, pistons and dust |
   treasure side). Behind each virtue there is a redstone torch (inverter) next to a continuous line of dust that keeps
   the pistons extended: it only opens with the three virtues on. The greed lever is a trap: it fires an
-  arrow from a dispenser hidden behind its sign. The shared simulator (`_comun/redstone.py`) tries the 8 combinations.
+  arrow from a dispenser hidden behind its sign. The shared simulator (`_common/redstone.py`) tries the 8 combinations.
 - **Secret cabinet** (library): the same mechanism with a lever among the bookshelves in the northeast corner; the door is
   a bookshelf that moves back into the wall.
 - **Reliquary**: an iron trapdoor on the dais of the high altar, opened by the floor lever next to it; a ladder down to the reliquary.
@@ -109,12 +109,12 @@ the crypt's sunken gallery.
 ## Checks
 
 - The spiral staircase, piston doors, traps, spawners, guardian, signs and loot helpers come from the shared pieces
-  in `tools/gen/unicas/_comun/` (`piezas.py` and `botin.py`).
+  in `tools/gen/uniques/_common/` (`pieces.py` and `chest_loot.py`).
 
-- `tools/gen/unicas/catedral/auditoria.py` (a condition for generating): a walk from the atrium with the mechanisms
+- `tools/gen/uniques/cathedral/audit.py` (a condition for generating): a walk from the atrium with the mechanisms
   operated, access to chests, spawners, levers, bells, lecterns, doors and steps; rooms without access; floating
   blocks; light; static consistency of the redstone; ruin ratio. It also runs `lint.py` and the registry validation.
-- `tools/gen/unicas/catedral/prueba_juego.py`: a real 26.3 dedicated server; it places the two pieces with `/place template`,
+- `tools/gen/uniques/cathedral/smoke_game.py`: a real 26.3 dedicated server; it places the two pieces with `/place template`,
   checks the rest state after the updates, operates each mechanism (a lever simulated with a redstone block on its support)
   and checks traps, spawners, chests and guardian.
 - `python3 -m unicas.catedral.planos <folder> render` (from `tools/gen`) regenerates plans and renders.

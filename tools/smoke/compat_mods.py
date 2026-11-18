@@ -1,29 +1,29 @@
-"""Compatibilidad con mods populares de Fabric 26.3 en un servidor dedicado real, por grupos de mods compatibles entre sí.
+"""Compatibility with popular Fabric 26.3 mods on a real dedicated server, by groups of mutually compatible mods.
 
-Uso: python3 tools/smoke/compat_mods.py --grupo <grupo> --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-     python3 tools/smoke/compat_mods.py --listar
-Los mods salen de modrinth.py (versión 26.3 + Fabric fijada y sha512). En cada grupo (más Chunky, que hace la generación):
-  - el servidor arranca sin errores de registro y con todas las estructuras de Heraldia («Heraldia: N estructuras
-    registradas») y sin excepciones que pasen por código de Heraldia en todo el log;
-  - /locate encuentra una aldea y las únicas de LOCATE (biomas con etiqueta convencional, que comparten los mods de
-    biomas) y /place coloca PLACE con su guardián;
-  - Chunky genera un cuadrado de RADIO bloques alrededor de la aldea y de las dos primeras únicas encontradas (en los
-    grupos SIN_CHUNKY, forceload de FORCELOAD_R): se mide el tiempo (chunks/s) y los «Can't keep up!», con topes
-    holgados (LENTO_CPS, ATRASO_MAX_MS);
-  - con el servidor parado, se leen los inicios de estructura guardados en las regiones: ninguna pieza de una estructura
-    de Heraldia puede cruzarse con una de otro mod (salvo las subterráneas, que no se ven: SUBTERRANEAS).
-Código 0 si todo pasa. Las funciones puras se prueban en tools/gen/tests/test_compat_mods.py.
+Usage: python3 tools/smoke/compat_mods.py --group <group> --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+     python3 tools/smoke/compat_mods.py --list-only
+The mods come from modrinth.py (version 26.3 + Fabric pinned, with sha512). In each group (plus Chunky, which does the generation):
+  - the server starts without registration errors and with all of Heraldia's structures ("Heraldia: N structures
+    registered") and with no exceptions passing through Heraldia code anywhere in the log;
+  - /locate finds a village and the unique structures of LOCATE (biomes with a conventional tag, shared by the biome
+    mods) and /place places PLACE with its guardian;
+  - Chunky generates a square of RADIUS blocks around the village and the first two unique structures found (in the
+    NO_CHUNKY groups, forceload of FORCELOAD_R): the time (chunks/s) and the "Can't keep up!" messages are measured, with generous
+    limits (SLOW_CPS, LAG_MAX_MS);
+  - with the server stopped, the structure starts saved in the regions are read: no piece of a Heraldia structure
+    may intersect one from another mod (except underground ones, which are not visible: UNDERGROUND).
+Exit code 0 if everything passes. The pure functions are tested in tools/gen/tests/test_compat_mods.py.
 """
 import argparse, glob, io, json, os, queue, re, struct, subprocess, sys, threading, time, zipfile, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 import modrinth
 
-# Grupos de mods compatibles entre sí (las dependencias van en el grupo). «base» es la referencia: solo Heraldia y Chunky.
-GRUPOS = {
+# Groups of mutually compatible mods (dependencies go in the group). "base" is the reference: only Heraldia and Chunky.
+GROUPS = {
     "base": [],
     "terreno": ["terralith", "lithostitched"],
-    # Tectonic 3 se declara incompatible con Terralith («Mod resolution failed»): va aparte
+    # Tectonic 3 declares itself incompatible with Terralith ("Mod resolution failed"): it goes separately
     "tectonic": ["tectonic", "lithostitched"],
     "biomas": ["biomes-o-plenty", "glitchcore", "terrablender"],
     "wwoo": ["wwoo", "cristel-lib", "cloth-config"],
@@ -31,59 +31,59 @@ GRUPOS = {
                     "structory-towers", "explorify"],
     "rendimiento": ["lithium", "c2me-fabric", "ferrite-core", "scalablelux"],
     "servidor": ["lootr", "xaeros-minimap", "xaeros-world-map", "journeymap"],
-    # Distant Horizons y Chunky juntos dejan el servidor parado al preparar el spawn (también sin Heraldia): sin Chunky,
-    # la zona se genera con forceload (FORCELOAD_R)
+    # Distant Horizons and Chunky together leave the server stuck while preparing the spawn (also without Heraldia): without Chunky,
+    # the area is generated with forceload (FORCELOAD_R)
     "distanthorizons": ["distanthorizons"],
 }
-SIEMPRE = ["chunky"]
-SIN_CHUNKY = {"distanthorizons"}
-FORCELOAD_R = 64               # medio lado de la zona que se genera con forceload si no hay Chunky (9 × 9 chunks)
+ALWAYS = ["chunky"]
+NO_CHUNKY = {"distanthorizons"}
+FORCELOAD_R = 64               # half side of the area generated with forceload if there is no Chunky (9 × 9 chunks)
 LOCATE = ["castillo", "catedral", "santuario", "acueducto"]
 PLACE, PLACE_AT, PLACE_R = "torre_mago", (4000, 4000), 64
-RADIO = 160                    # medio lado (bloques) de cada zona que genera Chunky
-LENTO_CPS = 3.0                # por debajo de esto (chunks/s de media) la generación se da por rota
-ATRASO_MAX_MS = 60000          # un «Can't keep up! ... N ms behind» de más de un minuto: el servidor se ha atascado
+RADIUS = 160                    # half side (blocks) of each area Chunky generates
+SLOW_CPS = 3.0                # below this (average chunks/s) generation is considered broken
+LAG_MAX_MS = 60000          # a "Can't keep up! ... N ms behind" of more than a minute: the server has got stuck
 CHUNKY_TIMEOUT_S = 900
-# Configuración de prueba: la separación mínima entre aldeas, para tener más aldeas cerca de las zonas generadas.
+# Test configuration: the minimum spacing between villages, to have more villages near the generated areas.
 CONFIG = {"aldeas": {"separacion_bloques": 1000}}
-# Pasos de generación (Structure.step) de las estructuras que no asoman: un solape con ellas no se ve en la superficie.
-SUBTERRANEAS = {"underground_structures", "underground_ores", "underground_decoration", "strongholds"}
-LOG_MALO = ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse",
+# Generation steps (Structure.step) of the structures that do not show: an overlap with them is not visible on the surface.
+UNDERGROUND = {"underground_structures", "underground_ores", "underground_decoration", "strongholds"}
+LOG_BAD = ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse",
             "Mod resolution failed", "Mixin apply failed", "mixin.transformer.throwables")
-_CHUNKY_FIN = re.compile(r"Task finished for (\S+)\. Processed: (\d+) chunks")
-_ATRASO = re.compile(r"Can't keep up! .*?Running (\d+)ms or (\d+) ticks behind")
+_CHUNKY_END = re.compile(r"Task finished for (\S+)\. Processed: (\d+) chunks")
+_LAG = re.compile(r"Can't keep up! .*?Running (\d+)ms or (\d+) ticks behind")
 
 
-def mods_de(grupo):
-    """Proyectos de Modrinth del grupo, con los que van siempre (sin repetir)."""
-    return list(dict.fromkeys(GRUPOS[grupo] + ([] if grupo in SIN_CHUNKY else SIEMPRE)))
+def mods_of(group):
+    """Modrinth projects of the group, together with those that always go (no repeats)."""
+    return list(dict.fromkeys(GROUPS[group] + ([] if group in NO_CHUNKY else ALWAYS)))
 
 
-def atrasos(texto):
-    """Milisegundos de cada «Can't keep up!» del log."""
-    return [int(m.group(1)) for m in _ATRASO.finditer(texto)]
+def lags(text):
+    """Milliseconds of each "Can't keep up!" in the log."""
+    return [int(m.group(1)) for m in _LAG.finditer(text)]
 
 
-def errores_heraldia(texto):
-    """Bloques de excepción del log (la línea y su traza «at ...») que pasan por código de Heraldia (paquete o mixin)."""
-    out, lines = [], texto.splitlines()
+def heraldia_errors(text):
+    """Exception blocks in the log (the line and its "at ..." trace) that pass through Heraldia code (package or mixin)."""
+    out, lines = [], text.splitlines()
     i = 0
     while i < len(lines):
         if re.search(r"(Exception|Error)\b", lines[i]) and not lines[i].startswith(("\tat ", "\t...")):
             j = i + 1
             while j < len(lines) and (lines[j].startswith(("\tat ", "\t... ", "Caused by:", "\tSuppressed:")) or lines[j].startswith("\t\tat ")):
                 j += 1
-            bloque = lines[i:j]
-            if any("albertosa23.heraldia" in l or "heraldia$" in l for l in bloque):
-                out.append("\n".join(bloque[:12]))
+            block = lines[i:j]
+            if any("albertosa23.heraldia" in l or "heraldia$" in l for l in block):
+                out.append("\n".join(block[:12]))
             i = j
         else:
             i += 1
     return out
 
 
-def _cajas(start):
-    """Cajas (x0, y0, z0, x1, y1, z1) de las piezas de un inicio de estructura guardado."""
+def _boxes(start):
+    """Boxes (x0, y0, z0, x1, y1, z1) of the pieces of a saved structure start."""
     out = []
     for child in start.get("Children", []):
         bb = child.get("BB")
@@ -92,8 +92,8 @@ def _cajas(start):
     return out
 
 
-def inicios(world):
-    """[(id, (chunkX, chunkZ), [cajas])] de los inicios de estructura guardados en las regiones del Overworld."""
+def structure_starts(world):
+    """[(id, (chunkX, chunkZ), [boxes])] of the structure starts saved in the Overworld regions."""
     paths = glob.glob(os.path.join(world, "dimensions", "minecraft", "overworld", "region", "r.*.mca")) or \
         glob.glob(os.path.join(world, "region", "r.*.mca"))
     import nbtlib
@@ -114,32 +114,32 @@ def inicios(world):
             for sid, st in starts.items():
                 if str(st.get("id", sid)) == "INVALID":
                     continue
-                cajas = _cajas(st)
-                if cajas:
-                    out.append((str(sid), (int(st.get("ChunkX", 0)), int(st.get("ChunkZ", 0))), cajas))
+                boxes = _boxes(st)
+                if boxes:
+                    out.append((str(sid), (int(st.get("ChunkX", 0)), int(st.get("ChunkZ", 0))), boxes))
     return out
 
 
-def _cruzan(a, b):
+def _cross(a, b):
     return a[0] <= b[3] and b[0] <= a[3] and a[1] <= b[4] and b[1] <= a[4] and a[2] <= b[5] and b[2] <= a[5]
 
 
-def solapes(lista, pasos=None):
-    """Parejas (heraldia, ajena) cuyas piezas se cruzan. Ajena = de otro mod (ni heraldia ni minecraft) y que no sea
-    subterránea según `pasos` (id -> paso de generación, si se sabe). Cada pareja una vez."""
-    pasos = pasos or {}
-    nuestras = [x for x in lista if x[0].startswith("heraldia:")]
-    ajenas = [x for x in lista if not x[0].startswith(("heraldia:", "minecraft:")) and pasos.get(x[0]) not in SUBTERRANEAS]
+def overlaps(lst, steps=None):
+    """Pairs (heraldia, foreign) whose pieces intersect. Foreign = from another mod (neither heraldia nor minecraft) and not
+    underground according to `steps` (id -> generation step, if known). Each pair once."""
+    steps = steps or {}
+    our_items = [x for x in lst if x[0].startswith("heraldia:")]
+    foreign = [x for x in lst if not x[0].startswith(("heraldia:", "minecraft:")) and steps.get(x[0]) not in UNDERGROUND]
     out = []
-    for h in nuestras:
-        for o in ajenas:
-            if any(_cruzan(a, b) for a in h[2] for b in o[2]):
+    for h in our_items:
+        for o in foreign:
+            if any(_cross(a, b) for a in h[2] for b in o[2]):
                 out.append((h[0], h[1], o[0], o[1]))
     return out
 
 
-def pasos_de_mods(jars):
-    """id de estructura -> paso de generación («step») leyendo worldgen/structure/*.json dentro de los .jar."""
+def mod_steps(jars):
+    """Structure id -> generation step ("step") reading worldgen/structure/*.json inside the .jar files."""
     out = {}
     for path in jars:
         with zipfile.ZipFile(path) as z:
@@ -173,59 +173,59 @@ def place(ctx, sid, x, z, r):
 
 
 def chunky(ctx, x, z, r):
-    """Genera con Chunky el cuadrado de medio lado r en (x, z): (chunks, segundos)."""
+    """Generates with Chunky the square of half side r at (x, z): (chunks, seconds)."""
     ctx.run(f"chunky center {x} {z}", r"[Cc]enter|Chunky")
     ctx.run(f"chunky radius {r}", r"[Rr]adius|Chunky")
     t0 = time.monotonic()
     s.send(ctx.proc, "chunky start")
-    m = s.wait_for(ctx.lines, _CHUNKY_FIN.pattern + r"|Task (?:already|not) |[Cc]onfirm", CHUNKY_TIMEOUT_S, ctx.seen)
+    m = s.wait_for(ctx.lines, _CHUNKY_END.pattern + r"|Task (?:already|not) |[Cc]onfirm", CHUNKY_TIMEOUT_S, ctx.seen)
     if "onfirm" in m.group(0):
         s.send(ctx.proc, "chunky confirm")
-        m = s.wait_for(ctx.lines, _CHUNKY_FIN.pattern, CHUNKY_TIMEOUT_S, ctx.seen)
+        m = s.wait_for(ctx.lines, _CHUNKY_END.pattern, CHUNKY_TIMEOUT_S, ctx.seen)
     if not m.group(2):
-        raise SystemExit(f"Chunky no empezó: {m.string.strip()}")
+        raise SystemExit(f"Chunky did not start: {m.string.strip()}")
     return int(m.group(2)), time.monotonic() - t0
 
 
-def forzar(ctx, x, z, r):
-    """Sin Chunky: genera el cuadrado de medio lado r en (x, z) con forceload y espera a que sus esquinas estén
-    cargadas. (chunks, segundos)."""
+def force(ctx, x, z, r):
+    """Without Chunky: generates the square of half side r at (x, z) with forceload and waits for its corners to be
+    loaded. (chunks, seconds)."""
     t0 = time.monotonic()
     ctx.run(f"forceload add {x - r} {z - r} {x + r} {z + r}", r"Marked|Added|force|already")
-    esquinas = [(x - r, z - r), (x + r, z - r), (x - r, z + r), (x + r, z + r), (x, z)]
-    for ex, ez in esquinas:
+    corners = [(x - r, z - r), (x + r, z - r), (x - r, z + r), (x + r, z + r), (x, z)]
+    for ex, ez in corners:
         if not ctx.until(f"execute if loaded {ex} 64 {ez}", timeout=CHUNKY_TIMEOUT_S):
             raise SystemExit(f"forceload no carga {ex}, {ez}")
     t = time.monotonic() - t0
     ctx.run(f"forceload remove {x - r} {z - r} {x + r} {z + r}", r"Unmarked|force|not")
-    lado = (x + r) // 16 - (x - r) // 16 + 1
-    return lado * lado, t
+    side = (x + r) // 16 - (x - r) // 16 + 1
+    return side * side, t
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--grupo", choices=sorted(GRUPOS))
-    ap.add_argument("--listar", action="store_true", help="grupos y mods (con versión), sin ejecutar nada")
-    ap.add_argument("--mods", nargs="+", metavar="SLUG", help="con --grupo: estos mods en vez de los del grupo (para aislar un fallo)")
+    ap.add_argument("--group", choices=sorted(GROUPS))
+    ap.add_argument("--list-only", action="store_true", help="groups and mods (with version), without running anything")
+    ap.add_argument("--mods", nargs="+", metavar="SLUG", help="with --group: these mods instead of the group's (to isolate a failure)")
     ap.add_argument("--jar")
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-compat"))
     a = ap.parse_args(argv)
-    if a.listar:
-        for g in GRUPOS:
-            print(f"{g}: " + ", ".join(f"{p} {modrinth.MODS[p].version}" for p in mods_de(g)))
+    if a.list_only:
+        for g in GROUPS:
+            print(f"{g}: " + ", ".join(f"{p} {modrinth.MODS[p].version}" for p in mods_of(g)))
         return 0
-    if not a.grupo or not a.jar:
-        ap.error("--grupo y --jar son obligatorios (o --listar)")
+    if not a.group or not a.jar:
+        ap.error("--group and --jar are required (or --list-only)")
     os.makedirs(a.work, exist_ok=True)
-    with zipfile.ZipFile(a.jar) as z:   # en la CI este job solo tiene el .jar
+    with zipfile.ZipFile(a.jar) as z:   # in CI this job only has the .jar
         expected = sum(n.startswith("data/heraldia/worldgen/structure/") and n.endswith(".json") for n in z.namelist())
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     with open(os.path.join(a.work, "config", "heraldia.json"), "w") as f:
         json.dump(CONFIG, f)
-    slugs = list(dict.fromkeys(a.mods + ([] if a.grupo in SIN_CHUNKY else SIEMPRE))) if a.mods else mods_de(a.grupo)
-    modrinth.instalar(a.work, slugs)
-    pasos = pasos_de_mods([modrinth.jar(a.work, p) for p in slugs])
-    t_arranque = time.monotonic()
+    slugs = list(dict.fromkeys(a.mods + ([] if a.group in NO_CHUNKY else ALWAYS))) if a.mods else mods_of(a.group)
+    modrinth.install(a.work, slugs)
+    steps = mod_steps([modrinth.jar(a.work, p) for p in slugs])
+    t_start = time.monotonic()
     proc = subprocess.Popen(["java", "-Xmx3G", "-jar", launcher, "nogui"], cwd=a.work, text=True,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen, fails, info = queue.Queue(), [], [], []
@@ -233,44 +233,44 @@ def main(argv=None):
     ctx = s.Context(proc, lines, seen)
     try:
         m = s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
-        info.append(f"arranque {time.monotonic() - t_arranque:.0f} s")
+        info.append(f"arranque {time.monotonic() - t_start:.0f} s")
         if int(m.group(1)) != expected:
             fails.append(f"estructuras registradas {m.group(1)}, esperadas {expected}")
         lootr = ctx.run("heraldia info", r"Lootr: (\S+)")
         if ("lootr" in slugs) != (lootr.group(1).rstrip(".") in ("installed", "instalado")):
             fails.append(f"/heraldia info no detecta bien Lootr: {lootr.string.strip()}")
-        zonas = []
-        aldea = locate(ctx, "#heraldia:aldeas")
-        if aldea is None:
-            fails.append("/locate no encuentra ninguna aldea de Heraldia")
+        zones = []
+        village = locate(ctx, "#heraldia:aldeas")
+        if village is None:
+            fails.append("/locate finds no Heraldia village")
         else:
-            zonas.append(("aldea", aldea))
+            zones.append(("aldea", village))
         for sid in LOCATE:
             p = locate(ctx, f"heraldia:unicas/{sid}")
             if p is None:
                 fails.append(f"/locate no encuentra heraldia:unicas/{sid}")
-            elif len(zonas) < 3:
-                zonas.append((sid, p))
+            elif len(zones) < 3:
+                zones.append((sid, p))
         if not place(ctx, PLACE, *PLACE_AT, PLACE_R):
-            fails.append(f"/place structure heraldia:unicas/{PLACE} falló")
+            fails.append(f"/place structure heraldia:unicas/{PLACE} failed")
         elif not s.guardian_placed(ctx, PLACE):
-            fails.append(f"{PLACE}: no aparece su guardián")
+            fails.append(f"{PLACE}: its guardian does not appear")
         ctx.run(f"forceload remove {PLACE_AT[0] - PLACE_R} {PLACE_AT[1] - PLACE_R} {PLACE_AT[0] + PLACE_R} {PLACE_AT[1] + PLACE_R}",
                 r"Unmarked|force|not")
-        antes = len("".join(seen))
+        before = len("".join(seen))
         total_chunks, total_s = 0, 0.0
-        for nombre, (x, z) in zonas:
-            n, t = forzar(ctx, x, z, FORCELOAD_R) if "chunky" not in slugs else chunky(ctx, x, z, RADIO)
+        for name, (x, z) in zones:
+            n, t = force(ctx, x, z, FORCELOAD_R) if "chunky" not in slugs else chunky(ctx, x, z, RADIUS)
             total_chunks, total_s = total_chunks + n, total_s + t
-            info.append(f"{'Chunky' if 'chunky' in slugs else 'forceload'} {nombre} ({x}, {z}): {n} chunks en {t:.0f} s")
-        durante = atrasos("".join(seen)[antes:])
+            info.append(f"{'Chunky' if 'chunky' in slugs else 'forceload'} {name} ({x}, {z}): {n} chunks en {t:.0f} s")
+        during = lags("".join(seen)[before:])
         cps = total_chunks / total_s if total_s else 0
         info.append(f"generación: {total_chunks} chunks en {total_s:.0f} s ({cps:.1f} chunks/s); "
-                    f"{len(durante)} «Can't keep up!» (máx. {max(durante, default=0)} ms)")
-        if total_chunks and cps < LENTO_CPS:
-            fails.append(f"generación demasiado lenta: {cps:.1f} chunks/s (< {LENTO_CPS})")
-        if max(durante, default=0) > ATRASO_MAX_MS:
-            fails.append(f"«Can't keep up!» de {max(durante)} ms durante la generación (> {ATRASO_MAX_MS})")
+                    f"{len(during)} «Can't keep up!» (máx. {max(during, default=0)} ms)")
+        if total_chunks and cps < SLOW_CPS:
+            fails.append(f"generation too slow: {cps:.1f} chunks/s (< {SLOW_CPS})")
+        if max(during, default=0) > LAG_MAX_MS:
+            fails.append(f"\"Can't keep up!\" of {max(during)} ms during generation (> {LAG_MAX_MS})")
     finally:
         if proc.poll() is None:
             try:
@@ -280,19 +280,19 @@ def main(argv=None):
                 proc.kill()
     log = os.path.join(a.work, "logs", "latest.log")
     text = open(log, encoding="utf-8", errors="replace").read() if os.path.isfile(log) else "".join(seen)
-    for bad in LOG_MALO:
+    for bad in LOG_BAD:
         if bad in text:
-            fails.append(f"el log contiene {bad!r}")
-    for e in errores_heraldia(text):
-        fails.append("excepción con código de Heraldia:\n      " + e.replace("\n", "\n      "))
-    lista = inicios(os.path.join(a.work, "world"))
-    nuestras = sum(x[0].startswith("heraldia:") for x in lista)
-    ajenas = sum(not x[0].startswith(("heraldia:", "minecraft:")) for x in lista)
-    info.append(f"inicios guardados: {len(lista)} ({nuestras} de Heraldia, {ajenas} de otros mods)")
-    for h, hp, o, op in solapes(lista, pasos):
-        fails.append(f"solape visible: {h} (chunk {hp[0]}, {hp[1]}) con {o} (chunk {op[0]}, {op[1]})")
-    print(f"COMPAT {a.grupo}: " + "; ".join(info))
-    print(f"COMPAT {a.grupo}:", "OK" if not fails else "FALLA\n  " + "\n  ".join(fails))
+            fails.append(f"the log contains {bad!r}")
+    for e in heraldia_errors(text):
+        fails.append("exception with Heraldia code:\n      " + e.replace("\n", "\n      "))
+    lst = structure_starts(os.path.join(a.work, "world"))
+    our_items = sum(x[0].startswith("heraldia:") for x in lst)
+    foreign = sum(not x[0].startswith(("heraldia:", "minecraft:")) for x in lst)
+    info.append(f"inicios guardados: {len(lst)} ({our_items} de Heraldia, {foreign} de otros mods)")
+    for h, hp, o, op in overlaps(lst, steps):
+        fails.append(f"visible overlap: {h} (chunk {hp[0]}, {hp[1]}) with {o} (chunk {op[0]}, {op[1]})")
+    print(f"COMPAT {a.group}: " + "; ".join(info))
+    print(f"COMPAT {a.group}:", "OK" if not fails else "FAIL\n  " + "\n  ".join(fails))
     return 1 if fails else 0
 
 

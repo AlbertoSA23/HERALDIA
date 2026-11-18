@@ -7,7 +7,7 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 /**
- * Condition {@code heraldia:tesoro_pista} of the group tools/gen/tesoro.con_pista adds to the chest tables: the
+ * Condition {@code heraldia:tesoro_pista} of the group tools/gen/treasure.with_hint adds to the chest tables: the
  * fragment drops with probability tesoro.probabilidad % x {@code factor} (the same computation as tesoro.probabilidad in the
  * generator) and never with tesoro.activado = false. It reads the configuration when the loot is rolled (reloadable without restarting).
  */

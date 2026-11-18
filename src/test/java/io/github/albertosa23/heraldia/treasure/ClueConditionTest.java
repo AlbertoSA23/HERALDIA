@@ -6,7 +6,7 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import org.junit.jupiter.api.Test;
 
-/** The fragment's probability (the same computation as tools/gen/tesoro.probabilidad) and the condition's format. */
+/** The fragment's probability (the same computation as tools/gen/treasure.probability) and the condition's format. */
 class ClueConditionTest {
 	@Test
 	void probability() {

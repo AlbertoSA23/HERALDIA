@@ -153,7 +153,7 @@ Nearby Heraldia villages are joined by trails (`aldeas.caminos.*` in the [config
 - **Water**: a river or a short stretch of water (up to about 64 blocks) is crossed by a plank bridge one block above the water, with posts down to the bottom; a shallow marsh (2 blocks), by a boardwalk flush with the water; long and deep water (lakes, sea) cuts the road at the shore. It never goes over lava.
 - **Lamp posts and signs**: every 48 blocks or so, on alternating sides, a fence post with a lantern or a torch (depending on the road), in the biome's wood; about 128 blocks from each village, a sign with the name of the destination village (a place name such as "Torre del Roble" or "Vado de la Encina", the same on all its signs) and the blocks left, with an arrow towards it.
 
-Everything comes from the seed and the village grid, chunk by chunk, without loading or waiting for any other chunk: both sides of a chunk border always match. **In an existing world, new chunks only**: what is already generated does not change and the stretches that would fall in explored land do not exist (the road starts at the border). Cost, measured on the test server (`tools/smoke/caminos.py`, about 1,000 chunks): half of the chunks pay less than 32 µs and 90 % less than 128 µs; the only expensive parts are computed once per server start and kept in memory: whether a grid cell has a village (about 1.5 ms; at most 100 cells with a village), each road's waypoint (about 30 ms) and the bottom height at the vertices that fall in water (about 0.4 ms each). The mod writes these figures to the log when the server stops.
+Everything comes from the seed and the village grid, chunk by chunk, without loading or waiting for any other chunk: both sides of a chunk border always match. **In an existing world, new chunks only**: what is already generated does not change and the stretches that would fall in explored land do not exist (the road starts at the border). Cost, measured on the test server (`tools/smoke/roads.py`, about 1,000 chunks): half of the chunks pay less than 32 µs and 90 % less than 128 µs; the only expensive parts are computed once per server start and kept in memory: whether a grid cell has a village (about 1.5 ms; at most 100 cells with a village), each road's waypoint (about 30 ms) and the bottom height at the vertices that fall in water (about 0.4 ms each). The mod writes these figures to the log when the server stops.
 
 ## Caravans
 
@@ -239,7 +239,7 @@ bastions, fortresses and End cities, and to other mods' structures), counting on
   with the same trap, the nave of the guardian **Hierophant of the Void** (evoker with phases), the treasure chamber
   and the choir with the library.
 - **Loot** that does not break progression: no netherite gear, ingots or ancient debris, no elytra and nothing from
-  the dragon (`dimensiones.PROHIBIDO`); at most one netherite scrap in the Ashen Citadel's premium chest (as in a
+  the dragon (`dimensions.FORBIDDEN`); at most one netherite scrap in the Ashen Citadel's premium chest (as in a
   bastion chest) and at most one shulker shell. The medium structures follow their usual modest-loot list.
 - **No treasure maps** to them (an exploration map only searches the dimension where it is created): cartographers,
   epic chests and the Chronicle leaf only map Overworld unique structures; the Chronicle still points to them with its
@@ -308,7 +308,7 @@ Known limitations: on slopes the streets follow the terrain with one-block steps
 
 ## Treasure hunt
 
-A chained hunt through real Heraldia structures to a buried chest (Java package `tesoro/` and `tools/gen/tesoro.py`). Options `tesoro.*` (see [Configuration](CONFIGURATION.md#treasure-hunt-heraldia-treasure)); they reload with `/heraldia reload` and none of them touches world generation.
+A chained hunt through real Heraldia structures to a buried chest (Java package `tesoro/` and `tools/gen/treasure.py`). Options `tesoro.*` (see [Configuration](CONFIGURATION.md#treasure-hunt-heraldia-treasure)); they reload with `/heraldia reload` and none of them touches world generation.
 
 - **The first clue**: a *treasure map fragment* (paper with a name and the `custom_data` mark `heraldia_busqueda`). It turns up with probability `tesoro.probabilidad` % (3 by default) in every chest, barrel or pot of medium structures and mine entrances, half that in unique structures' ones (never in trap dispensers) the same in the pay for each job-board quest handed in (table `heraldia:tesoro/encargo`, rolled by `Tesoro.recompensa` in `Encargos.pagar`) and five times that in the job-board feats' reward. The condition (`heraldia:tesoro_pista`) reads the option when the loot is rolled. To hand one out: `/heraldia treasure give` (operators) or the `heraldia:tesoro/fragmento` table.
 - **Deciphering it**: right-click. The chain is chosen **off the server thread** with the same rules as `/heraldia info nearby`: a medium structure within `tesoro.radio_max` blocks (1500 by default) of where it is deciphered; from it, a mine entrance (or, if there is none, another medium structure); and from the last one, the treasure, 48-128 blocks away. Structures already generated are preferred (read from disk; loaded chunks are confirmed on the server thread); otherwise predicted ones, in ungenerated chunks where generation will place them (the map says so: "in lands not yet explored"). **It never loads or generates a chunk.** It is deterministic: the seed comes from the world, the player and how many clues they have deciphered; same seed, same chain. On the test server it takes ~0.4-0.5 s on another thread (about 35 grid cells).
@@ -317,7 +317,7 @@ A chained hunt through real Heraldia structures to a buried chest (Java package 
 - **The treasure**: within 32 blocks of the final mark, the chest is buried (one block under the surface) at the safe spot closest to the mark: natural ground, no water above, outside the pieces of any structure and **with nothing built by players** (planks, glass, wool, doors, torches, chests, rails, bricks...) within 6 blocks around, from 6 blocks below to 10 above the ground. Only chunks already loaded are looked at. If nothing fits (someone built there, or it is water), the mark moves 32-64 blocks and the map is updated. Finding the spot costs ~12-14 ms once, on the server thread.
 - **The chest** (table `heraldia:tesoro/cofre`, "Ysolda's chest"): *Ysolda's Compass* (a named keepsake) and 3-5 valuable items (diamonds, emeralds, gold, an enchanted book, a heart of the sea, the wayfinder armour trim...) that do not break progression (no netherite, elytra or enchanted apples), plus provisions. Each chain is completed **only once**: its seed is stored in the world, so a copy of the map (cartography table) gives no second chest.
 - **Advancements**: `tesoro/fragmento` (get a fragment) and `tesoro/cofre` (open the buried chest). The Herald's Guide has its page ("Treasure hunt").
-- Server test: `tools/smoke/tesoro.py` (loot and reload, the whole chain with restarts halfway and at the end, the chest outside a house placed on the mark, its loot and its advancements).
+- Server test: `tools/smoke/treasure.py` (loot and reload, the whole chain with restarts halfway and at the end, the chest outside a house placed on the mark, its loot and its advancements).
 
 ## Guardian fights
 
@@ -399,7 +399,7 @@ A vanilla written book, the **Herald's Guide**, that explains the mod to players
 - **Language**: pages are translatable texts whose fallback is in the client's language (any of the mod's 8 languages, chosen by the client's language: `fr_ca` gets French, `pt_pt` Brazilian Portuguese, `es_mx` Spanish; English for the rest), so a player **without the mod** reads it in their language.
 - Vanilla book limits: the generator checks that every page fits the 14 lines of a book page (with the same width calculation as the Chronicle leaves), that the title is at most 32 characters and that the book never exceeds 100 pages (with today's 20 unique structures, 23 to 29). It carries `custom_data` `{heraldia_guia_libro:"<version>"}` and the mod edition in its lore.
 
-Cost: it only works when a player without this version's guide joins or when it is asked for (it reads their discovery advancements and builds the book; measured on the test server, see `tools/smoke/guia.py`); nothing per tick.
+Cost: it only works when a player without this version's guide joins or when it is asked for (it reads their discovery advancements and builds the book; measured on the test server, see `tools/smoke/guide.py`); nothing per tick.
 
 ## Advancements
 
@@ -446,7 +446,7 @@ How a chest is recognised: when a Heraldia chest that still has its loot table i
 - `dificultad.escalar_por_jugadores` (off): +25 % health per extra player within 32 blocks (up to +100 %), recomputed when the mob takes a hit.
 - Loot: only plain stackable items (no name or other components) of Heraldia chest tables change their amount (the fractional part with its probability, never below 1 or above a stack). Skeleton arrows and other ranged damage do not change.
 
-Cost: an event when a block is used (leaves at once if it is not a container with a table, or the option is off), on each entity load and on each hit (leaves at once if the mob has no Heraldia tag); measured with `tools/smoke/botin_reponer.py` and `tools/smoke/dificultad.py`.
+Cost: an event when a block is used (leaves at once if it is not a container with a table, or the option is off), on each entity load and on each hit (leaves at once if the mob has no Heraldia tag); measured with `tools/smoke/loot_restock.py` and `tools/smoke/difficulty.py`.
 
 ## Wave arena
 

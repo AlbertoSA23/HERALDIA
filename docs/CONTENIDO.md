@@ -155,7 +155,7 @@ Las aldeas Heraldia cercanas quedan unidas por senderos (`aldeas.caminos.*` en l
 - **Agua**: un río o un tramo de agua corto (hasta unos 64 bloques) se cruza con un puente de tablas un bloque por encima del agua, con postes hasta el fondo; una marisma poco honda (2 bloques), con una pasarela a ras del agua; el agua larga y honda (lagos, mar) corta el camino en la orilla. Nunca pasa por la lava.
 - **Farolas y carteles**: cada unos 48 bloques, a un lado y otro, un poste de valla con farol o con antorcha (según el camino), de la madera del bioma; a unos 128 bloques de cada aldea, un cartel con el nombre de la aldea de destino (un topónimo como «Torre del Roble» o «Vado de la Encina», el mismo en todos sus carteles) y los bloques que faltan, con una flecha hacia donde queda.
 
-Todo sale de la semilla y de la rejilla de las aldeas, chunk a chunk, sin cargar ni esperar a ningún otro chunk: los dos lados de una frontera de chunk casan siempre. **En un mundo ya creado, solo en los chunks nuevos**: lo ya generado no cambia y los tramos que caerían en lo explorado no existen (el camino empieza en el borde). Coste, medido en el servidor de prueba (`tools/smoke/caminos.py`, unos 1.000 chunks): la mitad de los chunks pagan menos de 32 µs y el 90 %, menos de 128 µs; lo único caro se calcula una vez por arranque del servidor y queda en memoria: saber si una casilla de la rejilla tiene aldea (unos 1,5 ms; como mucho 100 casillas con aldea), el punto de paso de cada ruta (unos 30 ms) y el fondo en los vértices que caen en el agua (unos 0,4 ms cada uno). El mod escribe estas cifras en el log al parar el servidor.
+Todo sale de la semilla y de la rejilla de las aldeas, chunk a chunk, sin cargar ni esperar a ningún otro chunk: los dos lados de una frontera de chunk casan siempre. **En un mundo ya creado, solo en los chunks nuevos**: lo ya generado no cambia y los tramos que caerían en lo explorado no existen (el camino empieza en el borde). Coste, medido en el servidor de prueba (`tools/smoke/roads.py`, unos 1.000 chunks): la mitad de los chunks pagan menos de 32 µs y el 90 %, menos de 128 µs; lo único caro se calcula una vez por arranque del servidor y queda en memoria: saber si una casilla de la rejilla tiene aldea (unos 1,5 ms; como mucho 100 casillas con aldea), el punto de paso de cada ruta (unos 30 ms) y el fondo en los vértices que caen en el agua (unos 0,4 ms cada uno). El mod escribe estas cifras en el log al parar el servidor.
 
 ## Caravanas
 
@@ -241,7 +241,7 @@ fortalezas y ciudades del End, y a las de otros mods), contando solo las de su m
   pistones, y el templo con la misma trampa, la nave del guardián **Hierofante del Vacío** (evocador con fases), la
   cámara del tesoro y el coro con la biblioteca.
 - **Botín** que no rompe el progreso: ni equipo de netherita, ni lingotes, ni restos antiguos, ni élitros, ni nada del
-  dragón (`dimensiones.PROHIBIDO`); como mucho un fragmento de netherita en el cofre premium de la Ciudadela de Ceniza
+  dragón (`dimensions.FORBIDDEN`); como mucho un fragmento de netherita en el cofre premium de la Ciudadela de Ceniza
   (como en un cofre de bastión) y como mucho un caparazón de shulker. Las medianas siguen su lista de botín modesto.
 - **Sin mapas del tesoro** hacia ellas (un mapa de exploración solo busca en la dimensión donde se crea): cartógrafos,
   cofres épicos y el pliego de la Crónica solo trazan el mapa de las únicas del mundo principal; la Crónica sigue
@@ -311,7 +311,7 @@ Limitaciones conocidas: en laderas las calles siguen el terreno con peldaños de
 
 ## Caza del tesoro
 
-Una búsqueda encadenada por estructuras reales de Heraldia hasta un cofre enterrado (paquete Java `tesoro/` y `tools/gen/tesoro.py`). Opciones `tesoro.*` (ver [Configuración](CONFIGURACION.md#búsqueda-del-tesoro-heraldia-treasure)); se recargan con `/heraldia reload` y ninguna toca la generación.
+Una búsqueda encadenada por estructuras reales de Heraldia hasta un cofre enterrado (paquete Java `tesoro/` y `tools/gen/treasure.py`). Opciones `tesoro.*` (ver [Configuración](CONFIGURACION.md#búsqueda-del-tesoro-heraldia-treasure)); se recargan con `/heraldia reload` y ninguna toca la generación.
 
 - **La primera pista**: un *fragmento de mapa del tesoro* (papel con nombre y la marca `custom_data` `heraldia_busqueda`). Sale con probabilidad `tesoro.probabilidad` % (3 por defecto) en cada cofre, barril o vasija de las estructuras medianas y de las entradas a mina, con la mitad en los de las únicas (nunca en dispensadores de trampas) lo mismo en la paga de cada encargo entregado del tablón (tabla `heraldia:tesoro/encargo`, que tira `Tesoro.recompensa` en `Encargos.pagar`) y cinco veces más en la recompensa de las hazañas del tablón. La condición (`heraldia:tesoro_pista`) lee la opción al tirar el botín. Para darla a mano: `/heraldia treasure give` (operadores) o la tabla `heraldia:tesoro/fragmento`.
 - **Descifrarla**: con clic derecho. La cadena se elige **fuera del hilo del servidor** con las mismas reglas que `/heraldia info nearby`: una estructura mediana a menos de `tesoro.radio_max` bloques (1500 por defecto) de donde se descifra; desde ella, una entrada a mina (si no hay, otra mediana); y desde la última, el tesoro, a 48-128 bloques. Se prefieren las estructuras ya generadas (leídas del disco; los chunks cargados se confirman en el hilo del servidor); si no las hay, las previstas, en chunks sin generar donde la generación las pondrá (el mapa lo avisa: «en tierras aún sin explorar»). **No carga ni genera ningún chunk.** Es determinista: la semilla sale del mundo, del jugador y de cuántas pistas lleva descifradas; misma semilla, misma cadena. En el servidor de prueba tarda ~0,4-0,5 s en otro hilo (unas 35 casillas de las rejillas).
@@ -320,7 +320,7 @@ Una búsqueda encadenada por estructuras reales de Heraldia hasta un cofre enter
 - **El tesoro**: a menos de 32 bloques de la marca final, se entierra el cofre (un bloque bajo la superficie) en el sitio seguro más cercano a la marca: suelo natural, sin agua encima, fuera de las piezas de cualquier estructura y **sin nada construido por jugadores** (tablones, cristal, lana, puertas, antorchas, cofres, raíles, ladrillos...) en 6 bloques alrededor, entre 6 bloques por debajo y 10 por encima del suelo. Solo mira chunks ya cargados. Si nada vale (alguien construyó encima o es agua), la marca se mueve 32-64 bloques y el mapa se actualiza. Buscar el sitio cuesta ~12-14 ms una vez, en el hilo del servidor.
 - **El cofre** (tabla `heraldia:tesoro/cofre`, «Cofre de Ysolda»): la *Brújula de Ysolda* (recuerdo con nombre) y 3-5 objetos valiosos (diamantes, esmeraldas, oro, libro encantado, corazón del mar, plantilla de adorno del explorador...) sin romper la progresión (nada de netherita, élitros ni manzanas encantadas), más provisiones. Cada cadena se completa **una sola vez**: su semilla se guarda en el mundo, así que una copia del mapa (mesa de cartografía) no da otro cofre.
 - **Logros**: `tesoro/fragmento` (conseguir un fragmento) y `tesoro/cofre` (abrir el cofre enterrado). La Guía del Heraldo tiene su página («Caza del tesoro»).
-- Prueba de servidor: `tools/smoke/tesoro.py` (botín y recarga, la cadena entera con reinicios a mitad y al final, el cofre fuera de una casa puesta en la marca, su botín y sus logros).
+- Prueba de servidor: `tools/smoke/treasure.py` (botín y recarga, la cadena entera con reinicios a mitad y al final, el cofre fuera de una casa puesta en la marca, su botín y sus logros).
 
 ## Combates contra los guardianes
 
@@ -402,7 +402,7 @@ Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jug
 - **Idioma**: las páginas son textos traducibles con el respaldo en el idioma del cliente (cualquiera de los 8 del mod, elegido por su lengua: `fr_ca` recibe el francés, `pt_pt` el portugués de Brasil, `es_mx` el español; el resto, el inglés), así que un jugador **sin el mod** la lee en su idioma.
 - Límites del libro vanilla: el generador comprueba que cada página cabe en las 14 líneas de una página (con el mismo cálculo de anchos que los pliegos), que el título no pasa de 32 caracteres y que el libro, en el peor caso, no pasa de 100 páginas (con las 20 únicas actuales, de 23 a 29). Lleva `custom_data` `{heraldia_guia_libro:"<versión>"}` y, en el lore, la edición del mod.
 
-Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión o al pedirla (lee sus logros de descubrimiento y arma el libro; medido en el servidor de prueba, ver `tools/smoke/guia.py`); nada por tick.
+Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión o al pedirla (lee sus logros de descubrimiento y arma el libro; medido en el servidor de prueba, ver `tools/smoke/guide.py`); nada por tick.
 
 ## Logros
 
@@ -449,7 +449,7 @@ Cómo se reconoce un cofre: al abrir un cofre de Heraldia que aún tiene su tabl
 - `dificultad.escalar_por_jugadores` (desactivada): +25 % de vida por cada jugador de más a 32 bloques (hasta +100 %), recalculado cuando el mob recibe un golpe.
 - Botín: solo cambia la cantidad de los objetos sencillos apilables (sin nombre ni otros componentes) de las tablas de cofre de Heraldia (la parte fraccionaria, con su probabilidad; nunca menos de 1 ni más de una pila). Las flechas de los esqueletos y el resto del daño a distancia no cambian.
 
-Coste: un evento al usar un bloque (sale en el acto si no es un contenedor con tabla o la opción está desactivada), en cada carga de entidad y en cada golpe (sale en el acto si el mob no lleva etiqueta de Heraldia); medido con `tools/smoke/botin_reponer.py` y `tools/smoke/dificultad.py`.
+Coste: un evento al usar un bloque (sale en el acto si no es un contenedor con tabla o la opción está desactivada), en cada carga de entidad y en cada golpe (sale en el acto si el mob no lleva etiqueta de Heraldia); medido con `tools/smoke/loot_restock.py` y `tools/smoke/difficulty.py`.
 
 ## Arena de oleadas
 

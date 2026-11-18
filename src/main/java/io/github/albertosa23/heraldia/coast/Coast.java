@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Lighthouses and shipwrecks on the coast (heraldia:costa/&lt;type&gt;/&lt;style&gt;/&lt;variant&gt;, tools/gen/litoral, T42): one
+ * Lighthouses and shipwrecks on the coast (heraldia:costa/&lt;type&gt;/&lt;style&gt;/&lt;variant&gt;, tools/gen/shore, T42): one
  * structure_set per type with its heraldia:rejilla grid (group costa/&lt;type&gt;, options faros.* and naufragios.*) and the
  * own type {@link CoastStructure}, which looks for the shore. The placement rule is the mines' one ({@link Mines#family}),
  * with its own family, and it also yields to the mines:

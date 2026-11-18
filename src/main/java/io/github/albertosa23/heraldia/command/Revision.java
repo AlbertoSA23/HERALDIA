@@ -36,9 +36,9 @@ import org.jspecify.annotations.Nullable;
  */
 public final class Revision {
 	public static final String FILE = "heraldia_revision.json", REPORT = "heraldia_revision.md";
-	/** Mine sizes in route order (those of tools/gen/minas: pequena, mediana, grande). */
+	/** Mine sizes in route order (those of tools/gen/mines: pequena, mediana, grande). */
 	static final List<String> SIZES = List.of("pequena", "mediana", "grande");
-	/** Coast types in route order (those of tools/gen/litoral). */
+	/** Coast types in route order (those of tools/gen/shore). */
 	static final List<String> COAST = List.of("faro", "naufragio");
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private static final int NOTE_MAX = 256;

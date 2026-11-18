@@ -152,7 +152,7 @@ No netherite gear or elytra.
   opens the chamber; the hook fires both dispensers; the plate primes the TNT; the button opens the door.
 
 Plans by level (`planos.md`) and renders in `docs/unicas/mansion/`; they are regenerated with `python3 -m unicas.mansion.planos`
-from `tools/gen`. The server test (`prueba_servidor.py`) operates the bookshelf and the combination in the game.
+from `tools/gen`. The server test (`smoke_server.py`) operates the bookshelf and the combination in the game.
 
 ## Against the design criteria
 

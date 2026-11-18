@@ -121,7 +121,7 @@ opens the door with (A, B, C) = (down, up, down) among the five combinations tri
 
 ## The module's own checks
 
-`tools/gen/unicas/faro/checks.py` (they run when building and fail generation):
+`tools/gen/uniques/lighthouse/checks.py` (they run when building and fail generation):
 - Walk with the puzzles solved (the open state declared by the template, which `lint.py` also uses).
 - Redstone simulation of the two puzzles and the traps: a rest state consistent with what is placed (nothing depends on
   an update that does not happen during generation) and the door only opens with the correct combination (8 combinations).

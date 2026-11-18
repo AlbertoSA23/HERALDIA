@@ -38,7 +38,7 @@ public final class PlayerBlocks {
 	/**
 	 * Player blocks that generation also places outside the structure boxes: planks and chains of the
 	 * abandoned mineshafts (the bridges under the galleries), fences and rails, and the dungeon chests (which are a terrain
-	 * feature, not a structure). Seen in a 26.3 test world (tools/smoke/actualizar.py).
+	 * feature, not a structure). Seen in a 26.3 test world (tools/smoke/update.py).
 	 */
 	private static final Set<String> AMBIGUOUS_EXACT = Set.of("chest", "rail", "chain", "iron_chain");
 	private static final String[] AMBIGUOUS_SUFFIXES = {"_planks", "_fence"};

@@ -1,10 +1,10 @@
-"""12 familias de biomas x 3 temáticas = 36 estilos."""
+"""12 biome families x 3 themes = 36 styles."""
 
 WOODS = {"oak", "spruce", "birch", "jungle", "acacia", "dark_oak", "mangrove", "cherry", "pale_oak", "bamboo"}
 
 
 def roofset(kind):
-    """Devuelve (escalera, losa, bloque) para un material de tejado."""
+    """Returns (stairs, slab, block) for a roof material."""
     special = {
         "brick": ("brick_stairs", "brick_slab", "bricks"),
         "deepslate_tile": ("deepslate_tile_stairs", "deepslate_tile_slab", "deepslate_tiles"),
@@ -40,7 +40,7 @@ def roofset(kind):
 
 
 def wood(kind):
-    """Bloques de madera derivados."""
+    """Derived wood blocks."""
     log = {"bamboo": "bamboo_block", "mangrove": "mangrove_log"}.get(kind, f"{kind}_log")
     stripped = {"bamboo": "stripped_bamboo_block"}.get(kind, f"stripped_{kind}_log")
     return dict(planks=f"{kind}_planks", log=log, stripped=stripped, fence=f"{kind}_fence",
@@ -178,7 +178,7 @@ THEMES = [
           roof="bamboo_mosaic", roof_type="gable", wall_style="frame", stilts=2, found="bamboo_block", church="chapel",
           tower_cap="pagoda", vtype="jungle", carpet=("yellow", "lime"), leaves="jungle_leaves", path="bamboo_planks",
           path2="coarse_dirt", banner="yellow", plants=("bamboo_pot", "fern"), decor=("fishrack", "planter", "jars")),
-    # 9. Pantano y manglar
+    # 9. Swamp and mangrove
     theme("pantano_palafitos", "pantano", "Palafitos", wall="mangrove_planks", wood_kind="mangrove", roof="mangrove",
           roof_type="gable", wall_style="frame", stilts=3, found="mangrove_log", church="chapel", tower_cap="spire",
           vtype="swamp", carpet=("green", "brown"), leaves="mangrove_leaves", path="mangrove_planks", path2="mud",

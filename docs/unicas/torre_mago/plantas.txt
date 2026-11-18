@@ -1,7 +1,7 @@
-Leyenda de los planos: + alcanzable a pie · # sólido u obstáculo · , atravesable no pisado · . aire inaccesible
-Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z hacia abajo.
+Plan legend: + reachable on foot · # solid or obstacle · , passable but not walkable · . unreachable air
+North is up; the entrance is on the north edge. Axes: x to the right, z downwards.
 
-== Sótano 2 · cámara del tesoro (pies a y=2) ==
+== Basement 2 · treasure chamber (feet at y=2) ==
    1    #####################
    2    #..#####.############
    3    ###+++++#+###########
@@ -15,7 +15,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
   11    #####++++++++++######
   12    #####################
 
-== Sótano 1 · experimentos fallidos (pies a y=8) ==
+== Basement 1 · failed experiments (feet at y=8) ==
  -10    #####################
   -9    ###..#.#.,#++#.,..###
   -8    ###...##..#++##...###
@@ -38,7 +38,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
    9    ####+++++############
   10    #####################
 
-== Vestíbulo y terraza (pies a y=14) ==
+== Foyer and terrace (feet at y=14) ==
  -12           ##+++##
  -11         ##+++++++##
  -10       ##+++++++++++##
@@ -65,7 +65,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
   11         +++++++++##
   12           +++####
 
-== Biblioteca (planta baja) (pies a y=20) ==
+== Library (ground floor) (feet at y=20) ==
   -8            #####,
   -7          ####+####
   -6         ###+++++###
@@ -85,7 +85,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
    8            #####
    9            ,   ,
 
-== Galería de la biblioteca y estudio oculto (pies a y=26) ==
+== Library gallery and hidden study (feet at y=26) ==
   -8            #####
   -7          ####+####
   -6         ##+++++++##
@@ -105,7 +105,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
    8            #####
    9            ,
 
-== Laboratorio de pociones (pies a y=32) ==
+== Potion laboratory (feet at y=32) ==
   -8            #####
   -7          ##+++++##
   -6         ###++++++##
@@ -124,7 +124,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
    7          ##+++++##
    8            #####
 
-== Sala de encantamientos (pies a y=38) ==
+== Enchanting room (feet at y=38) ==
   -8            #####
   -7          ##+++++##
   -6         #+++++++++#
@@ -140,10 +140,10 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
    4       #++++#+++#++++#
    5        #+++#+#+#+++#
    6         #+##+++##+#
-   7          ##+###+##
+   7          ##.###.##
    8            #####
 
-== Invernadero (pies a y=44) ==
+== Invernadero (feet at y=44) ==
   -8            #####
   -7          ###+++###
   -6         ###+++++###
@@ -162,7 +162,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
    7          ###+++###
    8            #####
 
-== Dormitorio del mago (pies a y=50) ==
+== Wizard's bedroom (feet at y=50) ==
   -8            #####
   -7          ##+++++##
   -6         #+++++++++#
@@ -181,7 +181,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
    7          ##+#+#+##
    8            #####
 
-== Observatorio (pies a y=56) ==
+== Observatorio (feet at y=56) ==
   -8            #####
   -7          ##+++++##
   -6         #+++++++++#
@@ -191,7 +191,7 @@ Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z ha
   -2      #+++++++++++++++#
   -1      #+++++++++++++++#
    0      #+++++#.#+++++++#
-   1      #+++++#.#+++++++#
+   1      #+++++#..+++++++#
    2      #+++++##++++++++#
    3       ##+++++++++++##
    4       #+++++++++++++#
