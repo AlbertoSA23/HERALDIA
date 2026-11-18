@@ -23,7 +23,7 @@ broken by T44 and T47c and were hidden by the crash; all fixed below.
 | `tools/changelog.py check` | local and CI | ✅ |
 | Renames: generated data of `edf3518` vs head | local | ✅ 5,709 files byte-identical |
 | Smoke test (`server_smoke.py`) | local and CI | ❌ on develop (did not start) → ✅ |
-| Full CI battery of the PR (`[bateria completa]`: build, JUnit, smoke, cost and 16 groups with the 44 server tests and the 9 `compat_mods` groups) | GitHub, run 165 (`931735f`) | 20 of 21 jobs ✅; ❌ `anchored_guardians` (fixed afterwards, fix 11); final run: @@FINAL@@ |
+| Full CI battery of the PR (`[bateria completa]`: build, JUnit, smoke, cost and 16 groups with the 44 server tests and the 9 `compat_mods` groups) | GitHub, run 165 (`931735f`) | 20 of 21 jobs ✅; ❌ `anchored_guardians` (fixed afterwards, fix 11); final run 166 (`275bd78`): **all 21 jobs ✅** |
 | Server tests broken and fixed in this audit: `quests` (2 of 2 locally, ✅ CI), `update` (✅), `update_path_b` (new, ✅ local and CI), `admin` (60/60 ✅), `web_maps` (✅), `story` (✅), cathedral `smoke_game` (✅), `anchored_guardians` (✅ local) | local and CI | ✅ |
 | Generation cost (`generation_cost.py`, 3 passes) | CI run 165 | ✅ **+2.3 %** (reference +9.3 %, limit +19.7 %); CPU per chunk 75.9 → 77.7 ms (medians); `/locate` village 297-379 ms, unique 279-332 ms, medium 48-64 ms, mine 767-873 ms |
 
