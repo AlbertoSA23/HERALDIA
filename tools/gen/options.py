@@ -321,6 +321,12 @@ _FIXED = [
      "cuentan a cualquiera",
      "Minimum reputation with the village for a wayfarer to tell its hint (20: known); with reputation disabled, they "
      "tell anyone"),
+    ("dialogos.en_pantalla", True, None, None,
+     "Conversaciones y menú de modos de la arena en el centro de la pantalla: un panel con botones (con Heraldia "
+     "también en el cliente) o una ventana de cofre cuyas casillas son las opciones (cliente vanilla). Desactivado: "
+     "botones en el chat, como antes",
+     "Conversations and the arena's mode menu in the middle of the screen: a panel with buttons (with Heraldia also on "
+     "the client) or a chest window whose slots are the options (vanilla client). Off: buttons in the chat, as before"),
     ("caravanas.activado", True, None, None,
      "Caravanas: de vez en cuando, con jugadores cerca, un mercader de Heraldia con sus llamas (y a veces un guardia) "
      "recorre un tramo del camino entre dos aldeas vecinas; si la defiendes de los bandidos y llega, paga esmeraldas y "
@@ -721,6 +727,7 @@ _NAMES = {
     "dialogos.espera_segundos": ("Espera entre conversaciones (s)", "Wait between conversations (s)"),
     "dialogos.viajeros_porcentaje": ("Aldeanos que conocen un sitio (%)", "Villagers who know a place (%)"),
     "dialogos.pista_reputacion": ("Reputación para una pista", "Reputation for a hint"),
+    "dialogos.en_pantalla": ("Conversaciones en pantalla", "Conversations on screen"),
     "viajeros.activado": ("Gente de paso", "Wayfarers"),
     "viajeros.frecuencia": ("Frecuencia de los viajeros (%)", "Wayfarer frequency (%)"),
     "viajeros.max_activos": ("Viajeros a la vez", "Wayfarers at once"),

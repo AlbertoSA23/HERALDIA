@@ -202,6 +202,7 @@ TEXTS = {
     "boton.rumores": ("[¿Qué se cuenta?]", "[Any news?]"),
     "boton.tratar": ("[Comerciar]", "[Trade]"),
     "boton.adios": ("[Adiós]", "[Goodbye]"),
+    "boton.cerrar": ("[Cerrar]", "[Close]"),     # the last page of a conversation in the middle of the screen
     "pista.mas": ("Tu brújula y el sol te dirán el resto: es una pista, no un mapa.",
                   "Your compass and the sun will tell you the rest: it is a hint, not a map."),
     "sin_charla": ("No estás hablando con ningún aldeano: haz clic derecho sobre uno de una aldea de Heraldia.",

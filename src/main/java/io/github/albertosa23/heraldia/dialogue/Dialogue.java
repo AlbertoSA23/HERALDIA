@@ -4,6 +4,8 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.albertosa23.heraldia.Heraldia;
+import io.github.albertosa23.heraldia.choice.Choice;
+import io.github.albertosa23.heraldia.choice.Choices;
 import io.github.albertosa23.heraldia.command.Texts;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.mines.Mines;
@@ -53,10 +55,12 @@ import org.slf4j.LoggerFactory;
  * talks), {@link Context} and {@link Selector} (which line), {@link Hints} (the wayfarers and what they know),
  * {@link Memory} (what is kept) and {@link Lines} (the lines of each language).
  * <ul>
- * <li>A right click on a Heraldia villager inside a Heraldia village (see {@link Gesture}) shows, in chat, a greeting
- * and a line chosen by its profession, its village's land, the hour, the weather and the player's reputation, with
- * buttons (clickable text: vanilla clients too) to keep talking, ask for news, trade and say goodbye. Sneak + right
- * click, or any other villager, opens the trades as always.</li>
+ * <li>A right click on a Heraldia villager inside a Heraldia village (see {@link Gesture}) shows a greeting and a line
+ * chosen by its profession, its village's land, the hour, the weather and the player's reputation, with answers to keep
+ * talking, ask for news, trade and say goodbye. They show in the middle of the screen ({@link Choices}: the mod's
+ * screen with Heraldia on the client, a container menu with a vanilla client); with {@code dialogos.en_pantalla} off,
+ * or if no window can open, in the chat as before (clickable text that runs /heraldia talk). Sneak + right click, or any
+ * other villager, opens the trades as always.</li>
  * <li>Each villager rests {@code dialogos.espera_segundos} between conversations (it then says it is busy and offers its
  * trades). One villager in ten ({@code dialogos.viajeros_porcentaje}) is a wayfarer: asked for news by a player with
  * {@code dialogos.pista_reputacion} reputation with the village, it tells, once in its life, where a real structure lies
@@ -154,7 +158,7 @@ public final class Dialogue {
 		long now = level.getGameTime();
 		Memory.Villager mem = villager(v);
 		long wait = HeraldiaConfig.get().getInt(WAIT) * 20L;
-		Out o = new Out(p, Texts.language(p), Lines.of(Texts.code(p)), p::sendSystemMessage);
+		Out o = Choices.presentation(p) == Choice.Presentation.CHAT ? Out.chat(p, v, p::sendSystemMessage) : Out.screen(p, v);
 		v.getLookControl().setLookAt(p);
 		Talk current = TALKS.get(p.getUUID());
 		if (current != null && current.villager().equals(v.getUUID()) && current.more() > 0 && now - current.started() <= TTL
@@ -166,8 +170,8 @@ public final class Dialogue {
 		if (mem.resting(now, wait)) {
 			say(o, v, a, o.one("busy"));
 			TALKS.put(p.getUUID(), t.withMore(0).withAsked());
-			buttons(o, false, false);
 			o.gray("agacharse");
+			buttons(o, false, false);
 			LOGGER.info("Heraldia: diálogos: {} habla con un aldeano de {}: está ocupado ({} s)", p.getGameProfile().name(), a.name(),
 					(mem.left(now, wait) + 19) / 20);
 			return;
@@ -213,7 +217,8 @@ public final class Dialogue {
 
 	// --- texts ---
 
-	/** A villager's line in chat: "Farmer: “...”", with the player's and the village's names for its slots. */
+	/** A villager's line: in chat "Farmer: “...”"; on screen the line alone (the name is the window's title). The player's
+	 *  and the village's names fill its slots. */
 	static void say(Out o, Villager v, Quests.VillageView a, Lines.@Nullable Line line) {
 		sayWith(o, v, line, o.p().getName(), io.github.albertosa23.heraldia.herald.HeraldHouse.NAME.equals(a.name())
 				? Texts.t(o.l(), "heraldia.casa_heraldo.nombre") : Component.literal(a.name()));
@@ -224,13 +229,63 @@ public final class Dialogue {
 			return;
 		}
 		MutableComponent text = Component.translatableWithFallback(K + "frase." + line.key(), line.text(), args);
-		o.out().accept(Texts.t(o.l(), K + "linea", v.getDisplayName(), text).withStyle(ChatFormatting.WHITE));
+		o.line(Texts.t(o.l(), K + "linea", v.getDisplayName(), text).withStyle(ChatFormatting.WHITE),
+				new Choice.Line(Choices.text(text, o.l()), Choice.WHITE, false));
 		heard(o.p(), line);
 	}
 
-	/** Where the texts go: the player's chat on a click; the command's source for the buttons (the console sees it too
-	 *  with "execute as", as the job board does). */
-	record Out(ServerPlayer p, Map<String, String> l, Lines lines, Consumer<Component> out) {
+	/**
+	 * Where a conversation goes: the chat (on a click with the option off, and for the /heraldia talk commands: the
+	 * command's source, so the console sees it too with "execute as", as the job board does) or a page of a choice window
+	 * ({@code chat} null), which {@link #buttons} or {@link #end} then shows.
+	 */
+	static final class Out {
+		private final ServerPlayer p;
+		private final Villager v;
+		private final Map<String, String> l;
+		private final Lines lines;
+		private final @Nullable Consumer<Component> chat;
+		/** The page in course (screen), with its chat version in case no window can open. */
+		private final List<Choice.Line> page = new ArrayList<>();
+		private final List<Component> chatPage = new ArrayList<>();
+
+		private Out(ServerPlayer p, Villager v, @Nullable Consumer<Component> chat) {
+			this.p = p;
+			this.v = v;
+			this.l = Texts.language(p);
+			this.lines = Lines.of(Texts.code(p));
+			this.chat = chat;
+		}
+
+		static Out chat(ServerPlayer p, Villager v, Consumer<Component> out) {
+			return new Out(p, v, out);
+		}
+
+		static Out screen(ServerPlayer p, Villager v) {
+			return new Out(p, v, null);
+		}
+
+		ServerPlayer p() {
+			return p;
+		}
+
+		Map<String, String> l() {
+			return l;
+		}
+
+		boolean onScreen() {
+			return chat == null;
+		}
+
+		void line(Component inChat, Choice.Line onScreen) {
+			if (chat != null) {
+				chat.accept(inChat);
+			} else {
+				page.add(onScreen);
+				chatPage.add(inChat);
+			}
+		}
+
 		Lines.@Nullable Line one(String pool) {
 			return Selector.one(lines, pool, recent(p), ThreadLocalRandom.current());
 		}
@@ -240,7 +295,21 @@ public final class Dialogue {
 		}
 
 		void gray(String key) {
-			out.accept(Texts.t(l, K + key).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+			MutableComponent text = Texts.t(l, K + key);
+			line(text.copy().withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC), new Choice.Line(Choices.text(text, l), Choice.GRAY, true));
+		}
+
+		/** Shows the page with these options; false if it had to go to the chat (then printed there). */
+		boolean show(List<Choice.Option> options) {
+			Choice.Prompt prompt = new Choice.Prompt(v.getDisplayName(), page.size() > Choice.MAX_LINES
+					? page.subList(page.size() - Choice.MAX_LINES, page.size()) : page, options);
+			boolean shown = Choices.show(p, "dialogue", prompt, pl -> near(pl, v), Dialogue::picked);
+			if (!shown) {
+				chatPage.forEach(p::sendSystemMessage);
+			}
+			page.clear();
+			chatPage.clear();
+			return shown;
 		}
 	}
 
@@ -249,9 +318,27 @@ public final class Dialogue {
 				.withHoverEvent(new HoverEvent.ShowText(Component.literal(order))));
 	}
 
+	static Choice.Option option(Map<String, String> l, String id, String key, int color) {
+		return new Choice.Option(id, Choice.unbracket(Choices.text(Texts.t(l, K + "boton." + key), l)), color, "");
+	}
+
 	/** The answers: [Keep talking] [Any news?] [Trade] [Goodbye], only those that still make sense. */
 	static void buttons(Out o, boolean more, boolean news) {
 		Map<String, String> l = o.l();
+		if (o.onScreen()) {
+			List<Choice.Option> options = new ArrayList<>();
+			if (more) {
+				options.add(option(l, "more", "mas", Choice.AQUA));
+			}
+			if (news) {
+				options.add(option(l, "rumor", "rumores", Choice.PURPLE));
+			}
+			options.add(option(l, "trade", "tratar", Choice.GREEN));
+			options.add(option(l, "bye", "adios", Choice.GRAY));
+			if (o.show(options)) {
+				return;
+			}
+		}
 		MutableComponent row = Component.empty();
 		if (more) {
 			row.append(button(l, "mas", "/heraldia talk more", ChatFormatting.AQUA)).append(" ");
@@ -261,7 +348,31 @@ public final class Dialogue {
 		}
 		row.append(button(l, "tratar", "/heraldia talk trade", ChatFormatting.GREEN)).append(" ")
 				.append(button(l, "adios", "/heraldia talk bye", ChatFormatting.GRAY));
-		o.out().accept(row);
+		if (o.onScreen()) {
+			o.p().sendSystemMessage(row);
+		} else {
+			o.chat.accept(row);
+		}
+	}
+
+	/** The conversation is over (the villager said goodbye): on screen, its last line with only [Close]. */
+	static void end(Out o) {
+		if (o.onScreen()) {
+			o.show(List.of(option(o.l(), "close", "cerrar", Choice.GRAY)));
+		}
+	}
+
+	/** While this holds, the conversation's window stays open and its answers can be picked. */
+	static boolean near(ServerPlayer p, Villager v) {
+		return enabled() && v.isAlive() && v.level() == p.level() && v.distanceTo(p) <= RANGE;
+	}
+
+	/** An answer picked in the window (already checked against what was on offer, see Choices#reply). */
+	static boolean picked(ServerPlayer p, String id) {
+		if ("close".equals(id)) {
+			return false;
+		}
+		return answer(p, id, v -> Out.screen(p, v), c -> p.sendOverlayMessage(c.copy().withStyle(ChatFormatting.RED))) == LATER;
 	}
 
 	// --- the buttons: /heraldia talk [more | rumor | trade | bye] ---
@@ -301,28 +412,41 @@ public final class Dialogue {
 		return 1;
 	}
 
+	/** /heraldia talk more | rumor | trade | bye: the chat's buttons, answered in the chat (any choice window closes). */
 	private static int answer(CommandContext<CommandSourceStack> ctx, String what) throws CommandSyntaxException {
 		CommandSourceStack src = ctx.getSource();
 		ServerPlayer p = src.getPlayerOrException();
+		Choices.close(p);
+		return answer(p, what, v -> Out.chat(p, v, c -> src.sendSuccess(() -> c, false)), src::sendFailure) == FAILED ? 0 : 1;
+	}
+
+	static final int FAILED = 0, DONE = 1, LATER = 2;
+
+	/**
+	 * An answer (from the chat's buttons or the window): checks again that the conversation is on, the villager alive and
+	 * near and the time not over, then answers. {@link #LATER} when the answer comes later (a wayfarer's hint, after the
+	 * search).
+	 */
+	static int answer(ServerPlayer p, String what, java.util.function.Function<Villager, Out> out, Consumer<Component> fail) {
 		Map<String, String> l = Texts.language(p);
 		if (!enabled()) {
-			src.sendFailure(Texts.t(l, K + "desactivados"));
-			return 0;
+			fail.accept(Texts.t(l, K + "desactivados"));
+			return FAILED;
 		}
 		Talk t = TALKS.get(p.getUUID());
 		if (t == null) {
-			src.sendFailure(Texts.t(l, K + "sin_charla"));
-			return 0;
+			fail.accept(Texts.t(l, K + "sin_charla"));
+			return FAILED;
 		}
 		ServerLevel level = p.level();
 		Entity e = level.getEntity(t.villager());
 		long now = level.getGameTime();
 		if (!(e instanceof Villager v) || !v.isAlive() || v.distanceTo(p) > RANGE || now - t.started() > TTL || now < t.started()) {
 			TALKS.remove(p.getUUID());
-			src.sendFailure(Texts.t(l, K + "lejos"));
-			return 0;
+			fail.accept(Texts.t(l, K + "lejos"));
+			return FAILED;
 		}
-		Out o = new Out(p, l, Lines.of(Texts.code(p)), c -> src.sendSuccess(() -> c, false));
+		Out o = out.apply(v);
 		Quests.VillageView a = t.village();
 		v.getLookControl().setLookAt(p);
 		switch (what) {
@@ -334,19 +458,20 @@ public final class Dialogue {
 			case "bye" -> {
 				TALKS.remove(p.getUUID());
 				say(o, v, a, o.one("farewell"));
+				end(o);
 			}
 			case "rumor" -> {
 				if (t.asked()) {
 					say(o, v, a, o.one("busy"));
 					buttons(o, false, false);
-					return 1;
+					return DONE;
 				}
 				TALKS.put(p.getUUID(), t.withAsked());
-				news(o, level, v, a, t.more() > 0);
+				return news(o, level, v, a, t.more() > 0) ? LATER : DONE;
 			}
 			default -> more(o, t, level, v, a);
 		}
-		return 1;
+		return DONE;
 	}
 
 	/** One more line ("Keep talking"); after the last one, the villager says goodbye. */
@@ -355,6 +480,7 @@ public final class Dialogue {
 		if (t.more() <= 0) {
 			TALKS.remove(p.getUUID());
 			say(o, v, a, o.one("farewell"));
+			end(o);
 			return;
 		}
 		TALKS.put(p.getUUID(), t.withMore(t.more() - 1));
@@ -364,21 +490,22 @@ public final class Dialogue {
 
 	// --- news and hints ---
 
-	/** "Any news?": a rumour, or, from a wayfarer that trusts the player, the one place it knows (once in its life). */
-	static void news(Out o, ServerLevel level, Villager v, Quests.VillageView a, boolean more) {
+	/** "Any news?": a rumour, or, from a wayfarer that trusts the player, the one place it knows (once in its life). True
+	 *  if the answer comes later (the search for the place runs off the server thread). */
+	static boolean news(Out o, ServerLevel level, Villager v, Quests.VillageView a, boolean more) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		ServerPlayer p = o.p();
 		String name = p.getGameProfile().name();
 		if (!Hints.wayfarer(v.getUUID(), cfg.getInt(WAYFARERS))) {
 			say(o, v, a, o.one("rumor"));
 			buttons(o, more, false);
-			return;
+			return false;
 		}
 		if (villager(v).hintTold()) {
 			say(o, v, a, o.one("hint.told"));
 			buttons(o, more, false);
 			LOGGER.info("Heraldia: diálogos: un viajero de {} ya contó su pista ({} pregunta)", a.name(), name);
-			return;
+			return false;
 		}
 		boolean rep = cfg.getBool(Quests.REPUTATION);
 		int points = Quests.reputation(p, a.cx(), a.cz());
@@ -386,17 +513,21 @@ public final class Dialogue {
 			say(o, v, a, o.one("hint.withheld"));
 			buttons(o, more, false);
 			LOGGER.info("Heraldia: diálogos: un viajero de {} no se fía de {} (reputación {})", a.name(), name, points);
-			return;
+			return false;
 		}
 		Quests.surroundings(level, a).thenAcceptAsync(c -> hint(o, v, a, c, more), level.getServer()).exceptionally(e -> {
 			LOGGER.error("Heraldia: diálogos: pista de un aldeano de {}", a.name(), e);
 			return null;
 		});
+		return true;
 	}
 
 	static void hint(Out o, Villager v, Quests.VillageView a, Generator.Candidates c, boolean more) {
 		ServerPlayer p = o.p();
 		if (!v.isAlive() || p.isRemoved()) {
+			if (o.onScreen() && !p.isRemoved()) {
+				Choices.close(p);        // the window waited for this answer
+			}
 			return;
 		}
 		if (villager(v).hintTold()) {        // another player got it first while the search ran

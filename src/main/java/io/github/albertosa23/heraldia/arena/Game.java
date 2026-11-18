@@ -6,6 +6,8 @@ import io.github.albertosa23.heraldia.command.Texts;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.difficulty.MobDifficulty;
 import io.github.albertosa23.heraldia.bosses.Phases;
+import io.github.albertosa23.heraldia.choice.Choice;
+import io.github.albertosa23.heraldia.choice.Choices;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -160,9 +162,25 @@ final class Game {
 		menu(p);
 	}
 
-	/** The mode menu in the chat: one button per enabled mode (it writes it to the log for the tests). */
+	/**
+	 * The mode menu: one option per enabled mode, in the middle of the screen (see choice/Choices: the mod's screen, or a
+	 * container menu with a vanilla client), each with its help; in the chat (one button per mode, running /heraldia arena
+	 * start &lt;mode&gt;) with dialogos.en_pantalla off or if no window can open. It writes it to the log for the tests.
+	 */
 	static void menu(ServerPlayer p) {
 		java.util.Map<String, String> texts = Texts.language(p);
+		LOGGER.info("Heraldia: arena: {} elige modo ({})", p.getGameProfile().name(),
+				String.join(", ", modes().stream().map(Mode::id).toList()));
+		List<Choice.Option> options = new ArrayList<>();
+		for (Mode m : modes()) {
+			options.add(new Choice.Option(m.id(), Choices.text(Texts.t(texts, m.text()), texts), color(m),
+					Choices.text(Texts.t(texts, m.text() + ".ayuda", timeTrialWaves), texts)));
+		}
+		Choice.Prompt prompt = new Choice.Prompt(Texts.t(texts, "heraldia.arena.nombre"), List.of(new Choice.Line(
+				Choices.text(Texts.t(texts, "heraldia.arena.modo.elige"), texts), Choice.GOLD, false)), options);
+		if (Choices.show(p, "arena", prompt, Arena::mayChoose, Arena::chosen)) {
+			return;
+		}
 		net.minecraft.network.chat.MutableComponent line = Component.empty();
 		for (Mode m : modes()) {
 			String order = "/heraldia arena start " + m.id();
@@ -175,8 +193,15 @@ final class Game {
 		}
 		p.sendSystemMessage(Texts.t(texts, "heraldia.arena.modo.elige").withStyle(ChatFormatting.GOLD));
 		p.sendSystemMessage(line);
-		LOGGER.info("Heraldia: arena: {} elige modo ({})", p.getGameProfile().name(),
-				String.join(", ", modes().stream().map(Mode::id).toList()));
+	}
+
+	/** Each mode's colour in the menu (the menu's glass pane and the screen's text). */
+	static int color(Mode m) {
+		return switch (m) {
+			case COOP -> Choice.GREEN;
+			case TIME_TRIAL -> Choice.YELLOW;
+			case SURVIVAL -> Choice.RED;
+		};
 	}
 
 	/** Starts the countdown of a coop match (/heraldia arena start without a mode). */

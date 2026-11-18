@@ -642,12 +642,62 @@ public final class Arena {
 			return 0;
 		}
 		Mode m = mode;
+		if (p != null) {
+			io.github.albertosa23.heraldia.choice.Choices.close(p);
+		}
 		if (!Game.start(arenaLevel, z, src.getTextName(), m)) {
 			src.sendFailure(Texts.t("heraldia.arena.en_marcha"));
 			return 0;
 		}
 		src.sendSuccess(() -> Texts.t("heraldia.arena.cuenta.modo", Texts.t(m.text())), false);
 		return 1;
+	}
+
+	/** While this holds, the bell's mode menu stays open and a mode can be picked: the arena on, the player in its ring. */
+	static boolean mayChoose(ServerPlayer p) {
+		Zone z = zone;
+		return turnedOn && z != null && p.level() == arenaLevel && p.isAlive() && !p.isSpectator()
+				&& z.inRing(p.getX(), p.getY(), p.getZ()) && Game.match().state() == Match.State.FREE;
+	}
+
+	/**
+	 * A mode picked in the bell's menu (already checked against what was on offer, see choice/Choices#reply). Every rule
+	 * of /heraldia arena start from the ring is checked again: the mode may have been disabled with /heraldia reload, a
+	 * match started or the works begun since the menu opened. The answers go to the action bar (the chat is not used).
+	 */
+	static boolean chosen(ServerPlayer p, String id) {
+		java.util.Map<String, String> texts = Texts.language(p);
+		Optional<Mode> mode = Mode.fromId(id);
+		Zone z = zone;
+		ServerLevel level = arenaLevel;
+		Component refusal = null;
+		if (!turnedOn) {
+			refusal = Texts.t(texts, "heraldia.arena.desactivada");
+		} else if (Works.occupied()) {
+			refusal = Texts.t(texts, "heraldia.arena.trabajando");
+		} else if (z == null || level == null) {
+			refusal = Texts.t(texts, "heraldia.arena.no_existe");
+		} else if (Game.match().state() != Match.State.FREE) {
+			refusal = Texts.t(texts, "heraldia.arena.en_marcha");
+		} else if (!mayChoose(p)) {
+			refusal = Texts.t(texts, "heraldia.arena.modo.ruedo");
+		} else if (mode.isEmpty() || !Game.enabled(mode.get())) {
+			refusal = Texts.t(texts, "heraldia.arena.modo.desactivado", mode.map(m -> (Object) Texts.t(texts, m.text())).orElse(id));
+		}
+		if (refusal != null || z == null || level == null || mode.isEmpty()) {
+			if (refusal != null) {
+				p.sendOverlayMessage(refusal.copy().withStyle(ChatFormatting.RED));
+			}
+			LOGGER.info("Heraldia: arena: {} elige {} en el menú: rechazado ({})", p.getGameProfile().name(), id,
+					refusal == null ? "?" : refusal.getString());
+			return false;
+		}
+		if (!Game.start(level, z, p.getGameProfile().name(), mode.get())) {
+			p.sendOverlayMessage(Texts.t(texts, "heraldia.arena.en_marcha").withStyle(ChatFormatting.RED));
+			return false;
+		}
+		p.sendOverlayMessage(Texts.t(texts, "heraldia.arena.cuenta.modo", Texts.t(texts, mode.get().text())));
+		return false;
 	}
 
 	/** For tests: the attachment's identifier. */
