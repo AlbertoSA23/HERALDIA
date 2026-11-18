@@ -130,8 +130,8 @@ def test_split_shipwreck_with_masts_and_cabin():
             assert set(tables) == {"heraldia:costa/camarote", "heraldia:costa/bodega"}
             assert tables["heraldia:costa/camarote"][1] > o.sea_row, "el camarote en seco"
         sunken, _, _ = coast.construction("naufragio", style, "b")
-        cofre = next(st for st, n in sunken.t.blocks.values() if n and str(n.get("LootTable")).endswith("bodega"))
-        assert "waterlogged=true" in cofre, "la bodega inundada"
+        place_chest = next(st for st, n in sunken.t.blocks.values() if n and str(n.get("LootTable")).endswith("bodega"))
+        assert "waterlogged=true" in place_chest, "la bodega inundada"
         drowned_list = [n for *_, n in sunken.t.entities if n["id"] == "minecraft:drowned"]
         assert len(drowned_list) == 1, "un ahogado como mucho"
         assert {"heraldia_anclado", "heraldia_adulto"} <= set(drowned_list[0]["Tags"])
@@ -294,23 +294,23 @@ def test_guide_page():
     assert guide.errors(uniques.modules()) == []
 
 
-@pytest.mark.parametrize("codigo", list(languages.TRANSLATIONS))
-def test_texts_in_the_8_languages(codigo):
+@pytest.mark.parametrize("lang_code", list(languages.TRANSLATIONS))
+def test_texts_in_the_8_languages(lang_code):
     import writer
     es = dict(coast.lang()["es_es"])
     es.update({k: v for k, v in guide.lang()["es_es"].items() if ".costa" in k})
-    with open(languages.route(codigo), encoding="utf-8") as f:
+    with open(languages.route(lang_code), encoding="utf-8") as f:
         translated = json.load(f)
     for k, v in es.items():
-        assert k in translated, (codigo, k)
-        assert translated[k].count("%s") == v.count("%s"), (codigo, k)
+        assert k in translated, (lang_code, k)
+        assert translated[k].count("%s") == v.count("%s"), (lang_code, k)
     import admin
     for k in admin.lang()["es_es"]:
         if "costa" in k:
-            assert k in translated, (codigo, k)
+            assert k in translated, (lang_code, k)
     for k in ("faros.activado", "naufragios.separacion_bloques", "mapas_web.capas.costa"):
         assert f"heraldia.config.{k}" in translated and f"heraldia.config.{k}.nombre" in translated
-    assert guide.errors(uniques.modules(), {codigo: translated}) == []
+    assert guide.errors(uniques.modules(), {lang_code: translated}) == []
 
 
 # ------------------------------------------------------------------ casos negativos de la auditoría

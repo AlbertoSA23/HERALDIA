@@ -66,34 +66,34 @@ def text(k):
 
 
 LOOT = {
-    "premium": chest_loot.cofre(
+    "premium": chest_loot.place_chest(
         ((3, 5), [item("gold_ingot", 10, 2, 6), item("gold_block", 2), item("quartz", 6, 4, 10), item("diamond", 3, 1, 2),
                   item("blaze_rod", 6, 1, 3), item("magma_cream", 4, 2, 4), item("netherite_scrap", 1),
                   item("golden_apple", 4), item("book", 4, ench=(15, 25)),
                   chest_loot.named("golden_helmet", 3, f"heraldia.{SID}.yelmo", _T["yelmo"][0], levels=(10, 20)),
                   item("snout_armor_trim_smithing_template", 2), item("music_disc_pigstep", 1)]),
         ((1, 2), [item("gold_ingot", 6, 2, 4), item("diamond", 2), item("golden_carrot", 4, 2, 5), empty(6)])),
-    "cuartel": chest_loot.cofre(((2, 4), [item("arrow", 8, 4, 12), item("bone", 6, 2, 6), item("coal", 6, 2, 6),
+    "cuartel": chest_loot.place_chest(((2, 4), [item("arrow", 8, 4, 12), item("bone", 6, 2, 6), item("coal", 6, 2, 6),
                                      item("gold_nugget", 8, 3, 9), item("cooked_porkchop", 5, 1, 3),
                                      item("crossbow", 2, dmg=(0.4, 0.8)), item("iron_ingot", 3, 1, 3), empty(5)]),
                            ((1, 1), [item("gold_ingot", 3, 1, 2), item("spectral_arrow", 3, 2, 6), empty(8)])),
-    "armeria": chest_loot.cofre(((2, 4), [item("golden_sword", 4, dmg=(0.2, 0.6)), item("golden_axe", 3, dmg=(0.2, 0.6)),
+    "armeria": chest_loot.place_chest(((2, 4), [item("golden_sword", 4, dmg=(0.2, 0.6)), item("golden_axe", 3, dmg=(0.2, 0.6)),
                                      item("iron_sword", 3, dmg=(0.2, 0.6)), item("chainmail_chestplate", 2),
                                      item("shield", 3), item("arrow", 6, 4, 10), item("iron_ingot", 4, 1, 4),
                                      chest_loot.named("iron_sword", 1, f"heraldia.{SID}.lanza", _T["lanza"][0], levels=(5, 15)),
                                      empty(4)]),
                            ((1, 1), [item("gold_ingot", 3), item("iron_ingot", 3, 1, 3), empty(8)])),
-    "despensa": chest_loot.cofre(((2, 4), [item("cooked_porkchop", 8, 1, 4), item("golden_carrot", 3, 1, 3),
+    "despensa": chest_loot.place_chest(((2, 4), [item("cooked_porkchop", 8, 1, 4), item("golden_carrot", 3, 1, 3),
                                       item("crimson_fungus", 5, 1, 3), item("warped_fungus", 5, 1, 3),
                                       item("nether_wart", 6, 2, 6), item("glass_bottle", 4, 1, 3), empty(5)]),
                             ((1, 1), [item("gold_nugget", 5, 2, 6), item("golden_apple", 1), empty(8)])),
     "forja": chest_loot.table(pool((1, 3), [item("gold_nugget", 8, 2, 7), item("iron_nugget", 6, 2, 6), item("coal", 6, 1, 4),
                                        item("magma_cream", 4, 1, 3), item("blaze_powder", 3, 1, 2), empty(6)])),
-    "biblioteca": chest_loot.cofre(((2, 4), [item("paper", 8, 2, 6), item("book", 6, 1, 3), item("book", 3, rand_ench=True),
+    "biblioteca": chest_loot.place_chest(((2, 4), [item("paper", 8, 2, 6), item("book", 6, 1, 3), item("book", 3, rand_ench=True),
                                         item("map", 3), item("glowstone_dust", 5, 2, 5), item("ink_sac", 4, 1, 3),
                                         empty(5)]),
                               ((1, 1), [item("experience_bottle", 3, 1, 3), item("gold_ingot", 2), empty(8)])),
-    "oculto": chest_loot.cofre(((2, 4), [item("gold_ingot", 6, 1, 4), item("blaze_rod", 4, 1, 2), item("quartz", 6, 3, 8),
+    "oculto": chest_loot.place_chest(((2, 4), [item("gold_ingot", 6, 1, 4), item("blaze_rod", 4, 1, 2), item("quartz", 6, 3, 8),
                                     item("obsidian", 4, 1, 3), item("fire_charge", 4, 1, 3), item("diamond", 1),
                                     empty(4)]),
                           ((1, 1), [item("golden_apple", 2), item("experience_bottle", 3, 2, 4), empty(6)])),
@@ -106,7 +106,7 @@ COURTYARD = ["minecraft:smooth_basalt", "minecraft:polished_blackstone", "minecr
          "minecraft:polished_blackstone_bricks", "minecraft:smooth_basalt"]
 
 
-def cofre(t, x, y, z, facing, tbl, kind="chest"):
+def place_chest(t, x, y, z, facing, tbl, kind="chest"):
     if kind == "barrel":
         t.barrel(x, y, z, facing="up", loot=f"{NSP}/{tbl}")
     else:
@@ -148,29 +148,29 @@ def construction():
         r.lantern(t, x, 8, 0, hanging=False)
     # torres de las esquinas
     r.tower(t, p, 0, 0, 8, (4, 2, "east"))
-    cofre(t, 2, 1, 1, "south", "armeria")
+    place_chest(t, 2, 1, 1, "south", "armeria")
     t.set(1, 1, 3, "smithing_table")
     r.tower(t, p, n - 4, 0, 8, (n - 4, 2, "west"))
     pieces.spawner(t.set, n - 2, 1, 2, "blaze")
     r.tower(t, p, 0, n - 4, 8, (4, n - 2, "east"))
-    cofre(t, 2, 1, n - 1, "north", "despensa", "barrel")
-    cofre(t, 1, 1, n - 1, "north", "despensa")
-    abierta = r.hidden(t, p, n - 4, n - 4)
-    cofre(t, n - 2, 1, n - 1, "north", "oculto")
+    place_chest(t, 2, 1, n - 1, "north", "despensa", "barrel")
+    place_chest(t, 1, 1, n - 1, "north", "despensa")
+    is_open = r.hidden(t, p, n - 4, n - 4)
+    place_chest(t, n - 2, 1, n - 1, "north", "oculto")
     t.set(n - 1, 1, n - 3, "red_bed[facing=north,occupied=false,part=head]")
     t.set(n - 1, 1, n - 2, "red_bed[facing=north,occupied=false,part=foot]")
     # el torreón en medio
-    r.great_tower(t, p, 10, 12, cofre, guardian())
+    r.great_tower(t, p, 10, 12, place_chest, guardian())
     # forja del patio (al oeste del torreón) y braseros de almas
     t.set(5, 1, 14, "lava_cauldron")
     t.set(5, 1, 16, "anvil[facing=north]")
     t.set(6, 1, 14, "blast_furnace[facing=east,lit=false]")
-    cofre(t, 5, 1, 18, "east", "forja", "barrel")
+    place_chest(t, 5, 1, 18, "east", "forja", "barrel")
     for x, z in ((8, 4), (26, 4), (8, 30), (26, 30), (30, 16), (4, 24)):
         t.set(x, 1, z, p["esquina"])
         t.set(x, 2, z, "soul_campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]")
     pieces.connect(t)
-    t.lint_open = abierta
+    t.lint_open = is_open
     t.jigsaw(17, 0, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty",
              final_state="minecraft:polished_blackstone_bricks")
     return t

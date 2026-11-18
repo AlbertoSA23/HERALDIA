@@ -478,12 +478,12 @@ class Construction:
                         self.s(x, y, z, "dirt" if y >= -2 else "stone")
         U, L = (F1, F1 + 3), (F2, F2 + 3)
         ROOT = ("rooted_dirt", WOOD, "rooted_dirt")
-        MAD = (PL, S(SLOG, axis="y"), PL)
+        TIMBER = (PL, S(SLOG, axis="y"), PL)
         HERB = (MUD, MUD, PL)
         self.room(36, 36, 31, 34, F1, F1 + 1, *ROOT)       # del árbol a la sala de las raíces
         self.room(28, 44, 20, 30, *U, *ROOT)               # sala de las raíces
-        self.room(27, 27, 25, 25, F1, F1 + 1, *MAD)        # puerta de la biblioteca
-        self.room(16, 26, 20, 30, *U, *MAD)                # biblioteca
+        self.room(27, 27, 25, 25, F1, F1 + 1, *TIMBER)        # puerta de la biblioteca
+        self.room(16, 26, 20, 30, *U, *TIMBER)                # biblioteca
         self.room(45, 45, 25, 25, F1, F1 + 1, *HERB)       # puerta del herbolario
         self.room(46, 56, 20, 30, *U, *HERB)               # herbolario
         self.room(36, 37, 14, 19, F1, F1 + 2)              # pasillo del cable trampa
@@ -494,8 +494,8 @@ class Construction:
         self.room(40, 45, 46, 59, *L)                      # cámara del sol
         OSC = ("deepslate_tiles", "cobbled_deepslate", "deepslate_tiles")
         self.room(24, 35, 42, 56, F2, F2 + 4, *OSC)        # cámara del rito (guardián)
-        self.room(29, 30, 57, 58, F2, F2 + 2, *MAD)        # paso al tesoro
-        self.room(26, 33, 59, 64, *L, *MAD)                # cámara del tesoro
+        self.room(29, 30, 57, 58, F2, F2 + 2, *TIMBER)        # paso al tesoro
+        self.room(26, 33, 59, 64, *L, *TIMBER)                # cámara del tesoro
         self.lining()
         self.root_hall()
         self.library()

@@ -49,7 +49,7 @@ class Construction(Template):
         self.ruins = []          # (x0, z0, x1, z1) huella en ruinas
         self.footprint = []          # (x0, z0, x1, z1) huella construida
         self.open_items = {}        # pos -> estado en la vista de auditoría (puertas secretas abiertas)
-        self.cofres = []          # (pos, tabla)
+        self.chest_list = []          # (pos, tabla)
         self.circuits = {}       # nombre -> dict de componentes para la comprobación de redstone
         self.top = {}
 
@@ -77,7 +77,7 @@ class Construction(Template):
 
     def chest(self, x, y, z, facing, tbl, kind="chest"):
         pieces.chest(self.set, x, y, z, facing, P + tbl, kind)
-        self.cofres.append(((x, y, z), tbl))
+        self.chest_list.append(((x, y, z), tbl))
 
     def candle(self, x, y, z, n=1, lit=True, color=""):
         self.set(x, y, z, f"{color + '_' if color else ''}candle[candles={n},lit={'true' if lit else 'false'},waterlogged=false]")

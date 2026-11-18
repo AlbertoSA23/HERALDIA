@@ -3,8 +3,8 @@ referencia guardada en el repositorio (tools/smoke/cost_reference.json).
 
 Uso:
   python3 tools/smoke/generation_cost.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-  python3 tools/smoke/generation_cost.py ... --actualizar-referencia     # mide y guarda la referencia nueva
-  python3 tools/smoke/generation_cost.py --desde build/coste/coste_generacion.json [--actualizar-referencia]
+  python3 tools/smoke/generation_cost.py ... --update-reference     # mide y guarda la referencia nueva
+  python3 tools/smoke/generation_cost.py --from-json build/coste/coste_generacion.json [--update-reference]
       # rehace el resumen (o la referencia) de una medición ya hecha, p. ej. el artefacto «coste-generacion» de la CI
 
 Cada pasada arranca un servidor dedicado 26.3 nuevo (mundo borrado, semilla fija SEMILLA, Fabric API y Chunky), una
@@ -138,18 +138,18 @@ def join_zones(events, zones):
             "pasos_ms": steps}
 
 
-def cpu_de_stat(line, hz=100):
+def cpu_of_stat(line, hz=100):
     """Segundos de CPU (usuario + sistema) de una línea de /proc/<pid>/stat (el nombre del proceso va entre paréntesis
     y puede llevar espacios: se corta tras el último «)»)."""
     fields = line.rpartition(")")[2].split()
     return (int(fields[11]) + int(fields[12])) / hz
 
 
-def cpu_proceso(pid):
+def process_cpu(pid):
     """CPU (s) que lleva gastada el proceso, o None si no hay /proc (fuera de Linux)."""
     try:
         with open(f"/proc/{pid}/stat", encoding="ascii") as f:
-            return cpu_de_stat(f.read(), os.sysconf("SC_CLK_TCK"))
+            return cpu_of_stat(f.read(), os.sysconf("SC_CLK_TCK"))
     except (OSError, ValueError, IndexError):
         return None
 
@@ -390,9 +390,9 @@ def sweep(work, jar, with_it, launcher):
         ctx.run("jfr start", r"[Ss]tarted flight recorder|JFR profiling started|already")
         seconds, cpu = 0.0, 0.0
         for name, x, z, r in ZONES:
-            c0 = cpu_proceso(proc.pid)
+            c0 = process_cpu(proc.pid)
             n, t = chunky(ctx, name, x, z, r)
-            c1 = cpu_proceso(proc.pid)
+            c1 = process_cpu(proc.pid)
             cpu = None if c0 is None or c1 is None or cpu is None else cpu + c1 - c0
             c = chunks_of_zone(x, z, r)
             if n != (c[2] - c[0] + 1) * (c[3] - c[1] + 1):
@@ -500,23 +500,23 @@ def main(argv=None):
     ap.add_argument("--update-reference", action="store_true", help="guarda la medición como referencia nueva")
     ap.add_argument("--no-threshold", action="store_true", help="mide e informa, pero no falla por el umbral")
     ap.add_argument("--no-retry", action="store_true", help="si pasa del umbral, no repite otra ronda de pasadas")
-    ap.add_argument("--start", help="no mide: usa este coste_generacion.json (p. ej. el artefacto de la CI)")
+    ap.add_argument("--from-json", help="no mide: usa este coste_generacion.json (p. ej. el artefacto de la CI)")
     a = ap.parse_args(argv)
     ref = read_reference(a.reference)
-    if a.start:
-        with open(a.start, encoding="utf-8") as f:
+    if a.from_json:
+        with open(a.from_json, encoding="utf-8") as f:
             res = json.load(f)
     else:
         if not a.jar:
-            ap.error("--jar es obligatorio (o --desde)")
+            ap.error("--jar es obligatorio (o --from-json)")
         jar, work = os.path.abspath(a.jar), os.path.abspath(a.work)
         sin, with_it = measure(jar, work, a.sweeps)
         res = result_of(sin, with_it)
         comp = compare(res["sobrecoste"], ref)
         if not comp[0] and ref and not a.no_retry and not a.update_reference:
             print(f"{comp[2]}: se repite una ronda de {a.sweeps} pasadas y se decide con todas", flush=True)
-            sin2, with_it2 = measure(jar, work, a.sweeps)
-            res = result_of(sin + sin2, with_it + with_it2)
+            without_it2, with_it2 = measure(jar, work, a.sweeps)
+            res = result_of(sin + without_it2, with_it + with_it2)
     comp = compare(res["sobrecoste"], ref)
     if a.update_reference:
         new_one = new_reference(res, ref)

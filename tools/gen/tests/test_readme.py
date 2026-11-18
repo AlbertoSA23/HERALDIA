@@ -39,11 +39,11 @@ def anchor_point(header):
 
 def headers(text):
     """[(nivel, texto)] fuera de los bloques de código."""
-    out, codigo = [], False
+    out, lang_code = [], False
     for line in text.split("\n"):
         if line.startswith("```"):
-            codigo = not codigo
-        elif not codigo:
+            lang_code = not lang_code
+        elif not lang_code:
             m = re.match(r"(#{1,6}) (.*)", line)
             if m:
                 out.append((len(m.group(1)), m.group(2)))
@@ -56,7 +56,7 @@ def numbers(text):
     return sorted(int(n) for n in re.findall(r"\d+", text))
 
 
-def codigos(text):
+def lang_codes(text):
     """Lo que va entre comillas invertidas (opciones, comandos, ids): igual en todos los idiomas."""
     return re.findall(r"`([^`]+)`", text)
 
@@ -75,9 +75,9 @@ def form(text):
     return out
 
 
-def selector(codigo):
+def selector(lang_code):
     """La línea del selector de idiomas del README de `codigo`: el suyo en negrita y los demás enlazados."""
-    return " · ".join(f"**{languages.NAMES[c]}**" if c == codigo else f"[{languages.NAMES[c]}]({README[c]})" for c in README)
+    return " · ".join(f"**{languages.NAMES[c]}**" if c == lang_code else f"[{languages.NAMES[c]}]({README[c]})" for c in README)
 
 
 # ------------------------------------------------------------------ un README por idioma, con su selector
@@ -88,31 +88,31 @@ def test_one_readme_per_mod_language():
         assert os.path.exists(os.path.join(ROOT, f)), f"falta {f} ({c})"
 
 
-@pytest.mark.parametrize("codigo", list(README))
-def test_language_selector(codigo):
-    lines = read(README[codigo]).split("\n")
+@pytest.mark.parametrize("lang_code", list(README))
+def test_language_selector(lang_code):
+    lines = read(README[lang_code]).split("\n")
     assert lines[0] == "# Heraldia"
-    assert lines[2] == selector(codigo)
+    assert lines[2] == selector(lang_code)
     linked = set(re.findall(r"\]\((README[^)]*)\)", lines[2]))
-    assert linked == set(README.values()) - {README[codigo]}
+    assert linked == set(README.values()) - {README[lang_code]}
 
 
-@pytest.mark.parametrize("codigo", [c for c in README if c != "en_us"])
-def test_same_shape_as_english(codigo):
-    en, other_one = read(README["en_us"]), read(README[codigo])
+@pytest.mark.parametrize("lang_code", [c for c in README if c != "en_us"])
+def test_same_shape_as_english(lang_code):
+    en, other_one = read(README["en_us"]), read(README[lang_code])
     assert [n for n, _ in headers(other_one)] == [n for n, _ in headers(en)]
     assert form(other_one) == form(en)
-    assert codigos(other_one) == codigos(en)
+    assert lang_codes(other_one) == lang_codes(en)
     assert numbers(other_one) == numbers(en)
 
 
-@pytest.mark.parametrize("codigo", list(README))
-def test_links_the_documentation(codigo):
+@pytest.mark.parametrize("lang_code", list(README))
+def test_links_the_documentation(lang_code):
     """Cada README enlaza la documentación (la española, el de español; la inglesa, los demás) y la guía de desarrollo."""
-    text = read(README[codigo])
-    docs = [es if codigo == "es_es" else en for en, es in DOCS]
+    text = read(README[lang_code])
+    docs = [es if lang_code == "es_es" else en for en, es in DOCS]
     for d in docs + ["DEVELOPMENT.md"]:
-        assert f"(docs/{d})" in text, (codigo, d)
+        assert f"(docs/{d})" in text, (lang_code, d)
 
 
 # ------------------------------------------------------------------ cifras del generador
@@ -175,10 +175,10 @@ def test_figures_of_the_documentation(doc, pattern, which):
     assert m and int(m.group(1)) == n, (doc, pattern, m and m.group(1), n)
 
 
-@pytest.mark.parametrize("codigo", list(README))
-def test_options_table_with_the_generator_values(codigo):
+@pytest.mark.parametrize("lang_code", list(README))
+def test_options_table_with_the_generator_values(lang_code):
     defaults = {o["clave"]: o["defecto"] for o in options.schema()["opciones"]}
-    rows = re.findall(r"^\| `([a-z_.<>]+)` \| ([^|]+) \|", read(README[codigo]), re.M)
+    rows = re.findall(r"^\| `([a-z_.<>]+)` \| ([^|]+) \|", read(README[lang_code]), re.M)
     assert len(rows) >= 8
     for key, default in rows:
         real = [v for k, v in defaults.items() if re.fullmatch(re.escape(key).replace("<id>", r"\w+"), k)]

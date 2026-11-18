@@ -27,7 +27,7 @@ MEMENTO_MARK = "heraldia_recuerdo_tesoro"
 FRAGMENT_MARK = "{%s: {v: 1}}" % MARK
 MEMORY_MARK = "{%s: 1b}" % MEMENTO_MARK
 FRAGMENT = f"{NS}:tesoro/fragmento"
-COFRE = f"{NS}:tesoro/cofre"
+CHEST_TABLE = f"{NS}:tesoro/cofre"
 CONDITION = f"{NS}:tesoro_pista"
 # Factor de cada familia de tablas sobre tesoro.probabilidad: las únicas tienen muchos cofres (la mitad por cofre); los
 # encargos del tablón, como un cofre; las hazañas del tablón, pocas y difíciles (cinco veces más).
@@ -173,7 +173,7 @@ SUSTENANCE = [item("bread", 8, 2, 5), item("cooked_cod", 6, 2, 4), item("iron_in
 FORBIDDEN = ("netherite", "elytra", "enchanted_golden_apple", "totem")
 
 
-def cofre():
+def place_chest():
     """Tabla heraldia:tesoro/cofre: el recuerdo siempre, 3-5 objetos valiosos y 2-4 de sustento."""
     return {"type": "minecraft:chest", "pools": [
         {"rolls": 1, "entries": [memento()]},
@@ -219,7 +219,7 @@ def advancements():
     criteria = {
         "tesoro/fragmento": {"fragmento": {"trigger": "minecraft:inventory_changed", "conditions": {"items": [
             {"items": "minecraft:paper", "predicates": {"minecraft:custom_data": {MARK: {}}}}]}}},
-        "tesoro/cofre": {"cofre": {"trigger": "minecraft:player_generates_container_loot", "conditions": {"loot_tables": COFRE}}},
+        "tesoro/cofre": {"cofre": {"trigger": "minecraft:player_generates_container_loot", "conditions": {"loot_tables": CHEST_TABLE}}},
     }
     parent = {"tesoro/fragmento": "raiz", "tesoro/cofre": "tesoro/fragmento"}
     for path, d in ADVANCEMENTS.items():
@@ -240,13 +240,13 @@ def errors(translations=None):
             if chest_loot.width(t[key(k)]) > LORE_MAX_PX:
                 e.append(f"tesoro: el lore «{k}» ({name}) pasa de {LORE_MAX_PX} px: {t[key(k)]}")
     import json
-    text = json.dumps(cofre())
+    text = json.dumps(place_chest())
     e += [f"tesoro: objeto prohibido en el cofre: {p}" for p in FORBIDDEN if p in text]
     return e
 
 
 def write(out, jdump):
     jdump(out, f"data/{NS}/loot_table/tesoro/fragmento.json", fragment())
-    jdump(out, f"data/{NS}/loot_table/tesoro/cofre.json", cofre())   # los logros los escribe logros.write con los demás
+    jdump(out, f"data/{NS}/loot_table/tesoro/cofre.json", place_chest())   # los logros los escribe logros.write con los demás
     jdump(out, f"data/{NS}/loot_table/tesoro/encargo.json", quest())
     return lang()

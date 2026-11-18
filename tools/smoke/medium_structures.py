@@ -41,7 +41,7 @@ def forceload(ctx, x0, z0, x1, z1, remove=False):
     ctx.run(f"forceload {'remove' if remove else 'add'} {x0} {z0} {x1} {z1}", r"Marked|[Aa]dded|[Rr]emoved|force|already|[Uu]nmarked")
 
 
-def info_cerca(ctx, x, z, radius):
+def info_near(ctx, x, z, radius):
     """{id: (distancia, x, z)} de /heraldia info nearby desde x, z."""
     m = ctx.run(f"execute positioned {x} 64 {z} run heraldia info nearby {radius}",
                 r"info nearby \d+ en [^:]+: \d+ estructuras en (\d+) ms")
@@ -68,7 +68,7 @@ def check_locate(ctx, kinds):
             if d > LOCATE_MAX:
                 fails.append(f"{mid} desde {x}, {z} a {d:.0f} bloques (> {LOCATE_MAX})")
             found_count += 1
-            nearby_flag = info_cerca(ctx, px, pz, 600)
+            nearby_flag = info_near(ctx, px, pz, 600)
             if nearby_flag is None:
                 fails.append(f"/heraldia info nearby desde {mid} en {px}, {pz} no responde")
                 continue

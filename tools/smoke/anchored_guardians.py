@@ -1,11 +1,11 @@
 """Mobs anclados (heraldia_anclado) en un servidor dedicado 26.3 real, con un jugador simulado (complementa server_smoke.py).
 
-Uso: python3 tools/smoke/anchored_guardians.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke" [--veces N]
+Uso: python3 tools/smoke/anchored_guardians.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke" [--times N]
 Un mob persistente con IA pasea hasta 10 bloques en los 100 primeros ticks de cada carga (RandomStrollGoal exige
 noActionTime < 100, que no se guarda) y a veces salía de su sala; y el finalizeSpawn de zombis y esqueletos sortea
 CanPickUpLoot sin mirar el NBT. El mod (comun/Anclaje.java) lo evita en los que llevan core.ANCLADO_TAG. Con cada mob
 distinto con la etiqueta en las plantillas del .jar (los guardianes y los ahogados de la Atlántida):
-  1) lo coloca --veces veces como pieza de pool (/place jigsaw: finalizeSpawn, como al generar) en su casilla de una
+  1) lo coloca --times veces como pieza de pool (/place jigsaw: finalizeSpawn, como al generar) en su casilla de una
      plataforma, de noche y en difícil; ninguno puede recoger objetos y, tras 200 ticks, todos siguen en su casilla
      (±1,8 bloques; el guardián anciano, en una piscina, dentro de la casa de 16 bloques que el juego le pone). Un lote de control sin la etiqueta (el mismo esqueleto y el mismo zombi) debe pasear y recoger
      objetos alguna vez: si no, la prueba no comprobaría nada;

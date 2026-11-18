@@ -1,7 +1,7 @@
 """Botín del Santuario druídico (solo vanilla): modesto en las cabañas y el claro, mejor bajo las raíces y en las salas
 ocultas, y el cofre premium al fondo (90 % vistoso, 10 % algo más fuerte). Cada tabla tiene su grupo extra marcado
 solo_sin_lootr."""
-from .._common.chest_loot import cofre, table, pool, item, empty, named as _named, potion, lang
+from .._common.chest_loot import place_chest, table, pool, item, empty, named as _named, potion, lang
 
 K = "heraldia.santuario."
 TEXTS = {   # clave: (es_es, en_us)
@@ -30,35 +30,35 @@ LIGHT = [item("bread", 8, 1, 3), item("honey_bottle", 4, 1, 2), item("sweet_berr
 
 LOOT = {
     # claro (superficie)
-    "cabana": cofre(((2, 4), LIGHT + [item("book", 2), item("mushroom_stew", 2)]),
+    "cabana": place_chest(((2, 4), LIGHT + [item("book", 2), item("mushroom_stew", 2)]),
                     (1, [item("emerald", 3), item("gold_nugget", 5, 2, 5), item("golden_carrot", 2), empty(8)])),
-    "jardin": cofre(((2, 4), [item("wheat_seeds", 8, 2, 6), item("carrot", 6, 1, 4), item("beetroot", 6, 1, 4),
+    "jardin": place_chest(((2, 4), [item("wheat_seeds", 8, 2, 6), item("carrot", 6, 1, 4), item("beetroot", 6, 1, 4),
                               item("potato", 6, 1, 4), item("bone_meal", 8, 2, 6), item("honeycomb", 4, 1, 3),
                               item("allium", 3, 1, 2), item("cornflower", 3, 1, 2), item("lily_of_the_valley", 3, 1, 2),
                               item("shears", 2, dmg=(0.3, 0.8))]),
                     (1, [named("honey_bottle", "miel", 3, lo=1, hi=2), item("glistering_melon_slice", 2),
                          item("golden_carrot", 2), empty(8)])),
-    "observatorio": cofre(((2, 4), [item("paper", 8, 1, 4), item("candle", 5, 1, 2), item("compass", 2), item("clock", 2),
+    "observatorio": place_chest(((2, 4), [item("paper", 8, 1, 4), item("candle", 5, 1, 2), item("compass", 2), item("clock", 2),
                                     item("amethyst_shard", 4, 1, 3), item("map", 3), item("feather", 4, 1, 3),
                                     item("bread", 5, 1, 2)]),
                           (1, [item("spyglass", 2), item("lapis_lazuli", 4, 2, 6), item("emerald", 3), empty(8)])),
-    "copa": cofre(((2, 4), [item("arrow", 8, 3, 10), item("bread", 6, 1, 2), item("string", 5, 1, 3), item("feather", 4, 1, 3),
+    "copa": place_chest(((2, 4), [item("arrow", 8, 3, 10), item("bread", 6, 1, 2), item("string", 5, 1, 3), item("feather", 4, 1, 3),
                             item("stick", 5, 2, 5), item("bow", 2, dmg=(0.3, 0.8)), item("honey_bottle", 3)]),
                   (1, [named("bow", "arco", 2, levels=(5, 10)), item("iron_ingot", 4, 1, 2), item("emerald", 3),
                        empty(8)])),
     # sala oculta de la superficie
-    "archidruida": cofre(((3, 5), [item("gold_ingot", 8, 1, 3), item("emerald", 8, 1, 4), item("amethyst_shard", 5, 1, 4),
+    "archidruida": place_chest(((3, 5), [item("gold_ingot", 8, 1, 3), item("emerald", 8, 1, 4), item("amethyst_shard", 5, 1, 4),
                                    named("glow_berries", "muerdago", 4, lo=1, hi=3), item("book", 4, rand_ench=True),
                                    potion("regeneration", 3), item("honeycomb", 4, 1, 3)]),
                          ((1, 2), [item("diamond", 3), item("golden_apple", 3), item("experience_bottle", 4, 2, 5),
                                    named("stick", "bordon", 2, ench={"minecraft:knockback": 1}), empty(6)])),
     # bajo las raíces, nivel alto
-    "biblioteca": cofre(((3, 5), [item("book", 10, 1, 3), item("paper", 10, 2, 6), item("feather", 6, 1, 3),
+    "biblioteca": place_chest(((3, 5), [item("book", 10, 1, 3), item("paper", 10, 2, 6), item("feather", 6, 1, 3),
                                   item("ink_sac", 6, 1, 3), item("candle", 4, 1, 2), item("writable_book", 3),
                                   named("paper", "corteza", 3, lo=1, hi=2)]),
                         ((1, 2), [item("book", 6, rand_ench=True), item("experience_bottle", 4, 1, 3),
                                   item("lapis_lazuli", 4, 2, 5), empty(6)])),
-    "herbolario": cofre(((3, 5), [item("glass_bottle", 8, 1, 3), item("sugar", 6, 1, 3), item("spider_eye", 5, 1, 2),
+    "herbolario": place_chest(((3, 5), [item("glass_bottle", 8, 1, 3), item("sugar", 6, 1, 3), item("spider_eye", 5, 1, 2),
                                   item("brown_mushroom", 5, 1, 3), item("red_mushroom", 5, 1, 3), item("glow_berries", 5, 1, 4),
                                   item("redstone", 4, 1, 4), item("glowstone_dust", 3, 1, 3),
                                   potion("healing", 3), potion("swiftness", 2)]),
@@ -66,25 +66,25 @@ LOOT = {
                                                                        "id": "minecraft:regeneration"}]),
                                   item("glistering_melon_slice", 3), item("golden_carrot", 3), item("fermented_spider_eye", 2),
                                   item("blaze_powder", 1), empty(6)])),
-    "raices": cofre(((2, 4), [item("string", 6, 1, 3), item("glow_berries", 5, 1, 3), item("brown_mushroom", 5, 1, 3),
+    "raices": place_chest(((2, 4), [item("string", 6, 1, 3), item("glow_berries", 5, 1, 3), item("brown_mushroom", 5, 1, 3),
                               item("iron_nugget", 6, 2, 6), item("coal", 6, 1, 4), item("torch", 5, 1, 4),
                               item("rooted_dirt", 3, 1, 3), item("moss_block", 3, 1, 2), item("bone", 4, 1, 3)]),
                     (1, [item("iron_ingot", 5, 1, 2), item("emerald", 3), item("golden_apple", 1), empty(8)])),
-    "osario": cofre(((2, 4), [item("bone", 12, 2, 6), item("bone_meal", 6, 2, 6), item("rotten_flesh", 6, 1, 3),
+    "osario": place_chest(((2, 4), [item("bone", 12, 2, 6), item("bone_meal", 6, 2, 6), item("rotten_flesh", 6, 1, 3),
                               item("gold_nugget", 6, 2, 6), item("candle", 4, 1, 2), item("skeleton_skull", 1)]),
                     ((1, 2), [item("gold_ingot", 5, 1, 3), item("iron_ingot", 5, 1, 3), item("experience_bottle", 3, 1, 3),
                               empty(8)])),
     # sala oculta del nivel alto (tras la puerta secreta de la biblioteca)
-    "secreto": cofre(((3, 5), [item("book", 8, rand_ench=True), named("writable_book", "tratado", 3),
+    "secreto": place_chest(((3, 5), [item("book", 8, rand_ench=True), named("writable_book", "tratado", 3),
                                item("amethyst_shard", 5, 1, 4), item("lapis_lazuli", 6, 2, 6), item("emerald", 6, 1, 3),
                                item("experience_bottle", 4, 1, 3)]),
                      ((1, 2), [item("diamond", 3, 1, 2), item("music_disc_mellohi", 2), item("golden_apple", 2),
                                item("name_tag", 2), empty(5)])),
     # nivel bajo
-    "ofrendas": cofre(((4, 6), [item("gold_ingot", 10, 2, 5), item("gold_nugget", 8, 4, 10), item("emerald", 8, 2, 5),
+    "ofrendas": place_chest(((4, 6), [item("gold_ingot", 10, 2, 5), item("gold_nugget", 8, 4, 10), item("emerald", 8, 2, 5),
                                 named("honey_bottle", "miel", 4, lo=1, hi=2), item("amethyst_shard", 5, 1, 4)]),
                       ((1, 2), [item("diamond", 3, 1, 2), item("golden_apple", 3), item("gold_block", 1), empty(6)])),
-    "ritual": cofre(((3, 5), [item("redstone", 6, 2, 6), item("glowstone_dust", 5, 1, 4), item("lapis_lazuli", 6, 2, 6),
+    "ritual": place_chest(((3, 5), [item("redstone", 6, 2, 6), item("glowstone_dust", 5, 1, 4), item("lapis_lazuli", 6, 2, 6),
                               item("amethyst_shard", 5, 1, 4), item("candle", 4, 1, 3), item("experience_bottle", 4, 2, 4),
                               named("iron_sword", "daga", 2, levels=(5, 12))]),
                     ((1, 2), [item("diamond", 3, 1, 2), item("emerald", 5, 2, 4), item("golden_apple", 2), empty(6)])),

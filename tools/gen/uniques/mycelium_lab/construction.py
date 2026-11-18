@@ -663,23 +663,23 @@ class Construction:
                     if self.get(x, y, z) is None:
                         self.s(x, y, z, "dirt" if y >= -2 else "stone")
         U, L = (F1, F1 + 3), (F2, F2 + 3)
-        HUM = ("mycelium[snowy=false]", "mud_bricks", "packed_mud")       # galerías húmedas de los criaderos
+        DAMP = ("mycelium[snowy=false]", "mud_bricks", "packed_mud")       # galerías húmedas de los criaderos
         LAB = (SB, SB, SB)
         STEM_PROFILE = (PL, STEM, PL)
         OSC = (DS, CDS, DS)
         # nivel alto
         self.room(RX, RX, RZ - 5, RZ - 2, F1, F1 + 1, *STEM_PROFILE)       # del tallo a los criaderos
-        self.room(22, 42, 18, 28, *U, *HUM)                          # criaderos de setas
+        self.room(22, 42, 18, 28, *U, *DAMP)                          # criaderos de setas
         self.room(21, 21, 23, 23, F1, F1 + 1, *LAB)                  # puerta del laboratorio
         self.room(10, 20, 18, 28, *U, *LAB)                          # laboratorio
         self.room(43, 43, 23, 23, F1, F1 + 1, *STEM_PROFILE)                # puerta del pasillo de las esporas
         self.room(44, 52, 22, 23, F1, F1 + 2, *STEM_PROFILE)                # pasillo del cable trampa
-        self.room(53, 59, 16, 28, *U, *HUM)                          # criadero abandonado (arañas)
+        self.room(53, 59, 16, 28, *U, *DAMP)                          # criadero abandonado (arañas)
         # nivel bajo
         self.room(RX, RX, RZ - 5, RZ - 2, F2, F2 + 1, *STEM_PROFILE)       # del tallo a la galería de la luz
-        self.room(22, 42, 20, 28, *L, *HUM)                          # galería de la luz
-        self.room(21, 21, 24, 24, F2, F2 + 1, *HUM)                  # puerta de los capullos
-        self.room(10, 20, 18, 28, *L, *HUM)                          # sala de los capullos (arañas de cueva)
+        self.room(22, 42, 20, 28, *L, *DAMP)                          # galería de la luz
+        self.room(21, 21, 24, 24, F2, F2 + 1, *DAMP)                  # puerta de los capullos
+        self.room(10, 20, 18, 28, *L, *DAMP)                          # sala de los capullos (arañas de cueva)
         self.room(43, 43, 24, 24, F2, F2 + 1, *LAB)                  # puerta de los experimentos
         self.room(44, 56, 18, 28, *L, *LAB)                          # experimentos fallidos (zombis)
         self.room(40, 40, 29, 35, F2, F2 + 1, *LAB)                  # pasillo a la sala de los reactivos

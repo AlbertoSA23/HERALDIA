@@ -136,9 +136,9 @@ def check_lighthouse(ctx, st, v):
         fails.append(f"{st}: el embarcadero no acaba sobre el agua ({cx} {SEA - 1} {cz})")
     if not ctx.block(st.world((0, 0, constructions.DOCK)), "#minecraft:planks"):
         fails.append(f"{st}: falta el embarcadero")
-    cofre = st.world((-2, 12, constructions.TOWER_Z))
-    if not ctx.block(cofre, 'minecraft:chest{LootTable:"heraldia:costa/faro"}'):
-        fails.append(f"{st}: falta el cofre del faro en {cofre}")
+    place_chest = st.world((-2, 12, constructions.TOWER_Z))
+    if not ctx.block(place_chest, 'minecraft:chest{LootTable:"heraldia:costa/faro"}'):
+        fails.append(f"{st}: falta el cofre del faro en {place_chest}")
     n = water_above(ctx, st.world((-8, 0, -21)), st.world((8, 27, constructions.DOCK + 1)))
     if n:
         fails.append(f"{st}: {n} bloques de agua por encima del mar en su caja")
@@ -149,9 +149,9 @@ def check_shipwreck(ctx, st):
     v = MODE_VARIANT[st.mode]
     o, _, _ = coast.construction("naufragio", "templada", v)
     z0, fails = o.bow, []
-    quilla = st.world((0, 0, z0 + 10))
-    if not ctx.until(f"execute if block {' '.join(map(str, quilla))} #minecraft:logs", timeout=60):
-        return [f"{st}: sin la quilla en {quilla}"]
+    keel = st.world((0, 0, z0 + 10))
+    if not ctx.until(f"execute if block {' '.join(map(str, keel))} #minecraft:logs", timeout=60):
+        return [f"{st}: sin la quilla en {keel}"]
     if not ctx.block(st.world((0, 17, z0 + 12)), "#minecraft:logs"):
         fails.append(f"{st}: sin el mástil mayor")
     cabin_adv = st.world((-2, 6, z0 + 28))
@@ -177,7 +177,7 @@ def check_shipwreck(ctx, st):
     return fails
 
 
-def info_cerca(ctx, x, z, radius):
+def info_near(ctx, x, z, radius):
     m = ctx.run(f"execute positioned {x} 64 {z} run heraldia info nearby {radius}", r"info nearby \d+ en [^:]+: \d+ estructuras en (\d+) ms")
     if not m.lastindex:
         return {}
@@ -186,7 +186,7 @@ def info_cerca(ctx, x, z, radius):
 
 def check_separation(ctx, kind, x, z):
     fails = []
-    for sid, (dist, *_) in info_cerca(ctx, x, z, 600).items():
+    for sid, (dist, *_) in info_near(ctx, x, z, 600).items():
         if ":costa/" in sid:
             if f"costa/{kind}" not in sid and dist < DISTANCE:
                 fails.append(f"{kind} en {x}, {z} a {dist} bloques de {sid} (< {DISTANCE})")
@@ -290,9 +290,9 @@ def check_loot(ctx):
 def check_log(ctx, lighthouses=True, sep_shipwreck=768):
     fails, log = [], ctx.log()
     for kind, sep in (("faro", 1024), ("naufragio", sep_shipwreck)):
-        activo = lighthouses or kind != "faro"
+        active = lighthouses or kind != "faro"
         sp = round(sep / 16)
-        if not re.search(rf"rejilla costa/{kind}: {'activada' if activo else 'desactivada'}, cada {sp} chunks "
+        if not re.search(rf"rejilla costa/{kind}: {'activada' if active else 'desactivada'}, cada {sp} chunks "
                          rf"\(separación mínima {(DISTANCE + 15) // 16}, origen desplazado\)[^\n]*candidata en el bioma #heraldia:litoral", log):
             fails.append(f"falta en el log la rejilla de costa/{kind} (cada {sp} chunks)")
     return fails

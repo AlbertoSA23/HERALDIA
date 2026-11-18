@@ -11,7 +11,7 @@ longhouse, specialized workshops, ruin and an underground part with puzzles, tra
 ## Biome and placement
 
 - Biomes: taiga, old growth pine taiga and old growth spruce taiga (vanilla list, without `#c:` tags: `#c:is_taiga`
-  adds the snowy taiga, which belongs to the ice fortress; `biomas.comprobar` checks it).
+  adds the snowy taiga, which belongs to the ice fortress; `biomes.check` checks it).
 - Rarity: `spacing` 250 / `separation` 190 chunks (one every ~3,000-5,000 blocks), configurable in
   `config/heraldia.json` like the others (`unicas.salon_jarl.activada`, `unicas.salon_jarl.separacion_bloques`).
 - Two rigid pieces joined by a vertical jigsaw under the longhouse (`down_north` → `up_north`, same rotation):
@@ -101,10 +101,10 @@ stairs → the jarl's chamber → treasure. Everything has a way back to the ent
 
 ## Puzzles and traps (everything at rest and consistent when generated)
 
-- **Puzzle 1, the rune wall** (`piezas.combo_door` with two levers and two fake ones): extended sticky pistons
+- **Puzzle 1, the rune wall** (`pieces.combo_door` with two levers and two fake ones): extended sticky pistons
   holding two polished tuff blocks; the line of dust runs inside the wall (four thick: levers, torches or
   the fake ones' dust, door and pistons with the line, and the face behind). The 16 combinations are tried.
-- **Puzzle 2, the skald's secret door** (`piezas.lever_door`): a niche sealed with chiseled brick; the lever turns off the
+- **Puzzle 2, the skald's secret door** (`pieces.lever_door`): a niche sealed with chiseled brick; the lever turns off the
   inverting torch and the pistons pull in the door. The pistons and the torch stay inside the two-thick wall.
 - **Trap 1**: a taut tripwire between two hooks with a dispenser above each hook.
 - **Trap 2**: two stone plates in front of the chest of greed with TNT two blocks below.
@@ -160,7 +160,7 @@ below) and patches of moss on the roofs. Processor: cobblestone → mossy (35 %)
 
 ## Audit (a condition for generating)
 
-`auditoria.py` fails the build if: the redstone is not in its stable state; any of the 16 combinations of the
+`audit.py` fails the build if: the redstone is not in its stable state; any of the 16 combinations of the
 rune wall opens without being the correct one (or the correct one does not open); the lever does not open the skald's door; the wire or the
 plates do not fire; something hidden (the skald's chamber, the lower staircase, the jarl's chamber, the treasure) can be reached without
 solving the puzzles or cannot be reached by solving them; the alcove cannot be reached through the tapestry; there are chests, spawners or
@@ -173,13 +173,13 @@ falls outside 15-25 or the damaged surface outside 15-20 %. The shared checks al
 
 - Generation: two templates (45,400 + 30,900 blocks, fewer than the ice fortress) with a rule processor and without
   custom Java. The `/place structure` time measured on the test server: see the PR (printed by
-  `prueba_servidor.py`).
+  `smoke_server.py`).
 - Entities: 3 (the guardian and two armor stands). 3 spawners with the vanilla radius and limit. Nothing per tick.
 
 ## Tests
 
-- `python3 tools/gen/unicas/salon_jarl/planos.py` → plans by level and renders in `docs/unicas/salon_jarl/`.
-- `python3 tools/gen/unicas/salon_jarl/prueba_servidor.py --jar build/libs/heraldia-<version>.jar --work "$PWD/build/smoke"`:
+- `python3 tools/gen/uniques/jarl_hall/blueprints.py` → plans by level and renders in `docs/unicas/salon_jarl/`.
+- `python3 tools/gen/uniques/jarl_hall/smoke_server.py --jar build/libs/heraldia-<version>.jar --work "$PWD/build/smoke"`:
   places the structure (measures the time and counts entities), and the templates unrotated to operate the runes (also
   with a fake rune), the skald's door, the tripwire and the TNT plates. It is in the CI matrix.
 

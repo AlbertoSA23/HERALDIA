@@ -1,6 +1,6 @@
 """Aldeas y terreno en un servidor dedicado 26.3 real (complementa server_smoke.py).
 
-Uso: python3 tools/smoke/village_terrain.py --jar build/libs/heraldia-X.jar --work build/smoke [--medir]
+Uso: python3 tools/smoke/village_terrain.py --jar build/libs/heraldia-X.jar --work build/smoke [--measure]
 Comprueba:
 - Puerto que busca el agua: /place de una aldea de la costa en varias playas (/locate biome) pone la caseta y el muelle
   en la orilla libre más cercana (línea «muelle en ... punta x z» del log): en la punta hay tablas a nivel del mar con
@@ -15,8 +15,8 @@ Comprueba:
 - Laderas: /place de una aldea de los cerezos (en ladera; /place no ajusta el terreno, el peor caso) deja muy pocos
   bloques de cimiento al aire: los cimientos de los edificios bajan hasta el suelo con el material del estilo.
   Se cuentan leyendo las regiones guardadas (save-all) con un lector mínimo del formato Anvil.
---medir: solo imprime las cifras (para comparar con un .jar anterior), sin dar por fallado nada.
---solo-natural: solo la fase de generación natural (la más lenta de medir con un .jar anterior).
+--measure: solo imprime las cifras (para comparar con un .jar anterior), sin dar por fallado nada.
+--only-natural: solo la fase de generación natural (la más lenta de medir con un .jar anterior).
 """
 import argparse, glob, io, json, os, queue, re, struct, subprocess, sys, threading, time, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,7 +33,7 @@ MAX_FLOATING = 0.05     # como mucho un 5 %: aleros y arcos de diseño, y cimien
 # Generación natural: aldeas de la costa que se buscan (en las 100 casillas de una rejilla de 1.000 bloques más cercanas
 # al 0,0) y fracción mínima que debe tener muelle. En un mundo solo 0-5 de esas casillas caen en una playa: hacen falta
 # varias semillas (estas tres dan 2 + 3 + 5). Medido con 12 semillas (21 aldeas): antes del T23, 0 de 21 con muelle;
-# después, 21 de 21 (--semillas heraldia costa1 ... costa11 --medir).
+# después, 21 de 21 (--seeds heraldia costa1 ... costa11 --measure).
 NATURAL_N, NATURAL_RATE, NATURAL_GRID = 10, 0.8, 1000
 NATURAL_SEEDS = ["heraldia", "costa1", "costa2"]
 NATURAL_CONFIG = {"aldeas": {"separacion_bloques": NATURAL_GRID, "maximo": 100,

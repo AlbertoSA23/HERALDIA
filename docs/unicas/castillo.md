@@ -2,7 +2,7 @@
 
 A 100 x 100 block medieval fortress in plains, sunflower plains and meadows, one every 3,000-5,000 blocks
 (configurable grid, `spacing` 250 / `separation` 190 chunks). A single variant, designed by hand.
-Code: `tools/gen/unicas/castillo/` (uses the shared pieces in `tools/gen/unicas/_comun/`) · Plans by level: [`castillo/planos.md`](castillo/planos.md) · Renders: `castillo/*.png`.
+Code: `tools/gen/uniques/castle/` (uses the shared pieces in `tools/gen/uniques/_common/`) · Plans by level: [`castillo/planos.md`](castillo/planos.md) · Renders: `castillo/*.png`.
 
 ## Terrain adaptation
 - Two rigid templates: the castle (x, z 0..99, y 0..27; terrain at y=5, feet at y=6) and the dungeon (48 x 56 x 16)
@@ -83,7 +83,7 @@ Spyglass, a name tag, the Pigstep disc, golden apples) and 10 % strong (enchante
 The northeast tower has lost its top (no terrace, upper floor caved in at the center, vines, rubble inside and at its foot), the
 north parapet next to it has no battlements, the stables' roof has caved in with cobwebs and a fallen beam, a broken stained-glass window in the chapel,
 a plank missing on the bridge, cobwebs in the cellar and the dungeon; and a processor that adds moss (15 %) and cracks (10 %) to the
-stone bricks and moss (20 %) to the cobblestone. `auditoria.ruin_share` estimates 17 % of the visible surface in poor condition.
+stone bricks and moss (20 %) to the cobblestone. `audit.ruin_share` estimates 17 % of the visible surface in poor condition.
 
 ## Against the owner's criteria
 Complete staircases without jumps (half-height slabs in the spiral, block stairs with their fill); no door without an
@@ -92,8 +92,8 @@ from the ceiling or a chain; water always contained (moat, well, ditch, pools); 
 keep; every element with a function (portcullis with a windlass, forge with a chimney, trough, ditch).
 
 ## Checks
-- Generation: `lint.py` (supports, jigsaws) and `auditoria.py` (walk, hidden rooms, redstone at rest, nothing floating).
-- `prueba_redstone.py`: on a 26.3 dedicated server it places the templates with `/place template`, forces updates next to
+- Generation: `lint.py` (supports, jigsaws) and `audit.py` (walk, hidden rooms, redstone at rest, nothing floating).
+- `smoke_redstone.py`: on a 26.3 dedicated server it places the templates with `/place template`, forces updates next to
   torches and pistons, and checks closed doors, opening and closing the study, the green lever (fires, does not open), the red one
   (opens, does not fire), tripwire, the TNT plate, the guardian (name, equipment, 60 health) and chests.
 - Pending screenshots from the owner's game: look, lighting and terrain adaptation in real generation.

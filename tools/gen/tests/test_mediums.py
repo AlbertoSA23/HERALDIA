@@ -122,7 +122,7 @@ def test_hermitage_diary_translatable():
 class _Fake:
     DISPLAY_NAME = {"es_es": "Falsa", "en_us": "Fake"}
     SEPARATION = 600
-    LOOT = {"cofre": chest_loot.cofre(((1, 1), [item("bread", 1)]), ((1, 1), [item("emerald", 1)]))}
+    LOOT = {"cofre": chest_loot.place_chest(((1, 1), [item("bread", 1)]), ((1, 1), [item("emerald", 1)]))}
 
     @staticmethod
     def fine(p, name):
@@ -130,7 +130,7 @@ class _Fake:
         from mediums import _common as c
         c.courtyard(t, 0, 0, 12, 12, "minecraft:dirt_path")
         c.entrance(t, 6, "minecraft:dirt_path")
-        c.cofre(t, 6, 1, 6, "north", "falsa", "cofre")
+        c.place_chest(t, 6, 1, 6, "north", "falsa", "cofre")
         return t
 
     STYLES = {"x": dict(biomas=["plains"], paleta={}, variantes={"a": fine})}
@@ -167,8 +167,8 @@ def test_contract_detects(change, text):
 
 def test_loot_premium_and_forbidden():
     class Rich(_Fake):
-        LOOT = {"cofre": chest_loot.cofre(((1, 1), [item("diamond_sword", 1)]), ((1, 1), [item("emerald", 1)])),
-                "premium": chest_loot.cofre(((1, 1), [item("bread", 1)]), ((1, 1), [item("bread", 1)]))}
+        LOOT = {"cofre": chest_loot.place_chest(((1, 1), [item("diamond_sword", 1)]), ((1, 1), [item("emerald", 1)])),
+                "premium": chest_loot.place_chest(((1, 1), [item("bread", 1)]), ((1, 1), [item("bread", 1)]))}
     errs = _errors(Rich)
     assert any("no es botín modesto" in e for e in errs)
     assert any("cofre premium" in e for e in errs)

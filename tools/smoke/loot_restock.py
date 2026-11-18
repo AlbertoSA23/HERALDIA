@@ -47,10 +47,10 @@ def datapack(work):
                    "modifier": {"type": "minecraft:set_count", "count": ARROWS}}]}]}, f)
 
 
-def config(work, activado):
+def config(work, switched_on):
     path = os.path.join(work, "config", "heraldia.json")
     cfg = json.loads(json.dumps(s.TEST_CONFIG))
-    cfg["botin"] = {"reponer": {"activado": activado, "dias": 1}}
+    cfg["botin"] = {"reponer": {"activado": switched_on, "dias": 1}}
     with open(path, "w") as f:
         json.dump(cfg, f)
 
@@ -203,7 +203,7 @@ def main():
         m = ctx.run("execute positioned 0 64 0 run locate structure #heraldia:medianas/ermita",
                     r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
         check(bool(m.lastindex and m.group(1)), "/locate no encuentra ninguna ermita")
-        cofre = None
+        place_chest = None
         if m.lastindex and m.group(1):
             px, pz = int(m.group(1)), int(m.group(2))
             ex, ez = px >> 4 << 4, pz >> 4 << 4         # el origen de la pieza es la esquina del chunk de inicio
@@ -215,26 +215,26 @@ def main():
                 for cy in range(-20, 260):
                     p = (ex + dx, cy + ly, ez + dz)
                     if ctx.test(f'execute if block {at(p)} minecraft:chest{{LootTable:"{HERMITAGE_TABLE}"}}'):
-                        cofre = p
+                        place_chest = p
                         break
-                if cofre:
-                    print(f"cofre de la ermita de {px}, {pz} en {cofre} (giro {turn})")
+                if place_chest:
+                    print(f"cofre de la ermita de {px}, {pz} en {place_chest} (giro {turn})")
                     break
-            check(cofre is not None, f"no se encuentra el cofre de la celda de la ermita de {px}, {pz}")
-        if cofre:
+            check(place_chest is not None, f"no se encuentra el cofre de la celda de la ermita de {px}, {pz}")
+        if place_chest:
             # «saqueado antes»: sin su tabla ni nada dentro, y sin apuntar
-            ctx.run(f"data remove block {at(cofre)} LootTable", r"Modified block data")
-            empty(cofre)
-            cx, cy, cz = cofre
+            ctx.run(f"data remove block {at(place_chest)} LootTable", r"Modified block data")
+            empty(place_chest)
+            cx, cy, cz = place_chest
             ctx.run(f"fill {cx} {cy + 1} {cz} {cx} {cy + 2} {cz} minecraft:air", r"Successfully filled|No blocks")
             ctx.run(f"tp {PLAYER} {cx + 0.5} {cy + 1} {cz + 0.5}", r"Teleported")
             ctx.ticks(10)
-            use(cofre)
-            check(record(cofre, HERMITAGE_TABLE), "el cofre saqueado de la ermita no se reconoce por su plantilla")
-            check(not items(cofre), "el cofre saqueado de la ermita se llena sin esperar")
+            use(place_chest)
+            check(record(place_chest, HERMITAGE_TABLE), "el cofre saqueado de la ermita no se reconoce por su plantilla")
+            check(not items(place_chest), "el cofre saqueado de la ermita se llena sin esperar")
             day()
-            use(cofre)
-            check(items(cofre), "el cofre de la ermita no se repone pasado el día")
+            use(place_chest)
+            check(items(place_chest), "el cofre de la ermita no se repone pasado el día")
         srv.stop()
 
         # 6) con la opción desactivada (por defecto), nada se apunta

@@ -75,7 +75,7 @@ def test_variants_distinct_and_mirrored(constructions):
         for sty in mines.STYLES:
             a, b = constructions[(size, sty, "a")], constructions[(size, sty, "b")]
             assert a.t.blocks != b.t.blocks
-            assert {p for p, _ in a.cofres} != {p for p, _ in b.cofres}
+            assert {p for p, _ in a.chest_list} != {p for p, _ in b.chest_list}
     # lo que lleva lado (escaleras, puertas) se refleja: el capataz de la mediana b mira al otro lado
     a, b = constructions[("mediana", "montana", "a")], constructions[("mediana", "montana", "b")]
     doors_a = [p for p, (st, _) in a.t.blocks.items() if "_door" in st and "lower" in st]

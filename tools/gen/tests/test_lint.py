@@ -3,7 +3,7 @@ import lint
 from core import Template
 
 
-def house(door=True, cofre_dentro=True):
+def house(door=True, chest_inside=True):
     """Sala de 5 x 5 con muros, entrada al norte (jigsaw heraldia:entrance) y una puerta en el muro."""
     t = Template("x/houses/h")
     t.fill(0, 0, 0, 6, 0, 6, "stone")
@@ -17,7 +17,7 @@ def house(door=True, cofre_dentro=True):
         t.set(3, 2, 0, "oak_door[facing=south,half=upper,hinge=left,open=false,powered=false]")
     t.fill(3, 0, -2, 3, 0, -1, "stone")
     t.jigsaw(3, 0, -2, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty", final_state="stone")
-    if cofre_dentro:
+    if chest_inside:
         t.chest(1, 1, 5, "south", "heraldia:x")
     return t
 

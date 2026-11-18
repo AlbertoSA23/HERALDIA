@@ -6,7 +6,7 @@ Comprueba sobre el mundo completo (pieza principal + hipogeo):
   - con los puzles sin resolver: los cofres ocultos y la cámara del tesoro no se alcanzan;
   - nada flotando (todo bloque unido al suelo de su pieza), luz de bloque 0 alrededor de los generadores;
   - estados de redstone coherentes al generarse; jigsaws intactos y alineados; porcentaje de ruina.
-Uso: python3 tools/gen/uniques/colosseum/audit.py [--planos]
+Uso: python3 tools/gen/uniques/colosseum/audit.py [--blueprints]
 """
 import os, sys
 from collections import deque
@@ -138,7 +138,7 @@ def blueprints(o, rep, outdir):
         marks[o.P(*p)] = "P"
     for label, p in o.feat["guardian"]:
         marks[o.P(*p)] = "G"
-    out = ["Planos del Coliseo en ruinas (generados por auditoria.py --planos)",
+    out = ["Planos del Coliseo en ruinas (generados por auditoria.py --blueprints)",
            "Leyenda: '.' celda alcanzable a pie a esa altura, ',' alcanzable 1-2 bloques más arriba o abajo,",
            "'#' bloque sólido a la altura del cuerpo, 'H' escalera de mano, C cofre, S generador, T trampa, P puzle,",
            "G guardián. Norte arriba; x crece hacia la derecha. Puzles resueltos.", ""]

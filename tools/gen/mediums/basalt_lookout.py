@@ -19,7 +19,7 @@ LANG = chest_loot.lang("heraldia.medianas.atalaya_basalto.", {
     "vigia": ("Vigía de ceniza", "Ash Lookout"),
 })
 LOOT = {
-    "vigia": chest_loot.cofre(((2, 4), [item("arrow", 10, 4, 12), item("bone", 8, 2, 6), item("quartz", 6, 2, 6),
+    "vigia": chest_loot.place_chest(((2, 4), [item("arrow", 10, 4, 12), item("bone", 8, 2, 6), item("quartz", 6, 2, 6),
                                    item("soul_torch", 6, 2, 6), item("gold_nugget", 6, 2, 6), item("spyglass", 1),
                                    item("bow", 2, dmg=(0.3, 0.8)), item("glowstone_dust", 4, 2, 5), empty(4)]),
                          ((1, 1), [item("gold_ingot", 3), item("spectral_arrow", 2, 2, 5), item("fire_charge", 2),
@@ -72,7 +72,7 @@ def whole(p, name):
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=4)
     c.entrance(t, CX, p["suelo"][0])
     roof = _tower(t, p, 4)
-    c.cofre(t, X0 + 1, roof + 1, Z0 + 1, "south", MID, "vigia")
+    c.place_chest(t, X0 + 1, roof + 1, Z0 + 1, "south", MID, "vigia")
     t.entity(X1 - 1, roof + 1, Z0 + 1, c.mob("skeleton", MID, "vigia", "Vigía de ceniza", rot=180.0,
                                               equipment={"mainhand": {"id": "minecraft:bow", "count": 1}}))
     for x, z in ((2, 3), (12, 11), (3, 12)):
@@ -98,8 +98,8 @@ def bridge(p, name):
     for z in (11, 13):                                 # pilas
         for y in range(1, roof):
             t.set(CX, y, z, p["esquina"])
-    c.cofre(t, CX + 1, roof + 1, L - 2, "north", MID, "puente", kind="barrel")
-    c.cofre(t, X1 + 2, 1, Z0 + 1, "west", MID, "vigia")
+    c.place_chest(t, CX + 1, roof + 1, L - 2, "north", MID, "puente", kind="barrel")
+    c.place_chest(t, X1 + 2, 1, Z0 + 1, "west", MID, "vigia")
     for x, z in ((2, 3), (12, 2)):
         t.set(x, 1, z, p["adorno"])
     pieces.connect(t)

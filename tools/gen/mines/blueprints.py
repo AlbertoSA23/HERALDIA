@@ -76,7 +76,7 @@ def small_courtyard(o, e):
     o.s(0, 1, -7, "barrel[facing=north,open=false]", {"id": "minecraft:barrel"})
     o.t.entity(0, 1, -4, {"id": "minecraft:minecart"})
     pieces.chest(e.s, -4, 1, -5, "up", "heraldia:minas/boca", kind="barrel")
-    o.cofres.append(((e.x(-4), 1, -5), "boca"))
+    o.chest_list.append(((e.x(-4), 1, -5), "boca"))
     area.heap(e, 3, -7, 3, 3)
     area.post(o, e.x(-4), -7)
     e.s(-3, 1, -7, "grindstone[face=floor,facing=north]")
@@ -87,7 +87,7 @@ def medium_courtyard(o, e):
     area.tracks(o, -12, -1)
     o.s(0, 1, -13, "barrel[facing=north,open=false]", {"id": "minecraft:barrel"})
     o.t.entity(0, 1, -9, {"id": "minecraft:chest_minecart", "LootTable": "heraldia:minas/vagoneta"})
-    o.cofres.append(((0, 1, -9), "vagoneta"))
+    o.chest_list.append(((0, 1, -9), "vagoneta"))
     area.shed(e, 4, -14, 9, -8, "west", "capataz")
     area.heap(e, -9, -14, 5, 5)
     area.smelter(e, -9, -7, "fundicion")
@@ -104,7 +104,7 @@ def large_courtyard(o, e):
         area.rail(e.s, o, x, -17, "east_west")
     e.s(12, 1, -17, "barrel[facing=north,open=false]", {"id": "minecraft:barrel"})
     o.t.entity(e.x(5), 1, -17, {"id": "minecraft:chest_minecart", "LootTable": "heraldia:minas/vagoneta"})
-    o.cofres.append(((e.x(5), 1, -17), "vagoneta"))
+    o.chest_list.append(((e.x(5), 1, -17), "vagoneta"))
     o.t.entity(0, 1, -8, {"id": "minecraft:minecart"})
     area.tower(e, *WELL)
     area.shed(e, -13, -20, -7, -14, "east", "capataz")
@@ -147,7 +147,7 @@ def furnish(o, kind, cx, cz, feet, size):
     cavities = [(cx - 2, cz - 2, "south"), (cx + 2, cz - 2, "south"), (cx - 2, cz + 2, "north"), (cx + 2, cz + 2, "north")]
     tbl = {"tesoro": "filon"}.get(kind, "galeria")
     x, z, f = cavities[0]
-    o.cofre(x, feet, z, f, tbl)
+    o.place_chest(x, feet, z, f, tbl)
     remainder = cavities[1:]
     if kind == "almacen":
         for x, z, f in remainder:

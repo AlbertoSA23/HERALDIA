@@ -37,23 +37,23 @@ def test_es_y_en_with_the_same_keys_and_gaps():
         assert es[k].strip() and en[k].strip(), k
 
 
-@pytest.mark.parametrize("codigo", list(languages.TRANSLATIONS))
-def test_each_translation_has_all_the_keys_with_the_gaps_of_the_english(codigo):
-    translated = languages.load_data(codigo)
+@pytest.mark.parametrize("lang_code", list(languages.TRANSLATIONS))
+def test_each_translation_has_all_the_keys_with_the_gaps_of_the_english(lang_code):
+    translated = languages.load_data(lang_code)
     en = TEXTS["en_us"]
     missing = sorted(k for k in en if k not in translated)
-    assert not missing, f"{codigo}: faltan {missing}"
+    assert not missing, f"{lang_code}: faltan {missing}"
     for k in en:
-        assert languages.markers(translated[k]) == languages.markers(en[k]), f"{codigo} {k}: {translated[k]!r}"
-        assert translated[k].strip(), f"{codigo} {k} vacío"
+        assert languages.markers(translated[k]) == languages.markers(en[k]), f"{lang_code} {k}: {translated[k]!r}"
+        assert translated[k].strip(), f"{lang_code} {k} vacío"
 
 
-@pytest.mark.parametrize("codigo", list(languages.TRANSLATIONS))
-def test_translations_are_not_copied_english(codigo):
+@pytest.mark.parametrize("lang_code", list(languages.TRANSLATIONS))
+def test_translations_are_not_copied_english(lang_code):
     """Salvo los textos que son solo huecos y símbolos (« ✔ %s = %s», «%s. %s (%s): %s»...) o «Lootr: %s»."""
-    translated, en = languages.load_data(codigo), TEXTS["en_us"]
+    translated, en = languages.load_data(lang_code), TEXTS["en_us"]
     copied = [k for k in en if translated[k] == en[k] and re.search(r"[A-Za-z]{4,}", re.sub(r"Lootr|Heraldia", "", en[k]))]
-    assert len(copied) <= 3, f"{codigo}: {copied}"
+    assert len(copied) <= 3, f"{lang_code}: {copied}"
 
 
 def test_lookup_lists_equal_in_java_and_python():
@@ -129,7 +129,7 @@ def test_the_warning_of_the_screen_mentions_the_reload_in_all_the_languages():
     es = options.SCREEN_ES["heraldia.config.pantalla.aviso_mundo"]
     en = options.SCREEN_EN["heraldia.config.pantalla.aviso_mundo"]
     assert "/heraldia reload" in es and "/heraldia reload" in en
-    for codigo in languages.TRANSLATIONS:
-        assert "/heraldia reload" in languages.load_data(codigo)["heraldia.config.pantalla.aviso_mundo"], codigo
+    for lang_code in languages.TRANSLATIONS:
+        assert "/heraldia reload" in languages.load_data(lang_code)["heraldia.config.pantalla.aviso_mundo"], lang_code
     with open(os.path.join(CLIENT, "HeraldiaClient.java"), encoding="utf-8") as f:
         assert "ReloadCommand.apply" in f.read()

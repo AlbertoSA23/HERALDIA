@@ -145,7 +145,7 @@ def shed(e, x0, z0, x1, z1, door, tbl, bed=True):
     side = "east" if door == "west" else "west"
     cx = (x0 + x1) // 2
     pieces.chest(e.s, cx, 1, z0 + 1, "south", f"heraldia:minas/{tbl}")
-    o.cofres.append(((e.x(cx), 1, z0 + 1), tbl))
+    o.chest_list.append(((e.x(cx), 1, z0 + 1), tbl))
     e.s(cx, 1, z1 - 1, f"{p['madera']}_fence")
     e.s(cx, 2, z1 - 1, f"{p['madera']}_pressure_plate[powered=false]")
     e.s(cx + (1 if side == "east" else -1), 1, z1 - 1, f"{p['madera']}_stairs[facing={side},half=bottom,shape=straight,waterlogged=false]")
@@ -184,7 +184,7 @@ def smelter(e, x0, z0, tbl):
     e.s(x0 + 3, 1, z0, "anvil[facing=north]")
     e.s(x0 + 3, 1, z0 + 3, "cauldron")
     pieces.chest(e.s, x0 + 2, 1, z0 + 3, "up", f"heraldia:minas/{tbl}", kind="barrel")
-    o.cofres.append(((e.x(x0 + 2), 1, z0 + 3), tbl))
+    o.chest_list.append(((e.x(x0 + 2), 1, z0 + 3), tbl))
 
 
 def sign(o, x, z, size):

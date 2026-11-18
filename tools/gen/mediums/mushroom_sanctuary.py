@@ -24,7 +24,7 @@ ADVANCEMENTS = [dict(id="ofrendas", icono="minecraft:shroomlight",
 
 
 LOOT = {
-    "ofrendas": chest_loot.cofre(((2, 4), [item("crimson_fungus", 6, 1, 3), item("warped_fungus", 6, 1, 3),
+    "ofrendas": chest_loot.place_chest(((2, 4), [item("crimson_fungus", 6, 1, 3), item("warped_fungus", 6, 1, 3),
                                       item("nether_wart", 8, 2, 6), item("shroomlight", 5, 1, 2), item("quartz", 5, 2, 5),
                                       item("gold_nugget", 6, 2, 6), item("crimson_roots", 3, 1, 3),
                                       item("warped_roots", 3, 1, 3), item("glowstone_dust", 4, 2, 4),
@@ -69,7 +69,7 @@ def shrine(p, name):
     t.fill(T0 + 1, 6, T0 + 1, T1 - 1, 6, T1 - 1, p["verruga"])
     t.set(CX, 6, CX, "shroomlight")
     t.set(CX, 1, T1 - 1, p["altar"])
-    c.cofre(t, CX, 2, T1 - 1, "north", MID, "ofrendas")
+    c.place_chest(t, CX, 2, T1 - 1, "north", MID, "ofrendas")
     for x in (CX - 2, CX + 2):
         t.set(x, 1, T1 - 1, p["maceta"])
     for x, z in ((T0 + 1, T0 + 1), (T1 - 1, T0 + 1)):
@@ -94,8 +94,8 @@ def garden(p, name):
     t.set(CX, 1, CX, p["verruga"])
     t.set(CX, 2, CX, p["verruga"])
     t.set(CX, 3, CX, "shroomlight")
-    c.cofre(t, CX, 1, CX + 3, "north", MID, "ofrendas")
-    c.cofre(t, CX + 3, 1, CX, "west", MID, "vasija", kind="decorated_pot")
+    c.place_chest(t, CX, 1, CX + 3, "north", MID, "ofrendas")
+    c.place_chest(t, CX + 3, 1, CX, "west", MID, "vasija", kind="decorated_pot")
     pieces.connect(t)
     return t
 

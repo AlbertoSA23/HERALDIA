@@ -1,6 +1,6 @@
 """Mobs de plantilla que podrían salir bebés, en un servidor dedicado 26.3 real (complementa server_smoke.py).
 
-Uso: python3 tools/smoke/adult_guardians.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke" [--veces N]
+Uso: python3 tools/smoke/adult_guardians.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke" [--times N]
 Los mobs de una plantilla pasan por finalizeSpawn al colocarse como pieza de estructura, y el de los zombis (zombi,
 husk, ahogado, zombi aldeano, piglin zombificado) sortea un bebé (5 %, a veces en una gallina) sin mirar el IsBaby del
 NBT, cambia a veces el arma (ahogado: tridente o caña el 10 %) y monta en un nautilo zombi a la mitad de los ahogados con
@@ -8,7 +8,7 @@ tridente. El mod lo evita en los que llevan la etiqueta heraldia_adulto (core.AD
 lleve todo mob de ese tipo). Para cada mob distinto de ese tipo en las plantillas del .jar (los guardianes del
 castillo, el Salón del Jarl, el galeón, la pirámide, el coliseo, el faro, el acueducto y los ahogados de la Atlántida)
 escribe un paquete de datos con una plantilla mínima (un bloque de piedra y encima un jigsaw que se borra) con ese mob
-tal cual y su pool, lo coloca --veces veces con /place jigsaw (pieza de pool: mismo camino que al generar, con
+tal cual y su pool, lo coloca --times veces con /place jigsaw (pieza de pool: mismo camino que al generar, con
 finalizeSpawn; /place template no lo llama) y comprueba que aparecen todos, que ninguno es bebé, que no hay monturas
 ni otras entidades nuevas y que todos conservan el arma de su plantilla.
 """

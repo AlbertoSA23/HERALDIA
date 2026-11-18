@@ -14,7 +14,7 @@ caves under the hill, with a cove that you enter by boat.
 
 - Biomes: **ocean, lukewarm ocean and warm ocean** (the non-deep ones). Atlantis looks for the deep ones and in the
   cold and frozen ones a palm tree island does not fit. There is no conventional tag that narrow (`#c:is_shallow_ocean` includes
-  the cold and frozen ones), so only the vanilla list is left (`biomas.py`).
+  the cold and frozen ones), so only the vanilla list is left (`biomes.py`).
 - Rarity: `spacing` 250 chunks by default (one every ~3,000-5,000 blocks), configurable like the others
   (`unicas.isla_corsario.activada`, `unicas.isla_corsario.separacion_bloques`).
 - **Candidate in the biome** (`candidata_en_bioma`, like the Mycologist's Laboratory): each grid cell's candidate
@@ -78,11 +78,11 @@ All of them lined (stone brick or cobblestone) where they face the rock: no spri
   To the west, the **tripwire** corridor (trap 1: two dispensers at head height).
 - **Map room**: a checkered floor with the **compass rose**, a cartography table, a lectern and the `cartas` chest, which
   holds the **Chronicle leaf**. **Compass rose puzzle**: four levers on the north wall with their signs (North,
-  East, South, West); only **north and west** open the treasure's piston door (`piezas.combo_door`), and
+  East, South, West); only **north and west** open the treasure's piston door (`pieces.combo_door`), and
   east and south close it again (dust straight to the line, as in the sanctuary). The clue is in the logbook in the
   brigantine's cabin: "From the harbor to the treasure: north and west; never east or south".
 - **Armory** (west): barrels, the `armeria` chest, a smithing table, a grindstone and a **skeleton** spawner. Next to the
-  weapon rack, a lever opens the **powder magazine** (a secret piston door, `piezas.lever_door`): gunpowder, TNT and the
+  weapon rack, a lever opens the **powder magazine** (a secret piston door, `pieces.lever_door`): gunpowder, TNT and the
   `santabarbara` chest.
 - **Dungeons** (south): a corridor with five barred cells, the `calabozo` chest, a sign and a
   **skeleton** spawner.
@@ -107,13 +107,13 @@ room, between those of the Stranded galleon and the Mycologist's Laboratory.
 
 - 80-85 % in good condition: a rule processor (cracked or mossy stone brick, mossy cobblestone, stripped spruce
   planks, fallen panes) and hand-made ruin (fallen battlements, broken tiles, torn sails). The audit measures the visible
-  build without counting the natural islet or the vegetation (`recorrido.superficie_danada`): 16 %.
-- `auditoria.py` (a condition for generating): the redstone's rest state, the 16 combinations of the compass rose, the
+  build without counting the natural islet or the vegetation (`walkthrough.damaged_surface`): 16 %.
+- `audit.py` (a condition for generating): the redstone's rest state, the 16 combinations of the compass rose, the
   powder magazine, the two traps and that the cannons have no signal; the walk (`lint.walk`) with the puzzles closed
-  and solved and the strict walk (`recorrido.andar`, without jumps or falls of more than one block, swimming in the sea and the
+  and solved and the strict walk (`walkthrough.strict_walk`, without jumps or falls of more than one block, swimming in the sea and the
   cove) with a way back to the entrance from anywhere; hidden rooms only with the puzzles; spawners, levers and the
   21 chests within reach; spawner light (they carry `custom_spawn_rules` up to light 11); nothing floating (everything joined to the
   bottom row); the sea does not get in (all air below the water level has its 6 neighbors in the template) and the
   template's water does not escape; the caves' lining.
-- Server test: `isla_corsario/prueba_servidor.py` (natural generation with `/locate`, distance to Atlantis,
+- Server test: `corsair_island/smoke_server.py` (natural generation with `/locate`, distance to Atlantis,
   dry treasure chamber, `/place` time, entities, mechanisms and traps).

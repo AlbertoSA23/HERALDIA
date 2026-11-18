@@ -65,31 +65,31 @@ def text(k):
 
 
 LOOT = {
-    "premium": chest_loot.cofre(
+    "premium": chest_loot.place_chest(
         ((3, 5), [item("ender_pearl", 10, 2, 5), item("diamond", 3, 1, 2), item("emerald", 6, 2, 6),
                   item("amethyst_shard", 6, 3, 8), item("shulker_shell", 1), item("golden_apple", 4),
                   item("book", 4, ench=(15, 25)), item("experience_bottle", 4, 2, 5),
                   chest_loot.named("golden_helmet", 3, f"heraldia.{SID}.corona", _T["corona"][0], levels=(10, 20)),
                   item("spire_armor_trim_smithing_template", 2), item("music_disc_otherside", 1)]),
         ((1, 2), [item("ender_eye", 3, 1, 2), item("diamond", 2), item("emerald", 4, 1, 3), empty(6)])),
-    "cuartel": chest_loot.cofre(((2, 4), [item("chorus_fruit", 8, 2, 6), item("popped_chorus_fruit", 5, 1, 4),
+    "cuartel": chest_loot.place_chest(((2, 4), [item("chorus_fruit", 8, 2, 6), item("popped_chorus_fruit", 5, 1, 4),
                                      item("arrow", 6, 4, 10), item("candle", 5, 1, 3), item("iron_ingot", 5, 1, 3),
                                      item("ender_pearl", 3, 1, 2), empty(5)]),
                            ((1, 1), [item("gold_ingot", 3, 1, 2), item("emerald", 3, 1, 2), empty(8)])),
-    "relicario": chest_loot.cofre(((2, 4), [item("amethyst_shard", 6, 2, 6), item("candle", 5, 1, 3), item("gold_ingot", 4, 1, 3),
+    "relicario": chest_loot.place_chest(((2, 4), [item("amethyst_shard", 6, 2, 6), item("candle", 5, 1, 3), item("gold_ingot", 4, 1, 3),
                                        item("end_rod", 4, 1, 3), item("ender_eye", 2),
                                        chest_loot.named("blaze_rod", 1, f"heraldia.{SID}.baculo", _T["baculo"][0]),
                                        item("purple_banner", 2), empty(4)]),
                              ((1, 1), [item("emerald", 3, 1, 3), item("golden_apple", 1), empty(8)])),
-    "sacristia": chest_loot.cofre(((2, 4), [item("chorus_fruit", 8, 2, 6), item("glass_bottle", 5, 1, 3), item("candle", 5, 1, 3),
+    "sacristia": chest_loot.place_chest(((2, 4), [item("chorus_fruit", 8, 2, 6), item("glass_bottle", 5, 1, 3), item("candle", 5, 1, 3),
                                        item("purple_wool", 4, 1, 3), item("iron_nugget", 5, 2, 6), empty(5)]),
                              ((1, 1), [item("ender_pearl", 3), item("emerald", 2), empty(8)])),
     "forja": chest_loot.table(pool((1, 3), [item("iron_nugget", 6, 2, 6), item("gold_nugget", 6, 2, 6), item("purpur_block", 5, 2, 6),
                                        item("end_rod", 3, 1, 2), item("chorus_fruit", 4, 1, 3), empty(6)])),
-    "biblioteca": chest_loot.cofre(((2, 4), [item("paper", 8, 2, 6), item("book", 6, 1, 3), item("book", 3, rand_ench=True),
+    "biblioteca": chest_loot.place_chest(((2, 4), [item("paper", 8, 2, 6), item("book", 6, 1, 3), item("book", 3, rand_ench=True),
                                         item("map", 3), item("ink_sac", 4, 1, 3), item("feather", 4, 1, 3), empty(5)]),
                               ((1, 1), [item("experience_bottle", 3, 1, 3), item("ender_pearl", 2), empty(8)])),
-    "oculto": chest_loot.cofre(((2, 4), [item("ender_pearl", 6, 1, 3), item("amethyst_shard", 6, 3, 8), item("diamond", 1),
+    "oculto": chest_loot.place_chest(((2, 4), [item("ender_pearl", 6, 1, 3), item("amethyst_shard", 6, 3, 8), item("diamond", 1),
                                     item("emerald", 5, 1, 4), item("ender_eye", 3), item("obsidian", 3, 1, 3), empty(4)]),
                           ((1, 1), [item("golden_apple", 2), item("experience_bottle", 3, 2, 4), empty(6)])),
 }
@@ -97,12 +97,12 @@ LOOT = {
 PALETTE = dict(piso="purpur_block", muro="purpur_block", esquina="purpur_pillar[axis=y]", forjado="end_stone_bricks",
               almena="end_stone_brick_wall", puerta="birch_door", columna="purpur_pillar[axis=y]", tesoro="purpur_pillar[axis=y]")
 CHAPEL = dict(PALETTE, muro="end_stone_bricks", piso="end_stone_bricks", forjado="purpur_block", almena="purpur_slab")
-PLATAFORMA = ["minecraft:end_stone_bricks", "minecraft:end_stone_bricks", "minecraft:purpur_block",
+PLATFORM = ["minecraft:end_stone_bricks", "minecraft:end_stone_bricks", "minecraft:purpur_block",
               "minecraft:end_stone_bricks", "minecraft:purpur_pillar[axis=y]"]
 PILLARS = [(6, 3), (16, 2), (26, 3), (30, 16), (26, 29), (16, 30), (6, 29), (2, 16)]
 
 
-def cofre(t, x, y, z, facing, tbl, kind="chest"):
+def place_chest(t, x, y, z, facing, tbl, kind="chest"):
     if kind == "barrel":
         t.barrel(x, y, z, facing="up", loot=f"{NSP}/{tbl}")
     else:
@@ -122,7 +122,7 @@ def construction():
     for x in range(SIDE):
         for z in range(SIDE):
             edge_block = x in (0, n) or z in (0, n)
-            t.set(x, 0, z, "minecraft:purpur_block" if edge_block else PLATAFORMA[(x * 5 + z * 11 + x * z) % len(PLATAFORMA)])
+            t.set(x, 0, z, "minecraft:purpur_block" if edge_block else PLATFORM[(x * 5 + z * 11 + x * z) % len(PLATFORM)])
             for y in range(1, 10):
                 t.set(x, y, z, "air", keep=True)
             if edge_block and (x + z) % 4 == 0 and not 14 <= x <= 18:
@@ -134,22 +134,22 @@ def construction():
         t.set(x, 7, z, "end_rod[facing=up]")
     # capillas de las esquinas
     r.tower(t, CHAPEL, 0, 0, 5, (4, 2, "east"), merlon=False)
-    cofre(t, 2, 1, 1, "south", "relicario")
+    place_chest(t, 2, 1, 1, "south", "relicario")
     t.set(1, 1, 3, "candle[candles=4,lit=true,waterlogged=false]")
     r.tower(t, CHAPEL, n - 4, 0, 5, (n - 4, 2, "west"), merlon=False)
     pieces.spawner(t.set, n - 2, 1, 2, "endermite")
     r.tower(t, CHAPEL, 0, n - 4, 5, (4, n - 2, "east"), merlon=False)
-    cofre(t, 2, 1, n - 1, "north", "sacristia")
-    cofre(t, 1, 1, n - 1, "north", "forja", "barrel")
-    abierta = r.hidden(t, CHAPEL, n - 4, n - 4)
-    cofre(t, n - 2, 1, n - 1, "north", "oculto")
+    place_chest(t, 2, 1, n - 1, "north", "sacristia")
+    place_chest(t, 1, 1, n - 1, "north", "forja", "barrel")
+    is_open = r.hidden(t, CHAPEL, n - 4, n - 4)
+    place_chest(t, n - 2, 1, n - 1, "north", "oculto")
     t.set(n - 1, 1, n - 3, "candle[candles=2,lit=true,waterlogged=false]")
     # el templo en medio
-    r.great_tower(t, PALETTE, 9, 10, cofre, guardian())
+    r.great_tower(t, PALETTE, 9, 10, place_chest, guardian())
     for x in (12, 20):                                    # escalinata de la portada
         t.set(x, 1, 8, "end_rod[facing=up]")
     pieces.connect(t)
-    t.lint_open = abierta
+    t.lint_open = is_open
     t.jigsaw(16, 0, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty",
              final_state="minecraft:purpur_block")
     return t

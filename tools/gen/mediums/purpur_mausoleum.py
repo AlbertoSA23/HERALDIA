@@ -16,7 +16,7 @@ DISPLAY_NAME = {"es_es": "Mausoleo púrpura", "en_us": "Purpur Mausoleum"}
 SEPARATION = 896
 ADVANCEMENT_ICON = "minecraft:purpur_pillar"
 LOOT = {
-    "ajuar": chest_loot.cofre(((2, 4), [item("ender_pearl", 8, 1, 3), item("chorus_fruit", 6, 2, 5), item("gold_ingot", 5, 1, 3),
+    "ajuar": chest_loot.place_chest(((2, 4), [item("ender_pearl", 8, 1, 3), item("chorus_fruit", 6, 2, 5), item("gold_ingot", 5, 1, 3),
                                    item("iron_ingot", 6, 1, 4), item("candle", 5, 1, 3), item("bone", 5, 1, 4),
                                    item("golden_helmet", 2, dmg=(0.3, 0.7)), item("book", 2, rand_ench=True),
                                    item("purpur_block", 4, 2, 6), empty(5)]),
@@ -69,7 +69,7 @@ def crypt(p, name):
     for x in (CX - 1, CX, CX + 1):
         t.set(x, 1, M1 - 2, p["zocalo"])
         t.set(x, 2, M1 - 2, f"{p['losa']}[type=bottom,waterlogged=false]")
-    c.cofre(t, CX, 1, M1 - 4, "north", MID, "ajuar")
+    c.place_chest(t, CX, 1, M1 - 4, "north", MID, "ajuar")
     pieces.spawner(t.set, CX, 1, M1 - 2, "endermite")           # dentro del sarcófago, bajo la tapa
     for x in (M0 + 1, M1 - 1):
         t.set(x, 1, M1 - 1, "candle[candles=3,lit=true,waterlogged=false]")
@@ -78,7 +78,7 @@ def crypt(p, name):
     return t
 
 
-def abierto(p, name):
+def open_variant(p, name):
     t = _enclosure(p, name)
     t.fill(M0, 0, M0, M1, 0, M1, p["piso"])
     for x, z in ((M0, M0), (M1, M0), (M0, M1), (M1, M1), (CX, M0), (CX, M1)):
@@ -89,7 +89,7 @@ def abierto(p, name):
     for x in (CX - 2, CX + 2):                                 # dos tumbas
         for z in (CX, CX + 1, CX + 2):
             t.set(x, 1, z, f"{p['losa']}[type=bottom,waterlogged=false]")
-    c.cofre(t, CX, 1, CX + 1, "north", MID, "ajuar")
+    c.place_chest(t, CX, 1, CX + 1, "north", MID, "ajuar")
     t.set(CX, 1, CX + 3, "candle[candles=2,lit=true,waterlogged=false]")
     pieces.connect(t)
     return t
@@ -100,11 +100,11 @@ STYLES = {
                   paleta=dict(suelo=["minecraft:end_stone_bricks", "minecraft:purpur_block", "minecraft:end_stone_bricks"],
                               pretil="end_stone_brick_wall", pilar="purpur_pillar[axis=y]", muro="purpur_block",
                               piso="purpur_block", zocalo="end_stone_bricks", losa="purpur_slab"),
-                  variantes={"a": crypt, "b": abierto}),
+                  variantes={"a": crypt, "b": open_variant}),
     "medias": dict(biomas=["end_midlands", "end_barrens"], convencionales=[],
                    paleta=dict(suelo=["minecraft:purpur_block", "minecraft:end_stone_bricks", "minecraft:purpur_block"],
                                pretil="purpur_slab[type=bottom,waterlogged=false]", pilar="purpur_pillar[axis=y]",
                                muro="end_stone_bricks", piso="end_stone_bricks", zocalo="purpur_block",
                                losa="end_stone_brick_slab"),
-                   variantes={"a": crypt, "b": abierto}),
+                   variantes={"a": crypt, "b": open_variant}),
 }

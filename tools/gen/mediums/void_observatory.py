@@ -17,7 +17,7 @@ DISPLAY_NAME = {"es_es": "Observatorio del vacío", "en_us": "Void Observatory"}
 SEPARATION = 896
 ADVANCEMENT_ICON = "minecraft:end_rod"
 LOOT = {
-    "astronomo": chest_loot.cofre(((2, 4), [item("ender_pearl", 8, 1, 3), item("chorus_fruit", 8, 2, 6),
+    "astronomo": chest_loot.place_chest(((2, 4), [item("ender_pearl", 8, 1, 3), item("chorus_fruit", 8, 2, 6),
                                        item("popped_chorus_fruit", 5, 1, 4), item("amethyst_shard", 6, 2, 5),
                                        item("paper", 6, 2, 6), item("spyglass", 2), item("glass", 4, 2, 6),
                                        item("map", 2), item("gold_ingot", 3), empty(5)]),
@@ -71,7 +71,7 @@ def tower(p, name):
     t.set(CX + 1, roof + 1, CX, p["pilar"])
     for i in range(3):
         t.set(CX + 1, roof + 2 + i, CX, "end_rod[facing=up]")
-    c.cofre(t, X0 + 1, roof + 1, Z0 + 1, "south", MID, "astronomo")
+    c.place_chest(t, X0 + 1, roof + 1, Z0 + 1, "south", MID, "astronomo")
     pieces.connect(t)
     return t
 
@@ -87,8 +87,8 @@ def armillary(p, name):
         for z in range(CX - 1, CX + 2):
             t.set(x, 1, z, f"{p['losa']}[type=bottom,waterlogged=false]")
     t.set(CX, 1, CX, "cartography_table")
-    c.cofre(t, CX, 1, CX + 2, "north", MID, "astronomo")
-    c.cofre(t, CX + 2, 1, CX, "west", MID, "cartas", kind="barrel")
+    c.place_chest(t, CX, 1, CX + 2, "north", MID, "astronomo")
+    c.place_chest(t, CX + 2, 1, CX, "west", MID, "cartas", kind="barrel")
     t.set(CX - 2, 1, CX, "lectern[facing=east,has_book=false,powered=false]")
     pieces.connect(t)
     return t

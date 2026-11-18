@@ -25,7 +25,7 @@ def test_check_state(mcmeta):
     assert "valor" in validate.check_state("oak_stairs[facing=up]")
 
 
-def test_validate_registry_negativos(mcmeta):
+def test_validate_registry_negatives(mcmeta):
     t = Template("a")
     t.set(0, 0, 0, "stone_brickz")
     t.jigsaw(1, 0, 0, "north_up", "heraldia:x", "heraldia:x", "heraldia:no_existe", final_state="minecraft:glowstonez")
@@ -40,7 +40,7 @@ def test_validate_registry_negativos(mcmeta):
         assert msg in errs, msg
 
 
-def test_validate_registry_limpio(mcmeta):
+def test_validate_registry_clean(mcmeta):
     t = Template("a")
     t.set(0, 0, 0, "stone")
     t.entity(0, 1, 0, {"id": "minecraft:zombie", "Tags": [ADULT_TAG, ANCHORED_TAG]})
@@ -55,7 +55,7 @@ def test_validate_registry_limpio(mcmeta):
     ({"id": "minecraft:skeleton"}, "recogería objetos"),                                 # esqueleto sin anclar
     ({"id": "minecraft:evoker", "Tags": [pieces.GUARDIAN_TAG]}, "guardián"),             # guardián sin anclar
 ])
-def test_validate_registry_sin_anclar(mcmeta, nbt, per):
+def test_validate_registry_unanchored(mcmeta, nbt, per):
     t = Template("a")
     t.entity(0, 1, 0, nbt)
     errs = validate.validate_registry(Reg(t))
@@ -76,7 +76,7 @@ def test_validate_loot(mcmeta):
                     "trim_pattern inexistente minecraft:coastz", "banner_pattern inexistente x"]
 
 
-def _estructura(out, name, s):
+def _make_structure(out, name, s):
     p = os.path.join(out, "data", "heraldia", "worldgen", "structure", name)
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with open(p, "w") as f:
@@ -85,10 +85,10 @@ def _estructura(out, name, s):
 
 def test_validate_structures(tmp_path):
     out = str(tmp_path)
-    _estructura(out, "a.json", {"type": "minecraft:jigsaw", "max_distance_from_center": 117, "size": 7})
-    _estructura(out, "unicas/b.json", {"type": "minecraft:jigsaw", "max_distance_from_center": 80, "size": 21})
-    _estructura(out, "c.json", {"type": "heraldia:aldea", "aldea": {"max_distance_from_center": 116, "size": 0}})
-    _estructura(out, "d.json", {"type": "heraldia:isla"})
+    _make_structure(out, "a.json", {"type": "minecraft:jigsaw", "max_distance_from_center": 117, "size": 7})
+    _make_structure(out, "unicas/b.json", {"type": "minecraft:jigsaw", "max_distance_from_center": 80, "size": 21})
+    _make_structure(out, "c.json", {"type": "heraldia:aldea", "aldea": {"max_distance_from_center": 116, "size": 0}})
+    _make_structure(out, "d.json", {"type": "heraldia:isla"})
     errs = validate.validate_structures(out)
     assert len(errs) == 3
     assert any("a.json" in e and "117" in e for e in errs) and any("b.json" in e and "size 21" in e for e in errs)
@@ -107,7 +107,7 @@ def _advancement(out, path, a, langs=None):
             json.dump(langs or {"k.t": "t", "k.d": "d"}, f)
 
 
-def test_validate_advancements_bueno_y_malos(mcmeta, tmp_path):
+def test_validate_advancements_good_and_bad(mcmeta, tmp_path):
     out = str(tmp_path / "out")
     disp = {"icon": {"id": "minecraft:stone"}, "title": {"translate": "k.t"}, "description": {"translate": "k.d"},
             "background": "x"}

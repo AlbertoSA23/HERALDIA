@@ -18,7 +18,7 @@ def table(*pools):
     return {"type": "minecraft:chest", "pools": list(pools)}
 
 
-def cofre(base, extra):
+def place_chest(base, extra):
     """Tabla típica de cofre: (tiradas, entradas) siempre y (tiradas, entradas) extra sin Lootr."""
     return table(pool(*base), pool(*extra, extra=True))
 

@@ -96,7 +96,7 @@ def _blueprint(v):
     return v
 
 
-def _sin(d, remove):
+def _stripped(d, remove):
     return {k: v for k, v in d.items() if k not in remove}
 
 
@@ -111,11 +111,11 @@ def footprint(n):
     be = {}
     for b in n.get("block_entities", []):
         d = _blueprint(b)
-        be[(d.get("x"), d.get("y"), d.get("z"))] = _sin(d, VOLATILE_BLOCK)
+        be[(d.get("x"), d.get("y"), d.get("z"))] = _stripped(d, VOLATILE_BLOCK)
     out["bloques_con_datos"] = be
     out["alturas"] = _blueprint(n.get("Heightmaps"))
     out["estructuras"] = _blueprint(n.get("structures"))
-    out["resto"] = _sin({k: _blueprint(v) for k, v in n.items()}, VOLATILE_CHUNK | {"sections", "block_entities", "Heightmaps", "structures"})
+    out["resto"] = _stripped({k: _blueprint(v) for k, v in n.items()}, VOLATILE_CHUNK | {"sections", "block_entities", "Heightmaps", "structures"})
     return out
 
 

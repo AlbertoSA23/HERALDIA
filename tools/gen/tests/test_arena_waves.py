@@ -54,7 +54,7 @@ def test_closed_ring_without_door(t):
 
 
 def test_a_gap_in_the_glass_is_detected(t):
-    x, z = a.C + a.R_RUEDO, a.C              # columna del muro, al este
+    x, z = a.C + a.R_ARENA, a.C              # columna del muro, al este
     t2 = a.construct()
     t2.set(x, a.GLASS[0] + 2, z, "air")
     assert any("cristal" in e for e in a.errors(t2))
@@ -73,7 +73,7 @@ def test_spawn_points(t):
     d = a.dataset()
     assert len(d["puntos"]) >= 4
     for p in d["puntos"]:
-        assert math.hypot(p[0] - a.C, p[2] - a.C) < a.R_RUEDO - 1
+        assert math.hypot(p[0] - a.C, p[2] - a.C) < a.R_ARENA - 1
         assert name(t.get(p[0], 0, p[2])) == "chiseled_red_sandstone", "marca en el suelo"
         assert name(t.get(*p)) == "air" and name(t.get(p[0], 2, p[2])) == "air"
     # repartidos: ninguno en la entrada (sur) y lejos entre sí
@@ -91,7 +91,7 @@ def test_bell_door_and_respawn(t):
         for y in range(y0, y1 + 1):
             for z in range(z0, z1 + 1):
                 assert name(t.get(x, y, z)) == "air"
-                assert a.R_RUEDO <= math.hypot(x - a.C, z - a.C) < a.R_WALL, "la puerta corta el muro del ruedo"
+                assert a.R_ARENA <= math.hypot(x - a.C, z - a.C) < a.R_WALL, "la puerta corta el muro del ruedo"
     rp = d["reaparicion"]
     assert name(t.get(*rp)) == "air" and name(t.get(rp[0], rp[1] - 1, rp[2])) != "air"
     assert rp[1] - 1 == a.FLOOR, "la reaparición está a ras del suelo exterior"

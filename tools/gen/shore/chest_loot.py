@@ -8,20 +8,20 @@ from uniques._common import chest_loot
 
 LOOT = {
     # cofre de la sala de guardia del faro y tonel de la casa del farero
-    "faro": chest_loot.cofre(((2, 4), [item("map", 5, 1, 2), item("compass", 3), item("spyglass", 2), item("candle", 4, 1, 3),
+    "faro": chest_loot.place_chest(((2, 4), [item("map", 5, 1, 2), item("compass", 3), item("spyglass", 2), item("candle", 4, 1, 3),
                                   item("cooked_cod", 6, 1, 4), item("bread", 5, 1, 3), item("paper", 4, 2, 6),
                                   item("glow_ink_sac", 2, 1, 3), item("coal", 4, 2, 6), item("lantern", 2),
                                   item("emerald", 2, 1, 2), empty(4)]),
                         ((1, 1), [item("emerald", 2, 1, 2), item("nautilus_shell", 1), item("clock", 1), empty(6)])),
     # bodega del galeón: víveres y pertrechos
-    "bodega": chest_loot.cofre(((3, 6), [item("cod", 8, 1, 4), item("salmon", 6, 1, 3), item("dried_kelp", 6, 2, 6),
+    "bodega": chest_loot.place_chest(((3, 6), [item("cod", 8, 1, 4), item("salmon", 6, 1, 3), item("dried_kelp", 6, 2, 6),
                                     item("wheat", 5, 2, 6), item("potato", 5, 1, 4), item("coal", 6, 2, 6),
                                     item("string", 5, 1, 4), item("leather", 4, 1, 3), item("paper", 4, 1, 4),
                                     item("gunpowder", 3, 1, 3), item("iron_nugget", 4, 2, 7), item("lead", 2),
                                     item("bamboo", 3, 2, 6), empty(3)]),
                           ((1, 2), [item("iron_ingot", 3, 1, 2), item("gold_nugget", 4, 2, 6), empty(6)])),
     # camarote del capitán: mapas, instrumentos y la caja del barco
-    "camarote": chest_loot.cofre(((2, 4), [item("map", 5, 1, 2), item("compass", 4), item("spyglass", 3), item("clock", 2),
+    "camarote": chest_loot.place_chest(((2, 4), [item("map", 5, 1, 2), item("compass", 4), item("spyglass", 3), item("clock", 2),
                                       item("gold_ingot", 4, 1, 3), item("gold_nugget", 5, 3, 9), item("emerald", 5, 1, 3),
                                       item("book", 3, rand_ench=True), item("iron_sword", 2, dmg=(0.3, 0.8)),
                                       item("name_tag", 1), item("feather", 3, 1, 3), item("ink_sac", 3, 1, 3), empty(3)]),

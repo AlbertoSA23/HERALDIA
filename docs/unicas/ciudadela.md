@@ -1,7 +1,7 @@
 # Dwarven citadel (`heraldia:unicas/ciudadela`)
 
-A city carved inside a mountain. A single variant, designed by hand. Module: `tools/gen/unicas/ciudadela/`
-(geometry in `plano.py`, loot in `botin.py`, redstone in `redstone.py`, its own audit in `auditoria.py`);
+A city carved inside a mountain. A single variant, designed by hand. Module: `tools/gen/uniques/citadel/`
+(geometry in `blueprint.py`, loot in `chest_loot.py`, redstone in `redstone.py`, its own audit in `audit.py`);
 placement in Java: `io.github.albertosa23.heraldia.unicas.ciudadela`.
 
 ## Placement on the hillside (why Java)

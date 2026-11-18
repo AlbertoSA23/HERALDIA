@@ -7,7 +7,7 @@ def test_pool_table_chest():
     p = chest_loot.pool((1, 3), [chest_loot.item("bread", 1)], extra=True)
     assert p["rolls"] == {"type": "minecraft:uniform", "min": 1, "max": 3} and p["solo_sin_lootr"]
     assert "solo_sin_lootr" not in chest_loot.pool(2, [])
-    t = chest_loot.cofre((1, [chest_loot.empty(1)]), (2, [chest_loot.empty(1)]))
+    t = chest_loot.place_chest((1, [chest_loot.empty(1)]), (2, [chest_loot.empty(1)]))
     assert t["type"] == "minecraft:chest" and [bool(q.get("solo_sin_lootr")) for q in t["pools"]] == [False, True]
 
 

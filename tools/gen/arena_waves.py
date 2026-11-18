@@ -37,7 +37,7 @@ N = 57                    # lado de la plantilla (cuadrada)
 C = N // 2                # columna del centro (28)
 HEIGHT = 14                 # y = 0 .. 13
 FLOOR = 7                 # y del suelo exterior: esta capa de la plantilla va a la altura del terreno
-R_RUEDO, R_WALL, R_BLEACHERS, R_PROMENADE = 14, 16, 24, 28.5
+R_ARENA, R_WALL, R_BLEACHERS, R_PROMENADE = 14, 16, 24, 28.5
 ROOF = 11                # techo de barreras sobre el ruedo y el cristal
 GLASS = (4, 10)         # cristal sobre el muro del ruedo
 WALL_HIGH = 3             # el muro del ruedo, de y = 1 a 3
@@ -123,7 +123,7 @@ def construct():
             d = dist(x, z)
             for y in range(HEIGHT):
                 t.set(x, y, z, "air")
-            if d < R_RUEDO:
+            if d < R_ARENA:
                 floor = "smooth_sandstone"
                 if d < 2.5:
                     floor = "chiseled_sandstone"
@@ -171,8 +171,8 @@ def construct():
     # puntos de aparición: marca en el suelo y, detrás, una celda con rejas y un farol de almas
     for p in points():
         t.set(p[0], 0, p[2], "chiseled_red_sandstone")
-        bx, bz = cell_behind(p, R_RUEDO + 0.5)
-        lx, lz = cell_behind(p, R_RUEDO + 1.5)
+        bx, bz = cell_behind(p, R_ARENA + 0.5)
+        lx, lz = cell_behind(p, R_ARENA + 1.5)
         t.fill(bx, 1, bz, bx, 2, bz, "iron_bars")
         t.set(lx, 1, lz, "soul_lantern")
         t.set(lx, 2, lz, "air")
@@ -215,7 +215,7 @@ def dataset():
         "tamano": [N, HEIGHT, N],
         "suelo": FLOOR,
         "centro": [C, 1, C],
-        "radio_ruedo": R_RUEDO,
+        "radio_ruedo": R_ARENA,
         "ruedo_y": [1, ROOF - 1],
         "puntos": [list(p) for p in points()],
         "campana": list(BELL),
@@ -276,7 +276,7 @@ def errors(t, d=None):
             dd = dist(x, z)
             if dd < R_WALL and _name(t.get(x, ROOF, z)) != "barrier":
                 e.append(f"arena: falta el techo de barreras en {x}, {ROOF}, {z}")
-            if R_RUEDO <= dd < R_WALL and any(_name(t.get(x, y, z)) != "glass" for y in range(GLASS[0], GLASS[1] + 1)):
+            if R_ARENA <= dd < R_WALL and any(_name(t.get(x, y, z)) != "glass" for y in range(GLASS[0], GLASS[1] + 1)):
                 e.append(f"arena: falta cristal sobre el muro en {x}, {z}")
             if dd < r and not _solid(t.get(x, 0, z)):
                 e.append(f"arena: el suelo del ruedo tiene un hueco en {x}, 0, {z}")
@@ -312,23 +312,23 @@ def errors(t, d=None):
 
 # --- recompensas, logros y textos ---
 
-def _tabla(*pools):
+def _pool_table(*pools):
     return {"type": "minecraft:chest", "pools": [chest_loot.pool(r, es) for r, es in pools]}
 
 
 # Una recompensa por jugador cada 5 oleadas, mejor según la oleada (nivel 1: la 5; 2: la 10; 3: la 15; 4: la 20 y
 # siguientes). Solo vanilla, sin netherita ni élitros (Decisiones del dueño).
 REWARDS = {
-    1: _tabla((3, [item("iron_ingot", 6, 2, 5), item("bread", 4, 3, 6), item("arrow", 4, 8, 16), item("emerald", 4, 2, 5),
+    1: _pool_table((3, [item("iron_ingot", 6, 2, 5), item("bread", 4, 3, 6), item("arrow", 4, 8, 16), item("emerald", 4, 2, 5),
                    item("golden_carrot", 3, 2, 4)]),
               (1, [item("golden_apple", 1), item("iron_sword", 1, ench=(5, 15))])),
-    2: _tabla((3, [item("iron_ingot", 4, 4, 8), item("gold_ingot", 4, 2, 5), item("emerald", 4, 4, 8), item("arrow", 3, 16, 32),
+    2: _pool_table((3, [item("iron_ingot", 4, 4, 8), item("gold_ingot", 4, 2, 5), item("emerald", 4, 4, 8), item("arrow", 3, 16, 32),
                    item("experience_bottle", 3, 3, 6)]),
               (1, [item("diamond", 3, 1, 2), item("golden_apple", 2, 1, 2), item("iron_chestplate", 1, ench=(10, 20))])),
-    3: _tabla((3, [item("diamond", 3, 1, 3), item("emerald", 4, 6, 12), item("experience_bottle", 4, 5, 10),
+    3: _pool_table((3, [item("diamond", 3, 1, 3), item("emerald", 4, 6, 12), item("experience_bottle", 4, 5, 10),
                    item("golden_apple", 3, 1, 2)]),
               (1, [item("diamond_sword", 1, ench=(15, 25)), item("bow", 1, ench=(15, 25)), item("diamond_helmet", 1, ench=(10, 20))])),
-    4: _tabla((3, [item("diamond", 3, 2, 4), item("emerald_block", 2, 1, 2), item("experience_bottle", 4, 8, 16),
+    4: _pool_table((3, [item("diamond", 3, 2, 4), item("emerald_block", 2, 1, 2), item("experience_bottle", 4, 8, 16),
                    item("golden_apple", 3, 2, 3)]),
               (1, [item("enchanted_golden_apple", 1), item("diamond_chestplate", 2, ench=(20, 30)), item("totem_of_undying", 1),
                    item("diamond_sword", 2, ench=(25, 30))])),
@@ -362,31 +362,31 @@ def reward_id(level):
     return f"{NS}:arena/recompensa_{level}"
 
 
-def advancement_id(oleada):
-    return f"{NS}:arena/oleada_{oleada}"
+def advancement_id(wave):
+    return f"{NS}:arena/oleada_{wave}"
 
 
-def _advancement_key(oleada, part):
-    return f"advancements.{NS}.arena.oleada_{oleada}.{part}"
+def _advancement_key(wave, part):
+    return f"advancements.{NS}.arena.oleada_{wave}.{part}"
 
 
 def advancements():
     """{ruta: json} de los logros de la arena (los concede el Java al superar la oleada; criterio «impossible»)."""
     out = {}
     parent = f"{NS}:raiz"
-    for oleada, (emblem, frame, xp) in sorted(ADVANCEMENTS.items()):
-        out[f"arena/oleada_{oleada}"] = {
+    for wave, (emblem, frame, xp) in sorted(ADVANCEMENTS.items()):
+        out[f"arena/oleada_{wave}"] = {
             "parent": parent,
             "criteria": {"oleada": {"trigger": "minecraft:impossible"}},
             "display": {"icon": {"id": f"minecraft:{emblem}"},
-                        "title": {"translate": _advancement_key(oleada, "title"), "fallback": LANG_ADVANCEMENTS[oleada][0][0]},
-                        "description": {"translate": _advancement_key(oleada, "description"),
-                                        "fallback": LANG_ADVANCEMENTS[oleada][1][0]},
+                        "title": {"translate": _advancement_key(wave, "title"), "fallback": LANG_ADVANCEMENTS[wave][0][0]},
+                        "description": {"translate": _advancement_key(wave, "description"),
+                                        "fallback": LANG_ADVANCEMENTS[wave][1][0]},
                         "frame": frame},
             "requirements": [["oleada"]],
             "rewards": {"experience": xp},
         }
-        parent = advancement_id(oleada)
+        parent = advancement_id(wave)
     for lid, emblem, frame, xp, parent, title, desc in ADVANCEMENTS_MODES:
         out[f"arena/{lid}"] = {
             "parent": f"{NS}:arena/{parent}",
@@ -521,10 +521,10 @@ def lang():
         out["es_es"][f"{NS}.arena.{k}"], out["en_us"][f"{NS}.arena.{k}"] = es, en
     for i, (es, en) in enumerate(BOSSES):
         out["es_es"][f"{NS}.arena.jefe.{i}"], out["en_us"][f"{NS}.arena.jefe.{i}"] = es, en
-    for oleada, (title, desc) in LANG_ADVANCEMENTS.items():
+    for wave, (title, desc) in LANG_ADVANCEMENTS.items():
         for i, language in enumerate(("es_es", "en_us")):
-            out[language][_advancement_key(oleada, "title")] = title[i]
-            out[language][_advancement_key(oleada, "description")] = desc[i]
+            out[language][_advancement_key(wave, "title")] = title[i]
+            out[language][_advancement_key(wave, "description")] = desc[i]
     for lid, _, _, _, _, title, desc in ADVANCEMENTS_MODES:
         for i, language in enumerate(("es_es", "en_us")):
             out[language][f"advancements.{NS}.arena.{lid}.title"] = title[i]
@@ -539,11 +539,11 @@ def text_errors(translations=None):
     base = lang()
     e = []
     everyone = [("es_es", base["es_es"]), ("en_us", base["en_us"])] + list((translations or {}).items())
-    for codigo, texts in everyone:
+    for lang_code, texts in everyone:
         for k, bold, args in SIGN:
             text = languages.format_text(texts[f"{NS}.arena.{k}"], args)
             if languages.sign_width(text, bold) > languages.SIGN_WIDTH:
-                e.append(f"arena: {codigo}: la línea del cartel {k} no cabe: «{text}» "
+                e.append(f"arena: {lang_code}: la línea del cartel {k} no cabe: «{text}» "
                          f"({languages.sign_width(text, bold)} px de {languages.SIGN_WIDTH})")
     if languages.sign_width(TYPICAL_NAME) > languages.SIGN_WIDTH:
         e.append("arena: un nombre de jugador típico no cabe en el cartel")

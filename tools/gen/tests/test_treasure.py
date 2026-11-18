@@ -147,7 +147,7 @@ def test_mark_is_the_java_one_and_distinct_from_others():
 
 
 def test_chest_final_good_without_break_the_progression():
-    t = treasure.cofre()
+    t = treasure.place_chest()
     assert t["pools"][0]["rolls"] == 1 and t["pools"][0]["entries"] == [treasure.memento()]
     text = json.dumps(t)
     for p in treasure.FORBIDDEN:
@@ -172,7 +172,7 @@ def test_items_exist():
         pytest.skip("sin build/mcmeta-summary")
     with open(f, encoding="utf-8") as fh:
         items = set(json.load(fh)["item"])
-    names = re.findall(r'"name": "minecraft:([a-z0-9_]+)"', json.dumps([treasure.fragment(), treasure.cofre()]))
+    names = re.findall(r'"name": "minecraft:([a-z0-9_]+)"', json.dumps([treasure.fragment(), treasure.place_chest()]))
     assert names and set(names) <= items, set(names) - items
     emblems = [a["display"]["icon"]["id"].split(":")[1] for a in treasure.advancements().values()]
     assert set(emblems) <= items
@@ -196,20 +196,20 @@ def test_texts_in_the_two_base_languages():
 def test_texts_in_the_translations():
     base = dict(treasure.lang()["en_us"], **treasure.lang_advancements()["en_us"])
     mark = re.compile(r"%(?:\d+\$)?s")
-    for codigo, t in _trans().items():
+    for lang_code, t in _trans().items():
         for k, en in base.items():
-            assert t.get(k, "").strip(), f"{codigo}: falta {k}"
-            assert len(mark.findall(t[k])) == len(mark.findall(en)), f"{codigo}: huecos de {k}"
+            assert t.get(k, "").strip(), f"{lang_code}: falta {k}"
+            assert len(mark.findall(t[k])) == len(mark.findall(en)), f"{lang_code}: huecos de {k}"
         for k in ("heraldia.guia.pagina.tesoro", "heraldia.guia.pagina.tesoro.titulo", "heraldia.config.tesoro.activado",
                   "heraldia.config.tesoro.probabilidad", "heraldia.config.tesoro.radio_max", "heraldia.config.seccion.tesoro"):
-            assert t.get(k, "").strip(), f"{codigo}: falta {k}"
+            assert t.get(k, "").strip(), f"{lang_code}: falta {k}"
     assert treasure.errors(_trans()) == [], "el lore cabe en todos los idiomas"
 
 
 def test_map_lore_fits_with_a_long_biome():
-    for codigo, t in [("en", treasure.lang()["en_us"]), ("es", treasure.lang()["es_es"])] + list(_trans().items()):
+    for lang_code, t in [("en", treasure.lang()["en_us"]), ("es", treasure.lang()["es_es"])] + list(_trans().items()):
         line = languages.format_text(t[treasure.key("pista.donde")], ["Old Growth Spruce Taiga", t.get("heraldia.info.dir.ne", "northeast")])
-        assert chest_loot.width(line) <= treasure.LORE_MAX_PX + 60, f"{codigo}: {line}"
+        assert chest_loot.width(line) <= treasure.LORE_MAX_PX + 60, f"{lang_code}: {line}"
 
 
 # ------------------------------------------------------------------ la Guía
@@ -223,10 +223,10 @@ def test_guide_page():
 
 
 def test_guide_page_fits_in_each_language():
-    for codigo, t in list(_trans().items()) + [("es", guide.lang()["es_es"]), ("en", guide.lang()["en_us"])]:
+    for lang_code, t in list(_trans().items()) + [("es", guide.lang()["es_es"]), ("en", guide.lang()["en_us"])]:
         title, text = t["heraldia.guia.pagina.tesoro.titulo"], t["heraldia.guia.pagina.tesoro"]
-        assert guide.page_lines(title, text) <= chest_loot.BOOK_LINES, codigo
-        assert guide.title_lines(title) == 1, codigo
+        assert guide.page_lines(title, text) <= chest_loot.BOOK_LINES, lang_code
+        assert guide.title_lines(title) == 1, lang_code
 
 
 # ------------------------------------------------------------------ logros
@@ -237,7 +237,7 @@ def test_advancements():
     pred = a["tesoro/fragmento"]["criteria"]["fragmento"]["conditions"]["items"][0]
     assert pred["items"] == "minecraft:paper" and pred["predicates"]["minecraft:custom_data"] == {treasure.MARK: {}}
     assert a["tesoro/cofre"]["criteria"]["cofre"] == {"trigger": "minecraft:player_generates_container_loot",
-                                                      "conditions": {"loot_tables": treasure.COFRE}}
+                                                      "conditions": {"loot_tables": treasure.CHEST_TABLE}}
     assert a["tesoro/cofre"]["display"]["frame"] == "goal"
     assert all(set(x.get("rewards", {})) <= {"experience"} for x in a.values()), "solo experiencia"
     l = treasure.lang_advancements()["es_es"]
@@ -254,7 +254,7 @@ def test_advancements_go_with_the_others():
 def test_the_java_uses_the_tables():
     t = _java("treasure/Treasure.java")
     assert 'Heraldia.id("tesoro/fragmento")' in t and 'Heraldia.id("tesoro/cofre")' in t
-    assert treasure.FRAGMENT == "heraldia:tesoro/fragmento" and treasure.COFRE == "heraldia:tesoro/cofre"
+    assert treasure.FRAGMENT == "heraldia:tesoro/fragmento" and treasure.CHEST_TABLE == "heraldia:tesoro/cofre"
 
 
 # ------------------------------------------------------------------ opciones

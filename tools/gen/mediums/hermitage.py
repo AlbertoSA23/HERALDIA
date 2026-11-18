@@ -80,7 +80,7 @@ def _chapel(p, name):
     c.door(t, X1 - 1, 1, 10, "south", f"{m}_door")
     t.set(X1 - 1, 1, 9, "air")
     c.bed(t, X0 + 1, 12, "west", p["cama"])
-    c.cofre(t, X1 - 1, 1, 12, "west", MID, "celda")
+    c.place_chest(t, X1 - 1, 1, 12, "west", MID, "celda")
     t.set(CX, 1, 12, "lectern[facing=north,has_book=false,powered=false]")
     c.lantern(t, CX, 4, 7)
     c.lantern(t, CX, 4, 11)

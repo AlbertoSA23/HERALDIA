@@ -21,12 +21,12 @@ ADVANCEMENTS = [dict(id="pesca", icono="minecraft:cod", tabla="pesca",
                descripcion=("Abre el tonel de la pesca de una cabaña de pescador",
                             "Open the catch barrel of a fisher's hut"))]
 LOOT = {
-    "pesca": chest_loot.cofre(((3, 5), [item("cod", 10, 1, 4), item("salmon", 7, 1, 3), item("cooked_cod", 6, 1, 3),
+    "pesca": chest_loot.place_chest(((3, 5), [item("cod", 10, 1, 4), item("salmon", 7, 1, 3), item("cooked_cod", 6, 1, 3),
                                    item("tropical_fish", 2), item("pufferfish", 1), item("kelp", 5, 2, 6),
                                    item("ink_sac", 4, 1, 3), item("string", 5, 1, 4), item("bone_meal", 3, 1, 3),
                                    item("lily_pad", 2), empty(4)]),
                          ((1, 1), [item("nautilus_shell", 1), item("emerald", 2), item("prismarine_shard", 2), empty(8)])),
-    "cabana": chest_loot.cofre(((2, 4), [item("fishing_rod", 3, dmg=(0.3, 0.8)), item("bread", 6, 1, 3), item("lead", 3),
+    "cabana": chest_loot.place_chest(((2, 4), [item("fishing_rod", 3, dmg=(0.3, 0.8)), item("bread", 6, 1, 3), item("lead", 3),
                                     item("string", 5, 1, 3), item("stick", 5, 2, 5), item("paper", 3, 1, 3),
                                     item("leather_boots", 2, dmg=(0.4, 0.9)), item("compass", 1), item("map", 2),
                                     item("book", 2, rand_ench=True), empty(5)]),
@@ -35,7 +35,7 @@ LOOT = {
 
 WIDTH, DEPTH = 17, 21
 X0, Z0, X1, Z1 = 2, 4, 8, 10       # cabaña (7 x 7), puerta al norte
-PUERTA = 5
+DOOR_COL = 5
 EX0, EX1 = 11, 13                  # embarcadero (3 de ancho), de z = 6 al fondo
 
 
@@ -49,31 +49,31 @@ def offers():
 
 def _floor(p):
     mats = p["patio"]
-    return lambda x, z: p["senda"] if x == PUERTA and z < Z0 else mats[(x * 7 + z * 5 + x * z) % len(mats)]
+    return lambda x, z: p["senda"] if x == DOOR_COL and z < Z0 else mats[(x * 7 + z * 5 + x * z) % len(mats)]
 
 
 def _cabin(p, name, shut):
     t = Template(name)
     m = p["madera"]
     c.courtyard(t, 0, 0, WIDTH - 1, DEPTH - 1, _floor(p), air_block=3)
-    c.entrance(t, PUERTA, p["senda"])
+    c.entrance(t, DOOR_COL, p["senda"])
     # cabaña sobre un zócalo, muros de tablones con postes, tejado a dos aguas
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, f"{m}_planks")
     c.box(t, X0, 1, Z0, X1, 3, Z1, p["muro"], corner_block=f"{p['tronco']}[axis=y]")
     t.fill(X0, 4, Z0, X1, 4, Z1, f"{m}_planks")
     c.roof_tiles(t, X0, Z0, X1, Z1, 4, p["teja"], p["cumbrera"], p["muro"])
-    c.door(t, PUERTA, 1, Z0, "south", f"{m}_door")
+    c.door(t, DOOR_COL, 1, Z0, "south", f"{m}_door")
     c.window(t, X0, 2, 7)
     c.window(t, X1, 2, 7)
-    c.window(t, PUERTA, 2, Z1)
+    c.window(t, DOOR_COL, 2, Z1)
     # dentro: cama, cofre, mesa de trabajo y el tonel de la pesca; farol en el centro
     c.bed(t, X0 + 1, Z1 - 1, "west", p["cama"])
-    c.cofre(t, X0 + 1, 1, Z0 + 1, "east", MID, "cabana")
-    c.cofre(t, X1 - 1, 1, Z1 - 1, "west", MID, "pesca", kind="barrel")
+    c.place_chest(t, X0 + 1, 1, Z0 + 1, "east", MID, "cabana")
+    c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "pesca", kind="barrel")
     t.set(X1 - 1, 1, Z0 + 1, "smoker[facing=west,lit=false]" if shut else "crafting_table")
     t.set(X1 - 1, 1, Z1 - 2, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
-    c.lantern(t, PUERTA, 3, 7)
+    c.lantern(t, DOOR_COL, 3, 7)
     # secadero de pescado al norte del embarcadero: dos postes con un travesaño de vallas
     for x in (EX0 - 1, EX1 + 1):
         t.set(x, 1, 2, f"{m}_fence")
@@ -111,7 +111,7 @@ def _dock(t, p, z1, fish_traps=False):
 def with_fisherman(p, name):
     t = _cabin(p, name, shut=False)
     _dock(t, p, DEPTH - 4)
-    t.entity(PUERTA, 1, 7, c.villager(MID, "pescador", "Pescador", "fisherman", p["aldeano"], offers(), rot=0.0))
+    t.entity(DOOR_COL, 1, 7, c.villager(MID, "pescador", "Pescador", "fisherman", p["aldeano"], offers(), rot=0.0))
     t.entity(EX0 + 1, 2, 10, c.mob("cat", MID, "gato", "Bigotes", rot=90.0,
                                    variant=p["gato"], CollarColor=B(p["collar"])))
     return t

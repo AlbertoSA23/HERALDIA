@@ -180,12 +180,12 @@ def test_unique_built(reg_stub, sid):
     tables = {str(n["LootTable"]).split("/")[-1] for _, n in t.blocks.values() if n and n.get("LootTable")}
     assert set(m.LOOT) <= tables and m.STORY["cofre"] in tables
     # la sala oculta (el pliego de la Crónica) solo se alcanza con la puerta de pistones abierta
-    abierta = t.lint_open
+    is_open = t.lint_open
     try:
         t.lint_open = {}
         shut = set(lint.walk(t))
     finally:
-        t.lint_open = abierta
+        t.lint_open = is_open
     view = set(lint.walk(t))
     concealed = [p for p, (_, n) in t.blocks.items() if n and str(n.get("LootTable", "")).endswith("/oculto")]
 
@@ -255,9 +255,9 @@ def _new_keys():
     return keys
 
 
-@pytest.mark.parametrize("codigo", languages.TRANSLATIONS)
-def test_translated_texts(codigo):
-    translated = languages.load_data(codigo)
+@pytest.mark.parametrize("lang_code", languages.TRANSLATIONS)
+def test_translated_texts(lang_code):
+    translated = languages.load_data(lang_code)
     missing = sorted(k for k in _new_keys() if not translated.get(k))
     assert missing == [], missing
     en = {}
@@ -270,7 +270,7 @@ def test_translated_texts(codigo):
 def test_chronicle_pages_fit():
     for sid, m in UNIQUE_MODS:
         assert chest_loot.story_errors(sid, m.STORY, m.LOOT) == []
-        for codigo in languages.TRANSLATIONS:
-            translated = languages.load_data(codigo)
+        for lang_code in languages.TRANSLATIONS:
+            translated = languages.load_data(lang_code)
             for i in (1, 2):
-                assert chest_loot.book_lines(translated[f"heraldia.historia.{sid}.pagina{i}"]) <= 14, (sid, codigo, i)
+                assert chest_loot.book_lines(translated[f"heraldia.historia.{sid}.pagina{i}"]) <= 14, (sid, lang_code, i)

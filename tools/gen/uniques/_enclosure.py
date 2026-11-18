@@ -38,7 +38,7 @@ def lantern(t, x, y, z, hanging=True):
     t.set(x, y, z, f"soul_lantern[hanging={'true' if hanging else 'false'},waterlogged=false]")
 
 
-def great_tower(t, p, kx, kz, cofre, guardian):
+def great_tower(t, p, kx, kz, place_chest, guardian):
     """Torreón de 15 x 15 con su NO en (kx, kz): portada al norte (3 de ancho), pasillo con la trampa de placa y
     flechas, salón del guardián, tabique con la puerta de hierro (botones a los dos lados) y la cámara del tesoro con el
     cofre premium al sur; escalera de mano a la planta alta (biblioteca y cuartel). `cofre(t, x, y, z, facing, tabla,
@@ -70,8 +70,8 @@ def great_tower(t, p, kx, kz, cofre, guardian):
                 t.set(x, y, kz + 5, p["muro"])
     for x in (kx + 3, x1 - 3):
         pieces.door(put, x, 1, kz + 5, "north", p["puerta"])
-    cofre(t, kx + 1, 1, kz + 1, "south", "cuartel", "barrel")
-    cofre(t, x1 - 1, 1, kz + 1, "south", "cuartel", "chest")
+    place_chest(t, kx + 1, 1, kz + 1, "south", "cuartel", "barrel")
+    place_chest(t, x1 - 1, 1, kz + 1, "south", "cuartel", "chest")
     lantern(t, kx + 3, 4, kz + 2)
     lantern(t, x1 - 3, 4, kz + 2)
     # salón del guardián
@@ -88,7 +88,7 @@ def great_tower(t, p, kx, kz, cofre, guardian):
     pieces.door(put, cx, 1, kz + 11, "south", "iron_door")
     t.set(cx - 1, 2, kz + 10, "stone_button[face=wall,facing=north,powered=false]")
     t.set(cx - 1, 2, kz + 12, "stone_button[face=wall,facing=south,powered=false]")
-    cofre(t, cx, 1, z1 - 1, "north", "premium", "chest")
+    place_chest(t, cx, 1, z1 - 1, "north", "premium", "chest")
     for x in (cx - 2, cx + 2):
         t.set(x, 1, z1 - 1, p["tesoro"])
     lantern(t, cx, 4, kz + 12)
@@ -100,9 +100,9 @@ def great_tower(t, p, kx, kz, cofre, guardian):
         if x not in (cx,):
             t.set(x, 6, z1 - 1, "bookshelf")
             t.set(x, 7, z1 - 1, "bookshelf")
-    cofre(t, cx, 6, z1 - 1, "north", "biblioteca", "chest")
+    place_chest(t, cx, 6, z1 - 1, "north", "biblioteca", "chest")
     t.set(x1 - 1, 6, kz + 8, "lectern[facing=west,has_book=false,powered=false]")
-    cofre(t, x1 - 1, 6, kz + 1, "south", "cuartel", "barrel")
+    place_chest(t, x1 - 1, 6, kz + 1, "south", "cuartel", "barrel")
     for x in range(kx + 3, x1 - 2, 4):
         lantern(t, x, 9, kz + 4)
         lantern(t, x, 9, z1 - 4)

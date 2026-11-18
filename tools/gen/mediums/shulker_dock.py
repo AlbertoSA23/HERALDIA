@@ -20,7 +20,7 @@ LANG = chest_loot.lang("heraldia.medianas.embarcadero_shulker.", {
     "guardia": ("Guardia del muelle", "Wharf Guard"),
 })
 LOOT = {
-    "capitan": chest_loot.cofre(((2, 4), [item("ender_pearl", 8, 1, 3), item("chorus_fruit", 8, 2, 6), item("string", 6, 2, 5),
+    "capitan": chest_loot.place_chest(((2, 4), [item("ender_pearl", 8, 1, 3), item("chorus_fruit", 8, 2, 6), item("string", 6, 2, 5),
                                      item("iron_ingot", 6, 1, 4), item("lead", 3), item("purple_wool", 4, 1, 3),
                                      item("compass", 2), item("gold_ingot", 3, 1, 2), empty(5)]),
                            ((1, 1), [item("shulker_shell", 1), item("ender_eye", 2), item("emerald", 3, 1, 3), empty(9)])),
@@ -63,7 +63,7 @@ def _pier(p, name):
 
 def sentry(p, name):
     t = _pier(p, name)
-    c.cofre(t, 2, 1, 5, "east", MID, "capitan")
+    c.place_chest(t, 2, 1, 5, "east", MID, "capitan")
     t.set(3, 1, 3, "barrel[facing=up,open=false]")
     t.set(CX, 1, AZ - 3, p["noray"])
     t.entity(CX, 2, AZ - 3, c.mob("shulker", MID, "guardia", "Guardia del muelle", Color=10, Peek=0))
@@ -73,7 +73,7 @@ def sentry(p, name):
 
 def boat(p, name):
     t = _pier(p, name)
-    c.cofre(t, 2, 1, 5, "east", MID, "capitan")
+    c.place_chest(t, 2, 1, 5, "east", MID, "capitan")
     # casco roto: borda de púrpura en forma de proa, mástil y vela
     for z in range(11, AZ - 1):
         for x in (CX - 3, CX + 3):
@@ -85,8 +85,8 @@ def boat(p, name):
     for x in (CX - 1, CX + 1):
         for y in (4, 5, 6):
             t.set(x, y, 15, "purple_wool")
-    c.cofre(t, CX - 2, 1, 17, "east", MID, "carga", kind="barrel")
-    c.cofre(t, CX + 2, 1, 17, "west", MID, "carga", kind="barrel")
+    c.place_chest(t, CX - 2, 1, 17, "east", MID, "carga", kind="barrel")
+    c.place_chest(t, CX + 2, 1, 17, "west", MID, "carga", kind="barrel")
     pieces.connect(t)
     return t
 

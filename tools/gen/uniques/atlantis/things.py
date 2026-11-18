@@ -52,7 +52,7 @@ def lock(which):
 
 
 # --- cofres ---
-def cofre(v, u, y, w, facing, tbl, key=None, kind="chest"):
+def place_chest(v, u, y, w, facing, tbl, key=None, kind="chest"):
     """Cofre, cofre trampa o barril con tabla de botín (pieza común), opcionalmente cerrado con una llave."""
     def put(x, y_, z, st, nbt):
         v.set(x, y_, z, st, dict(nbt, lock=lock(key)) if key else nbt)
@@ -65,7 +65,7 @@ def cofre(v, u, y, w, facing, tbl, key=None, kind="chest"):
 MARK_PER_PLAYER = "heraldia_cofre_unico"
 
 
-def cofre_fijo(v, u, y, w, facing, item_specs, key=None, per_player=None):
+def fixed_chest(v, u, y, w, facing, item_specs, key=None, per_player=None):
     """Cofre con contenido fijo (sin tabla: Lootr no lo convierte). objetos = [(id, cantidad, componentes | None)].
     por_jugador = id de la estructura: marca el cofre para la opción unicas.<id>.cofre_unico_por_jugador."""
     items = []

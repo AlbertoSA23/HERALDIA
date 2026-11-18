@@ -74,7 +74,7 @@ def agora(v):
                                              C.text("agora.6", "arcas del templo.", "temple coffers."),
                                              C.text("agora.7", "La de Poseidón", "Poseidon's key"),
                                              C.text("agora.8", "es del guardián.", "is with his warden.")])
-    C.cofre(v, u1 + 1, 1, w1 + 4, "east", "media")
+    C.place_chest(v, u1 + 1, 1, w1 + 4, "east", "media")
     v.set(u2 - 1, 1, w1 + 4, "lectern[facing=west]", {"id": "minecraft:lectern"})
     v.mark("seca", u1 + 3, 1, w1 + 3)
     E.windows(v, u1, "w", w1, w2, 3, 4)
@@ -144,7 +144,7 @@ def baths(v):
         v.remove(ex, 1, 25, ex, 2, 25)
         v.set(u1 + 1, 15, 9, LANTERN)
         v.set(u2 - 1, 15, 27, LANTERN)
-        C.cofre(v, cu, 10, 10, "south", "media")
+        C.place_chest(v, cu, 10, 10, "south", "media")
         if side == 1:
             C.sign(v, cu + 2, 11, 9, "south", clue(4, "IV: alzada", "IV: raised"))
         v.mark("seca", cu, 10, 18)
@@ -225,7 +225,7 @@ def academy(v):
         # ala: vestíbulo + biblioteca, toda seca; puerta doble a la avenida
         room(v, ua, -26, ub, 26, 0, 9)
         face = u1 if side == 1 else u2
-        P.double_door(v.set, face, 1, -1, "west" if side == 1 else "east", "south", E.PUERTA)
+        P.double_door(v.set, face, 1, -1, "west" if side == 1 else "east", "south", E.DOOR_COL)
         for w in (-22, -14, -6, 6, 14, 22):                                   # ventanales
             back = u2 if side == 1 else u1
             v.fill(back, 3, w - 1, back, 6, w + 1, GLASS)
@@ -248,7 +248,7 @@ def academy(v):
         v.entity((ua + ub) // 2, 1, 10, C.drowned(side == 1))
         if side == 1:
             C.generator(v, ua + 2, 1, 20, "drowned", trident=False)
-            C.cofre(v, ub - 1, 1, 20, "west", "media")
+            C.place_chest(v, ub - 1, 1, 20, "west", "media")
     # ala norte (lado 1, hacia v negativo): las cuatro pistas de la combinación, repartidas tras las estanterías
     clues = [("academia.p1", "Primera: suelta", "First: released"), ("academia.p2", "Segunda: alzada", "Second: raised"),
               ("academia.p3", "Tercera: alzada", "Third: raised"), ("academia.p4", "Cuarta: suelta", "Fourth: released")]
@@ -260,7 +260,7 @@ def academy(v):
     room(v, u0 - 2, 29, u0 + 12, 37, 0, 5)
     v.air(finish[0], 1, 29, finish[0], 2, 29)
     v.set(u0 - 1, 4, 30, LANTERN)
-    C.cofre(v, u0 + 4, 1, 36, "north", "sello_academia")
+    C.place_chest(v, u0 + 4, 1, 36, "north", "sello_academia")
     C.sign(v, u0 + 6, 2, 36, "north", clue(2, "II: suelta", "II: released"))
     v.mark("seca", u0 + 5, 1, 33)
     v.mark("camara_academia", finish[0], 1, 31)
@@ -317,8 +317,8 @@ def arsenal(v):
     for u in (u1 + 1, u2 - 1):
         v.set(u, 7, aw, LANTERN)
         v.set(u, 7, w2 - 1, LANTERN)
-    R.cofre_bomba(v, 0, 1, w2 - 1, "north", "menor")
-    C.cofre(v, u1 + 1, 1, aw + 4, "east", "media")
+    R.bomb_chest(v, 0, 1, w2 - 1, "north", "menor")
+    C.place_chest(v, u1 + 1, 1, aw + 4, "east", "media")
     v.entity(-4, 1, aw + 5, C.drowned(True))
     v.entity(4, 1, aw + 5, C.drowned(True))
     C.generator(v, u2 - 1, 1, aw + 1, "drowned", trident=True)
@@ -332,7 +332,7 @@ def arsenal(v):
     v.set(cu1 - 1, 2, aw + 5, "lever[face=wall,facing=west,powered=false]")   # acciona el bloque contiguo a la puerta
     v.set(cu1 - 1, 3, aw + 5, "cyan_wall_banner[facing=west]", {"id": "minecraft:banner"})
     v.set(cu2 - 1, 4, aw + 3, LANTERN)
-    C.cofre(v, cu2 - 1, 1, aw + 6, "west", "sello_arsenal")
+    C.place_chest(v, cu2 - 1, 1, aw + 6, "west", "sello_arsenal")
     C.sign(v, cu2 - 1, 2, aw + 8, "west", clue(1, "I: alzada", "I: raised"))
     v.mark("seca", cu1 + 3, 1, aw + 6)
     v.mark("camara_arsenal", cu1 + 2, 1, aw + 6)
@@ -395,7 +395,7 @@ def gardens(v):
     for u, w in ((-3, 2), (3, 2), (-2, 4), (2, 4)):
         v.set(gu + u, 6, gw + w, "moss_block")
         v.set(gu + u, 7, gw + w, "flowering_azalea_leaves[persistent=true]")
-    C.cofre(v, gu, 6, gw + 4, "north", "media")
+    C.place_chest(v, gu, 6, gw + 4, "north", "media")
     v.mark("seca", gu, 6, gw)
     v.mark("agua", gu, 5, gw - 3)
     C.generator(v, -12, 1, 12, "guardian")
@@ -433,7 +433,7 @@ def amphitheater(v):
                     v.fill(a, 5, b, a, tier, b, BRICK)
     # arena: tarima central con el cofre del sello, generadores bajo rejas y guardián anciano
     v.disk(-5, -5, 3, 1, 1, QUARTZ)                                         # tarima (descentrada: en el centro está el pozo)
-    C.cofre(v, -5, 2, -5, "north", "sello_anfiteatro")
+    C.place_chest(v, -5, 2, -5, "north", "sello_anfiteatro")
     v.set(-4, 2, -5, QUARTZ)
     C.sign(v, -4, 2, -6, "north", clue(3, "III: alzada", "III: raised"))
     for k in range(6):
@@ -455,7 +455,7 @@ def artisans(v):
     u1, u2, w1, w2 = -17, 17, -9, 9
     v.site("lonja", u1, -6, w1, u2, 12, w2)
     room(v, u1, w1, u2, w2, 0, 8)
-    P.double_door(v.set, -1, 1, w1, "north", "east", E.PUERTA)
+    P.double_door(v.set, -1, 1, w1, "north", "east", E.DOOR_COL)
     for u in range(u1 + 3, u2 - 2, 6):
         v.fill(u, 3, w1, u + 1, 5, w1, GLASS) if abs(u) > 3 else None
         v.fill(u, 3, w2, u + 1, 5, w2, GLASS)
@@ -471,7 +471,7 @@ def artisans(v):
     v.set(0, 8, 0, LANTERN)
     E.ornament(v, u1, w1, u2, w2, 0, 8)
     v.fill(-4, 1, 0, 4, 1, 0, "warped_slab[type=top]")                      # mesa larga
-    C.cofre(v, u1 + 1, 1, 0, "east", "media")
+    C.place_chest(v, u1 + 1, 1, 0, "east", "media")
     v.mark("seca", 0, 1, -4)
     # sala oculta: sótano bajo una trampilla tapada por la alfombra, en la esquina
     tu, tw = u2 - 2, w1 + 2
@@ -482,7 +482,7 @@ def artisans(v):
         v.set(tu, y, tw, "ladder[facing=west]")
     v.set(tu + 1, -1, tw, BRICK)
     v.set(tu - 3, -2, tw - 1, LANTERN)
-    C.cofre(v, tu - 3, -4, tw + 2, "north", "tesoro")
+    C.place_chest(v, tu - 3, -4, tw + 2, "north", "tesoro")
     v.mark("seca", tu - 2, -4, tw)
     v.mark("oculta", tu - 2, -4, tw)
     v.entity(6, 1, 4, C.drowned())

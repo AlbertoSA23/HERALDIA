@@ -32,7 +32,7 @@ MARK = "heraldia_busqueda"
 CHOSEN = re.compile(r"tesoro: cadena de (\w+) elegida en (\d+) ms \((\d+) casillas")
 INFO = re.compile(r"Heraldia: tesoro: info (\{.*\})")
 SITE = re.compile(r"tesoro: sitio del cofre de \w+ en \((-?\d+), (-?\d+)\): (.*) en (\d+) µs")
-COFRE = re.compile(r"tesoro: cofre de \w+ enterrado en (-?\d+) (-?\d+) (-?\d+)")
+CHEST_TABLE = re.compile(r"tesoro: cofre de \w+ enterrado en (-?\d+) (-?\d+) (-?\d+)")
 HOUSE = 2   # medio lado de la «casa» de tablones que se pone en la marca del tesoro
 MARGIN = 6   # Sitio.MARGEN
 
@@ -165,14 +165,14 @@ def main():
         print("cadena:", c)
         if not c or len(c["destinos"]) not in (2, 3) or c["destinos"][-1]["tipo"] != "tesoro":
             raise SystemExit(f"cadena no válida: {c}")
-        ant = (X, Z)
+        prev_pos = (X, Z)
         for i, d in enumerate(c["destinos"][:-1]):
             if d["tipo"] not in ("mediana", "mina") or not d["estructura"].startswith(("heraldia:medianas/", "heraldia:minas/")):
                 fails.append(f"marca {i + 1}: no es una mediana ni una mina de Heraldia: {d}")
-            dist = ((d["x"] - ant[0]) ** 2 + (d["z"] - ant[1]) ** 2) ** 0.5
+            dist = ((d["x"] - prev_pos[0]) ** 2 + (d["z"] - prev_pos[1]) ** 2) ** 0.5
             if not 96 <= dist <= RADIUS:
                 fails.append(f"marca {i + 1} a {dist:.0f} bloques de la anterior (96-{RADIUS})")
-            ant = (d["x"], d["z"])
+            prev_pos = (d["x"], d["z"])
         if len({(d["x"], d["z"]) for d in c["destinos"]}) != len(c["destinos"]):
             fails.append(f"destinos repetidos: {c['destinos']}")
         first = c["destinos"][0]
@@ -226,7 +226,7 @@ def main():
             if attempt == 0:
                 ctx.run(f"execute positioned {t['x']} 0 {t['z']} positioned over motion_blocking_no_leaves run "
                         f"fill ~-{HOUSE} ~ ~-{HOUSE} ~{HOUSE} ~2 ~{HOUSE} minecraft:oak_planks hollow", r"Successfully filled|No blocks|Unknown|Incorrect")
-            before = len(COFRE.findall(ctx.log()))
+            before = len(CHEST_TABLE.findall(ctx.log()))
             use(srv)
             n = chain(srv)
             if n["cofre"]:
@@ -271,8 +271,8 @@ def main():
         ctx.run(f"tp {P} {t['x']} 200 {t['z']}", r"Teleported|Teletransportado")
         ctx.ticks(5)
         use(srv)
-        if len(COFRE.findall(ctx.log())) != 1:
-            fails.append(f"se ha enterrado más de un cofre: {COFRE.findall(ctx.log())}")
+        if len(CHEST_TABLE.findall(ctx.log())) != 1:
+            fails.append(f"se ha enterrado más de un cofre: {CHEST_TABLE.findall(ctx.log())}")
     finally:
         srv.stop()
     # 10) otro reinicio: la cadena sigue completada y no da otro cofre
@@ -289,7 +289,7 @@ def main():
         tp(srv, t["x"], t["z"])
         wait_loaded(srv, t["x"], t["z"])
         use(srv)
-        if COFRE.search(ctx.log()):
+        if CHEST_TABLE.search(ctx.log()):
             fails.append("tras reiniciar, el mapa completado entierra otro cofre")
     finally:
         srv.stop()

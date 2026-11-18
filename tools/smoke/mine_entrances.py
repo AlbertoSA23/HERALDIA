@@ -236,7 +236,7 @@ def check_placed(ctx):
             if not ctx.block(head, "minecraft:air") or ctx.block(shell, "minecraft:air") or head[1] > feet - 8:
                 fails.append(f"{sid}: el cruce {x, y, z} no está excavado bajo tierra ({head})")
                 break
-        for (x, y, z), tbl in o.cofres:
+        for (x, y, z), tbl in o.chest_list:
             st = o.t.get(x, y, z).split("[")[0]
             if not ctx.block(world((x, y, z)), f"{st}{{LootTable:\"heraldia:minas/{tbl}\"}}"):
                 if not ctx.test(f"execute if entity @e[type=minecraft:chest_minecart,x={world((x, y, z))[0]},"
@@ -271,7 +271,7 @@ def check_loot(ctx):
     return fails
 
 
-def info_cerca(ctx, x, z, radius):
+def info_near(ctx, x, z, radius):
     m = ctx.run(f"execute positioned {x} 64 {z} run heraldia info nearby {radius}", r"info nearby \d+ en [^:]+: \d+ estructuras en (\d+) ms")
     if not m.lastindex:
         return None
@@ -306,7 +306,7 @@ def check_locate(ctx):
         print(f"mina {size}: /locate en {x}, {z} a {d:.0f} bloques ({timings[-1]:.1f} s)")
         if d > LOCATE_MAX[size]:
             fails.append(f"mina {size} a {d:.0f} bloques (> {LOCATE_MAX[size]})")
-        nearby_flag = info_cerca(ctx, x, z, 600) or {}
+        nearby_flag = info_near(ctx, x, z, 600) or {}
         for sid, (dist, *_) in nearby_flag.items():
             if ":minas/" in sid:                       # prevista: heraldia:minas/<tamaño>; generada, con su estilo
                 if not (sid.endswith(f"minas/{size}") or f"minas/{size}/" in sid) and dist < DISTANCE:

@@ -84,7 +84,7 @@ def check_log(ctx, median, unique_mods):
 
 
 def check_locate(ctx, median, unique_mods):
-    fails, generar = [], []
+    fails, generate = [], []
     for kind, lst in (("medianas", median), ("unicas", unique_mods)):
         for i, mod in lst:
             dim = dimensions.dimension_of(mod)
@@ -103,18 +103,18 @@ def check_locate(ctx, median, unique_mods):
                 if dim == "end" and math.hypot(*p) < 1000:
                     fails.append(f"{target}: en la isla central del End ({p})")
                 if k == 0:
-                    generar.append((kind, i, dim, p))
+                    generate.append((kind, i, dim, p))
             # en el mundo principal no hay ninguna (la búsqueda acaba enseguida: no hay rejilla allí)
             m = ctx.run(f"execute positioned 0 64 0 run locate structure {target}", r"is at \[|Could not find|no structure|There is no")
             if m.group(0).startswith("is at"):
                 fails.append(f"{target} aparece en el mundo principal")
-    return fails, generar
+    return fails, generate
 
 
-def check_generated(ctx, generar):
+def check_generated(ctx, generate):
     """Genera de verdad la primera de cada tipo (forceload alrededor de lo que dijo /locate) y mira que está allí."""
     fails = []
-    for kind, i, dim, (x, z) in generar:
+    for kind, i, dim, (x, z) in generate:
         forceload(ctx, dim, x - 24, z - 24, x + 24, z + 24)
         route = f"medianas/{i}/" if kind == "medianas" else f"unicas/{i}"
         ok = False
@@ -248,9 +248,9 @@ def main():
         s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
         ctx.run("gamerule spawn_mobs false", r"Gamerule|set to|now")
         fails += check_log(ctx, median, unique_mods)
-        f, generar = check_locate(ctx, median, unique_mods)
+        f, generate = check_locate(ctx, median, unique_mods)
         fails += f
-        fails += check_generated(ctx, generar)
+        fails += check_generated(ctx, generate)
         fails += check_place(ctx, median, unique_mods)
         fails += check_info(ctx, median, unique_mods)
         fails += check_loot(ctx, median, unique_mods)

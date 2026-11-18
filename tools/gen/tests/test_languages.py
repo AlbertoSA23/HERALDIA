@@ -19,7 +19,7 @@ from uniques._common import chest_loot
 from mediums import hermitage
 
 MODS = uniques.modules()
-CODIGOS = list(languages.TRANSLATIONS)
+LANG_CODES = list(languages.TRANSLATIONS)
 
 
 class _Template:
@@ -39,7 +39,7 @@ def base():
 
 @pytest.fixture(scope="module")
 def translated():
-    return {c: languages.load_data(c) for c in CODIGOS}
+    return {c: languages.load_data(c) for c in LANG_CODES}
 
 
 # ------------------------------------------------------------------ lógica pura
@@ -139,8 +139,8 @@ def test_sort_like_spanish():
 # ------------------------------------------------------------------ idiomas y lenguas (Textos.codigo en Java)
 def test_language_list():
     assert languages.BASE == ("es_es", "en_us")
-    assert set(CODIGOS) >= {"fr_fr", "de_de", "it_it", "pt_br", "ca_es", "gl_es"}
-    assert languages.everyone() == list(languages.BASE) + CODIGOS
+    assert set(LANG_CODES) >= {"fr_fr", "de_de", "it_it", "pt_br", "ca_es", "gl_es"}
+    assert languages.everyone() == list(languages.BASE) + LANG_CODES
     mc_locales = [languages.locale(c) for c in languages.everyone()]
     assert len(mc_locales) == len(set(mc_locales)), "dos idiomas de la misma lengua: Textos.codigo no sabría cuál elegir"
 
@@ -153,7 +153,7 @@ def test_language_map():
 
 
 def test_each_translation_exists_and_es_json_blueprint(translated):
-    for c in CODIGOS:
+    for c in LANG_CODES:
         assert os.path.exists(languages.route(c)), c
         assert translated[c] and all(isinstance(k, str) and isinstance(v, str) for k, v in translated[c].items()), c
 
@@ -161,40 +161,40 @@ def test_each_translation_exists_and_es_json_blueprint(translated):
 # ------------------------------------------------------------------ las traducciones reales
 def test_all_translations_have_the_same_keys(translated):
     keys = {c: set(t) for c, t in translated.items()}
-    first = keys[CODIGOS[0]]
-    for c in CODIGOS[1:]:
+    first = keys[LANG_CODES[0]]
+    for c in LANG_CODES[1:]:
         assert keys[c] == first, (c, sorted(keys[c] ^ first)[:20])
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_translation_complete(codigo, base, translated):
-    missing = [k for k in base["es_es"] if k not in translated[codigo]]
+@pytest.mark.parametrize("lang_code", LANG_CODES)
+def test_translation_complete(lang_code, base, translated):
+    missing = [k for k in base["es_es"] if k not in translated[lang_code]]
     assert missing == [], missing[:20]
-    assert all(v.strip() for v in translated[codigo].values())
+    assert all(v.strip() for v in translated[lang_code].values())
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_same_gaps_as_english(codigo, base, translated):
-    assert languages.marker_errors(base["en_us"], translated[codigo], codigo) == []
+@pytest.mark.parametrize("lang_code", LANG_CODES)
+def test_same_gaps_as_english(lang_code, base, translated):
+    assert languages.marker_errors(base["en_us"], translated[lang_code], lang_code) == []
 
 
 def test_extra_keys_belong_to_uniques(base, translated):
     """Las que no salen sin construir son textos de módulos de unicas/ que se rellenan en build()."""
     prefixes = tuple(f"heraldia.{sid}." for sid, _ in MODS) + tuple(f"heraldia.unicas.{sid}." for sid, _ in MODS)
-    extra = [k for k in translated[CODIGOS[0]] if k not in base["es_es"]]
+    extra = [k for k in translated[LANG_CODES[0]] if k not in base["es_es"]]
     assert all(k.startswith(prefixes) for k in extra), [k for k in extra if not k.startswith(prefixes)][:20]
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_guide_fits(codigo, translated):
-    assert guide.errors(MODS, {codigo: translated[codigo]}) == []
+@pytest.mark.parametrize("lang_code", LANG_CODES)
+def test_guide_fits(lang_code, translated):
+    assert guide.errors(MODS, {lang_code: translated[lang_code]}) == []
 
 
 def test_guide_counts_entries_with_worst_language(translated):
     only_base, everyone = guide.dataset(MODS), guide.dataset(MODS, translated)
     assert everyone["nombres_por_pagina"] <= only_base["nombres_por_pagina"]
     assert everyone["pistas_por_pagina"] <= only_base["pistas_por_pagina"]
-    for c in CODIGOS:
+    for c in LANG_CODES:
         assert everyone["pistas_por_pagina"] <= guide.dataset(MODS, {c: translated[c]})["pistas_por_pagina"]
 
 
@@ -214,49 +214,49 @@ def test_there_are_books_to_measure():
     assert any(p.get("translate") == "heraldia.historia.final" for _, p in pages)
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_books_fit(codigo, base, translated):
-    assert languages.book_errors(_books(), {**base["en_us"], **translated[codigo]}, codigo) == []
+@pytest.mark.parametrize("lang_code", LANG_CODES)
+def test_books_fit(lang_code, base, translated):
+    assert languages.book_errors(_books(), {**base["en_us"], **translated[lang_code]}, lang_code) == []
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_board_fits(codigo, translated):
+@pytest.mark.parametrize("lang_code", LANG_CODES)
+def test_board_fits(lang_code, translated):
     import board
     for k in board.TEXTS:
         if k.startswith("p"):
-            t = languages.format_text(translated[codigo][f"{board.K}.{k}"], [languages.FILL] * 4)
+            t = languages.format_text(translated[lang_code][f"{board.K}.{k}"], [languages.FILL] * 4)
             assert chest_loot.book_lines(t) <= chest_loot.BOOK_LINES, (k, t)
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_signs_fit(codigo, base, translated):
-    signs = {k for k in translated[codigo] if ".cartel." in k and k in base["es_es"]}
+@pytest.mark.parametrize("lang_code", LANG_CODES)
+def test_signs_fit(lang_code, base, translated):
+    signs = {k for k in translated[lang_code] if ".cartel." in k and k in base["es_es"]}
     assert signs
-    assert languages.sign_errors(signs, translated[codigo], codigo) == []
+    assert languages.sign_errors(signs, translated[lang_code], lang_code) == []
     for c in languages.BASE:
         assert languages.sign_errors(signs, base[c], c) == []
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_signs_of_the_roads(codigo, translated):
+@pytest.mark.parametrize("lang_code", LANG_CODES)
+def test_signs_of_the_roads(lang_code, translated):
     for k in roads.LANG["es_es"]:
-        t = translated[codigo][k]
+        t = translated[lang_code][k]
         assert languages.markers(t) == ([1], 0), (k, t)
         assert len(languages.format_text(t, ["1999"])) <= 15, (k, t)      # cabe en una línea de cartel
 
 
-@pytest.mark.parametrize("codigo", CODIGOS)
-def test_commands_without_translate(codigo, base, translated):
+@pytest.mark.parametrize("lang_code", LANG_CODES)
+def test_commands_without_translate(lang_code, base, translated):
     """Un comando que sale en un texto (/heraldia guide, /heraldia arena...) sigue igual en la traducción."""
     import re
     for k, es in base["es_es"].items():
         for cmd in re.findall(r"/heraldia(?: \w+)?", es):
-            assert cmd in translated[codigo][k], (k, cmd, translated[codigo][k])
+            assert cmd in translated[lang_code][k], (k, cmd, translated[lang_code][k])
 
 
 def test_files_of_translation_in_its_format():
     """JSON con sangría 2 y sin escapar los acentos, como los escribe idiomas (diffs legibles)."""
-    for c in CODIGOS:
+    for c in LANG_CODES:
         with open(languages.route(c), encoding="utf-8") as f:
             text = f.read()
         assert text == json.dumps(json.loads(text), indent=2, ensure_ascii=False) + "\n", c

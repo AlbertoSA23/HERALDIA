@@ -95,7 +95,7 @@ def vestibule(v):
         v.set(u, G1 + 1, w, LANTERN)
     # arcas (muro oeste, a los lados de la puerta de la galería oeste en w = 0) con su cartel
     for w, which in zip((-6, -3, 3), ("arsenal", "academia", "anfiteatro")):
-        C.cofre(v, -L + 1, G0 + 1, w, "east", "arca", key=which)
+        C.place_chest(v, -L + 1, G0 + 1, w, "east", "arca", key=which)
         C.sign(v, -L + 1, G0 + 2, w + 1, "east", [C.text("arca." + which, *{"arsenal": ("Arca: Arsenal", "Arsenal Coffer"),
                                                                               "academia": ("Arca: Academia", "Academy Coffer"),
                                                                               "anfiteatro": ("Arca: Anfiteatro", "Theatre Coffer")}[which])])
@@ -221,7 +221,7 @@ def populate_galleries(v, segments):
                 v.fill(ext[0], G0, ext[1], ext[0], G0 + 3, ext[1], BRICK)
                 v.set(u, G0 + 3, w, BRICK)
                 facing = ("north" if axis == "x" else "west")
-                C.cofre(v, u, G0 + 1, w, facing, "media" if salt % 3 == 0 else "menor")
+                C.place_chest(v, u, G0 + 1, w, facing, "media" if salt % 3 == 0 else "menor")
             elif kind == 1:                                                  # trampa de flechas
                 u, w = pos(middle, 1)
                 d = pos(middle, 2)
@@ -284,7 +284,7 @@ def chambers(v, finish):
     C.sign(v, ex + 8, story + 2, w - 2, "west", [C.text("antecamara.1", "Aquí vela", "Here watches"),
                                                   C.text("antecamara.2", "el Guardián", "the Warden"),
                                                   C.text("antecamara.3", "de Poseidón.", "of Poseidon.")])
-    C.cofre(v, ex + 1, story + 1, w - 4, "south", "media")
+    C.place_chest(v, ex + 1, story + 1, w - 4, "south", "media")
     v.mark("seca", ex + 4, story + 1, w + 2)
     # sala del guardián final: 31 x 31 x 12, inundada
     bx1, bx2, bz1, bz2 = ex + 9, ex + 41, w - 16, w + 16
@@ -312,7 +312,7 @@ def chambers(v, finish):
     room(v, tx1, w - 7, tx2, w + 7, story, story + 6)
     door(v, tx1, story + 1, w, "west")
     for k, dw in enumerate((-6, -3, 3, 6)):
-        C.cofre(v, tx2 - 1, story + 1, w + dw, "west", "tesoro")
+        C.place_chest(v, tx2 - 1, story + 1, w + dw, "west", "tesoro")
     for u_ in (tx1 + 2, tx2 - 2):
         for dw in (-6, 6):
             v.set(u_, story + 5, w + dw, LANTERN)
@@ -332,7 +332,7 @@ def chambers(v, finish):
     v.set(hu - 4, story - 2, hw + 2, LANTERN)
     v.fill(hu - 4, story - 6, hw - 1, hu - 4, story - 6, hw + 1, "gold_block")
     from . import chest_loot
-    C.cofre_fijo(v, hu - 4, story - 5, hw, "east", chest_loot.premium(), key="poseidon", per_player="atlantida")
+    C.fixed_chest(v, hu - 4, story - 5, hw, "east", chest_loot.premium(), key="poseidon", per_player="atlantida")
     v.mark("premium", hu - 4, story - 5, hw)
     v.mark("seca", hu - 2, story - 6, hw)
     v.mark("oculta", hu - 2, story - 6, hw)

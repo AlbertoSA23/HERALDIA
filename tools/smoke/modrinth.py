@@ -5,8 +5,8 @@ compat_mods.py. Cada .jar se descarga una vez en <work>/modrinth/ (la CI guarda 
 sha512 antes de usarlo: una descarga distinta de la fijada hace fallar la prueba, no la cambia por otra.
 
 Uso para mantener la lista (consulta la API de Modrinth, no descarga nada):
-  python3 tools/smoke/modrinth.py --comprobar          # ¿hay versiones 26.3 + Fabric más nuevas que las fijadas?
-  python3 tools/smoke/modrinth.py --buscar <slug>...   # versión 26.3 + Fabric más reciente de esos proyectos
+  python3 tools/smoke/modrinth.py --check          # ¿hay versiones 26.3 + Fabric más nuevas que las fijadas?
+  python3 tools/smoke/modrinth.py --find <slug>...   # versión 26.3 + Fabric más reciente de esos proyectos
 """
 import argparse, collections, hashlib, json, os, shutil, sys, urllib.parse, urllib.request
 
@@ -20,7 +20,7 @@ FOLDER = "modrinth"
 Mod = collections.namedtuple("Mod", "slug version file url sha512")
 
 # Versiones fijadas (las publicadas en Modrinth para 26.3 + Fabric al escribir la prueba). Para cambiar una, usa
-# --buscar y copia versión, fichero, url y sha512; la caché de la CI cambia sola (su clave es el hash de este fichero).
+# --find y copia versión, fichero, url y sha512; la caché de la CI cambia sola (su clave es el hash de este fichero).
 MODS = {m.slug: m for m in [
     # prueba de jugador simulado (trofeos, historia, aldeas_vida)
     Mod("carpet", "26.3+v260915", "fabric-carpet-26.3+v260915.jar",
@@ -104,8 +104,8 @@ MODS = {m.slug: m for m in [
         "d461b24b3eeaf74ecc75911542cfbfeefe7148a2a260453f15af047d1a895f6484b8e21816de990dc25987d747cc1cccdd5386e8c51a5dcc72a1356b39139bf2"),
 ]}
 
-# Pedidos por el dueño que no tienen versión para 26.3 + Fabric en Modrinth (comprobado con --buscar el 16-11-2026);
-# la tabla de compatibilidad del README los da por «no probado». Se vuelven a mirar con --comprobar.
+# Pedidos por el dueño que no tienen versión para 26.3 + Fabric en Modrinth (comprobado con --find el 16-11-2026);
+# la tabla de compatibilidad del README los da por «no probado». Se vuelven a mirar con --check.
 NO_VERSION = ["oh-the-biomes-weve-gone", "yungs-api", "yungs-better-dungeons", "yungs-better-mineshafts",
                "yungs-better-strongholds", "yungs-better-ocean-monuments", "yungs-better-desert-temples",
                "yungs-better-jungle-temples", "yungs-better-witch-huts", "yungs-bridges", "yungs-extras",

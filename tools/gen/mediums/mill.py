@@ -18,12 +18,12 @@ ADVANCEMENTS = [dict(id="molienda", icono="minecraft:bread", tabla="molienda",
                titulo=("Grano y muela", "Grist for the Mill"),
                descripcion=("Abre los costales de un molino", "Open the sacks of a mill"))]
 LOOT = {
-    "molienda": chest_loot.cofre(((3, 5), [item("wheat", 10, 3, 9), item("bread", 8, 1, 4), item("sugar", 5, 1, 4),
+    "molienda": chest_loot.place_chest(((3, 5), [item("wheat", 10, 3, 9), item("bread", 8, 1, 4), item("sugar", 5, 1, 4),
                                       item("egg", 4, 1, 3), item("wheat_seeds", 6, 2, 6), item("beetroot_seeds", 3, 1, 4),
                                       item("bone_meal", 4, 2, 5), item("hay_block", 2), item("pumpkin_pie", 2),
                                       empty(4)]),
                             ((1, 1), [item("cake", 1), item("emerald", 2), empty(8)])),
-    "molinero": chest_loot.cofre(((2, 4), [item("bread", 6, 1, 3), item("paper", 4, 1, 3), item("candle", 4, 1, 2),
+    "molinero": chest_loot.place_chest(((2, 4), [item("bread", 6, 1, 3), item("paper", 4, 1, 3), item("candle", 4, 1, 2),
                                       item("iron_nugget", 5, 2, 6), item("shears", 2, dmg=(0.3, 0.8)),
                                       item("iron_hoe", 2, dmg=(0.4, 0.9)), item("leather", 3, 1, 2), item("compass", 1),
                                       empty(6)]),
@@ -31,7 +31,7 @@ LOOT = {
 }
 
 L = 19
-PUERTA = 6                         # eje de la puerta (las dos variantes)
+DOOR_COL = 6                         # eje de la puerta (las dos variantes)
 
 
 def offers():
@@ -44,12 +44,12 @@ def offers():
 
 def _floor(p):
     mats = p["patio"]
-    return lambda x, z: "minecraft:dirt_path" if x == PUERTA and z < 5 else mats[(x * 5 + z * 9 + x * z) % len(mats)]
+    return lambda x, z: "minecraft:dirt_path" if x == DOOR_COL and z < 5 else mats[(x * 5 + z * 9 + x * z) % len(mats)]
 
 
 def _courtyard(t, p):
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=3)
-    c.entrance(t, PUERTA, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
+    c.entrance(t, DOOR_COL, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
 
 
 def _wheel(t, p, x, cy, cz, r=3):
@@ -81,7 +81,7 @@ def water(p, name):
     t.fill(X0 + 1, 1, Z0 + 1, X1 - 1, 1, Z1 - 1, "air")
     t.fill(X0, 5, Z0, X1, 5, Z1, f"{m}_planks")
     c.roof_tiles(t, X0, Z0, X1, Z1, 5, p["teja"], p["cumbrera"], p["muro"])
-    c.door(t, PUERTA, 1, Z0, "south", f"{m}_door")
+    c.door(t, DOOR_COL, 1, Z0, "south", f"{m}_door")
     for z in (7, 11):
         c.window(t, X0, 2, z)
     c.window(t, X1, 2, 7)
@@ -101,20 +101,20 @@ def water(p, name):
     t.set(X1 - 1, 1, 9, "grindstone[face=floor,facing=north]")
     t.set(X1 - 1, 4, 9, f"stripped_{p['tronco']}[axis=x]")
     t.fill(X1 - 1, 2, 9, X1 - 1, 3, 9, f"{m}_fence")
-    c.cofre(t, X1 - 1, 1, Z1 - 1, "west", MID, "molienda", kind="barrel")
+    c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "molienda", kind="barrel")
     t.set(X1 - 1, 1, Z1 - 2, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
     t.set(X1 - 1, 1, Z0 + 1, "hay_block[axis=y]")
     t.set(X1 - 1, 2, Z0 + 1, "hay_block[axis=y]")
     t.set(X1 - 2, 1, Z0 + 1, "hay_block[axis=y]")
     c.bed(t, X0 + 1, Z1 - 1, "west", p["cama"])
-    c.cofre(t, X0 + 1, 1, Z1 - 3, "east", MID, "molinero")
+    c.place_chest(t, X0 + 1, 1, Z1 - 3, "east", MID, "molinero")
     t.set(X0 + 1, 1, Z0 + 1, "crafting_table")
-    c.lantern(t, PUERTA, 4, 9)
-    t.entity(PUERTA, 1, 11, c.villager(MID, "molinero", "Molinero", "farmer", p["aldeano"], offers(), rot=0.0))
+    c.lantern(t, DOOR_COL, 4, 9)
+    t.entity(DOOR_COL, 1, 11, c.villager(MID, "molinero", "Molinero", "farmer", p["aldeano"], offers(), rot=0.0))
     # fuera: sacos apilados junto a la puerta y una carreta de heno
-    t.set(PUERTA + 2, 1, 3, "hay_block[axis=x]")
-    t.set(PUERTA + 3, 1, 3, "hay_block[axis=x]")
-    t.set(PUERTA - 2, 1, 3, "composter[level=0]")
+    t.set(DOOR_COL + 2, 1, 3, "hay_block[axis=x]")
+    t.set(DOOR_COL + 3, 1, 3, "hay_block[axis=x]")
+    t.set(DOOR_COL - 2, 1, 3, "composter[level=0]")
     return t
 
 
@@ -175,13 +175,13 @@ def wind(p, name):
             t.set(CX - k, hy + 1, hz, p["lona"])
     # planta baja: la muela y los costales; primera: grano; segunda: el eje con su rueda dentada
     t.set(X1 - 1, 1, Z0 + 2, "grindstone[face=floor,facing=north]")
-    c.cofre(t, X1 - 1, 1, Z1 - 1, "west", MID, "molienda", kind="barrel")
+    c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "molienda", kind="barrel")
     t.set(X1 - 1, 1, Z0 + 1, "hay_block[axis=y]")
     c.lantern(t, CX, 4, 8)
     t.set(X1 - 1, 6, Z0 + 1, "hay_block[axis=y]")
     t.set(X1 - 1, 6, Z0 + 2, "hay_block[axis=y]")
     t.set(X1 - 1, 7, Z0 + 1, "hay_block[axis=y]")
-    c.cofre(t, X1 - 1, 6, Z1 - 1, "west", MID, "molinero")
+    c.place_chest(t, X1 - 1, 6, Z1 - 1, "west", MID, "molinero")
     c.lantern(t, CX, 8, 8)
     t.fill(CX, hy, Z0 + 2, CX, hy, Z1 - 1, f"stripped_{p['tronco']}[axis=z]")
     t.set(CX, 10, Z0 + 1, f"{m}_planks")                            # cojinete del eje en el muro norte

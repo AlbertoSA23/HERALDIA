@@ -97,8 +97,8 @@ def close_out(srv):
     srv.ctx.ticks(4)
 
 
-def lectern_of(srv, alg):
-    bx, by, bz = int(alg[0] // 1), int(alg[1] // 1), int(alg[2] // 1)
+def lectern_of(srv, sheriff_pos):
+    bx, by, bz = int(sheriff_pos[0] // 1), int(sheriff_pos[1] // 1), int(sheriff_pos[2] // 1)
     for ex, ez in ((1, 0), (-1, 0), (0, 1), (0, -1)):
         if srv.test(f"execute if block {bx + ex} {by} {bz + ez} minecraft:lectern"):
             return (bx + ex, by, bz + ez), (bx + 3 * ex, bz + 3 * ez)   # el atril y el sitio delante (lejos del alguacil)
@@ -120,14 +120,14 @@ def state(srv):
 
 
 def first_lap(srv, fails, found):
-    style, to_world, y, alg = found
+    style, to_world, y, sheriff_pos = found
     spot, floor_bottom = to_world(SPOT), to_world(BOT)
     srv.run(f"player {PLAYER} spawn at {floor_bottom[0]} {y} {floor_bottom[1]}", r"joined the game")
     if not srv.until(f"execute if entity @a[name={PLAYER}]"):
         raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
     srv.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
     srv.run(f"clear {PLAYER}", r"Removed|No items")
-    lec, ahead = lectern_of(srv, alg)
+    lec, ahead = lectern_of(srv, sheriff_pos)
     if lec is None:
         fails.append("no hay atril junto al alguacil")
         return None
@@ -221,9 +221,9 @@ def first_lap(srv, fails, found):
 
 
 def second_lap(srv, fails, found, first_item, work):
-    style, to_world, y, alg = found
+    style, to_world, y, sheriff_pos = found
     spot, floor_bottom = to_world(SPOT), to_world(BOT)
-    srv.run(f"forceload add {int(alg[0]) - RADIUS} {int(alg[2]) - RADIUS} {int(alg[0]) + RADIUS} {int(alg[2]) + RADIUS}",
+    srv.run(f"forceload add {int(sheriff_pos[0]) - RADIUS} {int(sheriff_pos[2]) - RADIUS} {int(sheriff_pos[0]) + RADIUS} {int(sheriff_pos[2]) + RADIUS}",
             r"Marked|Added|force|already")
     srv.run(f"player {PLAYER} spawn at {floor_bottom[0]} {y} {floor_bottom[1]}", r"joined the game")
     srv.until(f"execute if entity @a[name={PLAYER}]")

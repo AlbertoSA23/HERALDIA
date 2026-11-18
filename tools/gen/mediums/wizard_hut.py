@@ -58,14 +58,14 @@ _NOTES = chest_loot.written_book([{"translate": _K + "notas.p1", "fallback": LAN
                      {"translate": _K + "notas", "fallback": LANG["es_es"][_K + "notas"]},
                      LANG["es_es"][_K + "notas"], "Mago")
 LOOT = {
-    "estudio": chest_loot.cofre(((3, 5), [item("book", 8, 1, 3), item("paper", 8, 2, 6), item("glass_bottle", 8, 1, 4),
+    "estudio": chest_loot.place_chest(((3, 5), [item("book", 8, 1, 3), item("paper", 8, 2, 6), item("glass_bottle", 8, 1, 4),
                                      item("lapis_lazuli", 7, 2, 6), item("redstone", 5, 2, 6),
                                      item("glowstone_dust", 4, 1, 4), item("amethyst_shard", 5, 1, 3),
                                      item("feather", 4, 1, 3), item("ink_sac", 4, 1, 2), item("candle", 4, 1, 3),
                                      item("nether_wart", 3, 1, 3), item("blaze_powder", 1), empty(4)]),
                            ((1, 1), [item("experience_bottle", 4, 1, 3), item("book", 3, rand_ench=True),
                                      item("emerald", 4, 1, 3), item("ender_pearl", 1), empty(6)])),
-    "desvan": chest_loot.cofre(((2, 4), [item("string", 8, 2, 5), item("cobweb", 3, 1, 2), item("candle", 6, 1, 3),
+    "desvan": chest_loot.place_chest(((2, 4), [item("string", 8, 2, 5), item("cobweb", 3, 1, 2), item("candle", 6, 1, 3),
                                     item("brown_mushroom", 5, 1, 3), item("red_mushroom", 5, 1, 3),
                                     item("spider_eye", 5, 1, 2), item("sugar", 5, 1, 4), item("bone", 5, 1, 3),
                                     item("gunpowder", 3, 1, 2), item("fermented_spider_eye", 2),
@@ -186,7 +186,7 @@ def _ground_floor(t, p, H):
         t.fill(xo, y, z, xo, y + 2, z, "bookshelf")
     t.set(xo, y + 3, Z0 + 1, "candle[candles=2,lit=true,waterlogged=false]")
     t.set(xo, y + 3, Z1 - 1, "candle[candles=3,lit=true,waterlogged=false]")
-    c.cofre(t, xo, y, Z0 + 3, "east", MID, "estudio")
+    c.place_chest(t, xo, y, Z0 + 3, "east", MID, "estudio")
     t.set(xo, y, Z0 + 4, "lectern[facing=east,has_book=true,powered=false]", {
         "id": "minecraft:lectern", "Page": 0,
         "Book": {"id": "minecraft:written_book", "count": 1, "components": _NOTES["modifier"][0]["components"]}})
@@ -217,7 +217,7 @@ def _attic(t, p, H):
     y, xo, xe = H + 6, X0 + 1, X1 - 1
     t.set(xe, H + 5, Z1 - 2, "ladder[facing=west,waterlogged=false]")     # el hueco de la escalera
     c.bed(t, xo, Z0 + 3, "west", p["cama"], y=y)
-    c.cofre(t, xo, y, Z0 + 5, "east", MID, "desvan")
+    c.place_chest(t, xo, y, Z0 + 5, "east", MID, "desvan")
     for x, yy, z in ((xo, y, Z0 + 1), (xe, y, Z0 + 1), (xo, y + 1, Z0 + 2), (xe, y + 1, Z0 + 2), (xo, y, Z1 - 1)):
         t.set(x, yy, z, "cobweb")
     t.set(xe, y, Z0 + 3, "amethyst_cluster[facing=up,waterlogged=false]")

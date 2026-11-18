@@ -21,12 +21,12 @@ ADVANCEMENTS = [dict(id="pieles", icono="minecraft:leather", tabla="pieles",
                descripcion=("Abre el arcón de las pieles de un puesto de cazadores",
                             "Open the pelt chest of a hunters' lodge"))]
 LOOT = {
-    "pieles": chest_loot.cofre(((3, 5), [item("leather", 10, 1, 4), item("rabbit_hide", 8, 1, 4), item("rabbit_foot", 2),
+    "pieles": chest_loot.place_chest(((3, 5), [item("leather", 10, 1, 4), item("rabbit_hide", 8, 1, 4), item("rabbit_foot", 2),
                                     item("feather", 5, 2, 6), item("cooked_rabbit", 5, 1, 3), item("cooked_mutton", 5, 1, 3),
                                     item("arrow", 6, 4, 12), item("lead", 3), item("leather_horse_armor", 1),
                                     item("bow", 2, dmg=(0.3, 0.8)), empty(4)]),
                           ((1, 1), [item("emerald", 3, 1, 2), item("name_tag", 1), empty(8)])),
-    "despensa": chest_loot.cofre(((2, 4), [item("cooked_beef", 5, 1, 3), item("cooked_porkchop", 4, 1, 2),
+    "despensa": chest_loot.place_chest(((2, 4), [item("cooked_beef", 5, 1, 3), item("cooked_porkchop", 4, 1, 2),
                                       item("rabbit_stew", 2), item("sweet_berries", 5, 2, 6), item("bread", 5, 1, 3),
                                       item("charcoal", 4, 2, 6), item("string", 4, 1, 3), item("iron_nugget", 4, 2, 5),
                                       empty(6)]),
@@ -35,7 +35,7 @@ LOOT = {
 
 L = 17
 X0, Z0, X1, Z1 = 2, 5, 8, 11       # cabaña (7 x 7), puerta al norte
-PUERTA = 5
+DOOR_COL = 5
 
 
 def offers():
@@ -53,18 +53,18 @@ def _clearing(x, z):
 
 def _floor(p):
     mats = p["suelo"]
-    return lambda x, z: "minecraft:dirt_path" if x == PUERTA and z < Z0 else mats[(x * 3 + z * 11 + x * z) % len(mats)]
+    return lambda x, z: "minecraft:dirt_path" if x == DOOR_COL and z < Z0 else mats[(x * 3 + z * 11 + x * z) % len(mats)]
 
 
 def _outpost(p, name, lit):
     t = Template(name)
     m, tr = p["madera"], p["tronco"]
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=3, inside=_clearing)
-    for x in range(PUERTA - 1, PUERTA + 2):          # el claro es redondo: el borde norte del camino, explícito
+    for x in range(DOOR_COL - 1, DOOR_COL + 2):          # el claro es redondo: el borde norte del camino, explícito
         t.set(x, 0, 0, "minecraft:dirt_path")
         for y in (1, 2, 3):
             t.set(x, y, 0, "air")
-    c.entrance(t, PUERTA, "minecraft:dirt_path")
+    c.entrance(t, DOOR_COL, "minecraft:dirt_path")
     # cabaña de troncos: troncos tumbados que se cruzan en las esquinas
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, f"{m}_planks")
@@ -79,7 +79,7 @@ def _outpost(p, name, lit):
                     t.set(x, y, z, "air")
     t.fill(X0, 4, Z0, X1, 4, Z1, f"{m}_planks")
     summit = c.roof_tiles(t, X0, Z0, X1, Z1, 4, p["teja"], p["cumbrera"], f"{m}_planks")
-    c.door(t, PUERTA, 1, Z0, "south", f"{m}_door")
+    c.door(t, DOOR_COL, 1, Z0, "south", f"{m}_door")
     c.window(t, X0, 2, 8)
     c.window(t, X1, 2, 7)
     # chimenea de piedra en el muro este con el hogar dentro
@@ -93,10 +93,10 @@ def _outpost(p, name, lit):
     # literas al oeste, arcón de las pieles y despensa
     c.bed(t, X0 + 1, Z1 - 1, "west", p["cama"])
     c.bed(t, X0 + 1, Z1 - 3, "west", p["cama"])
-    c.cofre(t, X0 + 1, 1, Z0 + 1, "east", MID, "pieles")
-    c.cofre(t, X1 - 1, 1, Z1 - 1, "west", MID, "despensa", kind="barrel")
+    c.place_chest(t, X0 + 1, 1, Z0 + 1, "east", MID, "pieles")
+    c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "despensa", kind="barrel")
     t.set(X1 - 1, 1, Z0 + 1, "crafting_table")
-    c.lantern(t, PUERTA, 3, 8)
+    c.lantern(t, DOOR_COL, 3, 8)
     # tendedero de pieles al este: dos postes con travesaño y cuero (alfombras marrones) en el suelo
     for z in (6, 10):
         t.fill(14, 1, z, 14, 2, z, f"{m}_fence")
@@ -129,8 +129,8 @@ def _lookout(t, p, x0, z0):
 def with_hunter(p, name):
     t = _outpost(p, name, lit=True)
     _lookout(t, p, 10, 1)
-    t.entity(PUERTA + 1, 1, 8, c.villager(MID, "cazador", "Cazador", "leatherworker", p["aldeano"], offers(), rot=0.0))
-    t.entity(PUERTA, 1, 3, c.mob("wolf", MID, "lobo", "Colmillo", rot=0.0, variant=p["lobo"]))
+    t.entity(DOOR_COL + 1, 1, 8, c.villager(MID, "cazador", "Cazador", "leatherworker", p["aldeano"], offers(), rot=0.0))
+    t.entity(DOOR_COL, 1, 3, c.mob("wolf", MID, "lobo", "Colmillo", rot=0.0, variant=p["lobo"]))
     return t
 
 

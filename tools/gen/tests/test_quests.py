@@ -39,16 +39,16 @@ def test_same_keys_and_gaps_in_es_and_en():
         assert CAVITY.findall(es) == CAVITY.findall(lang["en_us"][k]), k
 
 
-@pytest.mark.parametrize("codigo", list(languages.TRANSLATIONS))
-def test_translated_in_each_language(codigo):
-    with open(languages.route(codigo), encoding="utf-8") as f:
+@pytest.mark.parametrize("lang_code", list(languages.TRANSLATIONS))
+def test_translated_in_each_language(lang_code):
+    with open(languages.route(lang_code), encoding="utf-8") as f:
         t = json.load(f)
     base = _all()
     assert len(base["en_us"]) >= 60
     for k, en in base["en_us"].items():
-        assert k in t, f"{codigo}: falta {k}"
-        assert t[k].strip(), f"{codigo}: {k} vacía"
-        assert sorted(CAVITY.findall(t[k])) == sorted(CAVITY.findall(en)), f"{codigo}: {k} con otros huecos"
+        assert k in t, f"{lang_code}: falta {k}"
+        assert t[k].strip(), f"{lang_code}: {k} vacía"
+        assert sorted(CAVITY.findall(t[k])) == sorted(CAVITY.findall(en)), f"{lang_code}: {k} con otros huecos"
 
 
 def test_the_java_only_uses_keys_that_exist():
@@ -111,13 +111,13 @@ def test_guide_page():
     for i in (0, 1):
         assert guide.page_lines(title[i], text[i]) <= chest_loot.BOOK_LINES
         assert "/heraldia quest" in text[i]
-    for codigo in languages.TRANSLATIONS:
-        with open(languages.route(codigo), encoding="utf-8") as f:
+    for lang_code in languages.TRANSLATIONS:
+        with open(languages.route(lang_code), encoding="utf-8") as f:
             t = json.load(f)
         kt, kx = "heraldia.guia.pagina.encargos.titulo", "heraldia.guia.pagina.encargos"
-        assert guide.title_lines(t[kt]) == 1, codigo
-        assert guide.page_lines(t[kt], t[kx]) <= chest_loot.BOOK_LINES, codigo
-        assert "/heraldia quest" in t[kx], codigo
+        assert guide.title_lines(t[kt]) == 1, lang_code
+        assert guide.page_lines(t[kt], t[kx]) <= chest_loot.BOOK_LINES, lang_code
+        assert "/heraldia quest" in t[kx], lang_code
 
 
 def test_options():

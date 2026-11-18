@@ -261,7 +261,7 @@ def main():
         va, vb, L = route
         print(f"ruta de {va} a {vb}: {L} bloques")
         corridor = [c for c in cabin_adv.chunks_of(va, vb) if SEGMENT[0] <= c[0] <= SEGMENT[1]]
-        cabin_adv.generar(ctx, corridor)
+        cabin_adv.generate(ctx, corridor)
         print(f"pasillo generado: {len(corridor)} chunks")
         x, z = point(va, vb, 0.5)
         ctx.run(f"player {PLAYER} spawn at {x} 200 {z}", r"joined the game")

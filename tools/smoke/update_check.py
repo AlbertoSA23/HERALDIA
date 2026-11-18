@@ -117,9 +117,9 @@ class WebServer:
                 self.proc.kill()
 
 
-def write(work, activado):
+def write(work, switched_on):
     cfg = copy.deepcopy(s.TEST_CONFIG)
-    cfg["update_check"] = {"activado": activado}
+    cfg["update_check"] = {"activado": switched_on}
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
         json.dump(cfg, f)
 

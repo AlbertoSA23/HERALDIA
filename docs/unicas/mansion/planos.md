@@ -1,6 +1,6 @@
 # Mansión encantada: planos por nivel
 
-Generado por `tools/gen/unicas/mansion/planos.py` a partir de la
+Generado por `tools/gen/uniques/mansion/blueprints.py` a partir de la
 misma obra que se audita. Leyenda: . alcanzable a pie desde la verja   : alcanzable solo con los mecanismos abiertos
 # muro u obstáculo   C cofre/barril   P puerta   E escalera   L escala   S generador   R palanca/botón
 T trampa (cable, dispensador, placa, dinamita)   G guardián   ~ vacío (patio, hueco del vestíbulo)

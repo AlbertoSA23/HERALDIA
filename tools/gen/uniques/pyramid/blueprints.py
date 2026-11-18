@@ -1,6 +1,6 @@
 """Planos de planta por nivel (celdas alcanzables a pie) y renders isométricos del Templo-pirámide.
 
-Uso: python3 tools/gen/uniques/pyramid/blueprints.py [--solo-texto] [--nivel COTA]
+Uso: python3 tools/gen/uniques/pyramid/blueprints.py [--text-only] [--level COTA]
 Escribe docs/unicas/piramide/planos.txt y docs/unicas/piramide/*.png.
 """
 import os, sys
@@ -80,7 +80,7 @@ def shell(o, ymax=-1):
 
 
 def main():
-    only_text = "--solo-texto" in sys.argv
+    only_text = "--text-only" in sys.argv
     lv = [int(sys.argv[sys.argv.index("--level") + 1])] if "--level" in sys.argv else None
     o = construction.build_all()
     wear = audit.tune_wear(o)

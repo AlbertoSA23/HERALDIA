@@ -16,7 +16,7 @@ from .._common.pieces import spawner, chest, guardian, text
 SID = "mina_perdida"
 LOOT = f"heraldia:unicas/{SID}/"
 K = f"heraldia.{SID}."
-PISO = 20                    # y del mundo de la capa de suelo de la caverna (ver docs: por qué esta altura)
+FLOOR_Y = 20                    # y del mundo de la capa de suelo de la caverna (ver docs: por qué esta altura)
 YTOP = 26                    # cara superior de la colonia: aquí empieza el pozo
 AXIS = (44, 7)                # eje del pozo maestro (x, z)
 DEEPER = -12                  # por debajo de esta capa (y del mundo < 8) el casco es de pizarra abismal
@@ -24,7 +24,7 @@ DEEPER = -12                  # por debajo de esta capa (y del mundo < 8) el cas
 # gran caverna: superelipse
 CX, CZ, RX, RZ, EXP = 44, 36, 27, 21, 6
 LAKE = (44, 49, 13, 5)       # centro y radios del lago (superelipse de exponente 4)
-SIMA = (75, 79, 25, 47)      # x0, x1, z0, z1 de la sima (y -15 .. 8)
+CHASM = (75, 79, 25, 47)      # x0, x1, z0, z1 de la sima (y -15 .. 8)
 F_CHASM, F_DEEP, F_FLOODED = -15, -10, -5   # pies: fondo de la sima, filón madre, pasarela del sector inundado
 
 COB, MCOB, CDS = "cobblestone", "mossy_cobblestone", "cobbled_deepslate"
@@ -179,14 +179,14 @@ class Construction:
 
     # ------------------------------------------------------------ obra completa
     def build(self):
-        self.caverna()
+        self.cavern_room()
         self.station()
         self.warehouse()
         self.smelter()
         self.houses()
         self.workshops()
         self.lake_and_dock()
-        self.sima()
+        self.chasm()
         self.loading_dock()
         self.old_face()
         self.mother_lode()
@@ -239,7 +239,7 @@ class Construction:
         e = superellipse(x, z, CX, CZ, RX, RZ, 2)
         return 5 + int(round(11 * math.sqrt(max(0.0, 1 - min(e, 1.0))) + 1.2 * noise(x, z, 6, 3)))
 
-    def caverna(self):
+    def cavern_room(self):
         for x in range(CX - RX - 2, CX + RX + 3):
             for z in range(CZ - RZ - 2, CZ + RZ + 3):
                 if superellipse(x, z, CX, CZ, RX, RZ, EXP) > 1 + 0.08 * noise(x, z, 4, 1):
@@ -554,8 +554,8 @@ class Construction:
         return max(z for (xx, z) in self.cavern if xx == x) + 1
 
     # ------------------------------------------------------------ la sima y el puente colgante (este)
-    def sima(self):
-        x0, x1, z0, z1 = SIMA
+    def chasm(self):
+        x0, x1, z0, z1 = CHASM
         for x in range(x0, x1 + 1):
             for z in range(z0, z1 + 1):
                 top = 8 - (1 if h(x, z, 11) < 0.3 else 0)

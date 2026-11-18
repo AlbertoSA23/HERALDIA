@@ -12,7 +12,7 @@ from uniques._common import chest_loot
 # 3-8, pan, bayas, semillas} y 3 de raíles y antorchas.
 LOOT = {
     # tonel del patio de la boca pequeña: lo de cada día
-    "boca": chest_loot.cofre(((2, 4), [item("torch", 8, 4, 12), item("coal", 8, 2, 6), item("bread", 6, 1, 3),
+    "boca": chest_loot.place_chest(((2, 4), [item("torch", 8, 4, 12), item("coal", 8, 2, 6), item("bread", 6, 1, 3),
                                   item("rail", 6, 4, 10), item("iron_nugget", 5, 3, 9), item("string", 4, 1, 3),
                                   item("stone_pickaxe", 3, dmg=(0.3, 0.8)), item("iron_pickaxe", 1, dmg=(0.4, 0.8)),
                                   empty(4)]),
@@ -31,19 +31,19 @@ LOOT = {
         chest_loot.pool((1, 2), [item("iron_ingot", 4, 1, 3), item("emerald", 2, 1, 2), item("gold_nugget", 4, 3, 8),
                             empty(6)], extra=True)),
     # vagoneta de carga (chest_minecart) del patio de la mediana y de la grande
-    "vagoneta": chest_loot.cofre(((4, 7), [item("raw_iron", 10, 2, 6), item("raw_copper", 10, 3, 9), item("raw_gold", 3, 1, 3),
+    "vagoneta": chest_loot.place_chest(((4, 7), [item("raw_iron", 10, 2, 6), item("raw_copper", 10, 3, 9), item("raw_gold", 3, 1, 3),
                                       item("coal", 12, 4, 12), item("cobblestone", 8, 8, 24), item("gravel", 5, 4, 12),
                                       item("redstone", 4, 3, 8), item("lapis_lazuli", 3, 3, 7), item("flint", 4, 1, 4)]),
                             ((1, 2), [item("raw_iron", 4, 1, 3), item("coal", 4, 2, 6), empty(5)])),
     # cofre del capataz (cabaña de la mediana y oficina de la grande)
-    "capataz": chest_loot.cofre(((3, 5), [item("emerald", 6, 1, 4), item("iron_ingot", 8, 2, 5), item("gold_ingot", 4, 1, 3),
+    "capataz": chest_loot.place_chest(((3, 5), [item("emerald", 6, 1, 4), item("iron_ingot", 8, 2, 5), item("gold_ingot", 4, 1, 3),
                                      item("compass", 3), item("clock", 2), item("map", 3), item("paper", 4, 2, 6),
                                      item("book", 4, rand_ench=True), item("iron_pickaxe", 3, ench=(8, 18)),
                                      item("iron_shovel", 2, ench=(5, 12)), item("golden_carrot", 3, 1, 3),
                                      item("cooked_beef", 5, 1, 3), item("diamond", 2, 1, 1), empty(3)]),
                            ((1, 2), [item("emerald", 3, 1, 2), item("gold_ingot", 2, 1, 2), empty(6)])),
     # tonel de la fundición
-    "fundicion": chest_loot.cofre(((3, 5), [item("iron_ingot", 12, 2, 6), item("copper_ingot", 10, 3, 8), item("gold_ingot", 4, 1, 3),
+    "fundicion": chest_loot.place_chest(((3, 5), [item("iron_ingot", 12, 2, 6), item("copper_ingot", 10, 3, 8), item("gold_ingot", 4, 1, 3),
                                        item("coal", 10, 4, 10), item("charcoal", 5, 2, 6), item("iron_nugget", 6, 4, 12),
                                        item("gold_nugget", 4, 3, 9), item("bucket", 2), item("lava_bucket", 1),
                                        item("bricks", 3, 4, 10)]),

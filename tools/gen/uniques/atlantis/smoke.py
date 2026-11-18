@@ -57,7 +57,7 @@ def check(ctx):
                     ctx.run(f"setblock {X + c[0]} {c[1]} {Z + c[2]} {b}", r"Changed the block|Could not set")
             ctx.ticks(30)
 
-    def abierta(value):
+    def is_open(value):
         return block(door, f"minecraft:iron_door[open={'true' if value else 'false'}]")
 
     steps = [("al generarse", None, False), ("con todas alzadas", [True] * 4, False), ("con la combinación", COMBINATION_CENTRAL, True),
@@ -65,7 +65,7 @@ def check(ctx):
     for name, states, required in steps:
         if states:
             put(states)
-        if not abierta(required):
+        if not is_open(required):
             failures.append(f"puerta del vestíbulo {name}: debería estar {'abierta' if required else 'cerrada'}")
 
     # cofre premium: contenido fijo (dos tridentes), cerradura y marca del cofre por jugador (custom_data del bloque)

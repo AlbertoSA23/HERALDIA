@@ -13,7 +13,7 @@ a single monumental tree, and everything valuable is underground.
 ## Biome and placement
 
 - Biomes: birch forest and old growth birch forest, plus `#c:is_birch_forest` (which in vanilla are exactly
-  those two: biome mods' birch forests come in; `biomas.comprobar` checks it). Until now there was no
+  those two: biome mods' birch forests come in; `biomes.check` checks it). Until now there was no
   unique structure in them.
 - Rarity: `spacing` 250 / `separation` 190 chunks (one every ~3,000-5,000 blocks), configurable in
   `config/heraldia.json` like the others (`unicas.santuario.activada`, `unicas.santuario.separacion_bloques`).
@@ -39,7 +39,7 @@ center (36, 36). Plans in [`santuario/planos.txt`](santuario/planos.txt).
 - A mossy cobblestone **path** from the entrance to the tree's door.
 - **Sacred birch**: a trunk of birch logs 9 wide (radius 4.5) that narrows towards the canopy, with roots that
   spread at its foot (none to the north, where the door is) and patches of peeled bark. Inside, the **spiral
-  staircase** (`piezas.spiral_stair`) goes from the roots (feet -11) to the canopy (feet 19), with shroomlights on the wall of the
+  staircase** (`pieces.spiral_stair`) goes from the roots (feet -11) to the canopy (feet 19), with shroomlights on the wall of the
   hollow. A door to the clearing and a door to the **canopy platform**: a ring of planks with a railing (which leaves no
   diagonal gaps) on log corbels, lanterns hanging from the canopy and the `copa` chest. The **canopy** is a dome
   of persistent leaves (they do not decay) 21 wide with branches inside; it has gaps where the tree is withering.
@@ -81,7 +81,7 @@ Upper level (feet at y = -5) and lower level (feet at y = -11), both joined by t
    on the clearing's gnomon and the aligned stones explain it. The correct levers turn off two inverting torches that
    power the pistons' line; the fake ones power it directly with dust, so with any fake stone
    lit the door stays closed (or closes again). It is the same piece as the rune wall of Jarl's
-   Hall (`piezas.combo_door` with two fake levers), already tested on a server.
+   Hall (`pieces.combo_door` with two fake levers), already tested on a server.
 8. **Rite chamber** (hidden): polished deepslate, black tapestries, a circle of mossy stones around the
    **black stump** of the first tree and lit candles. It is patrolled by the **guardian**, the **archdruid Cadoc, the Withered**
    (an evoker, 50 health, armor 4; his vexes are his only escort). The `ritual` chest.
@@ -97,15 +97,15 @@ audit checks it; you get out of the ditch and the pond by swimming).
 
 ## Puzzles and traps (everything at rest and consistent when generated)
 
-- **Puzzle 1, the season stones** (`piezas.combo_door` with two levers and two fake ones): extended sticky pistons
+- **Puzzle 1, the season stones** (`pieces.combo_door` with two levers and two fake ones): extended sticky pistons
   holding two blocks of mossy stone; the line of dust runs inside the wall (four thick: levers,
   torches or the fake ones' dust, door and pistons with the line, and the face of the rite chamber). The 16
   combinations are tried.
-- **Puzzle 2, the archive's secret bookshelf** (`piezas.lever_door`): two bookshelves at the back of a niche; the lever
+- **Puzzle 2, the archive's secret bookshelf** (`pieces.lever_door`): two bookshelves at the back of a niche; the lever
   turns off the inverting torch and the pistons pull them in. Pistons and torch stay inside the wall.
-- **Trap 1**: a taut tripwire between two hooks with a dispenser above each hook (`piezas.tripwire_trap`).
+- **Trap 1**: a taut tripwire between two hooks with a dispenser above each hook (`pieces.tripwire_trap`).
 - **Trap 2**: two stone plates in the offering niche, each with a dispenser on each side
-  (`piezas.plate_trap`).
+  (`pieces.plate_trap`).
 
 ## Enemies and entities
 
@@ -158,7 +158,7 @@ Processor: cobblestone → mossy (30 %), stone brick → cracked (12 %) or mossy
 
 ## Audit (a condition for generating)
 
-`auditoria.py` fails the build if: the redstone is not in its stable state; any of the 16 combinations of the
+`audit.py` fails the build if: the redstone is not in its stable state; any of the 16 combinations of the
 season stones opens without being the correct one (or the correct one does not open); the lever does not open the archive; the wire or the
 plates do not fire (or a dispenser has a signal at rest); something hidden (archive, rite chamber, treasure) can be
 reached without solving the puzzles or cannot be reached by solving them; the alcove cannot be reached through the tapestry; there are chests,
@@ -173,13 +173,13 @@ removed and a lantern next to the spider spawner.
 
 - Generation: two templates (about 25,200 + 43,200 blocks, on the order of Jarl's Hall) with a rule processor and
   without custom Java. Generating the module takes about 2 s in Python. `/place structure` of the whole structure took 381 and 718 ms (two runs) on
-  the test server (printed by `prueba_servidor.py`).
+  the test server (printed by `smoke_server.py`).
 - Entities: 1 (the guardian). 3 spawners with the vanilla radius and limit. Nothing per tick.
 
 ## Tests
 
-- `python3 tools/gen/unicas/santuario/planos.py` → plans by level and renders in `docs/unicas/santuario/`.
-- `python3 tools/gen/unicas/santuario/prueba_servidor.py --jar build/libs/heraldia-<version>.jar --work "$PWD/build/smoke"`:
+- `python3 tools/gen/uniques/sanctuary/blueprints.py` → plans by level and renders in `docs/unicas/santuario/`.
+- `python3 tools/gen/uniques/sanctuary/smoke_server.py --jar build/libs/heraldia-<version>.jar --work "$PWD/build/smoke"`:
   places the structure (measures the time and counts entities) and the templates unrotated to check chests, spawners,
   water, beehives and leaves, and to operate the season stones (also with a fake one), the archive's bookshelf,
   the tripwire and the offering plates. It is in the CI matrix.

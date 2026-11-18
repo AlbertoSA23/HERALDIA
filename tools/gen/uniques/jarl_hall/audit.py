@@ -64,9 +64,9 @@ def prepare(construction):
             errs.append(f"el cable trampa no activa el dispensador {p}")
         if rs.Sim(t).powered(p):
             errs.append(f"dispensador con señal en reposo {p}")
-    for placa in m["placas"]:
-        if not any(rs.Sim(t, {placa: True}).powered(q) for q in m["tnt"]):
-            errs.append(f"la placa {placa} no ceba la dinamita")
+    for plate_pos in m["placas"]:
+        if not any(rs.Sim(t, {plate_pos: True}).powered(q) for q in m["tnt"]):
+            errs.append(f"la placa {plate_pos} no ceba la dinamita")
 
     # recorrido: público (puzles cerrados) y resuelto (los dos puzles abiertos)
     trap = {p: None for p, st in blocks.items() if bn(st) in ("tripwire",)}

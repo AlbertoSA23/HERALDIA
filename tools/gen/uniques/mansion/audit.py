@@ -49,9 +49,9 @@ def prepare(construction):
     blocks = {p: st for p, (st, _) in t.blocks.items()}
     m = construction.mech
     # escenarios
-    abierta = rs.retract(t, rs.Sim(t, {m["palanca_biblioteca"]: True}))
+    is_open = rs.retract(t, rs.Sim(t, {m["palanca_biblioteca"]: True}))
     for p in m["puerta_secreta"]:
-        if p in abierta and bn(abierta[p]) != "air":
+        if p in is_open and bn(is_open[p]) != "air":
             errs.append(f"la palanca no abre la estantería en {p}")
         if bn(blocks.get(p)) != "bookshelf":
             errs.append(f"estantería secreta ausente en {p}")
@@ -69,7 +69,7 @@ def prepare(construction):
     iron = {p: "minecraft:stone" for p, st in blocks.items() if bn(st) == "iron_door"}
     pub = view(t.blocks, {**trap, **iron}, ENTRANCE)
     cells_pub = set(lint.walk(pub))
-    res_blocks = {p: (st, t.blocks[p][1] if p in t.blocks else None) for p, st in abierta.items()}
+    res_blocks = {p: (st, t.blocks[p][1] if p in t.blocks else None) for p, st in is_open.items()}
     soln = view(res_blocks, trap, ENTRANCE)
     cells = set(lint.walk(soln))
     for msg, pos in lint.access_issues(soln):

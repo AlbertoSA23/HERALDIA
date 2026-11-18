@@ -59,9 +59,9 @@ def water_trap(v, u, y, w, side):
     v.mark("trampa", u, y, w)
 
 
-def cofre_bomba(v, u, y, w, facing, tbl):
+def bomb_chest(v, u, y, w, facing, tbl):
     """Cofre trampa sobre TNT: abrirlo la enciende."""
     from . import things as C
     v.set(u, y - 1, w, "tnt[unstable=false]")
-    C.cofre(v, u, y, w, facing, tbl, kind="trapped_chest")
+    C.place_chest(v, u, y, w, facing, tbl, kind="trapped_chest")
     v.mark("trampa", u, y, w)

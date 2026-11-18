@@ -33,7 +33,7 @@ the arena (sand at y=0; the player stands at y=1). "Ring r" = a constant distanc
 | Hypogeum H2 (hidden) | y=-13 | The lanista's office, the plates corridor, the treasure chamber, the lower stretch of Commodus's passage. |
 
 The text plans (reachable cells) and the renders are in [`coliseo/`](coliseo/); they are regenerated with
-`python3 tools/gen/unicas/coliseo/auditoria.py --planos`.
+`python3 tools/gen/uniques/colosseum/audit.py --blueprints`.
 
 ## Player route
 
@@ -74,7 +74,7 @@ The text plans (reachable cells) and the renders are in [`coliseo/`](coliseo/); 
   hold it, powered by a redstone torch on the hidden face of the lever's block. When the lever is pulled down the
   torch turns off, the pistons pull in the two blocks and Commodus's passage opens; when it is raised it closes.
   The consistent states are saved (torch lit, pistons extended with their head, lever off), so
-  nothing changes when generated. The test `tools/smoke/coliseo_redstone.py` checks it on a real server.
+  nothing changes when generated. The test `tools/smoke/colosseum_redstone.py` checks it on a real server.
 - **Trap 1** (armory corridor): a tripwire from side to side; each hook activates the block it is
   attached to and that one the arrow dispenser above it, which fires at chest height.
 - **Trap 2** (plates corridor, H2): three stone plates; each one activates the two wall dispensers

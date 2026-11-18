@@ -195,15 +195,15 @@ def test_write_json_markdown_and_summary_of_the_job(tmp_path, monkeypatch):
 
 
 def test_from_a_json_and_update_the_reference(tmp_path, monkeypatch):
-    """--desde rehace el resumen de una medición guardada (el artefacto de la CI) sin servidor, y con
-    --actualizar-referencia la guarda; sin --sin-umbral, una regresión da código 1."""
+    """--from-json rehace el resumen de una medición guardada (el artefacto de la CI) sin servidor, y con
+    --update-reference la guarda; sin --no-threshold, una regresión da código 1."""
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
     r = _result()
     gauged = tmp_path / "coste_generacion.json"
     gauged.write_text(json.dumps(r), encoding="utf-8")
     ref = tmp_path / "ref.json"
     ref.write_text(json.dumps({"sobrecoste": 0.01, "umbral_relativo": 0.25, "margen_absoluto": 0.05}), encoding="utf-8")
-    base = ["--start", str(gauged), "--reference", str(ref), "--output", str(tmp_path / "s")]
+    base = ["--from-json", str(gauged), "--reference", str(ref), "--output", str(tmp_path / "s")]
     assert c.main(base) == 1                                                # 0,10 > 0,01 × 1,25 + 0,05
     assert c.main(base + ["--no-threshold"]) == 0
     assert c.main(base + ["--update-reference"]) == 0
@@ -223,11 +223,11 @@ def test_repository_reference():
 def test_cpu_of_proc_stat():
     # /proc/<pid>/stat con un nombre con espacios y paréntesis: utime (14) y stime (15) en ticks de reloj
     line = "4242 (java (x) y) S 1 4242 4242 0 -1 4194560 1000 0 0 0 1234 566 0 0 20 0 60 0 100 0 0"
-    assert c.cpu_de_stat(line) == pytest.approx(18.0)
-    assert c.cpu_de_stat(line, hz=1000) == pytest.approx(1.8)
-    assert c.cpu_proceso(-1) is None                                         # sin proceso: None, no excepción
+    assert c.cpu_of_stat(line) == pytest.approx(18.0)
+    assert c.cpu_of_stat(line, hz=1000) == pytest.approx(1.8)
+    assert c.process_cpu(-1) is None                                         # sin proceso: None, no excepción
     if os.path.isfile(f"/proc/{os.getpid()}/stat"):
-        assert c.cpu_proceso(os.getpid()) >= 0
+        assert c.process_cpu(os.getpid()) >= 0
 
 
 def test_cpu_decides_if_in_both():

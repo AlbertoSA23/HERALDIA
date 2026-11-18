@@ -91,8 +91,8 @@ def _shipwreck(o):
     for p, tbl in _tables(t):
         if tbl.endswith("/camarote") and p[1] <= row:
             err.append(f"el cofre del camarote bajo el agua en {p}")
-    mastiles = {(x, z) for (x, y, z), (st, _) in t.blocks.items() if "_log[axis=y]" in st}
-    if len(mastiles) < 2:
+    mast_cells = {(x, z) for (x, y, z), (st, _) in t.blocks.items() if "_log[axis=y]" in st}
+    if len(mast_cells) < 2:
         err.append("sin sus dos mástiles")
     for *_, n in t.entities:
         if n.get("id") == "minecraft:drowned" and ADULT_TAG not in (n.get("Tags") or []):

@@ -32,21 +32,21 @@ def test_es_y_en_with_the_same_keys_and_gaps():
         assert es[k].strip() and en[k].strip(), k
 
 
-@pytest.mark.parametrize("codigo", list(languages.TRANSLATIONS))
-def test_each_translation_is_in_its_file_with_the_gaps_of_the_english(codigo):
-    translated = languages.load_data(codigo)
-    for k, v in a.translation(codigo).items():
-        assert translated.get(k) == v, f"{codigo} {k}: ejecuta python3 tools/gen/updates.py"
+@pytest.mark.parametrize("lang_code", list(languages.TRANSLATIONS))
+def test_each_translation_is_in_its_file_with_the_gaps_of_the_english(lang_code):
+    translated = languages.load_data(lang_code)
+    for k, v in a.translation(lang_code).items():
+        assert translated.get(k) == v, f"{lang_code} {k}: ejecuta python3 tools/gen/updates.py"
     for k, en in TEXTS["en_us"].items():
-        assert languages.markers(translated[k]) == languages.markers(en), f"{codigo} {k}"
+        assert languages.markers(translated[k]) == languages.markers(en), f"{lang_code} {k}"
 
 
-@pytest.mark.parametrize("codigo", list(languages.TRANSLATIONS))
-def test_translations_are_not_copied_english(codigo):
-    translated, en = a.translation(codigo), TEXTS["en_us"]
+@pytest.mark.parametrize("lang_code", list(languages.TRANSLATIONS))
+def test_translations_are_not_copied_english(lang_code):
+    translated, en = a.translation(lang_code), TEXTS["en_us"]
     copied = [k for k in en if not k.startswith("heraldia.idioma.nombre.") and translated[k] == en[k]
                 and re.search(r"[A-Za-z]{4,}", re.sub(r"Heraldia|Arena|config/heraldia\.json", "", en[k]))]
-    assert not copied, f"{codigo}: {copied}"
+    assert not copied, f"{lang_code}: {copied}"
 
 
 def test_new_option_has_text_in_all():

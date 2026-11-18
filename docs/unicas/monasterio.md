@@ -127,7 +127,7 @@ No netherite gear or elytra. The item names and the guardian's use translation k
   the two puzzles (only the solution opens), hooks and plates with their dispenser, nothing floating, ruins at 15.7 %
   of the footprint, chests with an existing table, spawners and guardian. `lint.py` on the view with the secret doors
   open: the walk from the entrance to every door, chest, piece of furniture and ladder; jigsaw intact.
-- 26.3 dedicated server (`prueba_servidor.py`): the template is placed; pistons extended, lamps lit,
+- 26.3 dedicated server (`smoke_server.py`): the template is placed; pistons extended, lamps lit,
   torches and door in their state; spawner and guardian present; puzzle 1 only opens with both levers
   off and puzzle 2 only with 1 and 3 up.
 - Not checked in game: that the traps fire when stepped on or crossed, that the spawners produce mobs, the

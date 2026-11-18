@@ -11,7 +11,7 @@ from .._common.pieces import open_stairwells
 import math
 from core import Template, B
 from uniques._common import pieces
-from uniques._common.chest_loot import item, empty, cofre as t2, named as _named, potion as _potion, random_ench, lang
+from uniques._common.chest_loot import item, empty, place_chest as t2, named as _named, potion as _potion, random_ench, lang
 
 SID = "torre_mago"
 NSP = f"unicas/{SID}"
@@ -786,7 +786,7 @@ def potion(pid, w, name=None):
 
 BOOKS = [item("book", 8, 1, 3), item("paper", 8, 2, 6), item("feather", 4, 1, 3), item("ink_sac", 4, 1, 2),
          item("writable_book", 2), item("candle", 4, 1, 3)]
-ALQ = [item("glass_bottle", 10, 1, 4), item("nether_wart", 6, 1, 4), item("redstone", 6, 2, 6),
+ALCHEMY = [item("glass_bottle", 10, 1, 4), item("nether_wart", 6, 1, 4), item("redstone", 6, 2, 6),
        item("glowstone_dust", 5, 1, 4), item("sugar", 6, 1, 4), item("spider_eye", 5, 1, 2),
        item("fermented_spider_eye", 2), item("gunpowder", 4, 1, 3), item("blaze_powder", 1),
        item("magma_cream", 2), item("rabbit_foot", 1), item("glistering_melon_slice", 2),
@@ -799,7 +799,7 @@ LOOT = {
     "biblioteca": t2(((2, 4), BOOKS + [empty(4)]),
                      ((1, 1), [item("book", 3, rand_ench=True), item("lapis_lazuli", 4, 1, 4), item("map", 2),
                                item("experience_bottle", 2, 1, 2), empty(8)])),
-    "laboratorio": t2(((2, 5), ALQ),
+    "laboratorio": t2(((2, 5), ALCHEMY),
                       ((1, 2), [item("brewing_stand", 1), item("cauldron", 1), item("ghast_tear", 1),
                                 potion("strength", 1), potion("fire_resistance", 2), item("glass_bottle", 4, 2, 4)])),
     "encantamientos": t2(((2, 4), [item("lapis_lazuli", 10, 2, 6), item("book", 8, 1, 3), item("experience_bottle", 5, 1, 3),

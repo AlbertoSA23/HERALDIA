@@ -16,7 +16,7 @@ DISPLAY_NAME = {"es_es": "Altar de magma", "en_us": "Magma Altar"}
 SEPARATION = 640
 ADVANCEMENT_ICON = "minecraft:magma_cream"
 LOOT = {
-    "ofrendas": chest_loot.cofre(((2, 4), [item("magma_cream", 8, 1, 4), item("blaze_powder", 6, 1, 3),
+    "ofrendas": chest_loot.place_chest(((2, 4), [item("magma_cream", 8, 1, 4), item("blaze_powder", 6, 1, 3),
                                       item("fire_charge", 6, 1, 3), item("gold_nugget", 8, 2, 7),
                                       item("quartz", 6, 2, 5), item("gold_ingot", 3), item("obsidian", 3, 1, 2),
                                       item("book", 2, rand_ench=True), empty(5)]),
@@ -67,10 +67,10 @@ def main(p, name):
     grada) y dos braseros (barriles) junto a la entrada."""
     t = _clearing(p, name, broken=False)
     t.set(CX, 4, CX, p["ara"])
-    c.cofre(t, CX, 4, CX + 1, "north", MID, "ofrendas")
+    c.place_chest(t, CX, 4, CX + 1, "north", MID, "ofrendas")
     pieces.spawner(t.set, CX, 2, CX + 1, "magma_cube")
     for x in (4, 12):
-        c.cofre(t, x, 1, 6, "north", MID, "brasero", kind="barrel")
+        c.place_chest(t, x, 1, 6, "north", MID, "brasero", kind="barrel")
         t.set(x, 2, 6, "soul_campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]")
     pieces.connect(t)
     return t
@@ -83,8 +83,8 @@ def broken(p, name):
         t.set(x, 1, z, p["tambor"])
     for x, z in ((4, 9), (12, 7), (9, 3)):
         t.set(x, 0, z, "magma_block")
-    c.cofre(t, CX, 4, CX, "north", MID, "ofrendas")
-    c.cofre(t, 3, 1, 8, "east", MID, "brasero", kind="barrel")
+    c.place_chest(t, CX, 4, CX, "north", MID, "ofrendas")
+    c.place_chest(t, 3, 1, 8, "east", MID, "brasero", kind="barrel")
     for x in (4, 12):
         t.entity(x, 1, 12, c.mob("magma_cube", MID, rot=180.0, Size=1))
     pieces.connect(t)

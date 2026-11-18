@@ -103,7 +103,7 @@ def main():
         box = first_start(Test(srv.ctx, fails), pl)
         # 5. una partida a medias: se guarda y se mata el proceso
         if box:
-            a_medias(Test(srv.ctx, fails), pl, box)
+            half_done(Test(srv.ctx, fails), pl, box)
         srv.proc.kill()
         srv.proc.wait(timeout=60)
     finally:
@@ -318,7 +318,7 @@ def first_start(p, pl):
     return box
 
 
-def a_medias(p, pl, box):
+def half_done(p, pl, box):
     ctx = p.ctx
     cx, cz = box[0] + pl["centro"][0], box[2] + pl["centro"][2]
     ctx.run(f"tp {P} {cx + 0.5} {box[1] + 1} {cz + 0.5}", r"Teleported")

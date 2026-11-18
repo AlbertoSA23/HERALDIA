@@ -137,5 +137,5 @@ def villager(mid, key, fallback, profession, kind, offers, rot=0.0):
             "Xp": 10, "Rotation": [F(rot), F(0.0)], "Offers": {"Recipes": offers}}
 
 
-def cofre(t, x, y, z, facing, mid, tbl, kind="chest"):
+def place_chest(t, x, y, z, facing, mid, tbl, kind="chest"):
     pieces.chest(put(t), x, y, z, facing, f"{NS}:medianas/{mid}/{tbl}", kind=kind)

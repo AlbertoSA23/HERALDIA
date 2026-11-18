@@ -143,7 +143,7 @@ spans without their upper tier. The audit measures the built surface in plan and
 - Symmetry in the temple, castellum, baths and forum; each element with its function (distribution basin, hypocaust, porticoes).
 - Automatic audit before generation (see below).
 
-## Its own audit (`tools/gen/unicas/acueducto/auditoria.py`)
+## Its own audit (`tools/gen/uniques/aqueduct/audit.py`)
 
 It runs in `build()` and any failure stops generation:
 - Walk (`lint.walk`) over the complete structure assembled from the south gate: with the puzzles solved

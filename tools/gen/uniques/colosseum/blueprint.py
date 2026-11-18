@@ -31,7 +31,7 @@ class DesignError(Exception):
 
 
 # ------------------------------------------------------------------ anillos
-def kval(dx, dz):
+def ring_value(dx, dz):
     """Distancia de anillo: (dx/(A0+k))^2 + (dz/(B0+k))^2 = 1."""
     if dx == 0 and dz == 0:
         return -B0
@@ -100,7 +100,7 @@ COLS = {}
 for _dx in range(-CX, NX - CX):
     for _dz in range(-CZ, NZ - CZ):
         c = Col()
-        c.k = kval(_dx, _dz)
+        c.k = ring_value(_dx, _dz)
         c.r = math.floor(c.k) if c.k >= 0 else -1
         c.u = bay(_dx, _dz, max(c.k, 0))
         c.out = outward(_dx, _dz, max(c.k, 0.1))

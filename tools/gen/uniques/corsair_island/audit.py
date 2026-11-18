@@ -75,7 +75,7 @@ def prepare(construction):
         if rs.Sim(t).powered(p):
             errs.append(f"dispensador con señal en reposo {p}")
     for p in m["flechas"]:
-        if not any(rs.Sim(t, {placa: True}).powered(p) for placa in m["placas"]):
+        if not any(rs.Sim(t, {plate_pos: True}).powered(p) for plate_pos in m["placas"]):
             errs.append(f"ninguna placa activa el dispensador {p}")
         if rs.Sim(t).powered(p):
             errs.append(f"dispensador con señal en reposo {p}")

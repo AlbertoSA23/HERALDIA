@@ -45,7 +45,7 @@ def errors(o, size):
     for (x, y, z) in o.nodes:
         if (x, y + 1, z) not in reach:
             e.append(f"cruce de la galería en {(x, y + 1, z)} inalcanzable a pie desde el patio")
-    for (x, y, z), tbl in o.cofres:
+    for (x, y, z), tbl in o.chest_list:
         if not any((x + dx, y + dy, z + dz) in reach for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)) for dy in (0, -1, 1)):
             e.append(f"cofre {tbl} en {(x, y, z)} inalcanzable")
     if o.descent:
@@ -53,9 +53,9 @@ def errors(o, size):
         for y in range(-3, 4):
             for x in range(-1, 2):
                 no_mouth[(x, y, 4)] = "minecraft:stone"          # tapiada la bajada: solo queda el pozo
-        alc2, _ = walkthrough.strict_walk(walkthrough.View(no_mouth), start, (x0, x1, z0, z1))
+        reach2, _ = walkthrough.strict_walk(walkthrough.View(no_mouth), start, (x0, x1, z0, z1))
         bx, by, bz = o.descent
-        if (bx, by, bz + 1) not in alc2:
+        if (bx, by, bz + 1) not in reach2:
             e.append(f"el pie de la escalera de caracol {(bx, by, bz + 1)} no se alcanza bajando por el pozo")
     # vía del patio a la galería
     get = lambda x, y, z: view.get((x, y, z))

@@ -8,7 +8,7 @@ descomprimidas (docs/DEVELOPMENT.md) lo comprueban.
 import multiprocessing as mp
 import os
 
-_TAREA = None      # (función, elementos) que ven los hijos tras el fork
+_TASK = None      # (función, elementos) que ven los hijos tras el fork
 
 
 def _nbt_list(subkind, elements):
@@ -38,21 +38,21 @@ def processes():
 
 
 def _one(i):
-    fn, items = _TAREA
+    fn, items = _TASK
     return fn(items[i])
 
 
 def map_obj(fn, items, chunksize=4, new_item=False):
     """[fn(x) for x in items], repartido entre procesos. fn y los elementos no tienen que poder serializarse (llegan
     por fork); el resultado de cada fn sí. nuevo=True: cada elemento en un proceso recién creado (estado del padre)."""
-    global _TAREA
+    global _TASK
     items = list(items)
     n = min(processes(), len(items))
     if n <= 1 or "fork" not in mp.get_all_start_methods():
         return [fn(x) for x in items]
     if new_item:
         return _children(fn, items, n)
-    _TAREA = (fn, items)
+    _TASK = (fn, items)
     try:
         pool = mp.get_context("fork").Pool(n)
         try:
@@ -65,7 +65,7 @@ def map_obj(fn, items, chunksize=4, new_item=False):
             pool.join()       # sin hilos del reparto vivos: el siguiente fork no hereda ninguno a medias
         return out
     finally:
-        _TAREA = None
+        _TASK = None
 
 
 def _children(fn, items, n):
@@ -171,7 +171,7 @@ def _caches():
     return out
 
 
-def changes(before, caches_antes):
+def changes(before, caches_before):
     """Lo que ha cambiado desde `antes` (foto) y las cachés calculadas desde entonces: {(módulo, nombre): valor}."""
     import pickle, sys
     out = {}
@@ -182,7 +182,7 @@ def changes(before, caches_antes):
         if key[0] in modules and before.get(key) != b:
             out[key] = ("dato", getattr(sys.modules[key[0]], key[1]))
     for key, fn in _caches().items():
-        if key[0] in modules and key not in caches_antes:
+        if key[0] in modules and key not in caches_before:
             out[key] = ("cache", fn())
     return out
 

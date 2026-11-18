@@ -14,11 +14,11 @@ LANG = chest_loot.lang("heraldia.medianas.torre_vigia.", {
     "arquero": ("Vigía del camino", "Road Watcher"),
 })
 LOOT = {
-    "vigia": chest_loot.cofre(((2, 4), [item("arrow", 10, 4, 12), item("bread", 8, 1, 3), item("torch", 6, 2, 6),
+    "vigia": chest_loot.place_chest(((2, 4), [item("arrow", 10, 4, 12), item("bread", 8, 1, 3), item("torch", 6, 2, 6),
                                    item("iron_nugget", 6, 2, 6), item("coal", 6, 1, 4), item("string", 4, 1, 3),
                                    item("spyglass", 1), item("map", 2), item("bow", 2, dmg=(0.3, 0.8)), empty(4)]),
                          ((1, 2), [item("emerald", 3), item("iron_ingot", 2), item("arrow", 4, 2, 6), empty(8)])),
-    "provisiones": chest_loot.cofre(((2, 4), [item("bread", 8, 1, 4), item("apple", 6, 1, 3), item("cooked_mutton", 4, 1, 2),
+    "provisiones": chest_loot.place_chest(((2, 4), [item("bread", 8, 1, 4), item("apple", 6, 1, 3), item("cooked_mutton", 4, 1, 2),
                                          item("wheat", 6, 2, 5), item("leather", 3), item("candle", 3, 1, 2), empty(6)]),
                                ((1, 1), [item("emerald", 2), empty(8)])),
 }
@@ -92,8 +92,8 @@ def upper(p, name):
     _courtyard(t, p)
     m = p["madera"]
     roof = _tower(t, p, 3, deck=True)
-    c.cofre(t, X0 + 1, 1, Z0 + 2, "east", MID, "vigia")
-    c.cofre(t, X0 + 1, 1, Z0 + 3, "east", MID, "provisiones", kind="barrel")
+    c.place_chest(t, X0 + 1, 1, Z0 + 2, "east", MID, "vigia")
+    c.place_chest(t, X0 + 1, 1, Z0 + 3, "east", MID, "provisiones", kind="barrel")
     t.set(X1 - 1, 1, Z1 - 1, "crafting_table")
     c.bed(t, X0 + 1, Z1 - 2, "west", "red", y=6)
     c.lantern(t, X1 - 1, 8, Z0 + 2)
@@ -112,7 +112,7 @@ def lower(p, name):
     _courtyard(t, p)
     m = p["madera"]
     _tower(t, p, 2, deck=False)
-    c.cofre(t, X0 + 1, 1, Z0 + 2, "east", MID, "vigia")
+    c.place_chest(t, X0 + 1, 1, Z0 + 2, "east", MID, "vigia")
     c.bed(t, X0 + 1, Z1 - 2, "west", "blue", y=6)
     t.set(X1 - 1, 6, Z0 + 1, "crafting_table")
     # cobertizo: postes en x = 13, tejadillo de losas en y = 4, leña y paja dentro, abierto al norte
@@ -124,7 +124,7 @@ def lower(p, name):
         t.set(X1 + 1, 1, z, f"{p['tronco']}[axis=z]")
     t.set(X1 + 1, 2, Z0 + 3, f"{p['tronco']}[axis=z]")
     t.set(X1 + 2, 1, Z1 - 1, "hay_block[axis=y]")
-    c.cofre(t, X1 + 2, 1, Z1 - 2, "west", MID, "provisiones", kind="barrel")
+    c.place_chest(t, X1 + 2, 1, Z1 - 2, "west", MID, "provisiones", kind="barrel")
     c.lantern(t, X1 + 2, 3, 8)
     return t
 

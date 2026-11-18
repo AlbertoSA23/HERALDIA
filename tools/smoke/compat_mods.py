@@ -1,7 +1,7 @@
 """Compatibilidad con mods populares de Fabric 26.3 en un servidor dedicado real, por grupos de mods compatibles entre sí.
 
-Uso: python3 tools/smoke/compat_mods.py --grupo <grupo> --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-     python3 tools/smoke/compat_mods.py --listar
+Uso: python3 tools/smoke/compat_mods.py --group <grupo> --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+     python3 tools/smoke/compat_mods.py --list-only
 Los mods salen de modrinth.py (versión 26.3 + Fabric fijada y sha512). En cada grupo (más Chunky, que hace la generación):
   - el servidor arranca sin errores de registro y con todas las estructuras de Heraldia («Heraldia: N estructuras
     registradas») y sin excepciones que pasen por código de Heraldia en todo el log;
@@ -206,7 +206,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--group", choices=sorted(GROUPS))
     ap.add_argument("--list-only", action="store_true", help="grupos y mods (con versión), sin ejecutar nada")
-    ap.add_argument("--mods", nargs="+", metavar="SLUG", help="con --grupo: estos mods en vez de los del grupo (para aislar un fallo)")
+    ap.add_argument("--mods", nargs="+", metavar="SLUG", help="con --group: estos mods en vez de los del grupo (para aislar un fallo)")
     ap.add_argument("--jar")
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-compat"))
     a = ap.parse_args(argv)
@@ -215,7 +215,7 @@ def main(argv=None):
             print(f"{g}: " + ", ".join(f"{p} {modrinth.MODS[p].version}" for p in mods_of(g)))
         return 0
     if not a.group or not a.jar:
-        ap.error("--grupo y --jar son obligatorios (o --listar)")
+        ap.error("--group y --jar son obligatorios (o --list-only)")
     os.makedirs(a.work, exist_ok=True)
     with zipfile.ZipFile(a.jar) as z:   # en la CI este job solo tiene el .jar
         expected = sum(n.startswith("data/heraldia/worldgen/structure/") and n.endswith(".json") for n in z.namelist())

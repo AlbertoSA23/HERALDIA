@@ -31,7 +31,7 @@ START = (100, 35)                     # palanca de suelo junto a la salida
 SWITCH1, LEVER1 = (89, 36), (88, 36)    # T norte-sur con rama al este (por donde llega la vagoneta)
 SWITCH2, LEVER2 = (89, 30), (89, 29)    # T este-oeste con rama al sur (por donde llega)
 SPOIL_HEAP, SMELTER = (89, 44), (83, 30)
-PUERTA = (92, 24)                        # compuerta del filón madre (bloque inferior a y = 1), en el muro norte
+DOOR_COL = (92, 24)                        # compuerta del filón madre (bloque inferior a y = 1), en el muro norte
 SEESAW = (96, 2, 24)                    # raíl detector, dentro del muro
 SOLUTION = (True, False)                 # aguja 1 con señal (norte), aguja 2 sin señal (este)
 
@@ -158,7 +158,7 @@ def trace(o):
     rail(96, y + 1, 25, "north_south")                                  # en la rendija (muro por encima y por debajo)
     rail(*SEESAW, "north_south", "detector_rail", False)
     # la compuerta: piston_door hacia el este, antorcha inversora en el apoyo de la báscula
-    px, pz = PUERTA
+    px, pz = DOOR_COL
     from .._common import pieces
     door = [(px, y, pz), (px, y + 1, pz)]
     pieces.piston_door(s, door, (1, 0), "west", "cobblestone")

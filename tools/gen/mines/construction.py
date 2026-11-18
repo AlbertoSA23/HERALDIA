@@ -27,7 +27,7 @@ class Construction:
         self.t, self.p, self.r = t, pal, rng
         self.carved = set()        # celdas de aire bajo tierra: llevan forro y casco
         self.surface = set()    # celdas del patio (aire explícito, suelo, edificios): sin forro ni casco
-        self.cofres = []           # (pos, tabla)
+        self.chest_list = []           # (pos, tabla)
         self.tracks = []             # tramos de vía: (inicio, sentido) para la auditoría
         self.nodes = []            # cruces de la galería (x, y del suelo, z)
         self.rooms = []            # (tipo, x0, x1, z0, z1, y del suelo)
@@ -58,9 +58,9 @@ class Construction:
     def rail(self, x, y, z, shape):
         self.s(x, y, z, f"rail[shape={shape},waterlogged=false]")
 
-    def cofre(self, x, y, z, facing, tbl, kind="chest"):
+    def place_chest(self, x, y, z, facing, tbl, kind="chest"):
         pieces.chest(self.s, x, y, z, facing, f"heraldia:minas/{tbl}", kind=kind)
-        self.cofres.append(((x, y, z), tbl))
+        self.chest_list.append(((x, y, z), tbl))
 
     def trunk(self, axis):
         return f"{self.p['tronco']}[axis={axis}]"

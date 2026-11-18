@@ -1,7 +1,7 @@
 # Observatory (`heraldia:unicas/observatorio`)
 
 An abandoned astronomical observatory on a windswept summit. A single variant, designed by hand in
-`tools/gen/unicas/observatorio.py`. Floor plans and renders in `docs/unicas/observatorio/`.
+`tools/gen/uniques/observatory.py`. Floor plans and renders in `docs/unicas/observatorio/`.
 
 ## Placement
 - Biomes: `windswept_hills`, `windswept_gravelly_hills`, `windswept_savanna` (windswept hills, windswept
@@ -128,13 +128,13 @@ retract, pull the bookshelves and open the way. The audit checks the circuit's g
   spyglasses, workshop stained glass, archive).
 
 ## Checks
-- Built with `_comun/piezas.py` (doors, spawners, guardian, tripwire and plate traps, connections),
-  loot with `_comun/botin.py`, the circuit with `_comun/redstone.py` and the walk with a basement with `_comun/recorrido.py`.
+- Built with `_common/pieces.py` (doors, spawners, guardian, tripwire and plate traps, connections),
+  loot with `_common/chest_loot.py`, the circuit with `_common/redstone.py` and the walk with a basement with `_common/walkthrough.py`.
 - `build(reg)` audits the complete template before splitting it and any warning stops generation: supports
   (`lint.support_issues`), the walk in the solved state (doors, chests, barrels, levers, buttons,
   ladders and every step of the flights), hidden rooms unreachable without solving, circuit simulation
   with `redstone.check_static` and `check_puzzle` (16 combinations; the placed state stable), the piston door,
   nothing floating (every block joined to the rest) and the exterior condition between 80 and 85 %.
-- `tools/smoke/observatorio_smoke.py`: on a 26.3 dedicated server it places the underground part and checks the rest state, puzzle,
+- `tools/smoke/observatory_smoke.py`: on a 26.3 dedicated server it places the underground part and checks the rest state, puzzle,
   pistons, traps, treasure chamber and guardian, and that `/place structure` also places the underground part.
 - Not checked: the look in game (missing screenshots from the owner) or the natural placement in the biomes.

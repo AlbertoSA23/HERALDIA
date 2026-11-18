@@ -34,9 +34,9 @@ WATER = ["#minecraft:is_ocean", "#minecraft:is_deep_ocean", "#minecraft:is_river
 MAX_MEAN_US, MAX_ROAD_US = 3000, 30000
 
 
-def configure(work, activado, seed="heraldia"):
+def configure(work, switched_on, seed="heraldia"):
     cfg = json.loads(json.dumps(CONFIG))
-    cfg["aldeas"]["caminos"] = {"activado": activado}
+    cfg["aldeas"]["caminos"] = {"activado": switched_on}
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
         json.dump(cfg, f)
     props = os.path.join(work, "server.properties")
@@ -73,7 +73,7 @@ def chunks_of(a, b):
     return sorted(((progress(c), c[0], c[1]) for c in out))
 
 
-def generar(ctx, chunks):
+def generate(ctx, chunks):
     for _, cx, cz in chunks:
         ctx.run(f"forceload add {cx * 16} {cz * 16}", r"Marked|Added|force|already")
     for _, cx, cz in chunks:
@@ -183,7 +183,7 @@ def main():
         if not re.search(r"caminos entre aldeas desactivados", ctx.log()):
             fails.append("sin la línea «caminos entre aldeas desactivados» en el log")
         destination_ready(ctx)
-        generar(ctx, old)
+        generate(ctx, old)
         before = count(ctx, old)
         ctx.run("save-all flush", r"Saved the game|saved")
     finally:
@@ -197,7 +197,7 @@ def main():
     proc, ctx = at.start_server(a.work, launcher)
     try:
         destination_ready(ctx)
-        generar(ctx, corridor)
+        generate(ctx, corridor)
         after = count(ctx, old)
         new_item = count(ctx, new_items)
         changed_list = {c: (before[c], after[c]) for c in before if before[c] != after[c]}

@@ -12,7 +12,7 @@ forro y dos capas de roca maciza alrededor; fuera, structure_void. La auditoría
 import functools
 from .._common.chest_loot import lang
 from .chest_loot import LOOT, LANG as LANG_OBJECTS
-from .construction import Construction, K, SID, PISO, YTOP, AXIS, CX, CZ
+from .construction import Construction, K, SID, FLOOR_Y, YTOP, AXIS, CX, CZ
 from . import audit
 from .surface import Headframe, well, SHAFT_HEIGHT, FOUNDATION, FOOTPRINT
 
@@ -76,7 +76,7 @@ def dataset():
     p8, p1 = well(SHAFT_HEIGHT, "pozo"), well(1, "pozo_corto")
     for t in (col, c, p8, p1):
         t.no_generic_audit = True
-    meta = dict(colonia_y=PISO + y0, eje_colonia=list(axis), centro=list(center), muestras=[list(m) for m in samples],
+    meta = dict(colonia_y=FLOOR_Y + y0, eje_colonia=list(axis), centro=list(center), muestras=[list(m) for m in samples],
                 eje_pozo=[3, 0, 3], alto_pozo=SHAFT_HEIGHT, eje_castillete=list(axis_c), huella=[hx0, hz0, hx1, hz1],
                 pozo_max=WELL_MAX)
     rep = dict(rep, obra=construction, castillete=cast, desplazamiento=(x0, y0, z0), desplazamiento_castillete=(cx0, cy0, cz0))
@@ -105,7 +105,7 @@ class _Lazy(dict):
 # rejilla heraldia:rejilla con la candidata buscada en las cuevas a la altura del centro de la caverna
 STRUCTURE = _Lazy(start_pool=f"unicas/{SID}/colonia", size=1, max_distance=1, terrain_adaptation="none",
                   step="underground_structures", spacing=250, separation=190, candidata_en_bioma=True,
-                  candidata_y=PISO + 6)
+                  candidata_y=FLOOR_Y + 6)
 
 
 def build(reg):

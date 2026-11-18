@@ -27,7 +27,7 @@ ADVANCEMENTS = [dict(id="renegados", icono="minecraft:golden_axe",
                    "predicate": {"minecraft:entity_type": "minecraft:piglin_brute",
                                  "minecraft:entity_tags": {"all_of": ["heraldia_mediana.puesto_piglin"]}}}}}})]
 LOOT = {
-    "botin": chest_loot.cofre(((2, 4), [item("gold_nugget", 10, 3, 9), item("quartz", 6, 2, 6), item("arrow", 6, 3, 8),
+    "botin": chest_loot.place_chest(((2, 4), [item("gold_nugget", 10, 3, 9), item("quartz", 6, 2, 6), item("arrow", 6, 3, 8),
                                    item("cooked_porkchop", 6, 1, 3), item("leather", 4, 1, 3), item("string", 4, 1, 3),
                                    item("crossbow", 2, dmg=(0.4, 0.8)), item("golden_carrot", 2, 1, 2),
                                    item("gold_ingot", 2), empty(5)]),
@@ -93,7 +93,7 @@ def hut(p, name):
     """La choza con el botín robado y dos renegados de guardia en el patio."""
     t = _enclosure(p, name)
     _hut(t, p)
-    c.cofre(t, CX, 1, H1 - 1, "north", MID, "botin")
+    c.place_chest(t, CX, 1, H1 - 1, "north", MID, "botin")
     t.set(H0 + 1, 1, H1 - 1, "barrel[facing=up,open=false]")
     t.set(H1 - 1, 1, H1 - 1, p["mesa"])
     for x in (CX - 3, CX + 3):
@@ -115,8 +115,8 @@ def pen(p, name):
     t.entity(9, 1, 11, renegade(90.0))
     # hoguera de almas con el asador (vasija) al oeste
     t.set(4, 1, 10, "soul_campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]")
-    c.cofre(t, 2, 1, 10, "east", MID, "asador", kind="barrel")
-    c.cofre(t, 4, 1, 13, "north", MID, "botin")
+    c.place_chest(t, 2, 1, 10, "east", MID, "asador", kind="barrel")
+    c.place_chest(t, 4, 1, 13, "north", MID, "botin")
     for x in (3, 5):
         t.set(x, 1, 8, f"{p['escalon']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
     pieces.connect(t)

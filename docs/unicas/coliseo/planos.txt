@@ -1,4 +1,4 @@
-Planos del Coliseo en ruinas (generados por auditoria.py --planos)
+Planos del Coliseo en ruinas (generados por auditoria.py --blueprints)
 Leyenda: '.' celda alcanzable a pie a esa altura, ',' alcanzable 1-2 bloques más arriba o abajo,
 '#' bloque sólido a la altura del cuerpo, 'H' escalera de mano, C cofre, S generador, T trampa, P puzle,
 G guardián. Norte arriba; x crece hacia la derecha. Puzles resueltos.

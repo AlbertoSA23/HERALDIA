@@ -80,7 +80,7 @@ def check(t):
     f = ruins(t)
     if not 0.15 <= f <= 0.20:
         errs.append(f"proporción de ruinas {f:.1%} fuera del 15-20 %")
-    for pos, tbl in t.cofres:
+    for pos, tbl in t.chest_list:
         if tbl not in LOOT:
             errs.append(f"cofre {pos} con tabla inexistente {tbl}")
         if not (t.blocks.get(pos) or (None, None))[1]:
@@ -90,7 +90,7 @@ def check(t):
         errs.append("faltan generadores de monstruos")
     if not any(e[3].get("CustomName") for e in t.entities):
         errs.append("falta el guardián")
-    if "premium" not in [tb for _, tb in t.cofres]:
+    if "premium" not in [tb for _, tb in t.chest_list]:
         errs.append("falta el cofre premium")
     return errs
 

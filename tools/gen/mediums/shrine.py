@@ -24,7 +24,7 @@ ADVANCEMENTS = [dict(id="custodios", icono="minecraft:bone",
                                  "minecraft:entity_tags": {"all_of": ["heraldia_mediana.templete"]}}}}}
                           for m in ("skeleton", "husk")})]
 LOOT = {
-    "ofrenda": chest_loot.cofre(((2, 4), [item("gold_nugget", 8, 2, 8), item("emerald", 5, 1, 3), item("lapis_lazuli", 5, 2, 6),
+    "ofrenda": chest_loot.place_chest(((2, 4), [item("gold_nugget", 8, 2, 8), item("emerald", 5, 1, 3), item("lapis_lazuli", 5, 2, 6),
                                      item("candle", 5, 1, 3), item("gold_ingot", 2), item("amethyst_shard", 3, 1, 3),
                                      item("golden_carrot", 2, 1, 2), item("book", 2, rand_ench=True),
                                      item("archer_pottery_sherd", 1), item("prize_pottery_sherd", 1), empty(5)]),
@@ -76,7 +76,7 @@ def _temple(p, name):
     for x, z, axis in ((1, 8, "z"), (1, 9, "z"), (16, 11, "x"), (17, 11, "x"), (12, 16, "x")):
         t.set(x, 1, z, p["tambor"] + (f"[axis={axis}]" if p["tambor"].endswith("_pillar") else ""))
     for x, z in ((P0 + 1, P0 + 1), (P1 - 1, P1 - 1)):
-        c.cofre(t, x, 2, z, "north", MID, "vasija", kind="decorated_pot")
+        c.place_chest(t, x, 2, z, "north", MID, "vasija", kind="decorated_pot")
     t.set(P1 - 1, 2, P0 + 1, "decorated_pot[cracked=true,facing=north,waterlogged=false]", {"id": "minecraft:decorated_pot"})
     return t
 
@@ -94,7 +94,7 @@ def altar(p, name):
     """Altar con el cofre de las ofrendas y velas; dos custodios a sus lados."""
     t = _temple(p, name)
     t.set(CX, 2, 11, p["capitel"])
-    c.cofre(t, CX, 3, 11, "north", MID, "ofrenda")
+    c.place_chest(t, CX, 3, 11, "north", MID, "ofrenda")
     for x in (CX - 1, CX + 1):
         t.set(x, 2, 11, "candle[candles=3,lit=true,waterlogged=false]")
     t.entity(CX - 2, 2, 9, adult(keeper(p, 180.0)))
@@ -111,7 +111,7 @@ def well(p, name):
                 t.set(x, 2, z, p["brocal"])
             else:
                 t.set(x, 1, z, "water[level=0]")
-    c.cofre(t, CX + 3, 2, 10, "west", MID, "ofrenda")
+    c.place_chest(t, CX + 3, 2, 10, "west", MID, "ofrenda")
     t.set(CX - 3, 2, 12, "candle[candles=2,lit=true,waterlogged=false]")
     return t
 

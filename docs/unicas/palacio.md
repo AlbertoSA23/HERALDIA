@@ -1,7 +1,7 @@
 # Eastern palace (`heraldia:unicas/palacio`)
 
 An imperial palace of eastern inspiration, walled, with three successive courtyards on a strictly
-symmetric north-south axis. A single variant, designed by hand (`tools/gen/unicas/palacio/`), in a single rigid piece of 81 × 123 blocks.
+symmetric north-south axis. A single variant, designed by hand (`tools/gen/uniques/palace/`), in a single rigid piece of 81 × 123 blocks.
 
 - Biomes: `minecraft:cherry_grove` and `minecraft:bamboo_jungle` (the normal and sparse jungles belong to the pyramid temple).
 - Rarity: `spacing` 250 / `separation` 190 chunks (one every ~3,000-5,000 blocks).

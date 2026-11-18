@@ -60,8 +60,8 @@ def test_entries_by_page_with_the_worst_case():
         assert n >= 1
         for i in (0, 1):
             # las n entradas más largas, una por línea, tras la cabecera: caben; con una más, la peor ya no cabría
-            peores = sorted(entrances[i], key=chest_loot.book_lines, reverse=True)[:n]
-            assert guide.page_lines(header[i], "\n".join(peores)) <= chest_loot.BOOK_LINES
+            worst_ones = sorted(entrances[i], key=chest_loot.book_lines, reverse=True)[:n]
+            assert guide.page_lines(header[i], "\n".join(worst_ones)) <= chest_loot.BOOK_LINES
         worst = max(chest_loot.book_lines(e) for e in entrances[0] + entrances[1])
         assert guide.title_lines(header[0]) + 1 + (n + 1) * worst > chest_loot.BOOK_LINES
 
@@ -106,14 +106,14 @@ def test_data_for_the_java():
     assert brief["nombres_por_pagina"] == chest_loot.BOOK_LINES - 2 >= d["nombres_por_pagina"]
 
 
-def test_write_escribe_el_indice_y_devuelve_los_textos():
+def test_write_writes_the_index_and_returns_the_texts():
     written = {}
     out = guide.write("salida", MODULES, lambda out, path, obj: written.__setitem__(path, obj))
     assert written == {"heraldia/guia.json": guide.dataset(MODULES)}
     assert out == guide.lang()
 
 
-def test_write_falla_si_no_cabe(monkeypatch):
+def test_write_fails_if_it_does_not_fit(monkeypatch):
     monkeypatch.setattr(guide, "TITLE", ("x" * 40, "y"))
     with pytest.raises(SystemExit, match="pasa de 32"):
         guide.write("salida", MODULES, lambda *a: None)

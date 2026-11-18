@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 from modrinth import MODS, Mod, fetch
 
-# squaremap (mapa web de servidor) fijado para esta prueba (python3 tools/smoke/modrinth.py --buscar squaremap); no va
+# squaremap (mapa web de servidor) fijado para esta prueba (python3 tools/smoke/modrinth.py --find squaremap); no va
 # en modrinth.MODS para no tocar las pruebas de compatibilidad (COMPAT_RUTAS de tools/test.py).
 SQUAREMAP = Mod("squaremap", "1.4.3", "squaremap-fabric-mc26.3-1.4.3.jar",
                 "https://cdn.modrinth.com/data/PFb7ZqK6/versions/YPMtDS9D/squaremap-fabric-mc26.3-1.4.3.jar",

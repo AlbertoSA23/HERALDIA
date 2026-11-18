@@ -8,7 +8,7 @@ antigua, la línea de /heraldia info y que una única nueva (rejilla nueva) no s
 antiguas localizadas.
 
 Las coordenadas de MAIN se sacaron con el .jar de main (commit 3248f74, heraldia-0.1.0.jar compilado con ./gradlew build
-en un worktree) y este mismo script: python3 tools/smoke/compatible_grid.py --jar <jar de main> --sacar.
+en un worktree) y este mismo script: python3 tools/smoke/compatible_grid.py --jar <jar de main> --extract.
 Código 0 si todo pasa.
 """
 import argparse, json, math, os, queue, subprocess, sys, threading
@@ -50,7 +50,7 @@ def main():
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-rejilla"))
     ap.add_argument("--extract", action="store_true", help="solo imprime las coordenadas (para fijar MAIN con el .jar de main)")
-    ap.add_argument("--no-option", action="store_true", help="con --sacar: la opción desactivada (para ver que cambian)")
+    ap.add_argument("--no-option", action="store_true", help="con --extract: la opción desactivada (para ver que cambian)")
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())

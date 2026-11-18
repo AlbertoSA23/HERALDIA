@@ -44,8 +44,8 @@ def everyone():
     return list(BASE) + list(TRANSLATIONS)
 
 
-def locale(codigo):
-    return codigo.split("_", 1)[0]
+def locale(lang_code):
+    return lang_code.split("_", 1)[0]
 
 
 def mc_locales():
@@ -55,15 +55,15 @@ def mc_locales():
     return out
 
 
-def route(codigo):
-    return os.path.join(FOLDER, f"{codigo}.json")
+def route(lang_code):
+    return os.path.join(FOLDER, f"{lang_code}.json")
 
 
-def load_data(codigo):
+def load_data(lang_code):
     """{clave: texto} de una traducción (tools/gen/languages/<código>.json); {} si aún no existe."""
-    if not os.path.exists(route(codigo)):
+    if not os.path.exists(route(lang_code)):
         return {}
-    with open(route(codigo), encoding="utf-8") as f:
+    with open(route(lang_code), encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -85,24 +85,24 @@ def markers(text):
     return sorted(indices), literals
 
 
-def key_errors(base, translated, codigo):
+def key_errors(base, translated, lang_code):
     """Claves que faltan o sobran en la traducción `trad` frente a `base` (el es_es)."""
-    e = [f"{codigo}: falta la clave {k}" for k in base if k not in translated]
-    e += [f"{codigo}: sobra la clave {k}" for k in translated if k not in base]
-    e += [f"{codigo}: {k} está vacía" for k, v in translated.items() if k in base and not str(v).strip()]
+    e = [f"{lang_code}: falta la clave {k}" for k in base if k not in translated]
+    e += [f"{lang_code}: sobra la clave {k}" for k in translated if k not in base]
+    e += [f"{lang_code}: {k} está vacía" for k, v in translated.items() if k in base and not str(v).strip()]
     return e
 
 
-def marker_errors(en, translated, codigo):
+def marker_errors(en, translated, lang_code):
     """Huecos de formato distintos de los del inglés (que son los mismos que los del español)."""
     e = []
     for k, t in translated.items():
         if k in en:
             m, expected = markers(t), markers(en[k])
             if m is None:
-                e.append(f"{codigo}: {k} tiene un marcador desconocido: {t!r}")
+                e.append(f"{lang_code}: {k} tiene un marcador desconocido: {t!r}")
             elif m != expected:
-                e.append(f"{codigo}: {k} usa los huecos {m}, el inglés {expected}: {t!r}")
+                e.append(f"{lang_code}: {k} usa los huecos {m}, el inglés {expected}: {t!r}")
     return e
 
 
@@ -156,14 +156,14 @@ def book_pages(items):
     return out
 
 
-def book_errors(pages, texts, codigo):
+def book_errors(pages, texts, lang_code):
     """Páginas de libro que no caben en este idioma (14 líneas de 114 px, como el juego)."""
     from uniques._common import chest_loot
     e = []
     for where, p in pages:
         t = text(p, texts)
         if chest_loot.book_lines(t) > chest_loot.BOOK_LINES:
-            e.append(f"{codigo}: la página de libro {where} no cabe ({chest_loot.book_lines(t)} de {chest_loot.BOOK_LINES} "
+            e.append(f"{lang_code}: la página de libro {where} no cabe ({chest_loot.book_lines(t)} de {chest_loot.BOOK_LINES} "
                      f"líneas): {t[:60]}…")
     return e
 
@@ -192,14 +192,14 @@ def sign_keys(items):
     return out
 
 
-def sign_errors(keys, texts, codigo):
+def sign_errors(keys, texts, lang_code):
     """Líneas de cartel más anchas que el cartel (90 px) en este idioma, también en es/en: el cliente (SignRenderer)
     corta la línea por palabras a 90 px y lo que sobra no se ve.
     `claves`: las de claves_de_carteles ({clave: en negrita}) o un conjunto de claves (sin negrita)."""
     e = []
     for k in sorted(keys):
         if k in texts and sign_width(texts[k], isinstance(keys, dict) and keys[k]) > SIGN_WIDTH:
-            e.append(f"{codigo}: la línea de cartel {k} no cabe ({sign_width(texts[k], isinstance(keys, dict) and keys[k])} "
+            e.append(f"{lang_code}: la línea de cartel {k} no cabe ({sign_width(texts[k], isinstance(keys, dict) and keys[k])} "
                      f"de {SIGN_WIDTH} px): {texts[k]!r}")
     return e
 
@@ -222,19 +222,19 @@ def complete(base, pages=(), signs=()):
     completa o no cabe."""
     es, en = base["es_es"], base["en_us"]
     out, e = {"es_es": es, "en_us": en}, []
-    for codigo in BASE:
-        e += book_errors(pages, base[codigo], codigo) + sign_errors(signs, base[codigo], codigo)
-    for codigo in TRANSLATIONS:
-        translated = load_data(codigo)
-        e += key_errors(es, translated, codigo) + marker_errors(en, translated, codigo)
-        e += book_errors(pages, {**en, **translated}, codigo) + sign_errors(signs, translated, codigo)
-        out[codigo] = sort_items(es, translated)
+    for lang_code in BASE:
+        e += book_errors(pages, base[lang_code], lang_code) + sign_errors(signs, base[lang_code], lang_code)
+    for lang_code in TRANSLATIONS:
+        translated = load_data(lang_code)
+        e += key_errors(es, translated, lang_code) + marker_errors(en, translated, lang_code)
+        e += book_errors(pages, {**en, **translated}, lang_code) + sign_errors(signs, translated, lang_code)
+        out[lang_code] = sort_items(es, translated)
     if e:
         raise SystemExit("IDIOMAS:\n" + "\n".join(e[:200]) + (f"\n… y {len(e) - 200} más" if len(e) > 200 else ""))
     return out
 
 
-def _check(codigos):
+def _check(lang_codes):
     """Uso a mano: compara cada traducción con el es_es/en_us ya generados (build/generated/heraldia)."""
     root = os.path.join(os.path.dirname(FOLDER), "..", "..", "build", "generated", "heraldia")
     lang = os.path.join(root, "assets", "heraldia", "lang")
@@ -258,7 +258,7 @@ def _check(codigos):
         e = sign_errors(signs, base[c], c)
         print("\n".join(e) if e else f"{c}: carteles bien")
         bad_many += len(e)
-    for c in codigos or TRANSLATIONS:
+    for c in lang_codes or TRANSLATIONS:
         translated = load_data(c)
         e = (key_errors(base["es_es"], translated, c) + marker_errors(base["en_us"], translated, c)
              + book_errors(pages, {**base["en_us"], **translated}, c)

@@ -50,9 +50,9 @@ def prepare(construction):
         if bn(open_rea.get(p)) != "air":
             errs.append(f"la cura no abre la puerta de los reactivos en {p}")
     # puzle 2: el panel de tallo del cepario
-    cep = m["puerta_cepario"]
-    open_cep = open_up(t, rs.Sim(t, {cep["lever"]: True}))
-    for p in (cep["door"], (cep["door"][0], cep["door"][1] + 1, cep["door"][2])):
+    stocks_door = m["puerta_cepario"]
+    open_cep = open_up(t, rs.Sim(t, {stocks_door["lever"]: True}))
+    for p in (stocks_door["door"], (stocks_door["door"][0], stocks_door["door"][1] + 1, stocks_door["door"][2])):
         if bn(open_cep.get(p)) != "air":
             errs.append(f"la palanca no abre el cepario en {p}")
         if bn(blocks.get(p)) in ("air", None):
@@ -65,7 +65,7 @@ def prepare(construction):
         if rs.Sim(t).powered(p):
             errs.append(f"dispensador con señal en reposo {p}")
     for p in m["flechas"]:
-        if not any(rs.Sim(t, {placa: True}).powered(p) for placa in m["placas"]):
+        if not any(rs.Sim(t, {plate_pos: True}).powered(p) for plate_pos in m["placas"]):
             errs.append(f"ninguna placa activa el dispensador {p}")
         if rs.Sim(t).powered(p):
             errs.append(f"dispensador con señal en reposo {p}")
@@ -99,7 +99,7 @@ def prepare(construction):
     for p, mob in construction.spawners:
         if not nearby_flag(cells, p):
             errs.append(f"generador inalcanzable {p}")
-    for p in m["palancas"] + [cep["lever"]]:
+    for p in m["palancas"] + [stocks_door["lever"]]:
         if not nearby_flag(cells_pub, p):
             errs.append(f"palanca inalcanzable {p}")
     for p, _ in construction.chests:

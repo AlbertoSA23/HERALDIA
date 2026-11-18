@@ -31,7 +31,7 @@ RADIUS = 80                 # forceload alrededor del inicio de la aldea
 ATTEMPTS, RETRY_S = 40, 0.5
 # Posiciones de la plantilla de la plaza (streets.plaza, tablon.SLOT): marcador de centro, alguacil, sitio del aldeano
 # de prueba y del jugador (en el paso libre del norte, entre la salida y la fuente), relativas al marcador.
-MARK, ALG = (1, 1), (14, 18)
+MARK, SHERIFF = (1, 1), (14, 18)
 SPOT, BOT = (11, 4), (11, 2)
 ROUND = "heraldia:aldeas/encargos/ronda"
 HEALTH_ON = {"vida": {"asedios": True}}
@@ -138,15 +138,15 @@ def plaza(srv, fails):
     print(f"aldea {sid} en {x}, {z}")
     srv.run(f"forceload add {x - RADIUS} {z - RADIUS} {x + RADIUS} {z + RADIUS}", r"Marked|Added|force|already")
     near = f"positioned {x} 100 {z}"
-    alg = f"@e[type=minecraft:villager,tag=heraldia_alguacil,sort=nearest,limit=1]"
-    if not srv.until(f"execute {near} if entity {alg.replace(']', ',distance=..160]')}", attempts=240):
+    sheriff_pos = f"@e[type=minecraft:villager,tag=heraldia_alguacil,sort=nearest,limit=1]"
+    if not srv.until(f"execute {near} if entity {sheriff_pos.replace(']', ',distance=..160]')}", attempts=240):
         fails.append(f"{sid}: no aparece el alguacil del tablón en la plaza")
         return None
     pos = lambda sel: [float(v) for v in re.findall(r"(-?[\d.]+)d", srv.data(f"execute {near} run data get entity {sel} Pos"))]
-    a = pos(alg)
+    a = pos(sheriff_pos)
     mk = pos("@e[type=minecraft:armor_stand,tag=heraldia_centro,sort=nearest,limit=1]")
     dx, dz = a[0] - mk[0], a[2] - mk[2]
-    rot = next((r for r in rotations() if r(ALG[0] - MARK[0], ALG[1] - MARK[1]) == (round(dx), round(dz))), None)
+    rot = next((r for r in rotations() if r(SHERIFF[0] - MARK[0], SHERIFF[1] - MARK[1]) == (round(dx), round(dz))), None)
     if rot is None:
         fails.append(f"{sid}: el alguacil no está en su sitio de la plaza respecto al marcador ({dx}, {dz})")
         return None
@@ -154,10 +154,10 @@ def plaza(srv, fails):
     return style, to_world, mk[1], a
 
 
-def check_tablon(srv, fails, style, a, lang):
-    alg = "@e[type=minecraft:villager,tag=heraldia_alguacil,sort=nearest,limit=1]"
+def check_board(srv, fails, style, a, lang):
+    sheriff_pos = "@e[type=minecraft:villager,tag=heraldia_alguacil,sort=nearest,limit=1]"
     at = f"positioned {a[0]} {a[1]} {a[2]}"
-    d = srv.data(f"execute {at} run data get entity {alg}")
+    d = srv.data(f"execute {at} run data get entity {sheriff_pos}")
     for want in ("NoAI: 1b", "Invulnerable: 1b", "heraldia.tablon.alguacil", "minecraft:weaponsmith", "minecraft:rotten_flesh",
                  "minecraft:bone", "minecraft:leather_chestplate", "heraldia.tablon.capa", "minecraft:emerald"):
         if want not in d:
@@ -219,7 +219,7 @@ def check_trades(srv, fails, style, to_world, y, styles, fams, family, enabled=T
     srv.run("kill @e[tag=heraldia_prueba]", r"Killed|No entity was found")
 
 
-def check_ronda(srv, fails, to_world, y):
+def check_patrol(srv, fails, to_world, y):
     """Zombi muerto por el jugador: fuera de la aldea no da la hazaña; en la plaza, sí, con 3 esmeraldas."""
     spot = to_world(SPOT)
     srv.run(f"clear {PLAYER}", r"Removed|No items")
@@ -248,7 +248,7 @@ def check_ronda(srv, fails, to_world, y):
     print(f"ronda: hazaña y {m.group(1) or 0} esmeraldas")
 
 
-def check_place_without_tablon(srv, fails, style, x, z):
+def check_place_without_board(srv, fails, style, x, z):
     r = 112   # /place pide cargados todos los chunks que pisa la aldea (como aldeas_terreno.py; forceload: <= 256 chunks)
     srv.run(f"forceload add {x - r} {z - r} {x + r} {z + r}", r"Marked|Added|force|already")
     corners = [(x + ex, z + ez) for ex in (-r, r) for ez in (-r, r)] + [(x, z)]
@@ -298,8 +298,8 @@ def main():
                 fails.append(f"tratos.NIVEL_VANILLA no coincide con el juego (escrito, real): {bad}")
         found = plaza(srv, fails)
         if found:
-            style, to_world, y, alg = found
-            check_tablon(srv, fails, style, alg, lang)
+            style, to_world, y, sheriff_pos = found
+            check_board(srv, fails, style, sheriff_pos, lang)
             srv.run(f"player {PLAYER} spawn at {to_world(BOT)[0]} {y} {to_world(BOT)[1]}", r"joined the game")
             if not srv.until(f"execute if entity @a[name={PLAYER}]"):
                 raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
@@ -307,18 +307,18 @@ def main():
             t0 = time.monotonic()
             check_trades(srv, fails, style, to_world, y, styles, fams, family[style])
             print(f"tratos sorteados en {time.monotonic() - t0:.1f} s")
-            check_ronda(srv, fails, to_world, y)
+            check_patrol(srv, fails, to_world, y)
             srv.run(f"player {PLAYER} kill", r"left the game")
         srv.stop()
         if found:
             write_config(a.work, HEALTH_OFF)
             srv = Server(a.work, launcher)
-            srv.run(f"forceload add {int(alg[0]) - RADIUS} {int(alg[2]) - RADIUS} {int(alg[0]) + RADIUS} {int(alg[2]) + RADIUS}",
+            srv.run(f"forceload add {int(sheriff_pos[0]) - RADIUS} {int(sheriff_pos[2]) - RADIUS} {int(sheriff_pos[0]) + RADIUS} {int(sheriff_pos[2]) + RADIUS}",
                     r"Marked|Added|force|already")
             srv.run(f"player {PLAYER} spawn at {to_world(BOT)[0]} {y} {to_world(BOT)[1]}", r"joined the game")
             srv.until(f"execute if entity @a[name={PLAYER}]")
             check_trades(srv, fails, style, to_world, y, styles, fams, family[style], enabled=False)
-            check_place_without_tablon(srv, fails, style, int(alg[0]) + 400, int(alg[2]))
+            check_place_without_board(srv, fails, style, int(sheriff_pos[0]) + 400, int(sheriff_pos[2]))
             srv.run(f"player {PLAYER} kill", r"left the game")
     finally:
         srv.stop()

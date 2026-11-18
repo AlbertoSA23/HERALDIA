@@ -148,7 +148,7 @@ def test_matrix_and_names():
 
 
 def test_ci_matrix_by_line_of_commands():
-    """--ci-matriz --completa da todas las pruebas en grupos, como en push a develop."""
+    """--ci-matrix --full da todas las pruebas en grupos, como en push a develop."""
     out = subprocess.run([sys.executable, os.path.join(TOOLS, "test.py"), "--ci-matrix", "--full"],
                          capture_output=True, text=True, check=True).stdout
     m = json.loads(out)

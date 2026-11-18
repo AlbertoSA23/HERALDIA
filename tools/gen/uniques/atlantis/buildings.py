@@ -5,7 +5,7 @@ from .._common import pieces as P
 
 BRICK, DARK, PRISMARINE, LANTERN = "prismarine_bricks", "dark_prismarine", "prismarine", "sea_lantern"
 GLASS, QUARTZ, PILLAR = "light_blue_stained_glass", "quartz_bricks", "quartz_pillar[axis=y]"
-PUERTA = "warped_door"
+DOOR_COL = "warped_door"
 CORALS = ("tube_coral_block", "brain_coral_block", "bubble_coral_block", "fire_coral_block", "horn_coral_block")
 
 
@@ -13,7 +13,7 @@ def h(u, v, salt):
     return U.dispersion(u, v, salt)
 
 
-def door(v, u, y, w, facing, material=PUERTA, hinge="left"):
+def door(v, u, y, w, facing, material=DOOR_COL, hinge="left"):
     """Puerta cerrada (pieza común); mira = hacia dónde mira quien sale por ella (cara exterior)."""
     P.door(v.set, u, y, w, facing, kind=material, hinge=hinge)
 
@@ -57,7 +57,7 @@ def furniture(v, w, d, y, salt):
     return (w - 2, y, d - 3)
 
 
-def house(v, w, d, dry=True, salt=0, cofre=None, name="casa"):
+def house(v, w, d, dry=True, salt=0, place_chest=None, name="casa"):
     """Casa de dos plantas (5 de alto cada una). seca: planta alta seca por piscina lunar o baja seca con puerta."""
     y1, y2 = 5, 10
     v.shell(0, 0, 0, w - 1, y2, d - 1, BRICK, floor=DARK, roof=DARK)
@@ -104,13 +104,13 @@ def house(v, w, d, dry=True, salt=0, cofre=None, name="casa"):
         v.set(w - 2, y2 - 1, d - 2, LANTERN)
         free = (w - 2, y1 + 1, d - 2)
     deck(v, w, d, y2, h(v.ox, v.oz, salt + 2) % 2)
-    if cofre:
-        C.cofre(v, *free, "north" if free[2] > 1 else "south", cofre)
+    if place_chest:
+        C.place_chest(v, *free, "north" if free[2] > 1 else "south", place_chest)
     v.site(name, 0, 0, 0, w - 1, y2 + 4, d - 1)
     return free
 
 
-def ruin_piece(v, w, d, salt=0, cofre=None):
+def ruin_piece(v, w, d, salt=0, place_chest=None):
     """Casa derruida e inundada: muros a media altura, escombros, coral y algas."""
     y2 = 10
     for u in range(w):
@@ -136,12 +136,12 @@ def ruin_piece(v, w, d, salt=0, cofre=None):
                 elif r < 10:
                     v.set(u, 1, z, BRICK)
     v.remove(w // 2, 1, 0, w // 2, 3, 0)
-    if cofre:
-        C.cofre(v, w - 2, 1, d - 2, "north", cofre)
+    if place_chest:
+        C.place_chest(v, w - 2, 1, d - 2, "north", place_chest)
     v.site("ruina", 0, 0, 0, w - 1, y2, d - 1, ruinous=True)
 
 
-def tower(v, r=5, salt=0, cofre=None):
+def tower(v, r=5, salt=0, place_chest=None):
     """Torre redonda de tres cuerpos con cúpula; arriba, sala seca a la que se sube buceando por el hueco central."""
     c = r
     height = 16
@@ -165,8 +165,8 @@ def tower(v, r=5, salt=0, cofre=None):
     v.set(c, height, c, LANTERN)
     v.dome(c, c, r, height + 1, DARK, rib=BRICK)
     v.set(c, height + r + 1, c, LANTERN)
-    if cofre:
-        C.cofre(v, c, 12, c + r - 2, "north", cofre)
+    if place_chest:
+        C.place_chest(v, c, 12, c + r - 2, "north", place_chest)
     v.mark("seca", c - 1, 12, c - 1)
     v.mark("agua", c, 11, c)
     v.site("torre", 0, 0, 0, 2 * r, height + r + 2, 2 * r)

@@ -4,20 +4,20 @@ Política de pruebas (docs/DEVELOPMENT.md): cada sesión prueba solo su trabajo 
 lo que toca, que este script elige por rutas) y una sesión auditora ejecuta la batería completa.
 
 Uso:
-  python3 tools/test.py --afectados           # tests unitarios + pruebas de servidor de lo cambiado frente a origin/develop
-  python3 tools/test.py --afectados --base REF --jar build/libs/heraldia-X.jar
-  python3 tools/test.py --todo --jar ...      # batería completa (sesión auditora): unitarios, humo y todas las de servidor
-  python3 tools/test.py --listar [--todo]     # solo dice qué pruebas de servidor tocan (no ejecuta nada)
-  python3 tools/test.py --unitarios           # solo los tests unitarios rápidos (pytest del generador)
-  python3 tools/test.py --ci-matriz --base SHA [--completa]   # JSON de la matriz de la CI (grupos de pruebas)
-  python3 tools/test.py --grupo "a.py b.py" --jar ... --work DIR   # ejecuta un grupo en serie (lo usa la CI)
+  python3 tools/test.py --affected           # tests unitarios + pruebas de servidor de lo cambiado frente a origin/develop
+  python3 tools/test.py --affected --base REF --jar build/libs/heraldia-X.jar
+  python3 tools/test.py --all --jar ...      # batería completa (sesión auditora): unitarios, humo y todas las de servidor
+  python3 tools/test.py --list-only [--all]     # solo dice qué pruebas de servidor tocan (no ejecuta nada)
+  python3 tools/test.py --unit-tests           # solo los tests unitarios rápidos (pytest del generador)
+  python3 tools/test.py --ci-matrix --base SHA [--full]   # JSON de la matriz de la CI (grupos de pruebas)
+  python3 tools/test.py --group "a.py b.py" --jar ... --work DIR   # ejecuta un grupo en serie (lo usa la CI)
 
 Las pruebas de servidor se descubren solas: tools/smoke/*.py (salvo server_smoke.py, la de humo, que va siempre, y los
 módulos de NO_SON_PRUEBAS) y tools/gen/uniques/*/smoke_*.py. compat_mods.py es una prueba por grupo de mods
-(«tools/smoke/compat_mods.py::<grupo>», con --grupo): en un PR solo va si cambia algo de COMPAT_RUTAS. Una prueba nueva entra en la batería completa sin tocar nada; para que la elija también la
+(«tools/smoke/compat_mods.py::<grupo>», con --group): en un PR solo va si cambia algo de COMPAT_RUTAS. Una prueba nueva entra en la batería completa sin tocar nada; para que la elija también la
 selección por rutas, basta con que esté en la carpeta de su única (o, si va en tools/smoke/, en SMOKE_DE_UNICA o en MAPA).
 La de coste de generación (tools/smoke/generation_cost.py) no va en los grupos: tiene su job en la CI («coste» en la
-salida de --ci-matriz) y en local va al final de --afectados (si lo cambiado toca COSTE_RUTAS) y de --todo (--sin-coste
+salida de --ci-matrix) y en local va al final de --affected (si lo cambiado toca COSTE_RUTAS) y de --all (--no-cost
 la quita).
 """
 import argparse, fnmatch, glob, json, os, shutil, subprocess, sys, time
@@ -203,7 +203,7 @@ def is_compat(test):
 
 
 def order(test):
-    """Orden para ejecutar una prueba: [script, argumentos...] («ruta::grupo» pasa --grupo grupo)."""
+    """Orden para ejecutar una prueba: [script, argumentos...] («ruta::grupo» pasa --group grupo)."""
     script, _, group = test.partition("::")
     return [os.path.join(ROOT, script)] + (["--group", group] if group else [])
 
@@ -386,12 +386,12 @@ def main(argv=None):
     mode.add_argument("--ci-matrix", action="store_true", help="matriz JSON para la CI")
     mode.add_argument("--group", help="ejecuta en serie estas pruebas (separadas por espacios)")
     ap.add_argument("--base", default="origin/develop", help="referencia con la que comparar (por defecto origin/develop)")
-    ap.add_argument("--full", action="store_true", help="con --ci-matriz/--listar: batería completa")
+    ap.add_argument("--full", action="store_true", help="con --ci-matrix/--list-only: batería completa")
     ap.add_argument("--jar", help="el .jar del mod (por defecto el de la versión de gradle.properties)")
     ap.add_argument("--work", default=os.path.join(ROOT, "build", "smoke"), help="carpeta del servidor de prueba")
     ap.add_argument("--logs", help="carpeta donde copiar el log de cada prueba")
-    ap.add_argument("--no-unit", action="store_true", help="con --afectados/--todo: no pasa los unitarios")
-    ap.add_argument("--no-cost", action="store_true", help="con --afectados/--todo: no pasa la prueba de coste de generación")
+    ap.add_argument("--no-unit", action="store_true", help="con --affected/--all: no pasa los unitarios")
+    ap.add_argument("--no-cost", action="store_true", help="con --affected/--all: no pasa la prueba de coste de generación")
     a = ap.parse_args(argv)
     work = os.path.abspath(a.work)       # los scripts arrancan Java con cwd=--work: ruta absoluta
     jar = os.path.abspath(a.jar or default_jar())

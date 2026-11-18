@@ -66,7 +66,7 @@ def test_download_always_cut_fails(tmp_path, monkeypatch):
 
 
 # ------------------------------------------------------------------ mundo_existente.py
-def _seccion(palette, indices):
+def _build_section(palette, indices):
     """block_states de una sección con `paleta` (nombres) e `indices` (4096), empaquetados como el juego."""
     bits = max(4, (len(palette) - 1).bit_length())
     per, data = 64 // bits, []
@@ -82,16 +82,16 @@ def test_states_of_a_section():
     assert me.states(None) is None
     assert me.states({"palette": [{"Name": "minecraft:air"}]}) == [("minecraft:air", ())] * 4096
     ind = [i % 3 for i in range(4096)]
-    sty = me.states(_seccion(["minecraft:air", "minecraft:stone", "minecraft:dirt"], ind))
+    sty = me.states(_build_section(["minecraft:air", "minecraft:stone", "minecraft:dirt"], ind))
     assert len(sty) == 4096 and sty[0][0] == "minecraft:air" and sty[4095][0] == ["minecraft:air", "minecraft:stone", "minecraft:dirt"][4095 % 3]
     # 17 estados: 5 bits, 12 por long (sin repartir entre dos)
     pal = [f"minecraft:b{i}" for i in range(17)]
     ind = [(i * 7) % 17 for i in range(4096)]
-    assert [e[0] for e in me.states(_seccion(pal, ind))] == [pal[i] for i in ind]
+    assert [e[0] for e in me.states(_build_section(pal, ind))] == [pal[i] for i in ind]
 
 
 def _footprint(palette, indices, be=None):
-    return me.footprint({"sections": [{"Y": 0, "block_states": _seccion(palette, indices), "biomes": {"palette": ["minecraft:plains"]}}],
+    return me.footprint({"sections": [{"Y": 0, "block_states": _build_section(palette, indices), "biomes": {"palette": ["minecraft:plains"]}}],
                       "block_entities": be or [], "Heightmaps": {}, "structures": {"References": {}, "starts": {}},
                       "LastUpdate": 5, "InhabitedTime": 9, "Status": "minecraft:full"})
 
@@ -114,17 +114,17 @@ def test_a_changed_block_is_detected():
 
 def test_blocks_with_data_and_fields_volatile():
     ind = [0] * 4096
-    cofre = {"id": "minecraft:chest", "x": 1, "y": 2, "z": 3, "LootTable": "heraldia:unicas/x"}
-    a = _footprint(["minecraft:air"], ind, [cofre])
-    assert me.differences(a, _footprint(["minecraft:air"], ind, [dict(cofre, keepPacked=1)])) == []
-    d = me.differences(a, _footprint(["minecraft:air"], ind, [dict(cofre, LootTable="heraldia:otra")]))
+    place_chest = {"id": "minecraft:chest", "x": 1, "y": 2, "z": 3, "LootTable": "heraldia:unicas/x"}
+    a = _footprint(["minecraft:air"], ind, [place_chest])
+    assert me.differences(a, _footprint(["minecraft:air"], ind, [dict(place_chest, keepPacked=1)])) == []
+    d = me.differences(a, _footprint(["minecraft:air"], ind, [dict(place_chest, LootTable="heraldia:otra")]))
     assert len(d) == 1 and "LootTable" in d[0]
     assert me.differences(a, _footprint(["minecraft:air"], ind)) != []
 
 
 def test_chain_palette_of_26_3():
     ind = [i % 2 for i in range(4096)]
-    sec = _seccion(["minecraft:air", "minecraft:stone"], ind)
+    sec = _build_section(["minecraft:air", "minecraft:stone"], ind)
     sec["palette"] = ["minecraft:air", "minecraft:stone"]               # como lo guarda 26.3
     assert [e[0] for e in me.states(sec)] == [["minecraft:air", "minecraft:stone"][i] for i in ind]
 

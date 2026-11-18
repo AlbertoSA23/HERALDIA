@@ -130,14 +130,14 @@ def test_buttons_of_generated_texts(texts, tmp_path):
     assert errors == [], errors[:20]
 
 
-@pytest.mark.parametrize("codigo", languages.everyone())
-def test_new_texts_in_the_8_languages(codigo, texts):
-    t = texts[codigo]
+@pytest.mark.parametrize("lang_code", languages.everyone())
+def test_new_texts_in_the_8_languages(lang_code, texts):
+    t = texts[lang_code]
     for k in ("heraldia.comando.obsoleto", "heraldia.version.nueva", "heraldia.version.descargar", "heraldia.version.copia",
               "heraldia.version.al_dia", "heraldia.version.comprobando", "heraldia.version.sin_respuesta",
               "heraldia.config.update_check.activado", "heraldia.config.update_check.prereleases",
               "heraldia.config.seccion.actualizaciones"):
-        assert t.get(k, "").strip(), (codigo, k)
+        assert t.get(k, "").strip(), (lang_code, k)
     assert languages.markers(t["heraldia.comando.obsoleto"])[0] == [1, 2]
     assert languages.markers(t["heraldia.version.nueva"])[0] == [1, 2, 3]
     # la copia de seguridad se recomienda en todos

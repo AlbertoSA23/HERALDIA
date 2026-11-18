@@ -14,7 +14,7 @@ with the mining trade (shaft and winding gear, minecarts, smelter, timbering, ve
 - Biomes: **lush caves** and **dripstone caves** (`minecraft:lush_caves`, `minecraft:dripstone_caves`),
   measured **at the height of the cavern**, not at the surface. Not the deep dark (`deep_dark`, of the ancient cities) nor
   `#c:is_cave` (which includes it). No conventional tags.
-- **Height**: the floor layer of the great cavern is at **y = 20** (`obra.PISO`); the mother lode goes down to y = 9 and the
+- **Height**: the floor layer of the great cavern is at **y = 20** (`construction.PISO`); the mother lode goes down to y = 9 and the
   bottom of the chasm to y = 4; the top face of the colony is at y = 46. Why:
   - below sea level (63), so even on low terrain there is plenty of rock above the vault;
   - above y ≈ 8, where deepslate, the deep dark and the ancient cities (y ≈ -51) and the trial
@@ -39,7 +39,7 @@ with the mining trade (shaft and winding gear, minecarts, smelter, timbering, ve
 ## The colony is not a box: the shell
 
 The colony is a single template (108 x 45 x 82) that **only holds what is excavated** (air and water), its **lining** on each face
-facing the excavation and **two layers of solid rock** around it (`obra.forro` and `obra.casco`); outside, nothing (structure_void),
+facing the excavation and **two layers of solid rock** around it (`construction.lining` and `construction.shell`); outside, nothing (structure_void),
 so the terrain is kept. That is why:
 
 - a vanilla cave passing nearby sees irregular rock, not the flat faces of a box;
@@ -97,7 +97,7 @@ Coordinates of the build: x from west to east, z from north to south; the shaft 
 
 ## Puzzles, hidden rooms and traps
 
-1. **The loading bay switches** (`vias.py`). A minecart waits at the start, an unpowered booster rail against the east
+1. **The loading bay switches** (`tracks.py`). A minecart waits at the start, an unpowered booster rail against the east
    wall; the "Start" lever launches it to the west. Three boosters with a redstone block underneath keep it going
    (an empty minecart brakes a lot). The track goes through two **switches** (T junctions) with their floor lever:
    - without touching anything, switch 1 takes it south, to the **spoil heap**;
@@ -105,16 +105,16 @@ Coordinates of the build: x from west to east, z from north to south; the shaft 
    - only with switch 1 to the north and 2 unpowered (to the east) does it reach, by a ramp and a **1 x 1 gap in the wall**
      (a person does not fit), the **weighbridge**: a detector rail. While the minecart weighs on it, its support block
      turns off the inverting torch that holds the **floodgate** of the mother lode (two extended sticky pistons, like
-     `piezas.lever_door`), and the floodgate opens; if the minecart is removed, it closes.
+     `pieces.lever_door`), and the floodgate opens; if the minecart is removed, it closes.
    The clue is in the foreman's office ("To the weighbridge: switch 1, north; switch 2, east"). The switch rule in 26.3
    (`RailState.place`, read in the bytecode): with three neighbors, without a signal the last of NW, NE, SW, SE with its two
-   neighbors wins; with a signal, the last of SE, SW, NE, NW. The audit reproduces it (`vias.forma_aguja`), follows the minecart
-   along the track in the 4 combinations (`vias.recorrer`) and requires only the correct one to reach the weighbridge; the shared simulator
-   (`_comun/redstone`, which now treats the detector rail like a plate) checks the floodgate's rest state, that the
+   neighbors wins; with a signal, the last of SE, SW, NE, NW. The audit reproduces it (`tracks.spire_shape`), follows the minecart
+   along the track in the 4 combinations (`tracks.traverse`) and requires only the correct one to reach the weighbridge; the shared simulator
+   (`_common/redstone`, which now treats the detector rail like a plate) checks the floodgate's rest state, that the
    weighbridge opens it and that no lever in the loading bay touches it. The server test does it with a real minecart.
 2. **The foreman's office** (a hidden room with a puzzle): in the west wall of his house (two thick), a brick
    panel slides back to the north inside the wall when the lever in the built-in bookshelf in the corner is pulled down
-   (`piezas.lever_door`). Inside, the `despacho` chest with the **Chronicle leaf**, a lectern, bookshelves and the sign with the
+   (`pieces.lever_door`). Inside, the `despacho` chest with the **Chronicle leaf**, a lectern, bookshelves and the sign with the
    switches clue.
 3. **The stash** (a hidden room without a puzzle): behind the blue tapestry at the back of the boat shed, a 1 x 2 passage leads to the
    hideout of the gold smugglers (the `alijo` chest).
@@ -137,7 +137,7 @@ Coordinates of the build: x from west to east, z from north to south; the shaft 
 
 ## State of conservation
 
-16 % of the visible surface is damaged (audit, `auditoria.estado`: faces facing the excavation, not counting
+16 % of the visible surface is damaged (audit, `audit.state`: faces facing the excavation, not counting
 floors): collapses of gravel and cobblestone, the house with the caved-in roof, the fallen prop, missing planks and railing on
 the bridge and the walkway, torn-out sleepers, a fallen track at the bottom of the chasm, and the colony's processor (cracked or mossy
 brick, mossy cobblestone). Nothing that holds up a mechanism falls: the processor only changes the look.
@@ -152,14 +152,14 @@ brick, mossy cobblestone). Nothing that holds up a mechanism falls: the processo
 
 ## Checks
 
-- Its own audit (`auditoria.py`, a condition for generating): the redstone's rest state; the 4 switch combinations;
+- Its own audit (`audit.py`, a condition for generating): the redstone's rest state; the 4 switch combinations;
   the floodgate, the office and the traps with the shared simulator; a walk with the puzzles closed and solved
-  (`lint.walk` and `recorrido.andar`, without falls of more than one block and swimming, with a way back to the entrance from anywhere
+  (`lint.walk` and `walkthrough.strict_walk`, without falls of more than one block and swimming, with a way back to the entrance from anywhere
   and the climb up the shaft's ladder to the top); supports, doors, stairs (`lint`); spawner light;
   natural blocks in sight; a closed shell; loose blocks; damaged surface; number of chests; the headframe (the chest
   and the shaft's ladder can be reached). Tested with deliberate failures (changed solution, removed torch, panel
   open, a lantern next to a spawner).
-- `prueba_servidor.py` (in the CI matrix): `/locate` and natural generation (the guardian in its place, the cavern in
+- `smoke_server.py` (in the CI matrix): `/locate` and natural generation (the guardian in its place, the cavern in
   its cave biome, the shaft's chain from the colony to the headframe and open air above), `/place structure` with its
   time and its entities, and the templates unrotated: chests, spawners, water, the switch puzzle with a real
   minecart at the three exits, the office and the two traps.

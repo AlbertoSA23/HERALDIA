@@ -19,13 +19,13 @@ def test_parse_state_invalid():
         parse_state("Stone Bricks")
 
 
-def test_with_props_y_ids():
+def test_with_props_and_ids():
     assert with_props("lever[powered=false]", powered=True) == "minecraft:lever[powered=true]"
     assert norm_id("dirt") == "minecraft:dirt" and norm_id("heraldia:x") == "heraldia:x"
     assert nsid("aldeas/x") == "heraldia:aldeas/x" and nsid("minecraft:empty") == "minecraft:empty"
 
 
-def test_to_tag_tipos():
+def test_to_tag_types():
     assert isinstance(to_tag(B(1)), nbtlib.Byte) and isinstance(to_tag(True), nbtlib.Byte)
     assert isinstance(to_tag(F(0.5)), nbtlib.Float) and isinstance(to_tag(0.5), nbtlib.Double)
     assert isinstance(to_tag(3), nbtlib.Int) and isinstance(to_tag("a"), nbtlib.String)
@@ -50,7 +50,7 @@ def test_template_set_get_fill_normalize():
     assert t.is_free(5, 5, 5)
 
 
-def test_to_nbt_paleta_y_orden():
+def test_to_nbt_palette_and_order():
     t = Template("x")
     t.set(1, 0, 0, "stone")
     t.set(0, 0, 0, "oak_log[axis=y]")
@@ -69,7 +69,7 @@ def test_to_nbt_paleta_y_orden():
     assert [float(c) for c in e["pos"]] == [0.5, 1.0, 0.5] and [float(c) for c in e["nbt"]["Pos"]] == [0.5, 1.0, 0.5]
 
 
-def test_to_nbt_rechaza_negativos():
+def test_to_nbt_rejects_negatives():
     t = Template("x")
     t.set(-1, 0, 0, "stone")
     with pytest.raises(AssertionError):
@@ -106,7 +106,7 @@ def _nbtlib(t):
     return b.getvalue()
 
 
-def test_nbt_raw_igual_que_nbtlib():
+def test_nbt_raw_same_as_nbtlib():
     """El serializador directo de Template.nbt_raw da los mismos bytes que nbtlib (to_nbt + File.write)."""
     from uniques._common import pieces
     t = Template("x")

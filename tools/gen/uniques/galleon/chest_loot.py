@@ -2,7 +2,7 @@
 un grupo "solo_sin_lootr" (con Lootr cada jugador abre el suyo y recibe solo lo modesto)."""
 from loot import item, empty, FOOD
 from .texts import LANG
-from .._common.chest_loot import pool, potion, cofre  # noqa: F401
+from .._common.chest_loot import pool, potion, place_chest  # noqa: F401
 
 
 def named(name, w, key, ench=None, lo=1, hi=1):
@@ -16,7 +16,7 @@ def named(name, w, key, ench=None, lo=1, hi=1):
 
 
 def chest(base, extra, rb=(2, 4), re=(1, 2)):
-    return cofre((rb, base), (re, extra))
+    return place_chest((rb, base), (re, extra))
 
 
 BEACH = [item("cooked_cod", 10, 1, 3), item("dried_kelp", 10, 2, 6), item("string", 8, 1, 4), item("stick", 8, 2, 5),

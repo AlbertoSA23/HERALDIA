@@ -483,9 +483,9 @@ def lang():
     return out
 
 
-def translation(codigo):
+def translation(lang_code):
     """Los textos de un idioma de idiomas/ (fr_fr, de_de...), también los de la opción nueva."""
-    i = LANGUAGES.index(codigo)
+    i = LANGUAGES.index(lang_code)
     out = {k: v[i] for k, v in _all().items()}
     for k, v in OPTION.items():
         out[f"{NS}.{k}"] = v[i - 2]

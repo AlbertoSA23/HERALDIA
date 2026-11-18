@@ -5,7 +5,7 @@ Coordenadas del plano: x, z relativas al centro de la ciudad; y absoluta.
 import math
 
 RADIUS, FLOOR, BASE, ROOF = 372, 31, 24, 62          # muralla exterior, pavimento, fondo del zócalo, agua despejada hasta
-WALL, WALL_HEIGHT, PUERTA, DOOR_HEIGHT, AVENUE, ROUND = 4, 13, 4, 8, 6, 10
+WALL, WALL_HEIGHT, DOOR_COL, DOOR_HEIGHT, AVENUE, ROUND = 4, 13, 4, 8, 6, 10
 SIDE = 384                                            # la ciudad ocupa [-384, 384) en x y z: 3 x 3 distritos de 256
 TILE = 32                                           # las plantillas son teselas de 32 x 32 alineadas con los distritos
 
@@ -51,7 +51,7 @@ def base(x, y, z):
     if y > FLOOR:
         wall = r > RADIUS - WALL
         if wall:
-            door = abs(x) <= PUERTA or abs(z) <= PUERTA
+            door = abs(x) <= DOOR_COL or abs(z) <= DOOR_COL
             height = FLOOR + (WALL_HEIGHT if door else wall_height(x, z))
             if not door and height == FLOOR + WALL_HEIGHT and r > RADIUS - 1.5 and dispersion(x, z, 3) & 1 == 0:
                 height += 1

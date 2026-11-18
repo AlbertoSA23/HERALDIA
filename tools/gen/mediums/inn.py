@@ -16,11 +16,11 @@ LANG = chest_loot.lang("heraldia.medianas.posada.", {
     "cartel2": ("del Camino", "of the Road"),
 })
 LOOT = {
-    "cuarto": chest_loot.cofre(((2, 4), [item("bread", 8, 1, 3), item("cookie", 5, 2, 6), item("candle", 5, 1, 2),
+    "cuarto": chest_loot.place_chest(((2, 4), [item("bread", 8, 1, 3), item("cookie", 5, 2, 6), item("candle", 5, 1, 2),
                                     item("paper", 5, 1, 4), item("book", 3), item("leather_boots", 2, dmg=(0.4, 0.9)),
                                     item("gold_nugget", 4, 1, 4), item("compass", 1), empty(6)]),
                           ((1, 1), [item("emerald", 3, 1, 2), empty(8)])),
-    "despensa": chest_loot.cofre(((3, 5), [item("bread", 8, 1, 4), item("baked_potato", 6, 1, 4), item("cooked_chicken", 5, 1, 2),
+    "despensa": chest_loot.place_chest(((3, 5), [item("bread", 8, 1, 4), item("baked_potato", 6, 1, 4), item("cooked_chicken", 5, 1, 2),
                                       item("apple", 6, 1, 3), item("honey_bottle", 3), item("sugar", 4, 1, 3),
                                       item("milk_bucket", 1), item("egg", 4, 1, 3), empty(4)]),
                             ((1, 1), [item("cake", 1), item("pumpkin_pie", 3), empty(8)])),
@@ -28,7 +28,7 @@ LOOT = {
 
 X0, Z0, X1, Z1 = 2, 4, 16, 12      # muros de la casa (15 x 9)
 PARTITION = 11                       # muro entre la sala (oeste) y el cuarto (este)
-PUERTA = 6                         # puerta de la calle, en el muro norte
+DOOR_COL = 6                         # puerta de la calle, en el muro norte
 WIDTH, DEPTH = 19, 18              # patio
 
 
@@ -42,14 +42,14 @@ def offers():
 
 def _floor(p):
     mats = p["patio"]
-    return lambda x, z: "minecraft:dirt_path" if x == PUERTA and z < Z0 else mats[(x * 5 + z * 11 + x * z) % len(mats)]
+    return lambda x, z: "minecraft:dirt_path" if x == DOOR_COL and z < Z0 else mats[(x * 5 + z * 11 + x * z) % len(mats)]
 
 
 def _house(p, name):
     t = Template(name)
     m = p["madera"]
     c.courtyard(t, 0, 0, WIDTH - 1, DEPTH - 1, _floor(p))
-    c.entrance(t, PUERTA, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
+    c.entrance(t, DOOR_COL, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
     # muros: entramado (troncos en esquinas y cada 4) y paños de `muro`, zócalo en y = 0, techo en y = 5
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, f"{m}_planks")
@@ -70,8 +70,8 @@ def _house(p, name):
     # tabique y su puerta
     t.fill(PARTITION, 1, Z0 + 1, PARTITION, 4, Z1 - 1, p["muro"])
     c.door(t, PARTITION, 1, 8, "east", f"{m}_door")
-    c.door(t, PUERTA, 1, Z0, "south", f"{m}_door")
-    pieces.sign(c.put(t), PUERTA + 2, 3, Z0 - 1, "north", [c.text(MID, "cartel1", "Posada"),
+    c.door(t, DOOR_COL, 1, Z0, "south", f"{m}_door")
+    pieces.sign(c.put(t), DOOR_COL + 2, 3, Z0 - 1, "north", [c.text(MID, "cartel1", "Posada"),
                                                           c.text(MID, "cartel2", "del Camino")], wood=m)
     # ventanas
     for x in (4, 8, 13):
@@ -82,7 +82,7 @@ def _house(p, name):
     for x in range(8, PARTITION):
         t.set(x, 1, Z1 - 2, f"stripped_{p['tronco']}[axis=x]")
     t.set(PARTITION - 1, 1, Z1 - 1, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
-    c.cofre(t, PARTITION - 1, 2, Z1 - 1, "west", MID, "despensa", kind="barrel")
+    c.place_chest(t, PARTITION - 1, 2, Z1 - 1, "west", MID, "despensa", kind="barrel")
     t.entity(9, 1, Z1 - 1, c.villager(MID, "posadero", "Posadero", "butcher", p["aldeano"], offers(), rot=180.0))
     c.table_top(t, 5, 6, m)
     c.table_top(t, 5, 10, m)
@@ -91,7 +91,7 @@ def _house(p, name):
     # cuarto: dos camas contra el muro este, cofre entre ellas, farol
     c.bed(t, X1 - 1, Z0 + 1, "east", p["cama"])
     c.bed(t, X1 - 1, Z1 - 1, "east", p["cama"])
-    c.cofre(t, X1 - 1, 1, 8, "west", MID, "cuarto")
+    c.place_chest(t, X1 - 1, 1, 8, "west", MID, "cuarto")
     c.lantern(t, 13, 4, 8)
     return t
 

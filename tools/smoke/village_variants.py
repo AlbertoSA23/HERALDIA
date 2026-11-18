@@ -1,12 +1,12 @@
 """Variantes de los edificios especiales de las aldeas en un servidor dedicado 26.3 real (complementa server_smoke.py).
 
-Uso: python3 tools/smoke/village_variants.py --jar build/libs/heraldia-X.jar --work build/smoke [--estilo E] [--medir]
+Uso: python3 tools/smoke/village_variants.py --jar build/libs/heraldia-X.jar --work build/smoke [--style E] [--measure]
 Coloca con /place varias aldeas del mismo estilo en sitios distintos, guarda el mundo y, leyendo las regiones, busca en
 cada aldea cada edificio especial (iglesia, cementerio, ayuntamiento, mercado, taberna, herrería, biblioteca, granja,
 molino y posada) comparando los bloques del mundo con las plantillas de todas sus variantes, que se leen del .jar:
 - cada especial de cada aldea coincide con una sola de sus variantes (las variantes se colocan bien en el juego);
 - entre todas las aldeas salen variantes distintas de la mayoría de los especiales (los pools sortean de verdad).
-Además mide lo que tarda cada /place (ensamblado y colocación); --medir solo imprime las cifras (para comparar con
+Además mide lo que tarda cada /place (ensamblado y colocación); --measure solo imprime las cifras (para comparar con
 un .jar anterior, que no tiene variantes), sin dar nada por fallado.
 """
 import argparse, io, math, os, queue, subprocess, sys, threading, time, zipfile

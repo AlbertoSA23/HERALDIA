@@ -35,9 +35,9 @@ TODAY = DAYS[datetime.date.today().weekday()]
 SIGN = r"has the following block data: (.*)|is not a block entity|Found no elements|not a block"
 
 
-def config(work, activado, day):
+def config(work, switched_on, day):
     cfg = json.loads(json.dumps(s.TEST_CONFIG))
-    cfg["arena"] = {"generar_en_mundos_nuevos": False, "activado": activado,
+    cfg["arena"] = {"generar_en_mundos_nuevos": False, "activado": switched_on,
                     "modos": {"oleadas_contrarreloj": 2},
                     "temporada": {"dia_reinicio": day, "hora_reinicio": 0, "historico": 3}}
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:

@@ -53,18 +53,18 @@ def plots(m):
             ruinous = x < 0 and z > 0 or z > 0 and abs(x) < 110        # hacia los jardines y el puerto: más ruina
             w, d = 11 + 2 * (salt % 3), 11 + 2 * (salt // 3 % 2)
             if kind < (21 if ruinous else 5):
-                E.ruin_piece(centered_view(m, x, z, w, d, turn), w, d, salt, cofre="menor" if salt % 6 == 0 else None)
+                E.ruin_piece(centered_view(m, x, z, w, d, turn), w, d, salt, place_chest="menor" if salt % 6 == 0 else None)
             elif kind < 58:
-                E.house(centered_view(m, x, z, w, d, turn), w, d, True, salt, cofre="menor" if salt % 3 == 0 else None)
+                E.house(centered_view(m, x, z, w, d, turn), w, d, True, salt, place_chest="menor" if salt % 3 == 0 else None)
             elif kind < 76:
                 v = centered_view(m, x, z, w, d, turn)
-                E.house(v, w, d, False, salt, cofre="menor" if salt % 5 == 0 else None, name="casa_inundada")
+                E.house(v, w, d, False, salt, place_chest="menor" if salt % 5 == 0 else None, name="casa_inundada")
                 if salt % 4 == 1:
                     C.generator(v, 1, 1, d - 2, "drowned", trident=salt % 8 == 1)
                 elif salt % 4 == 2:
                     v.entity(w // 2, 2, d // 2, C.drowned(salt % 3 == 0))
             elif kind < 88:
-                E.tower(centered_view(m, x, z, 11, 11, turn), 5, salt, cofre="media")
+                E.tower(centered_view(m, x, z, 11, 11, turn), 5, salt, place_chest="media")
             else:
                 E.small_plaza(centered_view(m, x, z, 9, 9, turn), 9, salt)
                 if salt % 2:

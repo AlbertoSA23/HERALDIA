@@ -82,7 +82,7 @@ def named(name, w, key, ench=None, rand_ench=False):
 
 def chest(base, extra, rolls=(3, 6), extra_rolls=(1, 3)):
     """Grupo base (siempre) y grupo extra solo_sin_lootr (con Lootr, cada jugador abre el base)."""
-    return chest_loot.cofre((rolls, base), (extra_rolls, extra))
+    return chest_loot.place_chest((rolls, base), (extra_rolls, extra))
 
 
 FOOD = [item("bread", 10, 1, 3), item("cooked_cod", 8, 1, 3), item("dried_kelp", 8, 2, 6), item("apple", 6, 1, 3),

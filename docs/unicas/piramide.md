@@ -91,7 +91,7 @@ Every circuit is in a consistent rest state and nothing needs a block update whe
   powered, the pistons extended with their sticky head and the door's blocks in front. The lever powers the
   torch's block → it turns off → the pistons retract pulling the door. Pulling the lever down closes it.
 
-It is checked in the audit (states and adjacencies) and on a real server (`prueba_servidor.py`, which places the
+It is checked in the audit (states and adjacencies) and on a real server (`smoke_server.py`, which places the
 templates and forces each circuit).
 
 ## Spawners and enemies
@@ -136,7 +136,7 @@ No netherite gear, no elytra, no totems.
   reached and without breaking the wall the walled-up chamber cannot either; from the bottom of the pit you can get back to the square; nothing
   floats; the water is enclosed; no block is powered except the door's torch. Outer surface
   in good condition: 0.825 (erosion of the brick and polished tuff computed for the middle of the range: 13.7 %).
-- 26.3 dedicated server (`prueba_servidor.py`, templates unrotated): the guardian with 40 health; the door closed
+- 26.3 dedicated server (`smoke_server.py`, templates unrotated): the guardian with 40 health; the door closed
   at rest, open when the torch's block is powered and closed again; the tripwire, the pit plates and the dart plates
   fire with an armor stand on top; the water does not leak; the premium chest has its table.
 - Smoke test: the structure is placed with `/place structure` and all its loot tables open.
@@ -144,4 +144,4 @@ No netherite gear, no elytra, no totems.
   with `/place structure` on different reliefs.
 
 Floor plans by level in [`piramide/planos.txt`](piramide/planos.txt) (`.` reachable on foot) and renders in
-`piramide/*.png`. They are regenerated with `python3 tools/gen/unicas/piramide/planos.py`.
+`piramide/*.png`. They are regenerated with `python3 tools/gen/uniques/pyramid/blueprints.py`.

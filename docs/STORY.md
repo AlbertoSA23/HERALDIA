@@ -1,8 +1,8 @@
 # The Chronicle of the Heralds
 
 A light, optional shared story thread that links Heraldia's unique structures. It changes nothing in the game except for a
-written book (a "leaf") in a chest each unique structure already had. The texts of each leaf are in the `HISTORIA` of its
-module (`tools/gen/unicas/<id>`); this document is the reference for writing those of future unique structures without
+written book (a "leaf") in a chest each unique structure already had. The texts of each leaf are in the `STORY` of its
+module (`tools/gen/uniques/<id>`); this document is the reference for writing those of future unique structures without
 contradicting what their signs, guardians, trophies and named items already tell.
 
 ## Background
@@ -19,7 +19,7 @@ Atlantis.
 
 Each leaf tells what Ysolda found in that place, whom she left the leaf with and where they hid it, and ends with a
 page that **points to the next unique structure** with a biome-and-feature clue (without naming it). Sometimes (10 %) it comes with the
-treasure map of that structure (the same system as the epic chests and the cartographers, `tools/gen/mapas.py`).
+treasure map of that structure (the same system as the epic chests and the cartographers, `tools/gen/maps.py`).
 
 Rules for not contradicting what exists: the guardian of each unique structure is the one who swore the oath (or inherited it); the place
 where the leaf was kept is the chest that holds it; proper names are those of the structure's signs, guardians, trophies
@@ -27,7 +27,7 @@ and items.
 
 ## The chain
 
-It is computed on its own from the registered unique structures (`_comun/botin.historia_cadena`): by id, with the final one (
+It is computed on its own from the registered unique structures (`_common/chest_loot.story_chain`): by id, with the final one (
 Atlantis, `"final": True`) at the end. Each leaf points to the next and the Atlantis one points back to the first,
 so it is a single cycle: you can start anywhere and reach all of them. A new unique structure takes its place on its own
 (by its id) and the pages are renumbered ("Leaf N of M").
@@ -67,7 +67,7 @@ so it is a single cycle: you can start anywhere and reach all of them. A new uni
 
 ## New unique structure
 
-`HISTORIA` is mandatory in the contract of `tools/gen/unicas/__init__.py` (like `TROFEO`): without it, with a chest that is not
+`STORY` is mandatory in the contract of `tools/gen/uniques/__init__.py` (like `TROPHY`): without it, with a chest that is not
 in its templates or with pages that do not fit in a book (14 lines of 114 px, computed with the font's
 widths), the build fails. It is enough to write its part and its clue:
 

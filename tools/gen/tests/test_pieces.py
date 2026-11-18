@@ -112,7 +112,7 @@ def test_plate_and_lever_trap():
     assert "facing=west" in t.get(0, 1, 0)
 
 
-def test_item_frame_y_painting():
+def test_item_frame_and_painting():
     f = pieces.item_frame(1, 2, 3, 2, item="compass")
     assert f["block_pos"] == [1, 2, 3] and f["Item"]["id"] == "minecraft:compass"
     p = pieces.painting(1, 2, 3, "east", "kebab")
