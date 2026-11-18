@@ -81,6 +81,8 @@ def counts(text):
 
 
 CHRONICLE_END = r"\[« Journal\]"
+# odd names: Carpet takes a real account's capitalisation ("Testigo") when the name exists, and the selectors would miss it
+WITNESS, VETERAN = "hrd_testigo", "hrd_veterano"
 LEAF = "minecraft:written_book[minecraft:custom_data={heraldia_ultimo_pliego:1}]"
 
 
@@ -124,7 +126,7 @@ def chronicle(srv, by_dimension, lang):
     if advancement(PLAYER, "cronica/final"):
         fails.append("chronicle: closed before the last guardian fell")
     # the last one, killed by the player, with a second player nearby
-    srv.spawn("testigo")
+    srv.spawn(WITNESS)
     if not kill(last, PLAYER):
         fails.append(f"chronicle: the death of the {last} guardian is not logged")
     ctx.ticks(10)
@@ -137,7 +139,7 @@ def chronicle(srv, by_dimension, lang):
         fails.append("chronicle: the last leaf lacks the 'still keeping watch' beyond page")
     if not re.search(rf"Heraldia: chronicle: {PLAYER} closed the Chronicle", ctx.log()):
         fails.append("chronicle: no 'closed the Chronicle' line in the log")
-    text = ask(srv, "heraldia journal chronicle", CHRONICLE_END, who="testigo")
+    text = ask(srv, "heraldia journal chronicle", CHRONICLE_END, who=WITNESS)
     if "Defeated (1):" not in text:
         fails.append(f"chronicle: the player nearby is not credited with the {last} guardian: {text[-800:]}")
     text = ask(srv, "heraldia journal", OVERVIEW_END)
@@ -165,19 +167,19 @@ def chronicle(srv, by_dimension, lang):
     text = ask(srv, "heraldia journal chronicle book", r"copy of the last leaf|not closed yet|turned off")
     if "Here is a copy of the last leaf" not in text or items(PLAYER, LEAF) != 1:
         fails.append(f"chronicle: the copy is not given in place of the one carried: {text[-400:]}")
-    text = ask(srv, "heraldia journal chronicle book", r"copy of the last leaf|not closed yet|turned off", who="testigo")
+    text = ask(srv, "heraldia journal chronicle book", r"copy of the last leaf|not closed yet|turned off", who=WITNESS)
     if "not closed yet" not in text:
         fails.append(f"chronicle: a player who is not a Herald gets a copy: {text[-400:]}")
     # the old-world path: every guardian advancement held before joining, the end on joining
-    srv.spawn("veterano")
+    srv.spawn(VETERAN)
     for sid in main_ids:
-        ctx.run(f"advancement grant veterano only heraldia:unicas/{sid}/guardian", r"Granted|granted|Couldn't|Unknown|No ")
-    if advancement("veterano", "cronica/final"):
+        ctx.run(f"advancement grant {VETERAN} only heraldia:unicas/{sid}/guardian", r"Granted|granted|Couldn't|Unknown|No ")
+    if advancement(VETERAN, "cronica/final"):
         fails.append("chronicle: granting advancements by command closed it without a death or a join (it should wait)")
-    srv.leave("veterano")
-    srv.spawn("veterano")
+    srv.leave(VETERAN)
+    srv.spawn(VETERAN)
     ctx.ticks(20)
-    if not advancement("veterano", "cronica/final") or items("veterano", banner("veterano")) != 1:
+    if not advancement(VETERAN, "cronica/final") or items(VETERAN, banner(VETERAN)) != 1:
         fails.append("chronicle: a player with every guardian defeated before joining does not get the end on joining")
     bad = [l.strip() for l in ctx.log().splitlines() if "Exception" in l and ("chronicle" in l.lower() or "cronica" in l.lower())]
     if bad:
