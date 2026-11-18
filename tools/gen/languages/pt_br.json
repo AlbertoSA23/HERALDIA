@@ -1916,5 +1916,7 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Aldeões que conhecem um lugar (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Reputação para uma pista",
   "heraldia.config.seccion.dialogos": "Conversas",
-  "heraldia.dialogos.no_habla": "Esse não é um aldeão de Heraldia dentro da sua vila: ele não tem conversa."
+  "heraldia.dialogos.no_habla": "Esse não é um aldeão de Heraldia dentro da sua vila: ele não tem conversa.",
+  "heraldia.config.reputacion.aldea_visible": "A reputação aparece na vila: conforme a melhor reputação que qualquer jogador tenha lá, flores na fonte (conhecido); estandartes nas entradas da praça, junto ao quadro, nos portões da muralha e nas torres (amigo); mais flores, lanternas nos portões e um tapete diante do quadro (herói); se todos que lidam com ela têm reputação negativa, as torres fecham as janelas. Só blocos vanilla e só onde há ar: nunca mexe num bloco de um jogador. Desativada, cada vila retira o que colocou ao carregar",
+  "heraldia.config.reputacion.aldea_visible.nombre": "A reputação aparece na vila"
 }

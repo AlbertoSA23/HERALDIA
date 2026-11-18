@@ -85,6 +85,7 @@ public final class ReloadCommand {
 			out.add(Texts.t("heraldia.recargar.arena_partida").withStyle(ChatFormatting.YELLOW));
 		}
 		io.github.albertosa23.heraldia.maps.WebMaps.schedule();   // mapas_web.* (and the arena) on the web maps, if any
+		io.github.albertosa23.heraldia.welcome.Welcome.reloaded(server);   // reputacion.*: the villages' look, at once
 		LOGGER.info("Heraldia: /heraldia reload: {} aplicadas, {} pendientes de reinicio, {} mobs recalculados",
 				r.applied().size(), r.pending().size(), mobs);
 		return out;

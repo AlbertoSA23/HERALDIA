@@ -69,6 +69,7 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 | `arena.temporada.dia_reinicio` | `lunes` | Día en que se cierra la clasificación semanal de la arena y se anuncian sus campeones (a medianoche, hora del servidor). |
 | `encargos.activado` | `true` | Encargos del tablón (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea y sus descuentos. |
+| `reputacion.aldea_visible` | `true` | La aldea muestra su mejor reputación con bloques vanilla: flores, estandartes, faroles (o contraventanas cerradas); nunca sobre un bloque de un jugador. |
 | `dialogos.activado` | `true` | Conversaciones con los aldeanos de Heraldia (agacharse + clic derecho comercia directamente). |
 | `caravanas.activado` | `true` | Caravanas por los caminos (operadores: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Gente de paso por los caminos, cada tipo con su opción (operadores: `/heraldia caravan wayfarer`). |

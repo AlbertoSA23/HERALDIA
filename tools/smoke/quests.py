@@ -14,6 +14,9 @@ First start:
   - a plaza villager with a fixed trade of 10 emeralds: with no reputation the price does not change; with "conocido", it drops
     to 9 (10 %);
   - hitting that villager lowers the reputation; another is accepted and abandoned; /heraldia status counts the quests.
+  - reputation visible in the village (reputacion.aldea_visible): before "conocido" a block not placed by the mod is put on
+    one corner of the fountain's rim; on reaching "conocido" the other three corners get flower pots and that block is left
+    as it was (never destroy a player's block).
   - villager conversations (P9a), with the test villager tagged as a Heraldia one (dialogos.viajeros_porcentaje = 100:
     every villager is a wayfarer): the simulated player's click opens the trades (a Carpet bot, like a trading
     automation's fake player, does not send the network packet the conversation listens to); /heraldia talk with
@@ -24,6 +27,21 @@ Second start (same world): the board is the same, the player keeps what was hand
 their reputation and the reduced price; the wayfarer remembers it already told its hint (saved in the villager) and,
 with dialogos.activado set to false and /heraldia reload, there is no conversation; with quests.switched_on and
 reputacion.activado set to false and /heraldia reload, the quests say they are disabled and the price goes back to 10.
+The flower pots are still there after restarting; with reputation disabled the mod takes down exactly the three pots it put
+up and the other block stays.
+Then the other looks (tiers_lap), in four more starts; the record (overworld attachment heraldia:reputacion_visible) and
+the test player's data are edited with the server stopped, and what each look put up is read back from the record:
+  - a world saved before this feature (the record removed): nothing changes on starting; when the player with
+    reputation "conocido" joins, the village gets its 3 pots. The villages around are located in the same start;
+  - hero (250, for a player who never joins) on the first of them with a watchtower (the one closest to 0,0 has none):
+    the 8 pots, the square and board banners, the carpet, the gates' lanterns and banners and the towers' banners;
+  - in one start, the test player holds the reputation and kills villagers inside the village (-40 each): friend (170)
+    removes exactly the hero-only blocks, known (50) exactly the banners, shunned (-30, after one tower window is changed
+    by hand; on the way, 10 is neutral and the pots go) puts shutters outside every unchanged window and not outside the
+    changed one, and the windows stay the same blocks;
+  - neutral (5, a village that recovers): exactly the shutters go, the changed window is still the player's and an
+    unchanged one is exactly as it was before the shutters.
+The block that was not the mod's on the fountain stays through all of it.
 """
 import argparse, json, os, re, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -244,6 +262,341 @@ def conversation(srv, fails, spot, y, floor_bottom):
     srv.run("tag @e[tag=heraldia_prueba] remove heraldia", r"Removed tag|Nothing changed")
 
 
+# Reputation visible in the village (welcome/Welcome): the four corners of the fountain's rim (streets.plaza: centre 11,
+# rim at distance 3, y 1), where a "conocido" village puts flower pots at y 2. One corner gets a block the mod did not place.
+RIM = [(8, 8), (14, 8), (8, 14), (14, 14)]
+OTHER_BLOCK = "minecraft:mossy_cobblestone"
+LOOK = r"Heraldia: village look: (-?\d+,-?\d+) {}: placed (\d+), removed (\d+), left alone (\d+)"
+
+
+def rim_cells(found):
+    """World (x, y, z) of the cells above the fountain's rim corners."""
+    import math
+    style, to_world, y, sheriff_pos = found
+    out = []
+    for p in RIM:
+        wx, wz = to_world(p)
+        out.append((math.floor(wx), math.floor(y) + 1, math.floor(wz)))
+    return out
+
+
+def look_line(srv, look, timeout):
+    """The village look log line for that look (already seen, or within `timeout` s), or None."""
+    pat = LOOK.format(look)
+    for line in srv.seen[-400:]:
+        m = re.search(pat, line)
+        if m:
+            return m
+    return maybe(srv, pat, timeout)
+
+
+def pots(srv, cells):
+    """Which of the cells hold a potted plant (any of #minecraft:flower_pots but the empty pot)."""
+    return [srv.test(f"execute if block {x} {y} {z} #minecraft:flower_pots") and
+            not srv.test(f"execute if block {x} {y} {z} minecraft:flower_pot") for x, y, z in cells]
+
+
+# --- the other looks, with the record edited between starts (tiers_lap) ---
+ATTACHMENTS = os.path.join("world", "dimensions", "minecraft", "overworld", "data", "fabric", "attachments.dat")
+NOBODY = "00000000-0000-4000-8000-0000000000be"   # a player who never joins: their reputation is never re-synchronized
+FACING = {"north": (0, -1), "south": (0, 1), "east": (1, 0), "west": (-1, 0)}
+
+
+def unpack(l):
+    """BlockPos.asLong -> (x, y, z): X 26 bits at 38, Z 26 bits at 12, Y 12 bits at 0."""
+    l = int(l)
+    return (l >> 38, ((l & 0xFFF) ^ 0x800) - 0x800, (((l >> 12) & 0x3FFFFFF) ^ 0x2000000) - 0x2000000)
+
+
+def record(work, points=None, remove=False):
+    """Reads (and with `points`, {village key: {player: reputation}}, sets; or with `remove` deletes) the village look record
+    with the server stopped. Returns {village key: {(x, y, z): (block id, properties)}} of what is put up."""
+    import nbtlib
+    from nbtlib.tag import Compound, Int
+    path = os.path.join(work, ATTACHMENTS)
+    f = nbtlib.load(path)
+    att = f["data"]["fabric:attachments"]
+    if remove:
+        att.pop("heraldia:reputacion_visible", None)
+    elif points is not None:
+        rv = att.setdefault("heraldia:reputacion_visible", Compound({"aldeas": Compound()}))
+        for key, players in points.items():
+            v = rv["aldeas"].setdefault(key, Compound())
+            v["jugadores"] = Compound({u: Int(r) for u, r in players.items()})
+    if remove or points is not None:
+        f.save()
+    out = {}
+    for key, v in att.get("heraldia:reputacion_visible", {}).get("aldeas", {}).items():
+        out[key] = {unpack(p["pos"]): saved_state(p["bloque"]) for p in v.get("colocados", [])}
+    return out
+
+
+def saved_state(b):
+    """(id, properties) of a saved block state: 26.3 writes it as a string ("minecraft:brown_banner") when it has its
+    default properties and as {id, properties} otherwise."""
+    if isinstance(b, str):
+        return str(b), {}
+    return str(b["id"]), {k: str(x) for k, x in b.get("properties", {}).items()}
+
+
+def kinds(placed):
+    """How many of each kind of decoration: pot, banner, wall_banner, carpet, lantern, trapdoor."""
+    n = {}
+    for name, _ in placed.values():
+        k = ("pot" if "potted_" in name else "wall_banner" if name.endswith("_wall_banner") else "banner" if name.endswith("_banner")
+             else "carpet" if name.endswith("_carpet") else "lantern" if name.endswith("lantern") else
+             "trapdoor" if name.endswith("_trapdoor") else name)
+        n[k] = n.get(k, 0) + 1
+    return n
+
+
+def towers(placed):
+    """The watchtowers, from their pair of wall banners (local x 2 and 4, y 3, z 1, two blocks apart and facing the same way;
+    the gate's pair is four apart): for each, a function local (x, y, z) -> world (x, y, z)."""
+    walls = [(p, props.get("facing", "north")) for p, (name, props) in placed.items()   # north: default, not saved
+             if name.endswith("_wall_banner")]
+    out = []
+    for a, fa in walls:
+        fx, fz = FACING[fa]
+        ex, ez = -fz, fx                              # local east, from local north (the banners face north)
+        b = (a[0] + 2 * ex, a[1], a[2] + 2 * ez)
+        if (b, fa) in walls:
+            out.append(lambda x, y, z, a=a, ex=ex, ez=ez, fx=fx, fz=fz:
+                       (a[0] + (x - 2) * ex - (z - 1) * fx, a[1] + y - 3, a[2] + (x - 2) * ez - (z - 1) * fz))
+    return out
+
+
+WINDOWS = [((3, y, 6), (3, y, 7)) for y in (4, 8)] + [((1, y, 4), (0, y, 4)) for y in (4, 8)] + \
+          [((5, y, 4), (6, y, 4)) for y in (4, 8)]     # (window, the shutter's cell outside it)
+SCRATCH_Y = 300
+WINDOW_BLOCKS = ["minecraft:iron_bars", "minecraft:glass_pane"] + [f"minecraft:{c}_stained_glass_pane" for c in (
+    "white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue",
+    "brown", "green", "red", "black")]
+
+
+def settle(srv, look, key=None, first=120, quiet=3):
+    """Waits for the village (`key`, or any) to take that look while its chunks load: the passes logged (also those already
+    read) until none comes for `quiet` s. Returns (placed, removed, left alone, passes) summed, or None if none came in `first` s."""
+    pat = LOOK.format(look)
+    if key:
+        pat = pat.replace(r"(-?\d+,-?\d+)", "(" + re.escape(key) + ")")
+    seen = [mm for mm in (re.search(pat, line) for line in srv.seen) if mm]
+    srv.seen[:] = [line for line in srv.seen if not re.search(pat, line)]      # each pass is counted once
+    m = None if seen else maybe(srv, pat, first)
+    if not seen and m is None:
+        return None
+    total = [0, 0, 0, 0]
+    for mm in seen + ([m] if m else []):
+        for i in range(3):
+            total[i] += int(mm.group(i + 2))
+        total[3] += 1
+    while (m := maybe(srv, pat, quiet)) is not None:
+        srv.seen.remove(m.string) if m.string in srv.seen else None
+        for i in range(3):
+            total[i] += int(m.group(i + 2))
+        total[3] += 1
+    return tuple(total)
+
+
+def start_at(work, launcher, x, z):
+    srv = Server(work, launcher)
+    srv.run(f"forceload add {x - RADIUS} {z - RADIUS} {x + RADIUS} {z + RADIUS}", r"Marked|Added|force|already|No chunks")
+    return srv
+
+
+def bot_reputation(work, values):
+    """Sets the test player's own reputation with villages ({key: points}) in their saved data, with the server stopped."""
+    import glob
+    import nbtlib
+    from nbtlib.tag import Compound, Int
+    path = glob.glob(os.path.join(work, "world", "players", "data", "*.dat"))[0]
+    f = nbtlib.load(path)
+    q = f["fabric:attachments"]["heraldia:encargos"]
+    rep = q.setdefault("reputacion", Compound())
+    for k, v in values.items():
+        rep[k] = Int(v)
+    f.save()
+    return os.path.basename(path)[:-len(".dat")]
+
+
+def in_world(srv, blocks, gone=()):
+    """The positions that do not hold their block (by id), and those of `gone` that are not air."""
+    bad = [p for p, (name, _) in blocks.items() if not srv.test("execute if block {} {} {} {}".format(*p, name))]
+    return bad + [p for p in gone if not srv.test("execute if block {} {} {} minecraft:air".format(*p))]
+
+
+# Where to look for more villages (the one closest to 0,0 has no tower or gate with the test seed: street ends are mostly plain)
+ORIGINS = [(0, 0), (3000, 0), (-3000, 0), (0, 3000), (0, -3000), (3000, 3000), (-3000, -3000)]
+SQUARE_SPOTS = 19     # the square's 16 and the job board's 3: a village with more has a gate or a watchtower
+KILL = ('summon minecraft:villager {} {} {} {{NoAI:1b,PersistenceRequired:1b,Tags:["heraldia_prueba_k"]}}',
+        "damage @e[tag=heraldia_prueba_k,limit=1] 2000 minecraft:player_attack by " + PLAYER)
+
+
+def kill_villagers(srv, at, n):
+    """The test player kills `n` villagers inside the village (-40 reputation each); returns the last reputation logged."""
+    rep = None
+    for _ in range(n):
+        srv.run(KILL[0].format(*at), r"Summoned")
+        m = srv.run(KILL[1], rf"Heraldia: encargos: {PLAYER} mata a un aldeano de .*: reputación (-?\d+)")
+        rep = int(m.group(1))
+    return rep
+
+
+def tiers_lap(work, launcher, found, fails):
+    """The other looks (see the module docstring), in four more starts."""
+    write_config(work, {})
+    style, to_world, y, sheriff_pos = found
+    cells = rim_cells(found)
+    first_key = next(iter(record(work)))
+    # 1) a world saved before this feature (no record at all): nothing changes until the player with reputation joins;
+    #    in the same start, the villages around are located
+    record(work, remove=True)
+    srv = start_at(work, launcher, int(sheriff_pos[0]), int(sheriff_pos[2]))
+    candidates = {}
+    try:
+        if settle(srv, r"\w+", first=5, quiet=1) is not None:
+            fails.append("old world: a village changed with nobody's reputation recorded")
+        if any(pots(srv, cells)):
+            fails.append("old world: flower pots before anyone joined")
+        bot = to_world(BOT)
+        srv.run(f"player {PLAYER} spawn at {bot[0]} {y} {bot[1]}", r"joined the game")
+        m = settle(srv, "conocida", first_key, first=60)
+        if m is None or m[0] != 3:
+            fails.append(f"old world: on joining, {m or 'nothing'} (must place the 3 pots)")
+        if pots(srv, cells) != [False, True, True, True]:
+            fails.append(f"old world: flower pots {pots(srv, cells)} after joining (must be [False, True, True, True])")
+        if not srv.test("execute if block {} {} {} {}".format(*cells[0], OTHER_BLOCK)):
+            fails.append("old world: the block that was not the mod's was touched")
+        srv.run(f"player {PLAYER} kill", r"left the game")
+        for ox, oz in ORIGINS:
+            m = srv.run(f"execute positioned {ox} 100 {oz} run locate structure #heraldia:aldeas",
+                        r"is at \[(-?\d+), ~?(-?\d+|~), (-?\d+)\]|Could not find")
+            if m.group(1) and f"{int(m.group(1)) >> 4},{int(m.group(3)) >> 4}" != first_key:
+                candidates.setdefault(f"{int(m.group(1)) >> 4},{int(m.group(3)) >> 4}", (int(m.group(1)), int(m.group(3))))
+    finally:
+        srv.stop()
+    print(f"villages around: {candidates}")
+    # 2) hero (written into the record for a player who never joins) on the first of them with a watchtower
+    key = None
+    for k, (vx, vz) in candidates.items():
+        record(work, {k: {NOBODY: 250}})
+        srv = start_at(work, launcher, vx, vz)
+        try:
+            m = settle(srv, "heroica", k, first=240)
+        finally:
+            srv.stop()
+        hero = record(work).get(k, {})
+        print(f"village {k}: {m}, {kinds(hero)}")
+        if m and towers(hero):
+            key = k
+            break
+        record(work, {k: {}})
+    if key is None:
+        fails.append(f"no village with a watchtower among {list(candidates)}")
+        return
+    k = kinds(hero)
+    tw = towers(hero)
+    print(f"hero: {k}, {len(tw)} towers")
+    if k.get("pot") != 8 or k.get("banner") != 10 or k.get("carpet") != 1 or k.get("trapdoor"):
+        fails.append(f"hero: {k} (must be 8 pots, 10 banners, 1 carpet and no trapdoor)")
+    if k.get("wall_banner", 0) < 2 * len(tw):
+        fails.append(f"hero: {k.get('wall_banner', 0)} wall banners for {len(tw)} towers (2 each, plus the gates')")
+    hero_only = {p: b for p, b in hero.items() if b[0].endswith(("_carpet", "lantern")) or
+                 ("potted_" in b[0] and p in hero_pots_middle(hero))}
+    friend_set = {p: b for p, b in hero.items() if p not in hero_only}
+    banners = {p: b for p, b in friend_set.items() if b[0].endswith("_banner")}
+    known_set = {p: b for p, b in friend_set.items() if p not in banners}
+    if kinds(known_set) != {"pot": 4}:
+        fails.append(f"hero: {kinds(known_set)} would be left as known (must be the 4 corner pots)")
+    tower = tw[0]
+    changed_win, changed_out = tower(*WINDOWS[0][0]), tower(*WINDOWS[0][1])
+    keep_win = tower(*WINDOWS[2][0])
+    scratch = (keep_win[0], SCRATCH_Y, keep_win[2])
+    want = {t(*out) for t in tw for _, out in WINDOWS} - {changed_out}
+    carpet = next(p for p, b in hero.items() if b[0].endswith("_carpet"))
+    # 3) friend, known and shunned in one start: the test player holds the reputation (170) and kills villagers inside the
+    #    village, the way reputation really drops (-40 each)
+    bot_uuid = bot_reputation(work, {key: 170})
+    record(work, {key: {bot_uuid: 170}})
+    vx, vz = candidates[key]
+    srv = start_at(work, launcher, vx, vz)
+    try:
+        m = settle(srv, "amiga", key)
+        if m is None or (m[0], m[1]) != (0, len(hero_only)):
+            fails.append(f"friend: {m} (must place 0 and remove {len(hero_only)}: {kinds(hero_only)})")
+        bad = in_world(srv, friend_set, hero_only)
+        if bad:
+            fails.append(f"friend: not as expected at {bad}")
+        srv.run(f"player {PLAYER} spawn at {carpet[0]} {carpet[1]} {carpet[2]}", r"joined the game")
+        srv.run(f"gamemode survival {PLAYER}", r"game mode")
+        rep = kill_villagers(srv, carpet, 3)
+        m = settle(srv, "conocida", key, first=30)
+        print(f"known (reputation {rep}): {m}")
+        if m is None or (m[0], m[1]) != (0, len(banners)):
+            fails.append(f"known: {m} (must place 0 and remove the {len(banners)} banners)")
+        bad = in_world(srv, known_set, banners)
+        if bad:
+            fails.append(f"known: not as expected at {bad}")
+        window_id = next((w for w in WINDOW_BLOCKS if srv.test("execute if block {} {} {} {}".format(*keep_win, w))), None)
+        srv.run("setblock {} {} {} minecraft:glass".format(*changed_win), r"Changed the block|Could not set")
+        srv.run("clone {0} {1} {2} {0} {1} {2} {3} {4} {5} strict".format(*keep_win, *scratch), r"cloned|No blocks|Could not")
+        rep = kill_villagers(srv, carpet, 1)      # 50 -> 10: neutral on the way down, the pots go
+        m = settle(srv, "normal", key, first=30)
+        print(f"neutral on the way (reputation {rep}): {m}")
+        if m is None or (m[0], m[1]) != (0, len(known_set)) or in_world(srv, {}, known_set):
+            fails.append(f"neutral on the way down: {m} (must place 0 and remove the {len(known_set)} pots)")
+        rep = kill_villagers(srv, carpet, 1)      # 10 -> -30: shunned
+        m = settle(srv, "recelosa", key, first=30)
+        print(f"shunned (reputation {rep}): {m}, {len(want)} shutters expected")
+        if m is None or (m[0], m[1]) != (len(want), 0):
+            fails.append(f"shunned: {m} (must place {len(want)} shutters and remove nothing)")
+        if not srv.test("execute if block {} {} {} minecraft:glass".format(*changed_win)):
+            fails.append("shunned: the window changed by hand was touched")
+        if not srv.test("execute if block {} {} {} minecraft:air".format(*changed_out)):
+            fails.append("shunned: a shutter went up outside the window changed by hand")
+        # the same block (a shutter's flat face makes iron bars or a pane next to it connect: vanilla shape, not a new block)
+        if window_id is None or not srv.test("execute if block {} {} {} {}".format(*keep_win, window_id)):
+            fails.append(f"shunned: an unchanged window is no longer {window_id}")
+        srv.run(f"player {PLAYER} kill", r"left the game")
+    finally:
+        srv.stop()
+    shunned = record(work)[key]
+    got = {p for p, (name, _) in shunned.items() if name.endswith("_trapdoor")}
+    if kinds(shunned) != {"trapdoor": len(want)} or got != want:
+        fails.append(f"shunned: {kinds(shunned)} at {sorted(got)} (must be {len(want)} trapdoors at {sorted(want)})")
+    if any(shunned[p][1].get("open") != "true" for p in got):
+        fails.append("shunned: a shutter that is not an open trapdoor")
+    # 4) neutral (a village that recovers its reputation): exactly the shutters go; the windows are as they were
+    bot_reputation(work, {key: 5})
+    record(work, {key: {bot_uuid: 5}})
+    srv = start_at(work, launcher, vx, vz)
+    try:
+        m = settle(srv, "normal", key)
+        if m is None or (m[0], m[1]) != (0, len(want)):
+            fails.append(f"neutral: {m} (must place 0 and remove the {len(want)} shutters)")
+        if not srv.test("execute if block {} {} {} minecraft:glass".format(*changed_win)):
+            fails.append("neutral: the window changed by hand was touched")
+        if not srv.test("execute if blocks {0} {1} {2} {0} {1} {2} {3} {4} {5} all".format(*keep_win, *scratch)):
+            fails.append("neutral: an unchanged window is not exactly as it was before the shutters")
+        if in_world(srv, {}, want):
+            fails.append("neutral: shutters left")
+    finally:
+        srv.stop()
+    if record(work).get(key):
+        fails.append(f"neutral: {kinds(record(work)[key])} still recorded as put up (must be nothing)")
+    print(f"looks on {key}: hero {len(hero)} blocks, friend {len(friend_set)}, known {len(known_set)}, shunned {len(shunned)}, "
+          f"neutral 0; {len(tw)} towers")
+
+
+def hero_pots_middle(hero):
+    """The hero-only pots: on the middle of each side of the rim, so the four of them with the extreme coordinates are the
+    corners' (known); the middle ones are those sharing x or z with the fountain's centre."""
+    pots_ = [p for p, b in hero.items() if "potted_" in b[0]]
+    cx = sorted(p[0] for p in pots_)[len(pots_) // 2]
+    cz = sorted(p[2] for p in pots_)[len(pots_) // 2]
+    return {p for p in pots_ if p[0] == cx or p[2] == cz}
+
+
 def first_lap(srv, fails, found):
     style, to_world, y, sheriff_pos = found
     spot, floor_bottom = to_world(SPOT), to_world(BOT)
@@ -297,6 +650,11 @@ def first_lap(srv, fails, found):
     if rep1 != 10:
         fails.append(f"fetch: reputation {rep1} (must be 10)")
     print(f"fetch handed in: {em1} emeralds, reputation {rep1}")
+    cells = rim_cells(found)
+    x0, y0, z0 = cells[0]
+    srv.run(f"setblock {x0} {y0} {z0} {OTHER_BLOCK}", r"Changed the block|Could not set")
+    if any(pots(srv, cells)):
+        fails.append(f"village look: flower pots on the rim with reputation {rep1} (must be none before 'conocido')")
     # 4) guardian: a mob with its tags next to the quest site, killed by the player
     tx, tz = gx + 40, gz
     srv.run(f"forceload add {tx} {tz}", r"Marked|force|already")
@@ -324,6 +682,17 @@ def first_lap(srv, fails, found):
     if not srv.test(f"execute if entity @a[name={PLAYER},advancements={{heraldia:encargos/primero=true}}]"):
         fails.append("advancement encargos/primero not granted")
     print(f"guardian handed in: {em2} emeralds, reputation {rep2} ({level})")
+    m = look_line(srv, "conocida", 20)
+    if m is None:
+        fails.append("village look: reaching 'conocido' does not change the village")
+    else:
+        print(f"village look {m.group(1)}: placed {m.group(2)}, removed {m.group(3)}, left alone {m.group(4)}")
+        if (m.group(2), m.group(3)) != ("3", "0"):
+            fails.append(f"village look: placed {m.group(2)} and removed {m.group(3)} (must be 3 and 0: one corner is taken)")
+    if pots(srv, cells) != [False, True, True, True]:
+        fails.append(f"village look: flower pots on the rim {pots(srv, cells)} (must be [False, True, True, True])")
+    if not srv.test(f"execute if block {x0} {y0} {z0} {OTHER_BLOCK}"):
+        fails.append("village look: the block that was not the mod's was touched")
     # 5) price in the plaza with "conocido": 10 % discount (before the quests there was none: see above)
     inside = price(srv, spot, y, floor_bottom)
     print(f"price in the plaza: before {before}, with reputation 'conocido' {inside}")
@@ -382,8 +751,18 @@ def second_lap(srv, fails, found, first_item, work):
     as_player(srv, WITH, r"Conversations with villagers are disabled|conversaciones con los aldeanos están desactivadas")
     srv.run("tag @e[tag=heraldia_prueba] remove heraldia", r"Removed tag|Nothing changed")
     # options disabled and reloaded without restarting
+    cells = rim_cells(found)
+    if pots(srv, cells) != [False, True, True, True]:
+        fails.append(f"village look: after restarting, flower pots on the rim {pots(srv, cells)} (must be [False, True, True, True])")
     write_config(work, {"encargos": {"activado": False}, "reputacion": {"activado": False}})
     srv.run("heraldia reload", r"Heraldia: configuración recargada")
+    m = look_line(srv, "normal", 30)
+    if m is None or (m.group(2), m.group(3)) != ("0", "3"):
+        fails.append(f"village look: with reputation disabled, {m.group(0) if m else 'nothing'} (must place 0 and remove 3)")
+    if any(pots(srv, cells)):
+        fails.append(f"village look: with reputation disabled, flower pots left {pots(srv, cells)}")
+    if not srv.test(f"execute if block {cells[0][0]} {cells[0][1]} {cells[0][2]} {OTHER_BLOCK}"):
+        fails.append("village look: with reputation disabled, the block that was not the mod's was touched")
     as_player(srv, "heraldia quest", r"quests are disabled|están desactivados")
     sin = existing_price(srv, spot, y, floor_bottom)
     if sin != 0:
@@ -417,13 +796,15 @@ def main():
             srv.run(f"player {PLAYER} kill", r"left the game")
         finally:
             srv.stop()
+    if found and first_item and not fails:
+        tiers_lap(a.work, launcher, found, fails)
     if fails:
         print("FALLOS:")
         for f in fails:
             print(" -", f)
         return 1
     print("OK: board, accepting, fetch and guardian handed in, reputation, reduced price, villager conversations and hint, "
-          "restart and disabled options")
+          "restart and disabled options; reputation visible in the village without touching a block that is not the mod's")
     return 0
 
 

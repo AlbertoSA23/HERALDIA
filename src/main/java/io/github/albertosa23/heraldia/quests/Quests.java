@@ -181,6 +181,7 @@ public final class Quests {
 
 	static void save(Player p, Data d) {
 		p.setAttached(Attachments.PLAYER, d);
+		io.github.albertosa23.heraldia.welcome.Welcome.reputationSaved(p, d);   // the village shows its best reputation
 	}
 
 	public static World world(MinecraftServer server) {
