@@ -145,6 +145,8 @@ MAP = [
     (JAVA + "mixin/CubeMobJumpMixin.java", ["tools/smoke/anchored_guardians.py"]),
     (JAVA + "mixin/PiglinStrollMixin.java", ["tools/smoke/anchored_guardians.py"]),
     (JAVA + "common/Anchoring.java", ["tools/smoke/anchored_guardians.py"]),
+    # template blocks at their world position: the restocking loot and the cleared uniques use them
+    (JAVA + "common/TemplateBlocks.java", ["tools/smoke/loot_restock.py", "tools/smoke/cleared_spawners.py"]),
     # replenished loot and configurable difficulty (T29)
     (JAVA + "loot/RestockedLoot.java", ["tools/smoke/loot_restock.py"]), (JAVA + "loot/Restock.java", ["tools/smoke/loot_restock.py"]),
     (JAVA + "difficulty/*", ["tools/smoke/difficulty.py"]),
@@ -169,8 +171,10 @@ MAP = [
     # treasure hunt (T40): its Java and its generator; the reward of the board's feats goes in board.py (above)
     (JAVA + "treasure/*", TREASURE), ("tools/gen/treasure.py", TREASURE),
     (JAVA + "command/*", []),
-    # bosses: phases, reinforcements and guardian bar (their Java and the generator's reinforcements contract)
-    (JAVA + "bosses/*", ["tools/smoke/boss_phases.py"]), ("tools/gen/bosses.py", ["tools/smoke/boss_phases.py"]),
+    # bosses: phases, reinforcements and guardian bar (their Java and the generator's reinforcements contract), and the
+    # cleared uniques (spawners turned off when the guardian dies)
+    (JAVA + "bosses/*", ["tools/smoke/boss_phases.py", "tools/smoke/cleared_spawners.py"]),
+    ("tools/gen/bosses.py", ["tools/smoke/boss_phases.py"]),
     # wave arena (T31) and its modes (T41): its Java, its mixins and its generator (template, data, loot and advancements)
     (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_waves.py", ARENA),
     # roads between villages: their Java and their data
@@ -290,6 +294,7 @@ DURATION_S = {
     "tools/smoke/colosseum_redstone.py": 39, "tools/smoke/compatible_grid.py": 80, "tools/smoke/roads.py": 300,
     "tools/gen/uniques/wizard_tower/smoke_redstone.py": 33,
     "tools/gen/uniques/pyramid/smoke_server.py": 28, "tools/smoke/galleon_test.py": 26,
+    "tools/smoke/cleared_spawners.py": 90,               # measured locally: 87 s (three starts and a generated castle)
     "tools/smoke/boss_phases.py": 70,                     # measured locally: 60 s with two starts (the second, with the options disabled)
     # compatibility (measured locally on 4 cores with downloads cached, plus 30 % for CI)
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,

@@ -254,6 +254,8 @@ def test_commands_in_english_and_warning_of_version():
 def test_loot_that_gets_replenishes_and_difficulty():
     assert pick(J + "loot/RestockedLoot.java") == (False, ["tools/smoke/loot_restock.py"])
     assert pick(J + "loot/Restock.java") == (False, ["tools/smoke/loot_restock.py"])
+    assert pick(J + "bosses/ClearedSpawners.java") == (False, ["tools/smoke/boss_phases.py", "tools/smoke/cleared_spawners.py"])
+    assert pick(J + "common/TemplateBlocks.java") == (False, ["tools/smoke/cleared_spawners.py", "tools/smoke/loot_restock.py"])
     assert pick(J + "difficulty/MobDifficulty.java") == (False, ["tools/smoke/difficulty.py"])
     assert pick(J + "difficulty/ModDifficulty.java", "tools/smoke/loot_restock.py") == \
         (False, ["tools/smoke/difficulty.py", "tools/smoke/loot_restock.py"])
