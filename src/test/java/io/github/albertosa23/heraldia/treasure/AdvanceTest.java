@@ -7,7 +7,7 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
-/** Usar el mapa: lejos, en cada marca y en el tesoro; la cadena se completa una sola vez (también con copias). */
+/** Using the map: far away, at each mark and at the treasure; the chain is completed only once (also with copies). */
 class AdvanceTest {
 	@Test
 	void farNearAndArrival() {
@@ -22,7 +22,7 @@ class AdvanceTest {
 	void wholeRunAndOnlyOnce() {
 		Set<Long> completed = new HashSet<>();
 		Chain c = ChainTest.chain();
-		Chain backup = c;   // una copia del mapa (mesa de cartografía) con la misma cadena
+		Chain backup = c;   // a copy of the map (cartography table) with the same chain
 		int steps = 0;
 		while (true) {
 			Destination d = c.actual();

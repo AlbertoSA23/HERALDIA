@@ -28,8 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Regiones (.mca) sintéticas con chunks de 26.3: se leen sin el juego ({@link Region}, {@link ChunkSummary}), y borrar
- * un chunk solo quita su entrada de la cabecera (los demás siguen igual). También el mapa en texto.
+ * Synthetic regions (.mca) with 26.3 chunks: they are read without the game ({@link Region}, {@link ChunkSummary}), and deleting
+ * a chunk only removes its header entry (the others stay the same). Also the text map.
  */
 class RegionTest {
 	@TempDir
@@ -41,7 +41,7 @@ class RegionTest {
 		Bootstrap.bootStrap();
 	}
 
-	/** Un chunk de 26.3: una sección en y = 4 (64..79) de piedra con una cama en (3, 70, 5) y un inicio de estructura. */
+	/** A 26.3 chunk: a stone section at y = 4 (64..79) with a bed at (3, 70, 5) and a structure start. */
 	static CompoundTag chunk(int cx, int cz, long inhabited, boolean bedTag) {
 		CompoundTag c = new CompoundTag();
 		c.putInt("xPos", cx);
@@ -58,7 +58,7 @@ class RegionTest {
 		bed.putString("Name", "minecraft:red_bed");
 		pal.add(bed);
 		bs.put("palette", pal);
-		long[] data = new long[256];      // 4 bits por bloque, 16 por long
+		long[] data = new long[256];      // 4 bits per block, 16 per long
 		if (bedTag) {
 			int i = (70 - 64) * 256 + 5 * 16 + 3;
 			data[i / 16] |= 1L << (i % 16) * 4;
@@ -82,7 +82,7 @@ class RegionTest {
 		CompoundTag structures = new CompoundTag();
 		structures.put("starts", starts);
 		c.put("structures", structures);
-		// alturas: la columna (2, 2) a y = 75 (valor 75 - (-64) + 1 = 140)
+		// heights: column (2, 2) at y = 75 (value 75 - (-64) + 1 = 140)
 		long[] hm = new long[37];
 		int col = 2 + 2 * 16;
 		hm[col / 7] |= 140L << (col % 7) * 9;
@@ -92,7 +92,7 @@ class RegionTest {
 		return c;
 	}
 
-	/** Escribe una región con los chunks dados (zlib), como el juego. */
+	/** Writes a region with the given chunks (zlib), like the game. */
 	static void write(Path f, Map<Integer, CompoundTag> chunks) throws IOException {
 		try (RandomAccessFile out = new RandomAccessFile(f.toFile(), "rw")) {
 			out.setLength(0);
@@ -131,9 +131,9 @@ class RegionTest {
 		assertEquals(77, r.inhabited());
 		assertEquals(1, r.player().length);
 		assertArrayEquals(new int[] {3 * 16 + 3, 70, 4 * 16 + 5}, r.playerBlock(0));
-		assertEquals(Set.of("minecraft:igloo"), r.structureStarts().keySet());          // el INVALID no cuenta
+		assertEquals(Set.of("minecraft:igloo"), r.structureStarts().keySet());          // the INVALID one does not count
 		assertArrayEquals(new int[] {48, 60, 64, 58, 70, 74}, r.structureStarts().get("minecraft:igloo").get(0));
-		assertEquals(75, r.tops()[0]);                                         // MUESTRA[0] = (2, 2)
+		assertEquals(75, r.tops()[0]);                                         // SAMPLE[0] = (2, 2)
 		assertEquals("minecraft:stone", r.topBlocks()[0]);
 		assertTrue(Region.read(f, 5).isEmpty());
 	}
@@ -145,7 +145,7 @@ class RegionTest {
 		write(f, Map.of(a, chunk(-32, 64, 0, false), b, chunk(-31, 64, 0, true), c, chunk(-1, 95, 5, false)));
 		byte[] before = Files.readAllBytes(f);
 		assertEquals(1, Region.delete(f, List.of(b)));
-		assertEquals(0, Region.delete(f, List.of(b)));                          // ya no estaba: idempotente
+		assertEquals(0, Region.delete(f, List.of(b)));                          // it was no longer there: idempotent
 		assertEquals(List.of(a, c).stream().sorted().toList(), Region.present(Region.header(f)));
 		assertTrue(Region.read(f, b).isEmpty());
 		assertEquals(-32, Region.read(f, a).orElseThrow().getIntOr("xPos", 0));
@@ -157,8 +157,8 @@ class RegionTest {
 				distinct++;
 			}
 		}
-		assertTrue(distinct <= 8, distinct + " bytes cambiados");             // solo las dos entradas de la cabecera
-		assertEquals(0, Region.delete(dir.resolve("r.9.9.mca"), List.of(0)));  // fichero que no existe
+		assertTrue(distinct <= 8, distinct + " bytes cambiados");             // only the two header entries
+		assertEquals(0, Region.delete(dir.resolve("r.9.9.mca"), List.of(0)));  // file that does not exist
 	}
 
 	@Test

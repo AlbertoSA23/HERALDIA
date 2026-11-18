@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** Qué marcadores salen y cómo (posición, capa, nombre, descripción, icono), el filtro de solo descubiertas y su actualización. */
+/** Which markers show and how (position, layer, name, description, icon), the discovered-only filter and their update. */
 class MarkersTest {
 	static final Map<String, String> STYLES = Map.of("llanura", "llanuras", "taiga", "taiga");
 	static final Map<String, String> ES = Texts.texts("es_es"), EN = Texts.texts("en_us");
@@ -96,13 +96,13 @@ class MarkersTest {
 	void newAdvancementUpdatesMarkers() {
 		State.Achievements l = advancements();
 		assertTrue(Markers.build(sites(), null, l, DISCOVERED, ES).isEmpty());
-		// lo que hace MapasWeb.alConseguir: el criterio recién conseguido se suma a los logros conocidos
+		// what WebMaps.onAward does: the newly earned criterion is added to the known advancements
 		l.add("heraldia:medianas/todas", false, List.of("posada"));
 		assertEquals(List.of("medianas/posada/llanura@400,66,400"),
 				Markers.build(sites(), null, l, DISCOVERED, ES).stream().map(MapMarker::id).toList());
 		l.add("heraldia:aldeas/llanuras", true, List.of("llanuras"));
 		assertEquals(2, Markers.build(sites(), null, l, DISCOVERED, ES).size());
-		// un criterio sin terminar el logro no basta para aldeas, únicas ni minas
+		// a criterion without finishing the advancement is not enough for villages, uniques or mines
 		l.add("heraldia:unicas/castillo/descubrir", false, List.of("descubrir"));
 		assertEquals(2, Markers.build(sites(), null, l, DISCOVERED, ES).size());
 	}
@@ -159,7 +159,7 @@ class MarkersTest {
 		assertEquals("es_es", WebMaps.language("auto", Locale.of("es", "ES")));
 		assertEquals("fr_ca", WebMaps.language("auto", Locale.of("fr", "CA")));
 		assertEquals("gl_es", WebMaps.language("gl_es", Locale.US));
-		// un idioma del sistema que el .jar no trae: el de su lengua o el inglés (Textos.codigo)
+		// a system language the .jar does not have: that of its language or English (Texts.code)
 		assertEquals(Texts.texts("fr_fr"), Texts.texts(WebMaps.language("auto", Locale.of("fr", "CA"))));
 		assertEquals(EN, Texts.texts(WebMaps.language("auto", Locale.of("ja", "JP"))));
 	}

@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Las opciones de los encargos y la reputación: sus valores por defecto, que se recargan y que se respetan apagadas. */
+/** The options of the quests and the reputation: their defaults, that they reload and that they are respected when off. */
 class QuestOptionsTest {
 	@TempDir
 	Path dir;
@@ -69,11 +69,11 @@ class QuestOptionsTest {
 		assertFalse(Quests.enabled());
 		assertFalse(Quests.withReputation());
 		assertEquals(7, HeraldiaConfig.get().getInt(Quests.ROTATION));
-		// sin reputación, ni descuento ni reputación al entregar
+		// without reputation, neither discount nor reputation on delivery
 		assertEquals(0, Reputation.discountFor(Reputation.Tier.HERO, 30, Quests.withReputation(), false));
 		Quest e = new Quest(0, 0, 0, 0, Type.BRING, "minecraft:bread", 16, 0, 0, 3, 20);
 		assertEquals(0, Data.EMPTY.accept(e).deliver(e.id(), Quests.withReputation()).reputation(e.village()));
-		// y se vuelven a encender con /heraldia reload
+		// and they are switched on again with /heraldia reload
 		v.put(Quests.ENABLED, new JsonPrimitive(true));
 		v.put(Quests.REPUTATION, new JsonPrimitive(true));
 		HeraldiaConfig.save(file, v);

@@ -20,7 +20,7 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Botín que se repone: cuándo se repone un cofre (días, jugadores cerca, vacío), qué tablas y qué se guarda. */
+/** Restocking loot: when a chest restocks (days, players nearby, empty), which tables and what is saved. */
 class RestockTest {
 	private static final String VILLAGE = "heraldia:cofres/herreria", UNIQUE = "heraldia:unicas/castillo/armeria",
 			MEDIUM = "heraldia:medianas/posada/despensa";
@@ -46,7 +46,7 @@ class RestockTest {
 	@Test
 	void pendingTableIsRecordedOnlyIfFromHeraldia() {
 		assertEquals(Decision.RECORD, Restock.decide(VILLAGE, Optional.empty(), 0, 7, 0, 0));
-		// también si ya había registro (se repuso y aún no se ha abierto, o el cofre se rellenó con /loot): se reapunta
+		// also if there was already a record (it restocked and has not been opened yet, or the chest was refilled with /loot): it is recorded again
 		assertEquals(Decision.RECORD, Restock.decide(UNIQUE, reg(UNIQUE, 5), 100 * DAY, 7, 3, 27));
 		assertEquals(Decision.NOTHING, Restock.decide("minecraft:chests/simple_dungeon", Optional.empty(), 0, 7, 0, 0));
 		assertEquals(Decision.NOTHING, Restock.decide("heraldia:trofeos/castillo", Optional.empty(), 0, 7, 0, 0));
@@ -94,15 +94,15 @@ class RestockTest {
 	@Test
 	void ledgerRoundTripWithoutTouchingOtherKeys() {
 		CompoundTag cd = new CompoundTag();
-		cd.putString(PerPlayerChest.MARK + "_no", "x"); // otra clave cualquiera se conserva
+		cd.putString(PerPlayerChest.MARK + "_no", "x"); // any other key is kept
 		assertTrue(Restock.ledger(cd).isEmpty());
 		CompoundTag with = Restock.withLedger(cd, new Ledger(UNIQUE, 987654321L));
 		assertEquals(Optional.of(new Ledger(UNIQUE, 987654321L)), Restock.ledger(with));
 		assertEquals("x", with.getStringOr(PerPlayerChest.MARK + "_no", ""));
 		assertFalse(cd.contains(Restock.KEY), "no modifica el original");
-		// idempotente: volver a escribirlo deja lo mismo
+		// idempotent: writing it again leaves the same
 		assertEquals(with, Restock.withLedger(with, new Ledger(UNIQUE, 987654321L)));
-		// registros rotos: sin tabla o sin hora, se ignoran
+		// broken records: without a table or a time, they are ignored
 		CompoundTag broken = new CompoundTag();
 		CompoundTag r = new CompoundTag();
 		r.putString("tabla", VILLAGE);
@@ -111,8 +111,8 @@ class RestockTest {
 	}
 
 	/**
-	 * Toda tabla de botín de Heraldia en un contenedor de las plantillas generadas (cofres, barriles) se repone, salvo
-	 * ninguna: si un generador nuevo pone un cofre con otra tabla, este test lo dice (y hay que decidir si se repone).
+	 * Every Heraldia loot table in a container of the generated templates (chests, barrels) restocks, with no
+	 * exception: if a new generator places a chest with another table, this test says so (and one has to decide whether it restocks).
 	 */
 	@Test
 	void templateTablesAreRestocked() throws IOException {

@@ -20,9 +20,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Dos jugadores simulados contra la lógica del cofre por jugador (la misma que usa el juego al abrirlo): cada uno saca
- * su copia entera una vez, lo que deja se le guarda, el cofre real queda vacío y los datos sobreviven a una vuelta
- * por NBT (como al guardar y cargar el chunk).
+ * Two simulated players against the per-player chest logic (the same the game uses when opening it): each takes
+ * their whole copy once, what they leave is kept for them, the real chest is left empty and the data survive a round trip
+ * through NBT (like saving and loading the chunk).
  */
 class PerPlayerChestTest {
 	private static final DynamicOps<Tag> OPS = NbtOps.INSTANCE;
@@ -31,8 +31,8 @@ class PerPlayerChestTest {
 	static void bootstrap() {
 		SharedConstants.tryDetectVersion();
 		Bootstrap.bootStrap();
-		// Sin servidor no se cargan los componentes por defecto de los objetos (los liga ReloadableServerResources):
-		// bastan los comunes para los objetos de la prueba.
+		// Without a server the items' default components are not loaded (ReloadableServerResources binds them):
+		// the common ones are enough for the test's items.
 		for (Item item : new Item[]{Items.TRIDENT, Items.DIAMOND, Items.HEART_OF_THE_SEA}) {
 			if (!item.builtInRegistryHolder().areComponentsBound()) {
 				item.builtInRegistryHolder().bindComponents(DataComponents.COMMON_ITEM_COMPONENTS);
@@ -60,30 +60,30 @@ class PerPlayerChestTest {
 		CompoundTag data = new CompoundTag();
 		data.putString(PerPlayerChest.MARK, "atlantida");
 
-		// A abre: recibe todo, el cofre real queda vacío
+		// A opens: gets everything, the real chest is left empty
 		NonNullList<ItemStack> a = PerPlayerChest.open(data, chest, "A", OPS);
 		assertEquals(16, count(a));
 		assertEquals("Tridente de Poseidón", a.get(0).get(DataComponents.CUSTOM_NAME).getString());
 		assertTrue(chest.isEmpty(), "el contenido pasa a la plantilla y el cofre queda vacío");
 
-		// A se lleva el tridente y los diamantes y deja los corazones
+		// A takes the trident and the diamonds and leaves the hearts
 		SimpleContainer copyA = new SimpleContainer(27);
 		copyA.setItem(5, a.get(5).copy());
 		PerPlayerChest.save(data, "A", copyA, OPS);
 
-		// vuelta por NBT (guardar y cargar el chunk)
+		// round trip through NBT (saving and loading the chunk)
 		data = (CompoundTag) data.copy();
 
-		// B abre: su copia entera, aunque A ya sacó la suya
+		// B opens: their whole copy, even though A already took theirs
 		NonNullList<ItemStack> b = PerPlayerChest.open(data, chest, "B", OPS);
 		assertEquals(16, count(b));
 		PerPlayerChest.save(data, "B", new SimpleContainer(27), OPS);
 
-		// A vuelve: solo lo que dejó; B vuelve: nada; la plantilla sigue entera
+		// A comes back: only what they left; B comes back: nothing; the template is still whole
 		assertEquals(3, count(PerPlayerChest.open(data, chest, "A", OPS)));
 		assertEquals(0, count(PerPlayerChest.open(data, chest, "B", OPS)));
 		assertEquals(16, count(PerPlayerChest.read(data.getListOrEmpty(PerPlayerChest.TEMPLATE), OPS)));
-		// un tercero también recibe la suya
+		// a third player also gets theirs
 		assertEquals(16, count(PerPlayerChest.open(data, chest, "C", OPS)));
 		assertTrue(chest.isEmpty());
 	}
@@ -97,7 +97,7 @@ class PerPlayerChestTest {
 		assertTrue(PerPlayerChest.restore(data, chest, OPS));
 		assertEquals(16, chest.getItem(0).getCount() + chest.getItem(1).getCount() + chest.getItem(5).getCount());
 		assertTrue(!PerPlayerChest.restore(data, chest, OPS), "solo una vez");
-		// reactivada: vuelve a capturar; A conserva su copia, B recibe la suya
+		// re-enabled: it captures again; A keeps their copy, B gets theirs
 		assertEquals(16, count(PerPlayerChest.open(data, chest, "A", OPS)));
 		assertEquals(16, count(PerPlayerChest.open(data, chest, "B", OPS)));
 	}
@@ -107,7 +107,7 @@ class PerPlayerChestTest {
 		SimpleContainer chest = premium();
 		CompoundTag data = new CompoundTag();
 		PerPlayerChest.open(data, chest, "A", OPS);
-		// aunque el servidor se cierre sin guardar la copia al cerrar, A ya tiene la suya apuntada
+		// even if the server closes without saving the copy on close, A already has theirs recorded
 		assertTrue(data.getCompoundOrEmpty(PerPlayerChest.PLAYERS).contains("A"));
 	}
 }

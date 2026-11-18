@@ -26,11 +26,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Entradas a mina sin servidor: la rejilla heraldia:rejilla del grupo minas/&lt;tamaño&gt; (activación y separación de la
- * configuración, en proporción entre tamaños) y la regla de {@link Mines} con todo inyectado: ninguna superviviente en
- * la zona de una aldea o una única ni junto a una mediana que sale, dos de distinto tamaño nunca a menos de la distancia
- * mínima, toda descartada por otra mina tiene cerca una superviviente, y el resultado no depende del orden; y
- * {@link MediumStructures#near} (la mediana más cercana que sale, la que hace ceder a una mina).
+ * Mine entrances without a server: the heraldia:rejilla grid of the group minas/&lt;size&gt; (activation and separation from the
+ * configuration, proportional between sizes) and the rule of {@link Mines} with everything injected: no survivor in
+ * the zone of a village or a unique nor next to a medium that wins, two of different sizes never within the minimum
+ * distance, every one discarded by another mine has a survivor nearby, and the result does not depend on the order; and
+ * {@link MediumStructures#near} (the nearest medium that wins, the one that makes a mine yield).
  */
 class MinesTest {
 	private static final String[] SIZES = {"pequena", "mediana", "grande"};
@@ -141,7 +141,7 @@ class MinesTest {
 	@Test
 	void consistentSeparationBetweenSizes() throws IOException {
 		config("{}");
-		int distance = 900;                    // mucho más que la de por defecto: muchos choques que comprobar
+		int distance = 900;                    // much more than the default: many clashes to check
 		long d2 = (long) distance * distance;
 		MediumStructures.Zone free = (x, z) -> false;
 		MediumStructures.Styles allStyles = (j, x, z) -> true;
@@ -190,7 +190,7 @@ class MinesTest {
 		MediumStructures.Zone here = (x, z) -> x == c.x && z == c.z;
 		assertTrue(mines(192).rejects(c.type, c.x, c.z, 77, here, allStyles, free, free), "en la zona de una aldea o una única");
 		assertTrue(mines(192).rejects(c.type, c.x, c.z, 77, free, allStyles, free, here), "junto a una mediana que sale");
-		// vecinas que no salen (bioma o ladera), en la Atlántida o junto a una mediana no descartan a nadie
+		// neighbors that do not win (biome or hillside), in Atlantis or next to a medium discard nobody
 		int distance = 3000;
 		for (String testCase : new String[] {"estilos", "atlantida", "medianas"}) {
 			Mines m = mines(distance);
@@ -214,7 +214,7 @@ class MinesTest {
 		java.util.function.Supplier<MediumStructures> fresh = () -> new MediumStructures(new Object(),
 				List.of(Identifier.fromNamespaceAndPath("heraldia", "medianas/posada")),
 				List.of(List.of(Identifier.fromNamespaceAndPath("heraldia", "medianas/posada/a"))), List.of(List.of()), List.of(inn), null, 192);
-		MediumStructures med = fresh.get();          // una por contexto: la decisión de cada mediana queda en su memoria
+		MediumStructures med = fresh.get();          // one per context: each medium's decision stays in its memo
 		ChunkPos p = inn.getPotentialStructureChunk(8, inn.offsetX(), inn.offsetZ());
 		MediumStructures.Zone free = (x, z) -> false;
 		MediumStructures.Context outcome = new MediumStructures.Context(free, (j, x, z) -> true, free);

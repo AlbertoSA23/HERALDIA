@@ -48,12 +48,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * La búsqueda de ladera de las entradas a mina de ahora (comprobaciones reordenadas, {@link Hillside}, con la caché
- * compartida de alturas, {@link HeightCache}) da exactamente lo mismo que la de la 0.1.0 ({@link OldHillside}, con una
- * caché por búsqueda, {@link Heights}): mismas minas en los mismos
- * sitios. Con el terreno real de 26.3 (VanillaRegistries, sin servidor) en varias semillas y muchos chunks, con las formas
- * de las tres bocas del datapack generado, en el orden de la generación (los diez estilos y variantes del set miran el
- * mismo chunk), con una caché diminuta que se vacía a mitad de búsqueda y desde varios hilos a la vez.
+ * The current hillside search of the mine entrances (reordered checks, {@link Hillside}, with the shared
+ * height cache, {@link HeightCache}) gives exactly the same as the 0.1.0 one ({@link OldHillside}, with one
+ * cache per search, {@link Heights}): the same mines in the same
+ * places. With the real 26.3 terrain (VanillaRegistries, without a server) over several seeds and many chunks, with the shapes
+ * of the three mouths of the generated datapack, in generation order (the set's ten styles and variants look at the
+ * same chunk), with a tiny cache that empties mid-search and from several threads at once.
  */
 class MinesDeterminismTest {
 	private static final long[] SEEDS = {20261116L, 1L, -4242L};
@@ -69,8 +69,8 @@ class MinesDeterminismTest {
 	static void bootstrap() throws IOException {
 		SharedConstants.tryDetectVersion();
 		Bootstrap.bootStrap();
-		// Las alturas del fondo (OCEAN_FLOOR_WG) miran la etiqueta de bloques minecraft:blocks_motion_in_heightmap: sin las
-		// etiquetas de vanilla cargadas, todo da el fondo del mundo (como el servidor al cargar sus datos).
+		// The floor heights (OCEAN_FLOOR_WG) look at the block tag minecraft:blocks_motion_in_heightmap: without the
+		// vanilla tags loaded, everything gives the world's bottom (like the server when it loads its data).
 		var data = new MultiPackResourceManager(PackType.SERVER_DATA, List.<PackResources>of(ServerPacksSource.createVanillaPackSource().fullResources()));
 		TagLoader.loadTagsForExistingRegistries(data, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY))
 				.forEach(Registry.PendingTags::apply);
@@ -100,7 +100,7 @@ class MinesDeterminismTest {
 				p.get(1).getAsInt(), p.get(2).getAsInt(), p.get(3).getAsInt(), ceiling);
 	}
 
-	/** Una forma de cada (las de los estilos y variantes de un tamaño coinciden). */
+	/** One shape of each (those of the styles and variants of a size match). */
 	private static List<Hillside.Shape> distinct() {
 		Map<String, Hillside.Shape> out = new LinkedHashMap<>();
 		SHAPES.values().forEach(f -> out.putIfAbsent(key(f), f));
@@ -112,7 +112,7 @@ class MinesDeterminismTest {
 				+ java.util.Arrays.deepToString(f.ceiling().toArray());
 	}
 
-	/** Alturas de generación del mundo principal con esa semilla, contando cuántas columnas se evalúan. */
+	/** Overworld generation heights with that seed, counting how many columns are evaluated. */
 	private static HeightCache.Source source(long seed, AtomicInteger evaluated) {
 		RandomState rs = RandomState.create(vanilla.lookupOrThrow(Registries.NOISE), seed, settings);
 		NoiseBasedChunkGenerator g = new NoiseBasedChunkGenerator(biomes, settingsHolder);
@@ -123,9 +123,9 @@ class MinesDeterminismTest {
 	}
 
 	/**
-	 * Chunks al azar (con la semilla del test) hasta 20.000 bloques del 0,0: una cuarta parte cualquiera (llanuras, mar...) y
-	 * el resto con pendiente (el terreno sube al menos {@link Hillside#RISE_MIN} hacia algún lado), donde la búsqueda llega
-	 * hasta el final y salen laderas.
+	 * Random chunks (with the test's seed) up to 20,000 blocks from 0,0: a quarter of any kind (plains, sea...) and
+	 * the rest on a slope (the terrain rises at least {@link Hillside#RISE_MIN} towards some side), where the search goes
+	 * all the way to the end and hillsides come out.
 	 */
 	private static List<int[]> chunks(long seed, int n, HeightCache.Source f) {
 		Random r = new Random(seed * 31 + 7);
@@ -150,7 +150,7 @@ class MinesDeterminismTest {
 		return Hillside.search(t, c[0] * 16 + 8, c[1] * 16 + 8, f, HIGH.getMinY(), forced);
 	}
 
-	/** La ruta antigua entera: la búsqueda de la 0.1.0 ({@link OldHillside}) con una caché nueva por búsqueda. */
+	/** The whole old path: the 0.1.0 search ({@link OldHillside}) with a new cache per search. */
 	private static Hillside.Site old(HeightCache.Source f, int[] c, Hillside.Shape shape, boolean forced) {
 		return OldHillside.search(MineEntranceStructure.terrain(new Heights(f, 63)), c[0] * 16 + 8, c[1] * 16 + 8, shape, HIGH.getMinY(), forced);
 	}
@@ -164,9 +164,9 @@ class MinesDeterminismTest {
 			HeightCache.Source fv = source(seed, olds), fn = source(seed, news);
 			HeightCache shared = new HeightCache(fn, 63, HeightCache.CAPACITY);
 			for (int[] c : chunks(seed, CHUNKS_PER_SEED, source(seed, new AtomicInteger()))) {
-				// antes: cada estructura del set (diez por tamaño) con su propia caché, nueva en cada findGenerationPoint; las
-				// de formas iguales dan lo mismo, así que la ruta antigua se calcula una vez por forma distinta y se cuenta
-				// como si se hubiera repetido
+				// before: each structure of the set (ten per size) with its own cache, new on every findGenerationPoint; those
+				// with equal shapes give the same, so the old path is computed once per distinct shape and counted
+				// as if it had been repeated
 				Map<String, Hillside.Site> legacyOnes = new java.util.HashMap<>();
 				Map<String, Integer> cost = new java.util.HashMap<>();
 				for (Map.Entry<String, Hillside.Shape> e : SHAPES.entrySet()) {
@@ -193,7 +193,7 @@ class MinesDeterminismTest {
 		}
 		assertTrue(compared >= SEEDS.length * CHUNKS_PER_SEED * 30, "comparadas " + compared);
 		assertTrue(found >= 20, "pocas laderas encontradas para que la comparación valga: " + found);
-		// la mejora: los estilos y variantes del set (y luego /locate) ya no repiten columnas
+		// the improvement: the set's styles and variants (and then /locate) no longer repeat columns
 		assertTrue(after * 5 < before, "columnas evaluadas: " + before + " antes, " + after + " con la caché compartida");
 		System.out.printf("MinasDeterminismo: %d búsquedas, %d laderas; columnas evaluadas %d -> %d%n", compared, found, before, after);
 	}
@@ -203,7 +203,7 @@ class MinesDeterminismTest {
 		long seed = SEEDS[0];
 		AtomicInteger n = new AtomicInteger();
 		HeightCache.Source f = source(seed, n);
-		HeightCache tiny = new HeightCache(f, 63, 64);    // una columna por franja: se vacía sin parar
+		HeightCache tiny = new HeightCache(f, 63, 64);    // one column per band: it empties non-stop
 		int found = 0;
 		for (int[] c : chunks(seed + 1, 40, f)) {
 			for (Hillside.Shape shape : distinct()) {

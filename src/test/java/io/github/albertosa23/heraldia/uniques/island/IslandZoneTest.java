@@ -19,7 +19,7 @@ import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Zona de exclusión de la isla del corsario: qué inicios ajenos caen junto a la candidata de la isla y la memoria de «sale». */
+/** Exclusion zone of the corsair's island: which foreign starts fall next to the island candidate and the "wins" memo. */
 class IslandZoneTest {
 	private static final Identifier ISLAND = Identifier.fromNamespaceAndPath("heraldia", "unicas/isla_corsario");
 	private static final Identifier OTHER = Identifier.fromNamespaceAndPath("heraldia", "unicas/faro");
@@ -52,7 +52,7 @@ class IslandZoneTest {
 		long seed = 77;
 		ChunkPos c = GRID.getPotentialStructureChunk(seed, 0, 0);
 		assertEquals(IslandZone.NONE, IslandZone.candidate(SHIPWRECK, Level.NETHER, sep, seed, c.x(), c.z()));
-		assertEquals(IslandZone.NONE, IslandZone.candidate(OTHER, Level.OVERWORLD, sep, seed, c.x(), c.z()));       // las de Heraldia van por UniqueSeparation
+		assertEquals(IslandZone.NONE, IslandZone.candidate(OTHER, Level.OVERWORLD, sep, seed, c.x(), c.z()));       // Heraldia's go through UniqueSeparation
 		assertEquals(IslandZone.NONE, IslandZone.candidate(Identifier.fromNamespaceAndPath("minecraft", "stronghold"),
 				Level.OVERWORLD, sep, seed, c.x(), c.z()));
 		UniqueSeparation noIsland = new UniqueSeparation("x", List.of(OTHER), java.util.Collections.singletonList(null),
@@ -68,7 +68,7 @@ class IslandZoneTest {
 		AtomicInteger calls = new AtomicInteger();
 		UniqueSeparation.Viability only = (j, x, z) -> {
 			calls.incrementAndGet();
-			return j == 1;    // solo la isla es viable: nadie la descarta
+			return j == 1;    // only the island is viable: nobody discards it
 		};
 		assertTrue(IslandZone.outcome(sep, cand, seed, only));
 		int n = calls.get();
@@ -87,7 +87,7 @@ class IslandZoneTest {
 			double r = Math.hypot(pts[k][0], pts[k][1]);
 			assertTrue(Math.abs(r - (k <= 8 ? 10 : 20)) <= 0.75, "radio " + r);
 		}
-		assertEquals(10, pts[1][0]);       // el primer punto de cada anillo, al este
+		assertEquals(10, pts[1][0]);       // the first point of each ring, to the east
 		assertEquals(0, pts[1][1]);
 	}
 }

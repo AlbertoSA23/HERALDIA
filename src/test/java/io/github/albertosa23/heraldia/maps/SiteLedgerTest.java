@@ -18,7 +18,7 @@ import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Clasificación de las estructuras por su id, el registro de las conocidas (con su fichero) y los iconos. */
+/** Classification of the structures by their id, the ledger of the known ones (with its file) and the icons. */
 class SiteLedgerTest {
 	static final Map<String, String> STYLES = Map.of("llanura", "llanuras", "puerto", "costa");
 

@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Cuándo se cumple cada tipo de objetivo. */
+/** When each objective type is met. */
 class ObjectivesTest {
 	static Quest of(Type t, String target, int amount, int x, int z) {
 		return new Quest(1, 2, 0, 0, t, target, amount, x, z, 3, 20);

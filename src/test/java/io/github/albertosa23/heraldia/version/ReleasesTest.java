@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 
-/** Respuestas de GitHub Releases y Modrinth (fixtures en src/test/resources/version) y la elección de la versión nueva. */
+/** GitHub Releases and Modrinth responses (fixtures in src/test/resources/version) and the choice of the new version. */
 class ReleasesTest {
 	private static String fixture(String name) throws IOException {
 		try (InputStream in = ReleasesTest.class.getResourceAsStream("/version/" + name)) {
@@ -28,7 +28,7 @@ class ReleasesTest {
 		return Version.of(s).orElseThrow();
 	}
 
-	/** El Minecraft de cada etiqueta de GitHub, como lo daría el gradle.properties; apunta a cuáles se preguntan. */
+	/** The Minecraft of each GitHub tag, as the gradle.properties would give it; records which ones are asked. */
 	private static Function<Release, Optional<String>> mc(Map<String, String> byTag, List<String> asked) {
 		return p -> {
 			asked.add(p.tag());
@@ -39,7 +39,7 @@ class ReleasesTest {
 	@Test
 	void readsGitHub() throws IOException {
 		List<Release> ps = Releases.read(fixture("github.json"));
-		// sin el borrador, la que no tiene .jar (solo notas), la etiqueta que no es versión, el enlace que no es web y lo que no es objeto
+		// without the draft, the one without a .jar (notes only), the tag that is not a version, the link that is not web and what is not an object
 		assertEquals(List.of("v0.3.0-beta.1", "v0.2.0", "v0.1.0"), ps.stream().map(Release::tag).toList());
 		Release beta = ps.get(0), b = ps.get(1);
 		assertTrue(beta.prerelease());
@@ -52,7 +52,7 @@ class ReleasesTest {
 	@Test
 	void readsModrinth() throws IOException {
 		List<Release> ps = Releases.read(fixture("modrinth.json"));
-		// sin la archivada ni la del id raro
+		// without the archived one or the one with the odd id
 		assertEquals(List.of("0.4.0", "0.3.5", "0.3.1", "0.3.0", "0.1.0"), ps.stream().map(p -> p.version().toString()).toList());
 		Release beta = ps.get(2), r = ps.get(3);
 		assertTrue(beta.prerelease(), "version_type beta");
@@ -79,14 +79,14 @@ class ReleasesTest {
 		Optional<Release> p = Releases.choose(ps, v("0.1.0"), "26.3", false, mc(Map.of("v0.2.0", "26.3"), asked));
 		assertEquals("v0.2.0", p.orElseThrow().tag());
 		assertEquals(List.of("v0.2.0"), asked, "la beta no se mira sin prepublicaciones; la actual, nunca");
-		// con prepublicaciones, la beta (si es de este Minecraft)
+		// with prereleases, the beta (if it is for this Minecraft)
 		asked.clear();
 		p = Releases.choose(ps, v("0.1.0"), "26.3", true, mc(Map.of("v0.3.0-beta.1", "26.3", "v0.2.0", "26.3"), asked));
 		assertEquals("v0.3.0-beta.1", p.orElseThrow().tag());
-		// la beta es para otro Minecraft: sigue con la siguiente
+		// the beta is for another Minecraft: it goes on with the next one
 		p = Releases.choose(ps, v("0.1.0"), "26.3", true, mc(Map.of("v0.3.0-beta.1", "26.4", "v0.2.0", "26.3"), new ArrayList<>()));
 		assertEquals("v0.2.0", p.orElseThrow().tag());
-		// un servidor en 26.3.1 sirve para una compilada en 26.3
+		// a server on 26.3.1 works with one compiled for 26.3
 		p = Releases.choose(ps, v("0.1.0"), "26.3.1", false, mc(Map.of("v0.2.0", "26.3"), new ArrayList<>()));
 		assertEquals("v0.2.0", p.orElseThrow().tag());
 	}
@@ -96,9 +96,9 @@ class ReleasesTest {
 		List<Release> ps = Releases.read(fixture("github.json"));
 		assertTrue(Releases.choose(ps, v("0.2.0"), "26.3", false, mc(Map.of("v0.2.0", "26.3"), new ArrayList<>())).isEmpty());
 		assertTrue(Releases.choose(ps, v("0.3.0"), "26.3", true, mc(Map.of(), new ArrayList<>())).isEmpty());
-		// no se sabe su Minecraft (sin red para el gradle.properties): no se avisa
+		// its Minecraft is unknown (no network for the gradle.properties): no notice
 		assertTrue(Releases.choose(ps, v("0.1.0"), "26.3", false, mc(Map.of(), new ArrayList<>())).isEmpty());
-		// para otro Minecraft
+		// for another Minecraft
 		assertTrue(Releases.choose(ps, v("0.1.0"), "26.4", false, mc(Map.of("v0.2.0", "26.3"), new ArrayList<>())).isEmpty());
 		assertTrue(Releases.choose(List.of(), v("0.1.0"), "26.3", true, p -> Optional.of("26.3")).isEmpty());
 	}
@@ -120,7 +120,7 @@ class ReleasesTest {
 		Function<Release, Optional<String>> never = p -> {
 			throw new AssertionError("Modrinth ya dice su Minecraft");
 		};
-		// 0.4.0 es de 26.4, 0.3.5 de NeoForge, 0.3.1 beta: queda 0.3.0
+		// 0.4.0 is for 26.4, 0.3.5 for NeoForge, 0.3.1 is a beta: 0.3.0 remains
 		assertEquals("0.3.0", Releases.choose(ps, v("0.1.0"), "26.3", false, never).orElseThrow().version().toString());
 		assertEquals("0.3.1", Releases.choose(ps, v("0.1.0"), "26.3", true, never).orElseThrow().version().toString());
 		assertEquals("0.3.0", Releases.choose(ps, v("0.1.0"), "26.3.1", true, never).orElseThrow().version().toString());

@@ -15,10 +15,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Determinismo rápido de la búsqueda de ladera (el de verdad, con el terreno de 26.3, es MinasDeterminismoTest, en
- * testPesado): con terrenos sintéticos de montes, valles y agua, en muchas semillas y chunks, la búsqueda de ahora
- * ({@link Hillside}, comprobaciones reordenadas, sobre la caché compartida) da lo mismo que la de la 0.1.0
- * ({@link OldHillside}, con una caché por búsqueda), también forzada y con la caché llena que se vacía.
+ * Fast determinism check of the hillside search (the real one, with the 26.3 terrain, is MinesDeterminismTest, in
+ * testPesado): with synthetic terrains of hills, valleys and water, over many seeds and chunks, the current search
+ * ({@link Hillside}, reordered checks, over the shared cache) gives the same as the 0.1.0 one
+ * ({@link OldHillside}, with one cache per search), also forced and with the full cache being emptied.
  */
 class HillsideOrderTest {
 	private static final List<Hillside.Shape> SHAPES = List.of(
@@ -32,7 +32,7 @@ class HillsideOrderTest {
 		Bootstrap.bootStrap();
 	}
 
-	/** Montes y valles: suma de ondas con amplitudes y fases de la semilla; agua (a 63) bajo el nivel del mar. */
+	/** Hills and valleys: a sum of waves with amplitudes and phases from the seed; water (at 63) below sea level. */
 	private static HeightCache.Source terrain(long seed) {
 		Random r = new Random(seed);
 		int n = 5;

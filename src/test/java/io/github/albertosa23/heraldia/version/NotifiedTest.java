@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** Una vez por sesión del servidor y por versión a cada operador. */
+/** Once per server session and per version to each operator. */
 class NotifiedTest {
 	@Test
 	void oncePerPlayerAndVersion() {
@@ -16,11 +16,11 @@ class NotifiedTest {
 		assertFalse(a.shouldNotify(ana, "0.2.0"), "al volver a entrar en la misma sesión no se repite");
 		assertTrue(a.shouldNotify(luis, "0.2.0"));
 		assertFalse(a.shouldNotify(luis, "0.2.0"));
-		// sale otra más nueva: se avisa otra vez a todos, una vez
+		// a newer one comes out: everyone is notified again, once
 		assertTrue(a.shouldNotify(ana, "0.3.0"));
 		assertFalse(a.shouldNotify(ana, "0.3.0"));
 		assertTrue(a.shouldNotify(luis, "0.3.0"));
-		// una sesión nueva del servidor empieza de cero
+		// a new server session starts from scratch
 		assertTrue(new Notified().shouldNotify(ana, "0.3.0"));
 	}
 }

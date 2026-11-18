@@ -19,7 +19,7 @@ import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** El tablón de cada aldea: determinista por aldea y periodo, con 2-4 encargos de los tipos que haya alrededor. */
+/** Each village's board: deterministic per village and period, with 2-4 quests of the types there are around. */
 class GeneratorTest {
 	static final long SEED = 123456789L;
 	static final List<Generator.Objective> GUARDIANS = List.of(new Generator.Objective("castillo", 900, -300, 950),
@@ -53,7 +53,7 @@ class GeneratorTest {
 		assertNotEquals(strip(Generator.board(SEED, 10, -20, 3, ALL)), strip(Generator.board(SEED + 1, 10, -20, 3, ALL)));
 	}
 
-	/** Sin aldea ni periodo (para comparar el contenido). */
+	/** Without village or period (to compare the contents). */
 	private static List<Quest> strip(List<Quest> t) {
 		return t.stream().map(e -> new Quest(0, 0, 0, e.gap(), e.type(), e.target(), e.amount(), e.x(), e.z(), e.emeralds(),
 				e.experience())).toList();
@@ -159,7 +159,7 @@ class GeneratorTest {
 		}
 	}
 
-	/** Las familias de aldeas del esquema (themes.FAMILIES): cada una con sus materiales del bioma. */
+	/** The schema's village families (themes.FAMILIES): each one with its biome materials. */
 	static Set<String> families() {
 		JsonObject styles = HeraldiaConfig.get().schema().getAsJsonObject("aldeas").getAsJsonObject("estilos");
 		Set<String> out = new TreeSet<>();

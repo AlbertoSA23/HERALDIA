@@ -12,9 +12,9 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** Registro de arreglos: orden, marca, modo de prueba e idempotencia de cada arreglo inicial de los mobs. */
+/** Fix registry: order, mark, dry-run mode and idempotency of each initial mob fix. */
 class FixesTest {
-	/** Un mob de mentira con lo que los arreglos miran. */
+	/** A fake mob with what the fixes look at. */
 	static final class Fake implements MobFixes.Mob {
 		String type = "zombie", name, mount, weapon;
 		Set<String> tags = new HashSet<>();
@@ -36,7 +36,7 @@ class FixesTest {
 		@Override public boolean specialWeapon() { return special; }
 	}
 
-	/** Un guardián de la 0.1.0: nombre traducible, persistente, sin etiquetas, bebé, en una gallina, recogiendo. */
+	/** A 0.1.0 guardian: translatable name, persistent, no tags, baby, on a chicken, picking up items. */
 	static Fake oldGuardian() {
 		Fake f = new Fake();
 		f.name = "heraldia.unicas.castillo.guardian";
@@ -54,7 +54,7 @@ class FixesTest {
 		newValue.tags.add("heraldia_anclado");
 		assertTrue(MobFixes.fromTemplate(newValue));
 		Fake vanilla = new Fake();
-		vanilla.name = "entity.minecraft.zombie";      // con nombre, pero no de Heraldia
+		vanilla.name = "entity.minecraft.zombie";      // with a name, but not Heraldia's
 		assertFalse(MobFixes.fromTemplate(vanilla));
 		Fake notPersisted = oldGuardian();
 		notPersisted.persistent = false;
@@ -70,7 +70,7 @@ class FixesTest {
 		assertFalse(g.baby);
 		assertTrue(g.mountRemoved);
 		assertFalse(g.picksUp);
-		// la segunda vez (forzada, como /heraldia update repair) ya no hay nada que cambiar
+		// the second time (forced, like /heraldia update repair) there is nothing left to change
 		assertTrue(MobFixes.LEDGER.execute(g, 0, false, true).isEmpty());
 		assertTrue(MobFixes.LEDGER.execute(g, 0, false, true).isEmpty());
 	}
@@ -95,8 +95,8 @@ class FixesTest {
 		assertTrue(MobFixes.LEDGER.pending(0));
 		assertFalse(MobFixes.LEDGER.pending(tier));
 		assertTrue(MobFixes.LEDGER.execute(g, tier, false, false).isEmpty());
-		assertTrue(g.baby);                                // con la marca no se ha tocado
-		// con una marca intermedia solo corren los de número mayor
+		assertTrue(g.baby);                                // with the mark it has not been touched
+		// with an intermediate mark only the higher-numbered ones run
 		Map<String, Effect> e = MobFixes.LEDGER.execute(g, 2, false, false);
 		assertEquals(Set.of("recoger"), e.keySet());
 		assertTrue(g.baby);
@@ -113,12 +113,12 @@ class FixesTest {
 		assertEquals(Effect.CHANGES, e.get("nautilos"));
 		assertEquals(Effect.NOTICE, e.get("armas"));
 		assertTrue(a.mountRemoved);
-		assertEquals("trident", a.weapon);                  // el arma no se cambia: solo se avisa
+		assertEquals("trident", a.weapon);                  // the weapon is not changed: only a warning
 		assertEquals(Map.of("armas", Effect.NOTICE), MobFixes.LEDGER.execute(a, 0, false, true));
-		// un tridente con nombre o encantado es de la plantilla
+		// a named or enchanted trident is the template's
 		a.special = true;
 		assertTrue(MobFixes.LEDGER.execute(a, 0, false, true).isEmpty());
-		// un nautilo con nombre (de un jugador) no se quita
+		// a named nautilus (a player's) is not removed
 		Fake b = new Fake();
 		b.type = "drowned";
 		b.tags.add("heraldia_adulto");
@@ -163,7 +163,7 @@ class FixesTest {
 
 	@Test
 	void worldVersion() {
-		// mundo nuevo: generado con esta versión; viejo sin datos: «anterior»
+		// new world: generated with this version; old one without data: "anterior"
 		assertEquals(new WorldVersion("0.2.0", "0.2.0", 5), WorldVersion.onStart(java.util.Optional.empty(), "0.2.0", 10, 1200, 5));
 		assertEquals(new WorldVersion(WorldVersion.PREVIOUS, "0.2.0", 0), WorldVersion.onStart(java.util.Optional.empty(), "0.2.0", 90_000, 1200, 5));
 		WorldVersion before = new WorldVersion("0.1.0", "0.1.5", 2);

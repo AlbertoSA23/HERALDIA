@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Material del camino según la superficie (CaminoFeature.suelo): solo terreno natural, y nunca grava sin apoyo. */
+/** Road material by surface (RoadFeature.ground): only natural terrain, and never unsupported gravel. */
 class RoadFeatureTest {
 	@BeforeAll
 	static void bootstrap() {

@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Comparación semántica de versiones y la regla «~» del Minecraft (lógica pura). */
+/** Semantic version comparison and Minecraft's "~" rule (pure logic). */
 class VersionTest {
 	private static Version v(String s) {
 		return Version.of(s).orElseThrow(() -> new AssertionError("no es versión: " + s));

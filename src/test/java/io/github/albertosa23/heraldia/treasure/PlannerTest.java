@@ -14,11 +14,11 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** La elección de la cadena: determinista, con tipos válidos, dentro del radio, sin repetir y prefiriendo lo generado. */
+/** Choosing the chain: deterministic, with valid types, within the radius, without repeats and preferring what is generated. */
 class PlannerTest {
 	static final Planner.Biomes BIOMES = (x, z) -> x < 0 ? "minecraft:desert" : "minecraft:plains";
 
-	/** Un mundo de mentira: medianas y minas repartidas al azar (con su semilla) en ±5000 bloques. */
+	/** A fake world: mediums and mines scattered at random (with its seed) within ±5000 blocks. */
 	record World(List<Planner.Candidate> all) implements Planner.Finder {
 		static World rng(long seed, int n) {
 			Random r = new Random(seed);
@@ -34,7 +34,7 @@ class PlannerTest {
 		@Override
 		public List<Planner.Candidate> search(Destination.Type type, int x, int z, int radius) {
 			List<Planner.Candidate> out = new ArrayList<>();
-			for (Planner.Candidate c : all) {   // devuelve de más (otro tipo, fuera del radio): el planificador filtra
+			for (Planner.Candidate c : all) {   // it returns too much (another type, outside the radius): the planner filters
 				if (Planner.dist(c.x() - x, c.z() - z) <= 4L * radius * radius) {
 					out.add(c);
 				}
@@ -144,7 +144,7 @@ class PlannerTest {
 	@Test
 	void prefersGenerated() {
 		List<Planner.Candidate> l = new ArrayList<>();
-		for (int i = 0; i < 6; i++) {   // previstas más cerca, generadas más lejos
+		for (int i = 0; i < 6; i++) {   // expected ones closer, generated ones farther
 			l.add(new Planner.Candidate(Destination.Type.MEDIUM, "heraldia:medianas/prevista" + i, 150 + i * 20, 0, false));
 		}
 		for (int i = 0; i < 3; i++) {

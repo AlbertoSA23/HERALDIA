@@ -16,12 +16,12 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 /**
- * Dependencias opcionales de los mapas web: sin BlueMap, Dynmap ni squaremap no se carga ninguna clase suya. Sus API
- * son compileOnly (no están en el classpath de las pruebas, así que cualquier carga fallaría) y ninguna clase del mod,
- * salvo su adaptador, nombra una clase de un mapa ni un adaptador (se buscan en el bytecode).
+ * Optional web map dependencies: without BlueMap, Dynmap or squaremap none of their classes is loaded. Their APIs
+ * are compileOnly (they are not on the tests' classpath, so any load would fail) and no mod class,
+ * except its adapter, names a map class or an adapter (they are searched for in the bytecode).
  */
 class WebMapsIsolationTest {
-	/** Paquetes de las API (como aparecen en el bytecode) y de los adaptadores. */
+	/** Packages of the APIs (as they appear in the bytecode) and of the adapters. */
 	static final List<String> API = List.of("de/bluecolored/", "xyz/jpenilla/", "org/dynmap/");
 	static final String ADAPTERS = "io/github/albertosa23/heraldia/maps/";
 	static final Set<String> SUBPACKAGES = Set.of("bluemap", "dynmap", "squaremap");

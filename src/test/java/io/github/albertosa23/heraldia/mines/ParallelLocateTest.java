@@ -17,9 +17,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * /locate de minas en paralelo ({@link ParallelLocate}): las casillas de cada anillo en el orden de vanilla
- * (ChunkGenerator.getNearestGeneratedStructure: i de −r a r por fuera, j por dentro, solo el borde) y la casilla de la
- * candidata igual a la del chunk desde el que se pide (así el hilo del servidor espera la tarea que toca).
+ * Parallel mine /locate ({@link ParallelLocate}): the cells of each ring in vanilla's order
+ * (ChunkGenerator.getNearestGeneratedStructure: i from −r to r outside, j inside, only the border) and the cell of the
+ * candidate equal to that of the chunk it is requested from (so the server thread waits for the right task).
  */
 class ParallelLocateTest {
 	@BeforeAll

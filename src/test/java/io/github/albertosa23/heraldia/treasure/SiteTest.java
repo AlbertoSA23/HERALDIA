@@ -13,9 +13,9 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
-/** Dónde se entierra el cofre: nunca dentro, encima ni al lado (margen) de lo que construyen los jugadores. */
+/** Where the chest is buried: never inside, on top of or next to (margin) what the players build. */
 class SiteTest {
-	/** Un llano de hierba a y = 64 (tierra debajo), con bloques sueltos, agua, estructuras y columnas sin cargar. */
+	/** A grass plain at y = 64 (dirt below), with loose blocks, water, structures and unloaded columns. */
 	static final class Flat implements Site.View {
 		final Map<BlockPos, String> blocks = new HashMap<>();
 		final Map<Long, Integer> tops = new HashMap<>();
@@ -64,7 +64,7 @@ class SiteTest {
 	@Test
 	void respectsMarginAroundPlayerBuilds() {
 		Flat w = new Flat();
-		w.blocks.put(new BlockPos(103, 65, -50), "minecraft:oak_planks");   // a 3 bloques de la marca, sobre la cima
+		w.blocks.put(new BlockPos(103, 65, -50), "minecraft:oak_planks");   // 3 blocks from the mark, on the top
 		BlockPos p = Site.choose(w, 100, -50).chest().orElseThrow();
 		assertTrue(Math.max(Math.abs(p.getX() - 103), Math.abs(p.getZ() + 50)) > Site.MARGIN, "lejos de la tabla: " + p);
 	}
@@ -74,7 +74,7 @@ class SiteTest {
 		Flat w = new Flat();
 		for (int x = 95; x <= 105; x++) {
 			for (int z = -55; z <= -45; z++) {
-				w.blocks.put(new BlockPos(x, 60, z), "minecraft:stone_bricks");   // un sótano 4 bloques bajo la hierba
+				w.blocks.put(new BlockPos(x, 60, z), "minecraft:stone_bricks");   // a basement 4 blocks below the grass
 			}
 		}
 		BlockPos p = Site.choose(w, 100, -50).chest().orElseThrow();
@@ -123,7 +123,7 @@ class SiteTest {
 		w.water.add(new BlockPos(0, 65, 0));
 		w.structure.add(new BlockPos(1, 63, 0));
 		w.blocks.put(new BlockPos(0, 64, 1), "minecraft:bedrock");
-		w.blocks.put(new BlockPos(-1, 63, 0), "minecraft:oak_log");   // un árbol: no es suelo, pero tampoco obra
+		w.blocks.put(new BlockPos(-1, 63, 0), "minecraft:oak_log");   // a tree: it is not ground, but it is not a build either
 		Site.Choice e = Site.choose(w, 0, 0, 1, 0);
 		assertEquals(new BlockPos(0, 63, -1), e.chest().orElseThrow());
 	}
@@ -144,7 +144,7 @@ class SiteTest {
 	@Test
 	void eachColumnIsCheckedOnce() {
 		Flat w = new Flat();
-		w.blocks.put(new BlockPos(0, 65, 0), "minecraft:torch");   // obliga a recorrer muchas candidatas
+		w.blocks.put(new BlockPos(0, 65, 0), "minecraft:torch");   // forces walking many candidates
 		Site.choose(w, 0, 0);
 		int columns = (2 * (Site.RADIUS + Site.MARGIN) + 1) * (2 * (Site.RADIUS + Site.MARGIN) + 1);
 		assertTrue(w.reads < columns * (Site.LOW + Site.ABOVE + 1) + 4 * 1000, "lecturas acotadas: " + w.reads);

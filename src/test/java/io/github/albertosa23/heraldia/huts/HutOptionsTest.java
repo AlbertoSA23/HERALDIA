@@ -22,7 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Opciones de las chozas de mago y el botín del Mago Malvado tal como lo escribe el generador. */
+/** Options of the wizard huts and the Evil Wizard's loot as the generator writes it. */
 class HutOptionsTest {
 	private static Path data;
 
@@ -82,7 +82,7 @@ class HutOptionsTest {
 			for (String o : items(t)) {
 				assertFalse(o.contains("netherite") || o.contains("elytra") || o.contains("enchanted_golden_apple"), o);
 			}
-			// solo si lo vence un jugador
+			// only if a player defeats it
 			for (JsonElement p : t.getAsJsonArray("pools")) {
 				assertEquals("minecraft:killed_by_player", p.getAsJsonObject().getAsJsonObject("condition").get("type").getAsString());
 			}
@@ -92,13 +92,13 @@ class HutOptionsTest {
 		for (int i = 0; i < np.size(); i++) {
 			assertEquals(np.get(i), pp.get(i));
 		}
-		// el tótem solo en el premio (el Mago Malvado no suelta el del evocador)
+		// the totem only in the prize (the Evil Wizard does not drop the evoker's)
 		assertFalse(items(normal).contains("minecraft:totem_of_undying"));
 		List<String> prize = items(pp.get(pp.size() - 1));
 		assertTrue(prize.contains("minecraft:totem_of_undying"));
 		String txt = pp.get(pp.size() - 1).toString();
 		assertTrue(txt.contains("minecraft:mending") && txt.contains("turtle_master") && txt.contains("long_slow_falling"), txt);
-		// más que una mediana: algo que las medianas no pueden dar (diamantes, libros de nivel alto)
+		// more than a medium: something the mediums cannot give (diamonds, high-level books)
 		assertTrue(items(normal).contains("minecraft:diamond"));
 	}
 

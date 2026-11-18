@@ -9,9 +9,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * BasePiece.hash y wallHeight deben ser idénticas a urbanismo.dispersion y alto_muro del generador (Python): la muralla
- * que pone el Java tiene que coincidir con la que audita el generador. Las sumas de control salen de Python y la misma
- * cuenta está en tools/gen/tests/test_atlantida.py: si cambia un lado, falla su prueba.
+ * BasePiece.hash and wallHeight must be identical to the generator's (Python) urbanismo.dispersion and alto_muro: the wall
+ * the Java places has to match the one the generator audits. The checksums come from Python and the same
+ * computation is in tools/gen/tests/test_atlantida.py: if one side changes, its test fails.
  */
 class BasePieceTest {
 	@BeforeAll

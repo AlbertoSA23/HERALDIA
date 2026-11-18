@@ -9,11 +9,11 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** La decisión de cada choza: determinista, con la proporción configurada y que no se rehace una vez guardada. */
+/** Each hut's decision: deterministic, with the configured ratio and not redone once saved. */
 class DecisionTest {
 	private static final long[] SEEDS = {0L, 1L, -4242L, 20261117L, Long.MIN_VALUE, Long.MAX_VALUE};
 
-	/** Cuenta cuántas chozas de una malla de chunks son malvadas (o llevan premio) con una probabilidad. */
+	/** Counts how many huts of a chunk grid are evil (or carry the prize) with a probability. */
 	private static double ratio(int prob, boolean premium) {
 		int yes = 0, n = 0;
 		for (long s : SEEDS) {
@@ -48,7 +48,7 @@ class DecisionTest {
 		assertEquals(1.0, ratio(100, false));
 		assertEquals(0.0, ratio(0, true));
 		assertEquals(1.0, ratio(100, true));
-		// fuera de rango se recorta (la configuración ya lo valida, pero por si acaso)
+		// out of range it is clamped (the configuration already validates it, but just in case)
 		assertEquals(0.0, ratio(-5, false));
 		assertEquals(1.0, ratio(250, true));
 	}
@@ -61,7 +61,7 @@ class DecisionTest {
 				assertArrayEquals(Decision.name(s, x, 7, 16, 8), Decision.name(s, x, 7, 16, 8));
 			}
 		}
-		// la decisión depende de la semilla y de la choza: no es la misma para todas
+		// the decision depends on the seed and the hut: it is not the same for all of them
 		Set<Boolean> seen = new HashSet<>();
 		for (int x = 0; x < 40; x++) {
 			seen.add(Decision.evil(1L, x, 0, 20));
@@ -71,7 +71,7 @@ class DecisionTest {
 
 	@Test
 	void monotonicInProbability() {
-		// subir la probabilidad solo añade malvados: una choza malvada con 20 lo sigue siendo con 40
+		// raising the probability only adds evil ones: a hut that is evil with 20 stays evil with 40
 		for (int x = -30; x < 30; x++) {
 			for (int z = -30; z < 30; z++) {
 				if (Decision.evil(99L, x, z, 20)) {
@@ -118,9 +118,9 @@ class DecisionTest {
 		assertEquals(Decision.State.UNDECIDED, Decision.state(Set.of(Decision.TAG)));
 		assertEquals(Decision.State.BENIGN, Decision.state(Set.of(Decision.TAG, Decision.BENIGN)));
 		assertEquals(Decision.State.EVIL, Decision.state(Set.of(Decision.TAG, Decision.EVIL_UNREVEALED)));
-		// revelado manda sobre todo: un mago ya revelado no vuelve a revelarse
+		// revealed overrides everything: an already revealed wizard does not reveal itself again
 		assertEquals(Decision.State.REVEALED, Decision.state(Set.of(Decision.TAG, Decision.EVIL_UNREVEALED, Decision.REVEALED)));
-		// las etiquetas del generador son las mismas que mira el Java
+		// the generator's tags are the same ones the Java looks at
 		assertEquals("heraldia_mago", Decision.TAG);
 		assertEquals("heraldia_mago_malvado", Decision.EVIL);
 	}

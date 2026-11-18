@@ -14,7 +14,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Los datos del jugador y del mundo: aceptar, cumplir, entregar y su persistencia (los códecs del adjunto). */
+/** The player's and the world's data: accept, meet, deliver and their persistence (the attachment's codecs). */
 class DataTest {
 	static Quest e(int gap, Type t) {
 		return new Quest(5, -7, 2, gap, t, t == Type.BRING ? "minecraft:bread" : "castillo", t == Type.BRING ? 16 : 0, 100, 200, 3, 20);
@@ -107,7 +107,7 @@ class DataTest {
 		assertEquals(d, Data.CODEC.parse(NbtOps.INSTANCE, nbt).getOrThrow());
 		JsonElement json = Data.CODEC.encodeStart(JsonOps.INSTANCE, d).getOrThrow();
 		assertEquals(d, Data.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow());
-		// un adjunto vacío (o de una versión anterior sin campos) se lee con los valores por defecto
+		// an empty attachment (or one from an earlier version without fields) is read with the default values
 		assertEquals(Data.EMPTY, Data.CODEC.parse(JsonOps.INSTANCE, new com.google.gson.JsonObject()).getOrThrow());
 		assertEquals(Map.of("5,-7", 42 + Type.JOURNEY.reputation, "-3,9", -12), d.reputation());
 	}
@@ -120,7 +120,7 @@ class DataTest {
 		assertFalse(m.hasFallen("castillo", 1000 + Objectives.GUARDIAN_RADIUS + 1, 1000));
 		assertFalse(m.hasFallen("catedral", 1000, 1000));
 		assertSame(m, m.falls("castillo", 1010, 990, 9000), "el mismo guardián no se apunta dos veces");
-		// el tablón de un periodo solo descarta los caídos antes de que empezara (no cambia a mitad de periodo)
+		// a period's board only discards those fallen before it started (it does not change mid-period)
 		assertTrue(m.fellBefore("castillo", 1000, 1000, 5001));
 		assertFalse(m.fellBefore("castillo", 1000, 1000, 5000));
 		assertEquals(5000, m.fallen().get(0).tick());

@@ -10,7 +10,7 @@ import net.minecraft.server.Bootstrap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Niveles de reputación, subidas, bajadas y su efecto en los precios. */
+/** Reputation levels, rises, drops and their effect on prices. */
 class ReputationTest {
 	@BeforeAll
 	static void game() {
@@ -39,7 +39,7 @@ class ReputationTest {
 		assertEquals(Reputation.MIN, Reputation.add(-90, -40));
 		assertEquals(Reputation.MAX, Reputation.add(Reputation.MAX, Integer.MAX_VALUE));
 		assertEquals(Reputation.MIN, Reputation.add(Reputation.MIN, Integer.MIN_VALUE));
-		// dos encargos (traer y guardián) bastan para ser conocido; un aldeano muerto lo quita
+		// two quests (bring and guardian) are enough to be known; a killed villager takes it away
 		int r = Reputation.add(Reputation.add(0, Type.BRING.reputation), Type.GUARDIAN.reputation);
 		assertEquals(Reputation.Tier.KNOWN, Reputation.tier(r));
 		assertEquals(Reputation.Tier.UNKNOWN, Reputation.tier(Reputation.add(r, Reputation.attack(false, true))));
@@ -68,7 +68,7 @@ class ReputationTest {
 		assertEquals(0, Reputation.discountFor(Reputation.Tier.FRIEND, 0, true, false));
 	}
 
-	/** El precio que cobra un trato: {@code MerchantOffer.getCostA} (sin demanda), nunca por debajo de 1. */
+	/** The price a trade charges: {@code MerchantOffer.getCostA} (without demand), never below 1. */
 	static int price(int base, int diff) {
 		return Math.max(1, base + diff);
 	}

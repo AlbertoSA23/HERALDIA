@@ -18,14 +18,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 /**
- * Trazado de los caminos (lógica pura, sin el juego): determinismo, simetría, distancia máxima, vecindad relativa,
- * fronteras de chunk sin huecos, agua (puente, pasarela, corte), farolas y carteles, puntos de paso y nombres.
+ * Road layout (pure logic, without the game): determinism, symmetry, maximum distance, relative neighborhood,
+ * chunk borders without gaps, water (bridge, walkway, cut), lamp posts and signs, waypoints and names.
  */
 class RoadLayoutTest {
-	/** Rejilla de las aldeas por defecto: 94 chunks (1.504 bloques), candidata en los primeros 32 chunks de la casilla. */
+	/** Default village grid: 94 chunks (1,504 blocks), candidate in the first 32 chunks of the cell. */
 	static final int CELL = 94 * 16, WINDOW = (94 - 62) * 16;
 
-	/** Aldeas de prueba: una por casilla en la ventana (como random_spread), y casillas vacías al azar. */
+	/** Test villages: one per cell in the window (like random_spread), and random empty cells. */
 	static RoadLayout.Villages villages(long seed, double empties) {
 		return (gx, gz) -> {
 			if (RoadLayout.rng(seed, RoadLayout.pack(gx, gz), 1) < empties) {
@@ -44,7 +44,7 @@ class RoadLayoutTest {
 		return Math.hypot(RoadLayout.px(a) - RoadLayout.px(b), RoadLayout.pz(a) - RoadLayout.pz(b));
 	}
 
-	/** Todas las aldeas de las casillas [-n, n]². */
+	/** All the villages of the cells [-n, n]². */
 	static List<Long> all(RoadLayout t, int n) {
 		List<Long> out = new ArrayList<>();
 		for (int gx = -n; gx <= n; gx++) {
@@ -96,8 +96,8 @@ class RoadLayoutTest {
 
 	@Test
 	void shortMaxDistance() {
-		// con la rejilla mínima de las aldeas (63 chunks, separación 42) dos aldeas nunca están a menos de 672 bloques:
-		// a 600 no hay ningún camino
+		// with the minimum village grid (63 chunks, separation 42) two villages are never closer than 672 blocks:
+		// at 600 there is no road
 		int cell = 63 * 16, win = (63 - 42) * 16;
 		RoadLayout.Villages a = (gx, gz) -> RoadLayout.pack(gx * cell + (int) (RoadLayout.rng(3, RoadLayout.pack(gx, gz), 2) * win),
 				gz * cell + (int) (RoadLayout.rng(3, RoadLayout.pack(gx, gz), 3) * win));
@@ -124,7 +124,7 @@ class RoadLayoutTest {
 		boolean different = false;
 		for (long v : all(a, 3)) {
 			for (long w : a.neighbors(cell(v, true), cell(v, false))) {
-				RoadLayout.Route r1 = a.route(v, w), r2 = b.route(w, v); // orden contrario y otra instancia: la misma ruta
+				RoadLayout.Route r1 = a.route(v, w), r2 = b.route(w, v); // reverse order and another instance: the same route
 				assertEquals(r1.vertices(), r2.vertices());
 				for (int i = 0; i < r1.vertices(); i++) {
 					assertEquals(r1.x(i), r2.x(i));
@@ -161,7 +161,7 @@ class RoadLayoutTest {
 		}
 	}
 
-	/** Columnas de camino de una ruta pintando chunk a chunk (instancia nueva por chunk: sin memoria compartida). */
+	/** Road columns of a route painting chunk by chunk (new instance per chunk: no shared memo). */
 	static Set<Long> byChunks(long seed, int maxDist, RoadLayout.Route r, int width) {
 		Set<Long> out = new HashSet<>();
 		int cx0 = Math.floorDiv((int) Math.floor(Math.min(r.x(0), r.x(r.vertices() - 1))) - 64, 16);
@@ -202,7 +202,7 @@ class RoadLayoutTest {
 				RoadLayout.Route r = t.route(v, w);
 				for (int width : new int[]{1, 3, 5}) {
 					Set<Long> cols = byChunks(seed, 2000, r, width);
-					// el eje de la ruta, muestreado cada cuarto de bloque, cae siempre en una columna pintada: sin huecos
+					// the route's axis, sampled every quarter block, always falls in a painted column: no gaps
 					for (int i = 0; i + 1 < r.vertices(); i++) {
 						for (double f = 0; f < 1; f += 0.25) {
 							double x = r.x(i) + (r.x(i + 1) - r.x(i)) * f, z = r.z(i) + (r.z(i + 1) - r.z(i)) * f;
@@ -210,7 +210,7 @@ class RoadLayoutTest {
 									"hueco en " + x + ", " + z + " (ancho " + width + ")");
 						}
 					}
-					// 4-conexo: se puede andar de una aldea a otra sin saltar en diagonal
+					// 4-connected: one can walk from one village to another without jumping diagonally
 					assertTrue(connected(cols, r), "camino partido (ancho " + width + ")");
 				}
 			}
@@ -241,7 +241,7 @@ class RoadLayoutTest {
 	void paintingDoesNotDependOnChunkOrOrder() {
 		long seed = 21;
 		RoadLayout t = layout(seed, 2000);
-		// un chunk pintado solo y pintado después de sus vecinos (otra instancia, otro orden) da lo mismo
+		// a chunk painted alone and painted after its neighbors (another instance, another order) gives the same
 		for (long v : all(t, 1)) {
 			for (long w : t.neighbors(cell(v, true), cell(v, false))) {
 				RoadLayout.Route r = t.route(v, w);
@@ -272,16 +272,16 @@ class RoadLayoutTest {
 		for (int width = 1; width <= 5; width++) {
 			int n = byChunks(seed, 2000, r, width).size();
 			double byBlock = n / r.length();
-			// con ancho 1 el núcleo unido por caras pone 1,5 columnas por bloque en las diagonales
+			// with width 1 the face-connected core puts 1.5 columns per block on the diagonals
 			assertTrue(byBlock > width * 0.7 && byBlock < Math.max(width * 1.3, 1.65), "ancho " + width + ": " + byBlock + " columnas por bloque");
 			assertTrue(n > prev);
 			prev = n;
 		}
 	}
 
-	// --- agua ---
+	// --- water ---
 
-	/** Ruta recta de prueba de 0,0 a 960,0 (vértices cada 16 bloques) con el fondo dado. */
+	/** Straight test route from 0,0 to 960,0 (vertices every 16 blocks) with the given bottom. */
 	static RoadLayout.Route straight() {
 		RoadLayout t = new RoadLayout(1, 100_000, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		RoadLayout.Route r = t.route(RoadLayout.pack(0, 0), RoadLayout.pack(960, 0));
@@ -289,7 +289,7 @@ class RoadLayoutTest {
 		return r;
 	}
 
-	/** Fondo de prueba: por la x del vértice, profundidad bajo el mar 63 (0 = tierra). */
+	/** Test bottom: by the vertex's x, depth below sea level 63 (0 = land). */
 	static RoadLayout.Seabed depth(Map<int[], Integer> segments) {
 		return (x, z) -> {
 			for (Map.Entry<int[], Integer> e : segments.entrySet()) {
@@ -304,9 +304,9 @@ class RoadLayoutTest {
 	@Test
 	void waterBridgeWalkwayAndCut() {
 		Map<int[], Integer> m = new HashMap<>();
-		m.put(new int[]{100, 140}, 6);    // río de 40 bloques y 6 de hondo: puente
-		m.put(new int[]{300, 500}, 2);    // marisma de 200 bloques y 2 de hondo: pasarela
-		m.put(new int[]{700, 900}, 9);    // lago de 200 bloques y 9 de hondo: se corta
+		m.put(new int[]{100, 140}, 6);    // river 40 blocks wide and 6 deep: bridge
+		m.put(new int[]{300, 500}, 2);    // marsh 200 blocks wide and 2 deep: walkway
+		m.put(new int[]{700, 900}, 9);    // lake 200 blocks wide and 9 deep: it is cut
 		RoadLayout.Seabed f = depth(m);
 		RoadLayout.Route r = straight();
 		for (int i = 0; i < r.vertices(); i++) {
@@ -320,7 +320,7 @@ class RoadLayoutTest {
 
 	@Test
 	void neverCrossesLongDeepWater() {
-		// un tramo de agua honda más largo que un puente nunca se cruza, empiece donde empiece y mida lo que mida
+		// a stretch of deep water longer than a bridge is never crossed, wherever it starts and however long it is
 		for (int start = 50; start < 400; start += 37) {
 			for (int len = RoadLayout.MAX_BRIDGE + 2 * RoadLayout.STEP + 1; len < 500; len += 53) {
 				Map<int[], Integer> m = new HashMap<>();
@@ -364,7 +364,7 @@ class RoadLayoutTest {
 		assertEquals(first, calls.get(), "en memoria: no se vuelve a preguntar");
 	}
 
-	// --- farolas y carteles ---
+	// --- lamp posts and signs ---
 
 	@Test
 	void lampsAndSignsOnceAndInPlace() {
@@ -376,7 +376,7 @@ class RoadLayoutTest {
 		List<RoadLayout.Mark> marks = new ArrayList<>();
 		Set<Long> road = byChunks(seed, 2000, r, 3);
 		for (int cx = -400; cx <= 400; cx++) {
-			// solo los chunks cerca de la ruta (la caja), cada uno con su instancia
+			// only the chunks near the route (the box), each with its instance
 			int bx = cx * 16;
 			if (bx < Math.min(r.x(0), r.x(r.vertices() - 1)) - 80 || bx > Math.max(r.x(0), r.x(r.vertices() - 1)) + 80) {
 				continue;
@@ -405,7 +405,7 @@ class RoadLayoutTest {
 			double toDestination = Math.hypot(c.x() - RoadLayout.px(c.destination()), c.z() - RoadLayout.pz(c.destination()));
 			assertTrue(Math.abs(c.distance() - toDestination) < toDestination * 0.15 + 20, "distancia " + c.distance() + " frente a " + toDestination);
 			assertTrue(c.rotation() >= 0 && c.rotation() < 16);
-			// el letrero mira hacia el camino: un paso en la dirección de su cara se acerca al eje
+			// the sign faces the road: one step in the direction of its face gets closer to the axis
 			double ang = Math.toRadians(c.rotation() * 22.5);
 			double fx = -Math.sin(ang), fz = Math.cos(ang);
 			assertTrue(nearRoad(road, c.x() + fx * 2.5, c.z() + fz * 2.5) || nearRoad(road, c.x() + fx * 3.5, c.z() + fz * 3.5),
@@ -428,7 +428,7 @@ class RoadLayoutTest {
 
 	@Test
 	void signArrow() {
-		// ruta de oeste a este por z = 0: el cartel cerca de la aldea del oeste señala la del este
+		// route from west to east along z = 0: the sign near the western village points to the eastern one
 		RoadLayout t = new RoadLayout(1, 100_000, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		RoadLayout.Route r = t.route(RoadLayout.pack(0, 0), RoadLayout.pack(1200, 0));
 		List<RoadLayout.Mark> all = new ArrayList<>();
@@ -442,8 +442,8 @@ class RoadLayoutTest {
 				continue;
 			}
 			double ang = Math.toRadians(c.rotation() * 22.5);
-			double fx = -Math.sin(ang), fz = Math.cos(ang); // cara del letrero; el lector mira en -f
-			double rightX = fz, rightZ = -fx;              // derecha del lector
+			double fx = -Math.sin(ang), fz = Math.cos(ang); // face of the sign; the reader looks in -f
+			double rightX = fz, rightZ = -fx;              // the reader's right
 			double tx = RoadLayout.px(c.destination()) - c.x(), tz = RoadLayout.pz(c.destination()) - c.z();
 			assertEquals(tx * rightX + tz * rightZ > 0, c.right(), "la flecha no señala el destino");
 		}
@@ -477,7 +477,7 @@ class RoadLayoutTest {
 		assertArrayEquals(questions.get(0), questions.get(1), "el punto de paso se pregunta igual en los dos sentidos");
 	}
 
-	// --- nombres ---
+	// --- names ---
 
 	@Test
 	void deterministicNamesThatFit() {
@@ -521,14 +521,14 @@ class RoadLayoutTest {
 				}
 			}
 		}
-		// la caja de una ruta en diagonal es mucho mayor que la franja de su eje: casi ningún chunk de la caja la recibe
+		// the box of a diagonal route is much larger than its axis's strip: almost no chunk of the box receives it
 		assertTrue(near < (r.length() / 16 + 2) * 4, near + " chunks reciben la ruta");
 		assertTrue(far > near);
 	}
 
 	@Test
 	void cheapChunkRoutes() {
-		// la consulta de un chunk sin camino cerca, con las memorias llenas, es de microsegundos
+		// the query of a chunk with no road nearby, with the memos full, takes microseconds
 		RoadLayout t = layout(5, 2000);
 		for (int cx = -100; cx <= 100; cx++) {
 			t.routes(cx, 7);
@@ -550,7 +550,7 @@ class RoadLayoutTest {
 		RoadLayout t = layout(7, 2000);
 		long p = t.nearestSegment(0, 0, 4);
 		assertTrue(p != RoadLayout.NONE, "con aldeas cada 1.500 bloques hay alguna ruta cerca");
-		// es el vértice central de una ruta entre dos aldeas vecinas, y la más cercana de las que se miran
+		// it is the central vertex of a route between two neighboring villages, and the nearest of those checked
 		boolean ofARoute = false;
 		double best = Double.MAX_VALUE;
 		for (long a : all(t, 5)) {
@@ -569,7 +569,7 @@ class RoadLayoutTest {
 		assertTrue(ofARoute);
 		assertEquals(best, Math.hypot(RoadLayout.px(p), RoadLayout.pz(p)), 1e-9);
 		assertEquals(p, layout(7, 2000).nearestSegment(0, 0, 4), "determinista");
-		// sin aldeas, nada
+		// without villages, nothing
 		RoadLayout empty = new RoadLayout(7, CELL, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		assertEquals(RoadLayout.NONE, empty.nearestSegment(0, 0, 4));
 	}

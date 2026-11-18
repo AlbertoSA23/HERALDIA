@@ -18,7 +18,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
-/** La cadena guardada en el objeto: ida y vuelta por NBT (también en binario, como se guarda), pasos y cofre una sola vez. */
+/** The chain saved in the item: round trip through NBT (also binary, as it is saved), steps and the chest only once. */
 class ChainTest {
 	static final Destination MEDIUM = new Destination(Destination.Type.MEDIUM, "heraldia:medianas/posada/llanuras", 400, -120, true, "minecraft:plains");
 	static final Destination MINE = new Destination(Destination.Type.MINE, "heraldia:minas/pequena/taiga/a", 900, 300, false, "minecraft:taiga");
@@ -60,7 +60,7 @@ class ChainTest {
 	@Test
 	void unreadableMarkDoesNotBreak() {
 		CompoundTag t = chain().toTag();
-		t.remove("destinos");   // sin destinos: no acaba en el tesoro
+		t.remove("destinos");   // without destinations: it does not end at the treasure
 		assertTrue(Chain.fromTag(t).isEmpty());
 		CompoundTag u = chain().toTag();
 		u.putInt("paso", 9);

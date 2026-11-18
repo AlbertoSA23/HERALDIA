@@ -16,14 +16,14 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
- * Detección de construcciones con casos sintéticos, el margen de 50 bloques exactos y la clasificación de los chunks
- * vírgenes (lógica pura de {@link Detector}, sin el juego).
+ * Build detection with synthetic cases, the margin of exactly 50 blocks and the classification of the
+ * pristine chunks (pure logic of {@link Detector}, without the game).
  */
 class DetectorTest {
 	private static final int MIN_Y = -64;
 	private static final Detector.Parameters P = Detector.Parameters.defaults(50);
 
-	/** Un chunk generado del todo, con su InhabitedTime, bloques de jugador {x, y, z} del mundo e inicios. */
+	/** A fully generated chunk, with its InhabitedTime, world player blocks {x, y, z} and starts. */
 	static ChunkSummary chunk(int cx, int cz, long inhabited, List<int[]> player, Map<String, List<int[]>> structureStarts) {
 		int[] j = new int[player.size()];
 		for (int i = 0; i < j.length; i++) {
@@ -37,7 +37,7 @@ class DetectorTest {
 		return chunk(cx, cz, 0, List.of(), Map.of());
 	}
 
-	/** Una zona de 21 × 21 chunks (−10..10) vacía. */
+	/** An empty area of 21 × 21 chunks (−10..10). */
 	static List<ChunkSummary> world() {
 		List<ChunkSummary> out = new ArrayList<>();
 		for (int cx = -10; cx <= 10; cx++) {
@@ -56,18 +56,18 @@ class DetectorTest {
 	@Test
 	void marginOfExactlyFiftyBlocks() {
 		Build house = Build.point(0, 0, Reason.BLOCKS);
-		// chunk 3 (x 48..63): su borde está a 48 bloques -> protegido; chunk 4 (x 64..79): a 64 -> libre
+		// chunk 3 (x 48..63): its edge is 48 blocks away -> protected; chunk 4 (x 64..79): at 64 -> free
 		assertTrue(Detector.near(house, 3, 0, 50));
 		assertFalse(Detector.near(house, 4, 0, 50));
-		// el borde exacto: un punto a 50 bloques del chunk cuenta (≤ 50); a 51 no
+		// the exact edge: a point 50 blocks from the chunk counts (≤ 50); at 51 it does not
 		assertTrue(Detector.near(Build.point(-2, 5, Reason.BLOCKS), 3, 0, 50));    // 48 - (-2) = 50
 		assertFalse(Detector.near(Build.point(-3, 5, Reason.BLOCKS), 3, 0, 50));   // 51
-		// en diagonal se mide en línea recta: (48, 48) está a 67,9 del (0, 0)
+		// diagonally it is measured in a straight line: (48, 48) is 67.9 from (0, 0)
 		assertFalse(Detector.near(house, 3, 3, 50));
-		assertTrue(Detector.near(house, 2, 2, 50));                                          // (32, 32): 45,3
-		// hacia el lado negativo, igual: el chunk −4 acaba en x = −49
+		assertTrue(Detector.near(house, 2, 2, 50));                                          // (32, 32): 45.3
+		// towards the negative side, the same: chunk −4 ends at x = −49
 		assertTrue(Detector.near(house, -4, 0, 50));
-		assertFalse(Detector.near(house, -5, 0, 50));                                        // acaba en −65
+		assertFalse(Detector.near(house, -5, 0, 50));                                        // ends at −65
 	}
 
 	@Test
@@ -90,16 +90,16 @@ class DetectorTest {
 	@Test
 	void aHouseProtectsItsMarginRestIsPristine() {
 		List<ChunkSummary> m = world();
-		put(m, chunk(0, 0, 0, List.of(new int[] {5, 70, 5}, new int[] {6, 70, 5}), Map.of()));   // cama y cofre en (5, 5)
+		put(m, chunk(0, 0, 0, List.of(new int[] {5, 70, 5}, new int[] {6, 70, 5}), Map.of()));   // bed and chest at (5, 5)
 		Detector.Result r = Detector.classify(m, Map.of(), List.of(), P);
 		assertEquals(Kind.BUILD, r.clazz(0, 0));
 		assertEquals(Kind.PROTECTED, r.clazz(3, 0));          // x 48 - 6 = 42
 		assertEquals(Kind.PROTECTED, r.clazz(-3, 0));         // 5 - (-33) = 38
-		assertEquals(Kind.NORMAL, r.clazz(4, 0));             // a 58 bloques, pero junto a un chunk protegido: no se regenera
+		assertEquals(Kind.NORMAL, r.clazz(4, 0));             // 58 blocks away, but next to a protected chunk: not regenerated
 		assertEquals(Kind.PRISTINE, r.clazz(5, 0));
 		assertEquals(Kind.PRISTINE, r.clazz(10, 10));
 		assertEquals(2, r.byReason().get(Reason.BLOCKS));
-		// nada virgen a 50 bloques o menos de la casa, ni junto a un chunk protegido (sus rasgos escribirían en él)
+		// nothing pristine within 50 blocks of the house, nor next to a protected chunk (its features would write into it)
 		r.classes().forEach((k, c) -> {
 			if (c == Kind.PRISTINE) {
 				int cx = ChunkSummary.cx(k), cz = ChunkSummary.cz(k);
@@ -116,14 +116,14 @@ class DetectorTest {
 	@Test
 	void blocksInsideAStructureAreNotBuilds() {
 		List<ChunkSummary> m = world();
-		int[] piece = {0, 60, 0, 40, 80, 40};                    // una aldea con camas y cofres dentro
+		int[] piece = {0, 60, 0, 40, 80, 40};                    // a village with beds and chests inside
 		put(m, chunk(0, 0, 0, List.of(new int[] {5, 70, 5}), Map.of("minecraft:village_plains", List.of(piece))));
-		put(m, chunk(1, 1, 0, List.of(new int[] {20, 70, 20}), Map.of()));          // dentro de la pieza (de otro chunk)
+		put(m, chunk(1, 1, 0, List.of(new int[] {20, 70, 20}), Map.of()));          // inside the piece (of another chunk)
 		Detector.Result r = Detector.classify(m, Map.of(), List.of(), P);
 		assertEquals(Kind.PRISTINE, r.clazz(0, 0));
 		assertEquals(Kind.PRISTINE, r.clazz(1, 1));
 		assertTrue(r.builds().isEmpty());
-		// fuera de la pieza (y = 90), sí
+		// outside the piece (y = 90), yes
 		put(m, chunk(1, 1, 0, List.of(new int[] {20, 90, 20}), Map.of()));
 		assertEquals(Kind.BUILD, Detector.classify(m, Map.of(), List.of(), P).clazz(1, 1));
 	}
@@ -131,11 +131,11 @@ class DetectorTest {
 	@Test
 	void ambiguousBlocksOnlyCountWithPlayersNearby() {
 		List<ChunkSummary> m = world();
-		// tablones de los puentes de una mina abandonada (fuera de su caja) o un cofre de mazmorra, sin nadie que haya pasado
+		// planks of an abandoned mineshaft's bridges (outside its box) or a dungeon chest, with nobody having passed
 		int[] board = {ChunkSummary.pack(3, 20, 3, MIN_Y) | ChunkSummary.AMBIGUOUS};
 		put(m, new ChunkSummary(6, 6, true, 0, MIN_Y, board, Map.of(), new int[0], new String[0]));
 		assertEquals(Kind.PRISTINE, Detector.classify(m, Map.of(), List.of(), P).clazz(6, 6));
-		// el mismo bloque donde ha estado un jugador: construcción
+		// the same block where a player has been: a build
 		put(m, new ChunkSummary(6, 6, true, 40, MIN_Y, board, Map.of(), new int[0], new String[0]));
 		assertEquals(Kind.BUILD, Detector.classify(m, Map.of(), List.of(), P).clazz(6, 6));
 		assertTrue(PlayerBlocks.ambiguous("minecraft:oak_planks") && PlayerBlocks.ambiguous("minecraft:chest"));
@@ -151,12 +151,12 @@ class DetectorTest {
 		List<ChunkSummary> m = world();
 		put(m, chunk(5, 5, 1199, List.of(), Map.of()));
 		put(m, chunk(6, 6, 1200, List.of(), Map.of()));
-		put(m, chunk(-8, -8, 72_000, List.of(), Map.of()));      // una hora de jugadores: cuenta como construcción
+		put(m, chunk(-8, -8, 72_000, List.of(), Map.of()));      // one hour of players: counts as a build
 		Detector.Result r = Detector.classify(m, Map.of(), List.of(), P);
 		assertEquals(Kind.PRISTINE, r.clazz(5, 5));
 		assertEquals(Kind.NORMAL, r.clazz(6, 6));
 		assertEquals(Kind.BUILD, r.clazz(-8, -8));
-		assertEquals(Kind.PROTECTED, r.clazz(-5, -8));            // a 33 bloques del chunk habitado
+		assertEquals(Kind.PROTECTED, r.clazz(-5, -8));            // 33 blocks from the inhabited chunk
 	}
 
 	@Test
@@ -207,15 +207,15 @@ class DetectorTest {
 				pristine.add(ChunkSummary.key(cx, cz));
 			}
 		}
-		pristine.remove(ChunkSummary.key(3, 0));                  // uno que se queda (no virgen)
+		pristine.remove(ChunkSummary.key(3, 0));                  // one that stays (not pristine)
 		Map<Long, List<int[]>> req = new HashMap<>();
-		req.put(ChunkSummary.key(2, 0), List.of(new int[] {32, 0, 0, 63, 50, 15}));   // pisaría el chunk 3,0
-		req.put(ChunkSummary.key(0, 4), List.of(new int[] {0, 0, 64, 31, 50, 79}));   // cae en vírgenes: vale
-		req.put(ChunkSummary.key(5, 5), List.of(new int[] {80, 0, 80, 120, 50, 120})); // sale a chunks sin generar: vale
-		req.put(ChunkSummary.key(1, 0), List.of(new int[] {16, 0, 0, 47, 50, 15}));   // pisa el 2,0, que no se borra
+		req.put(ChunkSummary.key(2, 0), List.of(new int[] {32, 0, 0, 63, 50, 15}));   // it would step on chunk 3,0
+		req.put(ChunkSummary.key(0, 4), List.of(new int[] {0, 0, 64, 31, 50, 79}));   // falls in pristine ones: valid
+		req.put(ChunkSummary.key(5, 5), List.of(new int[] {80, 0, 80, 120, 50, 120})); // reaches ungenerated chunks: valid
+		req.put(ChunkSummary.key(1, 0), List.of(new int[] {16, 0, 0, 47, 50, 15}));   // it steps on 2,0, which is not deleted
 		Set<Long> r = Detector.regenerable(pristine, generated, req);
 		assertFalse(r.contains(ChunkSummary.key(2, 0)));
-		assertFalse(r.contains(ChunkSummary.key(1, 0)));          // en cadena
+		assertFalse(r.contains(ChunkSummary.key(1, 0)));          // in a chain
 		assertTrue(r.contains(ChunkSummary.key(0, 4)));
 		assertTrue(r.contains(ChunkSummary.key(5, 5)));
 		assertTrue(r.contains(ChunkSummary.key(4, 4)));
@@ -227,22 +227,22 @@ class DetectorTest {
 		List<ChunkSummary> m = world();
 		put(m, chunk(0, 0, 0, List.of(new int[] {5, 70, 5}), Map.of()));
 		for (int cx = 5; cx <= 10; cx++) {
-			put(m, chunk(cx, 0, 5000, List.of(), Map.of()));     // normales (habitados un poco)
+			put(m, chunk(cx, 0, 5000, List.of(), Map.of()));     // normal ones (slightly inhabited)
 		}
 		put(m, chunk(8, 3, 0, List.of(), Map.of("minecraft:pillager_outpost", List.of(new int[] {130, 60, 50, 140, 80, 60}))));
 		Detector.Result r = Detector.classify(m, Map.of(), List.of(), P);
 		Map<Long, List<int[]>> pieces = Detector.piecesByChunk(m);
 		List<int[]> chosen = new ArrayList<>();
-		// a 5 chunks de la casa (80 bloques) y su caja de 2 × 2 chunks: lejos del margen
+		// 5 chunks from the house (80 blocks) and its box of 2 × 2 chunks: far from the margin
 		assertTrue(Detector.placeable(new int[] {80, 60, 0, 111, 80, 31}, ChunkSummary.key(5, 0), r, Set.of(), pieces, chosen));
-		// una caja que se acerca a la casa (x desde 40): no
+		// a box that gets close to the house (x from 40): no
 		assertFalse(Detector.placeable(new int[] {40, 60, 0, 111, 80, 31}, ChunkSummary.key(5, 0), r, Set.of(), pieces, chosen));
-		// encima de otra estructura guardada: no
+		// on top of another saved structure: no
 		assertFalse(Detector.placeable(new int[] {120, 60, 40, 150, 80, 70}, ChunkSummary.key(8, 0), r, Set.of(), pieces, chosen));
-		// encima de una ya elegida: no
+		// on top of an already chosen one: no
 		chosen.add(new int[] {80, 60, 0, 111, 80, 31});
 		assertFalse(Detector.placeable(new int[] {100, 60, 0, 130, 80, 20}, ChunkSummary.key(6, 0), r, Set.of(), pieces, chosen));
-		// en un chunk que se va a regenerar: no
+		// in a chunk that is going to be regenerated: no
 		assertFalse(Detector.placeable(new int[] {160, 60, 0, 175, 80, 15}, ChunkSummary.key(10, 0), r,
 				Set.of(ChunkSummary.key(10, 0)), pieces, List.of()));
 	}

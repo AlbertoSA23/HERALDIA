@@ -31,11 +31,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Minas abandonadas vanilla multiplicadas ({@link VanillaMinesPlacement}, minas.vanilla.multiplicador): el structure_set
- * minecraft:mineshafts que escribe el generador tiene los mismos valores que el de 26.3 (leído del propio .jar del juego),
- * con 1 la colocación es la vanilla exacta (mismo float, misma rejilla y mismo sorteo en cada chunk), con más es un
- * superconjunto (no se pierde ninguna mina de antes ni cambia de sitio) con unas k veces más, y el valor se lee de la
- * configuración. Con el sorteo de 0,004 por chunk, 200 x 200 chunks dan unas 160 minas.
+ * Multiplied vanilla abandoned mineshafts ({@link VanillaMinesPlacement}, minas.vanilla.multiplicador): the structure_set
+ * minecraft:mineshafts the generator writes has the same values as 26.3's (read from the game's own .jar),
+ * with 1 the placement is exactly vanilla's (same float, same grid and same roll in each chunk), with more it is a
+ * superset (no earlier mineshaft is lost or changes place) with about k times more, and the value is read from the
+ * configuration. With the 0.004 roll per chunk, 200 x 200 chunks give about 160 mineshafts.
  */
 class VanillaMinesTest {
 	private static final String ROUTE = "data/minecraft/worldgen/structure_set/mineshafts.json";
@@ -80,7 +80,7 @@ class VanillaMinesTest {
 				1, 0, RandomSpreadType.LINEAR, m);
 	}
 
-	/** ¿Sale una mina en el chunk? isStructureChunk sin el estado del generador: la casilla y el sorteo de frecuencia. */
+	/** Does a mineshaft spawn in the chunk? isStructureChunk without the generator's state: the cell and the frequency roll. */
 	private static boolean outcome(RandomSpreadStructurePlacement p, float rate, int x, int z) {
 		ChunkPos c = p.getPotentialStructureChunk(SEED, x, z);
 		return c.x() == x && c.z() == z && AbstractSpreadingStructurePlacement.FrequencyReductionMethod.LEGACY_TYPE_3
