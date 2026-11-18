@@ -14,7 +14,8 @@ import net.minecraft.network.chat.Component;
 
 /**
  * /heraldia profile (operators): the gameplay profile in use (the effective one and the one chosen in the file) and the values it
- * gives each of its options, marking those set by hand that override the profile. It only reads the configuration in use
+ * gives each of its options (those the chosen profile sets), marking those set by hand that override the profile; for a profile
+ * that changes world generation (ligero), the reminder that only new chunks follow it. It only reads the configuration in use
  * (that of {@link HeraldiaConfig#get()}, also after a reload). New command: in English.
  */
 public final class ProfileCommand {
@@ -39,7 +40,8 @@ public final class ProfileCommand {
 		Profiles.Applied p = cfg.profile();
 		List<Component> out = new ArrayList<>();
 		out.add(Texts.t("heraldia.perfil.titulo", name(p.effective()), name(p.chosen())).withStyle(ChatFormatting.GOLD));
-		for (String k : HeraldiaConfig.profiles().keys()) {
+		Profiles ps = HeraldiaConfig.profiles();
+		for (String k : ps.keysOf(p.chosen())) {
 			JsonPrimitive v = cfg.values().get(k);
 			JsonPrimitive[] d = p.differing().get(k);
 			out.add(d != null ? Texts.t("heraldia.perfil.opcion.fijada", k, v.getAsString(), d[1].getAsString()).withStyle(ChatFormatting.YELLOW)
@@ -47,6 +49,9 @@ public final class ProfileCommand {
 		}
 		out.add(p.differing().isEmpty() ? Texts.t("heraldia.perfil.ninguna").withStyle(ChatFormatting.GRAY)
 				: Texts.t("heraldia.perfil.personalizado").withStyle(ChatFormatting.GRAY));
+		if (ps.touchesGeneration(p.chosen())) {
+			out.add(Texts.t("heraldia.ligero.perfil_generacion", name(p.chosen())).withStyle(ChatFormatting.GOLD));
+		}
 		return out;
 	}
 

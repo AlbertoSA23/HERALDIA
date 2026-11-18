@@ -47,7 +47,9 @@ CANONICAL = [
     "caravan clear",                             # T39: the caravans (operators)
     "wizard", "wizard reveal",                   # T43: the wizard huts (operators)
     # T46: configuration panel in dialogs, each player's language and safe updates
-    "config", "config menu", "config menu <menu>", "config profile", "config profile <profile>", "config save",
+    "config", "config menu", "config menu <menu>", "config profile", "config profile <profile>",
+    "config profile <profile> confirm",          # light profile: confirmation in a world already started
+    "config save",
     "config save <menu>", "config save <menu> <values>", "config set", "config set <option>", "config set <option> <value>",
     "language", "language <language>",
     "update analyze", "update apply", "update apply confirm", "update apply confirm <id>", "update apply confirm <id> backup",

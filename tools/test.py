@@ -78,7 +78,7 @@ MINES = ["tools/smoke/mine_entrances.py"]
 COAST = ["tools/smoke/coast.py"]
 COAST_MOBS = COAST + ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"]
 # Game profiles ("perfil" option, T36): their server test (restarts with each profile and an option set by hand).
-PROFILES = ["tools/smoke/profiles.py"]
+PROFILES = ["tools/smoke/profiles.py", "tools/smoke/light_profile.py"]
 # Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements.
 QUESTS = ["tools/smoke/quests.py"]
 # Caravans along the roads (T39): their Java and their texts and advancement.
@@ -130,6 +130,8 @@ MAP = [
     (JAVA + "config/ConfigMigration.java", SAFE_UPDATE), ("tools/gen/updates.py", SAFE_UPDATE),
     # game profiles (T36): their logic and their command (the rest of the configuration is common: full suite)
     (JAVA + "config/Profiles.java", PROFILES), (JAVA + "command/ProfileCommand.java", PROFILES),
+    # light profile: the suggestion, the seam warning and their texts
+    (JAVA + "config/ProfileAdvice.java", PROFILES), (JAVA + "command/ProfileNotice.java", PROFILES), ("tools/gen/light_profile.py", PROFILES),
     ("tools/gen/biomes.py", ["tools/smoke/terralith_biomes.py"]),
     ("tools/gen/c_tags.json", ["tools/smoke/terralith_biomes.py"]),
     # the pinned Modrinth mods: the tests that download them (the compatibility ones, via COMPAT_PATHS)
@@ -296,6 +298,7 @@ DURATION_S = {
     "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
     "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
     "tools/smoke/profiles.py": 110,                  # four starts of the same world
+    "tools/smoke/light_profile.py": 100,             # measured locally: ~1 min 40 s (three starts and 1,300 sprinted ticks)
     "tools/smoke/update.py": 140,                # measured locally: ~2 min 15 s (two starts and a zone of 400 chunks)
     "tools/smoke/update_path_b.py": 160,         # measured locally: ~2 min (five starts, a zone of ~200 chunks, path B and undo)
     "tools/smoke/loot_restock.py": 100,             # measured locally: 72 s (two starts and a generated hermitage)

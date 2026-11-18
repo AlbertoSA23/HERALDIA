@@ -200,10 +200,14 @@ def test_coast():
 
 
 def test_profiles():
-    p = ["tools/smoke/profiles.py"]
+    p = ["tools/smoke/light_profile.py", "tools/smoke/profiles.py"]
     assert pick(J + "config/Profiles.java") == (False, p)
     assert pick(J + "command/ProfileCommand.java") == (False, p)
-    assert pick("tools/smoke/profiles.py") == (False, p)
+    assert pick(J + "config/ProfileAdvice.java") == (False, p)
+    assert pick(J + "command/ProfileNotice.java") == (False, p)
+    assert pick("tools/gen/light_profile.py") == (False, p)
+    assert pick("tools/smoke/profiles.py") == (False, ["tools/smoke/profiles.py"])
+    assert pick("tools/smoke/light_profile.py") == (False, ["tools/smoke/light_profile.py"])
     assert pick(J + "config/HeraldiaConfig.java")[0]          # the rest of the configuration: common, full suite
     assert pick("tools/gen/options.py")[0]
 

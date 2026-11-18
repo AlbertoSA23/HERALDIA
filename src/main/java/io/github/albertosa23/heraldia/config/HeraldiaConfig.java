@@ -42,11 +42,13 @@ public final class HeraldiaConfig {
 	private final JsonObject schema;
 	private final VillageRules villages;
 	private final Profiles.Applied profile;
+	private final boolean profileInFile;
 
 	private HeraldiaConfig(Reading l, JsonObject schema) {
 		this.values = Collections.unmodifiableMap(new LinkedHashMap<>(l.values()));
 		this.schema = schema;
 		this.profile = l.profile();
+		this.profileInFile = l.profileInFile();
 		this.villages = new VillageRules(this);
 	}
 
@@ -54,7 +56,18 @@ public final class HeraldiaConfig {
 	 * What was read from the file: the values in use (with the profile applied) and the profile: the chosen one, the effective one, the options
 	 * set by hand and those that differ from the profile.
 	 */
-	public record Reading(Map<String, JsonPrimitive> values, Profiles.Applied profile) {
+	public record Reading(Map<String, JsonPrimitive> values, Profiles.Applied profile, boolean profileInFile) {
+		public Reading(Map<String, JsonPrimitive> values, Profiles.Applied profile) {
+			this(values, profile, true);
+		}
+	}
+
+	/**
+	 * Did the file already say which profile to use when it was read at startup? (false on a first start, without a file or
+	 * with a file without {@value Profiles#KEY}: then the mod only suggests one, {@link ProfileAdvice}).
+	 */
+	public boolean profileInFile() {
+		return profileInFile;
 	}
 
 	/** Gameplay profile in use: the one chosen in the file, the effective one and what was set by hand. */
@@ -100,7 +113,7 @@ public final class HeraldiaConfig {
 		Reading l = parse(file);                         // with the profile already applied: reloading the profile changes everything together
 		Reload.Result r = Reload.merge(actual.values, l.values());
 		if (r.changes()) {
-			instance = new HeraldiaConfig(new Reading(r.optionValues(), l.profile()), actual.schema);
+			instance = new HeraldiaConfig(new Reading(r.optionValues(), l.profile(), actual.profileInFile), actual.schema);
 			logProfile(l.profile());
 		}
 		LOGGER.info("Heraldia: configuración recargada: {} opciones aplicadas {}, {} esperan al reinicio {}", r.applied().size(),
@@ -296,6 +309,7 @@ public final class HeraldiaConfig {
 
 		Map<String, JsonPrimitive> flat = new LinkedHashMap<>();
 		flatten("", root, flat);
+		boolean profileInFile = flat.containsKey(Profiles.KEY);
 		Map<String, JsonPrimitive> values = new LinkedHashMap<>();
 		Map<String, JsonPrimitive> hand = new LinkedHashMap<>();         // profile options the file has (valid ones)
 		Set<String> fromProfile = Set.copyOf(Schema.PROFILES.keys());
@@ -317,7 +331,7 @@ public final class HeraldiaConfig {
 				.forEach(k -> LOGGER.warn("Heraldia: opción desconocida {} en la configuración; se ignora", k));
 		Profiles.Applied profile = Schema.PROFILES.apply(values.get(Profiles.KEY).getAsString(), hand);
 		values.putAll(profile.optionValues());
-		return new Reading(values, profile);
+		return new Reading(values, profile, profileInFile);
 	}
 
 	/** The value if it is valid; otherwise, warns and gives the default (or, if `inItsPlace` says so, warns about that other one). */
@@ -344,7 +358,12 @@ public final class HeraldiaConfig {
 			0, (root, from) -> { },                     // 0 → 1: same format; only the version field is added
 			1, (root, from) -> {                        // 1 → 2: profiles (T36); what the mod wrote is no longer "set by hand" (a hand-written one, 0, is)
 				if (from == 1) {
-					removeFromProfile(root);
+					removeFromProfile(root, Schema.PROFILES.keys());
+				}
+			},
+			2, (root, from) -> {                        // 2 → 3: light profile; its options become profile options (the same rule)
+				if (from >= 1) {
+					removeFromProfile(root, Schema.PROFILES.addedInVersion3());
 				}
 			}));
 
@@ -354,12 +373,13 @@ public final class HeraldiaConfig {
 	}
 
 	/**
-	 * Migration 1 → 2: the mod wrote all options, so in a version 1 file the ones the profile sets
-	 * with their default value were not put there by anyone by hand: they are removed (with the standard profile they give the same). Those with
-	 * another value stay, set by hand: nothing changes in the world.
+	 * Migrations 1 → 2 and 2 → 3: the mod wrote all options that were not profile options, so in a file it wrote the
+	 * {@code keys} that became profile options with their default value were not put there by anyone by hand: they are
+	 * removed (with the standard profile they give the same). Those with another value stay, set by hand: nothing changes in
+	 * the world.
 	 */
-	static void removeFromProfile(JsonObject root) {
-		for (String k : Schema.PROFILES.keys()) {
+	static void removeFromProfile(JsonObject root, List<String> keys) {
+		for (String k : keys) {
 			String[] parts = k.split("\\.");
 			JsonObject node = root;
 			for (int i = 0; i < parts.length - 1 && node != null; i++) {
@@ -429,8 +449,12 @@ public final class HeraldiaConfig {
 						: text(texts, "heraldia.config.si_no", o.defaultValue().getAsString());
 				if (fromProfile.contains(o.key())) {
 					Profiles ps = Schema.PROFILES;
-					range += "; " + text(texts, "heraldia.config.perfiles", ps.optionValues("casual").get(o.key()).getAsString(),
-							ps.optionValues(Profiles.STANDARD).get(o.key()).getAsString(), ps.optionValues("hardcore").get(o.key()).getAsString());
+					String light = text(texts, "heraldia.config.perfil_ligero", ps.optionValues(Profiles.LIGHT).get(o.key()).getAsString());
+					range += "; " + (ps.keysOf(Profiles.STANDARD).contains(o.key())
+							? text(texts, "heraldia.config.perfiles", ps.optionValues("casual").get(o.key()).getAsString(),
+							ps.optionValues(Profiles.STANDARD).get(o.key()).getAsString(), ps.optionValues("hardcore").get(o.key()).getAsString())
+							+ ", " + light
+							: light);
 				}
 				h.addProperty(shown, desc + " (" + range + ")");
 			}

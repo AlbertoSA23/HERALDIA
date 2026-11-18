@@ -195,22 +195,30 @@ public final class ConfigScreen extends Screen {
 
 	/** Profile option with a value other than the chosen profile's? (it will be saved as set by hand) */
 	private boolean fixedByHand(String key) {
-		Map<String, JsonPrimitive> p = HeraldiaConfig.profiles().optionValues(profile());
-		return p.containsKey(key) && !Profiles.CUSTOM.equals(profile()) && !p.get(key).equals(this.working.get(key));
+		Profiles ps = HeraldiaConfig.profiles();
+		Map<String, JsonPrimitive> p = ps.optionValues(profile());
+		return ps.keysOf(profile()).contains(key) && !Profiles.CUSTOM.equals(profile()) && !p.get(key).equals(this.working.get(key));
 	}
 
-	/** Changes the profile: what had the previous profile's value takes the new one's; what was set by hand stays. */
+	/**
+	 * Changes the profile ({@link Profiles#switchTo}): what had the previous profile's value takes the new one's; what was set by
+	 * hand stays. Choosing a profile that changes world generation warns (a toast) that in a world already started only new
+	 * chunks follow it and seams are left.
+	 */
 	private void changeProfile(String profile) {
 		Profiles ps = HeraldiaConfig.profiles();
-		Map<String, JsonPrimitive> before = ps.optionValues(profile()), now = ps.optionValues(profile);
+		Map<String, JsonPrimitive> now = ps.switchTo(profile(), profile, this.working);
 		for (String k : ps.keys()) {
-			if (Profiles.CUSTOM.equals(profile()) || before.get(k).equals(this.working.get(k))) {
-				this.working.put(k, Profiles.CUSTOM.equals(profile) ? this.working.get(k) : now.get(k));
+			if (!now.get(k).equals(this.working.get(k))) {
 				this.typed.remove(k);
 				this.invalid.remove(k);
 			}
 		}
-		this.working.put(Profiles.KEY, new JsonPrimitive(profile));
+		this.working.putAll(now);
+		if (ps.touchesGeneration(profile)) {
+			SystemToast.add(this.minecraft.gui.toastManager(), TOAST, Component.translatable("heraldia.config.perfil." + profile),
+					Component.translatable("heraldia.ligero.pantalla"));
+		}
 		filter(this.search == null ? "" : this.search.getValue());
 		updateSaveButton();
 	}
@@ -224,7 +232,10 @@ public final class ConfigScreen extends Screen {
 			Component effective = Component.translatable("heraldia.config.perfil." + (distinct.isEmpty() ? profile() : Profiles.CUSTOM));
 			out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.perfil_efectivo", effective,
 					distinct.isEmpty() ? "-" : String.join(", ", distinct)).withStyle(ChatFormatting.AQUA), 200));
-		} else if (ps.keys().contains(o.key()) && !Profiles.CUSTOM.equals(profile())) {
+			if (ps.touchesGeneration(profile())) {
+				out.addAll(this.font.split(Component.translatable("heraldia.ligero.pantalla").withStyle(ChatFormatting.GOLD), 200));
+			}
+		} else if (ps.keysOf(profile()).contains(o.key()) && !Profiles.CUSTOM.equals(profile())) {
 			out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.perfil_valor",
 					Component.translatable("heraldia.config.perfil." + profile()), ps.optionValues(profile()).get(o.key()).getAsString())
 					.withStyle(ChatFormatting.AQUA), 200));

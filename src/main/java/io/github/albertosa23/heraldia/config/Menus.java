@@ -18,7 +18,7 @@ public final class Menus {
 	}
 
 	/** The profiles chosen at the top of the panel, in order (custom only appears when options are set by hand). */
-	public static final List<String> PROFILES = List.of("casual", Profiles.STANDARD, "hardcore");
+	public static final List<String> PROFILES = List.of("casual", Profiles.STANDARD, "hardcore", Profiles.LIGHT);
 	public static final int MIN_OPTIONS = 5, MAX_OPTIONS = 8;
 
 	public static final List<Menu> MENUS = List.of(

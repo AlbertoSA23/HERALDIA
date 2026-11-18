@@ -8,5 +8,11 @@
  "pasadas": 3,
  "maquina": "4 núcleos, Linux (CI)",
  "fecha": "2026-11-16",
- "commit": "f26e477"
+ "commit": "f26e477",
+ "picos": {
+  "lentos_pp": 0.06,
+  "peor_tramo": 0.3,
+  "mspt_p99_ms": 50,
+  "medido": "local, 4 núcleos, 3 pasadas (2026-11-18): chunks de más de 50 ms 25.7 % → 28.9 %, peor tramo de la franja 67.4 → 67.3 ms por chunk, MSPT p99 17.7 ms"
+ }
 }

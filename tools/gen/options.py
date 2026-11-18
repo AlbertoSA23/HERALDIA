@@ -7,9 +7,11 @@ from themes import THEMES, FAMILIES
 import uniques
 import mediums
 
-VERSION = 2   # raise it (and add the migration in HeraldiaConfig.migrate) if the file format changes
+VERSION = 3   # raise it (and add the migration in HeraldiaConfig.migrate) if the file format changes
 # 1 → 2 (T36, profiles): the options a profile sets are only written if they are set by hand (present in the file);
 # on migrating, those that had the default value (written by the mod) are removed, and the rest stay set.
+# 2 → 3 (light profile): the options of LIGHT_OPTIONS become profile options (written only if set by hand); on
+# migrating, those that had the default value are removed (with any other profile they give the same), the rest stay set.
 
 # Village grid (heraldia:aldeas): 94 x 16 = 1,504 blocks; the minimum separation keeps the 62/94 proportion.
 VILLAGE_SPACING, VILLAGE_SEPARATION, VILLAGE_SALT = 94, 62, 261112013
@@ -18,15 +20,17 @@ VANILLA_EXCLUSION_CHUNKS = 10
 # (key, default, minimum, maximum, es_es text, en_us text); minimum and maximum None in yes/no options. In
 # list options, "minimum" is the list of values (strings) and "maximum" None; the name of each value goes in _VALUE_NAMES.
 _FIXED = [
-    ("perfil", "estandar", ["casual", "estandar", "hardcore", "personalizado"], None,
+    ("perfil", "estandar", ["casual", "estandar", "hardcore", "ligero", "personalizado"], None,
      "Perfil de juego: fija de una vez la dificultad, los refuerzos de los guardianes, el botín que se repone, la arena "
      "y los asaltos a las caravanas (casual, más fácil y con el botín que se repone; estándar, lo de siempre; hardcore, heroica, con más refuerzos y "
-     "menos experiencia; personalizado, cada opción con su valor). Una de esas opciones escrita en el fichero manda sobre "
-     "el perfil. Nunca cambia la generación del mundo",
+     "menos experiencia; ligero, el juego de estándar con una generación del mundo más ligera para equipos modestos; "
+     "personalizado, cada opción con su valor). Una de esas opciones escrita en el fichero manda sobre "
+     "el perfil. Solo ligero cambia la generación del mundo, y en un mundo ya empezado solo en los chunks nuevos",
      "Gameplay profile: sets the difficulty, the guardians' reinforcements, restocking loot, the arena and "
      "caravan ambushes in one go (casual, easier and with restocking loot; standard, as always; hardcore, heroic, with more reinforcements and less "
-     "experience; custom, each option with its own value). One of those options written in the file overrides the "
-     "profile. It never changes world generation"),
+     "experience; light, the standard game with lighter world generation for modest machines; custom, each option with its own "
+     "value). One of those options written in the file overrides the profile. Only light changes world generation, and in "
+     "a world already started only in new chunks"),
     ("aldeas.separacion_bloques", 1500, 1000, 10000,
      "Separación media entre aldeas, en bloques",
      "Average distance between villages, in blocks"),
@@ -370,8 +374,23 @@ PROFILES = {
     },
 }
 CUSTOM = "personalizado"
-# The only thing a profile may touch: gameplay options. World generation (where and how structures appear, the
-# arena that builds itself) always stays out; GENERATION marks those options in the schema (and the tests check it).
+# The light profile (for modest machines and servers with little RAM): the gameplay of "estandar" plus a lighter world
+# generation. It is the only profile that touches generation (GENERATION_PROFILES): the others set the gameplay options
+# and leave generation alone (an option of LIGHT written in the file with another profile is just an option, it does not
+# make that profile custom). The values come from the measurements of tools/smoke/generation_cost.py (peaks and the
+# continuous strip, docs/DEVELOPMENT.md, "Generation cost", and docs/CONFIGURATION.md, "Light profile").
+LIGHT = "ligero"
+LIGHT_OPTIONS = {
+    "aldeas.porcentaje_grandes": 10,             # a large village starts ~2x the pieces of a standard one
+    "aldeas.caminos.activado": False,            # the road feature walks its route in every chunk it crosses
+    "medianas.frecuencia_porcentaje": 60,        # fewer medium structures (each kind ~1.3x farther apart)
+    "medianas.distancia_minima.bloques": 320,
+    "minas.vanilla.multiplicador": 1.0,          # vanilla abandoned mineshafts as in vanilla (the default doubles them)
+    "caravanas.activado": False,                 # no caravan entities walking between villages (server ticks)
+}
+GENERATION_PROFILES = (LIGHT,)
+# The only thing the other profiles may touch: gameplay options. World generation (where and how structures appear, the
+# arena that builds itself) stays out; GENERATION marks those options in the schema (and the tests check it).
 PROFILE_PREFIXES = ("dificultad.", "botin.", "jefes.", "arena.", "caravanas.", "chozas_mago.")
 GENERATION = ("aldeas.", "unicas.", "medianas.", "minas.", "faros.", "naufragios.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
               "arena.activado")
@@ -381,30 +400,44 @@ def is_generation(key):
     return key.startswith(GENERATION)
 
 
-def profile_options():
-    """Keys that the profiles set, in schema order."""
+def gameplay_options():
+    """Keys that the gameplay profiles (casual, estandar, hardcore) set, in schema order."""
     keys = set().union(*(set(v) for k, v in PROFILES.items() if k != "estandar"))
     return [k for k, *_ in _FIXED if k in keys]
 
 
+def profile_options():
+    """Keys that some profile sets (the gameplay ones and those of the light profile), in schema order."""
+    keys = set(gameplay_options()) | set(LIGHT_OPTIONS)
+    return [k for k, *_ in _FIXED if k in keys]
+
+
 def profiles():
-    """{profile: {key: value}} with "estandar" = the default values (checks that they do not touch generation)."""
+    """{profile: {key: value}} with "estandar" = the default values and "ligero" = estandar plus LIGHT_OPTIONS (checks
+    that only the generation profiles touch generation)."""
     default = {k: d for k, d, *_ in _FIXED}
-    keys = profile_options()
+    keys = gameplay_options()
     out = {}
-    for name, values in PROFILES.items():
+    for name, values in list(PROFILES.items()) + [(LIGHT, None)]:
         if name == "estandar":
             values = {k: default[k] for k in keys}
-        assert set(values) == set(keys), f"profile {name}: must set exactly {keys}"
+        elif name == LIGHT:
+            values = dict({k: default[k] for k in keys}, **LIGHT_OPTIONS)
+        expected = set(keys) | (set(LIGHT_OPTIONS) if name == LIGHT else set())
+        assert set(values) == expected, f"profile {name}: must set exactly {sorted(expected)}"
         for k, v in values.items():
-            assert k.startswith(PROFILE_PREFIXES) and not is_generation(k), f"profile {name}: {k} is not a gameplay option"
+            if name in GENERATION_PROFILES and k in LIGHT_OPTIONS:
+                assert k in default, f"profile {name}: {k} is not a fixed option"
+            else:
+                assert k.startswith(PROFILE_PREFIXES) and not is_generation(k), f"profile {name}: {k} is not a gameplay option"
             lo, hi = next((lo, hi) for kk, _, lo, hi, *_ in _FIXED if kk == k)
             assert type(v) is type(default[k]), f"profile {name}: {k}={v!r} is not of the option's type"
             if isinstance(lo, list):
                 assert v in lo, f"profile {name}: {k}={v!r} is not one of {lo}"
             elif lo is not None:
                 assert lo <= v <= hi, f"profile {name}: {k}={v} outside {lo}-{hi}"
-        out[name] = {k: values[k] for k in keys}
+        order = profile_options()
+        out[name] = {k: values[k] for k in order if k in values}
     return out
 
 
@@ -509,7 +542,7 @@ _NAMES = {
 # Name of each value of the list options: {key: {value: (es_es, en_us)}}.
 _VALUE_NAMES = {
     "perfil": {"casual": ("Casual", "Casual"), "estandar": ("Estándar", "Standard"), "hardcore": ("Hardcore", "Hardcore"),
-               "personalizado": ("Personalizado", "Custom")},
+               "ligero": ("Ligero", "Light"), "personalizado": ("Personalizado", "Custom")},
     "dificultad.nivel": {"facil": ("Fácil", "Easy"), "normal": ("Normal", "Normal"), "dificil": ("Difícil", "Hard"),
                          "heroica": ("Heroica", "Heroic")},
     "arena.temporada.dia_reinicio": {"lunes": ("Lunes", "Monday"), "martes": ("Martes", "Tuesday"),
@@ -616,6 +649,7 @@ PROFILE_ES = {
     "heraldia.perfil.ninguna": "Ninguna opción fijada a mano: manda el perfil.",
     "heraldia.perfil.personalizado": "Con opciones fijadas a mano, el perfil queda como personalizado.",
     "heraldia.config.perfiles": "casual %s, estándar %s, hardcore %s",
+    "heraldia.config.perfil_ligero": "ligero %s",
 }
 PROFILE_EN = {
     "heraldia.perfil.titulo": "Gameplay profile: %s (in the file: %s)",
@@ -624,6 +658,7 @@ PROFILE_EN = {
     "heraldia.perfil.ninguna": "No option set by hand: the profile rules.",
     "heraldia.perfil.personalizado": "With options set by hand, the profile becomes custom.",
     "heraldia.config.perfiles": "casual %s, standard %s, hardcore %s",
+    "heraldia.config.perfil_ligero": "light %s",
 }
 
 
@@ -684,14 +719,16 @@ def schema():
     assert {k: list(v) for k, v in _VALUE_NAMES.items()} == {k: lo for k, _, lo, *_ in _FIXED if isinstance(lo, list)}, \
         "every list option needs the name of each value in _VALUE_NAMES"
     perf = profiles()
+    marked = set(profile_options())
     for o in opts:
-        if o["clave"] in perf["estandar"]:
+        if o["clave"] in marked:
             o["perfil"] = True
     return {
         "version": VERSION,
         "secciones": [{"id": sec, "nombre": _key("seccion." + sec)} for sec, _, _ in SECTIONS],
         "opciones": opts,
         "perfiles": perf,
+        "perfiles_generacion": list(GENERATION_PROFILES),
         "aldeas": {"spacing": VILLAGE_SPACING, "separation": VILLAGE_SEPARATION,
                    "estilos": {th["id"]: th["family"] for th in THEMES}},
         "unicas": {sid: {"spacing": sp, "separation": se} for sid, (sp, se) in unique.items()},

@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
 public final class Updater {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
 	/** A world is new (it is treated as generated with this version) if less than this time has passed at its first startup. */
-	static final long NEW_WORLD_TICKS = 1200;
+	public static final long NEW_WORLD_TICKS = 1200;
 	/** How long an analysis for apply lasts: after this, it has to be repeated. */
 	static final long VALIDITY_MS = 15 * 60_000;
 	/** Ticks between the warning to the players and the server stopping. */

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.config.Profiles;
 import io.github.albertosa23.heraldia.config.Reload;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,7 +47,11 @@ class ProfileReloadTest {
 	@Test
 	void allProfileOptionsAreReloadable() {
 		assertTrue(Reload.reloadable("perfil"));
+		// the gameplay ones apply at once; the generation ones of the light profile wait for the restart (like any other)
 		for (String k : HeraldiaConfig.profiles().keys()) {
+			assertEquals(!HeraldiaConfig.profiles().generation().contains(k), Reload.reloadable(k), k);
+		}
+		for (String k : HeraldiaConfig.profiles().keysOf(Profiles.STANDARD)) {
 			assertTrue(Reload.reloadable(k), k);
 		}
 	}

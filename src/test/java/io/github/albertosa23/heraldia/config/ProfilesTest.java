@@ -63,7 +63,7 @@ class ProfilesTest {
 
 	@Test
 	void thereAreThreeProfilesAndTheySetGameplayOptions() {
-		assertEquals(Set.of("casual", "estandar", "hardcore"), profiles().names());
+		assertEquals(Set.of("casual", "estandar", "hardcore", "ligero"), profiles().names());
 		List<String> keys = profiles().keys();
 		for (String k : List.of("dificultad.nivel", "dificultad.escalar_por_jugadores", "botin.reponer.activado", "botin.reponer.dias",
 				"jefes.refuerzos.activado", "jefes.fases.activado", "arena.experiencia_porcentaje", "arena.oleada.mobs_incremento",
@@ -71,7 +71,7 @@ class ProfilesTest {
 			assertTrue(keys.contains(k), k);
 		}
 		ConfigOption profile = HeraldiaConfig.options().stream().filter(o -> o.key().equals(Profiles.KEY)).findFirst().orElseThrow();
-		assertEquals(List.of("casual", "estandar", "hardcore", "personalizado"), profile.values());
+		assertEquals(List.of("casual", "estandar", "hardcore", "ligero", "personalizado"), profile.values());
 		assertEquals("estandar", profile.defaultValue().getAsString());
 	}
 
@@ -122,14 +122,22 @@ class ProfilesTest {
 
 	@Test
 	void profileNeverTouchesGeneration() {
+		// the gameplay profiles never touch generation; only "ligero" (a generation profile) does
 		Set<String> gen = profiles().generation();
-		for (String k : profiles().keys()) {
+		for (String k : profiles().keysOf(Profiles.STANDARD)) {
 			assertFalse(gen.contains(k), k);
 			for (String prefix : List.of("aldeas.", "unicas.", "medianas.", "minas.", "compatibilidad.")) {
 				assertFalse(k.startsWith(prefix), k);
 			}
 		}
 		assertFalse(profiles().keys().contains("arena.generar_en_mundos_nuevos"));
+		for (String p : List.of("casual", "estandar", "hardcore")) {
+			assertFalse(profiles().touchesGeneration(p), p);
+			assertEquals(profiles().keysOf(Profiles.STANDARD), profiles().keysOf(p), p);
+			assertTrue(profiles().generationKeysOf(p).isEmpty(), p);
+		}
+		assertTrue(profiles().touchesGeneration(Profiles.LIGHT));
+		assertFalse(profiles().generationKeysOf(Profiles.LIGHT).isEmpty());
 		// the generation options are marked in the schema
 		for (ConfigOption o : HeraldiaConfig.options()) {
 			if (o.key().startsWith("aldeas.separacion") || o.key().startsWith("unicas.") || o.key().startsWith("medianas.")
@@ -224,7 +232,7 @@ class ProfilesTest {
 		assertEquals("estandar", c.profile().effective());
 		assertTrue(c.profile().pinned().isEmpty(), "lo que escribía el mod no cuenta como fijado a mano");
 		JsonObject root = json(f);
-		assertEquals(2, root.get("version").getAsInt());
+		assertEquals(3, root.get("version").getAsInt());
 		for (String k : profiles().keys()) {
 			assertFalse(has(root, k), "tras migrar no se escribe " + k);
 		}

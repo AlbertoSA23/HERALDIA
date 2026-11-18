@@ -46,12 +46,14 @@ TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"
                "update_check": {"activado": False},
                "inventada": 1}
 CONFIG_LOG = [
-    r"configuración migrada de la versión 0 a la 2",
+    r"configuración migrada de la versión 0 a la 3",
     r"Heraldia: perfil estandar\r?\n",
     r"valor no válido aldeas\.separacion_bloques=50 .*se usa el valor por defecto 1500",
     r"opción desconocida inventada",
     r"rejilla aldeas: activada, cada 94 chunks \(separación mínima 62\), máximo 12 casillas, exclusión 10 chunks",
     r"aldeas: 33 estilos activados, 25 % grandes; gólems: limpieza true, límites 7/9",
+    # light profile: the file does not say which profile, so the mod looks at the machine and suggests (never imposes) one
+    r"Heraldia: perfil: no está elegido en config/heraldia\.json; la JVM tiene [\d.]+ GB y \d+ núcleos",
 ]
 # With 12 cells (the 4 touching 0,0 and their 8 cross neighbours, of 94 chunks), every village ends up within 2 x 94 x 16 blocks.
 LOCATE_LIMIT = 2 * 94 * 16
@@ -519,13 +521,13 @@ def main():
             failures.append(f"logros cargados {m.group(1)}, esperados {expected_advancements}")
         with open(os.path.join(args.work, "config", "heraldia.json"), encoding="utf-8") as f:
             written = json.load(f)
-        if (written.get("version"), written["aldeas"]["separacion_bloques"], written["aldeas"]["maximo"]) != (2, 1500, 12):
+        if (written.get("version"), written["aldeas"]["separacion_bloques"], written["aldeas"]["maximo"]) != (3, 1500, 12):
             failures.append(f"config/heraldia.json reescrito mal: {written.get('version')} {written['aldeas']}")
         if "inventada" in written or "es_es" not in written.get("_ayuda", {}):
             failures.append("config/heraldia.json without help or with the unknown option")
         # profiles (T36): the default one, without the options the profile provides (nobody set them by hand)
         if written.get("perfil") != "estandar" or "nivel" in written.get("dificultad", {}) or \
-                written.get("_perfil", {}).get("efectivo") != "estandar":
+                "activado" in written["aldeas"].get("caminos", {}) or written.get("_perfil", {}).get("efectivo") != "estandar":
             failures.append(f"config/heraldia.json: perfil mal escrito: {written.get('perfil')} {written.get('dificultad')} "
                             f"{written.get('_perfil', {}).get('efectivo')}")
         if written["unicas"]["atlantida"].get("cofre_unico_por_jugador") is not True or not all(

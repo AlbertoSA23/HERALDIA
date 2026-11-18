@@ -15,7 +15,7 @@ LANGUAGE_NAMES = {"es_es": "Español", "en_us": "English", "fr_fr": "Français",
                   "pt_br": "Português (Brasil)", "ca_es": "Català", "gl_es": "Galego"}
 # panel submenus (config/Menus.MENUS, in the same order): id -> (title, help) per language
 MENUS = ("mundo", "aldeas", "combate", "botin", "arena", "jugadores", "avanzado")
-PROFILES = ("casual", "estandar", "hardcore")
+PROFILES = ("casual", "estandar", "hardcore", "ligero")
 # generator options in arreglos/ArreglosMobs.REGISTRY (heraldia.arreglos.<id>)
 FIXES = ("marcas", "bebes", "nautilos", "recoger", "armas")
 
@@ -52,6 +52,57 @@ _T = {
     "panel.perfil.hardcore": ("Más difícil y con más refuerzos", "Harder, with more reinforcements", "Plus difficile, avec plus de renforts",
                               "Schwerer, mit mehr Verstärkung", "Più difficile, con più rinforzi", "Mais difícil e com mais reforços",
                               "Més difícil i amb més reforços", "Máis difícil e con máis reforzos"),
+    "panel.perfil.ligero": ("Para equipos modestos: generación más ligera", "For modest machines: lighter generation",
+                            "Pour machines modestes : génération plus légère", "Für bescheidene Rechner: leichtere Generierung",
+                            "Per macchine modeste: generazione più leggera", "Para máquinas modestas: geração mais leve",
+                            "Per a equips modestos: generació més lleugera", "Para equipos modestos: xeración máis lixeira"),
+    "panel.ligero.titulo": ("Perfil ligero en un mundo ya empezado", "Light profile in a world already started",
+                            "Profil léger dans un monde déjà commencé", "Leichtes Profil in einer schon begonnenen Welt",
+                            "Profilo leggero in un mondo già iniziato", "Perfil leve num mundo já começado",
+                            "Perfil lleuger en un món ja començat", "Perfil lixeiro nun mundo xa comezado"),
+    "panel.ligero.aviso": (
+        "El perfil ligero cambia la generación del mundo: menos estructuras medianas y más separadas, aldeas grandes más raras, "
+        "sin caminos ni caravanas y las minas vanilla como en vanilla. Lo ya generado no cambia: solo los chunks nuevos, después "
+        "de reiniciar. Junto al terreno ya explorado quedarán costuras (una zona densa junto a otra más vacía, caminos que "
+        "acaban en el borde) y /locate y los mapas pueden dejar de encontrar estructuras medianas ya generadas.",
+        "The light profile changes world generation: fewer, more spread-out medium structures, rarer large villages, no roads "
+        "or caravans and vanilla mineshafts as in vanilla. What is already generated does not change: only new chunks, after a "
+        "restart. Next to the land already explored there will be seams (a dense zone next to an emptier one, roads ending at "
+        "the edge) and /locate and maps may no longer find medium structures already generated.",
+        "Le profil léger change la génération du monde : moins de structures moyennes et plus espacées, grands villages plus "
+        "rares, ni chemins ni caravanes et les puits de mine vanilla comme en vanilla. Ce qui est déjà généré ne change pas : "
+        "seulement les nouveaux chunks, après un redémarrage. À côté des terres déjà explorées il restera des coutures (une zone "
+        "dense à côté d'une plus vide, des chemins qui s'arrêtent au bord) et /locate et les cartes peuvent ne plus trouver des "
+        "structures moyennes déjà générées.",
+        "Das leichte Profil ändert die Weltgenerierung: weniger und weiter verteilte mittlere Bauwerke, seltenere große Dörfer, "
+        "keine Wege und Karawanen und Vanilla-Minen wie in Vanilla. Bereits Generiertes ändert sich nicht: nur neue Chunks, nach "
+        "einem Neustart. Neben dem schon erkundeten Land bleiben Nähte (eine dichte Zone neben einer leereren, Wege, die am Rand "
+        "enden), und /locate und Karten finden schon generierte mittlere Bauwerke womöglich nicht mehr.",
+        "Il profilo leggero cambia la generazione del mondo: strutture medie più rare e distanti, villaggi grandi più rari, "
+        "niente sentieri né carovane e le miniere vanilla come in vanilla. Ciò che è già generato non cambia: solo i chunk nuovi, "
+        "dopo un riavvio. Accanto alle terre già esplorate resteranno cuciture (una zona densa accanto a una più vuota, sentieri "
+        "che finiscono sul bordo) e /locate e le mappe potrebbero non trovare più strutture medie già generate.",
+        "O perfil leve muda a geração do mundo: menos estruturas médias e mais espaçadas, aldeias grandes mais raras, sem "
+        "caminhos nem caravanas e as minas vanilla como no vanilla. O que já foi gerado não muda: só os chunks novos, depois de "
+        "reiniciar. Junto ao terreno já explorado ficarão costuras (uma zona densa ao lado de outra mais vazia, caminhos que "
+        "acabam na borda) e o /locate e os mapas podem deixar de encontrar estruturas médias já geradas.",
+        "El perfil lleuger canvia la generació del món: menys estructures mitjanes i més separades, viles grans més rares, "
+        "sense camins ni caravanes i les mines vanilla com a vanilla. El que ja s'ha generat no canvia: només els chunks nous, "
+        "després de reiniciar. Al costat del terreny ja explorat quedaran costures (una zona densa al costat d'una més buida, "
+        "camins que acaben a la vora) i /locate i els mapes poden deixar de trobar estructures mitjanes ja generades.",
+        "O perfil lixeiro cambia a xeración do mundo: menos estruturas medianas e máis separadas, aldeas grandes máis raras, "
+        "sen camiños nin caravanas e as minas vanilla coma en vanilla. O xa xerado non cambia: só os chunks novos, despois de "
+        "reiniciar. Xunto ao terreo xa explorado quedarán costuras (unha zona densa xunto a outra máis baleira, camiños que "
+        "rematan no bordo) e /locate e os mapas poden deixar de atopar estruturas medianas xa xeradas."),
+    "panel.ligero.aplicar": ("Aplicar igualmente", "Apply anyway", "Appliquer quand même", "Trotzdem anwenden",
+                             "Applica comunque", "Aplicar mesmo assim", "Aplica igualment", "Aplicar igualmente"),
+    "panel.ligero.aplicar.ayuda": ("Guarda el perfil ligero; la generación cambia al reiniciar", "Saves the light profile; generation changes after a restart",
+                                   "Enregistre le profil léger ; la génération change au redémarrage",
+                                   "Speichert das leichte Profil; die Generierung ändert sich nach einem Neustart",
+                                   "Salva il profilo leggero; la generazione cambia al riavvio",
+                                   "Salva o perfil leve; a geração muda ao reiniciar",
+                                   "Desa el perfil lleuger; la generació canvia en reiniciar",
+                                   "Garda o perfil lixeiro; a xeración cambia ao reiniciar"),
     "panel.cerrar": ("Cerrar", "Close", "Fermer", "Schließen", "Chiudi", "Fechar", "Tanca", "Pechar"),
     "panel.guardar": ("Guardar", "Save", "Enregistrer", "Speichern", "Salva", "Salvar", "Desa", "Gardar"),
     "panel.guardar.ayuda": ("Escribe config/heraldia.json y aplica lo que se puede sin reiniciar",

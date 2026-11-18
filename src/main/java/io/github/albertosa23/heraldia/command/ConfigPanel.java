@@ -75,7 +75,8 @@ public final class ConfigPanel {
 						.executes(c -> open(c.getSource(), StringArgumentType.getString(c, "menu")))))
 				.then(Commands.literal("profile").then(Commands.argument("profile", StringArgumentType.word())
 						.suggests((c, b) -> SharedSuggestionProvider.suggest(Menus.PROFILES, b))
-						.executes(c -> profile(c, StringArgumentType.getString(c, "profile")))))
+						.executes(c -> profile(c, StringArgumentType.getString(c, "profile"), false))
+						.then(Commands.literal("confirm").executes(c -> profile(c, StringArgumentType.getString(c, "profile"), true)))))
 				.then(Commands.literal("save").then(Commands.argument("menu", StringArgumentType.word())
 						.then(Commands.argument("values", StringArgumentType.greedyString())
 								.executes(c -> saveMenu(c, StringArgumentType.getString(c, "menu"), StringArgumentType.getString(c, "values"))))))
@@ -108,12 +109,55 @@ public final class ConfigPanel {
 		return 1;
 	}
 
-	private static int profile(CommandContext<CommandSourceStack> ctx, String profile) {
+	/**
+	 * Chooses a profile: the options that had the previous profile's value take the new one's, those set by hand stay
+	 * ({@link Profiles#switchTo}, the same as the client's screen). A profile that changes world generation in a world already
+	 * started first asks for confirmation (what is already generated does not change: seams), unless {@code confirmed}.
+	 */
+	private static int profile(CommandContext<CommandSourceStack> ctx, String profile, boolean confirmed) {
+		CommandSourceStack src = ctx.getSource();
 		if (!Menus.PROFILES.contains(profile)) {
-			ctx.getSource().sendFailure(Texts.t("heraldia.panel.no_existe", profile));
+			src.sendFailure(Texts.t("heraldia.panel.no_existe", profile));
 			return 0;
 		}
-		return save(ctx.getSource(), Map.of(Profiles.KEY, new JsonPrimitive(profile)), List.of(), null);
+		HeraldiaConfig.Reading r = HeraldiaConfig.readWithProfile(ReloadCommand.file());
+		Profiles ps = HeraldiaConfig.profiles();
+		if (!confirmed && !profile.equals(r.profile().chosen()) && ps.touchesGeneration(profile) && worldStarted(src)) {
+			ServerPlayer p = src.getPlayer();
+			Map<String, String> l = p != null ? Texts.language(p) : Texts.language(Texts.ES);
+			if (p == null) {
+				src.sendSystemMessage(Texts.t(l, "heraldia.panel.ligero.aviso").withStyle(ChatFormatting.GOLD));
+				src.sendSystemMessage(Component.literal("/" + CMD + " profile " + profile + " confirm").withStyle(ChatFormatting.YELLOW));
+			} else {
+				p.openDialog(Holder.direct(confirmGeneration(l, profile)));
+			}
+			return 1;
+		}
+		Map<String, JsonPrimitive> now = ps.switchTo(r.profile().chosen(), profile, r.values());
+		Map<String, JsonPrimitive> changes = new LinkedHashMap<>();
+		now.forEach((k, v) -> {
+			if (!v.equals(r.values().get(k))) {
+				changes.put(k, v);
+			}
+		});
+		return save(src, changes, List.of(), null);
+	}
+
+	/** Has the world already been played (and generated beyond spawn)? The same rule as the world version (T46). */
+	static boolean worldStarted(CommandSourceStack src) {
+		return src.getServer().overworld().getGameTime() >= io.github.albertosa23.heraldia.update.Updater.NEW_WORLD_TICKS;
+	}
+
+	/** The confirmation before a profile that changes world generation in a world already started. */
+	static MultiActionDialog confirmGeneration(Map<String, String> l, String profile) {
+		List<DialogBody> body = List.of(new PlainMessage(Texts.t(l, "heraldia.panel.ligero.aviso").withStyle(ChatFormatting.GOLD), WIDTH));
+		List<ActionButton> buttons = List.of(
+				button(Texts.t(l, "heraldia.panel.ligero.aplicar"), Texts.t(l, "heraldia.panel.ligero.aplicar.ayuda"),
+						CMD + " profile " + profile + " confirm", 140),
+				button(Texts.t(l, "heraldia.panel.volver"), Texts.t(l, "heraldia.panel.volver.ayuda"), CMD, 140));
+		CommonDialogData c = new CommonDialogData(Texts.t(l, "heraldia.panel.ligero.titulo"), Optional.empty(), true, false,
+				DialogAction.CLOSE, body, List.of());
+		return new MultiActionDialog(c, buttons, Optional.of(button(Texts.t(l, "heraldia.panel.volver"), null, CMD, 140)), 2);
 	}
 
 	private static int saveMenu(CommandContext<CommandSourceStack> ctx, String menu, String optionValues) {

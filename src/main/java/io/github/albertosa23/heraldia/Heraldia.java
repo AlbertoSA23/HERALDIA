@@ -53,6 +53,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.command.Guide.register();
 		io.github.albertosa23.heraldia.command.HeraldiaCommands.register();
 		io.github.albertosa23.heraldia.command.VersionNotice.register();
+		io.github.albertosa23.heraldia.command.ProfileNotice.register();
 		io.github.albertosa23.heraldia.loot.PerPlayerChest.register();
 		io.github.albertosa23.heraldia.loot.RestockedLoot.register();
 		io.github.albertosa23.heraldia.difficulty.MobDifficulty.register();

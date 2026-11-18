@@ -48,7 +48,7 @@ def test_default_value_outside_the_list_fails():
 def test_profile_is_the_first_list_option_and_default_standard():
     o = _by_key()["perfil"]
     assert options.schema()["opciones"][0]["clave"] == "perfil"
-    assert o["valores"] == ["casual", "estandar", "hardcore", "personalizado"]
+    assert o["valores"] == ["casual", "estandar", "hardcore", "ligero", "personalizado"]
     assert o["defecto"] == "estandar" and o["seccion"] == "perfil"
     assert "perfil" not in o and "generacion" not in o
 
@@ -63,24 +63,48 @@ def test_standard_es_exactly_what_is_of_always():
 
 def test_profiles_set_the_same_game_options():
     p = options.profiles()
-    assert set(p) == {"casual", "estandar", "hardcore"}
-    keys = set(options.profile_options())
-    assert all(set(v) == keys for v in p.values())
+    assert set(p) == {"casual", "estandar", "hardcore", "ligero"}
+    keys = set(options.gameplay_options())
+    assert all(set(v) == keys for n, v in p.items() if n != "ligero")
+    assert set(p["ligero"]) == keys | set(options.LIGHT_OPTIONS)
+    assert set(options.profile_options()) == keys | set(options.LIGHT_OPTIONS)
     for k in ("dificultad.nivel", "dificultad.escalar_por_jugadores", "botin.reponer.activado", "jefes.refuerzos.activado",
               "jefes.fases.activado", "arena.experiencia_porcentaje", "arena.oleada.mobs_incremento", "arena.oleada.stats_incremento"):
         assert k in keys, k
 
 
-def test_the_profile_never_touches_the_generation():
-    gen = {o["clave"] for o in options.schema()["opciones"] if o.get("generacion")}
-    keys = set(options.profile_options())
+def test_the_gameplay_profiles_never_touch_the_generation():
+    """casual, estandar and hardcore never touch generation; only the generation profiles (ligero) do, and only with the
+    options of LIGHT_OPTIONS (never the grids of villages or unique structures: in an existing world they would move)."""
+    s = options.schema()
+    gen = {o["clave"] for o in s["opciones"] if o.get("generacion")}
+    keys = set(options.gameplay_options())
     assert not keys & gen
     assert all(k.startswith(options.PROFILE_PREFIXES) for k in keys)
-    assert "arena.generar_en_mundos_nuevos" in gen and "arena.generar_en_mundos_nuevos" not in keys
-    for o in options.schema()["opciones"]:
+    assert "arena.generar_en_mundos_nuevos" in gen and "arena.generar_en_mundos_nuevos" not in options.profile_options()
+    assert s["perfiles_generacion"] == ["ligero"] == list(options.GENERATION_PROFILES)
+    for name, values in s["perfiles"].items():
+        if name not in s["perfiles_generacion"]:
+            assert not set(values) & gen, name
+    assert set(s["perfiles"]["ligero"]) & gen == {k for k in options.LIGHT_OPTIONS if options.is_generation(k)}
+    for k in options.LIGHT_OPTIONS:
+        assert not k.startswith(("unicas.", "aldeas.separacion", "aldeas.maximo")), k
+    for o in s["opciones"]:
         if o["clave"].startswith(("aldeas.", "unicas.", "medianas.", "minas.", "compatibilidad.")):
             assert o.get("generacion"), o["clave"]
-            assert not o.get("perfil"), o["clave"]
+            assert bool(o.get("perfil")) == (o["clave"] in options.LIGHT_OPTIONS), o["clave"]
+
+
+def test_light_is_the_standard_game_with_lighter_generation():
+    p, default = options.profiles(), {o["clave"]: o["defecto"] for o in options.schema()["opciones"]}
+    light, standard = p["ligero"], p["estandar"]
+    assert {k: v for k, v in light.items() if k in standard} == standard        # the gameplay of estandar
+    assert light["aldeas.caminos.activado"] is False and light["caravanas.activado"] is False
+    assert light["aldeas.porcentaje_grandes"] < default["aldeas.porcentaje_grandes"]
+    assert light["medianas.frecuencia_porcentaje"] < default["medianas.frecuencia_porcentaje"]
+    assert light["medianas.distancia_minima.bloques"] > default["medianas.distancia_minima.bloques"]
+    assert light["minas.vanilla.multiplicador"] < default["minas.vanilla.multiplicador"]
+    assert list(light) == [k for k in options.profile_options() if k in light]   # schema order
 
 
 def test_schema_marks():

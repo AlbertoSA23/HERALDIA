@@ -52,7 +52,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 
 | Opção | Padrão | O que faz |
 | --- | --- | --- |
-| `perfil` | `estandar` | Perfil de jogo: `casual`, `estandar`, `hardcore` ou `personalizado`; as opções escritas no arquivo prevalecem. |
+| `perfil` | `estandar` | Perfil de jogo: `casual`, `estandar`, `hardcore`, `ligero` (máquinas modestas: geração do mundo mais leve; melhor num mundo novo) ou `personalizado`; as opções escritas no arquivo prevalecem. |
 | `aldeas.separacion_bloques` | 1500 | Distância média entre vilas (1000-10000). |
 | `aldeas.maximo` | 100 | Número máximo de vilas no mundo. |
 | `aldeas.caminos.activado` | `true` | Caminhos entre vilas. |
