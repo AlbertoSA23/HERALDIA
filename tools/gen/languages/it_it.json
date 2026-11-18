@@ -2047,5 +2047,11 @@
   "heraldia.config.eventos.frecuencia.nombre": "Frequenza degli eventi (%)",
   "heraldia.config.eventos.espera_minutos.nombre": "Pausa tra gli eventi (min)",
   "heraldia.config.eventos.max_activos.nombre": "Eventi contemporanei",
-  "heraldia.config.seccion.eventos": "Eventi nei villaggi"
+  "heraldia.config.seccion.eventos": "Eventi nei villaggi",
+  "heraldia.config.medianas.habitantes": "Abitanti delle strutture medie: l'oste, il mugnaio, il pescatore, i cacciatori, la vedetta e l'eremita vivono nel loro edificio (dormono nel loro letto e lavorano alla loro postazione) e la locanda ha i suoi maiali. Disattivato, i nuovi non compaiono e quelli che c'erano già come figure immobili restano immobili; riguarda solo quelli che non sono mai stati caricati",
+  "heraldia.config.medianas.habitantes.nombre": "Abitanti delle strutture medie",
+  "heraldia.medianas.posada.hortelano": "Ortolano",
+  "heraldia.medianas.cazadores.arquero": "Arciere",
+  "heraldia.medianas.torre_vigia.vigilante": "Vedetta",
+  "heraldia.medianas.ermita.ermitano": "Eremita"
 }

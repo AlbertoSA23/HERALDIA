@@ -117,6 +117,17 @@ _FIXED = [
      "de Heraldia (tampoco dentro de la Atlántida)",
      "A medium structure does not spawn closer than this distance, in blocks, to the start of a Heraldia village or unique "
      "structure (nor inside Atlantis)"),
+    # Inhabitants of the medium structures (mediums/_inhabitants.py, inhabitants/Inhabitants.java): applied when each one
+    # first loads, so only to structures generated (or first loaded) after the change; the light profile turns it off.
+    ("medianas.habitantes", True, None, None,
+     "Habitantes de las estructuras medianas: el posadero, el molinero, el pescador, los cazadores, el vigía y el ermitaño "
+     "viven en su edificio (duermen en su cama y trabajan en su puesto) y la posada tiene sus cerdos. Desactivado, los "
+     "nuevos no aparecen y los que ya estaban antes como figuras quietas siguen quietos; solo afecta a los que todavía no "
+     "se han cargado nunca",
+     "Inhabitants of the medium structures: the innkeeper, the miller, the fisherman, the hunters, the lookout and the "
+     "hermit live in their building (they sleep in their bed and work at their workstation) and the inn has its pigs. "
+     "Off, the new ones do not appear and those that were already there before as still figures stay still; it only "
+     "affects those that have never loaded yet"),
     ("minas.entradas.activado", True, None, None,
      "Entradas a mina en laderas (bocas, campamentos mineros y complejos con torre de extracción) que bajan a una "
      "galería propia; solo en los chunks nuevos",
@@ -558,6 +569,7 @@ LIGHT_OPTIONS = {
     "minas.vanilla.multiplicador": 1.0,          # vanilla abandoned mineshafts as in vanilla (the default doubles them)
     "caravanas.activado": False,                 # no caravan entities walking between villages (server ticks)
     "eventos.activado": False,                   # no village events (up to ~15 entities each while one lasts)
+    "medianas.habitantes": False,                # no villagers with AI in the medium structures (server ticks)
 }
 GENERATION_PROFILES = (LIGHT,)
 # The only thing the other profiles may touch: gameplay options. World generation (where and how structures appear, the
@@ -690,6 +702,7 @@ _NAMES = {
     "medianas.distancia_minima.bloques": ("Distancia entre medianas (bloques)", "Distance between medium ones (blocks)"),
     "medianas.distancia_aldeas_unicas_bloques": ("Distancia a aldeas y únicas (bloques)",
                                                  "Distance to villages and unique ones (blocks)"),
+    "medianas.habitantes": ("Habitantes de las medianas", "Medium structure inhabitants"),
     "minas.entradas.activado": ("Entradas a mina", "Mine entrances"),
     "minas.entradas.separacion_bloques": ("Separación de las entradas (bloques)", "Entrance spacing (blocks)"),
     "minas.vanilla.multiplicador": ("Minas vanilla (multiplicador)", "Vanilla mineshafts (multiplier)"),

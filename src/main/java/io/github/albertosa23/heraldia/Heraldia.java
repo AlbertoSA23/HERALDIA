@@ -72,6 +72,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.welcome.Welcome.register();
 		io.github.albertosa23.heraldia.herald.HeraldHouse.register();
 		io.github.albertosa23.heraldia.events.VillageEvents.register();
+		io.github.albertosa23.heraldia.inhabitants.Inhabitants.register();
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::logRegisteredStructures);
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::publishGolemSettings);
 	}

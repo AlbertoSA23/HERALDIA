@@ -2047,5 +2047,11 @@
   "heraldia.config.eventos.frecuencia.nombre": "Fréquence des événements (%)",
   "heraldia.config.eventos.espera_minutos.nombre": "Repos entre événements (min)",
   "heraldia.config.eventos.max_activos.nombre": "Événements à la fois",
-  "heraldia.config.seccion.eventos": "Événements de village"
+  "heraldia.config.seccion.eventos": "Événements de village",
+  "heraldia.config.medianas.habitantes": "Habitants des structures moyennes : l'aubergiste, le meunier, le pêcheur, les chasseurs, la vigie et l'ermite vivent dans leur bâtiment (ils dorment dans leur lit et travaillent à leur poste) et l'auberge a ses cochons. Désactivé, les nouveaux n'apparaissent pas et ceux qui étaient déjà là comme figures immobiles restent immobiles ; cela ne touche que ceux qui ne se sont encore jamais chargés",
+  "heraldia.config.medianas.habitantes.nombre": "Habitants des structures moyennes",
+  "heraldia.medianas.posada.hortelano": "Jardinier",
+  "heraldia.medianas.cazadores.arquero": "Archer",
+  "heraldia.medianas.torre_vigia.vigilante": "Vigie",
+  "heraldia.medianas.ermita.ermitano": "Ermite"
 }

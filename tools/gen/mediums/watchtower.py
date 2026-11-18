@@ -1,10 +1,12 @@
 """Watchtower (heraldia:medianas/torre_vigia/<estilo>): 7 x 7 square tower in a 15 x 15 courtyard with its
 beacon fire on top. Variant a: three floors and a covered lookout with a skeleton archer (the challenge); b: two floors, open
-terrace and an attached firewood shed, no mobs."""
+terrace and an attached firewood shed, and the lookout who lives there (a fletcher with fixed trades: his bed and his
+fletching table on the ground floor, which he reaches without the ladder)."""
 from core import Template, F
 from loot import item, empty
 from uniques._common import chest_loot
 from . import _common as c
+from . import _inhabitants as inh
 
 MID = "torre_vigia"
 DISPLAY_NAME = {"es_es": "Torre de vigía", "en_us": "Watchtower"}
@@ -12,6 +14,7 @@ SEPARATION = 640
 ADVANCEMENT_ICON = "minecraft:spyglass"
 LANG = chest_loot.lang("heraldia.medianas.torre_vigia.", {
     "arquero": ("Vigía del camino", "Road Watcher"),
+    "vigilante": ("Vigía", "Lookout"),
 })
 LOOT = {
     "vigia": chest_loot.place_chest(((2, 4), [item("arrow", 10, 4, 12), item("bread", 8, 1, 3), item("torch", 6, 2, 6),
@@ -26,6 +29,14 @@ LOOT = {
 L = 15                # patio de 15 x 15
 X0, Z0, X1, Z1 = 4, 5, 10, 11   # tower walls (7 x 7)
 CX = 7                # axis of the door and the ladder
+
+
+def lookout_offers():
+    em = lambda n: {"id": "minecraft:emerald", "count": n}
+    return [c.offer({"id": "minecraft:stick", "count": 32}, em(1), 16),
+            c.offer(em(1), {"id": "minecraft:arrow", "count": 12}, 12),
+            c.offer(em(1), {"id": "minecraft:torch", "count": 8}, 12),
+            c.offer(em(4), {"id": "minecraft:spyglass", "count": 1}, 2)]
 
 
 def _floor(p):
@@ -107,11 +118,15 @@ def upper(p, name):
 
 
 def lower(p, name):
-    """Two floors, open terrace and a firewood shed attached to the east; no mobs."""
+    """Two floors, open terrace and a firewood shed attached to the east; the lookout sleeps and works on the ground floor."""
     t = Template(name)
     _courtyard(t, p)
     m = p["madera"]
     _tower(t, p, 2, deck=False)
+    c.bed(t, X1 - 1, Z1 - 1, "east", "brown")
+    t.set(X1 - 1, 1, Z0 + 1, "fletching_table")
+    inh.bell(t, CX - 4, 2)                                    # the alarm bell by the gate: the lookout's meeting point
+    t.entity(X0 + 2, 1, 8, inh.villager(MID, "vigilante", "Vigía", "fletcher", p["aldeano"], lookout_offers(), rot=180.0))
     c.place_chest(t, X0 + 1, 1, Z0 + 2, "east", MID, "vigia")
     c.bed(t, X0 + 1, Z1 - 2, "west", "blue", y=6)
     t.set(X1 - 1, 6, Z0 + 1, "crafting_table")
@@ -134,14 +149,14 @@ STYLES = {
                             "meadow"],
                     convencionales=["c:is_windswept"],
                     paleta=dict(muro="stone_bricks", esquina="polished_andesite", zocalo="cobblestone", madera="spruce",
-                                tronco="spruce_log", peldano="cobblestone_stairs",
+                                tronco="spruce_log", peldano="cobblestone_stairs", aldeano="plains",
                                 patio=["minecraft:cobblestone", "minecraft:dirt_path", "minecraft:mossy_cobblestone",
                                        "minecraft:dirt_path"]),
                     variantes={"a": upper, "b": lower}),
     "taiga": dict(biomas=["taiga", "old_growth_pine_taiga", "old_growth_spruce_taiga", "snowy_taiga"],
                   convencionales=["minecraft:is_taiga", "c:is_taiga"],
                   paleta=dict(muro="cobblestone", esquina="stripped_spruce_log[axis=y]", zocalo="mossy_cobblestone",
-                              madera="spruce", tronco="spruce_log", peldano="spruce_stairs",
+                              madera="spruce", tronco="spruce_log", peldano="spruce_stairs", aldeano="taiga",
                               patio=["minecraft:dirt_path", "minecraft:packed_mud", "minecraft:dirt_path",
                                      "minecraft:cobblestone"]),
                   variantes={"a": upper, "b": lower}),

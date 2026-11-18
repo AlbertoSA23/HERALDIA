@@ -1,11 +1,13 @@
 """Mill (heraldia:medianas/molino/<estilo>): 19 x 19 courtyard with a mill and its field. Variant a: watermill,
-7 x 9 house with the millstone (grindstone), the paddle wheel in a still-water millrace to the east and the miller (stationary
-villager with fixed trades: buys wheat, sells bread and cake flour); b: windmill, 7 x 7 three-floor tower
-with the sails to the south and a wheat field with its irrigation ditch to the east, with nobody there. No monsters."""
+7 x 9 house with the millstone (grindstone), the paddle wheel in a still-water millrace to the east and the miller (a villager
+with fixed trades: buys wheat, sells bread and cake flour, who lives there: his bed and the composter by the door); b:
+windmill, 7 x 7 three-floor tower with the sails to the south and a wheat field with its irrigation ditch to the east,
+where the miller lives and farms. No monsters."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot
 from . import _common as c
+from . import _inhabitants as inh
 
 MID = "molino"
 DISPLAY_NAME = {"es_es": "Molino", "en_us": "Mill"}
@@ -50,6 +52,7 @@ def _floor(p):
 def _courtyard(t, p):
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=3)
     c.entrance(t, DOOR_COL, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
+    inh.bell(t, DOOR_COL - 3, 2)                              # the call bell by the gate: the miller's meeting point
 
 
 def _wheel(t, p, x, cy, cz, r=3):
@@ -110,7 +113,8 @@ def water(p, name):
     c.place_chest(t, X0 + 1, 1, Z1 - 3, "east", MID, "molinero")
     t.set(X0 + 1, 1, Z0 + 1, "crafting_table")
     c.lantern(t, DOOR_COL, 4, 9)
-    t.entity(DOOR_COL, 1, 11, c.villager(MID, "molinero", "Molinero", "farmer", p["aldeano"], offers(), rot=0.0))
+    t.entity(DOOR_COL, 1, 11, inh.villager(MID, "molinero", "Molinero", "farmer", p["aldeano"], offers(), rot=0.0,
+                                           still_before=True))
     # outside: stacked sacks next to the door and a hay cart
     t.set(DOOR_COL + 2, 1, 3, "hay_block[axis=x]")
     t.set(DOOR_COL + 3, 1, 3, "hay_block[axis=x]")
@@ -120,7 +124,8 @@ def water(p, name):
 
 def wind(p, name):
     """Windmill: 7 x 7 tower (x 3..9, z 5..11), three floors with a ladder, sails on the south face and a
-    wheat field with an irrigation ditch to the east; with nobody there."""
+    wheat field with an irrigation ditch to the east; the miller lives on the ground floor (his bed by the millstone, no
+    ladder on the way) and tends the field (the composter at its corner)."""
     t = Template(name)
     _courtyard(t, p)
     m = p["madera"]
@@ -177,6 +182,8 @@ def wind(p, name):
     t.set(X1 - 1, 1, Z0 + 2, "grindstone[face=floor,facing=north]")
     c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "molienda", kind="barrel")
     t.set(X1 - 1, 1, Z0 + 1, "hay_block[axis=y]")
+    c.bed(t, CX, Z1 - 1, "west", p["cama"])
+    t.entity(CX, 1, 8, inh.villager(MID, "molinero", "Molinero", "farmer", p["aldeano"], offers(), rot=0.0))
     c.lantern(t, CX, 4, 8)
     t.set(X1 - 1, 6, Z0 + 1, "hay_block[axis=y]")
     t.set(X1 - 1, 6, Z0 + 2, "hay_block[axis=y]")

@@ -74,7 +74,7 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
                  "tools/gen/streets.py", "tools/gen/pack.py", "tools/gen/board.py", "tools/gen/arena_waves.py",
                  "tools/gen/caravans.py", JAVA + "Heraldia.java", JAVA + "villages/*", JAVA + "caravans/*", JAVA + "arena/*",
                  JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*",
-                 JAVA + "welcome/*"]
+                 JAVA + "welcome/*", "tools/gen/mediums/*", JAVA + "inhabitants/*"]
 RUNTIME_PATHS += [JAVA + "events/*"]          # village events: up to 25 entities in a square while one lasts
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
@@ -138,6 +138,8 @@ MAP = [
     ("tools/gen/uniques/_enclosure.py", NETHER_END + OF_EVERY_UNIQUE),
     ("tools/gen/mediums/wizard_hut.py", MEDIUMS_MOBS + HUTS),
     ("tools/gen/mediums/*", MEDIUMS_MOBS + NETHER_END), (JAVA + "common/MediumStructures.java", MEDIUMS + NETHER_END),
+    # inhabitants of the medium structures: their option, applied when each one first loads
+    (JAVA + "inhabitants/*", MEDIUMS),
     ("tools/gen/mines/*", MINES), (JAVA + "mines/*", MINES + COAST),
     ("tools/gen/shore/*", COAST_MOBS), (JAVA + "coast/*", COAST),
     # /locate of the mines (T36): the shared height cache and the parallel look-ahead computation are only used by the mines
@@ -357,7 +359,7 @@ DURATION_S = {
     **{f"{COMPAT}::{g}": s for g, s in {"base": 90, "rendimiento": 85, "biomas": 115, "servidor": 90, "distanthorizons": 80,
                                          "estructuras": 115, "terreno": 105, "tectonic": 140, "wwoo": 215}.items()},
     "tools/smoke/anchored_guardians.py": 560,
-    "tools/smoke/medium_structures.py": 200,          # one start and the 8 types (failed in the reference run: recorded value kept)
+    "tools/smoke/medium_structures.py": 290,          # measured locally (4 cores): 263 s + 10 %, with the inhabitants settling on the first located structure of each kind (6; the other 12 and the three-day stay behind --stay: 639 s)
     "tools/smoke/guide.py": 70,                      # three server starts
     "tools/smoke/search_cache.py": 60,                # three starts, eleven searches
     "tools/smoke/journal.py": 35,                     # one start and a few commands as simulated players (with the end of the Chronicle)

@@ -1,11 +1,12 @@
 """Fisherman's cabin (heraldia:medianas/pescador/<estilo>): 17 x 21 courtyard on the shore with a 7 x 7 cabin, a
-fish-drying rack and a plank pier on piles to the south. Variant a: the fisherman (stationary villager with
-fixed trades: buys string, sells cooked cod and a fishing rod) and his cat; b: the closed cabin, with a smoker and a
-longer pier with fish traps, with nobody there. No monsters."""
+fish-drying rack and a plank pier on piles to the south. Variant a: the fisherman (a villager with fixed trades:
+buys string, sells cooked cod and a fishing rod, who lives there: the cabin's bed and its barrel) and his cat; b: the cabin
+with a smoker and a longer pier with fish traps, and the same fisherman without his cat. No monsters."""
 from core import Template, B
 from loot import item, empty
 from uniques._common import chest_loot
 from . import _common as c
+from . import _inhabitants as inh
 
 MID = "pescador"
 DISPLAY_NAME = {"es_es": "Cabaña de pescador", "en_us": "Fisher's Hut"}
@@ -81,6 +82,7 @@ def _cabin(p, name, shut):
     for x in range(EX0, EX1 + 1):
         t.set(x, 2, 2, f"{m}_fence")
     c.lantern(t, EX0 + 1, 1, 2, hanging=True)
+    inh.bell(t, X0 + 1, 2)                                    # the call bell by the door: the fisher's meeting point
     return t
 
 
@@ -111,15 +113,18 @@ def _dock(t, p, z1, fish_traps=False):
 def with_fisherman(p, name):
     t = _cabin(p, name, shut=False)
     _dock(t, p, DEPTH - 4)
-    t.entity(DOOR_COL, 1, 7, c.villager(MID, "pescador", "Pescador", "fisherman", p["aldeano"], offers(), rot=0.0))
+    t.entity(DOOR_COL, 1, 7, inh.villager(MID, "pescador", "Pescador", "fisherman", p["aldeano"], offers(), rot=0.0,
+                                          still_before=True))
     t.entity(EX0 + 1, 2, 10, c.mob("cat", MID, "gato", "Bigotes", rot=90.0,
                                    variant=p["gato"], CollarColor=B(p["collar"])))
     return t
 
 
 def smokehouse(p, name):
-    """With nobody there: a stone smokehouse attached to the east with a campfire, and a longer pier with fish traps."""
+    """A stone smokehouse attached to the south with a campfire, and a longer pier with fish traps; the fisherman lives
+    here too (the cabin's bed and its barrel), without a cat."""
     t = _cabin(p, name, shut=True)
+    t.entity(DOOR_COL, 1, 7, inh.villager(MID, "pescador", "Pescador", "fisherman", p["aldeano"], offers(), rot=0.0))
     _dock(t, p, DEPTH - 1, fish_traps=True)
     # 3 x 3 smokehouse south of the cabin, open to the east, with the campfire under a stone bell
     for x in range(X0 + 2, X0 + 5):

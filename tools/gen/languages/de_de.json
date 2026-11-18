@@ -2047,5 +2047,11 @@
   "heraldia.config.eventos.frecuencia.nombre": "Häufigkeit der Ereignisse (%)",
   "heraldia.config.eventos.espera_minutos.nombre": "Pause zwischen Ereignissen (min)",
   "heraldia.config.eventos.max_activos.nombre": "Ereignisse gleichzeitig",
-  "heraldia.config.seccion.eventos": "Dorfereignisse"
+  "heraldia.config.seccion.eventos": "Dorfereignisse",
+  "heraldia.config.medianas.habitantes": "Bewohner der mittelgroßen Bauwerke: Wirt, Müller, Fischer, Jäger, Späher und Einsiedler leben in ihrem Gebäude (sie schlafen in ihrem Bett und arbeiten an ihrem Arbeitsplatz), und das Gasthaus hat seine Schweine. Aus: Die neuen erscheinen nicht, und die, die schon vorher als unbewegte Figuren da waren, bleiben unbewegt; betrifft nur die, die noch nie geladen wurden",
+  "heraldia.config.medianas.habitantes.nombre": "Bewohner der mittelgroßen Bauwerke",
+  "heraldia.medianas.posada.hortelano": "Gärtner",
+  "heraldia.medianas.cazadores.arquero": "Bogenschütze",
+  "heraldia.medianas.torre_vigia.vigilante": "Späher",
+  "heraldia.medianas.ermita.ermitano": "Einsiedler"
 }

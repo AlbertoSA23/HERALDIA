@@ -171,4 +171,15 @@ class FixesTest {
 		assertTrue(WorldVersion.backsOff(java.util.Optional.of(before), "0.1.2"));
 		assertFalse(WorldVersion.backsOff(java.util.Optional.of(before), "0.2.0"));
 	}
+
+	@Test
+	void mediumInhabitantsAreNotTemplateMobs() {
+		// a named, persistent villager of a medium structure that lives there: no fix may anchor it or take its pickup
+		Fake v = new Fake();
+		v.name = "heraldia.medianas.molino.molinero";
+		v.tags.add(MobFixes.INHABITANT);
+		assertFalse(MobFixes.fromTemplate(v));
+		v.tags.remove(MobFixes.INHABITANT);
+		assertTrue(MobFixes.fromTemplate(v), "without the tag (the still figures of earlier versions) it still is one");
+	}
 }

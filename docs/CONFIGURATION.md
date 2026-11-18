@@ -196,6 +196,7 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `medianas.frecuencia_porcentaje` | 100 | 25-400 | Frequency of all medium structures, as a % of each type's own spacing (each type's spacing is divided by the square root): **100 = each type at its own spacing** (one every ~550 blocks among all types), 200 = twice that, 50 = the light profile's (see [Medium structures density](#medium-structures-density)). |
 | `medianas.distancia_minima.bloques` | 192 | 64-1024 | Minimum distance between two medium structures of different types (and between two of the same type, at most half a grid cell). |
 | `medianas.distancia_aldeas_unicas_bloques` | 256 | 128-1024 | A medium structure does not spawn closer than this to the start of a Heraldia village or unique structure that spawns there. |
+| `medianas.habitantes` | `true` | `true`/`false` | [Inhabitants](CONTENT.md#medium-structures) of the medium structures: the innkeeper, the miller, the fisher, the hunters, the lookout and the hermit live in their building (bed, workstation, vanilla AI) and the inn has its pigs. Applied when each one first loads: off, the new ones do not appear and the old still figures stay still; an inhabitant that has already loaded is never changed. Off in the light profile. |
 | `medianas.<id>.activada` | `true` | `true`/`false` | Enables a type of medium structure (`torre_vigia`, `posada`, `campamento`, `ermita`, `molino`, `pescador`, `cazadores`, `templete`, `choza_mago`; Nether: `puesto_piglin`, `altar_magma`, `atalaya_basalto`, `santuario_hongos`; End: `observatorio_vacio`, `mausoleo_purpura`, `embarcadero_shulker`). |
 | `medianas.<id>.separacion_bloques` | the type's own (576-1024) | 256-4000 | Average spacing between two of that type (at 100 % frequency); each grid cell looks for its candidate inside the type's biomes. |
 | `minas.entradas.activado` | `true` | `true`/`false` | Enables the [mine entrances](CONTENT.md#mine-entrances) (new chunks only). |
@@ -313,6 +314,7 @@ The `perfil` option sets a group of options in one go. `casual`, `estandar` and 
 | `minas.vanilla.multiplicador` | 2.0 | 1.0 | vanilla abandoned mineshafts, the long galleries, as in vanilla (the default doubles them) |
 | `caravanas.activado` | `true` | `false` | no caravan entities walking between villages (server ticks) |
 | `eventos.activado` | `true` | `false` | no [village events](CONTENT.md#village-events) (10 to 15 entities in a square while one lasts: on a machine half as fast per core, an event costs about twice what [docs/DEVELOPMENT.md](DEVELOPMENT.md) measures) |
+| `medianas.habitantes` | `true` | `false` | no villagers with AI in the medium structures (server ticks); the traders that were still figures before stay still, as they were |
 
 The [wayfarers](CONTENT.md#wayfarers) (`viajeros.activado`) are not part of it: they cost less than a caravan (one encounter of 1 to 6 entities with simple AI for a minute or two) and adding an option to a profile changes the file format; on a very modest machine, set `viajeros.activado` to `false` by hand.
 

@@ -1,10 +1,13 @@
 """Roadside inn (heraldia:medianas/posada/<estilo>): 15 x 9 house with a common room (counter, hearth and two tables),
-the innkeeper (stationary villager with fixed trades: food and a bed for the traveler) and a room with two beds and a chest.
-Variant a: with a straw pen and a trough to the south; b: with a garden to the south. No monsters."""
+the innkeeper (a villager with fixed trades: food and a bed for the traveler, who lives there: the smoker behind the
+counter and one of the guest beds) and a room with two beds and a chest.
+Variant a: with a straw pen and a trough to the south and two pigs in it; b: with a garden to the south and the gardener who
+tends it (composter, the other bed). No monsters."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot, pieces
 from . import _common as c
+from . import _inhabitants as inh
 
 MID = "posada"
 DISPLAY_NAME = {"es_es": "Posada de camino", "en_us": "Roadside Inn"}
@@ -12,6 +15,7 @@ SEPARATION = 704
 ADVANCEMENT_ICON = "minecraft:bread"
 LANG = chest_loot.lang("heraldia.medianas.posada.", {
     "posadero": ("Posadero", "Innkeeper"),
+    "hortelano": ("Hortelano", "Gardener"),
     "cartel1": ("Posada", "Inn"),
     "cartel2": ("del Camino", "of the Road"),
 })
@@ -38,6 +42,13 @@ def offers():
             c.offer(em(1), {"id": "minecraft:cooked_porkchop", "count": 3}, 12),
             c.offer(em(2), {"id": "minecraft:white_bed", "count": 1}, 3),
             c.offer({"id": "minecraft:wheat", "count": 18}, em(1), 12)]
+
+
+def gardener_offers():
+    em = lambda n: {"id": "minecraft:emerald", "count": n}
+    return [c.offer({"id": "minecraft:carrot", "count": 22}, em(1), 16),
+            c.offer(em(1), {"id": "minecraft:baked_potato", "count": 4}, 12),
+            c.offer(em(1), {"id": "minecraft:beetroot_soup", "count": 1}, 6)]
 
 
 def _floor(p):
@@ -81,9 +92,10 @@ def _house(p, name):
     # common room: counter to the south (with a gap to the west), innkeeper behind it, barrels, two tables and lanterns
     for x in range(8, PARTITION):
         t.set(x, 1, Z1 - 2, f"stripped_{p['tronco']}[axis=x]")
-    t.set(PARTITION - 1, 1, Z1 - 1, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
+    t.set(PARTITION - 1, 1, Z1 - 1, "smoker[facing=west,lit=false]", {"id": "minecraft:smoker"})   # the innkeeper's job
     c.place_chest(t, PARTITION - 1, 2, Z1 - 1, "west", MID, "despensa", kind="barrel")
-    t.entity(9, 1, Z1 - 1, c.villager(MID, "posadero", "Posadero", "butcher", p["aldeano"], offers(), rot=180.0))
+    t.entity(9, 1, Z1 - 1, inh.villager(MID, "posadero", "Posadero", "butcher", p["aldeano"], offers(), rot=180.0,
+                                        still_before=True))
     c.table_top(t, 5, 6, m)
     c.table_top(t, 5, 10, m)
     c.lantern(t, 5, 4, 8)
@@ -93,11 +105,12 @@ def _house(p, name):
     c.bed(t, X1 - 1, Z1 - 1, "east", p["cama"])
     c.place_chest(t, X1 - 1, 1, 8, "west", MID, "cuarto")
     c.lantern(t, 13, 4, 8)
+    inh.bell(t, DOOR_COL - 2, 2)                              # the call bell by the door: the inhabitants' meeting point
     return t
 
 
 def pen(p, name):
-    """With a straw pen and a trough south of the house (no animals: travelers bring them)."""
+    """With a straw pen and a trough south of the house, and two of the innkeeper's pigs in it (the gate is shut)."""
     t = _house(p, name)
     m = p["madera"]
     x0, x1, z0, z1 = 3, 15, Z1 + 1, DEPTH - 1
@@ -113,6 +126,8 @@ def pen(p, name):
     t.set(5, 2, z1 - 1, "hay_block[axis=y]")
     t.set(13, 1, z1 - 1, "water_cauldron[level=3]")
     t.set(12, 1, z1 - 1, "water_cauldron[level=3]")
+    t.entity(8, 1, z1 - 1, inh.animal("pig", rot=90.0))
+    t.entity(10, 1, z1 - 2, inh.animal("pig", rot=270.0))
     return t
 
 
@@ -128,6 +143,7 @@ def orchard(p, name):
             t.set(x, 0, z, "farmland[moisture=7]")
             t.set(x, 1, z, crops[(x // 2) % len(crops)])
     t.set(15, 1, Z1 + 2, "composter[level=0]")
+    t.entity(14, 1, Z1 + 1, inh.villager(MID, "hortelano", "Hortelano", "farmer", p["aldeano"], gardener_offers(), rot=180.0))
     return t
 
 

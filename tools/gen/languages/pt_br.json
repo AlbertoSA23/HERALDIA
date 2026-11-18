@@ -2047,5 +2047,11 @@
   "heraldia.config.eventos.frecuencia.nombre": "Frequência dos eventos (%)",
   "heraldia.config.eventos.espera_minutos.nombre": "Descanso entre eventos (min)",
   "heraldia.config.eventos.max_activos.nombre": "Eventos ao mesmo tempo",
-  "heraldia.config.seccion.eventos": "Eventos nas aldeias"
+  "heraldia.config.seccion.eventos": "Eventos nas aldeias",
+  "heraldia.config.medianas.habitantes": "Habitantes das estruturas médias: o estalajadeiro, o moleiro, o pescador, os caçadores, o vigia e o eremita vivem no seu edifício (dormem na sua cama e trabalham no seu posto) e a estalagem tem seus porcos. Desativado, os novos não aparecem e os que já estavam lá como figuras paradas continuam parados; só afeta os que ainda nunca foram carregados",
+  "heraldia.config.medianas.habitantes.nombre": "Habitantes das estruturas médias",
+  "heraldia.medianas.posada.hortelano": "Hortelão",
+  "heraldia.medianas.cazadores.arquero": "Arqueiro",
+  "heraldia.medianas.torre_vigia.vigilante": "Vigia",
+  "heraldia.medianas.ermita.ermitano": "Eremita"
 }

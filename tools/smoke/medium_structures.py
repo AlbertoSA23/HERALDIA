@@ -10,7 +10,10 @@ Checks:
   rules); then it is really generated (forceload) and the structure is where /locate said;
 - /place template of each variant (on a slab): each container with its table (also the templete's vessels), the
   expected entities (tag heraldia_mediana.<type>), still water (the mill's channel, irrigation ditches, the templete's well:
-  it is still a source and does not flow) and the villagers (innkeeper, miller, fisherman, hunter) still and with their trades;
+  it is still a source and does not flow) and the villagers: the inhabitants with AI, the wizard still, all with their trades;
+- the inhabitants settle on the seed's real terrain: every structure of an inhabited kind that /locate finds is generated
+  and its villagers take their workstation in the morning and their bed at night and sleep (check_settled; summary line
+  HABITANTES);
 - /place structure of each style (the pool and the structure load) and its time;
 - loot spawn of each table (the hermitage's journal is a written book) and /heraldia info with its summary.
 Exit code 0 if everything passes.
@@ -84,10 +87,17 @@ def check_locate(ctx, kinds):
                         fails.append(f"{mid} at {px}, {pz} {dist} blocks from {sid} (< {ZONE})")
                 elif f"medianas/{mid}" not in sid and dist < DISTANCE:
                     fails.append(f"{mid} at {px}, {pz} {dist} blocks from {sid} (< {DISTANCE})")
-            if (x, z) == POINTS[0]:      # the first one is really generated: the start is where /locate said
-                forceload(ctx, px - 32, pz - 32, px + 31, pz + 31)
+            # the first one is really generated: the start is where /locate said, and for the kinds with inhabitants it is
+            # a sample, on the seed's real terrain, of whether its villagers settle; with --stay, the other points too (and
+            # the three-day stay at the first): 18 samples instead of 6, and about 10 more minutes, not in CI
+            if (x, z) == POINTS[0] or (STAY and mid in INHABITED):
+                r = ROAM if mid in INHABITED else 32      # inhabitants stroll by day: their area keeps ticking
+                forceload(ctx, px - r, pz - r, px + r - 1, pz + r - 1)
                 if not wait_generated(ctx, px, pz, mid):
                     fails.append(f"{mid}: /locate gives {px}, {pz} but nothing has been generated there")
+                elif mid in INHABITED:
+                    fails += check_settled(ctx, mid, px, pz, long_stay=STAY and (x, z) == POINTS[0])
+                forceload(ctx, px - r, pz - r, px + r - 1, pz + r - 1, remove=True)
         if not found_count:
             fails.append(f"no {mid}")
     if timings:
@@ -108,6 +118,125 @@ def wait_generated(ctx, x, z, mid):
                 return True
         time.sleep(2)
     return False
+
+
+def inhabited():
+    """Kinds whose templates hold inhabitants (mediums/_inhabitants.py)."""
+    from mediums import _inhabitants as inh
+    out = set()
+    for name, t in templates().items():
+        if any(inh.is_inhabitant(n) for *_, n in t.entities):
+            out.add(name.split("/")[1])
+    return out
+
+
+INHABITED = inhabited()
+STAY = False                         # --stay: every located structure settle-checked and the three-day stay (slow; not in CI)
+SETTLED = []                         # (kind, x, z, villagers, with job site, with home, slept): the summary
+STAYED = []                          # (kind, x, z, villagers, alive, at home, with job site, with home, days)
+
+
+def check_settled(ctx, mid, px, pz, long_stay=False):
+    """On the seed's real terrain: every inhabitant villager of the structure /locate found takes its workstation in the
+    working hours and its bed at night, and sleeps in it (Brain memories job_site, home and last_slept, which the game
+    saves). A variant without inhabitants (the watchtower with the archer) counts 0 and does not fail."""
+    sel = (f"@e[type=minecraft:villager,tag=heraldia_habitante,tag=heraldia_mediana.{mid},"
+           f"x={px - 48},y=-64,z={pz - 48},dx=96,dy=420,dz=96]")
+    if not ctx.until(f"execute if entity {sel}", timeout=20):
+        SETTLED.append((mid, px, pz, 0, 0, 0, 0))
+        print(f"{mid} at {px}, {pz}: variant without inhabitant villagers")
+        return []
+    wait_loaded(ctx, px, pz, ROAM)
+    n = ctx.count(sel)
+    with_mem = lambda mem: ctx.count(f"{sel[:-1]},nbt={{Brain:{{memories:{{\"minecraft:{mem}\":{{}}}}}}}}]")
+    ctx.run("time set 2000", r"Set the time|time to|Set minecraft:\w+ to")            # morning: off to work
+    end = time.monotonic() + 120
+    while with_mem("job_site") < n and time.monotonic() < end:
+        time.sleep(3)
+    job = with_mem("job_site")
+    # to nightfall by running the day, not by jumping the clock: a jump wakes a sleeping villager abruptly
+    sprint(ctx, 11000)
+    nights = 1
+    while True:
+        end = time.monotonic() + 150
+        while (with_mem("home") < n or with_mem("last_slept") < n) and time.monotonic() < end:
+            time.sleep(3)
+        home, slept = with_mem("home"), with_mem("last_slept")
+        if (home == n and slept == n) or nights == 2:
+            break
+        sprint(ctx, 24000)              # two villagers wanting the same bed: the one who loses tries again later
+        nights += 1
+    SETTLED.append((mid, px, pz, n, job, home, slept))
+    print(f"{mid} at {px}, {pz}: {n} inhabitants, {job} with their workstation, {home} with their bed, {slept} asleep "
+          f"(night {nights})")
+    fails = []
+    if job < n or home < n or slept < n:
+        fails.append(f"{mid} at {px}, {pz}: of {n} inhabitants, {job} took a workstation, {home} a bed and {slept} slept")
+    if long_stay:
+        fails += check_stay(ctx, mid, px, pz, sel, n, with_mem)
+    return fails
+
+
+STAY_TICKS = 3 * 24000                # three more in-game days with /tick sprint, from one nightfall to another
+
+
+def wait_loaded(ctx, px, pz, r, timeout=180):
+    """Waits until the forceloaded area around the structure is really loaded (corners and center). Running the clock
+    (/tick sprint) while it still loads is not what a player sees: the villagers' paths fail in the chunks that are not
+    there yet, and after a while unreachable (SetWalkTargetFromBlockMemory, 26.3) they release their bed and workstation."""
+    pts = [(px + 8, pz + 8), (px - r + 8, pz - r + 8), (px + r - 8, pz - r + 8), (px - r + 8, pz + r - 8), (px + r - 8, pz + r - 8)]
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        if all(ctx.test(f"execute if loaded {x} 64 {z}") for x, z in pts):
+            time.sleep(5)                 # and a moment for the entities of the last ones
+            return True
+        time.sleep(3)
+    return False
+
+
+SPRINT_STEP = 6000
+
+
+def sprint(ctx, ticks):
+    """Runs `ticks` game ticks at full speed (/tick sprint; its reply only comes at the end: the game time says when).
+    Returns the ticks really run."""
+    t0 = ctx.gametime()
+    end = time.monotonic() + 900
+    while ctx.gametime() < t0 + ticks and time.monotonic() < end:
+        # in steps of SPRINT_STEP: right after one 72,000-tick sprint the hermit read as having an empty brain (no
+        # bed, workstation or bell; back after a restart, so nothing was lost); in steps it never happened (4 days)
+        step = min(SPRINT_STEP, t0 + ticks - ctx.gametime())
+        t1 = ctx.gametime()
+        s.send(ctx.proc, f"tick sprint {step}")
+        while ctx.gametime() < t1 + step and time.monotonic() < end:
+            time.sleep(2)
+    return ctx.gametime() - t0
+ROAM = 80                             # blocks forceloaded around an inhabited structure (by day they stroll 20-35 blocks
+                                      # from it, as any villager; in a smaller area they stop ticking at its edge)
+STAY_BOX = 24                         # blocks around the located chunk: the piece (at most 21 x 21) plus a few
+
+
+def check_stay(ctx, mid, px, pz, sel, n, with_mem):
+    """Invulnerable villagers with AI stay home: after STAY_TICKS run at full speed, ending at nightfall, they are all
+    still alive, back inside the structure's box within a few minutes (not wandered off, fallen or stuck) and still
+    remember their bed and workstation. By day they stroll about like any villager; at night they must be home."""
+    t_start = time.monotonic()
+    days = sprint(ctx, STAY_TICKS) / 24000
+    near = (f"@e[type=minecraft:villager,tag=heraldia_habitante,tag=heraldia_mediana.{mid},"
+            f"x={px + 8 - STAY_BOX},y=-64,z={pz + 8 - STAY_BOX},dx={2 * STAY_BOX},dy=420,dz={2 * STAY_BOX}]")
+    # at nightfall they head home; a villager that released its bed or workstation (a path that failed for too long,
+    # 26.3) takes it again: a few real minutes for both
+    end = time.monotonic() + 240
+    while (ctx.count(near) < n or with_mem("home") < n or with_mem("job_site") < n) and time.monotonic() < end:
+        time.sleep(3)
+    alive, home_now, job, home = ctx.count(sel), ctx.count(near), with_mem("job_site"), with_mem("home")
+    STAYED.append((mid, px, pz, n, alive, home_now, job, home, days))
+    print(f"{mid} at {px}, {pz}: after {days:.1f} days, {alive} of {n} inhabitants alive, {home_now} inside the structure, "
+          f"{job} with their workstation and {home} with their bed ({time.monotonic() - t_start:.0f} s)")
+    if days < 2.9 or alive < n or home_now < n or job < n or home < n:
+        return [f"{mid} at {px}, {pz}: after {days:.1f} days, {alive}/{n} alive, {home_now}/{n} at home, {job}/{n} with a "
+                f"workstation, {home}/{n} with a bed"]
+    return []
 
 
 def check_templates(ctx, ts):
@@ -131,8 +260,12 @@ def check_templates(ctx, ts):
             sel = f"@e[tag=heraldia_mediana.{name.split('/')[1]},x={x},y={y},z={z},dx=40,dy=30,dz=40]"
             if not ctx.until(f"execute if entity {sel}"):
                 fails.append(f"{name}: its entities do not appear")
-            elif ctx.count(sel) != n:
-                fails.append(f"{name}: {ctx.count(sel)} entidades, esperadas {n}")
+            else:
+                end = time.monotonic() + 10          # the last ones of the template may join a moment later
+                while ctx.count(sel) != n and time.monotonic() < end:
+                    time.sleep(1)
+                if ctx.count(sel) != n:
+                    fails.append(f"{name}: {ctx.count(sel)} entidades, esperadas {n}")
         fails += check_water(ctx, name, t, (x, y, z))
         fails += check_villagers(ctx, name, t, (x, y, z))
         forceload(ctx, x - 8, z - 8, x + 47, z + 47, remove=True)
@@ -159,7 +292,8 @@ def check_water(ctx, name, t, origin):
 
 
 def check_villagers(ctx, name, t, origin):
-    """The villagers of the medium structures (innkeeper, miller, fisherman, hunter): still, invulnerable and with their trades."""
+    """The villagers of the medium structures: the inhabitants (innkeeper, gardener, miller, fisherman, hunters, lookout,
+    hermit) with AI, the rest (the wizard) still; all invulnerable and with their trades."""
     fails = []
     x0, y0, z0 = origin
     mid = name.split("/")[1]
@@ -167,10 +301,12 @@ def check_villagers(ctx, name, t, origin):
         if n["id"] != "minecraft:villager":
             continue
         depth = n["VillagerData"]["profession"]
+        lives = "heraldia_habitante" in n.get("Tags", [])
         sel = (f"@e[type=minecraft:villager,tag=heraldia_mediana.{mid},x={x0},y={y0},z={z0},dx=40,dy=30,dz=40,"
-               f"nbt={{NoAI:1b,Invulnerable:1b,VillagerData:{{profession:\"{depth}\"}}}}]")
+               + ("tag=heraldia_habitante,nbt=!{NoAI:1b}," if lives else "")
+               + f"nbt={{{'' if lives else 'NoAI:1b,'}Invulnerable:1b,VillagerData:{{profession:\"{depth}\"}}}}]")
         if not ctx.until(f"execute if entity {sel}"):
-            fails.append(f"{name}: the still, invulnerable villager {depth} is missing")
+            fails.append(f"{name}: the {'living' if lives else 'still'}, invulnerable villager {depth} is missing")
             continue
         first_item = n["Offers"]["Recipes"][0]["sell"]["id"]
         if not ctx.test(f"execute if entity {sel[:-1]},nbt={{Offers:{{Recipes:[{{sell:{{id:\"{first_item}\"}}}}]}}}}]"):
@@ -228,7 +364,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-estructuras-medianas"))
+    ap.add_argument("--stay", action="store_true",
+                    help="settle-check every located inhabited structure (not only the first of each kind) and run each kind three "
+                         "in-game days to check its villagers stay home (slow; not in CI)")
     a = ap.parse_args()
+    global STAY
+    STAY = a.stay
     os.makedirs(a.work, exist_ok=True)
     ts = templates()
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
@@ -261,6 +402,16 @@ def main():
         fails += check_structures(ctx)
         fails += check_loot(ctx)
         fails += check_locate(ctx, overworld_ids)
+        if SETTLED:
+            n, job, home, slept = (sum(r[k] for r in SETTLED) for k in (3, 4, 5, 6))
+            print(f"HABITANTES: {len(SETTLED)} structures on the seed's terrain, {n} inhabitant villagers: {job} with "
+                  f"their workstation, {home} with their bed, {slept} asleep")
+            if STAYED:
+                n, alive, home_now = (sum(r[k] for r in STAYED) for k in (3, 4, 5))
+                print(f"HABITANTES tras {min(r[8] for r in STAYED):.1f} días: {len(STAYED)} structures, {n} inhabitants, "
+                      f"{alive} alive, {home_now} still inside their structure")
+            if not re.search(r"Heraldia: habitantes de las medianas: activados", ctx.log()):
+                fails.append("the log does not say the medium structures' inhabitants are on")
         if not re.search(rf"estructuras medianas: activadas, {len(kinds)} tipos, frecuencia 100 %, a {ZONE} bloques de aldeas "
                          rf"y únicas y a {DISTANCE} entre ellas", ctx.log()):
             fails.append("the log is missing the medium structures rule with its default configuration")

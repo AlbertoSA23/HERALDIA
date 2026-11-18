@@ -82,7 +82,7 @@ def test_entities_marked_persistent_and_anchored(reg):
             mid = name.split("/")[1]
             assert mediums.MARK in tags and f"{mediums.MARK}.{mid}" in tags, name
             assert n["PersistenceRequired"] == 1
-            if n["id"] != "minecraft:villager":
+            if n["id"] != "minecraft:villager" and "heraldia_habitante" not in tags:   # the inhabitants' pigs walk their pen
                 mobs += 1
                 assert core.ANCHORED_TAG in tags, name
     # camp: 2 in each of its 6 templates; tall tower (2 styles): the archer; fisherman a (3 styles): the cat;
@@ -103,7 +103,7 @@ def test_bandits_without_patrol(reg):
 def test_innkeeper_with_fixed_trades(reg):
     t = reg.templates["medianas/posada/llanura/a"]
     (v,) = [n for *_, n in t.entities if n["id"] == "minecraft:villager"]
-    assert v["NoAI"] == 1 and v["Invulnerable"] == 1
+    assert "NoAI" not in v and v["Invulnerable"] == 1          # it lives there now (test_inhabitants.py)
     sales = [o["sell"]["id"] for o in v["Offers"]["Recipes"]]
     assert "minecraft:white_bed" in sales and "minecraft:bread" in sales
 
@@ -289,13 +289,10 @@ def test_villagers_of_the_batch_2_with_trades_fixed(reg):
     for mid, (depth, sells) in expected.items():
         for name, ns in _entities(reg, mid).items():
             vs = [n for n in ns if n["id"] == "minecraft:villager"]
-            if name.endswith("/a"):
-                (v,) = vs
-                assert v["NoAI"] == 1 and v["Invulnerable"] == 1, name
-                assert v["VillagerData"]["profession"] == f"minecraft:{depth}", name
-                assert sells in [o["sell"]["id"] for o in v["Offers"]["Recipes"]], name
-            else:
-                assert vs == [], name
+            # since the inhabitants (test_inhabitants.py) both variants have their trader, with AI
+            (v,) = [n for n in vs if n["VillagerData"]["profession"] == f"minecraft:{depth}"]
+            assert "NoAI" not in v and v["Invulnerable"] == 1, name
+            assert sells in [o["sell"]["id"] for o in v["Offers"]["Recipes"]], name
 
 
 def test_animals_and_custodians_of_the_batch_2(reg):

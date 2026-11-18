@@ -1,12 +1,14 @@
 """Hunters' outpost (heraldia:medianas/cazadores/<estilo>): 17 x 17 clearing with a 7 x 7 log cabin
 (stone chimney, bunks and the furs chest), a fur drying rack, a chopping block for firewood and a hunting lookout
-on four posts. Variant a: the hunter (stationary villager with fixed trades: buys rabbit hides, sells leather,
-arrows and a leather chestplate) and his wolf; b: the empty outpost, with the campfire out and a meat smokehouse. No
-monsters."""
+on four posts. Variant a: the hunter (a villager with fixed trades: buys rabbit hides, sells leather, arrows
+and a leather chestplate), his partner the archer (fletcher: buys sticks and flint, sells arrows and a bow) and his wolf;
+they live there (a bunk each, the hunter's cauldron for tanning and the archer's fletching table); b: the outpost with the
+campfire out and a meat smokehouse, and the hunter alone. No monsters."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot
 from . import _common as c
+from . import _inhabitants as inh
 
 MID = "cazadores"
 DISPLAY_NAME = {"es_es": "Puesto de cazadores", "en_us": "Hunters' Lodge"}
@@ -15,6 +17,7 @@ ADVANCEMENT_ICON = "minecraft:rabbit_hide"
 LANG = chest_loot.lang("heraldia.medianas.cazadores.", {
     "cazador": ("Cazador", "Hunter"),
     "lobo": ("Colmillo", "Fang"),
+    "arquero": ("Arquero", "Archer"),
 })
 ADVANCEMENTS = [dict(id="pieles", icono="minecraft:leather", tabla="pieles",
                titulo=("Piel de invierno", "Winter Pelts"),
@@ -44,6 +47,14 @@ def offers():
             c.offer(em(1), {"id": "minecraft:leather", "count": 3}, 12),
             c.offer(em(1), {"id": "minecraft:arrow", "count": 16}, 12),
             c.offer(em(4), {"id": "minecraft:leather_chestplate", "count": 1}, 3)]
+
+
+def archer_offers():
+    em = lambda n: {"id": "minecraft:emerald", "count": n}
+    return [c.offer({"id": "minecraft:stick", "count": 32}, em(1), 16),
+            c.offer({"id": "minecraft:flint", "count": 24}, em(1), 12),
+            c.offer(em(1), {"id": "minecraft:arrow", "count": 12}, 12),
+            c.offer(em(3), {"id": "minecraft:bow", "count": 1}, 3)]
 
 
 def _clearing(x, z):
@@ -96,6 +107,7 @@ def _outpost(p, name, lit):
     c.place_chest(t, X0 + 1, 1, Z0 + 1, "east", MID, "pieles")
     c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "despensa", kind="barrel")
     t.set(X1 - 1, 1, Z0 + 1, "crafting_table")
+    t.set(X1 - 1, 1, Z0 + 2, "cauldron")                       # the hunter's: tanning (leatherworker)
     c.lantern(t, DOOR_COL, 3, 8)
     # fur drying rack to the east: two posts with a crossbar and leather (brown carpets) on the ground
     for z in (6, 10):
@@ -107,6 +119,7 @@ def _outpost(p, name, lit):
     t.set(13, 1, 12, f"stripped_{tr}[axis=y]")
     t.set(12, 1, 13, f"{tr}[axis=x]")
     t.set(13, 1, 13, f"{tr}[axis=x]")
+    inh.bell(t, DOOR_COL - 2, 3)                              # the camp bell: the hunters' meeting point
     return t
 
 
@@ -129,7 +142,10 @@ def _lookout(t, p, x0, z0):
 def with_hunter(p, name):
     t = _outpost(p, name, lit=True)
     _lookout(t, p, 10, 1)
-    t.entity(DOOR_COL + 1, 1, 8, c.villager(MID, "cazador", "Cazador", "leatherworker", p["aldeano"], offers(), rot=0.0))
+    t.set(X1 - 1, 1, Z0 + 3, "fletching_table")                # the archer's
+    t.entity(DOOR_COL + 1, 1, 8, inh.villager(MID, "cazador", "Cazador", "leatherworker", p["aldeano"], offers(), rot=0.0,
+                                              still_before=True))
+    t.entity(DOOR_COL, 1, 9, inh.villager(MID, "arquero", "Arquero", "fletcher", p["aldeano"], archer_offers(), rot=90.0))
     t.entity(DOOR_COL, 1, 3, c.mob("wolf", MID, "lobo", "Colmillo", rot=0.0, variant=p["lobo"]))
     return t
 
@@ -138,6 +154,7 @@ def smokehouse(p, name):
     """With nobody there: the campfire out and, outside, a meat smokehouse (campfire with a small roof) next to the lookout."""
     t = _outpost(p, name, lit=False)
     _lookout(t, p, 10, 1)
+    t.entity(DOOR_COL + 1, 1, 8, inh.villager(MID, "cazador", "Cazador", "leatherworker", p["aldeano"], offers(), rot=0.0))
     m = p["madera"]
     t.set(3, 1, 13, "campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]")
     for x in (2, 4):
