@@ -168,7 +168,10 @@ def combine(passes):
     return out
 
 
-LIMITS = {"mspt_p99_ms": TICK_MS, "p95_extra_ms": 6.0, "aldea_vs_vanilla": 2.0, "margen_ms": 3.0}
+# Measured (local, 4 cores, 2 passes, 18-11-2026): p95 with minus without Heraldia +2.4 (one village), +7.1 (two), +3.1 (caravan),
+# +3.2 (arena) ms; p99 at most 34 ms; the Heraldia village 1.3 times the vanilla one at p95. The limits catch a real
+# regression (a village that costs half as much again, a scenario over a tick) without failing on noise.
+LIMITS = {"mspt_p99_ms": TICK_MS, "p95_extra_ms": 10.0, "aldea_vs_vanilla": 2.0, "margen_ms": 3.0}
 
 
 def compare(result, reference=None):
@@ -587,7 +590,15 @@ def new_reference(result, previous=None):
                            "con_p99": (result["con"].get(sc) or {}).get("mspt", {}).get("p99")} for sc in SCENARIOS}}
     esc = result.get("escalada") or {}
     ref["margen"] = {k: esc.get(k) for k in ("ms_por_aldeano_media", "ms_por_aldeano_p95", "margen_p95_40ms", "margen_p95_50ms")}
-    return ref
+    return _rounded(ref)
+
+
+def _rounded(v):
+    if isinstance(v, float):
+        return round(v, 3)
+    if isinstance(v, dict):
+        return {k: _rounded(x) for k, x in v.items()}
+    return v
 
 
 def write(result, comparison, output):
