@@ -1,0 +1,324 @@
+{
+  "greeting.desconocido": {
+    "1": "Forestiero? Da queste parti di %2$s non ti ho mai visto.",
+    "2": "Salve. Si viene da lontano, eh?",
+    "3": "Buongiorno, viandante. Qui siamo gente tranquilla.",
+    "4": "Mh. E tu chi saresti?",
+    "5": "Se vieni per commerciare, bene. Se no, pazienza, ma non toccare niente.",
+    "6": "A %2$s non passa quasi nessuno. Hai sbagliato strada?",
+    "7": "Buonasera... o quel che è. Io coi forestieri non ci parlo volentieri.",
+    "8": "Te lo dico subito: il golem non si fida di chi arriva di corsa."
+  },
+  "greeting.conocido": {
+    "1": "Oh, %1$s! Di nuovo da queste parti.",
+    "2": "Questa faccia l'ho già vista. Hai dato una mano con la bacheca, giusto?",
+    "3": "Salve, %1$s. Cosa ti porta a %2$s?",
+    "4": "Guarda chi si vede, %1$s. Com'è andato il viaggio?",
+    "5": "Lo dicevo io che quegli stivali non mi erano nuovi.",
+    "6": "%1$s! Credevo che da noi non saresti più passato. Invece eccoti.",
+    "7": "Salve. Stavolta la strada l'hai trovata al primo colpo, eh?",
+    "8": "Ecco chi sbriga le commissioni. Come va, %1$s?"
+  },
+  "greeting.amigo": {
+    "1": "%1$s, che bello! Siediti un attimo.",
+    "2": "Che gioia vederti. A %2$s si parla bene di te.",
+    "3": "Guarda un po' chi è tornato! Entra, entra.",
+    "4": "%1$s! Stavamo proprio parlando di te. Bene, non temere.",
+    "5": "Vieni qua, che ho il pane appena sfornato e nessuno con cui spezzarlo.",
+    "6": "Quanto tempo, %1$s. A %2$s ci mancavi.",
+    "7": "Eccoti qua! I bambini chiedevano di te.",
+    "8": "Allora, come ti tratta il mondo? Racconta."
+  },
+  "greeting.heroe": {
+    "1": "L'eroe di %2$s! I bambini non parlano d'altro.",
+    "2": "%1$s, è un onore. Qualunque cosa ti serva.",
+    "3": "Fate largo! È arrivato %1$s.",
+    "4": "%1$s in carne e ossa! Aspetta che mi scuoto la polvere di dosso.",
+    "5": "Tutta %2$s ti deve qualcosa. Io per primo.",
+    "6": "Mia nonna dice che ti ricorderà nelle preghiere. E nel testamento.",
+    "7": "È tornato %1$s! Qualcuno suoni la campana!",
+    "8": "Con te in paese, persino il golem sta sull'attenti."
+  },
+  "reputation.desconocido": {
+    "1": "Qui coi forestieri andiamo cauti. Niente di personale.",
+    "2": "Se vuoi farti conoscere, da' un'occhiata alla bacheca in piazza.",
+    "3": "Non prendertela, ma ancora non so se posso fidarmi di te.",
+    "4": "Le parole se le porta via il vento. A %2$s si guarda a quello che fai."
+  },
+  "reputation.conocido": {
+    "1": "La guardia dice che mantieni le promesse. Qui vale più dell'oro.",
+    "2": "Al mercato non ti guardano più storto, l'hai notato?",
+    "3": "C'è già chi ti saluta per nome. È un buon segno.",
+    "4": "Continua così e a %2$s ti considereranno gente di casa."
+  },
+  "reputation.amigo": {
+    "1": "Ti tengo da parte il meglio della settimana, sappilo.",
+    "2": "A %2$s una casa per te c'è sempre.",
+    "3": "Se un giorno ti serve una mano, qui ne trovi parecchie.",
+    "4": "Ormai quando ti vedo arrivare la porta la lascio aperta, %1$s."
+  },
+  "reputation.heroe": {
+    "1": "Un giorno qualcuno scriverà una canzone su di te. Speriamo che faccia rima.",
+    "2": "Finché ci sei tu nei paraggi, dormiamo sonni tranquilli.",
+    "3": "Il tuo nome ormai si racconta davanti al focolare, %1$s.",
+    "4": "Se %2$s avesse delle statue, la prima sarebbe la tua."
+  },
+  "family.llanuras": {
+    "1": "Da qui chi arriva lo vedi a un miglio di distanza.",
+    "2": "Il vento della pianura si porta via i pensieri. E pure i cappelli.",
+    "3": "Qui il grano arriva fin dove arriva lo sguardo.",
+    "4": "I cavalli di pianura non si fanno montare al primo tentativo.",
+    "5": "In pianura non c'è dove nascondersi. Né dalla pioggia né dalle chiacchiere.",
+    "6": "I papaveri spuntano da soli lungo i confini dei campi. Nessuno li semina."
+  },
+  "family.bosque": {
+    "1": "Nel bosco ci sono funghi che guariscono e funghi che no. Impara a distinguerli.",
+    "2": "Le betulle cantano quando tira vento. Ascolta.",
+    "3": "Qui la legna non manca mai, ma al bosco bisogna chiedere permesso.",
+    "4": "Se senti un lupo, non scappare. Lui corre più forte.",
+    "5": "Le querce più vecchie stavano qui prima ancora del villaggio.",
+    "6": "In autunno il sottobosco scricchiola come pane abbrustolito."
+  },
+  "family.oscuro": {
+    "1": "Sotto queste querce non è mai giorno fino in fondo.",
+    "2": "Dopo il tramonto non allontanarti dalle lanterne. Dammi retta.",
+    "3": "I funghi giganti crescono dove la luce non arriva. Come certe altre cose.",
+    "4": "Qui i rami si toccano lassù in alto. Il cielo è solo una diceria.",
+    "5": "Mio nonno diceva che il bosco scuro ha memoria. E se la lega al dito.",
+    "6": "Mai fischiare tra le querce nere. Potrebbe risponderti qualcosa."
+  },
+  "family.taiga": {
+    "1": "Gli abeti sanno di resina e di inverno alle porte.",
+    "2": "Da queste parti le volpi ti rubano perfino le uova del pollaio.",
+    "3": "Le bacche dolci pungono, ma la marmellata vale ogni graffio.",
+    "4": "Nella taiga l'inverno non bussa: un mattino è lì, e basta.",
+    "5": "Gli antichi incidevano rune sui tronchi per non smarrire la via del ritorno.",
+    "6": "Una buona ascia, un buon fuoco e una buona pelliccia. Il resto è di troppo."
+  },
+  "family.nieve": {
+    "1": "Qui si impara presto a non lasciar mai spegnere il fuoco.",
+    "2": "La neve copre tutto, perfino le orme dei lupi.",
+    "3": "Non fidarti del ghiaccio del lago. Scricchiola prima di rompersi, ma appena prima.",
+    "4": "Gli orsi polari sono tranquilli. Finché non lo sono più.",
+    "5": "A %2$s si contano gli inverni, non gli anni.",
+    "6": "Attenzione alla neve farinosa: c'è chi ci è sprofondato e non è più riemerso."
+  },
+  "family.desierto": {
+    "1": "Qui l'acqua vale più dell'oro. Be', quasi.",
+    "2": "Di giorno brucia e di notte gela. Il deserto non conosce vie di mezzo.",
+    "3": "Mio nonno piantava palme lungo il canale. Fanno ancora ombra.",
+    "4": "La sabbia custodisce i segreti meglio di qualsiasi forziere.",
+    "5": "Al calar del sole, il cortile con la fontana è il posto più bello del mondo.",
+    "6": "Il cactus non chiede niente e sopporta tutto. Impara da lui."
+  },
+  "family.sabana": {
+    "1": "Le acacie fanno poca ombra, ma la fanno a tutti allo stesso modo.",
+    "2": "I cavalli selvatici scendono ad abbeverarsi al tramonto.",
+    "3": "Qui l'erba secca prende fuoco con niente. Occhio alle torce.",
+    "4": "I lama dell'altopiano sputano, ma portano tutto quello che gli carichi addosso.",
+    "5": "Nella savana, a mezzogiorno, l'orizzonte trema per il caldo.",
+    "6": "Quando arriva la pioggia sulla savana, usciamo tutti a bagnarci."
+  },
+  "family.jungla": {
+    "1": "Nella giungla cresce tutto, soprattutto quello che non vuoi.",
+    "2": "I pappagalli ripetono quello che diciamo. Occhio a cosa dici.",
+    "3": "Un cacao come il nostro non lo trovi in tutto il circondario.",
+    "4": "Se un ocelot ti fissa, non muoverti. Sta solo decidendo.",
+    "5": "In una settimana le liane si richiudono sul sentiero. Tocca sempre riaprirlo.",
+    "6": "Dicono che la giungla si mangi i templi. Piano piano, ma se li mangia."
+  },
+  "family.pantano": {
+    "1": "La nebbia della palude nasconde più di quanto sembri.",
+    "2": "Le rane cantano tutta la notte. Ci si abitua. Più o meno.",
+    "3": "Se vedi una capanna con i calderoni che fumano, non bussare.",
+    "4": "Il fango di qui guarisce i calli. Lo dice la vecchia del mulino.",
+    "5": "Gli slime escono con la luna piena. Non chiedermi perché.",
+    "6": "Non bere mai niente che ti offra una donna col cappello a punta."
+  },
+  "family.cerezos": {
+    "1": "Quando cadono i petali, sembra che nevichi rosa.",
+    "2": "Le api dei ciliegi fanno il miele più dolce del circondario.",
+    "3": "Sotto i ciliegi si parla sottovoce. È usanza.",
+    "4": "Ogni primavera qualcuno chiede la mano sotto il ciliegio grande.",
+    "5": "Spazzo i petali ogni mattina. Ogni sera sono di nuovo lì.",
+    "6": "A %2$s diciamo che il fiore di ciliegio dura poco perché lo si guardi bene."
+  },
+  "family.badlands": {
+    "1": "Questa terra rossa nasconde oro, se sai dove cercare.",
+    "2": "Le miniere abbandonate scricchiolano di notte. Io non mi avvicinerei.",
+    "3": "Qui il sole cuoce l'argilla colorata. Sembra dipinta a mano.",
+    "4": "Più d'uno è venuto a cercar fortuna ed è rimasto ad allevare capre.",
+    "5": "La polvere rossa ti entra dappertutto: nei vestiti, nel piatto, nei sogni.",
+    "6": "Da queste parti, chi trova un filone non lo dice neanche a sua madre."
+  },
+  "family.costa": {
+    "1": "Il mare porta di tutto: pesci, legname e qualche bottiglia ogni tanto.",
+    "2": "Quando il faro si spegne, sappiamo che arriva burrasca.",
+    "3": "Qui tutto sa di sale, perfino il pane.",
+    "4": "Le tartarughe tornano ogni anno sulla stessa spiaggia. Come i marinai.",
+    "5": "Non voltare mai le spalle al mare. Lui non le volta a te.",
+    "6": "Mio padre diceva che nelle conchiglie si sentono gli annegati."
+  },
+  "time.morning": {
+    "1": "Alzarsi presto a %2$s è facile: il gallo non fa sconti.",
+    "2": "Bella giornata per cominciare qualcosa di nuovo, non trovi?",
+    "3": "Ho ancora gli occhi impastati di sonno. Parlami piano.",
+    "4": "La rugiada del mattino è il meglio della giornata. Poi tutto si complica.",
+    "5": "Già in piedi, %1$s? O hai dormito poco o hai dormito benissimo."
+  },
+  "time.afternoon": {
+    "1": "A quest'ora solo i gatti si fanno la pennichella in pace.",
+    "2": "Metà del lavoro è fatta. L'altra metà, domani.",
+    "3": "A pancia piena si ragiona peggio. Lo sanno tutti.",
+    "4": "A metà pomeriggio la piazza si svuota. È il momento buono per due chiacchiere.",
+    "5": "C'è ancora luce per un bel po' di lavoro."
+  },
+  "time.evening": {
+    "1": "Il sole sta calando. Tra poco toccherà chiudersi in casa.",
+    "2": "A quest'ora il cielo di %2$s si tinge di tutti i colori.",
+    "3": "Si sente già profumo di cena da tutte le case.",
+    "4": "Ritira quello che hai fuori, %1$s. La notte non si fa aspettare.",
+    "5": "È l'ora in cui i pipistrelli escono dalle grotte."
+  },
+  "time.night": {
+    "1": "Che ci fai in giro a quest'ora? Là fuori ci sono gli zombi.",
+    "2": "Di notte si sentono cose strane oltre le mura.",
+    "3": "Parla piano, che i vicini dormono.",
+    "4": "Le stelle da qui si vedono meglio che da qualsiasi altro posto.",
+    "5": "Se senti ossa che sbattono là fuori, non è il vento."
+  },
+  "weather.clear": {
+    "1": "Che giornata limpida. Si vede fino all'orizzonte.",
+    "2": "Con questo sole, il bucato steso si asciuga in un attimo.",
+    "3": "Neanche una nuvola. Persino il golem sembra contento.",
+    "4": "Con un cielo così viene voglia di mettersi in viaggio.",
+    "5": "Bel tempo per lavorare i campi. E pure per non farlo."
+  },
+  "weather.rain": {
+    "1": "Questa pioggia fa bene ai campi, ma male alle mie ginocchia.",
+    "2": "Se continua a piovere così, il fiume esce dagli argini.",
+    "3": "Vieni al riparo, che ti bagni fino alle ossa.",
+    "4": "Il tetto di casa mia gocciola proprio sopra il letto. Sempre lì.",
+    "5": "Quando piove i pesci abboccano meglio. Lo dicono i pescatori."
+  },
+  "weather.snow": {
+    "1": "Un'altra nevicata. Toccherà spalare di nuovo il tetto.",
+    "2": "Con questo freddo tremano perfino gli scheletri.",
+    "3": "I bambini stanno già facendo pupazzi di neve in piazza.",
+    "4": "Copriti bene, %1$s. La neve inganna: sembra morbida e invece morde.",
+    "5": "Quando nevica così, il mondo resta in silenzio."
+  },
+  "weather.thunder": {
+    "1": "Quel fulmine è caduto vicino! Stai lontano dagli alberi.",
+    "2": "Col temporale nemmeno i creeper escono. Be', in realtà escono.",
+    "3": "Dicono che un fulmine abbia trasformato un maiale in qualcosa di orribile. Io ci credo.",
+    "4": "A ogni tuono faccio un salto. Non ridere.",
+    "5": "Con questo temporale, meglio non uscire da %2$s. Credimi."
+  },
+  "general": {
+    "1": "La vita a %2$s è semplice, ed è così che mi piace.",
+    "2": "Il golem di ferro mi guarda storto da quando gli ho dipinto un fiore.",
+    "3": "Il pozzo della piazza dà l'acqua più fresca del circondario.",
+    "4": "Dicono che il sindaco russi così forte da spaventare i pipistrelli.",
+    "5": "Abbi cura di te, %1$s. Il mondo è grande e non sempre gentile.",
+    "6": "Il mio letto è l'unica cosa davvero mia. E guai a chi lo tocca.",
+    "7": "Qui ogni campana ha la sua voce. Quella della piazza è la più brontolona.",
+    "8": "Non so leggere, ma gli smeraldi li so contare. Mi basta e avanza.",
+    "9": "A %2$s i gatti comandano più del sindaco.",
+    "10": "Se vedi uno con la tunica verde e la faccia di chi ha mangiato un limone, è mio cugino.",
+    "11": "Sto a %2$s da tutta la vita e al mercato mi perdo ancora.",
+    "12": "Un buon vicino vale più di un forziere pieno.",
+    "13": "Da giovane volevo girare il mondo. Poi ho visto uno zombi e m'è passata.",
+    "14": "Le galline fanno più uova se gli canti qualcosa. Non guardarmi così.",
+    "15": "A %2$s ci conosciamo tutti. Nel bene e nel male.",
+    "16": "Il lavoro viene meglio con una canzone. Peccato che non ne sappia nessuna.",
+    "17": "Ho uno smeraldo messo via per i giorni brutti. Non è ancora arrivato.",
+    "18": "Quello che non si aggiusta con la pazienza si aggiusta col pane.",
+    "19": "Vieni da fuori, si vede. Hai addosso l'odore della strada.",
+    "20": "Qui quel che si sente di più sono le campane, le galline e i pettegolezzi."
+  },
+  "rumor": {
+    "1": "Dicono che ieri notte sia passato un mercante con tre lama e nessuna fretta.",
+    "2": "La figlia del fabbro si è fidanzata. O almeno così dice lei.",
+    "3": "Qualcuno ha visto luci strane sulle colline. Sarà niente, di sicuro.",
+    "4": "Nel villaggio qui vicino fanno un pane orribile. Ma non dirglielo.",
+    "5": "Sono giorni che non si vede il venditore ambulante. Speriamo stia bene.",
+    "6": "Il pastore giura che una delle sue pecore è tornata tinta di rosa. Non è stato lui.",
+    "7": "Di notte qualcuno lascia fiori sulla porta del bibliotecario. Nessuno sa chi sia.",
+    "8": "Un taglialegna ha sentito suonare campane in mezzo al bosco, dove campane non ce ne sono.",
+    "9": "I bambini dicono di aver visto uno scheletro a cavallo di un ragno. Io non ci credo. Non del tutto.",
+    "10": "Ieri è arrivato un viandante coi vestiti bruciacchiati e non ha voluto dire da dove veniva.",
+    "11": "Il chierico compra più candele di quante gliene servano. Che ci farà con tutte quelle?",
+    "12": "Dicono che qualcuno abbia ripescato un tridente dal mare. E che il mare lo rivolesse indietro.",
+    "13": "Con l'ultima carovana è arrivato un tale che non parlava con nessuno. Se n'è andato di notte.",
+    "14": "Un pescatore giura di aver visto una città sott'acqua. Certo, beve parecchio.",
+    "15": "Si sono rivisti dei briganti sulle strade. Se parti, non farlo senza compagnia.",
+    "16": "La vecchia dell'ultima casa in fondo dice che parla coi gatti. E che loro le rispondono.",
+    "17": "Da settimane il golem resta lì a fissare il bosco. Qualcosa avrà visto.",
+    "18": "Qualcuno ha trovato una bussola che non segna il nord. L'ha venduta subito, si capisce.",
+    "19": "Si dice che in montagna ci siano grotte dove si sente respirare la roccia.",
+    "20": "È passato di qui un cartografo con una mappa a metà. Ha detto che certe cose non aveva il coraggio di disegnarle."
+  },
+  "busy": {
+    "1": "Adesso non posso, ho da fare. Se vuoi commerciare, fa' pure.",
+    "2": "Ne parliamo dopo, che mi si brucia lo stufato.",
+    "3": "Dammi un momento, mi hai preso nel bel mezzo del lavoro.",
+    "4": "Ssst, mi sto riposando. Torna più tardi.",
+    "5": "Non adesso, %1$s. Ho la testa altrove.",
+    "6": "Lasciami stare, che sono in piedi da stamattina."
+  },
+  "farewell": {
+    "1": "Che ti vada tutto bene, %1$s.",
+    "2": "Torna quando vuoi. Noi siamo qui.",
+    "3": "Occhio a quelle strade.",
+    "4": "Alla prossima. E non scordarti di %2$s.",
+    "5": "Tieni gli occhi aperti, che la notte non avvisa.",
+    "6": "Se incontri mio cugino, digli che mi deve uno smeraldo.",
+    "7": "Buon viaggio. E mangia qualcosa, che sei pelle e ossa.",
+    "8": "Che la strada ti sia lieve, %1$s."
+  },
+  "hint.unique": {
+    "1": "Ti dico una cosa che non sa nessuno: da giovane ho visto «%1$s», a %2$s, a circa %3$s blocchi. Non ci sono più tornato.",
+    "2": "Mio padre mi parlava di «%1$s». Sta a %2$s, a circa %3$s blocchi. Dicono che qualcosa lo sorvegli.",
+    "3": "Se cerchi avventure vere: «%1$s», a %2$s, a circa %3$s blocchi. Io sulla soglia ho fatto dietrofront.",
+    "4": "Una volta ho dormito all'addiaccio all'ombra di «%1$s». A %2$s, a circa %3$s blocchi. Non ho chiuso occhio.",
+    "5": "A %2$s, a circa %3$s blocchi, si erge «%1$s». Da lontano sembra tranquillo. Da vicino, no.",
+    "6": "La cosa più grande che abbia mai visto: «%1$s». Cammina verso %2$s per circa %3$s blocchi e lo vedrai prima di arrivarci."
+  },
+  "hint.medium": {
+    "1": "Quando viaggiavo mi sono fermato in un posto così: «%1$s», a %2$s, a circa %3$s blocchi da qui.",
+    "2": "Verso %2$s, a circa %3$s blocchi, c'è «%1$s». Chiedi di me, se c'è ancora qualcuno.",
+    "3": "Non dirlo a nessuno: «%1$s», a %2$s, circa %3$s blocchi. Vale la camminata.",
+    "4": "Una notte di pioggia ho trovato riparo in «%1$s». A %2$s, a circa %3$s blocchi. Mi hanno trattato bene. Credo.",
+    "5": "Va' verso %2$s, circa %3$s blocchi. Lì c'è «%1$s». Portati da mangiare, che la strada è lunga.",
+    "6": "La mia ultima tappa prima di tornare è stata «%1$s», a %2$s, a circa %3$s blocchi. Me ne ricordo ancora l'odore."
+  },
+  "hint.mine": {
+    "1": "C'è «%1$s» a %2$s, a circa %3$s blocchi. Ci sono sceso una volta e ho sentito picconi nel buio.",
+    "2": "Se cerchi minerali: «%1$s», a %2$s, a circa %3$s blocchi. Porta torce in abbondanza.",
+    "3": "Ho lavorato per una stagione in «%1$s». A %2$s, a circa %3$s blocchi. Ho smesso quando la mia torcia si è spenta da sola.",
+    "4": "A %2$s, a circa %3$s blocchi, si scende in «%1$s». I carrelli girano ancora. Nessuno li spinge.",
+    "5": "Un vecchio minatore mi ha portato a «%1$s», a %2$s, circa %3$s blocchi. Sono uscito con le tasche piene e le mani che tremavano.",
+    "6": "«%1$s», a %2$s, a circa %3$s blocchi. Laggiù l'aria sa di ferro. E di qualcos'altro."
+  },
+  "hint.withheld": {
+    "1": "Di mondo ne ho visto, sì... ma non lo racconto al primo che passa. Guadagnati la fiducia di %2$s.",
+    "2": "Conosco un posto, ma ancora non ti conosco abbastanza, %1$s.",
+    "3": "Da' una mano con la bacheca e magari ti racconto cosa ho visto nei miei viaggi.",
+    "4": "I segreti della strada si guadagnano, %1$s. Non è ancora il tuo turno.",
+    "5": "Torna quando a %2$s diranno il tuo nome senza aggrottare la fronte.",
+    "6": "Potrei raccontarti tante cose. Ma prima voglio vedere quanto vali."
+  },
+  "hint.told": {
+    "1": "Ti ho già detto l'unica cosa che so. Il resto dovrai scoprirlo da te.",
+    "2": "Il mio segreto l'ho già raccontato. Chissà se qualcuno a %2$s ne sa di più.",
+    "3": "Hai già dato un'occhiata a quello che ti ho detto? Perché altro da raccontare non ho.",
+    "4": "Quello che sapevo ormai è tuo, %1$s. Abbine cura."
+  },
+  "hint.nothing": {
+    "1": "Ho viaggiato tanto, ma da queste parti non ho visto niente che valga la pena raccontare.",
+    "2": "Quello che ho visto nei miei viaggi è troppo lontano da qui.",
+    "3": "Qui intorno ci sono solo campi e ancora campi. Credimi, li ho girati tutti.",
+    "4": "Mi piacerebbe aiutarti, %1$s, ma vicino a %2$s non c'è niente che meriti un'avventura."
+  }
+}
