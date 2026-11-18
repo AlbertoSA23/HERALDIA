@@ -39,11 +39,11 @@ def redstone_issues(t):
         cfg = dict(zip("ABC", combo))
         opens = door(redstone.Sim(t, {LEVERS[k]: cfg[k] for k in cfg}))
         if opens != (cfg == good):
-            out.append(f"puzle del despacho: con {cfg} la puerta {'abre' if opens else 'no abre'}")
+            out.append(f"office puzzle: with {cfg} the door {'opens' if opens else 'does not open'}")
     hatch, lever = (15, 16, 16), (16, 17, 16)
     for on in (False, True):
         if redstone.Sim(t, {lever: on}).powered(hatch) != on:
-            out.append(f"puzle del sótano: con la palanca {'subida' if on else 'bajada'} la trampilla no responde")
+            out.append(f"cellar puzzle: with the lever {'up' if on else 'down'} the trapdoor does not respond")
     sim = redstone.Sim(t, {(14, 9, 19): True, (16, 9, 19): True})
     for d in ((14, 10, 19), (16, 10, 19)):
         if not sim.powered(d):
@@ -91,8 +91,8 @@ def ruin_share(t):
 def access_points(t):
     """Cells the player has to reach (with the puzzles solved)."""
     from uniques.lighthouse.blueprint import LEVERS
-    pts = {"palanca del sótano": (16, 17, 16), "cofre premium": (18, 10, 4), "boca de la cueva": (22, 9, 40)}
-    pts.update({f"palanca {k}": p for k, p in LEVERS.items()})
+    pts = {"cellar lever": (16, 17, 16), "premium chest": (18, 10, 4), "cave mouth": (22, 9, 40)}
+    pts.update({f"lever {k}": p for k, p in LEVERS.items()})
     return pts
 
 
@@ -120,10 +120,10 @@ def floor_plans(t, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     cells = walk(t)
     levels = ((9, "cave (sea level)"), (17, "cellar"), (22, "summit: house and lighthouse base"),
-              (39, "sala de guardia"), (44, "lantern and gallery"))
+              (39, "guard room"), (44, "lantern and gallery"))
     lines = ["Lighthouse floor plans. North up (z=0, entrance); the sea to the south.",
              "· reachable on foot (with the puzzles solved)  # wall/rock  ~ water  D door  C chest  b barrel",
-             "S generador  H escalera de mano  P palanca  = trampilla  T TNT  t cable trampa  d dispensador",
+             "S spawner  H ladder  P lever  = trapdoor  T TNT  t tripwire  d dispenser",
              "A lectern  L bookshelf  / step", ""]
     for y, title in levels:
         lines.append(f"== y={y}: {title}")

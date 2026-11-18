@@ -67,7 +67,7 @@ def audit(t, d, cmeta, dmeta):
         b = bn(st)
         if b in INTEREST or b.endswith("_bed") and "part=foot" in st:
             if not near(ok, p, 2 if b == "spawner" else 1):
-                errs.append(f"{b} inaccesible en {p}")
+                errs.append(f"{b} unreachable at {p}")
         elif b.endswith("_door") and "half=lower" in st:
             f = parse_state(st)[1]["facing"]
             dx, dz = (0, 1) if f in ("north", "south") else (1, 0)
@@ -76,17 +76,17 @@ def audit(t, d, cmeta, dmeta):
             if not all(sides):
                 errs.append(f"door with no exit at {p}")
         elif b == "ladder" and p not in ok and (p[0], p[1] + 1, p[2]) not in ok:
-            errs.append(f"escalera de mano inaccesible en {p}")
+            errs.append(f"ladder unreachable at {p}")
     hidden = [cmeta["hidden_chest"], tuple(a + b for a, b in zip(dmeta["premium"], OFF)),
               tuple(a + b for a, b in zip(dmeta["niche"], OFF))]
     for p in hidden:
         if near(okc, p):
             errs.append(f"hidden room reachable without opening it: {p}")
         if not near(ok, p):
-            errs.append(f"sala oculta inalcanzable incluso abierta: {p}")
+            errs.append(f"hidden room unreachable even when open: {p}")
     for k, p in dmeta["levers"].items():
         if not near(okc, tuple(a + b for a, b in zip(p, OFF))):
-            errs.append(f"palanca {k} inaccesible")
+            errs.append(f"lever {k} unreachable")
     if not near(okc, cmeta["secret"]["estudio"]["lever"]):
         errs.append("study lever unreachable")
     # redstone en reposo
@@ -95,7 +95,7 @@ def audit(t, d, cmeta, dmeta):
             b = bn(st)
             props = parse_state(st)[1]
             if b == "redstone_wire" and props["power"] != "0" or b == "lever" and props["powered"] != "false":
-                errs.append(f"{name}: redstone encendida en reposo {p}")
+                errs.append(f"{name}: redstone powered at rest {p}")
             if b == "sticky_piston":
                 dx, dz = {"south": (0, 1), "north": (0, -1), "east": (1, 0), "west": (-1, 0)}[props["facing"]]
                 head = tt.get(p[0] + dx, p[1], p[2] + dz)

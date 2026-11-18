@@ -125,10 +125,10 @@ def access(c, g, cells):
     out = []
     for (pos, tbl, site) in c.chests:
         if not near(cells, *pos):
-            out.append(f"cofre inaccesible ({site}) en {pos}")
+            out.append(f"chest unreachable ({site}) at {pos}")
     for (pos, mob) in c.spawners:
         if not near(cells, *pos, r=3):
-            out.append(f"generador de {mob} inaccesible en {pos}")
+            out.append(f"{mob} spawner unreachable at {pos}")
     for (x, y, z), (st, _) in c.t.blocks.items():
         b = bname(st)
         if b.endswith("_door") and prop(st, "half") == "lower":
@@ -136,17 +136,17 @@ def access(c, g, cells):
             a = any((x + dx, y + k, z + dz) in cells for k in (0, -1))
             bb = any((x - dx, y + k, z - dz) in cells for k in (0, -1))
             if not (a and bb):
-                out.append(f"puerta sin salida o sin acceso en {(x, y, z)}")
+                out.append(f"door without exit or access at {(x, y, z)}")
         elif b in ("lever", "bell", "lectern"):
             if not any(near(cells, x, y - k, z, r=2) for k in range(0, 5)):
-                out.append(f"{b} inaccesible en {(x, y, z)}")
+                out.append(f"{b} unreachable at {(x, y, z)}")
         elif b == "ladder" and (x, y, z) not in cells:
-            out.append(f"escalera de mano inaccesible en {(x, y, z)}")
+            out.append(f"ladder unreachable at {(x, y, z)}")
     for (x, y, z) in c.flights:
         st = g(x, y, z)
         ok = (x, y, z) in cells or (x, y + 1, z) in cells
         if not ok:
-            out.append(f"peldaño inaccesible en {(x, y, z)} ({bname(st)})")
+            out.append(f"step unreachable at {(x, y, z)} ({bname(st)})")
     return out
 
 
@@ -187,7 +187,7 @@ def floating(c):
                     seen.add(n)
                     q.append(n)
         if not grounded:
-            out.append(f"{len(comp)} bloques flotando cerca de {min(comp)} ({bname(c.t.get(*min(comp)))})")
+            out.append(f"{len(comp)} blocks floating near {min(comp)} ({bname(c.t.get(*min(comp)))})")
     return out
 
 
@@ -249,26 +249,26 @@ def redstone(c):
         if m["tipo"] == "puerta de pistones":
             for p in m["pistones"]:
                 if "extended=true" not in (g(*p) or ""):
-                    out.append(f"{m['sitio']}: pistón no extendido en {p}")
+                    out.append(f"{m['sitio']}: piston not extended at {p}")
             for p in m["cabezas"]:
                 if bname(g(*p)) != "piston_head":
-                    out.append(f"{m['sitio']}: falta la cabeza del pistón en {p}")
+                    out.append(f"{m['sitio']}: missing piston head at {p}")
             for p in m["puerta"]:
                 if bname(g(*p)) in ("air", None):
-                    out.append(f"{m['sitio']}: hueco en la puerta {p}")
+                    out.append(f"{m['sitio']}: gap in the door {p}")
             for p in m["antorchas"]:
                 if "lit=true" not in g(*p):
-                    out.append(f"{m['sitio']}: antorcha apagada en {p}")
+                    out.append(f"{m['sitio']}: torch off at {p}")
             for (lp, bp) in m["palancas"] + m["falsas"]:
                 if "powered=false" not in g(*lp) or bname(g(*bp)) in ("air", None) or not opaque(g(*bp)):
-                    out.append(f"{m['sitio']}: palanca {lp} mal fijada")
+                    out.append(f"{m['sitio']}: lever {lp} badly attached")
             for (p, pw) in m["polvo"]:
                 if pw <= 0 or f"power={pw}" not in g(*p) or not opaque(g(p[0], p[1] - 1, p[2])):
-                    out.append(f"{m['sitio']}: polvo sin señal o sin apoyo en {p}")
+                    out.append(f"{m['sitio']}: dust without signal or support at {p}")
             first = m["polvo"][0][0] if m["polvo"] else m["pistones"][1]
             pu = m["pistones"][1]
             if m["polvo"] and (abs(first[0] - pu[0]) + abs(first[2] - pu[2]) != 1 or first[1] != pu[1]):
-                out.append(f"{m['sitio']}: el polvo no llega al pistón superior")
+                out.append(f"{m['sitio']}: the dust does not reach the upper piston")
             # solution: with the correct ones activated the torches turn off; the fake one feeds the line if activated
             line = {p for (p, _) in m["polvo"]}
             segment, everything = {first}, [first]          # continuous run of dust that reaches the piston (the torches cut it)
@@ -281,31 +281,31 @@ def redstone(c):
                         everything.append(n)
             for (lp, bp) in m["falsas"]:
                 if not any(abs(bp[0] - p[0]) + abs(bp[2] - p[2]) == 1 and bp[1] == p[1] for p in segment):
-                    out.append(f"{m['sitio']}: la palanca falsa {lp} no alimenta el tramo que llega al pistón")
+                    out.append(f"{m['sitio']}: the fake lever {lp} does not power the stretch that reaches the piston")
             for (lp, bp) in m["palancas"]:
                 t = (2 * bp[0] - lp[0], bp[1], 2 * bp[2] - lp[2])
                 if t not in m["antorchas"]:
-                    out.append(f"{m['sitio']}: la palanca {lp} no apaga ninguna antorcha")
+                    out.append(f"{m['sitio']}: the lever {lp} turns off no torch")
                 if any(abs(bp[0] - p[0]) + abs(bp[2] - p[2]) == 1 and bp[1] == p[1] for p in line):
-                    out.append(f"{m['sitio']}: el bloque de la palanca {lp} toca la línea")
+                    out.append(f"{m['sitio']}: the block of the lever {lp} touches the line")
         elif m["tipo"] == "trampilla":
             if "open=false" not in g(*m["trampilla"]) or "powered=false" not in g(*m["palanca"]):
-                out.append("trampilla del altar: estado inicial incoherente")
+                out.append("altar trapdoor: inconsistent initial state")
             a, t = m["apoyo"], m["trampilla"]
             if abs(a[0] - t[0]) + abs(a[1] - t[1]) + abs(a[2] - t[2]) != 1 or not opaque(g(*a)):
-                out.append("trampilla del altar: la palanca no la alimenta")
+                out.append("altar trapdoor: the lever does not power it")
         else:
             for p in m["dispensadores"]:
                 if bname(g(*p)) != "dispenser" or "triggered=false" not in g(*p):
-                    out.append(f"{m['sitio']}: dispensador {p} mal")
+                    out.append(f"{m['sitio']}: dispenser {p} misconfigured")
                 fx, fz = FACE[prop(g(*p), "facing")]
                 if g(p[0] + fx, p[1], p[2] + fz) not in (None, "minecraft:air") and bname(g(p[0] + fx, p[1], p[2] + fz)) not in (
                         "tripwire", "stone_pressure_plate") and not bname(g(p[0] + fx, p[1], p[2] + fz)).endswith("_sign"):
-                    out.append(f"{m['sitio']}: el dispensador {p} dispara contra un bloque")
+                    out.append(f"{m['sitio']}: the dispenser {p} fires into a block")
             src = m.get("ganchos", []) + [m[k] for k in ("placa", "apoyo") if k in m]
             for p in m["dispensadores"]:
                 if not any(abs(p[0] - q[0]) + abs(p[1] - q[1]) + abs(p[2] - q[2]) == 1 for q in src):
-                    out.append(f"{m['sitio']}: el dispensador {p} no está junto al gancho o la placa")
+                    out.append(f"{m['sitio']}: the dispenser {p} is not next to the hook or the plate")
     return out
 
 
@@ -375,17 +375,17 @@ def audit(c, verbose=False):
     rooms = standable_covered(c, g)
     lost = sorted(rooms - set(cells))
     for comp in [k for k in clusters(lost) if len(k) >= 3]:
-        probs.append(f"estancia sin acceso: {len(comp)} celdas entre {min(comp)} y {max(comp)}")
+        probs.append(f"unreachable room: {len(comp)} cells between {min(comp)} and {max(comp)}")
     probs += floating(c)
     dark, _ = light(c, set(cells))
     if dark:
-        probs.append(f"{len(dark)} celdas cubiertas a oscuras en superficie, p. ej. {sorted(dark)[:8]}")
+        probs.append(f"{len(dark)} covered cells in darkness on the surface, e.g. {sorted(dark)[:8]}")
     probs += redstone(c)
     probs += common_redstone(c)
     share = ruin_share(c)
     if not 0.15 <= share <= 0.20:
-        probs.append(f"proporción de ruina {share:.1%} fuera del 15-20 %")
+        probs.append(f"ruin share {share:.1%} outside 15-20 %")
     c.audit_cells, c.audit_share = cells, share
     if verbose:
-        print(f"celdas alcanzables {len(cells)}, estancias {len(rooms)}, ruina {share:.1%}")
+        print(f"reachable cells {len(cells)}, rooms {len(rooms)}, ruin {share:.1%}")
     return probs

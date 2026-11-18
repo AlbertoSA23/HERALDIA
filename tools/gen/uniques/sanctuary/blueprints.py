@@ -29,7 +29,7 @@ def floor_plans(blocks, cells):
         feet.setdefault((x, z), set()).add(y)
     out = ["Legend: · reachable on foot (puzzles solved)  # wall  C chest  T barrel  G spawner  D dispenser",
            "         P piston  L lever  r redstone  i redstone torch  R season stone  / stairs",
-           "         ^ cable trampa  _ placa  b tapiz  B colmena  ~ agua  = bancal  M menhir",
+           "         ^ tripwire  _ plate  b tapestry  B beehive  ~ water  = garden bed  M menhir",
            "         x from west to east, z from north to south (the clearing's entrance is to the north, z = 0)", ""]
     for lv, title, x0, x1, z0, z1 in LEVELS:
         out.append(f"== {title} (feet at y = {lv}) ==")

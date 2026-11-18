@@ -63,12 +63,12 @@ def check_redstone(t):
                     errs.append(("extended piston without its head", p))
         elif b in ("dispenser", "dropper"):
             if on or pr["triggered"] != "false":
-                errs.append(("dispensador alimentado en reposo", p))
+                errs.append(("dispenser powered at rest", p))
     # each trap fires at least one dispenser
     for p, (st, _) in blocks.items():
         if bname(st) in ("tripwire_hook", "stone_pressure_plate"):
             if props(st).get("powered") != "false":
-                errs.append(("trampa armada en estado pulsado", p))
+                errs.append(("trap armed in pressed state", p))
             _, pw = simulate(blocks, extra_on={p})
             if not any(v and bname(blocks[q][0]) == "dispenser" for q, v in pw.items()):
                 errs.append(("trap that fires no dispenser", p))

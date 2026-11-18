@@ -1,6 +1,6 @@
-Planos del monasterio por nivel (y = altura de los pies). Leyenda: . alcanzable a pie desde la entrada,
-/ escalera alcanzable, # muro u objeto, C cofre, D puerta, H escala, L palanca, T trampa, S generador.
-La entrada está arriba (z = 0); x crece hacia la derecha. Vista con las puertas secretas abiertas.
+Monastery floor plans by level (y = feet height). Legend: . reachable on foot from the entrance,
+/ reachable stairs, # wall or object, C chest, D door, H ladder, L lever, T trap, S spawner.
+The entrance is at the top (z = 0); x grows to the right. View with the secret doors open.
 
 == y = 6: Relicario y catacumbas ==
                      #################
@@ -378,7 +378,7 @@ La entrada está arriba (z = 0); x crece hacia la derecha. Vista con las puertas
 ### #### # ########### # #   # ## ########  ## ###### ##  #
 
 
-== y = 30: Cripta ==
+== y = 30: Crypt ==
 
 
 
@@ -660,7 +660,7 @@ La entrada está arriba (z = 0); x crece hacia la derecha. Vista con las puertas
 
 
 
-== y = 44: Desván: escritorio oculto ==
+== y = 44: Loft: hidden desk ==
 
 
 

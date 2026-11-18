@@ -772,7 +772,7 @@ def audit(t):
         if p in plain:
             issues.append(("hidden room reachable without solving", p))
         if p not in cells:
-            issues.append(("sala no alcanzable resuelta", p))
+            issues.append(("room unreachable when solved", p))
     # redstone: stable placed state, phase puzzle and piston door (common simulator)
     errs, _ = redstone.check_static(t)
     levers = [(26, -5, z) for z in sorted(LEVERS)]
@@ -795,7 +795,7 @@ def audit(t):
         issues.append(("floating block", p))
     frac, _ = exterior_damage(t)
     if not 0.15 <= frac <= 0.20:
-        issues.append(("estado exterior fuera de 80-85 %", round(1 - frac, 3)))
+        issues.append(("outdoor state outside 80-85 %", round(1 - frac, 3)))
     return issues
 
 
@@ -814,16 +814,16 @@ def build(reg):
 
 
 # ------------------------------------------------------------------ floor plans and renders
-LEVELS = (("Planta baja", 1), ("Planta alta", 7), ("Azotea", 13), ("Archivo", -6), ("Cámara del tesoro", -13))
+LEVELS = (("Ground floor", 1), ("Upper floor", 7), ("Roof terrace", 13), ("Archivo", -6), ("Treasure chamber", -13))
 
 
 def floor_plans(t):
     s = solved(t)
     cells = walk(s)
     x0, _, z0, x1, _, z1 = t.bounds()
-    out = ["Planos del Observatorio (norte arriba, x hacia la derecha). Leyenda: '.' celda alcanzable a pie "
-           "(estado resuelto), '#' muro, 'C' cofre o barril, 'S' generador, 'D' puerta, '=' escalera, 'L' palanca, "
-           "'T' trampa (gancho, placa o dispensador), 'H' escalera de mano, 'G' guardián, ' ' vacío o terreno.", ""]
+    out = ["Observatory floor plans (north up, x to the right). Legend: '.' cell reachable on foot "
+           "(solved state), '#' wall, 'C' chest or barrel, 'S' spawner, 'D' door, '=' stairs, 'L' lever, "
+           "'T' trap (hook, plate or dispenser), 'H' ladder, 'G' guardian, ' ' void or terrain.", ""]
     ents = {(e[0], e[1], e[2]) for e in t.entities}
     for name, y in LEVELS:
         out.append(f"== {name} (pies a y = {y}) ==")

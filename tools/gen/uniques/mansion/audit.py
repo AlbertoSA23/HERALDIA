@@ -88,7 +88,7 @@ def prepare(construction):
         elif n.endswith("_stairs") and not n.startswith("deepslate_tile") and not (n.startswith("stone_brick") and y >= 11) \
                 and "half=bottom" in st:
             if not nearby_flag(cells, p):
-                errs.append(f"escalera inalcanzable {p} {n}")
+                errs.append(f"ladder unreachable {p} {n}")
     for p, _ in construction.chests:
         if not nearby_flag(cells, p):
             errs.append(f"unreachable chest {p}")

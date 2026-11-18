@@ -80,7 +80,7 @@ def redstone(o):
                 if p1 != (not (a and not i and tt)):
                     errs.append(f"puzle 1: AQVA={a} IGNIS={i} TERRA={tt} -> {'cerrada' if p1 else 'abierta'}")
     mechs = r["dispensadores_1"] + r["dispensadores_28"] + r["dispensadores_30"] + r["puerta_2"] + [r["reja"]]
-    errs += [f"{p} recibe señal sin que nadie lo active" for p in mechs if sim.powered(p)]
+    errs += [f"{p} receives a signal without anyone activating it" for p in mechs if sim.powered(p)]
     checks = [({r["gancho_O"]: True, r["gancho_E"]: True}, r["dispensadores_1"]),
               ({r["placa_28"]: True}, r["dispensadores_28"]), ({r["placa_30"]: True}, r["dispensadores_30"]),
               ({r["placa_ofrenda"]: True}, r["puerta_2"][:1]), ({r["boton"]: True}, r["puerta_2"][:1]),
@@ -100,7 +100,7 @@ def stabilize(o):
 def audit_it(o):
     errs = []
     if not 0.15 <= o.ruin_piece / o.area <= 0.20:
-        errs.append(f"ruina {o.ruin_piece}/{o.area} = {o.ruin_piece / o.area:.1%} fuera de 15-20 %")
+        errs.append(f"ruin {o.ruin_piece}/{o.area} = {o.ruin_piece / o.area:.1%} outside 15-20 %")
     errs += [f"flotando: {p} {o.t.get(*p)}" for p in floating_blocks(o)[:10]]
     errs += redstone(o)
     res = variant(o, "resuelto")
@@ -137,9 +137,9 @@ def blueprints(o, closed, cells, out):
     marks = {"chest": "C", "barrel": "B", "spawner": "G", "_door": "P", "ladder": "E", "_stairs": "e",
              "lever": "L", "pressure_plate": "T", "tripwire": "T", "dispenser": "D", "water": "~", "piston": "M"}
     for label, y, (x0, z0, x1, z1) in LEVELS:
-        lines = [f"# {label}: pies en y = {y}. · se alcanza a pie desde la puerta sur; o solo con los puzles resueltos;",
-                 "# C cofre, B barril, G generador, P puerta, E escalera de mano, e escalón, L palanca,",
-                 "# T placa o cable trampa, D dispensador, M pistón, ~ agua, # muro. Norte arriba; x de izquierda a derecha.", ""]
+        lines = [f"# {label}: feet at y = {y}. · reachable on foot from the south door; or only with the puzzles solved;",
+                 "# C chest, B barrel, G spawner, P door, E ladder, e step, L lever,",
+                 "# T trap plate or tripwire, D dispenser, M piston, ~ water, # wall. North up; x from left to right.", ""]
         for z in range(z0, z1 + 1):
             row = ""
             for x in range(x0, x1 + 1):

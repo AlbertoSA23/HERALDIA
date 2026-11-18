@@ -13,7 +13,7 @@ from uniques.pyramid import construction, audit     # noqa: E402
 
 OUT = os.path.join(os.path.dirname(GEN), "..", "docs", "unicas", "piramide")
 LEVELS = [(1, "Exterior and Cenote Hall"), (4, "Plataformas laterales"), (7, "Ball court (top of the slopes)"),
-          (12, "Landing: Chamber of Offerings and Walled-up Chamber"), (24, "Cima: templo"),
+          (12, "Landing: Chamber of Offerings and Walled-up Chamber"), (24, "Summit: temple"),
           (-6, "Galleries of the underworld"), (-14, "Cenote and Submerged Chamber"), (-24, "Tomb and Treasure Chamber")]
 LEGEND = (". reachable on foot   # wall or solid   ~ water   C chest   S spawner   G guardian   L lever\n"
           "d dispenser   _ plate   - trap wire   t trapdoor   e step   T walled-up   P secret door   o other")

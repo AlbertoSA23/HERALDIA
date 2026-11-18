@@ -1,9 +1,9 @@
-Planos de planta del faro. Norte arriba (z=0, entrada); el mar al sur.
-· alcanzable a pie (con los puzles resueltos)  # muro/roca  ~ agua  D puerta  C cofre  b barril
-S generador  H escalera de mano  P palanca  = trampilla  T TNT  t cable trampa  d dispensador
-A atril  L estantería  / peldaño
+Lighthouse floor plans. North up (z=0, entrance); the sea to the south.
+· reachable on foot (with the puzzles solved)  # wall/rock  ~ water  D door  C chest  b barrel
+S spawner  H ladder  P lever  = trapdoor  T TNT  t tripwire  d dispenser
+A lectern  L bookshelf  / step
 
-== y=9: cueva (nivel del mar)
+== y=9: cave (sea level)
 ############################################
 ############################################
 ############################################
@@ -53,7 +53,7 @@ A atril  L estantería  / peldaño
                     ~~~~~
                     ~~~~~
 
-== y=17: sótano
+== y=17: cellar
 ############################################
 ############################################
 ############################################
@@ -103,7 +103,7 @@ A atril  L estantería  / peldaño
 
 
 
-== y=22: cima: casa y base del faro
+== y=22: summit: house and lighthouse base
     ····································
     ····································
     ····································
@@ -153,7 +153,7 @@ A atril  L estantería  / peldaño
 
 
 
-== y=39: sala de guardia
+== y=39: guard room
 
 
 
@@ -203,7 +203,7 @@ A atril  L estantería  / peldaño
 
 
 
-== y=44: linterna y galería
+== y=44: lantern and gallery
 
 
 

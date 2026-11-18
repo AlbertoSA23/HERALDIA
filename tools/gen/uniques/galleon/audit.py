@@ -23,7 +23,7 @@ def audit_it(o, sea):
         if b == "water":
             for d in N6:
                 if d[1] != 1 and bname(blocks.get(circuits.add(p, d))) in (None, "air"):
-                    errs.append(f"agua suelta en {p}")
+                    errs.append(f"loose water at {p}")
                     break
         if b in ("sand", "gravel", "suspicious_sand") and bname(blocks.get(circuits.add(p, (0, -1, 0)))) in (None, "air"):
             errs.append(f"{b} without support at {p}")

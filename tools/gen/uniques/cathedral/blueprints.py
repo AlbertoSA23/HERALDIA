@@ -5,10 +5,10 @@ import os, sys
 from lint import bname
 from .audit import passable, top_height
 
-LEVELS = [(-7, "Crypt, ossuaries and treasure chamber (feet at -7)"), (1, "Planta baja (pies en 1)"),
+LEVELS = [(-7, "Crypt, ossuaries and treasure chamber (feet at -7)"), (1, "Ground floor (feet at 1)"),
           (9, "Library and closet (feet at 9)"), (12, "Triforium, gallery and high walkways (feet at 12)"),
           (17, "Terraces over the side aisles (feet at 17)"), (28, "Gutter, facade terrace and attic (feet at 28)"),
-          (40, "Campanario (pies en 40)"), (56, "Tower roofs (feet at 56)")]
+          (40, "Bell tower (feet at 40)"), (56, "Tower roofs (feet at 56)")]
 MARK = {"chest": "C", "barrel": "C", "spawner": "G", "lever": "L", "ladder": "H", "sticky_piston": "P", "piston_head": "P",
         "tripwire": "T", "tripwire_hook": "T", "stone_pressure_plate": "T", "dispenser": "D", "iron_trapdoor": "Z", "bell": "B"}
 

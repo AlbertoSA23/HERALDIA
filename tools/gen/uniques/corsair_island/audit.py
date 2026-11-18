@@ -116,10 +116,10 @@ def prepare(construction):
             errs.append(f"the hideout is not reachable behind the tapestry {p}")
     for p, mob in construction.spawners:
         if not nearby_flag(cells, p, 2):
-            errs.append(f"generador inalcanzable {p}")
+            errs.append(f"spawner unreachable {p}")
     for p in m["palancas"] + [sb["lever"]]:
         if not nearby_flag(cells_pub, p):
-            errs.append(f"palanca inalcanzable {p}")
+            errs.append(f"lever unreachable {p}")
     for p, _ in construction.chests:
         if not nearby_flag(cells, p):
             errs.append(f"unreachable chest {p}")
@@ -154,7 +154,7 @@ def prepare(construction):
         if b == "water":
             for d in N6:
                 if d[1] != 1 and bn(blocks.get((p[0] + d[0], p[1] + d[1], p[2] + d[2]))) == "air":
-                    errs.append(f"agua suelta en {p}")
+                    errs.append(f"loose water at {p}")
                     break
         if b in ("sand", "gravel") and p[1] > BASE and bn(blocks.get((p[0], p[1] - 1, p[2]))) in ("air", "water", None):
             errs.append(f"{b} without support at {p}")

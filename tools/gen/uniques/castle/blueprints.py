@@ -60,7 +60,7 @@ def main():
     render(L["t"], os.path.join(out, "castillo_iso.png"), scale=2)
     render(L["t"], os.path.join(out, "castillo_corte_y14.png"), scale=2, cut_y=14)
     render(L["d"], os.path.join(out, "mazmorra_corte.png"), scale=4, cut_y=8)
-    print("escrito en", out)
+    print("written to", out)
 
 
 if __name__ == "__main__":

@@ -50,9 +50,9 @@ def watertightness(m, out):
             if v is None or (dy >= 0 and is_water(v)):
                 n += 1
                 if n <= 12:
-                    out.append(f"fuga: {block_name(st)} en {(x, y, z)} toca {block_name(v) if v else 'terreno natural'} en {(x + dx, y + dy, z + dz)}")
+                    out.append(f"leak: {block_name(st)} at {(x, y, z)} touches {block_name(v) if v else 'natural terrain'} at {(x + dx, y + dy, z + dz)}")
     if n > 12:
-        out.append(f"fuga: {n} en total")
+        out.append(f"leak: {n} in total")
 
 
 def supports(m, out):
@@ -67,24 +67,24 @@ def supports(m, out):
             f = st.split("facing=")[1].split(",")[0].rstrip("]")
             dx, dz = behind[f]
             if not solid(m.get(x + dx, y, z + dz)):
-                failing(b + " sin pared detrás", (x, y, z))
+                failing(b + " without a wall behind", (x, y, z))
         elif b.endswith("_door") and "half=lower" in st or b in ("redstone_wire", "stone_pressure_plate", "cyan_carpet", "decorated_pot",
                                                                   "lectern", "azalea", "sea_pickle", "seagrass", "spawner") and b != "spawner":
             if not (solid(beneath) or b == "cyan_carpet" and beneath and "trapdoor" in beneath or b == "stone_pressure_plate" and beneath and "dispenser" in beneath):
-                failing(b + " sin apoyo", (x, y, z))
+                failing(b + " without support", (x, y, z))
         elif b in ("sand", "gravel") and not solid(beneath):
-            failing(b + " sin suelo (caería)", (x, y, z))
+            failing(b + " without ground (would fall)", (x, y, z))
         elif b in ("kelp", "kelp_plant") and not (solid(beneath) or block_name(beneath) == "kelp_plant"):
-            failing("alga sin base", (x, y, z))
+            failing("kelp without a base", (x, y, z))
         elif b == "kelp_plant" and block_name(m.get(x, y + 1, z)) not in ("kelp", "kelp_plant"):
             failing("alga cortada", (x, y, z))
         elif b.endswith("_bed") and not solid(beneath):
-            failing("cama sin suelo", (x, y, z))
+            failing("bed without a floor", (x, y, z))
         elif b in CORALS and not solid(beneath):
-            failing("coral sin apoyo", (x, y, z))
+            failing("coral without support", (x, y, z))
         elif b == "bubble_column":
             if block_name(beneath) not in ("bubble_column", "soul_sand", "magma_block"):
-                failing("columna de burbujas sin base", (x, y, z))
+                failing("bubble column without a base", (x, y, z))
     for what, ps in failures.items():
         out.append(f"{what}: {len(ps)}, p. ej. {ps[:3]}")
 
@@ -170,7 +170,7 @@ def accessible_blocks(m, out, seen):
             f = st.split("facing=")[1].split(",")[0].rstrip("]")
             dx, dz = {"north": (0, -1), "south": (0, 1), "east": (1, 0), "west": (-1, 0)}[f]
             if (x + dx, y, z + dz) not in seen or (x - dx, y, z - dz) not in seen:
-                wrong.setdefault("puerta sin salida o sin acceso", []).append((x, y, z))
+                wrong.setdefault("door without exit or access", []).append((x, y, z))
         elif b in ACCESSIBLE and not any(p in seen for p in [(x, y, z)] + [(x + a, y + c, z + d) for a, c, d in NEIGHBORS]):
             wrong.setdefault(b + " inaccesible", []).append((x, y, z))
     for what, ps in wrong.items():
@@ -182,16 +182,16 @@ def jigsaws(tiles, out):
     for t in tiles:
         for j in t.jigsaws:
             if block_name(t.get(*j["pos"]) or "air") != "jigsaw":
-                out.append(f"jigsaw sobrescrito en {t.name} {j['pos']}")
+                out.append(f"jigsaw overwritten in {t.name} {j['pos']}")
 
 
 def items(m, out):
     for (x, y, z), (st, nbt) in m.blocks.items():
         for it in (nbt or {}).get("Items", ()):
             if it["id"].replace("minecraft:", "") not in validate.ITEMS:
-                out.append(f"objeto inexistente {it['id']} en {(x, y, z)}")
+                out.append(f"nonexistent item {it['id']} at {(x, y, z)}")
             if not 0 <= int(it["Slot"]) < 27:
-                out.append(f"hueco de cofre fuera de rango en {(x, y, z)}")
+                out.append(f"chest slot out of range at {(x, y, z)}")
 
 
 def state(m):
@@ -216,7 +216,7 @@ def audit_it(m):
     items(m, out)
     pct = state(m)
     if not 15.0 <= pct <= 20.0:
-        out.append(f"superficie en ruinas {pct:.1f} % (debe quedar entre 15 y 20)")
+        out.append(f"ruined surface {pct:.1f} % (must be between 15 and 20)")
     m.reachable = seen
     m.ruin_pct = pct
     return out

@@ -96,10 +96,10 @@ def prepare(construction):
             errs.append(f"the jarl's alcove is not reachable behind the tapestry {p}")
     for p, mob in construction.spawners:
         if not nearby_flag(cells, p):
-            errs.append(f"generador inalcanzable {p}")
+            errs.append(f"spawner unreachable {p}")
     for p in m["palancas"] + [noise_scale["lever"]]:
         if not nearby_flag(cells_pub, p):
-            errs.append(f"palanca inalcanzable {p}")
+            errs.append(f"lever unreachable {p}")
     for p, _ in construction.chests:
         if not nearby_flag(cells, p):
             errs.append(f"unreachable chest {p}")

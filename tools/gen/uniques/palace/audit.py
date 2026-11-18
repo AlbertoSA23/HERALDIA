@@ -29,12 +29,12 @@ def check_redstone(o):
             errs.append(f"door {g} has no lever")
             continue
         sim = redstone.Sim(t, {p: False for p in own})
-        errs += [f"puerta {g}: el pistón {p} sigue con energía con las palancas apagadas" for p in pistons(ms) if sim.powered(p)]
+        errs += [f"door {g}: piston {p} still powered with the levers off" for p in pistons(ms) if sim.powered(p)]
         if len(own) > 1:
             for lv in own:
                 if not any(redstone.Sim(t, {lv: False}).powered(p) for p in pistons(ms)):
                     errs.append(f"door {g}: it opens completely with a single lever {lv}")
-        errs += [f"puerta {g}: el hueco {d} no queda libre al abrir" for m in ms for d in m["door"] if o.lint_open.get(d) != "air"]
+        errs += [f"door {g}: the gap {d} is not free when open" for m in ms for d in m["door"] if o.lint_open.get(d) != "air"]
     for m in mech:
         if m["kind"] == "cable":
             z, x0, x1, y = m["z"], m["x0"], m["x1"], m["y"]
@@ -44,7 +44,7 @@ def check_redstone(o):
                     errs.append(f"wire {m['label']}: the dispenser {d} is not activated")
         elif m["kind"] == "placa":
             sim = redstone.Sim(t, {m["plate"]: True})
-            errs += [f"placa {m['label']}: el dispensador {d} no se activa" for d in m["disp"]
+            errs += [f"plate {m['label']}: dispenser {d} does not activate" for d in m["disp"]
                      if bname(t.get(*d)) != "dispenser" or not sim.powered(d)]
         elif m["kind"] == "senuelo":
             sim = redstone.Sim(t, {m["lever"]: True, **{lv["pos"]: False for lv in levers.values() if lv["pos"] != m["lever"]}})
@@ -58,7 +58,7 @@ def check_redstone(o):
             f = parse_state(st)[1]["facing"]
             q = (p[0] + VEC[f][0], p[1] + VEC[f][1], p[2] + VEC[f][2])
             if not passable(t.get(*q)) and bname(t.get(*q)) != "stone_pressure_plate":
-                errs.append(f"dispensador {p} dispara contra un muro")
+                errs.append(f"dispenser {p} fires into a wall")
     return errs
 
 
@@ -95,7 +95,7 @@ def check_walk(o):
             errs.append(f"chest {tbl} {p} inaccessible")
     for m in o.mech:
         if m["kind"] == "palanca" and not near(opened, m["pos"]):
-            errs.append(f"palanca {m['label']} inaccesible")
+            errs.append(f"lever {m['label']} unreachable")
     for p, (st, _) in t.blocks.items():
         b = bname(st)
         if b in ("trapped_chest", "stone_button", "loom", "smoker") and not near(opened, p):
@@ -152,5 +152,5 @@ def ruin_ratio(good, ruined):
 def check_ruin(good, ruined):
     r, n, c, w = ruin_ratio(good, ruined)
     if not 0.15 <= r <= 0.20:
-        return [f"ruina {r:.1%} fuera de 15-20 % (superficie {n}, quitado/cambiado {c}, desgaste {w:.0f})"]
+        return [f"ruin {r:.1%} outside 15-20 % (surface {n}, removed/changed {c}, wear {w:.0f})"]
     return []

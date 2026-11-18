@@ -59,7 +59,7 @@ def water_issues(o):
             for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, -1, 0)):
                 n = g(x + dx, y + dy, z + dz)
                 if n is None or bname(n) == "air" or passable(n) and bname(n) != "water" and "waterlogged=true" not in n:
-                    out.append(("agua sin encerrar", (x, y, z)))
+                    out.append(("unenclosed water", (x, y, z)))
                     break
     return out
 
@@ -83,59 +83,59 @@ def redstone_issues(o):
     for (x, y, z) in o.marks.get("trampa:cable", []):
         st = g(x, y, z)
         if bname(st) != "tripwire" or props(st).get("attached") != "true":
-            out.append(("cuerda sin tensar", (x, y, z)))
+            out.append(("tripwire not taut", (x, y, z)))
         if not conductor(g(x, y - 1, z)):
-            out.append(("cuerda sin suelo", (x, y, z)))
+            out.append(("tripwire without floor", (x, y, z)))
         for dz, face in ((-1, "south"), (1, "north")):
             hk = g(x, y, z + dz)
             if bname(hk) != "tripwire_hook" or props(hk) != {"attached": "true", "facing": face, "powered": "false"}:
                 out.append(("gancho mal colocado", (x, y, z + dz)))
             base = (x, y, z + 2 * dz)
             if not conductor(g(*base)):
-                out.append(("gancho sin apoyo", base))
+                out.append(("hook without support", base))
             disp = [n for n in ((base[0], base[1] + 1, base[2]), (base[0], base[1] - 1, base[2]))
                     if bname(g(*n)) == "dispenser"]
             if not disp or not o.t.blocks[disp[0]][1].get("Items"):
-                out.append(("trampa de cable sin dispensador cargado", base))
+                out.append(("tripwire trap without loaded dispenser", base))
     # dart slabs: plate over an upward-facing dispenser with arrows
     for (x, y, z) in o.marks.get("trampa:dardos", []):
         d = o.t.blocks.get((x, y - 1, z))
         if not d or bname(d[0]) != "dispenser" or props(d[0]).get("facing") != "up" or not d[1].get("Items"):
-            out.append(("losa de dardos sin dispensador", (x, y, z)))
+            out.append(("dart slab without dispenser", (x, y, z)))
         if bname(g(x, y, z)) != "polished_blackstone_pressure_plate":
-            out.append(("losa sin placa", (x, y, z)))
+            out.append(("slab without plate", (x, y, z)))
     # pit: the plate charges its block and that block touches a closed iron trapdoor
     for (x, y, z) in o.marks.get("trampa:foso", []):
         base = (x, y - 1, z)
         if not conductor(g(*base)):
-            out.append(("placa del foso sin bloque conductor", base))
+            out.append(("pit plate without conductor block", base))
         tds = [n for n in ((x + 1, y - 1, z), (x - 1, y - 1, z), (x, y - 1, z + 1), (x, y - 1, z - 1))
                if bname(g(*n)) == "iron_trapdoor"]
         if not tds or any(props(g(*n)).get("open") != "false" for n in tds):
-            out.append(("placa del foso sin trampilla", (x, y, z)))
+            out.append(("pit plate without trapdoor", (x, y, z)))
     # puerta secreta
     d = o.door
     tx, ty, tz = d["torch"]
     if g(*d["torch"]) != "minecraft:redstone_wall_torch[facing=west,lit=true]":
-        out.append(("antorcha de la puerta", d["torch"]))
+        out.append(("door torch", d["torch"]))
     if d["X"] != (tx + 1, ty, tz) or not conductor(g(*d["X"])) or not conductor(g(*d["Y"])) or d["Y"] != (tx, ty + 1, tz):
-        out.append(("bloques X/Y de la puerta", d["X"]))
+        out.append(("door X/Y blocks", d["X"]))
     for p, hd, dd in zip(d["pistons"], d["heads"], d["D"]):
         if g(*p) != "minecraft:sticky_piston[extended=true,facing=west]" or (p[0] + 1, p[1], p[2]) not in (d["torch"], d["Y"]):
-            out.append(("pistón de la puerta", p))
+            out.append(("door piston", p))
         if g(*hd) != "minecraft:piston_head[facing=west,short=false,type=sticky]" or hd != (p[0] - 1, p[1], p[2]):
-            out.append(("cabeza de pistón", hd))
+            out.append(("piston head", hd))
         if not conductor(g(*dd)) or dd != (hd[0] - 1, hd[1], hd[2]):
-            out.append(("bloque de la puerta", dd))
+            out.append(("door block", dd))
     lv = g(*d["lever"])
     if lv != "minecraft:lever[face=wall,facing=south,powered=false]" or d["lever"] != (d["X"][0], d["X"][1], d["X"][2] + 1):
-        out.append(("palanca de la puerta", d["lever"]))
+        out.append(("door lever", d["lever"]))
     # nothing else powered at rest
     for p, (st, _) in o.t.blocks.items():
         pr = props(st)
         if pr.get("powered") == "true" or pr.get("triggered") == "true" or (
                 bname(st) == "redstone_wire" and pr.get("power") != "0"):
-            out.append(("bloque con corriente en reposo", p))
+            out.append(("powered block at rest", p))
     return out
 
 
@@ -208,11 +208,11 @@ def audit(o, wear):
     t = Template("redstone")
     t.blocks = {p: v for p, v in o.t.blocks.items() if p[1] < -20 or 0 <= p[1] <= 3}
     errs, _ = redstone.check_static(t)
-    errs += redstone.check_puzzle(t, "puerta del tesoro", [o.door["lever"]], (True,), o.door["pistons"], "sin_potencia")
+    errs += redstone.check_puzzle(t, "treasure door", [o.door["lever"]], (True,), o.door["pistons"], "sin_potencia")
     issues += [(e, None) for e in errs]
     total, bad = good_fraction(o, wear)
     good = 1 - bad / total
     if not GOOD_RANGE[0] <= good <= GOOD_RANGE[1]:
-        issues.append((f"superficie en buen estado {good:.3f} fuera de {GOOD_RANGE}", None))
-    stats = dict(celdas=len(cells), buen_estado=round(good, 3), erosion=wear, superficie=total, **counts)
+        issues.append((f"surface in good condition {good:.3f} outside {GOOD_RANGE}", None))
+    stats = dict(cells=len(cells), good_state=round(good, 3), erosion=wear, surface=total, **counts)
     return issues, stats, cells

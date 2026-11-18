@@ -105,10 +105,10 @@ def prepare(construction, cast):
             errs.append(f"the stash is not reachable behind the tapestry {p}")
     for p, mob in construction.spawners:
         if not nearby_flag(cells, p):
-            errs.append(f"generador inalcanzable {p}")
+            errs.append(f"spawner unreachable {p}")
     for p in v["palancas"] + [v["arranque"], desc_es["lever"]]:
         if not nearby_flag(cells_pub, p):
-            errs.append(f"palanca inalcanzable {p}")
+            errs.append(f"lever unreachable {p}")
     for p, _ in construction.chests:
         if p not in submerged and not nearby_flag(cells, p):
             errs.append(f"unreachable chest {p}")

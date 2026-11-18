@@ -5,7 +5,7 @@ Usage (from tools/gen): python3 unicas/galeon/blueprints.py <mcmeta registries> 
 import os, sys
 
 LEVELS = [(-7, "Treasure chamber"), (-5, "Cave and gallery"), (-4, "Bodega"), (1, "Beach, camp and gun deck"),
-          (5, "Cubierta principal"), (9, "Castillo de proa"), (10, "Quarterdeck and cabin"), (15, "Toldilla"), (23, "Cofa")]
+          (5, "Cubierta principal"), (9, "Forecastle"), (10, "Quarterdeck and cabin"), (15, "Toldilla"), (23, "Cofa")]
 CH = [("chest", "C"), ("barrel", "B"), ("_door", "D"), ("ladder", "H"), ("_stairs", "/"), ("spawner", "S"),
       ("lever", "L"), ("pressure_plate", "T"), ("tripwire", "T"), ("_bed", "b"), ("suspicious", "A"), ("bell", "c")]
 

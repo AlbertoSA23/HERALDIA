@@ -87,7 +87,7 @@ def check(t):
             errs.append(f"chest {pos} overwritten")
     spawners = [p for p, (st, _) in t.blocks.items() if bid(st) == "spawner"]
     if len(spawners) < 3:
-        errs.append("faltan generadores de monstruos")
+        errs.append("monster spawners missing")
     if not any(e[3].get("CustomName") for e in t.entities):
         errs.append("guardian missing")
     if "premium" not in [tb for _, tb in t.chest_list]:
@@ -97,8 +97,8 @@ def check(t):
 
 # ------------------------------------------------------------------ floor plans and renders
 LEVELS = [(6, "Relicario y catacumbas"), (14, "Cuevas: gruta, ermitas, osario, archivo"), (19, "Despensa secreta"),
-           (25, "T0 atrio y bodega"), (30, "Cripta"), (31, "T1 huerto y refectorio"), (37, "T2 claustro, iglesia"),
-           (44, "Desván: escritorio oculto"), (59, "Campanario")]
+           (25, "T0 atrio y bodega"), (30, "Crypt"), (31, "T1 huerto y refectorio"), (37, "T2 claustro, iglesia"),
+           (44, "Loft: hidden desk"), (59, "Campanario")]
 
 
 def blueprint(v, cells, y):
@@ -138,9 +138,9 @@ def document(t, outdir):
     v = open_view(t)
     cells = set(lint.walk(v))
     os.makedirs(outdir, exist_ok=True)
-    txt = ["Planos del monasterio por nivel (y = altura de los pies). Leyenda: . alcanzable a pie desde la entrada,",
-           "/ escalera alcanzable, # muro u objeto, C cofre, D puerta, H escala, L palanca, T trampa, S generador.",
-           "La entrada está arriba (z = 0); x crece hacia la derecha. Vista con las puertas secretas abiertas.", ""]
+    txt = ["Monastery floor plans by level (y = feet height). Legend: . reachable on foot from the entrance,",
+           "/ reachable stairs, # wall or object, C chest, D door, H ladder, L lever, T trap, S spawner.",
+           "The entrance is at the top (z = 0); x grows to the right. View with the secret doors open.", ""]
     for y, name in LEVELS:
         txt += [f"== y = {y}: {name} ==", *blueprint(v, cells, y), ""]
     with open(os.path.join(outdir, "planos.txt"), "w", encoding="utf-8") as f:
@@ -161,4 +161,4 @@ if __name__ == "__main__":
     t = construction.construct()
     print("\n".join(check(t)) or "own audit: OK")
     if "--docs" in sys.argv:
-        print("celdas alcanzables:", document(t, sys.argv[sys.argv.index("--docs") + 1]))
+        print("reachable cells:", document(t, sys.argv[sys.argv.index("--docs") + 1]))

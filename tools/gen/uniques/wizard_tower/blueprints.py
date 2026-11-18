@@ -15,8 +15,8 @@ import uniques.wizard_tower as m
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(HERE))))
 OUT = os.path.join(ROOT, "docs", "unicas", "torre_mago")
 NAMES = {"B2": "Basement 2 · treasure chamber", "B1": "Basement 1 · failed experiments", "f0": "Foyer and terrace",
-         "f1": "Biblioteca (planta baja)", "f2": "Library gallery and hidden study", "f3": "Laboratorio de pociones",
-         "f4": "Sala de encantamientos", "f5": "Invernadero", "f6": "Wizard's bedroom", "f7": "Observatorio"}
+         "f1": "Library (ground floor)", "f2": "Library gallery and hidden study", "f3": "Potion laboratory",
+         "f4": "Enchanting room", "f5": "Invernadero", "f6": "Wizard's bedroom", "f7": "Observatorio"}
 
 
 def main():
@@ -52,7 +52,7 @@ def main():
     for k, im in enumerate(cuts):
         sheet.paste(im, ((k % 5) * w, (k // 5) * h))
     sheet.save(os.path.join(OUT, "cortes.png"))
-    print("planos en", OUT)
+    print("floor plans in", OUT)
 
 
 if __name__ == "__main__":
