@@ -90,12 +90,13 @@ def check_locate(ctx, kinds):
             # the first one is really generated: the start is where /locate said; the kinds with inhabitants, all of
             # them (each one is a sample, on the seed's real terrain, of whether its villagers settle)
             if (x, z) == POINTS[0] or mid in INHABITED:
-                forceload(ctx, px - 32, pz - 32, px + 31, pz + 31)
+                r = ROAM if mid in INHABITED else 32      # inhabitants stroll by day: their area keeps ticking
+                forceload(ctx, px - r, pz - r, px + r - 1, pz + r - 1)
                 if not wait_generated(ctx, px, pz, mid):
                     fails.append(f"{mid}: /locate gives {px}, {pz} but nothing has been generated there")
                 elif mid in INHABITED:
                     fails += check_settled(ctx, mid, px, pz, long_stay=(x, z) == POINTS[0])
-                forceload(ctx, px - 32, pz - 32, px + 31, pz + 31, remove=True)
+                forceload(ctx, px - r, pz - r, px + r - 1, pz + r - 1, remove=True)
         if not found_count:
             fails.append(f"no {mid}")
     if timings:
@@ -166,28 +167,34 @@ def check_settled(ctx, mid, px, pz, long_stay=False):
     return fails
 
 
-STAY_TICKS = 3 * 24000                # three in-game days (and nights) with /tick sprint
+STAY_TICKS = 3 * 24000 + 11000        # three and a half in-game days with /tick sprint, from 2000 to nightfall (13000)
+ROAM = 80                             # blocks forceloaded around an inhabited structure (by day they stroll 20-35 blocks
+                                      # from it, as any villager; in a smaller area they stop ticking at its edge)
 STAY_BOX = 24                         # blocks around the located chunk: the piece (at most 21 x 21) plus a few
 
 
 def check_stay(ctx, mid, px, pz, sel, n, with_mem):
-    """Invulnerable villagers with AI stay home: after STAY_TICKS run at full speed, they are all still alive, inside the
-    structure's box (not wandered off, fallen or drowned: a drowned one would be gone, invulnerable or not, only from the
-    void) and still remember their bed and workstation."""
+    """Invulnerable villagers with AI stay home: after STAY_TICKS run at full speed, ending at nightfall, they are all
+    still alive, back inside the structure's box within a few minutes (not wandered off, fallen or stuck) and still
+    remember their bed and workstation. By day they stroll about like any villager; at night they must be home."""
     t0 = ctx.gametime()
     s.send(ctx.proc, f"tick sprint {STAY_TICKS}")          # its reply only comes at the end: the game time says when
     end = time.monotonic() + 900
     while ctx.gametime() < t0 + STAY_TICKS and time.monotonic() < end:
         time.sleep(5)
     days = (ctx.gametime() - t0) / 24000
+    ctx.run("time set 13000", r"Set the time|time to|Set minecraft:\w+ to")
     near = (f"@e[type=minecraft:villager,tag=heraldia_habitante,tag=heraldia_mediana.{mid},"
             f"x={px + 8 - STAY_BOX},y=-64,z={pz + 8 - STAY_BOX},dx={2 * STAY_BOX},dy=420,dz={2 * STAY_BOX}]")
+    end = time.monotonic() + 180
+    while ctx.count(near) < n and time.monotonic() < end:
+        time.sleep(3)
     alive, home_now, job, home = ctx.count(sel), ctx.count(near), with_mem("job_site"), with_mem("home")
     STAYED.append((mid, px, pz, n, alive, home_now, job, home, days))
     print(f"{mid} at {px}, {pz}: after {days:.1f} days, {alive} of {n} inhabitants alive, {home_now} inside the structure, "
           f"{job} with their workstation and {home} with their bed")
     ctx.run("time set 2000", r"Set the time|time to|Set minecraft:\w+ to")
-    if days < 2.9 or alive < n or home_now < n or job < n or home < n:
+    if days < 3.4 or alive < n or home_now < n or job < n or home < n:
         return [f"{mid} at {px}, {pz}: after {days:.1f} days, {alive}/{n} alive, {home_now}/{n} at home, {job}/{n} with a "
                 f"workstation, {home}/{n} with a bed"]
     return []
@@ -214,8 +221,12 @@ def check_templates(ctx, ts):
             sel = f"@e[tag=heraldia_mediana.{name.split('/')[1]},x={x},y={y},z={z},dx=40,dy=30,dz=40]"
             if not ctx.until(f"execute if entity {sel}"):
                 fails.append(f"{name}: its entities do not appear")
-            elif ctx.count(sel) != n:
-                fails.append(f"{name}: {ctx.count(sel)} entidades, esperadas {n}")
+            else:
+                end = time.monotonic() + 10          # the last ones of the template may join a moment later
+                while ctx.count(sel) != n and time.monotonic() < end:
+                    time.sleep(1)
+                if ctx.count(sel) != n:
+                    fails.append(f"{name}: {ctx.count(sel)} entidades, esperadas {n}")
         fails += check_water(ctx, name, t, (x, y, z))
         fails += check_villagers(ctx, name, t, (x, y, z))
         forceload(ctx, x - 8, z - 8, x + 47, z + 47, remove=True)
