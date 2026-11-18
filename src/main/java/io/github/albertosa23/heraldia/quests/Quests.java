@@ -216,6 +216,26 @@ public final class Quests {
 		return new Village(cx, cz, style, name(level.getSeed(), cx, cz));
 	}
 
+	/** A Heraldia village as other systems see it (the villagers' conversations, dialogue/Dialogue): its start chunk,
+	 *  its style, its family (aldeas.estilos: llanuras, taiga...) and its name. */
+	public record VillageView(int cx, int cz, String style, String family, String name) {
+	}
+
+	/** The Heraldia village whose box contains {@code pos} (see {@link #villageAt}), or null. On the server thread. */
+	public static @Nullable VillageView villageView(ServerLevel level, BlockPos pos) {
+		Village a = villageAt(level, pos);
+		return a == null ? null : new VillageView(a.cx(), a.cz(), a.style(), family(a.style()), a.name());
+	}
+
+	/**
+	 * What is around that village (unique structures with a guardian within 4,000 blocks, medium structures and mine
+	 * entrances within 1,500), the same search and the same cache as its job board: searched once per village and
+	 * startup off the server thread, without loading or generating chunks. Only structures that really spawn there.
+	 */
+	public static CompletableFuture<Generator.Candidates> surroundings(ServerLevel level, VillageView v) {
+		return candidates(level, new Village(v.cx(), v.cz(), v.style(), v.name()));
+	}
+
 	/** Name of the village starting in that chunk: the one on the road signs ({@link Names}). */
 	static String name(long seed, int cx, int cz) {
 		String[] n = Names.of(seed, cx * 16 + 8, cz * 16 + 8);
@@ -379,7 +399,7 @@ public final class Quests {
 	}
 
 	/** Name of the structure type to explore: "roadside inn", "small mine entrance"... */
-	static Component place(Map<String, String> l, String structureId) {
+	public static Component place(Map<String, String> l, String structureId) {
 		Identifier id = Identifier.tryParse(structureId);
 		if (id != null && MediumStructures.isMedium(id)) {
 			return Texts.t(l, "heraldia.medianas." + id.getPath().split("/")[1] + ".nombre");

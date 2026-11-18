@@ -284,6 +284,32 @@ _FIXED = [
      "Reputation per village: it rises with its quests and falls when you attack its villagers or golems; as known, "
      "friend and village hero, its villagers lower their trades by 10, 20 and 30 % (like Hero of the Village, not "
      "stacking) and greet you"),
+    ("dialogos.activado", True, None, None,
+     "Conversaciones con los aldeanos: el clic derecho sobre un aldeano de Heraldia dentro de su aldea abre primero una "
+     "conversación en el chat (frases según su oficio, la tierra de la aldea, la hora, el tiempo y tu reputación) con "
+     "botones para seguir hablando, preguntar qué se cuenta, comerciar o despedirse. Agacharse y hacer clic derecho "
+     "abre los tratos directamente; los aldeanos vanilla o de otros mods comercian como siempre",
+     "Villager conversations: right-clicking a Heraldia villager inside its village first opens a conversation in "
+     "chat (lines by its profession, the village's land, the hour, the weather and your reputation) with buttons to "
+     "keep talking, ask for news, trade or say goodbye. Sneak and right-click to open the trades directly; vanilla "
+     "villagers and those of other mods trade as always"),
+    ("dialogos.espera_segundos", 60, 0, 600,
+     "Segundos que descansa cada aldeano entre una conversación y la siguiente (mientras, dice que está ocupado y "
+     "ofrece sus tratos); 0: sin espera",
+     "Seconds each villager rests between one conversation and the next (meanwhile it says it is busy and offers its "
+     "trades); 0: no wait"),
+    ("dialogos.viajeros_porcentaje", 10, 0, 100,
+     "Porcentaje de aldeanos de Heraldia que han viajado y conocen un sitio: al preguntarles qué se cuenta, una sola "
+     "vez en su vida, dicen hacia dónde y a qué distancia aproximada queda una estructura de Heraldia que existe de "
+     "verdad (nunca coordenadas); 0: ninguno",
+     "Percentage of Heraldia villagers who have travelled and know a place: asked for news, once in their life, they "
+     "tell in which direction and roughly how far a Heraldia structure that really exists lies (never coordinates); "
+     "0: none"),
+    ("dialogos.pista_reputacion", 20, 0, 300,
+     "Reputación mínima con la aldea para que un viajero cuente su pista (20: conocido); sin reputación activada, la "
+     "cuentan a cualquiera",
+     "Minimum reputation with the village for a wayfarer to tell its hint (20: known); with reputation disabled, they "
+     "tell anyone"),
     ("caravanas.activado", True, None, None,
      "Caravanas: de vez en cuando, con jugadores cerca, un mercader de Heraldia con sus llamas (y a veces un guardia) "
      "recorre un tramo del camino entre dos aldeas vecinas; si la defiendes de los bandidos y llega, paga esmeraldas y "
@@ -608,6 +634,10 @@ _NAMES = {
     "caravanas.frecuencia": ("Frecuencia de las caravanas (%)", "Caravan frequency (%)"),
     "caravanas.prob_asalto": ("Probabilidad de asalto (%)", "Ambush chance (%)"),
     "caravanas.max_activas": ("Caravanas a la vez", "Caravans at once"),
+    "dialogos.activado": ("Conversaciones con los aldeanos", "Villager conversations"),
+    "dialogos.espera_segundos": ("Espera entre conversaciones (s)", "Wait between conversations (s)"),
+    "dialogos.viajeros_porcentaje": ("Aldeanos que conocen un sitio (%)", "Villagers who know a place (%)"),
+    "dialogos.pista_reputacion": ("Reputación para una pista", "Reputation for a hint"),
     "viajeros.activado": ("Gente de paso", "Wayfarers"),
     "viajeros.frecuencia": ("Frecuencia de los viajeros (%)", "Wayfarer frequency (%)"),
     "viajeros.max_activos": ("Viajeros a la vez", "Wayfarers at once"),
@@ -688,6 +718,7 @@ SECTIONS = [
     ("guia", "Guía del Heraldo", "Herald's Guide"),
     ("arena", "Arena de oleadas", "Wave arena"),
     ("encargos", "Encargos y reputación", "Quests and reputation"),
+    ("dialogos", "Conversaciones", "Conversations"),
     ("caravanas", "Caravanas", "Caravans"),
     ("viajeros", "Gente de paso", "Wayfarers"),
     ("chozas_mago", "Chozas de mago", "Wizard's huts"),
@@ -705,7 +736,7 @@ _SECTION_PREFIXES = [
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("minas.", "minas"), ("faros.", "costa"), ("naufragios.", "costa"),
     ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
-    ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
+    ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"), ("dialogos.", "dialogos"),
     ("caravanas.", "caravanas"), ("viajeros.", "viajeros"), ("chozas_mago.", "chozas_mago"), ("ambiente.", "ambiente"),
     ("update_check.", "actualizaciones"), ("actualizar.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
 ]

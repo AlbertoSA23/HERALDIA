@@ -1,0 +1,324 @@
+{
+  "greeting.desconocido": {
+    "1": "Fremd hier? Dich hab ich in %2$s noch nie gesehen.",
+    "2": "Tag. Kommst du von weit her?",
+    "3": "Grüß Gott. Wir sind hier ruhige Leute.",
+    "4": "Hm. Und wer bist du, wenn ich fragen darf?",
+    "5": "Willst du handeln, gut. Wenn nicht, auch gut. Aber fass nichts an.",
+    "6": "Nach %2$s verirrt sich selten jemand. Hast du dich verlaufen?",
+    "7": "Guten Tag... oder was auch immer. Mit Fremden red ich nicht viel.",
+    "8": "Nur damit du's weißt: Der Golem traut keinem, der's eilig hat."
+  },
+  "greeting.conocido": {
+    "1": "Ah, %1$s! Schon wieder hier.",
+    "2": "Dein Gesicht kenn ich doch. Du hast was vom Brett erledigt, oder?",
+    "3": "Tag, %1$s. Was führt dich nach %2$s?",
+    "4": "Na sieh mal an, %1$s. Wie war der Weg?",
+    "5": "Ich wusste doch, dass mir die Stiefel bekannt vorkommen.",
+    "6": "%1$s! Ich dachte schon, du kommst nicht wieder.",
+    "7": "Tag. Diesmal hast du dich nicht verlaufen, was?",
+    "8": "Schau an, wer wieder Botengänge fürs Dorf macht. Wie läuft's, %1$s?"
+  },
+  "greeting.amigo": {
+    "1": "%1$s! Komm, setz dich einen Moment zu mir.",
+    "2": "Schön, dich zu sehen. In %2$s spricht man nur Gutes über dich.",
+    "3": "Sieh mal, wer wieder da ist! Komm rein, komm rein.",
+    "4": "%1$s! Wir haben gerade von dir geredet. Nur Gutes, keine Sorge.",
+    "5": "Komm her, ich hab frisches Brot und keinen, mit dem ich's teilen kann.",
+    "6": "Lang ist's her, %1$s. In %2$s hast du uns gefehlt.",
+    "7": "Da bist du ja! Die Kinder haben schon nach dir gefragt.",
+    "8": "Na, du gute Seele, wie behandelt dich die Welt?"
+  },
+  "greeting.heroe": {
+    "1": "Da ist ja der Stolz von %2$s! Die Kinder reden von nichts anderem.",
+    "2": "%1$s, es ist mir eine Ehre. Was immer du brauchst.",
+    "3": "Platz da! Das ist %1$s.",
+    "4": "%1$s höchstpersönlich! Warte, ich klopf mir nur schnell den Staub ab.",
+    "5": "Ganz %2$s steht in deiner Schuld. Ich zuallererst.",
+    "6": "Meine Großmutter schließt dich in ihre Gebete ein. Und in ihr Testament.",
+    "7": "%1$s ist zurück! Läutet einer die Glocke?",
+    "8": "Wenn du da bist, steht sogar der Golem stramm."
+  },
+  "reputation.desconocido": {
+    "1": "Fremden gegenüber sind wir hier etwas vorsichtig. Nimm's nicht persönlich.",
+    "2": "Wenn man dich kennen soll, schau mal aufs Brett am Platz.",
+    "3": "Nichts für ungut, aber ich weiß noch nicht, ob ich dir trauen kann.",
+    "4": "Worte sind schnell gesagt. In %2$s zählt, was einer tut."
+  },
+  "reputation.conocido": {
+    "1": "Der Büttel sagt, du hältst, was du versprichst. Das gilt hier viel.",
+    "2": "Auf dem Markt schaut dich keiner mehr schief an, hast du's gemerkt?",
+    "3": "Manche grüßen dich schon beim Namen. Das ist ein gutes Zeichen.",
+    "4": "Mach so weiter, und in %2$s zählt man dich bald zu uns."
+  },
+  "reputation.amigo": {
+    "1": "Das Beste der Woche leg ich für dich zurück, nur dass du's weißt.",
+    "2": "In %2$s hast du ein Dach überm Kopf, wann immer du willst.",
+    "3": "Brauchst du mal eine helfende Hand? Hier gibt's gleich ein paar.",
+    "4": "Wenn ich dich kommen seh, schließ ich die Tür nicht mehr ab, %1$s."
+  },
+  "reputation.heroe": {
+    "1": "Eines Tages dichtet jemand ein Lied über dich. Hoffentlich reimt es sich.",
+    "2": "Solange du in der Nähe bist, schlafen wir ruhig.",
+    "3": "Am Feuer erzählt man sich schon von dir, %1$s.",
+    "4": "Hätte %2$s Standbilder, deins wäre das erste."
+  },
+  "family.llanuras": {
+    "1": "Von hier siehst du jeden schon eine Meile gegen den Wind kommen.",
+    "2": "Der Wind der Ebene nimmt die Sorgen mit. Und die Hüte.",
+    "3": "Hier wogt der Weizen, so weit das Auge reicht.",
+    "4": "Die Pferde der Ebene lassen sich nicht beim ersten Mal reiten.",
+    "5": "In der Ebene kannst du dich nirgends verstecken. Nicht vorm Regen und nicht vorm Klatsch.",
+    "6": "Der Mohn wächst von allein an den Feldrainen. Gepflanzt hat ihn keiner."
+  },
+  "family.bosque": {
+    "1": "Im Wald gibt's Pilze, die heilen, und Pilze, die nicht. Lern sie auseinanderzuhalten.",
+    "2": "Die Birken singen, wenn der Wind geht. Hör mal hin.",
+    "3": "Brennholz haben wir hier immer, aber man fragt den Wald vorher um Erlaubnis.",
+    "4": "Hörst du einen Wolf, renn nicht weg. Die sind schneller.",
+    "5": "Die ältesten Eichen standen schon hier, bevor es das Dorf gab.",
+    "6": "Im Herbst knistert der Waldboden wie geröstetes Brot."
+  },
+  "family.oscuro": {
+    "1": "Unter diesen Eichen wird es nie so richtig Tag.",
+    "2": "Bleib nach der Dämmerung bei den Laternen. Hör auf mich.",
+    "3": "Die Riesenpilze wachsen dort, wo kein Licht hinkommt. Wie so manches andere.",
+    "4": "Hier berühren sich die Baumkronen. Der Himmel ist nur ein Gerücht.",
+    "5": "Mein Großvater sagte, der dunkle Wald hat ein Gedächtnis. Und er ist nachtragend.",
+    "6": "Pfeif nie zwischen den Schwarzeichen. Es könnte dir etwas antworten."
+  },
+  "family.taiga": {
+    "1": "Die Fichten riechen nach Harz und nach dem Winter, der kommt.",
+    "2": "Die Füchse hier stehlen dir sogar die Eier aus dem Hühnerstall.",
+    "3": "Die Süßbeeren stechen, aber für das Beerenmus lohnt es sich.",
+    "4": "In der Taiga klopft der Winter nicht an. Eines Morgens ist er einfach da.",
+    "5": "Die Alten ritzten Runen in die Stämme, damit sie sich nicht verirrten.",
+    "6": "Eine gute Axt, ein gutes Feuer, ein guter Pelz. Mehr braucht kein Mensch."
+  },
+  "family.nieve": {
+    "1": "Hier lernst du schnell, das Feuer nie ausgehen zu lassen.",
+    "2": "Der Schnee deckt alles zu, sogar die Spuren der Wölfe.",
+    "3": "Trau dem Eis auf dem See nicht. Es knackt, bevor es bricht, aber nur kurz vorher.",
+    "4": "Eisbären sind friedlich. Bis sie's nicht mehr sind.",
+    "5": "In %2$s zählen wir Winter, nicht Jahre.",
+    "6": "Vorsicht vor Pulverschnee: Da ist schon mancher eingesunken und nicht wieder aufgetaucht."
+  },
+  "family.desierto": {
+    "1": "Wasser ist hier mehr wert als Gold. Na ja, fast.",
+    "2": "Tagsüber glüht es, nachts friert es. Die Wüste kennt kein Mittelmaß.",
+    "3": "Mein Großvater pflanzte Palmen am Bewässerungsgraben. Sie spenden heute noch Schatten.",
+    "4": "Der Sand hütet Geheimnisse besser als jede Truhe.",
+    "5": "Wenn der Abend kommt, ist der Innenhof mit dem Brunnen der schönste Ort der Welt.",
+    "6": "Der Kaktus will nichts und hält alles aus. Von dem kannst du lernen."
+  },
+  "family.sabana": {
+    "1": "Die Akazien geben wenig Schatten, aber allen gleich viel.",
+    "2": "Bei Sonnenuntergang kommen die wilden Pferde zum Trinken herunter.",
+    "3": "Das trockene Gras hier brennt wie Zunder. Pass mit den Fackeln auf.",
+    "4": "Die Lamas von der Hochebene spucken, aber sie tragen alles, was du ihnen auflädst.",
+    "5": "Mittags flimmert der Horizont der Savanne vor Hitze.",
+    "6": "Wenn der Regen in die Savanne kommt, laufen wir alle raus und lassen uns nass regnen."
+  },
+  "family.jungla": {
+    "1": "Im Dschungel wächst alles. Vor allem das, was du nicht willst.",
+    "2": "Die Papageien plappern alles nach. Pass auf, was du sagst.",
+    "3": "Besseren Kakao als unseren findest du in der ganzen Gegend nicht.",
+    "4": "Wenn dich ein Ozelot anstarrt, beweg dich nicht. Er überlegt nur noch.",
+    "5": "In einer Woche haben die Lianen den Pfad wieder zu. Man muss ihn ständig freischlagen.",
+    "6": "Man sagt, der Dschungel frisst die Tempel. Langsam, aber er frisst sie."
+  },
+  "family.pantano": {
+    "1": "Der Sumpfnebel verbirgt mehr, als man meint.",
+    "2": "Die Frösche quaken die ganze Nacht. Man gewöhnt sich dran. Mehr oder weniger.",
+    "3": "Siehst du eine Hütte mit dampfenden Kesseln, dann klopf bloß nicht an.",
+    "4": "Der Schlamm hier hilft gegen Hühneraugen. Sagt jedenfalls die Alte von der Mühle.",
+    "5": "Bei Vollmond kommen die Schleime raus. Frag nicht, warum.",
+    "6": "Trink nie etwas, das dir eine Frau mit spitzem Hut anbietet."
+  },
+  "family.cerezos": {
+    "1": "Wenn die Blüten fallen, sieht es aus, als schneite es rosa.",
+    "2": "Die Bienen in den Kirschbäumen machen den süßesten Honig weit und breit.",
+    "3": "Unter den Kirschbäumen spricht man leise. Das ist so Brauch.",
+    "4": "Jeden Frühling macht jemand unter dem großen Kirschbaum einen Heiratsantrag.",
+    "5": "Jeden Morgen kehre ich die Blütenblätter weg. Jeden Abend liegen sie wieder da.",
+    "6": "In %2$s sagen wir: Die Kirschblüte währt nur kurz, damit man sie richtig ansieht."
+  },
+  "family.badlands": {
+    "1": "In dieser roten Erde steckt Gold, wenn man weiß, wo man graben muss.",
+    "2": "Die alten Minen ächzen nachts. Ich würde da nicht hingehen.",
+    "3": "Die Sonne brennt hier den bunten Ton. Sieht aus wie von Hand bemalt.",
+    "4": "So mancher kam her, um sein Glück zu machen, und hütet jetzt Ziegen.",
+    "5": "Der rote Staub kriecht dir überall rein: in die Kleider, ins Essen, in die Träume.",
+    "6": "Wer hier eine Ader findet, verrät es nicht mal seiner eigenen Mutter."
+  },
+  "family.costa": {
+    "1": "Das Meer bringt alles Mögliche an: Fische, Treibholz und ab und zu eine Flaschenpost.",
+    "2": "Wenn das Leuchtfeuer ausgeht, wissen wir, dass ein Sturm aufzieht.",
+    "3": "Hier schmeckt alles nach Salz, sogar das Brot.",
+    "4": "Die Schildkröten kehren jedes Jahr an denselben Strand zurück. Wie die Seeleute.",
+    "5": "Kehr dem Meer nie den Rücken zu. Es tut das bei dir auch nicht.",
+    "6": "Mein Vater sagte, in den Muscheln hört man die Ertrunkenen."
+  },
+  "time.morning": {
+    "1": "Früh aufstehen fällt in %2$s leicht: Der Hahn kennt keine Gnade.",
+    "2": "Ein guter Tag, um was Neues anzufangen, findest du nicht?",
+    "3": "Ich hab noch Sand in den Augen. Sprich langsam mit mir.",
+    "4": "Der Morgentau ist das Schönste am Tag. Danach wird alles kompliziert.",
+    "5": "Schon auf den Beinen, %1$s? Entweder kaum geschlafen oder richtig gut."
+  },
+  "time.afternoon": {
+    "1": "Um diese Zeit halten nur die Katzen in Ruhe ihr Nickerchen.",
+    "2": "Die Hälfte der Arbeit ist geschafft. Die andere Hälfte morgen.",
+    "3": "Mit vollem Bauch denkt sich's schlecht. Das weiß doch jeder.",
+    "4": "Am Nachmittag ist der Platz wie leergefegt. Gute Zeit für ein Schwätzchen.",
+    "5": "Noch ist es eine Weile hell genug zum Schaffen."
+  },
+  "time.evening": {
+    "1": "Die Sonne geht unter. Bald heißt es, Türen zu.",
+    "2": "Um diese Stunde leuchtet der Himmel über %2$s in allen Farben.",
+    "3": "Aus jedem Haus riecht es schon nach Abendbrot.",
+    "4": "Hol rein, was du draußen hast, %1$s. Die Nacht lässt nicht lange auf sich warten.",
+    "5": "Jetzt ist die Stunde, in der die Fledermäuse aus den Höhlen kommen."
+  },
+  "time.night": {
+    "1": "Was machst du um diese Zeit noch wach? Da draußen sind Zombies.",
+    "2": "Nachts hört man jenseits der Mauer seltsame Dinge.",
+    "3": "Sprich leise, die Nachbarn schlafen.",
+    "4": "Nirgends sieht man die Sterne so gut wie von hier.",
+    "5": "Wenn du da draußen Knochen klappern hörst, ist das nicht der Wind."
+  },
+  "weather.clear": {
+    "1": "Was für ein klarer Tag. Man sieht bis zum Horizont.",
+    "2": "Bei der Sonne ist die Wäsche im Nu trocken.",
+    "3": "Kein Wölkchen. Sogar der Golem wirkt zufrieden.",
+    "4": "Bei so einem Himmel kriegt man richtig Fernweh.",
+    "5": "Gutes Wetter zum Feldarbeiten. Und zum Faulenzen."
+  },
+  "weather.rain": {
+    "1": "Der Regen tut den Feldern gut, aber meinen Knien nicht.",
+    "2": "Wenn es so weiterschüttet, tritt der Fluss über die Ufer.",
+    "3": "Komm rein ins Trockene, sonst bist du bald nass bis auf die Knochen.",
+    "4": "Mein Dach tropft genau über dem Bett. Immer genau da.",
+    "5": "Bei Regen beißen die Fische besser. Sagen jedenfalls die Fischer."
+  },
+  "weather.snow": {
+    "1": "Schon wieder Neuschnee. Da muss ich wieder aufs Dach und schippen.",
+    "2": "Bei der Kälte schlottern sogar die Skelette.",
+    "3": "Die Kinder bauen schon Schneemänner auf dem Platz.",
+    "4": "Zieh dich warm an, %1$s. Der Schnee täuscht: Er sieht weich aus und beißt.",
+    "5": "Wenn es so schneit, wird die ganze Welt still."
+  },
+  "weather.thunder": {
+    "1": "Der Blitz hat ganz nah eingeschlagen! Geh weg von den Bäumen.",
+    "2": "Bei Gewitter trauen sich nicht mal die Creeper raus. Na gut, doch.",
+    "3": "Es heißt, ein Blitz hat mal ein Schwein in etwas Grässliches verwandelt. Ich glaub's sofort.",
+    "4": "Bei jedem Donner zuck ich zusammen. Lach nicht.",
+    "5": "Bei dem Unwetter verlässt man %2$s besser nicht. Glaub mir."
+  },
+  "general": {
+    "1": "Das Leben in %2$s ist einfach, und das gefällt mir.",
+    "2": "Der Eisengolem schaut mich komisch an, seit ich ihm eine Blume aufgemalt hab.",
+    "3": "Der Brunnen am Platz hat das frischeste Wasser in der ganzen Gegend.",
+    "4": "Man sagt, der Bürgermeister schnarcht so laut, dass die Fledermäuse Reißaus nehmen.",
+    "5": "Pass auf dich auf, %1$s. Die Welt ist groß und nicht immer freundlich.",
+    "6": "Mein Bett ist das Einzige, was wirklich mir gehört. Und das verteidige ich.",
+    "7": "Hier hat jede Glocke ihren eigenen Ton. Die am Platz ist die grantigste.",
+    "8": "Lesen kann ich nicht, aber Smaragde zählen schon. Das reicht mir.",
+    "9": "Die Katzen in %2$s haben mehr zu sagen als der Bürgermeister.",
+    "10": "Siehst du einen im grünen Kittel mit Miene wie sieben Tage Regenwetter, das ist mein Vetter.",
+    "11": "Ich wohne mein Leben lang in %2$s und verlauf mich immer noch auf dem Markt.",
+    "12": "Ein guter Nachbar ist mehr wert als eine volle Truhe.",
+    "13": "Als ich jung war, wollte ich die Welt sehen. Dann sah ich einen Zombie, und das war's.",
+    "14": "Die Hühner legen mehr, wenn man ihnen vorsingt. Schau nicht so.",
+    "15": "In %2$s kennt jeder jeden. Im Guten wie im Schlechten.",
+    "16": "Mit einem Lied geht die Arbeit leichter von der Hand. Schade, dass ich keins kann.",
+    "17": "Ich hab einen Smaragd für schlechte Zeiten zurückgelegt. Die sind noch nicht gekommen.",
+    "18": "Was sich mit Geduld nicht richten lässt, richtet ein Stück Brot.",
+    "19": "Du bist nicht von hier, das merkt man. Du riechst nach Landstraße.",
+    "20": "Was man hier am meisten hört: Glocken, Hühner und Getratsche."
+  },
+  "rumor": {
+    "1": "Es heißt, letzte Nacht kam ein Händler mit drei Lamas durch, und zwar ganz ohne Eile.",
+    "2": "Die Tochter vom Schmied hat sich verlobt. Sagt sie jedenfalls.",
+    "3": "Jemand hat seltsame Lichter in den Hügeln gesehen. Bestimmt nichts weiter.",
+    "4": "Im Nachbardorf backen sie ein grauenhaftes Brot. Aber verrat's ihnen nicht.",
+    "5": "Den fahrenden Händler hat seit Tagen keiner gesehen. Hoffentlich geht's ihm gut.",
+    "6": "Der Schäfer schwört, eines seiner Schafe kam rosa gefärbt zurück. Er war's nicht.",
+    "7": "Nachts legt jemand Blumen vor die Tür des Bibliothekars. Keiner weiß, wer.",
+    "8": "Ein Holzfäller hat mitten im Wald Glocken gehört, wo weit und breit keine Glocke ist.",
+    "9": "Die Kinder sagen, sie hätten ein Skelett auf einer Spinne reiten sehen. Ich glaub's ihnen nicht. Nicht ganz.",
+    "10": "Gestern kam ein Reisender mit angesengten Kleidern an und wollte nicht sagen, woher.",
+    "11": "Der Kleriker kauft mehr Kerzen, als er braucht. Wofür bloß so viele?",
+    "12": "Man erzählt, jemand hätte einen Dreizack aus dem Meer geholt. Und das Meer will ihn zurück.",
+    "13": "Mit der letzten Karawane kam einer, der mit niemandem sprach. Nachts war er weg.",
+    "14": "Ein Fischer behauptet, er hätte eine Stadt unter Wasser gesehen. Na ja, er trinkt auch gern einen.",
+    "15": "Auf den Straßen sollen wieder Räuber unterwegs sein. Wenn du reist, dann nicht allein.",
+    "16": "Die Alte aus dem letzten Haus sagt, sie redet mit den Katzen. Und die antworten ihr.",
+    "17": "Seit Wochen starrt der Golem immer zum Wald hinüber. Irgendwas hat er gesehen.",
+    "18": "Einer hat einen Kompass gefunden, der nicht nach Norden zeigt. Hat ihn natürlich sofort verkauft.",
+    "19": "Es heißt, in den Bergen gibt es Höhlen, in denen man den Stein atmen hört.",
+    "20": "Ein Kartograf kam mit einer halbfertigen Karte vorbei. Er sagte, manches traue er sich nicht zu zeichnen."
+  },
+  "busy": {
+    "1": "Jetzt nicht, ich hab zu tun. Handeln kannst du aber gern.",
+    "2": "Später, mir brennt sonst der Eintopf an.",
+    "3": "Gib mir einen Moment, du erwischst mich gerade schlecht.",
+    "4": "Psst, ich ruh mich aus. Komm später wieder.",
+    "5": "Jetzt gerade nicht, %1$s. Mir geht anderes im Kopf herum.",
+    "6": "Lass mich, ich steh schon den ganzen Tag auf den Beinen."
+  },
+  "farewell": {
+    "1": "Mach's gut, %1$s.",
+    "2": "Komm wieder, wann du willst. Wir sind hier.",
+    "3": "Pass auf dich auf da draußen auf den Wegen.",
+    "4": "Bis bald. Und vergiss %2$s nicht.",
+    "5": "Halt die Augen offen, die Nacht kommt ohne Vorwarnung.",
+    "6": "Wenn du meinen Vetter triffst, sag ihm, er schuldet mir einen Smaragd.",
+    "7": "Gute Reise. Und iss was, du bist ja nur noch Haut und Knochen.",
+    "8": "Möge dir der Weg leicht werden, %1$s."
+  },
+  "hint.unique": {
+    "1": "Ich verrat dir was, das sonst keiner weiß: In jungen Jahren sah ich „%1$s“, Richtung %2$s, etwa %3$s Blöcke von hier. Ich bin nie wieder hin.",
+    "2": "Mein Vater erzählte mir von „%1$s“. Liegt im %2$s, so um die %3$s Blöcke weit. Es heißt, etwas bewacht es.",
+    "3": "Suchst du ein echtes Abenteuer? „%1$s“, Richtung %2$s, etwa %3$s Blöcke. Ich hab am Eingang kehrtgemacht.",
+    "4": "Einmal hab ich im Schatten von „%1$s“ unter freiem Himmel geschlafen. Im %2$s, etwa %3$s Blöcke. Kein Auge hab ich zugetan.",
+    "5": "Im %2$s, etwa %3$s Blöcke von hier, ragt „%1$s“ auf. Von Weitem wirkt es friedlich. Von Nahem nicht.",
+    "6": "Das Größte, was ich je gesehen hab: „%1$s“. Geh etwa %3$s Blöcke Richtung %2$s, dann siehst du es, lange bevor du ankommst."
+  },
+  "hint.medium": {
+    "1": "Auf meinen Reisen hab ich an so einem Ort Rast gemacht: „%1$s“, Richtung %2$s, etwa %3$s Blöcke von hier.",
+    "2": "Richtung %2$s, etwa %3$s Blöcke weit, findest du „%1$s“. Frag nach mir, falls dort noch einer lebt.",
+    "3": "Sag's keinem weiter: „%1$s“, im %2$s, etwa %3$s Blöcke. Der Fußmarsch lohnt sich.",
+    "4": "In einer Regennacht hab ich in „%1$s“ Unterschlupf gefunden. Im %2$s, etwa %3$s Blöcke. Man war gut zu mir. Glaub ich.",
+    "5": "Geh etwa %3$s Blöcke gen %2$s. Dort liegt „%1$s“. Nimm Proviant mit, der Weg zieht sich.",
+    "6": "Meine letzte Station vor der Heimkehr war „%1$s“, im %2$s, etwa %3$s Blöcke von hier. Den Geruch hab ich heute noch in der Nase."
+  },
+  "hint.mine": {
+    "1": "Im %2$s, etwa %3$s Blöcke von hier, liegt „%1$s“. Einmal bin ich runter und hab Spitzhacken im Dunkeln gehört.",
+    "2": "Suchst du Erz? „%1$s“, Richtung %2$s, etwa %3$s Blöcke. Nimm reichlich Fackeln mit.",
+    "3": "Eine Zeit lang hab ich in „%1$s“ geschuftet. Im %2$s, etwa %3$s Blöcke. Ich hab aufgehört, als meine Fackel von selbst ausging.",
+    "4": "Im %2$s, etwa %3$s Blöcke weit, geht's hinab: „%1$s“. Die Loren rollen noch. Keiner schiebt sie.",
+    "5": "Ein alter Bergmann nahm mich mal mit hinunter: „%1$s“, Richtung %2$s, etwa %3$s Blöcke. Ich kam mit vollen Taschen und zitternden Händen raus.",
+    "6": "„%1$s“, im %2$s, etwa %3$s Blöcke. Da unten schmeckt die Luft nach Eisen. Und nach etwas anderem."
+  },
+  "hint.withheld": {
+    "1": "Ich hab einiges gesehen, ja... aber das erzähl ich nicht jedem. Verdien dir erst das Vertrauen von %2$s.",
+    "2": "Ich wüsste da einen Ort, aber so gut kenn ich dich noch nicht, %1$s.",
+    "3": "Hilf ein bisschen am Brett mit, dann erzähl ich dir vielleicht, was ich auf meinen Reisen gesehen hab.",
+    "4": "Die Geheimnisse der Straße muss man sich verdienen, %1$s. Du bist noch nicht dran.",
+    "5": "Komm wieder, wenn man in %2$s deinen Namen sagt, ohne die Stirn zu runzeln.",
+    "6": "Ich könnte dir vieles erzählen. Aber erst will ich sehen, was du taugst."
+  },
+  "hint.told": {
+    "1": "Ich hab dir schon das Einzige erzählt, was ich weiß. Den Rest musst du selbst rausfinden.",
+    "2": "Mein Geheimnis ist verraten. Vielleicht weiß jemand anders in %2$s noch mehr.",
+    "3": "Warst du schon dort, wo ich dir gesagt hab? Mehr hab ich nämlich nicht zu erzählen.",
+    "4": "Was ich wusste, gehört jetzt dir, %1$s. Geh gut damit um."
+  },
+  "hint.nothing": {
+    "1": "Ich bin weit herumgekommen, aber hier in der Gegend gab's nichts, was sich zu erzählen lohnt.",
+    "2": "Was ich auf meinen Reisen gesehen hab, liegt viel zu weit von hier.",
+    "3": "Hier im Umland gibt's nur Felder und noch mehr Felder. Glaub mir, ich hab alles abgelaufen.",
+    "4": "Ich würd dir ja gern helfen, %1$s, aber rund um %2$s gibt's nichts, was ein Abenteuer wert wäre."
+  }
+}

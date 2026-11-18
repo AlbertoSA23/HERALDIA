@@ -16,7 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
  * All the mod's commands, under /heraldia and with English names (the texts the player sees are still translated):
  * info [nearby [radius] | here], guide, journal [section] (each player's journal of what they found and what is
  * missing), key, arena, review, status, reload, update check, profile, webmap refresh, quest
- * (board quests, T38), treasure give/info (T40), caravan (caravans, T39, operators) and wizard [reveal] (wizard huts,
+ * (board quests, T38), talk (villager conversations, P9a), treasure give/info (T40), caravan (caravans, T39, operators) and wizard [reveal] (wizard huts,
  * T43, operators); config (dialog panel), language (each player's language) and update analyze/apply/undo/repair (safe
  * updates, T46). The old Spanish names keep working as hidden aliases ({@link Alias}). One line in Heraldia.onInitialize.
  */
@@ -44,6 +44,7 @@ public final class HeraldiaCommands {
 				.then(ProfileCommand.node())
 				.then(io.github.albertosa23.heraldia.maps.WebMaps.node())
 				.then(io.github.albertosa23.heraldia.quests.Quests.node())
+				.then(io.github.albertosa23.heraldia.dialogue.Dialogue.node())
 				.then(io.github.albertosa23.heraldia.treasure.Treasure.node())
 				.then(io.github.albertosa23.heraldia.caravans.Caravans.node())
 				.then(io.github.albertosa23.heraldia.huts.Wizards.node())

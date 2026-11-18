@@ -24,6 +24,7 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 - 📋 **Encàrrecs dels pobles.** Toca el faristol del tauler de la plaça d'un poble (o fes-hi servir `/heraldia quest`): surten al xat de 2 a 4 encàrrecs (portar objectes, vèncer un guardià, explorar, viatjar a un poble veí, l'arena) que canvien cada pocs dies. Paguen maragdes, experiència i reputació amb aquell poble: com a conegut, amic i heroi del poble, els seus vilatans rebaixen els preus un 10, 20 i 30 %. Atacar els seus vilatans o gòlems la fa baixar.
 - 🐪 **Caravanes.** De tant en tant, a prop teu, un mercader d'Heraldia amb les seves llames (i a vegades un guarda) recorre el camí entre dos pobles veïns. Si l'assalten els bandits, defensa'l: en arribar et paga maragdes i reputació amb el seu poble de destinació. Si el mercader mor, la caravana es perd.
 - 🚶 **Gent de pas.** Vida als camins, també a prop teu: un pelegrí camí d'un monestir o d'una catedral, un pastor amb el seu ramat, un missatger amb pressa, una parella de guardes de patrulla o un caçador que torna amb el seu gos, segons la zona. Recorren un tram i se'n van; el pastor i el caçador comercien, i si els fas mal se sabrà al seu poble.
+- 💬 **Parla amb els vilatans.** Fes clic dret sobre un vilatà d'un poble d'Heraldia i et parla al xat: frases segons el seu ofici, la seva terra, l'hora, el temps i el que el poble et coneix, amb botons per continuar parlant, preguntar què es diu o comerciar (ajupit + clic dret comercia directament; els vilatans vanilla comercien com sempre). Un de cada deu ha viatjat i, si el poble es fia de tu, t'explica una vegada cap a on i a quina distància hi ha una estructura.
 - 🏆 **Assoliments.** Una pestanya Heraldia amb 124 assoliments: un poble de cada família, cada estructura única amb el seu guardià i el seu tresor, les mines, els fars i naufragis, les estructures mitjanes, el tauler d'encàrrecs, l'arena i les caravanes.
 - 🗿 **Trofeus.** Cadascun dels 22 guardians deixa anar el seu trofeu, un objecte amb nom i història. Reuneix-los tots per completar la Sala de trofeus.
 - 🗺️ **Mapes del tresor.** Cada mapa marca l'estructura única més propera del seu tipus. Surten als cofres èpics dels pobles i els venen els cartògrafs.
@@ -68,6 +69,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `arena.temporada.dia_reinicio` | `lunes` | Dia en què es tanca la classificació setmanal de l'arena i se n'anuncien els campions (a mitjanit, hora del servidor). |
 | `encargos.activado` | `true` | Encàrrecs del tauler (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputació per poble i els seus descomptes. |
+| `dialogos.activado` | `true` | Converses amb els vilatans d'Heraldia (ajupit + clic dret comercia directament). |
 | `caravanas.activado` | `true` | Caravanes pels camins (operadors: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Gent de pas pels camins, cada tipus amb la seva opció (operadors: `/heraldia caravan wayfarer`). |
 | `chozas_mago.prob_malvado` | 20 | Probabilitat (%) que el mag d'una cabana de mag sigui un mag malvat disfressat. |

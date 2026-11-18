@@ -1,0 +1,324 @@
+{
+  "greeting.desconocido": {
+    "1": "Foraster? A %2$s no t'hi havia vist mai.",
+    "2": "Bon dia. Que véns de gaire lluny?",
+    "3": "Hola, viatger. Aquí som gent de pau.",
+    "4": "Hum. I tu qui ets, si es pot saber?",
+    "5": "Si véns a comerciar, bé. Si no, també, però no toquis res.",
+    "6": "Per %2$s no hi passa gaire gent. T'has perdut?",
+    "7": "Bona tarda... o el que sigui. No acostumo a parlar amb desconeguts.",
+    "8": "T'aviso: el gòlem no es refia dels qui arriben amb pressa."
+  },
+  "greeting.conocido": {
+    "1": "Ah, %1$s! Ja tornes a ser per aquí.",
+    "2": "Aquesta cara em sona. Vas donar un cop de mà amb el tauler, oi?",
+    "3": "Bon dia, %1$s. Què et porta per %2$s?",
+    "4": "Mira qui hi ha, %1$s. Com ha anat el camí?",
+    "5": "Ja deia jo que aquestes botes em sonaven.",
+    "6": "%1$s! Ja em pensava que no tornaries.",
+    "7": "Bones. Aquesta vegada no t'has perdut, eh?",
+    "8": "Mira, la persona dels encàrrecs. Com va això, %1$s?"
+  },
+  "greeting.amigo": {
+    "1": "%1$s, amic meu! Seu una estona.",
+    "2": "Quina alegria de veure't. A %2$s se'n parla bé, de tu.",
+    "3": "Mira qui ha tornat! Passa, passa.",
+    "4": "%1$s! Ara mateix parlàvem de tu. Bé, tranquil·litat.",
+    "5": "Vine, que tinc pa acabat de fer i ningú amb qui partir-lo.",
+    "6": "Quant de temps, %1$s! A %2$s et trobàvem a faltar.",
+    "7": "Ja ets aquí! La canalla preguntava per tu.",
+    "8": "Ai, amic meu, com et tracta el món?"
+  },
+  "greeting.heroe": {
+    "1": "L'heroi de %2$s! La mainada no para de parlar de tu.",
+    "2": "%1$s, és un honor. El que necessitis, demana-ho.",
+    "3": "Feu pas! És %1$s!",
+    "4": "%1$s en persona! Espera, que em trec la pols de sobre.",
+    "5": "Tot %2$s et deu alguna cosa. I jo el primer.",
+    "6": "La meva àvia diu que et posarà a les seves pregàries. I al testament.",
+    "7": "Ha tornat %1$s! Que algú toqui la campana!",
+    "8": "Amb tu per aquí, fins i tot el gòlem es posa dret."
+  },
+  "reputation.desconocido": {
+    "1": "Aquí som una mica desconfiats amb els forasters. No és res personal.",
+    "2": "Si vols que et coneguin, fes una ullada al tauler de la plaça.",
+    "3": "No t'ho prenguis malament, però encara no sé si refiar-me de tu.",
+    "4": "Les paraules se les endú el vent. A %2$s ens fixem en els fets."
+  },
+  "reputation.conocido": {
+    "1": "L'agutzil diu que compleixes el que promets. Això aquí val molt.",
+    "2": "Ja no et miren de reüll al mercat, te n'has adonat?",
+    "3": "Ja n'hi ha que et saluden pel nom. Bon senyal.",
+    "4": "Si continues així, a %2$s et tindran per un dels nostres."
+  },
+  "reputation.amigo": {
+    "1": "Et guardo el millor de la setmana, que ho sàpigues.",
+    "2": "A %2$s tens casa sempre que vulguis.",
+    "3": "Si mai necessites un cop de mà, aquí en tens unes quantes.",
+    "4": "Ja no tanco la porta quan et veig venir, %1$s."
+  },
+  "reputation.heroe": {
+    "1": "Algun dia algú farà una cançó sobre tu. Tant de bo que rimi.",
+    "2": "Mentre tu voltis per aquí, dormim tranquils.",
+    "3": "El teu nom ja s'explica vora el foc, %1$s.",
+    "4": "Si %2$s tingués estàtues, la primera seria la teva."
+  },
+  "family.llanuras": {
+    "1": "Des d'aquí veus venir qualsevol a una llegua.",
+    "2": "El vent de la plana s'endú les penes i els barrets.",
+    "3": "Aquí el blat arriba fins on se't perd la vista.",
+    "4": "Els cavalls de la plana no es deixen muntar a la primera.",
+    "5": "A la plana no hi ha on amagar-se. Ni de la pluja ni de les xafarderies.",
+    "6": "Les roselles surten soles als marges. Ningú no les sembra."
+  },
+  "family.bosque": {
+    "1": "Al bosc hi ha bolets que curen i bolets que no. Aprèn a destriar-los.",
+    "2": "Els bedolls canten quan bufa el vent. Escolta'ls.",
+    "3": "Aquí la llenya no falta mai, però s'ha de demanar permís al bosc.",
+    "4": "Si sents un llop, no corris. Ells corren més.",
+    "5": "Els roures més vells ja eren aquí abans que el poble.",
+    "6": "A la tardor, el terra del bosc cruix com pa torrat."
+  },
+  "family.oscuro": {
+    "1": "Sota aquests roures no es fa mai de dia del tot.",
+    "2": "No t'allunyis dels fanals quan es fa fosc. Fes-me cas.",
+    "3": "Els bolets gegants creixen on no arriba la llum. Com altres coses.",
+    "4": "Aquí els arbres es toquen per dalt. El cel és només una remor.",
+    "5": "El meu avi deia que el bosc fosc té memòria. I rancúnia.",
+    "6": "No xiulis mai entre els roures negres. Alguna cosa et podria respondre."
+  },
+  "family.taiga": {
+    "1": "Els avets fan olor de resina i d'hivern que arriba.",
+    "2": "Per aquí les guineus et roben fins i tot els ous del galliner.",
+    "3": "Les baies dolces punxen, però la confitura de baies s'ho val.",
+    "4": "A la taiga l'hivern no avisa: un dia hi és, i prou.",
+    "5": "Els antics gravaven runes als troncs per no perdre's.",
+    "6": "Una bona destral, un bon foc i un bon abric. La resta sobra."
+  },
+  "family.nieve": {
+    "1": "Aquí aprens de seguida a no deixar mai apagar el foc.",
+    "2": "La neu ho tapa tot, fins i tot les petjades dels llops.",
+    "3": "No et refiïs del gel de l'estany. Cruix abans de trencar-se, però just abans.",
+    "4": "Els óssos polars són tranquils. Fins que deixen de ser-ho.",
+    "5": "A %2$s comptem els hiverns, no pas els anys.",
+    "6": "Compte amb la neu pols: n'hi ha que s'hi van enfonsar i no van tornar a sortir."
+  },
+  "family.desierto": {
+    "1": "Aquí l'aigua val més que l'or. Bé, gairebé.",
+    "2": "De dia crema i de nit glaça. El desert no coneix el terme mitjà.",
+    "3": "El meu avi plantava palmeres vora la sèquia. Encara fan ombra.",
+    "4": "La sorra guarda els secrets millor que cap cofre.",
+    "5": "En caure la tarda, el pati de la font és el millor lloc del món.",
+    "6": "El cactus no demana res i ho aguanta tot. Aprèn-ne."
+  },
+  "family.sabana": {
+    "1": "Les acàcies fan poca ombra, però la fan per a tothom igual.",
+    "2": "Els cavalls salvatges baixen a beure a la posta de sol.",
+    "3": "Aquí l'herba seca s'encén amb no res. Compte amb les torxes.",
+    "4": "Les llames de l'altiplà escupen, però carreguen el que els posis.",
+    "5": "A la sabana, a migdia, l'horitzó tremola de calor.",
+    "6": "Quan arriba la pluja a la sabana, tots sortim a mullar-nos."
+  },
+  "family.jungla": {
+    "1": "A la jungla tot creix, sobretot el que no vols.",
+    "2": "Els lloros repeteixen el que diem. Vigila què dius.",
+    "3": "Cacau com el d'aquí no en trobaràs a tota la comarca.",
+    "4": "Si un ocelot et mira, no et moguis. Només s'ho està rumiant.",
+    "5": "Les lianes tallen el camí en una setmana. Sempre l'has de tornar a obrir.",
+    "6": "Diuen que la jungla es menja els temples. A poc a poc, però se'ls menja."
+  },
+  "family.pantano": {
+    "1": "La boira de l'aiguamoll amaga més del que sembla.",
+    "2": "Les granotes canten tota la nit. T'hi acostumes. Més o menys.",
+    "3": "Si veus una barraca amb calderes fumejant, no truquis a la porta.",
+    "4": "El fang d'aquí cura les durícies. Això diu la vella del molí.",
+    "5": "Els slimes surten quan hi ha lluna plena. No preguntis per què.",
+    "6": "No beguis mai res que t'ofereixi una dona amb barret punxegut."
+  },
+  "family.cerezos": {
+    "1": "Quan cauen els pètals, sembla que nevi rosa.",
+    "2": "Les abelles dels cirerers fan la mel més dolça de la comarca.",
+    "3": "Sota els cirerers es parla fluixet. És costum.",
+    "4": "Cada primavera algú demana la mà sota el cirerer gran.",
+    "5": "Escombro els pètals cada matí. Cada tarda tornen a ser-hi.",
+    "6": "A %2$s diem que la flor del cirerer dura poc perquè la miris bé."
+  },
+  "family.badlands": {
+    "1": "Aquesta terra vermella amaga or, si saps on mirar.",
+    "2": "Les mines abandonades grinyolen de nit. Jo no m'hi acostaria.",
+    "3": "Aquí el sol cou l'argila de colors. Sembla pintada a mà.",
+    "4": "Més d'un va venir a buscar fortuna i es va quedar a criar cabres.",
+    "5": "La pols vermella se't fica a tot arreu: a la roba, al menjar, als somnis.",
+    "6": "Per aquí, qui troba una veta no ho explica ni a sa mare."
+  },
+  "family.costa": {
+    "1": "El mar porta de tot: peixos, fustes i alguna ampolla de tant en tant.",
+    "2": "Quan s'apaga el far, sabem que ve temporal.",
+    "3": "Aquí tot té gust de sal, fins i tot el pa.",
+    "4": "Les tortugues tornen a la mateixa platja cada any. Com els mariners.",
+    "5": "No donis mai l'esquena al mar. Ell no te la dona a tu.",
+    "6": "El meu pare deia que els ofegats se senten dins les cargoles."
+  },
+  "time.morning": {
+    "1": "Llevar-se d'hora a %2$s és fàcil: el gall no perdona.",
+    "2": "Bon dia per començar alguna cosa nova, no trobes?",
+    "3": "Encara tinc lleganyes. Parla'm a poc a poc.",
+    "4": "La rosada del matí és el millor del dia. Després tot es complica.",
+    "5": "Ja en peu, %1$s? O has dormit poc o has dormit molt bé."
+  },
+  "time.afternoon": {
+    "1": "A aquestes hores només els gats fan la migdiada en pau.",
+    "2": "La meitat de la feina ja és feta. L'altra meitat, demà.",
+    "3": "Amb la panxa plena es pensa pitjor. Tothom ho diu.",
+    "4": "A mitja tarda la plaça es queda buida. És bon moment per fer petar la xerrada.",
+    "5": "Encara queda llum per a una bona estona de feina."
+  },
+  "time.evening": {
+    "1": "El sol ja se'n va. Aviat caldrà tancar-se a casa.",
+    "2": "A aquesta hora el cel de %2$s es posa de tots colors.",
+    "3": "Ja fa olor de sopar a totes les cases.",
+    "4": "Recull el que tinguis a fora, %1$s. La nit no triga.",
+    "5": "És l'hora que els ratpenats surten de les coves."
+  },
+  "time.night": {
+    "1": "Què fas en peu a aquestes hores? Allà fora hi ha zombis.",
+    "2": "De nit se senten coses estranyes més enllà de la muralla.",
+    "3": "Parla fluixet, que els veïns dormen.",
+    "4": "Les estrelles es veuen millor des d'aquí que des de qualsevol altre lloc.",
+    "5": "Si sents ossos picar allà fora, no és el vent."
+  },
+  "weather.clear": {
+    "1": "Quin dia més net. Es veu fins a l'horitzó.",
+    "2": "Amb aquest sol, la roba estesa s'eixuga en un tres i no res.",
+    "3": "Ni un núvol. Fins i tot el gòlem sembla content.",
+    "4": "Amb aquest cel venen ganes de fer camí.",
+    "5": "Bon temps per treballar el camp. I per no fer-ho."
+  },
+  "weather.rain": {
+    "1": "Aquesta pluja va bé per als camps, però malament per als meus genolls.",
+    "2": "Si continua plovent així, el riu sortirà de mare.",
+    "3": "Entra a aixoplugar-te, que et calaràs fins al moll de l'os.",
+    "4": "La teulada de casa meva degota just a sobre del llit. Sempre.",
+    "5": "Amb pluja, els peixos piquen més. Això diuen els pescadors."
+  },
+  "weather.snow": {
+    "1": "Una altra nevada. Tocarà tornar a treure neu de la teulada.",
+    "2": "Amb aquest fred fins i tot els esquelets tremolen.",
+    "3": "La canalla ja fa ninots de neu a la plaça.",
+    "4": "Abriga't, %1$s. La neu enganya: sembla tova i mossega.",
+    "5": "Quan neva així, el món es queda en silenci."
+  },
+  "weather.thunder": {
+    "1": "Aquest llamp ha caigut a prop! Allunya't dels arbres.",
+    "2": "Amb tempesta, ni els creepers surten. Bé, sí que surten.",
+    "3": "Diuen que un llamp va convertir un porc en una cosa horrible. Jo m'ho crec.",
+    "4": "Cada tro em fa fer un bot. No te'n riguis.",
+    "5": "Amb aquesta tempesta, més val no sortir de %2$s. Creu-me."
+  },
+  "general": {
+    "1": "La vida a %2$s és senzilla, i això m'agrada.",
+    "2": "El gòlem de ferro em mira estrany des que li vaig pintar una flor.",
+    "3": "El pou de la plaça dona l'aigua més fresca de la comarca.",
+    "4": "Diuen que l'alcalde ronca tant que espanta els ratpenats.",
+    "5": "Cuida't, %1$s. El món és gran i no sempre és amable.",
+    "6": "El meu llit és l'únic que és meu de debò. I el defenso.",
+    "7": "Aquí cada campana té el seu so. La de la plaça és la més rondinaire.",
+    "8": "No sé llegir, però sé comptar maragdes. Amb això en tinc prou.",
+    "9": "Els gats de %2$s manen més que l'alcalde.",
+    "10": "Si veus algú amb túnica verda i cara de pocs amics, és el meu cosí.",
+    "11": "Fa tota la vida que visc a %2$s i encara em perdo pel mercat.",
+    "12": "Un bon veí val més que un cofre ple.",
+    "13": "De jove volia veure món. Després vaig veure un zombi i se'm va passar.",
+    "14": "Les gallines ponen més si els cantes. No em miris així.",
+    "15": "A %2$s ens coneixem tots. Per al que és bo i per al que és dolent.",
+    "16": "La feina surt millor amb una cançó. Llàstima que no me'n sàpiga cap.",
+    "17": "Tinc una maragda guardada per a un mal dia. Encara no ha arribat.",
+    "18": "El que no s'arregla amb paciència s'arregla amb pa amb tomàquet.",
+    "19": "Tu véns de fora, es nota. Fas olor de camí.",
+    "20": "Aquí el que més se sent són les campanes, les gallines i les xafarderies."
+  },
+  "rumor": {
+    "1": "Diuen que ahir a la nit va passar un mercader amb tres llames i cap pressa.",
+    "2": "La filla del ferrer s'ha promès. O això diu ella.",
+    "3": "Algú ha vist llums estranyes als turons. Segur que no és res.",
+    "4": "Al poble del costat fan un pa horrorós. No els ho diguis.",
+    "5": "Fa dies que no veiem el marxant ambulant. Tant de bo que estigui bé.",
+    "6": "El pastor jura que una de les seves ovelles va tornar tenyida de rosa. Ell no va ser.",
+    "7": "De nit algú deixa flors a la porta del bibliotecari. Ningú sap qui.",
+    "8": "Un llenyataire va sentir campanes enmig del bosc, on no n'hi ha cap.",
+    "9": "La mainada diu que ha vist un esquelet muntat en una aranya. No me'ls crec. Del tot.",
+    "10": "Ahir va arribar un viatger amb la roba socarrimada i no va voler dir d'on venia.",
+    "11": "El clergue compra més espelmes de les que necessita. Per què en voldrà tantes?",
+    "12": "Diuen que algú va treure un trident del mar. I que el mar el volia de tornada.",
+    "13": "A l'última caravana hi venia un home que no parlava amb ningú. Se'n va anar de nit.",
+    "14": "Un pescador assegura que va veure una ciutat sota l'aigua. Això sí, beu molt.",
+    "15": "Tornen a veure's bandolers pels camins. Si viatges, no ho facis sol.",
+    "16": "La vella de la casa del fons diu que parla amb els gats. I que ells li contesten.",
+    "17": "Fa setmanes que el gòlem es queda mirant cap al bosc. Alguna cosa deu haver vist.",
+    "18": "Algú va trobar una brúixola que no assenyala el nord. La va vendre de seguida, és clar.",
+    "19": "Diuen que a les muntanyes hi ha coves on se sent respirar la pedra.",
+    "20": "Un cartògraf va passar per aquí amb un mapa a mig fer. Va dir que hi havia coses que no gosava dibuixar."
+  },
+  "busy": {
+    "1": "Ara no puc, tinc feina. Si vols comerciar, endavant.",
+    "2": "Després parlem, que se m'enganxa l'escudella.",
+    "3": "Dona'm una estona, que m'has enxampat amb les mans plenes.",
+    "4": "Xxt, estic descansant. Torna més tard.",
+    "5": "Ara mateix no, %1$s. Tinc el cap a una altra banda.",
+    "6": "Deixa'm estar, que porto tot el dia dret."
+  },
+  "farewell": {
+    "1": "Que vagi bé, %1$s.",
+    "2": "Torna quan vulguis. Aquí serem.",
+    "3": "Ves amb compte per aquests camins.",
+    "4": "Fins aviat. I no t'oblidis de %2$s.",
+    "5": "Vés amb ull, que la nit no avisa.",
+    "6": "Si veus el meu cosí per aquí, digues-li que em deu una maragda.",
+    "7": "Bon viatge. I menja alguna cosa, que et veig a la pell i l'os.",
+    "8": "Que el camí et sigui lleu, %1$s."
+  },
+  "hint.unique": {
+    "1": "T'explicaré una cosa que no sap ningú: de jove vaig veure «%1$s», en direcció %2$s, a uns %3$s blocs. No hi vaig tornar mai.",
+    "2": "El meu pare em parlava de «%1$s». És en direcció %2$s, a uns %3$s blocs. Diuen que alguna cosa ho guarda.",
+    "3": "Si busques aventures de debò: «%1$s», en direcció %2$s, a uns %3$s blocs. Jo vaig fer mitja volta a la porta.",
+    "4": "Una vegada vaig dormir a la serena a l'ombra de «%1$s». En direcció %2$s, a uns %3$s blocs. No vaig aclucar l'ull.",
+    "5": "En direcció %2$s, a uns %3$s blocs, s'alça «%1$s». De lluny sembla tranquil. De prop, no.",
+    "6": "El més gran que he vist mai: «%1$s». Camina uns %3$s blocs en direcció %2$s i ho veuràs abans d'arribar-hi."
+  },
+  "hint.medium": {
+    "1": "Quan viatjava em vaig aturar en un lloc així: «%1$s», en direcció %2$s, a uns %3$s blocs d'aquí.",
+    "2": "En direcció %2$s, a uns %3$s blocs, hi ha «%1$s». Pregunta per mi, si encara hi queda algú.",
+    "3": "No ho diguis a ningú: «%1$s», en direcció %2$s, uns %3$s blocs. Val la pena la caminada.",
+    "4": "Una nit de pluja em vaig aixoplugar a «%1$s». En direcció %2$s, a uns %3$s blocs. Em van tractar bé. Crec.",
+    "5": "Fes uns %3$s blocs en direcció %2$s. Allà hi ha «%1$s». Porta menjar, que el camí es fa llarg.",
+    "6": "La meva última parada abans de tornar va ser «%1$s», en direcció %2$s, a uns %3$s blocs. Encara me'n recordo de l'olor."
+  },
+  "hint.mine": {
+    "1": "Hi ha «%1$s» en direcció %2$s, a uns %3$s blocs. Hi vaig baixar una vegada i vaig sentir pics a la foscor.",
+    "2": "Si busques mineral: «%1$s», en direcció %2$s, a uns %3$s blocs. Porta torxes de sobres.",
+    "3": "Vaig treballar una temporada a «%1$s». En direcció %2$s, a uns %3$s blocs. Ho vaig deixar quan la torxa se'm va apagar tota sola.",
+    "4": "En direcció %2$s, a uns %3$s blocs, es baixa a «%1$s». Les vagonetes encara roden. Ningú no les empeny.",
+    "5": "Un miner vell em va portar a «%1$s», en direcció %2$s, uns %3$s blocs. En vaig sortir amb les butxaques plenes i les mans tremolant.",
+    "6": "«%1$s», en direcció %2$s, a uns %3$s blocs. Allà baix l'aire té gust de ferro. I d'alguna cosa més."
+  },
+  "hint.withheld": {
+    "1": "He vist món, sí... però no ho explico a qualsevol. Guanya't la confiança de %2$s.",
+    "2": "Sé d'un lloc, però encara no et conec prou, %1$s.",
+    "3": "Dona un cop de mà amb el tauler i potser t'explicaré què vaig veure als meus viatges.",
+    "4": "Els secrets del camí es guanyen, %1$s. Encara no et toca.",
+    "5": "Torna quan a %2$s diguin el teu nom sense arrufar el nas.",
+    "6": "Et podria explicar moltes coses. Però primer vull veure què vals."
+  },
+  "hint.told": {
+    "1": "Ja t'he explicat l'únic que sé. La resta l'hauràs de descobrir tu.",
+    "2": "El meu secret ja està explicat. A veure si algú de %2$s en sap res més.",
+    "3": "Ja hi has anat, a veure el que et vaig dir? Doncs no tinc res més a explicar.",
+    "4": "El que sabia ja és teu, %1$s. Guarda-ho bé."
+  },
+  "hint.nothing": {
+    "1": "He viatjat molt, però per aquesta comarca no he vist res que valgui la pena explicar.",
+    "2": "El que vaig veure als meus viatges queda massa lluny d'aquí.",
+    "3": "Per aquests voltants només hi ha camp i més camp. Creu-me, me l'he recorregut sencer.",
+    "4": "M'agradaria ajudar-te, %1$s, però a prop de %2$s no hi ha res digne d'una aventura."
+  }
+}

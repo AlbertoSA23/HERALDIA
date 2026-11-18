@@ -24,6 +24,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 - 📋 **Village quests.** Touch the job board lectern on a village square (or use `/heraldia quest` there): 2 to 4 quests show up in chat (bring items, defeat a guardian, explore, travel to a neighbouring village, the arena) and change every few days. They pay emeralds, experience and reputation with that village: as known, friend and village hero, its villagers lower their prices by 10, 20 and 30 %. Attacking its villagers or golems lowers it.
 - 🐪 **Caravans.** Now and then a Heraldia merchant with its llamas (and sometimes a guard) travels the road between two neighbouring villages near you. If bandits ambush it, defend it: when it arrives it pays emeralds and reputation with its destination village. If the merchant dies, the caravan is lost.
 - 🚶 **Wayfarers.** Life on the roads, also near you: a pilgrim on the way to a monastery or cathedral, a shepherd with its flock, a messenger in a hurry, a pair of guards on patrol or a hunter coming back with its dog, as fits the area. They walk a stretch and go; the shepherd and the hunter trade, and hurting them is known in their village.
+- 💬 **Talk to the villagers.** Right-click a villager in a Heraldia village and it talks to you in chat: lines by its trade, its land, the hour, the weather and how well the village knows you, with buttons to keep talking, ask for news or trade (sneak + right click trades directly; vanilla villagers trade as always). One in ten has travelled and, if the village trusts you, tells you once which way and how far a structure lies.
 - 🏆 **Advancements.** A Heraldia tab with 124 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the lighthouses and wrecks, the medium structures, the job board, the arena and the caravans.
 - 🗿 **Trophies.** Each of the 22 guardians drops its trophy, an item with a name and a story. Collect them all to complete the Hall of Trophies.
 - 🗺️ **Treasure maps.** Each map marks the nearest unique structure of its kind. They turn up in the villages' epic chests and the cartographers sell them.
@@ -68,6 +69,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `arena.temporada.dia_reinicio` | `lunes` | Day the arena's weekly leaderboard closes and its champions are announced (at midnight, server time). |
 | `encargos.activado` | `true` | Job board quests (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputation per village and its discounts. |
+| `dialogos.activado` | `true` | Conversations with Heraldia villagers (sneak + right click trades directly). |
 | `caravanas.activado` | `true` | Caravans along the roads (operators: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Wayfarers along the roads, each kind with its own option (operators: `/heraldia caravan wayfarer`). |
 | `chozas_mago.prob_malvado` | 20 | Chance (%) that the wizard of a wizard's hut is an evil wizard in disguise. |
