@@ -1,20 +1,20 @@
-# Generador de estructuras de Heraldia
+# Heraldia structure generator
 
-Scripts en Python que generan los recursos de datos del mod (plantillas NBT, pools jigsaw, estructuras, botín, funciones y textos). Gradle lo ejecuta al compilar; no hace falta lanzarlo a mano.
+Python scripts that generate the mod's data resources (NBT templates, jigsaw pools, structures, loot, functions and texts). Gradle runs it when compiling; there is no need to launch it by hand.
 
-Requisitos: Python 3.11+, `pip install -r requirements.txt`.
+Requirements: Python 3.11+, `pip install -r requirements.txt`.
 
-- `python3 main.py --out <carpeta> --registries <resumen mcmeta 26.3>` → genera, valida y audita; no escribe nada si hay errores o avisos.
-- `themes.py` → los 36 estilos (materiales, tejados, tipo de iglesia, decoración).
-- `houses.py`, `specials.py`, `streets.py`, `fillers.py` → constructores de piezas.
-- `pack.py` → pools y pesos (incluida la proporción de aldeanos y camas).
-- `writer.py` → tamaño de las aldeas, frecuencia y JSON de las estructuras.
-- `advancements.py` → pestaña de logros «Heraldia» (aldeas por familia y, por cada única del registro, descubrir, guardián y tesoro; desafíos de los trofeos y de la crónica).
-- Trofeos de los guardianes: `TROPHY` de cada única → `uniques/_common/chest_loot.trophy` (`heraldia:trofeos/<id>`) y `guardian_tabla` (`heraldia:guardianes/<id>/<mob>`, la DeathLootTable que pone `pack.tag_guardians`).
-- Crónica de los Heraldos (`docs/STORY.md`): `STORY` de cada única → `unicas/_comun/botin.historia_*` (`heraldia:historia/<id>`, que anida la tabla de su cofre; cadena en `historia_cadena`) y `writer.history_tables`; desafío `unicas/cronista` en `advancements.py`.
-- `medianas/` → estructuras medianas (torre de vigía, posada, campamento, ermita): contrato en `mediums/__init__.py`, un módulo por tipo; `medianas.write` escribe sus estructuras, rejillas, etiquetas y botín.
-- `trades.py` → todos los tratos de aldeano (`trato`, `predicado`): los mapas de los cartógrafos maestros (`maps.trade`), los tratos con carácter de cada estilo (`STYLES`), el mapa de la única de la zona de cada familia y la botella del asedio de las aldeas fortificadas; escribe las etiquetas `#minecraft:<oficio>/level_N`.
-- `board.py` → tablón de encargos de la plaza (atril con libro y alguacil con sus tratos fijos) y logros de las hazañas con su recompensa.
-- `roads.py` → el rasgo `heraldia:camino` (caminos entre aldeas; el trazado y la colocación son Java, paquete `caminos`) y los textos de la distancia de sus carteles.
-- `sim.py` → simulador del ensamblado jigsaw para contar casas, aldeanos y gólems sin abrir el juego.
-- `validate.py` → comprueba bloques, propiedades, objetos y entidades contra los registros de la 26.3 (necesita el resumen de misode/mcmeta, rama `26.3-summary`) y, sobre los JSON escritos, el límite de radio y tamaño de las estructuras jigsaw.
+- `python3 main.py --out <folder> --registries <mcmeta 26.3 summary>` → generates, validates and audits; it writes nothing if there are errors or warnings.
+- `themes.py` → the 36 styles (materials, roofs, church type, decoration).
+- `houses.py`, `specials.py`, `streets.py`, `fillers.py` → piece builders.
+- `pack.py` → pools and weights (including the proportion of villagers and beds).
+- `writer.py` → village size, frequency and the structures' JSON.
+- `advancements.py` → the "Heraldia" advancements tab (villages by family and, for each unique structure in the registry, discover, guardian and treasure; the trophy and chronicle challenges).
+- Guardian trophies: the `TROPHY` of each unique structure → `uniques/_common/chest_loot.trophy` (`heraldia:trofeos/<id>`) and `guardian_tabla` (`heraldia:guardianes/<id>/<mob>`, the DeathLootTable set by `pack.tag_guardians`).
+- Chronicle of the Heralds (`docs/STORY.md`): the `STORY` of each unique structure → `unicas/_comun/botin.historia_*` (`heraldia:historia/<id>`, which nests its chest's table; chain in `historia_cadena`) and `writer.history_tables`; the `unicas/cronista` challenge in `advancements.py`.
+- `medianas/` → medium structures (watchtower, inn, camp, hermitage): contract in `mediums/__init__.py`, one module per type; `medianas.write` writes their structures, grids, tags and loot.
+- `trades.py` → all villager trades (`trato`, `predicado`): the master cartographers' maps (`maps.trade`), each style's characteristic trades (`STYLES`), the map of each family's local unique structure and the siege bottle of the fortified villages; it writes the `#minecraft:<oficio>/level_N` tags.
+- `board.py` → the square's quest board (lectern with book and sheriff with his fixed trades) and the feat advancements with their reward.
+- `roads.py` → the `heraldia:camino` feature (roads between villages; the layout and placement are Java, package `caminos`) and the texts for the distance on its signs.
+- `sim.py` → jigsaw assembly simulator to count houses, villagers and golems without opening the game.
+- `validate.py` → checks blocks, properties, items and entities against the 26.3 registries (needs the misode/mcmeta summary, branch `26.3-summary`) and, over the written JSON, the radius and size limit of jigsaw structures.
