@@ -45,6 +45,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.common.ToGroundProcessor.register();
 		io.github.albertosa23.heraldia.common.Anchoring.register();
 		io.github.albertosa23.heraldia.bosses.Bosses.register();
+		io.github.albertosa23.heraldia.chronicle.ChronicleEnding.register();
 		io.github.albertosa23.heraldia.villages.VillageStructure.register();
 		io.github.albertosa23.heraldia.roads.Roads.register();
 		io.github.albertosa23.heraldia.uniques.galleon.GalleonUnique.register();
@@ -59,6 +60,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.difficulty.MobDifficulty.register();
 		io.github.albertosa23.heraldia.arena.Arena.register();
 		io.github.albertosa23.heraldia.quests.Quests.register();
+		io.github.albertosa23.heraldia.dialogue.Dialogue.register();
 		io.github.albertosa23.heraldia.caravans.Caravans.register();
 		io.github.albertosa23.heraldia.common.Profiler.register();
 		io.github.albertosa23.heraldia.common.SearchCaches.register();

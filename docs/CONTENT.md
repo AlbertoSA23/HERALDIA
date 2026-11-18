@@ -10,6 +10,7 @@ Back to the [README](../README.md).
 - **Atlantis**: a single sunken city per world (see below).
 - **Caravans**: merchants with llamas travelling the roads between villages; defend them from bandits (see [Caravans](#caravans)).
 - **Wayfarers**: pilgrims, shepherds, messengers, pairs of guards and hunters passing along the roads near you, by area (see [Wayfarers](#wayfarers)).
+- **Villager conversations**: talk to the villagers of Heraldia villages; one in ten has travelled and, if the village trusts you, tells you where a structure lies (see [Villager conversations](#villager-conversations)).
 - **Wizard's huts**: a wizard with trades in a richly decorated hut; one in five is an evil wizard in disguise (see [Wizard's huts](#wizards-huts)).
 - **Wave arena**: a coliseum near spawn to play in waves, with records and rewards (see [Wave arena](#wave-arena)).
 - **Nether and End**: 7 medium structures and 2 unique structures beyond the portals (see [Nether and End](#nether-and-end)).
@@ -130,6 +131,7 @@ Each village has:
 - Four avenues with the special buildings: a church or temple depending on the style (with cemetery and crypt), town hall, market, tavern, smithy, library, farm with windmill and inn. Each special building comes in three variants per style with a different floor plan and silhouette and the same function (for example the church with a front tower, with a transept and bell gable, or with a porch and the tower at the apse; the market open, as a covered hall or as an arcaded square), drawn at random for each village, so two villages of the same style differ in their main buildings. Sheets: [docs/aldeas/variantes.md](aldeas/variantes.md). On the coast there is also a harbor (harbor house and a pier with piles, crane and boats) on the free shore nearest to the square, with the pier facing the open sea; every shore within about 96 blocks along the coast is tried, and if only houses, fillers or towers stand in the way, the harbor takes their place. If no shore fits (they are all taken by the square, special buildings or streets reaching the sea, or there is no water nearby), the village has no harbor.
 - About 20 houses in the standard size and about 30 in the large one, furnished, with chests in some and loot from common to epic (tables `heraldia:cofres/comun`, `poco_comun`, `raro`, `epico`).
 - Watchtowers and wall gates at the ends of the streets; themed decoration between houses.
+- Traces of work in progress (`aldeas.vida.rastros`, on): among the houses, a few plots (about one in twenty lots) show that someone lives there and was busy a moment ago, each drawn with the style's weights and in its materials: a **house half built** (the foundation laid, the walls rising unevenly, scaffolding and the blocks piled up), **laundry** hanging between two posts, a **meal left half eaten** at a table in the open (the cake half finished), a **work yard** with the tools on the ground (a carpenter's in the wooded and cold families, a stonemason's in the rest), a **cart loaded** with the family's goods (pumpkins, melons, pots, dried kelp...), **fish drying** on racks (coast, swamp, jungle and the Norse taiga) and a **cooking fire with the pot** hanging over it. Each style only gets what suits it: no laundry or picnic in the snow, no picnic in the dark forest or the abbey, no laundry in the gothic town, no carts in the temple town. Blocks only: no entity, no bed, no workstation, no bell and no loot. With the option off, those plots stay as empty plots of grass or sand. **In an existing world, new villages only.**
 - Villagers: half the number of houses, over 80 % with a profession. Golems: at least one per 3 villagers.
 - Village routes: the beds, workstations and the bell are placed so that the villagers walk the village on their own (vanilla AI, no extra entity or periodic work): nobody works next to their own bed (each house holds another trade's workstation, and the smith and the farmer sleep in a house), the priest, the town hall's cartographer, the librarian and the other masters of the special buildings work there and sleep in a house or in a room of the inn or the tavern (always with a bed, up a staircase), every bed can be reached on foot (the 2-storey houses keep it on the ground floor) and the bell stands on the square, where they gather at midday. Each morning they walk to work along the streets and the avenues, at midday to the square and at nightfall back home. **New villages only**: those already generated keep their placement.
 - Fitting the terrain: villagers only claim a bed or a workstation they can walk to, and only look for a path a short way, so on hills every step they cannot climb costs beds. When a village is created, a street with such a step (two or more blocks from one column to the next) is **graded**: the ground under its centre line follows a gentle profile (at most a block a column, at most 6 blocks of fill or cut, as close to the terrain as that allows), and a door two or three blocks off its street gets a short ramp in front of it; the game's own terrain adaptation shapes the ground as the chunks are generated, so the village is not sunk into a hollow. A house whose door is further off its street, or a garden or well sunk in a pit it could not be left from, is not built (one house less instead of one nobody can use). Streets steeper than that are left as they are. And **no trees, fallen trees or bamboo grow on the village's pieces** (nor two blocks around them): in forests and jungles they used to close streets and doors. Measured on real terrain (the 8 villages nearest to the origin of the test seed, naturally generated): FIGURES. **New villages only**: those already generated keep their terrain and their trees. With `/place`, which does not adapt the terrain, only the houses left out apply.
@@ -147,6 +149,57 @@ Heraldia villages have trades with character, a job board and, in the fortified 
 - **Sieges** (`aldeas.vida.asedios`, **off**: it affects balance): in fortified villages (`oscuro_fortificada`, `nieve_fortaleza`, `badlands_canon`) the weaponsmith sells at level 3 the "Siege Challenge", a level I ominous bottle (10 emeralds, once): whoever drinks it and returns to the village triggers a vanilla raid. There is no raider outpost next to the village: raiders attack villagers within 32 blocks even without seeing them, so it would have to sit outside the village, and a large village already reaches almost the 8 chunks from its start, the furthest the game places pieces; they would also be persistent mobs loaded all the time.
 
 Cost: one more entity per village (the bailiff, without AI) and no periodic function; trades and deeds are only evaluated when a villager levels up or a player kills, wins a raid or picks something up (vanilla advancement criteria).
+
+## Villager conversations
+
+The villagers of Heraldia villages talk (`dialogos.*` in the [configuration](CONFIGURATION.md#configuration); also in villages already generated). Everything goes in chat with clickable buttons, like the job board, so it works with vanilla clients, in each player's language.
+
+- **The gesture**: a right click on a **Heraldia villager standing inside a Heraldia village** first opens a conversation: a greeting and a line. The buttons below it: **[Keep talking]** (two more lines at most), **[Any news?]**, **[Trade]** (opens its trades as always) and **[Goodbye]**. **Sneak + right click goes straight to the trades**, and so does any other villager: vanilla ones, those of other mods, a Heraldia villager that has wandered out of its village, the job board's bailiff and the wizards of the huts. Holding a name tag, a lead or a spawn egg keeps their vanilla use, and babies, sleeping villagers and villagers already trading are left alone. Simulated players (Carpet bots, the fake players of trading automation) do not send the client's click, so they trade as always. With `dialogos.activado` set to `false` the whole system is off.
+- **What they say** depends on who they are and where: their **profession** (each of the 15 vanilla ones, unemployed and nitwit included), the **land of the village** (its family: plains, forest, dark forest, taiga, snow, desert, savanna, jungle, swamp, cherry grove, badlands, coast), the **moment of the day** (morning, afternoon, evening, night), the **weather** at the villager (clear, rain, snow, thunderstorm; bad weather is talked about more) and **your reputation** with the village (stranger, known, friend, hero: it sets the greeting too). Each player remembers the last 24 lines they heard from any villager (in their file), so the same line does not come up twice in a row.
+- **Rest**: each villager rests `dialogos.espera_segundos` (60) between one conversation and the next; meanwhile it says it is busy and offers its trades.
+- **Wayfarers and their secret**: one villager in ten (`dialogos.viajeros_porcentaje`) has travelled and knows a place. Which villagers they are comes from each villager's UUID (nothing is saved; there is no telltale sign: ask around). Asked **[Any news?]** by a player with at least `dialogos.pista_reputacion` (20, *known*) reputation with the village, it tells **where a Heraldia structure lies: the direction and the distance rounded to 100 blocks, never coordinates**, like the board's explore quests. Only structures that really spawn there count: the same search as the job board (the unique structures with a guardian within 4,000 blocks, the medium structures and mine entrances within 1,500, `/locate` rules, without loading or generating chunks), one of the six nearest, chosen from the villager. **Once in its life**: it is saved in the villager (`heraldia:dialogo_aldeano`), so clicking again, another player or a restart do not get it twice; afterwards it says it has already told what it knew. Without enough reputation it hints that it knows something; with reputation disabled it tells anyone. The other villagers answer with a rumour.
+- **Operators**: `/heraldia talk with <villager>` opens a conversation with that villager as a click would (to preview the lines and take screenshots).
+
+Performance: nothing runs every tick. Everything happens on a click or a button: one structure lookup to know the village (the same as the board's), a line drawn from lists already in memory (each language's file is read once) and, for a wayfarer's hint, the board's search, done once per village and server start off the server thread. What is kept: two fields in each villager that has talked and the last 24 line keys in each player's file; the conversation in course lives only in memory and is dropped when the player leaves.
+
+### How to add a line
+
+The lines are data, not code: `tools/gen/dialogue/<language>/<group>.json`, one folder per language (`es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es`) and two files in each: `professions.json` (the `profession.*` pools) and `village.json` (all the others). The generator merges each language into `heraldia/dialogos/<code>.json` inside the `.jar`.
+
+```json
+{
+  "profession.farmer": {
+    "1": "The wheat is growing tall this year.",
+    "2": "The soil of %2$s is grateful if you treat it kindly."
+  }
+}
+```
+
+1. **Write it in Spanish first** (`es_es` is the reference: its pools and ids are the complete set). Add it to its pool with the next free id (`"4"` after `"3"`). Ids are what each player's memory stores: never reuse an id for another meaning; to remove a line, remove it in every language.
+2. **Then add the same pool and id to every other language that has that file**, `en_us` included. A language may lack a whole file (its players then get the English line); but a file that exists must have every Spanish line of that file, no more, with the same format slots.
+3. **Slots** (all optional): in every pool `%1$s` is the player's name and `%2$s` the village's name; in `hint.unique`, `hint.medium` and `hint.mine`, `%1$s` is the place ("Castle of the Plains", "roadside inn"), `%2$s` the direction ("north") and `%3$s` the approximate distance in blocks. Only `%s`-style slots: a literal percent sign is `%%`. Quote the place name with the language's inner quotes (the whole line goes inside the outer ones), and phrase hints so they read well with any name (no article glued to it).
+4. Check: `python3 -m pytest tools/gen/tests/test_dialogue.py -q` (it names every missing or extra line and every slot that differs) and `./gradlew build` (the generation fails on the same errors). `HERALDIA_FRASES_COMPLETAS=1 python3 -m pytest tools/gen/tests/test_dialogue.py -q` also fails while a language lacks a file.
+
+The pools (`dialogue.pools()` in `tools/gen/dialogue.py`; the target is about 40 lines per profession and per context, some 350-400 per language):
+
+| Pool | When | File |
+|---|---|---|
+| `profession.<id>` | the villager's profession: `none`, `armorer`, `butcher`, `cartographer`, `cleric`, `farmer`, `fisherman`, `fletcher`, `leatherworker`, `librarian`, `mason`, `nitwit`, `shepherd`, `toolsmith`, `weaponsmith` (weight 40) | `professions.json` |
+| `family.<family>` | the village's land: `llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa` (weight 20) | `village.json` |
+| `time.<moment>` | `morning`, `afternoon`, `evening`, `night` (weight 10) | `village.json` |
+| `weather.<weather>` | `clear` (weight 5), `rain`, `snow`, `thunder` (weight 15) | `village.json` |
+| `reputation.<tier>` | the player's level with the village: `desconocido`, `conocido`, `amigo`, `heroe` (weight 8) | `village.json` |
+| `general` | anything, anywhere (weight 12) | `village.json` |
+| `greeting.<tier>` | the first line of every conversation, by reputation level | `village.json` |
+| `rumor` | [Any news?] to a villager that is not a wayfarer | `village.json` |
+| `hint.unique`, `hint.medium`, `hint.mine` | a wayfarer tells its place (slots: place, direction, distance) | `village.json` |
+| `hint.withheld` | a wayfarer that does not trust the player yet | `village.json` |
+| `hint.told` | a wayfarer that has already told its place | `village.json` |
+| `hint.nothing` | a wayfarer with no structure around its village | `village.json` |
+| `busy` | a click while the villager rests | `village.json` |
+| `farewell` | [Goodbye], or the end of the conversation | `village.json` |
+
+A body line is drawn among the six context pools by those weights (a pool with no line, or with every line heard lately, does not count); a pool may be left empty, except `general`, `rumor`, `busy`, `farewell`, the four `greeting.*` and the six `hint.*`, which need at least one line.
 
 ## Roads between villages
 
@@ -456,6 +509,38 @@ An optional story thread links the unique structures (full background in [`docs/
 
 Pages are shown in each player's language (Spanish if the client does not have the mod). With Lootr every player finds their own leaf. All of them carry `custom_data` `{heraldia_historia:"<id>"}`; to test: `/loot give @s loot heraldia:historia/<id>`. The **Chronicler** challenge (see [Advancements](#advancements)) asks for all of them. **In an existing world they only appear in chests that have not been opened yet.**
 
+And it has an end: whoever defeats every guardian of the main world gets the last leaf, the title and the standard (see [End of the Chronicle](#end-of-the-chronicle)).
+
+## End of the Chronicle
+
+The Chronicle used to have no end: Atlantis's leaf points back to the first, and beating the last guardian closed nothing. Now it does. When **every guardian of the main world's unique structures** has fallen to a player, the last oath is broken and Ysolda's last word reaches them:
+
+- **The title, Herald of Atlantis**: a challenge advancement (`heraldia:cronica/final`, 500 experience), announced in chat like any challenge, shown on the player's screen (title and subtitle) and under their name in `/heraldia journal`.
+- **The last leaf**: a written book by Ysolda ("Chronicle: the last leaf", epic) that closes the story: she never asked for her guardians to be defeated, only to wait for someone worthy; the way back was never in the leaves but in whoever followed them; and she hands over the standard of the order. In the player's language (also with a vanilla client: the text the client cannot translate comes in its language, as in the Herald's Guide).
+- **The Standard of the Heralds**: a blue banner with the sea rising, the waves and the Order's golden seal and border, epic, that **can be placed** anywhere. Its name, pattern and rarity stay when it is placed and picked up again (the vanilla banner keeps those); the lore with who raised it, only on the item given. It is given once, like the advancement.
+- **Beyond the Map** (optional): the Nether and End guardians do not count towards the end. A player who also defeats them gets a second challenge (`heraldia:cronica/mas_alla`, 250) and their last leaf is swapped for one with one more page; until then, that page tells them two leaves were carried beyond the world, without asking them to go.
+
+**Which guardians.** One per unique structure that can still appear in this world (enabled in the configuration) or whose guardian the player already defeated (even if it was disabled later), as the journal counts them: today 20 in the main world (Atlantis included) and 2 beyond.
+
+**When a guardian counts as defeated by a player** (all three are facts the game recorded, none is a guess):
+- they have its guardian advancement (`unicas/<id>/guardian`, earned by the killing blow), **also from before this version**;
+- they **took part** in its fall: they were within 64 blocks (the quests' participation radius) when a guardian that a player had hurt died. In a group, everyone in the fight counts, not only whoever landed the blow;
+- it exists **once per world** (Atlantis) and has already fallen to anyone: nobody else could ever beat it, so it counts for every player. The world learns it from the death or, for one beaten before this version, from its killer's advancement when they join.
+
+A guardian that dies with no player in the fight (the sun, `/kill`, a trap) is nobody's victory.
+
+**Per player.** Like reputation, quests and the journal: on a server, whoever closes the Chronicle gets the title, the leaf and the standard; the others see the announcement and keep their own count. What is per world are the facts about places (spawners off, the modest premium chest, the once-per-world guardian fallen).
+
+**In an existing world**: players whose guardian advancements are all there already (they beat them before this version) get the end the next time they join. Players who only fought alongside someone else before this version are not credited with those guardians (only the killer's advancement was recorded then); an operator can grant one with `/advancement grant <player> only heraldia:unicas/<id>/guardian`. Every fight from this version on is credited to everyone in it.
+
+**Option** `guia.final_cronica` (on by default). Off, nothing is given and the journal leaves the Chronicle out; the record of who took part goes on (it is cheap), so turning it on later gives the end to whoever has earned it, on their next join.
+
+- `/heraldia journal`: one more line before the footer, "Chronicle: guardians defeated", with its bar (it is not one more kind in the overall total: it counts fights, not finds); hovering lists the guardians still keeping watch.
+- `/heraldia journal chronicle`: the guardians defeated and those still keeping watch, by their structure's name (never where), the optional ones beyond the map and whether the Chronicle is closed; once closed, `/heraldia journal chronicle book` (a button) gives an up-to-date copy of the last leaf in place of the one carried. The standard is not given again.
+- Cost: nothing runs per tick. It hangs from the guardian's death (the same `AFTER_DEATH` as [Cleared uniques](#cleared-uniques)) and from a player joining: it reads about twenty advancements from memory. Measured on the test server: 0.3 ms per death, 1.5-5.9 ms when it gives something (book, banner and advancements).
+- Saved: on each player, the guardians they took part in (attachment `heraldia:cronica`, kept on death); on the main world, the once-per-world guardians fallen (`heraldia:cronica_mundo`). What was given is the advancement itself.
+- To test: `/advancement grant <player> only heraldia:unicas/<id>/guardian` for each one and rejoin, or kill a guardian with `/damage <guardian> 1000 minecraft:player_attack by <player>`. Tests: `EndingTest` and `JournalTest` (JUnit), `test_chronicle_ending.py` (texts and pages fit in the 8 languages) and the Chronicle part of `tools/smoke/journal.py` (server).
+
 ## Herald's Guide
 
 A vanilla written book, the **Herald's Guide**, that explains the mod to players and keeps their diary. Every player gets it **once**, the first time they join after Heraldia is installed or updated (players who already existed in the world too; the version they received is stored on the player and kept on death). It is turned off with `guia.entregar_al_entrar` (see [Configuration](CONFIGURATION.md#configuration)), and any player can ask for an up-to-date copy with `/heraldia guide`.
@@ -476,11 +561,12 @@ Each player's own record of **what they have found and what is still missing**, 
 - **No coordinates and no clues**: the journal says "2 of 21 unique structures, these ones are missing", never where they are. Finding them is for the maps, the quests and the Chronicle; the soft biome clues of the missing unique structures stay in the Herald's Guide, which the journal points to (a button to `/heraldia guide`) while any is missing.
 - **Where the data come from**: the player's own advancements, which already record every discovery (`aldeas/<family>`, `unicas/<id>/descubrir`, the criteria of `medianas/todas`, `medianas/nether` and `medianas/end`, `minas/<size>`, `costa/faro` and `costa/naufragio`); which ids belong to each kind is also read from the advancements (the criteria of `aldeas/todas`, `unicas/todas` and the three walker advancements) and, for the dimension of a unique structure, from the structure registry. Nothing is saved and nothing runs until someone asks: it reads the player's progress from memory, on the server thread, and answers in the same tick.
 - What counts: what can still appear in this world (a kind disabled in the configuration is not "missing") and whatever the player already found, even if it was disabled later. A kind with nothing to find is left out.
+- **The end of the Chronicle**: one more line, the guardians defeated towards the [end of the Chronicle](#end-of-the-chronicle), and its own section, `/heraldia journal chronicle`.
 - **Why a command and not more Guide pages or `/heraldia status`**: the Guide is a book handed out on joining (it only gets updated when asked for again, and its pages must fit a measured size), and it already keeps the diary of unique structures with their clues; `/heraldia status` is the server's summary, what anyone has discovered. The journal is the per-player view of every kind, always up to date; `/heraldia status` links to it and it links to the Guide, instead of repeating either.
 
 ## Advancements
 
-A **Heraldia** advancement tab (122 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
+A **Heraldia** advancement tab (124 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
 
 - **Heraldia** (root): enter any Heraldia village, unique structure, medium structure or mine entrance.
 - [Mine entrances](#mine-entrances), a chain: **Under the Hillside** (enter a mine adit, 20), **Mining Camp** (a mining camp, 40) and **Lord of the Galleries** (a mining complex, 80).
@@ -495,6 +581,7 @@ A **Heraldia** advancement tab (122 advancements), with texts in the mod's 8 lan
 - Final challenge **Cartographer of Legends**: discover every unique structure (500).
 - **Hall of Trophies** challenge: collect the [trophy](#guardian-trophies) of every unique structure's guardian (500); it counts when you hold it in your inventory.
 - **Chronicler** challenge: gather the leaves of the [Chronicle of the Heralds](#chronicle-of-the-heralds), one per unique structure (500); it counts when you hold it in your inventory.
+- **Herald of Atlantis** challenge: defeat the guardian of every unique structure of the main world (500), and **Beyond the Map**, also those of the Nether and the End (250); granted by the mod, with the [end of the Chronicle](#end-of-the-chronicle).
 
 Notes: a structure counts when you step inside its pieces; seeing it is not enough. If a family or a structure is disabled in the [configuration](CONFIGURATION.md#configuration), its advancement and the related challenge cannot be earned. With Lootr, the treasure advancement depends on Lootr notifying the game when the chest is opened (not checked). The unique-structure advancements are generated from the unique-structure registry, so a new structure brings its own.
 

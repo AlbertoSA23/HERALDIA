@@ -18,15 +18,16 @@ modules of NOT_TESTS) and tools/gen/uniques/*/smoke_*.py. compat_mods.py is one 
 selection to pick it too, it is enough for it to be in the folder of its unique structure (or, if it is in tools/smoke/, in SMOKE_OF_UNIQUE or in MAP).
 The generation cost one (tools/smoke/generation_cost.py) is not in the groups: it has its own job in CI ("coste" in the
 output of --ci-matrix) and locally it runs at the end of --affected (if what changed touches COST_PATHS) and of --all (--no-cost
-removes it).
+removes it). The play cost one (tools/smoke/runtime_cost.py) likewise: its own CI job ("juego", "runtime" in --ci-matrix),
+locally at the end of --affected (if what changed touches RUNTIME_PATHS) and of --all (--no-runtime removes it).
 """
 import argparse, fnmatch, glob, json, os, shutil, subprocess, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SMOKE = "tools/smoke/server_smoke.py"
 FULL = "*"            # in the map: the change affects everything (common code) -> full suite
-NOT_TESTS = {"server_smoke.py", "modrinth.py", "generation_cost.py", "wayfarers.py"}  # common modules, the cost one (its own job) and the
-# wayfarers' scenario, which runs inside caravans.py (same server and corridor)
+NOT_TESTS = {"server_smoke.py", "modrinth.py", "generation_cost.py", "runtime_cost.py", "wayfarers.py"}  # common modules, the cost
+# ones (their own jobs) and the wayfarers' scenario, which runs inside caravans.py (same server and corridor)
 # Compatibility with other mods (one test per group, with Modrinth mods): long and with downloads, so in a PR
 # it only runs if the test itself, the mod list or the common placement code changes (what decides where each
 # structure appears and whether it clashes with those of other mods). In the full suite (push to develop, workflow_dispatch, label) always.
@@ -64,6 +65,15 @@ COST_PATHS = [COST, "tools/smoke/cost_reference.json", "tools/gen/*", "gradle.pr
                JAVA + "uniques/*",
                JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java"]
 COST_WITHOUT = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
+# Play cost (tick time with players in villages, the arena and a caravan, with and without Heraldia, compared with
+# tools/smoke/runtime_reference.json): CI's own job ("juego"), like the generation cost. In the full suite always; in a PR
+# only if something that runs while playing, or what villages hold (their entities), changes; not tests and documentation.
+RUNTIME = "tools/smoke/runtime_cost.py"
+RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_reference.json", "gradle.properties",
+                 "tools/gen/houses.py", "tools/gen/fillers.py", "tools/gen/traces.py", "tools/gen/specials.py",
+                 "tools/gen/streets.py", "tools/gen/pack.py", "tools/gen/board.py", "tools/gen/arena_waves.py",
+                 "tools/gen/caravans.py", JAVA + "Heraldia.java", JAVA + "villages/*", JAVA + "caravans/*", JAVA + "arena/*",
+                 JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*"]
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
@@ -84,7 +94,8 @@ COAST = ["tools/smoke/coast.py"]
 COAST_MOBS = COAST + ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"]
 # Game profiles ("perfil" option, T36): their server test (restarts with each profile and an option set by hand).
 PROFILES = ["tools/smoke/profiles.py", "tools/smoke/light_profile.py"]
-# Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements.
+# Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements; also the
+# villager conversations (P9a), whose server scenario is in the same test.
 QUESTS = ["tools/smoke/quests.py"]
 # Caravans along the roads (T39): their Java and their texts and advancement.
 CARAVANS = ["tools/smoke/caravans.py"]
@@ -108,6 +119,8 @@ MAP = [
     # no server tests: documentation, unit tests, client, changelog
     ("docs/*", []), ("*.md", []), ("tools/gen/tests/*", []), ("src/test/*", []), ("src/client/*", []),
     ("tools/changelog.py", []), ("tools/gen/render.py", []), ("tools/gen/README.md", []), (".gitignore", []),
+    # the play cost: its own CI job (RUNTIME_PATHS), no server group
+    (RUNTIME, []), ("tools/smoke/TickSampler.java", []), ("tools/smoke/runtime_reference.json", []),
     # villages: piece generator and its Java
     ("tools/gen/houses.py", VILLAGES), ("tools/gen/streets.py", VILLAGES), ("tools/gen/specials.py", VILLAGES),
     ("tools/gen/fillers.py", VILLAGES), ("tools/gen/themes.py", VILLAGES), ("tools/gen/sim.py", VILLAGES),
@@ -130,6 +143,8 @@ MAP = [
     (JAVA + "mixin/IOWorkerMixin.java", SEARCH_CACHE), (JAVA + "mixin/RegionFileStorageMixin.java", SEARCH_CACHE),
     # board quests and reputation (T38)
     (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
+    # villager conversations (P9a): their scenario lives in the quests test (a real village and a simulated player)
+    (JAVA + "dialogue/*", QUESTS), ("tools/gen/dialogue.py", QUESTS), ("tools/gen/dialogue/*", QUESTS),
     # caravans along the roads (T39)
     (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS), ("tools/smoke/wayfarers.py", CARAVANS),
     # chozas de mago (T43)
@@ -165,6 +180,8 @@ MAP = [
     # Herald's Guide: its Java (and the per-language texts it uses), its generator and its test
     # each player's journal (/heraldia journal): its Java and its texts; it reads the advancements /heraldia status counts
     (JAVA + "command/Journal.java", ["tools/smoke/journal.py"]),
+    # the end of the Chronicle: its Java and its generator (texts, last leaf, advancements); its scenario runs inside journal.py
+    (JAVA + "chronicle/*", ["tools/smoke/journal.py"]), ("tools/gen/chronicle_ending.py", ["tools/smoke/journal.py"]),
     (JAVA + "command/Guide*", ["tools/smoke/guide.py"]), (JAVA + "command/Texts.java", ["tools/smoke/guide.py"]),
     ("tools/gen/guide.py", ["tools/smoke/guide.py"]),
     # mod languages (translations and their check): the Guide is the only thing the server delivers in the client's language
@@ -282,6 +299,12 @@ def cost(changed_list):
                for r in changed_list)
 
 
+def runtime(changed_list):
+    """Does the list of changed paths require the play cost test (RUNTIME_PATHS without COST_WITHOUT)?"""
+    return any(any(fnmatch.fnmatch(r, p) for p in RUNTIME_PATHS) and not any(fnmatch.fnmatch(r, p) for p in COST_WITHOUT)
+               for r in changed_list)
+
+
 def changed_list(base):
     """Files changed versus `base` (merge-base), plus those of the working tree not yet committed."""
     def git(*a):
@@ -316,7 +339,7 @@ DURATION_S = {
     "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
     "tools/smoke/guide.py": 120,                      # three server starts
     "tools/smoke/search_cache.py": 90,                # measured locally (4 cores): 50 s, three starts, eleven searches
-    "tools/smoke/journal.py": 60,                     # one start and a few commands as a simulated player
+    "tools/smoke/journal.py": 90,                     # one start and a few commands as simulated players (with the end of the Chronicle)
     "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
     "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
     "tools/smoke/profiles.py": 110,                  # four starts of the same world
@@ -423,6 +446,7 @@ def main(argv=None):
     ap.add_argument("--logs", help="folder where to copy each test's log")
     ap.add_argument("--no-unit", action="store_true", help="with --affected/--all: skip the unit tests")
     ap.add_argument("--no-cost", action="store_true", help="with --affected/--all: skip the generation cost test")
+    ap.add_argument("--no-runtime", action="store_true", help="with --affected/--all: skip the play cost test")
     a = ap.parse_args(argv)
     work = os.path.abspath(a.work)       # the scripts start Java with cwd=--work: absolute path
     jar = os.path.abspath(a.jar or default_jar())
@@ -435,23 +459,26 @@ def main(argv=None):
         return 1 if bad_all else 0
 
     if a.all or a.full:
-        full, tests, changes, with_cost = True, discover(), [], True
+        full, tests, changes, with_cost, with_runtime = True, discover(), [], True, True
     else:
         changes = changed_list(a.base)
-        (full, tests), with_cost = choose(changes), cost(changes)
+        (full, tests), with_cost, with_runtime = choose(changes), cost(changes), runtime(changes)
     if a.ci_matrix:
-        print(json.dumps(dict(matrix(full, tests), full=full, cost=with_cost), ensure_ascii=False))
+        print(json.dumps(dict(matrix(full, tests), full=full, cost=with_cost, runtime=with_runtime), ensure_ascii=False))
         return 0
     if a.list_only or a.affected:
         print(f"{len(changes)} ficheros cambiados frente a {a.base}" if changes else "full suite", file=sys.stderr)
         print(("Full suite: " if full else "Affected server tests: ") + (", ".join(tests) or "none"),
               file=sys.stderr)
         print(f"Generation cost ({COST}): {'sí' if with_cost else 'no'}", file=sys.stderr)
+        print(f"Play cost ({RUNTIME}): {'sí' if with_runtime else 'no'}", file=sys.stderr)
         if a.list_only:
-            print("\n".join(tests + ([COST] if with_cost else [])))
+            print("\n".join(tests + ([COST] if with_cost else []) + ([RUNTIME] if with_runtime else [])))
             return 0
     if with_cost and not a.no_cost:
         tests = tests + [COST]
+    if with_runtime and not a.no_runtime:
+        tests = tests + [RUNTIME]
     if not a.no_unit and unit_tests():
         return 1
     if not os.path.isfile(jar):

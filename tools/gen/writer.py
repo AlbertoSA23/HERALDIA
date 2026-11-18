@@ -13,12 +13,14 @@ import maps
 import trades
 import board
 import guide
+import chronicle_ending
 import arena_waves
 import admin
 import updates
 import light_profile
 import quests
 import caravans
+import dialogue
 import wizard_huts
 import roads
 import options
@@ -348,12 +350,13 @@ def write(reg, out):
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     advancements.write(out, reg, unique_mods, jdump)
     for writes in (board.write, roads.write, arena_waves.write, quests.write, caravans.write,
-                    wizard_huts.write):
+                    wizard_huts.write, chronicle_ending.write, dialogue.write):
         writes(out, jdump)
     translated = languages.complete(texts(reg), book_pages(reg, out),
                                    languages.sign_keys(nbt for t in reg.templates.values() for _, nbt in t.blocks.values() if nbt))
     guide.write(out, unique_mods, jdump, {c: t for c, t in translated.items() if c not in languages.BASE})
     e = treasure.errors({c: t for c, t in translated.items() if c not in languages.BASE})
+    e += chronicle_ending.errors({c: t for c, t in translated.items() if c not in languages.BASE})
     if e:
         raise SystemExit("\n".join(e))
     jdump(out, f"{NS}/idiomas.json", {"lenguas": languages.mc_locales()})
@@ -374,7 +377,7 @@ def texts(reg):
             out[lang].update(lang_texts)
     parts = [maps.lang(dimensions.overworld_only(unique_mods)), advancements.build(reg, unique_mods, mediums.modules(), mines, coast)[1], trades.lang(),
               board.lang(), roads.LANG, mediums.lang(), mines.lang(), coast.lang(), guide.lang(), arena_waves.lang(), admin.lang(), updates.lang(), light_profile.lang(), quests.lang(), caravans.lang(), wizard_huts.lang(),
-              trophies_lang(), chest_loot.story_lang(unique_mods), treasure.lang()]
+              trophies_lang(), chest_loot.story_lang(unique_mods), treasure.lang(), chronicle_ending.lang(), dialogue.lang()]
     for part in parts:
         assert part["es_es"].keys() == part["en_us"].keys()
         for lang, lang_texts in part.items():

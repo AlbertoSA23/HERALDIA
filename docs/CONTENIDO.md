@@ -10,6 +10,7 @@ Volver al [README](../README.es.md).
 - **La Atlántida**: una única ciudad sumergida por mundo (ver abajo).
 - **Caravanas**: mercaderes con llamas que recorren los caminos entre aldeas; defiéndelos de los bandidos (ver [Caravanas](#caravanas)).
 - **Gente de paso**: peregrinos, pastores, mensajeros, parejas de guardias y cazadores que pasan por los caminos cerca de ti, según la zona (ver [Gente de paso](#gente-de-paso)).
+- **Conversaciones con los aldeanos**: habla con los aldeanos de las aldeas de Heraldia; uno de cada diez ha viajado y, si la aldea se fía de ti, te cuenta dónde queda una estructura (ver [Conversaciones con los aldeanos](#conversaciones-con-los-aldeanos)).
 - **Chozas de mago**: un mago con tratos en una choza muy decorada; uno de cada cinco es un mago malvado disfrazado (ver [Chozas de mago](#chozas-de-mago)).
 - **Arena de oleadas**: un coliseo cerca del spawn para jugar por oleadas, con récords y recompensas (ver [Arena de oleadas](#arena-de-oleadas)).
 - **Nether y End**: 7 medianas y 2 únicas al otro lado de los portales (ver [Nether y End](#nether-y-end)).
@@ -132,6 +133,7 @@ Cada aldea tiene:
 - Cuatro avenidas con los edificios especiales: iglesia o templo según el estilo (con cementerio y cripta), ayuntamiento, mercado, taberna, herrería, biblioteca, granja con molino y posada. Cada edificio especial tiene tres variantes por estilo, con distinta planta y silueta y la misma función (por ejemplo, la iglesia con torre delantera, con crucero y espadaña o con pórtico y la torre en la cabecera; el mercado al aire libre, como lonja cubierta o como plaza porticada), que se sortean en cada aldea: dos aldeas del mismo estilo se distinguen por sus edificios principales. Láminas: [docs/aldeas/variantes.md](aldeas/variantes.md). En la costa, además, un puerto (caseta y muelle con pilotes, grúa y botes) en la orilla libre más cercana a la plaza, con el muelle hacia mar abierto; se prueban todas las orillas a unos 96 bloques a lo largo de la costa y, si solo estorban casas, rellenos o torres, el puerto ocupa su lugar. Si no cabe en ninguna (todas las ocupan la plaza, edificios especiales o calles que llegan al mar, o no hay agua cerca), la aldea sale sin puerto.
 - Unas 20 casas en la estándar y unas 30 en la grande, amuebladas, con cofres en algunas y botín de común a épico (tablas `heraldia:cofres/comun`, `poco_comun`, `raro`, `epico`).
 - Torres de vigilancia y puertas de muralla al final de las calles; decoración temática entre casas.
+- Rastros de trabajo a medias (`aldeas.vida.rastros`, activado): entre las casas, unos pocos solares (más o menos uno de cada veinte) muestran que allí vive alguien que estaba trabajando hace un momento, cada uno sorteado con los pesos del estilo y en sus materiales: una **casa a medio construir** (los cimientos puestos, los muros a distintas alturas, andamios y los bloques apilados), **ropa tendida** entre dos postes, una **comida a medias** en una mesa al aire libre (la tarta empezada), un **taller** con las herramientas en el suelo (de carpintero en las familias de bosque y frío, de cantero en las demás), un **carro cargado** con lo de la familia (calabazas, sandías, vasijas, algas secas...), **pescado secándose** en sus bastidores (costa, pantano, jungla y la taiga nórdica) y una **hoguera con el puchero** colgado encima. Cada estilo solo saca lo que le pega: ni ropa tendida ni merienda en la nieve, ni merienda en el bosque oscuro ni en la abadía, ni ropa tendida en la aldea gótica, ni carros en la del templo. Solo bloques: ninguna entidad, ni camas, ni puestos de trabajo, ni campana, ni botín. Con la opción apagada, esos solares quedan como parcelas vacías de hierba o arena. **En un mundo ya empezado, solo en las aldeas nuevas.**
 - Aldeanos: la mitad del número de casas, más del 80 % con oficio. Gólems: al menos uno por cada 3 aldeanos.
 - Recorridos de los aldeanos: camas, puestos de trabajo y campana están colocados para que los aldeanos recorran la aldea por sí solos (la IA vanilla, sin ninguna entidad ni trabajo periódico más): nadie trabaja junto a su propia cama (cada casa guarda el puesto de otro oficio, y el herrero y el granjero duermen en una casa), el cura, el cartógrafo del ayuntamiento, el bibliotecario y los demás maestros de los edificios especiales trabajan allí y duermen en una casa o en un cuarto de la posada o la taberna (siempre con cama, por una escalera), todas las camas se alcanzan a pie (las casas de dos plantas la tienen en la planta baja) y la campana está en la plaza, donde se juntan a mediodía. Cada mañana van al trabajo por las calles y las avenidas, a mediodía a la plaza y al anochecer vuelven a casa. **Solo en aldeas nuevas**: las ya generadas conservan su colocación.
 - Adaptación al terreno: los aldeanos solo reclaman una cama o un puesto al que puedan llegar andando, y solo buscan el camino a poca distancia, así que en las cuestas cada escalón que no pueden subir cuesta camas. Al crear la aldea, una calle con un escalón así (dos o más bloques de una columna a la siguiente) se **nivela**: el suelo bajo su eje sigue un perfil suave (como mucho un bloque por columna y como mucho 6 bloques de relleno o desmonte, lo más pegado al terreno que se pueda), y una puerta a dos o tres bloques de su calle recibe una rampa corta delante; la propia adaptación del terreno del juego da forma al suelo al generarse los chunks, así que la aldea no queda en un socavón. Una casa con la puerta más lejos de su calle, o un huerto o un pozo hundido en un hoyo del que no se puede salir, no se construye (una casa menos en vez de una que nadie puede usar). Las calles más empinadas que eso se quedan como están. Y **sobre las piezas de la aldea no crecen árboles, troncos caídos ni bambú** (ni a dos bloques de ellas): en bosques y junglas cerraban calles y puertas. Medido en terreno real (las 8 aldeas más cercanas al origen de la semilla de las pruebas, generadas de forma natural): CIFRAS. **Solo en aldeas nuevas**: las ya generadas conservan su terreno y sus árboles. Con `/place`, que no adapta el terreno, solo se aplican las casas que se dejan fuera.
@@ -149,6 +151,57 @@ Las aldeas Heraldia tienen comercio con carácter, un tablón de encargos y, en 
 - **Asedios** (`aldeas.vida.asedios`, **desactivado**: cambia el equilibrio): en las aldeas fortificadas (`oscuro_fortificada`, `nieve_fortaleza`, `badlands_canon`) el armero vende en el nivel 3 el «Desafío del asedio», una botella ominosa de nivel I (10 esmeraldas, una vez): quien la bebe y vuelve a la aldea provoca un asalto de saqueadores del juego. No hay puesto de saqueadores junto a la aldea: los saqueadores atacan a los aldeanos a 32 bloques aunque no los vean, así que tendría que quedar fuera de la aldea, y una aldea grande ya llega casi a los 8 chunks de su inicio, el máximo al que el juego coloca piezas; además serían mobs persistentes cargados todo el tiempo.
 
 Coste: una entidad más por aldea (el alguacil, sin IA) y ninguna función periódica; los tratos y las hazañas solo se evalúan cuando un aldeano sube de nivel o un jugador mata, gana un asalto o recoge algo (criterios de logros del juego).
+
+## Conversaciones con los aldeanos
+
+Los aldeanos de las aldeas de Heraldia hablan (`dialogos.*` en la [configuración](CONFIGURACION.md#configuración); también en las aldeas ya generadas). Todo va en el chat con botones clicables, como el tablón de encargos, así que funciona con clientes vanilla, en el idioma de cada jugador.
+
+- **El gesto**: el clic derecho sobre un **aldeano de Heraldia que está dentro de una aldea de Heraldia** abre primero una conversación: un saludo y una frase. Debajo, los botones **[Seguir hablando]** (dos frases más como mucho), **[¿Qué se cuenta?]**, **[Comerciar]** (abre sus tratos como siempre) y **[Adiós]**. **Agacharse + clic derecho va directo a los tratos**, y lo mismo cualquier otro aldeano: los vanilla, los de otros mods, un aldeano de Heraldia que se ha salido de su aldea, el alguacil del tablón y los magos de las chozas. Con una etiqueta de nombre, una correa o un huevo de generación en la mano se conserva su uso vanilla, y los bebés, los aldeanos dormidos y los que ya están comerciando no se tocan. Los jugadores simulados (bots de Carpet, los jugadores falsos de la automatización del comercio) no envían el clic del cliente, así que comercian como siempre. Con `dialogos.activado` en `false` se apaga todo el sistema.
+- **Lo que dicen** depende de quiénes son y dónde están: su **oficio** (los 15 vanilla, desempleado y simplón incluidos), la **tierra de la aldea** (su familia: llanuras, bosque, bosque oscuro, taiga, nieve, desierto, sabana, jungla, pantano, cerezos, badlands, costa), el **momento del día** (mañana, tarde, anochecer, noche), el **tiempo** donde está el aldeano (despejado, lluvia, nieve, tormenta; del mal tiempo se habla más) y **tu reputación** con la aldea (desconocido, conocido, amigo, héroe: también decide el saludo). Cada jugador recuerda las 24 últimas frases que ha oído a cualquier aldeano (en su archivo), para que la misma frase no salga dos veces seguidas.
+- **Descanso**: cada aldeano descansa `dialogos.espera_segundos` (60) entre una conversación y la siguiente; mientras, dice que está ocupado y ofrece sus tratos.
+- **Los viajeros y su secreto**: uno de cada diez aldeanos (`dialogos.viajeros_porcentaje`) ha viajado y conoce un sitio. Quiénes son sale del UUID de cada aldeano (no se guarda nada; no hay ninguna señal: pregunta por ahí). Si un jugador con al menos `dialogos.pista_reputacion` (20, *conocido*) de reputación con la aldea le pregunta **[¿Qué se cuenta?]**, le dice **dónde queda una estructura de Heraldia: la dirección y la distancia redondeada a 100 bloques, nunca coordenadas**, como los encargos de explorar del tablón. Solo cuentan estructuras que aparecen de verdad: la misma búsqueda que el tablón (las únicas con guardián a menos de 4.000 bloques, las medianas y las entradas a mina a menos de 1.500, con las reglas de `/locate`, sin cargar ni generar chunks), una de las seis más cercanas, elegida según el aldeano. **Una vez en su vida**: se guarda en el aldeano (`heraldia:dialogo_aldeano`), así que volver a hacer clic, otro jugador o un reinicio no la sacan dos veces; después dice que ya contó lo que sabía. Sin reputación suficiente insinúa que sabe algo; con la reputación desactivada se lo cuenta a cualquiera. Los demás aldeanos responden con un rumor.
+- **Operadores**: `/heraldia talk with <aldeano>` abre una conversación con ese aldeano como lo haría un clic (para ver las frases y hacer capturas).
+
+Rendimiento: nada se ejecuta en cada tick. Todo ocurre con un clic o un botón: una consulta de estructura para saber la aldea (la misma que la del tablón), una frase sacada de listas ya en memoria (el archivo de cada idioma se lee una vez) y, para la pista de un viajero, la búsqueda del tablón, hecha una vez por aldea y arranque fuera del hilo del servidor. Lo que se guarda: dos campos en cada aldeano que ha hablado y las 24 últimas claves de frase en el archivo de cada jugador; la conversación en curso vive solo en memoria y se descarta cuando el jugador se va.
+
+### Cómo se añade una frase
+
+Las frases son datos, no código: `tools/gen/dialogue/<idioma>/<grupo>.json`, una carpeta por idioma (`es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es`) y dos archivos en cada una: `professions.json` (los grupos `profession.*`) y `village.json` (todos los demás). El generador junta cada idioma en `heraldia/dialogos/<código>.json` dentro del `.jar`.
+
+```json
+{
+  "profession.farmer": {
+    "1": "Este año el trigo viene alto.",
+    "2": "La tierra de %2$s es agradecida si la tratas con cariño."
+  }
+}
+```
+
+1. **Escríbela primero en español** (`es_es` es la referencia: sus grupos e ids son el conjunto completo). Añádela a su grupo con el siguiente id libre (`"4"` después de `"3"`). Los ids son lo que guarda la memoria de cada jugador: nunca reutilices un id con otro significado; para quitar una frase, quítala en todos los idiomas.
+2. **Después añade el mismo grupo e id en todos los demás idiomas que tengan ese archivo**, `en_us` incluido. A un idioma le puede faltar un archivo entero (sus jugadores reciben entonces la frase en inglés); pero un archivo que existe debe tener todas las frases españolas de ese archivo, ni una más, con los mismos huecos de formato.
+3. **Huecos** (todos opcionales): en todos los grupos `%1$s` es el nombre del jugador y `%2$s` el de la aldea; en `hint.unique`, `hint.medium` y `hint.mine`, `%1$s` es el sitio («Castillo de la Llanura», «posada del camino»), `%2$s` la dirección («norte») y `%3$s` la distancia aproximada en bloques. Solo huecos del tipo `%s`: un signo de porcentaje literal es `%%`. Entrecomilla el nombre del sitio con las comillas interiores del idioma (la frase entera va dentro de las exteriores) y escribe las pistas para que se lean bien con cualquier nombre (sin artículo pegado).
+4. Comprueba: `python3 -m pytest tools/gen/tests/test_dialogue.py -q` (nombra cada frase que falta o sobra y cada hueco distinto) y `./gradlew build` (la generación falla con los mismos errores). `HERALDIA_FRASES_COMPLETAS=1 python3 -m pytest tools/gen/tests/test_dialogue.py -q` además falla mientras a un idioma le falte un archivo.
+
+Los grupos (`dialogue.pools()` en `tools/gen/dialogue.py`; el objetivo es unas 40 frases por oficio y por contexto, unas 350-400 por idioma):
+
+| Grupo | Cuándo | Archivo |
+|---|---|---|
+| `profession.<id>` | el oficio del aldeano: `none`, `armorer`, `butcher`, `cartographer`, `cleric`, `farmer`, `fisherman`, `fletcher`, `leatherworker`, `librarian`, `mason`, `nitwit`, `shepherd`, `toolsmith`, `weaponsmith` (peso 40) | `professions.json` |
+| `family.<familia>` | la tierra de la aldea: `llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa` (peso 20) | `village.json` |
+| `time.<momento>` | `morning`, `afternoon`, `evening`, `night` (peso 10) | `village.json` |
+| `weather.<tiempo>` | `clear` (peso 5), `rain`, `snow`, `thunder` (peso 15) | `village.json` |
+| `reputation.<nivel>` | el nivel del jugador con la aldea: `desconocido`, `conocido`, `amigo`, `heroe` (peso 8) | `village.json` |
+| `general` | cualquier cosa, en cualquier sitio (peso 12) | `village.json` |
+| `greeting.<nivel>` | la primera frase de cada conversación, según el nivel de reputación | `village.json` |
+| `rumor` | [¿Qué se cuenta?] a un aldeano que no es viajero | `village.json` |
+| `hint.unique`, `hint.medium`, `hint.mine` | un viajero cuenta su sitio (huecos: sitio, dirección, distancia) | `village.json` |
+| `hint.withheld` | un viajero que todavía no se fía del jugador | `village.json` |
+| `hint.told` | un viajero que ya contó su sitio | `village.json` |
+| `hint.nothing` | un viajero sin ninguna estructura alrededor de su aldea | `village.json` |
+| `busy` | un clic mientras el aldeano descansa | `village.json` |
+| `farewell` | [Adiós], o el final de la conversación | `village.json` |
+
+Una frase de conversación se sortea entre los seis grupos de contexto con esos pesos (un grupo sin frases, o con todas oídas hace poco, no cuenta); un grupo puede quedarse vacío, salvo `general`, `rumor`, `busy`, `farewell`, los cuatro `greeting.*` y los seis `hint.*`, que necesitan al menos una frase.
 
 ## Caminos entre aldeas
 
@@ -460,6 +513,38 @@ Un hilo narrativo opcional une las estructuras únicas (trasfondo completo, en i
 
 Las páginas se leen en el idioma de cada jugador (español si el cliente no tiene el mod). Con Lootr cada jugador encuentra su propio pliego. Todos llevan `custom_data` `{heraldia_historia:"<id>"}`; para probar: `/loot give @s loot heraldia:historia/<id>`. El desafío **Cronista** (ver [Logros](#logros)) pide tenerlos todos. **En un mundo ya creado, solo salen en los cofres que aún no se hayan abierto.**
 
+Y tiene final: quien vence a todos los guardianes del mundo principal recibe el último pliego, el título y el estandarte (ver [Final de la Crónica](#final-de-la-crónica)).
+
+## Final de la Crónica
+
+La Crónica no tenía final: el pliego de la Atlántida apunta de nuevo al primero, y vencer al último guardián no cerraba nada. Ahora sí. Cuando **todos los guardianes de las estructuras únicas del mundo principal** han caído ante un jugador, el último juramento se rompe y le llega la última palabra de Ysolda:
+
+- **El título, Heraldo de la Atlántida**: un logro de desafío (`heraldia:cronica/final`, 500 de experiencia), anunciado en el chat como cualquier desafío, mostrado en la pantalla del jugador (título y subtítulo) y bajo su nombre en `/heraldia journal`.
+- **El último pliego**: un libro escrito de Ysolda («Crónica: el último pliego», épico) que cierra la historia: nunca pidió que vencieran a sus guardianes, solo que esperasen a alguien digno; el camino de vuelta nunca estuvo en los pliegos, sino en quien los siguiera; y entrega el estandarte de la orden. En el idioma del jugador (también con un cliente vanilla: el texto que el cliente no sabe traducir llega en su idioma, como en la Guía del Heraldo).
+- **El estandarte de los Heraldos**: un estandarte azul con el mar que sube, las olas y el sello y la bordura dorados de la orden, épico, que **se puede colocar** donde se quiera. Su nombre, su dibujo y su rareza se conservan al colocarlo y recogerlo (el estandarte vanilla guarda eso); el lore con quién lo alzó, solo en el objeto entregado. Se da una vez, como el logro.
+- **Más allá del mapa** (opcional): los guardianes del Nether y del End no cuentan para el final. Quien también los vence consigue un segundo desafío (`heraldia:cronica/mas_alla`, 250) y su último pliego se cambia por uno con una página más; hasta entonces, esa página le cuenta que dos pliegos viajaron más allá del mundo, sin pedirle que vaya.
+
+**Qué guardianes.** Uno por estructura única que aún puede aparecer en este mundo (activada en la configuración) o cuyo guardián el jugador ya venció (aunque se desactivara después), como los cuenta el diario: hoy 20 en el mundo principal (con la Atlántida) y 2 más allá.
+
+**Cuándo cuenta un guardián como vencido por un jugador** (las tres son hechos que el juego registró, ninguna es una suposición):
+- tiene su logro de guardián (`unicas/<id>/guardian`, que da el golpe final), **también de antes de esta versión**;
+- **participó** en su caída: estaba a 64 bloques o menos (el radio de participación de los encargos) cuando murió un guardián al que un jugador había herido. En grupo cuentan todos los del combate, no solo quien dio el golpe;
+- existe **una vez por mundo** (la Atlántida) y ya ha caído ante cualquiera: nadie más podría vencerlo, así que cuenta para todos. El mundo lo sabe por su muerte o, si cayó antes de esta versión, por el logro de quien lo mató cuando entra.
+
+Un guardián que muere sin ningún jugador en el combate (el sol, `/kill`, una trampa) no es la victoria de nadie.
+
+**Por jugador.** Como la reputación, los encargos y el diario: en un servidor, quien cierra la Crónica recibe el título, el pliego y el estandarte; los demás ven el anuncio y siguen con su propia cuenta. Lo que es por mundo son los hechos de los lugares (generadores apagados, el premium modesto, el guardián único caído).
+
+**En un mundo ya existente**: los jugadores que ya tienen todos sus logros de guardián (los vencieron antes de esta versión) reciben el final la próxima vez que entran. A quien antes de esta versión solo luchó junto a otro no se le cuentan esos guardianes (entonces solo quedó el logro de quien lo mató); un operador puede dárselo con `/advancement grant <jugador> only heraldia:unicas/<id>/guardian`. Todo combate desde esta versión cuenta para todos los que estén en él.
+
+**Opción** `guia.final_cronica` (activada por defecto). Desactivada, no se da nada y el diario no muestra la Crónica; el registro de quién participó sigue (es barato), así que activarla más tarde da el final a quien se lo ganó, la próxima vez que entra.
+
+- `/heraldia journal`: una línea más antes del pie, «Crónica: guardianes vencidos», con su barra (no es un tipo más del total: cuenta combates, no hallazgos); al pasar el ratón, los guardianes que aún velan.
+- `/heraldia journal chronicle`: los guardianes vencidos y los que aún velan, por el nombre de su estructura (nunca dónde), los opcionales de más allá del mapa y si la Crónica está cerrada; una vez cerrada, `/heraldia journal chronicle book` (un botón) da una copia al día del último pliego en lugar de la que se lleva. El estandarte no se vuelve a dar.
+- Coste: nada corre cada tick. Cuelga de la muerte del guardián (el mismo `AFTER_DEATH` que las [Únicas vencidas](#únicas-vencidas)) y de la entrada de un jugador: lee una veintena de logros de memoria. Medido en el servidor de pruebas: 0,3 ms por muerte, 1,5-5,9 ms cuando da algo (libro, estandarte y logros).
+- Se guarda: en cada jugador, los guardianes en cuya caída participó (adjunto `heraldia:cronica`, se conserva al morir); en el mundo principal, los guardianes únicos por mundo caídos (`heraldia:cronica_mundo`). Lo entregado es el propio logro.
+- Para probar: `/advancement grant <jugador> only heraldia:unicas/<id>/guardian` de cada uno y volver a entrar, o matar a un guardián con `/damage <guardián> 1000 minecraft:player_attack by <jugador>`. Pruebas: `EndingTest` y `JournalTest` (JUnit), `test_chronicle_ending.py` (textos y páginas caben en los 8 idiomas) y la parte de la Crónica de `tools/smoke/journal.py` (servidor).
+
 ## Guía del Heraldo
 
 Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jugadores y lleva su diario. Cada jugador la recibe **una vez** al entrar por primera vez después de instalar o actualizar Heraldia (también los jugadores que ya existían en el mundo; se guarda en el propio jugador qué versión recibió, y se conserva al morir). Se desactiva con `guia.entregar_al_entrar` (ver [Configuración](CONFIGURACION.md#configuración)) y cualquier jugador pide una copia al día con `/heraldia guide`.
@@ -480,11 +565,12 @@ El registro propio de cada jugador de **lo que ha encontrado y lo que le falta**
 - **Sin coordenadas ni pistas**: el diario dice «2 de 21 únicas, te faltan estas», nunca dónde están. Encontrarlas es cosa de los mapas, los encargos y la Crónica; las pistas suaves de bioma de las únicas que faltan siguen en la Guía del Heraldo, a la que el diario remite (un botón a `/heraldia guide`) mientras falte alguna.
 - **De dónde salen los datos**: de los logros del propio jugador, que ya registran cada descubrimiento (`aldeas/<familia>`, `unicas/<id>/descubrir`, los criterios de `medianas/todas`, `medianas/nether` y `medianas/end`, `minas/<tamaño>`, `costa/faro` y `costa/naufragio`); qué ids son de cada tipo también se lee de los logros (los criterios de `aldeas/todas`, `unicas/todas` y los tres de caminante) y, para la dimensión de una única, del registro de estructuras. No se guarda nada ni se hace nada hasta que alguien lo pide: lee el progreso del jugador de memoria, en el hilo del servidor, y contesta en el mismo tick.
 - Qué cuenta: lo que todavía puede aparecer en este mundo (un tipo desactivado en la configuración no «falta») y lo que el jugador ya encontró, aunque se desactivara después. Un tipo sin nada que encontrar no sale.
+- **El final de la Crónica**: una línea más, los guardianes vencidos camino del [final de la Crónica](#final-de-la-crónica), y su propia sección, `/heraldia journal chronicle`.
 - **Por qué un comando y no más páginas de la Guía ni `/heraldia status`**: la Guía es un libro que se entrega al entrar (solo se pone al día si se vuelve a pedir, y sus páginas tienen que caber en un tamaño medido), y ya lleva el diario de las únicas con sus pistas; `/heraldia status` es el resumen del servidor, lo que ha descubierto cualquiera. El diario es la vista por jugador de todos los tipos, siempre al día; `/heraldia status` enlaza con él y él con la Guía, en vez de repetir ninguno.
 
 ## Logros
 
-Pestaña de logros **Heraldia** (122 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
+Pestaña de logros **Heraldia** (124 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia, estructura única, mediana o entrada a mina.
 - [Entradas a mina](#entradas-a-mina), en cadena: **Bajo la ladera** (entrar en una boca de mina, 20), **Campamento minero** (en un campamento minero, 40) y **Señor de las galerías** (en un complejo minero, 80).
@@ -499,6 +585,7 @@ Pestaña de logros **Heraldia** (122 logros), con textos en los 8 idiomas del mo
 - Desafío final **Cartógrafo de leyendas**: descubrir todas las estructuras únicas (500).
 - Desafío **Sala de trofeos**: conseguir el [trofeo](#trofeos-de-los-guardianes) de cada guardián de las estructuras únicas (500); cuenta al tenerlo en el inventario.
 - Desafío **Cronista**: reunir los pliegos de la [Crónica de los Heraldos](#crónica-de-los-heraldos), uno por estructura única (500); cuenta al tenerlo en el inventario.
+- Desafío **Heraldo de la Atlántida**: vencer al guardián de cada estructura única del mundo principal (500), y **Más allá del mapa**, también a los del Nether y del End (250); los da el mod, con el [final de la Crónica](#final-de-la-crónica).
 
 Notas: una estructura cuenta al entrar en sus piezas, no basta con verla. Si se desactiva una familia o una estructura en la [configuración](CONFIGURACION.md#configuración), su logro y el desafío correspondiente no se pueden conseguir. Con Lootr, el logro del tesoro depende de que Lootr avise al juego al abrir el cofre (sin comprobar). Los logros de las estructuras únicas se generan solos a partir del registro de únicas, así que una estructura nueva trae los suyos.
 

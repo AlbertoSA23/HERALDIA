@@ -196,12 +196,13 @@ class HeraldiaCommandsTest {
 	void noAliasInClientTree() {
 		var client = new CommandDispatcher<>(AliasTest.fromClient(d.getRoot(), op));
 		List<String> root = AliasTest.suggestions(client, "heraldia ", op);
-		assertEquals(List.of("arena", "caravan", "config", "guide", "info", "journal", "key", "language", "profile", "quest", "reload", "review", "status", "treasure", "update", "webmap", "wizard"), root);
-		assertEquals(List.of("coast", "end", "mediums", "mines", "nether", "uniques", "villages"), AliasTest.suggestions(client, "heraldia journal ", op));
+		assertEquals(List.of("arena", "caravan", "config", "guide", "info", "journal", "key", "language", "profile", "quest", "reload", "review", "status", "talk", "treasure", "update", "webmap", "wizard"), root);
+		assertEquals(List.of("chronicle", "coast", "end", "mediums", "mines", "nether", "uniques", "villages"), AliasTest.suggestions(client, "heraldia journal ", op));
 		assertEquals(List.of("clear", "list", "raid", "spawn", "wayfarer"), AliasTest.suggestions(client, "heraldia caravan ", op));
 		assertEquals(List.of("hunter", "messenger", "patrol", "pilgrim", "shepherd"), AliasTest.suggestions(client, "heraldia caravan wayfarer ", op));
 		assertEquals(List.of("peaceful", "raid"), AliasTest.suggestions(client, "heraldia caravan spawn ", op));
 		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.suggestions(client, "heraldia quest ", op));
+		assertEquals(List.of("bye", "more", "rumor", "trade", "with"), AliasTest.suggestions(client, "heraldia talk ", op));
 		assertEquals(List.of("give", "info"), AliasTest.suggestions(client, "heraldia treasure ", op));
 		assertEquals(List.of("leaderboard", "leave", "move", "place", "remove", "season", "start", "stop"),
 				AliasTest.suggestions(client, "heraldia arena ", op));
@@ -211,8 +212,9 @@ class HeraldiaCommandsTest {
 		assertEquals(List.of("analyze", "apply", "check", "repair", "undo"), AliasTest.suggestions(client, "heraldia update ", op));
 		// a player without permissions only sees their own
 		var playerSource = new CommandDispatcher<>(AliasTest.fromClient(d.getRoot(), player));
-		assertEquals(List.of("arena", "guide", "journal", "language", "quest", "status"), AliasTest.suggestions(playerSource, "heraldia ", player));
+		assertEquals(List.of("arena", "guide", "journal", "language", "quest", "status", "talk"), AliasTest.suggestions(playerSource, "heraldia ", player));
 		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.suggestions(playerSource, "heraldia quest ", player));
+		assertEquals(List.of("bye", "more", "rumor", "trade"), AliasTest.suggestions(playerSource, "heraldia talk ", player));
 		// T41: anyone sees the leaderboard and start (the mode menu buttons; the Java requires being in the ring)
 		assertEquals(List.of("leaderboard", "leave", "start"), AliasTest.suggestions(playerSource, "heraldia arena ", player));
 		assertEquals(List.of("coop", "survival", "timeattack"), AliasTest.suggestions(playerSource, "heraldia arena leaderboard ", player));

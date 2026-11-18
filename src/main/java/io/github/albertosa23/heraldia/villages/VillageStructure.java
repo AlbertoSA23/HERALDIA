@@ -47,7 +47,9 @@ import org.slf4j.LoggerFactory;
  * is taken by houses, fillers or towers, they are removed (the port takes their place) when there is no free shore; those that
  * collide with the plaza, a special building or a street under the pier are discarded. If none is left, the village spawns
  * without a port (the avenue already has the inn). All villages use this type: if the quest board is disabled
- * ({@code aldeas.vida.tablon}), its piece is removed when the village is created; if not and there is no port, the stub is the jigsaw's.
+ * ({@code aldeas.vida.tablon}), its piece is removed when the village is created, and so are the traces of work in progress
+ * ({@code <style>/traces/<kind>}, on their plots) if {@code aldeas.vida.rastros} is disabled; if neither and there is no port,
+ * the stub is the jigsaw's.
  */
 public final class VillageStructure extends Structure {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -91,6 +93,7 @@ public final class VillageStructure extends Structure {
 		Optional<GenerationStub> stub = theVillage.findGenerationPoint(ctx);
 		Profiler.end(Profiler.Segment.VILLAGE, tp);
 		boolean noBoard = !HeraldiaConfig.get().getBool(BOARD_OPTION);
+		boolean noTraces = !HeraldiaConfig.get().getBool(TRACES_OPTION);
 		if (stub.isEmpty()) {
 			return stub;
 		}
@@ -102,6 +105,9 @@ public final class VillageStructure extends Structure {
 			List<StructurePiece> pieces = new ArrayList<>(village.getPiecesBuilder().build().pieces());
 			if (noBoard) {
 				pieces.removeIf(VillageStructure::board);
+			}
+			if (noTraces) {
+				pieces.removeIf(VillageStructure::trace);
 			}
 			long tf = Profiler.start();
 			String fit = fitTerrain(ctx, pieces);
@@ -263,6 +269,20 @@ public final class VillageStructure extends Structure {
 		return path.endsWith("/tablon");
 	}
 
+	/** Option that puts the traces of work in progress on their plots (if disabled, they are removed when the village is created). */
+	public static final String TRACES_OPTION = "aldeas.vida.rastros";
+
+	/** Trace of work in progress (blocks only, on its plot): template {@code <style>/traces/<kind>}. */
+	private static boolean trace(StructurePiece piece) {
+		return piece instanceof PoolElementStructurePiece pe && pe.getElement() instanceof SinglePoolElement e
+				&& isTrace(e.getTemplateLocation().getPath());
+	}
+
+	/** Template path of a trace of work in progress ({@code <style>/traces/<kind>}). */
+	static boolean isTrace(String path) {
+		return path.contains("/traces/");
+	}
+
 	/**
 	 * Houses, fillers, towers and gates at the end of the streets and what goes inside them (villagers, golems, decoration): the
 	 * only thing the port can displace.
@@ -277,7 +297,7 @@ public final class VillageStructure extends Structure {
 	/** The same by template path (without the piece): the only thing that decides. */
 	static boolean removable(String path) {
 		return path.contains("/houses/") || path.contains("/fillers/") || path.contains("/decor/") || path.contains("/terminators/")
-				|| path.startsWith("villagers/") || path.equals("golem");
+				|| isTrace(path) || path.startsWith("villagers/") || path.equals("golem");
 	}
 
 	/** Street or avenue: a pool piece that adapts to the terrain (terrain_matching). */

@@ -1,0 +1,324 @@
+{
+  "greeting.desconocido": {
+    "1": "A stranger? I haven't seen you around %2$s.",
+    "2": "Good day. Have you come far?",
+    "3": "Hello, traveller. We are quiet folk here.",
+    "4": "Hm. And who might you be?",
+    "5": "If you've come to trade, fine. If not, fine too, but don't touch anything.",
+    "6": "Not many folk pass through %2$s. Are you lost?",
+    "7": "Good day... or whatever it is. I don't often talk to strangers.",
+    "8": "Fair warning: the golem doesn't trust anyone who arrives in a hurry."
+  },
+  "greeting.conocido": {
+    "1": "Ah, %1$s! Back again.",
+    "2": "Your face rings a bell. You helped with something on the board, didn't you?",
+    "3": "Good day, %1$s. What brings you to %2$s?",
+    "4": "Well, %1$s. How was the road?",
+    "5": "I thought I knew those boots.",
+    "6": "%1$s! I'd started to think you weren't coming back.",
+    "7": "Hello. Didn't get lost this time, eh?",
+    "8": "Look, it's our errand-runner. How goes it, %1$s?"
+  },
+  "greeting.amigo": {
+    "1": "%1$s, my friend! Sit down a moment.",
+    "2": "So glad to see you. They speak well of you in %2$s.",
+    "3": "Look who's back! Come in, come in.",
+    "4": "%1$s! We were just talking about you. Good things, don't worry.",
+    "5": "Come here, I've fresh bread and nobody to share it with.",
+    "6": "It's been too long, %1$s. %2$s missed you.",
+    "7": "There you are! The children kept asking after you.",
+    "8": "My friend, how's the world treating you?"
+  },
+  "greeting.heroe": {
+    "1": "The hero of %2$s! The children won't stop talking about you.",
+    "2": "%1$s, it's an honour. Whatever you need.",
+    "3": "Make way! It's %1$s.",
+    "4": "%1$s, in the flesh! Hold on, let me dust myself off.",
+    "5": "All of %2$s owes you something. Me most of all.",
+    "6": "My grandmother says she'll keep you in her prayers. And in her will.",
+    "7": "%1$s is back! Somebody ring the bell.",
+    "8": "With you here, even the golem stands up straighter."
+  },
+  "reputation.desconocido": {
+    "1": "We're a bit wary of strangers here. Nothing personal.",
+    "2": "If you want to be known, look at the board on the square.",
+    "3": "Don't take it badly, but I can't tell yet if you're to be trusted.",
+    "4": "Words blow away on the wind. In %2$s we watch what folk do."
+  },
+  "reputation.conocido": {
+    "1": "The bailiff says you keep your word. That counts for a lot here.",
+    "2": "They don't look at you funny at the market any more, have you noticed?",
+    "3": "Some folk greet you by name now. That's a good sign.",
+    "4": "Keep this up and %2$s will count you as one of our own."
+  },
+  "reputation.amigo": {
+    "1": "I keep the best of the week for you, just so you know.",
+    "2": "You have a home in %2$s whenever you want.",
+    "3": "If you ever need a hand, there are plenty of them here.",
+    "4": "I don't bolt the door any more when I see you coming, %1$s."
+  },
+  "reputation.heroe": {
+    "1": "Someday someone will write a song about you. I hope it rhymes.",
+    "2": "As long as you're around, we sleep soundly.",
+    "3": "They tell your name round the fire now, %1$s.",
+    "4": "If %2$s had statues, yours would be the first."
+  },
+  "family.llanuras": {
+    "1": "From here you can see anyone coming a league away.",
+    "2": "The plains wind carries off your worries and your hat.",
+    "3": "Out here the wheat runs as far as the eye can see.",
+    "4": "Plains horses won't let you ride them the first time.",
+    "5": "There's nowhere to hide on the plains. Not from rain, not from gossip.",
+    "6": "The poppies come up on their own along the field edges. Nobody plants them."
+  },
+  "family.bosque": {
+    "1": "There are mushrooms in the forest that heal and some that don't. Learn which are which.",
+    "2": "The birches sing when the wind blows. Listen.",
+    "3": "Firewood's never short here, but you ask the forest first.",
+    "4": "If you hear a wolf, don't run. They run faster.",
+    "5": "The oldest oaks were here long before the village.",
+    "6": "In autumn the forest floor crunches like toasted bread."
+  },
+  "family.oscuro": {
+    "1": "Under these oaks it is never quite daytime.",
+    "2": "Don't stray from the lanterns after nightfall. Trust me.",
+    "3": "The giant mushrooms grow where the light can't reach. So do other things.",
+    "4": "Here the trees touch overhead. The sky is just a rumour.",
+    "5": "My grandfather said the dark forest has a memory. And a grudge.",
+    "6": "Never whistle among the black oaks. Something might whistle back."
+  },
+  "family.taiga": {
+    "1": "The spruces smell of resin and of winter coming.",
+    "2": "Around here the foxes even steal the eggs from the henhouse.",
+    "3": "Sweet berries prick your fingers, but the jam is worth it.",
+    "4": "In the taiga winter doesn't knock: one day it's simply there.",
+    "5": "The old ones carved runes in the trunks so they wouldn't lose their way.",
+    "6": "A good axe, a good fire, a good coat. Anything more is extra."
+  },
+  "family.nieve": {
+    "1": "Here you learn quickly never to let the fire go out.",
+    "2": "The snow covers everything, even the wolves' tracks.",
+    "3": "Don't trust the lake ice. It creaks before it breaks, but not long before.",
+    "4": "Polar bears are calm. Until they aren't.",
+    "5": "In %2$s we count winters, not years.",
+    "6": "Watch out for powder snow: some sank in and never came out."
+  },
+  "family.desierto": {
+    "1": "Water is worth more than gold here. Well, almost.",
+    "2": "By day it scorches and by night it freezes. The desert knows no middle ground.",
+    "3": "My grandfather planted palms along the water channel. They still give shade.",
+    "4": "The sand keeps secrets better than any chest.",
+    "5": "When the day cools, the courtyard with the fountain is the best place in the world.",
+    "6": "The cactus asks for nothing and endures everything. Learn from it."
+  },
+  "family.sabana": {
+    "1": "The acacias give little shade, but they give it to everyone alike.",
+    "2": "The wild horses come down to drink at sunset.",
+    "3": "Dry grass here catches fire from nothing. Careful with torches.",
+    "4": "The plateau llamas spit, but they'll carry whatever you load on them.",
+    "5": "At midday the savanna horizon shimmers with heat.",
+    "6": "When the rain finally comes, we all go out to get soaked."
+  },
+  "family.jungla": {
+    "1": "In the jungle everything grows, especially what you don't want.",
+    "2": "The parrots repeat what we say. Mind your words.",
+    "3": "You won't find better cocoa than ours anywhere around.",
+    "4": "If an ocelot stares at you, keep still. It's only making up its mind.",
+    "5": "The vines close the path in a week. You always have to cut it open again.",
+    "6": "They say the jungle eats temples. Slowly, but it eats them."
+  },
+  "family.pantano": {
+    "1": "The swamp mist hides more than it seems.",
+    "2": "The frogs sing all night. You get used to it. More or less.",
+    "3": "If you see a hut with cauldrons steaming, don't knock.",
+    "4": "The mud here cures corns. So says the old woman at the mill.",
+    "5": "Slimes come out at full moon. Don't ask me why.",
+    "6": "Never drink anything offered by a woman in a pointed hat."
+  },
+  "family.cerezos": {
+    "1": "When the petals fall it looks like pink snow.",
+    "2": "The cherry-blossom bees make the sweetest honey around.",
+    "3": "Under the cherry trees we speak softly. It's the custom.",
+    "4": "Every spring someone proposes beneath the great cherry tree.",
+    "5": "I sweep the petals every morning. Every evening they're back.",
+    "6": "In %2$s we say the blossom lasts so little so that you'll look at it properly."
+  },
+  "family.badlands": {
+    "1": "This red earth holds gold, if you know where to look.",
+    "2": "The abandoned mines creak at night. I wouldn't go near them.",
+    "3": "The sun bakes the coloured clay here. It looks painted by hand.",
+    "4": "More than one came looking for a fortune and stayed to raise goats.",
+    "5": "The red dust gets into everything: your clothes, your food, your dreams.",
+    "6": "Round here, whoever finds a vein doesn't tell even their own mother."
+  },
+  "family.costa": {
+    "1": "The sea brings everything: fish, driftwood and the odd bottle.",
+    "2": "When the lighthouse goes dark, we know a storm is coming.",
+    "3": "Everything tastes of salt here, even the bread.",
+    "4": "The turtles come back to the same beach every year. Like the sailors.",
+    "5": "Never turn your back on the sea. It never turns its back on you.",
+    "6": "My father said you can hear the drowned in seashells."
+  },
+  "time.morning": {
+    "1": "Getting up early in %2$s is easy: the rooster shows no mercy.",
+    "2": "A good day to start something new, don't you think?",
+    "3": "My eyes are still half shut. Talk slowly.",
+    "4": "The morning dew is the best part of the day. After that it all gets complicated.",
+    "5": "Up already, %1$s? Either you slept very little or very well."
+  },
+  "time.afternoon": {
+    "1": "At this hour only the cats nap in peace.",
+    "2": "Half the work is already done. The other half, tomorrow.",
+    "3": "A full belly makes for slow thinking. Everyone says so.",
+    "4": "Mid-afternoon the square empties. A good time for a chat.",
+    "5": "There's still light for a good stretch of work."
+  },
+  "time.evening": {
+    "1": "The sun is setting. We'll have to shut ourselves in soon.",
+    "2": "At this hour the sky over %2$s turns every colour.",
+    "3": "Every house smells of supper already.",
+    "4": "Bring in whatever you've left outside, %1$s. Night won't be long.",
+    "5": "This is the hour the bats leave the caves."
+  },
+  "time.night": {
+    "1": "What are you doing up at this hour? There are zombies out there.",
+    "2": "At night you hear strange things beyond the wall.",
+    "3": "Keep your voice down, the neighbours are asleep.",
+    "4": "You see the stars better from here than from anywhere.",
+    "5": "If you hear bones rattling out there, it isn't the wind."
+  },
+  "weather.clear": {
+    "1": "What a clear day. You can see all the way to the horizon.",
+    "2": "In this sun, washing dries in no time.",
+    "3": "Not a cloud. Even the golem looks pleased.",
+    "4": "A sky like this makes you want to set off on a journey.",
+    "5": "Good weather for working the fields. And for not working them."
+  },
+  "weather.rain": {
+    "1": "This rain is good for the fields but bad for my knees.",
+    "2": "If it keeps raining like this, the river will burst its banks.",
+    "3": "Come in out of that, you'll be soaked to the bone.",
+    "4": "My roof leaks right over the bed. Every time.",
+    "5": "Fish bite better in the rain. So the fishermen say."
+  },
+  "weather.snow": {
+    "1": "More snow. We'll have to clear the roof again.",
+    "2": "In this cold even the skeletons shiver.",
+    "3": "The children are already building snowmen in the square.",
+    "4": "Wrap up, %1$s. Snow is deceiving: it looks soft and it bites.",
+    "5": "When it snows like this, the whole world goes quiet."
+  },
+  "weather.thunder": {
+    "1": "That lightning struck close! Keep away from the trees.",
+    "2": "In a storm not even creepers come out. Well, they do.",
+    "3": "They say lightning once turned a pig into something horrible. I believe it.",
+    "4": "Every thunderclap makes me jump. Don't laugh.",
+    "5": "In a storm like this, better not leave %2$s. Believe me."
+  },
+  "general": {
+    "1": "Life in %2$s is simple, and I like it that way.",
+    "2": "The iron golem has looked at me oddly since I painted a flower on it.",
+    "3": "The well on the square gives the freshest water around.",
+    "4": "They say the mayor snores so loud he scares the bats.",
+    "5": "Take care, %1$s. The world is big and not always kind.",
+    "6": "My bed is the only thing that's truly mine. And I defend it.",
+    "7": "Every bell here has its own voice. The one on the square is the grumpiest.",
+    "8": "I can't read, but I can count emeralds. That's enough for me.",
+    "9": "The cats of %2$s rule more than the mayor does.",
+    "10": "If you see someone in a green robe with a sour face, that's my cousin.",
+    "11": "I've lived in %2$s all my life and I still get lost in the market.",
+    "12": "A good neighbour is worth more than a full chest.",
+    "13": "When I was young I wanted to see the world. Then I saw a zombie and got over it.",
+    "14": "Hens lay more if you sing to them. Don't look at me like that.",
+    "15": "In %2$s everyone knows everyone. For better and for worse.",
+    "16": "Work goes better with a song. Pity I don't know any.",
+    "17": "I keep one emerald put by for a bad day. It hasn't come yet.",
+    "18": "What patience can't mend, bread usually can.",
+    "19": "You're not from here, that's plain. You smell of the road.",
+    "20": "What you hear most here is bells, hens and gossip."
+  },
+  "rumor": {
+    "1": "They say a merchant came through last night with three llamas and no hurry at all.",
+    "2": "The smith's daughter is engaged. Or so she says.",
+    "3": "Someone has seen strange lights in the hills. I'm sure it's nothing.",
+    "4": "In the next village they bake horrible bread. Don't tell them I said so.",
+    "5": "We haven't seen the wandering trader for days. I hope he's well.",
+    "6": "The shepherd swears one of his sheep came back dyed pink. He says it wasn't him.",
+    "7": "Someone leaves flowers on the librarian's door at night. Nobody knows who.",
+    "8": "A woodcutter heard bells deep in the forest, where there are no bells at all.",
+    "9": "The children say they saw a skeleton riding a spider. I don't believe them. Not entirely.",
+    "10": "A traveller turned up yesterday with scorched clothes and wouldn't say where from.",
+    "11": "The cleric buys more candles than anyone could need. What does he want with so many?",
+    "12": "They say someone pulled a trident out of the sea. And the sea wanted it back.",
+    "13": "The last caravan had a man who spoke to no one. He left in the night.",
+    "14": "A fisherman swears he saw a city under the water. Mind you, he drinks.",
+    "15": "Bandits have been seen on the roads again. If you travel, don't go alone.",
+    "16": "The old woman in the last house says she talks to the cats. And that they answer.",
+    "17": "For weeks now the golem has stood staring at the forest. It must have seen something.",
+    "18": "Someone found a compass that doesn't point north. Sold it straight away, of course.",
+    "19": "They say there are caves in the mountains where you can hear the stone breathing.",
+    "20": "A cartographer came through with a half-finished map. Said there were things he didn't dare draw."
+  },
+  "busy": {
+    "1": "Not now, I have work to do. If you want to trade, go ahead.",
+    "2": "We'll talk later, my stew is burning.",
+    "3": "Give me a while, you've caught me busy.",
+    "4": "Shh, I'm resting. Come back later.",
+    "5": "Not right now, %1$s. My head's somewhere else.",
+    "6": "Leave me be, I've been on my feet all day."
+  },
+  "farewell": {
+    "1": "Fare you well, %1$s.",
+    "2": "Come back whenever you like. We'll be here.",
+    "3": "Mind yourself on those roads.",
+    "4": "Until next time. And don't forget %2$s.",
+    "5": "Keep your eyes open, night comes without warning.",
+    "6": "If you see my cousin out there, tell him he owes me an emerald.",
+    "7": "Safe travels. And eat something, you're all skin and bones.",
+    "8": "May the road go easy on you, %1$s."
+  },
+  "hint.unique": {
+    "1": "I'll tell you something nobody knows: when I was young I saw ‘%1$s’, to the %2$s, about %3$s blocks away. I never went back.",
+    "2": "My father used to tell me about ‘%1$s’. It lies to the %2$s, about %3$s blocks away. They say something guards it.",
+    "3": "If you want real adventure: ‘%1$s’, to the %2$s, about %3$s blocks away. I turned back at the gate.",
+    "4": "Once I slept out in the open in the shadow of ‘%1$s’. To the %2$s, about %3$s blocks away. Didn't sleep a wink.",
+    "5": "To the %2$s, about %3$s blocks off, stands ‘%1$s’. From afar it looks peaceful. Up close, it doesn't.",
+    "6": "The biggest thing I ever saw: ‘%1$s’. Walk %3$s blocks or so to the %2$s and you'll see it before you get there."
+  },
+  "hint.medium": {
+    "1": "When I travelled I stopped at a place like that: ‘%1$s’, to the %2$s, about %3$s blocks from here.",
+    "2": "To the %2$s, about %3$s blocks away, there's ‘%1$s’. Ask for me if anyone is still there.",
+    "3": "Don't tell anyone: ‘%1$s’, to the %2$s, about %3$s blocks. Worth the walk.",
+    "4": "I sheltered from the rain one night at ‘%1$s’. To the %2$s, about %3$s blocks away. They treated me well. I think.",
+    "5": "Head %2$s, about %3$s blocks. That's where ‘%1$s’ is. Bring food, the way feels long.",
+    "6": "My last stop before coming home was ‘%1$s’, to the %2$s, about %3$s blocks off. I still remember the smell."
+  },
+  "hint.mine": {
+    "1": "There's ‘%1$s’ to the %2$s, about %3$s blocks away. I went down once and heard picks in the dark.",
+    "2": "If you're after ore, ‘%1$s’, to the %2$s, about %3$s blocks away. Take plenty of torches.",
+    "3": "I worked a season at ‘%1$s’. To the %2$s, about %3$s blocks away. I quit when my torch went out by itself.",
+    "4": "To the %2$s, about %3$s blocks away, you go down into ‘%1$s’. The minecarts still roll. Nobody pushes them.",
+    "5": "An old miner took me to ‘%1$s’, to the %2$s, about %3$s blocks. I came out with full pockets and shaking hands.",
+    "6": "‘%1$s’, to the %2$s, about %3$s blocks away. Down there the air tastes of iron. And of something else."
+  },
+  "hint.withheld": {
+    "1": "I've seen the world, yes... but I don't tell just anyone. Earn the trust of %2$s.",
+    "2": "I know of a place, but I don't know you well enough yet, %1$s.",
+    "3": "Help out a bit on the board and maybe I'll tell you what I saw on my travels.",
+    "4": "The secrets of the road are earned, %1$s. It isn't your turn yet.",
+    "5": "Come back when they say your name in %2$s without frowning.",
+    "6": "I could tell you a great many things. But first I want to see what you're worth."
+  },
+  "hint.told": {
+    "1": "I've already told what I know. The rest you'll have to find out yourself.",
+    "2": "My secret is already told. Maybe someone else in %2$s knows more.",
+    "3": "Have you been to see what I told you? Then I've nothing more to tell.",
+    "4": "What I knew is yours now, %1$s. Look after it."
+  },
+  "hint.nothing": {
+    "1": "I travelled a lot, but around here I saw nothing worth telling.",
+    "2": "What I saw on my travels is too far from here.",
+    "3": "Round here there's only fields and more fields. Believe me, I walked every one.",
+    "4": "I'd like to help you, %1$s, but there's nothing near %2$s worth an adventure."
+  }
+}

@@ -49,6 +49,11 @@ _FIXED = [
     ("aldeas.vida.tablon", True, None, None,
      "Tablón de encargos en la plaza (atril con el libro de encargos y el alguacil que los paga); solo en aldeas nuevas",
      "Job board on the square (lectern with the book of jobs and the bailiff who pays for them); new villages only"),
+    ("aldeas.vida.rastros", True, None, None,
+     "Rastros de trabajo a medias: en algunos solares de la aldea, una casa a medio construir, ropa tendida, una comida a medias, "
+     "un taller, un carro cargado, pescado secándose o una hoguera con el puchero (solo bloques, ninguna entidad); solo en aldeas nuevas",
+     "Traces of work in progress: on a few plots of the village, a house half built, laundry hanging out, a meal half eaten, a work "
+     "yard, a loaded cart, fish drying or a cooking fire with the pot on (blocks only, no entities); new villages only"),
     ("aldeas.vida.asedios", False, None, None,
      "Asedios: en las aldeas fortificadas el armero vende una botella ominosa para provocar un asalto de saqueadores (cambia el equilibrio)",
      "Sieges: in fortified villages the weaponsmith sells an ominous bottle to provoke a raid (affects balance)"),
@@ -170,6 +175,13 @@ _FIXED = [
      "instalar o actualizar Heraldia (una vez por versión; /heraldia guide da otra copia cuando quiera)",
      "Herald's Guide: gives each player the book that explains the mod and keeps their diary the first time they join "
      "after Heraldia is installed or updated (once per version; /heraldia guide gives a new copy at any time)"),
+    ("guia.final_cronica", True, None, None,
+     "Final de la Crónica de los Heraldos: quien vence (o ve caer cerca) a los guardianes de todas las estructuras únicas "
+     "del mundo principal recibe el último pliego, el título de Heraldo de la Atlántida y el estandarte de los Heraldos "
+     "(una vez por jugador; cuentan también los guardianes que ya derrotó antes de esta versión)",
+     "End of the Chronicle of the Heralds: whoever defeats (or sees fall nearby) the guardians of every unique structure "
+     "in the main world gets the last leaf, the title of Herald of Atlantis and the Standard of the Heralds (once per "
+     "player; guardians they defeated before this version count too)"),
     ("botin.reponer.activado", False, None, None,
      "Botín que se repone: los cofres y barriles de las aldeas, estructuras medianas y únicas de Heraldia vuelven a llenarse "
      "con su tabla de botín cuando han pasado los días indicados desde que se saquearon, al abrirlos, si no hay otro jugador "
@@ -272,6 +284,32 @@ _FIXED = [
      "Reputation per village: it rises with its quests and falls when you attack its villagers or golems; as known, "
      "friend and village hero, its villagers lower their trades by 10, 20 and 30 % (like Hero of the Village, not "
      "stacking) and greet you"),
+    ("dialogos.activado", True, None, None,
+     "Conversaciones con los aldeanos: el clic derecho sobre un aldeano de Heraldia dentro de su aldea abre primero una "
+     "conversación en el chat (frases según su oficio, la tierra de la aldea, la hora, el tiempo y tu reputación) con "
+     "botones para seguir hablando, preguntar qué se cuenta, comerciar o despedirse. Agacharse y hacer clic derecho "
+     "abre los tratos directamente; los aldeanos vanilla o de otros mods comercian como siempre",
+     "Villager conversations: right-clicking a Heraldia villager inside its village first opens a conversation in "
+     "chat (lines by its profession, the village's land, the hour, the weather and your reputation) with buttons to "
+     "keep talking, ask for news, trade or say goodbye. Sneak and right-click to open the trades directly; vanilla "
+     "villagers and those of other mods trade as always"),
+    ("dialogos.espera_segundos", 60, 0, 600,
+     "Segundos que descansa cada aldeano entre una conversación y la siguiente (mientras, dice que está ocupado y "
+     "ofrece sus tratos); 0: sin espera",
+     "Seconds each villager rests between one conversation and the next (meanwhile it says it is busy and offers its "
+     "trades); 0: no wait"),
+    ("dialogos.viajeros_porcentaje", 10, 0, 100,
+     "Porcentaje de aldeanos de Heraldia que han viajado y conocen un sitio: al preguntarles qué se cuenta, una sola "
+     "vez en su vida, dicen hacia dónde y a qué distancia aproximada queda una estructura de Heraldia que existe de "
+     "verdad (nunca coordenadas); 0: ninguno",
+     "Percentage of Heraldia villagers who have travelled and know a place: asked for news, once in their life, they "
+     "tell in which direction and roughly how far a Heraldia structure that really exists lies (never coordinates); "
+     "0: none"),
+    ("dialogos.pista_reputacion", 20, 0, 300,
+     "Reputación mínima con la aldea para que un viajero cuente su pista (20: conocido); sin reputación activada, la "
+     "cuentan a cualquiera",
+     "Minimum reputation with the village for a wayfarer to tell its hint (20: known); with reputation disabled, they "
+     "tell anyone"),
     ("caravanas.activado", True, None, None,
      "Caravanas: de vez en cuando, con jugadores cerca, un mercader de Heraldia con sus llamas (y a veces un guardia) "
      "recorre un tramo del camino entre dos aldeas vecinas; si la defiendes de los bandidos y llega, paga esmeraldas y "
@@ -538,6 +576,7 @@ _NAMES = {
     "aldeas.distancia_aldeas_vanilla_bloques": ("Distancia a aldeas vanilla (bloques)", "Distance to vanilla villages (blocks)"),
     "aldeas.vida.tratos_estilo": ("Tratos propios del estilo", "Style trades"),
     "aldeas.vida.tablon": ("Tablón de encargos", "Job board"),
+    "aldeas.vida.rastros": ("Rastros de trabajo a medias", "Traces of work in progress"),
     "aldeas.vida.asedios": ("Asedios en aldeas fortificadas", "Sieges in fortified villages"),
     "aldeas.caminos.activado": ("Caminos entre aldeas", "Roads between villages"),
     "aldeas.caminos.distancia_maxima_bloques": ("Distancia máxima entre aldeas unidas (bloques)", "Maximum distance between joined villages (blocks)"),
@@ -569,6 +608,7 @@ _NAMES = {
     "jefes.barra.activado": ("Barra de jefe", "Boss bar"),
     "jefes.apagar_generadores": ("Apagar generadores al vencer", "Turn off spawners on victory"),
     "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
+    "guia.final_cronica": ("Final de la Crónica", "End of the Chronicle"),
     "botin.reponer.activado": ("Botín que se repone", "Restocking loot"),
     "botin.reponer.dias": ("Días hasta reponerse", "Days until restocked"),
     "botin.reponer.premium_vencido_modesto": ("Premium modesto en únicas vencidas", "Modest premium in cleared uniques"),
@@ -594,6 +634,10 @@ _NAMES = {
     "caravanas.frecuencia": ("Frecuencia de las caravanas (%)", "Caravan frequency (%)"),
     "caravanas.prob_asalto": ("Probabilidad de asalto (%)", "Ambush chance (%)"),
     "caravanas.max_activas": ("Caravanas a la vez", "Caravans at once"),
+    "dialogos.activado": ("Conversaciones con los aldeanos", "Villager conversations"),
+    "dialogos.espera_segundos": ("Espera entre conversaciones (s)", "Wait between conversations (s)"),
+    "dialogos.viajeros_porcentaje": ("Aldeanos que conocen un sitio (%)", "Villagers who know a place (%)"),
+    "dialogos.pista_reputacion": ("Reputación para una pista", "Reputation for a hint"),
     "viajeros.activado": ("Gente de paso", "Wayfarers"),
     "viajeros.frecuencia": ("Frecuencia de los viajeros (%)", "Wayfarer frequency (%)"),
     "viajeros.max_activos": ("Viajeros a la vez", "Wayfarers at once"),
@@ -674,6 +718,7 @@ SECTIONS = [
     ("guia", "Guía del Heraldo", "Herald's Guide"),
     ("arena", "Arena de oleadas", "Wave arena"),
     ("encargos", "Encargos y reputación", "Quests and reputation"),
+    ("dialogos", "Conversaciones", "Conversations"),
     ("caravanas", "Caravanas", "Caravans"),
     ("viajeros", "Gente de paso", "Wayfarers"),
     ("chozas_mago", "Chozas de mago", "Wizard's huts"),
@@ -691,7 +736,7 @@ _SECTION_PREFIXES = [
     ("unicas.distancia_minima.", "distancia_minima"), ("unicas.atlantida.", "atlantida"), ("unicas.", "unicas"), ("jefes.", "jefes"),
     ("medianas.", "medianas"), ("minas.", "minas"), ("faros.", "costa"), ("naufragios.", "costa"),
     ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
-    ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
+    ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"), ("dialogos.", "dialogos"),
     ("caravanas.", "caravanas"), ("viajeros.", "viajeros"), ("chozas_mago.", "chozas_mago"), ("ambiente.", "ambiente"),
     ("update_check.", "actualizaciones"), ("actualizar.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
 ]
