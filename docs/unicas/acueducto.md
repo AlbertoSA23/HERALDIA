@@ -1,168 +1,168 @@
-# Acueducto con ciudad en ruinas (`heraldia:unicas/acueducto`)
+# Aqueduct with a ruined city (`heraldia:unicas/acueducto`)
 
-Colonia romana abandonada en el desierto. Un acueducto de arcos de dos pisos cruza el terreno durante 86 bloques
-hasta el *castellum* (depósito del agua), pegado a la muralla norte de una ciudad de 96 x 92 bloques. Debajo, la
-cisterna del foro y las cloacas, donde se esconde la cámara del tesoro.
+An abandoned Roman colony in the desert. A two-tier arched aqueduct crosses the terrain for 86 blocks
+to the *castellum* (the water tank), built against the north wall of a 96 x 92 block city. Below,
+the forum's cistern and the sewers, where the treasure chamber is hidden.
 
-- Bioma: `desert`, `badlands`, `wooded_badlands` (no `eroded_badlands`: sus agujas rompen el acueducto).
-  El coliseo va en sabana y la pirámide en su propio bioma; aquí nada se pisa.
-- Rareza: la del contrato (`spacing` 250 / `separation` 190 chunks: una cada ~3.000-5.000 bloques).
-- Coordenadas de este documento: x hacia el este, z hacia el sur, y = 0 el enlosado de la ciudad
-  (un bloque por encima del terreno natural). La estructura entera gira al azar como un bloque.
+- Biome: `desert`, `badlands`, `wooded_badlands` (not `eroded_badlands`: its spires break the aqueduct).
+  The coliseum goes in the savanna and the pyramid in its own biome; nothing overlaps here.
+- Rarity: the contract's (`spacing` 250 / `separation` 190 chunks: one every ~3,000-5,000 blocks).
+- Coordinates in this document: x towards the east, z towards the south, y = 0 the city's paving
+  (one block above the natural terrain). The whole structure rotates at random as one block.
 
-## Piezas jigsaw y adaptación al terreno
+## Jigsaw pieces and terrain adaptation
 
-Una sola variante: cada pool tiene un único elemento, así que el ensamblado es determinista.
+A single variant: each pool has a single element, so the assembly is deterministic.
 
-| Pieza | Caja (x, z, y) | Padre | Notas |
+| Piece | Box (x, z, y) | Parent | Notes |
 |---|---|---|---|
-| `castellum` (inicio) | 72-86, -12..4, 0..17 | — | centro de la estructura: todo queda a menos de 116 bloques |
-| `acueducto` | 77-81, -98..-13, 0..17 | castellum (cara norte) | procesador Java `heraldia:acueducto_hasta_el_suelo` |
-| `ciudad` | 0-95, 5..97, 0..19 | castellum (cara sur) | procesador de desgaste (arenisca agrietada) |
-| `cloaca` | 64-92, -5..44, -11..-1 | castellum (suelo, vertical) | cloacas, trampas y cámara del tesoro |
-| `cisterna` | 33-63, 42..60, -9..-1 | ciudad (suelo del foro, vertical) | cisterna abovedada |
+| `castellum` (start) | 72-86, -12..4, 0..17 | — | center of the structure: everything stays within 116 blocks |
+| `acueducto` | 77-81, -98..-13, 0..17 | castellum (north face) | Java processor `heraldia:acueducto_hasta_el_suelo` |
+| `ciudad` | 0-95, 5..97, 0..19 | castellum (south face) | weathering processor (cracked sandstone) |
+| `cloaca` | 64-92, -5..44, -11..-1 | castellum (floor, vertical) | sewers, traps and treasure chamber |
+| `cisterna` | 33-63, 42..60, -9..-1 | ciudad (forum floor, vertical) | vaulted cistern |
 
-- **Adaptación `beard_box`.** Las piezas de superficie tienen la base en y = 0: el juego vacía el terreno dentro de su
-  caja y lo rellena debajo (unos 12 bloques). Así las dunas no entran en las casas y el enlosado queda apoyado.
-- **Sótanos sin hundimiento.** El problema de `beard_thin` con piezas que bajan (el terreno se ajusta a la base de la
-  caja) se resuelve así: lo subterráneo va en **piezas aparte** colgadas por jigsaw vertical, cuya caja está entera
-  bajo tierra y **rellena bloque a bloque** (arenisca y piedra donde no hay sala). El vaciado de `beard_box` dentro
-  de esa caja queda sobrescrito por la plantilla y la pieza de superficie no baja de y = 0.
-- **Pilares hasta el suelo.** El acueducto es rígido (el canal debe ser horizontal), pero el terreno no lo es.
-  Ni `beard_box` ni la proyección `terrain_matching` resuelven un valle de más de ~6 bloques, así que hay un
-  procesador propio (Java, `finalizeProcessing`): cada bloque de `smooth_sandstone` de la fila y = 0 de la pieza se
-  prolonga hacia abajo, solo dentro del chunk que se está generando, hasta encontrar suelo firme (no aire, no
-  fluido, no reemplazable, no hojas; máximo 64). Los cimientos de los 13 pilares llegan siempre al suelo.
+- **`beard_box` adaptation.** The surface pieces have their base at y = 0: the game empties the terrain inside their
+  box and fills it below (about 12 blocks). That way the dunes do not get into the houses and the paving is supported.
+- **Basements without sinking.** The `beard_thin` problem with pieces that go down (the terrain adjusts to the base of the
+  box) is solved like this: the underground part goes in **separate pieces** hung by a vertical jigsaw, whose box is entirely
+  underground and **filled block by block** (sandstone and stone where there is no room). The emptying of `beard_box` inside
+  that box is overwritten by the template and the surface piece does not go below y = 0.
+- **Pillars down to the ground.** The aqueduct is rigid (the channel must be horizontal), but the terrain is not.
+  Neither `beard_box` nor the `terrain_matching` projection handles a valley of more than ~6 blocks, so there is a
+  custom processor (Java, `finalizeProcessing`): each `smooth_sandstone` block of the piece's y = 0 row is
+  extended downwards, only within the chunk being generated, until it finds solid ground (not air, not
+  fluid, not replaceable, not leaves; at most 64). The foundations of the 13 pillars always reach the ground.
 
-## Recorrido del jugador
+## Player route
 
-1. **Llegada.** El acueducto se ve de lejos (18 de alto). Su extremo norte está roto: los dos últimos vanos perdieron
-   el piso alto y el vano 9-10 se ha desplomado. Siguiéndolo se llega al castellum, fuera de la muralla norte.
-2. **Ciudad.** Puertas al sur (cardo), este y oeste (decumano), con rampa de losas. Calles de basalto pulido
-   (andesita) con aceras. Insulae con casas y tiendas; la villa del gobernador al oeste del foro, las termas al este.
-3. **Foro.** Plaza con pórticos a los lados, templo hexástilo sobre podio al norte, fuente central, puestos de
-   mercado y la casa de la fuente (SO) con la escalera a la **cisterna**.
-4. **Templo.** En la cella, junto al altar, la inscripción con la pista del puzle 1. Detrás del altar, una trampilla
-   en el suelo baja a la **favissa** (sala oculta dentro del podio, cofre `oculto`).
-5. **Termas.** Apodyterium, frigidarium, tepidarium y caldarium elevado sobre el hipocausto. Desde el praefurnium
-   (horno) una boca baja al **hipocausto** (sala oculta, cofre `oculto`).
-6. **Castellum.** Planta baja con la pila de reparto y tres palancas bajo los rótulos AQVA, IGNIS y TERRA; primer piso
-   con la oficina del curator aquarum (cofre `menor`); azotea con el depósito y vistas.
-   **Puzle 1** abre la hornacina secreta: escalera oculta que baja a las cloacas.
-7. **Cloacas.** Galería de entrada con **trampa 1** (cable trampa y dos dispensadores de flechas, como el templo de
-   la jungla). Colector principal con canal de agua. **Sala de los generadores** (dos generadores) con cofre
-   `cloaca`. Un ramal tapado de telarañas lleva al **lararium oculto** (cofre `oculto`). Pozo con escalera de
-   mano y reja de hierro que se abre desde abajo con una palanca: salida de un solo sentido a la calle norte.
-8. **Antecámara.** Pasillo de un bloque con **trampa 2** (placas de presión flanqueadas por dispensadores, como el
-   templo del desierto pero sin TNT) y vestíbulo con la fuente de las ofrendas: **puzle 2**.
-9. **Cámara del tesoro.** El guardián *Centurión Aquilio*, el cofre `premium` sobre el altar y dos cofres `oculto`.
-   Un botón junto a la puerta de hierro abre desde dentro (nadie se queda encerrado).
+1. **Arrival.** The aqueduct is visible from far away (18 high). Its northern end is broken: the last two spans lost
+   their upper tier and span 9-10 has collapsed. Following it leads to the castellum, outside the north wall.
+2. **City.** Gates to the south (cardo), east and west (decumanus), with a slab ramp. Streets of polished basalt
+   (andesite) with sidewalks. Insulae with houses and shops; the governor's villa west of the forum, the baths to the east.
+3. **Forum.** A square with porticoes on the sides, a hexastyle temple on a podium to the north, a central fountain, market
+   stalls and the fountain house (SW) with the stairs to the **cistern**.
+4. **Temple.** In the cella, next to the altar, the inscription with the clue to puzzle 1. Behind the altar, a trapdoor
+   in the floor goes down to the **favissa** (a hidden room inside the podium, `oculto` chest).
+5. **Baths.** Apodyterium, frigidarium, tepidarium and a caldarium raised over the hypocaust. From the praefurnium
+   (furnace) an opening goes down to the **hypocaust** (hidden room, `oculto` chest).
+6. **Castellum.** Ground floor with the distribution basin and three levers under the signs AQVA, IGNIS and TERRA; first floor
+   with the office of the curator aquarum (`menor` chest); roof terrace with the tank and views.
+   **Puzzle 1** opens the secret niche: a hidden staircase going down to the sewers.
+7. **Sewers.** Entrance gallery with **trap 1** (tripwire and two arrow dispensers, like the jungle
+   temple). Main collector with a water channel. **Spawner room** (two spawners) with a
+   `cloaca` chest. A branch blocked by cobwebs leads to the **hidden lararium** (`oculto` chest). A shaft with a
+   ladder and an iron grate that opens from below with a lever: a one-way exit to the north street.
+8. **Antechamber.** A one-block corridor with **trap 2** (pressure plates flanked by dispensers, like the
+   desert temple but without TNT) and a vestibule with the offering fountain: **puzzle 2**.
+9. **Treasure chamber.** The guardian *Centurion Aquilio*, the `premium` chest on the altar and two `oculto` chests.
+   A button next to the iron door opens it from inside (nobody gets locked in).
 
-## Plantas por nivel
+## Floor plans by level
 
-Los planos en texto con las celdas alcanzables (`·` = se pisa desde la entrada; `o` = solo con los puzles
-resueltos) se generan con la auditoría: `docs/unicas/acueducto/plano_*.txt`.
+The text plans with the reachable cells (`·` = walkable from the entrance; `o` = only with the puzzles
+solved) are generated with the audit: `docs/unicas/acueducto/plano_*.txt`.
 
-- **Subsuelo -8 (cloacas, pies en y = -8).** Escalera secreta (x 73, z -6..3) → galería de entrada (x 72-74, z 4..11,
-  trampa 1 en z 8) → colector (z 12-14, x 60-90, canal en z 13) → sala de generadores (x 68-82, z 16-26) → pasillo de la
-  antecámara (x 79, z 27-31, trampa 2) → vestíbulo (x 78-80, z 32-33) → puerta de hierro (79, z 34) → cámara
-  (x 73-85, z 36-43, paso en z 35). Lararium: x 65-69, z 6-10, tras el paso de telarañas (x 67, z 11). Pozo de salida con escalera de mano en (79, z 20).
-- **Subsuelo -7 (cisterna, pies en y = -7).** Sala de 27 x 15 con 8 pilares, andén perimetral y cruz central, cuatro
-  estanques de 1 de hondo. Generador sobre isleta en el centro con cofre `cisterna`.
-- **Planta 0 (ciudad).** Ver plano. Muralla de 5 con almenas, torres en las esquinas, dos tramos derrumbados.
-- **Castellum.** P0 (pies 1), P1 (pies 8), azotea (pies 15).
-- **Templo.** Podio (pies 4), favissa dentro del podio (pies 1).
-- **Caldarium.** Suelo elevado (pies 4); hipocausto debajo (pies 1, 2 de alto).
+- **Underground -8 (sewers, feet at y = -8).** Secret staircase (x 73, z -6..3) → entrance gallery (x 72-74, z 4..11,
+  trap 1 at z 8) → collector (z 12-14, x 60-90, channel at z 13) → spawner room (x 68-82, z 16-26) → antechamber
+  corridor (x 79, z 27-31, trap 2) → vestibule (x 78-80, z 32-33) → iron door (79, z 34) → chamber
+  (x 73-85, z 36-43, passage at z 35). Lararium: x 65-69, z 6-10, behind the cobweb passage (x 67, z 11). Exit shaft with a ladder at (79, z 20).
+- **Underground -7 (cistern, feet at y = -7).** A 27 x 15 hall with 8 pillars, a perimeter walkway and a central cross, four
+  pools 1 deep. A spawner on an islet in the center with the `cisterna` chest.
+- **Floor 0 (city).** See the plan. A wall 5 high with battlements, towers at the corners, two collapsed stretches.
+- **Castellum.** F0 (feet 1), F1 (feet 8), roof terrace (feet 15).
+- **Temple.** Podium (feet 4), favissa inside the podium (feet 1).
+- **Caldarium.** Raised floor (feet 4); hypocaust below (feet 1, 2 high).
 
-## Puzles (redstone; todo funciona tal como se coloca)
+## Puzzles (redstone; everything works as placed)
 
-**Puzle 1 — Las palancas del castellum.** Tres palancas en el muro oeste de la sala (rótulos AQVA, IGNIS, TERRA).
-Pista en el templo: *«Agua y tierra alzan la ciudad; el fuego la consume»*. La hornacina se abre solo con
-AQVA y TERRA bajadas e IGNIS subida.
-Mecanismo (dentro del muro doble x 75-76 y del pasillo oculto x 73-74): dos pistones pegajosos apilados (75, 1-2, -7)
-mirando al norte, **extendidos al colocarse** y sujetando los dos bloques de la hornacina (75, 1-2, -9). Están
-alimentados por una línea de polvo (x 74, z -5..1) que sube por un peldaño (75, 1, -5) → (75, 2, -6) y llega a los dos
-pistones (el de abajo por el bloque que hay bajo el polvo, el de arriba directamente). Fuentes de la línea: antorcha
-de redstone tras AQVA, antorcha tras TERRA (inversores: encendidas con la palanca subida) y la palanca IGNIS
-directamente. La puerta queda cerrada mientras haya alguna fuente: abierta ⇔ AQVA ∧ ¬IGNIS ∧ TERRA. Al quitar la
-energía los pistones se retraen y arrastran los bloques un paso al sur: la hornacina queda abierta.
-El estado colocado ya es el estable (antorchas encendidas, polvo con su nivel de señal calculado, pistones extendidos
-con su cabeza), así que no depende de ninguna actualización de bloque durante la generación.
+**Puzzle 1 — The castellum levers.** Three levers on the west wall of the hall (signs AQVA, IGNIS, TERRA).
+Clue in the temple: *"Water and earth raise the city; fire consumes it"*. The niche only opens with
+AQVA and TERRA down and IGNIS up.
+Mechanism (inside the double wall x 75-76 and the hidden corridor x 73-74): two stacked sticky pistons (75, 1-2, -7)
+facing north, **extended when placed** and holding the two blocks of the niche (75, 1-2, -9). They are
+powered by a line of dust (x 74, z -5..1) that climbs a step (75, 1, -5) → (75, 2, -6) and reaches both
+pistons (the lower one through the block under the dust, the upper one directly). Sources of the line: a redstone torch
+behind AQVA, a torch behind TERRA (inverters: lit with the lever up) and the IGNIS lever
+directly. The door stays closed while there is any source: open ⇔ AQVA ∧ ¬IGNIS ∧ TERRA. When the
+power is removed the pistons retract and drag the blocks one step south: the niche is left open.
+The placed state is already the stable one (torches lit, dust with its computed signal level, pistons extended
+with their head), so it does not depend on any block update during generation.
 
-**Puzle 2 — La fuente de las ofrendas.** Puerta de hierro (79, -8..-7, 34). En el muro, junto a la hoja de arriba, una
-hornacina de 1 x 1 a la altura del pecho con una placa de presión de madera (80, -7, 34). Rótulo: *«OBOLVM AQVIS — Da
-tu óbolo a las aguas»*. Ningún jugador cabe en la hornacina: hay que lanzar un objeto (o una flecha) sobre la placa.
-La placa da energía fuerte al bloque de debajo (80, -8, 34), contiguo a la hoja inferior, y señal a la hoja superior:
-la puerta se abre mientras haya algo encima. Por dentro, un botón en el paso (79, -7, 35) abre la puerta.
+**Puzzle 2 — The offering fountain.** Iron door (79, -8..-7, 34). In the wall, next to the upper leaf, a
+1 x 1 niche at chest height with a wooden pressure plate (80, -7, 34). Sign: *"OBOLVM AQVIS — Give
+your obol to the waters"*. No player fits in the niche: you have to throw an item (or an arrow) onto the plate.
+The plate strongly powers the block below it (80, -8, 34), next to the lower leaf, and signals the upper leaf:
+the door opens while something is on it. From inside, a button in the passage (79, -7, 35) opens the door.
 
-**Salida de las cloacas.** Trampilla de hierro en la calle norte (79, 0, 20) sobre un pozo con escalera de mano. La
-palanca del techo (80, -1, 20) carga el enlosado contiguo y abre la trampilla; desde la calle no se puede abrir.
+**Exit from the sewers.** An iron trapdoor in the north street (79, 0, 20) over a shaft with a ladder. The
+lever on the ceiling (80, -1, 20) powers the adjacent paving and opens the trapdoor; it cannot be opened from the street.
 
-## Trampas
+## Traps
 
-- **Trampa 1** (galería de entrada, z 8): cable trampa de lado a lado (x 72-74) con ganchos en hornacinas de los dos
-  muros. Cada gancho da energía fuerte al bloque al que está sujeto y el dispensador que hay encima (y -7, a la
-  altura de la cabeza) dispara flechas a través de la hornacina.
-- **Trampa 2** (pasillo de la antecámara): dos placas de presión de piedra (z 29 y 31) en un pasillo de un bloque; cada
-  placa tiene un dispensador de flechas a cada lado, a la altura de los pies.
+- **Trap 1** (entrance gallery, z 8): a tripwire from side to side (x 72-74) with hooks in niches on both
+  walls. Each hook strongly powers the block it is attached to and the dispenser above it (y -7, at
+  head height) fires arrows through the niche.
+- **Trap 2** (antechamber corridor): two stone pressure plates (z 29 and 31) in a one-block corridor; each
+  plate has an arrow dispenser on each side, at foot height.
 
-## Enemigos
+## Enemies
 
-- Generadores: araña en la cisterna; zombi momificado (husk) y esqueleto en la sala de generadores.
-- Guardián final: **Centurión Aquilio** (husk, `PersistenceRequired`): 60 de vida, 5 de ataque, 0,4 de resistencia
-  al empuje; casco de oro, peto de hierro, grebas de malla, botas de hierro, espada de hierro y escudo; el equipo no
-  cae (probabilidad 0). Husk porque el desierto es su sitio y no arde al sol si sale.
-- Sin aldeanos ni gólems: la ciudad está abandonada desde hace siglos.
+- Spawners: spider in the cistern; husk and skeleton in the spawner room.
+- Final guardian: **Centurion Aquilio** (husk, `PersistenceRequired`): 60 health, 5 attack, 0.4 knockback
+  resistance; gold helmet, iron chestplate, chainmail leggings, iron boots, iron sword and shield; the equipment does not
+  drop (chance 0). A husk because the desert is its place and it does not burn in the sun if it goes out.
+- No villagers or golems: the city has been abandoned for centuries.
 
-## Cofres y botín (solo vanilla)
+## Chests and loot (vanilla only)
 
-Cada tabla tiene un grupo extra con `solo_sin_lootr` (con Lootr cada jugador abre su propio cofre y recibe solo lo base).
+Each table has an extra pool with `solo_sin_lootr` (with Lootr each player opens their own chest and gets only the base).
 
-| Tabla | Dónde | Contenido |
+| Table | Where | Contents |
 |---|---|---|
-| `menor` | casas, tiendas, castellum P1 (cofres y barriles) | pan, pescado seco, huesos, cuerda, papel, pepitas de hierro y oro, ladrillos, alguna esmeralda |
-| `tienda` | tabernae y puestos del foro | tinte, lana, cuero, cuencos, esmeraldas, vasijas |
-| `termas` / `villa` | termas y villa | lingotes de oro y hierro, libro, etiqueta, botella de experiencia |
-| `cisterna`, `cloaca` | mazmorras | huesos, carne podrida, hierro, oro, redstone, flechas, poción de curación |
-| `oculto` | favissa, hipocausto, lararium, cámara (x2) | diamante (1-2), libro encantado, manzana de oro, plantilla de adorno *dune*, ámbar de oro |
-| `premium` | cámara del tesoro | 90 %: *Gladius del Prefecto* (espada de hierro con nombre, Filo II), *Copa del Curator* (bloque de oro con nombre), discos (*relic*, *far*, *mall*), plantillas de adorno (*dune*, *coast*, *wild*), libros moderados, esmeraldas. 10 %: espada o peto de diamante encantados (nivel 20-30), manzana de oro encantada. Nada de netherita ni élitros. |
+| `menor` | houses, shops, castellum F1 (chests and barrels) | bread, dried fish, bones, string, paper, iron and gold nuggets, bricks, the odd emerald |
+| `tienda` | tabernae and forum stalls | dye, wool, leather, bowls, emeralds, pots |
+| `termas` / `villa` | baths and villa | gold and iron ingots, book, name tag, bottle o' enchanting |
+| `cisterna`, `cloaca` | dungeons | bones, rotten flesh, iron, gold, redstone, arrows, healing potion |
+| `oculto` | favissa, hypocaust, lararium, chamber (x2) | diamond (1-2), enchanted book, golden apple, *dune* armor trim template, gold amber |
+| `premium` | treasure chamber | 90 %: *Prefect's Gladius* (named iron sword, Sharpness II), *Curator's Cup* (named gold block), discs (*relic*, *far*, *mall*), armor trim templates (*dune*, *coast*, *wild*), moderate books, emeralds. 10 %: enchanted diamond sword or chestplate (level 20-30), enchanted golden apple. No netherite or elytra. |
 
-## Ruina (80-85 % en buen estado)
+## Ruin (80-85 % in good condition)
 
-La ruina se concentra en sitios con sentido: tejados hundidos con escombros (losas de ladrillo, arena, arena
-sospechosa con el botín de arqueología del templo del desierto) en cuatro casas, una casa reducida a muros bajos,
-dos tramos de muralla caídos, una columna del foro derribada, el vano 9-10 del acueducto desplomado y los dos últimos
-vanos sin piso alto. La auditoría mide la superficie construida en planta y exige que la parte dañada esté entre el
-15 y el 20 %. El procesador de desgaste solo cambia texturas (arenisca agrietada, ladrillo musgoso en las cloacas).
+The ruin is concentrated in places that make sense: collapsed roofs with rubble (brick slabs, sand,
+suspicious sand with the desert temple's archaeology loot) in four houses, one house reduced to low walls,
+two fallen stretches of wall, a toppled forum column, span 9-10 of the aqueduct collapsed and the last two
+spans without their upper tier. The audit measures the built surface in plan and requires the damaged part to be between
+15 and 20 %. The weathering processor only changes textures (cracked sandstone, mossy brick in the sewers).
 
-## Contraste con el criterio de diseño de Alberto
+## Against the owner's design criteria
 
-- Escaleras completas, sin saltos; puertas con salida; ninguna estancia inaccesible (las ocultas tienen acceso).
-- Muebles contra los muros, ventanas altas (y = 3) que no tapa nada; centro libre salvo mesas.
-- Faroles colgados del techo o con cadena; agua siempre contenida (estanques con brocal, canal cerrado).
-- Simetría en templo, castellum, termas y foro; cada elemento con su función (pila de reparto, hipocausto, pórticos).
-- Auditoría automática previa a la generación (ver abajo).
+- Complete staircases, no jumps; doors with an exit; no inaccessible room (the hidden ones have access).
+- Furniture against the walls, high windows (y = 3) that nothing covers; center free except for tables.
+- Lanterns hanging from the ceiling or on a chain; water always contained (pools with a curb, a closed channel).
+- Symmetry in the temple, castellum, baths and forum; each element with its function (distribution basin, hypocaust, porticoes).
+- Automatic audit before generation (see below).
 
-## Auditoría propia (`tools/gen/unicas/acueducto/auditoria.py`)
+## Its own audit (`tools/gen/unicas/acueducto/auditoria.py`)
 
-Se ejecuta en `build()` y cualquier fallo detiene la generación:
-- Recorrido a pie (`lint.walk`) sobre la estructura completa montada desde la puerta sur: con los puzles resueltos
-  se alcanzan todas las puertas, cofres, barriles, escaleras, palancas, botones y el guardián; con los puzles sin
-  resolver la cámara del tesoro y las cloacas **no** se alcanzan (los puzles cierran de verdad).
-- Nada flotando: todo bloque está unido al suelo (y = 0 o subsuelo) por bloques vecinos.
-- Simulador de redstone: tabla de verdad del puzle 1 (8 combinaciones), estado colocado = estado estable, trampas,
-  puzle 2, botón interior y salida de las cloacas.
-- Jigsaws intactos y en la cara de su caja; las cajas de las piezas no se solapan y caben en el radio de 116.
-- Porcentaje de ruina entre 15 y 20 %.
+It runs in `build()` and any failure stops generation:
+- Walk (`lint.walk`) over the complete structure assembled from the south gate: with the puzzles solved
+  every door, chest, barrel, staircase, lever, button and the guardian are reached; with the puzzles
+  unsolved the treasure chamber and the sewers are **not** reached (the puzzles really close).
+- Nothing floating: every block is joined to the ground (y = 0 or underground) by neighboring blocks.
+- Redstone simulator: truth table of puzzle 1 (8 combinations), placed state = stable state, traps,
+  puzzle 2, the inner button and the sewer exit.
+- Jigsaws intact and on the face of their box; the boxes of the pieces do not overlap and fit within the 116 radius.
+- Ruin percentage between 15 and 20 %.
 
-## Verificación hecha
+## Verification done
 
-- `./gradlew build`: genera, valida contra los registros de 26.3 y audita (lint genérico + auditoría propia) sin avisos.
-- Auditoría propia: 0 fallos; ruina medida 15,9 % (85 % en buen estado).
-- Servidor dedicado 26.3 real (`place template` y `place structure`): puzle 1 cerrado al colocar, abierto solo con
-  AQVA + TERRA, cerrado al añadir IGNIS o con TERRA sola (palancas puestas con `setblock` y actualización forzada en
-  un bloque vecino, porque no hay jugador); trampa 1 dispara los dos dispensadores al cruzar un soporte de armadura;
-  trampa 2 dispara con un zombi encima; un objeto lanzado a la hornacina abre la puerta de hierro; el guardián está en
-  la cámara; con la estructura completa colocada (girada 180°), los 52 cimientos de los 13 pilares tienen bloque debajo.
-- No verificado: el aspecto en el juego (sin capturas de Alberto), el comportamiento de `beard_box` sobre dunas altas
-  y valles profundos concretos, y la salida por la reja (solo con el simulador).
+- `./gradlew build`: generates, validates against the 26.3 registries and audits (generic lint + its own audit) without warnings.
+- Its own audit: 0 failures; ruin measured at 15.9 % (85 % in good condition).
+- Real 26.3 dedicated server (`place template` and `place structure`): puzzle 1 closed when placed, open only with
+  AQVA + TERRA, closed when adding IGNIS or with TERRA alone (levers set with `setblock` and a forced update on
+  a neighboring block, because there is no player); trap 1 fires both dispensers when an armor stand crosses it;
+  trap 2 fires with a zombie on top; an item thrown into the niche opens the iron door; the guardian is in
+  the chamber; with the complete structure placed (rotated 180°), the 52 foundations of the 13 pillars have a block below.
+- Not verified: the look in game (no screenshots from the owner), the behavior of `beard_box` on specific tall dunes
+  and deep valleys, and the exit through the grate (only with the simulator).
