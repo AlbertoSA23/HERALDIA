@@ -313,15 +313,15 @@ def to_tag(v):
 # gallina) sin mirar el IsBaby del NBT: el mod (ZombieMixin) lo evita en los que llevan ADULTO_TAG, y validate.py exige
 # la etiqueta en todo mob de BEBE_ZOMBI de las plantillas. Hoglin y zoglin salen bebés el 20 % sin remedio en el mod: no
 # se pueden poner en plantillas. Los animales y aldeanos (AgeableMob) no: con un grupo nuevo el primero nunca es bebé.
-ADULTO_TAG = "heraldia_adulto"
-BEBE_ZOMBI = {"minecraft:" + m for m in ("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin")}
-BEBE_SIN_PROTECCION = {"minecraft:hoglin", "minecraft:zoglin"}
+ADULT_TAG = "heraldia_adulto"
+BABY_ZOMBIE = {"minecraft:" + m for m in ("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin")}
+BABY_NO_PROTECTION = {"minecraft:hoglin", "minecraft:zoglin"}
 
 
-def adulto(n):
+def adult(n):
     """Pone ADULTO_TAG al NBT de un mob que podría salir bebé (BEBE_ZOMBI); devuelve el mismo NBT."""
-    if n["id"] in BEBE_ZOMBI and ADULTO_TAG not in n.get("Tags", []):
-        n["Tags"] = list(n.get("Tags", [])) + [ADULTO_TAG]
+    if n["id"] in BABY_ZOMBIE and ADULT_TAG not in n.get("Tags", []):
+        n["Tags"] = list(n.get("Tags", [])) + [ADULT_TAG]
     return n
 
 
@@ -329,22 +329,22 @@ def adulto(n):
 # finalizeSpawn de zombis y esqueletos sortea CanPickUpLoot sin mirar el NBT (los piglins lo traen siempre), y un mob
 # persistente pasea hasta 10 bloques en los 100 primeros ticks de cada carga (a veces fuera de su sala). validate.py
 # exige ANCLADO_TAG en todo guardián final (piezas.GUARDIAN_TAG) y en todo mob de RECOGE_BOTIN de las plantillas.
-ANCLADO_TAG = "heraldia_anclado"
-RECOGE_BOTIN = BEBE_ZOMBI | {"minecraft:" + m for m in ("skeleton", "stray", "bogged", "wither_skeleton", "parched",
+ANCHORED_TAG = "heraldia_anclado"
+PICKS_UP_LOOT = BABY_ZOMBIE | {"minecraft:" + m for m in ("skeleton", "stray", "bogged", "wither_skeleton", "parched",
                                                          "piglin", "piglin_brute")}
 
 
-def anclado(n, siempre=False):
+def anchored(n, always=False):
     """Pone ANCLADO_TAG al NBT de un mob que recogería objetos (RECOGE_BOTIN) o, con `siempre`, de cualquier tipo (los
     guardianes finales); devuelve el mismo NBT."""
-    if (siempre or n["id"] in RECOGE_BOTIN) and ANCLADO_TAG not in n.get("Tags", []):
-        n["Tags"] = list(n.get("Tags", [])) + [ANCLADO_TAG]
+    if (always or n["id"] in PICKS_UP_LOOT) and ANCHORED_TAG not in n.get("Tags", []):
+        n["Tags"] = list(n.get("Tags", [])) + [ANCHORED_TAG]
     return n
 
 
-def villager(prof, vtype, employed=True):
+def villager(depth, vtype, employed=True):
     n = {"id": "minecraft:villager", "PersistenceRequired": B(1), "Tags": ["heraldia"],   # los tratos de mapas (mapas.py) la piden
-         "VillagerData": {"profession": "minecraft:" + (prof if employed else "none"),
+         "VillagerData": {"profession": "minecraft:" + (depth if employed else "none"),
                           "level": 1, "type": "minecraft:" + vtype}}
     if employed:
         n["Xp"] = 1           # bloquea la profesión

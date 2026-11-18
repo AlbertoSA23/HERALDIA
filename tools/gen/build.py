@@ -326,13 +326,13 @@ def spire(t, cx, cz, y, r, mat_stairs, mat_full, height=None):
 
 def onion(t, cx, cy, cz, r, mat_full):
     """Cúpula bulbosa."""
-    prof = [r - 1, r, r + 1, r + 1, r, r - 1, r - 2, max(1, r - 3), 0, 0]
-    for i, rr in enumerate(prof):
+    depth = [r - 1, r, r + 1, r + 1, r, r - 1, r - 2, max(1, r - 3), 0, 0]
+    for i, rr in enumerate(depth):
         for dx in range(-rr, rr + 1):
             for dz in range(-rr, rr + 1):
                 if dx * dx + dz * dz <= rr * rr + 0.5:
                     t.set(cx + dx, cy + i, cz + dz, mat_full)
-    t.set(cx, cy + len(prof), cz, "lightning_rod[facing=up]")
+    t.set(cx, cy + len(depth), cz, "lightning_rod[facing=up]")
 
 
 def roof_for(t, th, x0, z0, x1, z1, ybase, kind=None, along=None):

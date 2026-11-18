@@ -2,8 +2,8 @@
 import json, os
 import pytest
 import validate
-from core import Template, ADULTO_TAG, ANCLADO_TAG
-from unicas._comun import piezas
+from core import Template, ADULT_TAG, ANCHORED_TAG
+from uniques._common import pieces
 
 
 class Reg:
@@ -12,7 +12,7 @@ class Reg:
         self.pools = pools or {}
 
 
-def test_load_registries_falla_claro(tmp_path):
+def test_load_registries_fails_clearly(tmp_path):
     with pytest.raises(SystemExit, match="No encuentro"):
         validate.load_registries(str(tmp_path))
 
@@ -35,7 +35,7 @@ def test_validate_registry_negativos(mcmeta):
     reg = Reg(t, pools={"heraldia:p": {"fallback": "heraldia:q", "elements": [("heraldia:no", 1, "rigid", None)]}})
     errs = " | ".join(validate.validate_registry(reg))
     for msg in ("bloque inexistente: minecraft:stone_brickz", "final_state bloque inexistente",
-                "pool inexistente heraldia:no_existe", f"sin la etiqueta {ADULTO_TAG}", "hoglin en una plantilla",
+                "pool inexistente heraldia:no_existe", f"sin la etiqueta {ADULT_TAG}", "hoglin en una plantilla",
                 "entidad minecraft:dragonz", "fallback inexistente heraldia:q", "plantilla inexistente heraldia:no"):
         assert msg in errs, msg
 
@@ -43,35 +43,35 @@ def test_validate_registry_negativos(mcmeta):
 def test_validate_registry_limpio(mcmeta):
     t = Template("a")
     t.set(0, 0, 0, "stone")
-    t.entity(0, 1, 0, {"id": "minecraft:zombie", "Tags": [ADULTO_TAG, ANCLADO_TAG]})
-    t.entity(0, 1, 0, piezas.guardian("evoker", "k", "f", 40))
+    t.entity(0, 1, 0, {"id": "minecraft:zombie", "Tags": [ADULT_TAG, ANCHORED_TAG]})
+    t.entity(0, 1, 0, pieces.guardian("evoker", "k", "f", 40))
     t.entity(0, 1, 0, {"id": "minecraft:villager"})                  # los aldeanos recogen cosechas: sin anclar
     t.entity(0, 1, 0, {"id": "minecraft:guardian"})                  # los peces guardianes de la Atlántida tampoco
     assert validate.validate_registry(Reg(t)) == {}
 
 
-@pytest.mark.parametrize("nbt, por", [
-    ({"id": "minecraft:zombie", "Tags": [ADULTO_TAG]}, "recogería objetos"),            # zombi sin anclar
+@pytest.mark.parametrize("nbt, per", [
+    ({"id": "minecraft:zombie", "Tags": [ADULT_TAG]}, "recogería objetos"),            # zombi sin anclar
     ({"id": "minecraft:skeleton"}, "recogería objetos"),                                 # esqueleto sin anclar
-    ({"id": "minecraft:evoker", "Tags": [piezas.GUARDIAN_TAG]}, "guardián"),             # guardián sin anclar
+    ({"id": "minecraft:evoker", "Tags": [pieces.GUARDIAN_TAG]}, "guardián"),             # guardián sin anclar
 ])
-def test_validate_registry_sin_anclar(mcmeta, nbt, por):
+def test_validate_registry_sin_anclar(mcmeta, nbt, per):
     t = Template("a")
     t.entity(0, 1, 0, nbt)
     errs = validate.validate_registry(Reg(t))
-    assert list(errs) == [f"{nbt['id']} sin la etiqueta {ANCLADO_TAG} ({por}: core.anclado)"]
+    assert list(errs) == [f"{nbt['id']} sin la etiqueta {ANCHORED_TAG} ({per}: core.anclado)"]
     assert errs[next(iter(errs))] == ["a"]
 
 
 def test_validate_loot(mcmeta):
-    tablas = {"x": {"pools": [{"entries": [
+    tables = {"x": {"pools": [{"entries": [
         {"type": "minecraft:item", "name": "minecraft:breadz"},
         {"type": "minecraft:item", "name": "minecraft:bread",
          "modifier": [{"type": "minecraft:set_enchantments", "enchantments": {"minecraft:sharpnezz": 1}},
                       {"type": "minecraft:set_components", "components": {
                           "minecraft:trim": {"pattern": "minecraft:coastz", "material": "minecraft:gold"},
                           "minecraft:banner_patterns": [{"pattern": "minecraft:stripe_top"}, {"pattern": "x"}]}}]}]}]}}
-    errs = validate.validate_loot([tablas])
+    errs = validate.validate_loot([tables])
     assert errs == ["objeto inexistente breadz", "encantamiento inexistente minecraft:sharpnezz",
                     "trim_pattern inexistente minecraft:coastz", "banner_pattern inexistente x"]
 
@@ -95,7 +95,7 @@ def test_validate_structures(tmp_path):
     assert any("(aldea)" in e and "size 0" in e for e in errs)
 
 
-def _logro(out, path, a, langs=None):
+def _advancement(out, path, a, langs=None):
     p = os.path.join(out, "data", "heraldia", "advancement", path + ".json")
     os.makedirs(os.path.dirname(p), exist_ok=True)
     with open(p, "w") as f:
@@ -111,9 +111,9 @@ def test_validate_advancements_bueno_y_malos(mcmeta, tmp_path):
     out = str(tmp_path / "out")
     disp = {"icon": {"id": "minecraft:stone"}, "title": {"translate": "k.t"}, "description": {"translate": "k.d"},
             "background": "x"}
-    _logro(out, "raiz", {"criteria": {"a": {"trigger": "minecraft:location"}}, "display": disp})
+    _advancement(out, "raiz", {"criteria": {"a": {"trigger": "minecraft:location"}}, "display": disp})
     assert validate.validate_advancements(out) == []
-    _logro(out, "malo", {"parent": "heraldia:no", "criteria": {"a": {"trigger": "minecraft:volar"},
+    _advancement(out, "malo", {"parent": "heraldia:no", "criteria": {"a": {"trigger": "minecraft:volar"},
                                                                "b": {"trigger": "minecraft:location", "conditions": {
                                                                    "player": {"predicate": {"minecraft:raro": {}}},
                                                                    "loot_tables": "heraldia:no_existe"}}},

@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Arena blueprint: what the generator (tools/gen/arena_oleadas.py) writes to heraldia/arena.json. Positions
+ * Arena blueprint: what the generator (tools/gen/arena_waves.py) writes to heraldia/arena.json. Positions
  * relative to the template's minimum corner. No game classes: the tests check it.
  *
  * @param template   template id (heraldia:arena/arena)

@@ -16,7 +16,7 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Which reinforcements each guardian calls: heraldia/jefes.json (tools/gen/jefes.py), read once from the .jar. Per unique (its
+ * Which reinforcements each guardian calls: heraldia/jefes.json (tools/gen/bosses.py), read once from the .jar. Per unique (its
  * REFUERZOS or its guardian's family, already resolved by the generator) and, for a guardian that is not recognized (without
  * {@code heraldia_guardian.<id>} or from a unique that no longer exists), the family of its mob type or the generic one.
  * No game classes: the tests check it.

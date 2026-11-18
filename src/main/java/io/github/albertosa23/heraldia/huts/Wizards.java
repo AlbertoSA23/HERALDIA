@@ -52,7 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Wizards of the wizard huts (T43; the template in tools/gen/medianas/choza_mago.py). A wizard is a still villager with
+ * Wizards of the wizard huts (T43; the template in tools/gen/mediums/wizard_hut.py). A wizard is a still villager with
  * the tag {@link Decision#TAG}:
  * <ul>
  * <li>when it loads ({@code ENTITY_LOAD}, early exit by tags) it gets its generated name and its hut's decision
@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * {@link Phases#GUARDIAN} (phases, reinforcements and boss bar from bosses/; the difficulty scales it like the guardians),
  * more health, three vexes to start with (then it summons its own, like any evoker) and its loot table
  * (heraldia:chozas_mago/malvado, or malvado_premium if the prize comes up, chozas_mago.prob_botin_premium). That table
- * replaces the evoker's: it does not drop the vanilla totem (tools/gen/chozas_mago.py explains why).</li>
+ * replaces the evoker's: it does not drop the vanilla totem (tools/gen/wizard_huts.py explains why).</li>
  * </ul>
  * The advancement for defeating it is data (player_killed_entity with {@link Decision#EVIL}).
  */

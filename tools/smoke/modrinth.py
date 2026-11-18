@@ -15,7 +15,7 @@ import server_smoke as s
 
 API = "https://api.modrinth.com/v2"
 MC, LOADER = "26.3", "fabric"
-CARPETA = "modrinth"
+FOLDER = "modrinth"
 
 Mod = collections.namedtuple("Mod", "slug version file url sha512")
 
@@ -106,7 +106,7 @@ MODS = {m.slug: m for m in [
 
 # Pedidos por el dueño que no tienen versión para 26.3 + Fabric en Modrinth (comprobado con --buscar el 16-11-2026);
 # la tabla de compatibilidad del README los da por «no probado». Se vuelven a mirar con --comprobar.
-SIN_VERSION = ["oh-the-biomes-weve-gone", "yungs-api", "yungs-better-dungeons", "yungs-better-mineshafts",
+NO_VERSION = ["oh-the-biomes-weve-gone", "yungs-api", "yungs-better-dungeons", "yungs-better-mineshafts",
                "yungs-better-strongholds", "yungs-better-ocean-monuments", "yungs-better-desert-temples",
                "yungs-better-jungle-temples", "yungs-better-witch-huts", "yungs-bridges", "yungs-extras",
                "modernfix", "starlight", "noisium", "noisiumforked"]
@@ -122,10 +122,10 @@ def sha512(path):
 
 def fetch(work, name, url, sha):
     """Ruta del .jar `name` en <work>/modrinth/, descargado si falta; falla si su sha512 no es el fijado."""
-    folder = os.path.join(work, CARPETA)
+    folder = os.path.join(work, FOLDER)
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, name)
-    for intento in range(2):      # una copia vieja en caché con otro contenido se descarga otra vez
+    for attempt in range(2):      # una copia vieja en caché con otro contenido se descarga otra vez
         s.download(url, path)
         got = sha512(path)
         if got == sha:
@@ -139,7 +139,7 @@ def jar(work, slug):
     return fetch(work, m.file, m.url, m.sha512)
 
 
-def instalar(work, slugs):
+def install(work, slugs):
     """Copia a <work>/mods los .jar de esos proyectos (descargados y comprobados)."""
     for slug in slugs:
         shutil.copy(jar(work, slug), os.path.join(work, "mods"))
@@ -152,7 +152,7 @@ def _api(path, **query):
         return json.load(r)
 
 
-def ultima(slug):
+def last(slug):
     """Mod con la versión 26.3 + Fabric más reciente del proyecto, o None si no hay ninguna."""
     versions = _api(f"project/{slug}/version", game_versions=[MC], loaders=[LOADER])
     if not versions:
@@ -165,21 +165,21 @@ def ultima(slug):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--comprobar", action="store_true", help="compara las fijadas con las más recientes de Modrinth")
-    g.add_argument("--buscar", nargs="+", metavar="SLUG", help="versión 26.3 + Fabric más reciente de esos proyectos")
+    g.add_argument("--check", action="store_true", help="compara las fijadas con las más recientes de Modrinth")
+    g.add_argument("--find", nargs="+", metavar="SLUG", help="versión 26.3 + Fabric más reciente de esos proyectos")
     a = ap.parse_args(argv)
-    for slug in a.buscar or list(MODS) + SIN_VERSION:
-        m = ultima(slug)
-        fijada = MODS.get(slug)
-        if a.buscar:
+    for slug in a.find or list(MODS) + NO_VERSION:
+        m = last(slug)
+        pinned = MODS.get(slug)
+        if a.find:
             print(f"{slug}: sin versión {MC} + {LOADER}" if m is None else
                   f'    Mod("{m.slug}", "{m.version}", "{m.file}",\n        "{m.url}",\n        "{m.sha512}"),')
         elif m is None:
-            print(f"{slug}: sin versión {MC} + {LOADER}" + (" (¡la fijada ya no está!)" if fijada else ""))
-        elif fijada is None:
+            print(f"{slug}: sin versión {MC} + {LOADER}" + (" (¡la fijada ya no está!)" if pinned else ""))
+        elif pinned is None:
             print(f"{slug}: ahora tiene {m.version} (antes sin versión)")
         else:
-            print(f"{slug}: {'al día' if m.version == fijada.version else f'fijada {fijada.version}, nueva {m.version}'}")
+            print(f"{slug}: {'al día' if m.version == pinned.version else f'fijada {pinned.version}, nueva {m.version}'}")
     return 0
 
 

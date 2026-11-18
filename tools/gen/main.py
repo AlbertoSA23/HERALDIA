@@ -9,15 +9,15 @@ from pack import build_all
 from validate import load_registries, validate_registry, validate_loot, validate_structures, validate_advancements
 from writer import write, history_tables
 import loot
-import unicas
-import medianas
-import minas
-import litoral as costa
-from unicas._comun import botin
-import biomas
-import tratos, tablon
-import arena_oleadas
-import chozas_mago
+import uniques
+import mediums
+import mines
+import shore as coast
+from uniques._common import chest_loot
+import biomes
+import trades, board
+import arena_waves
+import wizard_huts
 from themes import THEMES
 from lint import lint_registry, summarize
 
@@ -34,12 +34,12 @@ def main():
 
     reg = build_all()
     errs = validate_registry(reg)
-    lerrs = validate_loot([loot.TABLES] + [getattr(m, "LOOT", {}) for _, m in unicas.modules()]
-                         + [{k: d["tabla"] for k, d in getattr(m, "LLAVES", {}).items()} for _, m in unicas.modules()]
-                         + [{s: botin.trofeo(s, m.TROFEO) for s, m in unicas.modules() if getattr(m, "TROFEO", None)}]
-                         + [history_tables(unicas.modules()) if not reg.warnings else {}]
-                         + [tratos.objetos(unicas.modules()), tablon.objetos(THEMES), tablon.tablas(), medianas.tablas(), minas.tablas(), costa.tablas(),
-                            arena_oleadas.tablas(), chozas_mago.tablas()])
+    lerrs = validate_loot([loot.TABLES] + [getattr(m, "LOOT", {}) for _, m in uniques.modules()]
+                         + [{k: d["tabla"] for k, d in getattr(m, "KEYS", {}).items()} for _, m in uniques.modules()]
+                         + [{s: chest_loot.trophy(s, m.TROPHY) for s, m in uniques.modules() if getattr(m, "TROPHY", None)}]
+                         + [history_tables(uniques.modules()) if not reg.warnings else {}]
+                         + [trades.items(uniques.modules()), board.items(THEMES), board.tables(), mediums.tables(), mines.tables(), coast.tables(),
+                            arena_waves.tables(), wizard_huts.tables()])
     if errs or lerrs or reg.warnings:
         print("ERRORES:", errs, lerrs, reg.warnings[:20])
         return 1
@@ -49,7 +49,7 @@ def main():
         print("AUDITORÍA DE DISEÑO:", {k: (n, ex[k]) for k, n in c.items()})
         return 1
     write(reg, args.out)
-    serr = validate_structures(args.out) + validate_advancements(args.out) + biomas.comprobar(args.out, args.registries)
+    serr = validate_structures(args.out) + validate_advancements(args.out) + biomes.check(args.out, args.registries)
     if serr:
         print("ESTRUCTURAS O LOGROS NO CARGABLES:", serr)
         return 1

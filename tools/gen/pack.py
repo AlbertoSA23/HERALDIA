@@ -1,10 +1,10 @@
 """Construye todas las piezas, pools y JSON del datapack."""
 import json, os, random, shutil
-import unicas
-import medianas
-import minas
-import litoral as costa
-from unicas._comun import botin
+import uniques
+import mediums
+import mines
+import shore as coast
+from uniques._common import chest_loot
 from core import Template, nsid, NS
 from lint import passable
 from themes import THEMES, FAMILIES
@@ -12,9 +12,9 @@ from houses import make_house, PROFS_HOUSE
 from streets import (straight, crossroad, terminator_end, watchtower, gate, plaza, avenue, decor_piece, P)
 from specials import SPECIALS, VARIANTS
 from fillers import filler, villager_piece, golem_piece, rug_piece
-import tablon
-import tratos
-import paralelo
+import board
+import trades
+import parallel
 
 SPARE = 22        # peso de "cama libre" en las casas
 
@@ -53,8 +53,8 @@ class Registry:
         self.pools = {}           # id -> dict(elements=[(loc|None, weight, projection, processors)], fallback)
         self.kinds = {}           # nombre plantilla -> tipo (house, special:x, filler, street...)
         self.warnings = []
-        self.historia = {}        # id de única -> cofres con la tabla de su pliego (HISTORIA["cofre"])
-        self.guardianes = {}      # id de única -> {tipo de mob: tabla de muerte original} (tag_guardians, trofeos)
+        self.story = {}        # id de única -> cofres con la tabla de su pliego (HISTORIA["cofre"])
+        self.guardians = {}      # id de única -> {tipo de mob: tabla de muerte original} (tag_guardians, trofeos)
 
     def add(self, t, kind):
         fix_supports(t)
@@ -91,20 +91,20 @@ def function_signature(t):
     from collections import Counter
     from build import WORKSTATION
     jobs = {b: p for p, b in WORKSTATION.items()}
-    sig = Counter()
+    next_unique = Counter()
     for j in t.jigsaws:
         if j["name"] != "heraldia:entrance":
-            sig[("jigsaw", j["name"], j["pool"])] += 1
+            next_unique[("jigsaw", j["name"], j["pool"])] += 1
     for st, nbt in t.blocks.values():
         if nbt and nbt.get("LootTable"):
-            sig[("botín", str(nbt["LootTable"]))] += 1
+            next_unique[("botín", str(nbt["LootTable"]))] += 1
         b = st.split("[")[0].replace("minecraft:", "")
         if b == "bell":
-            sig[("campana",)] += 1
+            next_unique[("campana",)] += 1
         b = "cauldron" if b.endswith("_cauldron") else b
         if b in jobs and b != "barrel":
-            sig[("oficio", jobs[b])] += 1
-    return sig
+            next_unique[("oficio", jobs[b])] += 1
+    return next_unique
 
 
 def variant_errors(reg, names):
@@ -145,9 +145,9 @@ def build_theme(reg, th, seed):
     n = 0
     for size, count, w in (("small", 4, 3), ("medium", 5, 3), ("large", 3, 2)):
         for i in range(count):
-            prof = profs[n % len(profs)]
+            depth = profs[n % len(profs)]
             n += 1
-            t = make_house(th, rng, f"{tid}/houses/{size}_{i}", size, prof)
+            t = make_house(th, rng, f"{tid}/houses/{size}_{i}", size, depth)
             els.append((reg.add(t, "house"), w, "rigid", bld_proc))
     fills = list(dict.fromkeys(list(th["decor"]) + ["well", "garden"]))
     for k in fills:
@@ -181,59 +181,59 @@ def build_theme(reg, th, seed):
         t = avenue(th, rng, f"{tid}/avenues/{a}", P(th, f"special/{lft}"), P(th, f"special/{rgt}"))
         reg.pool(f"{tid}/avenue_{a}", [(reg.add(t, "avenue"), 1, "terrain_matching", street_proc)])
     # ---- tablón de encargos (colgado de la plaza)
-    tablon.build(reg, th)
+    board.build(reg, th)
     # ---- plaza
     reg.pool(f"{tid}/plaza", [(reg.add(plaza(th, rng, f"{tid}/plaza/std"), "plaza"), 1, "rigid", bld_proc)])
-    reg.pool(f"{tid}/plaza_grande", [(reg.add(plaza(th, rng, f"{tid}/plaza/grande", grande=True), "plaza"), 1, "rigid", bld_proc)])
+    reg.pool(f"{tid}/plaza_grande", [(reg.add(plaza(th, rng, f"{tid}/plaza/grande", large=True), "plaza"), 1, "rigid", bld_proc)])
 
 
 def build_common(reg):
     for vtype in ("plains", "taiga", "snow", "desert", "savanna", "jungle", "swamp"):
-        un = reg.add(villager_piece(vtype, f"villagers/{vtype}/unemployed", prof="none", employed=False), "villager")
+        un = reg.add(villager_piece(vtype, f"villagers/{vtype}/unemployed", depth="none", employed=False), "villager")
         spare = reg.add(villager_piece(vtype, f"villagers/{vtype}/spare_bed"), "bed")
         rug = reg.add(rug_piece(vtype, f"villagers/{vtype}/rug"), "rug")
-        for prof in ALL_PROFS:
-            e = reg.add(villager_piece(vtype, f"villagers/{vtype}/e_{prof}", prof=prof), "villager")
-            nb = reg.add(villager_piece(vtype, f"villagers/{vtype}/nb_{prof}", prof=prof, bed=False), "villager_nobed")
+        for depth in ALL_PROFS:
+            e = reg.add(villager_piece(vtype, f"villagers/{vtype}/e_{depth}", depth=depth), "villager")
+            nb = reg.add(villager_piece(vtype, f"villagers/{vtype}/nb_{depth}", depth=depth, bed=False), "villager_nobed")
             # casas: 24 % con aldeano (75 % con oficio) y 14 % cama libre (camas ~1,2x aldeanos)
             # el fallback apunta al propio pool para que también se pueblen las piezas de profundidad máxima
-            p = f"villagers/{vtype}/{prof}"
+            p = f"villagers/{vtype}/{depth}"
             reg.pool(p, [(e, 8, "rigid", None), (un, 4, "rigid", None),
                          (spare, 30, "rigid", None), (rug, 58, "rigid", None)], fallback=p)
             # aldeas grandes (alias en la estructura): algo más de población
-            pg = f"villagers/{vtype}/{prof}_grande"
+            pg = f"villagers/{vtype}/{depth}_grande"
             reg.pool(pg, [(e, 16, "rigid", None), (un, 6, "rigid", None),
                           (spare, 27, "rigid", None), (rug, 51, "rigid", None)], fallback=pg)
-            reg.pool(f"villagers/{vtype}/fixed_{prof}", [(e, 1, "rigid", None)], fallback=f"villagers/{vtype}/fixed_{prof}")
-            reg.pool(f"villagers/{vtype}/nobed_{prof}", [(nb, 1, "rigid", None)], fallback=f"villagers/{vtype}/nobed_{prof}")
+            reg.pool(f"villagers/{vtype}/fixed_{depth}", [(e, 1, "rigid", None)], fallback=f"villagers/{vtype}/fixed_{depth}")
+            reg.pool(f"villagers/{vtype}/nobed_{depth}", [(nb, 1, "rigid", None)], fallback=f"villagers/{vtype}/nobed_{depth}")
     g = reg.add(golem_piece("golem"), "golem")
     reg.pool("golem", [(g, 1, "rigid", None)], fallback="golem")
 
 
 # Coste relativo de construir cada única (medido): las más largas se reparten antes entre los procesos.
-COSTE = {"isla_corsario": 9, "atlantida": 8, "acueducto": 6, "piramide": 6, "mina_perdida": 5, "ciudadela": 4}
+COST = {"isla_corsario": 9, "atlantida": 8, "acueducto": 6, "piramide": 6, "mina_perdida": 5, "ciudadela": 4}
 
 
-def _parte(tarea, seed):
+def _part(task, seed):
     """Construye una parte del registro (lo común, un estilo o una única) en un registro propio."""
     reg = Registry()
-    kind, x = tarea
+    kind, x = task
     if kind == "comun":
         build_common(reg)
     elif kind == "estilo":
         build_theme(reg, THEMES[x], seed * 100 + x)
     elif kind == "mediana":
-        medianas.build(reg, x)
+        mediums.build(reg, x)
     elif kind == "mina":
-        minas.build(reg, x)
+        mines.build(reg, x)
     elif kind == "costa":
-        costa.build(reg, x)
+        coast.build(reg, x)
     else:
-        mod = dict(unicas.modules())[x]
+        mod = dict(uniques.modules())[x]
         mod.build(reg)
         tag_guardians(reg, x)
-        reg.warnings += botin.trofeo_errores(x, getattr(mod, "TROFEO", None))
-        reg.warnings += historia_cofre(reg, x, mod)
+        reg.warnings += chest_loot.trophy_errors(x, getattr(mod, "TROPHY", None))
+        reg.warnings += story_chest(reg, x, mod)
     return reg
 
 
@@ -241,13 +241,13 @@ def build_all(seed=2026):
     """Registro completo: lo común, cada estilo, cada única, cada mediana y cada tamaño de mina (en este orden, como en serie), construidos en paralelo
     (paralelo.mapa_con_estado: los datos que un build deja en su módulo vuelven al padre). Mismo resultado en serie
     (HERALDIA_PROCESOS=1)."""
-    tareas = [("comun", None)] + [("estilo", i) for i in range(len(THEMES))] + [("unica", sid) for sid, _ in unicas.modules()] \
-        + [("mediana", mid) for mid, _ in medianas.modules()] + [("mina", tam) for tam in minas.TAMANOS] \
-        + [("costa", tipo) for tipo in costa.TIPOS]
-    partes = paralelo.mapa_con_estado(lambda t: _parte(t, seed), tareas,
-                                      prioridad=lambda t: COSTE.get(t[1], 1) if t[0] == "unica" else 0)
+    tasks = [("comun", None)] + [("estilo", i) for i in range(len(THEMES))] + [("unica", sid) for sid, _ in uniques.modules()] \
+        + [("mediana", mid) for mid, _ in mediums.modules()] + [("mina", size) for size in mines.SIZES] \
+        + [("costa", kind) for kind in coast.KINDS]
+    parts = parallel.map_with_state(lambda t: _part(t, seed), tasks,
+                                      priority=lambda t: COST.get(t[1], 1) if t[0] == "unica" else 0)
     reg = Registry()
-    for p in partes:
+    for p in parts:
         for k, v in p.templates.items():
             if k in reg.templates:
                 reg.warnings.append(f"plantilla repetida: {k}")
@@ -255,33 +255,33 @@ def build_all(seed=2026):
         reg.pools.update(p.pools)
         reg.kinds.update(p.kinds)
         reg.warnings += p.warnings
-        reg.historia.update(p.historia)
-        reg.guardianes.update(p.guardianes)
-    reg.warnings += botin.historia_cadena_errores(unicas.modules())
-    reg.warnings += tratos.errores(unicas.modules()) + tablon.errores(THEMES)
+        reg.story.update(p.story)
+        reg.guardians.update(p.guardians)
+    reg.warnings += chest_loot.story_chain_errors(uniques.modules())
+    reg.warnings += trades.errors(uniques.modules()) + board.errors(THEMES)
     return reg
 
 
-def historia_cofre(reg, sid, mod):
+def story_chest(reg, sid, mod):
     """Contrato HISTORIA (botin.historia_errores) y que su cofre exista: algún contenedor de las plantillas de la única
     usa la tabla HISTORIA["cofre"] (el pliego no cambia la geometría: va en un cofre que ya estaba)."""
-    d = getattr(mod, "HISTORIA", None)
-    e = botin.historia_errores(sid, d, getattr(mod, "LOOT", {}))
+    d = getattr(mod, "STORY", None)
+    e = chest_loot.story_errors(sid, d, getattr(mod, "LOOT", {}))
     if e:
         return e
-    tabla = f"{NS}:unicas/{sid}/{d['cofre']}"
+    tbl = f"{NS}:unicas/{sid}/{d['cofre']}"
     n = sum(1 for name, t in reg.templates.items() if name.startswith(f"unicas/{sid}/")
-            for _, nbt in t.blocks.values() if nbt and str(nbt.get("LootTable", "")) == tabla)
-    reg.historia[sid] = n
-    return [] if n else [f"unicas/{sid}: ningún cofre de sus plantillas usa {tabla} (HISTORIA.cofre)"]
+            for _, nbt in t.blocks.values() if nbt and str(nbt.get("LootTable", "")) == tbl)
+    reg.story[sid] = n
+    return [] if n else [f"unicas/{sid}: ningún cofre de sus plantillas usa {tbl} (HISTORIA.cofre)"]
 
 
 def tag_guardians(reg, sid):
     """Añade a los guardianes de una única (Tags con piezas.GUARDIAN_TAG) la etiqueta heraldia_guardian.<id>, con la
     que su logro los reconoce al morir (logros.py), y les pone como DeathLootTable la tabla de su trofeo
     (botin.guardian_tabla: su botín de siempre + el trofeo si lo mata un jugador). Toda única debe tener al menos uno."""
-    from unicas._comun.piezas import GUARDIAN_TAG
-    found, orig = 0, reg.guardianes.setdefault(sid, {})
+    from uniques._common.pieces import GUARDIAN_TAG
+    found, orig = 0, reg.guardians.setdefault(sid, {})
     for name, t in reg.templates.items():
         if not name.startswith(f"unicas/{sid}/"):
             continue
@@ -292,10 +292,10 @@ def tag_guardians(reg, sid):
                     n["Tags"] = list(tags) + [f"{GUARDIAN_TAG}.{sid}"]
                 mob = str(n["id"])
                 prev = str(n.get("DeathLootTable") or f"minecraft:entities/{mob.split(':')[-1]}")
-                if prev != botin.guardian_tabla_id(sid, mob):
+                if prev != chest_loot.guardian_table_id(sid, mob):
                     if orig.setdefault(mob, prev) != prev:
                         reg.warnings.append(f"unicas/{sid}: guardianes {mob} con tablas de muerte distintas")
-                    n["DeathLootTable"] = botin.guardian_tabla_id(sid, mob)
+                    n["DeathLootTable"] = chest_loot.guardian_table_id(sid, mob)
                 found += 1
     if not found:
         reg.warnings.append(f"unicas/{sid}: ningún guardián con la etiqueta {GUARDIAN_TAG} (usa _comun/piezas.guardian)")

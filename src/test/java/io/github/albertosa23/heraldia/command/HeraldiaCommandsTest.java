@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * The real /heraldia tree (HeraldiaCommands.tree, without a server): all canonical names in English and ASCII (the same
- * as tools/gen/comandos.py), each old name resolves to the same node with the same permissions and warns, and no alias
+ * as tools/gen/commands.py), each old name resolves to the same node with the same permissions and warns, and no alias
  * shows in the tree the client receives (the suggestions).
  */
 class HeraldiaCommandsTest {
@@ -69,11 +69,11 @@ class HeraldiaCommandsTest {
 		return out;
 	}
 
-	/** CANONICOS from tools/gen/comandos.py (the list the generator's tests also check). */
+	/** CANONICAL from tools/gen/commands.py (the list the generator's tests also check). */
 	private static Set<String> fromCommandsPy() throws IOException {
-		String py = Files.readString(Path.of("tools/gen/comandos.py"), StandardCharsets.UTF_8);
-		Matcher m = Pattern.compile("CANONICOS = \\[(.*?)\\]", Pattern.DOTALL).matcher(py);
-		assertTrue(m.find(), "CANONICOS en comandos.py");
+		String py = Files.readString(Path.of("tools/gen/commands.py"), StandardCharsets.UTF_8);
+		Matcher m = Pattern.compile("CANONICAL = \\[(.*?)\\]", Pattern.DOTALL).matcher(py);
+		assertTrue(m.find(), "CANONICAL in commands.py");
 		Set<String> out = new TreeSet<>();
 		Matcher s = Pattern.compile("\"([^\"]+)\"").matcher(m.group(1));
 		while (s.find()) {

@@ -106,7 +106,7 @@ public final class Texts {
 		return EN;
 	}
 
-	/** heraldia/idiomas.json: {"lenguas": {language: .jar code}} (tools/gen/idiomas.py). */
+	/** heraldia/idiomas.json: {"lenguas": {language: .jar code}} (tools/gen/languages.py). */
 	private static Map<String, String> readLocales() {
 		String path = "/heraldia/idiomas.json";
 		try (InputStream in = Texts.class.getResourceAsStream(path)) {

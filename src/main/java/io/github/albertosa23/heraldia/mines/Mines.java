@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Mine entrances (heraldia:minas/&lt;size&gt;/&lt;style&gt;/&lt;variant&gt;, tools/gen/minas): one structure_set per size
+ * Mine entrances (heraldia:minas/&lt;size&gt;/&lt;style&gt;/&lt;variant&gt;, tools/gen/mines): one structure_set per size
  * with its heraldia:rejilla grid (group minas/&lt;size&gt;). A candidate is discarded with the mediums' rules
  * ({@link MediumStructures}), without changing theirs:
  * <ul>

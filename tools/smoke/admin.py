@@ -18,26 +18,26 @@ Uso: python3 tools/smoke/admin.py --jar build/libs/heraldia-X.jar --work "$PWD/b
 import argparse, copy, json, os, re, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
-from guia import Server
-from trofeos import CARPET
+from guide import Server
+from trophies import CARPET
 from modrinth import fetch
 
-JUGADOR = "Revisor"
+PLAYER = "Revisor"
 X, Y, Z = 0, 120, 0                       # el zombi de la prueba de la recarga (NoAI: no cae)
 NUM = r"(-?\d+(?:\.\d+)?)"
-TITULO = r"(?:Review|Revisión) (\d+)/(\d+): "
-LOG_BUSQUEDA = r"Heraldia: /heraldia review ([a-z_/]+): (.+) en (\d+) ms"
-LOG_TP = rf"Heraldia: /heraldia review: {JUGADOR} a (-?\d+) (-?\d+) (-?\d+)"
-NOTA = "la puerta del patio no abre"
+TITLE = r"(?:Review|Revisión) (\d+)/(\d+): "
+LOG_SEARCH = r"Heraldia: /heraldia review ([a-z_/]+): (.+) en (\d+) ms"
+LOG_TP = rf"Heraldia: /heraldia review: {PLAYER} a (-?\d+) (-?\d+) (-?\d+)"
+NOTE = "la puerta del patio no abre"
 
 
-def config(work, **dificultad):
+def config(work, **difficulty):
     cfg = copy.deepcopy(s.TEST_CONFIG)
-    cfg["dificultad"] = {"nivel": "heroica", **dificultad}
+    cfg["dificultad"] = {"nivel": "heroica", **difficulty}
     return cfg
 
 
-def escribir(work, cfg):
+def write(work, cfg):
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
         json.dump(cfg, f)
 
@@ -50,8 +50,8 @@ def main():
     os.makedirs(a.work, exist_ok=True)
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
-    escribir(a.work, config(a.work))
-    mundo = os.path.join(a.work, "world")
+    write(a.work, config(a.work))
+    world = os.path.join(a.work, "world")
     fails, ok = [], 0
     srv = None
 
@@ -63,176 +63,176 @@ def main():
             fails.append(msg)
             print("FALLA:", msg)
 
-    def como(cmd):
-        return f"execute as {JUGADOR} run heraldia review {cmd}"
+    def as_player(cmd):
+        return f"execute as {PLAYER} run heraldia review {cmd}"
 
-    def busqueda(ctx, parada):
+    def search(ctx, stop):
         """Espera a que termine la búsqueda (fuera del hilo del servidor) de una parada: (resultado, ms)."""
         while True:
-            m = s.wait_for(ctx.lines, LOG_BUSQUEDA, s.COMMAND_TIMEOUT_S, ctx.seen)
-            if m.group(1) == parada:
+            m = s.wait_for(ctx.lines, LOG_SEARCH, s.COMMAND_TIMEOUT_S, ctx.seen)
+            if m.group(1) == stop:
                 return m.group(2), int(m.group(3))
 
     def pos(ctx):
-        return ctx.pos(f"@a[name={JUGADOR}]")
+        return ctx.pos(f"@a[name={PLAYER}]")
 
     def num(ctx, cmd):
         m = ctx.run(cmd, rf"(?:is|data:) {NUM}f?\b|No entity|[Nn]o modifier|has no|There is no|not found|Can't find")
         return float(m.group(1)) if m.lastindex and m.group(1) else None
 
-    def jugador(ctx):
-        ctx.run(f"player {JUGADOR} spawn at 0 100 0", r"joined the game|Player .* spawn|Unknown|Incorrect")
-        if not ctx.until(f"execute if entity @a[name={JUGADOR}]"):
-            raise SystemExit(f"no aparece el jugador simulado {JUGADOR} (Carpet)")
+    def player(ctx):
+        ctx.run(f"player {PLAYER} spawn at 0 100 0", r"joined the game|Player .* spawn|Unknown|Incorrect")
+        if not ctx.until(f"execute if entity @a[name={PLAYER}]"):
+            raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
 
-    def llega(ctx, parada, idx):
+    def arrives(ctx, stop, idx):
         """Tras ir a una parada con destino: el log del teletransporte, el título y un sitio seguro (pies y cabeza
         libres, suelo debajo, nunca lava) en el que está de verdad el jugador."""
         m = s.wait_for(ctx.lines, LOG_TP + "|" + r"no safe spot|ningún sitio seguro", s.COMMAND_TIMEOUT_S, ctx.seen)
-        check(m.lastindex, f"{parada}: no hay sitio seguro: {m.string.strip()}")
+        check(m.lastindex, f"{stop}: no hay sitio seguro: {m.string.strip()}")
         if not m.lastindex:
             return
         x, y, z = (int(v) for v in m.groups()[:3])
-        texto = "".join(s.drain(ctx))
-        t = re.search(TITULO, texto)
-        check(t and int(t.group(1)) == idx + 1, f"{parada}: título {t and t.group(0)} (debe ser la parada {idx + 1})")
+        text = "".join(s.drain(ctx))
+        t = re.search(TITLE, text)
+        check(t and int(t.group(1)) == idx + 1, f"{stop}: título {t and t.group(0)} (debe ser la parada {idx + 1})")
         p = pos(ctx)
         check(p and abs(p[0] - (x + 0.5)) < 0.01 and abs(p[1] - y) < 0.01 and abs(p[2] - (z + 0.5)) < 0.01,
-              f"{parada}: el jugador está en {p}, el log dice {x} {y} {z}")
+              f"{stop}: el jugador está en {p}, el log dice {x} {y} {z}")
         check(ctx.block((x, y, z), "#minecraft:replaceable") and ctx.block((x, y + 1, z), "#minecraft:replaceable"),
-              f"{parada}: pies o cabeza dentro de un bloque en {x} {y} {z}")
-        check(ctx.test(f"execute unless block {x} {y - 1} {z} #minecraft:air"), f"{parada}: sin suelo bajo {x} {y} {z}")
-        check(ctx.test(f"execute unless block {x} {y - 1} {z} minecraft:lava"), f"{parada}: encima de lava")
-        print(f"{parada}: en {x} {y} {z}")
+              f"{stop}: pies o cabeza dentro de un bloque en {x} {y} {z}")
+        check(ctx.test(f"execute unless block {x} {y - 1} {z} #minecraft:air"), f"{stop}: sin suelo bajo {x} {y} {z}")
+        check(ctx.test(f"execute unless block {x} {y - 1} {z} minecraft:lava"), f"{stop}: encima de lava")
+        print(f"{stop}: en {x} {y} {z}")
 
     try:
         srv = Server(a.work, launcher)
         ctx = srv.ctx
-        jugador(ctx)
+        player(ctx)
 
         # --- lista: paradas en orden ---
-        m = ctx.run(como("list"), r"(?:Review route|Ruta de revisión) \((\d+)")
+        m = ctx.run(as_player("list"), r"(?:Review route|Ruta de revisión) \((\d+)")
         total = int(m.group(1)) if m.lastindex else 0
-        lineas = "".join(s.drain(ctx))
-        ids = re.findall(r"\d+\. .+? \(([a-z_]+(?:/[a-z_]+)?)\): ", lineas)
+        lines = "".join(s.drain(ctx))
+        ids = re.findall(r"\d+\. .+? \(([a-z_]+(?:/[a-z_]+)?)\): ", lines)
         print(f"review list: {total} paradas: {ids}")
         check(total > 20 and len(ids) == total, f"lista: {total} paradas, {len(ids)} leídas")
-        tipos = [i.split("/")[0] for i in ids]
-        orden = ["aldea", "unica", "mediana", "mina", "costa", "arena", "camino"]
-        check(tipos == sorted(tipos, key=orden.index), f"lista: tipos fuera de orden: {tipos}")
-        check(set(tipos) == set(orden), f"lista: faltan tipos: {set(orden) - set(tipos)}")
+        kinds = [i.split("/")[0] for i in ids]
+        order = ["aldea", "unica", "mediana", "mina", "costa", "arena", "camino"]
+        check(kinds == sorted(kinds, key=order.index), f"lista: tipos fuera de orden: {kinds}")
+        check(set(kinds) == set(order), f"lista: faltan tipos: {set(order) - set(kinds)}")
         check("aldea/pantano" not in ids, "lista: sale la familia pantano, desactivada en la configuración de prueba")
         check("unica/atlantida" in ids and "unica/isla_corsario" in ids, "lista: faltan la Atlántida o la isla")
         check([i for i in ids if i.startswith("mina/")] == ["mina/pequena", "mina/mediana", "mina/grande"], "lista: minas fuera de orden")
         check([i for i in ids if i.startswith("costa/")] == ["costa/faro", "costa/naufragio"], "lista: faro y naufragio fuera de orden")
 
         # --- la arena, sin colocar ---
-        antes = pos(ctx)
-        m = ctx.run(como("goto arena"), r"has not been placed|no está colocada")
+        before = pos(ctx)
+        m = ctx.run(as_player("goto arena"), r"has not been placed|no está colocada")
         check(m.lastindex is None and m.group(0) in ("has not been placed", "no está colocada"), f"ir arena: {m.string.strip()}")
 
         # --- la Atlántida: prevista, se avisa y no se mueve ---
-        ctx.run(como("goto unica/atlantida"), r"(?:Looking for|Buscando) ")
-        res, ms = busqueda(ctx, "unica/atlantida")
+        ctx.run(as_player("goto unica/atlantida"), r"(?:Looking for|Buscando) ")
+        res, ms = search(ctx, "unica/atlantida")
         print(f"review goto unica/atlantida: {res} en {ms} ms (fuera del hilo del servidor)")
-        texto = "".join(s.drain(ctx))
+        text = "".join(s.drain(ctx))
         check("generada=false" in res, f"atlántida: debería estar prevista: {res}")
-        check(re.search(r"has not been generated yet|aún no se ha generado", texto), "atlántida: no avisa de que se generaría terreno")
-        check(re.search(r"Go and generate|Ir y generar", texto), "atlántida: falta el botón «Ir y generar»")
-        check(re.search(r"(?:What to check|Qué mirar):", texto) and re.search(r"water breathing|respiración acuática", texto),
+        check(re.search(r"has not been generated yet|aún no se ha generado", text), "atlántida: no avisa de que se generaría terreno")
+        check(re.search(r"Go and generate|Ir y generar", text), "atlántida: falta el botón «Ir y generar»")
+        check(re.search(r"(?:What to check|Qué mirar):", text) and re.search(r"water breathing|respiración acuática", text),
               "atlántida: falta la lista de qué mirar (con su punto propio)")
-        despues = pos(ctx)
-        check(antes and despues and abs(antes[0] - despues[0]) < 1 and abs(antes[2] - despues[2]) < 1,
-              f"atlántida prevista: el jugador se ha movido de {antes} a {despues}")
+        after = pos(ctx)
+        check(before and after and abs(before[0] - after[0]) < 1 and abs(before[2] - after[2]) < 1,
+              f"atlántida prevista: el jugador se ha movido de {before} a {after}")
 
         # --- una mediana: teletransporte seguro ---
-        mediana = next(i for i in ids if i.startswith("mediana/"))
-        idx = ids.index(mediana)
-        ctx.run(como(f"goto {mediana}"), r"(?:Looking for|Buscando) ")
-        res, ms = busqueda(ctx, mediana)
-        print(f"review goto {mediana}: {res} en {ms} ms")
-        check("Destino" in res, f"{mediana}: no se encuentra ninguna: {res}")
+        medium = next(i for i in ids if i.startswith("mediana/"))
+        idx = ids.index(medium)
+        ctx.run(as_player(f"goto {medium}"), r"(?:Looking for|Buscando) ")
+        res, ms = search(ctx, medium)
+        print(f"review goto {medium}: {res} en {ms} ms")
+        check("Destino" in res, f"{medium}: no se encuentra ninguna: {res}")
         if "generada=false" in res:
             s.drain(ctx)
-            ctx.run(como(f"goto {mediana} generate"), r"(?:Looking for|Buscando) ")
-            busqueda(ctx, mediana)
-        llega(ctx, mediana, idx)
+            ctx.run(as_player(f"goto {medium} generate"), r"(?:Looking for|Buscando) ")
+            search(ctx, medium)
+        arrives(ctx, medium, idx)
 
         # --- marcar, siguiente y saltar ---
-        m = ctx.run(como(f"mark problem {NOTA}"), r"with a problem|con problema")
-        check(m.lastindex is None and NOTA in m.string, f"marcar: {m.string.strip()}")
-        for orden_, esperado in (("next", idx + 2), ("skip", idx + 3)):
-            ctx.run(como(orden_), r"(?:Looking for|Buscando) ")
-            busqueda(ctx, ids[esperado - 1])
-            texto = "".join(s.drain(ctx, 3))
-            if re.search(r"(?:Loading the area|Cargando la zona)", texto) and not re.search(LOG_TP, texto):
+        m = ctx.run(as_player(f"mark problem {NOTE}"), r"with a problem|con problema")
+        check(m.lastindex is None and NOTE in m.string, f"marcar: {m.string.strip()}")
+        for order_, expected in (("next", idx + 2), ("skip", idx + 3)):
+            ctx.run(as_player(order_), r"(?:Looking for|Buscando) ")
+            search(ctx, ids[expected - 1])
+            text = "".join(s.drain(ctx, 3))
+            if re.search(r"(?:Loading the area|Cargando la zona)", text) and not re.search(LOG_TP, text):
                 s.wait_for(ctx.lines, LOG_TP, s.COMMAND_TIMEOUT_S, ctx.seen)
-                texto += "".join(s.drain(ctx))
-            t = re.search(TITULO, texto)
-            check(t and int(t.group(1)) == esperado, f"{orden_}: debería ir a la parada {esperado}: {t and t.group(0)}")
+                text += "".join(s.drain(ctx))
+            t = re.search(TITLE, text)
+            check(t and int(t.group(1)) == expected, f"{order_}: debería ir a la parada {expected}: {t and t.group(0)}")
 
-        def resumen(ctx, cuando):
-            m = ctx.run("heraldia review status", rf"(?:Review by|Revisión de) {JUGADOR}: (\d+) \D+ (\d+) \D+, (\d+) \D+, (\d+) \D+, (\d+)")
+        def summary(ctx, when):
+            m = ctx.run("heraldia review status", rf"(?:Review by|Revisión de) {PLAYER}: (\d+) \D+ (\d+) \D+, (\d+) \D+, (\d+) \D+, (\d+)")
             check(m.lastindex and (int(m.group(3)), int(m.group(4))) == (1, 1) and int(m.group(2)) == total,
-                  f"{cuando}: resumen {m.group(0) if m else None} (debe tener 1 con problema y 1 saltada de {total})")
-            texto = "".join(s.drain(ctx))
-            check(NOTA in texto, f"{cuando}: el resumen no lista el problema")
+                  f"{when}: resumen {m.group(0) if m else None} (debe tener 1 con problema y 1 saltada de {total})")
+            text = "".join(s.drain(ctx))
+            check(NOTE in text, f"{when}: el resumen no lista el problema")
 
-        resumen(ctx, "review status")
-        md, js = os.path.join(mundo, "heraldia_revision.md"), os.path.join(mundo, "heraldia_revision.json")
-        fin = time.monotonic() + 30
-        while time.monotonic() < fin and not (os.path.exists(md) and NOTA in open(md, encoding="utf-8").read()):
+        summary(ctx, "review status")
+        md, js = os.path.join(world, "heraldia_revision.md"), os.path.join(world, "heraldia_revision.json")
+        finish = time.monotonic() + 30
+        while time.monotonic() < finish and not (os.path.exists(md) and NOTE in open(md, encoding="utf-8").read()):
             time.sleep(0.5)
-        check(os.path.exists(md) and NOTA in open(md, encoding="utf-8").read(), "no se escribe heraldia_revision.md con la nota")
+        check(os.path.exists(md) and NOTE in open(md, encoding="utf-8").read(), "no se escribe heraldia_revision.md con la nota")
         if os.path.exists(md):
-            texto = open(md, encoding="utf-8").read()
-            check("**problema**" in texto and "saltada" in texto and f"## {JUGADOR}" in texto, "heraldia_revision.md incompleto")
-            check(texto.index(f"`{mediana}`") < texto.index(f"`{ids[0]}`"), "heraldia_revision.md: el problema no va primero")
+            text = open(md, encoding="utf-8").read()
+            check("**problema**" in text and "saltada" in text and f"## {PLAYER}" in text, "heraldia_revision.md incompleto")
+            check(text.index(f"`{medium}`") < text.index(f"`{ids[0]}`"), "heraldia_revision.md: el problema no va primero")
         if os.path.exists(js):
             d = json.load(open(js, encoding="utf-8"))
             prog = next(iter(d["jugadores"].values()), {})
-            check(prog.get("paradas", {}).get(mediana, {}).get("marca") == "problema", f"json: {prog}")
+            check(prog.get("paradas", {}).get(medium, {}).get("marca") == "problema", f"json: {prog}")
             check(prog.get("actual") == idx + 2, f"json: parada actual {prog.get('actual')} (debe ser {idx + 2})")
 
         # --- una prevista con «Ir y generar»: se genera el terreno y se llega a un sitio seguro ---
-        prevista = None
+        planned = None
         for i in ids[idx + 1:]:
             if not i.startswith("mediana/"):
                 break
-            ctx.run(como(f"goto {i}"), r"(?:Looking for|Buscando) ")
-            res, _ = busqueda(ctx, i)
+            ctx.run(as_player(f"goto {i}"), r"(?:Looking for|Buscando) ")
+            res, _ = search(ctx, i)
             if "generada=false" in res:
                 s.drain(ctx)
-                prevista = i
+                planned = i
                 break
             if "generada=true" in res:      # ya generada: espera al teletransporte (si no, la siguiente orden está «ocupada»)
                 s.wait_for(ctx.lines, LOG_TP + "|no safe spot|ningún sitio seguro", s.COMMAND_TIMEOUT_S, ctx.seen)
             s.drain(ctx)
-        check(prevista, "no hay ninguna mediana prevista para probar «Ir y generar»")
-        if prevista:
-            ctx.run(como(f"goto {prevista} generate"), r"(?:Looking for|Buscando) ")
-            res, ms = busqueda(ctx, prevista)
-            print(f"review goto {prevista} generate: {res} en {ms} ms")
-            llega(ctx, prevista, ids.index(prevista))
+        check(planned, "no hay ninguna mediana prevista para probar «Ir y generar»")
+        if planned:
+            ctx.run(as_player(f"goto {planned} generate"), r"(?:Looking for|Buscando) ")
+            res, ms = search(ctx, planned)
+            print(f"review goto {planned} generate: {res} en {ms} ms")
+            arrives(ctx, planned, ids.index(planned))
 
         # --- /heraldia status ---
         m = ctx.run("heraldia status", r"Heraldia (\S+): (?:server status|estado del servidor) \((?:page|página) 1 (?:of|de) (\d+)\)")
-        paginas = int(m.group(2)) if m.lastindex else 0
-        texto = "".join(s.drain(ctx))
-        check(paginas >= 2, f"estado: {m.string.strip()}")
-        check(re.search(r"Discovered by some player|Descubiertas por algún jugador", texto), "estado: falta lo descubierto")
-        check(re.search(r"(?:Unique structures|Estructuras únicas): 0 (?:of|de) \d+", texto), "estado: falta el recuento de únicas")
-        check(re.search(r"(?:Difficulty|Dificultad): ", texto), "estado (operador): falta la dificultad")
-        for n in range(2, paginas + 1):
-            m = ctx.run(f"heraldia status {n}", rf"\((?:page|página) {n} (?:of|de) {paginas}\)")
+        pages = int(m.group(2)) if m.lastindex else 0
+        text = "".join(s.drain(ctx))
+        check(pages >= 2, f"estado: {m.string.strip()}")
+        check(re.search(r"Discovered by some player|Descubiertas por algún jugador", text), "estado: falta lo descubierto")
+        check(re.search(r"(?:Unique structures|Estructuras únicas): 0 (?:of|de) \d+", text), "estado: falta el recuento de únicas")
+        check(re.search(r"(?:Difficulty|Dificultad): ", text), "estado (operador): falta la dificultad")
+        for n in range(2, pages + 1):
+            m = ctx.run(f"heraldia status {n}", rf"\((?:page|página) {n} (?:of|de) {pages}\)")
             check(m.lastindex is None and f"{n} " in m.group(0), f"estado {n}: {m.string.strip()}")
-            texto += "".join(s.drain(ctx))
-        m = ctx.run("heraldia status 99", rf"\((?:page|página) {paginas} (?:of|de) {paginas}\)")
-        check(m.lastindex is None and str(paginas) in m.group(0), f"estado 99: debería dar la última página: {m.string.strip()}")
+            text += "".join(s.drain(ctx))
+        m = ctx.run("heraldia status 99", rf"\((?:page|página) {pages} (?:of|de) {pages}\)")
+        check(m.lastindex is None and str(pages) in m.group(0), f"estado 99: debería dar la última página: {m.string.strip()}")
         s.drain(ctx)
-        check(re.search(r"(?:Guardians defeated|Guardianes vencidos): 0 (?:of|de) \d+", texto), "estado: faltan los guardianes")
-        check(re.search(r"(?:Restocking loot|Botín que se repone): (?:disabled|desactivado)", texto), "estado: falta la reposición")
-        check(re.search(r"(?:Other mods|Otros mods) \(\d+\): .*Carpet", texto), "estado (operador): no lista Carpet entre los mods")
+        check(re.search(r"(?:Guardians defeated|Guardianes vencidos): 0 (?:of|de) \d+", text), "estado: faltan los guardianes")
+        check(re.search(r"(?:Restocking loot|Botín que se repone): (?:disabled|desactivado)", text), "estado: falta la reposición")
+        check(re.search(r"(?:Other mods|Otros mods) \(\d+\): .*Carpet", text), "estado (operador): no lista Carpet entre los mods")
 
         # --- /heraldia reload: dificultad sin reiniciar ---
         ctx.run(f"forceload add {X - 16} {Z - 16} {X + 16} {Z + 16}", r"Marked|force|already|[Aa]dded")
@@ -241,24 +241,24 @@ def main():
         ctx.run("time set midnight", r"[Tt]ime|[Ss]et")
         ctx.run(f'summon minecraft:zombie {X} {Y} {Z} {{NoAI:1b,PersistenceRequired:1b,Silent:1b,Tags:["heraldia_anclado",'
                 f'"heraldia_adulto","p_recarga"],Health:20f,attributes:[{{id:"minecraft:max_health",base:20}}]}}', r"Summoned|Unable")
-        zombi = "@e[tag=p_recarga,limit=1]"
-        check(ctx.until(f"execute if entity {zombi}"), "no aparece el zombi de la recarga")
-        vm = num(ctx, f"attribute {zombi} minecraft:max_health get")
+        zombie = "@e[tag=p_recarga,limit=1]"
+        check(ctx.until(f"execute if entity {zombie}"), "no aparece el zombi de la recarga")
+        vm = num(ctx, f"attribute {zombie} minecraft:max_health get")
         check(vm is not None and abs(vm - 40) < 1e-3, f"heroica: vida máxima {vm} (debe ser 40)")
         cfg = config(a.work)
         cfg["dificultad"]["nivel"] = "facil"
         cfg["aldeas"]["separacion_bloques"] = 3000
-        escribir(a.work, cfg)
+        write(a.work, cfg)
         m = ctx.run("heraldia reload", r"(?:Configuration reloaded from|Configuración recargada de) heraldia\.json")
-        texto = "".join(s.drain(ctx))
+        text = "".join(s.drain(ctx))
         check(m.lastindex is None and "heraldia.json" in m.group(0), f"recargar: {m.string.strip()}")
-        check("dificultad.nivel = facil" in texto, "recargar: no lista dificultad.nivel como aplicada")
-        check(re.search(r"aldeas\.separacion_bloques: 1500 \S+ \S+, 3000", texto), "recargar: no lista aldeas.separacion_bloques como pendiente")
-        n = re.search(r"(?:recalculated for|recalculada en) (\d+)", texto)
+        check("dificultad.nivel = facil" in text, "recargar: no lista dificultad.nivel como aplicada")
+        check(re.search(r"aldeas\.separacion_bloques: 1500 \S+ \S+, 3000", text), "recargar: no lista aldeas.separacion_bloques como pendiente")
+        n = re.search(r"(?:recalculated for|recalculada en) (\d+)", text)
         check(n and int(n.group(1)) >= 1, f"recargar: mobs recalculados {n and n.group(1)}")
-        vm = num(ctx, f"attribute {zombi} minecraft:max_health get")
+        vm = num(ctx, f"attribute {zombie} minecraft:max_health get")
         check(vm is not None and abs(vm - 15) < 1e-3, f"fácil sin reiniciar: vida máxima {vm} (debe ser 15)")
-        mod = num(ctx, f"attribute {zombi} minecraft:max_health modifier value get heraldia:dificultad_vida")
+        mod = num(ctx, f"attribute {zombie} minecraft:max_health modifier value get heraldia:dificultad_vida")
         check(mod == -0.25, f"fácil sin reiniciar: modificador {mod} (debe ser -0,25)")
         m = ctx.run("heraldia info", r"(?:Villages: every|Aldeas: cada) (\d+)")
         check(m.lastindex and m.group(1) == "1500", f"recargar aplicó la separación de las aldeas: {m.group(0)}")
@@ -271,7 +271,7 @@ def main():
         srv.stop()
         srv = Server(a.work, launcher)
         ctx = srv.ctx
-        resumen(ctx, "tras reiniciar")
+        summary(ctx, "tras reiniciar")
         log = ctx.log()
         bad = [l.strip() for l in log.splitlines() if "Exception" in l and "heraldia" in l.lower()]
         check(not bad, f"errores en el log: {bad}")

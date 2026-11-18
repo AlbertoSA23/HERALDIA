@@ -9,13 +9,13 @@ RevisarCommand.PUNTOS) y los propios de una única, heraldia.revisar.mirar.unica
 NS = "heraldia"
 
 # tipo de parada -> puntos de su lista (RevisarCommand.PUNTOS)
-PUNTOS = {"aldea": 4, "unica": 4, "mediana": 3, "mina": 3, "costa": 3, "arena": 3, "camino": 3}
+POINTS = {"aldea": 4, "unica": 4, "mediana": 3, "mina": 3, "costa": 3, "arena": 3, "camino": 3}
 # únicas con un punto propio en la lista (RevisarCommand.CON_PUNTO_PROPIO)
-CON_PUNTO_PROPIO = ("atlantida", "isla_corsario")
+WITH_OWN_POINT = ("atlantida", "isla_corsario")
 # botones de la ruta (heraldia.revisar.boton.<id> y su ayuda, .ayuda)
-BOTONES = ("revisada", "nota", "problema", "saltar", "anterior", "siguiente", "lista", "generar", "ir")
+BUTTONS = ("revisada", "nota", "problema", "saltar", "anterior", "siguiente", "lista", "generar", "ir")
 
-_TEXTOS = {
+_TEXTS_ES = {
     # --- nombres antiguos de los comandos (comando/Alias): «/heraldia guia» -> «/heraldia guide» ---
     "comando.obsoleto": ("«%s» está obsoleto y se quitará en una versión futura: usa %s.",
                          "“%s” is deprecated and will be removed in a future version: use %s."),
@@ -210,13 +210,13 @@ _TEXTOS = {
 def lang():
     """{"es_es": {...}, "en_us": {...}} con todos los textos de las herramientas de administración."""
     out = {"es_es": {}, "en_us": {}}
-    for k, (es, en) in _TEXTOS.items():
+    for k, (es, en) in _TEXTS_ES.items():
         out["es_es"][f"{NS}.{k}"] = es
         out["en_us"][f"{NS}.{k}"] = en
     return out
 
 
-def claves_mirar():
+def keys_to_check():
     """Claves de todos los puntos de las listas de qué mirar (las que el Java puede pedir)."""
-    out = [f"{NS}.revisar.mirar.{t}.{i}" for t, n in PUNTOS.items() for i in range(1, n + 1)]
-    return out + [f"{NS}.revisar.mirar.unica.{u}" for u in CON_PUNTO_PROPIO]
+    out = [f"{NS}.revisar.mirar.{t}.{i}" for t, n in POINTS.items() for i in range(1, n + 1)]
+    return out + [f"{NS}.revisar.mirar.unica.{u}" for u in WITH_OWN_POINT]

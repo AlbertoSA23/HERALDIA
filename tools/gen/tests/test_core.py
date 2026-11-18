@@ -1,11 +1,11 @@
 """core.py: estados, NBT de plantillas y utilidades de Template."""
 import nbtlib
 import pytest
-from core import (parse_state, state_str, with_props, nsid, norm_id, to_tag, B, F, Template, adulto, ADULTO_TAG, anclado, ANCLADO_TAG, RECOGE_BOTIN, BEBE_ZOMBI,
+from core import (parse_state, state_str, with_props, nsid, norm_id, to_tag, B, F, Template, adult, ADULT_TAG, anchored, ANCHORED_TAG, PICKS_UP_LOOT, BABY_ZOMBIE,
                   villager, DATA_VERSION)
 
 
-def test_parse_state_y_state_str():
+def test_parse_state_and_state_str():
     assert parse_state("stone") == ("minecraft:stone", {})
     bid, p = parse_state("minecraft:oak_stairs[half=bottom, facing=east]")
     assert bid == "minecraft:oak_stairs" and p == {"half": "bottom", "facing": "east"}
@@ -14,7 +14,7 @@ def test_parse_state_y_state_str():
     assert state_str("minecraft:air", {}) == "minecraft:air"
 
 
-def test_parse_state_invalido():
+def test_parse_state_invalid():
     with pytest.raises(ValueError):
         parse_state("Stone Bricks")
 
@@ -76,23 +76,23 @@ def test_to_nbt_rechaza_negativos():
         t.to_nbt()
 
 
-def test_anclado():
-    z = anclado({"id": "minecraft:zombie", "Tags": ["a"]})
-    assert z["Tags"] == ["a", ANCLADO_TAG]
-    assert anclado(dict(z))["Tags"].count(ANCLADO_TAG) == 1       # idempotente
-    assert anclado({"id": "minecraft:skeleton"})["Tags"] == [ANCLADO_TAG]
-    assert "Tags" not in anclado({"id": "minecraft:evoker"})          # no recoge objetos: solo si es guardián
-    assert anclado({"id": "minecraft:evoker"}, siempre=True)["Tags"] == [ANCLADO_TAG]
-    assert "Tags" not in anclado({"id": "minecraft:villager"})        # los aldeanos recogen cosechas
-    assert BEBE_ZOMBI <= RECOGE_BOTIN and "minecraft:wither_skeleton" in RECOGE_BOTIN
-    assert all(m.startswith("minecraft:") for m in RECOGE_BOTIN)
+def test_anchored():
+    z = anchored({"id": "minecraft:zombie", "Tags": ["a"]})
+    assert z["Tags"] == ["a", ANCHORED_TAG]
+    assert anchored(dict(z))["Tags"].count(ANCHORED_TAG) == 1       # idempotente
+    assert anchored({"id": "minecraft:skeleton"})["Tags"] == [ANCHORED_TAG]
+    assert "Tags" not in anchored({"id": "minecraft:evoker"})          # no recoge objetos: solo si es guardián
+    assert anchored({"id": "minecraft:evoker"}, always=True)["Tags"] == [ANCHORED_TAG]
+    assert "Tags" not in anchored({"id": "minecraft:villager"})        # los aldeanos recogen cosechas
+    assert BABY_ZOMBIE <= PICKS_UP_LOOT and "minecraft:wither_skeleton" in PICKS_UP_LOOT
+    assert all(m.startswith("minecraft:") for m in PICKS_UP_LOOT)
 
 
-def test_adulto_y_aldeano():
-    z = adulto({"id": "minecraft:zombie", "Tags": ["a"]})
-    assert z["Tags"] == ["a", ADULTO_TAG]
-    assert adulto(dict(z))["Tags"].count(ADULTO_TAG) == 1      # idempotente
-    assert "Tags" not in adulto({"id": "minecraft:skeleton"})
+def test_adult_and_villager():
+    z = adult({"id": "minecraft:zombie", "Tags": ["a"]})
+    assert z["Tags"] == ["a", ADULT_TAG]
+    assert adult(dict(z))["Tags"].count(ADULT_TAG) == 1      # idempotente
+    assert "Tags" not in adult({"id": "minecraft:skeleton"})
     v = villager("librarian", "plains")
     assert v["Tags"] == ["heraldia"] and v["Xp"] == 1
     assert villager("librarian", "plains", employed=False)["VillagerData"]["profession"] == "minecraft:none"
@@ -108,23 +108,23 @@ def _nbtlib(t):
 
 def test_nbt_raw_igual_que_nbtlib():
     """El serializador directo de Template.nbt_raw da los mismos bytes que nbtlib (to_nbt + File.write)."""
-    from unicas._comun import piezas
+    from uniques._common import pieces
     t = Template("x")
     t.fill(0, 0, 0, 3, 1, 2, "stone_bricks")
     t.set(1, 2, 1, "oak_stairs[half=bottom,facing=east]")
     t.chest(2, 2, 1, "north", "heraldia:x")
     t.jigsaw(0, 2, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty")
-    t.entity(1, 2, 1, piezas.guardian("zombie", "k", "f", 30, equipment={"mainhand": {"id": "minecraft:iron_axe", "count": 1}},
+    t.entity(1, 2, 1, pieces.guardian("zombie", "k", "f", 30, equipment={"mainhand": {"id": "minecraft:iron_axe", "count": 1}},
                                       drop_chances={"mainhand": 0.0}))
-    t.entity(0, 2, 2, piezas.painting(0, 2, 2, "south", "kebab"))
-    t.entity(2, 2, 2, piezas.item_frame(2, 2, 2, 2, item="compass"))
+    t.entity(0, 2, 2, pieces.painting(0, 2, 2, "south", "kebab"))
+    t.entity(2, 2, 2, pieces.item_frame(2, 2, 2, 2, item="compass"))
     assert t.nbt_raw() == _nbtlib(t)
-    vacia = Template("v")
-    vacia.set(0, 0, 0, "air")
-    assert vacia.nbt_raw() == _nbtlib(vacia)          # sin entidades: lista vacía de compuestos
+    blank = Template("v")
+    blank.set(0, 0, 0, "air")
+    assert blank.nbt_raw() == _nbtlib(blank)          # sin entidades: lista vacía de compuestos
 
 
-def test_nbt_bytes_deterministas():
+def test_nbt_bytes_deterministic():
     import gzip
     t = Template("x")
     t.set(0, 0, 0, "stone")

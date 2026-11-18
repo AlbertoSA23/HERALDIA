@@ -36,7 +36,7 @@ import org.junit.jupiter.api.io.TempDir;
  * random_spread grid with the datapack's separation scaled (190/250), a common origin, and the rank discard among the uniques
  * of back then plus Atlantis. What is tested here comes from the code in use: the generated structure_sets read with
  * GridPlacement.CODEC and UniqueSeparation.blocked, the mixins' call. The viability (biome and terrain) is simulated with
- * a hash per id, the same for both; the real biome is checked by tools/smoke/rejilla_compatible.py against main's .jar.
+ * a hash per id, the same for both; the real biome is checked by tools/smoke/compatible_grid.py against main's .jar.
  */
 class CompatibleGridTest {
 	/** 0.1.0 uniques with a grid (Atlantis has its own placement and already always won back then). */

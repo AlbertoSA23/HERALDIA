@@ -1,0 +1,316 @@
+"""Guía del Heraldo: el libro escrito que explica el mod a los jugadores y lleva su diario (lo arma el Java, comando/Guia).
+
+Aquí van los textos (claves heraldia.guia.*, en es_es y en_us) y heraldia/guia.json (dentro del .jar), que dice al Java
+qué páginas fijas lleva el libro y cuántas entradas caben en cada página del diario. Todo se comprueba con el mismo
+cálculo de líneas que los pliegos de la crónica (botin.lineas_libro: 14 líneas de 114 px): si una página no cabe en un
+idioma, la generación falla.
+
+Páginas del libro:
+  - fijas (PAGINAS): un título en negrita y su texto, en este orden;
+  - el salón de la fama de la arena (T41, si está activada): los campeones de la semana anterior y los récords de cada
+    modo, en dos páginas tras el resumen del diario (las arma arena/Fama; errores_fama comprueba el peor caso);
+  - el diario: el resumen (cuántas únicas has descubierto de cuántas), la lista de las descubiertas (su nombre,
+    heraldia.unicas.<id>.nombre) y las pistas de las que faltan (la pista de su pliego de la crónica,
+    heraldia.historia.<id>.pista: bioma y rasgo, sin nombre ni coordenadas), repartidas en páginas de
+    `nombres_por_pagina` y `pistas_por_pagina` entradas (calculadas aquí con el peor caso de cada idioma).
+"""
+from uniques._common import chest_loot
+import advancements
+import languages
+
+NS = "heraldia"
+KEY = f"{NS}.guia"
+TITLE = ("Guía del Heraldo", "The Herald's Guide")   # título del libro (cadena sin traducir, máx. TITULO_MAX)
+TITLE_MAX = 32                                         # WrittenBookContent.TITLE_MAX_LENGTH
+AUTHOR = "Heraldia"
+MAX_PAGES = 100                                       # WrittenBookContent: máximo de páginas de un libro
+MARK = "heraldia_guia_libro"                           # custom_data {heraldia_guia_libro: "<versión del mod>"}
+
+# (id, (título es, en), (texto es, en)). La página es «título\n\ntexto» con el título en negrita.
+PAGES = [
+    ("bienvenida", ("Guía del Heraldo", "The Herald's Guide"),
+     ("Bienvenido, viajero. Este mundo guarda más de lo que parece: aldeas enormes, caminos, ruinas con historia y "
+      "tesoros con guardián. Esta guía te cuenta qué buscar y, al final, lleva el diario de lo que has descubierto.",
+      "Welcome, traveller. This world holds more than meets the eye: huge villages, roads, ruins with a story and "
+      "guarded treasures. This guide tells you what to look for and, at the end, keeps a diary of what you have found.")),
+    ("aldeas", ("Las aldeas", "The villages"),
+     ("Las aldeas de Heraldia son grandes y de doce familias, cada una con el estilo de su bioma: plaza con fuente y "
+      "campana, iglesia, mercado, taberna, herrería, biblioteca, granja y posada, y unas veinte casas o más.",
+      "Heraldia villages are large and come in twelve families, each in the style of its biome: a square with a "
+      "fountain and a bell, a church, market, tavern, smithy, library, farm and inn, and twenty houses or more.")),
+    ("vida", ("Vida en la aldea", "Village life"),
+     ("Cada estilo tiene tratos propios. En la plaza hay un tablón de encargos: el alguacil paga cosechas, leña y "
+      "limpiar los caminos de monstruos. Y los cartógrafos venden mapas de las únicas.",
+      "Each style has trades of its own. On the square stands a job board: the bailiff pays for harvests, firewood "
+      "and clearing the roads of monsters. And the cartographers sell maps of the unique structures.")),
+    ("encargos", ("Encargos", "Quests"),
+     ("En el atril del tablón verás de 2 a 4 encargos, que cambian cada pocos días. Pagan esmeraldas y reputación: "
+      "conocido, amigo y héroe abaratan los tratos. No ataques a los vecinos. /heraldia quest.",
+      "The job board lectern lists 2 to 4 quests that change every few days. They pay emeralds and reputation: known, "
+      "friend and hero make trades cheaper. Do not attack the villagers. /heraldia quest.")),
+    ("caminos", ("Los caminos", "The roads"),
+     ("Senderos con farolas y puentes de madera unen las aldeas vecinas. Cerca de cada aldea, un cartel dice el nombre "
+      "de la de destino y cuántos bloques faltan. Seguirlos es la forma más segura de viajar.",
+      "Trails with lamp posts and wooden bridges join neighbouring villages. Near each village, a sign gives the name "
+      "of the destination and how many blocks are left. Following them is the safest way to travel.")),
+    ("caravanas", ("Caravanas", "Caravans"),
+     ("Por los caminos viajan a veces mercaderes con sus llamas. Si los asaltan bandidos, defiéndelos: al llegar a su "
+      "aldea te pagan esmeraldas y reputación. Si el mercader muere, la caravana se pierde.",
+      "Merchants with their llamas sometimes travel the roads. If bandits ambush them, defend them: when they reach "
+      "their village they pay you emeralds and reputation. If the merchant dies, the caravan is lost.")),
+    ("medianas", ("Junto al camino", "By the wayside"),
+     ("Entre aldea y aldea salen estructuras medianas: torres de vigía, posadas de camino, campamentos de bandidos, "
+      "ermitas... Tienen botín modesto y, a veces, un pequeño reto. Cuidado con los bandidos.",
+      "Between villages you will come across medium structures: watchtowers, roadside inns, bandit camps, "
+      "hermitages... They hold modest loot and, now and then, a small challenge. Beware of the bandits.")),
+    ("magos", ("Chozas de mago", "Wizard's huts"),
+     ("En bosques, pantanos, taigas, montes, cerezales y desiertos viven magos en chozas con jardín de hierbas. "
+      "Venden pociones, frascos y libros. Pero alguno es un mago malvado disfrazado: si se descubre, prepárate.",
+      "In forests, swamps, taigas, hills, cherry groves and deserts, wizards live in huts with herb gardens. They "
+      "sell potions, flasks and books. But some are evil wizards in disguise: if one unmasks, be ready.")),
+    ("minas", ("Las minas", "The mines"),
+     ("En las laderas de montes, taigas, desiertos, badlands y picos se abren bocas de mina que bajan a galerías con "
+      "vías, cruces y salas. Las mayores tienen torre de extracción y un pozo con escalera. Ojo con las arañas del fondo.",
+      "On the slopes of hills, taigas, deserts, badlands and peaks, mine adits lead down to galleries with rails, "
+      "crossings and rooms. The largest have a headframe and a shaft with a spiral stair. Beware the spiders below.")),
+    ("costa", ("La costa", "The coast"),
+     ("En la costa hay faros con la luz siempre encendida, la casa del farero y un embarcadero. En playas y bajíos "
+      "yacen galeones partidos: aún queda algo en la bodega y en el camarote del capitán.",
+      "Lighthouses stand on the coast with their light always lit, the keeper's house and a jetty. On beaches and "
+      "shallows lie broken galleons: their hold and the captain's cabin still hold something.")),
+    ("unicas", ("Las únicas", "Unique structures"),
+     ("Muy raras, cada una en su bioma: un castillo, una catedral, una ciudadela enana, un galeón varado... Dentro hay "
+      "salas ocultas, puzles, trampas, un guardián con nombre y su cámara del tesoro.",
+      "Very rare, each in its own biome: a castle, a cathedral, a dwarven citadel, a stranded galleon... Inside are "
+      "hidden rooms, puzzles, traps, a named guardian and its treasure chamber.")),
+    ("atlantida", ("La Atlántida", "Atlantis"),
+     ("Solo hay una en el mundo: una ciudad enorme hundida en el océano profundo, con salas secas, tres sellos con sus "
+      "llaves y el Guardián de Poseidón, que custodia el mayor tesoro de Heraldia.",
+      "There is only one in the world: a vast city sunk in the deep ocean, with dry halls, three seals with their keys "
+      "and the Guardian of Poseidon, who keeps the greatest treasure of Heraldia.")),
+    ("isla", ("La isla corsaria", "The corsair's isle"),
+     ("En mar abierto, lejos de la costa, un islote esconde el fuerte de Roque Salitre y su puerto. Bajo el cerro, "
+      "unas cuevas marinas a las que se entra en barca por el acantilado.",
+      "Out at sea, far from the coast, an islet hides the fort of Roque Salitre and its harbour. Beneath the hill lie "
+      "sea caves, reached by boat through the cliff.")),
+    ("arena", ("La arena", "The arena"),
+     ("Cerca del spawn hay una arena de oleadas: entra en el ruedo y toca la campana. Cada oleada trae más monstruos y "
+      "más fuertes, y cada cinco, un campeón. Si caes en el ruedo, conservas tu inventario. Búscala con /heraldia arena.",
+      "Near spawn stands a wave arena. Step into the ring and ring the bell: each wave brings more and stronger monsters, "
+      "and every fifth, a champion. If you fall in the ring, you keep your inventory. Where it is: /heraldia arena.")),
+    ("logros", ("Logros", "Advancements"),
+     ("La pestaña Heraldia de los logros recoge tus viajes: una aldea de cada familia, cada estructura única, su "
+      "guardián y su tesoro. Una estructura cuenta al entrar en ella. Lo que ha hallado todo el servidor: /heraldia status.",
+      "The Heraldia advancement tab records your travels: a village of each family, every unique structure, its "
+      "guardian and its treasure. A structure counts once you step inside. What the whole server has found: /heraldia status.")),
+    ("trofeos", ("Trofeos", "Trophies"),
+     ("Cada guardián con nombre suelta su trofeo, un objeto con nombre e historia, si lo derrota un jugador. Reúnelos "
+      "todos para completar la Sala de trofeos.",
+      "Every named guardian drops its trophy, an item with a name and a story, when a player defeats it. Collect them "
+      "all to complete the Hall of Trophies.")),
+    ("jefes", ("Combates de jefe", "Boss fights"),
+     ("Los guardianes con nombre pelean por fases: al perder vida se enfurecen (más rápidos y fuertes un rato) y llaman "
+      "a refuerzos propios de su estructura. Mientras dura el combate verás su barra de jefe.",
+      "Named guardians fight in phases: as they lose health they become enraged (faster and stronger for a while) and "
+      "call for reinforcements that suit their structure. While the fight lasts you will see their boss bar.")),
+    ("mapas", ("Mapas del tesoro", "Treasure maps"),
+     ("Cada mapa marca la estructura única más cercana de su tipo. Salen en los cofres épicos de las aldeas y los "
+      "venden los cartógrafos de Heraldia.",
+      "Each map marks the nearest unique structure of its kind. They turn up in the epic chests of the villages and "
+      "Heraldia cartographers sell them.")),
+    ("tesoro", ("Caza del tesoro", "Treasure hunt"),
+     ("A veces un cofre guarda un fragmento de mapa del tesoro. Úsalo para descifrarlo: se volverá un mapa con una "
+      "marca. Ve hasta ella y úsalo otra vez. Cada marca lleva a la siguiente; la última, al cofre que enterró Ysolda.",
+      "Now and then a chest holds a treasure map fragment. Use it to decipher it and it becomes a map with a mark. Go "
+      "there and use it again: each mark leads to the next, and the last to the chest Ysolda buried.")),
+    ("historia", ("La Crónica", "The Chronicle"),
+     ("Cada estructura única guarda un pliego de la Crónica de los Heraldos, escrita por Ysolda, la última heraldo de "
+      "la Atlántida. Cada pliego señala el siguiente: reúnelos todos y sabrás cómo acaba.",
+      "Every unique structure keeps a leaf of the Chronicle of the Heralds, written by Ysolda, the last herald of "
+      "Atlantis. Each leaf points to the next: gather them all and you will learn how it ends.")),
+    ("diario", ("Tu diario", "Your diary"),
+     ("Las páginas que siguen son tuyas: qué estructuras únicas has descubierto y pistas de las que te faltan. Para "
+      "tenerlas al día, pide otra copia cuando quieras con /heraldia guide.",
+      "The pages that follow are yours: which unique structures you have found and clues to the ones still missing. "
+      "To bring them up to date, ask for a new copy whenever you like with /heraldia guide.")),
+]
+
+# Textos del diario y del objeto (heraldia.guia.<clave>). %s: números o componentes (nombre, pista).
+JOURNAL = {
+    "nombre": ("Guía del Heraldo", "The Herald's Guide"),
+    "lore": ("Edición de Heraldia %s", "Heraldia edition %s"),
+    "resumen.titulo": ("Tu diario", "Your diary"),
+    "resumen": ("Has descubierto %s de las %s estructuras únicas de este mundo.",
+                "You have discovered %s of the %s unique structures in this world."),
+    "resumen.ninguna": ("Aún no has entrado en ninguna. Las pistas de las páginas siguientes te dirán por dónde empezar.",
+                        "You have not entered any yet. The clues on the next pages will tell you where to start."),
+    "resumen.faltan": ("Te faltan %s. Sigue las pistas de las páginas siguientes.",
+                       "%s still to go. Follow the clues on the next pages."),
+    "resumen.todas": ("¡Las has descubierto todas! Ahora busca sus trofeos y los pliegos de la crónica.",
+                      "You have found them all! Now seek their trophies and the leaves of the chronicle."),
+    "descubiertas": ("Descubiertas", "Discovered"),
+    "descubierta": ("• %s", "• %s"),
+    "pistas": ("Pistas", "Clues"),
+    "pista": ("• Busca en %s.", "• Look in %s."),
+    "entregada": ("Te damos la Guía del Heraldo: ábrela para saber qué te espera en este mundo.",
+                  "Here is the Herald's Guide: open it to learn what awaits you in this world."),
+    "copia": ("Aquí tienes una copia al día de la Guía del Heraldo.", "Here is an up-to-date copy of the Herald's Guide."),
+    # T41: el salón de la fama de la arena (dos páginas tras el resumen, si la arena está activada; las arma arena/Fama)
+    "fama.titulo": ("Salón de la fama", "Hall of fame"),
+    "fama.ninguno": ("Aún no hay campeones de la arena. Quien acabe esta semana en cabeza de cada modo será el campeón de "
+                     "la que viene: /heraldia arena leaderboard.",
+                     "There are no arena champions yet. Whoever ends this week on top of each mode will be next week's "
+                     "champion: /heraldia arena leaderboard."),
+    "fama.semana": ("Campeones de la arena de la semana del %s:", "Arena champions of the week of %s:"),
+    "fama.entrada": ("• %s: %s, %s", "• %s: %s, %s"),
+    "fama.vacio": ("• %s: nadie", "• %s: nobody"),
+    "records.titulo": ("Récords", "Records"),
+    "records.intro": ("La mejor marca de siempre en cada modo de la arena:", "The best result ever in each arena mode:"),
+}
+FAME_PAGES = 2                                         # páginas del salón de la fama (Java: arena/Fama.paginas)
+
+
+def key(k):
+    return f"{KEY}.{k}"
+
+
+def lang():
+    """{"es_es": {...}, "en_us": {...}} con las páginas fijas y los textos del diario."""
+    out = {"es_es": {}, "en_us": {}}
+    for pid, title, text in PAGES:
+        for i, language in enumerate(out):
+            out[language][key(f"pagina.{pid}.titulo")] = title[i]
+            out[language][key(f"pagina.{pid}")] = text[i]
+    for k, texts in JOURNAL.items():
+        for i, language in enumerate(out):
+            out[language][key(k)] = texts[i]
+    return out
+
+
+def title_lines(title):
+    """Líneas de un título en negrita (cada carácter, 1 px más ancho)."""
+    return 1 if chest_loot.width(title) + len(title) <= chest_loot.BOOK_WIDTH else 2
+
+
+def page_lines(title, text):
+    """Líneas de una página «título (negrita)\\n\\ntexto»."""
+    return title_lines(title) + 1 + chest_loot.book_lines(text)
+
+
+def _entries(modules, translations=None):
+    """Por idioma (0 = es, 1 = en y luego cada traducción, {código: textos}): [(nombre de cada única)], [(pista de cada
+    única)] con el formato de su entrada."""
+    names = [[JOURNAL["descubierta"][i] % advancements.unique_name(sid, m)[i] for sid, m in modules] for i in (0, 1)]
+    clues = [[JOURNAL["pista"][i] % m.STORY["pista"][i] for sid, m in modules] for i in (0, 1)]
+    for t in (translations or {}).values():
+        names.append([languages.format_text(t[key("descubierta")], [t[advancements.name_key(sid)]]) for sid, _ in modules])
+        clues.append([languages.format_text(t[key("pista")], [t[chest_loot.story_key(sid) + ".pista"]]) for sid, _ in modules])
+    return names, clues
+
+
+def _header(k, translations):
+    """El título de una página del diario en todos los idiomas."""
+    return list(JOURNAL[k]) + [t[key(k)] for t in (translations or {}).values()]
+
+
+def per_page(header, entrances):
+    """Entradas por página: las que caben tras la cabecera (en negrita y una línea en blanco) con la más larga de todas."""
+    free_cells = chest_loot.BOOK_LINES - max(title_lines(c) for c in header) - 1
+    worst = max(chest_loot.book_lines(e) for e in entrances)
+    return free_cells // worst
+
+
+def dataset(modules, translations=None):
+    """Lo que lee el Java (heraldia/guia.json): páginas fijas en orden y entradas por página del diario (con el peor caso
+    de todos los idiomas: los base y las traducciones, {código: textos})."""
+    names, clues = _entries(modules, translations)
+    return {
+        "paginas": [pid for pid, _, _ in PAGES],
+        "nombres_por_pagina": per_page(_header("descubiertas", translations), sum(names, [])),
+        "pistas_por_pagina": per_page(_header("pistas", translations), sum(clues, [])),
+        "marca": MARK,
+        "autor": AUTHOR,
+    }
+
+
+def pages_max(modules, translations=None):
+    """Páginas del libro en el peor caso (todas descubiertas o ninguna): fijas + resumen + listas."""
+    d, n = dataset(modules, translations), len(modules)
+    lists = max(-(-n // d["nombres_por_pagina"]), -(-n // d["pistas_por_pagina"]))
+    return len(PAGES) + 1 + FAME_PAGES + lists
+
+
+def fame_errors(translations=None):
+    """[] si las páginas del salón de la fama caben en cada idioma con el peor caso: los tres modos con el nombre de
+    jugador más ancho (16 «W») y la marca más larga de cada modo."""
+    import arena_waves
+    a = arena_waves.lang()
+    e = []
+    worst_name = "W" * 16
+    for language, t in _texts_by_language(translations):
+        t = {**(a["es_es"] if language == "es" else a["en_us"]), **t}
+        modes = [t[f"{NS}.arena.modo.{m}"] for m in arena_waves.MODES]
+        points = [languages.format_text(t[f"{NS}.arena.puntos.oleadas"], ["999"]),
+                  languages.format_text(t[f"{NS}.arena.puntos.tiempo"], ["59:59", "99"]),
+                  languages.format_text(t[f"{NS}.arena.puntos.parcial"], ["99", "99"])]
+        entrance = [languages.format_text(t[key("fama.entrada")], [m, worst_name, p]) for m in modes for p in points]
+        worst = max(chest_loot.book_lines(x) for x in entrance)
+        pages = {
+            "fama": (t[key("fama.titulo")], languages.format_text(t[key("fama.semana")], ["99/99/9999"]), 3 * worst),
+            "records": (t[key("records.titulo")], t[key("records.intro")], 3 * worst),
+        }
+        for pid, (title, intro, lines) in pages.items():
+            n = title_lines(title) + 1 + chest_loot.book_lines(intro) + lines
+            if n > chest_loot.BOOK_LINES or title_lines(title) > 1:
+                e.append(f"guía: la página del salón de la fama «{pid}» ({language}) no cabe: {n} de {chest_loot.BOOK_LINES} líneas")
+        if page_lines(t[key("fama.titulo")], t[key("fama.ninguno")]) > chest_loot.BOOK_LINES:
+            e.append(f"guía: la página del salón de la fama sin campeones ({language}) no cabe")
+    return e
+
+
+def _texts_by_language(translations):
+    """[(nombre del idioma, {clave: texto} de la guía)] de los base y de cada traducción."""
+    base = lang()
+    return [("es", base["es_es"]), ("en", base["en_us"])] + [(c, t) for c, t in (translations or {}).items()]
+
+
+def errors(modules, translations=None):
+    """[] si todo cabe en cada idioma: cada página fija y el resumen (con números de dos cifras y la frase más larga),
+    el título del libro (el nombre de la guía), al menos una entrada por página del diario y el total de páginas.
+    `traducciones`: {código: textos} de los idiomas que no son es/en (idiomas.completar)."""
+    e = []
+    for language, t in _texts_by_language(translations):
+        for pid, _, _ in PAGES:
+            title, text = t[key(f"pagina.{pid}.titulo")], t[key(f"pagina.{pid}")]
+            if page_lines(title, text) > chest_loot.BOOK_LINES:
+                e.append(f"guía: la página «{pid}» ({language}) no cabe: "
+                         f"{page_lines(title, text)} de {chest_loot.BOOK_LINES} líneas")
+            if title_lines(title) > 1:
+                e.append(f"guía: el título de la página «{pid}» ({language}) no cabe en una línea: {title}")
+        for queue in ("resumen.ninguna", "resumen.faltan", "resumen.todas"):
+            text = languages.format_text(t[key("resumen")], ["99", "99"]) + "\n\n" + languages.format_text(t[key(queue)], ["99"])
+            if page_lines(t[key("resumen.titulo")], text) > chest_loot.BOOK_LINES:
+                e.append(f"guía: el resumen con «{queue}» ({language}) no cabe")
+        if not 1 <= len(t[key("nombre")]) <= TITLE_MAX:
+            e.append(f"guía: el título «{t[key('nombre')]}» ({language}) pasa de {TITLE_MAX} caracteres")
+    e += fame_errors(translations)
+    import arena_waves
+    e += arena_waves.text_errors(translations)          # T41: las líneas de los carteles del salón de la fama
+    for i in (0, 1):
+        if len(TITLE[i]) > TITLE_MAX:
+            e.append(f"guía: el título «{TITLE[i]}» pasa de {TITLE_MAX} caracteres")
+    d = dataset(modules, translations)
+    if d["nombres_por_pagina"] < 1 or d["pistas_por_pagina"] < 1:
+        e.append(f"guía: una entrada del diario no cabe en una página ({d})")
+    elif pages_max(modules, translations) > MAX_PAGES:
+        e.append(f"guía: {pages_max(modules, translations)} páginas, más de {MAX_PAGES}")
+    return e
+
+
+def write(out, modules, jdump, translations=None):
+    """Escribe heraldia/guia.json y devuelve sus textos; falla si algo no cabe en el libro en algún idioma."""
+    e = errors(modules, translations)
+    if e:
+        raise SystemExit("\n".join(e))
+    jdump(out, f"{NS}/guia.json", dataset(modules, translations))
+    return lang()

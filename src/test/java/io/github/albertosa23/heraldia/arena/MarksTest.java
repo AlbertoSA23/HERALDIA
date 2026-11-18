@@ -79,7 +79,7 @@ class MarksTest {
 
 	@Test
 	void modeOptionsExist() throws IOException {
-		String py = Files.readString(Path.of("tools/gen/opciones.py"), StandardCharsets.UTF_8);
+		String py = Files.readString(Path.of("tools/gen/options.py"), StandardCharsets.UTF_8);
 		for (Mode m : Mode.values()) {
 			assertTrue(py.contains("(\"" + m.option() + "\", True"), m.option());
 		}

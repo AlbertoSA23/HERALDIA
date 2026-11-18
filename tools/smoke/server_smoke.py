@@ -55,7 +55,7 @@ CONFIG_LOG = [
 ]
 # Con 12 casillas (las 4 que tocan el 0,0 y sus 8 vecinas en cruz, de 94 chunks), toda aldea queda a menos de 2 x 94 x 16 bloques.
 LOCATE_LIMIT = 2 * 94 * 16
-DESCARGA_INTENTOS = 4         # una descarga cortada por la red (se ha visto con Fabric API) se repite
+DOWNLOAD_ATTEMPTS = 4         # una descarga cortada por la red (se ha visto con Fabric API) se repite
 ERROR_PATTERN = r"Unknown|Incorrect|Failed|Invalid|error|not loaded"
 # /heraldia info nearby: (punto, radio); el último, con el radio máximo, mide el peor caso. La búsqueda va fuera del hilo
 # del servidor; en él solo se confirma (INFO_MAIN_MS como mucho). INFO_MAX_MS es el tope de la respuesta completa.
@@ -74,7 +74,7 @@ def gradle_properties():
     return props
 
 
-def jar_valido(path):
+def valid_jar(path):
     """¿Es un .jar (zip) entero? Una descarga cortada por la red no tiene el directorio central del final."""
     try:
         with zipfile.ZipFile(path) as z:
@@ -83,19 +83,19 @@ def jar_valido(path):
         return False
 
 
-def download(url, dest, intentos=DESCARGA_INTENTOS):
+def download(url, dest, attempts=DOWNLOAD_ATTEMPTS):
     """Descarga `url` en `dest` si no está ya (entero). Una descarga cortada (menos bytes que Content-Length o un .jar
     sin su final) se repite hasta `intentos` veces en vez de quedarse en la caché y romper las pruebas siguientes."""
-    if os.path.isfile(dest) and (not dest.endswith(".jar") or jar_valido(dest)):
+    if os.path.isfile(dest) and (not dest.endswith(".jar") or valid_jar(dest)):
         return
-    for i in range(1, intentos + 1):
+    for i in range(1, attempts + 1):
         print("descargando", url, f"(intento {i})" if i > 1 else "")
         try:
             with urllib.request.urlopen(url) as r, open(dest + ".part", "wb") as f:
                 shutil.copyfileobj(r, f)
-                esperado = r.headers.get("Content-Length")
-            ok = (esperado is None or os.path.getsize(dest + ".part") == int(esperado)) and \
-                (not dest.endswith(".jar") or jar_valido(dest + ".part"))
+                expected = r.headers.get("Content-Length")
+            ok = (expected is None or os.path.getsize(dest + ".part") == int(expected)) and \
+                (not dest.endswith(".jar") or valid_jar(dest + ".part"))
         except OSError as e:
             print("descarga fallida:", e)
             ok = False
@@ -103,7 +103,7 @@ def download(url, dest, intentos=DESCARGA_INTENTOS):
             os.replace(dest + ".part", dest)
             return
         time.sleep(2 * i)
-    raise SystemExit(f"no se pudo descargar entero {url} en {intentos} intentos")
+    raise SystemExit(f"no se pudo descargar entero {url} en {attempts} intentos")
 
 
 def latest_installer():
@@ -245,7 +245,7 @@ def silent_reason(cmd):
 
 
 class Context:
-    """Lo que necesita un módulo de estructura única para sus comprobaciones propias (tools/gen/unicas/<id>/humo.py),
+    """Lo que necesita un módulo de estructura única para sus comprobaciones propias (tools/gen/uniques/<id>/humo.py),
     y las utilidades comunes de las pruebas de servidor: comprobar, esperar por condición, contar ticks, leer `Pos`."""
 
     def __init__(self, proc, lines, seen):
@@ -324,13 +324,14 @@ def unique_hook(sid):
     gen = os.path.join(ROOT, "tools", "gen")
     if gen not in sys.path:
         sys.path.insert(0, gen)
-    name = f"unicas.{sid.split('/')[-1]}.humo"
+    import uniques
+    name = f"uniques.{uniques.module_name(sid.split('/')[-1])}.smoke"
     try:
         if importlib.util.find_spec(name) is None:
             return None
     except ModuleNotFoundError:
         return None
-    return importlib.import_module(name).comprobar
+    return importlib.import_module(name).check
 
 
 def locate(ctx, sid, x, z):
@@ -435,7 +436,7 @@ def guardian_placed(ctx, sid):
 def guardian_trophy(ctx, sid):
     """El guardián colocado conserva su DeathLootTable (la del trofeo, heraldia:guardianes/<id>/<mob>) y, muerto sin
     jugador (/loot ... kill desde la consola), no suelta el trofeo (condición killed_by_player). Que lo suelte al
-    matarlo un jugador lo prueba tools/smoke/trofeos.py con un jugador simulado."""
+    matarlo un jugador lo prueba tools/smoke/trophies.py con un jugador simulado."""
     sid = sid.split("/")[-1]
     g = f"@e[tag=heraldia_guardian.{sid},limit=1]"
     m = ctx.run(f"data get entity {g} DeathLootTable", r'has the following entity data: "([^"]+)"|No entity')

@@ -15,9 +15,9 @@ def entrance(t, th, x):
              final_state=stairs(th["trim"], "south"))
 
 
-def staff(t, th, x, y, z, prof, final=None):
+def staff(t, th, x, y, z, depth, final=None):
     """Aldeano con oficio de pie en su puesto (sin cama): el jigsaw va en el bloque del suelo."""
-    t.jigsaw(x, y, z, "up_south", "heraldia:slot", "heraldia:bottom", nsid(f"villagers/{th['vtype']}/nobed_{prof}"),
+    t.jigsaw(x, y, z, "up_south", "heraldia:slot", "heraldia:bottom", nsid(f"villagers/{th['vtype']}/nobed_{depth}"),
              final_state=final or th["floor"], joint="aligned")
     t.set(x, y + 1, z, "air"); t.set(x, y + 2, z, "air")
 
@@ -111,7 +111,7 @@ def bell_tower_top(t, th, tx0, tz0, tw, th_h, ladder_y0=1):
         cone_roof(t, th, cx, tz0 + 2, 2, ty)
 
 
-def espadana(t, th, nth, cx, z, y, stone):
+def bell_gable(t, th, nth, cx, z, y, stone):
     """Espadaña: muro de la fachada que sobresale del hastial, con un vano y la campana colgada de su dintel."""
     m = nth["wall2"] if stone else th["wall2"]
     for x in range(cx - 1, cx + 2):
@@ -206,7 +206,7 @@ def church(th, rng, name, v=0):
         for y in range(3, H - 1):
             t.set(cx, y + 1, nz0, gl)
         ridge = max(y for (x, y, z) in t.blocks if x == cx and z == nz0)
-        espadana(t, th, nth, cx, nz0, ridge + 1, stone)
+        bell_gable(t, th, nth, cx, nz0, ridge + 1, stone)
     else:
         # pórtico delante de la puerta y torre adosada a la cabecera, con puerta desde el presbiterio
         for z in range(2, nz0):
@@ -619,14 +619,14 @@ def cemetery(th, rng, name, v=0):
     c = N // 2
     entrance(t, th, c)
     wallb = WALLS.get(th["found"], "cobblestone_wall")
-    pil = stone_of(th)
+    pillar_block = stone_of(th)
     hedge = v == 1 and th["family"] not in ("desierto", "badlands")     # seto (muro bajo en tierras secas)
     for x in range(N):
         for z in range(z0, z0 + N):
             edge = x in (0, N - 1) or z in (z0, z0 + N - 1)
             t.set(x, 0, z, "coarse_dirt" if rng.random() < 0.75 else "podzol")
             if edge:
-                t.set(x, 0, z, pil)
+                t.set(x, 0, z, pillar_block)
                 t.set(x, 1, z, leaves(th) if hedge else wallb)
                 if hedge:
                     t.set(x, 2, z, leaves(th))
@@ -639,13 +639,13 @@ def cemetery(th, rng, name, v=0):
     if hedge:
         t.set(c, 2, z0, "air")
     for x in (c - 1, c + 1):
-        t.set(x, 1, z0, pil); t.set(x, 2, z0, pil); t.set(x, 3, z0, lantern(th, False))
+        t.set(x, 1, z0, pillar_block); t.set(x, 2, z0, pillar_block); t.set(x, 3, z0, lantern(th, False))
     heads = ["stone_brick_wall", "cobblestone_wall", "mossy_stone_brick_wall", "mossy_cobblestone_wall"]
     flowers = ["poppy", "dandelion", "azure_bluet", "oxeye_daisy", "lily_of_the_valley"]
 
     def grave(x, z):
         """Tumba de dos de largo hacia +z con la lápida al fondo."""
-        t.set(x, 0, z, "podzol"); t.set(x, 0, z + 1, "podzol"); t.set(x, 0, z + 2, pil)
+        t.set(x, 0, z, "podzol"); t.set(x, 0, z + 1, "podzol"); t.set(x, 0, z + 2, pillar_block)
         t.set(x, 1, z + 2, rng.choice(heads))
         if rng.random() < 0.4:
             t.set(x, 1, z + 1, rng.choice(flowers))
@@ -680,10 +680,10 @@ def cemetery(th, rng, name, v=0):
         for x in range(1, N - 1):
             t.set(x, 0, cz, th["path"])
         # crucero de piedra en el cruce, sobre una grada
-        t.set(c, 0, cz, pil)
+        t.set(c, 0, cz, pillar_block)
         for y in (1, 2, 3, 4):
             t.set(c, y, cz, wallb)
-        t.set(c, 5, cz, pil)
+        t.set(c, 5, cz, pillar_block)
         for x, f in ((c - 1, "west"), (c + 1, "east")):
             t.set(x, 4, cz, stairs(th["trim"], f, half="top"))
         # una tumba por cuadrante a cada lado de los caminos, con un ciprés en el rincón interior
@@ -1304,8 +1304,8 @@ def tavern(th, rng, name, inn=False, v=0):
     spots = [(W - 2, zf + 1, "farmer"), (W - 2, zf + 6, "librarian")]
     if inn:
         spots.append((1, zf + 5, "shepherd"))
-    for (x, z, prof) in spots:
-        bed_slot(t, th, x, 4, z, villager_pool(th, prof))
+    for (x, z, depth) in spots:
+        bed_slot(t, th, x, 4, z, villager_pool(th, depth))
         t.set(x, 5, z + 2, f"{th['wslab']}[type=top]")
         t.set(x, 6, z + 2, potted(rng.choice(th["plants"])))
     for x in range(cx - 1, cx + 2):
@@ -1424,8 +1424,8 @@ def tavern_variant(th, rng, name, inn, v):
     spots = [(ux0, zf + 1, "farmer"), (ux0, zf + 5, "librarian")]
     if inn:
         spots.append((ux1 - 1 if v == 1 else ux1, zf + 5, "shepherd"))
-    for (x, z, prof) in spots:
-        bed_slot(t, th, x, 4, z, villager_pool(th, prof))
+    for (x, z, depth) in spots:
+        bed_slot(t, th, x, 4, z, villager_pool(th, depth))
         t.set(x, 5, z + 2, f"{th['wslab']}[type=top]")
         t.set(x, 6, z + 2, potted(rng.choice(th["plants"])))
     for x in range(cx - 1, cx + 2):

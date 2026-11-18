@@ -9,7 +9,7 @@ import java.util.Set;
  * in the wizard's own tags, so a configuration change does not change an already seen hut.
  */
 public final class Decision {
-	/** Tag of the template wizard (medianas/choza_mago.TAG_MAGO). */
+	/** Tag of the template wizard (mediums/wizard_hut.TAG_WIZARD). */
 	public static final String TAG = "heraldia_mago";
 	/** Decision already made (on the wizard): benign or evil. */
 	public static final String BENIGN = TAG + ".benigno", EVIL_UNREVEALED = TAG + ".malvado";
@@ -17,7 +17,7 @@ public final class Decision {
 	public static final String NAMED = TAG + ".nombrado";
 	/** The wizard has already been revealed (set just before removing it: it is never revealed twice). */
 	public static final String REVEALED = TAG + ".revelado";
-	/** Tag of the evoker it turns into (medianas/choza_mago.TAG_MALVADO; the advancement checks it). */
+	/** Tag of the evoker it turns into (mediums/wizard_hut.TAG_EVIL; the advancement checks it). */
 	public static final String EVIL = "heraldia_mago_malvado";
 	/** Its loot carries the prize (on the evoker). */
 	public static final String PREMIUM = EVIL + ".premium";

@@ -40,7 +40,7 @@ import org.jspecify.annotations.Nullable;
  * because it has no table), so with or without Lootr it behaves the same. It only works when a block is used: nothing per tick.
  */
 public final class PerPlayerChest {
-	/** Same key as MARCA_POR_JUGADOR in tools/gen/unicas/atlantida/cosas.py. */
+	/** Same key as MARK_PER_PLAYER in tools/gen/uniques/atlantis/things.py. */
 	public static final String MARK = "heraldia_cofre_unico";
 	static final String TEMPLATE = "heraldia_plantilla", PLAYERS = "heraldia_jugadores";
 	private static final int SIZE = 27;

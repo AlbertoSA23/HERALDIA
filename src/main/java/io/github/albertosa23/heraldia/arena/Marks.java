@@ -6,7 +6,7 @@ import java.util.Locale;
 
 /**
  * Pure logic of the arena marks (T41), without game classes: how a time is written and which advancements a finished
- * match grants. The generator writes the advancements (tools/gen/arena_oleadas.py, LOGROS_MODOS) with the same figures.
+ * match grants. The generator writes the advancements (tools/gen/arena_waves.py, ADVANCEMENTS_MODES) with the same figures.
  */
 public final class Marks {
 	/** Minimum time trial waves for its advancements (with fewer, by configuration, they do not count). */

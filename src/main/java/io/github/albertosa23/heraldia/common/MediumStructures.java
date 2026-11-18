@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Medium structures (heraldia:medianas/&lt;type&gt;/&lt;style&gt;, tools/gen/medianas): one structure_set per type with
+ * Medium structures (heraldia:medianas/&lt;type&gt;/&lt;style&gt;, tools/gen/mediums): one structure_set per type with
  * its heraldia:rejilla grid (group medianas/&lt;type&gt;) and one style per biome. A candidate is discarded:
  * <ul>
  * <li>within medianas.distancia_aldeas_unicas_bloques of a Heraldia village or unique that really wins (the
@@ -80,7 +80,7 @@ public final class MediumStructures {
 	/** Types that yield their site to mine entrances (tag #heraldia:medianas/ceden_a_minas) and the mines' grids. */
 	private final boolean[] yieldToMines;
 	private final Foreign[] mines;
-	/** Structure tag of the styles of a type that yields to mines (medianas/<id>.CEDE_A_MINAS in the generator). */
+	/** Structure tag of the styles of a type that yields to mines (mediums/<module>.YIELDS_TO_MINES in the generator). */
 	public static final String YIELD_TO_MINES = "medianas/ceden_a_minas";
 	/** In the foreign memo, mine candidates carry a shifted index (they do not clash with the foreign ones). */
 	private static final int MINE_KEY = 1000;

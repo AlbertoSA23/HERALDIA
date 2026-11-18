@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Heraldia's biome tags cite conventional tags (#c:...) that Fabric API defines. The generator resolves them
- * with the copy tools/gen/etiquetas_c.json; this test compares that copy with those of the Fabric API jar on the
+ * with the copy tools/gen/c_tags.json; this test compares that copy with those of the Fabric API jar on the
  * classpath (the gradle.properties version) and checks that every cited #c: exists there.
  */
 class BiomesTest {
@@ -38,7 +38,7 @@ class BiomesTest {
 
 	@Test
 	void copyMatchesFabricApi() throws IOException {
-		JsonObject copy = JsonParser.parseString(Files.readString(Path.of("tools/gen/etiquetas_c.json"))).getAsJsonObject()
+		JsonObject copy = JsonParser.parseString(Files.readString(Path.of("tools/gen/c_tags.json"))).getAsJsonObject()
 				.getAsJsonObject("etiquetas");
 		assertFalse(copy.isEmpty());
 		for (Map.Entry<String, JsonElement> e : copy.entrySet()) {

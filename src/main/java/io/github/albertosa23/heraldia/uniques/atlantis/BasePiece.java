@@ -18,7 +18,7 @@ import net.minecraft.world.level.material.Fluids;
  * Atlantis urban layout, by columns and without templates: inside the city circle it clears with water everything
  * that is above the ground, paves (cross avenues and inner ring road), fills the plinth down to the bed so that
  * nothing floats and raises the circular wall with its four gates and collapsed stretches. The same layout is in
- * tools/gen/unicas/atlantida/urbanismo.py for the plans and the audit: change both at once.
+ * tools/gen/uniques/atlantis/urban_layout.py for the plans and the audit: change both at once.
  */
 public final class BasePiece extends StructurePiece {
 	static final int WALL_THICKNESS = 4, WALL_HEIGHT = 13, GATE_HALF = 4, GATE_HEIGHT = 8, AVENUE_HALF = 6, RING_ROAD = 10;

@@ -33,8 +33,8 @@ def bed_slot(t, th, x, y, z, pool):
     t.set(x, y + 1, z, "air"); t.set(x, y + 1, z + 1, "air")
 
 
-def villager_pool(th, prof, fixed=False):
-    return nsid(f"villagers/{th['vtype']}/{'fixed_' if fixed else ''}{prof}")
+def villager_pool(th, depth, fixed=False):
+    return nsid(f"villagers/{th['vtype']}/{'fixed_' if fixed else ''}{depth}")
 
 
 class Room:
@@ -80,13 +80,13 @@ class Room:
         return c
 
 
-def furnish(t, th, rng, room, *, prof=None, tier=None, kind="living", ceil=None, hearth=False, table_len=1):
+def furnish(t, th, rng, room, *, depth=None, tier=None, kind="living", ceil=None, hearth=False, table_len=1):
     """Amuebla una estancia con criterio: todo va pegado a un muro, nada tapa ventanas y el centro queda libre
     salvo la mesa de comedor."""
     y = room.y
     items = []
-    if prof:
-        items.append(("ws", WORKSTATION[prof]))
+    if depth:
+        items.append(("ws", WORKSTATION[depth]))
     if tier:
         items.append(("chest", tier))
     if kind == "living":
@@ -140,7 +140,7 @@ def furnish(t, th, rng, room, *, prof=None, tier=None, kind="living", ceil=None,
         t.set(cx, ceil, lz, lantern(th, True))
 
 
-def rect_house(th, rng, name, size, prof, tier):
+def rect_house(th, rng, name, size, depth, tier):
     t = Template(name)
     s = th["stilts"]
     if th["shape"] == "long":
@@ -259,17 +259,17 @@ def rect_house(th, rng, name, size, prof, tier):
         reserved |= {(hx, hz), (hx, hz - 1)}
     if floors == 2:
         reserved |= {(1, zf + 1), (1, zf + 2), (2, zf + 1)}
-    pool = villager_pool(th, prof)
+    pool = villager_pool(th, depth)
     tl = 0 if size == "small" else (3 if (zb - zf) >= 9 else 1)
     bx, bz = 1, zb - 2                     # cama siempre en la esquina del fondo, lejos de la chimenea
     if floors == 1:
         bed_slot(t, th, bx, fy, bz, pool)
         reserved |= {(bx, bz), (bx, bz + 1), (bx + 1, bz), (bx + 1, bz + 1)}
         room = Room(t, 1, zf + 1, W - 2, zb - 1, fy + 1, reserved)
-        furnish(t, th, rng, room, prof=prof, tier=tier, kind="living", ceil=fy + 3, hearth=chimney, table_len=tl)
+        furnish(t, th, rng, room, depth=depth, tier=tier, kind="living", ceil=fy + 3, hearth=chimney, table_len=tl)
     else:
         room = Room(t, 1, zf + 1, W - 2, zb - 1, fy + 1, reserved)
-        furnish(t, th, rng, room, prof=prof, tier=None, kind="living", ceil=fy + 3, hearth=chimney, table_len=tl)
+        furnish(t, th, rng, room, depth=depth, tier=None, kind="living", ceil=fy + 3, hearth=chimney, table_len=tl)
         uy = fy + 4
         ureserved = {(1, zf + 1), (1, zf + 2), (2, zf + 1), (2, zf + 2)}
         if chimney:
@@ -281,7 +281,7 @@ def rect_house(th, rng, name, size, prof, tier):
     return t
 
 
-def round_house(th, rng, name, size, prof, tier):
+def round_house(th, rng, name, size, depth, tier):
     t = Template(name)
     r = {"small": 3, "medium": 4, "large": 5}[size]
     cx, cz = r + 1, r + 3
@@ -309,10 +309,10 @@ def round_house(th, rng, name, size, prof, tier):
         t.set(wx, fy + 2, wz, th["window"])
     cone_roof(t, th, cx, cz, r, fy + H + 1)
     # interior: cama pegada al muro este, muebles pegados al muro oeste y al fondo, centro libre
-    pool = villager_pool(th, prof)
+    pool = villager_pool(th, depth)
     bed_slot(t, th, cx + r - 1, fy, cz, pool)
     y = fy + 1
-    t.set(cx - r + 1, y, cz + 1, facing_state(WORKSTATION[prof], "east"))
+    t.set(cx - r + 1, y, cz + 1, facing_state(WORKSTATION[depth], "east"))
     t.set(cx - r + 1, y, cz - 1, "crafting_table")
     t.set(cx - r + 1, y, cz, f"{th['wslab']}[type=top]")
     t.set(cx - r + 1, y + 1, cz, potted(rng.choice(th["plants"])))
@@ -328,8 +328,8 @@ def round_house(th, rng, name, size, prof, tier):
     return t
 
 
-def make_house(th, rng, name, size, prof):
+def make_house(th, rng, name, size, depth):
     tier = pick_tier(rng, size)
     if th["shape"] == "round":
-        return round_house(th, rng, name, size, prof, tier)
-    return rect_house(th, rng, name, size, prof, tier)
+        return round_house(th, rng, name, size, depth, tier)
+    return rect_house(th, rng, name, size, depth, tier)

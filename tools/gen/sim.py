@@ -142,9 +142,9 @@ def stats(reg, pieces):
         for e in p.tpl.entities:
             i = e[3]["id"]
             if i == "minecraft:villager":
-                prof = e[3]["VillagerData"]["profession"]
+                depth = e[3]["VillagerData"]["profession"]
                 c["aldeanos"] += 1
-                if prof != "minecraft:none":
+                if depth != "minecraft:none":
                     c["con_oficio"] += 1
             elif i == "minecraft:iron_golem":
                 c["golems"] += 1
@@ -165,10 +165,10 @@ def variant_report(reg, seeds=40, themes=None):
         if themes and th["id"] not in themes:
             continue
         tid = th["id"]
-        std, grande = sizes(th)
+        std, large = sizes(th)
         al = {f"heraldia:villagers/{th['vtype']}/{p}": f"heraldia:villagers/{th['vtype']}/{p}_grande" for p in ALL_PROFS}
         var, pop = Counter(), Counter()
-        for pool, sz, aliases in (("plaza", std, None), ("plaza_grande", grande, al)):
+        for pool, sz, aliases in (("plaza", std, None), ("plaza_grande", large, al)):
             for s in range(seeds):
                 pieces, _, errors = simulate(reg, f"heraldia:{tid}/{pool}", sz["size"], sz["maxdist"], seed=s,
                                              aliases=aliases)

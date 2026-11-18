@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * server stops. Only with {@code -Dheraldia.perfil=true}; without the property, {@link #ACTIVE} is a false constant and
  * {@link #start()} and {@link #end} do nothing (the JIT removes the calls): zero cost on the real server.
  * <p>Use: {@code long t0 = Profiler.start(); ...; Profiler.end(Profiler.Segment.HILLSIDE, t0);}. It is read by
- * {@code tools/smoke/coste_generacion.py} from the line "Heraldia: perfil: {...}" (JSON).
+ * {@code tools/smoke/generation_cost.py} from the line "Heraldia: perfil: {...}" (JSON).
  */
 public final class Profiler {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");

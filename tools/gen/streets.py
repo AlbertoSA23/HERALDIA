@@ -168,7 +168,7 @@ def stone_like(th):
 
 
 # ------------------------------------------------------------------ plaza mayor
-def plaza(th, rng, name, grande=False):
+def plaza(th, rng, name, large=False):
     t = Template(name)
     N = 23
     c = N // 2
@@ -219,15 +219,15 @@ def plaza(th, rng, name, grande=False):
         t.set(c - 6, 4, z, f"{th['wslab']}[type=bottom]")
     t.set(c - 6, 3, c, "bell[attachment=ceiling,facing=east]")
     # marcador de centro (para la función de gólems)
-    t.entity(1, 1, 1, center_marker(["heraldia_centro", "heraldia_grande" if grande else "heraldia_std"]))
+    t.entity(1, 1, 1, center_marker(["heraldia_centro", "heraldia_grande" if large else "heraldia_std"]))
     # gólems
     golem_slot(t, c - 8, 0, c - 3, th["path"])
     golem_slot(t, c + 8, 0, c + 3, th["path"])
-    if grande:
+    if large:
         golem_slot(t, c + 3, 0, c - 8, th["path"])
     # tablón de encargos (pieza aparte: atril con su libro y el alguacil; tablon.py)
-    import tablon
-    tablon.slot(t, th)
+    import board
+    board.slot(t, th)
     # salidas a avenidas
     for (x, z, f, av) in ((c, 0, "north", "a"), (N - 1, c, "east", "b"), (c, N - 1, "south", "c"), (0, c, "west", "d")):
         t.jigsaw(x, 1, z, f"{f}_up", "heraldia:street", "heraldia:avenue", P(th, f"avenue_{av}"), final_state=AIR,

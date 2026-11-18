@@ -268,7 +268,7 @@ BED_COLOR = {"plains": "red", "taiga": "green", "snow": "light_blue", "desert": 
              "jungle": "lime", "swamp": "brown"}
 
 
-def villager_piece(vtype, name, prof=None, employed=True, bed=True):
+def villager_piece(vtype, name, depth=None, employed=True, bed=True):
     t = Template(name)
     col = BED_COLOR[vtype]
     if bed:
@@ -278,8 +278,8 @@ def villager_piece(vtype, name, prof=None, employed=True, bed=True):
     else:
         t.jigsaw(0, 0, 0, "down_south", "heraldia:bottom", "heraldia:slot", "minecraft:empty",
                  final_state="minecraft:structure_void", joint="aligned")
-    if prof is not None:
-        t.entity(0, 1 if bed else 0, 0, villager(prof, vtype, employed))
+    if depth is not None:
+        t.entity(0, 1 if bed else 0, 0, villager(depth, vtype, employed))
     t.min_size = (1, 3, 2 if bed else 1)
     return t
 

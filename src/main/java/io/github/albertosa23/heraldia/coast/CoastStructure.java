@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Coast lighthouse or shipwreck (heraldia:costa, tools/gen/litoral): a single template placed on the shore that
+ * Coast lighthouse or shipwreck (heraldia:costa, tools/gen/shore): a single template placed on the shore that
  * {@link Shoreline} finds with the shared generation height cache ({@link HeightCache}), rotated so its +z faces the
  * sea and with its anchor on the last land block. The lighthouse sits at terrain height (the platform; its foundations and
  * piles go down to the ground with the template's processor); the shipwreck, with row {@code fila_mar} at sea
@@ -40,7 +40,7 @@ public final class CoastStructure extends Structure implements io.github.alberto
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	private static final AtomicInteger REGISTERED = new AtomicInteger(); // the first ones, in the log (tests)
 	private static final int LOGGED = 6, OFFSHORE = 12;
-	/** With -Dheraldia.depurar.costa=true, each site goes to the log (tools/smoke/costa.py reads it to know where each one ended up). */
+	/** With -Dheraldia.depurar.costa=true, each site goes to the log (tools/smoke/coast.py reads it to know where each one ended up). */
 	private static final boolean DEBUG = Boolean.getBoolean("heraldia.depurar.costa");
 
 	/** Climate pair: land biome on the shore and sea biome in front. */

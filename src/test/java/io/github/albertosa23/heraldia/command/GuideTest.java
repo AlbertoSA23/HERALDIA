@@ -39,7 +39,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * Herald's Guide with the generated data (heraldia/guia.json and the .jar's languages) and the real uniques: pagination,
  * vanilla book limits, that a client without the mod reads it (everything translatable has a fallback and the text it sees is
  * that of the requested language), the journal with 0, some and all uniques discovered and the "already given" rule.
- * That each page fits in 14 lines is checked by the generator (tools/gen/tests/test_guia.py) with namesPerPage and
+ * That each page fits in 14 lines is checked by the generator (tools/gen/tests/test_guide.py) with namesPerPage and
  * cluesPerPage; here, that the Java respects those counts.
  */
 class GuideTest {
