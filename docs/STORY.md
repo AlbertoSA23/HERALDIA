@@ -55,6 +55,30 @@ so it is a single cycle: you can start anywhere and reach all of them. A new uni
 | 19 | Wizard's tower | `escondite` | the archmage Malvarius (who opened it and seeks the rest) | Atlantis |
 | 20 | Atlantis | `sello_academia` | Ysolda, at home: prologue and epilogue | Aqueduct (starts again) |
 
+## The end
+
+The chain is a cycle, so reading every leaf does not end it: what ends it is **breaking every oath**. When a player has
+defeated the guardians of every unique structure of the main world (Atlantis included; see CONTENT, "End of the Chronicle"),
+Ysolda's **last leaf** appears in their pack: the one she never wrote on any leaf, but kept in the ink itself (the ink
+Malvarius gave her), so that it would only show to whoever set all her guardians free. Its texts are in
+`tools/gen/chronicle_ending.py` (`PAGES`, `CODA`); what they tell, so later texts do not contradict it:
+
+- She never asked for the guardians to be **defeated**, only to **wait for someone worthy**; none of them could rest until
+  someone proved it. Their defeat is their rest, not their punishment.
+- **The way back was never in the leaves, but in whoever followed them**: the player, who crossed the world the Order drew,
+  is the map now.
+- She hands over the **Standard of the Heralds**, the Order's coat of arms from before the sea took the city (the banner the
+  player gets: blue, the sea rising, the waves, a golden seal and border). Where it flies, the Order lives again: the player
+  is a **Herald of Atlantis** (the title). Signed "— Ysolda".
+- **Beyond the map** (optional): two leaves went beyond the world, one into the fire on the trail of a lost herald (the Ash
+  Citadel's leaf) and one into the void beyond the dragon (the Void Sanctum's). While their guardians keep watch, the last
+  page says so and asks nothing ("you need not go"); once they fall, it says the marshal no longer guards the border of fire
+  and the hierophant has closed his eyes, and that no herald ever went so far.
+
+A future unique structure in the main world joins the end on its own (one more guardian to defeat), and one in the Nether or
+the End joins "beyond the map"; the last leaf names no structure but the guardians quoted above (Aquilius, Aldric, Borin,
+the drowned captain, the Frost King), so it does not need rewriting.
+
 ## How it plays
 
 - Each leaf is a written book ("Chronicle of the Heralds: <structure>", by Ysolda, uncommon rarity) with

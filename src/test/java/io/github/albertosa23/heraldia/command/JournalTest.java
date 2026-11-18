@@ -160,6 +160,48 @@ class JournalTest {
 		assertTrue(complete.contains("✔"), complete);
 	}
 
+	static Journal.Chronicle chronicle(boolean lastOneToo, boolean herald) {
+		var p = io.github.albertosa23.heraldia.chronicle.Ending.Progress.of(List.of(
+				new io.github.albertosa23.heraldia.chronicle.Ending.Guardian("castillo", false, true, true),
+				new io.github.albertosa23.heraldia.chronicle.Ending.Guardian("palacio", false, true, lastOneToo),
+				new io.github.albertosa23.heraldia.chronicle.Ending.Guardian("ciudadela_ceniza", true, true, false)));
+		return Journal.Chronicle.of(p, herald);
+	}
+
+	@Test
+	void chronicleLineBeforeTheFooterAndTitleForAHerald() {
+		Map<String, String> en = Texts.language("en_us");
+		List<Journal.Section> s = Journal.sort(Journal.sections(catalog(), player()), en);
+		List<Component> out = Journal.overview(en, "Steve", s, chronicle(false, false));
+		String text = String.join("\n", out.stream().map(Component::getString).toList());
+		assertTrue(text.contains("6 of 12 discoveries in total"), "the Chronicle is not one more kind in the total: " + text);
+		Component line = out.stream().filter(c -> c.getString().contains("Chronicle: guardians defeated")).findFirst().orElseThrow();
+		assertTrue(line.getString().contains("1/2"), line.getString());
+		assertEquals("/heraldia journal chronicle", ((ClickEvent.RunCommand) line.getStyle().getClickEvent()).command());
+		assertTrue(out.indexOf(line) < out.size() - 2, "before the footer and the Guide's line");
+		assertFalse(text.contains("Herald of Atlantis"), text);
+		String herald = String.join("\n", Journal.overview(en, "Alex", s, chronicle(true, true)).stream().map(Component::getString).toList());
+		assertTrue(herald.contains("Alex, Herald of Atlantis"), herald);
+		assertTrue(herald.contains("2/2 Chronicle: guardians defeated ✔"), herald);
+		assertEquals(Journal.overview(en, "Steve", s).size() + 1, out.size(), "without the Chronicle, the summary as before");
+	}
+
+	@Test
+	void chronicleDetailNamesDefeatedAndWatchingWithoutPlaces() {
+		Map<String, String> en = Texts.language("en_us");
+		String open = String.join("\n", Journal.chronicleDetail(en, chronicle(false, false).sorted(en)).stream().map(Component::getString).toList());
+		assertTrue(open.contains("Defeated (1): " + en.get("heraldia.unicas.castillo.nombre")), open);
+		assertTrue(open.contains("Still keeping watch (1): " + en.get("heraldia.unicas.palacio.nombre")), open);
+		assertTrue(open.contains("Beyond the map (optional): 0/1"), open);
+		assertTrue(open.contains(en.get("heraldia.cronica.diario.abierta")), open);
+		assertFalse(open.contains("[Read the last leaf]"), "no copy before the end");
+		List<Component> closed = Journal.chronicleDetail(en, chronicle(true, true).sorted(en));
+		String text = String.join("\n", closed.stream().map(Component::getString).toList());
+		assertTrue(text.contains(en.get("heraldia.cronica.diario.cerrada")), text);
+		assertTrue(text.contains("[Read the last leaf]") && text.contains("[« Journal]"), text);
+		assertFalse(Pattern.compile("-?\\d{3,}").matcher(text).find(), "no coordinates: " + text);
+	}
+
 	@Test
 	void everyLanguageHasTheJournalTexts() {
 		for (String code : Texts.languages()) {

@@ -269,7 +269,7 @@ public final class Guide {
 	}
 
 	/** "title (bold)\n\nbody": what tools/gen/guide.page_lines measures. */
-	static Component page(Map<String, String> texts, String title, Component body) {
+	public static Component page(Map<String, String> texts, String title, Component body) {
 		return Component.empty()
 				.append(Texts.t(texts, title).withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_RED))
 				.append("\n\n")

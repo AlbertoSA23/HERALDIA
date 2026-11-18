@@ -459,6 +459,38 @@ Un hilo narrativo opcional une las estructuras únicas (trasfondo completo, en i
 
 Las páginas se leen en el idioma de cada jugador (español si el cliente no tiene el mod). Con Lootr cada jugador encuentra su propio pliego. Todos llevan `custom_data` `{heraldia_historia:"<id>"}`; para probar: `/loot give @s loot heraldia:historia/<id>`. El desafío **Cronista** (ver [Logros](#logros)) pide tenerlos todos. **En un mundo ya creado, solo salen en los cofres que aún no se hayan abierto.**
 
+Y tiene final: quien vence a todos los guardianes del mundo principal recibe el último pliego, el título y el estandarte (ver [Final de la Crónica](#final-de-la-crónica)).
+
+## Final de la Crónica
+
+La Crónica no tenía final: el pliego de la Atlántida apunta de nuevo al primero, y vencer al último guardián no cerraba nada. Ahora sí. Cuando **todos los guardianes de las estructuras únicas del mundo principal** han caído ante un jugador, el último juramento se rompe y le llega la última palabra de Ysolda:
+
+- **El título, Heraldo de la Atlántida**: un logro de desafío (`heraldia:cronica/final`, 500 de experiencia), anunciado en el chat como cualquier desafío, mostrado en la pantalla del jugador (título y subtítulo) y bajo su nombre en `/heraldia journal`.
+- **El último pliego**: un libro escrito de Ysolda («Crónica: el último pliego», épico) que cierra la historia: nunca pidió que vencieran a sus guardianes, solo que esperasen a alguien digno; el camino de vuelta nunca estuvo en los pliegos, sino en quien los siguiera; y entrega el estandarte de la orden. En el idioma del jugador (también con un cliente vanilla: el texto que el cliente no sabe traducir llega en su idioma, como en la Guía del Heraldo).
+- **El estandarte de los Heraldos**: un estandarte azul con el mar que sube, las olas y el sello y la bordura dorados de la orden, épico, que **se puede colocar** donde se quiera. Su nombre, su dibujo y su rareza se conservan al colocarlo y recogerlo (el estandarte vanilla guarda eso); el lore con quién lo alzó, solo en el objeto entregado. Se da una vez, como el logro.
+- **Más allá del mapa** (opcional): los guardianes del Nether y del End no cuentan para el final. Quien también los vence consigue un segundo desafío (`heraldia:cronica/mas_alla`, 250) y su último pliego se cambia por uno con una página más; hasta entonces, esa página le cuenta que dos pliegos viajaron más allá del mundo, sin pedirle que vaya.
+
+**Qué guardianes.** Uno por estructura única que aún puede aparecer en este mundo (activada en la configuración) o cuyo guardián el jugador ya venció (aunque se desactivara después), como los cuenta el diario: hoy 20 en el mundo principal (con la Atlántida) y 2 más allá.
+
+**Cuándo cuenta un guardián como vencido por un jugador** (las tres son hechos que el juego registró, ninguna es una suposición):
+- tiene su logro de guardián (`unicas/<id>/guardian`, que da el golpe final), **también de antes de esta versión**;
+- **participó** en su caída: estaba a 64 bloques o menos (el radio de participación de los encargos) cuando murió un guardián al que un jugador había herido. En grupo cuentan todos los del combate, no solo quien dio el golpe;
+- existe **una vez por mundo** (la Atlántida) y ya ha caído ante cualquiera: nadie más podría vencerlo, así que cuenta para todos. El mundo lo sabe por su muerte o, si cayó antes de esta versión, por el logro de quien lo mató cuando entra.
+
+Un guardián que muere sin ningún jugador en el combate (el sol, `/kill`, una trampa) no es la victoria de nadie.
+
+**Por jugador.** Como la reputación, los encargos y el diario: en un servidor, quien cierra la Crónica recibe el título, el pliego y el estandarte; los demás ven el anuncio y siguen con su propia cuenta. Lo que es por mundo son los hechos de los lugares (generadores apagados, el premium modesto, el guardián único caído).
+
+**En un mundo ya existente**: los jugadores que ya tienen todos sus logros de guardián (los vencieron antes de esta versión) reciben el final la próxima vez que entran. A quien antes de esta versión solo luchó junto a otro no se le cuentan esos guardianes (entonces solo quedó el logro de quien lo mató); un operador puede dárselo con `/advancement grant <jugador> only heraldia:unicas/<id>/guardian`. Todo combate desde esta versión cuenta para todos los que estén en él.
+
+**Opción** `guia.final_cronica` (activada por defecto). Desactivada, no se da nada y el diario no muestra la Crónica; el registro de quién participó sigue (es barato), así que activarla más tarde da el final a quien se lo ganó, la próxima vez que entra.
+
+- `/heraldia journal`: una línea más antes del pie, «Crónica: guardianes vencidos», con su barra (no es un tipo más del total: cuenta combates, no hallazgos); al pasar el ratón, los guardianes que aún velan.
+- `/heraldia journal chronicle`: los guardianes vencidos y los que aún velan, por el nombre de su estructura (nunca dónde), los opcionales de más allá del mapa y si la Crónica está cerrada; una vez cerrada, `/heraldia journal chronicle book` (un botón) da una copia al día del último pliego en lugar de la que se lleva. El estandarte no se vuelve a dar.
+- Coste: nada corre cada tick. Cuelga de la muerte del guardián (el mismo `AFTER_DEATH` que las [Únicas vencidas](#únicas-vencidas)) y de la entrada de un jugador: lee una veintena de logros de memoria. Medido en el servidor de pruebas: 0,3 ms por muerte, 1,5-5,9 ms cuando da algo (libro, estandarte y logros).
+- Se guarda: en cada jugador, los guardianes en cuya caída participó (adjunto `heraldia:cronica`, se conserva al morir); en el mundo principal, los guardianes únicos por mundo caídos (`heraldia:cronica_mundo`). Lo entregado es el propio logro.
+- Para probar: `/advancement grant <jugador> only heraldia:unicas/<id>/guardian` de cada uno y volver a entrar, o matar a un guardián con `/damage <guardián> 1000 minecraft:player_attack by <jugador>`. Pruebas: `EndingTest` y `JournalTest` (JUnit), `test_chronicle_ending.py` (textos y páginas caben en los 8 idiomas) y la parte de la Crónica de `tools/smoke/journal.py` (servidor).
+
 ## Guía del Heraldo
 
 Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jugadores y lleva su diario. Cada jugador la recibe **una vez** al entrar por primera vez después de instalar o actualizar Heraldia (también los jugadores que ya existían en el mundo; se guarda en el propio jugador qué versión recibió, y se conserva al morir). Se desactiva con `guia.entregar_al_entrar` (ver [Configuración](CONFIGURACION.md#configuración)) y cualquier jugador pide una copia al día con `/heraldia guide`.
@@ -479,11 +511,12 @@ El registro propio de cada jugador de **lo que ha encontrado y lo que le falta**
 - **Sin coordenadas ni pistas**: el diario dice «2 de 21 únicas, te faltan estas», nunca dónde están. Encontrarlas es cosa de los mapas, los encargos y la Crónica; las pistas suaves de bioma de las únicas que faltan siguen en la Guía del Heraldo, a la que el diario remite (un botón a `/heraldia guide`) mientras falte alguna.
 - **De dónde salen los datos**: de los logros del propio jugador, que ya registran cada descubrimiento (`aldeas/<familia>`, `unicas/<id>/descubrir`, los criterios de `medianas/todas`, `medianas/nether` y `medianas/end`, `minas/<tamaño>`, `costa/faro` y `costa/naufragio`); qué ids son de cada tipo también se lee de los logros (los criterios de `aldeas/todas`, `unicas/todas` y los tres de caminante) y, para la dimensión de una única, del registro de estructuras. No se guarda nada ni se hace nada hasta que alguien lo pide: lee el progreso del jugador de memoria, en el hilo del servidor, y contesta en el mismo tick.
 - Qué cuenta: lo que todavía puede aparecer en este mundo (un tipo desactivado en la configuración no «falta») y lo que el jugador ya encontró, aunque se desactivara después. Un tipo sin nada que encontrar no sale.
+- **El final de la Crónica**: una línea más, los guardianes vencidos camino del [final de la Crónica](#final-de-la-crónica), y su propia sección, `/heraldia journal chronicle`.
 - **Por qué un comando y no más páginas de la Guía ni `/heraldia status`**: la Guía es un libro que se entrega al entrar (solo se pone al día si se vuelve a pedir, y sus páginas tienen que caber en un tamaño medido), y ya lleva el diario de las únicas con sus pistas; `/heraldia status` es el resumen del servidor, lo que ha descubierto cualquiera. El diario es la vista por jugador de todos los tipos, siempre al día; `/heraldia status` enlaza con él y él con la Guía, en vez de repetir ninguno.
 
 ## Logros
 
-Pestaña de logros **Heraldia** (122 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
+Pestaña de logros **Heraldia** (124 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
 
 - **Heraldia** (raíz): entrar en cualquier aldea Heraldia, estructura única, mediana o entrada a mina.
 - [Entradas a mina](#entradas-a-mina), en cadena: **Bajo la ladera** (entrar en una boca de mina, 20), **Campamento minero** (en un campamento minero, 40) y **Señor de las galerías** (en un complejo minero, 80).
@@ -498,6 +531,7 @@ Pestaña de logros **Heraldia** (122 logros), con textos en los 8 idiomas del mo
 - Desafío final **Cartógrafo de leyendas**: descubrir todas las estructuras únicas (500).
 - Desafío **Sala de trofeos**: conseguir el [trofeo](#trofeos-de-los-guardianes) de cada guardián de las estructuras únicas (500); cuenta al tenerlo en el inventario.
 - Desafío **Cronista**: reunir los pliegos de la [Crónica de los Heraldos](#crónica-de-los-heraldos), uno por estructura única (500); cuenta al tenerlo en el inventario.
+- Desafío **Heraldo de la Atlántida**: vencer al guardián de cada estructura única del mundo principal (500), y **Más allá del mapa**, también a los del Nether y del End (250); los da el mod, con el [final de la Crónica](#final-de-la-crónica).
 
 Notas: una estructura cuenta al entrar en sus piezas, no basta con verla. Si se desactiva una familia o una estructura en la [configuración](CONFIGURACION.md#configuración), su logro y el desafío correspondiente no se pueden conseguir. Con Lootr, el logro del tesoro depende de que Lootr avise al juego al abrir el cofre (sin comprobar). Los logros de las estructuras únicas se generan solos a partir del registro de únicas, así que una estructura nueva trae los suyos.
 
