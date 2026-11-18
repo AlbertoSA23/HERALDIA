@@ -99,10 +99,15 @@ def main():
         p = pos(ctx)
         check(p and abs(p[0] - (x + 0.5)) < 0.01 and abs(p[1] - y) < 0.01 and abs(p[2] - (z + 0.5)) < 0.01,
               f"{stop}: el jugador está en {p}, el log dice {x} {y} {z}")
-        check(ctx.block((x, y, z), "#minecraft:replaceable") and ctx.block((x, y + 1, z), "#minecraft:replaceable"),
+        # in the player's dimension (the Nether and End stops of T44 take it there; from the console the
+        # blocks would be read in the Overworld, "That position is not loaded")
+        d = ctx.run(f"data get entity {PLAYER} Dimension", r'has the following entity data: "([a-z0-9_:./-]+)"|No entity')
+        here = f"execute in {d.group(1) or 'minecraft:overworld'} "
+        check(ctx.test(f"{here}if block {x} {y} {z} #minecraft:replaceable")
+              and ctx.test(f"{here}if block {x} {y + 1} {z} #minecraft:replaceable"),
               f"{stop}: pies o cabeza dentro de un bloque en {x} {y} {z}")
-        check(ctx.test(f"execute unless block {x} {y - 1} {z} #minecraft:air"), f"{stop}: sin suelo bajo {x} {y} {z}")
-        check(ctx.test(f"execute unless block {x} {y - 1} {z} minecraft:lava"), f"{stop}: encima de lava")
+        check(ctx.test(f"{here}unless block {x} {y - 1} {z} #minecraft:air"), f"{stop}: sin suelo bajo {x} {y} {z}")
+        check(ctx.test(f"{here}unless block {x} {y - 1} {z} minecraft:lava"), f"{stop}: encima de lava")
         print(f"{stop}: at {x} {y} {z}")
 
     try:
