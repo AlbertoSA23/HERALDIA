@@ -247,3 +247,148 @@ def test_configuration_by_default_without_the_arena():
     fixed_opts = {o[0]: o[1] for o in options._FIXED}
     assert fixed_opts["arena.generar_en_mundos_nuevos"] is True
     assert c.CONFIG == {"arena": {"generar_en_mundos_nuevos": False}}
+
+
+# ---------------------------------------------------------------- peaks and the continuous strip
+
+def test_strip_far_from_the_zones_and_its_rectangle():
+    name, x, z, rx, rz = c.STRIP
+    box = c.chunks_of_rect(x, z, rx, rz)
+    assert box == ((x - rx) >> 4, (z - rz) >> 4, (x + rx) >> 4, (z + rz) >> 4)
+    assert c.box_chunks(box) == (box[2] - box[0] + 1) * (box[3] - box[1] + 1)
+    assert box[2] - box[0] + 1 > 8 * (box[3] - box[1] + 1), "long and narrow: like flying over it"
+    m = 2 * c.MARGIN_CHUNKS
+    for n, zx, zz, r in c.ZONES + [c.WARMUP]:
+        b = c.chunks_of_zone(zx, zz, r)
+        assert box[2] + m < b[0] or b[2] + m < box[0] or box[3] + m < b[1] or b[3] + m < box[1], n
+    assert box[2] - box[0] + 1 > c.LEAD_IN_CHUNKS + 4 * c.STRETCH_CHUNKS
+
+
+def test_peaks_tail_worst_chunk_and_slow_ones():
+    ev = [_ev(0, 0, "terrain", 30), _ev(0, 0, "features", 30), _ev(1, 0, "terrain", 10), _ev(2, 0, "terrain", 200),
+          _ev(2, 0, "light", 900), _ev(9, 9, "terrain", 999)]
+    pc = c.per_chunk_ms(ev, [(0, 0, 2, 0)])
+    assert pc == {(0, 0): 60, (1, 0): 10, (2, 0): 200}                 # without light; outside the box, nothing
+    p = c.peaks(pc)
+    assert p["chunks"] == 3 and p["max_ms"] == 200 and p["peor_chunk"] == [2, 0]
+    assert p["lentos"] == 2 and p["lentos_fraccion"] == pytest.approx(2 / 3)       # more than a tick (50 ms)
+    assert p["p50_ms"] == 60 and p["p95_ms"] == pytest.approx(186) and p["p99_ms"] == pytest.approx(197.2)
+    assert c.peaks({})["max_ms"] is None and c.peaks({})["lentos_fraccion"] is None
+
+
+def test_structure_events_summary_and_blame():
+    dataset = {"recording": {"events": [
+        {"type": "minecraft.StructureGeneration", "values": {"duration": "PT0.230S", "chunkPosX": 2, "chunkPosZ": -84,
+                                                             "structure": "heraldia:pantano_brujas", "success": True,
+                                                             "level": "minecraft:overworld"}},
+        {"type": "minecraft.StructureGeneration", "values": {"duration": "PT0.001S", "chunkPosX": 2, "chunkPosZ": -84,
+                                                             "structure": "heraldia:nieve_pastores", "success": False,
+                                                             "level": "minecraft:overworld"}},
+        {"type": "minecraft.StructureGeneration", "values": {"duration": "PT0.030S", "chunkPosX": 5, "chunkPosZ": -80,
+                                                             "structure": "heraldia:unicas/castillo", "success": True,
+                                                             "level": "minecraft:overworld"}},
+        {"type": "minecraft.StructureGeneration", "values": {"duration": "PT9S", "chunkPosX": 0, "chunkPosZ": 0,
+                                                             "structure": "minecraft:fortress", "success": True,
+                                                             "level": "minecraft:the_nether"}}]}}
+    se = c.jfr_structure_events(dataset)
+    assert se == [(2, -84, "heraldia:pantano_brujas", pytest.approx(230), True), (2, -84, "heraldia:nieve_pastores", pytest.approx(1), False),
+                  (5, -80, "heraldia:unicas/castillo", pytest.approx(30), True)]
+    s = c.structures_summary(se, [(0, -90, 10, -78)], margin=0)
+    assert list(s) == ["heraldia:pantano_brujas", "heraldia:unicas/castillo", "heraldia:nieve_pastores"]   # slowest first
+    assert s["heraldia:pantano_brujas"] == {"intentos": 1, "generadas": 1, "total_ms": pytest.approx(230), "max_ms": pytest.approx(230),
+                                            "max_chunk": [2, -84]}
+    assert s["heraldia:nieve_pastores"]["generadas"] == 0
+    ev = [_ev(2, -84, "structure_starts", 231), _ev(2, -84, "terrain", 20), _ev(2, -84, "light", 99), _ev(6, -80, "features", 40)]
+    b = c.blame((2, -84), ev, se)
+    assert b["chunk"] == [2, -84] and b["bloque"] == [40, -1336]
+    assert list(b["pasos_ms"]) == ["minecraft:structure_starts", "minecraft:terrain"]            # without light, slowest first
+    assert b["iniciadas"] == [{"estructura": "heraldia:pantano_brujas", "ms": pytest.approx(230)}]
+    near = c.blame((6, -80), ev, se)
+    assert near["iniciadas"] == [] and near["cercana"]["estructura"] == "heraldia:unicas/castillo" and near["cercana"]["distancia_chunks"] == 1
+    assert c.blame((60, 60), ev, se)["cercana"] is None
+    assert "pantano_brujas" in c._blame_text(dict(b, max_ms=251)) and "castillo" in c._blame_text(dict(near, max_ms=40))
+
+
+def test_stretches_of_the_strip():
+    box = (0, 0, 9, 1)                                                 # 10 columns, 2 chunks wide
+    ev = [_ev(x, z, "terrain", 10) for x in range(10) for z in range(2)]
+    ev += [_ev(7, 0, "features", 100), _ev(8, 5, "structure_starts", 60)]   # a neighbour across the strip (margin) counts
+    ev += [_ev(7, 0, "light", 1000), _ev(20, 0, "terrain", 1000)]      # light and outside, not
+    t = c.stretches(ev, box, width=3, margin=4)
+    assert t["chunks_por_tramo"] == 6 and t["bloques_por_tramo"] == 48 and t["tramos"] == 8
+    assert t["peor_columnas"] == [6, 8] and t["peor_desde_x"] == 96 and t["peor_hasta_x"] == 143
+    assert t["peor_ms"] == pytest.approx(60 + 100 + 60) and t["peor_ms_por_chunk"] == pytest.approx(220 / 6)
+    assert c.stretches([], (0, 0, 1, 0), width=3) is None
+
+
+def _peak_pass(slow, stretch, mspt_p99=4.0, worst=300.0):
+    p = _pass(60)
+    p["mspt"]["p99"] = mspt_p99
+    p["picos"] = {"chunks": 100, "p50_ms": 30, "p95_ms": 90, "p99_ms": 200, "max_ms": worst, "peor_chunk": [1, 2],
+                  "lentos": int(slow * 100), "lentos_fraccion": slow}
+    p["peor_chunk"] = {"chunk": [1, 2], "bloque": [24, 40], "pasos_ms": {"minecraft:structure_starts": worst}, "iniciadas": [], "cercana": None}
+    p["estructuras"] = {"heraldia:pantano_brujas": {"intentos": 1, "generadas": 1, "total_ms": 230.0, "max_ms": 230.0, "max_chunk": [1, 2]}}
+    p["franja"] = {"chunks": 1067, "segundos": 20.0, "chunks_por_s": 53.0, "cpu_ms_por_chunk": 52.0,
+                   "picos": dict(p["picos"]), "peor_chunk": dict(p["peor_chunk"]),
+                   "tramos": {"chunks_por_tramo": 88, "bloques_por_tramo": 128, "tramos": 80, "media_ms_por_chunk": 50.0,
+                              "peor_ms": stretch * 88, "peor_ms_por_chunk": stretch, "peor_desde_x": -5000, "peor_hasta_x": -4873}}
+    return p
+
+
+def test_aggregate_of_the_peaks_takes_the_median_and_the_worst_chunk():
+    a = c.add_entry([_peak_pass(0.20, 100, worst=300), _peak_pass(0.30, 140, worst=700), _peak_pass(0.25, 120, worst=400)])
+    assert a["picos"]["lentos_fraccion"] == pytest.approx(0.25) and a["picos"]["max_ms"] == 400
+    assert a["peor_chunk"]["max_ms"] == 700 and a["peor_chunk"]["mismo_en_todas"] is True
+    assert a["franja"]["tramos"]["peor_ms_por_chunk"] == 120 and a["franja"]["chunks"] == 1067
+    assert a["estructuras"]["heraldia:pantano_brujas"]["max_ms"] == 230
+    old = c.add_entry([_pass(60)])                                     # a measurement from before: without peaks
+    assert "picos" not in old
+
+
+@pytest.mark.parametrize("slow, stretch, mspt, ok", [(0.245, 125, 10.5, True), (0.30, 125, 10.5, False), (0.245, 190, 10.5, False),
+                                                       (0.245, 125, 60.0, False), (0.235, 90, 4.0, True)])
+def test_compare_peaks(slow, stretch, mspt, ok):
+    r = {"sin": c.add_entry([_peak_pass(0.235, 142)]), "con": c.add_entry([_peak_pass(slow, stretch, mspt)])}
+    got, text = c.compare_peaks(r)
+    assert got is ok, text
+    assert ("REGRESIÓN" in text) is (not ok)
+    # limits from the reference
+    assert c.compare_peaks(r, {"picos": {"lentos_pp": 0.2, "peor_tramo": 1.0, "mspt_p99_ms": 100}})[0] is True
+    assert c.compare_peaks({"sin": c.add_entry([_pass(60)]), "con": c.add_entry([_pass(66)])})[0] is True   # without peaks
+
+
+def test_peaks_markdown_and_main_exit_code(tmp_path, monkeypatch):
+    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+    r = _result()
+    r["sin"], r["con"] = c.add_entry([_peak_pass(0.235, 142)]), c.add_entry([_peak_pass(0.246, 125)])
+    r["sobrecoste"] = 0.04
+    comp = c.compare(r["sobrecoste"], {"sobrecoste": 0.09}) + c.compare_peaks(r)
+    md = c.markdown(r, comp)
+    assert "**Picos: la cola del tiempo por chunk**" in md and "**Recorrido continuo**" in md
+    assert "| chunks de más de 50 ms (%) | 23.50 | 24.60 | +5% |" in md
+    assert "| peor tramo, ms por chunk | 142.0 | 125.0 | -12% |" in md
+    assert "heraldia:pantano_brujas" in md and md.startswith("## Coste de generación de Heraldia ✅")
+    gauged = tmp_path / "coste_generacion.json"
+    import json as _json
+    bad = dict(r, con=c.add_entry([_peak_pass(0.40, 125)]))
+    gauged.write_text(_json.dumps(bad), encoding="utf-8")
+    ref = tmp_path / "ref.json"
+    ref.write_text(_json.dumps({"sobrecoste": 0.09}), encoding="utf-8")
+    base = ["--from-json", str(gauged), "--reference", str(ref), "--output", str(tmp_path / "s")]
+    assert c.main(base) == 1, "the median passes, the peaks do not"
+    assert c.main(base + ["--no-threshold"]) == 0
+    saved = _json.loads((tmp_path / "s" / "coste_generacion.json").read_text(encoding="utf-8"))
+    assert saved["comparacion_picos"]["ok"] is False
+
+
+def test_new_reference_keeps_the_peak_limits():
+    r = _result()
+    assert c.new_reference(r)["picos"] == c.PEAK_LIMITS
+    assert c.new_reference(r, {"picos": {"lentos_pp": 0.05}})["picos"]["lentos_pp"] == 0.05
+
+
+def test_repository_reference_has_peak_limits():
+    ref = c.read_reference()
+    assert set(ref["picos"]) >= set(c.PEAK_LIMITS)
+    assert 0 < ref["picos"]["lentos_pp"] <= 0.1 and 0 < ref["picos"]["peor_tramo"] <= 0.5
+    assert ref["picos"]["mspt_p99_ms"] == c.TICK_MS

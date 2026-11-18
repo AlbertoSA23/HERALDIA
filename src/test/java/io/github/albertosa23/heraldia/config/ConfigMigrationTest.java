@@ -53,7 +53,7 @@ class ConfigMigrationTest {
 		assertTrue(Files.isRegularFile(backup));
 		assertEquals(v1, Files.readString(backup));          // the backup is the file as it was
 		JsonObject newValue = JsonParser.parseString(Files.readString(f)).getAsJsonObject();
-		assertEquals(2, newValue.get("version").getAsInt());
+		assertEquals(3, newValue.get("version").getAsInt());
 		assertFalse(newValue.has("dificultad") && newValue.getAsJsonObject("dificultad").has("nivel"));
 		assertEquals(150, newValue.getAsJsonObject("jefes").getAsJsonObject("refuerzos").get("porcentaje").getAsInt());
 		assertEquals(40, c.getInt("aldeas.porcentaje_grandes"));

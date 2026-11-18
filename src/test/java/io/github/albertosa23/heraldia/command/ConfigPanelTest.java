@@ -53,7 +53,7 @@ class ConfigPanelTest {
 	void menuOrder() {
 		assertEquals(List.of("mundo", "aldeas", "combate", "botin", "arena", "jugadores", "avanzado"),
 				Menus.MENUS.stream().map(Menus.Menu::id).toList());
-		assertEquals(List.of("casual", "estandar", "hardcore"), Menus.PROFILES);
+		assertEquals(List.of("casual", "estandar", "hardcore", "ligero"), Menus.PROFILES);
 	}
 
 	@Test
@@ -78,7 +78,8 @@ class ConfigPanelTest {
 		List<String> cmds = d.actions().stream().map(ConfigPanelTest::command).toList();
 		assertEquals(ConfigPanel.mainActions(), cmds);
 		assertEquals("heraldia config profile casual", cmds.get(0));
-		assertEquals("heraldia config menu mundo", cmds.get(3));
+		assertEquals("heraldia config profile ligero", cmds.get(3));
+		assertEquals("heraldia config menu mundo", cmds.get(4));
 		assertEquals("heraldia config menu avanzado", cmds.getLast());
 		assertTrue(d.actions().get(1).button().label().getString().startsWith("✔"));   // the chosen profile
 		assertEquals("Configuración de Heraldia", d.common().title().getString());
@@ -161,6 +162,9 @@ class ConfigPanelTest {
 				}
 			}
 			dialogs.add(ConfigPanel.notice(l, List.of(Texts.t(l, "heraldia.panel.resultado")), Menus.MENUS.getFirst()));
+			dialogs.add(ConfigPanel.confirmGeneration(l, "ligero"));
+			dialogs.add(ProfileNotice.message(l, "ligero", "2.9", 2, "medianas.frecuencia_porcentaje 100 → 60"));
+			dialogs.add(ProfileCommand.lines(HeraldiaConfig.get()));
 			Set<String> used = new HashSet<>();
 			for (Object d : dialogs) {
 				java.util.regex.Matcher mt = key.matcher(d.toString());
@@ -173,6 +177,24 @@ class ConfigPanelTest {
 				assertTrue(l.containsKey(k), code + " lacks " + k);
 				assertEquals(args(es.get(k)), args(l.get(k)), code + ": format arguments of " + k);
 			}
+		}
+	}
+
+	@Test
+	void lightProfileConfirmationAndSuggestion() {
+		for (String code : Texts.languages()) {
+			Map<String, String> l = Texts.texts(code);
+			MultiActionDialog d = ConfigPanel.confirmGeneration(l, "ligero");
+			List<String> cmds = d.actions().stream().map(ConfigPanelTest::command).toList();
+			assertEquals(List.of("heraldia config profile ligero confirm", "heraldia config"), cmds, code);
+			assertTrue(d.exitAction().isPresent());
+			var lines = ProfileNotice.message(l, "ligero", "2.9", 2, null);
+			assertEquals(3, lines.size(), code);
+			assertTrue(lines.get(0).getString().contains("2.9") && lines.get(0).getString().contains("2"), code);
+			ClickEvent click = lines.get(1).getStyle().getClickEvent();
+			assertEquals("/heraldia config profile ligero", ((ClickEvent.RunCommand) click).command(), code);
+			assertEquals(1, ProfileNotice.message(l, null, "8.0", 8, "x").size(), "only the seams");
+			assertTrue(ProfileNotice.message(l, null, "8.0", 8, null).isEmpty());
 		}
 	}
 

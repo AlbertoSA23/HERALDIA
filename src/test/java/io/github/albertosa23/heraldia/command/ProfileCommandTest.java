@@ -43,7 +43,7 @@ class ProfileCommandTest {
 		Files.writeString(f, "{\"perfil\": \"hardcore\", \"dificultad\": {\"nivel\": \"facil\"}}");
 		HeraldiaConfig cfg = HeraldiaConfig.load(f);
 		List<Component> lines = ProfileCommand.lines(cfg);
-		assertEquals(HeraldiaConfig.profiles().keys().size() + 2, lines.size());
+		assertEquals(HeraldiaConfig.profiles().keysOf("hardcore").size() + 2, lines.size());
 		assertEquals("heraldia.perfil.titulo", key(lines.get(0)));
 		assertTrue(lines.get(0).getString().contains("Personalizado") && lines.get(0).getString().contains("Hardcore"), lines.get(0).getString());
 		long pinned = lines.stream().filter(l -> key(l).equals("heraldia.perfil.opcion.fijada")).count();
