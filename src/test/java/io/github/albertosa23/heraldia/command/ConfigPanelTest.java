@@ -163,7 +163,7 @@ class ConfigPanelTest {
 			}
 			dialogs.add(ConfigPanel.notice(l, List.of(Texts.t(l, "heraldia.panel.resultado")), Menus.MENUS.getFirst()));
 			dialogs.add(ConfigPanel.confirmGeneration(l, "ligero"));
-			dialogs.add(ProfileNotice.message(l, "ligero", "2.9", 2, "medianas.frecuencia_porcentaje 100 → 60"));
+			dialogs.add(ProfileNotice.message(l, "ligero", "2.9", 2, "medianas.frecuencia_porcentaje 60 → 50"));
 			dialogs.add(ProfileCommand.lines(HeraldiaConfig.get()));
 			Set<String> used = new HashSet<>();
 			for (Object d : dialogs) {

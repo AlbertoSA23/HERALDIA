@@ -63,7 +63,7 @@
   "heraldia.config.unicas.distancia_minima.bloques": "Distância mínima entre estruturas únicas diferentes (incluindo a Atlântida), em blocos",
   "heraldia.config.compatibilidad.zona_estructuras_ajenas_bloques": "Estruturas de outros mods (as que aparecem na superfície) a menos desta distância, em blocos, do início de uma vila ou de uma estrutura única do Heraldia não são geradas, para que não fiquem umas sobre as outras (0 desativa)",
   "heraldia.config.medianas.activadas": "Estruturas médias (torres de vigia, estalagens de beira de estrada, acampamentos de bandidos, ermidas...) entre as vilas e as únicas",
-  "heraldia.config.medianas.frecuencia_porcentaje": "Frequência de todas as estruturas médias, em % da padrão (200 = o dobro; 50 = a metade); soma-se ao espaçamento de cada tipo",
+  "heraldia.config.medianas.frecuencia_porcentaje": "Frequência de todas as estruturas médias, em % do espaçamento próprio de cada tipo (100 = a densidade de antes, uma a cada ~550 blocos entre todas; 200 = o dobro); aplica-se sobre o espaçamento de cada tipo",
   "heraldia.config.medianas.distancia_minima.bloques": "Distância mínima entre duas estruturas médias diferentes, em blocos",
   "heraldia.config.medianas.distancia_aldeas_unicas_bloques": "Uma estrutura média não surge a menos desta distância, em blocos, do início de uma vila ou de uma estrutura única do Heraldia (nem dentro da Atlântida)",
   "heraldia.config.minas.entradas.activado": "Entradas de mina em encostas (bocas, acampamentos de mineração e complexos com torre de extração) que descem a uma galeria própria; só nos chunks novos",

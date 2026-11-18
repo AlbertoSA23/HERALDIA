@@ -58,7 +58,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `aldeas.caminos.activado` | `true` | Caminhos entre vilas. |
 | `unicas.<id>.activada` | `true` | Ativa ou desativa uma estrutura única. |
 | `unicas.rejilla_compatible` | `false` | `true` só para mundos criados com o Heraldia 0.1.0. |
-| `medianas.frecuencia_porcentaje` | 100 | Quantidade de estruturas médias (200 = o dobro). |
+| `medianas.frecuencia_porcentaje` | 60 | Quantidade de estruturas médias (100 = a densidade anterior, mais densa; 200 = o dobro dessa). |
 | `faros.activado`, `naufragios.activado` | `true` | Faróis e galeões naufragados na costa. |
 | `dificultad.nivel` | `normal` | Guardiões e monstros: `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Os baús do Heraldia são repostos depois de alguns dias. |

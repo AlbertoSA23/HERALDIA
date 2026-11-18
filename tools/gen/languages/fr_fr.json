@@ -63,7 +63,7 @@
   "heraldia.config.unicas.distancia_minima.bloques": "Distance minimale entre structures uniques différentes (Atlantide comprise), en blocs",
   "heraldia.config.compatibilidad.zona_estructuras_ajenas_bloques": "Les structures d'autres mods (celles qui affleurent en surface) situées à moins de cette distance, en blocs, du départ d'un village ou d'une structure unique de Heraldia ne sont pas générées, pour éviter les chevauchements (0 la désactive)",
   "heraldia.config.medianas.activadas": "Structures moyennes (tours de guet, auberges de bord de route, camps de brigands, ermitages...) entre les villages et les structures uniques",
-  "heraldia.config.medianas.frecuencia_porcentaje": "Fréquence de toutes les structures moyennes, en % de la valeur par défaut (200 = deux fois plus ; 50 = moitié moins) ; s'ajoute à l'espacement de chaque type",
+  "heraldia.config.medianas.frecuencia_porcentaje": "Fréquence de toutes les structures moyennes, en % de l'espacement propre à chaque type (100 = la densité d'avant, une tous les ~550 blocs toutes confondues ; 200 = deux fois plus) ; s'ajoute à l'espacement de chaque type",
   "heraldia.config.medianas.distancia_minima.bloques": "Distance minimale entre deux structures moyennes différentes, en blocs",
   "heraldia.config.medianas.distancia_aldeas_unicas_bloques": "Une structure moyenne n'apparaît pas à moins de cette distance, en blocs, du départ d'un village ou d'une structure unique de Heraldia (ni dans l'Atlantide)",
   "heraldia.config.minas.entradas.activado": "Entrées de mine à flanc de colline (bouches de mine, camps de mineurs et complexes avec chevalement) qui descendent vers leur propre galerie ; nouveaux chunks uniquement",
