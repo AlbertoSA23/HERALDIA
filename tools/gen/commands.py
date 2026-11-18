@@ -62,6 +62,8 @@ CANONICAL = [
     "journal", "journal villages", "journal uniques", "journal mediums", "journal mines", "journal coast",
     "journal nether", "journal end",             # each player's journal: found and missing, by kind
     "journal chronicle", "journal chronicle book",   # the end of the Chronicle: guardians defeated; a copy of the last leaf
+    "event", "event list", "event start", "event start market", "event start wedding", "event start funeral",
+    "event start festival", "event stop", "event stop all", "event with", "event with <entity>",   # village events (operators)
 ]
 
 

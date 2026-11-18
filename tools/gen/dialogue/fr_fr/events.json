@@ -1,0 +1,87 @@
+{
+  "event.market.call": {
+    "1": "Pain du jour et tarte à la citrouille ! Il n'y en aura pas pour tout le monde !",
+    "2": "Approchez, le marché de %2$s, c'est seulement aujourd'hui !",
+    "3": "Bons prix, bonne marchandise et meilleure compagnie !"
+  },
+  "event.market.greet": {
+    "1": "Bonjour, %1$s ! Regardez sans engagement, regarder ne coûte rien.",
+    "2": "Bienvenue au marché de %2$s. Le meilleur du pays, c'est ici.",
+    "3": "Vous cherchez quelque chose ? Si je ne l'ai pas, mon voisin l'a."
+  },
+  "event.market.guest": {
+    "1": "Je viens chaque semaine et je repars toujours avec un truc inutile.",
+    "2": "On dit que le poisson d'aujourd'hui vient de très loin. Je n'y crois pas.",
+    "3": "Poussez-vous, je suis en retard pour la tarte."
+  },
+  "event.wedding.ceremony": {
+    "1": "Chers voisins de %2$s : nous sommes réunis pour unir ces deux jeunes gens.",
+    "2": "Qu'ils partagent le pain, le toit et les peines, et que les peines soient rares.",
+    "3": "Avec la cloche pour témoin, je vous déclare mari et femme !"
+  },
+  "event.wedding.greet": {
+    "1": "%1$s, quelle joie que vous soyez venu !",
+    "2": "Entrez, entrez. Aujourd'hui, personne n'est étranger à %2$s.",
+    "3": "On se marie, vous vous rendez compte ? Moi, pas encore."
+  },
+  "event.wedding.thanks": {
+    "1": "Merci, %1$s ! Nous le garderons précieusement.",
+    "2": "Quelle attention ! %2$s ne l'oubliera pas.",
+    "3": "Merci du fond du cœur. Restez pour la fête, il y a du gâteau."
+  },
+  "event.wedding.ask": {
+    "1": "Merci d'être venu. Vous avez apporté quelque chose pour les mariés ?",
+    "2": "Ici, la coutume est d'apporter des fleurs, ne serait-ce qu'une.",
+    "3": "Quel plaisir de vous voir ! Vous savez, un petit cadeau fait toujours plaisir."
+  },
+  "event.wedding.guest": {
+    "1": "Je savais qu'ils finiraient ensemble. Tout le village le savait.",
+    "2": "Qu'elle est belle, la mariée ! Et lui... bon, lui aussi.",
+    "3": "J'ai sauté le petit-déjeuner pour garder de la place pour le gâteau."
+  },
+  "event.funeral.eulogy": {
+    "1": "Aujourd'hui, nous disons adieu à l'un des nôtres, voisin de %2$s toute sa vie.",
+    "2": "Il a travaillé la terre, partagé sa table et n'a jamais fermé sa porte.",
+    "3": "Qu'il repose en paix. Son souvenir reste à %2$s."
+  },
+  "event.funeral.greet": {
+    "1": "Merci d'être avec nous, %1$s.",
+    "2": "C'était un brave homme. Tout %2$s le sait.",
+    "3": "Restez un moment avec nous, si vous pouvez."
+  },
+  "event.funeral.thanks": {
+    "1": "Merci, %1$s. Il aurait aimé ça.",
+    "2": "%2$s n'oubliera pas ce geste.",
+    "3": "Merci. Posez-la près de lui, s'il vous plaît."
+  },
+  "event.funeral.ask": {
+    "1": "Ici, la coutume est de laisser une fleur. Si vous en avez une...",
+    "2": "Merci d'être venu. Il accueillait toujours bien les étrangers.",
+    "3": "Rien n'est nécessaire. Mais une bougie éclairerait son chemin."
+  },
+  "event.funeral.guest": {
+    "1": "Il m'a appris à traire quand j'étais gamin.",
+    "2": "Il disait toujours que la cloche sonnait bien trop tôt.",
+    "3": "Comme la place est silencieuse aujourd'hui."
+  },
+  "event.festival.call": {
+    "1": "Allez, tout le monde danse, la nuit est jeune !",
+    "2": "Biscuits, gâteau et fusées ! La fête de %2$s est la meilleure du pays !",
+    "3": "Une tournée de plus pour les musiciens !"
+  },
+  "event.festival.greet": {
+    "1": "%1$s ! Vous arrivez juste à temps pour la danse.",
+    "2": "Bienvenue à la fête de %2$s. Mangez, buvez et dansez.",
+    "3": "Vous dansez ? Si vous ne savez pas, personne ici ne sait non plus."
+  },
+  "event.festival.song": {
+    "1": "Encore une ? Celle-ci est pour vous, %1$s !",
+    "2": "On la jouait enfants à %2$s. Voyons si je m'en souviens !",
+    "3": "Demandez ce que vous voulez, aujourd'hui c'est gratuit."
+  },
+  "event.festival.guest": {
+    "1": "N'arrête pas, n'arrête pas, mon chapeau tombe !",
+    "2": "L'an dernier, j'ai dansé jusqu'à l'aube. Cette année aussi.",
+    "3": "Ma grand-mère danse mieux que moi, et elle a quatre-vingt-dix ans."
+  }
+}

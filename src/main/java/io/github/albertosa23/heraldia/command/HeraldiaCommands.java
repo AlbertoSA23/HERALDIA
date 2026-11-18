@@ -50,7 +50,8 @@ public final class HeraldiaCommands {
 				.then(io.github.albertosa23.heraldia.huts.Wizards.node())
 				.then(ConfigPanel.node())
 				.then(Preferences.node())
-				.then(io.github.albertosa23.heraldia.update.Updater.node()));
+				.then(io.github.albertosa23.heraldia.update.Updater.node())
+				.then(io.github.albertosa23.heraldia.events.VillageEvents.node()));
 		CommandNode<CommandSourceStack> root = dispatcher.getRoot().getChild("heraldia");
 		Alias.add(root, Alias.LEGACY, HeraldiaCommands::warn);
 		return root;

@@ -74,6 +74,7 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
                  "tools/gen/streets.py", "tools/gen/pack.py", "tools/gen/board.py", "tools/gen/arena_waves.py",
                  "tools/gen/caravans.py", JAVA + "Heraldia.java", JAVA + "villages/*", JAVA + "caravans/*", JAVA + "arena/*",
                  JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*"]
+RUNTIME_PATHS += [JAVA + "events/*"]          # village events: up to 25 entities in a square while one lasts
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
@@ -107,6 +108,8 @@ NETHER_END = ["tools/smoke/nether_end.py"]
 HUTS = ["tools/smoke/wizard_huts.py"]
 # Ambient effects (bell, lighthouse siren, mine drips): their Java (ambience/).
 AMBIENCE = ["tools/smoke/ambience.py"]
+# Village events (market day, wedding, funeral, festival): their Java (events/), texts and spoken lines.
+EVENTS = ["tools/smoke/village_events.py"]
 # Safe updates (T46): dialog panel, per-player language, per-version fixes and update analyze/apply (path A: pristine
 # chunks regenerated) and, for the Java in update/, also path B (new structures placed in generated chunks) and undo.
 SAFE_UPDATE = ["tools/smoke/update.py"]
@@ -151,6 +154,8 @@ MAP = [
     (JAVA + "huts/*", HUTS), ("tools/gen/wizard_huts.py", HUTS),
     # ambient effects
     (JAVA + "ambience/*", AMBIENCE),
+    # village events (their spoken lines are in tools/gen/dialogue/*/events.json, matched above by the conversations' rule)
+    (JAVA + "events/*", EVENTS), ("tools/gen/village_events.py", EVENTS),
     # safe updates (T46): their Java, the panel, the preferences, the menus, the migration and their texts
     (JAVA + "update/*", SAFE_UPDATE_JAVA), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
     (JAVA + "command/Preferences.java", SAFE_UPDATE), (JAVA + "config/Menus.java", SAFE_UPDATE),
@@ -360,6 +365,7 @@ DURATION_S = {
     "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)
     "tools/smoke/caravans.py": 330,                 # measured locally: ~5.5 min (two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py)
     "tools/smoke/ambience.py": 120,                 # measured locally: ~2 min (one start, three /locate'd structures, ~11,000 sprinted ticks)
+    "tools/smoke/village_events.py": 300,
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined

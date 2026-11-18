@@ -1,0 +1,87 @@
+{
+  "event.market.call": {
+    "1": "Pane fresco e torta di zucca! Fino a esaurimento!",
+    "2": "Avvicinatevi, il mercato di %2$s è solo oggi!",
+    "3": "Buoni prezzi, buona merce e compagnia ancora migliore!"
+  },
+  "event.market.greet": {
+    "1": "Buongiorno, %1$s! Guarda pure, guardare è gratis.",
+    "2": "Benvenuto al mercato di %2$s. Il meglio della zona, proprio qui.",
+    "3": "Cerchi qualcosa? Se non ce l'ho io, ce l'ha il vicino."
+  },
+  "event.market.guest": {
+    "1": "Vengo ogni settimana e compro sempre qualcosa che non mi serve.",
+    "2": "Dicono che il pesce di oggi venga da molto lontano. Io non ci credo.",
+    "3": "Spostati, sono in ritardo per la torta."
+  },
+  "event.wedding.ceremony": {
+    "1": "Cari vicini di %2$s: siamo qui riuniti per unire questi due giovani.",
+    "2": "Che condividano il pane, il tetto e i dispiaceri, e che i dispiaceri siano pochi.",
+    "3": "Con la campana come testimone, vi dichiaro marito e moglie!"
+  },
+  "event.wedding.greet": {
+    "1": "%1$s, che gioia che tu sia venuto!",
+    "2": "Entra, entra. Oggi a %2$s nessuno è forestiero.",
+    "3": "Ci sposiamo, ci credi? Io ancora no."
+  },
+  "event.wedding.thanks": {
+    "1": "Grazie, %1$s! Lo custodiremo con affetto.",
+    "2": "Che pensiero! A %2$s non lo dimenticheremo.",
+    "3": "Grazie di cuore. Resta alla festa, c'è la torta."
+  },
+  "event.wedding.ask": {
+    "1": "Grazie di essere venuto. Hai portato qualcosa per gli sposi?",
+    "2": "Qui si usa portare fiori, anche uno solo.",
+    "3": "Che bello che tu sia qui! Sai, un pensierino non guasta mai."
+  },
+  "event.wedding.guest": {
+    "1": "Lo sapevo che sarebbero finiti insieme. Lo sapeva tutto il paese.",
+    "2": "Com'è bella la sposa! E lui... be', anche lui.",
+    "3": "Ho saltato la colazione per fare spazio alla torta."
+  },
+  "event.funeral.eulogy": {
+    "1": "Oggi salutiamo uno dei nostri, vicino di %2$s per tutta la vita.",
+    "2": "Ha lavorato la terra, ha diviso la sua tavola e non ha mai chiuso la porta.",
+    "3": "Riposi in pace. Il suo ricordo resta a %2$s."
+  },
+  "event.funeral.greet": {
+    "1": "Grazie di essere con noi, %1$s.",
+    "2": "Era un brav'uomo. Tutta %2$s lo sa.",
+    "3": "Resta un momento con noi, se puoi."
+  },
+  "event.funeral.thanks": {
+    "1": "Grazie, %1$s. Gli sarebbe piaciuto.",
+    "2": "%2$s non dimenticherà questo gesto.",
+    "3": "Grazie. Mettila accanto a lui, per favore."
+  },
+  "event.funeral.ask": {
+    "1": "Qui si usa lasciare un fiore. Se ne hai uno...",
+    "2": "Grazie di essere venuto. Accoglieva sempre bene i forestieri.",
+    "3": "Non serve niente. Ma una candela gli illuminerebbe il cammino."
+  },
+  "event.funeral.guest": {
+    "1": "Mi ha insegnato a mungere quando ero un bambino.",
+    "2": "Diceva sempre che la campana suonava troppo presto.",
+    "3": "Che silenzio c'è oggi in piazza."
+  },
+  "event.festival.call": {
+    "1": "Forza, tutti a ballare, la notte è giovane!",
+    "2": "Biscotti, torta e fuochi d'artificio! La festa di %2$s è la migliore della zona!",
+    "3": "Un altro giro per i musicisti!"
+  },
+  "event.festival.greet": {
+    "1": "%1$s! Arrivi giusto in tempo per il ballo.",
+    "2": "Benvenuto alla festa di %2$s. Mangia, bevi e balla.",
+    "3": "Balli? Se non sai ballare, qui non lo sa fare nessuno."
+  },
+  "event.festival.song": {
+    "1": "Un'altra? Questa è per te, %1$s!",
+    "2": "Questa la suonavamo da bambini a %2$s. Vediamo se me la ricordo!",
+    "3": "Chiedi quello che vuoi, oggi non si paga."
+  },
+  "event.festival.guest": {
+    "1": "Non ti fermare, non ti fermare, mi cade il cappello!",
+    "2": "L'anno scorso ho ballato fino all'alba. Quest'anno pure.",
+    "3": "Mia nonna balla meglio di me, e ha novant'anni."
+  }
+}

@@ -196,7 +196,7 @@ class HeraldiaCommandsTest {
 	void noAliasInClientTree() {
 		var client = new CommandDispatcher<>(AliasTest.fromClient(d.getRoot(), op));
 		List<String> root = AliasTest.suggestions(client, "heraldia ", op);
-		assertEquals(List.of("arena", "caravan", "config", "guide", "info", "journal", "key", "language", "profile", "quest", "reload", "review", "status", "talk", "treasure", "update", "webmap", "wizard"), root);
+		assertEquals(List.of("arena", "caravan", "config", "event", "guide", "info", "journal", "key", "language", "profile", "quest", "reload", "review", "status", "talk", "treasure", "update", "webmap", "wizard"), root);
 		assertEquals(List.of("chronicle", "coast", "end", "mediums", "mines", "nether", "uniques", "villages"), AliasTest.suggestions(client, "heraldia journal ", op));
 		assertEquals(List.of("clear", "list", "raid", "spawn", "wayfarer"), AliasTest.suggestions(client, "heraldia caravan ", op));
 		assertEquals(List.of("hunter", "messenger", "patrol", "pilgrim", "shepherd"), AliasTest.suggestions(client, "heraldia caravan wayfarer ", op));
@@ -210,6 +210,8 @@ class HeraldiaCommandsTest {
 		assertEquals(List.of("reset"), AliasTest.suggestions(client, "heraldia arena season ", op));
 		assertEquals(List.of("here", "nearby"), AliasTest.suggestions(client, "heraldia info ", op));
 		assertEquals(List.of("analyze", "apply", "check", "repair", "undo"), AliasTest.suggestions(client, "heraldia update ", op));
+		assertEquals(List.of("list", "start", "stop", "with"), AliasTest.suggestions(client, "heraldia event ", op));
+		assertEquals(List.of("festival", "funeral", "market", "wedding"), AliasTest.suggestions(client, "heraldia event start ", op));
 		// a player without permissions only sees their own
 		var playerSource = new CommandDispatcher<>(AliasTest.fromClient(d.getRoot(), player));
 		assertEquals(List.of("arena", "guide", "journal", "language", "quest", "status", "talk"), AliasTest.suggestions(playerSource, "heraldia ", player));
