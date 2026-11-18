@@ -214,4 +214,20 @@ class TerrainFitTest {
 		assertEquals(1, r.count(Reason.PARENT));
 		assertTrue(r.summary().startsWith("2 of 4 pieces kept, 0 streets and doors graded"), r.summary());
 	}
+
+	@Test
+	void groundReadsTheGridAndInterpolatesBetween() {
+		java.util.Map<Long, Integer> asked = new java.util.HashMap<>();
+		VillageStructure.Ground g = new VillageStructure.Ground((x, z, type) -> {
+			asked.merge(((long) x << 32) ^ (z & 0xffffffffL), 1, Integer::sum);
+			return 60 + x / 2;      // a slope of a block every two columns along x
+		});
+		assertEquals(60, g.surface(0, 0));
+		assertEquals(62, g.surface(4, 1));
+		assertEquals(61, g.surface(2, 3));
+		assertEquals(57, g.surface(-6, 0));
+		// only grid columns are asked, each once
+		assertTrue(asked.keySet().stream().allMatch(k -> (k >> 32) % 4 == 0 && ((int) (long) k) % 4 == 0), asked.toString());
+		assertTrue(asked.values().stream().allMatch(n -> n == 1));
+	}
 }

@@ -1,9 +1,12 @@
 """Villager routes on a real dedicated 26.3 server: do the villagers of a Heraldia village walk around it during the day?
 
 Usage: python3 tools/smoke/village_routes.py --jar build/libs/heraldia-X.jar --work build/smoke [--measure] [--sites N]
-       [--terrain]
+       [--terrain | --natural N [--seed S]] [--structures ID,...] [--verbose]
 Places several villages (different styles, standard and large) with /place structure on a superflat world (--terrain:
-on the seed's terrain, whose hills and lakes cut some paths), far enough apart not to share villagers, and lets one
+on the seed's terrain, whose hills and lakes cut some paths, at fixed coordinates whatever the biome: the worst case;
+--natural N: the N villages the game places closest to the origin, naturally generated with its terrain adaptation and
+its trees, the figure of how villages fit the terrain; --structures: other villages at the SITES' coordinates, e.g. the
+styles --natural found, on a flat world as their reference), far enough apart not to share villagers, and lets one
 in-game day pass at an accelerated tick rate (/tick rate) with the village chunks forced. Vanilla villager AI does the
 rest: each villager claims a bed (home), a workstation of its profession (job site) and a bell (meeting point) within 48
 blocks, and its schedule sends it to the job site in the morning, to the bell at midday and to bed at night. Every

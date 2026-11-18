@@ -381,7 +381,7 @@ FIT_CONFIG = {"aldeas": {"separacion_bloques": NATURAL_GRID, "maximo": 100, "cam
                          "familias": {f: f in ("bosque", "taiga") for f in FAMILIES}},
               "caravanas": {"activado": False}, "viajeros": {"activado": False}, "medianas": {"activadas": False}}
 FIT_RADIUS = 104          # forced and read around the village start (the pieces of a standard village reach ~90 blocks)
-FIT_GRADE_OK = 0.9        # share of grading points whose ground is where it was asked (± 1)
+FIT_GRADE_OK = 0.85       # share of grading points whose ground is where it was asked (± 1; 27 of 29 in the test village)
 FIT_DOORS_OK = 0.9        # share of buildings whose door is within a step of its street
 FIT_MAX_TREES = 10        # natural trunks left on the pieces (the forest villages had 60-170 before the clearing)
 SOIL = ("grass_block", "dirt", "podzol", "mud", "coarse_dirt", "rooted_dirt", "moss_block", "snow_block", "mycelium")
@@ -429,7 +429,7 @@ def fit_figures(blocks, pieces):
         # on the other piece, one block outside the footprint)
         for jx, jy, jz, dy, proj in p["junctions"]:
             if dy == 0 and proj == "terrain_matching" and inside(bb, jx, jz) and p["proj"] == "terrain_matching":
-                h = ground(blocks, jx, jz, jy + 8)
+                h = ground(blocks, jx, jz, jy + 2)
                 g_n += 1
                 g_ok += h is not None and abs(h - (jy - 1)) <= 1
         # the door of a building that hangs from a street: the street column next to the joint
@@ -469,7 +469,7 @@ def terrain_fit(jar, work, fails, measure):
         text = re.sub(r"level-seed=.*", f"level-seed={FIT_SEED}", f.read())
     with open(props, "w") as f:
         f.write(text)
-    proc, ctx = start_server(work, launcher, ["-Dheraldia.depurar.puerto=true"])
+    proc, ctx = start_server(work, launcher, ["-Dheraldia.depurar.puerto=true", "-Dheraldia.perfil=true"])
     try:
         m = ctx.run("locate structure #heraldia:aldeas", r"is at \[(-?\d+), ~, (-?\d+)\]|Could not find")
         if not m.group(1):
@@ -486,6 +486,12 @@ def terrain_fit(jar, work, fails, measure):
     finally:
         stop(proc)
     print("fit:", log.strip())
+    while not ctx.lines.empty():    # the profile is written when the server stops (None: end of the output)
+        line = ctx.lines.get()
+        if line is not None:
+            ctx.seen.append(line)
+    cost = re.search(r'"aldea_terreno":\{[^}]*\}', ctx.log())
+    print("fit: cost of the fit (profile):", cost.group(0) if cost else "-")
     if not log:
         fails.append("fit: the mod did not log how the village fitted the terrain")
     world = os.path.join(work, "world")

@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.albertosa23.heraldia.Heraldia;
+import io.github.albertosa23.heraldia.common.HeightCache;
 import io.github.albertosa23.heraldia.common.Heights;
 import io.github.albertosa23.heraldia.common.Generation;
 import io.github.albertosa23.heraldia.common.Profiler;
@@ -234,24 +235,43 @@ public final class VillageStructure extends Structure {
 				|| path.contains("/terminators/") ? TerrainFit.Kind.BUILDING : TerrainFit.Kind.CONTENT;
 	}
 
-	/** Generation heights of one village (each column once): first free height counting water. */
-	private static final class Ground implements TerrainFit.Ground {
-		private final GenerationContext ctx;
-		private final Long2IntOpenHashMap surface = new Long2IntOpenHashMap();
+	/**
+	 * Generation heights of one village: first free height counting water, asked of the generator only on a grid of
+	 * {@link #CELL} blocks and interpolated in between. A height costs a whole noise column (~0.2 ms) and a village reads
+	 * thousands of columns; the terrain's density is interpolated over cells of 4 blocks anyway, so its surface between
+	 * two grid points is close to a straight line (a fit asking every column took 1.6 s per village; on the grid, about a
+	 * sixteenth).
+	 */
+	static final class Ground implements TerrainFit.Ground {
+		static final int CELL = 4;
+		private final HeightCache.Source source;
+		private final Long2IntOpenHashMap grid = new Long2IntOpenHashMap();
 
 		Ground(GenerationContext ctx) {
-			this.ctx = ctx;
+			this((x, z, type) -> ctx.chunkGenerator().getBaseHeight(x, z, type, ctx.heightAccessor(), ctx.randomState()));
+		}
+
+		Ground(HeightCache.Source source) {
+			this.source = source;
+		}
+
+		private int corner(int gx, int gz) {
+			long key = BlockPos.asLong(gx, 0, gz);
+			if (grid.containsKey(key)) {
+				return grid.get(key);
+			}
+			int h = source.height(gx * CELL, gz * CELL, Heightmap.Types.WORLD_SURFACE_WG);
+			grid.put(key, h);
+			return h;
 		}
 
 		@Override
 		public int surface(int x, int z) {
-			long key = BlockPos.asLong(x, 0, z);
-			if (surface.containsKey(key)) {
-				return surface.get(key);
-			}
-			int h = ctx.chunkGenerator().getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, ctx.heightAccessor(), ctx.randomState());
-			surface.put(key, h);
-			return h;
+			int gx = Math.floorDiv(x, CELL), gz = Math.floorDiv(z, CELL);
+			double fx = (x - gx * CELL) / (double) CELL, fz = (z - gz * CELL) / (double) CELL;
+			double top = corner(gx, gz) * (1 - fx) + corner(gx + 1, gz) * fx;
+			double bottom = corner(gx, gz + 1) * (1 - fx) + corner(gx + 1, gz + 1) * fx;
+			return (int) Math.round(top * (1 - fz) + bottom * fz);
 		}
 	}
 
