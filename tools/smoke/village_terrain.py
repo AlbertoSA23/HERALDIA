@@ -15,8 +15,14 @@ Checks:
 - Slopes: /place of a cherry-grove village (on a slope; /place does not adjust the terrain, the worst case) leaves very few
   foundation blocks in the air: the buildings' foundations go down to the ground with the style's material.
   They are counted by reading the saved regions (save-all) with a minimal Anvil-format reader.
+- Terrain fit in natural generation (villages/TerrainFit and Clearing): in a new world with only the forest and taiga
+  families (hills and trees), the nearest village is generated whole and read from the saved regions: the mod logs how it
+  fitted it ("terrain fit"); the ground under each grading point of its graded streets and doors is where it was asked
+  (a block below the standing height, give or take one), every building's door is within a step of its street, and no
+  tree of world generation grows on its pieces (a trunk on soil with leaves above, two blocks around each piece box).
 --measure: only prints the figures (to compare with an earlier .jar), without failing anything.
 --only-natural: only the natural generation phase (the slowest to measure with an earlier .jar).
+--only-fit: only the terrain fit phase.
 """
 import argparse, glob, io, json, os, queue, re, struct, subprocess, sys, threading, time, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -369,16 +375,159 @@ def natural(jar, work, fails, measure, seeds):
         fails.append(f"natural: {with_pier} of {total} coastal villages with a pier (minimum {NATURAL_RATE:.0%})")
 
 
+# ------------------------------------------------------------------ terrain fit in natural generation
+FIT_SEED = "heraldia"
+FIT_CONFIG = {"aldeas": {"separacion_bloques": NATURAL_GRID, "maximo": 100, "caminos": {"activado": False},
+                         "familias": {f: f in ("bosque", "taiga") for f in FAMILIES}},
+              "caravanas": {"activado": False}, "viajeros": {"activado": False}, "medianas": {"activadas": False}}
+FIT_RADIUS = 104          # forced and read around the village start (the pieces of a standard village reach ~90 blocks)
+FIT_GRADE_OK = 0.85       # share of grading points whose ground is where it was asked (± 1; 27 of 29 in the test village)
+FIT_DOORS_OK = 0.9        # share of buildings whose door is within a step of its street
+FIT_MAX_TREES = 10        # natural trunks left on the pieces (the forest villages had 60-170 before the clearing)
+SOIL = ("grass_block", "dirt", "podzol", "mud", "coarse_dirt", "rooted_dirt", "moss_block", "snow_block", "mycelium")
+NOT_GROUND = ("leaves", "_log", "vine", "bamboo", "mushroom", "cocoa", "snow", "_sapling")
+
+
+def ground(blocks, x, z, top):
+    """Height of the highest ground block of the column at or below `top` (vegetation and air do not count; water does)."""
+    for y in range(top, top - 64, -1):
+        name = blocks.get((x, y, z), "minecraft:air")
+        if name in AIR_BLOCK and name != "minecraft:water" or any(v in name for v in NOT_GROUND):
+            continue
+        if name.endswith(("_carpet", "torch", "_sign", "_button", "pressure_plate", "rail", "flower", "_tulip", "poppy",
+                          "dandelion", "bush", "leaf_litter", "petals")):
+            continue
+        return y
+    return None
+
+
+def start_pieces(world, x, z):
+    """Pieces of the village start in the chunk of (x, z), with their junctions: [dict(loc, proj, bb, junctions)]."""
+    nbt = region_chunk(world, x >> 4, z >> 4)
+    for sid, start in (nbt.get("structures", {}).get("starts", {}) or {}).items():
+        if not str(sid).startswith("heraldia:") or "Children" not in start:
+            continue
+        return str(sid), [dict(loc=str(c.get("pool_element", {}).get("location", "")),
+                               proj=str(c.get("pool_element", {}).get("projection", "")),
+                               bb=[int(v) for v in c["BB"]],
+                               junctions=[(int(j["source_x"]), int(j["source_ground_y"]), int(j["source_z"]), int(j["delta_y"]),
+                                           str(j["dest_proj"])) for j in c.get("junctions", [])]) for c in start["Children"]]
+    return None, []
+
+
+def inside(bb, x, z, margin=0):
+    return bb[0] - margin <= x <= bb[3] + margin and bb[2] - margin <= z <= bb[5] + margin
+
+
+def fit_figures(blocks, pieces):
+    """(graded points ok, total), (doors ok, total), natural trunks on the pieces."""
+    g_ok = g_n = d_ok = d_n = 0
+    boxes = [p["bb"] for p in pieces]
+    for p in pieces:
+        bb = p["bb"]
+        # grading points: junctions of a piece inside its own footprint with no height difference (a joint's junction lies
+        # on the other piece, one block outside the footprint)
+        for jx, jy, jz, dy, proj in p["junctions"]:
+            if dy == 0 and proj == "terrain_matching" and inside(bb, jx, jz) and p["proj"] == "terrain_matching":
+                h = ground(blocks, jx, jz, jy + 2)
+                g_n += 1
+                g_ok += h is not None and abs(h - (jy - 1)) <= 1
+        # the door of a building that hangs from a street: the street column next to the joint
+        if p["proj"] != "rigid" or not any(k in p["loc"] for k in ("/houses/", "/specials/")):
+            continue
+        joint = next(((jx, jz) for jx, jy, jz, dy, proj in p["junctions"] if proj == "terrain_matching" and not inside(bb, jx, jz)), None)
+        if not joint:
+            continue
+        jx, jz = joint
+        dx = -1 if jx < bb[0] else 1 if jx > bb[3] else 0
+        dz = -1 if jz < bb[2] else 1 if jz > bb[5] else 0
+        h = ground(blocks, jx + dx, jz + dz, bb[1] + 8)
+        d_n += 1
+        # standing on the street (h + 1) against standing at the door's joint column (the floor row, bb[1])
+        d_ok += h is not None and abs(h + 1 - bb[1]) <= 1
+    trunks = 0
+    for (x, y, z), name in blocks.items():
+        if not name.endswith("_log") or not blocks.get((x, y - 1, z), "").endswith(SOIL):
+            continue
+        if not any(inside(b, x, z, 2) for b in boxes):
+            continue
+        if any("leaves" in blocks.get((x + a, y + h, z + c), "") for h in range(2, 14) for a in (-1, 0, 1) for c in (-1, 0, 1)):
+            trunks += 1
+    return (g_ok, g_n), (d_ok, d_n), trunks
+
+
+def terrain_fit(jar, work, fails, measure):
+    launcher = s.prepare(work, jar, s.gradle_properties())
+    with open(os.path.join(work, "config", "heraldia.json")) as f:
+        cfg = json.load(f)
+    for k, v in FIT_CONFIG.items():
+        cfg[k] = {**cfg.get(k, {}), **v}
+    with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
+        json.dump(cfg, f)
+    props = os.path.join(work, "server.properties")
+    with open(props) as f:
+        text = re.sub(r"level-seed=.*", f"level-seed={FIT_SEED}", f.read())
+    with open(props, "w") as f:
+        f.write(text)
+    proc, ctx = start_server(work, launcher, ["-Dheraldia.depurar.puerto=true", "-Dheraldia.perfil=true"])
+    try:
+        m = ctx.run("locate structure #heraldia:aldeas", r"is at \[(-?\d+), ~, (-?\d+)\]|Could not find")
+        if not m.group(1):
+            fails.append("fit: no forest or taiga village near the origin")
+            return
+        x, z = int(m.group(1)), int(m.group(2))
+        for x0, x1 in ((x - FIT_RADIUS, x - 1), (x, x + FIT_RADIUS)):
+            ctx.run(f"forceload add {x0} {z - FIT_RADIUS} {x1} {z + FIT_RADIUS}", r"Marked|Added|force|already")
+        for cx, cz in ((x - FIT_RADIUS, z - FIT_RADIUS), (x + FIT_RADIUS, z + FIT_RADIUS), (x, z)):
+            ctx.until(f"execute if loaded {cx} 0 {cz}", timeout=600)
+        ctx.ticks(40)
+        ctx.run("save-all flush", r"Saved the game|saved")
+        log = next((l for l in ctx.seen if "terrain fit" in l), "")
+    finally:
+        stop(proc)
+    print("fit:", log.strip())
+    while not ctx.lines.empty():    # the profile is written when the server stops (None: end of the output)
+        line = ctx.lines.get()
+        if line is not None:
+            ctx.seen.append(line)
+    cost = re.search(r'"aldea_terreno":\{[^}]*\}', ctx.log())
+    print("fit: cost of the fit (profile):", cost.group(0) if cost else "-")
+    if not log:
+        fails.append("fit: the mod did not log how the village fitted the terrain")
+    world = os.path.join(work, "world")
+    sid, pieces = start_pieces(world, x, z)
+    blocks = read_blocks(world, x - FIT_RADIUS - 16, z - FIT_RADIUS - 16, x + FIT_RADIUS + 16, z + FIT_RADIUS + 16)
+    (g_ok, g_n), (d_ok, d_n), trunks = fit_figures(blocks, pieces)
+    print(f"fit: {sid} at {x} {z}: {len(pieces)} pieces; ground at {g_ok} of {g_n} grading points; {d_ok} of {d_n} doors "
+          f"within a step of their street; {trunks} natural trunks on the pieces")
+    if measure:
+        return
+    if not pieces:
+        fails.append(f"fit: could not read the village start at {x} {z}")
+    if g_n and g_ok < FIT_GRADE_OK * g_n:
+        fails.append(f"fit: the ground is where it was asked at only {g_ok} of {g_n} grading points")
+    if d_n and d_ok < FIT_DOORS_OK * d_n:
+        fails.append(f"fit: only {d_ok} of {d_n} doors within a step of their street")
+    if trunks > FIT_MAX_TREES:
+        fails.append(f"fit: {trunks} trees of world generation on the village pieces (at most {FIT_MAX_TREES})")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-aldeas"))
     ap.add_argument("--measure", action="store_true")
     ap.add_argument("--only-natural", action="store_true")
+    ap.add_argument("--only-fit", action="store_true")
     ap.add_argument("--seeds", nargs="*", default=NATURAL_SEEDS)
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
     fails = []
+    # a new world with only the forest and taiga families: the terrain fit in natural generation
+    terrain_fit(os.path.abspath(a.jar), a.work, fails, a.measure)
+    if a.only_fit:
+        print("VILLAGES AND TERRAIN:", "OK" if not fails else fails)
+        return 1 if fails and not a.measure else 0
     if not a.only_natural:
         launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
         proc, ctx = start_server(a.work, launcher)
