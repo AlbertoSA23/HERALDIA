@@ -21,9 +21,9 @@ from trofeos import CARPET
 from modrinth import fetch
 
 OPERADOR, INVITADO = "Operador", "Invitado"
-RUTA = "/repos/AlbertoSA23/HERALDIA"
+RUTA = "/repos/Stufanplay/HERALDIA"
 NUEVA = "99.0.0"
-DESCARGA = f"https://github.com/AlbertoSA23/HERALDIA/releases/tag/v{NUEVA}"
+DESCARGA = f"https://github.com/Stufanplay/HERALDIA/releases/tag/v{NUEVA}"
 ARRANQUE = r"Heraldia: (\d+) estructuras registradas"
 
 
@@ -31,13 +31,13 @@ def publicaciones():
     jar = [{"name": f"heraldia-{NUEVA}.jar"}]
     return [
         {"tag_name": "v99.1.0-beta.1", "name": "Beta", "draft": False, "prerelease": True,
-         "html_url": f"https://github.com/AlbertoSA23/HERALDIA/releases/tag/v99.1.0-beta.1", "assets": jar},
+         "html_url": f"https://github.com/Stufanplay/HERALDIA/releases/tag/v99.1.0-beta.1", "assets": jar},
         {"tag_name": "v99.0.5", "name": "Borrador", "draft": True, "prerelease": False,
-         "html_url": f"https://github.com/AlbertoSA23/HERALDIA/releases/tag/v99.0.5", "assets": jar},
+         "html_url": f"https://github.com/Stufanplay/HERALDIA/releases/tag/v99.0.5", "assets": jar},
         {"tag_name": f"v{NUEVA}", "name": f"Heraldia {NUEVA}", "draft": False, "prerelease": False, "html_url": DESCARGA,
          "assets": jar, "body": "## [99.0.0]"},
         {"tag_name": "v0.0.1", "name": "Vieja", "draft": False, "prerelease": False,
-         "html_url": "https://github.com/AlbertoSA23/HERALDIA/releases/tag/v0.0.1", "assets": jar},
+         "html_url": "https://github.com/Stufanplay/HERALDIA/releases/tag/v0.0.1", "assets": jar},
     ]
 
 

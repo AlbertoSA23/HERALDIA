@@ -1,0 +1,163 @@
+# Heraldia development guide (read before touching anything)
+
+Structures-only Fabric mod for Minecraft 26.3, for the owner's private server (an existing world,
+CurseForge modpack with Fabric API 0.166.2+26.3). The mod goes on the server; on clients it is optional (players can join with the vanilla client: see the README). **Vanilla-only** content.
+Public repository, **no license (all rights reserved)**. There is CI on GitHub Actions (`.github/workflows/ci.yml`, see "Environment"); the checks can also be run by hand.
+
+Identifiers stay as they are even when they are Spanish words: world ids (`heraldia:unicas/<id>`, `heraldia:medianas/...`), command names and their old aliases, configuration keys, Gradle tasks (`testPesado`), CI job names (`seleccion`, `compilar`, `humo`...), labels (`bateria-completa`) and the names of files and modules in `tools/`. They are quoted in backticks and must be typed exactly as written.
+
+## Branch workflow
+- Shared branch: `develop`. Each session works on its own branch created from `develop` and opens its PR **against `develop`** (never against `main`).
+- PRs against `develop` **do not need the owner's approval**: when your checks are green, merge your own PR into `develop`. If your session rules do not let you, send a message to the orchestrator (session_01XFkUTbYXFfbMazJnFH8g53) with the PR link and its head: it merges on your behalf and deletes the branch.
+- Keep in sync so you do not overwrite anyone: right before merging, `git merge origin/develop` into your branch, resolve the conflicts (in `CHANGELOG.md`, `README.md` and `docs/LESSONS.md` everyone's entries are kept), run the checks again and push. If `develop` changes in the meantime, repeat. Never rewrite the history of `develop` or of other people's branches.
+- If your change touches something shared (`writer.py`, `lint.py`, `core.py`, `Heraldia.java`, the smoke test), merge early and in a small PR so the others get it as soon as possible.
+- Only `develop` is brought into `main`, and the orchestrator session does it.
+
+## Environment (new container)
+- Java 25: `curl -sSL -o /tmp/jdk.tgz "https://api.adoptium.net/v3/binary/latest/25/ga/linux/x64/jdk/hotspot/normal/eclipse" && mkdir -p ~/jdk25 && tar xzf /tmp/jdk.tgz -C ~/jdk25 --strip-components=1 && export JAVA_HOME=~/jdk25 PATH=~/jdk25/bin:$PATH`
+- Python: `pip install -r tools/gen/requirements.txt`
+- Build (generates, validates and audits; fails on any warning): `./gradlew build`
+- Smoke test on a real 26.3 dedicated server: `python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-<version>.jar`
+- Changelog: `python3 tools/changelog.py check`
+- CI (`.github/workflows/ci.yml`): on every PR against `develop` or `main`, on every push to `develop` and by hand (`workflow_dispatch`). Jobs: `seleccion` (generator pytest and choice of server tests with `tools/test.py`), `compilar` (Java 25 and Python 3.12 with the shared action `.github/actions/preparar`; `tools/changelog.py check` and `./gradlew build -x testGen -x testPesado --build-cache`), `junit-pesado` (`./gradlew testPesado`, alongside the build), `humo` (`server_smoke.py` with the `.jar`; the generated data are taken from the `.jar`, and the mcmeta clone is needed because `atlantida/humo.py` rebuilds its plan), `servidor` (groups of server tests in parallel, each group in series on its machine, with `--work build/smoke`) and `coste` (generation cost with and without Heraldia, alongside the groups; see "Generation cost"). Caches: Gradle (and its build cache), pip, the test Fabric server, the Modrinth mods of the tests (`build/smoke/modrinth`, one per group; the pinned list with its sha512 is in `tools/smoke/modrinth.py`) and the mcmeta clone (`build/mcmeta-summary`). If a test fails, the `logs/latest.log` of every test in the group is uploaded as an artifact. A new server test (`tools/smoke/*.py` or `tools/gen/unicas/<id>/prueba_*.py`, accepting `--jar` and `--work`) joins the battery on its own; see "Testing policy". `publish.yml` (on `main`) does not change. CI does not replace the owner's screenshots.
+
+## Testing policy (the owner's decision)
+> **Update (17-Nov-2026, the owner's decision, to speed things up and save usage):** each session runs **only the new tests it created for its task**; if the task brings no new tests, it tests nothing. It does **not** run `tools/test.py --afectados` or the full battery and does **not** wait for CI: the PR is merged into `develop` as soon as the session reports. CI still runs on every PR, but does not block. **The final auditing session** runs the full battery (`--todo` or CI with `workflow_dispatch`), reviews everything in detail and fixes what is needed. Where the text below says otherwise, this update wins.
+
+1. **Each session tests and verifies only the work it has done**, without running the full battery or worrying about what the others do: the unit tests of its code (mandatory: as many as reasonable) and new server tests for the parts it touches. That way every piece of new code arrives with its minimum tests.
+2. **A final auditing session** runs the full battery and guarantees that everything works together.
+3. Write **as many unit tests as possible**, and prefer a fast unit test over a server test when both check the same thing. If something cannot be tested without the game, split out the pure logic (minimal refactor, without changing behavior) and test that.
+
+How:
+- Generator unit tests: `python3 -m pytest tools/gen/tests -q` (or `./gradlew testGen`, which runs inside `check`), seconds, without generating the datapack. One per module in `tools/gen/tests/test_<module>.py`; `conftest.py` provides `plantilla(...)` and a synthetic mcmeta summary (`mcmeta`) for `validate`/`biomas`. For a new unique structure it is enough to meet the contract (`test_unicas.py` walks it on its own); its own checks go in `tests/test_<id>.py`.
+- JUnit: `./gradlew test` (the fast ones) and `./gradlew testPesado` (simulations taking minutes: `UniqueSeparationTest` and `MinasDeterminismoTest`, which compares the current hillside search with the one in 0.1.0 on real 26.3 terrain; the classes go in `junitPesadas` in `build.gradle`). For real terrain in JUnit you must load the vanilla block tags (see LESSONS). `./gradlew build` runs both. A class that touches game classes calls `SharedConstants.tryDetectVersion()` and `Bootstrap.bootStrap()` in `@BeforeAll` (see LESSONS).
+- Per session: `python3 tools/test.py --afectados` (unit tests and the server tests of whatever changed against `origin/develop`, with the `.jar` from `./gradlew build`; `--listar` only says which). The auditing session: `python3 tools/test.py --todo` (unit tests, smoke and every server test, in series: two servers at once on a small machine get in each other's way) or CI with `workflow_dispatch`.
+- Path → tests map (`tools/test.py`, the same one CI uses; the first matching rule wins): documentation, tests, client and `render.py`, no server tests; `tools/gen/unicas/<id>/` (or `unicas/<id>.py`) and the Java in `unicas/<package>/`, that unique structure's tests (those in its folder and those in `SMOKE_DE_UNICA`) plus `trofeos`, `historia`, `guardianes_adultos` and `guardianes_anclados`; a server test, only itself; the village generator and `aldeas/` in Java, the three `aldeas_*`; `caminos/` in Java and `tools/gen/caminos.py`, `caminos.py`; `jefes/` in Java and `tools/gen/jefes.py`, `jefes_fases.py`; `tablon.py` and `tratos.py`, `aldeas_vida`; `biomas.py`, `terralith_biomas`; the zombie mixins, `guardianes_adultos`; `comun/Anclaje.java` and the `DrownedAgua`/`DrownedPlaya` mixins, `guardianes_anclados`; `loot/BotinRepuesto.java` and `loot/Reposicion.java`, `botin_reponer`; the Java in `dificultad/`, `dificultad`; the Java in `arena/`, the `Arena*` mixins and `tools/gen/arena_oleadas.py`, `arena`; `config/Perfiles.java` and `comando/ProfileCommand.java`, `perfiles`; `comun/CacheAlturas.java` and `mixin/ChunkGeneratorLocateMixin.java`, `entradas_mina`; the Java in `mapas/` and `PlayerAdvancementsMixin`, `mapas_web`; the Java in `caravanas/` and `tools/gen/caravanas.py`, `caravanas`; the Java in `actualizar/`, `comando/PanelConfig.java`, `comando/Preferencias.java`, `config/Menus.java`, `config/MigracionConfig.java` and `tools/gen/actualizaciones.py`, `actualizar`; **the shared code** (`_comun/`, `unicas/__init__.py`, `writer.py`, `core.py`, `pack.py`, `lint.py`, `validate.py`, `build.py`, `opciones.py`, `server_smoke.py`, `tools/test.py`, CI, Gradle, resources and the rest of the Java) and **any path not in the map**, the full battery. The smoke test always runs. The compatibility tests with other mods (`tools/smoke/compat_mods.py`, one per group of mods: `compat_mods.py::<group>`) only run in a PR if something in `COMPAT_RUTAS` changes (the test itself, `modrinth.py`, `gradle.properties`, the biome tags and the shared placement Java: `GridPlacement`, `UniqueSeparation`, `VillageRules`, the `ChunkGenerator` and `StructureCheck` mixins, `ZonaAjenas`, `IslaZona`, `AtlantisAnchor`), even if the change calls for the full battery; on a push to `develop` and with `workflow_dispatch`, always. If you add a test in `tools/smoke/` that belongs to a unique structure, put it in `SMOKE_DE_UNICA`; if it is about something else, add its rule to `MAPA` (and its duration to `DURACION_S`); `tools/gen/tests/test_selector.py` checks the map. The generation cost test (`coste_generacion.py`) is not in the groups: it runs in its own job if something in `COSTE_RUTAS` changes (see "Generation cost").
+- In CI: a PR runs the build, all unit tests, the smoke test and only the affected server tests; the full battery runs on every push to `develop`, with `workflow_dispatch` (the auditing session) and in a PR with the `bateria-completa` label or with `[bateria completa]` in its title. A PR that changes shared code (e.g. `ci.yml`) runs all of it through the map.
+- Measured times (T20). Generator locally (4 cores): about 250 s before, about 57 s now (build 65 → 25 s, audit 31 → 9 s, writing 149 → 18 s), with identical uncompressed output. `./gradlew build` locally: 10 min before (almost 5 of them `UniqueSeparationTest`), 66 s without `testPesado`. CI with the full battery: 15 min 15 s before (PR #56: build and smoke in one 11 min 47 s job, with 538 s of `./gradlew build`), 6 min 32 s now (PR #58: `compilar` 2 min 58 s, 147 s of it `./gradlew build`; `junit-pesado` 6 min 9 s, in parallel from the start; `humo` 3 min 15 s and 11 server groups of 1 min 45 s to 3 min 30 s, in parallel after the build). A small PR has the same critical path (build + smoke and `junit-pesado`, about 6 min) and fewer machines; it has not been measured separately.
+- Parallel generator (`tools/gen/paralelo.py`): `HERALDIA_PROCESOS=N` sets the number of processes (1 = in series, same output) and `HERALDIA_TIEMPOS=1` prints how long each part takes. A unique structure's `build()` may leave data in its own module (they are brought back to the parent); if two parts change the same data of a module, generation fails instead of losing one. To compare two generations, compare the uncompressed content of the `.nbt` files (now also the bytes: the gzip has no timestamp).
+
+## Versioning policy (the owner's permanent rule, T46)
+Heraldia is installed on servers with worlds that already exist (the owner's first). **Every future version** must
+open on a world from any earlier version without breaking anything the players built. Every session that changes
+anything here checks it and writes it down:
+- **Nothing already generated changes without the administrator's permission.** New generation content appears in new
+  chunks; to bring it to what is already generated there is `/heraldia update analyze` (report, touches nothing) and `/heraldia update apply`
+  (with confirmation, optional backup, stopping and resuming at startup, undo with `/heraldia update undo`). The
+  safety margin around any detected build is **exactly 50 blocks** by default
+  (`actualizar.margen_bloques`): nothing is removed or placed there. If you change the detection, the margin or the regeneration,
+  run their tests (`DetectorTest`, `RegionTest`, `ArreglosTest`) and `tools/smoke/actualizar.py`.
+- **A fixed bug that may remain in old worlds comes with its repair** in the per-version repair registry
+  (`actualizar/Arreglos`, `actualizar/ArreglosMobs` for template mobs): the number after the last one (the number of a
+  published repair never changes), an **idempotent** action with a dry-run mode, a `heraldia.arreglos.<id>` text in the 8 languages
+  (`tools/gen/actualizaciones.py`) and its idempotency test in `ArreglosTest`. They apply on their own, once per target, when
+  the entity (or chunk) loads, and `/heraldia update repair [dry-run]` forces them on what is loaded. If there is no way to know
+  what the original was (e.g. the weapon a guardian lost), the repair only warns.
+- **Format of `config/heraldia.json`:** if it changes, bump `opciones.VERSION` and add the step to
+  `HeraldiaConfig.MIGRACION` (`config/MigracionConfig`, with its test). Before rewriting a file from an earlier version,
+  `heraldia.json.v<version>.bak` is saved. A published key is never renamed.
+- **World state:** the version the world was generated with and the last one it was opened with are stored in the
+  `heraldia:version_mundo` attachment of the main world (`actualizar/VersionMundo`; a world from before T46 is recorded as
+  `anterior`). Any new data saved in the world goes in an attachment with its default value for worlds that do not
+  have it.
+- **Published placement:** the grid or the rules of an already published structure are not changed without a
+  compatibility option (see `unicas.rejilla_compatible` in LESSONS): `/locate` and the maps would stop finding what was already
+  generated.
+- Published **ids, configuration keys, command names and mob tags** are never renamed (old commands
+  stay as hidden aliases; see "Commands in English").
+- In the CHANGELOG, each change says what happens in an existing world ("**In an existing world, ...**").
+- The administrators' guide is in `docs/CONFIGURATION.md` / `docs/CONFIGURACION.md` ("Updating a server").
+
+## Unique structures: where everything goes
+- One structure = one module `tools/gen/unicas/<id>.py` (or package `tools/gen/unicas/<id>/`). The contract is in `tools/gen/unicas/__init__.py`. There is no need to touch `main.py` or `writer.py`.
+- Ids: structure `heraldia:unicas/<id>`, templates and pools `heraldia:unicas/<id>/...`, loot `heraldia:unicas/<id>/<name>`, tag `heraldia:unicas/<id>`.
+- Loot with Lootr: mark the extra group of each chest with `"solo_sin_lootr": True`.
+- If you need your own Java, put it in the package `io.github.albertosa23.heraldia.unicas.<id>` and register it from your own class called from `Heraldia.onInitialize` with a single line.
+- If the `lint.py` audit does not cover something in your structure, add its checks to your module; changes to `lint.py` must be generic and small.
+
+## Medium structures: where everything goes
+- One kind = one module `tools/gen/medianas/<id>.py` (batch 1: watchtower, inn, camp, hermitage; batch 2: mill, fisherman's hut, hunters' post, ruined shrine). The contract is in `tools/gen/medianas/__init__.py` (`NOMBRE`, `SEPARACION`, `ESTILOS` with `biomas`, `convencionales`, `paleta` and `variantes`, `LOOT`, `LANG`, `LOGRO_ICONO`; optional `LOGROS`, the kind's own advancements, and `BIOMA_VECINOS`, for biomes in a strip such as beaches); their own pieces in `medianas/_comun.py` (yard, entrance, walls, roof, mobs, villager with fixed trades) and everything else (chests, signs, doors, books, loot) in `unicas/_comun`. There is no need to touch `main.py`, `pack.py`, `writer.py`, `opciones.py`, `logros.py` or the Java: their options (`medianas.<id>.*`), their grid, their place in `/heraldia info`, in the placement rule (`comun/Medianas.java`) and in the Wayfarer advancement come on their own.
+- Ids: structure `heraldia:medianas/<id>/<style>` (one per style, in its biome), structure_set `heraldia:medianas/<id>`, tags `#heraldia:medianas` and `#heraldia:medianas/<id>`, templates and pools `medianas/<id>/<style>[/<variant>]`, loot `heraldia:medianas/<id>/<table>`, texts `heraldia.medianas.<id>.*`.
+- Contract rules (`medianas.errores`, generation fails): footprint of 11 to 40 blocks, y = 0 at ground level, the entrance (`_comun.entrada`) on the north face, no fertile ground in the yard, at most 4 entities (persistent; mobs anchored) and one spawner, modest loot (no "premium" and no items from `medianas.PROHIBIDO`), no guardian or trophy. The generic `lint.py` audit walks their templates.
+- Tests: `tools/gen/tests/test_medianas.py` walks every kind without being touched; `MedianasFrecuenciaTest` (JUnit) measures the frequency with real biomes: a new kind changes the average, so adjust `SEPARACION` to keep it at 400-800 blocks; `tools/smoke/estructuras_medianas.py` places every variant and locates every kind (all of it comes from the generator registry). A change in `tools/gen/medianas/` also runs `guardianes_adultos` and `guardianes_anclados` (they walk the mobs of every template).
+
+## Shared memory: `docs/LESSONS.md`
+- Read it before starting and look at it again after every `git merge origin/develop`.
+- Everything you learn that helps design better structures or avoids a bug (verified game behavior, a mistake that cost you time, a design technique that worked, a new auditor check) goes there in the same PR, as a short bullet in its section, with how it was verified.
+- If a lesson reveals a bug in something already done (villages or another structure), fix it if it is small and clear; if not, note it in the "Pending bugs" section.
+- Do not delete or rewrite other people's bullets; if one turns out to be false, mark it as corrected and explain why.
+
+## Shared code (`tools/gen/unicas/_comun/`): one at a time
+- There is only one module per function: `redstone.py` (simulation and puzzles), `botin.py` (tables, named items, books, potions) and `piezas.py` (spawner, guardian, chest, sign, piston doors, traps, spiral staircase, connections). If a shared audit walk is needed, it goes in `recorrido.py`.
+- Never create another module that does the same thing. Extend the existing one and keep it compatible with whoever already uses it.
+- PRs that touch `_comun/` are merged **one at a time, taking turns**: before starting, `git fetch origin develop && git merge origin/develop`, and build on whatever is there at that moment. If `develop` has changed in `_comun/` when you finish, merge again and adapt your code, not develop's.
+
+## Performance: mandatory requirement
+Every development session and every audit verifies that the code is optimized as much as possible so the game's performance does not suffer. Whatever does not meet this is not merged.
+- **World generation:** no unnecessary searches or walks per chunk, cheap placements and biome checks, no repeated heavy computations (if a value does not change, compute it once and keep it), and templates without leftover blocks or entities. Measure your structure's generation time on the test server and note it in the PR.
+- **Per tick:** no per-tick work that walks the world or entities. Periodic functions (mcfunction) with bounded selectors and the lowest frequency that does the job.
+- **Entities:** few, and only the ones that make sense. Spawners with a reasonable radius and limit. No surplus persistent mobs loading the server.
+- **Java and mixins:** nothing on the server thread that blocks. No memory allocations on hot paths. Mixins with the narrowest possible injection point and a cheap early exit.
+- **Check:** in the PR, say what you measured (generation time, number of entities, cost of the mixins) and how.
+
+### Generation cost (`tools/smoke/coste_generacion.py`)
+- What it does: generates the same areas with Chunky (seed `heraldia`: the village closest to 0,0 and 0,0 itself, 21 × 21 chunks each, after a warm-up area that does not count) on a new server with the Heraldia `.jar` (default configuration, except `arena.generar_en_mundos_nuevos`: the arena builds itself next to the spawn of a new world while measuring, and that is not generation) and on another without it, alternating, 3 passes each (`--pasadas N`). Locally (4 cores) it takes about 4 min 30 s; the CI job, under 4 min with the setup (it does not lengthen the critical path: it runs alongside the server groups, which take longer). Usage: `python3 tools/smoke/coste_generacion.py --jar build/libs/heraldia-<version>.jar` (with `--work`, the server folder; `--salida`, the result folder, `build/coste` by default).
+- What it measures: **server process CPU per chunk** (`/proc/<pid>/stat` while Chunky generates: this is what decides, because it does not grow with the waiting between threads); with the Minecraft profiler (`/jfr start`/`stop`), the sum of the generation steps per chunk (`minecraft.ChunkGeneration`, without the light ones, which are mostly queueing: mean, p50, p90, p99, max and per step), the MSPT (ms per tick: mean, p90, p99, max) and the memory after each GC (max); wall-clock time and chunks/s; `/locate` (ms as reported by the game) of a village, a unique structure (castle), a medium one, a mine entrance and, on both, a vanilla village; and Heraldia's own profile (below).
+- How to read it: the summary of the CI `coste` job (and the `coste-generacion` artifact, with `coste_generacion.json`, `coste_generacion.md` and the server log) gives each measurement without and with Heraldia and the difference. **Overhead** = median with Heraldia / median without it − 1 of the CPU per chunk (the ratio removes the speed of the machine). The other rows are for understanding a change, they do not decide: step durations vary ±15 % between two identical passes (CPU, ±3-5 %).
+- Threshold: it fails if the overhead exceeds `sobrecoste × (1 + umbral_relativo) + margen_absoluto` from `tools/smoke/coste_referencia.json` (currently 0.25 and 0.08; with a negative reference, it starts from 0). The reference is taken from CI (the machine of the comparisons): on CI it gave +9.3 % and on the development container +8.5 % with 8 passes, but the median of a single round of 3 varies by several points (once it gave +1.8 %); to compare two versions locally, use the same machine and `--pasadas 5` or more. If it fails, run another round of passes and decide with the median of all of them, so as not to fail because of one bad CI pass. `--sin-umbral` measures without failing.
+- **Updating the reference** (when a change raises the cost on purpose and is justified, or Minecraft, Fabric API or the areas change): with the CI measurement, download the job's `coste-generacion` artifact and run `python3 tools/smoke/coste_generacion.py --desde <folder>/coste_generacion.json --actualizar-referencia` (it starts nothing); or measure locally with `--actualizar-referencia`. It keeps the threshold and the margin, stores machine, date and commit, and goes in the same PR as the change, explaining why it goes up.
+- When it runs: on CI, on every push to `develop`, with `workflow_dispatch`, with the `bateria-completa` label and in a PR that touches the generation Java or the generator (`COSTE_RUTAS` in `tools/test.py`; not documentation, tests or `render.py`); locally, at the end of `tools/test.py --afectados` if it touches the same, and of `--todo` (`--sin-coste` removes it). It is not in the server groups: it has its own job, in parallel with them.
+- **Heraldia profile** (`comun/Perfil.java`): with `-Dheraldia.perfil=true` on the server JVM (the test sets it in the passes with Heraldia), it accumulates counts, total time and maximum of the placement rules (`reglas`, during generation; `reglas_locate`, in `/locate` and the maps), the foreign-structure zone, the separation between unique structures, the medium-structure and mine rules, the hillside search (and `ladera_anticipada`, the one `/locate` brings forward on other threads), the village start, the harbor shore and the road feature, and writes it when the server stops ("Heraldia: perfil: {...}", JSON). Without the property it is a false constant: it does not read the clock or store anything (checked by `PerfilTest`). To measure something new: one more `Tramo` and `long t0 = Perfil.inicio(); ...; Perfil.fin(Perfil.Tramo.X, t0);`.
+
+## Project rules
+- **Reuse whenever possible.** Before writing a function or a class, look for something that already does the same (in `tools/gen/core.py`, `build.py`, `loot.py`, `lint.py`, `render.py`, in other modules of `tools/gen/unicas/` or in the mod's Java) and import it. If what you need is almost the same as something in another structure, move the shared part to a shared module (for example `tools/gen/unicas/_comun/` or `build.py`; in Java, a shared package) and make both use it, instead of copying it. No duplicates: spiral staircases, secret doors, traps, spawners, guardians, chests and loot tables must come from shared, parameterized pieces.
+- Every change in `src/`, resources or the generator goes in `CHANGELOG.md` in the same commit: a player bullet if it shows in the game, a technical bullet whenever it is internal. Do not rewrite other people's bullets.
+- Keep the README up to date if features, commands, configuration or figures change.
+- The READMEs for each of the mod's languages (`README.md` in English, the main one, and `README.es.md`, `.fr`, `.de`, `.it`, `.pt-BR`, `.ca`, `.gl`; list in `idiomas.README`) are kept in sync on every change: same language selector, same sections, same order and same data (`tools/gen/tests/test_readme.py`). The README is for players and administrators; the technical details go in `docs/` in English and Spanish (`CONTENT`/`CONTENIDO`, `CONFIGURATION`/`CONFIGURACION`, `COMPATIBILITY`/`COMPATIBILIDAD`, `BUILDING`/`COMPILAR`). The rest of `docs/` (this guide, `LESSONS.md`, `AUDIT.md`, `STORY.md` and `docs/unicas/`) and the `CHANGELOG.md` are in English only.
+- Data first (JSON, datapack, Python generator); Java only where data cannot reach. Mixins only as a last resort, justified in one line.
+- **Commands in English (permanent rule, T35b):** every new command and subcommand, and every literal argument that is typed (fixed values such as `all`, mode, kind or state names), is in English, lowercase and ASCII, and is registered in `comando/Comandos.java` (and its path in `CANONICOS` of `tools/gen/comandos.py`, checked by `ComandosTest` and `test_comandos.py`); the texts the player sees are still translated. The old Spanish names (`/heraldia guia`, `llave`, `info cerca`/`aqui`, `arena colocar`/`mover`/`quitar`/`confirmar`/`empezar`/`parar`/`salir` and the `todas` key) are hidden aliases (`comando/Alias.java` and `CommandsMixin`: they are not sent to the client, they warn that they are deprecated and give the new name) and **will be removed in a future version**: when removing them, delete `Alias.ANTIGUOS` and `comandos.ANTIGUOS`, the mixin and the name tables in `docs/CONFIGURACION.md` and `docs/CONFIGURATION.md`. No text or button (`run_command`, `suggest_command`, `ClickEvent`) may use an old name (`test_comandos.py`). Configuration keys and published ids (structures, keys, `/heraldia review` stops) do not change.
+- Every text for the player has a translation key in `es_es` and `en_us` (with a Spanish `fallback` in `tellraw`) and its translation in each `tools/gen/idiomas/<code>.json` (fr_fr, de_de, it_it, pt_br, ca_es, gl_es): if a key is missing or extra, or does not fit in its book or sign, generation fails (`tools/gen/idiomas.py`; `python3 tools/gen/idiomas.py <code>` says so without building).
+- Registries with ids under `heraldia`; a published id is never renamed.
+- No per-tick work that walks the world; nothing that blocks the server thread; generation happens on several threads.
+- Do not commit Mojang data (mcmeta) to the repository.
+- Always say what you checked and how (built, loaded on a server, validated, audited, simulated) and what you did not. The visual look is not accepted without screenshots from the owner's game.
+
+## The owner's decisions (14-11-2026)
+Villages (configurable, mod configuration file with default values and validated ranges):
+- Configurable separation between villages from **1,000 to 10,000 blocks**, **1,500** by default.
+- At most **100 villages** per world: only the 100 placement-grid cells closest to 0,0 count (deterministic, no saved data).
+- Also configurable: standard/large ratio, golem limit (and enabling/disabling the cleanup), enabling/disabling families and styles, minimum distance to vanilla villages.
+
+Unique structures:
+- Enemies: spawners in dungeons **and** a final guardian.
+- Redstone puzzles **and** traps.
+- Condition: 80-85 % of the surface in good condition; the rest, ruined details.
+- Lootr: the mod detects whether Lootr is loaded; if it is, more modest loot per chest (each player opens their own). If it cannot be detected, assume it is not.
+- Default rarity: one every **3,000-5,000 blocks**, each kind in its biome; configurable.
+- Treasure maps to the unique structures: in epic chests in the villages **and** for sale from cartographers.
+- Villagers or golems inside: depending on the structure.
+- Premium chest: 90 % showy and not powerful (named items, moderate enchantments, armor trims, discs) and 10 % something stronger without breaking progression. No netherite gear or elytra. Vanilla only.
+- Well built inside, thorough exploration: smaller chests scattered around, hidden rooms and a final chamber with the premium chest.
+- Atlantis: only one per world (always 1, not configurable), submerged in a large ocean, the largest the game allows (see its own session).
+
+## Technical lessons from 26.3 (each one cost a real bug)
+- Pack format 121; DataVersion 5023 in the NBT files.
+- The game rejects the whole pack if one structure cannot be read. `max_distance_from_center` + 12 cannot exceed 128 (maximum 116). Symptom: "Registry loading errors" in `logs/latest.log`. Validation checks it.
+- `/reload` does not reload worldgen. In an existing world they only appear in new chunks; to test, `/place structure <id>` (needs the chunks loaded: `forceload`).
+- A later `fill` can overwrite a jigsaw without any error: place the jigsaws last and check that they are still there.
+- Every horizontal connector must be on a face of the piece's bounding box.
+- Pieces at the maximum depth only process jigsaws through the pool's `fallback`.
+- A rigid piece ends up with y=0 one block above the terrain; the street (`terrain_matching`) at ground level. An access step is needed.
+- With `beard_thin` the terrain fits to the base of the box: a piece that goes down sinks the terrain around it. Real basements must be solved on purpose (another adaptation, separate underground pieces, filling the footprint; look at trial chambers and the ancient city).
+- Jigsaw does not detect water; placing something relative to water requires Java.
+- A jigsaw with `final_state` `structure_void` places nothing: only where you want to keep the terrain.
+- Blocks without valid support disappear without warning. It is not verified that placed water flows.
+- Validate names against the registries (the chain is `iron_chain`). Compare exact block names: "stairs" contains "air".
+- Semantics: on stairs `facing` is the high side; a ladder with `facing=east` sits against the west wall; the bed head points towards `facing`; an open trapdoor with `facing=north` sits on the south edge.
+
+## Design criteria (the owner: "professional, minimalist designer")
+- No unfinished staircases or jumps; no door without an exit and no inaccessible room.
+- Furniture against a wall, not covering windows; center kept free except for a table with chairs (backs facing out).
+- Nothing floating: lanterns hanging from something, chains with an anchor, water never loose.
+- Symmetry where the building calls for it; every element with a recognizable function.
+- Method: automatic audit as a condition for generating (`tools/gen/lint.py`), floor plans per level with reachable cells, isometric renders (`tools/gen/render.py`).

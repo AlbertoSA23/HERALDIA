@@ -24,7 +24,7 @@
                                custom_data heraldia_historia; un criterio inventory_changed por pliego, todos requeridos)
   tesoro/fragmento, tesoro/cofre   búsqueda del tesoro (tesoro.py): conseguir un fragmento y abrir el cofre enterrado
 Contrato opcional en cada módulo de unicas/ (ver unicas/__init__.py): LOGRO = {"icono", "tesoro", "tesoro_objeto", "extra"}.
-Recompensas: solo experiencia (Decisiones de Alberto: nada que rompa la progresión).
+Recompensas: solo experiencia (Decisiones del dueño: nada que rompa la progresión).
 """
 from themes import FAMILIES, THEMES
 from unicas._comun.piezas import GUARDIAN_TAG

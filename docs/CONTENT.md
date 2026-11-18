@@ -363,7 +363,7 @@ All of them carry `custom_data` `{heraldia_trofeo:"<id>"}`. To test: `/loot give
 
 ## Chronicle of the Heralds
 
-An optional story thread links the unique structures (full background in [`docs/historia.md`](historia.md)): Ysolda, the last herald of Atlantis, wrote the way back to the sunken city on leaves and entrusted each to the guardian of a structure, who swore to keep it. Every unique structure holds its **leaf**, a written book (“Chronicle of the Heralds: <structure>”) in a chest it already had, which tells its part of the story and ends by pointing to the next structure with a biome-and-feature clue; sometimes (10 %) it comes with that structure's treasure map. The chain goes through all of them, the Wizard Tower's leaf points to Atlantis, and Atlantis' leaf points back to the first.
+An optional story thread links the unique structures (full background in [`docs/STORY.md`](STORY.md)): Ysolda, the last herald of Atlantis, wrote the way back to the sunken city on leaves and entrusted each to the guardian of a structure, who swore to keep it. Every unique structure holds its **leaf**, a written book (“Chronicle of the Heralds: <structure>”) in a chest it already had, which tells its part of the story and ends by pointing to the next structure with a biome-and-feature clue; sometimes (10 %) it comes with that structure's treasure map. The chain goes through all of them, the Wizard Tower's leaf points to Atlantis, and Atlantis' leaf points back to the first.
 
 | Structure | Leaf chest | Points to |
 |---|---|---|

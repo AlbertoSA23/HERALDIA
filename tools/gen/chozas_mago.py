@@ -78,7 +78,7 @@ MALVADO = [
               botin.potion("long_night_vision", 2), item("diamond", 2, 1, 2), item("golden_apple", 2),
               item("iron_sword", 1, ench=(15, 25))]),
 ]
-# el premio: un objeto más fuerte que no rompe la progresión (Decisiones de Alberto)
+# el premio: un objeto más fuerte que no rompe la progresión (Decisiones del dueño)
 PREMIUM = _pool(1, [
     botin.book(5, {"minecraft:mending": 1}),
     botin.potion("strong_turtle_master", 3), botin.potion("turtle_master", 3), botin.potion("long_slow_falling", 3),

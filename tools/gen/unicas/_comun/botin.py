@@ -66,7 +66,7 @@ def lang(prefix, names):
 # ------------------------------------------------------------------ trofeos de los guardianes
 TROFEO_MARCA = "heraldia_trofeo"   # custom_data {heraldia_trofeo: "<id>"} común a todos los trofeos (logro unicas/trofeos)
 RAREZAS = ("common", "uncommon", "rare", "epic")
-PROHIBIDOS = ("netherite", "elytra")   # Decisiones de Alberto: nada de netherita en equipo ni élitros
+PROHIBIDOS = ("netherite", "elytra")   # Decisiones del dueño: nada de netherita en equipo ni élitros
 MAX_NIVEL = 3                          # encantamientos moderados
 
 
