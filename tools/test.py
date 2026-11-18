@@ -357,7 +357,7 @@ DURATION_S = {
     "tools/smoke/update_check.py": 120,              # three starts (with the fake API, without network and disabled)
     "tools/smoke/web_maps.py": 240,                 # three starts (without maps, with squaremap and Carpet, and after restarting)
     "tools/smoke/existing_world.py": 150,           # measured locally: ~2 min (three starts of the same world)
-    "tools/smoke/quests.py": 150,                  # two starts of the same world and a generated village
+    "tools/smoke/quests.py": 180,                  # measured locally: ~3 min (two starts and a generated village, then four more starts and a second village for its looks)
     "tools/smoke/treasure.py": 130,                    # measured locally: ~1 min 40 s (three starts, the whole chain and the chest)
     "tools/smoke/nether_end.py": 300,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
     "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)

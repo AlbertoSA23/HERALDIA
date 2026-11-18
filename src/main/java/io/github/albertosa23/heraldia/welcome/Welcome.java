@@ -113,19 +113,35 @@ public final class Welcome {
 	}
 
 	/** A spot of one village: world position, the block that goes there (null: no material), its support and the template's block there. */
-	record Resolved(BlockPos pos, Spots.Spot spot, @Nullable BlockState state, BlockPos support, @Nullable Identifier template) {
+	record Resolved(BlockPos pos, Spots.Spot spot, String style, net.minecraft.world.level.block.Rotation rotation, BlockPos support,
+			@Nullable Identifier template) {
+	}
+
+	/** Each style's materials, read from its templates the first time something of that style is put up (this session). */
+	private static final Map<String, Materials> MATERIALS = new HashMap<>();
+
+	/** The block a spot gets, in its village's materials and rotated with its piece (null: that material does not exist). */
+	private static @Nullable BlockState stateOf(ServerLevel level, Resolved r) {
+		BlockState st = MATERIALS.computeIfAbsent(r.style(), style -> materials(level, style)).state(r.spot(), r.style());
+		return st == null ? null : st.rotate(r.rotation());
 	}
 
 	/** One line in Heraldia.onInitialize. */
 	public static void register() {
 		Type.SHOWN.identifier();   // registers the attachment at startup: otherwise the saved record is dropped when the world loads
 		ServerChunkEvents.CHUNK_LOAD.register(Welcome::onChunkLoad);
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> reputationSaved(handler.getPlayer(), Quests.data(handler.getPlayer())));
+		// on the server's task queue, as Guide does: Carpet (fake players) loads the player's data after JOIN
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.schedule(server.wrapRunnable(() -> {
+			if (!handler.player.hasDisconnected()) {
+				reputationSaved(handler.player, Quests.data(handler.player));
+			}
+		})));
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> lastEnabled = enabled());   // what a later reload is compared with
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			PENDING.clear();
 			SETTLED.clear();
 			LAYOUTS.clear();
+			MATERIALS.clear();
 			TEMPLATE_BLOCKS.clear();
 			villageStructures = null;
 			lastEnabled = null;
@@ -316,12 +332,14 @@ public final class Welcome {
 			long lp = r.pos().asLong();
 			BlockState placed = v.placedAt(lp);
 			BlockState current = level.getBlockState(r.pos());
-			boolean wanted = r.state() != null && r.spot().shownIn(look);
-			boolean support = wanted && placed == null && supported(level, r);
+			boolean wanted = r.spot().shownIn(look);
+			// the materials and the support are only looked at when something could really go up here
+			BlockState state = wanted && placed == null && current.isAir() && !v.isDeclined(lp) ? stateOf(level, r) : null;
+			boolean support = state != null && supported(level, r, state);
 			boolean free = level.getBlockState(r.pos().above()).isAir();
 			switch (Spots.decide(wanted, placed, current, current.isAir(), support, v.isDeclined(lp), free)) {
 				case PLACE -> {
-					level.setBlock(r.pos(), r.state(), Block.UPDATE_ALL);
+					level.setBlock(r.pos(), state, Block.UPDATE_ALL);
 					added.put(lp, level.getBlockState(r.pos()));
 				}
 				case REMOVE -> {
@@ -350,7 +368,7 @@ public final class Welcome {
 	}
 
 	/** Is the spot's support in place: the template's own block (or, for the board, a sturdy top face), and would it stay? */
-	private static boolean supported(ServerLevel level, Resolved r) {
+	private static boolean supported(ServerLevel level, Resolved r, BlockState state) {
 		BlockState support = level.getBlockState(r.support());
 		if (r.template() != null) {
 			Set<BlockPos> at = templateBlocks(level, r.template(), support.getBlock());
@@ -361,7 +379,7 @@ public final class Welcome {
 		} else if (!support.isFaceSturdy(level, r.support(), Direction.UP)) {
 			return false;
 		}
-		return r.state() != null && r.state().canSurvive(level, r.pos());
+		return state.canSurvive(level, r.pos());
 	}
 
 	/** The local positions of a template's blocks of one kind (cached for the session). */
@@ -377,14 +395,13 @@ public final class Welcome {
 		});
 	}
 
-	/** Every spot of the village's pieces at its world position, with its block in the village's materials. */
+	/** Every spot of the village's pieces at its world position (the block that goes there is worked out only when it goes up). */
 	static List<Resolved> layout(ServerLevel level, StructureStart start) {
 		Identifier id = level.registryAccess().lookupOrThrow(Registries.STRUCTURE).getKey(start.getStructure());
 		String style = id == null ? "" : id.getPath();
 		if (style.endsWith("_grande")) {
 			style = style.substring(0, style.length() - "_grande".length());
 		}
-		Materials m = materials(level, style);
 		List<Resolved> l = new ArrayList<>();
 		for (StructurePiece piece : start.getPieces()) {
 			if (!(piece instanceof PoolElementStructurePiece pe) || !(pe.getElement() instanceof SinglePoolElement e)) {
@@ -399,8 +416,7 @@ public final class Welcome {
 			for (Spots.Spot s : Spots.of(kind)) {
 				BlockPos pos = StructureTemplate.calculateRelativePosition(settings, new BlockPos(s.x(), s.y(), s.z())).offset(pe.getPosition());
 				BlockPos support = StructureTemplate.calculateRelativePosition(settings, new BlockPos(s.sx(), s.sy(), s.sz())).offset(pe.getPosition());
-				BlockState state = m.state(s, style);
-				l.add(new Resolved(pos, s, state == null ? null : state.rotate(pe.getRotation()), support, s.templateSupport() ? template : null));
+				l.add(new Resolved(pos, s, style, pe.getRotation(), support, s.templateSupport() ? template : null));
 			}
 		}
 		return List.copyOf(l);
