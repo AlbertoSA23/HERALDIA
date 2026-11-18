@@ -217,8 +217,8 @@ def main():
         s.send(ctx.proc, f"gamemode survival {PLAYER}")     # (survival: the guards may turn on it; resistance keeps it alive)
         ctx.run(f"effect give {PLAYER} minecraft:resistance infinite 4 true", r"Applied effect|Gave")
         ctx.run(f"effect give {PLAYER} minecraft:saturation infinite 4 true", r"Applied effect|Gave")
-        ctx.run("time set day", r"Set the time")
-        ctx.run("gamerule doDaylightCycle false", r"Gamerule|now set|game rule")
+        ctx.run("gamerule advance_time false", r"[Gg]ame ?rule .*advance_time")
+        ctx.run("time set noon", r"Set .*(time|noon)")
         # each kind: what it brings, that it walks, one at a time; then its ending
         # (the messenger, fast, only walks 5 s: it would reach the end of its stretch before the others' endings)
         for kind, ending, walk in (("shepherd", far, 300), ("messenger", None, 100), ("patrol", hurt_guard, 300),
