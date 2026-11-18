@@ -6,7 +6,7 @@ Usage: python3 tools/smoke/light_profile.py --jar build/libs/heraldia-X.jar [--w
   2. From the console, /heraldia config profile ligero in that world does not save anything: it explains the seams and gives
      the confirm command; with `confirm` it is saved (the file has "perfil": "ligero" and none of its options written).
   3. Restart: the light profile is in use (log, /heraldia profile with the generation reminder) and the log warns that
-     world generation changed (medianas.frecuencia_porcentaje 100 → 60, ...); the suggestion is quiet (a profile is chosen).
+     world generation changed (medianas.frecuencia_porcentaje 100 → 50, ...); the suggestion is quiet (a profile is chosen).
   4. Restart again without changes: no seam warning.
 Exit code 0 if everything passes.
 """
@@ -76,7 +76,7 @@ def main():
         log = ctx.log()
         check(re.search(r"Heraldia: perfil ligero\r?\n", log), "restart: the log does not say the light profile")
         m = re.search(SEAMS, log)
-        check(m and "medianas.frecuencia_porcentaje 100 → 60" in m.group(1) and "aldeas.caminos.activado true → false" in m.group(1),
+        check(m and "medianas.frecuencia_porcentaje 100 → 50" in m.group(1) and "aldeas.caminos.activado true → false" in m.group(1),
               f"restart: no seam warning with what changed: {m.group(1) if m else None}")
         check(not re.search(SUGGESTION, log), "restart: the suggestion speaks although a profile is chosen")
         check(re.search(r"caminos entre aldeas desactivados", log), "restart: roads still enabled")

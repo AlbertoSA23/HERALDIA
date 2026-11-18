@@ -94,7 +94,7 @@ Back to the [README](../README.md).
     boat through the cliff), the guardroom, the map room with the **compass rose puzzle**, the armoury with the secret
     powder room, the dungeons and, below sea level and dry, the treasure chamber with Roque Salitre, the Corsair;
     tripwire and pressure-plate traps, 3 spawners and 21 chests. Design: [docs/unicas/isla_corsario.md](unicas/isla_corsario.md).
-- **Medium structures** (all types together, one every 550-580 blocks, each in its own biomes): watchtowers, roadside
+- **Medium structures** (all types together, one every ~550 blocks by default, each in its own biomes): watchtowers, roadside
   inns, bandit camps, hermitages, mills, fisher's huts, hunters' lodges and ruined shrines, with a style for each biome. See [Medium structures](#medium-structures).
 - **Mine entrances** (on real hillsides of hills, taigas, deserts, badlands and peaks): adits, mining camps and mining
   complexes with a headframe, each leading down to its own gallery; and more vanilla abandoned mineshafts in new chunks
@@ -184,7 +184,7 @@ Details, plans and what has been verified: [docs/unicas/atlantida.md](unicas/atl
 
 ## Medium structures
 
-Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every 550-580 blocks** (measured, see below), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
+Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every ~550 blocks** (measured, see below; ~610 with `medianas.frecuencia_porcentaje` 60, see [Medium structures density](CONFIGURATION.md#medium-structures-density)), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
 
 | Type | Id | Styles (biomes) | Variants |
 | --- | --- | --- | --- |
@@ -199,7 +199,7 @@ Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more comm
 
 - They never spawn inside a village, a unique structure, Atlantis or the Corsair's Isle: not within `medianas.distancia_aldeas_unicas_bloques` (256) of the start of a Heraldia village or unique structure that spawns there, nor within `medianas.distancia_minima.bloques` (192) of another medium structure of a different type (a deterministic draw keeps one, the same rule as the minimum distance between unique structures), nor within 128 blocks of a vanilla village candidate. They also give way to structures that show above ground, vanilla or from other mods (pillager outposts, temples, ruined portals, other mods' villages...): one is discarded if such a structure spawns within 80 blocks (vanilla) or 128 (other mods).
 - Find them with `/locate structure #heraldia:medianas/<type>` (or `heraldia:medianas/<type>/<style>`) and `/heraldia info nearby`; `/heraldia info` shows their configuration. To test one: `/place structure heraldia:medianas/<type>/<style>`.
-- Frequency, measured with `MediumFrequencyTest` (the placement grids on the real 26.3 Overworld biome noise, with villages, unique structures and vanilla structures around them, 3 seeds, 16,000 × 16,000 blocks): see the [changelog](../CHANGELOG.md) and the pull request for the figures per type. Each grid looks for its candidate inside the type's biomes (the spot of the cell most inside them), so a type appears wherever its biomes are, at most once per cell.
+- Frequency, measured with `MediumFrequencyTest` (the placement grids on the real 26.3 Overworld biome noise, with villages, unique structures and vanilla structures around them, 3 seeds, 16,000 × 16,000 blocks): see the [changelog](../CHANGELOG.md) and the pull request for the figures per type, and [Medium structures density](CONFIGURATION.md#medium-structures-density) for the figures at each frequency (`MediumDensityComparisonTest`). Each grid looks for its candidate inside the type's biomes (the spot of the cell most inside them), so a type appears wherever its biomes are, at most once per cell.
 - Configuration: `medianas.*` options (see [Configuration](CONFIGURATION.md#configuration)). Advancements: **By the Wayside**, **Wayfarer** and one of its own for each type of batch 2 (see [Advancements](#advancements)). **In an existing world they only appear in new chunks.**
 
 ## Nether and End
@@ -415,6 +415,17 @@ A vanilla written book, the **Herald's Guide**, that explains the mod to players
 - Vanilla book limits: the generator checks that every page fits the 14 lines of a book page (with the same width calculation as the Chronicle leaves), that the title is at most 32 characters and that the book never exceeds 100 pages (with today's 20 unique structures, 23 to 29). It carries `custom_data` `{heraldia_guia_libro:"<version>"}` and the mod edition in its lore.
 
 Cost: it only works when a player without this version's guide joins or when it is asked for (it reads their discovery advancements and builds the book; measured on the test server, see `tools/smoke/guide.py`); nothing per tick.
+
+## Your journal: `/heraldia journal`
+
+Each player's own record of **what they have found and what is still missing**, in chat (vanilla clients too, in the player's language, the same as the job board), for any player and without permissions:
+
+- `/heraldia journal`: the title, a bar with the **overall total** (everything found out of everything that can be found in this world) and one line per kind with its progress bar (■ found, □ missing; gold and ✔ when complete) and its count: **village families**, **unique structures**, **medium structures** (by type), **mine entrances** (by size), the **coast** (lighthouse and shipwreck) and the **Nether** and the **End** (their unique structure and their medium types). Each line is a button that opens its kind; hovering over it lists what is missing.
+- `/heraldia journal <kind>` (`villages`, `uniques`, `mediums`, `mines`, `coast`, `nether`, `end`): the names already found and the ones still missing, in alphabetical order of the player's language (mines, by size), with a button back to the summary.
+- **No coordinates and no clues**: the journal says "2 of 21 unique structures, these ones are missing", never where they are. Finding them is for the maps, the quests and the Chronicle; the soft biome clues of the missing unique structures stay in the Herald's Guide, which the journal points to (a button to `/heraldia guide`) while any is missing.
+- **Where the data come from**: the player's own advancements, which already record every discovery (`aldeas/<family>`, `unicas/<id>/descubrir`, the criteria of `medianas/todas`, `medianas/nether` and `medianas/end`, `minas/<size>`, `costa/faro` and `costa/naufragio`); which ids belong to each kind is also read from the advancements (the criteria of `aldeas/todas`, `unicas/todas` and the three walker advancements) and, for the dimension of a unique structure, from the structure registry. Nothing is saved and nothing runs until someone asks: it reads the player's progress from memory, on the server thread, and answers in the same tick.
+- What counts: what can still appear in this world (a kind disabled in the configuration is not "missing") and whatever the player already found, even if it was disabled later. A kind with nothing to find is left out.
+- **Why a command and not more Guide pages or `/heraldia status`**: the Guide is a book handed out on joining (it only gets updated when asked for again, and its pages must fit a measured size), and it already keeps the diary of unique structures with their clues; `/heraldia status` is the server's summary, what anyone has discovered. The journal is the per-player view of every kind, always up to date; `/heraldia status` links to it and it links to the Guide, instead of repeating either.
 
 ## Advancements
 

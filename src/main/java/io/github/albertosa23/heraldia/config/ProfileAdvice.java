@@ -14,8 +14,9 @@ import java.util.Set;
  * cores the light profile is suggested; otherwise nothing (the default profile is fine). It is never applied on its own.</li>
  * <li>Seams: the generation options in use are saved in the world (attachment heraldia:generacion_mundo) at every start; if
  * they differ from those of the previous start in a world already played, only the chunks generated from now on follow the
- * new ones and the mod warns. A world without that record (from before) is only warned if it starts with a profile that
- * changes generation.</li>
+ * new ones and the mod warns. A world without that record (from before) is warned if it starts with a profile that
+ * changes generation or if a generation default it used has changed since ({@link #PREVIOUS_DEFAULTS}) and the file does
+ * not set that option by hand.</li>
  * </ul>
  */
 public final class ProfileAdvice {
@@ -30,6 +31,23 @@ public final class ProfileAdvice {
 	public static final int LOW_CORES = 2;
 	/** Options left out of the seam check: they place no structure in the land (the arena builds itself next to spawn). */
 	static final String[] NOT_SEAMS = {"arena."};
+
+	/**
+	 * Generation defaults that changed after the record of the generation options existed, with the value a world from
+	 * before that record was generated with: {key: old default}. A world without the record that now gets another value
+	 * through the default (the option is not written by hand in the file) has seams, and is warned. Only profile options
+	 * go here: for those the file says whether they are set by hand (the mod does not write them otherwise).
+	 * <ul>
+	 * <li>{@code medianas.frecuencia_porcentaje}: 100 (one medium every ~550 blocks). The medium-density session lowered the
+	 * default to 60 for a few hours and it is back to 100 now ({@code options.py}; docs/CONFIGURATION.md, "Medium structures
+	 * density"). A world without the record was generated with 100, the current default, so this entry no longer warns on
+	 * its own (only when a profile gives another value, e.g. {@code ligero}'s 50); it stays so that the mechanism and the
+	 * 1 → 2 and 2 → 3 migrations ({@code HeraldiaConfig.writtenByDefault}) keep their history. A world started with the 60
+	 * of those hours always has the record (it exists since the light profile, before the 60), so its return to 100 is
+	 * warned by {@link #changed} ({@code medianas.frecuencia_porcentaje 60 → 100}), not here.</li>
+	 * </ul>
+	 */
+	public static final Map<String, String> PREVIOUS_DEFAULTS = Map.of("medianas.frecuencia_porcentaje", "100");
 
 	private ProfileAdvice() {
 	}
@@ -99,9 +117,39 @@ public final class ProfileAdvice {
 	 * changed; if not (a world from before this record), when it starts with a profile that changes generation.
 	 */
 	public static boolean warnSeams(Map<String, String> stored, Map<String, String> now, boolean worldStarted, boolean generationProfile) {
+		return warnSeams(stored, now, worldStarted, generationProfile, Map.of());
+	}
+
+	/**
+	 * The same, for a world without the record, also when a generation default it used has changed ({@code fromDefaults},
+	 * from {@link #defaultChanges}).
+	 */
+	public static boolean warnSeams(Map<String, String> stored, Map<String, String> now, boolean worldStarted, boolean generationProfile,
+									Map<String, String[]> fromDefaults) {
 		if (!worldStarted) {
 			return false;
 		}
-		return stored == null ? generationProfile : !changed(stored, now).isEmpty();
+		return stored == null ? generationProfile || !fromDefaults.isEmpty() : !changed(stored, now).isEmpty();
+	}
+
+	/**
+	 * For a world without the record: the options of {@link #PREVIOUS_DEFAULTS} whose value in use differs from the old
+	 * default and that the file does not set by hand ({@code byHand}: a value written by hand never changed with the
+	 * update): {key: [old default, now]}.
+	 */
+	public static Map<String, String[]> defaultChanges(Map<String, String> now, Set<String> byHand) {
+		Map<String, String> before = new LinkedHashMap<>();
+		PREVIOUS_DEFAULTS.forEach((k, v) -> {
+			if (!byHand.contains(k)) {
+				before.put(k, v);
+			}
+		});
+		Map<String, String> current = new LinkedHashMap<>();
+		before.keySet().forEach(k -> {
+			if (now.containsKey(k)) {
+				current.put(k, now.get(k));
+			}
+		});
+		return changed(before, current);
 	}
 }

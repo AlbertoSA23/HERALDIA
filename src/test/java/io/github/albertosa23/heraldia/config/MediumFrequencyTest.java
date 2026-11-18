@@ -52,10 +52,15 @@ import org.junit.jupiter.api.Test;
  * also discards some by height), nor the exclusion zone against vanilla villages, nor Atlantis.
  */
 class MediumFrequencyTest {
-	private static final int SIDE = 16000;
-	private static final long[] SEEDS = {1L, 20261116L, -4242L};
+	static final int SIDE = 16000;
+	static final long[] SEEDS = {1L, 20261116L, -4242L};
 	/** Owner's target (T24): overall, one every ~400-800 blocks. */
 	private static final double MIN_SEP = 400, MAX_SEP = 800;
+	/**
+	 * Fewest mediums of each type in each seed's square (16 x 16 km, 256 km2) at the default frequency: none becomes a rarity
+	 * that a server never sees (measured: the rarest one, the hermitage, tied to a scarce biome, gives 31-36 at 60 %; a type tied to a scarce biome hardly changes with the frequency).
+	 */
+	static final int MIN_PER_TYPE = 15;
 	private static HolderLookup.Provider vanilla;
 	private static Path data;
 
@@ -168,8 +173,50 @@ class MediumFrequencyTest {
 		return out;
 	}
 
-	@Test
-	void frequencyWithRealBiomes() throws IOException {
+	/** What one simulation gives: per seed and type, how many mediums spawn in the square, and the text report. */
+	record Simulation(int frequency, Map<String, int[]> perType, int total, String report) {
+		/** Average separation (square root of the area per structure) of everything together. */
+		double each() {
+			return Math.sqrt((double) SIDE * SIDE * SEEDS.length / total);
+		}
+
+		/** Average separation of one type. */
+		double each(String type) {
+			int n = java.util.Arrays.stream(perType.get(type)).sum();
+			return n == 0 ? Double.POSITIVE_INFINITY : Math.sqrt((double) SIDE * SIDE * SEEDS.length / n);
+		}
+
+		/**
+		 * Mediums a player passes by per kilometre walked in a straight line: those within {@link #SIGHT} blocks of the path
+		 * (density x 2 x SIGHT x 1000; what a walk across the land meets on average, without counting detours).
+		 */
+		double perKm() {
+			return (double) total / ((double) SIDE * SIDE * SEEDS.length) * 2 * SIGHT * 1000;
+		}
+	}
+
+	/** A medium structure is "passed by" when it is this close to the path, in blocks (clearly visible: 4-6 chunks). */
+	static final int SIGHT = 80;
+
+	/** Simulates the mediums of the overworld with the configuration of {@code configJson} (null: the default one). */
+	static Simulation simulate(String configJson) throws IOException {
+		Path file = null;
+		if (configJson != null) {
+			file = Files.createTempFile("heraldia-medianas", ".json");
+			Files.writeString(file, configJson);
+		}
+		try {
+			HeraldiaConfig.load(file);
+			return simulateLoaded();
+		} finally {
+			GridPlacement.testContext(0, null);
+			if (file != null) {
+				Files.deleteIfExists(file);
+			}
+		}
+	}
+
+	private static Simulation simulateLoaded() throws IOException {
 		List<Type> uniques = types("unicas"), mediums = types("medianas");
 		GridPlacement villages = mediumGrid(json(data.resolve("worldgen/structure_set/aldeas.json")));
 		Set<String> villageBiomes = new HashSet<>();
@@ -195,7 +242,11 @@ class MediumFrequencyTest {
 		assertTrue(foreign.size() >= 8, "rejillas vanilla de estructuras que asoman: " + foreign.size());
 		int total = 0;
 		StringBuilder report = new StringBuilder();
+		Map<String, int[]> perType = new java.util.LinkedHashMap<>();
+		mediums.forEach(t -> perType.put(t.id.getPath().substring("medianas/".length()), new int[SEEDS.length]));
+		int seedIndex = -1;
 		for (long seed : SEEDS) {
+			seedIndex++;
 			RandomState rs = RandomState.create(vanilla.lookupOrThrow(Registries.NOISE), seed, settings);
 			BiomeResolver resolver = source.createResolver(rs.createClimateSampler(SamplerContext.EMPTY_UNCACHED));
 			Map<Long, String> cache = new HashMap<>(), highCache = new HashMap<>();
@@ -260,6 +311,7 @@ class MediumFrequencyTest {
 					}
 				}
 				n += ofType;
+				perType.get(mediums.get(i).id.getPath().substring("medianas/".length()))[seedIndex] = ofType;
 				report.append(String.format("  semilla %d %s: %d (una cada %.0f bloques)%n", seed, mediums.get(i).id.getPath(), ofType,
 						ofType == 0 ? Double.POSITIVE_INFINITY : Math.sqrt((double) SIDE * SIDE / ofType)));
 			}
@@ -274,10 +326,23 @@ class MediumFrequencyTest {
 					seed, n, SIDE, SIDE, each, noBiome, byZone, byOther));
 			total += n;
 		}
-		double each = Math.sqrt((double) SIDE * SIDE * SEEDS.length / total);
-		report.append(String.format("media: una cada %.0f bloques%n", each));
-		System.out.print(report);
-		assertTrue(each >= MIN_SEP && each <= MAX_SEP, "separación media " + Math.round(each) + " fuera de " + MIN_SEP + "-" + MAX_SEP + "\n" + report);
+		Simulation sim = new Simulation(cfg.getInt(MediumStructures.FREQUENCY), perType, total, report.toString());
+		report.append(String.format("media: una cada %.0f bloques (%.2f por km de paseo)%n", sim.each(), sim.perKm()));
+		return new Simulation(sim.frequency(), perType, total, report.toString());
+	}
+
+	@Test
+	void frequencyWithRealBiomes() throws IOException {
+		Simulation sim = simulate(null);
+		System.out.print(sim.report());
+		double each = sim.each();
+		assertTrue(each >= MIN_SEP && each <= MAX_SEP, "separación media " + Math.round(each) + " fuera de " + MIN_SEP + "-" + MAX_SEP + "\n" + sim.report());
+		// no type disappears in practice: every one spawns in every seed's square (16 x 16 km)
+		sim.perType().forEach((type, seeds) -> {
+			for (int i = 0; i < seeds.length; i++) {
+				assertTrue(seeds[i] >= MIN_PER_TYPE, type + ": " + seeds[i] + " en la semilla " + SEEDS[i] + " (mínimo " + MIN_PER_TYPE + ")\n" + sim.report());
+			}
+		});
 	}
 
 	/** Grid candidates in the cells covering ±r chunks. */

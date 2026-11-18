@@ -14,7 +14,7 @@ JAVA = os.path.join(ROOT, "src", "main", "java", "io", "github", "albertosa23", 
 CLIENT = os.path.join(ROOT, "src", "client", "java", "io", "github", "albertosa23", "heraldia", "client")
 TEXTS = admin.lang()
 PREFIXES = ("heraldia.revisar.", "heraldia.estado.", "heraldia.recargar.", "heraldia.version.", "heraldia.comando.",
-            "heraldia.mapas_web.")
+            "heraldia.mapas_web.", "heraldia.diario.")
 
 
 def _java(*parts):

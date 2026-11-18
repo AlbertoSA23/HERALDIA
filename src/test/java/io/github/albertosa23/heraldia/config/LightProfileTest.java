@@ -71,7 +71,7 @@ class LightProfileTest {
 		assertTrue(profiles().touchesGeneration(Profiles.LIGHT));
 		assertFalse(light.get("aldeas.caminos.activado").getAsBoolean());
 		assertFalse(light.get("caravanas.activado").getAsBoolean());
-		assertEquals(60, light.get("medianas.frecuencia_porcentaje").getAsInt());
+		assertEquals(50, light.get("medianas.frecuencia_porcentaje").getAsInt());
 		assertEquals(1.0, light.get("minas.vanilla.multiplicador").getAsDouble());
 		assertTrue(profiles().generationKeysOf(Profiles.LIGHT).contains("medianas.frecuencia_porcentaje"));
 		assertFalse(profiles().generationKeysOf(Profiles.LIGHT).contains("caravanas.activado"), "caravans: gameplay");
@@ -110,7 +110,7 @@ class LightProfileTest {
 		assertTrue(c.getBool("aldeas.caminos.activado"), "the file rules");
 		assertEquals("personalizado", c.profile().effective());
 		assertEquals(Set.of("aldeas.caminos.activado"), c.profile().differing().keySet());
-		assertEquals(60, c.getInt("medianas.frecuencia_porcentaje"), "the rest, the profile's");
+		assertEquals(50, c.getInt("medianas.frecuencia_porcentaje"), "the rest, the profile's");
 	}
 
 	@Test

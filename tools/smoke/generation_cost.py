@@ -6,6 +6,9 @@ Usage:
   python3 tools/smoke/generation_cost.py ... --update-reference     # measures and saves the new reference
   python3 tools/smoke/generation_cost.py --from-json build/coste/generation_cost.json [--update-reference]
       # rebuilds the summary (or the reference) from a measurement already taken, e.g. the CI artifact "coste-generacion"
+  python3 tools/smoke/generation_cost.py --jar ... --zones medianas \
+      --variant medianas.frecuencia_porcentaje=100 --variant medianas.frecuencia_porcentaje=70
+      # compares several Heraldia configurations against the same vanilla passes (one table, no threshold)
 
 Each pass starts a fresh 26.3 dedicated server (world deleted, fixed seed SEED, Fabric API and Chunky), once
 with the Heraldia .jar (default configuration and -Dheraldia.perfil=true) and once without it, alternating. In each
@@ -37,6 +40,12 @@ SEED = "heraldia"
 # default configuration (swamp, 32 -1344) and the start of its roads; "origen": 0,0 (no Heraldia village).
 ZONES = [("aldea", 32, -1344, 160), ("origen", 0, 0, 160)]
 WARMUP = ("calentamiento", 6000, 6000, 64)
+# Zones for comparing densities of medium structures (--zones medianas): the standard ones are centred on a village and
+# next to a castle, where no medium spawns (the exclusion zone around villages and uniques), so they barely see the medium
+# frequency. These are four large squares (51 x 51 chunks each, 4 x 0.67 km2) on open land at the four diagonals, with
+# several mediums each at the default density. The strip is kept (the continuous flight).
+MEDIUM_ZONES = [("m_ne", 2400, -2400, 400), ("m_se", 2400, 2400, 400), ("m_so", -2400, 2400, 400), ("m_no", -2400, -2400, 400)]
+LAYOUTS = {"estandar": ZONES, "medianas": MEDIUM_ZONES}
 # The continuous route ("like flying with elytra"): a long, narrow strip that Chunky generates column by column along x
 # (shape rectangle, pattern loop), through the castle closest to the village (heraldia:unicas/castillo at -4496, -1088: the
 # largest piece-by-piece structure, 100 x 100 blocks): (name, x, z, half length in x, half width in z), in blocks.
@@ -245,6 +254,67 @@ def join_zones(events, zones):
     return {"media_ms": pond("media_ms"), "p50_ms": percentile(pc, 50), "p90_ms": percentile(pc, 90), "p99_ms": percentile(pc, 99),
             "max_ms": max(pc, default=None), "estructuras_ms": pond("estructuras_ms"), "con_luz_ms": pond("con_luz_ms"),
             "pasos_ms": steps}
+
+
+def parse_variant(text):
+    """"a.b=1,c=true" -> {"a.b": 1, "c": True} (each value read as JSON if it can be: numbers, true/false; otherwise text)."""
+    out = {}
+    for part in filter(None, (p.strip() for p in text.split(","))):
+        k, sep, v = part.partition("=")
+        if not sep or not k.strip():
+            raise ValueError(f"expected KEY=VALUE: {part!r}")
+        try:
+            out[k.strip()] = json.loads(v.strip())
+        except ValueError:
+            out[k.strip()] = v.strip()
+    return out
+
+
+def config_of(profile=None, options=None):
+    """The config/heraldia.json of the passes with Heraldia: CONFIG, the profile and the `options` ({"a.b": v}) nested."""
+    out = json.loads(json.dumps(CONFIG))
+    if profile:
+        out["perfil"] = profile
+    for k, v in (options or {}).items():
+        node = out
+        *parents, leaf = k.split(".")
+        for p in parents:
+            node = node.setdefault(p, {})
+        node[leaf] = v
+    return out
+
+
+def medium_starts(structures):
+    """(medium structures started, their total ms) in a `estructuras` summary (those of heraldia:medianas/...)."""
+    rows = [v for k, v in structures.items() if k.startswith("heraldia:medianas/")]
+    return sum(r.get("generadas") or 0 for r in rows), sum(r.get("total_ms") or 0.0 for r in rows)
+
+
+def variant_label(options):
+    return ", ".join(f"{k}={v}" for k, v in options.items()) or "por defecto"
+
+
+def variants_markdown(results):
+    """One table for several Heraldia configurations measured against the same vanilla passes: [(options, result_of)]."""
+    lines = ["## Coste por configuración", "",
+             "| Configuración | Sobrecoste CPU | CPU ms/chunk | p95 ms | p99 ms | Chunks > 50 ms | Peor tramo ms/chunk | MSPT p99 | "
+             "Medianas iniciadas | ms en iniciarlas | /locate mediana ms |", "|---" * 11 + "|"]
+    if results:
+        sin = results[0][1]["sin"]
+        pk = sin.get("picos") or {}
+        lines.append(f"| sin Heraldia | — | {_f(sin.get('cpu_ms_por_chunk'))} | {_f(pk.get('p95_ms'))} | {_f(pk.get('p99_ms'))} | "
+                     f"{_f(_pct(pk.get('lentos_fraccion')))} % | {_f(((sin.get('franja') or {}).get('tramos') or {}).get('peor_ms_por_chunk'))} | "
+                     f"{_f(sin['mspt'].get('p99'))} | — | — | — |")
+    for options, r in results:
+        con = r["con"]
+        pk = con.get("picos") or {}
+        n, ms = medium_starts(con.get("estructuras") or {})
+        over = r.get("sobrecoste")
+        lines.append(f"| {variant_label(options)} | {'—' if over is None else f'{over:+.1%}'} | {_f(con.get('cpu_ms_por_chunk'))} | "
+                     f"{_f(pk.get('p95_ms'))} | {_f(pk.get('p99_ms'))} | {_f(_pct(pk.get('lentos_fraccion')))} % | "
+                     f"{_f(((con.get('franja') or {}).get('tramos') or {}).get('peor_ms_por_chunk'))} | {_f(con['mspt'].get('p99'))} | "
+                     f"{n:g} | {_f(ms)} | {_f(con['locate_ms'].get('mediana'))} |")
+    return "\n".join(lines) + "\n"
 
 
 def cpu_of_stat(line, hz=100):
@@ -742,23 +812,25 @@ def tail(events, structure_events, strip_seconds, strip_cpu):
                        "tramos": stretches(events, measured)}}
 
 
-def measure(jar, work, sweeps, profile=None):
+def measure(jar, work, sweeps, profile=None, variants=None):
     """Alternating passes (without, with, without, with...) in `work`: (list without, list with). With `profile`, the
-    passes with Heraldia use that gameplay profile (e.g. "ligero") instead of the default one."""
+    passes with Heraldia use that gameplay profile (e.g. "ligero") instead of the default one. With `variants` (a list of
+    {"key": value}), each round has one pass without Heraldia and one with each variant: (list without, [list per variant])."""
     os.makedirs(work, exist_ok=True)
     launcher = s.prepare(work, jar, s.gradle_properties())
     with open(os.path.join(work, "server.properties"), encoding="utf-8") as f:
         props = re.sub(r"level-seed=.*", f"level-seed={SEED}", f.read())
     with open(os.path.join(work, "server.properties"), "w", encoding="utf-8") as f:
         f.write(props)
-    with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
-        json.dump(dict(CONFIG, perfil=profile) if profile else CONFIG, f)
     modrinth.install(work, ["chunky"])
-    sin, with_it = [], []
+    sin, with_it = [], [[] for _ in (variants or [None])]
     for i in range(sweeps):
         sin.append(sweep(work, jar, False, launcher))
-        with_it.append(sweep(work, jar, True, launcher))
-    return sin, with_it
+        for j, v in enumerate(variants or [None]):
+            with open(os.path.join(work, "config", "heraldia.json"), "w") as f:   # the server rewrites it at every start
+                json.dump(config_of(profile, v), f)
+            with_it[j].append(sweep(work, jar, True, launcher))
+    return sin, (with_it if variants else with_it[0])
 
 
 def result_of(sin, with_it):
@@ -808,8 +880,30 @@ def main(argv=None):
     ap.add_argument("--no-retry", action="store_true", help="if it exceeds the threshold, does not repeat another round of passes")
     ap.add_argument("--from-json", help="does not measure: uses this coste_generacion.json (e.g. the CI artifact)")
     ap.add_argument("--profile", help="the passes with Heraldia use this gameplay profile (e.g. ligero); implies --no-threshold")
+    ap.add_argument("--variant", action="append", type=parse_variant, metavar="KEY=VALUE[,KEY=VALUE]",
+                    help="a Heraldia configuration to measure (repeatable): each round, one pass without Heraldia and one with each "
+                         "variant; writes coste_variantes.json/.md with one table; implies --no-threshold")
+    ap.add_argument("--zones", choices=sorted(LAYOUTS), default="estandar",
+                    help="measured zones: estandar (the reference's) or medianas (four large squares on open land, to compare "
+                         "medium-structure densities)")
     a = ap.parse_args(argv)
     ref = read_reference(a.reference)
+    global ZONES
+    ZONES = LAYOUTS[a.zones]
+    if a.variant:
+        if not a.jar:
+            ap.error("--variant needs --jar")
+        sin, per_variant = measure(os.path.abspath(a.jar), os.path.abspath(a.work), a.sweeps, a.profile, a.variant)
+        results = [(v, result_of(sin, w)) for v, w in zip(a.variant, per_variant)]
+        os.makedirs(a.output, exist_ok=True)
+        with open(os.path.join(a.output, "coste_variantes.json"), "w", encoding="utf-8") as f:
+            json.dump({"zonas": a.zones, "perfil": a.profile or "estandar",
+                       "variantes": [{"opciones": v, "resultado": r} for v, r in results]}, f, ensure_ascii=False, indent=1, default=list)
+        md = variants_markdown(results)
+        with open(os.path.join(a.output, "coste_variantes.md"), "w", encoding="utf-8") as f:
+            f.write(md)
+        print(md)
+        return 0
 
     def decide(res, ref):
         return compare(res["sobrecoste"], ref) + compare_peaks(res, ref)

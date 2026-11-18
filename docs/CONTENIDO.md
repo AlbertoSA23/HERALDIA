@@ -95,7 +95,7 @@ Volver al [README](../README.es.md).
     por el acantilado), el cuerpo de guardia, la sala del mapa con el **puzle de la rosa de los vientos**, la armería con
     la santabárbara secreta, los calabozos y, bajo el nivel del mar y en seco, la cámara del tesoro con Roque Salitre, el
     corsario; trampas de cable y de placas, 3 generadores y 21 cofres. Diseño: [docs/unicas/isla_corsario.md](unicas/isla_corsario.md).
-- **Estructuras medianas** (entre todos los tipos, una cada 550-580 bloques, cada uno en sus biomas): torres de vigía,
+- **Estructuras medianas** (entre todos los tipos, una cada ~550 bloques por defecto, cada uno en sus biomas): torres de vigía,
   posadas de camino, campamentos de bandidos, ermitas, molinos, cabañas de pescador, puestos de cazadores y templetes en
   ruinas, con un estilo por bioma. Ver [Estructuras medianas](#estructuras-medianas).
 - **Entradas a mina** (en laderas reales de montes, taigas, desiertos, badlands y picos): bocas de mina, campamentos
@@ -186,7 +186,7 @@ Detalle, planos y qué se ha comprobado: [docs/unicas/atlantida.md](unicas/atlan
 
 ## Estructuras medianas
 
-Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada 550-580 bloques** (medido, ver abajo), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
+Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada ~550 bloques** (medido, ver abajo; ~610 con `medianas.frecuencia_porcentaje` 60, ver [Densidad de las estructuras medianas](CONFIGURACION.md#densidad-de-las-estructuras-medianas)), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
 
 | Tipo | Id | Estilos (biomas) | Variantes |
 | --- | --- | --- | --- |
@@ -201,7 +201,7 @@ Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frec
 
 - Nunca salen dentro de una aldea, una única, la Atlántida o la isla del corsario: no a menos de `medianas.distancia_aldeas_unicas_bloques` (256) del inicio de una aldea o una única de Heraldia que sale ahí, ni a menos de `medianas.distancia_minima.bloques` (192) de otra mediana de otro tipo (un sorteo determinista deja una, la misma regla que la distancia mínima entre únicas), ni a menos de 128 bloques de una candidata de aldea vanilla. Además ceden el sitio a las estructuras que asoman a la superficie, vanilla o de otros mods (puestos de saqueadores, templos, portales en ruinas, aldeas de otros mods...): se descarta una si sale una de esas a menos de 80 bloques (vanilla) o de 128 (de otro mod).
 - Se encuentran con `/locate structure #heraldia:medianas/<tipo>` (o `heraldia:medianas/<tipo>/<estilo>`) y `/heraldia info nearby`; `/heraldia info` resume su configuración. Para probar una: `/place structure heraldia:medianas/<tipo>/<estilo>`.
-- Frecuencia, medida con `MediumFrequencyTest` (las rejillas sobre el ruido de biomas real del mundo principal de 26.3, con las aldeas, las únicas y las estructuras vanilla alrededor, 3 semillas, 16.000 × 16.000 bloques): las cifras por tipo, en el [registro de cambios](../CHANGELOG.md) y el PR. Cada rejilla busca su candidata dentro de los biomas del tipo (el sitio de la casilla más metido en ellos), así que un tipo aparece allí donde están sus biomas, como mucho una vez por casilla.
+- Frecuencia, medida con `MediumFrequencyTest` (las rejillas sobre el ruido de biomas real del mundo principal de 26.3, con las aldeas, las únicas y las estructuras vanilla alrededor, 3 semillas, 16.000 × 16.000 bloques): las cifras por tipo, en el [registro de cambios](../CHANGELOG.md) y el PR, y las de cada frecuencia en [Densidad de las estructuras medianas](CONFIGURACION.md#densidad-de-las-estructuras-medianas) (`MediumDensityComparisonTest`). Cada rejilla busca su candidata dentro de los biomas del tipo (el sitio de la casilla más metido en ellos), así que un tipo aparece allí donde están sus biomas, como mucho una vez por casilla.
 - Configuración: opciones `medianas.*` (ver [Configuración](CONFIGURACION.md#configuración)). Logros: **Al borde del camino**, **Caminante** y uno propio de cada tipo del lote 2 (ver [Logros](#logros)). **En un mundo ya creado, solo en los chunks nuevos.**
 
 ## Nether y End
@@ -418,6 +418,17 @@ Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jug
 - Límites del libro vanilla: el generador comprueba que cada página cabe en las 14 líneas de una página (con el mismo cálculo de anchos que los pliegos), que el título no pasa de 32 caracteres y que el libro, en el peor caso, no pasa de 100 páginas (con las 20 únicas actuales, de 23 a 29). Lleva `custom_data` `{heraldia_guia_libro:"<versión>"}` y, en el lore, la edición del mod.
 
 Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión o al pedirla (lee sus logros de descubrimiento y arma el libro; medido en el servidor de prueba, ver `tools/smoke/guide.py`); nada por tick.
+
+## Tu diario: `/heraldia journal`
+
+El registro propio de cada jugador de **lo que ha encontrado y lo que le falta**, en el chat (también con clientes vanilla, en el idioma del jugador, como el tablón de encargos), para cualquier jugador y sin permisos:
+
+- `/heraldia journal`: el título, una barra con el **total general** (todo lo encontrado frente a todo lo que se puede encontrar en este mundo) y una línea por tipo con su barra de progreso (■ encontrado, □ falta; en dorado y con ✔ cuando está completo) y su cuenta: **familias de aldea**, **estructuras únicas**, **estructuras medianas** (por tipo), **entradas a mina** (por tamaño), la **costa** (faro y naufragio) y el **Nether** y el **End** (su única y sus tipos de mediana). Cada línea es un botón que abre su tipo; al pasar el ratón por encima dice qué falta.
+- `/heraldia journal <tipo>` (`villages`, `uniques`, `mediums`, `mines`, `coast`, `nether`, `end`): los nombres ya encontrados y los que faltan, por orden alfabético del idioma del jugador (las minas, por tamaño), con un botón para volver al resumen.
+- **Sin coordenadas ni pistas**: el diario dice «2 de 21 únicas, te faltan estas», nunca dónde están. Encontrarlas es cosa de los mapas, los encargos y la Crónica; las pistas suaves de bioma de las únicas que faltan siguen en la Guía del Heraldo, a la que el diario remite (un botón a `/heraldia guide`) mientras falte alguna.
+- **De dónde salen los datos**: de los logros del propio jugador, que ya registran cada descubrimiento (`aldeas/<familia>`, `unicas/<id>/descubrir`, los criterios de `medianas/todas`, `medianas/nether` y `medianas/end`, `minas/<tamaño>`, `costa/faro` y `costa/naufragio`); qué ids son de cada tipo también se lee de los logros (los criterios de `aldeas/todas`, `unicas/todas` y los tres de caminante) y, para la dimensión de una única, del registro de estructuras. No se guarda nada ni se hace nada hasta que alguien lo pide: lee el progreso del jugador de memoria, en el hilo del servidor, y contesta en el mismo tick.
+- Qué cuenta: lo que todavía puede aparecer en este mundo (un tipo desactivado en la configuración no «falta») y lo que el jugador ya encontró, aunque se desactivara después. Un tipo sin nada que encontrar no sale.
+- **Por qué un comando y no más páginas de la Guía ni `/heraldia status`**: la Guía es un libro que se entrega al entrar (solo se pone al día si se vuelve a pedir, y sus páginas tienen que caber en un tamaño medido), y ya lleva el diario de las únicas con sus pistas; `/heraldia status` es el resumen del servidor, lo que ha descubierto cualquiera. El diario es la vista por jugador de todos los tipos, siempre al día; `/heraldia status` enlaza con él y él con la Guía, en vez de repetir ninguno.
 
 ## Logros
 
