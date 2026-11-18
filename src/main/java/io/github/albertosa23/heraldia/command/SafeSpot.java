@@ -6,48 +6,48 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Teletransporte seguro (lógica pura, sin clases del juego): busca, desde una columna y en espiral, un sitio donde
- * quedar de pie encima del suelo y sin asfixia. Un sitio vale si los pies y la cabeza quedan en celdas libres y debajo
- * hay suelo firme o agua (flotar en el agua es seguro: la Atlántida y la isla están en el mar). Nunca encima ni dentro
- * de lava, fuego, magma, cactus o nieve polvo.
+ * Safe teleport (pure logic, no game classes): searches, from a column and in a spiral, for a spot where one can
+ * stand on the ground without suffocating. A spot is valid if the feet and the head are in free cells and below
+ * there is firm ground or water (floating on water is safe: Atlantis and the island are in the sea). Never on or in
+ * lava, fire, magma, cactus or powder snow.
  */
 public final class SafeSpot {
-	/** Radio de búsqueda por defecto alrededor de la columna pedida, en bloques. */
+	/** Default search radius around the requested column, in blocks. */
 	public static final int RADIUS = 8;
 
 	private SafeSpot() {
 	}
 
-	/** Qué hay en una celda, a efectos de quedarse en ella. */
+	/** What a cell holds, as far as standing in it goes. */
 	public enum Cell {
-		/** Sin colisión ni daño (aire, hierba, flores, nieve fina...). */
+		/** No collision or damage (air, grass, flowers, thin snow...). */
 		FREE,
-		/** Bloque que sostiene y que asfixia si se está dentro. */
+		/** Block that supports and suffocates if one is inside. */
 		SOLID,
-		/** Agua: se puede flotar encima; no asfixia al instante, pero no se aparece dentro. */
+		/** Water: one can float on top; it does not suffocate instantly, but one does not appear inside. */
 		WATER,
-		/** Daña o atrapa: lava, fuego, magma, cactus, nieve polvo, bayas... */
+		/** Hurts or traps: lava, fire, magma, cactus, powder snow, berries... */
 		DANGER
 	}
 
-	/** Lo que hace falta del mundo. Solo se pregunta por columnas ya cargadas. */
+	/** What is needed from the world. Only already loaded columns are asked about. */
 	public interface World {
 		Cell en(int x, int y, int z);
 
-		/** Primera y libre encima del bloque más alto que impide moverse en la columna (el heightmap). */
+		/** First free y above the highest block that blocks movement in the column (the heightmap). */
 		int height(int x, int z);
 
 		int minY();
 
-		/** Primera y fuera del mundo (por arriba). */
+		/** First y outside the world (above). */
 		int maxY();
 	}
 
-	/** (x, y, z) de los pies. */
+	/** (x, y, z) of the feet. */
 	public record Site(int x, int y, int z) {
 	}
 
-	/** Desplazamientos de la espiral hasta {@code radius}, del centro hacia fuera (orden fijo: distancia, x, z). */
+	/** Spiral offsets up to {@code radius}, from the center out (fixed order: distance, x, z). */
 	static List<int[]> spiral(int radius) {
 		List<int[]> out = new ArrayList<>();
 		for (int dx = -radius; dx <= radius; dx++) {
@@ -61,7 +61,7 @@ public final class SafeSpot {
 		return out;
 	}
 
-	/** El sitio seguro más cercano a la columna (x, z), o vacío si no hay ninguno a {@code radius} bloques. */
+	/** The safe spot nearest to column (x, z), or empty if there is none within {@code radius} blocks. */
 	public static Optional<Site> search(World m, int x, int z, int radius) {
 		for (int[] d : spiral(radius)) {
 			int cx = x + d[0], cz = z + d[1];
@@ -74,21 +74,21 @@ public final class SafeSpot {
 	}
 
 	/**
-	 * Sitio seguro de una columna: encima de lo más alto (el heightmap) y, si ahí no vale (bajo un saliente, entre hojas),
-	 * nada más; las cuevas no se buscan (se aparece siempre al aire libre).
+	 * Safe spot of a column: on top of the highest point (the heightmap) and, if that does not work (under an overhang, among
+	 * leaves), nothing else; caves are not searched (one always appears in the open air).
 	 */
 	static Optional<Site> column(World m, int x, int z) {
 		int y = m.height(x, z);
 		if (y <= m.minY() || y + 1 >= m.maxY()) {
-			return Optional.empty();       // columna vacía (vacío) o hasta el techo del mundo
+			return Optional.empty();       // empty column (void) or up to the world ceiling
 		}
 		return valid(m, x, y, z) ? Optional.of(new Site(x, y, z)) : Optional.empty();
 	}
 
 	/**
-	 * Mundos con techo (el Nether): el heightmap da el techo de bedrock, así que la «altura» de una columna es la primera
-	 * y, de {@code from} hacia abajo hasta {@code until}, con los pies y la cabeza libres y suelo firme debajo; si no hay
-	 * ninguna, la mínima del mundo (la columna no vale). La usa /heraldia review para las paradas del Nether.
+	 * Worlds with a ceiling (the Nether): the heightmap gives the bedrock ceiling, so the "height" of a column is the first
+	 * y, from {@code from} down to {@code until}, with the feet and head free and firm ground below; if there is
+	 * none, the world's minimum (the column is not valid). /heraldia review uses it for the Nether stops.
 	 */
 	public static int underCeiling(World m, int x, int z, int from, int until) {
 		for (int y = from; y > until; y--) {
@@ -99,7 +99,7 @@ public final class SafeSpot {
 		return m.minY();
 	}
 
-	/** ¿Se puede estar de pie con los pies en y? Pies y cabeza libres; debajo, suelo firme o agua. */
+	/** Can one stand with the feet at y? Feet and head free; below, firm ground or water. */
 	static boolean valid(World m, int x, int y, int z) {
 		Cell below = m.en(x, y - 1, z);
 		return m.en(x, y, z) == Cell.FREE && m.en(x, y + 1, z) == Cell.FREE

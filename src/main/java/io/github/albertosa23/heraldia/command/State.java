@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Lógica pura de /heraldia status: qué logros de Heraldia tiene algún jugador (los conectados, de memoria; los demás,
- * de sus ficheros de logros), cuántos tipos de cada clase se han descubierto y la paginación del informe.
+ * Pure logic of /heraldia status: which Heraldia advancements some player has (online ones, from memory; the others,
+ * from their advancement files), how many types of each kind have been discovered and the report's pagination.
  */
 public final class State {
 	public static final String NS = "heraldia:";
@@ -21,13 +21,13 @@ public final class State {
 	private State() {
 	}
 
-	/** Logros de Heraldia conseguidos por algún jugador: los terminados y, de cada uno, los criterios cumplidos. */
+	/** Heraldia advancements earned by some player: the finished ones and, for each, the criteria met. */
 	public static final class Achievements {
 		final Set<String> finished = new HashSet<>();
 		final Map<String, Set<String>> criteria = new HashMap<>();
 		int players;
 
-		/** Suma lo de un jugador: un logro (terminado o no) y sus criterios cumplidos. */
+		/** Adds up a player's data: an advancement (finished or not) and its criteria met. */
 		public void add(String advancement, boolean done, Iterable<String> met) {
 			if (!advancement.startsWith(NS)) {
 				return;
@@ -57,8 +57,8 @@ public final class State {
 		}
 
 		/**
-		 * Suma un fichero de logros de un jugador (world/advancements/&lt;uuid&gt;.json: {"&lt;logro&gt;": {"criteria":
-		 * {"&lt;criterio&gt;": "&lt;fecha&gt;"}, "done": true}, "DataVersion": n}). Lo que no se entienda se ignora.
+		 * Adds up a player's advancement file (world/advancements/&lt;uuid&gt;.json: {"&lt;advancement&gt;": {"criteria":
+		 * {"&lt;criterion&gt;": "&lt;date&gt;"}, "done": true}, "DataVersion": n}). Whatever is not understood is ignored.
 		 */
 		public void addFile(JsonObject o) {
 			player();
@@ -77,11 +77,11 @@ public final class State {
 		}
 	}
 
-	/** Cuántos de {@code total} y cuáles faltan, en el orden dado. */
+	/** How many out of {@code total} and which are missing, in the given order. */
 	public record Tally(int finished, int total, List<String> missing) {
 	}
 
-	/** Cuenta los elementos de {@code ids} que cumple {@code done}. */
+	/** Counts the elements of {@code ids} that {@code done} accepts. */
 	public static Tally count(Collection<String> ids, java.util.function.Predicate<String> done) {
 		int n = 0;
 		List<String> missing = new ArrayList<>();
@@ -95,12 +95,12 @@ public final class State {
 		return new Tally(n, ids.size(), List.copyOf(missing));
 	}
 
-	/** Número de páginas (al menos 1). */
+	/** Number of pages (at least 1). */
 	public static int pages(int lines, int perPage) {
 		return Math.max(1, (lines + perPage - 1) / perPage);
 	}
 
-	/** Las líneas de la página {@code pagina} (desde 1; se acota a las que hay). */
+	/** The lines of page {@code page} (from 1; clamped to the existing ones). */
 	public static <T> List<T> pagina(List<T> lines, int pagina, int perPage) {
 		int p = Math.clamp(pagina, 1, pages(lines.size(), perPage));
 		int from = (p - 1) * perPage;

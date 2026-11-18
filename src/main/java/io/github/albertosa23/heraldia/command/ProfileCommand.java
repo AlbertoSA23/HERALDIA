@@ -13,15 +13,15 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 
 /**
- * /heraldia profile (operadores): el perfil de juego en uso (el efectivo y el elegido en el fichero) y los valores que da
- * a cada una de sus opciones, marcando las fijadas a mano que mandan sobre el perfil. Solo lee la configuración en uso
- * (la de {@link HeraldiaConfig#get()}, también tras una recarga). Comando nuevo: en inglés.
+ * /heraldia profile (operators): the gameplay profile in use (the effective one and the one chosen in the file) and the values it
+ * gives each of its options, marking those set by hand that override the profile. It only reads the configuration in use
+ * (that of {@link HeraldiaConfig#get()}, also after a reload). New command: in English.
  */
 public final class ProfileCommand {
 	private ProfileCommand() {
 	}
 
-	/** /heraldia profile (lo cuelga {@link HeraldiaCommands#tree}). */
+	/** /heraldia profile (hung by {@link HeraldiaCommands#tree}). */
 	static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("profile")
 				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -34,7 +34,7 @@ public final class ProfileCommand {
 		return lines.size();
 	}
 
-	/** Las líneas de la respuesta (pública para las pruebas). */
+	/** The lines of the reply (public for the tests). */
 	public static List<Component> lines(HeraldiaConfig cfg) {
 		Profiles.Applied p = cfg.profile();
 		List<Component> out = new ArrayList<>();

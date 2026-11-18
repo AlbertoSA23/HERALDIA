@@ -21,15 +21,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /heraldia reload (operador, nivel 2): vuelve a leer config/heraldia.json y aplica en caliente lo que no afecta a la
- * generación ({@link Reload}); lo que sí la afecta se lista y no se aplica. Después de cambiar la configuración:
+ * /heraldia reload (operator, level 2): reads config/heraldia.json again and hot-applies what does not affect
+ * generation ({@link Reload}); what does affect it is listed and not applied. After changing the configuration:
  * <ul>
- * <li>dificultad: se recalculan los modificadores de los mobs de Heraldia ya cargados (los demás, al cargarse);</li>
- * <li>gólems: se publican otra vez los límites al marcador de las funciones;</li>
- * <li>arena: incrementos, máximo de vivos, experiencia y si está activada (con una partida en marcha, se espera);</li>
- * <li>lo demás (jefes, botín y su reposición, Guía, tratos, cofre por jugador) se lee cada vez que se usa.</li>
+ * <li>difficulty: the modifiers of the already loaded Heraldia mobs are recomputed (the others, when they load);</li>
+ * <li>golems: the limits are published again to the functions' scoreboard;</li>
+ * <li>arena: increments, max alive, experience and whether it is enabled (with a match running, it waits);</li>
+ * <li>the rest (bosses, loot and its restocking, Guide, trades, per-player chest) is read on each use.</li>
  * </ul>
- * La pantalla de configuración del cliente usa el mismo camino ({@link #apply}) al guardar en un mundo abierto.
+ * The client's configuration screen uses the same path ({@link #apply}) when saving with a world open.
  */
 public final class ReloadCommand {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -47,14 +47,14 @@ public final class ReloadCommand {
 				});
 	}
 
-	/** El fichero de configuración del servidor (el mismo que lee Heraldia.onInitialize). */
+	/** The server's configuration file (the same one Heraldia.onInitialize reads). */
 	public static Path file() {
 		return FabricLoader.getInstance().getConfigDir().resolve("heraldia.json");
 	}
 
 	/**
-	 * Recarga y aplica (en el hilo del servidor). Devuelve las líneas del informe, traducibles: lo aplicado, lo que espera
-	 * al reinicio y lo recalculado.
+	 * Reloads and applies (on the server thread). Returns the report lines, translatable: what was applied, what waits
+	 * for the restart and what was recomputed.
 	 */
 	public static List<Component> apply(MinecraftServer server) {
 		Path file = file();
@@ -77,20 +77,20 @@ public final class ReloadCommand {
 						.withStyle(ChatFormatting.YELLOW));
 			}
 		}
-		// Efectos de lo que se guarda fuera de la configuración: siempre (es barato y deja todo coherente).
+		// Effects of what is stored outside the configuration: always (it is cheap and keeps everything consistent).
 		int mobs = recomputeMobs(server);
 		out.add(Texts.t("heraldia.recargar.mobs", mobs).withStyle(ChatFormatting.GRAY));
 		Heraldia.publishGolemSettings(server);
 		if (!Arena.reload(server)) {
 			out.add(Texts.t("heraldia.recargar.arena_partida").withStyle(ChatFormatting.YELLOW));
 		}
-		io.github.albertosa23.heraldia.maps.WebMaps.schedule();   // mapas_web.* (y la arena) en los mapas web, si hay
+		io.github.albertosa23.heraldia.maps.WebMaps.schedule();   // mapas_web.* (and the arena) on the web maps, if any
 		LOGGER.info("Heraldia: /heraldia reload: {} aplicadas, {} pendientes de reinicio, {} mobs recalculados",
 				r.applied().size(), r.pending().size(), mobs);
 		return out;
 	}
 
-	/** Dificultad: los modificadores de la configuración nueva en todos los mobs de Heraldia ya cargados (una vez, no por tick). */
+	/** Difficulty: the new configuration's modifiers on all already loaded Heraldia mobs (once, not per tick). */
 	static int recomputeMobs(MinecraftServer server) {
 		int n = 0;
 		for (ServerLevel level : server.getAllLevels()) {

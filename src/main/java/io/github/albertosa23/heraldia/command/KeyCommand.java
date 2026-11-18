@@ -34,14 +34,14 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * /heraldia key &lt;players&gt; &lt;all|estructura|estructura.llave&gt; (operador, nivel 2): da las llaves de los cofres
- * cerrados de las estructuras únicas. Cada llave es la tabla de botín heraldia:llaves/&lt;estructura&gt;/&lt;llave&gt; que
- * escribe el generador (la misma que suelta el juego), así que el objeto es exactamente el que pide la cerradura.
- * El índice /heraldia/llaves.json se lee una vez al iniciar; el comando solo trabaja cuando se ejecuta.
+ * /heraldia key &lt;players&gt; &lt;all|structure|structure.key&gt; (operator, level 2): gives the keys of the locked
+ * chests of the unique structures. Each key is the loot table heraldia:llaves/&lt;structure&gt;/&lt;key&gt; that the
+ * generator writes (the same one the game drops), so the item is exactly the one the lock asks for.
+ * The /heraldia/llaves.json index is read once at startup; the command only works when run.
  */
 public final class KeyCommand {
 	private static final String ALL = "all", ALL_LEGACY = "todas";
-	/** "atlantida.poseidon" -> heraldia:llaves/atlantida/poseidon, en el orden del generador. */
+	/** "atlantida.poseidon" -> heraldia:llaves/atlantida/poseidon, in the generator's order. */
 	private static final Map<String, ResourceKey<LootTable>> KEYS = new LinkedHashMap<>();
 	private static final Set<String> OPTIONS = new LinkedHashSet<>();
 
@@ -59,7 +59,7 @@ public final class KeyCommand {
 		OPTIONS.addAll(KEYS.keySet());
 	}
 
-	/** /heraldia key &lt;players&gt; &lt;all|estructura|estructura.llave&gt; (lo registra {@link HeraldiaCommands}). */
+	/** /heraldia key &lt;players&gt; &lt;all|structure|structure.key&gt; (registered by {@link HeraldiaCommands}). */
 	static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("key")
 				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -69,7 +69,7 @@ public final class KeyCommand {
 								.executes(KeyCommand::give)));
 	}
 
-	/** El valor escrito, con el nombre antiguo «todas» como «all» (sin sugerirlo: ver {@link Alias}). */
+	/** The typed value, with the old name "todas" as "all" (without suggesting it: see {@link Alias}). */
 	static String option(String written) {
 		return ALL_LEGACY.equals(written) ? ALL : written;
 	}
@@ -109,7 +109,7 @@ public final class KeyCommand {
 		return total;
 	}
 
-	/** Como /give: al inventario y, si no cabe, al suelo a nombre del jugador. */
+	/** Like /give: into the inventory and, if it does not fit, on the ground in the player's name. */
 	public static void give(ServerPlayer player, ItemStack stack) {
 		if (player.getInventory().add(stack) && stack.isEmpty()) {
 			return;

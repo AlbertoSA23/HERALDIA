@@ -46,18 +46,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Guía del Heraldo: un libro escrito vanilla que explica el mod y lleva el diario del jugador (qué estructuras únicas ha
- * descubierto, cuántas le faltan y la pista de bioma de cada una que falta, sin coordenadas).
+ * Herald's Guide: a vanilla written book that explains the mod and keeps the player's journal (which unique structures
+ * they have discovered, how many are left and the biome clue of each missing one, without coordinates).
  * <ul>
- * <li>Se da una vez a cada jugador al entrar por primera vez con cada versión del mod (opción guia.entregar_al_entrar);
- * la versión entregada se guarda en el propio jugador (adjunto persistente de Fabric heraldia:guia_entregada, que se
- * conserva al morir).</li>
- * <li>/heraldia guide (cualquier jugador, sin permisos): otra copia al día.</li>
+ * <li>It is given once to each player when they first join with each version of the mod (option guia.entregar_al_entrar);
+ * the delivered version is saved on the player (Fabric persistent attachment heraldia:guia_entregada, which is
+ * kept on death).</li>
+ * <li>/heraldia guide (any player, no permissions): another up-to-date copy.</li>
  * </ul>
- * Las páginas son componentes traducibles con el respaldo en el idioma del cliente (los textos del .jar): un cliente sin el
- * mod ve el libro en su idioma (cualquiera de los del .jar; si no lo trae, el de su lengua o el inglés). Los textos, las páginas fijas y cuántas entradas caben en cada página
- * del diario los da el generador (tools/gen/guia.py, heraldia/guia.json), que comprueba que todo cabe. Solo trabaja al
- * entrar un jugador o al pedir la guía: lee sus logros de descubrimiento (heraldia:unicas/&lt;id&gt;/descubrir).
+ * The pages are translatable components with the fallback in the client's language (the .jar's texts): a client without
+ * the mod sees the book in its language (any of those in the .jar; if missing, that of its locale's language or English).
+ * The texts, the fixed pages and how many entries fit on each journal page come from the generator (tools/gen/guia.py,
+ * heraldia/guia.json), which checks that everything fits. It only works when a player joins or asks for the guide: it
+ * reads their discovery advancements (heraldia:unicas/&lt;id&gt;/descubrir).
  */
 public final class Guide {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -68,7 +69,7 @@ public final class Guide {
 	private Guide() {
 	}
 
-	/** Lo que el generador escribe en heraldia/guia.json. */
+	/** What the generator writes to heraldia/guia.json. */
 	record Data(List<String> pages, int namesPerPage, int cluesPerPage, String mark, String author) {
 		static Data read() {
 			String path = "/heraldia/guia.json";
@@ -92,9 +93,9 @@ public final class Guide {
 		}
 	}
 
-	/** El adjunto, aparte para que los tests no registren nada al cargar Guia. */
+	/** The attachment, kept apart so the tests register nothing when Guide loads. */
 	static final class Delivery {
-		/** Versión del mod de la última guía entregada a este jugador (null: nunca). */
+		/** Mod version of the last guide given to this player (null: never). */
 		static final AttachmentType<String> DELIVERED = AttachmentRegistry.create(Heraldia.id("guia_entregada"),
 				b -> b.persistent(Codec.STRING).copyOnDeath());
 
@@ -102,18 +103,18 @@ public final class Guide {
 		}
 	}
 
-	/** Una estructura única del mundo y si este jugador la ha descubierto. */
+	/** A unique structure of the world and whether this player has discovered it. */
 	record Unique(String id, boolean discovered) {
 	}
 
 	public static void register() {
 		LOGGER.debug("Heraldia: adjunto {} registrado", Delivery.DELIVERED.identifier());
-		// los textos del .jar se leen al arrancar, no en la primera entrega (en el hilo del servidor)
+		// the .jar's texts are read at startup, not on the first delivery (on the server thread)
 		for (String language : Texts.languages()) {
 			collator(Texts.language(language));
 		}
-		// En la cola de tareas del servidor, no en el propio JOIN: Carpet (jugadores falsos) carga los datos del jugador
-		// después de placeNewPlayer, y sin ellos aún no se sabe si ya tenía la guía. Corre en este mismo tick.
+		// On the server's task queue, not in JOIN itself: Carpet (fake players) loads the player's data
+		// after placeNewPlayer, and without it we do not know yet whether they already had the guide. Runs in this same tick.
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.schedule(server.wrapRunnable(() -> {
 			if (!handler.player.hasDisconnected()) {
 				onJoin(handler.player);
@@ -121,7 +122,7 @@ public final class Guide {
 		})));
 	}
 
-	/** /heraldia guide: sin requisito de permisos (cualquier jugador; lo registra {@link HeraldiaCommands}). */
+	/** /heraldia guide: no permission requirement (any player; registered by {@link HeraldiaCommands}). */
 	static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("guide").executes(ctx -> {
 			deliver(ctx.getSource().getPlayerOrException(), true);
@@ -129,7 +130,7 @@ public final class Guide {
 		});
 	}
 
-	/** ¿Hay que darle la guía al entrar? Si la opción está activada y no tiene la de esta versión. */
+	/** Should the guide be given on join? If the option is enabled and they do not have this version's. */
 	static boolean shouldDeliver(boolean option, String delivered, String version) {
 		return option && !version.equals(delivered);
 	}
@@ -145,7 +146,7 @@ public final class Guide {
 		}
 	}
 
-	/** Da (o cambia por la nueva la copia que ya lleve en el inventario) la guía al día y apunta la versión. */
+	/** Gives the up-to-date guide (or swaps the copy already in the inventory for the new one) and records the version. */
 	static void deliver(ServerPlayer player, boolean requested) {
 		long t0 = System.nanoTime();
 		Map<String, String> texts = Texts.language(player);
@@ -175,8 +176,8 @@ public final class Guide {
 	}
 
 	/**
-	 * Las únicas que cuentan para este mundo: las del registro de estructuras activadas en la configuración (o de una por
-	 * mundo, sin opción) y las que el jugador ya ha descubierto aunque se hayan desactivado después.
+	 * The uniques that count for this world: those in the registry of structures enabled in the configuration (or one per
+	 * world, without an option) and those the player has already discovered even if disabled later.
 	 */
 	static List<Unique> uniques(ServerPlayer player) {
 		MinecraftServer server = player.level().getServer();
@@ -195,12 +196,12 @@ public final class Guide {
 		return out;
 	}
 
-	/** El libro: written_book con su nombre, la edición en el lore y la marca (custom_data) de la guía. */
+	/** The book: written_book with its name, the edition in the lore and the guide's mark (custom_data). */
 	static ItemStack book(Data data, Map<String, String> texts, List<Unique> uniques, String version) {
 		return book(data, texts, uniques, version, List.of());
 	}
 
-	/** El libro con las páginas del salón de la fama de la arena (T41: título y cuerpo, tras el resumen del diario). */
+	/** The book with the arena hall of fame pages (T41: title and body, after the journal summary). */
 	static ItemStack book(Data data, Map<String, String> texts, List<Unique> uniques, String version,
 			List<Map.Entry<String, Component>> fame) {
 		ItemStack stack = new ItemStack(Items.WRITTEN_BOOK);
@@ -221,14 +222,14 @@ public final class Guide {
 	}
 
 	/**
-	 * Las páginas: las fijas, el resumen del diario, las descubiertas (por nombre, en orden alfabético) y las pistas de las
-	 * que faltan, en páginas de datos.nombresPorPagina() y datos.pistasPorPagina() entradas.
+	 * The pages: the fixed ones, the journal summary, the discovered ones (by name, in alphabetical order) and the clues of
+	 * the missing ones, on pages of data.namesPerPage() and data.cluesPerPage() entries.
 	 */
 	static List<Component> pages(Data data, Map<String, String> texts, List<Unique> uniques) {
 		return pages(data, texts, uniques, List.of());
 	}
 
-	/** Lo mismo con las páginas del salón de la fama de la arena (tras el resumen del diario). */
+	/** The same with the arena hall of fame pages (after the journal summary). */
 	static List<Component> pages(Data data, Map<String, String> texts, List<Unique> uniques,
 			List<Map.Entry<String, Component>> fame) {
 		List<Component> out = new ArrayList<>();
@@ -267,7 +268,7 @@ public final class Guide {
 		}
 	}
 
-	/** «título (negrita)\n\ncuerpo»: lo que mide tools/gen/guia.lineas_pagina. */
+	/** "title (bold)\n\nbody": what tools/gen/guia.lineas_pagina measures. */
 	static Component pagina(Map<String, String> texts, String title, Component body) {
 		return Component.empty()
 				.append(Texts.t(texts, title).withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_RED))

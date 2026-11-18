@@ -63,16 +63,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /heraldia info [nearby [radius] | here] (operador, nivel 2). Solo trabaja cuando se ejecuta:
+ * /heraldia info [nearby [radius] | here] (operator, level 2). It only works when run:
  * <ul>
- * <li>info: la configuración en uso y cuántas estructuras hay registradas.</li>
- * <li>info nearby [radius]: la estructura única y la mediana más cercanas de cada tipo y la aldea Heraldia más cercana. Recorre las
- * casillas de cada rejilla dentro del radio con las reglas de la generación (las de StructureCheck y los mixins más la
- * zona de exclusión de las aldeas vanilla) y lee los chunks ya guardados con el escáner de StructureCheck: todo fuera
- * del hilo del servidor; en él solo se miran los chunks ya cargados. No carga ni genera chunks: una casilla sin generar
- * se da como «prevista». Radio acotado (MAX_RADIUS); el tiempo total y el del hilo del servidor se miden.</li>
- * <li>info here: la estructura Heraldia en cuyas piezas está la posición y, si es única, si vive su guardián (las
- * entidades con la etiqueta heraldia_guardian.&lt;id&gt; dentro de su caja, solo si toda la caja está cargada).</li>
+ * <li>info: the configuration in use and how many structures are registered.</li>
+ * <li>info nearby [radius]: the nearest unique and medium structure of each type and the nearest Heraldia village. It
+ * walks the cells of each grid within the radius with the generation rules (those of StructureCheck and the mixins plus the
+ * exclusion zone of vanilla villages) and reads the already saved chunks with StructureCheck's scanner: all off
+ * the server thread; on it only already loaded chunks are checked. It neither loads nor generates chunks: an ungenerated cell
+ * is reported as "expected". Bounded radius (MAX_RADIUS); the total time and the server thread's are measured.</li>
+ * <li>info here: the Heraldia structure whose pieces contain the position and, if it is a unique, whether its guardian
+ * is alive (entities with the heraldia_guardian.&lt;id&gt; tag inside its box, only if the whole box is loaded).</li>
  * </ul>
  */
 public final class InfoCommand {
@@ -84,7 +84,7 @@ public final class InfoCommand {
 	private InfoCommand() {
 	}
 
-	/** /heraldia info [nearby [radius] | here] (lo registra {@link HeraldiaCommands}). */
+	/** /heraldia info [nearby [radius] | here] (registered by {@link HeraldiaCommands}). */
 	static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("info")
 				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -158,7 +158,7 @@ public final class InfoCommand {
 		return heraldia;
 	}
 
-	/** Estructuras medianas: la configuración común y, por tipo (un structure_set medianas/&lt;tipo&gt;), su separación. */
+	/** Medium structures: the common configuration and, per type (a structure_set medianas/&lt;type&gt;), its separation. */
 	private static List<Component> mediumLines(CommandSourceStack source, HeraldiaConfig cfg) {
 		MediumStructures m = MediumStructures.of(source.getServer().registryAccess());
 		List<Component> out = new ArrayList<>(), types = new ArrayList<>();
@@ -181,14 +181,14 @@ public final class InfoCommand {
 
 	// --- info nearby ---
 
-	/** generated: la estructura está en el chunk guardado o cargado; si no, está prevista (chunk sin generar). */
+	/** generated: the structure is in the saved or loaded chunk; otherwise it is expected (ungenerated chunk). */
 	public record Found(Holder<Structure> structure, ChunkPos chunk, BlockPos pos, long distanceSq, boolean generated) {
 	}
 
 	public record Group(RandomSpreadStructurePlacement placement, List<Holder<Structure>> structures) {
 	}
 
-	/** Qué dice el chunk guardado: null = no existe en disco; si existe, las estructuras cuyo inicio guarda. */
+	/** What the saved chunk says: null = it does not exist on disk; if it exists, the structures whose start it holds. */
 	public record Stored(List<Identifier> starts) {
 	}
 
@@ -198,9 +198,9 @@ public final class InfoCommand {
 		BlockPos origin = BlockPos.containing(source.getPosition());
 		List<Group> groups = groups(level);
 		long t0 = System.nanoTime();
-		// 1) fuera del hilo del servidor, lo caro: dónde saldría cada tipo y qué hay ya en los chunks guardados
+		// 1) off the server thread, the expensive part: where each type would spawn and what is already in the saved chunks
 		CompletableFuture.supplyAsync(() -> search(level, groups, origin, radius), Util.backgroundExecutor())
-				// 2) en el hilo del servidor, lo barato: los chunks ya cargados (aún sin guardar) mandan sobre el disco
+				// 2) on the server thread, the cheap part: the already loaded (not yet saved) chunks override the disk
 				.thenAcceptAsync(found -> {
 					long t1 = System.nanoTime();
 					List<Found> out = confirm(level, groups, found);
@@ -232,7 +232,7 @@ public final class InfoCommand {
 		}
 	}
 
-	/** Estructuras del mod agrupadas por colocación: una por tipo de única; las aldeas comparten la suya. */
+	/** The mod's structures grouped by placement: one per unique type; the villages share theirs. */
 	public static List<Group> groups(ServerLevel level) {
 		ChunkGeneratorStructureState state = level.getChunkSource().getGeneratorState();
 		Map<RandomSpreadStructurePlacement, List<Holder<Structure>>> byPlacement = new LinkedHashMap<>();
@@ -251,13 +251,13 @@ public final class InfoCommand {
 	}
 
 	/**
-	 * Por cada colocación, las casillas a menos de radius bloques de la más cercana a la más lejana; se queda con la
-	 * primera en la que hay (chunk guardado con su inicio) o habría (chunk sin generar en el que la generación la pondría)
-	 * una estructura. «Habría» sigue las reglas de la generación: isStructureChunk (casillas permitidas y zona de
-	 * exclusión de las aldeas vanilla, que /locate no mira antes de cargar el chunk), aldeas desactivadas o de otro
-	 * tamaño, exclusión de la Atlántida, distancia mínima entre únicas y findValidGenerationPoint con bioma y terreno
-	 * reales. Todo es seguro entre hilos (lo consultan los hilos de generación); el disco se lee con el mismo escáner que
-	 * StructureCheck. No carga ni genera chunks.
+	 * For each placement, the cells within radius blocks from nearest to farthest; it keeps the first one in which
+	 * there is (saved chunk with its start) or would be (ungenerated chunk in which generation would put it) a
+	 * structure. "Would be" follows the generation rules: isStructureChunk (allowed cells and vanilla village exclusion
+	 * zone, which /locate does not check before loading the chunk), villages disabled or of another
+	 * size, Atlantis exclusion, minimum distance between uniques and findValidGenerationPoint with real biome and
+	 * terrain. Everything is thread-safe (the generation threads query it); the disk is read with the same scanner as
+	 * StructureCheck. It neither loads nor generates chunks.
 	 */
 	public static List<Found> search(ServerLevel level, List<Group> groups, BlockPos origin, int radius) {
 		ChunkGenerator generator = level.getChunkSource().getGenerator();
@@ -266,7 +266,7 @@ public final class InfoCommand {
 		ChunkScanAccess scanner = level.getChunkSource().chunkScanner();
 		long seed = state.getLevelSeed();
 		RegistryAccess access = level.registryAccess();
-		Climate.Sampler sampler = randomState.createClimateSampler(SamplerContext.builder().enableCaches().build()); // de este hilo
+		Climate.Sampler sampler = randomState.createClimateSampler(SamplerContext.builder().enableCaches().build()); // of this thread
 		UniqueSeparation sep = UniqueSeparation.of(access);
 		UniqueSeparation.Viability viability = sep.viability(access, generator, generator.getBiomeSource(), sampler, randomState,
 				level.getStructureTemplateManager(), seed, level, level.dimension());
@@ -292,7 +292,7 @@ public final class InfoCommand {
 			for (Found cell : cells) {
 				Stored stored = stored(scanner, cell.chunk);
 				Holder<Structure> h = null;
-				if (stored != null) { // generado: vale lo guardado (otra aldea del set, nada si se exploró antes del mod...)
+				if (stored != null) { // generated: what is saved counts (another village of the set, nothing if explored before the mod...)
 					for (Holder<Structure> candidate : g.structures) {
 						if (stored.starts.contains(candidate.unwrapKey().orElseThrow().identifier())) {
 							h = candidate;
@@ -312,10 +312,10 @@ public final class InfoCommand {
 	}
 
 	/**
-	 * Inicios de estructura del chunk guardado (solo esos campos, como StructureCheck), o null si no está en disco o se
-	 * guardó antes de decidir sus estructuras (estado anterior a structure_starts, p. ej. un chunk a medio generar al
-	 * parar el servidor): entonces aún no se sabe y se da como previsto (T40: si no, la misma búsqueda daba resultados
-	 * distintos según en qué estado se hubieran guardado los chunks cercanos al spawn).
+	 * Structure starts of the saved chunk (only those fields, like StructureCheck), or null if it is not on disk or was
+	 * saved before its structures were decided (status before structure_starts, e.g. a half-generated chunk when the
+	 * server stopped): then it is not known yet and is reported as expected (T40: otherwise the same search gave different
+	 * results depending on the status in which the chunks near spawn had been saved).
 	 */
 	public static Stored stored(ChunkScanAccess scanner, ChunkPos pos) {
 		CollectFields fields = new CollectFields(new FieldSelector(IntTag.TYPE, "DataVersion"),
@@ -341,7 +341,7 @@ public final class InfoCommand {
 		return new Stored(starts);
 	}
 
-	/** ¿Un chunk guardado con este estado ya tiene decididas sus estructuras? (Sin estado: sí, como lo leía antes.) */
+	/** Has a chunk saved with this status already decided its structures? (Without a status: yes, as it was read before.) */
 	static boolean withStructures(String status) {
 		return status.isEmpty() || ChunkStatus.byName(status).isOrAfter(ChunkStatus.STRUCTURE_STARTS);
 	}
@@ -353,11 +353,11 @@ public final class InfoCommand {
 		for (Holder<Structure> h : g.structures) {
 			Identifier id = h.unwrapKey().orElseThrow().identifier();
 			if (!cfg.villages().allows(id, seed, c.x(), c.z())) {
-				continue; // aldea desactivada o de otro tamaño: lo más barato primero
+				continue; // village disabled or of another size: cheapest first
 			}
 			int i = sep.indexOf(id);
 			boolean ok;
-			if (i >= 0) { // únicas: viabilidad (con la exclusión de la Atlántida) y distancia mínima, como los mixins
+			if (i >= 0) { // uniques: viability (with the Atlantis exclusion) and minimum distance, like the mixins
 				ok = viability.valid(i, c.x(), c.z()) && !sep.blocked(i, c.x(), c.z(), seed, viability);
 			} else {
 				Structure st = h.value();
@@ -379,8 +379,8 @@ public final class InfoCommand {
 	}
 
 	/**
-	 * En el hilo del servidor: un chunk cargado puede ser más nuevo que el disco (generado y aún sin guardar). Si lo
-	 * está, manda su inicio; una prevista cuyo chunk ya está generado sin ella se quita. Solo mira chunks ya cargados.
+	 * On the server thread: a loaded chunk can be newer than the disk (generated and not saved yet). If
+	 * so, its start wins; an expected one whose chunk is already generated without it is removed. It only checks already loaded chunks.
 	 */
 	private static List<Found> confirm(ServerLevel level, List<Group> groups, List<Found> found) {
 		StructureManager manager = level.structureManager();
@@ -405,9 +405,9 @@ public final class InfoCommand {
 	}
 
 
-	/** Rumbo de 8 puntos (norte = -z). */
+	/** 8-point heading (north = -z). */
 	public static String direction(int dx, int dz) {
-		double angle = Math.toDegrees(Math.atan2(-dx, dz)); // 0 = sur, 90 = oeste, 180 = norte, -90 = este
+		double angle = Math.toDegrees(Math.atan2(-dx, dz)); // 0 = south, 90 = west, 180 = north, -90 = east
 		int i = Math.floorMod((int) Math.round(angle / 45.0), 8);
 		return DIRECTIONS[i];
 	}
@@ -426,7 +426,7 @@ public final class InfoCommand {
 		ServerLevel level = source.getLevel();
 		BlockPos pos = BlockPos.containing(source.getPosition());
 		LevelChunk chunk = level.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()));
-		if (chunk == null) { // solo chunks ya cargados: nada de cargar ni generar
+		if (chunk == null) { // only already loaded chunks: no loading or generating
 			source.sendFailure(Texts.t("heraldia.info.aqui.sin_cargar"));
 			return 0;
 		}
@@ -457,9 +457,9 @@ public final class InfoCommand {
 	}
 
 	/**
-	 * Vivo si hay una entidad con su etiqueta en la caja del inicio principal (con margen); derrotado solo si toda la caja
-	 * tiene sus entidades cargadas. El inicio principal es el que da la colocación para esta casilla: el mismo en las de
-	 * rejilla; en la Atlántida (nueve inicios, uno por distrito) el distrito central, donde está el guardián.
+	 * Alive if an entity with its tag is in the main start's box (with a margin); defeated only if the whole box
+	 * has its entities loaded. The main start is the one the placement gives for this cell: the same one in the grid
+	 * ones; in Atlantis (nine starts, one per district) the central district, where the guardian is.
 	 */
 	private static Component guardian(ServerLevel level, Holder<Structure> holder, StructureStart start, String tag) {
 		ChunkPos here = start.getChunkPos();
@@ -495,11 +495,11 @@ public final class InfoCommand {
 		return Texts.t("heraldia.info.guardian.derrotado");
 	}
 
-	// --- nombres ---
+	// --- names ---
 
 	/**
-	 * Id que se muestra: el de la estructura, salvo en una aldea prevista, cuyo estilo aún no está decidido (la familia la
-	 * fija el bioma, pero el estilo lo sortea el structure_set al generarse): entonces el del set, heraldia:aldeas.
+	 * Id shown: the structure's, except in an expected village, whose style is not decided yet (the biome sets the
+	 * family, but the structure_set rolls the style when it generates): then the set's, heraldia:aldeas.
 	 */
 	private static String id(Found f) {
 		Identifier id = f.structure.unwrapKey().map(k -> k.identifier()).orElse(null);
@@ -509,19 +509,19 @@ public final class InfoCommand {
 		if (f.generated || UniqueSeparation.isUnique(id)) {
 			return id.toString();
 		}
-		if (MediumStructures.isMedium(id)) { // prevista: el estilo lo sortea el structure_set del tipo al generarse
+		if (MediumStructures.isMedium(id)) { // expected: the type's structure_set rolls the style when it generates
 			return Heraldia.MOD_ID + ":" + id.getPath().substring(0, id.getPath().lastIndexOf('/'));
 		}
-		if (Mines.isMine(id)) { // prevista: el estilo (y la variante) los sortea el structure_set del tamaño
+		if (Mines.isMine(id)) { // expected: the size's structure_set rolls the style (and the variant)
 			return Heraldia.MOD_ID + ":minas/" + id.getPath().split("/")[1];
 		}
-		if (Coast.isCoast(id)) { // prevista: el estilo lo da el clima de la costa al generarse
+		if (Coast.isCoast(id)) { // expected: the coast's climate gives the style when it generates
 			return Heraldia.MOD_ID + ":costa/" + Coast.type(id);
 		}
 		return Heraldia.MOD_ID + ":aldeas";
 	}
 
-	/** Nombre traducido: el de la única (heraldia.unicas.&lt;id&gt;.nombre) o «Aldea Heraldia de &lt;familia&gt;». */
+	/** Translated name: the unique's (heraldia.unicas.&lt;id&gt;.nombre) or "Heraldia village of &lt;family&gt;". */
 	static MutableComponent name(Holder<Structure> h) {
 		Identifier id = h.unwrapKey().map(k -> k.identifier()).orElse(null);
 		if (id == null) {
@@ -531,13 +531,13 @@ public final class InfoCommand {
 		if (UniqueSeparation.isUnique(id)) {
 			return uniqueName(path.substring("unicas/".length()));
 		}
-		if (MediumStructures.isMedium(id)) { // heraldia:medianas/<tipo>/<estilo>
+		if (MediumStructures.isMedium(id)) { // heraldia:medianas/<type>/<style>
 			return mediumName(path.split("/")[1]);
 		}
-		if (Mines.isMine(id)) { // heraldia:minas/<tamaño>/<estilo>/<variante>
+		if (Mines.isMine(id)) { // heraldia:minas/<size>/<style>/<variant>
 			return Texts.t("heraldia.minas." + path.split("/")[1] + ".nombre");
 		}
-		if (Coast.isCoast(id)) { // heraldia:costa/<tipo>/<estilo>/<variante>
+		if (Coast.isCoast(id)) { // heraldia:costa/<type>/<style>/<variant>
 			return Texts.t("heraldia.costa." + Coast.type(id) + ".nombre");
 		}
 		String style = path.endsWith("_grande") ? path.substring(0, path.length() - "_grande".length()) : path;
@@ -548,7 +548,7 @@ public final class InfoCommand {
 		return Component.literal(id.toString());
 	}
 
-	/** ¿Puede salir la única en este mundo? Las de una por mundo (sin opción) siempre; las demás, si están activadas. */
+	/** Can the unique spawn in this world? The one-per-world ones (no option) always; the others, if enabled. */
 	static boolean uniqueEnabled(HeraldiaConfig cfg, String sid) {
 		String key = "unicas." + sid + ".activada";
 		return !cfg.has(key) || cfg.getBool(key);

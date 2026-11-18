@@ -48,11 +48,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /heraldia status [page] (cualquier jugador; los operadores ven más): versión, estructuras de Heraldia descubiertas
- * por algún jugador frente al total por tipo, guardianes vencidos, récord de la arena, reposición del botín, Lootr y,
- * para los operadores, las opciones clave, lo que falta por descubrir y los otros mods cargados.
- * <p>Los logros de los jugadores conectados se leen de memoria (en el hilo del servidor); los de los demás, de sus
- * ficheros en la carpeta del mundo, fuera del hilo del servidor ({@link State.Achievements#addFile}).
+ * /heraldia status [page] (any player; operators see more): version, Heraldia structures discovered
+ * by some player against the total per type, guardians defeated, arena record, loot restocking, Lootr and,
+ * for operators, the key options, what is left to discover and the other loaded mods.
+ * <p>The advancements of online players are read from memory (on the server thread); the others', from their
+ * files in the world folder, off the server thread ({@link State.Achievements#addFile}).
  */
 public final class StatusCommand {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -67,7 +67,7 @@ public final class StatusCommand {
 						.executes(ctx -> show(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "page"))));
 	}
 
-	/** Lo que se cuenta, por clase de estructura: ids en orden y el logro (o criterio) que dice si alguien la descubrió. */
+	/** What is counted, per structure kind: ids in order and the advancement (or criterion) that says whether someone discovered it. */
 	private record Types(List<String> families, List<String> uniques, List<String> mediums, List<String> mines, List<String> coast,
 						 List<String> guardians) {
 	}
@@ -76,7 +76,7 @@ public final class StatusCommand {
 		MinecraftServer server = src.getServer();
 		boolean op = Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(src);
 		Types types = types(server);
-		// en el hilo del servidor: los conectados (sus ficheros pueden estar atrasados)
+		// on the server thread: the online ones (their files may be out of date)
 		State.Achievements advancements = new State.Achievements();
 		Set<UUID> online = new HashSet<>();
 		List<AdvancementHolder> own = server.getAdvancements().getAllAdvancements().stream()
@@ -102,7 +102,7 @@ public final class StatusCommand {
 		return 1;
 	}
 
-	/** Fuera del hilo del servidor: los ficheros de logros de los jugadores no conectados. */
+	/** Off the server thread: the advancement files of offline players. */
 	public static void readFiles(Path dir, Set<UUID> online, State.Achievements advancements) {
 		if (!Files.isDirectory(dir)) {
 			return;
@@ -119,7 +119,7 @@ public final class StatusCommand {
 						advancements.addFile(e.getAsJsonObject());
 					}
 				} catch (IOException | RuntimeException ignored) {
-					// fichero ajeno o roto: no cuenta
+					// someone else's or broken file: does not count
 				}
 			}
 		} catch (IOException e) {
@@ -219,7 +219,7 @@ public final class StatusCommand {
 		}
 	}
 
-	/** Una línea « - Tipo: n de m» y, para los operadores, otra con lo que falta. */
+	/** A " - Type: n of m" line and, for operators, another with what is missing. */
 	private static void type(List<Component> out, boolean op, String key, State.Tally c, Function<String, Component> name) {
 		out.add(Texts.t(key, c.finished(), c.total()));
 		if (op && !c.missing().isEmpty()) {
@@ -233,7 +233,7 @@ public final class StatusCommand {
 				.withHoverEvent(new HoverEvent.ShowText(Component.literal(order))));
 	}
 
-	/** Nombre traducido de un valor de una opción de lista (p. ej. «Heroica»). */
+	/** Translated name of a list option's value (e.g. "Heroic"). */
 	private static Component nameValue(String key, String value) {
 		for (ConfigOption o : HeraldiaConfig.options()) {
 			if (o.key().equals(key)) {
@@ -251,7 +251,7 @@ public final class StatusCommand {
 				.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?");
 	}
 
-	/** Mods cargados además de Heraldia, Minecraft, Java y Fabric (sin los que van dentro de otro). */
+	/** Loaded mods besides Heraldia, Minecraft, Java and Fabric (without those bundled inside another). */
 	static List<String> otherMods() {
 		List<String> out = new ArrayList<>();
 		for (ModContainer m : FabricLoader.getInstance().getAllMods()) {

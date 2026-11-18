@@ -29,15 +29,16 @@ import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Ruta de revisión de /heraldia review, lógica pura (sin clases del juego): las paradas, en orden, de cada tipo de
- * contenido visual (aldeas por familia, cada única, cada tipo de mediana, minas de cada tamaño, el faro y el naufragio, la arena y un tramo de
- * camino), la navegación, el progreso de cada jugador (marcas y notas), su fichero JSON y el resumen en Markdown.
+ * Review route of /heraldia review, pure logic (no game classes): the stops, in order, of each kind of
+ * visual content (villages per family, each unique, each medium type, mines of each size, the lighthouse and the
+ * shipwreck, the arena and a road segment), the navigation, each player's progress (marks and notes), its JSON file and
+ * the Markdown summary.
  */
 public final class Revision {
 	public static final String FILE = "heraldia_revision.json", REPORT = "heraldia_revision.md";
-	/** Tamaños de las minas en el orden de la ruta (los de tools/gen/minas: pequeña, mediana, grande). */
+	/** Mine sizes in route order (those of tools/gen/minas: pequena, mediana, grande). */
 	static final List<String> SIZES = List.of("pequena", "mediana", "grande");
-	/** Tipos de la costa en el orden de la ruta (los de tools/gen/litoral). */
+	/** Coast types in route order (those of tools/gen/litoral). */
 	static final List<String> COAST = List.of("faro", "naufragio");
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private static final int NOTE_MAX = 256;
@@ -56,7 +57,7 @@ public final class Revision {
 		}
 	}
 
-	/** Una parada: id estable (p. ej. «unica/castillo»), su tipo y lo que la distingue (familia, única, tipo o tamaño). */
+	/** A stop: stable id (e.g. "unica/castillo"), its type and what distinguishes it (family, unique, type or size). */
 	public record Stop(String id, Type type, String sub) {
 		static Stop of(Type t, String sub) {
 			return new Stop(t.id + (sub.isEmpty() ? "" : "/" + sub), t, sub);
@@ -64,12 +65,12 @@ public final class Revision {
 	}
 
 	/**
-	 * Las paradas, en orden: aldeas (una por familia, en el orden de {@code familyStyle}), únicas, medianas (por id),
-	 * minas (pequeña, mediana, grande y, si hubiera otras, por id), la arena (si hay) y un tramo de camino (si los hay).
+	 * The stops, in order: villages (one per family, in the order of {@code familyStyle}), uniques, mediums (by id),
+	 * mines (small, medium, large and, if there were others, by id), the arena (if any) and a road segment (if any).
 	 *
-	 * @param estructuras   rutas de los ids de estructura de Heraldia registrados (p. ej. «unicas/castillo», «medianas/posada/llanura»)
-	 * @param estiloFamilia estilo de aldea → familia, en el orden del esquema
-	 * @param activa        si una parada puede salir en este mundo (familia, única o tipo activado)
+	 * @param structures   paths of the registered Heraldia structure ids (e.g. "unicas/castillo", "medianas/posada/llanura")
+	 * @param familyStyle  village style → family, in the schema's order
+	 * @param active       whether a stop can spawn in this world (family, unique or type enabled)
 	 */
 	public static List<Stop> route(Collection<String> structures, Map<String, String> familyStyle, Predicate<Stop> active,
 									boolean arena, boolean roads) {
@@ -110,7 +111,7 @@ public final class Revision {
 		return List.copyOf(out);
 	}
 
-	/** Faro antes que naufragio (y, si hubiera otros, por id). */
+	/** Lighthouse before shipwreck (and, if there were others, by id). */
 	private static int coastOrder(String a, String b) {
 		int ia = COAST.indexOf(a), ib = COAST.indexOf(b);
 		if (ia >= 0 || ib >= 0) {
@@ -127,7 +128,7 @@ public final class Revision {
 		return a.compareTo(b);
 	}
 
-	/** Índice de la parada {@code id}, o -1. */
+	/** Index of stop {@code id}, or -1. */
 	public static int index(List<Stop> route, String id) {
 		for (int i = 0; i < route.size(); i++) {
 			if (route.get(i).id().equals(id)) {
@@ -137,7 +138,7 @@ public final class Revision {
 		return -1;
 	}
 
-	/** Siguiente posición (ruta.size() = terminada). */
+	/** Next position (route.size() = finished). */
 	public static int next(List<Stop> route, int actual) {
 		return Math.min(route.size(), Math.max(0, actual) + 1);
 	}
@@ -146,7 +147,7 @@ public final class Revision {
 		return Math.max(0, Math.min(actual, route.size()) - 1);
 	}
 
-	// --- progreso ---
+	// --- progress ---
 
 	public enum Mark {
 		REVIEWED("revisada"), PROBLEM("problema"), SKIPPED("saltada");
@@ -167,11 +168,11 @@ public final class Revision {
 		}
 	}
 
-	/** Marca de una parada: cuándo (milisegundos de época) y una nota opcional (vacía si no hay). */
+	/** Mark of a stop: when (epoch milliseconds) and an optional note (empty if none). */
 	public record Note(Mark mark, String note, long when) {
 	}
 
-	/** Progreso de un jugador: la parada en la que está y sus marcas (por id de parada, en el orden en que las puso). */
+	/** A player's progress: the stop they are at and their marks (by stop id, in the order they placed them). */
 	public static final class Progress {
 		String name;
 		int actual;
@@ -198,7 +199,7 @@ public final class Revision {
 		}
 	}
 
-	/** El progreso de todos los jugadores (lo que se guarda en {@link #FILE}). Lo usa solo el hilo del servidor. */
+	/** The progress of all players (what is saved in {@link #FILE}). Only the server thread uses it. */
 	public static final class Ledger {
 		final Map<UUID, Progress> players = new LinkedHashMap<>();
 
@@ -212,7 +213,7 @@ public final class Revision {
 			return players;
 		}
 
-		/** Marca la parada (sustituye una marca anterior). La nota se recorta y se limpia de saltos de línea. */
+		/** Marks the stop (replaces an earlier mark). The note is trimmed and cleaned of line breaks. */
 		public void markStop(UUID id, String name, String stop, Mark m, String note, long when) {
 			of(id, name).notes.put(stop, new Note(m, clean(note), when));
 		}
@@ -246,7 +247,7 @@ public final class Revision {
 			return root;
 		}
 
-		/** Lee lo que escribe {@link #json()}; lo que no se entienda se ignora (nunca falla). */
+		/** Reads what {@link #json()} writes; whatever is not understood is ignored (it never fails). */
 		public static Ledger from(JsonObject root) {
 			Ledger r = new Ledger();
 			if (root == null || !root.has("jugadores") || !root.get("jugadores").isJsonObject()) {
@@ -267,13 +268,13 @@ public final class Revision {
 						}
 					}
 				} catch (RuntimeException ignored) {
-					// jugador o parada mal escritos: se ignora ese, el resto se conserva
+					// malformed player or stop: that one is ignored, the rest is kept
 				}
 			}
 			return r;
 		}
 
-		/** Copia profunda (para escribirla fuera del hilo del servidor). */
+		/** Deep copy (to write it off the server thread). */
 		public Ledger backup() {
 			return from(json());
 		}
@@ -287,7 +288,7 @@ public final class Revision {
 		return s.length() > NOTE_MAX ? s.substring(0, NOTE_MAX) : s;
 	}
 
-	/** Lee el fichero; si no existe o no se entiende, un registro vacío. */
+	/** Reads the file; if it does not exist or cannot be understood, an empty ledger. */
 	public static Ledger read(Path file) {
 		if (!Files.isRegularFile(file)) {
 			return new Ledger();
@@ -300,7 +301,7 @@ public final class Revision {
 		}
 	}
 
-	/** Escribe a un temporal y lo sustituye (un corte a medias no deja el fichero roto). */
+	/** Writes to a temporary file and swaps it in (a half-finished write does not leave the file broken). */
 	public static void write(Path file, String text) throws IOException {
 		Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
 		Files.writeString(tmp, text, StandardCharsets.UTF_8);
@@ -315,7 +316,7 @@ public final class Revision {
 		return GSON.toJson(r.json()) + "\n";
 	}
 
-	/** Cuántas paradas de la ruta tienen cada marca y cuántas quedan sin marcar (pendientes). */
+	/** How many route stops have each mark and how many are left unmarked (pending). */
 	public record Tally(int reviewedCount, int problems, int skipped, int pending) {
 	}
 
@@ -334,10 +335,10 @@ public final class Revision {
 	}
 
 	/**
-	 * Resumen en Markdown (heraldia_revision.md en la carpeta del mundo): por jugador, cada parada de la ruta con su
-	 * marca, su nota y la fecha (UTC), primero las que tienen un problema.
+	 * Markdown summary (heraldia_revision.md in the world folder): per player, each route stop with its
+	 * mark, its note and the date (UTC), those with a problem first.
 	 *
-	 * @param nombre nombre legible de cada parada (en español)
+	 * @param name readable name of each stop (in Spanish)
 	 */
 	public static String markdown(List<Stop> route, Ledger r, Function<Stop, String> name, long now) {
 		DateTimeFormatter f = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC);
@@ -364,7 +365,7 @@ public final class Revision {
 						.append(n == null ? "" : md(n.note())).append(" | ")
 						.append(n == null || n.when() == 0 ? "" : f.format(Instant.ofEpochMilli(n.when()))).append(" |\n");
 			}
-			// marcas de paradas que ya no están en la ruta (una estructura desactivada después)
+			// marks of stops no longer on the route (a structure disabled afterwards)
 			for (Map.Entry<String, Note> e : p.notes.entrySet()) {
 				if (index(route, e.getKey()) < 0) {
 					sb.append("| (fuera de la ruta) | `").append(e.getKey()).append("` | ").append(state(e.getValue().mark()))
@@ -388,7 +389,7 @@ public final class Revision {
 		};
 	}
 
-	/** Texto seguro dentro de una celda de tabla de Markdown. */
+	/** Text that is safe inside a Markdown table cell. */
 	static String md(String s) {
 		return s.replace("\\", "\\\\").replace("|", "\\|").replace("<", "&lt;");
 	}

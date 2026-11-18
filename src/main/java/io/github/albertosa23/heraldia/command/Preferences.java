@@ -23,21 +23,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Preferencias personales mínimas de cada jugador (T46): el idioma de los textos de Heraldia. /heraldia language (para
- * todos) dice el idioma en uso y da un botón por idioma; /heraldia language &lt;código&gt; lo fija y
- * /heraldia language auto vuelve al del cliente. Se guarda con el jugador (adjunto persistente de Fabric API, también
- * tras morir) y manda sobre el idioma del cliente en {@link Texts#language(ServerPlayer)}. Un cliente sin el mod ve los
- * textos de respaldo, que ya van en el idioma elegido; uno con el mod traduce las claves con su propio idioma.
+ * Minimal personal preferences of each player (T46): the language of Heraldia's texts. /heraldia language (for
+ * everyone) shows the language in use and gives one button per language; /heraldia language &lt;code&gt; sets it and
+ * /heraldia language auto goes back to the client's. It is saved with the player (Fabric API persistent attachment, also
+ * after death) and overrides the client's language in {@link Texts#language(ServerPlayer)}. A client without the mod sees the
+ * fallback texts, which are already in the chosen language; one with the mod translates the keys with its own language.
  */
 public final class Preferences {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
-	/** Valor del argumento que vuelve al idioma del cliente (en inglés: es un literal que se escribe). */
+	/** Argument value that goes back to the client's language (in English: it is a literal that is typed). */
 	public static final String AUTO = "auto";
 
 	private Preferences() {
 	}
 
-	/** El adjunto, aparte para que los tests no registren nada al cargar la clase. */
+	/** The attachment, kept apart so the tests register nothing when the class loads. */
 	static final class Type {
 		static final AttachmentType<String> LANGUAGE = AttachmentRegistry.create(Heraldia.id("idioma"),
 				b -> b.persistent(Codec.STRING).copyOnDeath());
@@ -50,15 +50,15 @@ public final class Preferences {
 		Type.LANGUAGE.identifier();
 	}
 
-	/** El idioma que eligió el jugador, si eligió alguno (y el .jar lo trae). */
+	/** The language the player chose, if any (and the .jar has it). */
 	public static Optional<String> language(ServerPlayer p) {
 		String v = p.getAttached(Type.LANGUAGE);
 		return v != null && Texts.languages().contains(v) ? Optional.of(v) : Optional.empty();
 	}
 
 	/**
-	 * Lo que se guarda para lo que escribe el jugador (lógica pura): {@link #AUTO} (o vacío) borra la preferencia; un
-	 * código del .jar (en cualquier caso de letra) se guarda tal cual; cualquier otra cosa no vale.
+	 * What is saved for what the player types (pure logic): {@link #AUTO} (or empty) clears the preference; a
+	 * code from the .jar (in any letter case) is saved as is; anything else is invalid.
 	 */
 	static Optional<Optional<String>> choose(String text, Collection<String> available) {
 		String t = text == null ? "" : text.strip().toLowerCase(java.util.Locale.ROOT);
@@ -68,7 +68,7 @@ public final class Preferences {
 		return available.contains(t) ? Optional.of(Optional.of(t)) : Optional.empty();
 	}
 
-	/** /heraldia language [auto|&lt;código&gt;] (lo cuelga {@link HeraldiaCommands#tree}): para todos los jugadores. */
+	/** /heraldia language [auto|&lt;code&gt;] (hung by {@link HeraldiaCommands#tree}): for all players. */
 	static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("language")
 				.executes(Preferences::show)
@@ -119,7 +119,7 @@ public final class Preferences {
 		return 1;
 	}
 
-	/** Nombre del idioma en sí mismo («Français»), el mismo en todos los idiomas (heraldia.idioma.nombre.&lt;código&gt;). */
+	/** Name of the language in itself ("Français"), the same in all languages (heraldia.idioma.nombre.&lt;code&gt;). */
 	private static Component name(Map<String, String> l, String code) {
 		return Texts.t(l, "heraldia.idioma.nombre." + code);
 	}

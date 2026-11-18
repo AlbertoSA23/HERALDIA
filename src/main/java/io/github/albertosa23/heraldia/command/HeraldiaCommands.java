@@ -13,9 +13,11 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * Todos los comandos del mod, bajo /heraldia y con nombres en inglés (los textos que ve el jugador siguen traducidos):
- * info [nearby [radius] | here], guide, key, arena, review, status, reload, update check, profile, webmap refresh, quest (encargos del tablón, T38), treasure give/info (T40), caravan (caravanas, T39, operadores) y wizard [reveal] (chozas de mago, T43, operadores); config (panel en diálogos), language (idioma de cada jugador) y update analyze/apply/undo/repair (actualizaciones seguras, T46). Los nombres antiguos en
- * español siguen funcionando como alias ocultos ({@link Alias}). Una línea en Heraldia.onInitialize.
+ * All the mod's commands, under /heraldia and with English names (the texts the player sees are still translated):
+ * info [nearby [radius] | here], guide, key, arena, review, status, reload, update check, profile, webmap refresh, quest
+ * (board quests, T38), treasure give/info (T40), caravan (caravans, T39, operators) and wizard [reveal] (wizard huts,
+ * T43, operators); config (dialog panel), language (each player's language) and update analyze/apply/undo/repair (safe
+ * updates, T46). The old Spanish names keep working as hidden aliases ({@link Alias}). One line in Heraldia.onInitialize.
  */
 public final class HeraldiaCommands {
 	private HeraldiaCommands() {
@@ -26,7 +28,7 @@ public final class HeraldiaCommands {
 		ReviewCommand.registerEvents();
 	}
 
-	/** Registra /heraldia con todos sus subcomandos y sus alias antiguos; devuelve el nodo /heraldia. */
+	/** Registers /heraldia with all its subcommands and its old aliases; returns the /heraldia node. */
 	public static CommandNode<CommandSourceStack> tree(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal("heraldia")
 				.then(InfoCommand.node())
@@ -51,7 +53,7 @@ public final class HeraldiaCommands {
 		return root;
 	}
 
-	/** Aviso de nombre antiguo: «/heraldia guia» está obsoleto, usa «/heraldia guide» (clicable), en el idioma del jugador. */
+	/** Old-name notice: "/heraldia guia" is deprecated, use "/heraldia guide" (clickable), in the player's language. */
 	public static void warn(CommandSourceStack src, String old, String fresh) {
 		Component cmd = Component.literal(fresh).withStyle(s -> s.withColor(ChatFormatting.GREEN).withUnderlined(true)
 				.withClickEvent(new ClickEvent.SuggestCommand(fresh.startsWith("/") ? fresh + " " : fresh))

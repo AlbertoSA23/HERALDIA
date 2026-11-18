@@ -73,22 +73,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /heraldia review (operador, nivel 2): ruta guiada para validar en una tarde todo el contenido visual ({@link Revision}).
- * En cada parada: búsqueda fuera del hilo del servidor (la rejilla de cada tipo, como /heraldia info nearby: sin cargar
- * ni generar nada), teletransporte seguro ({@link SafeSpot}), un título, la lista de qué mirar y botones para marcarla.
- * <p>Busca desde el punto de aparición del mundo. Prefiere una estructura ya generada (aunque esté más lejos) a una
- * prevista; ir a una prevista genera terreno nuevo, así que antes se avisa y hace falta pulsar «Ir y generar» (goto &lt;id&gt; generate). El
- * progreso de cada jugador se guarda en heraldia_revision.json y el resumen en heraldia_revision.md (carpeta del mundo),
- * escritos fuera del hilo del servidor.
+ * /heraldia review (operator, level 2): guided route to validate all the visual content in an afternoon ({@link Revision}).
+ * At each stop: a search off the server thread (each type's grid, like /heraldia info nearby: without loading
+ * or generating anything), a safe teleport ({@link SafeSpot}), a title, the checklist and buttons to mark it.
+ * <p>It searches from the world spawn point. It prefers an already generated structure (even if farther) to an
+ * expected one; going to an expected one generates new terrain, so it warns first and "Go and generate" must be
+ * clicked (goto &lt;id&gt; generate). Each player's progress is saved in heraldia_revision.json and the summary in
+ * heraldia_revision.md (world folder), written off the server thread.
  */
 public final class ReviewCommand {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	/** Radio de búsqueda (bloques desde el punto de aparición); la Atlántida, una por mundo, se busca en todo el mundo. */
+	/** Search radius (blocks from the spawn point); Atlantis, one per world, is searched in the whole world. */
 	static final int RADIUS = InfoCommand.MAX_RADIUS, ATLANTIS_RADIUS = 1 << 20;
-	/** Puntos de la lista de cada tipo de parada (claves heraldia.revisar.mirar.&lt;tipo&gt;.&lt;n&gt;). */
+	/** Checklist items of each stop type (keys heraldia.revisar.mirar.&lt;type&gt;.&lt;n&gt;). */
 	static final Map<Revision.Type, Integer> POINTS = Map.of(Revision.Type.VILLAGE, 4, Revision.Type.UNIQUE, 4,
 			Revision.Type.MEDIUM, 3, Revision.Type.MINE, 3, Revision.Type.COAST, 3, Revision.Type.ARENA, 3, Revision.Type.ROAD, 3);
-	/** Únicas con un punto propio en la lista (heraldia.revisar.mirar.unica.&lt;id&gt;). */
+	/** Uniques with their own checklist item (heraldia.revisar.mirar.unica.&lt;id&gt;). */
 	static final Set<String> WITH_OWN_POINT = Set.of("atlantida", "isla_corsario");
 
 	private static Revision.Ledger ledger = new Revision.Ledger();
@@ -105,7 +105,7 @@ public final class ReviewCommand {
 			ledger = Revision.read(folder.resolve(Revision.FILE));
 		});
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-			writing.join();                  // lo pendiente de escribir, antes de cerrar
+			writing.join();                  // whatever is pending to write, before closing
 			SEARCHING.clear();
 		});
 	}
@@ -138,9 +138,9 @@ public final class ReviewCommand {
 				.then(Commands.literal("reset").executes(ReviewCommand::reset));
 	}
 
-	// --- la ruta ---
+	// --- the route ---
 
-	/** Las paradas de este mundo (del registro de estructuras y la configuración en uso). Barato: se hace cada vez. */
+	/** The stops of this world (from the structure registry and the configuration in use). Cheap: done every time. */
 	static List<Stop> route(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		List<String> ids = new ArrayList<>();
@@ -170,7 +170,7 @@ public final class ReviewCommand {
 		return out;
 	}
 
-	/** Nombre traducible de una parada. */
+	/** Translatable name of a stop. */
 	static MutableComponent name(Stop p) {
 		return switch (p.type()) {
 			case VILLAGE -> Texts.t("heraldia.info.aldea", Texts.t("heraldia.familia." + p.sub()));
@@ -183,7 +183,7 @@ public final class ReviewCommand {
 		};
 	}
 
-	/** El mismo nombre en español, para el informe en Markdown. */
+	/** The same name in Spanish, for the Markdown report. */
 	static String spanishName(Stop p) {
 		Map<String, String> es = Texts.language(Texts.ES);
 		return switch (p.type()) {
@@ -197,7 +197,7 @@ public final class ReviewCommand {
 		};
 	}
 
-	/** Claves de la lista de qué mirar de una parada. */
+	/** Checklist keys of a stop. */
 	static List<String> points(Stop p) {
 		String type = p.type().id;
 		List<String> out = new ArrayList<>();
@@ -210,7 +210,7 @@ public final class ReviewCommand {
 		return out;
 	}
 
-	/** ¿Es la estructura `id` (de Heraldia) de esta parada? */
+	/** Is the (Heraldia) structure `id` of this stop? */
 	static boolean ofStop(Stop p, Identifier id, Map<String, String> styles) {
 		if (!Heraldia.MOD_ID.equals(id.getNamespace())) {
 			return false;
@@ -229,7 +229,7 @@ public final class ReviewCommand {
 		};
 	}
 
-	// --- órdenes ---
+	// --- commands ---
 
 	private static ServerPlayer player(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		return ctx.getSource().getPlayerOrException();
@@ -355,7 +355,7 @@ public final class ReviewCommand {
 		return 1;
 	}
 
-	// --- ir a una parada ---
+	// --- going to a stop ---
 
 	private record Destination(BlockPos pos, boolean generated) {
 	}
@@ -372,7 +372,7 @@ public final class ReviewCommand {
 		Stop stop = route.get(i);
 		MinecraftServer server = src.getServer();
 		ServerLevel level = levelFor(server, stop, familyStyle(HeraldiaConfig.get()));
-		// en el Nether y el End no hay punto de reaparición: se busca desde el 0, 0
+		// in the Nether and the End there is no spawn point: search from 0, 0
 		BlockPos origin = level.dimension() == Level.OVERWORLD ? level.getRespawnData().pos() : new BlockPos(0, 64, 0);
 		src.sendSuccess(() -> Texts.t("heraldia.revisar.buscando", name(stop)).withStyle(ChatFormatting.GRAY), false);
 		long t0 = System.nanoTime();
@@ -423,10 +423,10 @@ public final class ReviewCommand {
 	}
 
 	/**
-	 * Fuera del hilo del servidor: la estructura de la parada más cercana a {@code origin}, recorriendo las casillas de
-	 * su rejilla de la más cercana a la más lejana. Una ya generada (chunk guardado con su inicio) gana a cualquier
-	 * prevista; de las previstas, la más cercana (las mismas reglas de la generación que /heraldia info nearby). No carga
-	 * ni genera chunks: el disco se lee con el escáner de StructureCheck.
+	 * Off the server thread: the stop's structure nearest to {@code origin}, walking the cells of
+	 * its grid from nearest to farthest. An already generated one (saved chunk with its start) beats any
+	 * expected one; of the expected ones, the nearest (the same generation rules as /heraldia info nearby). It neither loads
+	 * nor generates chunks: the disk is read with StructureCheck's scanner.
 	 */
 	static @Nullable Destination search(ServerLevel level, List<InfoCommand.Group> groups, Predicate<Holder<Structure>> filter,
 									BlockPos origin, int radius) {
@@ -474,7 +474,7 @@ public final class ReviewCommand {
 				}
 			} else if (expected == null) {
 				if (viab == null) {
-					viab = new Viability(level, seed);   // como en InfoCommand.search: una vez por búsqueda (cuesta preparar)
+					viab = new Viability(level, seed);   // as in InfoCommand.search: once per search (it is costly to prepare)
 				}
 				ChunkGenerator gen = level.getChunkSource().getGenerator();
 				if (InfoCommand.firstViable(g, cell.chunk(), seed, level, level.registryAccess(), gen,
@@ -486,7 +486,7 @@ public final class ReviewCommand {
 		return expected;
 	}
 
-	/** Lo que la búsqueda de previstas necesita preparar una vez (muestreador de este hilo y separación de las únicas). */
+	/** What the search for expected ones needs to prepare once (this thread's sampler and the uniques' separation). */
 	private static final class Viability {
 		final Climate.Sampler sampler;
 		final UniqueSeparation sep;
@@ -502,7 +502,7 @@ public final class ReviewCommand {
 		}
 	}
 
-	/** Fuera del hilo del servidor: el centro del tramo de camino más cercano al punto de aparición. */
+	/** Off the server thread: the center of the road segment nearest to the spawn point. */
 	private static @Nullable Destination road(ServerLevel level, BlockPos origin) {
 		BlockPos p = Roads.nearestSegment(level, origin.getX(), origin.getZ());
 		if (p == null) {
@@ -513,9 +513,9 @@ public final class ReviewCommand {
 	}
 
 	/**
-	 * Mundo de la parada: el primero (el principal, luego el Nether y el End) cuyas rejillas tienen alguna estructura de
-	 * la parada (las medianas y las únicas del Nether y el End solo están en las suyas). La arena y los caminos, en el
-	 * principal.
+	 * World of the stop: the first (the overworld, then the Nether and the End) whose grids have some structure of
+	 * the stop (the mediums and uniques of the Nether and the End are only in theirs). The arena and the roads, in the
+	 * overworld.
 	 */
 	static ServerLevel levelFor(MinecraftServer server, Stop stop, Map<String, String> styles) {
 		if (stop.type() == Revision.Type.ARENA || stop.type() == Revision.Type.ROAD) {
@@ -533,7 +533,7 @@ public final class ReviewCommand {
 		return server.overworld();
 	}
 
-	/** En el hilo del servidor: un chunk cargado (aún sin guardar) puede tener ya la estructura que el disco no tiene. */
+	/** On the server thread: a loaded (not yet saved) chunk may already have the structure the disk does not. */
 	private static @Nullable Destination confirm(ServerLevel level, Stop stop, Destination d, Map<String, String> styles) {
 		if (d.generated()) {
 			return d;
@@ -556,8 +556,8 @@ public final class ReviewCommand {
 	}
 
 	/**
-	 * Carga (o, si el operador lo ha pedido, genera) el chunk del destino con un ticket temporal, sin bloquear el hilo del
-	 * servidor, y aparece en el sitio seguro más cercano, en el mundo de la parada ({@link #levelFor}).
+	 * Loads (or, if the operator asked for it, generates) the destination chunk with a temporary ticket, without blocking the
+	 * server thread, and appears at the nearest safe spot, in the stop's world ({@link #levelFor}).
 	 */
 	private static void teleport(CommandSourceStack src, ServerPlayer p, ServerLevel level, Destination d, Runnable after) {
 		ChunkPos c = ChunkPos.containing(d.pos());
@@ -582,7 +582,7 @@ public final class ReviewCommand {
 		});
 	}
 
-	/** El mundo para {@link SafeSpot}: solo chunks ya cargados (uno sin cargar cuenta como peligroso: no se elige). */
+	/** The world for {@link SafeSpot}: only already loaded chunks (an unloaded one counts as dangerous: it is not chosen). */
 	private static SafeSpot.World world(ServerLevel level) {
 		return new SafeSpot.World() {
 			@Override
@@ -598,7 +598,7 @@ public final class ReviewCommand {
 			@Override
 			public int height(int x, int z) {
 				LevelChunk ch = level.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z));
-				if (ch != null && level.dimensionType().hasCeiling()) { // el Nether: bajo el techo de bedrock
+				if (ch != null && level.dimensionType().hasCeiling()) { // the Nether: under the bedrock ceiling
 					return SafeSpot.underCeiling(this, x, z, Ground.NETHER_FROM + 8, Ground.NETHER_TO - 2);
 				}
 				return ch == null ? level.getMinY() : ch.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
@@ -616,9 +616,9 @@ public final class ReviewCommand {
 		};
 	}
 
-	/** Clasifica un bloque para {@link SafeSpot}. */
+	/** Classifies a block for {@link SafeSpot}. */
 	static SafeSpot.Cell cell(BlockState s, boolean collision) {
-		// sin etiquetas (BlockTags/FluidTags): así no depende de los datos cargados
+		// no tags (BlockTags/FluidTags): so it does not depend on the loaded data
 		Fluid f = s.getFluidState().getType();
 		if (Fluids.LAVA.isSame(f) || s.getBlock() instanceof BaseFireBlock || s.getBlock() instanceof CampfireBlock
 				|| s.is(Blocks.MAGMA_BLOCK) || s.is(Blocks.CACTUS) || s.is(Blocks.POWDER_SNOW) || s.is(Blocks.SWEET_BERRY_BUSH)
@@ -631,9 +631,9 @@ public final class ReviewCommand {
 		return Fluids.WATER.isSame(f) ? SafeSpot.Cell.WATER : SafeSpot.Cell.FREE;
 	}
 
-	// --- textos ---
+	// --- texts ---
 
-	/** Título en pantalla y, en el chat, el nombre de la parada y la lista de qué mirar. */
+	/** On-screen title and, in the chat, the stop's name and the checklist. */
 	private static void header(CommandSourceStack src, ServerPlayer p, List<Stop> route, int i, Stop stop) {
 		if (!p.hasDisconnected()) {
 			p.connection.send(new ClientboundSetTitlesAnimationPacket(10, 60, 20));
@@ -657,7 +657,7 @@ public final class ReviewCommand {
 		return Texts.t("heraldia.revisar.estado." + m.id);
 	}
 
-	/** Botones de la parada: marcar (revisada, con nota o con problema), saltar, anterior, siguiente y lista. */
+	/** The stop's buttons: mark (reviewed, with a note or with a problem), skip, previous, next and list. */
 	private static Component buttons(boolean noDestination) {
 		MutableComponent out = Component.empty();
 		if (!noDestination) {
@@ -672,16 +672,16 @@ public final class ReviewCommand {
 		return out;
 	}
 
-	/** [texto] clicable: ejecuta la orden o la deja escrita para completarla (con la ayuda «.ayuda» al pasar el ratón). */
+	/** Clickable [text]: runs the command or leaves it typed to complete it (with the ".ayuda" help on hover). */
 	private static Component button(String key, String order, boolean execute, ChatFormatting color) {
 		return Texts.t(key).withStyle(s -> s.withColor(color)
 				.withClickEvent(execute ? new ClickEvent.RunCommand(order) : new ClickEvent.SuggestCommand(order))
 				.withHoverEvent(new HoverEvent.ShowText(Texts.t(key + ".ayuda"))));
 	}
 
-	// --- guardar ---
+	// --- saving ---
 
-	/** Escribe el progreso (JSON) y el resumen (Markdown) fuera del hilo del servidor, en orden. */
+	/** Writes the progress (JSON) and the summary (Markdown) off the server thread, in order. */
 	private static void save(MinecraftServer server) {
 		Path dir = folder;
 		if (dir == null) {
