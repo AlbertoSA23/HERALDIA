@@ -182,6 +182,7 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `jefes.refuerzos.porcentaje` | 100 | 0-300 | Cuántos refuerzos por fase, en % de los del guardián (redondeando; por encima de 100 su lista se repite): 150 = uno o dos más. |
 | `jefes.refuerzos.maximo_vivos` | 4 | 1-12 | Refuerzos vivos a la vez junto a un guardián como mucho. |
 | `jefes.barra.activado` | `true` | `true`/`false` | Barra de jefe con el nombre del guardián para los jugadores a menos de 32 bloques mientras dura el combate. |
+| `jefes.apagar_generadores` | `true` | `true`/`false` | Al caer el guardián de una estructura única, los generadores de esa estructura se apagan para siempre (la estructura queda limpia y habitable; [Únicas vencidas](CONTENIDO.md#únicas-vencidas)). `false` los deja funcionando como antes. No afecta a las únicas vencidas antes de esta versión. |
 | `medianas.activadas` | `true` | `true`/`false` | Activa las [estructuras medianas](CONTENIDO.md#estructuras-medianas). |
 | `medianas.frecuencia_porcentaje` | 100 | 25-400 | Frecuencia de todas las medianas, en % de la de por defecto: 200 = el doble (la separación de cada tipo se divide por la raíz). |
 | `medianas.distancia_minima.bloques` | 192 | 64-1024 | Distancia mínima entre dos medianas de tipos distintos (y entre dos del mismo, como mucho media casilla de su rejilla). |

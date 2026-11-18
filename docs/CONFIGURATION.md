@@ -182,6 +182,7 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `jefes.refuerzos.porcentaje` | 100 | 0-300 | How many reinforcements per phase, as a % of the guardian's own (rounded; above 100 its list repeats): 150 = one or two more. |
 | `jefes.refuerzos.maximo_vivos` | 4 | 1-12 | Maximum reinforcements alive at once near a guardian. |
 | `jefes.barra.activado` | `true` | `true`/`false` | Boss bar with the guardian's name for players within 32 blocks while the fight lasts. |
+| `jefes.apagar_generadores` | `true` | `true`/`false` | When the guardian of a unique structure falls, the spawners of that structure turn off for good (the structure is left clean and safe; [Cleared uniques](CONTENT.md#cleared-uniques)). `false` keeps them working as before. Uniques beaten before this version are not affected. |
 | `medianas.activadas` | `true` | `true`/`false` | Enables the [medium structures](CONTENT.md#medium-structures). |
 | `medianas.frecuencia_porcentaje` | 100 | 25-400 | Frequency of all medium structures, as a % of the default: 200 = twice as many (each type's spacing is divided by the square root). |
 | `medianas.distancia_minima.bloques` | 192 | 64-1024 | Minimum distance between two medium structures of different types (and between two of the same type, at most half a grid cell). |

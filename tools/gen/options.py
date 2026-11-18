@@ -156,6 +156,11 @@ _FIXED = [
     ("jefes.barra.activado", True, None, None,
      "Barra de jefe con el nombre del guardián para los jugadores cercanos mientras dura el combate",
      "Boss bar with the guardian's name for nearby players while the fight lasts"),
+    ("jefes.apagar_generadores", True, None, None,
+     "Al caer el guardián de una estructura única, sus generadores de monstruos se apagan para siempre (la estructura queda "
+     "limpia y habitable); desactívalo para que sigan funcionando como antes",
+     "When the guardian of a unique structure falls, its monster spawners turn off for good (the structure is left clean "
+     "and safe to live in); turn it off to keep them working as before"),
     ("guia.entregar_al_entrar", True, None, None,
      "Guía del Heraldo: da a cada jugador el libro que explica el mod y lleva su diario la primera vez que entra tras "
      "instalar o actualizar Heraldia (una vez por versión; /heraldia guide da otra copia cuando quiera)",
@@ -494,6 +499,7 @@ _NAMES = {
     "jefes.refuerzos.porcentaje": ("Refuerzos por fase (%)", "Reinforcements per phase (%)"),
     "jefes.refuerzos.maximo_vivos": ("Refuerzos vivos a la vez", "Reinforcements alive at once"),
     "jefes.barra.activado": ("Barra de jefe", "Boss bar"),
+    "jefes.apagar_generadores": ("Apagar generadores al vencer", "Turn off spawners on victory"),
     "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
     "botin.reponer.activado": ("Botín que se repone", "Restocking loot"),
     "botin.reponer.dias": ("Días hasta reponerse", "Days until restocked"),

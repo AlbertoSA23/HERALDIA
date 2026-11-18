@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
  * {@code heraldia_adulto} (the same protections as template mobs: no babies, no mounts, no swapped weapons,
  * no item pickup), without their loot table or trophy, without persistence (they despawn like any monster if
  * everyone leaves) and never more alive nearby than the cap (jefes.refuerzos.maximo_vivos, 4 by default).</li>
+ * <li>Cleared uniques: on the guardian's death, the spawners of its structure are turned off ({@link ClearedSpawners}).</li>
  * </ul>
  */
 public final class Bosses {
@@ -63,10 +64,12 @@ public final class Bosses {
 
 	public static void register() {
 		reinforcements = Reinforcements.fromJar();
+		ClearedSpawners.register();
 		ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> onDamage(entity, source));
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 			if (Phases.isGuardian(entity.entityTags())) {
 				Bars.clear(entity, "muerto");
+				ClearedSpawners.guardianDied(entity);
 			}
 		});
 		ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
