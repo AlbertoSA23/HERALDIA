@@ -38,21 +38,21 @@ import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 
 /**
- * heraldia:camino: pinta en el chunk que se genera los tramos de camino que lo cruzan ({@link RoadLayout}). Solo escribe
- * en su propio chunk y solo lee su chunk (alturas, bloques) y los inicios de estructura que ya conoce la generación.
+ * heraldia:camino: paints in the chunk being generated the road segments that cross it ({@link RoadLayout}). It only writes
+ * into its own chunk and only reads its own chunk (heights, blocks) and the structure starts generation already knows.
  * <ul>
- * <li>Tierra: el bloque de la superficie pasa a camino de tierra (con algo de tierra gruesa y grava), losas de arenisca
- * en la arena, de arenisca roja en la arena roja y la terracota, grava y adoquín en la piedra y la nieve, barro compacto
- * en el barro. Lo que no es terreno natural (o tiene algo encima) se deja.</li>
- * <li>Agua: puente de tablas un bloque por encima del agua (con postes hasta el fondo) si el tramo es corto, pasarela a
- * ras si es poco hondo; si es largo y hondo, el camino se corta en la orilla. Nunca sobre lava.</li>
- * <li>Estructuras: ninguna columna dentro de la caja de una pieza (con margen) de una estructura que asoma a la superficie,
- * así que el camino se para al llegar a la aldea y no cruza otras estructuras.</li>
- * <li>Farolas (poste de valla con farol o con antorcha, según la ruta) y los carteles con el nombre de la aldea de destino
- * y la distancia, en tierra firme. Madera del bioma.</li>
+ * <li>Land: the surface block becomes a dirt path (with some coarse dirt and gravel), sandstone slabs
+ * on sand, red sandstone on red sand and terracotta, gravel and cobblestone on stone and snow, packed mud
+ * on mud. Whatever is not natural terrain (or has something on top) is left.</li>
+ * <li>Water: a plank bridge one block above the water (with posts down to the bottom) if the stretch is short, a
+ * walkway flush with it if it is shallow; if it is long and deep, the road is cut at the shore. Never over lava.</li>
+ * <li>Structures: no column inside the box of a piece (with a margin) of a structure that shows above ground,
+ * so the road stops when it reaches the village and does not cross other structures.</li>
+ * <li>Lamp posts (fence post with a lantern or a torch, depending on the route) and the signs with the destination
+ * village's name and the distance, on firm ground. Wood of the biome.</li>
  * </ul>
  */
-@SuppressWarnings("deprecation") // WorldGenRegion.getLevel(): la vía de vanilla (ChunkStatusTasks) para su StructureManager
+@SuppressWarnings("deprecation") // WorldGenRegion.getLevel(): vanilla's way (ChunkStatusTasks) to its StructureManager
 public record RoadFeature() implements Feature {
 	public static final MapCodec<RoadFeature> CODEC = MapCodec.unit(RoadFeature::new);
 	private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("heraldia");
@@ -117,7 +117,7 @@ public record RoadFeature() implements Feature {
 			}
 		}
 		for (RoadLayout.Mark m : marks) {
-			if (cells[(m.x() - x0) * 16 + (m.z() - z0)] == null) { // nunca sobre otro camino
+			if (cells[(m.x() - x0) * 16 + (m.z() - z0)] == null) { // never over another road
 				columns += mark(region, ctx, woods, m, boxes, pos) ? 1 : 0;
 			}
 		}
@@ -125,7 +125,7 @@ public record RoadFeature() implements Feature {
 		return columns > 0;
 	}
 
-	/** Cajas de las piezas de estructuras de superficie (las que el chunk referencia) que tocan el chunk, con margen. */
+	/** Boxes of the surface structure pieces (those the chunk references) that touch the chunk, with a margin. */
 	private static List<BoundingBox> boxes(WorldGenRegion region, ChunkPos cp) {
 		List<BoundingBox> out = new ArrayList<>();
 		if (region.getChunk(cp.x(), cp.z()).getAllReferences().isEmpty()) {
@@ -154,31 +154,31 @@ public record RoadFeature() implements Feature {
 		return false;
 	}
 
-	/** Una columna del camino: tierra, puente, pasarela o nada. */
+	/** A road column: land, bridge, walkway or nothing. */
 	private static boolean column(WorldGenRegion region, Roads.Context ctx, Woods woods, RoadLayout.Cell c, int x, int z,
 								   List<BoundingBox> boxes, BlockPos.MutableBlockPos pos) {
-		int surf = region.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z); // primera altura libre
+		int surf = region.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z); // first free height
 		int floor = region.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z);
 		if (inside(boxes, x, surf - 1, z)) {
 			return false;
 		}
 		pos.set(x, surf - 1, z);
 		BlockState top = region.getBlockState(pos);
-		if (surf > floor) { // hay fluido encima del fondo
+		if (surf > floor) { // there is fluid above the bottom
 			if (!top.is(Blocks.WATER) || !top.getFluidState().is(FluidTags.WATER)) {
-				return false; // lava, o algo que no es agua suelta
+				return false; // lava, or something that is not loose water
 			}
 			int depth = surf - floor, sea = ctx.sea();
 			RoadLayout.Water water = c.route().water(c.vertex(), ctx.depth(), sea);
 			boolean edge = c.dist() > ctx.width() / 2.0 - 1 && Math.floorMod((int) c.arc(), 5) == 0;
 			if (water == RoadLayout.Water.BRIDGE && surf == sea) {
 				Wood m = woods.of(ctx, c.route(), c.vertex(), surf);
-				pos.set(x, surf, z); // tablero un bloque por encima del agua
+				pos.set(x, surf, z); // deck one block above the water
 				if (!region.getBlockState(pos).isAir()) {
 					return false;
 				}
 				region.setBlock(pos, m.planks, 2);
-				if (edge) { // poste hasta el fondo
+				if (edge) { // post down to the bottom
 					BlockState post = m.fence.setValue(BlockStateProperties.WATERLOGGED, true);
 					for (int y = surf - 1; y >= floor; y--) {
 						pos.set(x, y, z);
@@ -192,10 +192,10 @@ public record RoadFeature() implements Feature {
 			}
 			if ((water == RoadLayout.Water.WALKWAY && surf == sea && depth <= RoadLayout.WALKWAY_DEPTH)
 					|| (water == RoadLayout.Water.LAND && depth <= 3)) {
-				region.setBlock(pos, woods.of(ctx, c.route(), c.vertex(), surf).planks, 2); // pasarela a ras (marisma, charca, arroyo)
+				region.setBlock(pos, woods.of(ctx, c.route(), c.vertex(), surf).planks, 2); // flush walkway (marsh, pond, stream)
 				return true;
 			}
-			return false; // tramo largo y hondo: se corta
+			return false; // long and deep stretch: it is cut
 		}
 		pos.set(x, surf, z);
 		if (!region.getBlockState(pos).isAir()) {
@@ -212,8 +212,8 @@ public record RoadFeature() implements Feature {
 		return true;
 	}
 
-	/** Material del camino según el bloque de la superficie, o null si no es terreno natural. Los bloques vanilla van
-	 *  por nombre y los de otros mods por sus etiquetas (#dirt, #sand, #terracotta, #base_stone_overworld). */
+	/** Road material for the surface block, or null if it is not natural terrain. Vanilla blocks go
+	 *  by name and other mods' by their tags (#dirt, #sand, #terracotta, #base_stone_overworld). */
 	static BlockState ground(BlockState top, double r, boolean firm) {
 		BlockState gravel = firm ? Blocks.GRAVEL.defaultBlockState() : Blocks.COBBLESTONE.defaultBlockState();
 		if (top.is(Blocks.MUD) || top.is(Blocks.MUDDY_MANGROVE_ROOTS)) {
@@ -248,13 +248,13 @@ public record RoadFeature() implements Feature {
 		return false;
 	}
 
-	/** Farola o cartel en tierra firme, fuera de las estructuras. */
+	/** Lamp post or sign on firm ground, outside the structures. */
 	private static boolean mark(WorldGenRegion region, Roads.Context ctx, Woods woods, RoadLayout.Mark m, List<BoundingBox> boxes,
 								 BlockPos.MutableBlockPos pos) {
 		int x = m.x(), z = m.z();
 		int surf = region.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
 		if (surf != region.getHeight(Heightmap.Types.OCEAN_FLOOR_WG, x, z) || inside(boxes, x, surf, z)) {
-			return false; // agua o estructura
+			return false; // water or structure
 		}
 		pos.set(x, surf - 1, z);
 		BlockState top = region.getBlockState(pos);
@@ -288,16 +288,16 @@ public record RoadFeature() implements Feature {
 					.setLine(1, Component.literal(name[1]))
 					.setLine(2, dist)
 					.asImmutable();
-			// setText avisa al mundo (que en la generación no hay): el texto va como componente del bloque
+			// setText notifies the world (which does not exist during generation): the text goes as a block component
 			be.applyComponents(DataComponentMap.builder().set(DataComponents.SIGN_TEXT_FRONT, text).build(), DataComponentPatch.EMPTY);
-			if (SIGNS.getAndIncrement() < 16) { // los primeros, al log (la prueba de servidor lee el letrero)
+			if (SIGNS.getAndIncrement() < 16) { // the first ones, to the log (the server test reads the sign)
 				LOGGER.info("Heraldia: cartel de camino en {} {} {}: «{} {}», {} bloques", x, surf, z, name[0], name[1], n);
 			}
 		}
 		return true;
 	}
 
-	/** Tablas, valla y cartel de una madera. */
+	/** Planks, fence and sign of a wood. */
 	record Wood(BlockState planks, BlockState fence, BlockState signpost) {
 		static Wood of(Block planks, Block fence, Block signpost) {
 			return new Wood(planks.defaultBlockState(), fence.defaultBlockState(), signpost.defaultBlockState());
@@ -315,8 +315,8 @@ public record RoadFeature() implements Feature {
 			PALE_OAK = Wood.of(Blocks.PALE_OAK_PLANKS, Blocks.PALE_OAK_FENCE, Blocks.PALE_OAK_SIGN);
 
 	/**
-	 * Madera del bioma en un vértice (del ruido, a la altura del mar: la misma a los dos lados de una frontera de chunk),
-	 * en memoria durante el chunk: unos pocos vértices por chunk, cada muestra del ruido cuesta unos 20 µs.
+	 * Wood of the biome at a vertex (from the noise, at sea level: the same on both sides of a chunk border),
+	 * memoized during the chunk: a few vertices per chunk, each noise sample costs about 20 µs.
 	 */
 	static final class Woods {
 		private RoadLayout.Route route;

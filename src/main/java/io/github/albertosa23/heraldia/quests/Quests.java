@@ -74,41 +74,41 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Encargos del tablón y reputación por aldea (T38): lo que toca el juego. La lógica pura está en {@link Generator},
- * {@link Objectives}, {@link Reputation} y {@link Data}.
+ * Board quests and per-village reputation (T38): the part that touches the game. The pure logic is in {@link Generator},
+ * {@link Objectives}, {@link Reputation} and {@link Data}.
  * <ul>
- * <li>El tablón: el atril del tablón de la plaza (el que tiene detrás al alguacil) enseña en el chat los encargos de su
- * aldea, con botones (texto clicable: vale con el cliente vanilla); y {@code /heraldia quest} desde dentro de una aldea.
- * Una aldea de Heraldia se reconoce por su estructura (la etiqueta heraldia:aldeas): también las ya generadas.</li>
- * <li>Qué hay alrededor (únicas con guardián, medianas y minas, aldeas vecinas) se busca una vez por aldea fuera del hilo
- * del servidor, con la misma búsqueda que /heraldia info nearby (no carga ni genera chunks).</li>
- * <li>Seguimiento sin trabajo por tick que recorra el mundo: la muerte de un guardián (evento), la oleada superada en la
- * arena (aviso de la arena), la llegada a un sitio (cada 2 s, solo los jugadores con un encargo de ir a un sitio) y lo
- * que se trae (al entregar).</li>
- * <li>Reputación: sube al entregar, baja al golpear o matar a un aldeano o gólem de la aldea; el descuento lo pone
- * {@code VillagerPricesMixin} al abrir los tratos.</li>
+ * <li>The board: the plaza board's lectern (the one with the bailiff behind it) shows the quests of its
+ * village in the chat, with buttons (clickable text: works with the vanilla client); and {@code /heraldia quest} from inside a village.
+ * A Heraldia village is recognized by its structure (the heraldia:aldeas tag): also the already generated ones.</li>
+ * <li>What is around (uniques with a guardian, mediums and mines, neighboring villages) is searched once per village off
+ * the server thread, with the same search as /heraldia info nearby (it neither loads nor generates chunks).</li>
+ * <li>Tracking without per-tick work that walks the world: a guardian's death (event), the wave cleared in the
+ * arena (notice from the arena), arriving at a site (every 2 s, only players with a go-to-a-site quest) and what
+ * is brought (on delivery).</li>
+ * <li>Reputation: rises on delivery, drops when hitting or killing a villager or golem of the village; the discount is
+ * applied by {@code VillagerPricesMixin} when the trades open.</li>
  * </ul>
- * Todo se lee de la configuración en cada uso: encargos.activado, encargos.rotacion_dias y reputacion.activado se
- * recargan con /heraldia reload.
+ * Everything is read from the configuration on each use: encargos.activado, encargos.rotacion_dias and reputacion.activado
+ * reload with /heraldia reload.
  */
 public final class Quests {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	public static final String ENABLED = "encargos.activado", ROTATION = "encargos.rotacion_dias", REPUTATION = "reputacion.activado";
 	static final TagKey<Structure> VILLAGES = TagKey.create(Registries.STRUCTURE, Heraldia.id("aldeas"));
-	/** El alguacil del tablón (tablon.TAG_ALGUACIL): sus tratos son fijos y no llevan descuento. */
+	/** The board's bailiff (tablon.TAG_ALGUACIL): its trades are fixed and get no discount. */
 	public static final String BAILIFF = "heraldia_alguacil";
-	/** Logros (tools/gen/encargos.py): heraldia:encargos/<id>, criterio «hecho». */
+	/** Advancements (tools/gen/encargos.py): heraldia:encargos/<id>, criterion "hecho". */
 	static final String FIRST_ADVANCEMENT = "encargos/primero", TEN_ADVANCEMENT = "encargos/diez", FRIEND_ADVANCEMENT = "encargos/amigo",
 			HERO_ADVANCEMENT = "encargos/heroe";
 	static final int TEN = 10;
 	private static final Map<String, CompletableFuture<Generator.Candidates>> CANDIDATES = new ConcurrentHashMap<>();
-	/** Tablones ya apuntados en el log (aldea y periodo), para no repetirlo en cada clic. */
+	/** Boards already logged (village and period), so it is not repeated on every click. */
 	private static final Set<String> REGISTERED = ConcurrentHashMap.newKeySet();
 
 	private Quests() {
 	}
 
-	/** Los adjuntos, aparte para que los tests no registren nada al cargar la clase. */
+	/** The attachments, kept apart so the tests register nothing when the class loads. */
 	static final class Attachments {
 		static final AttachmentType<Data> PLAYER = AttachmentRegistry.create(Heraldia.id("encargos"),
 				b -> b.persistent(Data.CODEC).copyOnDeath());
@@ -119,14 +119,14 @@ public final class Quests {
 		}
 	}
 
-	/** Una aldea de Heraldia: el chunk de su inicio, su estilo y su nombre. */
+	/** A Heraldia village: its start chunk, its style and its name. */
 	record Village(int cx, int cz, String style, String name) {
 		String key() {
 			return Reputation.key(cx, cz);
 		}
 	}
 
-	/** Una línea en Heraldia.onInitialize. */
+	/** One line in Heraldia.onInitialize. */
 	public static void register() {
 		Attachments.PLAYER.identifier();
 		Attachments.WORLD.identifier();
@@ -135,7 +135,7 @@ public final class Quests {
 					&& level.getBlockState(hit.getBlockPos()).is(Blocks.LECTERN)) {
 				lectern(p, sl, hit.getBlockPos());
 			}
-			return InteractionResult.PASS;     // el libro del atril se abre como siempre
+			return InteractionResult.PASS;     // the lectern's book opens as usual
 		});
 		ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
 			if (taken > 0 && !entity.isDeadOrDying()) {
@@ -172,7 +172,7 @@ public final class Quests {
 		return p == null ? Texts.language("es_es") : Texts.language(p);
 	}
 
-	// --- datos ---
+	// --- data ---
 
 	public static Data data(Player p) {
 		Data d = p.getAttached(Attachments.PLAYER);
@@ -192,9 +192,9 @@ public final class Quests {
 		server.overworld().setAttached(Attachments.WORLD, m);
 	}
 
-	// --- aldeas ---
+	// --- villages ---
 
-	/** La aldea de Heraldia en cuya caja está la posición (solo chunks cargados; en otra dimensión, ninguna). */
+	/** The Heraldia village whose box contains the position (only loaded chunks; in another dimension, none). */
 	static @Nullable Village villageAt(ServerLevel level, BlockPos pos) {
 		if (level.dimension() != Level.OVERWORLD || !level.isLoaded(pos)) {
 			return null;
@@ -216,7 +216,7 @@ public final class Quests {
 		return new Village(cx, cz, style, name(level.getSeed(), cx, cz));
 	}
 
-	/** Nombre de la aldea con el inicio en ese chunk: el de los carteles de los caminos ({@link Names}). */
+	/** Name of the village starting in that chunk: the one on the road signs ({@link Names}). */
 	static String name(long seed, int cx, int cz) {
 		String[] n = Names.of(seed, cx * 16 + 8, cz * 16 + 8);
 		return n[0] + " " + n[1];
@@ -228,9 +228,9 @@ public final class Quests {
 		return f == null ? "" : f.getAsString();
 	}
 
-	// --- candidatos (fuera del hilo del servidor) ---
+	// --- candidates (off the server thread) ---
 
-	/** Qué hay alrededor de la aldea (sin la arena, que se mira en cada tablón): una vez por aldea y arranque. */
+	/** What is around the village (without the arena, which is checked for each board): once per village and startup. */
 	private static CompletableFuture<Generator.Candidates> candidates(ServerLevel level, Village a) {
 		return CANDIDATES.computeIfAbsent(a.key(), k -> {
 			List<InfoCommand.Group> groups = InfoCommand.groups(level);
@@ -293,7 +293,7 @@ public final class Quests {
 		return new Generator.Objective(id, f.pos().getX(), f.pos().getZ(), (int) Math.sqrt(f.distanceSq()));
 	}
 
-	/** El tablón de la aldea en este periodo, cuando esté listo (en el hilo del servidor). */
+	/** The village's board in this period, when it is ready (on the server thread). */
 	static void withBoard(ServerLevel level, Village a, Consumer<Component> out, Map<String, String> l, Consumer<List<Quest>> f) {
 		CompletableFuture<Generator.Candidates> fut = candidates(level, a);
 		if (!fut.isDone()) {
@@ -305,7 +305,7 @@ public final class Quests {
 			int days = HeraldiaConfig.get().getInt(ROTATION);
 			long period = Generator.period(level.getGameTime(), days);
 			long start = Generator.start(period, days);
-			// los caídos antes de este periodo ya no salen; los que caen durante él siguen hasta que rote (ver Mundo.caidoAntes)
+			// those fallen before this period no longer show; those that fall during it stay until it rotates (see World.fellBefore)
 			List<Generator.Objective> alive = c.guardians().stream().filter(o -> !m.fellBefore(o.id(), o.x(), o.z(), start)).toList();
 			boolean arena = HeraldiaConfig.get().getBool("arena.activado") && Arena.center() != null;
 			Generator.Candidates now = new Generator.Candidates(c.family(), alive, c.places(), c.neighbors(), arena);
@@ -322,14 +322,14 @@ public final class Quests {
 		});
 	}
 
-	/** ¿Es de vencer a un guardián que ya ha caído? */
+	/** Is it about defeating a guardian that has already fallen? */
 	static boolean hasFallen(World m, Quest e) {
 		return e.type() == Type.GUARDIAN && m.hasFallen(e.target(), e.x(), e.z());
 	}
 
-	// --- el atril del tablón ---
+	// --- the board's lectern ---
 
-	/** Clic en un atril: si es el del tablón (con el alguacil detrás, dentro de una aldea), enseña el tablón en el chat. */
+	/** Click on a lectern: if it is the board's (with the bailiff behind it, inside a village), shows the board in the chat. */
 	static void lectern(ServerPlayer p, ServerLevel level, BlockPos pos) {
 		if (!enabled()) {
 			return;
@@ -346,7 +346,7 @@ public final class Quests {
 		}
 	}
 
-	// --- textos ---
+	// --- texts ---
 
 	static Component button(Map<String, String> l, String key, String order, ChatFormatting color) {
 		return Texts.t(l, key).withStyle(s -> s.withColor(color).withClickEvent(new ClickEvent.RunCommand(order))
@@ -357,7 +357,7 @@ public final class Quests {
 		return Texts.t(l, "heraldia.encargos.nivel." + n.id());
 	}
 
-	/** Qué pide el encargo, con la pista del sitio vista desde (x, z): «Trae 16 × Pan», «Vence al guardián de...». */
+	/** What the quest asks for, with the site hint as seen from (x, z): "Bring 16 × Bread", "Defeat the guardian of...". */
 	static MutableComponent description(Map<String, String> l, Quest e, int x, int z) {
 		MutableComponent clue = e.withPlace()
 				? Texts.t(l, "heraldia.encargos.pista", Texts.t(l, "heraldia.info.dir." + Objectives.bearing(x, z, e.x(), e.z())),
@@ -378,7 +378,7 @@ public final class Quests {
 		return Component.translatable(it.getDescriptionId());
 	}
 
-	/** Nombre del tipo de estructura que explorar: «posada de camino», «entrada a mina pequeña»... */
+	/** Name of the structure type to explore: "roadside inn", "small mine entrance"... */
 	static Component place(Map<String, String> l, String structureId) {
 		Identifier id = Identifier.tryParse(structureId);
 		if (id != null && MediumStructures.isMedium(id)) {
@@ -395,7 +395,7 @@ public final class Quests {
 				: Texts.t(l, "heraldia.encargos.paga.sin_reputacion", e.emeralds(), e.experience());
 	}
 
-	/** El tablón de la aldea en el chat. */
+	/** The village's board in the chat. */
 	static void board(ServerPlayer p, Village a, List<Quest> t, Consumer<Component> out, Map<String, String> l) {
 		Data d = data(p);
 		boolean rep = withReputation();
@@ -427,7 +427,7 @@ public final class Quests {
 				.append(" ").append(button(l, "heraldia.encargos.boton.entregar", "/heraldia quest turnin", ChatFormatting.GREEN)));
 	}
 
-	// --- comandos: /heraldia quest [list | accept <number> | abandon <number> | turnin] ---
+	// --- commands: /heraldia quest [list | accept <number> | abandon <number> | turnin] ---
 
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("quest")
@@ -443,7 +443,7 @@ public final class Quests {
 	private record Use(ServerPlayer p, ServerLevel level, Map<String, String> l, Consumer<Component> out) {
 	}
 
-	/** El jugador que ejecuta la orden (la respuesta va a la fuente: también sale en la consola con «execute as»). */
+	/** The player running the command (the reply goes to the source: it also shows in the console with "execute as"). */
 	private static @Nullable Use use(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		CommandSourceStack src = ctx.getSource();
 		ServerPlayer p = src.getPlayerOrException();
@@ -614,7 +614,7 @@ public final class Quests {
 		return i == null ? null : BuiltInRegistries.ITEM.getOptional(i).orElse(null);
 	}
 
-	/** Cuántos de ese objeto lleva en el inventario (sin mirar el cursor ni la mesa de crafteo). */
+	/** How many of that item they carry in the inventory (without looking at the cursor or the crafting grid). */
 	static int count(Inventory inv, Item item) {
 		int n = 0;
 		for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -639,9 +639,9 @@ public final class Quests {
 	}
 
 	static void pay(ServerPlayer p, Quest e) {
-		p.getInventory().placeItemBackInInventory(new ItemStack(Items.EMERALD, e.emeralds()), net.minecraft.util.Prediction.SERVER_ONLY);   // al suelo si no cabe
+		p.getInventory().placeItemBackInInventory(new ItemStack(Items.EMERALD, e.emeralds()), net.minecraft.util.Prediction.SERVER_ONLY);   // on the ground if it does not fit
 		p.giveExperiencePoints(e.experience());
-		io.github.albertosa23.heraldia.treasure.Treasure.reward(p);   // a veces, un fragmento de mapa del tesoro (T40)
+		io.github.albertosa23.heraldia.treasure.Treasure.reward(p);   // sometimes, a treasure map fragment (T40)
 	}
 
 	static void advancements(ServerPlayer p, Data d) {
@@ -666,9 +666,9 @@ public final class Quests {
 		}
 	}
 
-	// --- seguimiento ---
+	// --- tracking ---
 
-	/** Un guardián ha muerto: se apunta y cumple los encargos de quien lo mata y de los que están cerca. */
+	/** A guardian has died: it is recorded and meets the quests of whoever kills it and of those nearby. */
 	static void guardianKilled(LivingEntity e, DamageSource source) {
 		if (!(e.level() instanceof ServerLevel level)) {
 			return;
@@ -693,7 +693,7 @@ public final class Quests {
 		}
 	}
 
-	/** Cada 2 s: los jugadores con un encargo de ir a un sitio, ¿han llegado? */
+	/** Every 2 s: have the players with a go-to-a-site quest arrived? */
 	static void arrivals(MinecraftServer server) {
 		if (!enabled()) {
 			return;
@@ -707,7 +707,7 @@ public final class Quests {
 		}
 	}
 
-	/** Aviso de la arena: el jugador ha superado la oleada {@code n}. */
+	/** Notice from the arena: the player has cleared wave {@code n}. */
 	public static void waveCleared(ServerPlayer p, int n) {
 		if (enabled()) {
 			complete(p, e -> Objectives.wave(e, n));
@@ -736,9 +736,9 @@ public final class Quests {
 		}
 	}
 
-	// --- reputación ---
+	// --- reputation ---
 
-	/** Un jugador golpea o mata a un aldeano o a un gólem de hierro dentro de una aldea de Heraldia: baja su reputación. */
+	/** A player hits or kills a villager or an iron golem inside a Heraldia village: their reputation drops. */
 	static void attack(LivingEntity e, DamageSource source, boolean death) {
 		boolean golem = e instanceof IronGolem;
 		if (!(golem || e instanceof Villager) || !(source.getEntity() instanceof ServerPlayer p) || !(e.level() instanceof ServerLevel level)
@@ -751,13 +751,13 @@ public final class Quests {
 		}
 	}
 
-	// --- API para otros sistemas (p. ej. las caravanas) ---
+	// --- API for other systems (e.g. the caravans) ---
 
 	/**
-	 * Suma (o resta) reputación del jugador con la aldea de Heraldia cuyo inicio está en el chunk (chunkX, chunkZ), sin
-	 * salirse de [{@link Reputation#MIN}, {@link Reputation#MAX}]: avisa al jugador si cambia de nivel, concede los
-	 * logros de amigo y héroe y lo apunta en el log con {@code reason}. Sin efecto (devuelve la reputación que tenía) con
-	 * reputacion.activado a false. En el hilo del servidor. Devuelve la reputación nueva.
+	 * Adds (or subtracts) the player's reputation with the Heraldia village whose start is in chunk (chunkX, chunkZ), without
+	 * leaving [{@link Reputation#MIN}, {@link Reputation#MAX}]: tells the player if they change level, grants the
+	 * friend and hero advancements and logs it with {@code reason}. No effect (returns the reputation it had) with
+	 * reputacion.activado set to false. On the server thread. Returns the new reputation.
 	 */
 	public static int addReputation(ServerPlayer p, int chunkX, int chunkZ, int points, String reason) {
 		Village a = new Village(chunkX, chunkZ, "", name(p.level().getSeed(), chunkX, chunkZ));
@@ -767,19 +767,19 @@ public final class Quests {
 		return add(p, a, points, reason);
 	}
 
-	/** Como {@link #addReputation(ServerPlayer, int, int, int, String)} con la aldea en cuya caja está {@code pos};
-	 *  devuelve null si ahí no hay ninguna aldea de Heraldia (o el chunk no está cargado). */
+	/** Like {@link #addReputation(ServerPlayer, int, int, int, String)} with the village whose box contains {@code pos};
+	 *  returns null if there is no Heraldia village there (or the chunk is not loaded). */
 	public static @Nullable Integer addReputation(ServerPlayer p, ServerLevel level, BlockPos pos, int points, String reason) {
 		Village a = villageAt(level, pos);
 		return a == null ? null : addReputation(p, a.cx(), a.cz(), points, reason);
 	}
 
-	/** Reputación del jugador con la aldea del chunk (chunkX, chunkZ) (0 si nunca ha tratado con ella). */
+	/** The player's reputation with the village of chunk (chunkX, chunkZ) (0 if they have never dealt with it). */
 	public static int reputation(Player p, int chunkX, int chunkZ) {
 		return data(p).reputation(Reputation.key(chunkX, chunkZ));
 	}
 
-	/** El chunk del inicio de la aldea de Heraldia en cuya caja está {@code pos}, o null (para usar con lo de arriba). */
+	/** The start chunk of the Heraldia village whose box contains {@code pos}, or null (to use with the above). */
 	public static net.minecraft.world.level.@Nullable ChunkPos village(ServerLevel level, BlockPos pos) {
 		Village a = villageAt(level, pos);
 		return a == null ? null : new net.minecraft.world.level.ChunkPos(a.cx(), a.cz());
@@ -804,9 +804,9 @@ public final class Quests {
 	}
 
 	/**
-	 * Lo llama VillagerPreciosMixin al final de {@code Villager.updateSpecialPrices} (al abrir los tratos): rebaja cada
-	 * oferta según la reputación del jugador con la aldea del aldeano y le saluda. Sin efecto fuera de una aldea, con la
-	 * reputación desactivada, con el alguacil o si el jugador ya tiene Héroe de la aldea.
+	 * Called by VillagerPricesMixin at the end of {@code Villager.updateSpecialPrices} (when the trades open): lowers each
+	 * offer according to the player's reputation with the villager's village and greets them. No effect outside a village, with
+	 * reputation disabled, with the bailiff or if the player already has Hero of the Village.
 	 */
 	public static void prices(Villager v, Player player) {
 		if (!(player instanceof ServerPlayer p) || !(v.level() instanceof ServerLevel level) || !withReputation()
@@ -836,7 +836,7 @@ public final class Quests {
 		}
 	}
 
-	/** Para /heraldia status: entregados entre todos y por el jugador, y sus aldeas amigas y de las que es héroe. */
+	/** For /heraldia status: delivered by everyone and by the player, and their friendly villages and those where they are a hero. */
 	public static List<Component> state(MinecraftServer server, @Nullable ServerPlayer p) {
 		List<Component> out = new ArrayList<>();
 		HeraldiaConfig cfg = HeraldiaConfig.get();

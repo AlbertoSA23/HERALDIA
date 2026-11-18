@@ -3,22 +3,22 @@ package io.github.albertosa23.heraldia.quests;
 import java.util.Locale;
 
 /**
- * Reputación de un jugador con una aldea de Heraldia (lógica pura, T38): sube con los encargos entregados y baja al
- * atacar a sus aldeanos o gólems. Por niveles mejora los tratos de sus aldeanos (un descuento como el de Héroe de la
- * aldea, calculado igual que vanilla) y da un saludo y un título. Nada de esto toca la progresión: el descuento máximo
- * es el de Héroe de la aldea I y nunca baja un precio de 1.
+ * A player's reputation with a Heraldia village (pure logic, T38): rises with delivered quests and drops when
+ * attacking its villagers or golems. By levels it improves the trades of its villagers (a discount like Hero of the
+ * Village, computed the same way as vanilla) and gives a greeting and a title. None of this touches progression: the maximum discount
+ * is that of Hero of the Village I and a price never drops below 1.
  */
 public final class Reputation {
 	public static final int MIN = -100, MAX = 300;
-	/** Umbrales de cada nivel (conocido, amigo, héroe). */
+	/** Thresholds of each level (known, friend, hero). */
 	public static final int KNOWN = 20, FRIEND = 75, HERO = 200;
-	/** Lo que cuesta atacar: por golpe y al matar, a un aldeano y a un gólem de hierro de la aldea. */
+	/** What attacking costs: per hit and on killing, a villager and an iron golem of the village. */
 	public static final int VILLAGER_HIT = -5, VILLAGER_DEATH = -40, GOLEM_HIT = -3, GOLEM_DEATH = -20;
 
 	public enum Tier {
 		UNKNOWN("desconocido", 0), KNOWN("conocido", 10), FRIEND("amigo", 20), HERO("heroe", 30);
 
-		/** Descuento en los tratos de sus aldeanos, en % del precio base (como Héroe de la aldea: 30 % con el I). */
+		/** Discount on its villagers' trades, in % of the base price (like Hero of the Village: 30 % with level I). */
 		public final int discount;
 
 		/** Id used in translation keys: never renamed. */
@@ -37,12 +37,12 @@ public final class Reputation {
 	private Reputation() {
 	}
 
-	/** Clave de una aldea en los datos: el chunk de su inicio («12,-40»). */
+	/** Key of a village in the data: its start chunk ("12,-40"). */
 	public static String key(int chunkX, int chunkZ) {
 		return chunkX + "," + chunkZ;
 	}
 
-	/** Chunk de una clave (inverso de {@link #key}); null si no es una clave válida. */
+	/** Chunk of a key (inverse of {@link #key}); null if it is not a valid key. */
 	public static int[] chunk(String key) {
 		int i = key.indexOf(',');
 		if (i <= 0) {
@@ -59,15 +59,15 @@ public final class Reputation {
 		return points >= HERO ? Tier.HERO : points >= FRIEND ? Tier.FRIEND : points >= KNOWN ? Tier.KNOWN : Tier.UNKNOWN;
 	}
 
-	/** Suma un cambio sin salirse de [MIN, MAX]. */
+	/** Adds a change without leaving [MIN, MAX]. */
 	public static int add(int points, int change) {
 		return (int) Math.max(MIN, Math.min(MAX, (long) points + change));
 	}
 
 	/**
-	 * Cuánto baja el precio de un trato con el coste base {@code base} (lo que se suma al «specialPrice» de la oferta,
-	 * negativo o 0): la misma cuenta que Héroe de la aldea en vanilla ({@code max(floor(p × base), 1)}). Sin efecto con
-	 * la reputación desactivada, en el nivel desconocido o si el jugador ya tiene Héroe de la aldea (no se acumulan).
+	 * How much the price of a trade with base cost {@code base} drops (what is added to the offer's "specialPrice",
+	 * negative or 0): the same computation as Hero of the Village in vanilla ({@code max(floor(p × base), 1)}). No effect with
+	 * reputation disabled, at the unknown level or if the player already has Hero of the Village (they do not stack).
 	 */
 	public static int discountFor(Tier tier, int base, boolean enabled, boolean vanillaHero) {
 		if (!enabled || vanillaHero || tier.discount <= 0 || base <= 0) {
@@ -76,7 +76,7 @@ public final class Reputation {
 		return -Math.max((int) Math.floor(tier.discount / 100.0 * base), 1);
 	}
 
-	/** Cambio de reputación al dañar ({@code death} = false) o matar a un aldeano o a un gólem de la aldea. */
+	/** Reputation change on hurting ({@code death} = false) or killing a villager or a golem of the village. */
 	public static int attack(boolean golem, boolean death) {
 		return golem ? (death ? GOLEM_DEATH : GOLEM_HIT) : (death ? VILLAGER_DEATH : VILLAGER_HIT);
 	}

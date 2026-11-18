@@ -6,31 +6,31 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * El tablón de cada aldea, lógica pura y determinista (T38): con la semilla, el chunk de la aldea, el periodo de
- * rotación y lo que hay alrededor (los candidatos, que busca {@link Quests} fuera del hilo del servidor), sale siempre
- * el mismo tablón de 2 a 4 encargos. Sin datos guardados: un tablón se rehace igual tras reiniciar el servidor.
- * <p>El primero es siempre de traer objetos; el segundo, vencer a un guardián si hay alguna única cerca (si no,
- * explorar); los demás, al azar entre lo que haya (explorar, viajar a una aldea vecina, la arena, un guardián más lejano
- * u otro de traer).
+ * Each village's board, pure and deterministic logic (T38): with the seed, the village's chunk, the rotation
+ * period and what is around (the candidates, which {@link Quests} searches for off the server thread), it always gives
+ * the same board of 2 to 4 quests. No saved data: a board is rebuilt identically after a server restart.
+ * <p>The first is always a bring-items quest; the second, defeating a guardian if there is a unique nearby (otherwise,
+ * exploring); the others, at random among what there is (exploring, traveling to a neighboring village, the arena, a
+ * farther guardian or another bring quest).
  */
 public final class Generator {
-	/** Ticks de un día de juego. */
+	/** Ticks in a game day. */
 	public static final long DAY = 24000L;
 	public static final int MIN = 2, MAX = 4;
-	/** Radio de búsqueda de guardianes y de lugares que explorar, en bloques. */
+	/** Search radius for guardians and places to explore, in blocks. */
 	public static final int GUARDIAN_RADIUS = 4000, PLACE_RADIUS = 1500;
-	/** Oleadas que se pueden pedir en la arena. */
+	/** Waves that can be asked for in the arena. */
 	static final int[] WAVES = {3, 5, 8};
 
-	/** Un objeto que traer: id, cantidad mínima y máxima, y esmeraldas que paga. */
+	/** An item to bring: id, minimum and maximum amount, and emeralds it pays. */
 	public record Item(String id, int min, int max, int emeralds) {
 	}
 
-	/** Un sitio candidato: id (única, estructura o nombre de la aldea vecina), bloque y distancia a la aldea. */
+	/** A candidate site: id (unique, structure or name of the neighboring village), block and distance to the village. */
 	public record Objective(String id, int x, int z, int distance) {
 	}
 
-	/** Lo que hay alrededor de una aldea, ordenado de más cerca a más lejos. */
+	/** What is around a village, sorted from nearest to farthest. */
 	public record Candidates(String family, List<Objective> guardians, List<Objective> places, List<Objective> neighbors, boolean arena) {
 		public Candidates {
 			guardians = List.copyOf(guardians);
@@ -48,13 +48,13 @@ public final class Generator {
 			new Item("minecraft:cooked_chicken", 8, 16, 3), new Item("minecraft:cooked_cod", 8, 16, 3),
 			new Item("minecraft:pumpkin_pie", 4, 8, 3), new Item("minecraft:cooked_porkchop", 8, 16, 3),
 			new Item("minecraft:cookie", 16, 32, 2), new Item("minecraft:apple", 8, 16, 2));
-	/** Menas y lingotes de valor moderado (nada de diamantes, esmeraldas ni netherita). */
+	/** Ores and ingots of moderate value (no diamonds, emeralds or netherite). */
 	static final List<Item> ORES = List.of(
 			new Item("minecraft:coal", 16, 32, 3), new Item("minecraft:raw_iron", 8, 16, 4),
 			new Item("minecraft:raw_copper", 16, 32, 3), new Item("minecraft:iron_ingot", 6, 12, 4),
 			new Item("minecraft:redstone", 16, 32, 3), new Item("minecraft:lapis_lazuli", 8, 16, 4),
 			new Item("minecraft:gold_ingot", 4, 8, 4), new Item("minecraft:amethyst_shard", 8, 16, 3));
-	/** Materiales del bioma de cada familia de aldeas (themes.FAMILIES). */
+	/** Biome materials of each village family (themes.FAMILIES). */
 	static final Map<String, List<Item>> BIOME = Map.ofEntries(
 			Map.entry("llanuras", List.of(new Item("minecraft:wheat", 24, 48, 3), new Item("minecraft:hay_block", 4, 8, 3),
 					new Item("minecraft:white_wool", 8, 16, 3))),
@@ -80,24 +80,24 @@ public final class Generator {
 					new Item("minecraft:gold_nugget", 16, 32, 3))),
 			Map.entry("costa", List.of(new Item("minecraft:kelp", 24, 48, 2), new Item("minecraft:dried_kelp_block", 4, 8, 3),
 					new Item("minecraft:ink_sac", 6, 12, 3))));
-	/** Recompensas de cada tipo (además de las esmeraldas de traer, que van por objeto). */
+	/** Rewards of each type (besides the emeralds of bring quests, which go per item). */
 	static final int XP_BRING = 20, XP_PLACE = 40, XP_GUARDIAN = 120, XP_WAVE = 10;
 	static final int EM_PLACE = 4, EM_JOURNEY = 4, EM_GUARDIAN = 8, EM_FAR_GUARDIAN = 12, FAR = 2000;
 
 	private Generator() {
 	}
 
-	/** Periodo de rotación del tablón: cambia cada {@code days} días de juego (del reloj del mundo, que no se para). */
+	/** Board rotation period: it changes every {@code days} game days (by the world clock, which never stops). */
 	public static long period(long gameTime, int days) {
 		return Math.floorDiv(gameTime, Math.max(1, days) * DAY);
 	}
 
-	/** Tick del mundo en que empieza el periodo. */
+	/** World tick at which the period starts. */
 	public static long start(long period, int days) {
 		return period * Math.max(1, days) * DAY;
 	}
 
-	/** Ticks que faltan para el siguiente periodo. */
+	/** Ticks left until the next period. */
 	public static long remaining(long gameTime, int days) {
 		long length = Math.max(1, days) * DAY;
 		return length - Math.floorMod(gameTime, length);
@@ -113,7 +113,7 @@ public final class Generator {
 		return mix(seed ^ mix(((long) ax << 32) ^ (az & 0xffffffffL)) ^ mix(period * 0x9E3779B97F4A7C15L + 0x7AB1));
 	}
 
-	/** Los objetos que puede pedir una aldea de esa familia (comida, su bioma y menas). */
+	/** The items a village of that family can ask for (food, its biome and ores). */
 	public static List<Item> items(String family) {
 		List<Item> out = new ArrayList<>(FOOD);
 		out.addAll(BIOME.getOrDefault(family, List.of()));
@@ -121,7 +121,7 @@ public final class Generator {
 		return out;
 	}
 
-	/** El tablón de la aldea con el inicio en el chunk (ax, az) en ese periodo. */
+	/** The board of the village starting at chunk (ax, az) in that period. */
 	public static List<Quest> board(long seed, int ax, int az, long period, Candidates c) {
 		Random r = new Random(seed(seed, ax, az, period));
 		int n = MIN + r.nextInt(MAX - MIN + 1);
@@ -170,7 +170,7 @@ public final class Generator {
 	}
 
 	private static Quest bring(Random r, String family, int ax, int az, long period, int h, List<String> used) {
-		// 40 % comida, 30 % del bioma (si la familia tiene), 30 % menas; sin repetir objeto en el mismo tablón
+		// 40 % food, 30 % biome (if the family has any), 30 % ores; no repeated item on the same board
 		Item o = null;
 		for (int attempt = 0; attempt < 8 && (o == null || used.contains(o.id())); attempt++) {
 			int k = r.nextInt(10);
@@ -184,7 +184,7 @@ public final class Generator {
 		return new Quest(ax, az, period, h, Type.BRING, o.id(), Math.min(amount, o.max()), 0, 0, emeralds, XP_BRING);
 	}
 
-	/** Un guardián: el primero, uno de los dos más cercanos; el segundo («lejano»), el más lejano que quede. */
+	/** A guardian: the first, one of the two nearest; the second ("far"), the farthest one left. */
 	private static Quest guardian(Random r, Candidates c, int ax, int az, long period, int h, boolean far, List<String> used) {
 		List<Objective> free = c.guardians().stream().filter(o -> !used.contains("g:" + o.id() + "@" + o.x() + "," + o.z())).toList();
 		if (free.isEmpty()) {

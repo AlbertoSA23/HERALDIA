@@ -4,21 +4,21 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 /**
- * Un encargo del tablón de una aldea (inmutable). Se guarda entero en los datos del jugador al aceptarlo, así que
- * sobrevive a la rotación del tablón y a los cambios del mundo.
+ * A quest from a village's board (immutable). It is saved whole in the player's data when accepted, so it
+ * survives the board's rotation and changes in the world.
  *
- * @param aldeaX     chunk del inicio de la aldea que lo encarga (su clave, ver {@link Reputation#key})
- * @param aldeaZ     ídem
- * @param periodo    periodo de rotación en que salió ({@link Generator#period})
- * @param hueco      posición en el tablón (0..3)
- * @param tipo       qué hay que hacer
- * @param objetivo   objeto (traer: «minecraft:bread»), única (guardián: «castillo»), estructura (explorar:
- *                   «heraldia:medianas/posada/llanuras»), nombre de la aldea vecina (viaje) o vacío (arena)
- * @param cantidad   objetos que traer u oleada que superar (0 en los demás)
- * @param x          bloque del objetivo (guardián, explorar, viaje; 0 en los demás)
- * @param z          ídem
- * @param esmeraldas recompensa
- * @param experiencia recompensa (puntos)
+ * @param villageX   chunk of the start of the village that gives it (its key, see {@link Reputation#key})
+ * @param villageZ   likewise
+ * @param period     rotation period it came out in ({@link Generator#period})
+ * @param gap        position on the board (0..3)
+ * @param type       what has to be done
+ * @param target     item (bring: "minecraft:bread"), unique (guardian: "castillo"), structure (explore:
+ *                   "heraldia:medianas/posada/llanuras"), name of the neighboring village (journey) or empty (arena)
+ * @param amount     items to bring or wave to clear (0 in the others)
+ * @param x          block of the target (guardian, explore, journey; 0 in the others)
+ * @param z          likewise
+ * @param emeralds   reward
+ * @param experience reward (points)
  */
 public record Quest(int villageX, int villageZ, long period, int gap, Type type, String target, int amount, int x, int z,
 					  int emeralds, int experience) {
@@ -35,7 +35,7 @@ public record Quest(int villageX, int villageZ, long period, int gap, Type type,
 			Codec.INT.optionalFieldOf("esmeraldas", 0).forGetter(Quest::emeralds),
 			Codec.INT.optionalFieldOf("experiencia", 0).forGetter(Quest::experience)).apply(i, Quest::new));
 
-	/** Id estable: aldea, periodo y hueco («12.-40.7.1»). Dos jugadores con el mismo encargo tienen el mismo id. */
+	/** Stable id: village, period and gap ("12.-40.7.1"). Two players with the same quest have the same id. */
 	public String id() {
 		return villageX + "." + villageZ + "." + period + "." + gap;
 	}
@@ -44,12 +44,12 @@ public record Quest(int villageX, int villageZ, long period, int gap, Type type,
 		return Reputation.key(villageX, villageZ);
 	}
 
-	/** Reputación que da con su aldea al entregarlo. */
+	/** Reputation it gives with its village on delivery. */
 	public int reputation() {
 		return type.reputation;
 	}
 
-	/** ¿Tiene un sitio al que ir (y una pista de rumbo)? */
+	/** Does it have a site to go to (and a heading hint)? */
 	public boolean withPlace() {
 		return type == Type.GUARDIAN || type == Type.EXPLORE || type == Type.JOURNEY;
 	}

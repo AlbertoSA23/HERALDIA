@@ -4,22 +4,22 @@ import com.mojang.serialization.Codec;
 import java.util.Locale;
 
 /**
- * Tipos de encargo del tablón (T38). El id es el que se guarda en los datos del jugador y el que forma la clave de su
- * texto ({@code heraldia.encargos.type.<id>}); no se renombra un id publicado.
+ * Board quest types (T38). The id is what is saved in the player's data and what forms the key of its
+ * text ({@code heraldia.encargos.tipo.<id>}); a published id is never renamed.
  */
 public enum Type {
-	/** Traer N objetos al alguacil (comida, materiales del bioma, menas moderadas): se comprueban al entregar. */
+	/** Bring N items to the bailiff (food, biome materials, moderate ores): checked on delivery. */
 	BRING("traer", 10),
-	/** Vencer al guardián de una estructura única concreta (cercana o lejana). */
+	/** Defeat the guardian of a specific unique structure (near or far). */
 	GUARDIAN("guardian", 30),
-	/** Llegar a una estructura mediana o a una entrada de mina concreta (pista de rumbo y distancia, sin coordenadas). */
+	/** Reach a specific medium structure or mine entrance (heading and distance hint, no coordinates). */
 	EXPLORE("explorar", 15),
-	/** Superar la oleada N en la arena. */
+	/** Clear wave N in the arena. */
 	ARENA("arena", 20),
-	/** Llevar un mensaje a una aldea vecina por el camino (llegar a ella). */
+	/** Take a message to a neighboring village along the road (reach it). */
 	JOURNEY("viaje", 15);
 
-	/** Reputación que da con la aldea que lo encarga. */
+	/** Reputation it gives with the village that gives it. */
 	public final int reputation;
 
 	/** Saved id (NBT, JSON and translation keys): never renamed. */

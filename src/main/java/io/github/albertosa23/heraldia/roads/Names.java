@@ -1,10 +1,10 @@
 package io.github.albertosa23.heraldia.roads;
 
 /**
- * Nombre propio de una aldea de Heraldia, sacado de la semilla y de la posición de su plaza (sin datos guardados): el
- * mismo en cada cartel que la señala. Dos partes, «Torre» + «del Roble», que caben cada una en una línea de cartel y
- * concuerdan entre sí en cualquier combinación (cada segunda parte lleva su propio artículo). Es un topónimo: igual en
- * todos los idiomas, como en los mapas.
+ * Proper name of a Heraldia village, taken from the seed and the position of its plaza (no saved data): the
+ * same on every sign that points to it. Two parts, "Torre" + "del Roble", each fitting on a sign line and
+ * agreeing with each other in any combination (each second part carries its own article). It is a place name: the same in
+ * all languages, as on maps.
  */
 public final class Names {
 	static final String[] FIRST = {"Torre", "Fuente", "Puente", "Villa", "Casar", "Molino", "Val", "Castro",
@@ -16,7 +16,7 @@ public final class Names {
 	private Names() {
 	}
 
-	/** Las dos líneas del nombre de la aldea con la plaza en (x, z) bloques. */
+	/** The two lines of the name of the village with its plaza at (x, z) blocks. */
 	public static String[] of(long seed, int x, int z) {
 		long h = RoadLayout.mix(seed ^ RoadLayout.mix(RoadLayout.pack(x, z) * 0x9E3779B97F4A7C15L + 0x5EED));
 		return new String[]{FIRST[(int) Math.floorMod(h, (long) FIRST.length)], SECOND[(int) Math.floorMod(h >>> 20, (long) SECOND.length)]};
