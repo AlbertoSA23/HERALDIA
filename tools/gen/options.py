@@ -495,6 +495,26 @@ _FIXED = [
      "vencer y durante la gracia)",
      "Game days of grace after the rent runs out before the stall is lost (the tenant is warned a day before it is due "
      "and during the grace)"),
+    ("eventos.activado", True, None, None,
+     "Eventos en las aldeas: de vez en cuando, con un jugador en una aldea de Heraldia, su plaza celebra un día de "
+     "mercado, una boda, un funeral o una fiesta durante unos minutos (puestos, un arco, un féretro o una hoguera, y "
+     "hasta 15 aldeanos sin IA que hablan, comercian o aceptan regalos); al acabar todo se va. Solo pone bloques sobre "
+     "aire y solo quita lo que puso; uno por aldea",
+     "Village events: now and then, with a player in a Heraldia village, its square holds a market day, a wedding, a "
+     "funeral or a festival for a few minutes (stalls, an arch, a bier or a bonfire, and up to 15 villagers without AI "
+     "who speak, trade or take gifts); when it ends everything goes. It only places blocks on air and only removes what "
+     "it placed; one per village"),
+    ("eventos.frecuencia", 20, 0, 100,
+     "Probabilidad (%) de que empiece un evento en cada sorteo (uno cada 30 s por aldea con un jugador dentro, a más de "
+     "24 bloques de la plaza); 0: solo con /heraldia event start",
+     "Chance (%) of an event starting at each draw (one every 30 s per village with a player inside, more than 24 "
+     "blocks from the square); 0: only with /heraldia event start"),
+    ("eventos.espera_minutos", 20, 5, 240,
+     "Minutos de juego que descansa cada aldea entre un evento y el siguiente (súbelo para que sean más raros)",
+     "Minutes of play each village rests between one event and the next (raise it to make them rarer)"),
+    ("eventos.max_activos", 2, 1, 4,
+     "Eventos a la vez en todo el servidor, como mucho (cada uno, unas 15 entidades durante 3 a 6 minutos)",
+     "Maximum events at once on the whole server (each one, about 15 entities for 3 to 6 minutes)"),
 ]
 # Play profiles (option "perfil"): each one sets these gameplay options at once (never world generation ones). "estandar"
 # is exactly the usual behavior (the default values); "personalizado" sets nothing (each option with its
@@ -537,6 +557,7 @@ LIGHT_OPTIONS = {
     "medianas.distancia_minima.bloques": 320,
     "minas.vanilla.multiplicador": 1.0,          # vanilla abandoned mineshafts as in vanilla (the default doubles them)
     "caravanas.activado": False,                 # no caravan entities walking between villages (server ticks)
+    "eventos.activado": False,                   # no village events (up to ~15 entities each while one lasts)
 }
 GENERATION_PROFILES = (LIGHT,)
 # The only thing the other profiles may touch: gameplay options. World generation (where and how structures appear, the
@@ -726,6 +747,10 @@ _NAMES = {
     "casa_heraldo.mercado.alquiler_esmeraldas": ("Alquiler (esmeraldas)", "Rent (emeralds)"),
     "casa_heraldo.mercado.periodo_dias": ("Periodo de alquiler (días)", "Rent period (days)"),
     "casa_heraldo.mercado.gracia_dias": ("Días de gracia", "Days of grace"),
+    "eventos.activado": ("Eventos en las aldeas", "Village events"),
+    "eventos.frecuencia": ("Frecuencia de los eventos (%)", "Event frequency (%)"),
+    "eventos.espera_minutos": ("Descanso entre eventos (min)", "Rest between events (min)"),
+    "eventos.max_activos": ("Eventos a la vez", "Events at once"),
 }
 # Name of each value of the list options: {key: {value: (es_es, en_us)}}.
 _VALUE_NAMES = {
@@ -784,6 +809,7 @@ SECTIONS = [
     ("mapas_web", "Mapas web", "Web maps"),
     ("tesoro", "Búsqueda del tesoro", "Treasure hunt"),
     ("casa_heraldo", "Casa del Heraldo", "Herald's House"),
+    ("eventos", "Eventos en las aldeas", "Village events"),
 ]
 # Key prefix -> section; the first one that fits wins, so a new option falls into its section on its own
 # (if it fits in none, generation fails).
@@ -798,6 +824,7 @@ _SECTION_PREFIXES = [
     ("caravanas.", "caravanas"), ("viajeros.", "viajeros"), ("chozas_mago.", "chozas_mago"), ("ambiente.", "ambiente"),
     ("update_check.", "actualizaciones"), ("actualizar.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
     ("casa_heraldo.", "casa_heraldo"),
+    ("eventos.", "eventos"),
 ]
 
 

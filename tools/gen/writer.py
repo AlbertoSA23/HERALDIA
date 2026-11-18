@@ -20,6 +20,7 @@ import updates
 import light_profile
 import quests
 import caravans
+import village_events
 import dialogue
 import wizard_huts
 import roads
@@ -379,7 +380,7 @@ def texts(reg):
             out[lang].update(lang_texts)
     parts = [maps.lang(dimensions.overworld_only(unique_mods)), advancements.build(reg, unique_mods, mediums.modules(), mines, coast)[1], trades.lang(),
               board.lang(), roads.LANG, mediums.lang(), mines.lang(), coast.lang(), guide.lang(), arena_waves.lang(), admin.lang(), updates.lang(), light_profile.lang(), quests.lang(), caravans.lang(), wizard_huts.lang(),
-              trophies_lang(), chest_loot.story_lang(unique_mods), treasure.lang(), chronicle_ending.lang(), dialogue.lang(), herald_house.lang()]
+              trophies_lang(), chest_loot.story_lang(unique_mods), treasure.lang(), chronicle_ending.lang(), dialogue.lang(), herald_house.lang(), village_events.lang()]
     for part in parts:
         assert part["es_es"].keys() == part["en_us"].keys()
         for lang, lang_texts in part.items():

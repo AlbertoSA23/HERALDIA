@@ -66,6 +66,8 @@ CANONICAL = [
     "herald stall", "herald stall claim", "herald stall claim <stall>", "herald stall pay", "herald stall pay <stall>",
     "herald stall pay <stall> <periods>", "herald stall leave", "herald stall leave <stall>", "herald stall evict",
     "herald stall evict <stall>",                # its market stalls for rent
+    "event", "event list", "event start", "event start market", "event start wedding", "event start funeral",
+    "event start festival", "event stop", "event stop all", "event with", "event with <entity>",   # village events (operators)
 ]
 
 

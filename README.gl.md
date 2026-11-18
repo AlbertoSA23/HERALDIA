@@ -25,6 +25,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 - 📋 **Encargos das aldeas.** Toca o atril do taboleiro da praza dunha aldea (ou usa alí `/heraldia quest`): saen no chat de 2 a 4 encargos (traer obxectos, vencer un gardián, explorar, viaxar a unha aldea veciña, a area) que cambian cada poucos días. Pagan esmeraldas, experiencia e reputación con esa aldea: como coñecido, amigo e heroe da aldea, os seus aldeáns rebaixan os prezos un 10, 20 e 30 %. Atacar os seus aldeáns ou gólems faina baixar.
 - 🐪 **Caravanas.** De cando en vez, preto de ti, un mercador de Heraldia coas súas llamas (e ás veces un garda) percorre o camiño entre dúas aldeas veciñas. Se o asaltan os bandidos, defendeo: ao chegar págache esmeraldas e reputación coa súa aldea de destino. Se o mercador morre, a caravana pérdese.
 - 🚶 **Xente de paso.** Vida nos camiños, tamén preto de ti: un peregrino camiño dun mosteiro ou dunha catedral, un pastor co seu rabaño, un mensaxeiro con présa, unha parella de gardas de patrulla ou un cazador que volve co seu can, segundo a zona. Percorren un treito e vanse; o pastor e o cazador comercian, e se lles fas dano saberase na súa aldea.
+- 🎪 **Nas aldeas pasan cousas.** De cando en vez a praza da aldea na que estás celebra durante uns minutos un día de mercado, unha voda, un funeral ou unha festa: postos e mercadores, un arco e os noivos, un féretro e a campá, unha fogueira con músicos e bailadores. Compra, fai un agasallo, pide unha canción: a aldea lémbrao. Despois todo vaise e a praza queda como estaba.
 - 💬 **Fala cos aldeáns.** Fai clic dereito sobre un aldeán dunha aldea de Heraldia e fálache no chat: frases segundo o seu oficio, a súa terra, a hora, o tempo e o que a aldea te coñece, con botóns para seguir falando, preguntar que se conta ou comerciar (agachado + clic dereito comercia directamente; os aldeáns vanilla comercian coma sempre). Un de cada dez viaxou e, se a aldea se fía de ti, cóntache unha vez cara a onde e a que distancia queda unha estrutura.
 - 🏆 **Logros.** Unha lapela Heraldia con 124 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, os faros e naufraxios, as estruturas medianas, o taboleiro de encargos, a area e as caravanas.
 - 🗿 **Trofeos.** Cada un dos 22 gardiáns solta o seu trofeo, un obxecto con nome e historia. Reúneos todos para completar a Sala de trofeos.
@@ -83,6 +84,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `tesoro.probabilidad` | 3.0 | Probabilidade (%) dun fragmento de mapa do tesouro en cada cofre das estruturas medianas e das minas. |
 | `casa_heraldo.activado` | `true` | A Casa do Heraldo no punto de aparición e a súa protección. |
 | `casa_heraldo.mercado.activado` | `false` | Postos de aluguer no mercado da Casa do Heraldo (prezos: `casa_heraldo.mercado.*`). |
+| `eventos.activado` | `true` | Eventos nas aldeas: día de mercado, voda, funeral e festa nas prazas (operadores: `/heraldia event`; máis raros con `eventos.espera_minutos`; desactivados no perfil lixeiro). |
 
 ## Para saber máis
 

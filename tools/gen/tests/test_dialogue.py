@@ -31,6 +31,8 @@ def folder(tmp_path, monkeypatch):
     es_village["hint.unique"] = {"1": "%1$s, al %2$s, a unos %3$s bloques."}
     _write(tmp_path, "es_es", "village", es_village)
     _write(tmp_path, "es_es", "professions", {"profession.farmer": {"1": "Trigo."}})
+    _write(tmp_path, "es_es", "events", {f"event.{k}.{m}": {"1": "a", "2": "b", "3": "c"}
+                                         for k, ms in dialogue.EVENT_POOLS.items() for m in ms})
     return tmp_path
 
 

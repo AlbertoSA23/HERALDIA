@@ -31,7 +31,8 @@ public final class Reload {
 	static final List<String> RELOADABLE = List.of("perfil", "dificultad.", "jefes.", "botin.", "arena.", "guia.", "golems.",
 			"aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "unicas.atlantida.cofre_unico_por_jugador", "mapas_web.", "encargos.", "reputacion.",
 			"tesoro.", "caravanas.", "viajeros.", "chozas_mago.", "actualizar.", "ambiente.", "dialogos.",
-			"casa_heraldo.");
+			"casa_heraldo.",
+			"eventos.");
 	/** Exceptions inside a reloadable prefix: only checked at startup. */
 	static final List<String> STARTUP_ONLY = List.of("arena.generar_en_mundos_nuevos", "casa_heraldo.generar_en_mundos_nuevos");
 

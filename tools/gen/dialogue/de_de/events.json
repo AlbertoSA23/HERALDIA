@@ -1,0 +1,87 @@
+{
+  "event.market.call": {
+    "1": "Frisches Brot und Kürbiskuchen! Solange der Vorrat reicht!",
+    "2": "Kommt näher, Markttag in %2$s ist nur heute!",
+    "3": "Gute Preise, gute Ware und noch bessere Gesellschaft!"
+  },
+  "event.market.greet": {
+    "1": "Guten Tag, %1$s! Schau dich um, schauen kostet nichts.",
+    "2": "Willkommen auf dem Markt von %2$s. Das Beste aus der Gegend, genau hier.",
+    "3": "Suchst du etwas Bestimmtes? Wenn ich es nicht habe, hat es mein Nachbar."
+  },
+  "event.market.guest": {
+    "1": "Ich komme jede Woche und kaufe immer etwas, das ich nicht brauche.",
+    "2": "Man sagt, der Fisch von heute kommt von weit her. Ich glaube es nicht.",
+    "3": "Aus dem Weg, ich komme zu spät zum Kuchen."
+  },
+  "event.wedding.ceremony": {
+    "1": "Liebe Nachbarn von %2$s: Wir sind hier, um diese beiden jungen Leute zu verbinden.",
+    "2": "Mögen sie Brot, Dach und Kummer teilen, und möge der Kummer klein sein.",
+    "3": "Mit der Glocke als Zeugin erkläre ich euch zu Mann und Frau!"
+  },
+  "event.wedding.greet": {
+    "1": "%1$s, wie schön, dass du gekommen bist!",
+    "2": "Komm herein, komm herein. Heute ist in %2$s niemand fremd.",
+    "3": "Wir heiraten, kannst du das glauben? Ich noch nicht."
+  },
+  "event.wedding.thanks": {
+    "1": "Danke, %1$s! Das halten wir in Ehren.",
+    "2": "Wie aufmerksam! Das vergisst man in %2$s nicht.",
+    "3": "Von Herzen danke. Bleib zum Fest, es gibt Kuchen."
+  },
+  "event.wedding.ask": {
+    "1": "Danke, dass du gekommen bist. Hast du etwas für das Brautpaar mitgebracht?",
+    "2": "Hier bringt man Blumen mit, und sei es nur eine.",
+    "3": "Schön, dass du da bist! Weißt du, eine kleine Aufmerksamkeit ist immer willkommen."
+  },
+  "event.wedding.guest": {
+    "1": "Ich wusste immer, dass die beiden zusammenkommen. Das ganze Dorf wusste es.",
+    "2": "Wie hübsch die Braut ist! Und er... na ja, er auch.",
+    "3": "Ich habe nicht gefrühstückt, damit Platz für den Kuchen bleibt."
+  },
+  "event.funeral.eulogy": {
+    "1": "Heute nehmen wir Abschied von einem der Unseren, sein Leben lang ein Nachbar in %2$s.",
+    "2": "Er hat das Land bestellt, seinen Tisch geteilt und nie seine Tür verschlossen.",
+    "3": "Möge er in Frieden ruhen. Seine Erinnerung bleibt in %2$s."
+  },
+  "event.funeral.greet": {
+    "1": "Danke, dass du bei uns bist, %1$s.",
+    "2": "Er war ein guter Mann. Ganz %2$s weiß das.",
+    "3": "Bleib einen Moment bei uns, wenn du kannst."
+  },
+  "event.funeral.thanks": {
+    "1": "Danke, %1$s. Das hätte ihm gefallen.",
+    "2": "Diese Geste wird %2$s nicht vergessen.",
+    "3": "Danke. Leg sie bitte neben ihn."
+  },
+  "event.funeral.ask": {
+    "1": "Hier ist es Brauch, eine Blume niederzulegen. Wenn du eine hast...",
+    "2": "Danke, dass du gekommen bist. Er hat Fremde immer gern empfangen.",
+    "3": "Es braucht nichts. Aber eine Kerze würde ihm den Weg leuchten."
+  },
+  "event.funeral.guest": {
+    "1": "Er hat mir das Melken beigebracht, als ich ein Junge war.",
+    "2": "Er sagte immer, die Glocke läute viel zu früh.",
+    "3": "Wie still es heute auf dem Platz ist."
+  },
+  "event.festival.call": {
+    "1": "Los, alle tanzen, die Nacht ist jung!",
+    "2": "Kekse, Kuchen und Raketen! Das Fest von %2$s ist das beste weit und breit!",
+    "3": "Noch eine Runde für die Musikanten!"
+  },
+  "event.festival.greet": {
+    "1": "%1$s! Du kommst genau richtig zum Tanz.",
+    "2": "Willkommen zum Fest von %2$s. Iss, trink und tanz.",
+    "3": "Tanzt du? Wenn du es nicht kannst, kann es hier auch keiner."
+  },
+  "event.festival.song": {
+    "1": "Noch eins? Das ist für dich, %1$s!",
+    "2": "Das haben wir als Kinder in %2$s gespielt. Mal sehen, ob ich es noch kann!",
+    "3": "Wünsch dir, was du willst, heute kostet es nichts."
+  },
+  "event.festival.guest": {
+    "1": "Nicht aufhören, nicht aufhören, mir fällt der Hut runter!",
+    "2": "Letztes Jahr habe ich bis zum Morgengrauen getanzt. Dieses Jahr auch.",
+    "3": "Meine Großmutter tanzt besser als ich, und sie ist neunzig."
+  }
+}
