@@ -307,10 +307,26 @@ def test_cost_of_generation_by_paths():
 def test_ci_matrix_says_yes_goes_the_cost():
     out = subprocess.run([sys.executable, os.path.join(TOOLS, "test.py"), "--ci-matrix", "--full"],
                          capture_output=True, text=True, check=True).stdout
-    assert json.loads(out)["cost"] is True
+    assert json.loads(out)["cost"] is True and json.loads(out)["runtime"] is True
     out = subprocess.run([sys.executable, os.path.join(TOOLS, "test.py"), "--list-only", "--full"],
                          capture_output=True, text=True, check=True).stdout.split()
-    assert out[-1] == sel.COST and sorted(out[:-1]) == ALL_COMBOS
+    assert out[-2:] == [sel.COST, sel.RUNTIME] and sorted(out[:-2]) == ALL_COMBOS
+
+
+def test_play_cost_by_paths():
+    """The play cost test (tick time while playing: a CI job of its own, "juego") goes in a PR if something that runs while
+    playing or what the villages hold changes; not with documentation, tests or the generation of other structures. It is not
+    a server group, and changing it alone runs no group."""
+    assert sel.RUNTIME not in ALL_COMBOS
+    for r in [J + "villages/VillageStructure.java", J + "caravans/Caravans.java", J + "arena/Arena.java", J + "mixin/ZombieMixin.java",
+              J + "common/Anchoring.java", J + "bosses/Phases.java", "tools/gen/houses.py", "tools/gen/traces.py", "tools/gen/fillers.py",
+              "tools/smoke/runtime_cost.py", "tools/smoke/TickSampler.java", "tools/smoke/runtime_reference.json", "gradle.properties"]:
+        assert sel.runtime([r]), r
+    for r in ["docs/DEVELOPMENT.md", "CHANGELOG.md", "tools/gen/tests/test_traces.py", "tools/gen/uniques/castillo.py",
+              "tools/gen/mediums/inn.py", J + "command/Guide.java", "tools/smoke/generation_cost.py", ".github/workflows/ci.yml"]:
+        assert not sel.runtime([r]), r
+    for r in ["tools/smoke/runtime_cost.py", "tools/smoke/TickSampler.java", "tools/smoke/runtime_reference.json"]:
+        assert pick(r) == (False, []), r
 
 
 def test_caravans():

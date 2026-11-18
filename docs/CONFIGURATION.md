@@ -167,6 +167,7 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `aldeas.estilos.<style>` | `true` | `true`/`false` | Enables a style (standard and large). If a cell picks a disabled one, another style of its biome is tried. |
 | `aldeas.vida.tratos_estilo` | `true` | `true`/`false` | Style trades and the map of the area's unique structure at each family's cartographers ([Village life](CONTENT.md#village-life)). |
 | `aldeas.vida.tablon` | `true` | `true`/`false` | Job board and bailiff on the square of new villages. |
+| `aldeas.vida.rastros` | `true` | `true`/`false` | Traces of work in progress on a few plots of new villages (a house half built, laundry, a meal half eaten, a work yard, a loaded cart, fish drying, a cooking fire): blocks only; off, the plots stay empty. |
 | `aldeas.vida.asedios` | `false` | `true`/`false` | The weaponsmith of fortified villages sells an ominous bottle to trigger a raid. |
 | `aldeas.caminos.activado` | `true` | `true`/`false` | Roads between nearby villages, with bridges, lamp posts and signs ([Roads between villages](CONTENT.md#roads-between-villages)); new chunks only. When off, the feature is not even added to the biomes. |
 | `aldeas.caminos.distancia_maxima_bloques` | 2000 | 500-4000 | Only villages closer than this are joined. Two villages are never closer than about 670 blocks (with the minimum spacing, 1000), so below that there would be no roads at all. |

@@ -9,7 +9,8 @@ name: CI
 # «bateria-completa» o con «[bateria completa]» en el título. Las de compatibilidad con otros mods
 # (tools/smoke/compat_mods.py) van en la batería completa y en un PR solo si tocan compatibilidad o colocación.
 # El coste de generación (tools/smoke/generation_cost.py, job «coste») va en la batería completa y en un PR solo si
-# toca el Java de la generación o el generador (tools/test.py, COST_PATHS), a la vez que los grupos de servidor.
+# toca el Java de la generación o el generador (tools/test.py, COST_PATHS), a la vez que los grupos de servidor. El coste de
+# jugar (tools/smoke/runtime_cost.py, job «juego») igual, si toca lo que corre al jugar o lo que llevan las aldeas (RUNTIME_PATHS).
 on:
   pull_request:
     branches: [develop, main]
@@ -34,6 +35,7 @@ jobs:
       matriz: ${{ steps.sel.outputs.matriz }}
       hay: ${{ steps.sel.outputs.hay }}
       coste: ${{ steps.sel.outputs.coste }}
+      juego: ${{ steps.sel.outputs.juego }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,6 +71,7 @@ jobs:
           echo "matriz=$(echo "$m" | python3 -c 'import json,sys; m=json.load(sys.stdin); print(json.dumps({"include": m["include"]}))')" >> "$GITHUB_OUTPUT"
           echo "hay=$(echo "$m" | python3 -c 'import json,sys; print("true" if json.load(sys.stdin)["include"] else "false")')" >> "$GITHUB_OUTPUT"
           echo "coste=$(echo "$m" | python3 -c 'import json,sys; print("true" if json.load(sys.stdin)["cost"] else "false")')" >> "$GITHUB_OUTPUT"
+          echo "juego=$(echo "$m" | python3 -c 'import json,sys; print("true" if json.load(sys.stdin)["runtime"] else "false")')" >> "$GITHUB_OUTPUT"
 
   compilar:
     name: Compilación (genera, valida, audita y JUnit)
@@ -273,5 +276,49 @@ jobs:
         with:
           name: coste-generacion
           path: build/coste
+          if-no-files-found: ignore
+          retention-days: 30
+
+  # Coste de jugar (tools/smoke/runtime_cost.py): tiempo por tick con jugadores simulados en aldeas, la arena y una caravana,
+  # con y sin Heraldia, y el margen de aldeanos; compara con tools/smoke/runtime_reference.json (docs/DEVELOPMENT.md).
+  juego:
+    name: Coste de jugar (tiempo por tick con y sin Heraldia)
+    needs: [compilar, seleccion]
+    if: needs.seleccion.outputs.juego == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/preparar
+        with:
+          gradle: 'false'
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: jar
+          path: build/libs
+
+      # Chunky y Carpet (tools/smoke/modrinth.py), con su sha512
+      - uses: actions/cache@v4
+        with:
+          path: build/smoke/modrinth
+          key: modrinth-${{ hashFiles('tools/smoke/modrinth.py') }}-juego
+          restore-keys: |
+            modrinth-${{ hashFiles('tools/smoke/modrinth.py') }}-
+            modrinth-
+
+      - name: Coste de jugar
+        run: python3 tools/smoke/runtime_cost.py --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke" --output build/juego
+
+      - name: Log del servidor
+        if: always()
+        run: cp build/smoke/logs/latest.log build/juego/ 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coste-juego
+          path: build/juego
           if-no-files-found: ignore
           retention-days: 30

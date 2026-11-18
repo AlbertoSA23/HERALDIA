@@ -49,6 +49,11 @@ _FIXED = [
     ("aldeas.vida.tablon", True, None, None,
      "Tablón de encargos en la plaza (atril con el libro de encargos y el alguacil que los paga); solo en aldeas nuevas",
      "Job board on the square (lectern with the book of jobs and the bailiff who pays for them); new villages only"),
+    ("aldeas.vida.rastros", True, None, None,
+     "Rastros de trabajo a medias: en algunos solares de la aldea, una casa a medio construir, ropa tendida, una comida a medias, "
+     "un taller, un carro cargado, pescado secándose o una hoguera con el puchero (solo bloques, ninguna entidad); solo en aldeas nuevas",
+     "Traces of work in progress: on a few plots of the village, a house half built, laundry hanging out, a meal half eaten, a work "
+     "yard, a loaded cart, fish drying or a cooking fire with the pot on (blocks only, no entities); new villages only"),
     ("aldeas.vida.asedios", False, None, None,
      "Asedios: en las aldeas fortificadas el armero vende una botella ominosa para provocar un asalto de saqueadores (cambia el equilibrio)",
      "Sieges: in fortified villages the weaponsmith sells an ominous bottle to provoke a raid (affects balance)"),
@@ -571,6 +576,7 @@ _NAMES = {
     "aldeas.distancia_aldeas_vanilla_bloques": ("Distancia a aldeas vanilla (bloques)", "Distance to vanilla villages (blocks)"),
     "aldeas.vida.tratos_estilo": ("Tratos propios del estilo", "Style trades"),
     "aldeas.vida.tablon": ("Tablón de encargos", "Job board"),
+    "aldeas.vida.rastros": ("Rastros de trabajo a medias", "Traces of work in progress"),
     "aldeas.vida.asedios": ("Asedios en aldeas fortificadas", "Sieges in fortified villages"),
     "aldeas.caminos.activado": ("Caminos entre aldeas", "Roads between villages"),
     "aldeas.caminos.distancia_maxima_bloques": ("Distancia máxima entre aldeas unidas (bloques)", "Maximum distance between joined villages (blocks)"),
