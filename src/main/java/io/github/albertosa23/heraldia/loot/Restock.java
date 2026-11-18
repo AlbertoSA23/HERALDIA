@@ -2,6 +2,7 @@ package io.github.albertosa23.heraldia.loot;
 
 import java.util.Optional;
 import net.minecraft.nbt.CompoundTag;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Pure logic of the restocking loot (options botin.reponer.*), without world classes: which tables restock, what is
@@ -83,6 +84,34 @@ public final class Restock {
 			return Decision.WAIT;
 		}
 		return Decision.RESTOCK;
+	}
+
+	/** Table the premium chest of a cleared unique restocks with (botin.reponer.premium_vencido_modesto; generator: chest_loot.cleared_premium). */
+	public static final String CLEARED_PREMIUM = "heraldia:botin/premium_vencido";
+	/** Option: the premium chest of a unique whose guardian has fallen restocks with {@link #CLEARED_PREMIUM}. */
+	public static final String CLEARED_PREMIUM_OPTION = "botin.reponer.premium_vencido_modesto";
+
+	/**
+	 * The unique structure id of a premium chest table ({@code heraldia:unicas/<id>/premium} gives {@code <id>}), or null for any
+	 * other table (minor chests, treasure rooms, villages...).
+	 */
+	public static @Nullable String premiumOf(@Nullable String table) {
+		String prefix = NS + "unicas/", suffix = "/premium";
+		if (table == null || !table.startsWith(prefix) || !table.endsWith(suffix)) {
+			return null;
+		}
+		String sid = table.substring(prefix.length(), table.length() - suffix.length());
+		return sid.isEmpty() || sid.contains("/") ? null : sid;
+	}
+
+	/**
+	 * Table a due chest is refilled with: its own, except the premium chest of a cleared unique with the option on, which gets
+	 * {@link #CLEARED_PREMIUM}. The record keeps the original table either way, so turning the option off restores the full
+	 * premium on the next refill. {@code cleared} is only asked for premium tables (it looks up the structure).
+	 */
+	public static String refillTable(String table, boolean option, java.util.function.Predicate<String> cleared) {
+		String sid = option ? premiumOf(table) : null;
+		return sid != null && cleared.test(sid) ? CLEARED_PREMIUM : table;
 	}
 
 	/** What is saved in a chest: its original table and the clock of the last looting. */
