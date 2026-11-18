@@ -151,6 +151,9 @@ MAP = [
     (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
     # villager conversations (P9a): their scenario lives in the quests test (a real village and a simulated player)
     (JAVA + "dialogue/*", QUESTS), ("tools/gen/dialogue.py", QUESTS), ("tools/gen/dialogue/*", QUESTS),
+    # the choice windows (conversations and the arena bell's menu in the middle of the screen): their scenarios live in
+    # the quests test (the conversation as a vanilla client gets it) and the arena modes test (the bell's menu)
+    (JAVA + "choice/*", QUESTS + ["tools/smoke/arena_modes.py"]),
     # reputation visible in the village: its scenario lives in the quests test too (the same village reaches "conocido")
     (JAVA + "welcome/*", QUESTS),
     # caravans along the roads (T39)
@@ -373,12 +376,12 @@ DURATION_S = {
     "tools/smoke/difficulty.py": 100,                # four starts of the same world
     "tools/smoke/arena.py": 180,                     # two starts, three builds and five waves, and the Herald's House
                                                      # (LOCAL measurement, 161 s twice + 10 %: not a CI one; refresh it)
-    "tools/smoke/arena_modes.py": 155,               # two starts, one build, seven short waves and the two-week close
+    "tools/smoke/arena_modes.py": 160,               # two starts, one build, seven short waves and the two-week close (+5: the bell's container menu, its refused replies and a mode disabled while it is open; measured locally: +4 s)
     "tools/smoke/admin.py": 85,                      # two starts and two medium structures loaded or generated
     "tools/smoke/update_check.py": 110,              # three starts (with the fake API, without network and disabled)
     "tools/smoke/web_maps.py": 110,                 # three starts (without maps, with squaremap and Carpet, and after restarting)
     "tools/smoke/existing_world.py": 120,           # three starts of the same world
-    "tools/smoke/quests.py": 175,                 # two starts of the same world and a generated village (~80 s), then four more starts and a second village for the reputation looks (measured locally: +95 s)
+    "tools/smoke/quests.py": 185,                 # two starts of the same world and a generated village (~80 s), then four more starts and a second village for the reputation looks (measured locally: +95 s) (+10: the conversation as a vanilla client's container menu; measured locally: +6 s, the whole test 170 s)
     "tools/smoke/treasure.py": 115,                    # three starts, the whole chain and the chest
     "tools/smoke/nether_end.py": 50,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
     "tools/smoke/wizard_huts.py": 75,               # two starts, four huts and three Evil Wizards

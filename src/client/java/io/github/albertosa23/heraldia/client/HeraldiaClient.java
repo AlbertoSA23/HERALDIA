@@ -18,13 +18,15 @@ import net.minecraft.network.chat.Component;
  * In single player the configuration is read when the game starts ({@code Heraldia.onInitialize}); so that what the
  * screen saves applies when a world is reopened without restarting the game, it is read again when the integrated server
  * closes and, if none is open, right after saving; with one open, saving hot-reloads what does not affect generation
- * (like /heraldia reload).
+ * (like /heraldia reload). It also registers the choice screen's channels ({@link ChoiceScreen}): a server with Heraldia
+ * sees them and puts conversations and menus on that screen instead of a container window.
  */
 @Environment(EnvType.CLIENT)
 public final class HeraldiaClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> HeraldiaConfig.load(configFile()));
+		ChoiceScreen.register();
 	}
 
 	static Path configFile() {

@@ -262,6 +262,143 @@ def conversation(srv, fails, spot, y, floor_bottom):
     srv.run("tag @e[tag=heraldia_prueba] remove heraldia", r"Removed tag|Nothing changed")
 
 
+# The conversation in the middle of the screen (choice/Choices): a Carpet bot has no Heraldia on its client (it registers
+# no channel), so it gets the container menu, as a vanilla client would. "/heraldia choice click" sends a real container
+# click packet through the bot's own connection handler; "/heraldia choice reply" brings a reply as the screen's payload
+# does, as a modified client could send anything.
+SEES = rf"Heraldia: choice: {PLAYER} sees dialogue as (\w+) \(session (\d+): ([\w, ]*)\)"
+PICKS = rf"Heraldia: choice: {PLAYER} picks (\w+) in dialogue \(session (\d+), from the menu\)"
+MENU_VILLAGER = "heraldia_menu"
+# (input, button) a vanilla client can send for a click; "pickup" on an option is the pick, so not in this list
+ABUSE = [("quick_move", 0), ("swap", 0), ("swap", 8), ("swap", 40), ("clone", 2), ("throw", 0), ("throw", 1), ("pickup_all", 0),
+         ("quick_craft", 0), ("quick_craft", 1), ("quick_craft", 2)]
+
+
+def option_slot(ids, option):
+    """The menu slot of an option: the bottom row (9-17), centred and spread out as Choice.row does."""
+    n = len(ids)
+    first = 4 - (n - 1) if n <= 4 else (9 - n) // 2
+    return 9 + first + (2 if n <= 4 else 1) * ids.index(option)
+
+
+def seen_page(srv, fails, what, m):
+    """(session, options) of a page shown as a menu, from its log line `m`."""
+    if m is None:
+        fails.append(f"choice menu: {what}: no page")
+        return 0, []
+    if m.group(1) != "menu":
+        fails.append(f"choice menu: {what}: shown as {m.group(1)} (a client without Heraldia must get the menu)")
+    return int(m.group(2)), [o for o in m.group(3).split(", ") if o]
+
+
+def choice_status(srv):
+    return srv.run(f"execute as {PLAYER} run heraldia choice", r"choice: (?:none|session \d+)[^\n]*").group(0)
+
+
+def inventory(srv):
+    return srv.data(f"data get entity {PLAYER} Inventory")
+
+
+def menu_conversation(srv, fails, spot, y, floor_bottom):
+    """The conversation as a vanilla client gets it: a container menu (see the docstring at the top)."""
+    srv.run(f"kill @e[tag={MENU_VILLAGER}]", r"Killed|No entity was found")
+    srv.run(VILLAGER.replace("heraldia_prueba", MENU_VILLAGER).format(x=floor_bottom[0] + 1.5, y=y, z=floor_bottom[1] + 0.5),
+            r"Summoned new")
+    srv.run(f"tag @e[tag={MENU_VILLAGER},limit=1] add heraldia", r"Added tag|Nothing changed")
+    srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
+    srv.run(f"clear {PLAYER} minecraft:diamond", r"Removed|No items were found")
+    srv.run(f"give {PLAYER} minecraft:diamond 3", r"Gave")
+    srv.run(f"give {PLAYER} minecraft:oak_log 10", r"Gave")
+    before = inventory(srv)
+    with_menu = f"heraldia talk with @e[tag={MENU_VILLAGER},limit=1]"
+    session, ids = seen_page(srv, fails, "first page", maybe_run(srv, with_menu, SEES))
+    if ids != ["more", "rumor", "trade", "bye"]:
+        fails.append(f"choice menu: first page offers {ids} (must be more, rumor, trade, bye)")
+        return
+    status = choice_status(srv)
+    if f"session {session}, dialogue, menu (choice menu {session})" not in status:
+        fails.append(f"choice menu: the window is not open: {status}")
+    # every click a client can make, on an option, on the paper, on the player's own diamonds and outside the window:
+    # nothing moves and nothing is picked
+    diamonds = 45    # the first hotbar slot in a two-row chest window (window 0-17, inventory 18-44, hotbar 45-53)
+    for slot in (option_slot(ids, "more"), 4, diamonds, 20, -999):
+        for kind, button in ABUSE + ([("pickup", 0), ("pickup", 1)] if slot in (4, diamonds, 20, -999) else []):
+            srv.run(f"execute as {PLAYER} run heraldia choice click {slot} {kind} {button}", r"choice click: slot")
+    srv.ctx.ticks(4)
+    if re.search(PICKS, srv.ctx.log()):
+        fails.append("choice menu: a click that is not a pick picked an option")
+    status = choice_status(srv)
+    if f"session {session}, dialogue, menu (choice menu {session})" not in status:
+        fails.append(f"choice menu: the window changed after the clicks: {status}")
+    if inventory(srv) != before:
+        fails.append("choice menu: the clicks changed the player's inventory")
+    if srv.test(f"execute positioned {floor_bottom[0]} {y} {floor_bottom[1]} if entity @e[type=minecraft:item,distance=..16]"):
+        fails.append("choice menu: an item was dropped")
+    # the pick: "any news?" (a wayfarer that trusts the player: the answer comes after the search, in the same window)
+    srv.run(f"execute as {PLAYER} run heraldia choice click {option_slot(ids, 'rumor')}", r"choice click: slot")
+    if maybe(srv, PICKS.replace("(\\w+)", "rumor", 1), 10) is None:
+        fails.append("choice menu: clicking [Any news?] does not pick it")
+    nxt, ids2 = seen_page(srv, fails, "hint", maybe(srv, SEES.replace("(\\d+)", f"({session + 1}|{session + 2})", 1), 90))
+    srv.ctx.ticks(2)
+    if not re.search(HINT, srv.ctx.log()[-4000:]):
+        fails.append("choice menu: the wayfarer does not tell its hint in the window")
+    if "rumor" in ids2 or "trade" not in ids2:
+        fails.append(f"choice menu: after the hint, options {ids2} (no more news, trade still there)")
+    # what a modified client could reply: an earlier window, an option not on offer (already asked): refused, nothing changes
+    for sess, opt in ((session, "more"), (nxt, "rumor"), (nxt, "reward"), (nxt + 1, "trade")):
+        m = srv.run(f"execute as {PLAYER} run heraldia choice reply {sess} {opt}", r"choice reply (accepted|refused)")
+        if m.group(1) != "refused":
+            fails.append(f"choice menu: a reply to session {sess} with '{opt}' was accepted")
+    if f"session {nxt}, dialogue, menu (choice menu {nxt})" not in choice_status(srv):
+        fails.append(f"choice menu: the refused replies changed the window: {choice_status(srv)}")
+    # the villager out of range: the reply is refused (and the window closes)
+    srv.run(f"execute as {PLAYER} at @s run tp @s ~ ~ ~20", r"Teleported")
+    m = srv.run(f"execute as {PLAYER} run heraldia choice reply {nxt} {ids2[0]}", r"choice reply (accepted|refused)")
+    if m.group(1) != "refused":
+        fails.append("choice menu: a reply 20 blocks from the villager was accepted")
+    srv.ctx.ticks(4)
+    if "choice: none (no window" not in choice_status(srv):
+        fails.append(f"choice menu: the window stays open away from the villager: {choice_status(srv)}")
+    # trade from the window: the trades open (the window is replaced by them)
+    srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
+    session, ids = seen_page(srv, fails, "again", maybe_run(srv, with_menu, SEES))
+    if "trade" in ids:
+        score = talk_score(srv)
+        srv.run(f"execute as {PLAYER} run heraldia choice click {option_slot(ids, 'trade')}", r"choice click: slot")
+        srv.ctx.ticks(4)
+        if talk_score(srv) <= score:
+            fails.append("choice menu: [Trade] does not open the trades")
+        if "another window" not in choice_status(srv):
+            fails.append(f"choice menu: after [Trade], {choice_status(srv)}")
+    close_out(srv)
+    # goodbye: the last line with only [Close], which closes the window
+    srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
+    session, ids = seen_page(srv, fails, "goodbye", maybe_run(srv, with_menu, SEES))
+    if "bye" in ids:
+        srv.run(f"execute as {PLAYER} run heraldia choice click {option_slot(ids, 'bye')}", r"choice click: slot")
+        last, ids = seen_page(srv, fails, "farewell", maybe(srv, SEES, 10))
+        if ids != ["close"]:
+            fails.append(f"choice menu: the farewell offers {ids} (must be only close)")
+        else:
+            srv.run(f"execute as {PLAYER} run heraldia choice click {option_slot(ids, 'close')}", r"choice click: slot")
+            srv.ctx.ticks(4)
+            if "choice: none (no window" not in choice_status(srv):
+                fails.append(f"choice menu: [Close] does not close the window: {choice_status(srv)}")
+    after = inventory(srv)
+    if after != before:
+        fails.append(f"choice menu: the player's inventory changed:\n  before {before}\n  after  {after}")
+    if srv.test(f"execute positioned {floor_bottom[0]} {y} {floor_bottom[1]} if entity @e[type=minecraft:item,distance=..16]"):
+        fails.append("choice menu: an item was dropped")
+    print(f"choice menu: pages, refused replies and clicks checked; inventory unchanged ({len(before)} characters of NBT)")
+    srv.run(f"kill @e[tag={MENU_VILLAGER}]", r"Killed|No entity was found")
+
+
+def maybe_run(srv, cmd, pattern):
+    """The command run by the player and its log line `pattern` (None if the command answers with an error instead)."""
+    m = srv.run(f"execute as {PLAYER} at @s run {cmd}", pattern)
+    return m if re.search(pattern, m.group(0)) else None
+
+
 # Reputation visible in the village (welcome/Welcome): the four corners of the fountain's rim (streets.plaza: centre 11,
 # rim at distance 3, y 1), where a "conocido" village puts flower pots at y 2. One corner gets a block the mod did not place.
 RIM = [(8, 8), (14, 8), (8, 14), (14, 14)]
@@ -713,6 +850,7 @@ def first_lap(srv, fails, found):
     # 8) villager conversations (P9a)
     srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
     conversation(srv, fails, spot, y, floor_bottom)
+    menu_conversation(srv, fails, spot, y, floor_bottom)
     delivered = state(srv)
     if delivered != "2":
         fails.append(f"/heraldia status: {delivered} encargos entregados (deben ser 2)")

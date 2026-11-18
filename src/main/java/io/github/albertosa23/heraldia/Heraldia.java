@@ -61,6 +61,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.arena.Arena.register();
 		io.github.albertosa23.heraldia.quests.Quests.register();
 		io.github.albertosa23.heraldia.dialogue.Dialogue.register();
+		io.github.albertosa23.heraldia.choice.Choices.register();
 		io.github.albertosa23.heraldia.caravans.Caravans.register();
 		io.github.albertosa23.heraldia.common.Profiler.register();
 		io.github.albertosa23.heraldia.common.SearchCaches.register();
