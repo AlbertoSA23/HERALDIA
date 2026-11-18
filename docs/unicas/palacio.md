@@ -1,90 +1,90 @@
-# Palacio oriental (`heraldia:unicas/palacio`)
+# Eastern palace (`heraldia:unicas/palacio`)
 
-Palacio imperial de inspiración oriental, amurallado, con tres patios sucesivos en un eje norte-sur estrictamente
-simétrico. Una sola variante, diseñada a mano (`tools/gen/unicas/palacio/`), en una única pieza rígida de 81 × 123 bloques.
+An imperial palace of eastern inspiration, walled, with three successive courtyards on a strictly
+symmetric north-south axis. A single variant, designed by hand (`tools/gen/unicas/palacio/`), in a single rigid piece of 81 × 123 blocks.
 
-- Biomas: `minecraft:cherry_grove` y `minecraft:bamboo_jungle` (la jungla normal y la dispersa son del templo-pirámide).
-- Rareza: `spacing` 250 / `separation` 190 chunks (una cada ~3.000-5.000 bloques).
-- Adaptación: `beard_box`. Todo el palacio se apoya en un zócalo de piedra (y=0) y **no tiene sótanos bajo el terreno**:
-  la «cámara secreta bajo el salón del trono» está dentro de la plataforma escalonada de tres gradas (y=1-7), por
-  encima del suelo. Así la caja de la pieza empieza en el zócalo, el terreno se rellena por debajo y nada hunde el
-  entorno. El volumen interior se rellena de aire para que una ladera no asome dentro de los patios.
-- Diferencia con las aldeas «cerezos»: allí casas sueltas de cerezo con tejados de pagoda en torres; aquí un único
-  recinto ceremonial de muros rojos, terrazas de mármol (cuarzo), tejados amarillos imperiales (mosaico de bambú) en el
-  eje y verdes vidriados (prismarina) en los edificios secundarios, con estanque, puerta de luna y pagoda de cinco pisos.
+- Biomes: `minecraft:cherry_grove` and `minecraft:bamboo_jungle` (the normal and sparse jungles belong to the pyramid temple).
+- Rarity: `spacing` 250 / `separation` 190 chunks (one every ~3,000-5,000 blocks).
+- Adaptation: `beard_box`. The whole palace rests on a stone plinth (y=0) and **has no basements below the terrain**:
+  the "secret chamber under the throne hall" is inside the three-tier stepped platform (y=1-7),
+  above the ground. That way the piece's box starts at the plinth, the terrain is filled underneath and nothing sinks the
+  surroundings. The inner volume is filled with air so that a hillside does not poke into the courtyards.
+- Difference from the "cherry" villages: there, loose cherry wood houses with pagoda roofs on towers; here a single
+  ceremonial compound of red walls, marble terraces (quartz), imperial yellow roofs (bamboo mosaic) on the
+  axis and green glazed ones (prismarine) on the secondary buildings, with a pond, a moon gate and a five-story pagoda.
 
-## Plantas (coordenadas de plantilla: x este, z sur desde la puerta, y=1 pavimento, pies a y=2)
+## Floor plans (template coordinates: x east, z south from the gate, y=1 paving, feet at y=2)
 
-| Zona | Huella | Notas |
+| Area | Footprint | Notes |
 |---|---|---|
-| Escalinata y muralla | z=0-4, muralla de 3 de grueso en todo el perímetro, y=2-10 | zócalo de ladrillo de piedra, cuerpo rojo, albardilla amarilla |
-| Puerta del Mediodía | x=32-48, z=2-8, macizo y=1-9 | paso de 3 × 4, dos cuerpos de guardia con escalera de mano al pabellón superior (y=10) |
-| Patio exterior | z=5-27 | río de agua dorada (z=15-17) con tres puentes arqueados, cerezos, linternas de piedra |
-| Puerta de la Armonía | muro z=28-30, salón x=28-52, z=26-32 sobre zócalo | paso central con columnas; sala de guardia (oeste) y despensa (este) |
-| Patio del trono | z=31-79 | biblioteca (oeste, x=4-17) y tesorería (este, x=63-76), simétricas por fuera |
-| Plataforma del trono | gradas x=22-58/24-56/26-54, z=36-76/38-74/40-72; pies 4, 6 y 8 | escalinatas en el eje (delante y detrás) |
-| Salón del trono | x=29-51, z=44-66, pies 8, doble alero | trono sobre estrado, biombo, pasillo trasero, muro trasero de 3 |
-| Bajo el salón (dentro de la plataforma) | x=28-52, z=42-70, pies 2-5 | antecámara, pasillo de trampas, sala de los guerreros, cámara del tesoro |
-| Muro del jardín | z=80-82 | puerta de luna (círculo de radio 3) en el eje y dos portillos |
-| Jardín | z=83-119 | estanque (x=27-53, z=88-102) con puente y pabellón del lago; pagoda (x=35-45, z=106-116), cuatro pabellones de las concubinas (x=4-16 y x=64-76) |
+| Steps and wall | z=0-4, a wall 3 thick around the whole perimeter, y=2-10 | stone brick plinth, red body, yellow coping |
+| Meridian Gate | x=32-48, z=2-8, block y=1-9 | a 3 × 4 passage, two guardrooms with a ladder to the upper pavilion (y=10) |
+| Outer courtyard | z=5-27 | a river of golden water (z=15-17) with three arched bridges, cherry trees, stone lanterns |
+| Gate of Harmony | wall z=28-30, hall x=28-52, z=26-32 on a plinth | a central passage with columns; a guardroom (west) and a pantry (east) |
+| Throne courtyard | z=31-79 | library (west, x=4-17) and treasury (east, x=63-76), symmetric from outside |
+| Throne platform | tiers x=22-58/24-56/26-54, z=36-76/38-74/40-72; feet 4, 6 and 8 | flights of steps on the axis (in front and behind) |
+| Throne hall | x=29-51, z=44-66, feet 8, double eaves | a throne on a dais, a screen, a back corridor, a back wall 3 thick |
+| Under the hall (inside the platform) | x=28-52, z=42-70, feet 2-5 | antechamber, trap corridor, hall of the warriors, treasure chamber |
+| Garden wall | z=80-82 | a moon gate (a circle of radius 3) on the axis and two wickets |
+| Garden | z=83-119 | a pond (x=27-53, z=88-102) with a bridge and the lake pavilion; pagoda (x=35-45, z=106-116), four concubines' pavilions (x=4-16 and x=64-76) |
 
-## Recorrido del jugador
-1. Escalinata → Puerta del Mediodía. Cuerpos de guardia a ambos lados del paso (cofre `guardia` en cada uno); escaleras de mano al pabellón de la puerta (barril `torre`).
-2. Patio exterior: puentes sobre el río; la brecha de la esquina noreste es la parte en ruinas.
-3. Puerta de la Armonía: sala de guardia (cofre `guardia`) y despensa (barriles `almacen`).
-4. Patio del trono: biblioteca (cofre `biblioteca`, estudio secreto) y tesorería (barriles `tesoreria_menor`, cámara acorazada con puerta de hierro y botón, cofre trampa `tesoreria`). Escalinata al salón del trono (cofre `salon` en el pasillo trasero).
-5. Detrás del biombo, dos columnas gemelas con palanca: una abre la puerta secreta, la otra dispara una flecha. La puerta da a un pozo con escalera de mano que baja al interior de la plataforma.
-6. Antecámara → pasillo de las trampas (dos cables trampa con dispensadores enfrentados) → sala de los guerreros de terracota (dos generadores, a oscuras) → cerradura de dos palancas → **cámara del tesoro** bajo el trono: guardián con nombre, cofre `premium` y dos cofres `boveda`.
-7. Puerta de luna → jardín: pabellón del lago (barril `jardin`), cuatro pabellones de las concubinas (cofre `pabellon` en cada uno; el del sureste en ruinas), pagoda de cinco pisos con escaleras de mano y cofre `pagoda` arriba.
+## Player route
+1. Steps → Meridian Gate. Guardrooms on both sides of the passage (a `guardia` chest in each); ladders to the gate's pavilion (`torre` barrel).
+2. Outer courtyard: bridges over the river; the breach in the northeast corner is the ruined part.
+3. Gate of Harmony: guardroom (`guardia` chest) and pantry (`almacen` barrels).
+4. Throne courtyard: library (`biblioteca` chest, secret study) and treasury (`tesoreria_menor` barrels, a vault with an iron door and a button, the trapped `tesoreria` chest). Steps up to the throne hall (`salon` chest in the back corridor).
+5. Behind the screen, two twin columns with a lever: one opens the secret door, the other fires an arrow. The door leads to a shaft with a ladder that goes down into the platform.
+6. Antechamber → trap corridor (two tripwires with facing dispensers) → hall of the terracotta warriors (two spawners, in the dark) → a two-lever lock → **treasure chamber** under the throne: a named guardian, the `premium` chest and two `boveda` chests.
+7. Moon gate → garden: the lake pavilion (`jardin` barrel), the four concubines' pavilions (a `pabellon` chest in each; the southeast one in ruins), a five-story pagoda with ladders and the `pagoda` chest at the top.
 
-## Puzles (todo colocado en estado estable: nada espera una actualización de bloque)
-- **Estudio secreto de la biblioteca**: muro de estanterías al norte con una puerta de dos bloques movida por dos pistones
-  pegajosos escondidos tras una columna de estanterías. Cerrada = pistones extendidos y alimentados por una palanca
-  encendida en la cara de la columna (bloque de la columna con energía fuerte → pistón superior directo, inferior por
-  cuasiconectividad). Apagar la palanca abre; encenderla cierra.
-- **Puerta secreta tras el trono**: el mismo mecanismo en el muro trasero, oculto tras la columna izquierda. La columna
-  derecha, gemela, lleva una palanca señuelo (apagada) cuyo bloque alimenta un dispensador con flechas al pie de la columna.
-- **Cerradura de la cámara**: la puerta de dos bloques la mueven dos pistones independientes (el bloque bajo hacia el
-  oeste y el alto hacia el este), cada uno con su palanca; solo se abre con las dos apagadas.
+## Puzzles (everything placed in a stable state: nothing waits for a block update)
+- **Secret study of the library**: a wall of bookshelves to the north with a two-block door moved by two sticky
+  pistons hidden behind a column of bookshelves. Closed = pistons extended and powered by a lever that is
+  on, on the face of the column (the column's block strongly powered → the upper piston directly, the lower one by
+  quasi-connectivity). Turning the lever off opens it; turning it on closes it.
+- **Secret door behind the throne**: the same mechanism in the back wall, hidden behind the left column. The right
+  column, its twin, has a decoy lever (off) whose block powers a dispenser with arrows at the foot of the column.
+- **Lock of the chamber**: the two-block door is moved by two independent pistons (the lower block towards the
+  west and the upper one towards the east), each with its lever; it only opens with both off.
 
-## Trampas
-- Pasillo de trampas (bajo el salón): dos cables trampa; cada gancho da energía fuerte al muro en el que se apoya y
-  ese bloque activa un dispensador a la altura de la cabeza que dispara a través del cable (como en el templo de la jungla).
-- Cámara acorazada de la tesorería: placa de presión delante del cofre trampa, con dos dispensadores a ras de suelo a
-  sus lados que disparan sobre la placa.
-- Palanca señuelo del salón del trono (arriba).
+## Traps
+- Trap corridor (under the hall): two tripwires; each hook strongly powers the wall it rests on and
+  that block activates a dispenser at head height that fires across the wire (as in the jungle temple).
+- The treasury vault: a pressure plate in front of the trapped chest, with two dispensers at floor level on
+  its sides that fire over the plate.
+- The decoy lever of the throne hall (above).
 
-## Enemigos
-- Sala de los guerreros: dos generadores (zombi y esqueleto), sin luz.
-- Cámara del tesoro: guardián «Comandante de la Guardia Imperial» (vindicador con hacha de hierro y coraza de cota de
-  malla, 40 de vida, `PersistenceRequired`, sin soltar el equipo).
+## Enemies
+- Hall of the warriors: two spawners (zombie and skeleton), unlit.
+- Treasure chamber: the guardian "Commander of the Imperial Guard" (a vindicator with an iron axe and a chainmail
+  cuirass, 40 health, `PersistenceRequired`, does not drop its equipment).
 
-## Estado (80-85 % en buen estado)
-Ruina con sentido: brecha en la esquina noreste de la muralla con escombros, albardilla caída en el muro este del
-jardín, pabellón de las concubinas del sureste medio hundido (tejado y muro abiertos, escombros, musgo), linterna de
-piedra derribada y tejas sueltas en la Puerta de la Armonía. Además un procesador desgasta al azar la piedra (ladrillo
-agrietado y musgoso, andesita). La auditoría del módulo mide la superficie expuesta y exige 15-20 % de ruina.
+## Condition (80-85 % in good condition)
+Ruin that makes sense: a breach in the northeast corner of the wall with rubble, coping fallen on the east wall of the
+garden, the southeast concubines' pavilion half collapsed (roof and wall open, rubble, moss), a knocked-down stone
+lantern and loose tiles on the Gate of Harmony. In addition a processor randomly weathers the stone (cracked
+and mossy brick, andesite). The module's audit measures the exposed surface and requires 15-20 % ruin.
 
-## Botín (`heraldia:unicas/palacio/<tabla>`; el grupo extra de cada cofre va marcado `solo_sin_lootr`)
-| Tabla | Dónde | Contenido |
+## Loot (`heraldia:unicas/palacio/<table>`; each chest's extra pool is marked `solo_sin_lootr`)
+| Table | Where | Contents |
 |---|---|---|
-| `guardia` | 3 cofres en cuerpos de guardia | comida, flechas, antorchas, pepitas de hierro; extra: lingote de hierro, esmeralda |
-| `almacen`, `torre`, `jardin` | barriles | comida, cuerda, velas, papel; poco valor |
-| `pabellon` | 4 pabellones | tintes, velas, pétalos, fragmentos de amatista, pepitas de oro, esmeraldas |
-| `biblioteca` | biblioteca | papel, libros, tinta, plumas, mapa; raro: libro encantado |
-| `tesoreria_menor` | 2 barriles de la tesorería | pepitas de oro y hierro, cobre, alguna esmeralda |
-| `salon` | pasillo del salón del trono | velas, oro, esmeraldas, zanahorias doradas, catalejo |
-| `tesoreria` | cofre trampa acorazado | lingotes de oro, esmeraldas, oro en bruto; diamante poco probable |
-| `biblioteca_secreta` | estudio secreto | libros encantados (niveles 10-20), botellas de experiencia, lapislázuli |
-| `pagoda` | último piso de la pagoda | perlas de ender, amatista, libro encantado, manzana dorada |
-| `boveda` | 2 cofres de la cámara | diamantes (1-3), oro, esmeraldas, equipo de hierro encantado |
-| `premium` | cofre de la cámara | joya: 90 % vistosa (objetos de oro y hierro con nombre y encantamientos 15-30) y 10 % fuerte (diamante encantado, manzana dorada encantada, tótem); adornos de armadura, discos, riqueza |
+| `guardia` | 3 chests in guardrooms | food, arrows, torches, iron nuggets; extra: iron ingot, emerald |
+| `almacen`, `torre`, `jardin` | barrels | food, string, candles, paper; little value |
+| `pabellon` | 4 pavilions | dyes, candles, petals, amethyst shards, gold nuggets, emeralds |
+| `biblioteca` | library | paper, books, ink, feathers, map; rare: an enchanted book |
+| `tesoreria_menor` | 2 treasury barrels | gold and iron nuggets, copper, the odd emerald |
+| `salon` | throne hall corridor | candles, gold, emeralds, golden carrots, spyglass |
+| `tesoreria` | the vault's trapped chest | gold ingots, emeralds, raw gold; a diamond unlikely |
+| `biblioteca_secreta` | secret study | enchanted books (levels 10-20), bottles o' enchanting, lapis lazuli |
+| `pagoda` | top floor of the pagoda | ender pearls, amethyst, enchanted book, golden apple |
+| `boveda` | 2 chests in the chamber | diamonds (1-3), gold, emeralds, enchanted iron gear |
+| `premium` | the chamber's chest | a jewel: 90 % showy (named gold and iron items with enchantments 15-30) and 10 % strong (enchanted diamond, enchanted golden apple, totem); armor trims, discs, riches |
 
-Nada de netherita en equipo, plantilla de mejora de netherita ni élitros.
+No netherite gear, netherite upgrade template or elytra.
 
-## Contraste con el criterio de diseño
-- Simetría axial en muralla, puertas, patios, plataforma, salón, biblioteca/tesorería (iguales por fuera), pabellones y pagoda; las únicas asimetrías son los mecanismos ocultos y la ruina.
-- Ninguna escalera sin terminar: escalinatas continuas de un bloque por paso; las escaleras de mano llegan siempre a un suelo.
-- Muebles contra los muros, centros libres; faroles colgados con cadena o de pie sobre piedra; agua siempre en vasos cerrados.
-- Cada sala tiene función reconocible (guardia, despensa, biblioteca, estudio, tesorería, cámara acorazada, salón, aposentos, pagoda).
-- Auditoría como condición para generar: `lint.py` (con los mecanismos en estado abierto) más las comprobaciones del módulo (redstone, recorrido con todo cerrado, nada flotando, porcentaje de ruina).
+## Against the design criteria
+- Axial symmetry in the wall, gates, courtyards, platform, hall, library/treasury (identical from outside), pavilions and pagoda; the only asymmetries are the hidden mechanisms and the ruin.
+- No unfinished staircase: continuous flights of one block per step; ladders always reach a floor.
+- Furniture against the walls, centers free; lanterns hanging on chains or standing on stone; water always in closed basins.
+- Every room has a recognizable function (guardroom, pantry, library, study, treasury, vault, hall, quarters, pagoda).
+- Audit as a condition for generating: `lint.py` (with the mechanisms in the open state) plus the module's checks (redstone, walk with everything closed, nothing floating, ruin percentage).
