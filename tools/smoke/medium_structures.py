@@ -94,7 +94,7 @@ def check_locate(ctx, kinds):
                 if not wait_generated(ctx, px, pz, mid):
                     fails.append(f"{mid}: /locate gives {px}, {pz} but nothing has been generated there")
                 elif mid in INHABITED:
-                    fails += check_settled(ctx, mid, px, pz)
+                    fails += check_settled(ctx, mid, px, pz, long_stay=(x, z) == POINTS[0])
                 forceload(ctx, px - 32, pz - 32, px + 31, pz + 31, remove=True)
         if not found_count:
             fails.append(f"no {mid}")
@@ -130,9 +130,10 @@ def inhabited():
 
 INHABITED = inhabited()
 SETTLED = []                         # (kind, x, z, villagers, with job site, with home, slept): the summary
+STAYED = []                          # (kind, x, z, villagers, alive, at home, with job site, with home, days)
 
 
-def check_settled(ctx, mid, px, pz):
+def check_settled(ctx, mid, px, pz, long_stay=False):
     """On the seed's real terrain: every inhabitant villager of the structure /locate found takes its workstation in the
     working hours and its bed at night, and sleeps in it (Brain memories job_site, home and last_slept, which the game
     saves). A variant without inhabitants (the watchtower with the archer) counts 0 and does not fail."""
@@ -160,7 +161,36 @@ def check_settled(ctx, mid, px, pz):
     fails = []
     if job < n or home < n or slept < n:
         fails.append(f"{mid} at {px}, {pz}: of {n} inhabitants, {job} took a workstation, {home} a bed and {slept} slept")
+    if long_stay:
+        fails += check_stay(ctx, mid, px, pz, sel, n, with_mem)
     return fails
+
+
+STAY_TICKS = 3 * 24000                # three in-game days (and nights) with /tick sprint
+STAY_BOX = 24                         # blocks around the located chunk: the piece (at most 21 x 21) plus a few
+
+
+def check_stay(ctx, mid, px, pz, sel, n, with_mem):
+    """Invulnerable villagers with AI stay home: after STAY_TICKS run at full speed, they are all still alive, inside the
+    structure's box (not wandered off, fallen or drowned: a drowned one would be gone, invulnerable or not, only from the
+    void) and still remember their bed and workstation."""
+    t0 = ctx.gametime()
+    ctx.run(f"tick sprint {STAY_TICKS}", r"[Ss]print|ticks")
+    end = time.monotonic() + 900
+    while ctx.gametime() < t0 + STAY_TICKS and time.monotonic() < end:
+        time.sleep(5)
+    days = (ctx.gametime() - t0) / 24000
+    near = (f"@e[type=minecraft:villager,tag=heraldia_habitante,tag=heraldia_mediana.{mid},"
+            f"x={px + 8 - STAY_BOX},y=-64,z={pz + 8 - STAY_BOX},dx={2 * STAY_BOX},dy=420,dz={2 * STAY_BOX}]")
+    alive, home_now, job, home = ctx.count(sel), ctx.count(near), with_mem("job_site"), with_mem("home")
+    STAYED.append((mid, px, pz, n, alive, home_now, job, home, days))
+    print(f"{mid} at {px}, {pz}: after {days:.1f} days, {alive} of {n} inhabitants alive, {home_now} inside the structure, "
+          f"{job} with their workstation and {home} with their bed")
+    ctx.run("time set 2000", r"Set the time|time to")
+    if days < 2.9 or alive < n or home_now < n or job < n or home < n:
+        return [f"{mid} at {px}, {pz}: after {days:.1f} days, {alive}/{n} alive, {home_now}/{n} at home, {job}/{n} with a "
+                f"workstation, {home}/{n} with a bed"]
+    return []
 
 
 def check_templates(ctx, ts):
@@ -321,6 +351,10 @@ def main():
             n, job, home, slept = (sum(r[k] for r in SETTLED) for k in (3, 4, 5, 6))
             print(f"HABITANTES: {len(SETTLED)} structures on the seed's terrain, {n} inhabitant villagers: {job} with "
                   f"their workstation, {home} with their bed, {slept} asleep")
+            if STAYED:
+                n, alive, home_now = (sum(r[k] for r in STAYED) for k in (3, 4, 5))
+                print(f"HABITANTES tras {min(r[8] for r in STAYED):.1f} días: {len(STAYED)} structures, {n} inhabitants, "
+                      f"{alive} alive, {home_now} still inside their structure")
             if not re.search(r"Heraldia: habitantes de las medianas: activados", ctx.log()):
                 fails.append("the log does not say the medium structures' inhabitants are on")
         if not re.search(rf"estructuras medianas: activadas, {len(kinds)} tipos, frecuencia 100 %, a {ZONE} bloques de aldeas "
