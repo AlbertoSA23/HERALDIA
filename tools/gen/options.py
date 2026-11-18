@@ -182,6 +182,13 @@ _FIXED = [
     ("botin.reponer.dias", 7, 1, 60,
      "Días de juego (24.000 ticks del reloj del mundo) que tienen que pasar desde que se saqueó un cofre para que se reponga",
      "In-game days (24,000 ticks of the world clock) that must pass after a chest was looted before it is restocked"),
+    ("botin.reponer.premium_vencido_modesto", True, None, None,
+     "Cofre premium de una única ya vencida: cuando su guardián ha caído, al reponerse solo trae alguna esmeralda de vez en "
+     "cuando y, rara vez, un libro encantado modesto (la primera vez que se abre es el premium de siempre); desactívalo para "
+     "que se reponga con su premium completo como antes",
+     "Premium chest of a cleared unique: once its guardian has fallen, its refills only bring an emerald now and then and, "
+     "rarely, a modest enchanted book (the first opening is the usual premium); turn it off to restock it with its full "
+     "premium as before"),
     ("dificultad.nivel", "normal", ["facil", "normal", "dificil", "heroica"], None,
      "Dificultad de los guardianes y los mobs de las plantillas de Heraldia: fácil (vida y daño x0,75), normal (como "
      "siempre), difícil (vida x1,5, daño x1,25) o heroica (vida x2, daño x1,5); también los ya generados, al cargarse",
@@ -507,6 +514,7 @@ _NAMES = {
     "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
     "botin.reponer.activado": ("Botín que se repone", "Restocking loot"),
     "botin.reponer.dias": ("Días hasta reponerse", "Days until restocked"),
+    "botin.reponer.premium_vencido_modesto": ("Premium modesto en únicas vencidas", "Modest premium in cleared uniques"),
     "dificultad.nivel": ("Nivel de dificultad", "Difficulty level"),
     "dificultad.escalar_por_jugadores": ("Más vida con más jugadores", "More health with more players"),
     "dificultad.escalar_botin": ("Botín según la dificultad", "Loot by difficulty"),
