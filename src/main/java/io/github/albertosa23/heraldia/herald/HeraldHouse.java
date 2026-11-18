@@ -303,6 +303,8 @@ public final class HeraldHouse {
 			if (fresh && cfg.getBool(NEW_WORLDS)) {
 				LOGGER.info("Heraldia: herald's house: new world: looking for its site at spawn");
 				search(server, null, true);
+			} else if (fresh) {
+				LOGGER.info("Heraldia: herald's house: new world, {} = false: none until an operator places it", NEW_WORLDS);
 			} else {
 				LOGGER.info("Heraldia: herald's house: existing world: none until an operator places it (/heraldia herald place)");
 			}

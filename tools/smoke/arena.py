@@ -396,7 +396,8 @@ def herald_house(p, hp, arena_box):
     # protection: a creative player who is not an operator
     sx, sy, sz = w(hp["aparicion"])
     ctx.run(f"deop {P}", r"no longer|Nothing changed|not an operator")
-    ctx.run(f"gamemode creative {P}", r"Set .* game mode|game mode")
+    s.send(ctx.proc, f"gamemode creative {P}")          # no reply when the mode does not change
+    ctx.ticks(2)
     ctx.run(f"tp {P} {sx + 0.5} {sy} {sz + 0.5}", r"Teleported")
     floor = (sx + 2, sy - 1, sz)
     s.send(ctx.proc, f"player {P} look at {floor[0] + 0.5} {floor[1] + 1} {floor[2] + 0.5}")
@@ -423,7 +424,8 @@ def herald_house(p, hp, arena_box):
     p.check(ctx.block((ax + 1, ay + 1, az), "minecraft:nether_portal"), "herald: an operator cannot light the portal")
     ctx.run(f"deop {P}", r"no longer|Nothing changed|not an operator")
     # the market: claim stall 1, leave a chest with diamonds in it, let the rent run out
-    ctx.run(f"gamemode survival {P}", r"Set .* game mode|game mode")
+    s.send(ctx.proc, f"gamemode survival {P}")
+    ctx.ticks(2)
     ctx.run(f"clear {P}", r"Removed|No items")
     ctx.run(f"give {P} minecraft:emerald 10", r"Gave")
     ctx.run(f"execute as {P} run heraldia herald stall claim 1", r"Stall 1 is yours|El puesto 1 es tuyo|need|Hacen falta")
