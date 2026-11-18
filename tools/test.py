@@ -70,7 +70,7 @@ WEB_MAPS = ["tools/smoke/web_maps.py"]
 TREASURE = ["tools/smoke/treasure.py"]
 # Wave arena (T31) and its modes, weekly ranking and hall of fame (T41).
 ARENA = ["tools/smoke/arena.py", "tools/smoke/arena_modes.py"]
-COMMANDS = UPDATE + ADMIN + ["tools/smoke/guide.py"] + ARENA
+COMMANDS = UPDATE + ADMIN + ["tools/smoke/guide.py", "tools/smoke/journal.py"] + ARENA
 # Mine entrances: their generator (tools/gen/mines/) and their Java (minas/ package); the placement rule touches the medium structures' one.
 MINES = ["tools/smoke/mine_entrances.py"]
 # Coastal lighthouses and shipwrecks (T42): their generator (tools/gen/shore/) and their Java (costa/ package); their rule is that of the
@@ -149,14 +149,16 @@ MAP = [
     (JAVA + "loot/RestockedLoot.java", ["tools/smoke/loot_restock.py"]), (JAVA + "loot/Restock.java", ["tools/smoke/loot_restock.py"]),
     (JAVA + "difficulty/*", ["tools/smoke/difficulty.py"]),
     # Herald's Guide: its Java (and the per-language texts it uses), its generator and its test
+    # each player's journal (/heraldia journal): its Java and its texts; it reads the advancements /heraldia status counts
+    (JAVA + "command/Journal.java", ["tools/smoke/journal.py"]),
     (JAVA + "command/Guide*", ["tools/smoke/guide.py"]), (JAVA + "command/Texts.java", ["tools/smoke/guide.py"]),
     ("tools/gen/guide.py", ["tools/smoke/guide.py"]),
     # mod languages (translations and their check): the Guide is the only thing the server delivers in the client's language
     ("tools/gen/languages.py", ["tools/smoke/guide.py"]), ("tools/gen/languages/*", ["tools/smoke/guide.py"]),
     # administration tools (T35): /heraldia review, status and reload (and the info nearby search they reuse)
     (JAVA + "command/Revi*", ADMIN), (JAVA + "command/SafeSpot.java", ADMIN),
-    (JAVA + "command/StatusCommand.java", ADMIN), (JAVA + "command/State.java", ADMIN), (JAVA + "command/ReloadCommand*", ADMIN), (JAVA + "command/InfoCommand.java", ADMIN),
-    (JAVA + "config/Reload.java", ADMIN), ("tools/gen/admin.py", ADMIN),
+    (JAVA + "command/StatusCommand.java", ADMIN + ["tools/smoke/journal.py"]), (JAVA + "command/State.java", ADMIN), (JAVA + "command/ReloadCommand*", ADMIN), (JAVA + "command/InfoCommand.java", ADMIN),
+    (JAVA + "config/Reload.java", ADMIN), ("tools/gen/admin.py", ADMIN + ["tools/smoke/journal.py"]),
     # commands in English and their old aliases (T35b): the /heraldia tree is used by all the command tests; the
     # new-version notice, its test with the fake API
     (JAVA + "command/HeraldiaCommands.java", COMMANDS), (JAVA + "command/Alias.java", COMMANDS),
@@ -295,6 +297,7 @@ DURATION_S = {
     "tools/smoke/anchored_guardians.py": 450,
     "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
     "tools/smoke/guide.py": 120,                      # three server starts
+    "tools/smoke/journal.py": 60,                     # one start and a few commands as a simulated player
     "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
     "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
     "tools/smoke/profiles.py": 110,                  # four starts of the same world

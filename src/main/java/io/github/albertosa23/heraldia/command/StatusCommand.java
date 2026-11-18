@@ -174,7 +174,9 @@ public final class StatusCommand {
 				f -> Texts.t("heraldia.familia." + f));
 		type(lines, op, "heraldia.estado.tipo.unicas", State.count(t.uniques(), u -> l.done(State.NS + "unicas/" + u + "/descubrir")),
 				InfoCommand::uniqueName);
-		type(lines, op, "heraldia.estado.tipo.medianas", State.count(t.mediums(), m -> l.criterion(State.NS + "medianas/todas", m)),
+		// one criterion per type in the walker advancement of its dimension (the Nether and End types are not in medianas/todas)
+		type(lines, op, "heraldia.estado.tipo.medianas", State.count(t.mediums(), m -> l.criterion(State.NS + "medianas/todas", m)
+						|| l.criterion(State.NS + "medianas/nether", m) || l.criterion(State.NS + "medianas/end", m)),
 				InfoCommand::mediumName);
 		type(lines, op, "heraldia.estado.tipo.minas", State.count(t.mines(), m -> l.done(State.NS + "minas/" + m)),
 				m -> Texts.t("heraldia.minas." + m + ".nombre"));
@@ -182,6 +184,9 @@ public final class StatusCommand {
 				c -> Texts.t("heraldia.costa." + c + ".nombre"));
 		type(lines, op, "heraldia.estado.guardianes", State.count(t.guardians(), u -> l.done(State.NS + "unicas/" + u + "/guardian")),
 				InfoCommand::uniqueName);
+		if (src.getPlayer() != null) {   // this is the server's summary; each player's own progress is in their journal
+			lines.add(Journal.statusLine(Texts.language(src.getPlayer())));
+		}
 		boolean arena = cfg.getBool("arena.activado");
 		lines.add(Texts.t("heraldia.estado.arena", Texts.t(!arena ? "heraldia.info.desactivada"
 				: Arena.center() != null ? "heraldia.estado.arena.colocada" : "heraldia.estado.arena.sin_colocar"), Arena.record(server)));
