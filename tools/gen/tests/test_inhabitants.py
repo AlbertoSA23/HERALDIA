@@ -175,3 +175,14 @@ def test_every_inhabited_template_has_a_bell_on_the_ground(reg):
         if _living(t)[0]:
             bells = [st for (x, y, z), (st, _) in t.blocks.items() if "bell[" in st and y == 1 and "attachment=floor" in st]
             assert bells, name
+
+
+def test_a_step_against_a_fence_is_a_trap(reg):
+    """The hermitage's composter against its garden fence: the hermit hopped over into the garden and could not get out
+    (villagers do not open gates). The contract finds it."""
+    t = copy.deepcopy(reg.templates["medianas/ermita/oscuro/b"])
+    for p, (st, _) in list(t.blocks.items()):
+        if "composter" in st:
+            t.blocks[p] = ("minecraft:air", None)
+            t.blocks[(p[0], p[1], p[2] + 1)] = (st, None)        # back against the fence, as it was
+    assert any("hops over" in e for e in inh.issues(t))

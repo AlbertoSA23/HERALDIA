@@ -73,10 +73,19 @@ def _cell(p):
 
 
 def _no_ladders(t):
-    """A copy of the template without ladders: what a villager can walk (the path-finder does not climb)."""
+    """A copy of the template as a villager walks it: without ladders (the path-finder does not climb them) and with the
+    closed fence gates as fences (villagers open doors, not gates)."""
     from core import Template
-    u = Template(t.name + "#sin_escaleras")
-    u.blocks = {p: (("minecraft:air", None) if _name(st) == "ladder" else (st, nbt)) for p, (st, nbt) in t.blocks.items()}
+
+    def villager_view(st, nbt):
+        n = _name(st)
+        if n == "ladder":
+            return ("minecraft:air", None)
+        if n.endswith("_fence_gate") and "open=false" in st:
+            return ("minecraft:" + n.replace("_fence_gate", "_fence"), None)
+        return (st, nbt)
+    u = Template(t.name + "#aldeano")
+    u.blocks = {p: villager_view(st, nbt) for p, (st, nbt) in t.blocks.items()}
     u.jigsaws, u.entities = t.jigsaws, []
     return u
 
@@ -84,6 +93,36 @@ def _no_ladders(t):
 def _beside(cells, x, y, z):
     """Is there a walkable cell next to the block (x, y, z), at its height or one below/above (a bed, a counter)?"""
     return any((x + dx, y + dy, z + dz) in cells for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)) for dy in (0, -1, 1))
+
+
+def _height(st):
+    """Height a mob stands at on top of the block (lint.top_height, but the composter is a full block to walk on)."""
+    import lint
+    return 1.0 if _name(st) == "composter" else lint.top_height(st)
+
+
+def _fence_traps(t, cells):
+    """A one-block-high block (composter, barrel, hay...) against a fence lets a villager hop onto it and over the fence
+    (the fence top is only half a block higher); if the other side is a pen it cannot walk out of (a fenced garden with
+    its gate shut: villagers do not open gates), it is trapped there and, unable to reach its bed, the game makes it give
+    the bed up. Found in the hermitage."""
+    import lint
+    out = []
+    for (x, y, z), (st, _) in t.blocks.items():
+        if not _name(st).endswith("_fence"):
+            continue
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            step = t.blocks.get((x + dx, y, z + dz))
+            if not step or _height(step[0]) != 1.0 or (x + dx, y + 1, z + dz) not in cells and \
+                    not any((x + dx + ex, y, z + dz + ez) in cells for ex, ez in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                continue
+            far = (x - dx, y, z - dz)
+            fb = t.blocks.get(far)
+            if far not in cells and (fb is None or lint.passable(fb[0])) and \
+                    t.blocks.get((x - dx, y - 1, z - dz)) and not lint.passable(t.blocks[(x - dx, y - 1, z - dz)][0]):
+                out.append(f"{_name(step[0])} at {(x + dx, y, z + dz)} against the fence at {(x, y, z)}: a villager hops "
+                           f"over it into {far}, which it cannot walk out of")
+    return out
 
 
 def issues(t):
@@ -113,6 +152,7 @@ def issues(t):
     if len(reach_beds) > len(living) and len(living) > 1:
         errs.append(f"{len(reach_beds)} reachable beds for {len(living)} villagers: a free bed lets them breed")
     bells = [q for q, (st, _) in t.blocks.items() if _name(st) == "bell" and _beside(cells, *q)]
+    errs += _fence_traps(t, cells)
     used_jobs = set()
     for p, n in living:
         prof = n["VillagerData"]["profession"].split(":")[1]

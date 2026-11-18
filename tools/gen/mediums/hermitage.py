@@ -132,7 +132,9 @@ def _garden(t, p, x0, x1):
                 t.set(x, 0, z, "farmland[moisture=7]")
                 t.set(x, 1, z, p["cultivos"][(z // 2) % len(p["cultivos"])])
     t.set((x0 + x1) // 2, 1, z0, f"{m}_fence_gate[facing=north,in_wall=false,open=false,powered=false]")
-    t.set(x0 + 1, 1, z0 - 1, "composter[level=0]")
+    # one block clear of the fence: against it, the hermit hopped onto the composter, over the fence and into the
+    # garden, and with the gate shut he could not get out (nor reach his bed: the game made him give it up)
+    t.set(x0 + 1, 1, z0 - 2, "composter[level=0]")
 
 
 def orchard_east(p, name):
