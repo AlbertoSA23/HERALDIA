@@ -59,6 +59,7 @@ CANONICAL = [
     "update undo confirm <id>", "update repair", "update repair dry-run",
     "journal", "journal villages", "journal uniques", "journal mediums", "journal mines", "journal coast",
     "journal nether", "journal end",             # each player's journal: found and missing, by kind
+    "journal chronicle", "journal chronicle book",   # the end of the Chronicle: guardians defeated; a copy of the last leaf
 ]
 
 

@@ -3,6 +3,8 @@ package io.github.albertosa23.heraldia.command;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.albertosa23.heraldia.Heraldia;
+import io.github.albertosa23.heraldia.chronicle.ChronicleEnding;
+import io.github.albertosa23.heraldia.chronicle.Ending;
 import io.github.albertosa23.heraldia.coast.Coast;
 import io.github.albertosa23.heraldia.common.MediumStructures;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
@@ -42,6 +44,10 @@ import org.jspecify.annotations.Nullable;
  * aldeas/todas, unicas/todas, medianas/todas, medianas/nether and medianas/end) and, for the dimension of a unique
  * structure, from the structure registry. It never gives coordinates or location clues: those belong to the maps, the
  * quests and the Herald's Guide (which the footer points to). Chat only, so it works on vanilla clients.
+ * <p>The end of the Chronicle ({@link ChronicleEnding}, option guia.final_cronica) adds one line to the summary (guardians
+ * defeated, towards the end), the player's title under the heading once they have it, and its own section,
+ * {@code /heraldia journal chronicle} (defeated and still keeping watch, by structure name; once closed, a copy of the last
+ * leaf with {@code /heraldia journal chronicle book}). It is not one more kind in the overall total: it counts fights, not finds.
  */
 public final class Journal {
 	/** The sections in display order: also the literal of /heraldia journal &lt;section&gt;. */
@@ -50,6 +56,9 @@ public final class Journal {
 	/** Cells of the progress bar. */
 	static final int BAR = 10;
 	static final String FULL = "■", EMPTY = "□";
+	/** The Chronicle's section (/heraldia journal chronicle): guardians, not finds. */
+	static final String CHRONICLE = "chronicle";
+	static final String CKEY = "heraldia.cronica.";
 
 	private Journal() {
 	}
@@ -86,6 +95,8 @@ public final class Journal {
 		for (String s : SECTIONS) {
 			n.then(Commands.literal(s).executes(ctx -> show(ctx.getSource(), s)));
 		}
+		n.then(Commands.literal(CHRONICLE).executes(ctx -> chronicle(ctx.getSource()))
+				.then(Commands.literal("book").executes(ctx -> ChronicleEnding.copy(ctx.getSource()))));
 		return n;
 	}
 
@@ -95,7 +106,8 @@ public final class Journal {
 		State.Achievements progress = progress(server, player);
 		Map<String, String> l = Texts.language(player);
 		List<Section> sections = sort(sections(catalog(server, HeraldiaConfig.get()), progress), l);
-		List<Component> out = section == null ? overview(l, player.getGameProfile().name(), sections) : detail(l, sections, section);
+		List<Component> out = section == null ? overview(l, player.getGameProfile().name(), sections, chronicleOf(player))
+				: detail(l, sections, section);
 		out.forEach(c -> src.sendSuccess(() -> c, false));
 		return sections.stream().mapToInt(Section::found).sum();
 	}
@@ -223,11 +235,44 @@ public final class Journal {
 				.append(Component.literal(EMPTY.repeat(BAR - f)).withStyle(ChatFormatting.DARK_GRAY));
 	}
 
+	/** The Chronicle as the journal shows it: the guardians (main world and beyond) and whether the player holds the title. */
+	record Chronicle(Section main, Section beyond, boolean herald) {
+		static Chronicle of(Ending.Progress p, boolean herald) {
+			return new Chronicle(section(CHRONICLE, p.main()), section("beyond", p.beyond()), herald);
+		}
+
+		private static Section section(String id, List<Ending.Guardian> gs) {
+			return new Section(id, gs.stream().map(g -> new Item(g.sid(), "heraldia.unicas." + g.sid() + ".nombre", g.defeated())).toList());
+		}
+
+		Chronicle sorted(Map<String, String> l) {
+			List<Section> s = sort(List.of(main, beyond), l);
+			return new Chronicle(s.get(0), s.get(1), herald);
+		}
+	}
+
+	/** This player's Chronicle, or null with the option off or nothing to defeat. */
+	private static @Nullable Chronicle chronicleOf(ServerPlayer player) {
+		if (!HeraldiaConfig.get().getBool(ChronicleEnding.OPTION)) {
+			return null;
+		}
+		Ending.Progress p = ChronicleEnding.progress(player);
+		return p.main().isEmpty() ? null : Chronicle.of(p, ChronicleEnding.isHerald(player));
+	}
+
 	/** Summary: title with the total, one line per section (clickable) and the footer. */
 	static List<Component> overview(Map<String, String> l, String player, List<Section> sections) {
+		return overview(l, player, sections, null);
+	}
+
+	/** The same with the Chronicle's line (before the footer) and, for a Herald of Atlantis, their title under the heading. */
+	static List<Component> overview(Map<String, String> l, String player, List<Section> sections, @Nullable Chronicle chronicle) {
 		List<Component> out = new ArrayList<>();
 		int found = sections.stream().mapToInt(Section::found).sum(), total = sections.stream().mapToInt(Section::total).sum();
 		out.add(Texts.t(l, KEY + "titulo", player).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
+		if (chronicle != null && chronicle.herald()) {
+			out.add(Texts.t(l, CKEY + "diario.titulo_jugador", player).withStyle(ChatFormatting.GOLD));
+		}
 		if (sections.isEmpty()) {
 			out.add(Texts.t(l, KEY + "vacio").withStyle(ChatFormatting.GRAY));
 			return out;
@@ -249,6 +294,9 @@ public final class Journal {
 				line.append(Component.literal(" ✔").withStyle(ChatFormatting.GOLD));
 			}
 			out.add(line.withStyle(st -> st.withClickEvent(new ClickEvent.RunCommand(order)).withHoverEvent(new HoverEvent.ShowText(tip))));
+		}
+		if (chronicle != null) {
+			out.add(chronicleLine(l, chronicle.main()));
 		}
 		out.add(Texts.t(l, found >= total ? KEY + "completo" : KEY + "pie").withStyle(ChatFormatting.GRAY));
 		if (sections.stream().anyMatch(s -> s.id().equals("uniques") && !s.missing().isEmpty())) {
@@ -279,6 +327,81 @@ public final class Journal {
 				.withHoverEvent(new HoverEvent.ShowText(Component.literal("/heraldia journal")))));
 		if (id.equals("uniques") && !s.missing().isEmpty()) {
 			nav.append(" ").append(button("/heraldia guide"));
+		}
+		out.add(nav);
+		return out;
+	}
+
+	/** The summary's Chronicle line: its bar, the guardians defeated and, on hover, those still keeping watch (clickable). */
+	static Component chronicleLine(Map<String, String> l, Section s) {
+		String order = "/heraldia journal " + CHRONICLE;
+		boolean done = s.found() >= s.total();
+		MutableComponent hover = Texts.t(l, KEY + "ver", order).withStyle(ChatFormatting.AQUA);
+		if (!done) {
+			hover = Component.empty().append(Texts.t(l, CKEY + "diario.quedan", s.missing().size()).withStyle(ChatFormatting.GRAY))
+					.append("\n").append(names(l, s.missing())).append("\n\n").append(hover);
+		}
+		Component tip = hover;
+		MutableComponent line = Component.empty().append(bar(s.found(), s.total())).append(" ")
+				.append(Texts.t(l, KEY + "cuenta", s.found(), s.total()).withStyle(ChatFormatting.WHITE)).append(" ")
+				.append(Texts.t(l, CKEY + "diario.linea").withStyle(done ? ChatFormatting.GOLD : ChatFormatting.LIGHT_PURPLE));
+		if (done) {
+			line.append(Component.literal(" ✔").withStyle(ChatFormatting.GOLD));
+		}
+		return line.withStyle(st -> st.withClickEvent(new ClickEvent.RunCommand(order)).withHoverEvent(new HoverEvent.ShowText(tip)));
+	}
+
+	private static int chronicle(CommandSourceStack src) throws CommandSyntaxException {
+		ServerPlayer player = src.getPlayerOrException();
+		Map<String, String> l = Texts.language(player);
+		Chronicle c = chronicleOf(player);
+		List<Component> out = c == null ? List.of(Texts.t(l, CKEY + "desactivado").withStyle(ChatFormatting.GRAY))
+				: chronicleDetail(l, c.sorted(l));
+		out.forEach(x -> src.sendSuccess(() -> x, false));
+		return c == null ? 0 : c.main().found();
+	}
+
+	/**
+	 * /heraldia journal chronicle: the bar, the guardians defeated and those still keeping watch (by their structure's name,
+	 * never where), the optional ones beyond the map, whether the Chronicle is closed (with the button for a copy of the last
+	 * leaf) and the button back to the summary.
+	 */
+	static List<Component> chronicleDetail(Map<String, String> l, Chronicle c) {
+		List<Component> out = new ArrayList<>();
+		Section s = c.main();
+		out.add(Component.empty().append(Texts.t(l, CKEY + "diario.linea").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD))
+				.append(" ").append(bar(s.found(), s.total())).append(" ")
+				.append(Texts.t(l, KEY + "cuenta", s.found(), s.total()).withStyle(ChatFormatting.WHITE)));
+		out.add(Texts.t(l, CKEY + "diario.vencidos", s.found()).withStyle(ChatFormatting.GREEN).append(" ")
+				.append(s.found() == 0 ? Texts.t(l, KEY + "ninguna").withStyle(ChatFormatting.GRAY)
+						: names(l, s.foundItems()).withStyle(ChatFormatting.WHITE)));
+		if (!s.missing().isEmpty()) {
+			out.add(Texts.t(l, CKEY + "diario.quedan", s.missing().size()).withStyle(ChatFormatting.RED).append(" ")
+					.append(names(l, s.missing()).withStyle(ChatFormatting.GRAY)));
+		}
+		Section b = c.beyond();
+		if (b.total() > 0) {
+			MutableComponent line = Texts.t(l, CKEY + "diario.mas_alla", b.found(), b.total())
+					.withStyle(b.found() >= b.total() ? ChatFormatting.GOLD : ChatFormatting.DARK_PURPLE);
+			if (!b.missing().isEmpty()) {
+				Component tip = Component.empty().append(Texts.t(l, CKEY + "diario.quedan", b.missing().size()))
+						.append("\n").append(names(l, b.missing()));
+				line.withStyle(st -> st.withHoverEvent(new HoverEvent.ShowText(tip)));
+			}
+			out.add(line);
+		}
+		if (c.herald()) {
+			out.add(Texts.t(l, CKEY + "diario.cerrada").withStyle(ChatFormatting.GOLD));
+		} else {
+			out.add(Texts.t(l, CKEY + "diario.abierta").withStyle(ChatFormatting.GRAY));
+		}
+		MutableComponent nav = Component.empty().append(Texts.t(l, KEY + "volver").withStyle(st -> st.withColor(ChatFormatting.AQUA)
+				.withClickEvent(new ClickEvent.RunCommand("/heraldia journal"))
+				.withHoverEvent(new HoverEvent.ShowText(Component.literal("/heraldia journal")))));
+		if (c.herald()) {
+			String order = "/heraldia journal " + CHRONICLE + " book";
+			nav.append(" ").append(Texts.t(l, CKEY + "diario.leer").withStyle(st -> st.withColor(ChatFormatting.GOLD)
+					.withClickEvent(new ClickEvent.RunCommand(order)).withHoverEvent(new HoverEvent.ShowText(Component.literal(order)))));
 		}
 		out.add(nav);
 		return out;

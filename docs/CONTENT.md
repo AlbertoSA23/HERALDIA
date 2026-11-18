@@ -454,6 +454,38 @@ An optional story thread links the unique structures (full background in [`docs/
 
 Pages are shown in each player's language (Spanish if the client does not have the mod). With Lootr every player finds their own leaf. All of them carry `custom_data` `{heraldia_historia:"<id>"}`; to test: `/loot give @s loot heraldia:historia/<id>`. The **Chronicler** challenge (see [Advancements](#advancements)) asks for all of them. **In an existing world they only appear in chests that have not been opened yet.**
 
+And it has an end: whoever defeats every guardian of the main world gets the last leaf, the title and the standard (see [End of the Chronicle](#end-of-the-chronicle)).
+
+## End of the Chronicle
+
+The Chronicle used to have no end: Atlantis's leaf points back to the first, and beating the last guardian closed nothing. Now it does. When **every guardian of the main world's unique structures** has fallen to a player, the last oath is broken and Ysolda's last word reaches them:
+
+- **The title, Herald of Atlantis**: a challenge advancement (`heraldia:cronica/final`, 500 experience), announced in chat like any challenge, shown on the player's screen (title and subtitle) and under their name in `/heraldia journal`.
+- **The last leaf**: a written book by Ysolda ("Chronicle: the last leaf", epic) that closes the story: she never asked for her guardians to be defeated, only to wait for someone worthy; the way back was never in the leaves but in whoever followed them; and she hands over the standard of the order. In the player's language (also with a vanilla client: the text the client cannot translate comes in its language, as in the Herald's Guide).
+- **The Standard of the Heralds**: a blue banner with the sea rising, the waves and the Order's golden seal and border, epic, that **can be placed** anywhere. Its name, pattern and rarity stay when it is placed and picked up again (the vanilla banner keeps those); the lore with who raised it, only on the item given. It is given once, like the advancement.
+- **Beyond the Map** (optional): the Nether and End guardians do not count towards the end. A player who also defeats them gets a second challenge (`heraldia:cronica/mas_alla`, 250) and their last leaf is swapped for one with one more page; until then, that page tells them two leaves were carried beyond the world, without asking them to go.
+
+**Which guardians.** One per unique structure that can still appear in this world (enabled in the configuration) or whose guardian the player already defeated (even if it was disabled later), as the journal counts them: today 20 in the main world (Atlantis included) and 2 beyond.
+
+**When a guardian counts as defeated by a player** (all three are facts the game recorded, none is a guess):
+- they have its guardian advancement (`unicas/<id>/guardian`, earned by the killing blow), **also from before this version**;
+- they **took part** in its fall: they were within 64 blocks (the quests' participation radius) when a guardian that a player had hurt died. In a group, everyone in the fight counts, not only whoever landed the blow;
+- it exists **once per world** (Atlantis) and has already fallen to anyone: nobody else could ever beat it, so it counts for every player. The world learns it from the death or, for one beaten before this version, from its killer's advancement when they join.
+
+A guardian that dies with no player in the fight (the sun, `/kill`, a trap) is nobody's victory.
+
+**Per player.** Like reputation, quests and the journal: on a server, whoever closes the Chronicle gets the title, the leaf and the standard; the others see the announcement and keep their own count. What is per world are the facts about places (spawners off, the modest premium chest, the once-per-world guardian fallen).
+
+**In an existing world**: players whose guardian advancements are all there already (they beat them before this version) get the end the next time they join. Players who only fought alongside someone else before this version are not credited with those guardians (only the killer's advancement was recorded then); an operator can grant one with `/advancement grant <player> only heraldia:unicas/<id>/guardian`. Every fight from this version on is credited to everyone in it.
+
+**Option** `guia.final_cronica` (on by default). Off, nothing is given and the journal leaves the Chronicle out; the record of who took part goes on (it is cheap), so turning it on later gives the end to whoever has earned it, on their next join.
+
+- `/heraldia journal`: one more line before the footer, "Chronicle: guardians defeated", with its bar (it is not one more kind in the overall total: it counts fights, not finds); hovering lists the guardians still keeping watch.
+- `/heraldia journal chronicle`: the guardians defeated and those still keeping watch, by their structure's name (never where), the optional ones beyond the map and whether the Chronicle is closed; once closed, `/heraldia journal chronicle book` (a button) gives an up-to-date copy of the last leaf in place of the one carried. The standard is not given again.
+- Cost: nothing runs per tick. It hangs from the guardian's death (the same `AFTER_DEATH` as [Cleared uniques](#cleared-uniques)) and from a player joining: it reads about twenty advancements from memory. Measured on the test server: 0.3 ms per death, 3.7-5.9 ms when it gives the end (book, banner and advancements).
+- Saved: on each player, the guardians they took part in (attachment `heraldia:cronica`, kept on death); on the main world, the once-per-world guardians fallen (`heraldia:cronica_mundo`). What was given is the advancement itself.
+- To test: `/advancement grant <player> only heraldia:unicas/<id>/guardian` for each one and rejoin, or kill a guardian with `/damage <guardian> 1000 minecraft:player_attack by <player>`. Tests: `EndingTest` and `JournalTest` (JUnit), `test_chronicle_ending.py` (texts and pages fit in the 8 languages) and the Chronicle part of `tools/smoke/journal.py` (server).
+
 ## Herald's Guide
 
 A vanilla written book, the **Herald's Guide**, that explains the mod to players and keeps their diary. Every player gets it **once**, the first time they join after Heraldia is installed or updated (players who already existed in the world too; the version they received is stored on the player and kept on death). It is turned off with `guia.entregar_al_entrar` (see [Configuration](CONFIGURATION.md#configuration)), and any player can ask for an up-to-date copy with `/heraldia guide`.
@@ -474,11 +506,12 @@ Each player's own record of **what they have found and what is still missing**, 
 - **No coordinates and no clues**: the journal says "2 of 21 unique structures, these ones are missing", never where they are. Finding them is for the maps, the quests and the Chronicle; the soft biome clues of the missing unique structures stay in the Herald's Guide, which the journal points to (a button to `/heraldia guide`) while any is missing.
 - **Where the data come from**: the player's own advancements, which already record every discovery (`aldeas/<family>`, `unicas/<id>/descubrir`, the criteria of `medianas/todas`, `medianas/nether` and `medianas/end`, `minas/<size>`, `costa/faro` and `costa/naufragio`); which ids belong to each kind is also read from the advancements (the criteria of `aldeas/todas`, `unicas/todas` and the three walker advancements) and, for the dimension of a unique structure, from the structure registry. Nothing is saved and nothing runs until someone asks: it reads the player's progress from memory, on the server thread, and answers in the same tick.
 - What counts: what can still appear in this world (a kind disabled in the configuration is not "missing") and whatever the player already found, even if it was disabled later. A kind with nothing to find is left out.
+- **The end of the Chronicle**: one more line, the guardians defeated towards the [end of the Chronicle](#end-of-the-chronicle), and its own section, `/heraldia journal chronicle`.
 - **Why a command and not more Guide pages or `/heraldia status`**: the Guide is a book handed out on joining (it only gets updated when asked for again, and its pages must fit a measured size), and it already keeps the diary of unique structures with their clues; `/heraldia status` is the server's summary, what anyone has discovered. The journal is the per-player view of every kind, always up to date; `/heraldia status` links to it and it links to the Guide, instead of repeating either.
 
 ## Advancements
 
-A **Heraldia** advancement tab (122 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
+A **Heraldia** advancement tab (124 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:
 
 - **Heraldia** (root): enter any Heraldia village, unique structure, medium structure or mine entrance.
 - [Mine entrances](#mine-entrances), a chain: **Under the Hillside** (enter a mine adit, 20), **Mining Camp** (a mining camp, 40) and **Lord of the Galleries** (a mining complex, 80).
@@ -493,6 +526,7 @@ A **Heraldia** advancement tab (122 advancements), with texts in the mod's 8 lan
 - Final challenge **Cartographer of Legends**: discover every unique structure (500).
 - **Hall of Trophies** challenge: collect the [trophy](#guardian-trophies) of every unique structure's guardian (500); it counts when you hold it in your inventory.
 - **Chronicler** challenge: gather the leaves of the [Chronicle of the Heralds](#chronicle-of-the-heralds), one per unique structure (500); it counts when you hold it in your inventory.
+- **Herald of Atlantis** challenge: defeat the guardian of every unique structure of the main world (500), and **Beyond the Map**, also those of the Nether and the End (250); granted by the mod, with the [end of the Chronicle](#end-of-the-chronicle).
 
 Notes: a structure counts when you step inside its pieces; seeing it is not enough. If a family or a structure is disabled in the [configuration](CONFIGURATION.md#configuration), its advancement and the related challenge cannot be earned. With Lootr, the treasure advancement depends on Lootr notifying the game when the chest is opened (not checked). The unique-structure advancements are generated from the unique-structure registry, so a new structure brings its own.
 
