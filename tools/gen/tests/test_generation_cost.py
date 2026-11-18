@@ -392,3 +392,58 @@ def test_repository_reference_has_peak_limits():
     assert set(ref["picos"]) >= set(c.PEAK_LIMITS)
     assert 0 < ref["picos"]["lentos_pp"] <= 0.1 and 0 < ref["picos"]["peor_tramo"] <= 0.5
     assert ref["picos"]["mspt_p99_ms"] == c.TICK_MS
+
+
+# ---------------------------------------------------------------- variants (comparing configurations, e.g. medium density)
+
+def test_parse_variant_reads_json_values():
+    assert c.parse_variant("medianas.frecuencia_porcentaje=70") == {"medianas.frecuencia_porcentaje": 70}
+    assert c.parse_variant("a=true, b=1.5,c=texto") == {"a": True, "b": 1.5, "c": "texto"}
+    with pytest.raises(ValueError):
+        c.parse_variant("sin_igual")
+
+
+def test_config_of_nests_the_options_over_the_base_configuration():
+    cfg = c.config_of("ligero", {"medianas.frecuencia_porcentaje": 100, "medianas.distancia_minima.bloques": 192})
+    assert cfg == {"arena": {"generar_en_mundos_nuevos": False}, "perfil": "ligero",
+                   "medianas": {"frecuencia_porcentaje": 100, "distancia_minima": {"bloques": 192}}}
+    assert c.config_of() == c.CONFIG and c.config_of() is not c.CONFIG
+    assert c.CONFIG == {"arena": {"generar_en_mundos_nuevos": False}}, "the base is not modified"
+
+
+def test_medium_starts_counts_only_medium_structures():
+    st = {"heraldia:medianas/posada/llanura": {"generadas": 2, "total_ms": 10.0},
+          "heraldia:medianas/molino/taiga": {"generadas": 1, "total_ms": 4.5},
+          "heraldia:unicas/castillo": {"generadas": 1, "total_ms": 30.0}, "minecraft:village_plains": {"generadas": 3, "total_ms": 900.0}}
+    assert c.medium_starts(st) == (3, 14.5)
+    assert c.medium_starts({}) == (0, 0.0)
+
+
+def test_medium_zones_are_large_separate_and_far_from_the_strip():
+    """The medium layout: four large squares that do not touch each other, the warm-up or the strip."""
+    zones = c.LAYOUTS["medianas"]
+    assert c.LAYOUTS["estandar"] is c.ZONES
+    m = 2 * c.MARGIN_CHUNKS
+    name, x, z, rx, rz = c.STRIP
+    boxes = [(n, c.chunks_of_zone(zx, zz, r)) for n, zx, zz, r in zones + [c.WARMUP]] + [(name, c.chunks_of_rect(x, z, rx, rz))]
+    for i, (n1, a) in enumerate(boxes):
+        for n2, b in boxes[i + 1:]:
+            assert a[2] + m < b[0] or b[2] + m < a[0] or a[3] + m < b[1] or b[3] + m < a[1], (n1, n2)
+    assert sum(c.box_chunks(c.chunks_of_zone(zx, zz, r)) for _, zx, zz, r in zones) >= 10000, "enough land to hold several mediums"
+
+
+def test_variants_markdown_has_one_row_per_configuration():
+    def entry(cpu, slow, starts):
+        return {"cpu_ms_por_chunk": cpu, "picos": {"p95_ms": 100.0, "p99_ms": 200.0, "lentos_fraccion": slow},
+                "franja": {"tramos": {"peor_ms_por_chunk": 60.0}}, "mspt": {"p99": 9.0}, "locate_ms": {"mediana": 50},
+                "estructuras": {"heraldia:medianas/posada/llanura": {"generadas": starts, "total_ms": 3.0 * starts}}}
+    sin = entry(50.0, 0.25, 0)
+    sin.pop("estructuras")
+    rows = [({"medianas.frecuencia_porcentaje": 100}, {"sin": sin, "con": entry(55.0, 0.30, 8), "sobrecoste": 0.10}),
+            ({"medianas.frecuencia_porcentaje": 70}, {"sin": sin, "con": entry(53.0, 0.28, 5), "sobrecoste": 0.06})]
+    md = c.variants_markdown(rows)
+    lines = [l for l in md.splitlines() if l.startswith("| ")]
+    assert len(lines) == 4, md                    # header, without Heraldia and the two variants
+    assert "| sin Heraldia | — | 50.0 |" in md
+    assert "| medianas.frecuencia_porcentaje=100 | +10.0% | 55.0 |" in md and "| 30.0 % |" in md
+    assert "| medianas.frecuencia_porcentaje=70 | +6.0% | 53.0 |" in md and "| 5 | 15.0 | 50.0 |" in md

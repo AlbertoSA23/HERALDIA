@@ -375,7 +375,8 @@ public final class HeraldiaConfig {
 	/**
 	 * Migrations 1 → 2 and 2 → 3: the mod wrote all options that were not profile options, so in a file it wrote the
 	 * {@code keys} that became profile options with their default value were not put there by anyone by hand: they are
-	 * removed (with the standard profile they give the same). Those with another value stay, set by hand: nothing changes in
+	 * removed (with the standard profile they give the default). That default is the one of the version that wrote the file
+	 * when it has changed since ({@link #writtenByDefault}). Those with another value stay, set by hand: nothing changes in
 	 * the world.
 	 */
 	static void removeFromProfile(JsonObject root, List<String> keys) {
@@ -388,11 +389,24 @@ public final class HeraldiaConfig {
 			String leaf = parts[parts.length - 1];
 			if (node != null && node.has(leaf) && node.get(leaf).isJsonPrimitive()) {
 				ConfigOption o = Schema.OPTIONS.stream().filter(x -> x.key().equals(k)).findFirst().orElseThrow();
-				if (o.accept(node.getAsJsonPrimitive(leaf)).map(o.defaultValue()::equals).orElse(false)) {
+				if (o.accept(node.getAsJsonPrimitive(leaf)).map(v -> v.equals(o.defaultValue()) || writtenByDefault(k, v)).orElse(false)) {
 					node.remove(leaf);
 				}
 			}
 		}
+	}
+
+	/**
+	 * Whether {@code v} is the default the mod wrote for {@code key} before that default changed
+	 * ({@link ProfileAdvice#PREVIOUS_DEFAULTS}): in a file of format 1 or 2 the mod wrote it on its own, so it is not set
+	 * by hand either (the migrations behave as they did before the default changed).
+	 */
+	static boolean writtenByDefault(String key, JsonPrimitive v) {
+		String old = ProfileAdvice.PREVIOUS_DEFAULTS.get(key);
+		if (old == null || !v.isNumber()) {
+			return old != null && old.equals(v.getAsString());
+		}
+		return Double.parseDouble(old) == v.getAsDouble();
 	}
 
 	private static void flatten(String prefix, JsonObject obj, Map<String, JsonPrimitive> out) {

@@ -94,7 +94,7 @@ Back to the [README](../README.md).
     boat through the cliff), the guardroom, the map room with the **compass rose puzzle**, the armoury with the secret
     powder room, the dungeons and, below sea level and dry, the treasure chamber with Roque Salitre, the Corsair;
     tripwire and pressure-plate traps, 3 spawners and 21 chests. Design: [docs/unicas/isla_corsario.md](unicas/isla_corsario.md).
-- **Medium structures** (all types together, one every 550-580 blocks, each in its own biomes): watchtowers, roadside
+- **Medium structures** (all types together, one every ~610 blocks by default, each in its own biomes): watchtowers, roadside
   inns, bandit camps, hermitages, mills, fisher's huts, hunters' lodges and ruined shrines, with a style for each biome. See [Medium structures](#medium-structures).
 - **Mine entrances** (on real hillsides of hills, taigas, deserts, badlands and peaks): adits, mining camps and mining
   complexes with a headframe, each leading down to its own gallery; and more vanilla abandoned mineshafts in new chunks
@@ -184,7 +184,7 @@ Details, plans and what has been verified: [docs/unicas/atlantida.md](unicas/atl
 
 ## Medium structures
 
-Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every 550-580 blocks** (measured, see below), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
+Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every ~610 blocks** (measured, see below; ~550 with `medianas.frecuencia_porcentaje` 100, the default before the [density change](CONFIGURATION.md#medium-structures-density)), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
 
 | Type | Id | Styles (biomes) | Variants |
 | --- | --- | --- | --- |
@@ -199,7 +199,7 @@ Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more comm
 
 - They never spawn inside a village, a unique structure, Atlantis or the Corsair's Isle: not within `medianas.distancia_aldeas_unicas_bloques` (256) of the start of a Heraldia village or unique structure that spawns there, nor within `medianas.distancia_minima.bloques` (192) of another medium structure of a different type (a deterministic draw keeps one, the same rule as the minimum distance between unique structures), nor within 128 blocks of a vanilla village candidate. They also give way to structures that show above ground, vanilla or from other mods (pillager outposts, temples, ruined portals, other mods' villages...): one is discarded if such a structure spawns within 80 blocks (vanilla) or 128 (other mods).
 - Find them with `/locate structure #heraldia:medianas/<type>` (or `heraldia:medianas/<type>/<style>`) and `/heraldia info nearby`; `/heraldia info` shows their configuration. To test one: `/place structure heraldia:medianas/<type>/<style>`.
-- Frequency, measured with `MediumFrequencyTest` (the placement grids on the real 26.3 Overworld biome noise, with villages, unique structures and vanilla structures around them, 3 seeds, 16,000 × 16,000 blocks): see the [changelog](../CHANGELOG.md) and the pull request for the figures per type. Each grid looks for its candidate inside the type's biomes (the spot of the cell most inside them), so a type appears wherever its biomes are, at most once per cell.
+- Frequency, measured with `MediumFrequencyTest` (the placement grids on the real 26.3 Overworld biome noise, with villages, unique structures and vanilla structures around them, 3 seeds, 16,000 × 16,000 blocks): see the [changelog](../CHANGELOG.md) and the pull request for the figures per type, and [Medium structures density](CONFIGURATION.md#medium-structures-density) for the figures at each frequency (`MediumDensityComparisonTest`). Each grid looks for its candidate inside the type's biomes (the spot of the cell most inside them), so a type appears wherever its biomes are, at most once per cell.
 - Configuration: `medianas.*` options (see [Configuration](CONFIGURATION.md#configuration)). Advancements: **By the Wayside**, **Wayfarer** and one of its own for each type of batch 2 (see [Advancements](#advancements)). **In an existing world they only appear in new chunks.**
 
 ## Nether and End

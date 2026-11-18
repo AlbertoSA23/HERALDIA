@@ -99,10 +99,15 @@ public final class ProfileNotice {
 		Map<String, String> now = ProfileAdvice.fingerprint(cfg.values(), ps.generation());
 		boolean started = ow.getGameTime() >= Updater.NEW_WORLD_TICKS;
 		seams = null;
-		if (ProfileAdvice.warnSeams(stored, now, started, ps.touchesGeneration(cfg.profile().chosen()))) {
+		boolean generationProfile = ps.touchesGeneration(cfg.profile().chosen());
+		Map<String, String[]> fromDefaults = stored == null ? ProfileAdvice.defaultChanges(now, cfg.profile().pinned().keySet()) : Map.of();
+		if (ProfileAdvice.warnSeams(stored, now, started, generationProfile, fromDefaults)) {
 			List<String> what = new ArrayList<>();
 			if (stored == null) {
-				what.add("perfil=" + cfg.profile().chosen());
+				if (generationProfile) {
+					what.add("perfil=" + cfg.profile().chosen());
+				}
+				fromDefaults.forEach((k, v) -> what.add(k + " " + v[0] + " → " + v[1]));
 			} else {
 				ProfileAdvice.changed(stored, now).forEach((k, v) -> what.add(k + " " + v[0] + " → " + v[1]));
 			}

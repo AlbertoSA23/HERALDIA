@@ -63,7 +63,7 @@
   "heraldia.config.unicas.distancia_minima.bloques": "Distància mínima entre estructures úniques diferents (l'Atlàntida inclosa), en blocs",
   "heraldia.config.compatibilidad.zona_estructuras_ajenas_bloques": "Les estructures d'altres mods (les que treuen el cap a la superfície) a menys d'aquesta distància, en blocs, de l'inici d'un poble o d'una estructura única d'Heraldia no es generen, perquè no se superposin (0 ho desactiva)",
   "heraldia.config.medianas.activadas": "Estructures mitjanes (torres de guaita, hostals de camí, campaments de bandits, ermites...) entre els pobles i les úniques",
-  "heraldia.config.medianas.frecuencia_porcentaje": "Freqüència de totes les estructures mitjanes, en % de la predeterminada (200 = el doble; 50 = la meitat); s'aplica sobre la separació de cada tipus",
+  "heraldia.config.medianas.frecuencia_porcentaje": "Freqüència de totes les estructures mitjanes, en % de la separació pròpia de cada tipus (100 = la densitat d'abans, una cada ~550 blocs entre totes; 200 = el doble); s'aplica sobre la separació de cada tipus",
   "heraldia.config.medianas.distancia_minima.bloques": "Distància mínima entre dues estructures mitjanes diferents, en blocs",
   "heraldia.config.medianas.distancia_aldeas_unicas_bloques": "Una estructura mitjana no apareix a menys d'aquesta distància, en blocs, de l'inici d'un poble o d'una estructura única d'Heraldia (ni dins de l'Atlàntida)",
   "heraldia.config.minas.entradas.activado": "Entrades de mina als vessants (boques, campaments miners i complexos amb castellet d'extracció) que baixen a una galeria pròpia; només als chunks nous",

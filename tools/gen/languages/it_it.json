@@ -63,7 +63,7 @@
   "heraldia.config.unicas.distancia_minima.bloques": "Distanza minima tra strutture uniche diverse (Atlantide compresa), in blocchi",
   "heraldia.config.compatibilidad.zona_estructuras_ajenas_bloques": "Le strutture di altre mod (quelle in superficie) più vicine di questa distanza, in blocchi, all'origine di un villaggio o di una struttura unica di Heraldia non vengono generate, così non si sovrappongono (0 la disattiva)",
   "heraldia.config.medianas.activadas": "Strutture medie (torri di guardia, locande lungo la strada, accampamenti di banditi, eremi...) tra i villaggi e le strutture uniche",
-  "heraldia.config.medianas.frecuencia_porcentaje": "Frequenza di tutte le strutture medie, in % di quella predefinita (200 = il doppio; 50 = la metà); si applica sopra la distanza di ciascun tipo",
+  "heraldia.config.medianas.frecuencia_porcentaje": "Frequenza di tutte le strutture medie, in % della distanza propria di ciascun tipo (100 = la densità di prima, una ogni ~550 blocchi in tutto; 200 = il doppio); si applica sopra la distanza di ciascun tipo",
   "heraldia.config.medianas.distancia_minima.bloques": "Distanza minima tra due strutture medie diverse, in blocchi",
   "heraldia.config.medianas.distancia_aldeas_unicas_bloques": "Una struttura media non compare più vicina di questa distanza, in blocchi, all'origine di un villaggio o di una struttura unica di Heraldia (né dentro Atlantide)",
   "heraldia.config.minas.entradas.activado": "Ingressi di miniera sui pendii (imbocchi, accampamenti minerari e complessi con castelletto di estrazione) che scendono a una galleria propria; solo nei nuovi chunk",

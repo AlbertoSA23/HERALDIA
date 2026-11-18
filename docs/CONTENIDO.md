@@ -95,7 +95,7 @@ Volver al [README](../README.es.md).
     por el acantilado), el cuerpo de guardia, la sala del mapa con el **puzle de la rosa de los vientos**, la armería con
     la santabárbara secreta, los calabozos y, bajo el nivel del mar y en seco, la cámara del tesoro con Roque Salitre, el
     corsario; trampas de cable y de placas, 3 generadores y 21 cofres. Diseño: [docs/unicas/isla_corsario.md](unicas/isla_corsario.md).
-- **Estructuras medianas** (entre todos los tipos, una cada 550-580 bloques, cada uno en sus biomas): torres de vigía,
+- **Estructuras medianas** (entre todos los tipos, una cada ~610 bloques por defecto, cada uno en sus biomas): torres de vigía,
   posadas de camino, campamentos de bandidos, ermitas, molinos, cabañas de pescador, puestos de cazadores y templetes en
   ruinas, con un estilo por bioma. Ver [Estructuras medianas](#estructuras-medianas).
 - **Entradas a mina** (en laderas reales de montes, taigas, desiertos, badlands y picos): bocas de mina, campamentos
@@ -186,7 +186,7 @@ Detalle, planos y qué se ha comprobado: [docs/unicas/atlantida.md](unicas/atlan
 
 ## Estructuras medianas
 
-Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada 550-580 bloques** (medido, ver abajo), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
+Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada ~610 bloques** (medido, ver abajo; ~550 con `medianas.frecuencia_porcentaje` 100, el valor por defecto antes del [cambio de densidad](CONFIGURACION.md#densidad-de-las-estructuras-medianas)), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
 
 | Tipo | Id | Estilos (biomas) | Variantes |
 | --- | --- | --- | --- |
@@ -201,7 +201,7 @@ Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frec
 
 - Nunca salen dentro de una aldea, una única, la Atlántida o la isla del corsario: no a menos de `medianas.distancia_aldeas_unicas_bloques` (256) del inicio de una aldea o una única de Heraldia que sale ahí, ni a menos de `medianas.distancia_minima.bloques` (192) de otra mediana de otro tipo (un sorteo determinista deja una, la misma regla que la distancia mínima entre únicas), ni a menos de 128 bloques de una candidata de aldea vanilla. Además ceden el sitio a las estructuras que asoman a la superficie, vanilla o de otros mods (puestos de saqueadores, templos, portales en ruinas, aldeas de otros mods...): se descarta una si sale una de esas a menos de 80 bloques (vanilla) o de 128 (de otro mod).
 - Se encuentran con `/locate structure #heraldia:medianas/<tipo>` (o `heraldia:medianas/<tipo>/<estilo>`) y `/heraldia info nearby`; `/heraldia info` resume su configuración. Para probar una: `/place structure heraldia:medianas/<tipo>/<estilo>`.
-- Frecuencia, medida con `MediumFrequencyTest` (las rejillas sobre el ruido de biomas real del mundo principal de 26.3, con las aldeas, las únicas y las estructuras vanilla alrededor, 3 semillas, 16.000 × 16.000 bloques): las cifras por tipo, en el [registro de cambios](../CHANGELOG.md) y el PR. Cada rejilla busca su candidata dentro de los biomas del tipo (el sitio de la casilla más metido en ellos), así que un tipo aparece allí donde están sus biomas, como mucho una vez por casilla.
+- Frecuencia, medida con `MediumFrequencyTest` (las rejillas sobre el ruido de biomas real del mundo principal de 26.3, con las aldeas, las únicas y las estructuras vanilla alrededor, 3 semillas, 16.000 × 16.000 bloques): las cifras por tipo, en el [registro de cambios](../CHANGELOG.md) y el PR, y las de cada frecuencia en [Densidad de las estructuras medianas](CONFIGURACION.md#densidad-de-las-estructuras-medianas) (`MediumDensityComparisonTest`). Cada rejilla busca su candidata dentro de los biomas del tipo (el sitio de la casilla más metido en ellos), así que un tipo aparece allí donde están sus biomas, como mucho una vez por casilla.
 - Configuración: opciones `medianas.*` (ver [Configuración](CONFIGURACION.md#configuración)). Logros: **Al borde del camino**, **Caminante** y uno propio de cada tipo del lote 2 (ver [Logros](#logros)). **En un mundo ya creado, solo en los chunks nuevos.**
 
 ## Nether y End

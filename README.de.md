@@ -58,7 +58,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `aldeas.caminos.activado` | `true` | Wege zwischen Dörfern. |
 | `unicas.<id>.activada` | `true` | Schaltet ein einzigartiges Bauwerk ein oder aus. |
 | `unicas.rejilla_compatible` | `false` | `true` nur für Welten, die mit Heraldia 0.1.0 erstellt wurden. |
-| `medianas.frecuencia_porcentaje` | 100 | Wie viele mittelgroße Bauwerke (200 = doppelt so viele). |
+| `medianas.frecuencia_porcentaje` | 60 | Wie viele mittelgroße Bauwerke (100 = die frühere, dichtere Einstellung; 200 = doppelt so viele). |
 | `faros.activado`, `naufragios.activado` | `true` | Leuchttürme und gestrandete Galeonen an der Küste. |
 | `dificultad.nivel` | `normal` | Hüter und Monster: `facil`, `normal`, `dificil` oder `heroica`. |
 | `botin.reponer.activado` | `false` | Heraldia-Truhen füllen sich nach einigen Tagen wieder auf. |
