@@ -20,6 +20,7 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 
 - 📖 **La Guia de l'Herald.** Tots els jugadors la reben en entrar: un llibre que explica què has de buscar i porta el teu diari, amb les estructures úniques que has descobert i pistes de les que et falten. Demana'n una còpia al dia quan vulguis amb `/heraldia guide`.
 - 📊 **El que ha trobat el servidor.** `/heraldia status` diu quants pobles, estructures úniques, estructures mitjanes i mines han descobert els jugadors, els guardians vençuts, el rècord de l'arena i els encàrrecs lliurats.
+- 🧭 **El teu diari.** `/heraldia journal` et mostra al xat, tipus per tipus i amb una barra de progrés, el que has trobat i el que et falta: famílies de pobles, estructures úniques, estructures mitjanes, mides de mina, fars i naufragis, el Nether i l'End. Fes clic en un tipus per veure'n els noms. Sense coordenades: trobar-les és cosa teva.
 - 📋 **Encàrrecs dels pobles.** Toca el faristol del tauler de la plaça d'un poble (o fes-hi servir `/heraldia quest`): surten al xat de 2 a 4 encàrrecs (portar objectes, vèncer un guardià, explorar, viatjar a un poble veí, l'arena) que canvien cada pocs dies. Paguen maragdes, experiència i reputació amb aquell poble: com a conegut, amic i heroi del poble, els seus vilatans rebaixen els preus un 10, 20 i 30 %. Atacar els seus vilatans o gòlems la fa baixar.
 - 🐪 **Caravanes.** De tant en tant, a prop teu, un mercader d'Heraldia amb les seves llames (i a vegades un guarda) recorre el camí entre dos pobles veïns. Si l'assalten els bandits, defensa'l: en arribar et paga maragdes i reputació amb el seu poble de destinació. Si el mercader mor, la caravana es perd.
 - 🏆 **Assoliments.** Una pestanya Heraldia amb 122 assoliments: un poble de cada família, cada estructura única amb el seu guardià i el seu tresor, les mines, els fars i naufragis, les estructures mitjanes, el tauler d'encàrrecs, l'arena i les caravanes.
@@ -58,7 +59,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `aldeas.caminos.activado` | `true` | Camins entre pobles. |
 | `unicas.<id>.activada` | `true` | Activa o desactiva una estructura única. |
 | `unicas.rejilla_compatible` | `false` | `true` només per a mons creats amb Heraldia 0.1.0. |
-| `medianas.frecuencia_porcentaje` | 60 | Quantitat d'estructures mitjanes (100 = la densitat anterior, més densa; 200 = el doble d'aquesta). |
+| `medianas.frecuencia_porcentaje` | 100 | Quantitat d'estructures mitjanes (200 = el doble). |
 | `faros.activado`, `naufragios.activado` | `true` | Fars i galions naufragats a la costa. |
 | `dificultad.nivel` | `normal` | Guardians i monstres: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | Els cofres d'Heraldia es tornen a omplir al cap d'uns dies. |

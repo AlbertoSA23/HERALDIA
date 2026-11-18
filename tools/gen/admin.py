@@ -1,5 +1,5 @@
 """Texts of the administration tools (Java, comando/): /heraldia review (guided review route),
-/heraldia status (server summary), /heraldia reload (hot reload of the configuration), the new-version notice
+/heraldia status (server summary), /heraldia journal (each player's journal), /heraldia reload (hot reload of the configuration), the new-version notice
 (/heraldia update check) and the notice about the old command names.
 
 The Java side takes the fallback text from es_es (comando/Textos); translations go in idiomas/<code>.json. The items
@@ -168,6 +168,28 @@ _TEXTS_ES = {
     "estado.mods": ("Otros mods (%s): %s", "Other mods (%s): %s"),
     "estado.anterior": ("[« Página anterior]", "[« Previous page]"),
     "estado.siguiente": ("[Página siguiente »]", "[Next page »]"),
+    # --- /heraldia journal (comando/Journal): each player's own journal of what they found and what is missing ---
+    "diario.titulo": ("Diario de %s", "%s's journal"),
+    "diario.total": ("%s de %s descubrimientos en total", "%s of %s discoveries in total"),
+    "diario.cuenta": ("%s/%s", "%s/%s"),
+    "diario.seccion.villages": ("Familias de aldea", "Village families"),
+    "diario.seccion.uniques": ("Estructuras únicas", "Unique structures"),
+    "diario.seccion.mediums": ("Estructuras medianas (por tipo)", "Medium structures (by type)"),
+    "diario.seccion.mines": ("Entradas a mina (por tamaño)", "Mine entrances (by size)"),
+    "diario.seccion.coast": ("Costa: faro y naufragio", "Coast: lighthouse and shipwreck"),
+    "diario.seccion.nether": ("El Nether", "The Nether"),
+    "diario.seccion.end": ("El End", "The End"),
+    "diario.ver": ("Clic para ver el detalle (%s)", "Click for the details (%s)"),
+    "diario.faltan": ("Por encontrar (%s):", "Still to find (%s):"),
+    "diario.encontradas": ("Ya encontrado (%s):", "Found (%s):"),
+    "diario.ninguna": ("nada todavía", "nothing yet"),
+    "diario.todas": ("¡Aquí ya lo has encontrado todo!", "You have found everything here!"),
+    "diario.pie": ("Haz clic en una línea para ver qué has encontrado y qué te falta.", "Click a line to see what you have found and what is still missing."),
+    "diario.completo": ("¡Lo has encontrado todo! Heraldia ya no guarda secretos para ti.", "You have found everything! Heraldia holds no more secrets for you."),
+    "diario.guia": ("Las pistas de las estructuras únicas que te faltan están en la Guía del Heraldo: %s", "The clues to the unique structures you are missing are in the Herald's Guide: %s"),
+    "diario.vacio": ("Todavía no hay nada que descubrir aquí.", "There is nothing to discover here yet."),
+    "diario.volver": ("[« Diario]", "[« Journal]"),
+    "diario.en_estado": ("Tu propio progreso, por tipo, en tu diario: %s", "Your own progress, by kind, is in your journal: %s"),
     # --- /heraldia reload ---
     "recargar.titulo": ("Configuración recargada de %s", "Configuration reloaded from %s"),
     "recargar.nada": ("No ha cambiado ninguna opción que se pueda aplicar en caliente.",

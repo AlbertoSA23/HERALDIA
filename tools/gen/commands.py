@@ -55,6 +55,8 @@ CANONICAL = [
     "update analyze", "update apply", "update apply confirm", "update apply confirm <id>", "update apply confirm <id> backup",
     "update apply confirm <id> nobackup", "update apply confirm <id> nobackup risk", "update undo", "update undo confirm",
     "update undo confirm <id>", "update repair", "update repair dry-run",
+    "journal", "journal villages", "journal uniques", "journal mediums", "journal mines", "journal coast",
+    "journal nether", "journal end",             # each player's journal: found and missing, by kind
 ]
 
 

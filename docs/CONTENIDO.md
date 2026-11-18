@@ -95,7 +95,7 @@ Volver al [README](../README.es.md).
     por el acantilado), el cuerpo de guardia, la sala del mapa con el **puzle de la rosa de los vientos**, la armería con
     la santabárbara secreta, los calabozos y, bajo el nivel del mar y en seco, la cámara del tesoro con Roque Salitre, el
     corsario; trampas de cable y de placas, 3 generadores y 21 cofres. Diseño: [docs/unicas/isla_corsario.md](unicas/isla_corsario.md).
-- **Estructuras medianas** (entre todos los tipos, una cada ~610 bloques por defecto, cada uno en sus biomas): torres de vigía,
+- **Estructuras medianas** (entre todos los tipos, una cada ~550 bloques por defecto, cada uno en sus biomas): torres de vigía,
   posadas de camino, campamentos de bandidos, ermitas, molinos, cabañas de pescador, puestos de cazadores y templetes en
   ruinas, con un estilo por bioma. Ver [Estructuras medianas](#estructuras-medianas).
 - **Entradas a mina** (en laderas reales de montes, taigas, desiertos, badlands y picos): bocas de mina, campamentos
@@ -186,7 +186,7 @@ Detalle, planos y qué se ha comprobado: [docs/unicas/atlantida.md](unicas/atlan
 
 ## Estructuras medianas
 
-Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada ~610 bloques** (medido, ver abajo; ~550 con `medianas.frecuencia_porcentaje` 100, el valor por defecto antes del [cambio de densidad](CONFIGURACION.md#densidad-de-las-estructuras-medianas)), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
+Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada ~550 bloques** (medido, ver abajo; ~610 con `medianas.frecuencia_porcentaje` 60, ver [Densidad de las estructuras medianas](CONFIGURACION.md#densidad-de-las-estructuras-medianas)), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
 
 | Tipo | Id | Estilos (biomas) | Variantes |
 | --- | --- | --- | --- |
@@ -333,6 +333,21 @@ Los guardianes con nombre de las estructuras únicas (y el Guardián de Poseidó
 - Cada fase queda apuntada en las etiquetas del propio guardián (`heraldia_fase.2`, `heraldia_fase.3`): no se repite aunque se cure, se descargue el chunk o se reinicie el servidor. Los refuerzos llevan la etiqueta `heraldia_refuerzo`.
 - Se desactivan por separado con `jefes.fases.activado`, `jefes.refuerzos.activado` y `jefes.barra.activado` (ver [Configuración](CONFIGURACION.md#configuración)).
 
+### Únicas vencidas
+
+Cuando cae el guardián de una estructura única, **los generadores de monstruos de esa estructura se apagan para siempre**: el sitio queda limpio y habitable, como recompensa del combate, y deja de ser una granja de experiencia infinita (el mismo criterio que la [arena](#arena-de-oleadas), que da el 15 % de experiencia y ningún objeto). Opción `jefes.apagar_generadores` (activada por defecto; `false` los deja funcionando como antes).
+
+- **Qué es «esa estructura»**: la estructura entera a la que pertenece el guardián (el inicio guardado de `heraldia:unicas/<id>` que llega al chunk del guardián), con todas sus piezas: también las mazmorras y torres lejos de la sala del guardián. No es un radio alrededor del guardián: una mazmorra vanilla, una mina abandonada o un generador de un jugador al lado no se tocan nunca.
+- **Qué generadores**: los que pusieron sus plantillas, sacados de las propias plantillas en su posición del mundo (así se conocen sin cargar sus chunks), y solo si sigue habiendo un generador (uno ya roto se salta). Hay de 1 a 4 en cada única y 48 repartidos por las teselas de la Atlántida (107 con una de cada tipo).
+- **Cómo se apagan**: la jaula se queda, como recuerdo del combate, pero vacía (sin mob que sacar): no vuelve a sacar nada. Como cualquier generador vacío vanilla, un huevo de generación puede volver a llenarlo. Los mobs que ya están vivos en la estructura se quedan.
+- **Coste**: nada corre cada tick. Cuelga de la muerte del guardián (un evento que el mod ya escucha) y tarda unos milisegundos una vez. Los de chunks que siguen en memoria pero ya no están activos también se apagan al momento; los de chunks que no están en memoria se apuntan en el mundo (adjunto `heraldia:unicas_vencidas`, por dimensión) y se apagan cuando carga su chunk; mientras no hay nada pendiente, la comprobación al cargar un chunk es una consulta vacía.
+- **Idempotente**: cada estructura vencida se apunta una vez; otro guardián que muera en ella (uno traído de nuevo con `/place`, otro mod) no hace nada más. Con la opción desactivada cuando cae el guardián no se apunta nada; si se desactiva después, los pendientes esperan a que vuelva a estar activada.
+- **Las estructuras puestas con `/place structure`** no guardan su inicio (ver `docs/LESSONS.md`): sus generadores no se apagan (lo dice el log).
+- **En un mundo existente**: una única cuyo guardián murió **antes de esta versión** no está apuntada como vencida y **se queda como estaba** (sus generadores siguen funcionando). Detectarla sola («el guardián no está») se descartó: en 26.3 las entidades cargan aparte de su chunk, y un guardián que persiguió a un jugador fuera de su estructura y murió allí, o cuyas entidades aún no han cargado, parecería muerto. Un error apagaría los generadores de una estructura que nadie ha vencido, y eso no se puede deshacer. La pega: esas únicas ya vencidas conservan sus granjas hasta que un jugador rompa los generadores con un pico (vanilla, como siempre). Toda única vencida a partir de esta versión se apaga sola.
+- **El botín que se repone** ([`botin.reponer.activado`](#botín-que-se-repone-y-dificultad), desactivado por defecto) no cambia: una única vencida sigue reponiéndose como las aldeas y las medianas, que tampoco tienen combate. Es decisión del administrador y ya tiene sus propios límites (días, nadie cerca, casi vacío).
+- Log: `Heraldia: bosses: <guardián> defeated: <estructura> cleared, N spawners turned off, M pending until their chunk loads (… ms): <posiciones>`; y luego `Heraldia: bosses: N pending spawners turned off when chunk … loaded`.
+- Pruebas: `ClearedSpawnersTest` (JUnit: el registro, la idempotencia, los pendientes por chunk, el formato guardado, un generador real apagado) y `tools/smoke/cleared_spawners.py` (servidor, ~90 s: un castillo generado de verdad, su guardián muerto tras un reinicio con solo su chunk cargado, los generadores cargados apagados al momento y el otro al cargar su chunk, nada más en una segunda muerte, también tras un reinicio).
+
 ## Trofeos de los guardianes
 
 Cada guardián con nombre de una estructura única (y el Guardián de Poseidón de la Atlántida) suelta al morir su **trofeo**, un objeto vanilla con nombre propio, una o dos líneas de historia, rareza (color del nombre) y, a veces, un adorno de armadura o un escudo con blasón. La mayoría son de adorno; unos pocos (el Tridente de Poseidón, el Hacha de Borin Barbahierro) son algo mejores que un objeto normal, sin romper la progresión. Solo cae si lo mata un jugador (con `/kill` o una trampa sin jugador, no) y hay uno por guardián: colocar la estructura otra vez con `/place` crea otro guardián y, por tanto, otro trofeo. Los guardianes zombis, husks y ahogados (y los ahogados de la Atlántida) salen siempre adultos, con su propia arma y sin montura.
@@ -403,6 +418,17 @@ Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jug
 - Límites del libro vanilla: el generador comprueba que cada página cabe en las 14 líneas de una página (con el mismo cálculo de anchos que los pliegos), que el título no pasa de 32 caracteres y que el libro, en el peor caso, no pasa de 100 páginas (con las 20 únicas actuales, de 23 a 29). Lleva `custom_data` `{heraldia_guia_libro:"<versión>"}` y, en el lore, la edición del mod.
 
 Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión o al pedirla (lee sus logros de descubrimiento y arma el libro; medido en el servidor de prueba, ver `tools/smoke/guide.py`); nada por tick.
+
+## Tu diario: `/heraldia journal`
+
+El registro propio de cada jugador de **lo que ha encontrado y lo que le falta**, en el chat (también con clientes vanilla, en el idioma del jugador, como el tablón de encargos), para cualquier jugador y sin permisos:
+
+- `/heraldia journal`: el título, una barra con el **total general** (todo lo encontrado frente a todo lo que se puede encontrar en este mundo) y una línea por tipo con su barra de progreso (■ encontrado, □ falta; en dorado y con ✔ cuando está completo) y su cuenta: **familias de aldea**, **estructuras únicas**, **estructuras medianas** (por tipo), **entradas a mina** (por tamaño), la **costa** (faro y naufragio) y el **Nether** y el **End** (su única y sus tipos de mediana). Cada línea es un botón que abre su tipo; al pasar el ratón por encima dice qué falta.
+- `/heraldia journal <tipo>` (`villages`, `uniques`, `mediums`, `mines`, `coast`, `nether`, `end`): los nombres ya encontrados y los que faltan, por orden alfabético del idioma del jugador (las minas, por tamaño), con un botón para volver al resumen.
+- **Sin coordenadas ni pistas**: el diario dice «2 de 21 únicas, te faltan estas», nunca dónde están. Encontrarlas es cosa de los mapas, los encargos y la Crónica; las pistas suaves de bioma de las únicas que faltan siguen en la Guía del Heraldo, a la que el diario remite (un botón a `/heraldia guide`) mientras falte alguna.
+- **De dónde salen los datos**: de los logros del propio jugador, que ya registran cada descubrimiento (`aldeas/<familia>`, `unicas/<id>/descubrir`, los criterios de `medianas/todas`, `medianas/nether` y `medianas/end`, `minas/<tamaño>`, `costa/faro` y `costa/naufragio`); qué ids son de cada tipo también se lee de los logros (los criterios de `aldeas/todas`, `unicas/todas` y los tres de caminante) y, para la dimensión de una única, del registro de estructuras. No se guarda nada ni se hace nada hasta que alguien lo pide: lee el progreso del jugador de memoria, en el hilo del servidor, y contesta en el mismo tick.
+- Qué cuenta: lo que todavía puede aparecer en este mundo (un tipo desactivado en la configuración no «falta») y lo que el jugador ya encontró, aunque se desactivara después. Un tipo sin nada que encontrar no sale.
+- **Por qué un comando y no más páginas de la Guía ni `/heraldia status`**: la Guía es un libro que se entrega al entrar (solo se pone al día si se vuelve a pedir, y sus páginas tienen que caber en un tamaño medido), y ya lleva el diario de las únicas con sus pistas; `/heraldia status` es el resumen del servidor, lo que ha descubierto cualquiera. El diario es la vista por jugador de todos los tipos, siempre al día; `/heraldia status` enlaza con él y él con la Guía, en vez de repetir ninguno.
 
 ## Logros
 

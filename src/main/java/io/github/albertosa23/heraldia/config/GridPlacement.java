@@ -2,7 +2,6 @@ package io.github.albertosa23.heraldia.config;
 
 import io.github.albertosa23.heraldia.common.SearchCache;
 import io.github.albertosa23.heraldia.common.SearchCaches;
-
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

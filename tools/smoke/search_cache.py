@@ -7,8 +7,8 @@ Three starts (seed heraldia, default configuration except the arena and the upda
 2. the same world again: the same answers, exactly; the log says how many answers it read and served, and the searches
    do not compute again what they already knew (at most 1 %: the cells around spawn, computed while the spawn was being
    prepared in start 1, before the memory was ready); the mines' /locate, the most expensive one, takes much less;
-3. the same world with medianas.frecuencia_porcentaje = 100: the log says that the memory is discarded (another
-   configuration) and the medium structures' /locate gives what a new world with that value gives (DENSE_MEDIUM, measured
+3. the same world with medianas.frecuencia_porcentaje = 60 (the default is 100): the log says that the memory is discarded (another
+   configuration) and the medium structures' /locate gives what a new world with that value gives (OTHER_MEDIUM, measured
    with the .jar from before the memory), not the remembered answer.
 Exit code 0 if everything passes.
 """
@@ -23,9 +23,9 @@ SEARCHES = [("aldea", "#heraldia:aldeas", LOCATE_FROM), ("unica", "heraldia:unic
             ("nada", "#heraldia:aldeas", NOTHING_FROM)]
 INFO_FROM, INFO_RADIUS = (3000, 3000), 2000
 BASE_CONFIG = {"arena": {"generar_en_mundos_nuevos": False}, "update_check": {"activado": False}}
-DENSE = {"medianas": {"frecuencia_porcentaje": 100}}
-# /locate #heraldia:medianas from LOCATE_FROM in a new world with DENSE, measured with the .jar from before the memory
-DENSE_MEDIUM = (7936, -7936)
+OTHER = {"medianas": {"frecuencia_porcentaje": 60}}
+# /locate #heraldia:medianas from LOCATE_FROM in a new world with OTHER, measured with the .jar from before the memory
+OTHER_MEDIUM = (7984, -7824)
 _LOCATE_MS = re.compile(r"Locating element (\S+) .*?took (\d+) ms")
 _ANSWER = r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find"
 _READ = re.compile(r"Heraldia: búsquedas: (\d+) respuestas guardadas en la memoria")
@@ -143,18 +143,18 @@ def main():
         failures.append(f"the mines' /locate does not save time with the memory: {first['mina'][1]} -> {second['mina'][1]} ms")
 
     # 3) another configuration: the memory is discarded and the answer is that of the new configuration
-    config(args.work, DENSE)
+    config(args.work, OTHER)
     third, _, log3 = start(args.work, launcher, searches=False, only={"mediana"})
     if _DISCARDED not in log3:
         failures.append("start 3: another configuration and the memory was not discarded")
-    if third["mediana"][0] != DENSE_MEDIUM:
+    if third["mediana"][0] != OTHER_MEDIUM:
         failures.append(f"start 3: the medium structure found is {third['mediana'][0]}; a new world with that configuration "
-                        f"gives {DENSE_MEDIUM}")
-    if DENSE_MEDIUM == first["mediana"][0]:
+                        f"gives {OTHER_MEDIUM}")
+    if OTHER_MEDIUM == first["mediana"][0]:
         failures.append("the reference does not tell the two configurations apart: choose another LOCATE_FROM")
 
     print("search_cache: " + ", ".join(f"{k} {first[k][1]} -> {second[k][1]} ms ({first[k][0]})" for k in first)
-          + f"; mediana al 100 %: {third['mediana'][0]}")
+          + f"; mediana al 60 %: {third['mediana'][0]}")
     if failures:
         print("FAILURES:\n- " + "\n- ".join(failures))
         sys.exit(1)

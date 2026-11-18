@@ -20,6 +20,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 
 - 📖 **Der Leitfaden des Herolds.** Jeder Spieler erhält ihn beim Betreten: ein Buch, das erklärt, wonach du suchen kannst, und dein Tagebuch führt – mit den einzigartigen Bauwerken, die du entdeckt hast, und Hinweisen auf die fehlenden. Ein aktuelles Exemplar bekommst du jederzeit mit `/heraldia guide`.
 - 📊 **Was der Server gefunden hat.** `/heraldia status` zeigt, wie viele Dörfer, einzigartige und mittelgroße Bauwerke und Minen die Spieler entdeckt haben, die besiegten Wächter, den Arenarekord und die abgegebenen Aufträge.
+- 🧭 **Dein Tagebuch.** `/heraldia journal` zeigt dir im Chat, Art für Art und mit einem Fortschrittsbalken, was du gefunden hast und was dir noch fehlt: Dorffamilien, einzigartige und mittelgroße Bauwerke, Minengrößen, Leuchttürme und Wracks, den Nether und das Ende. Klicke auf eine Art, um die Namen zu sehen. Keine Koordinaten: Finden musst du sie selbst.
 - 📋 **Dorfaufträge.** Berühre das Pult des Auftragsbretts auf einem Dorfplatz (oder nutze dort `/heraldia quest`): 2 bis 4 Aufträge erscheinen im Chat (Gegenstände bringen, einen Wächter besiegen, erkunden, ins Nachbardorf reisen, die Arena) und wechseln alle paar Tage. Sie zahlen Smaragde, Erfahrung und Ruf bei diesem Dorf: als Bekannter, Freund und Held des Dorfes senken seine Dorfbewohner ihre Preise um 10, 20 und 30 %. Wer seine Dorfbewohner oder Golems angreift, verliert Ruf.
 - 🐪 **Karawanen.** Ab und zu zieht in deiner Nähe ein Händler von Heraldia mit seinen Lamas (und manchmal einer Wache) über den Weg zwischen zwei benachbarten Dörfern. Überfallen ihn Banditen, verteidige ihn: Bei der Ankunft zahlt er Smaragde und Ruf bei seinem Zieldorf. Stirbt der Händler, ist die Karawane verloren.
 - 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 122 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die Leuchttürme und Wracks, die mittelgroßen Bauwerke, das Auftragsbrett, die Arena und die Karawanen.
@@ -58,7 +59,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `aldeas.caminos.activado` | `true` | Wege zwischen Dörfern. |
 | `unicas.<id>.activada` | `true` | Schaltet ein einzigartiges Bauwerk ein oder aus. |
 | `unicas.rejilla_compatible` | `false` | `true` nur für Welten, die mit Heraldia 0.1.0 erstellt wurden. |
-| `medianas.frecuencia_porcentaje` | 60 | Wie viele mittelgroße Bauwerke (100 = die frühere, dichtere Einstellung; 200 = doppelt so viele). |
+| `medianas.frecuencia_porcentaje` | 100 | Wie viele mittelgroße Bauwerke (200 = doppelt so viele). |
 | `faros.activado`, `naufragios.activado` | `true` | Leuchttürme und gestrandete Galeonen an der Küste. |
 | `dificultad.nivel` | `normal` | Hüter und Monster: `facil`, `normal`, `dificil` oder `heroica`. |
 | `botin.reponer.activado` | `false` | Heraldia-Truhen füllen sich nach einigen Tagen wieder auf. |

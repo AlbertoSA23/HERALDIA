@@ -103,7 +103,7 @@ class ConfigPanelTest {
 		for (int i = 0; i < combat.keys().size(); i++) {
 			vals.put("o" + i, "v" + i);
 		}
-		assertEquals("heraldia config save combate v0 v1 v2 v3 v4 v5", t.template().instantiate(vals));
+		assertEquals("heraldia config save combate v0 v1 v2 v3 v4 v5 v6", t.template().instantiate(vals));
 		assertEquals("heraldia config", command(d.actions().get(1)));
 		// each option's sentence carries its recommended value; generation warns about a restart, combat does not
 		assertFalse(d.common().body().get(0).toString().contains("heraldia.panel.reinicio"));
@@ -126,11 +126,12 @@ class ConfigPanelTest {
 		assertEquals(Optional.of(new JsonPrimitive(false)), Menus.read(o.get("medianas.activadas"), "false", new JsonPrimitive(true)));
 		assertEquals(Optional.of(new JsonPrimitive("heroica")), Menus.read(o.get("dificultad.nivel"), "heroica", null));
 		assertEquals(Optional.empty(), Menus.read(o.get("dificultad.nivel"), "imposible", null));
-		Menus.Loaded r = Menus.read(Menus.menu("combate").orElseThrow(), List.of("dificil", "true", "x", "false", "120", "true"), o,
+		Menus.Loaded r = Menus.read(Menus.menu("combate").orElseThrow(), List.of("dificil", "true", "x", "false", "120", "true", "false"), o,
 				HeraldiaConfig.defaults());
 		assertEquals(List.of("jefes.fases.activado"), r.invalid());
 		assertEquals(new JsonPrimitive("dificil"), r.optionValues().get("dificultad.nivel"));
 		assertEquals(new JsonPrimitive(120), r.optionValues().get("jefes.refuerzos.porcentaje"));
+		assertEquals(new JsonPrimitive(false), r.optionValues().get("jefes.apagar_generadores"));
 	}
 
 	@Test
@@ -163,7 +164,7 @@ class ConfigPanelTest {
 			}
 			dialogs.add(ConfigPanel.notice(l, List.of(Texts.t(l, "heraldia.panel.resultado")), Menus.MENUS.getFirst()));
 			dialogs.add(ConfigPanel.confirmGeneration(l, "ligero"));
-			dialogs.add(ProfileNotice.message(l, "ligero", "2.9", 2, "medianas.frecuencia_porcentaje 60 → 50"));
+			dialogs.add(ProfileNotice.message(l, "ligero", "2.9", 2, "medianas.frecuencia_porcentaje 100 → 50"));
 			dialogs.add(ProfileCommand.lines(HeraldiaConfig.get()));
 			Set<String> used = new HashSet<>();
 			for (Object d : dialogs) {

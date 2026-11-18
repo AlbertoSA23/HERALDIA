@@ -243,26 +243,28 @@ class SearchCacheTest {
 	}
 
 	/**
-	 * The generation options enter the stamp with their value in use: a world saved when medianas.frecuencia_porcentaje
-	 * was 100 by default (not written in the file) gets another stamp now that the default is 60, and the memory of its old
-	 * searches is not served (the grid of the medium structures moved); writing 100 by hand gives back the old stamp.
+	 * The generation options enter the stamp with their value in use: a world saved while medianas.frecuencia_porcentaje had
+	 * another default (it was 60 for a few hours, it is 100 again) and that does not write it in the file gets another stamp
+	 * after the change, and the memory of its old searches is not served (the grid of the medium structures moved); writing
+	 * the old value by hand gives back the old stamp.
 	 */
 	@Test
 	void aChangedDefaultChangesTheStamp() throws IOException {
 		String key = "medianas.frecuencia_porcentaje";
-		List<String> now = SearchCaches.optionParts(HeraldiaConfig.load(null));
-		assertTrue(now.contains("opcion " + key + "=" + HeraldiaConfig.defaults().get(key).getAsString()));
+		String now = HeraldiaConfig.defaults().get(key).getAsString();
+		String other = "100".equals(now) ? "60" : "100";
+		List<String> parts = SearchCaches.optionParts(HeraldiaConfig.load(null));
+		assertTrue(parts.contains("opcion " + key + "=" + now));
 		Path f = dir.resolve("heraldia.json");
-		Files.writeString(f, "{\"version\": 3, \"medianas\": {\"frecuencia_porcentaje\": 100}}");
-		List<String> old = SearchCaches.optionParts(HeraldiaConfig.load(f));
-		assertNotEquals(SearchCache.stamp(now), SearchCache.stamp(old));
-		Files.writeString(f, "{\"version\": 3, \"medianas\": {\"frecuencia_porcentaje\": " + HeraldiaConfig.defaults().get(key).getAsString() + "}}");
-		assertEquals(SearchCache.stamp(now), SearchCache.stamp(SearchCaches.optionParts(HeraldiaConfig.load(f))),
+		Files.writeString(f, "{\"version\": 3, \"medianas\": {\"frecuencia_porcentaje\": " + other + "}}");
+		assertNotEquals(SearchCache.stamp(parts), SearchCache.stamp(SearchCaches.optionParts(HeraldiaConfig.load(f))));
+		Files.writeString(f, "{\"version\": 3, \"medianas\": {\"frecuencia_porcentaje\": " + now + "}}");
+		assertEquals(SearchCache.stamp(parts), SearchCache.stamp(SearchCaches.optionParts(HeraldiaConfig.load(f))),
 				"the default written by hand: the same value in use, the same answers");
 		// every generation option is in it, none of the gameplay ones
-		assertTrue(now.stream().anyMatch(p -> p.startsWith("opcion aldeas.separacion_bloques=")));
-		assertTrue(now.stream().anyMatch(p -> p.startsWith("opcion minas.")));
-		assertTrue(now.stream().noneMatch(p -> p.startsWith("opcion dificultad.") || p.startsWith("opcion botin.")));
+		assertTrue(parts.stream().anyMatch(p -> p.startsWith("opcion aldeas.separacion_bloques=")));
+		assertTrue(parts.stream().anyMatch(p -> p.startsWith("opcion minas.")));
+		assertTrue(parts.stream().noneMatch(p -> p.startsWith("opcion dificultad.") || p.startsWith("opcion botin.")));
 	}
 
 	@Test
