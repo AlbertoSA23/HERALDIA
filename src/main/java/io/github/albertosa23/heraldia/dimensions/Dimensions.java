@@ -11,9 +11,9 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 
 /**
- * Contenido de Heraldia en el Nether y el End: el tipo de estructura heraldia:dimension ({@link DimensionStructure}) y
- * {@link #possible}, el filtro barato que deja fuera de las reglas de separación (únicas, medianas, zona de aldeas) las
- * estructuras que no pueden salir en la dimensión que se genera.
+ * Heraldia content in the Nether and the End: the structure type heraldia:dimension ({@link DimensionStructure}) and
+ * {@link #possible}, the cheap filter that keeps out of the separation rules (uniques, mediums, village zone) the
+ * structures that cannot spawn in the dimension being generated.
  */
 public final class Dimensions {
 	public static final StructureType<DimensionStructure> TYPE = () -> DimensionStructure.CODEC;
@@ -26,9 +26,9 @@ public final class Dimensions {
 	}
 
 	/**
-	 * ¿Puede salir la estructura en la dimensión de esta fuente de biomas (alguno de sus biomas está en ella)? Así una
-	 * única del Nether no se compara con las del mundo principal, ni al revés, sin ensamblar su jigsaw en un terreno que
-	 * no es el suyo. Solo en los chunks candidatos (unos pocos por zona): recorre la etiqueta de biomas de la estructura.
+	 * Can the structure spawn in the dimension of this biome source (some of its biomes are in it)? So a
+	 * Nether unique is not compared with the overworld's, nor the other way round, without assembling its jigsaw in a terrain that
+	 * is not its own. Only in the candidate chunks (a few per area): it walks the structure's biome tag.
 	 */
 	public static boolean possible(Structure s, BiomeSource source) {
 		Set<Holder<Biome>> possible = source.possibleBiomes();

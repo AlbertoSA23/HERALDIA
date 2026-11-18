@@ -13,13 +13,13 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Qué marcadores salen en los mapas web y cómo, lógica pura (sin clases del juego ni de los mapas): el filtro de las
- * opciones (mapas_web.activado, una por capa y mapas_web.solo_descubiertas) y la construcción de cada marcador (posición,
- * capa, nombre traducido y descripción). Lo «descubierto» es lo mismo que cuenta /heraldia status: un tipo cuenta como
- * descubierto en cuanto algún jugador tiene su logro de descubrimiento.
+ * Which markers show on the web maps and how, pure logic (no game or map classes): the filter of the
+ * options (mapas_web.activado, one per layer and mapas_web.solo_descubiertas) and building each marker (position,
+ * layer, translated name and description). "Discovered" is the same thing /heraldia status counts: a type counts as
+ * discovered as soon as some player has its discovery advancement.
  */
 public final class Markers {
-	/** Opciones en uso: mapas_web.activado, mapas_web.solo_descubiertas y las capas activadas. */
+	/** Options in use: mapas_web.activado, mapas_web.solo_descubiertas and the enabled layers. */
 	public record Options(boolean enabled, boolean onlyDiscovered, Set<Layer> layers) {
 		public Options {
 			layers = layers.isEmpty() ? Set.of() : Set.copyOf(EnumSet.copyOf(layers));
@@ -30,9 +30,10 @@ public final class Markers {
 	}
 
 	/**
-	 * ¿Ha descubierto algún jugador el tipo de este sitio? Las mismas reglas que /heraldia status: aldeas, el logro de su
-	 * familia (heraldia:aldeas/&lt;familia&gt;); únicas, heraldia:unicas/&lt;id&gt;/descubrir; medianas, el criterio de su tipo en
-	 * heraldia:medianas/todas; minas, heraldia:minas/&lt;tamaño&gt;; faros y naufragios, heraldia:costa/&lt;tipo&gt;. La arena la coloca un operador: siempre cuenta.
+	 * Has some player discovered the type of this site? The same rules as /heraldia status: villages, the advancement of their
+	 * family (heraldia:aldeas/&lt;family&gt;); uniques, heraldia:unicas/&lt;id&gt;/descubrir; mediums, their type's criterion in
+	 * heraldia:medianas/todas; mines, heraldia:minas/&lt;size&gt;; lighthouses and shipwrecks, heraldia:costa/&lt;type&gt;. The
+	 * arena is placed by an operator: it always counts.
 	 */
 	public static boolean discovered(Layer layer, String sub, State.Achievements l) {
 		return switch (layer) {
@@ -45,7 +46,7 @@ public final class Markers {
 		};
 	}
 
-	/** Clave del nombre de un sitio: el de su única, mediana o tamaño de mina; las aldeas, el de su familia. */
+	/** Key of a site's name: that of its unique, medium or mine size; villages, that of their family. */
 	static String nameKey(Layer layer, String sub) {
 		return switch (layer) {
 			case VILLAGES -> "heraldia.familia." + sub;
@@ -57,17 +58,17 @@ public final class Markers {
 		};
 	}
 
-	/** Nombre del marcador, en el idioma de {@code texts}: «Aldea: Llanuras», «Castillo del Rey Caído»... */
+	/** Marker name, in the language of {@code texts}: "Village: Plains", "Castle of the Fallen King"... */
 	static String name(Layer layer, String sub, Map<String, String> texts) {
 		String base = text(texts, nameKey(layer, sub));
 		return layer == Layer.VILLAGES ? format(text(texts, "heraldia.mapas_web.aldea"), base) : base;
 	}
 
 	/**
-	 * Los marcadores que salen, en el orden del registro y, al final, la arena: nada si mapas_web.activado está apagado;
-	 * de cada sitio, solo los de una capa activada y, con solo_descubiertas, los de un tipo descubierto.
+	 * The markers that show, in ledger order and, at the end, the arena: nothing if mapas_web.activado is off;
+	 * of each site, only those of an enabled layer and, with solo_descubiertas, those of a discovered type.
 	 *
-	 * @param arena centro de la arena colocada (x, y, z) o null
+	 * @param arena center of the placed arena (x, y, z) or null
 	 */
 	public static List<MapMarker> build(Collection<Site> sites, int @Nullable [] arena, State.Achievements advancements, Options o,
 										   Map<String, String> texts) {
@@ -89,7 +90,7 @@ public final class Markers {
 		return out;
 	}
 
-	/** Los marcadores por capa (todas las capas activadas, aunque estén vacías, para que el mapa las vacíe). */
+	/** The markers per layer (all enabled layers, even if empty, so the map clears them). */
 	public static Map<Layer, List<MapMarker>> byLayer(List<MapMarker> markers, Options o) {
 		Map<Layer, List<MapMarker>> out = new EnumMap<>(Layer.class);
 		if (o.enabled()) {
@@ -101,7 +102,7 @@ public final class Markers {
 		return out;
 	}
 
-	/** Nombres de las capas en el idioma de {@code texts}. */
+	/** Layer names in the language of {@code texts}. */
 	public static Map<Layer, String> layerNames(Map<String, String> texts) {
 		Map<Layer, String> out = new EnumMap<>(Layer.class);
 		for (Layer c : Layer.values()) {

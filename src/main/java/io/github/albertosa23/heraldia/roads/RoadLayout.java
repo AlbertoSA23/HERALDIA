@@ -48,7 +48,7 @@ public final class RoadLayout {
 	public interface Milestones {
 		long between(int ax, int az, int bx, int bz);
 
-		Milestones DRY = (ax, az, bx, bz) -> NONE;
+		Milestones NO_MILESTONES = (ax, az, bx, bz) -> NONE;
 	}
 
 	/** Altura del fondo (sin contar el agua) en una columna. */

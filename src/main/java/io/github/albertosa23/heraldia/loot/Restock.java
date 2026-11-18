@@ -4,21 +4,21 @@ import java.util.Optional;
 import net.minecraft.nbt.CompoundTag;
 
 /**
- * Lógica pura del botín que se repone (opciones botin.reponer.*), sin clases del mundo: qué tablas se reponen, qué se
- * guarda en el cofre y cuándo toca volver a llenarlo. La aplica {@link RestockedLoot} al abrir el cofre.
+ * Pure logic of the restocking loot (options botin.reponer.*), without world classes: which tables restock, what is
+ * saved in the chest and when it is time to refill it. {@link RestockedLoot} applies it when the chest is opened.
  *
- * <p>Lo único que se guarda está en el custom_data del bloque: {@code heraldia_botin: {tabla: "<id>", saqueado: <reloj>}},
- * con el reloj del mundo principal ({@code getOverworldClockTime}, el que mueve /time add) del último saqueo.
+ * <p>The only thing saved is in the block's custom_data: {@code heraldia_botin: {tabla: "<id>", saqueado: <clock>}},
+ * with the overworld clock ({@code getOverworldClockTime}, the one /time add moves) of the last looting.
  */
 public final class Restock {
-	/** Clave del registro en el custom_data del cofre. */
+	/** Key of the record in the chest's custom_data. */
 	public static final String KEY = "heraldia_botin";
 	static final String TABLE = "tabla", LOOTED = "saqueado";
-	/** Un día de juego, en ticks del reloj del mundo. */
+	/** One game day, in world-clock ticks. */
 	public static final long DAY = 24000L;
-	/** Radio (bloques) en el que otro jugador impide reponer el cofre. */
+	/** Radius (blocks) in which another player prevents the chest from restocking. */
 	public static final double PLAYER_RADIUS = 32;
-	/** «Casi vacío»: como mucho tantas casillas ocupadas (de 27). Lo que haya se queda: el botín va a las libres. */
+	/** "Nearly empty": at most this many occupied slots (out of 27). Whatever is there stays: the loot goes into the free ones. */
 	public static final int MAX_OCCUPIED = 3;
 	private static final String NS = "heraldia:";
 	private static final String[] PREFIXES = {"cofres/", "unicas/", "medianas/", "minas/", "costa/"};
@@ -26,23 +26,24 @@ public final class Restock {
 	private Restock() {
 	}
 
-	/** Qué hacer con un cofre al abrirlo. */
+	/** What to do with a chest when it is opened. */
 	public enum Decision {
-		/** No es un cofre de Heraldia conocido (o no se repone): nada. */
+		/** It is not a known Heraldia chest (or it does not restock): nothing. */
 		NOTHING,
-		/** Aún tiene su tabla sin abrir: se apunta la tabla y que se saquea ahora. */
+		/** It still has its unopened table: the table is recorded and that it is looted now. */
 		RECORD,
-		/** Aún no toca (pocos días, otro jugador cerca o el cofre tiene cosas). */
+		/** Not yet (too few days, another player nearby or the chest has things). */
 		WAIT,
-		/** Toca: vuelve a ponerse su tabla (el juego la abre en este mismo uso). */
+		/** Due: its table is set again (the game opens it in this same use). */
 		RESTOCK,
-		/** El reloj ha ido hacia atrás (/time set): la cuenta empieza de nuevo. */
+		/** The clock has gone backwards (/time set): the count starts over. */
 		RESET
 	}
 
 	/**
-	 * ¿Se repone un cofre con esta tabla? Solo las de cofre de las aldeas ({@code heraldia:cofres/}), las medianas, las
-	 * entradas a mina ({@code heraldia:minas/}), los faros y naufragios ({@code heraldia:costa/}) y las únicas; nunca los trofeos (ni nada que no sea de Heraldia).
+	 * Does a chest with this table restock? Only the village chest tables ({@code heraldia:cofres/}), the mediums, the
+	 * mine entrances ({@code heraldia:minas/}), the lighthouses and shipwrecks ({@code heraldia:costa/}) and the uniques;
+	 * never the trophies (nor anything that is not Heraldia's).
 	 */
 	public static boolean tableRestocks(String table) {
 		if (table == null || !table.startsWith(NS) || table.contains("trofeo")) {
@@ -58,14 +59,14 @@ public final class Restock {
 	}
 
 	/**
-	 * Decisión al abrir un cofre.
+	 * Decision when a chest is opened.
 	 *
-	 * @param pendiente   tabla que el cofre aún no ha abierto (o null)
-	 * @param registro    lo guardado en el cofre ({@link #ledger}), si lo hay
-	 * @param ahora       reloj del mundo
-	 * @param dias        botin.reponer.dias
-	 * @param otros       jugadores a {@link #PLAYER_RADIUS} bloques, sin contar al que abre
-	 * @param ocupadas    casillas con algo
+	 * @param pending   table the chest has not opened yet (or null)
+	 * @param ledger    what is saved in the chest ({@link #ledger}), if any
+	 * @param now       world clock
+	 * @param days      botin.reponer.dias
+	 * @param others    players within {@link #PLAYER_RADIUS} blocks, not counting the one opening it
+	 * @param occupied  slots with something in them
 	 */
 	public static Decision decide(String pending, Optional<Ledger> ledger, long now, int days, int others, int occupied) {
 		if (pending != null) {
@@ -84,7 +85,7 @@ public final class Restock {
 		return Decision.RESTOCK;
 	}
 
-	/** Lo guardado en un cofre: su tabla original y el reloj del último saqueo. */
+	/** What is saved in a chest: its original table and the clock of the last looting. */
 	public record Ledger(String table, long looted) {
 		CompoundTag tag() {
 			CompoundTag t = new CompoundTag();
@@ -94,7 +95,7 @@ public final class Restock {
 		}
 	}
 
-	/** El registro del custom_data de un cofre, si lo tiene y es válido. */
+	/** The record from a chest's custom_data, if it has one and it is valid. */
 	public static Optional<Ledger> ledger(CompoundTag customData) {
 		return customData.getCompound(KEY).flatMap(t -> {
 			String table = t.getStringOr(TABLE, "");
@@ -103,7 +104,7 @@ public final class Restock {
 		});
 	}
 
-	/** Escribe el registro en una copia del custom_data (no toca el resto de claves, p. ej. las de otros sistemas). */
+	/** Writes the record into a copy of the custom_data (does not touch the other keys, e.g. those of other systems). */
 	public static CompoundTag withLedger(CompoundTag customData, Ledger r) {
 		CompoundTag out = customData.copy();
 		out.put(KEY, r.tag());

@@ -49,18 +49,18 @@ class GroundTest {
 		assertEquals(100, Ground.nether(c.s(), c.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 4), "la repisa, con 4 de aire");
 		assertEquals(40, Ground.nether(c.s(), c.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 5), "con 5 de aire, el suelo de abajo");
 		assertEquals(40, Ground.nether(c.s(), c.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 55));
-		assertEquals(Ground.DRY, Ground.nether(c.s(), c.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 56), "no cabe en ningún sitio");
+		assertEquals(Ground.NONE, Ground.nether(c.s(), c.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 56), "no cabe en ningún sitio");
 	}
 
 	@Test
 	void netherNeverOnLavaOrUnderCeiling() {
 		Column seaSide = new Column(new int[][] {{1, 10}});              // todo lava hasta 31 y aire hasta el techo
-		assertEquals(Ground.DRY, Ground.nether(seaSide.s(), seaSide.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 4), "el mar de lava no sostiene");
+		assertEquals(Ground.NONE, Ground.nether(seaSide.s(), seaSide.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 4), "el mar de lava no sostiene");
 		Column high = new Column(new int[][] {{1, 118}});             // macizo hasta 118: aire de 119 a 122
-		assertEquals(Ground.DRY, Ground.nether(high.s(), high.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 3),
+		assertEquals(Ground.NONE, Ground.nether(high.s(), high.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 3),
 				"un suelo por encima de NETHER_DESDE (pegado al techo) no vale");
 		Column island = new Column(new int[][] {{1, 20}, {32, 32}});    // una losa a 32 sobre la lava
-		assertEquals(Ground.DRY, Ground.nether(island.s(), island.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 4),
+		assertEquals(Ground.NONE, Ground.nether(island.s(), island.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 4),
 				"por debajo de NETHER_HASTA no se busca");
 		for (int free = 2; free <= 40; free++) {
 			int y = Ground.nether(new Column(new int[][] {{1, 60}}).s(), new Column(new int[][] {{1, 60}}).a(),
@@ -74,23 +74,23 @@ class GroundTest {
 		Column c = new Column(new int[][] {{1, 63}});
 		assertEquals(64, Ground.netherNear(c.s(), c.a(), 60), "a +4 del centro");
 		assertEquals(64, Ground.netherNear(c.s(), c.a(), 64));
-		assertEquals(Ground.DRY, Ground.netherNear(c.s(), c.a(), 50), "a +14: fuera del desnivel");
+		assertEquals(Ground.NONE, Ground.netherNear(c.s(), c.a(), 50), "a +14: fuera del desnivel");
 		assertTrue(Ground.flat(64, 64, 60, 69, 59));
 		assertFalse(Ground.flat(64, 64, 64, 70, 64), "una esquina a +6");
-		assertFalse(Ground.flat(64, 64, Ground.DRY, 64, 64), "una esquina sin suelo (barranco)");
+		assertFalse(Ground.flat(64, 64, Ground.NONE, 64, 64), "una esquina sin suelo (barranco)");
 	}
 
 	@Test
 	void endOnlyOnOuterFlatIslands() {
 		int far = Ground.END_CENTRAL_RADIUS + 100;
 		assertEquals(62, Ground.end(far, 0, 62, 60, 64, 63, 61));
-		assertEquals(Ground.DRY, Ground.end(far, 0, 62, 0, 64, 63, 61), "una esquina sobre el vacío");
-		assertEquals(Ground.DRY, Ground.end(far, 0, 0, 0, 0, 0, 0), "todo vacío");
-		assertEquals(Ground.DRY, Ground.end(far, 0, 62, 62, 62, 62, 70), "desnivel de 8");
-		assertEquals(Ground.DRY, Ground.end(Ground.END_CENTRAL_RADIUS - 1, 0, 62, 62, 62, 62, 62), "la isla central (y el dragón)");
-		assertEquals(Ground.DRY, Ground.end(700, 700, 62, 62, 62, 62, 62), "a 990 bloques del centro");
+		assertEquals(Ground.NONE, Ground.end(far, 0, 62, 0, 64, 63, 61), "una esquina sobre el vacío");
+		assertEquals(Ground.NONE, Ground.end(far, 0, 0, 0, 0, 0, 0), "todo vacío");
+		assertEquals(Ground.NONE, Ground.end(far, 0, 62, 62, 62, 62, 70), "desnivel de 8");
+		assertEquals(Ground.NONE, Ground.end(Ground.END_CENTRAL_RADIUS - 1, 0, 62, 62, 62, 62, 62), "la isla central (y el dragón)");
+		assertEquals(Ground.NONE, Ground.end(700, 700, 62, 62, 62, 62, 62), "a 990 bloques del centro");
 		assertEquals(62, Ground.end(-800, -800, 62, 62, 62, 62, 62), "a 1.131 bloques");
-		assertEquals(Ground.DRY, Ground.end(far, 0, Ground.END_MIN - 1, 44, 44, 44, 44), "demasiado bajo: un islote suelto");
+		assertEquals(Ground.NONE, Ground.end(far, 0, Ground.END_MIN - 1, 44, 44, 44, 44), "demasiado bajo: un islote suelto");
 	}
 
 	/** Un mundo de {@link SafeSpot} con techo: bedrock a 123-127, macizo hasta {@code ground} - 1 y lava en y = suelo si se pide. */

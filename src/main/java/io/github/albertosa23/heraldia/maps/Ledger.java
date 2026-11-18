@@ -22,9 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Estructuras de Heraldia conocidas en este mundo (las de los chunks que se han cargado alguna vez desde que hay un mapa
- * web): de ellas salen los marcadores. Seguro entre hilos (se añade desde el hilo del servidor y se lee desde el de los
- * mapas web) y guardado en &lt;mundo&gt;/{@value #FILE} para no esperar a que vuelvan a cargarse los chunks tras reiniciar.
+ * Heraldia structures known in this world (those of the chunks that have loaded at some point since there is a web
+ * map): the markers come from them. Thread-safe (added from the server thread and read from the web maps'
+ * thread) and saved in &lt;world&gt;/{@value #FILE} so there is no wait for the chunks to load again after a restart.
  */
 public final class Ledger {
 	public static final String FILE = "heraldia_mapas_web.json";
@@ -34,7 +34,7 @@ public final class Ledger {
 	private final Map<String, Site> sites = new ConcurrentHashMap<>();
 	private final AtomicBoolean changed = new AtomicBoolean();
 
-	/** Añade un sitio; true si no estaba. */
+	/** Adds a site; true if it was not there. */
 	public boolean add(Site s) {
 		boolean newValue = sites.putIfAbsent(s.key(), s) == null;
 		if (newValue) {
@@ -47,7 +47,7 @@ public final class Ledger {
 		return sites.size();
 	}
 
-	/** Copia de los sitios, en un orden estable (capa, estructura, x, z). */
+	/** Copy of the sites, in a stable order (layer, structure, x, z). */
 	public List<Site> all() {
 		List<Site> out = new ArrayList<>(sites.values());
 		out.sort(Comparator.comparing(Site::layer).thenComparing(Site::structure).thenComparingInt(Site::x)
@@ -55,12 +55,12 @@ public final class Ledger {
 		return out;
 	}
 
-	/** ¿Hay algo sin guardar? (y lo da por guardado). */
+	/** Is there anything unsaved? (and marks it as saved). */
 	boolean takeChange() {
 		return changed.getAndSet(false);
 	}
 
-	/** JSON del registro: {"version": 1, "sitios": [{"estructura", "capa", "sub", "x", "y", "z"}, ...]}. */
+	/** JSON of the ledger: {"version": 1, "sitios": [{"estructura", "capa", "sub", "x", "y", "z"}, ...]}. */
 	public String json() {
 		JsonObject o = new JsonObject();
 		o.addProperty("version", VERSION);
@@ -79,7 +79,7 @@ public final class Ledger {
 		return GSON.toJson(o);
 	}
 
-	/** Suma los sitios de un JSON escrito por {@link #json()}; lo que no se entienda se ignora. Devuelve cuántos ha leído. */
+	/** Adds the sites of a JSON written by {@link #json()}; whatever is not understood is ignored. Returns how many it read. */
 	public int addJson(String text) {
 		int n = 0;
 		try {
@@ -97,16 +97,16 @@ public final class Ledger {
 						n++;
 					}
 				} catch (RuntimeException ignored) {
-					// entrada rota o de una capa que ya no existe: no cuenta
+					// broken entry or one from a layer that no longer exists: does not count
 				}
 			}
 		} catch (RuntimeException ignored) {
-			// fichero roto: se empieza de cero (se rehace al cargarse los chunks)
+			// broken file: start from scratch (it is rebuilt as the chunks load)
 		}
 		return n;
 	}
 
-	/** Lee el fichero si existe (fuera del hilo del servidor). */
+	/** Reads the file if it exists (off the server thread). */
 	public int read(Path file) {
 		if (!Files.isRegularFile(file)) {
 			return 0;
@@ -118,7 +118,7 @@ public final class Ledger {
 		}
 	}
 
-	/** Escribe el fichero si ha cambiado desde la última vez (fuera del hilo del servidor; escribe aparte y lo mueve). */
+	/** Writes the file if it changed since the last time (off the server thread; writes aside and moves it). */
 	public void save(Path file) throws IOException {
 		if (!takeChange()) {
 			return;
@@ -132,7 +132,7 @@ public final class Ledger {
 		}
 	}
 
-	/** Para las pruebas. */
+	/** For the tests. */
 	Collection<String> keys() {
 		return sites.keySet();
 	}

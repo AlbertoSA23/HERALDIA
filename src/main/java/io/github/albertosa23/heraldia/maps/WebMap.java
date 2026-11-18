@@ -4,24 +4,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Un mapa web (BlueMap, Dynmap o squaremap). Cada uno va en su propio paquete y solo se carga si su mod está
- * ({@link WebMaps#ADAPTERS}): esta interfaz y el resto del paquete no nombran ninguna clase de los mapas.
+ * A web map (BlueMap, Dynmap or squaremap). Each one lives in its own package and is only loaded if its mod is there
+ * ({@link WebMaps#ADAPTERS}): this interface and the rest of the package name no map class.
  */
 public interface WebMap {
-	/** Nombre para el log y el comando (p. ej. «BlueMap»). */
+	/** Name for the log and the command (e.g. "BlueMap"). */
 	String name();
 
 	/**
-	 * Sustituye los marcadores de Heraldia por estos: una capa por entrada (las que no estén, se quitan del mapa). Se llama
-	 * desde el hilo de los mapas web; cada adaptador pasa al hilo que pida su API.
+	 * Replaces Heraldia's markers with these: one layer per entry (those not present are removed from the map). Called
+	 * from the web maps' thread; each adapter hops to the thread its API asks for.
 	 *
-	 * @param capas      nombre traducido de cada capa
-	 * @param marcadores los marcadores de cada capa activada (lista vacía: la capa sale sin marcadores)
-	 * @return false si el mapa aún no está listo (su API no ha arrancado): se vuelve a intentar más tarde
+	 * @param layers  translated name of each layer
+	 * @param markers the markers of each enabled layer (empty list: the layer shows without markers)
+	 * @return false if the map is not ready yet (its API has not started): it is retried later
 	 */
 	boolean publish(Map<Layer, String> layers, Map<Layer, List<MapMarker>> markers);
 
-	/** Al parar el servidor. */
+	/** When the server stops. */
 	default void close() {
 	}
 }

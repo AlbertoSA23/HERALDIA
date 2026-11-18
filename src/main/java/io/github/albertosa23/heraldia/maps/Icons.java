@@ -9,11 +9,11 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 /**
- * Iconos de las capas, dibujados una vez en memoria (sin ficheros en el .jar): un círculo del color de la capa con borde
- * oscuro y un dibujo blanco de 8 x 8 píxeles a doble tamaño (corona, casa, torre, pico, faro, espadas cruzadas).
+ * Layer icons, drawn once in memory (no files in the .jar): a circle in the layer's color with a dark
+ * border and a white 8 x 8 pixel drawing at double size (crown, house, tower, pickaxe, lighthouse, crossed swords).
  */
 public final class Icons {
-	/** Lado del icono, en píxeles. */
+	/** Icon side, in pixels. */
 	public static final int SIDE = 24;
 	private static final Map<Layer, String[]> DRAWINGS = new EnumMap<>(Map.of(
 			Layer.UNIQUES, new String[]{"........", "#..##..#", "##.##.##", "########", "########", ".######.", ".######.", "........"},
@@ -27,12 +27,12 @@ public final class Icons {
 	private Icons() {
 	}
 
-	/** El icono de una capa (la misma imagen cada vez: no se debe modificar). */
+	/** A layer's icon (the same image every time: it must not be modified). */
 	public static synchronized BufferedImage image(Layer layer) {
 		return CACHE.computeIfAbsent(layer, Icons::draw);
 	}
 
-	/** El icono de una capa en PNG. */
+	/** A layer's icon as PNG. */
 	public static byte[] png(Layer layer) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try {

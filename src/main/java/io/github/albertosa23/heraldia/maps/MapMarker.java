@@ -1,16 +1,16 @@
 package io.github.albertosa23.heraldia.maps;
 
 /**
- * Un marcador listo para cualquier mapa web: id estable (único en su capa), capa, posición, nombre y descripción ya
- * traducidos (texto plano) y el HTML de su ventana (nombre en negrita y descripción, escapados).
+ * A marker ready for any web map: stable id (unique within its layer), layer, position, name and description already
+ * translated (plain text) and the HTML of its popup (name in bold and description, escaped).
  */
 public record MapMarker(String id, Layer layer, int x, int y, int z, String name, String description) {
-	/** HTML de la ventana del marcador: «&lt;b&gt;nombre&lt;/b&gt;&lt;br&gt;descripción». */
+	/** HTML of the marker's popup: "&lt;b&gt;name&lt;/b&gt;&lt;br&gt;description". */
 	public String html() {
 		return "<b>" + escape(name) + "</b><br>" + escape(description);
 	}
 
-	/** Escapa los caracteres especiales de HTML. */
+	/** Escapes HTML special characters. */
 	public static String escape(String s) {
 		StringBuilder b = new StringBuilder(s.length() + 8);
 		for (int i = 0; i < s.length(); i++) {

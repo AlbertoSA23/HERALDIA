@@ -21,16 +21,16 @@ import net.minecraft.world.level.levelgen.structure.structures.JigsawStructure;
 import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
 
 /**
- * heraldia:dimension: una estructura de jigsaw (una pieza en las medianas, varias en las únicas) para el Nether o el End,
- * donde el {@code project_start_to_heightmap} del jigsaw vanilla no sirve (en el Nether da el techo de bedrock; en el
- * End, el vacío). La altura del inicio la decide {@link Ground} con la columna de ruido del centro y de las cuatro
- * esquinas de la huella ({@code radius} bloques del centro): solo en los chunks candidatos de la rejilla, unas pocas
- * columnas por candidata. Sin sitio, no sale; con /place structure (que acepta cualquier bioma) se coloca en el centro a
- * y = 64 para poder probarla en cualquier sitio. La y del inicio es la primera libre sobre el suelo: con la pieza rígida
- * (getGroundLevelDelta = 1) la fila y = 0 de la plantilla queda a ras de suelo, como en el mundo principal.
+ * heraldia:dimension: a jigsaw structure (one piece for the mediums, several for the uniques) for the Nether or the End,
+ * where vanilla jigsaw's {@code project_start_to_heightmap} does not work (in the Nether it gives the bedrock ceiling; in the
+ * End, the void). The start height is decided by {@link Ground} with the noise column of the center and of the four
+ * corners of the footprint ({@code radius} blocks from the center): only in the grid's candidate chunks, a few
+ * columns per candidate. Without a site, it does not spawn; with /place structure (which accepts any biome) it is placed in the center at
+ * y = 64 so it can be tested anywhere. The start's y is the first free one above the ground: with the rigid piece
+ * (getGroundLevelDelta = 1) the template's y = 0 row sits flush with the ground, as in the overworld.
  */
 public final class DimensionStructure extends Structure {
-	/** Dónde se apoya. */
+	/** Where it rests. */
 	public enum Mode implements StringRepresentable {
 		NETHER("nether"), END("end");
 		public static final Codec<Mode> CODEC = StringRepresentable.fromEnum(Mode::values);
@@ -55,7 +55,7 @@ public final class DimensionStructure extends Structure {
 			Codec.intRange(1, 64).fieldOf("radio").forGetter(s -> s.radius),
 			Codec.intRange(2, 64).fieldOf("libre").forGetter(s -> s.free)
 	).apply(i, DimensionStructure::new));
-	/** Altura del inicio con /place structure sin sitio a la vista (pruebas). */
+	/** Start height with /place structure with no site in sight (tests). */
 	static final int FORCED_Y = 64;
 
 	private final Holder<StructureTemplatePool> startPool;
@@ -99,18 +99,18 @@ public final class DimensionStructure extends Structure {
 				new JigsawStructure.MaxDistance(maxDistance), PoolAliasLookup.EMPTY, DimensionPadding.ZERO, LiquidSettings.IGNORE_WATERLOGGING);
 	}
 
-	/** Dónde va el inicio (la y es la primera libre sobre el suelo). */
+	/** Where the start goes (the y is the first free one above the ground). */
 	public record Site(int x, int y, int z) {
 	}
 
-	/** Puntos que se prueban alrededor del centro del chunk (bloques), en orden: el centro y una cruz a medio chunk. */
+	/** Points tried around the chunk's center (blocks), in order: the center and a cross at half a chunk. */
 	static final int[][] POINTS = {{0, 0}, {8, 0}, {-8, 0}, {0, 8}, {0, -8}};
-	/** Suelos de una misma columna del Nether que se prueban, de arriba abajo (cuevas superpuestas). */
+	/** Grounds of the same Nether column that are tried, top down (stacked caves). */
 	static final int GROUNDS = 4;
 
 	/**
-	 * El primer sitio válido de {@link #POINTS} (Nether con {@code columns}, End con {@code heights}) o null. Solo en los
-	 * chunks candidatos de la rejilla: como mucho 5 puntos x 5 columnas, y en el Nether cada columna se lee una vez.
+	 * The first valid site of {@link #POINTS} (Nether with {@code columns}, End with {@code heights}) or null. Only in the
+	 * grid's candidate chunks: at most 5 points x 5 columns, and in the Nether each column is read once.
 	 */
 	public static Site site(Columns columns, Heights heights, int cx, int cz, int radius, int free) {
 		java.util.Map<Long, NoiseColumn> read = new java.util.HashMap<>();
@@ -118,32 +118,32 @@ public final class DimensionStructure extends Structure {
 		for (int[] d : POINTS) {
 			int x = cx + d[0], z = cz + d[1];
 			int y = memo != null ? nether(memo, x, z, radius, free) : end(heights, x, z, radius);
-			if (y != Ground.DRY) {
+			if (y != Ground.NONE) {
 				return new Site(x, y, z);
 			}
 		}
 		return null;
 	}
 
-	/** Columna de ruido de un punto (en el juego, ChunkGenerator.getBaseColumn: no carga ni genera chunks). */
+	/** Noise column of a point (in the game, ChunkGenerator.getBaseColumn: does not load or generate chunks). */
 	@FunctionalInterface
 	public interface Columns {
 		NoiseColumn en(int x, int z);
 	}
 
-	/** Primera y libre de un punto según el heightmap WORLD_SURFACE_WG (en el juego, ChunkGenerator.getBaseHeight). */
+	/** First free y of a point by the WORLD_SURFACE_WG heightmap (in the game, ChunkGenerator.getBaseHeight). */
 	@FunctionalInterface
 	public interface Heights {
 		int en(int x, int z);
 	}
 
-	/** Altura del inicio en el Nether (Suelo.nether en el centro, esquinas a ±DESNIVEL; hasta SUELOS suelos de arriba abajo) o Suelo.NINGUNO. Pública para las pruebas. */
+	/** Start height in the Nether (Ground.nether at the center, corners within ±DROP; up to GROUNDS grounds top down) or Ground.NONE. Public for the tests. */
 	public static int nether(Columns columns, int x, int z, int radius, int free) {
 		NoiseColumn c = columns.en(x, z);
 		int from = Ground.NETHER_FROM;
 		for (int n = 0; n < GROUNDS; n++) {
 			int y = Ground.nether(k -> solid(c.getBlock(k)), k -> air(c.getBlock(k)), from, Ground.NETHER_TO, free);
-			if (y == Ground.DRY) {
+			if (y == Ground.NONE) {
 				return y;
 			}
 			int[] corners = new int[4];
@@ -157,12 +157,12 @@ public final class DimensionStructure extends Structure {
 			if (Ground.flat(y, corners)) {
 				return y;
 			}
-			from = y - 2;                                   // el siguiente suelo, por debajo de este
+			from = y - 2;                                   // the next ground, below this one
 		}
-		return Ground.DRY;
+		return Ground.NONE;
 	}
 
-	/** Altura del inicio en el End (Suelo.end con el centro y las cuatro esquinas) o Suelo.NINGUNO. Pública para las pruebas. */
+	/** Start height in the End (Ground.end with the center and the four corners) or Ground.NONE. Public for the tests. */
 	public static int end(Heights heights, int x, int z, int radius) {
 		return Ground.end(x, z, heights.en(x, z), heights.en(x - radius, z - radius), heights.en(x - radius, z + radius),
 				heights.en(x + radius, z - radius), heights.en(x + radius, z + radius));

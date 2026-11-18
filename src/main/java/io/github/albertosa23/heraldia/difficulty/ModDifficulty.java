@@ -4,18 +4,18 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Lógica pura de la dificultad configurable (opción {@code dificultad.tier}), sin clases del juego: multiplicadores de
- * vida, daño y botín de cada nivel, el extra de vida por jugadores cercanos y el reajuste de la vida actual cuando cambia
- * la máxima. La aplica {@link MobDifficulty}.
+ * Pure logic of the configurable difficulty (option {@code dificultad.nivel}), without game classes: health, damage
+ * and loot multipliers of each level, the extra health per nearby player and the readjustment of current health when
+ * the maximum changes. {@link MobDifficulty} applies it.
  */
 public final class ModDifficulty {
-	/** Extra de vida por cada jugador de más cerca del mob (dificultad.escalar_por_jugadores), y su tope. */
+	/** Extra health for each additional player near the mob (dificultad.escalar_por_jugadores), and its cap. */
 	public static final double EXTRA_PER_PLAYER = 0.25, EXTRA_MAX = 1.0;
-	/** Radio (bloques) en el que se cuentan los jugadores que luchan contra el mob. */
+	/** Radius (blocks) in which the players fighting the mob are counted. */
 	public static final double PLAYER_RADIUS = 32;
 	/**
-	 * Etiquetas (Tags) de los mobs a los que se aplica: anclados (comun/Anclaje), guardianes finales, refuerzos de los
-	 * jefes y mobs de la arena de oleadas (arena/Arena).
+	 * Tags of the mobs it applies to: anchored ones (common/Anchoring), final guardians, boss reinforcements
+	 * and wave arena mobs (arena/Arena).
 	 */
 	public static final String ANCHORED = "heraldia_anclado", GUARDIAN = "heraldia_guardian", REINFORCEMENT = "heraldia_refuerzo",
 			ARENA = "heraldia_arena";
@@ -23,7 +23,7 @@ public final class ModDifficulty {
 	private ModDifficulty() {
 	}
 
-	/** Niveles de la opción dificultad.nivel; {@link #NORMAL} es el comportamiento de siempre (sin modificadores). */
+	/** Levels of the option dificultad.nivel; {@link #NORMAL} is the usual behavior (no modifiers). */
 	public enum Tier {
 		EASY("facil", 0.75, 0.75, 0.75), NORMAL("normal", 1, 1, 1), HARD("dificil", 1.5, 1.25, 1.25), HEROIC("heroica", 2, 1.5, 1.5);
 
@@ -38,7 +38,7 @@ public final class ModDifficulty {
 			this.loot = loot;
 		}
 
-		/** Valor de la opción (facil, normal, dificil, heroica); uno desconocido es normal (la configuración ya lo valida). */
+		/** Value of the option (facil, normal, dificil, heroica); an unknown one is normal (the configuration already validates it). */
 		public static Tier of(String value) {
 			for (Tier n : values()) {
 				if (n.id().equals(value)) {
@@ -52,7 +52,7 @@ public final class ModDifficulty {
 			return id;
 		}
 
-		/** Cantidad del modificador de vida (operación ADD_MULTIPLIED_TOTAL: valor final x (1 + cantidad)); 0 = sin modificador. */
+		/** Amount of the health modifier (ADD_MULTIPLIED_TOTAL operation: final value x (1 + amount)); 0 = no modifier. */
 		public double healthMod() {
 			return health - 1;
 		}
@@ -62,23 +62,23 @@ public final class ModDifficulty {
 		}
 	}
 
-	/** ¿Se le aplica la dificultad? Mobs hostiles anclados, guardianes, refuerzos de un jefe o de la arena (no los animales anclados). */
+	/** Does the difficulty apply to it? Anchored hostile mobs, guardians, reinforcements of a boss or of the arena (not anchored animals). */
 	public static boolean applies(Set<String> tags, boolean hostile) {
 		return hostile && !tags.isEmpty() && (tags.contains(ANCHORED) || tags.contains(GUARDIAN) || tags.contains(REINFORCEMENT)
 				|| tags.contains(ARENA));
 	}
 
 	/**
-	 * Extra de vida (cantidad del modificador ADD_MULTIPLIED_TOTAL) por {@code players} cerca: el primero no cuenta,
-	 * cada uno de más suma {@link #EXTRA_PER_PLAYER}, con tope {@link #EXTRA_MAX}.
+	 * Extra health (amount of the ADD_MULTIPLIED_TOTAL modifier) for {@code players} nearby: the first does not count,
+	 * each extra one adds {@link #EXTRA_PER_PLAYER}, capped at {@link #EXTRA_MAX}.
 	 */
 	public static double extraPlayers(int players) {
 		return Math.min(EXTRA_MAX, Math.max(0, players - 1) * EXTRA_PER_PLAYER);
 	}
 
 	/**
-	 * Vida tras cambiar la máxima de {@code before} a {@code after}: se conserva la proporción (un mob entero sigue entero,
-	 * uno a media vida sigue a media vida), sin pasar de la nueva máxima ni bajar a 0 si estaba vivo.
+	 * Health after changing the maximum from {@code before} to {@code after}: the ratio is kept (a full-health mob stays full,
+	 * one at half health stays at half), without exceeding the new maximum or dropping to 0 if it was alive.
 	 */
 	public static float readjustHealth(float health, double before, double after) {
 		if (before <= 0 || after <= 0 || before == after) {
@@ -92,8 +92,8 @@ public final class ModDifficulty {
 	}
 
 	/**
-	 * Cantidad de un objeto del botín con el multiplicador {@code m}: la parte fraccionaria sale con su probabilidad
-	 * ({@code rng} en [0, 1)), nunca menos de 1 ni más que el máximo de la pila. Con m = 1 no cambia.
+	 * Amount of a loot item with multiplier {@code m}: the fractional part comes out with its probability
+	 * ({@code rng} in [0, 1)), never less than 1 nor more than the stack maximum. With m = 1 it does not change.
 	 */
 	public static int amount(int n, double m, int maximum, double rng) {
 		if (m == 1 || n <= 0) {

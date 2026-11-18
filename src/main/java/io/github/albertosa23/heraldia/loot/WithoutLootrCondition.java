@@ -6,8 +6,8 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 /**
- * Condición de botín {@code heraldia:sin_lootr}: se cumple solo si Lootr no está cargado.
- * Con Lootr cada jugador abre su propio botín, así que los grupos marcados con ella (el extra por cofre) se omiten.
+ * Loot condition {@code heraldia:sin_lootr}: passes only if Lootr is not loaded.
+ * With Lootr each player opens their own loot, so the groups marked with it (the per-chest extra) are skipped.
  */
 public record WithoutLootrCondition() implements LootItemCondition {
 	public static final WithoutLootrCondition INSTANCE = new WithoutLootrCondition();

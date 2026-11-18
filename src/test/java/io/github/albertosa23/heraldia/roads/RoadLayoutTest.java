@@ -37,7 +37,7 @@ class RoadLayoutTest {
 	}
 
 	static RoadLayout layout(long seed, int maxDist) {
-		return new RoadLayout(seed, CELL, maxDist, villages(seed, 0.2), RoadLayout.Milestones.DRY);
+		return new RoadLayout(seed, CELL, maxDist, villages(seed, 0.2), RoadLayout.Milestones.NO_MILESTONES);
 	}
 
 	static double dist(long a, long b) {
@@ -101,7 +101,7 @@ class RoadLayoutTest {
 		int cell = 63 * 16, win = (63 - 42) * 16;
 		RoadLayout.Villages a = (gx, gz) -> RoadLayout.pack(gx * cell + (int) (RoadLayout.rng(3, RoadLayout.pack(gx, gz), 2) * win),
 				gz * cell + (int) (RoadLayout.rng(3, RoadLayout.pack(gx, gz), 3) * win));
-		RoadLayout t = new RoadLayout(3, cell, 600, a, RoadLayout.Milestones.DRY);
+		RoadLayout t = new RoadLayout(3, cell, 600, a, RoadLayout.Milestones.NO_MILESTONES);
 		for (int gx = -5; gx <= 5; gx++) {
 			for (int gz = -5; gz <= 5; gz++) {
 				assertEquals(0, t.neighbors(gx, gz).length);
@@ -112,7 +112,7 @@ class RoadLayoutTest {
 
 	@Test
 	void noVillagesNoRoads() {
-		RoadLayout t = new RoadLayout(1, CELL, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.DRY);
+		RoadLayout t = new RoadLayout(1, CELL, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		for (int cx = -50; cx <= 50; cx += 7) {
 			assertTrue(t.routes(cx, cx * 3).isEmpty());
 		}
@@ -131,7 +131,7 @@ class RoadLayoutTest {
 					assertEquals(r1.z(i), r2.z(i));
 				}
 				assertEquals(r1.lantern, r2.lantern);
-				RoadLayout.Route r3 = new RoadLayout(43, CELL, 2000, villages(42, 0.2), RoadLayout.Milestones.DRY).route(v, w);
+				RoadLayout.Route r3 = new RoadLayout(43, CELL, 2000, villages(42, 0.2), RoadLayout.Milestones.NO_MILESTONES).route(v, w);
 				different |= r3.x(r3.vertices() / 2) != r1.x(r1.vertices() / 2);
 			}
 		}
@@ -283,7 +283,7 @@ class RoadLayoutTest {
 
 	/** Ruta recta de prueba de 0,0 a 960,0 (vértices cada 16 bloques) con el fondo dado. */
 	static RoadLayout.Route straight() {
-		RoadLayout t = new RoadLayout(1, 100_000, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.DRY);
+		RoadLayout t = new RoadLayout(1, 100_000, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		RoadLayout.Route r = t.route(RoadLayout.pack(0, 0), RoadLayout.pack(960, 0));
 		assertTrue(r.vertices() > 50);
 		return r;
@@ -429,7 +429,7 @@ class RoadLayoutTest {
 	@Test
 	void signArrow() {
 		// ruta de oeste a este por z = 0: el cartel cerca de la aldea del oeste señala la del este
-		RoadLayout t = new RoadLayout(1, 100_000, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.DRY);
+		RoadLayout t = new RoadLayout(1, 100_000, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		RoadLayout.Route r = t.route(RoadLayout.pack(0, 0), RoadLayout.pack(1200, 0));
 		List<RoadLayout.Mark> all = new ArrayList<>();
 		for (int cx = -2; cx <= 80; cx++) {
@@ -570,7 +570,7 @@ class RoadLayoutTest {
 		assertEquals(best, Math.hypot(RoadLayout.px(p), RoadLayout.pz(p)), 1e-9);
 		assertEquals(p, layout(7, 2000).nearestSegment(0, 0, 4), "determinista");
 		// sin aldeas, nada
-		RoadLayout empty = new RoadLayout(7, CELL, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.DRY);
+		RoadLayout empty = new RoadLayout(7, CELL, 2000, (gx, gz) -> RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		assertEquals(RoadLayout.NONE, empty.nearestSegment(0, 0, 4));
 	}
 }

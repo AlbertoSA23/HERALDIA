@@ -35,20 +35,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Botín que se repone (botin.reponer.activado, por defecto desactivado). Perezoso: solo trabaja cuando un jugador usa un
- * contenedor con tabla de botín (cofre, cofre trampa, barril), nunca por tick ni recorriendo el mundo.
+ * Restocking loot (botin.reponer.activado, disabled by default). Lazy: it only works when a player uses a
+ * container with a loot table (chest, trapped chest, barrel), never per tick nor walking the world.
  * <ul>
- * <li>Un cofre de Heraldia que aún tiene su tabla: se apunta la tabla y el reloj del saqueo (el juego la abre en este
- * mismo uso).</li>
- * <li>Uno ya abierto antes de activar la opción (o vaciado por una tolva): su tabla original se busca una vez en la
- * plantilla de la pieza de la estructura de Heraldia que lo contiene ({@link #templateTable}) y la cuenta empieza
- * entonces.</li>
- * <li>Uno apuntado: si han pasado los días, no hay otro jugador a 32 bloques y tiene como mucho
- * {@link Restock#MAX_OCCUPIED} casillas ocupadas, se le vuelve a poner la tabla; el juego la abre al mostrar el cofre y
- * solo llena casillas libres, así que no se borra nada.</li>
+ * <li>A Heraldia chest that still has its table: the table and the looting clock are recorded (the game opens it in this
+ * same use).</li>
+ * <li>One already opened before the option was enabled (or emptied by a hopper): its original table is looked up once in the
+ * template of the piece of the Heraldia structure that contains it ({@link #templateTable}) and the count starts
+ * then.</li>
+ * <li>A recorded one: if the days have passed, there is no other player within 32 blocks and it has at most
+ * {@link Restock#MAX_OCCUPIED} occupied slots, its table is set again; the game opens it when the chest is shown and
+ * only fills free slots, so nothing is deleted.</li>
  * </ul>
- * Con Lootr cargado no hace nada: Lootr convierte los cofres de tabla en cofres por jugador con su propia reposición. El
- * cofre premium de la Atlántida (contenido fijo, {@link PerPlayerChest#MARK}) y los trofeos no se reponen.
+ * With Lootr loaded it does nothing: Lootr turns table chests into per-player chests with its own restocking. The
+ * Atlantis premium chest (fixed content, {@link PerPlayerChest#MARK}) and the trophies do not restock.
  */
 public final class RestockedLoot {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -74,23 +74,23 @@ public final class RestockedLoot {
 		}
 		BlockPos pos = hit.getBlockPos();
 		if (!(level.getBlockEntity(pos) instanceof RandomizableContainerBlockEntity box)) {
-			return InteractionResult.PASS; // la inmensa mayoría de los usos salen aquí
+			return InteractionResult.PASS; // the vast majority of uses exit here
 		}
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		if (!cfg.getBool("botin.reponer.activado") || WithoutLootrCondition.LOOTR_LOADED) {
 			return InteractionResult.PASS;
 		}
 		if (player.isSecondaryUseActive() && !(player.getMainHandItem().isEmpty() && player.getOffhandItem().isEmpty())) {
-			return InteractionResult.PASS; // agachado con algo en la mano: coloca un bloque, no abre
+			return InteractionResult.PASS; // sneaking with something in hand: places a block, does not open
 		}
 		if (!box.canOpen(player)) {
-			return InteractionResult.PASS; // cerrado con llave: no se abre, no se saquea
+			return InteractionResult.PASS; // locked: does not open, is not looted
 		}
 		review(server, box, player, cfg);
 		BlockState state = level.getBlockState(pos);
 		if (state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE
 				&& level.getBlockEntity(ChestBlock.getConnectedBlockPos(pos, state)) instanceof RandomizableContainerBlockEntity other) {
-			review(server, other, player, cfg); // un cofre doble abre las dos mitades
+			review(server, other, player, cfg); // a double chest opens both halves
 		}
 		return InteractionResult.PASS;
 	}
@@ -98,7 +98,7 @@ public final class RestockedLoot {
 	private static void review(ServerLevel level, RandomizableContainerBlockEntity box, Player player, HeraldiaConfig cfg) {
 		CompoundTag data = customData(box);
 		if (data.contains(PerPlayerChest.MARK)) {
-			return; // contenido fijo (cofre premium de la Atlántida): tiene su propia opción
+			return; // fixed content (Atlantis premium chest): it has its own option
 		}
 		long now = level.getOverworldClockTime();
 		ResourceKey<LootTable> pending = box.getLootTable();
@@ -149,9 +149,9 @@ public final class RestockedLoot {
 	}
 
 	/**
-	 * Tabla de botín que la plantilla de Heraldia puso en esta posición (para los cofres abiertos antes de activar la
-	 * opción, que ya no la tienen), o null. Busca la estructura de Heraldia con una pieza en la posición (las referencias
-	 * del chunk, como /locate), y en su pieza de pool la plantilla con su giro: el mismo cálculo que al colocarla.
+	 * Loot table the Heraldia template put at this position (for chests opened before the
+	 * option was enabled, which no longer have it), or null. It finds the Heraldia structure with a piece at the position (the
+	 * chunk's references, like /locate), and in its pool piece the template with its rotation: the same computation as when it was placed.
 	 */
 	static @Nullable String templateTable(ServerLevel level, BlockPos pos, BlockState state) {
 		try {

@@ -4,22 +4,22 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Una estructura de Heraldia conocida (generada en un chunk que se ha cargado alguna vez), lógica pura: el id de su
- * estructura (ruta sin el espacio de nombres, p. ej. «unicas/castillo»), su capa, lo que distingue su tipo (familia,
- * única, tipo de mediana o tamaño de mina: lo que mira /heraldia status para saber si alguien la ha descubierto) y la
- * posición del centro de su caja.
+ * A known Heraldia structure (generated in a chunk that has loaded at some point), pure logic: the id of its
+ * structure (path without the namespace, e.g. "unicas/castillo"), its layer, what distinguishes its type (family,
+ * unique, medium type or mine size: what /heraldia status checks to know whether someone has discovered it) and the
+ * position of its box's center.
  */
 public record Site(String structure, Layer layer, String sub, int x, int y, int z) {
-	/** Clave estable: la estructura y su posición (no hay dos inicios de la misma estructura en el mismo sitio). */
+	/** Stable key: the structure and its position (there are no two starts of the same structure at the same spot). */
 	public String key() {
 		return structure + "@" + x + "," + y + "," + z;
 	}
 
 	/**
-	 * Clasifica una estructura de Heraldia por la ruta de su id (sin «heraldia:»): las aldeas son «&lt;estilo&gt;» o
-	 * «&lt;estilo&gt;_grande» (familia de {@code familyStyle}), las únicas «unicas/&lt;id&gt;», las medianas
-	 * «medianas/&lt;tipo&gt;/&lt;estilo&gt;» las entradas de mina «minas/&lt;tamaño&gt;/...» y los faros y naufragios «costa/&lt;tipo&gt;/...». Lo demás (la arena no es una
-	 * estructura del registro), null.
+	 * Classifies a Heraldia structure by its id path (without "heraldia:"): villages are "&lt;style&gt;" or
+	 * "&lt;style&gt;_grande" (family from {@code familyStyle}), uniques "unicas/&lt;id&gt;", mediums
+	 * "medianas/&lt;type&gt;/&lt;style&gt;", mine entrances "minas/&lt;size&gt;/..." and lighthouses and shipwrecks
+	 * "costa/&lt;type&gt;/...". Anything else (the arena is not a registry structure), null.
 	 */
 	public static @Nullable Site of(String route, Map<String, String> familyStyle, int x, int y, int z) {
 		String[] s = route.split("/");

@@ -52,30 +52,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Magos de las chozas de mago (T43; la plantilla en tools/gen/medianas/choza_mago.py). Un mago es un aldeano quieto con
- * la etiqueta {@link Decision#TAG}:
+ * Wizards of the wizard huts (T43; the template in tools/gen/medianas/choza_mago.py). A wizard is a still villager with
+ * the tag {@link Decision#TAG}:
  * <ul>
- * <li>al cargarse ({@code ENTITY_LOAD}, salida temprana por etiquetas) recibe su nombre generado y la decisión de su choza
- * ({@link Decision#evil}, con chozas_mago.prob_malvado), que se guarda en sus etiquetas;</li>
- * <li>si es malvado, se revela una sola vez cuando un jugador se acerca a menos de {@link #RADIUS} bloques (una
- * consulta acotada por jugador cada segundo) o intenta comerciar con él ({@code UseEntityCallback}): mensaje traducido,
- * partículas y sonido, el aldeano desaparece y en su sitio aparece el Mago Malvado, un evocador con
- * {@link Phases#GUARDIAN} (fases, refuerzos y barra de jefe de jefes/; la dificultad lo escala como a los guardianes),
- * más vida, tres vexes de entrada (luego invoca los suyos, como cualquier evocador) y su tabla de botín
- * (heraldia:chozas_mago/malvado, o malvado_premium si sale el premio, chozas_mago.prob_botin_premium). Esa tabla
- * sustituye a la del evocador: no suelta el tótem vanilla (tools/gen/chozas_mago.py explica por qué).</li>
+ * <li>when it loads ({@code ENTITY_LOAD}, early exit by tags) it gets its generated name and its hut's decision
+ * ({@link Decision#evil}, with chozas_mago.prob_malvado), which is saved in its tags;</li>
+ * <li>if it is evil, it reveals itself only once when a player comes within {@link #RADIUS} blocks (one
+ * bounded query per player every second) or tries to trade with it ({@code UseEntityCallback}): translated message,
+ * particles and sound, the villager disappears and in its place appears the Evil Wizard, an evoker with
+ * {@link Phases#GUARDIAN} (phases, reinforcements and boss bar from bosses/; the difficulty scales it like the guardians),
+ * more health, three vexes to start with (then it summons its own, like any evoker) and its loot table
+ * (heraldia:chozas_mago/malvado, or malvado_premium if the prize comes up, chozas_mago.prob_botin_premium). That table
+ * replaces the evoker's: it does not drop the vanilla totem (tools/gen/chozas_mago.py explains why).</li>
  * </ul>
- * El logro de vencerlo es de datos (player_killed_entity con {@link Decision#EVIL}).
+ * The advancement for defeating it is data (player_killed_entity with {@link Decision#EVIL}).
  */
 public final class Wizards {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	public static final String EVIL_PROB = "chozas_mago.prob_malvado", PREMIUM_PROB = "chozas_mago.prob_botin_premium";
 	public static final String TABLE = "heraldia:chozas_mago/malvado", PREMIUM_TABLE = "heraldia:chozas_mago/malvado_premium";
-	/** Distancia (bloques) a la que un jugador hace que el mago malvado se revele. */
+	/** Distance (blocks) at which a player makes the evil wizard reveal itself. */
 	public static final int RADIUS = 7;
-	/** Cada cuántos ticks se mira si hay jugadores junto a un mago. */
+	/** Every how many ticks it checks whether there are players next to a wizard. */
 	static final int PERIOD = 20;
-	/** Radio de búsqueda de /heraldia wizard. */
+	/** Search radius of /heraldia wizard. */
 	static final int COMMAND_RADIUS = 32;
 	static final float HEALTH = 48f;
 	static final int VEXES = 3;
@@ -94,7 +94,7 @@ public final class Wizards {
 					&& !player.isSpectator()) {
 				if (decide(v, level) == Decision.State.EVIL) {
 					reveal(v, level, false);
-					return InteractionResult.FAIL;      // no hay tratos con un mago malvado
+					return InteractionResult.FAIL;      // no trading with an evil wizard
 				}
 			}
 			return InteractionResult.PASS;
@@ -131,7 +131,7 @@ public final class Wizards {
 		}
 	}
 
-	/** Nombre y decisión del mago (una vez; luego se lee de sus etiquetas). */
+	/** Name and decision of the wizard (once; then read from its tags). */
 	static Decision.State decide(Villager v, ServerLevel level) {
 		Decision.State e = Decision.state(v.entityTags());
 		int cx = v.blockPosition().getX() >> 4, cz = v.blockPosition().getZ() >> 4;
@@ -150,7 +150,7 @@ public final class Wizards {
 		return e;
 	}
 
-	/** Una vez por segundo: ¿algún jugador junto a un mago malvado sin revelar? Una consulta acotada por jugador. */
+	/** Once per second: any player next to an unrevealed evil wizard? One bounded query per player. */
 	private static void tick(MinecraftServer server) {
 		if (server.getTickCount() % PERIOD != 0) {
 			return;
@@ -170,8 +170,8 @@ public final class Wizards {
 	}
 
 	/**
-	 * Revela al mago: el aldeano se va y aparece el Mago Malvado en su sitio. Una sola vez (la etiqueta
-	 * {@link Decision#REVEALED} y el propio aldeano, que desaparece). {@code forced}: /heraldia wizard reveal.
+	 * Reveals the wizard: the villager leaves and the Evil Wizard appears in its place. Only once (the
+	 * {@link Decision#REVEALED} tag and the villager itself, which disappears). {@code forced}: /heraldia wizard reveal.
 	 */
 	static @Nullable Evoker reveal(Villager v, ServerLevel level, boolean forced) {
 		if (!v.isAlive() || v.entityTags().contains(Decision.REVEALED)) {
@@ -181,7 +181,7 @@ public final class Wizards {
 		int cx = v.blockPosition().getX() >> 4, cz = v.blockPosition().getZ() >> 4;
 		boolean prize = Decision.premium(level.getSeed(), cx, cz, HeraldiaConfig.get().getInt(PREMIUM_PROB));
 		CompoundTag data = new CompoundTag();
-		data.putString("DeathLootTable", prize ? PREMIUM_TABLE : TABLE);   // sustituye a la del evocador (sin tótem)
+		data.putString("DeathLootTable", prize ? PREMIUM_TABLE : TABLE);   // replaces the evoker's (no totem)
 		Entity e = EntityType.loadEntityRecursive(EntityTypes.EVOKER, data, level, EntitySpawnReason.EVENT, EntityProcessor.NOP);
 		if (!(e instanceof Evoker evil)) {
 			LOGGER.warn("Heraldia: chozas_mago: no se pudo crear el Mago Malvado en {}", v.blockPosition());
@@ -190,7 +190,7 @@ public final class Wizards {
 		Component name = v.getDisplayName();
 		evil.snapTo(v.getX(), v.getY(), v.getZ(), v.getYRot(), 0f);
 		evil.addTag(Decision.EVIL);
-		evil.addTag(Phases.GUARDIAN);           // fases, refuerzos y barra de jefe (jefes/); escalado de la dificultad
+		evil.addTag(Phases.GUARDIAN);           // phases, reinforcements and boss bar (bosses/); difficulty scaling
 		evil.addTag(Anchoring.TAG);
 		evil.addTag(Heraldia.ADULT);
 		if (prize) {
@@ -230,7 +230,7 @@ public final class Wizards {
 		return evil;
 	}
 
-	/** Tres vexes de entrada, como los de su conjuro (con dueño, origen y vida limitada). */
+	/** Three starting vexes, like those of its spell (with an owner, origin and limited life). */
 	private static int summon(ServerLevel level, Evoker evil, @Nullable LivingEntity target) {
 		int n = 0;
 		for (int i = 0; i < VEXES; i++) {
@@ -261,7 +261,7 @@ public final class Wizards {
 				.min(Comparator.comparingDouble(p -> p.distanceToSqr(pos))).orElse(null);
 	}
 
-	/** El Mago Malvado ha muerto: sus vexes se deshacen, aviso a los cercanos y el recuento de /heraldia status. */
+	/** The Evil Wizard has died: its vexes vanish, nearby players are told and the /heraldia status count goes up. */
 	private static void defeat(LivingEntity evil) {
 		if (!(evil.level() instanceof ServerLevel level)) {
 			return;
@@ -282,7 +282,7 @@ public final class Wizards {
 				evil.getBlockZ(), evil.entityTags().contains(Decision.PREMIUM) ? "sí" : "no");
 	}
 
-	// ---- /heraldia wizard (operadores)
+	// ---- /heraldia wizard (operators)
 
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("wizard").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -315,7 +315,7 @@ public final class Wizards {
 		return l.size();
 	}
 
-	/** Revela el mago más cercano aunque sea bondadoso (para probar). */
+	/** Reveals the nearest wizard even if it is benign (for testing). */
 	private static int force(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack src = ctx.getSource();
 		for (Villager v : wizards(src)) {
@@ -332,7 +332,7 @@ public final class Wizards {
 		return 0;
 	}
 
-	/** La línea de /heraldia status. */
+	/** The /heraldia status line. */
 	public static List<Component> state() {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		return List.of(Texts.t("heraldia.estado.chozas_mago", cfg.getInt(EVIL_PROB), cfg.getInt(PREMIUM_PROB), defeated));

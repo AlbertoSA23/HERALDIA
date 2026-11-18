@@ -17,7 +17,7 @@ class SegmentTest {
 
 	static RoadLayout layout() {
 		return new RoadLayout(42, CELL, 2000, (gx, gz) -> gx == 0 && gz == 0 ? A : gx == 1 && gz == 0 ? B : RoadLayout.NONE,
-				RoadLayout.Milestones.DRY);
+				RoadLayout.Milestones.NO_MILESTONES);
 	}
 
 	static RoadLayout.Route route() {
@@ -113,7 +113,7 @@ class SegmentTest {
 	@Test
 	void shortRouteNoSegment() {
 		long a = RoadLayout.pack(8, 8), b = RoadLayout.pack(8 + 16 * (2 * Segment.VILLAGE_MARGIN + Segment.MIN - 1), 8);
-		RoadLayout t = new RoadLayout(1, CELL, 2000, (gx, gz) -> gx == 0 && gz == 0 ? a : RoadLayout.NONE, RoadLayout.Milestones.DRY);
+		RoadLayout t = new RoadLayout(1, CELL, 2000, (gx, gz) -> gx == 0 && gz == 0 ? a : RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		RoadLayout.Route r = t.route(a, b);
 		assertNull(Segment.choose(List.of(r), RoadLayout.px(a) + 60, 40, 0), "entre aldeas tan cercanas no cabe un tramo");
 	}

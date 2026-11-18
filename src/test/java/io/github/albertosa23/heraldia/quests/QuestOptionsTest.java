@@ -94,7 +94,7 @@ class QuestOptionsTest {
 	void neighborsOfALayoutVillage() {
 		int cell = 1504;
 		RoadLayout.Villages villages = (gx, gz) -> RoadLayout.pack(gx * cell + 300, gz * cell + 200);
-		RoadLayout t = new RoadLayout(9, cell, 2000, villages, RoadLayout.Milestones.DRY);
+		RoadLayout t = new RoadLayout(9, cell, 2000, villages, RoadLayout.Milestones.NO_MILESTONES);
 		long[] v = t.neighborsOf(2 * cell + 300, -cell + 200);
 		assertArrayEquals(t.neighbors(2, -1), v);
 		assertTrue(v.length > 0);

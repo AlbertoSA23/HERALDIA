@@ -32,15 +32,15 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Cofre de contenido fijo «por jugador» (opción unicas.&lt;id&gt;.cofre_unico_por_jugador, por defecto desactivada).
- * El generador marca el cofre con custom_data {heraldia_cofre_unico: "&lt;id&gt;"} en los componentes del bloque. Con la
- * opción activada, al abrirlo la primera vez su contenido pasa a ser la plantilla (el cofre queda vacío: romperlo o
- * vaciarlo con una tolva no duplica nada) y cada jugador abre su propia copia, guardada en el mismo cofre: la recibe
- * entera la primera vez y luego encuentra lo que dejó. Es lo que hace Lootr con los cofres de tabla (Lootr no toca este
- * porque no tiene tabla), así que con Lootr o sin él se comporta igual. Solo trabaja al usar un bloque: nada por tick.
+ * Fixed-content "per player" chest (option unicas.&lt;id&gt;.cofre_unico_por_jugador, disabled by default).
+ * The generator marks the chest with custom_data {heraldia_cofre_unico: "&lt;id&gt;"} in the block's components. With the
+ * option enabled, on the first opening its contents become the template (the chest is left empty: breaking it or
+ * emptying it with a hopper duplicates nothing) and each player opens their own copy, stored in the same chest: they get it
+ * whole the first time and then find what they left. It is what Lootr does with table chests (Lootr does not touch this one
+ * because it has no table), so with or without Lootr it behaves the same. It only works when a block is used: nothing per tick.
  */
 public final class PerPlayerChest {
-	/** Misma clave que MARCA_POR_JUGADOR en tools/gen/unicas/atlantida/cosas.py. */
+	/** Same key as MARCA_POR_JUGADOR in tools/gen/unicas/atlantida/cosas.py. */
 	public static final String MARK = "heraldia_cofre_unico";
 	static final String TEMPLATE = "heraldia_plantilla", PLAYERS = "heraldia_jugadores";
 	private static final int SIZE = 27;
@@ -52,7 +52,7 @@ public final class PerPlayerChest {
 		UseBlockCallback.EVENT.register(PerPlayerChest::use);
 	}
 
-	/** La clave de la opción que gobierna el cofre, o null si no es un cofre marcado. Barato: un mapa de componentes. */
+	/** Key of the option that governs the chest, or null if it is not a marked chest. Cheap: a component map. */
 	public static @Nullable String option(ChestBlockEntity chest) {
 		CustomData cd = chest.components().get(DataComponents.CUSTOM_DATA);
 		if (cd == null) {
@@ -68,14 +68,14 @@ public final class PerPlayerChest {
 		}
 		BlockPos pos = hit.getBlockPos();
 		if (!(level.getBlockEntity(pos) instanceof ChestBlockEntity chest)) {
-			return InteractionResult.PASS; // la inmensa mayoría de los usos salen aquí
+			return InteractionResult.PASS; // the vast majority of uses exit here
 		}
 		String key = option(chest);
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		if (key == null || !cfg.has(key)) {
 			return InteractionResult.PASS;
 		}
-		if (!cfg.getBool(key)) { // opción desactivada (quizá después de usarla): el contenido vuelve al cofre, una vez
+		if (!cfg.getBool(key)) { // option disabled (maybe after using it): the contents go back to the chest, once
 			CompoundTag data = data(chest);
 			if (restore(data, chest, level.registryAccess().createSerializationContext(NbtOps.INSTANCE))) {
 				store(chest, data);
@@ -83,9 +83,9 @@ public final class PerPlayerChest {
 			return InteractionResult.PASS;
 		}
 		if (player.isSecondaryUseActive() && !(player.getMainHandItem().isEmpty() && player.getOffhandItem().isEmpty())) {
-			return InteractionResult.PASS; // agachado con algo en la mano: colocar bloques, como en vanilla
+			return InteractionResult.PASS; // sneaking with something in hand: place blocks, as in vanilla
 		}
-		if (!chest.canOpen(player)) { // la cerradura (llave en la mano) se respeta igual que en el cofre normal
+		if (!chest.canOpen(player)) { // the lock (key in hand) is respected just like on a normal chest
 			BaseContainerBlockEntity.sendChestLockedNotifications(Vec3.atCenterOf(pos), player, chest.getDisplayName());
 			return InteractionResult.SUCCESS;
 		}
@@ -105,8 +105,8 @@ public final class PerPlayerChest {
 	}
 
 	/**
-	 * Contenido de la copia del jugador. La primera apertura con la opción activada captura el contenido del cofre como
-	 * plantilla y lo vacía; un jugador sin copia recibe la plantilla entera y queda apuntado. Modifica data.
+	 * Contents of the player's copy. The first opening with the option enabled captures the chest's contents as the
+	 * template and empties it; a player without a copy gets the whole template and is recorded. Modifies data.
 	 */
 	static NonNullList<ItemStack> open(CompoundTag data, Container chest, String player, DynamicOps<Tag> ops) {
 		if (!data.contains(TEMPLATE)) {
@@ -127,8 +127,8 @@ public final class PerPlayerChest {
 	}
 
 	/**
-	 * Con la opción desactivada: si había plantilla y el cofre está vacío, la devuelve al cofre y la borra (vuelve a ser
-	 * un cofre de contenido fijo normal; las copias de los jugadores se conservan por si se reactiva). Modifica data.
+	 * With the option disabled: if there was a template and the chest is empty, it gives it back to the chest and deletes it (it becomes
+	 * a normal fixed-content chest again; the players' copies are kept in case it is re-enabled). Modifies data.
 	 */
 	static boolean restore(CompoundTag data, Container chest, DynamicOps<Tag> ops) {
 		if (!data.contains(TEMPLATE) || !chest.isEmpty()) {
@@ -142,7 +142,7 @@ public final class PerPlayerChest {
 		return true;
 	}
 
-	/** Guarda la copia del jugador en data (al cerrar). */
+	/** Saves the player's copy in data (on close). */
 	static void save(CompoundTag data, String player, Container copy, DynamicOps<Tag> ops) {
 		NonNullList<ItemStack> items = NonNullList.withSize(SIZE, ItemStack.EMPTY);
 		for (int i = 0; i < SIZE; i++) {
@@ -180,7 +180,7 @@ public final class PerPlayerChest {
 		return items;
 	}
 
-	/** custom_data actual del cofre (se relee en cada operación: dos jugadores pueden tenerlo abierto a la vez). */
+	/** The chest's current custom_data (re-read on every operation: two players can have it open at once). */
 	private static CompoundTag data(ChestBlockEntity chest) {
 		CustomData cd = chest.components().get(DataComponents.CUSTOM_DATA);
 		return cd == null ? new CompoundTag() : cd.copyTag();
@@ -191,7 +191,7 @@ public final class PerPlayerChest {
 		chest.setChanged();
 	}
 
-	/** Copia de un jugador abierta en un menú de cofre; al cerrarse se guarda en el cofre. */
+	/** A player's copy open in a chest menu; on close it is saved in the chest. */
 	private static final class Copy extends SimpleContainer {
 		private final ChestBlockEntity chest;
 		private final String player;

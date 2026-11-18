@@ -3,29 +3,29 @@ package io.github.albertosa23.heraldia.huts;
 import java.util.Set;
 
 /**
- * Lógica pura de las chozas de mago (T43, sin clases del juego, para los tests). Todo sale de la semilla del mundo y
- * del chunk del mago (es una entidad quieta, sin IA, que la plantilla pone en el centro de su choza: el chunk no cambia),
- * así que la misma choza da siempre lo mismo y no hace falta guardar nada aparte. Lo que ya se ha decidido se guarda
- * además en las etiquetas (Tags) del propio mago, para que un cambio de configuración no cambie una choza ya vista.
+ * Pure logic of the wizard huts (T43, no game classes, for the tests). Everything comes from the world seed and
+ * the wizard's chunk (it is a still entity, without AI, that the template puts in the center of its hut: the chunk does not change),
+ * so the same hut always gives the same and nothing needs to be saved separately. What has been decided is also saved
+ * in the wizard's own tags, so a configuration change does not change an already seen hut.
  */
 public final class Decision {
-	/** Etiqueta del mago de las plantillas (medianas/choza_mago.TAG_MAGO). */
+	/** Tag of the template wizard (medianas/choza_mago.TAG_MAGO). */
 	public static final String TAG = "heraldia_mago";
-	/** Decisión ya tomada (en el mago): bondadoso o malvado. */
+	/** Decision already made (on the wizard): benign or evil. */
 	public static final String BENIGN = TAG + ".benigno", EVIL_UNREVEALED = TAG + ".malvado";
-	/** El mago ya tiene su nombre generado. */
+	/** The wizard already has its generated name. */
 	public static final String NAMED = TAG + ".nombrado";
-	/** El mago ya se ha revelado (se le pone justo antes de quitarlo: nunca se revela dos veces). */
+	/** The wizard has already been revealed (set just before removing it: it is never revealed twice). */
 	public static final String REVEALED = TAG + ".revelado";
-	/** Etiqueta del evocador en que se convierte (medianas/choza_mago.TAG_MALVADO; la mira el logro). */
+	/** Tag of the evoker it turns into (medianas/choza_mago.TAG_MALVADO; the advancement checks it). */
 	public static final String EVIL = "heraldia_mago_malvado";
-	/** Su botín lleva el premio (en el evocador). */
+	/** Its loot carries the prize (on the evoker). */
 	public static final String PREMIUM = EVIL + ".premium";
-	/** Los vexes que invoca al revelarse. */
+	/** The vexes it summons when revealed. */
 	public static final String VEX = "heraldia_mago_vex";
 	private static final long EVIL_SALT = 0x6D61676F5F6D616CL, PREMIUM_SALT = 0x7072656D69756D21L, NAME_SALT = 0x6E6F6D6272653F21L;
 
-	/** Estado de un mago según sus etiquetas. */
+	/** State of a wizard according to its tags. */
 	public enum State {
 		UNDECIDED, BENIGN, EVIL, REVEALED
 	}
@@ -33,7 +33,7 @@ public final class Decision {
 	private Decision() {
 	}
 
-	/** ¿Es un mago de choza? (salida temprana: casi ninguna entidad lleva etiquetas). */
+	/** Is it a hut wizard? (early exit: almost no entity has tags). */
 	public static boolean isWizard(Set<String> tags) {
 		return !tags.isEmpty() && tags.contains(TAG);
 	}
@@ -48,7 +48,7 @@ public final class Decision {
 		return tags.contains(BENIGN) ? State.BENIGN : State.UNDECIDED;
 	}
 
-	/** Número de 0 a 99 de una choza (semilla, chunk del mago y sal). */
+	/** Number from 0 to 99 of a hut (seed, wizard's chunk and salt). */
 	static int roll(long seed, int chunkX, int chunkZ, long salt) {
 		long h = merge(seed ^ salt);
 		h = merge(h ^ ((long) chunkX * 0x9E3779B97F4A7C15L));
@@ -56,24 +56,24 @@ public final class Decision {
 		return (int) Long.remainderUnsigned(h, 100);
 	}
 
-	/** SplitMix64: mezcla barata y bien repartida. */
+	/** SplitMix64: a cheap, well-spread mix. */
 	static long merge(long z) {
 		z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
 		z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
 		return z ^ (z >>> 31);
 	}
 
-	/** ¿Es malvado el mago de esta choza? {@code prob} en % (0: nunca; 100: siempre). */
+	/** Is this hut's wizard evil? {@code prob} in % (0: never; 100: always). */
 	public static boolean evil(long seed, int chunkX, int chunkZ, int prob) {
 		return roll(seed, chunkX, chunkZ, EVIL_SALT) < Math.clamp(prob, 0, 100);
 	}
 
-	/** ¿Lleva el premio el botín del Mago Malvado de esta choza? {@code prob} en %. */
+	/** Does the loot of this hut's Evil Wizard carry the prize? {@code prob} in %. */
 	public static boolean premium(long seed, int chunkX, int chunkZ, int prob) {
 		return roll(seed, chunkX, chunkZ, PREMIUM_SALT) < Math.clamp(prob, 0, 100);
 	}
 
-	/** Índices (nombre, apodo) del mago de esta choza, de {@code names} y {@code nicknames} posibles. */
+	/** Indices (name, nickname) of this hut's wizard, out of the possible {@code names} and {@code nicknames}. */
 	public static int[] name(long seed, int chunkX, int chunkZ, int names, int nicknames) {
 		long h = merge(merge(seed ^ NAME_SALT) ^ ((long) chunkX << 32 | (chunkZ & 0xFFFFFFFFL)));
 		return new int[] {(int) Long.remainderUnsigned(h, Math.max(1, names)),
