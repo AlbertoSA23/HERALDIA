@@ -63,7 +63,7 @@
   "heraldia.config.unicas.distancia_minima.bloques": "Distancia mínima entre estruturas únicas distintas (tamén a Atlántida), en bloques",
   "heraldia.config.compatibilidad.zona_estructuras_ajenas_bloques": "As estruturas doutros mods (as que asoman á superficie) a menos desta distancia, en bloques, do inicio dunha aldea ou dunha estrutura única de Heraldia non se xeran, para que non saian unhas enriba das outras (0 desactívao)",
   "heraldia.config.medianas.activadas": "Estruturas medianas (torres de vixía, pousadas de camiño, campamentos de bandidos, ermidas...) entre as aldeas e as únicas",
-  "heraldia.config.medianas.frecuencia_porcentaje": "Frecuencia de todas as estruturas medianas, en % da separación propia de cada tipo (100 = a densidade de antes, unha cada ~550 bloques entre todas; 200 = o dobre); aplícase sobre a separación de cada tipo",
+  "heraldia.config.medianas.frecuencia_porcentaje": "Frecuencia de todas as estruturas medianas, en % da separación propia de cada tipo (100 = a predeterminada, unha cada ~550 bloques entre todas; 200 = o dobre; 50 = menos); aplícase sobre a separación de cada tipo",
   "heraldia.config.medianas.distancia_minima.bloques": "Distancia mínima entre dúas estruturas medianas distintas, en bloques",
   "heraldia.config.medianas.distancia_aldeas_unicas_bloques": "Unha estrutura mediana non sae a menos desta distancia, en bloques, do inicio dunha aldea ou dunha estrutura única de Heraldia (tampouco dentro da Atlántida)",
   "heraldia.config.minas.entradas.activado": "Entradas a mina nas ladeiras (bocaminas, campamentos mineiros e complexos con castelete) que baixan a unha galería propia; só nos chunks novos",

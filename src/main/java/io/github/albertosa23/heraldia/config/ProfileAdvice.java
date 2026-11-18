@@ -38,8 +38,13 @@ public final class ProfileAdvice {
 	 * through the default (the option is not written by hand in the file) has seams, and is warned. Only profile options
 	 * go here: for those the file says whether they are set by hand (the mod does not write them otherwise).
 	 * <ul>
-	 * <li>{@code medianas.frecuencia_porcentaje}: 100 until the medium-density change (one medium every ~560 blocks); the
-	 * default is now {@code options.py}'s (docs/CONFIGURATION.md, "Medium structures density").</li>
+	 * <li>{@code medianas.frecuencia_porcentaje}: 100 (one medium every ~550 blocks). The medium-density session lowered the
+	 * default to 60 for a few hours and it is back to 100 now ({@code options.py}; docs/CONFIGURATION.md, "Medium structures
+	 * density"). A world without the record was generated with 100, the current default, so this entry no longer warns on
+	 * its own (only when a profile gives another value, e.g. {@code ligero}'s 50); it stays so that the mechanism and the
+	 * 1 → 2 and 2 → 3 migrations ({@code HeraldiaConfig.writtenByDefault}) keep their history. A world started with the 60
+	 * of those hours always has the record (it exists since the light profile, before the 60), so its return to 100 is
+	 * warned by {@link #changed} ({@code medianas.frecuencia_porcentaje 60 → 100}), not here.</li>
 	 * </ul>
 	 */
 	public static final Map<String, String> PREVIOUS_DEFAULTS = Map.of("medianas.frecuencia_porcentaje", "100");

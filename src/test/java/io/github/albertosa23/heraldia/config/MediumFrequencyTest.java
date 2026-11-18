@@ -58,7 +58,7 @@ class MediumFrequencyTest {
 	private static final double MIN_SEP = 400, MAX_SEP = 800;
 	/**
 	 * Fewest mediums of each type in each seed's square (16 x 16 km, 256 km2) at the default frequency: none becomes a rarity
-	 * that a server never sees (measured: the rarest one, the hermitage, tied to a scarce biome, gives 31-36 at 60 %).
+	 * that a server never sees (measured: the rarest one, the hermitage, tied to a scarce biome, gives 31-36 at 60 %; a type tied to a scarce biome hardly changes with the frequency).
 	 */
 	static final int MIN_PER_TYPE = 15;
 	private static HolderLookup.Provider vanilla;

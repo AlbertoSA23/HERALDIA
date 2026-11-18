@@ -58,7 +58,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `aldeas.caminos.activado` | `true` | Camiños entre aldeas. |
 | `unicas.<id>.activada` | `true` | Activa ou desactiva unha estrutura única. |
 | `unicas.rejilla_compatible` | `false` | `true` só para mundos creados con Heraldia 0.1.0. |
-| `medianas.frecuencia_porcentaje` | 60 | Cantas estruturas medianas hai (100 = a densidade anterior, máis densa; 200 = o dobre desa). |
+| `medianas.frecuencia_porcentaje` | 100 | Cantas estruturas medianas hai (200 = o dobre). |
 | `faros.activado`, `naufragios.activado` | `true` | Faros e galeóns naufragados na costa. |
 | `dificultad.nivel` | `normal` | Gardiáns e monstros: `facil`, `normal`, `dificil` ou `heroica`. |
 | `botin.reponer.activado` | `false` | Os cofres de Heraldia vólvense encher ao cabo duns días. |

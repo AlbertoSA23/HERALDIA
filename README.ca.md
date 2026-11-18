@@ -58,7 +58,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `aldeas.caminos.activado` | `true` | Camins entre pobles. |
 | `unicas.<id>.activada` | `true` | Activa o desactiva una estructura única. |
 | `unicas.rejilla_compatible` | `false` | `true` només per a mons creats amb Heraldia 0.1.0. |
-| `medianas.frecuencia_porcentaje` | 60 | Quantitat d'estructures mitjanes (100 = la densitat anterior, més densa; 200 = el doble d'aquesta). |
+| `medianas.frecuencia_porcentaje` | 100 | Quantitat d'estructures mitjanes (200 = el doble). |
 | `faros.activado`, `naufragios.activado` | `true` | Fars i galions naufragats a la costa. |
 | `dificultad.nivel` | `normal` | Guardians i monstres: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | Els cofres d'Heraldia es tornen a omplir al cap d'uns dies. |

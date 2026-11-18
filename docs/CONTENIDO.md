@@ -95,7 +95,7 @@ Volver al [README](../README.es.md).
     por el acantilado), el cuerpo de guardia, la sala del mapa con el **puzle de la rosa de los vientos**, la armería con
     la santabárbara secreta, los calabozos y, bajo el nivel del mar y en seco, la cámara del tesoro con Roque Salitre, el
     corsario; trampas de cable y de placas, 3 generadores y 21 cofres. Diseño: [docs/unicas/isla_corsario.md](unicas/isla_corsario.md).
-- **Estructuras medianas** (entre todos los tipos, una cada ~610 bloques por defecto, cada uno en sus biomas): torres de vigía,
+- **Estructuras medianas** (entre todos los tipos, una cada ~550 bloques por defecto, cada uno en sus biomas): torres de vigía,
   posadas de camino, campamentos de bandidos, ermitas, molinos, cabañas de pescador, puestos de cazadores y templetes en
   ruinas, con un estilo por bioma. Ver [Estructuras medianas](#estructuras-medianas).
 - **Entradas a mina** (en laderas reales de montes, taigas, desiertos, badlands y picos): bocas de mina, campamentos
@@ -186,7 +186,7 @@ Detalle, planos y qué se ha comprobado: [docs/unicas/atlantida.md](unicas/atlan
 
 ## Estructuras medianas
 
-Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada ~610 bloques** (medido, ver abajo; ~550 con `medianas.frecuencia_porcentaje` 100, el valor por defecto antes del [cambio de densidad](CONFIGURACION.md#densidad-de-las-estructuras-medianas)), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
+Más pequeñas que una única (de 15 × 15 a 21 × 21 bloques) y mucho más frecuentes: entre las aldeas y las únicas quedaba mucho vacío. Por defecto, entre todos los tipos sale **una cada ~550 bloques** (medido, ver abajo; ~610 con `medianas.frecuencia_porcentaje` 60, ver [Densidad de las estructuras medianas](CONFIGURACION.md#densidad-de-las-estructuras-medianas)), cada tipo solo en sus biomas y con un estilo propio del bioma. Botín modesto (sin cofre premium; con Lootr, el de cada jugador), pocas entidades y, en algunas, un pequeño reto. Lotes 1 y 2:
 
 | Tipo | Id | Estilos (biomas) | Variantes |
 | --- | --- | --- | --- |
