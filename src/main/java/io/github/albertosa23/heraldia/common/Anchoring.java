@@ -6,25 +6,25 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 
 /**
- * Mobs de plantilla anclados (etiqueta {@link #TAG}, core.ANCLADO_TAG del generador: los guardianes finales y los
- * zombis y esqueletos de las plantillas). Cada vez que el mundo carga uno ({@code ENTITY_LOAD}: al colocarse la
- * plantilla, al promocionarse el chunk generado y en cada carga del chunk):
+ * Anchored template mobs (tag {@link #TAG}, the generator's core.ANCLADO_TAG: the final guardians and the
+ * zombies and skeletons of the templates). Every time the world loads one ({@code ENTITY_LOAD}: when the template
+ * is placed, when the generated chunk is promoted and on every chunk load):
  * <ul>
- * <li>no recoge objetos: {@code finalizeSpawn} de zombis y esqueletos sortea {@code CanPickUpLoot} sin mirar el NBT, y
- * con él cambiarían su equipo o se quedarían el botín que suelta el jugador;</li>
- * <li>no pasea: {@code RandomStrollGoal.canUse} exige {@code getNoActionTime() < 100}, y un mob persistente sin
- * jugadores cerca solo pasea esos primeros 100 ticks (hasta 10 bloques, a veces fuera de su sala) tras cada carga,
- * porque {@code noActionTime} no se guarda. Con {@link #STILL} no pasea; ve, persigue y ataca como siempre (eso no
- * mira {@code noActionTime}), y al recibir daño el juego lo pone a 0 y vuelve a moverse con normalidad.</li>
+ * <li>it picks up no items: {@code finalizeSpawn} of zombies and skeletons rolls {@code CanPickUpLoot} without looking at the NBT, and
+ * with it they would swap their gear or keep the loot the player drops;</li>
+ * <li>it does not wander: {@code RandomStrollGoal.canUse} requires {@code getNoActionTime() < 100}, and a persistent mob with no
+ * players nearby only wanders those first 100 ticks (up to 10 blocks, sometimes out of its room) after each load,
+ * because {@code noActionTime} is not saved. With {@link #STILL} it does not wander; it sees, chases and attacks as always (that
+ * does not look at {@code noActionTime}), and when it takes damage the game sets it to 0 and it moves normally again.</li>
  * </ul>
- * Sin mixin: un evento de Fabric API con salida temprana (conjunto de etiquetas, casi siempre vacío); nada por tick.
- * Los ahogados tienen además dos objetivos que los mueven sin mirar {@code noActionTime} (ir al agua de día, a la orilla
- * de noche): {@code DrownedWaterMixin} y {@code DrownedBeachMixin} los apagan con {@link #still(Mob)}.
+ * No mixin: a Fabric API event with an early exit (tag set, almost always empty); nothing per tick.
+ * Drowned also have two goals that move them without looking at {@code noActionTime} (going to water by day, to the shore
+ * by night): {@code DrownedWaterMixin} and {@code DrownedBeachMixin} switch them off with {@link #still(Mob)}.
  */
 public final class Anchoring {
-	/** Etiqueta (Tags) de los mobs anclados; la misma que core.ANCLADO_TAG. */
+	/** Tag of the anchored mobs; the same as core.ANCLADO_TAG. */
 	public static final String TAG = "heraldia_anclado";
-	/** {@code noActionTime} a partir del cual {@code RandomStrollGoal} ya no se activa (26.3). */
+	/** {@code noActionTime} from which {@code RandomStrollGoal} no longer activates (26.3). */
 	public static final int STILL = 100;
 
 	private Anchoring() {
@@ -44,22 +44,22 @@ public final class Anchoring {
 		}
 	}
 
-	/** ¿Mob anclado que aún no ha entrado en combate (sin objetivo y sin daño desde que se cargó)? */
+	/** Anchored mob that has not entered combat yet (no target and no damage since it loaded)? */
 	public static boolean still(Mob mob) {
 		return anchored(mob.entityTags()) && still(mob.getTarget() != null, mob.getNoActionTime());
 	}
 
-	/** Sin objetivo y sin daño reciente (el daño pone {@code noActionTime} a 0). */
+	/** No target and no recent damage (damage sets {@code noActionTime} to 0). */
 	static boolean still(boolean withTarget, int noActionTime) {
 		return !withTarget && noActionTime >= STILL;
 	}
 
-	/** ¿Lleva la etiqueta de anclado? */
+	/** Does it carry the anchored tag? */
 	static boolean anchored(Set<String> tags) {
 		return !tags.isEmpty() && tags.contains(TAG);
 	}
 
-	/** {@code noActionTime} con el que el mob ya no pasea (no lo baja si ya era mayor). */
+	/** {@code noActionTime} at which the mob no longer wanders (does not lower it if it was already higher). */
 	static int still(int noActionTime) {
 		return Math.max(noActionTime, STILL);
 	}

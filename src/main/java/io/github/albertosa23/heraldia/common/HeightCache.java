@@ -10,25 +10,25 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Alturas de generación compartidas entre búsquedas y entre hilos: lo mismo que {@link Heights} (fondo
- * {@code OCEAN_FLOOR_WG}, y la superficie {@code WORLD_SURFACE_WG} solo si se pide), pero una sola caché por mundo
- * (generador y {@code RandomState}) en vez de una por búsqueda. La altura de generación de una columna solo depende de la
- * semilla y del generador, así que el valor guardado es exactamente el que daría {@code getBaseHeight}: el resultado de
- * quien la use no cambia, solo deja de pagar dos veces la misma columna (las entradas a mina: cada estilo y variante del
- * structure_set mira el mismo centro, /locate vuelve a mirar los chunks que la regla de colocación ya miró...).
- * <p>Acotada: {@link #BANDS} franjas con su cerrojo, cada una con {@code capacity / BANDS} columnas como mucho; al
- * llenarse, sale la más antigua (FIFO). Dos hilos que piden a la vez una columna nueva la calculan los dos (mismo valor):
- * el cálculo va fuera del cerrojo para no bloquear la generación.
+ * Generation heights shared between searches and between threads: the same as {@link Heights} (floor
+ * {@code OCEAN_FLOOR_WG}, and the surface {@code WORLD_SURFACE_WG} only on request), but a single cache per world
+ * (generator and {@code RandomState}) instead of one per search. A column's generation height only depends on the
+ * seed and the generator, so the stored value is exactly what {@code getBaseHeight} would give: the result of
+ * whoever uses it does not change, it just stops paying twice for the same column (mine entrances: each style and variant of the
+ * structure_set looks at the same center, /locate looks again at the chunks the placement rule already looked at...).
+ * <p>Bounded: {@link #BANDS} bands with their lock, each with at most {@code capacity / BANDS} columns; when
+ * full, the oldest goes (FIFO). Two threads asking at once for a new column both compute it (same value):
+ * the computation runs outside the lock so as not to block generation.
  */
 public final class HeightCache {
-	/** Columnas como mucho por defecto: unas 65.000 (≈ 2-3 MB), más de mil chunks candidatos de mina. */
+	/** Default maximum columns: about 65,000 (≈ 2-3 MB), more than a thousand mine candidate chunks. */
 	public static final int CAPACITY = 1 << 16;
 	static final int BANDS = 64;
 	private static final int NO_SURFACE = Integer.MIN_VALUE;
 	private static final long EMPTY = Long.MIN_VALUE;
 	private static volatile @Nullable HeightCache actual;
 
-	/** De dónde salen las alturas (en el juego, {@code ChunkGenerator.getBaseHeight}; en las pruebas, lo que sea). */
+	/** Where the heights come from (in the game, {@code ChunkGenerator.getBaseHeight}; in the tests, whatever). */
 	@FunctionalInterface
 	public interface Source {
 		int height(int x, int z, Heightmap.Types type);
@@ -41,7 +41,7 @@ public final class HeightCache {
 	private final Long2LongLinkedOpenHashMap[] bands = new Long2LongLinkedOpenHashMap[BANDS];
 	private final int perBand;
 
-	/** Pública para las pruebas: una caché sobre esa fuente, con el nivel del mar dado y como mucho {@code capacity} columnas. */
+	/** Public for the tests: a cache over that source, with the given sea level and at most {@code capacity} columns. */
 	public HeightCache(Source source, int sea, int capacity) {
 		this(source, sea, capacity, null, null, 0, 0);
 	}
@@ -60,14 +60,14 @@ public final class HeightCache {
 		}
 	}
 
-	/** La caché del mundo de ese contexto (la misma mientras no cambien el generador, el RandomState o la altura del mundo). */
+	/** The world cache of that context (the same while the generator, the RandomState or the world height do not change). */
 	public static HeightCache of(Structure.GenerationContext ctx) {
 		ChunkGenerator g = ctx.chunkGenerator();
 		RandomState r = ctx.randomState();
 		int minY = ctx.heightAccessor().getMinY(), high = ctx.heightAccessor().getHeight();
 		HeightCache c = actual;
 		if (c == null || c.generator != g || c.state != r || c.minY != minY || c.high != high) {
-			// solo su altura: el contexto de la generación trae el chunk, que no debe quedarse en memoria
+			// only its height: the generation context carries the chunk, which must not stay in memory
 			LevelHeightAccessor height = LevelHeightAccessor.create(minY, high);
 			c = new HeightCache((x, z, type) -> g.getBaseHeight(x, z, type, height, r), g.getSeaLevel(), CAPACITY, g, r, minY, high);
 			actual = c;
@@ -77,7 +77,7 @@ public final class HeightCache {
 
 	private Long2LongLinkedOpenHashMap band(long key) {
 		long h = key * 0x9E3779B97F4A7C15L;
-		return bands[(int) (h >>> 58)];             // 64 franjas: los 6 bits altos del hash
+		return bands[(int) (h >>> 58)];             // 64 bands: the top 6 bits of the hash
 	}
 
 	private long read(long key) {
@@ -91,7 +91,7 @@ public final class HeightCache {
 		Long2LongLinkedOpenHashMap f = band(key);
 		synchronized (f) {
 			if (!f.containsKey(key) && f.size() >= perBand) {
-				f.removeFirstLong();                    // la más antigua
+				f.removeFirstLong();                    // the oldest one
 			}
 			f.put(key, v);
 		}
@@ -107,12 +107,12 @@ public final class HeightCache {
 		return v;
 	}
 
-	/** Primera altura libre sobre el fondo (sin contar el agua), como {@link Heights#floor}. */
+	/** First free height above the floor (not counting water), like {@link Heights#floor}. */
 	public int floor(int x, int z) {
 		return (int) (at(x, z) >> 32);
 	}
 
-	/** Primera altura libre contando el agua (se calcula solo si se pide), como {@link Heights#surface}. */
+	/** First free height counting water (only computed on request), like {@link Heights#surface}. */
 	public int surface(int x, int z) {
 		long v = at(x, z);
 		int surface = (int) v;
@@ -123,13 +123,13 @@ public final class HeightCache {
 		return surface;
 	}
 
-	/** Como {@link Heights#water}. */
+	/** Like {@link Heights#water}. */
 	public boolean water(int x, int z) {
 		int floor = floor(x, z);
 		return floor < sea && surface(x, z) > floor;
 	}
 
-	/** Columnas guardadas ahora (pruebas). */
+	/** Columns stored now (tests). */
 	public int size() {
 		int n = 0;
 		for (Long2LongLinkedOpenHashMap f : bands) {
@@ -140,7 +140,7 @@ public final class HeightCache {
 		return n;
 	}
 
-	/** Columnas como mucho. */
+	/** Maximum columns. */
 	public int capacity() {
 		return perBand * BANDS;
 	}

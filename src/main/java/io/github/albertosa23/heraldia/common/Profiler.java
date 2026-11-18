@@ -8,47 +8,47 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Perfil de la generación (opcional): tiempo acumulado de los tramos más caros de Heraldia, volcado al log al parar el
- * servidor. Solo con {@code -Dheraldia.profile=true}; sin la propiedad, {@link #ACTIVE} es una constante falsa y
- * {@link #start()} y {@link #end} no hacen nada (el JIT quita las llamadas): coste cero en el servidor de verdad.
- * <p>Uso: {@code long t0 = Profiler.start(); ...; Profiler.end(Profiler.Segment.HILLSIDE, t0);}. Lo lee
- * {@code tools/smoke/coste_generacion.py} de la línea «Heraldia: perfil: {...}» (JSON).
+ * Generation profile (optional): accumulated time of Heraldia's most expensive sections, dumped to the log when the
+ * server stops. Only with {@code -Dheraldia.perfil=true}; without the property, {@link #ACTIVE} is a false constant and
+ * {@link #start()} and {@link #end} do nothing (the JIT removes the calls): zero cost on the real server.
+ * <p>Use: {@code long t0 = Profiler.start(); ...; Profiler.end(Profiler.Segment.HILLSIDE, t0);}. It is read by
+ * {@code tools/smoke/coste_generacion.py} from the line "Heraldia: perfil: {...}" (JSON).
  */
 public final class Profiler {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	public static final String PROPERTY = "heraldia.perfil";
 	public static final boolean ACTIVE = Boolean.getBoolean(PROPERTY);
 
-	/** Tramos medidos (el nombre en minúsculas es la clave del JSON). */
+	/** Measured sections (their {@link #id} is the JSON key). */
 	public enum Segment {
-		/** El mixin de las reglas de colocación entero (tryGenerateStructure: aldeas, únicas, medianas, minas, ajenas). */
+		/** The whole placement rules mixin (tryGenerateStructure: villages, uniques, mediums, mines, foreign). */
 		RULES("reglas"),
-		/** Lo mismo en /locate y los mapas (StructureCheck.canCreateStructure). */
+		/** The same in /locate and the maps (StructureCheck.canCreateStructure). */
 		RULES_LOCATE("reglas_locate"),
-		/** Estructuras de otros mods junto a una aldea o una única ({@link ForeignZone}). */
+		/** Other mods' structures next to a village or a unique ({@link ForeignZone}). */
 		FOREIGN_ZONE("zona_ajenas"),
-		/** Distancia mínima entre únicas (UniqueSeparation.blocked). */
+		/** Minimum distance between uniques (UniqueSeparation.blocked). */
 		UNIQUE_SEPARATION("separacion_unicas"),
-		/** Regla de colocación de las medianas ({@link MediumStructures#rejects}). */
+		/** Placement rule of the mediums ({@link MediumStructures#rejects}). */
 		MEDIUMS("medianas"),
-		/** Regla de colocación de las entradas a mina (Minas.rechaza). */
+		/** Placement rule of the mine entrances (Mines.rejects). */
 		MINES("minas"),
-		/** Búsqueda de la ladera de una entrada a mina (Ladera.buscar). */
+		/** Hillside search of a mine entrance (Hillside.search). */
 		HILLSIDE("ladera"),
-		/** La misma búsqueda, adelantada en otros hilos para /locate (minas/LocateParalelo; no cuenta en LADERA). */
+		/** The same search, run ahead on other threads for /locate (mines/ParallelLocate; does not count in HILLSIDE). */
 		HILLSIDE_EARLY("ladera_anticipada"),
-		/** Punto de inicio de una aldea (el jigsaw de vanilla más lo propio). */
+		/** Start point of a village (vanilla's jigsaw plus our own). */
 		VILLAGE("aldea"),
-		/** Búsqueda de la orilla y colocación del puerto de una aldea de costa. */
+		/** Shore search and port placement of a coastal village. */
 		SHORE("orilla"),
-		/** Rasgo de los caminos entre aldeas, por chunk. */
+		/** Feature of the roads between villages, per chunk. */
 		ROADS("caminos"),
-		/** Regla de colocación de los faros y naufragios (costa/Costa: la de las minas con su familia). */
+		/** Placement rule of the lighthouses and shipwrecks (coast/Coast: the mines' one with its family). */
 		COAST("costa"),
-		/** Búsqueda de la orilla de un faro o un naufragio (costa/Orilla). */
+		/** Shore search of a lighthouse or a shipwreck (coast/Shoreline). */
 		COAST_SHORE("costa_orilla");
 
-		/** Saved id (files, NBT and translation keys): never renamed. */
+		/** Saved id (JSON key of the report): never renamed. */
 		public final String id;
 
 		Segment(String id) {
@@ -56,7 +56,7 @@ public final class Profiler {
 		}
 	}
 
-	/** Contadores de un perfil (instancia aparte para poder probarlos sin la propiedad del sistema). */
+	/** Counters of a profile (separate instance so they can be tested without the system property). */
 	public static final class Counters {
 		private final boolean active;
 		private final LongAdder[] n = new LongAdder[Segment.values().length], ns = new LongAdder[Segment.values().length];
@@ -85,7 +85,7 @@ public final class Profiler {
 			}
 		}
 
-		/** Suma una medida ya tomada (en ns). Sin efecto si el perfil no está activo. */
+		/** Adds an already taken measurement (in ns). No effect if the profile is not active. */
 		public void recordSample(Segment t, long dur) {
 			if (!active) {
 				return;
@@ -109,8 +109,8 @@ public final class Profiler {
 		}
 
 		/**
-		 * JSON de una línea con cada tramo medido: {"ladera":{"n":12,"total_ms":3.4,"media_us":283.3,"max_us":900.0},...}.
-		 * Solo lee: llamarlo varias veces da lo mismo.
+		 * One-line JSON with each measured section: {"ladera":{"n":12,"total_ms":3.4,"media_us":283.3,"max_us":900.0},...}.
+		 * Read-only: calling it several times gives the same.
 		 */
 		public String json() {
 			StringBuilder sb = new StringBuilder("{");
@@ -135,7 +135,7 @@ public final class Profiler {
 	private Profiler() {
 	}
 
-	/** Una línea en Heraldia.onInitialize: sin la propiedad no registra nada. */
+	/** One line in Heraldia.onInitialize: without the property it registers nothing. */
 	public static void register() {
 		if (!ACTIVE) {
 			return;
@@ -154,12 +154,12 @@ public final class Profiler {
 		}
 	}
 
-	/** Los contadores globales (para /heraldia o las pruebas). */
+	/** The global counters (for /heraldia or the tests). */
 	public static Counters counters() {
 		return COUNTERS;
 	}
 
-	/** Escribe el perfil acumulado en el log (si está activo). */
+	/** Writes the accumulated profile to the log (if active). */
 	public static void dump() {
 		if (ACTIVE) {
 			LOGGER.info("Heraldia: perfil: {}", COUNTERS.json());

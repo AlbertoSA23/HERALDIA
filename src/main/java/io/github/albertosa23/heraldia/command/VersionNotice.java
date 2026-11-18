@@ -42,27 +42,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Aviso de versión nueva. Al arrancar y cada 24 h, en un hilo propio (nunca en el del servidor ni retrasando el
- * arranque), pregunta a la API de GitHub Releases, donde publica .github/workflows/publish.yml (en main; también publica
- * en CurseForge, cuya API pide una clave), si hay una versión del mod más nueva para el Minecraft del servidor
- * ({@link Releases}: semver, sin pre-publicaciones salvo update_check.prereleases; el Minecraft de cada publicación
- * sale del gradle.properties de su etiqueta). Si la hay, lo dice en la consola y en el chat a cada operador al entrar,
- * una vez por sesión del servidor ({@link Notified}), en su idioma, con el enlace a la descarga y la recomendación de
- * hacer antes una copia de seguridad. /heraldia update check (operadores) lo comprueba en el momento.
- * <p>Sin telemetría: una petición GET sin datos del servidor ni del jugador, con un User-Agent genérico y tiempos de
- * espera cortos. Sin red, o con una respuesta rara, solo deja una línea en el log. Opción update_check.activado; la
- * propiedad del sistema heraldia.update_check.url cambia la dirección (las pruebas apuntan a un servidor local).
+ * New version notice. At startup and every 24 h, on its own thread (never on the server's nor delaying
+ * startup), it asks the GitHub Releases API, where .github/workflows/publish.yml publishes (on main; it also publishes
+ * to CurseForge, whose API requires a key), whether there is a newer version of the mod for the server's Minecraft
+ * ({@link Releases}: semver, no prereleases unless update_check.prereleases; the Minecraft of each release
+ * comes from its tag's gradle.properties). If there is one, it says so in the console and in the chat to each operator on
+ * join, once per server session ({@link Notified}), in their language, with the download link and the advice to
+ * make a backup first. /heraldia update check (operators) checks right away.
+ * <p>No telemetry: one GET request with no server or player data, a generic User-Agent and short
+ * timeouts. Without network, or with an odd response, it only leaves a line in the log. Option update_check.activado; the
+ * system property heraldia.update_check.url changes the address (the tests point it at a local server).
  */
 public final class VersionNotice {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
 	public static final String OPTION = "update_check.activado", PRE_OPTION = "update_check.prereleases";
-	/** Releases de GitHub del repositorio del mod (contact.sources de fabric.mod.json). */
+	/** GitHub releases of the mod's repository (contact.sources in fabric.mod.json). */
 	static final String URL = "https://api.github.com/repos/Stufanplay/HERALDIA/releases?per_page=20";
 	static final String URL_PROPERTY = "heraldia.update_check.url";
 	static final String USER_AGENT = "Heraldia-update-check";
 	static final Duration CONNECTION = Duration.ofSeconds(5), RESPONSE = Duration.ofSeconds(10);
 	static final long PERIOD_H = 24;
-	/** Lo más que se lee de una respuesta (la de GitHub con 20 publicaciones y su registro de cambios ocupa unos cientos de kB). */
+	/** The most that is read of a response (GitHub's with 20 releases and their changelogs takes a few hundred kB). */
 	static final int MAX_BYTES = 4 << 20;
 	private static final Notified NOTIFIED = new Notified();
 	private static volatile Release fresh;
@@ -81,7 +81,7 @@ public final class VersionNotice {
 		})));
 	}
 
-	/** /heraldia update check (operadores): comprueba ahora, aunque update_check.activado esté desactivada. */
+	/** /heraldia update check (operators): checks now, even if update_check.activado is disabled. */
 	static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("update")
 				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -119,7 +119,7 @@ public final class VersionNotice {
 		}
 	}
 
-	/** En el hilo propio: pregunta y pasa el resultado al hilo del servidor. Nunca lanza. */
+	/** On its own thread: asks and passes the result to the server thread. Never throws. */
 	private static void check(MinecraftServer server, CommandSourceStack who) {
 		long t0 = System.nanoTime();
 		String actual = version(), mc = SharedConstants.getCurrentVersion().name();
@@ -146,7 +146,7 @@ public final class VersionNotice {
 		return u == null || u.isBlank() ? URL : u;
 	}
 
-	/** Pide la lista y elige; para las de GitHub, el Minecraft de cada candidata sale del gradle.properties de su etiqueta. */
+	/** Fetches the list and picks; for GitHub ones, each candidate's Minecraft comes from its tag's gradle.properties. */
 	static Optional<Release> query(String url, Version actual, String mc, boolean pre) throws IOException, InterruptedException {
 		HttpClient client = HttpClient.newBuilder().connectTimeout(CONNECTION).followRedirects(HttpClient.Redirect.NORMAL).build();
 		List<Release> all = Releases.read(request(client, url, "application/vnd.github+json, application/json"));
@@ -167,7 +167,7 @@ public final class VersionNotice {
 		});
 	}
 
-	/** .../repos/&lt;dueño&gt;/&lt;repo&gt;/releases?... -> .../repos/&lt;dueño&gt;/&lt;repo&gt;/contents/gradle.properties?ref=&lt;etiqueta&gt;. */
+	/** .../repos/&lt;owner&gt;/&lt;repo&gt;/releases?... -> .../repos/&lt;owner&gt;/&lt;repo&gt;/contents/gradle.properties?ref=&lt;tag&gt;. */
 	static String properties(String url, String tag) {
 		int i = url.indexOf("/releases");
 		if (i < 0 || tag == null || tag.isEmpty()) {
@@ -192,7 +192,7 @@ public final class VersionNotice {
 		}
 	}
 
-	/** En el hilo del servidor. */
+	/** On the server thread. */
 	private static void result(MinecraftServer server, Release p, String actual, String mc, CommandSourceStack who) {
 		Release before = fresh;
 		fresh = p;
@@ -219,7 +219,7 @@ public final class VersionNotice {
 		}
 	}
 
-	/** Al entrar un jugador (y al encontrar una versión nueva, a los conectados): si es operador y aún no se le ha dicho. */
+	/** When a player joins (and, on finding a new version, to the online ones): if they are an operator and have not been told yet. */
 	private static void onJoin(ServerPlayer player) {
 		Release p = fresh;
 		if (p == null || !player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
@@ -231,7 +231,7 @@ public final class VersionNotice {
 		LOGGER.info("Heraldia: aviso de la versión {} a {}", p.version(), player.getGameProfile().name());
 	}
 
-	/** Las líneas del aviso en el chat: la versión nueva, el enlace clicable y la copia de seguridad. */
+	/** The notice lines in the chat: the new version, the clickable link and the backup advice. */
 	static List<Component> message(Release p, String actual, String mc, Map<String, String> texts) {
 		MutableComponent link = Texts.t(texts, "heraldia.version.descargar").withStyle(s -> s.withColor(ChatFormatting.GREEN)
 				.withUnderlined(true).withClickEvent(new ClickEvent.OpenUrl(URI.create(p.url())))

@@ -19,12 +19,12 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 
 /**
- * Prolonga hacia abajo, hasta el suelo firme (atraviesa aire, agua y plantas), los bloques indicados de la fila inferior
- * de la plantilla: así los pilares del acueducto, los cimientos de las casas de las aldeas en ladera y los pilotes del
- * muelle llegan siempre al terreno. La fila inferior se mira en la plantilla (lista {@code original}, alineada con
- * {@code processed} mientras los procesadores anteriores solo añaden al final), así que vale también para piezas
- * {@code terrain_matching}, cuyos bloques ya bajó la gravedad. Solo lee y escribe dentro del chunk que se está generando.
- * Id publicado {@code heraldia:acueducto_hasta_el_suelo} (no se renombra).
+ * Extends downwards, to firm ground (through air, water and plants), the indicated blocks of the template's bottom
+ * row: so the aqueduct pillars, the foundations of the hillside village houses and the pier's piles
+ * always reach the terrain. The bottom row is looked up in the template (list {@code original}, aligned with
+ * {@code processed} while the earlier processors only append at the end), so it also works for
+ * {@code terrain_matching} pieces, whose blocks gravity has already lowered. It only reads and writes inside the chunk being generated.
+ * Published id {@code heraldia:acueducto_hasta_el_suelo} (never renamed).
  */
 public record ToGroundProcessor(List<Block> blocks, int maxDepth) implements StructureProcessor {
 	public static final MapCodec<ToGroundProcessor> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(

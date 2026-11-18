@@ -6,10 +6,10 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 /**
- * Alturas de generación de una columna (fondo {@code OCEAN_FLOOR_WG} y superficie {@code WORLD_SURFACE_WG}) con caché:
- * cada consulta evalúa el ruido de la columna, así que un mismo punto no se calcula dos veces. Agua = la superficie
- * queda por encima del fondo y el fondo bajo el nivel del mar. La superficie solo se evalúa si se pide. Una instancia por
- * búsqueda (no es segura entre hilos).
+ * Generation heights of a column (floor {@code OCEAN_FLOOR_WG} and surface {@code WORLD_SURFACE_WG}) with a cache:
+ * each query evaluates the column's noise, so the same point is never computed twice. Water = the surface
+ * is above the floor and the floor below sea level. The surface is only evaluated on request. One instance per
+ * search (not thread-safe).
  */
 public final class Heights {
 	private static final int NO_SURFACE = Integer.MIN_VALUE;
@@ -22,7 +22,7 @@ public final class Heights {
 				ctx.chunkGenerator().getSeaLevel());
 	}
 
-	/** Sobre otra fuente de alturas (pruebas: la misma búsqueda sin la caché compartida, {@link HeightCache}). */
+	/** Over another height source (tests: the same search without the shared cache, {@link HeightCache}). */
 	public Heights(HeightCache.Source source, int sea) {
 		this.source = source;
 		this.sea = sea;
@@ -42,12 +42,12 @@ public final class Heights {
 		return source.height(x, z, type);
 	}
 
-	/** Primera altura libre sobre el fondo (sin contar el agua). Una sola evaluación del terreno por columna. */
+	/** First free height above the floor (not counting water). A single terrain evaluation per column. */
 	public int floor(int x, int z) {
 		return (int) (at(x, z) >> 32);
 	}
 
-	/** Primera altura libre contando el agua (se calcula solo si se pide). */
+	/** First free height counting water (only computed on request). */
 	public int surface(int x, int z) {
 		long v = at(x, z);
 		int surface = (int) v;

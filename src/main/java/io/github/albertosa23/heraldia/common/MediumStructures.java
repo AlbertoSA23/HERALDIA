@@ -33,24 +33,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Estructuras medianas (heraldia:medianas/&lt;tipo&gt;/&lt;estilo&gt;, tools/gen/medianas): un structure_set por tipo con
- * su rejilla heraldia:rejilla (grupo medianas/&lt;tipo&gt;) y un estilo por bioma. Una candidata se descarta:
+ * Medium structures (heraldia:medianas/&lt;type&gt;/&lt;style&gt;, tools/gen/medianas): one structure_set per type with
+ * its heraldia:rejilla grid (group medianas/&lt;type&gt;) and one style per biome. A candidate is discarded:
  * <ul>
- * <li>a menos de medianas.distancia_aldeas_unicas_bloques de una aldea o una única de Heraldia que sale de verdad (la
- * zona de {@link ForeignZone}, con su distancia y su memoria): nunca dentro de una aldea, una única o la isla del corsario
- * (la Atlántida ya la excluye {@link AtlantisAnchor});</li>
- * <li>a menos de medianas.distancia_minima.bloques de otra mediana de rango mayor que sobrevive: la regla de la distancia
- * mínima entre únicas ({@link UniqueSeparation}, recursión por rangos crecientes), con un tipo por entrada y su
- * viabilidad = algún estilo sale ahí (bioma y terreno) y no cae en la zona anterior.</li>
+ * <li>within medianas.distancia_aldeas_unicas_bloques of a Heraldia village or unique that really wins (the
+ * {@link ForeignZone} zone, with its distance and its memo): never inside a village, a unique or the corsair's island
+ * (Atlantis is already excluded by {@link AtlantisAnchor});</li>
+ * <li>within medianas.distancia_minima.bloques of another higher-ranked medium that survives: the uniques' minimum
+ * distance rule ({@link UniqueSeparation}, recursion by increasing ranks), with one type per entry and its
+ * viability = some style wins there (biome and terrain) and does not fall in the previous zone.</li>
  * </ul>
- * Además cede el sitio a las estructuras que asoman a la superficie, vanilla o de otros mods, de rejilla random_spread
- * (puestos de saqueadores, templos, portales en ruinas, aldeas de otros mods...): se descarta si una de ellas sale a menos
- * de {@link #VANILLA_BLOCKS} bloques (vanilla) o {@link #FOREIGN_BLOCKS} (de otro mod) (su candidata y findValidGenerationPoint; sin mirar su frecuencia ni sus propias
- * exclusiones, así que cede de más, nunca de menos). Así ninguna mediana sale dentro de otra estructura y las de otros
- * mods no tienen que saber de ellas (solo las aldeas y las únicas, mucho mayores, les quitan el sitio: {@link ForeignZone}).
- * La zona de exclusión frente a las aldeas vanilla va en el propio structure_set (exclusion_zone). Coste: solo en los
- * chunks candidatos de una mediana (uno por tipo cada ~40 x 40 chunks) y lo caro en memoria por candidata y semilla.
- * Inmutable salvo las memorias (ConcurrentHashMap): la consultan los hilos de generación a la vez.
+ * It also yields the site to structures that show above ground, vanilla or from other mods, on a random_spread grid
+ * (pillager outposts, temples, ruined portals, other mods' villages...): it is discarded if one of them wins within
+ * {@link #VANILLA_BLOCKS} blocks (vanilla) or {@link #FOREIGN_BLOCKS} (another mod) (its candidate and
+ * findValidGenerationPoint; without looking at its frequency or its own exclusions, so it yields too much, never too
+ * little). So no medium spawns inside another structure and other mods' ones do not have to know about them (only the
+ * villages and uniques, much larger, take their site: {@link ForeignZone}).
+ * The exclusion zone against vanilla villages is in the structure_set itself (exclusion_zone). Cost: only in the
+ * candidate chunks of a medium (one per type every ~40 x 40 chunks) and the expensive part memoized per candidate and seed.
+ * Immutable except the memos (ConcurrentHashMap): the generation threads query it at once.
  */
 public final class MediumStructures {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -58,57 +59,57 @@ public final class MediumStructures {
 	public static final String ENABLED = "medianas.activadas", FREQUENCY = "medianas.frecuencia_porcentaje",
 			DISTANCE = "medianas.distancia_minima.bloques", ZONE = "medianas.distancia_aldeas_unicas_bloques";
 	private static final int CACHE_MAX = 1 << 12;
-	/** Distancia (bloques, entre inicios) a la que una mediana cede el sitio a una estructura de otro mod (pueden ser aldeas
-	 *  enteras) y a una vanilla (pequeñas salvo las aldeas, que ya tienen su zona de exclusión, y las mansiones, rarísimas). */
+	/** Distance (blocks, between starts) at which a medium yields its site to another mod's structure (they can be whole
+	 *  villages) and to a vanilla one (small except the villages, which already have their exclusion zone, and the very rare mansions). */
 	public static final int FOREIGN_BLOCKS = 128, VANILLA_BLOCKS = 80;
 	private static volatile @Nullable MediumStructures cached;
 
-	/** ¿Sale algún estilo del tipo j en ese chunk (bioma y terreno)? En el juego, findValidGenerationPoint. */
+	/** Does some style of type j win in that chunk (biome and terrain)? In the game, findValidGenerationPoint. */
 	@FunctionalInterface
 	public interface Styles {
 		boolean outcome(int type, int chunkX, int chunkZ);
 	}
 
 	private final Object source;
-	private final Map<Identifier, Integer> typeOf;          // estructura (estilo) -> tipo
-	private final Identifier[] types;                       // heraldia:medianas/<tipo>
+	private final Map<Identifier, Integer> typeOf;          // structure (style) -> type
+	private final Identifier[] types;                       // heraldia:medianas/<type>
 	private final Structure[][] styles;
 	private final UniqueSeparation between;
 	private final @Nullable ForeignZone zone;
 	private final Foreign[] foreign;
-	/** Tipos que ceden el sitio a las entradas a mina (etiqueta #heraldia:medianas/ceden_a_minas) y las rejillas de las minas. */
+	/** Types that yield their site to mine entrances (tag #heraldia:medianas/ceden_a_minas) and the mines' grids. */
 	private final boolean[] yieldToMines;
 	private final Foreign[] mines;
-	/** Etiqueta de estructura de los estilos de un tipo que cede a las minas (medianas/<id>.CEDE_A_MINAS en el generador). */
+	/** Structure tag of the styles of a type that yields to mines (medianas/<id>.CEDE_A_MINAS in the generator). */
 	public static final String YIELD_TO_MINES = "medianas/ceden_a_minas";
-	/** En la memoria de las ajenas, las candidatas de mina van con su índice desplazado (no chocan con las ajenas). */
+	/** In the foreign memo, mine candidates carry a shifted index (they do not clash with the foreign ones). */
 	private static final int MINE_KEY = 1000;
 	private volatile Memory memory = new Memory(0, new ConcurrentHashMap<>(), new ConcurrentHashMap<>());
-	/** Las del Nether y el End: la misma tabla con su propia memoria (y su propia zona), una por dimensión. */
+	/** Those of the Nether and the End: the same table with its own memo (and its own zone), one per dimension. */
 	private final ConcurrentHashMap<ResourceKey<Level>, MediumStructures> others = new ConcurrentHashMap<>();
 
-	/** Por semilla: decisión por candidata de mediana y si sale cada candidata de estructura ajena. */
+	/** Per seed: decision per medium candidate and whether each foreign structure candidate wins. */
 	private record Memory(long seed, ConcurrentHashMap<Long, Boolean> optionValues, ConcurrentHashMap<Long, Boolean> foreign) {
 	}
 
-	/** Rejilla de una estructura ajena (vanilla o de otro mod), sus estructuras que asoman y la distancia a la que se le
-	 *  cede el sitio (bloques). */
+	/** Grid of a foreign structure (vanilla or another mod's), its structures that show above ground and the distance at which
+	 *  the site is yielded to it (blocks). */
 	public record Foreign(RandomSpreadStructurePlacement placement, Structure[] structures, int blocks) {
 	}
 
-	/** Pública para las pruebas: zona null = sin aldeas ni únicas alrededor (o desactivada); sin estructuras ajenas. */
+	/** Public for the tests: null zone = no villages or uniques around (or disabled); no foreign structures. */
 	public MediumStructures(Object source, List<Identifier> types, List<List<Identifier>> ids, List<List<Structure>> styles,
 					List<RandomSpreadStructurePlacement> placements, @Nullable ForeignZone zone, int distance) {
 		this(source, types, ids, styles, placements, zone, distance, List.of());
 	}
 
-	/** Pública para las pruebas: con las rejillas de las estructuras ajenas a las que cede el sitio. */
+	/** Public for the tests: with the grids of the foreign structures it yields its site to. */
 	public MediumStructures(Object source, List<Identifier> types, List<List<Identifier>> ids, List<List<Structure>> styles,
 					List<RandomSpreadStructurePlacement> placements, @Nullable ForeignZone zone, int distance, List<Foreign> foreign) {
 		this(source, types, ids, styles, placements, zone, distance, foreign, new boolean[types.size()], List.of());
 	}
 
-	/** Pública para las pruebas: además, qué tipos ceden el sitio a las entradas a mina y las rejillas de las minas. */
+	/** Public for the tests: also, which types yield their site to mine entrances and the mines' grids. */
 	public MediumStructures(Object source, List<Identifier> types, List<List<Identifier>> ids, List<List<Structure>> styles,
 					List<RandomSpreadStructurePlacement> placements, @Nullable ForeignZone zone, int distance, List<Foreign> foreign,
 					boolean[] yieldToMines, List<Foreign> mines) {
@@ -132,12 +133,12 @@ public final class MediumStructures {
 				Collections.nCopies(types.size(), false), distance > 0, distance);
 	}
 
-	/** Barato: solo las heraldia:medianas/* pasan de aquí. */
+	/** Cheap: only heraldia:medianas/* get past here. */
 	public static boolean isMedium(Identifier id) {
 		return id.getNamespace().equals("heraldia") && id.getPath().startsWith(PREFIX);
 	}
 
-	/** Tabla del registro de structure_set en uso; se construye una vez por mundo. */
+	/** Table of the structure_set registry in use; built once per world. */
 	public static MediumStructures of(RegistryAccess registryAccess) {
 		Registry<StructureSet> sets = registryAccess.lookupOrThrow(Registries.STRUCTURE_SET);
 		MediumStructures t = cached;
@@ -197,7 +198,7 @@ public final class MediumStructures {
 				yieldToMines, mines);
 	}
 
-	/** Rejilla de un structure_set vanilla o de otro mod con estructuras que asoman (random_spread), o null. */
+	/** Grid of a vanilla or other mod's structure_set with structures that show above ground (random_spread), or null. */
 	public static @Nullable Foreign foreignAt(Identifier id, StructureSet set) {
 		if (id.getNamespace().equals("heraldia") || !(set.placement() instanceof RandomSpreadStructurePlacement p)) {
 			return null;
@@ -216,7 +217,7 @@ public final class MediumStructures {
 		return types.length;
 	}
 
-	/** Tipo de una estructura (estilo) o -1. */
+	/** Type of a structure (style) or -1. */
 	public int type(Identifier id) {
 		Integer i = typeOf.get(id);
 		return i == null ? -1 : i;
@@ -230,7 +231,7 @@ public final class MediumStructures {
 		return between.placement(i);
 	}
 
-	/** En el juego: la misma comprobación que /locate (findValidGenerationPoint con su bioma) para cada estilo. */
+	/** In the game: the same check as /locate (findValidGenerationPoint with its biome) for each style. */
 	public Styles styles(RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 						   RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height) {
 		Outcome outcome = outcome(access, generator, biomeSource, sampler, randomState, templates, seed, height);
@@ -245,7 +246,7 @@ public final class MediumStructures {
 		};
 	}
 
-	/** findValidGenerationPoint de una estructura en un chunk (lo que mira /locate). */
+	/** findValidGenerationPoint of a structure in a chunk (what /locate looks at). */
 	private static Outcome outcome(RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 							 RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height) {
 		return (s, cx, cz) -> s.findValidGenerationPoint(new Structure.GenerationContext(access, generator, biomeSource, sampler,
@@ -253,10 +254,10 @@ public final class MediumStructures {
 	}
 
 	/**
-	 * La mediana id con inicio en (chunkX, chunkZ) no sale: cae en la zona de una aldea o una única que sale de verdad,
-	 * o junto a otra mediana de rango mayor que sobrevive. Solo para medianas (esMediana); el resto, falso. En cualquier
-	 * dimensión: las del Nether y el End (heraldia:dimension) siguen las mismas reglas con las de su dimensión (las
-	 * demás no salen ahí: {@link Dimensions#possible}).
+	 * The medium id starting at (chunkX, chunkZ) does not win: it falls in the zone of a village or a unique that really wins,
+	 * or next to another higher-ranked medium that survives. Only for mediums (isMedium); the rest, false. In any
+	 * dimension: those of the Nether and the End (heraldia:dimension) follow the same rules with those of their dimension (the
+	 * others do not spawn there: {@link Dimensions#possible}).
 	 */
 	public boolean rejects(Identifier id, int chunkX, int chunkZ, long seed, RegistryAccess access, ChunkGenerator generator,
 						   BiomeSource biomeSource, Climate.Sampler sampler, RandomState randomState, StructureTemplateManager templates,
@@ -265,7 +266,7 @@ public final class MediumStructures {
 		if (i < 0) {
 			return false;
 		}
-		if (dimension != Level.OVERWORLD) { // memoria aparte: un mismo chunk no vale lo mismo en otra dimensión
+		if (dimension != Level.OVERWORLD) { // separate memo: the same chunk is not worth the same in another dimension
 			return others.computeIfAbsent(dimension, d -> build(sets(), access)).rejectsHere(i, id, chunkX, chunkZ, seed, access,
 					generator, biomeSource, sampler, randomState, templates, height, dimension);
 		}
@@ -285,11 +286,11 @@ public final class MediumStructures {
 				|| rejects(i, chunkX, chunkZ, seed, c.zone(), c.styles(), c.atlantis());
 	}
 
-	/** Lo que decide si sale una mediana: la zona de aldeas, únicas y estructuras ajenas, sus estilos y la Atlántida. */
+	/** What decides whether a medium wins: the zone of villages, uniques and foreign structures, its styles and Atlantis. */
 	public record Context(Zone zone, Styles styles, Zone atlantis) {
 	}
 
-	/** El contexto del juego (las mismas comprobaciones que la generación y /locate); id: la estructura que pregunta. */
+	/** The game context (the same checks as generation and /locate); id: the structure asking. */
 	public Context context(Identifier id, RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource,
 							 Climate.Sampler sampler, RandomState randomState, StructureTemplateManager templates, long seed,
 							 LevelHeightAccessor height, ResourceKey<Level> dimension) {
@@ -304,9 +305,9 @@ public final class MediumStructures {
 	}
 
 	/**
-	 * ¿Sale una mediana (de cualquier tipo) a menos de `bloques` del chunk? La usan las entradas a mina (comun/Minas en
-	 * minas/), que ceden el sitio a las medianas sin que estas sepan de ellas: así su regla no cambia. Pública para las
-	 * pruebas (con el contexto inyectado).
+	 * Does a medium (of any type) win within `blocks` of the chunk? The mine entrances use it (common/Mines in
+	 * mines/), which yield their site to the mediums without the latter knowing about them: so their rule does not change. Public
+	 * for the tests (with the context injected).
 	 */
 	public boolean near(int chunkX, int chunkZ, int blocks, long seed, Context c) {
 		int reach = (blocks + 15) / 16;
@@ -331,19 +332,19 @@ public final class MediumStructures {
 		return false;
 	}
 
-	/** ¿Cae el chunk en la zona de una aldea o una única que sale? */
+	/** Does the chunk fall in the zone of a village or a unique that wins? */
 	@FunctionalInterface
 	public interface Zone {
 		boolean occupied(int chunkX, int chunkZ);
 	}
 
-	/** ¿Sale la estructura (ajena) con inicio en ese chunk? En el juego, findValidGenerationPoint. */
+	/** Does the (foreign) structure starting in that chunk win? In the game, findValidGenerationPoint. */
 	@FunctionalInterface
 	public interface Outcome {
 		boolean outcome(Structure structure, int chunkX, int chunkZ);
 	}
 
-	/** Lógica pura (pruebas): zona, estilos y Atlántida inyectados. En memoria por tipo, candidata y semilla. */
+	/** Pure logic (tests): zone, styles and Atlantis injected. Memoized per type, candidate and seed. */
 	public boolean rejects(int i, int chunkX, int chunkZ, long seed, Zone zone, Styles styles, Zone atlantis) {
 		Memory m = memory(seed);
 		long key = ForeignZone.key(i, chunkX, chunkZ);
@@ -361,7 +362,7 @@ public final class MediumStructures {
 
 	private Memory memory(long seed) {
 		Memory m = memory;
-		if (m.seed != seed) { // otra semilla, memoria nueva: un hilo atrasado no mezcla mundos
+		if (m.seed != seed) { // another seed, a new memo: a late thread does not mix worlds
 			m = new Memory(seed, new ConcurrentHashMap<>(), new ConcurrentHashMap<>());
 			memory = m;
 		}
@@ -369,20 +370,20 @@ public final class MediumStructures {
 	}
 
 	/**
-	 * Sale cerca del chunk (a VANILLA_BLOQUES o AJENAS_BLOQUES) una estructura que asoma, vanilla o de otro mod (de rejilla
-	 * random_spread).
-	 * Barato salvo junto a una candidata (findValidGenerationPoint), que queda en memoria. Pública para las pruebas.
+	 * Does a structure that shows above ground, vanilla or another mod's (on a random_spread grid), win near the chunk
+	 * (within VANILLA_BLOCKS or FOREIGN_BLOCKS)?
+	 * Cheap except next to a candidate (findValidGenerationPoint), which is memoized. Public for the tests.
 	 */
 	public boolean yieldsToForeign(int chunkX, int chunkZ, long seed, Outcome outcome) {
 		return yields(foreign, 0, chunkX, chunkZ, seed, outcome);
 	}
 
 	/**
-	 * ¿Cede el tipo j el sitio a una entrada a mina? Solo los de #heraldia:medianas/ceden_a_minas (las chozas de mago, que
-	 * buscan el mismo interior de los mismos biomas que las minas: sin esto, cada una le quitaría el sitio a la mina de al
-	 * lado, porque las minas ceden siempre a las medianas). Sale una candidata de mina (findValidGenerationPoint, sin sus
-	 * propias reglas: cede de más, nunca de menos) a menos de medianas.distancia_minima.bloques. Sin ciclo: las minas no
-	 * miran a las medianas para eso. Pública para las pruebas.
+	 * Does type j yield its site to a mine entrance? Only those of #heraldia:medianas/ceden_a_minas (the wizard huts, which
+	 * look for the same interior of the same biomes as the mines: without this, each would take the site of the neighboring
+	 * mine, because the mines always yield to the mediums). A mine candidate wins (findValidGenerationPoint, without its
+	 * own rules: it yields too much, never too little) within medianas.distancia_minima.bloques. No cycle: the mines do not
+	 * look at the mediums for that. Public for the tests.
 	 */
 	public boolean yieldsToMine(int j, int chunkX, int chunkZ, long seed, Outcome outcome) {
 		return j >= 0 && j < yieldToMines.length && yieldToMines[j] && yields(mines, MINE_KEY, chunkX, chunkZ, seed, outcome);

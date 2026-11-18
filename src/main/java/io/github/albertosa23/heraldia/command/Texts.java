@@ -19,10 +19,10 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * Textos traducibles de los comandos con el español del propio .jar como respaldo (un cliente sin el mod ve el
- * español, como en los tellraw del generador). Para lo que se entrega a un jugador concreto (la Guía del Heraldo), el
- * respaldo puede ir en su idioma (cualquiera de los del .jar, ver heraldia/idiomas.json): {@link #language(String)} y
- * {@link #t(Map, String, Object...)}. Cada idioma del .jar se lee una vez, la primera vez que se usa. También lo usan los avisos de los jefes (jefes/Jefes).
+ * Translatable command texts with the .jar's own Spanish as fallback (a client without the mod sees the
+ * Spanish, as in the generator's tellraw). For what is delivered to a specific player (the Herald's Guide), the
+ * fallback can be in their language (any of those in the .jar, see heraldia/idiomas.json): {@link #language(String)} and
+ * {@link #t(Map, String, Object...)}. Each .jar language is read once, the first time it is used. The boss notices use it too (bosses/Bosses).
  */
 public final class Texts {
 	static final String ES = "es_es", EN = "en_us";
@@ -37,16 +37,16 @@ public final class Texts {
 		return t(ES_TEXTS, key, args);
 	}
 
-	/** Traducible con el texto de `textos` como respaldo (el que ve un cliente sin el mod); si falta, el español. */
+	/** Translatable with the text from `texts` as fallback (what a client without the mod sees); if missing, the Spanish. */
 	public static MutableComponent t(Map<String, String> texts, String key, Object... args) {
 		String fallback = texts.get(key);
 		return Component.translatableWithFallback(key, fallback != null ? fallback : ES_TEXTS.getOrDefault(key, key), args);
 	}
 
 	/**
-	 * Textos del .jar del idioma de un cliente (p. ej. «fr_ca»): el suyo si el mod lo trae; si no, el de su lengua
-	 * («fr_fr» para cualquier francés, «pt_br» para cualquier portugués, «es_es» para cualquier español) y, si tampoco,
-	 * el inglés. Qué código corresponde a cada lengua lo dice el generador en heraldia/idiomas.json.
+	 * The .jar texts for a client's language (e.g. "fr_ca"): its own if the mod has it; otherwise, that of its language
+	 * ("fr_fr" for any French, "pt_br" for any Portuguese, "es_es" for any Spanish) and, failing that,
+	 * English. Which code belongs to each language is given by the generator in heraldia/idiomas.json.
 	 */
 	public static Map<String, String> language(String client) {
 		return readLang(code(client, LOCALES)).orElseThrow(
@@ -54,37 +54,37 @@ public final class Texts {
 	}
 
 	/**
-	 * Textos del idioma de un jugador: el que eligió con /heraldia language (T46, {@link Preferences}), que manda sobre
-	 * el de su cliente; si no eligió ninguno, el de su cliente (ver {@link #language(String)}).
+	 * Texts in a player's language: the one they chose with /heraldia language (T46, {@link Preferences}), which overrides
+	 * their client's; if they chose none, their client's (see {@link #language(String)}).
 	 */
 	public static Map<String, String> language(ServerPlayer p) {
 		return language(code(p));
 	}
 
-	/** El código de idioma del .jar con que se le escribe a un jugador (su preferencia o el de su cliente). */
+	/** The .jar language code used to write to a player (their preference or their client's). */
 	public static String code(ServerPlayer p) {
 		return code(Preferences.language(p).orElse(p.clientInformation().language()), LOCALES);
 	}
 
-	/** Los textos del .jar del idioma {@code code} (o el de su lengua, o el inglés): ver {@link #language(String)}. */
+	/** The .jar texts for language {@code code} (or that of its language, or English): see {@link #language(String)}. */
 	public static Map<String, String> texts(String code) {
 		return language(code);
 	}
 
-	/** Los códigos de idioma que trae el .jar (es_es, en_us y las traducciones). */
+	/** The language codes the .jar has (es_es, en_us and the translations). */
 	public static Collection<String> languages() {
 		return new TreeSet<>(LOCALES.values());
 	}
 
-	/** {lengua: código del .jar} de heraldia/idiomas.json. */
+	/** {language: .jar code} from heraldia/idiomas.json. */
 	static Map<String, String> locales() {
 		return LOCALES;
 	}
 
 	/**
-	 * El código de idioma del .jar que corresponde a `cliente` (lógica pura, sin leer nada): el mismo si el .jar lo trae;
-	 * si no, el de su lengua (lo que va antes de «_», p. ej. «pt» en «pt_pt») según `lenguas` ({lengua: código}); si
-	 * tampoco, el inglés.
+	 * The .jar language code matching `client` (pure logic, reads nothing): the same one if the .jar has it;
+	 * otherwise, that of its language (what comes before "_", e.g. "pt" in "pt_pt") according to `locales` ({language: code});
+	 * failing that, English.
 	 */
 	static String code(String client, Map<String, String> locales) {
 		String c = client == null ? EN : client.toLowerCase(Locale.ROOT);
@@ -96,7 +96,7 @@ public final class Texts {
 		return byLocale != null ? byLocale : EN;
 	}
 
-	/** El código de idioma de unos textos leídos con {@link #language(String)} (inglés si no son de ninguno). */
+	/** The language code of some texts read with {@link #language(String)} (English if they belong to none). */
 	static String codeOf(Map<String, String> texts) {
 		for (Map.Entry<String, Optional<Map<String, String>>> e : LANGUAGES.entrySet()) {
 			if (e.getValue().orElse(null) == texts) {
@@ -106,7 +106,7 @@ public final class Texts {
 		return EN;
 	}
 
-	/** heraldia/idiomas.json: {"lenguas": {lengua: código del .jar}} (tools/gen/idiomas.py). */
+	/** heraldia/idiomas.json: {"lenguas": {language: .jar code}} (tools/gen/idiomas.py). */
 	private static Map<String, String> readLocales() {
 		String path = "/heraldia/idiomas.json";
 		try (InputStream in = Texts.class.getResourceAsStream(path)) {

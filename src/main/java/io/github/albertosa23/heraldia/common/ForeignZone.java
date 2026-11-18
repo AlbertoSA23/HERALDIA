@@ -34,32 +34,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Estructuras de otros mods junto a las de Heraldia: un inicio de otro mod (ni heraldia ni minecraft) que asome a la
- * superficie no nace a menos de {@link #OPTION} bloques del inicio de una aldea o una única de Heraldia que se genera
- * de verdad (Heraldia gana siempre, así que tampoco sale una de Heraldia encima de otra ajena: el orden de generación de
- * los chunks no importa). Es la técnica de la Atlántida y la isla del corsario, genérica: ningún mod ajeno tiene que
- * saber de Heraldia ni declarar nada.
- * <p>Coste: solo para los chunks candidatos de una estructura ajena (unos pocos por zona). Se calculan las candidatas de
- * las rejillas de Heraldia cercanas (getPotentialStructureChunk, sin terreno ni biomas); lo caro (si la de Heraldia sale
- * allí: bioma, terreno, reglas del mod) solo junto a una candidata y queda en memoria. Una instancia por registro de
- * structure_set (por mundo), inmutable salvo la memoria (ConcurrentHashMap): la consultan los hilos de generación a la vez.
- * <p>No se tocan las vanilla (sus aldeas ya tienen la zona de exclusión de las nuestras; la Atlántida y la isla excluyen
- * todo) ni las subterráneas ajenas ({@link #visible}), que no se ven aunque crucen una caja. La aldea se da por generada si
- * alguna de sus entradas vale en la casilla (como el structure_set, que prueba otra al fallar una); no se cuenta la zona
- * de exclusión frente a las aldeas vanilla, así que junto a una candidata que pierde por eso también se excluye (rara vez).
+ * Other mods' structures next to Heraldia's: a start from another mod (neither heraldia nor minecraft) that shows above
+ * ground is not born within {@link #OPTION} blocks of the start of a Heraldia village or unique that really
+ * generates (Heraldia always wins, so a Heraldia one never spawns on top of a foreign one either: the chunk generation
+ * order does not matter). It is the technique of Atlantis and the corsair's island, made generic: no foreign mod has to
+ * know about Heraldia or declare anything.
+ * <p>Cost: only for the candidate chunks of a foreign structure (a few per area). The candidates of the nearby
+ * Heraldia grids are computed (getPotentialStructureChunk, no terrain or biomes); the expensive part (whether the Heraldia
+ * one wins there: biome, terrain, mod rules) only next to a candidate, and it is memoized. One instance per
+ * structure_set registry (per world), immutable except the memo (ConcurrentHashMap): the generation threads query it at once.
+ * <p>Vanilla ones are not touched (their villages already have the exclusion zone of ours; Atlantis and the island exclude
+ * everything) nor foreign underground ones ({@link #visible}), which are not seen even if they cross a box. The village is
+ * considered generated if any of its entries is valid in the cell (like the structure_set, which tries another when one
+ * fails); the exclusion zone against vanilla villages is not counted, so next to a candidate that loses because of it, it
+ * also excludes (rarely).
  */
 public final class ForeignZone {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	public static final String OPTION = "compatibilidad.zona_estructuras_ajenas_bloques";
 	private static final Identifier VILLAGES = Identifier.fromNamespaceAndPath("heraldia", "aldeas");
-	/** Pasos de generación de lo que no asoma a la superficie (minas, mazmorras, fortalezas). */
+	/** Generation steps of what does not show above ground (mineshafts, dungeons, strongholds). */
 	private static final Set<GenerationStep.Decoration> UNDERGROUND = EnumSet.of(GenerationStep.Decoration.UNDERGROUND_STRUCTURES,
 			GenerationStep.Decoration.STRONGHOLDS, GenerationStep.Decoration.UNDERGROUND_ORES, GenerationStep.Decoration.UNDERGROUND_DECORATION);
 	static final int VILLAGE = -1;
 	private static final int CACHE_MAX = 1 << 12;
 	private static volatile @Nullable ForeignZone cached;
 
-	/** ¿Sale de verdad una aldea de Heraldia con inicio en ese chunk? */
+	/** Does a Heraldia village really spawn with its start in that chunk? */
 	@FunctionalInterface
 	public interface Village {
 		boolean outcome(int chunkX, int chunkZ);
@@ -67,17 +68,17 @@ public final class ForeignZone {
 
 	private final Object source;
 	private final int reach;            // chunks
-	private final long distanceSq;      // bloques²
+	private final long distanceSq;      // blocks²
 	private final @Nullable RandomSpreadStructurePlacement villages;
 	private final Identifier[] villageIds;
 	private final Structure[] villageStructures;
 	private volatile Memory memory = new Memory(0, new ConcurrentHashMap<>());
 
-	/** Resultados por candidata de una semilla (otra semilla, memoria nueva: un hilo atrasado no mezcla mundos). */
+	/** Results per candidate for one seed (another seed, a new memo: a late thread does not mix worlds). */
 	private record Memory(long seed, ConcurrentHashMap<Long, Boolean> optionValues) {
 	}
 
-	/** Pública para las pruebas: distancia en bloques (0 = desactivada) y la rejilla de las aldeas (null si no hay). */
+	/** Public for the tests: distance in blocks (0 = disabled) and the villages' grid (null if none). */
 	public ForeignZone(Object source, int distance, @Nullable RandomSpreadStructurePlacement villages, List<Identifier> ids, List<Structure> structures) {
 		this.source = source;
 		this.reach = distance <= 0 ? 0 : (distance + 15) / 16;
@@ -87,7 +88,7 @@ public final class ForeignZone {
 		this.villageStructures = structures.toArray(new Structure[0]);
 	}
 
-	/** Tabla del registro de structure_set en uso; se construye una vez por mundo. */
+	/** Table of the structure_set registry in use; built once per world. */
 	public static ForeignZone of(RegistryAccess registryAccess) {
 		Registry<StructureSet> sets = registryAccess.lookupOrThrow(Registries.STRUCTURE_SET);
 		ForeignZone z = cached;
@@ -106,8 +107,8 @@ public final class ForeignZone {
 	}
 
 	/**
-	 * Zona de otra distancia alrededor de las mismas candidatas (aldeas y únicas de Heraldia que salen de verdad), con su
-	 * propia memoria: la usan las estructuras medianas ({@link MediumStructures}). Una por registro de structure_set.
+	 * Zone of another distance around the same candidates (Heraldia villages and uniques that really win), with its
+	 * own memo: the medium structures use it ({@link MediumStructures}). One per structure_set registry.
 	 */
 	static ForeignZone withDistance(Registry<StructureSet> sets, RegistryAccess registryAccess, int distance) {
 		Registry<Structure> structures = registryAccess.lookupOrThrow(Registries.STRUCTURE);
@@ -129,25 +130,25 @@ public final class ForeignZone {
 		return new ForeignZone(sets, distance, placement, ids, list);
 	}
 
-	/** De otro mod (ni heraldia ni minecraft). Barato: una comparación de cadenas. */
+	/** From another mod (neither heraldia nor minecraft). Cheap: one string comparison. */
 	public static boolean fromOtherMod(Identifier id) {
 		String ns = id.getNamespace();
 		return !ns.equals("heraldia") && !ns.equals("minecraft");
 	}
 
-	/** Asoma a la superficie (no es una mina, una mazmorra o una fortaleza). */
+	/** Shows above ground (it is not a mineshaft, a dungeon or a stronghold). */
 	public static boolean visible(GenerationStep.Decoration step) {
 		return !UNDERGROUND.contains(step);
 	}
 
-	/** Activada y en el mundo principal (las estructuras de Heraldia solo salen en él). */
+	/** Enabled and in the overworld (Heraldia's structures only spawn there). */
 	public boolean active(ResourceKey<Level> dimension) {
 		return reach > 0 && dimension == Level.OVERWORLD;
 	}
 
 	/**
-	 * Candidatas de Heraldia (únicas de rejilla y aldeas) con inicio a menos de la distancia del chunk, como triples
-	 * {tipo, x, z} (tipo = índice de la única en sep o {@link #VILLAGE}), o null si no hay ninguna. Sin terreno ni biomas.
+	 * Heraldia candidates (grid uniques and villages) with their start within the distance of the chunk, as triples
+	 * {type, x, z} (type = index of the unique in sep or {@link #VILLAGE}), or null if there are none. No terrain or biomes.
 	 */
 	public long @Nullable [] nearby(UniqueSeparation sep, long seed, int chunkX, int chunkZ) {
 		long[] out = null;
@@ -155,7 +156,7 @@ public final class ForeignZone {
 		for (int i = -1; i < sep.size(); i++) {
 			RandomSpreadStructurePlacement p = i < 0 ? villages : sep.fixed(i) ? null : sep.placement(i);
 			if (p == null) {
-				continue; // sin aldeas, o la Atlántida (AtlantisAnchor ya excluye todo junto a ella)
+				continue; // no villages, or Atlantis (AtlantisAnchor already excludes everything next to it)
 			}
 			int s = p.spacing(), ox = UniqueSeparation.offsetX(p), oz = UniqueSeparation.offsetZ(p);
 			for (int gx = Math.floorDiv(chunkX - reach - ox, s), gxMax = Math.floorDiv(chunkX + reach - ox, s); gx <= gxMax; gx++) {
@@ -179,7 +180,7 @@ public final class ForeignZone {
 		return out == null || n == out.length ? out : Arrays.copyOf(out, n);
 	}
 
-	/** Alguna de las candidatas cercanas sale de verdad (en memoria por candidata y semilla). */
+	/** One of the nearby candidates really wins (memoized per candidate and seed). */
 	public boolean occupied(long[] nearby, UniqueSeparation sep, long seed, UniqueSeparation.Viability unique, Village village) {
 		for (int k = 0; k + 2 < nearby.length; k += 3) {
 			int type = (int) nearby[k], x = (int) nearby[k + 1], z = (int) nearby[k + 2];
@@ -204,7 +205,7 @@ public final class ForeignZone {
 		return false;
 	}
 
-	/** Aldea real en el juego: alguna entrada del set permitida por las reglas del mod con sitio válido (bioma y terreno). */
+	/** Real village in the game: some entry of the set allowed by the mod's rules with a valid site (biome and terrain). */
 	public Village village(RegistryAccess registryAccess, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 					   RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height,
 					   ResourceKey<Level> dimension) {
@@ -221,7 +222,7 @@ public final class ForeignZone {
 		};
 	}
 
-	/** Clave exacta de la memoria: 24 bits por coordenada (±8 millones de chunks, más que el borde del mundo) y el tipo. */
+	/** Exact memo key: 24 bits per coordinate (±8 million chunks, more than the world border) and the type. */
 	static long key(int type, int x, int z) {
 		return (x & 0xFFFFFFL) | (long) (z & 0xFFFFFF) << 24 | (long) (type + 1) << 48;
 	}

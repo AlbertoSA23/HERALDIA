@@ -10,18 +10,18 @@ import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
-/** Utilidades de los tipos de estructura propios que se sitúan respecto al terreno o al agua (faro, galeón, aldeas). */
+/** Utilities for the own structure types placed relative to the terrain or water (lighthouse, galleon, villages). */
 public final class Generation {
 	private Generation() {
 	}
 
-	/** /place structure pasa un predicado de bioma que lo acepta todo; la generación normal, solo los de la estructura. */
+	/** /place structure passes a biome predicate that accepts everything; normal generation, only the structure's. */
 	public static boolean forced(Structure.GenerationContext ctx, HolderSet<Biome> biomes) {
 		return ctx.registryAccess().lookupOrThrow(Registries.BIOME).get(Biomes.THE_VOID)
 				.map(v -> !biomes.contains(v) && ctx.validBiome().test(v)).orElse(false);
 	}
 
-	/** Azar de la casilla; con k = 0, el mismo que el del contexto recién creado (setLargeFeatureSeed de la semilla). */
+	/** The cell's random; with k = 0, the same as the freshly created context's (setLargeFeatureSeed of the seed). */
 	public static WorldgenRandom rng(Structure.GenerationContext c, long k) {
 		WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(0L));
 		random.setLargeFeatureSeed(c.seed() + k * 0x9E3779B97F4A7C15L, c.chunkPos().x(), c.chunkPos().z());
@@ -29,8 +29,8 @@ public final class Generation {
 	}
 
 	/**
-	 * Copia del contexto cuyo azar da como primera tirada el giro pedido (JigsawPlacement sortea el giro primero). Con el
-	 * giro natural devuelve el propio contexto: el resto del ensamblado no cambia.
+	 * Copy of the context whose random gives the requested rotation as its first roll (JigsawPlacement rolls the rotation first). With the
+	 * natural rotation it returns the context itself: the rest of the assembly does not change.
 	 */
 	public static Structure.GenerationContext withRotation(Structure.GenerationContext c, Rotation rotation) {
 		for (long k = 0; ; k++) {
@@ -42,7 +42,7 @@ public final class Generation {
 		}
 	}
 
-	/** Bioma de la estructura en un punto (resolución de cuarto de chunk, barato: no evalúa el terreno). */
+	/** The structure's biome at a point (quarter-chunk resolution, cheap: does not evaluate the terrain). */
 	public static boolean biome(Structure.GenerationContext c, HolderSet<Biome> biomes, int x, int y, int z) {
 		Holder<Biome> b = c.biomeResolver().getNoiseBiome(net.minecraft.core.QuartPos.fromBlock(x), net.minecraft.core.QuartPos.fromBlock(y),
 				net.minecraft.core.QuartPos.fromBlock(z));
