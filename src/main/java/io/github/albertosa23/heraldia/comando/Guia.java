@@ -148,7 +148,7 @@ public final class Guia {
 	/** Da (o cambia por la nueva la copia que ya lleve en el inventario) la guía al día y apunta la versión. */
 	static void entregar(ServerPlayer player, boolean pedida) {
 		long t0 = System.nanoTime();
-		Map<String, String> textos = Textos.idioma(player.clientInformation().language());
+		Map<String, String> textos = Textos.idioma(player);
 		String version = version();
 		List<Map.Entry<String, Component>> fama = io.github.albertosa23.heraldia.arena.Fama.paginas(player.level().getServer(), textos);
 		ItemStack libro = libro(DATOS, textos, unicas(player), version, fama);
@@ -165,7 +165,7 @@ public final class Guia {
 		}
 		player.setAttached(Entrega.ENTREGADA, version);
 		player.sendSystemMessage(Textos.t(textos, CLAVE + (pedida ? "copia" : "entregada")).withStyle(ChatFormatting.GOLD));
-		LOGGER.info("Heraldia: Guía del Heraldo ({}, {}) entregada a {} en {} µs", version, player.clientInformation().language(),
+		LOGGER.info("Heraldia: Guía del Heraldo ({}, {}) entregada a {} en {} µs", version, Textos.codigo(player),
 				player.getGameProfile().name(), (System.nanoTime() - t0) / 1000);
 	}
 

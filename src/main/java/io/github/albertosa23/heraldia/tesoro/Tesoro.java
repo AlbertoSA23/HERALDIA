@@ -397,7 +397,7 @@ public final class Tesoro {
 	}
 
 	static Map<String, String> textos(ServerPlayer player) {
-		return Textos.textos(player.clientInformation().language());
+		return Textos.idioma(player);
 	}
 
 	static MutableComponent t(Map<String, String> textos, String k, Object... args) {

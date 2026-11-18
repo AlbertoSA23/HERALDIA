@@ -87,7 +87,7 @@ def test_mismo_mapa_que_java():
 def test_nombres_canonicos_en_ingles_y_ascii():
     for ruta in comandos.CANONICOS + list(comandos.ANTIGUOS):
         for tramo in ruta.split():
-            assert re.fullmatch(r"<?[a-z]+>?", tramo), ruta
+            assert re.fullmatch(r"<?[a-z]+(-[a-z]+)?>?", tramo), ruta
     assert set(comandos.ANTIGUOS) <= set(comandos.CANONICOS)
     viejos = set(comandos.ANTIGUOS.values())
     assert not viejos & {t for r in comandos.CANONICOS for t in r.split()}, "un nombre nuevo no puede ser uno antiguo"

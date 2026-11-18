@@ -42,11 +42,13 @@ The texts of the mod are in 8 languages: English, Spanish, French, German, Itali
 
 **New versions:** the server checks once a day whether there is a new Heraldia version for its Minecraft and tells operators when they join, with a download link. **Back up the server before updating.** Turn it off with `update_check.activado`.
 
+**Updating the server:** nothing already built changes when you update. To bring new content to land that is already generated, `/heraldia update analyze` shows (and changes nothing) what would be regenerated or placed, always keeping a 50-block margin around anything players built, and `/heraldia update apply` does it after a confirmation, with an optional backup and `/heraldia update undo`. Step by step: [Updating a server](docs/CONFIGURATION.md#updating-a-server).
+
 **Web maps:** if the server has BlueMap, Dynmap or squaremap, Heraldia's structures appear on the web map, each kind on its own layer (unique structures, villages, medium structures, mines, lighthouses and wrecks and the arena), only once a player has discovered them. Operators update it with `/heraldia webmap refresh`.
 
 ## Most useful options
 
-The file `config/heraldia.json` is created on the server's first start, with a help text for every option. Changes apply when the server is restarted, in newly generated chunks. Options that do not affect generation (difficulty, bosses, loot, arena, Guide...) can be applied without restarting with `/heraldia reload`.
+The file `config/heraldia.json` is created on the server's first start, with a help text for every option. Changes apply when the server is restarted, in newly generated chunks. Options that do not affect generation (difficulty, bosses, loot, arena, Guide...) can be applied without restarting with `/heraldia reload`. Operators can also change the most useful ones in game, without the mod on their client, with `/heraldia config` (a menu with the profile and seven sections). Each player can choose the language of Heraldia's texts with `/heraldia language`.
 
 | Option | Default | What it does |
 | --- | --- | --- |
@@ -68,6 +70,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `chozas_mago.prob_malvado` | 20 | Chance (%) that the wizard of a wizard's hut is an evil wizard in disguise. |
 | `guia.entregar_al_entrar` | `true` | Gives the Herald's Guide to each player on joining. |
 | `update_check.activado` | `true` | Tells operators when there is a new version. |
+| `actualizar.margen_bloques` | 50 | Safety margin around player builds for `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Only structures already discovered appear on the web map. |
 | `tesoro.probabilidad` | 3.0 | Chance (%) of a treasure map fragment in each chest of medium structures and mines. |
 

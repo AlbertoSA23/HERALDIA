@@ -89,6 +89,8 @@ MEDIANAS_MOBS = MEDIANAS + ["tools/smoke/guardianes_adultos.py", "tools/smoke/gu
 NETHER_END = ["tools/smoke/nether_end.py"]
 # Chozas de mago (T43): el Mago Malvado (Java chozas/) y su botín y textos; su plantilla es una mediana.
 CHOZAS = ["tools/smoke/chozas_mago.py"]
+# Actualizaciones seguras (T46): panel en diálogos, idioma por jugador, arreglos por versión y update analyze/apply.
+ACTUALIZAR = ["tools/smoke/actualizar.py"]
 
 # Mapa ruta -> pruebas de servidor. Se recorre en orden y gana la PRIMERA regla que casa (fnmatch: * cruza «/»).
 # Una lista vacía: el cambio no necesita pruebas de servidor (más allá de la de humo, que va siempre en la CI).
@@ -120,6 +122,10 @@ MAPA = [
     (JAVA + "caravanas/*", CARAVANAS), ("tools/gen/caravanas.py", CARAVANAS),
     # chozas de mago (T43)
     (JAVA + "chozas/*", CHOZAS), ("tools/gen/chozas_mago.py", CHOZAS),
+    # actualizaciones seguras (T46): su Java, el panel, las preferencias, los menús, la migración y sus textos
+    (JAVA + "actualizar/*", ACTUALIZAR), (JAVA + "comando/PanelConfig.java", ACTUALIZAR),
+    (JAVA + "comando/Preferencias.java", ACTUALIZAR), (JAVA + "config/Menus.java", ACTUALIZAR),
+    (JAVA + "config/MigracionConfig.java", ACTUALIZAR), ("tools/gen/actualizaciones.py", ACTUALIZAR),
     # perfiles de juego (T36): su lógica y su comando (el resto de la configuración es común: batería completa)
     (JAVA + "config/Perfiles.java", PERFILES), (JAVA + "comando/ProfileCommand.java", PERFILES),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
@@ -286,6 +292,7 @@ DURACION_S = {
     "tools/smoke/entradas_mina.py": 250,                     # dos arranques (multiplicador 1 y 5), la generación de las minas y /locate lejos
     "tools/smoke/costa.py": 280,                     # medida en local: ~3 min 50 s (dos arranques, cuatro /locate con su generación y /place junto a playas)
     "tools/smoke/perfiles.py": 110,                  # cuatro arranques del mismo mundo
+    "tools/smoke/actualizar.py": 140,                # medida en local: ~2 min 15 s (dos arranques y una zona de 400 chunks)
     "tools/smoke/botin_reponer.py": 100,             # medida en local: 72 s (dos arranques y una ermita generada)
     "tools/smoke/dificultad.py": 100,                # medida en local: ~70 s (cuatro arranques del mismo mundo)
     "tools/smoke/arena.py": 150,                     # medida en local: ~2 min (dos arranques, tres obras y cinco oleadas)

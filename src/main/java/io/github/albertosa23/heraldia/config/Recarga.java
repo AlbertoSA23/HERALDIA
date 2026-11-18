@@ -23,11 +23,11 @@ public final class Recarga {
 	 * cofre por jugador de la Atlántida y los mapas web (qué marcadores salen) y la búsqueda del tesoro (T40: se leen al tirar el botín y al usar una pista). Y el perfil de juego (T36): solo fija opciones de esos prefijos (nunca de la
  * generación), así que cambiarlo se aplica entero sin reiniciar. Y los encargos del tablón y la reputación (T38) y las
 	 * caravanas (T39): se leen en cada uso. Y las chozas de mago (T43): la probabilidad de mago malvado y de premio se
-	 * leen al decidir cada choza.
+	 * leen al decidir cada choza. Y el margen de /heraldia update (T46): se lee en cada análisis.
 	 */
 	static final List<String> RECARGABLES = List.of("perfil", "dificultad.", "jefes.", "botin.", "arena.", "guia.", "golems.",
 			"aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "unicas.atlantida.cofre_unico_por_jugador", "mapas_web.", "encargos.", "reputacion.",
-			"tesoro.", "caravanas.", "chozas_mago.");
+			"tesoro.", "caravanas.", "chozas_mago.", "actualizar.");
 	/** Excepciones dentro de un prefijo recargable: solo se miran al arrancar. */
 	static final List<String> SOLO_AL_ARRANCAR = List.of("arena.generar_en_mundos_nuevos");
 

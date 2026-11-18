@@ -113,6 +113,39 @@ For operators (level 2). Reads `config/heraldia.json` again without restarting t
 
 Everything else (grids and spacings, villages, families and styles, the job board, roads, unique structures, medium structures, mines, compatibility and the minimum distance) affects generation: if it changed halfway, two neighbouring chunks would be generated with different rules and `/locate` and maps would no longer match what was generated. Those options are not applied: the answer lists them with their value in use and the one in the file, and they apply on restart. A new option of the mod belongs to this group unless it is declared reloadable.
 
+### In-game configuration panel: `/heraldia config`
+
+For operators (level 2), **without the mod on the client**: it opens a vanilla dialog (the server Dialog API). At the top, the gameplay profile in use and a button per profile (casual, standard, hardcore); below, seven sections with 5 to 8 options each: **World and generation**, **Villages and roads**, **Combat and bosses**, **Loot**, **Arena**, **Players and Guide** and **Advanced**. Each option has a sentence that explains it, the recommended value (the chosen profile's or the default) and, when it is not applied live, the note “[applies after a restart]”. **Save** writes `config/heraldia.json` and applies through the same path as [`/heraldia reload`](#live-reload-heraldia-reload): reloadable options at once, the rest is saved and flagged as waiting for a restart. Anything not in the sections is changed in the file.
+
+From the console, `/heraldia config` lists the same as text and `/heraldia config set <option> <value>` changes any option (same reload path).
+
+### Each player's language: `/heraldia language`
+
+For everyone. `/heraldia language` says which language Heraldia writes to you in and gives a button per language (the mod's 8); `/heraldia language <code>` (`es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es`) sets it and `/heraldia language auto` goes back to your game's. It is saved with the player and overrides the client's language for the mod's texts (Guide, quests, arena, caravans, notices). A client without the mod sees them in the chosen language; one with the mod translates the keys with its own language.
+
+## Updating a server
+
+Guide for admins (permanent policy: no version changes what has already been built without your permission).
+
+1. **Before updating**: stop the server and back up the world and `config/`. Swap the Heraldia `.jar` and start.
+2. **On start-up** with the new version nothing changes in what is already generated: new generation content appears in new chunks. The mod stores in the world which version generated it and which one last opened it (the log says “mundo generado con la versión …”; a world older than this is recorded as `anterior`), migrates `config/heraldia.json` if its format changed (leaving `heraldia.json.v<version>.bak` with the old one) and applies, once per mob when it loads, the **fixes** for already-corrected bugs that may remain from older versions: 0.1.0 guardians without marks (they get anchored so they do not wander out of their room, stop picking up items and become bosses), babies, drowned riding zombie nautiluses. The changed-weapon one only warns (the original is unknown). `/heraldia update repair dry-run` says what it would change in loaded entities; `/heraldia update repair` forces it.
+3. **`/heraldia update analyze`** (operators): report of what bringing the new content to already-generated land would do. **It changes nothing.** It reads the overworld region files on its own thread (a few minutes on a large world) and leaves in `<world>/heraldia/actualizar/` the report (`analisis-<date>.txt`), a text map and an image (`mapa-<date>.txt` and `.png`: `#` build, `P` protected, `R` regenerated, `v` kept virgin, `E` new structure, `.` generated, `S` spawn). It detects player builds by combining:
+   - typical player blocks (beds, chests, barrels, signs, tables, furnaces, rails, fences, doors, torches, planks, glass…) outside the pieces of saved structures;
+   - differences from a regeneration with the same seed (the top of 16 columns per chunk against the generator's terrain, not counting trees, snow, fluids or plants) in chunks someone has been to;
+   - InhabitedTime (from 1 hour of players nearby the chunk counts as a build);
+   - the world spawn, players' beds and respawn points and each player's last position (offline ones too);
+   - areas claimed with protection mods: if a known one is installed (Flan, GOML, FTB Chunks, Open Parties and Claims…), they cannot be read, the report says so and `apply` will not run.
+   Around every build there is a **50-block margin** (`actualizar.margen_bloques`, 16 to 256): nothing is deleted or placed there.
+   - **Route A**: **virgin** chunks (fully generated, with less than 1 minute of players nearby and no builds or margin) are deleted so they generate again with the new content when someone comes near. Only those that would not leave a cut structure: if what would now appear in that chunk (or what was there) reaches a chunk that stays, the chunk is kept.
+   - **Route B**: new Heraldia structures that would appear today in an already-generated chunk are placed only in safe spots: their whole box outside any protected chunk and not overlapping another structure.
+4. **`/heraldia update apply`**: the same analysis and a dialog (on the console, the commands) to confirm:
+   - **Back up and apply**: first copies the affected region, entity and POI files to `heraldia/actualizar/copia-<id>/`.
+   - **Apply without backup**: asks for a second, explicit confirmation of the risk (it cannot be undone).
+   On confirming, players are warned and **the server stops** after 10 s. **Start it again by hand**: on start-up, before the world loads, the backup is made and the virgin chunks are deleted (one someone has visited since the analysis is kept); with the server running the new structures are placed and the report `informe-<id>.txt` is left.
+5. **Undo**: `/heraldia update undo` (if there was a backup) asks for confirmation, stops the server and, when you start it by hand, restores the backed-up regions. Whatever changed in them since the apply is lost.
+
+Limitations: overworld only; structures placed in already-generated chunks do not adjust the terrain around them (like `/place structure`); if the world was generated with another Minecraft version, regenerated chunks may not match the terrain next to them.
+
 ## Configuration
 
 File `config/heraldia.json` on the server (in a single-player world, the one in the game folder). It is created at startup with all default values
@@ -165,6 +198,7 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `guia.entregar_al_entrar` | `true` | `true`/`false` | Gives the [Herald's Guide](CONTENT.md#heralds-guide) to each player the first time they join with each mod version. When off, nobody gets it on joining, but `/heraldia guide` still hands it out. |
 | `update_check.activado` | `true` | `true`/`false` | [New version notice](#new-version-notice-heraldia-update-check): checks GitHub Releases at startup and every 24 h and tells operators when they join. Applies on restart. |
 | `update_check.prereleases` | `false` | `true`/`false` | Also announce pre-releases (alpha, beta, release candidates). |
+| `actualizar.margen_bloques` | `50` | 16-256 | Safety margin (blocks) around every build that [`/heraldia update analyze`](#updating-a-server) detects: nothing is regenerated or placed there. |
 | `compatibilidad.zona_estructuras_ajenas_bloques` | 224 | 0-512 | Structures from other mods that show above ground do not spawn closer than this to the start of a Heraldia village or unique structure that spawns there; 0 disables it ([Compatibility with other mods](COMPATIBILITY.md#compatibility-with-other-mods)). |
 | `botin.reponer.activado` | `false` | `true`/`false` | [Restocking loot](CONTENT.md#restocking-loot-and-difficulty): Heraldia chests and barrels are refilled on opening after the given days, with no other player nearby and when empty or almost empty; also chests already generated. Nothing with Lootr. |
 | `botin.reponer.dias` | 7 | 1-60 | In-game days (24,000 ticks of the world clock) after a looting before a chest is restocked. |

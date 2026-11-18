@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 /**
  * Todos los comandos del mod, bajo /heraldia y con nombres en inglés (los textos que ve el jugador siguen traducidos):
- * info [nearby [radius] | here], guide, key, arena, review, status, reload, update check, profile, webmap refresh, quest (encargos del tablón, T38), treasure give/info (T40), caravan (caravanas, T39, operadores) y wizard [reveal] (chozas de mago, T43, operadores). Los nombres antiguos en
+ * info [nearby [radius] | here], guide, key, arena, review, status, reload, update check, profile, webmap refresh, quest (encargos del tablón, T38), treasure give/info (T40), caravan (caravanas, T39, operadores) y wizard [reveal] (chozas de mago, T43, operadores); config (panel en diálogos), language (idioma de cada jugador) y update analyze/apply/undo/repair (actualizaciones seguras, T46). Los nombres antiguos en
  * español siguen funcionando como alias ocultos ({@link Alias}). Una línea en Heraldia.onInitialize.
  */
 public final class Comandos {
@@ -42,7 +42,10 @@ public final class Comandos {
 				.then(io.github.albertosa23.heraldia.encargos.Encargos.nodo())
 				.then(io.github.albertosa23.heraldia.tesoro.Tesoro.nodo())
 				.then(io.github.albertosa23.heraldia.caravanas.Caravanas.nodo())
-				.then(io.github.albertosa23.heraldia.chozas.Magos.nodo()));
+				.then(io.github.albertosa23.heraldia.chozas.Magos.nodo())
+				.then(PanelConfig.nodo())
+				.then(Preferencias.nodo())
+				.then(io.github.albertosa23.heraldia.actualizar.Actualizar.nodo()));
 		CommandNode<CommandSourceStack> raiz = dispatcher.getRoot().getChild("heraldia");
 		Alias.anadir(raiz, Alias.ANTIGUOS, Comandos::avisar);
 		return raiz;
@@ -54,7 +57,7 @@ public final class Comandos {
 				.withClickEvent(new ClickEvent.SuggestCommand(nueva.startsWith("/") ? nueva + " " : nueva))
 				.withHoverEvent(new HoverEvent.ShowText(Component.literal(nueva))));
 		ServerPlayer p = src.getPlayer();
-		Component texto = (p != null ? Textos.t(Textos.idioma(p.clientInformation().language()), "heraldia.comando.obsoleto", antigua, cmd)
+		Component texto = (p != null ? Textos.t(Textos.idioma(p), "heraldia.comando.obsoleto", antigua, cmd)
 				: Textos.t("heraldia.comando.obsoleto", antigua, cmd)).withStyle(ChatFormatting.YELLOW);
 		src.sendSystemMessage(texto);
 	}

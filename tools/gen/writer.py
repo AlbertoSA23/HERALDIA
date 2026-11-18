@@ -15,6 +15,7 @@ import tablon
 import guia
 import arena_oleadas
 import admin
+import actualizaciones
 import encargos
 import caravanas
 import chozas_mago
@@ -370,7 +371,7 @@ def textos(reg):
         for lang, texts in extra.items():
             out[lang].update(texts)
     partes = [mapas.lang(dimensiones.del_mundo_principal(uniques)), logros.build(reg, uniques, medianas.modules(), minas, costa)[1], tratos.lang(),
-              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), costa.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), encargos.lang(), caravanas.lang(), chozas_mago.lang(),
+              tablon.lang(), caminos.LANG, medianas.lang(), minas.lang(), costa.lang(), guia.lang(), arena_oleadas.lang(), admin.lang(), actualizaciones.lang(), encargos.lang(), caravanas.lang(), chozas_mago.lang(),
               trophies_lang(), botin.historia_lang(uniques), tesoro.lang()]
     for parte in partes:
         assert parte["es_es"].keys() == parte["en_us"].keys()
