@@ -528,6 +528,16 @@ GENERATION = ("aldeas.", "unicas.", "medianas.", "minas.", "faros.", "naufragios
               "arena.activado")
 
 
+# Marked as generation (so no gameplay profile touches them) and yet applied by /heraldia reload (config/Reload.RELOADABLE):
+# the flag only keeps the profiles away, it does not mean "needs a restart". arena.activado is gameplay that profiles must
+# not switch (the arena builds itself); the other three fall under a generation prefix (aldeas., unicas.) but act while
+# playing. Unmarking them would change the generation fingerprint that worlds have saved (ProfileNotice, the
+# generacion_mundo attachment, and the search memory key in SearchCaches), so they stay marked and are listed here;
+# test_options checks this list against Reload.java, so a new overlap has to be added here on purpose.
+GENERATION_RELOADABLE = ("aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "arena.activado",
+                         "unicas.atlantida.cofre_unico_por_jugador")
+
+
 def is_generation(key):
     return key.startswith(GENERATION)
 

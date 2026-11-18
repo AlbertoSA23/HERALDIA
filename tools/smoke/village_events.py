@@ -103,8 +103,9 @@ class Square:
         """{(x, y, z): block} of the square's box as saved now (save-all flush, then the region files)."""
         srv.run("save-all flush", r"Saved the game|saved")
         blocks = read_blocks(self.world_dir, self.x1, self.z1, self.x2, self.z2)
-        return {k: v for k, v in blocks.items() if self.x1 <= k[0] <= self.x2 and self.y1 <= k[1] <= self.y2
-                and self.z1 <= k[2] <= self.z2}
+        # grass under the planters' trunks turns to dirt on its own (random ticks): not a change anyone made
+        return {k: ("minecraft:dirt" if v == "minecraft:grass_block" else v) for k, v in blocks.items()
+                if self.x1 <= k[0] <= self.x2 and self.y1 <= k[1] <= self.y2 and self.z1 <= k[2] <= self.z2}
 
     def snapshot(self, srv):
         self.reference = self.read(srv)
