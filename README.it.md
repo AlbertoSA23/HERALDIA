@@ -59,7 +59,7 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `aldeas.caminos.activado` | `true` | Strade tra i villaggi. |
 | `unicas.<id>.activada` | `true` | Attiva o disattiva una struttura unica. |
 | `unicas.rejilla_compatible` | `false` | `true` solo per i mondi creati con Heraldia 0.1.0. |
-| `medianas.frecuencia_porcentaje` | 60 | Quante strutture medie (100 = la densità precedente, più fitta; 200 = il doppio di quella). |
+| `medianas.frecuencia_porcentaje` | 100 | Quante strutture medie (200 = il doppio). |
 | `faros.activado`, `naufragios.activado` | `true` | Fari e galeoni naufragati sulla costa. |
 | `dificultad.nivel` | `normal` | Guardiani e mostri: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | I forzieri di Heraldia si riempiono di nuovo dopo qualche giorno. |

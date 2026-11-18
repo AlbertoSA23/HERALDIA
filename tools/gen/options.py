@@ -95,14 +95,15 @@ _FIXED = [
      "Estructuras medianas (torres de vigía, posadas de camino, campamentos de bandidos, ermitas...) entre las aldeas y "
      "las únicas",
      "Medium structures (watchtowers, roadside inns, bandit camps, hermitages...) between villages and unique structures"),
-    # 60 since the medium-density change (100 before: one medium every ~550 blocks; now ~610). Measured with
-    # MediumDensityComparisonTest and generation_cost.py --zones medianas (docs/CONFIGURATION.md, "Medium structures
-    # density"). 100 is still accepted: the previous density.
-    ("medianas.frecuencia_porcentaje", 60, 25, 400,
-     "Frecuencia de todas las estructuras medianas, en % de la separación propia de cada tipo (100 = la densidad de "
-     "antes, una cada ~550 bloques entre todas; 200 = el doble); se aplica sobre la separación de cada tipo",
-     "Frequency of all medium structures, as a % of each type's own spacing (100 = the previous density, one every "
-     "~550 blocks among all of them; 200 = twice as many); applied on top of each type's spacing"),
+    # 100: each type at its own spacing (one medium every ~550 blocks among all of them). The medium-density session
+    # lowered it to 60 for a few hours; it measured no generation cost between 100 and 60 (MediumDensityComparisonTest,
+    # generation_cost.py --zones medianas: inside the noise), and the owner wants a world full of structures, so it went
+    # back to 100 (docs/CONFIGURATION.md, "Medium structures density"). The light profile keeps a lower value.
+    ("medianas.frecuencia_porcentaje", 100, 25, 400,
+     "Frecuencia de todas las estructuras medianas, en % de la separación propia de cada tipo (100 = la de por "
+     "defecto, una cada ~550 bloques entre todas; 200 = el doble; 50 = menos); se aplica sobre la separación de cada tipo",
+     "Frequency of all medium structures, as a % of each type's own spacing (100 = the default, one every ~550 blocks "
+     "among all of them; 200 = twice as many; 50 = fewer); applied on top of each type's spacing"),
     ("medianas.distancia_minima.bloques", 192, 64, 1024,
      "Distancia mínima entre dos estructuras medianas distintas, en bloques",
      "Minimum distance between two different medium structures, in blocks"),
@@ -386,7 +387,7 @@ LIGHT = "ligero"
 LIGHT_OPTIONS = {
     "aldeas.porcentaje_grandes": 10,             # a large village starts ~2x the pieces of a standard one
     "aldeas.caminos.activado": False,            # the road feature walks its route in every chunk it crosses
-    "medianas.frecuencia_porcentaje": 50,        # fewer medium structures than the default 60 (the common kinds thin out)
+    "medianas.frecuencia_porcentaje": 50,        # fewer medium structures than the default 100 (the common kinds thin out)
     "medianas.distancia_minima.bloques": 320,
     "minas.vanilla.multiplicador": 1.0,          # vanilla abandoned mineshafts as in vanilla (the default doubles them)
     "caravanas.activado": False,                 # no caravan entities walking between villages (server ticks)

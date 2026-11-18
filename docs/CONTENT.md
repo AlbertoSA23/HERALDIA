@@ -94,7 +94,7 @@ Back to the [README](../README.md).
     boat through the cliff), the guardroom, the map room with the **compass rose puzzle**, the armoury with the secret
     powder room, the dungeons and, below sea level and dry, the treasure chamber with Roque Salitre, the Corsair;
     tripwire and pressure-plate traps, 3 spawners and 21 chests. Design: [docs/unicas/isla_corsario.md](unicas/isla_corsario.md).
-- **Medium structures** (all types together, one every ~610 blocks by default, each in its own biomes): watchtowers, roadside
+- **Medium structures** (all types together, one every ~550 blocks by default, each in its own biomes): watchtowers, roadside
   inns, bandit camps, hermitages, mills, fisher's huts, hunters' lodges and ruined shrines, with a style for each biome. See [Medium structures](#medium-structures).
 - **Mine entrances** (on real hillsides of hills, taigas, deserts, badlands and peaks): adits, mining camps and mining
   complexes with a headframe, each leading down to its own gallery; and more vanilla abandoned mineshafts in new chunks
@@ -184,7 +184,7 @@ Details, plans and what has been verified: [docs/unicas/atlantida.md](unicas/atl
 
 ## Medium structures
 
-Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every ~610 blocks** (measured, see below; ~550 with `medianas.frecuencia_porcentaje` 100, the default before the [density change](CONFIGURATION.md#medium-structures-density)), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
+Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every ~550 blocks** (measured, see below; ~610 with `medianas.frecuencia_porcentaje` 60, see [Medium structures density](CONFIGURATION.md#medium-structures-density)), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
 
 | Type | Id | Styles (biomes) | Variants |
 | --- | --- | --- | --- |
