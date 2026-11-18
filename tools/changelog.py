@@ -7,7 +7,7 @@ import os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RELEASE = re.compile(r"^## \[(\d+\.\d+\.\d+)\](?: - \d{4}-\d{2}-\d{2})?$")
-SECTIONS = ("### Jugadores", "### Técnico")
+SECTIONS = ("### Players", "### Technical")
 
 
 def parse(text):
@@ -53,7 +53,7 @@ def main(cmd):
             raise ValueError(f"la versión de arriba ({top}) no coincide con mod_version ({mod_version()})")
         print(f"CHANGELOG OK: {len(releases)} versiones, la última {top}")
     elif cmd == "notes":
-        print("\n".join(sections["### Jugadores"]))
+        print("\n".join(sections["### Players"]))
     else:
         raise SystemExit(__doc__)
 
