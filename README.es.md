@@ -15,6 +15,7 @@ Un mod de Fabric para **Minecraft 26.3** que llena el Overworld de sitios por lo
 - 🗼 **Faros y naufragios.** Faros en tierra firme junto al mar, con la luz siempre encendida, la casa del farero y un embarcadero, y galeones partidos, encallados en la playa o semihundidos en los bajíos, con su bodega y el camarote del capitán. Cada uno al estilo de su costa: templada, cálida, fría o nevada.
 - 🔱 **La Atlántida.** Solo hay una en el mundo: una ciudad enorme hundida en el océano profundo, con salas secas, tres sellos con sus llaves y el Guardián de Poseidón, que custodia el mayor tesoro de Heraldia.
 - 🏟️ **Arena de oleadas.** Un coliseo cerca del spawn: toca la campana y aguanta oleadas cada vez más fuertes, con un campeón cada cinco, récords y recompensas. Si caes en el ruedo, conservas tu inventario. Tres modos (cooperativo, contrarreloj y supervivencia) con clasificación semanal, `/heraldia arena leaderboard`: los campeones de la semana anterior salen en los carteles del salón de la fama de la arena y en la Guía del Heraldo.
+- 🏯 **La Casa del Heraldo.** Lo primero que ves en un mundo nuevo: un pueblo amurallado de 96 × 96 bloques en el spawn, con su campana, el tablón de encargos, una posada y un hostal, una capilla, tiendas con sus aldeanos, jardines, un establo, un pozo y un portal al Nether que solo enciende un operador. Nadie salvo un operador puede construir ni romper a menos de 50 bloques de sus murallas, y allí no aparecen monstruos. Su mercado tiene puestos que los jugadores alquilan con esmeraldas cuando el servidor los activa. En un mundo que ya existe, la coloca un operador con `/heraldia herald place`.
 
 ## Cómo se juega
 
@@ -80,6 +81,8 @@ El fichero `config/heraldia.json` se crea en el primer arranque del servidor, co
 | `actualizar.margen_bloques` | 50 | Margen de seguridad alrededor de lo que construyen los jugadores para `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | En el mapa web solo salen las estructuras ya descubiertas. |
 | `tesoro.probabilidad` | 3.0 | Probabilidad (%) de un fragmento de mapa del tesoro en cada cofre de medianas y minas. |
+| `casa_heraldo.activado` | `true` | La Casa del Heraldo en el spawn y su protección. |
+| `casa_heraldo.mercado.activado` | `false` | Puestos de alquiler en el mercado de la Casa del Heraldo (precios: `casa_heraldo.mercado.*`). |
 
 ## Para saber más
 

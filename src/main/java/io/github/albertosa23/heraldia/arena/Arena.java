@@ -334,6 +334,13 @@ public final class Arena {
 		return true;
 	}
 
+	/** Does the arena in use (its box and {@link Site#MARGIN}) touch the rectangle? For the Herald's House site search. */
+	public static boolean touches(int minX, int minZ, int maxX, int maxZ) {
+		Zone z = zone;
+		return z != null && minX <= z.maxX() + Site.MARGIN && maxX >= z.minX() - Site.MARGIN
+				&& minZ <= z.maxZ() + Site.MARGIN && maxZ >= z.minZ() - Site.MARGIN;
+	}
+
 	/** Center of the ring (the bell's column, at ground height) of the arena in use, or null if there is none. */
 	public static @Nullable BlockPos center() {
 		Zone z = zone;
@@ -399,7 +406,8 @@ public final class Arena {
 
 			@Override
 			public boolean occupied(int chunkX, int chunkZ) {
-				return Structures.occupied(ow, chunkX, chunkZ);
+				return Structures.occupied(ow, chunkX, chunkZ)
+						|| io.github.albertosa23.heraldia.herald.HeraldHouse.overlapsChunk(chunkX, chunkZ);
 			}
 		};
 		Blueprint pl = plan;

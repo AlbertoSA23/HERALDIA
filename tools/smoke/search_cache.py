@@ -22,7 +22,8 @@ SEARCHES = [("aldea", "#heraldia:aldeas", LOCATE_FROM), ("unica", "heraldia:unic
             ("mediana", "#heraldia:medianas", LOCATE_FROM), ("mina", "#heraldia:minas", LOCATE_FROM),
             ("nada", "#heraldia:aldeas", NOTHING_FROM)]
 INFO_FROM, INFO_RADIUS = (3000, 3000), 2000
-BASE_CONFIG = {"arena": {"generar_en_mundos_nuevos": False}, "update_check": {"activado": False}}
+BASE_CONFIG = {"arena": {"generar_en_mundos_nuevos": False}, "update_check": {"activado": False},
+               "casa_heraldo": {"generar_en_mundos_nuevos": False}}
 OTHER = {"medianas": {"frecuencia_porcentaje": 60}}
 # /locate #heraldia:medianas from LOCATE_FROM in a new world with OTHER, measured with the .jar from before the memory
 OTHER_MEDIUM = (7984, -7824)

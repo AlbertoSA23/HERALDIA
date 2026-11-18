@@ -15,6 +15,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 - 🗼 **Lighthouses and wrecks.** Lighthouses on firm ground by the sea, with their light always lit, the keeper's house and a jetty, and broken galleons run aground on the beach or half-sunk in the shallows, with their hold and the captain's cabin. Each in the style of its coast: temperate, warm, cold or snowy.
 - 🔱 **Atlantis.** Only one per world: a vast city sunk in the deep ocean, with dry halls, three seals with their keys and the Guardian of Poseidon, keeper of the greatest treasure in Heraldia.
 - 🏟️ **Wave arena.** A coliseum near spawn: ring the bell and hold out against ever stronger waves, with a champion every fifth wave, records and rewards. If you fall in the ring, you keep your inventory. Three modes (co-op, time attack and survival) with a weekly leaderboard, `/heraldia arena leaderboard`: last week's champions go up on the signs of the arena's hall of fame and in the Herald's Guide.
+- 🏯 **The Herald's House.** The first thing you see in a new world: a walled town of 96 × 96 blocks at spawn, with its bell, the job board, an inn and a guest house, a chapel, shops with their villagers, gardens, a stable, a well and a Nether portal that only an operator can light. Nobody but an operator can build or break within 50 blocks of its walls, and no monsters spawn there. Its market has stalls players can rent with emeralds when the server turns them on. In a world that already exists, an operator places it with `/heraldia herald place`.
 
 ## How to play
 
@@ -80,6 +81,8 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `actualizar.margen_bloques` | 50 | Safety margin around player builds for `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Only structures already discovered appear on the web map. |
 | `tesoro.probabilidad` | 3.0 | Chance (%) of a treasure map fragment in each chest of medium structures and mines. |
+| `casa_heraldo.activado` | `true` | The Herald's House at spawn and its protection. |
+| `casa_heraldo.mercado.activado` | `false` | Market stalls for rent at the Herald's House (prices: `casa_heraldo.mercado.*`). |
 
 ## Learn more
 
