@@ -304,6 +304,13 @@ class Pass:
         self.lines, self.seen = queue.Queue(), []
         threading.Thread(target=s.reader, args=(self.proc, self.lines), daemon=True).start()
         self.ctx = s.Context(self.proc, self.lines, self.seen)
+        try:
+            self._ready(with_it)
+        except BaseException:
+            self.stop()          # a server that fails to start must not stay running (and loading the machine)
+            raise
+
+    def _ready(self, with_it):
         s.wait_for(self.lines, r"Done \([\d.,]+s\)!", s.START_TIMEOUT_S, self.seen)
         loaded = "Heraldia: configuración leída" in self.ctx.log()
         if loaded != with_it:
