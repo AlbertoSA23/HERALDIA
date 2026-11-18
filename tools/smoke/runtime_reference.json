@@ -1,0 +1,50 @@
+{
+ "limites": {
+  "mspt_p99_ms": 50,
+  "p95_extra_ms": 10.0,
+  "aldea_vs_vanilla": 2.0,
+  "margen_ms": 3.0
+ },
+ "fecha": "2026-11-18",
+ "commit": "9b2827a",
+ "maquina": "4 núcleos, Linux",
+ "pasadas": 2,
+ "medido": {
+  "campo": {
+   "sin_p95": 9.811,
+   "con_p95": 9.907,
+   "con_p99": 13.399
+  },
+  "aldea_vanilla": {
+   "sin_p95": 11.632,
+   "con_p95": 11.282,
+   "con_p99": 15.17
+  },
+  "aldea": {
+   "sin_p95": 12.53,
+   "con_p95": 14.939,
+   "con_p99": 21.412
+  },
+  "dos_aldeas": {
+   "sin_p95": 18.631,
+   "con_p95": 25.716,
+   "con_p99": 34.022
+  },
+  "caravana": {
+   "sin_p95": 21.81,
+   "con_p95": 24.908,
+   "con_p99": 33.395
+  },
+  "aldea_arena": {
+   "sin_p95": 17.859,
+   "con_p95": 21.084,
+   "con_p99": 26.659
+  }
+ },
+ "margen": {
+  "ms_por_aldeano_media": 0.159,
+  "ms_por_aldeano_p95": 0.237,
+  "margen_p95_40ms": 110.988,
+  "margen_p95_50ms": 153.158
+ }
+}
