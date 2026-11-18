@@ -74,42 +74,42 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Búsqueda del tesoro encadenada (T40). El fragmento de mapa (tabla heraldia:tesoro/fragmento, en el botín de medianas,
- * minas y únicas con la condición {@link ClueCondition}) se usa con clic derecho:
+ * Chained treasure hunt (T40). The map fragment (table heraldia:tesoro/fragmento, in the loot of mediums,
+ * mines and uniques with the {@link ClueCondition} condition) is used with right click:
  * <ol>
- * <li>Sin descifrar: la cadena se elige FUERA del hilo del servidor ({@link Search}: medianas y entradas a mina reales a
- * menos de tesoro.radio_max bloques, sin cargar ni generar chunks; {@link Planner}, determinista con la semilla del
- * jugador: mundo, UUID y cuántas lleva descifradas, adjunto heraldia:tesoro_contador). Al acabar, en el hilo del servidor,
- * el fragmento se cambia por un mapa vanilla con la marca del primer destino, y la cadena entera queda en el objeto
+ * <li>Undeciphered: the chain is chosen OFF the server thread ({@link Search}: real mediums and mine entrances within
+ * tesoro.radio_max blocks, without loading or generating chunks; {@link Planner}, deterministic with the player's
+ * seed: world, UUID and how many they have deciphered, attachment heraldia:tesoro_contador). When done, on the server thread,
+ * the fragment is swapped for a vanilla map with the mark of the first destination, and the whole chain stays in the item
  * (custom_data {@value Chain#MARK}, {@link Chain}).</li>
- * <li>Con cadena: lejos de la marca, dice a cuántos bloques y hacia dónde queda; en una estructura, el mapa pasa a la
- * siguiente marca; en el tesoro, entierra el cofre (tabla heraldia:tesoro/cofre) en un sitio seguro ({@link Site}: solo
- * chunks ya cargados, nunca dentro ni encima de construcciones, con margen) y la cadena queda completada: su semilla se
- * apunta en el mundo (adjunto heraldia:tesoros del mundo principal), así que ni una copia del mapa da otro cofre.</li>
+ * <li>With a chain: far from the mark, it says how many blocks away and which way it is; at a structure, the map moves to the
+ * next mark; at the treasure, it buries the chest (table heraldia:tesoro/cofre) in a safe spot ({@link Site}: only
+ * already loaded chunks, never inside or on top of constructions, with a margin) and the chain is completed: its seed is
+ * recorded in the world (attachment heraldia:tesoros of the overworld), so not even a copy of the map gives another chest.</li>
  * </ol>
- * Nada por tick: solo trabaja al usar una pista o con /heraldia treasure. Los encargos del tablón (T38) llaman a
- * {@link #reward(ServerPlayer)} al pagar; para otros orígenes, {@link #fragment(ServerLevel)} o anidar la tabla
+ * Nothing per tick: it only works when a clue is used or with /heraldia treasure. The board quests (T38) call
+ * {@link #reward(ServerPlayer)} when paying; for other sources, {@link #fragment(ServerLevel)} or nesting the table
  * heraldia:tesoro/fragmento.
  */
 public final class Treasure {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
 	public static final ResourceKey<LootTable> FRAGMENT = ResourceKey.create(Registries.LOOT_TABLE, Heraldia.id("tesoro/fragmento"));
 	public static final ResourceKey<LootTable> CHEST = ResourceKey.create(Registries.LOOT_TABLE, Heraldia.id("tesoro/cofre"));
-	/** La paga de un encargo del tablón (T38): a veces, un fragmento (tesoro.FACTOR["encargos"] del generador). */
+	/** The pay of a board quest (T38): sometimes, a fragment (the generator's tesoro.FACTOR["encargos"]). */
 	public static final ResourceKey<LootTable> QUEST = ResourceKey.create(Registries.LOOT_TABLE, Heraldia.id("tesoro/encargo"));
 	static final String KEY = "heraldia.tesoro.";
-	/** Jugadores con un fragmento descifrándose (en otro hilo): uno a la vez por jugador. */
+	/** Players with a fragment being deciphered (on another thread): one at a time per player. */
 	private static final Set<UUID> SEARCHING = ConcurrentHashMap.newKeySet();
 
 	private Treasure() {
 	}
 
-	/** Los adjuntos, aparte para que los tests (ComandosTest arma el árbol de comandos) no registren nada. */
+	/** The attachments, kept apart so the tests (HeraldiaCommandsTest builds the command tree) register nothing. */
 	static final class Data {
-		/** Pistas descifradas por el jugador (la n de su semilla); se conserva al morir. */
+		/** Clues deciphered by the player (the n of their seed); kept on death. */
 		static final AttachmentType<Integer> COUNTER = AttachmentRegistry.create(Heraldia.id("tesoro_contador"),
 				b -> b.persistent(Codec.INT).copyOnDeath());
-		/** Semillas de las cadenas cuyo cofre ya está enterrado (en el mundo principal). */
+		/** Seeds of the chains whose chest is already buried (in the overworld). */
 		static final AttachmentType<List<Long>> COMPLETED = AttachmentRegistry.create(Heraldia.id("tesoros"),
 				b -> b.persistent(Codec.LONG.listOf()));
 
@@ -123,7 +123,7 @@ public final class Treasure {
 		UseItemCallback.EVENT.register(Treasure::use);
 	}
 
-	/** Un fragmento de mapa del tesoro nuevo (sin descifrar), de la tabla heraldia:tesoro/fragmento. */
+	/** A new (undeciphered) treasure map fragment, from the heraldia:tesoro/fragmento table. */
 	public static ItemStack fragment(ServerLevel level) {
 		LootParams params = new LootParams.Builder(level).create(LootContextParamSets.EMPTY);
 		List<ItemStack> items = level.getServer().reloadableRegistries().getLootTable(FRAGMENT).getRandomItems(params);
@@ -131,8 +131,8 @@ public final class Treasure {
 	}
 
 	/**
-	 * Enganche de los encargos del tablón (T38, Encargos.pagar): con la probabilidad de la tabla heraldia:tesoro/encargo
-	 * (tesoro.probabilidad, si tesoro.activado), le da un fragmento al jugador. Barato: una tirada de botín.
+	 * Hook for the board quests (T38, Quests.pay): with the probability of the heraldia:tesoro/encargo table
+	 * (tesoro.probabilidad, if tesoro.activado), gives the player a fragment. Cheap: one loot roll.
 	 */
 	public static void reward(ServerPlayer p) {
 		ServerLevel level = p.level();
@@ -143,7 +143,7 @@ public final class Treasure {
 		}
 	}
 
-	/** La marca de pista de un objeto ({@value Chain#MARK}), o null si no es una pista. */
+	/** The clue mark of an item ({@value Chain#MARK}), or null if it is not a clue. */
 	static CompoundTag mark(ItemStack stack) {
 		CustomData data = stack.get(DataComponents.CUSTOM_DATA);
 		return data == null ? null : data.copyTag().getCompound(Chain.MARK).orElse(null);
@@ -155,7 +155,7 @@ public final class Treasure {
 		}
 		ItemStack stack = player.getItemInHand(hand);
 		if (!stack.is(Items.PAPER) && !stack.is(Items.FILLED_MAP)) {
-			return InteractionResult.PASS;   // salida temprana barata: casi todo lo que se usa no es una pista
+			return InteractionResult.PASS;   // cheap early exit: almost nothing that is used is a clue
 		}
 		CompoundTag tag = mark(stack);
 		if (tag == null) {
@@ -177,7 +177,7 @@ public final class Treasure {
 		return InteractionResult.SUCCESS;
 	}
 
-	// --- descifrar ---
+	// --- deciphering ---
 
 	private static void decipher(ServerPlayer player, ServerLevel level, Map<String, String> texts) {
 		UUID uuid = player.getUUID();
@@ -190,7 +190,7 @@ public final class Treasure {
 		long seed = Planner.seed(level.getSeed(), uuid, n);
 		BlockPos origin = player.blockPosition();
 		int radius = HeraldiaConfig.get().getInt(ClueCondition.RADIUS);
-		List<InfoCommand.Group> groups = InfoCommand.groups(level);   // en el hilo del servidor: lee los registros
+		List<InfoCommand.Group> groups = InfoCommand.groups(level);   // on the server thread: reads the ledgers
 		long t0 = System.nanoTime();
 		CompletableFuture.supplyAsync(() -> {
 			Search b = new Search(level, groups);
@@ -205,7 +205,7 @@ public final class Treasure {
 			}
 			int slot = fragmentSlot(player.getInventory());
 			if (slot < 0) {
-				return;   // ya no lleva el fragmento (lo soltó mientras tanto)
+				return;   // it no longer carries the fragment (dropped it in the meantime)
 			}
 			if (d.isEmpty()) {
 				player.sendSystemMessage(t(texts, "sin_destino", radius).withStyle(ChatFormatting.GRAY));
@@ -223,7 +223,7 @@ public final class Treasure {
 		});
 	}
 
-	/** El hueco del inventario con un fragmento sin descifrar: el de la mano principal si lo es; si no, el primero. */
+	/** The inventory slot with an undeciphered fragment: the main hand's if it is one; otherwise, the first. */
 	static int fragmentSlot(Inventory inv) {
 		int sel = inv.getSelectedSlot();
 		if (isFragment(inv.getItem(sel))) {
@@ -242,7 +242,7 @@ public final class Treasure {
 		return m != null && Chain.fromTag(m).isEmpty();
 	}
 
-	// --- seguir la cadena ---
+	// --- following the chain ---
 
 	private static void follow(ServerPlayer player, ServerLevel level, InteractionHand hand, Chain c, Map<String, String> texts) {
 		int px = player.getBlockX(), pz = player.getBlockZ();
@@ -275,7 +275,7 @@ public final class Treasure {
 			player.sendSystemMessage(t(texts, "sin_sitio").withStyle(ChatFormatting.GRAY));
 			return;
 		}
-		if (e.chest().isEmpty()) {   // todo cargado y nada seguro: el tesoro se va un poco más allá
+		if (e.chest().isEmpty()) {   // everything loaded and nothing safe: the treasure moves a bit further
 			Search.Simple biomes = new Search.Simple(level);
 			Chain moved = c.withTreasure(Planner.moveTreasure(c, biomes));
 			player.setItemInHand(hand, map(level, moved, texts));
@@ -307,12 +307,12 @@ public final class Treasure {
 				pos.getY(), pos.getZ(), c.seed());
 	}
 
-	/** Semillas de las cadenas ya completadas en este mundo (las del mundo principal). */
+	/** Seeds of the chains already completed in this world (those of the overworld). */
 	static Set<Long> completed(ServerLevel level) {
 		return new HashSet<>(level.getAttachedOrElse(Data.COMPLETED, List.of()));
 	}
 
-	/** El mundo para {@link Site}: solo chunks ya cargados (nunca carga ni genera uno). */
+	/** The world for {@link Site}: only already loaded chunks (it never loads or generates one). */
 	static Site.View view(ServerLevel level) {
 		return new Site.View() {
 			private LevelChunk chunk(int x, int z) {
@@ -347,9 +347,9 @@ public final class Treasure {
 		};
 	}
 
-	// --- el mapa ---
+	// --- the map ---
 
-	/** Un mapa vanilla nuevo con la marca del destino en curso de la cadena (y la cadena en el objeto). */
+	/** A new vanilla map with the mark of the chain's current destination (and the chain in the item). */
 	static ItemStack map(ServerLevel level, Chain c, Map<String, String> texts) {
 		Destination d = c.actual();
 		boolean treasure = d.type() == Destination.Type.TREASURE;
@@ -360,7 +360,7 @@ public final class Treasure {
 		return m;
 	}
 
-	/** Nombre, lore (la pista: qué es, bioma y dirección desde la marca anterior) y la cadena en custom_data. */
+	/** Name, lore (the clue: what it is, biome and direction from the previous mark) and the chain in custom_data. */
 	static void decorate(ItemStack m, Chain c, Map<String, String> texts) {
 		MutableComponent name = c.completed() ? t(texts, "mapa.hecho") : t(texts, "mapa.nombre", c.step() + 1, c.marks());
 		m.set(DataComponents.ITEM_NAME, name);
@@ -382,7 +382,7 @@ public final class Treasure {
 		CustomData.update(DataComponents.CUSTOM_DATA, m, tag -> tag.put(Chain.MARK, c.toTag()));
 	}
 
-	/** Nombre del bioma: el de su lang (lo traduce el cliente) o el id en bonito. */
+	/** Name of the biome: that of its lang (the client translates it) or the prettified id. */
 	static Component biome(String id) {
 		Identifier i = Identifier.tryParse(id);
 		if (i == null) {
@@ -406,7 +406,7 @@ public final class Treasure {
 
 	// --- /heraldia treasure ---
 
-	/** /heraldia treasure give [&lt;players&gt;] | info (operadores, nivel 2; lo registra Comandos). */
+	/** /heraldia treasure give [&lt;players&gt;] | info (operators, level 2; registered by HeraldiaCommands). */
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("treasure")
 				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))

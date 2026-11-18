@@ -11,14 +11,14 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 
 /**
- * Dónde enterrar el cofre final sin tocar nada de los jugadores: lógica pura sobre una {@link View} del mundo
- * (SitioTest con mundos de mentira; en el juego, {@link Treasure} la da con los chunks ya cargados, sin cargar ninguno).
- * <p>Se recorren las columnas a menos de {@code radius} bloques de la marca, de la más cercana a la más lejana; vale la
- * primera en la que: la cima (el bloque sólido más alto, sin hojas) y el de debajo son suelo natural ({@link #ground}), no
- * hay líquido encima, el sitio del cofre (un bloque bajo la cima: queda enterrado) no está en las piezas de ninguna
- * estructura, y en ninguna columna a menos de {@code margin} bloques hay un bloque hecho por jugadores
- * ({@link #artificial}) entre 6 bloques bajo su cima y 10 sobre ella. Una columna sin cargar no vale ni deja valer a las
- * de su margen.
+ * Where to bury the final chest without touching anything of the players': pure logic over a {@link View} of the world
+ * (SiteTest with fake worlds; in the game, {@link Treasure} provides it with the already loaded chunks, without loading any).
+ * <p>The columns within {@code radius} blocks of the mark are walked, from nearest to farthest; the first one wins
+ * in which: the top (the highest solid block, not counting leaves) and the one below are natural ground ({@link #ground}), there is
+ * no liquid above, the chest's spot (one block below the top: it ends up buried) is not in the pieces of any
+ * structure, and no column within {@code margin} blocks has a player-made block
+ * ({@link #artificial}) between 6 blocks below its top and 10 above it. An unloaded column is not valid nor lets the
+ * ones in its margin be valid.
  */
 public final class Site {
 	public static final int RADIUS = 16, MARGIN = 6, LOW = 6, ABOVE = 10;
@@ -26,9 +26,9 @@ public final class Site {
 	private Site() {
 	}
 
-	/** Lo que el sitio necesita saber del mundo (ids de bloque sin espacio de nombres si es minecraft). */
+	/** What the site needs to know about the world (block ids without namespace if they are minecraft's). */
 	public interface View {
-		/** y del bloque sólido más alto (sin contar hojas); vacío si la columna no está cargada. */
+		/** y of the highest solid block (not counting leaves); empty if the column is not loaded. */
 		OptionalInt top(int x, int z);
 
 		String block(int x, int y, int z);
@@ -50,7 +50,7 @@ public final class Site {
 	}
 
 	public static Choice choose(View v, int cx, int cz, int radius, int margin) {
-		Map<Long, Boolean> dirty = new HashMap<>();   // columna con algo de jugadores (o sin cargar)
+		Map<Long, Boolean> dirty = new HashMap<>();   // column with player stuff (or not loaded)
 		boolean unloaded = false;
 		for (int[] o : spiral(radius)) {
 			int x = cx + o[0], z = cz + o[1];
@@ -94,7 +94,7 @@ public final class Site {
 		return false;
 	}
 
-	/** Desplazamientos (dx, dz) a menos de radio, del más cercano al más lejano (con un orden fijo en los empates). */
+	/** Offsets (dx, dz) within the radius, from nearest to farthest (with a fixed order on ties). */
 	static List<int[]> spiral(int radius) {
 		List<int[]> out = new ArrayList<>();
 		for (int dx = -radius; dx <= radius; dx++) {
@@ -116,7 +116,7 @@ public final class Site {
 		return id.startsWith("minecraft:") ? id.substring("minecraft:".length()) : id;
 	}
 
-	/** Suelo natural donde se puede enterrar algo (tierra, arena, grava, piedra y parecidos). */
+	/** Natural ground where something can be buried (dirt, sand, gravel, stone and the like). */
 	public static boolean ground(String id) {
 		String b = shortRange(id);
 		return GROUND.contains(b) || b.endsWith("terracotta") && !b.contains("glazed");
@@ -127,7 +127,7 @@ public final class Site {
 			"andesite", "deepslate", "tuff", "calcite", "sandstone", "red_sandstone", "dripstone_block", "suspicious_sand",
 			"suspicious_gravel", "packed_mud");
 
-	/** Palabras (trozos del id separados por «_») de los bloques que solo pone un jugador (o una estructura). */
+	/** Words (pieces of the id separated by "_") of the blocks only a player (or a structure) places. */
 	private static final Set<String> WORDS = Set.of("planks", "glass", "pane", "wool", "carpet", "bed", "door", "trapdoor",
 			"fence", "gate", "wall", "stairs", "slab", "torch", "lantern", "lamp", "rail", "sign", "banner", "candle", "concrete",
 			"bricks", "chest", "barrel", "furnace", "smoker", "anvil", "bookshelf", "lectern", "bell", "hopper", "dispenser",
@@ -141,11 +141,11 @@ public final class Site {
 			"lapis_block", "coal_block", "copper_block", "netherite_block", "slime_block", "honey_block", "obsidian",
 			"crying_obsidian", "respawn_anchor", "lodestone", "enchanting_table", "ender_chest", "beehive", "sponge", "wet_sponge",
 			"dirt_path", "tripwire");
-	/** Naturales que comparten palabra con los artificiales. */
+	/** Natural ones that share a word with the artificial ones. */
 	private static final Set<String> NATURAL = Set.of("moss_carpet", "pale_moss_carpet", "pointed_dripstone", "redstone_ore",
 			"deepslate_redstone_ore", "bee_nest", "mushroom_stem", "brown_mushroom_block", "red_mushroom_block");
 
-	/** ¿Bloque puesto por un jugador (o por una construcción)? Por su id; los naturales con palabras compartidas, no. */
+	/** Block placed by a player (or by a construction)? By its id; the natural ones with shared words, no. */
 	public static boolean artificial(String id) {
 		String b = shortRange(id);
 		if (NATURAL.contains(b)) {

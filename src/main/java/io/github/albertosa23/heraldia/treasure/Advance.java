@@ -3,10 +3,10 @@ package io.github.albertosa23.heraldia.treasure;
 import java.util.Set;
 
 /**
- * Qué pasa al usar un mapa del tesoro: lógica pura (AvanceTest). Lejos de la marca, solo se dice hacia dónde queda; en una
- * estructura ({@value #STRUCTURE_ARRIVAL} bloques), la siguiente pista; en el tesoro ({@value #TREASURE_ARRIVAL}), se
- * entierra el cofre. Una cadena completada (o cuya semilla ya tiene cofre en el mundo, p. ej. una copia del mapa hecha
- * en la mesa de cartografía) no vuelve a dar nada: cada cadena se completa una sola vez.
+ * What happens when a treasure map is used: pure logic (AdvanceTest). Far from the mark, it only says which way it is; at a
+ * structure ({@value #STRUCTURE_ARRIVAL} blocks), the next clue; at the treasure ({@value #TREASURE_ARRIVAL}), the chest is
+ * buried. A completed chain (or one whose seed already has a chest in the world, e.g. a copy of the map made
+ * at the cartography table) gives nothing again: each chain is completed only once.
  */
 public final class Advance {
 	public static final int STRUCTURE_ARRIVAL = 40, TREASURE_ARRIVAL = 32;
@@ -30,7 +30,7 @@ public final class Advance {
 		return d.type() == Destination.Type.TREASURE ? Result.CHEST : Result.NEXT;
 	}
 
-	/** Distancia redondeada a la decena (lo que se dice al jugador). */
+	/** Distance rounded to the ten (what the player is told). */
 	public static int approximateDistance(Destination d, int px, int pz) {
 		return (int) (Math.round(Math.sqrt(d.distanceSq(px, pz)) / 10.0) * 10);
 	}

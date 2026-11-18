@@ -4,7 +4,7 @@ import io.github.albertosa23.heraldia.Heraldia;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 
-/** Registro del tipo de estructura heraldia:galeon (galeón varado en la orilla). */
+/** Registration of the heraldia:galeon structure type (galleon stranded on the shore). */
 public final class GalleonUnique {
 	private GalleonUnique() {
 	}

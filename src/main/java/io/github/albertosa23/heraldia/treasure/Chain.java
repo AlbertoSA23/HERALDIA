@@ -9,11 +9,12 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 
 /**
- * La cadena de una pista del tesoro, guardada en el propio objeto (custom_data {@value #MARK}): la semilla que la eligió,
- * los destinos en orden (estructuras y, al final, el tesoro), el paso en curso (el destino que marca el mapa ahora;
- * {@code step == destinations.size()}: completada, con el cofre ya colocado en {@code chest}) y cuántas veces se ha movido
- * el tesoro porque su sitio no era seguro; (ox, oz), dónde se descifró (para la dirección de la primera pista). Un fragmento sin descifrar solo lleva {@code {v: 1}} (sin semilla).
- * Lógica pura: se prueba sin juego (CadenaTest).
+ * The chain of a treasure clue, saved in the item itself (custom_data {@value #MARK}): the seed that chose it,
+ * the destinations in order (structures and, at the end, the treasure), the current step (the destination the map marks now;
+ * {@code step == destinations.size()}: completed, with the chest already placed at {@code chest}) and how many times the
+ * treasure has been moved because its spot was not safe; (ox, oz), where it was deciphered (for the direction of the first clue).
+ * An undeciphered fragment only carries {@code {v: 1}} (no seed).
+ * Pure logic: tested without the game (ChainTest).
  */
 public record Chain(long seed, int ox, int oz, int step, List<Destination> destinations, Optional<BlockPos> chest, int moved) {
 	public static final String MARK = "heraldia_busqueda";
@@ -37,12 +38,12 @@ public record Chain(long seed, int ox, int oz, int step, List<Destination> desti
 		return step >= destinations.size();
 	}
 
-	/** De dónde se sale hacia el destino {@code i}: el origen o el destino anterior. */
+	/** Where one leaves from towards destination {@code i}: the origin or the previous destination. */
 	public int[] from(int i) {
 		return i == 0 ? new int[]{ox, oz} : new int[]{destinations.get(i - 1).x(), destinations.get(i - 1).z()};
 	}
 
-	/** El destino que marca el mapa ahora (en una completada, el tesoro). */
+	/** The destination the map marks now (in a completed one, the treasure). */
 	public Destination actual() {
 		return destinations.get(Math.min(step, destinations.size() - 1));
 	}
@@ -51,7 +52,7 @@ public record Chain(long seed, int ox, int oz, int step, List<Destination> desti
 		return destinations.size();
 	}
 
-	/** Al llegar a una estructura: el siguiente destino. */
+	/** On reaching a structure: the next destination. */
 	public Chain advance() {
 		if (completed() || actual().type() == Destination.Type.TREASURE) {
 			throw new IllegalStateException("no se avanza desde el tesoro: se coloca el cofre");
@@ -59,7 +60,7 @@ public record Chain(long seed, int ox, int oz, int step, List<Destination> desti
 		return new Chain(seed, ox, oz, step + 1, destinations, chest, moved);
 	}
 
-	/** El cofre colocado: la cadena queda completada (una sola vez). */
+	/** The chest is placed: the chain is completed (only once). */
 	public Chain withChest(BlockPos pos) {
 		if (completed() || actual().type() != Destination.Type.TREASURE) {
 			throw new IllegalStateException("el cofre solo se coloca en el tesoro");
@@ -67,7 +68,7 @@ public record Chain(long seed, int ox, int oz, int step, List<Destination> desti
 		return new Chain(seed, ox, oz, step + 1, destinations, Optional.of(pos.immutable()), moved);
 	}
 
-	/** El tesoro en otro sitio (el suyo no era seguro). */
+	/** The treasure somewhere else (its spot was not safe). */
 	public Chain withTreasure(Destination newValue) {
 		List<Destination> d = new ArrayList<>(destinations);
 		d.set(d.size() - 1, newValue);
@@ -92,7 +93,7 @@ public record Chain(long seed, int ox, int oz, int step, List<Destination> desti
 		return t;
 	}
 
-	/** La cadena de una marca {@value #MARK}; vacío si es un fragmento sin descifrar (o una marca ilegible). */
+	/** The chain of a {@value #MARK} mark; empty if it is an undeciphered fragment (or an unreadable mark). */
 	public static Optional<Chain> fromTag(CompoundTag t) {
 		if (t.getLong("semilla").isEmpty()) {
 			return Optional.empty();
@@ -110,7 +111,7 @@ public record Chain(long seed, int ox, int oz, int step, List<Destination> desti
 		}
 	}
 
-	/** La marca de un fragmento sin descifrar (lo que pone la tabla heraldia:tesoro/fragmento). */
+	/** The mark of an undeciphered fragment (what the heraldia:tesoro/fragmento table sets). */
 	public static CompoundTag fragment() {
 		CompoundTag t = new CompoundTag();
 		t.putInt("v", VERSION);

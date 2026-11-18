@@ -10,9 +10,9 @@ import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStruct
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadType;
 
 /**
- * heraldia:mundial: exactamente una estructura por mundo, en el ancla que calcula {@link AtlantisAnchor}.
- * Son chunks de estructura los inicios de los nueve distritos (ancla ± 16 chunks). Hereda de random_spread porque
- * /locate y los mapas solo recorren ese tipo: getPotentialStructureChunk devuelve siempre el distrito central.
+ * heraldia:mundial: exactly one structure per world, at the anchor {@link AtlantisAnchor} computes.
+ * The structure chunks are the starts of the nine districts (anchor ± 16 chunks). It extends random_spread because
+ * /locate and the maps only walk that type: getPotentialStructureChunk always returns the central district.
  */
 public final class WorldPlacement extends RandomSpreadStructurePlacement {
 	public static final MapCodec<WorldPlacement> CODEC = MapCodec.unit(WorldPlacement::new);
@@ -33,7 +33,7 @@ public final class WorldPlacement extends RandomSpreadStructurePlacement {
 		return AtlantisAnchor.isDistrictStart(state.getLevelSeed(), chunkX, chunkZ);
 	}
 
-	/** /locate pasa por aquí y no por isPlacementChunk. */
+	/** /locate goes through here and not through isPlacementChunk. */
 	@Override
 	public boolean applyAdditionalChunkRestrictions(int chunkX, int chunkZ, long seed) {
 		return AtlantisAnchor.isDistrictStart(seed, chunkX, chunkZ);

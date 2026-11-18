@@ -4,7 +4,7 @@ import io.github.albertosa23.heraldia.Heraldia;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 
-/** Registro de la Ciudadela enana: su tipo de estructura heraldia:ciudadela. */
+/** Registration of the Dwarven Citadel: its structure type heraldia:ciudadela. */
 public final class Citadel {
 	private Citadel() {
 	}

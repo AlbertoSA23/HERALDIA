@@ -15,10 +15,10 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSeriali
 import net.minecraft.world.level.material.Fluids;
 
 /**
- * Urbanismo de la Atlántida, por columnas y sin plantillas: dentro del círculo de la ciudad despeja con agua todo lo
- * que haya sobre el suelo, pavimenta (avenidas en cruz y ronda interior), rellena el zócalo hasta el lecho para que
- * nada flote y levanta la muralla circular con sus cuatro puertas y tramos derruidos. El mismo trazado está en
- * tools/gen/unicas/atlantida/urbanismo.py para los planos y la auditoría: cambia los dos a la vez.
+ * Atlantis urban layout, by columns and without templates: inside the city circle it clears with water everything
+ * that is above the ground, paves (cross avenues and inner ring road), fills the plinth down to the bed so that
+ * nothing floats and raises the circular wall with its four gates and collapsed stretches. The same layout is in
+ * tools/gen/unicas/atlantida/urbanismo.py for the plans and the audit: change both at once.
  */
 public final class BasePiece extends StructurePiece {
 	static final int WALL_THICKNESS = 4, WALL_HEIGHT = 13, GATE_HALF = 4, GATE_HEIGHT = 8, AVENUE_HALF = 6, RING_ROAD = 10;
@@ -54,18 +54,18 @@ public final class BasePiece extends StructurePiece {
 		tag.putInt("base", base);
 	}
 
-	/** Dispersión entera determinista; idéntica a urbanismo.dispersion en Python. */
+	/** Deterministic integer scattering; identical to urbanismo.dispersion in Python. */
 	static int hash(int x, int z, int salt) {
 		int h = x * 374761393 + z * 668265263 + salt * 1013904223;
 		h = (h ^ (h >>> 13)) * 1274126177;
 		return (h ^ (h >>> 16)) & 0x7fffffff;
 	}
 
-	/** Altura de la muralla sobre el suelo en esta columna (0 = hueco de puerta a ras de suelo se trata aparte). */
+	/** Height of the wall above the ground in this column (0 = gate opening at ground level is handled separately). */
 	static int wallHeight(int x, int z) {
-		int sector = (int) Math.floor(Math.atan2(z, x) * 24 / Math.PI); // 48 sectores de ~48 bloques de arco
+		int sector = (int) Math.floor(Math.atan2(z, x) * 24 / Math.PI); // 48 sectors of ~48 blocks of arc
 		int roll = hash(sector, 7, 1) % 100;
-		int height = roll < 18 ? 3 + hash(x >> 1, z >> 1, 2) % 5 : WALL_HEIGHT; // 18 % de los tramos, derruidos
+		int height = roll < 18 ? 3 + hash(x >> 1, z >> 1, 2) % 5 : WALL_HEIGHT; // 18 % of the stretches, collapsed
 		return height;
 	}
 
@@ -87,9 +87,9 @@ public final class BasePiece extends StructurePiece {
 				boolean gate = wall && (Math.abs(x) <= GATE_HALF || Math.abs(z) <= GATE_HALF);
 				int wallTop = wall ? floor + (gate ? WALL_HEIGHT : wallHeight(x, z)) : floor;
 				if (wall && !gate && wallTop == floor + WALL_HEIGHT && r > radius - 1.5 && (hash(x, z, 3) & 1) == 0) {
-					wallTop++; // almenas en el borde exterior
+					wallTop++; // battlements on the outer edge
 				}
-				// 1) agua sobre el suelo (o muralla)
+				// 1) water above the ground (or wall)
 				for (int y = top; y > floor; y--) {
 					pos.set(wx, y, wz);
 					boolean solid = wall && y <= wallTop && !(gate && y <= floor + GATE_HEIGHT);
@@ -98,9 +98,9 @@ public final class BasePiece extends StructurePiece {
 						level.setBlock(pos, want, 2);
 					}
 				}
-				// 2) pavimento
+				// 2) paving
 				level.setBlock(pos.set(wx, floor, wz), pavement(x, z, r), 2);
-				// 3) zócalo hasta el lecho
+				// 3) plinth down to the bed
 				for (int y = floor - 1; y >= box.minY(); y--) {
 					pos.set(wx, y, wz);
 					if (y < base && !replaceable(level.getBlockState(pos))) {

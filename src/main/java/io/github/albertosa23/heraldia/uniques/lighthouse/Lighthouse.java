@@ -5,7 +5,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 
-/** Registro del faro con cueva de contrabandistas: su tipo de estructura busca la línea de costa. */
+/** Registration of the lighthouse with the smugglers' cave: its structure type looks for the coastline. */
 public final class Lighthouse {
 	public static final StructureType<LighthouseStructure> TYPE = () -> LighthouseStructure.CODEC;
 

@@ -4,9 +4,9 @@ import java.util.Locale;
 import net.minecraft.nbt.CompoundTag;
 
 /**
- * Un paso de la cadena: el sitio que marca el mapa. {@code structure}: el id de la estructura (heraldia:medianas/...,
- * heraldia:minas/...) o vacío en el tesoro; {@code generated}: si la estructura ya estaba generada al elegirla (si no,
- * prevista: un chunk sin generar donde la generación la pondrá); {@code biome}: el id del bioma del sitio (para la pista).
+ * A step of the chain: the spot the map marks. {@code structure}: the structure's id (heraldia:medianas/...,
+ * heraldia:minas/...) or empty for the treasure; {@code generated}: whether the structure was already generated when chosen (otherwise,
+ * expected: an ungenerated chunk where generation will put it); {@code biome}: the id of the spot's biome (for the clue).
  */
 public record Destination(Type type, String structure, int x, int z, boolean generated, String biome) {
 	public enum Type {

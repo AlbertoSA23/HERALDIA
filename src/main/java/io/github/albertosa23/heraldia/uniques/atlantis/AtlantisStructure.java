@@ -18,10 +18,10 @@ import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
 
 /**
- * heraldia:atlantida: una ciudad de plano fijo repartida en distritos. Cada distrito es un inicio de estructura propio
- * (un chunk solo ve inicios a ±8 chunks) y coloca, sin azar, las piezas del plano cuya esquina mínima cae en él,
- * después de la pieza base que despeja el agua, pavimenta y levanta la muralla. Coordenadas del plano: x, z relativas
- * al centro de la ciudad (esquina mínima del chunk ancla); y absoluta.
+ * heraldia:atlantida: a fixed-plan city split into districts. Each district is its own structure start
+ * (a chunk only sees starts within ±8 chunks) and places, without randomness, the plan's pieces whose minimum corner falls in it,
+ * after the base piece that clears the water, paves and raises the wall. Plan coordinates: x, z relative
+ * to the city's center (minimum corner of the anchor chunk); y absolute.
  */
 public final class AtlantisStructure extends Structure {
 	public record Piece(Identifier template, int x, int y, int z) {
@@ -52,7 +52,7 @@ public final class AtlantisStructure extends Structure {
 		this.pieces = pieces;
 	}
 
-	/** Sin comprobación de bioma: el ancla ya se eligió en océano y, si no lo hubiera, la ciudad se genera igualmente entera. */
+	/** No biome check: the anchor was already chosen in the ocean and, if it were not, the city still generates whole. */
 	@Override
 	public Optional<GenerationStub> findValidGenerationPoint(GenerationContext context) {
 		return findGenerationPoint(context);
@@ -66,7 +66,7 @@ public final class AtlantisStructure extends Structure {
 			return Optional.empty();
 		}
 		int cx = anchor.getMinBlockX(), cz = anchor.getMinBlockZ(), half = AtlantisAnchor.DISTRICT_CHUNKS * 8;
-		// caja del distrito en coordenadas del plano
+		// district box in plan coordinates
 		int x0 = chunk.getMinBlockX() - cx - half, z0 = chunk.getMinBlockZ() - cz - half, x1 = x0 + 2 * half - 1, z1 = z0 + 2 * half - 1;
 		return Optional.of(new GenerationStub(new BlockPos(chunk.getMinBlockX(), floor, chunk.getMinBlockZ()), builder -> {
 			builder.addPiece(new BasePiece(new BoundingBox(cx + x0, base - 40, cz + z0, cx + x1, top, cz + z1), cx, cz, radius, floor, base));

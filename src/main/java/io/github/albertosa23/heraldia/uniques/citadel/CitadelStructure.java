@@ -23,10 +23,10 @@ import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
 
 /**
- * Ciudadela enana: una sola pieza cuya puerta (z=0 de la plantilla, mirando al norte) se orienta hacia donde baja la
- * ladera. Prueba 4 rotaciones x 25 posiciones con el mapa de alturas de generación: delante de la puerta terreno casi
- * llano y seco, más adelante sin muro, y sobre la ciudad roca en al menos el 75 % de la rejilla de techos que escribe
- * el generador. Si nada cumple no se genera; con /place (que acepta cualquier bioma) se usa la mejor opción.
+ * Dwarven citadel: a single piece whose gate (template z=0, facing north) is oriented towards where the
+ * hillside goes down. It tries 4 rotations x 25 positions with the generation height map: in front of the gate almost
+ * flat and dry terrain, further ahead no wall, and over the city rock on at least 75 % of the ceiling grid the
+ * generator writes. If nothing passes it is not generated; with /place (which accepts any biome) the best option is used.
  */
 public final class CitadelStructure extends Structure {
 	public static final MapCodec<CitadelStructure> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -93,7 +93,7 @@ public final class CitadelStructure extends Structure {
 				LiquidSettings.IGNORE_WATERLOGGING))));
 	}
 
-	/** Candidato con la entrada en (ax, az) y la rotación dada, o null si el terreno no sirve. */
+	/** Candidate with the entrance at (ax, az) and the given rotation, or null if the terrain does not work. */
 	private Candidate evaluate(GenerationContext ctx, Map<Long, int[]> cache, Rotation rot, int ax, int az, double toBeat,
 			boolean forced) {
 		BlockPos e = new BlockPos(entrance.getX(), 0, entrance.getZ()).rotate(rot);
@@ -102,7 +102,7 @@ public final class CitadelStructure extends Structure {
 		for (int k = -6; k <= 6; k += 3) {
 			int[] h = height(ctx, cache, ox, oz, rot, entrance.getX() + k, entrance.getZ() - 2);
 			if (h[0] != h[1] && !forced) {
-				return null;                            // agua delante de la puerta
+				return null;                            // water in front of the gate
 			}
 			front.add(h[0]);
 		}
@@ -139,14 +139,14 @@ public final class CitadelStructure extends Structure {
 					covered++;
 				}
 				if ((covered + (total - seen)) / (double) total < Math.max(forced ? 0 : MIN_COVER, toBeat)) {
-					return null;                        // ya no puede mejorar
+					return null;                        // it can no longer improve
 				}
 			}
 		}
 		return new Candidate(new BlockPos(ox, oy, oz), rot, covered / (double) total);
 	}
 
-	/** {superficie con agua, fondo sólido} en la columna de la posición local (lx, lz) de la plantilla. */
+	/** {surface with water, solid floor} in the column of the template's local position (lx, lz). */
 	private static int[] height(GenerationContext ctx, Map<Long, int[]> cache, int ox, int oz, Rotation rot, int lx, int lz) {
 		BlockPos p = new BlockPos(lx, 0, lz).rotate(rot);
 		int x = ((ox + p.getX()) >> 2 << 2) + 2, z = ((oz + p.getZ()) >> 2 << 2) + 2;
@@ -155,7 +155,7 @@ public final class CitadelStructure extends Structure {
 				ctx.chunkGenerator().getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, ctx.heightAccessor(), ctx.randomState())});
 	}
 
-	/** /place structure pasa un predicado que acepta cualquier bioma: entonces se coloca aunque el terreno no encaje. */
+	/** /place structure passes a predicate that accepts any biome: then it is placed even if the terrain does not fit. */
 	private boolean acceptsAnyBiome(GenerationContext ctx) {
 		Optional<? extends Holder<Biome>> plains = ctx.registryAccess().lookupOrThrow(Registries.BIOME)
 				.get(Identifier.withDefaultNamespace("plains"));

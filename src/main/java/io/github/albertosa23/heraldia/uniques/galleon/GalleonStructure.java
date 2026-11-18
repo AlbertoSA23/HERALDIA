@@ -26,9 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Galeón varado: una pieza jigsaw que se sitúa en la orilla. El jigsaw no ve el agua, así que antes de colocarla se
- * busca, en una rejilla alrededor del chunk y con los cuatro giros, el sitio donde todas las sondas de la plantilla
- * (mar a un lado del casco, playa al otro, campamento y peñón en tierra) caen en su intervalo de altura del fondo.
+ * Stranded galleon: a jigsaw piece placed on the shore. The jigsaw does not see water, so before placing it
+ * the spot is searched, on a grid around the chunk and with the four rotations, where all the template's probes
+ * (sea on one side of the hull, beach on the other, camp and rock on land) fall within their floor height range.
  */
 public final class GalleonStructure extends Structure {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -76,7 +76,7 @@ public final class GalleonStructure extends Structure {
 			if (!Generation.forced(context, this.biomes())) {
 				return Optional.empty();
 			}
-			// /place structure: sin orilla cerca se coloca igualmente en el centro del chunk (para pruebas)
+			// /place structure: with no shore nearby it is placed anyway in the center of the chunk (for tests)
 			int x = chunk.getMiddleBlockX(), z = chunk.getMiddleBlockZ();
 			int y = Math.max(sea, context.chunkGenerator().getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG,
 					context.heightAccessor(), context.randomState()));
@@ -85,11 +85,11 @@ public final class GalleonStructure extends Structure {
 		Site s = site.get();
 		LOGGER.info("Heraldia: galeón en la orilla, ancla {} {} {} giro {}", s.anchor().getX(), s.anchor().getY(), s.anchor().getZ(), s.rotation());
 		BlockPos origin = s.anchor().subtract(StructureTemplate.transform(this.anchor, Mirror.NONE, s.rotation(), BlockPos.ZERO));
-		// maxDepth >= 1: con 0, addPieces no añade ni la pieza central. JigsawPlacement deja la base de la pieza un bloque por debajo de la posición (getGroundLevelDelta = 1)
+		// maxDepth >= 1: with 0, addPieces does not even add the central piece. JigsawPlacement leaves the piece's base one block below the position (getGroundLevelDelta = 1)
 		Optional<Structure.GenerationStub> stub = JigsawPlacement.addPieces(Generation.withRotation(context, s.rotation()), this.startPool,
 				Optional.empty(), 1, origin.above(), false, Optional.empty(), new JigsawStructure.MaxDistance(116),
 				PoolAliasLookup.EMPTY, DimensionPadding.ZERO, LiquidSettings.IGNORE_WATERLOGGING);
-		// el bioma se valida en el ancla (a nivel del mar), no en el centro de la caja, que queda bajo tierra
+		// the biome is validated at the anchor (at sea level), not at the box's center, which is underground
 		return stub.map(g -> new Structure.GenerationStub(s.anchor(), g.generator()));
 	}
 
@@ -124,7 +124,7 @@ public final class GalleonStructure extends Structure {
 		return Optional.ofNullable(best);
 	}
 
-	/** Fallos * 1000 + desnivel del terreno; MAX_VALUE si falla una sonda obligatoria o hay demasiados fallos. */
+	/** Failures * 1000 + terrain drop; MAX_VALUE if a mandatory probe fails or there are too many failures. */
 	private int score(Structure.GenerationContext c, Long2IntOpenHashMap heights, int ax, int az, Rotation rotation, int sea) {
 		int misses = 0, roughness = 0;
 		for (Probe p : this.probes) {

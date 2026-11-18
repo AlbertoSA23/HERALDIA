@@ -31,19 +31,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Ancla de la Atlántida: el chunk de inicio del distrito central. Se calcula una vez por mundo al cargar el Overworld,
- * fuera del hilo del servidor, y se guarda en data/heraldia/atlantida.json para que no cambie aunque cambien los
- * biomas o lo explorado. Los hilos de generación esperan al resultado.
+ * Atlantis anchor: the start chunk of the central district. It is computed once per world when the Overworld loads,
+ * off the server thread, and saved in data/heraldia/atlantida.json so it does not change even if the
+ * biomes or the explored area change. The generation threads wait for the result.
  */
 public final class AtlantisAnchor {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	/** Distritos: 3 x 3, cada uno de 16 x 16 chunks con el inicio en el chunk 8 (cubre de -8 a +7, dentro del límite de ±8). */
+	/** Districts: 3 x 3, each of 16 x 16 chunks with the start at chunk 8 (covers -8 to +7, within the ±8 limit). */
 	public static final int DISTRICT_CHUNKS = 16, DISTRICTS_PER_SIDE = 3;
 	private static final int STEP = 64, SEARCH_RADIUS = 12288, MIN_DISTANCE = 1500, SAMPLE_Y = 40;
-	private static final int HALF_CELLS = 7, DEEP_HALF_CELLS = 4; // 448 bloques de océano desde el centro (384 de ciudad + margen)
-	private static final int EXCLUSION_RADIUS = 372 + 72; // muralla + medio monumento oceánico y holgura
+	private static final int HALF_CELLS = 7, DEEP_HALF_CELLS = 4; // 448 blocks of ocean from the center (384 of city + margin)
+	private static final int EXCLUSION_RADIUS = 372 + 72; // wall + half an ocean monument and slack
 	private static final Identifier STRUCTURE_ID = Identifier.fromNamespaceAndPath("heraldia", "unicas/atlantida");
-	/** Estructuras que el juego necesita (la fortaleza lleva el portal del End y su anillo no tiene otro sitio): nunca se excluyen. */
+	/** Structures the game needs (the stronghold has the End portal and its ring has no other place): never excluded. */
 	private static final Set<Identifier> REQUIRED = Set.of(Identifier.fromNamespaceAndPath("minecraft", "stronghold"));
 	private static final Map<Long, CompletableFuture<ChunkPos>> BY_SEED = new ConcurrentHashMap<>();
 
@@ -89,7 +89,7 @@ public final class AtlantisAnchor {
 		BY_SEED.clear();
 	}
 
-	/** Chunk de inicio del distrito central, o null si este mundo no tiene (todavía) ancla. */
+	/** Start chunk of the central district, or null if this world has no anchor (yet). */
 	public static @Nullable ChunkPos get(long seed) {
 		CompletableFuture<ChunkPos> future = BY_SEED.get(seed);
 		return future == null ? null : future.join();
@@ -105,8 +105,8 @@ public final class AtlantisAnchor {
 	}
 
 	/**
-	 * Ninguna otra estructura puede nacer dentro de la ciudad ni pegada a ella (monumentos, naufragios, ruinas oceánicas):
-	 * su chunk de inicio queda excluido en un radio de la muralla más un margen. Las fortalezas (REQUIRED) no se excluyen.
+	 * No other structure can be born inside the city or right next to it (monuments, shipwrecks, ocean ruins):
+	 * its start chunk is excluded within the wall's radius plus a margin. Strongholds (REQUIRED) are not excluded.
 	 */
 	public static boolean excludes(Identifier structure, ResourceKey<Level> dimension, long seed, int chunkX, int chunkZ) {
 		if (dimension != Level.OVERWORLD || STRUCTURE_ID.equals(structure) || REQUIRED.contains(structure)) {
@@ -138,18 +138,18 @@ public final class AtlantisAnchor {
 	}
 
 	/**
-	 * Muestrea los biomas cada 64 bloques y elige, por niveles de exigencia decreciente, el centro más cercano al 0,0:
-	 * 0) todo océano en ±448, profundo en el centro, sin explorar; 1) todo océano, sin explorar; 2) casi todo océano, sin
-	 * explorar; 3) casi todo océano; 4) el que más océano tenga. Siempre devuelve uno.
+	 * Samples the biomes every 64 blocks and chooses, by decreasing levels of strictness, the center closest to 0,0:
+	 * 0) all ocean within ±448, deep at the center, unexplored; 1) all ocean, unexplored; 2) almost all ocean,
+	 * unexplored; 3) almost all ocean; 4) the one with the most ocean. It always returns one.
 	 */
 	private static ChunkPos search(BiomeResolver resolver, Path regions) {
 		int n = 2 * SEARCH_RADIUS / STEP;
-		int[][] land = new int[n + 1][n + 1], deep = new int[n + 1][n + 1]; // sumas acumuladas
+		int[][] land = new int[n + 1][n + 1], deep = new int[n + 1][n + 1]; // cumulative sums
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				Holder<Biome> biome = resolver.getNoiseBiome(QuartPos.fromBlock(i * STEP - SEARCH_RADIUS + STEP / 2), QuartPos.fromBlock(SAMPLE_Y),
 						QuartPos.fromBlock(j * STEP - SEARCH_RADIUS + STEP / 2));
-				// etiquetas vanilla y convencionales (océanos de otros mods); en vanilla #c:is_ocean = #minecraft:is_ocean
+				// vanilla and conventional tags (other mods' oceans); in vanilla #c:is_ocean = #minecraft:is_ocean
 				int l = biome.is(BiomeTags.IS_OCEAN) || biome.is(ConventionalBiomeTags.IS_OCEAN) ? 0 : 1;
 				int d = biome.is(BiomeTags.IS_DEEP_OCEAN) || biome.is(ConventionalBiomeTags.IS_DEEP_OCEAN) ? 1 : 0;
 				land[i + 1][j + 1] = l + land[i][j + 1] + land[i + 1][j] - land[i][j];
@@ -171,7 +171,7 @@ public final class AtlantisAnchor {
 				int tier = landCount == 0 ? (deepCount * 5 >= inner * 4 ? 0 : 1) : landCount * 20 <= window ? 2 : 4;
 				long key = tier == 4 ? (long) landCount << 40 | dist : dist;
 				if (tier < 4 && key < bestKey[tier] && explored((int) x, (int) z, regions, explored)) {
-					tier = 3; // explorado: solo vale si no hay nada sin explorar
+					tier = 3; // explored: only valid if there is nothing unexplored
 				}
 				if (key < bestKey[tier]) {
 					bestKey[tier] = key;
@@ -195,7 +195,7 @@ public final class AtlantisAnchor {
 		return acc[i + half][j + half] - acc[i - half][j + half] - acc[i + half][j - half] + acc[i - half][j - half];
 	}
 
-	/** Hay ya algún fichero de región bajo la huella de la ciudad (algún chunk generado en esa región). */
+	/** Is there already some region file under the city's footprint (some chunk generated in that region)? */
 	private static boolean explored(int x, int z, Path regions, Map<Long, Boolean> cache) {
 		int reach = HALF_CELLS * STEP;
 		for (int rx = Math.floorDiv(x - reach, 512); rx <= Math.floorDiv(x + reach, 512); rx++) {

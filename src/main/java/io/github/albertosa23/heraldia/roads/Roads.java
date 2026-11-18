@@ -36,13 +36,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Caminos entre aldeas (aldeas.caminos.*): el rasgo heraldia:camino ({@link RoadFeature}) va en todos los biomas del
- * mundo principal, en el paso STRONGHOLDS de la decoración: después de colocar las estructuras de superficie del chunk
- * (sus piezas ya están, y se esquivan) y antes de la vegetación (los árboles y la hierba no salen encima del camino). En
- * vanilla ese paso no tiene rasgos, así que no cambia el azar de ningún otro. Desactivado, ni se añade a los biomas.
- * <p>Como todo rasgo, solo corre en los chunks que se generan: en un mundo existente, lo ya generado no cambia y los
- * tramos que caerían en chunks viejos no existen.
- * <p>El contexto (rejilla de las aldeas, reglas de la generación, memoria del trazado) se prepara una vez por mundo.
+ * Roads between villages (aldeas.caminos.*): the heraldia:camino feature ({@link RoadFeature}) goes in every biome of the
+ * overworld, in the STRONGHOLDS decoration step: after the chunk's surface structures are placed
+ * (their pieces are already there, and are avoided) and before vegetation (trees and grass do not spawn on the road). In
+ * vanilla that step has no features, so it does not change the randomness of any other. Disabled, it is not even added to the biomes.
+ * <p>Like any feature, it only runs in chunks being generated: in an existing world, what is already generated does not change and the
+ * segments that would fall in old chunks do not exist.
+ * <p>The context (villages' grid, generation rules, layout memo) is prepared once per world.
  */
 public final class Roads {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -50,21 +50,21 @@ public final class Roads {
 			WIDTH = "aldeas.caminos.ancho";
 	public static final ResourceKey<PlacedFeature> FEATURE = ResourceKey.create(Registries.PLACED_FEATURE, Heraldia.id("camino"));
 	private static final Identifier VILLAGES = Heraldia.id("aldeas");
-	/** Punto de paso junto a una única: la recta debe pasar a menos de HITO_MAX bloques y el camino pasa a HITO_PASO. */
+	/** Waypoint next to a unique: the straight line must pass within MILESTONE_MAX blocks and the road passes at MILESTONE_STEP. */
 	static final int MILESTONE_MAX = 320, MILESTONE_STEP = 112;
 
 	private static volatile @Nullable Context context;
-	// coste medido (System.nanoTime) en el rasgo: todos los chunks, y los que tienen camino
+	// cost measured (System.nanoTime) in the feature: all chunks, and those that have a road
 	static final AtomicLong CHUNKS = new AtomicLong(), CHUNKS_NS = new AtomicLong(), WITH_ROAD = new AtomicLong(),
 			WITH_ROAD_NS = new AtomicLong(), COLUMNS = new AtomicLong();
-	// de ello, lo que se calcula una vez por casilla, ruta o vértice (y queda en memoria)
+	// of that, what is computed once per cell, route or vertex (and memoized)
 	static final AtomicLong VILLAGES_N = new AtomicLong(), VILLAGES_NS = new AtomicLong(), MILESTONES_N = new AtomicLong(), MILESTONES_NS = new AtomicLong(),
 			SEABED_N = new AtomicLong(), SEABED_NS = new AtomicLong();
 
 	private Roads() {
 	}
 
-	/** Una línea en Heraldia.onInitialize (la configuración ya está leída). */
+	/** One line in Heraldia.onInitialize (the configuration is already read). */
 	public static void register() {
 		Registry.register(BuiltInRegistries.FEATURE_TYPE, Heraldia.id("camino"), RoadFeature.CODEC);
 		HeraldiaConfig cfg = HeraldiaConfig.get();
@@ -80,9 +80,9 @@ public final class Roads {
 	}
 
 	/**
-	 * Para /heraldia review: el centro del tramo de camino más cercano a (x, z) (punto medio de una ruta entre dos
-	 * aldeas vecinas), o null si los caminos están desactivados o no hay ninguna ruta cerca. Seguro fuera del hilo del
-	 * servidor (el contexto es el de la generación); no carga ni genera chunks.
+	 * For /heraldia review: the center of the road segment nearest to (x, z) (midpoint of a route between two
+	 * neighboring villages), or null if roads are disabled or there is no route nearby. Safe off the server
+	 * thread (the context is generation's); it neither loads nor generates chunks.
 	 */
 	public static @Nullable BlockPos nearestSegment(ServerLevel level, int x, int z) {
 		if (!HeraldiaConfig.get().getBool(ENABLED)) {
@@ -97,9 +97,9 @@ public final class Roads {
 	}
 
 	/**
-	 * Para los encargos de viaje del tablón (T38): las aldeas vecinas (las que une un camino) de la aldea con el inicio
-	 * en el chunk (chunkX, chunkZ), como posiciones empaquetadas ({@link RoadLayout#pack}) de sus plazas. Vacío con los
-	 * caminos desactivados o fuera del mundo principal. Seguro fuera del hilo del servidor; no carga ni genera chunks.
+	 * For the board's journey quests (T38): the neighboring villages (those a road joins) of the village starting
+	 * in chunk (chunkX, chunkZ), as packed positions ({@link RoadLayout#pack}) of their plazas. Empty with
+	 * roads disabled or outside the overworld. Safe off the server thread; it neither loads nor generates chunks.
 	 */
 	public static long[] neighbors(ServerLevel level, int chunkX, int chunkZ) {
 		if (!HeraldiaConfig.get().getBool(ENABLED)) {
@@ -113,9 +113,9 @@ public final class Roads {
 	}
 
 	/**
-	 * Para las caravanas (T39): el trazado de los caminos del mundo principal (las mismas rutas que la generación), o null
-	 * con los caminos desactivados, en otra dimensión o sin la rejilla de las aldeas. Seguro fuera del hilo del servidor;
-	 * no carga ni genera chunks.
+	 * For the caravans (T39): the overworld's road layout (the same routes as generation), or null
+	 * with roads disabled, in another dimension or without the villages' grid. Safe off the server thread;
+	 * it neither loads nor generates chunks.
 	 */
 	public static @Nullable RoadLayout layout(ServerLevel level) {
 		if (!HeraldiaConfig.get().getBool(ENABLED)) {
@@ -125,7 +125,7 @@ public final class Roads {
 		return c == null ? null : c.layout();
 	}
 
-	/** Histograma del coste por chunk: casilla k = de 2^k a 2^(k+1) µs (la 0, menos de 2 µs). */
+	/** Histogram of the cost per chunk: bin k = from 2^k to 2^(k+1) µs (bin 0, under 2 µs). */
 	static final AtomicLongArray HISTOGRAM = new AtomicLongArray(24);
 
 	static void measure(long ns) {
@@ -133,7 +133,7 @@ public final class Roads {
 		HISTOGRAM.incrementAndGet(Math.min(23, us <= 1 ? 0 : 63 - Long.numberOfLeadingZeros(us)));
 	}
 
-	/** Cota superior (µs) del percentil p del histograma. */
+	/** Upper bound (µs) of the histogram's percentile p. */
 	static long percentile(double p) {
 		long total = 0;
 		for (int i = 0; i < HISTOGRAM.length(); i++) {
@@ -149,7 +149,7 @@ public final class Roads {
 		return 2L << (HISTOGRAM.length() - 1);
 	}
 
-	/** Coste medido hasta ahora (en el log al parar el servidor y cada 16.384 chunks). */
+	/** Cost measured so far (logged when the server stops and every 16,384 chunks). */
 	static void report() {
 		long n = CHUNKS.get(), c = WITH_ROAD.get();
 		if (n == 0) {
@@ -165,17 +165,17 @@ public final class Roads {
 				MILESTONES_N.get(), SEABED_NS.get() / 1_000_000, SEABED_N.get());
 	}
 
-	/** Mide una consulta cara que queda en memoria. */
+	/** Measures an expensive query that gets memoized. */
 	private static void measurement(AtomicLong n, AtomicLong total, long t0) {
 		n.incrementAndGet();
 		total.addAndGet(System.nanoTime() - t0);
 	}
 
-	/** Todo lo que el rasgo necesita de un mundo; inmutable salvo las memorias del trazado (seguras entre hilos). */
+	/** Everything the feature needs from a world; immutable except the layout's memos (thread-safe). */
 	record Context(ServerLevel level, @Nullable RoadLayout layout, int width, int sea, RoadLayout.Seabed depth, BiomeResolver biomes) {
 	}
 
-	/** El contexto del mundo principal (null en otra dimensión). Se construye una vez por mundo. */
+	/** The overworld's context (null in another dimension). Built once per world. */
 	static @Nullable Context of(ServerLevel level, ChunkGenerator generator) {
 		if (level.dimension() != Level.OVERWORLD) {
 			return null;
@@ -217,7 +217,7 @@ public final class Roads {
 			RoadLayout.Villages villages = (gx, gz) -> {
 				long t0 = System.nanoTime();
 				ChunkPos c = p.getPotentialStructureChunk(seed, gx * s + ox, gz * s + oz);
-				// las mismas reglas que la generación: casillas permitidas, zona de exclusión, estilos, bioma y terreno
+				// the same rules as generation: allowed cells, exclusion zone, styles, biome and terrain
 				long v = p.isStructureChunk(state, c.x(), c.z()) && outcome.outcome(c.x(), c.z()) ? RoadLayout.pack(c.x() * 16 + 8, c.z() * 16 + 8) : RoadLayout.NONE;
 				measurement(VILLAGES_N, VILLAGES_NS, t0);
 				return v;
@@ -237,9 +237,9 @@ public final class Roads {
 	}
 
 	/**
-	 * Punto de paso junto a la estructura única (de rejilla) más cercana a la recta entre dos aldeas, si la recta pasa a
-	 * menos de {@link #MILESTONE_MAX} bloques de ella por su mitad central y sale de verdad ahí (las mismas reglas que /locate y
-	 * la generación, con la rejilla en uso: también la antigua con unicas.rejilla_compatible). Una vez por ruta.
+	 * Waypoint next to the (grid) unique structure closest to the straight line between two villages, if the line passes
+	 * within {@link #MILESTONE_MAX} blocks of it along its central half and it really wins there (the same rules as /locate and
+	 * generation, with the grid in use: also the old one with unicas.rejilla_compatible). Once per route.
 	 */
 	private static RoadLayout.Milestones milestones(ServerLevel level, ChunkGenerator generator, RegistryAccess access, Climate.Sampler sampler,
 									   RandomState randomState, ChunkGeneratorStructureState state, long seed) {
@@ -255,7 +255,7 @@ public final class Roads {
 			double bestD = Double.MAX_VALUE;
 			for (int i = 0; i < sep.size(); i++) {
 				if (sep.fixed(i)) {
-					continue; // la Atlántida: en mar abierto
+					continue; // Atlantis: in the open sea
 				}
 				RandomSpreadStructurePlacement p = sep.placement(i);
 				int s = p.spacing() * 16, ox = UniqueSeparation.offsetX(p), oz = UniqueSeparation.offsetZ(p);
@@ -275,7 +275,7 @@ public final class Roads {
 						}
 						bestD = d;
 						double nx, nz;
-						if (d < 1) { // la recta pasa por encima: a un lado
+						if (d < 1) { // the line passes over it: to one side
 							double l = Math.sqrt(l2);
 							nx = -dz / l;
 							nz = dx / l;

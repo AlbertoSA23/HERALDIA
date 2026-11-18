@@ -24,9 +24,9 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSetting
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 
 /**
- * Estructura de una sola pieza situada en la línea de costa. El jigsaw no ve el agua y gira al azar, así que aquí se
- * busca un punto con tierra detrás y mar delante (mapas de alturas de generación) y se gira la plantilla para que su
- * lado +z (la boca de la cueva) mire al mar, con la fila {@code sea_row} de la plantilla en el nivel del mar - 1.
+ * Single-piece structure placed on the coastline. The jigsaw does not see water and rotates at random, so here
+ * a point with land behind and sea in front is searched (generation height maps) and the template is rotated so its
+ * +z side (the cave's mouth) faces the sea, with the template's {@code sea_row} row at sea level - 1.
  */
 public final class LighthouseStructure extends Structure {
 	public static final MapCodec<LighthouseStructure> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -35,7 +35,7 @@ public final class LighthouseStructure extends Structure {
 			Codec.intRange(0, 64).fieldOf("sea_row").forGetter(s -> s.seaRow)
 	).apply(i, LighthouseStructure::new));
 
-	/** Rejilla de candidatos alrededor del centro de la casilla (bloques) y paso de muestreo. */
+	/** Grid of candidates around the cell's center (blocks) and sampling step. */
 	private static final int SEARCH = 24, STEP = 8;
 	private static final List<int[]> CANDIDATES = new ArrayList<>();
 
@@ -80,11 +80,11 @@ public final class LighthouseStructure extends Structure {
 				}
 			}
 		}
-		// /place structure acepta cualquier bioma: sin costa a la vista se coloca igualmente, para probar.
+		// /place structure accepts any biome: with no coast in sight it is placed anyway, for testing.
 		return forced ? Optional.of(stub(ctx, cx, cz, sea, Direction.SOUTH)) : Optional.empty();
 	}
 
-	/** Tierra detrás (ni baja ni alta), mar con fondo delante y nada más alto que la cima en la huella. */
+	/** Land behind (neither low nor high), sea with a floor in front and nothing higher than the top in the footprint. */
 	private static boolean coast(Heights h, int px, int pz, Direction d) {
 		Direction e = d.getClockWise();
 		for (int k = 8; k <= 16; k += 8) {

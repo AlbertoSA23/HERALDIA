@@ -24,12 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Mina perdida: la colonia (una plantilla grande) a una altura fija bajo tierra, el pozo maestro apilado encima en tramos
- * de 8 y de 1 bloques y el castillete en la superficie. Busca en una malla de 5 x 5 puntos (cada 16 bloques alrededor
- * del chunk candidato) el sitio donde el centro de la caverna y más puntos de muestra caen en el bioma (cuevas
- * exuberantes o de espeleotemas, a la altura de la caverna: solo lee el ruido de biomas) y, para los mejores, mira el
- * terreno sobre el pozo con el mapa de alturas de generación: seco, casi llano bajo el castillete y con un pozo de 0 a
- * pozo_max bloques. Si nada cumple no se genera; con /place (que acepta cualquier bioma) se usa el chunk tal cual.
+ * Lost mine: the colony (a large template) at a fixed height underground, the main shaft stacked on top in stretches
+ * of 8 and 1 blocks and the headframe on the surface. It searches a 5 x 5 grid of points (every 16 blocks around
+ * the candidate chunk) for the spot where the cavern's center and the most sample points fall in the biome (lush or
+ * dripstone caves, at the cavern's height: it only reads the biome noise) and, for the best ones, checks the
+ * terrain above the shaft with the generation height map: dry, almost flat under the headframe and with a shaft of 0 to
+ * pozo_max blocks. If nothing passes it is not generated; with /place (which accepts any biome) the chunk is used as is.
  */
 public final class MineStructure extends Structure {
 	public static final MapCodec<MineStructure> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -52,7 +52,7 @@ public final class MineStructure extends Structure {
 
 	private static final int STEP = 16, REACH = 32, TRIES = 3, MAX_SPREAD = 5, LOGGED = 8;
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	private static final AtomicInteger logged = new AtomicInteger(); // las primeras, en el registro (pruebas)
+	private static final AtomicInteger logged = new AtomicInteger(); // the first ones, in the log (tests)
 
 	private final Holder<StructureTemplatePool> colony, shaft, shortShaft, headframe;
 	private final int colonyY, shaftHeight, shaftMax;
@@ -99,7 +99,7 @@ public final class MineStructure extends Structure {
 				int score = 0;
 				if (!forced) {
 					if (!Generation.biome(ctx, biomes(), x, cy, z)) {
-						continue;                       // el centro de la caverna tiene que caer en el bioma
+						continue;                       // the cavern's center must fall in the biome
 					}
 					for (BlockPos m : samples) {
 						BlockPos r = local(m.getX() - center.getX(), m.getZ() - center.getZ(), rot);
@@ -124,9 +124,9 @@ public final class MineStructure extends Structure {
 
 	private Optional<GenerationStub> tryAt(GenerationContext ctx, Heights heights, Rotation rot, Site s, int cy, boolean forced) {
 		BlockPos c = local(center.getX(), center.getZ(), rot);
-		int ox = s.x() - c.getX(), oz = s.z() - c.getZ();                  // origen de la colonia
+		int ox = s.x() - c.getX(), oz = s.z() - c.getZ();                  // origin of the colony
 		BlockPos e = local(colonyAxis.getX(), colonyAxis.getZ(), rot);
-		int ax = ox + e.getX(), az = oz + e.getZ();                        // eje del pozo
+		int ax = ox + e.getX(), az = oz + e.getZ();                        // shaft axis
 		int ground = heights.floor(ax, az), lo = ground, hi = ground;
 		boolean water = heights.water(ax, az);
 		for (int i = 0; i < 4; i++) {
@@ -136,8 +136,8 @@ public final class MineStructure extends Structure {
 			hi = Math.max(hi, h);
 			water |= heights.water(ax + q.getX(), az + q.getZ());
 		}
-		int base = colonyY + colonyAxis.getY();                         // primera capa del pozo
-		int yc = ground - 1 - headframeAxis.getY();                       // origen del castillete (cimiento)
+		int base = colonyY + colonyAxis.getY();                         // first layer of the shaft
+		int yc = ground - 1 - headframeAxis.getY();                       // origin of the headframe (foundation)
 		if (!forced && (water || hi - lo > MAX_SPREAD || yc < base || yc - base > shaftMax)) {
 			return Optional.empty();
 		}
@@ -160,7 +160,7 @@ public final class MineStructure extends Structure {
 		return Optional.of(new GenerationStub(new BlockPos(s.x(), cy, s.z()), (StructurePiecesBuilder b) -> pieces.forEach(b::addPiece)));
 	}
 
-	/** Origen de una pieza cuyo eje local (x, z) cae en (ax, az) del mundo, con su capa 0 a la altura y. */
+	/** Origin of a piece whose local axis (x, z) falls at world (ax, az), with its layer 0 at height y. */
 	private static BlockPos axis(int ax, int y, int az, BlockPos local, Rotation rot) {
 		BlockPos r = local(local.getX(), local.getZ(), rot);
 		return new BlockPos(ax - r.getX(), y, az - r.getZ());

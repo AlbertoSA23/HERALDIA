@@ -5,7 +5,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 
-/** Registro de la isla del corsario: su tipo de estructura busca mar abierto con fondo a una profundidad media. */
+/** Registration of the corsair's island: its structure type looks for open sea with a floor at medium depth. */
 public final class Island {
 	public static final StructureType<IslandStructure> TYPE = () -> IslandStructure.CODEC;
 

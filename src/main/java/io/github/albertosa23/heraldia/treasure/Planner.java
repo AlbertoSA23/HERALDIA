@@ -8,17 +8,17 @@ import java.util.Random;
 import java.util.UUID;
 
 /**
- * Elige la cadena de una pista: lógica pura y determinista (misma semilla, mismo origen y mismas candidatas, misma cadena;
- * PlanificadorTest). Orden de la cadena: una estructura mediana a menos de {@code radius} bloques del origen; desde ella,
- * una entrada a mina (si no hay ninguna, otra mediana); y desde la última, el tesoro, a 48-128 bloques en una dirección al
- * azar. Si no hay mediana, la primera es una mina. Sin ninguna estructura, no hay cadena.
- * <p>Las candidatas las da un {@link Finder} (en el juego, la búsqueda fuera del hilo del servidor de {@link Search},
- * que no carga ni genera chunks). De cada tipo se prefieren las ya generadas; entre las {@value #ELIGIBLE} primeras (las
- * generadas y luego las previstas, por distancia) se sortea una. Ningún destino se repite (ni a menos de
- * {@value #MIN_DISTANCE} bloques de otro).
+ * Chooses a clue's chain: pure and deterministic logic (same seed, same origin and same candidates, same chain;
+ * PlannerTest). Order of the chain: a medium structure within {@code radius} blocks of the origin; from it,
+ * a mine entrance (if there is none, another medium); and from the last one, the treasure, 48-128 blocks away in a random
+ * direction. If there is no medium, the first is a mine. Without any structure, there is no chain.
+ * <p>The candidates come from a {@link Finder} (in the game, {@link Search}'s search off the server thread,
+ * which neither loads nor generates chunks). Of each type the already generated ones are preferred; among the first {@value #ELIGIBLE} (the
+ * generated ones and then the expected ones, by distance) one is drawn. No destination repeats (nor within
+ * {@value #MIN_DISTANCE} blocks of another).
  */
 public final class Planner {
-	/** Distancia mínima entre dos marcas seguidas (y entre dos destinos cualesquiera de la cadena). */
+	/** Minimum distance between two consecutive marks (and between any two destinations of the chain). */
 	public static final int MIN_DISTANCE = 96;
 	public static final int ELIGIBLE = 3;
 	public static final int TREASURE_MIN = 48, TREASURE_MAX = 128;
@@ -26,23 +26,23 @@ public final class Planner {
 	private Planner() {
 	}
 
-	/** Una estructura en la que podría caer una marca. */
+	/** A structure a mark could fall on. */
 	public record Candidate(Destination.Type type, String structure, int x, int z, boolean generated) {
 	}
 
-	/** Las candidatas de un tipo a menos de {@code radius} bloques de (x, z), en cualquier orden. */
+	/** The candidates of a type within {@code radius} blocks of (x, z), in any order. */
 	@FunctionalInterface
 	public interface Finder {
 		List<Candidate> search(Destination.Type type, int x, int z, int radius);
 	}
 
-	/** El id del bioma en (x, z). */
+	/** The biome id at (x, z). */
 	@FunctionalInterface
 	public interface Biomes {
 		String en(int x, int z);
 	}
 
-	/** Semilla de la n-ésima pista que descifra un jugador en un mundo: distinta por mundo, jugador y número. */
+	/** Seed of the n-th clue a player deciphers in a world: different per world, player and number. */
 	public static long seed(long world, UUID player, int n) {
 		long h = world * 0x9E3779B97F4A7C15L ^ player.getMostSignificantBits();
 		h = merge(h) ^ player.getLeastSignificantBits();
@@ -75,7 +75,7 @@ public final class Planner {
 		return Optional.of(List.copyOf(out));
 	}
 
-	/** El tesoro a [min, max] bloques de (x, z) en una dirección al azar. */
+	/** The treasure [min, max] blocks from (x, z) in a random direction. */
 	static Destination treasure(Random rnd, int x, int z, int min, int max, Biomes biomes) {
 		double a = rnd.nextDouble() * 2 * Math.PI;
 		int d = min + rnd.nextInt(max - min + 1);
@@ -83,7 +83,7 @@ public final class Planner {
 		return new Destination(Destination.Type.TREASURE, "", tx, tz, false, biomes.en(tx, tz));
 	}
 
-	/** El tesoro movido (su sitio no era seguro): otra vez desde donde estaba, con la semilla y el número de intento. */
+	/** The treasure moved (its spot was not safe): again from where it was, with the seed and the attempt number. */
 	public static Destination moveTreasure(Chain c, Biomes biomes) {
 		Random rnd = new Random(c.seed() ^ merge(c.moved() + 1L));
 		Destination t = c.destinations().getLast();

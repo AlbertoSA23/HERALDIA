@@ -10,17 +10,17 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 
 /**
- * Zona de la isla del corsario: ninguna estructura ajena (naufragios, ruinas oceánicas, portales en ruinas...) nace
- * dentro del islote ni pegada a él, como en la Atlántida. Un inicio ajeno se rechaza si cae a menos de REACH chunks de la
- * candidata de la isla de su casilla y la isla sale allí de verdad (la misma viabilidad que la distancia mínima entre
- * únicas: bioma, fondo marino, Atlántida y separación). Lo caro (la viabilidad) solo se calcula junto a una candidata
- * de la isla (unos pocos chunks por casilla de 4.000 bloques) y queda en memoria; el resto paga una búsqueda en una
- * tabla y la candidata de la casilla (ya en memoria en GridPlacement).
+ * Corsair's island zone: no foreign structure (shipwrecks, ocean ruins, ruined portals...) is born
+ * inside the islet or right next to it, as with Atlantis. A foreign start is rejected if it falls within REACH chunks of the
+ * island candidate of its cell and the island really wins there (the same viability as the minimum distance between
+ * uniques: biome, sea floor, Atlantis and separation). The expensive part (the viability) is only computed next to an island
+ * candidate (a few chunks per 4,000-block cell) and is memoized; the rest pays a table lookup
+ * and the cell's candidate (already memoized in GridPlacement).
  */
 public final class IslandZone {
 	public static final long NONE = Long.MIN_VALUE;
 	private static final Identifier ISLAND = Identifier.fromNamespaceAndPath("heraldia", "unicas/isla_corsario");
-	/** Huella de la isla (54 bloques) + búsqueda del sitio (16) + una estructura ajena (unos 40), en chunks. */
+	/** Island footprint (54 blocks) + site search (16) + a foreign structure (about 40), in chunks. */
 	private static final int REACH = 7, CACHE_MAX = 1 << 12;
 	private static final Set<Identifier> REQUIRED = Set.of(Identifier.fromNamespaceAndPath("minecraft", "stronghold"));
 	private static final ConcurrentHashMap<Long, Boolean> OUTCOME = new ConcurrentHashMap<>();
@@ -28,7 +28,7 @@ public final class IslandZone {
 	private IslandZone() {
 	}
 
-	/** Candidata de la isla cerca del chunk (empaquetada con ChunkPos.pack) o NINGUNA. Barato: sin terreno ni biomas. */
+	/** Island candidate near the chunk (packed with ChunkPos.pack) or NONE. Cheap: no terrain or biomes. */
 	public static long candidate(Identifier structure, ResourceKey<Level> dimension, UniqueSeparation sep, long seed, int chunkX, int chunkZ) {
 		if (dimension != Level.OVERWORLD || "heraldia".equals(structure.getNamespace()) || REQUIRED.contains(structure)) {
 			return NONE;
@@ -50,7 +50,7 @@ public final class IslandZone {
 		return NONE;
 	}
 
-	/** La isla sale de verdad en esa candidata (viabilidad y distancia mínima entre únicas); en memoria por semilla. */
+	/** The island really wins at that candidate (viability and minimum distance between uniques); memoized per seed. */
 	public static boolean outcome(UniqueSeparation sep, long candidate, long seed, UniqueSeparation.Viability viability) {
 		long key = candidate * 31 + seed;
 		Boolean v = OUTCOME.get(key);

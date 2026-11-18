@@ -25,13 +25,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Isla del corsario: una sola plantilla que trae su propio islote (roca, arena y palmeras) y se coloca en mar abierto.
- * El jigsaw no ve el agua, así que aquí se busca, alrededor del chunk candidato (que GridPlacement ya eligió dentro de
- * los océanos templados o cálidos), un punto cuyo bioma y cuyo fondo marino valgan en toda la huella: agua con el fondo
- * entre {@code fondo_min} y {@code fondo_max} bloques bajo el nivel del mar en un círculo de {@code radius} bloques, y
- * agua alrededor hasta {@code radius + margin} (nada de costa cerca). La fila {@code fila_mar} de la plantilla queda en
- * el nivel del mar (la primera capa de aire sobre el agua) y la isla gira al azar. Solo lee el ruido de biomas y los
- * mapas de alturas de generación (con caché); si nada cumple no se genera, y con /place se coloca en el chunk tal cual.
+ * Corsair's island: a single template that brings its own islet (rock, sand and palm trees) and is placed in the open sea.
+ * The jigsaw does not see water, so here, around the candidate chunk (which GridPlacement already chose within
+ * the temperate or warm oceans), a point is searched whose biome and sea floor work across the whole footprint: water with the floor
+ * between {@code fondo_min} and {@code fondo_max} blocks below sea level in a circle of {@code radio} blocks, and
+ * water around up to {@code radio + margen} (no coast nearby). The template's {@code fila_mar} row sits at
+ * sea level (the first air layer above the water) and the island rotates at random. It only reads the biome noise and the
+ * generation height maps (cached); if nothing passes it is not generated, and with /place it is placed in the chunk as is.
  */
 public final class IslandStructure extends Structure {
 	public static final MapCodec<IslandStructure> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -44,7 +44,7 @@ public final class IslandStructure extends Structure {
 			Codec.intRange(-64, 0).fieldOf("fondo_max").forGetter(s -> s.depthMax)
 	).apply(i, IslandStructure::new));
 
-	/** Candidatos alrededor del centro del chunk (bloques), de dentro afuera, y muestras por anillo. */
+	/** Candidates around the chunk's center (blocks), inside out, and samples per ring. */
 	private static final int SEARCH = 16, STEP = 16, LOGGED = 8;
 	private static final List<int[]> CANDIDATES = new ArrayList<>();
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -61,7 +61,7 @@ public final class IslandStructure extends Structure {
 
 	private final Holder<StructureTemplatePool> startPool;
 	private final int seaRow, radius, margin, depthMin, depthMax;
-	private final int[][] footprint, edge; // muestras (dx, dz) dentro de la huella y en el anillo exterior
+	private final int[][] footprint, edge; // samples (dx, dz) inside the footprint and in the outer ring
 
 	public IslandStructure(StructureSettings settings, Holder<StructureTemplatePool> startPool, int seaRow, int radius, int margin,
 			int depthMin, int depthMax) {
@@ -76,7 +76,7 @@ public final class IslandStructure extends Structure {
 		this.edge = ring(new int[]{radius + margin}, new int[]{16});
 	}
 
-	/** Puntos en anillos de radio r[k] con n[k] muestras cada uno (precalculado: nada se calcula por chunk). */
+	/** Points in rings of radius r[k] with n[k] samples each (precomputed: nothing is computed per chunk). */
 	static int[][] ring(int[] r, int[] n) {
 		List<int[]> out = new ArrayList<>();
 		for (int k = 0; k < r.length; k++) {
@@ -107,11 +107,11 @@ public final class IslandStructure extends Structure {
 				return Optional.of(stub(ctx, px, pz, sea, rotation, false, t0));
 			}
 		}
-		// /place structure acepta cualquier bioma: sin mar abierto a la vista se coloca igualmente, para probar.
+		// /place structure accepts any biome: with no open sea in sight it is placed anyway, for testing.
 		return forced ? Optional.of(stub(ctx, cx, cz, sea, rotation, true, t0)) : Optional.empty();
 	}
 
-	/** Toda la huella y el anillo exterior en los biomas de la estructura (barato: solo el ruido de biomas). */
+	/** The whole footprint and the outer ring in the structure's biomes (cheap: only the biome noise). */
 	private boolean biomes(GenerationContext ctx, int px, int pz, int sea) {
 		for (int[][] set : new int[][][]{footprint, edge}) {
 			for (int[] p : set) {
@@ -123,7 +123,7 @@ public final class IslandStructure extends Structure {
 		return true;
 	}
 
-	/** Fondo entre fondo_min y fondo_max en la huella y agua (fondo bajo el mar) en el anillo exterior. */
+	/** Floor between fondo_min and fondo_max in the footprint and water (floor below the sea) in the outer ring. */
 	private boolean floors(Heights h, int px, int pz) {
 		for (int[] p : footprint) {
 			int f = h.floor(px + p[0], pz + p[1]) - h.sea;

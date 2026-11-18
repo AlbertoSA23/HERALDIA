@@ -8,7 +8,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
 
-/** La Atlántida: una sola por mundo. Aquí se registra lo que los datos no pueden expresar (ver docs/unicas/atlantida.md). */
+/** Atlantis: only one per world. This registers what the data cannot express (see docs/unicas/atlantida.md). */
 public final class Atlantis {
 	public static final StructureType<AtlantisStructure> STRUCTURE = () -> AtlantisStructure.CODEC;
 	public static final StructurePieceType BASE_PIECE = (StructurePieceType.ContextlessType) BasePiece::new;

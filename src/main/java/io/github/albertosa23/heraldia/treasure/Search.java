@@ -27,13 +27,13 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 
 /**
- * Las candidatas de {@link Planner}, buscadas FUERA del hilo del servidor con las mismas reglas que
- * /heraldia info nearby ({@link InfoCommand}): por cada rejilla de medianas o de minas, las casillas a menos del radio de
- * la más cercana a la más lejana; una casilla vale si su chunk guardado tiene el inicio (generada) o si la generación la
- * pondría ahí (prevista: isStructureChunk, bioma, terreno y las reglas de medianas y minas). No carga ni genera chunks:
- * lee el disco con el escáner de StructureCheck; las previstas en chunks ya cargados se confirman en el hilo del servidor
- * ({@link #confirm}). Se para tras {@value #PER_GROUP} por rejilla (las más cercanas).
- * Se crea y se usa en un solo hilo (el muestreador de clima es de ese hilo).
+ * The candidates for {@link Planner}, searched OFF the server thread with the same rules as
+ * /heraldia info nearby ({@link InfoCommand}): for each medium or mine grid, the cells within the radius from
+ * nearest to farthest; a cell is valid if its saved chunk has the start (generated) or if generation would put
+ * it there (expected: isStructureChunk, biome, terrain and the mediums' and mines' rules). It neither loads nor generates chunks:
+ * it reads the disk with StructureCheck's scanner; the expected ones in already loaded chunks are confirmed on the server thread
+ * ({@link #confirm}). It stops after {@value #PER_GROUP} per grid (the nearest ones).
+ * It is created and used on a single thread (the climate sampler belongs to that thread).
  */
 final class Search implements Planner.Finder, Planner.Biomes {
 	static final int PER_GROUP = 3;
@@ -49,9 +49,9 @@ final class Search implements Planner.Finder, Planner.Biomes {
 	private final BiomeResolver biomes;
 	private final UniqueSeparation sep;
 	private final UniqueSeparation.Viability viability;
-	int cellsVisited;   // casillas miradas (para el log)
+	int cellsVisited;   // cells checked (for the log)
 
-	/** {@code groups}: InfoCommand.groups(level), sacado en el hilo del servidor. */
+	/** {@code groups}: InfoCommand.groups(level), taken on the server thread. */
 	Search(ServerLevel level, List<InfoCommand.Group> groups) {
 		this.level = level;
 		for (InfoCommand.Group g : groups) {
@@ -129,10 +129,10 @@ final class Search implements Planner.Finder, Planner.Biomes {
 	}
 
 	/**
-	 * Las previstas cuyo chunk ya está cargado (generado y quizá aún sin guardar, como los del spawn) se miran en el hilo
-	 * del servidor, como hace /heraldia info nearby: si tiene el inicio de alguna estructura de la rejilla, es esa y
-	 * generada; si no, se quita. Una sola tarea en el hilo del servidor por búsqueda, barata (solo chunks cargados); este
-	 * hilo la espera.
+	 * The expected ones whose chunk is already loaded (generated and maybe not saved yet, like the spawn's) are checked on the
+	 * server thread, as /heraldia info nearby does: if it has the start of some structure of the grid, it is that one and
+	 * generated; otherwise, it is removed. A single task on the server thread per search, cheap (only loaded chunks); this
+	 * thread waits for it.
 	 */
 	private List<Planner.Candidate> confirm(List<Found> hits) {
 		if (hits.stream().allMatch(x -> x.candidate().generated())) {
@@ -160,7 +160,7 @@ final class Search implements Planner.Finder, Planner.Biomes {
 		if (level.getServer().isSameThread()) {
 			return task.get();
 		}
-		try {   // con un tope: si el servidor se está parando, no se queda esperando para siempre
+		try {   // with a cap: if the server is stopping, it does not wait forever
 			return level.getServer().submit(task).get(10, java.util.concurrent.TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -176,7 +176,7 @@ final class Search implements Planner.Finder, Planner.Biomes {
 				.unwrapKey().map(k -> k.identifier().toString()).orElse("minecraft:plains");
 	}
 
-	/** Solo los biomas (para mover el tesoro, en el hilo del servidor: un muestreo de ruido, sin chunks). */
+	/** Only the biomes (to move the treasure, on the server thread: a noise sample, no chunks). */
 	static final class Simple implements Planner.Biomes {
 		private final BiomeResolver biomes;
 		private final int seaSide;
