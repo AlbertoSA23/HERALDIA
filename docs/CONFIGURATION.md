@@ -126,6 +126,10 @@ From the console, `/heraldia config` lists the same as text and `/heraldia confi
 
 For everyone. `/heraldia language` says which language Heraldia writes to you in and gives a button per language (the mod's 8); `/heraldia language <code>` (`es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es`) sets it and `/heraldia language auto` goes back to your game's. It is saved with the player and overrides the client's language for the mod's texts (Guide, quests, arena, caravans, notices). A client without the mod sees them in the chosen language; one with the mod translates the keys with its own language.
 
+### The Herald's House: `/heraldia herald`
+
+Operators: `/heraldia herald place` proposes a site near spawn (or `place here`, centred on you) and marks the corners with columns of light for five minutes; `/heraldia herald place confirm` builds it (a chunk per tick). In an existing world it never appears on its own and the world spawn is not moved (the message offers the `/setworldspawn` command). `/heraldia herald` (anyone) says where it is. Market: `/heraldia herald stall` lists the stalls; players use `stall claim <n>`, `stall pay <n> [periods]` and `stall leave <n>`; operators `stall evict <n>` (the tenant's things go to a return barrel). Options: `casa_heraldo.activado`, `casa_heraldo.generar_en_mundos_nuevos`, `casa_heraldo.mercado.activado` (off by default), `casa_heraldo.mercado.entrada_esmeraldas`, `casa_heraldo.mercado.alquiler_esmeraldas`, `casa_heraldo.mercado.periodo_dias` and `casa_heraldo.mercado.gracia_dias`, also in game with `/heraldia config set` (they apply at once). See [The Herald's House](CONTENT.md#the-heralds-house).
+
 ## Updating a server
 
 Guide for admins (permanent policy: no version changes what has already been built without your permission).

@@ -264,7 +264,8 @@ def markdown(result, comparison=None):
 
 def config():
     return {"arena": {"generar_en_mundos_nuevos": False}, "caravanas": {"frecuencia": 0},
-            "update_check": {"activado": False}}
+            "update_check": {"activado": False},
+            "casa_heraldo": {"generar_en_mundos_nuevos": False}}
 
 
 def properties(work, jmx_port):

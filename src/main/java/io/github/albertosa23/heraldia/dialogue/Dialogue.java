@@ -215,7 +215,8 @@ public final class Dialogue {
 
 	/** A villager's line in chat: "Farmer: “...”", with the player's and the village's names for its slots. */
 	static void say(Out o, Villager v, Quests.VillageView a, Lines.@Nullable Line line) {
-		sayWith(o, v, line, o.p().getName(), Component.literal(a.name()));
+		sayWith(o, v, line, o.p().getName(), io.github.albertosa23.heraldia.herald.HeraldHouse.NAME.equals(a.name())
+				? Texts.t(o.l(), "heraldia.casa_heraldo.nombre") : Component.literal(a.name()));
 	}
 
 	static void sayWith(Out o, Villager v, Lines.@Nullable Line line, Object... args) {

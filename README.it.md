@@ -15,6 +15,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 - 🗼 **Fari e relitti.** Fari sulla terraferma vicino al mare, con la luce sempre accesa, la casa del guardiano e un pontile, e galeoni spezzati, arenati sulla spiaggia o semiaffondati nelle secche, con la stiva e la cabina del capitano. Ognuno nello stile della sua costa: temperata, calda, fredda o innevata.
 - 🔱 **Atlantide.** Una sola per mondo: un'immensa città sommersa nell'oceano profondo, con sale asciutte, tre sigilli con le loro chiavi e il Guardiano di Poseidone, custode del più grande tesoro di Heraldia.
 - 🏟️ **Arena a ondate.** Un colosseo vicino allo spawn: suona la campana e resisti a ondate sempre più forti, con un campione ogni quinta ondata, record e ricompense. Se cadi nell'arena, conservi l'inventario. Tre modalità (cooperativa, a tempo e sopravvivenza) con una classifica settimanale, `/heraldia arena leaderboard`: i campioni della settimana precedente compaiono sui cartelli dell'albo d'oro dell'arena e nella Guida dell'Araldo.
+- 🏯 **La Casa dell'Araldo.** La prima cosa che vedi in un mondo nuovo: una città fortificata di 96 × 96 blocchi allo spawn, con la sua campana, la bacheca degli incarichi, una locanda e una pensione, una cappella, botteghe con i loro abitanti, giardini, una stalla, un pozzo e un portale del Nether che solo un operatore può accendere. Nessuno tranne un operatore può costruire o rompere entro 50 blocchi dalle sue mura, e lì non compaiono mostri. Il suo mercato ha bancarelle che i giocatori affittano con smeraldi quando il server le attiva. In un mondo che esiste già, la piazza un operatore con `/heraldia herald place`.
 
 ## Come si gioca
 
@@ -79,6 +80,8 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `actualizar.margen_bloques` | 50 | Margine di sicurezza attorno alle costruzioni dei giocatori per `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Sulla mappa web solo le strutture già scoperte. |
 | `tesoro.probabilidad` | 3.0 | Probabilità (%) di un frammento di mappa del tesoro in ogni forziere delle strutture medie e delle miniere. |
+| `casa_heraldo.activado` | `true` | La Casa dell'Araldo allo spawn e la sua protezione. |
+| `casa_heraldo.mercado.activado` | `false` | Bancarelle in affitto al mercato della Casa dell'Araldo (prezzi: `casa_heraldo.mercado.*`). |
 
 ## Per saperne di più
 

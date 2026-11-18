@@ -37,6 +37,7 @@ PLAZA = (38, 58)
 TOWER = 7
 THEME = next(th for th in THEMES if th["id"] == "llanuras_castellana")
 STYLE, FAMILY = THEME["id"], THEME["family"]   # how the villagers' conversations see the town (dialogue/Dialogue)
+HOUSE_TAG = "heraldia_casa"  # on every entity of the house (Building.finish keeps them where they are)
 DOCK_SIZE = (5, 16)        # width (x) and length (z, out over the water) of the dock
 
 # materials (none burns: crimson and warped wood are fireproof)
@@ -268,7 +269,7 @@ def job_board(t):
             st, nbt = "minecraft:air", None
         t.set(bx + x, by + y, bz + z, st, nbt)
     for x, y, z, nbt in b.entities:
-        t.entity(bx + x, by + y, bz + z, nbt)
+        t.entity(bx + x, by + y, bz + z, dict(nbt, Tags=list(nbt["Tags"]) + [HOUSE_TAG]))
 
 
 def roads(t):
@@ -374,7 +375,8 @@ def stable(t, x0, z0, x1, z1):
     t.set(x0 + 4, FLOOR + 1, z0 + 1, "water_cauldron[level=3]")
     t.set(x0 + 3, FLOOR + 3, z0 + 2, LANTERN)
     for i, variant in enumerate((0, 1026)):
-        t.entity(x0 + 4 + 3 * i, FLOOR + 1, z0 + 7, {"id": "minecraft:horse", "PersistenceRequired": B(1), "Variant": variant})
+        t.entity(x0 + 4 + 3 * i, FLOOR + 1, z0 + 7, {"id": "minecraft:horse", "PersistenceRequired": B(1), "Variant": variant,
+                                                        "Tags": [HOUSE_TAG]})
 
 
 def chapel(t, x0, z0, x1, z1):
@@ -480,9 +482,10 @@ def construct():
         taken.add((sx, sz))
         n = villager(prof, THEME["vtype"])
         n["Rotation"] = [F(0.0), F(0.0)]
+        n["Tags"] = n["Tags"] + [HOUSE_TAG]
         t.entity(sx, FLOOR + 1, sz, n)
         t.villagers.append((prof, sx, sz))
-    golem = {"id": "minecraft:iron_golem", "PlayerCreated": B(0), "PersistenceRequired": B(1)}
+    golem = {"id": "minecraft:iron_golem", "PlayerCreated": B(0), "PersistenceRequired": B(1), "Tags": [HOUSE_TAG]}
     t.entity(C + 6, FLOOR + 1, C - 6, golem)
     return t
 

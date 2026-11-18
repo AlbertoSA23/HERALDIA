@@ -15,6 +15,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - 🗼 **Faróis e naufrágios.** Faróis em terra firme junto ao mar, com a luz sempre acesa, a casa do faroleiro e um píer, e galeões partidos, encalhados na praia ou meio afundados nos baixios, com o porão e a cabine do capitão. Cada um no estilo da sua costa: temperada, quente, fria ou nevada.
 - 🔱 **Atlântida.** Só uma por mundo: uma cidade enorme afundada no oceano profundo, com salões secos, três selos com suas chaves e o Guardião de Poseidon, que guarda o maior tesouro de Heraldia.
 - 🏟️ **Arena de hordas.** Um coliseu perto do spawn: toque o sino e resista a hordas cada vez mais fortes, com um campeão a cada cinco hordas, recordes e recompensas. Se você cair na arena, mantém o seu inventário. Três modos (cooperativo, contra o relógio e sobrevivência) com classificação semanal, `/heraldia arena leaderboard`: os campeões da semana anterior aparecem nas placas do hall da fama da arena e no Guia do Arauto.
+- 🏯 **A Casa do Arauto.** A primeira coisa que você vê em um mundo novo: uma cidade murada de 96 × 96 blocos no spawn, com seu sino, o quadro de encomendas, uma estalagem e uma pensão, uma capela, lojas com seus aldeões, jardins, um estábulo, um poço e um portal do Nether que só um operador pode acender. Ninguém além de um operador pode construir ou quebrar a menos de 50 blocos das suas muralhas, e ali não surgem monstros. Seu mercado tem barracas que os jogadores alugam com esmeraldas quando o servidor as ativa. Em um mundo que já existe, um operador a coloca com `/heraldia herald place`.
 
 ## Como jogar
 
@@ -79,6 +80,8 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `actualizar.margen_bloques` | 50 | Margem de segurança em volta das construções dos jogadores para `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web, só as estruturas já descobertas. |
 | `tesoro.probabilidad` | 3.0 | Chance (%) de um fragmento de mapa do tesouro em cada baú das estruturas médias e das minas. |
+| `casa_heraldo.activado` | `true` | A Casa do Arauto no spawn e sua proteção. |
+| `casa_heraldo.mercado.activado` | `false` | Barracas para alugar no mercado da Casa do Arauto (preços: `casa_heraldo.mercado.*`). |
 
 ## Saiba mais
 

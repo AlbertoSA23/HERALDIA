@@ -21,6 +21,13 @@ First start (new world, with arena.generar_en_mundos_nuevos):
   5. another game (/heraldia arena start) with live mobs and the door closed; it saves and the process is killed (like a
      hard shutdown).
 Second start (same world): the arena's mobs are removed on load, the door is open and there is no game.
+The Herald's House (herald/) is folded into this test (same world, same simulated player): after the arena's game, an
+operator places it from the console in this world, which is no longer new (/heraldia herald place, then confirm); it does
+not step on the arena; its bell, portal frame and stalls are where casa_heraldo.json says; the player who is not an
+operator cannot break or place a block, nor light the portal with flint and steel (an operator can); with the market on
+(entry 2, rent 1 per day, no grace) the player claims stall 1 for 3 emeralds, a chest with diamonds is left in it,
+the rent runs out (tick sprint) and the lazy check reclaims it: the diamonds and the chest end up in a return barrel
+and the stall is free. On the second start the house is remembered.
 """
 import argparse, json, math, os, re, shutil, sys, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -42,6 +49,9 @@ def blueprint(jar):
 def config(work):
     cfg = json.loads(json.dumps(s.TEST_CONFIG))
     cfg["arena"] = {"generar_en_mundos_nuevos": True}
+    cfg["casa_heraldo"] = {"generar_en_mundos_nuevos": False,
+                           "mercado": {"activado": True, "entrada_esmeraldas": 2, "alquiler_esmeraldas": 1,
+                                       "periodo_dias": 1, "gracia_dias": 0}}
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
         json.dump(cfg, f)
 
@@ -94,6 +104,8 @@ def main():
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
     pl = blueprint(a.jar)
+    with zipfile.ZipFile(a.jar) as z:
+        hp = json.loads(z.read("heraldia/casa_heraldo.json"))
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
     config(a.work)
@@ -101,6 +113,8 @@ def main():
     srv = Server(a.work, launcher)
     try:
         box = first_start(Test(srv.ctx, fails), pl)
+        if box:
+            herald_house(Test(srv.ctx, fails), hp, box)
         # 5. a game in progress: it saves and the process is killed
         if box:
             half_done(Test(srv.ctx, fails), pl, box)
@@ -113,6 +127,8 @@ def main():
         srv = Server(a.work, launcher)
         try:
             second_start(Test(srv.ctx, fails), pl, box)
+            Test(srv.ctx, fails).check(Test(srv.ctx, fails).wait_log(r"herald's house: at -?\d+", timeout=60),
+                                       "after restarting, the Herald's House is not remembered")
         finally:
             srv.stop()
             texts.append(srv.ctx.log())
@@ -343,6 +359,92 @@ def second_start(p, pl, box):
     ctx.run("heraldia arena", r"Arena de oleadas en|Wave arena at")
     p.check(p.wait_log(r"Sin partida|No match", timeout=30), "tras reiniciar hay una partida")
     p.check(ctx.block(tuple(box[i] + pl["campana"][i] for i in range(3)), "minecraft:bell"), "tras reiniciar no está la campana")
+
+
+def herald_house(p, hp, arena_box):
+    """The Herald's House in this (no longer new) world: placed by an operator, protected, its portal, its market."""
+    ctx = p.ctx
+    ctx.run("heraldia herald", r"no Herald's House yet|aún no tiene Casa del Heraldo")
+    ctx.run("heraldia herald place confirm", r"There is no proposal|No hay ninguna propuesta")
+    ctx.run("heraldia herald place", r"Looking for a site|Buscando sitio")
+    m = p.wait_log(r"herald's house: site at (-?\d+) (-?\d+) (-?\d+) \((\d+) blocks from spawn", timeout=120)
+    if not p.check(m, "herald: no site proposed near spawn"):
+        return
+    p.check(int(m.group(4)) <= 48, f"herald: site {m.group(4)} blocks from spawn (at most 48)")
+    ctx.run("heraldia herald place confirm", r"Building the Herald's House|Construyendo la Casa del Heraldo")
+    m = p.wait_log(r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+) \(box (-?\d+) (-?\d+) (-?\d+) to (-?\d+) (-?\d+) (-?\d+)\)",
+                   timeout=400)
+    if not p.check(m, "herald: the house is not built"):
+        return
+    b = [int(g) for g in m.groups()[3:]]
+    print("HERALD: build:", re.search(r"herald's house: built in .*", ctx.log()).group(0))
+    p.check(b[3] - b[0] == 95 and b[5] - b[2] == 95, f"herald: box {b} is not 96 x 96")
+    ax0, az0, ax1, az1 = arena_box[0], arena_box[2], arena_box[3], arena_box[5]
+    p.check(ax1 < b[0] - 50 or ax0 > b[3] + 50 or az1 < b[2] - 50 or az0 > b[5] + 50,
+            "herald: the protected ring touches the arena")
+    o = b[:3]
+    w = lambda rel: tuple(o[i] + rel[i] for i in range(3))
+    ctx.run(f"forceload add {b[0]} {b[2]} {b[3]} {b[5]}", r"Marked|force|already")
+    p.check(ctx.block(w(hp["campana"]), "minecraft:bell"), "herald: no bell")
+    (pa, pb) = hp["portal"]
+    ax, ay, az = w(pa)
+    p.check(ctx.block((ax + 1, ay, az), "minecraft:obsidian"), "herald: no portal frame")
+    p.check(ctx.block((ax + 1, ay + 1, az), "minecraft:air"), "herald: the portal is not empty")
+    sign = w(hp["puestos"][0]["cartel"])
+    p.check(ctx.block(sign, "#minecraft:all_signs"), "herald: stall 1 has no sign")
+    ctx.run("heraldia herald", r"The Herald's House is at|La Casa del Heraldo está en")
+    # protection: a creative player who is not an operator
+    sx, sy, sz = w(hp["aparicion"])
+    ctx.run(f"deop {P}", r"no longer|Nothing changed|not an operator")
+    ctx.run(f"gamemode creative {P}", r"Set .* game mode|game mode")
+    ctx.run(f"tp {P} {sx + 0.5} {sy} {sz + 0.5}", r"Teleported")
+    floor = (sx + 2, sy - 1, sz)
+    s.send(ctx.proc, f"player {P} look at {floor[0] + 0.5} {floor[1] + 1} {floor[2] + 0.5}")
+    ctx.ticks(5)
+    before = ctx.run(f"execute if block {floor[0]} {floor[1]} {floor[2]} minecraft:air", r"Test passed|Test failed").group(0)
+    p.check(before.startswith("Test failed"), f"herald: no floor at {floor}")
+    smash(ctx)
+    p.check(not ctx.block(floor, "minecraft:air"), "herald: a player who is not an operator breaks a block")
+    ctx.run(f"item replace entity {P} weapon.mainhand with minecraft:stone", r"Replaced|replaced")
+    s.send(ctx.proc, f"player {P} use once")
+    ctx.ticks(10)
+    p.check(ctx.block((floor[0], floor[1] + 1, floor[2]), "minecraft:air"), "herald: a player who is not an operator places a block")
+    # the portal: refused to a player, lit by an operator
+    ctx.run(f"tp {P} {ax + 1.5} {ay} {az + 2.5}", r"Teleported")
+    ctx.run(f"item replace entity {P} weapon.mainhand with minecraft:flint_and_steel", r"Replaced|replaced")
+    s.send(ctx.proc, f"player {P} look at {ax + 1.5} {ay + 1} {az + 0.5}")
+    ctx.ticks(5)
+    s.send(ctx.proc, f"player {P} use once")
+    ctx.ticks(10)
+    p.check(ctx.block((ax + 1, ay + 1, az), "minecraft:air"), "herald: a player who is not an operator lights the portal")
+    ctx.run(f"op {P}", r"Made .* operator|already|Nothing changed")
+    s.send(ctx.proc, f"player {P} use once")
+    ctx.ticks(10)
+    p.check(ctx.block((ax + 1, ay + 1, az), "minecraft:nether_portal"), "herald: an operator cannot light the portal")
+    ctx.run(f"deop {P}", r"no longer|Nothing changed|not an operator")
+    # the market: claim stall 1, leave a chest with diamonds in it, let the rent run out
+    ctx.run(f"gamemode survival {P}", r"Set .* game mode|game mode")
+    ctx.run(f"clear {P}", r"Removed|No items")
+    ctx.run(f"give {P} minecraft:emerald 10", r"Gave")
+    ctx.run(f"execute as {P} run heraldia herald stall claim 1", r"Stall 1 is yours|El puesto 1 es tuyo|need|Hacen falta")
+    p.check(p.wait_log(rf"stall 1 claimed by {P} for 3 emeralds", timeout=30), "herald: stall 1 is not claimed")
+    p.check(ctx.test(f'execute if entity @a[name={P},nbt={{Inventory:[{{id:"minecraft:emerald",count:7}}]}}]'),
+            "herald: claiming does not take entry fee + first rent (3 emeralds)")
+    ctx.run(f"execute as {P} run heraldia herald stall claim 2", r"already have stall 1|Ya tienes el puesto 1")
+    box = w(hp["puestos"][0]["caja"][0])
+    ctx.run(f'setblock {box[0]} {box[1]} {box[2]} minecraft:chest{{Items:[{{Slot:0b,id:"minecraft:diamond",count:5}}]}}',
+            r"Changed the block|Could not set")
+    ctx.run("tick sprint 30000", r"[Ss]print|sprint")
+    m = p.wait_log(rf"stall 1 of {P} reclaimed: (\d+) stacks into (\d+) return barrel", timeout=300)
+    if p.check(m, "herald: the expired stall is not reclaimed"):
+        barrel = w(hp["devolucion"][0])
+        p.check(ctx.block(barrel, 'minecraft:barrel{Items:[{id:"minecraft:diamond",count:5}]}'),
+                "herald: the diamonds are not in the return barrel")
+        p.check(ctx.block(barrel, 'minecraft:barrel{Items:[{id:"minecraft:chest"}]}'),
+                "herald: the tenant's chest is not in the return barrel")
+        p.check(ctx.block(box, "minecraft:air"), "herald: the stall is not emptied")
+    ctx.run("tick sprint stop", r"[Ss]print|sprint|No")
+    ctx.run("heraldia herald stall", r"Market stalls|Puestos del mercado")
 
 
 def wait_count(ctx, sel, n, timeout=60):

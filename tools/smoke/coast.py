@@ -49,7 +49,8 @@ MODE_VARIANT = {"faro": None, "encallado": "a", "hundido": "b"}
 def start_up(work, jar, cfg, clean_up):
     launcher = s.prepare(work, jar, s.gradle_properties()) if clean_up else os.path.join(work, glob.glob(
         os.path.join(work, "fabric-server-*.jar"))[0])
-    cfg = dict(cfg, arena={"generar_en_mundos_nuevos": False}, update_check={"activado": False})
+    cfg = dict(cfg, arena={"generar_en_mundos_nuevos": False}, update_check={"activado": False},
+               casa_heraldo={"generar_en_mundos_nuevos": False})
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
         json.dump(cfg, f)
     proc = subprocess.Popen(["java", "-Xmx2G", "-Dheraldia.depurar.costa=true", "-jar", launcher, "nogui"], cwd=work, text=True,

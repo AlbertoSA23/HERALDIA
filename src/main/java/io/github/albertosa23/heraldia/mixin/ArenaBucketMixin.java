@@ -24,7 +24,7 @@ abstract class ArenaBucketMixin {
 	@Inject(method = "emptyContents", at = @At("HEAD"), cancellable = true)
 	private void heraldia$arena(@Nullable LivingEntity user, Level level, BlockPos pos, @Nullable BlockHitResult hit,
 			CallbackInfoReturnable<Boolean> cir) {
-		if (Arena.bucketDenied(level, pos, user)) {
+		if (Arena.bucketDenied(level, pos, user) || io.github.albertosa23.heraldia.herald.HeraldHouse.bucketDenied(level, pos, user)) {
 			cir.setReturnValue(false);
 		}
 	}

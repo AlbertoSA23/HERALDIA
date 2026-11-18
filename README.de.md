@@ -15,6 +15,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 - 🗼 **Leuchttürme und Wracks.** Leuchttürme auf festem Boden am Meer mit stets brennendem Licht, dem Haus des Wärters und einem Steg, und zerbrochene Galeonen, am Strand auf Grund gelaufen oder halb versunken im seichten Wasser, mit Laderaum und Kapitänskajüte. Jeweils im Stil ihrer Küste: gemäßigt, warm, kalt oder verschneit.
 - 🔱 **Atlantis.** Nur eines pro Welt: eine riesige Stadt, versunken im tiefen Ozean, mit trockenen Hallen, drei Siegeln samt Schlüsseln und dem Hüter des Poseidon, der den größten Schatz von Heraldia bewacht.
 - 🏟️ **Wellenarena.** Ein Kolosseum nahe dem Spawn: Läute die Glocke und halte immer stärkeren Wellen stand, mit einem Champion in jeder fünften Welle, Rekorden und Belohnungen. Fällst du im Rund, behältst du dein Inventar. Drei Modi (Koop, Zeitrennen und Überleben) mit einer Wochenrangliste, `/heraldia arena leaderboard`: Die Champions der Vorwoche stehen auf den Schildern der Ruhmeshalle der Arena und im Leitfaden des Herolds.
+- 🏯 **Das Haus des Herolds.** Das Erste, was du in einer neuen Welt siehst: eine ummauerte Stadt von 96 × 96 Blöcken am Spawn, mit ihrer Glocke, der Auftragstafel, einem Gasthaus und einer Herberge, einer Kapelle, Läden mit ihren Dorfbewohnern, Gärten, einem Stall, einem Brunnen und einem Netherportal, das nur ein Operator entzünden kann. Niemand außer einem Operator kann im Umkreis von 50 Blöcken um seine Mauern bauen oder abbauen, und dort erscheinen keine Monster. Sein Markt hat Stände, die Spieler mit Smaragden mieten, wenn der Server sie einschaltet. In einer bestehenden Welt setzt es ein Operator mit `/heraldia herald place`.
 
 ## So spielst du
 
@@ -79,6 +80,8 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `actualizar.margen_bloques` | 50 | Sicherheitsabstand um Spielerbauten für `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Auf der Webkarte nur bereits entdeckte Bauwerke. |
 | `tesoro.probabilidad` | 3.0 | Wahrscheinlichkeit (%) eines Schatzkartenfragments in jeder Truhe der mittelgroßen Bauwerke und Minen. |
+| `casa_heraldo.activado` | `true` | Das Haus des Herolds am Spawn und sein Schutz. |
+| `casa_heraldo.mercado.activado` | `false` | Marktstände zur Miete im Haus des Herolds (Preise: `casa_heraldo.mercado.*`). |
 
 ## Mehr erfahren
 
