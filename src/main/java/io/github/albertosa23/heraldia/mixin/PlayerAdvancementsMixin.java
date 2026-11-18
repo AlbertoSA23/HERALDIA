@@ -1,6 +1,6 @@
 package io.github.albertosa23.heraldia.mixin;
 
-import io.github.albertosa23.heraldia.mapas.MapasWeb;
+import io.github.albertosa23.heraldia.maps.WebMaps;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,9 +21,9 @@ abstract class PlayerAdvancementsMixin {
 	private ServerPlayer player;
 
 	@Inject(method = "award", at = @At("RETURN"))
-	private void heraldia$alConseguir(AdvancementHolder holder, String criterio, CallbackInfoReturnable<Boolean> cir) {
-		if (cir.getReturnValueZ() && MapasWeb.enUso()) {
-			MapasWeb.alConseguir(player, holder, criterio);
+	private void heraldia$onAward(AdvancementHolder holder, String criterion, CallbackInfoReturnable<Boolean> cir) {
+		if (cir.getReturnValueZ() && WebMaps.inUse()) {
+			WebMaps.onAward(player, holder, criterion);
 		}
 	}
 }

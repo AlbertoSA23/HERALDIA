@@ -42,17 +42,17 @@ abstract class ArenaPistonMixin {
 
 	@Inject(method = "resolve", at = @At("RETURN"), cancellable = true)
 	private void heraldia$arena(CallbackInfoReturnable<Boolean> cir) {
-		if (!cir.getReturnValueZ() || !Arena.hayArena(level)) {
+		if (!cir.getReturnValueZ() || !Arena.hasArena(level)) {
 			return;
 		}
-		boolean toca = Arena.protegido(level, startPos);
-		for (int i = 0; i < toPush.size() && !toca; i++) {
-			toca = Arena.protegido(level, toPush.get(i)) || Arena.protegido(level, toPush.get(i).relative(pushDirection));
+		boolean touches = Arena.isProtected(level, startPos);
+		for (int i = 0; i < toPush.size() && !touches; i++) {
+			touches = Arena.isProtected(level, toPush.get(i)) || Arena.isProtected(level, toPush.get(i).relative(pushDirection));
 		}
-		for (int i = 0; i < toDestroy.size() && !toca; i++) {
-			toca = Arena.protegido(level, toDestroy.get(i));
+		for (int i = 0; i < toDestroy.size() && !touches; i++) {
+			touches = Arena.isProtected(level, toDestroy.get(i));
 		}
-		if (toca) {
+		if (touches) {
 			cir.setReturnValue(false);
 		}
 	}

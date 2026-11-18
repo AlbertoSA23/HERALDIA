@@ -38,14 +38,14 @@ class VillageRulesTest {
 	}
 
 	@Test
-	void lasAjenasSiempreValen() throws IOException {
+	void foreignOnesAlwaysPass() throws IOException {
 		VillageRules r = rules("{}");
 		assertTrue(r.allows(Identifier.fromNamespaceAndPath("minecraft", "village_plains"), 1, 0, 0));
 		assertTrue(r.allows(id("unicas/castillo"), 1, 0, 0));
 	}
 
 	@Test
-	void porcentajeDeGrandesExtremos() throws IOException {
+	void largePercentExtremes() throws IOException {
 		String style = anyStyle("llanuras");
 		VillageRules none = rules("{\"aldeas\": {\"porcentaje_grandes\": 0}}");
 		VillageRules all = rules("{\"aldeas\": {\"porcentaje_grandes\": 100}}");
@@ -56,7 +56,7 @@ class VillageRulesTest {
 	}
 
 	@Test
-	void unaSolaVarianteDeTamanoPorCasillaYDeterminista() throws IOException {
+	void oneSizeVariantPerCellAndDeterministic() throws IOException {
 		String style = anyStyle("llanuras");
 		VillageRules r = rules("{\"aldeas\": {\"porcentaje_grandes\": 25}}");
 		int large = 0;
@@ -70,7 +70,7 @@ class VillageRulesTest {
 	}
 
 	@Test
-	void familiasYEstilosDesactivados() throws IOException {
+	void disabledFamiliesAndStyles() throws IOException {
 		String plains = anyStyle("llanuras"), swamp = anyStyle("pantano");
 		VillageRules r = rules("{\"aldeas\": {\"familias\": {\"pantano\": false}, \"estilos\": {\"" + plains + "\": false}}}");
 		for (String s : new String[]{plains, swamp}) {

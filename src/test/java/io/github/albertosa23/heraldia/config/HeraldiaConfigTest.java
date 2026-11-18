@@ -38,14 +38,14 @@ class HeraldiaConfigTest {
 	}
 
 	@Test
-	void sinFicheroDaLosValoresPorDefecto() {
+	void noFileGivesDefaults() {
 		Path file = dir.resolve("heraldia.json");
 		assertEquals(HeraldiaConfig.defaults(), HeraldiaConfig.readValues(file));
 		assertFalse(Files.exists(file), "readValues no debe crear el fichero");
 	}
 
 	@Test
-	void guardarYLeerIdaYVuelta() throws IOException {
+	void saveAndReadRoundTrip() throws IOException {
 		Path file = dir.resolve("config/heraldia.json");
 		Map<String, JsonPrimitive> values = new LinkedHashMap<>(HeraldiaConfig.defaults());
 		values.put("aldeas.separacion_bloques", new JsonPrimitive(2500));
@@ -64,7 +64,7 @@ class HeraldiaConfigTest {
 	}
 
 	@Test
-	void mismoFormatoQueAlArrancar() throws IOException {
+	void sameFormatAsAtStartup() throws IOException {
 		Path started = dir.resolve("arranque.json");
 		Path saved = dir.resolve("pantalla.json");
 		HeraldiaConfig.load(started);
@@ -77,7 +77,7 @@ class HeraldiaConfigTest {
 	}
 
 	@Test
-	void guardarNoCambiaLaConfiguracionEnUso() throws IOException {
+	void savingDoesNotChangeActiveConfig() throws IOException {
 		HeraldiaConfig inUse = HeraldiaConfig.get();
 		Map<String, JsonPrimitive> values = new LinkedHashMap<>(HeraldiaConfig.defaults());
 		values.put("aldeas.maximo", new JsonPrimitive(3));
@@ -86,7 +86,7 @@ class HeraldiaConfigTest {
 	}
 
 	@Test
-	void guardarRechazaValoresNoValidos() {
+	void savingRejectsInvalidValues() {
 		Path file = dir.resolve("heraldia.json");
 		Map<String, JsonPrimitive> values = new LinkedHashMap<>(HeraldiaConfig.defaults());
 		values.put("aldeas.separacion_bloques", new JsonPrimitive(999));
@@ -102,7 +102,7 @@ class HeraldiaConfigTest {
 	}
 
 	@Test
-	void leerCorrigeYMigra() throws IOException {
+	void readingFixesAndMigrates() throws IOException {
 		Path file = dir.resolve("heraldia.json");
 		// Fichero escrito a mano (versión 0, sin campo): fuera de rango, de otro tipo, decimal y opción desconocida.
 		Files.writeString(file, """
@@ -126,7 +126,7 @@ class HeraldiaConfigTest {
 	}
 
 	@Test
-	void validacionDeLaPantalla() {
+	void screenValidation() {
 		ConfigOption spacing = option("aldeas.separacion_bloques");
 		assertEquals(Optional.of(new JsonPrimitive(1000)), spacing.parse("1000"));
 		assertEquals(Optional.of(new JsonPrimitive(10000)), spacing.parse(" 10000 "));
@@ -142,7 +142,7 @@ class HeraldiaConfigTest {
 	}
 
 	@Test
-	void elEsquemaTraeLoQueNecesitaLaPantalla() throws IOException {
+	void schemaHasWhatTheScreenNeeds() throws IOException {
 		Path lang = Path.of(System.getProperty("heraldia.generated"), "assets/heraldia/lang");
 		JsonObject es = json(lang.resolve("es_es.json")), en = json(lang.resolve("en_us.json"));
 		assertFalse(HeraldiaConfig.options().isEmpty());

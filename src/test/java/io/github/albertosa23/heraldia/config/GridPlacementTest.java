@@ -45,19 +45,19 @@ class GridPlacementTest {
 		return GridPlacement.CODEC.codec().parse(JsonOps.INSTANCE, JsonParser.parseString(placement)).getOrThrow();
 	}
 
-	private static final String CASTILLO = "{\"grupo\": \"unicas/castillo\", \"spacing\": 250, \"separation\": 190, \"salt\": 123}";
+	private static final String CASTLE = "{\"grupo\": \"unicas/castillo\", \"spacing\": 250, \"separation\": 190, \"salt\": 123}";
 
 	@Test
-	void unicaLeeSuSeparacionYLaDistanciaMinima() throws IOException {
-		GridPlacement g = grid("{\"unicas\": {\"castillo\": {\"separacion_bloques\": 5000}, \"distancia_minima\": {\"bloques\": 1200}}}", CASTILLO);
+	void uniqueReadsItsSeparationAndMinDistance() throws IOException {
+		GridPlacement g = grid("{\"unicas\": {\"castillo\": {\"separacion_bloques\": 5000}, \"distancia_minima\": {\"bloques\": 1200}}}", CASTLE);
 		assertEquals(Math.round(5000 / 16.0F), g.spacing());
 		assertEquals((1200 + 15) / 16, g.separation());
 		assertTrue(g.offsetX() >= 0 && g.offsetX() < g.spacing() && g.offsetZ() >= 0 && g.offsetZ() < g.spacing());
 	}
 
 	@Test
-	void candidataEnSuVentanaYDeterminista() throws IOException {
-		GridPlacement g = grid("{}", CASTILLO);
+	void candidateInItsWindowAndDeterministic() throws IOException {
+		GridPlacement g = grid("{}", CASTLE);
 		int s = g.spacing(), window = s - g.separation();
 		for (long seed : new long[]{0, 1, -7, 123456789L}) {
 			for (int gx = -3; gx <= 3; gx++) {
@@ -75,7 +75,7 @@ class GridPlacementTest {
 	}
 
 	@Test
-	void salesDistintasDesplazanLaRejilla() throws IOException {
+	void differentSaltsShiftTheGrid() throws IOException {
 		Set<Long> offsets = new HashSet<>();
 		for (int salt = 1; salt <= 20; salt++) {
 			GridPlacement g = grid("{}", "{\"grupo\": \"unicas/castillo\", \"spacing\": 250, \"separation\": 190, \"salt\": " + salt + "}");
@@ -85,14 +85,14 @@ class GridPlacementTest {
 	}
 
 	@Test
-	void desactivadaNoPermiteNinguna() throws IOException {
-		GridPlacement g = grid("{\"unicas\": {\"castillo\": {\"activada\": false}}}", CASTILLO);
+	void disabledAllowsNone() throws IOException {
+		GridPlacement g = grid("{\"unicas\": {\"castillo\": {\"activada\": false}}}", CASTLE);
 		ChunkPos c = g.getPotentialStructureChunk(5, 0, 0);
 		assertTrue(!g.applyAdditionalChunkRestrictions(c.x(), c.z(), 5));
 	}
 
 	@Test
-	void aldeasSoloEnLasCasillasMasCercanas() throws IOException {
+	void villagesOnlyInNearestCells() throws IOException {
 		GridPlacement g = grid("{\"aldeas\": {\"maximo\": 4, \"separacion_bloques\": 1504}}",
 				"{\"grupo\": \"aldeas\", \"spacing\": 94, \"separation\": 62, \"salt\": 261112013}");
 		assertEquals(94, g.spacing());

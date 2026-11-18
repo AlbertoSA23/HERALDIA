@@ -14,60 +14,60 @@ class ConfigOptionTest {
 		return ConfigOption.of(JsonParser.parseString(json).getAsJsonObject());
 	}
 
-	private static final ConfigOption RANGO = of("""
+	private static final ConfigOption RANGE = of("""
 			{"clave": "a.b", "defecto": 5, "min": -3, "max": 10, "ayuda": "k.ayuda", "args": ["x"], "seccion": "s",
 			 "nombre": "k.nombre", "patron": "a.<p>", "args_nombre": [null, "k.arg"]}""");
-	private static final ConfigOption SINO = of("""
+	private static final ConfigOption YESNO = of("""
 			{"clave": "a.c", "defecto": true, "ayuda": "k", "seccion": "s", "nombre": "n"}""");
 
-	private static final ConfigOption LISTA = of("""
+	private static final ConfigOption LIST = of("""
 			{"clave": "a.d", "defecto": "normal", "valores": ["facil", "normal", "dificil"], "ayuda": "k", "seccion": "s",
 			 "nombre": "n", "nombres_valores": ["k.facil", "k.normal", "k.dificil"]}""");
 
 	@Test
-	void opcionDeLista() {
-		assertTrue(LISTA.isChoice() && !LISTA.isBoolean() && LISTA.min() == null);
-		assertEquals(java.util.List.of("facil", "normal", "dificil"), LISTA.values());
-		assertEquals(java.util.List.of("k.facil", "k.normal", "k.dificil"), LISTA.valueNames());
-		assertEquals(Optional.of(new JsonPrimitive("dificil")), LISTA.accept(new JsonPrimitive("dificil")));
+	void listOption() {
+		assertTrue(LIST.isChoice() && !LIST.isBoolean() && LIST.min() == null);
+		assertEquals(java.util.List.of("facil", "normal", "dificil"), LIST.values());
+		assertEquals(java.util.List.of("k.facil", "k.normal", "k.dificil"), LIST.valueNames());
+		assertEquals(Optional.of(new JsonPrimitive("dificil")), LIST.accept(new JsonPrimitive("dificil")));
 		for (JsonPrimitive bad : new JsonPrimitive[]{new JsonPrimitive("Dificil"), new JsonPrimitive("heroica"), new JsonPrimitive(1),
 				new JsonPrimitive(true), new JsonPrimitive("")}) {
-			assertTrue(LISTA.accept(bad).isEmpty(), bad.toString());
+			assertTrue(LIST.accept(bad).isEmpty(), bad.toString());
 		}
-		assertEquals(Optional.of(new JsonPrimitive("facil")), LISTA.parse(" facil "));
-		assertTrue(LISTA.parse("1").isEmpty());
-		assertTrue(!RANGO.isChoice() && !SINO.isChoice() && RANGO.values().isEmpty());
+		assertEquals(Optional.of(new JsonPrimitive("facil")), LIST.parse(" facil "));
+		assertTrue(LIST.parse("1").isEmpty());
+		assertTrue(!RANGE.isChoice() && !YESNO.isChoice() && RANGE.values().isEmpty());
 	}
 
 	@Test
-	void leeTodosLosCampos() {
-		assertEquals("a.b", RANGO.key());
-		assertEquals(-3, RANGO.min());
-		assertEquals(10, RANGO.max());
-		assertEquals("a.<p>", RANGO.pattern());
-		assertEquals(java.util.Arrays.asList(null, "k.arg"), RANGO.argNames());
-		assertEquals(java.util.List.of("x"), RANGO.args());
-		assertTrue(SINO.isBoolean() && SINO.min() == null && SINO.pattern() == null && SINO.args().isEmpty());
+	void readsAllFields() {
+		assertEquals("a.b", RANGE.key());
+		assertEquals(-3, RANGE.min());
+		assertEquals(10, RANGE.max());
+		assertEquals("a.<p>", RANGE.pattern());
+		assertEquals(java.util.Arrays.asList(null, "k.arg"), RANGE.argNames());
+		assertEquals(java.util.List.of("x"), RANGE.args());
+		assertTrue(YESNO.isBoolean() && YESNO.min() == null && YESNO.pattern() == null && YESNO.args().isEmpty());
 	}
 
 	@Test
-	void aceptaEnterosEnRangoYNormaliza() {
-		assertEquals(Optional.of(new JsonPrimitive(-3)), RANGO.accept(new JsonPrimitive(-3)));
-		assertEquals(Optional.of(new JsonPrimitive(10)), RANGO.accept(new JsonPrimitive(10.0)));
+	void acceptsIntegersInRangeAndNormalizes() {
+		assertEquals(Optional.of(new JsonPrimitive(-3)), RANGE.accept(new JsonPrimitive(-3)));
+		assertEquals(Optional.of(new JsonPrimitive(10)), RANGE.accept(new JsonPrimitive(10.0)));
 		for (JsonPrimitive bad : new JsonPrimitive[]{new JsonPrimitive(11), new JsonPrimitive(-4), new JsonPrimitive(2.5),
 				new JsonPrimitive(true), new JsonPrimitive("5")}) {
-			assertTrue(RANGO.accept(bad).isEmpty(), bad.toString());
+			assertTrue(RANGE.accept(bad).isEmpty(), bad.toString());
 		}
-		assertTrue(SINO.accept(new JsonPrimitive(1)).isEmpty() && SINO.accept(new JsonPrimitive(false)).isPresent());
+		assertTrue(YESNO.accept(new JsonPrimitive(1)).isEmpty() && YESNO.accept(new JsonPrimitive(false)).isPresent());
 	}
 
 	@Test
-	void textoDeLaPantalla() {
-		assertEquals(Optional.of(new JsonPrimitive(-3)), RANGO.parse("-3"));
-		assertEquals(Optional.of(new JsonPrimitive(7)), RANGO.parse("\t7 "));
+	void screenText() {
+		assertEquals(Optional.of(new JsonPrimitive(-3)), RANGE.parse("-3"));
+		assertEquals(Optional.of(new JsonPrimitive(7)), RANGE.parse("\t7 "));
 		for (String bad : new String[]{"-4", "11", "0x5", "5.", "", " ", "--1", "123456789012"}) {
-			assertTrue(RANGO.parse(bad).isEmpty(), bad);
+			assertTrue(RANGE.parse(bad).isEmpty(), bad);
 		}
-		assertTrue(SINO.parse("True").isEmpty() && SINO.parse("true").isPresent());
+		assertTrue(YESNO.parse("True").isEmpty() && YESNO.parse("true").isPresent());
 	}
 }

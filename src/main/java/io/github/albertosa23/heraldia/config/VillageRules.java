@@ -24,13 +24,13 @@ public final class VillageRules {
 		for (Map.Entry<String, JsonElement> e : config.schema().getAsJsonObject("aldeas").getAsJsonObject("estilos").entrySet()) {
 			String style = e.getKey(), family = e.getValue().getAsString();
 			boolean on = config.getBool("aldeas.familias." + family) && config.getBool("aldeas.estilos." + style);
-			Identifier std = Identifier.fromNamespaceAndPath("heraldia", style), grande = Identifier.fromNamespaceAndPath("heraldia", style + "_grande");
+			Identifier std = Identifier.fromNamespaceAndPath("heraldia", style), largeVariant = Identifier.fromNamespaceAndPath("heraldia", style + "_grande");
 			all.add(std);
-			all.add(grande);
-			big.add(grande);
+			all.add(largeVariant);
+			big.add(largeVariant);
 			if (!on) {
 				off.add(std);
-				off.add(grande);
+				off.add(largeVariant);
 			}
 		}
 		this.villages = Set.copyOf(all);

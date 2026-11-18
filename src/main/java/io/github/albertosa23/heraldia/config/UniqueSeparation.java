@@ -1,7 +1,7 @@
 package io.github.albertosa23.heraldia.config;
 
-import io.github.albertosa23.heraldia.dimensiones.Dimensiones;
-import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
+import io.github.albertosa23.heraldia.dimensions.Dimensions;
+import io.github.albertosa23.heraldia.uniques.atlantis.AtlantisAnchor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -167,7 +167,7 @@ public final class UniqueSeparation {
 							   ResourceKey<Level> dimension) {
 		return (j, x, z) -> {
 			Structure s = structures[j];
-			return s != null && !AtlantisAnchor.excludes(ids[j], dimension, seed, x, z) && Dimensiones.posible(s, biomeSource)
+			return s != null && !AtlantisAnchor.excludes(ids[j], dimension, seed, x, z) && Dimensions.possible(s, biomeSource)
 					&& s.findValidGenerationPoint(new Structure.GenerationContext(registryAccess, generator, biomeSource, sampler, randomState,
 					templates, seed, new ChunkPos(x, z), height, s.biomes()::contains)).isPresent();
 		};

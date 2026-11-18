@@ -154,14 +154,14 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		} else if (group.startsWith("minas/")) {
 			// entradas a mina: la separación del datapack es la de por defecto de su tamaño; la opción (la de las pequeñas)
 			// las escala a las tres en proporción. Separación interna = la distancia mínima entre medianas
-			int defecto = HeraldiaConfig.defaults().get("minas.entradas.separacion_bloques").getAsInt();
-			int sp = chunks((int) Math.round((double) cfg.getInt("minas.entradas.separacion_bloques") * spacing * 16 / defecto));
+			int defaults = HeraldiaConfig.defaults().get("minas.entradas.separacion_bloques").getAsInt();
+			int sp = chunks((int) Math.round((double) cfg.getInt("minas.entradas.separacion_bloques") * spacing * 16 / defaults));
 			int sep = Math.clamp((cfg.getInt("medianas.distancia_minima.bloques") + 15) / 16, 0, sp / 2);
 			s = new Settings(cfg.getBool("minas.entradas.activado"), sp, sep, -1, exclusion, true, false);
-		} else if (group.startsWith("costa/") && io.github.albertosa23.heraldia.costa.Costa.opcion(group.substring("costa/".length())) != null) {
+		} else if (group.startsWith("costa/") && io.github.albertosa23.heraldia.coast.Coast.option(group.substring("costa/".length())) != null) {
 			// faros y naufragios: su separación (bloques) y su activación; separación interna = la distancia mínima entre
 			// medianas, como mucho media casilla
-			String key = io.github.albertosa23.heraldia.costa.Costa.opcion(group.substring("costa/".length()));
+			String key = io.github.albertosa23.heraldia.coast.Coast.option(group.substring("costa/".length()));
 			int sp = chunks(cfg.getInt(key + ".separacion_bloques"));
 			int sep = Math.clamp((cfg.getInt("medianas.distancia_minima.bloques") + 15) / 16, 0, sp / 2);
 			s = new Settings(cfg.getBool(key + ".activado"), sp, sep, -1, exclusion, true, false);
@@ -327,24 +327,24 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	/**
 	 * Malla de STEP chunks en la ventana de la casilla; puntuación = vecinos (de 9, a HALF chunks) en el bioma. Los vecinos
 	 * de dos puntos de la malla se tocan (caen en la misma retícula de HALF chunks): cada punto de la retícula se mira una
-	 * sola vez por búsqueda ({@code visto}), con el mismo resultado que mirarlo cada vez.
+	 * sola vez por búsqueda ({@code seen}), con el mismo resultado que mirarlo cada vez.
 	 */
 	private long search(BiomeContext ctx, long seed, int x0, int z0) {
 		int win = window(), n = Math.max(1, win / STEP), first = first();
 		TagKey<Biome> tag = biome.orElseThrow();
-		int lado = 2 * n + 1;
-		byte[] visto = new byte[lado * lado];          // 0 sin mirar, 1 fuera, 2 dentro del bioma
+		int side = 2 * n + 1;
+		byte[] seen = new byte[side * side];          // 0 sin mirar, 1 fuera, 2 dentro del bioma
 		long best = NONE, bestKey = Long.MIN_VALUE;
 		for (int a = 0; a < n; a++) {
 			for (int b = 0; b < n; b++) {
 				int cx = x0 + first + a * STEP, cz = z0 + first + b * STEP;
-				if (!in(ctx, tag, visto, lado, 2 * a + 1, 2 * b + 1, cx, cz, sampleY)) {
+				if (!in(ctx, tag, seen, side, 2 * a + 1, 2 * b + 1, cx, cz, sampleY)) {
 					continue;
 				}
 				int score = 1;
 				for (int dx = -HALF; dx <= HALF; dx += HALF) {
 					for (int dz = -HALF; dz <= HALF; dz += HALF) {
-						if ((dx != 0 || dz != 0) && in(ctx, tag, visto, lado, 2 * a + 1 + dx / HALF, 2 * b + 1 + dz / HALF, cx + dx, cz + dz, sampleY)) {
+						if ((dx != 0 || dz != 0) && in(ctx, tag, seen, side, 2 * a + 1 + dx / HALF, 2 * b + 1 + dz / HALF, cx + dx, cz + dz, sampleY)) {
 							score++;
 						}
 					}
@@ -363,12 +363,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	}
 
 	/** {@link #in(BiomeContext, TagKey, int, int, int)} con la memoria de la búsqueda (punto i, j de la retícula). */
-	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, byte[] visto, int lado, int i, int j, int chunkX, int chunkZ, int y) {
-		int k = i * lado + j;
-		if (visto[k] == 0) {
-			visto[k] = in(ctx, tag, chunkX, chunkZ, y) ? (byte) 2 : (byte) 1;
+	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, byte[] seen, int side, int i, int j, int chunkX, int chunkZ, int y) {
+		int k = i * side + j;
+		if (seen[k] == 0) {
+			seen[k] = in(ctx, tag, chunkX, chunkZ, y) ? (byte) 2 : (byte) 1;
 		}
-		return visto[k] == 2;
+		return seen[k] == 2;
 	}
 
 	/** El bioma en la esquina del chunk (donde el jigsaw comprueba el suyo), a la altura y (la del mar por defecto). */

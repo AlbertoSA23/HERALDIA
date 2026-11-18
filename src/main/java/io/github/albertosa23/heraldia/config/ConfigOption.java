@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
  * Una opción del esquema heraldia/opciones.json (generado por tools/gen/opciones.py): clave, valor por defecto, rango,
  * textos y sección de la pantalla de configuración. La misma validación sirve al leer el fichero y en la pantalla.
  *
- * @param pattern  patrón de las opciones repetidas (p. ej. {@code aldeas.estilos.<estilo>}), o null
+ * @param pattern  patrón de las opciones repetidas (p. ej. {@code villages.styles.<style>}), o null
  * @param argNames claves de traducción del nombre de cada argumento (null en una posición: el argumento tal cual)
  * @param values     valores posibles de una opción de lista (cadenas), o vacía si es booleana o entera
  * @param valueNames claves de traducción del nombre de cada valor de {@code values}, en el mismo orden

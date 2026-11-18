@@ -1,6 +1,6 @@
 package io.github.albertosa23.heraldia.client;
 
-import io.github.albertosa23.heraldia.comando.RecargarCommand;
+import io.github.albertosa23.heraldia.command.ReloadCommand;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import java.nio.file.Path;
 import java.util.List;
@@ -43,7 +43,7 @@ public final class HeraldiaClient implements ClientModInitializer {
 			return;
 		}
 		server.execute(() -> {
-			List<Component> lines = RecargarCommand.aplicar(server);
+			List<Component> lines = ReloadCommand.apply(server);
 			server.getPlayerList().getPlayers().forEach(p -> lines.forEach(p::sendSystemMessage));
 		});
 	}

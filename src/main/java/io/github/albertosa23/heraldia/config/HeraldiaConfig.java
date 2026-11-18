@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Configuración del servidor (config/heraldia.json). El esquema (opciones, valores por defecto, rangos y textos de ayuda)
  * lo genera tools/gen/opciones.py dentro del .jar. Se lee al arrancar y queda inmutable: la colocación de
- * estructuras la consultan varios hilos de generación a la vez. /heraldia reload ({@link #recargar}) la sustituye por
- * otra con los valores nuevos de las opciones que no afectan a la generación. El perfil de juego ({@link Perfiles}) se
+ * estructuras la consultan varios hilos de generación a la vez. /heraldia reload ({@link #reload}) la sustituye por
+ * otra con los valores nuevos de las opciones que no afectan a la generación. El perfil de juego ({@link Profiles}) se
  * aplica al leer (al arrancar y al recargar): los valores en uso ya son los del perfil con lo fijado a mano encima.
  */
 public final class HeraldiaConfig {
@@ -41,12 +41,12 @@ public final class HeraldiaConfig {
 	private final Map<String, JsonPrimitive> values;
 	private final JsonObject schema;
 	private final VillageRules villages;
-	private final Perfiles.Aplicado perfil;
+	private final Profiles.Applied profile;
 
-	private HeraldiaConfig(Lectura l, JsonObject schema) {
+	private HeraldiaConfig(Reading l, JsonObject schema) {
 		this.values = Collections.unmodifiableMap(new LinkedHashMap<>(l.values()));
 		this.schema = schema;
-		this.perfil = l.perfil();
+		this.profile = l.profile();
 		this.villages = new VillageRules(this);
 	}
 
@@ -54,17 +54,17 @@ public final class HeraldiaConfig {
 	 * Lo leído del fichero: los valores en uso (con el perfil aplicado) y el perfil: el elegido, el efectivo, las opciones
 	 * fijadas a mano y las que difieren del perfil.
 	 */
-	public record Lectura(Map<String, JsonPrimitive> values, Perfiles.Aplicado perfil) {
+	public record Reading(Map<String, JsonPrimitive> values, Profiles.Applied profile) {
 	}
 
 	/** Perfil de juego en uso: el elegido en el fichero, el efectivo y lo fijado a mano. */
-	public Perfiles.Aplicado profile() {
-		return perfil;
+	public Profiles.Applied profile() {
+		return profile;
 	}
 
 	/** Los perfiles del esquema del .jar (qué opciones fija cada uno y con qué valor). */
-	public static Perfiles profiles() {
-		return Schema.PERFILES;
+	public static Profiles profiles() {
+		return Schema.PROFILES;
 	}
 
 	/** Estilos activados y proporción de grandes, precalculados para el hilo de generación. */
@@ -91,20 +91,20 @@ public final class HeraldiaConfig {
 
 	/**
 	 * Recarga en caliente (/heraldia reload): lee el fichero como al arrancar, sin reescribirlo, y pone en uso los
-	 * valores nuevos de las opciones recargables ({@link Recarga#recargable}); las que afectan a la generación conservan
-	 * el valor en uso hasta el siguiente arranque y salen en {@link Recarga.Resultado#pendientes()}. La configuración en
+	 * valores nuevos de las opciones recargables ({@link Reload#reloadable}); las que afectan a la generación conservan
+	 * el valor en uso hasta el siguiente arranque y salen en {@link Reload.Result#pending()}. La configuración en
 	 * uso se sustituye entera (es inmutable), así que los hilos de generación nunca ven una a medias.
 	 */
-	public static synchronized Recarga.Resultado recargar(Path file) {
+	public static synchronized Reload.Result reload(Path file) {
 		HeraldiaConfig actual = get();
-		Lectura l = parse(file);                         // con el perfil ya aplicado: recargar el perfil lo cambia todo junto
-		Recarga.Resultado r = Recarga.mezclar(actual.values, l.values());
-		if (r.cambia()) {
-			instance = new HeraldiaConfig(new Lectura(r.valores(), l.perfil()), actual.schema);
-			logPerfil(l.perfil());
+		Reading l = parse(file);                         // con el perfil ya aplicado: recargar el perfil lo cambia todo junto
+		Reload.Result r = Reload.merge(actual.values, l.values());
+		if (r.changes()) {
+			instance = new HeraldiaConfig(new Reading(r.optionValues(), l.profile()), actual.schema);
+			logProfile(l.profile());
 		}
-		LOGGER.info("Heraldia: configuración recargada: {} opciones aplicadas {}, {} esperan al reinicio {}", r.aplicadas().size(),
-				r.aplicadas(), r.pendientes().size(), r.pendientes().stream().map(Recarga.Pendiente::clave).toList());
+		LOGGER.info("Heraldia: configuración recargada: {} opciones aplicadas {}, {} esperan al reinicio {}", r.applied().size(),
+				r.applied(), r.pending().size(), r.pending().stream().map(Reload.Pending::key).toList());
 		return r;
 	}
 
@@ -172,7 +172,7 @@ public final class HeraldiaConfig {
 	}
 
 	/** Como {@link #readValues}, con el perfil (qué opciones están fijadas a mano): para la pantalla y las pruebas. */
-	public static Lectura readWithProfile(Path file) {
+	public static Reading readWithProfile(Path file) {
 		return parse(file);
 	}
 
@@ -185,13 +185,13 @@ public final class HeraldiaConfig {
 	 * @throws IOException si no se puede escribir
 	 */
 	public static void save(Path file, Map<String, JsonPrimitive> given) throws IOException {
-		JsonPrimitive p = given.get(Perfiles.CLAVE);
-		String elegido = p != null && p.isString() ? p.getAsString() : Perfiles.ESTANDAR;
-		save(file, given, Schema.PERFILES.fijadasPorDiferencia(elegido, given));
+		JsonPrimitive p = given.get(Profiles.CLAVE);
+		String chosen = p != null && p.isString() ? p.getAsString() : Profiles.STANDARD;
+		save(file, given, Schema.PROFILES.pinnedByDifference(chosen, given));
 	}
 
 	/** Como {@link #save(Path, Map)}, con las opciones del perfil fijadas a mano que se escriben (las demás, no). */
-	public static void save(Path file, Map<String, JsonPrimitive> given, Set<String> fijadas) throws IOException {
+	public static void save(Path file, Map<String, JsonPrimitive> given, Set<String> pinned) throws IOException {
 		Map<String, JsonPrimitive> values = new LinkedHashMap<>();
 		for (ConfigOption o : Schema.OPTIONS) {
 			JsonPrimitive v = given.get(o.key());
@@ -200,18 +200,18 @@ public final class HeraldiaConfig {
 			}
 			values.put(o.key(), o.accept(v).orElseThrow(() -> new IllegalArgumentException("Valor no válido " + o.key() + "=" + v)));
 		}
-		writeOrThrow(file, values, fijadas, perfilDe(values, fijadas));
+		writeOrThrow(file, values, pinned, profileOf(values, pinned));
 	}
 
 	/** El perfil que resulta de unos valores ya resueltos con esas opciones fijadas a mano. */
-	private static Perfiles.Aplicado perfilDe(Map<String, JsonPrimitive> values, Set<String> fijadas) {
-		Map<String, JsonPrimitive> mano = new LinkedHashMap<>();
-		fijadas.forEach(k -> {
+	private static Profiles.Applied profileOf(Map<String, JsonPrimitive> values, Set<String> pinned) {
+		Map<String, JsonPrimitive> hand = new LinkedHashMap<>();
+		pinned.forEach(k -> {
 			if (values.containsKey(k)) {
-				mano.put(k, values.get(k));
+				hand.put(k, values.get(k));
 			}
 		});
-		return Schema.PERFILES.aplicar(values.get(Perfiles.CLAVE).getAsString(), mano);
+		return Schema.PROFILES.apply(values.get(Profiles.CLAVE).getAsString(), hand);
 	}
 
 	/** El esquema se lee una vez del .jar. */
@@ -220,7 +220,7 @@ public final class HeraldiaConfig {
 		static final int VERSION = JSON.get("version").getAsInt();
 		static final List<ConfigOption> OPTIONS;
 		static final Map<String, String> SECTIONS;
-		static final Perfiles PERFILES = new Perfiles(JSON);
+		static final Profiles PROFILES = new Profiles(JSON);
 
 		static {
 			List<ConfigOption> options = new ArrayList<>();
@@ -234,36 +234,36 @@ public final class HeraldiaConfig {
 	}
 
 	private static HeraldiaConfig read(Path file) {
-		Lectura l = parse(file, true);
+		Reading l = parse(file, true);
 		if (file != null) {
 			try {
-				writeOrThrow(file, l.values(), l.perfil().fijadas().keySet(), l.perfil());
+				writeOrThrow(file, l.values(), l.profile().pinned().keySet(), l.profile());
 			} catch (IOException e) {
 				LOGGER.warn("Heraldia: no se pudo escribir {} ({})", file, e.getMessage());
 			}
 		}
 		LOGGER.info("Heraldia: configuración leída ({} opciones, versión {})", l.values().size(), Schema.VERSION);
-		logPerfil(l.perfil());
+		logProfile(l.profile());
 		return new HeraldiaConfig(l, Schema.JSON);
 	}
 
-	private static void logPerfil(Perfiles.Aplicado p) {
-		if (p.difieren().isEmpty()) {
-			LOGGER.info("Heraldia: perfil {}{}", p.elegido(), p.fijadas().isEmpty() ? "" : " (fijadas a mano: " + String.join(", ", p.fijadas().keySet()) + ")");
+	private static void logProfile(Profiles.Applied p) {
+		if (p.differing().isEmpty()) {
+			LOGGER.info("Heraldia: perfil {}{}", p.chosen(), p.pinned().isEmpty() ? "" : " (fijadas a mano: " + String.join(", ", p.pinned().keySet()) + ")");
 		} else {
 			List<String> d = new ArrayList<>();
-			p.difieren().forEach((k, v) -> d.add(k + "=" + v[0] + " (perfil: " + v[1] + ")"));
+			p.differing().forEach((k, v) -> d.add(k + "=" + v[0] + " (perfil: " + v[1] + ")"));
 			LOGGER.info("Heraldia: perfil {} con opciones fijadas a mano en el fichero, que mandan sobre el perfil: {}; el perfil queda como {}",
-					p.elegido(), String.join(", ", d), p.efectivo());
+					p.chosen(), String.join(", ", d), p.effective());
 		}
 	}
 
-	private static Lectura parse(Path file) {
+	private static Reading parse(Path file) {
 		return parse(file, false);
 	}
 
 	/** @param copia si el fichero es de una versión anterior, guardar antes una copia (solo al arrancar, que lo reescribe) */
-	private static Lectura parse(Path file, boolean copia) {
+	private static Reading parse(Path file, boolean backup) {
 		int version = Schema.VERSION;
 		JsonObject root = new JsonObject();
 		boolean exists = file != null && Files.isRegularFile(file);
@@ -281,9 +281,9 @@ public final class HeraldiaConfig {
 		}
 		int fileVersion = root.has("version") && root.get("version").isJsonPrimitive() ? root.get("version").getAsInt() : 0;
 		if (exists && fileVersion < version) {
-			if (copia) {
+			if (backup) {
 				try {
-					LOGGER.info("Heraldia: copia de la configuración de la versión {} en {}", fileVersion, MigracionConfig.copiar(file, fileVersion));
+					LOGGER.info("Heraldia: copia de la configuración de la versión {} en {}", fileVersion, ConfigMigration.copy(file, fileVersion));
 				} catch (IOException e) {
 					LOGGER.warn("Heraldia: no se pudo copiar {} antes de migrarlo ({})", file, e.getMessage());
 				}
@@ -297,15 +297,15 @@ public final class HeraldiaConfig {
 		Map<String, JsonPrimitive> flat = new LinkedHashMap<>();
 		flatten("", root, flat);
 		Map<String, JsonPrimitive> values = new LinkedHashMap<>();
-		Map<String, JsonPrimitive> mano = new LinkedHashMap<>();         // opciones del perfil que trae el fichero (válidas)
-		Set<String> delPerfil = Set.copyOf(Schema.PERFILES.claves());
+		Map<String, JsonPrimitive> hand = new LinkedHashMap<>();         // opciones del perfil que trae el fichero (válidas)
+		Set<String> fromProfile = Set.copyOf(Schema.PROFILES.keys());
 		for (ConfigOption o : Schema.OPTIONS) {
 			JsonPrimitive given = flat.remove(o.key());
-			if (delPerfil.contains(o.key())) {
+			if (fromProfile.contains(o.key())) {
 				if (given != null) {
 					JsonPrimitive v = validate(given, o, "el del perfil");
 					if (o.accept(given).isPresent()) {
-						mano.put(o.key(), v);
+						hand.put(o.key(), v);
 					}
 				}
 				values.put(o.key(), null);                                  // lo pone el perfil (abajo), en su sitio
@@ -315,42 +315,42 @@ public final class HeraldiaConfig {
 		}
 		flat.keySet().stream().filter(k -> !k.equals("version") && !k.startsWith("_"))
 				.forEach(k -> LOGGER.warn("Heraldia: opción desconocida {} en la configuración; se ignora", k));
-		Perfiles.Aplicado perfil = Schema.PERFILES.aplicar(values.get(Perfiles.CLAVE).getAsString(), mano);
-		values.putAll(perfil.valores());
-		return new Lectura(values, perfil);
+		Profiles.Applied profile = Schema.PROFILES.apply(values.get(Profiles.CLAVE).getAsString(), hand);
+		values.putAll(profile.optionValues());
+		return new Reading(values, profile);
 	}
 
 	/** El valor si vale; si no, avisa y da el de por defecto (o, si se dice en `enSuLugar`, se avisa de ese otro). */
-	private static JsonPrimitive validate(JsonPrimitive given, ConfigOption o, String enSuLugar) {
+	private static JsonPrimitive validate(JsonPrimitive given, ConfigOption o, String inItsPlace) {
 		return o.accept(given).orElseGet(() -> {
-			Object usa = enSuLugar != null ? enSuLugar : o.defaultValue();
+			Object uses = inItsPlace != null ? inItsPlace : o.defaultValue();
 			if (o.isBoolean()) {
-				LOGGER.warn("Heraldia: valor no válido {}={} (true o false); se usa el valor por defecto {}", o.key(), given, usa);
+				LOGGER.warn("Heraldia: valor no válido {}={} (true o false); se usa el valor por defecto {}", o.key(), given, uses);
 			} else if (o.isChoice()) {
-				LOGGER.warn("Heraldia: valor no válido {}={} (uno de {}); se usa el valor por defecto {}", o.key(), given, o.values(), usa);
+				LOGGER.warn("Heraldia: valor no válido {}={} (uno de {}); se usa el valor por defecto {}", o.key(), given, o.values(), uses);
 			} else {
 				LOGGER.warn("Heraldia: valor no válido {}={} ({} de {} a {}); se usa el valor por defecto {}", o.key(), given,
-						o.decimal() ? "número" : "entero", o.min(), o.max(), usa);
+						o.decimal() ? "número" : "entero", o.min(), o.max(), uses);
 			}
 			return o.defaultValue();
 		});
 	}
 
 	/**
-	 * Pasos de formato entre versiones del fichero ({@link MigracionConfig}). La versión 0 (sin campo) es la de un fichero
+	 * Pasos de formato entre versiones del fichero ({@link ConfigMigration}). La versión 0 (sin campo) es la de un fichero
 	 * escrito a mano. Para un formato nuevo: sube opciones.VERSION y añade el paso aquí.
 	 */
-	static final MigracionConfig MIGRACION = new MigracionConfig(Map.of(
-			0, (root, desde) -> { },                     // 0 → 1: mismo formato; solo se añade el campo de versión
-			1, (root, desde) -> {                        // 1 → 2: perfiles (T36); lo que escribía el mod deja de estar «fijado a mano» (uno a mano, el 0, no)
-				if (desde == 1) {
-					quitarDelPerfil(root);
+	static final ConfigMigration MIGRATION = new ConfigMigration(Map.of(
+			0, (root, from) -> { },                     // 0 → 1: mismo formato; solo se añade el campo de versión
+			1, (root, from) -> {                        // 1 → 2: perfiles (T36); lo que escribía el mod deja de estar «fijado a mano» (uno a mano, el 0, no)
+				if (from == 1) {
+					removeFromProfile(root);
 				}
 			}));
 
 	private static void migrate(JsonObject root, int from, int to) {
-		MigracionConfig.Resultado r = MIGRACION.migrar(root, from, to);
-		r.sinPaso().forEach(v -> LOGGER.warn("Heraldia: no hay migración de la versión {} de la configuración", v));
+		ConfigMigration.Result r = MIGRATION.migrate(root, from, to);
+		r.noStep().forEach(v -> LOGGER.warn("Heraldia: no hay migración de la versión {} de la configuración", v));
 	}
 
 	/**
@@ -358,18 +358,18 @@ public final class HeraldiaConfig {
 	 * con su valor por defecto no las puso nadie a mano: se quitan (con el perfil estándar dan lo mismo). Las que tienen
 	 * otro valor se quedan, fijadas a mano: nada cambia en el mundo.
 	 */
-	static void quitarDelPerfil(JsonObject root) {
-		for (String k : Schema.PERFILES.claves()) {
+	static void removeFromProfile(JsonObject root) {
+		for (String k : Schema.PROFILES.keys()) {
 			String[] parts = k.split("\\.");
 			JsonObject node = root;
 			for (int i = 0; i < parts.length - 1 && node != null; i++) {
 				node = node.has(parts[i]) && node.get(parts[i]).isJsonObject() ? node.getAsJsonObject(parts[i]) : null;
 			}
-			String hoja = parts[parts.length - 1];
-			if (node != null && node.has(hoja) && node.get(hoja).isJsonPrimitive()) {
+			String leaf = parts[parts.length - 1];
+			if (node != null && node.has(leaf) && node.get(leaf).isJsonPrimitive()) {
 				ConfigOption o = Schema.OPTIONS.stream().filter(x -> x.key().equals(k)).findFirst().orElseThrow();
-				if (o.accept(node.getAsJsonPrimitive(hoja)).map(o.defaultValue()::equals).orElse(false)) {
-					node.remove(hoja);
+				if (o.accept(node.getAsJsonPrimitive(leaf)).map(o.defaultValue()::equals).orElse(false)) {
+					node.remove(leaf);
 				}
 			}
 		}
@@ -393,13 +393,13 @@ public final class HeraldiaConfig {
 	 * opciones del perfil solo van las fijadas a mano; el bloque «_perfil» (informativo, no se lee) dice el perfil efectivo
 	 * y los valores que da.
 	 */
-	private static void writeOrThrow(Path file, Map<String, JsonPrimitive> values, Set<String> fijadas, Perfiles.Aplicado perfil)
+	private static void writeOrThrow(Path file, Map<String, JsonPrimitive> values, Set<String> pinned, Profiles.Applied profile)
 			throws IOException {
 		JsonObject root = new JsonObject();
 		root.addProperty("version", Schema.VERSION);
-		Set<String> delPerfil = Set.copyOf(Schema.PERFILES.claves());
+		Set<String> fromProfile = Set.copyOf(Schema.PROFILES.keys());
 		for (Map.Entry<String, JsonPrimitive> e : values.entrySet()) {
-			if (delPerfil.contains(e.getKey()) && !fijadas.contains(e.getKey())) {
+			if (fromProfile.contains(e.getKey()) && !pinned.contains(e.getKey())) {
 				continue;
 			}
 			String[] parts = e.getKey().split("\\.");
@@ -427,10 +427,10 @@ public final class HeraldiaConfig {
 						: o.min() != null
 						? text(texts, "heraldia.config.rango", o.defaultValue().getAsString(), o.min().toString(), o.max().toString())
 						: text(texts, "heraldia.config.si_no", o.defaultValue().getAsString());
-				if (delPerfil.contains(o.key())) {
-					Perfiles ps = Schema.PERFILES;
-					range += "; " + text(texts, "heraldia.config.perfiles", ps.valores("casual").get(o.key()).getAsString(),
-							ps.valores(Perfiles.ESTANDAR).get(o.key()).getAsString(), ps.valores("hardcore").get(o.key()).getAsString());
+				if (fromProfile.contains(o.key())) {
+					Profiles ps = Schema.PROFILES;
+					range += "; " + text(texts, "heraldia.config.perfiles", ps.optionValues("casual").get(o.key()).getAsString(),
+							ps.optionValues(Profiles.STANDARD).get(o.key()).getAsString(), ps.optionValues("hardcore").get(o.key()).getAsString());
 				}
 				h.addProperty(shown, desc + " (" + range + ")");
 			}
@@ -438,12 +438,12 @@ public final class HeraldiaConfig {
 		}
 		root.add("_ayuda", help);
 		JsonObject info = new JsonObject();
-		info.addProperty("efectivo", perfil.efectivo());
-		JsonObject dados = new JsonObject();
-		perfil.valores().forEach(dados::add);
-		info.add("valores", dados);
+		info.addProperty("efectivo", profile.effective());
+		JsonObject given = new JsonObject();
+		profile.optionValues().forEach(given::add);
+		info.add("valores", given);
 		JsonObject dif = new JsonObject();
-		perfil.difieren().forEach((k, v) -> {
+		profile.differing().forEach((k, v) -> {
 			JsonObject d = new JsonObject();
 			d.add("fichero", v[0]);
 			d.add("perfil", v[1]);

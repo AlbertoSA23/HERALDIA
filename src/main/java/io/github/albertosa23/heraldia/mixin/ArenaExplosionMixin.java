@@ -26,8 +26,8 @@ abstract class ArenaExplosionMixin {
 
 	@Inject(method = "calculateExplodedPositions", at = @At("RETURN"))
 	private void heraldia$arena(CallbackInfoReturnable<List<BlockPos>> cir) {
-		if (Arena.hayArena(level)) {
-			cir.getReturnValue().removeIf(pos -> Arena.protegido(level, pos));
+		if (Arena.hasArena(level)) {
+			cir.getReturnValue().removeIf(pos -> Arena.isProtected(level, pos));
 		}
 	}
 }

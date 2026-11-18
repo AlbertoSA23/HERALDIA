@@ -1,7 +1,7 @@
 package io.github.albertosa23.heraldia.mixin;
 
 import com.mojang.datafixers.util.Pair;
-import io.github.albertosa23.heraldia.minas.LocateParalelo;
+import io.github.albertosa23.heraldia.mines.ParallelLocate;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso): /locate de las entradas a mina en paralelo ({@link LocateParalelo}). Solo adelanta en otros
+ * Mixin (último recurso): /locate de las entradas a mina en paralelo ({@link ParallelLocate}). Solo adelanta en otros
  * hilos las alturas que el hilo del servidor va a pedir; lo que decide qué estructura sale y dónde sigue siendo vanilla.
  * Salida temprana barata para cualquier otra rejilla (una comprobación de tipo).
  */
@@ -26,23 +26,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 abstract class ChunkGeneratorLocateMixin {
 	@Inject(method = "getNearestGeneratedStructure(Ljava/util/Set;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/world/level/StructureManager;IIIZJLnet/minecraft/world/level/levelgen/structure/placement/RandomSpreadStructurePlacement;)Lcom/mojang/datafixers/util/Pair;",
 			at = @At("HEAD"))
-	private static void heraldia$anillo(Set<Holder<Structure>> structures, LevelReader level, StructureManager manager, int x, int z,
+	private static void heraldia$ring(Set<Holder<Structure>> structures, LevelReader level, StructureManager manager, int x, int z,
 										int r, boolean skipKnown, long seed, RandomSpreadStructurePlacement placement,
 										CallbackInfoReturnable<Pair<BlockPos, Holder<Structure>>> cir) {
-		LocateParalelo.empezar(structures, level, x, z, r, seed, placement);
+		ParallelLocate.start(structures, level, x, z, r, seed, placement);
 	}
 
 	@Inject(method = "getNearestGeneratedStructure(Ljava/util/Set;Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/world/level/StructureManager;IIIZJLnet/minecraft/world/level/levelgen/structure/placement/RandomSpreadStructurePlacement;)Lcom/mojang/datafixers/util/Pair;",
 			at = @At("RETURN"))
-	private static void heraldia$finAnillo(Set<Holder<Structure>> structures, LevelReader level, StructureManager manager, int x, int z,
+	private static void heraldia$endRing(Set<Holder<Structure>> structures, LevelReader level, StructureManager manager, int x, int z,
 										   int r, boolean skipKnown, long seed, RandomSpreadStructurePlacement placement,
 										   CallbackInfoReturnable<Pair<BlockPos, Holder<Structure>>> cir) {
-		LocateParalelo.terminar();
+		ParallelLocate.finish();
 	}
 
 	@Inject(method = "getStructureGeneratingAt", at = @At("HEAD"))
-	private static void heraldia$casilla(Set<Holder<Structure>> structures, LevelReader level, StructureManager manager, boolean skipKnown,
+	private static void heraldia$cell(Set<Holder<Structure>> structures, LevelReader level, StructureManager manager, boolean skipKnown,
 										 StructurePlacement placement, ChunkPos pos, CallbackInfoReturnable<Pair<BlockPos, Holder<Structure>>> cir) {
-		LocateParalelo.esperar(pos);
+		ParallelLocate.await(pos);
 	}
 }

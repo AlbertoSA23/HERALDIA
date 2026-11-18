@@ -19,7 +19,7 @@ abstract class ArenaEndermanMixin {
 	@Inject(method = "canPlaceBlock", at = @At("HEAD"), cancellable = true)
 	private void heraldia$arena(Level level, BlockPos pos, BlockState carried, BlockState at, BlockState below, BlockPos belowPos,
 			CallbackInfoReturnable<Boolean> cir) {
-		if (Arena.protegido(level, pos)) {
+		if (Arena.isProtected(level, pos)) {
 			cir.setReturnValue(false);
 		}
 	}
