@@ -343,19 +343,29 @@ public final class Ambience {
 		}
 	}
 
-	/** An air block right under the ceiling, near and above the player's head (a few block reads), or null. */
+	/**
+	 * An air block right under the ceiling, near and above the player's head, or null: a few random columns within 2 blocks
+	 * (in a 3-wide gallery many fall in the wall) and, last, the player's own. A handful of block reads.
+	 */
 	private static BlockPos ceiling(ServerLevel level, ServerPlayer p) {
-		int x = p.getBlockX() + p.getRandom().nextInt(5) - 2, z = p.getBlockZ() + p.getRandom().nextInt(5) - 2;
 		int y0 = (int) Math.floor(p.getEyeY());
-		BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos(x, y0, z);
-		if (!level.getBlockState(m).isAir()) {
-			return null;
-		}
-		for (int dy = 1; dy <= AmbienceRules.CEILING_SEARCH; dy++) {
-			m.setY(y0 + dy);
+		BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
+		for (int i = 0; i <= AmbienceRules.CEILING_TRIES; i++) {
+			boolean own = i == AmbienceRules.CEILING_TRIES;
+			int x = p.getBlockX() + (own ? 0 : p.getRandom().nextInt(5) - 2), z = p.getBlockZ() + (own ? 0 : p.getRandom().nextInt(5) - 2);
+			m.set(x, y0, z);
 			if (!level.getBlockState(m).isAir()) {
+				continue;
+			}
+			for (int dy = 1; dy <= AmbienceRules.CEILING_SEARCH; dy++) {
+				m.setY(y0 + dy);
 				BlockState st = level.getBlockState(m);
-				return st.getFluidState().isEmpty() && st.isSolidRender() ? new BlockPos(x, y0 + dy - 1, z) : null;
+				if (!st.isAir()) {
+					if (st.getFluidState().isEmpty() && st.isSolidRender()) {
+						return new BlockPos(x, y0 + dy - 1, z);
+					}
+					break;
+				}
 			}
 		}
 		return null;

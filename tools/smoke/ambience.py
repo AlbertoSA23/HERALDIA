@@ -16,6 +16,7 @@ The server runs with -Dheraldia.ambiente.registro=true (each effect played is wr
 Exit code 0 if everything passes.
 """
 import argparse, json, os, re, shutil, sys, time
+from collections import Counter
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 import village_terrain as at
@@ -141,6 +142,8 @@ def siren(ctx, fails):
     lx, lz = locate(ctx, "#heraldia:costa/faro")
     load(ctx, lx, lz, 48)
     surface(ctx, lx + 40, lz)
+    # firm footing: next to a lighthouse it may be the sea, and a creative player sinks (under water: rightly no siren)
+    ctx.run(f"execute at {PLAYER} run setblock ~ ~-1 ~ minecraft:stone", r"Changed the block|Could not set")
     since = len(ctx.seen)
     ctx.ticks(300)
     pump(ctx)
@@ -162,7 +165,7 @@ def siren(ctx, fails):
 
 
 def gallery(ctx):
-    """A dug-out cell (air at the feet and head, rock above) inside the nearest mine adit, found with the same structure
+    """A dug-out cell (solid floor, air at the feet and head, rock above) inside the nearest mine adit, found with the same structure
     test the mod uses (a location predicate with the structure tag), all positions sent in one go: only the hits answer."""
     mx, mz = locate(ctx, "#heraldia:minas/pequena")
     load(ctx, mx + 8, mz + 8, 64)
@@ -175,7 +178,8 @@ def gallery(ctx):
         for x in range(mx + 8 - SCAN, mx + 8 + SCAN + 1, 3):
             for z in range(mz + 8 - SCAN, mz + 8 + SCAN + 1, 3):
                 s.send(ctx.proc, f"execute positioned {x} {y} {z} if predicate {pred} if block ~ ~ ~ minecraft:air "
-                                 f"if block ~ ~1 ~ minecraft:air unless block ~ ~5 ~ minecraft:air run say HIT {x} {y} {z}")
+                                 f"if block ~ ~1 ~ minecraft:air unless block ~ ~-1 ~ minecraft:air unless block ~ ~5 ~ minecraft:air "
+                                 f"run say HIT {x} {y} {z}")
                 n += 1
     pump(ctx)
     ctx.ticks(40)
@@ -184,7 +188,9 @@ def gallery(ctx):
     print(f"mine at {mx} {mz}: {len(hits)} gallery cells among {n} positions tested")
     if not hits:
         raise SystemExit(f"mine: no gallery cell found around {mx} {mz}")
-    return min(hits, key=lambda h: h[1])            # the deepest: the gallery, not the descent
+    # the gallery's floor is the height most cells share (the descent and a stray cave pocket are a few)
+    floor = Counter(h[1] for h in hits).most_common(1)[0][0]
+    return min((h for h in hits if h[1] == floor), key=lambda h: (h[0], h[2]))
 
 
 def mine(ctx, fails, work):

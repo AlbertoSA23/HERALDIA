@@ -37,6 +37,8 @@ public final class AmbienceRules {
 	public static final int ECHO_PERCENT = 25;
 	/** How far (blocks) above the player's head a ceiling is looked for, and how far the echo comes from. */
 	public static final int CEILING_SEARCH = 6, ECHO_DISTANCE = 12;
+	/** Random columns tried for the drip before the player's own. */
+	public static final int CEILING_TRIES = 3;
 	/** "Never heard" in the per-player times. */
 	public static final long NEVER = Long.MIN_VALUE;
 
