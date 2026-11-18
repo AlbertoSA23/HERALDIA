@@ -33,6 +33,8 @@ VILLAGER = ('summon minecraft:villager {x} {y} {z} {{NoAI:1b,PersistenceRequired
             'VillagerData:{{profession:"minecraft:librarian",level:2,type:"minecraft:plains"}},Xp:20,'
             'Offers:{{Recipes:[{{buy:{{id:"minecraft:emerald",count:%d}},sell:{{id:"minecraft:book",count:1}},maxUses:99,'
             'uses:0,xp:1,priceMultiplier:0.0f,specialPrice:0,demand:0}}]}}}}' % PRICE)
+# stat minecraft:talked_to_villager: +1 only when the use reaches an adult villager that is not trading already
+TALKED = "heraldia_trato"
 
 
 def write_config(work, extra=None):
@@ -74,21 +76,52 @@ def look_and_use(srv, pos, start, y):
 
 
 def price(srv, spot, y, floor_bottom):
-    """Summons the fixed-trade villager, the player opens its trades and returns the specialPrice that remains (or None)."""
+    """Summons the fixed-trade villager and returns its specialPrice with its trades open (None: they never opened)."""
     srv.run("kill @e[tag=heraldia_prueba]", r"Killed|No entity was found")
     for _ in range(ATTEMPTS):
         m = srv.run(VILLAGER.format(x=spot[0], y=y, z=spot[1]), r"Summoned")
         if "Summoned" in m.group(0):
             break
         time.sleep(RETRY_S)
+    return existing_price(srv, spot, y, floor_bottom)
+
+
+def clear_spot(srv, spot, y):
+    """The plaza villagers (with AI) walk up to the player (SetLookAndInteract); if `use once` hits one, it trades and
+    follows the player (LookAndFollowTradingPlayerSink), every retry hits it again and the test villager never opens its
+    trades (its specialPrice stays 0, which the NBT omits). The ones near the spot are removed and the rest frozen."""
+    for kind in ("minecraft:villager", "minecraft:wandering_trader"):
+        srv.run(f"execute positioned {spot[0]} {y} {spot[1]} run kill "
+                f"@e[type={kind},tag=!heraldia_prueba,tag=!heraldia_alguacil,distance=..6]", r"Killed|No entity was found")
+    srv.run(f"execute positioned {spot[0]} {y} {spot[1]} as @e[type=minecraft:villager,tag=!heraldia_prueba,"
+            f"tag=!heraldia_alguacil,distance=..48] run data merge entity @s {{NoAI:1b}}",
+            r"Modified entity data|Nothing changed|No entity was found|Unable to modify")
+
+
+def open_trades(srv, spot, y, floor_bottom):
+    """The player opens the test villager's trades; False if no use reached it (the stat talked_to_villager only goes up
+    when the use reaches an adult villager that is not trading already, and the others near the spot are gone)."""
     for _ in range(10):
+        close_out(srv)   # a trade left open (also with another villager) is closed first
+        clear_spot(srv, spot, y)
+        srv.run(f"scoreboard players set {PLAYER} {TALKED} 0", r"Set score|Set \[")
         look_and_use(srv, (spot[0], y + 1.2, spot[1]), floor_bottom, y)
         srv.ctx.ticks(4)
-        m = srv.run("data get entity @e[tag=heraldia_prueba,limit=1] Offers.Recipes[0].specialPrice",
-                    r"has the following entity data: (-?\d+)|Found no elements|No entity")
-        if m.group(1) is not None and m.group(1) != "0":
-            return int(m.group(1))
-    return int(m.group(1)) if m.group(1) is not None else None
+        if srv.test(f"execute if score {PLAYER} {TALKED} matches 1.."):
+            return True
+    return False
+
+
+def read_price(srv):
+    """specialPrice of the test trade: MerchantOffer.CODEC omits it when it is 0 (optionalFieldOf with default 0)."""
+    m = srv.run("data get entity @e[tag=heraldia_prueba,limit=1] Offers.Recipes[0].specialPrice",
+                r"has the following entity data: (-?\d+)|Found no elements|No entity")
+    return None if m.group(0).startswith("No entity") else int(m.group(1) or 0)
+
+
+def existing_price(srv, spot, y, floor_bottom):
+    """specialPrice of the test villager already in the plaza, with its trades open (None: they never opened)."""
+    return read_price(srv) if open_trades(srv, spot, y, floor_bottom) else None
 
 
 def close_out(srv):
@@ -126,6 +159,8 @@ def first_lap(srv, fails, found):
     if not srv.until(f"execute if entity @a[name={PLAYER}]"):
         raise SystemExit(f"simulated player {PLAYER} (Carpet) does not appear")
     srv.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
+    srv.run(f"scoreboard objectives add {TALKED} minecraft.custom:minecraft.talked_to_villager",
+            r"Created new objective|already exists")
     srv.run(f"clear {PLAYER}", r"Removed|No items")
     lec, ahead = lectern_of(srv, sheriff_pos)
     if lec is None:
@@ -144,7 +179,7 @@ def first_lap(srv, fails, found):
         return None
     srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
     # control: with no reputation in the village, the fixed trade does not change price
-    before = price(srv, spot, y, floor_bottom) or 0
+    before = price(srv, spot, y, floor_bottom)
     if before != 0:
         fails.append(f"price without reputation: specialPrice {before} (must be 0)")
     close_out(srv)
@@ -228,6 +263,8 @@ def second_lap(srv, fails, found, first_item, work):
     srv.run(f"player {PLAYER} spawn at {floor_bottom[0]} {y} {floor_bottom[1]}", r"joined the game")
     srv.until(f"execute if entity @a[name={PLAYER}]")
     srv.ctx.ticks(10)
+    srv.run(f"scoreboard objectives add {TALKED} minecraft.custom:minecraft.talked_to_villager",
+            r"Created new objective|already exists")
     name, period, qst = board(srv, fails, lambda: as_player(srv, "heraldia quest", BOARD.pattern))
     if (name, period, qst) != first_item:
         fails.append(f"after restarting, another board: {qst} (before {first_item[2]})")
@@ -242,21 +279,10 @@ def second_lap(srv, fails, found, first_item, work):
     write_config(work, {"encargos": {"activado": False}, "reputacion": {"activado": False}})
     srv.run("heraldia reload", r"Heraldia: configuración recargada")
     as_player(srv, "heraldia quest", r"quests are disabled|están desactivados")
-    sin = existing_price(srv, spot, y, floor_bottom) or 0
+    sin = existing_price(srv, spot, y, floor_bottom)
     if sin != 0:
         fails.append(f"with reputation disabled, specialPrice {sin} (must be 0)")
     print(f"after restarting: same board, handed-in quests kept, price {inside}; disabled: price {sin}")
-
-
-def existing_price(srv, spot, y, floor_bottom):
-    for _ in range(10):
-        look_and_use(srv, (spot[0], y + 1.2, spot[1]), floor_bottom, y)
-        srv.ctx.ticks(4)
-        m = srv.run("data get entity @e[tag=heraldia_prueba,limit=1] Offers.Recipes[0].specialPrice",
-                    r"has the following entity data: (-?\d+)|Found no elements|No entity")
-        if m.group(1) is not None:
-            return int(m.group(1))
-    return None
 
 
 def main():

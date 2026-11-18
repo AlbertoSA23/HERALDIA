@@ -25,7 +25,7 @@ public record Destination(Type type, String structure, int x, int z, boolean gen
 
 		static Type of(String id) {
 			for (Type t : values()) {
-				if (t.id.equals(id)) {
+				if (t.id.equalsIgnoreCase(id)) {
 					return t;
 				}
 			}

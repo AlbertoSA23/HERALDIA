@@ -68,7 +68,7 @@ public final class Shoreline {
 		}
 		public static Mode of(String id) {
 			for (Mode t : values()) {
-				if (t.id.equals(id)) {
+				if (t.id.equalsIgnoreCase(id)) {
 					return t;
 				}
 			}

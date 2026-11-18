@@ -29,7 +29,7 @@ public enum Layer {
 	/** The layer with that id. */
 	public static Layer of(String id) {
 		for (Layer t : values()) {
-			if (t.id.equals(id)) {
+			if (t.id.equalsIgnoreCase(id)) {
 				return t;
 			}
 		}
