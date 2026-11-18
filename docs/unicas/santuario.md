@@ -1,192 +1,192 @@
-# Santuario druídico (`heraldia:unicas/santuario`)
+# Druid Sanctuary (`heraldia:unicas/santuario`)
 
-Un claro del bosque de abedules rodeado de menhires, con un **abedul sagrado** enorme en medio: su tronco hueco guarda
-una escalera de caracol que sube hasta una plataforma bajo la copa y baja a las raíces, donde los druidas excavaron su
-biblioteca, su herbolario y el osario de sus fieles. El árbol se está secando: el archidruida **Cadoc**, que juró por
-sus raíces guardar el pliego de Ysolda, pactó con poderes oscuros para salvarlo y ahora espera, **el Marchito**, en la
-cámara del rito, junto al tocón negro del primer árbol.
+A clearing in the birch forest ringed by menhirs, with a huge **sacred birch** in the middle: its hollow trunk holds
+a spiral staircase that goes up to a platform under the canopy and down to the roots, where the druids dug their
+library, their herbalist's room and the ossuary of their faithful. The tree is withering: the archdruid **Cadoc**, who swore by
+its roots to keep Ysolda's leaf, made a pact with dark powers to save it and now waits, **the Withered**, in the
+rite chamber, next to the black stump of the first tree.
 
-Es una estructura original: no copia ningún santuario de otro juego o mod. Se distingue de la catedral (bosque y bosque
-de flores) y de la aldea de la familia bosque en que no hay muros: es un claro abierto, con cabañas redondas pequeñas y
-un único árbol monumental, y todo lo valioso está bajo tierra.
+It is an original structure: it does not copy any sanctuary from another game or mod. It differs from the cathedral (forest and flower
+forest) and from the forest family's village in that there are no walls: it is an open clearing, with small round huts and
+a single monumental tree, and everything valuable is underground.
 
-## Bioma y colocación
+## Biome and placement
 
-- Biomas: bosque de abedules y bosque de abedules antiguo, más `#c:is_birch_forest` (que en vanilla son exactamente
-  esos dos: entran los bosques de abedules de mods de biomas; `biomas.comprobar` lo verifica). Hasta ahora no había
-  ninguna única en ellos.
-- Rareza: `spacing` 250 / `separation` 190 chunks (una cada ~3.000-5.000 bloques), configurable en
-  `config/heraldia.json` como las demás (`unicas.santuario.activada`, `unicas.santuario.separacion_bloques`).
-- Dos piezas rígidas unidas por un jigsaw vertical bajo el camino de entrada (`down_north` → `up_north`, misma rotación):
-  - `claro` (72 × 32 × 72): un disco de 72 de diámetro; su capa y = 0 es el suelo (los pies van a y = 1).
-  - `raices` (49 × 14 × 63): todo lo que queda por debajo de y = 0. **Rellena toda su caja**: tierra en las dos capas de
-    arriba, piedra debajo, y forro (tierra enraizada y madera de abedul en la sala de las raíces, tablones en la
-    biblioteca, adobe en el herbolario, piedra labrada o pizarra abismal labrada en lo demás) en toda cara que da al
-    aire, para que no salgan manantiales ni liquen dentro.
-- Adaptación `beard_thin`: el terreno se ajusta a la base del claro (y = 0) y las raíces quedan a su profundidad, sin
-  cráter (ver «Sótanos sin cráter» en `docs/APRENDIZAJES.md`). Dentro del claro (radio 30) hay aire explícito hasta 6
-  bloques sobre el suelo, para que ninguna ladera asome entre las cabañas.
-- **Nada nace en el claro**: el suelo pisado es tierra de camino con alfombras de musgo en manchas (los árboles, la hierba
-  y las flores del bosque no se colocan sobre ella); los bancales y el arriate del huerto llevan un cultivo o una flor en
-  cada casilla, así que tampoco cabe un árbol. Fuera del radio 30 el suelo es hierba: ahí el bosque vuelve a crecer y el
-  claro se funde con él. La auditoría falla si queda tierra fértil descubierta dentro del claro.
+- Biomes: birch forest and old growth birch forest, plus `#c:is_birch_forest` (which in vanilla are exactly
+  those two: biome mods' birch forests come in; `biomas.comprobar` checks it). Until now there was no
+  unique structure in them.
+- Rarity: `spacing` 250 / `separation` 190 chunks (one every ~3,000-5,000 blocks), configurable in
+  `config/heraldia.json` like the others (`unicas.santuario.activada`, `unicas.santuario.separacion_bloques`).
+- Two rigid pieces joined by a vertical jigsaw under the entrance path (`down_north` → `up_north`, same rotation):
+  - `claro` (72 × 32 × 72): a disc 72 in diameter; its y = 0 layer is the ground (feet go at y = 1).
+  - `raices` (49 × 14 × 63): everything below y = 0. **It fills its whole box**: dirt in the top two
+    layers, stone below, and a lining (rooted dirt and birch wood in the root hall, planks in the
+    library, mud brick in the herbalist's room, cut stone or polished deepslate elsewhere) on every face that faces
+    air, so that no springs or lichen appear inside.
+- `beard_thin` adaptation: the terrain adjusts to the base of the clearing (y = 0) and the roots stay at their depth, without a
+  crater (see "Basements without a crater" in `docs/LESSONS.md`). Inside the clearing (radius 30) there is explicit air up to 6
+  blocks above the ground, so that no hillside pokes out between the huts.
+- **Nothing grows in the clearing**: the walked floor is dirt path with patches of moss carpet (the forest's trees, grass
+  and flowers are not placed on it); the garden's beds and flower bed have a crop or a flower on
+  every cell, so a tree cannot fit either. Outside radius 30 the ground is grass: there the forest grows back and the
+  clearing blends into it. The audit fails if bare fertile soil is left inside the clearing.
 
-## El claro (pies a y = 1)
+## The clearing (feet at y = 1)
 
-Coordenadas: x de oeste a este (0..71), z de norte a sur (0..71); la entrada está al norte (z = 0). El árbol está en el
-centro (36, 36). Planos en [`santuario/planos.txt`](santuario/planos.txt).
+Coordinates: x from west to east (0..71), z from north to south (0..71); the entrance is to the north (z = 0). The tree is at the
+center (36, 36). Plans in [`santuario/planos.txt`](santuario/planos.txt).
 
-- **Camino** de adoquín musgoso de la entrada a la puerta del árbol.
-- **Abedul sagrado**: tronco de troncos de abedul de 9 de ancho (radio 4,5) que se estrecha en la copa, con raíces que
-  se abren a su pie (ninguna al norte, donde está la puerta) y corteza desprendida en manchas. Dentro, la **escalera de
-  caracol** (`piezas.spiral_stair`) va de las raíces (pies -11) a la copa (pies 19), con setas luminosas en la pared del
-  hueco. Puerta al claro y puerta a la **plataforma de la copa**: un anillo de tablones con barandilla (que no deja
-  huecos en diagonal) sobre ménsulas de tronco, faroles colgados de la copa y el cofre `copa`. La **copa** es una cúpula
-  de hojas persistentes (no se secan) de 21 de ancho con ramas por dentro; tiene claros donde el árbol se marchita.
-- **Círculo de piedras**: doce menhires de piedra y andesita alrededor del árbol (radio 13); dos se han caído.
-- **Cabañas de los druidas** (tres, al oeste): redondas, zócalo de adoquín, muros de adobe con postes de abedul
-  descortezado, ventanas en los tramos rectos y cubierta cónica de paja maciza. Cama, cofre `cabana`, tonel, maceta y
-  algo del oficio de cada uno (mesa de trabajo, caldero, compostador). La del sur tiene la cubierta hundida en parte.
-- **Cabaña del archidruida** (noreste): más grande, con cama, cofre, atril y alambique. Tras el **tapiz verde** del muro
-  este, un paso de 1 × 2 lleva a su **alcoba oculta** (sin otra salida): cofre `archidruida`.
-- **Huerto de hierbas** (suroeste): cercado de abedul con portillo, bancales de trigo, zanahoria, remolacha y patata
-  regados por dos acequias, un arriate de flores (allium, aciano, lirio de los valles...), dos **colmenas** con miel y el
-  tonel `jardin`. Sendero central.
-- **Estanque de piedra** (sureste): pila elevada un bloque, con nenúfares.
-- **Observatorio de piedras alineadas** (este): estrado redondo con un **gnomon** y, al este, tres piedras hacia las
-  salidas del sol: «Sol de verano» (noreste), «Sol de los equinoccios» (este) y «Sol de invierno» (sureste). El gnomon
-  lleva la **adivinanza**: «Enciende los solsticios; deja a oscuras los equinoccios». Cofre `observatorio`.
+- A mossy cobblestone **path** from the entrance to the tree's door.
+- **Sacred birch**: a trunk of birch logs 9 wide (radius 4.5) that narrows towards the canopy, with roots that
+  spread at its foot (none to the north, where the door is) and patches of peeled bark. Inside, the **spiral
+  staircase** (`piezas.spiral_stair`) goes from the roots (feet -11) to the canopy (feet 19), with shroomlights on the wall of the
+  hollow. A door to the clearing and a door to the **canopy platform**: a ring of planks with a railing (which leaves no
+  diagonal gaps) on log corbels, lanterns hanging from the canopy and the `copa` chest. The **canopy** is a dome
+  of persistent leaves (they do not decay) 21 wide with branches inside; it has gaps where the tree is withering.
+- **Stone circle**: twelve stone and andesite menhirs around the tree (radius 13); two have fallen.
+- **The druids' huts** (three, to the west): round, a cobblestone plinth, mud brick walls with stripped birch
+  posts, windows on the straight stretches and a solid thatched conical roof. A bed, the `cabana` chest, a barrel, a flower pot and
+  something of each one's trade (crafting table, cauldron, composter). The southern one has its roof partly caved in.
+- **The archdruid's hut** (northeast): larger, with a bed, a chest, a lectern and a brewing stand. Behind the **green tapestry** of the
+  east wall, a 1 × 2 passage leads to his **hidden alcove** (no other exit): the `archidruida` chest.
+- **Herb garden** (southwest): a birch fence with a gate, beds of wheat, carrot, beetroot and potato
+  watered by two ditches, a flower bed (allium, cornflower, lily of the valley...), two **beehives** with honey and the
+  `jardin` barrel. A central path.
+- **Stone pond** (southeast): a basin raised by one block, with lily pads.
+- **Observatory of aligned stones** (east): a round dais with a **gnomon** and, to the east, three stones towards the
+  sunrises: "Summer sun" (northeast), "Equinox sun" (east) and "Winter sun" (southeast). The gnomon
+  carries the **riddle**: "Light the solstices; leave the equinoxes dark". The `observatorio` chest.
 
-## Las raíces (pieza `raices`)
+## The roots (piece `raices`)
 
-Nivel alto (pies a y = -5) y nivel bajo (pies a y = -11), los dos unidos por la escalera del árbol.
+Upper level (feet at y = -5) and lower level (feet at y = -11), both joined by the tree's staircase.
 
-1. **Sala de las raíces** (nivel alto, al norte del árbol): pilares de madera, raíces colgantes y telarañas; a oscuras,
-   con un **generador de arañas** y el cofre `raices`.
-2. **Biblioteca** (oeste): estanterías, mesa de lectura, atril y el cofre `biblioteca`, que guarda el **pliego de la
-   Crónica**. Un tramo de estantería del muro norte es la **puerta secreta** (puzle 2): su palanca está a ras de suelo,
-   tres bloques más allá. Detrás, el **archivo** (sala oculta): estanterías, atril y el cofre `secreto`.
-3. **Herbolario** (este): alambiques, calderos, compostador, toneles con macetas, una mesa larga de secar hierbas, el
-   cofre y el tonel `herbolario`.
-4. **Pasillo del cable trampa** (norte): **trampa 1**, cable trampa con dos dispensadores de flechas a la altura de la
-   cabeza.
-5. **Osario de los fieles**: pilas de huesos y calaveras, el cofre `osario`, un cartel («Los fieles descansan al pie del
-   árbol») y un **generador de zombis**.
-6. **Sala de las ofrendas** (nivel bajo, al este del árbol): vasijas y velas, un **generador de esqueletos**, el cofre
-   `raices` y, al fondo de un nicho del muro este, el cofre de las **ofrendas** con dos placas de presión delante y un
-   dispensador de flechas a cada lado de cada placa (**trampa 2**).
-7. **Cámara del sol** (puzle 1): el muro oeste tiene cuatro **piedras de las estaciones** de ladrillo cincelado, cada
-   una con su palanca y su cartel: primavera, verano, otoño e invierno. La puerta de piedra musgosa se abre solo con
-   **los solsticios encendidos (verano e invierno) y los equinoccios apagados (primavera y otoño)**: la adivinanza está
-   en el gnomon del claro y las piedras alineadas lo explican. Las palancas buenas apagan dos antorchas inversoras que
-   alimentan la línea de los pistones; las falsas la alimentan directamente con polvo, así que con cualquier piedra falsa
-   encendida la puerta se queda cerrada (o se vuelve a cerrar). Es la misma pieza que el muro de las runas del Salón del
-   Jarl (`piezas.combo_door` con dos palancas falsas), ya probada en servidor.
-8. **Cámara del rito** (oculta): pizarra abismal labrada, tapices negros, un círculo de piedras musgosas alrededor del
-   **tocón negro** del primer árbol y velas encendidas. La ronda el **guardián**, el **archidruida Cadoc, el Marchito**
-   (evocador, 50 de vida, armadura 4; sus vejaciones son su única escolta). Cofre `ritual`.
-9. **Cámara del tesoro**, al sur de la del rito: cofre **premium**, bloque de oro con velas, tonel, vasijas y postes.
+1. **Root hall** (upper level, north of the tree): wooden pillars, hanging roots and cobwebs; dark,
+   with a **spider spawner** and the `raices` chest.
+2. **Library** (west): bookshelves, a reading table, a lectern and the `biblioteca` chest, which holds the **Chronicle
+   leaf**. A stretch of bookshelf in the north wall is the **secret door** (puzzle 2): its lever is at floor level,
+   three blocks further on. Behind it, the **archive** (hidden room): bookshelves, a lectern and the `secreto` chest.
+3. **Herbalist's room** (east): brewing stands, cauldrons, a composter, barrels with flower pots, a long table for drying herbs, the
+   `herbolario` chest and barrel.
+4. **Tripwire corridor** (north): **trap 1**, a tripwire with two arrow dispensers at head
+   height.
+5. **Ossuary of the faithful**: piles of bones and skulls, the `osario` chest, a sign ("The faithful rest at the foot of the
+   tree") and a **zombie spawner**.
+6. **Offering room** (lower level, east of the tree): pots and candles, a **skeleton spawner**, the
+   `raices` chest and, at the back of a niche in the east wall, the **offerings** chest with two pressure plates in front of it and an
+   arrow dispenser on each side of each plate (**trap 2**).
+7. **Sun chamber** (puzzle 1): the west wall has four chiseled brick **season stones**, each
+   with its lever and its sign: spring, summer, autumn and winter. The mossy stone door only opens with
+   **the solstices lit (summer and winter) and the equinoxes off (spring and autumn)**: the riddle is
+   on the clearing's gnomon and the aligned stones explain it. The correct levers turn off two inverting torches that
+   power the pistons' line; the fake ones power it directly with dust, so with any fake stone
+   lit the door stays closed (or closes again). It is the same piece as the rune wall of Jarl's
+   Hall (`piezas.combo_door` with two fake levers), already tested on a server.
+8. **Rite chamber** (hidden): polished deepslate, black tapestries, a circle of mossy stones around the
+   **black stump** of the first tree and lit candles. It is patrolled by the **guardian**, the **archdruid Cadoc, the Withered**
+   (an evoker, 50 health, armor 4; his vexes are his only escort). The `ritual` chest.
+9. **Treasure chamber**, south of the rite chamber: the **premium** chest, a gold block with candles, a barrel, pots and posts.
 
-## Recorrido del jugador
+## Player route
 
-Entrada → claro (libre: cabañas, huerto, estanque, observatorio, círculo) → puerta del árbol → escalera arriba hasta la
-plataforma de la copa, o abajo → sala de las raíces → biblioteca (palanca → archivo), herbolario, pasillo del cable
-trampa → osario. Más abajo → sala de las ofrendas (nicho con la trampa) → cámara del sol → combinación → cámara del rito →
-tesoro. En la cabaña del archidruida, tras el tapiz, la alcoba. Todo tiene vuelta a la entrada sin saltos (lo comprueba
-la auditoría; de la acequia y del estanque se sale nadando).
+Entrance → clearing (free: huts, garden, pond, observatory, circle) → the tree's door → stairs up to the
+canopy platform, or down → root hall → library (lever → archive), herbalist's room, tripwire
+corridor → ossuary. Further down → offering room (the niche with the trap) → sun chamber → combination → rite chamber →
+treasure. In the archdruid's hut, behind the tapestry, the alcove. Everything has a way back to the entrance without jumps (the
+audit checks it; you get out of the ditch and the pond by swimming).
 
-## Puzles y trampas (todo en reposo y coherente al generarse)
+## Puzzles and traps (everything at rest and consistent when generated)
 
-- **Puzle 1, piedras de las estaciones** (`piezas.combo_door` con dos palancas y dos falsas): pistones pegajosos
-  extendidos sujetando dos bloques de piedra musgosa; la línea de polvo va dentro del muro (cuatro de grueso: palancas,
-  antorchas o polvo de las falsas, puerta y pistones con la línea, y la cara de la cámara del rito). Se prueban las 16
-  combinaciones.
-- **Puzle 2, estantería secreta del archivo** (`piezas.lever_door`): dos estanterías al fondo de un nicho; la palanca
-  apaga la antorcha inversora y los pistones las recogen. Pistones y antorcha quedan dentro del muro.
-- **Trampa 1**: cable trampa tenso entre dos ganchos con un dispensador encima de cada gancho (`piezas.tripwire_trap`).
-- **Trampa 2**: dos placas de piedra en el nicho de las ofrendas, cada una con un dispensador a cada lado
+- **Puzzle 1, the season stones** (`piezas.combo_door` with two levers and two fake ones): extended sticky pistons
+  holding two blocks of mossy stone; the line of dust runs inside the wall (four thick: levers,
+  torches or the fake ones' dust, door and pistons with the line, and the face of the rite chamber). The 16
+  combinations are tried.
+- **Puzzle 2, the archive's secret bookshelf** (`piezas.lever_door`): two bookshelves at the back of a niche; the lever
+  turns off the inverting torch and the pistons pull them in. Pistons and torch stay inside the wall.
+- **Trap 1**: a taut tripwire between two hooks with a dispenser above each hook (`piezas.tripwire_trap`).
+- **Trap 2**: two stone plates in the offering niche, each with a dispenser on each side
   (`piezas.plate_trap`).
 
-## Enemigos y entidades
+## Enemies and entities
 
-- **3 generadores**, todos bajo tierra y a oscuras (luz de bloque 0 en un radio de 4): arañas (sala de las raíces),
-  zombis (osario) y esqueletos (sala de las ofrendas).
-- **Guardián**: el archidruida Cadoc (único con la etiqueta `heraldia_guardian`; suelta su trofeo si lo mata un jugador,
-  y su botín de evocador de siempre).
-- Sin aldeanos, gólems ni animales; las colmenas están vacías (con miel). En total, **1 entidad** por estructura.
+- **3 spawners**, all underground and in the dark (block light 0 within a radius of 4): spiders (root hall),
+  zombies (ossuary) and skeletons (offering room).
+- **Guardian**: the archdruid Cadoc (the only one with the `heraldia_guardian` tag; he drops his trophy if a player kills him,
+  and his usual evoker loot).
+- No villagers, golems or animals; the beehives are empty (with honey). In total, **1 entity** per structure.
 
-## Cofres (18) y botín
+## Chests (18) and loot
 
-Más ricos cuanto más escondidos; cada tabla tiene un grupo extra `solo_sin_lootr`.
+Richer the more hidden they are; each table has an extra `solo_sin_lootr` pool.
 
-| Tabla | Dónde | Contenido |
+| Table | Where | Contents |
 |---|---|---|
-| `cabana` (4) | cabañas de los druidas y del archidruida | pan, miel, bayas, semillas, polvo de hueso, lana, velas; extra: esmeralda, pepitas, zanahoria dorada |
-| `jardin` (tonel) | huerto | semillas, cosechas, polvo de hueso, panal, flores, tijeras; extra: Miel del claro, sandía reluciente |
-| `observatorio` | estrado del observatorio | papel, velas, brújula, reloj, amatista, mapa; extra: catalejo, lapislázuli |
-| `copa` | plataforma de la copa | flechas, arco gastado, cuerda, plumas; extra: Arco de abedul (encantado) |
-| `archidruida` | alcoba oculta | oro, esmeraldas, amatista, Muérdago dorado, libro encantado, poción de regeneración; extra: diamante, manzana dorada, Bordón del peregrino |
-| `biblioteca` | biblioteca | libros, papel, plumas, tinta, Corteza escrita **y el pliego de la Crónica**; extra: libro encantado |
-| `secreto` | archivo oculto | libros encantados, Tratado de las raíces, amatista, lapislázuli; extra: diamantes, disco «mellohi» |
-| `herbolario` (cofre y tonel) | herbolario | frascos, azúcar, setas, bayas luminosas, pociones; extra: Remedio del herbolario, sandía reluciente |
-| `raices` (2) | sala de las raíces, sala de las ofrendas | cuerda, bayas luminosas, setas, pepitas de hierro, carbón; extra: hierro, esmeralda |
-| `osario` | osario | huesos, carne podrida, pepitas de oro, calavera; extra: lingotes, frascos de experiencia |
-| `ofrendas` | nicho de las ofrendas (trampa) | oro y esmeraldas a montones, Miel del claro, amatista; extra: diamantes, bloque de oro |
-| `ritual` | cámara del rito | redstone, piedra luminosa, lapislázuli, amatista, Daga del rito; extra: diamantes |
-| `premium` | cámara del tesoro | 90 %: Semilla del árbol sagrado, Corona de hojas, Arco de abedul, Muérdago dorado, adornos de armadura (salvaje, guía, criador), discos, oro, esmeraldas, libro encantado; 10 %: hacha o grebas de diamante encantadas, manzana dorada encantada o tótem |
+| `cabana` (4) | the druids' and the archdruid's huts | bread, honey, berries, seeds, bone meal, wool, candles; extra: emerald, nuggets, golden carrot |
+| `jardin` (barrel) | garden | seeds, crops, bone meal, honeycomb, flowers, shears; extra: Clearing Honey, glistering melon |
+| `observatorio` | the observatory's dais | paper, candles, compass, clock, amethyst, map; extra: spyglass, lapis lazuli |
+| `copa` | canopy platform | arrows, a worn bow, string, feathers; extra: Birch Bow (enchanted) |
+| `archidruida` | hidden alcove | gold, emeralds, amethyst, Golden Mistletoe, enchanted book, regeneration potion; extra: diamond, golden apple, the Pilgrim's Staff |
+| `biblioteca` | library | books, paper, feathers, ink, Written Bark **and the Chronicle leaf**; extra: enchanted book |
+| `secreto` | hidden archive | enchanted books, Treatise on the Roots, amethyst, lapis lazuli; extra: diamonds, "mellohi" disc |
+| `herbolario` (chest and barrel) | herbalist's room | bottles, sugar, mushrooms, glow berries, potions; extra: the Herbalist's Remedy, glistering melon |
+| `raices` (2) | root hall, offering room | string, glow berries, mushrooms, iron nuggets, coal; extra: iron, emerald |
+| `osario` | ossuary | bones, rotten flesh, gold nuggets, skull; extra: ingots, bottles o' enchanting |
+| `ofrendas` | offering niche (trap) | heaps of gold and emeralds, Clearing Honey, amethyst; extra: diamonds, gold block |
+| `ritual` | rite chamber | redstone, glowstone, lapis lazuli, amethyst, the Rite Dagger; extra: diamonds |
+| `premium` | treasure chamber | 90 %: Seed of the Sacred Tree, Crown of Leaves, Birch Bow, Golden Mistletoe, armor trims (wild, wayfinder, raiser), discs, gold, emeralds, enchanted book; 10 %: an enchanted diamond axe or leggings, an enchanted golden apple or a totem |
 
-Nada de netherita ni élitros.
+No netherite or elytra.
 
-## Trofeo y Crónica
+## Trophy and Chronicle
 
-- **Trofeo**: *Hoz de oro de Cadoc* (azada de oro rara, eficiencia 2, irrompibilidad 2): «Segaba el muérdago del árbol
-  sagrado. Al final segó también sus raíces».
-- **Pliego** (cofre `biblioteca`): Ysolda llega al claro, los druidas le dan pan y miel y el archidruida Cadoc la escucha
-  bajo el árbol; jura por sus raíces guardar el pliego y lo pone entre las cortezas escritas de su biblioteca. Cuando el
-  árbol empezó a secarse, Cadoc pactó con poderes oscuros para salvarlo. Pista con la que lo señala el pliego del Salón
-  del Jarl: «el bosque de abedules, donde un árbol sagrado alza su copa sobre un círculo de piedras». El suyo señala la
-  Torre de mago.
+- **Trophy**: *Cadoc's Golden Sickle* (a rare gold hoe, Efficiency 2, Unbreaking 2): "It reaped the mistletoe of the sacred
+  tree. In the end it reaped its roots as well".
+- **Leaf** (`biblioteca` chest): Ysolda reaches the clearing, the druids give her bread and honey and the archdruid Cadoc listens to her
+  under the tree; he swears by its roots to keep the leaf and puts it among the written barks of his library. When the
+  tree began to wither, Cadoc made a pact with dark powers to save it. The clue with which the leaf of Jarl's
+  Hall points to it: "the birch forest, where a sacred tree raises its canopy over a circle of stones". Its own points to the
+  Wizard's tower.
 
-## Estado de conservación
+## State of conservation
 
-Superficie a la vista dañada: **17 %** (calculado sobre los bloques del claro con una cara al aire exterior, sin el suelo
-pisado ni las alfombras de musgo: la ruina hecha a mano más lo que se espera del procesador). Ruina a mano: claros en la
-copa (el árbol se marchita) y la corteza desprendida en manchas del tronco, dos menhires caídos, la cubierta hundida de
-la cabaña del sur (con paja caída dentro), tramos de la cerca del huerto rotos y el muro del estanque agrietado.
-Procesador: adoquín → musgoso (30 %), ladrillo de piedra → agrietado (12 %) o musgoso (10 %), adobe → barro compacto
-(10 %) y cristales rotos (30 %). Nada que sostenga un mecanismo cambia de solidez.
+Visible surface damaged: **17 %** (computed over the clearing's blocks with a face to the outside air, without the walked
+floor or the moss carpets: the hand-made ruin plus what is expected from the processor). Hand-made ruin: gaps in the
+canopy (the tree is withering) and patches of peeled bark on the trunk, two fallen menhirs, the caved-in roof of
+the southern hut (with thatch fallen inside), broken stretches of the garden fence and the pond's cracked wall.
+Processor: cobblestone → mossy (30 %), stone brick → cracked (12 %) or mossy (10 %), mud brick → packed mud
+(10 %) and broken panes (30 %). Nothing that holds up a mechanism changes its solidity.
 
-## Auditoría (condición para generar)
+## Audit (a condition for generating)
 
-`auditoria.py` falla la compilación si: la redstone no está en su estado estable; alguna de las 16 combinaciones de las
-piedras de las estaciones abre sin ser la buena (o la buena no abre); la palanca no abre el archivo; el cable o las
-placas no disparan (o hay un dispensador con señal en reposo); algo de lo oculto (archivo, cámara del rito, tesoro) se
-alcanza sin resolver los puzles o no se alcanza resolviéndolos; la alcoba no se alcanza por el tapiz; hay cofres,
-generadores o palancas inalcanzables, puertas sin salida, escaleras sin altura libre, celdas sin vuelta a la entrada
-(recorrido estricto sin caídas, nadando en el agua), generadores con luz, bloques sueltos, roca natural a la vista en el
-subsuelo, tierra fértil descubierta en el claro, el número de cofres sale de 15-25 o la superficie dañada de 15-20 %.
-Además pasan las comprobaciones comunes (`lint.support_issues`, `access_issues`, `door_pair_issues`,
-`stair_headroom_issues`) sobre la obra entera. Casos negativos comprobados: solución cambiada, antorcha del archivo
-quitada y un farol junto al generador de arañas.
+`auditoria.py` fails the build if: the redstone is not in its stable state; any of the 16 combinations of the
+season stones opens without being the correct one (or the correct one does not open); the lever does not open the archive; the wire or the
+plates do not fire (or a dispenser has a signal at rest); something hidden (archive, rite chamber, treasure) can be
+reached without solving the puzzles or cannot be reached by solving them; the alcove cannot be reached through the tapestry; there are chests,
+spawners or levers out of reach, doors without an exit, stairs without headroom, cells without a way back to the entrance
+(strict walk without falls, swimming in the water), spawners with light, loose blocks, natural rock in sight
+underground, bare fertile soil in the clearing, the number of chests falls outside 15-25 or the damaged surface outside 15-20 %.
+The shared checks also run (`lint.support_issues`, `access_issues`, `door_pair_issues`,
+`stair_headroom_issues`) over the whole build. Negative cases checked: a changed solution, the archive's torch
+removed and a lantern next to the spider spawner.
 
-## Rendimiento
+## Performance
 
-- Generación: dos plantillas (unos 25.200 + 43.200 bloques, del orden del Salón del Jarl) con un procesador de reglas y
-  sin Java propio. Generar el módulo tarda unos 2 s en Python. `/place structure` de la estructura entera tardó 381 y 718 ms (dos ejecuciones) en
-  el servidor de prueba (lo imprime `prueba_servidor.py`).
-- Entidades: 1 (el guardián). 3 generadores con el radio y el límite vanilla. Nada por tick.
+- Generation: two templates (about 25,200 + 43,200 blocks, on the order of Jarl's Hall) with a rule processor and
+  without custom Java. Generating the module takes about 2 s in Python. `/place structure` of the whole structure took 381 and 718 ms (two runs) on
+  the test server (printed by `prueba_servidor.py`).
+- Entities: 1 (the guardian). 3 spawners with the vanilla radius and limit. Nothing per tick.
 
-## Pruebas
+## Tests
 
-- `python3 tools/gen/unicas/santuario/planos.py` → planos por nivel y renders en `docs/unicas/santuario/`.
-- `python3 tools/gen/unicas/santuario/prueba_servidor.py --jar build/libs/heraldia-<versión>.jar --work "$PWD/build/smoke"`:
-  coloca la estructura (mide el tiempo y cuenta entidades) y las plantillas sin girar para comprobar cofres, generadores,
-  agua, colmenas y hojas, y accionar las piedras de las estaciones (también con una falsa), la estantería del archivo,
-  el cable trampa y las placas de las ofrendas. Está en la matriz de la CI.
+- `python3 tools/gen/unicas/santuario/planos.py` → plans by level and renders in `docs/unicas/santuario/`.
+- `python3 tools/gen/unicas/santuario/prueba_servidor.py --jar build/libs/heraldia-<version>.jar --work "$PWD/build/smoke"`:
+  places the structure (measures the time and counts entities) and the templates unrotated to check chests, spawners,
+  water, beehives and leaves, and to operate the season stones (also with a fake one), the archive's bookshelf,
+  the tripwire and the offering plates. It is in the CI matrix.
 
 ## Renders
 
-![El claro](santuario/claro.png)
-![El claro sin la copa](santuario/claro_sin_copa.png)
-![Raíces, nivel alto](santuario/raices_corte_alto.png)
-![Raíces, nivel bajo](santuario/raices_corte_bajo.png)
+![The clearing](santuario/claro.png)
+![The clearing without the canopy](santuario/claro_sin_copa.png)
+![Roots, upper level](santuario/raices_corte_alto.png)
+![Roots, lower level](santuario/raices_corte_bajo.png)
