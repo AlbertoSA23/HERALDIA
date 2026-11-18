@@ -2,6 +2,8 @@ package io.github.albertosa23.heraldia.mixin;
 
 import io.github.albertosa23.heraldia.common.MediumStructures;
 import io.github.albertosa23.heraldia.common.Profiler;
+import io.github.albertosa23.heraldia.common.SearchCache;
+import io.github.albertosa23.heraldia.common.SearchCaches;
 import io.github.albertosa23.heraldia.common.ForeignZone;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
@@ -69,13 +71,27 @@ abstract class StructureCheckMixin {
 	@Final
 	private LevelHeightAccessor heightAccessor;
 
+	/**
+	 * First the world's search memory ({@link SearchCaches}: the same answer, already computed in this or an earlier
+	 * session with the same rules); then the rules. An answer decided here (a rule says no) is stored here; the rest, at
+	 * the end ({@link #heraldia$minesRules}).
+	 */
 	@Inject(method = "canCreateStructure", at = @At("HEAD"), cancellable = true)
 	private void heraldia$villageRules(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
+		Identifier id = registryAccess.lookupOrThrow(Registries.STRUCTURE).getKey(structure);
+		int known = SearchCaches.prediction(dimension, id, pos.x(), pos.z());
+		if (known != SearchCache.MISSING) {
+			cir.setReturnValue(known != 0);
+			return;
+		}
 		long t0 = Profiler.start();
 		try {
 			heraldia$rules(pos, structure, cir);
 		} finally {
 			Profiler.end(Profiler.Segment.RULES_LOCATE, t0);
+		}
+		if (cir.isCancelled()) {
+			SearchCaches.prediction(dimension, id, pos.x(), pos.z(), cir.getReturnValueZ());
 		}
 	}
 
@@ -123,15 +139,18 @@ abstract class StructureCheckMixin {
 	 * The mine entrances (and the lighthouses and shipwrecks, with the same rule), at the end: their rule (villages, uniques,
 	 * mediums and neighboring mines nearby) is much more expensive than checking whether the entrance itself wins (biome and
 	 * hillside), and /locate only needs the rule where the entrance wins. Same result as checking it first (both conditions
-	 * must hold), without paying for it in the candidates without biome or hillside.
+	 * must hold), without paying for it in the candidates without biome or hillside. Then the final answer goes to the
+	 * world's search memory.
 	 */
 	@Inject(method = "canCreateStructure", at = @At("RETURN"), cancellable = true)
 	private void heraldia$minesRules(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
-		if (!cir.getReturnValueZ()) {
-			return;
-		}
 		Identifier id = registryAccess.lookupOrThrow(Registries.STRUCTURE).getKey(structure);
-		if (id == null || !Mines.isMine(id) && !Coast.isCoast(id)) {
+		heraldia$mines(pos, id, cir);
+		SearchCaches.prediction(dimension, id, pos.x(), pos.z(), cir.getReturnValueZ());
+	}
+
+	private void heraldia$mines(ChunkPos pos, Identifier id, CallbackInfoReturnable<Boolean> cir) {
+		if (!cir.getReturnValueZ() || id == null || !Mines.isMine(id) && !Coast.isCoast(id)) {
 			return;
 		}
 		long t0 = Profiler.start();

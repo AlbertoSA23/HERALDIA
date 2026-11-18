@@ -314,6 +314,27 @@ Cómo se eligió el número (medido el 18-11-2026):
 
 **En un mundo ya empezado**: lo ya generado no cambia; solo los chunks nuevos siguen el nuevo valor por defecto, así que entre lo explorado antes de actualizar y lo nuevo puede quedar una costura (una zona con más medianas junto a otra con menos; `/locate` y los mapas pueden no encontrar las medianas generadas con la densidad anterior). El mod avisa al arrancar (registro y chat de cada operador), también en un mundo de antes del registro de opciones de generación. **Si el fichero fija `medianas.frecuencia_porcentaje` a mano** (cualquier valor, también 100), en ese mundo no cambia nada y no hay aviso. Un fichero de antes del perfil ligero (formato 1 o 2) que el mod escribió por su cuenta con el antiguo 100 no cuenta como «a mano» (entonces el mod escribía todas las opciones): para conservar la densidad anterior en un mundo así, vuelve a escribir `"frecuencia_porcentaje": 100` después de actualizar, antes de generar terreno nuevo.
 
+### Memoria de búsquedas
+
+`/locate`, los mapas del tesoro (cartógrafos y cofres), los folios de la Crónica y `/heraldia info nearby` hacen la misma pregunta cara sobre las mismas casillas de la rejilla: ¿empezaría aquí esta estructura (bioma, terreno de la ladera o de la orilla, reglas de colocación de Heraldia)? El juego ya recuerda esas respuestas, pero solo hasta que se para el servidor: tras cada reinicio la primera búsqueda lo pagaba todo otra vez, **en el hilo del servidor** (el tirón lo nota cada jugador). Desde esta versión las respuestas se guardan **en el mundo** (attachment `heraldia:busquedas`) y se sirven de ahí, sin nada que configurar.
+
+- **El resultado no cambia**: solo se guardan respuestas de funciones puras (con la misma semilla y configuración dan siempre lo mismo), y lo que depende de lo ya generado (los chunks guardados) se sigue leyendo cada vez. Con el mismo mundo, las mismas posiciones que antes, exactamente (comprobado en `tools/smoke/search_cache.py` y comparando 56 búsquedas desde 7 puntos con el `.jar` anterior).
+- **Se descarta sola cuando cambia algo que decide la colocación**: al arrancar se calcula un sello con la semilla, las opciones de generación **con su valor en uso** (las mismas del registro de costuras `heraldia:generacion_mundo`; un valor que no está escrito en el fichero cuenta con su valor por defecto, así que un valor por defecto que cambia, como `medianas.frecuencia_porcentaje` 100 → 60, también la descarta), los mods y sus versiones, los datapacks (y los ficheros de la carpeta `datapacks` del mundo), el propio `.jar` y las estructuras y structure_sets registradas. Si no coincide con el guardado, se tira la memoria entera (el log dice `Heraldia: búsquedas: la memoria guardada (...) es de otra configuración, mods o versión: se descarta`). «Aquí no hay nada» también es una respuesta, y se descarta con las demás.
+- **Acotada**: como mucho 16.384 respuestas; las estructuras de un structure_set que comparten casilla (los 10 estilos y variantes de un tamaño de mina, los faros, los naufragios) van juntas en una. Las 4 búsquedas de `generation_cost.py` guardan unas 950 y 56 búsquedas variadas desde 7 puntos unas 5.100; llena, se van las más antiguas que nadie vuelve a pedir. Peor caso en el guardado: 141 KB sin comprimir, 113 KB comprimidos; lo normal, pocos KB. Se escribe con el mundo (`save-all`, autoguardado, parada), solo si algo cambió.
+- Una búsqueda que no encuentra nada recorre la rejilla entera (unas 40.000 casillas) y preguntaba al disco por cada una; para un chunk nunca generado, la respuesta («no hay datos») se da ahora sin el viaje al hilo de almacenamiento cuando su fichero de región no existe y no se ha escrito nada de esa región en esta sesión (la misma respuesta: un fichero de región copiado a mano con el servidor en marcha no se ve hasta el siguiente arranque, como con la caché de regiones del propio juego).
+
+Medido (4 núcleos, semilla `heraldia`, configuración por defecto, los mismos casos que `tools/smoke/generation_cost.py`: `/locate` desde 8000, -8000; ms según el juego, en el hilo del servidor):
+
+| Búsqueda | Antes: primera búsqueda | Antes: tras reiniciar | Ahora: primera búsqueda | Ahora: tras reiniciar |
+| --- | --- | --- | --- | --- |
+| `#heraldia:minas` | 753 | 1.099 | 744 | **26** |
+| `#heraldia:aldeas` | 391 | 161 | 380 | **28** |
+| `heraldia:unicas/castillo` | 261 | 119 | 328 | **1** |
+| `#heraldia:medianas` | 53 | 64 | 56 | **5** |
+| Sin resultado (`#heraldia:aldeas` desde 200000, 200000; tiempo de reloj) | 1.540 | 1.640 | **396** | **436** |
+
+La primera búsqueda desde un sitio nuevo sigue calculando lo que nadie preguntó antes (salvo la que no encuentra nada); repetirla en la misma sesión ya costaba 0-23 ms antes (la memoria del juego) y ahora 0-4 ms.
+
 ### Pantalla de configuración (cliente)
 
 En el cliente el fichero también se puede editar desde una pantalla del juego. Con [Mod Menu](https://modrinth.com/mod/modmenu) instalado (opcional; sin él el mod funciona igual, solo que la pantalla no tiene botón) se abre desde el botón de configuración de Heraldia en la lista de mods. Se construye con la misma lista de opciones que el fichero, así que las opciones nuevas aparecen solas:

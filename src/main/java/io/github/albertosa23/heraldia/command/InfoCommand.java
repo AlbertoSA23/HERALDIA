@@ -11,6 +11,8 @@ import io.github.albertosa23.heraldia.config.UniqueSeparation;
 import io.github.albertosa23.heraldia.loot.WithoutLootrCondition;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import io.github.albertosa23.heraldia.common.MediumStructures;
+import io.github.albertosa23.heraldia.common.SearchCache;
+import io.github.albertosa23.heraldia.common.SearchCaches;
 import io.github.albertosa23.heraldia.coast.Coast;
 import io.github.albertosa23.heraldia.mines.Mines;
 import io.github.albertosa23.heraldia.uniques.atlantis.AtlantisAnchor;
@@ -346,9 +348,26 @@ public final class InfoCommand {
 		return status.isEmpty() || ChunkStatus.byName(status).isOrAfter(ChunkStatus.STRUCTURE_STARTS);
 	}
 
+	/**
+	 * The first structure of the group that generation would put in that ungenerated chunk, or null. A pure answer (seed,
+	 * rules, biome, terrain): the world's search memory ({@link SearchCaches}) keeps it, as the index in the group (0 = none).
+	 */
 	public static Holder<Structure> firstViable(Group g, ChunkPos c, long seed, ServerLevel level, RegistryAccess access,
 												 ChunkGenerator generator, RandomState randomState, Climate.Sampler sampler,
 												 UniqueSeparation sep, UniqueSeparation.Viability viability) {
+		Identifier groupId = g.structures.getFirst().unwrapKey().map(k -> k.identifier()).orElse(null);
+		int known = SearchCaches.get(level.dimension(), SearchCaches.FIRST_VIABLE, groupId, c.x(), c.z());
+		if (known != SearchCache.MISSING && known <= g.structures.size()) {
+			return known == 0 ? null : g.structures.get(known - 1);
+		}
+		Holder<Structure> h = computeFirstViable(g, c, seed, level, access, generator, randomState, sampler, sep, viability);
+		SearchCaches.put(level.dimension(), SearchCaches.FIRST_VIABLE, groupId, c.x(), c.z(), h == null ? 0 : g.structures.indexOf(h) + 1);
+		return h;
+	}
+
+	private static Holder<Structure> computeFirstViable(Group g, ChunkPos c, long seed, ServerLevel level, RegistryAccess access,
+														ChunkGenerator generator, RandomState randomState, Climate.Sampler sampler,
+														UniqueSeparation sep, UniqueSeparation.Viability viability) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		for (Holder<Structure> h : g.structures) {
 			Identifier id = h.unwrapKey().orElseThrow().identifier();

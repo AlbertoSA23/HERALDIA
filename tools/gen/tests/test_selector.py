@@ -189,6 +189,15 @@ def test_mines():
     assert pick(J + "mines/ParallelLocate.java") == (False, sorted(m + ["tools/smoke/coast.py"]))
 
 
+def test_search_cache():
+    m = sorted(["tools/smoke/search_cache.py", "tools/smoke/mine_entrances.py"])
+    for p in ("common/SearchCache.java", "common/SearchCaches.java", "common/UnwrittenRegions.java",
+              "mixin/IOWorkerMixin.java", "mixin/RegionFileStorageMixin.java"):
+        assert pick(J + p) == (False, m), p
+    assert pick("tools/smoke/search_cache.py") == (False, ["tools/smoke/search_cache.py"])
+    assert sel.DURATION_S["tools/smoke/search_cache.py"] > 0
+
+
 def test_coast():
     c = ["tools/smoke/coast.py"]
     mobs = ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"] + c

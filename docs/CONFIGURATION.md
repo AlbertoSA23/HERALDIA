@@ -314,6 +314,27 @@ How the number was chosen (measured, 18-11-2026):
 
 **In a world already started**: what is already generated does not change; only new chunks follow the new default, so between the land explored before the update and the new one there may be a seam (a zone with more medium structures next to one with fewer; `/locate` and maps may not find the mediums generated with the previous density). The mod warns about it at startup (log and chat of each operator), also in a world from before the record of generation options. **If the file sets `medianas.frecuencia_porcentaje` by hand** (any value, including 100), nothing changes in that world and there is no warning. A file from before the light profile (format 1 or 2) that the mod wrote with the old default 100 on its own is not "set by hand" (the mod wrote every option then): to keep the previous density in such a world, write `"frecuencia_porcentaje": 100` back after updating, before generating new land.
 
+### Search memory
+
+`/locate`, the treasure maps (cartographers and chests), the Chronicle folios and `/heraldia info nearby` all ask the same expensive question about the same grid cells: would this structure start here (biome, terrain of the hillside or the shore, Heraldia's placement rules)? The game already remembers those answers, but only until the server stops: after every restart the first search paid all of it again, **on the server thread** (every player notices the stall). Since this version the answers are kept **in the world** (attachment `heraldia:busquedas`) and served from there, with nothing to configure.
+
+- **The result does not change**: only answers of pure functions are kept (with the same seed and configuration they always give the same value), and what depends on what is already generated (the saved chunks) is still read every time. With the same world, the same positions as before, exactly (checked in `tools/smoke/search_cache.py` and comparing 56 searches from 7 points against the previous `.jar`).
+- **Discarded on its own when something that decides placement changes**: at startup a stamp is computed from the seed, the generation options **with their values in use** (the same ones as the seam record `heraldia:generacion_mundo`; a value not written in the file counts with its default, so a changed default, like `medianas.frecuencia_porcentaje` 100 → 60, also discards it), the mods and their versions, the datapacks (and the files of the world's `datapacks` folder), the `.jar` itself and the registered structures and structure_sets. If it differs from the saved one, the whole memory is thrown away (the log says `Heraldia: búsquedas: la memoria guardada (...) es de otra configuración, mods o versión: se descarta`). "There is nothing here" is an answer too, and it is discarded with the rest.
+- **Bounded**: at most 16,384 answers; the structures of a structure_set that share a cell (the 10 styles and variants of a mine size, the lighthouses, the wrecks) go together in one. The 4 searches of `generation_cost.py` store about 950 and 56 varied searches from 7 points about 5,100; when full, the oldest that nobody asks for again go. Worst case in the save: 141 KB uncompressed, 113 KB compressed; usually a few KB. It is written with the world (`save-all`, autosave, stop), only if something changed.
+- A search that finds nothing walks the whole grid (some 40,000 cells) and asked the disk about each one; for a chunk that was never generated, the answer ("no data") is now given without the round trip to the storage thread when its region file does not exist and nothing of that region was written in this session (the same answer: a region file copied in by hand while the server runs is not seen until the next start, as with the game's own region cache).
+
+Measured (4 cores, seed `heraldia`, default configuration, the same cases as `tools/smoke/generation_cost.py`: `/locate` from 8000, -8000; ms as the game reports them, on the server thread):
+
+| Search | Before: first search | Before: after a restart | Now: first search | Now: after a restart |
+| --- | --- | --- | --- | --- |
+| `#heraldia:minas` | 753 | 1,099 | 744 | **26** |
+| `#heraldia:aldeas` | 391 | 161 | 380 | **28** |
+| `heraldia:unicas/castillo` | 261 | 119 | 328 | **1** |
+| `#heraldia:medianas` | 53 | 64 | 56 | **5** |
+| Nothing found (`#heraldia:aldeas` from 200000, 200000; wall time) | 1,540 | 1,640 | **396** | **436** |
+
+The first search from a new place still computes what nobody asked before (except the one that finds nothing); repeating it in the same session already cost 0-23 ms before (the game's memory) and now 0-4 ms.
+
 ### Configuration screen (client)
 
 On the client the file can also be edited from a screen inside the game. With [Mod Menu](https://modrinth.com/mod/modmenu) installed (optional; the mod works the same without it, the screen just has no button) it opens from the configuration button of Heraldia in the mod list. It is built from the same option list as the file, so new options appear on their own:
