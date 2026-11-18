@@ -223,10 +223,17 @@ def rel(p):
 
 
 def compat_groups():
-    """Groups of compat_mods.py (imported without running anything)."""
-    sys.path.insert(0, os.path.join(ROOT, "tools", "smoke"))
-    import compat_mods
-    return list(compat_mods.GROUPS)
+    """Groups of compat_mods.py, read from its source (the GROUPS literal) without importing it. Importing it put
+    tools/smoke at the head of sys.path for the rest of the process (compat_mods.py inserts its own folder), and eight
+    modules share a name between tools/smoke and tools/gen (treasure, guide, quests...): a later lazy `import treasure`
+    of the generator then loaded the server test (test_readme.py failed 12 cases after test_selector.py)."""
+    import ast
+    with open(os.path.join(ROOT, COMPAT), encoding="utf-8") as f:
+        tree = ast.parse(f.read())
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == "GROUPS" for t in node.targets):
+            return list(ast.literal_eval(node.value))
+    raise SystemExit(f"{COMPAT}: GROUPS (a literal dict) not found")
 
 
 def discover():
