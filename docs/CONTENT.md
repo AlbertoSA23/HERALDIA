@@ -401,6 +401,17 @@ A vanilla written book, the **Herald's Guide**, that explains the mod to players
 
 Cost: it only works when a player without this version's guide joins or when it is asked for (it reads their discovery advancements and builds the book; measured on the test server, see `tools/smoke/guide.py`); nothing per tick.
 
+## Your journal: `/heraldia journal`
+
+Each player's own record of **what they have found and what is still missing**, in chat (vanilla clients too, in the player's language, the same as the job board), for any player and without permissions:
+
+- `/heraldia journal`: the title, a bar with the **overall total** (everything found out of everything that can be found in this world) and one line per kind with its progress bar (■ found, □ missing; gold and ✔ when complete) and its count: **village families**, **unique structures**, **medium structures** (by type), **mine entrances** (by size), the **coast** (lighthouse and shipwreck) and the **Nether** and the **End** (their unique structure and their medium types). Each line is a button that opens its kind; hovering over it lists what is missing.
+- `/heraldia journal <kind>` (`villages`, `uniques`, `mediums`, `mines`, `coast`, `nether`, `end`): the names already found and the ones still missing, in alphabetical order of the player's language (mines, by size), with a button back to the summary.
+- **No coordinates and no clues**: the journal says "2 of 21 unique structures, these ones are missing", never where they are. Finding them is for the maps, the quests and the Chronicle; the soft biome clues of the missing unique structures stay in the Herald's Guide, which the journal points to (a button to `/heraldia guide`) while any is missing.
+- **Where the data come from**: the player's own advancements, which already record every discovery (`aldeas/<family>`, `unicas/<id>/descubrir`, the criteria of `medianas/todas`, `medianas/nether` and `medianas/end`, `minas/<size>`, `costa/faro` and `costa/naufragio`); which ids belong to each kind is also read from the advancements (the criteria of `aldeas/todas`, `unicas/todas` and the three walker advancements) and, for the dimension of a unique structure, from the structure registry. Nothing is saved and nothing runs until someone asks: it reads the player's progress from memory, on the server thread, and answers in the same tick.
+- What counts: what can still appear in this world (a kind disabled in the configuration is not "missing") and whatever the player already found, even if it was disabled later. A kind with nothing to find is left out.
+- **Why a command and not more Guide pages or `/heraldia status`**: the Guide is a book handed out on joining (it only gets updated when asked for again, and its pages must fit a measured size), and it already keeps the diary of unique structures with their clues; `/heraldia status` is the server's summary, what anyone has discovered. The journal is the per-player view of every kind, always up to date; `/heraldia status` links to it and it links to the Guide, instead of repeating either.
+
 ## Advancements
 
 A **Heraldia** advancement tab (122 advancements), with texts in the mod's 8 languages. They only give experience, except the two job-board deeds:

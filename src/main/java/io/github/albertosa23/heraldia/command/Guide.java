@@ -280,7 +280,7 @@ public final class Guide {
 		return "heraldia.unicas." + sid + ".nombre";
 	}
 
-	private static Comparator<String> collator(Map<String, String> texts) {
+	static Comparator<String> collator(Map<String, String> texts) {
 		Collator c = Collator.getInstance(Locale.forLanguageTag(Texts.codeOf(texts).replace('_', '-')));
 		c.setStrength(Collator.PRIMARY);
 		return c::compare;

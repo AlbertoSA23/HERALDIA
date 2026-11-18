@@ -404,6 +404,17 @@ Un libro escrito vanilla, la **Guía del Heraldo**, que explica el mod a los jug
 
 Coste: solo trabaja al entrar un jugador que no tiene la guía de esta versión o al pedirla (lee sus logros de descubrimiento y arma el libro; medido en el servidor de prueba, ver `tools/smoke/guide.py`); nada por tick.
 
+## Tu diario: `/heraldia journal`
+
+El registro propio de cada jugador de **lo que ha encontrado y lo que le falta**, en el chat (también con clientes vanilla, en el idioma del jugador, como el tablón de encargos), para cualquier jugador y sin permisos:
+
+- `/heraldia journal`: el título, una barra con el **total general** (todo lo encontrado frente a todo lo que se puede encontrar en este mundo) y una línea por tipo con su barra de progreso (■ encontrado, □ falta; en dorado y con ✔ cuando está completo) y su cuenta: **familias de aldea**, **estructuras únicas**, **estructuras medianas** (por tipo), **entradas a mina** (por tamaño), la **costa** (faro y naufragio) y el **Nether** y el **End** (su única y sus tipos de mediana). Cada línea es un botón que abre su tipo; al pasar el ratón por encima dice qué falta.
+- `/heraldia journal <tipo>` (`villages`, `uniques`, `mediums`, `mines`, `coast`, `nether`, `end`): los nombres ya encontrados y los que faltan, por orden alfabético del idioma del jugador (las minas, por tamaño), con un botón para volver al resumen.
+- **Sin coordenadas ni pistas**: el diario dice «2 de 21 únicas, te faltan estas», nunca dónde están. Encontrarlas es cosa de los mapas, los encargos y la Crónica; las pistas suaves de bioma de las únicas que faltan siguen en la Guía del Heraldo, a la que el diario remite (un botón a `/heraldia guide`) mientras falte alguna.
+- **De dónde salen los datos**: de los logros del propio jugador, que ya registran cada descubrimiento (`aldeas/<familia>`, `unicas/<id>/descubrir`, los criterios de `medianas/todas`, `medianas/nether` y `medianas/end`, `minas/<tamaño>`, `costa/faro` y `costa/naufragio`); qué ids son de cada tipo también se lee de los logros (los criterios de `aldeas/todas`, `unicas/todas` y los tres de caminante) y, para la dimensión de una única, del registro de estructuras. No se guarda nada ni se hace nada hasta que alguien lo pide: lee el progreso del jugador de memoria, en el hilo del servidor, y contesta en el mismo tick.
+- Qué cuenta: lo que todavía puede aparecer en este mundo (un tipo desactivado en la configuración no «falta») y lo que el jugador ya encontró, aunque se desactivara después. Un tipo sin nada que encontrar no sale.
+- **Por qué un comando y no más páginas de la Guía ni `/heraldia status`**: la Guía es un libro que se entrega al entrar (solo se pone al día si se vuelve a pedir, y sus páginas tienen que caber en un tamaño medido), y ya lleva el diario de las únicas con sus pistas; `/heraldia status` es el resumen del servidor, lo que ha descubierto cualquiera. El diario es la vista por jugador de todos los tipos, siempre al día; `/heraldia status` enlaza con él y él con la Guía, en vez de repetir ninguno.
+
 ## Logros
 
 Pestaña de logros **Heraldia** (122 logros), con textos en los 8 idiomas del mod. Solo dan experiencia, salvo las dos hazañas del tablón de encargos:
