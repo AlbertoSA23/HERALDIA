@@ -24,11 +24,12 @@ public final class Reload {
 	 * rolled and when a clue is used). And the gameplay profile (T36): it only sets options of those prefixes (never
 	 * generation ones), so changing it applies fully without restarting. And the board quests and reputation (T38) and the
 	 * caravans (T39): read on each use. And the wizard huts (T43): the probability of an evil wizard and of a prize is
-	 * read when each hut is decided. And the /heraldia update margin (T46): read on each analysis.
+	 * read when each hut is decided. And the /heraldia update margin (T46): read on each analysis. And the ambient effects
+	 * (bell, siren, mine drips): read on each check.
 	 */
 	static final List<String> RELOADABLE = List.of("perfil", "dificultad.", "jefes.", "botin.", "arena.", "guia.", "golems.",
 			"aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "unicas.atlantida.cofre_unico_por_jugador", "mapas_web.", "encargos.", "reputacion.",
-			"tesoro.", "caravanas.", "chozas_mago.", "actualizar.");
+			"tesoro.", "caravanas.", "chozas_mago.", "actualizar.", "ambiente.");
 	/** Exceptions inside a reloadable prefix: only checked at startup. */
 	static final List<String> STARTUP_ONLY = List.of("arena.generar_en_mundos_nuevos");
 

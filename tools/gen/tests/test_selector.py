@@ -135,7 +135,7 @@ def test_groups_distribute_without_exceeding_of_the_cap():
     cap = max(sel.GROUP_CAP_S, length)
     assert all(sum(sel.DURATION_S[p] for p in x) <= cap for x in g)
     assert len(g) <= 18                     # with the build and the smoke one, in a batch of 20 free jobs
-    assert len(sel.groups(NO_COMPAT)) <= 15  # a PR with common changes (without the compatibility ones) fits in a batch of 20 jobs (15 with the search memory's search_cache.py: + build, smoke, long JUnit, cost and selection = 20 of 20)
+    assert len(sel.groups(NO_COMPAT)) <= 15  # a PR with common changes (without the compatibility ones) fits in a batch of 20 jobs (15 with the search memory's search_cache.py and the ambience test: + build, smoke, long JUnit, cost and selection = 20 of 20)
     assert sel.groups([]) == [] and sel.groups(ALL_COMBOS) == g                # determinista
     assert sel.groups(["x/nueva.py"]) == [["x/nueva.py"]]                  # without a measured duration: DEFECTO_S
 

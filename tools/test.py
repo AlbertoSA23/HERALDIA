@@ -92,6 +92,8 @@ MEDIUMS_MOBS = MEDIUMS + ["tools/smoke/adult_guardians.py", "tools/smoke/anchore
 NETHER_END = ["tools/smoke/nether_end.py"]
 # Wizard huts (T43): the Evil Wizard (Java chozas/) and its loot and texts; its template is a medium structure.
 HUTS = ["tools/smoke/wizard_huts.py"]
+# Ambient effects (bell, lighthouse siren, mine drips): their Java (ambience/).
+AMBIENCE = ["tools/smoke/ambience.py"]
 # Safe updates (T46): dialog panel, per-player language, per-version fixes and update analyze/apply (path A: pristine
 # chunks regenerated) and, for the Java in update/, also path B (new structures placed in generated chunks) and undo.
 SAFE_UPDATE = ["tools/smoke/update.py"]
@@ -130,6 +132,8 @@ MAP = [
     (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS),
     # chozas de mago (T43)
     (JAVA + "huts/*", HUTS), ("tools/gen/wizard_huts.py", HUTS),
+    # ambient effects
+    (JAVA + "ambience/*", AMBIENCE),
     # safe updates (T46): their Java, the panel, the preferences, the menus, the migration and their texts
     (JAVA + "update/*", SAFE_UPDATE_JAVA), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
     (JAVA + "command/Preferences.java", SAFE_UPDATE), (JAVA + "config/Menus.java", SAFE_UPDATE),
@@ -329,6 +333,7 @@ DURATION_S = {
     "tools/smoke/nether_end.py": 300,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
     "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)
     "tools/smoke/caravans.py": 240,                 # measured locally: ~3.5 min (two starts, 387 corridor chunks and 5 caravans)
+    "tools/smoke/ambience.py": 120,                 # measured locally: ~2 min (one start, three /locate'd structures, ~11,000 sprinted ticks)
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined

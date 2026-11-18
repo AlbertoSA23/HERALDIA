@@ -228,6 +228,10 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `caravanas.max_activas` | 1 | 1-3 | Caravanas en camino a la vez en todo el servidor. |
 | `chozas_mago.prob_malvado` | 20 | 0-100 | Probabilidad (%) de que el mago de una [choza de mago](CONTENIDO.md#chozas-de-mago) sea malvado; por choza, siempre igual, y se guarda en el mago al cargarse. 0: todos comercian. La fija el [perfil](#perfiles-de-juego). |
 | `chozas_mago.prob_botin_premium` | 30 | 0-100 | Probabilidad (%) de que el Mago Malvado lleve además el premio (Reparación, pociones difíciles, tótem o un libro alto); por choza, al revelarse. |
+| `ambiente.activado` | `true` | `true`/`false` | [Efectos de ambiente](CONTENIDO.md#ambiente) con los sonidos y partículas del juego (también en mundos ya existentes). Desactivada, no suena ninguno. |
+| `ambiente.campanas` | `true` | `true`/`false` | Campana de la aldea al amanecer y al anochecer para los jugadores dentro de una aldea de Heraldia (como mucho dos veces al día por jugador). |
+| `ambiente.sirena_faro` | `true` | `true`/`false` | Sirena del faro con lluvia o tormenta, para los jugadores al aire libre a menos de 160 bloques (como mucho cada 3 min por jugador). |
+| `ambiente.minas` | `true` | `true`/`false` | Goteos (cada 20-45 s) y, rara vez, el eco de la cueva en las galerías de las minas de Heraldia. |
 | `reputacion.activado` | `true` | `true`/`false` | Reputación por aldea: sube con los encargos y baja al atacar a sus aldeanos o gólems; conocido, amigo y héroe de la aldea rebajan sus tratos un 10, 20 y 30 % (sin sumarse a Héroe de la aldea). Desactivada, ni descuentos ni cambios (la reputación ganada se conserva). |
 | `mapas_web.activado` | `true` | `true`/`false` | [Marcadores en los mapas web](#mapas-web-heraldia-webmap-refresh) (BlueMap, Dynmap o squaremap); sin ninguno de ellos no hace nada. Desactivado, quita las capas de Heraldia del mapa. |
 | `mapas_web.solo_descubiertas` | `true` | `true`/`false` | Solo salen las de un tipo que algún jugador ha descubierto (los logros de `/heraldia status`); con `false`, todas las ya generadas en chunks que se han cargado. |
