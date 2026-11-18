@@ -95,7 +95,7 @@ def check_locate(ctx, kinds):
                 if not wait_generated(ctx, px, pz, mid):
                     fails.append(f"{mid}: /locate gives {px}, {pz} but nothing has been generated there")
                 elif mid in INHABITED:
-                    fails += check_settled(ctx, mid, px, pz, long_stay=(x, z) == POINTS[0])
+                    fails += check_settled(ctx, mid, px, pz, long_stay=STAY and (x, z) == POINTS[0])
                 forceload(ctx, px - r, pz - r, px + r - 1, pz + r - 1, remove=True)
         if not found_count:
             fails.append(f"no {mid}")
@@ -130,6 +130,7 @@ def inhabited():
 
 
 INHABITED = inhabited()
+STAY = False                         # --stay: also the three-day stay (slow: about 10 more minutes; not in CI)
 SETTLED = []                         # (kind, x, z, villagers, with job site, with home, slept): the summary
 STAYED = []                          # (kind, x, z, villagers, alive, at home, with job site, with home, days)
 
@@ -144,6 +145,7 @@ def check_settled(ctx, mid, px, pz, long_stay=False):
         SETTLED.append((mid, px, pz, 0, 0, 0, 0))
         print(f"{mid} at {px}, {pz}: variant without inhabitant villagers")
         return []
+    wait_loaded(ctx, px, pz, ROAM)
     n = ctx.count(sel)
     with_mem = lambda mem: ctx.count(f"{sel[:-1]},nbt={{Brain:{{memories:{{\"minecraft:{mem}\":{{}}}}}}}}]")
     ctx.run("time set 2000", r"Set the time|time to|Set minecraft:\w+ to")            # morning: off to work
@@ -177,6 +179,20 @@ def check_settled(ctx, mid, px, pz, long_stay=False):
 STAY_TICKS = 3 * 24000                # three more in-game days with /tick sprint, from one nightfall to another
 
 
+def wait_loaded(ctx, px, pz, r, timeout=180):
+    """Waits until the forceloaded area around the structure is really loaded (corners and center). Running the clock
+    (/tick sprint) while it still loads is not what a player sees: the villagers' paths fail in the chunks that are not
+    there yet, and after a while unreachable (SetWalkTargetFromBlockMemory, 26.3) they release their bed and workstation."""
+    pts = [(px + 8, pz + 8), (px - r + 8, pz - r + 8), (px + r - 8, pz - r + 8), (px - r + 8, pz + r - 8), (px + r - 8, pz + r - 8)]
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        if all(ctx.test(f"execute if loaded {x} 64 {z}") for x, z in pts):
+            time.sleep(5)                 # and a moment for the entities of the last ones
+            return True
+        time.sleep(3)
+    return False
+
+
 def sprint(ctx, ticks):
     """Runs `ticks` game ticks at full speed (/tick sprint; its reply only comes at the end: the game time says when).
     Returns the ticks really run."""
@@ -195,16 +211,19 @@ def check_stay(ctx, mid, px, pz, sel, n, with_mem):
     """Invulnerable villagers with AI stay home: after STAY_TICKS run at full speed, ending at nightfall, they are all
     still alive, back inside the structure's box within a few minutes (not wandered off, fallen or stuck) and still
     remember their bed and workstation. By day they stroll about like any villager; at night they must be home."""
+    t_start = time.monotonic()
     days = sprint(ctx, STAY_TICKS) / 24000
     near = (f"@e[type=minecraft:villager,tag=heraldia_habitante,tag=heraldia_mediana.{mid},"
             f"x={px + 8 - STAY_BOX},y=-64,z={pz + 8 - STAY_BOX},dx={2 * STAY_BOX},dy=420,dz={2 * STAY_BOX}]")
-    end = time.monotonic() + 180
-    while ctx.count(near) < n and time.monotonic() < end:
+    # at nightfall they head home; a villager that released its bed or workstation (a path that failed for too long,
+    # 26.3) takes it again: a few real minutes for both
+    end = time.monotonic() + 240
+    while (ctx.count(near) < n or with_mem("home") < n or with_mem("job_site") < n) and time.monotonic() < end:
         time.sleep(3)
     alive, home_now, job, home = ctx.count(sel), ctx.count(near), with_mem("job_site"), with_mem("home")
     STAYED.append((mid, px, pz, n, alive, home_now, job, home, days))
     print(f"{mid} at {px}, {pz}: after {days:.1f} days, {alive} of {n} inhabitants alive, {home_now} inside the structure, "
-          f"{job} with their workstation and {home} with their bed")
+          f"{job} with their workstation and {home} with their bed ({time.monotonic() - t_start:.0f} s)")
     if days < 2.9 or alive < n or home_now < n or job < n or home < n:
         return [f"{mid} at {px}, {pz}: after {days:.1f} days, {alive}/{n} alive, {home_now}/{n} at home, {job}/{n} with a "
                 f"workstation, {home}/{n} with a bed"]
@@ -336,7 +355,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-estructuras-medianas"))
+    ap.add_argument("--stay", action="store_true",
+                    help="also run each inhabited kind three in-game days and check its villagers stay home (slow)")
     a = ap.parse_args()
+    global STAY
+    STAY = a.stay
     os.makedirs(a.work, exist_ok=True)
     ts = templates()
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
