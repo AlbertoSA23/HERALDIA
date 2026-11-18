@@ -1,99 +1,99 @@
-# Castillo (`heraldia:unicas/castillo`)
+# Castle (`heraldia:unicas/castillo`)
 
-Fortaleza medieval de 100 x 100 bloques en llanuras, llanuras de girasoles y praderas, una cada 3.000-5.000 bloques
-(rejilla configurable, `spacing` 250 / `separation` 190 chunks). Una sola variante, diseñada a mano.
-Código: `tools/gen/unicas/castillo/` (usa las piezas comunes de `tools/gen/unicas/_comun/`) · Planos por nivel: [`castillo/planos.md`](castillo/planos.md) · Renders: `castillo/*.png`.
+A 100 x 100 block medieval fortress in plains, sunflower plains and meadows, one every 3,000-5,000 blocks
+(configurable grid, `spacing` 250 / `separation` 190 chunks). A single variant, designed by hand.
+Code: `tools/gen/unicas/castillo/` (uses the shared pieces in `tools/gen/unicas/_comun/`) · Plans by level: [`castillo/planos.md`](castillo/planos.md) · Renders: `castillo/*.png`.
 
-## Adaptación al terreno
-- Dos plantillas rígidas: el castillo (x, z 0..99, y 0..27; terreno en y=5, pies a y=6) y la mazmorra (48 x 56 x 16)
-  bajo la torre del homenaje, unidas por un jigsaw vertical en el machón del caracol (`down_south` / `up_south`, alineado).
-- `start_height` -6 con proyección a `WORLD_SURFACE_WG`: la capa y=5 de la plantilla coincide con la superficie, y foso y
-  cimientos (y 0..4) quedan enterrados. `beard_thin` centra su núcleo en la base de cada pieza: en superficie el castillo
-  solo hunde el borde 1 bloque como mucho, y la mazmorra (techo 6 bloques bajo el patio, 13 de alto) no llega a la superficie.
-- Toda la huella del castillo bajo la superficie y toda la caja de la mazmorra van con bloques explícitos: lo que el
-  adaptador excava dentro de la caja se rellena con la plantilla. Patio y orillas llevan aire explícito hasta 3-4 bloques.
-- Sin verificar en generación real: las cavidades que el adaptador pueda abrir alrededor de la mazmorra (fuera de su caja).
+## Terrain adaptation
+- Two rigid templates: the castle (x, z 0..99, y 0..27; terrain at y=5, feet at y=6) and the dungeon (48 x 56 x 16)
+  under the keep, joined by a vertical jigsaw in the spiral staircase's pier (`down_south` / `up_south`, aligned).
+- `start_height` -6 with projection to `WORLD_SURFACE_WG`: the template's y=5 layer matches the surface, and the moat and
+  foundations (y 0..4) are buried. `beard_thin` centers its core on the base of each piece: at the surface the castle
+  only sinks the edge by 1 block at most, and the dungeon (ceiling 6 blocks below the courtyard, 13 high) does not reach the surface.
+- The whole footprint of the castle below the surface and the whole box of the dungeon have explicit blocks: whatever the
+  adapter digs out inside the box is refilled by the template. The courtyard and the banks have explicit air up to 3-4 blocks.
+- Not verified in real generation: the cavities the adapter may open around the dungeon (outside its box).
 
-## Plantas
-**Exterior y muralla.** Orilla de hierba (anillo 0-3) con escollera de piedra, foso de agua de 6 de ancho y 3 de hondo,
-muralla de 3 de grueso con adarve a y=17 y almenas. Cuatro torres redondas en las esquinas (planta baja con puerta al patio,
-planta del adarve con puertas a los dos lienzos, terraza almenada, escaleras de mano) y dos bastiones a media muralla
-este y oeste por los que pasa el adarve. Escaleras de piedra del patio al adarve junto a los muros oeste y este.
-**Barbacana (sur).** Puente levadizo tendido sobre el foso (falta un tablón), arco con rastrillo alzado colgado de cadenas
-del torno de la sala alta, cuerpo de guardia y almacén a los lados del paso, sala del torno con camas y azotea; dos
-cubos flanquean la entrada.
-**Patio de armas.** Camino de la puerta a la torre del homenaje, pozo cubierto en el centro, caballerizas con cinco cuadras
-(oeste), herrería con forja, yunque y pilón (este), capilla con bancos, altar y vidrieras (noreste), huerto con acequia junto
-a la cocina (noroeste), liza con dianas y estafermos (suroeste), farolas.
-**Torre del homenaje** (40 x 32, muros de 3, cuatro torreones): planta baja con gran salón de doble altura (mesa larga,
-mesa alta bajo la tribuna, chimenea, escalera principal a la tribuna), cocina, despensa y bodega al oeste, armería y cuartel
-al este. Planta alta: estudio, biblioteca y antecámara al oeste; alcoba del señor y solana al este, unidas por la tribuna.
-Caracol de losas (3 x 3) en un hueco cerrado desde la mazmorra (y=-13) hasta la azotea (y=22), con salidas al salón,
-a la antecámara y a la azotea.
-**Mazmorra** (pies a y=-13): cuerpo de guardia al pie del caracol; al este, pasillo con ocho calabozos (puertas de hierro
-abiertas); al oeste, la cripta; al norte, la cisterna con estanques, puente e isla; al noreste, la falsa tesorería; al sur,
-el pasillo de las saetas y la sala del guardián (bóveda de 7, pilares, trono); tras ella, la cámara del tesoro.
+## Floor plans
+**Exterior and curtain wall.** A grass bank (ring 0-3) with stone riprap, a water moat 6 wide and 3 deep,
+a curtain wall 3 thick with a wall-walk at y=17 and battlements. Four round towers at the corners (ground floor with a door to the courtyard,
+wall-walk floor with doors to both stretches of wall, a crenellated terrace, ladders) and two bastions halfway along the wall
+east and west, which the wall-walk passes through. Stone stairs from the courtyard to the wall-walk along the west and east walls.
+**Barbican (south).** A drawbridge lowered over the moat (one plank missing), an arch with a raised portcullis hanging from chains
+of the windlass in the upper room, a guardroom and a storeroom on either side of the passage, the windlass room with beds and a roof terrace; two
+drum towers flank the entrance.
+**Parade ground.** A path from the gate to the keep, a covered well in the center, stables with five stalls
+(west), a smithy with a forge, anvil and trough (east), a chapel with pews, altar and stained glass (northeast), a garden with a ditch next
+to the kitchen (northwest), a tiltyard with targets and quintains (southwest), street lamps.
+**Keep** (40 x 32, walls 3 thick, four turrets): ground floor with a double-height great hall (long table,
+high table under the gallery, fireplace, main staircase to the gallery), kitchen, pantry and cellar to the west, armory and barracks
+to the east. Upper floor: study, library and antechamber to the west; the lord's bedchamber and solar to the east, joined by the gallery.
+A slab spiral staircase (3 x 3) in an enclosed shaft from the dungeon (y=-13) to the roof terrace (y=22), with exits to the hall,
+the antechamber and the roof terrace.
+**Dungeon** (feet at y=-13): a guardroom at the foot of the spiral; to the east, a corridor with eight cells (iron doors
+open); to the west, the crypt; to the north, the cistern with pools, a bridge and an island; to the northeast, the false treasury; to the south,
+the arrow-slit corridor and the guardian's hall (vault 7 high, pillars, throne); behind it, the treasure chamber.
 
-## Recorrido del jugador
-Puente → barbacana (guardia, almacén, sala del torno, azotea) → patio (caballerizas, herrería, capilla, pozo, huerto, liza,
-torres y adarve completo) → torre del homenaje (salón, cocina, despensa, bodega, armería, cuartel; escalera a la tribuna y a
-la planta alta) → caracol → mazmorra: guardia → calabozos → paso a la falsa tesorería → cisterna → cripta → guardia
-(circuito cerrado) → pasillo de las saetas → sala del guardián → acertijo → cámara del tesoro.
-La auditoría lo comprueba entero con las salas secretas abiertas: cada celda alcanzada tiene vuelta, y cada cofre, barril,
-mueble de trabajo, palanca, generador, puerta (por los dos lados) y escalera de mano está al lado de una celda alcanzable.
-Con los mecanismos cerrados, el gabinete secreto, la cámara del tesoro y el nicho no se alcanzan.
+## Player route
+Bridge → barbican (guardroom, storeroom, windlass room, roof terrace) → courtyard (stables, smithy, chapel, well, garden, tiltyard,
+towers and the complete wall-walk) → keep (hall, kitchen, pantry, cellar, armory, barracks; stairs to the gallery and to
+the upper floor) → spiral → dungeon: guardroom → cells → passage to the false treasury → cistern → crypt → guardroom
+(closed circuit) → arrow-slit corridor → guardian's hall → riddle → treasure chamber.
+The audit checks it all with the secret rooms open: every reached cell has a way back, and every chest, barrel,
+workstation, lever, spawner, door (from both sides) and ladder is next to a reachable cell.
+With the mechanisms closed, the secret cabinet, the treasure chamber and the niche cannot be reached.
 
-## Puzles, trampas, generadores y guardián
-- **Puerta secreta del estudio** (planta alta): en el rincón noroeste, una palanca en el suelo; al accionarla, dos librerías del
-  muro oeste se retiran al rincón (pistones pegajosos extendidos que alimenta una antorcha; la palanca la apaga). Detrás, un
-  pasadizo en el grueso del muro oeste (saeteras y antorchas) lleva al **gabinete secreto** del torreón suroeste.
-- **Acertijo de las tres palancas** (sala del guardián): tres palancas bajo estandartes verde, rojo y negro; los estandartes del
-  castillo son rojos. La roja apaga la antorcha de una puerta secreta igual en el rincón noreste y abre la cámara del tesoro;
-  la verde y la negra disparan tres dispensadores de flechas cada una contra quien tira.
-- **Pasillo de las saetas**: cable trampa con seis dispensadores (templo de la jungla).
-- **Falsa tesorería**: cofre en un estrado y placa de presión delante con cinco dinamitas bajo el suelo (templo del desierto).
-- **Nicho oculto**: tras ladrillos agrietados al fondo del segundo calabozo sur (hay que picar).
-- **Generadores**: zombi (calabozo con los barrotes arrancados), esqueleto (cripta), araña (isla de la cisterna).
-- **Guardián**: Sir Aldric, el Castellano Maldito (zombi con nombre traducible, 60 de vida, 5 de ataque, 0,4 de resistencia al
-  empuje, yelmo y grebas de hierro, cota y botas de malla, espada de hierro; `PersistenceRequired`).
-- Todo en reposo es estable: antorchas encendidas, pistones extendidos con su cabeza, palancas y polvo apagados.
-- Sin aldeanos ni gólems: el castillo está abandonado y tomado por muertos vivientes.
+## Puzzles, traps, spawners and guardian
+- **Secret door of the study** (upper floor): in the northwest corner, a lever on the floor; when flipped, two bookshelves of the
+  west wall retract into the corner (extended sticky pistons powered by a torch; the lever turns it off). Behind, a
+  passage inside the thickness of the west wall (arrow slits and torches) leads to the **secret cabinet** in the southwest turret.
+- **Riddle of the three levers** (guardian's hall): three levers under green, red and black banners; the castle's banners
+  are red. The red one turns off the torch of an identical secret door in the northeast corner and opens the treasure chamber;
+  the green and the black ones each fire three arrow dispensers at whoever pulls them.
+- **Arrow-slit corridor**: a tripwire with six dispensers (jungle temple).
+- **False treasury**: a chest on a dais and a pressure plate in front of it with five TNT under the floor (desert temple).
+- **Hidden niche**: behind cracked bricks at the back of the second south cell (it has to be mined).
+- **Spawners**: zombie (a cell with its bars torn out), skeleton (crypt), spider (the cistern's island).
+- **Guardian**: Sir Aldric, the Cursed Castellan (a zombie with a translatable name, 60 health, 5 attack, 0.4 knockback
+  resistance, iron helmet and leggings, chainmail chestplate and boots, iron sword; `PersistenceRequired`).
+- Everything at rest is stable: torches lit, pistons extended with their head, levers and dust off.
+- No villagers or golems: the castle is abandoned and taken over by the undead.
 
-## Botín (`heraldia:unicas/castillo/<tabla>`, solo vanilla; cada tabla con grupo extra `solo_sin_lootr`)
-| Tabla | Dónde | Contenido |
+## Loot (`heraldia:unicas/castillo/<table>`, vanilla only; each table with an extra `solo_sin_lootr` pool)
+| Table | Where | Contents |
 |---|---|---|
-| `menor` | almacén de la puerta, torres, bastiones, cuartel, falsa tesorería | comida y materiales básicos |
-| `cocina` | cocina, despensa, bodega, almacén | comida cocinada y víveres |
-| `armeria` | cuerpo de guardia, sala del torno, torres, armería, liza | flechas, hierro, armas y armaduras gastadas |
-| `herreria` | herrería | hierro, carbón, herramientas, yunque mellado |
-| `establo` | caballerizas | trigo, ronzales, silla, bardas de cuero o hierro |
-| `capilla` | capilla | velas, papel, lapislázuli, libros |
-| `aposentos` | estudio, biblioteca, alcoba | oro, esmeraldas, reloj, brújula, libro encantado (5-15) |
-| `mazmorra` | guardia, calabozos, cripta, cisterna, falsa tesorería | huesos, pepitas, cadenas, algo de hierro y oro |
-| `oculto` | fondo del pozo, gabinete secreto, nicho, cámara del tesoro | oro, esmeraldas, diamante raro, libro (10-20), perlas |
-| `premium` | cámara del tesoro | ver abajo |
+| `menor` | gate storeroom, towers, bastions, barracks, false treasury | food and basic materials |
+| `cocina` | kitchen, pantry, cellar, storeroom | cooked food and provisions |
+| `armeria` | guardroom, windlass room, towers, armory, tiltyard | arrows, iron, worn weapons and armor |
+| `herreria` | smithy | iron, coal, tools, a chipped anvil |
+| `establo` | stables | wheat, leads, a saddle, leather or iron horse armor |
+| `capilla` | chapel | candles, paper, lapis lazuli, books |
+| `aposentos` | study, library, bedchamber | gold, emeralds, clock, compass, enchanted book (5-15) |
+| `mazmorra` | guardroom, cells, crypt, cistern, false treasury | bones, nuggets, chains, some iron and gold |
+| `oculto` | bottom of the well, secret cabinet, niche, treasure chamber | gold, emeralds, a rare diamond, book (10-20), pearls |
+| `premium` | treasure chamber | see below |
 
-**Premium**: 3-4 objetos vistosos (Espada del Castellano, Yelmo de la Guardia, Arco del Montero con encantamientos 10-25;
-Escudo de Heraldia; Llave de la Cámara; adornos centinela, salvaje, costero y anfitrión; discos 13, cat, mall y strad; oro,
-esmeraldas, frascos de experiencia, barda de oro) y una joya: 90 % vistosa (Corona del Señor, Reloj de la Torre, Catalejo del
-Vigía, etiqueta, disco Pigstep, manzanas de oro) y 10 % fuerte (manzana encantada, Hoja de Aldric o peto de diamante 20-30,
-3-5 diamantes, libro de nivel 30). Sin netherita ni élitros.
+**Premium**: 3-4 showy items (the Castellan's Sword, the Helm of the Guard, the Huntsman's Bow with enchantments 10-25;
+the Heraldia Shield; the Chamber Key; sentry, wild, coast and host trims; discs 13, cat, mall and strad; gold,
+emeralds, bottles o' enchanting, gold horse armor) and a jewel: 90 % showy (the Lord's Crown, the Tower Clock, the Lookout's
+Spyglass, a name tag, the Pigstep disc, golden apples) and 10 % strong (enchanted apple, Aldric's Blade or a diamond chestplate 20-30,
+3-5 diamonds, a level 30 book). No netherite or elytra.
 
-## Ruina (83 % en buen estado)
-Torre noreste desmochada (sin terraza, suelo alto hundido en el centro, enredaderas, escombros dentro y al pie), parapeto
-norte sin almenas junto a ella, tejado de las caballerizas hundido con telarañas y viga caída, vidriera rota en la capilla,
-tablón perdido en el puente, telarañas en bodega y mazmorra; y un procesador que pone musgo (15 %) y grietas (10 %) en los
-ladrillos de piedra y musgo (20 %) en el adoquín. `auditoria.ruin_share` estima un 17 % de la superficie vista en mal estado.
+## Ruin (83 % in good condition)
+The northeast tower has lost its top (no terrace, upper floor caved in at the center, vines, rubble inside and at its foot), the
+north parapet next to it has no battlements, the stables' roof has caved in with cobwebs and a fallen beam, a broken stained-glass window in the chapel,
+a plank missing on the bridge, cobwebs in the cellar and the dungeon; and a processor that adds moss (15 %) and cracks (10 %) to the
+stone bricks and moss (20 %) to the cobblestone. `auditoria.ruin_share` estimates 17 % of the visible surface in poor condition.
 
-## Contraste con el criterio de Alberto
-Escaleras completas sin saltos (losas de media altura en el caracol, escaleras de bloque con su relleno); ninguna puerta sin
-salida ni sala inaccesible (auditado); muebles contra los muros y mesas con sillas de respaldo hacia fuera; faroles colgados
-de techo o cadena; agua siempre contenida (foso, pozo, acequia, estanques); simetría en muralla, barbacana y torre del
-homenaje; cada elemento con función (rastrillo con torno, forja con chimenea, pilón, acequia).
+## Against the owner's criteria
+Complete staircases without jumps (half-height slabs in the spiral, block stairs with their fill); no door without an
+exit or inaccessible room (audited); furniture against the walls and tables with chairs facing outwards; lanterns hanging
+from the ceiling or a chain; water always contained (moat, well, ditch, pools); symmetry in the curtain wall, barbican and
+keep; every element with a function (portcullis with a windlass, forge with a chimney, trough, ditch).
 
-## Comprobaciones
-- Generación: `lint.py` (apoyos, jigsaws) y `auditoria.py` (recorrido, salas ocultas, redstone en reposo, nada flotando).
-- `prueba_redstone.py`: en servidor dedicado 26.3 coloca las plantillas con `/place template`, fuerza actualizaciones junto a
-  antorchas y pistones, y comprueba puertas cerradas, apertura y cierre del estudio, palanca verde (dispara, no abre), roja
-  (abre, no dispara), cable trampa, placa con dinamita, guardián (nombre, equipo, vida 60) y cofres.
-- Pendiente de capturas en el juego de Alberto: aspecto, iluminación y adaptación al terreno en generación real.
+## Checks
+- Generation: `lint.py` (supports, jigsaws) and `auditoria.py` (walk, hidden rooms, redstone at rest, nothing floating).
+- `prueba_redstone.py`: on a 26.3 dedicated server it places the templates with `/place template`, forces updates next to
+  torches and pistons, and checks closed doors, opening and closing the study, the green lever (fires, does not open), the red one
+  (opens, does not fire), tripwire, the TNT plate, the guardian (name, equipment, 60 health) and chests.
+- Pending screenshots from the owner's game: look, lighting and terrain adaptation in real generation.

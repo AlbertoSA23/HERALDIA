@@ -79,7 +79,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 - [Referència completa del contingut](docs/CONTENT.md) (en anglès): tots els estils de poble, les estructures úniques, les mitjanes i les mines, els combats amb els guardians, els assoliments, l'arena i més.
 - [Instal·lació, ordres i configuració](docs/CONFIGURATION.md) (en anglès): ordres de prova i d'administració (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key`...), totes les opcions i la pantalla de configuració del joc.
 - [Compatibilitat amb altres mods](docs/COMPATIBILITY.md) (en anglès): mods de biomes, mods d'estructures, Lootr i la resta.
-- [Compilació i proves](docs/BUILDING.md) (en anglès), [guia de desenvolupament (en castellà)](docs/DESARROLLO.md) i [registre de canvis](CHANGELOG.md).
+- [Compilació i proves](docs/BUILDING.md) (en anglès), [guia de desenvolupament (en anglès)](docs/DEVELOPMENT.md) i [registre de canvis](CHANGELOG.md).
 
 ## Llicència i crèdits
 

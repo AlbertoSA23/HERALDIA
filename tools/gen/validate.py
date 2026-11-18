@@ -215,7 +215,7 @@ def validate_advancements(out, ns="heraldia"):
                     errs.append(f"{name}: la raíz de la pestaña necesita fondo (background)")
                 errs += text(name, d.get("title")) + text(name, d.get("description"))
             xp = a.get("rewards", {}).get("experience", 0)
-            # Solo experiencia (Decisiones de Alberto), salvo los encargos del tablón de las aldeas (tablon.py), que
+            # Solo experiencia (Decisiones del dueño), salvo los encargos del tablón de las aldeas (tablon.py), que
             # pagan con su tabla de recompensa (esmeraldas y algún objeto con nombre)
             allowed = {"experience", "loot"} if name.startswith("aldeas/encargos/") else {"experience"}
             if set(a.get("rewards", {})) - allowed or not isinstance(xp, int) or xp < 0:

@@ -1,97 +1,97 @@
-# Fortaleza de hielo (`heraldia:unicas/fortaleza_hielo`)
+# Ice fortress (`heraldia:unicas/fortaleza_hielo`)
 
-Fortaleza de hielo compacto y hielo azul sobre un zócalo de piedra nevada, en picos de hielo, llanura nevada y taiga
-nevada. Abandonada: la guardan esqueletos glaciales (strays) y su antiguo señor, **el Rey Escarcha**. Una sola pieza
-rígida diseñada a mano (51 × 65 bloques de planta, 46 de alto) y una sola variante.
+A fortress of packed ice and blue ice on a snowy stone plinth, in ice spikes, snowy plains and snowy
+taiga. Abandoned: it is guarded by strays and its former lord, **the Frost King**. A single rigid
+piece designed by hand (51 × 65 blocks in plan, 46 high) and a single variant.
 
-## Adaptación al terreno (sótanos)
+## Terrain adaptation (basements)
 
-Las criptas y la cámara del tesoro no se hunden en el terreno: están **dentro de un zócalo macizo de 10 bloques** sobre el
-que se alza la fortaleza (y = 0 a 10 de la plantilla). Así la caja de la pieza empieza a ras de suelo y `beard_thin` solo
-rellena por debajo, sin excavar el terreno vecino. Se sube al patio por una escalinata de 11 peldaños encajada entre dos
-pretiles (con media losa de acceso en el primer escalón, porque la pieza rígida queda un bloque por encima del suelo).
+The crypts and the treasure chamber do not sink into the terrain: they are **inside a solid 10-block plinth** on
+which the fortress rises (y = 0 to 10 of the template). That way the piece's box starts at ground level and `beard_thin` only
+fills below, without digging out the neighboring terrain. You climb to the courtyard by an 11-step flight of stairs set between two
+parapets (with a half slab for access on the first step, because the rigid piece sits one block above the ground).
 
-## Plantas por nivel (coordenadas de la plantilla: x de oeste a este, z de norte a sur; «pie» = altura de los pies)
+## Floor plans by level (template coordinates: x from west to east, z from north to south; "feet" = height of the feet)
 
-| Nivel | Pie | Contenido |
+| Level | Feet | Contents |
 |---|---|---|
-| Cámara del tesoro | 1 | antecámara, pasillo de la trampa de placa, cámara final con el cofre premium |
-| Criptas | 6 | vestíbulo, pasillo del cable trampa, osario (generador de strays), sala de ofrendas (generador de esqueletos), cripta del Rey (guardián) |
-| Patio y planta baja | 11 | patio con fuente helada, puerta fortificada, barracones, cocinas, perrera, galería de esculturas, gran salón con trono, panteón, sala oculta del rey |
-| Adarve | 20 | camino de ronda sobre las cuatro murallas, sala del rastrillo, plantas medias de las torres |
-| Atalayas | 26 | sala alta de las cuatro torres, bajo las agujas |
+| Treasure chamber | 1 | antechamber, the plate trap corridor, the final chamber with the premium chest |
+| Crypts | 6 | vestibule, the tripwire corridor, ossuary (stray spawner), offering room (skeleton spawner), the King's crypt (guardian) |
+| Courtyard and ground floor | 11 | courtyard with a frozen fountain, fortified gate, barracks, kitchens, kennel, sculpture gallery, great hall with the throne, pantheon, the king's hidden room |
+| Wall-walk | 20 | the walk along the four walls, the portcullis room, the middle floors of the towers |
+| Lookouts | 26 | the upper room of the four towers, under the spires |
 
-Planos generados con las celdas alcanzables: `docs/unicas/fortaleza_hielo/plantas.txt`; renders: `docs/unicas/fortaleza_hielo/*.png`.
+Plans generated with the reachable cells: `docs/unicas/fortaleza_hielo/plantas.txt`; renders: `docs/unicas/fortaleza_hielo/*.png`.
 
-## Recorrido del jugador
+## Player route
 
-1. Escalinata norte → puerta fortificada (paso de 5 de ancho bajo el rastrillo alzado) → patio.
-2. Patio: a poniente los **barracones** (2 cofres) y la **galería de esculturas de hielo** (caballero, lobo, oso, dragón; 1 cofre
-   tras la última escultura); a levante las **cocinas** (hogueras bajo el tiro del tejado, ahumador, 1 cofre, toneles) y la
-   **perrera** (corrales con tres lobos de las nieves, 1 tonel); al sur el **gran salón** con el trono de hielo.
-3. Torres de esquina con escaleras de mano hasta el adarve y la sala alta. El adarve une las cuatro torres y la **sala del
-   rastrillo** (1 cofre). La atalaya noreste guarda 1 cofre. Las torres del sur se entran por la galería y por el panteón.
-4. **Sala oculta del rey** (puzle 1): de las dos hornacinas que flanquean el trono, la derecha es una puerta de pistones. Se
-   abre bajando la palanca que hay en el muro del fondo, a tres bloques. Dentro, el cofre `tesoro_real`.
-5. **Panteón** (a levante del salón) → escalera a las **criptas**: vestíbulo → pasillo con **cable trampa** (4 dispensadores
-   con flechas en los muros) → osario al norte (**generador de strays**, foso de nieve polvo, 1 cofre) y sala de ofrendas al
-   sur (**generador de esqueletos**, derrumbe, 1 cofre) → **cripta del Rey** (guardián con nombre).
-6. **Puerta secreta de la cripta** (puzle 2): en el muro oeste hay dos hornacinas; la del sur es otra puerta de pistones. La
-   palanca está escondida entre el muro y un pilar (solo se ve de lado). Tras ella, una escalera baja a la **cámara del
-   tesoro**: antecámara → pasillo de un bloque con **placa de presión y dos dispensadores** → cámara final con el cofre premium.
+1. North flight of stairs → fortified gate (a 5-wide passage under the raised portcullis) → courtyard.
+2. Courtyard: to the west the **barracks** (2 chests) and the **gallery of ice sculptures** (knight, wolf, bear, dragon; 1 chest
+   behind the last sculpture); to the east the **kitchens** (campfires under the roof's flue, smoker, 1 chest, barrels) and the
+   **kennel** (pens with three snow wolves, 1 barrel); to the south the **great hall** with the ice throne.
+3. Corner towers with ladders up to the wall-walk and the upper room. The wall-walk joins the four towers and the **portcullis
+   room** (1 chest). The northeast lookout holds 1 chest. The southern towers are entered from the gallery and from the pantheon.
+4. **The king's hidden room** (puzzle 1): of the two niches flanking the throne, the right one is a piston door. It
+   opens by pulling down the lever on the back wall, three blocks away. Inside, the `tesoro_real` chest.
+5. **Pantheon** (east of the hall) → stairs to the **crypts**: vestibule → corridor with a **tripwire** (4 dispensers
+   with arrows in the walls) → ossuary to the north (**stray spawner**, a powder snow pit, 1 chest) and offering room to the
+   south (**skeleton spawner**, a collapse, 1 chest) → **the King's crypt** (named guardian).
+6. **Secret door of the crypt** (puzzle 2): in the west wall there are two niches; the southern one is another piston door. The
+   lever is hidden between the wall and a pillar (it can only be seen from the side). Behind it, a staircase goes down to the **treasure
+   chamber**: antechamber → one-block corridor with a **pressure plate and two dispensers** → the final chamber with the premium chest.
 
-## Mecanismos (todos funcionan al colocarse, sin actualizaciones de bloque)
+## Mechanisms (all of them work when placed, without block updates)
 
-- Puertas de pistones: dos pistones pegajosos **ya extendidos** sujetan los dos bloques de la hornacina; la palanca está
-  **encendida** de serie y alimenta los pistones (directamente un polvo en cruz encima de un bloque que queda débilmente
-  alimentado). Todo el estado guardado es coherente (palanca encendida, polvo a 15, pistones extendidos con su cabeza), así
-  que nada cambia al generarse. Al apagar la palanca los pistones retraen los bloques al interior del muro y la hornacina se
-  vuelve paso; volver a encenderla cierra (el paso queda abierto desde dentro si nadie toca la palanca).
-- Trampas: cable trampa (ganchos `attached`, sin alimentar) y placa de piedra en reposo; los dispensadores, sin disparar,
-  están junto al bloque que alimenta el gancho o junto a la placa. Foso de nieve polvo de un bloque de hondo junto al generador.
-- La auditoría del módulo simula la redstone: estados guardados = estados calculados, pistones extendidos ⇔ alimentados, y
-  que al pisar la placa o el cable los dispensadores reciben señal y al apagar cada palanca se abre la puerta.
+- Piston doors: two sticky pistons **already extended** hold the two blocks of the niche; the lever is
+  **on** from the start and powers the pistons (directly through a cross-shaped dust on top of a block that is weakly
+  powered). The whole saved state is consistent (lever on, dust at 15, pistons extended with their head), so
+  nothing changes when generated. Turning the lever off retracts the blocks into the wall and the niche becomes
+  a passage; turning it on again closes it (the passage stays open from inside if nobody touches the lever).
+- Traps: tripwire (`attached` hooks, unpowered) and a stone plate at rest; the dispensers, not fired,
+  are next to the block that powers the hook or next to the plate. A one-block-deep powder snow pit next to the spawner.
+- The module's audit simulates the redstone: saved states = computed states, pistons extended ⇔ powered, and
+  that stepping on the plate or the wire signals the dispensers and turning each lever off opens its door.
 
-## Generadores y guardián
+## Spawners and guardian
 
-- Osario: generador de strays; sala de ofrendas: generador de esqueletos. Ambos a oscuras (luz de bloque 0 calculada).
-- **El Rey Escarcha**: stray con `PersistenceRequired`, nombre traducible, 40 de vida, arco con Poder II, casco de hierro y
-  cota de malla (probabilidad de soltar el equipo moderada).
-- Sin aldeanos ni gólems: la fortaleza está abandonada. Los lobos de las nieves de la perrera son la única vida pacífica.
+- Ossuary: stray spawner; offering room: skeleton spawner. Both in the dark (computed block light 0).
+- **The Frost King**: a stray with `PersistenceRequired`, a translatable name, 40 health, a bow with Power II, an iron helmet and
+  a chainmail chestplate (a moderate chance of dropping its equipment).
+- No villagers or golems: the fortress is abandoned. The snow wolves in the kennel are the only peaceful life.
 
-## Hielo y luz
+## Ice and light
 
-Solo se usa hielo compacto y hielo azul (no se derriten). La auditoría calcula la luz de bloque y falla si hay hielo normal
-o capas de nieve con luz > 11 o si un generador recibe luz. Ninguna superficie superior expuesta es bloque de nieve
-(los picos de hielo del bioma nacen sobre bloques de nieve).
+Only packed ice and blue ice are used (they do not melt). The audit computes block light and fails if there is regular ice
+or snow layers with light > 11 or if a spawner receives light. No exposed top surface is a snow block
+(the biome's ice spikes spawn on snow blocks).
 
-## Estado (80-85 % en buen estado)
+## Condition (80-85 % in good condition)
 
-Procesador de degradación: ladrillos de piedra agrietados, almenas caídas y parches de nieve en el hielo compacto. Ruinas
-hechas a mano: punta de la aguja noreste caída, brecha en el parapeto este, hueco en el tejado de la perrera con escombros,
-estatua de la fuente rota y derrumbe en la sala de ofrendas. La auditoría estima la proporción de superficie dañada.
+A degradation processor: cracked stone bricks, fallen battlements and patches of snow on the packed ice. Hand-made
+ruins: the fallen tip of the northeast spire, a breach in the east parapet, a hole in the kennel roof with rubble,
+the fountain's broken statue and a collapse in the offering room. The audit estimates the share of damaged surface.
 
-## Cofres y botín (solo vanilla, sin netherita en equipo ni élitros)
+## Chests and loot (vanilla only, no netherite gear or elytra)
 
-Cada tabla lleva un grupo extra `solo_sin_lootr` (con Lootr cada jugador recibe solo la parte modesta).
+Each table has an extra `solo_sin_lootr` pool (with Lootr each player receives only the modest part).
 
-| Cofre | Dónde | Botín |
+| Chest | Where | Loot |
 |---|---|---|
-| `barracones` ×2 | barracones | pan, flechas, cuero, pepitas de hierro, armadura de cuero gastada |
-| `cocina` | cocinas | carne cocinada, estofados, bayas, carbón |
-| `perrera` (tonel) | perrera | huesos, correas, cuero, alguna etiqueta |
-| `garita` | sala del rastrillo | flechas, ballesta gastada, antorchas, catalejo raro |
-| `atalaya` | sala alta noreste | mapa, brújula, catalejo, esmeraldas |
-| `galeria` | galería de esculturas | hielo compacto, lapislázuli, velas, libros |
-| `cripta` ×2 | osario y ofrendas | huesos, pepitas de oro, hierro, esmeraldas, libro encantado raro |
-| `tesoro_real` | sala oculta del rey | oro, esmeraldas, diamante, libro encantado, manzana dorada |
-| `premium` | cámara del tesoro | 90 %: objetos con nombre y encantamientos moderados, adornos de armadura, discos; 10 %: espada o peto de diamante bien encantados, manzana encantada o tótem |
+| `barracones` ×2 | barracks | bread, arrows, leather, iron nuggets, worn leather armor |
+| `cocina` | kitchens | cooked meat, stews, berries, coal |
+| `perrera` (barrel) | kennel | bones, leads, leather, the odd name tag |
+| `garita` | portcullis room | arrows, a worn crossbow, torches, a rare spyglass |
+| `atalaya` | northeast upper room | map, compass, spyglass, emeralds |
+| `galeria` | sculpture gallery | packed ice, lapis lazuli, candles, books |
+| `cripta` ×2 | ossuary and offerings | bones, gold nuggets, iron, emeralds, a rare enchanted book |
+| `tesoro_real` | the king's hidden room | gold, emeralds, diamond, enchanted book, golden apple |
+| `premium` | treasure chamber | 90 %: named items with moderate enchantments, armor trims, discs; 10 %: a well-enchanted diamond sword or chestplate, an enchanted apple or a totem |
 
-## Contraste con el criterio de diseño
+## Against the design criteria
 
-- Escaleras completas y sin saltos (auditoría de recorrido); ninguna puerta sin salida; cada sala alcanzable (las ocultas,
-  con su mecanismo abierto).
-- Muebles contra los muros; centros libres salvo mesas con sillas de respaldo hacia fuera.
-- Faroles colgados de techo o cadena; nada de agua.
-- Simetría en la puerta fortificada, el gran salón, las torres y las hornacinas; cada elemento tiene función
-  (hornacinas = puertas o señuelo del puzle, pilares = escondite de la palanca).
+- Complete staircases without jumps (walk audit); no door without an exit; every room reachable (the hidden ones,
+  with their mechanism open).
+- Furniture against the walls; centers free except for tables with chairs facing outwards.
+- Lanterns hanging from the ceiling or a chain; no water at all.
+- Symmetry in the fortified gate, the great hall, the towers and the niches; every element has a function
+  (niches = doors or the puzzle's decoy, pillars = where the lever hides).

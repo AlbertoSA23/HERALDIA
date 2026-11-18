@@ -1,139 +1,139 @@
-# Monasterio de montaña (`heraldia:unicas/monasterio`)
+# Mountain monastery (`heraldia:unicas/monasterio`)
 
-Monasterio encaramado en un risco: tres terrazas escalonadas unidas por escalinatas, la iglesia en lo alto
-y, excavadas en la roca, cuevas con ermitas, un osario, un archivo secreto y el relicario.
+A monastery perched on a crag: three stepped terraces joined by flights of steps, the church at the top
+and, carved into the rock, caves with hermitages, an ossuary, a secret archive and the reliquary.
 
-## Adaptación a la pendiente (decisión)
+## Adapting to the slope (decision)
 
-El jigsaw no sabe hacia dónde sube la ladera (la rotación es aleatoria) y `beard_thin`/`beard_box` solo
-rellenan bajo la base de cada pieza o hunden el terreno alrededor. Por eso el monasterio **trae su propio
-risco**: una sola plantilla rígida de 59 × 88 bloques en planta que incluye el macizo de roca desde las
-cuevas (y = 0) hasta cada terraza, con faldón de derrubios irregular alrededor, y aire explícito sobre las
-terrazas para que la ladera no las entierre.
+The jigsaw does not know which way the hillside rises (the rotation is random) and `beard_thin`/`beard_box` only
+fill under the base of each piece or sink the terrain around it. That is why the monastery **brings its own
+crag**: a single rigid template of 59 × 88 blocks in plan that includes the rock massif from the
+caves (y = 0) up to each terrace, with an irregular skirt of scree around it, and explicit air above the
+terraces so that the hillside does not bury them.
 
-- `terrain_adaptation: none`: la plantilla define todo su volumen; fuera de ella el terreno queda intacto.
-- `start_height: -25` con proyección a `WORLD_SURFACE_WG`: la terraza baja (y = 24 de la plantilla)
-  queda a ras del terreno en el centro de la huella.
-- En llano el risco se levanta sobre el prado (12 bloques hasta el claustro); en ladera, cuesta arriba
-  la plantilla corta el monte como un desmonte y cuesta abajo deja a la vista la roca del risco.
-- Caras del macizo que dan a una terraza: sillería con contrafuertes; caras exteriores: roca natural
-  (piedra, andesita, toba y canto) con talud.
-- Una sola pieza: el recorrido a pie de la auditoría cubre el monasterio entero desde la entrada.
+- `terrain_adaptation: none`: the template defines its whole volume; outside it the terrain is untouched.
+- `start_height: -25` with projection to `WORLD_SURFACE_WG`: the lower terrace (y = 24 of the template)
+  sits flush with the terrain at the center of the footprint.
+- On flat ground the crag rises over the meadow (12 blocks up to the cloister); on a hillside, uphill
+  the template cuts into the mountain like a cutting and downhill it shows the crag's rock.
+- Faces of the massif facing a terrace: ashlar with buttresses; outer faces: natural rock
+  (stone, andesite, tuff and cobble) with a slope.
+- A single piece: the audit's walk covers the whole monastery from the entrance.
 
-Biomas: `meadow` y `grove`. Rareza: `spacing` 250 / `separation` 190 chunks (una cada ~3.000-5.000 bloques).
+Biomes: `meadow` and `grove`. Rarity: `spacing` 250 / `separation` 190 chunks (one every ~3,000-5,000 blocks).
 
-## Niveles (coordenadas de plantilla; la entrada está en z = 0, se sube hacia z creciente)
+## Levels (template coordinates; the entrance is at z = 0, you climb towards increasing z)
 
-| Nivel | Suelo (y) | z | Contenido |
+| Level | Floor (y) | z | Contents |
 |---|---|---|---|
-| Camino | 24 | 0-5 | camino empedrado con faroles; conector de entrada |
-| T0 Atrio | 24 | 6-27 | portería (porteros y limosnas), atrio, cementerio, hospedería en ruinas, escalinata a T1 |
-| T1 Huerto/refectorio | 30 | 28-49 | huerto en dos bancales con acequias, cobertizo, refectorio, cocina; bodega debajo (y 24) |
-| T2 Claustro | 36 | 50-72 | claustro con pozo, dormitorio con celdas, biblioteca, sala capitular |
-| Iglesia | 37-38 | 73-87 | nave con columnas, coro, presbiterio elevado, sacristía en la base del campanario |
-| Campanario | 38-70 | 73-79 | escala interior, rellano, campana |
-| Cripta | 30 | 75-85 | bajo el presbiterio: sepulcros, generador de zombis, puzle 1 |
-| Cuevas | 13 | 20-86 | gruta de los eremitas, 3 ermitas, cueva de arañas, osario, archivo, catacumbas, relicario (y 5) |
+| Path | 24 | 0-5 | a cobbled path with lanterns; entrance connector |
+| T0 Atrium | 24 | 6-27 | gatehouse (porters and alms), atrium, graveyard, ruined guesthouse, steps to T1 |
+| T1 Garden/refectory | 30 | 28-49 | a two-bed garden with ditches, a shed, refectory, kitchen; cellar below (y 24) |
+| T2 Cloister | 36 | 50-72 | cloister with a well, dormitory with cells, library, chapter house |
+| Church | 37-38 | 73-87 | nave with columns, choir, raised presbytery, sacristy at the base of the bell tower |
+| Bell tower | 38-70 | 73-79 | an inner ladder, landing, bell |
+| Crypt | 30 | 75-85 | under the presbytery: tombs, zombie spawner, puzzle 1 |
+| Caves | 13 | 20-86 | the hermits' grotto, 3 hermitages, spider cave, ossuary, archive, catacombs, reliquary (y 5) |
 
-## Recorrido del jugador
+## Player route
 
-1. Camino → arco de la portería → atrio. A los lados: portería (barril), sala de limosnas, cementerio y
-   la hospedería derruida (cofre entre escombros).
-2. Escalinata de 6 peldaños → T1. Huerto (cobertizo con cofre), refectorio y cocina (barril). Escalera
-   de la cocina a la **bodega** (barril). En un rincón de la bodega, tras las cubas, una trampilla y una
-   escala bajan a la **despensa secreta del cillerero** (sala oculta, cofre medio).
-3. Escalinata → T2. Claustro con galerías y pozo; biblioteca (cofre) con un **hueco tras una estantería**
-   que da a una escala hasta el **escritorio oculto** bajo cubierta (cofre medio); sala capitular;
-   dormitorio con celdas (dos cofres de celda y el del prior).
-4. Iglesia: nave, coro, presbiterio. Sacristía en la base del campanario (cofre) y escala hasta la
-   campana (cofre en el rellano).
-5. Escalera de la nave lateral a la **cripta** (generador de zombis, oscura). **Puzle 1**: dos palancas
-   encendidas con sus lámparas mantienen cerrada una lápida en un nicho; el letrero dice que hay que
-   apagar las luces de los difuntos. Con las dos apagadas, los pistones retiran la lápida.
-6. Pasadizo secreto de 17 peldaños hasta la **gruta de los eremitas** (y 13). Desde la gruta:
-   ermitas 1 y 2 (cofres de ermita), pasillo a la ermita 3 con **trampa 1** (cable trampa → dos
-   dispensadores de flechas, como el templo de la jungla), cueva de arañas (generador de arañas de cueva,
-   cofre menor) y **osario** (generador de esqueletos).
-7. **Puzle 2** en el osario: tres palancas en tres nichos y una puerta de hierro. El letrero: «velan
-   el primero y el último; el del medio duerme». Solo con 1 y 3 subidas y 2 bajada se abre el
-   **archivo secreto** (dos cofres ricos).
-8. Del archivo, escalera a las **catacumbas** (generador de zombis, cofre en un nicho) y la antecámara con
-   la **trampa 2** (losas de presión sobre dispensadores con pociones arrojadizas de veneno y flechas,
-   como las losas del templo del desierto pero sin TNT). Al fondo, el **relicario**: guardián con nombre
-   y cofre premium sobre el altar.
+1. Path → gatehouse arch → atrium. On the sides: gatehouse (barrel), alms room, graveyard and
+   the collapsed guesthouse (a chest among the rubble).
+2. A 6-step flight → T1. Garden (shed with a chest), refectory and kitchen (barrel). Stairs
+   from the kitchen to the **cellar** (barrel). In a corner of the cellar, behind the vats, a trapdoor and a
+   ladder go down to the **cellarer's secret pantry** (hidden room, medium chest).
+3. Steps → T2. Cloister with galleries and a well; library (chest) with a **gap behind a bookshelf**
+   that leads to a ladder up to the **hidden scriptorium** under the roof (medium chest); chapter house;
+   dormitory with cells (two cell chests and the prior's).
+4. Church: nave, choir, presbytery. Sacristy at the base of the bell tower (chest) and a ladder up to the
+   bell (chest on the landing).
+5. Stairs from the side aisle to the **crypt** (zombie spawner, dark). **Puzzle 1**: two levers
+   that are on, with their lamps, keep a gravestone in a niche closed; the sign says you have to
+   put out the lights of the dead. With both off, the pistons pull the gravestone back.
+6. A 17-step secret passage down to the **hermits' grotto** (y 13). From the grotto:
+   hermitages 1 and 2 (hermitage chests), a corridor to hermitage 3 with **trap 1** (tripwire → two
+   arrow dispensers, like the jungle temple), the spider cave (cave spider spawner,
+   smaller chest) and the **ossuary** (skeleton spawner).
+7. **Puzzle 2** in the ossuary: three levers in three niches and an iron door. The sign: "the first and the
+   last keep watch; the middle one sleeps". Only with 1 and 3 up and 2 down does the
+   **secret archive** open (two rich chests).
+8. From the archive, stairs to the **catacombs** (zombie spawner, a chest in a niche) and the antechamber with
+   **trap 2** (pressure plates over dispensers with splash poison potions and arrows,
+   like the desert temple's plates but without TNT). At the back, the **reliquary**: a named guardian
+   and the premium chest on the altar.
 
-## Redstone (todo estable al colocarse)
+## Redstone (everything stable when placed)
 
-- Puzle 1 (OR): palanca encendida → bloque con potencia fuerte → polvo en una cámara oculta del muro →
-  pistones pegajosos **extendidos** que sostienen la lápida. Las lámparas están junto al bloque de cada
-  palanca. Al colocarse, todos los estados son coherentes (palancas `powered=true`, lámparas `lit=true`,
-  polvo con su nivel, pistones extendidos con su cabeza): cualquier actualización los deja igual.
-- Puzle 2 (Y con negación): palanca 1 y 3 → antorcha (inversor) que se apaga; palanca 2 → polvo; las
-  tres salidas se suman en una línea de polvo que alimenta el bloque de la antorcha final, que abre la
-  puerta. Estado inicial coherente: antorchas 1 y 3 encendidas, línea con potencia, antorcha final
-  apagada, puerta cerrada.
-- Trampas: todo sin potencia al colocarse (gancho y cable sin activar, losas sin pulsar).
-- La comprobación propia del módulo recalcula los niveles de polvo, el estado de antorchas, pistones,
-  lámparas y puertas a partir de las palancas y exige que coincidan con lo colocado.
+- Puzzle 1 (OR): a lever that is on → a strongly powered block → dust in a hidden chamber in the wall →
+  **extended** sticky pistons holding the gravestone. The lamps are next to each
+  lever's block. When placed, all the states are consistent (levers `powered=true`, lamps `lit=true`,
+  dust with its level, pistons extended with their head): any update leaves them the same.
+- Puzzle 2 (AND with negation): levers 1 and 3 → a torch (inverter) that turns off; lever 2 → dust; the
+  three outputs add up in a line of dust that powers the block of the final torch, which opens the
+  door. Consistent initial state: torches 1 and 3 lit, the line powered, the final torch
+  off, the door closed.
+- Traps: everything unpowered when placed (hook and wire not triggered, plates not pressed).
+- The module's own check recomputes the dust levels and the state of torches, pistons,
+  lamps and doors from the levers and requires them to match what is placed.
 
-## Generadores y guardián
+## Spawners and guardian
 
-- Zombi: cripta y catacumbas. Esqueleto: osario. Araña de cueva: cueva de arañas.
-  Todos en zonas oscuras de mazmorra; ninguno en la superficie habitada.
-- Guardián: esqueleto «Fray Tenebrio, guardián del relicario» con espada de hierro, casco de oro y
-  peto de cota de malla, 40 de vida, `PersistenceRequired`, botín de equipo con probabilidad baja.
+- Zombie: crypt and catacombs. Skeleton: ossuary. Cave spider: spider cave.
+  All in dark dungeon areas; none on the inhabited surface.
+- Guardian: a skeleton, "Friar Tenebrio, guardian of the reliquary", with an iron sword, a gold helmet and
+  a chainmail chestplate, 40 health, `PersistenceRequired`, a low chance of dropping its equipment.
 
-## Habitantes
+## Inhabitants
 
-Tres monjes (aldeanos con profesión fija): clérigo (soporte de pociones en la sacristía), bibliotecario
-(atril de la biblioteca) y granjero (compostador del cobertizo). Camas en las celdas.
+Three monks (villagers with a fixed profession): a cleric (brewing stand in the sacristy), a librarian
+(the library's lectern) and a farmer (the shed's composter). Beds in the cells.
 
-## Estado (80-85 % en buen estado)
+## Condition (80-85 % in good condition)
 
-Ruinas con sentido: hospedería sin tejado con muros caídos, tramo del muro del cementerio caído,
-cobertizo con el tejado hundido, esquina noroeste de las galerías del claustro hundida con escombros,
-dos celdas del dormitorio sin techo, media cubierta de la sala capitular caída, esquina rota del
-campanario y huecos en los pretiles. Procesador: ladrillo de piedra agrietado (8 %) y musgoso (8 %),
-canto musgoso (15 %). El módulo calcula la proporción de huella en ruinas (objetivo 15-20 %).
+Ruins that make sense: the guesthouse without a roof with fallen walls, a fallen stretch of the graveyard wall,
+the shed with its roof caved in, the northwest corner of the cloister galleries collapsed with rubble,
+two dormitory cells without a ceiling, half the chapter house roof fallen, a broken corner of the
+bell tower and gaps in the parapets. Processor: cracked stone brick (8 %) and mossy (8 %),
+mossy cobble (15 %). The module computes the share of the footprint in ruins (target 15-20 %).
 
-## Botín (solo vanilla; el grupo extra de cada cofre lleva `solo_sin_lootr`)
+## Loot (vanilla only; the extra pool of each chest has `solo_sin_lootr`)
 
-| Tabla | Dónde | Contenido |
+| Table | Where | Contents |
 |---|---|---|
-| `menor` | portería, limosnas, hospedería, cocina, cobertizo, campanario, cueva de arañas | pan, manzanas, velas, papel, semillas, pepitas de hierro, alguna esmeralda |
-| `bodega` | bodega | miel, bayas, manzanas, frascos, azúcar, trigo |
-| `celda` | celdas | velas, libro y pluma, papel, pan, cuerda |
-| `biblioteca` | biblioteca | libros, papel, tinta, plumas, brújula, mapa vacío, libro encantado raro |
-| `oculto` | despensa secreta, escritorio, celda del prior, sacristía | esmeraldas, oro, libro encantado, manzana dorada rara |
-| `ermita` | ermitas | esmeraldas, amatista, libros encantados de nivel bajo, lingotes de oro |
-| `archivo` | archivo secreto | libros encantados (10-20), esmeraldas, diamante raro, etiqueta, frascos de experiencia |
-| `catacumba` | catacumbas | huesos, oro, hierro, armadura de hierro encantada baja, manzana dorada |
-| `premium` | relicario | 90 % `premium_vistoso` (objetos con nombre, encantamientos moderados, adornos de armadura, discos), 10 % `premium_fuerte` (equipo de diamante encantado 20-30 o manzana dorada encantada); más un grupo de valores y el extra sin Lootr |
+| `menor` | gatehouse, alms room, guesthouse, kitchen, shed, bell tower, spider cave | bread, apples, candles, paper, seeds, iron nuggets, the odd emerald |
+| `bodega` | cellar | honey, berries, apples, bottles, sugar, wheat |
+| `celda` | cells | candles, book and quill, paper, bread, string |
+| `biblioteca` | library | books, paper, ink, feathers, compass, empty map, a rare enchanted book |
+| `oculto` | secret pantry, scriptorium, the prior's cell, sacristy | emeralds, gold, enchanted book, a rare golden apple |
+| `ermita` | hermitages | emeralds, amethyst, low-level enchanted books, gold ingots |
+| `archivo` | secret archive | enchanted books (10-20), emeralds, a rare diamond, name tag, bottles o' enchanting |
+| `catacumba` | catacombs | bones, gold, iron, lightly enchanted iron armor, golden apple |
+| `premium` | reliquary | 90 % `premium_vistoso` (named items, moderate enchantments, armor trims, discs), 10 % `premium_fuerte` (diamond gear enchanted 20-30 or an enchanted golden apple); plus a pool of valuables and the extra without Lootr |
 
-Nada de netherita en equipo ni élitros. Los nombres de objeto y del guardián usan claves de traducción
-`heraldia.unicas.monasterio.*` con respaldo en español.
+No netherite gear or elytra. The item names and the guardian's use translation keys
+`heraldia.unicas.monasterio.*` with a Spanish fallback.
 
-## Contraste con el criterio de Alberto
+## Against the owner's criteria
 
-- Escaleras completas y sin saltos: todo desnivel es de peldaños o escala; la auditoría recorre a pie.
-- Ninguna puerta sin salida: la auditoría comprueba las dos caras de cada puerta (las secretas, abiertas).
-- Muebles contra muro, sillas con respaldo hacia fuera, faroles colgados con cadena.
-- Simetría en iglesia, claustro, portería y refectorio; cada estancia con su función.
-- Nada flotando: comprobación propia de bloques sueltos (todo debe tocar el macizo).
+- Complete staircases without jumps: every change of level is made of steps or a ladder; the audit walks it.
+- No door without an exit: the audit checks both sides of each door (the secret ones, open).
+- Furniture against the wall, chairs facing outwards, lanterns hanging on chains.
+- Symmetry in the church, cloister, gatehouse and refectory; each room with its function.
+- Nothing floating: its own check for loose blocks (everything must touch the massif).
 
-## Comprobado
+## Checked
 
-- Auditoría propia (condición para generar): estados de redstone coherentes al colocarse, las 4 y 8 combinaciones de
-  palancas de los dos puzles (solo la solución abre), ganchos y losas con su dispensador, nada flotando, ruinas al 15,7 %
-  de la huella, cofres con tabla existente, generadores y guardián. `lint.py` sobre la vista con las puertas secretas
-  abiertas: recorrido a pie desde la entrada hasta cada puerta, cofre, mueble y escala; jigsaw intacto.
-- Servidor dedicado 26.3 (`prueba_servidor.py`): la plantilla se coloca; pistones extendidos, lámparas encendidas,
-  antorchas y puerta en su estado; generador y guardián presentes; el puzle 1 abre solo con las dos palancas
-  apagadas y el 2 solo con 1 y 3 subidas.
-- Sin comprobar en el juego: que las trampas disparen al pisarlas o cruzarlas, que los generadores saquen mobs, el
-  encaje en laderas reales y el aspecto (faltan capturas de Alberto).
+- Its own audit (a condition for generating): consistent redstone states when placed, the 4 and 8 lever combinations of
+  the two puzzles (only the solution opens), hooks and plates with their dispenser, nothing floating, ruins at 15.7 %
+  of the footprint, chests with an existing table, spawners and guardian. `lint.py` on the view with the secret doors
+  open: the walk from the entrance to every door, chest, piece of furniture and ladder; jigsaw intact.
+- 26.3 dedicated server (`prueba_servidor.py`): the template is placed; pistons extended, lamps lit,
+  torches and door in their state; spawner and guardian present; puzzle 1 only opens with both levers
+  off and puzzle 2 only with 1 and 3 up.
+- Not checked in game: that the traps fire when stepped on or crossed, that the spawners produce mobs, the
+  fit on real hillsides and the look (missing screenshots from the owner).
 
-## Planos y renders
+## Plans and renders
 
-En `docs/unicas/monasterio/`: planos por nivel en texto (`planos.txt`, celdas alcanzables marcadas) y
-renders isométricos (`exterior.png`, `cuevas.png`).
+In `docs/unicas/monasterio/`: text plans by level (`planos.txt`, reachable cells marked) and
+isometric renders (`exterior.png`, `cuevas.png`).

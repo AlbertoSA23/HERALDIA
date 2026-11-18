@@ -3,7 +3,7 @@ name: CI
 # Comprobaciones de cada PR contra develop o main, de cada push a develop y a mano (workflow_dispatch).
 # No publica nada (la publicación es .github/workflows/publish.yml, en main).
 #
-# Política de pruebas (docs/DESARROLLO.md): en un PR van la compilación, todos los tests unitarios, la prueba de humo
+# Política de pruebas (docs/DEVELOPMENT.md): en un PR van la compilación, todos los tests unitarios, la prueba de humo
 # y solo las pruebas de servidor afectadas por los ficheros cambiados (tools/test.py, el mismo mapa de rutas que en
 # local). La batería completa va en cada push a develop, a mano (la sesión auditora) y en un PR con la etiqueta
 # «bateria-completa» o con «[bateria completa]» en el título. Las de compatibilidad con otros mods
@@ -260,7 +260,7 @@ jobs:
             modrinth-
 
       # Misma zona del mismo mundo con y sin Heraldia (3 pasadas de cada); compara con tools/smoke/coste_referencia.json
-      # y escribe el resumen del job. Para actualizar la referencia con esta medición: docs/DESARROLLO.md.
+      # y escribe el resumen del job. Para actualizar la referencia con esta medición: docs/DEVELOPMENT.md.
       - name: Coste de generación
         run: python3 tools/smoke/coste_generacion.py --jar build/libs/heraldia-${{ needs.compilar.outputs.version }}.jar --work "$GITHUB_WORKSPACE/build/smoke" --salida build/coste
 

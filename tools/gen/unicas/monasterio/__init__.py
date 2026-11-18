@@ -18,7 +18,7 @@ TROFEO = {"objeto": "amethyst_shard", "rareza": "rare",
           "nombre": ("Lágrima del relicario", "Tear of the Reliquary"),
           "lore": [("Dicen que lloró cuando cayó el último monje.", "They say it wept when the last monk fell."),
                    ("La custodiaba Fray Tenebrio.", "Guarded by Friar Tenebrius.")]}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("En las praderas de la montaña, un monasterio cuelga del risco. Los monjes copiaban libros a la "

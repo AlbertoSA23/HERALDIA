@@ -24,7 +24,7 @@ TROFEO = {"objeto": "iron_axe", "rareza": "rare",
           "lore": [("Hendió cien escudos en su última incursión.", "It split a hundred shields on its last raid."),
                    ("El jarl no lo soltó ni muerto.", "The jarl would not let go of it even in death.")],
           "encantamientos": {"minecraft:sharpness": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "ofrendas",
     "relato": [
         ("En la taiga encontré un salón tras una empalizada de troncos. El jarl Ulfgrim me sentó junto al"

@@ -24,7 +24,7 @@ TROFEO = {"objeto": "bow", "rareza": "rare",
           "lore": [("Disparó la última andanada de la isla.", "It loosed the isle's last broadside."),
                    ("Nunca arrió la bandera negra.", "It never struck the black flag.")],
           "encantamientos": {"minecraft:power": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "cartas",
     "relato": [
         ("Un bergantín de bandera negra me recogió del agua y me llevó a su isla, un cerro con un fuerte en mitad del"

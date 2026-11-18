@@ -33,7 +33,7 @@ def test_descubre_todas_las_pruebas_de_servidor():
 
 
 @pytest.mark.parametrize("rutas", [
-    ["docs/DESARROLLO.md"], ["README.md", "CHANGELOG.md"], ["tools/gen/tests/test_core.py"],
+    ["docs/DEVELOPMENT.md"], ["README.md", "CHANGELOG.md"], ["tools/gen/tests/test_core.py"],
     ["src/test/java/io/github/albertosa23/heraldia/config/X.java"], ["src/client/java/x/ConfigScreen.java"],
     ["tools/gen/render.py"], ["tools/gen/loot.py"], [J + "comando/LlaveCommand.java"],
 ])
@@ -274,11 +274,11 @@ def test_coste_de_generacion_por_rutas():
               J + "config/GridPlacement.java", "tools/gen/houses.py", "tools/gen/medianas/posada.py", "tools/gen/unicas/castillo.py",
               "tools/smoke/coste_generacion.py", "tools/smoke/coste_referencia.json", "gradle.properties"]:
         assert sel.coste([r]), r
-    for r in ["docs/DESARROLLO.md", "CHANGELOG.md", "tools/gen/tests/test_core.py", "tools/gen/LEEME.md", "tools/gen/render.py",
+    for r in ["docs/DEVELOPMENT.md", "CHANGELOG.md", "tools/gen/tests/test_core.py", "tools/gen/LEEME.md", "tools/gen/render.py",
               J + "comando/Guia.java", J + "mixin/ZombieMixin.java", J + "jefes/Fases.java", J + "loot/BotinRepuesto.java",
               "src/test/java/io/github/albertosa23/heraldia/comun/PerfilTest.java", "tools/smoke/trofeos.py", ".github/workflows/ci.yml"]:
         assert not sel.coste([r]), r
-    assert sel.coste(["docs/DESARROLLO.md", J + "minas/Ladera.java"]) and not sel.coste([])
+    assert sel.coste(["docs/DEVELOPMENT.md", J + "minas/Ladera.java"]) and not sel.coste([])
 
 
 def test_ci_matriz_dice_si_va_el_coste():

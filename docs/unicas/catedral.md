@@ -1,120 +1,120 @@
-# Catedral gótica (`heraldia:unicas/catedral`)
+# Gothic cathedral (`heraldia:unicas/catedral`)
 
-Estructura única al estilo de Notre-Dame, diseñada a mano en `tools/gen/unicas/catedral/` (una sola variante).
-Bioma: bosque y bosque de flores (`minecraft:forest`, `minecraft:flower_forest`). Rareza por defecto: rejilla de 250 chunks
-(separación 190), una cada ~3.000-5.000 bloques.
+A unique structure in the style of Notre-Dame, designed by hand in `tools/gen/unicas/catedral/` (a single variant).
+Biome: forest and flower forest (`minecraft:forest`, `minecraft:flower_forest`). Default rarity: a 250-chunk grid
+(separation 190), one every ~3,000-5,000 blocks.
 
-## Tamaño y piezas
+## Size and pieces
 
-- 117 × 84 bloques de planta (x 0..116, z 4..87) y 77 de alto (y -8..68; la aguja llega a 68).
-- Dos piezas rígidas unidas por un jigsaw vertical bajo el crucero (`size` 2, radio 80):
-  - **catedral** (y ≥ 0): todo lo que está sobre el suelo. Su base es el suelo (y = 0), así que `beard_thin` asienta
-    y suaviza el terreno alrededor de la huella como en las aldeas.
-  - **cripta** (y -8..-1): cripta, osarios y cámara del tesoro, bajo el crucero, el coro y el ábside. Al ser una pieza
-    aparte, su base no arrastra a la de la superficie (lección de `DESARROLLO.md`: una pieza que baja hunde el terreno);
-    su barba queda a 8 bloques de profundidad, en roca, y está rodeada de un muro de dos bloques.
-- Degradación: procesador de reglas (ladrillo de piedra agrietado 11 % y musgoso 8 %, tejas de pizarra agrietadas 10 %,
-  andesita pulida 4 %) más daños explícitos con sentido. La auditoría calcula la parte dañada de la superficie exterior:
-  **15,8 %** (objetivo 15-20 %, es decir, 80-85 % en buen estado).
+- 117 × 84 blocks in plan (x 0..116, z 4..87) and 77 high (y -8..68; the spire reaches 68).
+- Two rigid pieces joined by a vertical jigsaw under the crossing (`size` 2, radius 80):
+  - **catedral** (y ≥ 0): everything above the ground. Its base is the ground (y = 0), so `beard_thin` settles
+    and smooths the terrain around the footprint as in the villages.
+  - **cripta** (y -8..-1): crypt, ossuaries and the treasure chamber, under the crossing, the choir and the apse. Being a separate
+    piece, its base does not drag the surface one down (lesson from `DEVELOPMENT.md`: a piece that goes down sinks the terrain);
+    its beard stays 8 blocks deep, in rock, and it is surrounded by a two-block wall.
+- Degradation: a rule processor (cracked stone bricks 11 % and mossy 8 %, cracked slate tiles 10 %,
+  polished andesite 4 %) plus explicit damage that makes sense. The audit computes the damaged part of the outer surface:
+  **15.8 %** (target 15-20 %, i.e. 80-85 % in good condition).
 
-## Plantas por nivel (planos completos en `catedral/planos.txt`)
+## Floor plans by level (complete plans in `catedral/planos.txt`)
 
-Ejes: x crece de la fachada oeste (x = 6) al ábside; z de norte a sur; eje de simetría z = 30. Pies del jugador en y.
+Axes: x grows from the west façade (x = 6) to the apse; z from north to south; symmetry axis z = 30. Player's feet at y.
 
-| Nivel (pies) | Qué hay |
+| Level (feet) | What is there |
 |---|---|
-| -7 | Cripta del crucero (pilares, sepulcros de obispos, altar) con dos cofres; cámara oeste con generador de zombis; osario (eje y dos bucles con calaveras en hornacinas); osario de los esqueletos (generador); galería hundida con arañas de cueva (generador, telarañas); pasadizo estrecho con trampa; antecámara de los sellos; cámara del tesoro; relicario oculto bajo el altar. |
-| 1 | Atrio con escalinata; tres portadas (central con parteluz y dos en las torres); nártex bajo la tribuna; nave de 7 tramos con bancos, púlpito y arañas; colaterales; crucero con portadas norte y sur y las dos escaleras a la cripta; coro con sillería; altar mayor sobre estrado en el ábside; girola con tres capillas radiales; sacristía (al norte); claustro con jardín, pozo y árbol; sala capitular; refectorio en ruinas. |
-| 9 | Biblioteca sobre la sacristía (estanterías, mesa de lectura, atriles) y gabinete secreto. |
-| 12 | Triforio (tribunas) sobre los colaterales, la girola y el coro; pasarelas altas que cruzan los brazos del crucero; tribuna del órgano sobre el nártex. |
-| 17 | Terrazas sobre los colaterales y la girola (cubiertas accesibles), bajo los arbotantes; cubierta de la sacristía. |
-| 28 | Canalón a lo largo de la nave con pretil; terraza de la fachada con la galería de columnas; desván sobre las bóvedas (nave, crucero, coro y ábside). |
-| 40 | Campanario (torre norte, dos campanas en una viga); torre sur con el tejado hundido. |
-| 56 | Azoteas de las torres con pretil almenado. |
+| -7 | Crossing crypt (pillars, bishops' tombs, altar) with two chests; west chamber with a zombie spawner; ossuary (an axis and two loops with skulls in niches); the skeletons' ossuary (spawner); a sunken gallery with cave spiders (spawner, cobwebs); a narrow passage with a trap; the seals antechamber; the treasure chamber; a hidden reliquary under the altar. |
+| 1 | Atrium with a flight of steps; three portals (the central one with a trumeau and two in the towers); narthex under the gallery; a 7-bay nave with pews, pulpit and chandeliers; aisles; crossing with north and south portals and the two staircases to the crypt; choir with stalls; high altar on a dais in the apse; ambulatory with three radiating chapels; sacristy (to the north); cloister with a garden, well and tree; chapter house; ruined refectory. |
+| 9 | Library above the sacristy (bookshelves, reading table, lecterns) and secret cabinet. |
+| 12 | Triforium (galleries) above the aisles, the ambulatory and the choir; high walkways crossing the arms of the crossing; organ gallery above the narthex. |
+| 17 | Terraces above the aisles and the ambulatory (accessible roofs), under the flying buttresses; sacristy roof. |
+| 28 | Gutter along the nave with a parapet; façade terrace with the gallery of columns; loft above the vaults (nave, crossing, choir and apse). |
+| 40 | Bell tower (north tower, two bells on a beam); south tower with its roof caved in. |
+| 56 | Tower roof terraces with a crenellated parapet. |
 
-## Recorrido del jugador
+## Player route
 
-1. Atrio y portada central → nave. Por los colaterales se llega al crucero y, por la girola, a las capillas.
-2. Torres: escalera de caracol (losas, 0,5 bloques por paso) en cada torre, con salidas a la planta baja, la tribuna del
-   órgano y el triforio (12), la terraza de los colaterales (17), la terraza de la fachada (28), el campanario (40) y la azotea (56).
-3. Desde la terraza de la fachada: canalón de la nave y lucarnas al desván; el desván une nave, crucero, coro y ábside.
-4. Triforio: de la torre al crucero, por la pasarela alta del brazo, al triforio del coro y de la girola (anillo completo).
-5. Sacristía por la puerta de la girola norte; escalera a la biblioteca; torreta de servicio desde la sacristía al
-   triforio del coro y a la terraza (cubierta de la sacristía).
-6. Claustro por el paso del colateral sur; sala capitular por la panda este; refectorio por la panda sur.
-7. Cripta por cualquiera de las dos escaleras de los brazos del crucero → osario → pasadizo estrecho (trampa) →
-   antecámara de los sellos → (puzle) → cámara del tesoro.
-8. Secretos: palanca escondida entre las estanterías de la biblioteca (gabinete); palanca en el estrado del altar mayor
-   (trampilla de hierro y escala al relicario).
+1. Atrium and central portal → nave. Along the aisles you reach the crossing and, along the ambulatory, the chapels.
+2. Towers: a spiral staircase (slabs, 0.5 blocks per step) in each tower, with exits to the ground floor, the organ
+   gallery and the triforium (12), the aisles' terrace (17), the façade terrace (28), the bell tower (40) and the roof terrace (56).
+3. From the façade terrace: the nave's gutter and dormers into the loft; the loft joins nave, crossing, choir and apse.
+4. Triforium: from the tower to the crossing, along the arm's high walkway, to the triforium of the choir and the ambulatory (a full ring).
+5. Sacristy through the north ambulatory door; stairs to the library; a service turret from the sacristy to the
+   choir's triforium and to the terrace (sacristy roof).
+6. Cloister through the passage from the south aisle; chapter house along the east walk; refectory along the south walk.
+7. Crypt down either of the two staircases in the arms of the crossing → ossuary → narrow passage (trap) →
+   seals antechamber → (puzzle) → treasure chamber.
+8. Secrets: a lever hidden among the library's bookshelves (cabinet); a lever on the dais of the high altar
+   (iron trapdoor and a ladder down to the reliquary).
 
-## Cofres (19) y botín
+## Chests (19) and loot
 
-| Sitio | Tabla | Riqueza |
+| Place | Table | Value |
 |---|---|---|
-| Capillas radiales (4 barriles) | `capilla` | velas, pepitas de oro, papel |
-| Claustro, sala capitular, refectorio | `menor` | pan, velas, carbón, pepitas |
-| Sacristía (2) | `sacristia` | velas, oro en pepitas, lana, libros |
-| Biblioteca | `biblioteca` | libros, papel, tinta; libro encantado al azar en el extra |
-| Campanario | `campanario` | cuerda, cadenas, farolillos; «Campana de la torre norte» en el extra |
-| Cripta (2) | `cripta` | huesos, oro, hierro; algún diamante o manzana dorada |
-| Osario | `osario` | huesos, flechas; calavera, «Hueso de santo» |
-| Gabinete secreto y relicario | `oculto` | libro encantado (10-20), oro, esmeraldas, diamantes, «Salterio iluminado», discos |
-| Cámara del tesoro (2) | `tesoro` | oro, esmeraldas, 1-3 diamantes, equipo de hierro encantado, «Cáliz de oro» |
-| Cámara del tesoro, principal | `premium` | ver abajo |
+| Radiating chapels (4 barrels) | `capilla` | candles, gold nuggets, paper |
+| Cloister, chapter house, refectory | `menor` | bread, candles, coal, nuggets |
+| Sacristy (2) | `sacristia` | candles, gold nuggets, wool, books |
+| Library | `biblioteca` | books, paper, ink; a random enchanted book in the extra |
+| Bell tower | `campanario` | string, chains, lanterns; "Bell of the North Tower" in the extra |
+| Crypt (2) | `cripta` | bones, gold, iron; the odd diamond or golden apple |
+| Ossuary | `osario` | bones, arrows; a skull, "Saint's Bone" |
+| Secret cabinet and reliquary | `oculto` | enchanted book (10-20), gold, emeralds, diamonds, "Illuminated Psalter", discs |
+| Treasure chamber (2) | `tesoro` | gold, emeralds, 1-3 diamonds, enchanted iron gear, "Golden Chalice" |
+| Treasure chamber, main | `premium` | see below |
 
-Premium: un objeto principal (90 % vistoso: «Espada del cabildo» de oro, «Yelmo del capitán de la guardia», «Báculo del obispo
-Ermengol», «Arco de Fray Osmundo», «Cáliz de oro»; 10 % algo más fuerte: «Peto de los mártires» de diamante Protección III,
-espada de diamante Filo IV o manzana de oro encantada), 2-3 vistosos (discos, plantillas de adorno host/raiser/shaper/wayfinder,
-libro encantado 15-25, «Salterio»), 3-5 de valor (oro, esmeraldas, 1-3 diamantes) y un extra. Sin netherita ni élitros.
-Cada tabla tiene su grupo extra marcado `solo_sin_lootr`.
+Premium: one main item (90 % showy: the gold "Chapter's Sword", the "Helm of the Captain of the Guard", "Bishop
+Ermengol's Crozier", "Friar Osmundo's Bow", "Golden Chalice"; 10 % something stronger: the diamond "Martyrs' Breastplate" with Protection III,
+a diamond sword with Sharpness IV or an enchanted golden apple), 2-3 showy ones (discs, host/raiser/shaper/wayfinder trim templates,
+an enchanted book 15-25, "Psalter"), 3-5 valuables (gold, emeralds, 1-3 diamonds) and an extra. No netherite or elytra.
+Each table has its extra pool marked `solo_sin_lootr`.
 
-## Puzles, trampas, generadores y guardián
+## Puzzles, traps, spawners and guardian
 
-- **Puzle de los sellos** (antecámara → tesoro): cuatro palancas en el muro, cada una bajo un cartel: Codicia, Fe, Esperanza,
-  Caridad; un cartel lateral dice «3 virtudes abren / la codicia castiga». La puerta es un bloque doble de piedra cincelada
-  sujeto por dos pistones pegajosos extendidos en un muro de cuatro de grueso (palancas | antorchas | puerta, pistones y polvo |
-  cara del tesoro). Tras cada virtud hay una antorcha de redstone (inversor) junto a una línea de polvo continua que mantiene
-  los pistones extendidos: solo se abre con las tres virtudes activadas. La palanca de la codicia es una trampa: dispara una
-  flecha desde un dispensador escondido tras su cartel. El simulador común (`_comun/redstone.py`) prueba las 8 combinaciones.
-- **Gabinete secreto** (biblioteca): el mismo mecanismo con una palanca entre las estanterías del rincón noreste; la puerta es
-  una estantería que retrocede dentro del muro.
-- **Relicario**: trampilla de hierro en el estrado del altar mayor, abierta por la palanca de suelo de al lado; escala hasta el relicario.
-- **Trampas** como en los templos vanilla: cable trampa en el eje del osario (dos dispensadores con flechas justo encima de los
-  ganchos) y placa de presión en el pasadizo estrecho (dos dispensadores a ras de suelo).
-- Todo se coloca en reposo coherente sin depender de actualizaciones: pistones extendidos y alimentados, antorchas encendidas,
-  polvo con su potencia y sus conexiones escritas, palancas, ganchos, cable y dispensadores apagados.
-- **Generadores** (solo en la cripta, a oscuras): zombis (cámara oeste), esqueletos (osario norte), arañas de cueva (galería hundida).
-- **Guardián**: «Fray Osmundo, custodio del tesoro», esqueleto en la cámara del tesoro con 40 de vida, armadura 4, arco con
-  Poder II, yelmo de malla y peto de oro, `PersistenceRequired`.
-- Sin aldeanos ni gólems: la catedral está abandonada (en parte en ruinas) y su tesoro custodiado.
+- **Seals puzzle** (antechamber → treasure): four levers on the wall, each under a sign: Greed, Faith, Hope,
+  Charity; a side sign says "3 virtues open / greed punishes". The door is a double block of chiseled stone
+  held by two extended sticky pistons in a four-thick wall (levers | torches | door, pistons and dust |
+  treasure side). Behind each virtue there is a redstone torch (inverter) next to a continuous line of dust that keeps
+  the pistons extended: it only opens with the three virtues on. The greed lever is a trap: it fires an
+  arrow from a dispenser hidden behind its sign. The shared simulator (`_comun/redstone.py`) tries the 8 combinations.
+- **Secret cabinet** (library): the same mechanism with a lever among the bookshelves in the northeast corner; the door is
+  a bookshelf that moves back into the wall.
+- **Reliquary**: an iron trapdoor on the dais of the high altar, opened by the floor lever next to it; a ladder down to the reliquary.
+- **Traps** like in the vanilla temples: a tripwire along the ossuary's axis (two dispensers with arrows right above the
+  hooks) and a pressure plate in the narrow passage (two dispensers at floor level).
+- Everything is placed in a consistent rest state without depending on updates: pistons extended and powered, torches lit,
+  dust with its power and its connections written, levers, hooks, wire and dispensers off.
+- **Spawners** (only in the crypt, in the dark): zombies (west chamber), skeletons (north ossuary), cave spiders (sunken gallery).
+- **Guardian**: "Friar Osmundo, keeper of the treasure", a skeleton in the treasure chamber with 40 health, armor 4, a bow with
+  Power II, a chainmail helmet and a gold chestplate, `PersistenceRequired`.
+- No villagers or golems: the cathedral is abandoned (partly in ruins) and its treasure guarded.
 
-## Ruina (15-20 % de la superficie)
+## Ruin (15-20 % of the surface)
 
-Además del procesador: torre sur con el tejado hundido sobre el campanario y el pretil mellado; cuatro vidrieras rotas en el
-claristorio sur; huecos en el pretil de la terraza sur; boquete en la cubierta de la nave (con escombros en el desván); panda
-sur del claustro hundida en parte con dos columnas caídas; refectorio sin cubierta, muros mellados, escombros y musgo;
-galería hundida de la cripta.
+Besides the processor: the south tower with its roof caved in over the bell chamber and a notched parapet; four broken stained-glass windows in the
+south clerestory; gaps in the parapet of the south terrace; a hole in the nave's roof (with rubble in the loft); the south walk
+of the cloister partly collapsed with two fallen columns; the refectory without a roof, notched walls, rubble and moss;
+the crypt's sunken gallery.
 
-## Contraste con el criterio de Alberto
+## Against the owner's criteria
 
-- Escaleras: de caracol completas de la planta baja a la azotea; tramos rectos con apoyo; ninguna termina en el vacío.
-- Puertas y vanos: la auditoría comprueba que cada puerta tiene paso a ambos lados y que no queda ninguna estancia sin acceso.
-- Muebles contra los muros: bancos y sillería en filas con pasillo central, estanterías sin tapar ventanas, mesa con sillas
-  de respaldo hacia fuera.
-- Nada flotando: faroles colgados con cadena hasta la bóveda, campanas en viga, arbotantes y cubiertas unidos por caras
-  (la auditoría busca grupos de bloques que no lleguen al suelo).
-- Simetría respecto al eje de la nave salvo lo que tiene función propia (sacristía al norte, claustro al sur, campanario).
-- Luz: ninguna celda cubierta transitable de la superficie queda a oscuras (no aparecen monstruos dentro); la cripta sí está a oscuras.
+- Stairs: complete spirals from the ground floor to the roof terrace; straight flights with support; none ends in the void.
+- Doors and openings: the audit checks that every door has a way through on both sides and that no room is left without access.
+- Furniture against the walls: pews and stalls in rows with a central aisle, bookshelves not covering windows, a table with chairs
+  facing outwards.
+- Nothing floating: lanterns hanging on chains up to the vault, bells on a beam, flying buttresses and roofs joined by faces
+  (the audit looks for groups of blocks that do not reach the ground).
+- Symmetry about the nave's axis except what has a function of its own (sacristy to the north, cloister to the south, bell tower).
+- Light: no covered walkable cell at the surface is left dark (no monsters spawn inside); the crypt is dark.
 
-## Comprobaciones
+## Checks
 
-- Escalera de caracol, puertas de pistones, trampas, generadores, guardián, carteles y ayudas de botín salen de las piezas
-  comunes de `tools/gen/unicas/_comun/` (`piezas.py` y `botin.py`).
+- The spiral staircase, piston doors, traps, spawners, guardian, signs and loot helpers come from the shared pieces
+  in `tools/gen/unicas/_comun/` (`piezas.py` and `botin.py`).
 
-- `tools/gen/unicas/catedral/auditoria.py` (condición para generar): recorrido a pie desde el atrio con los mecanismos
-  accionados, acceso a cofres, generadores, palancas, campanas, atriles, puertas y peldaños; estancias sin acceso; bloques
-  flotando; luz; coherencia estática de la redstone; proporción de ruina. Además pasa `lint.py` y la validación de registros.
-- `tools/gen/unicas/catedral/prueba_juego.py`: servidor dedicado 26.3 real; coloca las dos piezas con `/place template`,
-  comprueba el reposo tras las actualizaciones, acciona cada mecanismo (palanca simulada con un bloque de redstone en su apoyo)
-  y revisa trampas, generadores, cofres y guardián.
-- `python3 -m unicas.catedral.planos <carpeta> render` (desde `tools/gen`) regenera planos y renders.
+- `tools/gen/unicas/catedral/auditoria.py` (a condition for generating): a walk from the atrium with the mechanisms
+  operated, access to chests, spawners, levers, bells, lecterns, doors and steps; rooms without access; floating
+  blocks; light; static consistency of the redstone; ruin ratio. It also runs `lint.py` and the registry validation.
+- `tools/gen/unicas/catedral/prueba_juego.py`: a real 26.3 dedicated server; it places the two pieces with `/place template`,
+  checks the rest state after the updates, operates each mechanism (a lever simulated with a redstone block on its support)
+  and checks traps, spawners, chests and guardian.
+- `python3 -m unicas.catedral.planos <folder> render` (from `tools/gen`) regenerates plans and renders.

@@ -13,7 +13,7 @@ TROFEO = {"objeto": "iron_axe", "rareza": "rare",
           "nombre": ("Hacha de Borin Barbahierro", "Borin Ironbeard's Axe"),
           "lore": [("Ha partido roca, hierro y orgullo de trasgo.", "It has cleaved stone, iron and goblin pride.")],
           "encantamientos": {"minecraft:efficiency": 3, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "real",
     "relato": [
         ("Subí a las cumbres de piedra hasta la ciudadela que los enanos excavaron en la montaña. Borin "

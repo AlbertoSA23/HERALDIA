@@ -278,7 +278,7 @@ def markdown(resultado, comparacion):
               "| tramo | veces | total (ms) | media (µs) | máx. (µs) |", "|---|---:|---:|---:|---:|"]
         for k, v in sorted(perfil.items(), key=lambda kv: -kv[1]["total_ms"]):
             L.append(f"| {k} | {v['n']:.0f} | {v['total_ms']:.1f} | {v['media_us']:.1f} | {v['max_us']:.0f} |")
-    L += ["", "Referencia: `tools/smoke/coste_referencia.json` (cómo actualizarla: docs/DESARROLLO.md, «Coste de generación»)."]
+    L += ["", "Referencia: `tools/smoke/coste_referencia.json` (cómo actualizarla: docs/DEVELOPMENT.md, «Coste de generación»)."]
     return "\n".join(L) + "\n"
 
 

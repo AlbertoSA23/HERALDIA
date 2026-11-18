@@ -4,7 +4,7 @@ Coordenadas de diseño: x hacia el este, y hacia arriba, z hacia el sur. La boca
 el suelo del patio (los pies, en y = 1). El patio queda delante (z < 0) y la galería bajo el monte (z > 0). Lo excavado
 no es una caja: cada celda excavada lleva su forro (suelo, muro y techo de obra, sin bloques naturales: dentro no nacen
 manantiales ni liquen) y dos capas de casco alrededor; fuera, nada (structure_void), así que el terreno y las cuevas
-vanilla se quedan como estaban. Lo mismo que la Mina perdida (APRENDIZAJES, «Estructura subterránea sin caja»).
+vanilla se quedan como estaban. Lo mismo que la Mina perdida (LESSONS, «Estructura subterránea sin caja»).
 """
 import zlib
 from unicas._comun import piezas

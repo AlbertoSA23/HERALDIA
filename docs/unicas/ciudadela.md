@@ -1,137 +1,137 @@
-# Ciudadela enana (`heraldia:unicas/ciudadela`)
+# Dwarven citadel (`heraldia:unicas/ciudadela`)
 
-Ciudad excavada dentro de una montaña. Una sola variante, diseñada a mano. Módulo: `tools/gen/unicas/ciudadela/`
-(geometría en `plano.py`, botín en `botin.py`, redstone en `redstone.py`, auditoría propia en `auditoria.py`);
-colocación en Java: `io.github.albertosa23.heraldia.unicas.ciudadela`.
+A city carved inside a mountain. A single variant, designed by hand. Module: `tools/gen/unicas/ciudadela/`
+(geometry in `plano.py`, loot in `botin.py`, redstone in `redstone.py`, its own audit in `auditoria.py`);
+placement in Java: `io.github.albertosa23.heraldia.unicas.ciudadela`.
 
-## Colocación en la ladera (por qué Java)
-- El jigsaw elige la rotación al azar y no sabe dónde baja la ladera; `bury` y `beard_box` entierran o vacían
-  la caja entera, incluida la puerta (la ciudad antigua y las cámaras de prueba están enteras bajo tierra y no
-  tienen fachada). Por eso la ciudadela usa un tipo de estructura propio, `heraldia:ciudadela`, con
+## Placement on the hillside (why Java)
+- The jigsaw chooses the rotation at random and does not know which way the hillside goes down; `bury` and `beard_box` bury or empty
+  the whole box, including the gate (the ancient city and the trial chambers are entirely underground and have
+  no façade). That is why the citadel uses a custom structure type, `heraldia:ciudadela`, with
   `terrain_adaptation: none`.
-- La plantilla es una sola pieza (`PoolElementStructurePiece` de un pool de un elemento, con sus procesadores).
-  Fuera de las salas solo lleva `structure_void`: la roca natural se conserva. Cada sala tiene una piel propia de
-  dos bloques (ladrillo de pizarra profunda por dentro, piedra por fuera) para que una cueva o un acuífero no la
-  atraviesen; la piedra exterior se confunde con la montaña y admite menas.
-- El tipo Java prueba 4 rotaciones x 25 posiciones (rejilla de 16 bloques alrededor del chunk) y mide el terreno
-  con el mapa de alturas de generación:
-  - delante de la puerta (5 puntos a 2 bloques del pórtico): terreno casi llano (diferencia <= 5) y sin agua;
-    la puerta se coloca a la altura mediana de esos puntos;
-  - más adelante (3 puntos a 10 bloques): no sube más de 3 (la puerta no da a un muro);
-  - sobre la ciudad: una rejilla de techos (cada 8 bloques, la altura máxima de la plantilla en esa columna,
-    sin el pórtico) que escribe el generador en el JSON; se exige roca hasta el techo menos 1 en el 75 % de las
-    celdas.
-  Se queda con la mejor opción; si ninguna cumple, no se genera en esa celda de la rejilla. Con `/place`
-  (que acepta cualquier bioma) se coloca en la mejor opción aunque no cumpla, para poder probarla.
-- El punto que se comprueba contra el bioma es el centro de la ciudad a la altura de la puerta (bajo la montaña),
-  no la puerta, que puede caer en el bioma del pie de la ladera.
-- Biomas: `stony_peaks` y `jagged_peaks`. Paso `underground_structures`. Rareza: `spacing` 250 / `separation`
-  190 chunks (una cada ~4.000 bloques en la rejilla; menos en la práctica, porque exige bioma y ladera).
+- The template is a single piece (`PoolElementStructurePiece` from a one-element pool, with its processors).
+  Outside the rooms it only has `structure_void`: the natural rock is kept. Each room has its own skin of
+  two blocks (deepslate brick inside, stone outside) so that a cave or an aquifer cannot
+  cut through it; the outer stone blends with the mountain and admits ores.
+- The Java type tries 4 rotations x 25 positions (a 16-block grid around the chunk) and measures the terrain
+  with the generation heightmap:
+  - in front of the gate (5 points 2 blocks from the portico): almost flat terrain (difference <= 5) and no water;
+    the gate is placed at the median height of those points;
+  - further out (3 points 10 blocks away): it does not rise more than 3 (the gate does not face a wall);
+  - above the city: a grid of ceilings (every 8 blocks, the template's maximum height in that column,
+    without the portico) that the generator writes into the JSON; rock is required up to the ceiling minus 1 in 75 % of the
+    cells.
+  It keeps the best option; if none qualifies, nothing is generated in that grid cell. With `/place`
+  (which accepts any biome) it is placed at the best option even if it does not qualify, so it can be tested.
+- The point checked against the biome is the center of the city at the height of the gate (under the mountain),
+  not the gate, which may fall in the biome at the foot of the hillside.
+- Biomes: `stony_peaks` and `jagged_peaks`. Step `underground_structures`. Rarity: `spacing` 250 / `separation`
+  190 chunks (one every ~4,000 blocks on the grid; fewer in practice, because it requires the biome and a hillside).
 
-## Niveles (coordenadas de diseño: x hacia el este, z hacia dentro de la montaña; la puerta mira al norte, z=0)
-Suelo de cada nivel (el jugador pisa en suelo+1):
+## Levels (design coordinates: x towards the east, z into the mountain; the gate faces north, z=0)
+Floor of each level (the player stands at floor+1):
 
-| Nivel | Suelo | Salas |
+| Level | Floor | Rooms |
 |---|---|---|
-| N0 | y=30 (trono y=33) | pórtico, salón de columnas, barracones, vestíbulo, almacén, salón del trono, cámara real oculta |
-| N1 | y=21 | rellano, forjas, pasillo, cervecería |
-| Bodega | y=15 | bodega oculta del cervecero |
-| N2 | y=12 | estación de vagonetas, túnel oeste, cubil de arañas, galería hundida y escondite del minero, abismo con puente, rellano del abismo, pasillo de la trampa |
-| N3 | y=3 | antecámara de la cerradura, bóveda del tesoro |
+| L0 | y=30 (throne y=33) | portico, hall of columns, barracks, vestibule, storehouse, throne hall, hidden royal chamber |
+| L1 | y=21 | landing, forges, corridor, brewery |
+| Cellar | y=15 | the brewer's hidden cellar |
+| L2 | y=12 | minecart station, west tunnel, spider den, sunken gallery and the miner's hideout, chasm with a bridge, chasm landing, trap corridor |
+| L3 | y=3 | lock antechamber, treasure vault |
 
-### N0
-- **Pórtico** (x 25-45, z 0-7): terraza tallada de 14 de alto con dos estatuas de guardianes enanos y braseros.
-  Cimiento de piedra debajo para que no quede en el aire si la ladera baja.
-- **Gran puerta** (z 8-10): arco de 5 x 7 en una fachada de 3 de grueso.
-- **Salón de columnas** (x 18-52, z 11-44, 12 de alto): dos filas de 5 pilares de basalto con capiteles,
-  pasillo central de baldosas con incrustaciones de oro, faroles colgados con cadena, bancos junto a los muros.
-  Ruina: un pilar derrumbado con escombros.
-- **Barracones** (oeste): literas (camas), soportes de armadura, armero, mesa con bancos, 2 cofres menores.
-  Ruina: esquina del techo hundida con escombros y telarañas.
-- **Vestíbulo y almacén** (este): escalera principal al N1. Almacén con hileras de barriles (botín de almacén).
-  **Sala oculta 1**: tras la última hilera, un hueco de un bloque junto al muro lleva a un cuarto con cofre oculto.
-- **Salón del trono** (x 24-46, z 46-64, suelo 33): tres peldaños desde el salón, estrado con trono de oro,
-  alfombra, estandartes, braseros. El muro del fondo tiene hornacinas entre pilastras.
-  **Puzle 1 (puerta secreta de pistones)**: dos hornacinas bajas con palanca a cada lado de la hornacina central.
-  La de la izquierda (bajada) mantiene extendidos dos pistones pegajosos ocultos tras la pilastra; al subirla,
-  los pistones retiran los dos bloques del fondo de la hornacina central y se abre el paso a la
-  **cámara real (sala oculta 2)**: cama, mesa y cofre real. La palanca de la derecha es un señuelo.
+### L0
+- **Portico** (x 25-45, z 0-7): a carved terrace 14 high with two statues of dwarven guardians and braziers.
+  A stone foundation below so that it is not left in the air if the hillside drops.
+- **Great gate** (z 8-10): a 5 x 7 arch in a 3-thick façade.
+- **Hall of columns** (x 18-52, z 11-44, 12 high): two rows of 5 basalt pillars with capitals,
+  a central tiled aisle with gold inlays, lanterns hanging on chains, benches along the walls.
+  Ruin: a collapsed pillar with rubble.
+- **Barracks** (west): bunks (beds), armor stands, a weapon rack, a table with benches, 2 smaller chests.
+  Ruin: a corner of the ceiling caved in with rubble and cobwebs.
+- **Vestibule and storehouse** (east): the main staircase to L1. A storehouse with rows of barrels (storehouse loot).
+  **Hidden room 1**: behind the last row, a one-block gap next to the wall leads to a room with a hidden chest.
+- **Throne hall** (x 24-46, z 46-64, floor 33): three steps up from the hall, a dais with a gold throne,
+  a carpet, banners, braziers. The back wall has niches between pilasters.
+  **Puzzle 1 (secret piston door)**: two low niches with a lever on each side of the central niche.
+  The left one (down) keeps two sticky pistons hidden behind the pilaster extended; when it is raised,
+  the pistons pull back the two blocks at the back of the central niche and the way to the
+  **royal chamber (hidden room 2)** opens: a bed, a table and the royal chest. The right lever is a decoy.
 
-### N1
-- **Escalera** desde el vestíbulo (9 peldaños) al rellano.
-- **Forjas** (x 36-64, z 49-70, 9 de alto): cuatro hornos con campana de piedra negra y crisol de lava contenida
-  (lava rodeada por todos los lados), altos hornos, yunques, mesas de herrería, afiladoras, calderos de lava,
-  2 cofres de forja. Ruina: un crisol frío (magma) y yunques dañados.
-- **Cervecería** (x 8-25, z 46-64): cubas gigantes de madera, barriles, calderos con agua, soportes para pociones,
-  mesa larga con sillas, 2 cofres de cervecería. **Sala oculta 3**: trampilla cerrada en un rincón oscuro entre
-  dos cubas; escalera de mano hasta la bodega del cervecero (cofre oculto).
-- **Escalera** desde las forjas (9 peldaños) a la estación de las minas.
+### L1
+- **Staircase** from the vestibule (9 steps) to the landing.
+- **Forges** (x 36-64, z 49-70, 9 high): four furnaces with a blackstone hood and a crucible of contained lava
+  (lava enclosed on every side), blast furnaces, anvils, smithing tables, grindstones, lava cauldrons,
+  2 forge chests. Ruin: a cold crucible (magma) and damaged anvils.
+- **Brewery** (x 8-25, z 46-64): giant wooden vats, barrels, water cauldrons, brewing stands,
+  a long table with chairs, 2 brewery chests. **Hidden room 3**: a closed trapdoor in a dark corner between
+  two vats; a ladder down to the brewer's cellar (hidden chest).
+- **Staircase** from the forges (9 steps) to the mine station.
 
-### N2
-- **Estación** (x 30-46, z 26-39): vías, vagonetas (una con cofre de mina), puntales de madera.
-- **Túnel oeste** con vía y marcos de madera cada 4 bloques hasta el **cubil de arañas**: veta con menas,
-  telarañas, **generador de arañas de cueva** y vagoneta con cofre de mina.
-- **Galería hundida** (rama norte): derrumbe parcial con paso de un bloque entre escombros y telarañas.
-  **Trampa 1 (placa con TNT, como el templo del desierto)**: placa de piedra con TNT dos bloques debajo, lejos de
-  los cofres. Detrás, el **escondite del minero (sala oculta 4)** con cofre oculto.
-- **Abismo** (x 48-58, z 20-56): sima de 15 de hondo con lava al fondo. **Puente** de 3 de ancho con barandillas
-  y cadenas al techo. Ruina: un tramo de barandilla caído y losas agrietadas.
-- **Rellano del abismo**: **generador de esqueletos** (zona oscura).
-- **Pasillo de la trampa**. **Trampa 2 (cable trampa con dispensadores, como el templo de la jungla)**: cable entre
-  dos ganchos y cuatro dispensadores con flechas en los muros.
-- **Escalera** de 9 peldaños al N3.
+### L2
+- **Station** (x 30-46, z 26-39): tracks, minecarts (one with a mine chest), wooden props.
+- **West tunnel** with a track and wooden frames every 4 blocks to the **spider den**: a vein with ores,
+  cobwebs, a **cave spider spawner** and a minecart with a mine chest.
+- **Sunken gallery** (north branch): a partial collapse with a one-block passage between rubble and cobwebs.
+  **Trap 1 (plate with TNT, like the desert temple)**: a stone plate with TNT two blocks below, away from
+  the chests. Behind it, the **miner's hideout (hidden room 4)** with a hidden chest.
+- **Chasm** (x 48-58, z 20-56): a 15-deep chasm with lava at the bottom. A 3-wide **bridge** with railings
+  and chains to the ceiling. Ruin: a fallen stretch of railing and cracked slabs.
+- **Chasm landing**: **skeleton spawner** (dark area).
+- **Trap corridor**. **Trap 2 (tripwire with dispensers, like the jungle temple)**: a wire between
+  two hooks and four arrow dispensers in the walls.
+- **Staircase** of 9 steps down to L3.
 
-### N3
-- **Antecámara**: **generador de zombis** (oscura). **Puzle 2 (cerradura de combinación)**: cuatro palancas en
-  el muro, dos sobre oro y dos sobre pizarra. La puerta de hierro de la bóveda solo se abre con las dos de oro
-  subidas y las dos de pizarra bajadas (puerta = A y B y no C y no D, con inversores de antorcha tras el muro).
-- **Bóveda del tesoro** (x 59-69, z 69-80): pasillo de 4 por el muro grueso, montones de oro, 2 cofres de bóveda
-  a los lados y el **cofre premium** en un estrado al fondo. **Guardián**: Borin Barbahierro (vindicador con
-  nombre, 60 de vida, hacha de hierro, casco y peto de hierro, `PersistenceRequired`).
+### L3
+- **Antechamber**: **zombie spawner** (dark). **Puzzle 2 (combination lock)**: four levers on
+  the wall, two over gold and two over slate. The vault's iron door only opens with the two gold ones
+  up and the two slate ones down (door = A and B and not C and not D, with torch inverters behind the wall).
+- **Treasure vault** (x 59-69, z 69-80): a 4-long passage through the thick wall, piles of gold, 2 vault chests
+  on the sides and the **premium chest** on a dais at the back. **Guardian**: Borin Ironbeard (a named vindicator,
+  60 health, iron axe, iron helmet and chestplate, `PersistenceRequired`).
 
-## Recorrido del jugador
-Pórtico → salón de columnas (barracones al oeste, almacén y sala oculta 1 al este, trono y sala oculta 2 al
-norte) → vestíbulo → escalera → forjas (cervecería y sala oculta 3 al oeste) → escalera → estación → túnel oeste
-(cubil) y galería hundida (trampa 1, sala oculta 4) → puente sobre el abismo → rellano → pasillo de la trampa 2 →
-escalera → antecámara (puzle 2) → bóveda.
+## Player route
+Portico → hall of columns (barracks to the west, storehouse and hidden room 1 to the east, throne and hidden room 2 to the
+north) → vestibule → stairs → forges (brewery and hidden room 3 to the west) → stairs → station → west tunnel
+(den) and sunken gallery (trap 1, hidden room 4) → bridge over the chasm → landing → trap 2 corridor →
+stairs → antechamber (puzzle 2) → vault.
 
-## Cofres y botín (`heraldia:unicas/ciudadela/<tabla>`; cada tabla tiene un grupo extra `solo_sin_lootr`)
-| Tabla | Dónde | Contenido |
+## Chests and loot (`heraldia:unicas/ciudadela/<table>`; each table has an extra `solo_sin_lootr` pool)
+| Table | Where | Contents |
 |---|---|---|
-| `menor` | salón, vestíbulo, estación | comida, antorchas, carbón, pepitas, cuerda; extra: lingote de hierro, pepitas de oro, esmeralda |
-| `barracones` | 2 en barracones | flechas, arco y espada de hierro gastados, escudo, malla; extra: casco encantado (5-10), ballesta |
-| `almacen` | barriles del almacén | carbón, antorchas, raíles, cuero, flechas, pepitas; extra: lingotes de hierro |
-| `forja` | 2 en forjas | lingotes de hierro, carbón, oro, herramientas de hierro, cubo, escudo; extra: diamante (raro), peto encantado |
-| `cerveceria` | 2 en cervecería | trigo, pan, azúcar, miel, botellas, bayas, setas; extra: zanahoria dorada, esmeraldas |
-| `mina` | vagonetas con cofre | hierro y oro en bruto, carbón, lapislázuli, redstone, raíles, pico gastado; extra: diamante (raro), manzana dorada |
-| `oculto` | salas ocultas 1, 3 y 4 | lingotes de oro, esmeraldas, diamantes (pocos), libro encantado, manzana dorada, frascos de experiencia; extra: diamantes, libro (10-20) |
-| `real` | cámara real | diamantes, esmeraldas, corona (casco de oro con nombre, Protección II), libro (15-25), disco, plantilla de adorno; extra: manzana dorada, oro |
-| `boveda` | 2 en la bóveda | lingotes y bloque de oro, oro en bruto, esmeraldas, diamantes, manzana dorada; extra: diamantes, libro |
-| `premium` | cámara final | 90 %: objetos con nombre (hacha de Borin, yelmo del rey, jarra de la última cerveza), discos, plantillas de adorno (moldeador, anfitrión, explorador), oro; 10 %: pico de diamante con nombre (Eficiencia III, Irrompibilidad II), peto de diamante (Protección II), manzana de oro encantada, libro de Fortuna III |
+| `menor` | hall, vestibule, station | food, torches, coal, nuggets, string; extra: iron ingot, gold nuggets, emerald |
+| `barracones` | 2 in the barracks | arrows, worn bow and iron sword, shield, chainmail; extra: enchanted helmet (5-10), crossbow |
+| `almacen` | storehouse barrels | coal, torches, rails, leather, arrows, nuggets; extra: iron ingots |
+| `forja` | 2 in the forges | iron ingots, coal, gold, iron tools, bucket, shield; extra: diamond (rare), enchanted chestplate |
+| `cerveceria` | 2 in the brewery | wheat, bread, sugar, honey, bottles, berries, mushrooms; extra: golden carrot, emeralds |
+| `mina` | chest minecarts | raw iron and gold, coal, lapis lazuli, redstone, rails, worn pickaxe; extra: diamond (rare), golden apple |
+| `oculto` | hidden rooms 1, 3 and 4 | gold ingots, emeralds, diamonds (few), enchanted book, golden apple, bottles o' enchanting; extra: diamonds, book (10-20) |
+| `real` | royal chamber | diamonds, emeralds, a crown (named gold helmet, Protection II), book (15-25), disc, trim template; extra: golden apple, gold |
+| `boveda` | 2 in the vault | gold ingots and block, raw gold, emeralds, diamonds, golden apple; extra: diamonds, book |
+| `premium` | final chamber | 90 %: named items (Borin's axe, the king's helm, the jug of the last beer), discs, trim templates (shaper, host, wayfinder), gold; 10 %: a named diamond pickaxe (Efficiency III, Unbreaking II), a diamond chestplate (Protection II), an enchanted golden apple, a Fortune III book |
 
-Sin netherita en equipo ni élitros; solo objetos vanilla.
+No netherite gear or elytra; vanilla items only.
 
-## Generadores, trampas y puzles
-- Generadores (3, en zonas sin luz): arañas de cueva (cubil), esqueletos (rellano del abismo), zombis (antecámara).
-- Guardián final con nombre en la bóveda.
-- Trampas: placa con TNT (galería hundida), cable trampa con 4 dispensadores de flechas (pasillo).
-- Puzles: puerta de pistones con palanca oculta y señuelo (trono); cerradura de 4 palancas (bóveda).
-- Todo el redstone se coloca en un estado estable: la auditoría (`redstone.py`) recalcula como el juego las
-  conexiones de cada cable y la señal de cada antorcha, pistón, puerta, dispensador y TNT, comprueba que el
-  estado colocado coincide con el calculado (nada depende de una actualización que no ocurre al generar) y
-  simula la solución: la puerta de pistones se abre al subir la palanca buena y no con el señuelo; la de la
-  bóveda se abre con la combinación correcta y con ninguna de las otras 15.
+## Spawners, traps and puzzles
+- Spawners (3, in unlit areas): cave spiders (den), skeletons (chasm landing), zombies (antechamber).
+- A named final guardian in the vault.
+- Traps: plate with TNT (sunken gallery), tripwire with 4 arrow dispensers (corridor).
+- Puzzles: a piston door with a hidden lever and a decoy (throne); a 4-lever lock (vault).
+- All the redstone is placed in a stable state: the audit (`redstone.py`) recomputes like the game the
+  connections of each wire and the signal of each torch, piston, door, dispenser and TNT, checks that the
+  placed state matches the computed one (nothing depends on an update that does not happen during generation) and
+  simulates the solution: the piston door opens when the correct lever is raised and not with the decoy; the
+  vault's opens with the correct combination and with none of the other 15.
 
-## Estado
-- 80-85 % en buen estado: procesador de degradación (ladrillo y baldosa agrietados, pulida a adoquín) y
-  ruinas a mano con sentido (pilar caído, techo hundido en barracones, galería derrumbada, crisol frío,
-  barandilla caída). La auditoría mide la proporción de superficie visible degradada y exige 15-20 %.
-- Sin aldeanos ni gólems: es una ciudad abandonada; solo queda el guardián.
+## Condition
+- 80-85 % in good condition: a degradation processor (cracked brick and tile, polished to cobblestone) and
+  hand-made ruins that make sense (fallen pillar, caved-in ceiling in the barracks, collapsed gallery, cold crucible,
+  fallen railing). The audit measures the share of the visible surface that is degraded and requires 15-20 %.
+- No villagers or golems: it is an abandoned city; only the guardian remains.
 
-## Contraste con el criterio de Alberto
-- Escaleras completas (9 peldaños por nivel, sin saltos); ninguna puerta sin salida: la auditoría recorre a
-  pie desde la entrada todas las puertas, cofres, barriles, palancas, generadores y escaleras de mano.
-- Muebles contra los muros; centro de las salas libre salvo mesas con sillas.
-- Nada flotando: faroles con cadena, lava contenida, sin agua suelta (solo en calderos).
-- Simetría en el pórtico, el salón y el trono; asimetría solo donde tiene función (almacén, minas).
-- Planos por nivel con celdas alcanzables y renders: `docs/unicas/ciudadela/`.
+## Against the owner's criteria
+- Complete staircases (9 steps per level, no jumps); no door without an exit: the audit walks
+  from the entrance to every door, chest, barrel, lever, spawner and ladder.
+- Furniture against the walls; the center of the rooms free except for tables with chairs.
+- Nothing floating: lanterns on chains, contained lava, no loose water (only in cauldrons).
+- Symmetry in the portico, the hall and the throne; asymmetry only where it has a function (storehouse, mines).
+- Plans by level with reachable cells and renders: `docs/unicas/ciudadela/`.

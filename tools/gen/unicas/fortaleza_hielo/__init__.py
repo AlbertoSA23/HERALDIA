@@ -55,7 +55,7 @@ TROFEO = {"objeto": "golden_helmet", "rareza": "epic",
                    ("La ciñó el Rey Escarcha.", "Once worn by the Frost King.")],
           "encantamientos": {"minecraft:unbreaking": 2},
           "componentes": {"minecraft:trim": {"material": "minecraft:diamond", "pattern": "minecraft:spire"}}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "galeria",
     "relato": [
         ("Crucé las llanuras nevadas hasta una fortaleza de hielo. Su señor, el Rey Escarcha, llevaba una"

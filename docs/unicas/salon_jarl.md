@@ -1,190 +1,190 @@
-# Salón del Jarl (`heraldia:unicas/salon_jarl`)
+# Jarl's Hall (`heraldia:unicas/salon_jarl`)
 
-Asentamiento nórdico fortificado en un claro de la taiga: una empalizada de troncos con adarve y cuatro torres
-encierra la casa larga del jarl Ulfgrim y los talleres de su gente. Bajo la casa larga está el túmulo de los reyes del
-salón, donde el jarl, que juró no soltar nunca el pliego de Ysolda, sigue en pie: el **Insepulto**.
+A fortified Norse settlement in a taiga clearing: a log palisade with a wall-walk and four towers
+encloses the longhouse of jarl Ulfgrim and the workshops of his people. Under the longhouse is the barrow of the kings of the
+hall, where the jarl, who swore never to let go of Ysolda's leaf, still stands: the **Unburied**.
 
-Es una estructura original: no copia ningún asentamiento de otro juego o mod. Se distingue de la aldea de la familia
-taiga (estilo nórdico de casas largas) en que es un recinto cerrado y defendido, con una sola casa larga de gran
-tamaño, talleres especializados, ruina y un subsuelo con puzles, trampas, generadores y guardián.
+It is an original structure: it does not copy any settlement from another game or mod. It differs from the taiga
+family's village (a Norse longhouse style) in that it is a closed, defended compound, with a single very large
+longhouse, specialized workshops, ruin and an underground part with puzzles, traps, spawners and a guardian.
 
-## Bioma y colocación
+## Biome and placement
 
-- Biomas: taiga, taiga ancestral de pinos y taiga ancestral de abetos (lista vanilla, sin etiquetas `#c:`: `#c:is_taiga`
-  mete la taiga nevada, que es de la fortaleza de hielo; `biomas.comprobar` lo verifica).
-- Rareza: `spacing` 250 / `separation` 190 chunks (una cada ~3.000-5.000 bloques), configurable en
-  `config/heraldia.json` como las demás (`unicas.salon_jarl.activada`, `unicas.salon_jarl.separacion_bloques`).
-- Dos piezas rígidas unidas por un jigsaw vertical bajo la casa larga (`down_north` → `up_north`, misma rotación):
-  - `salon` (74 × 18 × 74): recinto, casa larga y talleres; su capa y = 0 es el suelo (los pies van a y = 1).
-  - `tumulo` (49 × 15 × 42): todo lo que queda por debajo de y = 0. **Rellena toda su caja**: tierra en las dos capas
-    de arriba, piedra debajo, y forro de piedra labrada (adoquín, ladrillo de piedra o madera) en toda cara que da al
-    aire, para que no salgan manantiales ni liquen dentro.
-- Adaptación `beard_thin`: el terreno se ajusta a la base del recinto (y = 0) y el túmulo queda a su profundidad, sin
-  cráter (ver «Sótanos sin cráter» en `docs/APRENDIZAJES.md`). En la taiga ancestral, con pendientes y peñascos, el
-  claro se allana bajo la empalizada; dentro hay aire explícito hasta 6 bloques sobre el patio para que ninguna ladera
-  asome entre las casas.
-- Suelo del patio: tierra de camino, grava y barro compacto. No hay hierba, tierra, podsol ni piedra natural a la vista
-  en el recinto, así que la decoración de la taiga (abetos, helechos, peñascos de piedra musgosa) no nace dentro.
-- Sin cobertizo junto al agua: el jigsaw no detecta ríos ni lagos (haría falta Java, como el faro o el galeón). En su
-  lugar, el **astillero** guarda un barco largo a medio construir sobre su grada, en seco.
+- Biomes: taiga, old growth pine taiga and old growth spruce taiga (vanilla list, without `#c:` tags: `#c:is_taiga`
+  adds the snowy taiga, which belongs to the ice fortress; `biomas.comprobar` checks it).
+- Rarity: `spacing` 250 / `separation` 190 chunks (one every ~3,000-5,000 blocks), configurable in
+  `config/heraldia.json` like the others (`unicas.salon_jarl.activada`, `unicas.salon_jarl.separacion_bloques`).
+- Two rigid pieces joined by a vertical jigsaw under the longhouse (`down_north` → `up_north`, same rotation):
+  - `salon` (74 × 18 × 74): the compound, longhouse and workshops; its y = 0 layer is the ground (feet go at y = 1).
+  - `tumulo` (49 × 15 × 42): everything below y = 0. **It fills its whole box**: dirt in the top two
+    layers, stone below, and a lining of cut stone (cobblestone, stone brick or wood) on every face that faces
+    air, so that no springs or lichen appear inside.
+- `beard_thin` adaptation: the terrain adjusts to the base of the compound (y = 0) and the barrow stays at its depth, without a
+  crater (see "Basements without a crater" in `docs/LESSONS.md`). In the old growth taiga, with slopes and boulders, the
+  clearing is leveled under the palisade; inside there is explicit air up to 6 blocks above the yard so that no hillside
+  pokes out between the houses.
+- The yard's floor: dirt path, gravel and packed mud. There is no grass, dirt, podzol or natural stone in sight
+  in the compound, so the taiga's decoration (spruces, ferns, mossy stone boulders) does not spawn inside.
+- No shed by the water: the jigsaw does not detect rivers or lakes (it would take Java, like the lighthouse or the galleon). Instead,
+  the **shipyard** holds a half-built longship on its slipway, on dry land.
 
-## Superficie (pies a y = 1)
+## Surface (feet at y = 1)
 
-Coordenadas: x de oeste a este (0..73), z de norte a sur (0..73); la puerta está al norte (z = 0).
+Coordinates: x from west to east (0..73), z from north to south (0..73); the gate is to the north (z = 0).
 
-- **Empalizada** de troncos de abeto de 6-7 de alto con las puntas alternas, y **adarve** de tablones (pies a 5) por
-  dentro de todo el perímetro, sobre pies derechos.
-- **Cuatro torres** de 7 × 7 en las esquinas: planta baja con puerta al patio, sala a la altura del adarve (con salida a
-  los dos lienzos), atalaya abierta (pies a 10) y tejado a cuatro aguas; se sube por una escalera de mano. Saeteras en
-  las caras exteriores. La del noroeste guarda un cofre en la atalaya; la del noreste tiene el tejado hundido.
-- **Puerta** (x 32..41): túnel de 4 de ancho con jambas de troncos, tapices y faroles, y encima la sala de guardia
-  (cofre y tonel), con salida al adarve por los dos lados y tejado a dos aguas.
-- **Casa larga** (x 28..45, z 22..58): muros de troncos tumbados entre postes, zócalo de adoquín y cubierta de roble
-  oscuro a dos aguas (cumbrera a y = 16) con lucernario de humos sobre el hogar. Dentro: dos filas de pies derechos con
-  tirantes, **hogar alargado** con hogueras, dos **mesas largas** con bancos (respaldo hacia fuera) y pasos entre
-  ellas, camas, telar, cofres y toneles en las naves laterales, tapices rojos y negros, y al fondo el **estrado** con
-  **dos tronos** de respaldo alto. Puerta doble al norte y puertas laterales al astillero y a las casas de los guerreros.
-  En la nave oeste, la **escalera al túmulo** (7 peldaños, con barandilla).
-- **Alcoba del jarl** (sala oculta, x 32..41, z 58..63): adosada al hastial sur, sin puerta al exterior. Se entra por
-  detrás del **tapiz negro** del estrado (a la izquierda de los tronos): un paso de 1 × 2 que el tapiz tapa. Cama, cofre
-  `jarl`, atril, tonel y tapiz.
-- **Herrería** (noroeste): fragua con caldero de lava, campana y chimenea, alto horno, yunque, mesa de herrería,
-  afilador, caldero de agua, cofre y tonel. Abierta al sur.
-- **Establos** (noreste): tres cuadras con heno, comederos de agua y portillos; cofre y tonel. Tejado roto en parte.
-- **Astillero** (oeste): cobertizo largo abierto al patio con un **barco largo** a medio hacer sobre su grada (quilla,
-  casco de tablones, roda y codaste altos, bancos de remo y mástil sin vela), banco del carpintero, tonel con botín,
-  afilador, telar y lana para la vela.
-- **Casas de los guerreros** (este): dos casas de 13 × 9 con cuatro camas, mesa con bancos, cofre y tonel. La del sur
-  ardió: tablones carbonizados, cubierta hundida sobre su extremo este y una hoguera apagada entre los escombros.
-- **Despensa** (suroeste): toneles, heno, compostador y un cofre y un tonel con víveres; parte de la cubierta caída.
-- **Piedras rúnicas**: dos a los lados de la explanada ante la casa larga (la del oeste lleva la **adivinanza** del muro
-  de las runas: «Despierta al cuervo y al lobo; que la serpiente y el oso duerman»; la del este, «Aquí reina Ulfgrim,
-  jarl de la taiga») y dos sueltas en el patio.
+- A **palisade** of spruce logs 6-7 high with alternating points, and a plank **wall-walk** (feet at 5) along
+  the inside of the whole perimeter, on uprights.
+- **Four towers** of 7 × 7 at the corners: a ground floor with a door to the yard, a room at the height of the wall-walk (with exits to
+  both stretches of wall), an open lookout (feet at 10) and a hipped roof; reached by a ladder. Arrow slits on
+  the outer faces. The northwest one holds a chest in the lookout; the northeast one has its roof caved in.
+- **Gate** (x 32..41): a 4-wide tunnel with log jambs, tapestries and lanterns, and above it the guardroom
+  (chest and barrel), with exits to the wall-walk on both sides and a gable roof.
+- **Longhouse** (x 28..45, z 22..58): walls of logs laid between posts, a cobblestone plinth and a dark oak
+  gable roof (ridge at y = 16) with a smoke hole over the hearth. Inside: two rows of uprights with
+  tie beams, a **long hearth** with campfires, two **long tables** with benches (facing outwards) and passages between
+  them, beds, a loom, chests and barrels in the side aisles, red and black tapestries, and at the back the **dais** with
+  **two high-backed thrones**. A double door to the north and side doors to the shipyard and the warriors' houses.
+  In the west aisle, the **staircase to the barrow** (7 steps, with a railing).
+- **The jarl's alcove** (hidden room, x 32..41, z 58..63): attached to the south gable, with no door to the outside. It is entered from
+  behind the dais's **black tapestry** (to the left of the thrones): a 1 × 2 passage hidden by the tapestry. A bed, the
+  `jarl` chest, a lectern, a barrel and a tapestry.
+- **Smithy** (northwest): a forge with a lava cauldron, a hood and a chimney, a blast furnace, an anvil, a smithing table,
+  a grindstone, a water cauldron, a chest and a barrel. Open to the south.
+- **Stables** (northeast): three stalls with hay, water troughs and gates; a chest and a barrel. The roof is partly broken.
+- **Shipyard** (west): a long shed open to the yard with a half-built **longship** on its slipway (keel,
+  plank hull, tall stem and sternpost, rowing benches and a mast without a sail), the carpenter's bench, a barrel of loot,
+  a grindstone, a loom and wool for the sail.
+- **Warriors' houses** (east): two 13 × 9 houses with four beds, a table with benches, a chest and a barrel. The southern one
+  burned: charred planks, the roof caved in over its east end and a dead campfire among the rubble.
+- **Pantry** (southwest): barrels, hay, a composter and a chest and a barrel with provisions; part of the roof fallen.
+- **Rune stones**: two on either side of the esplanade before the longhouse (the west one carries the **riddle** of the
+  rune wall: "Wake the raven and the wolf; let the serpent and the bear sleep"; the east one, "Here reigns Ulfgrim,
+  jarl of the taiga") and two loose ones in the yard.
 
-## Túmulo de los reyes (pieza `tumulo`)
+## The kings' barrow (piece `tumulo`)
 
-Nivel alto (pies a y = -6, salas de 4 de alto) y nivel bajo (pies a y = -12). Planos en
+Upper level (feet at y = -6, rooms 4 high) and lower level (feet at y = -12). Plans in
 [`salon_jarl/planos.txt`](salon_jarl/planos.txt).
 
-1. **Vestíbulo de los antepasados**: llegada de la escalera; dos guerreros de piedra (soportes de armadura con yelmo,
-   cota y hacha de piedra), tapices, faroles de almas y un cartel: «Aquí duermen los reyes del salón. Nadie despierte
-   al jarl».
-2. **Galería de los reyes**: 17 bloques con nichos funerarios en los dos muros (calaveras, huesos) y el cofre de un rey
-   menor (`tumba`). **Generador de zombis**. Uno de los nichos del norte está sellado: es la **puerta secreta** (puzle
-   2) a la **cámara del escaldo** (sala oculta: estanterías, atril, bloque musical, cofre `escaldo`). Su palanca está a
-   ras de suelo junto al pie del muro, tres bloques más allá.
-3. **Sala de los ecos**: cruce con telarañas y **generador de arañas**.
-4. **Osario** (al norte): pilas de huesos y calaveras, cofre `osario` y **generador de esqueletos**.
-5. **Pasillo del cable trampa** (al sur): **trampa 1**, cable trampa con dos dispensadores de flechas a la altura de la
-   cabeza (como en el templo de la jungla).
-6. **Sala de las ofrendas**: vasijas, velas y tapices; el cofre `ofrendas` guarda el **pliego de la Crónica**. En el
-   extremo oeste, sobre un altar, el cofre de la **codicia**, con dos placas de presión delante y dinamita debajo
-   (**trampa 2**, como en el templo del desierto).
-7. **Sala de las runas** (puzle 1): el muro oeste tiene cuatro **piedras rúnicas** de toba cincelada, cada una con su
-   palanca y su nombre: Ormr, la serpiente; Hrafn, el cuervo; Björn, el oso; Ulfr, el lobo. La puerta de piedra se abre
-   solo con **el cuervo y el lobo despiertos y la serpiente y el oso dormidos** (la adivinanza está en la piedra rúnica
-   del patio). Las palancas correctas apagan dos antorchas inversoras que alimentan la línea de los pistones; las falsas
-   la alimentan directamente con polvo, así que con cualquier runa falsa despierta la puerta se queda cerrada (o se
-   vuelve a cerrar).
-8. **Escalera estrecha** (seis peldaños) al nivel bajo y **cámara del jarl**: cámara funeraria de madera, como las de los
-   barcos enterrados, con postes, tapices, vasijas y el túmulo de piedra **abierto y vacío**: el **guardián**, el
-   **jarl Ulfgrim, el Insepulto** (zombi, 60 de vida, armadura 4, hacha de hierro, yelmo de hierro y cota de malla; sin
-   refuerzos, sin coger botín y sin romper puertas), ronda la sala.
-9. **Cámara del tesoro**, al norte de la del jarl: cofre **premium**, bloque de oro con velas, tonel y vasijas.
+1. **Vestibule of the ancestors**: where the stairs arrive; two stone warriors (armor stands with a helm,
+   chainmail and a stone axe), tapestries, soul lanterns and a sign: "Here sleep the kings of the hall. Let no one wake
+   the jarl".
+2. **Gallery of the kings**: 17 blocks with burial niches in both walls (skulls, bones) and the chest of a lesser
+   king (`tumba`). A **zombie spawner**. One of the northern niches is sealed: it is the **secret door** (puzzle
+   2) to the **skald's chamber** (hidden room: bookshelves, lectern, note block, the `escaldo` chest). Its lever is at
+   floor level by the foot of the wall, three blocks further on.
+3. **Hall of echoes**: a crossing with cobwebs and a **spider spawner**.
+4. **Ossuary** (to the north): piles of bones and skulls, the `osario` chest and a **skeleton spawner**.
+5. **Tripwire corridor** (to the south): **trap 1**, a tripwire with two arrow dispensers at head
+   height (as in the jungle temple).
+6. **Offering room**: pots, candles and tapestries; the `ofrendas` chest holds the **Chronicle leaf**. At the
+   west end, on an altar, the chest of **greed**, with two pressure plates in front of it and TNT underneath
+   (**trap 2**, as in the desert temple).
+7. **Rune room** (puzzle 1): the west wall has four chiseled tuff **rune stones**, each with its
+   lever and its name: Ormr, the serpent; Hrafn, the raven; Björn, the bear; Ulfr, the wolf. The stone door opens
+   only with **the raven and the wolf awake and the serpent and the bear asleep** (the riddle is on the yard's rune
+   stone). The correct levers turn off two inverting torches that power the pistons' line; the fake ones
+   power it directly with dust, so with any fake rune awake the door stays closed (or closes
+   again).
+8. **Narrow staircase** (six steps) to the lower level and the **jarl's chamber**: a wooden burial chamber, like those of
+   buried ships, with posts, tapestries, pots and the stone barrow **open and empty**: the **guardian**, the
+   **jarl Ulfgrim, the Unburied** (a zombie, 60 health, armor 4, an iron axe, an iron helm and chainmail; no
+   reinforcements, does not pick up loot and does not break doors), patrols the room.
+9. **Treasure chamber**, north of the jarl's: the **premium** chest, a gold block with candles, a barrel and pots.
 
-## Recorrido del jugador
+## Player route
 
-Puerta → patio (libre: torres y adarve, herrería, establos, astillero, casas, despensa) → casa larga → tapiz del estrado
-→ alcoba del jarl. Escalera de la nave oeste → vestíbulo → galería de los reyes (palanca → cámara del escaldo) → sala de
-los ecos → osario (callejón) o pasillo del cable trampa → sala de las ofrendas → sala de las runas → combinación →
-escalera → cámara del jarl → tesoro. Todo tiene vuelta a la entrada sin saltos (lo comprueba la auditoría).
+Gate → yard (free: towers and wall-walk, smithy, stables, shipyard, houses, pantry) → longhouse → the dais tapestry
+→ the jarl's alcove. Stairs in the west aisle → vestibule → gallery of the kings (lever → skald's chamber) → hall of
+echoes → ossuary (dead end) or the tripwire corridor → offering room → rune room → combination →
+stairs → the jarl's chamber → treasure. Everything has a way back to the entrance without jumps (the audit checks it).
 
-## Puzles y trampas (todo en reposo y coherente al generarse)
+## Puzzles and traps (everything at rest and consistent when generated)
 
-- **Puzle 1, muro de las runas** (`piezas.combo_door` con dos palancas y dos falsas): pistones pegajosos extendidos
-  sujetando dos bloques de toba pulida; la línea de polvo va dentro del muro (cuatro de grueso: palancas, antorchas o
-  polvo de las falsas, puerta y pistones con la línea, y la cara de detrás). Se prueban las 16 combinaciones.
-- **Puzle 2, puerta secreta del escaldo** (`piezas.lever_door`): nicho sellado con ladrillo cincelado; la palanca apaga la
-  antorcha inversora y los pistones recogen la puerta. Los pistones y la antorcha quedan dentro del muro de dos de grueso.
-- **Trampa 1**: cable trampa tenso entre dos ganchos con un dispensador encima de cada gancho.
-- **Trampa 2**: dos placas de piedra delante del cofre de la codicia con dinamita dos bloques por debajo.
+- **Puzzle 1, the rune wall** (`piezas.combo_door` with two levers and two fake ones): extended sticky pistons
+  holding two polished tuff blocks; the line of dust runs inside the wall (four thick: levers, torches or
+  the fake ones' dust, door and pistons with the line, and the face behind). The 16 combinations are tried.
+- **Puzzle 2, the skald's secret door** (`piezas.lever_door`): a niche sealed with chiseled brick; the lever turns off the
+  inverting torch and the pistons pull in the door. The pistons and the torch stay inside the two-thick wall.
+- **Trap 1**: a taut tripwire between two hooks with a dispenser above each hook.
+- **Trap 2**: two stone plates in front of the chest of greed with TNT two blocks below.
 
-## Enemigos y entidades
+## Enemies and entities
 
-- **3 generadores**, todos en el túmulo y a oscuras (luz de bloque 0 en un radio de 4): zombis (galería), arañas (sala
-  de los ecos) y esqueletos (osario).
-- **Guardián**: el jarl Ulfgrim (único con la etiqueta `heraldia_guardian`; suelta su trofeo si lo mata un jugador).
-- Dos soportes de armadura en el vestíbulo. Sin aldeanos, gólems ni animales: el salón está abandonado.
-- En total, **3 entidades** por estructura.
+- **3 spawners**, all in the barrow and in the dark (block light 0 within a radius of 4): zombies (gallery), spiders (hall
+  of echoes) and skeletons (ossuary).
+- **Guardian**: jarl Ulfgrim (the only one with the `heraldia_guardian` tag; it drops its trophy if a player kills it).
+- Two armor stands in the vestibule. No villagers, golems or animals: the hall is abandoned.
+- In total, **3 entities** per structure.
 
-## Cofres (18) y botín
+## Chests (18) and loot
 
-Más ricos cuanto más escondidos; cada tabla tiene un grupo extra `solo_sin_lootr`.
+Richer the more hidden they are; each table has an extra `solo_sin_lootr` pool.
 
-| Tabla | Dónde | Contenido |
+| Table | Where | Contents |
 |---|---|---|
-| `atalaya` (2) | torre noroeste, sala de guardia | flechas, antorchas, pan, pedernal, arco gastado, catalejo |
-| `herreria` | herrería | hierro, carbón, herramientas gastadas, cadenas; extra: Martillo del herrero, algún diamante |
-| `establo` | establos | cuero, trigo, riendas, heno, silla; extra: armaduras de caballo |
-| `astillero` (tonel) | astillero | tablones, palos, cuerda, lana, bote de abeto; extra: Remo del barco largo, mapa, brújula |
-| `guerreros` (2) | casas de los guerreros | flechas, armadura de cuero, hacha de piedra, escudo; extra: hacha de hierro encantada |
-| `despensa` (cofre y tonel) | despensa | pan, trigo, pescado, bayas, miel; extra: tarta, manzana dorada |
-| `salon` (2) | naves de la casa larga | comida, lana, cuero, flechas; extra: pepitas, esmeralda |
-| `jarl` | alcoba oculta | oro, esmeraldas, cuerno de cabra, Anillo del juramento, Hidromiel del jarl, libro encantado |
-| `tumba` | galería de los reyes | huesos, pepitas, espada gastada; extra: yelmo de oro encantado |
-| `osario` | osario | huesos, flechas, calavera; extra: arco encantado, frascos de experiencia |
-| `escaldo` | cámara oculta del escaldo | libros, papel, plumas, Saga de Ulfgrim; extra: libro encantado, disco «far», cuerno |
-| `ofrendas` | sala de las ofrendas | oro, esmeraldas, amatista, Piedra rúnica tallada **y el pliego de la Crónica** |
-| `codicia` | altar de la codicia (trampa) | oro y esmeraldas a montones; extra: diamantes, bloque de oro |
-| `premium` | cámara del tesoro | 90 %: Hacha de la incursión, Cuerno de la asamblea, Escudo del salón, adornos de armadura (costa, salvaje, costilla), discos, oro, esmeraldas, libro encantado; 10 %: hacha o peto de diamante encantados, manzana dorada encantada o tótem |
+| `atalaya` (2) | northwest tower, guardroom | arrows, torches, bread, flint, a worn bow, spyglass |
+| `herreria` | smithy | iron, coal, worn tools, chains; extra: the Smith's Hammer, the odd diamond |
+| `establo` | stables | leather, wheat, leads, hay, saddle; extra: horse armor |
+| `astillero` (barrel) | shipyard | planks, sticks, string, wool, a spruce boat; extra: the Longship's Oar, map, compass |
+| `guerreros` (2) | warriors' houses | arrows, leather armor, a stone axe, shield; extra: an enchanted iron axe |
+| `despensa` (chest and barrel) | pantry | bread, wheat, fish, berries, honey; extra: cake, golden apple |
+| `salon` (2) | longhouse aisles | food, wool, leather, arrows; extra: nuggets, emerald |
+| `jarl` | hidden alcove | gold, emeralds, a goat horn, the Ring of the Oath, the Jarl's Mead, enchanted book |
+| `tumba` | gallery of the kings | bones, nuggets, a worn sword; extra: an enchanted gold helm |
+| `osario` | ossuary | bones, arrows, skull; extra: an enchanted bow, bottles o' enchanting |
+| `escaldo` | the skald's hidden chamber | books, paper, feathers, the Saga of Ulfgrim; extra: enchanted book, "far" disc, horn |
+| `ofrendas` | offering room | gold, emeralds, amethyst, a Carved Rune Stone **and the Chronicle leaf** |
+| `codicia` | altar of greed (trap) | heaps of gold and emeralds; extra: diamonds, gold block |
+| `premium` | treasure chamber | 90 %: the Raiding Axe, the Horn of the Assembly, the Shield of the Hall, armor trims (coast, wild, rib), discs, gold, emeralds, enchanted book; 10 %: an enchanted diamond axe or chestplate, an enchanted golden apple or a totem |
 
-Nada de netherita ni élitros.
+No netherite or elytra.
 
-## Trofeo y Crónica
+## Trophy and Chronicle
 
-- **Trofeo**: *Rompeescudos de Ulfgrim* (hacha de hierro rara, filo 2, irrompibilidad 2): «Hendió cien escudos en su
-  última incursión. El jarl no lo soltó ni muerto».
-- **Pliego** (cofre `ofrendas`): Ysolda llega al salón, el jarl la escucha junto al hogar y jura por sus antepasados
-  guardar el pliego; lo bajan al túmulo de sus reyes, entre las ofrendas, y él promete que ni la muerte se lo quitará.
-  Pista con la que lo señala el pliego del Templo-pirámide: «la taiga, donde un jarl insepulto guarda su salón tras una
-  empalizada». El suyo señala la Torre de mago.
+- **Trophy**: *Ulfgrim's Shieldbreaker* (a rare iron axe, Sharpness 2, Unbreaking 2): "It split a hundred shields in his
+  last raid. The jarl did not let go of it even in death".
+- **Leaf** (`ofrendas` chest): Ysolda reaches the hall, the jarl listens to her by the hearth and swears by his ancestors
+  to keep the leaf; they take it down to the barrow of his kings, among the offerings, and he promises that not even death will take it from him.
+  The clue with which the Pyramid temple's leaf points to it: "the taiga, where an unburied jarl guards his hall behind a
+  palisade". Its own points to the Wizard's tower.
 
-## Estado de conservación
+## State of conservation
 
-Superficie a la vista dañada: **16 %** (calculado sobre los bloques del salón con una cara al aire exterior: la ruina
-hecha a mano más lo que se espera del procesador). Ruina a mano: brechas en la empalizada este y sur con troncos caídos
-hacia dentro, puntas caídas y troncos descortezados en manchas, tramos del adarve rotos, tejado hundido de la torre
-noreste, la casa de guerreros quemada, huecos en las cubiertas de la despensa, los establos y la casa larga (con escombro
-debajo) y manchas de musgo en las cubiertas. Procesador: adoquín → musgoso (35 %), ladrillo de piedra → agrietado
-(12 %) o musgoso (8 %) y cristales rotos (30 %). Nada que sostenga un mecanismo cambia de solidez.
+Visible surface damaged: **16 %** (computed over the hall's blocks with a face to the outside air: the hand-made
+ruin plus what is expected from the processor). Hand-made ruin: breaches in the east and south palisade with logs fallen
+inwards, fallen points and patches of stripped logs, broken stretches of the wall-walk, the caved-in roof of the northeast
+tower, the burnt warriors' house, holes in the roofs of the pantry, the stables and the longhouse (with rubble
+below) and patches of moss on the roofs. Processor: cobblestone → mossy (35 %), stone brick → cracked
+(12 %) or mossy (8 %) and broken panes (30 %). Nothing that holds up a mechanism changes its solidity.
 
-## Auditoría (condición para generar)
+## Audit (a condition for generating)
 
-`auditoria.py` falla la compilación si: la redstone no está en su estado estable; alguna de las 16 combinaciones del
-muro de las runas abre sin ser la buena (o la buena no abre); la palanca no abre la puerta del escaldo; el cable o las
-placas no disparan; algo de lo oculto (cámara del escaldo, escalera inferior, cámara del jarl, tesoro) se alcanza sin
-resolver los puzles o no se alcanza resolviéndolos; la alcoba no se alcanza por el tapiz; hay cofres, generadores o
-palancas inalcanzables, puertas sin salida, escaleras sin altura libre, celdas sin vuelta a la entrada (recorrido
-estricto sin caídas), generadores con luz, bloques sueltos, roca natural a la vista en la cripta, el número de cofres
-sale de 15-25 o la superficie dañada de 15-20 %. Además pasan las comprobaciones comunes (`lint.support_issues`,
-`access_issues`, `door_pair_issues`, `stair_headroom_issues`) sobre la obra entera.
+`auditoria.py` fails the build if: the redstone is not in its stable state; any of the 16 combinations of the
+rune wall opens without being the correct one (or the correct one does not open); the lever does not open the skald's door; the wire or the
+plates do not fire; something hidden (the skald's chamber, the lower staircase, the jarl's chamber, the treasure) can be reached without
+solving the puzzles or cannot be reached by solving them; the alcove cannot be reached through the tapestry; there are chests, spawners or
+levers out of reach, doors without an exit, stairs without headroom, cells without a way back to the entrance (strict
+walk without falls), spawners with light, loose blocks, natural rock in sight in the crypt, the number of chests
+falls outside 15-25 or the damaged surface outside 15-20 %. The shared checks also run (`lint.support_issues`,
+`access_issues`, `door_pair_issues`, `stair_headroom_issues`) over the whole build.
 
-## Rendimiento
+## Performance
 
-- Generación: dos plantillas (45.400 + 30.900 bloques, menos que la fortaleza de hielo) con un procesador de reglas y sin
-  Java propio. Tiempo de `/place structure` medido en el servidor de prueba: ver el PR (lo imprime
+- Generation: two templates (45,400 + 30,900 blocks, fewer than the ice fortress) with a rule processor and without
+  custom Java. The `/place structure` time measured on the test server: see the PR (printed by
   `prueba_servidor.py`).
-- Entidades: 3 (guardián y dos soportes de armadura). 3 generadores con el radio y límite vanilla. Nada por tick.
+- Entities: 3 (the guardian and two armor stands). 3 spawners with the vanilla radius and limit. Nothing per tick.
 
-## Pruebas
+## Tests
 
-- `python3 tools/gen/unicas/salon_jarl/planos.py` → planos por nivel y renders en `docs/unicas/salon_jarl/`.
-- `python3 tools/gen/unicas/salon_jarl/prueba_servidor.py --jar build/libs/heraldia-<versión>.jar --work "$PWD/build/smoke"`:
-  coloca la estructura (mide el tiempo y cuenta entidades), y las plantillas sin girar para accionar las runas (también
-  con una runa falsa), la puerta del escaldo, el cable trampa y las placas de la dinamita. Está en la matriz de la CI.
+- `python3 tools/gen/unicas/salon_jarl/planos.py` → plans by level and renders in `docs/unicas/salon_jarl/`.
+- `python3 tools/gen/unicas/salon_jarl/prueba_servidor.py --jar build/libs/heraldia-<version>.jar --work "$PWD/build/smoke"`:
+  places the structure (measures the time and counts entities), and the templates unrotated to operate the runes (also
+  with a fake rune), the skald's door, the tripwire and the TNT plates. It is in the CI matrix.
 
 ## Renders
 
-![Recinto](salon_jarl/salon.png)
-![Planta baja](salon_jarl/corte_planta_baja.png)
-![Túmulo](salon_jarl/tumulo_corte_alto.png)
+![Compound](salon_jarl/salon.png)
+![Ground floor](salon_jarl/corte_planta_baja.png)
+![Barrow](salon_jarl/tumulo_corte_alto.png)
