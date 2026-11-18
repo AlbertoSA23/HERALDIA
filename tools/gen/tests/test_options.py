@@ -170,3 +170,25 @@ def test_profile_texts_in_the_eight_languages():
         for k in PROFILE_KEYS:
             assert texts[k].count("%s") == base["en_us"][k].count("%s"), (code, k)
     assert len(languages.everyone()) == 8
+
+
+def test_generation_options_that_reload_are_listed():
+    """options.GENERATION and Reload.RELOADABLE (Java) overlap on purpose only in options.GENERATION_RELOADABLE: the
+    "generacion" mark keeps the profiles away from an option, it does not make it wait for a restart. A new overlap
+    (a generation option under a reloadable prefix, or a reloadable prefix covering a generation option) must be
+    decided and written there; and Reload.STARTUP_ONLY only names real keys."""
+    import os, re
+    src = open(os.path.join(os.path.dirname(options.__file__), "..", "..", "src", "main", "java", "io", "github",
+                            "albertosa23", "heraldia", "config", "Reload.java"), encoding="utf-8").read()
+
+    def java_list(name):
+        return re.findall(r'"([^"]+)"', re.search(name + r" = List\.of\((.*?)\);", src, re.S).group(1))
+    reloadable, startup_only = java_list("RELOADABLE"), java_list("STARTUP_ONLY")
+    assert reloadable and startup_only
+
+    def reloads(k):
+        return k not in startup_only and any(k.startswith(p) if p.endswith(".") else k == p for p in reloadable)
+    keys = [o["clave"] for o in options.schema()["opciones"]]
+    assert set(startup_only) <= set(keys)
+    both = {k for k in keys if options.is_generation(k) and reloads(k)}
+    assert both == set(options.GENERATION_RELOADABLE)
