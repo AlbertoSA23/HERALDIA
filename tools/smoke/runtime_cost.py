@@ -28,6 +28,9 @@ site; the passes without Heraldia use the same ones, where there is only terrain
                 (with the ambush) that sets off next to them at the start of the window.
   aldea_arena   one player in the village and another in the wave arena (placed next to spawn), with a game running:
                 every WAVE_KILL_S seconds one of its enemies is killed in the player's name, so the waves advance.
+  aldea_evento  "aldea" with a village event (EVENT_KIND, a wedding: the biggest, 15 figures and its fireworks) started in the
+                player's village just before the warm-up (/heraldia event start; natural events are off: eventos.frecuencia 0).
+  dos_aldeas_evento  "dos_aldeas" with one in each village: two events at once, the case the owner's caps were set for.
 And, with Heraldia, the margin (ESCALATION): in the "aldea" scenario, villagers are added in steps (unemployed: they search
 for a bed and a job site, the most expensive case) and each step is measured: from the line that fits the MSPT against
 the villagers loaded, how many more the server takes before its tick gets close to the 50 ms it has.
