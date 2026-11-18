@@ -73,6 +73,9 @@ ARENA = ["tools/smoke/arena.py", "tools/smoke/arena_modes.py"]
 COMMANDS = UPDATE + ADMIN + ["tools/smoke/guide.py", "tools/smoke/journal.py"] + ARENA
 # Mine entrances: their generator (tools/gen/mines/) and their Java (minas/ package); the placement rule touches the medium structures' one.
 MINES = ["tools/smoke/mine_entrances.py"]
+# The world's search memory (common/SearchCache, SearchCaches and UnwrittenRegions, the IOWorker mixin): its server test
+# (same answers after a restart, discarded with another configuration) and the far /locate of the mines.
+SEARCH_CACHE = ["tools/smoke/search_cache.py", "tools/smoke/mine_entrances.py"]
 # Coastal lighthouses and shipwrecks (T42): their generator (tools/gen/shore/) and their Java (costa/ package); their rule is that of the
 # mines (minas/Minas.familia), and the drowned of the half-sunk one enters the tests that go through the template mobs.
 COAST = ["tools/smoke/coast.py"]
@@ -89,6 +92,8 @@ MEDIUMS_MOBS = MEDIUMS + ["tools/smoke/adult_guardians.py", "tools/smoke/anchore
 NETHER_END = ["tools/smoke/nether_end.py"]
 # Wizard huts (T43): the Evil Wizard (Java chozas/) and its loot and texts; its template is a medium structure.
 HUTS = ["tools/smoke/wizard_huts.py"]
+# Ambient effects (bell, lighthouse siren, mine drips): their Java (ambience/).
+AMBIENCE = ["tools/smoke/ambience.py"]
 # Safe updates (T46): dialog panel, per-player language, per-version fixes and update analyze/apply (path A: pristine
 # chunks regenerated) and, for the Java in update/, also path B (new structures placed in generated chunks) and undo.
 SAFE_UPDATE = ["tools/smoke/update.py"]
@@ -118,12 +123,17 @@ MAP = [
     ("tools/gen/shore/*", COAST_MOBS), (JAVA + "coast/*", COAST),
     # /locate of the mines (T36): the shared height cache and the parallel look-ahead computation are only used by the mines
     (JAVA + "common/HeightCache.java", MINES), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINES),
+    # the world's search memory: /locate, the maps, /heraldia info nearby and the Chronicle folios answered from what was asked before
+    (JAVA + "common/SearchCache*.java", SEARCH_CACHE), (JAVA + "common/UnwrittenRegions.java", SEARCH_CACHE),
+    (JAVA + "mixin/IOWorkerMixin.java", SEARCH_CACHE), (JAVA + "mixin/RegionFileStorageMixin.java", SEARCH_CACHE),
     # board quests and reputation (T38)
     (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
     # caravans along the roads (T39)
     (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS),
     # chozas de mago (T43)
     (JAVA + "huts/*", HUTS), ("tools/gen/wizard_huts.py", HUTS),
+    # ambient effects
+    (JAVA + "ambience/*", AMBIENCE),
     # safe updates (T46): their Java, the panel, the preferences, the menus, the migration and their texts
     (JAVA + "update/*", SAFE_UPDATE_JAVA), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
     (JAVA + "command/Preferences.java", SAFE_UPDATE), (JAVA + "config/Menus.java", SAFE_UPDATE),
@@ -302,6 +312,7 @@ DURATION_S = {
     "tools/smoke/anchored_guardians.py": 450,
     "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
     "tools/smoke/guide.py": 120,                      # three server starts
+    "tools/smoke/search_cache.py": 90,                # measured locally (4 cores): 50 s, three starts, eleven searches
     "tools/smoke/journal.py": 60,                     # one start and a few commands as a simulated player
     "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
     "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
@@ -322,6 +333,7 @@ DURATION_S = {
     "tools/smoke/nether_end.py": 300,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
     "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)
     "tools/smoke/caravans.py": 240,                 # measured locally: ~3.5 min (two starts, 387 corridor chunks and 5 caravans)
+    "tools/smoke/ambience.py": 120,                 # measured locally: ~2 min (one start, three /locate'd structures, ~11,000 sprinted ticks)
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined

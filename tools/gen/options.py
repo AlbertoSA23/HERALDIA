@@ -304,6 +304,26 @@ _FIXED = [
      "choza, al revelarse",
      "Chance (%) that the Evil Wizard also drops a strong item that does not break progression (a Mending book, a hard "
      "potion, a totem of undying or a high-level enchanted book); decided per hut, when he reveals himself"),
+    ("ambiente.activado", True, None, None,
+     "Efectos de ambiente con los sonidos y partículas del juego (nada que descargar): la campana de las aldeas, la "
+     "sirena de los faros y los goteos de las minas. Cada uno tiene su opción; con esta desactivada, ninguno suena",
+     "Ambient effects with the game's own sounds and particles (nothing to download): the village bell, the lighthouse "
+     "siren and the drips in the mines. Each has its own option; with this one off, none of them plays"),
+    ("ambiente.campanas", True, None, None,
+     "Campana de la aldea: al amanecer y al caer la noche suenan tres campanadas para quien está dentro de una aldea de "
+     "Heraldia (como mucho dos veces al día por jugador)",
+     "Village bell: at sunrise and at nightfall three strikes ring out for whoever is inside a Heraldia village (at most "
+     "twice a day per player)"),
+    ("ambiente.sirena_faro", True, None, None,
+     "Sirena del faro: con lluvia o tormenta, un faro suena con un cuerno grave que se oye desde el mar, a menos de 160 "
+     "bloques y al aire libre (como mucho cada 3 min por jugador)",
+     "Lighthouse siren: in rain or a thunderstorm, a lighthouse sounds a deep horn heard from the sea, within 160 blocks "
+     "and out in the open (at most every 3 min per player)"),
+    ("ambiente.minas", True, None, None,
+     "Ecos y goteos en las galerías de las minas de Heraldia: de vez en cuando cae una gota del techo (cada 20-45 s) y, "
+     "rara vez, se oye el eco de la cueva (como mucho cada 4 min)",
+     "Echoes and drips in the galleries of Heraldia's mines: now and then a drop falls from the ceiling (every 20-45 s) "
+     "and, rarely, the cave's echo is heard (at most every 4 min)"),
     ("update_check.activado", True, None, None,
      "Aviso de versión nueva: al arrancar y cada 24 h mira en GitHub Releases si hay una versión más nueva de Heraldia "
      "para este Minecraft y lo dice en la consola y a los operadores al entrar (sin telemetría; se aplica al reiniciar)",
@@ -539,6 +559,10 @@ _NAMES = {
     "caravanas.max_activas": ("Caravanas a la vez", "Caravans at once"),
     "chozas_mago.prob_malvado": ("Magos malvados (%)", "Evil wizards (%)"),
     "chozas_mago.prob_botin_premium": ("Botín premium del Mago Malvado (%)", "Evil Wizard premium loot (%)"),
+    "ambiente.activado": ("Efectos de ambiente", "Ambient effects"),
+    "ambiente.campanas": ("Campana de la aldea", "Village bell"),
+    "ambiente.sirena_faro": ("Sirena del faro", "Lighthouse siren"),
+    "ambiente.minas": ("Ecos y goteos de las minas", "Mine echoes and drips"),
     "update_check.activado": ("Aviso de versión nueva", "New version notice"),
     "update_check.prereleases": ("Avisar de pre-publicaciones", "Announce pre-releases"),
     "actualizar.margen_bloques": ("Margen alrededor de construcciones (bloques)", "Margin around player builds (blocks)"),
@@ -607,6 +631,7 @@ SECTIONS = [
     ("encargos", "Encargos y reputación", "Quests and reputation"),
     ("caravanas", "Caravanas", "Caravans"),
     ("chozas_mago", "Chozas de mago", "Wizard's huts"),
+    ("ambiente", "Ambiente", "Ambience"),
     ("actualizaciones", "Actualizaciones", "Updates"),
     ("mapas_web", "Mapas web", "Web maps"),
     ("tesoro", "Búsqueda del tesoro", "Treasure hunt"),
@@ -621,7 +646,7 @@ _SECTION_PREFIXES = [
     ("medianas.", "medianas"), ("minas.", "minas"), ("faros.", "costa"), ("naufragios.", "costa"),
     ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
-    ("caravanas.", "caravanas"), ("chozas_mago.", "chozas_mago"),
+    ("caravanas.", "caravanas"), ("chozas_mago.", "chozas_mago"), ("ambiente.", "ambiente"),
     ("update_check.", "actualizaciones"), ("actualizar.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
 ]
 
