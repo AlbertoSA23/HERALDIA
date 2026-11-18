@@ -89,8 +89,10 @@ MEDIUMS_MOBS = MEDIUMS + ["tools/smoke/adult_guardians.py", "tools/smoke/anchore
 NETHER_END = ["tools/smoke/nether_end.py"]
 # Wizard huts (T43): the Evil Wizard (Java chozas/) and its loot and texts; its template is a medium structure.
 HUTS = ["tools/smoke/wizard_huts.py"]
-# Safe updates (T46): dialog panel, per-player language, per-version fixes and update analyze/apply.
+# Safe updates (T46): dialog panel, per-player language, per-version fixes and update analyze/apply (path A: pristine
+# chunks regenerated) and, for the Java in update/, also path B (new structures placed in generated chunks) and undo.
 SAFE_UPDATE = ["tools/smoke/update.py"]
+SAFE_UPDATE_JAVA = SAFE_UPDATE + ["tools/smoke/update_path_b.py"]
 
 # Path -> server tests map. It is traversed in order and the FIRST rule that matches wins (fnmatch: * crosses "/").
 # An empty list: the change needs no server tests (beyond the smoke test, which always runs in CI).
@@ -123,7 +125,7 @@ MAP = [
     # chozas de mago (T43)
     (JAVA + "huts/*", HUTS), ("tools/gen/wizard_huts.py", HUTS),
     # safe updates (T46): their Java, the panel, the preferences, the menus, the migration and their texts
-    (JAVA + "update/*", SAFE_UPDATE), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
+    (JAVA + "update/*", SAFE_UPDATE_JAVA), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
     (JAVA + "command/Preferences.java", SAFE_UPDATE), (JAVA + "config/Menus.java", SAFE_UPDATE),
     (JAVA + "config/ConfigMigration.java", SAFE_UPDATE), ("tools/gen/updates.py", SAFE_UPDATE),
     # game profiles (T36): their logic and their command (the rest of the configuration is common: full suite)
@@ -293,6 +295,7 @@ DURATION_S = {
     "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
     "tools/smoke/profiles.py": 110,                  # four starts of the same world
     "tools/smoke/update.py": 140,                # measured locally: ~2 min 15 s (two starts and a zone of 400 chunks)
+    "tools/smoke/update_path_b.py": 160,         # measured locally: ~2 min (five starts, a zone of ~200 chunks, path B and undo)
     "tools/smoke/loot_restock.py": 100,             # measured locally: 72 s (two starts and a generated hermitage)
     "tools/smoke/difficulty.py": 100,                # measured locally: ~70 s (four starts of the same world)
     "tools/smoke/arena.py": 150,                     # measured locally: ~2 min (two starts, three builds and five waves)

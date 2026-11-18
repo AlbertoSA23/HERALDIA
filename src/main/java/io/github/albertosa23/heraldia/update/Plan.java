@@ -57,6 +57,9 @@ public final class Plan {
 	public int skippedPlacements;
 	@SerializedName("carpetaCopia")
 	public String backupFolder;
+	/** Files (folder/name) of the plan's regions that did not exist when the backup was made: undo deletes them. */
+	@SerializedName("ausentes")
+	public List<String> absent = new ArrayList<>();
 	@SerializedName("notas")
 	public List<String> notes = new ArrayList<>();
 
