@@ -2,76 +2,226 @@
   "profession.none": {
     "1": "I still don't know what to do with my life. How did you know what yours was?",
     "2": "If anyone leaves a workstation free in %2$s, let me know.",
-    "3": "Today I helped everyone a little and nobody thanked me."
+    "3": "Today I helped everyone a little and nobody thanked me.",
+    "4": "They offered to make me a fisherman, but the water gives me funny looks.",
+    "5": "My mother says at my age she already had three trades. I've got time.",
+    "6": "I tried the anvil and singed my eyebrows. I tried the books and fell asleep.",
+    "7": "Someday someone in %2$s will need me for something. And I'll be ready.",
+    "8": "I've spent all morning watching the others work. It's more tiring than it looks.",
+    "9": "If you know of a trade where nobody gets up at dawn, tell me, %1$s.",
+    "10": "The farmer let me pull weeds. I pulled the carrots too.",
+    "11": "No trade means no orders. It also means no hurry.",
+    "12": "They say the librarian wants an apprentice. I'm just not sure I read well enough.",
+    "13": "When I have a trade, I'll get a hat that says so."
   },
   "profession.armorer": {
     "1": "Good armour goes unnoticed until the day you need it.",
     "2": "The bellows of my blast furnace whistle when rain is coming. Never fails.",
-    "3": "If you come back with dented armour, bring it to me before it rusts."
+    "3": "If you come back with dented armour, bring it to me before it rusts.",
+    "4": "Three hauberks half riveted, and the customer has already been round twice.",
+    "5": "Put the breastplate on, let me fit it. Deep breath. There. Too tight?",
+    "6": "One skeleton's arrow tells me more about a cuirass than any test I could run.",
+    "7": "The iron from the mines of %2$s is good, but it puts up a fight in the forge.",
+    "8": "Gold helmets shine a lot and stop very little. Tell that to the vain ones.",
+    "9": "Every dent you bring me is a story I'd rather not hear in full.",
+    "10": "I've smelled of coal so long I don't notice any more. Everyone else does.",
+    "11": "I don't sell a shield to someone who can't raise it in time, %1$s.",
+    "12": "A loose strap has killed more men than many a sword.",
+    "13": "If you find diamonds, think of your chest before your pickaxe."
   },
   "profession.butcher": {
     "1": "The smoke from the smoker clings to your clothes for a whole week.",
     "2": "In %2$s nobody goes hungry while I have salt and firewood.",
-    "3": "The best chops are winter ones. My grandmother says so, and she is never wrong."
+    "3": "The best chops are winter ones. My grandmother says so, and she is never wrong.",
+    "4": "Keep the knife sharp. A blunt one cuts more fingers than meat.",
+    "5": "The rabbits round here are scrawny, but a little rosemary sorts them out.",
+    "6": "Roast mutton today. Tomorrow, whatever the shepherd brings me.",
+    "7": "Nothing of a pig goes to waste: what isn't roasted gets salted.",
+    "8": "When %2$s holds a feast, the spit keeps turning all night.",
+    "9": "If you hunt anything on the road, %1$s, bring it to me whole. I'll dress it.",
+    "10": "A good broth mends a bad day. Two mend a bad winter.",
+    "11": "Rotten flesh off a zombie? I wouldn't take it as a gift.",
+    "12": "My hands are cracked from all the salt. That's the price of a good ham.",
+    "13": "The shepherd and I don't talk much. You can see why."
   },
   "profession.cartographer": {
     "1": "Every road I draw ends at another I don't know yet.",
     "2": "A blank map is the most beautiful thing in the world, %1$s.",
-    "3": "Half the world is left to draw and my hands already shake."
+    "3": "Half the world is left to draw and my hands already shake.",
+    "4": "There's a coastline I can't get to close. Either the map lies or the sea moves.",
+    "5": "Wayfarers bring me names of places. I suspect they make up half of them.",
+    "6": "I need more compasses. The ones I have point true, but they get lost in my drawers.",
+    "7": "At the edge of every map I write \"I have not been here\". It's the most honest thing I know.",
+    "8": "From the bell tower of %2$s you can see half the valley. The other half I guess.",
+    "9": "If you pass through a swamp, tell me where it ends. Nobody can.",
+    "10": "Ink runs in the damp. That's why I draw the rivers on dry days.",
+    "11": "A good map doesn't tell you where to go, %1$s. It tells you where you are.",
+    "12": "I've drawn roads the brambles swallowed later. Paper remembers what the land forgets.",
+    "13": "People ask me for treasure maps. I make true maps; the treasure is up to you."
   },
   "profession.cleric": {
     "1": "The altar candles last longer when the village is at peace.",
     "2": "I have seen things on moonless nights I'd rather not tell.",
-    "3": "May the bell of %2$s keep you on the road."
+    "3": "May the bell of %2$s keep you on the road.",
+    "4": "Holy water isn't bought, it's waited for. And the brewing stand is never in a hurry.",
+    "5": "They come and tell me things I don't understand. I nod a great deal.",
+    "6": "Nether wart smells of brimstone, but it heals what other herbs can't.",
+    "7": "When the bell of %2$s rings at the wrong hour, I pray first and ask questions later.",
+    "8": "If you're hurt out there, %1$s, don't leave it till tomorrow. Tomorrow it hurts more.",
+    "9": "I keep a vial with a ghast tear in it. Don't ask me how I came by it.",
+    "10": "Zombies were somebody once. That's why I give thanks every time the sun comes up.",
+    "11": "Spider eyes have their uses. None of them pleasant, mind.",
+    "12": "The altar has room for all the village's sorrows. Not for all the candles, though.",
+    "13": "Some nights the moon won't let me sleep. I know what it brings, and I don't like it."
   },
   "profession.farmer": {
     "1": "The wheat is growing tall this year. If it doesn't rain too much, there'll be bread for everyone.",
     "2": "The crows don't dare come near my scarecrow. Well, hardly ever.",
-    "3": "The soil of %2$s is grateful if you treat it kindly."
+    "3": "The soil of %2$s is grateful if you treat it kindly.",
+    "4": "Plant potatoes next to carrots and they quarrel. I've seen it.",
+    "5": "The composter stinks, but what comes out of it is worth its weight in gold.",
+    "6": "I'm up before the rooster. The rooster just brags about it more.",
+    "7": "The pumpkins are huge this year. One of them comes up to my knee.",
+    "8": "In %2$s we water with what falls from the sky and what comes up the well.",
+    "9": "Rabbits eat my carrots and I eat the rabbits. That's the way of the world.",
+    "10": "Tread on my furrows, %1$s, and you'll spend the afternoon picking stones.",
+    "11": "Nobody wants beetroot until there's soup.",
+    "12": "When the rain comes in its season, there's no sweeter music.",
+    "13": "The bees help me with the flowers and I leave their hedge alone. It's a deal."
   },
   "profession.fisherman": {
     "1": "The biggest fish is always the one that gets away.",
     "2": "At dawn the water is so still it looks like glass.",
-    "3": "Once I reeled in a boot full of water. No sign of its owner."
+    "3": "Once I reeled in a boot full of water. No sign of its owner.",
+    "4": "Cod bite at first light; salmon, whenever they please.",
+    "5": "My rod has more patches than my boat, and my boat has plenty.",
+    "6": "When the float goes under, my heart goes up. Forty years and it's still the same.",
+    "7": "Once I fished an enchanted book out of the river. I sold it before I read it.",
+    "8": "If a pufferfish takes the bait, it goes back in the water. Carefully, and without touching it.",
+    "9": "There are drowned about in the waters of %2$s. I fish well away from the bank.",
+    "10": "Patience is learned on the riverbank, %1$s, not in books.",
+    "11": "If the water bubbles with no wind, that's bad news. I pack up and go.",
+    "12": "I mend the nets at night, by lantern light. Every knot is mine.",
+    "13": "The sea owes you nothing. Whatever it gives, be thankful."
   },
   "profession.fletcher": {
     "1": "The best feathers come from old hens. Don't ask me why.",
     "2": "One straight arrow is worth ten crooked ones.",
-    "3": "If you see flint along the road, save it for me, %1$s."
+    "3": "If you see flint along the road, save it for me, %1$s.",
+    "4": "Birch for the shaft. For the bow, whatever you like, as long as it doesn't creak.",
+    "5": "The apprentices throw out every wet feather. Then I've nothing to fletch with.",
+    "6": "A flint-tipped arrow doesn't forgive. Mind who you aim it at.",
+    "7": "I've an order of two hundred arrows for the guard of %2$s. I'm on number eighty.",
+    "8": "Cobweb makes the best string. The trouble is going to fetch it.",
+    "9": "Skeletons shoot badly, but they shoot a lot. Keep your head down, %1$s.",
+    "10": "Crossbows are for people with no patience. Pillagers have none.",
+    "11": "I test every arrow on my finger. If it hums crooked, it goes in the fire.",
+    "12": "The hens give me their feathers and I give them my thanks. They get the worse end of it.",
+    "13": "A target with three arrows in the middle is the prettiest thing I've ever seen."
   },
   "profession.leatherworker": {
     "1": "Well-tanned leather outlasts a lot of iron.",
     "2": "I smell of the cauldron all day, but somebody has to do it.",
-    "3": "Your boots are crying out for a patch, did you know?"
+    "3": "Your boots are crying out for a patch, did you know?",
+    "4": "Rabbit hide is soft, but it tears if you look at it wrong.",
+    "5": "I've a saddle half done. The horse is getting restless, and the owner more so.",
+    "6": "The dye gets under my nails. This month they're purple.",
+    "7": "You don't notice a good pack until it splits a mile from home.",
+    "8": "The cows of %2$s give good leather. Trouble is, they give you sad eyes too.",
+    "9": "If you see hides at the market, %1$s, haggle. They're not worth the asking price.",
+    "10": "That cauldron has burned me more than a whole summer's sun.",
+    "11": "I stitch at night, when the village is quiet. The leather tells me where it wants the needle.",
+    "12": "Leather armour won't stop a sword, but it stops the cold. And the cold kills too.",
+    "13": "My old gloves have outlived a good many knights."
   },
   "profession.librarian": {
     "1": "There is a book on my shelf nobody has ever opened. Not even me.",
     "2": "The history of %2$s fits in three volumes, and one of them is recipes.",
-    "3": "Reading at night uses up candles, but saves on boredom."
+    "3": "Reading at night uses up candles, but saves on boredom.",
+    "4": "The smith borrowed a volume on tempering iron two winters ago. I'm still waiting.",
+    "5": "Binding books is easy. Getting people not to fold the corners is the hard part.",
+    "6": "I have an enchanted book nobody can read. I suspect it's out of pride.",
+    "7": "The library of %2$s is small, but every book is where it belongs.",
+    "8": "If you're going to touch anything, %1$s, wash your hands. Road dust is merciless.",
+    "9": "I keep the village chronicle. So far this year: two weddings and a lost cow.",
+    "10": "Squid ink stains worse than any other. That's why it writes better.",
+    "11": "Lecterns creak when someone truly reads. Mine hardly ever creak.",
+    "12": "They ask me for adventure books, and then they never leave the village.",
+    "13": "An empty shelf is a question. A full one is a promise I won't keep."
   },
   "profession.mason": {
     "1": "A well-built wall outlasts whoever raises it.",
     "2": "The stone of this land is stubborn, like the people of %2$s.",
-    "3": "If you hear a beam creak, tell me before the mayor."
+    "3": "If you hear a beam creak, tell me before the mayor.",
+    "4": "A whole week on the well wall, and the bucket still comes up full of sand.",
+    "5": "River clay makes good brick. Pond clay is only good for getting filthy.",
+    "6": "Anyone can put stone on stone. Getting it to stay put is another matter.",
+    "7": "The mayor wants a new tower in %2$s. I want paying for the last one.",
+    "8": "A blunt chisel makes you hate granite. A good one makes you love it.",
+    "9": "If you build anything out there, %1$s, start with the foundations. Everyone knows it; hardly anyone does it.",
+    "10": "Glazed terracotta is very pretty, but you don't want it on a kitchen floor.",
+    "11": "My back aches when a frost is coming. The walls feel it too.",
+    "12": "A wooden house burns. A stone one gets a bit of soot, at worst.",
+    "13": "Every morning I count the cracks in the wall. Today there's one more."
   },
   "profession.nitwit": {
     "1": "Did you know sheep can't swim backwards? I made that up.",
     "2": "Today I counted the clouds. I got seven. Or six.",
-    "3": "I don't work, but I have opinions on everything. Someone has to."
+    "3": "I don't work, but I have opinions on everything. Someone has to.",
+    "4": "I've been thinking about important things. I've forgotten all of them.",
+    "5": "See that cloud? It looked like a chicken. Now it looks like a different chicken.",
+    "6": "They tried to teach me to mend nets. The nets won.",
+    "7": "Everyone in %2$s works so hard. Somebody has to watch how they do it.",
+    "8": "If you're looking for me, %1$s, I'm here. I'm nearly always here.",
+    "9": "Once I chased a rabbit all afternoon. He didn't know where we were going either.",
+    "10": "I like the sound of the bell. I like it less when I'm the one ringing it.",
+    "11": "I fell down the well today. Well, I leaned over it a lot.",
+    "12": "The others have trades; I have ideas. None of them work, but they're mine.",
+    "13": "Why don't creepers have arms? I asked one. Bad idea."
   },
   "profession.shepherd": {
     "1": "My sheep know my whistle from across the valley.",
     "2": "This year's wool is so soft it feels a shame to dye it.",
-    "3": "If you see a stray sheep, it's mine. It's always mine."
+    "3": "If you see a stray sheep, it's mine. It's always mine.",
+    "4": "The wolves came last night. The dog heard them before I did, and I before the sheep.",
+    "5": "I shear in spring. Any earlier and the sheep glare at me all month.",
+    "6": "One black sheep in the flock brings luck. Two bring arguments.",
+    "7": "The pastures of %2$s run out early. That's why I take the flock up the hill when it blooms.",
+    "8": "The loom isn't my calling, but someone has to turn the wool into something.",
+    "9": "If you meet a wolf, %1$s, don't run. Well, run if it's after the sheep.",
+    "10": "I dye the wool with whatever I find: poppies, cactus, squid ink. The squid ink smells.",
+    "11": "I count the sheep every night. I'm always one short, and then it turns up on a roof.",
+    "12": "Sheep eat the grass and the grass grows back. If only everything were like that.",
+    "13": "You have to know every sheep by its bleat. I know forty. They know one shepherd."
   },
   "profession.toolsmith": {
     "1": "A badly tempered pickaxe breaks in the worst tunnel.",
     "2": "I sharpen better under a waxing moon. Superstition, you'll say. Results, I say.",
-    "3": "The tools of %2$s are known by the sound of the anvil."
+    "3": "The tools of %2$s are known by the sound of the anvil.",
+    "4": "Six axes to sharpen and the woodcutter's coming this afternoon.",
+    "5": "A well-made stone hoe outlasts a badly tempered iron one.",
+    "6": "The miners of %2$s bring me broken pickaxes the way you'd bring a wounded dog.",
+    "7": "Small shears are the most work of all. You'd never think it.",
+    "8": "If you're going down the mine, %1$s, take two pickaxes. You always need the second.",
+    "9": "The whetstone talks. If it squeals, the edge isn't right.",
+    "10": "They bring me gold tools to mend. I tell them the truth: they're not worth it.",
+    "11": "Tempering is knowing when to stop. The rest is brute force.",
+    "12": "I carve every handle myself. A tool that doesn't sit right in the hand is useless.",
+    "13": "An anvil wears down, though you'd not think it. Mine has a tired face these days."
   },
   "profession.weaponsmith": {
     "1": "A sword doesn't make the warrior, but it helps a lot.",
     "2": "Many adventurers pass through here. Few come back to pay for the sharpening.",
-    "3": "Be careful out there, %1$s. Pillagers give no warning."
+    "3": "Be careful out there, %1$s. Pillagers give no warning.",
+    "4": "Four swords on order for the guard, and I'm running out of coal.",
+    "5": "An axe cuts trees and heads alike. I don't ask which one you want it for.",
+    "6": "They say diamond swords never break. I've seen one snapped in two.",
+    "7": "The guard of %2$s complains about how heavy the swords are. Let them complain about scars.",
+    "8": "You look after a blade like an animal: water, oil, and never leave it out overnight.",
+    "9": "If you face a vindicator, %1$s, don't give him time to raise his axe.",
+    "10": "A sword without a scabbard is a dog without a leash: one day it bites the wrong man.",
+    "11": "I forge by day and polish by night. The shine on the blade lets me sleep easy.",
+    "12": "My grandfather's whetstone is still here. He isn't. That's how it goes.",
+    "13": "I don't sell a weapon to anyone who won't look me in the eye when they pay."
   }
 }

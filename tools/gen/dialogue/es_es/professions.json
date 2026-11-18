@@ -2,76 +2,226 @@
   "profession.none": {
     "1": "Todavía no sé a qué dedicarme. ¿Tú cómo supiste lo tuyo?",
     "2": "Si alguien deja un banco de trabajo libre en %2$s, que me avise.",
-    "3": "Hoy he ayudado un poco a todos y nadie me ha dado las gracias."
+    "3": "Hoy he ayudado un poco a todos y nadie me ha dado las gracias.",
+    "4": "Me ofrecieron ser pescador, pero el agua me mira raro.",
+    "5": "Mi madre dice que a mi edad ella ya tenía tres oficios. Yo tengo tiempo.",
+    "6": "Probé con el yunque y me quemé las cejas. Probé con los libros y me dormí.",
+    "7": "Algún día alguien de %2$s me necesitará para algo. Y estaré listo.",
+    "8": "Llevo la mañana mirando cómo trabajan los demás. Cansa más de lo que parece.",
+    "9": "Si sabes de algún oficio en el que no haya que madrugar, dímelo, %1$s.",
+    "10": "El granjero me dejó arrancar malas hierbas. Arranqué también las zanahorias.",
+    "11": "Sin oficio no tengo encargos, pero tampoco tengo prisas.",
+    "12": "Dicen que el bibliotecario busca aprendiz. Lo que no sé es si leo lo bastante bien.",
+    "13": "Cuando tenga oficio, me haré un sombrero que lo diga."
   },
   "profession.armorer": {
     "1": "Una buena coraza no se nota hasta el día que la necesitas.",
     "2": "El fuelle de mi alto horno silba cuando va a llover. No falla.",
-    "3": "Si vuelves con la armadura abollada, tráemela antes de que se oxide."
+    "3": "Si vuelves con la armadura abollada, tráemela antes de que se oxide.",
+    "4": "Tengo tres cotas de malla a medio remachar y el cliente ya ha venido dos veces.",
+    "5": "Ponte el peto, que te lo ajuste. Respira hondo. Así. ¿Te aprieta?",
+    "6": "Una flecha de esqueleto me dice más de una coraza que cualquier prueba.",
+    "7": "El hierro de las minas de %2$s es bueno, pero hay que pelearlo en la forja.",
+    "8": "Los yelmos de oro brillan mucho y protegen poco. Díselo a los presumidos.",
+    "9": "Cada abolladura que me traes es una historia que prefiero no oír entera.",
+    "10": "Llevo tantos años oliendo a carbón que ya ni lo noto. Los demás, sí.",
+    "11": "No le vendo un escudo a quien no sabe levantarlo a tiempo, %1$s.",
+    "12": "Una correa floja ha matado a más gente que muchas espadas.",
+    "13": "Si encuentras diamantes, piensa en tu pecho antes que en tu pico."
   },
   "profession.butcher": {
     "1": "El humo del ahumador se queda en la ropa una semana entera.",
     "2": "En %2$s nadie pasa hambre mientras yo tenga sal y leña.",
-    "3": "Las mejores chuletas, las de invierno. Lo dice mi abuela, y mi abuela no se equivoca."
+    "3": "Las mejores chuletas, las de invierno. Lo dice mi abuela, y mi abuela no se equivoca.",
+    "4": "El cuchillo, siempre afilado. Uno romo corta más dedos que carne.",
+    "5": "Los conejos de esta tierra son flacos, pero con romero se arreglan.",
+    "6": "Hoy tengo cordero asado. Mañana, lo que me traiga el pastor.",
+    "7": "Del cerdo no se tira nada: lo que no se asa, se sala.",
+    "8": "En las fiestas de %2$s el asador no se apaga ni de noche.",
+    "9": "Si cazas algo por el camino, %1$s, tráemelo entero. Ya lo limpio yo.",
+    "10": "Un buen caldo arregla un mal día. Dos, un mal invierno.",
+    "11": "La carne podrida de zombi no la quiero ni regalada.",
+    "12": "Tengo las manos agrietadas de tanta sal. Es el precio de un buen jamón.",
+    "13": "El pastor y yo no hablamos mucho. Ya entiendes por qué."
   },
   "profession.cartographer": {
     "1": "Cada camino que dibujo acaba en otro que todavía no conozco.",
     "2": "Un mapa en blanco es la cosa más bonita del mundo, %1$s.",
-    "3": "Me falta medio mundo por dibujar y ya me tiemblan las manos."
+    "3": "Me falta medio mundo por dibujar y ya me tiemblan las manos.",
+    "4": "Tengo una costa que no termina de cerrar. O el mapa miente o el mar se mueve.",
+    "5": "Los caminantes me traen nombres de sitios. Sospecho que la mitad se los inventan.",
+    "6": "Necesito más brújulas. Las que tengo apuntan bien, pero se me pierden en los cajones.",
+    "7": "En el borde de cada mapa escribo «aquí no he estado». Es lo más honrado que sé hacer.",
+    "8": "Desde el campanario de %2$s se ve medio valle. El otro medio lo adivino.",
+    "9": "Si pasas por un pantano, cuéntame dónde acaba. Nadie me lo sabe decir.",
+    "10": "La tinta se corre con la humedad. Por eso dibujo los ríos los días secos.",
+    "11": "Un buen mapa no te dice adónde ir, %1$s. Te dice dónde estás.",
+    "12": "He dibujado caminos que luego se comió la maleza. El papel recuerda lo que la tierra olvida.",
+    "13": "Me piden mapas del tesoro. Yo hago mapas de verdad; el tesoro lo pones tú."
   },
   "profession.cleric": {
     "1": "Las velas del altar duran más cuando la aldea está en paz.",
     "2": "He visto cosas en las noches sin luna que prefiero no contar.",
-    "3": "Que la campana de %2$s te guarde en el camino."
+    "3": "Que la campana de %2$s te guarde en el camino.",
+    "4": "El agua bendita no se compra, se espera. Y el soporte para pociones no tiene prisa.",
+    "5": "Vienen a contarme cosas que no entiendo. Yo asiento mucho.",
+    "6": "La verruga del Inframundo huele a azufre, pero cura lo que otras hierbas no curan.",
+    "7": "Cuando la campana de %2$s suena a deshora, rezo primero y pregunto después.",
+    "8": "Si te hieren ahí fuera, %1$s, no lo dejes para mañana. Mañana duele más.",
+    "9": "Guardo un frasco con una lágrima de ghast. No me preguntes cómo la conseguí.",
+    "10": "Los zombis también fueron alguien. Por eso doy gracias cada vez que amanece.",
+    "11": "Los ojos de araña tienen su uso. Ningún uso bonito, eso sí.",
+    "12": "En el altar caben todas las penas de la aldea. Lo que no caben son las velas.",
+    "13": "Hay noches en que la luna no me deja dormir. Sé lo que trae, y no me gusta."
   },
   "profession.farmer": {
     "1": "Este año el trigo viene alto. Si no llueve de más, habrá pan para todos.",
     "2": "Los cuervos no se atreven con mi espantapájaros. Bueno, casi nunca.",
-    "3": "La tierra de %2$s es agradecida si la tratas con cariño."
+    "3": "La tierra de %2$s es agradecida si la tratas con cariño.",
+    "4": "Si siembras las patatas junto a las zanahorias, se pelean. Lo he visto.",
+    "5": "El compostador huele mal, pero lo que sale de ahí vale oro.",
+    "6": "Me levanto antes que el gallo. Lo que pasa es que el gallo presume más.",
+    "7": "Este año las calabazas vienen enormes. Una me llega por la rodilla.",
+    "8": "En %2$s se riega con lo que cae del cielo y con lo que sube del pozo.",
+    "9": "Los conejos se comen mis zanahorias y yo me como a los conejos. Así va el mundo.",
+    "10": "Si me pisas los surcos, %1$s, te pongo a quitar piedras toda la tarde.",
+    "11": "La remolacha no la quiere nadie hasta que hay sopa.",
+    "12": "Cuando llueve a su tiempo, no hay música mejor.",
+    "13": "Las abejas me ayudan con las flores y yo les dejo el seto en paz. Es un trato."
   },
   "profession.fisherman": {
     "1": "El pez más grande siempre es el que se escapa.",
     "2": "Al amanecer el agua está tan quieta que parece cristal.",
-    "3": "Una vez saqué una bota llena de agua. Ni rastro del dueño."
+    "3": "Una vez saqué una bota llena de agua. Ni rastro del dueño.",
+    "4": "El bacalao pica al alba; el salmón, cuando le da la gana.",
+    "5": "Mi caña tiene más remiendos que mi barca, y mi barca tiene muchos.",
+    "6": "Cuando el corcho se hunde, el corazón se me sube. Llevo cuarenta años así.",
+    "7": "Una vez saqué un libro encantado del río. Lo vendí antes de leerlo.",
+    "8": "El pez globo, si pica, se devuelve al agua. Con cuidado, y sin tocarlo.",
+    "9": "Por las aguas de %2$s rondan ahogados. Yo pesco lejos de la orilla.",
+    "10": "La paciencia se aprende en la orilla, %1$s, no en los libros.",
+    "11": "Si el agua burbujea sin viento, mal asunto. Recojo y me voy.",
+    "12": "Remiendo las redes de noche, a la luz del farol. Cada nudo es mío.",
+    "13": "El mar no te debe nada. Lo que te da, agradéceselo."
   },
   "profession.fletcher": {
     "1": "Las mejores plumas son las de gallina vieja. No me preguntes por qué.",
     "2": "Una flecha recta vale más que diez torcidas.",
-    "3": "Si ves pedernal por el camino, guárdamelo, %1$s."
+    "3": "Si ves pedernal por el camino, guárdamelo, %1$s.",
+    "4": "Para el astil, abedul. Para el arco, lo que quieras, pero que no cruja.",
+    "5": "Los aprendices tiran las plumas mojadas. Luego no tengo con qué emplumar.",
+    "6": "Una flecha con punta de pedernal no perdona. No se te olvide a quién apuntas.",
+    "7": "Tengo un encargo de doscientas flechas para la guardia de %2$s. Voy por la ochenta.",
+    "8": "La telaraña da el mejor cordel para la cuerda. Lo malo es ir a buscarla.",
+    "9": "Los esqueletos tiran mal, pero tiran mucho. Cúbrete, %1$s.",
+    "10": "Las ballestas son para quien no tiene paciencia. Y los saqueadores no la tienen.",
+    "11": "Pruebo cada flecha con el dedo. Si vibra torcida, al fuego.",
+    "12": "Las gallinas me dan las plumas y yo les doy las gracias. Ellas no salen ganando.",
+    "13": "Una diana con tres flechas en el centro es lo más bonito que he visto nunca."
   },
   "profession.leatherworker": {
     "1": "El cuero bien curtido aguanta más que muchos hierros.",
     "2": "Huelo a caldero todo el día, pero alguien tiene que hacerlo.",
-    "3": "Tus botas piden a gritos un remiendo, ¿lo sabías?"
+    "3": "Tus botas piden a gritos un remiendo, ¿lo sabías?",
+    "4": "La piel de conejo es suave, pero se rompe con solo mirarla.",
+    "5": "Tengo una silla de montar a medias. El caballo se impacienta, y el dueño más.",
+    "6": "El tinte se queda en las uñas. Este mes las llevo moradas.",
+    "7": "Una buena mochila no se nota hasta que se rompe a media legua de casa.",
+    "8": "Las vacas de %2$s dan buen cuero. El problema es que también dan pena.",
+    "9": "Si ves pieles en el mercado, %1$s, regatea. No valen lo que piden.",
+    "10": "El caldero me ha dado más quemaduras que el sol de todo un verano.",
+    "11": "Coso de noche, cuando la aldea calla. El cuero me dice dónde quiere la aguja.",
+    "12": "Una armadura de cuero no para una espada, pero para el frío. Y el frío también mata.",
+    "13": "Mis guantes viejos han vivido más que muchos caballeros."
   },
   "profession.librarian": {
     "1": "Hay un libro en mi estantería que nadie ha abierto nunca. Ni yo.",
     "2": "Las historias de %2$s caben en tres tomos, y uno es de recetas.",
-    "3": "Leer de noche gasta velas, pero ahorra aburrimiento."
+    "3": "Leer de noche gasta velas, pero ahorra aburrimiento.",
+    "4": "El herrero se llevó un tomo sobre el temple del hierro hace dos inviernos. Sigo esperando.",
+    "5": "Encuadernar es fácil. Lo difícil es que la gente no doble las esquinas.",
+    "6": "Tengo un libro encantado que nadie sabe leer. Sospecho que lo hace por orgullo.",
+    "7": "La biblioteca de %2$s es pequeña, pero cada libro está donde debe.",
+    "8": "Si vas a tocar algo, %1$s, lávate las manos. El polvo del camino no perdona.",
+    "9": "Escribo la crónica de la aldea. Este año, de momento, solo hay dos bodas y una vaca perdida.",
+    "10": "La tinta de calamar mancha más que ninguna. Por eso escribe mejor.",
+    "11": "Los atriles crujen cuando alguien lee de verdad. Los míos casi nunca crujen.",
+    "12": "Me piden libros de aventuras, y luego no salen de la aldea.",
+    "13": "Una estantería vacía es una pregunta. Una llena, una promesa que no voy a cumplir."
   },
   "profession.mason": {
     "1": "Una pared bien hecha dura más que quien la levanta.",
     "2": "La piedra de esta tierra es terca, como la gente de %2$s.",
-    "3": "Si oyes crujir una viga, avísame antes que al alcalde."
+    "3": "Si oyes crujir una viga, avísame antes que al alcalde.",
+    "4": "Llevo una semana con la pared del pozo y el cubo sigue saliendo con arena.",
+    "5": "La arcilla de río es buena para el ladrillo. La de charca solo sirve para mancharse.",
+    "6": "Poner piedra sobre piedra lo sabe hacer cualquiera. Que se quede quieta ya es otra cosa.",
+    "7": "El alcalde quiere una torre nueva en %2$s. Yo quiero cobrar la anterior.",
+    "8": "Un cincel romo te hace odiar el granito. Uno bueno te hace quererlo.",
+    "9": "Si construyes algo por ahí, %1$s, empieza por los cimientos. Todos lo saben; casi nadie lo hace.",
+    "10": "La terracota esmaltada es muy bonita, pero no la quieras en el suelo de una cocina.",
+    "11": "Me duele la espalda cuando va a helar. Las paredes también lo notan.",
+    "12": "Una casa de madera arde. Una de piedra, como mucho, se tizna.",
+    "13": "Cada mañana cuento las grietas de la muralla. Hoy hay una más."
   },
   "profession.nitwit": {
     "1": "¿Sabías que las ovejas no saben nadar hacia atrás? Me lo he inventado.",
     "2": "Hoy he contado las nubes. Me salieron siete. O seis.",
-    "3": "No trabajo, pero opino de todo. Alguien tiene que hacerlo."
+    "3": "No trabajo, pero opino de todo. Alguien tiene que hacerlo.",
+    "4": "He estado pensando en cosas importantes. Se me han olvidado todas.",
+    "5": "¿Has visto esa nube? Parecía una gallina. Ahora parece otra gallina.",
+    "6": "Me quisieron enseñar a remendar redes. Ganaron las redes.",
+    "7": "En %2$s todo el mundo trabaja mucho. Alguien tiene que mirar cómo lo hacen.",
+    "8": "Si me buscas, %1$s, estoy aquí. Casi siempre estoy aquí.",
+    "9": "Una vez perseguí a un conejo toda la tarde. Él tampoco sabía adónde íbamos.",
+    "10": "Me gusta cómo suena la campana. Me gusta menos cuando la toco yo.",
+    "11": "Hoy me he caído al pozo. Bueno, me he asomado mucho.",
+    "12": "Los demás tienen oficio; yo tengo ideas. Ninguna sirve, pero son mías.",
+    "13": "¿Por qué los creepers no tienen brazos? Se lo pregunté a uno. Mala idea."
   },
   "profession.shepherd": {
     "1": "Mis ovejas reconocen mi silbido desde el otro lado del valle.",
     "2": "La lana de este año es tan suave que da pena teñirla.",
-    "3": "Si ves una oveja suelta, es mía. Siempre es mía."
+    "3": "Si ves una oveja suelta, es mía. Siempre es mía.",
+    "4": "Anoche vinieron los lobos. El perro los oyó antes que yo, y yo antes que las ovejas.",
+    "5": "Esquilo en primavera. Si lo hago antes, las ovejas me miran con rencor todo el mes.",
+    "6": "Una oveja negra en el rebaño trae suerte. Dos, discusiones.",
+    "7": "Los pastos de %2$s se agotan pronto. Por eso subo al monte cuando florece.",
+    "8": "El telar no es lo mío, pero alguien tiene que convertir la lana en algo.",
+    "9": "Si te cruzas con un lobo, %1$s, no corras. Bueno, corre si va a por las ovejas.",
+    "10": "Tiño la lana con lo que encuentro: amapolas, cactus, tinta de calamar. La de calamar huele.",
+    "11": "Cuento las ovejas cada noche. Siempre me falta una, y luego aparece en un tejado.",
+    "12": "Las ovejas comen hierba y la hierba vuelve a salir. Ojalá todo fuera así.",
+    "13": "Hay que conocer a cada oveja por su balido. Yo conozco a cuarenta. Ellas a mí, a uno."
   },
   "profession.toolsmith": {
     "1": "Un pico mal templado se rompe en la peor galería.",
     "2": "Afilo mejor con la luna creciente. Superstición, dirás. Resultados, digo yo.",
-    "3": "Las herramientas de %2$s se conocen por el sonido del yunque."
+    "3": "Las herramientas de %2$s se conocen por el sonido del yunque.",
+    "4": "Tengo seis hachas por afilar y el leñador viene esta tarde.",
+    "5": "Una azada de piedra bien hecha dura más que una de hierro mal templada.",
+    "6": "Los mineros de %2$s me traen los picos rotos como quien trae un perro herido.",
+    "7": "Las tijeras pequeñas son las que más trabajo dan. Nadie lo diría.",
+    "8": "Si bajas a la mina, %1$s, lleva dos picos. El segundo siempre hace falta.",
+    "9": "La piedra de afilar habla. Si chirría, el filo no va bien.",
+    "10": "Me traen herramientas de oro para arreglar. Les digo la verdad: no merece la pena.",
+    "11": "Templar es saber cuándo parar. Lo demás es fuerza bruta.",
+    "12": "Cada mango lo tallo yo. Una herramienta que no se agarra bien no sirve de nada.",
+    "13": "El yunque se gasta, aunque no lo parezca. El mío ya tiene la cara cansada."
   },
   "profession.weaponsmith": {
     "1": "Una espada no hace al guerrero, pero ayuda mucho.",
     "2": "Por aquí pasan muchos aventureros. Pocos vuelven a pagar el afilado.",
-    "3": "Ten cuidado ahí fuera, %1$s. Los saqueadores no avisan."
+    "3": "Ten cuidado ahí fuera, %1$s. Los saqueadores no avisan.",
+    "4": "Tengo cuatro espadas encargadas para la guardia y se me acaba el carbón.",
+    "5": "Un hacha corta árboles y cabezas. Yo no pregunto para qué la quieres.",
+    "6": "Dicen que las espadas de diamante no se rompen nunca. Yo he visto una partida en dos.",
+    "7": "La guardia de %2$s se queja de lo que pesan las espadas. Que se queje de las cicatrices.",
+    "8": "Un filo se cuida como un animal: agua, aceite y nunca dejarlo al sereno.",
+    "9": "Si te enfrentas a un vindicador, %1$s, no le des tiempo a levantar el hacha.",
+    "10": "Una espada sin vaina es como un perro sin correa: un día muerde a quien no debe.",
+    "11": "Forjo de día y pulo de noche. El brillo de la hoja me deja dormir tranquilo.",
+    "12": "La piedra de afilar de mi abuelo sigue aquí. Él, no. Así son las cosas.",
+    "13": "No le vendo un arma a quien no me mira a los ojos al pagar."
   }
 }
