@@ -153,6 +153,15 @@ public final class HeraldHouse {
 		return g != null && level == houseLevel && g.inArea(pos.getX(), pos.getZ()) && !(who instanceof Player p && isOperator(p));
 	}
 
+	/**
+	 * For HeraldEndermanMixin: an enderman this close to the protected area does not pick up blocks (the goal reaches
+	 * 2 blocks around it horizontally, so 3 is enough).
+	 */
+	public static boolean endermanStays(Level level, BlockPos pos) {
+		Grounds g = grounds;
+		return g != null && level == houseLevel && g.nearArea(pos.getX(), pos.getZ(), 3);
+	}
+
 	/** For HeraldSpawnMixin: no monster spawns in the protected area. */
 	public static boolean noSpawn(Level level, BlockPos pos) {
 		Grounds g = grounds;

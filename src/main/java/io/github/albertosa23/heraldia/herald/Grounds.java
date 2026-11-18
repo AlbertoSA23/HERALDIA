@@ -64,6 +64,11 @@ public record Grounds(int ox, int oy, int oz, HousePlan plan) {
 		return x >= ox - RING && z >= oz - RING && x <= maxX() + RING && z <= maxZ() + RING;
 	}
 
+	/** Within {@code m} blocks of the protected area (horizontally)? */
+	public boolean nearArea(int x, int z, int m) {
+		return x >= ox - RING - m && z >= oz - RING - m && x <= maxX() + RING + m && z <= maxZ() + RING + m;
+	}
+
 	/** Does the protected area touch the rectangle (inclusive)? */
 	public boolean areaOverlaps(int minX, int minZ, int maxX, int maxZ) {
 		return minX <= maxX() + RING && maxX >= ox - RING && minZ <= maxZ() + RING && maxZ >= oz - RING;

@@ -54,6 +54,9 @@ class HeraldHouseLogicTest {
 		int[] c = G.world(PLAN.bell());
 		assertTrue(G.isProtected(c[0], c[1], c[2], false, 3), "the tenant outside their stall");
 		assertFalse(G.isProtected(5000, 70, 5000, false, 0), "outside the area");
+		// endermen: the pickup goal reaches 2 blocks, so it stops 3 blocks before the area
+		assertTrue(G.nearArea(1000 - 50 - 3, -2000, 3));
+		assertFalse(G.nearArea(1000 - 50 - 4, -2000, 3));
 	}
 
 	@Test

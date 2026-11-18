@@ -27,7 +27,9 @@ not step on the arena; its bell, portal frame and stalls are where casa_heraldo.
 operator cannot break or place a block, nor light the portal with flint and steel (an operator can); with the market on
 (entry 2, rent 1 per day, no grace) the player claims stall 1 for 3 emeralds, a chest with diamonds is left in it,
 the rent runs out (tick sprint) and the lazy check reclaims it: the diamonds and the chest end up in a return barrel
-and the stall is free. On the second start the house is remembered.
+and the stall is free. A player dropped from 3 blocks onto the house's farmland does not trample it (onto farmland far
+away, it does). On the second start the house is remembered. Not checked here: no monster spawning in the area (natural
+spawning does not come back in this world once the test has turned it off; see LESSONS).
 """
 import argparse, json, math, os, re, shutil, sys, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -447,6 +449,27 @@ def herald_house(p, hp, arena_box):
         p.check(ctx.block(box, "minecraft:air"), "herald: the stall is not emptied")
     ctx.run("tick sprint stop", r"[Ss]print|sprint|No")
     ctx.run("heraldia herald stall", r"Market stalls|Puestos del mercado")
+    # trampling: a 3-block drop onto the house's farmland (HeraldFarmlandMixin), and onto farmland far away (control)
+    s.send(ctx.proc, f"gamemode survival {P}")
+    ctx.ticks(2)
+    far = (b[3] + 300, b[5] + 300)
+    farm = w(hp["huerto"])
+    p.check(ctx.block(farm, "minecraft:farmland"), f"herald: no farmland at {farm}")
+    ctx.run(f"tp {P} {farm[0] + 0.5} {farm[1] + 4} {farm[2] + 0.5}", r"Teleported")
+    ctx.ticks(30)
+    p.check(ctx.block(farm, "minecraft:farmland"), "herald: a player tramples the house's farmland")
+    ctx.run(f"spreadplayers {far[0]} {far[1]} 0 1 false {P}", r"Spread|spread")
+    fp = ctx.pos(f"@a[name={P}]")
+    if p.check(fp, "herald: the player is not at the control spot"):
+        fx, fy, fz = int(math.floor(fp[0])), int(round(fp[1])) + 6, int(math.floor(fp[2]))
+        ctx.run(f"fill {fx - 1} {fy - 1} {fz - 1} {fx + 1} {fy + 4} {fz + 1} minecraft:air", r"Successfully filled|No blocks")
+        ctx.run(f"setblock {fx} {fy - 1} {fz} minecraft:farmland", r"Changed the block|Could not set")
+        ctx.run(f"tp {P} {fx + 0.5} {fy + 3} {fz + 0.5}", r"Teleported")
+        ctx.ticks(30)
+        p.check(ctx.block((fx, fy - 1, fz), "minecraft:dirt"), "herald: control: far away the farmland is not trampled (test broken?)")
+    # monsters not spawning in the area (HeraldSpawnMixin) is not checked here: in this world spawn_mobs and advance_time
+    # were turned off at the start and turning them back on does not bring natural spawning back (see LESSONS)
+    ctx.run(f"tp {P} {sx + 0.5} {sy} {sz + 0.5}", r"Teleported")
 
 
 def wait_count(ctx, sel, n, timeout=60):

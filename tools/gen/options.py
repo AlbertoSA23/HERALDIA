@@ -719,6 +719,7 @@ _NAMES = {
     "tesoro.probabilidad": ("Fragmentos por cofre (%)", "Fragments per chest (%)"),
     "tesoro.radio_max": ("Distancia máxima entre marcas (bloques)", "Maximum distance between marks (blocks)"),
     "reputacion.aldea_visible": ("La reputación se ve en la aldea", "Reputation shows in the village"),
+    "casa_heraldo.activado": ("Casa del Heraldo", "Herald's House"),
     "casa_heraldo.generar_en_mundos_nuevos": ("Construirla en mundos nuevos", "Build it in new worlds"),
     "casa_heraldo.mercado.activado": ("Puestos de alquiler", "Stalls for rent"),
     "casa_heraldo.mercado.entrada_esmeraldas": ("Entrada (esmeraldas)", "Entry fee (emeralds)"),

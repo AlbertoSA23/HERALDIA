@@ -38,7 +38,9 @@ TOWER = 7
 THEME = next(th for th in THEMES if th["id"] == "llanuras_castellana")
 STYLE, FAMILY = THEME["id"], THEME["family"]   # how the villagers' conversations see the town (dialogue/Dialogue)
 HOUSE_TAG = "heraldia_casa"  # on every entity of the house (Building.finish keeps them where they are)
-DOCK_SIZE = (5, 16)        # width (x) and length (z, out over the water) of the dock
+DOCK_SIZE = (5, 16)
+FARM = (76, 8, 88, 22)                     # x0, z0, x1, z1 of the farm
+FARM_CELL = (78, FLOOR, 10)                # one of its farmland blocks (the server test drops a player on it)        # width (x) and length (z, out over the water) of the dock
 
 # materials (none burns: crimson and warped wood are fireproof)
 WALL, TRIM, PAVE, PAVE2 = "stone_bricks", "polished_andesite", "stone_bricks", "polished_andesite"
@@ -454,7 +456,7 @@ def construct():
     for z0, z1 in ((38, ROAD[0] - 2), (ROAD[1] + 2, 58)):
         garden(t, 8, z0, 20, z1, 3)
         garden(t, 76, z0, 88, z1, 5)
-    stations.append(("composter",) + farm(t, 76, 8, 88, 22))
+    stations.append(("composter",) + farm(t, *FARM))
     # the stalls and the market lane between their two rows
     number = 1
     for zn, faces in STALL_ROWS:
@@ -533,6 +535,7 @@ def dataset(t=None):
         "devolucion": t.returns,
         "muelle": {"plantilla": f"{NS}:{DOCK}", "tamano": [w, 4, length]},
         "estilo": STYLE,
+        "huerto": list(FARM_CELL),
     }
 
 
@@ -575,6 +578,8 @@ def errors(t=None):
                 e.append(f"casa_heraldo: the portal's inside is not empty at {x} {y} {az}")
     if not any(_name(st) == "lectern" and nbt and "Book" in nbt for st, nbt in t.blocks.values()):
         e.append("casa_heraldo: the job board's lectern has no book")
+    if not _name(t.get(*FARM_CELL)).startswith("farmland"):
+        e.append("casa_heraldo: no farmland where the blueprint says (huerto)")
     if len(t.stalls) < 8:
         e.append("casa_heraldo: fewer than 8 market stalls")
     for s in t.stalls:
