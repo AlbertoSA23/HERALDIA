@@ -84,7 +84,8 @@ COAST = ["tools/smoke/coast.py"]
 COAST_MOBS = COAST + ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"]
 # Game profiles ("perfil" option, T36): their server test (restarts with each profile and an option set by hand).
 PROFILES = ["tools/smoke/profiles.py", "tools/smoke/light_profile.py"]
-# Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements.
+# Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements; also the
+# villager conversations (P9a), whose server scenario is in the same test.
 QUESTS = ["tools/smoke/quests.py"]
 # Caravans along the roads (T39): their Java and their texts and advancement.
 CARAVANS = ["tools/smoke/caravans.py"]
@@ -130,6 +131,8 @@ MAP = [
     (JAVA + "mixin/IOWorkerMixin.java", SEARCH_CACHE), (JAVA + "mixin/RegionFileStorageMixin.java", SEARCH_CACHE),
     # board quests and reputation (T38)
     (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
+    # villager conversations (P9a): their scenario lives in the quests test (a real village and a simulated player)
+    (JAVA + "dialogue/*", QUESTS), ("tools/gen/dialogue.py", QUESTS), ("tools/gen/dialogue/*", QUESTS),
     # caravans along the roads (T39)
     (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS), ("tools/smoke/wayfarers.py", CARAVANS),
     # chozas de mago (T43)

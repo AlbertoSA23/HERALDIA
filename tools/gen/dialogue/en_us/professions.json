@@ -1,0 +1,77 @@
+{
+  "profession.none": {
+    "1": "I still don't know what to do with my life. How did you know what yours was?",
+    "2": "If anyone leaves a workstation free in %2$s, let me know.",
+    "3": "Today I helped everyone a little and nobody thanked me."
+  },
+  "profession.armorer": {
+    "1": "Good armour goes unnoticed until the day you need it.",
+    "2": "The bellows of my blast furnace whistle when rain is coming. Never fails.",
+    "3": "If you come back with dented armour, bring it to me before it rusts."
+  },
+  "profession.butcher": {
+    "1": "The smoke from the smoker clings to your clothes for a whole week.",
+    "2": "In %2$s nobody goes hungry while I have salt and firewood.",
+    "3": "The best chops are winter ones. My grandmother says so, and she is never wrong."
+  },
+  "profession.cartographer": {
+    "1": "Every road I draw ends at another I don't know yet.",
+    "2": "A blank map is the most beautiful thing in the world, %1$s.",
+    "3": "Half the world is left to draw and my hands already shake."
+  },
+  "profession.cleric": {
+    "1": "The altar candles last longer when the village is at peace.",
+    "2": "I have seen things on moonless nights I'd rather not tell.",
+    "3": "May the bell of %2$s keep you on the road."
+  },
+  "profession.farmer": {
+    "1": "The wheat is growing tall this year. If it doesn't rain too much, there'll be bread for everyone.",
+    "2": "The crows don't dare come near my scarecrow. Well, hardly ever.",
+    "3": "The soil of %2$s is grateful if you treat it kindly."
+  },
+  "profession.fisherman": {
+    "1": "The biggest fish is always the one that gets away.",
+    "2": "At dawn the water is so still it looks like glass.",
+    "3": "Once I reeled in a boot full of water. No sign of its owner."
+  },
+  "profession.fletcher": {
+    "1": "The best feathers come from old hens. Don't ask me why.",
+    "2": "One straight arrow is worth ten crooked ones.",
+    "3": "If you see flint along the road, save it for me, %1$s."
+  },
+  "profession.leatherworker": {
+    "1": "Well-tanned leather outlasts a lot of iron.",
+    "2": "I smell of the cauldron all day, but somebody has to do it.",
+    "3": "Your boots are crying out for a patch, did you know?"
+  },
+  "profession.librarian": {
+    "1": "There is a book on my shelf nobody has ever opened. Not even me.",
+    "2": "The history of %2$s fits in three volumes, and one of them is recipes.",
+    "3": "Reading at night uses up candles, but saves on boredom."
+  },
+  "profession.mason": {
+    "1": "A well-built wall outlasts whoever raises it.",
+    "2": "The stone of this land is stubborn, like the people of %2$s.",
+    "3": "If you hear a beam creak, tell me before the mayor."
+  },
+  "profession.nitwit": {
+    "1": "Did you know sheep can't swim backwards? I made that up.",
+    "2": "Today I counted the clouds. I got seven. Or six.",
+    "3": "I don't work, but I have opinions on everything. Someone has to."
+  },
+  "profession.shepherd": {
+    "1": "My sheep know my whistle from across the valley.",
+    "2": "This year's wool is so soft it feels a shame to dye it.",
+    "3": "If you see a stray sheep, it's mine. It's always mine."
+  },
+  "profession.toolsmith": {
+    "1": "A badly tempered pickaxe breaks in the worst tunnel.",
+    "2": "I sharpen better under a waxing moon. Superstition, you'll say. Results, I say.",
+    "3": "The tools of %2$s are known by the sound of the anvil."
+  },
+  "profession.weaponsmith": {
+    "1": "A sword doesn't make the warrior, but it helps a lot.",
+    "2": "Many adventurers pass through here. Few come back to pay for the sharpening.",
+    "3": "Be careful out there, %1$s. Pillagers give no warning."
+  }
+}

@@ -10,6 +10,7 @@ Volver al [README](../README.es.md).
 - **La Atlántida**: una única ciudad sumergida por mundo (ver abajo).
 - **Caravanas**: mercaderes con llamas que recorren los caminos entre aldeas; defiéndelos de los bandidos (ver [Caravanas](#caravanas)).
 - **Gente de paso**: peregrinos, pastores, mensajeros, parejas de guardias y cazadores que pasan por los caminos cerca de ti, según la zona (ver [Gente de paso](#gente-de-paso)).
+- **Conversaciones con los aldeanos**: habla con los aldeanos de las aldeas de Heraldia; uno de cada diez ha viajado y, si la aldea se fía de ti, te cuenta dónde queda una estructura (ver [Conversaciones con los aldeanos](#conversaciones-con-los-aldeanos)).
 - **Chozas de mago**: un mago con tratos en una choza muy decorada; uno de cada cinco es un mago malvado disfrazado (ver [Chozas de mago](#chozas-de-mago)).
 - **Arena de oleadas**: un coliseo cerca del spawn para jugar por oleadas, con récords y recompensas (ver [Arena de oleadas](#arena-de-oleadas)).
 - **Nether y End**: 7 medianas y 2 únicas al otro lado de los portales (ver [Nether y End](#nether-y-end)).
@@ -148,6 +149,57 @@ Las aldeas Heraldia tienen comercio con carácter, un tablón de encargos y, en 
 - **Asedios** (`aldeas.vida.asedios`, **desactivado**: cambia el equilibrio): en las aldeas fortificadas (`oscuro_fortificada`, `nieve_fortaleza`, `badlands_canon`) el armero vende en el nivel 3 el «Desafío del asedio», una botella ominosa de nivel I (10 esmeraldas, una vez): quien la bebe y vuelve a la aldea provoca un asalto de saqueadores del juego. No hay puesto de saqueadores junto a la aldea: los saqueadores atacan a los aldeanos a 32 bloques aunque no los vean, así que tendría que quedar fuera de la aldea, y una aldea grande ya llega casi a los 8 chunks de su inicio, el máximo al que el juego coloca piezas; además serían mobs persistentes cargados todo el tiempo.
 
 Coste: una entidad más por aldea (el alguacil, sin IA) y ninguna función periódica; los tratos y las hazañas solo se evalúan cuando un aldeano sube de nivel o un jugador mata, gana un asalto o recoge algo (criterios de logros del juego).
+
+## Conversaciones con los aldeanos
+
+Los aldeanos de las aldeas de Heraldia hablan (`dialogos.*` en la [configuración](CONFIGURACION.md#configuración); también en las aldeas ya generadas). Todo va en el chat con botones clicables, como el tablón de encargos, así que funciona con clientes vanilla, en el idioma de cada jugador.
+
+- **El gesto**: el clic derecho sobre un **aldeano de Heraldia que está dentro de una aldea de Heraldia** abre primero una conversación: un saludo y una frase. Debajo, los botones **[Seguir hablando]** (dos frases más como mucho), **[¿Qué se cuenta?]**, **[Comerciar]** (abre sus tratos como siempre) y **[Adiós]**. **Agacharse + clic derecho va directo a los tratos**, y lo mismo cualquier otro aldeano: los vanilla, los de otros mods, un aldeano de Heraldia que se ha salido de su aldea, el alguacil del tablón y los magos de las chozas. Con una etiqueta de nombre, una correa o un huevo de generación en la mano se conserva su uso vanilla, y los bebés, los aldeanos dormidos y los que ya están comerciando no se tocan. Los jugadores simulados (bots de Carpet, los jugadores falsos de la automatización del comercio) no envían el clic del cliente, así que comercian como siempre. Con `dialogos.activado` en `false` se apaga todo el sistema.
+- **Lo que dicen** depende de quiénes son y dónde están: su **oficio** (los 15 vanilla, desempleado y simplón incluidos), la **tierra de la aldea** (su familia: llanuras, bosque, bosque oscuro, taiga, nieve, desierto, sabana, jungla, pantano, cerezos, badlands, costa), el **momento del día** (mañana, tarde, anochecer, noche), el **tiempo** donde está el aldeano (despejado, lluvia, nieve, tormenta; del mal tiempo se habla más) y **tu reputación** con la aldea (desconocido, conocido, amigo, héroe: también decide el saludo). Cada jugador recuerda las 24 últimas frases que ha oído a cualquier aldeano (en su archivo), para que la misma frase no salga dos veces seguidas.
+- **Descanso**: cada aldeano descansa `dialogos.espera_segundos` (60) entre una conversación y la siguiente; mientras, dice que está ocupado y ofrece sus tratos.
+- **Los viajeros y su secreto**: uno de cada diez aldeanos (`dialogos.viajeros_porcentaje`) ha viajado y conoce un sitio. Quiénes son sale del UUID de cada aldeano (no se guarda nada; no hay ninguna señal: pregunta por ahí). Si un jugador con al menos `dialogos.pista_reputacion` (20, *conocido*) de reputación con la aldea le pregunta **[¿Qué se cuenta?]**, le dice **dónde queda una estructura de Heraldia: la dirección y la distancia redondeada a 100 bloques, nunca coordenadas**, como los encargos de explorar del tablón. Solo cuentan estructuras que aparecen de verdad: la misma búsqueda que el tablón (las únicas con guardián a menos de 4.000 bloques, las medianas y las entradas a mina a menos de 1.500, con las reglas de `/locate`, sin cargar ni generar chunks), una de las seis más cercanas, elegida según el aldeano. **Una vez en su vida**: se guarda en el aldeano (`heraldia:dialogo_aldeano`), así que volver a hacer clic, otro jugador o un reinicio no la sacan dos veces; después dice que ya contó lo que sabía. Sin reputación suficiente insinúa que sabe algo; con la reputación desactivada se lo cuenta a cualquiera. Los demás aldeanos responden con un rumor.
+- **Operadores**: `/heraldia talk with <aldeano>` abre una conversación con ese aldeano como lo haría un clic (para ver las frases y hacer capturas).
+
+Rendimiento: nada se ejecuta en cada tick. Todo ocurre con un clic o un botón: una consulta de estructura para saber la aldea (la misma que la del tablón), una frase sacada de listas ya en memoria (el archivo de cada idioma se lee una vez) y, para la pista de un viajero, la búsqueda del tablón, hecha una vez por aldea y arranque fuera del hilo del servidor. Lo que se guarda: dos campos en cada aldeano que ha hablado y las 24 últimas claves de frase en el archivo de cada jugador; la conversación en curso vive solo en memoria y se descarta cuando el jugador se va.
+
+### Cómo se añade una frase
+
+Las frases son datos, no código: `tools/gen/dialogue/<idioma>/<grupo>.json`, una carpeta por idioma (`es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es`) y dos archivos en cada una: `professions.json` (los grupos `profession.*`) y `village.json` (todos los demás). El generador junta cada idioma en `heraldia/dialogos/<código>.json` dentro del `.jar`.
+
+```json
+{
+  "profession.farmer": {
+    "1": "Este año el trigo viene alto.",
+    "2": "La tierra de %2$s es agradecida si la tratas con cariño."
+  }
+}
+```
+
+1. **Escríbela primero en español** (`es_es` es la referencia: sus grupos e ids son el conjunto completo). Añádela a su grupo con el siguiente id libre (`"4"` después de `"3"`). Los ids son lo que guarda la memoria de cada jugador: nunca reutilices un id con otro significado; para quitar una frase, quítala en todos los idiomas.
+2. **Después añade el mismo grupo e id en todos los demás idiomas que tengan ese archivo**, `en_us` incluido. A un idioma le puede faltar un archivo entero (sus jugadores reciben entonces la frase en inglés); pero un archivo que existe debe tener todas las frases españolas de ese archivo, ni una más, con los mismos huecos de formato.
+3. **Huecos** (todos opcionales): en todos los grupos `%1$s` es el nombre del jugador y `%2$s` el de la aldea; en `hint.unique`, `hint.medium` y `hint.mine`, `%1$s` es el sitio («Castillo de la Llanura», «posada del camino»), `%2$s` la dirección («norte») y `%3$s` la distancia aproximada en bloques. Solo huecos del tipo `%s`: un signo de porcentaje literal es `%%`. Entrecomilla el nombre del sitio con las comillas interiores del idioma (la frase entera va dentro de las exteriores) y escribe las pistas para que se lean bien con cualquier nombre (sin artículo pegado).
+4. Comprueba: `python3 -m pytest tools/gen/tests/test_dialogue.py -q` (nombra cada frase que falta o sobra y cada hueco distinto) y `./gradlew build` (la generación falla con los mismos errores). `HERALDIA_FRASES_COMPLETAS=1 python3 -m pytest tools/gen/tests/test_dialogue.py -q` además falla mientras a un idioma le falte un archivo.
+
+Los grupos (`dialogue.pools()` en `tools/gen/dialogue.py`; el objetivo es unas 40 frases por oficio y por contexto, unas 350-400 por idioma):
+
+| Grupo | Cuándo | Archivo |
+|---|---|---|
+| `profession.<id>` | el oficio del aldeano: `none`, `armorer`, `butcher`, `cartographer`, `cleric`, `farmer`, `fisherman`, `fletcher`, `leatherworker`, `librarian`, `mason`, `nitwit`, `shepherd`, `toolsmith`, `weaponsmith` (peso 40) | `professions.json` |
+| `family.<familia>` | la tierra de la aldea: `llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa` (peso 20) | `village.json` |
+| `time.<momento>` | `morning`, `afternoon`, `evening`, `night` (peso 10) | `village.json` |
+| `weather.<tiempo>` | `clear` (peso 5), `rain`, `snow`, `thunder` (peso 15) | `village.json` |
+| `reputation.<nivel>` | el nivel del jugador con la aldea: `desconocido`, `conocido`, `amigo`, `heroe` (peso 8) | `village.json` |
+| `general` | cualquier cosa, en cualquier sitio (peso 12) | `village.json` |
+| `greeting.<nivel>` | la primera frase de cada conversación, según el nivel de reputación | `village.json` |
+| `rumor` | [¿Qué se cuenta?] a un aldeano que no es viajero | `village.json` |
+| `hint.unique`, `hint.medium`, `hint.mine` | un viajero cuenta su sitio (huecos: sitio, dirección, distancia) | `village.json` |
+| `hint.withheld` | un viajero que todavía no se fía del jugador | `village.json` |
+| `hint.told` | un viajero que ya contó su sitio | `village.json` |
+| `hint.nothing` | un viajero sin ninguna estructura alrededor de su aldea | `village.json` |
+| `busy` | un clic mientras el aldeano descansa | `village.json` |
+| `farewell` | [Adiós], o el final de la conversación | `village.json` |
+
+Una frase de conversación se sortea entre los seis grupos de contexto con esos pesos (un grupo sin frases, o con todas oídas hace poco, no cuenta); un grupo puede quedarse vacío, salvo `general`, `rumor`, `busy`, `farewell`, los cuatro `greeting.*` y los seis `hint.*`, que necesitan al menos una frase.
 
 ## Caminos entre aldeas
 

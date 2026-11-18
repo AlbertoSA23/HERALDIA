@@ -43,6 +43,8 @@ CANONICAL = [
     "treasure", "treasure give", "treasure give <players>", "treasure info",   # T40: treasure hunt (operators)
     "quest", "quest list", "quest accept", "quest accept <number>", "quest abandon", "quest abandon <number>",
     "quest turnin",                              # T38: the board quests
+    "talk", "talk more", "talk rumor", "talk trade", "talk bye",   # P9a: the answer buttons of a villager conversation
+    "talk with", "talk with <villager>",         # and a conversation started by an operator (preview, tests)
     "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",
     "caravan clear",                             # T39: the caravans (operators)
     "caravan wayfarer", "caravan wayfarer pilgrim", "caravan wayfarer shepherd", "caravan wayfarer messenger",
