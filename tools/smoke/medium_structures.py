@@ -10,7 +10,10 @@ Checks:
   rules); then it is really generated (forceload) and the structure is where /locate said;
 - /place template of each variant (on a slab): each container with its table (also the templete's vessels), the
   expected entities (tag heraldia_mediana.<type>), still water (the mill's channel, irrigation ditches, the templete's well:
-  it is still a source and does not flow) and the villagers (innkeeper, miller, fisherman, hunter) still and with their trades;
+  it is still a source and does not flow) and the villagers: the inhabitants with AI, the wizard still, all with their trades;
+- the inhabitants settle on the seed's real terrain: every structure of an inhabited kind that /locate finds is generated
+  and its villagers take their workstation in the morning and their bed at night and sleep (check_settled; summary line
+  HABITANTES);
 - /place structure of each style (the pool and the structure load) and its time;
 - loot spawn of each table (the hermitage's journal is a written book) and /heraldia info with its summary.
 Exit code 0 if everything passes.
@@ -84,10 +87,15 @@ def check_locate(ctx, kinds):
                         fails.append(f"{mid} at {px}, {pz} {dist} blocks from {sid} (< {ZONE})")
                 elif f"medianas/{mid}" not in sid and dist < DISTANCE:
                     fails.append(f"{mid} at {px}, {pz} {dist} blocks from {sid} (< {DISTANCE})")
-            if (x, z) == POINTS[0]:      # the first one is really generated: the start is where /locate said
+            # the first one is really generated: the start is where /locate said; the kinds with inhabitants, all of
+            # them (each one is a sample, on the seed's real terrain, of whether its villagers settle)
+            if (x, z) == POINTS[0] or mid in INHABITED:
                 forceload(ctx, px - 32, pz - 32, px + 31, pz + 31)
                 if not wait_generated(ctx, px, pz, mid):
                     fails.append(f"{mid}: /locate gives {px}, {pz} but nothing has been generated there")
+                elif mid in INHABITED:
+                    fails += check_settled(ctx, mid, px, pz)
+                forceload(ctx, px - 32, pz - 32, px + 31, pz + 31, remove=True)
         if not found_count:
             fails.append(f"no {mid}")
     if timings:
@@ -108,6 +116,51 @@ def wait_generated(ctx, x, z, mid):
                 return True
         time.sleep(2)
     return False
+
+
+def inhabited():
+    """Kinds whose templates hold inhabitants (mediums/_inhabitants.py)."""
+    from mediums import _inhabitants as inh
+    out = set()
+    for name, t in templates().items():
+        if any(inh.is_inhabitant(n) for *_, n in t.entities):
+            out.add(name.split("/")[1])
+    return out
+
+
+INHABITED = inhabited()
+SETTLED = []                         # (kind, x, z, villagers, with job site, with home, slept): the summary
+
+
+def check_settled(ctx, mid, px, pz):
+    """On the seed's real terrain: every inhabitant villager of the structure /locate found takes its workstation in the
+    working hours and its bed at night, and sleeps in it (Brain memories job_site, home and last_slept, which the game
+    saves). A variant without inhabitants (the watchtower with the archer) counts 0 and does not fail."""
+    sel = (f"@e[type=minecraft:villager,tag=heraldia_habitante,tag=heraldia_mediana.{mid},"
+           f"x={px - 48},y=-64,z={pz - 48},dx=96,dy=420,dz=96]")
+    if not ctx.until(f"execute if entity {sel}", timeout=20):
+        SETTLED.append((mid, px, pz, 0, 0, 0, 0))
+        print(f"{mid} at {px}, {pz}: variant without inhabitant villagers")
+        return []
+    n = ctx.count(sel)
+    with_mem = lambda mem: ctx.count(f"{sel[:-1]},nbt={{Brain:{{memories:{{\"minecraft:{mem}\":{{}}}}}}}}]")
+    ctx.run("time set 2000", r"Set the time|time to")            # morning: off to work
+    end = time.monotonic() + 120
+    while with_mem("job_site") < n and time.monotonic() < end:
+        time.sleep(3)
+    job = with_mem("job_site")
+    ctx.run("time set 13000", r"Set the time|time to")           # night: to bed
+    end = time.monotonic() + 150
+    while (with_mem("home") < n or with_mem("last_slept") < n) and time.monotonic() < end:
+        time.sleep(3)
+    home, slept = with_mem("home"), with_mem("last_slept")
+    SETTLED.append((mid, px, pz, n, job, home, slept))
+    print(f"{mid} at {px}, {pz}: {n} inhabitants, {job} with their workstation, {home} with their bed, {slept} asleep")
+    ctx.run("time set 2000", r"Set the time|time to")
+    fails = []
+    if job < n or home < n or slept < n:
+        fails.append(f"{mid} at {px}, {pz}: of {n} inhabitants, {job} took a workstation, {home} a bed and {slept} slept")
+    return fails
 
 
 def check_templates(ctx, ts):
@@ -159,7 +212,8 @@ def check_water(ctx, name, t, origin):
 
 
 def check_villagers(ctx, name, t, origin):
-    """The villagers of the medium structures (innkeeper, miller, fisherman, hunter): still, invulnerable and with their trades."""
+    """The villagers of the medium structures: the inhabitants (innkeeper, gardener, miller, fisherman, hunters, lookout,
+    hermit) with AI, the rest (the wizard) still; all invulnerable and with their trades."""
     fails = []
     x0, y0, z0 = origin
     mid = name.split("/")[1]
@@ -167,10 +221,12 @@ def check_villagers(ctx, name, t, origin):
         if n["id"] != "minecraft:villager":
             continue
         depth = n["VillagerData"]["profession"]
+        lives = "heraldia_habitante" in n.get("Tags", [])
         sel = (f"@e[type=minecraft:villager,tag=heraldia_mediana.{mid},x={x0},y={y0},z={z0},dx=40,dy=30,dz=40,"
-               f"nbt={{NoAI:1b,Invulnerable:1b,VillagerData:{{profession:\"{depth}\"}}}}]")
+               + ("tag=heraldia_habitante,nbt=!{NoAI:1b}," if lives else "")
+               + f"nbt={{{'' if lives else 'NoAI:1b,'}Invulnerable:1b,VillagerData:{{profession:\"{depth}\"}}}}]")
         if not ctx.until(f"execute if entity {sel}"):
-            fails.append(f"{name}: the still, invulnerable villager {depth} is missing")
+            fails.append(f"{name}: the {'living' if lives else 'still'}, invulnerable villager {depth} is missing")
             continue
         first_item = n["Offers"]["Recipes"][0]["sell"]["id"]
         if not ctx.test(f"execute if entity {sel[:-1]},nbt={{Offers:{{Recipes:[{{sell:{{id:\"{first_item}\"}}}}]}}}}]"):
@@ -261,6 +317,12 @@ def main():
         fails += check_structures(ctx)
         fails += check_loot(ctx)
         fails += check_locate(ctx, overworld_ids)
+        if SETTLED:
+            n, job, home, slept = (sum(r[k] for r in SETTLED) for k in (3, 4, 5, 6))
+            print(f"HABITANTES: {len(SETTLED)} structures on the seed's terrain, {n} inhabitant villagers: {job} with "
+                  f"their workstation, {home} with their bed, {slept} asleep")
+            if not re.search(r"Heraldia: habitantes de las medianas: activados", ctx.log()):
+                fails.append("the log does not say the medium structures' inhabitants are on")
         if not re.search(rf"estructuras medianas: activadas, {len(kinds)} tipos, frecuencia 100 %, a {ZONE} bloques de aldeas "
                          rf"y únicas y a {DISTANCE} entre ellas", ctx.log()):
             fails.append("the log is missing the medium structures rule with its default configuration")

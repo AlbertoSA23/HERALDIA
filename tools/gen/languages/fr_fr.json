@@ -1916,5 +1916,11 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Villageois qui connaissent un lieu (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Réputation pour un indice",
   "heraldia.config.seccion.dialogos": "Conversations",
-  "heraldia.dialogos.no_habla": "Ce n'est pas un villageois d'Heraldia dans son village : il n'a pas de conversation."
+  "heraldia.dialogos.no_habla": "Ce n'est pas un villageois d'Heraldia dans son village : il n'a pas de conversation.",
+  "heraldia.config.medianas.habitantes": "Habitants des structures moyennes : l'aubergiste, le meunier, le pêcheur, les chasseurs, la vigie et l'ermite vivent dans leur bâtiment (ils dorment dans leur lit et travaillent à leur poste) et l'auberge a ses cochons. Désactivé, les nouveaux n'apparaissent pas et ceux qui étaient déjà là comme figures immobiles restent immobiles ; cela ne touche que ceux qui ne se sont encore jamais chargés",
+  "heraldia.config.medianas.habitantes.nombre": "Habitants des structures moyennes",
+  "heraldia.medianas.posada.hortelano": "Jardinier",
+  "heraldia.medianas.cazadores.arquero": "Archer",
+  "heraldia.medianas.torre_vigia.vigilante": "Vigie",
+  "heraldia.medianas.ermita.ermitano": "Ermite"
 }

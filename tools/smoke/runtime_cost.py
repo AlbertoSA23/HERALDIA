@@ -28,6 +28,8 @@ site; the passes without Heraldia use the same ones, where there is only terrain
                 (with the ambush) that sets off next to them at the start of the window.
   aldea_arena   one player in the village and another in the wave arena (placed next to spawn), with a game running:
                 every WAVE_KILL_S seconds one of its enemies is killed in the player's name, so the waves advance.
+  mediana       one player at the roadside inn closest to 0,0 (#heraldia:medianas/posada: its inhabitants, the innkeeper
+                with the gardener or with two pigs; the medium structure with the most of them), alone in the open.
 And, with Heraldia, the margin (ESCALATION): in the "aldea" scenario, villagers are added in steps (unemployed: they search
 for a bed and a job site, the most expensive case) and each step is measured: from the line that fits the MSPT against
 the villagers loaded, how many more the server takes before its tick gets close to the 50 ms it has.
@@ -59,9 +61,10 @@ WARMUP_S, MEASURE_S, SWEEPS = 30, 60, 1
 WAVE_KILL_S = 8
 PREGEN_R = VIEW * 16 + 48   # blocks around each position that Chunky generates first (the player's view plus a margin)
 PLAYERS = ("Medidor1", "Medidor2")
-SCENARIOS = ["campo", "aldea_vanilla", "aldea", "dos_aldeas", "caravana", "aldea_arena"]
+SCENARIOS = ["campo", "aldea_vanilla", "aldea", "dos_aldeas", "caravana", "aldea_arena", "mediana"]
+SINGLE = ("campo", "aldea_vanilla", "aldea", "mediana")    # one player
 # Scenarios where Heraldia has something of its own (the others are the control and the vanilla village).
-OWN = ["aldea", "dos_aldeas", "caravana", "aldea_arena"]
+OWN = ["aldea", "dos_aldeas", "caravana", "aldea_arena", "mediana"]
 ESCALATION = [0, 25, 50, 100, 150]          # villagers added (cumulative) in the margin steps
 ESCALATION_WARMUP_S, ESCALATION_MEASURE_S = 40, 60
 ESCALATION_RADIUS = 24                      # around the square
@@ -161,7 +164,7 @@ def combine(passes):
     for g in list(GROUPS) + ["otros", "total"]:
         v = [p["entidades"].get(g) for p in passes if p.get("entidades") and p["entidades"].get(g) is not None]
         out["entidades"][g] = statistics.median(v) if v else None
-    for k in ("heraldia_arena", "heraldia_caravana"):
+    for k in ("heraldia_arena", "heraldia_caravana", "heraldia_habitantes"):
         v = [p.get(k) for p in passes if p.get(k) is not None]
         if v:
             out[k] = statistics.median(v)
@@ -348,6 +351,10 @@ class Pass:
         if not v or not a:
             raise SystemExit(f"/locate does not find the villages ({v}, {a})")
         pos["aldea_vanilla"], pos["aldea"] = (v[0] + 8, v[1] + 8), (a[0] + 8, a[1] + 8)
+        m = self.locate("#heraldia:medianas/posada")
+        if not m:
+            raise SystemExit("/locate does not find a roadside inn (the medium structure scenario)")
+        pos["mediana"] = (m[0] + 8, m[1] + 8)
         self.pregen("aldea", pos["aldea"])
         routes = []
         for r in ROUTE.finditer(c.log()):
@@ -428,7 +435,7 @@ class Pass:
         self.nobody()
         x, z = pos["aldea"]
         during = None
-        if sc in ("campo", "aldea_vanilla", "aldea"):
+        if sc in SINGLE:
             self.player(PLAYERS[0], *pos[sc])
         elif sc == "dos_aldeas":
             self.player(PLAYERS[0], x, z); self.player(PLAYERS[1], *pos["aldea_b"])
@@ -457,11 +464,12 @@ class Pass:
             if not m.group(1):
                 print(f"WARNING: no caravan leaves next to {pos['camino']}: {m.string.strip()[-120:]}", flush=True)
         st = self.window(seconds, during)
-        present = [PLAYERS[0]] if sc in ("campo", "aldea_vanilla", "aldea") else list(PLAYERS)
+        present = [PLAYERS[0]] if sc in SINGLE else list(PLAYERS)
         out = {"mspt": st, "entidades": self.entities(present)}
         if self.with_it:
             out["heraldia_arena"] = c.count("@e[tag=heraldia_arena]")
             out["heraldia_caravana"] = c.count("@e[tag=heraldia_caravana]")
+            out["heraldia_habitantes"] = c.count("@e[tag=heraldia_habitante]")
             if sc == "aldea_arena":
                 c.run("heraldia arena stop", r"arena|Arena|No hay|There is no")
             if sc == "caravana":
@@ -509,7 +517,7 @@ def sweep(work, jar, with_it, launcher, pos, seconds, warmup, escalation):
             pos = p.find_positions()
             pos["camino"] = p.find_road_point(pos)
             pos["arena_plano"] = arena_blueprint(jar)
-        for name in ("aldea", "aldea_b", "campo", "aldea_vanilla", "camino", "arena"):
+        for name in ("aldea", "aldea_b", "campo", "aldea_vanilla", "camino", "arena", "mediana"):
             p.pregen(name, pos[name])
         # a clean start: what Chunky generated is unloaded and saved, and the scenarios start from the saved world
         p.stop()

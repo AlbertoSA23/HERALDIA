@@ -1,10 +1,12 @@
 """Hermitage (heraldia:medianas/ermita/<estilo>): 7 x 11 chapel with a bell gable and bell, pews, altar with candles and the
 hermit's cell (bed and chest with his diary), and a fenced garden with an irrigation ditch. Variant a: the garden to the east;
-b: the garden to the west and a small graveyard to the east. No monsters."""
+b: the garden to the west and a small graveyard to the east. In both, the hermit lives in his cell (a librarian with fixed
+trades: his bed and the lectern beside it). No monsters."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot
 from . import _common as c
+from . import _inhabitants as inh
 
 MID = "ermita"
 DISPLAY_NAME = {"es_es": "Ermita", "en_us": "Hermitage"}
@@ -13,6 +15,7 @@ ADVANCEMENT_ICON = "minecraft:bell"
 _K = "heraldia.medianas.ermita."
 LANG = chest_loot.lang(_K, {
     "diario": ("Diario del ermitaño", "The Hermit's Diary"),
+    "ermitano": ("Ermitaño", "Hermit"),
     "diario.p1": ("Subí aquí para estar lejos de todo. El camino sigue pasando a lo lejos: torres, posadas, fogatas "
                   "de gente que no quiere ser vista.",
                   "I came up here to be far from everything. The road still passes in the distance: towers, inns, "
@@ -38,6 +41,14 @@ LOOT = {
 X0, Z0, X1, Z1 = 7, 3, 13, 13       # chapel walls (7 x 11), door to the north
 CX = 10
 WIDTH, DEPTH = 21, 17
+
+
+def hermit_offers():
+    em = lambda n: {"id": "minecraft:emerald", "count": n}
+    return [c.offer({"id": "minecraft:paper", "count": 24}, em(1), 12),
+            c.offer(em(1), {"id": "minecraft:bread", "count": 4}, 12),
+            c.offer(em(1), {"id": "minecraft:candle", "count": 2}, 8),
+            c.offer(em(2), {"id": "minecraft:book", "count": 1}, 6)]
 
 
 def _floor(p):
@@ -82,6 +93,7 @@ def _chapel(p, name):
     c.bed(t, X0 + 1, 12, "west", p["cama"])
     c.place_chest(t, X1 - 1, 1, 12, "west", MID, "celda")
     t.set(CX, 1, 12, "lectern[facing=north,has_book=false,powered=false]")
+    t.entity(CX + 1, 1, 11, inh.villager(MID, "ermitano", "Ermitaño", "librarian", p["aldeano"], hermit_offers(), rot=180.0))
     c.lantern(t, CX, 4, 7)
     c.lantern(t, CX, 4, 11)
     return t
@@ -147,14 +159,14 @@ STYLES = {
                                 suelo="polished_andesite", losa="stone_brick_slab", altar="chiseled_stone_bricks",
                                 teja="spruce_stairs", cumbrera="spruce_planks", peldano="stone_brick_stairs",
                                 vidriera="light_blue_stained_glass_pane", cama="blue", lapida="cobblestone_wall",
-                                cultivos=_CROPS_SHORT, patio=["minecraft:cobblestone", "minecraft:dirt_path"]),
+                                cultivos=_CROPS_SHORT, aldeano="snow", patio=["minecraft:cobblestone", "minecraft:dirt_path"]),
                     variantes={"a": orchard_east, "b": churchyard}),
     "oscuro": dict(biomas=["dark_forest", "pale_garden"], convencionales=["c:is_dark_forest"],
                    paleta=dict(madera="dark_oak", muro="mossy_cobblestone", esquina="dark_oak_log[axis=y]",
                                zocalo="cobblestone", suelo="spruce_planks", losa="cobblestone_slab",
                                altar="polished_deepslate", teja="dark_oak_stairs", cumbrera="dark_oak_planks",
                                peldano="cobblestone_stairs", vidriera="purple_stained_glass_pane", cama="black",
-                               lapida="mossy_cobblestone_wall", cultivos=_CROPS_SHORT,
+                               lapida="mossy_cobblestone_wall", cultivos=_CROPS_SHORT, aldeano="plains",
                                patio=["minecraft:dirt_path", "minecraft:packed_mud", "minecraft:mossy_cobblestone"]),
                    variantes={"a": orchard_east, "b": churchyard}),
     "cerezo": dict(biomas=["cherry_grove"],
@@ -162,7 +174,7 @@ STYLES = {
                                zocalo="stone_bricks", suelo="cherry_planks", losa="smooth_stone_slab",
                                altar="calcite", teja="cherry_stairs", cumbrera="cherry_planks",
                                peldano="stone_brick_stairs", vidriera="pink_stained_glass_pane", cama="pink",
-                               lapida="stone_brick_wall", cultivos=_CROPS_SHORT,
+                               lapida="stone_brick_wall", cultivos=_CROPS_SHORT, aldeano="plains",
                                patio=["minecraft:dirt_path", "minecraft:stone_bricks"]),
                    variantes={"a": orchard_east, "b": churchyard}),
 }

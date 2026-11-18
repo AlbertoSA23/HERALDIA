@@ -1916,5 +1916,11 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Aldeões que conhecem um lugar (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Reputação para uma pista",
   "heraldia.config.seccion.dialogos": "Conversas",
-  "heraldia.dialogos.no_habla": "Esse não é um aldeão de Heraldia dentro da sua vila: ele não tem conversa."
+  "heraldia.dialogos.no_habla": "Esse não é um aldeão de Heraldia dentro da sua vila: ele não tem conversa.",
+  "heraldia.config.medianas.habitantes": "Habitantes das estruturas médias: o estalajadeiro, o moleiro, o pescador, os caçadores, o vigia e o eremita vivem no seu edifício (dormem na sua cama e trabalham no seu posto) e a estalagem tem seus porcos. Desativado, os novos não aparecem e os que já estavam lá como figuras paradas continuam parados; só afeta os que ainda nunca foram carregados",
+  "heraldia.config.medianas.habitantes.nombre": "Habitantes das estruturas médias",
+  "heraldia.medianas.posada.hortelano": "Hortelão",
+  "heraldia.medianas.cazadores.arquero": "Arqueiro",
+  "heraldia.medianas.torre_vigia.vigilante": "Vigia",
+  "heraldia.medianas.ermita.ermitano": "Eremita"
 }

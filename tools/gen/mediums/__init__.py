@@ -236,6 +236,8 @@ def template_errors(t, mid, loot, dim="overworld"):
         errs.append(f"{generators} spawners (maximum {MAX_GENERATORS})")
     if not any(nbt and nbt.get("LootTable") for _, nbt in t.blocks.values()):
         errs.append("no chest at all")
+    from . import _inhabitants
+    errs += _inhabitants.issues(t)
     return errs
 
 

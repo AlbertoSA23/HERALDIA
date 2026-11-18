@@ -191,6 +191,7 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `medianas.frecuencia_porcentaje` | 100 | 25-400 | Frecuencia de todas las medianas, en % de la separación propia de cada tipo (la separación de cada tipo se divide por la raíz): **100 = cada tipo a su propia separación** (una cada ~550 bloques entre todos los tipos), 200 = el doble, 50 = la del perfil ligero (ver [Densidad de las estructuras medianas](#densidad-de-las-estructuras-medianas)). |
 | `medianas.distancia_minima.bloques` | 192 | 64-1024 | Distancia mínima entre dos medianas de tipos distintos (y entre dos del mismo, como mucho media casilla de su rejilla). |
 | `medianas.distancia_aldeas_unicas_bloques` | 256 | 128-1024 | Una mediana no sale a menos de esta distancia del inicio de una aldea o una única de Heraldia que sale ahí. |
+| `medianas.habitantes` | `true` | `true`/`false` | [Habitantes](CONTENIDO.md#estructuras-medianas) de las medianas: el posadero, el molinero, el pescador, los cazadores, el vigía y el ermitaño viven en su edificio (cama, puesto de trabajo, IA vanilla) y la posada tiene sus cerdos. Se aplica cuando cada uno se carga por primera vez: desactivado, los nuevos no aparecen y las figuras quietas de antes siguen quietas; un habitante que ya se ha cargado no cambia nunca. Desactivado en el perfil ligero. |
 | `medianas.<id>.activada` | `true` | `true`/`false` | Activa un tipo de mediana (`torre_vigia`, `posada`, `campamento`, `ermita`, `molino`, `pescador`, `cazadores`, `templete`, `choza_mago`; Nether: `puesto_piglin`, `altar_magma`, `atalaya_basalto`, `santuario_hongos`; End: `observatorio_vacio`, `mausoleo_purpura`, `embarcadero_shulker`). |
 | `medianas.<id>.separacion_bloques` | la del tipo (576-1024) | 256-4000 | Separación media entre dos de ese tipo (con la frecuencia al 100 %); cada casilla busca su candidata dentro de los biomas del tipo. |
 | `minas.entradas.activado` | `true` | `true`/`false` | Activa las [entradas a mina](CONTENIDO.md#entradas-a-mina) (solo en chunks nuevos). |
@@ -302,6 +303,7 @@ La opción `perfil` fija de golpe un conjunto de opciones. `casual`, `estandar` 
 | `medianas.distancia_minima.bloques` | 192 | 320 | más sitio entre dos estructuras medianas |
 | `minas.vanilla.multiplicador` | 2.0 | 1.0 | las minas abandonadas vanilla, las galerías largas, como en vanilla (por defecto se duplican) |
 | `caravanas.activado` | `true` | `false` | sin caravanas (entidades que caminan entre aldeas: ticks del servidor) |
+| `medianas.habitantes` | `true` | `false` | sin aldeanos con IA en las medianas (ticks del servidor); los comerciantes que antes eran figuras quietas siguen quietos, como eran |
 
 La [gente de paso](CONTENIDO.md#gente-de-paso) (`viajeros.activado`) no entra: cuesta menos que una caravana (un encuentro de 1 a 6 entidades con IA sencilla durante uno o dos minutos) y añadir una opción a un perfil cambia el formato del fichero; en un equipo muy modesto, pon `viajeros.activado` a `false` a mano.
 

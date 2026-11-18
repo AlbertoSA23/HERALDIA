@@ -320,10 +320,11 @@ def test_play_cost_by_paths():
     assert sel.RUNTIME not in ALL_COMBOS
     for r in [J + "villages/VillageStructure.java", J + "caravans/Caravans.java", J + "arena/Arena.java", J + "mixin/ZombieMixin.java",
               J + "common/Anchoring.java", J + "bosses/Phases.java", "tools/gen/houses.py", "tools/gen/traces.py", "tools/gen/fillers.py",
-              "tools/smoke/runtime_cost.py", "tools/smoke/TickSampler.java", "tools/smoke/runtime_reference.json", "gradle.properties"]:
+              "tools/smoke/runtime_cost.py", "tools/smoke/TickSampler.java", "tools/smoke/runtime_reference.json", "gradle.properties",
+              "tools/gen/mediums/inn.py", J + "inhabitants/Inhabitants.java"]:   # the mediums' inhabitants live and tick
         assert sel.runtime([r]), r
     for r in ["docs/DEVELOPMENT.md", "CHANGELOG.md", "tools/gen/tests/test_traces.py", "tools/gen/uniques/castillo.py",
-              "tools/gen/mediums/inn.py", J + "command/Guide.java", "tools/smoke/generation_cost.py", ".github/workflows/ci.yml"]:
+              J + "command/Guide.java", "tools/smoke/generation_cost.py", ".github/workflows/ci.yml"]:
         assert not sel.runtime([r]), r
     for r in ["tools/smoke/runtime_cost.py", "tools/smoke/TickSampler.java", "tools/smoke/runtime_reference.json"]:
         assert pick(r) == (False, []), r

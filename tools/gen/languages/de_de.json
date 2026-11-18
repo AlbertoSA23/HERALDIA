@@ -1916,5 +1916,11 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Dorfbewohner, die einen Ort kennen (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Ruf für einen Hinweis",
   "heraldia.config.seccion.dialogos": "Gespräche",
-  "heraldia.dialogos.no_habla": "Das ist kein Heraldia-Dorfbewohner in seinem Dorf: Er hat kein Gespräch."
+  "heraldia.dialogos.no_habla": "Das ist kein Heraldia-Dorfbewohner in seinem Dorf: Er hat kein Gespräch.",
+  "heraldia.config.medianas.habitantes": "Bewohner der mittelgroßen Bauwerke: Wirt, Müller, Fischer, Jäger, Späher und Einsiedler leben in ihrem Gebäude (sie schlafen in ihrem Bett und arbeiten an ihrem Arbeitsplatz), und das Gasthaus hat seine Schweine. Aus: Die neuen erscheinen nicht, und die, die schon vorher als unbewegte Figuren da waren, bleiben unbewegt; betrifft nur die, die noch nie geladen wurden",
+  "heraldia.config.medianas.habitantes.nombre": "Bewohner der mittelgroßen Bauwerke",
+  "heraldia.medianas.posada.hortelano": "Gärtner",
+  "heraldia.medianas.cazadores.arquero": "Bogenschütze",
+  "heraldia.medianas.torre_vigia.vigilante": "Späher",
+  "heraldia.medianas.ermita.ermitano": "Einsiedler"
 }

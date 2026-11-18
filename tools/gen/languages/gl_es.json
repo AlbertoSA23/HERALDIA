@@ -1916,5 +1916,11 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Aldeáns que coñecen un sitio (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Reputación para unha pista",
   "heraldia.config.seccion.dialogos": "Conversas",
-  "heraldia.dialogos.no_habla": "Ese non é un aldeán de Heraldia dentro da súa aldea: non ten conversa."
+  "heraldia.dialogos.no_habla": "Ese non é un aldeán de Heraldia dentro da súa aldea: non ten conversa.",
+  "heraldia.config.medianas.habitantes": "Habitantes das estruturas medianas: o pousadeiro, o muiñeiro, o pescador, os cazadores, o vixía e o ermitán viven no seu edificio (dormen na súa cama e traballan no seu posto) e a pousada ten os seus porcos. Desactivado, os novos non aparecen e os que xa estaban antes como figuras quietas seguen quietos; só afecta aos que aínda non se cargaron nunca",
+  "heraldia.config.medianas.habitantes.nombre": "Habitantes das medianas",
+  "heraldia.medianas.posada.hortelano": "Hortelán",
+  "heraldia.medianas.cazadores.arquero": "Arqueiro",
+  "heraldia.medianas.torre_vigia.vigilante": "Vixía",
+  "heraldia.medianas.ermita.ermitano": "Ermitán"
 }

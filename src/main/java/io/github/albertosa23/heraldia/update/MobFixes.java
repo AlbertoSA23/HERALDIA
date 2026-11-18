@@ -26,6 +26,8 @@ import java.util.Set;
  */
 public final class MobFixes {
 	public static final String ADULT = "heraldia_adulto", ANCHORED = "heraldia_anclado", GUARDIAN = "heraldia_guardian";
+	/** Tag of the medium structures' inhabitants (inhabitants/Inhabitants.TAG, mediums/_inhabitants.TAG). */
+	public static final String INHABITANT = "heraldia_habitante";
 	/** Types that can spawn as babies when placed (the generator's core.BABY_ZOMBIE). */
 	static final Set<String> ZOMBIES = Set.of("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin");
 	static final Set<String> DROWNED_WEAPONS = Set.of("trident", "fishing_rod");
@@ -72,9 +74,14 @@ public final class MobFixes {
 	private MobFixes() {
 	}
 
-	/** Is it a mob from a Heraldia template? It carries one of its tags, or it is persistent with a heraldia.* name. */
+	/** Is it a mob from a Heraldia template? It carries one of its tags, or it is persistent with a heraldia.* name. The
+	 * inhabitants of the medium structures ({@link #INHABITANT}, from their first generation) are not: they live and move
+	 * there, and "marcas" would anchor them and "recoger" would stop a farmer picking up the seeds it replants. */
 	public static boolean fromTemplate(Mob m) {
 		Set<String> t = m.tags();
+		if (t.contains(INHABITANT)) {
+			return false;
+		}
 		if (!t.isEmpty() && (t.contains(ADULT) || t.contains(ANCHORED) || t.contains(GUARDIAN))) {
 			return true;
 		}

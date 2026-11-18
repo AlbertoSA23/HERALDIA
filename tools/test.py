@@ -73,7 +73,8 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
                  "tools/gen/houses.py", "tools/gen/fillers.py", "tools/gen/traces.py", "tools/gen/specials.py",
                  "tools/gen/streets.py", "tools/gen/pack.py", "tools/gen/board.py", "tools/gen/arena_waves.py",
                  "tools/gen/caravans.py", JAVA + "Heraldia.java", JAVA + "villages/*", JAVA + "caravans/*", JAVA + "arena/*",
-                 JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*"]
+                 JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*",
+                 "tools/gen/mediums/*", JAVA + "inhabitants/*"]
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
@@ -134,6 +135,8 @@ MAP = [
     ("tools/gen/uniques/_enclosure.py", NETHER_END + OF_EVERY_UNIQUE),
     ("tools/gen/mediums/wizard_hut.py", MEDIUMS_MOBS + HUTS),
     ("tools/gen/mediums/*", MEDIUMS_MOBS + NETHER_END), (JAVA + "common/MediumStructures.java", MEDIUMS + NETHER_END),
+    # inhabitants of the medium structures: their option, applied when each one first loads
+    (JAVA + "inhabitants/*", MEDIUMS),
     ("tools/gen/mines/*", MINES), (JAVA + "mines/*", MINES + COAST),
     ("tools/gen/shore/*", COAST_MOBS), (JAVA + "coast/*", COAST),
     # /locate of the mines (T36): the shared height cache and the parallel look-ahead computation are only used by the mines

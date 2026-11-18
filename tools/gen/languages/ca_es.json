@@ -1916,5 +1916,11 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Vilatans que coneixen un lloc (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Reputació per a una pista",
   "heraldia.config.seccion.dialogos": "Converses",
-  "heraldia.dialogos.no_habla": "Aquest no és un vilatà d'Heraldia dins del seu poble: no té conversa."
+  "heraldia.dialogos.no_habla": "Aquest no és un vilatà d'Heraldia dins del seu poble: no té conversa.",
+  "heraldia.config.medianas.habitantes": "Habitants de les estructures mitjanes: l'hostaler, el moliner, el pescador, els caçadors, el guaita i l'ermità viuen al seu edifici (dormen al seu llit i treballen al seu lloc) i l'hostal té els seus porcs. Desactivat, els nous no apareixen i els que ja hi eren abans com a figures quietes es queden quiets; només afecta els que encara no s'han carregat mai",
+  "heraldia.config.medianas.habitantes.nombre": "Habitants de les mitjanes",
+  "heraldia.medianas.posada.hortelano": "Hortolà",
+  "heraldia.medianas.cazadores.arquero": "Arquer",
+  "heraldia.medianas.torre_vigia.vigilante": "Guaita",
+  "heraldia.medianas.ermita.ermitano": "Ermità"
 }

@@ -1916,5 +1916,11 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Abitanti che conoscono un luogo (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Reputazione per un indizio",
   "heraldia.config.seccion.dialogos": "Conversazioni",
-  "heraldia.dialogos.no_habla": "Quello non è un abitante di Heraldia nel suo villaggio: non ha conversazione."
+  "heraldia.dialogos.no_habla": "Quello non è un abitante di Heraldia nel suo villaggio: non ha conversazione.",
+  "heraldia.config.medianas.habitantes": "Abitanti delle strutture medie: l'oste, il mugnaio, il pescatore, i cacciatori, la vedetta e l'eremita vivono nel loro edificio (dormono nel loro letto e lavorano alla loro postazione) e la locanda ha i suoi maiali. Disattivato, i nuovi non compaiono e quelli che c'erano già come figure immobili restano immobili; riguarda solo quelli che non sono mai stati caricati",
+  "heraldia.config.medianas.habitantes.nombre": "Abitanti delle strutture medie",
+  "heraldia.medianas.posada.hortelano": "Ortolano",
+  "heraldia.medianas.cazadores.arquero": "Arciere",
+  "heraldia.medianas.torre_vigia.vigilante": "Vedetta",
+  "heraldia.medianas.ermita.ermitano": "Eremita"
 }
