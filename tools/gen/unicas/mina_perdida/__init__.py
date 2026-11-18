@@ -24,7 +24,7 @@ TROFEO = {"objeto": "iron_pickaxe", "rareza": "rare",
           "lore": [("Abrió la última galería de Hondavena.", "It opened the last gallery of Hondavena."),
                    ("Nadie le mandó parar.", "No one told it to stop.")],
           "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "despacho",
     "relato": [
         ("Bajé por el pozo maestro de Hondavena, una colonia minera de la Corona bajo las cuevas. Tizón, el"

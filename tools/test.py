@@ -1,6 +1,6 @@
 """Qué pruebas ejecutar según los ficheros cambiados (el mismo mapa en local y en la CI).
 
-Política de pruebas (docs/DESARROLLO.md): cada sesión prueba solo su trabajo (tests unitarios + las pruebas de servidor de
+Política de pruebas (docs/DEVELOPMENT.md): cada sesión prueba solo su trabajo (tests unitarios + las pruebas de servidor de
 lo que toca, que este script elige por rutas) y una sesión auditora ejecuta la batería completa.
 
 Uso:

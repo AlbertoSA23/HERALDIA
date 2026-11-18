@@ -19,7 +19,7 @@ TROFEO = {"objeto": "golden_sword", "rareza": "rare",
           "nombre": ("Espada ceremonial de la Guardia Imperial", "Ceremonial Sword of the Imperial Guard"),
           "lore": [("Su filo solo se desenvainaba ante el emperador.", "Its blade was drawn only before the emperor.")],
           "encantamientos": {"minecraft:sharpness": 2, "minecraft:unbreaking": 3}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "biblioteca_secreta",
     "relato": [
         ("Entre cerezos en flor se alza un palacio de tejados curvos. El emperador, al que llaman Hijo "

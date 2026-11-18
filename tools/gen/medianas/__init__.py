@@ -207,7 +207,7 @@ def plantilla_errores(t, mid, loot, dim="overworld"):
     return errs
 
 
-# #minecraft:supports_vegetation (y los peñascos de la taiga): ver APRENDIZAJES, «Patio sin árboles».
+# #minecraft:supports_vegetation (y los peñascos de la taiga): ver LESSONS, «Patio sin árboles».
 SUELO_VIVO = {f"minecraft:{b}" for b in ("dirt", "coarse_dirt", "rooted_dirt", "mud", "moss_block", "grass_block",
                                           "podzol", "mycelium", "stone", "granite", "diorite", "andesite", "deepslate",
                                           "tuff")}

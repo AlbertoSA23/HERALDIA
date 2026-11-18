@@ -30,7 +30,7 @@ CARTEL = re.compile(r"cartel de camino en (-?\d+) (-?\d+) (-?\d+): «([^»]+)»,
 COSTE = re.compile(r"caminos: (\d+) chunks, (\d+) junto a una ruta \((\d+) columnas puestas\); media ([\d.]+) µs por chunk, ([\d.]+) µs "
                    r"en los que están junto a una ruta; percentiles 50/90/99 por debajo de (\d+)/(\d+)/(\d+) µs")
 AGUA = ["#minecraft:is_ocean", "#minecraft:is_deep_ocean", "#minecraft:is_river", "#minecraft:is_beach"]
-# Coste máximo del rasgo (media por chunk). Holgado para la CI; las cifras medidas van en el PR y en APRENDIZAJES.
+# Coste máximo del rasgo (media por chunk). Holgado para la CI; las cifras medidas van en el PR y en LESSONS.
 MAX_MEDIA_US, MAX_CAMINO_US = 3000, 30000
 
 

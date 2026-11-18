@@ -111,7 +111,7 @@ def test_enlaza_la_documentacion(codigo):
     """Cada README enlaza la documentación (la española, el de español; la inglesa, los demás) y la guía de desarrollo."""
     texto = leer(README[codigo])
     docs = [es if codigo == "es_es" else en for en, es in DOCS]
-    for d in docs + ["DESARROLLO.md"]:
+    for d in docs + ["DEVELOPMENT.md"]:
         assert f"(docs/{d})" in texto, (codigo, d)
 
 

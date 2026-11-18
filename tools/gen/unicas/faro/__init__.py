@@ -14,7 +14,7 @@ TROFEO = {"objeto": "iron_sword", "rareza": "uncommon",
           "nombre": ("Alfanje del Capitán Bruma", "Captain Mist's Cutlass"),
           "lore": [("Con él se apagaban los faros ajenos.", "With it, rival lighthouses went dark.")],
           "encantamientos": {"minecraft:sharpness": 1, "minecraft:unbreaking": 1}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "despacho",
     "relato": [
         ("En la costa rocosa hay un faro que no siempre guía a los barcos. Su dueño, el capitán Bruma, "

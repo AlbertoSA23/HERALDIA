@@ -79,7 +79,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 - [Vollständige Übersicht der Inhalte](docs/CONTENT.md) (auf Englisch): alle Dorfstile, einzigartigen Bauwerke, mittelgroßen Bauwerke und Minen, die Hüterkämpfe, Fortschritte, die Arena und mehr.
 - [Installation, Befehle und Konfiguration](docs/CONFIGURATION.md) (auf Englisch): Test- und Adminbefehle (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key` ...), alle Optionen und der Konfigurationsbildschirm im Spiel.
 - [Kompatibilität mit anderen Mods](docs/COMPATIBILITY.md) (auf Englisch): Biom-Mods, Bauwerk-Mods, Lootr und der Rest.
-- [Bauen und Testen](docs/BUILDING.md) (auf Englisch), [Entwicklerhandbuch](docs/DESARROLLO.md) (auf Spanisch) und [Änderungsprotokoll](CHANGELOG.md) (auf Englisch).
+- [Bauen und Testen](docs/BUILDING.md) (auf Englisch), [Entwicklerhandbuch](docs/DEVELOPMENT.md) (auf Englisch) und [Änderungsprotokoll](CHANGELOG.md) (auf Englisch).
 
 ## Lizenz und Danksagung
 

@@ -2,7 +2,7 @@
 comando/Alias.ANTIGUOS, que test_comandos compara con este). Sirve para comprobar que ningún texto ni botón (run_command,
 suggest_command) del mod manda al jugador a un nombre antiguo.
 
-Regla permanente (docs/DESARROLLO.md): todo comando nuevo va en inglés; los textos que ve el jugador siguen traducidos.
+Regla permanente (docs/DEVELOPMENT.md): todo comando nuevo va en inglés; los textos que ve el jugador siguen traducidos.
 """
 import itertools
 import re

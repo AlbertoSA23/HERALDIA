@@ -16,7 +16,7 @@ NOMBRE = {"es_es": "Mansión encantada", "en_us": "Haunted Mansion"}
 TROFEO = {"objeto": "clock", "rareza": "rare",
           "nombre": ("Reloj del Conde Malaquías", "Count Malachi's Pocket Watch"),
           "lore": [("Se detuvo a medianoche y nunca volvió a andar.", "It stopped at midnight and never ran again.")]}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("En el pantano me acogió el conde Malaquías, en una mansión llena de relojes. La condesa "

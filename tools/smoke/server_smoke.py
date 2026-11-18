@@ -229,7 +229,7 @@ def _top_tokens(cmd):
 
 def silent_reason(cmd):
     """Por qué una comprobación `execute ...` podría no responder nada en la consola (y colgar la prueba hasta
-    COMMAND_TIMEOUT_S), o None si siempre responde «Test passed|Test failed». Ver docs/APRENDIZAJES.md: `as`/`at`
+    COMMAND_TIMEOUT_S), o None si siempre responde «Test passed|Test failed». Ver docs/LESSONS.md: `as`/`at`
     (y `positioned as`, `facing entity`...) bifurcan la orden y el «Test failed» de una rama no llega; sin nadie en el
     selector no hay ni rama; en una cadena `if A if B` la condición intermedia que falla no responde."""
     toks = _top_tokens(cmd)

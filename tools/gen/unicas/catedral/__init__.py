@@ -15,7 +15,7 @@ NOMBRE = {"es_es": "Catedral gótica", "en_us": "Gothic cathedral"}
 TROFEO = {"objeto": "recovery_compass", "rareza": "uncommon",
           "nombre": ("Brújula de ánimas de Fray Osmundo", "Friar Osmund's Soul Compass"),
           "lore": [("Señala siempre el lugar de tu última caída.", "It always points to where you last fell.")]}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("Entre los árboles del bosque se alza una catedral de agujas altísimas. Fray Osmundo, su "

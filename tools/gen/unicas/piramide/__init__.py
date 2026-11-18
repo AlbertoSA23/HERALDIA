@@ -19,7 +19,7 @@ TROFEO = {"objeto": "golden_chestplate", "rareza": "rare",
           "lore": [("El oro de la selva aún guarda su rugido.", "The jungle's gold still holds his roar.")],
           "encantamientos": {"minecraft:protection": 1},
           "componentes": {"minecraft:trim": {"material": "minecraft:emerald", "pattern": "minecraft:wild"}}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "tumba",
     "relato": [
         ("En lo más espeso de la selva, un templo-pirámide escalonado asoma sobre los árboles. Sus "

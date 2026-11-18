@@ -17,7 +17,7 @@ TROFEO = {"objeto": "iron_chestplate", "rareza": "uncommon",
           "lore": [("Forjada para la legión que custodiaba el agua.", "Forged for the legion that guarded the water.")],
           "encantamientos": {"minecraft:protection": 1},
           "componentes": {"minecraft:trim": {"material": "minecraft:gold", "pattern": "minecraft:dune"}}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "cisterna",
     "relato": [
         ("La colonia se llamaba Aquae Siccae, «aguas secas», y aun así su acueducto llevaba agua por el "

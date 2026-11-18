@@ -170,7 +170,7 @@ def libro(paginas, nombre, titulo, autor, lore=(), componentes=None, w=1):
             "modifier": [{"type": "minecraft:set_components", "components": comps}]}
 
 
-# ------------------------------------------------------------------ historia: la Crónica de los Heraldos (docs/historia.md)
+# ------------------------------------------------------------------ historia: la Crónica de los Heraldos (docs/STORY.md)
 # Cada única guarda un pliego (libro escrito) en un cofre suyo ya existente (HISTORIA["cofre"]). Cada pliego cuenta su parte
 # y señala la siguiente única de la cadena (con la pista de bioma y rasgo que da ESA única); la cadena se calcula sola a
 # partir de las únicas registradas: por id, con la final (la Atlántida) al cabo, que vuelve a señalar la primera.

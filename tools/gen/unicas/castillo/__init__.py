@@ -17,7 +17,7 @@ TROFEO = {"objeto": "iron_helmet", "rareza": "rare",
           "lore": [("Abollado por mil asedios, nunca rendido.", "Dented by a thousand sieges, never surrendered.")],
           "encantamientos": {"minecraft:protection": 1},
           "componentes": {"minecraft:trim": {"material": "minecraft:gold", "pattern": "minecraft:sentry"}}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "capilla",
     "relato": [
         ("En las llanuras me abrió la puerta Sir Aldric, castellano de una fortaleza que había resistido "

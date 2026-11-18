@@ -25,7 +25,7 @@ TROFEO = {"objeto": "golden_hoe", "rareza": "rare",
           "lore": [("Segaba el muérdago del árbol sagrado.", "It reaped the mistletoe of the sacred tree."),
                    ("Al final segó también sus raíces.", "In the end it reaped its roots as well.")],
           "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("En el bosque de abedules hallé un claro rodeado de menhires y, en medio, un abedul tan ancho como una"

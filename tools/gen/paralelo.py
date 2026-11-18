@@ -3,7 +3,7 @@
 Los hijos heredan la memoria del padre al crearse (fork): las plantillas no se copian ni se serializan para ir, solo
 vuelven los resultados. Sin fork (Windows, macOS con spawn) o con HERALDIA_PROCESOS=1, todo va en serie, igual.
 La salida no depende del número de procesos: tools/gen/tests/test_paralelo.py y la comparación de las generaciones
-descomprimidas (docs/DESARROLLO.md) lo comprueban.
+descomprimidas (docs/DEVELOPMENT.md) lo comprueban.
 """
 import multiprocessing as mp
 import os
