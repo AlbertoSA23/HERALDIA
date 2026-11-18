@@ -54,7 +54,7 @@ import org.junit.jupiter.api.Test;
 class MediumFrequencyTest {
 	private static final int SIDE = 16000;
 	private static final long[] SEEDS = {1L, 20261116L, -4242L};
-	/** Objetivo de Alberto (T24): en conjunto, una cada ~400-800 bloques. */
+	/** Owner's target (T24): overall, one every ~400-800 blocks. */
 	private static final double MIN_SEP = 400, MAX_SEP = 800;
 	private static HolderLookup.Provider vanilla;
 	private static Path data;

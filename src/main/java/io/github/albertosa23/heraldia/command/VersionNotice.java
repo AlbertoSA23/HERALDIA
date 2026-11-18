@@ -57,7 +57,7 @@ public final class VersionNotice {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
 	public static final String OPTION = "update_check.activado", PRE_OPTION = "update_check.prereleases";
 	/** Releases de GitHub del repositorio del mod (contact.sources de fabric.mod.json). */
-	static final String URL = "https://api.github.com/repos/AlbertoSA23/HERALDIA/releases?per_page=20";
+	static final String URL = "https://api.github.com/repos/Stufanplay/HERALDIA/releases?per_page=20";
 	static final String URL_PROPERTY = "heraldia.update_check.url";
 	static final String USER_AGENT = "Heraldia-update-check";
 	static final Duration CONNECTION = Duration.ofSeconds(5), RESPONSE = Duration.ofSeconds(10);

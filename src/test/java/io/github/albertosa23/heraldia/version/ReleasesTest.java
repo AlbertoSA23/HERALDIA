@@ -44,7 +44,7 @@ class ReleasesTest {
 		Release beta = ps.get(0), b = ps.get(1);
 		assertTrue(beta.prerelease());
 		assertEquals("Heraldia 0.2.0", b.name());
-		assertEquals("https://github.com/AlbertoSA23/HERALDIA/releases/tag/v0.2.0", b.url());
+		assertEquals("https://github.com/Stufanplay/HERALDIA/releases/tag/v0.2.0", b.url());
 		assertTrue(b.minecraft().isEmpty() && b.loaders().isEmpty(), "GitHub no dice el Minecraft: se mira en su etiqueta");
 		assertEquals(v("0.2.0"), b.version());
 	}

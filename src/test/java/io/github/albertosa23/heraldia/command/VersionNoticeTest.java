@@ -64,7 +64,7 @@ class VersionNoticeTest {
 	}
 
 	private String base() {
-		return "http://127.0.0.1:" + http.getAddress().getPort() + "/repos/AlbertoSA23/HERALDIA";
+		return "http://127.0.0.1:" + http.getAddress().getPort() + "/repos/Stufanplay/HERALDIA";
 	}
 
 	private static String fixture(String name) throws IOException {
@@ -75,7 +75,7 @@ class VersionNoticeTest {
 
 	@Test
 	void gradlePropertiesUrlOfATag() {
-		assertEquals("https://api.github.com/repos/AlbertoSA23/HERALDIA/contents/gradle.properties?ref=v0.2.0",
+		assertEquals("https://api.github.com/repos/Stufanplay/HERALDIA/contents/gradle.properties?ref=v0.2.0",
 				VersionNotice.properties(VersionNotice.URL, "v0.2.0"));
 		assertEquals("http://h/repos/a/b/contents/gradle.properties?ref=v1.0.0-beta%2B1", VersionNotice.properties("http://h/repos/a/b/releases", "v1.0.0-beta+1"));
 		assertNull(VersionNotice.properties("https://api.modrinth.com/v2/project/x/version", "0.2.0"));
@@ -84,11 +84,11 @@ class VersionNoticeTest {
 
 	@Test
 	void queriesGitHubWithItsMinecraft() throws Exception {
-		responses.put("/repos/AlbertoSA23/HERALDIA/releases", fixture("github.json"));
-		responses.put("/repos/AlbertoSA23/HERALDIA/contents/gradle.properties?ref=v0.2.0", "mod_version=0.2.0\nminecraft_version=26.3\n");
+		responses.put("/repos/Stufanplay/HERALDIA/releases", fixture("github.json"));
+		responses.put("/repos/Stufanplay/HERALDIA/contents/gradle.properties?ref=v0.2.0", "mod_version=0.2.0\nminecraft_version=26.3\n");
 		Optional<Release> p = VersionNotice.query(base() + "/releases", Version.of("0.1.0").orElseThrow(), "26.3", false);
 		assertEquals("v0.2.0", p.orElseThrow().tag());
-		assertEquals(VersionNotice.USER_AGENT, agents.get("/repos/AlbertoSA23/HERALDIA/releases"), "User-Agent genérico");
+		assertEquals(VersionNotice.USER_AGENT, agents.get("/repos/Stufanplay/HERALDIA/releases"), "User-Agent genérico");
 		assertTrue(VersionNotice.query(base() + "/releases", Version.of("0.1.0").orElseThrow(), "26.4", false).isEmpty());
 		assertTrue(VersionNotice.query(base() + "/releases", Version.of("0.2.0").orElseThrow(), "26.3", false).isEmpty());
 	}
@@ -102,21 +102,21 @@ class VersionNoticeTest {
 
 	@Test
 	void noGradlePropertiesNoNotice() throws Exception {
-		responses.put("/repos/AlbertoSA23/HERALDIA/releases", fixture("github.json"));
+		responses.put("/repos/Stufanplay/HERALDIA/releases", fixture("github.json"));
 		assertTrue(VersionNotice.query(base() + "/releases", Version.of("0.1.0").orElseThrow(), "26.3", true).isEmpty());
 	}
 
 	@Test
 	void networkErrorsAndOddResponses() throws Exception {
 		Version v = Version.of("0.1.0").orElseThrow();
-		statuses.put("/repos/AlbertoSA23/HERALDIA/releases", 403);
-		responses.put("/repos/AlbertoSA23/HERALDIA/releases", "{\"message\":\"API rate limit exceeded\"}");
+		statuses.put("/repos/Stufanplay/HERALDIA/releases", 403);
+		responses.put("/repos/Stufanplay/HERALDIA/releases", "{\"message\":\"API rate limit exceeded\"}");
 		IOException e = assertThrows(IOException.class, () -> VersionNotice.query(base() + "/releases", v, "26.3", false));
 		assertTrue(e.getMessage().contains("403"));
-		statuses.remove("/repos/AlbertoSA23/HERALDIA/releases");
-		responses.put("/repos/AlbertoSA23/HERALDIA/releases", "<html>no</html>");
+		statuses.remove("/repos/Stufanplay/HERALDIA/releases");
+		responses.put("/repos/Stufanplay/HERALDIA/releases", "<html>no</html>");
 		assertThrows(IllegalArgumentException.class, () -> VersionNotice.query(base() + "/releases", v, "26.3", false));
-		responses.put("/repos/AlbertoSA23/HERALDIA/releases", "x".repeat(VersionNotice.MAX_BYTES + 10));
+		responses.put("/repos/Stufanplay/HERALDIA/releases", "x".repeat(VersionNotice.MAX_BYTES + 10));
 		assertThrows(IOException.class, () -> VersionNotice.query(base() + "/releases", v, "26.3", false));
 		// nadie escucha en el puerto: falla enseguida, sin colgarse
 		int free;
@@ -131,7 +131,7 @@ class VersionNoticeTest {
 	@Test
 	void messageHasLinkAndBackup() {
 		Release p = new Release("Heraldia 0.2.0", Version.of("0.2.0").orElseThrow(), false,
-				"https://github.com/AlbertoSA23/HERALDIA/releases/tag/v0.2.0", "v0.2.0", List.of(), List.of());
+				"https://github.com/Stufanplay/HERALDIA/releases/tag/v0.2.0", "v0.2.0", List.of(), List.of());
 		for (String language : Texts.languages()) {
 			List<Component> m = VersionNotice.message(p, "0.1.0", "26.3", Texts.language(language));
 			assertEquals(2, m.size());

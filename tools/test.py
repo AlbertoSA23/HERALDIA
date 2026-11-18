@@ -44,22 +44,22 @@ SMOKE_DE_UNICA = {
 # adultos y anclados.
 DE_TODA_UNICA = ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/guardianes_adultos.py",
                  "tools/smoke/guardianes_anclados.py"]
-# Paquete Java de cada única con código propio (src/main/java/.../unicas/<paquete>/).
-JAVA_UNICA = {"atlantida": "atlantida", "ciudadela": "ciudadela", "faro": "faro", "galeon": "galeon",
-              "isla": "isla_corsario", "mina": "mina_perdida"}
+# Paquete Java de cada única con código propio (src/main/java/.../uniques/<paquete>/).
+JAVA_UNICA = {"atlantis": "atlantida", "citadel": "ciudadela", "lighthouse": "faro", "galleon": "galeon",
+              "island": "isla_corsario", "mine": "mina_perdida"}
 ALDEAS = ["tools/smoke/aldeas_terreno.py", "tools/smoke/aldeas_vida.py", "tools/smoke/aldeas_variantes.py"]
 JAVA = "src/main/java/io/github/albertosa23/heraldia/"
 COMPAT_RUTAS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/gen/biomas.py", "tools/gen/etiquetas_c.json",
                 JAVA + "config/GridPlacement.java", JAVA + "config/UniqueSeparation.java", JAVA + "config/VillageRules.java",
-                JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java", JAVA + "comun/ZonaAjenas.java",
-                JAVA + "unicas/isla/IslaZona.java", JAVA + "unicas/atlantida/AtlantisAnchor.java", JAVA + "comun/Medianas.java"]
+                JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java", JAVA + "common/ForeignZone.java",
+                JAVA + "uniques/island/IslandZone.java", JAVA + "uniques/atlantis/AtlantisAnchor.java", JAVA + "common/MediumStructures.java"]
 # Coste de generación (con y sin Heraldia, comparado con tools/smoke/coste_referencia.json): job propio de la CI, en
 # paralelo con los grupos de servidor. En la batería completa siempre; en un PR solo si cambia algo de COSTE_RUTAS (el
 # Java de la generación, el generador o la propia prueba), salvo lo de COSTE_SIN (tests y documentación).
 COSTE = "tools/smoke/coste_generacion.py"
 COSTE_RUTAS = [COSTE, "tools/smoke/coste_referencia.json", "tools/gen/*", "gradle.properties",
-               JAVA + "aldeas/*", JAVA + "caminos/*", JAVA + "comun/*", JAVA + "config/*", JAVA + "minas/*", JAVA + "costa/*",
-               JAVA + "unicas/*",
+               JAVA + "villages/*", JAVA + "roads/*", JAVA + "common/*", JAVA + "config/*", JAVA + "mines/*", JAVA + "coast/*",
+               JAVA + "uniques/*",
                JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java"]
 COSTE_SIN = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
 MEDIANAS = ["tools/smoke/estructuras_medianas.py"]
@@ -103,31 +103,31 @@ MAPA = [
     ("tools/gen/houses.py", ALDEAS), ("tools/gen/streets.py", ALDEAS), ("tools/gen/specials.py", ALDEAS),
     ("tools/gen/fillers.py", ALDEAS), ("tools/gen/themes.py", ALDEAS), ("tools/gen/sim.py", ALDEAS),
     ("tools/gen/tablon.py", ["tools/smoke/aldeas_vida.py"]),
-    ("tools/gen/tratos.py", ["tools/smoke/aldeas_vida.py"]), (JAVA + "aldeas/*", ALDEAS),
+    ("tools/gen/tratos.py", ["tools/smoke/aldeas_vida.py"]), (JAVA + "villages/*", ALDEAS),
     ("tools/gen/mapas.py", ["tools/smoke/aldeas_vida.py", "tools/smoke/historia.py"]),
     ("tools/gen/loot.py", []),                 # la de humo lee todas las tablas
     ("tools/gen/logros.py", ["tools/smoke/trofeos.py", "tools/smoke/historia.py", "tools/smoke/aldeas_vida.py"]),
     # estructuras medianas: sus tipos (tools/gen/medianas/) y su regla de colocación en Java
-    ("tools/gen/dimensiones.py", NETHER_END + MEDIANAS), (JAVA + "dimensiones/*", NETHER_END),
+    ("tools/gen/dimensiones.py", NETHER_END + MEDIANAS), (JAVA + "dimensions/*", NETHER_END),
     ("tools/gen/unicas/_recinto.py", NETHER_END + DE_TODA_UNICA),
     ("tools/gen/medianas/choza_mago.py", MEDIANAS_MOBS + CHOZAS),
-    ("tools/gen/medianas/*", MEDIANAS_MOBS + NETHER_END), (JAVA + "comun/Medianas.java", MEDIANAS + NETHER_END),
-    ("tools/gen/minas/*", MINAS), (JAVA + "minas/*", MINAS + COSTA),
-    ("tools/gen/litoral/*", COSTA_MOBS), (JAVA + "costa/*", COSTA),
+    ("tools/gen/medianas/*", MEDIANAS_MOBS + NETHER_END), (JAVA + "common/MediumStructures.java", MEDIANAS + NETHER_END),
+    ("tools/gen/minas/*", MINAS), (JAVA + "mines/*", MINAS + COSTA),
+    ("tools/gen/litoral/*", COSTA_MOBS), (JAVA + "coast/*", COSTA),
     # /locate de las minas (T36): la caché compartida de alturas y el cálculo adelantado en paralelo solo los usan las minas
-    (JAVA + "comun/CacheAlturas.java", MINAS), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINAS),
+    (JAVA + "common/HeightCache.java", MINAS), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINAS),
     # encargos del tablón y reputación (T38)
-    (JAVA + "encargos/*", ENCARGOS), (JAVA + "mixin/VillagerPreciosMixin.java", ENCARGOS), ("tools/gen/encargos.py", ENCARGOS),
+    (JAVA + "quests/*", ENCARGOS), (JAVA + "mixin/VillagerPricesMixin.java", ENCARGOS), ("tools/gen/encargos.py", ENCARGOS),
     # caravanas por los caminos (T39)
-    (JAVA + "caravanas/*", CARAVANAS), ("tools/gen/caravanas.py", CARAVANAS),
+    (JAVA + "caravans/*", CARAVANAS), ("tools/gen/caravanas.py", CARAVANAS),
     # chozas de mago (T43)
-    (JAVA + "chozas/*", CHOZAS), ("tools/gen/chozas_mago.py", CHOZAS),
+    (JAVA + "huts/*", CHOZAS), ("tools/gen/chozas_mago.py", CHOZAS),
     # actualizaciones seguras (T46): su Java, el panel, las preferencias, los menús, la migración y sus textos
-    (JAVA + "actualizar/*", ACTUALIZAR), (JAVA + "comando/PanelConfig.java", ACTUALIZAR),
-    (JAVA + "comando/Preferencias.java", ACTUALIZAR), (JAVA + "config/Menus.java", ACTUALIZAR),
-    (JAVA + "config/MigracionConfig.java", ACTUALIZAR), ("tools/gen/actualizaciones.py", ACTUALIZAR),
+    (JAVA + "update/*", ACTUALIZAR), (JAVA + "command/ConfigPanel.java", ACTUALIZAR),
+    (JAVA + "command/Preferences.java", ACTUALIZAR), (JAVA + "config/Menus.java", ACTUALIZAR),
+    (JAVA + "config/ConfigMigration.java", ACTUALIZAR), ("tools/gen/actualizaciones.py", ACTUALIZAR),
     # perfiles de juego (T36): su lógica y su comando (el resto de la configuración es común: batería completa)
-    (JAVA + "config/Perfiles.java", PERFILES), (JAVA + "comando/ProfileCommand.java", PERFILES),
+    (JAVA + "config/Profiles.java", PERFILES), (JAVA + "command/ProfileCommand.java", PERFILES),
     ("tools/gen/biomas.py", ["tools/smoke/terralith_biomas.py"]),
     ("tools/gen/etiquetas_c.json", ["tools/smoke/terralith_biomas.py"]),
     # los mods de Modrinth fijados: las pruebas que los descargan (las de compatibilidad, por COMPAT_RUTAS)
@@ -136,37 +136,37 @@ MAPA = [
     # mixins de los mobs de plantilla y comandos (la de humo prueba /heraldia info y llave)
     (JAVA + "mixin/Zombie*", ["tools/smoke/guardianes_adultos.py"]),
     (JAVA + "mixin/DrownedMixin.java", ["tools/smoke/guardianes_adultos.py"]),
-    (JAVA + "mixin/DrownedAguaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
-    (JAVA + "mixin/DrownedPlayaMixin.java", ["tools/smoke/guardianes_anclados.py"]),
-    (JAVA + "comun/Anclaje.java", ["tools/smoke/guardianes_anclados.py"]),
+    (JAVA + "mixin/DrownedWaterMixin.java", ["tools/smoke/guardianes_anclados.py"]),
+    (JAVA + "mixin/DrownedBeachMixin.java", ["tools/smoke/guardianes_anclados.py"]),
+    (JAVA + "common/Anchoring.java", ["tools/smoke/guardianes_anclados.py"]),
     # botín que se repone y dificultad configurable (T29)
-    (JAVA + "loot/BotinRepuesto.java", ["tools/smoke/botin_reponer.py"]), (JAVA + "loot/Reposicion.java", ["tools/smoke/botin_reponer.py"]),
-    (JAVA + "dificultad/*", ["tools/smoke/dificultad.py"]),
+    (JAVA + "loot/RestockedLoot.java", ["tools/smoke/botin_reponer.py"]), (JAVA + "loot/Restock.java", ["tools/smoke/botin_reponer.py"]),
+    (JAVA + "difficulty/*", ["tools/smoke/dificultad.py"]),
     # Guía del Heraldo: su Java (y los textos por idioma que usa), su generador y su prueba
-    (JAVA + "comando/Guia*", ["tools/smoke/guia.py"]), (JAVA + "comando/Textos.java", ["tools/smoke/guia.py"]),
+    (JAVA + "command/Guide*", ["tools/smoke/guia.py"]), (JAVA + "command/Texts.java", ["tools/smoke/guia.py"]),
     ("tools/gen/guia.py", ["tools/smoke/guia.py"]),
     # idiomas del mod (traducciones y su comprobación): la Guía es lo único que el servidor entrega en el idioma del cliente
     ("tools/gen/idiomas.py", ["tools/smoke/guia.py"]), ("tools/gen/idiomas/*", ["tools/smoke/guia.py"]),
     # herramientas de administración (T35): /heraldia review, status y reload (y la búsqueda de info nearby que reutilizan)
-    (JAVA + "comando/Revis*", ADMIN), (JAVA + "comando/Seguro.java", ADMIN),
-    (JAVA + "comando/Estado*", ADMIN), (JAVA + "comando/Recargar*", ADMIN), (JAVA + "comando/InfoCommand.java", ADMIN),
-    (JAVA + "config/Recarga.java", ADMIN), ("tools/gen/admin.py", ADMIN),
+    (JAVA + "command/Revi*", ADMIN), (JAVA + "command/SafeSpot.java", ADMIN),
+    (JAVA + "command/StatusCommand.java", ADMIN), (JAVA + "command/State.java", ADMIN), (JAVA + "command/ReloadCommand*", ADMIN), (JAVA + "command/InfoCommand.java", ADMIN),
+    (JAVA + "config/Reload.java", ADMIN), ("tools/gen/admin.py", ADMIN),
     # comandos en inglés y sus alias antiguos (T35b): el árbol de /heraldia lo usan todas las pruebas de comandos; el
     # aviso de versión nueva, su prueba con la API de mentira
-    (JAVA + "comando/Comandos.java", COMANDOS), (JAVA + "comando/Alias.java", COMANDOS),
+    (JAVA + "command/HeraldiaCommands.java", COMANDOS), (JAVA + "command/Alias.java", COMANDOS),
     (JAVA + "mixin/CommandsMixin.java", COMANDOS), ("tools/gen/comandos.py", COMANDOS),
-    (JAVA + "comando/AvisoVersion.java", UPDATE), (JAVA + "version/*", UPDATE),
+    (JAVA + "command/VersionNotice.java", UPDATE), (JAVA + "version/*", UPDATE),
     # mapas web (T37): su Java (con los adaptadores), el mixin de los logros y su prueba con squaremap y sin mapas
-    (JAVA + "mapas/*", MAPAS_WEB), (JAVA + "mixin/PlayerAdvancementsMixin.java", MAPAS_WEB),
+    (JAVA + "maps/*", MAPAS_WEB), (JAVA + "mixin/PlayerAdvancementsMixin.java", MAPAS_WEB),
     # búsqueda del tesoro (T40): su Java y su generador; la recompensa de las hazañas del tablón va en tablon.py (arriba)
-    (JAVA + "tesoro/*", TESORO), ("tools/gen/tesoro.py", TESORO),
-    (JAVA + "comando/*", []),
+    (JAVA + "treasure/*", TESORO), ("tools/gen/tesoro.py", TESORO),
+    (JAVA + "command/*", []),
     # jefes: fases, refuerzos y barra de los guardianes (su Java y el contrato de refuerzos del generador)
-    (JAVA + "jefes/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
+    (JAVA + "bosses/*", ["tools/smoke/jefes_fases.py"]), ("tools/gen/jefes.py", ["tools/smoke/jefes_fases.py"]),
     # arena de oleadas (T31) y sus modos (T41): su Java, sus mixins y su generador (plantilla, datos, botín y logros)
     (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_oleadas.py", ARENA),
     # caminos entre aldeas: su Java y sus datos
-    (JAVA + "caminos/*", ["tools/smoke/caminos.py"]), ("tools/gen/caminos.py", ["tools/smoke/caminos.py"]),
+    (JAVA + "roads/*", ["tools/smoke/caminos.py"]), ("tools/gen/caminos.py", ["tools/smoke/caminos.py"]),
     # código común: batería completa
     ("tools/gen/unicas/_comun/*", TODO), ("tools/gen/unicas/__init__.py", TODO), ("tools/gen/writer.py", TODO),
     ("tools/gen/core.py", TODO), ("tools/gen/pack.py", TODO), ("tools/gen/lint.py", TODO), ("tools/gen/validate.py", TODO),
@@ -225,7 +225,7 @@ def para(ruta, todas):
         sid = partes[3][:-3] if len(partes) == 4 and partes[3].endswith(".py") else partes[3]
         if len(partes) > 4 or ruta.endswith(".py"):
             return de_unica(sid, todas)
-    if ruta.startswith(JAVA + "unicas/") and len(partes) > 9:      # src/main/java/io/github/albertosa23/heraldia/unicas/<paquete>/...
+    if ruta.startswith(JAVA + "uniques/") and len(partes) > 9:      # src/main/java/io/github/albertosa23/heraldia/uniques/<paquete>/...
         pkg = partes[8]
         if pkg in JAVA_UNICA:
             return de_unica(JAVA_UNICA[pkg], todas)

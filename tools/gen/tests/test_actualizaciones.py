@@ -10,8 +10,8 @@ import opciones
 
 RAIZ = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
 JAVA = os.path.join(RAIZ, "src", "main", "java", "io", "github", "albertosa23", "heraldia")
-FICHEROS = [os.path.join(JAVA, *p) for p in (("comando", "PanelConfig.java"), ("comando", "Preferencias.java"),
-                                            ("actualizar", "Actualizar.java"), ("actualizar", "Ejecucion.java"))]
+FICHEROS = [os.path.join(JAVA, *p) for p in (("command", "ConfigPanel.java"), ("command", "Preferences.java"),
+                                            ("update", "Updater.java"), ("update", "Execution.java"))]
 TEXTOS = a.lang()
 
 
@@ -77,8 +77,8 @@ def test_menus_y_arreglos_como_en_java():
     with open(os.path.join(JAVA, "config", "Menus.java"), encoding="utf-8") as f:
         menus = re.findall(r'new Menu\("(\w+)"', f.read())
     assert tuple(menus) == a.MENUS
-    with open(os.path.join(JAVA, "actualizar", "ArreglosMobs.java"), encoding="utf-8") as f:
-        arreglos = re.findall(r'new Arreglo<>\(\d+, "(\w+)"', f.read())
+    with open(os.path.join(JAVA, "update", "MobFixes.java"), encoding="utf-8") as f:
+        arreglos = re.findall(r'new Fix<>\(\d+, "(\w+)"', f.read())
     assert tuple(arreglos) == a.ARREGLOS
     assert set(a.IDIOMAS) == set(idiomas.todos())
 

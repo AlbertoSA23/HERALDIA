@@ -93,10 +93,10 @@ class RevisionTest {
 	void marksAndTally() {
 		List<Stop> r = route();
 		Revision.Ledger reg = new Revision.Ledger();
-		reg.markStop(OWNER, "Alberto", "aldea/llanuras", Mark.REVIEWED, "", 1000);
-		reg.markStop(OWNER, "Alberto", "unica/castillo", Mark.PROBLEM, "  escalera  sin\nterminar ", 2000);
-		reg.markStop(OWNER, "Alberto", "mina/grande", Mark.SKIPPED, "", 3000);
-		reg.markStop(OWNER, "Alberto", "aldea/llanuras", Mark.PROBLEM, "farol flotando", 4000);   // sustituye
+		reg.markStop(OWNER, "Steve", "aldea/llanuras", Mark.REVIEWED, "", 1000);
+		reg.markStop(OWNER, "Steve", "unica/castillo", Mark.PROBLEM, "  escalera  sin\nterminar ", 2000);
+		reg.markStop(OWNER, "Steve", "mina/grande", Mark.SKIPPED, "", 3000);
+		reg.markStop(OWNER, "Steve", "aldea/llanuras", Mark.PROBLEM, "farol flotando", 4000);   // sustituye
 		Revision.Progress p = reg.players().get(OWNER);
 		assertEquals("escalera  sin terminar", p.note("unica/castillo").note(), "sin saltos de línea ni espacios al borde");
 		assertEquals(Mark.PROBLEM, p.note("aldea/llanuras").mark());
@@ -111,8 +111,8 @@ class RevisionTest {
 	@Test
 	void fileRoundTrip() throws IOException {
 		Revision.Ledger reg = new Revision.Ledger();
-		reg.markStop(OWNER, "Alberto", "unica/castillo", Mark.PROBLEM, "puerta | sin salida", 1_700_000_000_000L);
-		reg.of(OWNER, "Alberto").actual = 5;
+		reg.markStop(OWNER, "Steve", "unica/castillo", Mark.PROBLEM, "puerta | sin salida", 1_700_000_000_000L);
+		reg.of(OWNER, "Steve").actual = 5;
 		reg.markStop(OTHER_PLAYER, "Vecino", "arena", Mark.REVIEWED, "", 5);
 		Path f = dir.resolve(Revision.FILE);
 		Revision.write(f, Revision.json(reg));
@@ -135,7 +135,7 @@ class RevisionTest {
 		Files.writeString(broken, "[1, 2]");
 		assertTrue(Revision.read(broken).players().isEmpty());
 		// un jugador mal escrito se ignora y el resto se conserva
-		JsonObject o = JsonParser.parseString("{\"jugadores\": {\"no-es-uuid\": {}, \"" + OWNER + "\": {\"nombre\": \"Alberto\", "
+		JsonObject o = JsonParser.parseString("{\"jugadores\": {\"no-es-uuid\": {}, \"" + OWNER + "\": {\"nombre\": \"Steve\", "
 				+ "\"actual\": -3, \"paradas\": {\"arena\": {\"marca\": \"revisada\"}, \"camino\": {\"marca\": \"rara\"}}}}}").getAsJsonObject();
 		Files.writeString(broken, o.toString());
 		Revision.Ledger r = Revision.read(broken);
@@ -148,13 +148,13 @@ class RevisionTest {
 	void markdownSummary() {
 		List<Stop> r = route();
 		Revision.Ledger reg = new Revision.Ledger();
-		reg.markStop(OWNER, "Alberto", "aldea/bosque", Mark.REVIEWED, "bonita", 1_700_000_000_000L);
-		reg.markStop(OWNER, "Alberto", "unica/castillo", Mark.PROBLEM, "puerta | sin <salida>", 1_700_000_000_000L);
-		reg.markStop(OWNER, "Alberto", "unica/borrada", Mark.SKIPPED, "", 0);          // ya no está en la ruta
+		reg.markStop(OWNER, "Steve", "aldea/bosque", Mark.REVIEWED, "bonita", 1_700_000_000_000L);
+		reg.markStop(OWNER, "Steve", "unica/castillo", Mark.PROBLEM, "puerta | sin <salida>", 1_700_000_000_000L);
+		reg.markStop(OWNER, "Steve", "unica/borrada", Mark.SKIPPED, "", 0);          // ya no está en la ruta
 		String md = Revision.markdown(r, reg, p -> "Nombre de " + p.id(), 1_700_000_000_000L);
 		assertTrue(md.startsWith("# Revisión de Heraldia\n"));
 		assertTrue(md.contains("2023-11-14 22:13 (UTC)"));
-		assertTrue(md.contains("## Alberto"));
+		assertTrue(md.contains("## Steve"));
 		assertTrue(md.contains("1 revisadas, 1 con problema, 0 saltadas, " + (r.size() - 2) + " pendientes."));
 		int problem = md.indexOf("`unica/castillo`"), reviewed = md.indexOf("`aldea/bosque`"), pending = md.indexOf("`aldea/llanuras`");
 		assertTrue(problem > 0 && problem < reviewed && problem < pending, "primero los problemas");

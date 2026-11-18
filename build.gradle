@@ -88,7 +88,7 @@ dependencies {
 // Pruebas unitarias (JUnit) con las clases del juego en el classpath: p. ej. la separación entre estructuras únicas.
 // Las simulaciones largas (minutos) van en su propia tarea, testPesado: ./gradlew build (check) pasa las dos; la CI
 // pasa testPesado en un job aparte, a la vez que el resto, para que no alargue la compilación.
-def junitPesadas = ['io.github.albertosa23.heraldia.config.UniqueSeparationTest', 'io.github.albertosa23.heraldia.minas.MinasDeterminismoTest']
+def junitPesadas = ['io.github.albertosa23.heraldia.config.UniqueSeparationTest', 'io.github.albertosa23.heraldia.mines.MinesDeterminismTest']
 test {
 	useJUnitPlatform()
 	systemProperty 'heraldia.generated', generatedDir.get().asFile.absolutePath

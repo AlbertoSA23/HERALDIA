@@ -10,7 +10,7 @@ import idiomas
 import opciones
 
 RAIZ = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
-MAPAS = os.path.join(RAIZ, "src", "main", "java", "io", "github", "albertosa23", "heraldia", "mapas")
+MAPAS = os.path.join(RAIZ, "src", "main", "java", "io", "github", "albertosa23", "heraldia", "maps")
 IDIOMAS = os.path.join(RAIZ, "tools", "gen", "idiomas")
 TRADUCCIONES = ("fr_fr", "de_de", "it_it", "pt_br", "ca_es", "gl_es")
 
@@ -21,15 +21,15 @@ def _java(nombre):
 
 
 def capas():
-    """Ids de las capas: los valores del enum Capa en minúsculas."""
-    cuerpo = re.search(r"enum Capa \{\s*(.*?);", _java("Capa.java"), re.S).group(1)
-    return [m.lower() for m in re.findall(r"\b([A-Z]+)\(", cuerpo)]
+    """Ids de las capas: los ids guardados del enum Layer."""
+    cuerpo = re.search(r"enum Layer \{\s*(.*?);", _java("Layer.java"), re.S).group(1)
+    return re.findall(r'\b[A-Z]+\("(\w+)"', cuerpo)
 
 
 def claves_java():
     """Claves de texto que piden los mapas web: dos por capa, más las fijas de MapasWeb y Marcadores."""
     out = {f"heraldia.mapas_web.{t}.{c}" for c in capas() for t in ("capa", "descripcion")}
-    for f in ("MapasWeb.java", "Marcadores.java"):
+    for f in ("WebMaps.java", "Markers.java"):
         out |= set(re.findall(r'"(heraldia\.mapas_web\.[a-z_.]+)"', _java(f)))
     return out
 
@@ -90,5 +90,5 @@ def test_opciones_en_el_esquema():
 
 
 def test_las_opciones_se_recargan():
-    with open(os.path.join(MAPAS, "..", "config", "Recarga.java"), encoding="utf-8") as f:
+    with open(os.path.join(MAPAS, "..", "config", "Reload.java"), encoding="utf-8") as f:
         assert '"mapas_web."' in f.read()

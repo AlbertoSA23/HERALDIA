@@ -22,6 +22,12 @@ def _java(*partes):
         return f.read()
 
 
+def _ids_enum(src, nombre):
+    """Constante → id guardado de un enum del Java con ids explícitos (p. ej. VILLAGE("aldea"))."""
+    cuerpo = re.search(r"enum " + nombre + r" \{(.*?);", src, re.S).group(1)
+    return dict(re.findall(r'(\w+)\("(\w+)"', cuerpo))
+
+
 def test_es_y_en_con_las_mismas_claves_y_huecos():
     es, en = TEXTOS["es_es"], TEXTOS["en_us"]
     assert es.keys() == en.keys()
@@ -51,11 +57,12 @@ def test_las_traducciones_no_son_el_ingles_copiado(codigo):
 
 
 def test_listas_de_que_mirar_iguales_en_java_y_en_python():
-    src = _java("comando", "RevisarCommand.java")
-    m = re.search(r"PUNTOS = Map\.of\((.*?)\);", src, re.S)
-    java = {t.lower(): int(n) for t, n in re.findall(r"Revision\.Tipo\.(\w+), (\d+)", m.group(1))}
+    src = _java("command", "ReviewCommand.java")
+    m = re.search(r"POINTS = Map\.of\((.*?)\);", src, re.S)
+    ids = _ids_enum(_java("command", "Revision.java"), "Type")
+    java = {ids[t]: int(n) for t, n in re.findall(r"Revision\.Type\.(\w+), (\d+)", m.group(1))}
     assert java == admin.PUNTOS
-    propios = re.search(r"CON_PUNTO_PROPIO = Set\.of\((.*?)\);", src, re.S).group(1)
+    propios = re.search(r"WITH_OWN_POINT = Set\.of\((.*?)\);", src, re.S).group(1)
     assert set(re.findall(r'"(\w+)"', propios)) == set(admin.CON_PUNTO_PROPIO)
     for k in admin.claves_mirar():
         assert k in TEXTOS["es_es"], k
@@ -64,16 +71,15 @@ def test_listas_de_que_mirar_iguales_en_java_y_en_python():
 
 
 def test_los_tipos_de_parada_de_java_tienen_su_lista():
-    src = _java("comando", "Revision.java")
-    tipos = re.search(r"enum Tipo \{(.*?)\}", src).group(1)
-    assert {t.strip().lower() for t in tipos.split(",")} == set(admin.PUNTOS)
+    src = _java("command", "Revision.java")
+    assert set(_ids_enum(src, "Type").values()) == set(admin.PUNTOS)
 
 
 def test_botones_con_su_ayuda():
     for b in admin.BOTONES:
         assert f"heraldia.revisar.boton.{b}" in TEXTOS["es_es"], b
         assert f"heraldia.revisar.boton.{b}.ayuda" in TEXTOS["es_es"], b
-    src = _java("comando", "RevisarCommand.java")
+    src = _java("command", "ReviewCommand.java")
     usados = set(re.findall(r'"heraldia\.revisar\.boton\.(\w+)"', src))
     assert usados <= set(admin.BOTONES)
 
@@ -81,25 +87,25 @@ def test_botones_con_su_ayuda():
 def test_el_java_solo_pide_claves_que_existen():
     """Toda cadena literal «heraldia.revisar|estado|recargar|version|comando.*» del Java (completa: sin las que se terminan de armar
     con + en el código) está en los textos."""
-    fuentes = ["RevisarCommand.java", "EstadoCommand.java", "RecargarCommand.java", "AvisoVersion.java", "Comandos.java"]
+    fuentes = ["ReviewCommand.java", "StatusCommand.java", "ReloadCommand.java", "VersionNotice.java", "HeraldiaCommands.java"]
     pedidas = set()
     for f in fuentes:
-        for k in re.findall(r'"(heraldia\.(?:revisar|estado|recargar|version|comando)\.[\w.]+)"', _java("comando", f)):
+        for k in re.findall(r'"(heraldia\.(?:revisar|estado|recargar|version|comando)\.[\w.]+)"', _java("command", f)):
             if not k.endswith("."):
                 pedidas.add(k)
     assert pedidas, "no se encontró ninguna clave en el Java"
     faltan = sorted(pedidas - TEXTOS["es_es"].keys())
     assert not faltan, faltan
     # estados de las marcas: heraldia.revisar.estado.<marca> (Revision.Marca en minúsculas) y pendiente
-    marcas = re.search(r"enum Marca \{(.*?)\}", _java("comando", "Revision.java")).group(1)
-    for m in [x.strip().lower() for x in marcas.split(",")] + ["pendiente"]:
+    marcas = _ids_enum(_java("command", "Revision.java"), "Mark").values()
+    for m in list(marcas) + ["pendiente"]:
         assert f"heraldia.revisar.estado.{m}" in TEXTOS["es_es"], m
 
 
 def test_opciones_recargables_existen_y_las_de_generacion_no_lo_son():
-    src = _java("config", "Recarga.java")
-    recargables = re.findall(r'"([\w.]+)"', re.search(r"RECARGABLES = List\.of\((.*?)\);", src, re.S).group(1))
-    solo = re.findall(r'"([\w.]+)"', re.search(r"SOLO_AL_ARRANCAR = List\.of\((.*?)\);", src, re.S).group(1))
+    src = _java("config", "Reload.java")
+    recargables = re.findall(r'"([\w.]+)"', re.search(r"RELOADABLE = List\.of\((.*?)\);", src, re.S).group(1))
+    solo = re.findall(r'"([\w.]+)"', re.search(r"STARTUP_ONLY = List\.of\((.*?)\);", src, re.S).group(1))
     claves = [o["clave"] for o in opciones.schema()["opciones"]]
     for r in recargables + solo:
         assert any(c.startswith(r) if r.endswith(".") else c == r for c in claves), f"{r} no nombra ninguna opción"
@@ -126,4 +132,4 @@ def test_el_aviso_de_la_pantalla_menciona_la_recarga_en_todos_los_idiomas():
     for codigo in idiomas.TRADUCCIONES:
         assert "/heraldia reload" in idiomas.cargar(codigo)["heraldia.config.pantalla.aviso_mundo"], codigo
     with open(os.path.join(CLIENTE, "HeraldiaClient.java"), encoding="utf-8") as f:
-        assert "RecargarCommand.aplicar" in f.read()
+        assert "ReloadCommand.apply" in f.read()
