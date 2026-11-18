@@ -25,7 +25,8 @@ import argparse, fnmatch, glob, json, os, shutil, subprocess, sys, time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SMOKE = "tools/smoke/server_smoke.py"
 FULL = "*"            # in the map: the change affects everything (common code) -> full suite
-NOT_TESTS = {"server_smoke.py", "modrinth.py", "generation_cost.py"}  # common modules and the cost one (its own job)
+NOT_TESTS = {"server_smoke.py", "modrinth.py", "generation_cost.py", "wayfarers.py"}  # common modules, the cost one (its own job) and the
+# wayfarers' scenario, which runs inside caravans.py (same server and corridor)
 # Compatibility with other mods (one test per group, with Modrinth mods): long and with downloads, so in a PR
 # it only runs if the test itself, the mod list or the common placement code changes (what decides where each
 # structure appears and whether it clashes with those of other mods). In the full suite (push to develop, workflow_dispatch, label) always.
@@ -85,13 +86,15 @@ PROFILES = ["tools/smoke/profiles.py", "tools/smoke/light_profile.py"]
 # Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements.
 QUESTS = ["tools/smoke/quests.py"]
 # Caravans along the roads (T39): their Java and their texts and advancement.
-CARAVANS = ["tools/smoke/caravans.py", "tools/smoke/wayfarers.py"]
+CARAVANS = ["tools/smoke/caravans.py"]
 # The medium structure types bring anchored mobs (and adult zombies): the tests that go through all the template mobs.
 MEDIUMS_MOBS = MEDIUMS + ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"]
 # Nether and End content (T44): medium and unique structures with DIMENSION, their structure type and their placement
 NETHER_END = ["tools/smoke/nether_end.py"]
 # Wizard huts (T43): the Evil Wizard (Java chozas/) and its loot and texts; its template is a medium structure.
 HUTS = ["tools/smoke/wizard_huts.py"]
+# Ambient effects (bell, lighthouse siren, mine drips): their Java (ambience/).
+AMBIENCE = ["tools/smoke/ambience.py"]
 # Safe updates (T46): dialog panel, per-player language, per-version fixes and update analyze/apply (path A: pristine
 # chunks regenerated) and, for the Java in update/, also path B (new structures placed in generated chunks) and undo.
 SAFE_UPDATE = ["tools/smoke/update.py"]
@@ -127,9 +130,11 @@ MAP = [
     # board quests and reputation (T38)
     (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
     # caravans along the roads (T39)
-    (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS),
+    (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS), ("tools/smoke/wayfarers.py", CARAVANS),
     # chozas de mago (T43)
     (JAVA + "huts/*", HUTS), ("tools/gen/wizard_huts.py", HUTS),
+    # ambient effects
+    (JAVA + "ambience/*", AMBIENCE),
     # safe updates (T46): their Java, the panel, the preferences, the menus, the migration and their texts
     (JAVA + "update/*", SAFE_UPDATE_JAVA), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
     (JAVA + "command/Preferences.java", SAFE_UPDATE), (JAVA + "config/Menus.java", SAFE_UPDATE),
@@ -328,8 +333,8 @@ DURATION_S = {
     "tools/smoke/treasure.py": 130,                    # measured locally: ~1 min 40 s (three starts, the whole chain and the chest)
     "tools/smoke/nether_end.py": 300,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
     "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)
-    "tools/smoke/caravans.py": 240,                 # measured locally: ~3.5 min (two starts, 387 corridor chunks and 5 caravans)
-    "tools/smoke/wayfarers.py": 230,                # measured locally: ~3 min 45 s (one start, the caravans' corridor and 7 wayfarers)
+    "tools/smoke/caravans.py": 330,                 # measured locally: ~5.5 min (two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py)
+    "tools/smoke/ambience.py": 120,                 # measured locally: ~2 min (one start, three /locate'd structures, ~11,000 sprinted ticks)
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined

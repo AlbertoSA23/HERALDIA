@@ -102,6 +102,8 @@ Back to the [README](../README.md).
   (x2 by default). See [Mine entrances](#mine-entrances).
 - **Lighthouses and wrecks** (on the coast, on firm ground by the sea or in the shallows): lighthouses with their light
   always lit and broken galleons, run aground or half-sunk, with a style for each climate. See [Lighthouses and wrecks](#lighthouses-and-wrecks).
+- **Ambience** (also in existing worlds): the village bell at sunrise and nightfall, the lighthouse siren in the rain
+  and drips and echoes in the mine galleries, with the game's own sounds and particles. See [Ambience](#ambience).
 
 ## Huge villages
 
@@ -310,6 +312,35 @@ Two kinds of **coastal** structure, always on a real shoreline: the custom type 
 - **Loot**, modest and seafaring (tables `heraldia:costa/<table>`, restocked with `botin.reponer.activado` and scaled by the difficulty): the **lighthouse** (maps, compass, spyglass, candles, food); the galleon's **hold** (supplies and stores); the captain's **cabin** (maps, instruments, gold, emeralds, an enchanted book) and, rarely, a **treasure map fragment** (half of `tesoro.probabilidad`). No diamonds, tridents or hearts of the sea.
 - **Placement**: one grid per kind (`heraldia:costa/<kind>`; by default a lighthouse every 1,024 blocks and a wreck every 768, with `faros.separacion_bloques` and `naufragios.separacion_bloques`) with the candidate on beaches (`#heraldia:litoral`). As they only spawn where there is coast, there are fewer in practice. The rule is the mines' one without changing any other: never within 256 blocks of a Heraldia village or unique structure, nor within 192 of a medium structure, a mine entrance or the other coastal kind, nor next to structures that show above ground (vanilla or other mods': vanilla shipwrecks and ocean ruins included), nor inside Atlantis; roads skip their pieces. Lighthouses do not look for villages with a dock (those are outside their zone): they prefer **capes**, the shore with most water around among the first four that fit.
 - Find them with `/locate structure #heraldia:costa/faro` (or `naufragio`) and `/heraldia info nearby`; `/heraldia info` shows their configuration. To try one: `/place structure heraldia:costa/<kind>/<style>/<variant>` next to a beach (with no shore nearby it is placed at the centre facing south). Advancements: **Light on the Coast** (a lighthouse), **Flotsam and Jetsam** (a wrecked galleon) and **The Captain's Chest** (open its cabin chest). Web maps: "lighthouses and wrecks" layer (`mapas_web.capas.costa`). `/heraldia review`: stops `costa/faro` and `costa/naufragio`. **In an existing world, only in new chunks.**
+
+## Ambience
+
+Effects with the game's own sounds and particles: nothing new to download, vanilla clients hear them as they are, and
+the mod still registers no block, item or entity of its own. Each sound is sent **only to the players it is meant for**,
+in the **Ambient/Environment** sound category (each player turns it down with their own slider), and each player has a
+cooldown per effect, so it never repeats every little while. They work in existing worlds too (they look for the
+structures already generated). Options: `ambiente.activado` (all of them) and one per effect.
+
+- **Village bell** (`ambiente.campanas`): at **sunrise** and at **nightfall** (world clock 0 and 12,000) three bell strikes
+  ring out from the village square for the players inside a Heraldia village (its box: streets, houses and outskirts).
+  Waking up after sleeping puts the clock on a sunrise, so it greets the morning. At most twice a day per player (5 min of
+  cooldown, so `/time set` does not make it ring again and again); with the daylight cycle stopped it rings once.
+- **Lighthouse siren** (`ambiente.sirena_faro`): in **rain or a thunderstorm** (vanilla has no fog weather; rain is its
+  low visibility), the nearest lighthouse (a coastal one or the smugglers' lighthouse) sounds a deep horn (the "Ponder"
+  goat horn, low) for the players **out in the open** within **160 blocks**: from a boat at sea it is heard far off and
+  faint. Not in caves or under water. At most once every **3 minutes** per player.
+- **Mine galleries** (`ambiente.minas`): underground in a Heraldia mine (the three sizes of mine entrance and the Lost
+  Mine of Hondavena), every **20-45 s** a drop of water hangs from the ceiling near the player and falls (the game's
+  dripstone drop, which plays its own drip when it lands) and, now and then, the **cave's echo** sounds a dozen blocks down
+  the gallery (at most every 4 min). Nothing under the open sky.
+- **Cost**: nothing runs on the server tick except `tick % 100`; every 5 s a loop over the players; per player, one structure lookup in
+  their own chunk every 20-45 s (mines) and one more only in the minutes of sunrise and nightfall (villages) and, only while it rains and
+  the player's siren is due, a look at the structure starts of the loaded chunks around them (it never loads a chunk).
+  Nothing is saved in the world.
+- **Not included: the tavern song on the Corsair's Isle.** The Hanged Mermaid has no villagers inside (its template only
+  has the corsair's crew in the caves) and the game has no song: villager murmurs coming out of an empty tavern would be a
+  ghost choir, and a tune of note-block sounds played every few minutes gets tiresome. It would need villagers in the
+  template (only in new chunks), so it is left out on purpose.
 
 ## Treasure maps
 

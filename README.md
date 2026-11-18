@@ -71,6 +71,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `caravanas.activado` | `true` | Caravans along the roads (operators: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Wayfarers along the roads, each kind with its own option (operators: `/heraldia caravan wayfarer`). |
 | `chozas_mago.prob_malvado` | 20 | Chance (%) that the wizard of a wizard's hut is an evil wizard in disguise. |
+| `ambiente.activado` | `true` | Ambient effects with the game's own sounds: the village bell at sunrise and nightfall, the lighthouse siren in the rain and drips in the mines (each also has its own option). |
 | `guia.entregar_al_entrar` | `true` | Gives the Herald's Guide to each player on joining. |
 | `update_check.activado` | `true` | Tells operators when there is a new version. |
 | `actualizar.margen_bloques` | 50 | Safety margin around player builds for `/heraldia update`. |

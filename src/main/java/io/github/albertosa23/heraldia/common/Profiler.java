@@ -46,7 +46,9 @@ public final class Profiler {
 		/** Placement rule of the lighthouses and shipwrecks (coast/Coast: the mines' one with its family). */
 		COAST("costa"),
 		/** Shore search of a lighthouse or a shipwreck (coast/Shoreline). */
-		COAST_SHORE("costa_orilla");
+		COAST_SHORE("costa_orilla"),
+		/** The ambient effects' check, every 5 s with players online (ambience/Ambience: bell, siren, mine drips). */
+		AMBIENCE("ambiente");
 
 		/** Saved id (JSON key of the report): never renamed. */
 		public final String id;

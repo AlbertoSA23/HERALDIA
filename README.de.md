@@ -71,6 +71,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `caravanas.activado` | `true` | Karawanen auf den Wegen (Operatoren: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Reisende auf den Wegen, jede Art mit eigener Option (Operatoren: `/heraldia caravan wayfarer`). |
 | `chozas_mago.prob_malvado` | 20 | Wahrscheinlichkeit (%), dass der Magier einer Magierhütte ein verkleideter böser Magier ist. |
+| `ambiente.activado` | `true` | Umgebungseffekte mit den Geräuschen des Spiels: die Dorfglocke bei Sonnenaufgang und Einbruch der Nacht, das Nebelhorn des Leuchtturms bei Regen und Tropfen in den Minen (jeder hat auch seine eigene Option). |
 | `guia.entregar_al_entrar` | `true` | Gibt jedem Spieler beim Betreten den Leitfaden des Herolds. |
 | `update_check.activado` | `true` | Meldet Operatoren, wenn es eine neue Version gibt. |
 | `actualizar.margen_bloques` | 50 | Sicherheitsabstand um Spielerbauten für `/heraldia update`. |

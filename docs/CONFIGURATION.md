@@ -237,6 +237,10 @@ when its format changes. It is read when the server starts and affects chunks ge
 | `viajeros.cazador.activado` | `true` | `true`/`false` | Hunters with their dog (they trade). |
 | `chozas_mago.prob_malvado` | 20 | 0-100 | Chance (%) that the wizard of a [wizard's hut](CONTENT.md#wizards-huts) is evil; per hut, always the same, and stored in the wizard when it loads. 0: all of them trade. Set by the [profile](#gameplay-profiles). |
 | `chozas_mago.prob_botin_premium` | 30 | 0-100 | Chance (%) that the Evil Wizard also carries the prize (Mending, hard potions, a totem or a high-level book); per hut, when he reveals himself. |
+| `ambiente.activado` | `true` | `true`/`false` | [Ambient effects](CONTENT.md#ambience) with the game's own sounds and particles (also in existing worlds). Off, none plays. |
+| `ambiente.campanas` | `true` | `true`/`false` | Village bell at sunrise and nightfall for the players inside a Heraldia village (at most twice a day per player). |
+| `ambiente.sirena_faro` | `true` | `true`/`false` | Lighthouse siren in rain or a thunderstorm, for players in the open within 160 blocks (at most every 3 min per player). |
+| `ambiente.minas` | `true` | `true`/`false` | Drips (every 20-45 s) and, rarely, the cave's echo in the galleries of Heraldia's mines. |
 | `reputacion.activado` | `true` | `true`/`false` | Reputation per village: it rises with quests and falls when you attack its villagers or golems; known, friend and village hero lower its trades by 10, 20 and 30 % (not stacking with Hero of the Village). When disabled, no discounts or changes (the reputation earned is kept). |
 | `mapas_web.activado` | `true` | `true`/`false` | [Markers on the web maps](#web-maps-heraldia-webmap-refresh) (BlueMap, Dynmap or squaremap); without any of them it does nothing. Disabled, it removes Heraldia's layers from the map. |
 | `mapas_web.solo_descubiertas` | `true` | `true`/`false` | Only those of a kind some player has discovered are shown (the `/heraldia status` advancements); with `false`, every one already generated in chunks that have been loaded. |

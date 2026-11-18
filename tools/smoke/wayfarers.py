@@ -1,6 +1,8 @@
 """Wayfarers on the roads (the caravans' engine) on a real 26.3 dedicated server; complements WayfarersTest and WayfarerOptionsTest.
 
 Usage: python3 tools/smoke/wayfarers.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-viajeros"
+In the battery it runs inside tools/smoke/caravans.py (`scenario`, in its first start: the same server and corridor, no group of its
+own in CI); this file is in NOT_TESTS of tools/test.py and its main() is for running it alone.
 Deterministic: the seed and the minimal grid of villages from roads.py (the same route on dry land as caravans.py), both rolls
 turned off (caravanas.frecuencia = viajeros.frecuencia = 0: they only appear with the command) and a Carpet simulated player
 next to the road, in the corridor of generated chunks. One start:
@@ -190,6 +192,67 @@ def kill_hunter(ctx, fails, w):
         fails.append("killing the hunter costs no reputation with its village")
 
 
+def scenario(ctx, fails, route, work):
+    """Every check above, on a server already started with the corridor generated and the player next to the road (the
+    caravans' test runs it in its first start, so that it costs no server start of its own). It leaves the player in
+    creative and the wayfarers switched off, as the caravans' test expects."""
+    s.send(ctx.proc, f"gamemode survival {PLAYER}")     # (survival: the guards may turn on it; resistance keeps it alive)
+    ctx.run(f"effect give {PLAYER} minecraft:resistance infinite 4 true", r"Applied effect|Gave")
+    ctx.run(f"effect give {PLAYER} minecraft:saturation infinite 4 true", r"Applied effect|Gave")
+    ctx.run("gamerule advance_time false", r"[Gg]ame ?rule .*advance_time")
+    ctx.run("time set noon", r"Set .*(time|noon)")
+    # each kind: what it brings, that it walks, one at a time; then its ending
+    # (the messenger, fast, only walks 5 s: it would reach the end of its stretch before the others' endings)
+    for kind, ending, walk in (("shepherd", far, 200), ("messenger", None, 100), ("patrol", hurt_guard, 100),
+                               ("hunter", arrives, 100), ("hunter", kill_hunter, 60)):
+        w = new_one(ctx, fails, route, kind)
+        if w is None:
+            continue
+        check_party(ctx, fails, w, walk)
+        if ending:
+            ending(ctx, fails, w)
+        cv.as_player(ctx, "heraldia caravan clear", r"Caravans removed: (\d+)|Caravanas quitadas: (\d+)")
+        ctx.ticks(10)
+        if ctx.count(f"@e[tag={TAG}]"):
+            fails.append(f"after {kind} and clear, {ctx.count(f'@e[tag={TAG}]')} entities remain")
+    w = new_one(ctx, fails, route, "pilgrim", required=False)
+    if w is not None:
+        check_party(ctx, fails, w)
+        if not w["santuario"] or not re.match(r"heraldia:unicas/(monasterio|catedral)", w["santuario"]):
+            fails.append(f"the pilgrim walks towards no shrine: {w['santuario']}")
+        cv.as_player(ctx, "heraldia caravan clear", r"Caravans removed|Caravanas quitadas")
+    # a stray one is removed on load
+    va, vb, _ = route
+    x, z = cv.point(va, vb, 0.5)
+    cv.on_floor(ctx, PLAYER, x, z)
+    ctx.ticks(10)
+    mark = len(ctx.seen)
+    ctx.run(f'execute at {PLAYER} run summon minecraft:sheep ~2 ~ ~ {{Tags:["{TAG}","{SHEEP}"]}}', r"Summoned|Unable")
+    m = cv.wait(ctx, r"quitada una entidad de una caravana que ya no está en camino \((\w+)", mark)
+    ctx.ticks(5)
+    if m.group(1) != "sheep" or ctx.count(f"@e[tag={TAG}]"):
+        fails.append(f"a stray wayfarer sheep is not removed on load: {m.group(0)}")
+    # a kind switched off, then all of them, with /heraldia reload
+    configure(work, {"viajeros": {"pastor": {"activado": False}}})
+    ctx.run("heraldia reload", r"Heraldia: configuración recargada")
+    cv.as_player(ctx, "heraldia caravan wayfarer shepherd", r"That kind of wayfarer \(shepherd\) is disabled|Ese tipo de viajero \(pastor\)")
+    w = new_one(ctx, fails, route, "messenger")
+    configure(work, {"viajeros": {"activado": False}})
+    mark = len(ctx.seen)
+    ctx.run("heraldia reload", r"Heraldia: configuración recargada")
+    if w is not None:
+        m = ends(ctx, w, mark)
+        if m.group(1) != "limpieza":
+            fails.append(f"when disabled, the wayfarer on the road ends as '{m.group(1)}'")
+    ctx.ticks(10)
+    if ctx.count(f"@e[tag={TAG}]"):
+        fails.append("disabled, wayfarer entities remain")
+    cv.as_player(ctx, "heraldia caravan wayfarer", r"Wayfarers are disabled|gente de paso está desactivada")
+    if cv.state(ctx, r"Wayfarers: disabled|Gente de paso: desactivada") is None:
+        fails.append("/heraldia status does not say the wayfarers are disabled")
+    s.send(ctx.proc, f"gamemode creative {PLAYER}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
@@ -214,59 +277,7 @@ def main():
         ctx.run(f"player {PLAYER} spawn at {x} 200 {z}", r"joined the game")
         if not ctx.until(f"execute if entity @a[name={PLAYER}]"):
             raise SystemExit(f"simulated player {PLAYER} does not appear (Carpet)")
-        s.send(ctx.proc, f"gamemode survival {PLAYER}")     # (survival: the guards may turn on it; resistance keeps it alive)
-        ctx.run(f"effect give {PLAYER} minecraft:resistance infinite 4 true", r"Applied effect|Gave")
-        ctx.run(f"effect give {PLAYER} minecraft:saturation infinite 4 true", r"Applied effect|Gave")
-        ctx.run("gamerule advance_time false", r"[Gg]ame ?rule .*advance_time")
-        ctx.run("time set noon", r"Set .*(time|noon)")
-        # each kind: what it brings, that it walks, one at a time; then its ending
-        # (the messenger, fast, only walks 5 s: it would reach the end of its stretch before the others' endings)
-        for kind, ending, walk in (("shepherd", far, 300), ("messenger", None, 100), ("patrol", hurt_guard, 300),
-                                   ("hunter", arrives, 300), ("hunter", kill_hunter, 60)):
-            w = new_one(ctx, fails, route, kind)
-            if w is None:
-                continue
-            check_party(ctx, fails, w, walk)
-            if ending:
-                ending(ctx, fails, w)
-            cv.as_player(ctx, "heraldia caravan clear", r"Caravans removed: (\d+)|Caravanas quitadas: (\d+)")
-            ctx.ticks(10)
-            if ctx.count(f"@e[tag={TAG}]"):
-                fails.append(f"after {kind} and clear, {ctx.count(f'@e[tag={TAG}]')} entities remain")
-        w = new_one(ctx, fails, route, "pilgrim", required=False)
-        if w is not None:
-            check_party(ctx, fails, w)
-            if not w["santuario"] or not re.match(r"heraldia:unicas/(monasterio|catedral)", w["santuario"]):
-                fails.append(f"the pilgrim walks towards no shrine: {w['santuario']}")
-            cv.as_player(ctx, "heraldia caravan clear", r"Caravans removed|Caravanas quitadas")
-        # a stray one is removed on load
-        x, z = cv.point(va, vb, 0.5)
-        cv.on_floor(ctx, PLAYER, x, z)
-        ctx.ticks(10)
-        mark = len(ctx.seen)
-        ctx.run(f'execute at {PLAYER} run summon minecraft:sheep ~2 ~ ~ {{Tags:["{TAG}","{SHEEP}"]}}', r"Summoned|Unable")
-        m = cv.wait(ctx, r"quitada una entidad de una caravana que ya no está en camino \((\w+)", mark)
-        ctx.ticks(5)
-        if m.group(1) != "sheep" or ctx.count(f"@e[tag={TAG}]"):
-            fails.append(f"a stray wayfarer sheep is not removed on load: {m.group(0)}")
-        # a kind switched off, then all of them, with /heraldia reload
-        configure(a.work, {"viajeros": {"pastor": {"activado": False}}})
-        ctx.run("heraldia reload", r"Heraldia: configuración recargada")
-        cv.as_player(ctx, "heraldia caravan wayfarer shepherd", r"That kind of wayfarer \(shepherd\) is disabled|Ese tipo de viajero \(pastor\)")
-        w = new_one(ctx, fails, route, "messenger")
-        configure(a.work, {"viajeros": {"activado": False}})
-        mark = len(ctx.seen)
-        ctx.run("heraldia reload", r"Heraldia: configuración recargada")
-        if w is not None:
-            m = ends(ctx, w, mark)
-            if m.group(1) != "limpieza":
-                fails.append(f"when disabled, the wayfarer on the road ends as '{m.group(1)}'")
-        ctx.ticks(10)
-        if ctx.count(f"@e[tag={TAG}]"):
-            fails.append("disabled, wayfarer entities remain")
-        cv.as_player(ctx, "heraldia caravan wayfarer", r"Wayfarers are disabled|gente de paso está desactivada")
-        if cv.state(ctx, r"Wayfarers: disabled|Gente de paso: desactivada") is None:
-            fails.append("/heraldia status does not say the wayfarers are disabled")
+        scenario(ctx, fails, route, a.work)
         ctx.run(f"player {PLAYER} kill", r"left the game")
     finally:
         cv.cabin_adv.halt(proc, ctx)

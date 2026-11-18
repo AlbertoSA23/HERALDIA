@@ -104,6 +104,8 @@ Volver al [README](../README.es.md).
   vanilla en los chunks nuevos (x2 por defecto). Ver [Entradas a mina](#entradas-a-mina).
 - **Faros y naufragios** (en la costa, en tierra firme junto al mar o en los bajíos): faros con la luz siempre encendida y
   galeones partidos, encallados o semihundidos, con un estilo por clima. Ver [Faros y naufragios](#faros-y-naufragios).
+- **Ambiente** (también en mundos ya existentes): la campana de la aldea al amanecer y al anochecer, la sirena del faro con
+  lluvia y goteos y ecos en las galerías de las minas, con los sonidos y partículas del propio juego. Ver [Ambiente](#ambiente).
 
 ## Aldeas enormes
 
@@ -313,6 +315,36 @@ Dos tipos de estructura de la **costa**, siempre en una orilla de verdad: el tip
 - **Botín** modesto y marinero (tablas `heraldia:costa/<tabla>`, que se reponen con `botin.reponer.activado` y escala la dificultad): el **faro** (mapas, brújula, catalejo, velas, comida); la **bodega** del galeón (víveres y pertrechos); el **camarote** del capitán (mapas, instrumentos, oro, esmeraldas, un libro encantado) y, rara vez, un **fragmento de mapa del tesoro** (la mitad de `tesoro.probabilidad`). Sin diamantes, tridentes ni corazones del mar.
 - **Colocación**: una rejilla por tipo (`heraldia:costa/<tipo>`; por defecto, un faro cada 1.024 bloques y un naufragio cada 768, con `faros.separacion_bloques` y `naufragios.separacion_bloques`) con la candidata en las playas (`#heraldia:litoral`). Como solo salen donde hay costa, en la práctica son menos. La regla es la de las minas sin cambiar ninguna otra: nunca a menos de 256 bloques de una aldea o una única de Heraldia, ni a menos de 192 de una mediana, una entrada a mina o el otro tipo de la costa, ni junto a estructuras que asoman (vanilla o de otros mods: los naufragios y ruinas marinas vanilla incluidos), ni en la Atlántida; los caminos se saltan sus piezas. Los faros no buscan las aldeas con muelle (esas quedan fuera de su zona): prefieren los **cabos**, la orilla con más agua alrededor de las cuatro primeras que valen.
 - Encuéntralos con `/locate structure #heraldia:costa/faro` (o `naufragio`) y `/heraldia info nearby`; `/heraldia info` muestra su configuración. Para probar uno: `/place structure heraldia:costa/<tipo>/<estilo>/<variante>` junto a una playa (sin orilla cerca, se coloca en el centro mirando al sur). Logros: **Luz en la costa** (un faro), **Restos del naufragio** (un galeón naufragado) y **El cofre del capitán** (abrir el cofre de su camarote). Mapas web: capa «faros y naufragios» (`mapas_web.capas.costa`). `/heraldia review`: paradas `costa/faro` y `costa/naufragio`. **En un mundo ya creado, solo en los chunks nuevos.**
+
+## Ambiente
+
+Efectos con los sonidos y partículas del propio juego: nada nuevo que descargar, los clientes vanilla los oyen tal cual y
+el mod sigue sin registrar ningún bloque, objeto ni entidad propios. Cada sonido se envía **solo a los jugadores a los que
+va dirigido**, en la categoría de sonido **Ambiente** (cada jugador lo baja con su propio control), y cada jugador tiene una
+espera por efecto, así que nunca se repite cada poco. Funcionan también en mundos ya existentes (buscan las estructuras ya
+generadas). Opciones: `ambiente.activado` (todos) y una por efecto.
+
+- **Campana de la aldea** (`ambiente.campanas`): al **amanecer** y al **caer la noche** (reloj del mundo 0 y 12.000) suenan
+  tres campanadas desde la plaza para los jugadores que están dentro de una aldea de Heraldia (su caja: calles, casas y
+  afueras). Al despertar después de dormir el reloj queda en un amanecer, así que saluda a la mañana. Como mucho dos veces
+  al día por jugador (5 min de espera, para que `/time set` no la haga sonar una y otra vez); con el ciclo de día parado
+  suena una vez.
+- **Sirena del faro** (`ambiente.sirena_faro`): con **lluvia o tormenta** (el vanilla no tiene niebla; la lluvia es su poca
+  visibilidad), el faro más cercano (uno de la costa o el faro de los contrabandistas) suena con un cuerno grave (el cuerno
+  de cabra «Ponder», bajo) para los jugadores **al aire libre** a menos de **160 bloques**: desde una barca en el mar se oye
+  lejos y suave. No en cuevas ni bajo el agua. Como mucho una vez cada **3 minutos** por jugador.
+- **Galerías de las minas** (`ambiente.minas`): bajo tierra en una mina de Heraldia (las tres entradas a mina y la Mina
+  Perdida de Hondavena), cada **20-45 s** una gota de agua cuelga del techo junto al jugador y cae (la gota de la
+  estalactita del juego, que suena sola al caer) y, de vez en cuando, el **eco de la cueva** suena a una docena de bloques
+  por la galería (como mucho cada 4 min). Nada a cielo abierto.
+- **Coste**: en el tick del servidor solo corre `tick % 100`; cada 5 s un recorrido por los jugadores; por jugador, una consulta de
+  estructura en su propio chunk cada 20-45 s (minas) y otra solo en los minutos del amanecer y del anochecer (aldeas) y, solo mientras
+  llueve y le toca la sirena, un vistazo a los inicios de estructura de los chunks cargados a su alrededor (nunca carga un
+  chunk). No se guarda nada en el mundo.
+- **No incluido: el canto de la taberna de la Isla del Corsario.** La Sirena Ahorcada no tiene aldeanos dentro (su
+  plantilla solo trae a la tripulación del corsario en las cuevas) y el juego no tiene canto: murmullos de aldeano saliendo
+  de una taberna vacía serían un coro fantasma, y una melodía de bloques musicales cada pocos minutos cansa. Haría falta
+  poner aldeanos en la plantilla (solo en chunks nuevos), así que se deja fuera a propósito.
 
 ## Mapas del tesoro
 

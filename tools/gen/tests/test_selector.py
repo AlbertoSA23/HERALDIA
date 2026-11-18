@@ -135,7 +135,7 @@ def test_groups_distribute_without_exceeding_of_the_cap():
     cap = max(sel.GROUP_CAP_S, length)
     assert all(sum(sel.DURATION_S[p] for p in x) <= cap for x in g)
     assert len(g) <= 18                     # with the build and the smoke one, in a batch of 20 free jobs
-    assert len(sel.groups(NO_COMPAT)) <= 15  # a PR with common changes (without the compatibility ones) fits in a batch of 20 jobs (15 with the search memory's search_cache.py: + build, smoke, long JUnit, cost and selection = 20 of 20)
+    assert len(sel.groups(NO_COMPAT)) <= 15  # a PR with common changes (without the compatibility ones) fits in a batch of 20 jobs (15 with the search memory's search_cache.py and the ambience test: + build, smoke, long JUnit, cost and selection = 20 of 20)
     assert sel.groups([]) == [] and sel.groups(ALL_COMBOS) == g                # determinista
     assert sel.groups(["x/nueva.py"]) == [["x/nueva.py"]]                  # without a measured duration: DEFECTO_S
 
@@ -311,15 +311,15 @@ def test_ci_matrix_says_yes_goes_the_cost():
 
 
 def test_caravans():
-    p = ["tools/smoke/caravans.py", "tools/smoke/wayfarers.py"]      # the wayfarers run on the caravans' engine
+    p = ["tools/smoke/caravans.py"]          # the wayfarers' scenario (same engine) runs inside it
     assert pick(J + "caravans/Caravans.java") == (False, p)
     assert pick(J + "caravans/Journey.java") == (False, p)
     assert pick(J + "caravans/Wayfarers.java") == (False, p)
     assert pick("tools/gen/caravans.py") == (False, p)
     assert pick("tools/smoke/caravans.py") == (False, ["tools/smoke/caravans.py"])
-    assert pick("tools/smoke/wayfarers.py") == (False, ["tools/smoke/wayfarers.py"])
+    assert "wayfarers.py" in sel.NOT_TESTS
+    assert pick("tools/smoke/wayfarers.py") == (False, p)
     assert sel.DURATION_S["tools/smoke/caravans.py"] > 0
-    assert sel.DURATION_S["tools/smoke/wayfarers.py"] > 0
 
 
 def test_wizard_huts():
