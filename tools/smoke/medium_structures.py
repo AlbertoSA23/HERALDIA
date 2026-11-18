@@ -87,9 +87,10 @@ def check_locate(ctx, kinds):
                         fails.append(f"{mid} at {px}, {pz} {dist} blocks from {sid} (< {ZONE})")
                 elif f"medianas/{mid}" not in sid and dist < DISTANCE:
                     fails.append(f"{mid} at {px}, {pz} {dist} blocks from {sid} (< {DISTANCE})")
-            # the first one is really generated: the start is where /locate said; the kinds with inhabitants, all of
-            # them (each one is a sample, on the seed's real terrain, of whether its villagers settle)
-            if (x, z) == POINTS[0] or mid in INHABITED:
+            # the first one is really generated: the start is where /locate said, and for the kinds with inhabitants it is
+            # a sample, on the seed's real terrain, of whether its villagers settle; with --stay, the other points too (and
+            # the three-day stay at the first): 18 samples instead of 6, and about 10 more minutes, not in CI
+            if (x, z) == POINTS[0] or (STAY and mid in INHABITED):
                 r = ROAM if mid in INHABITED else 32      # inhabitants stroll by day: their area keeps ticking
                 forceload(ctx, px - r, pz - r, px + r - 1, pz + r - 1)
                 if not wait_generated(ctx, px, pz, mid):
@@ -130,7 +131,7 @@ def inhabited():
 
 
 INHABITED = inhabited()
-STAY = False                         # --stay: also the three-day stay (slow: about 10 more minutes; not in CI)
+STAY = False                         # --stay: every located structure settle-checked and the three-day stay (slow; not in CI)
 SETTLED = []                         # (kind, x, z, villagers, with job site, with home, slept): the summary
 STAYED = []                          # (kind, x, z, villagers, alive, at home, with job site, with home, days)
 
@@ -364,7 +365,8 @@ def main():
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-estructuras-medianas"))
     ap.add_argument("--stay", action="store_true",
-                    help="also run each inhabited kind three in-game days and check its villagers stay home (slow)")
+                    help="settle-check every located inhabited structure (not only the first of each kind) and run each kind three "
+                         "in-game days to check its villagers stay home (slow; not in CI)")
     a = ap.parse_args()
     global STAY
     STAY = a.stay
