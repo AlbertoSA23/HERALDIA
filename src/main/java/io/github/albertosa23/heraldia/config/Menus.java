@@ -28,7 +28,7 @@ public final class Menus {
 			new Menu("aldeas", List.of("aldeas.separacion_bloques", "aldeas.porcentaje_grandes", "aldeas.caminos.activado",
 					"aldeas.caminos.ancho", "aldeas.vida.tratos_estilo", "aldeas.vida.tablon", "aldeas.vida.asedios", "golems.limpieza")),
 			new Menu("combate", List.of("dificultad.nivel", "dificultad.escalar_por_jugadores", "jefes.fases.activado",
-					"jefes.refuerzos.activado", "jefes.refuerzos.porcentaje", "jefes.barra.activado")),
+					"jefes.refuerzos.activado", "jefes.refuerzos.porcentaje", "jefes.barra.activado", "jefes.apagar_generadores")),
 			new Menu("botin", List.of("botin.reponer.activado", "botin.reponer.dias", "dificultad.escalar_botin", "tesoro.activado",
 					"tesoro.probabilidad", "chozas_mago.prob_botin_premium")),
 			new Menu("arena", List.of("arena.activado", "arena.max_mobs_vivos", "arena.experiencia_porcentaje",

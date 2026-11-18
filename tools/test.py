@@ -73,6 +73,9 @@ ARENA = ["tools/smoke/arena.py", "tools/smoke/arena_modes.py"]
 COMMANDS = UPDATE + ADMIN + ["tools/smoke/guide.py", "tools/smoke/journal.py"] + ARENA
 # Mine entrances: their generator (tools/gen/mines/) and their Java (minas/ package); the placement rule touches the medium structures' one.
 MINES = ["tools/smoke/mine_entrances.py"]
+# The world's search memory (common/SearchCache, SearchCaches and UnwrittenRegions, the IOWorker mixin): its server test
+# (same answers after a restart, discarded with another configuration) and the far /locate of the mines.
+SEARCH_CACHE = ["tools/smoke/search_cache.py", "tools/smoke/mine_entrances.py"]
 # Coastal lighthouses and shipwrecks (T42): their generator (tools/gen/shore/) and their Java (costa/ package); their rule is that of the
 # mines (minas/Minas.familia), and the drowned of the half-sunk one enters the tests that go through the template mobs.
 COAST = ["tools/smoke/coast.py"]
@@ -118,6 +121,9 @@ MAP = [
     ("tools/gen/shore/*", COAST_MOBS), (JAVA + "coast/*", COAST),
     # /locate of the mines (T36): the shared height cache and the parallel look-ahead computation are only used by the mines
     (JAVA + "common/HeightCache.java", MINES), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINES),
+    # the world's search memory: /locate, the maps, /heraldia info nearby and the Chronicle folios answered from what was asked before
+    (JAVA + "common/SearchCache*.java", SEARCH_CACHE), (JAVA + "common/UnwrittenRegions.java", SEARCH_CACHE),
+    (JAVA + "mixin/IOWorkerMixin.java", SEARCH_CACHE), (JAVA + "mixin/RegionFileStorageMixin.java", SEARCH_CACHE),
     # board quests and reputation (T38)
     (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
     # caravans along the roads (T39)
@@ -145,6 +151,8 @@ MAP = [
     (JAVA + "mixin/CubeMobJumpMixin.java", ["tools/smoke/anchored_guardians.py"]),
     (JAVA + "mixin/PiglinStrollMixin.java", ["tools/smoke/anchored_guardians.py"]),
     (JAVA + "common/Anchoring.java", ["tools/smoke/anchored_guardians.py"]),
+    # template blocks at their world position: the restocking loot and the cleared uniques use them
+    (JAVA + "common/TemplateBlocks.java", ["tools/smoke/loot_restock.py", "tools/smoke/cleared_spawners.py"]),
     # replenished loot and configurable difficulty (T29)
     (JAVA + "loot/RestockedLoot.java", ["tools/smoke/loot_restock.py"]), (JAVA + "loot/Restock.java", ["tools/smoke/loot_restock.py"]),
     (JAVA + "difficulty/*", ["tools/smoke/difficulty.py"]),
@@ -169,8 +177,10 @@ MAP = [
     # treasure hunt (T40): its Java and its generator; the reward of the board's feats goes in board.py (above)
     (JAVA + "treasure/*", TREASURE), ("tools/gen/treasure.py", TREASURE),
     (JAVA + "command/*", []),
-    # bosses: phases, reinforcements and guardian bar (their Java and the generator's reinforcements contract)
-    (JAVA + "bosses/*", ["tools/smoke/boss_phases.py"]), ("tools/gen/bosses.py", ["tools/smoke/boss_phases.py"]),
+    # bosses: phases, reinforcements and guardian bar (their Java and the generator's reinforcements contract), and the
+    # cleared uniques (spawners turned off when the guardian dies)
+    (JAVA + "bosses/*", ["tools/smoke/boss_phases.py", "tools/smoke/cleared_spawners.py"]),
+    ("tools/gen/bosses.py", ["tools/smoke/boss_phases.py"]),
     # wave arena (T31) and its modes (T41): its Java, its mixins and its generator (template, data, loot and advancements)
     (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_waves.py", ARENA),
     # roads between villages: their Java and their data
@@ -290,6 +300,7 @@ DURATION_S = {
     "tools/smoke/colosseum_redstone.py": 39, "tools/smoke/compatible_grid.py": 80, "tools/smoke/roads.py": 300,
     "tools/gen/uniques/wizard_tower/smoke_redstone.py": 33,
     "tools/gen/uniques/pyramid/smoke_server.py": 28, "tools/smoke/galleon_test.py": 26,
+    "tools/smoke/cleared_spawners.py": 90,               # measured locally: 87 s (three starts and a generated castle)
     "tools/smoke/boss_phases.py": 70,                     # measured locally: 60 s with two starts (the second, with the options disabled)
     # compatibility (measured locally on 4 cores with downloads cached, plus 30 % for CI)
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
@@ -297,6 +308,7 @@ DURATION_S = {
     "tools/smoke/anchored_guardians.py": 450,
     "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
     "tools/smoke/guide.py": 120,                      # three server starts
+    "tools/smoke/search_cache.py": 90,                # measured locally (4 cores): 50 s, three starts, eleven searches
     "tools/smoke/journal.py": 60,                     # one start and a few commands as a simulated player
     "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
     "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)

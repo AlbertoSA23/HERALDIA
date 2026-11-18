@@ -135,7 +135,7 @@ def test_groups_distribute_without_exceeding_of_the_cap():
     cap = max(sel.GROUP_CAP_S, length)
     assert all(sum(sel.DURATION_S[p] for p in x) <= cap for x in g)
     assert len(g) <= 18                     # with the build and the smoke one, in a batch of 20 free jobs
-    assert len(sel.groups(NO_COMPAT)) <= 15  # a PR with common changes (without the compatibility ones) fits in the free machines (15 with the wayfarers: + build, smoke, long JUnit, cost and selection = 20 of 20)
+    assert len(sel.groups(NO_COMPAT)) <= 15  # a PR with common changes (without the compatibility ones) fits in a batch of 20 jobs (15 with the search memory's search_cache.py: + build, smoke, long JUnit, cost and selection = 20 of 20)
     assert sel.groups([]) == [] and sel.groups(ALL_COMBOS) == g                # determinista
     assert sel.groups(["x/nueva.py"]) == [["x/nueva.py"]]                  # without a measured duration: DEFECTO_S
 
@@ -187,6 +187,15 @@ def test_mines():
     assert pick(J + "common/HeightCache.java") == (False, m)
     assert pick(J + "mixin/ChunkGeneratorLocateMixin.java") == (False, m)
     assert pick(J + "mines/ParallelLocate.java") == (False, sorted(m + ["tools/smoke/coast.py"]))
+
+
+def test_search_cache():
+    m = sorted(["tools/smoke/search_cache.py", "tools/smoke/mine_entrances.py"])
+    for p in ("common/SearchCache.java", "common/SearchCaches.java", "common/UnwrittenRegions.java",
+              "mixin/IOWorkerMixin.java", "mixin/RegionFileStorageMixin.java"):
+        assert pick(J + p) == (False, m), p
+    assert pick("tools/smoke/search_cache.py") == (False, ["tools/smoke/search_cache.py"])
+    assert sel.DURATION_S["tools/smoke/search_cache.py"] > 0
 
 
 def test_coast():
@@ -254,6 +263,8 @@ def test_commands_in_english_and_warning_of_version():
 def test_loot_that_gets_replenishes_and_difficulty():
     assert pick(J + "loot/RestockedLoot.java") == (False, ["tools/smoke/loot_restock.py"])
     assert pick(J + "loot/Restock.java") == (False, ["tools/smoke/loot_restock.py"])
+    assert pick(J + "bosses/ClearedSpawners.java") == (False, ["tools/smoke/boss_phases.py", "tools/smoke/cleared_spawners.py"])
+    assert pick(J + "common/TemplateBlocks.java") == (False, ["tools/smoke/cleared_spawners.py", "tools/smoke/loot_restock.py"])
     assert pick(J + "difficulty/MobDifficulty.java") == (False, ["tools/smoke/difficulty.py"])
     assert pick(J + "difficulty/ModDifficulty.java", "tools/smoke/loot_restock.py") == \
         (False, ["tools/smoke/difficulty.py", "tools/smoke/loot_restock.py"])

@@ -1,5 +1,6 @@
 package io.github.albertosa23.heraldia.mines;
 
+import io.github.albertosa23.heraldia.common.SearchCaches;
 import io.github.albertosa23.heraldia.config.GridPlacement;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,9 +111,11 @@ public final class ParallelLocate {
 			return;
 		}
 		List<Structure> mines = new ArrayList<>();
+		List<Holder<Structure>> holders = new ArrayList<>();
 		for (Holder<Structure> h : structures) {
 			if (h.value() instanceof Precomputable) {
 				mines.add(h.value());
+				holders.add(h);
 			}
 		}
 		if (mines.isEmpty()) {
@@ -132,9 +135,21 @@ public final class ParallelLocate {
 			FutureTask<Void> t = new FutureTask<>(() -> {
 				// the cell's candidate (with its biome search, which the grid memoizes) also on this thread
 				ChunkPos pos = placement.getPotentialStructureChunk(seed, c[0], c[1]);
+				if (!placement.applyAdditionalChunkRestrictions(pos.x(), pos.z(), seed)) {
+					return null;                      // vanilla stops there (no spot in the cell): it asks for no height
+				}
 				// StructureCheck's climate sampler keeps a cache (not for several threads): one without a cache per task
 				var climate = randomState.createClimateSampler(SamplerContext.EMPTY_UNCACHED);
-				for (Structure m : mines) {
+				for (int i = 0; i < mines.size(); i++) {
+					// the world's search memory already has its answer: nothing to precompute; and vanilla, which asks the
+					// structures in this same order, stops at the first one that would start here
+					int known = SearchCaches.peekPrediction(sl.dimension(), holders.get(i), pos.x(), pos.z());
+					if (known == 1) {
+						break;
+					} else if (known == 0) {
+						continue;
+					}
+					Structure m = mines.get(i);
 					((Precomputable) m).precompute(new Structure.GenerationContext(access, generator, generator.getBiomeSource(), climate,
 							randomState, templates, seed, pos, sl, m.biomes()::contains));
 				}
