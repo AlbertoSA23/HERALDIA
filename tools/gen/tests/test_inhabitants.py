@@ -159,3 +159,19 @@ def test_workstations_match_vanilla():
     assert inh.WORKSTATION["butcher"] == ("smoker",) and inh.WORKSTATION["farmer"] == ("composter",)
     assert inh.WORKSTATION["fisherman"] == ("barrel",) and inh.WORKSTATION["fletcher"] == ("fletching_table",)
     assert "cauldron" in inh.WORKSTATION["leatherworker"] and inh.WORKSTATION["librarian"] == ("lectern",)
+
+
+def test_no_bell_they_would_drift(reg):
+    """The bell is their meeting point: without one, idle villagers stroll away (and in rough terrain get lost)."""
+    t = copy.deepcopy(reg.templates["medianas/molino/llanura/b"])
+    for p, (st, _) in list(t.blocks.items()):
+        if "bell" in st:
+            t.blocks[p] = ("minecraft:air", None)
+    assert any("bell" in e for e in inh.issues(t))
+
+
+def test_every_inhabited_template_has_a_bell_on_the_ground(reg):
+    for name, t in reg.templates.items():
+        if _living(t)[0]:
+            bells = [st for (x, y, z), (st, _) in t.blocks.items() if "bell[" in st and y == 1 and "attachment=floor" in st]
+            assert bells, name

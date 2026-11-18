@@ -82,6 +82,7 @@ def _cabin(p, name, shut):
     for x in range(EX0, EX1 + 1):
         t.set(x, 2, 2, f"{m}_fence")
     c.lantern(t, EX0 + 1, 1, 2, hanging=True)
+    inh.bell(t, X0 + 1, 2)                                    # the call bell by the door: the fisher's meeting point
     return t
 
 

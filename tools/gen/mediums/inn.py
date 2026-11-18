@@ -105,6 +105,7 @@ def _house(p, name):
     c.bed(t, X1 - 1, Z1 - 1, "east", p["cama"])
     c.place_chest(t, X1 - 1, 1, 8, "west", MID, "cuarto")
     c.lantern(t, 13, 4, 8)
+    inh.bell(t, DOOR_COL - 2, 2)                              # the call bell by the door: the inhabitants' meeting point
     return t
 
 

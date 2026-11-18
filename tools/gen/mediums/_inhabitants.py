@@ -7,6 +7,9 @@ Heraldia running every tick. What the game needs for that (and what `issues` che
 - a bed and a workstation of the villager's profession per villager, inside the template, that the villager can walk to
   from where it spawns WITHOUT ladders (the villagers' path-finder does not climb them) and close together
   (BED_JOB_MAX blocks: the game looks for them among the 5 nearest free ones within 48 blocks);
+- a bell they can walk to (BELL: the meeting point, the vanilla leash): without one, a villager's idle hours are random
+  strolls that drift away, and in rough terrain (a dark forest) it got lost, failed to path home for too long and the
+  game made it release its bed and workstation (SetWalkTargetFromBlockMemory, 26.3); with one, it idles around the bell;
 - at most MAX_VILLAGERS villagers and no more beds within their reach than villagers: no free bed, no breeding, and
   under the iron golem summoning count, so the population never grows on its own (the cost stays fixed);
 - the profession is locked (Xp > 0) and the trades are the template's fixed ones, as before; Invulnerable stays on (alone in
@@ -50,6 +53,11 @@ def animal(kind, rot=0.0, **extra):
     n = {"id": f"minecraft:{kind}", "PersistenceRequired": B(1), "Rotation": [F(rot), F(0.0)], "Tags": [TAG]}
     n.update(extra)
     return n
+
+
+def bell(t, x, z, facing="north"):
+    """The structure's call bell, standing on the ground at y = 1 (the inhabitants' meeting point)."""
+    t.set(x, 1, z, f"bell[attachment=floor,facing={facing},powered=false]")
 
 
 def is_inhabitant(n):
@@ -104,6 +112,7 @@ def issues(t):
         errs.append(f"{len(living)} inhabitant villagers and {len(reach_beds)} beds they can walk to without ladders")
     if len(reach_beds) > len(living) and len(living) > 1:
         errs.append(f"{len(reach_beds)} reachable beds for {len(living)} villagers: a free bed lets them breed")
+    bells = [q for q, (st, _) in t.blocks.items() if _name(st) == "bell" and _beside(cells, *q)]
     used_jobs = set()
     for p, n in living:
         prof = n["VillagerData"]["profession"].split(":")[1]
@@ -120,4 +129,7 @@ def issues(t):
             used_jobs.add(min(near, key=lambda q: abs(q[0] - x) + abs(q[2] - z)))
         if not any(max(abs(b[0] - x), abs(b[2] - z)) <= BED_JOB_MAX for b in reach_beds):
             errs.append(f"inhabitant {prof} at {p}: no bed it can walk to within {BED_JOB_MAX} blocks")
+        if not any(max(abs(b[0] - x), abs(b[2] - z)) <= BED_JOB_MAX for b in bells):
+            errs.append(f"inhabitant {prof} at {p}: no bell (meeting point) it can walk to within {BED_JOB_MAX} blocks: "
+                        f"it would drift away in its idle hours")
     return errs

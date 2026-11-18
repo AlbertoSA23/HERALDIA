@@ -119,6 +119,7 @@ def _outpost(p, name, lit):
     t.set(13, 1, 12, f"stripped_{tr}[axis=y]")
     t.set(12, 1, 13, f"{tr}[axis=x]")
     t.set(13, 1, 13, f"{tr}[axis=x]")
+    inh.bell(t, DOOR_COL - 2, 3)                              # the camp bell: the hunters' meeting point
     return t
 
 

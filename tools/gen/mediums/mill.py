@@ -52,6 +52,7 @@ def _floor(p):
 def _courtyard(t, p):
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=3)
     c.entrance(t, DOOR_COL, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
+    inh.bell(t, DOOR_COL - 3, 2)                              # the call bell by the gate: the miller's meeting point
 
 
 def _wheel(t, p, x, cy, cz, r=3):

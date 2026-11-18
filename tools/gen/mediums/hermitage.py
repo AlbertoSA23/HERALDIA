@@ -96,6 +96,7 @@ def _chapel(p, name):
     t.entity(CX + 1, 1, 11, inh.villager(MID, "ermitano", "Ermitaño", "librarian", p["aldeano"], hermit_offers(), rot=180.0))
     c.lantern(t, CX, 4, 7)
     c.lantern(t, CX, 4, 11)
+    inh.bell(t, CX - 2, 1)       # the hand bell at the door (the gable's is out of reach): the hermit's meeting point
     return t
 
 

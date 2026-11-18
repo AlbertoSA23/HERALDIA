@@ -125,6 +125,7 @@ def lower(p, name):
     _tower(t, p, 2, deck=False)
     c.bed(t, X1 - 1, Z1 - 1, "east", "brown")
     t.set(X1 - 1, 1, Z0 + 1, "fletching_table")
+    inh.bell(t, CX - 4, 2)                                    # the alarm bell by the gate: the lookout's meeting point
     t.entity(X0 + 2, 1, 8, inh.villager(MID, "vigilante", "Vigía", "fletcher", p["aldeano"], lookout_offers(), rot=180.0))
     c.place_chest(t, X0 + 1, 1, Z0 + 2, "east", MID, "vigia")
     c.bed(t, X0 + 1, Z1 - 2, "west", "blue", y=6)
