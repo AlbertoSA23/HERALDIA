@@ -133,8 +133,9 @@ Cada aldea tiene:
 - Unas 20 casas en la estándar y unas 30 en la grande, amuebladas, con cofres en algunas y botín de común a épico (tablas `heraldia:cofres/comun`, `poco_comun`, `raro`, `epico`).
 - Torres de vigilancia y puertas de muralla al final de las calles; decoración temática entre casas.
 - Aldeanos: la mitad del número de casas, más del 80 % con oficio. Gólems: al menos uno por cada 3 aldeanos.
+- Recorridos de los aldeanos: camas, puestos de trabajo y campana están colocados para que los aldeanos recorran la aldea por sí solos (la IA vanilla, sin ninguna entidad ni trabajo periódico más): nadie trabaja junto a su propia cama (cada casa guarda el puesto de otro oficio, y el herrero y el granjero duermen en una casa), el cura, el cartógrafo del ayuntamiento, el bibliotecario y los demás maestros de los edificios especiales trabajan allí y duermen en una casa o en un cuarto de la posada o la taberna (siempre con cama, por una escalera), todas las camas se alcanzan a pie (las casas de dos plantas la tienen en la planta baja) y la campana está en la plaza, donde se juntan a mediodía. Cada mañana van al trabajo por las calles y las avenidas, a mediodía a la plaza y al anochecer vuelven a casa. **Solo en aldeas nuevas**: las ya generadas conservan su colocación.
 
-Límites de población: hay unas 1,25 camas por aldeano inicial, así que la población crece como mucho un 25 %.
+Límites de población: hay unas 1,3 camas por aldeano inicial, así que la población crece como mucho un 30 %.
 La función `heraldia:golems` revisa cada 30 s las aldeas cargadas y retira un gólem natural cada vez que hay 8 o más (estándar) o 9 o más (grande); no toca los construidos por jugadores. Límites y limpieza se cambian en la [configuración](CONFIGURACION.md#configuración).
 
 ## Vida de las aldeas

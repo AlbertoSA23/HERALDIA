@@ -358,6 +358,26 @@ def roof_for(t, th, x0, z0, x1, z1, ybase, kind=None, along=None):
 
 
 # ---------------------------------------------------------------- mobiliario
+def stair_flight(t, th, x, z, facing, fy=0, upper=4):
+    """Straight wooden staircase from the floor at `fy` to the upper floor at `upper` (4 steps, 1 wide), starting at
+    (x, z) and climbing towards `facing`, with planks under the steps and the opening in the upper floor. It replaces
+    the ladders of buildings whose upper floor has beds: villagers walk up stairs, but do not plan paths up ladders.
+    The cell after the last step is the landing (upper floor) and the one before the first, the ground-floor access."""
+    dx, dz = DIRS[facing]
+    n = upper - fy
+    for k in range(n):
+        cx, cz = x + k * dx, z + k * dz
+        for y in range(fy + 1, fy + 1 + k):
+            t.set(cx, y, cz, th["planks"])
+        t.set(cx, fy + 1 + k, cz, stairs(th["wstairs"], facing))
+        for y in range(fy + 2 + k, upper + 3):
+            t.set(cx, y, cz, "air")
+    lx, lz = x + n * dx, z + n * dz
+    for y in (upper + 1, upper + 2):
+        t.set(lx, y, lz, "air")
+    return (x - dx, z - dz), (lx, lz)
+
+
 def table(t, th, x, y, z):
     t.set(x, y, z, f"{th['wslab']}[type=top]")
 
