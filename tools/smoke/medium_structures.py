@@ -145,19 +145,19 @@ def check_settled(ctx, mid, px, pz, long_stay=False):
         return []
     n = ctx.count(sel)
     with_mem = lambda mem: ctx.count(f"{sel[:-1]},nbt={{Brain:{{memories:{{\"minecraft:{mem}\":{{}}}}}}}}]")
-    ctx.run("time set 2000", r"Set the time|time to")            # morning: off to work
+    ctx.run("time set 2000", r"Set the time|time to|Set minecraft:\w+ to")            # morning: off to work
     end = time.monotonic() + 120
     while with_mem("job_site") < n and time.monotonic() < end:
         time.sleep(3)
     job = with_mem("job_site")
-    ctx.run("time set 13000", r"Set the time|time to")           # night: to bed
+    ctx.run("time set 13000", r"Set the time|time to|Set minecraft:\w+ to")           # night: to bed
     end = time.monotonic() + 150
     while (with_mem("home") < n or with_mem("last_slept") < n) and time.monotonic() < end:
         time.sleep(3)
     home, slept = with_mem("home"), with_mem("last_slept")
     SETTLED.append((mid, px, pz, n, job, home, slept))
     print(f"{mid} at {px}, {pz}: {n} inhabitants, {job} with their workstation, {home} with their bed, {slept} asleep")
-    ctx.run("time set 2000", r"Set the time|time to")
+    ctx.run("time set 2000", r"Set the time|time to|Set minecraft:\w+ to")
     fails = []
     if job < n or home < n or slept < n:
         fails.append(f"{mid} at {px}, {pz}: of {n} inhabitants, {job} took a workstation, {home} a bed and {slept} slept")
@@ -175,7 +175,7 @@ def check_stay(ctx, mid, px, pz, sel, n, with_mem):
     structure's box (not wandered off, fallen or drowned: a drowned one would be gone, invulnerable or not, only from the
     void) and still remember their bed and workstation."""
     t0 = ctx.gametime()
-    ctx.run(f"tick sprint {STAY_TICKS}", r"[Ss]print|ticks")
+    s.send(ctx.proc, f"tick sprint {STAY_TICKS}")          # its reply only comes at the end: the game time says when
     end = time.monotonic() + 900
     while ctx.gametime() < t0 + STAY_TICKS and time.monotonic() < end:
         time.sleep(5)
@@ -186,7 +186,7 @@ def check_stay(ctx, mid, px, pz, sel, n, with_mem):
     STAYED.append((mid, px, pz, n, alive, home_now, job, home, days))
     print(f"{mid} at {px}, {pz}: after {days:.1f} days, {alive} of {n} inhabitants alive, {home_now} inside the structure, "
           f"{job} with their workstation and {home} with their bed")
-    ctx.run("time set 2000", r"Set the time|time to")
+    ctx.run("time set 2000", r"Set the time|time to|Set minecraft:\w+ to")
     if days < 2.9 or alive < n or home_now < n or job < n or home < n:
         return [f"{mid} at {px}, {pz}: after {days:.1f} days, {alive}/{n} alive, {home_now}/{n} at home, {job}/{n} with a "
                 f"workstation, {home}/{n} with a bed"]
