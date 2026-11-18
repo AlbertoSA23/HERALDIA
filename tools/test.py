@@ -70,7 +70,7 @@ WEB_MAPS = ["tools/smoke/web_maps.py"]
 TREASURE = ["tools/smoke/treasure.py"]
 # Wave arena (T31) and its modes, weekly ranking and hall of fame (T41).
 ARENA = ["tools/smoke/arena.py", "tools/smoke/arena_modes.py"]
-COMMANDS = UPDATE + ADMIN + ["tools/smoke/guide.py"] + ARENA
+COMMANDS = UPDATE + ADMIN + ["tools/smoke/guide.py", "tools/smoke/journal.py"] + ARENA
 # Mine entrances: their generator (tools/gen/mines/) and their Java (minas/ package); the placement rule touches the medium structures' one.
 MINES = ["tools/smoke/mine_entrances.py"]
 # Coastal lighthouses and shipwrecks (T42): their generator (tools/gen/shore/) and their Java (costa/ package); their rule is that of the
@@ -149,18 +149,22 @@ MAP = [
     (JAVA + "mixin/CubeMobJumpMixin.java", ["tools/smoke/anchored_guardians.py"]),
     (JAVA + "mixin/PiglinStrollMixin.java", ["tools/smoke/anchored_guardians.py"]),
     (JAVA + "common/Anchoring.java", ["tools/smoke/anchored_guardians.py"]),
+    # template blocks at their world position: the restocking loot and the cleared uniques use them
+    (JAVA + "common/TemplateBlocks.java", ["tools/smoke/loot_restock.py", "tools/smoke/cleared_spawners.py"]),
     # replenished loot and configurable difficulty (T29)
     (JAVA + "loot/RestockedLoot.java", ["tools/smoke/loot_restock.py"]), (JAVA + "loot/Restock.java", ["tools/smoke/loot_restock.py"]),
     (JAVA + "difficulty/*", ["tools/smoke/difficulty.py"]),
     # Herald's Guide: its Java (and the per-language texts it uses), its generator and its test
+    # each player's journal (/heraldia journal): its Java and its texts; it reads the advancements /heraldia status counts
+    (JAVA + "command/Journal.java", ["tools/smoke/journal.py"]),
     (JAVA + "command/Guide*", ["tools/smoke/guide.py"]), (JAVA + "command/Texts.java", ["tools/smoke/guide.py"]),
     ("tools/gen/guide.py", ["tools/smoke/guide.py"]),
     # mod languages (translations and their check): the Guide is the only thing the server delivers in the client's language
     ("tools/gen/languages.py", ["tools/smoke/guide.py"]), ("tools/gen/languages/*", ["tools/smoke/guide.py"]),
     # administration tools (T35): /heraldia review, status and reload (and the info nearby search they reuse)
     (JAVA + "command/Revi*", ADMIN), (JAVA + "command/SafeSpot.java", ADMIN),
-    (JAVA + "command/StatusCommand.java", ADMIN), (JAVA + "command/State.java", ADMIN), (JAVA + "command/ReloadCommand*", ADMIN), (JAVA + "command/InfoCommand.java", ADMIN),
-    (JAVA + "config/Reload.java", ADMIN), ("tools/gen/admin.py", ADMIN),
+    (JAVA + "command/StatusCommand.java", ADMIN + ["tools/smoke/journal.py"]), (JAVA + "command/State.java", ADMIN), (JAVA + "command/ReloadCommand*", ADMIN), (JAVA + "command/InfoCommand.java", ADMIN),
+    (JAVA + "config/Reload.java", ADMIN), ("tools/gen/admin.py", ADMIN + ["tools/smoke/journal.py"]),
     # commands in English and their old aliases (T35b): the /heraldia tree is used by all the command tests; the
     # new-version notice, its test with the fake API
     (JAVA + "command/HeraldiaCommands.java", COMMANDS), (JAVA + "command/Alias.java", COMMANDS),
@@ -171,8 +175,10 @@ MAP = [
     # treasure hunt (T40): its Java and its generator; the reward of the board's feats goes in board.py (above)
     (JAVA + "treasure/*", TREASURE), ("tools/gen/treasure.py", TREASURE),
     (JAVA + "command/*", []),
-    # bosses: phases, reinforcements and guardian bar (their Java and the generator's reinforcements contract)
-    (JAVA + "bosses/*", ["tools/smoke/boss_phases.py"]), ("tools/gen/bosses.py", ["tools/smoke/boss_phases.py"]),
+    # bosses: phases, reinforcements and guardian bar (their Java and the generator's reinforcements contract), and the
+    # cleared uniques (spawners turned off when the guardian dies)
+    (JAVA + "bosses/*", ["tools/smoke/boss_phases.py", "tools/smoke/cleared_spawners.py"]),
+    ("tools/gen/bosses.py", ["tools/smoke/boss_phases.py"]),
     # wave arena (T31) and its modes (T41): its Java, its mixins and its generator (template, data, loot and advancements)
     (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_waves.py", ARENA),
     # roads between villages: their Java and their data
@@ -292,6 +298,7 @@ DURATION_S = {
     "tools/smoke/colosseum_redstone.py": 39, "tools/smoke/compatible_grid.py": 80, "tools/smoke/roads.py": 300,
     "tools/gen/uniques/wizard_tower/smoke_redstone.py": 33,
     "tools/gen/uniques/pyramid/smoke_server.py": 28, "tools/smoke/galleon_test.py": 26,
+    "tools/smoke/cleared_spawners.py": 90,               # measured locally: 87 s (three starts and a generated castle)
     "tools/smoke/boss_phases.py": 70,                     # measured locally: 60 s with two starts (the second, with the options disabled)
     # compatibility (measured locally on 4 cores with downloads cached, plus 30 % for CI)
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
@@ -299,6 +306,7 @@ DURATION_S = {
     "tools/smoke/anchored_guardians.py": 450,
     "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
     "tools/smoke/guide.py": 120,                      # three server starts
+    "tools/smoke/journal.py": 60,                     # one start and a few commands as a simulated player
     "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
     "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
     "tools/smoke/profiles.py": 110,                  # four starts of the same world

@@ -159,6 +159,8 @@ class HeraldiaCommandsTest {
 			parses(order, op);
 		}
 		// without permissions, only what already belonged to everyone
+		parses("heraldia journal", player);
+		parses("heraldia journal uniques", player);
 		parses("heraldia guia", player);
 		parses("heraldia arena salir", player);
 		assertTrue(d.parse("heraldia arena colocar", player).getReader().canRead());
@@ -194,7 +196,8 @@ class HeraldiaCommandsTest {
 	void noAliasInClientTree() {
 		var client = new CommandDispatcher<>(AliasTest.fromClient(d.getRoot(), op));
 		List<String> root = AliasTest.suggestions(client, "heraldia ", op);
-		assertEquals(List.of("arena", "caravan", "config", "guide", "info", "key", "language", "profile", "quest", "reload", "review", "status", "treasure", "update", "webmap", "wizard"), root);
+		assertEquals(List.of("arena", "caravan", "config", "guide", "info", "journal", "key", "language", "profile", "quest", "reload", "review", "status", "treasure", "update", "webmap", "wizard"), root);
+		assertEquals(List.of("coast", "end", "mediums", "mines", "nether", "uniques", "villages"), AliasTest.suggestions(client, "heraldia journal ", op));
 		assertEquals(List.of("clear", "list", "raid", "spawn"), AliasTest.suggestions(client, "heraldia caravan ", op));
 		assertEquals(List.of("peaceful", "raid"), AliasTest.suggestions(client, "heraldia caravan spawn ", op));
 		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.suggestions(client, "heraldia quest ", op));
@@ -207,7 +210,7 @@ class HeraldiaCommandsTest {
 		assertEquals(List.of("analyze", "apply", "check", "repair", "undo"), AliasTest.suggestions(client, "heraldia update ", op));
 		// a player without permissions only sees their own
 		var playerSource = new CommandDispatcher<>(AliasTest.fromClient(d.getRoot(), player));
-		assertEquals(List.of("arena", "guide", "language", "quest", "status"), AliasTest.suggestions(playerSource, "heraldia ", player));
+		assertEquals(List.of("arena", "guide", "journal", "language", "quest", "status"), AliasTest.suggestions(playerSource, "heraldia ", player));
 		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.suggestions(playerSource, "heraldia quest ", player));
 		// T41: anyone sees the leaderboard and start (the mode menu buttons; the Java requires being in the ring)
 		assertEquals(List.of("leaderboard", "leave", "start"), AliasTest.suggestions(playerSource, "heraldia arena ", player));

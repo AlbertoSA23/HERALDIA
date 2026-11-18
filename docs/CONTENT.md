@@ -94,7 +94,7 @@ Back to the [README](../README.md).
     boat through the cliff), the guardroom, the map room with the **compass rose puzzle**, the armoury with the secret
     powder room, the dungeons and, below sea level and dry, the treasure chamber with Roque Salitre, the Corsair;
     tripwire and pressure-plate traps, 3 spawners and 21 chests. Design: [docs/unicas/isla_corsario.md](unicas/isla_corsario.md).
-- **Medium structures** (all types together, one every ~610 blocks by default, each in its own biomes): watchtowers, roadside
+- **Medium structures** (all types together, one every ~550 blocks by default, each in its own biomes): watchtowers, roadside
   inns, bandit camps, hermitages, mills, fisher's huts, hunters' lodges and ruined shrines, with a style for each biome. See [Medium structures](#medium-structures).
 - **Mine entrances** (on real hillsides of hills, taigas, deserts, badlands and peaks): adits, mining camps and mining
   complexes with a headframe, each leading down to its own gallery; and more vanilla abandoned mineshafts in new chunks
@@ -186,7 +186,7 @@ Details, plans and what has been verified: [docs/unicas/atlantida.md](unicas/atl
 
 ## Medium structures
 
-Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every ~610 blocks** (measured, see below; ~550 with `medianas.frecuencia_porcentaje` 100, the default before the [density change](CONFIGURATION.md#medium-structures-density)), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
+Smaller than a unique structure (15 × 15 to 21 × 21 blocks) and much more common: between villages and unique structures there was a lot of empty land. By default, all types together give **one every ~550 blocks** (measured, see below; ~610 with `medianas.frecuencia_porcentaje` 60, see [Medium structures density](CONFIGURATION.md#medium-structures-density)), each type only in its own biomes and in a style that matches the biome. Modest loot (no premium chest; with Lootr, each player gets their own), few entities and, in some, a small challenge. Batches 1 and 2:
 
 | Type | Id | Styles (biomes) | Variants |
 | --- | --- | --- | --- |
@@ -361,6 +361,21 @@ The named guardians of the unique structures (and the Warden of Poseidon) are bo
 - Each phase is recorded in the guardian's own tags (`heraldia_fase.2`, `heraldia_fase.3`): it does not repeat even if the guardian heals, the chunk unloads or the server restarts. Reinforcements carry the `heraldia_refuerzo` tag.
 - They can be turned off separately with `jefes.fases.activado`, `jefes.refuerzos.activado` and `jefes.barra.activado` (see [Configuration](CONFIGURATION.md#configuration)).
 
+### Cleared uniques
+
+When the guardian of a unique structure falls, **the spawners of that structure turn off for good**: the place is left clean and safe to live in, as the reward for the fight, and it stops being an endless experience farm (the same reasoning as the [arena](#wave-arena), which gives 15 % experience and no items). Option `jefes.apagar_generadores` (on by default; `false` keeps them working as before).
+
+- **What "that structure" is**: the whole structure the guardian belongs to (the saved start of `heraldia:unicas/<id>` that reaches the guardian's chunk), with all its pieces: also the dungeons and towers far from the guardian's room. Not a radius around the guardian: a vanilla dungeon, a mineshaft or a player's spawner next to it is never touched.
+- **Which spawners**: those its templates placed, found from the templates themselves at their position in the world (so they are known without loading their chunks), and only if a spawner is still there (one already broken is skipped). There are 1 to 4 in each unique and 48 spread over the tiles of Atlantis (107 with one of each kind).
+- **How they turn off**: the cage stays, as a relic of the fight, but empty (no mob to spawn): it spawns nothing again. Like any vanilla empty spawner, a spawn egg can fill it again. The mobs already alive in the structure stay.
+- **Cost**: nothing runs per tick. It hangs from the guardian's death (an event the mod already listens to) and takes a few milliseconds once. Spawners in chunks still in memory but no longer active are turned off at once too; those in chunks that are not in memory are written down in the world (attachment `heraldia:unicas_vencidas`, per dimension) and turned off when their chunk loads; while nothing is pending, the chunk-load check is one empty lookup.
+- **Idempotent**: each cleared structure is recorded once; another guardian dying in it (one brought back with `/place`, another mod) does nothing more. With the option off when the guardian falls, nothing is recorded; with it turned off afterwards, pending spawners wait until it is on again.
+- **Structures placed with `/place structure`** do not save their start (see `docs/LESSONS.md`): their spawners are not turned off (the log says so).
+- **In an existing world**: a unique whose guardian died **before this version** is not recorded as cleared and **stays as it was** (its spawners keep working). Detecting it on its own ("the guardian is not there") was ruled out: in 26.3 entities load separately from their chunk, and a guardian that chased a player out of its structure and died there, or whose entities are not loaded yet, would read as dead. A wrong guess would turn off the spawners of a structure nobody has beaten, and that cannot be undone. The downside: those already beaten uniques keep their farms until a player breaks the spawners with a pickaxe (vanilla, as always). Every unique beaten from this version on turns off on its own.
+- **Restocking loot** ([`botin.reponer.activado`](#restocking-loot-and-difficulty), off by default) is not changed: a cleared unique still restocks like villages and medium structures, which have no fight either. It is the administrator's choice and already has its own limits (days, nobody nearby, almost empty).
+- Log: `Heraldia: bosses: <guardian> defeated: <structure> cleared, N spawners turned off, M pending until their chunk loads (… ms): <positions>`; and later `Heraldia: bosses: N pending spawners turned off when chunk … loaded`.
+- Tests: `ClearedSpawnersTest` (JUnit: the record, idempotency, pending per chunk, saved format, a real spawner turned off) and `tools/smoke/cleared_spawners.py` (server, ~90 s: a really generated castle, its guardian killed after a restart with only its chunk loaded, the loaded spawners off at once and the other one when its chunk loads, nothing more on a second death, also after a restart).
+
 ## Guardian trophies
 
 Every named guardian of a unique structure (and Atlantis' Warden of Poseidon) drops its own **trophy** on death: a vanilla item with its own name, one or two lines of lore, a rarity (name colour) and sometimes an armour trim or an emblazoned shield. Most are decorative; a few (the Trident of Poseidon, Borin Ironbeard's Axe) are slightly better than a regular item without breaking progression. It only drops when a player kills the guardian (not with `/kill` or a trap with no player involved), and there is one per guardian: placing the structure again with `/place` creates another guardian and therefore another trophy. Zombie, husk and drowned guardians (and Atlantis' drowned) are always adults, keep their own weapon and never spawn riding a mount.
@@ -431,6 +446,17 @@ A vanilla written book, the **Herald's Guide**, that explains the mod to players
 - Vanilla book limits: the generator checks that every page fits the 14 lines of a book page (with the same width calculation as the Chronicle leaves), that the title is at most 32 characters and that the book never exceeds 100 pages (with today's 20 unique structures, 23 to 29). It carries `custom_data` `{heraldia_guia_libro:"<version>"}` and the mod edition in its lore.
 
 Cost: it only works when a player without this version's guide joins or when it is asked for (it reads their discovery advancements and builds the book; measured on the test server, see `tools/smoke/guide.py`); nothing per tick.
+
+## Your journal: `/heraldia journal`
+
+Each player's own record of **what they have found and what is still missing**, in chat (vanilla clients too, in the player's language, the same as the job board), for any player and without permissions:
+
+- `/heraldia journal`: the title, a bar with the **overall total** (everything found out of everything that can be found in this world) and one line per kind with its progress bar (■ found, □ missing; gold and ✔ when complete) and its count: **village families**, **unique structures**, **medium structures** (by type), **mine entrances** (by size), the **coast** (lighthouse and shipwreck) and the **Nether** and the **End** (their unique structure and their medium types). Each line is a button that opens its kind; hovering over it lists what is missing.
+- `/heraldia journal <kind>` (`villages`, `uniques`, `mediums`, `mines`, `coast`, `nether`, `end`): the names already found and the ones still missing, in alphabetical order of the player's language (mines, by size), with a button back to the summary.
+- **No coordinates and no clues**: the journal says "2 of 21 unique structures, these ones are missing", never where they are. Finding them is for the maps, the quests and the Chronicle; the soft biome clues of the missing unique structures stay in the Herald's Guide, which the journal points to (a button to `/heraldia guide`) while any is missing.
+- **Where the data come from**: the player's own advancements, which already record every discovery (`aldeas/<family>`, `unicas/<id>/descubrir`, the criteria of `medianas/todas`, `medianas/nether` and `medianas/end`, `minas/<size>`, `costa/faro` and `costa/naufragio`); which ids belong to each kind is also read from the advancements (the criteria of `aldeas/todas`, `unicas/todas` and the three walker advancements) and, for the dimension of a unique structure, from the structure registry. Nothing is saved and nothing runs until someone asks: it reads the player's progress from memory, on the server thread, and answers in the same tick.
+- What counts: what can still appear in this world (a kind disabled in the configuration is not "missing") and whatever the player already found, even if it was disabled later. A kind with nothing to find is left out.
+- **Why a command and not more Guide pages or `/heraldia status`**: the Guide is a book handed out on joining (it only gets updated when asked for again, and its pages must fit a measured size), and it already keeps the diary of unique structures with their clues; `/heraldia status` is the server's summary, what anyone has discovered. The journal is the per-player view of every kind, always up to date; `/heraldia status` links to it and it links to the Guide, instead of repeating either.
 
 ## Advancements
 

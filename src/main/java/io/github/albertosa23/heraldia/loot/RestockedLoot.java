@@ -1,6 +1,7 @@
 package io.github.albertosa23.heraldia.loot;
 
 import io.github.albertosa23.heraldia.Heraldia;
+import io.github.albertosa23.heraldia.common.TemplateBlocks;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import java.util.Optional;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -22,11 +23,8 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
-import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
-import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.BlockHitResult;
@@ -161,16 +159,10 @@ public final class RestockedLoot {
 				return null;
 			}
 			for (StructurePiece piece : start.getPieces()) {
-				if (!(piece instanceof PoolElementStructurePiece p) || !p.getBoundingBox().isInside(pos)
-						|| !(p.getElement() instanceof SinglePoolElement e)) {
+				if (!piece.getBoundingBox().isInside(pos)) {
 					continue;
 				}
-				Optional<StructureTemplate> t = level.getStructureTemplateManager().get(e.getTemplateLocation());
-				if (t.isEmpty()) {
-					continue;
-				}
-				StructurePlaceSettings s = new StructurePlaceSettings().setRotation(p.getRotation());
-				for (StructureTemplate.StructureBlockInfo info : t.get().filterBlocks(p.getPosition(), s, state.getBlock())) {
+				for (StructureTemplate.StructureBlockInfo info : TemplateBlocks.of(level, piece, state.getBlock())) {
 					if (info.pos().equals(pos) && info.nbt() != null) {
 						String table = info.nbt().getStringOr("LootTable", "");
 						return table.isEmpty() ? null : table;

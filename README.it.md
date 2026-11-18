@@ -20,6 +20,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 
 - 📖 **La Guida dell'Araldo.** Ogni giocatore la riceve entrando: un libro che spiega cosa cercare e tiene il tuo diario, con le strutture uniche che hai scoperto e indizi su quelle che ti mancano. Chiedine una copia aggiornata quando vuoi con `/heraldia guide`.
 - 📊 **Cosa ha trovato il server.** `/heraldia status` dice quanti villaggi, strutture uniche, strutture medie e miniere hanno scoperto i giocatori, i guardiani sconfitti, il record dell'arena e gli incarichi consegnati.
+- 🧭 **Il tuo diario.** `/heraldia journal` ti mostra in chat, tipo per tipo e con una barra di avanzamento, cosa hai trovato e cosa ti manca: famiglie di villaggi, strutture uniche, strutture medie, dimensioni di miniera, fari e relitti, il Nether e l'End. Clicca su un tipo per vedere i nomi. Niente coordinate: trovarle tocca a te.
 - 📋 **Incarichi dei villaggi.** Tocca il leggio della bacheca nella piazza di un villaggio (o usa lì `/heraldia quest`): in chat compaiono da 2 a 4 incarichi (portare oggetti, sconfiggere un guardiano, esplorare, viaggiare al villaggio vicino, l'arena) che cambiano ogni pochi giorni. Pagano smeraldi, esperienza e reputazione con quel villaggio: da conosciuto, amico ed eroe del villaggio, i suoi abitanti abbassano i prezzi del 10, 20 e 30 %. Attaccare i suoi abitanti o golem la fa scendere.
 - 🐪 **Carovane.** Di tanto in tanto, vicino a te, un mercante di Heraldia con i suoi lama (e a volte una guardia) percorre la strada tra due villaggi vicini. Se i banditi lo assaltano, difendilo: all'arrivo ti paga smeraldi e reputazione con il suo villaggio di destinazione. Se il mercante muore, la carovana è perduta.
 - 🏆 **Progressi.** Una scheda Heraldia con 122 progressi: un villaggio di ogni famiglia, ogni struttura unica con il suo guardiano e il suo tesoro, le miniere, i fari e i relitti, le strutture medie, la bacheca degli incarichi, l'arena e le carovane.
@@ -58,7 +59,7 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `aldeas.caminos.activado` | `true` | Strade tra i villaggi. |
 | `unicas.<id>.activada` | `true` | Attiva o disattiva una struttura unica. |
 | `unicas.rejilla_compatible` | `false` | `true` solo per i mondi creati con Heraldia 0.1.0. |
-| `medianas.frecuencia_porcentaje` | 60 | Quante strutture medie (100 = la densità precedente, più fitta; 200 = il doppio di quella). |
+| `medianas.frecuencia_porcentaje` | 100 | Quante strutture medie (200 = il doppio). |
 | `faros.activado`, `naufragios.activado` | `true` | Fari e galeoni naufragati sulla costa. |
 | `dificultad.nivel` | `normal` | Guardiani e mostri: `facil`, `normal`, `dificil` o `heroica`. |
 | `botin.reponer.activado` | `false` | I forzieri di Heraldia si riempiono di nuovo dopo qualche giorno. |

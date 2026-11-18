@@ -227,10 +227,15 @@ def test_herald_guide():
 def test_admin_tools():
     admin = (False, ["tools/smoke/admin.py"])
     for r in ("command/ReviewCommand.java", "command/Revision.java", "command/SafeSpot.java",
-              "command/State.java", "command/StatusCommand.java", "command/ReloadCommand.java",
+              "command/State.java", "command/ReloadCommand.java",
               "command/InfoCommand.java", "config/Reload.java"):
         assert pick(J + r) == admin, r
-    assert pick("tools/gen/admin.py") == admin
+    # the status links to the journal and they share the advancements and the texts (admin.py)
+    journal = (False, ["tools/smoke/admin.py", "tools/smoke/journal.py"])
+    assert (pick(J + "command/StatusCommand.java")[0], sorted(pick(J + "command/StatusCommand.java")[1])) == journal
+    assert (pick("tools/gen/admin.py")[0], sorted(pick("tools/gen/admin.py")[1])) == journal
+    assert pick(J + "command/Journal.java") == (False, ["tools/smoke/journal.py"])
+    assert pick("tools/smoke/journal.py") == (False, ["tools/smoke/journal.py"])
     assert pick("tools/smoke/admin.py") == admin
     assert pick(J + "config/HeraldiaConfig.java")[0]           # the rest of config/: common, full suite
 
@@ -241,7 +246,7 @@ def test_commands_in_english_and_warning_of_version():
         assert pick(J + r) == update, r
     assert pick("tools/smoke/update_check.py") == update
     commands = (False, sorted(["tools/smoke/update_check.py", "tools/smoke/admin.py", "tools/smoke/guide.py", "tools/smoke/arena.py",
-                               "tools/smoke/arena_modes.py"]))
+                               "tools/smoke/arena_modes.py", "tools/smoke/journal.py"]))
     for r in (J + "command/HeraldiaCommands.java", J + "command/Alias.java", J + "mixin/CommandsMixin.java", "tools/gen/commands.py"):
         assert (pick(r)[0], sorted(pick(r)[1])) == commands, r
 
@@ -249,6 +254,8 @@ def test_commands_in_english_and_warning_of_version():
 def test_loot_that_gets_replenishes_and_difficulty():
     assert pick(J + "loot/RestockedLoot.java") == (False, ["tools/smoke/loot_restock.py"])
     assert pick(J + "loot/Restock.java") == (False, ["tools/smoke/loot_restock.py"])
+    assert pick(J + "bosses/ClearedSpawners.java") == (False, ["tools/smoke/boss_phases.py", "tools/smoke/cleared_spawners.py"])
+    assert pick(J + "common/TemplateBlocks.java") == (False, ["tools/smoke/cleared_spawners.py", "tools/smoke/loot_restock.py"])
     assert pick(J + "difficulty/MobDifficulty.java") == (False, ["tools/smoke/difficulty.py"])
     assert pick(J + "difficulty/ModDifficulty.java", "tools/smoke/loot_restock.py") == \
         (False, ["tools/smoke/difficulty.py", "tools/smoke/loot_restock.py"])
