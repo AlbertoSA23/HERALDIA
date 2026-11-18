@@ -378,12 +378,16 @@ DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined
 # into one job as long as the group does not exceed the longest one (so CI is not lengthened and fewer machines are used). Free GitHub
 # Actions gives 20 concurrent jobs: with the smoke test and the build, the full suite fits in a single batch.
+# The real group size is max(GROUP_CAP_S, the longest test): see the trap in groups().
 GROUP_CAP_S = 170
 
 
 def groups(tests, cap=GROUP_CAP_S):
     """Distributes the tests into groups (lists) of duration <= max(cap, the longest): longest first, each into
-    the shortest group where it fits (if it fits in none, it opens another). Deterministic."""
+    the shortest group where it fits (if it fits in none, it opens another). Deterministic.
+    Trap: the group size is max(cap, the longest test), so the number of groups is about total / longest test, and
+    SHORTENING THE LONGEST TEST RAISES THE NUMBER OF GROUPS (with the table of Nov 2026 before recalibrating,
+    anchored_guardians at 450 s gave 16 groups, at 350 s 20, at 300 s 21). It only shortens CI wall-clock time."""
     dur = lambda p: DURATION_S.get(p, DEFAULT_S)
     cap = max([cap] + [dur(p) for p in tests])
     out = []
