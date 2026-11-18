@@ -455,7 +455,17 @@ _FIXED = [
     ("tesoro.radio_max", 1500, 300, 4000,
      "Distancia máxima, en bloques, de cada marca del mapa del tesoro a la anterior (o a donde se descifra el fragmento)",
      "Maximum distance, in blocks, from each mark of the treasure map to the previous one (or to where the fragment is "
-     "deciphered)"),
+     "deciphered)"),    ("reputacion.aldea_visible", True, None, None,
+     "La reputación se ve en la aldea: con la mejor reputación que tenga cualquier jugador, flores en la fuente "
+     "(conocido); estandartes en las entradas de la plaza, junto al tablón, en las puertas de la muralla y en las "
+     "torres (amigo); más flores, faroles en las puertas y una alfombra ante el tablón (héroe); si todos los que la "
+     "tratan tienen reputación negativa, las torres cierran sus contraventanas. Solo bloques vanilla y solo donde hay "
+     "aire: nunca toca un bloque de un jugador. Desactivada, cada aldea quita lo que puso al cargarse",
+     "Reputation shows in the village: with the best reputation any player has there, flowers on the fountain (known); "
+     "banners at the square's entrances, by the job board, at the wall gates and on the towers (friend); more flowers, "
+     "lanterns on the gates and a carpet before the job board (hero); if everyone who deals with it has negative "
+     "reputation, the towers close their shutters. Vanilla blocks only and only on air: it never touches a player's "
+     "block. Disabled, each village takes down what it put up when it loads"),
     ("casa_heraldo.activado", True, None, None,
      "La Casa del Heraldo: el pueblo amurallado del spawn (96 × 96 bloques) con su anillo protegido de 50 bloques, donde solo "
      "un operador puede construir o romper y no aparecen monstruos. Desactivada, no se construye ni se protege",
@@ -534,6 +544,16 @@ GENERATION_PROFILES = (LIGHT,)
 PROFILE_PREFIXES = ("dificultad.", "botin.", "jefes.", "arena.", "caravanas.", "chozas_mago.")
 GENERATION = ("aldeas.", "unicas.", "medianas.", "minas.", "faros.", "naufragios.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
               "arena.activado")
+
+
+# Marked as generation (so no gameplay profile touches them) and yet applied by /heraldia reload (config/Reload.RELOADABLE):
+# the flag only keeps the profiles away, it does not mean "needs a restart". arena.activado is gameplay that profiles must
+# not switch (the arena builds itself); the other three fall under a generation prefix (aldeas., unicas.) but act while
+# playing. Unmarking them would change the generation fingerprint that worlds have saved (ProfileNotice, the
+# generacion_mundo attachment, and the search memory key in SearchCaches), so they stay marked and are listed here;
+# test_options checks this list against Reload.java, so a new overlap has to be added here on purpose.
+GENERATION_RELOADABLE = ("aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "arena.activado",
+                         "unicas.atlantida.cofre_unico_por_jugador")
 
 
 def is_generation(key):
@@ -698,7 +718,7 @@ _NAMES = {
     "tesoro.activado": ("Búsqueda del tesoro", "Treasure hunt"),
     "tesoro.probabilidad": ("Fragmentos por cofre (%)", "Fragments per chest (%)"),
     "tesoro.radio_max": ("Distancia máxima entre marcas (bloques)", "Maximum distance between marks (blocks)"),
-    "casa_heraldo.activado": ("Casa del Heraldo", "Herald's House"),
+    "reputacion.aldea_visible": ("La reputación se ve en la aldea", "Reputation shows in the village"),
     "casa_heraldo.generar_en_mundos_nuevos": ("Construirla en mundos nuevos", "Build it in new worlds"),
     "casa_heraldo.mercado.activado": ("Puestos de alquiler", "Stalls for rent"),
     "casa_heraldo.mercado.entrada_esmeraldas": ("Entrada (esmeraldas)", "Entry fee (emeralds)"),

@@ -70,6 +70,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `arena.temporada.dia_reinicio` | `lunes` | Day the arena's weekly leaderboard closes and its champions are announced (at midnight, server time). |
 | `encargos.activado` | `true` | Job board quests (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputation per village and its discounts. |
+| `reputacion.aldea_visible` | `true` | The village shows its best reputation with vanilla blocks: flowers, banners, lanterns (or shutters closed); never on a player's block. |
 | `dialogos.activado` | `true` | Conversations with Heraldia villagers (sneak + right click trades directly). |
 | `caravanas.activado` | `true` | Caravans along the roads (operators: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Wayfarers along the roads, each kind with its own option (operators: `/heraldia caravan wayfarer`). |

@@ -70,6 +70,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `arena.temporada.dia_reinicio` | `lunes` | Tag, an dem die Wochenrangliste der Arena endet und ihre Champions verkündet werden (um Mitternacht, Serverzeit). |
 | `encargos.activado` | `true` | Aufträge des Auftragsbretts (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Ruf je Dorf und seine Rabatte. |
+| `reputacion.aldea_visible` | `true` | Das Dorf zeigt seinen besten Ruf mit Vanilla-Blöcken: Blumen, Banner, Laternen (oder geschlossene Fensterläden); nie auf dem Block eines Spielers. |
 | `dialogos.activado` | `true` | Gespräche mit Heraldia-Dorfbewohnern (Schleichen + Rechtsklick handelt direkt). |
 | `caravanas.activado` | `true` | Karawanen auf den Wegen (Operatoren: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Reisende auf den Wegen, jede Art mit eigener Option (Operatoren: `/heraldia caravan wayfarer`). |

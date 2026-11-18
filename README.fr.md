@@ -70,6 +70,7 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `arena.temporada.dia_reinicio` | `lunes` | Jour de clôture du classement hebdomadaire de l'arène et d'annonce de ses champions (à minuit, heure du serveur). |
 | `encargos.activado` | `true` | Missions du tableau (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Réputation par village et ses réductions. |
+| `reputacion.aldea_visible` | `true` | Le village montre sa meilleure réputation avec des blocs vanilla : fleurs, bannières, lanternes (ou volets fermés) ; jamais sur un bloc d'un joueur. |
 | `dialogos.activado` | `true` | Conversations avec les villageois d'Heraldia (accroupi + clic droit pour commercer directement). |
 | `caravanas.activado` | `true` | Caravanes sur les routes (opérateurs : `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Gens de passage sur les routes, chaque type avec son option (opérateurs : `/heraldia caravan wayfarer`). |

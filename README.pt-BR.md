@@ -70,6 +70,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `arena.temporada.dia_reinicio` | `lunes` | Dia em que fecha a classificação semanal da arena e seus campeões são anunciados (à meia-noite, horário do servidor). |
 | `encargos.activado` | `true` | Tarefas do quadro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputação por vila e seus descontos. |
+| `reputacion.aldea_visible` | `true` | A vila mostra sua melhor reputação com blocos vanilla: flores, estandartes, lanternas (ou janelas fechadas); nunca sobre o bloco de um jogador. |
 | `dialogos.activado` | `true` | Conversas com os aldeões de Heraldia (agachado + clique direito negocia diretamente). |
 | `caravanas.activado` | `true` | Caravanas pelas estradas (operadores: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Viajantes pelas estradas, cada tipo com sua opção (operadores: `/heraldia caravan wayfarer`). |
