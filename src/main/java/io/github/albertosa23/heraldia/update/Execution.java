@@ -103,7 +103,11 @@ public final class Execution {
 		}
 	}
 
-	/** Copies the files of the plan's regions (region, entities and POI) to {@code destination}; returns how many. */
+	/**
+	 * Copies the files of the plan's regions (region, entities and POI) to {@code destination}; returns how many. Those that
+	 * do not exist yet go to {@link Plan#absent}: undo deletes them (apply can create them, e.g. the POI file of a region
+	 * where a placed structure brings beds or workstations).
+	 */
 	static int copy(Plan p, Path ow, Path destination) throws IOException {
 		int n = 0;
 		for (String folder : FOLDERS) {
@@ -114,6 +118,9 @@ public final class Execution {
 					Files.createDirectories(d.getParent());
 					Files.copy(f, d, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
 					n++;
+				} else {
+					// it does not exist yet: placing a structure can create it (its POIs or mobs); undo deletes it
+					p.absent.add(folder + "/" + name);
 				}
 			}
 		}
@@ -166,6 +173,17 @@ public final class Execution {
 						n++;
 					}
 				}
+			}
+			int deleted = 0;
+			for (String rel : d.absent) {
+				int slash = rel.indexOf('/');
+				String folder = slash > 0 ? rel.substring(0, slash) : "", name = rel.substring(slash + 1);
+				if (FOLDERS.contains(folder) && name.matches("r\\.-?\\d+\\.-?\\d+\\.mca") && Files.deleteIfExists(ow.resolve(folder).resolve(name))) {
+					deleted++;
+				}
+			}
+			if (deleted > 0) {
+				LOGGER.info("Heraldia: update undo: borrados {} ficheros que no existían antes de apply", deleted);
 			}
 			Files.move(dir.resolve("deshacer.json"), dir.resolve("deshecho-" + d.id + ".json"), StandardCopyOption.REPLACE_EXISTING);
 			LOGGER.info("Heraldia: update undo: restaurados {} ficheros de la copia {}", n, backup);

@@ -160,7 +160,7 @@ public final class Revision {
 		}
 		static Mark of(String id) {
 			for (Mark t : values()) {
-				if (t.id.equals(id)) {
+				if (t.id.equalsIgnoreCase(id)) {
 					return t;
 				}
 			}

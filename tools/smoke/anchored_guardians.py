@@ -66,12 +66,15 @@ def mobs(jar):
 
 
 def control(found, mob):
-    """The first anchored mob of that type without the tag (nor the guardian one): it behaves like a vanilla one."""
+    """The first anchored mob of that type with no Heraldia tag and no name: it behaves like a vanilla one. Removing
+    only heraldia_anclado is not enough: the fixes of update/MobFixes (T46) treat as a template mob any mob with
+    heraldia_adulto or a persistent one with a heraldia.* name, put heraldia_anclado back on it ("marcas") and take away
+    its CanPickUpLoot ("recoger") when it loads, so the control neither picked up items nor stayed vanilla."""
     for name, nbt in found:
         if str(nbt["id"]) == mob:
             c = Compound(nbt)
-            c["Tags"] = List[String]([String(CONTROL)] + [String(t) for t in nbt["Tags"]
-                                     if not str(t).startswith(("heraldia_guardian", core.ANCHORED_TAG))])
+            c["Tags"] = List[String]([String(CONTROL)])
+            c.pop("CustomName", None)
             return (f"control sin anclar ({mob.split(':')[-1]})", c)
     return None
 
@@ -97,11 +100,15 @@ def write_pack(work, batches):
             json.dump({"fallback": "minecraft:empty", "elements": [{"weight": 1, "element": {
                 "element_type": "minecraft:single_pool_element", "location": f"{NS}:m{i}",
                 "projection": "rigid", "processors": "minecraft:empty"}}]}, f)
+        # /place jigsaw puts the piece's jigsaw (facing up) just below the given position: at Y + 1 the stone of the
+        # piece is the platform's floor (Y - 1) and the mob stands on it at Y, in the open as in its template. At Y it
+        # was in a one-block pit in the floor, and a shulker (it does not move) in that pit does not see the player 8
+        # blocks away: its eye is below the floor's surface ("does not attack the player").
         with open(os.path.join(data, "function", f"m{i}.mcfunction"), "w") as f:
             for (x, z) in batch["celdas"]:
-                f.write(f"place jigsaw {NS}:m{i} {ANCHOR_POINT} 1 {x} {Y} {z}\n")
+                f.write(f"place jigsaw {NS}:m{i} {ANCHOR_POINT} 1 {x} {Y + 1} {z}\n")
         with open(os.path.join(data, "function", f"j{i}.mcfunction"), "w") as f:
-            f.write(f"place jigsaw {NS}:m{i} {ANCHOR_POINT} 1 {X3} {Y} {Z3 + DIST}\n")
+            f.write(f"place jigsaw {NS}:m{i} {ANCHOR_POINT} 1 {X3} {Y + 1} {Z3 + DIST}\n")
 
 
 def main():
@@ -286,6 +293,15 @@ def main():
             print(f"anclados: ataque: {batch['nombre']}: {'ataca' if ok else 'NO ataca'} ({time.monotonic() - t0:.1f} s)")
             if not ok:
                 fails.append(f"attack: {batch['nombre']} does not attack the player at {DIST} blocks")
+            # a magma cube (or slime) bigger than the smallest splits when it dies, 20 ticks after the kill: its
+            # little cubes would attack the player during the next mob's turn; the smallest one does not split
+            # (one by one: "execute as ... run data merge" prints nothing when there is no target)
+            for t in ("magma_cube", "slime"):
+                for _ in range(8):
+                    m = ctx.run(f"data merge entity @e[type=minecraft:{t},{zone},nbt=!{{Size:0}},limit=1] {{Size:0}}",
+                                r"Modified entity data|No entity was found|Nothing changed")
+                    if not m.group(0).startswith("Modified"):
+                        break
             ctx.run(f"kill @e[type=!minecraft:player,{zone}]", r"Killed|No entity was found")
             for t in ("vex", "evoker_fangs", "arrow", "trident", "item"):   # vexes pass through the barrier
                 ctx.run(f"kill @e[type=minecraft:{t}]", r"Killed|No entity was found")

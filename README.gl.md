@@ -34,7 +34,7 @@ Os textos do mod están en 8 linguas: inglés, castelán, francés, alemán, ita
 
 1. Precisas **Minecraft 26.3**, **Fabric Loader** 0.20.1 ou posterior e **Fabric API**.
 2. Pon `heraldia-<version>.jar` no cartafol `mods` do **servidor** e reinícialo.
-3. **Os xogadores non precisan o mod**: poden entrar cun cliente vanilla. Os textos que o cliente non coñece saen en castelán, agás a Guía do Heraldo, que chega na lingua de cada xogador. Se tamén instalan o mod, verán todo na súa lingua e terán a pantalla de configuración (con Mod Menu).
+3. **Os xogadores non precisan o mod**: poden entrar cun cliente vanilla. Os textos que o cliente non coñece saen en castelán, agás a Guía do Heraldo, os encargos, a area, as caravanas e os avisos de Heraldia, que chegan na lingua de cada xogador. Se tamén instalan o mod, verán todo na súa lingua e terán a pantalla de configuración (con Mod Menu).
 
 **Un mundo xa existente** funciona sen problema: as estruturas novas aparecen nos chunks que aínda non se xeraron (explora terras novas). Se o teu mundo se creou con Heraldia **0.1.0**, pon `unicas.rejilla_compatible` en `true` antes de arrincar o servidor, para que `/locate`, os mapas do tesouro e a Guía sigan atopando as estruturas únicas que xa tes.
 

@@ -7,10 +7,10 @@ Usage: python3 tools/smoke/web_maps.py --jar build/libs/heraldia-X.jar --work "$
 2. With squaremap (pinned Modrinth version, checked against its sha512) and Carpet (simulated player):
    - /locate is used to find a medium structure and a village and their chunks are generated with /forceload: both enter
      the registry (the world's heraldia_mapas_web.json) when those chunks load;
-   - with web_maps.only_discovered (default) squaremap shows none: its layers are there, empty;
+   - with mapas_web.solo_descubiertas (default) squaremap shows none: its layers are there, empty;
    - the simulated player enters the medium structure: gets its advancement and, with nothing else done, its marker appears in
      squaremap (layer, position, icon and name in the language of web_maps.language); the village still does not appear;
-   - with web_maps.only_discovered = false and /heraldia reload the village also appears; with the villages' layer
+   - with mapas_web.solo_descubiertas = false and /heraldia reload the village also appears; with the villages' layer
      turned off, its layer disappears from the map;
    - after restarting, the markers appear again without loading those chunks (from the world's file).
 squaremap serves the layers at http://127.0.0.1:<port>/tiles/minecraft_overworld/markers.json (it rebuilds them every 5 s).
@@ -64,7 +64,10 @@ def config(work, **web_maps):
     """config/heraldia.json of the tests with the given mapas_web options (the layers, in "capas")."""
     cfg = json.loads(json.dumps(s.TEST_CONFIG))
     cfg.pop("inventada", None)
-    cfg["mapas_web"] = {"idioma": "es_es", **web_maps}
+    # the published keys are Spanish (mapas_web.solo_descubiertas, mapas_web.capas.<layer>): T47c translated these
+    # arguments and the mod ignored them ("opción desconocida")
+    keys = {"only_discovered": "solo_descubiertas", "layers": "capas"}
+    cfg["mapas_web"] = {"idioma": "es_es", **{keys.get(k, k): v for k, v in web_maps.items()}}
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
         json.dump(cfg, f)
 

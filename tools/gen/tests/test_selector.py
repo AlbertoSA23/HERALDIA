@@ -308,3 +308,13 @@ def test_wizard_huts():
     entire, tests = pick("tools/gen/mediums/wizard_hut.py")
     assert not entire and set(p) <= set(tests) and "tools/smoke/medium_structures.py" in tests
     assert sel.DURATION_S["tools/smoke/wizard_huts.py"] > 0
+
+
+def test_safe_updates():
+    """The Java in update/ also runs path B and undo (update_path_b.py); the panel, menus and texts only update.py."""
+    both = (False, ["tools/smoke/update.py", "tools/smoke/update_path_b.py"])
+    assert pick(J + "update/Execution.java") == both
+    assert pick(J + "update/Analysis.java") == both
+    assert pick(J + "command/ConfigPanel.java") == (False, ["tools/smoke/update.py"])
+    assert pick("tools/smoke/update_path_b.py") == (False, ["tools/smoke/update_path_b.py"])
+    assert sel.DURATION_S["tools/smoke/update_path_b.py"] > 0

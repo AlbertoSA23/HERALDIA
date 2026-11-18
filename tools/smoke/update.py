@@ -127,7 +127,7 @@ def main():
         check(ctx.until(f"execute if entity @e[tag={ZOMBIE},tag=heraldia_anclado,tag=heraldia_guardian,tag=heraldia_adulto]"),
               "el arreglo «marcas» no ha puesto las etiquetas al guardián antiguo")
         check(ctx.test(f"execute if entity @e[tag={ZOMBIE},nbt={{IsBaby:0b}}]"), "el arreglo «bebes» no ha hecho adulto al guardián")
-        fixes_1 = len(re.findall(r"Heraldia: arreglos \{marcas=CAMBIA, bebes=CAMBIA", "".join(ctx.seen)))
+        fixes_1 = len(re.findall(r"Heraldia: arreglos \{marcas=CHANGES, bebes=CHANGES", "".join(ctx.seen)))
         check(fixes_1 == 1, f"el arreglo se ha aplicado {fixes_1} veces al invocarlo (debía ser 1)")
         me.freeze(ctx)
         ctx.run("save-all flush", r"Saved the game|saved")
@@ -210,7 +210,7 @@ def main():
         ctx.until("execute if loaded 400 64 400", timeout=120)
         check(ctx.until(f"execute if entity @e[tag={ZOMBIE}]"), "no está el guardián de prueba")
         check(ctx.test(f"execute if entity @e[tag={ZOMBIE},nbt={{IsBaby:1b}}]"), "el arreglo se ha vuelto a aplicar al recargar")
-        times = len(re.findall(r"Heraldia: arreglos \{marcas=CAMBIA", log1 + "".join(ctx.seen)))
+        times = len(re.findall(r"Heraldia: arreglos \{marcas=CHANGES", log1 + "".join(ctx.seen)))
         check(times == 1, f"el arreglo de marcas se ha aplicado {times} veces (debía ser 1)")
         n0 = len(ctx.seen)
         ctx.run("heraldia update repair dry-run", r"Prueba|Dry run|Unknown|Incorrect")

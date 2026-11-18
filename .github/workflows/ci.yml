@@ -144,7 +144,7 @@ jobs:
           name: jar
           path: build/libs
 
-      # La prueba de la Atlántida (atlantida/humo.py) rehace su plano, que valida contra los registros de mcmeta.
+      # La prueba de la Atlántida (tools/gen/uniques/atlantis/smoke.py) rehace su plano, que valida contra los registros de mcmeta.
       - name: Leer rama de mcmeta
         id: ver
         run: echo "mcmeta=$(grep '^mcmeta_summary_branch=' gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"

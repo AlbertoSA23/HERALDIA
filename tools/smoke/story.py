@@ -43,6 +43,9 @@ def chronicle(jar):
                             "mapa": t["pools"][1]["entries"][0] if len(t["pools"]) > 1 else None, "siguiente": nxt,
                             "final": last["translate"] == "heraldia.historia.final"}
         adv = json.loads(z.read("data/heraldia/advancement/unicas/cronista.json"))
+        for sid in out:   # Nether and End uniques (T44) are placed by heraldia:dimension
+            st = f"data/heraldia/worldgen/structure/unicas/{sid}.json"
+            out[sid]["overworld"] = st not in names or json.loads(z.read(st)).get("type") != "heraldia:dimension"
     return dict(sorted(out.items())), lang, adv
 
 
@@ -63,7 +66,12 @@ def static_checks(found, adv):
         if len(d["cofre"]) != 1:
             fails.append(f"{sid}: the sheet must go in the table of a chest of the unique structure, not in {d['cofre']}")
         dest = ((d["mapa"] or {}).get("modifier") or [{}])[0].get("destination")
-        if dest != f"#heraldia:unicas/{d['siguiente']}":
+        nxt = found.get(d["siguiente"], {})
+        if not d["overworld"] or not nxt.get("overworld", True):
+            # an exploration map only searches its own dimension: no map to or from the Nether and the End (writer.py)
+            if d["mapa"] is not None:
+                fails.append(f"{sid}: the sheet carries a map although {sid} or {d['siguiente']} is not in the Overworld ({dest})")
+        elif dest != f"#heraldia:unicas/{d['siguiente']}":
             fails.append(f"{sid}: the sheet's map does not lead to {d['siguiente']} ({dest})")
     return fails
 

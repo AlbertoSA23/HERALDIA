@@ -99,10 +99,15 @@ def main():
         p = pos(ctx)
         check(p and abs(p[0] - (x + 0.5)) < 0.01 and abs(p[1] - y) < 0.01 and abs(p[2] - (z + 0.5)) < 0.01,
               f"{stop}: el jugador está en {p}, el log dice {x} {y} {z}")
-        check(ctx.block((x, y, z), "#minecraft:replaceable") and ctx.block((x, y + 1, z), "#minecraft:replaceable"),
+        # in the player's dimension (the Nether and End stops of T44 take it there; from the console the
+        # blocks would be read in the Overworld, "That position is not loaded")
+        d = ctx.run(f"data get entity {PLAYER} Dimension", r'has the following entity data: "([a-z0-9_:./-]+)"|No entity')
+        here = f"execute in {d.group(1) or 'minecraft:overworld'} "
+        check(ctx.test(f"{here}if block {x} {y} {z} #minecraft:replaceable")
+              and ctx.test(f"{here}if block {x} {y + 1} {z} #minecraft:replaceable"),
               f"{stop}: pies o cabeza dentro de un bloque en {x} {y} {z}")
-        check(ctx.test(f"execute unless block {x} {y - 1} {z} #minecraft:air"), f"{stop}: sin suelo bajo {x} {y} {z}")
-        check(ctx.test(f"execute unless block {x} {y - 1} {z} minecraft:lava"), f"{stop}: encima de lava")
+        check(ctx.test(f"{here}unless block {x} {y - 1} {z} #minecraft:air"), f"{stop}: sin suelo bajo {x} {y} {z}")
+        check(ctx.test(f"{here}unless block {x} {y - 1} {z} minecraft:lava"), f"{stop}: encima de lava")
         print(f"{stop}: at {x} {y} {z}")
 
     try:
@@ -136,7 +141,7 @@ def main():
         res, ms = search(ctx, "unica/atlantida")
         print(f"review goto unica/atlantida: {res} in {ms} ms (off the server thread)")
         text = "".join(s.drain(ctx))
-        check("generada=false" in res, f"atlántida: debería estar prevista: {res}")
+        check("generated=false" in res, f"atlántida: debería estar prevista: {res}")
         check(re.search(r"has not been generated yet|aún no se ha generado", text), "atlántida: no avisa de que se generaría terreno")
         check(re.search(r"Go and generate|Ir y generar", text), "atlántida: falta el botón «Ir y generar»")
         check(re.search(r"(?:What to check|Qué mirar):", text) and re.search(r"water breathing|respiración acuática", text),
@@ -151,8 +156,8 @@ def main():
         ctx.run(as_player(f"goto {medium}"), r"(?:Looking for|Buscando) ")
         res, ms = search(ctx, medium)
         print(f"review goto {medium}: {res} en {ms} ms")
-        check("Destino" in res, f"{medium}: no se encuentra ninguna: {res}")
-        if "generada=false" in res:
+        check("Destination" in res, f"{medium}: no se encuentra ninguna: {res}")
+        if "generated=false" in res:
             s.drain(ctx)
             ctx.run(as_player(f"goto {medium} generate"), r"(?:Looking for|Buscando) ")
             search(ctx, medium)
@@ -201,11 +206,11 @@ def main():
                 break
             ctx.run(as_player(f"goto {i}"), r"(?:Looking for|Buscando) ")
             res, _ = search(ctx, i)
-            if "generada=false" in res:
+            if "generated=false" in res:
                 s.drain(ctx)
                 planned = i
                 break
-            if "generada=true" in res:      # already generated: wait for the teleport (otherwise the next command is "busy")
+            if "generated=true" in res:      # already generated: wait for the teleport (otherwise the next command is "busy")
                 s.wait_for(ctx.lines, LOG_TP + "|no safe spot|ningún sitio seguro", s.COMMAND_TIMEOUT_S, ctx.seen)
             s.drain(ctx)
         check(planned, "no hay ninguna mediana prevista para probar «Ir y generar»")

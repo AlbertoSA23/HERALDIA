@@ -34,7 +34,7 @@ Els textos del mod estan en 8 llengües: anglès, castellà, francès, alemany, 
 
 1. Necessites **Minecraft 26.3**, **Fabric Loader** 0.20.1 o posterior i **Fabric API**.
 2. Posa `heraldia-<version>.jar` a la carpeta `mods` del **servidor** i reinicia'l.
-3. **Els jugadors no necessiten el mod**: poden entrar amb un client vanilla. Els textos que el client no coneix surten en castellà, excepte la Guia de l'Herald, que arriba en la llengua de cada jugador. Si també instal·len el mod, ho veuen tot en la seva llengua i tenen la pantalla de configuració (amb Mod Menu).
+3. **Els jugadors no necessiten el mod**: poden entrar amb un client vanilla. Els textos que el client no coneix surten en castellà, excepte la Guia de l'Herald, els encàrrecs, l'arena, les caravanes i els avisos de Heraldia, que arriben en la llengua de cada jugador. Si també instal·len el mod, ho veuen tot en la seva llengua i tenen la pantalla de configuració (amb Mod Menu).
 
 **Un món ja existent** funciona sense problemes: les estructures noves apareixen als chunks que encara no s'han generat (explora terres noves). Si el teu món es va crear amb Heraldia **0.1.0**, posa `unicas.rejilla_compatible` a `true` abans d'engegar el servidor, perquè `/locate`, els mapes del tresor i la Guia continuïn trobant les estructures úniques que ja tens.
 
