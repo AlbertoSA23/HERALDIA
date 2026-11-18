@@ -131,8 +131,9 @@ Each village has:
 - About 20 houses in the standard size and about 30 in the large one, furnished, with chests in some and loot from common to epic (tables `heraldia:cofres/comun`, `poco_comun`, `raro`, `epico`).
 - Watchtowers and wall gates at the ends of the streets; themed decoration between houses.
 - Villagers: half the number of houses, over 80 % with a profession. Golems: at least one per 3 villagers.
+- Village routes: the beds, workstations and the bell are placed so that the villagers walk the village on their own (vanilla AI, no extra entity or periodic work): nobody works next to their own bed (each house holds another trade's workstation, and the smith and the farmer sleep in a house), the priest, the town hall's cartographer, the librarian and the other masters of the special buildings work there and sleep in a house or in a room of the inn or the tavern (always with a bed, up a staircase), every bed can be reached on foot (the 2-storey houses keep it on the ground floor) and the bell stands on the square, where they gather at midday. Each morning they walk to work along the streets and the avenues, at midday to the square and at nightfall back home. **New villages only**: those already generated keep their placement.
 
-Population limits: there are about 1.25 beds per initial villager, so the population grows by 25 % at most.
+Population limits: there are about 1.3 beds per initial villager, so the population grows by 30 % at most.
 The function `heraldia:golems` checks loaded villages every 30 s and removes one natural golem each time there are 8 or more (standard) or 9 or more (large); it does not touch player-built ones. Limits and cleanup can be changed in the [configuration](CONFIGURATION.md#configuration).
 
 ## Village life

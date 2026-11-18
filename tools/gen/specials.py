@@ -4,7 +4,7 @@ import math
 from core import Template, nsid, villager, animal
 from themes import roofset
 from build import *
-from houses import bed_slot, villager_pool, Room, LOOT
+from houses import bed_slot, room_pool, Room, LOOT
 from streets import golem_slot, P
 
 L = lambda k: f"heraldia:cofres/{k}"
@@ -20,6 +20,12 @@ def staff(t, th, x, y, z, depth, final=None):
     t.jigsaw(x, y, z, "up_south", "heraldia:slot", "heraldia:bottom", nsid(f"villagers/{th['vtype']}/nobed_{depth}"),
              final_state=final or th["floor"], joint="aligned")
     t.set(x, y + 1, z, "air"); t.set(x, y + 2, z, "air")
+
+
+def pallet(t, th, x, y, z):
+    """Where a bed went in a workplace: a rug on the floor. A bed there would be claimed by the worker himself (the closest
+    free bed), who would then never leave the building; this way he sleeps in a house of the village."""
+    t.set(x, y + 1, z, f"{th['carpet'][0]}_carpet")
 
 
 def shell(t, th, x0, z0, x1, z1, fy, H, roof=None, style=None, along=None, gable_fill=None, ceiling=True):
@@ -1096,7 +1102,7 @@ def blacksmith(th, rng, name, v=0):
     for side in ("north", "south", "west"):
         windows_on_wall(t, th, 0, zf, 6, zb, side, 2, rng, skip=[(cx, zf)])
     # vivienda
-    bed_slot(t, th, 1, 0, zb - 2, villager_pool(th, "armorer", fixed=True))
+    pallet(t, th, 1, 0, zb - 2)
     t.chest(5, 1, zb - 1, "north", L("herreria"))
     t.set(5, 1, zf + 1, "crafting_table")
     t.set(1, 1, zf + 1, f"{th['wslab']}[type=top]")
@@ -1111,6 +1117,7 @@ def blacksmith(th, rng, name, v=0):
     t.set(7, 1, zf + 5, "blast_furnace[facing=east]")
     t.set(7, 1, zf + 6, "smithing_table")
     t.set(W - 2, 1, zf + 2, "grindstone[face=floor,facing=west]")
+    staff(t, th, 8, 0, zf + 5, "armorer", final="stone_bricks")
     for z in range(zf + 1, zb):
         t.set(W - 1, 1, z, "cobblestone_wall")
     for x in range(W - 4, W - 1):
@@ -1143,9 +1150,10 @@ def forge_hearth(t, th, x0, z0, y_top, mouth="north"):
 
 
 def smith_house(t, th, rng, bx, by, bz, flip=False):
-    """Furnishings of the smith's dwelling (armourer's bed, chest, crafting table, carpet and flower pot) in an
-    interior room of 5 x 4 whose northwest corner is (bx, bz); the bed goes against the west wall."""
-    bed_slot(t, th, bx, by, bz + 1, villager_pool(th, "armorer", fixed=True))
+    """Furnishings of the smith's dwelling (pallet, chest, crafting table, carpet and flower pot) in an interior room of
+    5 x 4 whose northwest corner is (bx, bz); the pallet goes against the west wall. The armourer stands at the blast
+    furnace and sleeps in a house of the village (pallet): he walks the street to the smithy every morning."""
+    pallet(t, th, bx, by, bz + 1)
     t.chest(bx + 4, by + 1, bz + 3, "north", L("herreria"))
     t.set(bx + 4, by + 1, bz, "crafting_table")
     t.set(bx + 2, by + 1, bz, f"{th['wslab']}[type=top]")
@@ -1186,6 +1194,7 @@ def smithy_yard(th, rng, name):
     t.set(W - 2, 1, 3, "blast_furnace[facing=west]")
     t.set(W - 2, 1, 5, "smithing_table")
     t.set(W - 2, 1, 7, "grindstone[face=floor,facing=west]")
+    staff(t, th, W - 3, 0, 3, "armorer", final="stone_bricks")
     t.set(3, 3, 5, lantern(th, True))
     # dwelling at the back (z 8..12) with a gabled roof across the width
     H = 4
@@ -1238,6 +1247,7 @@ def smithy_tall(th, rng, name):
     t.set(1, 1, zf + 4, "smithing_table")
     t.set(W - 2, 1, zf + 2, "grindstone[face=floor,facing=west]")
     t.set(W - 2, 1, zf + 4, "barrel[facing=up]")
+    staff(t, th, 2, 0, zf + 2, "armorer")
     t.set(cx, 3, zf + 2, lantern(th, True))
     # ladder to the upstairs dwelling
     for y in range(1, 5):
@@ -1270,8 +1280,7 @@ def tavern(th, rng, name, inn=False, v=0):
     t.set(cx + 2, 4, zf - 1, f"{th['banner']}_wall_banner[facing=north]")
     t.set(cx - 2, 4, zf - 1, f"{th['banner']}_wall_banner[facing=north]")
     t.fill(1, 4, zf + 1, W - 2, 4, zb - 1, th["planks"])
-    for y in range(1, 5):
-        t.set(1, y, zf + 1, "ladder[facing=east]")
+    stair_flight(t, th, 2, zf + 1, "east")      # up to the rooms (a ladder would leave their beds out of reach)
     # hearth built into the wall with an exterior chimney
     for y in range(0, top + 2):
         t.set(W, y, hz, "bricks")
@@ -1305,7 +1314,7 @@ def tavern(th, rng, name, inn=False, v=0):
     if inn:
         spots.append((1, zf + 5, "shepherd"))
     for (x, z, depth) in spots:
-        bed_slot(t, th, x, 4, z, villager_pool(th, depth))
+        bed_slot(t, th, x, 4, z, room_pool(th, depth))
         t.set(x, 5, z + 2, f"{th['wslab']}[type=top]")
         t.set(x, 6, z + 2, potted(rng.choice(th["plants"])))
     for x in range(cx - 1, cx + 2):
@@ -1358,7 +1367,7 @@ def tavern_variant(th, rng, name, inn, v):
             if t.get(3, 1, z) is None or t.get(3, 1, z) == "minecraft:air":
                 t.set(3, 1, z, "air")
         t.set(x0 - 1, 3, zf + 4, lantern(th, True))
-        ladder_at = (x1 - 1, zf + 1, "west")
+        flight_at = (x1 - 1, zf + 2, "south")
         hearth = (x1, zf + 7)
     else:
         nth = dict(th)
@@ -1381,12 +1390,10 @@ def tavern_variant(th, rng, name, inn, v):
         t.set(cx + 2, 3, zf, f"{th['banner']}_wall_banner[facing=north]")
         for x in (x0, x1):
             t.set(x, 3, zf, lantern(th, True))
-        ladder_at = (x1 - 1, zf + 2, "west")
+        flight_at = (x1 - 1, zf + 3, "south")
         hearth = None
-    yl = 4
-    lx, lz, lf = ladder_at
-    for y in range(1, yl + 1):
-        t.set(lx, y, lz, f"ladder[facing={lf}]")
+    # staircase up to the rooms (a ladder would leave their beds out of reach)
+    stair_flight(t, th, *flight_at)
     if hearth:                               # hearth with chimney outside the east wall
         hx, hz = hearth
         for y in range(0, top + 2):
@@ -1425,7 +1432,7 @@ def tavern_variant(th, rng, name, inn, v):
     if inn:
         spots.append((ux1 - 1 if v == 1 else ux1, zf + 5, "shepherd"))
     for (x, z, depth) in spots:
-        bed_slot(t, th, x, 4, z, villager_pool(th, depth))
+        bed_slot(t, th, x, 4, z, room_pool(th, depth))
         t.set(x, 5, z + 2, f"{th['wslab']}[type=top]")
         t.set(x, 6, z + 2, potted(rng.choice(th["plants"])))
     for x in range(cx - 1, cx + 2):
@@ -1687,7 +1694,8 @@ def farm(th, rng, name, v=0):
     t.set(bx0 + 1, 2, bz0 + 6, "hay_block[axis=y]")
     t.set(bx0 + 4, 1, bz0 + 6, "composter[level=0]")
     t.chest(bx0 + 6, 1, bz0 + 6, "north", L("granja"))
-    bed_slot(t, th, bx0 + 1, 0, bz0 + 1, villager_pool(th, "farmer", fixed=True))
+    staff(t, th, bx0 + 1, 0, bz0 + 1, "farmer")
+    pallet(t, th, bx0 + 1, 0, bz0 + 2)
     t.set(bx0 + 4, 4, bz0 + 3, lantern(th, True))
     # pen against the outer fence
     px0, pz0 = cx + 1, 10
@@ -1719,13 +1727,15 @@ def crop_plot(t, rng, x0, z0, x1, z1, crop, water_x=None, water_z=None):
 
 
 def farm_barn(t, th, rng, bx0, bz0, bx1, bz1, door_x, door_z, door_f, rk=None, along="z"):
-    """Barn with the farmer's bed, hay, composter (his profession), farm chest and lantern."""
+    """Barn with the farmer, a straw pallet, hay, composter (his profession), farm chest and lantern. The farmer sleeps in a
+    house of the village and walks to the farm in the morning (vanilla AI claims the closest free bed)."""
     rk = rk or ("flat" if th["roof_type"] == "flat" else "gable")
     shell(t, th, bx0, bz0, bx1, bz1, 0, 4, roof=rk, along=along)
     door(t, door_x, 1, door_z, th["door"], door_f)
     for side in ("north", "south", "west", "east"):
         windows_on_wall(t, th, bx0, bz0, bx1, bz1, side, 2, rng, skip=[(door_x, door_z)])
-    bed_slot(t, th, bx0 + 1, 0, bz0 + 1, villager_pool(th, "farmer", fixed=True))
+    staff(t, th, bx0 + 1, 0, bz0 + 1, "farmer")
+    pallet(t, th, bx0 + 1, 0, bz0 + 2)
     for (x, z) in ((bx1 - 1, bz1 - 1), (bx1 - 2, bz1 - 1), (bx1 - 1, bz1 - 2)):
         t.set(x, 1, z, "hay_block[axis=y]")
     t.set(bx1 - 1, 2, bz1 - 1, "hay_block[axis=y]")

@@ -48,7 +48,8 @@ OF_EVERY_UNIQUE = ["tools/smoke/trophies.py", "tools/smoke/story.py", "tools/smo
 # Java package of each unique structure with its own code (src/main/java/.../uniques/<package>/).
 JAVA_UNIQUE = {"atlantis": "atlantis", "citadel": "citadel", "lighthouse": "lighthouse", "galleon": "galleon",
                "island": "corsair_island", "mine": "lost_mine"}
-VILLAGES = ["tools/smoke/village_terrain.py", "tools/smoke/village_life.py", "tools/smoke/village_variants.py"]
+VILLAGES = ["tools/smoke/village_terrain.py", "tools/smoke/village_life.py", "tools/smoke/village_variants.py",
+            "tools/smoke/village_routes.py"]
 JAVA = "src/main/java/io/github/albertosa23/heraldia/"
 COMPAT_PATHS = [COMPAT, "tools/smoke/modrinth.py", "gradle.properties", "tools/gen/biomes.py", "tools/gen/c_tags.json",
                 JAVA + "config/GridPlacement.java", JAVA + "config/UniqueSeparation.java", JAVA + "config/VillageRules.java",
@@ -296,6 +297,7 @@ def changed_list(base):
 # into similar groups; a test that is not here counts as DEFAULT_S.
 DURATION_S = {
     "tools/smoke/village_life.py": 170, "tools/smoke/village_variants.py": 135, "tools/smoke/village_terrain.py": 185,
+    "tools/smoke/village_routes.py": 110,          # measured locally: ~105 s (3 villages on a flat world, 14,000 ticks)
     "tools/gen/uniques/corsair_island/smoke_server.py": 100, "tools/gen/uniques/lost_mine/smoke_server.py": 95,
     "tools/smoke/trophies.py": 90, "tools/smoke/citadel_check.py": 80, "tools/smoke/observatory_smoke.py": 75,
     "tools/smoke/adult_guardians.py": 72, "tools/gen/uniques/sanctuary/smoke_server.py": 70,
