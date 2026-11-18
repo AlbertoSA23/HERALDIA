@@ -105,6 +105,11 @@ public record Segment(RoadLayout.Route route, int start, int end, int step) {
 		return Math.hypot(r.x(i) - x, r.z(i) - z);
 	}
 
+	/** The same stretch the other way round (the wayfarers: a pilgrim walks it towards its shrine). */
+	public Segment reversed() {
+		return new Segment(route, end, start, -step);
+	}
+
 	/** Trims the segment so it ends at its k-th vertex (the road does not go further in an existing world). */
 	public Segment until(int k) {
 		return new Segment(route, start, vertex(k), step);

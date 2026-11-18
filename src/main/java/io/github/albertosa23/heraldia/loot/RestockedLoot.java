@@ -1,6 +1,7 @@
 package io.github.albertosa23.heraldia.loot;
 
 import io.github.albertosa23.heraldia.Heraldia;
+import io.github.albertosa23.heraldia.bosses.ClearedSpawners;
 import io.github.albertosa23.heraldia.common.TemplateBlocks;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import java.util.Optional;
@@ -46,7 +47,9 @@ import org.slf4j.LoggerFactory;
  * only fills free slots, so nothing is deleted.</li>
  * </ul>
  * With Lootr loaded it does nothing: Lootr turns table chests into per-player chests with its own restocking. The
- * Atlantis premium chest (fixed content, {@link PerPlayerChest#MARK}) and the trophies do not restock.
+ * Atlantis premium chest (fixed content, {@link PerPlayerChest#MARK}) and the trophies do not restock. The premium chest of a
+ * unique whose guardian has fallen ({@link ClearedSpawners#isCleared}) restocks with a modest table instead
+ * ({@link Restock#CLEARED_PREMIUM}, option botin.reponer.premium_vencido_modesto); its first opening is untouched.
  */
 public final class RestockedLoot {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -114,7 +117,9 @@ public final class RestockedLoot {
 			case RECORD -> save(box, Restock.withLedger(data, new Restock.Ledger(pending.identifier().toString(), now)));
 			case RESET -> save(box, Restock.withLedger(data, new Restock.Ledger(ledger.get().table(), now)));
 			case RESTOCK -> {
-				Identifier id = Identifier.tryParse(ledger.get().table());
+				String table = ledger.get().table();
+				Identifier id = Identifier.tryParse(Restock.refillTable(table, cfg.getBool(Restock.CLEARED_PREMIUM_OPTION),
+						sid -> ClearedSpawners.isCleared(level, sid, box.getBlockPos())));
 				if (id != null) {
 					box.setLootTable(ResourceKey.create(Registries.LOOT_TABLE, id), level.getRandom().nextLong());
 					save(box, Restock.withLedger(data, new Restock.Ledger(ledger.get().table(), now)));

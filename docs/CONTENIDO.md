@@ -9,6 +9,7 @@ Volver al [README](../README.es.md).
 - **Aldeas enormes**: 72 estructuras (36 estilos por bioma, cada uno en tamaño estándar y grande).
 - **La Atlántida**: una única ciudad sumergida por mundo (ver abajo).
 - **Caravanas**: mercaderes con llamas que recorren los caminos entre aldeas; defiéndelos de los bandidos (ver [Caravanas](#caravanas)).
+- **Gente de paso**: peregrinos, pastores, mensajeros, parejas de guardias y cazadores que pasan por los caminos cerca de ti, según la zona (ver [Gente de paso](#gente-de-paso)).
 - **Chozas de mago**: un mago con tratos en una choza muy decorada; uno de cada cinco es un mago malvado disfrazado (ver [Chozas de mago](#chozas-de-mago)).
 - **Arena de oleadas**: un coliseo cerca del spawn para jugar por oleadas, con récords y recompensas (ver [Arena de oleadas](#arena-de-oleadas)).
 - **Nether y End**: 7 medianas y 2 únicas al otro lado de los portales (ver [Nether y End](#nether-y-end)).
@@ -103,6 +104,8 @@ Volver al [README](../README.es.md).
   vanilla en los chunks nuevos (x2 por defecto). Ver [Entradas a mina](#entradas-a-mina).
 - **Faros y naufragios** (en la costa, en tierra firme junto al mar o en los bajíos): faros con la luz siempre encendida y
   galeones partidos, encallados o semihundidos, con un estilo por clima. Ver [Faros y naufragios](#faros-y-naufragios).
+- **Ambiente** (también en mundos ya existentes): la campana de la aldea al amanecer y al anochecer, la sirena del faro con
+  lluvia y goteos y ecos en las galerías de las minas, con los sonidos y partículas del propio juego. Ver [Ambiente](#ambiente).
 
 ## Aldeas enormes
 
@@ -131,8 +134,9 @@ Cada aldea tiene:
 - Torres de vigilancia y puertas de muralla al final de las calles; decoración temática entre casas.
 - Rastros de trabajo a medias (`aldeas.vida.rastros`, activado): entre las casas, unos pocos solares (más o menos uno de cada veinte) muestran que allí vive alguien que estaba trabajando hace un momento, cada uno sorteado con los pesos del estilo y en sus materiales: una **casa a medio construir** (los cimientos puestos, los muros a distintas alturas, andamios y los bloques apilados), **ropa tendida** entre dos postes, una **comida a medias** en una mesa al aire libre (la tarta empezada), un **taller** con las herramientas en el suelo (de carpintero en las familias de bosque y frío, de cantero en las demás), un **carro cargado** con lo de la familia (calabazas, sandías, vasijas, algas secas...), **pescado secándose** en sus bastidores (costa, pantano, jungla y la taiga nórdica) y una **hoguera con el puchero** colgado encima. Cada estilo solo saca lo que le pega: ni ropa tendida ni merienda en la nieve, ni merienda en el bosque oscuro ni en la abadía, ni ropa tendida en la aldea gótica, ni carros en la del templo. Solo bloques: ninguna entidad, ni camas, ni puestos de trabajo, ni campana, ni botín. Con la opción apagada, esos solares quedan como parcelas vacías de hierba o arena. **En un mundo ya empezado, solo en las aldeas nuevas.**
 - Aldeanos: la mitad del número de casas, más del 80 % con oficio. Gólems: al menos uno por cada 3 aldeanos.
+- Recorridos de los aldeanos: camas, puestos de trabajo y campana están colocados para que los aldeanos recorran la aldea por sí solos (la IA vanilla, sin ninguna entidad ni trabajo periódico más): nadie trabaja junto a su propia cama (cada casa guarda el puesto de otro oficio, y el herrero y el granjero duermen en una casa), el cura, el cartógrafo del ayuntamiento, el bibliotecario y los demás maestros de los edificios especiales trabajan allí y duermen en una casa o en un cuarto de la posada o la taberna (siempre con cama, por una escalera), todas las camas se alcanzan a pie (las casas de dos plantas la tienen en la planta baja) y la campana está en la plaza, donde se juntan a mediodía. Cada mañana van al trabajo por las calles y las avenidas, a mediodía a la plaza y al anochecer vuelven a casa. **Solo en aldeas nuevas**: las ya generadas conservan su colocación.
 
-Límites de población: hay unas 1,25 camas por aldeano inicial, así que la población crece como mucho un 25 %.
+Límites de población: hay unas 1,3 camas por aldeano inicial, así que la población crece como mucho un 30 %.
 La función `heraldia:golems` revisa cada 30 s las aldeas cargadas y retira un gólem natural cada vez que hay 8 o más (estándar) o 9 o más (grande); no toca los construidos por jugadores. Límites y limpieza se cambian en la [configuración](CONFIGURACION.md#configuración).
 
 ## Vida de las aldeas
@@ -170,6 +174,23 @@ Por los [caminos](#caminos-entre-aldeas) viajan a veces caravanas (`caravanas.*`
 - **Despedida**: si no queda ningún jugador a 64 bloques durante 30 s, si sus chunks se descargan, si el camino se acaba, si se atasca o si pasan 10 minutos (3 de asalto), se despide y se quitan todas sus entidades (también los bandidos).
 
 Rendimiento: sin trabajo por tick salvo la caravana en camino (un paso por segundo con unas pocas entidades) y el sorteo de cada minuto; la ruta se busca fuera del hilo del servidor con el trazado de los caminos, que ya está en memoria. Nada se guarda: al parar el servidor se quitan sus entidades y, al arrancar, cualquier entidad de caravana que se cargue (de un chunk descargado a mitad de viaje) se quita, así que nunca quedan huérfanas ni duplicadas.
+
+## Gente de paso
+
+Además de las caravanas, pasa gente por los [caminos](#caminos-entre-aldeas) cerca de los jugadores: vida que te cruzas sin buscarla (`viajeros.*` en la [configuración](CONFIGURACION.md#configuración), cada tipo con su interruptor; también en un mundo existente, solo por caminos que existan de verdad). Usan el motor de las caravanas: la misma búsqueda de un tramo de camino a 24-80 bloques del jugador en chunks ya cargados, el mismo viaje de hasta 8 vértices (unos 128 bloques, lejos de las plazas) y la misma despedida y limpieza.
+
+- **Cuándo**: cada minuto (medio minuto después del sorteo de las caravanas), con probabilidad `viajeros.frecuencia` (30 %) junto a un jugador, como pronto 2 minutos después del anterior y con como mucho `viajeros.max_activos` (1) en camino en todo el servidor, aparte de las caravanas; nunca a menos de 160 bloques de otra caravana o viajero. La gente viaja de día; de noche solo patrullan los guardias. Los operadores sacan uno cuando quieren con `/heraldia caravan wayfarer [pilgrim | shepherd | messenger | patrol | hunter]` (sin tipo, el sorteo elige uno que encaje en la zona; con tipo, sin mirar la zona ni la hora), y `/heraldia caravan list` y `clear` los incluyen. Al salir, los jugadores a menos de 64 bloques leen en la barra de acción quién pasa y adónde va.
+- **Quiénes**, según la familia de aldeas de la zona (las etiquetas de bioma de los estilos de aldea):
+  - **Peregrino** (1 entidad): camina solo, con su bordón, hacia el **monasterio** o la **catedral** más cercanos que salgan de verdad a menos de 3.000 bloques (la misma comprobación que `/locate`); si no hay ninguno, no hay peregrino, y recorre el tramo en el sentido que lo acerca. No comercia.
+  - **Pastor** (de 4 a 6): lleva de 3 a 5 ovejas hacia la aldea vecina, casi todas blancas y las demás del color de la tierra (grises y marrones en la taiga, negras en el bosque oscuro, rosas en los cerezos...); no en desierto, badlands, jungla ni pantano. Vende 2 de lana de los colores de su rebaño (1 esmeralda, 4 veces por color), 4 de cordero asado (1 esmeralda, 2 veces) y compra 18 de trigo por 1 esmeralda (3 veces).
+  - **Mensajero** (1): corre el doble que un mercader con una carta para la aldea vecina y no se detiene: no comercia.
+  - **Pareja de guardias** (2): dos gólems de hierro de la aldea de origen («Guardia de ...») patrullan hacia la vecina, de día y de noche; luchan con los monstruos que encuentran y se defienden juntos.
+  - **Cazador** (2): vuelve a su aldea con la pieza de la zona en las manos (conejo en campo abierto, jabalí en la taiga y el bosque oscuro, ave en jungla y pantano) y su perro, un lobo domesticado de la variante del lugar que lo defiende. Vende 3 de carne asada (1 esmeralda), pieles, cuero o plumas (1 esmeralda), 8 flechas (1 esmeralda) y, donde hay conejos, una pata de conejo (3 esmeraldas, una vez).
+- **Tratos**: baratos y pocos (un viajero pasa una vez y no repone), sin nada que rompa la progresión (ni encantamientos, ni netherita, ni élitros). No hay premio por cruzárselos: son la vida del camino.
+- **Atacarlos**: herir a uno cuesta reputación con su aldea de origen, como herir a un aldeano o a un gólem de la aldea (−5 por una persona, −3 por un guardia, −2 por un animal; una vez por jugador y encuentro), y matarlo cuesta más (−40, −20, −10); al jugador se le avisa de que se sabrá en esa aldea. Los guardias responden juntos y el perro del cazador defiende a su dueño. Al matarlos no sueltan nada (no se pueden aprovechar).
+- **Despedida**: como las caravanas, si no hay ningún jugador a menos de 64 bloques durante 30 s, si se descargan sus chunks, si se acaba el camino, si se atasca o pasados 10 minutos. Al final de su tramo, si hay un jugador a menos de 32 bloques, no desaparece a la vista: sigue andando hacia su aldea y se quita cuando no queda nadie cerca (1 minuto como mucho). Si muere su cabeza, se quitan los demás.
+
+Rendimiento: el de una caravana, y menos. Un encuentro a la vez (configurable hasta 3), de 1 a 6 entidades vanilla con IA sencilla de objetivos (comerciantes ambulantes, gólems de hierro, ovejas y un lobo: sin cerebro de aldeano, camas ni puestos de trabajo), en camino alrededor de un minuto (el mensajero, la mitad; los más lentos, los guardias, unos dos) y 10 minutos como mucho; un paso por segundo para el que está en camino y un sorteo por minuto; el tramo y el santuario se buscan fuera del hilo del servidor (la comprobación del santuario se hace una vez por casilla candidata y se recuerda). No se guarda nada: sus entidades llevan la etiqueta de las caravanas y se quitan al parar el servidor o si se cargan sin su encuentro.
 
 ## La Atlántida
 
@@ -297,6 +318,36 @@ Dos tipos de estructura de la **costa**, siempre en una orilla de verdad: el tip
 - **Colocación**: una rejilla por tipo (`heraldia:costa/<tipo>`; por defecto, un faro cada 1.024 bloques y un naufragio cada 768, con `faros.separacion_bloques` y `naufragios.separacion_bloques`) con la candidata en las playas (`#heraldia:litoral`). Como solo salen donde hay costa, en la práctica son menos. La regla es la de las minas sin cambiar ninguna otra: nunca a menos de 256 bloques de una aldea o una única de Heraldia, ni a menos de 192 de una mediana, una entrada a mina o el otro tipo de la costa, ni junto a estructuras que asoman (vanilla o de otros mods: los naufragios y ruinas marinas vanilla incluidos), ni en la Atlántida; los caminos se saltan sus piezas. Los faros no buscan las aldeas con muelle (esas quedan fuera de su zona): prefieren los **cabos**, la orilla con más agua alrededor de las cuatro primeras que valen.
 - Encuéntralos con `/locate structure #heraldia:costa/faro` (o `naufragio`) y `/heraldia info nearby`; `/heraldia info` muestra su configuración. Para probar uno: `/place structure heraldia:costa/<tipo>/<estilo>/<variante>` junto a una playa (sin orilla cerca, se coloca en el centro mirando al sur). Logros: **Luz en la costa** (un faro), **Restos del naufragio** (un galeón naufragado) y **El cofre del capitán** (abrir el cofre de su camarote). Mapas web: capa «faros y naufragios» (`mapas_web.capas.costa`). `/heraldia review`: paradas `costa/faro` y `costa/naufragio`. **En un mundo ya creado, solo en los chunks nuevos.**
 
+## Ambiente
+
+Efectos con los sonidos y partículas del propio juego: nada nuevo que descargar, los clientes vanilla los oyen tal cual y
+el mod sigue sin registrar ningún bloque, objeto ni entidad propios. Cada sonido se envía **solo a los jugadores a los que
+va dirigido**, en la categoría de sonido **Ambiente** (cada jugador lo baja con su propio control), y cada jugador tiene una
+espera por efecto, así que nunca se repite cada poco. Funcionan también en mundos ya existentes (buscan las estructuras ya
+generadas). Opciones: `ambiente.activado` (todos) y una por efecto.
+
+- **Campana de la aldea** (`ambiente.campanas`): al **amanecer** y al **caer la noche** (reloj del mundo 0 y 12.000) suenan
+  tres campanadas desde la plaza para los jugadores que están dentro de una aldea de Heraldia (su caja: calles, casas y
+  afueras). Al despertar después de dormir el reloj queda en un amanecer, así que saluda a la mañana. Como mucho dos veces
+  al día por jugador (5 min de espera, para que `/time set` no la haga sonar una y otra vez); con el ciclo de día parado
+  suena una vez.
+- **Sirena del faro** (`ambiente.sirena_faro`): con **lluvia o tormenta** (el vanilla no tiene niebla; la lluvia es su poca
+  visibilidad), el faro más cercano (uno de la costa o el faro de los contrabandistas) suena con un cuerno grave (el cuerno
+  de cabra «Ponder», bajo) para los jugadores **al aire libre** a menos de **160 bloques**: desde una barca en el mar se oye
+  lejos y suave. No en cuevas ni bajo el agua. Como mucho una vez cada **3 minutos** por jugador.
+- **Galerías de las minas** (`ambiente.minas`): bajo tierra en una mina de Heraldia (las tres entradas a mina y la Mina
+  Perdida de Hondavena), cada **20-45 s** una gota de agua cuelga del techo junto al jugador y cae (la gota de la
+  estalactita del juego, que suena sola al caer) y, de vez en cuando, el **eco de la cueva** suena a una docena de bloques
+  por la galería (como mucho cada 4 min). Nada a cielo abierto.
+- **Coste**: en el tick del servidor solo corre `tick % 100`; cada 5 s un recorrido por los jugadores; por jugador, una consulta de
+  estructura en su propio chunk cada 20-45 s (minas) y otra solo en los minutos del amanecer y del anochecer (aldeas) y, solo mientras
+  llueve y le toca la sirena, un vistazo a los inicios de estructura de los chunks cargados a su alrededor (nunca carga un
+  chunk). No se guarda nada en el mundo.
+- **No incluido: el canto de la taberna de la Isla del Corsario.** La Sirena Ahorcada no tiene aldeanos dentro (su
+  plantilla solo trae a la tripulación del corsario en las cuevas) y el juego no tiene canto: murmullos de aldeano saliendo
+  de una taberna vacía serían un coro fantasma, y una melodía de bloques musicales cada pocos minutos cansa. Haría falta
+  poner aldeanos en la plantilla (solo en chunks nuevos), así que se deja fuera a propósito.
+
 ## Mapas del tesoro
 
 Cada estructura única tiene su mapa del tesoro, que marca la más cercana con una X (u otra marca propia de la estructura) y lleva su nombre traducido:
@@ -342,10 +393,10 @@ Cuando cae el guardián de una estructura única, **los generadores de monstruos
 - **Qué generadores**: los que pusieron sus plantillas, sacados de las propias plantillas en su posición del mundo (así se conocen sin cargar sus chunks), y solo si sigue habiendo un generador (uno ya roto se salta). Hay de 1 a 4 en cada única y 48 repartidos por las teselas de la Atlántida (107 con una de cada tipo).
 - **Cómo se apagan**: la jaula se queda, como recuerdo del combate, pero vacía (sin mob que sacar): no vuelve a sacar nada. Como cualquier generador vacío vanilla, un huevo de generación puede volver a llenarlo. Los mobs que ya están vivos en la estructura se quedan.
 - **Coste**: nada corre cada tick. Cuelga de la muerte del guardián (un evento que el mod ya escucha) y tarda unos milisegundos una vez. Los de chunks que siguen en memoria pero ya no están activos también se apagan al momento; los de chunks que no están en memoria se apuntan en el mundo (adjunto `heraldia:unicas_vencidas`, por dimensión) y se apagan cuando carga su chunk; mientras no hay nada pendiente, la comprobación al cargar un chunk es una consulta vacía.
-- **Idempotente**: cada estructura vencida se apunta una vez; otro guardián que muera en ella (uno traído de nuevo con `/place`, otro mod) no hace nada más. Con la opción desactivada cuando cae el guardián no se apunta nada; si se desactiva después, los pendientes esperan a que vuelva a estar activada.
+- **Idempotente**: cada estructura vencida se apunta una vez; otro guardián que muera en ella (uno traído de nuevo con `/place`, otro mod) no hace nada más. Con la opción desactivada cuando cae el guardián, la estructura se apunta igualmente como vencida (para su cofre premium, más abajo) pero no se toca ningún generador; si se desactiva después, los pendientes esperan a que vuelva a estar activada.
 - **Las estructuras puestas con `/place structure`** no guardan su inicio (ver `docs/LESSONS.md`): sus generadores no se apagan (lo dice el log).
 - **En un mundo existente**: una única cuyo guardián murió **antes de esta versión** no está apuntada como vencida y **se queda como estaba** (sus generadores siguen funcionando). Detectarla sola («el guardián no está») se descartó: en 26.3 las entidades cargan aparte de su chunk, y un guardián que persiguió a un jugador fuera de su estructura y murió allí, o cuyas entidades aún no han cargado, parecería muerto. Un error apagaría los generadores de una estructura que nadie ha vencido, y eso no se puede deshacer. La pega: esas únicas ya vencidas conservan sus granjas hasta que un jugador rompa los generadores con un pico (vanilla, como siempre). Toda única vencida a partir de esta versión se apaga sola.
-- **El botín que se repone** ([`botin.reponer.activado`](#botín-que-se-repone-y-dificultad), desactivado por defecto) no cambia: una única vencida sigue reponiéndose como las aldeas y las medianas, que tampoco tienen combate. Es decisión del administrador y ya tiene sus propios límites (días, nadie cerca, casi vacío).
+- **El botín que se repone** ([`botin.reponer.activado`](#botín-que-se-repone-y-dificultad), desactivado por defecto): una única vencida sigue reponiéndose como las aldeas y las medianas, que tampoco tienen combate, **salvo su cofre premium**, que desde entonces solo recibe un relleno modesto (ver [Cofre premium de una única vencida](#cofre-premium-de-una-única-vencida)).
 - Log: `Heraldia: bosses: <guardián> defeated: <estructura> cleared, N spawners turned off, M pending until their chunk loads (… ms): <posiciones>`; y luego `Heraldia: bosses: N pending spawners turned off when chunk … loaded`.
 - Pruebas: `ClearedSpawnersTest` (JUnit: el registro, la idempotencia, los pendientes por chunk, el formato guardado, un generador real apagado) y `tools/smoke/cleared_spawners.py` (servidor, ~90 s: un castillo generado de verdad, su guardián muerto tras un reinicio con solo su chunk cargado, los generadores cargados apagados al momento y el otro al cargar su chunk, nada más en una segunda muerte, también tras un reinicio).
 
@@ -461,7 +512,7 @@ Dos funciones opcionales del servidor (bastan clientes vanilla). Las dos valen t
 - no hay otro jugador a 32 bloques (el que lo abre no cuenta);
 - está vacío o casi vacío (como mucho 3 casillas ocupadas de 27). Nunca se borra nada: el botín solo va a las casillas libres, así que lo que haya guardado un jugador se queda.
 
-Cómo se reconoce un cofre: al abrir un cofre de Heraldia que aún tiene su tabla, el mod guarda en el bloque, como `custom_data` `heraldia_botin: {tabla, saqueado}`, su tabla y el reloj de ese saqueo (nada más). Un cofre **ya saqueado antes de activar la opción** ya no tiene su tabla: la primera vez que se abre, el mod busca la estructura de Heraldia que tiene una pieza ahí (las referencias del chunk, como `/locate`) y, en la plantilla de esa pieza y con su giro, la tabla que puso en esa posición; desde entonces cuenta como saqueado en ese momento. Perezoso: solo trabaja cuando un jugador usa un contenedor, nunca por tick ni recorriendo el mundo. No se reponen: el cofre premium de la Atlántida (contenido fijo, tiene su propia opción `unicas.atlantida.cofre_unico_por_jugador`), los trofeos, las tablas vanilla y las de otros mods, ni los contenedores de piezas que no son plantillas (la base de la Atlántida) saqueados antes de activarla. Con **Lootr** instalado no hace nada (se detecta al arrancar; Lootr ya convierte los cofres de botín en cofres por jugador); el log lo dice si la opción está activada.
+Cómo se reconoce un cofre: al abrir un cofre de Heraldia que aún tiene su tabla, el mod guarda en el bloque, como `custom_data` `heraldia_botin: {tabla, saqueado}`, su tabla y el reloj de ese saqueo (nada más). Un cofre **ya saqueado antes de activar la opción** ya no tiene su tabla: la primera vez que se abre, el mod busca la estructura de Heraldia que tiene una pieza ahí (las referencias del chunk, como `/locate`) y, en la plantilla de esa pieza y con su giro, la tabla que puso en esa posición; desde entonces cuenta como saqueado en ese momento. Perezoso: solo trabaja cuando un jugador usa un contenedor, nunca por tick ni recorriendo el mundo. El cofre premium de una única cuyo guardián ha caído se repone con una tabla modesta ([más abajo](#cofre-premium-de-una-única-vencida)). No se reponen: el cofre premium de la Atlántida (contenido fijo, tiene su propia opción `unicas.atlantida.cofre_unico_por_jugador`), los trofeos, las tablas vanilla y las de otros mods, ni los contenedores de piezas que no son plantillas (la base de la Atlántida) saqueados antes de activarla. Con **Lootr** instalado no hace nada (se detecta al arrancar; Lootr ya convierte los cofres de botín en cofres por jugador); el log lo dice si la opción está activada.
 
 **Dificultad** (`dificultad.nivel`): escala la vida y el daño cuerpo a cuerpo de los [guardianes](#trofeos-de-los-guardianes) y los mobs de las plantillas de Heraldia (los que llevan `heraldia_anclado` o `heraldia_guardian`, y los refuerzos de los jefes, `heraldia_refuerzo`; solo los hostiles: gatos y lobos no cambian; los de los generadores, tampoco).
 
@@ -477,6 +528,18 @@ Cómo se reconoce un cofre: al abrir un cofre de Heraldia que aún tiene su tabl
 - Botín: solo cambia la cantidad de los objetos sencillos apilables (sin nombre ni otros componentes) de las tablas de cofre de Heraldia (la parte fraccionaria, con su probabilidad; nunca menos de 1 ni más de una pila). Las flechas de los esqueletos y el resto del daño a distancia no cambian.
 
 Coste: un evento al usar un bloque (sale en el acto si no es un contenedor con tabla o la opción está desactivada), en cada carga de entidad y en cada golpe (sale en el acto si el mob no lleva etiqueta de Heraldia); medido con `tools/smoke/loot_restock.py` y `tools/smoke/difficulty.py`.
+
+### Cofre premium de una única vencida
+
+Con el guardián muerto y los generadores apagados, una única volvería a dar su **cofre premium** cada pocos días sin ningún combate. Por eso, cuando cae el guardián de una única, su cofre premium (tabla `heraldia:unicas/<id>/premium`) sigue reponiéndose, pero con una **tabla modesta** (`heraldia:botin/premium_vencido`) en lugar de la premium. Opción `botin.reponer.premium_vencido_modesto` (activada por defecto; `false` lo repone con su premium completo como antes).
+
+- **Qué trae cada relleno** (cada cosa por separado): **1-2 esmeraldas el 40 % de las veces** y **un libro encantado modesto el 8 % de las veces** (encantamientos de mesa de encantar con niveles 5-15, del estilo de Filo I-II o Eficiencia II: nunca Reparación ni otro encantamiento de tesoro). Más o menos la mitad de los rellenos no traen nada. En un mes de rellenos cada 7 días salen unas 2-3 esmeraldas y, con suerte, un libro: un detalle, no una granja. Nada de netherita, élitros, diamantes ni objetos con nombre.
+- **La primera vez no se toca**: mientras vive el guardián, el premium de una única es el de siempre, y la primera apertura del cofre (la recompensa por vencer la estructura) sale siempre de la tabla premium de verdad. Solo cambian los rellenos después de que caiga el guardián. Los rellenos con el guardián aún vivo son el premium completo, como antes: la estructura sigue siendo peligrosa.
+- **Solo el cofre premium**: los demás cofres de una única vencida (armerías, bibliotecas, despensas, cámaras del tesoro) se reponen con sus propias tablas, como los de las aldeas y las medianas, que tampoco tienen guardián. Su botín es corriente; el premium es el único pensado como premio del combate.
+- **«Vencida»** es el mismo registro que [Únicas vencidas](#únicas-vencidas) (adjunto `heraldia:unicas_vencidas`): el inicio de `heraldia:unicas/<id>` que alcanza al cofre, apuntado al morir su guardián, también con `jefes.apagar_generadores` desactivada. Una única cuyo guardián murió antes de que existiera ese registro (ver «En un mundo existente» allí) no se sabe vencida y sigue reponiendo su premium completo.
+- **Reversible**: el cofre guarda en su registro (`heraldia_botin`) su tabla premium; la tabla modesta solo se usa para ese relleno. Al desactivar la opción, vuelve el premium completo desde el siguiente relleno. La tabla modesta no cuenta para el logro del tesoro de la única.
+- **Coste**: una búsqueda de estructura cuando a un cofre premium le toca reponerse (no en los demás cofres ni en cada apertura).
+- Test: `ClearedPremiumTest` (JUnit: qué tablas son premium, qué tabla recibe un cofre al reponerse con el guardián vivo o caído y con la opción activada o no, que la tabla modesta nunca se guarda como la del cofre, el contenido de la tabla generada y que se reconoce el cofre premium de cada única en las plantillas).
 
 ## Arena de oleadas
 

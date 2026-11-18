@@ -267,6 +267,7 @@ def write(reg, out):
             if f"{NS}:unicas/{sid}/{name}" in with_hint:
                 table = treasure.with_hint(table, "unicas")
             jdump(out, f"data/{NS}/loot_table/unicas/{sid}/{name}.json", lootr_aware(table))
+    jdump(out, f"data/{NS}/loot_table/{chest_loot.CLEARED_PREMIUM_ID.split(':')[1]}.json", chest_loot.cleared_premium())
     write_history(out, unique_mods)
     treasure.write(out, jdump)                            # treasure hunt: fragment, final chest and advancements
     jdump(out, f"{NS}/llaves.json", write_keys(out))

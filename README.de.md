@@ -23,6 +23,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 - 🧭 **Dein Tagebuch.** `/heraldia journal` zeigt dir im Chat, Art für Art und mit einem Fortschrittsbalken, was du gefunden hast und was dir noch fehlt: Dorffamilien, einzigartige und mittelgroße Bauwerke, Minengrößen, Leuchttürme und Wracks, den Nether und das Ende. Klicke auf eine Art, um die Namen zu sehen. Keine Koordinaten: Finden musst du sie selbst.
 - 📋 **Dorfaufträge.** Berühre das Pult des Auftragsbretts auf einem Dorfplatz (oder nutze dort `/heraldia quest`): 2 bis 4 Aufträge erscheinen im Chat (Gegenstände bringen, einen Wächter besiegen, erkunden, ins Nachbardorf reisen, die Arena) und wechseln alle paar Tage. Sie zahlen Smaragde, Erfahrung und Ruf bei diesem Dorf: als Bekannter, Freund und Held des Dorfes senken seine Dorfbewohner ihre Preise um 10, 20 und 30 %. Wer seine Dorfbewohner oder Golems angreift, verliert Ruf.
 - 🐪 **Karawanen.** Ab und zu zieht in deiner Nähe ein Händler von Heraldia mit seinen Lamas (und manchmal einer Wache) über den Weg zwischen zwei benachbarten Dörfern. Überfallen ihn Banditen, verteidige ihn: Bei der Ankunft zahlt er Smaragde und Ruf bei seinem Zieldorf. Stirbt der Händler, ist die Karawane verloren.
+- 🚶 **Reisende.** Leben auf den Straßen, auch in deiner Nähe: ein Pilger auf dem Weg zu einem Kloster oder einer Kathedrale, ein Hirte mit seiner Herde, ein eiliger Bote, ein Wachenpaar auf Patrouille oder ein Jäger, der mit seinem Hund heimkehrt, je nach Gegend. Sie legen ein Stück zurück und gehen; Hirte und Jäger handeln, und wer ihnen schadet, von dem erfährt ihr Dorf.
 - 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 122 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die Leuchttürme und Wracks, die mittelgroßen Bauwerke, das Auftragsbrett, die Arena und die Karawanen.
 - 🗿 **Trophäen.** Jeder der 22 Hüter lässt seine Trophäe fallen, einen Gegenstand mit Namen und Geschichte. Sammle sie alle, um den Trophäensaal zu vervollständigen.
 - 🗺️ **Schatzkarten.** Jede Karte zeigt das nächstgelegene einzigartige Bauwerk ihrer Art. Du findest sie in den epischen Truhen der Dörfer, und die Kartografen verkaufen sie.
@@ -68,7 +69,9 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `encargos.activado` | `true` | Aufträge des Auftragsbretts (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Ruf je Dorf und seine Rabatte. |
 | `caravanas.activado` | `true` | Karawanen auf den Wegen (Operatoren: `/heraldia caravan`). |
+| `viajeros.activado` | `true` | Reisende auf den Wegen, jede Art mit eigener Option (Operatoren: `/heraldia caravan wayfarer`). |
 | `chozas_mago.prob_malvado` | 20 | Wahrscheinlichkeit (%), dass der Magier einer Magierhütte ein verkleideter böser Magier ist. |
+| `ambiente.activado` | `true` | Umgebungseffekte mit den Geräuschen des Spiels: die Dorfglocke bei Sonnenaufgang und Einbruch der Nacht, das Nebelhorn des Leuchtturms bei Regen und Tropfen in den Minen (jeder hat auch seine eigene Option). |
 | `guia.entregar_al_entrar` | `true` | Gibt jedem Spieler beim Betreten den Leitfaden des Herolds. |
 | `update_check.activado` | `true` | Meldet Operatoren, wenn es eine neue Version gibt. |
 | `actualizar.margen_bloques` | 50 | Sicherheitsabstand um Spielerbauten für `/heraldia update`. |

@@ -23,6 +23,7 @@ Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valen
 - 🧭 **Votre journal.** `/heraldia journal` affiche dans le chat, type par type et avec une barre de progression, ce que vous avez trouvé et ce qui vous manque : familles de villages, structures uniques, structures moyennes, tailles de mine, phares et épaves, le Nether et l'End. Cliquez sur un type pour voir les noms. Pas de coordonnées : à vous de les trouver.
 - 📋 **Missions des villages.** Touche le lutrin du tableau sur la place d'un village (ou utilise `/heraldia quest` sur place) : 2 à 4 missions apparaissent dans le chat (apporter des objets, vaincre un gardien, explorer, aller au village voisin, l'arène) et changent tous les quelques jours. Elles paient en émeraudes, expérience et réputation auprès de ce village : connu, ami et héros du village, ses villageois baissent leurs prix de 10, 20 et 30 %. Attaquer ses villageois ou ses golems la fait baisser.
 - 🐪 **Caravanes.** De temps en temps, près de toi, un marchand d'Heraldia avec ses lamas (et parfois un garde) parcourt la route entre deux villages voisins. Si des brigands l'attaquent, défends-le : à l'arrivée, il te paie en émeraudes et en réputation avec son village de destination. Si le marchand meurt, la caravane est perdue.
+- 🚶 **Gens de passage.** De la vie sur les routes, près de toi aussi : un pèlerin en route vers un monastère ou une cathédrale, un berger avec son troupeau, un messager pressé, un duo de gardes en patrouille ou un chasseur qui rentre avec son chien, selon la région. Ils parcourent un tronçon et s'en vont ; le berger et le chasseur font du commerce, et si tu leur fais du mal, leur village le saura.
 - 🏆 **Progrès.** Un onglet Heraldia avec 122 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les phares et épaves, les structures moyennes, le tableau des contrats, l'arène et les caravanes.
 - 🗿 **Trophées.** Chacun des 22 gardiens lâche son trophée, un objet avec un nom et une histoire. Réunissez-les tous pour compléter la Salle des trophées.
 - 🗺️ **Cartes au trésor.** Chaque carte indique la structure unique de son type la plus proche. On les trouve dans les coffres épiques des villages, et les cartographes en vendent.
@@ -68,7 +69,9 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `encargos.activado` | `true` | Missions du tableau (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Réputation par village et ses réductions. |
 | `caravanas.activado` | `true` | Caravanes sur les routes (opérateurs : `/heraldia caravan`). |
+| `viajeros.activado` | `true` | Gens de passage sur les routes, chaque type avec son option (opérateurs : `/heraldia caravan wayfarer`). |
 | `chozas_mago.prob_malvado` | 20 | Probabilité (%) que le mage d'une hutte de mage soit un mage maléfique déguisé. |
+| `ambiente.activado` | `true` | Effets d'ambiance avec les sons du jeu : la cloche du village à l'aube et à la tombée de la nuit, la sirène du phare sous la pluie et les gouttes dans les mines (chacun a aussi sa propre option). |
 | `guia.entregar_al_entrar` | `true` | Donne le Guide du Héraut à chaque joueur à sa connexion. |
 | `update_check.activado` | `true` | Prévient les opérateurs quand une nouvelle version existe. |
 | `actualizar.margen_bloques` | 50 | Marge de sécurité autour des constructions des joueurs pour `/heraldia update`. |

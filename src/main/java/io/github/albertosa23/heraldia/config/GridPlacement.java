@@ -1,5 +1,7 @@
 package io.github.albertosa23.heraldia.config;
 
+import io.github.albertosa23.heraldia.common.SearchCache;
+import io.github.albertosa23.heraldia.common.SearchCaches;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -71,6 +73,8 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 	/** Biome search lattice (chunks), neighbors at half a step and minimum neighbors (out of 9) to accept a point. */
 	private static final int STEP = 8, HALF = STEP / 2, MIN_SCORE = 6, SAMPLE_Y = 64, CACHE_MAX = 1 << 14;
 	private static final long NONE = Long.MIN_VALUE;
+	/** Not a candidate (a value of the search memory that does not decode): never a real chunk (x = 2^31 - 1, z = -1). */
+	static final long INVALID = Long.MAX_VALUE;
 	/** Is the point (in quarter blocks) in the tag? In the game, the overworld's biome noise. */
 	@FunctionalInterface
 	interface BiomeSample {
@@ -305,18 +309,59 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		if (hit != null) {
 			return hit;
 		}
-		long t = System.nanoTime();
-		long found = search(ctx, seed, gx * spacing() + offsetX, gz * spacing() + offsetZ);
-		if (candidates.size() > CACHE_MAX) {
-			candidates.clear();
+		int originX = gx * spacing() + offsetX, originZ = gz * spacing() + offsetZ;
+		// the world's search memory (SearchCaches): the same cell's candidate, found in an earlier session with the same rules
+		String key = SearchCaches.GRID + group;
+		int known = SearchCaches.get(key, gx, gz);
+		long found = known == SearchCache.MISSING ? INVALID : decodeCandidate(known, originX, originZ);
+		if (found != INVALID) {
+			remember(candidates, cell, found);
+			return found;
 		}
-		candidates.put(cell, found);
+		long t = System.nanoTime();
+		found = search(ctx, seed, originX, originZ);
+		remember(candidates, cell, found);
+		int code = encodeCandidate(found, originX, originZ);
+		if (code >= 0) {
+			SearchCaches.put(key, gx, gz, code);
+		}
 		if (searchesLogged < 3) {
 			searchesLogged++;
 			LOGGER.info("Heraldia: rejilla {}: búsqueda del bioma en la casilla {}, {}: {} ({} ms)", group, gx, gz,
 					found == NONE ? "sin sitio" : "chunk " + (int) (found >> 32) + ", " + (int) found, (System.nanoTime() - t) / 1_000_000);
 		}
 		return found;
+	}
+
+	private static void remember(ConcurrentHashMap<Long, Long> candidates, long cell, long found) {
+		if (candidates.size() > CACHE_MAX) {
+			candidates.clear();
+		}
+		candidates.put(cell, found);
+	}
+
+	/**
+	 * A cell's candidate as a value of the search memory: 0 = no good spot; otherwise 1 + its offset from the cell's
+	 * origin (10 bits per axis). -1 if it does not fit (a window wider than 1,022 chunks: it is not stored).
+	 */
+	static int encodeCandidate(long found, int originX, int originZ) {
+		if (found == NONE) {
+			return 0;
+		}
+		long dx = (int) (found >> 32) - (long) originX, dz = (int) found - (long) originZ;
+		return dx < 0 || dz < 0 || dx > 1022 || dz > 1022 ? -1 : (int) (1 + dx * 1024 + dz);
+	}
+
+	/** The candidate (packed, or NONE) of a value from {@link #encodeCandidate}; INVALID if the value is not valid. */
+	static long decodeCandidate(int code, int originX, int originZ) {
+		if (code == 0) {
+			return NONE;
+		}
+		int v = code - 1, dx = v / 1024, dz = v % 1024;
+		if (code < 0 || dx > 1022 || dz > 1022) {
+			return INVALID;
+		}
+		return ((long) (originX + dx) << 32) | ((originZ + dz) & 0xFFFFFFFFL);
 	}
 
 	/** First lattice point inside the window (chunks from the cell's origin). */

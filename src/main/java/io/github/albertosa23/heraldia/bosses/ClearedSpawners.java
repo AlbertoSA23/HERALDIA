@@ -54,6 +54,8 @@ import org.slf4j.LoggerFactory;
  * </ul>
  * A structure placed with {@code /place structure} does not save its start (see LESSONS): its spawners are not turned off.
  * A unique whose guardian died before this version is not recorded: it stays as it was (see CONTENT, "Cleared uniques").
+ * The clear is recorded also with the option off (then without touching any spawner): the restocking loot reads it
+ * ({@link #isCleared}, option botin.reponer.premium_vencido_modesto).
  */
 public final class ClearedSpawners {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -78,7 +80,7 @@ public final class ClearedSpawners {
 
 	/** A final guardian has died (it carries {@link Phases#GUARDIAN}): its structure's spawners are turned off. */
 	static void guardianDied(LivingEntity guardian) {
-		if (!(guardian.level() instanceof ServerLevel level) || !HeraldiaConfig.get().getBool(OPTION)) {
+		if (!(guardian.level() instanceof ServerLevel level)) {
 			return;
 		}
 		String sid = Phases.unique(guardian.entityTags());
@@ -95,6 +97,12 @@ public final class ClearedSpawners {
 		String key = ClearedUniques.key(Heraldia.MOD_ID + ":unicas/" + sid, start.getChunkPos().pack());
 		ClearedUniques saved = level.getAttachedOrElse(Type.CLEARED, ClearedUniques.EMPTY);
 		if (saved.has(key)) {
+			return;
+		}
+		if (!HeraldiaConfig.get().getBool(OPTION)) {
+			// spawners left as they are, but the structure is still recorded as cleared (its premium chest's refills, RestockedLoot)
+			level.setAttached(Type.CLEARED, saved.with(key, List.of()));
+			LOGGER.info("Heraldia: bosses: {} defeated: {} cleared (jefes.apagar_generadores off: spawners left on)", Bosses.name(guardian), key);
 			return;
 		}
 		List<Long> pending = new ArrayList<>();
@@ -131,6 +139,19 @@ public final class ClearedSpawners {
 	private static @Nullable LevelChunk cached(ServerLevel level, BlockPos p) {
 		ChunkHolder holder = level.getChunkSource().chunkMap.getUpdatingChunkIfPresent(ChunkPos.pack(p.getX() >> 4, p.getZ() >> 4));
 		return holder != null && holder.getLatestChunk() instanceof LevelChunk c ? c : null;
+	}
+
+	/**
+	 * Has the guardian of the unique structure {@code heraldia:unicas/<sid>} that reaches {@code pos} fallen (since cleared uniques
+	 * are recorded)? Used by the restocking loot for the premium chest; only called when such a chest is due, so it is rare.
+	 */
+	public static boolean isCleared(ServerLevel level, String sid, BlockPos pos) {
+		ClearedUniques saved = level.getAttached(Type.CLEARED);
+		if (saved == null || saved.cleared().isEmpty()) {
+			return false;
+		}
+		StructureStart start = startOf(level, sid, pos);
+		return start != null && saved.has(ClearedUniques.key(Heraldia.MOD_ID + ":unicas/" + sid, start.getChunkPos().pack()));
 	}
 
 	/** The start of heraldia:unicas/&lt;sid&gt; that reaches the guardian's chunk (the guardian may have chased someone out of its piece), or null. */

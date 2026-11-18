@@ -23,6 +23,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 - 🧭 **Il tuo diario.** `/heraldia journal` ti mostra in chat, tipo per tipo e con una barra di avanzamento, cosa hai trovato e cosa ti manca: famiglie di villaggi, strutture uniche, strutture medie, dimensioni di miniera, fari e relitti, il Nether e l'End. Clicca su un tipo per vedere i nomi. Niente coordinate: trovarle tocca a te.
 - 📋 **Incarichi dei villaggi.** Tocca il leggio della bacheca nella piazza di un villaggio (o usa lì `/heraldia quest`): in chat compaiono da 2 a 4 incarichi (portare oggetti, sconfiggere un guardiano, esplorare, viaggiare al villaggio vicino, l'arena) che cambiano ogni pochi giorni. Pagano smeraldi, esperienza e reputazione con quel villaggio: da conosciuto, amico ed eroe del villaggio, i suoi abitanti abbassano i prezzi del 10, 20 e 30 %. Attaccare i suoi abitanti o golem la fa scendere.
 - 🐪 **Carovane.** Di tanto in tanto, vicino a te, un mercante di Heraldia con i suoi lama (e a volte una guardia) percorre la strada tra due villaggi vicini. Se i banditi lo assaltano, difendilo: all'arrivo ti paga smeraldi e reputazione con il suo villaggio di destinazione. Se il mercante muore, la carovana è perduta.
+- 🚶 **Viandanti.** Vita sulle strade, anche vicino a te: un pellegrino diretto a un monastero o a una cattedrale, un pastore con il suo gregge, un messaggero di fretta, una coppia di guardie di pattuglia o un cacciatore che torna con il suo cane, secondo la zona. Percorrono un tratto e se ne vanno; il pastore e il cacciatore commerciano, e se fai loro del male il loro villaggio lo saprà.
 - 🏆 **Progressi.** Una scheda Heraldia con 122 progressi: un villaggio di ogni famiglia, ogni struttura unica con il suo guardiano e il suo tesoro, le miniere, i fari e i relitti, le strutture medie, la bacheca degli incarichi, l'arena e le carovane.
 - 🗿 **Trofei.** Ognuno dei 22 guardiani lascia il suo trofeo, un oggetto con un nome e una storia. Raccoglili tutti per completare la Sala dei trofei.
 - 🗺️ **Mappe del tesoro.** Ogni mappa indica la struttura unica più vicina del suo tipo. Si trovano nei forzieri epici dei villaggi e le vendono i cartografi.
@@ -68,7 +69,9 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `encargos.activado` | `true` | Incarichi della bacheca (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputazione per villaggio e i suoi sconti. |
 | `caravanas.activado` | `true` | Carovane lungo le strade (operatori: `/heraldia caravan`). |
+| `viajeros.activado` | `true` | Viandanti lungo le strade, ogni tipo con la sua opzione (operatori: `/heraldia caravan wayfarer`). |
 | `chozas_mago.prob_malvado` | 20 | Probabilità (%) che il mago di una capanna del mago sia un mago malvagio travestito. |
+| `ambiente.activado` | `true` | Effetti d'ambiente con i suoni del gioco: la campana del villaggio all'alba e al calar della notte, la sirena del faro con la pioggia e le gocce nelle miniere (ognuno ha anche la sua opzione). |
 | `guia.entregar_al_entrar` | `true` | Dà la Guida dell'Araldo a ogni giocatore quando entra. |
 | `update_check.activado` | `true` | Avvisa gli operatori quando c'è una nuova versione. |
 | `actualizar.margen_bloques` | 50 | Margine di sicurezza attorno alle costruzioni dei giocatori per `/heraldia update`. |

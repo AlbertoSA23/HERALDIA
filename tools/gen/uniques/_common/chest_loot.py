@@ -63,6 +63,25 @@ def lang(prefix, names):
     return {"es_es": {prefix + k: v[0] for k, v in names.items()}, "en_us": {prefix + k: v[1] for k, v in names.items()}}
 
 
+# ------------------------------------------------------------------ premium chest of a cleared unique
+CLEARED_PREMIUM_ID = "heraldia:botin/premium_vencido"
+CLEARED_PREMIUM_EMERALD = 40   # % of restocks with 1-2 emeralds
+CLEARED_PREMIUM_BOOK = 8       # % of restocks with one modest enchanted book
+
+
+def cleared_premium():
+    """What the premium chest of a unique whose guardian has already fallen gets when it restocks
+    (botin.reponer.premium_vencido_modesto, RestockedLoot): an emerald now and then and, rarely, a modest enchanted book
+    (levels 5-15, enchanting-table enchantments only: no mending or other treasure). The first opening keeps the real premium
+    table; this is only for the refills after the fight, so a cleared unique is not a free premium farm. Its path (botin/)
+    is not one of the restocking prefixes: the chest keeps its premium table in its record."""
+    book = {"type": "minecraft:item", "name": "minecraft:book", "weight": CLEARED_PREMIUM_BOOK,
+            "modifier": {"type": "minecraft:enchant_with_levels", "levels": {"type": "minecraft:uniform", "min": 5, "max": 15},
+                         "options": "#minecraft:in_enchanting_table"}}
+    return table(pool(1, [item("emerald", CLEARED_PREMIUM_EMERALD, 1, 2), empty(100 - CLEARED_PREMIUM_EMERALD)]),
+                 pool(1, [book, empty(100 - CLEARED_PREMIUM_BOOK)]))
+
+
 # ------------------------------------------------------------------ guardian trophies
 TROPHY_MARK = "heraldia_trofeo"   # custom_data {heraldia_trofeo: "<id>"} common to all trophies (advancement unicas/trofeos)
 RARITIES = ("common", "uncommon", "rare", "epic")

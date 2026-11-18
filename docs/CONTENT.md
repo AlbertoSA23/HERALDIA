@@ -9,6 +9,7 @@ Back to the [README](../README.md).
 - **Huge villages**: 72 structures (36 biome styles, each in a standard and a large size).
 - **Atlantis**: a single sunken city per world (see below).
 - **Caravans**: merchants with llamas travelling the roads between villages; defend them from bandits (see [Caravans](#caravans)).
+- **Wayfarers**: pilgrims, shepherds, messengers, pairs of guards and hunters passing along the roads near you, by area (see [Wayfarers](#wayfarers)).
 - **Wizard's huts**: a wizard with trades in a richly decorated hut; one in five is an evil wizard in disguise (see [Wizard's huts](#wizards-huts)).
 - **Wave arena**: a coliseum near spawn to play in waves, with records and rewards (see [Wave arena](#wave-arena)).
 - **Nether and End**: 7 medium structures and 2 unique structures beyond the portals (see [Nether and End](#nether-and-end)).
@@ -101,6 +102,8 @@ Back to the [README](../README.md).
   (x2 by default). See [Mine entrances](#mine-entrances).
 - **Lighthouses and wrecks** (on the coast, on firm ground by the sea or in the shallows): lighthouses with their light
   always lit and broken galleons, run aground or half-sunk, with a style for each climate. See [Lighthouses and wrecks](#lighthouses-and-wrecks).
+- **Ambience** (also in existing worlds): the village bell at sunrise and nightfall, the lighthouse siren in the rain
+  and drips and echoes in the mine galleries, with the game's own sounds and particles. See [Ambience](#ambience).
 
 ## Huge villages
 
@@ -129,8 +132,9 @@ Each village has:
 - Watchtowers and wall gates at the ends of the streets; themed decoration between houses.
 - Traces of work in progress (`aldeas.vida.rastros`, on): among the houses, a few plots (about one in twenty lots) show that someone lives there and was busy a moment ago, each drawn with the style's weights and in its materials: a **house half built** (the foundation laid, the walls rising unevenly, scaffolding and the blocks piled up), **laundry** hanging between two posts, a **meal left half eaten** at a table in the open (the cake half finished), a **work yard** with the tools on the ground (a carpenter's in the wooded and cold families, a stonemason's in the rest), a **cart loaded** with the family's goods (pumpkins, melons, pots, dried kelp...), **fish drying** on racks (coast, swamp, jungle and the Norse taiga) and a **cooking fire with the pot** hanging over it. Each style only gets what suits it: no laundry or picnic in the snow, no picnic in the dark forest or the abbey, no laundry in the gothic town, no carts in the temple town. Blocks only: no entity, no bed, no workstation, no bell and no loot. With the option off, those plots stay as empty plots of grass or sand. **In an existing world, new villages only.**
 - Villagers: half the number of houses, over 80 % with a profession. Golems: at least one per 3 villagers.
+- Village routes: the beds, workstations and the bell are placed so that the villagers walk the village on their own (vanilla AI, no extra entity or periodic work): nobody works next to their own bed (each house holds another trade's workstation, and the smith and the farmer sleep in a house), the priest, the town hall's cartographer, the librarian and the other masters of the special buildings work there and sleep in a house or in a room of the inn or the tavern (always with a bed, up a staircase), every bed can be reached on foot (the 2-storey houses keep it on the ground floor) and the bell stands on the square, where they gather at midday. Each morning they walk to work along the streets and the avenues, at midday to the square and at nightfall back home. **New villages only**: those already generated keep their placement.
 
-Population limits: there are about 1.25 beds per initial villager, so the population grows by 25 % at most.
+Population limits: there are about 1.3 beds per initial villager, so the population grows by 30 % at most.
 The function `heraldia:golems` checks loaded villages every 30 s and removes one natural golem each time there are 8 or more (standard) or 9 or more (large); it does not touch player-built ones. Limits and cleanup can be changed in the [configuration](CONFIGURATION.md#configuration).
 
 ## Village life
@@ -168,6 +172,23 @@ Caravans sometimes travel the [roads](#roads-between-villages) (`caravanas.*` in
 - **Farewell**: if no player is within 64 blocks for 30 s, if its chunks unload, if the road ends, if it gets stuck or after 10 minutes (3 under attack), it takes its leave and all its entities are removed (the bandits too).
 
 Performance: no per-tick work except the caravan on the road (one step per second with a few entities) and the draw every minute; the route is looked up off the server thread with the road layout, which is already in memory. Nothing is saved: when the server stops its entities are removed and, at startup, any caravan entity that loads (from a chunk unloaded mid-journey) is removed, so there are never orphaned or duplicated ones.
+
+## Wayfarers
+
+Besides the caravans, people pass along the [roads](#roads-between-villages) near the players: life you come across without looking for it (`viajeros.*` in the [configuration](CONFIGURATION.md#configuration), each kind with its own switch; also in an existing world, only along roads that really exist). They use the caravans' engine: the same search for a stretch of road 24 to 80 blocks from the player in chunks already loaded, the same journey of up to 8 waypoints (about 128 blocks, away from the squares) and the same goodbye and cleanup.
+
+- **When**: every minute (half a minute after the caravans' draw), with chance `viajeros.frecuencia` (30 %) next to a player, at least 2 minutes after the previous one and with at most `viajeros.max_activos` (1) on the road on the whole server, apart from the caravans; never within 160 blocks of another caravan or wayfarer. People travel by day; by night only the guards patrol. Operators bring one whenever they want with `/heraldia caravan wayfarer [pilgrim | shepherd | messenger | patrol | hunter]` (without a kind, the draw chooses one that fits the area; with a kind, it ignores the area and the hour), and `/heraldia caravan list` and `clear` include them. When one sets off, the players within 64 blocks read in the action bar who passes and where it goes.
+- **Who**, by the area's village family (the biome tags of the village styles):
+  - **Pilgrim** (1 entity): walks alone, with its staff, towards the nearest **monastery** or **cathedral** that really spawns within 3,000 blocks (the same check as `/locate`); if there is none, there is no pilgrim, and it walks the stretch in the direction that takes it closer. It does not trade.
+  - **Shepherd** (4 to 6): drives 3 to 5 sheep towards the neighbouring village, mostly white and the rest in the colors of the land (grey and brown in the taiga, black in the dark forest, pink in the cherry groves...); not in desert, badlands, jungle or swamp. Sells 2 wool of its flock's colors (1 emerald, 4 times per color), 4 cooked mutton (1 emerald, twice) and buys 18 wheat for 1 emerald (3 times).
+  - **Messenger** (1): runs twice as fast as a merchant with a letter for the neighbouring village and does not stop: it does not trade.
+  - **Pair of guards** (2): two iron golems of the village of origin ("Guard of ...") patrol towards the next one, by day and by night; they fight the monsters they meet and defend each other.
+  - **Hunter** (2): comes back to its village with the area's game in its hands (rabbit in open land, boar in the taiga and the dark forest, fowl in jungle and swamp) and its dog, a tame wolf of the local variant that defends it. Sells 3 cooked game (1 emerald), hides, leather or feathers (1 emerald), 8 arrows (1 emerald) and, where there are rabbits, a rabbit's foot (3 emeralds, once).
+- **Trades**: cheap and few (a wayfarer passes once and does not restock), with nothing that breaks the progression (no enchantments, netherite or elytra). There is no reward for meeting them: they are life on the road.
+- **Attacking them**: hurting one costs reputation with its village of origin, as hurting a villager or a golem of the village does (−5 for a person, −3 for a guard, −2 for an animal; once per player and encounter), and killing it costs more (−40, −20, −10); the player is told that word will reach that village. The guards answer together and the hunter's dog defends its owner. Killing them drops nothing (no farming).
+- **Farewell**: as the caravans, if no player is within 64 blocks for 30 s, if its chunks unload, if the road ends, if it gets stuck or after 10 minutes. At the end of its stretch, if a player is within 32 blocks, it does not vanish in sight: it walks on towards its village and is removed when nobody is near (1 minute at most). If its leader dies, the rest are removed.
+
+Performance: the same as a caravan, and lighter. One encounter at a time (configurable up to 3), from 1 to 6 vanilla entities with simple goal AI (wandering traders, iron golems, sheep and a wolf: no villager brains, beds or job sites), on the road for about a minute (the messenger, half; the slowest, the guards, about two) and 10 minutes at most; one step per second for the one on the road and a draw per minute; the stretch and the shrine are looked up off the server thread (the shrine check is done once per candidate cell and remembered). Nothing is saved: their entities carry the caravans' tag and are removed when the server stops or if they load without their encounter.
 
 ## Atlantis
 
@@ -294,6 +315,35 @@ Two kinds of **coastal** structure, always on a real shoreline: the custom type 
 - **Placement**: one grid per kind (`heraldia:costa/<kind>`; by default a lighthouse every 1,024 blocks and a wreck every 768, with `faros.separacion_bloques` and `naufragios.separacion_bloques`) with the candidate on beaches (`#heraldia:litoral`). As they only spawn where there is coast, there are fewer in practice. The rule is the mines' one without changing any other: never within 256 blocks of a Heraldia village or unique structure, nor within 192 of a medium structure, a mine entrance or the other coastal kind, nor next to structures that show above ground (vanilla or other mods': vanilla shipwrecks and ocean ruins included), nor inside Atlantis; roads skip their pieces. Lighthouses do not look for villages with a dock (those are outside their zone): they prefer **capes**, the shore with most water around among the first four that fit.
 - Find them with `/locate structure #heraldia:costa/faro` (or `naufragio`) and `/heraldia info nearby`; `/heraldia info` shows their configuration. To try one: `/place structure heraldia:costa/<kind>/<style>/<variant>` next to a beach (with no shore nearby it is placed at the centre facing south). Advancements: **Light on the Coast** (a lighthouse), **Flotsam and Jetsam** (a wrecked galleon) and **The Captain's Chest** (open its cabin chest). Web maps: "lighthouses and wrecks" layer (`mapas_web.capas.costa`). `/heraldia review`: stops `costa/faro` and `costa/naufragio`. **In an existing world, only in new chunks.**
 
+## Ambience
+
+Effects with the game's own sounds and particles: nothing new to download, vanilla clients hear them as they are, and
+the mod still registers no block, item or entity of its own. Each sound is sent **only to the players it is meant for**,
+in the **Ambient/Environment** sound category (each player turns it down with their own slider), and each player has a
+cooldown per effect, so it never repeats every little while. They work in existing worlds too (they look for the
+structures already generated). Options: `ambiente.activado` (all of them) and one per effect.
+
+- **Village bell** (`ambiente.campanas`): at **sunrise** and at **nightfall** (world clock 0 and 12,000) three bell strikes
+  ring out from the village square for the players inside a Heraldia village (its box: streets, houses and outskirts).
+  Waking up after sleeping puts the clock on a sunrise, so it greets the morning. At most twice a day per player (5 min of
+  cooldown, so `/time set` does not make it ring again and again); with the daylight cycle stopped it rings once.
+- **Lighthouse siren** (`ambiente.sirena_faro`): in **rain or a thunderstorm** (vanilla has no fog weather; rain is its
+  low visibility), the nearest lighthouse (a coastal one or the smugglers' lighthouse) sounds a deep horn (the "Ponder"
+  goat horn, low) for the players **out in the open** within **160 blocks**: from a boat at sea it is heard far off and
+  faint. Not in caves or under water. At most once every **3 minutes** per player.
+- **Mine galleries** (`ambiente.minas`): underground in a Heraldia mine (the three sizes of mine entrance and the Lost
+  Mine of Hondavena), every **20-45 s** a drop of water hangs from the ceiling near the player and falls (the game's
+  dripstone drop, which plays its own drip when it lands) and, now and then, the **cave's echo** sounds a dozen blocks down
+  the gallery (at most every 4 min). Nothing under the open sky.
+- **Cost**: nothing runs on the server tick except `tick % 100`; every 5 s a loop over the players; per player, one structure lookup in
+  their own chunk every 20-45 s (mines) and one more only in the minutes of sunrise and nightfall (villages) and, only while it rains and
+  the player's siren is due, a look at the structure starts of the loaded chunks around them (it never loads a chunk).
+  Nothing is saved in the world.
+- **Not included: the tavern song on the Corsair's Isle.** The Hanged Mermaid has no villagers inside (its template only
+  has the corsair's crew in the caves) and the game has no song: villager murmurs coming out of an empty tavern would be a
+  ghost choir, and a tune of note-block sounds played every few minutes gets tiresome. It would need villagers in the
+  template (only in new chunks), so it is left out on purpose.
+
 ## Treasure maps
 
 Every unique structure has its own treasure map, which marks the nearest one with an X (or another mark specific to the structure) and carries its translated name:
@@ -339,10 +389,10 @@ When the guardian of a unique structure falls, **the spawners of that structure 
 - **Which spawners**: those its templates placed, found from the templates themselves at their position in the world (so they are known without loading their chunks), and only if a spawner is still there (one already broken is skipped). There are 1 to 4 in each unique and 48 spread over the tiles of Atlantis (107 with one of each kind).
 - **How they turn off**: the cage stays, as a relic of the fight, but empty (no mob to spawn): it spawns nothing again. Like any vanilla empty spawner, a spawn egg can fill it again. The mobs already alive in the structure stay.
 - **Cost**: nothing runs per tick. It hangs from the guardian's death (an event the mod already listens to) and takes a few milliseconds once. Spawners in chunks still in memory but no longer active are turned off at once too; those in chunks that are not in memory are written down in the world (attachment `heraldia:unicas_vencidas`, per dimension) and turned off when their chunk loads; while nothing is pending, the chunk-load check is one empty lookup.
-- **Idempotent**: each cleared structure is recorded once; another guardian dying in it (one brought back with `/place`, another mod) does nothing more. With the option off when the guardian falls, nothing is recorded; with it turned off afterwards, pending spawners wait until it is on again.
+- **Idempotent**: each cleared structure is recorded once; another guardian dying in it (one brought back with `/place`, another mod) does nothing more. With the option off when the guardian falls, the structure is still recorded as cleared (for its premium chest, below) but no spawner is touched; with it turned off afterwards, pending spawners wait until it is on again.
 - **Structures placed with `/place structure`** do not save their start (see `docs/LESSONS.md`): their spawners are not turned off (the log says so).
 - **In an existing world**: a unique whose guardian died **before this version** is not recorded as cleared and **stays as it was** (its spawners keep working). Detecting it on its own ("the guardian is not there") was ruled out: in 26.3 entities load separately from their chunk, and a guardian that chased a player out of its structure and died there, or whose entities are not loaded yet, would read as dead. A wrong guess would turn off the spawners of a structure nobody has beaten, and that cannot be undone. The downside: those already beaten uniques keep their farms until a player breaks the spawners with a pickaxe (vanilla, as always). Every unique beaten from this version on turns off on its own.
-- **Restocking loot** ([`botin.reponer.activado`](#restocking-loot-and-difficulty), off by default) is not changed: a cleared unique still restocks like villages and medium structures, which have no fight either. It is the administrator's choice and already has its own limits (days, nobody nearby, almost empty).
+- **Restocking loot** ([`botin.reponer.activado`](#restocking-loot-and-difficulty), off by default): a cleared unique still restocks like villages and medium structures, which have no fight either, **except its premium chest**, which from then on only gets a modest refill (see [Premium chest of a cleared unique](#premium-chest-of-a-cleared-unique)).
 - Log: `Heraldia: bosses: <guardian> defeated: <structure> cleared, N spawners turned off, M pending until their chunk loads (… ms): <positions>`; and later `Heraldia: bosses: N pending spawners turned off when chunk … loaded`.
 - Tests: `ClearedSpawnersTest` (JUnit: the record, idempotency, pending per chunk, saved format, a real spawner turned off) and `tools/smoke/cleared_spawners.py` (server, ~90 s: a really generated castle, its guardian killed after a restart with only its chunk loaded, the loaded spawners off at once and the other one when its chunk loads, nothing more on a second death, also after a restart).
 
@@ -458,7 +508,7 @@ Two optional server-side features (vanilla clients are enough). Both also work i
 - no other player is within 32 blocks (the one opening it does not count);
 - it is empty or almost empty (at most 3 occupied slots out of 27). Nothing is ever deleted: the loot only goes into free slots, so whatever a player stored there stays.
 
-How a chest is recognised: when a Heraldia chest that still has its loot table is opened, the mod stores in the block, as `custom_data` `heraldia_botin: {tabla, saqueado}`, its table and the clock of that looting (nothing else). A chest **already looted before the option was turned on** no longer has its table: the first time it is opened, the mod looks up the Heraldia structure that has a piece there (the chunk's structure references, like `/locate`), and in that piece's template, with its rotation, the loot table it put in that position; from then on it counts as looted at that moment. Lazy: it only works when a player uses a container, never per tick or scanning the world. Not restocked: the Atlantis premium chest (fixed contents, it has its own option `unicas.atlantida.cofre_unico_por_jugador`), trophies, vanilla tables and other mods' tables, and containers of non-template pieces (the Atlantis base) that were looted before turning it on. With **Lootr** installed it does nothing (detected at startup; Lootr already turns loot chests into per-player chests); the log says so if the option is on.
+How a chest is recognised: when a Heraldia chest that still has its loot table is opened, the mod stores in the block, as `custom_data` `heraldia_botin: {tabla, saqueado}`, its table and the clock of that looting (nothing else). A chest **already looted before the option was turned on** no longer has its table: the first time it is opened, the mod looks up the Heraldia structure that has a piece there (the chunk's structure references, like `/locate`), and in that piece's template, with its rotation, the loot table it put in that position; from then on it counts as looted at that moment. Lazy: it only works when a player uses a container, never per tick or scanning the world. The premium chest of a unique whose guardian has fallen restocks with a modest table ([below](#premium-chest-of-a-cleared-unique)). Not restocked: the Atlantis premium chest (fixed contents, it has its own option `unicas.atlantida.cofre_unico_por_jugador`), trophies, vanilla tables and other mods' tables, and containers of non-template pieces (the Atlantis base) that were looted before turning it on. With **Lootr** installed it does nothing (detected at startup; Lootr already turns loot chests into per-player chests); the log says so if the option is on.
 
 **Difficulty** (`dificultad.nivel`): scales the health and melee damage of the [guardians](#guardian-trophies) and the template mobs of Heraldia (those tagged `heraldia_anclado` or `heraldia_guardian`, and the bosses' reinforcements, `heraldia_refuerzo`; hostile only: cats and wolves are untouched; spawner mobs are not affected).
 
@@ -474,6 +524,18 @@ How a chest is recognised: when a Heraldia chest that still has its loot table i
 - Loot: only plain stackable items (no name or other components) of Heraldia chest tables change their amount (the fractional part with its probability, never below 1 or above a stack). Skeleton arrows and other ranged damage do not change.
 
 Cost: an event when a block is used (leaves at once if it is not a container with a table, or the option is off), on each entity load and on each hit (leaves at once if the mob has no Heraldia tag); measured with `tools/smoke/loot_restock.py` and `tools/smoke/difficulty.py`.
+
+### Premium chest of a cleared unique
+
+With its guardian dead and its spawners off, a unique would otherwise give its **premium chest** again every few days with no fight at all. So, once the guardian of a unique has fallen, its premium chest (table `heraldia:unicas/<id>/premium`) keeps restocking, but with a **modest table** (`heraldia:botin/premium_vencido`) instead of the premium one. Option `botin.reponer.premium_vencido_modesto` (on by default; `false` restocks it with its full premium as before).
+
+- **What a refill brings** (each refill, independently): **1-2 emeralds 40 % of the time** and **one modest enchanted book 8 % of the time** (enchanting-table enchantments at levels 5-15, the like of Sharpness I-II or Efficiency II: never Mending or another treasure enchantment). About half the refills bring nothing. Over a month of refills every 7 days that is about 2-3 emeralds and, with luck, one book: a small thank-you, not a farm. No netherite, elytra, diamonds or named items.
+- **The first time is untouched**: the premium of a unique is the one it always was while its guardian lives, and the first opening of the chest (the reward for beating the structure) always comes from the real premium table. Only the refills after the guardian has fallen change. Refills while the guardian still lives are the full premium, as before: the structure is still dangerous.
+- **Only the premium chest**: the other chests of a cleared unique (armouries, libraries, cellars, treasure rooms) restock with their own tables, like village and medium chests, which are never guarded either. Their loot is ordinary; the premium is the only one meant as the prize of the fight.
+- **"Cleared"** is the same record as [Cleared uniques](#cleared-uniques) (attachment `heraldia:unicas_vencidas`): the start of `heraldia:unicas/<id>` that reaches the chest, recorded when its guardian dies, also with `jefes.apagar_generadores` off. A unique whose guardian died before this record existed (see "In an existing world" there) is not known as cleared and keeps restocking its full premium.
+- **Reversible**: the chest keeps its premium table in its record (`heraldia_botin`); the modest table is only used for that refill. Turning the option off gives the full premium again from the next refill. The modest table does not count for the treasure advancement of the unique.
+- **Cost**: one structure lookup when a premium chest is due to refill (not on other chests, nor on every opening).
+- Test: `ClearedPremiumTest` (JUnit: which tables are premium, which table a due chest gets with the guardian alive or fallen and with the option on or off, that the modest table is never recorded as the chest's own, the generated table's contents and that every unique's premium chest in the templates is recognised).
 
 ## Wave arena
 

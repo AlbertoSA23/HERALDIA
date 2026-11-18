@@ -82,7 +82,11 @@ class Registry:
         self.pools[nsid(pid)] = dict(elements=elements, fallback=nsid(fallback) if fallback != "minecraft:empty" else fallback)
 
 
-VARIANT_WEIGHTS = (2, 1, 1, 1, 1, 1, 1, 1)   # the original slightly more frequent than each new variant
+VARIANT_WEIGHTS = (2, 1, 1, 1, 1, 1, 1, 1)
+# Each house holds the workstation of the house HOUSE_JOB_SHIFT places further on in the style's list (a fixed
+# permutation of the same professions, so the village offers the same workstations): its resident works elsewhere and
+# walks there every morning. 5 of 12 pairs a small house with a medium or large one, which stand on other streets more often.
+HOUSE_JOB_SHIFT = 5   # the original slightly more frequent than each new variant
 
 
 def function_signature(t):
@@ -144,11 +148,13 @@ def build_theme(reg, th, seed):
     profs = PROFS_HOUSE[:]
     rng.shuffle(profs)
     n = 0
-    for size, count, w in (("small", 4, 3), ("medium", 5, 3), ("large", 3, 2)):
+    sizes = (("small", 4, 3), ("medium", 5, 3), ("large", 3, 2))
+    depths = [profs[k % len(profs)] for k in range(sum(c for _, c, _ in sizes))]
+    for size, count, w in sizes:
         for i in range(count):
-            depth = profs[n % len(profs)]
+            depth, job = depths[n], depths[(n + HOUSE_JOB_SHIFT) % len(depths)]
             n += 1
-            t = make_house(th, rng, f"{tid}/houses/{size}_{i}", size, depth)
+            t = make_house(th, rng, f"{tid}/houses/{size}_{i}", size, depth, job)
             els.append((reg.add(t, "house"), w, "rigid", bld_proc))
     fills = list(dict.fromkeys(list(th["decor"]) + ["well", "garden"]))
     for k in fills:
@@ -200,15 +206,21 @@ def build_common(reg):
         for depth in ALL_PROFS:
             e = reg.add(villager_piece(vtype, f"villagers/{vtype}/e_{depth}", depth=depth), "villager")
             nb = reg.add(villager_piece(vtype, f"villagers/{vtype}/nb_{depth}", depth=depth, bed=False), "villager_nobed")
-            # houses: 24 % with a villager (75 % with a profession) and 14 % free bed (beds ~1.2x villagers)
+            # house bed slots: 12 % with a villager (2/3 with a profession), 37 % a free bed and the rest a rug (beds
+            # ~1.1x villagers). The smith and the farmer sleep in houses (specials.pallet): the free beds went up from
+            # 30 to 37 (27 to 34 in large villages) to keep that ratio.
             # the fallback points to the pool itself so that maximum-depth pieces are populated too
             p = f"villagers/{vtype}/{depth}"
             reg.pool(p, [(e, 8, "rigid", None), (un, 4, "rigid", None),
-                         (spare, 30, "rigid", None), (rug, 58, "rigid", None)], fallback=p)
+                         (spare, 37, "rigid", None), (rug, 51, "rigid", None)], fallback=p)
             # large villages (aliases in the structure): somewhat more population
             pg = f"villagers/{vtype}/{depth}_grande"
             reg.pool(pg, [(e, 16, "rigid", None), (un, 6, "rigid", None),
-                          (spare, 27, "rigid", None), (rug, 51, "rigid", None)], fallback=pg)
+                          (spare, 34, "rigid", None), (rug, 44, "rigid", None)], fallback=pg)
+            # inn and tavern rooms (on the avenues, next to the special buildings whose staff sleep elsewhere): always
+            # a bed, sometimes with its guest; the same in both sizes
+            pr = f"villagers/{vtype}/room_{depth}"
+            reg.pool(pr, [(e, 12, "rigid", None), (un, 6, "rigid", None), (spare, 82, "rigid", None)], fallback=pr)
             reg.pool(f"villagers/{vtype}/fixed_{depth}", [(e, 1, "rigid", None)], fallback=f"villagers/{vtype}/fixed_{depth}")
             reg.pool(f"villagers/{vtype}/nobed_{depth}", [(nb, 1, "rigid", None)], fallback=f"villagers/{vtype}/nobed_{depth}")
     g = reg.add(golem_piece("golem"), "golem")
