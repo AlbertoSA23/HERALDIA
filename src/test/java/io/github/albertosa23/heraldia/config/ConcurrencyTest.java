@@ -27,10 +27,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Lo que consultan a la vez los hilos de generación (con C2ME, muchos más que en vanilla): la candidata con búsqueda de
- * bioma de GridPlacement (memoria compartida por casilla) y la distancia mínima entre únicas (UniqueSeparation, con su
- * recursión y su memoria por consulta). Varios hilos sobre la misma instancia deben dar lo mismo que uno solo, y una
- * búsqueda que aún corre con el mundo anterior no puede dejar su resultado en la memoria del nuevo.
+ * What the generation threads query at once (with C2ME, many more than in vanilla): the candidate with the biome
+ * search of GridPlacement (memo shared per cell) and the minimum distance between uniques (UniqueSeparation, with its
+ * recursion and its per-query memo). Several threads on the same instance must give the same as a single one, and a
+ * search still running with the previous world cannot leave its result in the new one's memo.
  */
 class ConcurrencyTest {
 	private static final long SEED = 42L;
@@ -54,7 +54,7 @@ class ConcurrencyTest {
 		return GridPlacement.CODEC.codec().parse(JsonOps.INSTANCE, JsonParser.parseString(MYCELIUM)).getOrThrow();
 	}
 
-	/** Bioma falso: franjas de 32 chunks (cuartos de bloque / 4 = bloques / 16 = chunks). */
+	/** Fake biome: strips of 32 chunks (quarter blocks / 4 = blocks / 16 = chunks). */
 	private static boolean bands(int qx, int qz) {
 		return Math.floorMod(Math.floorDiv(qx, 4 * 32), 2) == 0 && Math.floorMod(Math.floorDiv(qz, 4 * 48), 3) != 1;
 	}
@@ -91,9 +91,9 @@ class ConcurrencyTest {
 	}
 
 	/**
-	 * Cambio de mundo con búsquedas en marcha: los hilos buscan con un contexto lento (otro mundo) mientras se pasa al
-	 * nuevo; acabada la carrera, toda candidata debe ser la del nuevo contexto. Con una sola memoria por instancia (lo de
-	 * antes), una búsqueda vieja que terminaba después del cambio dejaba su candidata para siempre.
+	 * World change with searches in progress: the threads search with a slow context (another world) while switching to the
+	 * new one; once the race is over, every candidate must be that of the new context. With a single memo per instance (the old
+	 * way), an old search finishing after the switch left its candidate forever.
 	 */
 	@Test
 	void searchFromPreviousWorldDoesNotLeakIntoNew() throws Exception {
@@ -110,7 +110,7 @@ class ConcurrencyTest {
 					Thread.onSpinWait();
 				}
 			}
-			return true; // el mundo anterior: todo es del bioma (otra candidata en cada casilla)
+			return true; // the previous world: everything is in the biome (a different candidate in each cell)
 		});
 		ExecutorService pool = Executors.newFixedThreadPool(THREADS);
 		try {
@@ -119,9 +119,9 @@ class ConcurrencyTest {
 				futures.add(pool.submit(() -> candidates(g, 6)));
 			}
 			assertTrue(started.await(30, TimeUnit.SECONDS));
-			GridPlacement.testContext(SEED, (tag, qx, qy, qz) -> bands(qx, qz)); // el mundo nuevo (misma semilla)
-			candidates(g, 6); // primeras consultas del mundo nuevo mientras las viejas siguen (lentas)
-			slow.set(false); // ahora terminan las viejas: su resultado no debe pisar el del mundo nuevo
+			GridPlacement.testContext(SEED, (tag, qx, qy, qz) -> bands(qx, qz)); // the new world (same seed)
+			candidates(g, 6); // first queries of the new world while the old ones continue (slowly)
+			slow.set(false); // now the old ones finish: their result must not overwrite the new world's
 			for (Future<long[]> f : futures) {
 				f.get(120, TimeUnit.SECONDS);
 			}

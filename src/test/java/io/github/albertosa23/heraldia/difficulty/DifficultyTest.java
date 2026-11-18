@@ -20,7 +20,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Dificultad configurable: niveles, modificadores idempotentes y acumulables, normal = sin cambios, vida y botín. */
+/** Configurable difficulty: levels, idempotent and stackable modifiers, normal = no changes, health and loot. */
 class DifficultyTest {
 	@BeforeAll
 	static void game() {
@@ -44,16 +44,16 @@ class DifficultyTest {
 		for (Tier n : Tier.values()) {
 			assertEquals(n, Tier.of(n.id()));
 		}
-		// normal es exactamente lo de siempre
+		// normal is exactly the usual
 		assertEquals(0, Tier.NORMAL.healthMod());
 		assertEquals(0, Tier.NORMAL.damageMod());
 		assertEquals(1, Tier.NORMAL.loot);
-		// más difícil, más vida, daño y botín (y fácil, menos)
+		// harder, more health, damage and loot (and easy, less)
 		for (int i = 1; i < Tier.values().length; i++) {
 			Tier a = Tier.values()[i - 1], b = Tier.values()[i];
 			assertTrue(a.health < b.health && a.damage < b.damage && a.loot < b.loot, a + " < " + b);
 		}
-		// botín modesto
+		// modest loot
 		for (Tier n : Tier.values()) {
 			assertTrue(n.loot >= 0.75 && n.loot <= 1.5, n.toString());
 		}
@@ -95,21 +95,21 @@ class DifficultyTest {
 		MobDifficulty.put(a, MobDifficulty.HEALTH, Tier.HEROIC.healthMod());
 		assertEquals(40, a.getValue(), 1e-9, "aplicarlo varias veces (cada carga) no acumula");
 		assertEquals(1, a.getModifiers().size());
-		// cambia la opción: se recalcula al cargar
+		// the option changes: it is recomputed on load
 		MobDifficulty.put(a, MobDifficulty.HEALTH, Tier.EASY.healthMod());
 		assertEquals(15, a.getValue(), 1e-9);
 		MobDifficulty.put(a, MobDifficulty.HEALTH, Tier.HARD.healthMod());
 		assertEquals(30, a.getValue(), 1e-9);
-		// normal: se quita, vuelve a la vida de siempre y sin modificadores
+		// normal: it is removed, back to the usual health and without modifiers
 		MobDifficulty.put(a, MobDifficulty.HEALTH, Tier.NORMAL.healthMod());
 		assertEquals(20, a.getValue(), 1e-9);
 		assertTrue(a.getModifiers().isEmpty());
-		// en normal, un mob que nunca tuvo modificador queda igual
+		// on normal, a mob that never had a modifier stays the same
 		AttributeInstance b = health(33);
 		MobDifficulty.put(b, MobDifficulty.HEALTH, 0);
 		assertEquals(33, b.getValue(), 1e-9);
 		assertTrue(b.getModifiers().isEmpty());
-		MobDifficulty.put(null, MobDifficulty.DAMAGE, 0.5); // un mob sin el atributo (sin daño cuerpo a cuerpo): nada
+		MobDifficulty.put(null, MobDifficulty.DAMAGE, 0.5); // a mob without the attribute (no melee damage): nothing
 	}
 
 	@Test
@@ -150,14 +150,14 @@ class DifficultyTest {
 
 	@Test
 	void healthKeepsRatio() {
-		assertEquals(40f, ModDifficulty.readjustHealth(20f, 20, 40));    // entero sigue entero
+		assertEquals(40f, ModDifficulty.readjustHealth(20f, 20, 40));    // full stays full
 		assertEquals(15f, ModDifficulty.readjustHealth(20f, 20, 15));
-		assertEquals(20f, ModDifficulty.readjustHealth(10f, 20, 40));    // a media vida sigue a media vida
+		assertEquals(20f, ModDifficulty.readjustHealth(10f, 20, 40));    // at half health stays at half health
 		assertEquals(20f, ModDifficulty.readjustHealth(20f, 20, 20));
 		assertEquals(12f, ModDifficulty.readjustHealth(30f, 12, 12), "sin cambio de máxima: no pasa de ella");
 		assertTrue(ModDifficulty.readjustHealth(0.0001f, 100, 1) > 0, "vivo sigue vivo");
 		assertEquals(0f, ModDifficulty.readjustHealth(0f, 20, 40));
-		// ida y vuelta: normal -> heroica -> normal deja la vida igual
+		// round trip: normal -> heroica -> normal leaves the health the same
 		float v = ModDifficulty.readjustHealth(ModDifficulty.readjustHealth(13f, 20, 40), 40, 20);
 		assertEquals(13f, v, 1e-5);
 	}
@@ -168,12 +168,12 @@ class DifficultyTest {
 		assertEquals(5, ModDifficulty.amount(5, 1, 64, 0.99));
 		assertEquals(6, ModDifficulty.amount(4, 1.5, 64, 0.5));
 		assertEquals(5, ModDifficulty.amount(4, 1.25, 64, 0.99));
-		assertEquals(5, ModDifficulty.amount(3, 1.5, 64, 0.49));   // 4,5: 5 con azar < 0,5
+		assertEquals(5, ModDifficulty.amount(3, 1.5, 64, 0.49));   // 4.5: 5 with random < 0.5
 		assertEquals(4, ModDifficulty.amount(3, 1.5, 64, 0.5));
 		assertEquals(1, ModDifficulty.amount(1, 0.75, 64, 0.9), "nunca menos de 1");
 		assertEquals(16, ModDifficulty.amount(16, 1.5, 16, 0.0), "no pasa del máximo de la pila");
 		assertEquals(0, ModDifficulty.amount(0, 1.5, 64, 0.0));
-		// en media, el multiplicador
+		// on average, the multiplier
 		double total = 0;
 		int n = 10000;
 		for (int i = 0; i < n; i++) {

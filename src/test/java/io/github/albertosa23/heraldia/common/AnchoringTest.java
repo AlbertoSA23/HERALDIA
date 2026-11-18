@@ -25,16 +25,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mobs anclados: la lógica de {@link Anchoring} y, sobre las plantillas generadas (build/generated), que todo guardián
- * final y todo zombi o esqueleto lleva la etiqueta, que cada única tiene su guardián anclado y que ningún aldeano la
- * lleva (deben seguir recogiendo cosechas).
+ * Anchored mobs: the logic of {@link Anchoring} and, over the generated templates (build/generated), that every final
+ * guardian and every zombie or skeleton carries the tag, that each unique has its anchored guardian and that no villager
+ * carries it (they must keep picking up crops).
  */
 class AnchoringTest {
 	private static final String GUARDIAN = "heraldia_guardian";
-	/** Tipos de core.RECOGE_BOTIN (los que el juego deja recoger objetos al colocarlos). */
+	/** Types of core.RECOGE_BOTIN (those the game lets pick up items when placed). */
 	private static final Set<String> PICKS_UP = Set.of("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin",
 			"skeleton", "stray", "bogged", "wither_skeleton", "parched", "piglin", "piglin_brute");
-	/** (plantilla, NBT) de cada entidad de las plantillas generadas. */
+	/** (template, NBT) of each entity of the generated templates. */
 	private static final List<Map.Entry<String, CompoundTag>> ENTITIES = new ArrayList<>();
 
 	@BeforeAll

@@ -8,9 +8,9 @@ import io.github.albertosa23.heraldia.command.SafeSpot;
 import java.util.function.IntPredicate;
 import org.junit.jupiter.api.Test;
 
-/** Dónde se apoyan las estructuras del Nether y el End ({@link Ground}) y el sitio seguro bajo el techo ({@link SafeSpot#underCeiling}). */
+/** Where the Nether and End structures rest ({@link Ground}) and the safe spot under the ceiling ({@link SafeSpot#underCeiling}). */
 class GroundTest {
-	/** Columna del Nether de mentira: bedrock arriba (de 123 a 127), aire salvo los tramos macizos [a, b] y lava bajo 32. */
+	/** Fake Nether column: bedrock on top (123 to 127), air except the solid stretches [a, b] and lava below 32. */
 	private record Column(int[][] SOLIDS) {
 		boolean solid(int y) {
 			if (y >= 123 || y <= 0) {
@@ -43,7 +43,7 @@ class GroundTest {
 
 	@Test
 	void netherFindsFirstGroundWithAirAboveTopDown() {
-		// suelo a 40 (macizo de 1 a 39) y una repisa a 100 con solo 4 de aire hasta otro macizo a 104
+		// ground at 40 (solid from 1 to 39) and a ledge at 100 with only 4 of air up to another solid block at 104
 		Column c = new Column(new int[][] {{1, 39}, {95, 99}, {104, 122}});
 		assertEquals(40, Ground.nether(c.s(), c.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 30), "con 30 de aire, la repisa no cabe");
 		assertEquals(100, Ground.nether(c.s(), c.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 4), "la repisa, con 4 de aire");
@@ -54,12 +54,12 @@ class GroundTest {
 
 	@Test
 	void netherNeverOnLavaOrUnderCeiling() {
-		Column seaSide = new Column(new int[][] {{1, 10}});              // todo lava hasta 31 y aire hasta el techo
+		Column seaSide = new Column(new int[][] {{1, 10}});              // all lava up to 31 and air up to the ceiling
 		assertEquals(Ground.NONE, Ground.nether(seaSide.s(), seaSide.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 4), "el mar de lava no sostiene");
-		Column high = new Column(new int[][] {{1, 118}});             // macizo hasta 118: aire de 119 a 122
+		Column high = new Column(new int[][] {{1, 118}});             // solid up to 118: air from 119 to 122
 		assertEquals(Ground.NONE, Ground.nether(high.s(), high.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 3),
 				"un suelo por encima de NETHER_DESDE (pegado al techo) no vale");
-		Column island = new Column(new int[][] {{1, 20}, {32, 32}});    // una losa a 32 sobre la lava
+		Column island = new Column(new int[][] {{1, 20}, {32, 32}});    // a slab at 32 over the lava
 		assertEquals(Ground.NONE, Ground.nether(island.s(), island.a(), Ground.NETHER_FROM, Ground.NETHER_TO, 4),
 				"por debajo de NETHER_HASTA no se busca");
 		for (int free = 2; free <= 40; free++) {
@@ -93,7 +93,7 @@ class GroundTest {
 		assertEquals(Ground.NONE, Ground.end(far, 0, Ground.END_MIN - 1, 44, 44, 44, 44), "demasiado bajo: un islote suelto");
 	}
 
-	/** Un mundo de {@link SafeSpot} con techo: bedrock a 123-127, macizo hasta {@code ground} - 1 y lava en y = suelo si se pide. */
+	/** A {@link SafeSpot} world with a ceiling: bedrock at 123-127, solid up to {@code ground} - 1 and lava at y = ground if asked. */
 	private static SafeSpot.World world(int ground, boolean lava) {
 		return new SafeSpot.World() {
 			@Override

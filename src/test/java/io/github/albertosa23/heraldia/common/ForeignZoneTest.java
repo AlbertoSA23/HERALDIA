@@ -30,10 +30,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * ZonaAjenas sin servidor: qué estructuras cuentan como ajenas, qué candidatas de Heraldia están cerca (frente a un
- * recorrido de todas las casillas a mano), que solo se excluye si la de Heraldia sale de verdad, la memoria por
- * candidata y semilla, y que varios hilos a la vez (la generación, también con C2ME) dan lo mismo que uno solo.
- * Las rejillas son random_spread corrientes (como las de las aldeas y las únicas sin desfase); la viabilidad, falsa.
+ * ForeignZone without a server: which structures count as foreign, which Heraldia candidates are nearby (against a
+ * hand walk of all the cells), that it only excludes if the Heraldia one really wins, the memo per
+ * candidate and seed, and that several threads at once (generation, also with C2ME) give the same as a single one.
+ * The grids are ordinary random_spread (like those of the villages and the uniques without offset); the viability, fake.
  */
 class ForeignZoneTest {
 	private static final int DISTANCE = 224;
@@ -49,7 +49,7 @@ class ForeignZoneTest {
 		return new RandomSpreadStructurePlacement(spacing, separation, RandomSpreadType.LINEAR, salt);
 	}
 
-	/** Dos únicas de rejilla y una de colocación propia (la Atlántida, que ZonaAjenas no mira). */
+	/** Two grid uniques and one self-placed (Atlantis, which ForeignZone does not look at). */
 	private static UniqueSeparation uniques() {
 		List<Identifier> ids = List.of(Identifier.parse("heraldia:unicas/a"), Identifier.parse("heraldia:unicas/b"),
 				Identifier.parse("heraldia:unicas/atlantida"));
@@ -62,7 +62,7 @@ class ForeignZoneTest {
 		return new ForeignZone("prueba", distance, grid(24, 16, 261112013), List.of(), List.of());
 	}
 
-	/** Viabilidad falsa y determinista: «sale» la mitad de las candidatas (también las aldeas, tipo -1). */
+	/** Fake, deterministic viability: half of the candidates "win" (also the villages, type -1). */
 	private static boolean outcome(int type, int x, int z, long seed) {
 		return Long.hashCode(ForeignZone.key(type, x, z) * 0x9E3779B97F4A7C15L ^ seed) % 2 == 0;
 	}
@@ -87,7 +87,7 @@ class ForeignZoneTest {
 		assertFalse(zone(0).active(Level.OVERWORLD));
 	}
 
-	/** Todas las candidatas a menos de la distancia, recorriendo a mano una ventana amplia de casillas. */
+	/** All the candidates within the distance, walking a wide window of cells by hand. */
 	private static Set<List<Long>> byHand(UniqueSeparation sep, RandomSpreadStructurePlacement villages, int cx, int cz) {
 		Set<List<Long>> out = new HashSet<>();
 		for (int i = -1; i < sep.size(); i++) {
@@ -157,7 +157,7 @@ class ForeignZoneTest {
 			for (int k = 0; k < t.length; k += 3) {
 				some |= outcome((int) t[k], (int) t[k + 1], (int) t[k + 2], SEED);
 			}
-			// una única cuenta si es viable y no la descarta la distancia mínima entre únicas (la misma regla que la generación)
+			// a unique counts if it is viable and the minimum distance between uniques does not discard it (the same rule as generation)
 			boolean expected = false;
 			for (int k = 0; k < t.length; k += 3) {
 				int type = (int) t[k], x = (int) t[k + 1], zz = (int) t[k + 2];
@@ -186,7 +186,7 @@ class ForeignZoneTest {
 			assertTrue(z.occupied(near, sep, SEED, (j, a, b) -> false, (a, b) -> calls.incrementAndGet() > 0));
 		}
 		assertEquals(1, calls.get());
-		// otra semilla (otro mundo): memoria nueva, no se reutiliza el resultado de la anterior
+		// another seed (another world): a new memo, the previous result is not reused
 		assertFalse(z.occupied(near, sep, SEED + 1, (j, a, b) -> false, (a, b) -> false));
 		assertEquals(1, calls.get());
 	}
@@ -204,7 +204,7 @@ class ForeignZoneTest {
 		}
 	}
 
-	/** Varios hilos a la vez (como los de generación, también con C2ME) sobre la misma instancia dan lo mismo que uno. */
+	/** Several threads at once (like the generation ones, also with C2ME) over the same instance give the same as one. */
 	@Test
 	void concurrentMatchesSerial() throws Exception {
 		UniqueSeparation sep = uniques();
@@ -231,7 +231,7 @@ class ForeignZoneTest {
 				futures.add(pool.submit(() -> {
 					boolean[] got = new boolean[n];
 					for (int i = 0; i < n; i++) {
-						int k = (i * 7 + from * 131) % n; // cada hilo en otro orden: se pisan en la memoria
+						int k = (i * 7 + from * 131) % n; // each thread in a different order: they overwrite each other in the memo
 						long[] t = shared.nearby(sep, SEED, xs[k], zs[k]);
 						got[k] = t != null && shared.occupied(t, sep, SEED, (j, a, b) -> {
 							viabilities.incrementAndGet();

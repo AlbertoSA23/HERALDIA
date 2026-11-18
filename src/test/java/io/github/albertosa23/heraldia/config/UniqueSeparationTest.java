@@ -24,10 +24,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Simula la colocación de todas las estructuras únicas con el mismo código que el juego: las rejillas salen de los
- * structure_set generados (leídos con GridPlacement.CODEC, como el juego al cargar el datapack) y la decisión, de
- * UniqueSeparation.blocked, la misma llamada que hacen los mixins. Lo único simulado es la viabilidad de cada candidata
- * (bioma y terreno), con un hash determinista del ~35 %; el bioma real lo comprueba la prueba de humo con /locate.
+ * Simulates the placement of all unique structures with the same code as the game: the grids come from the
+ * generated structure_sets (read with GridPlacement.CODEC, as the game does when loading the datapack) and the decision, from
+ * UniqueSeparation.blocked, the same call the mixins make. The only simulated part is each candidate's viability
+ * (biome and terrain), with a deterministic hash of ~35 %; the real biome is checked by the smoke test with /locate.
  */
 class UniqueSeparationTest {
 	
@@ -35,7 +35,7 @@ class UniqueSeparationTest {
 	private record Cand(int type, int x, int z, boolean valid, boolean survives) {
 	}
 
-	/** La Atlántida: un solo ancla por semilla, como heraldia:mundial (siempre gana). */
+	/** Atlantis: a single anchor per seed, like heraldia:mundial (always wins). */
 	private static final class FixedAnchor extends RandomSpreadStructurePlacement {
 		FixedAnchor() {
 			super(4096, 0, RandomSpreadType.LINEAR, 0);
@@ -78,7 +78,7 @@ class UniqueSeparationTest {
 				Path structure = dir.getParent().getParent().resolve("structure").resolve("unicas").resolve(f.getFileName());
 				if (Files.isRegularFile(structure) && JsonParser.parseString(Files.readString(structure)).getAsJsonObject()
 						.get("type").getAsString().equals("heraldia:dimension")) {
-					continue; // del Nether o el End: no compiten con las del mundo principal (Dimensiones.posible)
+					continue; // from the Nether or the End: they do not compete with the overworld's (Dimensions.possible)
 				}
 				ids.add(Identifier.parse(set.getAsJsonArray("structures").get(0).getAsJsonObject().get("structure").getAsString()));
 				if (type.equals("heraldia:rejilla")) {
@@ -105,7 +105,7 @@ class UniqueSeparationTest {
 		return out;
 	}
 
-	/** Las rejillas de antes (separación 190 de 250 y origen común): solo para comparar en la salida de la prueba. */
+	/** The old grids (separation 190 of 250 and common origin): only for comparison in the test output. */
 	private static List<RandomSpreadStructurePlacement> legacy() {
 		List<RandomSpreadStructurePlacement> out = new ArrayList<>();
 		for (int i = 0; i < grids.size(); i++) {
@@ -152,7 +152,7 @@ class UniqueSeparationTest {
 		return out;
 	}
 
-	/** Fracción de candidatas viables descartadas. */
+	/** Fraction of viable candidates discarded. */
 	private static double simulate(List<RandomSpreadStructurePlacement> placements, int n, String label, int seeds, int areaBlocks) {
 		UniqueSeparation sep = new UniqueSeparation(label, ids, nulls(), placements, always, true, n);
 		int area = areaBlocks / 16, bucket = (n + 15) / 16, margin = 2 * ((n + 15) / 16) + 8;
@@ -187,7 +187,7 @@ class UniqueSeparationTest {
 					}
 				}
 			}
-			Map<Long, List<Cand>> survivors = new HashMap<>(); // cubos de N x N: basta mirar los 3 x 3 vecinos
+			Map<Long, List<Cand>> survivors = new HashMap<>(); // cubes of N x N: checking the 3 x 3 neighbors is enough
 			for (Cand c : cands) {
 				if (c.survives) {
 					survivors.computeIfAbsent(ChunkPos.pack(Math.floorDiv(c.x, bucket), Math.floorDiv(c.z, bucket)), q -> new ArrayList<>()).add(c);
@@ -206,7 +206,7 @@ class UniqueSeparationTest {
 				}
 				for (Cand b : near) {
 					if (b.type == a.type && b != a && dist2(a, b) <= 1024L * 1024 && placements.get(a.type) instanceof GridPlacement) {
-						sameTypeClose++; // la separación interna de la rejilla debe impedirlo
+						sameTypeClose++; // the grid's internal separation must prevent it
 					}
 					if (b.type != a.type && b.survives && dist2(a, b) < nSq) {
 						survivorNear = true;
@@ -223,7 +223,7 @@ class UniqueSeparationTest {
 				}
 			}
 		}
-		double cells = seeds * Math.pow(2.0 * areaBlocks / 4000, 2); // casillas de 4.000 bloques (la separación por defecto)
+		double cells = seeds * Math.pow(2.0 * areaBlocks / 4000, 2); // cells of 4,000 blocks (the default separation)
 		System.out.printf("Separación (%s, N = %d): %d semillas, %d supervivientes, %d descartadas (%.1f %%), %.2f supervivientes"
 						+ " por casilla de 4.000 bloques (%.2f viables), %.2f µs por comprobación, %.2f viabilidades por candidata%n", label, n,
 				seeds, kept, lost, 100.0 * lost / Math.max(1, kept + lost), kept / cells, (kept + lost) / cells,

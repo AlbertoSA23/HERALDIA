@@ -16,7 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Migración generalizada del fichero de configuración (T46): pasos en orden, versión, la 1 → 2 y la copia de seguridad. */
+/** Generalized migration of the configuration file (T46): steps in order, version, 1 → 2 and the backup. */
 class ConfigMigrationTest {
 	@TempDir
 	Path dir;
@@ -38,27 +38,27 @@ class ConfigMigrationTest {
 		assertTrue(r.migrated());
 		JsonObject upToDate = new JsonObject();
 		assertFalse(m.migrate(upToDate, 4, 4).migrated());
-		assertFalse(upToDate.has("version"));                     // ya al día: no se toca
+		assertFalse(upToDate.has("version"));                     // already up to date: not touched
 	}
 
 	@Test
 	void fromOneToTwoWithBackup() throws IOException {
 		Path f = dir.resolve("heraldia.json");
-		// un fichero de la versión 1 lo escribía el mod con todas las opciones: las que tenían el valor por defecto se quitan
+		// a version 1 file was written by the mod with all options: those with the default value are removed
 		String v1 = "{\"version\": 1, \"dificultad\": {\"nivel\": \"normal\"}, \"jefes\": {\"refuerzos\": {\"porcentaje\": 150}},"
 				+ " \"aldeas\": {\"porcentaje_grandes\": 40}}";
 		Files.writeString(f, v1);
 		HeraldiaConfig c = HeraldiaConfig.load(f);
 		Path backup = dir.resolve("heraldia.json.v1.bak");
 		assertTrue(Files.isRegularFile(backup));
-		assertEquals(v1, Files.readString(backup));          // la copia es el fichero tal cual estaba
+		assertEquals(v1, Files.readString(backup));          // the backup is the file as it was
 		JsonObject newValue = JsonParser.parseString(Files.readString(f)).getAsJsonObject();
 		assertEquals(2, newValue.get("version").getAsInt());
 		assertFalse(newValue.has("dificultad") && newValue.getAsJsonObject("dificultad").has("nivel"));
 		assertEquals(150, newValue.getAsJsonObject("jefes").getAsJsonObject("refuerzos").get("porcentaje").getAsInt());
 		assertEquals(40, c.getInt("aldeas.porcentaje_grandes"));
 		assertEquals(150, c.getInt("jefes.refuerzos.porcentaje"));
-		// al volver a arrancar ya está en la 2: ni otra copia ni cambios
+		// on starting again it is already at 2: neither another backup nor changes
 		String after = Files.readString(f);
 		HeraldiaConfig.load(f);
 		assertEquals(after, Files.readString(f));
@@ -81,7 +81,7 @@ class ConfigMigrationTest {
 	void reloadMakesNoBackup() throws IOException {
 		Path f = dir.resolve("heraldia.json");
 		Files.writeString(f, "{\"version\": 1}");
-		HeraldiaConfig.readValues(f);                       // la pantalla y /heraldia reload leen sin reescribir
+		HeraldiaConfig.readValues(f);                       // the screen and /heraldia reload read without rewriting
 		assertFalse(Files.exists(dir.resolve("heraldia.json.v1.bak")));
 	}
 }

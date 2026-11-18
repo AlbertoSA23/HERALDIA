@@ -18,9 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * /heraldia reload con el perfil de juego (T36): cambiar «perfil» en el fichero y recargar aplica todas sus opciones sin
- * reiniciar (son recargables), recalcula la dificultad de los mobs ya cargados y no deja nada pendiente; una opción
- * fijada a mano sigue mandando tras recargar.
+ * /heraldia reload with the gameplay profile (T36): changing "perfil" in the file and reloading applies all its options without
+ * restarting (they are reloadable), recomputes the difficulty of the already loaded mobs and leaves nothing pending; an option
+ * set by hand still overrides after reloading.
  */
 class ProfileReloadTest {
 	@TempDir

@@ -18,8 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Recarga en caliente (/heraldia reload): qué opciones se aplican sin reiniciar, la mezcla con lo que está en uso y
- * {@link HeraldiaConfig#reload} con un fichero real (sin reescribirlo).
+ * Hot reload (/heraldia reload): which options apply without restarting, the merge with what is in use and
+ * {@link HeraldiaConfig#reload} with a real file (without rewriting it).
  */
 class ReloadTest {
 	@TempDir
@@ -55,7 +55,7 @@ class ReloadTest {
 				"arena.generar_en_mundos_nuevos", "una.opcion.nueva")) {
 			assertFalse(Reload.reloadable(k), k);
 		}
-		// un prefijo con punto no casa con otra palabra que empiece igual
+		// a prefix with a dot does not match another word that starts the same
 		assertFalse(Reload.reloadable("dificultades.nivel"));
 		assertFalse(Reload.reloadable("aldeas.vida.asedios_extra"));
 	}
@@ -82,8 +82,8 @@ class ReloadTest {
 		Map<String, JsonPrimitive> loaded = new LinkedHashMap<>(inUse);
 		loaded.put("aldeas.separacion_bloques", new JsonPrimitive(3000));
 		loaded.put("dificultad.nivel", new JsonPrimitive("heroica"));
-		loaded.put("minas.vanilla.multiplicador", new JsonPrimitive(2));   // el mismo número escrito sin decimales
-		loaded.remove("jefes.barra.activado");                              // si falta, se conserva
+		loaded.put("minas.vanilla.multiplicador", new JsonPrimitive(2));   // the same number written without decimals
+		loaded.remove("jefes.barra.activado");                              // if missing, it is kept
 
 		Reload.Result r = Reload.merge(inUse, loaded);
 		assertEquals(List.of("dificultad.nivel"), r.applied());
@@ -126,7 +126,7 @@ class ReloadTest {
 		assertTrue(now.getBool("arena.generar_en_mundos_nuevos"));
 		assertEquals(villages.enabledStyles(), now.villages().enabledStyles(), "las reglas de las aldeas no cambian");
 		assertEquals(written, Files.readString(file), "recargar no reescribe el fichero");
-		// lo que espera al reinicio se sigue avisando en cada recarga, y sin cambios no se sustituye nada
+		// what waits for the restart keeps being reported on each reload, and without changes nothing is replaced
 		Reload.Result other = HeraldiaConfig.reload(file);
 		assertTrue(other.applied().isEmpty());
 		assertEquals(3, other.pending().size());

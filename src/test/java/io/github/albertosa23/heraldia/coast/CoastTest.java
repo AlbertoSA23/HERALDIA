@@ -29,11 +29,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Faros y naufragios sin servidor: la rejilla heraldia:rejilla de los grupos costa/faro y costa/naufragio (activación y
- * separación de faros.* y naufragios.*: la frecuencia configurable), la regla de {@link Coast} (la de las minas con su
- * familia, {@link Mines#family}) con todo inyectado: ninguna superviviente en la zona de una aldea o una única, junto a
- * una mediana o una entrada a mina que sale, ni un faro a menos de la distancia mínima de un naufragio; y
- * {@link Mines#near} (la mina más cercana que sale, la que hace ceder a la costa).
+ * Lighthouses and shipwrecks without a server: the heraldia:rejilla grid of the groups costa/faro and costa/naufragio (activation and
+ * separation from faros.* and naufragios.*: the configurable frequency), the rule of {@link Coast} (the mines' one with its
+ * family, {@link Mines#family}) with everything injected: no survivor in the zone of a village or a unique, next to
+ * a medium or a mine entrance that wins, nor a lighthouse within the minimum distance of a shipwreck; and
+ * {@link Mines#near} (the nearest mine that wins, the one that makes the coast yield).
  */
 class CoastTest {
 	private static final String[] TYPES = {"faro", "naufragio"};
@@ -73,7 +73,7 @@ class CoastTest {
 		return ps;
 	}
 
-	/** La regla de la costa tal y como la arma Costa.of: la familia de las minas con los dos tipos de la costa. */
+	/** The coast rule as Coast.of builds it: the mines' family with the two coast types. */
 	private static Mines family(int distance) {
 		List<Identifier> types = new ArrayList<>();
 		List<List<Identifier>> ids = new ArrayList<>();
@@ -105,7 +105,7 @@ class CoastTest {
 
 	@Test
 	void frequencyBySeparation() throws IOException {
-		// candidatas en un cuadrado de 400 x 400 chunks: una por casilla, así que con la mitad de separación, unas 4 veces más
+		// candidates in a 400 x 400 chunk square: one per cell, so with half the separation, about 4 times more
 		int[] howMany = new int[2];
 		String[] cfg = {"{}", "{\"faros\": {\"separacion_bloques\": 512}}"};
 		for (int k = 0; k < 2; k++) {
@@ -176,7 +176,7 @@ class CoastTest {
 					}
 				}
 			}
-			Mines other = family(distance);              // el mismo resultado en cualquier orden
+			Mines other = family(distance);              // the same result in any order
 			for (int k = all.size() - 1; k >= 0; k--) {
 				Candidate c = all.get(k);
 				assertEquals(alive.contains(c), !other.rejects(c.type, c.x, c.z, seed, free, allStyles, free, free), c.toString());
@@ -193,7 +193,7 @@ class CoastTest {
 		MediumStructures.Zone here = (x, z) -> x == c.x && z == c.z;
 		assertTrue(family(192).rejects(c.type, c.x, c.z, 77, here, allStyles, free, free), "en la zona de una aldea o una única");
 		assertTrue(family(192).rejects(c.type, c.x, c.z, 77, free, allStyles, free, here), "junto a una mediana o una mina");
-		// una entrada a mina que sale a 80 bloques: Costa compone la zona con Minas.cerca, como en el juego
+		// a mine entrance that wins 80 blocks away: Coast composes the zone with Mines.near, as in the game
 		GridPlacement mouth = MinesGrid.grid();
 		Mines mines = MinesGrid.mines(mouth);
 		ChunkPos m = mouth.getPotentialStructureChunk(8, mouth.offsetX(), mouth.offsetZ());
@@ -207,7 +207,7 @@ class CoastTest {
 		assertTrue(family(192).rejects(c.type, m.x() + 5, m.z(), 8, free, allStyles, free, nearMine), "el faro cede a la mina");
 	}
 
-	/** Una rejilla de entradas a mina pequeñas (la del datapack) para probar Minas.cerca. */
+	/** A grid of small mine entrances (the datapack's) to test Mines.near. */
 	private static final class MinesGrid {
 		static GridPlacement grid() {
 			return CoastTest.grid("minas/pequena", 48, 1907261101);

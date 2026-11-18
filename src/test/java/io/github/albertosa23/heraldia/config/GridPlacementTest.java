@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * GridPlacement (heraldia:rejilla) con semillas, sin servidor: lo que se lee de la configuración (rejilla, separación
- * interna, activada, máximo de casillas de las aldeas) y que la candidata de cada casilla cae en su ventana y es
- * determinista. Solo invariantes: los números concretos los mide UniqueSeparationTest.
+ * GridPlacement (heraldia:rejilla) with seeds, without a server: what is read from the configuration (grid, internal
+ * separation, enabled, maximum village cells) and that each cell's candidate falls in its window and is
+ * deterministic. Only invariants: UniqueSeparationTest measures the concrete numbers.
  */
 class GridPlacementTest {
 	@TempDir
@@ -64,7 +64,7 @@ class GridPlacementTest {
 				for (int gz = -3; gz <= 3; gz++) {
 					int x0 = gx * s + g.offsetX(), z0 = gz * s + g.offsetZ();
 					ChunkPos c = g.getPotentialStructureChunk(seed, x0, z0);
-					// cualquier chunk de la casilla da la misma candidata
+					// any chunk of the cell gives the same candidate
 					assertEquals(c, g.getPotentialStructureChunk(seed, x0 + s - 1, z0 + s / 2));
 					assertTrue(c.x() - x0 >= 0 && c.x() - x0 < window && c.z() - z0 >= 0 && c.z() - z0 < window,
 							"candidata " + c + " fuera de la ventana de la casilla " + gx + "," + gz);

@@ -29,7 +29,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** La consulta de verdad por HTTP contra un servidor local (como la API de GitHub) y el mensaje del aviso. */
+/** The real HTTP query against a local server (like the GitHub API) and the notice message. */
 class VersionNoticeTest {
 	private HttpServer http;
 	private final Map<String, String> responses = new ConcurrentHashMap<>();
@@ -118,7 +118,7 @@ class VersionNoticeTest {
 		assertThrows(IllegalArgumentException.class, () -> VersionNotice.query(base() + "/releases", v, "26.3", false));
 		responses.put("/repos/Stufanplay/HERALDIA/releases", "x".repeat(VersionNotice.MAX_BYTES + 10));
 		assertThrows(IOException.class, () -> VersionNotice.query(base() + "/releases", v, "26.3", false));
-		// nadie escucha en el puerto: falla enseguida, sin colgarse
+		// nobody listens on the port: it fails right away, without hanging
 		int free;
 		try (ServerSocket s = new ServerSocket(0)) {
 			free = s.getLocalPort();

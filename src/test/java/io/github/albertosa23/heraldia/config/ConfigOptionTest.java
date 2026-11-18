@@ -8,7 +8,7 @@ import com.google.gson.JsonPrimitive;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/** ConfigOption leída del esquema (ConfigOption.of) y su validación, sin depender de las opciones reales. */
+/** ConfigOption read from the schema (ConfigOption.of) and its validation, without depending on the real options. */
 class ConfigOptionTest {
 	private static ConfigOption of(String json) {
 		return ConfigOption.of(JsonParser.parseString(json).getAsJsonObject());

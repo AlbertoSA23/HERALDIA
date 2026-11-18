@@ -24,9 +24,9 @@ import java.util.Map;
 import java.util.function.Predicate;
 import org.junit.jupiter.api.Test;
 
-/** Los alias ocultos de los nombres antiguos (lógica pura sobre Brigadier, con un árbol de prueba). */
+/** The hidden aliases of the old names (pure logic over Brigadier, with a test tree). */
 class AliasTest {
-	/** Fuente de prueba: si es operador y lo que se ha ejecutado y avisado. */
+	/** Test source: whether it is an operator and what was run and warned. */
 	record Source(boolean op, List<String> log) {
 	}
 
@@ -43,7 +43,7 @@ class AliasTest {
 		});
 	}
 
-	/** /heraldia guide, info [nearby [radius] | here], arena [place [confirm] | stop] (las de arena, de operador). */
+	/** /heraldia guide, info [nearby [radius] | here], arena [place [confirm] | stop] (the arena ones, for operators). */
 	static CommandDispatcher<Source> tree() {
 		CommandDispatcher<Source> d = new CommandDispatcher<>();
 		d.register(lit("heraldia")
@@ -59,7 +59,7 @@ class AliasTest {
 						.then(order("stop", "stop").requires(OP))));
 		int n = Alias.add(d.getRoot().getChild("heraldia"), Alias.LEGACY,
 				(f, old, fresh) -> f.log().add("aviso " + old + " -> " + fresh));
-		// guia, cerca, aqui, colocar, confirmar (bajo place) y parar
+		// guia, cerca, aqui, colocar, confirmar (under place) and parar
 		assertEquals(6, n);
 		return d;
 	}
@@ -83,7 +83,7 @@ class AliasTest {
 		CommandDispatcher<Source> d = tree();
 		assertEquals(List.of("aviso /heraldia guia -> /heraldia guide", "guide"), execute(d, "heraldia guia", false));
 		assertEquals(List.of("aviso /heraldia info cerca -> /heraldia info nearby", "nearby"), execute(d, "heraldia info cerca", false));
-		// con argumentos: el aviso nombra el comando, no los argumentos
+		// with arguments: the notice names the command, not the arguments
 		assertEquals(List.of("aviso /heraldia info cerca -> /heraldia info nearby", "nearby 700"), execute(d, "heraldia info cerca 700", false));
 		assertEquals(List.of("aviso /heraldia info aqui -> /heraldia info here", "here"), execute(d, "heraldia info aqui", false));
 		assertEquals(List.of("aviso /heraldia arena colocar -> /heraldia arena place", "place"), execute(d, "heraldia arena colocar", true));
@@ -117,7 +117,7 @@ class AliasTest {
 		assertSame(h.getChild("info").getChild("nearby"), ((Alias.Hidden<Source>) h.getChild("info").getChild("cerca")).destination());
 		CommandNode<Source> place = h.getChild("arena").getChild("place");
 		assertSame(place.getChild("confirm"), ((Alias.Hidden<Source>) place.getChild("confirmar")).destination());
-		// dentro de la copia, los hijos no son raíces de alias (los oculta su padre)
+		// inside the copy, the children are not alias roots (their parent hides them)
 		assertFalse(h.getChild("arena").getChild("colocar").getChild("confirmar") instanceof Alias.Hidden);
 		assertNotNull(h.getChild("arena").getChild("colocar").getChild("confirm"));
 	}
@@ -129,7 +129,7 @@ class AliasTest {
 		}));
 	}
 
-	/** El árbol que recibe el cliente, como Commands.fillUsableCommands con CommandsMixin: sin los alias. */
+	/** The tree the client receives, like Commands.fillUsableCommands with CommandsMixin: without the aliases. */
 	static <S> RootCommandNode<S> fromClient(CommandNode<S> root, S source) {
 		RootCommandNode<S> out = new RootCommandNode<>();
 		copy(root, out, source);
@@ -161,7 +161,7 @@ class AliasTest {
 		assertEquals(List.of("place", "stop"), suggestions(client, "heraldia arena ", op));
 		assertEquals(List.of("confirm"), suggestions(client, "heraldia arena place ", op));
 		assertEquals(List.of(), suggestions(client, "heraldia gu", op).stream().filter(s -> s.equals("guia")).toList());
-		// el servidor sí los conoce (sin el filtro, salen)
+		// the server does know them (without the filter, they show)
 		assertTrue(suggestions(d, "heraldia ", op).contains("guia"));
 	}
 

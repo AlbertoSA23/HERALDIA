@@ -36,11 +36,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Guía del Heraldo con los datos generados (heraldia/guia.json y los idiomas del .jar) y las únicas reales: paginación,
- * límites del libro vanilla, que un cliente sin el mod lo lee (todo traducible lleva respaldo y el texto que ve es el
- * del idioma pedido), el diario con 0, algunas y todas las únicas descubiertas y la regla de «ya entregada».
- * Que cada página cabe en 14 líneas lo comprueba el generador (tools/gen/tests/test_guia.py) con nombresPorPagina y
- * pistasPorPagina; aquí, que el Java respeta esas cuentas.
+ * Herald's Guide with the generated data (heraldia/guia.json and the .jar's languages) and the real uniques: pagination,
+ * vanilla book limits, that a client without the mod reads it (everything translatable has a fallback and the text it sees is
+ * that of the requested language), the journal with 0, some and all uniques discovered and the "already given" rule.
+ * That each page fits in 14 lines is checked by the generator (tools/gen/tests/test_guia.py) with namesPerPage and
+ * cluesPerPage; here, that the Java respects those counts.
  */
 class GuideTest {
 	private static final Path GEN = Path.of(System.getProperty("heraldia.generated", "build/generated/heraldia"));
@@ -74,7 +74,7 @@ class GuideTest {
 		return d.pages().size() + 1 + Math.ceilDiv(done, d.namesPerPage()) + Math.ceilDiv(missing, d.cluesPerPage());
 	}
 
-	/** Lo que ve un cliente vanilla: sin las claves del mod, cada traducible se pinta con su respaldo. */
+	/** What a vanilla client sees: without the mod's keys, each translatable is drawn with its fallback. */
 	private static String view(Component c) {
 		return c.getString();
 	}
@@ -134,7 +134,7 @@ class GuideTest {
 		int fixed = Guide.DATA.pages().size();
 		String summary = view(pages.get(fixed));
 		assertTrue(summary.startsWith("Tu diario\n\nHas descubierto " + n + " de las " + ids.size() + " "), summary);
-		// cada página de la lista lleva su título y como mucho las entradas que caben
+		// each list page has its title and at most the entries that fit
 		int names = 0, clues = 0;
 		for (Component c : pages.subList(fixed + 1, pages.size())) {
 			String[] lines = view(c).split("\n");
@@ -176,11 +176,11 @@ class GuideTest {
 		for (Guide.Unique x : u) {
 			String name = "• " + es.get("heraldia.unicas." + x.id() + ".nombre");
 			String clue = es.get("heraldia.historia." + x.id() + ".pista");
-			// de las descubiertas, el nombre y no la pista; de las que faltan, la pista y nunca el nombre
+			// of the discovered ones, the name and not the clue; of the missing ones, the clue and never the name
 			assertEquals(x.discovered(), journal.contains(name + "\n") || journal.endsWith(name), x.id());
 			assertEquals(!x.discovered(), journal.contains(clue), x.id());
 		}
-		// pistas suaves: sin coordenadas (ningún número en las páginas de pistas)
+		// soft clues: no coordinates (no number on the clue pages)
 		for (Component c : pages.subList(fixed + 2, pages.size())) {
 			if (view(c).startsWith(es.get("heraldia.guia.pistas"))) {
 				assertFalse(view(c).matches("(?s).*\\d.*"), view(c));
@@ -263,7 +263,7 @@ class GuideTest {
 		assertEquals("The Herald's Guide", book.getHoverName().getString());
 		assertEquals("Heraldia edition 9.9.9", book.get(DataComponents.LORE).lines().get(0).getString());
 		assertEquals("9.9.9", book.get(DataComponents.CUSTOM_DATA).copyTag().getStringOr("heraldia_guia_libro", ""));
-		// el componente del libro se codifica y se lee igual (lo que viaja al cliente y se guarda), y cada página cabe
+		// the book component encodes and decodes the same (what travels to the client and gets saved), and each page fits
 		JsonElement json = WrittenBookContent.CODEC.encodeStart(JsonOps.INSTANCE, w).getOrThrow();
 		WrittenBookContent read = WrittenBookContent.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow();
 		assertEquals(json, WrittenBookContent.CODEC.encodeStart(JsonOps.INSTANCE, read).getOrThrow());
@@ -275,7 +275,7 @@ class GuideTest {
 			String s = ComponentSerialization.CODEC.encodeStart(JsonOps.INSTANCE, p.raw()).getOrThrow().toString();
 			assertTrue(s.length() < WrittenBookContent.PAGE_LENGTH, s.length() + " caracteres");
 		}
-		// el objeto entero, con los registros del juego (como al guardar el inventario)
+		// the whole item, with the game's registries (as when saving the inventory)
 		var ops = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).createSerializationContext(JsonOps.INSTANCE);
 		JsonElement item = ItemStack.CODEC.encodeStart(ops, book).getOrThrow();
 		ItemStack backup = ItemStack.CODEC.parse(ops, item).getOrThrow();
@@ -298,7 +298,7 @@ class GuideTest {
 		assertEquals("guide", guide.getName());
 		assertNotNull(guide);
 		assertNotNull(guide.getCommand());
-		// sin .requires: el requisito por defecto acepta cualquier fuente, también la de un jugador sin permisos
+		// no .requires: the default requirement accepts any source, also that of a player without permissions
 		assertTrue(guide.getRequirement().test(null));
 	}
 
@@ -317,7 +317,7 @@ class GuideTest {
 		assertEquals("The Herald's Guide", Texts.language("../../x").get("heraldia.guia.nombre"));
 	}
 
-	/** En cada idioma del .jar: el libro vanilla es válido, sus páginas salen en ese idioma y las descubiertas, en su orden. */
+	/** In each .jar language: the vanilla book is valid, its pages come out in that language and the discovered ones, in their order. */
 	@ParameterizedTest
 	@ValueSource(strings = {"es_es", "en_us", "fr_fr", "de_de", "it_it", "pt_br", "ca_es", "gl_es"})
 	void bookInEachLanguage(String language) {
@@ -329,7 +329,7 @@ class GuideTest {
 		WrittenBookContent content = book.get(DataComponents.WRITTEN_BOOK_CONTENT);
 		assertEquals(title, content.title().raw());
 		assertEquals(expectedPages(ids.size() / 2, ids.size() - ids.size() / 2), content.pages().size());
-		assertTrue(content.pages().size() <= 100);   // máximo de páginas de un libro vanilla
+		assertTrue(content.pages().size() <= 100);   // maximum pages of a vanilla book
 		List<Component> pages = Guide.pages(Guide.DATA, texts, uniques(ids.size()));
 		assertEquals(texts.get("heraldia.guia.pagina.bienvenida.titulo") + "\n\n" + texts.get("heraldia.guia.pagina.bienvenida"),
 				view(pages.get(0)));

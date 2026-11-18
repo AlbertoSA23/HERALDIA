@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Rumbo de 8 puntos de /heraldia info nearby (norte = -z, como en el juego). */
+/** 8-point heading of /heraldia info nearby (north = -z, as in the game). */
 class InfoCommandTest {
 	@BeforeAll
 	static void bootstrap() {
@@ -31,11 +31,11 @@ class InfoCommandTest {
 
 	@Test
 	void sectorsOf45Degrees() {
-		// cada rumbo cubre ±22,5°: a 20° del norte sigue siendo norte; a 25°, noreste
-		assertEquals("n", InfoCommand.direction(36, -100)); // ~19,8°
-		assertEquals("ne", InfoCommand.direction(47, -100)); // ~25,2°
+		// each heading covers ±22.5°: at 20° from north it is still north; at 25°, northeast
+		assertEquals("n", InfoCommand.direction(36, -100)); // ~19.8°
+		assertEquals("ne", InfoCommand.direction(47, -100)); // ~25.2°
 		assertEquals("e", InfoCommand.direction(100, 36));
-		assertEquals("s", InfoCommand.direction(0, 0)); // sin desplazamiento: atan2(0, 0) = 0, el sur
+		assertEquals("s", InfoCommand.direction(0, 0)); // no offset: atan2(0, 0) = 0, south
 	}
 
 	@Test

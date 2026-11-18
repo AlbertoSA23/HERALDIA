@@ -12,7 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Qué aldeas puede generar una casilla (VillageRules) según la configuración: estilos, familias y tamaño. */
+/** Which villages a cell can generate (VillageRules) according to the configuration: styles, families and size. */
 class VillageRulesTest {
 	@TempDir
 	Path dir;

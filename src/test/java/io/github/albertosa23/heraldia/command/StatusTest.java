@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** /heraldia status (lógica pura): logros de los ficheros de los jugadores, recuento por tipo y paginación. */
+/** /heraldia status (pure logic): advancements from the players' files, count per type and pagination. */
 class StatusTest {
 	@TempDir
 	Path dir;
@@ -65,7 +65,7 @@ class StatusTest {
 		UUID online = UUID.randomUUID(), outside = UUID.randomUUID();
 		Files.writeString(dir.resolve(online + ".json"), FILE);
 		Files.writeString(dir.resolve(outside + ".json"), "{\"heraldia:minas/pequena\": {\"criteria\": {\"pequena\": \"x\"}, \"done\": true}}");
-		Files.writeString(dir.resolve("otro.json"), FILE);            // no es un uuid
+		Files.writeString(dir.resolve("otro.json"), FILE);            // not a uuid
 		Files.writeString(dir.resolve(UUID.randomUUID() + ".json"), "{roto");
 		Files.writeString(dir.resolve("notas.txt"), FILE);
 		State.Achievements l = new State.Achievements();

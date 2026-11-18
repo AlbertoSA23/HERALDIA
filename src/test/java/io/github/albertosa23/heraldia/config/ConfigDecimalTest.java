@@ -14,7 +14,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Opciones con decimales (el valor por defecto con punto en el esquema, como minas.vanilla.multiplicador = 2.0). */
+/** Options with decimals (the default value with a dot in the schema, like minas.vanilla.multiplicador = 2.0). */
 class ConfigDecimalTest {
 	private static final ConfigOption DECIMAL = ConfigOption.of(JsonParser.parseString("""
 			{"clave": "m.x", "defecto": 2.0, "min": 1, "max": 5, "ayuda": "k", "seccion": "s", "nombre": "n"}""").getAsJsonObject());

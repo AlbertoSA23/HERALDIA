@@ -30,16 +30,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * unicas.rejilla_compatible: las únicas que ya estaban en la 0.1.0 (rama main) dan, para la misma semilla y
- * configuración, exactamente las mismas candidatas y los mismos descartes por distancia mínima que entonces. La
- * referencia es una copia del algoritmo de la 0.1.0 (GridPlacement y UniqueSeparation de main, commit 3248f74): rejilla
- * random_spread con la separación del datapack escalada (190/250), origen común, y el descarte por rango entre las únicas
- * de entonces más la Atlántida. Lo de aquí sale del código en uso: los structure_set generados leídos con
- * GridPlacement.CODEC y UniqueSeparation.blocked, la llamada de los mixins. La viabilidad (bioma y terreno) se simula con
- * un hash por id, igual para las dos; el bioma real lo comprueba tools/smoke/rejilla_compatible.py contra el .jar de main.
+ * unicas.rejilla_compatible: the uniques that already existed in 0.1.0 (main branch) give, for the same seed and
+ * configuration, exactly the same candidates and the same minimum-distance discards as back then. The
+ * reference is a copy of the 0.1.0 algorithm (GridPlacement and UniqueSeparation from main, commit 3248f74): a
+ * random_spread grid with the datapack's separation scaled (190/250), a common origin, and the rank discard among the uniques
+ * of back then plus Atlantis. What is tested here comes from the code in use: the generated structure_sets read with
+ * GridPlacement.CODEC and UniqueSeparation.blocked, the mixins' call. The viability (biome and terrain) is simulated with
+ * a hash per id, the same for both; the real biome is checked by tools/smoke/rejilla_compatible.py against main's .jar.
  */
 class CompatibleGridTest {
-	/** Únicas de la 0.1.0 con rejilla (la Atlántida tiene colocación propia y entonces ya ganaba siempre). */
+	/** 0.1.0 uniques with a grid (Atlantis has its own placement and already always won back then). */
 	private static final Set<String> MAIN = Set.of("acueducto", "castillo", "catedral", "ciudadela", "coliseo", "faro", "fortaleza_hielo",
 			"galeon", "mansion", "monasterio", "observatorio", "palacio", "piramide", "torre_mago");
 	private static final Identifier ATLANTIS = Identifier.parse("heraldia:unicas/atlantida");
@@ -55,7 +55,7 @@ class CompatibleGridTest {
 
 	@AfterAll
 	static void restore() {
-		HeraldiaConfig.load(null); // la de por defecto, para las demás pruebas
+		HeraldiaConfig.load(null); // the default one, for the other tests
 	}
 
 	private record Sets(List<Identifier> ids, List<RandomSpreadStructurePlacement> placements, List<Boolean> always,
@@ -116,7 +116,7 @@ class CompatibleGridTest {
 	@Test
 	void sameCandidatesAndDiscardsAsPreviousVersion() throws IOException {
 		compare("{\"unicas\": {\"rejilla_compatible\": true}}", 40, 24_000);
-		// Otra separación y otra distancia mínima: la proporción escalada y el alcance del descarte también coinciden.
+		// Another separation and another minimum distance: the scaled ratio and the discard's reach also match.
 		compare("{\"unicas\": {\"rejilla_compatible\": true, \"distancia_minima\": {\"bloques\": 1800},"
 				+ " \"castillo\": {\"separacion_bloques\": 1000}, \"monasterio\": {\"separacion_bloques\": 1300},"
 				+ " \"faro\": {\"separacion_bloques\": 2000}, \"palacio\": {\"activada\": false}}}", 20, 12_000);
@@ -144,7 +144,7 @@ class CompatibleGridTest {
 		assertTrue(differ > total * 9 / 10, "con la opción desactivada casi todas las candidatas cambian: " + differ + " de " + total);
 	}
 
-	/** Rejilla de una única en la 0.1.0 (GridPlacement.create de main): separación escalada, origen común, sin bioma. */
+	/** Grid of a unique in 0.1.0 (main's GridPlacement.create): scaled separation, common origin, no biome. */
 	private static MainGrid mainGrid(JsonObject placement, HeraldiaConfig cfg) {
 		String key = placement.get("grupo").getAsString().replace('/', '.');
 		int spacing = placement.get("spacing").getAsInt(), separation = placement.get("separation").getAsInt();
@@ -173,7 +173,7 @@ class CompatibleGridTest {
 		boolean on = cfg.getBool("unicas.distancia_minima.activada");
 		int n = cfg.getInt("unicas.distancia_minima.bloques");
 		UniqueSeparation now = new UniqueSeparation("ahora", s.ids, nulls(s.ids.size()), s.placements, s.always, on, n);
-		// La 0.1.0: solo sus únicas (y la Atlántida), en el mismo orden relativo.
+		// 0.1.0: only its uniques (and Atlantis), in the same relative order.
 		List<Identifier> oldIds = new ArrayList<>();
 		List<RandomSpreadStructurePlacement> oldPlacements = new ArrayList<>();
 		List<Boolean> oldAlways = new ArrayList<>();
@@ -208,7 +208,7 @@ class CompatibleGridTest {
 						ChunkPos a = p.getPotentialStructureChunk(seed, gx * sp, gz * sp), b = q.getPotentialStructureChunk(seed, gx * sp, gz * sp);
 						String where = id + ", semilla " + seed + ", casilla " + gx + "," + gz;
 						assertEquals(b, a, where + ": candidata");
-						// cualquier chunk de la casilla da la misma candidata (así la recorren /locate y la generación)
+						// any chunk of the cell gives the same candidate (that is how /locate and generation walk it)
 						assertEquals(b, p.getPotentialStructureChunk(seed, gx * sp + sp - 1, gz * sp + sp / 2), where + ": candidata desde otro chunk");
 						boolean allowed = q.applyAdditionalChunkRestrictions(b.x(), b.z(), seed);
 						assertEquals(allowed, p.applyAdditionalChunkRestrictions(a.x(), a.z(), seed), where + ": casilla permitida");
@@ -225,7 +225,7 @@ class CompatibleGridTest {
 					}
 				}
 			}
-			// Las nuevas (rejilla nueva) nunca salen a menos de N de una antigua que sobrevive.
+			// The new ones (new grid) never spawn within N of an old one that survives.
 			for (int i = 0; i < s.ids.size(); i++) {
 				if (s.always.get(i) || MAIN.contains(sid(s.ids.get(i)))) {
 					continue;
@@ -271,7 +271,7 @@ class CompatibleGridTest {
 		return out;
 	}
 
-	/** La Atlántida: un solo ancla por semilla, como heraldia:mundial (siempre gana). */
+	/** Atlantis: a single anchor per seed, like heraldia:mundial (always wins). */
 	private static final class FixedAnchor extends RandomSpreadStructurePlacement {
 		FixedAnchor() {
 			super(4096, 0, RandomSpreadType.LINEAR, 0);
@@ -285,8 +285,8 @@ class CompatibleGridTest {
 	}
 
 	/**
-	 * Copia literal del descarte de UniqueSeparation en la 0.1.0 (main, commit 3248f74): sin escalones ni desfases. No se
-	 * toca: es la referencia de lo que ya se generó en los mundos de esa versión.
+	 * Literal copy of UniqueSeparation's discard in 0.1.0 (main, commit 3248f74): no tiers or offsets. Not to be
+	 * touched: it is the reference of what was already generated in that version's worlds.
 	 */
 	private static final class MainSeparation {
 		private final Identifier[] ids;
@@ -372,7 +372,7 @@ class CompatibleGridTest {
 		}
 	}
 
-	private static long mix(long z) { // finalizador de SplitMix64
+	private static long mix(long z) { // SplitMix64 finalizer
 		z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
 		z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
 		return z ^ (z >>> 31);

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** /heraldia profile: el perfil efectivo y el elegido, una línea por opción del perfil y las fijadas a mano marcadas. */
+/** /heraldia profile: the effective and the chosen profile, one line per profile option and those set by hand marked. */
 class ProfileCommandTest {
 	@TempDir
 	Path dir;

@@ -20,7 +20,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Ruta de /heraldia review (lógica pura): orden de las paradas, navegación, marcas, fichero y resumen en Markdown. */
+/** Route of /heraldia review (pure logic): order of the stops, navigation, marks, file and Markdown summary. */
 class RevisionTest {
 	@TempDir
 	Path dir;
@@ -34,12 +34,12 @@ class RevisionTest {
 			"bosque_lenadores", "llanuras_castellana_grande", "taiga_pinar", "aldeas_sin_estilo");
 
 	static Map<String, String> styles() {
-		Map<String, String> m = new LinkedHashMap<>();      // en el orden del esquema: llanuras, bosque, taiga
+		Map<String, String> m = new LinkedHashMap<>();      // in the schema's order: llanuras, bosque, taiga
 		m.put("llanuras_castellana", "llanuras");
 		m.put("llanuras_gallega", "llanuras");
 		m.put("bosque_lenadores", "bosque");
 		m.put("taiga_pinar", "taiga");
-		m.put("pantano_palafitos", "pantano");             // sin estructura registrada: no hay parada
+		m.put("pantano_palafitos", "pantano");             // without a registered structure: no stop
 		return m;
 	}
 
@@ -61,7 +61,7 @@ class RevisionTest {
 		assertEquals("llanuras", a.sub());
 		assertEquals(Type.ROAD, route().getLast().type());
 		assertEquals("", route().getLast().sub());
-		// determinista: el orden de entrada no cambia nada
+		// deterministic: the input order changes nothing
 		List<String> reversed = new java.util.ArrayList<>(STRUCTURES);
 		java.util.Collections.reverse(reversed);
 		assertEquals(route(), Revision.route(reversed, styles(), p -> true, true, true));
@@ -96,7 +96,7 @@ class RevisionTest {
 		reg.markStop(OWNER, "Steve", "aldea/llanuras", Mark.REVIEWED, "", 1000);
 		reg.markStop(OWNER, "Steve", "unica/castillo", Mark.PROBLEM, "  escalera  sin\nterminar ", 2000);
 		reg.markStop(OWNER, "Steve", "mina/grande", Mark.SKIPPED, "", 3000);
-		reg.markStop(OWNER, "Steve", "aldea/llanuras", Mark.PROBLEM, "farol flotando", 4000);   // sustituye
+		reg.markStop(OWNER, "Steve", "aldea/llanuras", Mark.PROBLEM, "farol flotando", 4000);   // replaces
 		Revision.Progress p = reg.players().get(OWNER);
 		assertEquals("escalera  sin terminar", p.note("unica/castillo").note(), "sin saltos de línea ni espacios al borde");
 		assertEquals(Mark.PROBLEM, p.note("aldea/llanuras").mark());
@@ -122,7 +122,7 @@ class RevisionTest {
 		assertEquals(5, read.players().get(OWNER).actual());
 		assertEquals("Vecino", read.players().get(OTHER_PLAYER).name());
 		assertEquals(reg.json(), reg.backup().json());
-		// el orden de los jugadores y de sus marcas se conserva
+		// the order of the players and their marks is kept
 		assertEquals(List.of(OWNER, OTHER_PLAYER), List.copyOf(read.players().keySet()));
 	}
 
@@ -134,7 +134,7 @@ class RevisionTest {
 		assertTrue(Revision.read(broken).players().isEmpty());
 		Files.writeString(broken, "[1, 2]");
 		assertTrue(Revision.read(broken).players().isEmpty());
-		// un jugador mal escrito se ignora y el resto se conserva
+		// a malformed player is ignored and the rest is kept
 		JsonObject o = JsonParser.parseString("{\"jugadores\": {\"no-es-uuid\": {}, \"" + OWNER + "\": {\"nombre\": \"Steve\", "
 				+ "\"actual\": -3, \"paradas\": {\"arena\": {\"marca\": \"revisada\"}, \"camino\": {\"marca\": \"rara\"}}}}}").getAsJsonObject();
 		Files.writeString(broken, o.toString());
@@ -150,7 +150,7 @@ class RevisionTest {
 		Revision.Ledger reg = new Revision.Ledger();
 		reg.markStop(OWNER, "Steve", "aldea/bosque", Mark.REVIEWED, "bonita", 1_700_000_000_000L);
 		reg.markStop(OWNER, "Steve", "unica/castillo", Mark.PROBLEM, "puerta | sin <salida>", 1_700_000_000_000L);
-		reg.markStop(OWNER, "Steve", "unica/borrada", Mark.SKIPPED, "", 0);          // ya no está en la ruta
+		reg.markStop(OWNER, "Steve", "unica/borrada", Mark.SKIPPED, "", 0);          // no longer on the route
 		String md = Revision.markdown(r, reg, p -> "Nombre de " + p.id(), 1_700_000_000_000L);
 		assertTrue(md.startsWith("# Revisión de Heraldia\n"));
 		assertTrue(md.contains("2023-11-14 22:13 (UTC)"));

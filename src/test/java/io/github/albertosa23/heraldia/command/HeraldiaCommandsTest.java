@@ -33,9 +33,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * El árbol real de /heraldia (Comandos.arbol, sin servidor): todos los nombres canónicos en inglés y ASCII (los mismos
- * que tools/gen/comandos.py), cada nombre antiguo resuelve al mismo nodo con los mismos permisos y avisa, y ningún alias
- * sale en el árbol que recibe el cliente (las sugerencias).
+ * The real /heraldia tree (HeraldiaCommands.tree, without a server): all canonical names in English and ASCII (the same
+ * as tools/gen/comandos.py), each old name resolves to the same node with the same permissions and warns, and no alias
+ * shows in the tree the client receives (the suggestions).
  */
 class HeraldiaCommandsTest {
 	private static CommandDispatcher<CommandSourceStack> d;
@@ -55,7 +55,7 @@ class HeraldiaCommandsTest {
 		return d.getRoot().getChild("heraldia");
 	}
 
-	/** Rutas de los nodos visibles (sin alias) bajo /heraldia: literales por su nombre, argumentos como &lt;nombre&gt;. */
+	/** Paths of the visible nodes (without aliases) under /heraldia: literals by their name, arguments as &lt;name&gt;. */
 	private static Set<String> canonical(CommandNode<CommandSourceStack> n, String route, Set<String> out) {
 		for (CommandNode<CommandSourceStack> h : n.getChildren()) {
 			if (!Alias.visible(h)) {
@@ -69,7 +69,7 @@ class HeraldiaCommandsTest {
 		return out;
 	}
 
-	/** CANONICOS de tools/gen/comandos.py (la lista que comprueban también los tests del generador). */
+	/** CANONICOS from tools/gen/comandos.py (the list the generator's tests also check). */
 	private static Set<String> fromCommandsPy() throws IOException {
 		String py = Files.readString(Path.of("tools/gen/comandos.py"), StandardCharsets.UTF_8);
 		Matcher m = Pattern.compile("CANONICOS = \\[(.*?)\\]", Pattern.DOTALL).matcher(py);
@@ -124,7 +124,7 @@ class HeraldiaCommandsTest {
 		}
 	}
 
-	/** Los hijos con su nombre canónico (los de la copia, traducidos con el mapa). */
+	/** The children with their canonical name (those of the copy, translated with the map). */
 	private static Set<String> names(CommandNode<CommandSourceStack> n) {
 		Set<String> out = new TreeSet<>();
 		Map<String, String> inverse = new java.util.HashMap<>();
@@ -158,7 +158,7 @@ class HeraldiaCommandsTest {
 				"heraldia reload")) {
 			parses(order, op);
 		}
-		// sin permisos, solo lo que ya era de todos
+		// without permissions, only what already belonged to everyone
 		parses("heraldia guia", player);
 		parses("heraldia arena salir", player);
 		assertTrue(d.parse("heraldia arena colocar", player).getReader().canRead());
@@ -176,7 +176,7 @@ class HeraldiaCommandsTest {
 				"heraldia arena leaderboard coop 1")) {
 			parses(order, player);
 		}
-		// la temporada es de operadores; la semana tiene un tope
+		// the season is for operators; the week has a cap
 		assertTrue(d.parse("heraldia arena season reset", player).getReader().canRead());
 		assertTrue(d.parse("heraldia arena leaderboard coop 99", op).getExceptions().size() > 0
 				|| d.parse("heraldia arena leaderboard coop 99", op).getReader().canRead());
@@ -205,14 +205,14 @@ class HeraldiaCommandsTest {
 		assertEquals(List.of("reset"), AliasTest.suggestions(client, "heraldia arena season ", op));
 		assertEquals(List.of("here", "nearby"), AliasTest.suggestions(client, "heraldia info ", op));
 		assertEquals(List.of("analyze", "apply", "check", "repair", "undo"), AliasTest.suggestions(client, "heraldia update ", op));
-		// un jugador sin permisos ve solo lo suyo
+		// a player without permissions only sees their own
 		var playerSource = new CommandDispatcher<>(AliasTest.fromClient(d.getRoot(), player));
 		assertEquals(List.of("arena", "guide", "language", "quest", "status"), AliasTest.suggestions(playerSource, "heraldia ", player));
 		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.suggestions(playerSource, "heraldia quest ", player));
-		// T41: cualquiera ve la clasificación y start (los botones del menú de modos; el Java pide estar en el ruedo)
+		// T41: anyone sees the leaderboard and start (the mode menu buttons; the Java requires being in the ring)
 		assertEquals(List.of("leaderboard", "leave", "start"), AliasTest.suggestions(playerSource, "heraldia arena ", player));
 		assertEquals(List.of("coop", "survival", "timeattack"), AliasTest.suggestions(playerSource, "heraldia arena leaderboard ", player));
-		// todos los alias están en el servidor
+		// all the aliases are on the server
 		List<String> hidden = new ArrayList<>();
 		collect(root(), hidden);
 		assertEquals(Alias.LEGACY.size(), hidden.size(), hidden.toString());

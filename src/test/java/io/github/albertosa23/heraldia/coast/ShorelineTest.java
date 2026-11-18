@@ -22,10 +22,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * La orilla de los faros y naufragios ({@link Shoreline}) con mapas de alturas sintéticos: una costa recta en cada una de
- * las cuatro direcciones (el ancla en el último bloque de tierra y el +z de la plantilla hacia el mar), sin costa, risco,
- * desnivel, un río estrecho, la profundidad que pide cada variante, la preferencia del faro por los cabos y las formas del
- * datapack generado (las huellas de verdad: el faro sobre tierra, su embarcadero y la popa o el casco sobre el agua).
+ * The shore of the lighthouses and shipwrecks ({@link Shoreline}) with synthetic height maps: a straight coast in each of
+ * the four directions (the anchor on the last land block and the template's +z towards the sea), no coast, cliff,
+ * drop, a narrow river, the depth each variant asks for, the lighthouse's preference for capes and the shapes of the
+ * generated datapack (the real footprints: the lighthouse on land, its jetty and the stern or hull on the water).
  */
 class ShorelineTest {
 	private static final int SEA = 63;
@@ -39,7 +39,7 @@ class ShorelineTest {
 		Bootstrap.bootStrap();
 	}
 
-	/** Terreno: suelo(x, z); agua donde el suelo queda bajo el mar. */
+	/** Terrain: ground(x, z); water where the ground is below the sea. */
 	private static Shoreline.Terrain terrain(IntBinaryOperator ground) {
 		return new Shoreline.Terrain() {
 			@Override
@@ -54,7 +54,7 @@ class ShorelineTest {
 		};
 	}
 
-	/** Costa recta: tierra a `tierra` hasta la orilla (a 10 bloques del centro hacia d) y mar de `hondo` después. */
+	/** Straight coast: land at `land` up to the shore (10 blocks from the center towards d) and sea of `deep` after it. */
 	private static Shoreline.Terrain straight(Direction d, int land, int deep) {
 		return terrain((x, z) -> x * d.getStepX() + z * d.getStepZ() < 10 ? land : SEA - deep);
 	}
@@ -82,7 +82,7 @@ class ShorelineTest {
 		assertNull(Shoreline.search(terrain((x, z) -> SEA + 3), SEA, 0, 0, LIGHTHOUSE), "todo tierra");
 		assertNull(Shoreline.search(terrain((x, z) -> SEA - 20), SEA, 0, 0, LIGHTHOUSE), "todo mar");
 		assertNull(Shoreline.search(terrain((x, z) -> SEA - 20), SEA, 0, 0, SUNKEN), "todo mar, tampoco el naufragio");
-		// la orilla lejos del centro (más allá del alcance de la búsqueda)
+		// the shore far from the center (beyond the search's reach)
 		assertNull(Shoreline.search(terrain((x, z) -> z < 90 ? SEA + 2 : SEA - 6), SEA, 0, 0, LIGHTHOUSE));
 	}
 
@@ -99,7 +99,7 @@ class ShorelineTest {
 
 	@Test
 	void narrowRiverIsNotCoast() {
-		// tierra a los dos lados de un canal de 4 bloques: no hay mar para el embarcadero ni para la popa
+		// land on both sides of a 4-block channel: there is no sea for the jetty or the stern
 		Shoreline.Terrain river = terrain((x, z) -> z >= 10 && z < 14 ? SEA - 4 : SEA + 2);
 		assertNull(Shoreline.search(river, SEA, 0, 0, LIGHTHOUSE));
 		assertNull(Shoreline.search(river, SEA, 0, 0, STRANDED));
@@ -119,7 +119,7 @@ class ShorelineTest {
 
 	@Test
 	void someRockInShoalDoesNotMatter() {
-		// una muestra de mar de 20 seca (un islote de 1 x 1): el 80 % basta
+		// one dry sea sample out of 20 (a 1 x 1 islet): 80 % is enough
 		Shoreline.Terrain t = terrain((x, z) -> x == 1 && z == 22 ? SEA + 1 : z < 10 ? SEA + 1 : SEA - 5);
 		assertNotNull(Shoreline.evaluateAt(t, SEA, 0, 9, Direction.SOUTH, SUNKEN));
 		Shoreline.Terrain many = terrain((x, z) -> z >= 20 && z <= 40 && Math.floorMod(x, 2) == 0 ? SEA + 1 : z < 10 ? SEA + 1 : SEA - 5);
@@ -128,7 +128,7 @@ class ShorelineTest {
 
 	@Test
 	void lighthousePrefersCapes() {
-		// una esquina de costa: mar al sur (z >= 24) y al este (x >= 24); cerca de la esquina hay más agua alrededor
+		// a coast corner: sea to the south (z >= 24) and east (x >= 24); near the corner there is more water around
 		Shoreline.Terrain corner = terrain((x, z) -> z >= 24 || x >= 24 && z >= -40 ? SEA - 8 : SEA + 2);
 		Shoreline.Site s = Shoreline.search(corner, SEA, 0, 0, LIGHTHOUSE);
 		assertNotNull(s);
@@ -142,7 +142,7 @@ class ShorelineTest {
 	void generatedDatapackShapes() throws IOException {
 		Path dir = Path.of(System.getProperty("heraldia.generated", "build/generated/heraldia"), "data", "heraldia", "worldgen", "structure", "costa");
 		if (!Files.isDirectory(dir)) {
-			return;                                       // sin generar (la prueba unitaria sola)
+			return;                                       // not generated (the unit test alone)
 		}
 		List<Path> fs = new ArrayList<>();
 		try (var w = Files.walk(dir)) {

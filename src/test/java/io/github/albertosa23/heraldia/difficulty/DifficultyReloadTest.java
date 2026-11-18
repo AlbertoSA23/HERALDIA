@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * /heraldia reload y la dificultad: tras recargar, {@link MobDifficulty#adjust} (lo que se hace con cada mob de
- * Heraldia cargado) deja los modificadores del nivel nuevo, sin acumular los del anterior, y en normal los quita.
+ * /heraldia reload and the difficulty: after reloading, {@link MobDifficulty#adjust} (what is done with each loaded Heraldia
+ * mob) leaves the modifiers of the new level, without accumulating those of the previous one, and on normal removes them.
  */
 class DifficultyReloadTest {
 	@TempDir
@@ -62,7 +62,7 @@ class DifficultyReloadTest {
 		MobDifficulty.adjust(health, damage, HeraldiaConfig.get());
 		assertEquals(40, health.getValue(), 1e-9);
 		assertEquals(6, damage.getValue(), 1e-9);
-		// el extra por jugadores (lo pone el golpe) sigue mientras la opción esté activada
+		// the per-player extra (the hit sets it) stays while the option is enabled
 		MobDifficulty.put(health, MobDifficulty.PLAYERS, 0.5);
 		assertEquals(60, health.getValue(), 1e-9);
 
@@ -86,7 +86,7 @@ class DifficultyReloadTest {
 
 	@Test
 	void currentHealthKeepsItsRatioOnReload() {
-		// lo que hace ajustarVida con un mob a media vida al pasar de normal (20) a heroica (40) y luego a fácil (15)
+		// what adjustHealth does with a half-health mob going from normal (20) to heroica (40) and then to facil (15)
 		float v = ModDifficulty.readjustHealth(10, 20, 40);
 		assertEquals(20, v, 1e-6);
 		assertEquals(7.5f, ModDifficulty.readjustHealth(v, 40, 15), 1e-6);

@@ -25,10 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Estructuras medianas sin servidor: la rejilla heraldia:rejilla del grupo medianas/&lt;tipo&gt; (lo que lee de la
- * configuración) y la regla de {@link MediumStructures} con la zona y los estilos inyectados (lógica pura): ninguna superviviente
- * en la zona de una aldea o una única, dos supervivientes nunca a menos de la distancia mínima, toda candidata descartada
- * por otra mediana tiene cerca una superviviente, y el resultado no depende del orden de las consultas.
+ * Medium structures without a server: the heraldia:rejilla grid of the group medianas/&lt;type&gt; (what it reads from the
+ * configuration) and the rule of {@link MediumStructures} with the zone and styles injected (pure logic): no survivor
+ * in the zone of a village or a unique, two survivors never within the minimum distance, every candidate discarded
+ * by another medium has a survivor nearby, and the result does not depend on the order of the queries.
  */
 class MediumsTest {
 	private static final String[] TYPES = {"torre_vigia", "posada", "campamento", "ermita"};
@@ -125,7 +125,7 @@ class MediumsTest {
 	@Test
 	void consistentSeparationBetweenMediums() throws IOException {
 		config("{}");
-		int distance = 400; // más que la de por defecto: más choques que comprobar
+		int distance = 400; // more than the default: more clashes to check
 		long d2 = (long) distance * distance;
 		MediumStructures.Zone free = (x, z) -> false;
 		for (long seed : new long[]{1, 42, -9}) {
@@ -147,7 +147,7 @@ class MediumsTest {
 					}
 				}
 			}
-			int edge = 600 - distance / 16 - 64;   // lejos del borde de lo enumerado (la que la descarta puede estar fuera)
+			int edge = 600 - distance / 16 - 64;   // away from the edge of what was enumerated (the one that discards it may be outside)
 			for (Candidate c : all) {
 				if (alive.contains(c) || Math.abs(c.x) > edge || Math.abs(c.z) > edge) {
 					continue;
@@ -155,7 +155,7 @@ class MediumsTest {
 				boolean near = alive.stream().anyMatch(v -> v.type != c.type && Math.pow((v.x - c.x) * 16.0, 2) + Math.pow((v.z - c.z) * 16.0, 2) < d2);
 				assertTrue(near, c + " descartada sin ninguna superviviente cerca");
 			}
-			// otra instancia, otro orden: mismo resultado (sin estado que dependa de quién pregunta primero)
+			// another instance, another order: same result (no state that depends on who asks first)
 			MediumStructures m2 = mediums(distance);
 			for (int k = all.size() - 1; k >= 0; k--) {
 				Candidate c = all.get(k);
@@ -167,7 +167,7 @@ class MediumsTest {
 	@Test
 	void yieldSiteToForeignStructures() throws IOException {
 		config("{}");
-		GridPlacement grid = grid("posada", 48, 9);   // una rejilla cualquiera hace de estructura vanilla
+		GridPlacement grid = grid("posada", 48, 9);   // any grid acts as a vanilla structure
 		MediumStructures m = new MediumStructures(new Object(), List.of(), List.of(), List.of(), List.of(), null, 192,
 				List.of(new MediumStructures.Foreign(grid, new Structure[]{null}, MediumStructures.FOREIGN_BLOCKS)));
 		ChunkPos c = grid.getPotentialStructureChunk(3, grid.offsetX(), grid.offsetZ());
@@ -182,7 +182,7 @@ class MediumsTest {
 	@Test
 	void onlyThoseAskingYieldToMines() throws IOException {
 		config("{}");
-		GridPlacement mine = grid("posada", 48, 11);    // hace de rejilla de una entrada a mina
+		GridPlacement mine = grid("posada", 48, 11);    // acts as a mine entrance grid
 		List<Identifier> types = List.of(Identifier.fromNamespaceAndPath("heraldia", "medianas/choza_mago"),
 				Identifier.fromNamespaceAndPath("heraldia", "medianas/ermita"));
 		MediumStructures m = new MediumStructures(new Object(), types, List.of(List.of(), List.of()), List.of(List.of(), List.of()),
@@ -198,7 +198,7 @@ class MediumsTest {
 				List.of(grid("choza_mago", 64, 1), grid("ermita", 48, 2)), null, 192, List.of(), new boolean[]{true, false},
 				List.of(new MediumStructures.Foreign(mine, new Structure[]{null}, 192)));
 		assertFalse(n.yieldsToMine(0, c.x() + near, c.z(), 5, (st, x, z) -> false), "si la mina no sale (bioma o ladera), no cede");
-		// sin la lista de las que ceden (el constructor de siempre), ninguna cede
+		// without the list of the yielding ones (the usual constructor), none yields
 		MediumStructures o = new MediumStructures(new Object(), types, List.of(List.of(), List.of()), List.of(List.of(), List.of()),
 				List.of(grid("choza_mago", 64, 1), grid("ermita", 48, 2)), null, 192, List.of());
 		assertFalse(o.yieldsToMine(0, c.x() + near, c.z(), 5, (st, x, z) -> true));
@@ -213,7 +213,7 @@ class MediumsTest {
 		List<Candidate> all = candidates(m, 5, 300);
 		Candidate c = all.getFirst();
 		assertTrue(m.rejects(c.type, c.x, c.z, 77, (x, z) -> x == c.x && z == c.z, allStyles, free), "en la zona de una aldea o una única");
-		// una vecina que no sale (bioma) o que cae en la Atlántida no descarta a nadie
+		// a neighbor that does not win (biome) or that falls in Atlantis discards nobody
 		MediumStructures single = mediums(2000);
 		int alive = 0;
 		for (Candidate o : candidates(single, 6, 300)) {

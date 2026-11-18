@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 /**
- * Perfil de la generación ({@link Profiler}): sin la propiedad no mide nada (coste cero: ni lee el reloj), activo acumula
- * veces, total y máximo por tramo, y el JSON solo lee (volcarlo dos veces da lo mismo).
+ * Generation profile ({@link Profiler}): without the property it measures nothing (zero cost: it does not even read the clock), active it accumulates
+ * count, total and maximum per section, and the JSON only reads (dumping it twice gives the same).
  */
 class ProfilerTest {
 	@Test
@@ -22,7 +22,7 @@ class ProfilerTest {
 			assertEquals(0, Profiler.counters().times(t), t.name());
 		}
 		assertEquals("{}", Profiler.counters().json());
-		Profiler.dump();      // no hace nada ni falla
+		Profiler.dump();      // does nothing and does not fail
 	}
 
 	@Test

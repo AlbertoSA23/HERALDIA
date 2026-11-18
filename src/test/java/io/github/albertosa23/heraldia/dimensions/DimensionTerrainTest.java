@@ -34,10 +34,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Alturas de {@link DimensionStructure} con el terreno real de 26.3 del Nether y del End (VanillaRegistries, sin
- * servidor): en el Nether, el suelo que elige es firme, con aire para toda la plantilla y por debajo del techo de bedrock,
- * nunca sobre el mar de lava, y sus esquinas a ±DESNIVEL; en el End, nunca sobre el vacío ni cerca de la isla central. Y
- * con chunks al azar sale en una parte razonable de las candidatas (si no, casi ninguna rejilla daría estructura).
+ * Heights of {@link DimensionStructure} with the real 26.3 terrain of the Nether and the End (VanillaRegistries, without a
+ * server): in the Nether, the ground it picks is firm, with air for the whole template and below the bedrock ceiling,
+ * never over the lava sea, and its corners within ±DROP; in the End, never over the void nor near the central island. And
+ * with random chunks it spawns in a reasonable share of the candidates (otherwise, almost no grid would give a structure).
  */
 class DimensionTerrainTest {
 	private static final long[] SEEDS = {20261117L, 7L};
@@ -110,7 +110,7 @@ class DimensionTerrainTest {
 				}
 			}
 		}
-		// el Nether es abrupto: no todas las candidatas valen, pero una buena parte sí
+		// the Nether is rugged: not all candidates work, but a good share do
 		assertTrue(exits * 100 >= total * 25, "salen " + exits + " de " + total);
 	}
 
@@ -122,7 +122,7 @@ class DimensionTerrainTest {
 			World m = world(seed, NoiseGeneratorSettings.END, source, LevelHeightAccessor.create(0, 256));
 			Random r = new Random(seed);
 			for (int i = 0; i < CHUNKS; i++) {
-				// la mitad cerca de la isla central (no debe salir nunca) y la mitad en las islas exteriores
+				// half near the central island (it must never spawn) and half on the outer islands
 				int side = i % 2 == 0 ? 60 : 600;
 				int x = (r.nextInt(2 * side) - side) * 16 + 8, z = (r.nextInt(2 * side) - side) * 16 + 8;
 				DimensionStructure.Site st = DimensionStructure.site(null, m::height, x, z, radius, 12);
@@ -146,7 +146,7 @@ class DimensionTerrainTest {
 			}
 		}
 		assertTrue(center > 0, "ninguna candidata cerca del centro");
-		// las islas exteriores dejan huecos de vacío: sale en algunas, no en todas
+		// the outer islands leave void gaps: it spawns on some, not all
 		assertTrue(exits > 0 && exits < total, "salen " + exits + " de " + total);
 	}
 }

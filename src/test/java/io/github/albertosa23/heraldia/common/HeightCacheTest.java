@@ -10,7 +10,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Caché compartida de alturas ({@link HeightCache}): mismos valores que {@link Heights}, acotada y sin repetir columnas. */
+/** Shared height cache ({@link HeightCache}): same values as {@link Heights}, bounded and without repeating columns. */
 class HeightCacheTest {
 	@BeforeAll
 	static void bootstrap() {
@@ -18,7 +18,7 @@ class HeightCacheTest {
 		Bootstrap.bootStrap();
 	}
 
-	/** Terreno sintético: fondo que sube en diagonal; agua (superficie a 63) donde el fondo queda bajo el mar. */
+	/** Synthetic terrain: a floor rising diagonally; water (surface at 63) where the floor is below the sea. */
 	private static int height(int x, int z, Heightmap.Types t) {
 		int depth = 40 + Math.floorMod(x * 7 + z * 3, 50);
 		return t == Heightmap.Types.OCEAN_FLOOR_WG ? depth : Math.max(depth, 63);
@@ -70,7 +70,7 @@ class HeightCacheTest {
 			assertTrue(c.size() <= c.capacity(), "columnas: " + c.size());
 		}
 		assertTrue(c.size() > c.capacity() / 2, "se llena casi entera: " + c.size());
-		// tras vaciarse una y otra vez, sigue dando lo mismo
+		// after emptying again and again, it still gives the same
 		Heights a = new Heights(HeightCacheTest::height, 63);
 		for (int x = 0; x < 300; x += 7) {
 			assertEquals(a.floor(x, 11), c.floor(x, 11));

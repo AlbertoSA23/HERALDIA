@@ -41,15 +41,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Frecuencia real de las estructuras medianas con la configuración por defecto: simula la rejilla (las mismas
- * GridPlacement del datapack generado, con la búsqueda de la candidata en su bioma) sobre el ruido de biomas real del
- * mundo principal de 26.3 (VanillaRegistries, sin servidor), con las aldeas y las únicas a su alrededor (su rejilla, sus
- * biomas y la distancia mínima entre únicas), las rejillas vanilla de estructuras que asoman (a las que ceden el sitio) y la
- * regla de {@link MediumStructures}. Mide cuántas salen en un cuadrado de LADO bloques por semilla y la separación media que
- * resulta (raíz del área por estructura), y comprueba que ninguna queda en la zona de una aldea o una única que sale.
- * Aproximaciones: el bioma de la candidata se mira en la esquina del chunk a y = 96 (el de aldeas y únicas, a 64) y no se
- * mira el terreno (findValidGenerationPoint
- * también descarta algo por altura), ni la zona de exclusión frente a las aldeas vanilla, ni la Atlántida.
+ * Real frequency of the medium structures with the default configuration: it simulates the grid (the same
+ * GridPlacement of the generated datapack, with the search for the candidate in its biome) over the real biome noise of the
+ * 26.3 overworld (VanillaRegistries, without a server), with the villages and uniques around them (their grid, their
+ * biomes and the minimum distance between uniques), the vanilla grids of structures that show above ground (to which they yield the site) and the
+ * rule of {@link MediumStructures}. It measures how many spawn in a square of SIDE blocks per seed and the resulting average
+ * separation (square root of the area per structure), and checks that none ends up in the zone of a village or a unique that wins.
+ * Approximations: the candidate's biome is checked at the chunk's corner at y = 96 (that of villages and uniques, at 64) and the
+ * terrain is not checked (findValidGenerationPoint
+ * also discards some by height), nor the exclusion zone against vanilla villages, nor Atlantis.
  */
 class MediumFrequencyTest {
 	private static final int SIDE = 16000;
@@ -76,7 +76,7 @@ class MediumFrequencyTest {
 		}
 	}
 
-	/** Biomas vanilla de una etiqueta de Heraldia (#heraldia:x, con las etiquetas de Heraldia anidadas). */
+	/** Vanilla biomes of a Heraldia tag (#heraldia:x, with nested Heraldia tags). */
 	private static Set<String> biomes(String tag) {
 		Set<String> out = new HashSet<>();
 		for (JsonElement e : json(data.resolve("tags/worldgen/biome/" + tag.substring("#heraldia:".length()) + ".json")).getAsJsonArray("values")) {
@@ -105,7 +105,7 @@ class MediumFrequencyTest {
 	private static final Map<Structure, Set<String>> VANILLA = new HashMap<>();
 	private static JsonObject VANILLA_TAGS_FIELD;
 
-	/** Biomas de una estructura vanilla: su lista o su etiqueta (#minecraft:has_structure/...) resuelta con mcmeta. */
+	/** Biomes of a vanilla structure: its list or its tag (#minecraft:has_structure/...) resolved with mcmeta. */
 	private static Set<String> vanillaBiomes(Structure st) {
 		return VANILLA.computeIfAbsent(st, k -> {
 			Set<String> out = new HashSet<>();
@@ -134,7 +134,7 @@ class MediumFrequencyTest {
 		}
 	}
 
-	/** heraldia:rejilla del structure_set, sin la zona de exclusión (necesita el registro). */
+	/** heraldia:rejilla of the structure_set, without the exclusion zone (it needs the registry). */
 	private static GridPlacement mediumGrid(JsonObject set) {
 		JsonObject p = set.getAsJsonObject("placement").deepCopy();
 		p.remove("type");
@@ -151,14 +151,14 @@ class MediumFrequencyTest {
 			for (Path f : files.sorted().toList()) {
 				JsonObject set = json(f);
 				if (!set.getAsJsonObject("placement").get("type").getAsString().equals("heraldia:rejilla")) {
-					continue; // la Atlántida (colocación propia)
+					continue; // Atlantis (self-placed)
 				}
 				Set<String> b = new HashSet<>();
 				JsonArray structures = set.getAsJsonArray("structures");
 				String first = structures.get(0).getAsJsonObject().get("structure").getAsString();
 				if (json(data.resolve("worldgen/structure/" + first.substring("heraldia:".length()) + ".json")).get("type")
 						.getAsString().equals("heraldia:dimension")) {
-					continue; // del Nether o el End: ni en el mundo principal ni en su frecuencia
+					continue; // from the Nether or the End: neither in the overworld nor in its frequency
 				}
 				structures.forEach(e -> b.addAll(biomesOf(e.getAsJsonObject().get("structure").getAsString())));
 				String name = f.getFileName().toString().replace(".json", "");
@@ -185,7 +185,7 @@ class MediumFrequencyTest {
 		NoiseGeneratorSettings settings = vanilla.lookupOrThrow(Registries.NOISE_SETTINGS).getOrThrow(NoiseGeneratorSettings.OVERWORLD).value();
 		MultiNoiseBiomeSource source = MultiNoiseBiomeSource.createFromPreset(vanilla.lookupOrThrow(Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST)
 				.getOrThrow(MultiNoiseBiomeSourceParameterLists.OVERWORLD));
-		List<MediumStructures.Foreign> foreign = new ArrayList<>();   // las rejillas vanilla de estructuras que asoman
+		List<MediumStructures.Foreign> foreign = new ArrayList<>();   // the vanilla grids of structures that show above ground
 		vanilla.lookupOrThrow(Registries.STRUCTURE_SET).listElements().forEach(set -> {
 			MediumStructures.Foreign a = MediumStructures.foreignAt(set.key().identifier(), set.value());
 			if (a != null) {
@@ -205,7 +205,7 @@ class MediumFrequencyTest {
 			java.util.function.BiFunction<Integer, Integer, String> highBiome = (x, z) -> highCache.computeIfAbsent(ChunkPos.pack(x, z),
 					k -> resolver.getNoiseBiome(QuartPos.fromBlock(x * 16), QuartPos.fromBlock(96), QuartPos.fromBlock(z * 16))
 							.unwrapKey().orElseThrow().identifier().toString());
-			// la búsqueda de la candidata en el bioma de GridPlacement, con el ruido real (como registerBiomeSearch)
+			// GridPlacement's search for the candidate in the biome, with the real noise (like registerBiomeSearch)
 			Map<String, Set<String>> tags = new HashMap<>();
 			GridPlacement.testContext(seed, (tag, qx, qy, qz) -> tags.computeIfAbsent(tag.location().toString(), t -> biomes("#" + t))
 					.contains(resolver.getNoiseBiome(qx, qy, qz).unwrapKey().orElseThrow().identifier().toString()));
@@ -215,8 +215,8 @@ class MediumFrequencyTest {
 			MediumStructures m = new MediumStructures(src, mediums.stream().map(Type::id).toList(),
 					mediums.stream().map(t -> List.of(t.id)).toList(), mediums.stream().map(t -> List.<Structure>of()).toList(),
 					mediums.stream().map(t -> (RandomSpreadStructurePlacement) t.grid).toList(), null, distance, foreign);
-			// una estructura vanilla «sale» si su candidata cae en uno de sus biomas (sin terreno); las etiquetas de biomas
-			// no están ligadas en VanillaRegistries: se resuelven con el resumen de mcmeta de la compilación
+			// a vanilla structure "wins" if its candidate falls in one of its biomes (no terrain); the biome tags
+			// are not bound in VanillaRegistries: they are resolved with the build's mcmeta summary
 			MediumStructures.Outcome foreignWins = (st, x, z) -> vanillaBiomes(st).contains(resolver.getNoiseBiome(QuartPos.fromBlock(x * 16),
 					QuartPos.fromBlock(64), QuartPos.fromBlock(z * 16)).unwrapKey().orElseThrow().identifier().toString());
 			MediumStructures.Zone inZone = (x, z) -> {
@@ -224,7 +224,7 @@ class MediumFrequencyTest {
 				return c != null && zone.occupied(c, sep, seed, unique, village) || m.yieldsToForeign(x, z, seed, foreignWins);
 			};
 			MediumStructures.Styles styles = (j, x, z) -> mediums.get(j).biomes.contains(highBiome.apply(x, z));
-			// aldeas y únicas que salen en el cuadrado (y un margen): ninguna mediana a menos de la zona
+			// villages and uniques that win in the square (and a margin): no medium within the zone
 			List<int[]> larges = new ArrayList<>();
 			int r = SIDE / 32 + zoneBlocks / 16 + 1;
 			for (int[] c : cells(villages, seed, r)) {
@@ -280,7 +280,7 @@ class MediumFrequencyTest {
 		assertTrue(each >= MIN_SEP && each <= MAX_SEP, "separación media " + Math.round(each) + " fuera de " + MIN_SEP + "-" + MAX_SEP + "\n" + report);
 	}
 
-	/** Candidatas de la rejilla en las casillas que cubren ±r chunks. */
+	/** Grid candidates in the cells covering ±r chunks. */
 	private static List<int[]> cells(RandomSpreadStructurePlacement p, long seed, int r) {
 		List<int[]> out = new ArrayList<>();
 		int s = p.spacing(), ox = UniqueSeparation.offsetX(p), oz = UniqueSeparation.offsetZ(p);

@@ -15,8 +15,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * La parte de /heraldia review que toca clases del juego sin un mundo: qué estructuras son de cada parada, cómo se
- * clasifica cada bloque para el teletransporte seguro y la lista de qué mirar.
+ * The part of /heraldia review that touches game classes without a world: which structures belong to each stop, how
+ * each block is classified for the safe teleport and the checklist.
  */
 class ReviewCommandTest {
 	@BeforeAll
@@ -67,7 +67,7 @@ class ReviewCommandTest {
 		assertEquals(SafeSpot.Cell.DANGER, ReviewCommand.cell(Blocks.CAMPFIRE.defaultBlockState(), true));
 		assertEquals(SafeSpot.Cell.DANGER, ReviewCommand.cell(Blocks.SOUL_FIRE.defaultBlockState(), false));
 		assertEquals(SafeSpot.Cell.SOLID, ReviewCommand.cell(Blocks.OAK_LEAVES.defaultBlockState(), true));
-		// un bloque anegado con colisión sostiene (no es agua donde flotar)
+		// a waterlogged block with collision supports (it is not water to float in)
 		assertEquals(SafeSpot.Cell.SOLID, ReviewCommand.cell(Blocks.OAK_STAIRS.defaultBlockState()
 				.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED, true), true));
 		assertEquals(SafeSpot.Cell.WATER, ReviewCommand.cell(Blocks.SEAGRASS.defaultBlockState(), false), "hierba marina: agua");

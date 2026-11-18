@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/** Teletransporte seguro (lógica pura): encima del suelo, sin asfixia, nunca en lava, flotando en el agua. */
+/** Safe teleport (pure logic): on top of the ground, without suffocation, never in lava, floating on water. */
 class SafeSpotTest {
-	/** Mundo de prueba: suelo de piedra hasta y = 63 (lo libre empieza en 64) y lo que se ponga encima. */
+	/** Test world: stone ground up to y = 63 (free space starts at 64) and whatever is put on top. */
 	static class World implements SafeSpot.World {
 		final Map<Long, Cell> cells = new HashMap<>();
 		final Map<Long, Integer> heights = new HashMap<>();
@@ -64,21 +64,21 @@ class SafeSpotTest {
 
 	@Test
 	void neverInLavaOrFire() {
-		World m = new World().put(0, 63, 0, Cell.DANGER);     // un charco de lava en el centro
+		World m = new World().put(0, 63, 0, Cell.DANGER);     // a lava puddle in the center
 		SafeSpot.Site s = SafeSpot.search(m, 0, 0, SafeSpot.RADIUS).orElseThrow();
 		assertEquals(64, s.y());
 		assertEquals(1, Math.abs(s.x()) + Math.abs(s.z()), "la columna de al lado");
-		World fire = new World().put(0, 64, 0, Cell.DANGER); // fuego encima del suelo
+		World fire = new World().put(0, 64, 0, Cell.DANGER); // fire on top of the ground
 		assertTrue(Math.abs(SafeSpot.search(fire, 0, 0, SafeSpot.RADIUS).orElseThrow().x())
 				+ Math.abs(SafeSpot.search(fire, 0, 0, SafeSpot.RADIUS).orElseThrow().z()) > 0);
 	}
 
 	@Test
 	void noSuffocationUnderOverhang() {
-		// la columna tiene un techo bajo: el heightmap da encima del techo, que es un sitio válido (al aire libre)
+		// the column has a low ceiling: the heightmap gives the top of the ceiling, which is a valid spot (in the open air)
 		World m = new World().put(0, 65, 0, Cell.SOLID);
 		assertEquals(Optional.of(new SafeSpot.Site(0, 66, 0)), SafeSpot.search(m, 0, 0, SafeSpot.RADIUS));
-		// un bloque que asfixia a la altura de la cabeza (sin heightmap que lo vea: p. ej. hojas) descarta la columna
+		// a suffocating block at head height (no heightmap that sees it: e.g. leaves) discards the column
 		World leaves = new World();
 		leaves.cells.put(World.k(0, 65, 0), Cell.SOLID);
 		SafeSpot.Site s = SafeSpot.search(leaves, 0, 0, SafeSpot.RADIUS).orElseThrow();

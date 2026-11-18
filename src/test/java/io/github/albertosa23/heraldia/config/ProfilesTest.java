@@ -21,10 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Perfiles de juego (opción «perfil», {@link Profiles}): estándar es exactamente lo de siempre, una opción escrita en el
- * fichero manda sobre el perfil (y el perfil pasa a personalizado si difiere), el perfil nunca toca la generación, la
- * migración de los ficheros de la 0.1.0 no cambia nada, la pantalla guarda lo que difiere del perfil y releer el
- * fichero (el camino de la recarga en caliente) aplica el perfil nuevo.
+ * Gameplay profiles (option "perfil", {@link Profiles}): estandar is exactly the usual, an option written in the
+ * file overrides the profile (and the profile becomes personalizado if it differs), the profile never touches generation, the
+ * migration of 0.1.0 files changes nothing, the screen saves what differs from the profile and rereading the
+ * file (the hot-reload path) applies the new profile.
  */
 class ProfilesTest {
 	@TempDir
@@ -80,9 +80,9 @@ class ProfilesTest {
 		Map<String, JsonPrimitive> defaults = HeraldiaConfig.defaults();
 		assertEquals("estandar", defaults.get(Profiles.KEY).getAsString());
 		profiles().optionValues(Profiles.STANDARD).forEach((k, v) -> assertEquals(defaults.get(k), v, k));
-		// sin fichero y con un fichero que solo dice «estandar», los valores de por defecto
+		// without a file and with a file that only says "estandar", the defaults
 		assertEquals(defaults, HeraldiaConfig.readValues(dir.resolve("no.json")));
-		// los refuerzos nuevos, por defecto, dan los de antes (100 % y tope 4)
+		// the new reinforcements, by default, give the old ones (100 % and cap 4)
 		assertEquals(100, defaults.get("jefes.refuerzos.porcentaje").getAsInt());
 		assertEquals(4, defaults.get("jefes.refuerzos.maximo_vivos").getAsInt());
 		assertEquals("normal", defaults.get("dificultad.nivel").getAsString());
@@ -130,7 +130,7 @@ class ProfilesTest {
 			}
 		}
 		assertFalse(profiles().keys().contains("arena.generar_en_mundos_nuevos"));
-		// las opciones de la generación están marcadas en el esquema
+		// the generation options are marked in the schema
 		for (ConfigOption o : HeraldiaConfig.options()) {
 			if (o.key().startsWith("aldeas.separacion") || o.key().startsWith("unicas.") || o.key().startsWith("medianas.")
 					|| o.key().startsWith("minas.") || o.key().equals("arena.generar_en_mundos_nuevos")) {
@@ -151,13 +151,13 @@ class ProfilesTest {
 		assertEquals("heroica", c.profile().differing().get("dificultad.nivel")[1].getAsString());
 		assertEquals(Set.of("dificultad.nivel", "arena.experiencia_porcentaje"), c.profile().pinned().keySet());
 		assertEquals(profiles().optionValues("hardcore").get("jefes.refuerzos.maximo_vivos"), c.values().get("jefes.refuerzos.maximo_vivos"));
-		// al reescribirse, lo fijado a mano sigue en el fichero (y lo demás del perfil no)
+		// when rewritten, what was set by hand stays in the file (and the rest of the profile does not)
 		JsonObject root = json(f);
 		assertTrue(has(root, "dificultad.nivel") && has(root, "arena.experiencia_porcentaje"));
 		assertFalse(has(root, "jefes.refuerzos.maximo_vivos"));
 		assertEquals("personalizado", root.getAsJsonObject("_perfil").get("efectivo").getAsString());
 		assertTrue(root.getAsJsonObject("_perfil").getAsJsonObject("difieren").has("dificultad.nivel"));
-		// y al volver a leerlo, lo mismo
+		// and when read again, the same
 		assertEquals(c.values(), HeraldiaConfig.readValues(f));
 	}
 
@@ -185,7 +185,7 @@ class ProfilesTest {
 
 	@Test
 	void invalidValues() throws IOException {
-		// un perfil que no existe: el de por defecto; una opción del perfil fuera de rango: la del perfil, sin fijarla
+		// a profile that does not exist: the default one; a profile option out of range: the profile's, without pinning it
 		HeraldiaConfig c = HeraldiaConfig.load(file("{\"perfil\": \"imposible\"}"));
 		assertEquals("estandar", c.profile().chosen());
 		c = HeraldiaConfig.load(file("{\"perfil\": \"hardcore\", \"arena\": {\"max_mobs_vivos\": 999}, \"jefes\": {\"refuerzos\": {\"porcentaje\": \"x\"}}}"));
@@ -195,13 +195,13 @@ class ProfilesTest {
 		assertEquals("hardcore", c.profile().effective());
 	}
 
-	/** Fichero de la 0.1.0 (versión 1): el mod escribía todas las opciones con su valor. */
+	/** 0.1.0 file (version 1): the mod wrote all the options with their value. */
 	private Path fileV1(Map<String, JsonPrimitive> optionValues) throws IOException {
 		JsonObject root = new JsonObject();
 		root.addProperty("version", 1);
 		optionValues.forEach((k, v) -> {
 			if (k.equals(Profiles.KEY) || k.startsWith("jefes.refuerzos.porcentaje") || k.startsWith("jefes.refuerzos.maximo_vivos")) {
-				return;                      // no existían
+				return;                      // they did not exist
 			}
 			String[] p = k.split("\\.");
 			JsonObject n = root;
@@ -228,7 +228,7 @@ class ProfilesTest {
 		for (String k : profiles().keys()) {
 			assertFalse(has(root, k), "tras migrar no se escribe " + k);
 		}
-		// y ahora cambiar de perfil en el fichero sí hace algo
+		// and now changing the profile in the file does do something
 		root.addProperty("perfil", "hardcore");
 		Files.writeString(f, root.toString());
 		assertEquals("heroica", HeraldiaConfig.load(f).getString("dificultad.nivel"));
@@ -269,7 +269,7 @@ class ProfilesTest {
 
 	@Test
 	void rereadingFileAppliesNewProfile() throws IOException {
-		// el camino de la recarga en caliente: HeraldiaConfig.load otra vez con el fichero cambiado
+		// the hot-reload path: HeraldiaConfig.load again with the changed file
 		Path f = file("{\"perfil\": \"casual\"}");
 		assertEquals("facil", HeraldiaConfig.load(f).getString("dificultad.nivel"));
 		assertEquals("facil", HeraldiaConfig.get().getString("dificultad.nivel"));

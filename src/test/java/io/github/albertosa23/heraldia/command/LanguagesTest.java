@@ -25,9 +25,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 /**
- * Idiomas del .jar (tools/gen/idiomas.py): todos con las mismas claves y los mismos huecos de formato que el español y
- * el inglés, y el idioma que Textos elige para el respaldo de un cliente sin el mod según su lengua (fr_ca -> fr_fr,
- * pt_pt -> pt_br...; una lengua sin idioma propio, inglés). Los textos se leen del classpath, como del .jar.
+ * The .jar's languages (tools/gen/idiomas.py): all with the same keys and the same format placeholders as Spanish and
+ * English, and the language Texts picks for the fallback of a client without the mod according to its language (fr_ca -> fr_fr,
+ * pt_pt -> pt_br...; a language without its own translation, English). The texts are read from the classpath, as from the .jar.
  */
 class LanguagesTest {
 	private static final Path LANG = Path.of(System.getProperty("heraldia.generated", "build/generated/heraldia"))
@@ -49,7 +49,7 @@ class LanguagesTest {
 		}
 	}
 
-	/** Argumentos que usa un texto de formato: índices 1..n ordenados y, al final, -1 por cada %% (como idiomas.marcadores). */
+	/** Arguments a format text uses: indices 1..n sorted and, at the end, -1 for each %% (like idiomas.marcadores). */
 	static List<Integer> placeholders(String text) {
 		List<Integer> out = new ArrayList<>();
 		int next = 1, literals = 0;
@@ -101,7 +101,7 @@ class LanguagesTest {
 				Map<String, String> t = generated.get(language);
 				long equal = t.entrySet().stream()
 						.filter(e -> e.getValue().equals(es.get(e.getKey())) || e.getValue().equals(en.get(e.getKey()))).count();
-				// nombres propios, inscripciones y formatos («%s», «%s/%s  %s») se repiten; el resto no
+				// proper names, inscriptions and formats ("%s", "%s/%s  %s") repeat; the rest do not
 				assertTrue(equal < t.size() / 5, language + ": " + equal + " textos iguales al español o al inglés");
 			}
 		}
@@ -131,7 +131,7 @@ class LanguagesTest {
 		}
 		assertNotEquals(Texts.language("fr_fr").get("heraldia.guia.nombre"), Texts.language("en_us").get("heraldia.guia.nombre"));
 		assertEquals(Texts.language("pt_br"), Texts.language("pt_pt"));
-		// el respaldo de un texto lleva el idioma pedido; si le faltara la clave, el español
+		// a text's fallback is in the requested language; if the key were missing, the Spanish
 		assertEquals(generated.get("de_de").get("heraldia.guia.copia"),
 				Texts.t(Texts.language("de_at"), "heraldia.guia.copia").getString());
 	}

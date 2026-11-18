@@ -15,9 +15,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * La búsqueda de la candidata en su bioma de heraldia:rejilla (T36: cada punto de la retícula se mira una vez por
- * búsqueda) elige exactamente la misma candidata que la de la 0.1.0 (copiada aquí, {@link #old}), con biomas en
- * manchas al azar, varias semillas, ventanas y vecinos mínimos, y mira menos puntos.
+ * The search for the candidate in its biome of heraldia:rejilla (T36: each grid point is checked once per
+ * search) picks exactly the same candidate as the 0.1.0 one (copied here, {@link #old}), with random biome
+ * patches, several seeds, windows and minimum neighbors, and checks fewer points.
  */
 class BiomeSearchTest {
 	private static final int STEP = 8, HALF = 4;
@@ -33,13 +33,13 @@ class BiomeSearchTest {
 		GridPlacement.testContext(0, null);
 	}
 
-	/** Manchas de bioma: celdas de `tam` chunks dentro o fuera según un hash de la semilla. */
+	/** Biome patches: cells of `sz` chunks inside or outside according to a hash of the seed. */
 	private static boolean patch(long seed, int chunkX, int chunkZ, int sz, int pct) {
 		long h = UniqueSeparation.mix(seed ^ ChunkPos.pack(Math.floorDiv(chunkX, sz), Math.floorDiv(chunkZ, sz)) * 0x9E3779B97F4A7C15L);
 		return Math.floorMod(h, 100) < pct;
 	}
 
-	/** La búsqueda de la 0.1.0, tal cual: cada vecino se mira cada vez. */
+	/** The 0.1.0 search, as is: each neighbor is checked every time. */
 	private static long old(GridPlacement g, long seed, int salt, int minScore, int x0, int z0, java.util.function.BiPredicate<Integer, Integer> in) {
 		int win = g.spacing() - g.separation(), n = Math.max(1, win / STEP), first = win >= STEP ? HALF : win / 2;
 		long best = Long.MIN_VALUE, bestKey = Long.MIN_VALUE;

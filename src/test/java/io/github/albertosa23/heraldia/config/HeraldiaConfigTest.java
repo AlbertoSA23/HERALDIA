@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * Lectura, escritura y validación de config/heraldia.json ida y vuelta, como las usa la pantalla de configuración del
- * cliente ({@link HeraldiaConfig#readValues}, {@link HeraldiaConfig#save}, {@link ConfigOption#parse}), y que el esquema
- * trae todo lo que la pantalla necesita (sección y textos en los dos idiomas).
+ * Reading, writing and validation of config/heraldia.json round trip, as the client's configuration screen uses them
+ * ({@link HeraldiaConfig#readValues}, {@link HeraldiaConfig#save}, {@link ConfigOption#parse}), and that the schema
+ * has everything the screen needs (section and texts in both languages).
  */
 class HeraldiaConfigTest {
 	@TempDir
@@ -104,7 +104,7 @@ class HeraldiaConfigTest {
 	@Test
 	void readingFixesAndMigrates() throws IOException {
 		Path file = dir.resolve("heraldia.json");
-		// Fichero escrito a mano (versión 0, sin campo): fuera de rango, de otro tipo, decimal y opción desconocida.
+		// Hand-written file (version 0, no field): out of range, of another type, decimal and unknown option.
 		Files.writeString(file, """
 				{"aldeas": {"separacion_bloques": 20000, "maximo": 50, "porcentaje_grandes": 12.5},
 				 "golems": {"limpieza": "no", "limite_grande": 12.0},

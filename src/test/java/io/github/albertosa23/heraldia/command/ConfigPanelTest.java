@@ -29,8 +29,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Panel de configuración en diálogos (T46): orden de los diálogos y de sus botones, opciones reales en cada submenú (5
- * a 8), controles con el valor actual, lectura de lo que devuelve el diálogo y preferencia de idioma.
+ * Dialog configuration panel (T46): order of the dialogs and their buttons, real options in each submenu (5
+ * to 8), controls with the current value, reading what the dialog returns and language preference.
  */
 class ConfigPanelTest {
 	@BeforeAll
@@ -80,7 +80,7 @@ class ConfigPanelTest {
 		assertEquals("heraldia config profile casual", cmds.get(0));
 		assertEquals("heraldia config menu mundo", cmds.get(3));
 		assertEquals("heraldia config menu avanzado", cmds.getLast());
-		assertTrue(d.actions().get(1).button().label().getString().startsWith("✔"));   // el perfil elegido
+		assertTrue(d.actions().get(1).button().label().getString().startsWith("✔"));   // the chosen profile
 		assertEquals("Configuración de Heraldia", d.common().title().getString());
 		assertTrue(d.exitAction().isPresent());
 	}
@@ -104,7 +104,7 @@ class ConfigPanelTest {
 		}
 		assertEquals("heraldia config save combate v0 v1 v2 v3 v4 v5", t.template().instantiate(vals));
 		assertEquals("heraldia config", command(d.actions().get(1)));
-		// la frase de cada opción lleva su recomendado; la generación avisa de reinicio, el combate no
+		// each option's sentence carries its recommended value; generation warns about a restart, combat does not
 		assertFalse(d.common().body().get(0).toString().contains("heraldia.panel.reinicio"));
 		MultiActionDialog world = ConfigPanel.submenu(Texts.language("en_us"), Menus.menu("mundo").orElseThrow(), o, v, "estandar");
 		assertTrue(world.common().body().get(0).toString().contains("heraldia.panel.reinicio"));
@@ -117,7 +117,7 @@ class ConfigPanelTest {
 		assertEquals(100, Menus.step(sep));
 		assertEquals(1, Menus.step(o.get("aldeas.caminos.ancho")));
 		assertEquals(0.1, Menus.step(o.get("minas.vanilla.multiplicador")));
-		// 1550 no cae en la rejilla de 100: si el diálogo devuelve el ajustado (1600), se conserva el que había
+		// 1550 does not fall on the grid of 100: if the dialog returns the snapped one (1600), the existing one is kept
 		assertEquals(Optional.of(new JsonPrimitive(1550)), Menus.read(sep, "1600.0", new JsonPrimitive(1550)));
 		assertEquals(Optional.of(new JsonPrimitive(2000)), Menus.read(sep, "2000", new JsonPrimitive(1550)));
 		assertEquals(Optional.empty(), Menus.read(sep, "20000", null));

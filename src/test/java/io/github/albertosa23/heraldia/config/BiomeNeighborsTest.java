@@ -14,8 +14,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * «bioma_vecinos» de heraldia:rejilla: con la búsqueda de bioma por defecto (6 de 9 puntos de la malla en el bioma) un
- * bioma en franja estrecha (las playas) casi nunca da candidata; pidiendo menos vecinos, sí, y siempre dentro del bioma.
+ * "bioma_vecinos" of heraldia:rejilla: with the default biome search (6 of 9 lattice points in the biome) a
+ * biome in a narrow strip (beaches) almost never gives a candidate; asking for fewer neighbors, it does, and always inside the biome.
  */
 class BiomeNeighborsTest {
 	private static final long SEED = 7L;
@@ -33,8 +33,8 @@ class BiomeNeighborsTest {
 	}
 
 	/**
-	 * Franja de 3 chunks de ancho cada 40 (un punto y sus vecinos a 4 chunks nunca caen a la vez en ella), centrada en
-	 * una columna de la malla (con spacing 40 y separation 8, x = 40 g + 4 + 8 a).
+	 * Strip 3 chunks wide every 40 (a point and its neighbors 4 chunks away never fall in it at once), centered on
+	 * a lattice column (with spacing 40 and separation 8, x = 40 g + 4 + 8 a).
 	 */
 	private static boolean band(int chunkX) {
 		int m = Math.floorMod(chunkX, 40);
@@ -46,7 +46,7 @@ class BiomeNeighborsTest {
 		return GridPlacement.CODEC.codec().parse(JsonOps.INSTANCE, JsonParser.parseString(json)).getOrThrow();
 	}
 
-	/** Casillas con candidata en el bioma (y comprueba que /locate no ve las que no la tienen). */
+	/** Cells with a candidate in the biome (and checks that /locate does not see the ones that have none). */
 	private static int withCandidate(GridPlacement g, IntPredicate biome) {
 		int n = 0;
 		for (int gx = 0; gx < CELLS; gx++) {
