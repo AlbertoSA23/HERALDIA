@@ -68,6 +68,7 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `reputacion.activado` | `true` | Réputation par village et ses réductions. |
 | `caravanas.activado` | `true` | Caravanes sur les routes (opérateurs : `/heraldia caravan`). |
 | `chozas_mago.prob_malvado` | 20 | Probabilité (%) que le mage d'une hutte de mage soit un mage maléfique déguisé. |
+| `ambiente.activado` | `true` | Effets d'ambiance avec les sons du jeu : la cloche du village à l'aube et à la tombée de la nuit, la sirène du phare sous la pluie et les gouttes dans les mines (chacun a aussi sa propre option). |
 | `guia.entregar_al_entrar` | `true` | Donne le Guide du Héraut à chaque joueur à sa connexion. |
 | `update_check.activado` | `true` | Prévient les opérateurs quand une nouvelle version existe. |
 | `actualizar.margen_bloques` | 50 | Marge de sécurité autour des constructions des joueurs pour `/heraldia update`. |

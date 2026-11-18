@@ -68,6 +68,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `reputacion.activado` | `true` | Reputação por vila e seus descontos. |
 | `caravanas.activado` | `true` | Caravanas pelas estradas (operadores: `/heraldia caravan`). |
 | `chozas_mago.prob_malvado` | 20 | Probabilidade (%) de o mago de uma cabana de mago ser um mago maligno disfarçado. |
+| `ambiente.activado` | `true` | Efeitos de ambiente com os sons do jogo: o sino da aldeia ao amanhecer e ao anoitecer, a sirene do farol com chuva e as goteiras das minas (cada um tem também sua opção). |
 | `guia.entregar_al_entrar` | `true` | Dá o Guia do Arauto a cada jogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores quando há uma versão nova. |
 | `actualizar.margen_bloques` | 50 | Margem de segurança em volta das construções dos jogadores para `/heraldia update`. |

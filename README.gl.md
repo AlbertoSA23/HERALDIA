@@ -68,6 +68,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `reputacion.activado` | `true` | Reputación por aldea e os seus descontos. |
 | `caravanas.activado` | `true` | Caravanas polos camiños (operadores: `/heraldia caravan`). |
 | `chozas_mago.prob_malvado` | 20 | Probabilidade (%) de que o mago dunha choza de mago sexa un mago malvado disfrazado. |
+| `ambiente.activado` | `true` | Efectos de ambiente cos sons do xogo: a campá da aldea ao amencer e ao caer a noite, a serea do faro con chuvia e as pingueiras das minas (cada un ten ademais a súa opción). |
 | `guia.entregar_al_entrar` | `true` | Dálle a Guía do Heraldo a cada xogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores cando hai unha versión nova. |
 | `actualizar.margen_bloques` | 50 | Marxe de seguridade arredor do que constrúen os xogadores para `/heraldia update`. |

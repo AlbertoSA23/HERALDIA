@@ -68,6 +68,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `reputacion.activado` | `true` | Reputació per poble i els seus descomptes. |
 | `caravanas.activado` | `true` | Caravanes pels camins (operadors: `/heraldia caravan`). |
 | `chozas_mago.prob_malvado` | 20 | Probabilitat (%) que el mag d'una cabana de mag sigui un mag malvat disfressat. |
+| `ambiente.activado` | `true` | Efectes d'ambient amb els sons del joc: la campana del poble a l'alba i en fer-se fosc, la sirena del far amb pluja i els degotalls de les mines (cadascun té també la seva opció). |
 | `guia.entregar_al_entrar` | `true` | Dona la Guia de l'Herald a cada jugador en entrar. |
 | `update_check.activado` | `true` | Avisa els operadors quan hi ha una versió nova. |
 | `actualizar.margen_bloques` | 50 | Marge de seguretat al voltant del que construeixen els jugadors per a `/heraldia update`. |
