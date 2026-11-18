@@ -42,18 +42,24 @@ abstract class ArenaPistonMixin {
 
 	@Inject(method = "resolve", at = @At("RETURN"), cancellable = true)
 	private void heraldia$arena(CallbackInfoReturnable<Boolean> cir) {
-		if (!cir.getReturnValueZ() || !Arena.hasArena(level)) {
+		boolean arena = Arena.hasArena(level), house = io.github.albertosa23.heraldia.herald.HeraldHouse.hasHouse(level);
+		if (!cir.getReturnValueZ() || !arena && !house) {
 			return;
 		}
-		boolean touches = Arena.isProtected(level, startPos);
+		boolean touches = heraldia$guarded(arena, house, startPos);
 		for (int i = 0; i < toPush.size() && !touches; i++) {
-			touches = Arena.isProtected(level, toPush.get(i)) || Arena.isProtected(level, toPush.get(i).relative(pushDirection));
+			touches = heraldia$guarded(arena, house, toPush.get(i)) || heraldia$guarded(arena, house, toPush.get(i).relative(pushDirection));
 		}
 		for (int i = 0; i < toDestroy.size() && !touches; i++) {
-			touches = Arena.isProtected(level, toDestroy.get(i));
+			touches = heraldia$guarded(arena, house, toDestroy.get(i));
 		}
 		if (touches) {
 			cir.setReturnValue(false);
 		}
+	}
+
+	/** Protected by the arena or by the Herald's House. */
+	private boolean heraldia$guarded(boolean arena, boolean house, BlockPos pos) {
+		return arena && Arena.isProtected(level, pos) || house && io.github.albertosa23.heraldia.herald.HeraldHouse.isProtected(level, pos);
 	}
 }

@@ -28,7 +28,8 @@ SIDE_A, RING_B, RING_C = 8, 4, 3          # chunks
 CONFIG_BEFORE = {"unicas": {"rejilla_compatible": True}, "aldeas": {"caminos": {"activado": False}},
                 "medianas": {"activadas": False}, "minas": {"entradas": {"activado": False}, "vanilla": {"multiplicador": 1.0}},
                 "faros": {"activado": False}, "naufragios": {"activado": False},
-                "arena": {"activado": False}, "botin": {"reponer": {"activado": False}}, "guia": {"entregar_al_entrar": False}}
+                "arena": {"activado": False}, "botin": {"reponer": {"activado": False}}, "guia": {"entregar_al_entrar": False},
+                "casa_heraldo": {"activado": False}}
 # Third start: almost everything different from the default.
 CONFIG_OTHER = {"unicas": {"rejilla_compatible": False, "distancia_minima": {"bloques": 1500}},
                "aldeas": {"porcentaje_grandes": 60, "caminos": {"activado": True, "ancho": 5, "distancia_maxima_bloques": 4000},
@@ -338,6 +339,11 @@ def main():
     print(f"Anillo B: {len(snapshot_b)} chunks nuevos guardados enteros")
     if re.search(r"arena: (mundo nuevo|colocada|sitio propuesto)", ctx.log()):
         failures.append("start 2: the arena builds itself in an existing world")
+    # the Herald's House (new in this version, on by default): never on its own in a world that already exists
+    if not re.search(r"herald's house: existing world", ctx.log()):
+        failures.append("start 2: the Herald's House does not recognize the existing world")
+    if re.search(r"herald's house: (new world|placed at|site at)", ctx.log()):
+        failures.append("start 2: the Herald's House builds itself in an existing world")
     m = re.search(r"caminos: \d+ chunks, (\d+) junto a una ruta \((\d+) columnas", ctx.log())
     if not m or int(m.group(2)) == 0:
         failures.append("start 2: no road appears in the new ring (the test could not see whether it touches the old)")

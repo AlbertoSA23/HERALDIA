@@ -29,5 +29,8 @@ abstract class ArenaExplosionMixin {
 		if (Arena.hasArena(level)) {
 			cir.getReturnValue().removeIf(pos -> Arena.isProtected(level, pos));
 		}
+		if (io.github.albertosa23.heraldia.herald.HeraldHouse.hasHouse(level)) {
+			cir.getReturnValue().removeIf(pos -> io.github.albertosa23.heraldia.herald.HeraldHouse.isProtected(level, pos));
+		}
 	}
 }

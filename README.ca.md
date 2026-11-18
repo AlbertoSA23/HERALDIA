@@ -15,6 +15,7 @@ Un mod de Fabric per a **Minecraft 26.3** que omple la superfície de llocs que 
 - 🗼 **Fars i naufragis.** Fars a terra ferma vora el mar, amb la llum sempre encesa, la casa del faroner i un embarcador, i galions trencats, encallats a la platja o mig enfonsats als baixos, amb la bodega i la cabina del capità. Cadascun amb l'estil de la seva costa: temperada, càlida, freda o nevada.
 - 🔱 **L'Atlàntida.** Només n'hi ha una per món: una ciutat enorme enfonsada a l'oceà profund, amb sales seques, tres segells amb les seves claus i el Guardià de Posidó, que custodia el tresor més gran d'Heraldia.
 - 🏟️ **Arena d'onades.** Un colosseu prop del punt d'aparició: toca la campana i resisteix onades cada cop més fortes, amb un campió cada cinc onades, rècords i recompenses. Si caus a la pista, conserves l'inventari. Tres modes (cooperatiu, contrarellotge i supervivència) amb classificació setmanal, `/heraldia arena leaderboard`: els campions de la setmana anterior surten als cartells del saló de la fama de l'arena i a la Guia de l'Herald.
+- 🏯 **La Casa de l'Herald.** El primer que veus en un món nou: un poble emmurallat de 96 × 96 blocs al punt d'aparició, amb la seva campana, el tauler d'encàrrecs, un hostal i una fonda, una capella, botigues amb els seus vilatans, jardins, un estable, un pou i un portal al Nether que només encén un operador. Ningú excepte un operador pot construir ni trencar a menys de 50 blocs de les seves muralles, i allà no hi apareixen monstres. El seu mercat té parades que els jugadors lloguen amb maragdes quan el servidor les activa. En un món que ja existeix, la col·loca un operador amb `/heraldia herald place`.
 
 ## Com es juga
 
@@ -70,6 +71,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `arena.temporada.dia_reinicio` | `lunes` | Dia en què es tanca la classificació setmanal de l'arena i se n'anuncien els campions (a mitjanit, hora del servidor). |
 | `encargos.activado` | `true` | Encàrrecs del tauler (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputació per poble i els seus descomptes. |
+| `reputacion.aldea_visible` | `true` | El poble mostra la seva millor reputació amb blocs vanilla: flors, estendards, fanals (o porticons tancats); mai sobre el bloc d'un jugador. |
 | `dialogos.activado` | `true` | Converses amb els vilatans d'Heraldia (ajupit + clic dret comercia directament). |
 | `caravanas.activado` | `true` | Caravanes pels camins (operadors: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Gent de pas pels camins, cada tipus amb la seva opció (operadors: `/heraldia caravan wayfarer`). |
@@ -80,6 +82,8 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `actualizar.margen_bloques` | 50 | Marge de seguretat al voltant del que construeixen els jugadors per a `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Al mapa web només surten les estructures ja descobertes. |
 | `tesoro.probabilidad` | 3.0 | Probabilitat (%) d'un fragment de mapa del tresor a cada cofre de les estructures mitjanes i les mines. |
+| `casa_heraldo.activado` | `true` | La Casa de l'Herald al punt d'aparició i la seva protecció. |
+| `casa_heraldo.mercado.activado` | `false` | Parades de lloguer al mercat de la Casa de l'Herald (preus: `casa_heraldo.mercado.*`). |
 | `eventos.activado` | `true` | Esdeveniments als pobles: dia de mercat, casament, funeral i festa a les places (operadors: `/heraldia event`; més rars amb `eventos.espera_minutos`; desactivats al perfil lleuger). |
 
 ## Per saber-ne més

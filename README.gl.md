@@ -15,6 +15,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 - 🗼 **Faros e naufraxios.** Faros en terra firme xunto ao mar, coa luz sempre acesa, a casa do fareiro e un embarcadoiro, e galeóns partidos, encallados na praia ou medio afundidos nos baixíos, coa adega e o camarote do capitán. Cada un co estilo da súa costa: temperada, cálida, fría ou nevada.
 - 🔱 **A Atlántida.** Só unha por mundo: unha cidade enorme afundida no océano profundo, con salas secas, tres selos coas súas chaves e o Gardián de Poseidón, custodio do maior tesouro de Heraldia.
 - 🏟️ **Area de vagas.** Un coliseo preto do punto de aparición: toca a campá e resiste vagas cada vez máis fortes, cun campión cada cinco vagas, récords e recompensas. Se caes no redondel, conservas o inventario. Tres modos (cooperativo, contrarreloxo e supervivencia) con clasificación semanal, `/heraldia arena leaderboard`: os campións da semana anterior saen nos carteis do salón da fama da area e na Guía do Heraldo.
+- 🏯 **A Casa do Heraldo.** O primeiro que ves nun mundo novo: unha vila amurallada de 96 × 96 bloques no punto de aparición, coa súa campá, o taboleiro de encargos, unha pousada e un hostal, unha capela, tendas cos seus aldeáns, xardíns, unha corte, un pozo e un portal ao Nether que só acende un operador. Ninguén agás un operador pode construír nin romper a menos de 50 bloques das súas murallas, e alí non aparecen monstros. O seu mercado ten postos que os xogadores alugan con esmeraldas cando o servidor os activa. Nun mundo que xa existe, colócaa un operador con `/heraldia herald place`.
 
 ## Como se xoga
 
@@ -70,6 +71,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `arena.temporada.dia_reinicio` | `lunes` | Día no que se pecha a clasificación semanal da area e se anuncian os seus campións (á medianoite, hora do servidor). |
 | `encargos.activado` | `true` | Encargos do taboleiro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea e os seus descontos. |
+| `reputacion.aldea_visible` | `true` | A aldea amosa a súa mellor reputación con bloques vanilla: flores, estandartes, farois (ou contrafiestras pechadas); nunca sobre o bloque dun xogador. |
 | `dialogos.activado` | `true` | Conversas cos aldeáns de Heraldia (agachado + clic dereito comercia directamente). |
 | `caravanas.activado` | `true` | Caravanas polos camiños (operadores: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Xente de paso polos camiños, cada tipo coa súa opción (operadores: `/heraldia caravan wayfarer`). |
@@ -80,6 +82,8 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `actualizar.margen_bloques` | 50 | Marxe de seguridade arredor do que constrúen os xogadores para `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web só saen as estruturas xa descubertas. |
 | `tesoro.probabilidad` | 3.0 | Probabilidade (%) dun fragmento de mapa do tesouro en cada cofre das estruturas medianas e das minas. |
+| `casa_heraldo.activado` | `true` | A Casa do Heraldo no punto de aparición e a súa protección. |
+| `casa_heraldo.mercado.activado` | `false` | Postos de aluguer no mercado da Casa do Heraldo (prezos: `casa_heraldo.mercado.*`). |
 | `eventos.activado` | `true` | Eventos nas aldeas: día de mercado, voda, funeral e festa nas prazas (operadores: `/heraldia event`; máis raros con `eventos.espera_minutos`; desactivados no perfil lixeiro). |
 
 ## Para saber máis

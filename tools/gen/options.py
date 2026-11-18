@@ -455,7 +455,46 @@ _FIXED = [
     ("tesoro.radio_max", 1500, 300, 4000,
      "Distancia máxima, en bloques, de cada marca del mapa del tesoro a la anterior (o a donde se descifra el fragmento)",
      "Maximum distance, in blocks, from each mark of the treasure map to the previous one (or to where the fragment is "
-     "deciphered)"),
+     "deciphered)"),    ("reputacion.aldea_visible", True, None, None,
+     "La reputación se ve en la aldea: con la mejor reputación que tenga cualquier jugador, flores en la fuente "
+     "(conocido); estandartes en las entradas de la plaza, junto al tablón, en las puertas de la muralla y en las "
+     "torres (amigo); más flores, faroles en las puertas y una alfombra ante el tablón (héroe); si todos los que la "
+     "tratan tienen reputación negativa, las torres cierran sus contraventanas. Solo bloques vanilla y solo donde hay "
+     "aire: nunca toca un bloque de un jugador. Desactivada, cada aldea quita lo que puso al cargarse",
+     "Reputation shows in the village: with the best reputation any player has there, flowers on the fountain (known); "
+     "banners at the square's entrances, by the job board, at the wall gates and on the towers (friend); more flowers, "
+     "lanterns on the gates and a carpet before the job board (hero); if everyone who deals with it has negative "
+     "reputation, the towers close their shutters. Vanilla blocks only and only on air: it never touches a player's "
+     "block. Disabled, each village takes down what it put up when it loads"),
+    ("casa_heraldo.activado", True, None, None,
+     "La Casa del Heraldo: el pueblo amurallado del spawn (96 × 96 bloques) con su anillo protegido de 50 bloques, donde solo "
+     "un operador puede construir o romper y no aparecen monstruos. Desactivada, no se construye ni se protege",
+     "The Herald's House: the walled spawn town (96 × 96 blocks) with its 50-block protected ring, where only an operator "
+     "can build or break and no monsters spawn. Disabled, it is neither built nor protected"),
+    ("casa_heraldo.generar_en_mundos_nuevos", True, None, None,
+     "En un mundo nuevo, la Casa del Heraldo se construye sola en el spawn, que pasa a la plaza (en un mundo ya existente, "
+     "nunca: la coloca un operador con /heraldia herald place)",
+     "In a new world, the Herald's House is built on its own at spawn, and spawn moves to its plaza (never in an existing "
+     "world: an operator places it with /heraldia herald place)"),
+    ("casa_heraldo.mercado.activado", False, None, None,
+     "Puestos del mercado de alquiler: los jugadores pagan una entrada y un alquiler en esmeraldas por un puesto del mercado "
+     "de la Casa del Heraldo; quien deja de pagar lo pierde (sus cosas van a un barril de devoluciones)",
+     "Market stalls for rent: players pay an entry fee and rent in emeralds for a stall in the Herald's House market; "
+     "whoever stops paying loses it (their things go to a return barrel)"),
+    ("casa_heraldo.mercado.entrada_esmeraldas", 16, 0, 256,
+     "Esmeraldas de entrada para quedarse un puesto libre (se paga una vez, junto con el primer alquiler)",
+     "Entry fee in emeralds to take a free stall (paid once, together with the first rent)"),
+    ("casa_heraldo.mercado.alquiler_esmeraldas", 4, 0, 256,
+     "Esmeraldas de alquiler por periodo (0: el puesto no caduca)",
+     "Rent in emeralds per period (0: the stall never runs out)"),
+    ("casa_heraldo.mercado.periodo_dias", 7, 1, 60,
+     "Duración de cada periodo de alquiler, en días del juego (20 minutos con el servidor en marcha)",
+     "Length of each rent period, in game days (20 minutes of the server running)"),
+    ("casa_heraldo.mercado.gracia_dias", 3, 0, 30,
+     "Días del juego de gracia tras vencer el alquiler antes de perder el puesto (se avisa al inquilino un día antes de "
+     "vencer y durante la gracia)",
+     "Game days of grace after the rent runs out before the stall is lost (the tenant is warned a day before it is due "
+     "and during the grace)"),
     ("eventos.activado", True, None, None,
      "Eventos en las aldeas: de vez en cuando, con un jugador en una aldea de Heraldia, su plaza celebra un día de "
      "mercado, una boda, un funeral o una fiesta durante unos minutos (puestos, un arco, un féretro o una hoguera, y "
@@ -700,6 +739,14 @@ _NAMES = {
     "tesoro.activado": ("Búsqueda del tesoro", "Treasure hunt"),
     "tesoro.probabilidad": ("Fragmentos por cofre (%)", "Fragments per chest (%)"),
     "tesoro.radio_max": ("Distancia máxima entre marcas (bloques)", "Maximum distance between marks (blocks)"),
+    "reputacion.aldea_visible": ("La reputación se ve en la aldea", "Reputation shows in the village"),
+    "casa_heraldo.activado": ("Casa del Heraldo", "Herald's House"),
+    "casa_heraldo.generar_en_mundos_nuevos": ("Construirla en mundos nuevos", "Build it in new worlds"),
+    "casa_heraldo.mercado.activado": ("Puestos de alquiler", "Stalls for rent"),
+    "casa_heraldo.mercado.entrada_esmeraldas": ("Entrada (esmeraldas)", "Entry fee (emeralds)"),
+    "casa_heraldo.mercado.alquiler_esmeraldas": ("Alquiler (esmeraldas)", "Rent (emeralds)"),
+    "casa_heraldo.mercado.periodo_dias": ("Periodo de alquiler (días)", "Rent period (days)"),
+    "casa_heraldo.mercado.gracia_dias": ("Días de gracia", "Days of grace"),
     "eventos.activado": ("Eventos en las aldeas", "Village events"),
     "eventos.frecuencia": ("Frecuencia de los eventos (%)", "Event frequency (%)"),
     "eventos.espera_minutos": ("Descanso entre eventos (min)", "Rest between events (min)"),
@@ -761,6 +808,7 @@ SECTIONS = [
     ("actualizaciones", "Actualizaciones", "Updates"),
     ("mapas_web", "Mapas web", "Web maps"),
     ("tesoro", "Búsqueda del tesoro", "Treasure hunt"),
+    ("casa_heraldo", "Casa del Heraldo", "Herald's House"),
     ("eventos", "Eventos en las aldeas", "Village events"),
 ]
 # Key prefix -> section; the first one that fits wins, so a new option falls into its section on its own
@@ -775,6 +823,7 @@ _SECTION_PREFIXES = [
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"), ("dialogos.", "dialogos"),
     ("caravanas.", "caravanas"), ("viajeros.", "viajeros"), ("chozas_mago.", "chozas_mago"), ("ambiente.", "ambiente"),
     ("update_check.", "actualizaciones"), ("actualizar.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
+    ("casa_heraldo.", "casa_heraldo"),
     ("eventos.", "eventos"),
 ]
 

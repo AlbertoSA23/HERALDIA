@@ -25,14 +25,16 @@ public final class Reload {
 	 * generation ones), so changing it applies fully without restarting. And the board quests and reputation (T38) and the
 	 * caravans (T39) and the wayfarers that share their engine: read on each use. And the wizard huts (T43): the probability of an evil wizard and of a prize is
 	 * read when each hut is decided. And the /heraldia update margin (T46): read on each analysis. And the ambient effects
-	 * (bell, siren, mine drips): read on each check. And the villager conversations (P9a): read on each click.
+	 * (bell, siren, mine drips): read on each check. And the villager conversations (P9a): read on each click. And the Herald's House (on/off and its market prices):
+	 * read on each use (its building in a new world, only at startup).
 	 */
 	static final List<String> RELOADABLE = List.of("perfil", "dificultad.", "jefes.", "botin.", "arena.", "guia.", "golems.",
 			"aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "unicas.atlantida.cofre_unico_por_jugador", "mapas_web.", "encargos.", "reputacion.",
 			"tesoro.", "caravanas.", "viajeros.", "chozas_mago.", "actualizar.", "ambiente.", "dialogos.",
+			"casa_heraldo.",
 			"eventos.");
 	/** Exceptions inside a reloadable prefix: only checked at startup. */
-	static final List<String> STARTUP_ONLY = List.of("arena.generar_en_mundos_nuevos");
+	static final List<String> STARTUP_ONLY = List.of("arena.generar_en_mundos_nuevos", "casa_heraldo.generar_en_mundos_nuevos");
 
 	private Reload() {
 	}

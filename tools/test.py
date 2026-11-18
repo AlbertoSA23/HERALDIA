@@ -73,7 +73,8 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
                  "tools/gen/houses.py", "tools/gen/fillers.py", "tools/gen/traces.py", "tools/gen/specials.py",
                  "tools/gen/streets.py", "tools/gen/pack.py", "tools/gen/board.py", "tools/gen/arena_waves.py",
                  "tools/gen/caravans.py", JAVA + "Heraldia.java", JAVA + "villages/*", JAVA + "caravans/*", JAVA + "arena/*",
-                 JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*"]
+                 JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*",
+                 JAVA + "welcome/*"]
 RUNTIME_PATHS += [JAVA + "events/*"]          # village events: up to 25 entities in a square while one lasts
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
@@ -148,6 +149,8 @@ MAP = [
     (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
     # villager conversations (P9a): their scenario lives in the quests test (a real village and a simulated player)
     (JAVA + "dialogue/*", QUESTS), ("tools/gen/dialogue.py", QUESTS), ("tools/gen/dialogue/*", QUESTS),
+    # reputation visible in the village: its scenario lives in the quests test too (the same village reaches "conocido")
+    (JAVA + "welcome/*", QUESTS),
     # caravans along the roads (T39)
     (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS), ("tools/smoke/wayfarers.py", CARAVANS),
     # chozas de mago (T43)
@@ -366,13 +369,14 @@ DURATION_S = {
     "tools/smoke/update_path_b.py": 160,         # five starts, a zone of ~200 chunks, path B and undo
     "tools/smoke/loot_restock.py": 70,             # two starts and a generated hermitage
     "tools/smoke/difficulty.py": 100,                # four starts of the same world
-    "tools/smoke/arena.py": 140,                     # two starts, three builds and five waves
+    "tools/smoke/arena.py": 180,                     # two starts, three builds and five waves, and the Herald's House
+                                                     # (LOCAL measurement, 161 s twice + 10 %: not a CI one; refresh it)
     "tools/smoke/arena_modes.py": 155,               # two starts, one build, seven short waves and the two-week close
     "tools/smoke/admin.py": 85,                      # two starts and two medium structures loaded or generated
     "tools/smoke/update_check.py": 110,              # three starts (with the fake API, without network and disabled)
     "tools/smoke/web_maps.py": 110,                 # three starts (without maps, with squaremap and Carpet, and after restarting)
     "tools/smoke/existing_world.py": 120,           # three starts of the same world
-    "tools/smoke/quests.py": 80,                  # two starts of the same world and a generated village
+    "tools/smoke/quests.py": 175,                 # two starts of the same world and a generated village (~80 s), then four more starts and a second village for the reputation looks (measured locally: +95 s)
     "tools/smoke/treasure.py": 115,                    # three starts, the whole chain and the chest
     "tools/smoke/nether_end.py": 50,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
     "tools/smoke/wizard_huts.py": 75,               # two starts, four huts and three Evil Wizards

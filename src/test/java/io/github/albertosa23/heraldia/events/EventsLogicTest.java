@@ -237,6 +237,35 @@ class EventsLogicTest {
 	}
 
 	@Test
+	void theReputationDecorationsKeepTheirSpots() {
+		// every spot welcome/Spots may decorate in the square is kept clear by every event, in every bay (the square is
+		// symmetric, so the template's frame is the world's up to a rotation that maps spots onto spots)
+		int n = 0;
+		for (io.github.albertosa23.heraldia.welcome.Spots.Spot spot
+				: io.github.albertosa23.heraldia.welcome.Spots.of(io.github.albertosa23.heraldia.welcome.Spots.Piece.PLAZA)) {
+			assertTrue(Layout.keptForWelcome(spot.x(), spot.z()), "spot " + spot);
+			n++;
+			for (Kind k : Kind.values()) {
+				for (int b = 0; b < 4; b++) {
+					Plan p = Layout.plan(k, open(), List.of(b));
+					for (Placed c : p.props()) {
+						assertFalse(c.x() == spot.x() && c.z() == spot.z(), k + " on " + spot);
+					}
+					for (Figure f : p.figures()) {
+						assertFalse(f.x() == spot.x() && f.z() == spot.z(), k + " figure on " + spot);
+					}
+				}
+			}
+		}
+		assertTrue(n >= 16, "the square's spots: " + n);
+		// the job board's spots are one block from its lectern: inside the area kept around the board's piece (± 2)
+		for (io.github.albertosa23.heraldia.welcome.Spots.Spot spot
+				: io.github.albertosa23.heraldia.welcome.Spots.of(io.github.albertosa23.heraldia.welcome.Spots.Piece.BOARD)) {
+			assertTrue(Math.abs(spot.x()) <= 2 && Math.abs(spot.z()) <= 2, "board spot " + spot);
+		}
+	}
+
+	@Test
 	void nothingIsPutUpUnderABlock() {
 		// terrain over the north edge at the height of the wedding arch's lintel (y 5): the arch cannot go there, it moves
 		Layout.Ground overhang = new Layout.Ground() {

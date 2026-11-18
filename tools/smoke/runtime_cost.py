@@ -274,6 +274,7 @@ def markdown(result, comparison=None):
 def config():
     return {"arena": {"generar_en_mundos_nuevos": False}, "caravanas": {"frecuencia": 0},
             "update_check": {"activado": False},
+            "casa_heraldo": {"generar_en_mundos_nuevos": False},
             "eventos": {"frecuencia": 0}}     # village events only with the command (the *_evento scenarios)
 
 
