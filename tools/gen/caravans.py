@@ -4,6 +4,8 @@ route it travels (Tramo), its phases (Viaje), when it departs and what it pays (
 Keys:
   heraldia.caravanas.*          what is said to players near the caravan and /heraldia caravan (operators)
   heraldia.estado.caravanas*    the lines of /heraldia status
+  heraldia.viajeros.*           the wayfarers (same engine): names, the action bar line, the attack notice, the command
+  heraldia.estado.viajeros*     their line of /heraldia status
   advancements.heraldia.caravanas.<id>.title/.description   the advancement (granted by the Java side, criterion "hecho")
 The bandits' names are those of the bandit camp (heraldia.medianas.camp.saqueador/vindicador).
 The arguments (%s) are supplied by the Java side (caravanas/Caravanas): do not change their order without changing it there.
@@ -42,6 +44,44 @@ STATE = {
                          "Caravans on the road: %s (maximum %s; departure %s %%, ambush %s %%); since startup %s arrived and "
                          "%s were lost"),
 }
+# The wayfarers (the same engine, caravanas/Wayfarers and caravanas/Wayfaring): heraldia.viajeros.*. The kind names
+# (peregrino...) go inside other texts; <kind>.nombre is the entity's name; <kind>.pasa, the action bar line for the players
+# nearby when it sets off (%s = where it goes: the village or, for the pilgrim, the name of its monastery or cathedral).
+WAYFARERS = {
+    "peregrino": ("peregrino", "pilgrim"),
+    "pastor": ("pastor", "shepherd"),
+    "mensajero": ("mensajero", "messenger"),
+    "guardias": ("pareja de guardias", "pair of guards"),
+    "cazador": ("cazador", "hunter"),
+    "peregrino.nombre": ("Peregrino", "Pilgrim"),
+    "pastor.nombre": ("Pastor", "Shepherd"),
+    "mensajero.nombre": ("Mensajero", "Messenger"),
+    "guardias.nombre": ("Guardia de %s", "Guard of %s"),
+    "cazador.nombre": ("Cazador", "Hunter"),
+    "peregrino.pasa": ("Un peregrino camina hacia %s.", "A pilgrim walks towards %s."),
+    "pastor.pasa": ("Un pastor lleva su rebaño hacia %s.", "A shepherd drives a flock towards %s."),
+    "mensajero.pasa": ("Un mensajero pasa corriendo con una carta para %s.", "A messenger runs past with a letter for %s."),
+    "guardias.pasa": ("Una pareja de guardias patrulla el camino hacia %s.", "A pair of guards patrols the road towards %s."),
+    "cazador.pasa": ("Un cazador vuelve a %s con su pieza.", "A hunter heads back to %s with the day's catch."),
+    "atacado": ("Lo que has hecho se sabrá en %s.", "Word of this will reach %s."),
+    "desactivados": ("La gente de paso está desactivada en este servidor.", "Wayfarers are disabled on this server."),
+    "tipo_desactivado": ("Ese tipo de viajero (%s) está desactivado en este servidor.",
+                         "That kind of wayfarer (%s) is disabled on this server."),
+    "limite": ("Ya hay %s viajeros en camino (el máximo es %s).", "There are already %s wayfarers on the road (the maximum is %s)."),
+    "ninguno": ("Ningún viajero encaja aquí ahora (la zona, la hora o las opciones).",
+                "No wayfarer fits here right now (the area, the time of day or the options)."),
+    "sin_santuario": ("No hay ningún monasterio ni catedral a menos de %s bloques por este camino: el peregrino no tiene adónde ir.",
+                      "There is no monastery or cathedral within %s blocks along this road: the pilgrim has nowhere to go."),
+    "creado": ("Viajero %s (%s): de %s hacia %s, %s bloques.", "Wayfarer %s (%s): from %s towards %s, %s blocks."),
+    "lista.titulo": ("Viajeros en camino: %s (máximo %s)", "Wayfarers on the road: %s (maximum %s)"),
+    "lista.linea": (" - %s: %s, de %s hacia %s, vértice %s de %s, en %s %s %s",
+                    " - %s: %s, from %s towards %s, waypoint %s of %s, at %s %s %s"),
+}
+WAYFARER_STATE = {
+    "estado.viajeros.no": ("Gente de paso: desactivada.", "Wayfarers: disabled."),
+    "estado.viajeros": ("Viajeros en camino: %s (máximo %s; frecuencia %s %%); desde el arranque han pasado %s",
+                        "Wayfarers on the road: %s (maximum %s; frequency %s %%); since startup %s have passed"),
+}
 # The advancement (granted by the Java side: caravanas/Caravanas.premiar): (id, icon, frame, experience, (title), (description))
 ADVANCEMENTS = [
     ("defensa", "minecraft:lead", "goal", 50, ("Camino seguro", "Safe Passage"),
@@ -76,6 +116,10 @@ def lang():
     for k, (es, en) in TEXTS.items():
         out["es_es"][f"{K}.{k}"], out["en_us"][f"{K}.{k}"] = es, en
     for k, (es, en) in STATE.items():
+        out["es_es"][f"{NS}.{k}"], out["en_us"][f"{NS}.{k}"] = es, en
+    for k, (es, en) in WAYFARERS.items():
+        out["es_es"][f"{NS}.viajeros.{k}"], out["en_us"][f"{NS}.viajeros.{k}"] = es, en
+    for k, (es, en) in WAYFARER_STATE.items():
         out["es_es"][f"{NS}.{k}"], out["en_us"][f"{NS}.{k}"] = es, en
     for lid, _, _, _, title, desc in ADVANCEMENTS:
         for i, language in enumerate(("es_es", "en_us")):

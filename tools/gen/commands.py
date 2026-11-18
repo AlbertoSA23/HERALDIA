@@ -45,6 +45,8 @@ CANONICAL = [
     "quest turnin",                              # T38: the board quests
     "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",
     "caravan clear",                             # T39: the caravans (operators)
+    "caravan wayfarer", "caravan wayfarer pilgrim", "caravan wayfarer shepherd", "caravan wayfarer messenger",
+    "caravan wayfarer patrol", "caravan wayfarer hunter",   # the wayfarers, on the caravans' engine (operators)
     "wizard", "wizard reveal",                   # T43: the wizard huts (operators)
     # T46: configuration panel in dialogs, each player's language and safe updates
     "config", "config menu", "config menu <menu>", "config profile", "config profile <profile>",
