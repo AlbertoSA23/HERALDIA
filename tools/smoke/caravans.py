@@ -12,7 +12,8 @@ First start:
      quest API) and the advancement is granted; no caravan entity remains.
   2. Another caravan: the player kills the merchant; the caravan is lost, with no reward and nothing on the ground.
   3. Another: the player moves 400 blocks away; after 30 s it is dismissed and its entities are removed.
-  4. An entity with the caravan tag that belongs to no active one is removed on load (what happens to
+  4. The wayfarers on the same engine (tools/smoke/wayfarers.py, `scenario`): every kind, its endings and its switches.
+  5. An entity with the caravan tag that belongs to no active one is removed on load (what happens to
      those from before a restart). And another caravan is left on the road when the server stops: it is removed on stopping.
 Second start (same world, the corridor is still forceloaded): no caravan entity; a new one appears (just one,
 no duplicates); /heraldia status counts it; with caravans.switched_on = false and /heraldia reload the existing one goes away, the
@@ -43,7 +44,7 @@ SEGMENT = (0.3, 0.7)          # central part of the route that is generated (the
 
 
 def configure(work, extra=None):
-    cfg = {"aldeas": {"separacion_bloques": cabin_adv.GRID, "maximo": 100}, "caravanas": {"frecuencia": 0}}
+    cfg = {"aldeas": {"separacion_bloques": cabin_adv.GRID, "maximo": 100}, "caravanas": {"frecuencia": 0}, "viajeros": {"frecuencia": 0}}
     for k, v in (extra or {}).items():
         cfg.setdefault(k, {}).update(v)
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
@@ -273,6 +274,11 @@ def main():
         lost(ctx, fails, route)
         far(ctx, fails, route)
         orphan(ctx, fails, route)
+        # the wayfarers (same engine) on this same server and corridor: tools/smoke/wayfarers.py; it leaves them switched off
+        _wspec = importlib.util.spec_from_file_location("wayfarers_smoke", os.path.join(os.path.dirname(os.path.abspath(__file__)), "wayfarers.py"))
+        wayfarers = importlib.util.module_from_spec(_wspec)
+        _wspec.loader.exec_module(wayfarers)
+        wayfarers.scenario(ctx, fails, route, a.work)
         c = new_one(ctx, fails, route, "peaceful")      # it stays on the road when stopping
     finally:
         cabin_adv.halt(proc, ctx)

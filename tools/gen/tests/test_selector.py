@@ -311,11 +311,14 @@ def test_ci_matrix_says_yes_goes_the_cost():
 
 
 def test_caravans():
-    p = ["tools/smoke/caravans.py"]
+    p = ["tools/smoke/caravans.py"]          # the wayfarers' scenario (same engine) runs inside it
     assert pick(J + "caravans/Caravans.java") == (False, p)
     assert pick(J + "caravans/Journey.java") == (False, p)
+    assert pick(J + "caravans/Wayfarers.java") == (False, p)
     assert pick("tools/gen/caravans.py") == (False, p)
-    assert pick("tools/smoke/caravans.py") == (False, p)
+    assert pick("tools/smoke/caravans.py") == (False, ["tools/smoke/caravans.py"])
+    assert "wayfarers.py" in sel.NOT_TESTS
+    assert pick("tools/smoke/wayfarers.py") == (False, p)
     assert sel.DURATION_S["tools/smoke/caravans.py"] > 0
 
 

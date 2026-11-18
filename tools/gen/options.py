@@ -182,6 +182,13 @@ _FIXED = [
     ("botin.reponer.dias", 7, 1, 60,
      "Días de juego (24.000 ticks del reloj del mundo) que tienen que pasar desde que se saqueó un cofre para que se reponga",
      "In-game days (24,000 ticks of the world clock) that must pass after a chest was looted before it is restocked"),
+    ("botin.reponer.premium_vencido_modesto", True, None, None,
+     "Cofre premium de una única ya vencida: cuando su guardián ha caído, al reponerse solo trae alguna esmeralda de vez en "
+     "cuando y, rara vez, un libro encantado modesto (la primera vez que se abre es el premium de siempre); desactívalo para "
+     "que se reponga con su premium completo como antes",
+     "Premium chest of a cleared unique: once its guardian has fallen, its refills only bring an emerald now and then and, "
+     "rarely, a modest enchanted book (the first opening is the usual premium); turn it off to restock it with its full "
+     "premium as before"),
     ("dificultad.nivel", "normal", ["facil", "normal", "dificil", "heroica"], None,
      "Dificultad de los guardianes y los mobs de las plantillas de Heraldia: fácil (vida y daño x0,75), normal (como "
      "siempre), difícil (vida x1,5, daño x1,25) o heroica (vida x2, daño x1,5); también los ya generados, al cargarse",
@@ -284,6 +291,43 @@ _FIXED = [
     ("caravanas.max_activas", 1, 1, 3,
      "Caravanas en camino a la vez en todo el servidor, como mucho",
      "Maximum caravans on the road at once on the whole server"),
+    ("viajeros.activado", True, None, None,
+     "Gente de paso: de vez en cuando, con un jugador cerca, pasa por un camino de Heraldia un peregrino, un pastor con "
+     "sus ovejas, un mensajero, una pareja de guardias o un cazador con su perro, según la zona; recorren un tramo y se "
+     "van. Solo por caminos que existan y en chunks ya cargados; de 1 a 6 entidades durante uno o dos minutos",
+     "Wayfarers: now and then, with a player nearby, a pilgrim, a shepherd with its sheep, a messenger, a pair of guards "
+     "or a hunter with its dog passes along a Heraldia road, depending on the area; they walk a stretch and leave. Only "
+     "along roads that exist and in chunks already loaded; 1 to 6 entities for a minute or two"),
+    ("viajeros.frecuencia", 30, 0, 100,
+     "Probabilidad (%) de que pase alguien en cada sorteo (uno por minuto, junto a un jugador a menos de 80 bloques de "
+     "un camino, 2 min después del anterior como pronto); 0: solo con /heraldia caravan wayfarer",
+     "Chance (%) of someone passing at each draw (one per minute, next to a player within 80 blocks of a road, no "
+     "sooner than 2 min after the previous one); 0: only with /heraldia caravan wayfarer"),
+    ("viajeros.max_activos", 1, 1, 3,
+     "Viajeros en camino a la vez en todo el servidor, como mucho (aparte de las caravanas)",
+     "Maximum wayfarers on the road at once on the whole server (besides the caravans)"),
+    ("viajeros.peregrino.activado", True, None, None,
+     "Peregrino: camina solo hacia el monasterio o la catedral más cercanos (solo si hay uno a menos de 3.000 bloques); "
+     "no comercia",
+     "Pilgrim: walks alone towards the nearest monastery or cathedral (only if there is one within 3,000 blocks); it "
+     "does not trade"),
+    ("viajeros.pastor.activado", True, None, None,
+     "Pastor: lleva de 3 a 5 ovejas del color de la zona hacia una aldea vecina (no en desierto, badlands, jungla ni "
+     "pantano); vende lana y cordero y compra trigo",
+     "Shepherd: takes 3 to 5 sheep of the area's colors to a neighbouring village (not in desert, badlands, jungle or "
+     "swamp); sells wool and mutton and buys wheat"),
+    ("viajeros.mensajero.activado", True, None, None,
+     "Mensajero: corre con una carta hacia una aldea vecina sin detenerse; no comercia",
+     "Messenger: runs with a letter to a neighbouring village without stopping; it does not trade"),
+    ("viajeros.guardias.activado", True, None, None,
+     "Pareja de guardias: dos gólems de hierro de una aldea patrullan el camino hacia la vecina, también de noche; se "
+     "defienden juntos",
+     "Pair of guards: two iron golems of a village patrol the road to the next one, also at night; they defend each other"),
+    ("viajeros.cazador.activado", True, None, None,
+     "Cazador: vuelve con la pieza de la zona (conejo, jabalí o ave) y su perro, un lobo de la variante del lugar; "
+     "vende carne, pieles y flechas",
+     "Hunter: comes back with the area's game (rabbit, boar or fowl) and its dog, a wolf of the local variant; sells "
+     "meat, hides and arrows"),
     ("chozas_mago.prob_malvado", 20, 0, 100,
      "Probabilidad (%) de que el mago de una choza de mago sea malvado: se decide con la semilla y la choza (siempre "
      "igual para la misma choza) y, si lo es, al acercarse un jugador o al intentar comerciar se revela y se convierte "
@@ -527,6 +571,7 @@ _NAMES = {
     "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
     "botin.reponer.activado": ("Botín que se repone", "Restocking loot"),
     "botin.reponer.dias": ("Días hasta reponerse", "Days until restocked"),
+    "botin.reponer.premium_vencido_modesto": ("Premium modesto en únicas vencidas", "Modest premium in cleared uniques"),
     "dificultad.nivel": ("Nivel de dificultad", "Difficulty level"),
     "dificultad.escalar_por_jugadores": ("Más vida con más jugadores", "More health with more players"),
     "dificultad.escalar_botin": ("Botín según la dificultad", "Loot by difficulty"),
@@ -549,6 +594,14 @@ _NAMES = {
     "caravanas.frecuencia": ("Frecuencia de las caravanas (%)", "Caravan frequency (%)"),
     "caravanas.prob_asalto": ("Probabilidad de asalto (%)", "Ambush chance (%)"),
     "caravanas.max_activas": ("Caravanas a la vez", "Caravans at once"),
+    "viajeros.activado": ("Gente de paso", "Wayfarers"),
+    "viajeros.frecuencia": ("Frecuencia de los viajeros (%)", "Wayfarer frequency (%)"),
+    "viajeros.max_activos": ("Viajeros a la vez", "Wayfarers at once"),
+    "viajeros.peregrino.activado": ("Peregrinos", "Pilgrims"),
+    "viajeros.pastor.activado": ("Pastores", "Shepherds"),
+    "viajeros.mensajero.activado": ("Mensajeros", "Messengers"),
+    "viajeros.guardias.activado": ("Parejas de guardias", "Pairs of guards"),
+    "viajeros.cazador.activado": ("Cazadores", "Hunters"),
     "chozas_mago.prob_malvado": ("Magos malvados (%)", "Evil wizards (%)"),
     "chozas_mago.prob_botin_premium": ("Botín premium del Mago Malvado (%)", "Evil Wizard premium loot (%)"),
     "ambiente.activado": ("Efectos de ambiente", "Ambient effects"),
@@ -622,6 +675,7 @@ SECTIONS = [
     ("arena", "Arena de oleadas", "Wave arena"),
     ("encargos", "Encargos y reputación", "Quests and reputation"),
     ("caravanas", "Caravanas", "Caravans"),
+    ("viajeros", "Gente de paso", "Wayfarers"),
     ("chozas_mago", "Chozas de mago", "Wizard's huts"),
     ("ambiente", "Ambiente", "Ambience"),
     ("actualizaciones", "Actualizaciones", "Updates"),
@@ -638,7 +692,7 @@ _SECTION_PREFIXES = [
     ("medianas.", "medianas"), ("minas.", "minas"), ("faros.", "costa"), ("naufragios.", "costa"),
     ("compatibilidad.", "compatibilidad"), ("guia.", "guia"),
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"),
-    ("caravanas.", "caravanas"), ("chozas_mago.", "chozas_mago"), ("ambiente.", "ambiente"),
+    ("caravanas.", "caravanas"), ("viajeros.", "viajeros"), ("chozas_mago.", "chozas_mago"), ("ambiente.", "ambiente"),
     ("update_check.", "actualizaciones"), ("actualizar.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
 ]
 

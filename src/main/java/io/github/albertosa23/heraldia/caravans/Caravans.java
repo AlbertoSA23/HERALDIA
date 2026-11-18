@@ -11,7 +11,9 @@ import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.difficulty.ModDifficulty;
 import io.github.albertosa23.heraldia.quests.Quests;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,14 +51,18 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.equine.TraderLlama;
 import net.minecraft.world.entity.animal.golem.IronGolem;
+import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.entity.npc.wanderingtrader.WanderingTrader;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +88,12 @@ import org.slf4j.LoggerFactory;
  * are removed and, at startup, any caravan entity that loads is removed ({@code ENTITY_LOAD}): no orphans or duplicates.</li>
  * </ul>
  * The caravanas.* options are read on each use: they reload with /heraldia reload.
+ * <p>
+ * The same engine moves the wayfarers ({@link Wayfarers}, the viajeros.* options): a pilgrim, a shepherd with its flock, a
+ * messenger, a pair of guards or a hunter with its dog that pass along the road near a player. Their own roll (every minute,
+ * half a minute after the caravans'), their own limit and rest; the same search for a stretch, the same {@link Journey}
+ * (without ambush), goodbye and cleanup. No reward: they are life on the road; the shepherd and the hunter trade, and
+ * attacking them costs reputation with their village of origin.
  */
 public final class Caravans {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -94,8 +106,8 @@ public final class Caravans {
 	private static final Map<Integer, Caravan> ACTIVE = new LinkedHashMap<>();
 	/** Entity → its caravan: tagged entities missing from here are leftovers. */
 	private static final Map<UUID, Caravan> BY_ENTITY = new HashMap<>();
-	private static int counter, searching, arrivals, losses;
-	private static long lastEnd = -Rules.WAIT_TICKS;
+	private static int counter, searching, arrivals, losses, searchingWayfarers, passed;
+	private static long lastEnd = -Rules.WAIT_TICKS, lastWayfarerEnd = -Rules.WAIT_TICKS;
 
 	private Caravans() {
 	}
@@ -113,8 +125,21 @@ public final class Caravans {
 		final long seed;
 		/** Vertex of the segment whose road has already been checked (so it is not checked every second). */
 		int checked = 0;
+		/** Null: a caravan; otherwise, the wayfarer (its leader is {@link #merchant}). */
+		final Wayfarers.@Nullable Kind kind;
+		/** Where the pilgrim is going (the name of its shrine), or null. */
+		@Nullable Component goal;
+		/** Players who have already paid for hurting it (a hit counts once per encounter). */
+		final Set<UUID> attackers = new HashSet<>();
+		/** Ticks walking on after the end with a player in sight (wayfarers), or -1. */
+		int linger = -1;
 
 		Caravan(int id, ServerLevel level, Segment segment, Journey journey, UUID merchant, long seed) {
+			this(id, level, segment, journey, merchant, seed, null);
+		}
+
+		Caravan(int id, ServerLevel level, Segment segment, Journey journey, UUID merchant, long seed, Wayfarers.@Nullable Kind kind) {
+			this.kind = kind;
 			this.id = id;
 			this.level = level;
 			this.segment = segment;
@@ -136,7 +161,15 @@ public final class Caravans {
 	/** One line in Heraldia.onInitialize. */
 	public static void register() {
 		ServerEntityEvents.ENTITY_LOAD.register(Caravans::onLoad);
-		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> onDeath(entity));
+		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+			hurt(entity, source, true);
+			onDeath(entity);
+		});
+		ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, base, taken, blocked) -> {
+			if (taken > 0 && !entity.isDeadOrDying()) {
+				hurt(entity, source, false);
+			}
+		});
 		LootTableEvents.MODIFY_DROPS.register((table, context, drops) -> {
 			Entity e = context.getOptional(LootContextParams.THIS_ENTITY);
 			if (e != null && noLoot(e.entityTags())) {
@@ -148,8 +181,9 @@ public final class Caravans {
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			ACTIVE.clear();
 			BY_ENTITY.clear();
-			counter = searching = arrivals = losses = 0;
-			lastEnd = -Rules.WAIT_TICKS;
+			counter = searching = arrivals = losses = searchingWayfarers = passed = 0;
+			lastEnd = lastWayfarerEnd = -Rules.WAIT_TICKS;
+			Shrines.clear();
 		});
 	}
 
@@ -179,7 +213,7 @@ public final class Caravans {
 
 	private static void onDeath(LivingEntity e) {
 		Set<String> tags = e.entityTags();
-		if (tags.isEmpty() || !tags.contains(Rules.MERCHANT)) {
+		if (tags.isEmpty() || !(tags.contains(Rules.MERCHANT) || tags.contains(Wayfarers.LEADER))) {
 			return;
 		}
 		Caravan c = BY_ENTITY.get(e.getUUID());
@@ -193,8 +227,8 @@ public final class Caravans {
 
 	private static void tick(MinecraftServer server) {
 		int t = server.getTickCount();
-		if (!ACTIVE.isEmpty() && t % Journey.EVERY == 0 && !cfg().getBool(ENABLED)) {
-			clean(Journey.End.CLEANUP);      // disabled with /heraldia reload: the existing ones leave
+		if (!ACTIVE.isEmpty() && t % Journey.EVERY == 0) {
+			cleanDisabled();      // disabled with /heraldia reload: the existing ones leave
 		}
 		if (!ACTIVE.isEmpty() && t % Journey.EVERY == 0) {
 			for (Caravan c : new ArrayList<>(ACTIVE.values())) {
@@ -204,12 +238,40 @@ public final class Caravans {
 		if (t % Rules.DRAW_TICKS == 0) {
 			draw(server, t);
 		}
+		if (t % Rules.DRAW_TICKS == Rules.DRAW_TICKS / 2) {
+			drawWayfarer(server, t);
+		}
+	}
+
+	/** Caravans on the road (not counting the wayfarers). */
+	static int caravans() {
+		int n = 0;
+		for (Caravan c : ACTIVE.values()) {
+			n += c.kind == null ? 1 : 0;
+		}
+		return n;
+	}
+
+	static int wayfarers() {
+		return ACTIVE.size() - caravans();
+	}
+
+	/** Ends the caravans if they have been disabled, and the wayfarers if they (or their kind) have. */
+	private static void cleanDisabled() {
+		HeraldiaConfig cfg = cfg();
+		for (Caravan c : new ArrayList<>(ACTIVE.values())) {
+			boolean on = c.kind == null ? cfg.getBool(ENABLED) : cfg.getBool(Wayfarers.ENABLED) && cfg.getBool(c.kind.option());
+			if (!on) {
+				c.journey.finish(Journey.End.CLEANUP);
+				finish(c);
+			}
+		}
 	}
 
 	private static void draw(MinecraftServer server, long t) {
 		HeraldiaConfig cfg = cfg();
 		ServerLevel level = server.overworld();
-		if (!Rules.outcome(cfg.getBool(ENABLED), ACTIVE.size() + searching, cfg.getInt(MAX_ACTIVE), t, lastEnd, cfg.getInt(FREQUENCY),
+		if (!Rules.outcome(cfg.getBool(ENABLED), caravans() + searching, cfg.getInt(MAX_ACTIVE), t, lastEnd, cfg.getInt(FREQUENCY),
 				level.getRandom().nextDouble())) {
 			return;
 		}
@@ -287,39 +349,15 @@ public final class Caravans {
 			notice.accept(Texts.t("heraldia.caravanas.desactivadas"));
 			return;
 		}
-		if (ACTIVE.size() >= cfg.getInt(MAX_ACTIVE)) {
-			notice.accept(Texts.t("heraldia.caravanas.limite", ACTIVE.size(), cfg.getInt(MAX_ACTIVE)));
+		if (caravans() >= cfg.getInt(MAX_ACTIVE)) {
+			notice.accept(Texts.t("heraldia.caravanas.limite", caravans(), cfg.getInt(MAX_ACTIVE)));
 			return;
 		}
-		if (segment == null) {
-			notice.accept(Texts.t("heraldia.caravanas.sin_camino", Segment.DIST_MAX));
+		Segment t = ready(level, segment, notice);
+		if (t == null) {
 			return;
 		}
-		// the start: loaded and with a real road
-		BlockPos departure = ground(level, segment.x(0), segment.z(0));
-		if (departure == null || !Boolean.TRUE.equals(hasRoad(level, segment.x(0), segment.z(0)))) {
-			notice.accept(Texts.t("heraldia.caravanas.sin_camino", Segment.DIST_MAX));
-			LOGGER.info("Heraldia: caravanas: sin camino en la salida {} {} ({})", segment.x(0), segment.z(0), departure == null ? "sin cargar" : "no hay camino");
-			return;
-		}
-		// in an existing world the road may end earlier: the segment goes up to the last loaded vertex with a road
-		int until = segment.vertices() - 1;
-		for (int k = 1; k < segment.vertices(); k++) {
-			Boolean there = hasRoad(level, segment.x(k), segment.z(k));
-			if (there == null) {
-				break;              // not loaded yet: checked on arrival
-			}
-			if (!there) {
-				until = k - 1;
-				break;
-			}
-		}
-		if (until < 2) {
-			notice.accept(Texts.t("heraldia.caravanas.sin_camino", Segment.DIST_MAX));
-			LOGGER.info("Heraldia: caravanas: el camino de {} {} se acaba enseguida", segment.x(0), segment.z(0));
-			return;
-		}
-		Segment t = until < segment.vertices() - 1 ? segment.until(until) : segment;
+		BlockPos departure = ground(level, t.x(0), t.z(0));
 		java.util.Random rnd = new java.util.Random(seed);
 		boolean ambushed = ambush != null ? ambush : Rules.ambush(cfg.getInt(AMBUSH_PROB), rnd.nextDouble());
 		int ambushAt = ambushed ? Journey.ambushPoint(t.vertices(), rnd.nextDouble()) : -1;
@@ -385,7 +423,43 @@ public final class Caravans {
 
 	static final double MERCHANT_HEALTH = 40;
 
-	private static void add(Caravan c, Mob mob, String paper, BlockPos departure, double ox, double oz, float yaw) {
+	/**
+	 * The segment as it really is in the world, or null (and it says why): its start loaded and with a real road and, in an
+	 * existing world where the road may end earlier, up to the last loaded vertex with a road (at least 2 vertices).
+	 */
+	static @Nullable Segment ready(ServerLevel level, @Nullable Segment segment, Consumer<Component> notice) {
+		if (segment == null) {
+			notice.accept(Texts.t("heraldia.caravanas.sin_camino", Segment.DIST_MAX));
+			return null;
+		}
+		// the start: loaded and with a real road
+		BlockPos departure = ground(level, segment.x(0), segment.z(0));
+		if (departure == null || !Boolean.TRUE.equals(hasRoad(level, segment.x(0), segment.z(0)))) {
+			notice.accept(Texts.t("heraldia.caravanas.sin_camino", Segment.DIST_MAX));
+			LOGGER.info("Heraldia: caravanas: sin camino en la salida {} {} ({})", segment.x(0), segment.z(0), departure == null ? "sin cargar" : "no hay camino");
+			return null;
+		}
+		// in an existing world the road may end earlier: the segment goes up to the last loaded vertex with a road
+		int until = segment.vertices() - 1;
+		for (int k = 1; k < segment.vertices(); k++) {
+			Boolean there = hasRoad(level, segment.x(k), segment.z(k));
+			if (there == null) {
+				break;              // not loaded yet: checked on arrival
+			}
+			if (!there) {
+				until = k - 1;
+				break;
+			}
+		}
+		if (until < 2) {
+			notice.accept(Texts.t("heraldia.caravanas.sin_camino", Segment.DIST_MAX));
+			LOGGER.info("Heraldia: caravanas: el camino de {} {} se acaba enseguida", segment.x(0), segment.z(0));
+			return null;
+		}
+		return until < segment.vertices() - 1 ? segment.until(until) : segment;
+	}
+
+	static void add(Caravan c, Mob mob, String paper, BlockPos departure, double ox, double oz, float yaw) {
 		BlockPos s = ground(c.level, (int) Math.floor(departure.getX() + 0.5 + ox), (int) Math.floor(departure.getZ() + 0.5 + oz));
 		if (s == null) {
 			s = departure;
@@ -404,14 +478,18 @@ public final class Caravans {
 
 	// --- every second, the active caravan ---
 
-	private static @Nullable Entity entity(Caravan c, UUID u) {
+	static @Nullable Entity entity(Caravan c, UUID u) {
 		Entity e = c.level.getEntity(u);
 		return e == null || e.isRemoved() ? null : e;
 	}
 
 	private static void update(Caravan c) {
 		Entity e = entity(c, c.merchant);
-		WanderingTrader m = e instanceof WanderingTrader w ? w : null;
+		Mob m = e instanceof Mob w ? w : null;
+		if (c.linger >= 0) {
+			linger(c, m);
+			return;
+		}
 		int k = c.journey.next();
 		int tx = c.segment.x(k), tz = c.segment.z(k);
 		boolean loaded = m != null && c.level.isPositionEntityTicking(m.blockPosition())
@@ -432,7 +510,11 @@ public final class Caravans {
 		}
 		Journey.Step step = c.journey.step(new Journey.View(m == null || m.isAlive(), loaded, dist, players, bandits, road));
 		switch (step) {
-			case END -> finish(c);
+			case END -> {
+				if (!startLinger(c, m)) {
+					finish(c);
+				}
+			}
 			case AMBUSH -> ambush(c, m, players);
 			case CLEARED -> {
 				warn(c, m, "heraldia.caravanas.superado", ChatFormatting.GREEN);
@@ -443,8 +525,11 @@ public final class Caravans {
 		}
 	}
 
-	/** The merchant towards the next vertex (with the trader's AI goal) and its escort behind. */
-	private static void goTo(Caravan c, @Nullable WanderingTrader m) {
+	/**
+	 * The merchant (or the wayfarer's leader) towards the next vertex (a trader with its own AI goal; a golem with its
+	 * navigation, when it is not fighting) and its escort behind.
+	 */
+	private static void goTo(Caravan c, @Nullable Mob m) {
 		if (m == null || c.journey.phase() == Journey.Phase.END) {
 			return;
 		}
@@ -452,8 +537,12 @@ public final class Caravans {
 			int k = c.journey.next();
 			BlockPos s = ground(c.level, c.segment.x(k), c.segment.z(k));
 			if (s != null) {
-				m.setWanderTarget(s);
+				head(m, s);
 			}
+		}
+		if (c.kind != null) {
+			follow(c, m);
+			return;
 		}
 		Entity ahead = m;
 		for (UUID u : c.escort) {
@@ -492,7 +581,7 @@ public final class Caravans {
 
 	// --- the ambush ---
 
-	private static void ambush(Caravan c, @Nullable WanderingTrader m, int players) {
+	private static void ambush(Caravan c, @Nullable Mob m, int players) {
 		if (m == null) {
 			return;
 		}
@@ -554,6 +643,10 @@ public final class Caravans {
 		ACTIVE.remove(c.id);
 		Journey.End end = c.journey.end();
 		Entity m = entity(c, c.merchant);
+		if (c.kind != null) {
+			finishWayfarer(c, end);
+			return;
+		}
 		if (end == Journey.End.ARRIVAL && m != null) {
 			arrivals++;
 			reward(c, m);
@@ -621,7 +714,352 @@ public final class Caravans {
 		return n;
 	}
 
-	// --- commands: /heraldia caravan [spawn [raid | peaceful] | raid | list | clear] (operators) ---
+	// --- the wayfarers: the same engine, their own roll, limit and rest ---
+
+	private static void drawWayfarer(MinecraftServer server, long t) {
+		HeraldiaConfig cfg = cfg();
+		ServerLevel level = server.overworld();
+		if (!Wayfarers.outcome(cfg.getBool(Wayfarers.ENABLED), wayfarers() + searchingWayfarers, cfg.getInt(Wayfarers.MAX_ACTIVE), t,
+				lastWayfarerEnd, cfg.getInt(Wayfarers.FREQUENCY), level.getRandom().nextDouble())) {
+			return;
+		}
+		List<ServerPlayer> candidates = new ArrayList<>();
+		for (ServerPlayer p : level.players()) {
+			if (!p.isSpectator() && p.isAlive()) {
+				candidates.add(p);
+			}
+		}
+		if (candidates.isEmpty()) {
+			return;
+		}
+		ServerPlayer p = candidates.get(level.getRandom().nextInt(candidates.size()));
+		searchWayfarer(level, p.getBlockX(), p.getBlockZ(), null, msg -> LOGGER.debug("Heraldia: viajeros: sorteo junto a {}: {}",
+				p.getGameProfile().name(), msg.getString()));
+	}
+
+	/** What the search off the server thread finds: the stretch near the player and, for a pilgrim, its shrine. */
+	record Plan(@Nullable Segment segment, Shrines.@Nullable Shrine shrine) {
+	}
+
+	/**
+	 * Searches for the segment near (x, z) (and, if a pilgrim may set off, the nearest shrine) off the server thread and,
+	 * back on it, creates the wayfarer.
+	 *
+	 * @param forced the kind (the command, which ignores the zone and the hour); null: the draw chooses
+	 */
+	static void searchWayfarer(ServerLevel level, int x, int z, Wayfarers.@Nullable Kind forced, Consumer<Component> notice) {
+		MinecraftServer server = level.getServer();
+		long seed = level.getRandom().nextLong();
+		boolean pilgrim = (forced == null || forced == Wayfarers.Kind.PILGRIM) && cfg().getBool(Wayfarers.Kind.PILGRIM.option());
+		searchingWayfarers++;
+		CompletableFuture.supplyAsync(() -> {
+					RoadLayout t = Roads.layout(level);
+					if (t == null) {
+						return new Plan(null, null);
+					}
+					int r = Segment.DIST_MAX;
+					Segment s = Segment.choose(t.routesIn(x - r, z - r, x + r, z + r), x, z, seed);
+					return new Plan(s, s != null && pilgrim ? Shrines.nearest(level, x, z) : null);
+				}, Util.backgroundExecutor())
+				.whenCompleteAsync((plan, e) -> {
+					searchingWayfarers--;
+					if (e != null) {
+						LOGGER.error("Heraldia: viajeros: no se pudo buscar el camino junto a {} {}", x, z, e);
+						return;
+					}
+					createWayfarer(level, plan, forced, x, z, seed, notice);
+				}, server);
+	}
+
+	/** Village family of the biome at {@code pos} (the tags heraldia:<family>), or null outside all of them. */
+	static @Nullable String zone(ServerLevel level, BlockPos pos) {
+		var biome = level.getBiome(pos);
+		for (String f : Wayfarers.FAMILIES) {
+			if (biome.is(TagKey.create(Registries.BIOME, Heraldia.id(f)))) {
+				return f;
+			}
+		}
+		return null;
+	}
+
+	/** Is another caravan or wayfarer on the road near there? (So that two never crowd the same stretch.) */
+	private static boolean crowded(ServerLevel level, BlockPos p) {
+		for (Caravan c : ACTIVE.values()) {
+			Entity m = entity(c, c.merchant);
+			if (c.level == level && m != null && Math.hypot(m.getX() - p.getX(), m.getZ() - p.getZ()) < Wayfarers.SPACING) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void createWayfarer(ServerLevel level, Plan plan, Wayfarers.@Nullable Kind forced, int px, int pz, long seed,
+									   Consumer<Component> notice) {
+		HeraldiaConfig cfg = cfg();
+		if (!cfg.getBool(Wayfarers.ENABLED)) {
+			notice.accept(Texts.t("heraldia.viajeros.desactivados"));
+			return;
+		}
+		if (forced != null && !cfg.getBool(forced.option())) {
+			notice.accept(Texts.t("heraldia.viajeros.tipo_desactivado", Texts.t("heraldia.viajeros." + forced.id)));
+			return;
+		}
+		if (wayfarers() >= cfg.getInt(Wayfarers.MAX_ACTIVE)) {
+			notice.accept(Texts.t("heraldia.viajeros.limite", wayfarers(), cfg.getInt(Wayfarers.MAX_ACTIVE)));
+			return;
+		}
+		Segment t = ready(level, plan.segment(), notice);
+		if (t == null) {
+			return;
+		}
+		BlockPos departure = ground(level, t.x(0), t.z(0));
+		if (forced == null && crowded(level, departure)) {
+			LOGGER.debug("Heraldia: viajeros: ya hay alguien en camino cerca de {} {}", departure.getX(), departure.getZ());
+			return;
+		}
+		java.util.Random rnd = new java.util.Random(seed);
+		String zone = zone(level, departure);
+		// the pilgrim, towards its shrine: the stretch as it is or the other way round (it still passes in front of the player)
+		Segment toShrine = null;
+		Shrines.Shrine shrine = plan.shrine();
+		if (shrine != null) {
+			Segment r = t.reversed();
+			if (Wayfarers.towards(t, shrine.x(), shrine.z())) {
+				toShrine = t;
+			} else if (Boolean.TRUE.equals(hasRoad(level, r.x(0), r.z(0))) && Math.hypot(r.x(0) - px, r.z(0) - pz) >= Segment.DIST_MIN) {
+				toShrine = r;
+			}
+		}
+		Wayfarers.Kind kind = forced;
+		if (kind == null) {
+			Set<Wayfarers.Kind> enabled = EnumSet.noneOf(Wayfarers.Kind.class);
+			for (Wayfarers.Kind k : Wayfarers.Kind.values()) {
+				if (cfg.getBool(k.option())) {
+					enabled.add(k);
+				}
+			}
+			kind = Wayfarers.choose(enabled, zone, level.isBrightOutside(), toShrine != null, rnd.nextDouble());
+		}
+		if (kind == null) {
+			notice.accept(Texts.t("heraldia.viajeros.ninguno"));
+			return;
+		}
+		if (kind == Wayfarers.Kind.PILGRIM) {
+			if (toShrine == null) {
+				notice.accept(Texts.t("heraldia.viajeros.sin_santuario", Wayfarers.SHRINE_RANGE));
+				return;
+			}
+			t = toShrine;
+			departure = ground(level, t.x(0), t.z(0));
+			if (departure == null) {
+				return;
+			}
+		}
+		double dx = t.x(1) - t.x(0), dz = t.z(1) - t.z(0), len = Math.max(1e-6, Math.hypot(dx, dz));
+		dx /= len;
+		dz /= len;
+		float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+		int id = ++counter;
+		List<String> colors = new ArrayList<>();
+		if (kind == Wayfarers.Kind.SHEPHERD) {
+			for (int i = Wayfarers.flock(rnd.nextDouble()); i > 0; i--) {
+				colors.add(Wayfarers.woolColor(zone, rnd.nextDouble()));
+			}
+		}
+		String origin = name(level, t.origin());
+		Mob m = Wayfaring.leader(level, kind, zone, origin, colors);
+		if (m == null) {
+			return;
+		}
+		m.snapTo(departure.getX() + 0.5, departure.getY(), departure.getZ() + 0.5, yaw, 0f);
+		m.addTag(Rules.TAG);
+		m.addTag(Wayfarers.LEADER);
+		m.addTag(kind.tag());
+		m.setPersistenceRequired();
+		Journey journey = new Journey(t.vertices(), -1);
+		Caravan c = new Caravan(id, level, t, journey, m.getUUID(), seed, kind);
+		if (shrine != null && kind == Wayfarers.Kind.PILGRIM) {
+			c.goal = Texts.t("heraldia.unicas." + shrine.id().getPath().substring("unicas/".length()) + ".nombre");
+		}
+		BY_ENTITY.put(m.getUUID(), c);
+		if (!level.addFreshEntity(m)) {
+			BY_ENTITY.remove(m.getUUID());
+			return;
+		}
+		ACTIVE.put(id, c);
+		Wayfaring.companions(c, m, departure, dx, dz, yaw, colors);
+		goTo(c, m);
+		LOGGER.info("Heraldia: viajeros: sale {} {} de {} hacia {}: {} vértices ({} bloques) desde {} {} {} hasta {} {}, zona {}, {} entidades{}",
+				kind.id, id, c.origin, c.destination, t.vertices(), Math.round(t.length()), departure.getX(), departure.getY(), departure.getZ(),
+				t.x(t.vertices() - 1), t.z(t.vertices() - 1), zone == null ? "ninguna" : zone, 1 + c.escort.size(),
+				shrine != null && kind == Wayfarers.Kind.PILGRIM ? ", camino de " + shrine.id() + " en " + shrine.x() + " " + shrine.z() : "");
+		StringBuilder vertices = new StringBuilder();
+		for (int k = 0; k < t.vertices(); k++) {
+			vertices.append(k == 0 ? "" : "; ").append(t.x(k)).append(' ').append(t.z(k));
+		}
+		LOGGER.info("Heraldia: viajeros: vértices de {}: {}", id, vertices);   // the server test follows them
+		Component where = c.goal != null ? c.goal : Component.literal(c.destination);
+		notice.accept(Texts.t("heraldia.viajeros.creado", id, Texts.t("heraldia.viajeros." + kind.id), c.origin, where, Math.round(t.length())));
+		for (ServerPlayer p : near(level, m, PLAYER_RADIUS)) {
+			Map<String, String> l = Texts.language(p);
+			p.sendOverlayMessage(Texts.t(l, "heraldia.viajeros." + kind.id + ".pasa", c.goal != null ? c.goal : c.destination)
+					.withStyle(ChatFormatting.GRAY));
+		}
+	}
+
+	/** The leader towards {@code s}: a trader with its own goal (it keeps it), a golem with its navigation when not fighting. */
+	static void head(Mob m, BlockPos s) {
+		if (m instanceof WanderingTrader w) {
+			w.setWanderTarget(s);
+		} else if (m.getTarget() == null) {
+			m.getNavigation().moveTo(s.getX() + 0.5, s.getY(), s.getZ() + 0.5, 1.0);
+		}
+	}
+
+	/** The wayfarer's companions behind it: the flock around the shepherd, the second guard beside the first; the dog follows its owner. */
+	private static void follow(Caravan c, Mob m) {
+		for (UUID u : c.escort) {
+			if (entity(c, u) instanceof Mob mob && mob.getTarget() == null && !(mob instanceof Wolf w && w.isTame())) {
+				boolean partner = mob.entityTags().contains(Wayfarers.PARTNER);
+				if (mob.distanceToSqr(m) > (partner ? 9 : 20)) {
+					mob.getNavigation().moveTo(m, partner ? 1.0 : 1.15);
+				}
+			}
+		}
+	}
+
+	/**
+	 * At the end of its stretch, with a player in sight, the wayfarer does not vanish: it walks on towards its village (at
+	 * most to its plaza) and is removed when nobody is within {@link Wayfarers#LINGER_RADIUS} blocks, or after
+	 * {@link Wayfarers#LINGER_TICKS}. Not if it died, the players left or it is a cleanup.
+	 */
+	private static boolean startLinger(Caravan c, @Nullable Mob m) {
+		Journey.End end = c.journey.end();
+		if (c.kind == null || m == null || !m.isAlive() || end == Journey.End.LOST || end == Journey.End.FAR || end == Journey.End.CLEANUP
+				|| near(c.level, m, Wayfarers.LINGER_RADIUS).isEmpty()) {
+			return false;
+		}
+		c.linger = 0;
+		Segment s = c.segment;
+		int beyond = Math.max(0, Math.min(s.route().vertices() - 1, s.vertex(s.vertices() - 1) + s.step() * Segment.VILLAGE_MARGIN));
+		BlockPos p = ground(c.level, (int) Math.floor(s.route().x(beyond)), (int) Math.floor(s.route().z(beyond)));
+		if (p != null) {
+			head(m, p);
+		}
+		return true;
+	}
+
+	private static void linger(Caravan c, @Nullable Mob m) {
+		c.linger += Journey.EVERY;
+		if (m == null || !m.isAlive() || c.linger >= Wayfarers.LINGER_TICKS || !c.level.isPositionEntityTicking(m.blockPosition())
+				|| near(c.level, m, Wayfarers.LINGER_RADIUS).isEmpty()) {
+			finish(c);
+		} else {
+			follow(c, m);
+		}
+	}
+
+	/** Removes a wayfarer's loaded entities (no reward: they are life on the road). */
+	private static void finishWayfarer(Caravan c, Journey.End end) {
+		passed++;
+		int removed = 0;
+		for (UUID u : c.all()) {
+			BY_ENTITY.remove(u);
+			Entity e = entity(c, u);
+			if (e != null && e.isAlive()) {
+				if (u.equals(c.merchant)) {
+					c.level.sendParticles(ParticleTypes.POOF, e.getX(), e.getY() + 1, e.getZ(), 12, 0.5, 0.5, 0.5, 0.02);
+				}
+				e.discard();
+				removed++;
+			}
+		}
+		lastWayfarerEnd = c.level.getServer().getTickCount();
+		LOGGER.info("Heraldia: viajeros: termina {} {}: {} ({} entidades quitadas, {} s en camino{})", c.kind.id, c.id, end.id, removed,
+				c.journey.ticks() / 20, c.linger >= 0 ? ", " + c.linger / 20 + " s más a la vista" : "");
+	}
+
+	/**
+	 * A player hurts (or kills) one of a wayfarer's entities: reputation with its village of origin drops (a hit once per
+	 * player and encounter, every death), as with a village's villagers and golems; the guards defend each other. A golem
+	 * inside a village is already counted by the quests (Quests.attack).
+	 */
+	private static void hurt(LivingEntity e, DamageSource source, boolean death) {
+		Set<String> tags = e.entityTags();
+		if (tags.isEmpty() || !tags.contains(Rules.TAG) || !(source.getEntity() instanceof ServerPlayer p)) {
+			return;
+		}
+		Caravan c = BY_ENTITY.get(e.getUUID());
+		if (c == null || c.kind == null) {
+			return;
+		}
+		boolean golem = e instanceof IronGolem;
+		if (golem && Quests.village(c.level, e.blockPosition()) != null) {
+			return;
+		}
+		if (!death && !c.attackers.add(p.getUUID())) {
+			return;
+		}
+		if (c.kind == Wayfarers.Kind.PATROL && !death) {
+			for (UUID u : c.all()) {
+				if (entity(c, u) instanceof IronGolem g && g.getTarget() == null) {
+					g.setTarget(p);
+				}
+			}
+		}
+		if (!cfg().getBool(Quests.REPUTATION)) {
+			return;
+		}
+		int[] village = Rules.chunk(c.segment.origin());
+		Quests.addReputation(p, village[0], village[1], Wayfarers.penalty(Wayfarers.role(tags, golem), death),
+				(death ? "mata" : "golpea") + " a un viajero (" + c.kind.id + ")");
+		if (!death) {
+			p.sendSystemMessage(Texts.t(Texts.language(p), "heraldia.viajeros.atacado", c.origin).withStyle(ChatFormatting.RED));
+		}
+	}
+
+	private static void listWayfarers(CommandSourceStack src, Map<String, String> l) {
+		int n = wayfarers();
+		src.sendSuccess(() -> Texts.t(l, "heraldia.viajeros.lista.titulo", n, cfg().getInt(Wayfarers.MAX_ACTIVE)).withStyle(ChatFormatting.GOLD), false);
+		for (Caravan c : ACTIVE.values()) {
+			if (c.kind == null) {
+				continue;
+			}
+			Entity m = entity(c, c.merchant);
+			Component line = Texts.t(l, "heraldia.viajeros.lista.linea", c.id, Texts.t(l, "heraldia.viajeros." + c.kind.id), c.origin,
+					c.goal != null ? c.goal : c.destination, c.journey.next(), c.journey.vertices() - 1,
+					m == null ? "?" : m.getBlockX(), m == null ? "?" : m.getBlockY(), m == null ? "?" : m.getBlockZ());
+			src.sendSuccess(() -> line, false);
+		}
+	}
+
+	/** /heraldia caravan wayfarer [pilgrim | shepherd | messenger | patrol | hunter] (operators). */
+	private static LiteralArgumentBuilder<CommandSourceStack> wayfarerNode() {
+		LiteralArgumentBuilder<CommandSourceStack> n = Commands.literal("wayfarer").executes(ctx -> wayfarer(ctx, null));
+		for (Wayfarers.Kind k : Wayfarers.Kind.values()) {
+			n.then(Commands.literal(k.command).executes(ctx -> wayfarer(ctx, k)));
+		}
+		return n;
+	}
+
+	private static int wayfarer(CommandContext<CommandSourceStack> ctx, Wayfarers.@Nullable Kind kind) {
+		CommandSourceStack src = ctx.getSource();
+		Map<String, String> l = language(src);
+		if (!cfg().getBool(Wayfarers.ENABLED)) {
+			src.sendFailure(Texts.t(l, "heraldia.viajeros.desactivados"));
+			return 0;
+		}
+		if (src.getLevel().dimension() != Level.OVERWORLD) {
+			src.sendFailure(Texts.t(l, "heraldia.caravanas.sin_camino", Segment.DIST_MAX));
+			return 0;
+		}
+		BlockPos p = BlockPos.containing(src.getPosition());
+		src.sendSuccess(() -> Texts.t(l, "heraldia.caravanas.buscando"), false);
+		searchWayfarer(src.getLevel(), p.getX(), p.getZ(), kind, c -> src.sendSuccess(() -> c, true));
+		return 1;
+	}
+
+	// --- commands: /heraldia caravan [spawn [raid | peaceful] | raid | list | clear | wayfarer [<kind>]] (operators) ---
 
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("caravan").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -631,7 +1069,8 @@ public final class Caravans {
 						.then(Commands.literal("peaceful").executes(ctx -> spawn(ctx, false))))
 				.then(Commands.literal("raid").executes(Caravans::raid))
 				.then(Commands.literal("list").executes(Caravans::list))
-				.then(Commands.literal("clear").executes(Caravans::clear));
+				.then(Commands.literal("clear").executes(Caravans::clear))
+				.then(wayfarerNode());
 	}
 
 	private static Map<String, String> language(CommandSourceStack src) {
@@ -663,7 +1102,7 @@ public final class Caravans {
 		double bestD = Double.MAX_VALUE;
 		for (Caravan c : ACTIVE.values()) {
 			Entity m = entity(c, c.merchant);
-			if (m != null && c.journey.phase() == Journey.Phase.ROAD && !c.journey.ambushed()) {
+			if (m != null && c.kind == null && c.journey.phase() == Journey.Phase.ROAD && !c.journey.ambushed()) {
 				double d = m.position().distanceToSqr(src.getPosition());
 				if (d < bestD) {
 					bestD = d;
@@ -675,7 +1114,7 @@ public final class Caravans {
 			src.sendFailure(Texts.t(l, "heraldia.caravanas.asalto.ninguna"));
 			return 0;
 		}
-		WanderingTrader m = (WanderingTrader) entity(best, best.merchant);
+		Mob m = entity(best, best.merchant) instanceof Mob mob ? mob : null;
 		ambush(best, m, m == null ? 1 : near(best.level, m, PLAYER_RADIUS).size());
 		int id = best.id;
 		src.sendSuccess(() -> Texts.t(l, "heraldia.caravanas.asalto.forzado", id), true);
@@ -685,17 +1124,22 @@ public final class Caravans {
 	private static int list(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack src = ctx.getSource();
 		Map<String, String> l = language(src);
-		src.sendSuccess(() -> Texts.t(l, "heraldia.caravanas.lista.titulo", ACTIVE.size(), cfg().getInt(MAX_ACTIVE)).withStyle(ChatFormatting.GOLD), false);
-		if (ACTIVE.isEmpty()) {
+		int caravans = caravans();
+		src.sendSuccess(() -> Texts.t(l, "heraldia.caravanas.lista.titulo", caravans, cfg().getInt(MAX_ACTIVE)).withStyle(ChatFormatting.GOLD), false);
+		if (caravans == 0) {
 			src.sendSuccess(() -> Texts.t(l, "heraldia.caravanas.lista.ninguna").withStyle(ChatFormatting.GRAY), false);
 		}
 		for (Caravan c : ACTIVE.values()) {
 			Entity m = entity(c, c.merchant);
+			if (c.kind != null) {
+				continue;
+			}
 			String phase = c.journey.phase() == Journey.Phase.AMBUSH ? "asalto" : "camino";
 			Component line = Texts.t(l, "heraldia.caravanas.lista.linea", c.id, c.origin, c.destination, Texts.t(l, "heraldia.caravanas.fase." + phase),
 					c.journey.next(), c.journey.vertices() - 1, m == null ? "?" : m.getBlockX(), m == null ? "?" : m.getBlockY(), m == null ? "?" : m.getBlockZ());
 			src.sendSuccess(() -> line, false);
 		}
+		listWayfarers(src, l);
 		return ACTIVE.size();
 	}
 
@@ -725,11 +1169,12 @@ public final class Caravans {
 	/** For /heraldia status. */
 	public static List<Component> state() {
 		HeraldiaConfig cfg = cfg();
-		if (!cfg.getBool(ENABLED)) {
-			return List.of(Texts.t("heraldia.estado.caravanas.no"));
-		}
-		return List.of(Texts.t("heraldia.estado.caravanas", ACTIVE.size(), cfg.getInt(MAX_ACTIVE), cfg.getInt(FREQUENCY),
-				cfg.getInt(AMBUSH_PROB), arrivals, losses));
+		List<Component> out = new ArrayList<>();
+		out.add(!cfg.getBool(ENABLED) ? Texts.t("heraldia.estado.caravanas.no")
+				: Texts.t("heraldia.estado.caravanas", caravans(), cfg.getInt(MAX_ACTIVE), cfg.getInt(FREQUENCY), cfg.getInt(AMBUSH_PROB), arrivals, losses));
+		out.add(!cfg.getBool(Wayfarers.ENABLED) ? Texts.t("heraldia.estado.viajeros.no")
+				: Texts.t("heraldia.estado.viajeros", wayfarers(), cfg.getInt(Wayfarers.MAX_ACTIVE), cfg.getInt(Wayfarers.FREQUENCY), passed));
+		return out;
 	}
 
 	/** Caravans on their way (for the tests and the status). */
