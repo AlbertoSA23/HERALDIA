@@ -54,9 +54,9 @@ class PlannerTest {
 	@Test
 	void candidateOrderDoesNotMatter() {
 		World m = World.rng(11, 300);
-		List<Planner.Candidate> al = new ArrayList<>(m.all());
-		java.util.Collections.reverse(al);
-		World inverse = new World(al);
+		List<Planner.Candidate> reversed = new ArrayList<>(m.all());
+		java.util.Collections.reverse(reversed);
+		World inverse = new World(reversed);
 		for (long s = 0; s < 30; s++) {
 			assertEquals(Planner.plan(s, 0, 0, 1500, m, BIOMES), Planner.plan(s, 0, 0, 1500, inverse, BIOMES));
 		}

@@ -64,12 +64,12 @@ class RulesTest {
 
 	@Test
 	void reward() {
-		Rules.Reward sin = Rules.reward(9, false, 0.5);
-		assertEquals(4, sin.emeralds());
-		assertEquals(5, sin.reputation());
-		assertFalse(sin.withItem());
-		assertNull(sin.item());
-		assertFalse(sin.advancement(), "sin asalto no hay logro");
+		Rules.Reward without = Rules.reward(9, false, 0.5);
+		assertEquals(4, without.emeralds());
+		assertEquals(5, without.reputation());
+		assertFalse(without.withItem());
+		assertNull(without.item());
+		assertFalse(without.advancement(), "sin asalto no hay logro");
 		Rules.Reward with = Rules.reward(9, true, 0.0);
 		assertEquals(8, with.emeralds());
 		assertEquals(15, with.reputation());

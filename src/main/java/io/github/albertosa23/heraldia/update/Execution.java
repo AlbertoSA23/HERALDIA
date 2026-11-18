@@ -130,8 +130,8 @@ public final class Execution {
 			if (t.isEmpty()) {
 				continue;
 			}
-			long hab = t.get().getLongOr("InhabitedTime", 0);
-			if (hab > c.inhabited()) {
+			long inhabited = t.get().getLongOr("InhabitedTime", 0);
+			if (inhabited > c.inhabited()) {
 				p.skipped++;
 				continue;
 			}

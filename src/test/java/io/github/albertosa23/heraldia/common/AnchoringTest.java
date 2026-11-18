@@ -106,14 +106,14 @@ class AnchoringTest {
 	@Test
 	void guardiansAndPickersAnchored() {
 		assertFalse(ENTITIES.isEmpty());
-		List<String> sin = new ArrayList<>();
+		List<String> without = new ArrayList<>();
 		for (Map.Entry<String, CompoundTag> e : ENTITIES) {
 			Set<String> tags = tags(e.getValue());
 			if ((tags.contains(GUARDIAN) || PICKS_UP.contains(type(e.getValue()))) && !tags.contains(Anchoring.TAG)) {
-				sin.add(e.getKey() + " (" + type(e.getValue()) + ")");
+				without.add(e.getKey() + " (" + type(e.getValue()) + ")");
 			}
 		}
-		assertTrue(sin.isEmpty(), "sin " + Anchoring.TAG + ": " + sin);
+		assertTrue(without.isEmpty(), "sin " + Anchoring.TAG + ": " + without);
 	}
 
 	@Test

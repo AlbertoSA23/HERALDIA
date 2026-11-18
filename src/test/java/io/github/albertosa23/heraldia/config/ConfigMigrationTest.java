@@ -36,9 +36,9 @@ class ConfigMigrationTest {
 		assertEquals(List.of(1, 3), r.noStep());
 		assertEquals(4, root.get("version").getAsInt());
 		assertTrue(r.migrated());
-		JsonObject al = new JsonObject();
-		assertFalse(m.migrate(al, 4, 4).migrated());
-		assertFalse(al.has("version"));                     // ya al día: no se toca
+		JsonObject upToDate = new JsonObject();
+		assertFalse(m.migrate(upToDate, 4, 4).migrated());
+		assertFalse(upToDate.has("version"));                     // ya al día: no se toca
 	}
 
 	@Test

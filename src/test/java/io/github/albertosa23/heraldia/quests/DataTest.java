@@ -39,12 +39,12 @@ class DataTest {
 	@Test
 	void abandon() {
 		Data d = Data.EMPTY.accept(e(0, Type.BRING)).accept(e(1, Type.GUARDIAN));
-		Data sin = d.abandon(0);
-		assertEquals(1, sin.active().size());
-		assertEquals(Type.GUARDIAN, sin.active().get(0).quest().type());
+		Data without = d.abandon(0);
+		assertEquals(1, without.active().size());
+		assertEquals(Type.GUARDIAN, without.active().get(0).quest().type());
 		assertSame(d, d.abandon(5));
 		assertSame(d, d.abandon(-1));
-		assertNull(sin.notAcceptable(e(0, Type.BRING)), "abandonado se puede volver a aceptar");
+		assertNull(without.notAcceptable(e(0, Type.BRING)), "abandonado se puede volver a aceptar");
 	}
 
 	@Test
@@ -66,9 +66,9 @@ class DataTest {
 		assertEquals(List.of(g.id()), d.finished());
 		assertEquals(Type.GUARDIAN.reputation, d.reputation("5,-7"));
 		assertEquals(0, d.reputation("0,0"));
-		Data sin = Data.EMPTY.accept(g).deliver(g.id(), false);
-		assertEquals(0, sin.reputation("5,-7"), "con la reputación desactivada no sube");
-		assertEquals(1, sin.completed());
+		Data without = Data.EMPTY.accept(g).deliver(g.id(), false);
+		assertEquals(0, without.reputation("5,-7"), "con la reputación desactivada no sube");
+		assertEquals(1, without.completed());
 		assertSame(d, d.deliver("no.existe.0.0", true));
 	}
 

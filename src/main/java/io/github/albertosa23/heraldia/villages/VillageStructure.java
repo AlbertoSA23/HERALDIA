@@ -203,12 +203,12 @@ public final class VillageStructure extends Structure {
 	private static String addPort(GenerationContext ctx, Port p, List<StructurePiece> village) {
 		Heights h = new Heights(ctx);
 		StructureTemplateManager manager = ctx.structureTemplateManager();
-		StructurePoolElement shedEl = p.shed().value().getRandomTemplate(ctx.random());
-		StructurePoolElement pierEl = p.pier().value().getRandomTemplate(ctx.random());
+		StructurePoolElement shedElement = p.shed().value().getRandomTemplate(ctx.random());
+		StructurePoolElement pierElement = p.pier().value().getRandomTemplate(ctx.random());
 		// cajas de las dos plantillas en cada giro, una sola vez: cada orilla probada solo las desplaza
 		Blueprint[] blueprints = new Blueprint[4];
 		for (Direction d : Direction.Plane.HORIZONTAL) {
-			blueprints[d.get2DDataValue()] = plan(manager, p, shedEl, pierEl, d);
+			blueprints[d.get2DDataValue()] = plan(manager, p, shedElement, pierElement, d);
 		}
 		// la plaza es la primera pieza; la posición del inicio es una esquina de su chunk
 		BlockPos center = village.get(0).getBoundingBox().getCenter();
@@ -230,9 +230,9 @@ public final class VillageStructure extends Structure {
 		Shoreline.Shore s = e.shore();
 		Site site = blueprints[s.sea().get2DDataValue()].en(s);
 		village.removeAll(e.gone());
-		village.add(new PoolElementStructurePiece(manager, shedEl, site.shedOrigin(), shedEl.getGroundLevelDelta(), site.rot(),
+		village.add(new PoolElementStructurePiece(manager, shedElement, site.shedOrigin(), shedElement.getGroundLevelDelta(), site.rot(),
 				site.shed(), LiquidSettings.APPLY_WATERLOGGING));
-		village.add(new PoolElementStructurePiece(manager, pierEl, site.pierOrigin(), pierEl.getGroundLevelDelta(), site.rot(),
+		village.add(new PoolElementStructurePiece(manager, pierElement, site.pierOrigin(), pierElement.getGroundLevelDelta(), site.rot(),
 				site.pier(), LiquidSettings.APPLY_WATERLOGGING));
 		Direction sea = s.sea();
 		return "muelle en " + s.x() + " " + s.z() + " hacia " + sea.getSerializedName() + ", punta " + (s.x() + sea.getStepX() * p.length())
@@ -262,12 +262,12 @@ public final class VillageStructure extends Structure {
 		}
 	}
 
-	private static Blueprint plan(StructureTemplateManager manager, Port p, StructurePoolElement shedEl,
-							   StructurePoolElement pierEl, Direction sea) {
+	private static Blueprint plan(StructureTemplateManager manager, Port p, StructurePoolElement shedElement,
+							   StructurePoolElement pierElement, Direction sea) {
 		Rotation rot = facing(sea);
 		return new Blueprint(sea, rot, StructureTemplate.transform(p.shedJoint(), Mirror.NONE, rot, BlockPos.ZERO),
 				StructureTemplate.transform(p.pierJoint(), Mirror.NONE, rot, BlockPos.ZERO),
-				shedEl.getBoundingBox(manager, BlockPos.ZERO, rot), pierEl.getBoundingBox(manager, BlockPos.ZERO, rot));
+				shedElement.getBoundingBox(manager, BlockPos.ZERO, rot), pierElement.getBoundingBox(manager, BlockPos.ZERO, rot));
 	}
 
 	/**

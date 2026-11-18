@@ -62,9 +62,9 @@ class RevisionTest {
 		assertEquals(Type.ROAD, route().getLast().type());
 		assertEquals("", route().getLast().sub());
 		// determinista: el orden de entrada no cambia nada
-		List<String> al = new java.util.ArrayList<>(STRUCTURES);
-		java.util.Collections.reverse(al);
-		assertEquals(route(), Revision.route(al, styles(), p -> true, true, true));
+		List<String> reversed = new java.util.ArrayList<>(STRUCTURES);
+		java.util.Collections.reverse(reversed);
+		assertEquals(route(), Revision.route(reversed, styles(), p -> true, true, true));
 	}
 
 	@Test

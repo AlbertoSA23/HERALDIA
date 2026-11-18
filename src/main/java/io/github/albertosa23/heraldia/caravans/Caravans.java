@@ -93,7 +93,7 @@ public final class Caravans {
 	static final String ADVANCEMENT = "caravanas/defensa";
 	private static final Map<Integer, Caravan> ACTIVE = new LinkedHashMap<>();
 	/** Entidad → su caravana: las que no están aquí y llevan la etiqueta sobran. */
-	private static final Map<UUID, Caravan> DE = new HashMap<>();
+	private static final Map<UUID, Caravan> BY_ENTITY = new HashMap<>();
 	private static int counter, searching, arrivals, losses;
 	private static long lastEnd = -Rules.WAIT_TICKS;
 
@@ -147,7 +147,7 @@ public final class Caravans {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> clean(Journey.End.CLEANUP));
 		ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
 			ACTIVE.clear();
-			DE.clear();
+			BY_ENTITY.clear();
 			counter = searching = arrivals = losses = 0;
 			lastEnd = -Rules.WAIT_TICKS;
 		});
@@ -170,7 +170,7 @@ public final class Caravans {
 	// --- entidades sobrantes ---
 
 	private static void onLoad(Entity e, ServerLevel level) {
-		if (Rules.orphan(e.entityTags(), e.getUUID(), DE.keySet())) {
+		if (Rules.orphan(e.entityTags(), e.getUUID(), BY_ENTITY.keySet())) {
 			LOGGER.info("Heraldia: caravanas: quitada una entidad de una caravana que ya no está en camino ({} en {} {} {})",
 					BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()).getPath(), e.getBlockX(), e.getBlockY(), e.getBlockZ());
 			e.discard();
@@ -182,7 +182,7 @@ public final class Caravans {
 		if (tags.isEmpty() || !tags.contains(Rules.MERCHANT)) {
 			return;
 		}
-		Caravan c = DE.get(e.getUUID());
+		Caravan c = BY_ENTITY.get(e.getUUID());
 		if (c != null) {
 			c.journey.finish(Journey.End.LOST);
 			finish(c);       // ya, en el mismo tick: las llamas no llegan a soltar nada
@@ -349,9 +349,9 @@ public final class Caravans {
 		}
 		Journey journey = new Journey(t.vertices(), ambushAt);
 		Caravan c = new Caravan(id, level, t, journey, m.getUUID(), seed);
-		DE.put(m.getUUID(), c);
+		BY_ENTITY.put(m.getUUID(), c);
 		if (!level.addFreshEntity(m)) {
-			DE.remove(m.getUUID());
+			BY_ENTITY.remove(m.getUUID());
 			return;
 		}
 		ACTIVE.put(id, c);
@@ -394,11 +394,11 @@ public final class Caravans {
 		mob.addTag(Rules.TAG);
 		mob.addTag(paper);
 		mob.setPersistenceRequired();
-		DE.put(mob.getUUID(), c);
+		BY_ENTITY.put(mob.getUUID(), c);
 		if (c.level.addFreshEntity(mob)) {
 			c.escort.add(mob.getUUID());
 		} else {
-			DE.remove(mob.getUUID());
+			BY_ENTITY.remove(mob.getUUID());
 		}
 	}
 
@@ -530,12 +530,12 @@ public final class Caravans {
 			b.setCustomName(Texts.t(isBoss ? "heraldia.medianas.campamento.vindicador" : "heraldia.medianas.campamento.saqueador"));
 			b.setPersistenceRequired();
 			b.setTarget(m);
-			DE.put(b.getUUID(), c);
+			BY_ENTITY.put(b.getUUID(), c);
 			if (c.level.addFreshEntity(b)) {
 				c.bandits.add(b.getUUID());
 				departed++;
 			} else {
-				DE.remove(b.getUUID());
+				BY_ENTITY.remove(b.getUUID());
 			}
 		}
 		c.level.playSound(null, m.getX(), m.getY(), m.getZ(), SoundEvents.RAID_HORN.value(), SoundSource.HOSTILE, 2f, 1.2f);
@@ -565,7 +565,7 @@ public final class Caravans {
 		}
 		int removed = 0;
 		for (UUID u : c.all()) {
-			DE.remove(u);
+			BY_ENTITY.remove(u);
 			Entity e = entity(c, u);
 			if (e != null && e.isAlive()) {      // el mercader que acaba de morir se queda (es su cadáver)
 				if (u.equals(c.merchant)) {
