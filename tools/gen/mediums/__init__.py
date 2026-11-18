@@ -18,7 +18,7 @@ Contract of each module:
                                                    # overworld): type heraldia:dimension, which looks for the floor under
                                                    # the Nether roof or on an outer End island
   YIELDS_TO_MINES = True                              # optional: yields the spot to mine entrances (tag
-                                                   # heraldia:medianas/ceden_a_minas; comun/Medianas.cedeMina in Java)
+                                                   # heraldia:medianas/ceden_a_minas; common/MediumStructures.yieldsToMine in Java)
   ADVANCEMENTS = [dict(id="pesca", icono="minecraft:cod", titulo=(es, en), descripcion=(es, en),   # optional: own
                 tabla="pesca")]       # advancements (heraldia:medianas/<id>/<advancement id>, children of "Al borde del camino"):
                                       # open a container from that LOOT table, or own `criteria` instead of `tbl`

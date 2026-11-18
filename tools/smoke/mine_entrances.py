@@ -311,7 +311,7 @@ def check_locate(ctx):
             if ":minas/" in sid:                       # expected: heraldia:minas/<size>; generated, with its style
                 if not (sid.endswith(f"minas/{size}") or f"minas/{size}/" in sid) and dist < DISTANCE:
                     fails.append(f"{size} mine at {x}, {z} {dist} blocks from {sid} (< {DISTANCE})")
-            elif ":medianas/" in sid:
+            elif ":medianas/" in sid or ":costa/" in sid:    # lighthouses and wrecks yield to mines at this distance
                 if dist < DISTANCE:
                     fails.append(f"{size} mine at {x}, {z} {dist} blocks from the medium structure {sid} (< {DISTANCE})")
             elif dist < ZONE:

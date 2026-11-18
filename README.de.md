@@ -34,7 +34,7 @@ Die Texte des Mods gibt es in 8 Sprachen: Englisch, Spanisch, Französisch, Deut
 
 1. Du brauchst **Minecraft 26.3**, **Fabric Loader** 0.20.1 oder neuer und die **Fabric API**.
 2. Lege `heraldia-<version>.jar` in den Ordner `mods` des **Servers** und starte ihn neu.
-3. **Die Spieler brauchen den Mod nicht**: Sie können mit einem Vanilla-Client beitreten. Texte, die der Client nicht kennt, erscheinen auf Spanisch – außer dem Leitfaden des Herolds, der in der Sprache jedes Spielers ankommt. Installieren sie den Mod ebenfalls, sehen sie alles in ihrer eigenen Sprache und erhalten den Konfigurationsbildschirm (mit Mod Menu).
+3. **Die Spieler brauchen den Mod nicht**: Sie können mit einem Vanilla-Client beitreten. Texte, die der Client nicht kennt, erscheinen auf Spanisch – außer dem Leitfaden des Herolds, den Aufträgen, der Arena, den Karawanen und den Hinweisen von Heraldia, die in der Sprache jedes Spielers ankommen. Installieren sie den Mod ebenfalls, sehen sie alles in ihrer eigenen Sprache und erhalten den Konfigurationsbildschirm (mit Mod Menu).
 
 **Eine bestehende Welt** funktioniert problemlos: Die neuen Bauwerke erscheinen in Chunks, die noch nicht generiert wurden (erkunde neues Land). Wurde deine Welt mit Heraldia **0.1.0** erstellt, setze `unicas.rejilla_compatible` auf `true`, bevor du den Server startest, damit `/locate`, die Schatzkarten und der Leitfaden die einzigartigen Bauwerke, die du schon hast, weiterhin finden.
 

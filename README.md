@@ -34,7 +34,7 @@ The texts of the mod are in 8 languages: English, Spanish, French, German, Itali
 
 1. You need **Minecraft 26.3**, **Fabric Loader** 0.20.1 or later and **Fabric API**.
 2. Put `heraldia-<version>.jar` in the `mods` folder of the **server** and restart it.
-3. **Players do not need the mod**: they can join with a vanilla client. Texts the client does not know show in Spanish, except the Herald's Guide, which arrives in each player's language. If they install the mod as well, they see everything in their own language and get the configuration screen (with Mod Menu).
+3. **Players do not need the mod**: they can join with a vanilla client. Texts the client does not know show in Spanish, except the Herald's Guide, quests, the arena, caravans and Heraldia's notices, which arrive in each player's language. If they install the mod as well, they see everything in their own language and get the configuration screen (with Mod Menu).
 
 **An existing world** works fine: the new structures appear in chunks that have not been generated yet (explore new land). If your world was created with Heraldia **0.1.0**, set `unicas.rejilla_compatible` to `true` before you start the server, so that `/locate`, treasure maps and the Guide keep finding the unique structures you already have.
 

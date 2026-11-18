@@ -62,6 +62,8 @@ public final class MediumStructures {
 	/** Distance (blocks, between starts) at which a medium yields its site to another mod's structure (they can be whole
 	 *  villages) and to a vanilla one (small except the villages, which already have their exclusion zone, and the very rare mansions). */
 	public static final int FOREIGN_BLOCKS = 128, VANILLA_BLOCKS = 80;
+	/** The Nether fortress is placed in UNDERGROUND_DECORATION but its bridges stand in the open over the lava: it is seen. */
+	private static final Identifier FORTRESS = Identifier.withDefaultNamespace("fortress");
 	private static volatile @Nullable MediumStructures cached;
 
 	/** Does some style of type j win in that chunk (biome and terrain)? In the game, findValidGenerationPoint. */
@@ -205,7 +207,7 @@ public final class MediumStructures {
 		}
 		List<Structure> visible = new ArrayList<>();
 		for (StructureSet.StructureSelectionEntry e : set.structures()) {
-			if (ForeignZone.visible(e.structure().value().step())) {
+			if (ForeignZone.visible(e.structure().value().step()) || e.structure().is(FORTRESS)) {
 				visible.add(e.structure().value());
 			}
 		}

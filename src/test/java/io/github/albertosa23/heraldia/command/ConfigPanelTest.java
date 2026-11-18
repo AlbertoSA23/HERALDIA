@@ -140,4 +140,43 @@ class ConfigPanelTest {
 		assertEquals(Optional.of(Optional.empty()), Preferences.choose("auto", there));
 		assertEquals(Optional.empty(), Preferences.choose("klingon", there));
 	}
+
+	/**
+	 * T45 (final audit): the dialogs have not been seen on a real client; at least every text they use exists in each of the
+	 * 8 languages (not only through the Spanish fallback) and the format arguments match the Spanish text.
+	 */
+	@Test
+	void everyPanelTextInEachLanguage() {
+		Map<String, ConfigOption> o = options();
+		Map<String, JsonPrimitive> v = HeraldiaConfig.defaults();
+		java.util.regex.Pattern key = java.util.regex.Pattern.compile("key='(heraldia\\.[^']+)'");
+		Map<String, String> es = Texts.texts("es_es");
+		for (String code : Texts.languages()) {
+			Map<String, String> l = Texts.texts(code);
+			List<Object> dialogs = new ArrayList<>();
+			for (String profile : Menus.PROFILES) {
+				dialogs.add(ConfigPanel.main(l, profile, profile));
+				for (Menus.Menu m : Menus.MENUS) {
+					dialogs.add(ConfigPanel.submenu(l, m, o, v, profile));
+				}
+			}
+			dialogs.add(ConfigPanel.notice(l, List.of(Texts.t(l, "heraldia.panel.resultado")), Menus.MENUS.getFirst()));
+			Set<String> used = new HashSet<>();
+			for (Object d : dialogs) {
+				java.util.regex.Matcher mt = key.matcher(d.toString());
+				while (mt.find()) {
+					used.add(mt.group(1));
+				}
+			}
+			assertTrue(used.size() > 40, code + ": only " + used.size() + " keys found");
+			for (String k : used) {
+				assertTrue(l.containsKey(k), code + " lacks " + k);
+				assertEquals(args(es.get(k)), args(l.get(k)), code + ": format arguments of " + k);
+			}
+		}
+	}
+
+	private static long args(String text) {
+		return text == null ? 0 : java.util.regex.Pattern.compile("%(\\d+\\$)?s").matcher(text).results().count();
+	}
 }

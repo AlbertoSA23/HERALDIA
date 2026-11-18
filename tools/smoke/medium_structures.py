@@ -76,6 +76,9 @@ def check_locate(ctx, kinds):
                 if ":minas/" in sid:                          # mine entrances: they yield to medium structures at this distance
                     if dist < DISTANCE:
                         fails.append(f"{mid} at {px}, {pz} {dist} blocks from the mine {sid} (< {DISTANCE})")
+                elif ":costa/" in sid:                        # lighthouses and wrecks: they yield to mediums at this distance
+                    if dist < DISTANCE:
+                        fails.append(f"{mid} at {px}, {pz} {dist} blocks from the coast structure {sid} (< {DISTANCE})")
                 elif ":medianas/" not in sid:                 # villages (heraldia:aldeas or their style) and unique structures
                     if dist < ZONE:
                         fails.append(f"{mid} at {px}, {pz} {dist} blocks from {sid} (< {ZONE})")

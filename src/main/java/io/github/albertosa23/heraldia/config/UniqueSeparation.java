@@ -50,6 +50,11 @@ public final class UniqueSeparation {
 	@FunctionalInterface
 	public interface Viability {
 		boolean valid(int index, int chunkX, int chunkZ);
+
+		/** The structure can spawn in this dimension at all (a structure that always wins, Atlantis, only blocks there). */
+		default boolean inDimension(int index) {
+			return true;
+		}
 	}
 
 	private final Object source;
@@ -165,11 +170,19 @@ public final class UniqueSeparation {
 	public Viability viability(RegistryAccess registryAccess, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 							   RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height,
 							   ResourceKey<Level> dimension) {
-		return (j, x, z) -> {
-			Structure s = structures[j];
-			return s != null && !AtlantisAnchor.excludes(ids[j], dimension, seed, x, z) && Dimensions.possible(s, biomeSource)
-					&& s.findValidGenerationPoint(new Structure.GenerationContext(registryAccess, generator, biomeSource, sampler, randomState,
-					templates, seed, new ChunkPos(x, z), height, s.biomes()::contains)).isPresent();
+		return new Viability() {
+			@Override
+			public boolean valid(int j, int x, int z) {
+				Structure s = structures[j];
+				return s != null && !AtlantisAnchor.excludes(ids[j], dimension, seed, x, z) && Dimensions.possible(s, biomeSource)
+						&& s.findValidGenerationPoint(new Structure.GenerationContext(registryAccess, generator, biomeSource, sampler, randomState,
+						templates, seed, new ChunkPos(x, z), height, s.biomes()::contains)).isPresent();
+			}
+
+			@Override
+			public boolean inDimension(int j) {
+				return structures[j] != null && Dimensions.possible(structures[j], biomeSource);
+			}
 		};
 	}
 
@@ -205,7 +218,10 @@ public final class UniqueSeparation {
 						continue; // lower tier or rank, or disabled cell
 					}
 					if (always[j]) {
-						return true;
+						if (viability.inDimension(j)) {
+							return true;
+						}
+						continue; // the Overworld Atlantis does not block a Nether or End unique
 					}
 					if (near == null) {
 						near = new ArrayList<>(4);

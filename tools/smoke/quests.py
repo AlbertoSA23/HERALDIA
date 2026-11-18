@@ -33,8 +33,6 @@ VILLAGER = ('summon minecraft:villager {x} {y} {z} {{NoAI:1b,PersistenceRequired
             'VillagerData:{{profession:"minecraft:librarian",level:2,type:"minecraft:plains"}},Xp:20,'
             'Offers:{{Recipes:[{{buy:{{id:"minecraft:emerald",count:%d}},sell:{{id:"minecraft:book",count:1}},maxUses:99,'
             'uses:0,xp:1,priceMultiplier:0.0f,specialPrice:0,demand:0}}]}}}}' % PRICE)
-# stat minecraft:talked_to_villager: +1 only when the use reaches an adult villager that is not trading already
-TALKED = "heraldia_trato"
 
 
 def write_config(work, extra=None):
@@ -76,7 +74,7 @@ def look_and_use(srv, pos, start, y):
 
 
 def price(srv, spot, y, floor_bottom):
-    """Summons the fixed-trade villager and returns its specialPrice with its trades open (None: they never opened)."""
+    """Summons the fixed-trade villager and returns its specialPrice with its trades open (0 without a discount)."""
     srv.run("kill @e[tag=heraldia_prueba]", r"Killed|No entity was found")
     for _ in range(ATTEMPTS):
         m = srv.run(VILLAGER.format(x=spot[0], y=y, z=spot[1]), r"Summoned")
@@ -99,17 +97,18 @@ def clear_spot(srv, spot, y):
 
 
 def open_trades(srv, spot, y, floor_bottom):
-    """The player opens the test villager's trades; False if no use reached it (the stat talked_to_villager only goes up
-    when the use reaches an adult villager that is not trading already, and the others near the spot are gone)."""
+    """The player opens the test villager's trades and returns the specialPrice it gets (0 if it never gets one: the
+    field is then absent). Before each use, any open trade is closed and the plaza villagers next to the spot are removed."""
+    price = None
     for _ in range(10):
         close_out(srv)   # a trade left open (also with another villager) is closed first
         clear_spot(srv, spot, y)
-        srv.run(f"scoreboard players set {PLAYER} {TALKED} 0", r"Set score|Set \[")
         look_and_use(srv, (spot[0], y + 1.2, spot[1]), floor_bottom, y)
         srv.ctx.ticks(4)
-        if srv.test(f"execute if score {PLAYER} {TALKED} matches 1.."):
-            return True
-    return False
+        price = read_price(srv)
+        if price:
+            return price
+    return price
 
 
 def read_price(srv):
@@ -120,13 +119,13 @@ def read_price(srv):
 
 
 def existing_price(srv, spot, y, floor_bottom):
-    """specialPrice of the test villager already in the plaza, with its trades open (None: they never opened)."""
-    return read_price(srv) if open_trades(srv, spot, y, floor_bottom) else None
+    """specialPrice of the test villager already in the plaza, with its trades open (0 without a discount; None: it is gone)."""
+    return open_trades(srv, spot, y, floor_bottom)
 
 
 def close_out(srv):
     """Closes the trades (vanilla then removes the discount): the player goes far away for a moment."""
-    srv.run(f"tp {PLAYER} ~ ~ ~100", r"Teleported")
+    srv.run(f"execute as {PLAYER} at @s run tp @s ~ ~ ~100", r"Teleported")
     srv.ctx.ticks(4)
 
 
@@ -159,8 +158,8 @@ def first_lap(srv, fails, found):
     if not srv.until(f"execute if entity @a[name={PLAYER}]"):
         raise SystemExit(f"simulated player {PLAYER} (Carpet) does not appear")
     srv.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
-    srv.run(f"scoreboard objectives add {TALKED} minecraft.custom:minecraft.talked_to_villager",
-            r"Created new objective|already exists")
+    for effect in ("water_breathing", "resistance"):   # close_out leaves the player wherever it lands (sometimes in water)
+        srv.run(f"effect give {PLAYER} minecraft:{effect} infinite 4 true", r"Applied effect|Unable to apply")
     srv.run(f"clear {PLAYER}", r"Removed|No items")
     lec, ahead = lectern_of(srv, sheriff_pos)
     if lec is None:
@@ -263,8 +262,8 @@ def second_lap(srv, fails, found, first_item, work):
     srv.run(f"player {PLAYER} spawn at {floor_bottom[0]} {y} {floor_bottom[1]}", r"joined the game")
     srv.until(f"execute if entity @a[name={PLAYER}]")
     srv.ctx.ticks(10)
-    srv.run(f"scoreboard objectives add {TALKED} minecraft.custom:minecraft.talked_to_villager",
-            r"Created new objective|already exists")
+    for effect in ("water_breathing", "resistance"):   # close_out leaves the player wherever it lands (sometimes in water)
+        srv.run(f"effect give {PLAYER} minecraft:{effect} infinite 4 true", r"Applied effect|Unable to apply")
     name, period, qst = board(srv, fails, lambda: as_player(srv, "heraldia quest", BOARD.pattern))
     if (name, period, qst) != first_item:
         fails.append(f"after restarting, another board: {qst} (before {first_item[2]})")
