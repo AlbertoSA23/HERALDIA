@@ -1,6 +1,6 @@
-"""Planos de planta por nivel (celdas alcanzables a pie con los puzles resueltos) y renders isométricos del Laboratorio
-del micólogo. Uso: python3 tools/gen/uniques/mycelium_lab/blueprints.py [carpeta]
-(por defecto docs/unicas/laboratorio_micelio)
+"""Floor plans by level (cells reachable on foot with the puzzles solved) and isometric renders of the Mycologist's
+laboratory. Usage: python3 tools/gen/uniques/mycelium_lab/blueprints.py [folder]
+(default docs/unicas/laboratorio_micelio)
 """
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -12,13 +12,13 @@ from render import render                     # noqa: E402
 import uniques.mycelium_lab as M        # noqa: E402
 from uniques.mycelium_lab.construction import W, D, F1, F2, CAP, LOW   # noqa: E402
 
-LEVELS = [(F2, "Galerías, nivel bajo: galería de la luz, capullos, experimentos, reactivos, cepa madre y tesoro",
+LEVELS = [(F2, "Galleries, lower level: light gallery, cocoons, experiments, reagents, mother strain and treasure",
            8, 58, 16, 60),
-          (F1, "Galerías, nivel alto: criaderos, laboratorio, cepario, pasillo del cable trampa y criadero abandonado",
+          (F1, "Galleries, upper level: nurseries, laboratory, strain vault, trap wire corridor and abandoned nursery",
            8, 61, 7, 33),
-          (1, "El jardín: champiñones, invernadero, destilería y corral", 0, W - 1, 0, D - 1),
-          (LOW, "Pasarela baja y dormitorio de los ayudantes (sombrero pequeño)", 2, 40, 20, 40),
-          (CAP, "Casa del micólogo (sombrero grande), pasarela alta y secadero", 20, 60, 5, 46)]
+          (1, "The garden: mushrooms, greenhouse, distillery and pen", 0, W - 1, 0, D - 1),
+          (LOW, "Lower walkway and assistants' dormitory (small cap)", 2, 40, 20, 40),
+          (CAP, "Mycologist's house (large cap), upper walkway and drying room", 20, 60, 5, 46)]
 MARK = {"chest": "C", "barrel": "T", "spawner": "G", "dispenser": "D", "sticky_piston": "P", "piston_head": "P",
         "lever": "L", "ladder": "H", "tripwire_hook": "^", "tripwire": "^", "stone_pressure_plate": "_",
         "redstone_wire": "r", "redstone_wall_torch": "i", "polished_andesite": "R", "brewing_stand": "A",
@@ -31,12 +31,12 @@ def floor_plans(blocks, cells):
     feet = {}
     for (x, y, z) in cells:
         feet.setdefault((x, z), set()).add(y)
-    out = ["Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G generador  D dispensador",
-           "         P pistón  L palanca  r redstone  i antorcha de redstone  R frasco de reactivo  / escalera",
+    out = ["Legend: · reachable on foot (puzzles solved)  # wall  C chest  T barrel  G spawner  D dispenser",
+           "         P piston  L lever  r redstone  i redstone torch  R reagent flask  / stairs",
            "         ^ cable trampa  _ placa  b tapiz  A alambique  ~ agua  = bancal  | barrotes  + valla  d puerta",
-           "         H escalera de mano; x de oeste a este, z de norte a sur (la entrada está al norte, z = 0)", ""]
+           "         H ladder; x from west to east, z from north to south (the entrance is to the north, z = 0)", ""]
     for lv, title, x0, x1, z0, z1 in LEVELS:
-        out.append(f"== {title} (pies a y = {lv}) ==")
+        out.append(f"== {title} (feet at y = {lv}) ==")
         out.append("    " + "".join(str(x // 10) if x % 10 == 0 else " " for x in range(x0, x1 + 1)))
         for z in range(z0, z1 + 1):
             row = []
@@ -64,25 +64,25 @@ def main():
     os.makedirs(dest, exist_ok=True)
     reg = Registry()
     M.build(reg)
-    o = M.REPORT["obra"]
+    o = M.REPORT["construction"]
     blocks = M.REPORT["abierto"]
     with open(os.path.join(dest, "planos.txt"), "w", encoding="utf-8") as f:
         f.write(floor_plans(blocks, o.cells) + "\n")
     area = reg.templates["unicas/laboratorio_micelio/jardin"]
     render(area, os.path.join(dest, "jardin.png"), scale=3)
     render(area, os.path.join(dest, "jardin_sur.png"), scale=3, flip=True)
-    low = Template("sin_sombreros")              # el jardín cortado bajo los sombreros
+    low = Template("sin_sombreros")              # the garden cut away below the caps
     low.blocks = {p: v for p, v in area.blocks.items() if p[1] <= 8}
     low.normalize()
     render(low, os.path.join(dest, "jardin_corte.png"), scale=3)
-    under = Template("corte")                    # las galerías sin la roca de relleno
+    under = Template("corte")                    # the galleries without the filler rock
     under.blocks = {p: v for p, v in o.t.blocks.items() if p[1] < 0 and bname(v[0]) not in ("stone", "dirt", "air")}
     y0 = min(p[1] for p in under.blocks)
     under.normalize()
     render(under, os.path.join(dest, "galerias.png"), scale=4)
     render(under, os.path.join(dest, "galerias_corte_alto.png"), scale=4, cut_y=F1 + 2 - y0)
     render(under, os.path.join(dest, "galerias_corte_bajo.png"), scale=4, cut_y=F2 + 2 - y0)
-    print("planos y renders en", os.path.abspath(dest))
+    print("floor plans and renders in", os.path.abspath(dest))
 
 
 if __name__ == "__main__":

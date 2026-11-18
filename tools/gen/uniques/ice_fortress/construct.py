@@ -1,7 +1,7 @@
-"""Construcción a mano de la fortaleza de hielo (una sola pieza rígida). Ver docs/unicas/fortaleza_hielo.md.
+"""Hand construction of the ice fortress (a single rigid piece). See docs/unicas/ice_fortress.md.
 
-Coordenadas de la plantilla: x de oeste a este (0..50), z de norte a sur (0..64), y hacia arriba (0..45).
-Zócalo macizo y = 0..10; patio a pie 11; criptas a pie 6; cámara del tesoro a pie 1; adarve a pie 20.
+Template coordinates: x from west to east (0..50), z from north to south (0..64), y upward (0..45).
+Solid base y = 0..10; courtyard at feet 11; crypts at feet 6; treasure chamber at feet 1; wall walk at feet 20.
 """
 from core import Template, B, F
 from uniques._common import pieces
@@ -12,8 +12,8 @@ W, D, H = 51, 65, 46
 
 PI, BI, SB, CSB, ST = "packed_ice", "blue_ice", "stone_bricks", "chiseled_stone_bricks", "stone"
 PD, SPR = "polished_diorite", "spruce_planks"
-WEATHER = 0.42        # hielo compacto a la vista con costra de nieve: deja la superficie dañada en torno al 18 %
-RUIN = set()          # posiciones dañadas a mano (para la estimación de estado)
+WEATHER = 0.42        # packed ice in view with a snow crust: leaves the damaged surface at around 18 %
+RUIN = set()          # hand-damaged positions (for the state estimate)
 
 
 def box(t, x1, y1, z1, x2, y2, z2, st):
@@ -63,14 +63,14 @@ def plinth(t):
             if x in (0, 50) or z in (12, 64):
                 for y in range(0, 11):
                     t.set(x, y, z, CSB if y == 5 and (x + z) % 4 == 0 else SB)
-    box(t, 1, 10, 13, 49, 10, 63, PD)              # suelo del patio
+    box(t, 1, 10, 13, 49, 10, 63, PD)              # courtyard floor
     for x in range(3, 48):                         # caminos de piedra en cruz
         for z in (24, 25, 26):
             t.set(x, 10, z + 6 * 0, SB) if 13 <= x <= 37 else None
     for z in range(15, 41):
         for x in (24, 25, 26):
             t.set(x, 10, z, SB)
-    # escalinata norte encajada entre pretiles
+    # north stairway fitted between parapets
     for x in range(22, 29):
         t.set(x, 0, 0, "stone_brick_slab[type=bottom]")
     for k in range(1, 12):
@@ -93,7 +93,7 @@ def curtain(t):
     for z in range(12, 65):
         for x in (0, 1, 2, 48, 49, 50):
             column(x, z)
-    # almenas en la fila exterior
+    # merlons on the outer row
     def merlon(x, z, k):
         if k % 2 == 0:
             t.set(x, 20, z, PI)
@@ -109,7 +109,7 @@ def curtain(t):
 
 
 def tower(t, x0, z0, ladder, mid_doors, ground_doors, chest_name=None, broken=False):
-    """Torre de 9 × 9 con tres plantas (pies 11, 20 y 26) y aguja de hielo azul."""
+    """9 × 9 tower with three floors (feet 11, 20 and 26) and a blue ice spire."""
     x1, z1 = x0 + 8, z0 + 8
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):
@@ -134,16 +134,16 @@ def tower(t, x0, z0, ladder, mid_doors, ground_doors, chest_name=None, broken=Fa
                 for y in range(ya, yb + 1):
                     t.set(x, y, z, SB if ins == 0 else (PI if ins == 1 else BI))
     t.set(cx, 45, cz, "lightning_rod[facing=up,powered=false,waterlogged=false]")
-    if broken:                                     # punta derribada por el hielo
+    if broken:                                     # tip knocked down by the ice
         for y in range(41, 46):
             ruin(t, cx, y, cz)
         for x, z in ((x0 + 3, z0 + 3), (x0 + 5, z0 + 3)):
             for y in range(37, 40):
                 ruin(t, x, y, z)
-    # ventanas: sala alta en las cuatro caras, saeteras en la planta media hacia fuera
+    # windows: upper room on all four faces, arrow slits on the middle floor facing outward
     for y in (27, 28):
         pane(t, cx, y, z0); pane(t, cx, y, z1); pane(t, x0, y, cz); pane(t, x1, y, cz)
-    # escalera de mano y huecos en los forjados
+    # ladder and openings in the floor slabs
     lx, lz, lf = ladder
     for y in range(11, 26):
         t.set(lx, y, lz, f"ladder[facing={lf},waterlogged=false]")
@@ -162,14 +162,14 @@ def gatehouse(t):
     box(t, 19, 11, 12, 31, 24, 18, PI)
     box(t, 19, 11, 12, 31, 12, 18, SB)
     box(t, 19, 18, 12, 31, 18, 18, BI)
-    air(t, 23, 11, 12, 27, 17, 18)                 # paso de la puerta
+    air(t, 23, 11, 12, 27, 17, 18)                 # door passage
     for x in (22, 28):
         for y in range(11, 18):
             t.set(x, y, 12, BI)
     for x in range(23, 28):
         t.set(x, 17, 13, "iron_bars")              # rastrillo alzado
     hang(t, 25, 17, 16)
-    box(t, 19, 19, 12, 31, 19, 18, SB)             # suelo de la sala del rastrillo
+    box(t, 19, 19, 12, 31, 19, 18, SB)             # floor of the portcullis room
     air(t, 20, 20, 13, 30, 24, 17)
     box(t, 19, 25, 12, 31, 25, 18, SB)
     for x in range(19, 32):
@@ -180,10 +180,10 @@ def gatehouse(t):
                     t.set(x, 27, z, "stone_brick_slab[type=bottom]")
                 else:
                     t.set(x, 26, z, "stone_brick_wall")
-    for xa in (19, 29):                            # pináculos
+    for xa in (19, 29):                            # pinnacles
         box(t, xa, 26, 12, xa + 2, 28, 14, PI)
         box(t, xa + 1, 29, 13, xa + 1, 32, 13, BI)
-    air(t, 19, 20, 13, 19, 21, 14)                 # salidas al adarve
+    air(t, 19, 20, 13, 19, 21, 14)                 # exits to the wall walk
     air(t, 31, 20, 13, 31, 21, 14)
     for x in (22, 28):
         pane(t, x, 21, 12); pane(t, x, 22, 12); pane(t, x, 21, 18); pane(t, x, 22, 18)
@@ -194,7 +194,7 @@ def gatehouse(t):
 
 
 def building(t, x1, z1, x2, z2, walls, floor=SPR, snow=True):
-    """Ala de una planta adosada a la muralla: muros en los lados indicados, tejado plano a y = 16."""
+    """One-story wing built against the wall: walls on the given sides, flat roof at y = 16."""
     for x in range(x1, x2 + 1):
         for z in range(z1, z2 + 1):
             wall = ("w" in walls and x == x1) or ("e" in walls and x == x2) or \
@@ -231,11 +231,11 @@ def barracks(t):
 def gallery(t):
     building(t, 3, 41, 12, 55, "nes", floor=PD)
     door(t, 8, 11, 41, "north")
-    air(t, 12, 11, 47, 13, 13, 47)                 # paso al gran salón
-    air(t, 5, 11, 55, 5, 12, 56)                   # paso a la torre suroeste
+    air(t, 12, 11, 47, 13, 13, 47)                 # passage to the great hall
+    air(t, 5, 11, 55, 5, 12, 56)                   # passage to the southwest tower
     for z in range(42, 55):
         t.set(7, 10, z, BI)                        # franja de hielo azul
-    for zc in (44, 48, 52):                        # pedestales junto al muro oeste
+    for zc in (44, 48, 52):                        # pedestals beside the west wall
         box(t, 3, 11, zc - 1, 5, 11, zc + 1, CSB)
     # caballero
     box(t, 4, 12, 44, 4, 14, 44, BI); t.set(4, 15, 44, PI)
@@ -245,7 +245,7 @@ def gallery(t):
     t.set(5, 13, 47, BI)
     # oso
     box(t, 3, 12, 51, 4, 13, 53, BI); t.set(5, 13, 52, PI); t.set(4, 14, 52, PI)
-    # dragón en el lado este
+    # dragon on the east side
     box(t, 9, 11, 50, 11, 11, 53, CSB)
     box(t, 10, 12, 51, 11, 12, 52, BI); box(t, 10, 13, 50, 10, 14, 50, PI); t.set(10, 15, 50, BI)
     t.set(11, 13, 53, PI); t.set(9, 13, 51, PI); t.set(9, 13, 52, PI)
@@ -259,7 +259,7 @@ def gallery(t):
 def kitchen(t):
     building(t, 38, 21, 47, 30, "wns")
     door(t, 38, 11, 26, "west")
-    for z in (24, 27):                             # hogueras bajo el tiro
+    for z in (24, 27):                             # bonfires under the flue
         t.set(47, 11, z, "campfire[facing=west,lit=true,signal_fire=false,waterlogged=false]")
         t.set(47, 16, z, "air")
         t.set(47, 17, z, "air")
@@ -294,7 +294,7 @@ def kennel(t):
     for x in range(45, 48):
         for z in range(31, 39):
             t.set(x, 10, z, "white_wool") if z != 35 else None
-    # tejado hundido: hueco con escombros dentro del corral
+    # collapsed roof: a gap with rubble inside the pen
     for x, z in ((45, 37), (46, 37), (46, 38)):
         ruin(t, x, 16, z); ruin(t, x, 17, z)
     ruin(t, 47, 11, 38, "cobblestone")
@@ -306,7 +306,7 @@ def kennel(t):
 def mausoleum(t):
     building(t, 38, 41, 47, 55, "wns", floor=PD)
     door(t, 42, 11, 41, "north")
-    air(t, 46, 11, 55, 46, 12, 56)                 # paso a la torre sureste
+    air(t, 46, 11, 55, 46, 12, 56)                 # passage to the southeast tower
     for z in range(45, 50):
         t.set(40, 11, z, "stone_brick_wall"); t.set(44, 11, z, "stone_brick_wall")
     for x in range(41, 44):
@@ -359,7 +359,7 @@ def great_hall(t):
             table(t, xt, 11, z)
             chair(t, xt - 1, 11, z, ca)
             chair(t, xt + 1, 11, z, cb)
-    # estrado y trono
+    # dais and throne
     box(t, 23, 11, 51, 27, 11, 53, SB)
     for x in range(23, 28):
         t.set(x, 11, 50, "stone_brick_stairs[facing=south,half=bottom,shape=straight]")
@@ -374,7 +374,7 @@ def great_hall(t):
         t.set(x, 15, 53, "light_blue_wall_banner[facing=north]")
     for (x, z) in ((20, 46), (30, 46), (25, 44), (25, 49)):
         hang(t, x, 18, z)
-    # hornacinas del fondo: la izquierda es señuelo, la derecha es la puerta secreta
+    # alcoves at the back: the left one is a decoy, the right one is the secret door
     for x in (21, 29):
         air(t, x, 11, 54, x, 12, 54)
         t.set(x, 11, 55, CSB); t.set(x, 12, 55, CSB)
@@ -384,14 +384,14 @@ def great_hall(t):
 
 
 def hidden_room(t):
-    """Sala oculta del rey, entre el salón y la muralla sur."""
+    """The king's hidden room, between the hall and the south wall."""
     x1, x2, z1, z2 = 23, 34, 56, 61
     for x in range(x1, x2 + 1):
         for z in range(z1, z2 + 1):
             for y in range(11, 17):
                 wall = x in (x1, x2) or z in (z1, z2) or y == 16
                 if (x, y, z) in t.blocks and z == 56:
-                    continue                       # el muro sur del salón ya está
+                    continue                       # the hall's south wall is already there
                 t.set(x, y, z, PI if wall else "air")
             if not (x in (x1, x2) or z in (z1, z2)):
                 t.set(x, 10, z, SPR)
@@ -406,8 +406,8 @@ def hidden_room(t):
 
 
 def piston_door(t, door, axis, side, dust, lever):
-    """Puerta de dos bloques sujetos por pistones pegajosos extendidos y alimentados por una palanca encendida.
-    axis: dirección de la cabeza al pistón (los pistones miran hacia la puerta, `side`)."""
+    """Two-block door held by sticky pistons that are extended and powered by a lit lever.
+    axis: direction from the head to the piston (the pistons face the door, `side`)."""
     pieces.piston_door(t.set, door, (axis[0], axis[2]), side, CSB)
     dx, dy, dz = dust
     t.set(dx, dy - 1, dz, ST)
@@ -423,7 +423,7 @@ def courtyard(t):
     box(t, 24, 10, 29, 26, 10, 31, PI)
     box(t, 25, 11, 30, 25, 13, 30, PI)
     ruin(t, 25, 14, 30, "air")
-    ruin(t, 26, 11, 31, PI)                        # trozo de la estatua caído al vaso
+    ruin(t, 26, 11, 31, PI)                        # piece of the statue fallen into the vase
     for (x, z) in ((18, 22), (32, 22), (18, 37), (32, 37)):
         t.set(x, 11, z, "stone_brick_wall"); t.set(x, 12, z, "stone_brick_wall")
         t.set(x, 13, z, "lantern[hanging=false,waterlogged=false]")
@@ -434,15 +434,15 @@ def courtyard(t):
 def crypts(t):
     def cave(x1, z1, x2, z2, y1=6, y2=9):
         air(t, x1, y1, z1, x2, y2, z2)
-    # escalera del panteón (bajando hacia el sur)
+    # pantheon staircase (going down to the south)
     for i, z in enumerate(range(45, 49)):
         y = 9 - i
         for x in range(41, 44):
             t.set(x, y, z, "stone_brick_stairs[facing=north,half=bottom,shape=straight]")
             air(t, x, y + 1, z, x, 10, z)
-    cave(39, 49, 46, 54)                           # vestíbulo
+    cave(39, 49, 46, 54)                           # vestibule
     hang(t, 42, 9, 52, soul=True)
-    cave(31, 50, 38, 52)                           # pasillo del cable trampa
+    cave(31, 50, 38, 52)                           # trap wire corridor
     cave(30, 50, 30, 52)
     t.set(35, 6, 50, "tripwire_hook[attached=true,facing=south,powered=false]")
     t.set(35, 6, 52, "tripwire_hook[attached=true,facing=north,powered=false]")
@@ -462,7 +462,7 @@ def crypts(t):
     t.set(31, 6, 42, "skeleton_skull[powered=false,rotation=8]")
     for z in (43, 46):
         t.set(37, 6, z, "bone_block[axis=y]")
-    # sala de ofrendas (esqueletos) con derrumbe
+    # offering room (skeletons) with a cave-in
     cave(31, 55, 37, 58)
     air(t, 32, 6, 53, 32, 7, 54)
     spawner(t, 34, 6, 57, "skeleton")
@@ -470,7 +470,7 @@ def crypts(t):
     for (x, y, z, st) in ((36, 6, 58, "cobblestone"), (37, 6, 58, "cobblestone"), (37, 7, 58, "gravel"),
                           (37, 6, 57, "cobblestone_slab[type=bottom]")):
         ruin(t, x, y, z, st)
-    # cripta del Rey
+    # crypt of the King
     cave(17, 45, 29, 57)
     for (x, z) in ((19, 47), (27, 47), (19, 55), (27, 55), (18, 54)):
         box(t, x, 6, z, x, 9, z, BI if (x, z) != (18, 54) else SB)
@@ -478,14 +478,14 @@ def crypts(t):
     t.set(23, 7, 51, "skeleton_skull[powered=false,rotation=0]")
     hang(t, 20, 9, 51, soul=True); hang(t, 26, 9, 51, soul=True)
     t.entity(23, 6, 48, guardian())
-    # muro oeste: hornacina señuelo (z = 48) y puerta secreta (z = 51)
+    # west wall: decoy alcove (z = 48) and secret door (z = 51)
     for z in (48, 51):
         air(t, 16, 6, z, 16, 7, z)
         t.set(15, 6, z, CSB); t.set(15, 7, z, CSB)
     piston_door(t, door=[(15, 6, 51), (15, 7, 51)], axis=(0, 0, 1), side="north",
                 dust=(15, 7, 54), lever=((17, 7, 54), "east"))
     air(t, 14, 6, 51, 14, 7, 51)
-    # escalera a la cámara del tesoro (bajando hacia el oeste)
+    # staircase to the treasure chamber (going down to the west)
     air(t, 13, 6, 50, 13, 9, 52)
     for i, x in enumerate(range(12, 8, -1)):
         y = 4 - i
@@ -493,7 +493,7 @@ def crypts(t):
             t.set(x, y, z, "stone_brick_stairs[facing=east,half=bottom,shape=straight]")
             air(t, x, y + 1, z, x, 9, z)
     hang(t, 11, 9, 51, soul=True)
-    # antecámara, pasillo de la placa y cámara final
+    # antechamber, plate corridor and final chamber
     air(t, 4, 1, 48, 8, 4, 54)
     hang(t, 6, 4, 51, soul=True)
     air(t, 6, 1, 55, 6, 2, 56)
@@ -524,16 +524,16 @@ def guardian():
 
 
 def wall_ruins(t):
-    for z in range(31, 36):                        # brecha en el parapeto este
+    for z in range(31, 36):                        # breach in the east parapet
         ruin(t, 50, 20, z); ruin(t, 50, 21, z)
     for z in (32, 33, 34):
         ruin(t, 50, 19, z, "cobblestone")
-    for z in (44, 46, 48):                         # almenas caídas en la muralla oeste
+    for z in (44, 46, 48):                         # fallen merlons on the west wall
         ruin(t, 0, 20, z); ruin(t, 0, 21, z)
 
 
 def weather(t, rate):
-    """Costras de nieve en el hielo compacto a la vista, en manchas (nunca en una cima: allí nacerían picos de hielo)."""
+    """Snow crusts on the packed ice in view, in patches (never on a peak: ice spikes would spawn there)."""
     import zlib
     for (x, y, z), (st, _) in list(t.blocks.items()):
         if st != "minecraft:packed_ice" or t.get(x, y + 1, z) in (None, "minecraft:air"):
@@ -550,7 +550,7 @@ def build_template():
     t = Template(f"unicas/{SID}/fortaleza")
     plinth(t)
     curtain(t)
-    air(t, 3, 11, 15, 47, 25, 61)                  # volumen interior del recinto
+    air(t, 3, 11, 15, 47, 25, 61)                  # interior volume of the enclosure
     gatehouse(t)
     barracks(t)
     gallery(t)
@@ -566,7 +566,7 @@ def build_template():
     courtyard(t)
     crypts(t)
     wall_ruins(t)
-    # aire explícito en el resto de la caja (el terreno y la nieve no se cuelan dentro)
+    # explicit air in the rest of the box (terrain and snow do not seep in)
     for x in range(W):
         for z in range(D):
             for y in range(H):

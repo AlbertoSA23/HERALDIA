@@ -1,14 +1,14 @@
-"""Planos de planta en texto (celdas alcanzables) y renders isométricos de la catedral.
+"""Text floor plans (reachable cells) and isometric renders of the cathedral.
 
-python3 -m unicas.catedral.planos <carpeta>   (desde tools/gen)"""
+python3 -m uniques.cathedral.planos <folder>   (from tools/gen)"""
 import os, sys
 from lint import bname
 from .audit import passable, top_height
 
-LEVELS = [(-7, "Cripta, osarios y cámara del tesoro (pies en -7)"), (1, "Planta baja (pies en 1)"),
-          (9, "Biblioteca y gabinete (pies en 9)"), (12, "Triforio, tribuna y pasarelas altas (pies en 12)"),
-          (17, "Terrazas sobre los colaterales (pies en 17)"), (28, "Canalón, terraza de la fachada y desván (pies en 28)"),
-          (40, "Campanario (pies en 40)"), (56, "Azoteas de las torres (pies en 56)")]
+LEVELS = [(-7, "Crypt, ossuaries and treasure chamber (feet at -7)"), (1, "Planta baja (pies en 1)"),
+          (9, "Library and closet (feet at 9)"), (12, "Triforium, gallery and high walkways (feet at 12)"),
+          (17, "Terraces over the side aisles (feet at 17)"), (28, "Gutter, facade terrace and attic (feet at 28)"),
+          (40, "Campanario (pies en 40)"), (56, "Tower roofs (feet at 56)")]
 MARK = {"chest": "C", "barrel": "C", "spawner": "G", "lever": "L", "ladder": "H", "sticky_piston": "P", "piston_head": "P",
         "tripwire": "T", "tripwire_hook": "T", "stone_pressure_plate": "T", "dispenser": "D", "iron_trapdoor": "Z", "bell": "B"}
 
@@ -43,10 +43,10 @@ def floor_plan(c, y, cells, x0=-2, x1=118, z0=2, z1=89):
 
 def write(c, folder):
     os.makedirs(folder, exist_ok=True)
-    out = ["Planos de la catedral por nivel. Leyenda: '.' celda alcanzable a pie (a esa altura), ',' alcanzable medio bloque",
-           "o un bloque arriba/abajo (escaleras), '#' muro o bloque, 'o' suelo con techo no alcanzable, 'C' cofre, 'G' generador,",
-           "'L' palanca, 'P' pistón, 'T' trampa (cable o placa), 'D' dispensador, 'H' escalera de mano, 'Z' trampilla, 'B' campana.",
-           "x crece hacia la derecha (fachada oeste a la izquierda), z hacia abajo (norte arriba).", ""]
+    out = ["Cathedral floor plans by level. Legend: '.' cell reachable on foot (at that height), ',' reachable half a block",
+           "or one block up/down (stairs), '#' wall or block, 'o' floor with unreachable ceiling, 'C' chest, 'G' spawner,",
+           "'L' lever, 'P' piston, 'T' trap (wire or plate), 'D' dispenser, 'H' ladder, 'Z' trapdoor, 'B' bell.",
+           "x grows to the right (west facade on the left), z downward (north up).", ""]
     for y, title in LEVELS:
         out += [f"== {title} ==", floor_plan(c, y, c.audit_cells), ""]
     with open(os.path.join(folder, "planos.txt"), "w", encoding="utf-8") as f:

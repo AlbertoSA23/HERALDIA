@@ -1,43 +1,43 @@
-"""Vías del cargadero de la Mina perdida: el puzle de las agujas (diseño en docs/unicas/mina_perdida.md).
+"""Tracks of the loading dock in the Lost Mine: the switch puzzle (design in docs/unicas/lost_mine.md).
 
-Una vagoneta espera en la rampa de salida (un raíl propulsor apagado contra el muro: con la palanca de arranque sale
-disparada hacia el oeste). La vía pasa por dos agujas (cruces en T) con su palanca; según cómo estén, la vagoneta acaba
-en la escombrera, en la vía muerta de la fundición o, por una rendija de 1 x 1 del muro norte (por la que no cabe una
-persona), en la báscula: un raíl detector cuyo bloque de apoyo apaga la antorcha inversora que sostiene la compuerta del
-filón madre (dos pistones pegajosos extendidos, como `piezas.lever_door`). Solo «aguja 1 al norte, aguja 2 al este»
-llega a la báscula; la pista está en el despacho oculto del capataz.
+A minecart waits on the exit ramp (an unpowered powered rail against the wall: with the start lever it shoots off
+to the west). The track passes two switches (T junctions), each with a lever; depending on their state, the minecart ends
+up in the spoil heap, on the dead-end track of the foundry or, through a 1 x 1 slit in the north wall (too narrow for
+a person), at the weighing platform: a detector rail whose supporting block turns off the inverter torch that holds up the gate of
+the mother lode (two extended sticky pistons, like `pieces.lever_door`). Only "switch 1 north, switch 2 east"
+reaches the platform; the hint is in the foreman's hidden office.
 
-Regla de las agujas (26.3, `RailState.place`, leída en el bytecode): un raíl normal con tres vecinos que pueden unirse a
-él (cruce en T) toma la curva según la señal: sin señal gana la última de NO, NE, SO, SE que tenga sus dos vecinos; con
-señal, la última de SE, SO, NE, NO. Una T norte-sur con rama al este queda SE sin señal y NE con ella; una T este-oeste
-con rama al sur, SE sin señal y SO con ella. `forma_aguja` lo calcula y `recorrer` sigue a la vagoneta.
+Switch rule (26.3, `RailState.place`, read from the bytecode): a normal rail with three neighbours that can connect to
+it (T junction) curves according to the signal: with no signal the last of NW, NE, SW, SE that has both its neighbours wins; with
+a signal, the last of SE, SW, NE, NW. A north-south T with a branch to the east becomes SE without a signal and NE with one; an east-west T
+with a branch to the south becomes SE without a signal and SW with one. `spire_shape` computes this and `traverse` follows the minecart.
 """
 from core import parse_state
 
 DV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 OPP = {"north": "south", "south": "north", "east": "west", "west": "east"}
-# forma -> {lado: dy} (dy = 1 si por ese lado la vía sube un bloque)
+# shape -> {side: dy} (dy = 1 if the track rises one block on that side)
 SHAPES = {"north_south": {"north": 0, "south": 0}, "east_west": {"east": 0, "west": 0},
           "ascending_east": {"west": 0, "east": 1}, "ascending_west": {"east": 0, "west": 1},
           "ascending_north": {"south": 0, "north": 1}, "ascending_south": {"north": 0, "south": 1},
           "south_east": {"south": 0, "east": 0}, "south_west": {"south": 0, "west": 0},
           "north_west": {"north": 0, "west": 0}, "north_east": {"north": 0, "east": 0}}
 RAILS = ("rail", "powered_rail", "detector_rail", "activator_rail")
-Y = 1                                    # pies del cargadero
+Y = 1                                    # footings of the loading dock
 
-# trazado (x, z) del cargadero; las agujas y las palancas
-OUTPUT, CAP = (100, 36), (101, 36)      # rampa de salida (propulsor contra el muro este)
-START = (100, 35)                     # palanca de suelo junto a la salida
-SWITCH1, LEVER1 = (89, 36), (88, 36)    # T norte-sur con rama al este (por donde llega la vagoneta)
-SWITCH2, LEVER2 = (89, 30), (89, 29)    # T este-oeste con rama al sur (por donde llega)
+# layout (x, z) of the loading dock; the switches and the levers
+OUTPUT, CAP = (100, 36), (101, 36)      # exit ramp (powered rail against the east wall)
+START = (100, 35)                     # floor lever next to the exit
+SWITCH1, LEVER1 = (89, 36), (88, 36)    # north-south T with a branch to the east (where the minecart arrives from)
+SWITCH2, LEVER2 = (89, 30), (89, 29)    # east-west T with a branch to the south (where it arrives from)
 SPOIL_HEAP, SMELTER = (89, 44), (83, 30)
-DOOR_COL = (92, 24)                        # compuerta del filón madre (bloque inferior a y = 1), en el muro norte
-SEESAW = (96, 2, 24)                    # raíl detector, dentro del muro
-SOLUTION = (True, False)                 # aguja 1 con señal (norte), aguja 2 sin señal (este)
+DOOR_COL = (92, 24)                        # mother lode gate (lower block at y = 1), in the north wall
+SEESAW = (96, 2, 24)                    # detector rail, inside the wall
+SOLUTION = (True, False)                 # switch 1 with a signal (north), switch 2 without a signal (east)
 
 
 def spire_shape(neighbors, with_signal):
-    """Forma que el juego da a un raíl con esos vecinos ({'north', ...}) y esa señal (RailState.place)."""
+    """Shape the game gives a rail with those neighbours ({'north', ...}) and that signal (RailState.place)."""
     n, s, w, e = ("north" in neighbors, "south" in neighbors, "west" in neighbors, "east" in neighbors)
     form = None
     if (n or s) and not w and not e:
@@ -71,8 +71,8 @@ def form(st):
 
 
 def traverse(get, start, direction, switches=None, steps=200):
-    """Sigue a una vagoneta desde `inicio` (x, y, z) moviéndose hacia `sentido`. `agujas` {pos: forma} sustituye la
-    forma de las agujas. Devuelve (última posición, camino) o lanza ValueError si descarrila."""
+    """Follows a minecart from `start` (x, y, z) moving towards `direction`. `switches` {pos: shape} replaces the
+    shape of the switches. Returns (last position, path) or raises ValueError if it derails."""
     switches = switches or {}
     p, d, road = start, direction, [start]
     for _ in range(steps):
@@ -81,7 +81,7 @@ def traverse(get, start, direction, switches=None, steps=200):
         sides = SHAPES[f]
         entrance = OPP[d]
         if p != start and entrance not in sides:
-            raise ValueError(f"la vagoneta descarrila en {p} (forma {f}, entra por {entrance})")
+            raise ValueError(f"the minecart derails at {p} (shape {f}, enters from {entrance})")
         output = [l for l in sides if l != entrance][0] if p != start else d
         dx, dz = DV[output]
         next_unique = None
@@ -94,15 +94,15 @@ def traverse(get, start, direction, switches=None, steps=200):
             return p, road
         p, d = next_unique, output
         road.append(p)
-    raise ValueError("la vagoneta no se para")
+    raise ValueError("the minecart never stops")
 
 
 def trace(o):
-    """Pone las vías, las palancas, los carteles, la vagoneta y la compuerta en la obra `o`; devuelve los mecanismos."""
+    """Places the tracks, levers, signs, minecart and gate in the build `o`; returns the mechanisms."""
     s, y = o.s, Y
     rail = o.rail
-    # salida: propulsor apagado contra el muro (tope), un raíl normal de aislamiento y dos propulsores con bloque de
-    # redstone debajo (siempre encendidos) para que la vagoneta vacía llegue lejos
+    # exit: unpowered powered rail against the wall (buffer stop), a normal insulating rail and two powered rails with a redstone block
+    # underneath (always on) so the empty minecart travels far
     rail(*_p(OUTPUT), "east_west", "powered_rail", False)
     s(START[0], y, START[1], "lever[face=floor,facing=west,powered=false]")
     for x in range(SWITCH1[0] + 1, OUTPUT[0]):
@@ -111,20 +111,20 @@ def trace(o):
             s(x, y - 1, 36, "redstone_block")
         else:
             rail(x, y, 36, "east_west")
-    # aguja 1 (T norte-sur con rama al este) y su palanca de suelo al oeste
+    # switch 1 (north-south T with a branch to the east) and its floor lever to the west
     rail(*_p(SWITCH1), spire_shape({"north", "south", "east"}, False))
     s(LEVER1[0], y, LEVER1[1], "lever[face=floor,facing=east,powered=false]")
-    # ramal sur, a la escombrera
+    # south branch, to the spoil heap
     for z in range(SWITCH1[1] + 1, SPOIL_HEAP[1] + 1):
         if z == 40:
             rail(89, y, z, "north_south", "powered_rail", True)
             s(89, y - 1, z, "redstone_block")
         else:
             rail(89, y, z, "north_south")
-    s(SPOIL_HEAP[0], y, SPOIL_HEAP[1] + 1, "gravel")                    # el montón de la escombrera hace de tope
+    s(SPOIL_HEAP[0], y, SPOIL_HEAP[1] + 1, "gravel")                    # the spoil heap acts as a buffer stop
     s(SPOIL_HEAP[0] + 1, y, SPOIL_HEAP[1] + 1, "gravel")
     s(SPOIL_HEAP[0], y + 1, SPOIL_HEAP[1] + 1, "gravel")
-    # ramal norte, a la aguja 2
+    # north branch, to switch 2
     for z in range(SWITCH2[1] + 1, SWITCH1[1]):
         if z == 33:
             rail(89, y, z, "north_south", "powered_rail", True)
@@ -133,7 +133,7 @@ def trace(o):
             rail(89, y, z, "north_south")
     rail(*_p(SWITCH2), spire_shape({"east", "west", "south"}, False))
     s(LEVER2[0], y, LEVER2[1], "lever[face=floor,facing=south,powered=false]")
-    # vía muerta de la fundición (al oeste), con un tonel de tope
+    # dead-end track of the foundry (to the west), with a barrel as a buffer stop
     for x in range(SMELTER[0], SWITCH2[0]):
         if x == 86:
             rail(x, y, 30, "east_west", "powered_rail", True)
@@ -141,7 +141,7 @@ def trace(o):
         else:
             rail(x, y, 30, "east_west")
     o.barrel(SMELTER[0] - 1, y, 30, "east")
-    # a la báscula: al este, curva al norte, rampa y rendija del muro norte
+    # to the weighing platform: east, curve to the north, ramp and slit in the north wall
     for x in range(SWITCH2[0] + 1, 96):
         if x == 92:
             rail(x, y, 30, "east_west", "powered_rail", True)
@@ -153,11 +153,11 @@ def trace(o):
     s(96, y - 1, 29, "redstone_block")
     rail(96, y, 28, "north_south")
     rail(96, y, 27, "ascending_north")
-    s(96, y, 26, "cobblestone")                                         # apoyo de la vía alta
+    s(96, y, 26, "cobblestone")                                         # support of the high track
     rail(96, y + 1, 26, "north_south")
-    rail(96, y + 1, 25, "north_south")                                  # en la rendija (muro por encima y por debajo)
+    rail(96, y + 1, 25, "north_south")                                  # in the slit (wall above and below)
     rail(*SEESAW, "north_south", "detector_rail", False)
-    # la compuerta: piston_door hacia el este, antorcha inversora en el apoyo de la báscula
+    # the gate: piston_door towards the east, inverter torch on the weighing platform's support
     px, pz = DOOR_COL
     from .._common import pieces
     door = [(px, y, pz), (px, y + 1, pz)]
@@ -166,21 +166,21 @@ def trace(o):
     support = (SEESAW[0], SEESAW[1] - 1, SEESAW[2])
     assert support == (torch[0] + 1, y, pz)
     s(*torch, "redstone_wall_torch[facing=west,lit=true]")
-    s(torch[0], y + 1, pz, "cobblestone")                            # lo carga la antorcha: pistón de arriba
+    s(torch[0], y + 1, pz, "cobblestone")                            # charged by the torch: the piston above
     s(*support, "cobblestone")
-    for p in door:                                                     # hornacina delante de la compuerta
+    for p in door:                                                     # niche in front of the gate
         o.carve(p[0], p[1], p[2] + 1, ("roca", "roca", "roca"))
     o.carved.pop((96, y, 26), None)
     o.carved.pop((96, y + 1, 26), None)
-    # carteles en pilares junto a las palancas y al final de cada ramal
+    # signs on pillars next to the levers and at the end of each branch
     for (x, z, f, pillar, key, lines) in (
             (87, 36, "east", True, "aguja1", [("Aguja 1", "Switch 1")]),
             (89, 28, "south", True, "aguja2", [("Aguja 2", "Switch 2")]),
-            (100, 35, "west", False, "arranque", [("Arranque", "Start")]),        # en el muro este
+            (100, 35, "west", False, "arranque", [("Arranque", "Start")]),        # on the east wall
             (90, 45, "west", True, "escombrera", [("Escombrera", "Spoil heap")]),
             (82, 31, "east", False, "via_muerta", [("A la fundición", "To the foundry"), ("(vía muerta)", "(dead end)")])):
         dx, dz = DV[f]
-        if pillar:                                    # pilar de ladrillo de 2 de alto que sostiene el cartel
+        if pillar:                                    # 2-high brick pillar that holds up the sign
             for dy in (0, 1):
                 s(x - dx, y + dy, z - dz, "stone_bricks")
                 o.carved.pop((x - dx, y + dy, z - dz), None)
@@ -202,7 +202,7 @@ def _p(xz):
 
 
 def check(t, v):
-    """Errores del puzle: cada combinación de palancas lleva la vagoneta a su destino y solo la buena a la báscula."""
+    """Puzzle errors: every lever combination takes the minecart to its destination and only the right one to the weighing platform."""
     import itertools
     errs = []
     get = t.get
@@ -210,13 +210,13 @@ def check(t, v):
     for a in v["agujas"]:
         neighbors[a] = {d for d, (dx, dz) in DV.items() if is_rail(get(a[0] + dx, a[1], a[2] + dz))}
         if len(neighbors[a]) != 3:
-            errs.append(f"la aguja {a} no es un cruce en T ({sorted(neighbors[a])})")
+            errs.append(f"switch {a} is not a T junction ({sorted(neighbors[a])})")
         if form(get(*a)) != spire_shape(neighbors[a], False):
-            errs.append(f"la aguja {a} no está en su forma sin señal")
+            errs.append(f"switch {a} is not in its no-signal shape")
     for p in v["palancas"]:
         nearby_flag = [a for a in v["agujas"] if abs(a[0] - p[0]) + abs(a[2] - p[2]) == 1]
         if len(nearby_flag) != 1:
-            errs.append(f"la palanca {p} no está junto a una sola aguja")
+            errs.append(f"lever {p} is not next to exactly one switch")
     arrive = []
     for combo in itertools.product((False, True), repeat=2):
         switches = {a: spire_shape(neighbors[a], c) for a, c in zip(v["agujas"], combo)}
@@ -228,7 +228,7 @@ def check(t, v):
         if finish == v["bascula"]:
             arrive.append(combo)
         elif finish not in v["destinos"].values():
-            errs.append(f"agujas {combo}: la vagoneta acaba en {finish}, fuera de los destinos")
+            errs.append(f"switches {combo}: the minecart ends up at {finish}, outside the destinations")
     if arrive != [v["solucion"]]:
-        errs.append(f"llegan a la báscula las combinaciones {arrive} (se esperaba solo {v['solucion']})")
+        errs.append(f"combinations {arrive} reach the weighing platform (only {v['solucion']} was expected)")
     return errs

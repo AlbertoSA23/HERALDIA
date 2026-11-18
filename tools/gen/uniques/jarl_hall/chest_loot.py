@@ -1,5 +1,5 @@
-"""Botín del Salón del Jarl (solo vanilla): modesto en el patio, mejor en el túmulo y en las salas ocultas, y el cofre
-premium al fondo (90 % vistoso, 10 % algo más fuerte). Cada tabla tiene su grupo extra marcado solo_sin_lootr."""
+"""Jarl's Hall loot (vanilla only): modest in the courtyard, better in the barrow and in the hidden rooms, and the premium
+chest at the back (90 % showy, 10 % somewhat stronger). Each table has its extra group marked solo_sin_lootr."""
 from .._common.chest_loot import place_chest, table, pool, item, empty, named as _named, book, lang
 
 K = "heraldia.salon_jarl."
@@ -54,13 +54,13 @@ LOOT = {
                                 item("dried_kelp", 6, 2, 6), item("cooked_cod", 5, 1, 3), item("sweet_berries", 6, 2, 6),
                                 item("honey_bottle", 3, 1, 2), item("mushroom_stew", 2), item("salmon", 4, 1, 3)]),
                      (1, [item("cake", 1), item("pumpkin_pie", 3), item("golden_apple", 1), empty(8)])),
-    # sala oculta de la superficie
+    # hidden room on the surface
     "jarl": place_chest(((3, 5), [item("gold_ingot", 8, 1, 3), item("emerald", 8, 1, 4), item("iron_ingot", 6, 1, 3),
                             item("goat_horn", 2), named("gold_nugget", "anillo", 3), item("amethyst_shard", 4, 1, 4),
                             item("book", 4, rand_ench=True), named("honey_bottle", "hidromiel", 4, lo=1, hi=2)]),
                   ((1, 2), [item("diamond", 3, 1, 2), item("golden_apple", 3), named("brown_banner", "capa", 2),
                             item("experience_bottle", 4, 2, 5), empty(6)])),
-    # túmulo
+    # barrow
     "tumba": place_chest(((2, 4), [item("bone", 10, 2, 5), item("gold_nugget", 8, 2, 7), item("iron_nugget", 6, 2, 6),
                              item("candle", 4, 1, 2), item("rotten_flesh", 6, 1, 3), item("iron_sword", 2, dmg=(0.4, 0.8))]),
                    ((1, 2), [item("gold_ingot", 5, 1, 3), item("emerald", 3, 1, 2), item("golden_helmet", 2, ench=(5, 10)),
@@ -81,7 +81,7 @@ LOOT = {
     "codicia": place_chest(((4, 6), [item("gold_ingot", 10, 2, 5), item("gold_nugget", 8, 4, 10), item("emerald", 8, 2, 5),
                                item("raw_gold", 6, 1, 4)]),
                      ((1, 2), [item("diamond", 3, 1, 2), item("golden_apple", 3), item("gold_block", 1), empty(6)])),
-    # cámara del tesoro
+    # treasure chamber
     "premium": table(
         pool((3, 5), [named("iron_axe", "hacha", 6, levels=(10, 20)), named("goat_horn", "cuerno", 5),
                       named("shield", "escudo", 4, levels=(5, 15)),
@@ -91,6 +91,6 @@ LOOT = {
                       item("book", 4, ench=(10, 20)), item("golden_apple", 3), item("spyglass", 2)]),
         pool((2, 4), [item("gold_ingot", 6, 1, 4), item("diamond", 3, 1, 2), item("emerald", 6, 2, 5),
                       item("experience_bottle", 5, 2, 6), item("golden_carrot", 4, 1, 3)], extra=True),
-        pool(1, [empty(90), item("diamond_axe", 3, ench=(20, 30)), item("diamond_chestplate", 3, ench=(20, 30)),   # 10 % más fuerte
+        pool(1, [empty(90), item("diamond_axe", 3, ench=(20, 30)), item("diamond_chestplate", 3, ench=(20, 30)),   # 10 % stronger
                  item("enchanted_golden_apple", 2), item("totem_of_undying", 2)])),
 }

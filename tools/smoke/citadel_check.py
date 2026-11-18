@@ -1,7 +1,7 @@
-"""Prueba en servidor de la Ciudadela enana: se coloca, el guardián lleva su equipo y vida, hay vagonetas con cofre y
-soportes de armadura equipados, y /locate responde. Reutiliza el servidor de la prueba de humo.
+"""Server test of the Dwarven Citadel: it is placed, the guardian carries its equipment and health, there are minecarts with chests and
+equipped armor stands, and /locate responds. Reuses the smoke test server.
 
-Uso: python3 tools/smoke/citadel_check.py --jar build/libs/heraldia-X.jar [--work build/smoke]
+Usage: python3 tools/smoke/citadel_check.py --jar build/libs/heraldia-X.jar [--work build/smoke]
 """
 import argparse, os, queue, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -31,9 +31,9 @@ def main():
                 break
             time.sleep(s.PLACE_RETRY_S)
         if not m.group(0).startswith("Generated"):
-            fails.append(f"place falló: {m.string.strip()}")
-        # las entidades de la estructura aparecen unos segundos después que los bloques: se espera al guardián por su
-        # etiqueta antes de leer sus datos (leerlos en seguida daba «No entity» en un servidor lento)
+            fails.append(f"place failed: {m.string.strip()}")
+        # the structure's entities appear a few seconds after the blocks: wait for the guardian by its
+        # tag before reading its data (reading it right away gave "No entity" on a slow server)
         g = "@e[type=minecraft:vindicator,tag=heraldia_guardian.ciudadela]"
         ctx.wait_entity(g)
         m = s.run(proc, lines, seen, f"data get entity {g[:-1]},limit=1]", r"has the following entity data: .*|No entity")
@@ -41,7 +41,7 @@ def main():
         for want in ("minecraft:iron_axe", "minecraft:iron_chestplate", "heraldia.ciudadela.guardian",
                      "max_health", "Health: 60.0f", "PersistenceRequired: 1b"):
             if want not in d:
-                fails.append(f"guardián sin {want}")
+                fails.append(f"guardian without {want}")
         checks = [("@e[type=minecraft:chest_minecart]", 2), ("@e[type=minecraft:minecart]", 1),
                   ('@e[type=minecraft:armor_stand,nbt={equipment:{head:{id:"minecraft:chainmail_helmet"}}}]', 2)]
         for sel, n in checks:
@@ -59,7 +59,7 @@ def main():
     text = "".join(seen)
     for bad in ("Registry loading errors", "Failed to parse", "Couldn't load", "Exception"):
         if bad in text:
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     print("CIUDADELA FALLIDA:\n  " + "\n  ".join(fails) if fails else "CIUDADELA OK")
     return 1 if fails else 0
 

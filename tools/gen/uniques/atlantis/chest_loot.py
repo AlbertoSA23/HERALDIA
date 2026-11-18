@@ -1,4 +1,4 @@
-"""Botín de la Atlántida: más alto que el del resto de estructuras únicas, sin netherita, élitros ni maza."""
+"""Atlantis loot: higher than that of the other unique structures, without netherite, elytra or mace."""
 from .._common import chest_loot as CB
 from .._common.chest_loot import item, empty, pool, table
 from . import things as C
@@ -25,7 +25,7 @@ def _seal(which):
 
 
 def tables():
-    """Todas con un grupo extra solo_sin_lootr (con Lootr cada jugador recibe solo lo fijo)."""
+    """All with an extra solo_sin_lootr group (with Lootr each player receives only the fixed items)."""
     return {
         "menor": table(pool((3, 5), MARINE), pool(1, [item("diamond", 2), CB.potion("water_breathing", 3), empty(6)] + VALUABLE[:3]),
                        pool((1, 2), MARINE, extra=True)),
@@ -43,12 +43,12 @@ def _name(key, es, en):
     return C.item_name("premium." + key, es, en, "gold")
 
 
-TREASURE = {"heraldia_tesoro": "atlantida"}   # custom_data de los objetos con nombre: logro unicas/atlantida/tesoro
+TREASURE = {"heraldia_tesoro": "atlantida"}   # custom_data of the named items: advancement unicas/atlantida/tesoro
 
 
 def premium():
-    """Contenido fijo del cofre premium: [(objeto, cantidad, componentes)]. Es único: no lleva tabla de botín. Los
-    objetos con nombre llevan además custom_data TESORO (el logro del tesoro los reconoce)."""
+    """Fixed content of the premium chest: [(item, count, components)]. It is unique: it has no loot table. The
+    named items also carry custom_data TREASURE (the treasure advancement recognizes them)."""
     return [(o, n, dict(c, **{"minecraft:custom_data": TREASURE}) if c else c) for o, n, c in _premium()]
 
 

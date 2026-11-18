@@ -1,7 +1,7 @@
-"""Comprueba el formato de CHANGELOG.md y extrae las notas de publicación.
+"""Checks the format of CHANGELOG.md and extracts the release notes.
 
-python3 tools/changelog.py check   -> valida formato y que la versión de arriba sea mod_version
-python3 tools/changelog.py notes   -> imprime los apartados de la versión de arriba (para la publicación)
+python3 tools/changelog.py check   -> validates the format and that the top version matches mod_version
+python3 tools/changelog.py notes   -> prints the sections of the top version (for the release)
 """
 import os, re, sys
 
@@ -11,31 +11,31 @@ SECTIONS = ("### Players", "### Technical")
 
 
 def parse(text):
-    """Devuelve [(versión, {apartado: [viñetas]})] o lanza ValueError con la línea culpable."""
+    """Returns [(version, {section: [bullets]})] or raises ValueError with the offending line."""
     releases = []
     for n, line in enumerate(text.splitlines(), 1):
         if line.startswith("## "):
             m = RELEASE.match(line)
             if not m:
-                raise ValueError(f"línea {n}: cabecera de versión inválida: {line}")
+                raise ValueError(f"line {n}: invalid version header: {line}")
             releases.append((m.group(1), {}))
             current = None
         elif line.startswith("### "):
             if not releases or line not in SECTIONS or line in releases[-1][1]:
-                raise ValueError(f"línea {n}: apartado inesperado: {line}")
+                raise ValueError(f"line {n}: unexpected section: {line}")
             current = line
             releases[-1][1][current] = []
         elif line.startswith("- ") and releases:
             if current is None:
-                raise ValueError(f"línea {n}: viñeta fuera de un apartado")
+                raise ValueError(f"line {n}: bullet outside a section")
             releases[-1][1][current].append(line)
         elif line.strip() and releases:
-            raise ValueError(f"línea {n}: solo se admiten viñetas '- ' dentro de una versión")
+            raise ValueError(f"line {n}: only '- ' bullets are allowed inside a version")
     for version, sections in releases:
         if tuple(sections) != SECTIONS:
-            raise ValueError(f"versión {version}: debe tener {SECTIONS} en ese orden")
+            raise ValueError(f"version {version}: must have {SECTIONS} in that order")
     if not releases:
-        raise ValueError("no hay ninguna versión")
+        raise ValueError("there are no versions")
     return releases
 
 
@@ -50,8 +50,8 @@ def main(cmd):
     top, sections = releases[0]
     if cmd == "check":
         if top != mod_version():
-            raise ValueError(f"la versión de arriba ({top}) no coincide con mod_version ({mod_version()})")
-        print(f"CHANGELOG OK: {len(releases)} versiones, la última {top}")
+            raise ValueError(f"the top version ({top}) does not match mod_version ({mod_version()})")
+        print(f"CHANGELOG OK: {len(releases)} versions, latest {top}")
     elif cmd == "notes":
         print("\n".join(sections["### Players"]))
     else:
@@ -62,4 +62,4 @@ if __name__ == "__main__":
     try:
         main(sys.argv[1] if len(sys.argv) > 1 else "")
     except ValueError as e:
-        raise SystemExit(f"CHANGELOG inválido: {e}")
+        raise SystemExit(f"invalid CHANGELOG: {e}")

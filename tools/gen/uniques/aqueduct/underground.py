@@ -1,11 +1,11 @@
-"""Cloacas con la cámara del tesoro (bajo el castellum) y cisterna del foro. Cajas rellenas bloque a bloque."""
+"""Sewers with the treasure chamber (under the castellum) and forum cistern. Boxes filled block by block."""
 
 SEWER = (64, -11, -5, 92, -1, 44)       # x0, y0, z0, x1, y1, z1
 CISTERN = (33, -9, 42, 63, -1, 60)
 
 
 class Cavity:
-    """Rellena una caja de roca y lleva la cuenta de lo excavado para revestirlo después."""
+    """Fills a box of rock and keeps count of what was excavated to line it afterwards."""
 
     def __init__(self, o, box, host_rock="sandstone", lining="stone_bricks"):
         self.o, self.box, self.lining, self.host_rock = o, box, lining, host_rock
@@ -46,11 +46,11 @@ def guardian():
 def sewer(o):
     h = Cavity(o, SEWER)
     A = h.air
-    # escalera secreta desde el castellum
+    # secret staircase from the castellum
     for k in range(9):
         z, s = -5 + k, -1 - k
         A(73, s + 1, z, 73, min(s + 3, -1), z) if s + 1 <= -1 else None
-    # galería de entrada, colector, lararium, sala de generadores, antecámara, cámara
+    # entrance gallery, collector, lararium, spawner room, antechamber, chamber
     A(72, -8, 4, 74, -6, 11)
     A(71, -8, 8, 71, -7, 8); A(75, -8, 8, 75, -7, 8)
     A(66, -8, 12, 90, -6, 14)
@@ -62,13 +62,13 @@ def sewer(o):
     for k in range(9):
         z, s = -5 + k, -1 - k
         o.stair(73, s, z, "north", "stone_brick_stairs")
-    # canal del colector (agua contenida: muros, suelo y dos puentes)
+    # collector channel (contained water: walls, floor and two bridges)
     for x in range(66, 91):
         o.s(x, -9, 13, "stone_bricks" if x in (73, 79) else "water")
     for x in (70, 76, 86):
         o.lantern(x, -6, 13)
     o.lantern(73, -6, 5)
-    # trampa 1: cable trampa de muro a muro y dispensadores sobre los bloques de los ganchos
+    # trap 1: tripwire from wall to wall and dispensers on the hook blocks
     o.s(71, -8, 8, "tripwire_hook[attached=true,facing=east,powered=false]")
     o.s(75, -8, 8, "tripwire_hook[attached=true,facing=west,powered=false]")
     for x in (72, 73, 74):
@@ -76,14 +76,14 @@ def sewer(o):
     o.dispenser(70, -7, 8, "east"); o.dispenser(76, -7, 8, "west")
     o.red["gancho_O"], o.red["gancho_E"] = (71, -8, 8), (75, -8, 8)
     o.red["dispensadores_1"] = [(70, -7, 8), (76, -7, 8)]
-    # lararium oculto tras las telarañas
+    # lararium hidden behind the cobwebs
     o.s(67, -8, 11, "cobweb"); o.s(67, -7, 11, "cobweb")
     o.chest(65, -8, 7, "east", "oculto")
     o.s(67, -8, 6, "chiseled_stone_bricks"); o.s(67, -7, 6, "candle[candles=2,lit=false,waterlogged=false]")
     o.pot(66, -8, 6, "south"); o.pot(68, -8, 6, "south")
     o.s(69, -8, 10, "skeleton_skull[powered=false,rotation=12]")
     o.s(65, -6, 10, "cobweb"); o.s(69, -6, 6, "cobweb")
-    # sala de generadores y pozo de salida
+    # spawner room and exit shaft
     o.f(79, -8, 21, 79, -4, 21, "stone_bricks")
     for y in range(-8, 0):
         o.s(79, y, 20, "ladder[facing=north,waterlogged=false]")
@@ -97,13 +97,13 @@ def sewer(o):
     o.s(71, -8, 16, "skeleton_skull[powered=false,rotation=4]")
     for z in (18, 22):
         o.s(69, -6, z, "iron_bars"); o.s(89, -6, z, "iron_bars")
-    # trampa 2: placas de presión con dispensadores a los pies
+    # trap 2: pressure plates with dispensers at the feet
     for z in (28, 30):
         o.s(79, -8, z, "stone_pressure_plate[powered=false]")
         o.dispenser(78, -8, z, "east"); o.dispenser(80, -8, z, "west")
         o.red[f"placa_{z}"] = (79, -8, z)
         o.red[f"dispensadores_{z}"] = [(78, -8, z), (80, -8, z)]
-    # puzle 2: la fuente de las ofrendas y la puerta de hierro
+    # puzzle 2: the offerings fountain and the iron door
     for half, y in (("lower", -8), ("upper", -7)):
         o.s(79, y, 34, f"iron_door[facing=north,half={half},hinge=left,open=false,powered=false]")
     o.s(80, -7, 34, "oak_pressure_plate[powered=false]")
@@ -115,7 +115,7 @@ def sewer(o):
     o.red["puerta_2"] = [(79, -8, 34), (79, -7, 34)]
     o.red["placa_ofrenda"], o.red["boton"] = (80, -7, 34), (79, -7, 35)
     o.lantern(79, -6, 32)
-    # cámara del tesoro
+    # treasure chamber
     for x in range(73, 86):
         for z in range(36, 44):
             o.s(x, -9, z, "chiseled_quartz_block" if x in (73, 85) or z in (36, 43) else "smooth_quartz")
@@ -136,7 +136,7 @@ def sewer(o):
 def cistern(o):
     h = Cavity(o, CISTERN)
     h.air(35, -7, 44, 61, -3, 58)
-    for k in range(1, 9):                          # escalera desde la casa de la fuente (s = 0 está en la ciudad)
+    for k in range(1, 9):                          # staircase from the fountain house (s = 0 is in the city)
         z, s = 58 - k, -k
         for y in (s + 1, s + 2, s + 3):
             if y <= -1:

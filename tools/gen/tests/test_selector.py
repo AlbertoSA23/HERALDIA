@@ -1,9 +1,9 @@
-"""tools/test.py: selección de pruebas de servidor por rutas cambiadas (la misma que usa la CI) y reparto en grupos."""
+"""tools/test.py: selection of server tests by changed paths (the same one CI uses) and distribution into groups."""
 import json, os, subprocess, sys
 import pytest
 
 TOOLS = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-# tools/test.py por su ruta (el nombre «test» chocaría con el paquete test de la biblioteca estándar)
+# tools/test.py by its path (the name "test" would clash with the standard library test package)
 import importlib.util  # noqa: E402
 _spec = importlib.util.spec_from_file_location("heraldia_test_selector", os.path.join(TOOLS, "test.py"))
 sel = importlib.util.module_from_spec(_spec)
@@ -26,9 +26,9 @@ def test_discovers_all_the_tests_of_server():
     for sid, ps in sel.SMOKE_OF_UNIQUE.items():
         assert all(p in ALL_COMBOS for p in ps), sid
     assert all(p in ALL_COMBOS for p in sel.OF_EVERY_UNIQUE + sel.VILLAGES)
-    for p in ALL_COMBOS:                                       # toda prueba conocida tiene duración medida
+    for p in ALL_COMBOS:                                       # every known test has a measured duration
         assert p in sel.DURATION_S, p
-    assert "tools/smoke/modrinth.py" not in ALL_COMBOS and sel.COMPAT not in ALL_COMBOS   # módulo común; la de compat, por grupos
+    assert "tools/smoke/modrinth.py" not in ALL_COMBOS and sel.COMPAT not in ALL_COMBOS   # common module; the compat one, by groups
     assert {p.split("::")[1] for p in COMPAT} == set(sel.compat_groups()) and "tools/smoke/compat_mods.py::base" in COMPAT
 
 
@@ -50,7 +50,7 @@ def test_no_smoke_servers(routes):
     J + "mixin/ChunkGeneratorMixin.java", J + "unicas/paquete_nuevo/X.java", "fichero/que/nadie/conoce.txt",
 ])
 def test_code_common_requests_the_battery_full(route):
-    """La batería completa de un PR lleva las de compatibilidad solo si lo cambiado es de colocación (COMPAT_RUTAS)."""
+    """The full suite of a PR includes the compatibility ones only if what changed is about placement (COMPAT_RUTAS)."""
     full, tests = pick(route)
     is_placement = any(sel.fnmatch.fnmatch(route, p) for p in sel.COMPAT_PATHS)
     assert full and tests == (ALL_COMBOS if is_placement else NO_COMPAT)
@@ -63,14 +63,14 @@ def test_placement_common_drags_the_of_compatibility(route):
 
 
 def test_compatibility_only_with_their_paths():
-    assert pick(sel.COMPAT) == (False, COMPAT)                                  # la propia prueba: todos sus grupos
+    assert pick(sel.COMPAT) == (False, COMPAT)                                  # the test itself: all its groups
     assert pick("tools/smoke/compat_mods.py::rendimiento") == (False, ["tools/smoke/compat_mods.py::rendimiento"])
-    full, p = pick("tools/smoke/modrinth.py")                               # los mods fijados: quien los descarga
+    full, p = pick("tools/smoke/modrinth.py")                               # the pinned mods: whoever downloads them
     assert not full and set(p) == set(COMPAT) | {"tools/smoke/trophies.py", "tools/smoke/story.py",
                                                       "tools/smoke/village_life.py", "tools/smoke/terralith_biomes.py"}
     assert set(pick("tools/gen/biomes.py")[1]) == {"tools/smoke/terralith_biomes.py"} | set(COMPAT)
-    assert pick("tools/gen/writer.py") == (True, NO_COMPAT)                    # común, pero no de colocación
-    assert pick(J + "command/InfoCommand.java") == (False, ["tools/smoke/admin.py"])   # no es de colocación
+    assert pick("tools/gen/writer.py") == (True, NO_COMPAT)                    # common, but not placement
+    assert pick(J + "command/InfoCommand.java") == (False, ["tools/smoke/admin.py"])   # not placement
 
 
 def test_order_of_one_test_per_group():
@@ -97,7 +97,7 @@ def test_unique_without_own_test():
 
 def test_java_of_a_unique():
     assert set(pick(J + "uniques/island/IslandStructure.java")[1]) == {"tools/gen/uniques/corsair_island/smoke_server.py"} | EVERY_UNIQUE
-    # la zona de la isla también decide qué estructuras ajenas nacen cerca: arrastra las de compatibilidad
+    # the island zone also decides which foreign structures spawn nearby: it drags in the compatibility ones
     assert set(pick(J + "uniques/island/IslandZone.java")[1]) == {"tools/gen/uniques/corsair_island/smoke_server.py"} | EVERY_UNIQUE | set(COMPAT)
     assert set(pick(J + "uniques/galleon/GalleonStructure.java")[1]) == {"tools/smoke/galleon_test.py"} | EVERY_UNIQUE
     assert set(pick(J + "uniques/mine/Mine.java")[1]) == {"tools/gen/uniques/lost_mine/smoke_server.py"} | EVERY_UNIQUE
@@ -115,7 +115,7 @@ def test_villages_and_data():
     assert "tools/smoke/terralith_biomes.py" in pick("tools/gen/biomes.py")[1]
     assert pick(J + "mixin/ZombieMixin.java")[1] == ["tools/smoke/adult_guardians.py"]
     assert pick(J + "common/Anchoring.java")[1] == ["tools/smoke/anchored_guardians.py"]
-    assert pick(J + "common/ToGroundProcessor.java")[0]          # el resto de comun/: batería completa
+    assert pick(J + "common/ToGroundProcessor.java")[0]          # the rest of comun/: full suite
     assert set(pick("tools/gen/advancements.py")[1]) == {"tools/smoke/trophies.py", "tools/smoke/story.py", "tools/smoke/village_life.py"}
     assert pick(J + "roads/RoadLayout.java") == (False, ["tools/smoke/roads.py"])
     assert pick("tools/gen/roads.py") == (False, ["tools/smoke/roads.py"])
@@ -130,14 +130,14 @@ def test_union_of_several_changes_and_a_common_one_drags_everything():
 
 def test_groups_distribute_without_exceeding_of_the_cap():
     g = sel.groups(ALL_COMBOS)
-    assert sorted(p for x in g for p in x) == ALL_COMBOS                       # cada prueba una vez
+    assert sorted(p for x in g for p in x) == ALL_COMBOS                       # each test once
     length = max(sel.DURATION_S.values())
     cap = max(sel.GROUP_CAP_S, length)
     assert all(sum(sel.DURATION_S[p] for p in x) <= cap for x in g)
-    assert len(g) <= 18                     # con la compilación y la de humo, en una tanda de 20 jobs gratis
-    assert len(sel.groups(NO_COMPAT)) <= 14  # un PR con cambios comunes (sin las de compatibilidad) deja máquinas libres (14 con T46: + compilación, humo, JUnit largas, coste y selección = 19 de 20)
+    assert len(g) <= 18                     # with the build and the smoke one, in a batch of 20 free jobs
+    assert len(sel.groups(NO_COMPAT)) <= 14  # a PR with common changes (without the compatibility ones) leaves machines free (14 with T46: + build, smoke, long JUnit, cost and selection = 19 of 20)
     assert sel.groups([]) == [] and sel.groups(ALL_COMBOS) == g                # determinista
-    assert sel.groups(["x/nueva.py"]) == [["x/nueva.py"]]                  # sin duración medida: DEFECTO_S
+    assert sel.groups(["x/nueva.py"]) == [["x/nueva.py"]]                  # without a measured duration: DEFECTO_S
 
 
 def test_matrix_and_names():
@@ -148,7 +148,7 @@ def test_matrix_and_names():
 
 
 def test_ci_matrix_by_line_of_commands():
-    """--ci-matrix --full da todas las pruebas en grupos, como en push a develop."""
+    """--ci-matrix --full gives all the tests in groups, as on push to develop."""
     out = subprocess.run([sys.executable, os.path.join(TOOLS, "test.py"), "--ci-matrix", "--full"],
                          capture_output=True, text=True, check=True).stdout
     m = json.loads(out)
@@ -159,15 +159,15 @@ def test_ci_matrix_by_line_of_commands():
 def test_mediums():
     mobs = ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py", "tools/smoke/medium_structures.py",
             "tools/smoke/nether_end.py"]
-    assert pick("tools/gen/mediums/inn.py") == (False, mobs)       # sus mobs entran en las pruebas de anclados
+    assert pick("tools/gen/mediums/inn.py") == (False, mobs)       # its mobs go into the anchored tests
     assert pick("tools/gen/mediums/__init__.py") == (False, mobs)
     assert pick("tools/smoke/medium_structures.py") == (False, ["tools/smoke/medium_structures.py"])
-    full, p = pick(J + "common/MediumStructures.java")      # decide dónde salen: también las de compatibilidad
+    full, p = pick(J + "common/MediumStructures.java")      # it decides where they spawn: the compatibility ones too
     assert not full and set(p) == {"tools/smoke/medium_structures.py", "tools/smoke/nether_end.py"} | set(COMPAT)
 
 
 def test_nether_end():
-    """T44: el contenido del Nether y el End pasa su prueba de servidor."""
+    """T44: the Nether and End content passes its server test."""
     ne = "tools/smoke/nether_end.py"
     assert pick(J + "dimensions/DimensionStructure.java") == (False, [ne])
     full, p = pick("tools/gen/dimensions.py")
@@ -181,9 +181,9 @@ def test_mines():
     m = ["tools/smoke/mine_entrances.py"]
     assert pick("tools/gen/mines/blueprints.py") == (False, m)
     assert pick("tools/gen/mines/__init__.py") == (False, m)
-    assert pick(J + "mines/Hillside.java") == (False, sorted(m + ["tools/smoke/coast.py"])), "la regla de la costa es la de las minas"
+    assert pick(J + "mines/Hillside.java") == (False, sorted(m + ["tools/smoke/coast.py"])), "the coast rule is the mines rule"
     assert pick("tools/smoke/mine_entrances.py") == (False, m)
-    # T36: la caché compartida de alturas y el /locate en paralelo (solo los usan las minas)
+    # T36: the shared height cache and the parallel /locate (only the mines use them)
     assert pick(J + "common/HeightCache.java") == (False, m)
     assert pick(J + "mixin/ChunkGeneratorLocateMixin.java") == (False, m)
     assert pick(J + "mines/ParallelLocate.java") == (False, sorted(m + ["tools/smoke/coast.py"]))
@@ -192,7 +192,7 @@ def test_mines():
 def test_coast():
     c = ["tools/smoke/coast.py"]
     mobs = ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"] + c
-    assert pick("tools/gen/shore/constructions.py") == (False, mobs), "el ahogado del semihundido"
+    assert pick("tools/gen/shore/constructions.py") == (False, mobs), "the drowned of the half-sunk one"
     assert pick("tools/gen/shore/__init__.py") == (False, mobs)
     assert pick(J + "coast/Shoreline.java") == (False, c)
     assert pick("tools/smoke/coast.py") == (False, c)
@@ -204,7 +204,7 @@ def test_profiles():
     assert pick(J + "config/Profiles.java") == (False, p)
     assert pick(J + "command/ProfileCommand.java") == (False, p)
     assert pick("tools/smoke/profiles.py") == (False, p)
-    assert pick(J + "config/HeraldiaConfig.java")[0]          # el resto de la configuración: común, batería completa
+    assert pick(J + "config/HeraldiaConfig.java")[0]          # the rest of the configuration: common, full suite
     assert pick("tools/gen/options.py")[0]
 
 
@@ -213,11 +213,11 @@ def test_herald_guide():
     assert pick(J + "command/Texts.java") == (False, ["tools/smoke/guide.py"])
     assert pick("tools/gen/guide.py") == (False, ["tools/smoke/guide.py"])
     assert pick("tools/smoke/guide.py") == (False, ["tools/smoke/guide.py"])
-    # idiomas: las traducciones y su comprobación solo pasan la de la Guía (el respaldo en el idioma del cliente)
+    # languages: the translations and their check only run the Guide one (the fallback in the client's language)
     assert pick("tools/gen/languages.py") == (False, ["tools/smoke/guide.py"])
     assert pick("tools/gen/languages/fr_fr.json", "tools/gen/languages/gl_es.json") == (False, ["tools/smoke/guide.py"])
     assert pick("README.fr.md", "docs/CONFIGURACION.md", "tools/gen/tests/test_readme.py") == (False, [])
-    assert pick(J + "command/KeyCommand.java") == (False, [])       # el resto de comando/: solo la de humo
+    assert pick(J + "command/KeyCommand.java") == (False, [])       # the rest of comando/: only the smoke one
 
 
 def test_admin_tools():
@@ -228,7 +228,7 @@ def test_admin_tools():
         assert pick(J + r) == admin, r
     assert pick("tools/gen/admin.py") == admin
     assert pick("tools/smoke/admin.py") == admin
-    assert pick(J + "config/HeraldiaConfig.java")[0]           # el resto de config/: común, batería completa
+    assert pick(J + "config/HeraldiaConfig.java")[0]           # the rest of config/: common, full suite
 
 
 def test_commands_in_english_and_warning_of_version():
@@ -248,14 +248,14 @@ def test_loot_that_gets_replenishes_and_difficulty():
     assert pick(J + "difficulty/MobDifficulty.java") == (False, ["tools/smoke/difficulty.py"])
     assert pick(J + "difficulty/ModDifficulty.java", "tools/smoke/loot_restock.py") == \
         (False, ["tools/smoke/difficulty.py", "tools/smoke/loot_restock.py"])
-    assert pick(J + "loot/PerPlayerChest.java")[0]         # el resto de loot/: común, batería completa
+    assert pick(J + "loot/PerPlayerChest.java")[0]         # the rest of loot/: common, full suite
 
 
 def test_arena_of_waves():
     arena = (False, ["tools/smoke/arena.py", "tools/smoke/arena_modes.py"])
     assert pick(J + "arena/Game.java") == arena
     assert pick(J + "arena/Waves.java") == arena
-    assert pick(J + "arena/Fame.java") == arena                  # T41: modos, clasificación y salón de la fama
+    assert pick(J + "arena/Fame.java") == arena                  # T41: modes, ranking and hall of fame
     assert pick(J + "mixin/ArenaExplosionMixin.java") == arena
     assert pick("tools/gen/arena_waves.py") == arena
     assert pick("tools/smoke/arena.py") == (False, ["tools/smoke/arena.py"])
@@ -265,8 +265,8 @@ def test_arena_of_waves():
 
 
 def test_cost_of_generation_by_paths():
-    """La prueba de coste (job propio de la CI) va en un PR si cambia el Java de la generación, el generador o la propia
-    prueba; no con documentación, tests, comandos ni mobs. No entra en los grupos de servidor."""
+    """The cost test (a CI job of its own) goes in a PR if the generation Java, the generator or the test itself
+    changes; not with documentation, tests, commands or mobs. It does not enter the server groups."""
     assert sel.COST not in ALL_COMBOS and "tools/smoke/generation_cost.py" in [sel.rel(p) for p in
                                                                             sel.glob.glob(os.path.join(sel.ROOT, "tools", "smoke", "*.py"))]
     for r in [J + "mixin/ChunkGeneratorMixin.java", J + "mixin/StructureCheckMixin.java", J + "common/MediumStructures.java",

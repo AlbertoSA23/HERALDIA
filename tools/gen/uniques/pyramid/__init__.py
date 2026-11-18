@@ -1,4 +1,4 @@
-"""Templo-pirámide: gran pirámide escalonada mesoamericana en la selva (diseño en docs/unicas/piramide.md)."""
+"""Pyramid temple: great Mesoamerican stepped pyramid in the jungle (design in docs/unicas/pyramid.md)."""
 from core import Template
 from uniques import DEFAULT_SPACING, DEFAULT_SEPARATION
 from uniques._common import chest_loot
@@ -18,8 +18,8 @@ TROPHY = {"objeto": "golden_chestplate", "rareza": "rare",
           "nombre": ("Pectoral del Rey Jaguar", "Breastplate of the Jaguar King"),
           "lore": [("El oro de la selva aún guarda su rugido.", "The jungle's gold still holds his roar.")],
           "encantamientos": {"minecraft:protection": 1},
-          "componentes": {"minecraft:trim": {"material": "minecraft:emerald", "pattern": "minecraft:wild"}}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "componentes": {"minecraft:trim": {"material": "minecraft:emerald", "pattern": "minecraft:wild"}}}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "tumba",
     "relato": [
         ("En lo más espeso de la selva, un templo-pirámide escalonado asoma sobre los árboles. Sus "
@@ -34,7 +34,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("la selva, donde un templo-pirámide escalonado asoma sobre los árboles",
               "the jungle, where a stepped pyramid temple rises above the trees"),
 }
-ADVANCEMENT = {"icono": "minecraft:mossy_stone_bricks"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:mossy_stone_bricks"}   # advancements.py
 
 K = "heraldia.piramide."
 LANG = chest_loot.lang(K, {
@@ -44,7 +44,7 @@ LANG = chest_loot.lang(K, {
     "garra": ("Garra del Jaguar", "Claw of the Jaguar"), "pectoral": ("Pectoral del Rey", "Pectoral of the King")})
 
 
-# ------------------------------------------------------------------ botín (piezas de unicas/_comun/botin.py)
+# ------------------------------------------------------------------ loot (pieces of unicas/_comun/chest_loot.py)
 def it(name, w, lo=1, hi=1, levels=None):
     return chest_loot.item(name, w, lo, hi, ench=levels)
 

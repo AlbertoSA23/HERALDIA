@@ -1,10 +1,10 @@
-"""idiomas.py y las traducciones de tools/gen/languages/: claves completas y sin sobrantes, huecos de formato iguales a
-los del inglés, libros (Guía, crónica, ermita, copia de la crónica) y carteles que caben en cada idioma, y el mapa de
-lenguas que lee el Java (Textos.codigo).
+"""idiomas.py and the translations in tools/gen/languages/: complete keys with no extras, format placeholders equal to
+those of English, books (Guide, chronicle, hermitage, chronicle copy) and signs that fit in each language, and the map of
+languages read by the Java (Textos.codigo).
 
-Sin generar el datapack, los textos que las únicas solo rellenan al construirse (p. ej. los carteles de la Atlántida)
-no están: aquí se comprueba que cada traducción tiene todos los demás y que todas tienen las mismas claves; la
-comparación exacta con el es_es completo la hacen la generación (writer.write -> idiomas.completar) e IdiomasTest (JUnit).
+Without generating the datapack, the texts that the unique structures only fill in when built (e.g. the Atlantis signs)
+are not there: here it is checked that each translation has all the others and that all have the same keys; the
+exact comparison with the complete es_es is done by the generation (writer.write -> idiomas.completar) and IdiomasTest (JUnit).
 """
 import json
 import os
@@ -28,7 +28,7 @@ class _Template:
 
 
 class _Registry:
-    """Registro mínimo: un guardián por única (todas lo tienen; los logros de guardián dependen de ello)."""
+    """Minimal registry: one guardian per unique structure (all have one; the guardian advancements depend on it)."""
     templates = {f"unicas/{sid}/x": _Template(sid) for sid, _ in MODS}
 
 
@@ -42,7 +42,7 @@ def translated():
     return {c: languages.load_data(c) for c in LANG_CODES}
 
 
-# ------------------------------------------------------------------ lógica pura
+# ------------------------------------------------------------------ pure logic
 def test_markers():
     assert languages.markers("sin huecos") == ([], 0)
     assert languages.markers("%s de %s") == ([1, 2], 0)
@@ -113,7 +113,7 @@ def test_sign_of_es_en_that_does_not_fit_fails_the_generation(monkeypatch):
 
 
 def test_sign_translation_that_does_not_fit_fails_even_if_es_is_wider(monkeypatch):
-    # antes se toleraba si es/en ya se pasaban; ahora el límite es siempre 90 px
+    # it used to be tolerated if es/en already passed; now the limit is always 90 px
     base = {"es_es": {"c": "Una línea larguísima de cartel"}, "en_us": {"c": "x"}}
     assert languages.sign_errors({"c"}, {"c": "Une ligne trop longue ici"}, "fr_fr")
     monkeypatch.setattr(languages, "load_data", lambda c: {"c": "Une ligne trop longue ici"})
@@ -136,13 +136,13 @@ def test_sort_like_spanish():
     assert list(languages.sort_items({"b": 1, "a": 2}, {"a": "x", "b": "y"})) == ["b", "a"]
 
 
-# ------------------------------------------------------------------ idiomas y lenguas (Textos.codigo en Java)
+# ------------------------------------------------------------------ languages and tongues (Textos.codigo in Java)
 def test_language_list():
     assert languages.BASE == ("es_es", "en_us")
     assert set(LANG_CODES) >= {"fr_fr", "de_de", "it_it", "pt_br", "ca_es", "gl_es"}
     assert languages.everyone() == list(languages.BASE) + LANG_CODES
     mc_locales = [languages.locale(c) for c in languages.everyone()]
-    assert len(mc_locales) == len(set(mc_locales)), "dos idiomas de la misma lengua: Textos.codigo no sabría cuál elegir"
+    assert len(mc_locales) == len(set(mc_locales)), "two languages of the same tongue: Textos.codigo would not know which to choose"
 
 
 def test_language_map():
@@ -158,7 +158,7 @@ def test_each_translation_exists_and_es_json_blueprint(translated):
         assert translated[c] and all(isinstance(k, str) and isinstance(v, str) for k, v in translated[c].items()), c
 
 
-# ------------------------------------------------------------------ las traducciones reales
+# ------------------------------------------------------------------ the real translations
 def test_all_translations_have_the_same_keys(translated):
     keys = {c: set(t) for c, t in translated.items()}
     first = keys[LANG_CODES[0]]
@@ -179,7 +179,7 @@ def test_same_gaps_as_english(lang_code, base, translated):
 
 
 def test_extra_keys_belong_to_uniques(base, translated):
-    """Las que no salen sin construir son textos de módulos de unicas/ que se rellenan en build()."""
+    """Those that do not come out without building are texts of unicas/ modules that are filled in build()."""
     prefixes = tuple(f"heraldia.{sid}." for sid, _ in MODS) + tuple(f"heraldia.unicas.{sid}." for sid, _ in MODS)
     extra = [k for k in translated[LANG_CODES[0]] if k not in base["es_es"]]
     assert all(k.startswith(prefixes) for k in extra), [k for k in extra if not k.startswith(prefixes)][:20]
@@ -199,8 +199,8 @@ def test_guide_counts_entries_with_worst_language(translated):
 
 
 def _books():
-    """Los libros del botín que salen sin construir: los pliegos de la crónica, el diario de la ermita y las copias de la
-    crónica de los tratos (los de los atriles de las plantillas los mide la generación)."""
+    """The loot books that come out without building: the chronicle sheets, the hermitage journal and the copies of the
+    trades chronicle (those of the template lecterns are measured by the generation)."""
     items = [(sid, t) for sid, t in writer.history_tables(MODS).items()]
     items += [("ermita", hermitage.LOOT)]
     import trades
@@ -242,12 +242,12 @@ def test_signs_of_the_roads(lang_code, translated):
     for k in roads.LANG["es_es"]:
         t = translated[lang_code][k]
         assert languages.markers(t) == ([1], 0), (k, t)
-        assert len(languages.format_text(t, ["1999"])) <= 15, (k, t)      # cabe en una línea de cartel
+        assert len(languages.format_text(t, ["1999"])) <= 15, (k, t)      # fits on a sign line
 
 
 @pytest.mark.parametrize("lang_code", LANG_CODES)
 def test_commands_without_translate(lang_code, base, translated):
-    """Un comando que sale en un texto (/heraldia guide, /heraldia arena...) sigue igual en la traducción."""
+    """A command that appears in a text (/heraldia guide, /heraldia arena...) stays the same in the translation."""
     import re
     for k, es in base["es_es"].items():
         for cmd in re.findall(r"/heraldia(?: \w+)?", es):
@@ -255,7 +255,7 @@ def test_commands_without_translate(lang_code, base, translated):
 
 
 def test_files_of_translation_in_its_format():
-    """JSON con sangría 2 y sin escapar los acentos, como los escribe idiomas (diffs legibles)."""
+    """JSON with indent 2 and without escaping accents, as idiomas writes them (readable diffs)."""
     for c in LANG_CODES:
         with open(languages.route(c), encoding="utf-8") as f:
             text = f.read()

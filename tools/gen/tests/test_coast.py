@@ -1,8 +1,8 @@
-"""Faros y naufragios de la costa (costa/): plantillas de los dos tipos en los cuatro estilos y sus dos variantes (auditoría
-propia y genérica, forma, la luz, el embarcadero, el agua bajo el casco), los estilos por clima (todas las parejas tierra-
-mar con un solo estilo), el botín modesto y la pista del tesoro, lo que escribe en el datapack (estructuras, rejillas,
-etiquetas, procesadores, botín), sus opciones, sus logros, la página de la Guía y sus textos en los 8 idiomas. Con casos
-negativos de la auditoría (aire bajo el agua, la luz apagada, sin escalera) para que un cambio que lo rompa falle aquí."""
+"""Lighthouses and shipwrecks of the coast (costa/): templates of both types in the four styles and their two variants (own
+and generic audit, shape, the light, the pier, the water under the hull), the styles by climate (all land-sea
+pairs with a single style), the modest loot and the treasure hint, what it writes to the datapack (structures, grids,
+tags, processors, loot), its options, its advancements, the Guide page and its texts in the 8 languages. With negative
+audit cases (air under water, light off, no ladder) so that a change that breaks it fails here."""
 import json
 import pytest
 import shore as coast
@@ -21,7 +21,7 @@ ALL_COMBOS = [(t, e, v) for t in coast.KINDS for e in coast.STYLES for v in coas
 
 @pytest.fixture(scope="module")
 def written(tmp_path_factory):
-    """Lo que costa.write deja en el datapack: ({ruta: json} de jdump, {ruta: json} de las etiquetas de bioma, textos)."""
+    """What costa.write leaves in the datapack: ({path: json} from jdump, {path: json} of the biome tags, texts)."""
     import os
     import biomes
     previous = dict(biomes._WRITTEN)
@@ -37,7 +37,7 @@ def written(tmp_path_factory):
     return files, tags, lang
 
 
-# ------------------------------------------------------------------ plantillas
+# ------------------------------------------------------------------ templates
 @pytest.mark.parametrize("key", ALL_COMBOS, ids=["/".join(k) for k in ALL_COMBOS])
 def test_audit_of_each_variant(key):
     o, _, _ = coast.construction(*key)
@@ -52,7 +52,7 @@ def test_audit_generic_of_supports():
         assert len(reg.templates) == len(coast.STYLES) * len(coast.VARIANTS)
         for name, t in reg.templates.items():
             assert lint.template_issues(t) == [], name
-            assert name in [p.split(":", 1)[1] for p in reg.pools], "una pool por plantilla"
+            assert name in [p.split(":", 1)[1] for p in reg.pools], "one pool per template"
         for pid, pool in reg.pools.items():
             (_, weight, projection, proc), = pool["elements"]
             assert projection == "rigid" and proc == coast.processors(kind)
@@ -66,11 +66,11 @@ def test_the_lighthouse_es_tall_and_has_the_light_top():
             assert coast.LIGHTHOUSE_HEIGHT[0] <= y1 - y0 + 1 <= coast.LIGHTHOUSE_HEIGHT[1]
             x, y, z = o.light
             assert o.t.get(x, y, z) == "minecraft:redstone_lamp[lit=true]"
-            assert o.t.get(x, y - 1, z) == "minecraft:redstone_block", "siempre encendida, sin circuitos"
+            assert o.t.get(x, y - 1, z) == "minecraft:redstone_block", "always lit, no circuits"
             assert o.t.get(x, y + 1, z) == "minecraft:glowstone"
             assert y >= 20, "visible de lejos"
             assert not any("redstone_wire" in st or "repeater" in st or "comparator" in st or "lever" in st
-                           for st, _ in o.t.blocks.values()), "sin redstone compleja"
+                           for st, _ in o.t.blocks.values()), "no complex redstone"
             assert meta["modo"] == "faro" and meta["fila_mar"] == -1
 
 
@@ -79,13 +79,13 @@ def test_lighthouse_house_dock_and_keeper():
         a, _, _ = coast.construction("faro", style, "a")
         b, _, _ = coast.construction("faro", style, "b")
         for o in (a, b):
-            assert any("_bed[" in st for st, _ in o.t.blocks.values()), "la casa del farero"
+            assert any("_bed[" in st for st, _ in o.t.blocks.values()), "the keeper's house"
             assert any(st.startswith("minecraft:furnace") for st, _ in o.t.blocks.values())
             dock = [(x, z) for (x, y, z), (st, _) in o.t.blocks.items() if z > 0 and y == 0]
-            assert len(dock) >= 30 and max(z for _, z in dock) == constructions.DOCK, "embarcadero sobre el mar"
+            assert len(dock) >= 30 and max(z for _, z in dock) == constructions.DOCK, "pier over the sea"
             assert all(-1 <= x <= 1 for x, _ in dock), "3 de ancho"
-            assert all(z < 0 for (x, y, z) in o.t.blocks if y > 2), "solo el embarcadero (y su farol) sobre el agua: lo alto, en tierra"
-        assert [n["id"] for *_, n in a.t.entities] == ["minecraft:villager"], "el farero, solo en la a"
+            assert all(z < 0 for (x, y, z) in o.t.blocks if y > 2), "only the pier (and its lantern) over the water: the tall parts on land"
+        assert [n["id"] for *_, n in a.t.entities] == ["minecraft:villager"], "the keeper, only in a"
         assert b.t.entities == []
         lighthouse_keeper = a.t.entities[0][3]
         assert lighthouse_keeper["NoAI"] and lighthouse_keeper["Invulnerable"]
@@ -102,7 +102,7 @@ def test_lighthouse_variants_distinct():
     assert corners_a is None and corners_b is not None, "octogonal frente a cuadrada"
     house_a = [x for (x, y, z), (st, _) in a.t.blocks.items() if "_bed[" in st]
     house_b = [x for (x, y, z), (st, _) in b.t.blocks.items() if "_bed[" in st]
-    assert max(house_a) < 0 < min(house_b), "la casa a cada lado"
+    assert max(house_a) < 0 < min(house_b), "the house on each side"
 
 
 def test_shipwreck_without_air_underwater():
@@ -121,22 +121,22 @@ def test_split_shipwreck_with_masts_and_cabin():
             o, _, _ = coast.construction("naufragio", style, v)
             z0 = o.bow
             broken = [o.t.get(x, 5, z0 + 16) for x in range(0, 4)]
-            assert all(st is None for st in broken), "partido: sin cubierta en la rotura"
-            assert o.t.get(4, 3, z0 + 16) is None, "y el costado de estribor abierto"
-            assert o.t.get(0, 17, z0 + 12) and "_log" in o.t.get(0, 17, z0 + 12), "el mástil mayor en pie"
+            assert all(st is None for st in broken), "split: no deck at the break"
+            assert o.t.get(4, 3, z0 + 16) is None, "and the starboard side open"
+            assert o.t.get(0, 17, z0 + 12) and "_log" in o.t.get(0, 17, z0 + 12), "the main mast standing"
             sail = [st for (x, y, z), (st, _) in o.t.blocks.items() if st.endswith("_wool")]
-            assert 20 <= len(sail) <= 49, "una vela rota (con agujeros)"
+            assert 20 <= len(sail) <= 49, "a torn sail (with holes)"
             tables = {str(n["LootTable"]): p for p, (st, n) in o.t.blocks.items() if n and n.get("LootTable")}
             assert set(tables) == {"heraldia:costa/camarote", "heraldia:costa/bodega"}
-            assert tables["heraldia:costa/camarote"][1] > o.sea_row, "el camarote en seco"
+            assert tables["heraldia:costa/camarote"][1] > o.sea_row, "the cabin dry"
         sunken, _, _ = coast.construction("naufragio", style, "b")
         place_chest = next(st for st, n in sunken.t.blocks.values() if n and str(n.get("LootTable")).endswith("bodega"))
-        assert "waterlogged=true" in place_chest, "la bodega inundada"
+        assert "waterlogged=true" in place_chest, "the hold flooded"
         drowned_list = [n for *_, n in sunken.t.entities if n["id"] == "minecraft:drowned"]
-        assert len(drowned_list) == 1, "un ahogado como mucho"
+        assert len(drowned_list) == 1, "at most one drowned"
         assert {"heraldia_anclado", "heraldia_adulto"} <= set(drowned_list[0]["Tags"])
         beached, _, _ = coast.construction("naufragio", style, "a")
-        assert beached.t.entities == [], "el encallado, sin nadie"
+        assert beached.t.entities == [], "the run-aground one, with nobody"
 
 
 def test_fingerprints_for_java():
@@ -146,28 +146,28 @@ def test_fingerprints_for_java():
         assert (ax + x0, az + z0) == o.anchor_point == (0, 0)
         tx0, tz0, tx1, tz1 = meta["tierra"]
         mx0, mz0, mx1, mz1 = meta["mar"]
-        assert tz1 < 0 < mz0, "tierra detrás del ancla, mar delante"
+        assert tz1 < 0 < mz0, "land behind the anchor, sea in front"
         bx0, _, bz0, bx1, _, bz1 = o.t.bounds()
         assert bx0 <= tx0 and tx1 <= bx1 and bx0 <= mx0 and mx1 <= bx1
-        assert mz1 <= bz1, "el mar que se mira está dentro de la plantilla"
+        assert mz1 <= bz1, "the sea that is looked at is inside the template"
         if key[0] == "faro":
-            assert (tx0, tz0, tx1, tz1) == (bx0, bz0, bx1, -1), "toda la plataforma en tierra"
+            assert (tx0, tz0, tx1, tz1) == (bx0, bz0, bx1, -1), "the whole platform on land"
 
 
 def test_processor_drops_just_enough():
     lighthouse, ship = coast.descend("faro"), coast.descend("naufragio")
-    assert not any("planks" in b for b in lighthouse), "los tablones del embarcadero no bajan"
-    assert any("planks" in b for b in ship), "el fondo del casco sí"
+    assert not any("planks" in b for b in lighthouse), "the pier planks do not go down"
+    assert any("planks" in b for b in ship), "the hull bottom does"
     for d in coast.STYLES.values():
-        assert f"minecraft:{d['faro']['tronco']}" in lighthouse, "los pilotes"
-        assert f"minecraft:{d['barco']['tronco']}" in ship, "la quilla"
+        assert f"minecraft:{d['faro']['tronco']}" in lighthouse, "the piles"
+        assert f"minecraft:{d['barco']['tronco']}" in ship, "the keel"
         assert f"minecraft:{d['faro']['madera']}_planks" not in lighthouse
 
 
-# ------------------------------------------------------------------ estilos y climas
+# ------------------------------------------------------------------ styles and climates
 def test_each_pair_of_climate_has_a_only_style():
     land = [b for g in coast.LAND.values() for b in g]
-    assert len(land) == len(set(land)), "cada bioma de tierra en un grupo"
+    assert len(land) == len(set(land)), "each land biome in one group"
     for g, biomes in coast.LAND.items():
         for b in biomes:
             for m in coast.SEA["todos"]:
@@ -205,7 +205,7 @@ def test_style_materials():
         assert snow == d["faro"]["nieve"], style
 
 
-# ------------------------------------------------------------------ botín
+# ------------------------------------------------------------------ loot
 def _items(tbl):
     out = []
     for p in tbl["pools"]:
@@ -219,7 +219,7 @@ def test_loot_modest():
     for name, tbl in LOOT.items():
         for o in _items(tbl):
             assert not any(x in o for x in FORBIDDEN), (name, o)
-        assert tbl["pools"][-1].get("solo_sin_lootr"), "el grupo extra, solo sin Lootr"
+        assert tbl["pools"][-1].get("solo_sin_lootr"), "the extra group, only without Lootr"
     assert {"minecraft:map", "minecraft:compass", "minecraft:spyglass"} <= set(_items(LOOT["faro"]))
     assert "minecraft:map" in _items(LOOT["camarote"])
 
@@ -245,12 +245,12 @@ def test_what_it_writes(written):
         assert f"data/heraldia/loot_table/costa/{t}.json" in files
     cabin = files["data/heraldia/loot_table/costa/camarote.json"]
     clues = [p for p in cabin["pools"] if any("tesoro/fragmento" in json.dumps(x) for x in p["entries"])]
-    assert len(clues) == 1, "una pista del tesoro en el camarote"
-    assert clues[0]["condition"]["factor"] == 0.5, "rara: la mitad que en una mediana"
+    assert len(clues) == 1, "a treasure hint in the cabin"
+    assert clues[0]["condition"]["factor"] == 0.5, "rare: half as much as in a medium structure"
     for t in ("faro", "bodega"):
         assert "tesoro/fragmento" not in json.dumps(files[f"data/heraldia/loot_table/costa/{t}.json"])
     assert tags["data/heraldia/tags/worldgen/biome/litoral.json"]["values"] == [f"minecraft:{b}" for b in coast.BEACHES]
-    assert "data/heraldia/tags/worldgen/biome/costa.json" not in tags, "la de la familia de aldeas de la costa, intacta"
+    assert "data/heraldia/tags/worldgen/biome/costa.json" not in tags, "that of the coast village family, untouched"
     for style in coast.STYLES:
         assert f"data/heraldia/tags/worldgen/biome/litoral/{style}.json" in tags
     assert lang["es_es"]["heraldia.costa.faro.nombre"] == "Faro"
@@ -261,14 +261,14 @@ def test_tables_and_structures():
     assert len(coast.structures()) == 16 and all(s.startswith("heraldia:costa/") for s in coast.structures())
 
 
-# ------------------------------------------------------------------ opciones, logros, guía, idiomas
+# ------------------------------------------------------------------ options, advancements, guide, languages
 def test_options():
     keys = {k: (d, lo, hi) for k, d, lo, hi, *_ in options._FIXED}
     for kind, o in coast.OPTION.items():
         assert keys[f"{o}.activado"][0] is True
         d, lo, hi = keys[f"{o}.separacion_bloques"]
         assert d == coast.SEPARATION[kind] and (lo, hi) == coast.SEPARATION_RANGE
-        assert options.is_generation(f"{o}.activado"), "no lo cambia un perfil"
+        assert options.is_generation(f"{o}.activado"), "a profile does not change it"
     assert keys["mapas_web.capas.costa"][0] is True
 
 
@@ -313,7 +313,7 @@ def test_texts_in_the_8_languages(lang_code):
     assert guide.errors(uniques.modules(), {lang_code: translated}) == []
 
 
-# ------------------------------------------------------------------ casos negativos de la auditoría
+# ------------------------------------------------------------------ negative audit cases
 def _copy(o):
     from types import SimpleNamespace
     from core import Template
@@ -325,23 +325,23 @@ def _copy(o):
 def test_audit_detects_air_under_the_water():
     o = _copy(coast.construction("naufragio", "templada", "b")[0])
     o.t.set(0, 2, o.bow + 6, "air")
-    assert any("aire bajo el agua" in e for e in audit.errors(o, "naufragio"))
+    assert any("air under the water" in e for e in audit.errors(o, "naufragio"))
 
 
 def test_audit_detects_the_light_off():
     o = _copy(coast.construction("faro", "templada", "a")[0])
     x, y, z = o.light
     o.t.set(x, y - 1, z, "stone_bricks")
-    assert any("luz" in e for e in audit.errors(o, "faro"))
+    assert any("the light" in e for e in audit.errors(o, "faro"))
 
 
 def test_audit_detects_staircase_cut():
     o = _copy(coast.construction("faro", "fria", "b")[0])
     o.t.set(0, 9, constructions.TOWER_Z + 2, "air")
-    assert any("escalera" in e for e in audit.errors(o, "faro"))
+    assert any("the ladder does not run continuously" in e for e in audit.errors(o, "faro"))
 
 
 def test_audit_detects_drowned_loose():
     o = _copy(coast.construction("naufragio", "nevada", "b")[0])
     o.t.entities = [(0, 2, 10, {"id": "minecraft:drowned", "PersistenceRequired": 1})]
-    assert any("sin anclar" in e for e in audit.errors(o, "naufragio"))
+    assert any("not anchored" in e for e in audit.errors(o, "naufragio"))

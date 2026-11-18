@@ -1,7 +1,7 @@
-"""Auditoría del plano entero de la Atlántida (condición para generar).
+"""Audit of the whole Atlantis plan (condition for generating).
 
-Comprueba: estanqueidad de las zonas secas, apoyos, alcanzabilidad sin romper bloques, objetos válidos en los
-cofres fijos y proporción de superficie en buen estado. Devuelve una lista de avisos; vacía = apto.
+Checks: watertightness of the dry zones, supports, reachability without breaking blocks, valid items in the
+fixed chests and proportion of surface in good condition. Returns a list of warnings; empty = fit.
 """
 from collections import deque
 import validate
@@ -10,7 +10,7 @@ from .world import block_name
 
 NEIGHBORS = ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0))
 AQUATIC_BLOCKS = ("water", "bubble_column", "kelp", "kelp_plant", "seagrass", "tall_seagrass")
-# Bloques que el agua arranca si entra en su celda: cuentan como aire para la estanqueidad.
+# Blocks that water tears away if it enters their cell: they count as air for watertightness.
 LAVABLES = ("redstone_wire", "redstone_wall_torch", "redstone_torch", "lever", "stone_pressure_plate", "cyan_carpet", "azalea",
             "torch", "wall_torch")
 THIN = LAVABLES + ("ladder", "warped_wall_sign", "cyan_wall_banner", "iron_bars", "warped_fence", "dark_oak_fence", "sea_pickle")
@@ -26,7 +26,7 @@ def is_dry(st):
 
 
 def solid(st):
-    """Bloque completo que sostiene y no deja pasar (aproximación suficiente para los materiales de la ciudad)."""
+    """Full block that supports and does not let anything through (sufficient approximation for the city's materials)."""
     if st is None:
         return False
     b = block_name(st)
@@ -90,8 +90,8 @@ def supports(m, out):
 
 
 def reachable(m):
-    """Celdas a las que llega un jugador desde el mar abierto nadando, andando, saltando un bloque y por escaleras de
-    mano, abriendo puertas y trampillas, sin romper nada. Se explora solo dentro de las cajas de los sitios (+1)."""
+    """Cells that a player reaches from the open sea by swimming, walking, jumping one block and by ladders,
+    opening doors and trapdoors, without breaking anything. Only explored within the boxes of the sites (+1)."""
     bucket = {}
     for (_, x1, y1, z1, x2, y2, z2, _) in m.sites:
         box = (x1 - 1, y1 - 1, z1 - 1, x2 + 1, y2 + 1, z2 + 1)
@@ -106,7 +106,7 @@ def reachable(m):
         return False
 
     seen, queue = set(), deque()
-    for (_, x1, y1, z1, x2, y2, z2, _) in m.sites:           # semillas: agua abierta en la capa exterior de cada caja
+    for (_, x1, y1, z1, x2, y2, z2, _) in m.sites:           # seeds: open water in the outer layer of each box
         if y2 <= U.FLOOR:
             continue
         for x in range(x1 - 1, x2 + 2):
@@ -137,7 +137,7 @@ def reachable(m):
                     if p not in seen and inside(*p):
                         seen.add(p)
                         queue.append(p)
-                for dx, _, dz in NEIGHBORS[:4]:                 # salto de un bloque
+                for dx, _, dz in NEIGHBORS[:4]:                 # one-block jump
                     p = (x + dx, y + 1, z + dz)
                     if p not in seen and inside(*p) and walkable(get(*p)) and not walkable(get(x + dx, y, z + dz)):
                         seen.add(p)
@@ -157,12 +157,12 @@ def accesses(m, out, seen):
 
 
 CORALS = ("brain_coral", "bubble_coral", "fire_coral", "horn_coral", "tube_coral")
-# lo mismo que lint.access_issues exige en las demás plantillas: nada de esto puede quedar fuera del recorrido
+# the same that lint.access_issues demands in the other templates: none of this may be left outside the walkthrough
 ACCESSIBLE = ("ladder", "cyan_bed", "chest", "trapped_chest", "barrel", "lectern", "lever")
 
 
 def accessible_blocks(m, out, seen):
-    """Escaleras de mano, camas, cofres, barriles, atriles y palancas, y las dos caras de cada puerta, alcanzables."""
+    """Ladders, beds, chests, barrels, lecterns and levers, and both faces of each door, reachable."""
     wrong = {}
     for (x, y, z), (st, _) in m.blocks.items():
         b = block_name(st)
@@ -178,7 +178,7 @@ def accessible_blocks(m, out, seen):
 
 
 def jigsaws(tiles, out):
-    """Ningún bloque posterior ha sobrescrito un jigsaw (la misma comprobación que lint.support_issues)."""
+    """No later block has overwritten a jigsaw (the same check as lint.support_issues)."""
     for t in tiles:
         for j in t.jigsaws:
             if block_name(t.get(*j["pos"]) or "air") != "jigsaw":
@@ -195,7 +195,7 @@ def items(m, out):
 
 
 def state(m):
-    """Porcentaje de la superficie construida a ras de calle que está en ruinas (solares, distritos y muralla)."""
+    """Percentage of the street-level built surface that is in ruins (lots, districts and wall)."""
     ruin_piece = total = 0
     for (n, x1, y1, z1, x2, y2, z2, r) in m.sites:
         if y2 <= U.FLOOR or n in ("nudo", "barco"):

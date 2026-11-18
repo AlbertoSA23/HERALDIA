@@ -1,5 +1,5 @@
-"""Botín de la fortaleza de hielo: solo vanilla, modesto en los cofres menores y más rico cuanto más escondido.
-Cada tabla termina con un grupo extra marcado solo_sin_lootr (con Lootr cada jugador recibe solo lo demás)."""
+"""Ice fortress loot: vanilla only, modest in the minor chests and richer the more hidden.
+Each table ends with an extra group marked solo_sin_lootr (with Lootr each player receives only the rest)."""
 from loot import item, empty
 from uniques._common.chest_loot import pool, table, named as _named
 
@@ -65,7 +65,7 @@ LOOT = {
                                    named("iron_axe", "hacha", 3, ench=(10, 20)),
                                    item("sentry_armor_trim_smithing_template", 2)]),
                          (1, [item("diamond", 3, 1, 2), item("gold_block", 1), item("emerald", 4, 2, 4)], True)),
-    # Premium: el primer grupo da la pieza principal: 90 % vistosa, 10 % algo más fuerte.
+    # Premium: the first group gives the main piece: 90 % showy, 10 % somewhat stronger.
     "premium": pools((1, [named("iron_sword", "espada", 20, ench=(15, 25)), named("bow", "arco", 20, ench=(15, 25)),
                           named("iron_boots", "botas", 15, ench=(15, 25)), named("golden_helmet", "corona", 15, ench=(15, 25)),
                           item("music_disc_strad", 10), item("music_disc_far", 10),

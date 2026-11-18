@@ -1,15 +1,15 @@
-"""Piezas de las únicas del Nether y el End (T44: Ciudadela de Ceniza y Sagrario del Vacío): el torreón con la trampa
-de la entrada, el salón del guardián, la cámara del tesoro tras una puerta de hierro con botones y la planta alta con la
-biblioteca; las torres (o capillas) de las esquinas y la sala oculta tras una puerta de pistones con palanca. Cada
-única pone lo de fuera (murallas y patio, o la plataforma y sus pilares) y su paleta. No es una única (empieza por «_»:
-unicas.modules() no la descubre).
+"""Pieces of the unique structures of the Nether and the End (T44: Ash Citadel and Sanctum of the Void): the keep with the entrance
+trap, the guardian's hall, the treasure chamber behind an iron door with buttons and the upper floor with the
+library; the corner towers (or chapels) and the hidden room behind a piston door with a lever. Each unique
+structure supplies the outside (walls and courtyard, or the platform and its pillars) and its palette. It is not a unique structure (it starts with "_":
+uniques.modules() does not discover it).
 
-Coordenadas de plantilla: y = 0 es el suelo; todo en x, z >= 0 (Registry.add no desplaza nada, así que las posiciones
-de la puerta abierta, lint_open, siguen valiendo)."""
+Template coordinates: y = 0 is the floor; everything at x, z >= 0 (Registry.add shifts nothing, so the positions
+of the open door, lint_open, remain valid)."""
 from uniques._common import pieces
 
-SIDE = 15          # torreón de 15 x 15
-HEIGHT = 11          # remate de las almenas del torreón (suelo en 0, forjado en 5, cubierta en 10)
+SIDE = 15          # keep of 15 x 15
+HEIGHT = 11          # top of the keep's battlements (floor at 0, slab at 5, roof at 10)
 
 
 def _put(t):
@@ -39,10 +39,10 @@ def lantern(t, x, y, z, hanging=True):
 
 
 def great_tower(t, p, kx, kz, place_chest, guardian):
-    """Torreón de 15 x 15 con su NO en (kx, kz): portada al norte (3 de ancho), pasillo con la trampa de placa y
-    flechas, salón del guardián, tabique con la puerta de hierro (botones a los dos lados) y la cámara del tesoro con el
-    cofre premium al sur; escalera de mano a la planta alta (biblioteca y cuartel). `cofre(t, x, y, z, facing, tabla,
-    kind)` pone un contenedor de la única; `guardian` es el NBT de su guardián."""
+    """Keep of 15 x 15 with its NW corner at (kx, kz): front at the north (3 wide), corridor with the plate trap and
+    arrows, guardian's hall, partition with the iron door (buttons on both sides) and the treasure chamber with the
+    premium chest to the south; ladder to the upper floor (library and barracks). `cofre(t, x, y, z, facing, tabla,
+    kind)` places a container of the unique structure; `guardian` is the NBT of its guardian."""
     put = _put(t)
     x1, z1 = kx + SIDE - 1, kz + SIDE - 1
     cx = kx + 7
@@ -58,7 +58,7 @@ def great_tower(t, p, kx, kz, place_chest, guardian):
     for x in range(cx - 1, cx + 2):
         for y in (1, 2, 3):
             t.set(x, y, kz, "air")
-    # pasillo con la trampa (dispensadores a los lados de la placa) y las salas de guardia a los lados
+    # corridor with the trap (dispensers on the sides of the plate) and the guard rooms on the sides
     for z in range(kz + 1, kz + 5):
         for y in range(1, 5):
             t.set(cx - 2, y, z, p["muro"])
@@ -74,14 +74,14 @@ def great_tower(t, p, kx, kz, place_chest, guardian):
     place_chest(t, x1 - 1, 1, kz + 1, "south", "cuartel", "chest")
     lantern(t, kx + 3, 4, kz + 2)
     lantern(t, x1 - 3, 4, kz + 2)
-    # salón del guardián
+    # guardian's hall
     t.entity(cx, 1, kz + 8, guardian)
     for x in (kx + 3, x1 - 3):
         t.set(x, 1, kz + 8, p["columna"])
         for y in (2, 3, 4):
             t.set(x, y, kz + 8, p["columna"])
         lantern(t, x, 4, kz + 7)
-    # tabique, puerta de hierro con botones y cámara del tesoro
+    # partition, iron door with buttons and treasure chamber
     for x in range(kx + 1, x1):
         for y in range(1, 5):
             t.set(x, y, kz + 11, p["muro"])
@@ -92,10 +92,10 @@ def great_tower(t, p, kx, kz, place_chest, guardian):
     for x in (cx - 2, cx + 2):
         t.set(x, 1, z1 - 1, p["tesoro"])
     lantern(t, cx, 4, kz + 12)
-    # escalera de mano a la planta alta, pegada al muro oeste del salón
+    # ladder to the upper floor, against the west wall of the hall
     for y in range(1, 6):
         t.set(kx + 1, y, kz + 8, "ladder[facing=east,waterlogged=false]")
-    # planta alta: biblioteca al sur (estanterías y el cofre), cuartel al norte; saeteras
+    # upper floor: library to the south (bookshelves and the chest), barracks to the north; arrow slits
     for x in range(kx + 1, x1):
         if x not in (cx,):
             t.set(x, 6, z1 - 1, "bookshelf")
@@ -113,8 +113,8 @@ def great_tower(t, p, kx, kz, place_chest, guardian):
 
 
 def tower(t, p, x0, z0, height, door, merlon=True):
-    """Torre (o capilla) de 5 x 5 con su NO en (x0, z0): muros hasta `alto`, cubierta y almenas; `puerta` (x, z,
-    facing) en uno de sus muros; saeteras de barrotes."""
+    """Tower (or chapel) of 5 x 5 with its NW corner at (x0, z0): walls up to `height`, roof and battlements; `door` (x, z,
+    facing) in one of its walls; arrow slits made of bars."""
     put = _put(t)
     x1, z1 = x0 + 4, z0 + 4
     t.fill(x0, 0, z0, x1, 0, z1, p["piso"])
@@ -131,10 +131,10 @@ def tower(t, p, x0, z0, height, door, merlon=True):
 
 
 def hidden(t, p, x0, z0):
-    """Torre de 5 x 5 (NO en (x0, z0)) sin puerta a la vista: se entra por su muro oeste con una puerta de pistones que
-    abre la palanca del contrafuerte de fuera (piezas.lever_door). Devuelve el estado con la puerta abierta."""
+    """Tower of 5 x 5 (NW at (x0, z0)) with no visible door: it is entered through its west wall by a piston door that
+    the lever of the outer buttress opens (pieces.lever_door). Returns the state with the door open."""
     tower(t, p, x0, z0, 7, (x0, z0 + 2, None))
-    # contrafuerte al norte de la esquina NO (por fuera), donde va la antorcha y la palanca
+    # buttress north of the NW corner (outside), where the torch and the lever go
     for y in (1, 2, 3):
         t.set(x0, y, z0 - 1, p["muro"])
         t.set(x0 - 1, y, z0 - 1, p["muro"])

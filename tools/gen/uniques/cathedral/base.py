@@ -1,4 +1,4 @@
-"""Utilidades del modelo de la catedral: materiales, estados y simetría."""
+"""Utilities of the cathedral model: materials, states and symmetry."""
 import math
 from core import parse_state, state_str
 
@@ -6,8 +6,8 @@ SB, CSB, CRK, MSB = "stone_bricks", "chiseled_stone_bricks", "cracked_stone_bric
 PA, PD, SM = "polished_andesite", "polished_diorite", "smooth_stone"
 ROOF, ROOFS = "deepslate_tiles", "deepslate_tile_stairs"
 WALLB = "stone_brick_wall"
-ZC = 30                       # eje de simetría (z)
-AX, AZ = 89, 30               # centro del ábside
+ZC = 30                       # axis of symmetry (z)
+AX, AZ = 89, 30               # center of the apse
 
 GLASS = ["blue_stained_glass_pane", "red_stained_glass_pane", "purple_stained_glass_pane", "light_blue_stained_glass_pane"]
 
@@ -17,7 +17,7 @@ SHAPE = {"inner_left": "inner_right", "inner_right": "inner_left", "outer_left":
 
 
 def s(name, **p):
-    """Estado de bloque: s('oak_stairs', facing='east', half='bottom')."""
+    """Block state: s('oak_stairs', facing='east', half='bottom')."""
     return state_str("minecraft:" + name, {k: (str(v).lower() if isinstance(v, bool) else str(v)) for k, v in p.items()})
 
 
@@ -45,7 +45,7 @@ def slab(mat, typ="bottom"):
 
 
 def polar(x, z):
-    """Distancia y ángulo (grados, -180..180) respecto al centro del ábside."""
+    """Distance and angle (degrees, -180..180) relative to the center of the apse."""
     dx, dz = x - AX, z - AZ
     return math.hypot(dx, dz), math.degrees(math.atan2(dz, dx))
 

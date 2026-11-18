@@ -1,4 +1,4 @@
-"""Estructura única «Palacio oriental» (heraldia:unicas/palacio). Diseño: docs/unicas/palacio.md."""
+"""Unique structure "Oriental palace" (heraldia:unicas/palacio). Design: docs/unicas/palace.md."""
 import copy
 from core import nsid
 from .blueprint import construct, W, D, NAME
@@ -18,8 +18,8 @@ DISPLAY_NAME = {"es_es": "Palacio oriental", "en_us": "Eastern Palace"}
 TROPHY = {"objeto": "golden_sword", "rareza": "rare",
           "nombre": ("Espada ceremonial de la Guardia Imperial", "Ceremonial Sword of the Imperial Guard"),
           "lore": [("Su filo solo se desenvainaba ante el emperador.", "Its blade was drawn only before the emperor.")],
-          "encantamientos": {"minecraft:sharpness": 2, "minecraft:unbreaking": 3}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "encantamientos": {"minecraft:sharpness": 2, "minecraft:unbreaking": 3}}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "biblioteca_secreta",
     "relato": [
         ("Entre cerezos en flor se alza un palacio de tejados curvos. El emperador, al que llaman Hijo "
@@ -37,11 +37,11 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("los cerezales en flor, donde se alza un palacio de tejados curvos",
               "the blossoming cherry groves, where a palace of curved roofs stands"),
 }
-ADVANCEMENT = {"icono": "minecraft:bamboo"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:bamboo"}   # advancements.py
 
 
 def fill_air(t):
-    """Aire explícito en todo el volumen de la pieza (y >= 1) para que el terreno no asome en patios y salas."""
+    """Explicit air in the whole volume of the piece (y >= 1) so the terrain does not poke out in courtyards and rooms."""
     x0, y0, z0, x1, y1, z1 = t.bounds()
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):
@@ -51,12 +51,12 @@ def fill_air(t):
 
 
 def palace():
-    """Construye la pieza, la arruina y la audita. Devuelve (obra, plantilla en buen estado, errores)."""
+    """Builds the piece, ruins it and audits it. Returns (build, template in good condition, errors)."""
     o = construct()
     good = copy.deepcopy(o.t)
     ruin_it(o)
     fill_air(o.t)
-    # el acceso para la auditoría de recorrido: escalón central de la escalinata
+    # the access for the walkthrough audit: central step of the flight of stairs
     o.t.jigsaw(40, 0, 0, "north_up", "heraldia:entrance", "heraldia:entrance", "minecraft:empty",
                final_state=o.t.get(40, 0, 0))
     o.t.lint_open = o.lint_open

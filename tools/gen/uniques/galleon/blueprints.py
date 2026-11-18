@@ -1,11 +1,11 @@
-"""Planos de planta en texto (celdas alcanzables a pie) y renders isométricos del galeón.
+"""Text floor plans (cells reachable on foot) and isometric renders of the galleon.
 
-Uso (desde tools/gen): python3 unicas/galeon/planos.py <registros mcmeta> <carpeta de salida>
+Usage (from tools/gen): python3 unicas/galeon/blueprints.py <mcmeta registries> <output folder>
 """
 import os, sys
 
-LEVELS = [(-7, "Cámara del tesoro"), (-5, "Cueva y galería"), (-4, "Bodega"), (1, "Playa, campamento y cubierta de cañones"),
-          (5, "Cubierta principal"), (9, "Castillo de proa"), (10, "Alcázar y camarote"), (15, "Toldilla"), (23, "Cofa")]
+LEVELS = [(-7, "Treasure chamber"), (-5, "Cave and gallery"), (-4, "Bodega"), (1, "Beach, camp and gun deck"),
+          (5, "Cubierta principal"), (9, "Castillo de proa"), (10, "Quarterdeck and cabin"), (15, "Toldilla"), (23, "Cofa")]
 CH = [("chest", "C"), ("barrel", "B"), ("_door", "D"), ("ladder", "H"), ("_stairs", "/"), ("spawner", "S"),
       ("lever", "L"), ("pressure_plate", "T"), ("tripwire", "T"), ("_bed", "b"), ("suspicious", "A"), ("bell", "c")]
 
@@ -27,10 +27,10 @@ def main():
     cells = walk(t)
     sx, sy, sz = t.size()
     y_sea = g.STRUCTURE["json"]["anchor"][1]
-    lines = ["Galeón varado: planos por nivel (y = altura de los pies; 0 = nivel del mar). Filas: Z de proa (arriba) a popa;",
-             "columnas: X de tierra (izquierda) a mar. '.' celda alcanzable a pie desde la entrada; '#' muro o bloque;",
-             "C cofre, B barril, D puerta, H escala, / escalera, S generador, L palanca, T trampa, b cama, A arena sospechosa, c campana.",
-             f"Superficie dañada (auditoría): {o.damage:.1%}.", ""]
+    lines = ["Stranded Galleon: floor plans by level (y = feet height; 0 = sea level). Rows: Z from bow (top) to stern;",
+             "columns: X from land (left) to sea. '.' cell reachable on foot from the entrance; '#' wall or block;",
+             "C chest, B barrel, D door, H ladder, / stairs, S generator, L lever, T trap, b bed, A suspicious sand, c bell.",
+             f"Damaged surface (audit): {o.damage:.1%}.", ""]
     for yl, title in LEVELS:
         y = y_sea + yl
         rows = []
@@ -52,13 +52,13 @@ def main():
         if not nz:
             continue
         n_reach = sum(1 for c in cells if c[1] == y)
-        lines += [f"== y {yl:+d}: {title} ({n_reach} celdas alcanzables) ==", *rows[nz[0]:nz[-1] + 1], ""]
+        lines += [f"== y {yl:+d}: {title} ({n_reach} reachable cells) ==", *rows[nz[0]:nz[-1] + 1], ""]
     with open(os.path.join(out, "plantas.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     render(t, os.path.join(out, "exterior.png"), scale=3)
     render(t, os.path.join(out, "corte_cubierta_canones.png"), scale=3, cut_y=y_sea + 3)
     render(t, os.path.join(out, "corte_bodega_cueva.png"), scale=3, cut_y=y_sea - 2)
-    print("planos y renders en", out)
+    print("floor plans and renders in", out)
 
 
 if __name__ == "__main__":

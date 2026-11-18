@@ -1,5 +1,5 @@
-"""Planos de planta por nivel (celdas alcanzables a pie con los puzles resueltos) y renders isométricos del Santuario
-druídico. Uso: python3 tools/gen/uniques/sanctuary/blueprints.py [carpeta]   (por defecto docs/unicas/santuario)
+"""Floor plans by level (cells reachable on foot with the puzzles solved) and isometric renders of the Druid
+sanctuary. Usage: python3 tools/gen/uniques/sanctuary/blueprints.py [folder]   (default docs/unicas/santuario)
 """
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -11,10 +11,10 @@ from render import render                     # noqa: E402
 import uniques.sanctuary as M                  # noqa: E402
 from uniques.sanctuary.construction import W, D, F1, F2, TOP   # noqa: E402
 
-LEVELS = [(F2, "Raíces, nivel bajo: ofrendas, cámara del sol, cámara del rito y tesoro", 20, 60, 28, 66),
-          (F1, "Raíces, nivel alto: sala de las raíces, biblioteca, archivo, herbolario y osario", 12, 60, 4, 36),
-          (1, "El claro: árbol, menhires, cabañas, huerto, estanque y observatorio", 0, W - 1, 0, D - 1),
-          (TOP, "Plataforma de la copa", 24, 48, 24, 48)]
+LEVELS = [(F2, "Roots, lower level: offerings, sun chamber, rite chamber and treasure", 20, 60, 28, 66),
+          (F1, "Roots, upper level: root hall, library, archive, herbarium and ossuary", 12, 60, 4, 36),
+          (1, "The clearing: tree, menhirs, cabins, garden, pond and observatory", 0, W - 1, 0, D - 1),
+          (TOP, "Crown platform", 24, 48, 24, 48)]
 MARK = {"chest": "C", "barrel": "T", "spawner": "G", "dispenser": "D", "sticky_piston": "P", "piston_head": "P",
         "lever": "L", "ladder": "H", "tripwire_hook": "^", "tripwire": "^", "stone_pressure_plate": "_",
         "redstone_wire": "r", "redstone_wall_torch": "i", "chiseled_stone_bricks": "R", "beehive": "B",
@@ -27,12 +27,12 @@ def floor_plans(blocks, cells):
     feet = {}
     for (x, y, z) in cells:
         feet.setdefault((x, z), set()).add(y)
-    out = ["Leyenda: · alcanzable a pie (puzles resueltos)  # muro  C cofre  T tonel  G generador  D dispensador",
-           "         P pistón  L palanca  r redstone  i antorcha de redstone  R piedra de las estaciones  / escalera",
+    out = ["Legend: · reachable on foot (puzzles solved)  # wall  C chest  T barrel  G spawner  D dispenser",
+           "         P piston  L lever  r redstone  i redstone torch  R season stone  / stairs",
            "         ^ cable trampa  _ placa  b tapiz  B colmena  ~ agua  = bancal  M menhir",
-           "         x de oeste a este, z de norte a sur (la entrada del claro está al norte, z = 0)", ""]
+           "         x from west to east, z from north to south (the clearing's entrance is to the north, z = 0)", ""]
     for lv, title, x0, x1, z0, z1 in LEVELS:
-        out.append(f"== {title} (pies a y = {lv}) ==")
+        out.append(f"== {title} (feet at y = {lv}) ==")
         out.append("    " + "".join(str(x // 10) if x % 10 == 0 else " " for x in range(x0, x1 + 1)))
         for z in range(z0, z1 + 1):
             row = []
@@ -59,18 +59,18 @@ def main():
     os.makedirs(dest, exist_ok=True)
     reg = Registry()
     M.build(reg)
-    o = M.REPORT["obra"]
+    o = M.REPORT["construction"]
     blocks = M.REPORT["abierto"]
     with open(os.path.join(dest, "planos.txt"), "w", encoding="utf-8") as f:
         f.write(floor_plans(blocks, o.cells) + "\n")
     area = reg.templates["unicas/santuario/claro"]
     render(area, os.path.join(dest, "claro.png"), scale=3)
     render(area, os.path.join(dest, "claro_sur.png"), scale=3, flip=True)
-    low = Template("sin_copa")                   # el claro sin la copa del árbol
+    low = Template("sin_copa")                   # the clearing without the tree crown
     low.blocks = {p: v for p, v in area.blocks.items() if p[1] <= 12}
     low.normalize()
     render(low, os.path.join(dest, "claro_sin_copa.png"), scale=3)
-    under = Template("corte")                    # las raíces sin la roca de relleno
+    under = Template("corte")                    # the roots without the filler rock
     under.blocks = {p: v for p, v in o.t.blocks.items() if p[1] < 0 and bname(v[0]) not in ("stone", "dirt", "air")}
     y0 = min(p[1] for p in under.blocks)
     under.normalize()
@@ -79,7 +79,7 @@ def main():
            cut_y=F1 + 2 - y0)
     render(under, os.path.join(dest, "raices_corte_bajo.png"), scale=4,
            cut_y=F2 + 2 - y0)
-    print("planos y renders en", os.path.abspath(dest))
+    print("floor plans and renders in", os.path.abspath(dest))
 
 
 if __name__ == "__main__":

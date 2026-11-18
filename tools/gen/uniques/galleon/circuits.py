@@ -1,4 +1,4 @@
-"""Puzles y trampas del galeón comprobados con el simulador común (unicas/_comun/redstone.py)."""
+"""Galleon puzzles and traps checked with the shared simulator (unicas/_comun/redstone.py)."""
 from core import parse_state
 from .._common import redstone
 
@@ -7,7 +7,7 @@ add = redstone.add
 
 
 def wire_ends(t, p):
-    """Ganchos en los extremos del cable trampa que pasa por p."""
+    """Hooks at the ends of the trap wire that passes through p."""
     axis = (0, 0, 1) if "north=true" in t.get(*p) else (1, 0, 0)
     out = []
     for sign in (1, -1):
@@ -23,7 +23,7 @@ def wire_ends(t, p):
 
 
 def check(t, scenarios):
-    """Estado colocado estable y, para cada escenario (acciones -> efectos esperados), el efecto se produce."""
+    """Placed state is stable and, for each scenario (actions -> expected effects), the effect occurs."""
     errs, _ = redstone.check_static(t)
     errs = [f"redstone: {e}" for e in errs]
     for name, acts, expects in scenarios:
@@ -36,11 +36,11 @@ def check(t, scenarios):
             elif kind == "cable":
                 ends = wire_ends(t, p)
                 if len(ends) != 2:
-                    errs.append(f"redstone {name}: el cable {p} no acaba en dos ganchos")
+                    errs.append(f"redstone {name}: wire {p} does not end in two hooks")
                 inputs.update({h: True for h in ends})
         sim = redstone.Sim(t, inputs)
         for kind, p in expects:
             want = kind in ("abierta", "dispara", "tnt")
             if sim.powered(p) != want:
-                errs.append(f"redstone {name}: {kind} en {p} no se cumple")
+                errs.append(f"redstone {name}: {kind} at {p} is not met")
     return errs

@@ -1,7 +1,7 @@
-"""Contenido del Nether y el End (T44, dimensiones.py): las medianas y las únicas con DIMENSION, sus plantillas (auditoría
-genérica, recorrido, guardián, trampa, sala oculta), lo que escriben (tipo heraldia:dimension, rejilla sin búsqueda de
-bioma ni zona de aldeas vanilla), su botín (lista prohibida, fragmentos de netherita), que no llevan mapa del tesoro,
-sus logros y sus textos en los 8 idiomas."""
+"""Nether and End content (T44, dimensiones.py): the medium and unique structures with DIMENSION, their templates (generic audit,
+walkthrough, guardian, trap, hidden room), what they write (type heraldia:dimension, grid without biome search
+or vanilla village zone), their loot (forbidden list, netherite fragments), that they carry no treasure map,
+their advancements and their texts in the 8 languages."""
 import json
 import pytest
 import dimensions
@@ -43,7 +43,7 @@ def test_batches_per_dimension():
 
 @pytest.mark.parametrize("mid, m", MEDIUM_MODULES, ids=[m for m, _ in MEDIUM_MODULES])
 def test_biomes_of_its_dimension(mid, m):
-    """Cada estilo, en biomas de su dimensión; en el End, solo las islas exteriores (ni the_end ni small_end_islands)."""
+    """Each style, in biomes of its dimension; in the End, only the outer islands (neither the_end nor small_end_islands)."""
     dim = dimensions.dimension_of(m)
     for style, d in m.STYLES.items():
         assert d["biomas"] and set(d["biomas"]) <= set(dimensions.BIOME_MAP[dim]), (mid, style)
@@ -69,7 +69,7 @@ def test_audit_and_courtyard_without_floor_live(reg, mid):
             continue
         assert lint.template_issues(t) == [], name
         assert len(lint.walk(t)) > 100, name
-        # ni nilio, ni netherrack, ni arena de almas, ni piedra del End a la vista en el patio (dimensiones.SUELO_VIVO)
+        # no nylium, netherrack, soul sand or End stone in sight in the courtyard (dimensiones.SUELO_VIVO)
         for (x, y, z), (st, _) in t.blocks.items():
             if y == 0:
                 assert st.split("[")[0] not in dimensions.LIVE_FLOOR, (name, (x, z), st)
@@ -80,8 +80,8 @@ def test_live_floor_detected():
     t = Template("x")
     t.set(0, 0, 0, "crimson_nylium")
     t.normalize()
-    assert any("suelo fértil" in e for e in mediums.template_errors(t, "x", {}, "nether"))
-    assert not any("suelo fértil" in e for e in mediums.template_errors(t, "x", {}, "overworld"))
+    assert any("fertile ground" in e for e in mediums.template_errors(t, "x", {}, "nether"))
+    assert not any("fertile ground" in e for e in mediums.template_errors(t, "x", {}, "overworld"))
 
 
 def test_write_kind_dimension(tmp_path):
@@ -90,7 +90,7 @@ def test_write_kind_dimension(tmp_path):
     for mid, m in MEDIUM_MODULES:
         pl = files[f"data/heraldia/worldgen/structure_set/medianas/{mid}.json"]["placement"]
         assert pl["type"] == "heraldia:rejilla" and pl["grupo"] == f"medianas/{mid}"
-        # sin búsqueda de bioma (solo lee el ruido del mundo principal) ni zona de las aldeas vanilla
+        # without biome search (it only reads the overworld noise) or vanilla village zone
         assert "bioma" not in pl and "exclusion_zone" not in pl and "bioma_y" not in pl
         for style, d in m.STYLES.items():
             s = files[f"data/heraldia/worldgen/structure/medianas/{mid}/{style}.json"]
@@ -118,7 +118,7 @@ def test_structure_dimension_limits():
     assert dimensions.errors("x", type("M", (), {})) == []
 
 
-# ---------------------------------------------------------------- botín
+# ---------------------------------------------------------------- loot
 def _items(tbl):
     return mediums._items(tbl)
 
@@ -160,7 +160,7 @@ def test_forbidden_list_detects():
     assert any("dimensiones.PROHIBIDO" in e for e in errs)
 
 
-# ---------------------------------------------------------------- únicas: plantilla, guardián, mapas, crónica
+# ---------------------------------------------------------------- unique structures: template, guardian, maps, chronicle
 @pytest.mark.parametrize("sid", [s for s, _ in UNIQUE_MODS])
 def test_unique_built(reg_stub, sid):
     r = reg_stub[sid]
@@ -169,7 +169,7 @@ def test_unique_built(reg_stub, sid):
     assert lint.template_issues(t) == []
     m = dict(UNIQUE_MODS)[sid]
     sx, sy, sz = t.size()
-    assert m.STRUCTURE["json"]["libre"] >= sy + 1, "aire bajo el techo para toda la plantilla"
+    assert m.STRUCTURE["json"]["libre"] >= sy + 1, "air under the ceiling for the whole template"
     assert m.STRUCTURE["json"]["type"] == "heraldia:dimension" and m.STRUCTURE["json"]["modo"] == dimensions.dimension_of(m)
     guard = [n for *_, n in t.entities if "heraldia_guardian" in (n.get("Tags") or [])]
     assert len(guard) == 1 and sid in r.guardians
@@ -179,7 +179,7 @@ def test_unique_built(reg_stub, sid):
     assert any("sticky_piston" in s for s in states) and t.lint_open, "sala oculta"
     tables = {str(n["LootTable"]).split("/")[-1] for _, n in t.blocks.values() if n and n.get("LootTable")}
     assert set(m.LOOT) <= tables and m.STORY["cofre"] in tables
-    # la sala oculta (el pliego de la Crónica) solo se alcanza con la puerta de pistones abierta
+    # the hidden room (the Chronicle sheet) is only reached with the piston door open
     is_open = t.lint_open
     try:
         t.lint_open = {}
@@ -234,10 +234,10 @@ def test_advancements_of_the_uniques():
     for sid, _ in UNIQUE_MODS:
         assert f"unicas/{sid}/descubrir" in advs
         crit = json.dumps(advs[f"unicas/{sid}/descubrir"]["criteria"])
-        assert f"heraldia:unicas/{sid}" in crit and "dimension" not in crit     # en cualquier dimensión
+        assert f"heraldia:unicas/{sid}" in crit and "dimension" not in crit     # in any dimension
 
 
-# ---------------------------------------------------------------- textos en los 8 idiomas
+# ---------------------------------------------------------------- texts in the 8 languages
 def _new_keys():
     keys = set()
     for mid, m in MEDIUM_MODULES:

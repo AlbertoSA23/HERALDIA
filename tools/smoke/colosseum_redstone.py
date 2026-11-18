@@ -1,13 +1,13 @@
-"""Prueba de los puzles y trampas del Coliseo en un servidor dedicado 26.3 real.
+"""Test of the Colosseum's puzzles and traps on a real 26.3 dedicated server.
 
-Uso: python3 tools/smoke/colosseum_redstone.py --jar build/libs/heraldia-X.jar [--work build/smoke-coliseo]
-Coloca las dos plantillas con /place template (sin rotación) y comprueba:
-  - tras unos segundos nada ha cambiado solo (pistones extendidos, trampilla cerrada, sin flechas disparadas);
-  - puzle 2: palanca encendida -> la puerta de pistones se abre; apagada -> se cierra;
-  - puzle 1: un objeto en el marco -> la trampilla de hierro se abre;
-  - trampas: un soporte de armadura sobre el cable y sobre una placa hace disparar flechas.
-La palanca y el marco se accionan con /setblock y /data, que no avisan a los vecinos como lo hace un jugador; por eso,
-después, se coloca y se quita un bloque junto al componente (actualización de vecino equivalente).
+Usage: python3 tools/smoke/colosseum_redstone.py --jar build/libs/heraldia-X.jar [--work build/smoke-coliseo]
+Places the two templates with /place template (no rotation) and checks:
+  - after a few seconds nothing has changed by itself (pistons extended, trapdoor closed, no arrows fired);
+  - puzzle 2: lever on -> the piston door opens; off -> it closes;
+  - puzzle 1: an item in the frame -> the iron trapdoor opens;
+  - traps: an armor stand on the wire and on a plate makes arrows fire.
+The lever and the frame are operated with /setblock and /data, which do not notify neighbors as a player does; so,
+afterwards, a block is placed and removed next to the component (equivalent neighbor update).
 """
 import argparse, os, subprocess, sys, threading, queue, time
 
@@ -44,7 +44,7 @@ def main():
 
     def check(desc, pos, block):
         if not ctx.block(pos, block):
-            fails.append(f"{desc}: se esperaba {block} en {pos}")
+            fails.append(f"{desc}: expected {block} at {pos}")
         else:
             print("OK", desc)
 
@@ -53,7 +53,7 @@ def main():
         cmd(f"setblock {pos} {orig}", r"Changed the block|Could not set")
 
     def wait(s):
-        ctx.ticks(20 * s)       # en ticks del juego: con el servidor atrasado, el reloj no basta
+        ctx.ticks(20 * s)       # in game ticks: with a lagging server, the wall clock is not enough
 
     try:
         S.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", S.START_TIMEOUT_S, seen)
@@ -79,7 +79,7 @@ def main():
         check("trampilla de hierro cerrada", W(20, -6, 7), "minecraft:iron_trapdoor[open=false]")
         m = cmd("execute if entity @e[type=minecraft:arrow]", r"Test passed|Test failed")
         if "passed" in m.group(0):
-            fails.append("hay flechas disparadas antes de pisar ninguna trampa")
+            fails.append("arrows have been fired before stepping on any trap")
         # puzle 2
         cmd(f"setblock {W(-4, a, 12)} minecraft:lever[face=wall,facing=east,powered=true]", r"Changed the block|Could not set")
         nudge(W(-6, a, 11), "minecraft:quartz_bricks")
@@ -106,7 +106,7 @@ def main():
         cmd(f"summon minecraft:armor_stand {W(12, -13, 3)}", r"Summoned|Unable")
         (fails.append("trampa 2 (placas) no dispara") if not ctx.until("execute if entity @e[type=minecraft:arrow]") else print("OK trampa 2"))
         ok = ctx.wait_entity("@e[type=minecraft:husk,tag=heraldia_guardian.coliseo]")
-        (fails.append("no está el Campeón de la Arena") if not ok else print("OK guardián"))
+        (fails.append("the Arena Champion is missing") if not ok else print("OK guardian"))
     finally:
         if proc.poll() is None:
             S.send(proc, "stop")
@@ -115,9 +115,9 @@ def main():
             except subprocess.TimeoutExpired:
                 proc.kill()
     if fails:
-        print("PRUEBA DEL COLISEO FALLIDA:\n  " + "\n  ".join(fails))
+        print("COLOSSEUM TEST FAILED:\n  " + "\n  ".join(fails))
         return 1
-    print("PRUEBA DEL COLISEO OK")
+    print("COLOSSEUM TEST OK")
     return 0
 
 

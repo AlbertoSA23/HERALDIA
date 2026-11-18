@@ -14,7 +14,7 @@ LOOT = {"comun": "heraldia:cofres/comun", "poco_comun": "heraldia:cofres/poco_co
 
 
 def pick_tier(rng, size):
-    """Cofres equilibrados: no todas las casas tienen."""
+    """Balanced chests: not all houses have one."""
     table = {"small": [(None, 70), ("comun", 22), ("poco_comun", 8)],
              "medium": [(None, 55), ("comun", 28), ("poco_comun", 14), ("raro", 3)],
              "large": [(None, 40), ("comun", 25), ("poco_comun", 23), ("raro", 10), ("epico", 2)]}[size]
@@ -28,7 +28,7 @@ def pick_tier(rng, size):
 
 
 def bed_slot(t, th, x, y, z, pool):
-    """Hueco de cama: el pool coloca cama (+aldeano) o nada. La cama se extiende hacia +z."""
+    """Bed slot: the pool places a bed (+villager) or nothing. The bed extends toward +z."""
     t.jigsaw(x, y, z, "up_south", "heraldia:slot", "heraldia:bottom", pool, final_state=th["floor"], joint="aligned")
     t.set(x, y + 1, z, "air"); t.set(x, y + 1, z + 1, "air")
 
@@ -38,7 +38,7 @@ def villager_pool(th, depth, fixed=False):
 
 
 class Room:
-    """Asignador de huecos junto a los muros interiores."""
+    """Slot allocator next to the interior walls."""
 
     def __init__(self, t, x0, z0, x1, z1, y, reserved=()):
         self.t, self.y = t, y
@@ -81,8 +81,8 @@ class Room:
 
 
 def furnish(t, th, rng, room, *, depth=None, tier=None, kind="living", ceil=None, hearth=False, table_len=1):
-    """Amuebla una estancia con criterio: todo va pegado a un muro, nada tapa ventanas y el centro queda libre
-    salvo la mesa de comedor."""
+    """Furnishes a room sensibly: everything goes against a wall, nothing blocks windows and the center stays free
+    except for the dining table."""
     y = room.y
     items = []
     if depth:
@@ -119,7 +119,7 @@ def furnish(t, th, rng, room, *, depth=None, tier=None, kind="living", ceil=None
     cx, cz = (room.x0 + room.x1) // 2, (room.z0 + room.z1) // 2
     col = rng.choice(th["carpet"])
     if kind == "living" and table_len:
-        # mesa de comedor centrada, con sillas enfrentadas y el respaldo hacia fuera
+        # centered dining table, with chairs facing each other and the backrest outward
         zs = [cz] if table_len == 1 else [cz - 1, cz, cz + 1]
         if all(room.free(cx, z) for z in zs) and all(room.free(cx + d, z) for z in zs for d in (-1, 1)):
             for z in zs:
@@ -130,7 +130,7 @@ def furnish(t, th, rng, room, *, depth=None, tier=None, kind="living", ceil=None
                 chair(t, th, cx + 1, y, z, "east")
                 room.used |= {(cx - 1, z), (cx + 1, z)}
     else:
-        # alfombra recogida en el centro
+        # rug gathered in the center
         for x in range(cx - 1, cx + 2):
             for z in range(cz - 1, cz + 2):
                 if room.free(x, z):
@@ -149,7 +149,7 @@ def rect_house(th, rng, name, size, depth, tier):
         W, D, floors = {"small": (7, 7, 1), "medium": rng.choice([(9, 9, 1), (9, 11, 1), (9, 7, 2)]),
                         "large": rng.choice([(11, 11, 2), (9, 11, 2), (11, 9, 2)])}[size]
     dx = W // 2
-    fy = s                      # cota del suelo
+    fy = s                      # floor level
     zf = 2 + (s if s else 0)    # muro frontal
     zb = zf + D - 1
     H = 4 * floors - 1
@@ -157,7 +157,7 @@ def rect_house(th, rng, name, size, depth, tier):
     t.jigsaw(dx, 0, 0, "north_up", "heraldia:entrance", "heraldia:side", "minecraft:empty",
              final_state=stairs(th["trim"] if not s else th["wstairs"], "south"))
     if s:
-        # escalera completa hasta el porche: peldaños con zanca por debajo y barandilla
+        # full staircase up to the porch: steps with a stringer underneath and a railing
         for k in range(1, s + 1):
             t.set(dx, k, k, stairs(th["wstairs"], "south"))
             t.set(dx, k - 1, k, stairs(th["wstairs"], "north", half="top"))
@@ -180,7 +180,7 @@ def rect_house(th, rng, name, size, depth, tier):
     shutters = th["roof_type"] != "flat" and rng.random() < 0.55
     shed = (not s) and th["roof_type"] != "flat" and size != "small" and rng.random() < 0.45
     chimney = th["chimney"] and th["roof_type"] in ("gable", "steep") and rng.random() < 0.6
-    # --- base y suelo
+    # --- base and floor
     t.fill(0, fy, zf, W - 1, fy, zb, log(th["found"], "y"))
     t.fill(1, fy, zf + 1, W - 2, fy, zb - 1, th["floor"])
     # --- muros
@@ -206,15 +206,15 @@ def rect_house(th, rng, name, size, depth, tier):
                         skip=[(W - 2, zb)] if chimney else [])
         windows_on_wall(t, th, 0, zf, W - 1, zb, "west", wy, rng)
         windows_on_wall(t, th, 0, zf, W - 1, zb, "east", wy, rng)
-    # --- forjado y escalera de mano
+    # --- floor structure and ladder
     if floors == 2:
         t.fill(1, fy + 4, zf + 1, W - 2, fy + 4, zb - 1, th["planks"])
         for y in range(fy + 1, fy + 5):
             t.set(1, y, zf + 1, "ladder[facing=east]")
-    # --- techo interior y tejado
+    # --- interior ceiling and roof
     t.fill(1, fy + H + 1, zf + 1, W - 2, fy + H + 1, zb - 1, th["planks"])
     top = roof_for(t, th, 0, zf, W - 1, zb, fy + H + 1)
-    # --- cobertizo lateral: leñera baja que no tapa las ventanas
+    # --- side shed: low woodshed that does not block the windows
     if shed:
         ax0, ax1 = W, W + 2
         az0, az1 = zf + 1, min(zb - 1, zf + 4)
@@ -228,7 +228,7 @@ def rect_house(th, rng, name, size, depth, tier):
             t.set(ax1, fy + 3, z, f"{th['roof_slab']}[type=bottom]")
             t.set(ax0, fy + 1, z, log(th["log"], "x"))
         t.set(ax0 + 1, fy + 1, az1, "barrel[facing=up]")
-    # --- tejado plano: vigas vistas y cúpula en las casas grandes
+    # --- flat roof: exposed beams and dome on the large houses
     if th["roof_type"] == "flat":
         ry = fy + H
         for x in range(1, W - 1, 2):
@@ -237,14 +237,14 @@ def rect_house(th, rng, name, size, depth, tier):
             t.set(x, ry, zb + 1, log(th["stripped"], "z"))
         if size == "large" and th["dome"]:
             dome(t, W // 2, fy + H + 2, zf + D // 2, 2, roofset(th["dome"])[2], finial="lightning_rod[facing=up]")
-    # --- farol bajo el alero junto a la puerta (solo si hay alero)
+    # --- lantern under the eave next to the door (only if there is an eave)
     for yy in range(fy + 3, fy + H + 3):
         above = t.get(dx + 1, yy + 1, zf - 1)
         if above and not passable(above) and t.get(dx + 1, yy, zf - 1) is None:
             t.set(dx + 1, yy, zf - 1, lantern(th, True))
             break
     t.fill(1, fy + H + 2, zf + 1, W - 2, top, zb - 1, "air", keep=True)
-    # --- chimenea en la esquina del fondo, con el hogar abajo
+    # --- chimney in the back corner, with the hearth below
     hx, hz = W - 2, zb - 1
     if chimney:
         cm = "bricks" if "brick" not in th["found"] else th["found"]
@@ -261,7 +261,7 @@ def rect_house(th, rng, name, size, depth, tier):
         reserved |= {(1, zf + 1), (1, zf + 2), (2, zf + 1)}
     pool = villager_pool(th, depth)
     tl = 0 if size == "small" else (3 if (zb - zf) >= 9 else 1)
-    bx, bz = 1, zb - 2                     # cama siempre en la esquina del fondo, lejos de la chimenea
+    bx, bz = 1, zb - 2                     # bed always in the back corner, away from the chimney
     if floors == 1:
         bed_slot(t, th, bx, fy, bz, pool)
         reserved |= {(bx, bz), (bx, bz + 1), (bx + 1, bz), (bx + 1, bz + 1)}
@@ -308,7 +308,7 @@ def round_house(th, rng, name, size, depth, tier):
     for (wx, wz) in ((cx - r, cz), (cx + r, cz), (cx, cz + r)):
         t.set(wx, fy + 2, wz, th["window"])
     cone_roof(t, th, cx, cz, r, fy + H + 1)
-    # interior: cama pegada al muro este, muebles pegados al muro oeste y al fondo, centro libre
+    # interior: bed against the east wall, furniture against the west wall and the back, center free
     pool = villager_pool(th, depth)
     bed_slot(t, th, cx + r - 1, fy, cz, pool)
     y = fy + 1

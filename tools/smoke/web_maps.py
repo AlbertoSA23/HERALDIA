@@ -1,27 +1,27 @@
-"""Marcadores de Heraldia en los mapas web, en un servidor dedicado 26.3 real (complementa server_smoke.py).
+"""Heraldia markers on the web maps, on a real dedicated 26.3 server (complements server_smoke.py).
 
-Uso: python3 tools/smoke/web_maps.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+Usage: python3 tools/smoke/web_maps.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
 
-1. Sin ningún mapa web: el mod no registra nada (no sale «Heraldia: mapas web» en el log ni se escribe su fichero en el
-   mundo) y /heraldia webmap refresh contesta que no hay ningún mapa.
-2. Con squaremap (versión fijada de Modrinth, comprobada con su sha512) y Carpet (jugador simulado):
-   - con /locate se buscan una estructura mediana y una aldea y se generan sus chunks con /forceload: las dos entran en
-     el registro (heraldia_mapas_web.json del mundo) al cargarse esos chunks;
-   - con mapas_web.solo_descubiertas (por defecto) squaremap no enseña ninguna: sus capas están, vacías;
-   - el jugador simulado entra en la mediana: consigue su logro y, sin hacer nada más, su marcador aparece en
-     squaremap (capa, posición, icono y nombre en el idioma de mapas_web.idioma); la aldea sigue sin salir;
-   - con mapas_web.solo_descubiertas = false y /heraldia reload sale también la aldea; con la capa de las aldeas
-     apagada, su capa desaparece del mapa;
-   - tras reiniciar, los marcadores vuelven a salir sin cargar esos chunks (del fichero del mundo).
-squaremap sirve las capas en http://127.0.0.1:<puerto>/tiles/minecraft_overworld/markers.json (las rehace cada 5 s).
+1. With no web map: the mod registers nothing ("Heraldia: mapas web" does not appear in the log and its file is not written in the
+   world) and /heraldia webmap refresh answers that there is no map.
+2. With squaremap (pinned Modrinth version, checked against its sha512) and Carpet (simulated player):
+   - /locate is used to find a medium structure and a village and their chunks are generated with /forceload: both enter
+     the registry (the world's heraldia_mapas_web.json) when those chunks load;
+   - with web_maps.only_discovered (default) squaremap shows none: its layers are there, empty;
+   - the simulated player enters the medium structure: gets its advancement and, with nothing else done, its marker appears in
+     squaremap (layer, position, icon and name in the language of web_maps.language); the village still does not appear;
+   - with web_maps.only_discovered = false and /heraldia reload the village also appears; with the villages' layer
+     turned off, its layer disappears from the map;
+   - after restarting, the markers appear again without loading those chunks (from the world's file).
+squaremap serves the layers at http://127.0.0.1:<port>/tiles/minecraft_overworld/markers.json (it rebuilds them every 5 s).
 """
 import argparse, json, os, queue, shutil, subprocess, sys, threading, time, urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 from modrinth import MODS, Mod, fetch
 
-# squaremap (mapa web de servidor) fijado para esta prueba (python3 tools/smoke/modrinth.py --find squaremap); no va
-# en modrinth.MODS para no tocar las pruebas de compatibilidad (COMPAT_RUTAS de tools/test.py).
+# squaremap (server web map) pinned for this test (python3 tools/smoke/modrinth.py --find squaremap); it is not
+# in modrinth.MODS so as not to affect the compatibility tests (COMPAT_PATHS of tools/test.py).
 SQUAREMAP = Mod("squaremap", "1.4.3", "squaremap-fabric-mc26.3-1.4.3.jar",
                 "https://cdn.modrinth.com/data/PFb7ZqK6/versions/YPMtDS9D/squaremap-fabric-mc26.3-1.4.3.jar",
                 "c20e76d91a1c3a26d1985240c4199b6955180a6fbaf2f13bef25e06dd9c2c01df22d51a845f4bd2d36aa953559c29532ec8c3390432fb3faa34e73bff00d8533")
@@ -61,7 +61,7 @@ class WebServer:
 
 
 def config(work, **web_maps):
-    """config/heraldia.json de las pruebas con las opciones mapas_web dadas (las capas, en «capas»)."""
+    """config/heraldia.json of the tests with the given mapas_web options (the layers, in "capas")."""
     cfg = json.loads(json.dumps(s.TEST_CONFIG))
     cfg.pop("inventada", None)
     cfg["mapas_web"] = {"idioma": "es_es", **web_maps}
@@ -70,8 +70,8 @@ def config(work, **web_maps):
 
 
 def squaremap_config(work):
-    """config.yml de squaremap con su servidor web en un puerto libre (así se pueden lanzar varias pruebas a la vez) y sin
-    buscar versiones nuevas; squaremap completa el resto. Devuelve el puerto."""
+    """squaremap's config.yml with its web server on a free port (so several tests can be launched at once) and without
+    checking for new versions; squaremap fills in the rest. Returns the port."""
     port = s.free_port()
     os.makedirs(os.path.join(work, "squaremap"), exist_ok=True)
     with open(os.path.join(work, "squaremap", "config.yml"), "w") as f:
@@ -81,8 +81,8 @@ def squaremap_config(work):
 
 
 def layers(port):
-    """{id de capa de Heraldia: capa} del markers.json del Overworld que sirve squaremap (vacío si aún no lo tiene).
-    squaremap 1.4 no lo escribe en disco: lo sirve desde memoria con su servidor web."""
+    """{Heraldia layer id: layer} from the Overworld markers.json served by squaremap (empty if it does not have it yet).
+    squaremap 1.4 does not write it to disk: it serves it from memory with its web server."""
     try:
         with urllib.request.urlopen(f"http://127.0.0.1:{port}/tiles/minecraft_overworld/markers.json", timeout=5) as r:
             dataset = json.load(r)
@@ -92,7 +92,7 @@ def layers(port):
 
 
 def wait_layers(port, cond, timeout=120):
-    """Espera a que markers.json cumpla `cond` (squaremap lo rehace cada pocos segundos); devuelve sus capas."""
+    """Waits for markers.json to satisfy `cond` (squaremap rebuilds it every few seconds); returns its layers."""
     end = time.monotonic() + timeout
     while True:
         c = layers(port)
@@ -141,8 +141,8 @@ def main():
 
     es = jar_lang(jar)
 
-    # --- 1. sin mapas web ---
-    print("== sin mapas web")
+    # --- 1. no web maps ---
+    print("== no web maps")
     launcher = s.prepare(a.work, jar, s.gradle_properties())
     config(a.work)
     srv = WebServer(a.work, launcher)
@@ -158,8 +158,8 @@ def main():
     check("sin mapas, nada en el log de los mapas web", "Heraldia: mapas web" not in srv.log())
     check("sin mapas, no escribe su fichero en el mundo", not os.path.exists(os.path.join(a.work, "world", REGISTRY)))
 
-    # --- 2. con squaremap ---
-    print("== con squaremap")
+    # --- 2. with squaremap ---
+    print("== with squaremap")
     launcher = s.prepare(a.work, jar, s.gradle_properties())
     shutil.rmtree(os.path.join(a.work, "squaremap"), ignore_errors=True)
     port = squaremap_config(a.work)
@@ -190,7 +190,7 @@ def main():
         medium = next((e for e in reg if e["capa"] == "medianas"), None)
         if medium:
             srv.run(f"player {PLAYER} spawn at {medium['x']} {medium['y']} {medium['z']}", r"joined the game|already|Unknown|Incorrect")
-            s.send(srv.proc, f"gamemode creative {PLAYER}")     # sin asfixia ni caídas; no siempre contesta en la consola
+            s.send(srv.proc, f"gamemode creative {PLAYER}")     # no suffocation or falls; it does not always answer on the console
             c = wait_layers(port, lambda c: c.get("medianas", {}).get("markers"))
             marks = c.get("medianas", {}).get("markers", [])
             check("al descubrir la mediana sale su marcador sin hacer nada más", len(marks) == 1, marks)
@@ -204,7 +204,7 @@ def main():
                       name in mk.get("popup", ""), mk)
                 check("y su descripción", es.get("heraldia.mapas_web.descripcion.medianas") in mk.get("popup", ""), mk)
             check("la aldea, sin descubrir, sigue sin salir", not c.get("aldeas", {}).get("markers"))
-        # sin solo_descubiertas: también la aldea
+        # without solo_descubiertas: the village too
         config(a.work, only_discovered=False)
         srv.run("heraldia reload", r"[Rr]ecarg|[Rr]eload|aplicad|applied")
         c = wait_layers(port, lambda c: c.get("aldeas", {}).get("markers"))
@@ -214,12 +214,12 @@ def main():
             mk = c["aldeas"]["markers"][0]
             fam = es.get(f"heraldia.familia.{village['sub']}", "?")
             check("la aldea se llama «Aldea: <familia>»", f"Aldea: {fam}" in mk.get("tooltip", ""), mk.get("tooltip"))
-        # una capa apagada desaparece
+        # a turned-off layer disappears
         config(a.work, only_discovered=False, layers={"aldeas": False})
         srv.run("heraldia reload", r"[Rr]ecarg|[Rr]eload|aplicad|applied")
         c = wait_layers(port, lambda c: "aldeas" not in c and c.get("medianas", {}).get("markers"))
         check("con su capa apagada, la de las aldeas no sale", "aldeas" not in c and bool(c.get("medianas")), sorted(c))
-        # la consola contesta en el idioma del servidor (en_us) o, sin él, con el respaldo en español
+        # the console answers in the server's language (en_us) or, without it, with the Spanish fallback
         m = srv.run("heraldia webmap refresh", r"(?:Mapas web actualizados|Web maps updated): (\d+) (?:marcadores en|markers on) "
                                               r"([^(]+) \((\d+)|Unknown|Incorrect")
         check("/heraldia webmap refresh publica y cuenta", m.group(1) is not None and "squaremap" in (m.group(2) or ""), m.group(0))
@@ -230,7 +230,7 @@ def main():
     check("sin errores de los mapas web en el log", "no aceptó los marcadores" not in log and "no se pudo usar" not in log,
           "\n".join(l for l in srv.seen if "mapas web" in l)[:600])
 
-    # --- 3. tras reiniciar: del fichero del mundo, sin volver a cargar esos chunks ---
+    # --- 3. after restarting: from the world's file, without loading those chunks again ---
     print("== reinicio")
     before = len(registry(a.work))
     shutil.rmtree(os.path.join(a.work, "logs"), ignore_errors=True)
@@ -244,7 +244,7 @@ def main():
               bool(c.get("medianas", {}).get("markers")), {k: len(v.get("markers", [])) for k, v in c.items()})
     finally:
         srv.halt()
-    print("PRUEBA MAPAS WEB " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
+    print("WEB MAPS TEST " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
     return 1 if fails else 0
 
 

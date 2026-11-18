@@ -1,4 +1,4 @@
-"""Edificios genéricos de la Atlántida. Sistema local de Vista: fachada en v = 0, y = 0 es el pavimento."""
+"""Generic buildings of Atlantis. Local Vista system: facade at v = 0, y = 0 is the pavement."""
 from . import urban_layout as U
 from . import things as C
 from .._common import pieces as P
@@ -14,7 +14,7 @@ def h(u, v, salt):
 
 
 def door(v, u, y, w, facing, material=DOOR_COL, hinge="left"):
-    """Puerta cerrada (pieza común); mira = hacia dónde mira quien sale por ella (cara exterior)."""
+    """Closed door (common piece); mira = which way whoever exits through it faces (outer face)."""
     P.door(v.set, u, y, w, facing, kind=material, hinge=hinge)
 
 
@@ -25,7 +25,7 @@ def column(v, u, w, y1, y2):
 
 
 def deck(v, w, d, y, style):
-    """Cubierta sobre el forjado y: 0 = azotea con peto, 1 = escalonada."""
+    """Roof over the floor slab y: 0 = flat roof with parapet, 1 = stepped."""
     if style == 0:
         for u in range(w):
             for z in range(d):
@@ -40,7 +40,7 @@ def deck(v, w, d, y, style):
 
 
 def furniture(v, w, d, y, salt):
-    """Planta seca: muebles pegados a los muros, centro libre. Devuelve la celda del cofre (o None)."""
+    """Dry floor: furniture against the walls, free center. Returns the chest cell (or None)."""
     kind = h(v.ox, v.oz, salt) % 3
     if kind == 0:      # dormitorio
         v.set(1, y, d - 2, "cyan_bed[facing=south,part=head]")
@@ -58,7 +58,7 @@ def furniture(v, w, d, y, salt):
 
 
 def house(v, w, d, dry=True, salt=0, place_chest=None, name="casa"):
-    """Casa de dos plantas (5 de alto cada una). seca: planta alta seca por piscina lunar o baja seca con puerta."""
+    """Two-story house (5 tall each). seca: upper floor dry through a moon pool, or lower floor dry with a door."""
     y1, y2 = 5, 10
     v.shell(0, 0, 0, w - 1, y2, d - 1, BRICK, floor=DARK, roof=DARK)
     v.fill(0, y1, 0, w - 1, y1, d - 1, DARK)
@@ -71,7 +71,7 @@ def house(v, w, d, dry=True, salt=0, place_chest=None, name="casa"):
     v.fill(cu - 1, y1 + 2, 0, cu + 1, y1 + 3, 0, GLASS)
     v.set(cu, 3, 0, LANTERN)                                             # dintel iluminado
     if dry and variant == 1:
-        # planta baja seca con puerta a la calle y escalera de mano a la alta
+        # dry ground floor with a door to the street and a ladder to the upper one
         v.air(1, 1, 1, w - 2, y1 - 1, d - 2)
         v.air(1, y1 + 1, 1, w - 2, y2 - 1, d - 2)
         door(v, cu, 1, 0, "north")
@@ -85,7 +85,7 @@ def house(v, w, d, dry=True, salt=0, place_chest=None, name="casa"):
         v.mark("seca", 1, 1, 1)
         v.mark("seca", cu, y1 + 1, 2)
     elif dry:
-        # planta baja inundada y abierta; alta seca por piscina lunar
+        # flooded, open ground floor; upper floor dry through a moon pool
         v.remove(cu, 1, 0, cu, 2, 0)
         v.air(1, y1 + 1, 1, w - 2, y2 - 1, d - 2)
         v.remove(cu, y1, 2, cu + 1, y1, 3)
@@ -96,7 +96,7 @@ def house(v, w, d, dry=True, salt=0, place_chest=None, name="casa"):
         v.mark("seca", cu, y1 + 1, 4)
         v.mark("agua", cu, y1, 2)
     else:
-        # inundada: portal abierto, hueco en el forjado, sin cristales (se nada por dentro)
+        # flooded: open doorway, hole in the floor slab, no glass panes (you swim inside)
         v.remove(cu, 1, 0, cu, 2, 0)
         v.remove(cu - 1, y1, d // 2 - 1, cu + 1, y1, d // 2 + 1)
         v.remove(cu - 1, y1 + 2, 0, cu + 1, y1 + 3, 0)
@@ -111,7 +111,7 @@ def house(v, w, d, dry=True, salt=0, place_chest=None, name="casa"):
 
 
 def ruin_piece(v, w, d, salt=0, place_chest=None):
-    """Casa derruida e inundada: muros a media altura, escombros, coral y algas."""
+    """Ruined, flooded house: half-height walls, rubble, coral and seaweed."""
     y2 = 10
     for u in range(w):
         for z in range(d):
@@ -142,14 +142,14 @@ def ruin_piece(v, w, d, salt=0, place_chest=None):
 
 
 def tower(v, r=5, salt=0, place_chest=None):
-    """Torre redonda de tres cuerpos con cúpula; arriba, sala seca a la que se sube buceando por el hueco central."""
+    """Round three-section tower with a dome; at the top, a dry room reached by diving up through the central shaft."""
     c = r
     height = 16
     v.disk(c, c, r, 0, 0, DARK)
     v.disk(c, c, r, 1, height, BRICK, cavity=r - 1)
     for y in (5, 10):
         v.disk(c, c, r, y, y, DARK, cavity=r - 1)
-    v.disk(c, c, r - 1, 11, 11, DARK)                      # forjado de la sala alta
+    v.disk(c, c, r - 1, 11, 11, DARK)                      # floor slab of the upper room
     v.disk(c, c, r - 1, height, height, DARK)
     v.remove(c, 1, 0, c, 2, 0)                                # portal
     v.set(c, 3, 0, LANTERN)
@@ -157,7 +157,7 @@ def tower(v, r=5, salt=0, place_chest=None):
         for z in range(c - r + 1, c + r):
             if (u - c) ** 2 + (z - c) ** 2 <= (r - 1 + 0.3) ** 2:
                 v.air(u, 12, z, u, height - 1, z)
-    v.fill(c, 11, c, c, 11, c, "water")                       # piscina lunar (1 x 1 basta para subir)
+    v.fill(c, 11, c, c, 11, c, "water")                       # moon pool (1 x 1 is enough to climb)
     v.fill(c + 1, 11, c, c + 1, 11, c, "water")
     for side in ((c, 13, 0), (c, 13, 2 * r), (0, 13, c), (2 * r, 13, c)):
         v.set(*side, GLASS)
@@ -173,7 +173,7 @@ def tower(v, r=5, salt=0, place_chest=None):
 
 
 def small_plaza(v, side=9, salt=0):
-    """Templete abierto: cuatro columnas, linterna central y una fuente de coral."""
+    """Open small shrine: four columns, central lantern and a coral fountain."""
     c = side // 2
     v.fill(0, 0, 0, side - 1, 0, side - 1, BRICK)
     v.fill(1, 0, 1, side - 2, 0, side - 2, DARK)
@@ -188,8 +188,8 @@ def small_plaza(v, side=9, salt=0):
 
 
 def ornament(v, u1, w1, u2, w2, y1, y2, step=6, parapet=True):
-    """Articula una caja lisa sin tocar su estanqueidad: pilastras de cuarzo en esquinas y cada «paso», zócalo oscuro y
-    peto almenado. Solo sustituye ladrillo de muro (respeta puertas, cristales y mecanismos)."""
+    """Articulates a smooth box without affecting its watertightness: quartz pilasters at corners and at each "bay", dark plinth and
+    crenellated parapet. It only replaces wall brick (it respects doors, glass and mechanisms)."""
     def wall(u, y, w):
         return v.built(u, y, w) == "minecraft:prismarine_bricks"
     for u in range(u1, u2 + 1):

@@ -1,15 +1,15 @@
-"""Prueba de humo: arranca un servidor dedicado Fabric 26.3 real con el .jar del mod y comprueba la carga.
+"""Smoke test: starts a real Fabric 26.3 dedicated server with the mod's .jar and checks loading.
 
-Uso: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-X.jar --work build/smoke
-Comprueba: el servidor arranca sin errores de registro, están las 72 estructuras del mod,
-/place structure coloca una aldea con aldeanos, todas las tablas de botín se leen, los mapas del tesoro
-responden en menos de 30 s (con o sin destino), el filtro de los tratos de cartógrafo funciona y las funciones existen.
-También la configuración (config/heraldia.json): se migra un fichero sin versión, un valor fuera de rango se corrige al de
-por defecto, los valores válidos llegan a la rejilla y a los gólems, y /locate solo encuentra aldeas en las casillas permitidas.
-Las estructuras únicas que comparten bioma, localizadas con /locate, quedan a la distancia mínima configurada.
-/heraldia info: el resumen cuenta las estructuras registradas y refleja la opción del cofre por jugador; «nearby» da para
-cada única una posición igual o más cercana que /locate (y dentro del radio), con su tiempo medido.
-Código 0 si todo pasa.
+Usage: python3 tools/smoke/server_smoke.py --jar build/libs/heraldia-X.jar --work build/smoke
+Checks: the server starts without registry errors, the mod's 72 structures are present,
+/place structure places a village with villagers, all loot tables are read, the treasure maps
+respond in under 30 s (with or without a destination), the cartographer trade filter works and the functions exist.
+Also the configuration (config/heraldia.json): a file with no version is migrated, an out-of-range value is corrected to the
+default, valid values reach the grid and the golems, and /locate only finds villages in the allowed cells.
+Unique structures that share a biome, located with /locate, end up at the configured minimum distance.
+/heraldia info: the summary counts the registered structures and reflects the per-player chest option; "nearby" gives for
+each unique structure a position equal to or closer than /locate (and within the radius), with its measured time.
+Exit code 0 if everything passes.
 """
 import argparse, json, math, os, queue, re, shutil, socket, subprocess, sys, threading, time, urllib.request, zipfile
 
@@ -18,7 +18,7 @@ GENERATED_DATA = os.path.join(ROOT, "build", "generated", "heraldia", "data", "h
 START_TIMEOUT_S, COMMAND_TIMEOUT_S = 600, 300
 PLACE_ATTEMPTS, PLACE_RETRY_S = 30, 5
 PLACE_TARGET = "heraldia:llanuras_castellana"
-# /place structure exige cargados todos los chunks de la caja de la aldea (radio <= 116): se fuerza 16 x 16 chunks.
+# /place structure requires all the chunks of the village's box to be loaded (radius <= 116): 16 x 16 chunks are forced.
 FORCELOAD = "forceload add -128 -128 127 127"
 LOOT_TABLES = sorted(
     "heraldia:" + os.path.relpath(os.path.join(r, f), os.path.join(GENERATED_DATA, "loot_table"))[:-5].replace(os.sep, "/")
@@ -27,12 +27,12 @@ UNIQUE_STRUCTURES = sorted(
     "heraldia:unicas/" + f[:-5] for f in (os.listdir(os.path.join(GENERATED_DATA, "worldgen", "structure", "unicas"))
                                           if os.path.isdir(os.path.join(GENERATED_DATA, "worldgen", "structure", "unicas")) else [])
     if f.endswith(".json"))
-# Un mapa del tesoro busca su estructura al generarse el botín, en el hilo del servidor: debe responder pronto.
+# A treasure map looks for its structure when the loot is generated, on the server thread: it must respond quickly.
 MAP_TIMEOUT_S, EPIC_ROLLS = 30, 20
-# Configuración de prueba: sin versión (migración), separación fuera de rango, máximo de 12 casillas, familia pantano
-# desactivada (sin ella, la aldea más cercana a la semilla de prueba es heraldia:pantano_brujas) y opción desconocida.
-# Las parejas de estructuras únicas que comparten bioma van en la rejilla mínima (1.000 bloques) para que compitan de
-# verdad por el sitio, con una distancia mínima distinta de la de por defecto.
+# Test configuration: no version (migration), out-of-range spacing, maximum of 12 cells, swamp family
+# disabled (without it, the village closest to the test seed is heraldia:pantano_brujas) and unknown option.
+# The pairs of unique structures that share a biome go on the minimum grid (1,000 blocks) so that they really
+# compete for the spot, with a minimum distance different from the default one.
 SEPARATION_PAIRS = [("castillo", "monasterio"), ("faro", "galeon")]
 UNIQUE_MIN_DISTANCE = 1200
 LOCATE_POINTS = [(0, 0), (6000, 0), (0, -6000), (-6000, 6000)]
@@ -40,9 +40,9 @@ TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"
                "unicas": {"distancia_minima": {"bloques": UNIQUE_MIN_DISTANCE},
                           "atlantida": {"cofre_unico_por_jugador": True},
                           **{sid: {"separacion_bloques": 1000} for pair in SEPARATION_PAIRS for sid in pair}},
-               # la arena de oleadas no se genera sola en los mundos nuevos de las pruebas (tools/smoke/arena.py la prueba)
+               # the wave arena does not generate by itself in the tests' new worlds (tools/smoke/arena.py tests it)
                "arena": {"generar_en_mundos_nuevos": False},
-               # sin preguntar a GitHub por versiones nuevas: las pruebas no dependen de la red (update_check.py lo prueba)
+               # without asking GitHub for new versions: the tests do not depend on the network (update_check.py tests it)
                "update_check": {"activado": False},
                "inventada": 1}
 CONFIG_LOG = [
@@ -53,12 +53,12 @@ CONFIG_LOG = [
     r"rejilla aldeas: activada, cada 94 chunks \(separación mínima 62\), máximo 12 casillas, exclusión 10 chunks",
     r"aldeas: 33 estilos activados, 25 % grandes; gólems: limpieza true, límites 7/9",
 ]
-# Con 12 casillas (las 4 que tocan el 0,0 y sus 8 vecinas en cruz, de 94 chunks), toda aldea queda a menos de 2 x 94 x 16 bloques.
+# With 12 cells (the 4 touching 0,0 and their 8 cross neighbours, of 94 chunks), every village ends up within 2 x 94 x 16 blocks.
 LOCATE_LIMIT = 2 * 94 * 16
-DOWNLOAD_ATTEMPTS = 4         # una descarga cortada por la red (se ha visto con Fabric API) se repite
+DOWNLOAD_ATTEMPTS = 4         # a download cut off by the network (seen with Fabric API) is repeated
 ERROR_PATTERN = r"Unknown|Incorrect|Failed|Invalid|error|not loaded"
-# /heraldia info nearby: (punto, radio); el último, con el radio máximo, mide el peor caso. La búsqueda va fuera del hilo
-# del servidor; en él solo se confirma (INFO_MAIN_MS como mucho). INFO_MAX_MS es el tope de la respuesta completa.
+# /heraldia info nearby: (point, radius); the last one, with the maximum radius, measures the worst case. The search runs off the
+# server thread; on it only the confirmation (INFO_MAIN_MS at most). INFO_MAX_MS is the cap for the full response.
 INFO_POINTS = [((0, 0), None), ((6000, 0), 6000), ((0, -6000), 10000)]
 INFO_DEFAULT_RADIUS, INFO_MAX_MS, INFO_MAIN_MS = 3000, 20000, 20
 INFO_LINE = re.compile(r" - .+? \((heraldia:[^)]+)\): (\d+) (?:blocks|bloques) .*?\[(-?\d+), ~, (-?\d+)\]")
@@ -75,7 +75,7 @@ def gradle_properties():
 
 
 def valid_jar(path):
-    """¿Es un .jar (zip) entero? Una descarga cortada por la red no tiene el directorio central del final."""
+    """Is it a whole .jar (zip)? A download cut off by the network lacks the central directory at the end."""
     try:
         with zipfile.ZipFile(path) as z:
             return z.testzip() is None
@@ -84,8 +84,8 @@ def valid_jar(path):
 
 
 def download(url, dest, attempts=DOWNLOAD_ATTEMPTS):
-    """Descarga `url` en `dest` si no está ya (entero). Una descarga cortada (menos bytes que Content-Length o un .jar
-    sin su final) se repite hasta `intentos` veces en vez de quedarse en la caché y romper las pruebas siguientes."""
+    """Downloads `url` to `dest` if it is not already there (whole). A cut-off download (fewer bytes than Content-Length or a .jar
+    without its end) is repeated up to `attempts` times instead of staying in the cache and breaking the following tests."""
     if os.path.isfile(dest) and (not dest.endswith(".jar") or valid_jar(dest)):
         return
     for i in range(1, attempts + 1):
@@ -103,7 +103,7 @@ def download(url, dest, attempts=DOWNLOAD_ATTEMPTS):
             os.replace(dest + ".part", dest)
             return
         time.sleep(2 * i)
-    raise SystemExit(f"no se pudo descargar entero {url} en {attempts} intentos")
+    raise SystemExit(f"could not download {url} whole in {attempts} attempts")
 
 
 def latest_installer():
@@ -136,9 +136,9 @@ def prepare(work, jar, p):
     with open(os.path.join(work, "config", "heraldia.json"), "w") as f:
         json.dump(TEST_CONFIG, f)
     with open(os.path.join(work, "server.properties"), "w") as f:
-        # Puerto libre (no el 25565 fijo): así se pueden lanzar varias pruebas a la vez en la misma máquina. Sin vigilante
-        # de ticks (max-tick-time=-1): en una máquina muy cargada, forzar 256 chunks puede ocupar un tick más de 60 s y
-        # el vigilante cerraba el servidor («A single server tick took 60 s»); la prueba ya tiene sus propios límites.
+        # Free port (not the fixed 25565): this way several tests can be launched at once on the same machine. Without a tick
+        # watchdog (max-tick-time=-1): on a very loaded machine, forcing 256 chunks can take a tick longer than 60 s and
+        # the watchdog shut the server down ("A single server tick took 60 s"); the test already has its own limits.
         f.write("online-mode=false\nview-distance=4\nsimulation-distance=4\nspawn-protection=0\npause-when-empty-seconds=0\n"
                 f"level-seed=heraldia\nserver-port={free_port()}\nmax-tick-time=-1\n")
     return launcher
@@ -159,7 +159,7 @@ def wait_for(lines, pattern, timeout, seen):
         except queue.Empty:
             break
         if line is None:
-            raise SystemExit("el servidor se cerró antes de tiempo")
+            raise SystemExit("the server shut down early")
         seen.append(line)
         m = re.search(pattern, line)
         if m:
@@ -173,7 +173,7 @@ def send(proc, cmd):
 
 
 def pending(lines, seen):
-    """Pasa a `seen` las líneas que ya hay en la cola sin esperar a ninguna (respuestas de más de una orden anterior)."""
+    """Passes to `seen` the lines already in the queue without waiting for any (replies from more than one earlier command)."""
     while True:
         try:
             line = lines.get_nowait()
@@ -186,17 +186,17 @@ def pending(lines, seen):
 
 
 def run(proc, lines, seen, cmd, ok):
-    """Envía una orden y devuelve la primera respuesta de éxito o error. Antes descarta (a `seen`) lo que quedara en la
-    cola: la línea de más de una orden anterior (p. ej. dos «Test passed») no se toma por la respuesta de esta."""
+    """Sends a command and returns the first success or error reply. First discards (to `seen`) whatever was left in the
+    queue: the line from more than one earlier command (e.g. two "Test passed") is not taken as this one's reply."""
     pending(lines, seen)
     send(proc, cmd)
     return wait_for(lines, f"{ok}|{ERROR_PATTERN}", COMMAND_TIMEOUT_S, seen)
 
 
-# Esperas por condición de las pruebas de servidor: se repite la comprobación hasta UNTIL_S segundos (holgado: la CI va
-# lenta y escribe «Can't keep up!») y se pasa en cuanto se cumple. Las esperas «a que pase el tiempo» (que un circuito
-# NO reaccione, que una trampa ya haya disparado) se cuentan en ticks del juego con /time query gametime, no en segundos:
-# con el servidor atrasado, 2 s de reloj pueden ser muy pocos ticks.
+# Condition waits of the server tests: the check is repeated for up to UNTIL_S seconds (generous: CI is
+# slow and writes "Can't keep up!") and passes as soon as it is met. The "wait for time to pass" waits (a circuit
+# must NOT react, a trap has already fired) are counted in game ticks with /time query gametime, not in seconds:
+# with the server lagging, 2 s of clock can be very few ticks.
 UNTIL_S, POLL_S, TICK_TIMEOUT_S = 120, 1, 300
 _TEST = r"Test passed(?:\. Count: (\d+))?|Test failed"
 _NUM = r"(-?[\d.]+(?:E-?\d+)?)d"
@@ -204,7 +204,7 @@ _POS = rf"has the following entity data: \[{_NUM}, {_NUM}, {_NUM}\]|No entity wa
 
 
 def _top_tokens(cmd):
-    """Las palabras de una orden fuera de corchetes, llaves y comillas (las de un selector o un NBT no cuentan)."""
+    """The words of a command outside brackets, braces and quotes (those of a selector or an NBT do not count)."""
     toks, cur, depth, quote = [], "", 0, None
     for ch in cmd:
         if quote:
@@ -228,10 +228,10 @@ def _top_tokens(cmd):
 
 
 def silent_reason(cmd):
-    """Por qué una comprobación `execute ...` podría no responder nada en la consola (y colgar la prueba hasta
-    COMMAND_TIMEOUT_S), o None si siempre responde «Test passed|Test failed». Ver docs/LESSONS.md: `as`/`at`
-    (y `positioned as`, `facing entity`...) bifurcan la orden y el «Test failed» de una rama no llega; sin nadie en el
-    selector no hay ni rama; en una cadena `if A if B` la condición intermedia que falla no responde."""
+    """Why an `execute ...` check might not respond with anything in the console (and hang the test until
+    COMMAND_TIMEOUT_S), or None if it always responds "Test passed|Test failed". See docs/LESSONS.md: `as`/`at`
+    (and `positioned as`, `facing entity`...) fork the command and the "Test failed" of one branch does not arrive; with nobody in the
+    selector there is not even a branch; in an `if A if B` chain the intermediate condition that fails does not respond."""
     toks = _top_tokens(cmd)
     if not toks or toks[0] != "execute":
         return None
@@ -245,8 +245,8 @@ def silent_reason(cmd):
 
 
 class Context:
-    """Lo que necesita un módulo de estructura única para sus comprobaciones propias (tools/gen/uniques/<id>/humo.py),
-    y las utilidades comunes de las pruebas de servidor: comprobar, esperar por condición, contar ticks, leer `Pos`."""
+    """What a unique structure module needs for its own checks (tools/gen/uniques/<id>/smoke.py),
+    and the common utilities of the server tests: checking, waiting on a condition, counting ticks, reading `Pos`."""
 
     def __init__(self, proc, lines, seen):
         self.proc, self.lines, self.seen = proc, lines, seen
@@ -258,24 +258,24 @@ class Context:
         return "".join(self.seen)
 
     def test(self, cmd):
-        """True/False de una comprobación de una sola condición sin bifurcar (siempre responde; si no, ValueError)."""
+        """True/False from a single-condition check without forking (it always responds; otherwise, ValueError)."""
         why = silent_reason(cmd)
         if why:
-            raise ValueError(f"comprobación que puede no responder ({why}): {cmd}")
+            raise ValueError(f"check that may not respond ({why}): {cmd}")
         return self.run(cmd, _TEST).group(0).startswith("Test passed")
 
     def count(self, sel):
-        """Cuántas entidades da el selector (0 si ninguna)."""
+        """How many entities the selector gives (0 if none)."""
         m = self.run(f"execute if entity {sel}", _TEST)
         return int(m.group(1) or 0) if m.group(0).startswith("Test passed") else 0
 
     def block(self, pos, state):
-        """¿Hay `state` en las coordenadas `pos` ("x y z" o tupla)?"""
+        """Is there `state` at the coordinates `pos` ("x y z" or tuple)?"""
         p = pos if isinstance(pos, str) else " ".join(str(c) for c in pos)
         return self.test(f"execute if block {p} {state}")
 
     def until(self, cmd, want=True, timeout=UNTIL_S):
-        """Repite la comprobación hasta que dé `want` (True) o pasen `timeout` segundos (False)."""
+        """Repeats the check until it gives `want` (True) or `timeout` seconds pass (False)."""
         end = time.monotonic() + timeout
         while True:
             if self.test(cmd) == want:
@@ -288,30 +288,30 @@ class Context:
         return int(self.run("time query gametime", r"[Tt]ime is (\d+)").group(1))
 
     def ticks(self, n):
-        """Espera a que el servidor haya ejecutado `n` ticks más (lo que tarde en reloj, sin pasar de TICK_TIMEOUT_S)."""
+        """Waits until the server has run `n` more ticks (however long that takes on the clock, up to TICK_TIMEOUT_S)."""
         end, target = time.monotonic() + TICK_TIMEOUT_S, self.gametime() + n
         time.sleep(n / 20)
         while self.gametime() < target:
             if time.monotonic() > end:
-                raise SystemExit(f"el servidor no avanza {n} ticks en {TICK_TIMEOUT_S} s")
+                raise SystemExit(f"the server does not advance {n} ticks in {TICK_TIMEOUT_S} s")
             time.sleep(0.25)
 
     def pos(self, sel):
-        """(x, y, z) de la primera entidad del selector, con `data get entity ... Pos`; None si no hay ninguna."""
+        """(x, y, z) of the first entity of the selector, with `data get entity ... Pos`; None if there is none."""
         one = sel if "limit=" in sel else (sel[:-1] + ",limit=1]" if sel.endswith("]") else sel + "[limit=1]")
         m = self.run(f"data get entity {one} Pos", _POS)
         return tuple(float(v) for v in m.groups()) if m.group(1) else None
 
     def wait_entity(self, sel, timeout=UNTIL_S):
-        """Espera a que el selector dé alguna entidad (las de una plantilla aparecen unos segundos después que los
-        bloques). Si no llega, imprime un diagnóstico (cuántas hay del mismo tipo o etiqueta en todo el mundo y dónde)."""
+        """Waits until the selector gives some entity (those of a template appear a few seconds after the
+        blocks). If it does not arrive, prints a diagnostic (how many of the same type or tag there are in the whole world and where)."""
         if self.until(f"execute if entity {sel}", timeout=timeout):
             return True
-        print(f"DIAG: ninguna entidad {sel} en {timeout} s; {self.diagnose(sel)}")
+        print(f"DIAG: no entity {sel} in {timeout} s; {self.diagnose(sel)}")
         return False
 
     def diagnose(self, sel):
-        """Texto con las entidades del mismo tipo/etiqueta que `sel`, sin sus límites de zona, y su posición."""
+        """Text with the entities of the same type/tag as `sel`, without its zone limits, and their position."""
         inner = sel[sel.index("[") + 1:-1] if "[" in sel else ""
         keep = [f for f in _top_tokens(inner.replace(",", " ")) if f.split("=")[0] in ("type", "tag")]
         wide = f"@e[{','.join(keep)}]"
@@ -319,7 +319,7 @@ class Context:
 
 
 def unique_hook(sid):
-    """Función comprobar(ctx) -> lista de fallos del módulo unicas.<id>.humo, si existe."""
+    """Function comprobar(ctx) -> list of failures of the unicas.<id>.humo module, if it exists."""
     import importlib, importlib.util
     gen = os.path.join(ROOT, "tools", "gen")
     if gen not in sys.path:
@@ -335,7 +335,7 @@ def unique_hook(sid):
 
 
 def locate(ctx, sid, x, z):
-    """(x, z, segundos) de la estructura sid más cercana a x, z, o None si /locate no la encuentra."""
+    """(x, z, seconds) of the structure sid closest to x, z, or None if /locate does not find it."""
     t0 = time.monotonic()
     m = ctx.run(f"execute positioned {x} 64 {z} run locate structure heraldia:unicas/{sid}",
                 r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
@@ -343,7 +343,7 @@ def locate(ctx, sid, x, z):
 
 
 def check_separation(ctx):
-    """Las parejas que comparten bioma, localizadas desde varios puntos y una desde la otra, quedan a >= N bloques."""
+    """The pairs that share a biome, located from several points and one from the other, end up at >= N blocks."""
     failures, found, took = [], {sid: set() for pair in SEPARATION_PAIRS for sid in pair}, []
     for a, b in SEPARATION_PAIRS:
         measured = 0
@@ -361,20 +361,20 @@ def check_separation(ctx):
         pairs = [(p, q) for p in found[a] for q in found[b]]
         close = [(p, q) for p, q in pairs if math.dist(p, q) < UNIQUE_MIN_DISTANCE]
         if measured == 0:
-            failures.append(f"/locate no encontró ninguna pareja {a}/{b} para medir la separación")
+            failures.append(f"/locate did not find any {a}/{b} pair to measure the separation")
         for p, q in close:
-            failures.append(f"{a} en {p} y {b} en {q} a {math.dist(p, q):.0f} bloques (< {UNIQUE_MIN_DISTANCE})")
-        print(f"separación {a}/{b}: {len(pairs)} parejas medidas, mínima "
+            failures.append(f"{a} at {p} and {b} at {q} {math.dist(p, q):.0f} blocks apart (< {UNIQUE_MIN_DISTANCE})")
+        print(f"separation {a}/{b}: {len(pairs)} pairs measured, minimum "
               f"{min((math.dist(p, q) for p, q in pairs), default=0):.0f} bloques")
     if took:
-        print(f"/locate de estructuras únicas: {len(took)} búsquedas, media {sum(took) / len(took):.2f} s, máxima {max(took):.2f} s")
+        print(f"/locate of unique structures: {len(took)} searches, mean {sum(took) / len(took):.2f} s, max {max(took):.2f} s")
     if not re.search(rf"distancia mínima entre estructuras únicas: activada, {UNIQUE_MIN_DISTANCE} bloques", ctx.log()):
-        failures.append("falta en el log la distancia mínima entre estructuras únicas configurada")
+        failures.append("the log is missing the configured minimum distance between unique structures")
     return failures
 
 
 def drain(ctx, wait=1.5):
-    """Las líneas que el servidor haya escrito en los próximos segundos (las de una orden que responde con varias)."""
+    """The lines the server has written in the next few seconds (those of a command that responds with several)."""
     time.sleep(wait)
     out = []
     while True:
@@ -383,13 +383,13 @@ def drain(ctx, wait=1.5):
         except queue.Empty:
             return out
         if line is None:
-            raise SystemExit("el servidor se cerró antes de tiempo")
+            raise SystemExit("the server shut down early")
         ctx.seen.append(line)
         out.append(line)
 
 
 def check_info(ctx, expected):
-    """/heraldia info: resumen (estructuras registradas, opción del cofre por jugador) y «nearby» comparado con /locate."""
+    """/heraldia info: summary (registered structures, per-player chest option) and "nearby" compared with /locate."""
     fails = []
     m = ctx.run("heraldia info", r"Registered structures: (\d+)|Estructuras registradas: (\d+)")
     n = m.group(1) or m.group(2) if m.lastindex else None
@@ -407,44 +407,44 @@ def check_info(ctx, expected):
             continue
         ms, main_ms = int(m.group(1)), int(m.group(2))
         found = {g[0]: (int(g[1]), int(g[2]), int(g[3])) for g in INFO_LINE.findall("".join(drain(ctx)))}
-        print(f"/heraldia info nearby {r} desde {x}, {z}: {len(found)} estructuras en {ms} ms ({main_ms} ms en el hilo del servidor)")
+        print(f"/heraldia info nearby {r} from {x}, {z}: {len(found)} structures in {ms} ms ({main_ms} ms on the server thread)")
         if ms > INFO_MAX_MS or main_ms > INFO_MAIN_MS:
-            fails.append(f"{cmd}: {ms} ms, {main_ms} ms en el hilo del servidor (máximo {INFO_MAX_MS} y {INFO_MAIN_MS})")
+            fails.append(f"{cmd}: {ms} ms, {main_ms} ms on the server thread (maximum {INFO_MAX_MS} and {INFO_MAIN_MS})")
         if any(d > r for d, _, _ in found.values()):
-            fails.append(f"{cmd}: da estructuras fuera del radio: {found}")
+            fails.append(f"{cmd}: gives structures outside the radius: {found}")
         for sid in sorted({sid for pair in SEPARATION_PAIRS for sid in pair} | {"atlantida"}):
             p = locate(ctx, sid, x, z)
             if not p or math.dist(p[:2], (x, z)) > r:
                 continue
             ours = found.get(f"heraldia:unicas/{sid}")
             if ours is None or ours[0] > math.dist(p[:2], (x, z)) + 1:
-                fails.append(f"{cmd}: /locate da {sid} en {p[:2]}, pero info nearby da {ours}")
+                fails.append(f"{cmd}: /locate gives {sid} at {p[:2]}, but info nearby gives {ours}")
         if (x, z) == (0, 0) and "heraldia:aldeas" not in found and not any(":unicas/" not in k and ":medianas/" not in k and ":minas/" not in k for k in found):
-            fails.append(f"{cmd}: no da ninguna aldea cerca del 0,0 (12 casillas permitidas): {found}")
+            fails.append(f"{cmd}: gives no village near 0,0 (12 allowed cells): {found}")
     m = ctx.run("execute positioned 5000 64 5000 run heraldia info here", r"not loaded|no está cargada")
     if m.group(0) not in ("not loaded", "no está cargada"):
-        fails.append(f"/heraldia info here en un chunk sin cargar: {m.string.strip()}")
+        fails.append(f"/heraldia info here in an unloaded chunk: {m.string.strip()}")
     return fails
 
 
 def guardian_placed(ctx, sid):
-    """El guardián de la única conserva en el mundo la etiqueta heraldia_guardian.<id> con la que lo reconoce su logro
-    (logros.py). Las entidades de una plantilla tardan unos segundos más que los bloques: se reintenta."""
+    """The unique structure's guardian keeps in the world the heraldia_guardian.<id> tag by which its advancement recognizes it
+    (advancements.py). A template's entities take a few seconds longer than the blocks: it retries."""
     return ctx.wait_entity(f"@e[tag=heraldia_guardian.{sid.split('/')[-1]}]")
 
 
 def guardian_trophy(ctx, sid):
-    """El guardián colocado conserva su DeathLootTable (la del trofeo, heraldia:guardianes/<id>/<mob>) y, muerto sin
-    jugador (/loot ... kill desde la consola), no suelta el trofeo (condición killed_by_player). Que lo suelte al
-    matarlo un jugador lo prueba tools/smoke/trophies.py con un jugador simulado."""
+    """The placed guardian keeps its DeathLootTable (the trophy one, heraldia:guardianes/<id>/<mob>) and, killed without a
+    player (/loot ... kill from the console), does not drop the trophy (killed_by_player condition). That it does drop it when
+    a player kills it is tested by tools/smoke/trophies.py with a simulated player."""
     sid = sid.split("/")[-1]
     g = f"@e[tag=heraldia_guardian.{sid},limit=1]"
     m = ctx.run(f"data get entity {g} DeathLootTable", r'has the following entity data: "([^"]+)"|No entity')
     if not (m.group(1) or "").startswith(f"heraldia:guardianes/{sid}/"):
         return [f"el guardián no tiene la tabla del trofeo: {m.string.strip()}"]
     ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
-    # Sin «execute at <guardián>»: si el guardián ya no estuviera, la orden no respondería nada (5 min colgada). Se lee
-    # su posición y se suelta el botín ahí.
+    # Without "execute at <guardian>": if the guardian were gone, the command would not respond at all (hung for 5 min). Its
+    # position is read and the loot is dropped there.
     p = ctx.pos(g)
     if p is None:
         return [f"el guardián ha desaparecido antes de soltar su botín; {ctx.diagnose(g)}"]
@@ -463,19 +463,19 @@ def snbt(v):
 
 
 def check_keys(ctx):
-    """/heraldia key: registrado (pide jugadores y rechaza una llave inventada) y cada tabla de llave da un objeto que
-    cumple la cerradura de sus cofres. Sin cliente no hay jugadores: el reparto al inventario no se prueba aquí."""
+    """/heraldia key: registered (asks for players and rejects an invented key) and each key table gives an item that
+    satisfies the lock of its chests. Without a client there are no players: delivery to the inventory is not tested here."""
     fails = []
     with open(os.path.join(ROOT, "build", "generated", "heraldia", "heraldia", "llaves.json"), encoding="utf-8") as f:
         keys = json.load(f)["llaves"]
     if not keys:
         return ["heraldia/llaves.json sin llaves"]
-    m = ctx.run("heraldia key @a inventada", r"No hay ninguna llave|There is no key")   # el servidor traduce (en_us)
+    m = ctx.run("heraldia key @a inventada", r"No hay ninguna llave|There is no key")   # the server translates (en_us)
     if not m.group(0).startswith(("No hay", "There is no")):
-        fails.append(f"/heraldia key no rechaza una llave inventada: {m.string.strip()}")
+        fails.append(f"/heraldia key does not reject an invented key: {m.string.strip()}")
     m = ctx.run("heraldia key @a all", r"No player was found")
     if not m.group(0).startswith("No player"):
-        fails.append(f"/heraldia key @a all sin jugadores: {m.string.strip()}")
+        fails.append(f"/heraldia key @a all without players: {m.string.strip()}")
     for kid, d in keys.items():
         lock = d["cerradura"]
         pred = lock["items"] + "[" + ",".join(f"{k}~{snbt(v)}" for k, v in lock["predicates"].items()) + "]"
@@ -487,9 +487,9 @@ def check_keys(ctx):
         m = ctx.run(f"execute positioned 0 200 0 if items entity @e[type=minecraft:item,distance=..4] contents {pred}",
                     r"Test passed|Test failed")
         if "passed" not in m.group(0):
-            fails.append(f"llave {kid}: el objeto no abre su cerradura ({pred}): {m.string.strip()}")
+            fails.append(f"key {kid}: the item does not open its lock ({pred}): {m.string.strip()}")
     ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
-    print(f"llaves: {len(keys)} comprobadas con su cerradura")
+    print(f"keys: {len(keys)} checked against their lock")
     return fails
 
 
@@ -509,11 +509,11 @@ def main():
     threading.Thread(target=reader, args=(proc, lines), daemon=True).start()
     failures, villagers, located, maps_found = [], 0, "/locate sin comprobar", []
     try:
-        # El mod lo escribe en SERVER_STARTED, después de "Done": el servidor ya acepta órdenes.
+        # The mod writes it on SERVER_STARTED, after "Done": the server already accepts commands.
         m = wait_for(lines, r"Heraldia: (\d+) estructuras registradas", START_TIMEOUT_S, seen)
         if int(m.group(1)) != expected:
             failures.append(f"estructuras registradas {m.group(1)}, esperadas {expected}")
-        # Logros (logros.py): en 26.3 son un registro; se cargan todos los generados y sin avisos de validación.
+        # Advancements (advancements.py): in 26.3 they are a registry; all the generated ones are loaded and without validation warnings.
         m = wait_for(lines, r"Heraldia: (\d+) logros cargados", COMMAND_TIMEOUT_S, seen)
         if int(m.group(1)) != expected_advancements:
             failures.append(f"logros cargados {m.group(1)}, esperados {expected_advancements}")
@@ -522,30 +522,30 @@ def main():
         if (written.get("version"), written["aldeas"]["separacion_bloques"], written["aldeas"]["maximo"]) != (2, 1500, 12):
             failures.append(f"config/heraldia.json reescrito mal: {written.get('version')} {written['aldeas']}")
         if "inventada" in written or "es_es" not in written.get("_ayuda", {}):
-            failures.append("config/heraldia.json sin ayuda o con la opción desconocida")
-        # perfiles (T36): el de por defecto, sin las opciones que da el perfil (no las fijó nadie a mano)
+            failures.append("config/heraldia.json without help or with the unknown option")
+        # profiles (T36): the default one, without the options the profile provides (nobody set them by hand)
         if written.get("perfil") != "estandar" or "nivel" in written.get("dificultad", {}) or \
                 written.get("_perfil", {}).get("efectivo") != "estandar":
             failures.append(f"config/heraldia.json: perfil mal escrito: {written.get('perfil')} {written.get('dificultad')} "
                             f"{written.get('_perfil', {}).get('efectivo')}")
         if written["unicas"]["atlantida"].get("cofre_unico_por_jugador") is not True or not all(
                 "unicas.atlantida.cofre_unico_por_jugador" in written["_ayuda"][lang] for lang in ("es_es", "en_us")):
-            failures.append("config/heraldia.json: unicas.atlantida.cofre_unico_por_jugador sin conservar o sin ayuda")
+            failures.append("config/heraldia.json: unicas.atlantida.cofre_unico_por_jugador not kept or without help")
         m = run(proc, lines, seen, "scoreboard players get #limite_estandar heraldia_cfg", r"has (\d+)")
-        log_so_far = "".join(seen)   # la línea de gólems se escribe en SERVER_STARTED, ya antes de esta respuesta
+        log_so_far = "".join(seen)   # the golem line is written on SERVER_STARTED, already before this reply
         for pat in CONFIG_LOG:
             if not re.search(pat, log_so_far):
-                failures.append(f"falta en el log de configuración: {pat}")
+                failures.append(f"the configuration log is missing: {pat}")
         if not m.group(0).startswith("has") or m.group(1) != "7":
-            failures.append(f"#limite_estandar heraldia_cfg no es 7: {m.string.strip()}")
+            failures.append(f"#limite_estandar heraldia_cfg is not 7: {m.string.strip()}")
         m = run(proc, lines, seen, "execute positioned 20000 64 20000 run locate structure #heraldia:aldeas",
                 r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
         if m.group(1) is None:
-            failures.append(f"/locate no encontró aldeas en las 12 casillas permitidas: {m.string.strip()}")
+            failures.append(f"/locate did not find villages in the 12 allowed cells: {m.string.strip()}")
         elif "pantano" in m.group(0):
-            failures.append(f"/locate encontró una aldea de una familia desactivada: {m.string.strip()}")
+            failures.append(f"/locate found a village of a disabled family: {m.string.strip()}")
         elif max(abs(int(m.group(1))), abs(int(m.group(2)))) > LOCATE_LIMIT:
-            failures.append(f"/locate encontró una aldea fuera de las casillas permitidas: {m.string.strip()}")
+            failures.append(f"/locate found a village outside the allowed cells: {m.string.strip()}")
         else:
             located = f"/locate en {m.group(1)}, {m.group(2)}"
         failures += check_separation(Context(proc, lines, seen))
@@ -556,60 +556,60 @@ def main():
             m = run(proc, lines, seen, f"place structure {PLACE_TARGET} 0 ~ 0", r"Generated structure")
             if "not loaded" not in m.group(0):
                 break
-            time.sleep(PLACE_RETRY_S)   # los chunks forzados se cargan en los ticks siguientes
+            time.sleep(PLACE_RETRY_S)   # the forced chunks load in the following ticks
         if "Generated structure" not in m.group(0):
-            failures.append(f"place structure falló: {m.string.strip()}")
-        # Si el ensamblado jigsaw funciona hay casas con aldeanos, no solo la plaza.
+            failures.append(f"place structure failed: {m.string.strip()}")
+        # If jigsaw assembly works there are houses with villagers, not just the plaza.
         m = run(proc, lines, seen, "execute if entity @e[type=minecraft:villager]", r"Test passed\. Count: (\d+)|Test failed")
         villagers = int(m.group(1)) if m.group(1) else 0
         if villagers == 0:
-            failures.append("la aldea colocada no tiene aldeanos")
-        # Cada estructura única se coloca (se superponen en el mismo sitio: solo importa que se generen).
+            failures.append("the placed village has no villagers")
+        # Each unique structure is placed (they overlap on the same spot: all that matters is that they generate).
         for sid in UNIQUE_STRUCTURES:
             hook = unique_hook(sid)
-            if hook:    # estructuras que no se colocan con /place (tipo propio): su módulo trae sus comprobaciones
+            if hook:    # structures that are not placed with /place (own type): their module brings its own checks
                 failures += [f"{sid}: {f}" for f in hook(Context(proc, lines, seen))]
                 continue
             m = run(proc, lines, seen, f"place structure {sid} 0 ~ 0", r"Generated structure")
             if not m.group(0).startswith("Generated"):
-                failures.append(f"place structure {sid} falló: {m.string.strip()}")
+                failures.append(f"place structure {sid} failed: {m.string.strip()}")
             elif not guardian_placed(Context(proc, lines, seen), sid):
-                failures.append(f"{sid}: no aparece su guardián con la etiqueta del logro")
+                failures.append(f"{sid}: its guardian with the advancement tag does not appear")
             else:
                 failures += [f"{sid}: {f}" for f in guardian_trophy(Context(proc, lines, seen), sid)]
-        # Las tablas de botín se leen (y la condición heraldia:sin_lootr está registrada si alguna la usa).
+        # The loot tables are read (and the heraldia:sin_lootr condition is registered if any uses it).
         for table in LOOT_TABLES:
             t0 = time.monotonic()
             m = run(proc, lines, seen, f"loot spawn 0 200 0 loot {table}", r"Dropped \d+|No items")
             found = bool(re.match(r"Dropped [1-9]", m.group(0)))
             took = time.monotonic() - t0
-            # mapas sin destino y tablas de muerte de los guardianes (sin el mob, su botín vanilla puede salir vacío)
+            # maps without a destination and guardian death tables (without the mob, their vanilla loot may come out empty)
             if not m.group(0).startswith(("Dropped", "No items")) or ("No items" in m.group(0) and not
                                                                    re.search(":(mapas|guardianes)/", table)):
-                failures.append(f"botín {table} falló: {m.string.strip()}")
+                failures.append(f"loot {table} failed: {m.string.strip()}")
             if ":mapas/" in table:
-                # Sin estructura alcanzable el mapa se descarta ("No items"), pero nunca debe colgar el servidor.
+                # With no reachable structure the map is discarded ("No items"), but it must never hang the server.
                 print(f"mapa {table}: {'con destino' if found else 'sin destino'} en {took:.1f} s")
                 if found:
                     maps_found.append(table)
                 if took > MAP_TIMEOUT_S:
-                    failures.append(f"mapa {table} tardó {took:.0f} s (> {MAP_TIMEOUT_S} s)")
+                    failures.append(f"map {table} took {took:.0f} s (> {MAP_TIMEOUT_S} s)")
         failures += check_keys(Context(proc, lines, seen))
-        # El cofre épico (con su grupo de mapas) se tira varias veces seguidas.
+        # The epic chest (with its group of maps) is rolled several times in a row.
         t0 = time.monotonic()
         for _ in range(EPIC_ROLLS):
             m = run(proc, lines, seen, "loot spawn 0 200 0 loot heraldia:cofres/epico", r"Dropped \d+")
             if not m.group(0).startswith("Dropped"):
-                failures.append(f"cofre épico falló: {m.string.strip()}")
+                failures.append(f"epic chest failed: {m.string.strip()}")
                 break
         if time.monotonic() - t0 > MAP_TIMEOUT_S:
-            failures.append(f"{EPIC_ROLLS} cofres épicos tardaron {time.monotonic() - t0:.0f} s")
-        # Tratos de mapas: el registro villager_trade se carga (o el log muestra errores) y el filtro de cartógrafos
-        # de Heraldia reconoce a los aldeanos de la aldea colocada y rechaza a uno vanilla.
+            failures.append(f"{EPIC_ROLLS} epic chests took {time.monotonic() - t0:.0f} s")
+        # Map trades: the villager_trade registry loads (or the log shows errors) and the cartographer filter
+        # of Heraldia recognizes the villagers of the placed village and rejects a vanilla one.
         m = run(proc, lines, seen, "execute if entity @e[type=minecraft:villager,tag=heraldia,predicate=heraldia:aldeano_heraldia]",
                 r"Test passed|Test failed")
         if "passed" not in m.group(0):
-            failures.append("los aldeanos de Heraldia no cumplen heraldia:aldeano_heraldia")
+            failures.append("Heraldia's villagers do not satisfy heraldia:aldeano_heraldia")
         run(proc, lines, seen, "summon minecraft:villager 0 200 0 {Tags:[\"heraldia_vanilla\"],NoAI:1b}", r"Summoned")
         m = run(proc, lines, seen, "execute if entity @e[type=minecraft:villager,tag=heraldia_vanilla,predicate=heraldia:aldeano_heraldia]",
                 r"Test passed|Test failed")
@@ -617,7 +617,7 @@ def main():
             failures.append("un aldeano vanilla cumple heraldia:aldeano_heraldia")
         m = run(proc, lines, seen, "function heraldia:golems", r"Running function|Ran \d+ command")
         if not m.group(0).startswith(("Running", "Ran")):
-            failures.append(f"function heraldia:golems falló: {m.string.strip()}")
+            failures.append(f"function heraldia:golems failed: {m.string.strip()}")
     finally:
         if proc.poll() is None:
             send(proc, "stop")
@@ -630,12 +630,12 @@ def main():
     for bad in ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse",
                 "Found validation problems in advancement heraldia:"):
         if bad in text:
-            failures.append(f"el log contiene {bad!r}")
+            failures.append(f"the log contains {bad!r}")
     if failures:
-        print("PRUEBA DE HUMO FALLIDA:\n  " + "\n  ".join(failures))
+        print("SMOKE TEST FAILED:\n  " + "\n  ".join(failures))
         return 1
     sys.stdout.flush()
-    print(f"PRUEBA DE HUMO OK: {expected} estructuras registradas, {expected_advancements} logros, {PLACE_TARGET} colocada con {villagers} aldeanos, botín, {len(maps_found)} mapas con destino, funciones y configuración correctos ({located})")
+    print(f"SMOKE TEST OK: {expected} registered structures, {expected_advancements} advancements, {PLACE_TARGET} placed with {villagers} villagers, loot, {len(maps_found)} maps with destination, functions and configuration correct ({located})")
     return 0
 
 

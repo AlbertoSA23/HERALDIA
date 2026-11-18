@@ -1,29 +1,29 @@
-"""Jefes: fases y refuerzos de los guardianes finales de las estructuras únicas (lado servidor, comun/jefes en Java).
+"""Bosses: phases and reinforcements of the final guardians of the unique structures (server side, comun/jefes in Java).
 
-El Java pasa de fase a un guardián (etiqueta heraldia_guardian) al bajar del 66 % y del 33 % de vida y llama a sus
-refuerzos una vez por fase. Qué refuerzos llama cada guardián sale de aquí, en heraldia/jefes.json (dentro del .jar):
+The Java side moves a guardian (tag heraldia_guardian) to the next phase when it drops below 66 % and 33 % health and calls its
+reinforcements once per phase. Which reinforcements each guardian calls comes from here, in heraldia/bosses.json (inside the .jar):
 
-Contrato (opcional) de cada módulo de unicas/:
-  REFUERZOS = ["husk", {"mob": "husk", "equipo": {"mainhand": "iron_sword"}}]   # 2 o 3 mobs de REFUERZO_MOBS
-Sin REFUERZOS, los de la familia del tipo de su guardián (MOB_FAMILIA -> FAMILIAS); un tipo sin familia, GENERICA.
-Los guardianes de un mundo ya generado que no se reconozcan (sin heraldia_guardian.<id>) usan también la familia de su
-tipo: por eso jefes.json lleva las familias además de lo ya resuelto por única.
+(Optional) contract of each unicas/ module:
+  REINFORCEMENTS = ["husk", {"mob": "husk", "equipo": {"mainhand": "iron_sword"}}]   # 2 or 3 mobs from REINFORCEMENT_MOBS
+Without REINFORCEMENTS, those of the family of its guardian's type (MOB_FAMILY -> FAMILIES); a type with no family, GENERIC.
+Guardians in an already generated world that are not recognized (without heraldia_guardian.<id>) also use the family of their
+type: that is why bosses.json carries the families in addition to what is already resolved per unique structure.
 
-Reglas (falla la generación): 2-3 refuerzos, mobs hostiles de REFUERZO_MOBS (sin jefes, ni hoglins ni zoglins, que
-salen bebés; ni vex, que mueren solos), equipo en ranuras válidas y sin netherita ni élitros.
+Rules (generation fails): 2-3 reinforcements, hostile mobs from REINFORCEMENT_MOBS (no bosses, nor hoglins or zoglins, which
+spawn as babies; nor vex, which die on their own), equipment in valid slots and no netherite or elytra.
 """
 
 VERSION = 1
-# Mobs que pueden ser refuerzos: hostiles, adultos garantizados (los zombis con heraldia_adulto) y sin jefes.
+# Mobs that can be reinforcements: hostile, guaranteed adults (zombies with heraldia_adulto) and no bosses.
 REINFORCEMENT_MOBS = frozenset({
     "zombie", "husk", "drowned", "zombie_villager", "skeleton", "stray", "bogged", "wither_skeleton",
     "vindicator", "pillager", "witch", "guardian", "spider", "cave_spider",
 })
 SLOTS = ("mainhand", "offhand", "head", "chest", "legs", "feet")
-FORBIDDEN_ITEMS = ("netherite", "elytra")      # Decisiones del dueño: nada de netherita en equipo ni élitros
+FORBIDDEN_ITEMS = ("netherite", "elytra")      # Owner's decisions: no netherite in equipment or elytra
 MIN_REINFORCEMENTS, MAX_REINFORCEMENTS = 2, 3
 
-# Familias: refuerzos por defecto según el tipo del guardián.
+# Families: default reinforcements according to the guardian's type.
 FAMILIES = {
     "zombi": ["zombie", "zombie"],
     "momia": ["husk", "husk"],
@@ -63,7 +63,7 @@ LANG = {
 
 
 def nsid(s):
-    """Id con espacio de nombres (minecraft: si no lo lleva): los refuerzos y su equipo son siempre vanilla."""
+    """Namespaced id (minecraft: if it has none): reinforcements and their equipment are always vanilla."""
     s = str(s)
     return s if ":" in s else "minecraft:" + s
 
@@ -73,8 +73,8 @@ def _short_name(mob):
 
 
 def normalize(spec):
-    """Un refuerzo del contrato ("husk" o {"mob", "equipo"}) en la forma de jefes.json: {"mob": "minecraft:husk",
-    "equipo": {"mainhand": "minecraft:iron_sword"}} (sin "equipo" si no lleva)."""
+    """A contract reinforcement ("husk" or {"mob", "equipo"}) in the bosses.json form: {"mob": "minecraft:husk",
+    "equipo": {"mainhand": "minecraft:iron_sword"}} (without "equipo" if it has none)."""
     if isinstance(spec, str):
         spec = {"mob": spec}
     out = {"mob": nsid(spec["mob"])}
@@ -84,13 +84,13 @@ def normalize(spec):
 
 
 def errors(sid, reinforcements):
-    """Fallos de una lista REFUERZOS del contrato (vacía si cumple)."""
+    """Failures of a contract REINFORCEMENTS list (empty if it complies)."""
     pre = f"unicas/{sid}: REFUERZOS"
     if not isinstance(reinforcements, (list, tuple)):
         return [f"{pre} debe ser una lista"]
     errs = []
     if not MIN_REINFORCEMENTS <= len(reinforcements) <= MAX_REINFORCEMENTS:
-        errs.append(f"{pre}: {len(reinforcements)} refuerzos (de {MIN_REINFORCEMENTS} a {MAX_REINFORCEMENTS} por fase)")
+        errs.append(f"{pre}: {len(reinforcements)} reinforcements ({MIN_REINFORCEMENTS} to {MAX_REINFORCEMENTS} per phase)")
     for i, spec in enumerate(reinforcements):
         if isinstance(spec, str):
             spec = {"mob": spec}
@@ -102,23 +102,23 @@ def errors(sid, reinforcements):
             errs.append(f"{pre}[{i}]: claves desconocidas {sorted(extra)}")
         mob = _short_name(spec["mob"])
         if mob not in REINFORCEMENT_MOBS or not str(spec["mob"]).removeprefix("minecraft:") == mob:
-            errs.append(f"{pre}[{i}]: {spec['mob']} no puede ser refuerzo (jefes.REFUERZO_MOBS)")
+            errs.append(f"{pre}[{i}]: {spec['mob']} cannot be a reinforcement (jefes.REFUERZO_MOBS)")
         for slot, obj in (spec.get("equipo") or {}).items():
             if slot not in SLOTS:
-                errs.append(f"{pre}[{i}]: ranura {slot} no válida ({', '.join(SLOTS)})")
+                errs.append(f"{pre}[{i}]: slot {slot} is not valid ({', '.join(SLOTS)})")
             if any(p in str(obj) for p in FORBIDDEN_ITEMS):
-                errs.append(f"{pre}[{i}]: {obj} está prohibido (nada de netherita ni élitros)")
+                errs.append(f"{pre}[{i}]: {obj} is forbidden (no netherite or elytra)")
     return errs
 
 
 def family(mob):
-    """Familia de refuerzos del tipo de un guardián (GENERICA si no tiene)."""
+    """Reinforcement family of a guardian's type (GENERIC if it has none)."""
     return MOB_FAMILY.get(_short_name(mob), GENERIC)
 
 
 def reinforcements(sid, mod, guardians):
-    """Refuerzos resueltos de una única: los de su REFUERZOS o los de la familia del tipo de su guardián
-    (`guardianes`: tipos de mob de sus guardianes, de pack.tag_guardians)."""
+    """Resolved reinforcements of a unique structure: those from its REINFORCEMENTS or those of the family of its guardian's type
+    (`guardians`: mob types of its guardians, from pack.tag_guardians)."""
     own_items = getattr(mod, "REINFORCEMENTS", None)
     if own_items is not None:
         errs = errors(sid, own_items)
@@ -130,8 +130,8 @@ def reinforcements(sid, mod, guardians):
 
 
 def schema(modules, guardians):
-    """heraldia/jefes.json: familias (para los guardianes que no se reconozcan) y refuerzos resueltos por única.
-    `modules`: [(id, módulo)] de unicas; `guardianes`: {id: {tipo de mob: ...}} (reg.guardianes)."""
+    """heraldia/bosses.json: families (for guardians that are not recognized) and reinforcements resolved per unique structure.
+    `modules`: [(id, module)] of unicas; `guardians`: {id: {mob type: ...}} (reg.guardianes)."""
     for fam, specs in FAMILIES.items():
         errs = errors(f"(familia {fam})", specs)
         assert not errs, errs

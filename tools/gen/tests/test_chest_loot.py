@@ -1,4 +1,4 @@
-"""_comun/botin.py: tablas, objetos con nombre, trofeos (contrato TROFEO) y libros."""
+"""_comun/botin.py: tables, named items, trophies (TROFEO contract) and books."""
 import pytest
 from uniques._common import chest_loot
 
@@ -37,7 +37,7 @@ def test_trophy_valid():
     mods = t["pools"][0]["entries"][0]["modifier"]
     comps = mods[1]["components"]
     assert comps["minecraft:custom_data"] == {chest_loot.TROPHY_MARK: "x"} and comps["minecraft:max_stack_size"] == 1
-    assert "minecraft:enchantment_glint_override" not in comps          # ya brilla por el encantamiento
+    assert "minecraft:enchantment_glint_override" not in comps          # already glows from the enchantment
     sin = chest_loot.trophy("x", dict(TROPHY, encantamientos=None))
     assert sin["pools"][0]["entries"][0]["modifier"][1]["components"]["minecraft:enchantment_glint_override"]
     assert chest_loot.trophy_predicate("x", TROPHY)["items"] == "minecraft:iron_axe"
@@ -84,7 +84,7 @@ def test_book_title_and_names():
 def test_book_lines():
     assert chest_loot.book_lines("hola") == 1
     assert chest_loot.book_lines("a\nb\n\nc") == 4
-    # 114 px por línea: «mmmm» ocupa 24 px y el espacio 4, así que caben 4 palabras (108 px) y la quinta salta
+    # 114 px per line: "mmmm" takes 24 px and the space 4, so 4 words fit (108 px) and the fifth wraps
     assert chest_loot.book_lines(" ".join(["mmmm"] * 4)) == 1
     assert chest_loot.book_lines(" ".join(["mmmm"] * 5)) == 2
     assert chest_loot.book_lines(" ".join(["mmmm"] * 10)) == 3

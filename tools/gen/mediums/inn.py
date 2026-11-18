@@ -1,6 +1,6 @@
-"""Posada de camino (heraldia:medianas/posada/<estilo>): casa de 15 x 9 con sala común (mostrador, hogar y dos mesas),
-el posadero (aldeano quieto con tratos fijos: comida y una cama para el viajero) y un cuarto con dos camas y un cofre.
-Variante a: con corral de paja y abrevadero al sur; b: con huerto al sur. Sin monstruos."""
+"""Roadside inn (heraldia:medianas/posada/<estilo>): 15 x 9 house with a common room (counter, hearth and two tables),
+the innkeeper (stationary villager with fixed trades: food and a bed for the traveler) and a room with two beds and a chest.
+Variant a: with a straw pen and a trough to the south; b: with a garden to the south. No monsters."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -26,9 +26,9 @@ LOOT = {
                             ((1, 1), [item("cake", 1), item("pumpkin_pie", 3), empty(8)])),
 }
 
-X0, Z0, X1, Z1 = 2, 4, 16, 12      # muros de la casa (15 x 9)
-PARTITION = 11                       # muro entre la sala (oeste) y el cuarto (este)
-DOOR_COL = 6                         # puerta de la calle, en el muro norte
+X0, Z0, X1, Z1 = 2, 4, 16, 12      # house walls (15 x 9)
+PARTITION = 11                       # wall between the common room (west) and the room (east)
+DOOR_COL = 6                         # street door, in the north wall
 WIDTH, DEPTH = 19, 18              # patio
 
 
@@ -50,7 +50,7 @@ def _house(p, name):
     m = p["madera"]
     c.courtyard(t, 0, 0, WIDTH - 1, DEPTH - 1, _floor(p))
     c.entrance(t, DOOR_COL, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
-    # muros: entramado (troncos en esquinas y cada 4) y paños de `muro`, zócalo en y = 0, techo en y = 5
+    # walls: framework (logs at corners and every 4) and `wall` panels, plinth at y = 0, ceiling at y = 5
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, f"{m}_planks")
     c.box(t, X0, 1, Z0, X1, 4, Z1, p["muro"])
@@ -61,13 +61,13 @@ def _house(p, name):
         t.fill(X1, 1, z, X1, 4, z, p["tronco"] + "[axis=y]")
     t.fill(X0, 5, Z0, X1, 5, Z1, f"{m}_planks")
     summit = c.roof_tiles(t, X0, Z0, X1, Z1, 5, p["teja"], p["cumbrera"], p["muro"])
-    # chimenea del hogar (muro oeste) hasta por encima de la cumbrera
+    # hearth chimney (west wall) up past the ridge
     t.set(X0 + 1, 1, 8, "campfire[facing=east,lit=true,signal_fire=false,waterlogged=false]")
     for z in (7, 9):
         t.fill(X0 + 1, 1, z, X0 + 1, 4, z, "bricks")
     t.fill(X0 + 1, 2, 8, X0 + 1, 4, 8, "bricks")
     t.fill(X0 + 1, 5, 8, X0 + 1, summit + 2, 8, "bricks")
-    # tabique y su puerta
+    # partition and its door
     t.fill(PARTITION, 1, Z0 + 1, PARTITION, 4, Z1 - 1, p["muro"])
     c.door(t, PARTITION, 1, 8, "east", f"{m}_door")
     c.door(t, DOOR_COL, 1, Z0, "south", f"{m}_door")
@@ -78,7 +78,7 @@ def _house(p, name):
         c.window(t, x, 2, Z0)
         c.window(t, x, 2, Z1)
     c.window(t, X1, 2, 8)
-    # sala: mostrador al sur (con hueco al oeste), posadero detrás, toneles, dos mesas y faroles
+    # common room: counter to the south (with a gap to the west), innkeeper behind it, barrels, two tables and lanterns
     for x in range(8, PARTITION):
         t.set(x, 1, Z1 - 2, f"stripped_{p['tronco']}[axis=x]")
     t.set(PARTITION - 1, 1, Z1 - 1, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
@@ -88,7 +88,7 @@ def _house(p, name):
     c.table_top(t, 5, 10, m)
     c.lantern(t, 5, 4, 8)
     c.lantern(t, 9, 4, 7)
-    # cuarto: dos camas contra el muro este, cofre entre ellas, farol
+    # room: two beds against the east wall, chest between them, lantern
     c.bed(t, X1 - 1, Z0 + 1, "east", p["cama"])
     c.bed(t, X1 - 1, Z1 - 1, "east", p["cama"])
     c.place_chest(t, X1 - 1, 1, 8, "west", MID, "cuarto")
@@ -97,7 +97,7 @@ def _house(p, name):
 
 
 def pen(p, name):
-    """Con corral de paja y abrevadero al sur de la casa (sin animales: los traen los viajeros)."""
+    """With a straw pen and a trough south of the house (no animals: travelers bring them)."""
     t = _house(p, name)
     m = p["madera"]
     x0, x1, z0, z1 = 3, 15, Z1 + 1, DEPTH - 1
@@ -117,7 +117,7 @@ def pen(p, name):
 
 
 def orchard(p, name):
-    """Con huerto al sur de la casa: bancales con cultivo en cada casilla y una acequia de una fuente."""
+    """With a garden south of the house: terraces with a crop in every cell and an irrigation ditch with a fountain."""
     t = _house(p, name)
     crops = p["cultivos"]
     for x in range(4, 15):

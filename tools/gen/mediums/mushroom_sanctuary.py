@@ -1,11 +1,11 @@
-"""Santuario de los hongos (heraldia:medianas/santuario_hongos/<estilo>, Nether): un claro de 15 x 15 en el bosque
-carmesí o en el deformado con un templete de tallos y bloques de verrugas, luces de champiluz y hongos en macetas. Variante
-a: el templete cerrado (cuatro muros con vanos y bóveda de verrugas) con el cofre de las ofrendas en el altar; b: el
-jardín de los hongos (arriates de piedra negra con hongos en macetas alrededor de una fuente de champiluz) con un
-cofre y una vasija.
+"""Mushroom sanctuary (heraldia:medianas/santuario_hongos/<estilo>, Nether): a 15 x 15 clearing in the crimson
+or warped forest with a small temple of stems and wart blocks, shroomlight lights and potted fungi. Variant
+a: the closed temple (four walls with openings and a wart vault) with the offerings chest on the altar; b: the
+mushroom garden (blackstone planters with potted fungi around a shroomlight fountain) with a
+chest and a pot.
 
-Estilos: carmesí (bosque carmesí) y deformado (bosque deformado). Botín acorde: hongos, verrugas del Nether, champiluces,
-cuarzo, oro; nada de netherita."""
+Styles: carmesi (crimson forest) and deformado (warped forest). Matching loot: fungi, Nether warts, shroomlights,
+quartz, gold; no netherite."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -50,17 +50,17 @@ def _clearing(p, name):
     t = Template(name)
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=7)
     c.entrance(t, CX, p["suelo"][0])
-    for x, z in ((1, 1), (13, 1), (1, 13), (13, 13)):          # macetas con hongos en las esquinas
+    for x, z in ((1, 1), (13, 1), (1, 13), (13, 13)):          # potted fungi at the corners
         t.set(x, 1, z, p["maceta"])
     return t
 
 
 def shrine(p, name):
-    """Templete cerrado: muros de verrugas entre tallos, vanos al norte y al sur, bóveda escalonada con una champiluz en
-    la clave, y el altar con el cofre de las ofrendas y dos macetas."""
+    """Closed small temple: wart walls between stems, openings to the north and south, stepped vault with a shroomlight at
+    the keystone, and the altar with the offerings chest and two pots."""
     t = _clearing(p, name)
     c.box(t, T0, 1, T0, T1, 4, T1, p["verruga"], corner_block=p["tallo"], floor=p["piso"])
-    for x in (CX - 1, CX, CX + 1):                                # vanos de 3 x 3 al norte (entrada) y al sur
+    for x in (CX - 1, CX, CX + 1):                                # 3 x 3 openings to the north (entrance) and south
         for y in (1, 2, 3):
             t.set(x, y, T0, "air")
             if y > 1:
@@ -79,8 +79,8 @@ def shrine(p, name):
 
 
 def garden(p, name):
-    """Jardín: cuatro arriates de piedra negra con hongos en macetas encima, la fuente de champiluz en el centro (un
-    pilar de verrugas coronado de champiluz entre losas) y el cofre y la vasija a los pies."""
+    """Garden: four blackstone planters with potted fungi on top, the shroomlight fountain in the center (a
+    wart pillar crowned with shroomlight between slabs) and the chest and the pot at the foot."""
     t = _clearing(p, name)
     for ax, az in ((3, 3), (9, 3), (3, 9), (9, 9)):
         for x in range(ax, ax + 3):

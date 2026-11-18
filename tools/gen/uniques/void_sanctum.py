@@ -1,14 +1,14 @@
-"""Estructura única «Sagrario del Vacío» (End, islas exteriores, lejos de la isla central y del dragón): el santuario de
-una orden que adoraba el vacío entre las islas. Una plantilla rígida de 33 x 33: una plataforma de ladrillo de piedra
-del End con un anillo de ocho pilares de púrpura coronados de varas del End, tres capillas en las esquinas (el relicario,
-la capilla de los endermites con su generador y la sacristía) y una cuarta sin puerta a la vista (la cripta oculta, tras
-una puerta de pistones con palanca), y en medio el templo (unicas/_recinto): pasillo con trampa de placa y flechas, nave
-del Hierofante (el guardián, un evocador con fases), cámara del tesoro tras una puerta de hierro con botones y el coro
-alto con la biblioteca.
+"""Unique structure "Void Sanctum" (End, outer islands, far from the central island and the dragon): the sanctuary of
+an order that worshipped the void between the islands. A rigid 33 x 33 template: an end stone brick platform
+with a ring of eight purpur pillars crowned with end rods, three chapels in the corners (the reliquary,
+the endermite chapel with its spawner and the sacristy) and a fourth with no visible door (the hidden crypt, behind
+a piston door with a lever), and in the middle the temple (unicas/_recinto): corridor with a plate trap and arrows, nave
+of the Hierophant (the guardian, an evoker with phases), treasure chamber behind an iron door with buttons and the high
+choir with the library.
 
-Se coloca con heraldia:dimension (dimensiones.py): el centro y las esquinas deben estar sobre una isla (nada de vacío
-debajo) y a más de 1.024 bloques del centro del End. Botín sin romper el progreso: ni élitros, ni nada del dragón, ni
-netherita (dimensiones.PROHIBIDO); a lo sumo un caparazón de shulker."""
+It is placed with heraldia:dimension (dimensions.py): the centre and the corners must be on an island (no void
+underneath) and more than 1,024 blocks from the centre of the End. Loot that does not break progression: no elytra, nothing from the dragon, no
+netherite (dimensions.FORBIDDEN); at most a shulker shell."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -30,7 +30,7 @@ STRUCTURE = dict(biomes=[f"minecraft:{b}" for b in BIOME_MAP], start_pool=f"{P}/
                                              dimensions.END, 12, HEIGHT + dimensions.SLACK))
 DISPLAY_NAME = {"es_es": "Sagrario del Vacío", "en_us": "Sanctum of the Void"}
 MAP = {"decoration": "minecraft:red_x"}
-REINFORCEMENTS = ["vindicator", "stray"]      # jefes.py: los que llama el Hierofante al bajar del 66 % y del 33 %
+REINFORCEMENTS = ["vindicator", "stray"]      # bosses.py: the ones the Hierophant calls when dropping below 66 % and 33 %
 TROPHY = {"objeto": "ender_eye", "rareza": "epic",
           "nombre": ("Ojo del Hierofante", "The Hierophant's Eye"),
           "lore": [("Miraba al vacío hasta que el vacío le devolvió la mirada.",
@@ -118,7 +118,7 @@ def guardian():
 def construction():
     t = Template(f"{P}/sagrario")
     n = SIDE - 1
-    # plataforma con aire encima y un borde de losas
+    # platform with air above and a border of slabs
     for x in range(SIDE):
         for z in range(SIDE):
             edge_block = x in (0, n) or z in (0, n)
@@ -127,12 +127,12 @@ def construction():
                 t.set(x, y, z, "air", keep=True)
             if edge_block and (x + z) % 4 == 0 and not 14 <= x <= 18:
                 t.set(x, 1, z, "end_stone_brick_wall")
-    # anillo de pilares con varas del End (la luz del vacío)
+    # ring of pillars with end rods (the light of the void)
     for x, z in PILLARS:
         for y in range(1, 7):
             t.set(x, y, z, "purpur_pillar[axis=y]")
         t.set(x, 7, z, "end_rod[facing=up]")
-    # capillas de las esquinas
+    # corner chapels
     r.tower(t, CHAPEL, 0, 0, 5, (4, 2, "east"), merlon=False)
     place_chest(t, 2, 1, 1, "south", "relicario")
     t.set(1, 1, 3, "candle[candles=4,lit=true,waterlogged=false]")
@@ -144,9 +144,9 @@ def construction():
     is_open = r.hidden(t, CHAPEL, n - 4, n - 4)
     place_chest(t, n - 2, 1, n - 1, "north", "oculto")
     t.set(n - 1, 1, n - 3, "candle[candles=2,lit=true,waterlogged=false]")
-    # el templo en medio
+    # the temple in the middle
     r.great_tower(t, PALETTE, 9, 10, place_chest, guardian())
-    for x in (12, 20):                                    # escalinata de la portada
+    for x in (12, 20):                                    # flight of steps of the portal
         t.set(x, 1, 8, "end_rod[facing=up]")
     pieces.connect(t)
     t.lint_open = is_open

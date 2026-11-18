@@ -1,32 +1,32 @@
-"""Faros y naufragios de la costa (heraldia:costa/<tipo>/<estilo>/<variante>, T42).
+"""Lighthouses and shipwrecks of the coast (heraldia:costa/<type>/<style>/<variant>, T42).
 
-  faro       torre de 28 bloques en tierra firme junto al agua, con la luz siempre encendida arriba (lámpara de
-             redstone sobre un bloque de redstone, sin circuitos), la casa del farero y un embarcadero sobre pilotes.
-             Variantes: a, torre octogonal con bandas y el farero (aldeano quieto con tratos marinos); b, torre cuadrada a
-             franjas, la casa al otro lado y sin nadie.
-  naufragio  galeón de Heraldia partido, con un mástil en pie y su vela rota, el muñón de otro y el camarote del capitán
-             a popa. Variantes: a, encallado en la playa (la proa en la arena, la popa en el agua); b, semihundido en
-             aguas poco profundas (la bodega inundada, con un ahogado anclado).
+  lighthouse  28-block tower on firm ground next to the water, with the light always on at the top (redstone lamp
+              on a redstone block, no circuits), the keeper's house and a pier on piles.
+              Variants: a, octagonal tower with bands and the keeper (a villager standing still with sea trades); b, square tower in
+              stripes, the house on the other side and no one around.
+  shipwreck   a broken Heraldia galleon, with one mast standing and its sail torn, the stump of another and the captain's cabin
+              at the stern. Variants: a, run aground on the beach (bow in the sand, stern in the water); b, half-sunk in
+              shallow water (the hold flooded, with an anchored drowned).
 
-Estilos según la costa (el clima: el bioma de la tierra y el del mar de delante): templada (piedra y ladrillo; roble),
-calida (arenisca; jungla), fria (pizarra y piedra oscura; roble oscuro) y nevada (madera de abeto y nieve). Cada estilo
-dice en `climas` qué parejas (tierra, mar) le tocan; las cuatro se reparten todas las parejas sin solaparse
-(test_costa lo comprueba), así que el structure_set de cada tipo sale con el estilo de su costa.
+Styles by coast (the climate: the biome of the land and that of the sea in front): templada (stone and brick; oak),
+calida (sandstone; jungle), fria (slate and dark stone; dark oak) and nevada (spruce wood and snow). Each style
+states in `climates` which (land, sea) pairs belong to it; the four share all the pairs without overlapping
+(test_costa checks it), so the structure_set of each type comes out with the style of its coast.
 
-Cada plantilla es una sola pieza que coloca el tipo propio heraldia:costa (Java, costa/): busca la orilla alrededor de la
-candidata (tierra firme y baja detrás, agua delante, con la profundidad que pide la variante), gira la plantilla para
-que su +z mire al mar y pone su `ancla` en la orilla. El faro va a la altura del terreno (sus cimientos y pilotes bajan
-hasta el suelo con heraldia:acueducto_hasta_el_suelo); el naufragio, con la fila `fila_mar` de la plantilla en el nivel
-del mar - 1. Bajo esa fila la plantilla no tiene aire (el agua y la arena de dentro del casco se quedan: nada se
-derrama), lo comprueba auditoria.py. Colocación: heraldia:rejilla (grupo costa/<tipo>, opciones faros.* y naufragios.*)
-con la candidata en las playas y la regla de costa/Costa.java (la de las minas: nunca junto a aldeas, únicas, medianas,
-minas ni estructuras vanilla o de otros mods que asoman; entre faros y naufragios, la distancia mínima de las medianas).
+Each template is a single piece placed by the heraldia:costa type (Java, costa/): it looks for the shore around the
+candidate (firm, low ground behind, water in front, with the depth the variant asks for), rotates the template so
+that its +z faces the sea and puts its `anchor_point` on the shore. The lighthouse goes at terrain height (its foundations and piles go down
+to the ground with heraldia:acueducto_hasta_el_suelo); the shipwreck, with the template's `sea_row` row at
+sea level - 1. Below that row the template has no air (the water and sand inside the hull stay: nothing
+spills), which audit.py checks. Placement: heraldia:rejilla (group costa/<type>, options faros.* and naufragios.*)
+with the candidate on the beaches and the rule of costa/Costa.java (that of the mines: never next to villages, unique structures, medium structures,
+mines nor vanilla or other-mod structures that poke out; between lighthouses and shipwrecks, the minimum distance of the medium structures).
 
-Ids: estructura, plantilla y pool heraldia:costa/<tipo>/<estilo>/<variante>, structure_set heraldia:costa/<tipo>,
-etiquetas de estructura #heraldia:costa y #heraldia:costa/<tipo>, etiquetas de biomas #heraldia:litoral (las playas,
-para la rejilla), #heraldia:litoral/<estilo> (su tierra), #heraldia:litoral/tierra/<grupo> y
-#heraldia:litoral/mar/<grupo> (heraldia:costa es la de la familia de aldeas de la costa), botín
-heraldia:costa/<tabla> (lo repone loot/Reposicion), textos heraldia.costa.*.
+Ids: structure, template and pool heraldia:costa/<type>/<style>/<variant>, structure_set heraldia:costa/<type>,
+structure tags #heraldia:costa and #heraldia:costa/<type>, biome tags #heraldia:litoral (the beaches,
+for the grid), #heraldia:litoral/<style> (its land), #heraldia:litoral/tierra/<group> and
+#heraldia:litoral/mar/<group> (heraldia:costa is that of the coast village family), loot
+heraldia:costa/<table> (restocked by loot/Reposicion), texts heraldia.costa.*.
 """
 import functools
 from core import NS, nsid
@@ -34,21 +34,21 @@ from . import constructions
 from .chest_loot import LOOT
 
 PREFIX = "costa"
-# Las etiquetas de biomas van aparte: heraldia:costa ya es la de la familia de aldeas de la costa.
+# The biome tags go separately: heraldia:costa is already that of the coast village family.
 BIOME_MAP = "litoral"
 KINDS = ("faro", "naufragio")
 VARIANTS = ("a", "b")
 DISPLAY_NAME = {"faro": ("Faro", "Lighthouse"), "naufragio": ("Galeón naufragado", "Wrecked Galleon")}
-# Opciones de cada tipo (opciones.py): <OPCION>.activado y <OPCION>.separacion_bloques
+# Options of each type (options.py): <OPTION>.activado and <OPTION>.separacion_bloques
 OPTION = {"faro": "faros", "naufragio": "naufragios"}
 SEPARATION = {"faro": 1024, "naufragio": 768}
 SEPARATION_RANGE = (256, 4000)
 SALT = {"faro": 1907261201, "naufragio": 1907261202}
 VANILLA_VILLAGE_EXCLUSION = 8
-BIOME_NEIGHBORS = 2                  # las playas son franjas de pocas decenas de bloques (como la cabaña de pescador)
+BIOME_NEIGHBORS = 2                  # the beaches are strips a few tens of blocks wide (like the fisherman's hut)
 MODE = {("faro", "a"): "faro", ("faro", "b"): "faro", ("naufragio", "a"): "encallado", ("naufragio", "b"): "hundido"}
 
-# Grupos de biomas de tierra y de mar (listas vanilla de 26.3). Cada bioma de tierra de la costa está en un solo grupo.
+# Land and sea biome groups (vanilla lists of 26.3). Each land biome of the coast is in a single group.
 LAND = {
     "nevada": ["snowy_beach", "snowy_plains", "snowy_taiga", "ice_spikes", "grove", "snowy_slopes", "frozen_peaks",
                "jagged_peaks"],
@@ -67,10 +67,10 @@ SEA = {
     "frio": ["cold_ocean", "deep_cold_ocean", "frozen_ocean", "deep_frozen_ocean"],
 }
 SEA["no_calido"] = SEA["templado"] + SEA["frio"]
-# Candidata de la rejilla: en una playa (de ahí se busca la orilla).
+# Grid candidate: on a beach (the shore is searched from there).
 BEACHES = ["beach", "snowy_beach", "stony_shore"]
 
-# Estilos: parejas (tierra, mar) del clima y su paleta (faro y naufragio).
+# Styles: (land, sea) pairs of the climate and their palette (lighthouse and shipwreck).
 STYLES = {
     "templada": dict(
         climas=[("templada", "templado")],
@@ -103,7 +103,7 @@ STYLES = {
         barco=dict(madera="spruce", tronco="dark_oak_log", banda="dark_oak_planks", vela="light_gray_wool", nieve=True)),
 }
 
-# Logros: entrar en un faro, en un naufragio y abrir el cofre del camarote (logros.py los cuelga de la raíz).
+# Advancements: enter a lighthouse, enter a shipwreck and open the cabin chest (advancements.py hangs them from the root).
 ADVANCEMENTS = {
     "faro": dict(icono="minecraft:spyglass", titulo=("Luz en la costa", "Light on the Coast"),
                  descripcion=("Encuentra un faro de Heraldia", "Find a Heraldia lighthouse"),
@@ -138,11 +138,11 @@ def table_ident(tbl):
     return f"{NS}:{PREFIX}/{tbl}"
 
 
-# ------------------------------------------------------------------ construcción
+# ------------------------------------------------------------------ construction
 @functools.lru_cache(maxsize=None)
 def construction(kind, style, variant):
-    """Obra de una variante (cacheada: la construyen build, la auditoría y las pruebas) y sus metadatos para Java (en
-    coordenadas de la plantilla ya normalizada)."""
+    """Work of a variant (cached: built by build, the audit and the tests) and its metadata for Java (in
+    coordinates of the already normalised template)."""
     pal = STYLES[style]["faro" if kind == "faro" else "barco"]
     o = constructions.construct(kind, variant, pal, template(kind, style, variant))
     x0, y0, z0, *_ = o.t.bounds()
@@ -153,7 +153,7 @@ def construction(kind, style, variant):
 
 
 def build(reg, kind):
-    """Plantillas y pools de un tipo (una parte de pack.build_all) y los errores de su auditoría."""
+    """Templates and pools of a type (a part of pack.build_all) and the errors of its audit."""
     from . import audit
     for style in STYLES:
         for v in VARIANTS:
@@ -163,17 +163,17 @@ def build(reg, kind):
 
 
 def _copy(t):
-    """Otra plantilla con los mismos bloques (Registry.add la normaliza: la obra en caché, que usan la auditoría y los
-    metadatos del Java, se queda en coordenadas de diseño). La auditoría genérica de apoyos sí la recorre."""
+    """Another template with the same blocks (Registry.add normalises it: the cached work, used by the audit and the
+    Java metadata, stays in design coordinates). The generic support audit does traverse it."""
     from core import Template
     c = Template(t.name)
     c.blocks, c.entities, c.jigsaws = dict(t.blocks), list(t.entities), [dict(j) for j in t.jigsaws]
     return c
 
 
-# Procesador de cada tipo: lo que va en la fila inferior de la plantilla (cimientos y pilotes del faro; quilla y fondo
-# del casco del naufragio) baja hasta el suelo firme atravesando el agua. Uno por tipo: los tablones del embarcadero del
-# faro no deben bajar (los del fondo del casco, sí).
+# Processor of each type: what goes in the bottom row of the template (lighthouse foundations and piles; keel and bottom
+# of the shipwreck hull) goes down to firm ground through the water. One per type: the pier planks of the
+# lighthouse must not go down (those of the hull bottom must).
 DEPTH_MAX = 12
 
 
@@ -182,7 +182,7 @@ def processors(kind):
 
 
 def descend(kind):
-    """Bloques de la fila inferior que el procesador del tipo alarga hasta el suelo (los de todas sus paletas)."""
+    """Blocks of the bottom row that the type's processor extends down to the ground (those of all its palettes)."""
     out = set()
     for d in STYLES.values():
         if kind == "faro":
@@ -203,8 +203,8 @@ def structure(kind, style, variant):
 
 
 def placement(kind):
-    """heraldia:rejilla del tipo (spacing de por defecto; el Java lo recalcula con la configuración) con la candidata
-    buscada en las playas."""
+    """heraldia:rejilla of the type (default spacing; the Java recalculates it with the configuration) with the candidate
+    searched on the beaches."""
     spacing = round(SEPARATION[kind] / 16)
     return {"type": f"{NS}:rejilla", "grupo": f"{PREFIX}/{kind}", "spacing": spacing, "separation": spacing // 3,
             "salt": salt(kind), "bioma": f"{NS}:{BIOME_MAP}", "bioma_vecinos": BIOME_NEIGHBORS,
@@ -216,7 +216,7 @@ def land_of(style):
 
 
 def write(out, jdump):
-    """Estructuras, etiquetas de biomas y de estructura, structure_sets, el procesador y el botín."""
+    """Structures, biome and structure tags, structure_sets, the processor and the loot."""
     import biomes
     from writer import lootr_aware, down_to_floor
     import treasure
@@ -243,7 +243,7 @@ def write(out, jdump):
         all_items += ids
     jdump(out, f"data/{NS}/tags/worldgen/structure/{PREFIX}.json", {"values": all_items})
     for name, tbl in LOOT.items():
-        if name == "camarote":          # una pista del tesoro, rara, en el cofre del capitán
+        if name == "camarote":          # a treasure hint, rare, in the captain's chest
             tbl = treasure.with_hint(tbl, PREFIX)
         jdump(out, f"data/{NS}/loot_table/{PREFIX}/{name}.json", lootr_aware(tbl))
     return lang()
@@ -254,7 +254,7 @@ for _t in KINDS:
     LANG["es_es"][f"{NS}.costa.{_t}.nombre"], LANG["en_us"][f"{NS}.costa.{_t}.nombre"] = DISPLAY_NAME[_t]
 for _k, (_es, _en) in TEXTS.items():
     LANG["es_es"][f"{NS}.costa.{_k}"], LANG["en_us"][f"{NS}.costa.{_k}"] = _es, _en
-# /heraldia info (los de status, mapas web y review van con los demás en admin.py)
+# /heraldia info (those of status, web maps and review go with the others in admin.py)
 LANG["es_es"][f"{NS}.info.costa"] = "Costa: faros %s, cada %s bloques; galeones naufragados %s, cada %s bloques; %s estructuras"
 LANG["en_us"][f"{NS}.info.costa"] = "Coast: lighthouses %s, every %s blocks; wrecked galleons %s, every %s blocks; %s structures"
 
@@ -264,10 +264,10 @@ def lang():
 
 
 def tables():
-    """{id corto: tabla} de todo el botín de la costa (para validate_loot)."""
+    """{short id: table} of all the coast loot (for validate_loot)."""
     return {f"{PREFIX}/{n}": t for n, t in LOOT.items()}
 
 
 def structures():
-    """Ids de todas las estructuras de la costa (para /heraldia info y las pruebas)."""
+    """Ids of all the coast structures (for /heraldia info and the tests)."""
     return [f"{NS}:{template(t, e, v)}" for t in KINDS for e in STYLES for v in VARIANTS]

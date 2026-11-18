@@ -1,4 +1,4 @@
-"""validate.py: casos negativos contra un resumen de registros sintético (fixture mcmeta)."""
+"""validate.py: negative cases against a synthetic registry summary (mcmeta fixture)."""
 import json, os
 import pytest
 import validate
@@ -13,7 +13,7 @@ class Reg:
 
 
 def test_load_registries_fails_clearly(tmp_path):
-    with pytest.raises(SystemExit, match="No encuentro"):
+    with pytest.raises(SystemExit, match="Cannot find"):
         validate.load_registries(str(tmp_path))
 
 
@@ -29,8 +29,8 @@ def test_validate_registry_negatives(mcmeta):
     t = Template("a")
     t.set(0, 0, 0, "stone_brickz")
     t.jigsaw(1, 0, 0, "north_up", "heraldia:x", "heraldia:x", "heraldia:no_existe", final_state="minecraft:glowstonez")
-    t.entity(0, 1, 0, {"id": "minecraft:zombie"})                    # sin heraldia_adulto
-    t.entity(0, 1, 0, {"id": "minecraft:hoglin"})                    # sin protección contra bebés
+    t.entity(0, 1, 0, {"id": "minecraft:zombie"})                    # without heraldia_adulto
+    t.entity(0, 1, 0, {"id": "minecraft:hoglin"})                    # without baby protection
     t.entity(0, 1, 0, {"id": "minecraft:dragonz"})
     reg = Reg(t, pools={"heraldia:p": {"fallback": "heraldia:q", "elements": [("heraldia:no", 1, "rigid", None)]}})
     errs = " | ".join(validate.validate_registry(reg))
@@ -45,15 +45,15 @@ def test_validate_registry_clean(mcmeta):
     t.set(0, 0, 0, "stone")
     t.entity(0, 1, 0, {"id": "minecraft:zombie", "Tags": [ADULT_TAG, ANCHORED_TAG]})
     t.entity(0, 1, 0, pieces.guardian("evoker", "k", "f", 40))
-    t.entity(0, 1, 0, {"id": "minecraft:villager"})                  # los aldeanos recogen cosechas: sin anclar
-    t.entity(0, 1, 0, {"id": "minecraft:guardian"})                  # los peces guardianes de la Atlántida tampoco
+    t.entity(0, 1, 0, {"id": "minecraft:villager"})                  # villagers pick up crops: not anchored
+    t.entity(0, 1, 0, {"id": "minecraft:guardian"})                  # the Atlantis guardian fish too
     assert validate.validate_registry(Reg(t)) == {}
 
 
 @pytest.mark.parametrize("nbt, per", [
-    ({"id": "minecraft:zombie", "Tags": [ADULT_TAG]}, "recogería objetos"),            # zombi sin anclar
-    ({"id": "minecraft:skeleton"}, "recogería objetos"),                                 # esqueleto sin anclar
-    ({"id": "minecraft:evoker", "Tags": [pieces.GUARDIAN_TAG]}, "guardián"),             # guardián sin anclar
+    ({"id": "minecraft:zombie", "Tags": [ADULT_TAG]}, "recogería objetos"),            # unanchored zombie
+    ({"id": "minecraft:skeleton"}, "recogería objetos"),                                 # unanchored skeleton
+    ({"id": "minecraft:evoker", "Tags": [pieces.GUARDIAN_TAG]}, "guardián"),             # unanchored guardian
 ])
 def test_validate_registry_unanchored(mcmeta, nbt, per):
     t = Template("a")
@@ -119,10 +119,10 @@ def test_validate_advancements_good_and_bad(mcmeta, tmp_path):
                                                                    "loot_tables": "heraldia:no_existe"}}},
                          "requirements": [["a"]], "rewards": {"loot": ["heraldia:x"]}, "extra": 1,
                          "display": dict(disp, icon={"id": "minecraft:nada"}, frame="épico",
-                                         title={"translate": "falta"}, description={"text": "sin clave"})})
+                                         title={"translate": "falta"}, description={"text": "no key"})})
     errs = " | ".join(validate.validate_advancements(out))
-    for msg in ("campos desconocidos ['extra']", "disparador desconocido minecraft:volar", "no cubren exactamente",
-                "padre inexistente heraldia:no", "icono inexistente", "marco épico", "falta la clave falta",
-                "texto sin clave de traducción", "recompensa no permitida", "predicado de entidad desconocido minecraft:raro",
+    for msg in ("campos desconocidos ['extra']", "disparador desconocido minecraft:volar", "do not exactly cover the criteria",
+                "padre inexistente heraldia:no", "icono inexistente", "frame épico", "falta la clave falta",
+                "texto sin clave de traducción", "reward not allowed", "predicado de entidad desconocido minecraft:raro",
                 "tabla de botín inexistente heraldia:no_existe"):
         assert msg in errs, msg

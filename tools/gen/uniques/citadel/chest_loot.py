@@ -1,4 +1,4 @@
-"""Botín de la ciudadela (solo vanilla). Cada tabla lleva un grupo extra marcado solo_sin_lootr."""
+"""Citadel loot (vanilla only). Each table carries an extra group marked solo_sin_lootr."""
 from loot import item, empty
 from uniques._common.chest_loot import pool, table, named, book  # noqa: F401  (piezas comunes)
 

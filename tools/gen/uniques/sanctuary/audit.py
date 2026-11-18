@@ -1,9 +1,9 @@
-"""Acabado y auditoría del Santuario druídico: estado de reposo de la redstone, puzles y trampas, recorrido a pie con
-los puzles cerrados y resueltos, apoyos, luz de los generadores, estado de conservación; y partición en las dos piezas.
+"""Finishing and audit of the Druid sanctuary: resting state of the redstone, puzzles and traps, walkthrough with
+the puzzles closed and solved, supports, light of the spawners, state of preservation; and split into the two pieces.
 
-preparar(obra) devuelve (claro, raices, errores, informe). Si hay errores, build() los pasa a reg.warnings y la
-compilación falla. Las dos piezas se auditan aquí enteras (sin la auditoría genérica por plantilla, que no ve la
-escalera del árbol que cruza de una a otra).
+preparar(obra) returns (clearing, roots, errors, report). If there are errors, build() passes them to reg.warnings and the
+build fails. Both pieces are audited here whole (without the generic per-template audit, which does not see the
+tree staircase that crosses from one to the other).
 """
 from core import Template
 import lint
@@ -19,7 +19,7 @@ ENTRANCE = (36, 0, 0)
 NS = f"heraldia:unicas/{SID}/"
 N6 = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
 
-# Desgaste repartido (con la ruina hecha a mano, 15-20 % de la superficie a la vista); nada que sostenga un mecanismo.
+# Wear spread around (with the hand-made ruin, 15-20 % of the visible surface); nothing that holds up a mechanism.
 DECAY = [("cobblestone", 0.3, "mossy_cobblestone"), ("stone_bricks", 0.12, "cracked_stone_bricks"),
          ("stone_bricks", 0.1, "mossy_stone_bricks"), ("mud_bricks", 0.1, "packed_mud"), ("glass_pane", 0.3, "air")]
 PROCESSOR = processor(DECAY)
@@ -32,7 +32,7 @@ def prepare(construction):
     fix_supports(t)
     connect(t)
     errs = []
-    rs.wire_shapes(t)                     # estado de reposo: lo que el juego calcularía tras actualizarse
+    rs.wire_shapes(t)                     # resting state: what the game would compute after updating
     for _ in range(3):
         rs.set_wire_power(t); rs.set_torches(t); rs.set_repeaters(t)
     e, _ = rs.check_static(t)
@@ -41,36 +41,36 @@ def prepare(construction):
     blocks = {p: st for p, (st, _) in t.blocks.items()}
     m["abiertas"] = set(m["sol"]["puerta"]) | {m["puerta_archivo"]["door"]}
 
-    # puzle 1: las piedras de las estaciones (16 combinaciones; abre cuando los pistones quedan sin señal)
+    # puzzle 1: the season stones (16 combinations; opens when the pistons are left without a signal)
     soln = m["sol"]
     errs += rs.check_puzzle(t, "sol", m["palancas"], m["solucion"], soln["pistones"], opens_if="sin_potencia")
     fine = {p: v for p, v in zip(m["palancas"], m["solucion"])}
     open_sol = open_up(t, rs.Sim(t, fine))
     for p in soln["puerta"]:
         if bn(open_sol.get(p)) != "air":
-            errs.append(f"la combinación del sol no abre la puerta en {p}")
-    # puzle 2: la estantería secreta del archivo
+            errs.append(f"the sun combination does not open the door at {p}")
+    # puzzle 2: the archive's secret bookshelf
     arc = m["puerta_archivo"]
     open_arc = open_up(t, rs.Sim(t, {arc["lever"]: True}))
     for p in (arc["door"], (arc["door"][0], arc["door"][1] + 1, arc["door"][2])):
         if bn(open_arc.get(p)) != "air":
-            errs.append(f"la palanca no abre la puerta del archivo en {p}")
+            errs.append(f"the lever does not open the archive door at {p}")
         if bn(blocks.get(p)) in ("air", None):
-            errs.append(f"la puerta del archivo no está cerrada al generarse en {p}")
+            errs.append(f"the archive door is not closed at generation at {p}")
     # trampas
     sim = rs.Sim(t, {p: True for p in m["ganchos"]})
     for p in m["dispensadores"]:
         if not sim.powered(p):
-            errs.append(f"el cable trampa no activa el dispensador {p}")
+            errs.append(f"the trap wire does not activate the dispenser {p}")
         if rs.Sim(t).powered(p):
-            errs.append(f"dispensador con señal en reposo {p}")
+            errs.append(f"dispenser with a signal at rest {p}")
     for p in m["flechas"]:
         if not any(rs.Sim(t, {plate_pos: True}).powered(p) for plate_pos in m["placas"]):
-            errs.append(f"ninguna placa activa el dispensador {p}")
+            errs.append(f"no plate activates the dispenser {p}")
         if rs.Sim(t).powered(p):
-            errs.append(f"dispensador con señal en reposo {p}")
+            errs.append(f"dispenser with a signal at rest {p}")
 
-    # recorrido: público (puzles cerrados) y resuelto (los dos puzles abiertos)
+    # walkthrough: public (puzzles closed) and solved (both puzzles open)
     trap = {p: None for p, st in blocks.items() if bn(st) == "tripwire"}
     resolved_map = dict(open_sol)
     for p, st in open_arc.items():
@@ -92,10 +92,10 @@ def prepare(construction):
         if p not in cells:
             errs.append(f"zona oculta inalcanzable {p}")
         if p in cells_pub:
-            errs.append(f"zona oculta alcanzable sin resolver los puzles {p}")
+            errs.append(f"hidden area reachable without solving the puzzles {p}")
     for p in [q for q in construction.hidden_alcove if free(q)]:
         if p not in cells_pub:
-            errs.append(f"la alcoba del archidruida no se alcanza tras el tapiz {p}")
+            errs.append(f"the archdruid's alcove cannot be reached behind the tapestry {p}")
     for p, mob in construction.spawners:
         if not nearby_flag(cells, p):
             errs.append(f"generador inalcanzable {p}")
@@ -104,47 +104,47 @@ def prepare(construction):
             errs.append(f"palanca inalcanzable {p}")
     for p, _ in construction.chests:
         if not nearby_flag(cells, p):
-            errs.append(f"cofre inalcanzable {p}")
+            errs.append(f"unreachable chest {p}")
     if not 15 <= len(construction.chests) <= 25:
-        errs.append(f"{len(construction.chests)} cofres (se piden 15-25)")
-    # recorrido estricto (sin caídas de más de un bloque) y vuelta a la entrada desde cualquier sitio
-    v = View({p: st for p, (st, _) in soln_blocks.items() if p not in trap}, floor_y=0)   # fuera del disco, el terreno
+        errs.append(f"{len(construction.chests)} chests (15-25 required)")
+    # strict walkthrough (no falls of more than one block) and return to the entrance from anywhere
+    v = View({p: st for p, (st, _) in soln_blocks.items() if p not in trap}, floor_y=0)   # outside the disc, the terrain
     start = (ENTRANCE[0], 1, ENTRANCE[2])
-    seen, edges = strict_walk(v, start, (-1, W, -1, D), water=True)   # se sale nadando de la acequia y del estanque
+    seen, edges = strict_walk(v, start, (-1, W, -1, D), water=True)   # you swim out of the ditch and the pond
     for c in no_return(edges, start)[:10]:
-        errs.append(f"celda sin vuelta a la entrada {c}")
+        errs.append(f"cell with no way back to the entrance {c}")
     for p, _ in construction.chests:
         if not nearby_flag(set(seen), p):
-            errs.append(f"cofre inalcanzable sin saltos {p}")
-    # luz: los generadores, a oscuras (luz de bloque 0 donde aparecen los monstruos)
+            errs.append(f"chest unreachable without jumps {p}")
+    # light: the spawners, in the dark (block light 0 where monsters appear)
     lv = light(blocks)
     for p, mob in construction.spawners:
         if light_generator(lv, p) > 0:
-            errs.append(f"generador de {mob} con luz cerca {p}")
-    # nada suelto: todo unido por caras al suelo del claro o al fondo del subsuelo
+            errs.append(f"{mob} spawner with light nearby {p}")
+    # nothing loose: everything attached by faces to the clearing floor or to the bottom of the underground
     fl = floating_blocks(blocks, (0, CRYPT[4]))
     if fl:
-        errs.append(f"{len(fl)} bloques flotando, p. ej. {fl[:5]}")
-    # naturales a la vista dentro del subsuelo (manantiales y liquen): el forro debe cubrirlos
+        errs.append(f"{len(fl)} floating blocks, e.g. {fl[:5]}")
+    # natural blocks in view inside the underground (springs and lichen): the lining must cover them
     for p, st in blocks.items():
         if p[1] < 0 and st in ("minecraft:stone", "minecraft:dirt"):
             if any(blocks.get((p[0] + a, p[1] + b, p[2] + c)) == "minecraft:air" for a, b, c in N6):
-                errs.append(f"roca natural a la vista en el subsuelo {p}")
+                errs.append(f"natural rock in view in the underground {p}")
                 break
-    # en el claro no nace nada: ni hierba, ni tierra, ni musgo sin algo encima
+    # nothing grows in the clearing: no grass, no soil, no moss with nothing on top
     soil = ("grass_block", "dirt", "podzol", "moss_block", "rooted_dirt", "coarse_dirt", "mud")
     for (x, y, z), st in blocks.items():
         if y == 0 and bn(st) in soil and construction.clear(x, z) and lint.passable(blocks.get((x, 1, z))) \
                 and bn(blocks.get((x, 1, z))) in ("air", None):
-            errs.append(f"suelo fértil descubierto en el claro {(x, y, z)}")
+            errs.append(f"fertile ground uncovered in the clearing {(x, y, z)}")
             break
     surf, damaged = state(t, construction.ruin)
     if not 0.15 <= damaged <= 0.20:
-        errs.append(f"superficie dañada {damaged:.1%} fuera de 15-20 %")
+        errs.append(f"damaged surface {damaged:.1%} outside 15-20 %")
     construction.cells, construction.cells_pub = cells, cells_pub
     construction.report = {"superficie": surf, "danada": damaged, "luz": lv, "abierto": resolved_map}
 
-    # partir en piezas y poner los jigsaws al final
+    # split into pieces and place the jigsaws last
     area, sub = Template(f"unicas/{SID}/claro"), Template(f"unicas/{SID}/raices")
     for p, val in t.blocks.items():
         (area if p[1] >= 0 else sub).blocks[p] = val
@@ -162,7 +162,7 @@ def prepare(construction):
 
 
 def state(t, ruined):
-    """Fracción de la superficie a la vista del claro que está dañada (recorrido.superficie_danada): ni el suelo pisado
-    ni las alfombras de musgo cuentan."""
+    """Fraction of the clearing's visible surface that is damaged (walkthrough.damaged_surface): neither trodden ground
+    nor moss carpets count."""
     blocks = {p: st for p, (st, _) in t.blocks.items() if p[1] >= 0 and bn(st) != "moss_carpet"}
     return damaged_surface(blocks, ruined, DECAY, (-1, W, -1, D), FLOOR)

@@ -1,12 +1,12 @@
-"""Comprobaciones comunes de recorrido para las estructuras únicas (uso: from unicas._comun import recorrido).
+"""Common walkthrough checks for the unique structures (use: from uniques._common import recorrido).
 
-- `Vista`: bloques de una o varias plantillas en coordenadas comunes, con suelo virtual y estados "resueltos".
-- `andar`: recorrido a pie estricto (sin caídas de más de un bloque, peldaños de escalera, escaleras de mano que no
-  atraviesan trampillas cerradas) y `sin_vuelta`: celdas alcanzadas desde las que no se vuelve a la entrada.
-- `vista_lint`: plantilla con cambios (mecanismos abiertos o cerrados) y una entrada para usar `lint.walk` y
-  `lint.access_issues` sobre varias piezas unidas.
-- `cerca`, `flotantes` (bloques sin unión con el suelo) y `luz` (luz de bloque propagada) para cofres y generadores.
-Más estricto que lint.walk, que permite caer hasta 4 bloques y bajar escaleras de mano a través de trampillas cerradas.
+- `View`: blocks of one or several templates in common coordinates, with a virtual floor and "solved" states.
+- `strict_walk`: strict walkthrough (no falls of more than one block, stair steps, ladders that do not
+  pass through closed trapdoors) and `no_return`: reached cells from which there is no way back to the entrance.
+- `lint_view`: template with changes (mechanisms open or closed) and an entrance to use `lint.walk` and
+  `lint.access_issues` on several joined pieces.
+- `nearby_flag`, `floating_blocks` (blocks not connected to the ground) and `light` (propagated block light) for chests and spawners.
+Stricter than lint.walk, which allows falling up to 4 blocks and going down ladders through closed trapdoors.
 """
 from collections import deque
 from lint import passable, top_height, bname, prop
@@ -25,7 +25,7 @@ LIGHT = {"lantern": 15, "torch": 14, "wall_torch": 14, "redstone_torch": 7, "red
 
 
 def is_full(st):
-    """Bloque macizo y opaco a efectos de luz y de apoyo (aproximación por nombre)."""
+    """Solid block, opaque for light and support purposes (approximation by name)."""
     if st is None:
         return False
     b = st.split("[")[0].replace("minecraft:", "")
@@ -33,7 +33,7 @@ def is_full(st):
 
 
 class View:
-    """blocks: {pos: estado}; resuelto: {pos: estado} superpuesto; suelo_y: capa de hierba virtual donde no hay nada."""
+    """blocks: {pos: state}; resuelto: {pos: state} overlaid; suelo_y: virtual grass layer where there is nothing."""
 
     def __init__(self, blocks, resolved_map=None, floor_y=None):
         self.b = dict(blocks)
@@ -51,9 +51,9 @@ class View:
 
 
 def strict_walk(v, start, limits, water=False):
-    """Recorrido desde start. limites = (x0, x1, z0, z1). Devuelve ({celda: altura de los pies}, {celda: [vecinas]}).
-    Con agua=True se nada: en el agua se sube y se baja en vertical, se sale subiendo hasta 1,1 y se puede caer al
-    agua desde hasta 4 bloques (sin agua, el agua es paso libre sin flotación, como antes)."""
+    """Walkthrough from start. limites = (x0, x1, z0, z1). Returns ({cell: feet height}, {cell: [neighbors]}).
+    With agua=True you swim: in water you go up and down vertically, you get out by rising up to 1.1 and you can fall into
+    water from up to 4 blocks (without agua, water is free passage without buoyancy, as before)."""
     g = v.get
     x0, x1, z0, z1 = limits
 
@@ -138,7 +138,7 @@ def strict_walk(v, start, limits, water=False):
 
 
 def no_return(edges, start, exempt=()):
-    """Celdas alcanzadas desde las que no se puede volver a start (grafo inverso). exentas: columnas (x, z) ignoradas."""
+    """Reached cells from which start cannot be reached again (inverse graph). exentas: columns (x, z) ignored."""
     rev = {}
     for a, bs in edges.items():
         for b in bs:
@@ -155,8 +155,8 @@ def no_return(edges, start, exempt=()):
 
 
 def lint_view(blocks, changes=None, entrance=(0, 0, 0)):
-    """Template para lint.walk/access_issues: blocks {pos: (estado, nbt)}, cambios {pos: estado o None (quitar)} y
-    un jigsaw de entrada en `entrada`."""
+    """Template for lint.walk/access_issues: blocks {pos: (state, nbt)}, cambios {pos: state or None (remove)} and
+    an entrance jigsaw at `entrance`."""
     from core import Template
     v = Template("vista")
     v.blocks = dict(blocks)
@@ -176,7 +176,7 @@ def nearby_flag(cells, p, r=1):
 
 
 def floating_blocks(blocks, floors):
-    """Bloques no-aire sin unión (por caras) con algún bloque de las capas y de `suelos`."""
+    """Non-air blocks without a connection (by faces) to any block of the layers and of `floors`."""
     solid = {p for p, st in blocks.items() if bname(st) != "air"}
     seen = {p for p in solid if p[1] in floors}
     q = deque(seen)
@@ -191,7 +191,7 @@ def floating_blocks(blocks, floors):
 
 
 def light(blocks):
-    """Luz de bloque aproximada: se propaga por celdas no macizas perdiendo 1 por paso."""
+    """Approximate block light: propagates through non-solid cells losing 1 per step."""
     lv, q = {}, deque()
     for p, st in blocks.items():
         n = LIGHT.get(bname(st))
@@ -215,18 +215,18 @@ def light(blocks):
 
 
 def light_generator(lv, p, span=4):
-    """Luz máxima en el volumen donde aparecen los monstruos de un generador en p."""
+    """Maximum light in the volume where a spawner's monsters appear at p."""
     x, y, z = p
     return max([lv.get((x + a, y + b, z + c), 0) for a in range(-span, span + 1)
                 for c in range(-span, span + 1) for b in (-1, 0, 1)])
 
 
-# ------------------------------------------------------------------ lint.walk en plantillas con sótano
-DY = 20     # lint.walk toma cualquier celda vacía con y < 0 como suelo natural: se audita una copia desplazada
+# ------------------------------------------------------------------ lint.walk on templates with a basement
+DY = 20     # lint.walk takes any empty cell with y < 0 as natural ground: a shifted copy is audited
 
 
 def shifted(t):
-    """Copia de la plantilla desplazada DY bloques hacia arriba (para lint.walk / lint.access_issues)."""
+    """Copy of the template shifted DY blocks upward (for lint.walk / lint.access_issues)."""
     from core import Template
     s = Template(t.name)
     s.blocks = {(x, y + DY, z): v for (x, y, z), v in t.blocks.items()}
@@ -235,29 +235,29 @@ def shifted(t):
 
 
 def walk(t):
-    """lint.walk sobre una plantilla con sótano en y < 0; devuelve las celdas en las coordenadas originales."""
+    """lint.walk on a template with a basement at y < 0; returns the cells in the original coordinates."""
     import lint
     return {(x, y - DY, z) for (x, y, z) in lint.walk(shifted(t))}
 
 
-# ------------------------------------------------------------------ estado de conservación (Salón del Jarl, Santuario)
+# ------------------------------------------------------------------ state of preservation (Jarl's Hall, Sanctuary)
 N6 = D6
 
 
 def rule_def(block, prob, out):
-    """Regla de un procesador `minecraft:rule`: `block` pasa a `out` con probabilidad `prob` (output_state en cadena)."""
+    """Rule of a `minecraft:rule` processor: `block` becomes `out` with probability `prob` (output_state as a string)."""
     return {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + block,
                                 "probability": prob},
             "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + out}
 
 
 def processor(decay):
-    """Procesador de reglas a partir de [(bloque, probabilidad, salida)] (en orden: la primera que acierta)."""
+    """Rule processor from [(block, probability, output)] (in order: the first that succeeds)."""
     return {"processor_type": "minecraft:rule", "rules": [rule_def(b, p, o) for b, p, o in decay]}
 
 
 def expectation(st, decay):
-    """Probabilidad de que el procesador `decay` cambie el bloque `st`."""
+    """Probability that the `decay` processor changes the block `st`."""
     b, left, out = bname(st), 1.0, 0.0
     for blk, p, _ in decay:
         if blk == b:
@@ -267,8 +267,8 @@ def expectation(st, decay):
 
 
 def open_up(t, sim):
-    """Bloques (pos -> estado) tras recoger los pistones sin señal (redstone.retract), con aire explícito donde estaba
-    la puerta (si no, lint.walk toma la celda vacía del subsuelo por suelo natural)."""
+    """Blocks (pos -> state) after retracting the pistons without a signal (redstone.retract), with explicit air where
+    the door was (otherwise lint.walk takes the empty subsurface cell as natural ground)."""
     from . import redstone as rs
     b = rs.retract(t, sim)
     for p in t.blocks:
@@ -277,10 +277,10 @@ def open_up(t, sim):
 
 
 def damaged_surface(blocks, ruined, decay, limits, floor=()):
-    """(superficie, fracción dañada) de los bloques `blocks` {pos: estado} (y >= 0) con una cara al aire exterior, que
-    llega desde el cielo dentro de `limites` (x0, x1, z0, z1): la ruina hecha a mano (`ruined`, también lo que ya es
-    aire) más lo que se espera del procesador `decay`. Los bloques de la capa y = 0 cuyo nombre está en `suelo` no
-    cuentan (el suelo pisado)."""
+    """(surface, damaged fraction) of the blocks `blocks` {pos: state} (y >= 0) with a face to the outside air, which
+    is reached from the sky within `limits` (x0, x1, z0, z1): the hand-made ruin (`ruined`, also what is already
+    air) plus what is expected from the `decay` processor. Blocks of the y = 0 layer whose name is in `floor` do not
+    count (the trodden ground)."""
     from .redstone import conductor
     x0, x1, z0, z1 = limits
     y1 = max(p[1] for p in blocks) + 1

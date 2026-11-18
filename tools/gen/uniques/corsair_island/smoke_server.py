@@ -1,17 +1,17 @@
-"""Prueba en un servidor 26.3 real de la Isla del corsario (complementa tools/smoke/server_smoke.py).
+"""Test on a real 26.3 server of the Corsair's island (complements tools/smoke/server_smoke.py).
 
-1. Generación natural: /locate desde el 0,0 (la candidata de cada casilla se busca en los océanos templados y cálidos,
-   GridPlacement con «bioma»; el tipo heraldia:isla exige mar abierto con el fondo a profundidad media), mide la
-   distancia y el tiempo, carga esos chunks y comprueba que el sitio es uno de sus océanos, que la estructura se ha
-   generado de verdad (el corsario está en la cámara del tesoro, bajo el nivel del mar y en seco), que queda lejos de
-   la Atlántida (fuera de su zona de exclusión) y que ningún naufragio ni ruina oceánica nace dentro de ella (IslaZona).
-2. Coloca la estructura entera con /place structure, mide cuánto tarda y cuenta sus entidades (el corsario y la barca
-   de la ensenada).
-3. Coloca la plantilla sin girar en un sitio conocido y comprueba cofres, generadores, agua de la ensenada y salas
-   secas; acciona los mecanismos: la rosa de los vientos (norte y poniente abren; con levante se vuelve a cerrar), la
-   santabárbara secreta, el cable trampa y las placas de la antecámara.
-   /setblock de una palanca no avisa al bloque al que está sujeta: se emula el clic cambiando ese bloque y devolviéndolo.
-Uso (desde la raíz): python3 tools/gen/uniques/corsair_island/smoke_server.py --jar build/libs/heraldia-X.jar [--work DIR]
+1. Natural generation: /locate from 0,0 (each cell's candidate is sought in the temperate and warm oceans,
+   GridPlacement with "biome"; the heraldia:isla type requires open sea with the floor at medium depth), measures the
+   distance and time, loads those chunks and checks that the site is one of its oceans, that the structure was
+   really generated (the corsair is in the treasure chamber, below sea level and dry), that it is far from
+   Atlantis (outside its exclusion zone) and that no shipwreck or ocean ruin spawns inside it (IslaZona).
+2. Places the whole structure with /place structure, measures how long it takes and counts its entities (the corsair and the cove
+   boat).
+3. Places the unrotated template at a known spot and checks chests, generators, cove water and dry
+   rooms; operates the mechanisms: the compass rose (north and west open; with east it closes again), the
+   secret powder magazine, the trap wire and the antechamber plates.
+   /setblock of a lever does not notify the block it is attached to: the click is emulated by changing that block and restoring it.
+Usage (from the root): python3 tools/gen/uniques/corsair_island/smoke_server.py --jar build/libs/heraldia-X.jar [--work DIR]
 """
 import argparse, math, os, subprocess, sys, threading, queue, time
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -20,14 +20,14 @@ sys.path.insert(0, os.path.join(HERE, "..", ".."))
 import server_smoke as sm                      # noqa: E402
 
 SID = "isla_corsario"
-ORIGIN = (3000, 45, 0)                         # esquina mínima de la plantilla colocada sin girar
-THREE = "{Items:[{Slot:0b,count:6},{Slot:1b,count:6},{Slot:2b,count:6}]}"     # dispensador del cable (tripwire_trap)
-SINGLE = "{Items:[{Slot:0b,count:16}]}"                                          # dispensador de las placas (plate_trap)
+ORIGIN = (3000, 45, 0)                         # minimum corner of the unrotated placed template
+THREE = "{Items:[{Slot:0b,count:6},{Slot:1b,count:6},{Slot:2b,count:6}]}"     # wire dispenser (tripwire_trap)
+SINGLE = "{Items:[{Slot:0b,count:16}]}"                                          # plate dispenser (plate_trap)
 GUARDIAN = f"@e[type=minecraft:skeleton,tag=heraldia_guardian.{SID}]"
 OCEANS = ("ocean", "lukewarm_ocean", "warm_ocean")
 MAX_LOCATE = 12000
-ATLANTIS_EXCLUSION = 444 + 60                 # radio de exclusión de la Atlántida (AtlantisAnchor) + media isla
-ISLAND_RADIUS = 70                                # el islote y el bergantín, desde el centro (IslaZona excluye 7 chunks)
+ATLANTIS_EXCLUSION = 444 + 60                 # Atlantis exclusion radius (AtlantisAnchor) + half an island
+ISLAND_RADIUS = 70                                # the islet and the brigantine, from the center (IslaZona excludes 7 chunks)
 DV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 
 
@@ -36,7 +36,7 @@ def main():
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(sm.ROOT, "build", "smoke_isla"))
     a = ap.parse_args()
-    import uniques.corsair_island as M           # coordenadas de la obra (se calculan como al generar)
+    import uniques.corsair_island as M           # build coordinates (computed as when generating)
     from core import parse_state
     t, _, _, rep = M.dataset()
     construction, (sx, sy, sz) = rep["obra"], rep["desplazamiento"]
@@ -88,7 +88,7 @@ def main():
         return check(desc, f"execute if data block {at(p)} LootTable")
 
     def lever(lp, on):
-        """Acciona una palanca como un jugador: la cambia y «toca» el bloque al que está sujeta."""
+        """Operates a lever like a player: changes it and "touches" the block it is attached to."""
         st = tpl(lp)
         b, props = parse_state(st)
         dx, dz = DV[props["facing"]]
@@ -99,73 +99,73 @@ def main():
 
     try:
         sm.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", sm.START_TIMEOUT_S, seen)
-        # 1. generación natural
+        # 1. natural generation
         t0 = time.monotonic()
         mm = cmd(f"locate structure heraldia:unicas/{SID}",
                  r"The nearest .* is at \[(-?\d+), [^,]+, (-?\d+)\] \((\d+) blocks away\)|Could not find")
         dt = time.monotonic() - t0
         if "Could not" in mm.group(0):
             fails.append("locate")
-            print(f"[FALLO] /locate no encuentra la isla ({dt:.1f} s)")
+            print(f"[FAIL] /locate does not find the island ({dt:.1f} s)")
         else:
             lx, lz, far = int(mm.group(1)), int(mm.group(2)), int(mm.group(3))
-            print(f"LOCATE desde 0, 0: isla del corsario en {lx}, {lz}, a {far} bloques ({dt * 1000:.0f} ms)")
+            print(f"LOCATE from 0, 0: corsair's island at {lx}, {lz}, {far} blocks away ({dt * 1000:.0f} ms)")
             if far > MAX_LOCATE:
-                fails.append(f"locate a {far} bloques")
+                fails.append(f"locate at {far} blocks")
             ma = cmd("locate structure heraldia:unicas/atlantida",
                      r"The nearest .* is at \[(-?\d+), [^,]+, (-?\d+)\] \((\d+) blocks away\)|Could not find")
             if "Could not" not in ma.group(0):
                 d = math.hypot(int(ma.group(1)) - lx, int(ma.group(2)) - lz)
                 ok = d > ATLANTIS_EXCLUSION
-                print(f"[{'OK' if ok else 'FALLO'}] la isla queda fuera de la Atlántida ({d:.0f} bloques de su centro)")
+                print(f"[{'OK' if ok else 'FALLO'}] the island is outside Atlantis ({d:.0f} blocks from its center)")
                 if not ok:
-                    fails.append("isla dentro de la Atlántida")
-            for tag in ("shipwreck", "ocean_ruin"):   # IslaZona: nada ajeno dentro de la isla (igual en /locate)
+                    fails.append("island inside Atlantis")
+            for tag in ("shipwreck", "ocean_ruin"):   # IslaZona: nothing foreign inside the island (same in /locate)
                 mm = cmd(f"execute positioned {lx} 64 {lz} run locate structure #minecraft:{tag}",
                          r"The nearest .* is at \[(-?\d+), [^,]+, (-?\d+)\] \((\d+) blocks away\)|Could not find")
                 d = 10 ** 9 if "Could not" in mm.group(0) else int(mm.group(3))
                 ok = d > ISLAND_RADIUS
-                print(f"[{'OK' if ok else 'FALLO'}] ningún {tag} dentro de la isla (el más cercano a {d} bloques)")
+                print(f"[{'OK' if ok else 'FALLO'}] no {tag} inside the island (the nearest is {d} blocks away)")
                 if not ok:
-                    fails.append(f"{tag} dentro de la isla")
+                    fails.append(f"{tag} inside the island")
             sm.send(proc, f"forceload add {lx - 80} {lz - 80} {lx + 80} {lz + 80}")
             sm.wait_for(lines, r"Marked|Added|chunks? .*force", 600, seen)
-            for _ in range(30):                     # los chunks forzados se cargan en los ticks siguientes
+            for _ in range(30):                     # the forced chunks load over the following ticks
                 mm = cmd(f"execute if biome {lx} 62 {lz} minecraft:{OCEANS[0]}", r"Test passed|Test failed")
                 if "not loaded" not in mm.group(0):
                     break
                 time.sleep(2)
             ok = any(check("", f"execute if biome {lx} 62 {lz} minecraft:{b}", quiet=True)[0] for b in OCEANS)
-            print(f"[{'OK' if ok else 'FALLO'}] el sitio de /locate es océano templado o cálido")
+            print(f"[{'OK' if ok else 'FALLO'}] the /locate site is a temperate or warm ocean")
             if not ok:
-                fails.append("bioma del sitio de /locate")
+                fails.append("biome of the /locate site")
             sel = GUARDIAN.replace("]", f",x={lx - 80},y=0,z={lz - 80},dx=160,dy=120,dz=160]")
             deadline, found = time.monotonic() + 120, False
             while time.monotonic() < deadline and not found:
                 found = check("", f"execute if entity {sel}", quiet=True)[0]
                 if not found:
                     time.sleep(3)
-            print(f"[{'OK' if found else 'FALLO'}] generación natural: el corsario está en la isla de {lx}, {lz}")
+            print(f"[{'OK' if found else 'FALLO'}] natural generation: the corsair is on the island at {lx}, {lz}")
             if not found:
-                fails.append("generación natural")
+                fails.append("natural generation")
             else:
-                time.sleep(20)                      # si el mar entrase en la cámara del tesoro, ya habría entrado
-                # Sin «execute as/at <selector>»: bifurcan la orden y en una rama el «Test failed» no responde (la
-                # prueba se quedaba esperando). Se lee su posición y se miran esas coordenadas.
+                time.sleep(20)                      # if the sea were to enter the treasure chamber, it would already have
+                # Without "execute as/at <selector>": they fork the command and on one branch the "Test failed" gets no reply (the
+                # test was left waiting). Its position is read and those coordinates are checked.
                 if not check("el corsario sigue en la isla tras 20 s", f"execute if entity {sel}")[0]:
                     print("  DIAG", cmd(f"execute if entity {GUARDIAN}", r"Test passed(?:\. Count: \d+)?|Test failed").group(0))
                 else:
                     lim = sel.replace("]", ",limit=1]")
                     pm = cmd(f"data get entity {lim} Pos", r"has the following entity data: \[(-?[\d.]+)d, (-?[\d.]+)d, (-?[\d.]+)d\]")
                     gx, gy, gz = (math.floor(float(v)) for v in pm.groups())
-                    # una condición por orden: un «if» intermedio que falla tampoco responde. El corsario anda por la
-                    # cámara (puede pisar una losa o un cofre): lo que se exige es que no haya agua donde está
+                    # one condition per command: a failing intermediate "if" gets no reply either. The corsair walks around the
+                    # chamber (it may step on a slab or a chest): what is required is that there be no water where it is
                     for y in (gy, gy + 1):
                         check(f"sin agua en la cámara del tesoro ({gx}, {y}, {gz})", f"execute unless block {gx} {y} {gz} minecraft:water")
                     ok = gy < 62
-                    print(f"[{'OK' if ok else 'FALLO'}] el corsario sigue bajo el nivel del mar (y = {gy})")
+                    print(f"[{'OK' if ok else 'FALLO'}] the corsair is still below sea level (y = {gy})")
                     if not ok:
-                        fails.append("corsario bajo el nivel del mar")
+                        fails.append("corsair below sea level")
             for line in seen:
                 if "isla del corsario en" in line or "búsqueda del bioma" in line:
                     print("  ", line.split("]: ", 1)[-1])
@@ -182,14 +182,14 @@ def main():
             time.sleep(sm.PLACE_RETRY_S)
         if "Generated" not in mm.group(0):
             fails.append("place structure")
-        print(f"TIEMPO de /place structure de la Isla del corsario: {dt * 1000:.0f} ms")
+        print(f"TIME of /place structure for the Corsair's island: {dt * 1000:.0f} ms")
         nearby_flag = GUARDIAN.replace("]", ",x=0,y=0,z=0,distance=..120]")
-        ctx.wait_entity(nearby_flag)              # las entidades aparecen unos segundos después que los bloques
+        ctx.wait_entity(nearby_flag)              # entities appear a few seconds after the blocks
         ctx.wait_entity("@e[type=minecraft:oak_boat,x=0,y=0,z=0,distance=..120]")
         ok, mm = check("corsario con su etiqueta", f"execute if entity {nearby_flag}")
         print("  cuenta:", mm.group(1))
         if mm.group(1) != "1":
-            fails.append("un solo guardián")
+            fails.append("a single guardian")
         check("el corsario es persistente", f"execute if entity {nearby_flag.replace(']', ',nbt={PersistenceRequired:1b}]')}")
         check("el corsario lleva su arco",
               f"execute if entity {nearby_flag.replace(']', ',nbt={equipment:{mainhand:{id:\"minecraft:bow\"}}}]')}")
@@ -199,7 +199,7 @@ def main():
                        "execute if entity @e[type=!minecraft:item,type=!minecraft:experience_orb,type=!minecraft:arrow,"
                        "x=0,y=0,z=0,distance=..120]")
         print("  ENTIDADES:", mm.group(1))
-        # 3. plantilla sin girar
+        # 3. unrotated template
         mm = cmd(f"place template heraldia:unicas/{SID}/isla {ORIGIN[0]} {ORIGIN[1]} {ORIGIN[2]}",
                  r"Loaded template|Failed|not loaded|error|Could not")
         if "Loaded" not in mm.group(0):
@@ -208,7 +208,7 @@ def main():
         for p, tbl in construction.chests:
             if tbl in ("premium", "cartas", "escondite", "santabarbara", "bergantin", "ensenada", "polvorin"):
                 has_loot(f"cofre {tbl}", p)
-        print(f"  {len(construction.chests)} cofres en la obra")
+        print(f"  {len(construction.chests)} chests in the build")
         for p, mob in construction.spawners:
             check(f"generador de {mob}", f"execute if data block {at(p)} SpawnData.entity{{id:\"minecraft:{mob}\"}}")
         for p in m["canones"]:
@@ -220,7 +220,7 @@ def main():
         is_block("aire seco sobre la ensenada", (lx0 + 5, 0, lz0 + 2), "minecraft:air")
         is_block("el muelle de la ensenada sin agua", (lx0, 0, lz1 - 1), "minecraft:air")
         is_block("tarima del muelle del puerto", (44, 0, 85), "minecraft:spruce_planks")
-        # puzle 1: la rosa de los vientos (norte y poniente; levante y sur son falsas)
+        # puzzle 1: the compass rose (north and west; east and south are fake)
         door = m["puerta_rosa"]
         n, e, s, w = m["palancas"]
         for p in door:
@@ -236,7 +236,7 @@ def main():
         until("con levante se vuelve a cerrar", f"execute if block {at(door[0])} minecraft:chiseled_stone_bricks")
         lever(e, False)
         until("y al bajarla se abre otra vez", f"execute if block {at(door[0])} minecraft:air")
-        # puzle 2: la santabárbara
+        # puzzle 2: the powder magazine
         sb = m["santabarbara"]
         sec = [sb["door"], (sb["door"][0], sb["door"][1] + 1, sb["door"][2])]
         for p in sec:
@@ -263,7 +263,7 @@ def main():
                 proc.wait(timeout=120)
             except subprocess.TimeoutExpired:
                 proc.kill()
-    print("PRUEBA ISLA DEL CORSARIO " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
+    print("CORSAIR'S ISLAND TEST " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
     return 1 if fails else 0
 
 

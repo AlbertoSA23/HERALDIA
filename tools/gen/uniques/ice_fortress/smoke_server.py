@@ -1,8 +1,8 @@
-"""Prueba en servidor real de los mecanismos de la fortaleza de hielo (complementa tools/smoke/server_smoke.py).
+"""Real-server test of the ice fortress mechanisms (complements tools/smoke/server_smoke.py).
 
-Coloca la plantilla sin rotar en (0, 100, 0) y comprueba: puertas secretas cerradas y estables, que al bajar cada palanca
-se abren, que la placa y el cable trampa disparan sus dispensadores, el guardián, los lobos y los generadores.
-Uso: python3 tools/gen/uniques/ice_fortress/smoke_server.py --jar build/libs/heraldia-<versión>.jar
+Places the unrotated template at (0, 100, 0) and checks: secret doors closed and stable, that pulling each lever
+opens them, that the plate and the trap wire fire their dispensers, the guardian, the wolves and the spawners.
+Usage: python3 tools/gen/uniques/ice_fortress/smoke_server.py --jar build/libs/heraldia-<version>.jar
 """
 import argparse, os, queue, subprocess, sys, threading, time
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +18,7 @@ def p(x, y, z):
     return f"{x} {y + Y} {z}"
 
 
-CHECKS = [  # (descripción, orden, debe pasar)
+CHECKS = [  # (description, command, must pass)
     ("puerta de la cripta cerrada", f"execute if block {p(15, 6, 51)} minecraft:chiseled_stone_bricks", True),
     ("pistón de la cripta extendido", f"execute if block {p(15, 7, 53)} minecraft:sticky_piston[extended=true]", True),
     ("puerta del salón cerrada", f"execute if block {p(29, 12, 55)} minecraft:chiseled_stone_bricks", True),
@@ -29,8 +29,8 @@ CHECKS = [  # (descripción, orden, debe pasar)
     ("cofre premium con botín", f"execute if data block {p(6, 1, 62)} LootTable", True),
 ]
 ACTIONS = [
-    # /setblock solo avisa a los vecinos de la palanca; un jugador que la usa avisa también a los del bloque al que va
-    # enganchada. Se emula cambiando ese bloque (de piedra a ladrillo, de hielo compacto a azul) justo después.
+    # /setblock only notifies the lever's neighbors; a player using it also notifies those of the block it is
+    # attached to. It is emulated by changing that block (from stone to brick, from packed ice to blue ice) right afterwards.
     ("abrir la cripta", f"setblock {p(17, 7, 54)} minecraft:lever[face=wall,facing=east,powered=false]\n"
                         f"setblock {p(16, 7, 54)} minecraft:stone_bricks",
      [(f"execute if block {p(15, 6, 51)} minecraft:air", True), (f"execute if block {p(15, 7, 51)} minecraft:air", True)]),
@@ -58,7 +58,7 @@ def main():
     ctx = S.Context(proc, lines, seen)
 
     def test(desc, cmd, want):
-        # las entidades de la plantilla aparecen unos segundos después que los bloques: se espera por condición
+        # the template's entities appear a few seconds after the blocks: wait on a condition
         ok = ctx.until(cmd, want) if " entity " in cmd else ctx.test(cmd) == want
         print(("OK   " if ok else "FALLO") + " " + desc)
         if not ok:
@@ -86,7 +86,7 @@ def main():
         if proc.poll() is None:
             S.send(proc, "stop")
             proc.wait(timeout=120)
-    print("PRUEBA DE MECANISMOS " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
+    print("MECHANISM TEST " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
     return 1 if fails else 0
 
 

@@ -1,16 +1,16 @@
-"""Prueba en un servidor 26.3 real: entidades de la mansión y mecanismos accionados en el juego.
+"""Test on a real 26.3 server: mansion entities and mechanisms operated in game.
 
-Uso (desde la raíz): python3 tools/gen/uniques/mansion/smoke_server.py --jar build/libs/heraldia-X.jar
-Coloca la estructura con /place structure y cuenta cuadros, guardián y gato tras 15 s (los colgantes se caen si no tienen
-pared). Coloca las plantillas sin girar en sitios conocidos y acciona la palanca de la biblioteca y la combinación:
-como /setblock no actualiza los vecinos de la palanca, se fuerza la actualización tocando un bloque junto a la antorcha.
+Usage (from the root): python3 tools/gen/uniques/mansion/smoke_server.py --jar build/libs/heraldia-X.jar
+Places the structure with /place structure and counts paintings, guardian and cat after 15 s (hanging entities fall if they have no
+wall). Places the unrotated templates at known spots and operates the library lever and the combination:
+since /setblock does not update the lever's neighbours, the update is forced by touching a block next to the torch.
 """
 import argparse, os, queue, subprocess, sys, threading, time
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "smoke"))
 import server_smoke as sm
 
-HOUSE, SOT = (2000, 100, 0), (2100, 100, 0)          # origen de cada plantilla colocada sin girar
-CELLAR_MIN = (12, -7, 14)                           # esquina mínima del sótano en coordenadas de la obra
+HOUSE, SOT = (2000, 100, 0), (2100, 100, 0)          # origin of each template placed unrotated
+CELLAR_MIN = (12, -7, 14)                           # minimum corner of the basement in build coordinates
 
 
 def at(base, p, cellar=False):
@@ -53,13 +53,13 @@ def main():
             time.sleep(5)
         if "Generated" not in m.group(0):
             fails.append("place structure")
-        # las entidades de la estructura aparecen unos segundos después que los bloques: se espera por condición
+        # the structure's entities appear a few seconds after the blocks: wait on a condition
         check("los cuadros de la galería siguen colgados", "execute if entity @e[type=minecraft:painting]", until=True)
         print("cuadros:", ctx.count("@e[type=minecraft:painting]"))
         check("guardián con nombre", "execute if entity @e[type=minecraft:wither_skeleton,tag=heraldia_mansion_guardian]", until=True)
         check("gato negro", "execute if entity @e[type=minecraft:cat]", until=True)
         cmd("data get entity @e[type=minecraft:wither_skeleton,limit=1] equipment", r"has the following|No entity|error")
-        # plantillas sin girar en sitios conocidos
+        # unrotated templates at known spots
         for name, base in (("casa", HOUSE), ("sotano", SOT)):
             m = cmd(f"place template heraldia:unicas/mansion/{name} {base[0]} {base[1]} {base[2]}", r"Loaded template|Failed|not loaded|error|Could not")
             if "Loaded" not in m.group(0):
@@ -89,7 +89,7 @@ def main():
                 proc.wait(timeout=120)
             except subprocess.TimeoutExpired:
                 proc.kill()
-    print("PRUEBA MANSIÓN " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
+    print("MANSION TEST " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
     return 1 if fails else 0
 
 

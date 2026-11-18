@@ -1,5 +1,5 @@
-"""Cripta y osarios (pieza bajo tierra), mecanismos de redstone, trampas, generadores, guardián,
-campanario, aguja y daños de ruina. Las piezas salen de tools/gen/uniques/_common/pieces.py."""
+"""Crypt and ossuaries (underground piece), redstone mechanisms, traps, spawners, guardian,
+bell tower, spire and ruin damage. The pieces come from tools/gen/uniques/_common/pieces.py."""
 import math
 from core import B, F
 from lint import passable, top_height, bname
@@ -7,7 +7,7 @@ from .base import *
 from .._common import pieces
 
 FLOOR, TOP = -8, -1
-ROOMS = [  # nombre, x0, x1, z0, z1, cota superior del aire
+ROOMS = [  # name, x0, x1, z0, z1, upper bound of the air
     ("sala", 60, 70, 22, 38, -3), ("cámara oeste", 50, 57, 26, 34, -3), ("paso oeste", 58, 59, 30, 30, -6),
     ("eje del osario", 71, 96, 29, 31, -3),
     ("rama N1", 77, 79, 20, 28, -3), ("rama N2", 85, 87, 20, 28, -3), ("bucle N", 77, 87, 20, 22, -3),
@@ -18,7 +18,7 @@ ROOMS = [  # nombre, x0, x1, z0, z1, cota superior del aire
     ("antecámara de los sellos", 102, 114, 24, 30, -3), ("cámara del tesoro", 102, 114, 35, 41, -3),
     ("relicario", 89, 93, 24, 27, -4),
 ]
-# tres virtudes abren; la codicia es una palanca trampa (dispara una flecha desde detrás de su cartel)
+# three virtues open it; greed is a trap lever (fires an arrow from behind its sign)
 LEVERS = [(107, "codicia", False), (109, "fe", True), (111, "esperanza", True), (113, "caridad", True)]
 
 
@@ -29,7 +29,7 @@ def crypt(c):
             for z in range(z0, z1 + 1):
                 for y in range(FLOOR + 1, top + 1):
                     interior.add((x, y, z))
-    # escaleras desde los brazos del crucero y pozo del relicario
+    # stairs from the transept arms and reliquary shaft
     for (x, y, z), (st, _) in list(c.t.blocks.items()):
         if y < 0 and 63 < x < 67 and (14 <= z <= 21 or 39 <= z <= 46):
             if bname(st) == "air":
@@ -64,7 +64,7 @@ def crypt(c):
 
 
 def hall(c):
-    # pilares, sepulcros de obispos, altar y luz tenue
+    # pillars, bishops' tombs, altar and dim light
     for x in (62, 68):
         for z in (25, 35):
             c.fill(x, -7, z, x, -3, z, PA)
@@ -80,7 +80,7 @@ def hall(c):
         c.hang(x, -3, z, -2, soul=True)
     c.chest(60, -7, 24, "east", "cripta", "cripta, nicho noroeste")
     c.chest(70, -7, 36, "west", "cripta", "cripta, nicho sureste")
-    # cámara oeste: generador de zombis, a oscuras
+    # west chamber: zombie spawner, in the dark
     pieces.spawner(c.set, *(53, -7, 30), "zombie")
     c.spawners.append(((53, -7, 30), "zombie"))
     for (x, z) in ((51, 27), (56, 33), (51, 33)):
@@ -92,7 +92,7 @@ def ossuary(c):
     oss = [r for r in ROOMS if r[0].startswith(("eje", "rama", "bucle"))]
     def inside(x, y, z):
         return (x, y, z) in c.crypt_interior
-    # paredes de huesos con calaveras en hornacinas
+    # bone walls with skulls in niches
     for (_, x0, x1, z0, z1, top) in oss:
         for x in range(x0 - 1, x1 + 2):
             for z in range(z0 - 1, z1 + 2):
@@ -109,7 +109,7 @@ def ossuary(c):
         c.hang(x, -3, z, -2, soul=True)
     c.hang(90, -3, 30, -2, soul=True)
     c.chest(84, -7, 20, "south", "osario", "osario, bucle norte")
-    # generadores: esqueletos (norte) y arañas de cueva entre telarañas (sur, galería hundida)
+    # spawners: skeletons (north) and cave spiders among cobwebs (south, sunken gallery)
     pieces.spawner(c.set, *(82, -7, 17), "skeleton")
     c.spawners.append(((82, -7, 17), "skeleton"))
     pieces.spawner(c.set, *(82, -7, 43), "cave_spider")
@@ -119,18 +119,18 @@ def ossuary(c):
     for (x, y, z) in ((81, -7, 44),):
         c.set(x, y, z, "gravel")
         c.ruin.add((x, y, z))
-    # trampa 1: cable trampa en el eje (x = 82) con un dispensador de flechas sobre cada gancho
+    # trap 1: tripwire on the axis (x = 82) with an arrow dispenser over each hook
     pieces.tripwire_trap(c.set, (82, 28), (82, 32), -7, "z", [((82, -6, 28), "south"), ((82, -6, 32), "north")])
     c.mech.append({"tipo": "cable trampa", "sitio": "eje del osario", "ganchos": [(82, -7, 28), (82, -7, 32)],
                    "cable": [(82, -7, z) for z in (29, 30, 31)], "dispensadores": [(82, -6, 28), (82, -6, 32)]})
-    # trampa 2: placa de presión en el pasadizo estrecho, dispensadores a ras de suelo
+    # trap 2: pressure plate in the narrow passage, floor-level dispensers
     pieces.plate_trap(c.set, [(99, -7, 30)], "south", arrows=16)
     c.mech.append({"tipo": "placa de presión", "sitio": "pasadizo estrecho", "placa": (99, -7, 30),
                    "dispensadores": [(99, -7, 29), (99, -7, 31)]})
 
 
 def reliquary(c):
-    """Relicario oculto bajo el altar mayor: trampilla de hierro en el estrado, palanca junto a ella y escala."""
+    """Hidden reliquary under the high altar: iron trapdoor on the dais, lever next to it and ladder."""
     for y in range(-7, 1):
         c.set(91, y, 27, s("ladder", facing="north"))
     c.set(91, 1, 27, s("iron_trapdoor", facing="north", half="top", open=False, powered=False))
@@ -153,7 +153,7 @@ def piston_door(c, name, door, axis, sign, levers):
 
 
 def treasury(c):
-    # sellos (palancas) de la antecámara, en el muro de cuatro de grueso (z 31..34) de la cámara del tesoro
+    # seals (levers) of the antechamber, in the four-thick wall (z 31..34) of the treasure chamber
     for (lx, name, ok) in LEVERS:
         c.set(lx, -6, 31, CSB)
         sign(c, lx, -5, 30, "north", [f"heraldia.unicas.catedral.sello.{name}"])
@@ -169,7 +169,7 @@ def treasury(c):
     pieces.lever_trap(c.set, (107, -6, 30), (107, -6, 31), (107, -5, 31), "north")
     c.mech.append({"tipo": "palanca trampa", "sitio": "sello de la codicia", "apoyo": (107, -6, 31),
                    "palanca": (107, -6, 30), "dispensadores": [(107, -5, 31)]})
-    # cámara del tesoro: cofre principal, dos cofres laterales y el guardián
+    # treasure chamber: main chest, two side chests and the guardian
     c.chest(108, -7, 41, "north", "premium", "cámara del tesoro (cofre principal)")
     c.chest(104, -7, 41, "north", "tesoro", "cámara del tesoro, oeste")
     c.chest(112, -7, 41, "north", "tesoro", "cámara del tesoro, este")
@@ -198,7 +198,7 @@ def sign(c, x, y, z, facing, keys):
 
 # ---------------------------------------------------------------------- superficie: detalles finales
 def library_door(c):
-    """Gabinete secreto: puerta de estantería de una palanca (lever_door común), escondida entre estanterías."""
+    """Secret closet: single-lever bookcase door (common lever_door), hidden among bookshelves."""
     for z in range(5, 11):
         for y in range(9, 12):
             c.set(86, y, z, "bookshelf")
@@ -258,7 +258,7 @@ def spire(c):
 
 
 def ruin_details(c):
-    # vidrieras rotas en el claristorio sur y huecos en el pretil de la terraza sur
+    # broken stained-glass windows in the south clerestory and gaps in the south terrace parapet
     for x in (43, 44, 45, 50):
         for y in range(18, 23):
             if "pane" in (c.get(x, y, 36) or ""):
@@ -267,7 +267,7 @@ def ruin_details(c):
     for (x, z) in ((37, 42), (38, 42), (52, 42), (25, 42)):
         c.set(x, 17, z, "air")
         c.ruin.add((x, 17, z))
-    # boquete en la cubierta de la nave (sur), con el desván a la vista
+    # hole in the nave roof (south), with the attic in view
     for x in (44, 45, 46):
         for z in (32, 33):
             for y in range(32, 38):
@@ -276,7 +276,7 @@ def ruin_details(c):
                     c.ruin.add((x, y, z))
     c.set(45, 28, 33, "cobblestone")
     c.set(44, 28, 32, "gravel")
-    # panda sur del claustro hundida en parte
+    # south cloister walk partly collapsed
     for x in range(40, 47):
         for z in range(73, 77):
             for y in (6, 7, 8):

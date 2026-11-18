@@ -1,11 +1,11 @@
-"""Embarcadero de los shulkers caídos (heraldia:medianas/embarcadero_shulker/<estilo>, End, islas exteriores): un muelle
-de púrpura de 13 x 21 con su caseta de amarre, donde atracaban los barcos del End; los shulkers que lo guardaban cayeron
-y quedan sus caparazones vacíos (de terracota esmaltada morada: una caja de shulker se podría llevar). Variante
-a: el muelle con un shulker de guardia en el noray y el cofre del capitán en la caseta; b: el muelle con el casco roto
-de una barca del End (proa y mástil de púrpura con su vela de lana morada) y la carga varada: el cofre y dos barriles.
+"""Dock of the fallen shulkers (heraldia:medianas/embarcadero_shulker/<estilo>, End, outer islands): a 13 x 21 purpur
+pier with its mooring hut, where the End ships used to dock; the shulkers that guarded it fell
+and their empty shells remain (of purple glazed terracotta: a shulker box could be carried off). Variant
+a: the pier with a shulker on guard at the bollard and the captain's chest in the hut; b: the pier with the broken hull
+of an End boat (purpur bow and mast with its purple wool sail) and the stranded cargo: the chest and two barrels.
 
-Estilos: altas (tierras altas del End) y medias (tierras medias y yermos del End). Botín acorde: perlas de ender, fruta
-coral, cuerda, hierro, a veces un caparazón de shulker (como mucho uno: el End lo da de todos modos); nada de élitros."""
+Styles: altas (End highlands) and medias (End midlands and barrens). Matching loot: ender pearls, chorus
+fruit, string, iron, sometimes a shulker shell (at most one: the End gives it anyway); no elytra."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -29,7 +29,7 @@ LOOT = {
                                              item("iron_nugget", 5, 2, 6), empty(6)])),
 }
 
-AX, AZ = 13, 21          # muelle de 13 x 21 (x, z): tablero en y = 0 del norte al sur
+AX, AZ = 13, 21          # 13 x 21 (x, z) pier: deck at y = 0 from north to south
 CX = 6
 
 
@@ -42,11 +42,11 @@ def _pier(p, name):
     t = Template(name)
     c.courtyard(t, 0, 0, AX - 1, AZ - 1, _floor(p), air_block=7, edge_block=p["borde"])
     c.entrance(t, CX, p["borde"])
-    for z in range(2, AZ, 4):                                  # noráis (pilares bajos con vara) a los lados
+    for z in range(2, AZ, 4):                                  # bollards (low pillars with a rod) at the sides
         for x in (0, AX - 1):
             t.set(x, 1, z, p["noray"])
             t.set(x, 2, z, "end_rod[facing=up]")
-    # caseta de amarre al norte, a la izquierda de la entrada
+    # mooring hut to the north, left of the entrance
     c.box(t, 1, 1, 2, 4, 4, 6, p["muro"], corner_block=p["pilar"])
     t.fill(1, 5, 2, 4, 5, 6, f"{p['losa']}[type=bottom,waterlogged=false]")
     t.set(4, 1, 4, "air")
@@ -54,8 +54,8 @@ def _pier(p, name):
     c.door(t, 4, 1, 4, "east", "birch_door")
     t.set(1, 2, 4, "purple_stained_glass_pane")
     c.lantern(t, 2, 4, 4)
-    # caparazones caídos a lo largo del muelle (terracota esmaltada: una caja de shulker de adorno se rompería y daría
-    # la caja, dos caparazones)
+    # fallen shells along the pier (glazed terracotta: a decorative shulker box would break and give
+    # the box, two shells)
     for x, z, color in ((9, 9, "purple"), (3, 12, "magenta"), (10, 16, "purple")):
         t.set(x, 1, z, f"{color}_glazed_terracotta[facing=north]")
     return t
@@ -74,7 +74,7 @@ def sentry(p, name):
 def boat(p, name):
     t = _pier(p, name)
     c.place_chest(t, 2, 1, 5, "east", MID, "capitan")
-    # casco roto: borda de púrpura en forma de proa, mástil y vela
+    # broken hull: purpur gunwale in the shape of a bow, mast and sail
     for z in range(11, AZ - 1):
         for x in (CX - 3, CX + 3):
             t.set(x, 1, z, p["muro"])

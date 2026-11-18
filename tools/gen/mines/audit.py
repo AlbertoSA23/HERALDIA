@@ -1,14 +1,14 @@
-"""Auditoría de las entradas a mina (condición para generar; la genérica de lint.py no sirve para una plantilla sin
-caja que baja 30 bloques bajo el patio). Devuelve la lista de errores de una obra (minas.obra):
+"""Audit of the mine entrances (a condition for generating; the generic one in lint.py does not work for a template without a
+box that goes down 30 blocks below the courtyard). Returns the list of errors of a build (mines.construction):
 
-- estanca: toda celda excavada tiene escritas sus 6 vecinas (no entra agua ni lava de las cuevas vanilla) y ningún forro
-  es de un bloque natural (dentro no nacerían manantiales, liquen ni charcas);
-- se baja andando (recorrido.andar, sin saltos): desde el patio se llega a todos los cruces de la galería y junto a
-  todos los cofres; en la grande, también por el pozo de la torre sin pasar por la boca (la escalera de caracol);
-- la vía sigue sin descarrilar del patio al último cruce del tronco (en la grande, hasta el nivel hondo) y cada raíl
-  tiene debajo un bloque macizo;
-- botín: cada contenedor con una tabla de LOOT y todas las tablas del tamaño en algún contenedor;
-- entidades y generadores dentro del máximo, los mobs persistentes y anclados, y muestras de techo para el Java.
+- watertight: every excavated cell has its 6 neighbors written (no water or lava from the vanilla caves gets in) and no lining
+  is a natural block (no springs, lichen or pools would spawn inside);
+- it can be descended on foot (walkthrough.strict_walk, no jumps): from the courtyard all the gallery junctions and the spots next to
+  all the chests are reached; in the large one, also via the tower shaft without going through the mouth (the spiral staircase);
+- the track runs without derailing from the courtyard to the last junction of the trunk (in the large one, to the deep level) and every rail
+  has a solid block underneath;
+- loot: every container with a LOOT table and all the size's tables in some container;
+- entities and spawners within the maximum, mobs persistent and anchored, and ceiling samples for the Java side.
 """
 from core import ANCHORED_TAG
 from uniques._common import walkthrough
@@ -29,7 +29,7 @@ def errors(o, size):
     from . import MAX_ENTITIES, MAX_GENERATORS, LOOT
     t, e = o.t, []
     blocks = t.blocks
-    # estanca y sin forro natural
+    # watertight and no natural lining
     open_ones = [c for c in o.carved for d in N6 if (c[0] + d[0], c[1] + d[1], c[2] + d[2]) not in blocks]
     if open_ones:
         e.append(f"{len(open_ones)} celdas excavadas sin cerrar, p. ej. {sorted(open_ones)[0]}")
@@ -52,12 +52,12 @@ def errors(o, size):
         no_mouth = dict(view)
         for y in range(-3, 4):
             for x in range(-1, 2):
-                no_mouth[(x, y, 4)] = "minecraft:stone"          # tapiada la bajada: solo queda el pozo
+                no_mouth[(x, y, 4)] = "minecraft:stone"          # descent walled up: only the shaft remains
         reach2, _ = walkthrough.strict_walk(walkthrough.View(no_mouth), start, (x0, x1, z0, z1))
         bx, by, bz = o.descent
         if (bx, by, bz + 1) not in reach2:
             e.append(f"el pie de la escalera de caracol {(bx, by, bz + 1)} no se alcanza bajando por el pozo")
-    # vía del patio a la galería
+    # track from the courtyard to the gallery
     get = lambda x, y, z: view.get((x, y, z))
     for ini, direction, _ in o.tracks:
         if not is_rail(get(*ini)):
@@ -71,14 +71,14 @@ def errors(o, size):
         deep = min(n[1] for n in o.nodes) + 1
         if finish[1] != deep:
             e.append(f"la vía desde {ini} acaba en {finish}, no en el nivel más hondo (pies {deep})")
-    # cada raíl sobre un bloque macizo (sobre un camino de tierra, una losa o un escalón saltaría al primer aviso)
+    # every rail on a solid block (on a dirt path, a slab or a step it would pop off at the first update)
     for p, (st, _) in blocks.items():
         if is_rail(st):
             below = view.get((p[0], p[1] - 1, p[2]))
             if not walkthrough.is_full(below) or name(below) in ("dirt_path", "farmland", "glass"):
                 e.append(f"raíl en {p} sin apoyo macizo ({below})")
                 break
-    # botín
+    # loot
     used = set()
     for p, (st, nbt) in blocks.items():
         lt = nbt.get("LootTable") if nbt else None
@@ -92,7 +92,7 @@ def errors(o, size):
             used.add(str(n["LootTable"]).split("heraldia:minas/")[-1])
     if used != TABLES[size]:
         e.append(f"tablas usadas {sorted(used)}, esperadas {sorted(TABLES[size])}")
-    # entidades y generadores
+    # entities and spawners
     if len(t.entities) > MAX_ENTITIES:
         e.append(f"{len(t.entities)} entidades (máximo {MAX_ENTITIES})")
     for *_, n in t.entities:

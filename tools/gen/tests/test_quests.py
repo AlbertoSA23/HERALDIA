@@ -1,5 +1,5 @@
-"""Encargos del tablón y reputación (encargos.py, T38): textos en los 8 idiomas, logros, la página de la Guía, las opciones
-y el comando, y que el Java solo use claves que existen."""
+"""Quest board quests and reputation (encargos.py, T38): texts in the 8 languages, advancements, the Guide page, the options
+and the command, and that the Java uses only keys that exist."""
 import json
 import os
 import re
@@ -22,7 +22,7 @@ def _java(route):
 
 
 def _all():
-    """Claves nuevas de T38 en es_es/en_us: los textos, la Guía y las opciones."""
+    """New T38 keys in es_es/en_us: the texts, the Guide and the options."""
     out = {"es_es": {}, "en_us": {}}
     for part in (quests.lang(), guide.lang(), options.lang()):
         for k in part["es_es"]:
@@ -46,9 +46,9 @@ def test_translated_in_each_language(lang_code):
     base = _all()
     assert len(base["en_us"]) >= 60
     for k, en in base["en_us"].items():
-        assert k in t, f"{lang_code}: falta {k}"
-        assert t[k].strip(), f"{lang_code}: {k} vacía"
-        assert sorted(CAVITY.findall(t[k])) == sorted(CAVITY.findall(en)), f"{lang_code}: {k} con otros huecos"
+        assert k in t, f"{lang_code}: missing {k}"
+        assert t[k].strip(), f"{lang_code}: {k} empty"
+        assert sorted(CAVITY.findall(t[k])) == sorted(CAVITY.findall(en)), f"{lang_code}: {k} with different placeholders"
 
 
 def test_the_java_only_uses_keys_that_exist():
@@ -57,8 +57,8 @@ def test_the_java_only_uses_keys_that_exist():
     used = set(re.findall(r'"(heraldia\.(?:encargos|estado\.encargos)[a-z_.]*)"', src))
     dynamic = {k for k in used if k.endswith(".")}
     for k in used - dynamic:
-        assert k in lang, f"el Java usa {k}, que no está en encargos.py"
-    # las que se completan en Java: nivel.<nivel>, estado.<estado>, saludo.<nivel>, no_aceptable.<motivo>
+        assert k in lang, f"the Java uses {k}, which is not in encargos.py"
+    # those completed in Java: nivel.<nivel>, estado.<estado>, saludo.<nivel>, no_aceptable.<motivo>
     for pre in dynamic:
         assert any(k.startswith(pre) for k in lang), pre
     for n in quests.LEVELS:
@@ -93,7 +93,7 @@ def test_advancements():
         parent = f"heraldia:{route}"
     src = _java("quests/Quests.java")
     for lid in ids:
-        assert f'"encargos/{lid}"' in src, f"el Java no concede encargos/{lid}"
+        assert f'"encargos/{lid}"' in src, f"the Java does not grant encargos/{lid}"
     assert '"hecho"' in src
 
 
@@ -106,7 +106,7 @@ def test_write(tmp_path):
 def test_guide_page():
     pids = [p[0] for p in guide.PAGES]
     assert "encargos" in pids
-    assert pids.index("encargos") == pids.index("vida") + 1, "justo después de la vida en la aldea"
+    assert pids.index("encargos") == pids.index("vida") + 1, "right after village life"
     _, title, text = guide.PAGES[pids.index("encargos")]
     for i in (0, 1):
         assert guide.page_lines(title[i], text[i]) <= chest_loot.BOOK_LINES
@@ -128,9 +128,9 @@ def test_options():
     assert (schema["encargos.rotacion_dias"]["min"], schema["encargos.rotacion_dias"]["max"]) == (1, 30)
     for k in ("encargos.activado", "encargos.rotacion_dias", "reputacion.activado"):
         assert schema[k]["seccion"] == "encargos"
-        assert not options.is_generation(k), "valor de juego, no de generación"
+        assert not options.is_generation(k), "gameplay value, not generation"
         assert "generacion" not in schema[k]
-        assert k not in options.profile_options(), "el perfil no los toca (no son de dificultad)"
+        assert k not in options.profile_options(), "the profile does not touch them (they are not difficulty)"
     assert "encargos" in [s for s, *_ in options.SECTIONS]
     reload = _java("config/Reload.java")
     assert '"encargos."' in reload and '"reputacion."' in reload
@@ -141,7 +141,7 @@ def test_command_in_english():
                  "quest turnin"):
         assert route in commands.CANONICAL
         assert re.fullmatch(r"[a-z <>]+", route)
-    # ningún texto ni botón manda a un nombre antiguo
+    # no text or button sends to an old name
     assert commands.text_errors(_all()["es_es"]) == []
     assert commands.text_errors(_all()["en_us"]) == []
     src = _java("quests/Quests.java")

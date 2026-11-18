@@ -1,12 +1,12 @@
-"""Auditoría propia del Coliseo (condición para generar) y planos/renders para docs/unicas/coliseo/.
+"""Colosseum's own audit (condition for generating) and floor plans/renders for docs/unicas/coliseo/.
 
-Comprueba sobre el mundo completo (pieza principal + hipogeo):
-  - recorrido a pie desde fuera, sin saltos ni caídas de más de un bloque, y que desde cada celda se puede volver;
-  - con los puzles resueltos: cofres, palanca, marco, trampillas, escaleras y guardián al alcance;
-  - con los puzles sin resolver: los cofres ocultos y la cámara del tesoro no se alcanzan;
-  - nada flotando (todo bloque unido al suelo de su pieza), luz de bloque 0 alrededor de los generadores;
-  - estados de redstone coherentes al generarse; jigsaws intactos y alineados; porcentaje de ruina.
-Uso: python3 tools/gen/uniques/colosseum/audit.py [--blueprints]
+Checks on the complete world (main piece + hypogeum):
+  - walkthrough on foot from outside, without jumps or falls of more than one block, and from each cell you can return;
+  - with the puzzles solved: chests, lever, frame, trapdoors, stairs and guardian within reach;
+  - with the puzzles unsolved: the hidden chests and the treasure chamber are not reached;
+  - nothing floating (every block joined to the ground of its piece), block light 0 around the spawners;
+  - consistent redstone states when generated; jigsaws intact and aligned; ruin percentage.
+Use: python3 tools/gen/uniques/colosseum/audit.py [--blueprints]
 """
 import os, sys
 from collections import deque
@@ -66,15 +66,15 @@ def audit_it(o, main, hyp, report=None):
     jm, jh = main.jigsaws[0]["pos"], hyp.jigsaws[0]["pos"]
     if (jm[0], jm[1] - 1, jm[2]) != jh:
         msgs.append(f"jigsaws desalineados {jm} {jh}")
-    # recorrido con puzles resueltos
+    # walkthrough with the puzzles solved
     seen, edges = R.strict_walk(view(o, True), START, LIMITS)
     cells = set(seen)
     noret = R.no_return(edges, START, o.ruined)
     if noret:
-        msgs.append(f"{len(noret)} celdas sin vuelta a la entrada, p. ej. {sorted(noret)[:5]}")
+        msgs.append(f"{len(noret)} cells with no way back to the entrance, e.g. {sorted(noret)[:5]}")
     for label, table, p in o.feat["cofre"]:
         if not R.nearby_flag(cells, P(*p)):
-            msgs.append(f"cofre inaccesible: {label} {p}")
+            msgs.append(f"unreachable chest: {label} {p}")
     for kind in ("palanca", "marco", "guardian", "puzle", "trampa", "escalera", "puerta"):
         for label, p in o.feat[kind]:
             if not R.nearby_flag(cells, P(*p), 2):
@@ -84,23 +84,23 @@ def audit_it(o, main, hyp, report=None):
             msgs.append(f"escalera de mano inaccesible en {p}")
         if bname(st) in ("barrel",) and not R.nearby_flag(cells, p):
             msgs.append(f"barril inaccesible en {p}")
-    # con los puzles cerrados lo oculto no se alcanza
+    # with the puzzles closed, the hidden parts are not reached
     seen_c, _ = R.strict_walk(view(o, False), START, LIMITS)
     hidden = [f for f in o.feat["cofre"] if "oculto" in f[0] or f[1] == "premium"]
     for label, table, p in hidden:
         if R.nearby_flag(set(seen_c), P(*p)):
-            msgs.append(f"cofre oculto alcanzable sin resolver puzles: {label}")
+            msgs.append(f"hidden chest reachable without solving puzzles: {label}")
     # nada flotando
     fl = R.floating_blocks({p: v[0] for p, v in o.t.blocks.items()}, (0, blueprint.HYP[4]))
     if fl:
-        msgs.append(f"{len(fl)} bloques flotando, p. ej. {[(p, o.t.blocks[p][0]) for p in fl[:4]]}")
-    # luz en los generadores
+        msgs.append(f"{len(fl)} floating blocks, e.g. {[(p, o.t.blocks[p][0]) for p in fl[:4]]}")
+    # light at the spawners
     lv = R.light({p: v[0] for p, v in o.t.blocks.items()})
     for label, mob, p in o.feat["generador"]:
         mx = R.light_generator(lv, P(*p))
         if mx > 0:
-            msgs.append(f"luz {mx} junto al generador {label}")
-    # redstone: estados estables al generarse (simulación común) y la palanca del puzle 2 abre la puerta
+            msgs.append(f"light {mx} next to spawner {label}")
+    # redstone: stable states when generated (common simulation) and the puzzle 2 lever opens the door
     errs, _ = redstone.check_static(o.t)
     msgs += errs
     lever = P(*o.feat["palanca"][0][1])
@@ -108,18 +108,18 @@ def audit_it(o, main, hyp, report=None):
     door = P(*o.feat["puzle"][1][1]) if "pistones" in o.feat["puzle"][1][0] else P(*o.feat["puzle"][0][1])
     for (x, y, z), (st, _) in o.t.blocks.items():
         if bname(st) == "sticky_piston" and abs(x - door[0]) + abs(z - door[2]) <= 2 and sim.powered((x, y, z)):
-            msgs.append(f"con la palanca encendida el pistón {(x, y, z)} sigue con señal")
+            msgs.append(f"with the lever on, piston {(x, y, z)} still has a signal")
     # ruina
     dmg, tot = ruin_ratio(o)
     pct = 100.0 * dmg / tot
     if not 15.0 <= pct <= 20.0:
-        msgs.append(f"ruina {pct:.1f} % de la superficie (objetivo 15-20 %)")
+        msgs.append(f"ruin {pct:.1f} % of the surface (target 15-20 %)")
     if report is not None:
         report.update(seen=seen, closed=seen_c, ruin_piece=(dmg, tot, pct), light=lv)
     return msgs
 
 
-# ------------------------------------------------------------------ planos y renders
+# ------------------------------------------------------------------ floor plans and renders
 LEVELS = [(-13, "Hipogeo H2 (oculto)"), (-6, "Hipogeo H1"), (1, "Planta baja G1 y arena"), (5, "Podio y palcos"),
           (8, "Galería G2"), (11, "Pasillo I"), (19, "Terraza superior")]
 
@@ -188,7 +188,7 @@ if __name__ == "__main__":
     o, main, hyp, offs = blueprint.construct()
     rep = {}
     msgs = audit_it(o, main, hyp, rep)
-    d, t, pct = rep["ruina"]
+    d, t, pct = rep["ruin_piece"]
     print(f"celdas alcanzables: {len(rep['seen'])}; ruina {d}/{t} = {pct:.1f} %")
     for m in msgs:
         print("AVISO:", m)
@@ -198,5 +198,5 @@ if __name__ == "__main__":
         os.makedirs(outdir, exist_ok=True)
         blueprints(o, rep, outdir)
         renders(main, hyp, outdir)
-        print("planos y renders en", outdir)
+        print("floor plans and renders in", outdir)
     sys.exit(1 if msgs else 0)

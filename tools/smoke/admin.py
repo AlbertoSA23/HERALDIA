@@ -1,19 +1,19 @@
-"""Herramientas de administración en un servidor dedicado 26.3 real con un jugador simulado (Carpet):
-/heraldia review, /heraldia status y /heraldia reload.
+"""Administration tools on a real 26.3 dedicated server with a simulated player (Carpet):
+/heraldia review, /heraldia status and /heraldia reload.
 
-Uso: python3 tools/smoke/admin.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-  - review list: todas las paradas, en orden (aldeas por familia sin la desactivada, únicas con la Atlántida,
-    medianas, minas pequeña-mediana-grande, faro y naufragio, la arena y el camino);
-  - review goto arena: sin arena colocada lo dice y no mueve al jugador;
-  - review goto unica/atlantida: prevista (sin generar), avisa de que ir genera terreno y no mueve al jugador; la
-    búsqueda va fuera del hilo del servidor (se mide);
-  - review goto <mediana> (y «generate» si está prevista): teletransporte a un sitio seguro (pies y cabeza libres, suelo
-    debajo) que coincide con lo que dice el log;
-  - review mark problem <nota>, next, skip: el progreso se guarda (heraldia_revision.json y .md en la
-    carpeta del mundo) y sobrevive a un reinicio;
-  - status (y sus otras páginas): versión, descubiertas por tipo, reposición del botín, Lootr y, como operador, los mods;
-  - reload: cambiando dificultad.nivel de heroica a fácil, el zombi anclado ya cargado pasa de 40 a 15 de vida
-    máxima sin reiniciar; aldeas.separacion_bloques se lista como pendiente y /heraldia info sigue con el valor en uso.
+Usage: python3 tools/smoke/admin.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+  - review list: all the stops, in order (villages by family without the disabled one, unique structures with Atlantis,
+    medium structures, small-medium-large mines, lighthouse and shipwreck, the arena and the road);
+  - review goto arena: with no arena placed it says so and does not move the player;
+  - review goto unica/atlantida: planned (not generated), warns that going there generates terrain and does not move the player; the
+    search runs off the server thread (it is timed);
+  - review goto <mediana> (and "generate" if planned): teleport to a safe spot (feet and head free, ground
+    below) that matches what the log says;
+  - review mark problem <note>, next, skip: progress is saved (heraldia_revision.json and .md in the
+    world folder) and survives a restart;
+  - status (and its other pages): version, discovered by type, loot replenishment, Lootr and, as operator, the mods;
+  - reload: changing difficulty.level from heroic to easy, the already loaded anchored zombie goes from 40 to 15 max
+    health without restarting; aldeas.separacion_bloques is listed as pending and /heraldia info keeps the value in use.
 """
 import argparse, copy, json, os, re, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +23,7 @@ from trophies import CARPET
 from modrinth import fetch
 
 PLAYER = "Revisor"
-X, Y, Z = 0, 120, 0                       # el zombi de la prueba de la recarga (NoAI: no cae)
+X, Y, Z = 0, 120, 0                       # the zombie for the reload test (NoAI: it does not fall)
 NUM = r"(-?\d+(?:\.\d+)?)"
 TITLE = r"(?:Review|Revisión) (\d+)/(\d+): "
 LOG_SEARCH = r"Heraldia: /heraldia review ([a-z_/]+): (.+) en (\d+) ms"
@@ -61,13 +61,13 @@ def main():
             ok += 1
         else:
             fails.append(msg)
-            print("FALLA:", msg)
+            print("FAIL:", msg)
 
     def as_player(cmd):
         return f"execute as {PLAYER} run heraldia review {cmd}"
 
     def search(ctx, stop):
-        """Espera a que termine la búsqueda (fuera del hilo del servidor) de una parada: (resultado, ms)."""
+        """Waits for a stop's search (off the server thread) to finish: (result, ms)."""
         while True:
             m = s.wait_for(ctx.lines, LOG_SEARCH, s.COMMAND_TIMEOUT_S, ctx.seen)
             if m.group(1) == stop:
@@ -83,11 +83,11 @@ def main():
     def player(ctx):
         ctx.run(f"player {PLAYER} spawn at 0 100 0", r"joined the game|Player .* spawn|Unknown|Incorrect")
         if not ctx.until(f"execute if entity @a[name={PLAYER}]"):
-            raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
+            raise SystemExit(f"simulated player {PLAYER} does not appear (Carpet)")
 
     def arrives(ctx, stop, idx):
-        """Tras ir a una parada con destino: el log del teletransporte, el título y un sitio seguro (pies y cabeza
-        libres, suelo debajo, nunca lava) en el que está de verdad el jugador."""
+        """After going to a stop with a destination: the teleport log, the title and a safe spot (feet and head
+        free, ground below, never lava) where the player really is."""
         m = s.wait_for(ctx.lines, LOG_TP + "|" + r"no safe spot|ningún sitio seguro", s.COMMAND_TIMEOUT_S, ctx.seen)
         check(m.lastindex, f"{stop}: no hay sitio seguro: {m.string.strip()}")
         if not m.lastindex:
@@ -103,7 +103,7 @@ def main():
               f"{stop}: pies o cabeza dentro de un bloque en {x} {y} {z}")
         check(ctx.test(f"execute unless block {x} {y - 1} {z} #minecraft:air"), f"{stop}: sin suelo bajo {x} {y} {z}")
         check(ctx.test(f"execute unless block {x} {y - 1} {z} minecraft:lava"), f"{stop}: encima de lava")
-        print(f"{stop}: en {x} {y} {z}")
+        print(f"{stop}: at {x} {y} {z}")
 
     try:
         srv = Server(a.work, launcher)
@@ -126,15 +126,15 @@ def main():
         check([i for i in ids if i.startswith("mina/")] == ["mina/pequena", "mina/mediana", "mina/grande"], "lista: minas fuera de orden")
         check([i for i in ids if i.startswith("costa/")] == ["costa/faro", "costa/naufragio"], "lista: faro y naufragio fuera de orden")
 
-        # --- la arena, sin colocar ---
+        # --- the arena, not placed ---
         before = pos(ctx)
         m = ctx.run(as_player("goto arena"), r"has not been placed|no está colocada")
         check(m.lastindex is None and m.group(0) in ("has not been placed", "no está colocada"), f"ir arena: {m.string.strip()}")
 
-        # --- la Atlántida: prevista, se avisa y no se mueve ---
+        # --- Atlantis: planned, a warning is shown and the player does not move ---
         ctx.run(as_player("goto unica/atlantida"), r"(?:Looking for|Buscando) ")
         res, ms = search(ctx, "unica/atlantida")
-        print(f"review goto unica/atlantida: {res} en {ms} ms (fuera del hilo del servidor)")
+        print(f"review goto unica/atlantida: {res} in {ms} ms (off the server thread)")
         text = "".join(s.drain(ctx))
         check("generada=false" in res, f"atlántida: debería estar prevista: {res}")
         check(re.search(r"has not been generated yet|aún no se ha generado", text), "atlántida: no avisa de que se generaría terreno")
@@ -145,7 +145,7 @@ def main():
         check(before and after and abs(before[0] - after[0]) < 1 and abs(before[2] - after[2]) < 1,
               f"atlántida prevista: el jugador se ha movido de {before} a {after}")
 
-        # --- una mediana: teletransporte seguro ---
+        # --- a medium structure: safe teleport ---
         medium = next(i for i in ids if i.startswith("mediana/"))
         idx = ids.index(medium)
         ctx.run(as_player(f"goto {medium}"), r"(?:Looking for|Buscando) ")
@@ -158,7 +158,7 @@ def main():
             search(ctx, medium)
         arrives(ctx, medium, idx)
 
-        # --- marcar, siguiente y saltar ---
+        # --- mark, next and skip ---
         m = ctx.run(as_player(f"mark problem {NOTE}"), r"with a problem|con problema")
         check(m.lastindex is None and NOTE in m.string, f"marcar: {m.string.strip()}")
         for order_, expected in (("next", idx + 2), ("skip", idx + 3)):
@@ -194,7 +194,7 @@ def main():
             check(prog.get("paradas", {}).get(medium, {}).get("marca") == "problema", f"json: {prog}")
             check(prog.get("actual") == idx + 2, f"json: parada actual {prog.get('actual')} (debe ser {idx + 2})")
 
-        # --- una prevista con «Ir y generar»: se genera el terreno y se llega a un sitio seguro ---
+        # --- a planned one with "Ir y generar": the terrain is generated and a safe spot is reached ---
         planned = None
         for i in ids[idx + 1:]:
             if not i.startswith("mediana/"):
@@ -205,7 +205,7 @@ def main():
                 s.drain(ctx)
                 planned = i
                 break
-            if "generada=true" in res:      # ya generada: espera al teletransporte (si no, la siguiente orden está «ocupada»)
+            if "generada=true" in res:      # already generated: wait for the teleport (otherwise the next command is "busy")
                 s.wait_for(ctx.lines, LOG_TP + "|no safe spot|ningún sitio seguro", s.COMMAND_TIMEOUT_S, ctx.seen)
             s.drain(ctx)
         check(planned, "no hay ninguna mediana prevista para probar «Ir y generar»")
@@ -234,7 +234,7 @@ def main():
         check(re.search(r"(?:Restocking loot|Botín que se repone): (?:disabled|desactivado)", text), "estado: falta la reposición")
         check(re.search(r"(?:Other mods|Otros mods) \(\d+\): .*Carpet", text), "estado (operador): no lista Carpet entre los mods")
 
-        # --- /heraldia reload: dificultad sin reiniciar ---
+        # --- /heraldia reload: difficulty without restarting ---
         ctx.run(f"forceload add {X - 16} {Z - 16} {X + 16} {Z + 16}", r"Marked|force|already|[Aa]dded")
         for rule in ("spawn_mobs", "advance_time"):
             ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
@@ -267,7 +267,7 @@ def main():
         check(m.lastindex is None, f"segunda recarga: {m.string.strip()}")
         s.drain(ctx)
 
-        # --- reinicio: el progreso de la revisión se conserva ---
+        # --- restart: the review progress is kept ---
         srv.stop()
         srv = Server(a.work, launcher)
         ctx = srv.ctx

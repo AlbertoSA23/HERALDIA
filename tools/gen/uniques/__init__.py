@@ -1,71 +1,71 @@
-"""Estructuras únicas: cada módulo de este paquete (unicas/<id>.py o unicas/<id>/) define una estructura.
+"""Unique structures: each module in this package (unicas/<id>.py or unicas/<id>/) defines one structure.
 
-Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar main.py ni writer.py):
+Contract of each module (the generator discovers them by itself; main.py and writer.py need no changes):
   STRUCTURE = dict(
-      biomes=["minecraft:forest", ...] (pasa a la etiqueta heraldia:unicas/<id>, con las #c: de biomas.CONVENCIONALES)
-             o "#heraldia:<familia>" (etiqueta de una familia de aldeas); también en STRUCTURE["json"]["biomes"],
+      biomes=["minecraft:forest", ...] (goes into the tag heraldia:unicas/<id>, with the #c: tags from biomes.CONVENTIONAL)
+             or "#heraldia:<familia>" (tag of a village family); also in STRUCTURE["json"]["biomes"],
       start_pool="unicas/<id>/inicio",
       size=1..20, max_distance=1..116,
       terrain_adaptation="beard_thin" | "beard_box" | "bury" | "encapsulate" | "none",
-      step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG" (o None),
-      spacing=250, separation=190,   # chunks; por defecto una cada ~3.000-5.000 bloques (separation: ver abajo)
+      step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG" (or None),
+      spacing=250, separation=190,   # chunks; by default one every ~3,000-5,000 blocks (separation: see below)
   )
-  # La rejilla es heraldia:rejilla: activada y separación en bloques se configuran en config/heraldia.json
-  # (unicas.<id>.activada, unicas.<id>.separacion_bloques) sin escribir código; spacing da el valor por defecto. En las
-  # configurables el Java no usa separation: la separación interna es la distancia mínima entre únicas y el origen de la
-  # rejilla se desplaza por tipo (GridPlacement), para que cada tipo se reparta por toda la casilla.
-  # Opcional: STRUCTURE["candidata_en_bioma"] = True para biomas muy raros (campos de champiñones): la candidata de cada
-  # casilla no es un chunk al azar, sino el sitio de la ventana de la casilla más metido en sus biomas (GridPlacement).
-  # Opcional: STRUCTURE["placement"] = colocación propia (dict JSON); la estructura deja entonces de ser configurable.
-  # Opcional: STRUCTURE["json"] = dict completo de la estructura (tipo propio en Java, por ejemplo); sustituye al anterior.
-  def build(reg): añade plantillas (nombres "unicas/<id>/...") y pools ("unicas/<id>/...") al registro.
-  LOOT = {"premium": tabla, ...}   -> heraldia:unicas/<id>/<nombre>
-  LLAVES = {"<llave>": {"tabla": tabla, "cerradura": lock}}   (opcional) llaves de cofres cerrados con `lock`: la tabla
-      da exactamente el objeto que pide la cerradura; va a heraldia:llaves/<id>/<llave> y la ofrece /heraldia key.
-  LANG = {"es_es": {...}, "en_us": {...}}   (opcional) claves de traducción propias que se suman al idioma del mod.
-  # Opcional (mapas del tesoro, ver mapas.py): nombre para el mapa y su marca en el mapa.
-  NOMBRE = {"es_es": "Atlántida", "en_us": "Atlantis"}           # por defecto, el id
-  MAPA = {"decoration": "minecraft:monument"}                     # por defecto minecraft:red_x
-  # Opcional (logros, ver logros.py): descubrir, guardián y tesoro salen solos; esto solo los ajusta.
-  LOGRO = {"icono": "minecraft:trident",       # icono de «descubrir»; por defecto minecraft:filled_map
-           "tesoro": ["premium"],              # tablas de LOOT cuyo cofre cuenta como tesoro; por defecto ["premium"]
-           "tesoro_objeto": {predicado de objeto},   # o conseguir un objeto (cofre de contenido fijo, sin tabla)
+  # The grid is heraldia:rejilla: enabled and spacing in blocks are set in config/heraldia.json
+  # (unicas.<id>.activada, unicas.<id>.separacion_bloques) without writing code; spacing gives the default value. For the
+  # configurable ones the Java code does not use separation: the internal spacing is the minimum distance between unique
+  # structures and the grid origin is shifted per type (GridPlacement), so that each type spreads over the whole cell.
+  # Optional: STRUCTURE["candidata_en_bioma"] = True for very rare biomes (mushroom fields): the candidate of each
+  # cell is not a random chunk, but the site in the cell's window that lies deepest inside its biomes (GridPlacement).
+  # Optional: STRUCTURE["placement"] = custom placement (JSON dict); the structure then stops being configurable.
+  # Optional: STRUCTURE["json"] = complete dict of the structure (a custom type in Java, for example); replaces the above.
+  def build(reg): adds templates (names "unicas/<id>/...") and pools ("unicas/<id>/...") to the registry.
+  LOOT = {"premium": table, ...}   -> heraldia:unicas/<id>/<name>
+  KEYS = {"<key>": {"tabla": table, "cerradura": lock}}   (optional) keys for chests locked with `lock`: the table
+      gives exactly the item the lock asks for; it goes to heraldia:llaves/<id>/<key> and /heraldia key offers it.
+  LANG = {"es_es": {...}, "en_us": {...}}   (optional) own translation keys that are added to the mod's language file.
+  # Optional (treasure maps, see maps.py): name for the map and its marker on the map.
+  DISPLAY_NAME = {"es_es": "Atlántida", "en_us": "Atlantis"}           # by default, the id
+  MAP = {"decoration": "minecraft:monument"}                     # by default minecraft:red_x
+  # Optional (advancements, see advancements.py): discover, guardian and treasure come out on their own; this only adjusts them.
+  ADVANCEMENT = {"icono": "minecraft:trident",       # icon of "discover"; by default minecraft:filled_map
+           "tesoro": ["premium"],              # LOOT tables whose chest counts as treasure; by default ["premium"]
+           "tesoro_objeto": {item predicate},   # or obtain an item (fixed-content chest, no table)
            "extra": [{"id", "icono", "titulo": (es, en), "descripcion": (es, en), "criterios": {...},
-                      "requisitos": [[...]], "padre": "descubrir", "marco": "task", "xp": 30}]}   # logros propios
-  # El guardián final se crea con _comun/piezas.guardian (etiqueta heraldia_guardian): sin él la compilación falla,
-  # y también si hay más de uno (cada guardián suelta un trofeo).
-  TROFEO = {"objeto": "iron_axe",                       # OBLIGATORIO: trofeo que suelta el guardián (_comun/botin.trofeo)
-            "nombre": (es, en), "lore": [(es, en)],      # una o dos líneas de lore
-            "rareza": "rare",                            # common | uncommon | rare | epic (color del nombre)
-            "encantamientos": {"minecraft:efficiency": 2},   # opcional, niveles 1-3
-            "componentes": {"minecraft:trim": {...}}}    # opcional: adorno, blasón... (no nombre, lore, rareza ni custom_data)
-  # El trofeo (heraldia:trofeos/<id>, custom_data {heraldia_trofeo: "<id>"}) solo cae si mata al guardián un jugador:
-  # pack.tag_guardians le pone la DeathLootTable heraldia:guardianes/<id>/<mob> (su botín de siempre + el trofeo).
-  # Sin TROFEO (o sin nombre, lore..., o con netherita/élitros) la compilación falla. El logro unicas/trofeos sale solo.
-  REFUERZOS = ["husk", {"mob": "husk", "equipo": {"mainhand": "iron_sword"}}]   # opcional (jefes.py): 2-3 mobs que el
-  # guardián llama en cada fase (al bajar del 66 % y del 33 %); sin él, los de la familia del tipo de su guardián.
-  HISTORIA = {"cofre": "biblioteca",                   # OBLIGATORIO: su pliego de la Crónica de los Heraldos (docs/STORY.md)
-              # cofre: tabla de LOOT de un cofre menor o de una sala oculta que ya esté en sus plantillas (mejor uno solo)
-              "relato": [(es, en), (es, en)],              # 1-2 páginas (máx. botin.MAX_PAGINA caracteres): su parte
-              "pista": (es, en),                           # cómo la señala el pliego anterior: bioma y rasgo, sin nombre
-              "final": True}                               # solo la Atlántida: cierra la cadena
-  # La cadena se calcula sola (botin.historia_cadena: por id y la final al cabo, que señala la primera): el pliego de
-  # cada única (heraldia:historia/<id>, custom_data {heraldia_historia: "<id>"}) añade una página con la pista de la
-  # siguiente y, a veces, su mapa del tesoro; la tabla de su cofre lo anida. Sin HISTORIA (o con un cofre que no está
-  # en sus plantillas, o páginas demasiado largas) la compilación falla. El logro unicas/cronista sale solo.
-  LANG = {"es_es": {...}, "en_us": {...}}   # opcional: textos propios (mismas claves en los dos idiomas)
-  # Opcional en una plantilla: t.lint_open = {pos: estado o None}, estado con los puzles resueltos para el recorrido a pie.
+                      "requisitos": [[...]], "padre": "descubrir", "marco": "task", "xp": 30}]}   # own advancements
+  # The final guardian is created with _comun/pieces.guardian (tag heraldia_guardian): without it the build fails,
+  # and also if there is more than one (each guardian drops a trophy).
+  TROPHY = {"objeto": "iron_axe",                       # REQUIRED: trophy the guardian drops (_comun/chest_loot.trophy)
+            "nombre": (es, en), "lore": [(es, en)],      # one or two lore lines
+            "rareza": "rare",                            # common | uncommon | rare | epic (name color)
+            "encantamientos": {"minecraft:efficiency": 2},   # optional, levels 1-3
+            "componentes": {"minecraft:trim": {...}}}    # optional: trim, banner pattern... (not name, lore, rarity or custom_data)
+  # The trophy (heraldia:trofeos/<id>, custom_data {heraldia_trofeo: "<id>"}) only drops if a player kills the guardian:
+  # pack.tag_guardians gives it the DeathLootTable heraldia:guardianes/<id>/<mob> (its usual loot + the trophy).
+  # Without TROPHY (or without name, lore..., or with netherite/elytra) the build fails. The advancement unicas/trofeos comes out on its own.
+  REINFORCEMENTS = ["husk", {"mob": "husk", "equipo": {"mainhand": "iron_sword"}}]   # optional (bosses.py): 2-3 mobs that the
+  # guardian summons in each phase (when dropping below 66 % and 33 %); without it, those of the family of its guardian's type.
+  STORY = {"cofre": "biblioteca",                   # REQUIRED: its sheet of the Chronicle of the Heralds (docs/STORY.md)
+              # cofre: LOOT table of a minor chest or a hidden room that is already in its templates (preferably just one)
+              "relato": [(es, en), (es, en)],              # 1-2 pages (max. chest_loot.MAX_PAGINA characters): its part
+              "pista": (es, en),                           # how the previous sheet points to it: biome and feature, no name
+              "final": True}                               # only Atlantis: closes the chain
+  # The chain is computed automatically (chest_loot.story_chain: by id and the final one at the end, which points to the first): the sheet of
+  # each unique structure (heraldia:historia/<id>, custom_data {heraldia_historia: "<id>"}) adds a page with the hint to the
+  # next one and, sometimes, its treasure map; the table of its chest nests it. Without STORY (or with a chest that is not
+  # in its templates, or pages that are too long) the build fails. The advancement unicas/cronista comes out on its own.
+  LANG = {"es_es": {...}, "en_us": {...}}   # optional: own texts (same keys in both languages)
+  # Optional in a template: t.lint_open = {pos: state or None}, state with the puzzles solved for the walkthrough.
 
-Botín y Lootr: un grupo (pool) con "solo_sin_lootr": True se omite si el servidor lleva Lootr
-(condición heraldia:sin_lootr). Úsalo para el extra por cofre, de modo que con Lootr cada jugador reciba lo modesto.
-El generador escribe además la etiqueta heraldia:unicas/<id> y su structure_set, y el mapa del tesoro\n(cofre épico de las aldeas y trato de maestro cartógrafo; mapas.py).
+Loot and Lootr: a group (pool) with "solo_sin_lootr": True is skipped if the server runs Lootr
+(condition heraldia:sin_lootr). Use it for the extra per chest, so that with Lootr each player gets the modest loot.
+The generator also writes the tag heraldia:unicas/<id> and its structure_set, and the treasure map\n(epic chest of the villages and cartographer master trade; maps.py).
 """
 import importlib, pkgutil, zlib
 
 DEFAULT_SPACING, DEFAULT_SEPARATION = 250, 190
-# Únicas que ya estaban en la 0.1.0 (rama main, antes de las rejillas desplazadas): con unicas.rejilla_compatible se
-# colocan con la rejilla de entonces para que se encuentren las ya generadas en los mundos de esa versión. No se añade
-# ninguna: una única nueva nunca se generó con la rejilla antigua. Las demás llevan siempre la rejilla nueva.
+# Unique structures that were already in 0.1.0 (main branch, before the shifted grids): with uniques.rejilla_compatible they are
+# placed with the grid of that time so that the ones already generated in worlds of that version are found. None is
+# added: a new unique structure was never generated with the old grid. All the others always use the new grid.
 OLD_GRID = frozenset({"acueducto", "castillo", "catedral", "ciudadela", "coliseo", "faro", "fortaleza_hielo", "galeon",
                              "mansion", "monasterio", "observatorio", "palacio", "piramide", "torre_mago"})
 
@@ -108,7 +108,7 @@ def module_name(sid):
 
 
 def modules():
-    """[(id, módulo)] ordenados por id, para una salida determinista."""
+    """[(id, module)] sorted by id, for a deterministic output."""
     found = []
     for info in pkgutil.iter_modules(__path__):
         if not info.name.startswith("_"):
@@ -117,5 +117,5 @@ def modules():
 
 
 def salt(sid):
-    """Sal estable por estructura para que cada tipo tenga su propia rejilla de colocación."""
+    """Stable salt per structure so that each type has its own placement grid."""
     return zlib.crc32(f"heraldia:unicas/{sid}".encode()) & 0x7FFFFFFF

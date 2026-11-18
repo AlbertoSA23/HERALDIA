@@ -1,6 +1,6 @@
-"""Catedral gótica (estructura única): fachada con dos torres y rosetón, nave con colaterales y triforio,
-arbotantes, crucero con aguja, coro con girola y capillas, sacristía, biblioteca, claustro; bajo tierra,
-cripta, osarios y cámara del tesoro. Diseño y recorrido en docs/unicas/catedral.md."""
+"""Gothic cathedral (unique structure): facade with two towers and a rose window, nave with side aisles and triforium,
+flying buttresses, transept crossing with a spire, choir with ambulatory and chapels, sacristy, library, cloister; underground,
+crypt, ossuaries and treasure chamber. Design and walkthrough in docs/unicas/cathedral.md."""
 from .._common.pieces import open_stairwells
 from core import Template
 from .chest_loot import LOOT, LANG
@@ -14,8 +14,8 @@ STRUCTURE = dict(biomes=["minecraft:forest", "minecraft:flower_forest"], start_p
 DISPLAY_NAME = {"es_es": "Catedral gótica", "en_us": "Gothic cathedral"}
 TROPHY = {"objeto": "recovery_compass", "rareza": "uncommon",
           "nombre": ("Brújula de ánimas de Fray Osmundo", "Friar Osmund's Soul Compass"),
-          "lore": [("Señala siempre el lugar de tu última caída.", "It always points to where you last fell.")]}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "lore": [("Señala siempre el lugar de tu última caída.", "It always points to where you last fell.")]}   # guardian's trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("Entre los árboles del bosque se alza una catedral de agujas altísimas. Fray Osmundo, su "
@@ -33,10 +33,10 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("el bosque, donde una catedral gótica alza sus agujas entre los árboles",
               "the forest, where a gothic cathedral raises its spires among the trees"),
 }
-ADVANCEMENT = {"icono": "minecraft:bell"}   # logros.py
-JIG = (65, 0, 30)             # jigsaw de la cripta (bajo el crucero)
+ADVANCEMENT = {"icono": "minecraft:bell"}   # advancements.py
+JIG = (65, 0, 30)             # crypt jigsaw (under the transept crossing)
 
-# degradación: 80-85 % en buen estado (ver docs/unicas/catedral.md)
+# decay: 80-85 % in good condition (see docs/unicas/cathedral.md)
 def _rule(block, out, p):
     return {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:" + block, "probability": p},
             "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + out}
@@ -65,7 +65,7 @@ def model():
 
 
 def split_pieces(c):
-    """Divide el modelo en la pieza de superficie (y >= 0) y la cripta (y < 0), unidas por un jigsaw vertical."""
+    """Splits the model into the surface piece (y >= 0) and the crypt (y < 0), joined by a vertical jigsaw."""
     top, low = Template("unicas/catedral/catedral"), Template("unicas/catedral/cripta")
     for (x, y, z), (st, nbt) in c.t.blocks.items():
         (top if y >= 0 else low).set(x, y, z, st, nbt)

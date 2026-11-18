@@ -1,27 +1,27 @@
-"""Plantillas de la costa en coordenadas de diseño: x a lo ancho (0 en el eje), z hacia el mar (la orilla, el ancla, en
-z = 0), y = 0 la fila inferior.
+"""Coast templates in design coordinates: x across (0 on the axis), z towards the sea (the shore, the anchor, at
+z = 0), y = 0 the bottom row.
 
-Faro (y = 0, la plataforma a ras del terreno más alto de la huella): la plataforma de 15 x 20 en tierra (z = -20..-1),
-la torre de 7 x 7 junto a la orilla (z = -8..-2) con 28 bloques de alto, la casa del farero al fondo y el embarcadero de
-3 x 11 sobre el agua (z = 0..10) con pilotes cada 3 bloques. La luz: una lámpara de redstone encendida sobre un bloque
-de redstone en el centro de la linterna (y = 22-23), con piedra luminosa encima: siempre encendida, sin circuitos.
+Lighthouse (y = 0, the platform flush with the highest terrain of the footprint): the 15 x 20 platform on land (z = -20..-1),
+the 7 x 7 tower next to the shore (z = -8..-2) 28 blocks tall, the keeper's house at the back and the 3 x 11 pier
+over the water (z = 0..10) with piles every 3 blocks. The light: a lit redstone lamp on a redstone block
+in the centre of the lantern (y = 22-23), with glowstone on top: always on, no circuits.
 
-Naufragio (el galeón de 9 x 31, quilla en y = 0, bodega y = 2-4, cubierta y = 5, castillo de popa con el camarote y = 6-8,
-mástil mayor hasta y = 17): encallado (a) con la proa en la playa (z = -14..16, `fila_mar` 1) o semihundido (b) en
-aguas poco profundas (z = 8..38, `fila_mar` 4, con la bodega inundada). Partido por la mitad (z de 15 a 17 desde la
-proa): sin cubierta y con el costado de estribor abierto. Bajo `fila_mar` no hay aire en la plantilla: lo que no es
-casco queda sin poner (el agua o la arena del sitio se quedan)."""
+Shipwreck (the 9 x 31 galleon, keel at y = 0, hold y = 2-4, deck y = 5, stern castle with the cabin y = 6-8,
+main mast up to y = 17): run aground (a) with the bow on the beach (z = -14..16, `sea_row` 1) or half-sunk (b) in
+shallow water (z = 8..38, `sea_row` 4, with the hold flooded). Split in half (z from 15 to 17 from the
+bow): no deck and with the starboard side open. Below `sea_row` there is no air in the template: what is not
+hull is left unplaced (the water or sand of the site stays)."""
 from types import SimpleNamespace
 from core import Template, B, F, NS, adult, anchored
 from mediums import _common as c
 from uniques._common import pieces
 
-WIDTH = 7                     # la mitad de la plataforma del faro (x = -7..7)
-DEPTH = 20                    # tierra del faro (z = -20..-1)
-DOCK = 10                   # el embarcadero llega hasta z = 10
-TOWER_Z = -5                  # centro de la torre
-WALL_HEIGHT = 21                # la caña de la torre: y = 1..21
-TUNNEL = 22                  # suelo de la galería (y = 22) y la linterna encima (y = 23-24)
+WIDTH = 7                     # half of the lighthouse platform (x = -7..7)
+DEPTH = 20                    # lighthouse land (z = -20..-1)
+DOCK = 10                   # the pier reaches z = 10
+TOWER_Z = -5                  # centre of the tower
+WALL_HEIGHT = 21                # the tower shaft: y = 1..21
+TUNNEL = 22                  # gallery floor (y = 22) and the lantern on top (y = 23-24)
 HULL_LENGTH = 31
 
 
@@ -32,19 +32,19 @@ def _table(t, x, y, z, wood):
 
 # ------------------------------------------------------------------ faro
 def ring_cells(is_square):
-    """dentro(dx, dz, r): la planta de radio r de la torre, cuadrada o octogonal (las esquinas cortadas; r = 1, 3 x 3)."""
+    """dentro(dx, dz, r): the footprint of radius r of the tower, square or octagonal (corners cut; r = 1, 3 x 3)."""
     if is_square:
         return lambda dx, dz, r: abs(dx) <= r and abs(dz) <= r
     return lambda dx, dz, r: abs(dx) <= r and abs(dz) <= r and (r <= 1 or abs(dx) + abs(dz) <= 2 * r - 1)
 
 
 def _lighthouse(variant, p, name):
-    """La plataforma y la torre: caña (r = 3) de y = 1 a 21 con el interior (r = 2) hueco, la sala de guardia en y = 12,
-    la galería (r = 4, y = 22) con barandilla y el paseo sobre el muro, y la linterna (r = 2) acristalada con la luz."""
+    """The platform and the tower: shaft (r = 3) from y = 1 to 21 with a hollow interior (r = 2), the guard room at y = 12,
+    the gallery (r = 4, y = 22) with a railing and the walkway over the wall, and the glazed lantern (r = 2) with the light."""
     t = Template(name)
     inside = ring_cells(variant == "b")
     m, foundation = p["madera"], p["cimiento"]
-    # plataforma (y = 0) y aire encima: el terreno de la huella queda despejado
+    # platform (y = 0) and air above: the terrain of the footprint is left clear
     for x in range(-WIDTH, WIDTH + 1):
         for z in range(-DEPTH, 0):
             t.set(x, 0, z, foundation[(x * 7 + z * 3 + x * z) % len(foundation)])
@@ -55,7 +55,7 @@ def _lighthouse(variant, p, name):
     for dx in range(-4, 5):
         for dz in range(-4, 5):
             x, z = dx, TOWER_Z + dz
-            if inside(dx, dz, 3) and not inside(dx, dz, 2):            # muro de la caña
+            if inside(dx, dz, 3) and not inside(dx, dz, 2):            # shaft wall
                 for y in range(1, WALL_HEIGHT + 1):
                     corner_block = variant == "b" and abs(dx) == 3 and abs(dz) == 3
                     if y == 1:
@@ -67,14 +67,14 @@ def _lighthouse(variant, p, name):
                     else:
                         st = p["banda"] if (y // 3) % 2 == 1 else p["muro"]
                     t.set(x, y, z, f"{st}[axis=y]" if st.endswith("_wood") else st)
-            elif inside(dx, dz, 2):                                     # interior hueco con el piso de la sala
+            elif inside(dx, dz, 2):                                     # hollow interior with the guard room floor
                 t.set(x, 0, z, foundation[0])
                 for y in range(1, TUNNEL):
                     t.set(x, y, z, "air")
                 t.set(x, 11, z, f"{m}_planks")
             if not inside(dx, dz, 4):
                 continue
-            # galería, barandilla, paseo y linterna
+            # gallery, railing, walkway and lantern
             if (dx, dz) != (0, 2):
                 t.set(x, TUNNEL, z, p["zocalo"])
             if not inside(dx, dz, 3):
@@ -85,17 +85,17 @@ def _lighthouse(variant, p, name):
             else:
                 for y in (TUNNEL + 1, TUNNEL + 2):
                     t.set(x, y, z, "glass_pane")
-            if inside(dx, dz, 2):                                       # tejado de la linterna
+            if inside(dx, dz, 2):                                       # lantern roof
                 t.set(x, TUNNEL + 3, z, p["zocalo"] if inside(dx, dz, 1) else f"{p['losa']}[type=bottom,waterlogged=false]")
-    # ventanas en tres caras (en la del mar, la sur, va la escalera por dentro)
+    # windows on three faces (the sea one, the south, has the ladder inside)
     for y in (5, 9, 14, 18):
         for dx, dz in ((3, 0), (-3, 0), (0, -3)):
             t.set(dx, y, TOWER_Z + dz, "glass_pane")
-    # puerta al norte (hacia la casa) y escalera de mano pegada al muro sur, de la planta baja a la galería
+    # door to the north (towards the house) and ladder against the south wall, from the ground floor to the gallery
     c.door(t, 0, 1, TOWER_Z - 3, "south", f"{m}_door")
     for y in range(1, TUNNEL + 1):
         t.set(0, y, TOWER_Z + 2, "ladder[facing=north,waterlogged=false]")
-    # la luz: bloque de redstone bajo la lámpara (siempre encendida) y piedra luminosa encima; el pararrayos en lo alto
+    # the light: redstone block under the lamp (always lit) and glowstone on top; the lightning rod at the top
     t.set(0, TUNNEL, TOWER_Z, "redstone_block")
     t.set(0, TUNNEL + 1, TOWER_Z, "redstone_lamp[lit=true]")
     t.set(0, TUNNEL + 2, TOWER_Z, "glowstone")
@@ -103,7 +103,7 @@ def _lighthouse(variant, p, name):
     if p["nieve"]:
         for dx, dz in ((1, 1), (-1, -1), (1, -1), (-1, 1)):
             t.set(dx, TUNNEL + 4, TOWER_Z + dz, "snow[layers=2]")
-    # dentro: planta baja con toneles y farol; sala de guardia (y = 12) con el cofre y la mesa de cartografía
+    # inside: ground floor with barrels and a lantern; guard room (y = 12) with the chest and the cartography table
     t.set(-2, 1, TOWER_Z - 1, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
     t.set(2, 1, TOWER_Z - 1, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
     c.lantern(t, 2, 1, TOWER_Z + 1, hanging=False)
@@ -115,7 +115,7 @@ def _lighthouse(variant, p, name):
 
 
 def _house(t, p, side):
-    """Casa del farero de 7 x 6 al fondo de la plataforma (lado -1: al oeste; 1: al este), con la puerta al sur."""
+    """Keeper's house of 7 x 6 at the back of the platform (side -1: west; 1: east), with the door to the south."""
     m, house = p["madera"], p["casa"]
     x0, x1 = (-6, 0) if side < 0 else (0, 6)
     z0, z1 = -18, -13
@@ -128,14 +128,14 @@ def _house(t, p, side):
     c.window(t, x0, 2, -15)
     c.window(t, x1, 2, -15)
     c.window(t, door, 2, z0)
-    # cama, mesa con silla, horno y el tonel del farero
+    # bed, table with chair, furnace and the keeper's barrel
     c.bed(t, x0 + 1, z0 + 1, "north", p["cama"])
     _table(t, x1 - 2, 1, z0 + 2, m)
     t.set(x1 - 1, 1, z0 + 2, f"{m}_stairs[facing=east,half=bottom,shape=straight,waterlogged=false]")
     t.set(x1 - 1, 1, z0 + 1, "furnace[facing=west,lit=false]")
     pieces.chest(c.put(t), x0 + 1, 1, z1 - 1, "east", f"{NS}:costa/faro", kind="barrel")
     c.lantern(t, door, 3, z0 + 3)
-    # senda de la puerta a la torre
+    # path from the door to the tower
     for z in range(z1 + 1, TOWER_Z - 3):
         t.set(door, 0, z, p["cimiento"][1])
     if door != 0:
@@ -145,7 +145,7 @@ def _house(t, p, side):
 
 
 def _pier(t, p):
-    """Embarcadero de 3 x 11 (z = 0..10) a la altura de la plataforma, sobre pilotes cada 3 bloques (bajan al fondo)."""
+    """Pier of 3 x 11 (z = 0..10) at platform height, on piles every 3 blocks (they go down to the bottom)."""
     m = p["madera"]
     for z in range(-1, DOCK + 1):
         for x in (-1, 0, 1):
@@ -162,7 +162,7 @@ def _pier(t, p):
 
 
 def offers():
-    """Tratos del farero: compra bacalao y algas secas, vende mapas vacíos, una brújula y un catalejo."""
+    """Keeper's trades: buys cod and dried kelp, sells empty maps, a compass and a spyglass."""
     em = lambda n: {"id": "minecraft:emerald", "count": n}
     return [c.offer({"id": "minecraft:cod", "count": 12}, em(1), 12),
             c.offer({"id": "minecraft:dried_kelp_block", "count": 6}, em(1), 12),
@@ -176,7 +176,7 @@ def lighthouse(variant, p, name):
     side = -1 if variant == "a" else 1
     door = _house(t, p, side)
     _pier(t, p)
-    if variant == "a":                               # el farero, junto a su puerta
+    if variant == "a":                               # the keeper, next to his door
         n = {"id": "minecraft:villager", "PersistenceRequired": B(1), "NoAI": B(1), "Invulnerable": B(1),
              "CustomName": pieces.text(f"{NS}.costa.farero", "Farero"), "CustomNameVisible": B(1),
              "VillagerData": {"profession": "minecraft:cartographer", "level": 2, "type": f"minecraft:{p['aldeano']}"},
@@ -189,24 +189,24 @@ def lighthouse(variant, p, name):
 
 # ------------------------------------------------------------------ naufragio
 def sleeve(s):
-    """Media manga del casco a s bloques de la proa (0) hacia la popa (ESLORA - 1)."""
+    """Half beam of the hull at s blocks from the bow (0) towards the stern (HULL_LENGTH - 1)."""
     return (0, 1, 2, 2, 3)[s] if s < 5 else 4 if s < 27 else 3
 
 
 def _galleon(t, p, z0, sea_row, sunken):
-    """El casco con la proa en z0 y la popa en z0 + ESLORA - 1. Bajo fila_mar no se pone aire."""
+    """The hull with the bow at z0 and the stern at z0 + HULL_LENGTH - 1. No air is placed below fila_mar."""
     m, trunk, band = p["madera"], p["tronco"], p["banda"]
     board = f"{m}_planks"
     air_block = lambda x, y, z: t.set(x, y, z, "air") if y > sea_row else None
     broken = lambda s: 15 <= s <= 17
     for s in range(HULL_LENGTH):
         z, h = z0 + s, sleeve(s)
-        # quilla y fondo
+        # keel and bottom
         t.set(0, 0, z, f"{trunk}[axis=z]")
         for x in range(-max(h - 2, 0), max(h - 2, 0) + 1):
             if x:
                 t.set(x, 0, z, board)
-        # costados (y = 1 un bloque más adentro: la curva del casco) y suelo de la bodega
+        # sides (y = 1 one block further in: the curve of the hull) and hold floor
         for x in range(-h, h + 1):
             if abs(x) == max(h - 1, 0) and h > 0:
                 t.set(x, 1, z, board)
@@ -215,22 +215,22 @@ def _galleon(t, p, z0, sea_row, sunken):
         for y in range(2, 5):
             for x in range(-h, h + 1):
                 if abs(x) == h:
-                    if not (broken(s) and x > 0):               # estribor abierto en la rotura
+                    if not (broken(s) and x > 0):               # starboard open at the break
                         t.set(x, y, z, band if y == 3 else board)
                 elif not broken(s):
                     air_block(x, y, z)
-        # cubierta (y = 5) y borda (y = 6)
+        # deck (y = 5) and gunwale (y = 6)
         for x in range(-h, h + 1):
             if broken(s) and x >= -1:
                 continue
             if (x, s) in ((0, 9), (0, 10)):
-                air_block(x, 5, z)                                 # escotilla abierta a la bodega
+                air_block(x, 5, z)                                 # hatch open to the hold
             else:
                 t.set(x, 5, z, board)
         if 8 <= s <= 21 and not broken(s) and s not in (14, 18):
             for x in (-h, h):
                 t.set(x, 6, z, f"{m}_fence")
-    # castillo de proa (y = 6) con su borda y un peldaño desde la cubierta
+    # forecastle (y = 6) with its gunwale and a step up from the deck
     for s in range(1, 8):
         for x in range(-sleeve(s), sleeve(s) + 1):
             t.set(x, 6, z0 + s, board)
@@ -238,9 +238,9 @@ def _galleon(t, p, z0, sea_row, sunken):
             if sleeve(s):
                 t.set(x, 7, z0 + s, f"{m}_fence")
     t.set(0, 6, z0 + 8, f"{m}_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]")
-    for s in range(-3, 1):                                     # bauprés
+    for s in range(-3, 1):                                     # bowsprit
         t.set(0, 6, z0 + s, f"{trunk}[axis=z]")
-    # castillo de popa: el camarote (y = 6-8) con su puerta a proa y el techo con borda (y = 9-10)
+    # sterncastle: the cabin (y = 6-8) with its door to the bow and the roof with gunwale (y = 9-10)
     for s in range(22, HULL_LENGTH):
         z, h = z0 + s, sleeve(s)
         for x in range(-h, h + 1):
@@ -258,7 +258,7 @@ def _galleon(t, p, z0, sea_row, sunken):
     _table(t, 2, 6, z0 + 26, m)
     t.set(2, 6, z0 + 27, f"{m}_stairs[facing=south,half=bottom,shape=straight,waterlogged=false]")
     c.lantern(t, 0, 8, z0 + 26, hanging=True)
-    # mástil mayor (y = 1..17) con la verga y la vela rota; el muñón del de mesana, partido en y = 9
+    # main mast (y = 1..17) with the yard and the torn sail; the stump of the mizzen, broken at y = 9
     for y in range(1, 18):
         t.set(0, y, z0 + 12, f"{trunk}[axis=y]")
     for x in range(-4, 5):
@@ -270,7 +270,7 @@ def _galleon(t, p, z0, sea_row, sunken):
     for y in range(1, 10):
         t.set(0, y, z0 + 20, f"{trunk}[axis=y]")
     t.set(0, 10, z0 + 20, f"stripped_{trunk}[axis=y]")
-    # en la bodega: el cofre (bajo el agua en el semihundido) y unos toneles
+    # in the hold: the chest (under water in the half-sunk one) and some barrels
     pieces.chest(c.put(t), 2, 2, z0 + 6, "west", f"{NS}:costa/bodega", waterlogged=sunken)
     if not sunken:
         t.set(-2, 2, z0 + 6, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
@@ -291,7 +291,7 @@ def shipwreck(variant, p, name):
     else:
         z0, row = -14, 1
     _galleon(t, p, z0, row, sunken)
-    if sunken:                                       # el ahogado de la bodega inundada, anclado y adulto
+    if sunken:                                       # the drowned of the flooded hold, anchored and adult
         n = {"id": "minecraft:drowned", "PersistenceRequired": B(1), "Rotation": [F(180.0), F(0.0)]}
         t.entity(-2, 2, z0 + 4, anchored(adult(n), always=True))
         land, sea = (-2, -6, 2, -2), (-4, z0, 4, z0 + HULL_LENGTH - 1)

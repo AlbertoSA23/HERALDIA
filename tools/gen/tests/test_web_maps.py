@@ -1,6 +1,6 @@
-"""Mapas web (Java: mapas/): sus textos (capas, nombres y descripciones de los marcadores, /heraldia webmap refresh) y
-sus opciones (mapas_web.*) en los 8 idiomas, con los mismos huecos; que el Java solo pide claves que existen (una capa
-por valor de mapas/Capa.java) y que las opciones de las capas, la del idioma y su sección están en el esquema."""
+"""Web maps (Java: mapas/): their texts (layers, marker names and descriptions, /heraldia webmap refresh) and
+their options (mapas_web.*) in the 8 languages, with the same placeholders; that the Java asks only for keys that exist (one layer
+per value of mapas/Capa.java) and that the layer options, the language one and their section are in the schema."""
 import json
 import os
 import re
@@ -21,13 +21,13 @@ def _java(name):
 
 
 def layers():
-    """Ids de las capas: los ids guardados del enum Layer."""
+    """Layer ids: the stored ids of the Layer enum."""
     body = re.search(r"enum Layer \{\s*(.*?);", _java("Layer.java"), re.S).group(1)
     return re.findall(r'\b[A-Z]+\("(\w+)"', body)
 
 
 def java_keys():
-    """Claves de texto que piden los mapas web: dos por capa, más las fijas de MapasWeb y Marcadores."""
+    """Text keys that the web maps ask for: two per layer, plus the fixed ones of MapasWeb and Marcadores."""
     out = {f"heraldia.mapas_web.{t}.{c}" for c in layers() for t in ("capa", "descripcion")}
     for f in ("WebMaps.java", "Markers.java"):
         out |= set(re.findall(r'"(heraldia\.mapas_web\.[a-z_.]+)"', _java(f)))
@@ -63,16 +63,16 @@ def test_texts_in_each_language(code):
     t = _translation(code)
     for k in sorted(java_keys()):
         assert k in en, k
-        assert k in t, f"{code}: falta {k}"
+        assert k in t, f"{code}: missing {k}"
         assert languages.markers(t[k]) == languages.markers(es[k]) == languages.markers(en[k]), f"{code}: {k}"
         assert t[k].strip(), k
     for k in sorted(option_keys()):
         assert k in es_o and k in en_o, k
-        assert k in t, f"{code}: falta {k}"
-    # las descripciones están traducidas (no son copia del español ni del inglés)
+        assert k in t, f"{code}: missing {k}"
+    # the descriptions are translated (not a copy of the Spanish or the English)
     for c in layers():
         k = f"heraldia.mapas_web.descripcion.{c}"
-        assert t[k] not in (es[k], en[k]), f"{code}: {k} sin traducir"
+        assert t[k] not in (es[k], en[k]), f"{code}: {k} untranslated"
 
 
 def test_options_in_the_schema():

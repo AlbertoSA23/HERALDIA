@@ -1,7 +1,7 @@
-"""Planos de planta (celdas alcanzables a pie) y renders isométricos de la torre de mago.
+"""Floor plans (cells reachable on foot) and isometric renders of the wizard tower.
 
-Uso: python3 tools/gen/uniques/wizard_tower/blueprints.py  -> escribe docs/unicas/torre_mago/{plantas.txt,exterior.png,cortes.png}
-Leyenda de los planos: + alcanzable a pie · # sólido u obstáculo · , atravesable no pisado · . aire inaccesible
+Usage: python3 tools/gen/uniques/wizard_tower/blueprints.py  -> writes docs/unicas/torre_mago/{plantas.txt,exterior.png,cortes.png}
+Plan legend: + reachable on foot · # solid or obstacle · , passable but not walkable · . unreachable air
 """
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -14,9 +14,9 @@ import uniques.wizard_tower as m
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(HERE))))
 OUT = os.path.join(ROOT, "docs", "unicas", "torre_mago")
-NAMES = {"B2": "Sótano 2 · cámara del tesoro", "B1": "Sótano 1 · experimentos fallidos", "f0": "Vestíbulo y terraza",
-         "f1": "Biblioteca (planta baja)", "f2": "Galería de la biblioteca y estudio oculto", "f3": "Laboratorio de pociones",
-         "f4": "Sala de encantamientos", "f5": "Invernadero", "f6": "Dormitorio del mago", "f7": "Observatorio"}
+NAMES = {"B2": "Basement 2 · treasure chamber", "B1": "Basement 1 · failed experiments", "f0": "Foyer and terrace",
+         "f1": "Biblioteca (planta baja)", "f2": "Library gallery and hidden study", "f3": "Laboratorio de pociones",
+         "f4": "Sala de encantamientos", "f5": "Invernadero", "f6": "Wizard's bedroom", "f7": "Observatorio"}
 
 
 def main():
@@ -26,9 +26,9 @@ def main():
     t = reg.templates[f"{m.NSP}/torre"]
     seen = walk(t)
     x0, y0, z0, x1, y1, z1 = t.bounds()
-    lines = [__doc__.splitlines()[3], "Norte arriba; la entrada está en el borde norte. Ejes: x hacia la derecha, z hacia abajo.", ""]
+    lines = [__doc__.splitlines()[3], "North is up; the entrance is on the north edge. Axes: x to the right, z downwards.", ""]
     for key, y in m.FEET.items():
-        lines.append(f"== {NAMES[key]} (pies a y={y}) ==")
+        lines.append(f"== {NAMES[key]} (feet at y={y}) ==")
         for z in range(z0, z1 + 1):
             row = ""
             for x in range(x0, x1 + 1):

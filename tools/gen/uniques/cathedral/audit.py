@@ -1,6 +1,6 @@
-"""Auditoría propia de la catedral (condición para generar): recorrido a pie desde la entrada con los mecanismos
-abiertos, accesos a cofres, puertas, escaleras, palancas y generadores; estancias sin acceso; bloques flotando;
-luz en las zonas cubiertas de superficie; coherencia estática de la redstone; proporción de ruina."""
+"""Cathedral's own audit (condition for generating): walkthrough from the entrance with the mechanisms
+open, access to chests, doors, stairs, levers and spawners; rooms without access; floating blocks;
+light in the covered surface areas; static consistency of the redstone; proportion of ruin."""
 from collections import deque
 from lint import passable as _passable, top_height as _top, bname, prop, climbable, FACE
 from .base import s
@@ -22,7 +22,7 @@ def top_height(st):
 
 
 def opened(c):
-    """Vista del modelo con los mecanismos accionados: puertas de pistones abiertas y trampillas abiertas."""
+    """View of the model with the mechanisms activated: piston doors open and trapdoors open."""
     over = {}
     for m in c.mech:
         if m["tipo"] == "puerta de pistones":
@@ -151,7 +151,7 @@ def access(c, g, cells):
 
 
 def standable_covered(c, g):
-    """Celdas donde cabe un jugador de pie, con techo encima (estancias), para detectar las que no tienen acceso."""
+    """Cells where a standing player fits, with a ceiling above (rooms), to detect those with no access."""
     res = set()
     for (x, y, z), (st, _) in c.t.blocks.items():
         if bname(st) != "air" or (x, y, z) in c.ruin:
@@ -168,7 +168,7 @@ def standable_covered(c, g):
 
 
 def floating(c):
-    """Componentes de bloques (6-vecindad) que no tocan el suelo (y <= 0): flotarían."""
+    """Components of blocks (6-neighborhood) that do not touch the ground (y <= 0): they would float."""
     solid = {p for p, (st, _) in c.t.blocks.items() if bname(st) != "air"}
     seen, out = set(), []
     for p in solid:
@@ -242,7 +242,7 @@ def light(c, cells):
 
 
 def redstone(c):
-    """Coherencia estática al colocarse (sin actualizaciones de bloque): reposo cerrado y solución abierta."""
+    """Static consistency when placed (without block updates): closed rest state and open solution."""
     out = []
     g = c.t.get
     for m in c.mech:
@@ -269,9 +269,9 @@ def redstone(c):
             pu = m["pistones"][1]
             if m["polvo"] and (abs(first[0] - pu[0]) + abs(first[2] - pu[2]) != 1 or first[1] != pu[1]):
                 out.append(f"{m['sitio']}: el polvo no llega al pistón superior")
-            # solución: con las correctas activadas las antorchas se apagan; la falsa alimenta la línea si se activa
+            # solution: with the correct ones activated the torches turn off; the fake one feeds the line if activated
             line = {p for (p, _) in m["polvo"]}
-            segment, everything = {first}, [first]          # tramo continuo de polvo que llega al pistón (las antorchas lo cortan)
+            segment, everything = {first}, [first]          # continuous run of dust that reaches the piston (the torches cut it)
             while everything:
                 p = everything.pop()
                 for d in ((1, 0), (-1, 0), (0, 1), (0, -1)):
@@ -310,8 +310,9 @@ def redstone(c):
 
 
 def common_redstone(c):
-    """Simulador común (_comun/redstone.py): estado colocado estable y, por puerta de pistones, que solo la solución
-    abra (las 2^n combinaciones de palancas, falsas incluidas)."""
+    """Common simulator (_comun/redstone.py): stable placed state and, per piston door, that only the solution
+    opens it (the 2^n lever combinations, fake ones included)."""
+
     from .._common.redstone import check_static, check_puzzle
     from core import Template
     t = Template("redstone")
@@ -335,7 +336,7 @@ def common_redstone(c):
 
 
 def ruin_share(c):
-    """Proporción de la superficie exterior con daño (explícito o esperado por los procesadores)."""
+    """Proportion of the exterior surface with damage (explicit or expected from the processors)."""
     from . import PROCESSORS
     probs = {}
     for r in PROCESSORS["processors"][0]["rules"]:

@@ -1,20 +1,20 @@
-"""Fases, refuerzos y barra de jefe de los guardianes en un servidor dedicado 26.3 real (Java: jefes/).
+"""Phases, reinforcements and boss bar of the guardians on a real 26.3 dedicated server (Java: jefes/).
 
-Uso: python3 tools/smoke/boss_phases.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-Con un jugador simulado (Carpet, en creativo: los refuerzos no le atacan y no muere) a 8 bloques de cada guardián.
-Los guardianes se invocan con /summon solo con sus etiquetas (como uno ya generado en un mundo existente: el estado de
-las fases vive en sus Tags) y NoAI (no se mueven); se les hace daño con /damage ... by <jugador> hasta cada umbral:
-  1. castillo (zombi, refuerzos propios: 2 zombis con espada y yelmo y un esqueleto): al 80 % nada; al 60 % la fase 2
-     (etiqueta, velocidad/resistencia/fuerza, sus 3 refuerzos con heraldia_refuerzo, heraldia_anclado y heraldia_adulto,
-     sin la etiqueta ni la tabla del guardián, adultos y con su equipo); otro golpe en la franja no repite; al 25 % la
-     fase 3 (velocidad II) con solo 1 refuerzo más (tope de 4 vivos); muertos los refuerzos, otro golpe no llama más.
-     La barra: para 1 jugador al primer golpe, quitada al alejarse el jugador, otra vez al volver y quitada al morir.
-  2. stray sin id de única (guardián de un mundo viejo): herido sin nadie a menos de 48 bloques no pasa de fase ni
-     muestra la barra; con el jugador de vuelta, sí, con la familia de su tipo (2 strays).
-  3. faro (ahogado, familia por defecto): un solo golpe del 100 % al 10 % da las dos fases y 4 ahogados (2 + 2).
-  4. Con jefes.fases/refuerzos/barra desactivados (el servidor se reinicia con esa configuración): nada de lo anterior.
-Lo que se ve en el cliente (barra, aviso en la barra de acción, partículas, sonido) no se puede leer desde la consola:
-la barra se comprueba por las líneas del log que escribe el mod al mostrarla y quitarla.
+Usage: python3 tools/smoke/boss_phases.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+With a simulated player (Carpet, in creative: the reinforcements do not attack it and it does not die) 8 blocks from each guardian.
+The guardians are summoned with /summon only with their tags (like one already generated in an existing world: the phase
+state lives in their Tags) and NoAI (they do not move); they are damaged with /damage ... by <player> up to each threshold:
+  1. castle (zombie, own reinforcements: 2 zombies with sword and helmet and a skeleton): at 80 % nothing; at 60 % phase 2
+     (tag, speed/resistance/strength, its 3 reinforcements with heraldia_refuerzo, heraldia_anclado and heraldia_adulto,
+     without the guardian's tag or table, adults and with their equipment); another hit in the band does not repeat it; at 25 % phase
+     3 (speed II) with only 1 more reinforcement (cap of 4 alive); with the reinforcements dead, another hit calls no more.
+     The bar: for 1 player at the first hit, removed when the player moves away, again on returning and removed on death.
+  2. stray without a unique structure id (guardian from an old world): hurt with no one within 48 blocks it does not change phase or
+     show the bar; with the player back, it does, with the family of its type (2 strays).
+  3. lighthouse (drowned, default family): a single hit from 100 % to 10 % gives both phases and 4 drowned (2 + 2).
+  4. With bosses.fases/refuerzos/barra disabled (the server restarts with that configuration): none of the above.
+What is seen on the client (bar, action bar notice, particles, sound) cannot be read from the console:
+the bar is checked through the log lines the mod writes when showing and removing it.
 """
 import argparse, json, os, queue, re, shutil, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +24,7 @@ from modrinth import MODS, fetch
 CARPET = (MODS["carpet"].file, MODS["carpet"].url, MODS["carpet"].sha512)
 PLAYER = "Testigo"
 X, Y, Z = 0, 101, 0
-GZ = 8                       # los guardianes, a 8 bloques del jugador (dentro del radio de 32 de la barra)
+GZ = 8                       # the guardians, 8 blocks from the player (within the bar's radius of 32)
 REF = "@e[tag=heraldia_refuerzo]"
 HEALTH = 100
 
@@ -51,13 +51,13 @@ class Test:
         return ok
 
     def strike(self, sel, n):
-        # la invulnerabilidad tras un golpe dura 10 ticks (20 de hurtTime): se espera antes del siguiente
+        # invulnerability after a hit lasts 10 ticks (20 of hurtTime): wait before the next one
         self.ctx.ticks(25)
         self.ctx.run(f"damage {sel} {n} minecraft:player_attack by {PLAYER}", r"Applied|damage")
         self.ctx.ticks(5)
 
     def log(self, pattern, timeout=30):
-        """¿Aparece `patron` en el log? Lee lo que vaya llegando con órdenes baratas hasta `timeout` segundos."""
+        """Does `pattern` appear in the log? Reads what arrives using cheap commands up to `timeout` seconds."""
         end = time.monotonic() + timeout
         while True:
             if re.search(pattern, self.ctx.log()):
@@ -89,16 +89,16 @@ def start_up(work, launcher, hour):
             break
         time.sleep(s.PLACE_RETRY_S)
     ctx.run(f"fill {X - 10} {Y - 1} {Z - 6} {X + 10} {Y - 1} {Z + GZ + 10} minecraft:stone", r"Successfully filled|No blocks")
-    # De noche y sin que pase el tiempo (zombis y esqueletos no arden), sin monstruos naturales, dificultad normal
-    # (en pacífico no hay refuerzos; en difícil los zombis llaman a los suyos, vanilla).
+    # At night and with time not passing (zombies and skeletons do not burn), no natural monsters, normal difficulty
+    # (on peaceful there are no reinforcements; on hard the zombies call their own, vanilla).
     for rule in ("spawn_mobs", "advance_time"):
         ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
-    ctx.run(f"time set {hour}", rf"Set .*{hour}")     # a la misma hora que ya tiene, /time set no responde
+    ctx.run(f"time set {hour}", rf"Set .*{hour}")     # at the same time it already has, /time set does not respond
     ctx.run("difficulty normal", r"difficulty|Difficulty")
     ctx.run(f"player {PLAYER} spawn at {X} {Y} {Z}", r"joined the game|Player .* spawn|Unknown|Incorrect")
     if not ctx.until(f"execute if entity @a[name={PLAYER}]"):
-        raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
-    # Carpet lo crea en creativo desde la consola, y /gamemode al mismo modo no responde: se pasa por supervivencia
+        raise SystemExit(f"simulated player {PLAYER} does not appear (Carpet)")
+    # Carpet creates it in creative from the console, and /gamemode to the same mode does not respond: it goes through survival
     ctx.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
     ctx.run(f"gamemode creative {PLAYER}", r"Set .* game mode|game mode")
     return proc, ctx
@@ -119,18 +119,18 @@ def castle(p, dataset):
     g = "@e[tag=prueba_castillo,limit=1]"
     ctx.run(guardian("zombie", "heraldia_guardian.castillo", ["prueba_castillo"]), r"Summoned")
     if not ctx.wait_entity(g):
-        p.fails.append("castillo: no aparece el guardián invocado")
+        p.fails.append("castle: the summoned guardian does not appear")
         return
-    # 80 %: aún fase 1, sin refuerzos; empieza el combate (barra)
+    # 80 %: still phase 1, no reinforcements; combat starts (bar)
     p.strike(g, 20)
     p.check(not ctx.test(f"execute if entity @e[tag=prueba_castillo,tag=heraldia_fase.2]"), "castillo: fase 2 al 80 %")
     p.tally(REF, 0, "castillo: refuerzos al 80 %")
     p.check(p.log(r"jefes: barra de castillo/\w+ para 1 jugadores"), "castillo: sin barra para el jugador al primer golpe")
-    # 60 %: fase 2, efectos y sus refuerzos
+    # 60 %: phase 2, effects and its reinforcements
     p.strike(g, 20)
     p.check(p.log(rf"jefes: castillo/\w+ pasa a la fase 2 \({len(lst)} refuerzos\)"), "castillo: no pasa a la fase 2")
     p.check(ctx.test("execute if entity @e[tag=prueba_castillo,tag=heraldia_fase.2]"), "castillo: sin la etiqueta de la fase 2")
-    # (el nivel I, amplifier 0, no se guarda: es el valor por defecto del códec)
+    # (level I, amplifier 0, is not saved: it is the codec's default value)
     for ef in ("speed", "resistance", "strength"):
         p.check(ctx.test(f'execute if entity @e[tag=prueba_castillo,nbt={{active_effects:[{{id:"minecraft:{ef}"}}]}}]'),
                 f"castillo: fase 2 sin {ef}")
@@ -149,22 +149,22 @@ def castle(p, dataset):
             p.tally(f'@e[tag=heraldia_refuerzo,type={mob},nbt={{equipment:{{mainhand:{{id:"{hand}"}}}}}}]',
                      sum(r["mob"] == mob and r.get("equipo", {}).get("mainhand") == hand for r in lst),
                      f"castillo: refuerzos {mob} con {hand}")
-    # 50 %: sigue en la fase 2, no se repite
+    # 50 %: still in phase 2, not repeated
     p.strike(g, 10)
     p.tally(REF, len(lst), "castillo: otro golpe en la fase 2 llama más refuerzos")
-    # 25 %: fase 3, con el tope de vivos
+    # 25 %: phase 3, with the cap on live ones
     p.strike(g, 25)
     third = min(len(lst), 4 - len(lst))
     p.check(p.log(rf"jefes: castillo/\w+ pasa a la fase 3 \({third} refuerzos\)"), "castillo: no pasa a la fase 3")
     p.check(ctx.test('execute if entity @e[tag=prueba_castillo,nbt={active_effects:[{id:"minecraft:speed",amplifier:1b}]}]'),
             "castillo: fase 3 sin velocidad II")
     p.tally(REF, len(lst) + third, "castillo: refuerzos vivos tras la fase 3 (tope 4)")
-    # sin refuerzos vivos, otro golpe (20 %) no llama a nadie: cada fase una vez
+    # with no reinforcements alive, another hit (20 %) calls no one: each phase once
     ctx.run(f"kill {REF}", r"Killed|No entity was found")
     p.strike(g, 5)
     p.tally(REF, 0, "castillo: un golpe en la fase 3 vuelve a llamar refuerzos")
     p.check(p.times(r"jefes: castillo/\w+ pasa a la fase") == 2, "castillo: más de un cambio por fase en el log")
-    # la barra se quita al irse el jugador y vuelve con el siguiente golpe
+    # the bar is removed when the player leaves and comes back with the next hit
     ctx.run(f"tp {PLAYER} {X} {Y} {Z - 70}", r"Teleported")
     p.check(p.log(r"jefes: barra de castillo/\w+ quitada \(sin jugadores cerca\)"), "castillo: la barra no se quita al alejarse")
     ctx.run(f"tp {PLAYER} {X} {Y} {Z}", r"Teleported")
@@ -181,9 +181,9 @@ def stray_without_id(p, dataset):
     g = "@e[tag=prueba_stray,limit=1]"
     ctx.run(guardian("stray", "prueba_stray", []), r"Summoned")
     if not ctx.wait_entity(g):
-        p.fails.append("stray: no aparece el guardián invocado")
+        p.fails.append("stray: the summoned guardian does not appear")
         return
-    # sin nadie a menos de 48 bloques (daño del sol, de lava...): no pasa de fase ni muestra la barra
+    # with no one within 48 blocks (damage from sun, lava...): it does not change phase or show the bar
     ctx.run(f"tp {PLAYER} {X} {Y} {Z - 70}", r"Teleported")
     p.strike(g, 50)
     p.check(not ctx.test("execute if entity @e[tag=prueba_stray,tag=heraldia_fase.2]"), "stray: pasa de fase sin jugadores cerca")
@@ -204,7 +204,7 @@ def hit_lighthouse(p, dataset):
     g = "@e[tag=prueba_faro,limit=1]"
     ctx.run(guardian("drowned", "heraldia_guardian.faro", ["prueba_faro"]), r"Summoned")
     if not ctx.wait_entity(g):
-        p.fails.append("faro: no aparece el guardián invocado")
+        p.fails.append("lighthouse: the summoned guardian does not appear")
         return
     p.strike(g, 90)
     second, third = min(len(lst), 4), min(len(lst), 4 - min(len(lst), 4))
@@ -221,7 +221,7 @@ def disabled(p):
     g = "@e[tag=prueba_off,limit=1]"
     ctx.run(guardian("zombie", "heraldia_guardian.castillo", ["prueba_off"]), r"Summoned")
     if not ctx.wait_entity(g):
-        p.fails.append("desactivado: no aparece el guardián invocado")
+        p.fails.append("disabled: the summoned guardian does not appear")
         return
     p.strike(g, 50)
     p.strike(g, 30)
@@ -252,7 +252,7 @@ def main():
     finally:
         halt(proc)
         texts.append(ctx.log())
-    # Segundo arranque, con las tres opciones desactivadas
+    # Second start, with the three options disabled
     cfg = os.path.join(a.work, "config", "heraldia.json")
     with open(cfg, encoding="utf-8") as f:
         conf = json.load(f)
@@ -267,7 +267,7 @@ def main():
         texts.append(ctx.log())
     for bad in ("Registry loading errors", "Failed to load datapacks", "jefes: refuerzo", "jefes: objeto"):
         if any(bad in t for t in texts):
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     print("JEFES:", "OK" if not fails else fails)
     return 1 if fails else 0
 

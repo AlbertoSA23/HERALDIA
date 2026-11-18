@@ -1,29 +1,29 @@
-"""Tratos de los aldeanos de Heraldia (datos de 26.3: villager_trade + etiqueta #minecraft:<oficio>/level_N).
+"""Trades of the Heraldia villagers (26.3 data: villager_trade + tag #minecraft:<profession>/level_N).
 
-Una sola forma de escribir un trato (`trato`) y de filtrar a quién se le ofrece (`predicado`), que usan:
-  - mapas.py: el mapa del tesoro de cada única en los cartógrafos maestros de Heraldia (heraldia:cartografo/<id>);
-  - los tratos con carácter de cada estilo (ESTILOS, heraldia:estilos/<estilo>/<n>) y el mapa de la única de su zona en
-    los cartógrafos de cada familia (heraldia:familias/<familia>/mapa), solo para aldeanos de Heraldia (Tags "heraldia")
-    que están dentro de una aldea de ese estilo o familia (predicado de ubicación con sus estructuras) y con la opción
-    aldeas.vida.tratos_estilo activada (condición heraldia:opcion);
-  - el asedio de las aldeas fortificadas (FORTIFICADAS): una botella ominosa en el armero, con aldeas.vida.asedios.
+A single way to write a trade (`trade`) and to filter who is offered it (`predicate`), used by:
+  - maps.py: the treasure map of each unique structure at the Heraldia master cartographers (heraldia:cartografo/<id>);
+  - the characterful trades of each style (STYLES, heraldia:estilos/<style>/<n>) and the map of the unique structure of its zone at
+    the cartographers of each family (heraldia:familias/<family>/mapa), only for Heraldia villagers (Tags "heraldia")
+    who are inside a village of that style or family (location predicate with its structures) and with the option
+    aldeas.vida.tratos_estilo enabled (condition heraldia:opcion);
+  - the siege of the fortified villages (FORTIFIED): an ominous bottle at the armourer, with aldeas.vida.asedios.
 
-Cómo sale un trato (AbstractVillager.addOffersFromItemListingsWithoutDuplicates, 26.3): al subir a un nivel se sacan
-`amount` tratos (2) al azar de la etiqueta del nivel; si el predicado de uno falla, se quita y se saca otro, así que los
-tratos de otros estilos no restan nada. Con n tratos vanilla en la etiqueta y uno del estilo, el del estilo sale con
-probabilidad 2 / (n + 1): por eso van en niveles con pocos tratos vanilla (NIVEL_VANILLA). Se aplican al subir de nivel,
-también en las aldeas ya generadas (solo cambia lo que el aldeano ofrezca a partir de entonces).
+How a trade comes out (AbstractVillager.addOffersFromItemListingsWithoutDuplicates, 26.3): on reaching a level,
+`amount` trades (2) are drawn at random from the level's tag; if the predicate of one fails, it is removed and another is drawn, so the
+trades of other styles subtract nothing. With n vanilla trades in the tag and one of the style, the style one comes out with
+probability 2 / (n + 1): that is why they go in levels with few vanilla trades (VANILLA_LEVEL). They apply on levelling up,
+also in villages already generated (only what the villager offers from then on changes).
 """
 from themes import THEMES, FAMILIES
 import uniques
 
 NS = "heraldia"
-VILLAGER_TAG = NS            # core.villager pone esta etiqueta a los aldeanos de Heraldia
+VILLAGER_TAG = NS            # core.villager puts this tag on the Heraldia villagers
 OPTION_STYLE, OPTION_SIEGES = "aldeas.vida.tratos_estilo", "aldeas.vida.asedios"
 EM = "minecraft:emerald"
 
-# Tratos vanilla de cada etiqueta #minecraft:<oficio>/level_N (26.3) en los niveles que usan los tratos de estilo:
-# todos los niveles sacan 2. Lo comprueba la prueba aldeas_vida.py contra el .jar del juego.
+# Vanilla trades of each tag #minecraft:<profession>/level_N (26.3) at the levels used by the style trades:
+# all levels draw 2. The test village_life.py checks it against the game .jar.
 VANILLA_LEVEL = {("weaponsmith", 2): 1, ("weaponsmith", 3): 2, ("toolsmith", 2): 1, ("butcher", 4): 1,
                  ("butcher", 5): 1, ("fisherman", 3): 2, ("fisherman", 4): 1, ("shepherd", 5): 1, ("armorer", 2): 3,
                  ("armorer", 4): 3, ("fletcher", 4): 2, ("fletcher", 5): 3, ("leatherworker", 2): 3,
@@ -32,14 +32,14 @@ VANILLA_LEVEL = {("weaponsmith", 2): 1, ("weaponsmith", 3): 2, ("toolsmith", 2):
                  ("mason", 5): 2, ("farmer", 4): 2, ("farmer", 5): 2, ("cartographer", 3): 3}
 XP = {1: 2, 2: 10, 3: 20, 4: 30, 5: 30}
 
-# Única «de la zona» de cada familia (su mapa lo vende el cartógrafo de la familia, nivel 3).
+# The unique structure "of the zone" of each family (its map is sold by the family cartographer, level 3).
 ZONE = {"llanuras": "castillo", "bosque": "catedral", "oscuro": "torre_mago", "taiga": "salon_jarl",
         "nieve": "fortaleza_hielo", "desierto": "acueducto", "sabana": "coliseo", "jungla": "piramide",
         "pantano": "mansion", "cerezos": "palacio", "badlands": "acueducto", "costa": "galeon"}
 MAP_FAMILY = dict(oficio="cartographer", nivel=3, precio=16, usos=3)
 
-# Estilos fortificados: el juego puede lanzar en ellos un asedio (asalto de saqueadores) si un jugador con el presagio
-# entra; el armero vende la botella ominosa más leve (amplificador 0: asalto de nivel 1). Desactivado por defecto.
+# Fortified styles: the game can trigger a siege (pillager raid) in them if a player with the omen
+# enters; the armourer sells the mildest ominous bottle (amplifier 0: level 1 raid). Disabled by default.
 FORTIFIED = ("oscuro_fortificada", "nieve_fortaleza", "badlands_canon")
 SIEGE = dict(oficio="weaponsmith", nivel=3, precio=10, usos=1)
 
@@ -65,7 +65,7 @@ def _potion(pid):
 
 
 def _chronicle_copy(sid):
-    """Copia del relato de una única (sin la marca heraldia_historia: no cuenta para el desafío del cronista)."""
+    """Copy of the account of a unique structure (without the heraldia_historia mark: it does not count for the chronicler's challenge)."""
     from uniques._common import chest_loot
     mod = dict(uniques.modules())[sid]
     k = chest_loot.story_key(sid)
@@ -74,12 +74,12 @@ def _chronicle_copy(sid):
     e = chest_loot.written_book(pages, name, "Crónica (copia)", chest_loot.STORY_AUTHOR,
                     lore=[_c(f"item.{NS}.trato.copia_cronica.lore", "Copiada en el scriptorium de la abadía")])
     comps = dict(e["modifier"][0]["components"])
-    del comps["minecraft:custom_name"]   # el nombre lo pone el trato (item_name + custom_name sin cursiva)
+    del comps["minecraft:custom_name"]   # the name is set by the trade (item_name + custom_name without italics)
     return comps
 
 
-# Tratos con carácter de cada estilo: (oficio, nivel, objeto, cantidad, esmeraldas, (es, en) nombre, (es, en) lore,
-# componentes extra, usos). Solo objetos vanilla con componentes; encantamientos moderados (como mucho nivel 3).
+# Characterful trades of each style: (profession, level, item, quantity, emeralds, (es, en) name, (es, en) lore,
+# extra components, uses). Only vanilla items with components; moderate enchantments (at most level 3).
 STYLES = {
     "llanuras_castellana": [("weaponsmith", 2, "iron_sword", 1, 12, ("Espada de la mesnada", "Militia Sword"),
                              ("Forjada para la ronda de la villa", "Forged for the town watch"), _ench(sharpness=1, unbreaking=1), 3)],
@@ -159,17 +159,17 @@ STYLES = {
 
 
 def villager_predicate(structures=None):
-    """Predicado de aldeano de Heraldia (Tags "heraldia"); con `structures` (lista de ids o etiqueta), además dentro de
-    una pieza de esas estructuras. entity_tags lee las Tags sin serializar al aldeano."""
-    if structures is None:   # el filtro de siempre de los mapas de los cartógrafos maestros (mismo JSON que antes)
+    """Heraldia villager predicate (Tags "heraldia"); with `structures` (list of ids or tag), also inside
+    a piece of those structures. entity_tags reads the Tags without serialising the villager."""
+    if structures is None:   # the usual filter of the master cartographers' maps (same JSON as before)
         return {"type": "minecraft:entity_properties", "entity": "this", "predicate": {"nbt": "{Tags:[\"%s\"]}" % VILLAGER_TAG}}
     return {"type": "minecraft:entity_properties", "entity": "this", "predicate": {
         "minecraft:entity_tags": {"all_of": [VILLAGER_TAG]}, "minecraft:location": {"structures": structures}}}
 
 
 def predicate(structures=None, *options):
-    """merchant_predicate: aldeano de Heraldia (en esas estructuras) y opciones sí/no activadas (las opciones van
-    primero: son lo más barato)."""
+    """merchant_predicate: Heraldia villager (in those structures) and yes/no options enabled (the options go
+    first: they are the cheapest)."""
     v = villager_predicate(structures)
     if not options:
         return v
@@ -177,7 +177,7 @@ def predicate(structures=None, *options):
 
 
 def trade(price, gives, *, extra=None, modifier=None, pred=None, uses=3, xp=10, discount=0.05):
-    """Trato de 26.3: `precio` esmeraldas (y `extra`, otro objeto que se pide) por `gives` ({id, count, components})."""
+    """26.3 trade: `price` emeralds (and `extra`, another item that is asked for) for `gives` ({id, count, components})."""
     t = {"wants": {"id": EM, "count": price}}
     if extra:
         t["additional_wants"] = extra
@@ -199,7 +199,7 @@ def style_structures(tid):
 
 
 def style_trades(tid):
-    """[(id del trato, oficio, nivel, trato)] de un estilo."""
+    """[(trade id, profession, level, trade)] of a style."""
     out = []
     for n, (depth, lvl, item, count, price, name, lore, comps, uses) in enumerate(STYLES.get(tid, ())):
         key = key_name(tid, n)
@@ -207,7 +207,7 @@ def style_trades(tid):
             comps = _chronicle_copy(comps.split(":", 1)[1])
         c = dict(comps)
         c["minecraft:item_name"] = _c(key, name[0])
-        if item == "written_book":   # el título del libro haría de nombre: custom_name sin cursiva (botin.libro)
+        if item == "written_book":   # the book title would act as the name: custom_name without italics (chest_loot.written_book)
             c["minecraft:custom_name"] = dict(_c(key, name[0]), italic=False)
         if lore:
             c["minecraft:lore"] = [dict(_c(key + ".lore", lore[0]), color="gray", italic=False)]
@@ -227,7 +227,7 @@ def style_trades(tid):
 
 
 def family_trades(fam, modules):
-    """Mapa de la única de la zona de la familia en sus cartógrafos (si esa única existe)."""
+    """Map of the unique structure of the family's zone at its cartographers (if that unique structure exists)."""
     import maps
     sid = ZONE.get(fam)
     mods = dict(modules)
@@ -241,7 +241,7 @@ def family_trades(fam, modules):
 
 
 def everyone(modules):
-    """[(id, oficio, nivel, trato)] de Heraldia: mapas de los maestros cartógrafos, de cada familia y de cada estilo."""
+    """[(id, profession, level, trade)] of Heraldia: maps of the master cartographers, of each family and of each style."""
     import maps
     import dimensions
     out = [(f"{NS}:cartografo/{sid}", "cartographer", 5, maps.trade(sid, mod)) for sid, mod in dimensions.overworld_only(modules)]
@@ -253,8 +253,8 @@ def everyone(modules):
 
 
 def errors(modules):
-    """Contrato de los datos: estilos existentes, oficio y nivel con su cuenta de tratos vanilla, precios y niveles de
-    encantamiento moderados, y ningún objeto prohibido."""
+    """Contract of the data: existing styles, profession and level with their count of vanilla trades, moderate prices and
+    enchantment levels, and no forbidden item."""
     from uniques._common import chest_loot
     ids = {th["id"] for th in THEMES}
     e = [f"tratos.ESTILOS: estilo desconocido {t}" for t in STYLES if t not in ids]
@@ -277,7 +277,7 @@ def errors(modules):
 
 
 def items(modules):
-    """Lo que piden y dan los tratos, como entradas de botín (para validar ids, adornos y encantamientos)."""
+    """What the trades ask for and give, as loot entries (to validate ids, trims and enchantments)."""
     out = []
     for _, _, _, t in everyone(modules):
         for k in ("wants", "additional_wants", "gives"):
@@ -310,7 +310,7 @@ def lang():
 
 
 def write(out, modules, jdump):
-    """Escribe cada trato y suma su id a la etiqueta de su oficio y nivel (sin reemplazar la vanilla)."""
+    """Writes each trade and adds its id to the tag of its profession and level (without replacing the vanilla one)."""
     tags = {}
     for tid_, depth, lvl, t in everyone(modules):
         jdump(out, f"data/{NS}/villager_trade/{tid_.split(':', 1)[1]}.json", t)

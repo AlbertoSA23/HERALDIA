@@ -1,31 +1,31 @@
-"""Tablón de encargos de la plaza de cada aldea (solo datos; el Java solo quita la pieza si está desactivado).
+"""Quest board in each village's plaza (data only; the Java side only removes the piece if it is disabled).
 
-Pieza <estilo>/tablon (pool <estilo>/tablon), colgada de un hueco de la plaza (streets.plaza, SLOT) con un jigsaw
-alineado, como los aldeanos: un atril con el libro «Tablón de encargos» y, detrás, el alguacil (aldeano sin IA,
-invulnerable, con nombre) que paga los encargos de entrega con sus tratos fijos (Offers en la plantilla):
-  - Cosecha para el granero: COSECHA de la familia -> esmeraldas
-  - Leña para el invierno: troncos del estilo -> esmeraldas
-  - Limpia los caminos: carne podrida y huesos -> «Capa de la ronda» (peto de cuero del color del estandarte)
-Los encargos que son hazañas los detecta el juego con logros (sin trabajo por tick) y los paga la recompensa del logro
-(una vez por jugador):
-  - aldeas/encargos/ronda: matar una amenaza (heraldia:amenazas_aldea) dentro de una aldea Heraldia
-  - aldeas/encargos/asedio: ser héroe de la aldea (asalto de saqueadores ganado) en una aldea Heraldia
-Coste: una entidad por aldea (el alguacil, sin IA: no piensa ni se mueve) y ninguna función periódica.
-Si aldeas.vida.tablon está desactivado, AldeaStructure quita la pieza al crear la aldea (las ya generadas no cambian).
+Piece <style>/tablon (pool <style>/tablon), hung from a slot in the plaza (streets.plaza, SLOT) with an aligned
+jigsaw, like the villagers: a lectern with the book "Tablón de encargos" and, behind it, the constable (villager without AI,
+invulnerable, with a name) who pays for delivery quests with fixed trades (Offers in the template):
+  - Harvest for the granary: the family's HARVEST -> emeralds
+  - Firewood for the winter: the style's logs -> emeralds
+  - Clear the roads: rotten flesh and bones -> "Capa de la ronda" (leather chestplate in the banner's color)
+Quests that are feats are detected by the game with advancements (no per-tick work) and paid by the advancement's reward
+(once per player):
+  - aldeas/encargos/ronda: kill a threat (heraldia:amenazas_aldea) inside a Heraldia village
+  - aldeas/encargos/asedio: be hero of the village (won a raider raid) in a Heraldia village
+Cost: one entity per village (the constable, without AI: it neither thinks nor moves) and no periodic function.
+If aldeas.vida.tablon is disabled, AldeaStructure removes the piece when creating the village (those already generated do not change).
 """
 from core import Template, nsid, B, F, NS
 from advancements import advancement, comp, key as adv_key
 from uniques._common import chest_loot
 
-SLOT = (14, 0, 18)          # hueco en la plaza (23 x 23, centro 11): al sureste de la fuente, entre bancos y árbol
+SLOT = (14, 0, 18)          # slot in the plaza (23 x 23, center 11): southeast of the fountain, between benches and a tree
 HARVEST = {"llanuras": "wheat", "bosque": "carrot", "oscuro": "brown_mushroom", "taiga": "sweet_berries",
            "nieve": "potato", "desierto": "cactus", "sabana": "wheat", "jungla": "cocoa_beans",
            "pantano": "sugar_cane", "cerezos": "beetroot", "badlands": "cactus", "costa": "kelp"}
-BLOCKS = {"brown_mushroom", "cactus", "sugar_cane", "kelp"}   # su nombre es block.minecraft.<id> (objetos de bloque)
+BLOCKS = {"brown_mushroom", "cactus", "sugar_cane", "kelp"}   # its name is block.minecraft.<id> (block items)
 # (cantidad pedida, esmeraldas, usos)
 BARN, FIREWOOD = (32, 4, 4), (32, 3, 4)
-ROUND_TRADE = ((16, "rotten_flesh"), (8, "bone"), 2)        # pide, también pide, usos
-ROUND_ADVANCEMENT, SIEGE_ADVANCEMENT = 3, 8                            # esmeraldas de la recompensa de cada logro
+ROUND_TRADE = ((16, "rotten_flesh"), (8, "bone"), 2)        # asks for, also asks for, uses
+ROUND_ADVANCEMENT, SIEGE_ADVANCEMENT = 3, 8                            # emeralds of each advancement's reward
 THREATS = ["zombie", "husk", "drowned", "zombie_villager", "skeleton", "stray", "bogged", "spider", "cave_spider",
             "creeper", "witch", "pillager", "vindicator", "evoker", "ravager"]
 TAG_CONSTABLE = "heraldia_alguacil"
@@ -82,7 +82,7 @@ def _name(item):
 
 def _p(k, *args):
     c = _t(k)
-    if args:   # una lista NBT es de un solo tipo: los números van como texto
+    if args:   # an NBT list has a single type: the numbers go as text
         c["with"] = [{"text": str(a)} if isinstance(a, int) else a for a in args]
     return c
 
@@ -134,12 +134,12 @@ def sheriff(th):
     return {"id": "minecraft:villager", "PersistenceRequired": B(1), "NoAI": B(1), "Invulnerable": B(1),
             "Tags": [NS, TAG_CONSTABLE], "CustomName": _t("alguacil"), "CustomNameVisible": B(1),
             "VillagerData": {"profession": "minecraft:weaponsmith", "level": 5, "type": "minecraft:" + th["vtype"]},
-            "Xp": 250, "Rotation": [F(180.0), F(0.0)],   # mira al norte, hacia el atril y quien lo lee
+            "Xp": 250, "Rotation": [F(180.0), F(0.0)],   # faces north, toward the lectern and whoever reads it
             "Offers": {"Recipes": offers(th)}}
 
 
 def piece(th, name):
-    """Atril (mirando al norte: el lector se pone delante) y detrás el alguacil, sobre el jigsaw (que no coloca nada)."""
+    """Lectern (facing north: the reader stands in front) and behind it the constable, over the jigsaw (which places nothing)."""
     t = Template(name)
     t.set(0, 0, 0, "lectern[facing=north,has_book=true,powered=false]", nbt={"id": "minecraft:lectern", "Book": written_book(th), "Page": 0})
     t.jigsaw(0, 0, 1, "down_north", "heraldia:bottom", "heraldia:slot", "minecraft:empty",
@@ -150,7 +150,7 @@ def piece(th, name):
 
 
 def slot(t, th):
-    """Hueco del tablón en la plaza (jigsaw hacia arriba, alineado: la pieza gira con la plaza)."""
+    """Board slot in the plaza (jigsaw facing up, aligned: the piece rotates with the plaza)."""
     x, y, z = SLOT
     t.jigsaw(x, y, z, "up_north", "heraldia:slot", "heraldia:bottom", nsid(f"{th['id']}/tablon"),
              final_state=th["path"], joint="aligned")
@@ -184,17 +184,17 @@ def _reward(n, extra=None):
     if extra:
         pools.append({"rolls": 1, "entries": [{"type": "minecraft:item", "name": extra[0],
                                                "modifier": [{"type": "minecraft:set_components", "components": extra[1]}]}]})
-    import treasure   # a veces, un fragmento de mapa del tesoro (tesoro.FACTOR["hazanas"])
+    import treasure   # sometimes, a treasure map fragment (treasure.FACTOR["hazanas"])
     return treasure.with_hint({"type": "minecraft:advancement_reward", "pools": pools}, "hazanas")
 
 
 def tables():
-    """Tablas de recompensa de las hazañas (heraldia:encargos/<id>)."""
+    """Reward tables for the feats (heraldia:encargos/<id>)."""
     return {"ronda": _reward(ROUND_ADVANCEMENT), "asedio": _reward(SIEGE_ADVANCEMENT, ("minecraft:goat_horn", horn_components()))}
 
 
 def items(themes):
-    """Lo que pide y da el alguacil de cada estilo, como entradas de botín (para validar ids, adornos y encantamientos)."""
+    """What the constable of each style asks for and gives, as loot entries (to validate ids, trims and enchantments)."""
     out = []
     for th in themes:
         for o in offers(th):
@@ -210,7 +210,7 @@ def items(themes):
 
 
 def lang():
-    """Textos (es_es, en_us) del tablón, del alguacil y de los logros de las hazañas."""
+    """Texts (es_es, en_us) of the board, the constable and the feat advancements."""
     out = {"es_es": {}, "en_us": {}}
     for k, (es, en) in TEXTS.items():
         out["es_es"][f"{K}.{k}"], out["en_us"][f"{K}.{k}"] = es, en
@@ -222,7 +222,7 @@ def lang():
 
 
 def write(out, jdump):
-    """Logros de las hazañas, sus recompensas y la etiqueta de amenazas; devuelve los textos (es_es, en_us)."""
+    """Feat advancements, their rewards and the threats tag; returns the texts (es_es, en_us)."""
     jdump(out, f"data/{NS}/tags/entity_type/amenazas_aldea.json", {"values": [f"minecraft:{m}" for m in THREATS]})
     village = {"minecraft:location": {"structures": f"#{NS}:aldeas"}}
     crit = {

@@ -1,7 +1,7 @@
-"""Entradas a mina (minas/): plantillas de los tres tamaños y los cinco estilos (auditoría propia, forma, boca, galería,
-vías), estilos por bioma, botín moderado, lo que escribe en el datapack (estructuras, rejillas, etiquetas, la colocación
-de las minas vanilla), sus opciones, sus logros y la guía. Con casos negativos de la auditoría (una fuga en el forro,
-la bajada o el pozo tapiados, una vía cortada) para que un cambio que rompa la mina falle aquí en segundos."""
+"""Mine entrances (minas/): templates of the three sizes and the five styles (own audit, shape, mouth, gallery,
+tracks), styles by biome, moderate loot, what it writes to the datapack (structures, grids, tags, the placement
+of the vanilla mines), its options, its advancements and the guide. With negative audit cases (a leak in the lining,
+the descent or the shaft walled up, a cut track) so that a change that breaks the mine fails here in seconds."""
 import json
 import pytest
 import guide
@@ -23,7 +23,7 @@ def constructions():
 
 @pytest.fixture(scope="module")
 def written(tmp_path_factory):
-    """Lo que minas.write deja en el datapack: ({ruta: json} de jdump, {ruta: json} de las etiquetas de bioma, textos)."""
+    """What minas.write leaves in the datapack: ({path: json} from jdump, {path: json} of the biome tags, texts)."""
     import os
     import biomes
     previous = dict(biomes._WRITTEN)
@@ -39,7 +39,7 @@ def written(tmp_path_factory):
     return files, tags, lang
 
 
-# ------------------------------------------------------------------ plantillas
+# ------------------------------------------------------------------ templates
 @pytest.mark.parametrize("key", ALL_COMBOS, ids=["/".join(k) for k in ALL_COMBOS])
 def test_audit_of_each_variant(constructions, key):
     assert audit.errors(constructions[key], key[0]) == []
@@ -49,7 +49,7 @@ def test_sizes_and_depth(constructions):
     for (size, sty, v), o in constructions.items():
         x0, y0, z0, x1, y1, z1 = o.t.bounds()
         sx, sy, sz = x1 - x0 + 1, y1 - y0 + 1, z1 - z0 + 1
-        assert max(sx, sz) <= 8 * 16, f"{size}/{sty}/{v}: {sx} x {sz}: no cabe en el alcance de un inicio (8 chunks)"
+        assert max(sx, sz) <= 8 * 16, f"{size}/{sty}/{v}: {sx} x {sz}: does not fit in the reach of a start (8 chunks)"
         deep = min(y for _, y, _ in o.nodes) + 1
         assert deep <= -blueprints.SIZES[size]["hondo"] + 1
     measurement = {t: max(len(constructions[(t, e, v)].t.blocks) for e in mines.STYLES for v in mines.VARIANTS) for t in mines.SIZES}
@@ -61,13 +61,13 @@ def test_the_mouth_is_where_the_json_says():
         o, (x0, y0, z0), meta = mines.construction(size, sty, v)
         ex, ey, ez = meta["entrada"]
         assert (ex + x0, ey + y0, ez + z0) == (0, 0, 0)
-        assert o.t.get(0, 1, 0).startswith("minecraft:rail"), "vía bajo el dintel de la boca"
-        assert "_log" in o.t.get(2, 1, 0) and "_log" in o.t.get(-2, 1, 0), "postes de la boca"
+        assert o.t.get(0, 1, 0).startswith("minecraft:rail"), "track under the mouth lintel"
+        assert "_log" in o.t.get(2, 1, 0) and "_log" in o.t.get(-2, 1, 0), "mouth posts"
         px0, pz0, px1, pz1 = meta["patio"]
-        assert pz1 == ez - 1 and px0 < ex < px1, "el patio queda delante de la boca"
-        assert 4 <= len(meta["techo"]) <= 12, "muestras de techo para el Java (cada una cuesta una columna)"
+        assert pz1 == ez - 1 and px0 < ex < px1, "the yard is in front of the mouth"
+        assert 4 <= len(meta["techo"]) <= 12, "ceiling samples for the Java (each one costs a column)"
         for x, z, dy in meta["techo"]:
-            assert z > ez and dy < 0, "las muestras están sobre la galería, por debajo del patio"
+            assert z > ez and dy < 0, "the samples are above the gallery, below the yard"
 
 
 def test_variants_distinct_and_mirrored(constructions):
@@ -76,7 +76,7 @@ def test_variants_distinct_and_mirrored(constructions):
             a, b = constructions[(size, sty, "a")], constructions[(size, sty, "b")]
             assert a.t.blocks != b.t.blocks
             assert {p for p, _ in a.chest_list} != {p for p, _ in b.chest_list}
-    # lo que lleva lado (escaleras, puertas) se refleja: el capataz de la mediana b mira al otro lado
+    # what has a side (stairs, doors) is mirrored: the foreman of medium structure b looks the other way
     a, b = constructions[("mediana", "montana", "a")], constructions[("mediana", "montana", "b")]
     doors_a = [p for p, (st, _) in a.t.blocks.items() if "_door" in st and "lower" in st]
     doors_b = [p for p, (st, _) in b.t.blocks.items() if "_door" in st and "lower" in st]
@@ -89,14 +89,14 @@ def test_each_size_has_what_is_own(constructions):
     for sty in mines.STYLES:
         p, m, g = (constructions[(t, sty, "a")] for t in mines.SIZES)
         ids = lambda o: sorted(n["id"] for *_, n in o.t.entities)
-        assert ids(p) == ["minecraft:minecart"], "la boca pequeña: una vagoneta en sus vías"
-        assert "minecraft:chest_minecart" in ids(m) and "minecraft:cave_spider" not in ids(m), "sin mobs: un generador"
+        assert ids(p) == ["minecraft:minecart"], "the small mouth: a minecart on its tracks"
+        assert "minecraft:chest_minecart" in ids(m) and "minecraft:cave_spider" not in ids(m), "no mobs: a spawner"
         assert "minecraft:chest_minecart" in ids(g)
-        assert {"blast_furnace", "furnace", "anvil", "campfire", "crafting_table"} <= names(m), "fundición y cabaña"
+        assert {"blast_furnace", "furnace", "anvil", "campfire", "crafting_table"} <= names(m), "smelter and cabin"
         assert "spawner" in names(g) and "spawner" in names(m) and "spawner" not in names(p)
-        assert "iron_chain" in names(g), "la cadena de la polea"
-        assert g.descent is not None and p.descent is None and m.descent is None, "solo la grande tiene pozo"
-        assert len({y for _, y, _ in g.nodes}) == 2, "la grande tiene dos niveles"
+        assert "iron_chain" in names(g), "the pulley chain"
+        assert g.descent is not None and p.descent is None and m.descent is None, "only the large one has a shaft"
+        assert len({y for _, y, _ in g.nodes}) == 2, "the large one has two levels"
 
 
 def test_generator_small_of_spiders(constructions):
@@ -106,7 +106,7 @@ def test_generator_small_of_spiders(constructions):
         st, nbt = o.t.blocks[(x, y, z)]
         assert nbt["SpawnData"]["entity"]["id"] == "minecraft:cave_spider"
         assert nbt["MaxNearbyEntities"] <= 4 and nbt["SpawnCount"] <= 2 and nbt["RequiredPlayerRange"] <= 16
-        assert y <= -blueprints.SIZES[size]["hondo"] + 2, "en lo hondo de la galería"
+        assert y <= -blueprints.SIZES[size]["hondo"] + 2, "deep in the gallery"
 
 
 def test_persistent_and_anchored_mobs(constructions):
@@ -117,7 +117,7 @@ def test_persistent_and_anchored_mobs(constructions):
                 assert n.get("PersistenceRequired") and ANCHORED_TAG in n["Tags"]
 
 
-# ------------------------------------------------------------------ estilos por bioma
+# ------------------------------------------------------------------ styles by biome
 MATERIALS = {"montana": ("oak_log", "cobblestone"), "taiga": ("spruce_log", "cobblestone"),
               "desierto": ("birch_log", "sandstone"), "badlands": ("dark_oak_log", "terracotta"),
               "picos": ("stripped_spruce_log", "cobbled_deepslate")}
@@ -146,7 +146,7 @@ def test_style_materials(constructions):
         assert not any(tally.get(t) for t in others), f"{size}/{sty}/{v}: madera de otro estilo"
 
 
-# ------------------------------------------------------------------ botín
+# ------------------------------------------------------------------ loot
 def _entries(tbl):
     for p in tbl["pools"]:
         for e in p["entries"]:
@@ -155,7 +155,7 @@ def _entries(tbl):
 
 def test_loot_moderate():
     for name, tbl in mines.LOOT.items():
-        assert any(p.get("solo_sin_lootr") for p in tbl["pools"]), f"{name}: sin grupo «solo sin Lootr»"
+        assert any(p.get("solo_sin_lootr") for p in tbl["pools"]), f"{name}: no 'only without Lootr' group"
         for p, e in _entries(tbl):
             obj = e.get("name", "")
             assert not any(x in obj for x in FORBIDDEN), f"{name}: {obj}"
@@ -168,8 +168,8 @@ def test_loot_moderate():
 
 
 def test_loot_somewhat_better_that_vanilla():
-    """La tabla de las salas de la galería tira más veces que el cofre de mina vanilla (2-4 objetos de valor y 3 de
-    raíles) y lleva esmeraldas y menas en bruto que el vanilla no tiene."""
+    """The gallery rooms table rolls more times than the vanilla mine chest (2-4 valuable items and 3 of
+    rails) and carries emeralds and raw ores that vanilla does not have."""
     g = mines.LOOT["galeria"]["pools"]
     assert g[1]["rolls"]["min"] >= 3 and g[1]["rolls"]["max"] >= 5
     names = {e["name"] for _, e in _entries(mines.LOOT["galeria"]) if "name" in e}
@@ -206,7 +206,7 @@ def test_what_it_writes(written):
     for n in mines.LOOT:
         assert f"data/heraldia/loot_table/minas/{n}.json" in files
     assert set(lang["es_es"]) == set(lang["en_us"])
-    # etiquetas de bioma: la de todos los estilos y una por estilo, con sus convencionales opcionales
+    # biome tags: the one for all styles and one per style, with their optional conventional ones
     assert "data/heraldia/tags/worldgen/biome/minas.json" in tags
     for sty, d in mines.STYLES.items():
         vals = tags[f"data/heraldia/tags/worldgen/biome/minas/{sty}.json"]["values"]
@@ -232,10 +232,10 @@ def test_build_registers_templates_and_pools():
         assert t.no_generic_audit
         assert reg.pools[f"heraldia:{name}"]["elements"][0][0] == name
         assert min(t.bounds()[:3]) == 0, "normalizada"
-    assert min(mines.construction("pequena", "montana", "a")[0].t.bounds()[:3]) < 0, "la obra en caché no se toca"
+    assert min(mines.construction("pequena", "montana", "a")[0].t.bounds()[:3]) < 0, "the cached work is not touched"
 
 
-# ------------------------------------------------------------------ auditoría: casos negativos
+# ------------------------------------------------------------------ audit: negative cases
 def _copy(size):
     import copy
     return copy.deepcopy(mines.construction(size, "montana", "a")[0])
@@ -287,7 +287,7 @@ def test_audit_detects_lining_natural():
     assert any("naturales" in e for e in audit.errors(o, "pequena"))
 
 
-# ------------------------------------------------------------------ opciones, logros y guía
+# ------------------------------------------------------------------ options, advancements and guide
 def test_options():
     sch = {o["clave"]: o for o in options.schema()["opciones"]}
     assert sch["minas.entradas.activado"]["defecto"] is True and sch["minas.entradas.activado"]["seccion"] == "minas"
@@ -295,7 +295,7 @@ def test_options():
     assert (sep["defecto"], sep["min"], sep["max"]) == (mines.SEPARATION["pequena"], *mines.SEPARATION_RANGE)
     mul = sch["minas.vanilla.multiplicador"]
     assert isinstance(mul["defecto"], float) and (mul["defecto"], mul["min"], mul["max"]) == mines.MULTIPLIER
-    assert json.dumps(mul["defecto"]) == "2.0", "con punto: el Java la reconoce como decimal"
+    assert json.dumps(mul["defecto"]) == "2.0", "with a dot: the Java recognises it as a decimal"
     lang = options.lang()
     for k in ("minas.entradas.activado", "minas.entradas.separacion_bloques", "minas.vanilla.multiplicador"):
         assert f"heraldia.config.{k}" in lang["es_es"] and f"heraldia.config.{k}.nombre" in lang["en_us"]
@@ -319,7 +319,7 @@ def test_guide_talks_about_mines_and_bosses():
     ids = [pid for pid, _, _ in guide.PAGES]
     assert "minas" in ids and "jefes" in ids
     assert ids.index("minas") < ids.index("unicas")
-    assert guide.errors(uniques.modules()) == [], "todas las páginas caben en los dos idiomas"
+    assert guide.errors(uniques.modules()) == [], "all pages fit in both languages"
     for pid, title, text in guide.PAGES:
         if pid in ("minas", "jefes"):
             for i in (0, 1):

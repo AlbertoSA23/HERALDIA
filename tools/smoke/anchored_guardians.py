@@ -1,19 +1,19 @@
-"""Mobs anclados (heraldia_anclado) en un servidor dedicado 26.3 real, con un jugador simulado (complementa server_smoke.py).
+"""Anchored mobs (heraldia_anclado) on a real 26.3 dedicated server, with a simulated player (complements server_smoke.py).
 
-Uso: python3 tools/smoke/anchored_guardians.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke" [--times N]
-Un mob persistente con IA pasea hasta 10 bloques en los 100 primeros ticks de cada carga (RandomStrollGoal exige
-noActionTime < 100, que no se guarda) y a veces salía de su sala; y el finalizeSpawn de zombis y esqueletos sortea
-CanPickUpLoot sin mirar el NBT. El mod (comun/Anclaje.java) lo evita en los que llevan core.ANCLADO_TAG. Con cada mob
-distinto con la etiqueta en las plantillas del .jar (los guardianes y los ahogados de la Atlántida):
-  1) lo coloca --times veces como pieza de pool (/place jigsaw: finalizeSpawn, como al generar) en su casilla de una
-     plataforma, de noche y en difícil; ninguno puede recoger objetos y, tras 200 ticks, todos siguen en su casilla
-     (±1,8 bloques; el guardián anciano, en una piscina, dentro de la casa de 16 bloques que el juego le pone). Un lote de control sin la etiqueta (el mismo esqueleto y el mismo zombi) debe pasear y recoger
-     objetos alguna vez: si no, la prueba no comprobaría nada;
-  2) descarga y vuelve a cargar los chunks (noActionTime vuelve a 0) y, tras otros 200 ticks, siguen en su casilla;
-  3) con un jugador simulado (Carpet) a 8 bloques, cada uno lo ataca (le quita vida): anclado no quiere decir tonto
-     (salvo los animales de las medianas, PACIFICOS, que no atacan a nadie);
-  4) coloca de día la plantilla real de cada guardián (/place template; de noche otra vez las de los ahogados) y, tras
-     200 ticks, sigue donde la plantilla lo pone.
+Usage: python3 tools/smoke/anchored_guardians.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke" [--times N]
+A persistent mob with AI wanders up to 10 blocks in the first 100 ticks of each load (RandomStrollGoal requires
+noActionTime < 100, which is not saved) and sometimes left its room; and the finalizeSpawn of zombies and skeletons rolls
+CanPickUpLoot ignoring the NBT. The mod (comun/Anclaje.java) prevents this for those carrying core.ANCHORED_TAG. With each
+distinct mob carrying the tag in the .jar templates (the guardians and the Atlantis drowned):
+  1) it places it --times times as a pool piece (/place jigsaw: finalizeSpawn, as when generating) in its cell of a
+     platform, at night and on hard; none may pick up items and, after 200 ticks, all are still in their cell
+     (±1.8 blocks; the elder guardian, in a pool, within the 16-block home the game gives it). A control batch without the tag (the same skeleton and the same zombie) must wander and pick up
+     items at least once: otherwise the test would check nothing;
+  2) it unloads and reloads the chunks (noActionTime goes back to 0) and, after another 200 ticks, they are still in their cell;
+  3) with a simulated player (Carpet) 8 blocks away, each one attacks it (takes its health): anchored does not mean dumb
+     (except the medium structures' animals, PEACEFUL, which attack no one);
+  4) it places each guardian's real template by day (/place template; at night again those of the drowned) and, after
+     200 ticks, it is still where the template puts it.
 """
 import argparse, gzip, io, json, os, queue, shutil, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -26,21 +26,21 @@ from nbtlib.tag import Compound, List, String
 import core
 
 PACK, NS, ANCHOR_POINT = "heraldia_prueba_anclados", "heraldia_prueba", "heraldia_prueba:ancla"
-AQUATIC_MOBS = {"minecraft:guardian", "minecraft:elder_guardian"}    # fuera del agua coletean: van en una piscina
-# Animales de las medianas (el gato del pescador, el lobo de los cazadores): anclados para que no se vayan, pero no
-# atacan a quien no los ataca; en la fase 3 no se espera que ataquen.
+AQUATIC_MOBS = {"minecraft:guardian", "minecraft:elder_guardian"}    # out of water they flop around: they go in a pool
+# Animals of the medium structures (the fisherman's cat, the hunters' wolf): anchored so they do not leave, but they do not
+# attack anyone who does not attack them; in phase 3 they are not expected to attack.
 PEACEFUL = {"minecraft:cat", "minecraft:wolf"}
 Y = 150
-X1, Z1, STEP, COLS = 2000, 0, 4, 10                  # fases 1 y 2: un bloque de COLS x filas casillas por mob
-X3, Z3 = 4000, 0                                     # fase 3: jugador y mob
-X4, Z4, Y4 = 6000, 0, 120                            # fase 4: plantillas reales
+X1, Z1, STEP, COLS = 2000, 0, 4, 10                  # phases 1 and 2: a block of COLS x rows of cells per mob
+X3, Z3 = 4000, 0                                     # phase 3: player and mob
+X4, Z4, Y4 = 6000, 0, 120                            # phase 4: real templates
 PLAYER, DIST = "Testigo", 8
 CONTROL = "heraldia_prueba_control"
 
 
 def mobs(jar):
-    """[(nombre, nbt)]: un mob de cada NBT distinto (sin posición) con core.ANCLADO_TAG en las plantillas del .jar, y
-    [(plantilla, etiqueta del guardián, tamaño, tipo, posición en la plantilla)] de las que tienen un guardián final."""
+    """[(name, nbt)]: one mob for each distinct NBT (without position) with core.ANCHORED_TAG in the .jar templates, and
+    [(template, guardian tag, size, type, position in the template)] of those that have a final guardian."""
     out, seen, rooms = [], set(), []
     with zipfile.ZipFile(jar) as z:
         for n in sorted(z.namelist()):
@@ -66,7 +66,7 @@ def mobs(jar):
 
 
 def control(found, mob):
-    """El primer mob anclado de ese tipo sin la etiqueta (ni la de guardián): se comporta como uno vanilla."""
+    """The first anchored mob of that type without the tag (nor the guardian one): it behaves like a vanilla one."""
     for name, nbt in found:
         if str(nbt["id"]) == mob:
             c = Compound(nbt)
@@ -77,8 +77,8 @@ def control(found, mob):
 
 
 def write_pack(work, batches):
-    """Paquete de datos en world/datapacks (el servidor lo activa al crear el mundo): por lote, una plantilla (jigsaw +
-    el mob encima, con la etiqueta heraldia_prueba_m<i>), su pool y una función con sus colocaciones."""
+    """Data pack in world/datapacks (the server enables it when creating the world): per batch, a template (jigsaw +
+    the mob on top, with the heraldia_prueba_m<i> tag), its pool and a function with its placements."""
     root = os.path.join(work, "world", "datapacks", PACK)
     with open(os.path.join(os.makedirs(root, exist_ok=True) or root, "pack.mcmeta"), "w") as f:
         json.dump({"pack": {"description": "Heraldia: prueba de mobs anclados", "min_format": 121, "max_format": 121}}, f)
@@ -109,7 +109,7 @@ def main():
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke"))
     ap.add_argument("--times", type=int, default=30)
-    ap.add_argument("--only", default="", help="solo los mobs y plantillas cuyo nombre contenga esto (depurar)")
+    ap.add_argument("--only", default="", help="only the mobs and templates whose name contains this (debugging)")
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
     found, rooms = mobs(a.jar)
@@ -124,10 +124,10 @@ def main():
     z = Z1
     for batch in batches:
         if str(batch["nbt"]["id"]) in AQUATIC_MOBS:
-            # El guardián anciano se pone él solo una casa de 16 bloques (ElderGuardian.customServerAiStep) y vuelve a
-            # ella (MoveTowardsRestrictionGoal); en una de cuatro pruebas, 3 de 10 anclados derivaron unos 9 bloques al
-            # aparecer y luego nada, y uno vanilla 12. Se pide que siga en su casa. Casillas a 40 bloques y menos
-            # colocaciones (el agua cuesta).
+            # The elder guardian builds itself a 16-block home (ElderGuardian.customServerAiStep) and returns to
+            # it (MoveTowardsRestrictionGoal); in one of four runs, 3 of 10 anchored drifted about 9 blocks on
+            # spawning and then nothing, and a vanilla one 12. It is required to stay in its home. Cells 40 blocks apart and fewer
+            # placements (water is costly).
             step, cols, times, batch["tol"] = 40, 5, min(a.times, 10), 16
         else:
             step, cols, times, batch["tol"] = STEP, COLS, a.times * (4 if batch["control"] else 1), 1
@@ -149,7 +149,7 @@ def main():
         ctx.run(f"forceload {'add' if add else 'remove'} {x0} {z0} {x1} {z1}", r"Marked|Added|Removed|force|already|Unmarked")
 
     def fill(x0, y0, z0, x1, y1, z1, block, mode=""):
-        """/fill en franjas de z que no pasen de 32.768 bloques; «outline» como suelo, techo y cuatro paredes."""
+        """/fill in z strips not exceeding 32,768 blocks; "outline" as floor, ceiling and four walls."""
         if mode == "outline":
             for c in ((x0, y0, z0, x1, y0, z1), (x0, y1, z0, x1, y1, z1), (x0, y0, z0, x0, y1, z1),
                       (x1, y0, z0, x1, y1, z1), (x0, y0, z0, x1, y1, z0), (x0, y0, z1, x1, y1, z1)):
@@ -158,13 +158,13 @@ def main():
         step = max(1, 32768 // ((x1 - x0 + 1) * (y1 - y0 + 1)))
         for za in range(z0, z1 + 1, step):
             zb = min(z1, za + step - 1)
-            for _ in range(s.PLACE_ATTEMPTS):   # los chunks forzados tardan en cargarse
+            for _ in range(s.PLACE_ATTEMPTS):   # forced chunks take a while to load
                 m = ctx.run(f"fill {x0} {y0} {za} {x1} {y1} {zb} {block}", r"Successfully filled|No blocks|not loaded|Too many")
                 if "not loaded" not in m.string:
                     break
                 time.sleep(s.PLACE_RETRY_S)
             else:
-                raise SystemExit(f"no se cargan los chunks de {x0} {za}")
+                raise SystemExit(f"chunks at {x0} {za} do not load")
             if m.group(0).startswith("Too many"):
                 raise SystemExit(f"/fill demasiado grande: {m.string.strip()}")
 
@@ -172,7 +172,7 @@ def main():
         return f"@e[tag=heraldia_prueba_m{i}{extra}]"
 
     def blanks(i, batch):
-        """Casillas del lote sin su mob (a más de tol + 0,8 bloques en horizontal: el selector mira la caja de colisión)."""
+        """Cells of the batch without their mob (more than tol + 0.8 blocks away horizontally: the selector looks at the collision box)."""
         t = batch["tol"]
         return [(x, z) for (x, z) in batch["celdas"]
                 if ctx.count(sel(i, f",x={x - t},y={Y - 1},z={z - t},dx={2 * t},dy=6,dz={2 * t}")) < 1]
@@ -181,37 +181,37 @@ def main():
         for i, batch in enumerate(batches):
             v, total = blanks(i, batch), ctx.count(sel(i))
             outside = len(v)
-            print(f"anclados: {phase}: {batch['nombre']}: {total} en el mundo, {outside} de {len(batch['celdas'])} fuera de su casilla")
-            for (x, z) in v[:3]:        # dónde está el más cercano a la casilla vacía
-                print(f"anclados:   casilla ({x + 0.5}, {Y}, {z + 0.5}): el más cercano en "
+            print(f"anchored: {phase}: {batch['nombre']}: {total} in the world, {outside} of {len(batch['celdas'])} outside their cell")
+            for (x, z) in v[:3]:        # where the one closest to the empty cell is
+                print(f"anchored:   cell ({x + 0.5}, {Y}, {z + 0.5}): the closest one at "
                       f"{ctx.pos(sel(i, f',x={x + 0.5},y={Y},z={z + 0.5},sort=nearest,limit=1'))}")
             if batch["control"]:
                 batch.setdefault("fuera", []).append(outside)
             elif total != len(batch["celdas"]) or outside:
-                fails.append(f"{phase}: {batch['nombre']}: {outside} de {len(batch['celdas'])} fuera de su casilla ({total} en el mundo)")
+                fails.append(f"{phase}: {batch['nombre']}: {outside} of {len(batch['celdas'])} outside their cell ({total} in the world)")
 
     try:
         s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
         m = ctx.run("datapack list enabled", r"data pack\(s\) enabled: (.*)|no data packs")
         if PACK not in m.group(0):
-            raise SystemExit(f"el paquete de prueba {PACK} no está activado: {m.string.strip()}")
-        # De noche, sin que avance el tiempo, sin monstruos naturales y en difícil (CanPickUpLoot sale con más
-        # probabilidad cuanto más difícil: el control debe sacar alguno).
+            raise SystemExit(f"test pack {PACK} is not enabled: {m.string.strip()}")
+        # At night, with time not advancing, no natural monsters and on hard (CanPickUpLoot comes out with higher
+        # probability the harder it is: the control must get some).
         ctx.run("time set midnight", r"Set .*time")
         for rule in ("advance_time", "spawn_mobs"):
             ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
         ctx.run("difficulty hard", r"difficulty|Difficulty")
 
-        # 1) colocación: en su casilla tras 200 ticks y sin recoger objetos
+        # 1) placement: in their cell after 200 ticks and without picking up items
         for batch in batches:
             x0, z0, x1, z1 = batch["caja"]
             forceload(x0 - 1, z0 - 1, x1 + 1, z1 + 1)
             fill(x0, Y - 1, z0, x1, Y - 1, z1, "minecraft:stone")
             fill(x0 - 1, Y - 1, z0 - 1, x1 + 1, Y + 6, z1 + 1, "minecraft:barrier", "outline")
-            # el interior, vacío: una caja puede caer dentro de un monte (con la semilla de prueba, en x = 2000 el terreno
-            # pasa de y = 150 hacia z = 500) y un mob que aparece en la roca se asfixia
+            # the interior, empty: a box may fall inside a hill (with the test seed, at x = 2000 the terrain
+            # exceeds y = 150 towards z = 500) and a mob that spawns in rock suffocates
             fill(x0, Y, z0, x1, Y + 5, z1, "minecraft:water" if str(batch["nbt"]["id"]) in AQUATIC_MOBS else "minecraft:air")
-        print(f"anclados: {len(found)} mobs distintos con {core.ANCHORED_TAG}; {len(rooms)} plantillas con guardián")
+        print(f"anchored: {len(found)} distinct mobs with {core.ANCHORED_TAG}; {len(rooms)} templates with a guardian")
         for i, batch in enumerate(batches):
             ctx.run(f"function {NS}:m{i}", r"Running function|Ran \d+ command")
         for i, batch in enumerate(batches):
@@ -227,10 +227,10 @@ def main():
         ctx.ticks(200)
         check("al colocarse")
 
-        # 2) descarga y recarga de los chunks: noActionTime vuelve a 0 y el juego los dejaría pasear otra vez
+        # 2) unload and reload the chunks: noActionTime goes back to 0 and the game would let them wander again
         ctx.run("forceload remove all", r"Unmarked|Removed|No force|force")
         if not ctx.until(f"execute if entity @e[tag={core.ANCHORED_TAG}]", want=False):
-            fails.append("los chunks de la prueba no se descargan")
+            fails.append("the test chunks do not unload")
         for batch in batches:
             x0, z0, x1, z1 = batch["caja"]
             forceload(x0 - 1, z0 - 1, x1 + 1, z1 + 1)
@@ -242,14 +242,14 @@ def main():
         for batch in batches:
             if batch["control"]:
                 if not any(batch["fuera"]):
-                    fails.append(f"{batch['nombre']}: ninguno ha paseado; la prueba no comprueba el anclaje")
+                    fails.append(f"{batch['nombre']}: none has wandered; the test does not check the anchoring")
                 if batch["nombre"].endswith("(zombie)") and not batch["recogen"]:
-                    fails.append(f"{batch['nombre']}: ninguno puede recoger objetos; la prueba no comprueba CanPickUpLoot")
+                    fails.append(f"{batch['nombre']}: none can pick up items; the test does not check CanPickUpLoot")
         ctx.run(f"kill @e[type=!minecraft:player,x={X1 - 4},y={Y - 4},z={Z1 - 4},dx={x_max - X1 + 8},dy=14,dz={z - Z1 + 8}]",
                 r"Killed|No entity was found")
         ctx.run("forceload remove all", r"Unmarked|Removed|No force|force")
 
-        # 3) con un jugador a DIST bloques, lo ataca
+        # 3) with a player at DIST blocks, it attacks
         forceload(X3 - 4, Z3 - 4, X3 + 4, Z3 + DIST + 4)
         fill(X3 - 4, Y - 1, Z3 - 4, X3 + 4, Y - 1, Z3 + DIST + 4, "minecraft:stone")
         fill(X3 - 5, Y - 1, Z3 - 5, X3 + 5, Y + 6, Z3 + DIST + 5, "minecraft:barrier", "outline")
@@ -257,12 +257,12 @@ def main():
         healthy = f"execute if entity @a[name={PLAYER},nbt={{Health:20.0f}}]"
 
         def player():
-            """El jugador, vivo (si murió, otra vez), en su sitio y con toda la vida."""
+            """The player, alive (if it died, again), in place and at full health."""
             for _ in range(3):
                 if not ctx.test(f"execute if entity @a[name={PLAYER}]"):
                     ctx.run(f"player {PLAYER} spawn at {X3 + 0.5} {Y} {Z3 + 0.5}", r"joined the game|Player .* spawn|Unknown|Incorrect")
                     if not ctx.until(f"execute if entity @a[name={PLAYER}]"):
-                        raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
+                        raise SystemExit(f"simulated player {PLAYER} does not appear (Carpet)")
                     ctx.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
                 ctx.run(f"tp {PLAYER} {X3 + 0.5} {Y} {Z3 + 0.5}", r"Teleported|No entity")
                 ctx.run(f"effect give {PLAYER} minecraft:instant_health 1 10", r"Applied|Gave|effect|Unable|No entity")
@@ -275,7 +275,7 @@ def main():
             if batch["control"] or str(batch["nbt"]["id"]) in AQUATIC_MOBS | PEACEFUL:
                 continue
             if not player():
-                fails.append(f"ataque: el jugador no recupera la vida antes de {batch['nombre']}")
+                fails.append(f"attack: the player does not recover health before {batch['nombre']}")
                 continue
             ctx.run(f"function {NS}:j{i}", r"Running function|Ran \d+ command")
             if not ctx.wait_entity(sel(i)):
@@ -285,20 +285,20 @@ def main():
             ok = ctx.until(healthy, want=False)
             print(f"anclados: ataque: {batch['nombre']}: {'ataca' if ok else 'NO ataca'} ({time.monotonic() - t0:.1f} s)")
             if not ok:
-                fails.append(f"ataque: {batch['nombre']} no ataca al jugador a {DIST} bloques")
+                fails.append(f"attack: {batch['nombre']} does not attack the player at {DIST} blocks")
             ctx.run(f"kill @e[type=!minecraft:player,{zone}]", r"Killed|No entity was found")
-            for t in ("vex", "evoker_fangs", "arrow", "trident", "item"):   # los vexes atraviesan la barrera
+            for t in ("vex", "evoker_fangs", "arrow", "trident", "item"):   # vexes pass through the barrier
                 ctx.run(f"kill @e[type=minecraft:{t}]", r"Killed|No entity was found")
         ctx.run(f"player {PLAYER} kill", r"left the game|Killed|died|No player|Unknown|Incorrect|Can only manipulate")
         ctx.run("forceload remove all", r"Unmarked|Removed|No force|force")
 
-        # 4) la plantilla real de cada guardián (todas a la vez), de día, y otra vez de noche las de los ahogados (sus
-        # objetivos de ir al agua y a la orilla dependen de la hora): tras 200 ticks sigue donde la plantilla lo pone.
+        # 4) each guardian's real template (all at once), by day, and again at night those of the drowned (their
+        # goals of going to the water and the shore depend on the time): after 200 ticks it is still where the template puts it.
         def check_rooms(hour, which_ones, k0):
             ctx.run(f"time set {hour}", r"Set .*time")
             placed_items = []
             for k, (name, tag, size, mob, pos) in enumerate(which_ones):
-                x4 = X4 + 320 * (k0 + k)                 # cada plantilla en su sitio: sin restos de otra
+                x4 = X4 + 320 * (k0 + k)                 # each template in its place: no remains of another
                 sx, sy, sz = size
                 forceload(x4 - 1, Z4 - 1, x4 + sx, Z4 + sz)
                 for _ in range(s.PLACE_ATTEMPTS):
@@ -311,20 +311,20 @@ def main():
             for name, tag, (sx, sy, sz), p0, x4 in placed_items:
                 g = f"@e[tag={tag}]"
                 if not ctx.wait_entity(g):
-                    fails.append(f"sala ({hour}): {name}: no aparece el guardián")
+                    fails.append(f"room ({hour}): {name}: the guardian does not appear")
                     continue
                 p1 = ctx.pos(g)
                 d = ((p1[0] - p0[0]) ** 2 + (p1[2] - p0[2]) ** 2) ** 0.5
-                print(f"anclados: sala ({hour}): {name}: puesto en {p0}, tras 200 ticks en {p1} ({d:.2f} bloques)")
+                print(f"anchored: room ({hour}): {name}: placed at {p0}, after 200 ticks at {p1} ({d:.2f} blocks)")
                 if d > 1.5:
-                    fails.append(f"sala ({hour}): {name}: el guardián se ha movido de {p0} a {p1}")
+                    fails.append(f"room ({hour}): {name}: the guardian moved from {p0} to {p1}")
                 ctx.run(f"kill @e[type=!minecraft:player,x={x4 - 2},y={Y4 - 2},z={Z4 - 2},dx={sx + 4},dy={sy + 4},dz={sz + 4}]",
                         r"Killed|No entity was found")
             ctx.run("forceload remove all", r"Unmarked|Removed|No force|force")
 
         for r in rooms:
             if r[3] in AQUATIC_MOBS:
-                print(f"anclados: sala: {r[0]}: {r[3]} (acuático) se omite; probado en la piscina de la fase 1")
+                print(f"anchored: room: {r[0]}: {r[3]} (aquatic) is skipped; tested in the phase 1 pool")
         land = [r for r in rooms if r[3] not in AQUATIC_MOBS]
         check_rooms("noon", land, 0)
         check_rooms("midnight", [r for r in land if r[3] == "minecraft:drowned"], len(land))
@@ -335,7 +335,7 @@ def main():
         except Exception:
             proc.kill()
     if not found or not rooms:
-        fails.append("no hay mobs anclados en las plantillas: la prueba no comprueba nada")
+        fails.append("there are no anchored mobs in the templates: the test checks nothing")
     if fails:
         print("FALLOS:\n- " + "\n- ".join(fails))
         sys.exit(1)

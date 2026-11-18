@@ -1,5 +1,5 @@
-"""Comprobaciones propias de la fortaleza: redstone en reposo y al accionarse, vista abierta para el recorrido,
-luz de bloque (hielo que se derrite, generadores a oscuras), cimas de nieve y estado de conservación."""
+"""Fortress-specific checks: redstone at rest and when triggered, open view for the walkthrough,
+block light (ice that melts, dark generators), snow peaks and state of wear."""
 import copy
 from collections import deque
 from core import parse_state, state_str
@@ -37,8 +37,8 @@ class _View:
 
 
 def simulate(blocks, extra_on=()):
-    """Devuelve (potencia del polvo, {mecanismo: alimentado}) con el simulador común (_comun.redstone.Sim).
-    extra_on: posiciones de placas o ganchos pulsados."""
+    """Returns (dust power, {mechanism: powered}) with the shared simulator (_common.redstone.Sim).
+    extra_on: positions of pressed plates or hooks."""
     sim = redstone.Sim(_View(blocks), {p: True for p in extra_on})
     return dict(sim.wire), {p: sim.powered(p) for p, (st, _) in blocks.items() if bname(st) in MECH}
 
@@ -49,34 +49,34 @@ def check_redstone(t):
     dust, powered = simulate(blocks)
     for p, v in dust.items():
         if int(props(blocks[p][0])["power"]) != v:
-            errs.append(("polvo con potencia guardada distinta de la calculada", p))
+            errs.append(("dust with stored power different from the computed one", p))
     for p, on in powered.items():
         st = blocks[p][0]
         b, pr = bname(st), props(st)
         if "piston" in b:
             if (pr["extended"] == "true") != on:
-                errs.append(("pistón extendido sin alimentar o al revés", p))
+                errs.append(("extended piston unpowered or the other way around", p))
             if pr["extended"] == "true":
                 h = blocks.get(add(p, HOR[pr["facing"]]), (None,))[0]
                 if bname(h) != "piston_head" or props(h)["facing"] != pr["facing"] or \
                         props(h)["type"] != ("sticky" if b == "sticky_piston" else "normal"):
-                    errs.append(("pistón extendido sin su cabeza", p))
+                    errs.append(("extended piston without its head", p))
         elif b in ("dispenser", "dropper"):
             if on or pr["triggered"] != "false":
                 errs.append(("dispensador alimentado en reposo", p))
-    # cada trampa dispara al menos un dispensador
+    # each trap fires at least one dispenser
     for p, (st, _) in blocks.items():
         if bname(st) in ("tripwire_hook", "stone_pressure_plate"):
             if props(st).get("powered") != "false":
                 errs.append(("trampa armada en estado pulsado", p))
             _, pw = simulate(blocks, extra_on={p})
             if not any(v and bname(blocks[q][0]) == "dispenser" for q, v in pw.items()):
-                errs.append(("trampa que no dispara ningún dispensador", p))
+                errs.append(("trap that fires no dispenser", p))
     return errs
 
 
 def opened(t):
-    """Vista de la plantilla con todas las palancas apagadas y los pistones retraídos (puertas secretas abiertas)."""
+    """View of the template with all levers off and the pistons retracted (secret doors open)."""
     v = copy.copy(t)
     v.blocks = dict(t.blocks)
     v.jigsaws = t.jigsaws
@@ -137,22 +137,22 @@ def check_light(t):
     for p, (st, _) in t.blocks.items():
         b = bname(st)
         if b in ("ice", "snow") and lvl.get(p, 0) > 11:
-            errs.append((b + " que se derrite con la luz", p))
+            errs.append((b + " that melts in the light", p))
         if b == "spawner":
             near = max(lvl.get(add(p, (dx, dy, dz)), 0) for dx in range(-4, 5) for dy in range(0, 3) for dz in range(-4, 5))
             if near > 0:
-                errs.append(("generador con luz de bloque cerca", p))
+                errs.append(("generator with block light nearby", p))
         if b == "snow_block" and (t.get(p[0], p[1] + 1, p[2]) in (None, "minecraft:air")):
-            errs.append(("bloque de nieve como cima (nacen picos de hielo)", p))
+            errs.append(("snow block as a peak (ice spikes spawn)", p))
     return errs, lvl
 
 
-# ------------------------------------------------------------------ estado de conservación
+# ------------------------------------------------------------------ state of wear
 DECAY = {"stone_bricks": 0.2, "stone_brick_wall": 0.3, "polished_diorite": 0.2}
 
 
 def condition(t, ruined):
-    """Estimación de la superficie a la vista dañada: procesador (esperanza) + ruinas hechas a mano."""
+    """Estimate of the damaged surface in view: processor (expected value) + hand-made ruins."""
     g = t.get
     seen, q = set(), deque()
     x0, y0, z0, x1, y1, z1 = t.bounds()
@@ -160,7 +160,7 @@ def condition(t, ruined):
         for z in range(z0, z1 + 1):
             q.append((x, y1, z))
             seen.add((x, y1, z))
-    while q:                                         # aire exterior, desde el cielo
+    while q:                                         # outside air, from the sky
         p = q.popleft()
         for d in N6:
             n = add(p, d)

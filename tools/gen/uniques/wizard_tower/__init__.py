@@ -1,11 +1,11 @@
-"""Torre de mago (heraldia:unicas/torre_mago): torre esbelta de ocho plantas con sótano de dos niveles.
+"""Wizard tower (heraldia:unicas/torre_mago): slender eight-storey tower with a two-level basement.
 
-Diseño y recorrido: docs/unicas/torre_mago.md. Una sola plantilla rígida diseñada a mano:
-  sótano 2 (cámara del tesoro) · sótano 1 (experimentos fallidos) · vestíbulo · biblioteca de doble altura
-  con galería · laboratorio · encantamientos · invernadero · dormitorio · observatorio; anexo oculto en la galería.
-La plantilla se hunde 14 bloques (start_height -14, sin adaptación del terreno): el suelo del vestíbulo queda
-a ras del terreno y el sótano bajo tierra sin que el beard excave alrededor. Una terraza con cimiento absorbe
-pendientes suaves.
+Design and walkthrough: docs/unicas/wizard_tower.md. A single rigid hand-designed template:
+  basement 2 (treasure chamber) · basement 1 (failed experiments) · lobby · double-height library
+  with gallery · laboratory · enchanting · greenhouse · bedroom · observatory; hidden annex in the gallery.
+The template is sunk 14 blocks (start_height -14, no terrain adaptation): the lobby floor is flush
+with the terrain and the basement underground without the beard digging around it. A terrace with a foundation absorbs
+gentle slopes.
 """
 from .._common.pieces import open_stairwells
 import math
@@ -16,12 +16,12 @@ from uniques._common.chest_loot import item, empty, place_chest as t2, named as 
 SID = "torre_mago"
 NSP = f"unicas/{SID}"
 DISPLAY_NAME = {"es_es": "Torre de mago", "en_us": "Wizard Tower"}
-# Refuerzos del guardián en cada fase (jefes.py): su escolta y su aprendiza.
+# Guardian reinforcements in each phase (bosses.py): his escort and his apprentice.
 REINFORCEMENTS = ["vindicator", "witch"]
 TROPHY = {"objeto": "blaze_rod", "rareza": "epic",
           "nombre": ("Báculo del Archimago Malvarius", "Staff of Archmage Malvarius"),
-          "lore": [("Todavía chisporrotea con su último conjuro.", "It still crackles with his final spell.")]}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "lore": [("Todavía chisporrotea con su último conjuro.", "It still crackles with his final spell.")]}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "escondite",
     "relato": [
         ("En el bosque oscuro vive el archimago Malvarius, en una torre llena de libros, calderos y "
@@ -39,12 +39,12 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("el bosque oscuro, donde un archimago sigue con sus experimentos en lo alto de una torre",
               "the dark forest, where an archmage carries on his experiments atop a tower"),
 }
-ADVANCEMENT = {"icono": "minecraft:enchanting_table"}   # logros.py
-OX, OZ = 13, 12                      # desplazamiento: coordenadas relativas al eje de la torre -> plantilla >= 0
+ADVANCEMENT = {"icono": "minecraft:enchanting_table"}   # advancements.py
+OX, OZ = 13, 12                      # offset: coordinates relative to the tower axis -> template >= 0
 FEET = dict(B2=2, B1=8, f0=14, f1=20, f2=26, f3=32, f4=38, f5=44, f6=50, f7=56)
-REVS = [8, 14, 20, 26, 32, 38, 44, 50]   # tramos de la escalera de caracol (pies al salir de cada planta)
-R2 = 70                               # radio exterior de la torre (al cuadrado)
-WALL_TOP = 62                         # última hilada del muro del observatorio
+REVS = [8, 14, 20, 26, 32, 38, 44, 50]   # flights of the spiral staircase (feet on leaving each floor)
+R2 = 70                               # outer radius of the tower (squared)
+WALL_TOP = 62                         # last course of the observatory wall
 TERRACE_R2 = 156
 
 STRUCTURE = dict(biomes="#heraldia:oscuro", start_pool=f"{NSP}/inicio", size=1, max_distance=32,
@@ -92,13 +92,13 @@ def tr(k):
 LANG = lang(KEY, TXT)
 
 
-# ------------------------------------------------------------------ geometría
+# ------------------------------------------------------------------ geometry
 N4 = ((1, 0), (-1, 0), (0, 1), (0, -1))
 CIRCLE = {(x, z) for x in range(-9, 10) for z in range(-9, 10) if x * x + z * z <= R2}
 WALLC = {c for c in CIRCLE if any((c[0] + a, c[1] + b) not in CIRCLE for a, b in N4)}
 INT = CIRCLE - WALLC
 PERIM = {c for c in INT if any((c[0] + a, c[1] + b) in WALLC for a, b in N4)}
-RING = pieces.RING                    # escalera de caracol alrededor del machón (pieza común)
+RING = pieces.RING                    # spiral staircase around the pier (common piece)
 GALLERY_FREE = set()
 ANNEX = {(x, z) for x in range(-13, -7) for z in range(-5, 5)} - CIRCLE
 
@@ -171,13 +171,13 @@ def terrace(T):
     for z in range(-12, -8):
         for x in (-1, 0, 1):
             T.s(x, 13, z, "polished_deepslate")
-    # postes con farol a los lados del camino (sobre el muro de la terraza)
+    # posts with lanterns on both sides of the path (on the terrace wall)
     for x in (-2, 2):
         T.s(x, 14, -12, "cobbled_deepslate_wall")
         T.s(x, 15, -12, "lantern[hanging=false]")
 
 
-# ------------------------------------------------------------------ sótanos
+# ------------------------------------------------------------------ basements
 B1_MAP = [
     "#####################",   # z=-10
     "###....#.....#....###",   # -9
@@ -219,7 +219,7 @@ B2_MAP = [
 
 def basements(T):
     y1, y2 = FEET["B1"], FEET["B2"]
-    # sótano 2: cimiento, suelo, salas, techo
+    # basement 2: foundation, floor, rooms, ceiling
     for zi, row in enumerate(B2_MAP):
         z = zi + 1
         for xi, ch in enumerate(row):
@@ -229,7 +229,7 @@ def basements(T):
             for y in range(y2, y2 + 5):
                 T.s(x, y, z, DUN if ch == "#" else "air")
             T.s(x, 7, z, DUN)
-    # sótano 1
+    # basement 1
     for zi, row in enumerate(B1_MAP):
         z = zi - 10
         for xi, ch in enumerate(row):
@@ -248,7 +248,7 @@ def basements(T):
                 T.s(x, y1 + 1, z, "cobweb")
             elif ch == "X":
                 T.s(x, y1, z, "polished_tuff")
-    # tramo recto al sótano 2, tras la puerta de hierro (pies 7 -> 2)
+    # straight flight to basement 2, behind the iron door (feet 7 -> 2)
     for i, z in enumerate(range(6, 11)):
         ys = 6 - i
         T.s(4, ys, z, "stone_brick_stairs[facing=north,half=bottom]")
@@ -263,20 +263,20 @@ def basements(T):
 
 def basement1_detail(T):
     y = FEET["B1"]
-    # puzle del caldero: caldero -> comparador -> 3 de polvo -> puerta de hierro (solo nivel 3 la abre)
+    # cauldron puzzle: cauldron -> comparator -> 3 of dust -> iron door (only level 3 opens it)
     T.s(-1, y, 5, "cauldron")
     pieces.comparator(T.s, 0, y, 5, "west")
     pieces.wire(T.s, [(1, 5), (2, 5), (3, 5)], y, ends={0: "west", 2: "east"})
     T.s(4, y, 5, "iron_door[facing=south,half=lower,hinge=left,open=false,powered=false]")
     T.s(4, y + 1, 5, "iron_door[facing=south,half=upper,hinge=left,open=false,powered=false]")
     T.sign(-1, y + 1, 4, "north", ["cartel.caldero.1", "cartel.caldero.2", "cartel.caldero.3", "cartel.caldero.4"])
-    # el cartel cuelga del muro sobre el caldero
-    # mesa de trabajo (tapa la acequia de redstone)
+    # the sign hangs from the wall above the cauldron
+    # workbench (covers the redstone ditch)
     T.s(1, y + 1, 4, "brewing_stand")
     T.s(3, y + 1, 4, "candle[candles=3,lit=false]")
-    # trampa del ala oeste (como en los templos de la jungla): hilo de lado a lado, dispensadores con flechas
+    # west wing trap (as in the jungle temples): string from side to side, dispensers with arrows
     pieces.tripwire_trap(T.s, (-6, -4), (-6, 4), y, "z", [((-6, y + 1, -5), "south"), ((-6, y + 1, 5), "north")])
-    # generadores en la mazmorra
+    # spawners in the dungeon
     T.spawner(-7, y, -6, "zombie_villager")
     T.spawner(8, y, 2, "cave_spider")
     # cofres
@@ -301,7 +301,7 @@ def basement1_detail(T):
     T.s(-8, y, -3, "cauldron")
     T.s(-9, y, -3, "crafting_table")
     T.s(-9, y, -1, "decorated_pot[facing=east]")
-    # ala sur: sala de experimentos fallidos (cráter de una explosión)
+    # south wing: failed experiments room (crater of an explosion)
     for (x, z) in ((-5, 7), (-4, 7), (-5, 8), (-4, 8), (-3, 8), (-4, 9)):
         T.s(x, 7, z, "cracked_stone_bricks")
     T.s(-4, 6, 8, "magma_block")
@@ -311,16 +311,16 @@ def basement1_detail(T):
     T.s(-7, y, 9, "decorated_pot[facing=east]")
     T.s(-2, y, 6, "cobweb")
     T.s(-7, y + 4, 8, "cobweb")
-    # luz tenue (faroles de almas en el vestíbulo inferior)
+    # dim light (soul lanterns in the lower lobby)
     for x, z in ((-3, -3), (3, -3), (-3, 3), (3, 3)):
         T.s(x, y + 4, z, SLANT)
 
 
 def basement2_detail(T):
     y = FEET["B2"]
-    # trampa de la losa (como en los templos del desierto): placa sobre el suelo y TNT debajo
+    # slab trap (as in the desert temples): plate on the floor and TNT below
     pieces.tnt_trap(T.s, 0, y, 11, warn=[(-1, 1, 11), (1, 1, 11)])
-    # cámara del tesoro
+    # treasure chamber
     for x, z in ((-8, 3), (-2, 3), (-8, 8), (-2, 8)):
         for yy in range(y, y + 5):
             T.s(x, yy, z, "polished_deepslate" if yy != y + 4 else "chiseled_deepslate")
@@ -340,7 +340,7 @@ def basement2_detail(T):
     for x, z in ((-5, 4), (-5, 8)):
         T.s(x, y + 4, z, SLANT)
     T.s(4, y + 4, 11, SLANT)
-    # guardián: evocador con nombre, persistente, algo más resistente que uno normal
+    # guardian: named evoker, persistent, somewhat tougher than a normal one
     T.t.entity(-5 + OX, y, 6 + OZ, pieces.guardian("evoker", KEY + "guardian", TXT["guardian"][0], 48, armor=4,
                                                     death_loot="minecraft:entities/witch"))
 
@@ -350,7 +350,7 @@ def walls(T):
     for (x, z) in WALLC:
         for y in range(13, WALL_TOP + 1):
             T.s(x, y, z, BAND if (y + 1) in FEET.values() or y in (13, WALL_TOP) else WALL)
-    # interior vacío
+    # empty interior
     for (x, z) in INT:
         for y in range(14, WALL_TOP + 1):
             T.s(x, y, z, "air")
@@ -359,7 +359,7 @@ def walls(T):
         y = FEET[name] - 1
         for c in INT:
             T.s(c[0], y, c[1], FLOOR if name not in ("f0", "f7") else "polished_deepslate")
-    # galería (f2): solo la banda perimetral, la plataforma de la escalera y dos pasarelas
+    # gallery (f2): only the perimeter band, the stair platform and two walkways
     y = FEET["f2"] - 1
     for c in INT:
         if r2(c) >= 25 or cheb(c) <= 2 or (abs(c[0]) in (3, 4) and abs(c[1]) <= 1 and c[0] > 0) \
@@ -382,7 +382,7 @@ def windows(T):
                 for cx, cz in cells:
                     for yy in range(y + 1, y + 1 + tall):
                         T.s(cx, yy, cz, GLASS if fl not in ("f5",) else "glass_pane")
-    # puerta principal (norte) y su arco
+    # main door (north) and its arch
     y = FEET["f0"]
     T.s(0, y, -8, "dark_oak_door[facing=south,half=lower,hinge=left,open=false]")
     T.s(0, y + 1, -8, "dark_oak_door[facing=south,half=upper,hinge=left,open=false]")
@@ -397,40 +397,40 @@ def stairs(T):
     guard = pieces.spiral_stair(T.s, 0, 0, REVS, STAIR, NEWEL, FLOOR, newel_top=FEET["f7"])
     for (x, z) in RING[:2]:
         T.s(x, FEET["B1"] - 1, z, DUN)
-    # barandilla junto al hueco en cada planta a la que llega la escalera (salvo la galería, que tiene la suya)
+    # railing next to the opening on each floor the stairs reach (except the gallery, which has its own)
     for fl in ("f0", "f1", "f3", "f4", "f5", "f6", "f7"):
         for (x, z) in guard + ([RING[4]] if fl == "f7" else []):
             T.s(x, FEET[fl], z, "dark_oak_fence")
 
 
 def tunnel(T):
-    """f1 + f2: biblioteca de doble altura. Abajo estanterías bajo la galería; arriba galería con barandilla."""
+    """f1 + f2: double-height library. Below, bookshelves under the gallery; above, gallery with railing."""
     y1, y2 = FEET["f1"], FEET["f2"]
     band = {c for c in INT if r2(c) >= 25}
     atrium = {c for c in INT if r2(c) < 25 and cheb(c) >= 3}
     bridges = {(3, 0), (4, 0), (0, -3), (0, -4)}
-    keep1 = {(0, -7), (0, 7), (7, 0), (-7, 0)}            # frente de ventana (y el armario del cofre)
+    keep1 = {(0, -7), (0, 7), (7, 0), (-7, 0)}            # window front (and the chest cabinet)
     for c in PERIM:
         if c in keep1:
             continue
         for y in range(y1, y1 + 5):
             T.s(c[0], y, c[1], "bookshelf")
-    # cofre de la biblioteca y atriles de lectura
+    # library chest and reading lecterns
     T.chest(-7, y1, 0, "east", "biblioteca")
     for y in range(y1 + 1, y1 + 5):
         T.s(-7, y, 0, "bookshelf")
     T.s(3, y1, 3, "lectern[facing=north,has_book=false,powered=false]")
     T.s(-3, y1, 3, "lectern[facing=north,has_book=false,powered=false]")
     T.s(3, y1, -3, "lectern[facing=south,has_book=false,powered=false]")
-    # mesa de lectura con sillas (respaldo hacia fuera)
+    # reading table with chairs (backs outwards)
     T.s(-3, y1, -3, "dark_oak_fence")
     T.s(-3, y1 + 1, -3, "dark_oak_pressure_plate[powered=false]")
     T.s(-4, y1, -3, f"{STAIR}[facing=west,half=bottom]")
     T.s(-3, y1, -4, f"{STAIR}[facing=north,half=bottom]")
     for c in ((5, 3), (-5, 3), (5, -3), (-5, -3)):
         T.s(c[0], y1 + 4, c[1], LANT)
-    # galería: estanterías en el muro, barandilla al atrio; donde el pasillo gira en diagonal se deja libre
-    # la celda del muro (sin estantería) para que la barandilla siga continua
+    # gallery: bookshelves on the wall, railing to the atrium; where the corridor turns diagonally it is left free
+    # the wall cell (without a bookshelf) so that the railing stays continuous
     edge = {c for c in band - PERIM if any((c[0] + a, c[1] + b) in atrium for a, b in N4)} - {(5, 0), (0, -5)}
     lane = band - PERIM - edge
     free = {(0, -7), (0, 7), (7, 0), (-7, 0)}
@@ -462,8 +462,8 @@ def tunnel(T):
     T.s(3, y2 + 4, 5, LANT)
     T.s(-3, y2 + 4, -5, LANT)
     T.s(0, y2 + 4, 5, LANT)
-    # estanterías cinceladas decorativas
-    assert not GALLERY_FREE & {(-7, 1), (-7, 2), (-7, -1), (-7, -2), (7, 2), (7, -2)}, "estanterías que tapan la puerta"
+    # decorative chiseled bookshelves
+    assert not GALLERY_FREE & {(-7, 1), (-7, 2), (-7, -1), (-7, -2), (7, 2), (7, -2)}, "bookshelves cover the door"
     for c, fac in (((7, 2), "west"), ((7, -2), "west")):
         T.s(c[0], y2 + 1, c[1], f"chiseled_bookshelf[facing={fac},slot_0_occupied=true,slot_1_occupied=false,"
                                  f"slot_2_occupied=true,slot_3_occupied=true,slot_4_occupied=false,slot_5_occupied=false]",
@@ -472,12 +472,12 @@ def tunnel(T):
 
 
 def annex_part(T):
-    """Estudio oculto tras la galería, en un torreón adosado al oeste.
+    """Hidden study behind the gallery, in a turret attached on the west.
 
-    Puerta de dos estanterías sujetas por pistones pegajosos extendidos (alimentados por una antorcha de
-    redstone). Estantería cincelada con el sexto hueco vacío -> comparador -> 6 de polvo -> bloque de la antorcha.
-    Solo el hueco 6 da señal 6, que llega con 1 al final del polvo: la antorcha se apaga y los pistones retraen.
-    Todo queda en estado coherente al colocarse (nada depende de actualizaciones de bloque)."""
+    Door of two bookshelves held by extended sticky pistons (powered by a redstone
+    torch). Chiseled bookshelf with the sixth slot empty -> comparator -> 6 of dust -> torch block.
+    Only slot 6 gives signal 6, which arrives with 1 at the end of the dust: the torch goes out and the pistons retract.
+    Everything is in a coherent state when placed (nothing depends on block updates)."""
     y0, top = 13, 31
     for (x, z) in ANNEX:
         for y in range(y0, top + 1):
@@ -503,7 +503,7 @@ def annex_part(T):
     T.s(-12, y, 0, "cartography_table")
     T.s(-11, y + 3, 1, LANT)
     T.s(-13, y + 1, 2, GLASS)
-    # hornacina en el muro de la torre y puerta secreta
+    # niche in the tower wall and secret door
     T.s(-8, y, 0, "air")
     T.s(-8, y + 1, 0, "air")
     pieces.piston_door(T.s, [(-9, y, 0), (-9, y + 1, 0)], (0, -1), "south", "bookshelf")
@@ -515,15 +515,15 @@ def annex_part(T):
     yy = y + 1
     pieces.comparator(T.s, -8, yy, -2, "south")
     pieces.wire(T.s, [(-8, -3), (-8, -4), (-9, -4), (-10, -4), (-11, -4), (-11, -3)], yy, ends={0: "south", 5: "south"})
-    T.s(-11, yy, -2, "polished_andesite")                         # bloque que sujeta la antorcha
+    T.s(-11, yy, -2, "polished_andesite")                         # block that holds the torch
     T.s(-10, yy, -2, "redstone_wall_torch[facing=east,lit=true]")
     T.sign(-7, y + 2, 0, "east", ["cartel.estante.1", "cartel.estante.2", "cartel.estante.3"])
-    # en el análisis de recorrido, la puerta se considera abierta (puzle resuelto)
+    # in the walkthrough analysis, the door is considered open (puzzle solved)
     T.t.lint_open = {(-9 + OX, y, 0 + OZ): "minecraft:air", (-9 + OX, y + 1, 0 + OZ): "minecraft:air"}
 
 
 def floors(T):
-    # f0 vestíbulo
+    # f0 lobby
     y = FEET["f0"]
     for z in range(-7, -2):
         T.s(0, y, z, "purple_carpet")
@@ -557,7 +557,7 @@ def floors(T):
     T.s(-3, y, 6, "barrel[facing=up]")
     T.s(6, y, 2, "decorated_pot[facing=west]")
     T.s(4, y, -6, "decorated_pot[facing=south]")
-    # restos de una explosión: suelo chamuscado y ventana este sin vidrio
+    # remains of an explosion: scorched floor and east window without glass
     for c in ((4, 3), (5, 2), (4, 2), (5, 3)):
         T.s(c[0], y - 1, c[1], "blackstone" if (c[0] + c[1]) % 2 else "coal_block")
     T.s(8, y + 1, 0, "air")
@@ -602,7 +602,7 @@ def floors(T):
         T.s(c[0], y + 4, c[1], "spore_blossom")
     T.s(0, y + 4, -4, LANT)
     T.s(0, y + 4, 4, LANT)
-    # f6 dormitorio del mago: cama contra el muro sur, mesillas, librería, escritorio
+    # f6 wizard's bedroom: bed against the south wall, bedside tables, bookcase, desk
     y = FEET["f6"]
     T.s(0, y, 7, "purple_bed[facing=south,part=head,occupied=false]")
     T.s(0, y, 6, "purple_bed[facing=south,part=foot,occupied=false]")
@@ -634,7 +634,7 @@ def floors(T):
     T.s(-6, y, -3, "lectern[facing=east,has_book=false,powered=false]")
     T.s(5, y, -5, "purple_candle[candles=2,lit=false]")
     T.s(-5, y, 5, "amethyst_cluster[facing=up,waterlogged=false]")
-    # escombros del tejado caído en el sudeste
+    # rubble from the fallen roof in the south-east
     T.s(4, y, 5, "cobbled_deepslate")
     T.s(5, y, 4, "deepslate_tile_slab[type=bottom]")
 
@@ -652,9 +652,9 @@ def roof_tiles(T):
                 if d <= rj and (d > rn - 0.6 or j == H - 1):
                     ang = math.degrees(math.atan2(x, -z))
                     if abs(ang) < 14 and 1 <= j <= 6:
-                        continue                      # rendija de observación hacia el norte
+                        continue                      # observation slit towards the north
                     if 1 <= j <= 3 and 120 < ang < 140 and d > rj - 1.2:
-                        continue                      # hueco de tejas caídas (sudeste)
+                        continue                      # gap of fallen tiles (south-east)
                     shell.add((x, base + j, z))
     for (x, y, z) in shell:
         T.s(x, y, z, "deepslate_tiles")
@@ -669,7 +669,7 @@ def roof_tiles(T):
 
 
 def ruin_piece(T):
-    # muro de la terraza derrumbado en el sudoeste, musgo y enredaderas
+    # terrace wall collapsed in the south-west, moss and vines
     for x in range(-12, 13):
         for z in range(-12, 13):
             if 132 < r2((x, z)) <= TERRACE_R2 and math.degrees(math.atan2(x, -z)) < -110 and z > 0:
@@ -679,7 +679,7 @@ def ruin_piece(T):
     for (x, z) in ((5, -10), (6, -9), (-8, 7), (-9, 6), (9, 4), (10, 3), (3, 10)):
         if T.g(x, 14, z) in (None, "minecraft:air"):
             T.s(x, 14, z, "pale_moss_carpet[bottom=true,east=none,north=none,south=none,west=none]")
-    # enredaderas por la cara exterior: la propiedad indica el muro al que se agarran
+    # vines on the outer face: the property indicates the wall they cling to
     for (x, z, face, h) in ((9, -2, "west", 12), (9, -1, "west", 9), (-2, 9, "north", 16), (2, 9, "north", 7),
                             (3, -8, "south", 10)):
         for y in range(14, 14 + h):
@@ -692,9 +692,9 @@ def connections(T):
     pieces.connect(T.t)
 
 
-# ------------------------------------------------------------------ auditoría propia
+# ------------------------------------------------------------------ own audit
 def audit_it(t):
-    """Comprobaciones específicas: estado coherente de los circuitos y piezas clave en su sitio."""
+    """Specific checks: coherent state of the circuits and key pieces in place."""
     errs = []
 
     def at(x, y, z):
@@ -703,31 +703,31 @@ def audit_it(t):
     y = FEET["f2"]
     for yy in (y, y + 1):
         if "sticky_piston" not in at(-9, yy, -2) or "extended=true" not in at(-9, yy, -2):
-            errs.append(f"pistón de la puerta secreta y={yy}")
+            errs.append(f"secret door piston y={yy}")
         if "piston_head" not in at(-9, yy, -1) or "bookshelf" not in at(-9, yy, 0):
-            errs.append(f"cabeza/estantería de la puerta secreta y={yy}")
+            errs.append(f"secret door head/bookshelf y={yy}")
     if "lit=true" not in at(-10, y + 1, -2):
-        errs.append("antorcha de la puerta secreta apagada")
+        errs.append("secret door torch is off")
     wires = [p for p, (st, _) in t.blocks.items() if "redstone_wire" in st]
     if any("power=0" not in t.blocks[p][0] for p in wires):
-        errs.append("polvo de redstone con potencia al colocar")
+        errs.append("redstone dust with power when placed")
     if len(wires) != 9:
-        errs.append(f"se esperaban 9 de polvo, hay {len(wires)}")
-    # el polvo del estudio: 6 tramos, para que solo la señal 6 (hueco 6) llegue a la antorcha
+        errs.append(f"9 of dust expected, there are {len(wires)}")
+    # the study's dust: 6 segments, so that only signal 6 (slot 6) reaches the torch
     yb = FEET["B1"]
     if "iron_door" not in at(4, yb, 5) or "cauldron" not in at(-1, yb, 5):
-        errs.append("puzle del caldero incompleto")
+        errs.append("cauldron puzzle incomplete")
     if "tnt" not in at(0, 0, 11) or "pressure_plate" not in at(0, FEET["B2"], 11):
-        errs.append("trampa de la losa incompleta")
+        errs.append("slab trap incomplete")
     for z in range(-3, 4):
         if "tripwire[" not in at(-6, yb, z):
             errs.append(f"hilo interrumpido en z={z}")
     if not any(e[3]["id"] == "minecraft:evoker" for e in t.entities):
-        errs.append("falta el guardián")
+        errs.append("guardian missing")
     return errs
 
 
-# ------------------------------------------------------------------ construcción
+# ------------------------------------------------------------------ construction
 def construct():
     T = Tower()
     terrace(T)
@@ -743,7 +743,7 @@ def construct():
     roof_tiles(T)
     ruin_piece(T)
     connections(T)
-    # jigsaw de entrada, lo último (un fill posterior lo borraría)
+    # entrance jigsaw, last (a later fill would erase it)
     T.t.jigsaw(0 + OX, 13, -12 + OZ, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty",
                final_state="minecraft:polished_deepslate")
     return T.t
@@ -771,7 +771,7 @@ def build(reg):
     reg.pool(f"{NSP}/inicio", [(name, 1, "rigid", PROCESSORS)])
 
 
-# ------------------------------------------------------------------ botín
+# ------------------------------------------------------------------ loot
 def named(name, key, w, mods=()):
     return _named(name, w, KEY + key, TXT[key][0], mods=mods)
 
@@ -845,7 +845,7 @@ LOOT = {
             named("golden_boots", "botas", 8, [ench({"minecraft:feather_falling": 3})]),
             item("vex_armor_trim_smithing_template", 8),
             item("music_disc_strad", 5), item("music_disc_far", 5),
-            # 10 % algo más fuerte (sin romper la progresión)
+            # 10 % something stronger (without breaking progression)
             named("diamond_sword", "espada", 4, [ench({"minecraft:sharpness": 3, "minecraft:unbreaking": 2})]),
             named("diamond_chestplate", "coraza", 3, [ench({"minecraft:protection": 2})]),
             item("enchanted_golden_apple", 3)]},

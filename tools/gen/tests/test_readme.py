@@ -1,7 +1,7 @@
-"""README de cada idioma del mod (idiomas.README) y documentación de docs/ en inglés y español: que existan todos, que
-lleven el selector de idiomas con todos los enlaces, que tengan las mismas secciones, las mismas cifras y los mismos
-nombres de opciones y comandos, que las cifras sean las del generador (estructuras, logros, guardianes...) y que todos
-los enlaces relativos lleven a un fichero y a un encabezado que existen."""
+"""README of each mod language (idiomas.README) and documentation in docs/ in English and Spanish: that they all exist, that
+they carry the language selector with all the links, that they have the same sections, the same figures and the same
+option and command names, that the figures are those of the generator (structures, advancements, guardians...) and that all
+relative links lead to a file and a heading that exist."""
 import os
 import re
 import pytest
@@ -21,7 +21,7 @@ from themes import THEMES, FAMILIES
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 MODS = uniques.modules()
 README = languages.README
-# documentación movida desde el README: (inglés, español)
+# documentation moved from the README: (English, Spanish)
 DOCS = [("CONTENT.md", "CONTENIDO.md"), ("CONFIGURATION.md", "CONFIGURACION.md"), ("COMPATIBILITY.md", "COMPATIBILIDAD.md"),
         ("BUILDING.md", "COMPILAR.md")]
 
@@ -32,13 +32,13 @@ def read(rel):
 
 
 def anchor_point(header):
-    """El ancla que GitHub da a un encabezado."""
+    """The anchor that GitHub gives a heading."""
     a = re.sub(r"[^\w\- ]", "", header.strip().lower())
     return a.replace(" ", "-")
 
 
 def headers(text):
-    """[(nivel, texto)] fuera de los bloques de código."""
+    """[(level, text)] outside the code blocks."""
     out, lang_code = [], False
     for line in text.split("\n"):
         if line.startswith("```"):
@@ -51,18 +51,18 @@ def headers(text):
 
 
 def numbers(text):
-    """Cifras del texto con los separadores de miles de cada idioma quitados (1,500 / 1.500 / 1 500 -> 1500)."""
+    """Figures in the text with the thousands separators of each language removed (1,500 / 1.500 / 1 500 -> 1500)."""
     text = re.sub(r"(?<=\d)[,.   ](?=\d{3}\b)", "", text)
     return sorted(int(n) for n in re.findall(r"\d+", text))
 
 
 def lang_codes(text):
-    """Lo que va entre comillas invertidas (opciones, comandos, ids): igual en todos los idiomas."""
+    """What goes between backticks (options, commands, ids): the same in all languages."""
     return re.findall(r"`([^`]+)`", text)
 
 
 def form(text):
-    """Esqueleto del documento: por cada sección, cuántas viñetas, filas de tabla y pasos numerados lleva."""
+    """Skeleton of the document: for each section, how many bullets, table rows and numbered steps it has."""
     out, current = [], None
     for line in text.split("\n"):
         if line.startswith("#"):
@@ -76,16 +76,16 @@ def form(text):
 
 
 def selector(lang_code):
-    """La línea del selector de idiomas del README de `codigo`: el suyo en negrita y los demás enlazados."""
+    """The language selector line of the README of `codigo`: its own in bold and the others linked."""
     return " · ".join(f"**{languages.NAMES[c]}**" if c == lang_code else f"[{languages.NAMES[c]}]({README[c]})" for c in README)
 
 
-# ------------------------------------------------------------------ un README por idioma, con su selector
+# ------------------------------------------------------------------ one README per language, with its selector
 def test_one_readme_per_mod_language():
     assert set(README) == set(languages.everyone())
     assert README["en_us"] == "README.md"
     for c, f in README.items():
-        assert os.path.exists(os.path.join(ROOT, f)), f"falta {f} ({c})"
+        assert os.path.exists(os.path.join(ROOT, f)), f"missing {f} ({c})"
 
 
 @pytest.mark.parametrize("lang_code", list(README))
@@ -108,14 +108,14 @@ def test_same_shape_as_english(lang_code):
 
 @pytest.mark.parametrize("lang_code", list(README))
 def test_links_the_documentation(lang_code):
-    """Cada README enlaza la documentación (la española, el de español; la inglesa, los demás) y la guía de desarrollo."""
+    """Each README links the documentation (the Spanish one, the Spanish README; the English one, the others) and the development guide."""
     text = read(README[lang_code])
     docs = [es if lang_code == "es_es" else en for en, es in DOCS]
     for d in docs + ["DEVELOPMENT.md"]:
         assert f"(docs/{d})" in text, (lang_code, d)
 
 
-# ------------------------------------------------------------------ cifras del generador
+# ------------------------------------------------------------------ generator figures
 def figures():
     structures = (2 * len(THEMES) + len(MODS) + sum(len(m.STYLES) for _, m in mediums.modules())
                    + len(mines.structures()) + len(coast.structures()))
@@ -124,7 +124,7 @@ def figures():
         def __init__(self, sid):
             self.entities = [(0, 0, 0, {"id": "minecraft:zombie", "Tags": [f"{advancements.GUARDIAN_TAG}.{sid}"]})]
 
-    class _Registry:     # todas las únicas tienen guardián (el de la Atlántida incluido)
+    class _Registry:     # all unique structures have a guardian (Atlantis's included)
         templates = {f"unicas/{sid}/x": _Template(sid) for sid, _ in MODS}
     advs, _ = advancements.build(_Registry, MODS, mediums.modules(), mines, coast)
     advancements_n = len(advs) + len(board.ADVANCEMENTS) + len(arena_waves.advancements()) + len(quests.ADVANCEMENTS) + len(caravans.ADVANCEMENTS)
@@ -133,8 +133,8 @@ def figures():
 
 def test_figures_of_the_generator():
     c = figures()
-    # las que se comprueban también en el servidor (server_smoke.py cuenta los ficheros generados)
-    assert c == {"estructuras": 180, "logros": 122}, "si cambian, cámbialas en los README y en docs/"
+    # those also checked on the server (server_smoke.py counts the generated files)
+    assert c == {"estructuras": 180, "logros": 122}, "if they change, change them in the READMEs and in docs/"
 
 
 def test_figures_of_the_readme():
@@ -182,12 +182,12 @@ def test_options_table_with_the_generator_values(lang_code):
     assert len(rows) >= 8
     for key, default in rows:
         real = [v for k, v in defaults.items() if re.fullmatch(re.escape(key).replace("<id>", r"\w+"), k)]
-        assert real, f"{key} no es una opción"
+        assert real, f"{key} is not an option"
         d = default.strip().strip("`")
         assert all(d == (str(v).lower() if isinstance(v, bool) else str(v)) for v in real), (key, d, real)
 
 
-# ------------------------------------------------------------------ docs/ en inglés y español
+# ------------------------------------------------------------------ docs/ in English and Spanish
 @pytest.mark.parametrize("en, es", DOCS)
 def test_documentation_in_the_two_languages(en, es):
     ten, tes = read(f"docs/{en}"), read(f"docs/{es}")
@@ -198,7 +198,7 @@ def test_documentation_in_the_two_languages(en, es):
 
 
 def _links(rel):
-    """[(destino, ancla)] de los enlaces relativos de un documento."""
+    """[(target, anchor)] of the relative links of a document."""
     out = []
     for destination in re.findall(r"\]\(([^)\s]+)\)", read(rel)):
         if not re.match(r"[a-z]+:", destination):

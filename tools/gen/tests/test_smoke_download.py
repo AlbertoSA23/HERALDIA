@@ -1,5 +1,5 @@
-"""tools/smoke/server_smoke.py: descargas del servidor de prueba (una descarga cortada no se queda en la caché) y las
-funciones puras de tools/smoke/existing_world.py (lectura de secciones y comparación de chunks guardados)."""
+"""tools/smoke/server_smoke.py: test server downloads (a cut-off download is not left in the cache) and the pure
+functions of tools/smoke/existing_world.py (reading sections and comparing saved chunks)."""
 import io, os, sys, zipfile
 import pytest
 
@@ -39,7 +39,7 @@ def test_valid_jar(tmp_path):
 
 def test_download_cut_gets_repeats(tmp_path, monkeypatch):
     jar = _jar()
-    answers = [_Resp(jar[:300], len(jar)), _Resp(jar, len(jar))]       # la primera, cortada por la red
+    answers = [_Resp(jar[:300], len(jar)), _Resp(jar, len(jar))]       # the first one, cut by the network
     monkeypatch.setattr(s.urllib.request, "urlopen", lambda url: answers.pop(0))
     monkeypatch.setattr(s.time, "sleep", lambda t: None)
     dest = tmp_path / "fabric-api.jar"
@@ -50,7 +50,7 @@ def test_download_cut_gets_repeats(tmp_path, monkeypatch):
 def test_corrupt_jar_in_cache_is_redownloaded(tmp_path, monkeypatch):
     jar = _jar()
     dest = tmp_path / "fabric-api.jar"
-    dest.write_bytes(jar[:300])                       # lo que dejó una ejecución anterior
+    dest.write_bytes(jar[:300])                       # what an earlier run left
     monkeypatch.setattr(s.urllib.request, "urlopen", lambda url: _Resp(jar, len(jar)))
     s.download("https://ejemplo/fabric-api.jar", str(dest))
     assert dest.read_bytes() == jar
@@ -67,7 +67,7 @@ def test_download_always_cut_fails(tmp_path, monkeypatch):
 
 # ------------------------------------------------------------------ mundo_existente.py
 def _build_section(palette, indices):
-    """block_states de una sección con `paleta` (nombres) e `indices` (4096), empaquetados como el juego."""
+    """block_states of a section with `paleta` (names) and `indices` (4096), packed like the game."""
     bits = max(4, (len(palette) - 1).bit_length())
     per, data = 64 // bits, []
     for i in range(0, 4096, per):
@@ -84,7 +84,7 @@ def test_states_of_a_section():
     ind = [i % 3 for i in range(4096)]
     sty = me.states(_build_section(["minecraft:air", "minecraft:stone", "minecraft:dirt"], ind))
     assert len(sty) == 4096 and sty[0][0] == "minecraft:air" and sty[4095][0] == ["minecraft:air", "minecraft:stone", "minecraft:dirt"][4095 % 3]
-    # 17 estados: 5 bits, 12 por long (sin repartir entre dos)
+    # 17 states: 5 bits, 12 per long (not split across two)
     pal = [f"minecraft:b{i}" for i in range(17)]
     ind = [(i * 7) % 17 for i in range(4096)]
     assert [e[0] for e in me.states(_build_section(pal, ind))] == [pal[i] for i in ind]
@@ -125,14 +125,14 @@ def test_blocks_with_data_and_fields_volatile():
 def test_chain_palette_of_26_3():
     ind = [i % 2 for i in range(4096)]
     sec = _build_section(["minecraft:air", "minecraft:stone"], ind)
-    sec["palette"] = ["minecraft:air", "minecraft:stone"]               # como lo guarda 26.3
+    sec["palette"] = ["minecraft:air", "minecraft:stone"]               # as 26.3 stores it
     assert [e[0] for e in me.states(sec)] == [["minecraft:air", "minecraft:stone"][i] for i in ind]
 
 
 def test_mixed_list_of_26_3():
     mixed = [{"": "minecraft:air"}, {"id": "minecraft:oak_log", "properties": {"axis": "y"}}]
     assert me._blueprint(mixed) == ["minecraft:air", {"id": "minecraft:oak_log", "properties": {"axis": "y"}}]
-    sec = {"palette": me._blueprint(mixed), "data": [0x10]}                 # índice 0 y luego 1
+    sec = {"palette": me._blueprint(mixed), "data": [0x10]}                 # index 0 and then 1
     sty = me.states(sec)
     assert sty[0] == ("minecraft:air", ()) and sty[1] == ("minecraft:oak_log", (("axis", "y"),))
 

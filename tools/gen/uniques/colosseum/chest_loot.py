@@ -1,11 +1,11 @@
-"""Botín del Coliseo: menores modestos, más ricos cuanto más escondidos; premium 90 % vistoso y 10 % algo más fuerte.
-Solo vanilla. Cada tabla tiene un grupo extra marcado solo_sin_lootr (con Lootr cada jugador abre el suyo)."""
+"""Colosseum loot: modest minor chests, richer the more hidden they are; premium chest 90 % showy and 10 % somewhat stronger.
+Vanilla only. Each table has an extra group marked solo_sin_lootr (with Lootr each player opens their own)."""
 from loot import item, empty
 from .._common.chest_loot import pool, table  # noqa: F401
 
 
 def named(name, key, fallback, w=1, ench=None, dmg=None):
-    """Objeto con nombre propio (traducible) y encantamientos fijos moderados."""
+    """Item with its own name (translatable) and fixed, moderate enchantments."""
     mods = [{"type": "minecraft:set_name", "target": "item_name", "name": {"translate": key, "fallback": fallback}}]
     if ench:
         mods.append({"type": "minecraft:set_enchantments", "enchantments": {f"minecraft:{k}": v for k, v in ench.items()}})
@@ -70,20 +70,20 @@ LOOT = {
                                    item("experience_bottle", 3, 2, 5)]),
                      pool(1, [item("emerald", 4, 2, 5), item("diamond", 1), item("golden_apple", 2), empty(4)], extra=True)),
     "premium": table(
-        # trofeo con nombre propio, siempre uno
+        # trophy with its own name, always exactly one
         pool(1, [named("iron_sword", key("gladius"), nm("gladius"), 4, ench={"sharpness": 3, "unbreaking": 2}),
                  named("golden_helmet", key("yelmo"), nm("yelmo"), 3, ench={"protection": 2, "unbreaking": 3}),
                  named("shield", key("escudo"), nm("escudo"), 3, ench={"unbreaking": 2}),
                  named("golden_helmet", key("corona"), nm("corona"), 2, ench={"respiration": 1}),
                  named("wooden_sword", key("rudis"), nm("rudis"), 2, ench={"knockback": 1, "unbreaking": 3})]),
-        # adornos de armadura y discos
+        # armor trims and music discs
         pool(2, [item("sentry_armor_trim_smithing_template", 3), item("wayfinder_armor_trim_smithing_template", 3),
                  item("shaper_armor_trim_smithing_template", 3), item("host_armor_trim_smithing_template", 2),
                  item("raiser_armor_trim_smithing_template", 2), item("music_disc_mall", 2), item("music_disc_far", 2),
                  item("music_disc_strad", 2), item("music_disc_chirp", 2)]),
         pool((2, 4), [item("gold_ingot", 8, 2, 6), item("emerald", 8, 3, 8), item("diamond", 3, 1, 2),
                       item("golden_apple", 3), item("experience_bottle", 5, 3, 8), item("gold_block", 1)]),
-        # 10 %: algo más fuerte sin romper la progresión
+        # 10 %: somewhat stronger without breaking progression
         pool(1, [empty(18), named("diamond_sword", key("emperador"), nm("emperador"), 1, ench={"sharpness": 3, "looting": 2, "unbreaking": 2}),
                  item("enchanted_golden_apple", 1)]),
         pool(1, [item("emerald", 5, 2, 5), item("gold_ingot", 4, 1, 3), item("diamond", 1)], extra=True)),

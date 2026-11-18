@@ -1,28 +1,28 @@
-"""Arena de oleadas (T31): la plantilla del coliseo, los datos que lee el Java (arena/), su botín, sus logros y sus textos.
+"""Wave arena (T31): the colosseum template, the data the Java side reads (arena/), its loot, its advancements and its texts.
 
-La arena no es una estructura de la generación del mundo: la coloca el mod cerca del spawn (/heraldia arena place, o
-sola en un mundo nuevo) con esta plantilla (heraldia:arena/arena). Es un coliseo de 57 x 14 x 57 bloques con el ruedo
-hundido bajo el terreno:
-  - el ruedo (radio 14, suelo a y = 0) con 7 puntos de aparición de mobs (ante una celda con rejas en el muro), la
-    campana para empezar junto a la entrada y luz suficiente para que no aparezcan monstruos solos;
-  - el muro del ruedo (radio 14-16, 3 bloques) con cristal encima hasta y = 10 y un techo de barreras en y = 11: ni
-    flechas ni mobs llegan a las gradas, nadie trepa fuera y las arañas no salen;
-  - las gradas (4 escalones de asientos, radio 16-24) y el paseo exterior a ras de suelo (y = 7) con pilares, arcos
-    y faroles, abierto por todos lados para los espectadores;
-  - la entrada al ruedo, al sur: una rampa que baja del paseo al ruedo y una puerta de rejas que el mod cierra mientras
-    dura una partida (en la plantilla está abierta).
-Materiales: solo los de PALETA (ninguno arde, ninguno lo puede coger un enderman): el fuego y los endermen no pueden con
-ella por diseño; las explosiones, los pistones, los jugadores y los endermen que dejan bloques los para el Java.
+The arena is not a world-generation structure: the mod places it near spawn (/heraldia arena place, or automatically
+in a new world) with this template (heraldia:arena/arena). It is a 57 x 14 x 57 block colosseum with the ring
+sunk below the terrain:
+  - the ring (radius 14, floor at y = 0) with 7 mob spawn points (in front of a cell with bars in the wall), the
+    bell to start next to the entrance and enough light so that monsters do not spawn on their own;
+  - the ring wall (radius 14-16, 3 blocks) with glass on top up to y = 10 and a barrier roof at y = 11: neither
+    arrows nor mobs reach the stands, nobody climbs out and spiders cannot escape;
+  - the stands (4 steps of seats, radius 16-24) and the outer walkway at ground level (y = 7) with pillars, arches
+    and lanterns, open on all sides for the spectators;
+  - the entrance to the ring, to the south: a ramp going down from the walkway to the ring and a bar gate that the mod closes while
+    a match lasts (open in the template).
+Materials: only those in PALETTE (none burns, no enderman can pick any up): fire and endermen cannot affect
+it by design; explosions, pistons, players and block-carrying endermen are stopped by the Java side.
 
-heraldia/arena.json (dentro del .jar) da al Java las posiciones (relativas a la esquina de la plantilla): ruedo,
-puntos de aparición, campana, puerta, sitio de reaparición, y el nivel del suelo; errores() comprueba que la plantilla
-cumple lo que dice (falla la generación).
+heraldia/arena.json (inside the .jar) gives the Java side the positions (relative to the template corner): ring,
+spawn points, bell, gate, respawn spot, and the floor level; errores() checks that the template
+meets what it claims (generation fails otherwise).
 
-Modos y salón de la fama (T41): tres carteles de pie (madera carmesí: no arde) en el paseo, junto a la entrada, uno por
-modo (cooperativo, contrarreloj, supervivencia), con el campeón de la semana anterior que escribe el Java (arena/Fama).
-Su sitio va en arena.json («fama»): en una arena colocada antes de T41, el Java los pone solo si ese sitio está libre.
-Aquí van también los textos de los modos, la clasificación y la temporada, sus logros (LOGROS_MODOS) y
-errores_textos(), que comprueba que las líneas del cartel caben (90 px) en cada idioma con el peor caso.
+Modes and hall of fame (T41): three standing signs (crimson wood: does not burn) on the walkway, next to the entrance, one per
+mode (cooperative, time attack, survival), with the previous week's champion written by the Java side (arena/Fama).
+Their position goes in arena.json ("fama"): in an arena placed before T41, the Java side puts them in only if that spot is free.
+Here are also the texts of the modes, the ranking and the season, their advancements (ADVANCEMENTS_MODES) and
+errores_textos(), which checks that the sign lines fit (90 px) in each language in the worst case.
 """
 import math
 
@@ -33,37 +33,37 @@ from uniques._common import chest_loot
 NS = "heraldia"
 TEMPLATE = "arena/arena"
 VERSION = 1
-N = 57                    # lado de la plantilla (cuadrada)
-C = N // 2                # columna del centro (28)
+N = 57                    # side of the (square) template
+C = N // 2                # center column (28)
 HEIGHT = 14                 # y = 0 .. 13
-FLOOR = 7                 # y del suelo exterior: esta capa de la plantilla va a la altura del terreno
+FLOOR = 7                 # y of the outer floor: this layer of the template goes at terrain height
 R_ARENA, R_WALL, R_BLEACHERS, R_PROMENADE = 14, 16, 24, 28.5
-ROOF = 11                # techo de barreras sobre el ruedo y el cristal
-GLASS = (4, 10)         # cristal sobre el muro del ruedo
-WALL_HIGH = 3             # el muro del ruedo, de y = 1 a 3
+ROOF = 11                # barrier roof over the ring and the glass
+GLASS = (4, 10)         # glass over the ring wall
+WALL_HIGH = 3             # the ring wall, from y = 1 to 3
 RADIUS_POINTS = 11
-DOOR_X = (C - 1, C + 1)                 # ancho de la entrada (3)
-DOOR_Z = (C + 14, C + 15)               # la puerta corta el muro del ruedo
+DOOR_X = (C - 1, C + 1)                 # width of the entrance (3)
+DOOR_Z = (C + 14, C + 15)               # the gate cuts the ring wall
 DOOR_Y = (1, 3)
 BELL = (C, 1, C + 11)
-RESPAWN = (C, FLOOR + 1, N - 3)       # arriba de la rampa, mirando al ruedo
-RAMP_Z0 = C + 16                         # primer peldaño: z = C + 17 en y = 1; z = C + 23 en y = 7
-# T41: los carteles del salón de la fama, uno por modo (Java: arena/Modo, en ese orden), en el paseo al este de la
-# rampa, mirando al sur (rotación 0: los lee quien llega a la entrada desde fuera).
+RESPAWN = (C, FLOOR + 1, N - 3)       # top of the ramp, facing the ring
+RAMP_Z0 = C + 16                         # first step: z = C + 17 at y = 1; z = C + 23 at y = 7
+# T41: the hall of fame signs, one per mode (Java: arena/Modo, in that order), on the walkway east of the
+# ramp, facing south (rotation 0: read by those arriving at the entrance from outside).
 FAME = [(C + 3, FLOOR + 1, N - 5), (C + 4, FLOOR + 1, N - 5), (C + 5, FLOOR + 1, N - 5)]
 FAME_ROTATION = 0
 MODES = ("coop", "timeattack", "survival")
-# Materiales permitidos: no arden (FireBlock) ni están en #minecraft:enderman_holdable.
+# Allowed materials: they do not burn (FireBlock) and are not in #minecraft:enderman_holdable.
 PALETTE = frozenset({
     "air", "barrier", "glass", "iron_bars", "bell", "lantern", "soul_lantern", "sea_lantern",
     "stone", "stone_bricks", "mossy_stone_bricks", "cracked_stone_bricks", "chiseled_stone_bricks",
     "stone_brick_stairs", "stone_brick_slab", "stone_brick_wall", "polished_andesite",
     "smooth_sandstone", "cut_sandstone", "chiseled_sandstone", "red_sandstone", "cut_red_sandstone",
     "chiseled_red_sandstone", "smooth_red_sandstone",
-    "crimson_sign",                         # T41: los carteles del salón de la fama (madera del Nether: no arde)
+    "crimson_sign",                         # T41: the hall of fame signs (Nether wood: does not burn)
 })
-# Comprobación aparte (no se usan; por si alguien amplía la PALETA): lo que arde y lo que coge un enderman.
-# (por palabras del id: «sandstone» no es «sand» ni «mossy» es «moss»)
+# Separate check (unused; in case someone extends PALETTE): what burns and what an enderman picks up.
+# (by words in the id: "sandstone" is not "sand" and "mossy" is not "moss")
 FORBIDDEN_ITEMS = ("planks", "log", "wood", "wool", "leaves", "carpet", "fence", "hay", "bookshelf", "tnt", "dirt", "grass",
               "sand", "gravel", "clay", "mud", "moss", "pumpkin", "melon", "mushroom", "cactus", "nylium", "podzol",
               "mycelium", "roots", "fungus", "flower", "scaffolding", "campfire")
@@ -71,7 +71,7 @@ LIGHTS = ("lantern", "soul_lantern", "sea_lantern")
 
 
 def dist(x, z):
-    """Distancia al centro del ruedo desde el centro de la columna (x, z)."""
+    """Distance to the ring center from the column center (x, z)."""
     return math.hypot(x - C, z - C)
 
 
@@ -84,7 +84,7 @@ def at_door(x, y, z):
 
 
 def outward(x, z):
-    """Dirección dominante desde el centro (para las escaleras: `facing` es el lado alto, el respaldo)."""
+    """Dominant direction from the center (for the stairs: `facing` is the high side, the back)."""
     dx, dz = x - C, z - C
     if abs(dx) >= abs(dz):
         return "east" if dx > 0 else "west"
@@ -92,7 +92,7 @@ def outward(x, z):
 
 
 def angle_points():
-    """Ángulos (grados, desde +x hacia +z) de los puntos de aparición: cada 45° menos el sur (90°), la entrada."""
+    """Angles (degrees, from +x toward +z) of the spawn points: every 45 degrees except south (90), the entrance."""
     return [a for a in range(0, 360, 45) if a != 90]
 
 
@@ -105,13 +105,13 @@ def points():
 
 
 def cell_behind(p, radius):
-    """La columna en la misma dirección que el punto p, a `radio` del centro (las rejas y el farol de su celda)."""
+    """The column in the same direction as point p, at `radius` from the center (the bars and the lantern of its cell)."""
     a = math.atan2(p[2] - C, p[0] - C)
     return C + round(radius * math.cos(a)), C + round(radius * math.sin(a))
 
 
 def tier(d):
-    """Escalón de las gradas (0-3) de una columna a distancia d (R_MURO <= d < R_GRADAS)."""
+    """Step of the stands (0-3) for a column at distance d (R_WALL <= d < R_BLEACHERS)."""
     return int((d - R_WALL) // 2)
 
 
@@ -143,24 +143,24 @@ def construct():
                 k = tier(d)
                 upward = WALL_HIGH + k
                 t.fill(x, 0, z, x, upward - 1, z, "stone_bricks")
-                edge_block = (d - R_WALL) - 2 * k < 1          # mitad interior del escalón: el asiento
+                edge_block = (d - R_WALL) - 2 * k < 1          # inner half of the step: the seat
                 t.set(x, upward, z, f"stone_brick_stairs[facing={outward(x, z)},half=bottom]" if edge_block
                       else "polished_andesite")
             else:
                 t.fill(x, 0, z, x, FLOOR - 1, z, "stone" if d >= R_PROMENADE else "stone_bricks")
                 t.set(x, FLOOR, z, "polished_andesite" if d >= R_PROMENADE or (x + z) % 2 else "stone_bricks")
-                if 27 <= d < R_PROMENADE:                       # fachada: pilares, arcos y faroles
+                if 27 <= d < R_PROMENADE:                       # facade: pillars, arches and lanterns
                     s = (math.atan2(z - C, x - C) % (2 * math.pi)) / (2 * math.pi) * pillars
                     if s % 1 < 0.12 or s % 1 > 0.88:
                         t.fill(x, FLOOR + 1, z, x, FLOOR + 4, z, "stone_bricks")
                         t.set(x, FLOOR + 6, z, "lantern")
                     t.set(x, FLOOR + 5, z, "chiseled_stone_bricks")
-    # luz del ruedo: el centro y un anillo de 8 faroles de mar en el suelo
+    # ring light: the center and a ring of 8 sea lanterns on the floor
     t.set(C, 0, C, "sea_lantern")
     for a in range(0, 360, 45):
         r = math.radians(a + 22.5)
         t.set(C + round(7 * math.cos(r)), 0, C + round(7 * math.sin(r)), "sea_lantern")
-    # luz de las gradas: faroles de mar en el respaldo de cada escalón, cada 30°
+    # stand light: sea lanterns on the back of each step, every 30 degrees
     for k in range(4):
         rr = R_WALL + 2 * k + 1.5
         for a in range(0, 360, 30):
@@ -168,7 +168,7 @@ def construct():
             x, z = C + round(rr * math.cos(r)), C + round(rr * math.sin(r))
             if R_WALL <= dist(x, z) < R_BLEACHERS and not at_entrance(x, z) and not t.get(x, WALL_HIGH + tier(dist(x, z)), z).startswith("minecraft:stone_brick_stairs"):
                 t.set(x, WALL_HIGH + tier(dist(x, z)), z, "sea_lantern")
-    # puntos de aparición: marca en el suelo y, detrás, una celda con rejas y un farol de almas
+    # spawn points: a mark on the floor and, behind it, a cell with bars and a soul lantern
     for p in points():
         t.set(p[0], 0, p[2], "chiseled_red_sandstone")
         bx, bz = cell_behind(p, R_ARENA + 0.5)
@@ -176,11 +176,11 @@ def construct():
         t.fill(bx, 1, bz, bx, 2, bz, "iron_bars")
         t.set(lx, 1, lz, "soul_lantern")
         t.set(lx, 2, lz, "air")
-    # entrada: rampa del paseo al ruedo, con pretiles a los lados y la puerta (abierta) en el muro
+    # entrance: ramp from the walkway to the ring, with parapets on the sides and the (open) gate in the wall
     for z in range(DOOR_Z[0], N):
         story = min(FLOOR, max(0, z - RAMP_Z0))
         for x in range(DOOR_X[0], DOOR_X[1] + 1):
-            for y in range(1, FLOOR + 5):         # el arco de la fachada (y = 12) queda sobre la entrada
+            for y in range(1, FLOOR + 5):         # the facade arch (y = 12) sits above the entrance
                 if not (GLASS[0] <= y <= ROOF and dist(x, z) < R_WALL):
                     t.set(x, y, z, "air")
             t.fill(x, 0, z, x, story, z, "stone_bricks")
@@ -193,7 +193,7 @@ def construct():
                 d = dist(x, z)
                 height = WALL_HIGH + tier(d) if d < R_BLEACHERS else FLOOR
                 t.set(x, height + 1, z, "stone_brick_wall")
-    # faroles en el paseo (cada 30°, menos en la entrada) y en las cuatro esquinas de la plaza
+    # lanterns on the walkway (every 30 degrees, except at the entrance) and at the four corners of the plaza
     for a in range(0, 360, 30):
         r = math.radians(a + 15)
         x, z = C + round(25.5 * math.cos(r)), C + round(25.5 * math.sin(r))
@@ -208,7 +208,7 @@ def construct():
 
 
 def dataset():
-    """Lo que lee el Java (heraldia/arena.json): posiciones relativas a la esquina (x, y, z mínimos) de la plantilla."""
+    """What the Java side reads (heraldia/arena.json): positions relative to the corner (minimum x, y, z) of the template."""
     return {
         "version": VERSION,
         "plantilla": f"{NS}:{TEMPLATE}",
@@ -235,8 +235,8 @@ def _solid(st):
 
 
 def errors(t, d=None):
-    """[] si la plantilla cumple lo que promete arena.json: materiales, ruedo cerrado, cristal y techo, puntos, campana,
-    puerta y reaparición."""
+    """[] if the template meets what arena.json promises: materials, closed ring, glass and roof, points, bell,
+    gate and respawn."""
     d = d or dataset()
     e = []
     bad_many = sorted({_name(st) for st, _ in t.blocks.values()} - PALETTE)
@@ -250,7 +250,7 @@ def errors(t, d=None):
     cx, _, cz = d["centro"]
     r = d["radio_ruedo"]
     y0, y1 = d["ruedo_y"]
-    # el ruedo, cerrado con la puerta cerrada: desde el centro no se llega a ninguna celda fuera de su radio
+    # the ring, closed with the gate closed: from the center no cell outside its radius can be reached
     shut = {(x, y, z) for x in range(d["puerta"][0][0], d["puerta"][1][0] + 1)
                for y in range(d["puerta"][0][1], d["puerta"][1][1] + 1)
                for z in range(d["puerta"][0][2], d["puerta"][1][2] + 1)}
@@ -270,7 +270,7 @@ def errors(t, d=None):
         e.append(f"arena: el ruedo no está cerrado (se llega a {sorted(outside)[:3]}...)")
     if len(seen_all) < 3.14 * (r - 1) ** 2 * (y1 - y0):
         e.append(f"arena: ruedo demasiado pequeño ({len(seen_all)} celdas)")
-    # cristal sobre el muro y techo de barreras
+    # glass over the wall and barrier roof
     for x in range(N):
         for z in range(N):
             dd = dist(x, z)
@@ -295,8 +295,8 @@ def errors(t, d=None):
     if _solid(t.get(*rp)) or _solid(t.get(rp[0], rp[1] + 1, rp[2])) or not _solid(t.get(rp[0], rp[1] - 1, rp[2])) \
             or tuple(rp) in seen_all:
         e.append(f"arena: la reaparición {rp} no es un sitio libre con suelo fuera del ruedo")
-    # T41: los carteles del salón de la fama, uno por modo, en el paseo (fuera del ruedo y de la entrada), sobre suelo
-    # macizo y con aire delante (al sur) para leerlos
+    # T41: the hall of fame signs, one per mode, on the walkway (outside the ring and the entrance), on solid
+    # ground and with air in front (to the south) so they can be read
     if len(d.get("fama", [])) != len(MODES):
         e.append(f"arena: hacen falta {len(MODES)} carteles del salón de la fama, uno por modo")
     for p in d.get("fama", []):
@@ -310,14 +310,14 @@ def errors(t, d=None):
     return e
 
 
-# --- recompensas, logros y textos ---
+# --- rewards, advancements and texts ---
 
 def _pool_table(*pools):
     return {"type": "minecraft:chest", "pools": [chest_loot.pool(r, es) for r, es in pools]}
 
 
-# Una recompensa por jugador cada 5 oleadas, mejor según la oleada (nivel 1: la 5; 2: la 10; 3: la 15; 4: la 20 y
-# siguientes). Solo vanilla, sin netherita ni élitros (Decisiones del dueño).
+# One reward per player every 5 waves, better as the wave rises (level 1: wave 5; 2: wave 10; 3: wave 15; 4: wave 20 and
+# beyond). Vanilla only, no netherite or elytra (Owner's decisions).
 REWARDS = {
     1: _pool_table((3, [item("iron_ingot", 6, 2, 5), item("bread", 4, 3, 6), item("arrow", 4, 8, 16), item("emerald", 4, 2, 5),
                    item("golden_carrot", 3, 2, 4)]),
@@ -334,9 +334,9 @@ REWARDS = {
                    item("diamond_sword", 2, ench=(25, 30))])),
 }
 ADVANCEMENTS = {5: ("iron_sword", "task", 50), 10: ("golden_sword", "goal", 100), 20: ("diamond_sword", "challenge", 250)}
-# T41: logros de los modos (los concede el Java: arena/Marcas.logros y Fama). (id, icono, marco, xp, padre,
-# (título es, en), (descripción es, en)). Las cifras son las de arena/Marcas (CONTRARRELOJ_OLEADAS = 10,
-# CONTRARRELOJ_RAPIDO_TICKS = 15 min, SUPERVIVENCIA_OLEADAS = 15).
+# T41: mode advancements (granted by the Java side: arena/Marcas.logros and Fama). (id, icon, frame, xp, parent,
+# (title es, en), (description es, en)). The figures are those of arena/Marcas (TIME_ATTACK_WAVES = 10,
+# CONTRARRELOJ_RAPIDO_TICKS = 15 min, WAVE_SURVIVAL = 15).
 TIME_ATTACK_WAVES, TIME_ATTACK_FAST_MIN, WAVE_SURVIVAL = 10, 15, 15
 ADVANCEMENTS_MODES = [
     ("contrarreloj", "clock", "goal", 100, "oleada_5", ("Contra el reloj", "Against the Clock"),
@@ -371,7 +371,7 @@ def _advancement_key(wave, part):
 
 
 def advancements():
-    """{ruta: json} de los logros de la arena (los concede el Java al superar la oleada; criterio «impossible»)."""
+    """{path: json} of the arena advancements (granted by the Java side on clearing the wave; "impossible" criterion)."""
     out = {}
     parent = f"{NS}:raiz"
     for wave, (emblem, frame, xp) in sorted(ADVANCEMENTS.items()):
@@ -406,7 +406,7 @@ LANG_ADVANCEMENTS = {
     10: (("Campeón de la arena", "Arena Champion"), ("Supera la oleada 10 de la arena", "Survive wave 10 of the arena")),
     20: (("Leyenda del ruedo", "Legend of the Ring"), ("Supera la oleada 20 de la arena", "Survive wave 20 of the arena")),
 }
-# Nombres de los mini-jefes (uno cada 5 oleadas, en rotación; el Java elige por oleada).
+# Names of the mini-bosses (one every 5 waves, in rotation; the Java side picks by wave).
 BOSSES = [("Gorbak el Rompehuesos", "Gorbak the Bonebreaker"), ("Saeta Negra", "Black Arrow"),
          ("Verdugo de la Arena", "Arena Executioner"), ("El Último Campeón", "The Last Champion")]
 TEXTS = {
@@ -463,7 +463,7 @@ TEXTS = {
     "parada": ("Partida de la arena detenida.", "Arena match stopped."),
     "marcador": ("Arena: récord de oleadas", "Arena: wave records"),
     "marcador.servidor": ("Récord del servidor", "Server record"),
-    # T41: modos, clasificación semanal, temporada y salón de la fama
+    # T41: modes, weekly ranking, season and hall of fame
     "modo.coop": ("Cooperativo", "Co-op"),
     "modo.timeattack": ("Contrarreloj", "Time attack"),
     "modo.survival": ("Supervivencia", "Survival"),
@@ -506,12 +506,12 @@ TEXTS = {
     "cartel.titulo": ("Campeón", "Champion"),
     "cartel.nadie": ("Sin campeón", "No champion"),
 }
-# Líneas de los carteles del salón de la fama (Java: arena/Fama.lineas): (clave, en negrita, argumentos del peor caso).
-# La del jugador es su nombre (hasta 16 caracteres de A-Z, a-z, 0-9 y _; uno de 16 «W» no cabe: el cliente lo corta).
+# Lines of the hall of fame signs (Java: arena/Fama.lineas): (key, bold, worst-case arguments).
+# The player's is their name (up to 16 characters of A-Z, a-z, 0-9 and _; one of 16 "W" does not fit: the client cuts it off).
 SIGN = [("cartel.titulo", True, []), ("modo.coop", False, []), ("modo.timeattack", False, []), ("modo.survival", False, []),
           ("cartel.nadie", False, []), ("puntos.oleadas", False, ["999"]),
-          ("puntos.parcial", False, ["99", "99"])]          # el contrarreloj acabado: solo su tiempo (m:ss)
-TYPICAL_NAME = "Steve_Builder12"       # 15 caracteres medianos: lo que debe caber en la línea del jugador
+          ("puntos.parcial", False, ["99", "99"])]          # finished time attack: only its time (m:ss)
+TYPICAL_NAME = "Steve_Builder12"       # 15 medium-width characters: what must fit on the player's line
 
 
 
@@ -533,8 +533,8 @@ def lang():
 
 
 def text_errors(translations=None):
-    """[] si cada línea de los carteles del salón de la fama cabe (90 px, la negrita cuenta) en cada idioma, con los
-    argumentos del peor caso. `traducciones`: {código: textos} de los idiomas que no son es/en."""
+    """[] if every line of the hall of fame signs fits (90 px, bold counts) in each language, with the
+    worst-case arguments. `translations`: {code: texts} of the languages other than es/en."""
     import languages
     base = lang()
     e = []
@@ -551,13 +551,13 @@ def text_errors(translations=None):
 
 
 def tables():
-    """{nombre: tabla} para la validación del botín."""
+    """{name: table} for the loot validation."""
     return {f"arena/recompensa_{n}": t for n, t in REWARDS.items()}
 
 
 def write(out, jdump):
-    """Escribe la plantilla, heraldia/arena.json, las recompensas y los logros; devuelve los textos. Falla si la
-    plantilla no cumple lo que promete."""
+    """Writes the template, heraldia/arena.json, the rewards and the advancements; returns the texts. Fails if the
+    template does not meet what it promises."""
     t = construct()
     e = errors(t)
     if e:

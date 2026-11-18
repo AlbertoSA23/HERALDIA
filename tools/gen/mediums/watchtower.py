@@ -1,6 +1,6 @@
-"""Torre de vigía (heraldia:medianas/torre_vigia/<estilo>): torre cuadrada de 7 x 7 en un patio de 15 x 15 con su
-hoguera arriba. Variante a: tres plantas y atalaya cubierta con un arquero esqueleto (el reto); b: dos plantas, terraza
-descubierta y un cobertizo de leña adosado, sin mobs."""
+"""Watchtower (heraldia:medianas/torre_vigia/<estilo>): 7 x 7 square tower in a 15 x 15 courtyard with its
+beacon fire on top. Variant a: three floors and a covered lookout with a skeleton archer (the challenge); b: two floors, open
+terrace and an attached firewood shed, no mobs."""
 from core import Template, F
 from loot import item, empty
 from uniques._common import chest_loot
@@ -24,8 +24,8 @@ LOOT = {
 }
 
 L = 15                # patio de 15 x 15
-X0, Z0, X1, Z1 = 4, 5, 10, 11   # muros de la torre (7 x 7)
-CX = 7                # eje de la puerta y de la escalera de mano
+X0, Z0, X1, Z1 = 4, 5, 10, 11   # tower walls (7 x 7)
+CX = 7                # axis of the door and the ladder
 
 
 def _floor(p):
@@ -34,20 +34,20 @@ def _floor(p):
 
 
 def _tower(t, p, floors, deck):
-    """Torre de `plantas` plantas de 4 de alto (suelos en y = 0, 5, 9...), terraza con almenas y hoguera."""
+    """Tower of `floors` floors 4 high (floors at y = 0, 5, 9...), terrace with battlements and a beacon fire."""
     m = p["madera"]
-    roof = 5 + 4 * (floors - 1)                          # suelo de la terraza
+    roof = 5 + 4 * (floors - 1)                          # terrace floor
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, f"{m}_planks")
     c.box(t, X0, 1, Z0, X1, roof - 1, Z1, p["muro"], corner_block=p["esquina"])
-    for y in range(5, roof + 1, 4):                      # forjados (el último es la terraza)
+    for y in range(5, roof + 1, 4):                      # floors (the last one is the terrace)
         t.fill(X0 + 1, y, Z0 + 1, X1 - 1, y, Z1 - 1, f"{m}_planks")
         t.fill(X0, y, Z0, X1, y, Z1, p["muro"], keep=True)
         for x, z in ((X0, Z0), (X0, Z1), (X1, Z0), (X1, Z1)):
             t.set(x, y, z, p["esquina"])
-    c.ladder(t, CX, Z1 - 1, 1, roof, "north")      # pegada al muro sur, atraviesa los forjados
+    c.ladder(t, CX, Z1 - 1, 1, roof, "north")      # against the south wall, passes through the floors
     c.door(t, CX, 1, Z0, "south", f"{m}_door")
-    # saeteras: en el centro de los muros este y oeste de cada planta y en el norte de las de arriba
+    # arrow slits: in the center of the east and west walls of each floor and on the north of the upper ones
     for k in range(floors):
         y = 2 + 4 * k + (1 if k else 0)
         c.window(t, X0, y, 8)
@@ -56,7 +56,7 @@ def _tower(t, p, floors, deck):
             c.window(t, CX, y, Z0)
         t.set(X1 - 1, 3 + 4 * k, Z0 + 1, "wall_torch[facing=south]")
         t.set(X0 + 1, 3 + 4 * k, Z0 + 1, "wall_torch[facing=south]")
-    # almenas: merlón en las casillas pares del anillo; en las esquinas, pilares (que sostienen la cubierta)
+    # battlements: merlon on the even cells of the ring; at the corners, pillars (which hold up the roof)
     y = roof + 1
     for x in range(X0, X1 + 1):
         for z in range(Z0, Z1 + 1):
@@ -81,13 +81,13 @@ def _courtyard(t, p):
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p))
     c.entrance(t, CX, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
     m = p["madera"]
-    for x in (CX - 2, CX + 2):                             # faroles a los lados del camino
+    for x in (CX - 2, CX + 2):                             # lanterns at the sides of the path
         t.set(x, 1, 2, f"{m}_fence")
         c.lantern(t, x, 2, 2, hanging=False)
 
 
 def upper(p, name):
-    """Tres plantas (almacén, dormitorio, armería) y atalaya cubierta con el arquero."""
+    """Three floors (storeroom, bedroom, armory) and a covered lookout with the archer."""
     t = Template(name)
     _courtyard(t, p)
     m = p["madera"]
@@ -107,7 +107,7 @@ def upper(p, name):
 
 
 def lower(p, name):
-    """Dos plantas, terraza descubierta y cobertizo de leña adosado al este; sin mobs."""
+    """Two floors, open terrace and a firewood shed attached to the east; no mobs."""
     t = Template(name)
     _courtyard(t, p)
     m = p["madera"]
@@ -115,7 +115,7 @@ def lower(p, name):
     c.place_chest(t, X0 + 1, 1, Z0 + 2, "east", MID, "vigia")
     c.bed(t, X0 + 1, Z1 - 2, "west", "blue", y=6)
     t.set(X1 - 1, 6, Z0 + 1, "crafting_table")
-    # cobertizo: postes en x = 13, tejadillo de losas en y = 4, leña y paja dentro, abierto al norte
+    # shed: posts at x = 13, small slab roof at y = 4, firewood and hay inside, open to the north
     for z in (Z0 + 1, Z1 - 1):
         for y in (1, 2, 3):
             t.set(X1 + 3, y, z, f"{m}_fence")

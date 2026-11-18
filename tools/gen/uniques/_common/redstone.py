@@ -1,8 +1,8 @@
-"""Redstone común: forma de los cables y evaluación estática de la señal con las reglas del juego (uso: from unicas._comun import redstone).
+"""Common redstone: wire shape and static evaluation of the signal with the game rules (use: from uniques._common import redstone).
 
-Al generar no hay actualizaciones de bloque: lo que se coloca debe ser ya un estado estable. Este módulo calcula
-lo que el juego calcularía (conexiones de cada cable, potencia, antorchas, pistones, puertas, dispensadores, TNT)
-y permite simular entradas (palancas, ganchos, placas) para comprobar los puzles y las trampas.
+During generation there are no block updates: what is placed must already be a stable state. This module computes
+what the game would compute (connections of each wire, power, torches, pistons, doors, dispensers, TNT)
+and allows simulating inputs (levers, hooks, plates) to check the puzzles and traps.
 """
 from core import parse_state, state_str
 
@@ -29,7 +29,7 @@ def conductor(s):
 
 
 def attached_dir(s):
-    """Dirección (desde el componente) del bloque al que está sujeto."""
+    """Direction (from the component) of the block it is attached to."""
     b, p = parse_state(s)
     b = bn(b)
     if b in ("redstone_torch",):
@@ -43,14 +43,14 @@ def attached_dir(s):
 
 def is_source_connectable(s, d_from_wire):
     b = bn(s)
-    if b == "repeater":                      # solo a lo largo de su eje
+    if b == "repeater":                      # only along its axis
         return parse_state(s)[1]["facing"] in (d_from_wire, OPP[d_from_wire])
     return b in ("redstone_torch", "redstone_wall_torch", "lever", "tripwire_hook", "redstone_block", "detector_rail") \
         or b.endswith("pressure_plate") or b.endswith("_button")
 
 
 def wire_links(get, pos):
-    """Cables vecinos de un cable: {dirección: posición}, incluidos los que suben o bajan un bloque."""
+    """Neighboring wires of a wire: {direction: position}, including those that go up or down one block."""
     out = {}
     for d, v in H4.items():
         n = add(pos, v)
@@ -65,7 +65,7 @@ def wire_links(get, pos):
 
 
 def wire_connections(get, pos):
-    """Conexiones que el juego calcula para un cable (también los que suben o bajan un peldaño)."""
+    """Connections that the game computes for a wire (also those that go up or down one step)."""
     links = wire_links(get, pos)
     c = {}
     for d, v in H4.items():
@@ -92,12 +92,12 @@ def wire_shapes(t):
 
 
 class Sim:
-    """Evaluación estática: entradas fijas (palancas, ganchos, placas) y punto fijo de cables y antorchas."""
+    """Static evaluation: fixed inputs (levers, hooks, plates) and fixed point of wires and torches."""
 
     def __init__(self, t, inputs=None):
         self.get0 = t.get
         self.blocks = t.blocks
-        self.inputs = inputs or {}            # pos -> powered (bool) para palancas, ganchos, placas y raíles detectores
+        self.inputs = inputs or {}            # pos -> powered (bool) for levers, hooks, plates and detector rails
         self.torch = {}
         self.rep = {}                         # repetidores: pos -> encendido
         self.wire = {}
@@ -128,18 +128,18 @@ class Sim:
         return False
 
     def rep_out(self, n):
-        """Casilla a la que da un repetidor (el lado opuesto a `facing`, que mira a su entrada)."""
+        """Cell that a repeater outputs to (the side opposite `facing`, which faces its input)."""
         return add(n, D6[OPP[parse_state(self.get(*n))[1]["facing"]]])
 
     def direct(self, n, target, wires=True):
-        """Señal fuerte que el componente en n da al bloque target."""
+        """Strong signal that the component at n gives to the block target."""
         s = self.get(*n)
         b = bn(s)
         if b in ("lever", "tripwire_hook") or b.endswith("_button"):
             return 15 if self.src_on(n) and add(n, D6[attached_dir(s)]) == target else 0
         if b == "repeater":
             return 15 if self.rep[n] and self.rep_out(n) == target else 0
-        if b.endswith("pressure_plate") or b == "detector_rail":     # el raíl detector, como una placa
+        if b.endswith("pressure_plate") or b == "detector_rail":     # the detector rail, like a plate
             return 15 if self.src_on(n) and target == add(n, D6["down"]) else 0
         if b in ("redstone_torch", "redstone_wall_torch"):
             return 15 if self.torch[n] and target == add(n, D6["up"]) else 0
@@ -148,7 +148,8 @@ class Sim:
         return 0
 
     def weak(self, n, target, wires=True):
-        """Señal que n da a la posición vecina target (lo que lee un componente en target)."""
+        """Signal that n gives to the neighboring position target (what a component at target reads)."""
+
         s = self.get(*n)
         b = bn(s)
         if b in ("lever", "tripwire_hook", "detector_rail") or b.endswith("pressure_plate") or b.endswith("_button"):
@@ -192,7 +193,7 @@ class Sim:
                 if on != self.rep[pos]:
                     self.rep[pos] = on
                     changed = True
-            # potencia de los cables: fuentes no cable y vecinos cable - 1
+            # wire power: non-wire sources and wire neighbors - 1
             base = {w: self.signal_at(w, wires=False) for w in self.wire}
             power = dict(base)
             for _ in range(16):
@@ -205,10 +206,10 @@ class Sim:
                 changed = True
             if not changed:
                 return
-        raise ValueError("el circuito oscila")
+        raise ValueError("the circuit oscillates")
 
     def powered(self, pos):
-        """¿Un componente (pistón, puerta, dispensador, TNT) en pos recibe señal?"""
+        """Does a component (piston, door, dispenser, TNT) at pos receive a signal?"""
         s = self.get(*pos)
         b = bn(s)
         if b in ("piston", "sticky_piston"):
@@ -226,7 +227,7 @@ class Sim:
 
 
 def check_static(t):
-    """El estado colocado coincide con el que el juego calcularía (nada espera una actualización)."""
+    """The placed state matches what the game would compute (nothing waits for an update)."""
     errs = []
     sim = Sim(t)
     for pos, (s, _) in t.blocks.items():
@@ -236,9 +237,9 @@ def check_static(t):
             exp = sim.conn[pos]
             for d in H4:
                 if (p.get(d) != "none") != exp[d]:
-                    errs.append(f"cable con forma distinta de la calculada en {pos}")
+                    errs.append(f"wire with a shape different from the computed one at {pos}")
             if int(p.get("power", 0)) != sim.wire[pos]:
-                errs.append(f"cable con potencia {p.get('power')} y debería tener {sim.wire[pos]} en {pos}")
+                errs.append(f"wire with power {p.get('power')} that should have {sim.wire[pos]} at {pos}")
         elif b == "repeater":
             if (p["powered"] == "true") != sim.rep[pos]:
                 errs.append(f"repetidor inestable en {pos}")
@@ -247,24 +248,24 @@ def check_static(t):
                 errs.append(f"antorcha de redstone inestable en {pos}")
         elif b in ("piston", "sticky_piston"):
             if (p["extended"] == "true") != sim.powered(pos):
-                errs.append(f"pistón inestable en {pos}")
+                errs.append(f"unstable piston at {pos}")
             if p["extended"] == "true":
                 head = t.get(*add(pos, D6[p["facing"]]))
                 if bn(head) != "piston_head":
-                    errs.append(f"pistón extendido sin cabeza en {pos}")
+                    errs.append(f"extended piston without a head at {pos}")
         elif b.endswith("_door") and b.startswith("iron"):
             if (p["open"] == "true") != sim.powered(pos) or (p["powered"] == "true") != sim.powered(pos):
                 errs.append(f"puerta de hierro inestable en {pos}")
         elif b == "dispenser" and sim.powered(pos) != (p["triggered"] == "true"):
             errs.append(f"dispensador inestable en {pos}")
         elif b == "redstone_lamp" and (p["lit"] == "true") != sim.powered(pos):
-            errs.append(f"lámpara inestable en {pos}")
+            errs.append(f"unstable lamp at {pos}")
         elif b == "tnt" and sim.powered(pos):
-            errs.append(f"TNT con señal al colocarse en {pos}")
+            errs.append(f"TNT with a signal when placed at {pos}")
         elif b in ("lever", "tripwire_hook", "redstone_wall_torch"):
             a = t.get(*add(pos, D6[attached_dir(s)]))
             if not conductor(a):
-                errs.append(f"{b} sin bloque sólido detrás en {pos}")
+                errs.append(f"{b} without a solid block behind it at {pos}")
     return errs, sim
 
 
@@ -278,9 +279,9 @@ def set_wire_power(t):
 
 
 def check_puzzle(t, name, levers, solution, output, opens_if="con_potencia"):
-    """Prueba todas las combinaciones de las palancas de un puzle: solo la solución debe abrirlo.
-    salida: componentes (pistón, puerta...) que mueve el puzle; abre_si: "con_potencia" (puerta que se abre con
-    señal) o "sin_potencia" (pistones que sostienen la pared mientras reciben señal)."""
+    """Tests all the combinations of a puzzle's levers: only the solution must open it.
+    salida: components (piston, door...) that the puzzle moves; abre_si: "con_potencia" (door that opens with
+    a signal) or "sin_potencia" (pistons that hold the wall while they receive a signal)."""
     import itertools
     errs = []
     for combo in itertools.product((False, True), repeat=len(levers)):
@@ -293,7 +294,7 @@ def check_puzzle(t, name, levers, solution, output, opens_if="con_potencia"):
 
 
 def set_torches(t):
-    """Fija el estado lit de cada antorcha de redstone al estable (tras set_wire_power)."""
+    """Sets the lit state of each redstone torch to the stable one (after set_wire_power)."""
     sim = Sim(t)
     for pos, lit in sim.torch.items():
         s, nbt = t.blocks[pos]
@@ -303,7 +304,7 @@ def set_torches(t):
 
 
 def set_repeaters(t):
-    """Fija el estado powered de cada repetidor al estable."""
+    """Sets the powered state of each repeater to the stable one."""
     sim = Sim(t)
     for pos, on in sim.rep.items():
         s, nbt = t.blocks[pos]
@@ -313,8 +314,8 @@ def set_repeaters(t):
 
 
 def retract(t, sim):
-    """Bloques (pos -> estado) tras recoger los pistones extendidos que `sim` deja sin señal; los pegajosos tiran del
-    bloque que sujetan (para comprobar a pie que una puerta de pistones queda abierta)."""
+    """Blocks (pos -> state) after retracting the extended pistons that `sim` leaves without a signal; sticky ones pull the
+    block they hold (to check on foot that a piston door ends up open)."""
     b = {p: s for p, (s, _) in t.blocks.items()}
     for pos, s in list(b.items()):
         n, p = parse_state(s)

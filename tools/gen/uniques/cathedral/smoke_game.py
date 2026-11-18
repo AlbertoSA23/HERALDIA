@@ -1,10 +1,10 @@
-"""Prueba en un servidor dedicado 26.3 real de lo que la auditoría estática no ve: coloca las dos piezas de la
-catedral con /place template, comprueba que los mecanismos siguen en su estado de reposo después de las
-actualizaciones de forma, los acciona y mira el resultado (puertas de pistones, trampilla, trampas), y revisa
-generadores, cofres, carteles y el guardián.
+"""Test on a real 26.3 dedicated server of what the static audit does not see: places the two cathedral pieces
+with /place template, checks that the mechanisms stay in their rest state after the shape
+updates, activates them and looks at the result (piston doors, trapdoor, traps), and checks
+spawners, chests, signs and the guardian.
 
-Uso (desde la raíz): python3 tools/gen/uniques/cathedral/smoke_game.py --jar build/libs/heraldia-X.jar
-Las palancas se simulan poniendo un bloque de redstone en el bloque al que están fijadas (misma señal fuerte)."""
+Use (from the root): python3 tools/gen/uniques/cathedral/smoke_game.py --jar build/libs/heraldia-X.jar
+Levers are simulated by placing a redstone block on the block they are attached to (same strong signal)."""
 import argparse, os, subprocess, sys, threading, queue, time
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 sys.path.insert(0, os.path.join(ROOT, "tools", "smoke"))
@@ -52,7 +52,7 @@ def main():
         cmd(f"setblock {x} {y} {z} {st}", r"Changed the block|Could not set|error|Unknown")
 
     def wait(t=20):
-        ctx.ticks(t + 10)       # en ticks del juego (con el servidor atrasado, el reloj no basta)
+        ctx.ticks(t + 10)       # in game ticks (with the server lagging, the clock is not enough)
 
     try:
         sm.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", sm.START_TIMEOUT_S, seen)
@@ -70,7 +70,7 @@ def main():
                 fails.append(f"place template {t.name}: {m.string.strip()}")
         wait(40)
         g = c.t.get
-        # 1) reposo estable tras colocarse (incluidas las actualizaciones de forma de /place template)
+        # 1) stable rest state after being placed (including the shape updates of /place template)
         for mch in c.mech:
             ps = [p for k in ("pistones", "cabezas", "antorchas", "puerta", "ganchos", "cable", "dispensadores") for p in mch.get(k, [])]
             ps += [p for (p, _) in mch.get("polvo", [])] + [lp for (lp, _) in mch.get("palancas", []) + mch.get("falsas", [])]
@@ -79,25 +79,25 @@ def main():
                     ps.append(mch[k])
             for p in ps:
                 check(f"reposo {mch['sitio']}", p, g(*p).replace("minecraft:", ""))
-        # 2) generadores, cofres y guardián (antes de abrir puertas: el guardián podría salir)
+        # 2) spawners, chests and guardian (before opening doors: the guardian could get out)
         for (pos, mob) in c.spawners:
             check("generador", pos, f'spawner{{SpawnData:{{entity:{{id:"minecraft:{mob}"}}}}}}')
         for (pos, tbl, site) in c.chests:
             check(f"cofre {site}", pos, f'{g(*pos).split("[")[0].replace("minecraft:", "")}{{LootTable:"heraldia:unicas/catedral/{tbl}"}}')
-        # El guardián (esqueleto con IA) se busca por su etiqueta en todo el mundo, no junto a su sitio en la plantilla:
-        # anda. Las entidades de la plantilla aparecen unos segundos después que los bloques: se espera por condición.
+        # The guardian (skeleton with AI) is looked up by its tag across the whole world, not next to its spot in the template:
+        # it walks. The template's entities appear a few seconds after the blocks: we wait on a condition.
         for (x, y, z, n) in c.entities:
             gs = ("@e[type=minecraft:skeleton,tag=heraldia_guardian.catedral,"
                   "nbt={PersistenceRequired:1b,equipment:{mainhand:{id:\"minecraft:bow\"}}}]")
             if ctx.wait_entity(gs):
                 oks += 1
-                print(f"guardián en {ctx.pos(gs)} (colocado en {w((x, y, z))})")
+                print(f"guardian at {ctx.pos(gs)} (placed at {w((x, y, z))})")
             else:
-                fails.append("guardián ausente o sin equipo")
+                fails.append("guardian missing or without equipment")
             cmd(f"data get entity {gs[:-1]},limit=1] CustomName", r"has the following|No entity|Found no")
-        # 2) puertas de pistones: solución abre, la palanca falsa vuelve a cerrar
+        # 2) piston doors: the solution opens, the fake lever closes again
         for mch in [m for m in c.mech if m["tipo"] == "puerta de pistones"]:
-            if len(mch["palancas"]) > 1:            # una sola palanca no basta
+            if len(mch["palancas"]) > 1:            # a single lever is not enough
                 setb(mch["palancas"][0][1], "redstone_block")
                 wait()
                 for p in mch["puerta"]:
@@ -123,7 +123,7 @@ def main():
             wait()
             for p in mch["puerta"]:
                 check(f"vuelve a cerrar {mch['sitio']}", p, g(*p).replace("minecraft:", ""))
-        # 3) trampilla del altar y trampas
+        # 3) altar trapdoor and traps
         for mch in c.mech:
             if mch["tipo"] == "trampilla":
                 setb(mch["apoyo"], "redstone_block")
@@ -133,7 +133,7 @@ def main():
             elif mch["tipo"] in ("cable trampa", "placa de presión", "palanca trampa"):
                 p = mch["cable"][1] if "cable" in mch else mch.get("placa") or mch["palanca"]
                 x, y, z = w(p)
-                cmd("kill @e[type=minecraft:arrow]", r"Killed|No entity|error")     # que no cuenten las de otra trampa
+                cmd("kill @e[type=minecraft:arrow]", r"Killed|No entity|error")     # so that those of another trap do not count
                 if "apoyo" in mch:
                     setb(mch["apoyo"], "redstone_block")
                 else:
@@ -141,7 +141,7 @@ def main():
                 if ctx.until(f"execute if entity @e[type=minecraft:arrow,x={x},y={y},z={z},distance=..8]"):
                     oks += 1
                 else:
-                    fails.append(f"la trampa {mch['sitio']} no dispara")
+                    fails.append(f"trap {mch['sitio']} does not fire")
                 cmd("kill @e[tag=prueba]", r"Killed|No entity|error")
     finally:
         if proc.poll() is None:
@@ -151,9 +151,9 @@ def main():
             except subprocess.TimeoutExpired:
                 proc.kill()
     if fails:
-        print("PRUEBA DE LA CATEDRAL FALLIDA:\n  " + "\n  ".join(fails[:60]))
+        print("CATHEDRAL TEST FAILED:\n  " + "\n  ".join(fails[:60]))
         return 1
-    print(f"PRUEBA DE LA CATEDRAL OK: {oks} comprobaciones")
+    print(f"CATHEDRAL TEST OK: {oks} checks")
     return 0
 
 

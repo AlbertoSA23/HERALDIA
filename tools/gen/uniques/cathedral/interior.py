@@ -1,11 +1,11 @@
-"""Mobiliario, luz, reflejo y partes asimétricas sobre la superficie (sacristía, biblioteca, claustro)."""
+"""Furniture, light, reflection and asymmetric parts on the surface (sacristy, library, cloister)."""
 import math
 from .base import *
 from .model import bay, vault, NAVE_POSTS, CHOIR_POSTS, OPEN_A, CHAPEL_A, RING
 
 
 def furnish_symmetric(c):
-    # --- nave: bancos, alfombra, arañas
+    # --- nave: pews, carpet, chandeliers
     for x in range(20, 58, 2):
         for z in range(26, 29):
             c.set(x, 1, z, stairs("oak", "west"))
@@ -16,17 +16,17 @@ def furnish_symmetric(c):
         c.hang(x, 8, 30, 27)
     for x in (26, 38, 50):
         c.lamp(x, 1, 25)
-    # púlpito adosado a un pilar
+    # pulpit attached to a pillar
     c.set(41, 1, 25, CSB)
     c.set(41, 2, 25, s("oak_trapdoor", facing="south", half="top", open=False))
     c.set(42, 1, 25, s("oak_stairs", facing="east"))
-    # --- colaterales y triforio: un farol por tramo
+    # --- side aisles and triforium: one lantern per bay
     for x in list(range(18, 59)) + list(range(72, 89)):
         b = bay(x)
         if b and b[0] == (b[1] - 1) // 2:
             c.hang(x, 9, 21, 11)
             c.hang(x, 15, 21, 16)
-    # --- pasarela alta sobre el brazo del crucero (une los triforios de la nave y del coro)
+    # --- high walkway over the transept arm (joins the triforia of the nave and the choir)
     for x in range(60, 71):
         for z in (20, 21, 22):
             c.set(x, 11, z, SB)
@@ -36,14 +36,14 @@ def furnish_symmetric(c):
     c.lamp(65, 13, 19)
     c.lamp(62, 13, 23)
     c.lamp(68, 13, 23)
-    # --- brazo del crucero y crucero
+    # --- transept arm and crossing
     c.hang(65, 8, 12, 27)
     c.hang(65, 10, 26, 27)
     c.lamp(60, 1, 9)
     c.lamp(70, 1, 9)
     c.lamp(60, 1, 21)
     c.lamp(70, 1, 21)
-    # --- coro: sillería con respaldo, arañas
+    # --- choir: stalls with backs, chandeliers
     for x in range(73, 88):
         if x in (79, 80):
             continue
@@ -54,7 +54,7 @@ def furnish_symmetric(c):
     c.hang(78, 8, 30, 27)
     c.hang(85, 8, 30, 27)
     c.lamp(79, 1, 27)
-    # --- altar mayor sobre estrado (ábside)
+    # --- high altar on a dais (apse)
     for x in range(86, 96):
         for z in range(24, 31):
             d = math.hypot(x - AX, z - AZ)
@@ -68,7 +68,7 @@ def furnish_symmetric(c):
     c.set(92, 2, 30, "smooth_quartz")
     c.set(92, 3, 30, "gold_block")
     c.hang(90, 12, 30, 27)
-    # --- girola: faroles por vano; capillas con altar, velas y un barril
+    # --- ambulatory: lanterns per bay; chapels with altar, candles and a barrel
     for a in (-72, -36, 0):
         for (dd, y, top) in ((9, 9, 11), (9, 15, 16)):
             x = int(round(AX + dd * math.cos(math.radians(a))))
@@ -87,11 +87,11 @@ def furnish_symmetric(c):
             px, pz = int(round(cx)), int(round(cz - 2))
         c.chest(px, 1, pz, "south" if a == 0 else "up", "capilla", f"capilla radial {int(a)}", kind="barrel")
         c.lamp(int(round(cx - 1.5 * ca)), 1, int(round(cz - 1.5 * sa)) + (1 if a else 0))
-    # --- torres: un farol por estancia
+    # --- towers: one lantern per room
     for f in (1, 12, 17, 28, 40):
         c.hang(14, f + 2, 20, f + 4) if f in (12,) else c.lamp(15, f, 21)
     c.lamp(9, 56, 21)
-    # --- nártex y tribuna (órgano)
+    # --- narthex and gallery (organ)
     for x in (10, 14):
         c.hang(x, 8, 27, 10)
     for x in (8, 9, 10, 14):
@@ -102,12 +102,12 @@ def furnish_symmetric(c):
     c.set(12, 12, 26, "note_block")
     c.set(11, 12, 27, stairs("dark_oak", "west"))
     c.lamp(14, 12, 29)
-    # --- desván: faroles a lo largo del caballete
+    # --- attic: lanterns along the ridge
     for x in (22, 34, 46, 58, 66, 78, 88):
         c.lamp(x, 28, 30)
     for z in (12, 20):
         c.lamp(65, 28, z)
-    # --- terraza de la fachada
+    # --- facade terrace
     c.lamp(16, 28, 26)
 
 
@@ -123,11 +123,11 @@ def mirror(c):
     c.flights |= {(x, y, 2 * ZC - z) for (x, y, z) in c.flights if z < ZC}
 
 
-# ---------------------------------------------------------------------- partes asimétricas
+# ---------------------------------------------------------------------- asymmetric parts
 def annex(c):
-    """Sacristía (planta baja), biblioteca (alta) y gabinete secreto, al norte del coro."""
+    """Sacristy (ground floor), library (upper) and secret closet, north of the choir."""
     X0, X1, Z0, Z1 = 78, 94, 4, 17
-    # contrafuertes que sustituye el anejo
+    # buttresses that the annex replaces
     for x in (77, 83, 89):
         c.air(x, 0, 13, x, 26, 17)
         for r in range(7, 13):
@@ -151,11 +151,11 @@ def annex(c):
             d, _ = polar(x, z)
             if d > 11.5 and c.get(x, 1, z) in (None, "minecraft:air"):
                 c.fill(x, 0, z, x, 16, z, SB)
-    # el muro del colateral pierde aquí sus ventanas (dan al anejo)
+    # the aisle wall loses its windows here (they face the annex)
     for x in range(X0, 90):
         c.fill(x, 3, 18, x, 9, 18, SB)
         c.fill(x, 13, 18, x, 14, 18, SB)
-    # muro grueso del gabinete (x 86..88, z 5..10) y su cierre (z = 11, x 89..93)
+    # thick wall of the closet (x 86..88, z 5..10) and its closure (z = 11, x 89..93)
     for x in range(86, 89):
         for z in range(5, 11):
             c.fill(x, 8, z, x, 15, z, SB)
@@ -164,10 +164,10 @@ def annex(c):
     for x in range(89, 94):
         for z in range(5, 11):
             c.set(x, 8, z, "spruce_planks")
-    # puerta de la sacristía desde la girola norte
+    # sacristy door from the north ambulatory
     c.air(80, 1, 17, 80, 2, 18)
     c.door(80, 1, 17, "north", "left", wood="spruce")
-    # escalera sacristía -> biblioteca (z = 16, sube hacia el este)
+    # staircase sacristy -> library (z = 16, rises toward the east)
     for k in range(8):
         x = 82 + k
         c.stair_flight([(x, 1 + k, 16, stairs("spruce", "east"))])
@@ -177,9 +177,9 @@ def annex(c):
     for x in (87, 88):
         c.set(x, 9, 15, "spruce_fence")
     c.set(86, 9, 16, "spruce_fence")
-    # salida a la terraza del coro por la cubierta del anejo
+    # exit to the choir terrace over the annex roof
     c.air(85, 17, 18, 86, 17, 18)
-    # sacristía: armarios, cofres, pila, facistol
+    # sacristy: cabinets, chests, font, lectern
     for x in range(79, 86):
         c.set(x, 1, 5, s("barrel", facing="up") if x % 2 else "spruce_planks")
         if x % 2 == 0:
@@ -193,7 +193,7 @@ def annex(c):
     c.lamp(93, 1, 15)
     for x in range(90, 93):
         c.set(x, 1, 15, "white_carpet" if x % 2 else "red_carpet")
-    # biblioteca: estanterías en los muros, mesas de lectura y atriles
+    # library: bookshelves on the walls, reading tables and lecterns
     for x in range(79, 86):
         for y in range(9, 12):
             if x != 82:
@@ -230,7 +230,7 @@ def annex(c):
     c.set(89, 9, 5, s("cartography_table"))
     c.hang(91, 13, 7, 15)
     c.hang(84, 13, 9, 15)
-    # torreta de servicio (escalera de caracol: sacristía -> triforio del coro -> terraza)
+    # service turret (spiral staircase: sacristy -> choir triforium -> terrace)
     tb(c)
 
 
@@ -247,13 +247,13 @@ def tb(c):
             c.set(x, 20, z, ROOF if d == 2 else SB)
             if d <= 1:
                 c.set(x, 21, z, ROOF)
-    # planta baja: puerta este hacia la sacristía
+    # ground floor: east door to the sacristy
     c.air(76, 1, 14, 78, 2, 14)
     c.set(77, 0, 14, PA)
     c.fill(77, 3, 13, 77, 3, 15, SB)
     for z in (13, 15):
         c.fill(77, 0, z, 77, 2, z, SB)
-    # triforio (pies en 12) y terraza (pies en 17), por la cara sur
+    # triforium (feet at 12) and terrace (feet at 17), on the south face
     c.air(74, 12, 16, 74, 13, 16)
     c.air(74, 17, 16, 74, 18, 16)
     c.set(74, 11, 17, SB)
@@ -268,8 +268,8 @@ def tb(c):
 
 
 def cloister(c):
-    """Claustro al sur de la nave, sala capitular y refectorio en ruinas."""
-    # paso desde el colateral sur (tramo x 30..34)
+    """Cloister south of the nave, chapter house and ruined refectory."""
+    # passage from the south aisle (section x 30..34)
     c.fill(31, 3, 42, 33, 9, 42, SB)
     c.set(32, 3, 42, CSB)
     c.air(32, 1, 42, 32, 2, 42)
@@ -317,7 +317,7 @@ def cloister(c):
                 if inner >= 2:
                     c.set(x, 8, z, ROOF)
     c.air(32, 1, 47, 32, 2, 47)
-    # jardín: caminos en cruz, pozo, flores y un árbol viejo
+    # garden: cross-shaped paths, well, flowers and an old tree
     for x in range(GX0 + 1, GX1):
         c.set(x, 0, 62, "gravel")
     for z in range(GZ0 + 1, GZ1):
@@ -349,12 +349,12 @@ def cloister(c):
                 if (x, z) != (tx, tz) or y >= 6:
                     if abs(x - tx) + abs(z - tz) + max(0, y - 5) <= 3:
                         c.set(x, y, z, s("oak_leaves", persistent=True, distance=1))
-    # luz bajo las pandas
+    # light under the cloister walks
     for (x, z) in ((24, 49), (39, 49), (54, 49), (24, 62), (54, 62), (24, 75), (54, 75), (31, 75), (47, 75), (31, 49), (47, 49),
                    (24, 55), (24, 69), (54, 55), (54, 69)):
         c.hang(x, 5, z, 6)
     c.chest(23, 1, 76, "north", "menor", "claustro, rincón suroeste", kind="barrel")
-    # sala capitular (x 57..71, z 55..69), puerta desde la panda este
+    # chapter house (x 57..71, z 55..69), door from the east walk
     S0, S1, T0, T1 = 57, 71, 58, 72
     for x in range(S0, S1 + 1):
         for z in range(T0, T1 + 1):
@@ -385,7 +385,7 @@ def cloister(c):
         c.fill(S1, 3, z, S1, 6, z, "white_stained_glass_pane")
     for x in (61, 67):
         c.fill(x, 3, T1, x, 6, T1, "white_stained_glass_pane")
-    # refectorio arruinado (x 22..56, z 77..87): sin cubierta, muros mellados
+    # ruined refectory (x 22..56, z 77..87): roofless, notched walls
     R0, R1, Q0, Q1 = 22, 56, 77, 87
     for x in range(R0, R1 + 1):
         for z in range(Q0, Q1 + 1):

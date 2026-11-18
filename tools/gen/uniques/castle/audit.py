@@ -1,5 +1,5 @@
-"""Auditoría propia del castillo: recorrido a pie (ida y vuelta) desde el puente, puertas, cofres, escaleras,
-salas ocultas que solo se abren con su mecanismo, redstone en reposo y nada flotando."""
+"""Castle's own audit: walkthrough (round trip) from the bridge, doors, chests, stairs,
+hidden rooms that only open with their mechanism, redstone at rest and nothing floating."""
 from core import parse_state
 from .util import bn, passable, NOCOLLIDE
 from .._common import walkthrough
@@ -49,7 +49,7 @@ def audit(t, d, cmeta, dmeta):
     closed = combined(t, d, cmeta, dmeta, False)
 
     def walk(blocks):
-        # sin colisión (cable, palancas, polvo, antorchas de redstone): paso libre para el recorrido
+        # no collision (wire, levers, dust, redstone torches): free passage for the walkthrough
         v = walkthrough.View({p: st for p, st in blocks.items() if bn(st) not in NOCOLLIDE})
         seen, edges = walkthrough.strict_walk(v, start, lim, water=True)
         bad = set(walkthrough.no_return(edges, start))
@@ -62,7 +62,7 @@ def audit(t, d, cmeta, dmeta):
         return walkthrough.nearby_flag(cells, p, r) or walkthrough.nearby_flag(cells, (p[0], p[1] - 1, p[2]), r)
 
     if one_way:
-        errs.append(f"celdas sin vuelta ({len(one_way)}), p. ej. {sorted(one_way)[:3]}")
+        errs.append(f"cells with no way back ({len(one_way)}), e.g. {sorted(one_way)[:3]}")
     for p, st in opened.items():
         b = bn(st)
         if b in INTEREST or b.endswith("_bed") and "part=foot" in st:
@@ -74,21 +74,21 @@ def audit(t, d, cmeta, dmeta):
             x, y, z = p
             sides = [any((x + s * dx, y + k, z + s * dz) in ok for k in (-1, 0)) for s in (1, -1)]
             if not all(sides):
-                errs.append(f"puerta sin salida en {p}")
+                errs.append(f"door with no exit at {p}")
         elif b == "ladder" and p not in ok and (p[0], p[1] + 1, p[2]) not in ok:
             errs.append(f"escalera de mano inaccesible en {p}")
     hidden = [cmeta["hidden_chest"], tuple(a + b for a, b in zip(dmeta["premium"], OFF)),
               tuple(a + b for a, b in zip(dmeta["niche"], OFF))]
     for p in hidden:
         if near(okc, p):
-            errs.append(f"sala oculta alcanzable sin abrirla: {p}")
+            errs.append(f"hidden room reachable without opening it: {p}")
         if not near(ok, p):
             errs.append(f"sala oculta inalcanzable incluso abierta: {p}")
     for k, p in dmeta["levers"].items():
         if not near(okc, tuple(a + b for a, b in zip(p, OFF))):
             errs.append(f"palanca {k} inaccesible")
     if not near(okc, cmeta["secret"]["estudio"]["lever"]):
-        errs.append("palanca del estudio inaccesible")
+        errs.append("study lever unreachable")
     # redstone en reposo
     for name, tt in (("castillo", t), ("mazmorra", d)):
         for p, (st, nbt) in tt.blocks.items():
@@ -100,22 +100,22 @@ def audit(t, d, cmeta, dmeta):
                 dx, dz = {"south": (0, 1), "north": (0, -1), "east": (1, 0), "west": (-1, 0)}[props["facing"]]
                 head = tt.get(p[0] + dx, p[1], p[2] + dz)
                 if props["extended"] == "true" and bn(head) != "piston_head":
-                    errs.append(f"{name}: pistón extendido sin cabeza {p}")
+                    errs.append(f"{name}: extended piston without a head {p}")
                 src = [tt.get(p[0] + a, p[1] + c, p[2] + e) for a, c, e in
                        ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, -1, 0))]
                 below_s = [tt.get(p[0] + a, p[1] - 1, p[2] + e) for a, c, e in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1))]
                 if not any(bn(s) == "redstone_torch" for s in src) and not any(bn(s) == "redstone_torch" for s in below_s):
-                    errs.append(f"{name}: pistón sin alimentación en reposo {p}")
-    # nada flotando: todo bloque conectado con la base de su plantilla
+                    errs.append(f"{name}: piston without power at rest {p}")
+    # nothing floating: every block connected to the base of its template
     for name, tt in (("castillo", t), ("mazmorra", d)):
         loose = walkthrough.floating_blocks({p: st for p, (st, _) in tt.blocks.items()}, {0})
         if loose:
-            errs.append(f"{name}: {len(loose)} bloques flotando, p. ej. {loose[:3]}")
+            errs.append(f"{name}: {len(loose)} floating blocks, e.g. {loose[:3]}")
     return errs, dict(S=S, ok=ok, okc=okc, opened=opened, closed=closed)
 
 
 def ruin_share(t):
-    """Fracción esperada de la superficie vista en mal estado (procesador incluido)."""
+    """Expected fraction of the visible surface in poor condition (processor included)."""
     PROB = {"stone_bricks": 0.15 + 0.85 * 0.1, "cobblestone": 0.2}
     RUIN = ("cracked_", "mossy_", "cobweb", "vine", "gravel")
     exp, n = 0.0, 0

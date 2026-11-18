@@ -1,55 +1,55 @@
-"""Estructuras medianas: más pequeñas que una única (de 11 x 11 a 40 x 40 bloques), más frecuentes (por defecto una cada
-~400-800 bloques entre todas), con botín modesto (sin cofre premium) y pocas entidades. Cada módulo de este paquete
-(medianas/<id>.py) define un tipo; el generador lo descubre solo (no hace falta tocar main.py, pack.py ni writer.py).
+"""Medium structures: smaller than a unique structure (from 11 x 11 to 40 x 40 blocks), more frequent (by default one every
+~400-800 blocks among all of them), with modest loot (no premium chest) and few entities. Each module of this package
+(medianas/<id>.py) defines a type; the generator discovers it on its own (no need to touch main.py, pack.py or writer.py).
 
-Contrato de cada módulo:
-  NOMBRE = {"es_es": "Torre de vigía", "en_us": "Watchtower"}      # obligatorio (nombre en /heraldia info y logros)
-  SEPARACION = 640              # bloques entre dos del mismo tipo, por defecto (opción medianas.<id>.separacion_bloques)
-  ESTILOS = {"<estilo>": dict(  # cada estilo es una estructura heraldia:medianas/<id>/<estilo>, en su bioma
-      biomas=["minecraft:taiga", ...],            # lista vanilla -> etiqueta heraldia:medianas/<id>/<estilo>
-      convencionales=["c:is_taiga", ...],         # opcional: etiquetas extra (biomas.CONVENCIONALES, mismas reglas)
-      paleta={...},                               # lo que necesiten las variantes (materiales)
-      variantes={"a": fn, "b": fn})}              # fn(paleta, nombre) -> core.Template; mismo peso en su pool
-  LOOT = {"<tabla>": tabla}     # heraldia:medianas/<id>/<tabla>; nada de «premium» ni de PROHIBIDO (botín modesto)
-  LANG = {"es_es": {...}, "en_us": {...}}          # opcional: textos propios (mismas claves en los dos idiomas)
-  LOGRO_ICONO = "minecraft:spyglass"               # opcional: icono del tipo en el logro de las medianas
-  BIOMA_VECINOS = 2                                # opcional: biomas en franja (playas); ver colocacion
-  DIMENSION = "nether"                             # opcional: "nether" o "end" (dimensiones.py; por defecto el mundo
-                                                   # principal): tipo heraldia:dimension, que busca el suelo bajo el
-                                                   # techo del Nether o sobre una isla exterior del End
-  CEDE_A_MINAS = True                              # opcional: cede el sitio a las entradas a mina (etiqueta
-                                                   # heraldia:medianas/ceden_a_minas; comun/Medianas.cedeMina en Java)
-  LOGROS = [dict(id="pesca", icono="minecraft:cod", titulo=(es, en), descripcion=(es, en),   # opcional: logros
-                tabla="pesca")]       # propios (heraldia:medianas/<id>/<id del logro>, hijos de «Al borde del camino»):
-                                      # abrir un contenedor de esa tabla de LOOT, o `criterios` propios en vez de `tabla`
-Plantillas (nombres medianas/<id>/<estilo>/<variante>): una sola pieza rígida con y = 0 a ras de suelo, la entrada
-(jigsaw heraldia:entrance, mediana.entrada) en la cara norte (z = 0) y nada que dé vida al suelo del patio (camino,
-grava, barro compacto...: dentro no nacen árboles). Las entidades (pocas: MAX_ENTIDADES) llevan las etiquetas
-heraldia_mediana y heraldia_mediana.<id> (mediana.marcar) y, los mobs, persistentes y anclados (core.anclado).
-Pasan la auditoría genérica de lint.py (apoyos, puertas, escaleras, accesos) y `errores` (este contrato).
+Contract of each module:
+  DISPLAY_NAME = {"es_es": "Torre de vigía", "en_us": "Watchtower"}      # required (name in /heraldia info and advancements)
+  SEPARATION = 640              # blocks between two of the same type, by default (option medianas.<id>.separacion_bloques)
+  STYLES = {"<estilo>": dict(  # each style is a structure heraldia:medianas/<id>/<estilo>, in its biome
+      biomas=["minecraft:taiga", ...],            # vanilla list -> tag heraldia:medianas/<id>/<estilo>
+      convencionales=["c:is_taiga", ...],         # optional: extra tags (biomes.CONVENTIONAL, same rules)
+      paleta={...},                               # whatever the variants need (materials)
+      variantes={"a": fn, "b": fn})}              # fn(paleta, nombre) -> core.Template; same weight in its pool
+  LOOT = {"<tabla>": tabla}     # heraldia:medianas/<id>/<tabla>; no "premium" or FORBIDDEN (modest loot)
+  LANG = {"es_es": {...}, "en_us": {...}}          # optional: own texts (same keys in both languages)
+  ADVANCEMENT_ICON = "minecraft:spyglass"               # optional: type icon in the medium structures advancement
+  BIOME_NEIGHBORS = 2                                # optional: biomes in strips (beaches); see colocacion
+  DIMENSION = "nether"                             # optional: "nether" or "end" (dimensions.py; by default the
+                                                   # overworld): type heraldia:dimension, which looks for the floor under
+                                                   # the Nether roof or on an outer End island
+  YIELDS_TO_MINES = True                              # optional: yields the spot to mine entrances (tag
+                                                   # heraldia:medianas/ceden_a_minas; comun/Medianas.cedeMina in Java)
+  ADVANCEMENTS = [dict(id="pesca", icono="minecraft:cod", titulo=(es, en), descripcion=(es, en),   # optional: own
+                tabla="pesca")]       # advancements (heraldia:medianas/<id>/<advancement id>, children of "Al borde del camino"):
+                                      # open a container from that LOOT table, or own `criteria` instead of `tbl`
+Templates (names medianas/<id>/<estilo>/<variante>): a single rigid piece with y = 0 at ground level, the entrance
+(jigsaw heraldia:entrance, mediana.entrada) on the north face (z = 0) and nothing that gives life to the courtyard floor (path,
+gravel, packed mud...: no trees grow inside). The entities (few: MAX_ENTITIES) carry the tags
+heraldia_mediana and heraldia_mediana.<id> (mediana.marcar) and, for mobs, persistent and anchored (core.anclado).
+They pass the generic audit of lint.py (supports, doors, stairs, accesses) and `errors` (this contract).
 
-El generador escribe además: la estructura (jigsaw de una pieza, beard_thin) y la etiqueta de biomas de cada estilo,
-el structure_set heraldia:medianas/<id> (rejilla heraldia:rejilla, grupo medianas/<id>, origen desplazado por la sal;
-zona de exclusión frente a las aldeas vanilla), las etiquetas de estructura heraldia:medianas (todas) y
-heraldia:medianas/<id>, el botín, los textos y las opciones (opciones.py). En el juego, comun/Medianas.java descarta una
-mediana junto a una aldea o una única de Heraldia que salen de verdad y junto a otra mediana de rango mayor (la misma
-regla que la distancia mínima entre únicas); la Atlántida ya excluye todo lo que caiga en su zona.
+The generator also writes: the structure (single-piece jigsaw, beard_thin) and the biome tag of each style,
+the structure_set heraldia:medianas/<id> (grid heraldia:rejilla, group medianas/<id>, origin shifted by the salt;
+exclusion zone in front of vanilla villages), the structure tags heraldia:medianas (all of them) and
+heraldia:medianas/<id>, the loot, the texts and the options (options.py). In the game, comun/Medianas.java discards a
+medium structure next to a Heraldia village or unique structure that actually generate and next to another medium structure of higher rank (the same
+rule as the minimum distance between unique structures); Atlantis already excludes everything that falls in its zone.
 """
 import importlib, pkgutil, zlib
 from core import NS, nsid
 
 PREFIX = "medianas"
-MIN_SIDE, MAX_SIDE, MAX_HEIGHT = 11, 40, 32     # huella en bloques (x y z) y altura de cada plantilla
-MAX_ENTITIES = 4                              # por plantilla
+MIN_SIDE, MAX_SIDE, MAX_HEIGHT = 11, 40, 32     # footprint in blocks (x y z) and height of each template
+MAX_ENTITIES = 4                              # per template
 MAX_GENERATORS = 1
-MARK = "heraldia_mediana"                     # Tags de toda entidad de una mediana (y heraldia_mediana.<id>)
-# Botín modesto: sin cofre premium ni objetos de cofre de única.
+MARK = "heraldia_mediana"                     # Tags of every entity of a medium structure (and heraldia_mediana.<id>)
+# Modest loot: no premium chest or unique structure chest items.
 FORBIDDEN = ("diamond", "netherite", "elytra", "enchanted_golden_apple", "totem_of_undying", "smithing_template",
              "heart_of_the_sea", "trident", "music_disc")
 SEPARATION_RANGE = (256, 4000)
-VANILLA_VILLAGE_EXCLUSION = 8                   # chunks (128 bloques) hasta la candidata de una aldea vanilla
-YIELD_TO_MINES = f"{PREFIX}/ceden_a_minas"     # etiqueta de estructura (comun/Medianas.CEDEN_A_MINAS en Java)
-BIOME_Y = 96                                   # altura a la que la rejilla busca el bioma de la candidata
+VANILLA_VILLAGE_EXCLUSION = 8                   # chunks (128 blocks) to the candidate of a vanilla village
+YIELD_TO_MINES = f"{PREFIX}/ceden_a_minas"     # etiqueta de estructura (comun/Medianas.YIELD_TO_MINES en Java)
+BIOME_Y = 96                                   # height at which the grid looks for the candidate's biome
 
 
 # Published id of each module whose name is not its id: the id (heraldia:medianas/<id>, its tags, options,
@@ -85,7 +85,7 @@ def module_name(sid):
 
 
 def modules():
-    """[(id, módulo)] ordenados por id, para una salida determinista."""
+    """[(id, module)] sorted by id, for deterministic output."""
     found = []
     for info in pkgutil.iter_modules(__path__):
         if not info.name.startswith("_"):
@@ -94,7 +94,7 @@ def modules():
 
 
 def salt(mid):
-    """Sal estable por tipo (rejilla propia; GridPlacement desplaza el origen según ella)."""
+    """Stable salt per type (own grid; GridPlacement shifts the origin according to it)."""
     return zlib.crc32(f"{NS}:{PREFIX}/{mid}".encode()) & 0x7FFFFFFF
 
 
@@ -110,14 +110,14 @@ def table_ident(mid, tbl):
     return f"{NS}:{PREFIX}/{mid}/{tbl}"
 
 
-# ------------------------------------------------------------------ construcción
+# ------------------------------------------------------------------ construction
 def dimension(mod):
     import dimensions
     return dimensions.dimension_of(mod)
 
 
 def build(reg, mid):
-    """Plantillas y pools de un tipo (una parte de pack.build_all) y sus errores de contrato."""
+    """Templates and pools of a type (a part of pack.build_all) and their contract errors."""
     mod = dict(modules())[mid]
     for style, d in mod.STYLES.items():
         els = []
@@ -152,12 +152,12 @@ def _items(tbl):
 
 
 def errors(reg, mid, mod):
-    """Contrato de un tipo sobre sus plantillas ya construidas (y su módulo)."""
+    """Contract of a type over its already built templates (and its module)."""
     import dimensions
     errs, pre = dimensions.errors(f"{PREFIX}/{mid}", mod), f"{PREFIX}/{mid}"
     n = getattr(mod, "DISPLAY_NAME", None) or {}
     if not (n.get("es_es") and n.get("en_us")):
-        errs.append(f"{pre}: NOMBRE sin es_es o en_us")
+        errs.append(f"{pre}: NOMBRE without es_es or en_us")
     vec = getattr(mod, "BIOME_NEIGHBORS", None)
     if vec is not None and not (isinstance(vec, int) and 1 <= vec <= 9):
         errs.append(f"{pre}: BIOMA_VECINOS {vec!r} fuera de 1-9")
@@ -166,41 +166,41 @@ def errors(reg, mid, mod):
         errs.append(f"{pre}: SEPARACION {sep!r} fuera de {SEPARATION_RANGE}")
     loot = getattr(mod, "LOOT", {})
     if not loot:
-        errs.append(f"{pre}: sin LOOT")
+        errs.append(f"{pre}: no LOOT")
     for name, tbl in loot.items():
         if "premium" in name:
-            errs.append(f"{pre}: tabla «{name}»: las medianas no tienen cofre premium")
+            errs.append(f"{pre}: table '{name}': medium structures have no premium chest")
         for obj in _items(tbl):
             if any(p in obj for p in FORBIDDEN):
-                errs.append(f"{pre}/{name}: {obj} no es botín modesto (medianas.PROHIBIDO)")
+                errs.append(f"{pre}/{name}: {obj} is not modest loot (medianas.PROHIBIDO)")
         if dimension(mod) != dimensions.MAIN:
             errs += [f"{pre}/{name}: {o} rompe la progresión (dimensiones.PROHIBIDO)"
                      for o in dimensions.forbidden_items(_items(tbl))]
     for ex in getattr(mod, "ADVANCEMENTS", ()):
         if not all(ex.get(k) for k in ("id", "icono", "titulo", "descripcion")) or not (ex.get("tabla") or ex.get("criterios")):
-            errs.append(f"{pre}: logro {ex.get('id')!r} sin id, icono, titulo, descripcion o tabla/criterios")
+            errs.append(f"{pre}: advancement {ex.get('id')!r} without id, icono, titulo, descripcion or tabla/criterios")
         elif ex.get("tabla") and ex["tabla"] not in loot:
-            errs.append(f"{pre}: el logro {ex['id']} pide la tabla {ex['tabla']}, que no está en LOOT")
+            errs.append(f"{pre}: advancement {ex['id']} asks for table {ex['tabla']}, which is not in LOOT")
     lang = getattr(mod, "LANG", None)
     if lang and set(lang.get("es_es", {})) != set(lang.get("en_us", {})):
-        errs.append(f"{pre}: LANG con claves distintas en es_es y en_us")
+        errs.append(f"{pre}: LANG with different keys in es_es and en_us")
     if not mod.STYLES:
-        errs.append(f"{pre}: sin ESTILOS")
+        errs.append(f"{pre}: no ESTILOS")
     used = set()
     for style, d in mod.STYLES.items():
         if not d.get("biomas") or not d.get("variantes"):
-            errs.append(f"{pre}/{style}: sin biomas o sin variantes")
+            errs.append(f"{pre}/{style}: no biomes or no variants")
         for v in d.get("variantes", {}):
             name = template(mid, style, v)
             t = reg.templates.get(name)
             if t is None:
-                errs.append(f"{name}: no se ha construido")
+                errs.append(f"{name}: has not been built")
                 continue
             errs += [f"{name}: {e}" for e in template_errors(t, mid, loot, dimension(mod))]
             used |= {str(nbt["LootTable"]) for _, nbt in t.blocks.values() if nbt and nbt.get("LootTable")}
     for name in loot:
         if table_ident(mid, name) not in used:
-            errs.append(f"{pre}: la tabla {name} no la usa ningún contenedor")
+            errs.append(f"{pre}: table {name} is not used by any container")
     return errs
 
 
@@ -211,35 +211,35 @@ def template_errors(t, mid, loot, dim="overworld"):
     live = LIVE_FLOOR | (dimensions.LIVE_FLOOR if dim != dimensions.MAIN else set())
     sx, sy, sz = t.size()
     if not (MIN_SIDE <= sx <= MAX_SIDE and MIN_SIDE <= sz <= MAX_SIDE and sy <= MAX_HEIGHT):
-        errs.append(f"tamaño {sx} x {sy} x {sz} fuera de {MIN_SIDE}-{MAX_SIDE} (alto {MAX_HEIGHT})")
+        errs.append(f"size {sx} x {sy} x {sz} outside {MIN_SIDE}-{MAX_SIDE} (height {MAX_HEIGHT})")
     entrances = [j for j in t.jigsaws if j["name"] == f"{NS}:entrance"]
     if len(entrances) != 1 or entrances[0]["pos"][2] != 0:
-        errs.append("debe tener una sola entrada (mediana.entrada) en la cara norte")
+        errs.append("must have a single entrance (mediana.entrada) on the north face")
     if len(t.entities) > MAX_ENTITIES:
-        errs.append(f"{len(t.entities)} entidades (máximo {MAX_ENTITIES})")
+        errs.append(f"{len(t.entities)} entities (maximum {MAX_ENTITIES})")
     for *_, n in t.entities:
         tags = n.get("Tags") or []
         if GUARDIAN_TAG in tags:
-            errs.append("una mediana no tiene guardián final (ni trofeo)")
+            errs.append("a medium structure has no final guardian (or trophy)")
         if n["id"] not in ("minecraft:armor_stand", "minecraft:item_frame") and not n.get("PersistenceRequired"):
-            errs.append(f"{n['id']} sin PersistenceRequired (desaparecería antes de que llegue nadie)")
+            errs.append(f"{n['id']} without PersistenceRequired (it would despawn before anyone arrives)")
     generators = 0
     for (x, y, z), (st, nbt) in t.blocks.items():
         if st.startswith("minecraft:spawner"):
             generators += 1
         lt = nbt.get("LootTable") if nbt else None
         if lt and not (str(lt).startswith(f"{NS}:{PREFIX}/{mid}/") and str(lt).split("/")[-1] in loot):
-            errs.append(f"contenedor en {(x, y, z)} con una tabla que no es de su LOOT: {lt}")
+            errs.append(f"container at {(x, y, z)} with a table that is not from its LOOT: {lt}")
         if y == 0 and st.split("[")[0] in live:
-            errs.append(f"suelo fértil en {(x, 0, z)}: dentro nacerían árboles y matas")
+            errs.append(f"fertile ground at {(x, 0, z)}: trees and bushes would grow inside")
     if generators > MAX_GENERATORS:
-        errs.append(f"{generators} generadores (máximo {MAX_GENERATORS})")
+        errs.append(f"{generators} spawners (maximum {MAX_GENERATORS})")
     if not any(nbt and nbt.get("LootTable") for _, nbt in t.blocks.values()):
-        errs.append("sin ningún cofre")
+        errs.append("no chest at all")
     return errs
 
 
-# #minecraft:supports_vegetation (y los peñascos de la taiga): ver LESSONS, «Patio sin árboles».
+# #minecraft:supports_vegetation (and the taiga boulders): see LESSONS, "Patio sin árboles".
 LIVE_FLOOR = {f"minecraft:{b}" for b in ("dirt", "coarse_dirt", "rooted_dirt", "mud", "moss_block", "grass_block",
                                           "podzol", "mycelium", "stone", "granite", "diorite", "andesite", "deepslate",
                                           "tuff")}
@@ -247,8 +247,8 @@ LIVE_FLOOR = {f"minecraft:{b}" for b in ("dirt", "coarse_dirt", "rooted_dirt", "
 
 # ------------------------------------------------------------------ escritura
 def structure(mid, style, biomes, mod=None, height=MAX_HEIGHT, side=MAX_SIDE):
-    """JSON de un estilo. En el Nether o el End (DIMENSION), heraldia:dimension (dimensiones.estructura): mira el suelo
-    en las esquinas de la huella (`lado`) y pide aire para el alto de la plantilla (`alto`) bajo el techo."""
+    """JSON of a style. In the Nether or the End (DIMENSION), heraldia:dimension (dimensions.structure): checks the ground
+    at the corners of the footprint (`side`) and requires air for the template height (`height`) under the roof."""
     import dimensions
     dim = dimensions.dimension_of(mod) if mod else dimensions.MAIN
     if dim != dimensions.MAIN:
@@ -261,19 +261,19 @@ def structure(mid, style, biomes, mod=None, height=MAX_HEIGHT, side=MAX_SIDE):
 
 
 def placement(mid, mod):
-    """heraldia:rejilla del tipo; spacing y separation son los de por defecto (el Java los recalcula con la config).
-    Con «bioma» (la etiqueta de todos sus estilos) la candidata de cada casilla es el punto de la ventana más metido en
-    sus biomas, no un chunk al azar (GridPlacement): con biomas que cubren el 5-30 % del mundo, al azar casi todas las
-    casillas se pierden (medido con MedianasFrecuenciaTest). Mirado a y = BIOMA_Y (sobre el terreno de casi todo).
-    El punto debe tener 6 de sus 9 vecinos de la malla (a 64 bloques) en los biomas; un tipo de biomas en franja (las
-    playas, de pocas decenas de bloques) pide menos con BIOMA_VECINOS (bioma_vecinos en la rejilla)."""
+    """heraldia:rejilla of the type; spacing and separation are the defaults (the Java side recalculates them with the config).
+    With "bioma" (the tag of all its styles) the candidate of each cell is the point of the window furthest inside
+    its biomes, not a random chunk (GridPlacement): with biomes covering 5-30 % of the world, at random almost all
+    cells are lost (measured with MedianasFrecuenciaTest). Checked at y = BIOME_Y (above the terrain almost everywhere).
+    The point must have 6 of its 9 mesh neighbors (at 64 blocks) in the biomes; a type of biomes in strips (the
+    beaches, a few tens of blocks wide) asks for fewer with BIOME_NEIGHBORS (bioma_vecinos in the grid)."""
     import dimensions
     spacing = round(mod.SEPARATION / 16)
     out = {"type": f"{NS}:rejilla", "grupo": f"{PREFIX}/{mid}", "spacing": spacing, "separation": spacing // 3,
            "salt": salt(mid)}
     if dimensions.dimension_of(mod) != dimensions.MAIN:
-        # Nether y End: candidata al azar en la casilla (la búsqueda de bioma solo lee el ruido del mundo principal; sus
-        # biomas son grandes) y sin la zona de las aldeas vanilla, que allí no hay
+        # Nether and End: random candidate in the cell (the biome search only reads the overworld's noise; their
+        # biomes are large) and without the vanilla village zone, since there are none there
         return out
     out.update({"bioma": f"{NS}:{PREFIX}/{mid}", "bioma_y": BIOME_Y,
                 "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": VANILLA_VILLAGE_EXCLUSION}})
@@ -283,7 +283,7 @@ def placement(mid, mod):
 
 
 def write(out, jdump):
-    """Estructuras, etiquetas de biomas y de estructura, structure_sets y botín. Devuelve los textos."""
+    """Structures, biome and structure tags, structure_sets and loot. Returns the texts."""
     import biomes
     from writer import lootr_aware
     import treasure
@@ -298,7 +298,7 @@ def write(out, jdump):
             jdump(out, f"data/{NS}/worldgen/structure/{tag}.json", structure(mid, style, biomes.tag(out, tag, d["biomas"]),
                                                                               mod, *(_measures(mid, style, d) if dimension(mod) != "overworld" else ())))
             ids.append(sid)
-        # etiqueta de todos sus estilos: la rejilla busca la candidata de cada casilla en ella
+        # tag of all its styles: the grid looks for each cell's candidate in it
         biomes.CONVENTIONAL[f"{PREFIX}/{mid}"] = sorted({c for d in mod.STYLES.values() for c in d.get("convencionales", [])})
         biomes.tag(out, f"{PREFIX}/{mid}", sorted({b for d in mod.STYLES.values() for b in d["biomas"]}))
         jdump(out, f"data/{NS}/worldgen/structure_set/{PREFIX}/{mid}.json",
@@ -313,15 +313,15 @@ def write(out, jdump):
 
 
 def _measures(mid, style, d):
-    """(alto, lado) mayores de las variantes de un estilo del Nether o el End (se construyen de nuevo: write no tiene
-    el registro)."""
+    """Largest (height, side) of the variants of a Nether or End style (they are built again: write does not have
+    the registry)."""
     height = side = 0
     for v, fn in d["variantes"].items():
         sx, sy, sz = fn(d["paleta"], template(mid, style, v)).size()
         height, side = max(height, sy), max(side, sx, sz)
     return height, side
 def yield_to_mines():
-    """Estructuras (estilos) de los tipos que ceden el sitio a las entradas a mina (CEDE_A_MINAS)."""
+    """Structures (styles) of the types that yield the spot to mine entrances (YIELDS_TO_MINES)."""
     return [f"{NS}:{PREFIX}/{mid}/{style}" for mid, mod in modules() if getattr(mod, "YIELDS_TO_MINES", False)
             for style in mod.STYLES]
 
@@ -336,5 +336,5 @@ def lang():
 
 
 def tables():
-    """{id corto: tabla} de todo el botín de las medianas (para validate_loot)."""
+    """{short id: table} of all the medium structures' loot (for validate_loot)."""
     return {f"{mid}/{n}": t for mid, mod in modules() for n, t in mod.LOOT.items()}

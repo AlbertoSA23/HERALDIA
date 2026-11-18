@@ -1,5 +1,5 @@
-"""Atlántida: urbanismo.dispersion y alto_muro deben dar lo mismo que BasePiece.hash y wallHeight (Java). Las sumas de
-control son las de src/test/java/.../unicas/atlantida/BasePieceTest.java: si cambia un lado, falla su prueba."""
+"""Atlantis: urbanismo.dispersion and alto_muro must give the same as BasePiece.hash and wallHeight (Java). The checksums
+are those of src/test/java/.../unicas/atlantida/BasePieceTest.java: if one side changes, its test fails."""
 from uniques.atlantis.urban_layout import dispersion, wall_height, WALL_HEIGHT
 
 
@@ -25,7 +25,7 @@ def test_rampart_as_in_java():
 
 
 def test_anchored_mobs():
-    """Ahogados (centinelas, hoplitas) y el jefe: adultos y anclados (core.ANCLADO_TAG); los peces guardianes, no."""
+    """Drowned (sentinels, hoplites) and the boss: adult and anchored (core.ANCLADO_TAG); the guardian fish, not."""
     from core import ADULT_TAG, ANCHORED_TAG
     from uniques._common.pieces import GUARDIAN_TAG
     from uniques.atlantis import things

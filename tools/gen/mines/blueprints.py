@@ -1,12 +1,12 @@
-"""Planos de las entradas a mina: cada tamaño (pequeña, mediana, grande) junta la superficie, la boca, la bajada y su
-galería en una sola plantilla por estilo y variante (ver obra.py para las coordenadas).
+"""Mine entrance blueprints: each size (small, medium, large) joins the surface, the mouth, the descent and its
+gallery in a single template per style and variant (see construction.py for the coordinates).
 
-  pequeña  bajada de 14 a la galería (3 x 2 cruces, almacén y filón).
-  mediana  bajada de 16 a una galería de 5 x 3 cruces (almacén, filón, comedor y la sala de las arañas, con un
-           generador pequeño).
-  grande   bajada de 20 y el pozo de la torre (escalera de caracol) a una red de 7 x 4 cruces (almacén, polvorín,
-           comedor, filón) y, por otra rampa de 12, al nivel hondo (3 x 2): la sala del filón rico y la de las arañas
-           con su generador pequeño.
+  small    descent of 14 to the gallery (3 x 2 junctions, storeroom and vein).
+  medium   descent of 16 to a gallery of 5 x 3 junctions (storeroom, vein, dining hall and the spider room, with a
+           small spawner).
+  large    descent of 20 and the tower shaft (spiral staircase) to a network of 7 x 4 junctions (storeroom, powder magazine,
+           dining hall, vein) and, via another ramp of 12, to the deep level (3 x 2): the rich vein room and the spider room
+           with its small spawner.
 """
 import random
 from core import Template, B
@@ -14,18 +14,18 @@ from uniques._common import pieces
 from . import surface as area
 from .construction import Construction, STEP, HEIGHT
 
-# tamaño -> (profundidad de la bajada, cruces a cada lado, filas, salas, patio (x, z), aire sobre el patio)
+# size -> (descent depth, junctions on each side, rows, rooms, courtyard (x, z), air above the courtyard)
 SIZES = {
     "pequena": dict(hondo=14, ni=1, nj=2, salas=("filon", "almacen"), patio=(6, 8)),
     "mediana": dict(hondo=16, ni=2, nj=3, salas=("aranas", "filon", "almacen", "comedor"), patio=(11, 16)),
     "grande": dict(hondo=20, ni=3, nj=4, salas=("filon", "almacen", "polvorin", "comedor"), patio=(15, 22),
                    hondo2=12, salas2=("aranas", "tesoro")),
 }
-WELL = (8, -12)                  # eje del pozo de la torre (grande), sin reflejar
+WELL = (8, -12)                  # axis of the tower shaft (large), unmirrored
 
 
 def construct(size, style, variant, pal, name):
-    """Obra completa; devuelve la obra (con su plantilla en o.t, sin normalizar)."""
+    """Complete build; returns the build (with its template in o.t, not normalized)."""
     d = SIZES[size]
     m = 1 if variant == "a" else -1
     rng = random.Random(f"heraldia:minas/{size}/{style}/{variant}")
@@ -35,7 +35,7 @@ def construct(size, style, variant, pal, name):
     area.courtyard(o, -px, px, -pz, -1)
     area.mouth(o)
     area.sign(o, -3, -1, size)
-    # bajada: tramo llano bajo la boca, rampa y tramo llano hasta el primer cruce
+    # descent: flat stretch below the mouth, ramp and flat stretch to the first junction
     o.corridor((0, 0), (0, 2), 1, tracks=True, frames=False)
     zf, feet = o.ramp(0, 2, 1, d["hondo"])
     z0 = zf + 5
@@ -53,7 +53,7 @@ def construct(size, style, variant, pal, name):
         large_courtyard(o, e)
         well(o, m, feet, z0)
         o.t.entity(0, feet, zf + 3, {"id": "minecraft:minecart"})
-        # nivel hondo: la vía del tronco sigue por otra rampa desde su último cruce
+        # deep level: the trunk's track continues down another ramp from its last junction
         nx, nz = finish
         zf2, feet2 = o.ramp(nx, nz, feet, d["hondo2"])
         z2 = zf2 + 5
@@ -97,7 +97,7 @@ def medium_courtyard(o, e):
 
 
 def large_courtyard(o, e):
-    # vía principal hasta la curva, ramal hacia la torre y el cargadero con su tope
+    # main track to the bend, branch toward the tower and the loading dock with its buffer stop
     area.tracks(o, -16, -1)
     area.rail(o.s, o, 0, -17, "south_east" if e.m == 1 else "south_west")
     for x in range(1, 12):
@@ -116,33 +116,33 @@ def large_courtyard(o, e):
 
 
 def well(o, m, feet, z0):
-    """Pozo vertical de la torre: hueco de 3 x 3 alrededor de un machón de tronco con una escalera de caracol desde el
-    patio (el último peldaño en y = 0, a ras) hasta la galería, barandilla en el brocal (salvo la salida al norte) y,
-    abajo, un túnel hasta el cruce (m, 0) de la red."""
+    """Vertical tower shaft: 3 x 3 opening around a log pillar with a spiral staircase from the
+    courtyard (the last step at y = 0, flush) to the gallery, railing at the curb (except the exit to the north) and,
+    below, a tunnel to the junction (m, 0) of the network."""
     cx, cz = m * WELL[0], WELL[1]
     ring = [(cx + dx, cz + dz) for dx, dz in pieces.RING8]
-    n = 1 - feet                         # peldaños de los pies de la galería (pies) a y = 0
+    n = 1 - feet                         # steps from the gallery feet (feet) to y = 0
     for (x, z) in ring:
         for y in range(feet, 1):
             o.cavity(x, y, z)
     for y in range(feet - 1, 1):
         o.s(cx, y, cz, o.trunk("y"))
     pieces.spiral_continuous(o.s, ring, feet, n, f"{o.p['escalon_piedra']}", start=6, under=True)
-    for (x, z) in ring:                  # el brocal: los peldaños de arriba en el patio son de la obra, no del patio
+    for (x, z) in ring:                  # the curb: the steps at the top in the courtyard belong to the build, not the courtyard
         o.surface.discard((x, 0, z))
     for dx in range(-2, 3):
         for dz in range(-2, 3):
             if max(abs(dx), abs(dz)) == 2 and (dx, dz) != (0, -2) and abs(dx) + abs(dz) != 4:
                 o.s(cx + dx, 1, cz + dz, f"{o.p['madera']}_fence")
     o.descent = (cx, feet, cz)
-    # salida al sur por la celda (0, 1) del anillo y túnel hasta la red
+    # exit to the south through cell (0, 1) of the ring and tunnel to the network
     o.corridor((cx, cz + 2), (cx, z0), feet, frames=True)
 
 
 # ------------------------------------------------------------------ salas
 def furnish(o, kind, cx, cz, feet, size):
-    """Sala de su tipo en el cruce (cx, cz): muebles en los cuatro huecos junto a los muros norte y sur (cx ± 2), que
-    nunca tapan la llegada de un túnel (por el centro de cada lado)."""
+    """Room of its type at the junction (cx, cz): furniture in the four slots next to the north and south walls (cx ± 2), which
+    never block the arrival of a tunnel (through the center of each side)."""
     o.room(kind, cx, cz, feet)
     cavities = [(cx - 2, cz - 2, "south"), (cx + 2, cz - 2, "south"), (cx - 2, cz + 2, "north"), (cx + 2, cz + 2, "north")]
     tbl = {"tesoro": "filon"}.get(kind, "galeria")
@@ -172,7 +172,7 @@ def furnish(o, kind, cx, cz, feet, size):
         o.s(x, feet, z, f"{o.p['madera']}_stairs[facing=south,half=bottom,shape=straight,waterlogged=false]")
     elif kind == "aranas":
         o.cobwebs(cx - 3, cx + 3, cz - 2, cz + 2, feet, 6, height=4)
-        # generador pequeño (pocas arañas, cerca y despacio) sobre un pedestal junto al muro sur
+        # small spawner (few spiders, close and slow) on a pedestal next to the south wall
         o.s(cx, feet, cz + 2, o.mat(o.p["muro"], cx, feet, cz))
         pieces.spawner(o.s, cx, feet + 1, cz + 2, "cave_spider", potentials=True, light=11)
         st, nbt = o.t.blocks[(cx, feet + 1, cz + 2)]
@@ -182,7 +182,7 @@ def furnish(o, kind, cx, cz, feet, size):
 
 
 def vein_room(o, x0, x1, z0, z1, feet):
-    """Muros de la sala del filón cuajados de mineral (más que las vetas de los túneles)."""
+    """Walls of the vein room studded with ore (more than the veins of the tunnels)."""
     from .construction import h
     for x in range(x0 - 1, x1 + 2):
         for z in range(z0 - 1, z1 + 2):

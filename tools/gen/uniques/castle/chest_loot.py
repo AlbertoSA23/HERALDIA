@@ -1,11 +1,11 @@
-"""Botín del castillo (solo vanilla). Cada cofre tiene un grupo extra marcado solo_sin_lootr."""
+"""Castle loot (vanilla only). Each chest has an extra group marked solo_sin_lootr."""
 from .._common.chest_loot import item, empty, pool, table, named
 
-NAMES = {}      # clave -> (es, en)
+NAMES = {}      # key -> (es, en)
 
 
 def it(name, w, lo=1, hi=1, ench=None, dmg=None, nm=None):
-    """Objeto con niveles de encantamiento o desgaste opcionales; con nm=(clave, es, en), con nombre traducible."""
+    """Item with optional enchantment levels or wear; with nm=(key, es, en), with a translatable name."""
     if nm:
         key, es, en = nm
         NAMES[f"heraldia.castillo.objeto.{key}"] = (es, en)

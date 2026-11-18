@@ -1,21 +1,21 @@
-"""Búsqueda del tesoro encadenada (T40) en un servidor dedicado 26.3 real, con un jugador simulado (Carpet).
+"""Chained treasure hunt (T40) on a real dedicated 26.3 server, with a simulated player (Carpet).
 
-Uso: python3 tools/smoke/treasure.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-Comprueba, con la semilla de las pruebas (heraldia) y la configuración por defecto salvo tesoro.*:
-  - botín: con tesoro.probabilidad = 100 una tabla de mina y una de mediana dan el fragmento; tras cambiar el fichero a 0
-    y /heraldia reload (sin reiniciar), ya no;
-  - /heraldia treasure give da el fragmento (papel con la marca heraldia_busqueda) y el logro tesoro/fragmento;
-  - al usarlo (player ... use once, un clic derecho) la cadena se elige fuera del hilo del servidor y el fragmento pasa a
-    ser un mapa vanilla (filled_map) con la cadena entera; los destinos son estructuras de Heraldia reales (mediana o
-    mina), a menos de tesoro.radio_max uno de otro, sin repetir, y la búsqueda no ha cargado sus chunks;
-  - lejos de la marca el mapa no cambia; teletransportado a cada marca (donde /locate encuentra su estructura a menos
-    de 48 bloques: es real), pasa a la siguiente;
-  - REINICIO a mitad de la cadena: el mapa conserva su paso y sus destinos y se sigue desde ahí;
-  - en el tesoro, con una «casa» de tablones justo en la marca, el cofre se entierra fuera de ella y de su margen, en suelo,
-    un bloque bajo la cima, con la tabla heraldia:tesoro/cofre; al abrirlo (cavando el bloque de encima), su botín trae la
-    Brújula de Ysolda y se concede el logro tesoro/cofre;
-  - la cadena se completa una sola vez: volver a usar el mapa no entierra otro cofre, tampoco tras otro reinicio.
-Mide cuánto tarda en elegirse la cadena y en buscarse el sitio del cofre (líneas del log).
+Usage: python3 tools/smoke/treasure.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+Checks, with the test seed (heraldia) and the default configuration except tesoro.*:
+  - loot: with treasure.probability = 100 a mine table and a medium-structure table give the fragment; after changing the file to 0
+    and /heraldia reload (without restarting), they no longer do;
+  - /heraldia treasure give gives the fragment (paper with the heraldia_busqueda mark) and the tesoro/fragmento advancement;
+  - when used (player ... use once, one right click) the chain is chosen off the server thread and the fragment becomes
+    a vanilla map (filled_map) with the whole chain; the destinations are real Heraldia structures (medium or
+    mine), less than treasure.radio_max from each other, without repeats, and the search has not loaded their chunks;
+  - far from the mark the map does not change; teleported to each mark (where /locate finds its structure within
+    48 blocks: it is real), it moves on to the next;
+  - RESTART halfway through the chain: the map keeps its step and its destinations and carries on from there;
+  - at the treasure, with a planks "house" right on the mark, the chest is buried outside it and its margin, on ground,
+    one block below the top, with the heraldia:tesoro/cofre table; when opened (digging the block above), its loot brings the
+    Ysolda's Compass and the tesoro/cofre advancement is granted;
+  - the chain is completed only once: using the map again does not bury another chest, not even after another restart.
+Measures how long it takes to choose the chain and to search for the chest site (log lines).
 """
 import argparse, json, os, re, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -33,8 +33,8 @@ CHOSEN = re.compile(r"tesoro: cadena de (\w+) elegida en (\d+) ms \((\d+) casill
 INFO = re.compile(r"Heraldia: tesoro: info (\{.*\})")
 SITE = re.compile(r"tesoro: sitio del cofre de \w+ en \((-?\d+), (-?\d+)\): (.*) en (\d+) µs")
 CHEST_TABLE = re.compile(r"tesoro: cofre de \w+ enterrado en (-?\d+) (-?\d+) (-?\d+)")
-HOUSE = 2   # medio lado de la «casa» de tablones que se pone en la marca del tesoro
-MARGIN = 6   # Sitio.MARGEN
+HOUSE = 2   # half the side of the planks "house" placed on the treasure mark
+MARGIN = 6   # Sitio.MARGIN
 
 
 def write_config(work, extra):
@@ -43,8 +43,8 @@ def write_config(work, extra):
 
 
 def chain(srv):
-    """La cadena del mapa en la mano: {paso, destinos: [{tipo, estructura, x, z, generada}], cofre, movido} (de la línea
-    «tesoro: info» del log que deja /heraldia treasure info); None si no lleva un mapa con cadena."""
+    """The chain of the map in hand: {paso, destinos: [{tipo, estructura, x, z, generada}], cofre, movido} (from the
+    "tesoro: info" log line left by /heraldia treasure info); None if it carries no map with a chain."""
     m = srv.ctx.run(f"execute as {P} run heraldia treasure info", INFO.pattern + r"|Undeciphered|sin descifrar|not holding|No llevas")
     return parse(m.group(1)) if m.group(1) else None
 
@@ -65,14 +65,14 @@ def parse(snbt):
 
 
 def creative(srv):
-    """Modo creativo (sin daño de caída al teletransportarse); si ya lo está, el comando no responde."""
+    """Creative mode (no fall damage when teleporting); if it already is, the command gives no response."""
     s.send(srv.proc, f"gamemode creative {P}")
     if not srv.ctx.until(f"execute if entity @a[name={P},gamemode=creative]", timeout=20):
-        raise SystemExit("el jugador simulado no pasa a creativo")
+        raise SystemExit("the simulated player does not switch to creative")
 
 
 def use(srv):
-    s.send(srv.proc, f"player {P} use once")   # no responde nada en la consola
+    s.send(srv.proc, f"player {P} use once")   # nothing is answered on the console
     srv.ctx.ticks(10)
 
 
@@ -82,14 +82,14 @@ def tp(srv, x, z, y=200):
 
 
 def real_structure(srv, d, fails):
-    """Con el jugador ya en la marca (chunks cargados): /locate de su estructura desde ahí la da a menos de 48 bloques."""
+    """With the player already on the mark (chunks loaded): /locate of its structure from there finds it within 48 blocks."""
     srv.ctx.ticks(20)
     m = srv.ctx.run(f"execute positioned {d['x']} 64 {d['z']} run locate structure {d['estructura']}",
                     r"is at \[(-?\d+), ~, (-?\d+)\] \((\d+) blocks? away\)|Could not find|Unknown|Incorrect")
     if not m.group(3) or int(m.group(3)) > 48:
-        fails.append(f"en la marca {d} no está {d['estructura']}: {m.group(0)}")
+        fails.append(f"at mark {d} there is no {d['estructura']}: {m.group(0)}")
     else:
-        print(f"{d['estructura']} en {m.group(1)}, {m.group(2)} (a {m.group(3)} bloques de la marca)")
+        print(f"{d['estructura']} at {m.group(1)}, {m.group(2)} ({m.group(3)} blocks from the mark)")
 
 
 def in_hand(srv, pred):
@@ -105,14 +105,14 @@ def wait_loaded(srv, x, z, timeout=60):
 
 
 def chest_loot(srv, fails, with_it):
-    """Una tabla de mina y una de mediana dan (o no) el fragmento con la probabilidad al 100 % (o al 0 %)."""
+    """A mine table and a medium-structure table give (or not) the fragment with the probability at 100 % (or at 0 %)."""
     ctx = srv.ctx
     for tbl in ("heraldia:minas/boca", "heraldia:medianas/posada/cuarto"):
         ctx.run(f"clear {P} minecraft:paper", r"Removed|No items")
         ctx.run(f"loot give {P} loot {tbl}", r"Dropped|Gave|No items|Unknown")
         has = ctx.test(f"execute if items entity {P} container.* minecraft:paper[minecraft:custom_data~{{{MARK}:{{}}}}]")
         if has != with_it:
-            fails.append(f"botín: {tbl} {'no da' if with_it else 'da'} el fragmento con tesoro.probabilidad = {100 if with_it else 0}")
+            fails.append(f"loot: {tbl} {'does not give' if with_it else 'gives'} the fragment with tesoro.probabilidad = {100 if with_it else 0}")
     ctx.run(f"clear {P}", r"Removed|No items")
 
 
@@ -140,49 +140,49 @@ def main():
             ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}|Unknown|Incorrect")
         srv.spawn(P)
         creative(srv)
-        # 1) botín con la probabilidad al 100 % y, recargada, al 0 %
+        # 1) loot with the probability at 100 % and, after reloading, at 0 %
         chest_loot(srv, fails, True)
         write_config(a.work, dict(CONFIG, tesoro=dict(CONFIG["tesoro"], probabilidad=0)))
         ctx.run("heraldia reload", r"(?:Configuration reloaded from|Configuración recargada de) heraldia\.json")
         chest_loot(srv, fails, False)
         write_config(a.work, CONFIG)
         ctx.run("heraldia reload", r"(?:Configuration reloaded from|Configuración recargada de) heraldia\.json")
-        # 2) la primera pista
+        # 2) the first clue
         ctx.run(f"heraldia treasure give {P}", r"given to|dado a|Unknown|Incorrect")
         if not in_hand(srv, f"minecraft:paper[minecraft:custom_data~{{{MARK}:{{v:1}}}}]"):
             m = ctx.run(f"data get entity {P} SelectedItem", r"has the following entity data: (.*)|No entity|found no")
-            fails.append(f"/heraldia treasure give no da el fragmento en la mano: {m.group(0)[:300]}")
+            fails.append(f"/heraldia treasure give does not put the fragment in hand: {m.group(0)[:300]}")
         if not ctx.until(f"execute if entity @a[name={P},advancements={{heraldia:tesoro/fragmento=true}}]", timeout=10):
-            fails.append("sin el logro tesoro/fragmento al recibir el fragmento")
-        # 3) descifrarlo: un mapa con la cadena
+            fails.append("no tesoro/fragmento advancement on receiving the fragment")
+        # 3) decipher it: a map with the chain
         use(srv)
         if not ctx.until(f"execute if items entity {P} weapon.mainhand minecraft:filled_map[minecraft:custom_data~{{{MARK}:{{paso:0}}}}]",
                          timeout=120):
-            raise SystemExit(f"el fragmento no se descifra en un mapa; log: {ctx.log()[-1500:]}")
+            raise SystemExit(f"the fragment is not deciphered into a map; log: {ctx.log()[-1500:]}")
         m = CHOSEN.search(ctx.log())
-        print(f"cadena elegida en {m.group(2)} ms ({m.group(3)} casillas), fuera del hilo del servidor" if m else "sin línea de tiempo")
+        print(f"chain chosen in {m.group(2)} ms ({m.group(3)} cells), off the server thread" if m else "no timing line")
         c = chain(srv)
         print("cadena:", c)
         if not c or len(c["destinos"]) not in (2, 3) or c["destinos"][-1]["tipo"] != "tesoro":
-            raise SystemExit(f"cadena no válida: {c}")
+            raise SystemExit(f"invalid chain: {c}")
         prev_pos = (X, Z)
         for i, d in enumerate(c["destinos"][:-1]):
             if d["tipo"] not in ("mediana", "mina") or not d["estructura"].startswith(("heraldia:medianas/", "heraldia:minas/")):
-                fails.append(f"marca {i + 1}: no es una mediana ni una mina de Heraldia: {d}")
+                fails.append(f"mark {i + 1}: not a Heraldia medium structure or mine: {d}")
             dist = ((d["x"] - prev_pos[0]) ** 2 + (d["z"] - prev_pos[1]) ** 2) ** 0.5
             if not 96 <= dist <= RADIUS:
-                fails.append(f"marca {i + 1} a {dist:.0f} bloques de la anterior (96-{RADIUS})")
+                fails.append(f"mark {i + 1} is {dist:.0f} blocks from the previous one (96-{RADIUS})")
             prev_pos = (d["x"], d["z"])
         if len({(d["x"], d["z"]) for d in c["destinos"]}) != len(c["destinos"]):
             fails.append(f"destinos repetidos: {c['destinos']}")
         first = c["destinos"][0]
         if abs(first["x"]) > 128 or abs(first["z"]) > 128:
             if ctx.test(f"execute if loaded {first['x']} 64 {first['z']}"):
-                fails.append("la búsqueda ha cargado el chunk del primer destino (no debe cargar ni generar nada)")
-        # 4) lejos: el mapa no cambia
+                fails.append("the search loaded the chunk of the first destination (it must not load or generate anything)")
+        # 4) far away: the map does not change
         use(srv)
         if chain(srv)["paso"] != 0:
-            fails.append("usado lejos de la marca, el mapa avanza")
+            fails.append("used far from the mark, the map advances")
         # 5) primera marca
         tp(srv, first["x"], first["z"])
         wait_loaded(srv, first["x"], first["z"])
@@ -190,10 +190,10 @@ def main():
         use(srv)
         c1 = chain(srv)
         if c1["paso"] != 1:
-            fails.append(f"en la primera marca el mapa no pasa a la siguiente: {c1}")
+            fails.append(f"at the first mark the map does not move on to the next: {c1}")
     finally:
         srv.stop()
-    # 6) reinicio a mitad de la cadena: el mapa conserva el paso y los destinos
+    # 6) restart halfway through the chain: the map keeps the step and the destinations
     srv = Server(a.work, launcher)
     try:
         ctx = srv.ctx
@@ -201,10 +201,10 @@ def main():
         srv.spawn(P)
         creative(srv)
         if not ctx.until(f"execute if items entity {P} weapon.mainhand minecraft:filled_map", timeout=20):
-            raise SystemExit("tras reiniciar, el jugador no lleva el mapa")
+            raise SystemExit("after restarting, the player does not carry the map")
         c2 = chain(srv)
         if not c2 or c2["paso"] != 1 or c2["destinos"] != c["destinos"]:
-            fails.append(f"tras reiniciar el mapa no conserva la cadena: {c2} (antes {c})")
+            fails.append(f"after restarting the map does not keep the chain: {c2} (before {c})")
         c = c2 or c
         while c["destinos"][c["paso"]]["tipo"] != "tesoro":
             d = c["destinos"][c["paso"]]
@@ -214,9 +214,9 @@ def main():
             use(srv)
             n = chain(srv)
             if n["paso"] != c["paso"] + 1:
-                raise SystemExit(f"en la marca {c['paso'] + 1} el mapa no avanza: {n}")
+                raise SystemExit(f"at mark {c['paso'] + 1} the map does not advance: {n}")
             c = n
-        # 7) el tesoro: una «casa» en la marca; el cofre va fuera de ella y de su margen
+        # 7) the treasure: a "house" on the mark; the chest goes outside it and its margin
         for attempt in range(5):
             t = c["destinos"][-1]
             tp(srv, t["x"], t["z"])
@@ -233,27 +233,27 @@ def main():
                 c = n
                 break
             if n["movido"] > c["movido"]:
-                print(f"el sitio del tesoro no era seguro: la marca se ha movido ({n['destinos'][-1]})")
+                print(f"the treasure site was not safe: the mark has moved ({n['destinos'][-1]})")
                 c = n
                 continue
             m = SITE.findall(ctx.log())
-            raise SystemExit(f"en el tesoro no se entierra el cofre: {n}; sitio: {m[-1] if m else '?'}")
+            raise SystemExit(f"the chest is not buried at the treasure: {n}; site: {m[-1] if m else '?'}")
         else:
-            raise SystemExit("el tesoro se ha movido 5 veces sin encontrar sitio")
+            raise SystemExit("the treasure moved 5 times without finding a site")
         m = SITE.findall(ctx.log())
         if m:
-            print(f"sitio del cofre buscado en {m[-1][3]} µs ({m[-1][2]})")
+            print(f"chest site searched in {m[-1][3]} µs ({m[-1][2]})")
         cx, cy, cz = c["cofre"]
         t = c["destinos"][-1]
         if not ctx.block((cx, cy, cz), "minecraft:chest"):
-            fails.append(f"no hay cofre en {c['cofre']}")
+            fails.append(f"no chest at {c['cofre']}")
         if max(abs(cx - t["x"]), abs(cz - t["z"])) <= HOUSE + MARGIN and c["movido"] == 0:
-            fails.append(f"el cofre ({cx}, {cz}) está en la casa de tablones o en su margen (marca {t['x']}, {t['z']})")
+            fails.append(f"the chest ({cx}, {cz}) is in the planks house or its margin (mark {t['x']}, {t['z']})")
         if ctx.block((cx, cy + 1, cz), "minecraft:air") or ctx.block((cx, cy + 1, cz), "minecraft:oak_planks"):
-            fails.append("el cofre no está enterrado (al aire o bajo tablones)")
+            fails.append("the chest is not buried (in the air or under planks)")
         if not ctx.test(f'execute if data block {cx} {cy} {cz} {{LootTable:"heraldia:tesoro/cofre"}}'):
-            fails.append("el cofre no tiene la tabla heraldia:tesoro/cofre")
-        # 8) cavar y abrirlo: botín, recuerdo y logro
+            fails.append("the chest does not have the heraldia:tesoro/cofre table")
+        # 8) dig and open it: loot, keepsake and advancement
         ctx.run(f"setblock {cx} {cy + 1} {cz} minecraft:air", r"Changed the block|Could not set")
         ctx.run(f"tp {P} {cx + 0.5} {cy + 1} {cz + 0.5}", r"Teleported|Teletransportado")
         ctx.ticks(5)
@@ -264,18 +264,18 @@ def main():
             if advancement(srv, "tesoro/cofre"):
                 break
         if not advancement(srv, "tesoro/cofre"):
-            fails.append("al abrir el cofre no se concede el logro tesoro/cofre")
+            fails.append("opening the chest does not grant the tesoro/cofre advancement")
         if not ctx.test(f"execute if items block {cx} {cy} {cz} container.* minecraft:compass[minecraft:custom_data~{{heraldia_recuerdo_tesoro:1b}}]"):
-            fails.append("el cofre no trae la Brújula de Ysolda")
-        # 9) una sola vez: el mapa ya no entierra otro
+            fails.append("the chest does not bring Ysolda's Compass")
+        # 9) only once: the map no longer buries another
         ctx.run(f"tp {P} {t['x']} 200 {t['z']}", r"Teleported|Teletransportado")
         ctx.ticks(5)
         use(srv)
         if len(CHEST_TABLE.findall(ctx.log())) != 1:
-            fails.append(f"se ha enterrado más de un cofre: {CHEST_TABLE.findall(ctx.log())}")
+            fails.append(f"more than one chest was buried: {CHEST_TABLE.findall(ctx.log())}")
     finally:
         srv.stop()
-    # 10) otro reinicio: la cadena sigue completada y no da otro cofre
+    # 10) another restart: the chain stays completed and gives no other chest
     srv = Server(a.work, launcher)
     try:
         ctx = srv.ctx
@@ -284,13 +284,13 @@ def main():
         ctx.until(f"execute if items entity {P} weapon.mainhand minecraft:filled_map", timeout=20)
         c3 = chain(srv)
         if not c3 or c3["cofre"] != c["cofre"]:
-            fails.append(f"tras reiniciar, el mapa no recuerda el cofre: {c3}")
+            fails.append(f"after restarting, the map does not remember the chest: {c3}")
         t = c["destinos"][-1]
         tp(srv, t["x"], t["z"])
         wait_loaded(srv, t["x"], t["z"])
         use(srv)
         if CHEST_TABLE.search(ctx.log()):
-            fails.append("tras reiniciar, el mapa completado entierra otro cofre")
+            fails.append("after restarting, the completed map buries another chest")
     finally:
         srv.stop()
     log = os.path.join(a.work, "logs", "latest.log")
@@ -298,7 +298,7 @@ def main():
     for bad in ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse",
                 "Found validation problems", "no se pudo descifrar"):
         if bad in text:
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     print("TESORO:", "OK" if not fails else fails)
     return 1 if fails else 0
 

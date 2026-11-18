@@ -1,9 +1,9 @@
-"""Construcción del Santuario druídico en un único sistema de coordenadas (ver docs/unicas/santuario.md).
+"""Construction of the Druid sanctuary in a single coordinate system (see docs/unicas/sanctuary.md).
 
-x de oeste a este (0..71), z de norte a sur (0..71; la entrada está al norte, z = 0); y = 0 es la capa de suelo del
-claro (pies a y = 1). El árbol sagrado está en el centro (machón de su escalera en TX, TZ). Lo que queda por debajo de
-y = 0 (las raíces y galerías de los druidas) es otra pieza, que rellena toda su caja. Todo se construye en una «obra»
-que luego se parte en dos plantillas (auditoria.preparar).
+x from west to east (0..71), z from north to south (0..71; the entrance is to the north, z = 0); y = 0 is the ground layer of the
+clearing (feet at y = 1). The sacred tree is in the centre (pier of its staircase at TX, TZ). What lies below
+y = 0 (the druids' roots and galleries) is another piece, which fills its whole box. Everything is built in a "build"
+that is later split into two templates (audit.prepare).
 """
 import math, zlib
 from core import Template, B
@@ -14,14 +14,14 @@ SID = "santuario"
 LOOT = f"heraldia:unicas/{SID}/"
 K = f"heraldia.{SID}."
 W = D = 72
-C = 35.5                      # centro del claro (disco de radio R)
-R, R_LIGHT = 36, 30           # disco del suelo; dentro de R_CLARO, suelo pisado (fuera, hierba en la que crece el bosque)
-TX, TZ = 36, 36               # machón de la escalera del árbol
-AIR_H = 6                     # aire explícito sobre el claro (el terreno no asoma entre las cabañas)
+C = 35.5                      # centre of the clearing (disc of radius R)
+R, R_LIGHT = 36, 30           # ground disc; inside R_LIGHT, trodden ground (outside, grass where the forest grows)
+TX, TZ = 36, 36               # pier of the tree staircase
+AIR_H = 6                     # explicit air above the clearing (the terrain does not poke out between the cabins)
 
-# pies de los niveles de la escalera del árbol (cada 6): subsuelo bajo, subsuelo alto, suelo, rellanos y la copa
+# feet of the levels of the tree staircase (every 6): low underground, high underground, ground, landings and the crown
 F2, F1, TOP = -11, -5, 19
-CRYPT = (12, 60, 4, 66, -14, -1)        # caja de la pieza del subsuelo: x0, x1, z0, z1, y0, y1
+CRYPT = (12, 60, 4, 66, -14, -1)        # box of the underground piece: x0, x1, z0, z1, y0, y1
 NATURAL = ("minecraft:dirt", "minecraft:stone")
 
 LOG, SLOG, WOOD, PL = "birch_log", "stripped_birch_log", "birch_wood", "birch_planks"
@@ -66,11 +66,11 @@ class Construction:
         self.t = Template(f"unicas/{SID}/obra")
         self.chests = []           # (pos, tabla)
         self.spawners = []         # (pos, mob)
-        self.hidden = []           # celdas que solo se alcanzan resolviendo un puzle
-        self.hidden_alcove = []    # celdas tras el tapiz (se alcanzan sin puzle)
-        self.mech = {}             # mecanismos para el simulador y la prueba de servidor
-        self.ruin = set()          # posiciones dañadas a mano (estado de conservación)
-        self.carved = {}           # celdas de aire del subsuelo -> (suelo, muro, techo)
+        self.hidden = []           # cells reachable only by solving a puzzle
+        self.hidden_alcove = []    # cells behind the tapestry (reachable without a puzzle)
+        self.mech = {}             # mechanisms for the simulator and the server test
+        self.ruin = set()          # hand-damaged positions (state of preservation)
+        self.carved = {}           # underground air cells -> (floor, wall, ceiling)
         self.signs = []
 
     # ------------------------------------------------------------ primitivas
@@ -108,13 +108,13 @@ class Construction:
         self.s(x, y, z, S(f"{color}_wall_banner", facing=facing))
 
     def bed(self, x, y, z, facing, color="green"):
-        """Cama con la cabecera hacia `facing` (la cabecera en x, z; los pies detrás)."""
+        """Bed with the head towards `facing` (the head at x, z; the foot behind)."""
         dx, dz = DV[facing]
         self.s(x, y, z, S(f"{color}_bed", facing=facing, part="head", occupied=False))
         self.s(x - dx, y, z - dz, S(f"{color}_bed", facing=facing, part="foot", occupied=False))
 
     def sign(self, x, y, z, facing, key, lines, wood="birch"):
-        """Cartel traducible: `lines` = [(es, en)] (las claves van a LANG con el sufijo .1, .2...)."""
+        """Translatable sign: `lines` = [(es, en)] (the keys go to LANG with the suffix .1, .2...)."""
         self.signs.append((key, lines))
         pieces.sign(self.s, x, y, z, facing, [text(f"{K}cartel.{key}.{i + 1}", es) for i, (es, _) in enumerate(lines)],
                     wood=wood)
@@ -123,7 +123,7 @@ class Construction:
         self.s(x, y, z, st)
         self.ruin.add((x, y, z))
 
-    # ------------------------------------------------------------ construcción
+    # ------------------------------------------------------------ construction
     def build(self):
         self.ground()
         self.avenue()
@@ -145,7 +145,7 @@ class Construction:
         return self
 
     def loose_debris(self):
-        """Lo que la ruina deja suelto (hojas o heno entre dos huecos) se ha caído también."""
+        """What the ruin leaves loose (leaves or hay between two gaps) has fallen too."""
         from .._common.walkthrough import floating_blocks
         for _ in range(3):
             area = {p: st for p, (st, _) in self.t.blocks.items() if p[1] >= 0}
@@ -160,7 +160,7 @@ class Construction:
         return dist(x, z, C, C) <= R_LIGHT
 
     def ground(self):
-        """Suelo del claro: tierra de camino (no nace nada en ella); fuera de R_CLARO, hierba en la que crece el bosque."""
+        """Clearing floor: path dirt (nothing grows on it); outside R_LIGHT, grass where the forest grows."""
         for x in range(W):
             for z in range(D):
                 d = dist(x, z, C, C)
@@ -168,19 +168,19 @@ class Construction:
                     self.s(x, 0, z, "dirt_path" if d <= R_LIGHT else "grass_block[snowy=false]")
 
     def avenue(self):
-        """Camino de piedra musgosa de la entrada al árbol."""
+        """Mossy stone path from the entrance to the tree."""
         for z in range(0, 32):
             for x in range(35, 38):
                 if dist(x, z, C, C) <= R:
                     self.s(x, 0, z, COB if h(x, z, 1) < 0.6 else "mossy_cobblestone")
         self.mech["jig"] = (36, 0, 20)
 
-    # ------------------------------------------------------------ el árbol sagrado
+    # ------------------------------------------------------------ the sacred tree
     def trunk_cell(self, x, z, r=4.5):
         return dist(x, z, TX, TZ) <= r
 
     def tree(self):
-        """Abedul sagrado: tronco hueco de 9 de ancho con una escalera de caracol desde las galerías hasta la copa."""
+        """Sacred birch: 9-wide hollow trunk with a spiral staircase from the galleries to the crown."""
         top = 30
         for x in range(TX - 5, TX + 6):
             for z in range(TZ - 5, TZ + 6):
@@ -188,7 +188,7 @@ class Construction:
                     r = 4.5 if y < 24 else (3.5 if y < 27 else 2.5)
                     if self.trunk_cell(x, z, r):
                         self.s(x, y, z, S(LOG, axis="y"))
-        # hueco de la escalera: anillo de 3 x 3 desde el fondo del subsuelo hasta la copa
+        # stairwell: 3 x 3 ring from the bottom of the underground to the crown
         for y in range(F2, TOP + 3):
             for x in range(TX - 1, TX + 2):
                 for z in range(TZ - 1, TZ + 2):
@@ -198,13 +198,13 @@ class Construction:
                         self.s(x, y, z, "air")
         pieces.spiral_stair(self.s, TX, TZ, [F2, F1, 1, 7, 13], "birch_stairs", S(LOG, axis="y"), PL,
                             newel_top=TOP + 2)
-        for (dx, dz) in pieces.RING[:2]:            # rellano de llegada a la copa
+        for (dx, dz) in pieces.RING[:2]:            # landing arriving at the crown
             self.s(TX + dx, TOP - 1, TZ + dz, PL)
-        # luz en el tronco: setas luminosas en la pared del hueco (solo sobre el suelo)
+        # light in the trunk: glowing mushrooms on the wall of the hollow (only above the ground)
         for f in (1, 7, 13):
             self.s(TX - 2, f + 2, TZ, "shroomlight")
             self.s(TX + 2, f + 4, TZ, "shroomlight")
-        # puerta al claro (norte) y a la plataforma de la copa
+        # door to the clearing (north) and to the crown platform
         for (f, z1) in ((1, 32), (TOP, 32)):
             for z in range(z1, TZ - 1):
                 self.a(TX, f, z, TX, f + 1, z)
@@ -213,7 +213,7 @@ class Construction:
         self.canopy()
 
     def platform(self):
-        """Plataforma de tablones alrededor del tronco, bajo la copa, con barandilla y ménsulas."""
+        """Plank platform around the trunk, under the crown, with railing and brackets."""
         y = TOP - 1
         cells = [(x, z) for (x, z) in disc(TX, TZ, 8.5) if not self.trunk_cell(x, z)]
         inside = set(cells) | {(x, z) for (x, z) in disc(TX, TZ, 4.5)}
@@ -226,7 +226,7 @@ class Construction:
                 for yy in (y + 1, y + 2, y + 3):
                     if self.free(x, yy, z):
                         self.s(x, yy, z, "air")
-        for k in range(8):                           # ménsulas bajo la plataforma
+        for k in range(8):                           # brackets under the platform
             ang = math.radians(22.5 + 45 * k)
             for r in (5, 6, 7):
                 x, z = round(TX + r * math.cos(ang)), round(TZ + r * math.sin(ang))
@@ -239,7 +239,7 @@ class Construction:
         self.chest(TX + 5, y + 1, TZ, "east", "copa")
 
     def canopy(self):
-        """Copa de hojas persistentes (no se secan) sobre la plataforma, con ramas por dentro."""
+        """Crown of persistent leaves (they do not dry out) above the platform, with branches inside."""
         cy, rx, ry = 26, 10.5, 5.5
         for x in range(TX - 11, TX + 12):
             for z in range(TZ - 11, TZ + 12):
@@ -256,25 +256,25 @@ class Construction:
                 self.s(x, y, z, S(LOG, axis=axis))
 
     def roots(self):
-        """Raíces que se abren al pie del tronco y se hunden en el suelo (ninguna al norte, donde está la puerta)."""
+        """Roots that spread at the foot of the trunk and sink into the ground (none to the north, where the door is)."""
         for k in range(8):
             ang = math.radians(45 * k)
-            if k == 6:                               # norte: el camino a la puerta
+            if k == 6:                               # north: the path to the door
                 continue
             for r, ys in ((5, (1, 2)), (6, (1,)), (7, (0,))):
                 x, z = round(TX + r * math.cos(ang)), round(TZ + r * math.sin(ang))
                 for y in ys:
                     self.s(x, y, z, WOOD)
 
-    # ------------------------------------------------------------ círculo de piedras
+    # ------------------------------------------------------------ stone circle
     def stone_circle(self):
-        """Doce menhires alrededor del árbol; dos se han caído."""
+        """Twelve menhirs around the tree; two have fallen."""
         self.menhirs = []
         for k in range(12):
             ang = math.radians(15 + 30 * k)
             x, z = round(TX + 13 * math.cos(ang)), round(TZ + 13 * math.sin(ang))
             hgt = 3 + (k % 2)
-            if k in (2, 8):                           # caídos hacia fuera
+            if k in (2, 8):                           # fallen outwards
                 dx, dz = round(math.cos(ang)), round(math.sin(ang))
                 for i in range(3):
                     self.ruin_set(x + i * dx, 1, z + i * dz, "stone" if i < 2 else "andesite")
@@ -284,9 +284,9 @@ class Construction:
             self.s(x, 0, z, "stone")
             self.menhirs.append((x, z))
 
-    # ------------------------------------------------------------ cabañas
+    # ------------------------------------------------------------ cabins
     def hut_shell(self, cx, cz, R_, door):
-        """Cabaña redonda: zócalo de adoquín, muros de adobe con postes de abedul y cubierta cónica de paja maciza."""
+        """Round cabin: cobblestone base, adobe walls with birch posts and a solid conical thatch roof."""
         for (x, z) in disc(cx, cz, R_ + 1):
             d = dist(x, z, cx, cz)
             if d <= R_:
@@ -299,7 +299,7 @@ class Construction:
             elif d <= R_ - 1:
                 for y in (1, 2, 3):
                     self.s(x, y, z, "air")
-        for k in range(6):                            # cubierta: cono macizo, cada hilada sobre la de debajo
+        for k in range(6):                            # roof: solid cone, each course over the one below
             for (x, z) in disc(cx, cz, R_ + 1 - k):
                 self.s(x, 4 + k, z, EXISTS)
             if R_ + 1 - k < 1:
@@ -307,28 +307,28 @@ class Construction:
         dx, dz = DV[door]
         r = int(R_)
         self.door(cx + dx * r, 1, cz + dz * r, door)
-        for side in ("north", "south", "east", "west"):            # ventanas en los tramos rectos
+        for side in ("north", "south", "east", "west"):            # windows in the straight sections
             if side not in (door, OPP[door]):
                 sx, sz = DV[side]
                 self.s(cx + sx * r, 2, cz + sz * r, "glass_pane")
         self.hang(cx, 3, cz)
 
     def hut(self, cx, cz, i):
-        """Cabaña de un druida (puerta al este, hacia el árbol): cama, cofre, tonel y algo de su oficio."""
+        """A druid's cabin (door to the east, towards the tree): bed, chest, barrel and something of his trade."""
         self.hut_shell(cx, cz, 3.5, "east")
         self.bed(cx - 2, 1, cz, "west", ("green", "lime", "brown")[i])
         self.chest(cx, 1, cz - 2, "south", "cabana")
         self.s(cx, 1, cz + 2, S("barrel", facing="up"), {"id": "minecraft:barrel"})
         self.s(cx - 1, 1, cz + 2, ("potted_allium", "potted_lily_of_the_valley", "potted_azure_bluet")[i])
         self.s(cx + 1, 1, cz - 2, ("crafting_table", S("water_cauldron", level=3), S("composter", level=0))[i])
-        if i == 2:                                    # la cabaña del sur tiene la cubierta hundida en parte
+        if i == 2:                                    # the south cabin has its roof partly caved in
             for (x, y, z), (st, _) in list(self.t.blocks.items()):
                 if "hay_block" in st and x >= cx and z >= cz - 1 and y >= 5 and (x, z) != (cx, cz) and h(x, y, z, 4) < 0.8:
                     self.ruin_set(x, y, z)
             self.ruin_set(cx + 1, 1, cz + 1, EXISTS)
 
     def archdruid(self):
-        """Cabaña del archidruida (puerta al oeste): más grande; tras el tapiz verde, su alcoba oculta."""
+        """Archdruid's cabin (door to the west): larger; behind the green tapestry, his hidden alcove."""
         cx, cz = 55, 21
         self.hut_shell(cx, cz, 4.5, "west")
         self.bed(cx, 1, cz - 3, "north", "white")
@@ -336,7 +336,7 @@ class Construction:
         self.s(cx, 1, cz + 3, S("lectern", facing="north", has_book=False, powered=False))
         self.s(cx + 2, 1, cz + 2, "brewing_stand[has_bottle_0=false,has_bottle_1=false,has_bottle_2=false]")
         self.s(cx - 2, 1, cz + 2, "potted_birch_sapling")
-        # alcoba: paso de 1 x 2 en el muro este tapado por el tapiz, y una sala de 2 x 3 sin otra salida
+        # alcove: 1 x 2 passage in the east wall covered by the tapestry, and a 2 x 3 room with no other exit
         self.a(cx + 4, 1, cz, cx + 4, 2, cz)
         self.banner(cx + 3, 3, cz, "west", "green")
         for x in range(cx + 5, cx + 8):
@@ -351,9 +351,9 @@ class Construction:
         self.hang(cx + 5, 3, cz)
         self.hidden_alcove = [(x, 1, z) for x in (cx + 5, cx + 6) for z in (cz - 1, cz, cz + 1)]
 
-    # ------------------------------------------------------------ jardín, estanque, observatorio
+    # ------------------------------------------------------------ garden, pond, observatory
     def garden(self):
-        """Huerto de hierbas cercado: bancales de cultivo regados por dos acequias, flores y colmenas."""
+        """Fenced herb garden: crop beds watered by two ditches, flowers and beehives."""
         x1, x2, z1, z2 = 20, 32, 54, 61
         for x in range(x1, x2 + 1):
             for z in range(z1, z2 + 1):
@@ -383,7 +383,7 @@ class Construction:
             self.s(26, 0, z, "dirt_path")
 
     def pond(self):
-        """Estanque de piedra elevado un bloque, con nenúfares."""
+        """Stone pond raised one block, with lily pads."""
         x1, x2, z1, z2 = 44, 52, 50, 57
         for x in range(x1, x2 + 1):
             for z in range(z1, z2 + 1):
@@ -397,7 +397,7 @@ class Construction:
             self.s(x, 2, z, "lily_pad")
 
     def observatory(self):
-        """Observatorio de piedras alineadas: un estrado con su gnomon y tres piedras al este (las salidas del sol)."""
+        """Observatory of aligned stones: a dais with its gnomon and three stones to the east (the sunrises)."""
         cx, cz = 58, 40
         for (x, z) in disc(cx, cz, 4.5):
             d = dist(x, z, cx, cz)
@@ -414,7 +414,7 @@ class Construction:
             self.f(x, 1, z, x, 3, z, "stone")
             self.sign(x - 1, 2, z, "west", key, lines)
 
-    # ------------------------------------------------------------ acabados de la superficie
+    # ------------------------------------------------------------ surface finishes
     def clearing_air(self):
         for x in range(W):
             for z in range(D):
@@ -425,7 +425,7 @@ class Construction:
                         self.s(x, y, z, "air")
 
     def moss(self):
-        """Alfombras de musgo en manchas sobre la tierra de camino del claro."""
+        """Moss carpets in patches over the path dirt of the clearing."""
         for x in range(W):
             for z in range(D):
                 if self.get(x, 0, z) == "minecraft:dirt_path" and self.get(x, 1, z) == "minecraft:air" \
@@ -433,7 +433,7 @@ class Construction:
                     self.s(x, 1, z, "moss_carpet")
 
     def weather(self):
-        """El árbol se marchita: claros en la copa; y la intemperie en cabañas y cercas."""
+        """The tree withers: gaps in the crown; and weathering on the cabins and fences."""
         for (x, y, z), (st, _) in list(self.t.blocks.items()):
             if "birch_leaves" not in st:
                 continue
@@ -441,13 +441,13 @@ class Construction:
                           ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)))
             if exposed and h(x // 3, y // 3, z // 3, 13) < 0.42 and h(x, y, z, 6) < 0.9:
                 self.ruin_set(x, y, z)
-        for (x, y, z), (st, _) in list(self.t.blocks.items()):     # corteza desprendida en el tronco
+        for (x, y, z), (st, _) in list(self.t.blocks.items()):     # bark peeled off the trunk
             if st == "minecraft:birch_log[axis=y]" and 2 <= y <= 21 and dist(x, z, TX, TZ) > 3.5 \
                     and h(x // 2, y // 3, z // 2, 17) < 0.3:
                 self.ruin_set(x, y, z, S(SLOG, axis="y"))
         for (x, z) in ((20, 57), (32, 59), (24, 61), (29, 54)):     # cerca rota
             self.ruin_set(x, 1, z)
-        for (x, z) in ((44, 53), (52, 55)):                          # muro del estanque agrietado
+        for (x, z) in ((44, 53), (52, 55)):                          # cracked pond wall
             self.ruin_set(x, 1, z, "cracked_stone_bricks")
 
     # ============================================================ subsuelo
@@ -459,7 +459,7 @@ class Construction:
                     self.carved[(x, y, z)] = (floor, wall, ceil)
 
     def lining(self, default=(SB, COB, SB)):
-        """Recubre las caras de la roca que dan al aire del subsuelo (sin manantiales ni liquen)."""
+        """Lines the rock faces that face the underground air (no springs or lichen)."""
         air = {p for p, (st, _) in self.t.blocks.items() if p[1] < 0 and st == "minecraft:air"}
         for (x, y, z) in air:
             mat = self.carved.get((x, y, z), default)
@@ -480,22 +480,22 @@ class Construction:
         ROOT = ("rooted_dirt", WOOD, "rooted_dirt")
         TIMBER = (PL, S(SLOG, axis="y"), PL)
         HERB = (MUD, MUD, PL)
-        self.room(36, 36, 31, 34, F1, F1 + 1, *ROOT)       # del árbol a la sala de las raíces
-        self.room(28, 44, 20, 30, *U, *ROOT)               # sala de las raíces
-        self.room(27, 27, 25, 25, F1, F1 + 1, *TIMBER)        # puerta de la biblioteca
+        self.room(36, 36, 31, 34, F1, F1 + 1, *ROOT)       # from the tree to the root hall
+        self.room(28, 44, 20, 30, *U, *ROOT)               # root hall
+        self.room(27, 27, 25, 25, F1, F1 + 1, *TIMBER)        # library door
         self.room(16, 26, 20, 30, *U, *TIMBER)                # biblioteca
-        self.room(45, 45, 25, 25, F1, F1 + 1, *HERB)       # puerta del herbolario
+        self.room(45, 45, 25, 25, F1, F1 + 1, *HERB)       # herbarium door
         self.room(46, 56, 20, 30, *U, *HERB)               # herbolario
-        self.room(36, 37, 14, 19, F1, F1 + 2)              # pasillo del cable trampa
-        self.room(30, 44, 6, 13, *U, PMUD, COB, SB)        # osario de los fieles
-        self.room(38, 43, 35, 35, F2, F2 + 1)              # del árbol a la sala de las ofrendas
-        self.room(44, 54, 30, 40, *L)                      # sala de las ofrendas
-        self.room(44, 45, 41, 45, F2, F2 + 2)              # pasillo a la cámara del sol
-        self.room(40, 45, 46, 59, *L)                      # cámara del sol
+        self.room(36, 37, 14, 19, F1, F1 + 2)              # trap wire corridor
+        self.room(30, 44, 6, 13, *U, PMUD, COB, SB)        # ossuary of the faithful
+        self.room(38, 43, 35, 35, F2, F2 + 1)              # from the tree to the offerings hall
+        self.room(44, 54, 30, 40, *L)                      # offerings hall
+        self.room(44, 45, 41, 45, F2, F2 + 2)              # corridor to the sun chamber
+        self.room(40, 45, 46, 59, *L)                      # sun chamber
         OSC = ("deepslate_tiles", "cobbled_deepslate", "deepslate_tiles")
-        self.room(24, 35, 42, 56, F2, F2 + 4, *OSC)        # cámara del rito (guardián)
-        self.room(29, 30, 57, 58, F2, F2 + 2, *TIMBER)        # paso al tesoro
-        self.room(26, 33, 59, 64, *L, *TIMBER)                # cámara del tesoro
+        self.room(24, 35, 42, 56, F2, F2 + 4, *OSC)        # rite chamber (guardian)
+        self.room(29, 30, 57, 58, F2, F2 + 2, *TIMBER)        # passage to the treasure
+        self.room(26, 33, 59, 64, *L, *TIMBER)                # treasure chamber
         self.lining()
         self.root_hall()
         self.library()
@@ -506,7 +506,7 @@ class Construction:
         self.sun_chamber()
         self.rite_chamber()
         self.treasury()
-        self.lining()                                      # lo que hayan abierto los mecanismos
+        self.lining()                                      # whatever the mechanisms have opened
 
     def root_hall(self):
         y = F1
@@ -523,17 +523,17 @@ class Construction:
 
     def library(self):
         y = F1
-        for z in range(22, 29):                            # estanterías del muro oeste
+        for z in range(22, 29):                            # bookshelves of the west wall
             for yy in (y, y + 1, y + 2):
                 self.s(16, yy, z, "bookshelf")
-        for x in (16, 17, 18, 25, 26):                     # y del norte (sin tapar el nicho ni la palanca)
+        for x in (16, 17, 18, 25, 26):                     # and of the north (without covering the niche or the lever)
             for yy in (y, y + 1):
                 self.s(x, yy, 20, "bookshelf")
-        for x in range(18, 25):                            # y del sur
+        for x in range(18, 25):                            # and of the south
             if x != 21:
                 for yy in (y, y + 1):
                     self.s(x, yy, 30, "bookshelf")
-        self.chest(25, y, 30, "north", "biblioteca")       # su pliego de la Crónica de los Heraldos
+        self.chest(25, y, 30, "north", "biblioteca")       # its sheet of the Chronicle of the Heralds
         self.s(21, y, 30, S("lectern", facing="north", has_book=False, powered=False))
         for z in (24, 26):                                 # mesa de lectura
             self.s(21, y, z, slab("birch", "top"))
@@ -543,7 +543,7 @@ class Construction:
         self.hang(18, y + 3, 28)
         self.sign(26, y + 1, 24, "west", "biblioteca", [("Aquí se guarda", "Here lies all"), ("lo que el bosque", "the forest has"),
                                                        ("ha contado.", "ever told.")])
-        # puerta secreta (puzle 2): un tramo de estantería se recoge; la palanca, a ras de suelo junto a ella
+        # secret door (puzzle 2): a section of bookshelf retracts; the lever, at ground level next to it
         rec = pieces.lever_door(self.s, (20, y, 18), "east", "south", "bookshelf", PL)
         self.mech["puerta_archivo"] = rec
         self.room(20, 20, 17, 17, y, y + 1, *(PL, S(SLOG, axis="y"), PL))
@@ -610,7 +610,7 @@ class Construction:
         for z in (33, 37):
             self.s(54, y, z, "mossy_cobblestone")
             self.s(54, y + 1, z, S("candle", candles=4, lit=False, waterlogged=False))
-        # la codicia: el cofre de las ofrendas al fondo de un nicho con placas (trampa 2: flechas desde los lados)
+        # greed: the offerings chest at the back of a niche with plates (trap 2: arrows from the sides)
         self.a(55, y, 35, 56, y + 1, 35)
         pieces.plate_trap(self.s, [(55, y, 35), (56, y, 35)], "north", arrows=16)
         self.chest(57, y, 35, "west", "ofrendas")
@@ -618,16 +618,16 @@ class Construction:
         self.mech["flechas"] = [(55, y, 34), (55, y, 36), (56, y, 34), (56, y, 36)]
 
     def sun_chamber(self):
-        """Cámara del sol (puzle 1): cuatro piedras de las estaciones con su palanca; solo los solsticios encendidos (verano
-        e invierno) y los equinoccios apagados abren la puerta. Las palancas falsas alimentan la línea directamente."""
+        """Sun chamber (puzzle 1): four season stones with their lever; only the solstices lit (summer
+        and winter) and the equinoxes off open the door. The false levers feed the line directly."""
         y = F2
-        for z in range(46, 60):                            # cara del muro de las estaciones
+        for z in range(46, 60):                            # face of the seasons wall
             for yy in range(y, y + 4):
                 self.s(39, yy, z, SB)
         rec = pieces.combo_door(self.s, (37, y, 48), "z", 1,
                                 [((40, y + 1, 54), (39, y + 1, 54)), ((40, y + 1, 58), (39, y + 1, 58))],
                                 name="sol", block=MSB)
-        for z in (52, 56):                                 # palancas falsas: polvo del bloque de la piedra a la línea
+        for z in (52, 56):                                 # false levers: dust from the stone's block to the line
             self.s(40, y + 1, z, S("lever", face="wall", facing="east", powered=False))
             self.s(38, y + 1, z, "redstone_wire[east=side,north=none,south=none,west=side,power=0]")
         for z in (52, 54, 56, 58):
@@ -653,10 +653,10 @@ class Construction:
             self.banner(45, y + 2, z, "west", "yellow")
 
     def rite_chamber(self):
-        """Cámara del rito: el archidruida Cadoc, el Marchito, junto al tocón negro del primer árbol."""
+        """Rite chamber: the archdruid Cadoc, el Marchito, next to the black stump of the first tree."""
         y = F2
         cx, cz = 29, 49
-        self.f(cx, y, cz, cx + 1, y + 1, cz + 1, S("stripped_dark_oak_log", axis="y"))   # tocón
+        self.f(cx, y, cz, cx + 1, y + 1, cz + 1, S("stripped_dark_oak_log", axis="y"))   # stump
         for (x, z) in disc(cx + 0.5, cz + 0.5, 4.2):
             d = dist(x, z, cx + 0.5, cz + 0.5)
             if 3.4 < d <= 4.2 and (x + z) % 2 == 0:
@@ -686,9 +686,9 @@ class Construction:
         self.hidden += [(x, y, z) for x in range(27, 33) for z in range(60, 64)] + [(29, y, 57), (30, y, 58)]
 
 
-# ------------------------------------------------------------------ guardián
+# ------------------------------------------------------------------ guardian
 def archdruid():
-    """El archidruida Cadoc, el Marchito: un evocador (sus vejaciones son su única escolta); sin otros refuerzos."""
+    """The archdruid Cadoc, el Marchito: an evoker (his vexes are his only escort); no other reinforcements."""
     return guardian("evoker", K + "guardian", "Archidruida Cadoc, el Marchito", 50, armor=4,
                     attributes={"follow_range": 20, "knockback_resistance": 0.3},
                     extra={"CanJoinRaid": B(0), "PatrolLeader": B(0)})

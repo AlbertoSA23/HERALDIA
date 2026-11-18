@@ -1,6 +1,6 @@
-"""Acabado y auditoría de la mansión: conexiones, estados de reposo, recorrido a pie, apoyos y mecanismos.
+"""Finishing and audit of the mansion: connections, resting states, walkthrough, supports and mechanisms.
 
-preparar(obra) devuelve (casa, sotano, errores). Si hay errores, build() los pasa a reg.warnings y la compilación falla.
+preparar(obra) returns (house, basement, errors). If there are errors, build() passes them to reg.warnings and the build fails.
 """
 from core import Template
 import lint
@@ -20,7 +20,7 @@ def rule_def(block, prob, out):
             "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:" + out}
 
 
-# Ruina repartida (15-20 % de la superficie a la vista); nada que sostenga un mecanismo o un recorrido.
+# Ruin spread around (15-20 % of the visible surface); nothing that holds up a mechanism or a walkthrough.
 DEGRADATION = {"processor_type": "minecraft:rule", "rules": [
     rule_def("deepslate_bricks", 0.4, "cracked_deepslate_bricks"),
     rule_def("deepslate_tiles", 0.15, "cracked_deepslate_tiles"),
@@ -41,7 +41,7 @@ def prepare(construction):
     fix_supports(t)
     connect(t)
     errs = []
-    rs.wire_shapes(t)                     # estado de reposo: lo que el juego calcularía tras actualizarse
+    rs.wire_shapes(t)                     # resting state: what the game would compute after updating
     for _ in range(3):
         rs.set_wire_power(t); rs.set_torches(t); rs.set_repeaters(t)
     e, _ = rs.check_static(t)
@@ -52,19 +52,19 @@ def prepare(construction):
     is_open = rs.retract(t, rs.Sim(t, {m["palanca_biblioteca"]: True}))
     for p in m["puerta_secreta"]:
         if p in is_open and bn(is_open[p]) != "air":
-            errs.append(f"la palanca no abre la estantería en {p}")
+            errs.append(f"the lever does not open the bookshelf at {p}")
         if bn(blocks.get(p)) != "bookshelf":
-            errs.append(f"estantería secreta ausente en {p}")
+            errs.append(f"secret bookshelf missing at {p}")
     errs += rs.check_puzzle(t, "cámara", m["palancas"], (True, False, False, True), [m["puerta_camara"]])
     sim = rs.Sim(t, {p: True for p in m["ganchos"]})
     for p in m["dispensadores"]:
         if not sim.powered(p):
-            errs.append(f"el cable trampa no activa el dispensador {p}")
+            errs.append(f"the trap wire does not activate the dispenser {p}")
     if not rs.Sim(t, {m["placa"]: True}).powered(m["tnt"][0]):
-        errs.append("la placa no ceba la dinamita")
+        errs.append("the pressure plate does not prime the dynamite")
     if not rs.Sim(t, {m["boton"]: True}).powered(m["puerta_almacen"]):
-        errs.append("el botón no abre la puerta del almacén")
-    # recorrido a pie: público (sin mecanismos) y resuelto (estantería abierta, puertas de hierro abiertas)
+        errs.append("the button does not open the storeroom door")
+    # walkthrough: public (no mechanisms) and solved (bookshelf open, iron doors open)
     trap = {p: None for p, st in blocks.items() if bn(st) in ("tripwire", "tripwire_hook")}
     iron = {p: "minecraft:stone" for p, st in blocks.items() if bn(st) == "iron_door"}
     pub = view(t.blocks, {**trap, **iron}, ENTRANCE)
@@ -78,7 +78,7 @@ def prepare(construction):
         if p not in cells:
             errs.append(f"zona oculta inalcanzable {p}")
         if p in cells_pub:
-            errs.append(f"zona oculta alcanzable sin mecanismos {p}")
+            errs.append(f"hidden area reachable without mechanisms {p}")
     for p, st in blocks.items():
         n = bn(st)
         y = p[1]
@@ -91,14 +91,14 @@ def prepare(construction):
                 errs.append(f"escalera inalcanzable {p} {n}")
     for p, _ in construction.chests:
         if not nearby_flag(cells, p):
-            errs.append(f"cofre inalcanzable {p}")
+            errs.append(f"unreachable chest {p}")
     for msg, pos in lint.support_issues(soln):
         errs.append(f"{msg} en {pos}")
     fl = floating_blocks({p: st for p, (st, _) in t.blocks.items()}, (0, -7))
     if fl:
-        errs.append(f"{len(fl)} bloques flotando, p. ej. {fl[:5]}")
+        errs.append(f"{len(fl)} floating blocks, e.g. {fl[:5]}")
     construction.cells, construction.cells_pub = cells, cells_pub
-    # partir en piezas y poner los jigsaws al final
+    # split into pieces and place the jigsaws last
     house, basement = Template(NS[9:] + "casa"), Template(NS[9:] + "sotano")
     for p, v in t.blocks.items():
         (house if p[1] >= 0 else basement).blocks[p] = v

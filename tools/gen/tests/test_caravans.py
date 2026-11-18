@@ -1,5 +1,5 @@
-"""Caravanas por los caminos (caravanas.py, T39): textos en los 8 idiomas, el logro, la página de la Guía, las opciones
-(con el perfil) y el comando, y que el Java solo use claves que existen."""
+"""Caravans on the roads (caravanas.py, T39): texts in the 8 languages, the advancement, the Guide page, the options
+(with the profile) and the command, and that the Java uses only keys that exist."""
 import json
 import os
 import re
@@ -23,7 +23,7 @@ def _java(route):
 
 
 def _all():
-    """Claves nuevas de T39 en es_es/en_us: los textos, el logro, la Guía y las opciones."""
+    """New T39 keys in es_es/en_us: the texts, the advancement, the Guide and the options."""
     out = {"es_es": {}, "en_us": {}}
     for part in (caravans.lang(), guide.lang(), options.lang()):
         for k in part["es_es"]:
@@ -47,11 +47,11 @@ def test_translated_in_each_language(lang_code):
     base = _all()
     assert len(base["en_us"]) >= 35
     for k, en in base["en_us"].items():
-        assert k in t, f"{lang_code}: falta {k}"
-        assert t[k].strip(), f"{lang_code}: {k} vacía"
+        assert k in t, f"{lang_code}: missing {k}"
+        assert t[k].strip(), f"{lang_code}: {k} empty"
         assert t[k] != base["es_es"][k] or k.endswith((".nombre", ".titulo", "seccion.caravanas")) or lang_code in ("gl_es", "pt_br"), \
-            f"{lang_code}: {k} sin traducir"
-        assert sorted(CAVITY.findall(t[k])) == sorted(CAVITY.findall(en)), f"{lang_code}: {k} con otros huecos"
+            f"{lang_code}: {k} untranslated"
+        assert sorted(CAVITY.findall(t[k])) == sorted(CAVITY.findall(en)), f"{lang_code}: {k} with different placeholders"
 
 
 def test_the_java_only_uses_keys_that_exist():
@@ -61,10 +61,10 @@ def test_the_java_only_uses_keys_that_exist():
     dynamic = {k for k in used if k.endswith(".")}
     assert {"heraldia.caravanas.fase."} == dynamic
     for k in used - dynamic:
-        assert k in lang, f"el Java usa {k}, que no está en caravanas.py"
+        assert k in lang, f"the Java uses {k}, which is not in caravanas.py"
     for phase in ("camino", "asalto"):
         assert f"heraldia.caravanas.fase.{phase}" in lang
-    # los nombres de los bandidos son los del campamento de bandidos
+    # the bandit names are those of the bandit camp
     from mediums import camp as camp
     for key in ("saqueador", "vindicador"):
         assert f'"heraldia.medianas.campamento.{key}"' in src and f"heraldia.medianas.campamento.{key}" in camp.LANG["es_es"]
@@ -95,7 +95,7 @@ def test_options_and_profile():
     assert fixed_opts["caravanas.prob_asalto"] == (35, 0, 100)
     assert fixed_opts["caravanas.max_activas"] == (1, 1, 3)
     for k in OPTION_KEYS:
-        assert not options.is_generation(k), f"{k} no es de la generación"
+        assert not options.is_generation(k), f"{k} is not a generation option"
     p = options.profiles()
     assert p["casual"]["caravanas.prob_asalto"] < p["estandar"]["caravanas.prob_asalto"] < p["hardcore"]["caravanas.prob_asalto"]
     assert "caravanas.activado" not in p["casual"] and "caravanas.max_activas" not in p["hardcore"]
@@ -110,4 +110,4 @@ def test_command_in_english_and_registered():
     assert "Caravans.node()" in _java("command/HeraldiaCommands.java")
     assert "Caravans.state()" in _java("command/StatusCommand.java")
     assert "Caravans.register()" in _java("Heraldia.java")
-    assert "LEVEL_GAMEMASTERS" in _java("caravans/Caravans.java"), "solo para operadores"
+    assert "LEVEL_GAMEMASTERS" in _java("caravans/Caravans.java"), "operators only"

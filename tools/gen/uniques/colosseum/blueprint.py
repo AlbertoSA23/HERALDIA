@@ -1,21 +1,21 @@
-"""Geometría del Coliseo en ruinas: anfiteatro elíptico (pieza principal, y >= 0) e hipogeo (pieza hija, y < 0).
+"""Geometry of the ruined Colosseum: elliptical amphitheater (main piece, y >= 0) and hypogeum (child piece, y < 0).
 
-Todo se construye en un único "mundo" con coordenadas centradas en la arena (dx, y, dz) y al final se parte en
-las dos plantillas. Así los elementos que cruzan y=0 (pozo, escalera oeste, pasadizo de Cómodo) son una sola pieza
-de diseño. `construir()` devuelve el mundo, las dos plantillas y el inventario de elementos para la auditoría.
+Everything is built in a single "world" with coordinates centered on the arena (dx, y, dz) and at the end it is split into
+the two templates. This way the elements that cross y=0 (shaft, west staircase, Commodus's passage) are a single piece
+of design. `construir()` returns the world, the two templates and the inventory of elements for the audit.
 """
 import math, random
 from core import Template, parse_state, state_str, B, F
 from .._common import pieces
 from .._common.walkthrough import is_full
 
-A0, B0 = 16.5, 9.5          # semiejes del borde de la arena
-CX, CZ = 43, 36             # centro de la arena en la plantilla principal (87 x 73)
+A0, B0 = 16.5, 9.5          # semi-axes of the arena edge
+CX, CZ = 43, 36             # center of the arena in the main template (87 x 73)
 NX, NZ = 87, 73
-TOP = 27                    # techo de la caja de la pieza principal
-NB = 40                     # vanos de la fachada
-WEDGE = (23.5, 29.5)        # vanos del tramo derrumbado (noroeste)
-HYP = (-31, 24, -16, 16, -14, -1)   # caja del hipogeo: dx0, dx1, dz0, dz1, y0, y1
+TOP = 27                    # ceiling of the main piece's box
+NB = 40                     # facade openings
+WEDGE = (23.5, 29.5)        # openings of the collapsed section (northwest)
+HYP = (-31, 24, -16, 16, -14, -1)   # hypogeum box: dx0, dx1, dz0, dz1, y0, y1
 
 FILL, FLOOR, WALL = "bricks", "smooth_sandstone", "smooth_sandstone"
 SEAT = "smooth_sandstone_stairs"
@@ -59,7 +59,7 @@ _CUM, _N = _arc_table()
 
 
 def bay(dx, dz, k):
-    """Posición en vanos (0..NB) a lo largo del anillo; los ejes caen en el centro de un vano (fracción 0,5)."""
+    """Position in bays (0..NB) along the ring; the axes fall in the center of a bay (fraction 0.5)."""
     t = math.atan2(dz / (B0 + k), dx / (A0 + k)) % (2 * math.pi)
     i = t / (2 * math.pi) * _N
     j = min(int(i), _N - 1)
@@ -75,7 +75,7 @@ def outward(dx, dz, k):
 
 
 def S(r):
-    """Altura del bloque superior (pisable) del anillo r."""
+    """Height of the top (walkable) block of ring r."""
     if r <= 3:
         return 4
     if r <= 9:
@@ -113,7 +113,7 @@ def ring(dx, dz):
 
 
 def noise(seed, x):
-    """Ruido 1D suave y determinista en [0, 1]."""
+    """Smooth, deterministic 1D noise in [0, 1]."""
     i = math.floor(x)
     f = x - i
     def h(n):
@@ -128,9 +128,9 @@ class Construction:
         self.t = Template("unicas/coliseo/_mundo")
         self.feat = {k: [] for k in ("cofre", "generador", "puerta", "puzle", "trampa", "guardian", "palanca",
                                      "marco", "escalera")}
-        self.solved = {}      # estado con los puzles resueltos: pos -> estado (o "air")
-        self.ruined = set()   # columnas (x, z) tocadas por la ruina: el escombro puede dejar escalones de un bloque
-        self.rooms = {}       # nombre -> (dx0, dx1, dz0, dz1, y) para planos y comprobaciones
+        self.solved = {}      # state with the puzzles solved: pos -> state (or "air")
+        self.ruined = set()   # columns (x, z) touched by the ruin: rubble may leave one-block steps
+        self.rooms = {}       # name -> (dx0, dx1, dz0, dz1, y) for floor plans and checks
 
     # coordenadas centradas
     def P(self, dx, y, dz):
@@ -149,19 +149,19 @@ class Construction:
                     self.set(x, y, z, st)
 
     def carve(self, dx, y, dz, open_=False):
-        """Vacía una celda. En la pieza principal solo se permite por debajo de la superficie del graderío
-        (si no, abriría un agujero visible), salvo que se pida expresamente (bocas de vomitorio)."""
+        """Empties a cell. In the main piece it is only allowed below the surface of the seating tiers
+        (otherwise it would open a visible hole), unless explicitly requested (vomitorium openings)."""
         if y >= 0:
             r = ring(dx, dz)
             if 0 <= r <= 24 and y >= S(r) and not open_:
-                raise DesignError(f"vaciado por encima de la superficie en {(dx, y, dz)} (anillo {r}, S={S(r)})")
+                raise DesignError(f"emptied above the surface at {(dx, y, dz)} (ring {r}, S={S(r)})")
             if open_ and 0 <= r <= 24 and y >= S(r):
                 for yy in range(y, S(r) + 2):
                     self.set(dx, yy, dz, "air")
         else:
             x0, x1, z0, z1, y0, y1 = HYP
             if not (x0 <= dx <= x1 and z0 <= dz <= z1 and y0 <= y):
-                raise DesignError(f"vaciado fuera de la caja del hipogeo en {(dx, y, dz)}")
+                raise DesignError(f"emptied outside the hypogeum box at {(dx, y, dz)}")
         self.set(dx, y, dz, "air")
 
     def carve_box(self, dx0, y0, dz0, dx1, y1, dz1, open_=False):
@@ -171,8 +171,8 @@ class Construction:
                     self.carve(x, y, z, open_)
 
     def flight(self, cells, y0, facing, mat=SEAT, head=2):
-        """Tramo de escalera: cells en orden ascendente; peldaño i en y0+i mirando hacia `facing` (lado alto).
-        Sobre cada peldaño que sigue subiendo se despejan `head` + 1 bloques: al subir, el cuerpo aún está encima."""
+        """Flight of stairs: cells in ascending order; step i at y0+i facing `facing` (high side).
+        Over each step that keeps rising, `head` + 1 blocks are cleared: when climbing, the body is still above."""
         for i, (x, z) in enumerate(cells):
             y = y0 + i
             for hy in range(1, head + 1 + (i < len(cells) - 1)):
@@ -191,7 +191,7 @@ class Construction:
         self.feat["generador"].append((label, mob, (dx, y, dz)))
 
     def lantern(self, dx, y, dz):
-        """Farol colgado del techo (fix_supports añade la cadena si hace falta)."""
+        """Lantern hung from the ceiling (fix_supports adds the chain if needed)."""
         self.set(dx, y, dz, "lantern[hanging=true]")
 
     def entity(self, dx, y, dz, nbt):
@@ -241,7 +241,7 @@ def base(o):
 
 
 def facade(o):
-    """Arcos de dos órdenes abiertos, tercer orden ciego, ático con ventanas, impostas y mástiles del velario."""
+    """Arches of two open orders, third order blind, attic with windows, impost courses and velarium masts."""
     for (dx, dz), c in COLS.items():
         r = c.r
         if not (22 <= r <= 25):
@@ -288,7 +288,7 @@ def galleries(o):
 
 
 def tunnels(o):
-    """Puerta Triunfal (este) y Libitinaria (oeste): túneles de la arena a G1; pasos norte y sur a los palcos."""
+    """Triumphal Gate (east) and Libitinaria (west): tunnels from the arena to G1; north and south passages to the boxes."""
     for sign in (1, -1):
         for dz in (-1, 0, 1):
             dx = sign * 16
@@ -296,7 +296,7 @@ def tunnels(o):
                 if ring(dx, dz) >= 0:
                     o.carve_box(dx, 1, dz, dx, 3, dz)
                 dx += sign
-        # rastrillo alzado en la boca de la arena
+        # portcullis raised at the arena mouth
         for dz in (-1, 0, 1):
             dx = sign * 17
             while ring(dx, dz) < 0:
@@ -304,7 +304,7 @@ def tunnels(o):
             o.set(dx, 3, dz, "iron_bars")
         o.lantern(sign * 27, 3, 0)
         o.feat["puerta"].append(("Puerta Triunfal" if sign > 0 else "Puerta Libitinaria", (sign * 17, 1, 0)))
-    # paso sur (palco imperial) y norte (palco del editor): llano hasta r=10 y escalera de 4 peldaños
+    # south passage (imperial box) and north (editor's box): level up to r=10 and a staircase of 4 steps
     for sign, label in ((1, "palco imperial"), (-1, "palco del editor")):
         face = "north" if sign > 0 else "south"
         for dx in (-1, 0, 1):
@@ -319,7 +319,7 @@ def tunnels(o):
 
 
 def g1_to_g2(o):
-    """Cuatro escaleras de G1 (pisa 1) a G2 (pisa 8): tramo de 7 peldaños hacia dentro, rellano y vuelta en llano."""
+    """Four staircases from G1 (walks at 1) to G2 (walks at 8): flight of 7 steps inward, landing and level return."""
     for sx in (1, -1):
         for sz in (1, -1):
             x = sx * 13
@@ -339,13 +339,13 @@ def g1_to_g2(o):
 
 
 def vomitoria(o):
-    """Seis vomitorios de G2 (pisa 8) al pasillo I (pisa 11): tres peldaños y llano; boca abierta en el graderío."""
+    """Six vomitoria from G2 (walks at 8) to corridor I (walks at 11): three steps and level; opening in the seating tiers."""
     lines = []
     for sz in (1, -1):
         for sx in (1, -1):
             lines.append([(sx * x, sz) for x in (7, 8, 9)])
     for sxe in (1, -1):
-        lines.append([(z, sxe) for z in (-1, 0, 1)])     # este / oeste: (dz, signo en x)
+        lines.append([(z, sxe) for z in (-1, 0, 1)])     # east / west: (dz, sign in x)
     for ln in lines[:4]:
         for x, sz in ln:
             z = sz * 31
@@ -373,14 +373,14 @@ def tabernae(o):
         x0, x1 = sorted((sx * 18, sx * 22))
         z0, z1 = sorted((sz * 18, sz * 21))
         o.carve_box(x0, 1, z0, x1, 3, z1)
-        # pasillo de acceso hasta G1
+        # access corridor up to G1
         for x in (sx * 20, sx * 21):
             z = sz * 22
             while ring(x, z) <= 18:
                 o.carve_box(x, 1, z, x, 3, z)
                 z += sz
-        # mobiliario contra la pared del fondo (la más interior)
-        inner = z1 if sz < 0 else z0         # fila junto a la pared del lado de la arena
+        # furniture against the back wall (the innermost one)
+        inner = z1 if sz < 0 else z0         # row next to the wall on the arena side
         face = "north" if sz < 0 else "south"
         xa = x0 if sx > 0 else x1
         o.chest(xa + sx * 1, 1, inner, face, "taberna", label)
@@ -393,8 +393,8 @@ def tabernae(o):
 
 
 def boxes(o):
-    """Palco imperial (sur, con el puzle 2) y palco del editor (norte)."""
-    # --- palco imperial: interior dx -4..4, dz 11..15, suelo y=4; muros laterales gruesos (3) y fondo dz=16
+    """Imperial box (south, with puzzle 2) and editor's box (north)."""
+    # --- imperial box: interior dx -4..4, dz 11..15, floor y=4; thick side walls (3) and back dz=16
     for x in range(-7, 8):
         for z in range(11, 17):
             o.fill(x, 1, z, x, 3, z, FILL)
@@ -416,8 +416,8 @@ def boxes(o):
         o.fill(x, 5, 11, x, 8, 11, "quartz_pillar[axis=y]")
     for x in range(-3, 4):
         o.set(x, 5, 10, PARAPET)
-    o.carve_box(-1, 5, 16, 1, 6, 16)                 # entrada desde la escalera
-    # trono mirando a la arena, alfombra y estandartes
+    o.carve_box(-1, 5, 16, 1, 6, 16)                 # entrance from the staircase
+    # throne facing the arena, carpet and banners
     o.set(0, 5, 13, "quartz_stairs[facing=south,half=bottom]")
     o.set(-1, 5, 13, "quartz_slab[type=bottom]")
     o.set(1, 5, 13, "quartz_slab[type=bottom]")
@@ -428,14 +428,14 @@ def boxes(o):
     o.set(4, 5, 12, "decorated_pot")
     o.lantern(-2, 8, 13)
     o.lantern(2, 8, 13)
-    # --- puzle 2: nicho + puerta de pistones enrasada en el muro oeste; palanca en el muro (x=-4, z=12)
+    # --- puzzle 2: niche + flush piston door in the west wall; lever in the wall (x=-4, z=12)
     a = 5
     m = pieces.lever_door(o.set, (-6, a, 15), "north", "east", "chiseled_quartz_block", MARBLE)
     o.feat["palanca"].append(("puzle 2: palanca del palco", m["lever"]))
     o.feat["puzle"].append(("puzle 2: puerta de pistones", m["door"]))
     o.solved.update({o.P(*p): st for p, st in m["opened"].items()})
     o.carve_box(-7, a, 15, -7, a + 1, 15)
-    # --- palco del editor (norte): interior dx -3..3, dz -15..-11, muros de 1
+    # --- editor's box (north): interior dx -3..3, dz -15..-11, 1-thick walls
     for x in range(-4, 5):
         for z in range(-16, -10):
             o.fill(x, 1, z, x, 3, z, FILL)
@@ -456,7 +456,7 @@ def boxes(o):
 
 
 def terrace(o):
-    """Cofre del velario contra el ático, en un machón cerca del eje este."""
+    """Velarium chest against the attic, on a pillar near the east axis."""
     best = None
     for (dx, dz), c in COLS.items():
         if c.r == 21 and dx > 30 and -12 < dz < 0:
@@ -474,7 +474,7 @@ def terrace(o):
 
 
 def west_stairs(o):
-    """Escalera de G1 (oeste) al hipogeo: paso llano y 7 peldaños bajando hacia el este hasta H1."""
+    """Staircase from G1 (west) to the hypogeum: level passage and 7 steps going down toward the east to H1."""
     for z in (2, 3):
         x = -40
         while ring(x, z) > 18:
@@ -503,7 +503,7 @@ def hypogeum(o):
     for x in (-10, -9, 9, 10):
         o.carve_box(x, H1, -4, x, H1 + 2, -2)
         o.carve_box(x, H1, 2, x, H1 + 2, 4)
-    # celdas de fieras (frente con rejas y puerta abierta)
+    # beast cells (front with bars and open door)
     cells = [(-16, -13), (-11, -8), (-6, -3), (3, 6), (8, 11), (13, 16)]
     for sz in (1, -1):
         for a, b in cells:
@@ -514,7 +514,7 @@ def hypogeum(o):
                     o.set(x, y, sz * 7, "iron_bars")
             o.carve_box(a + 1, H1, sz * 7, a + 1, H1 + 1, sz * 7)
         rooms["celdas " + ("sur" if sz > 0 else "norte")] = (-16, 16, min(sz * 8, sz * 10), max(sz * 8, sz * 10), H1)
-    # contenidos de las celdas
+    # contents of the cells
     o.spawner(-10, H1, -9, "spider", "arañas (celda norte)")
     o.spawner(9, H1, 9, "zombie", "zombis (celda sur)")
     o.set(-15, H1, -10, "hay_block"); o.set(-14, H1, -10, "hay_block"); o.set(-15, H1 + 1, -10, "hay_block")
@@ -526,9 +526,9 @@ def hypogeum(o):
     o.set(4, H1, 10, "hay_block"); o.set(5, H1, 10, "hay_block")
     o.chest(15, H1, 10, "north", "fieras", "domador (celda sur-este)")
     o.barrel(16, H1, 10); o.set(13, H1, 10, "hay_block")
-    for x in (3, 5):          # rejas rotas: hueco con sentido
+    for x in (3, 5):          # broken bars: opening that makes sense
         o.set(x, H1 + 2, -7, "air")
-    # montacargas: jaula de 2 x 1 con rejas, plataforma colgada y trampilla en la arena
+    # freight lift: 2 x 1 cage with bars, hanging platform and trapdoor in the arena
     for a in (-14, -6, 5, 13):
         for sz in (1, -1):
             for x in (a, a + 1):
@@ -539,16 +539,16 @@ def hypogeum(o):
                 o.set(x, -4, sz * 3, "spruce_slab[type=top]")
             for y in (-2, -3):
                 o.set(a, y, sz * 3, "iron_chain[axis=y]")
-    # pozo central con escalera de mano a la arena
+    # central shaft with a ladder to the arena
     for y in range(H1, 1):
         if y > -3:
             o.set(0, y, -1, "air")
         o.set(0, y, -1, "ladder[facing=south]")
     o.feat["escalera"].append(("pozo de la arena", (0, 0, -1)))
-    # trampa 1: cable trampa en el corredor de la armería (dx=16)
+    # trap 1: tripwire in the armory corridor (dx=16)
     pieces.tripwire_trap(o.set, (16, -1), (16, 1), H1, "z", [((16, H1 + 1, -2), "south"), ((16, H1 + 1, 2), "north")], arrows=3)
     o.feat["trampa"].append(("trampa 1: cable y flechas", (16, H1, 0)))
-    # armería (este)
+    # armory (east)
     room("armería", 19, 23, -7, 7, H1, 4)
     o.carve_box(18, H1, -1, 18, H1 + 1, 1)
     for z, gear in ((-6, "iron"), (-3, "chainmail"), (0, "leather"), (3, "chainmail")):
@@ -562,7 +562,7 @@ def hypogeum(o):
     o.chest(19, H1, -7, "south", "armeria", "armería")
     o.barrel(20, H1, -7, "south")
     o.lantern(21, H1 + 3, -4); o.lantern(21, H1 + 3, 0)
-    # puzle 1: pedestal con marco vacío -> comparador -> trampilla de hierro sobre el pozo al despacho
+    # puzzle 1: pedestal with empty frame -> comparator -> iron trapdoor over the shaft to the office
     o.set(20, H1, 5, "chiseled_stone_bricks")
     o.frame(20, H1, 4, 2)
     o.set(20, H1, 6, "comparator[facing=north,mode=compare,powered=false]")
@@ -570,7 +570,7 @@ def hypogeum(o):
     o.feat["marco"].append(("puzle 1: marco de la ofrenda", (20, H1, 4)))
     o.feat["puzle"].append(("puzle 1: trampilla de hierro", (20, H1, 7)))
     o.solved[o.P(20, H1, 7)] = "iron_trapdoor[facing=north,half=bottom,open=true,powered=true]"
-    # barracones (oeste) con generador de esqueletos
+    # barracks (west) with a skeleton spawner
     room("barracones", -24, -18, -9, -3, H1, 4)
     o.carve_box(-20, H1, -2, -20, H1 + 1, -2)
     for x in (-24, -22):
@@ -580,10 +580,10 @@ def hypogeum(o):
     o.chest(-18, H1, -9, "west", "barracones", "barracones")
     o.barrel(-18, H1, -8, "west"); o.barrel(-18, H1, -7, "up")
     o.spawner(-23, H1, -3, "skeleton", "esqueletos (barracones)")
-    # vestíbulo de la escalera oeste
+    # vestibule of the west staircase
     o.carve_box(-23, H1, 2, -21, H1 + 3, 3)
     rooms["vestíbulo oeste"] = (-23, -21, 2, 3, H1)
-    # H2: despacho del lanista, pasillo de las placas, cámara del tesoro
+    # H2: lanista's office, plate corridor, treasure chamber
     room("despacho del lanista", 16, 23, 1, 7, H2, 4)
     o.chest(23, H2, 1, "west", "lanista", "lanista (oculto)")
     o.set(17, H2, 1, "lectern[facing=south]"); o.set(18, H2, 1, "bookshelf"); o.set(19, H2, 1, "bookshelf")
@@ -610,7 +610,7 @@ def hypogeum(o):
     o.entity(0, H2, 0, champion())
     o.feat["guardian"].append(("Campeón de la Arena", (0, H2, 0)))
     o.carve_box(0, H2, 5, 0, H2 + 1, 5)
-    # pasadizo de Cómodo: tramo alto (dz=15) del palco al rellano H1, capilla, tramo bajo (dz=12) y pasillo a la cámara
+    # Commodus's passage: high flight (dz=15) from the box to the H1 landing, chapel, low flight (dz=12) and corridor to the chamber
     o.flight([(x, 15) for x in range(-18, -8)], -6, "east", mat="quartz_stairs")
     o.carve_box(-8, 4, 15, -8, 6, 15)
     o.set(-8, 4, 15, "quartz_stairs[facing=east,half=bottom]")
@@ -624,7 +624,7 @@ def hypogeum(o):
     o.carve_box(0, H2, 6, 0, H2 + 1, 11)
     room("cripta", -7, -5, 13, 15, H2, 3)
     o.spawner(-6, H2, 15, "skeleton", "esqueletos (cripta de Cómodo)")
-    for y in range(H2, H1):           # pozo del puzle 1 (después de vaciar el despacho)
+    for y in range(H2, H1):           # puzzle 1 shaft (after emptying the office)
         o.carve(20, y, 7)
         o.set(20, y, 7, "ladder[facing=north]")
 
@@ -640,7 +640,7 @@ def champion():
 
 
 def lining(o):
-    """Paredes, suelos y techos del hipogeo en ladrillo de piedra; la cámara del tesoro en piedra negra pulida."""
+    """Walls, floors and ceilings of the hypogeum in stone brick; the treasure chamber in polished blackstone."""
     x0, x1, z0, z1, y0, y1 = HYP
     tc = o.rooms["cámara del tesoro"]
     rock = "minecraft:" + ROCK
@@ -662,7 +662,7 @@ def lining(o):
 
 # ------------------------------------------------------------------ ruina
 def ruin(o):
-    """Tramo derrumbado al noroeste, cornisas rotas, muescas en la coronación y asientos sueltos."""
+    """Collapsed section in the northwest, broken cornices, notches in the crown and loose seats."""
     rng = random.Random(23)
     w0, w1 = WEDGE
     wc, wh = (w0 + w1) / 2, (w1 - w0) / 2
@@ -698,7 +698,7 @@ def ruin(o):
             o.set(dx, top, dz, m)
             if m == "coarse_dirt" and rng.random() < 0.3:
                 o.set(dx, top + 1, dz, "dead_bush")
-    # cornisas y coronación fuera del tramo
+    # cornices and crown outside the section
     for (dx, dz), c in COLS.items():
         if c.r == 25:
             for i, y in enumerate((6, 12, 18, 24)):
@@ -720,16 +720,16 @@ def ruin(o):
                 o.set(dx, s, dz, "smooth_sandstone_slab[type=bottom]" if rng.random() < 0.5 else "air")
 
 
-# ------------------------------------------------------------------ conexiones de muros, rejas y vallas
+# ------------------------------------------------------------------ connections of walls, bars and fences
 def drop_floating(o):
-    """Tras la ruina, los fragmentos que quedan sin unión con el suelo de su pieza se caen (se quitan)."""
+    """After the ruin, the fragments left without a connection to the ground of their piece fall (they are removed)."""
     from .._common.walkthrough import floating_blocks
     for p in floating_blocks({p: st for p, (st, _) in o.t.blocks.items()}, (0, HYP[4])):
         o.t.blocks[p] = ("minecraft:air", None)
 
 
 # ------------------------------------------------------------------ montaje
-JIG = (3, 0)       # (dx, dz) del conector vertical bajo la arena
+JIG = (3, 0)       # (dx, dz) of the vertical connector under the arena
 
 
 def construct(ruin_piece=True):

@@ -1,7 +1,7 @@
-"""El galeón: casco, cubiertas, estancias, palos y la brecha del costado de tierra.
+"""The galleon: hull, decks, rooms, masts and the breach in the land side.
 
-Coordenadas de diseño: X de tierra a mar (crujía SC), Z de proa (0) a popa (61), y = 0 nivel del mar.
-Pies: bodega -4, cubierta de cañones 1, principal 5, castillo de proa 9, alcázar 10, toldilla 15, cofa 23.
+Design coordinates: X from land to sea (centerline SC), Z from bow (0) to stern (61), y = 0 sea level.
+Feet: hold -4, gun deck 1, main 5, forecastle 9, quarterdeck 10, poop deck 15, crow's nest 23.
 """
 from .common import SC
 
@@ -9,8 +9,8 @@ HULL, HULL_LOW, WALE = "dark_oak_planks", "dark_oak_wood[axis=y]", "stripped_dar
 DECK, WALL, TRIM = "spruce_planks", "spruce_planks", "honeycomb_block"
 MAST = "stripped_spruce_log[axis=y]"
 FOREMAST, MAINMAST, MIZZEN = 16, 30, 47
-BREACH = range(25, 34)        # brecha del costado de tierra (cubierta de cañones)
-BREACH_HOLD = range(27, 32)   # y su prolongación hasta la bodega
+BREACH = range(25, 34)        # breach in the land side (gun deck)
+BREACH_HOLD = range(27, 32)   # and its extension down to the hold
 
 
 def hw(y, z):
@@ -32,7 +32,7 @@ def in_hull(x, y, z):
 
 
 def side(o, x, z):
-    """Lado del barco de una columna: 'tierra' (X menor) o 'mar'."""
+    """Side of the ship for a column: 'tierra' (lower X) or 'mar'."""
     return "tierra" if x < SC else "mar"
 
 
@@ -89,7 +89,7 @@ def bulkhead(o, z, y1, y2, door_x=None, opening=False, door_facing="south"):
 
 
 def railings(o):
-    """Bordas con barandilla y bordes de cubierta con huecos para las escaleras."""
+    """Gunwales with railing and deck edges with gaps for the stairs."""
     for z in range(0, 62):
         y = top(z)
         h = hw(y, z)
@@ -98,17 +98,17 @@ def railings(o):
         if z in (0, 61):
             for x in range(SC - h, SC + h + 1):
                 o.s(x, y + 1, z, "spruce_fence")
-    # bordes interiores: proa (z=13, pies 9), alcázar (z=45, pies 10), toldilla (z=50, pies 15)
+    # inner edges: bow (z=13, feet 9), quarterdeck (z=45, feet 10), poop deck (z=50, feet 15)
     for z, y, gaps in ((13, 9, {SC}), (45, 10, {59, 69}), (50, 15, {SC})):
         for x in interior_row(y, z) or range(SC - hw(y, z) + 1, SC + hw(y, z)):
             o.s(x, y, z, "air" if x in gaps else "spruce_fence")
-    # popa: faroles sobre postes
+    # stern: lanterns on posts
     for x in (SC - 4, SC, SC + 4):
         o.s(x, 17, 61, "lantern[hanging=false,waterlogged=false]")
 
 
 def mast(o, z, y_top, lean):
-    """Palo desde la bodega; lean = [(y, desplazamiento)] hacia el mar."""
+    """Mast from the hold; lean = [(y, offset)] toward the sea."""
     prev = 0
     for y in range(-4, y_top + 1):
         d = 0
@@ -149,11 +149,11 @@ def masts(o):
     mast(o, FOREMAST, 22, [])
     mast(o, MAINMAST, 38, [(26, 1), (31, 2), (35, 3)])
     mast(o, MIZZEN, 28, [(24, 1)])
-    # trinquete: el mastelero se partió (está en la playa); queda la verga baja
+    # foremast: the topmast broke (it is on the beach); the low yard remains
     yardarm(o, FOREMAST, 17, SC - 6, SC + 6)
     sail(o, FOREMAST, SC - 5, SC + 5, 9, 16, torn={(SC - 5, 9), (SC - 5, 10), (SC - 4, 9), (SC + 5, 9), (SC + 3, 9), (SC + 4, 9),
                                                      (SC + 5, 10), (SC + 5, 11), (SC - 2, 9)})
-    # mayor con la cruz de Borgoña, cofa y gavia
+    # main mast with the Burgundy cross, top and topsail
     yardarm(o, MAINMAST, 19, SC - 7, SC + 7)
     sail(o, MAINMAST, SC - 6, SC + 6, 9, 18, cross=True,
          torn={(SC - 6, 9), (SC - 6, 10), (SC - 5, 9), (SC + 6, 9), (SC + 2, 9), (SC + 3, 9), (SC + 3, 10), (SC + 6, 13), (SC + 6, 14)})
@@ -168,10 +168,10 @@ def masts(o):
     yardarm(o, MAINMAST, 31, SC - 3, SC + 7)
     sail(o, MAINMAST, SC - 2, SC + 6, 26, 30, torn={(SC - 2, 26), (SC + 6, 26), (SC + 5, 26)})
     yardarm(o, MAINMAST, 36, SC, SC + 6)
-    # mesana: vela latina pequeña sobre el alcázar
+    # mizzen: small lateen sail over the quarterdeck
     yardarm(o, MIZZEN, 22, SC - 4, SC + 5)
     sail(o, MIZZEN, SC - 3, SC + 4, 16, 21, torn={(SC - 3, 16), (SC + 4, 16), (SC + 4, 17)})
-    # bauprés
+    # bowsprit
     y, z = 9, -1
     o.s(SC, 9, 0, "stripped_spruce_log[axis=z]")
     for step in range(10):
@@ -186,13 +186,13 @@ def hold(o):
     bulkhead(o, 13, -4, -1, door_x=SC, opening=True)
     bulkhead(o, 42, -4, -1, door_x=SC)
     bulkhead(o, 49, -4, -1, door_x=SC)
-    # bodega de proa: escala al pañol del contramaestre, víveres y generador
+    # forward hold: ladder to the boatswain's locker, provisions and generator
     o.ladder(SC - 3, 12, -4, 0, "north")
     o.spawner(SC, -4, 7, "drowned", dark=True)
     o.chest(SC + 2, -4, 11, "west", "bodega")
     for x, z in ((SC - 2, 5), (SC - 2, 6), (SC + 2, 5), (SC + 2, 6), (SC + 3, 8), (SC + 3, 9)):
         o.barrel(x, -4, z)
-    # bodega mayor: carga estibada; el pasillo junto al casco lleva al pañol oculto
+    # main hold: stowed cargo; the passage beside the hull leads to the hidden magazine
     for x in range(SC - 3, SC + 5):
         if x != SC:
             for y in (-4, -3, -2, -1):
@@ -209,12 +209,12 @@ def hold(o):
     for z in (20, 21, 22):
         o.s(SC - 3, -4, z, "hay_block[axis=y]")
     o.spawner(SC + 3, -4, 25, "drowned", dark=True)
-    # pañol de pólvora: sin luz
+    # powder magazine: no light
     for x, z in ((SC - 3, 44), (SC - 3, 45), (SC + 3, 44), (SC + 3, 45), (SC + 3, 46), (SC - 3, 46)):
         o.barrel(x, -4, z)
         o.barrel(x, -3, z)
     o.barrel(SC + 2, -4, 48, "polvora")
-    # santabárbara: placa ante el cofre y TNT bajo el suelo
+    # powder room: plate in front of the chest and TNT under the floor
     o.chest(SC, -4, 57, "north", "santabarbara")
     o.s(SC, -4, 56, "stone_pressure_plate[powered=false]")
     for x, z in ((SC, 56), (SC - 1, 56), (SC + 1, 56), (SC, 55)):
@@ -223,7 +223,7 @@ def hold(o):
         for z in (51, 52):
             o.barrel(x, -4, z)
     o.circuits.append(("santabarbara", [("pisar", (SC, -4, 56))], [("tnt", (SC, -6, 56))]))
-    # escalera de la bodega a la cubierta de cañones (sube hacia popa)
+    # staircase from the hold to the gun deck (rises toward the stern)
     o.flight(SC + 3, 36, -4, "south", 5)
     for z in (38, 39, 40):
         o.s(SC + 2, 1, z, "spruce_fence")
@@ -240,14 +240,14 @@ def cannon(o, x_in, x_out, z):
 def gun_deck(o):
     bulkhead(o, 13, 1, 3, door_x=SC)
     bulkhead(o, 45, 1, 3, door_x=SC)
-    # pañol del contramaestre
+    # boatswain's locker
     o.barrel(SC - 2, 1, 5, "bodega")
     o.barrel(SC + 2, 1, 5)
     o.barrel(SC + 3, 1, 8)
     o.barrel(SC + 3, 1, 9)
     o.s(SC + 4, 1, 11, "grindstone[face=floor,facing=west]")
     o.lantern_hang(SC, 3, 8)
-    # batería: siete cañones a estribor, cuatro a babor (la brecha se llevó el resto)
+    # battery: seven cannons to starboard, four to port (the breach took the rest)
     for z in (16, 20, 24, 28, 32, 36, 40):
         if z == 36 or z == 40:
             pass
@@ -262,7 +262,7 @@ def gun_deck(o):
     for z in (20, 38):
         o.lantern_hang(SC - 2, 3, z)
     o.flight(SC - 3, 18, 1, "south", 4)
-    # enfermería del cirujano
+    # surgeon's infirmary
     o.bed(SC - 7, 1, 47, "west", "white")
     o.bed(SC - 7, 1, 50, "west", "white")
     o.chest(SC + 7, 1, 48, "west", "cirujano")
@@ -286,16 +286,16 @@ def main_deck(o):
     o.table(SC, 5, 7)
     o.chair(SC, 5, 6, "north")
     o.lantern_hang(SC, 7, 9)
-    # escaleras dobles al castillo de proa y rellano sobre la puerta
+    # double staircases to the forecastle and landing above the door
     o.flight(SC - 4, 14, 5, "east", 4)
     o.flight(SC + 4, 14, 5, "west", 4)
     o.s(SC, 8, 14, DECK)
-    # escotilla a la cubierta de cañones con barandilla
+    # hatch to the gun deck with railing
     for z in (18, 19, 20):
         o.s(SC - 4, 5, z, "spruce_fence")
         o.s(SC - 2, 5, z, "spruce_fence")
     o.s(SC - 3, 5, 17, "spruce_fence")
-    # enjaretados, cabrestante y mastelero caído con trozos de vela
+    # gratings, capstan and fallen topmast with pieces of sail
     for x in (SC + 1, SC + 2, SC + 3):
         for z in (36, 37):
             o.s(x, 4, z, "spruce_trapdoor[facing=north,half=top,open=false,powered=false,waterlogged=false]")
@@ -306,10 +306,10 @@ def main_deck(o):
             o.s(x, 5, 24, "spruce_log[axis=x]")
     for x, z in ((SC - 5, 25), (SC - 4, 25), (SC - 4, 26), (SC - 3, 26), (SC + 2, 25)):
         o.s(x, 5, z, "white_carpet")
-    # escaleras dobles al alcázar
+    # double staircases to the quarterdeck
     o.flight(SC - 5, 40, 5, "south", 5)
     o.flight(SC + 5, 40, 5, "south", 5)
-    # cámara de oficiales
+    # officers' quarters
     for z in range(50, 55):
         o.table(SC, 5, z)
         o.chair(SC - 1, 5, z, "west")
@@ -328,8 +328,8 @@ def main_deck(o):
 
 
 def stern_castle(o):
-    """Alcázar, antecámara, camarote del capitán, cámara del tesorero y toldilla."""
-    # fachada del castillo (z=50) con puerta y escaleras dobles a la toldilla
+    """Quarterdeck, antechamber, captain's cabin, treasurer's chamber and poop deck."""
+    # castle facade (z=50) with door and double staircases to the poop deck
     for y in range(10, 14):
         for x in interior_row(y, 50):
             o.s(x, y, 50, WALL)
@@ -339,7 +339,7 @@ def stern_castle(o):
     o.flight(SC - 5, 49, 10, "east", 5)
     o.flight(SC + 5, 49, 10, "west", 5)
     o.s(SC, 14, 49, DECK)
-    # mamparo entre antecámara y camarote (z=53) y bloque macizo que esconde el mecanismo
+    # bulkhead between antechamber and cabin (z=53) and a solid block hiding the mechanism
     for y in range(10, 14):
         for x in interior_row(y, 53):
             if x >= SC - 4:
@@ -350,8 +350,8 @@ def stern_castle(o):
         for z in range(54, 61):
             o.s(SC - 4, y, z, "bookshelf" if y <= 11 else WALL)
     o.door(SC + 3, 10, 53, "south")
-    # cámara del tesorero (X 58-59) y puerta secreta de estanterías
-    x_w = SC - 4                     # muro del camarote
+    # treasurer's chamber (X 58-59) and secret bookshelf door
+    x_w = SC - 4                     # cabin wall
     for y in (10, 11):
         o.s(x_w, y, 52, "sticky_piston[extended=true,facing=south]")
         o.s(x_w, y, 53, "piston_head[facing=south,short=false,type=sticky]")
@@ -365,10 +365,10 @@ def stern_castle(o):
     o.barrel(SC - 6, 10, 58)
     o.barrel(SC - 6, 11, 58)
     o.lantern_hang(SC - 5, 13, 56)
-    # antecámara
+    # antechamber
     o.barrel(SC + 6, 10, 51)
     o.s(SC + 6, 10, 52, "spruce_slab[type=bottom,waterlogged=false]")
-    # camarote del capitán
+    # captain's cabin
     for x in range(SC - 3, SC + 7):
         for z in range(55, 61):
             o.s(x, 10, z, "red_carpet")
@@ -382,22 +382,22 @@ def stern_castle(o):
     for x in range(SC - 2, SC + 6):
         for y in (11, 12):
             if (x, y) in ((SC, 11), (SC + 1, 12)):
-                o.smash(x, y, 61)        # cristales rotos de la popa
+                o.smash(x, y, 61)        # broken panes of the stern
             else:
                 o.s(x, y, 61, "glass_pane")
             o.surface.add((x, y, 61))
 
 
 def breach(o):
-    """Costado de tierra reventado por la varada: se entra desde la playa a la cubierta de cañones."""
+    """Land side burst open by the grounding: it is entered from the beach onto the gun deck."""
     xl = SC - 8
     for z in BREACH:
         for y in (1, 2, 3):
             o.smash(xl, y, z)
-        o.smash(xl, 5, z)          # borda y barandilla arrancadas
+        o.smash(xl, 5, z)          # gunwale and railing torn off
         o.smash(xl, 6, z)
         if z in (27, 28, 29, 30):
-            o.smash(xl + 1, 4, z)  # cubierta principal hundida sobre la brecha
+            o.smash(xl + 1, 4, z)  # main deck sunken over the breach
             o.smash(xl + 2, 4, z) if z in (28, 29) else None
     o.smash(xl, 3, 24)
     o.smash(xl, 3, 34)
@@ -410,22 +410,22 @@ def breach(o):
         o.smash(SC - 6, -3, z, "sand")
     for x, z in ((SC - 7, 26), (SC - 7, 31), (SC - 6, 28)):
         o.s(x, 1, z, "sand")
-    # percebes y algas en la línea de flotación del costado de mar
+    # barnacles and algae on the waterline of the sea side
     for z in range(3, 60):
         for y in (0, 1):
             if o.rng.random() < (0.6 if y == 0 else 0.35):
                 o.smash(SC + hw(y, z), y, z, o.rng.choice(("dead_brain_coral_block", "dead_tube_coral_block")))
-    # tablas de cubierta partidas (se pisa medio bloque más abajo) en el combés, la proa y la toldilla
+    # split deck planks (stepped on half a block lower) in the waist, the bow and the poop deck
     for (y, z1, z2) in ((4, 14, 44), (8, 1, 12), (14, 51, 60)):
         for z in range(z1, z2 + 1):
             for x in interior_row(y, z):
                 if o.g(x, y, z) == "minecraft:spruce_planks" and o.g(x, y + 1, z) == "minecraft:air" and o.rng.random() < 0.15:
                     o.smash(x, y, z, "spruce_slab[type=bottom,waterlogged=false]")
-    # borda de estribor desfondada por un golpe de mar
+    # starboard gunwale stove in by a wave
     for z in range(36, 42):
         o.smash(SC + 8, 5, z)
         o.smash(SC + 8, 6, z)
-    # tracas arrancadas en el costado de tierra, junto a la brecha y hacia popa
+    # strakes torn off on the land side, beside the breach and toward the stern
     for x0, y0, z0, w, h in ((SC - 8, 1, 21, 2, 2), (SC - 8, 2, 37, 3, 1), (SC - 8, 6, 52, 2, 2), (SC + 8, 2, 46, 1, 1), (SC + 8, 6, 50, 3, 2), (SC + 8, 6, 8, 3, 3), (SC - 8, 6, 56, 3, 2), (SC + 8, 1, 30, 2, 1), (SC + 8, 6, 55, 3, 2), (SC + 8, 2, 13, 1, 2)):
         for z in range(z0, z0 + w):
             for y in range(y0, y0 + h):
@@ -443,4 +443,4 @@ def construct(o):
     railings(o)
     masts(o)
     breach(o)
-    # la escotilla de la proa y la escala de la cofa atraviesan cubiertas
+    # the bow hatch and the crow's nest ladder cut through decks

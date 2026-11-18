@@ -1,6 +1,6 @@
-"""Ermita (heraldia:medianas/ermita/<estilo>): capilla de 7 x 11 con espadaña y campana, bancos, altar con velas y la
-celda del ermitaño (cama y cofre con su diario), y un huerto vallado con una acequia. Variante a: el huerto al este;
-b: el huerto al oeste y un pequeño camposanto al este. Sin monstruos."""
+"""Hermitage (heraldia:medianas/ermita/<estilo>): 7 x 11 chapel with a bell gable and bell, pews, altar with candles and the
+hermit's cell (bed and chest with his diary), and a fenced garden with an irrigation ditch. Variant a: the garden to the east;
+b: the garden to the west and a small graveyard to the east. No monsters."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot
@@ -35,7 +35,7 @@ LOOT = {
         chest_loot.pool((1, 1), [item("emerald", 3, 1, 2), item("lapis_lazuli", 3, 2, 5), empty(8)], extra=True)),
 }
 
-X0, Z0, X1, Z1 = 7, 3, 13, 13       # muros de la capilla (7 x 11), puerta al norte
+X0, Z0, X1, Z1 = 7, 3, 13, 13       # chapel walls (7 x 11), door to the north
 CX = 10
 WIDTH, DEPTH = 21, 17
 
@@ -52,26 +52,26 @@ def _chapel(p, name):
     c.entrance(t, CX, f"{p['peldano']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, p["suelo"])
-    # muros girados: la cumbrera va a lo largo de z, así que se construye en (z, x) con el tejado común sobre x
+    # rotated walls: the ridge runs along z, so it is built in (z, x) with the common roof over x
     c.box(t, X0, 1, Z0, X1, 4, Z1, p["muro"], corner_block=p["esquina"])
     t.fill(X0, 5, Z0, X1, 5, Z1, p["muro"])
     t.fill(X0 + 1, 5, Z0 + 1, X1 - 1, 5, Z1 - 1, f"{m}_planks")
     summit = _roof_z(t, p, 5)
     c.door(t, CX, 1, Z0, "south", f"{m}_door")
-    # espadaña sobre la fachada norte con la campana
+    # bell gable over the north facade with the bell
     t.fill(CX - 1, summit, Z0, CX + 1, summit + 3, Z0, p["esquina"])
     t.set(CX, summit + 1, Z0, "air")
     t.set(CX, summit + 2, Z0, "bell[attachment=ceiling,facing=north,powered=false]")
-    # ventanas altas en los muros largos, rosetón sobre la puerta
+    # high windows in the long walls, rose window over the door
     for z in (5, 8, 11):
         c.window(t, X0, 3, z, p["vidriera"])
         c.window(t, X1, 3, z, p["vidriera"])
     c.window(t, CX, 4, Z0, p["vidriera"])
-    # bancos mirando al altar (sur): respaldo al norte
+    # pews facing the altar (south): backrest to the north
     for z in (5, 7):
         for x in (X0 + 1, X0 + 2, X1 - 2, X1 - 1):
             t.set(x, 1, z, f"{m}_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]")
-    # presbiterio: escalón, altar con velas; la celda detrás de un tabique con puerta
+    # chancel: step, altar with candles; the cell behind a partition with a door
     t.fill(X0 + 1, 1, 9, X1 - 1, 1, 9, f"{p['losa']}[type=bottom,waterlogged=false]")
     t.fill(X0 + 1, 1, 10, X1 - 1, 4, 10, p["muro"])
     t.set(CX, 1, 10, p["altar"])
@@ -88,7 +88,7 @@ def _chapel(p, name):
 
 
 def _roof_z(t, p, y):
-    """Tejado a dos aguas con la cumbrera a lo largo de z (las aguas hacia el este y el oeste)."""
+    """Gable roof with the ridge along z (the slopes to the east and west)."""
     xa, xb, yy = X0 - 1, X1 + 1, y
     while True:
         for z in range(Z0 - 1, Z1 + 2):
@@ -106,7 +106,7 @@ def _roof_z(t, p, y):
 
 
 def _garden(t, p, x0, x1):
-    """Huerto vallado de x0..x1 (z 4..12) con bancales, una acequia de una fuente en el centro y un compostador."""
+    """Fenced garden from x0..x1 (z 4..12) with terraces, an irrigation ditch with a fountain in the center and a composter."""
     m = p["madera"]
     z0, z1 = 4, 12
     for x in range(x0, x1 + 1):
@@ -129,7 +129,7 @@ def orchard_east(p, name):
 
 
 def churchyard(p, name):
-    """Huerto al oeste y, al este, tres tumbas con su lápida y una vela."""
+    """Garden to the west and, to the east, three graves with their headstones and a candle."""
     t = _chapel(p, name)
     _garden(t, p, 1, X0 - 2)
     for z in (5, 8, 11):

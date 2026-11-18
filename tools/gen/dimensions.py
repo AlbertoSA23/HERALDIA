@@ -1,47 +1,47 @@
-"""Contenido de Heraldia en el Nether y el End (T44): lo que comparten sus medianas (medianas/<id> con DIMENSION) y sus
-únicas (unicas/<id> con DIMENSION).
+"""Heraldia content in the Nether and the End (T44): what their medium structures (medianas/<id> with DIMENSION) and their
+unique structures (unicas/<id> with DIMENSION) share.
 
-Un módulo de mediana o de única que declara DIMENSION = "nether" o "end" se escribe con el tipo de estructura propio
-heraldia:dimension (Java: dimensiones/DimensionStructure), que busca la altura del inicio en la columna de ruido: en el
-Nether no hay heightmap de superficie (el techo de bedrock) y en el End el heightmap del vacío es la altura mínima del
-mundo. Sus rejillas no buscan la candidata en el bioma (la búsqueda de GridPlacement solo lee el ruido del mundo
-principal) ni llevan la zona de exclusión de las aldeas vanilla (no hay aldeas allí); las reglas de separación (entre
-únicas, entre medianas y con las vanilla y las de otros mods) se aplican con las de su misma dimensión
-(Dimensiones.posible). Los mapas del tesoro, los tratos de los cartógrafos y el mapa del pliego de la Crónica solo
-señalan las únicas del mundo principal: un mapa de exploración busca en la dimensión donde se crea.
+A medium or unique structure module that declares DIMENSION = "nether" or "end" is written with its own structure type
+heraldia:dimension (Java: dimensiones/DimensionStructure), which looks for the start height in the noise column: in the
+Nether there is no surface heightmap (the bedrock roof) and in the End the void heightmap is the world's minimum
+height. Their grids do not look for the candidate in the biome (the GridPlacement search only reads the overworld's
+noise) nor carry the vanilla village exclusion zone (there are no villages there); the separation rules (between
+unique structures, between medium ones and with vanilla ones and those of other mods) are applied with those of their own dimension
+(Dimensiones.posible). The treasure maps, the cartographers' trades and the Chronicle sheet's map only
+point to the unique structures of the overworld: an exploration map searches in the dimension where it is created.
 """
 from core import NS, nsid
 
 MAIN, NETHER, END = "overworld", "nether", "end"
 DIMENSIONS = (MAIN, NETHER, END)
-# Biomas vanilla de cada dimensión (los de otros mods entran por las etiquetas convencionales de cada estilo).
+# Vanilla biomes of each dimension (those of other mods come in through each style's conventional tags).
 BIOME_MAP = {
     NETHER: ["nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas"],
-    # islas exteriores: ni the_end (la isla central y el combate del dragón) ni small_end_islands (islotes sueltos)
+    # outer islands: neither the_end (the central island and the dragon fight) nor small_end_islands (loose islets)
     END: ["end_highlands", "end_midlands", "end_barrens"],
 }
-# Lo que la generación de cada dimensión decora encima si queda a la vista en el patio (y = 0): nilio (hongos y raíces),
-# netherrack (fuego), arena y tierra de almas (fuego de almas y huesos) y piedra del End (coros).
+# What each dimension's generation decorates on top if it is left exposed in the courtyard (y = 0): nylium (fungi and roots),
+# netherrack (fire), sand and soul soil (soul fire and bones) and End stone (chorus).
 LIVE_FLOOR = {f"minecraft:{b}" for b in ("crimson_nylium", "warped_nylium", "netherrack", "soul_sand", "soul_soil",
                                           "end_stone")}
-# Holgura sobre la plantilla que pide el Nether bajo el techo (aire encima de la fila más alta).
+# Clearance over the template required by the Nether under the roof (air above the highest row).
 SLACK = 2
-# Nada que rompa la progresión fuera del mundo principal: ni equipo de netherita, ni lingotes, ni restos antiguos (los
-# fragmentos, como mucho uno, en el cofre premium de la única del Nether), ni élitros, ni nada del dragón.
+# Nothing that breaks progression outside the overworld: no netherite equipment, no ingots, no ancient debris (the
+# scraps, at most one, in the premium chest of the Nether unique structure), no elytra, nothing from the dragon.
 FORBIDDEN = ("netherite_ingot", "netherite_sword", "netherite_axe", "netherite_pickaxe", "netherite_shovel",
              "netherite_hoe", "netherite_helmet", "netherite_chestplate", "netherite_leggings", "netherite_boots",
              "netherite_block", "ancient_debris", "netherite_upgrade_smithing_template", "elytra", "dragon_egg",
              "dragon_head", "dragon_breath", "end_crystal", "enchanted_golden_apple", "totem_of_undying")
-MAX_FRAGMENTS = 1      # fragmentos de netherita (netherite_scrap) por cofre, como mucho (el tesoro de un bastión)
+MAX_FRAGMENTS = 1      # netherite scraps (netherite_scrap) per chest, at most (a bastion's treasure)
 
 
 def dimension_of(mod):
-    """Dimensión de un módulo de mediana o de única (por defecto, el mundo principal)."""
+    """Dimension of a medium or unique structure module (by default, the overworld)."""
     return getattr(mod, "DIMENSION", MAIN)
 
 
 def overworld_only(modules):
-    """[(id, módulo)] de las del mundo principal (las que pueden llevar mapa del tesoro)."""
+    """[(id, module)] of those in the overworld (those that can carry a treasure map)."""
     return [(i, m) for i, m in modules if dimension_of(m) == MAIN]
 
 
@@ -52,8 +52,8 @@ def errors(name, mod):
 
 def structure(start_pool, biomes, size, max_distance, mode, radius, free, terrain_adaptation="beard_thin",
                step="surface_structures"):
-    """JSON de una estructura heraldia:dimension. `radio`: bloques del centro a las esquinas de la huella que se miran
-    (suelo llano); `libre`: aire que necesita encima del suelo en el Nether (alto de la plantilla + HOLGURA)."""
+    """JSON of a heraldia:dimension structure. `radius`: blocks from the center to the corners of the footprint that are checked
+    (flat ground); `free`: air it needs above the ground in the Nether (template height + SLACK)."""
     assert mode in (NETHER, END), mode
     return {"type": f"{NS}:dimension", "biomes": biomes, "step": step, "spawn_overrides": {},
             "terrain_adaptation": terrain_adaptation, "start_pool": nsid(start_pool), "size": size,
@@ -62,12 +62,12 @@ def structure(start_pool, biomes, size, max_distance, mode, radius, free, terrai
 
 
 def forbidden_items(items):
-    """Los ids de `objetos` (["minecraft:..."]) que no pueden salir en el Nether o el End."""
+    """The ids in `items` (["minecraft:..."]) that cannot appear in the Nether or the End."""
     return [o for o in items if o.split(":")[-1] in FORBIDDEN]
 
 
 def extra_fragments(tbl):
-    """Entradas de netherite_scrap con más de MAX_FRAGMENTOS (cantidad máxima de set_count)."""
+    """netherite_scrap entries with more than MAX_FRAGMENTS (maximum set_count quantity)."""
     out = []
 
     def walk(o):

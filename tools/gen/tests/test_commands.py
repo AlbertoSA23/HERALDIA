@@ -1,6 +1,6 @@
-"""comandos.py: los comandos en inglés y sus nombres antiguos (T35b). Que el mapa de alias es el mismo que el de Java
-(comando/Alias.ANTIGUOS), que ningún texto del mod (los 8 idiomas) ni ningún botón (run_command / suggest_command de los
-textos generados y de los ClickEvent del Java) manda a un nombre antiguo, y que los nombres nuevos son ingleses y ASCII.
+"""comandos.py: the English commands and their old names (T35b). That the alias map is the same as the Java one
+(comando/Alias.ANTIGUOS), that no text of the mod (the 8 languages) nor any button (run_command / suggest_command of the
+generated texts and of the Java ClickEvents) sends to an old name, and that the new names are English and ASCII.
 """
 import glob
 import json
@@ -43,12 +43,12 @@ def _java():
             yield os.path.relpath(f, ROOT), h.read()
 
 
-# ------------------------------------------------------------------ lógica pura
+# ------------------------------------------------------------------ pure logic
 def test_old_paths_cover_the_mixes():
     r = set(commands.old_paths())
     assert {"guia", "llave", "info cerca", "info aqui", "arena colocar", "arena colocar confirmar", "arena place confirmar",
             "arena colocar confirm", "arena quitar confirmar", "arena empezar", "arena parar", "arena salir"} <= r
-    assert not r & set(commands.OLD), "una ruta canónica no puede salir como antigua"
+    assert not r & set(commands.OLD), "a canonical route cannot come out as an old one"
 
 
 @pytest.mark.parametrize("text,expected", [
@@ -76,7 +76,7 @@ def test_click_orders():
     assert commands.click_errors({"click_event": {"action": "run_command", "command": "/heraldia review next"}}) == []
 
 
-# ------------------------------------------------------------------ el mod real
+# ------------------------------------------------------------------ the real mod
 def test_same_map_as_java():
     with open(ALIAS, encoding="utf-8") as f:
         src = f.read()
@@ -90,7 +90,7 @@ def test_canonical_names_in_english_and_ascii():
             assert re.fullmatch(r"<?[a-z]+(-[a-z]+)?>?", segment), route
     assert set(commands.OLD) <= set(commands.CANONICAL)
     old = set(commands.OLD.values())
-    assert not old & {t for r in commands.CANONICAL for t in r.split()}, "un nombre nuevo no puede ser uno antiguo"
+    assert not old & {t for r in commands.CANONICAL for t in r.split()}, "a new name cannot be an old one"
 
 
 def test_no_text_names_an_old_command(texts):
@@ -101,7 +101,7 @@ def test_no_text_names_an_old_command(texts):
 
 
 def test_no_java_button_sends_to_an_old_name():
-    """Las órdenes de los ClickEvent (RunCommand / SuggestCommand) y todo texto "/heraldia ..." del Java."""
+    """The commands of the ClickEvents (RunCommand / SuggestCommand) and every "/heraldia ..." text in the Java."""
     errors = []
     for route, src in _java():
         if route.endswith("Alias.java"):
@@ -114,8 +114,8 @@ def test_no_java_button_sends_to_an_old_name():
 
 
 def test_buttons_of_generated_texts(texts, tmp_path):
-    """Los componentes de los textos y, si está generado, todo el datapack: ningún run_command ni suggest_command a un
-    nombre antiguo."""
+    """The components of the texts and, if generated, the whole datapack: no run_command or suggest_command to an
+    old name."""
     errors = commands.click_errors(texts)
     gen = os.path.join(ROOT, "build", "generated", "heraldia")
     for f in glob.glob(os.path.join(gen, "**", "*.json"), recursive=True) + glob.glob(os.path.join(gen, "**", "*.mcfunction"), recursive=True):
@@ -140,5 +140,5 @@ def test_new_texts_in_the_8_languages(lang_code, texts):
         assert t.get(k, "").strip(), (lang_code, k)
     assert languages.markers(t["heraldia.comando.obsoleto"])[0] == [1, 2]
     assert languages.markers(t["heraldia.version.nueva"])[0] == [1, 2, 3]
-    # la copia de seguridad se recomienda en todos
+    # the backup is recommended in all of them
     assert "config" in t["heraldia.version.copia"]

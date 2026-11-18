@@ -1,5 +1,5 @@
-"""Utilidades propias del castillo: lienzo con atajos, puerta de rincón (sobre _comun.piezas.piston_door).
-El recorrido a pie está en _comun/recorrido.py."""
+"""Castle's own utilities: canvas with shortcuts, corner door (on top of _common.pieces.piston_door).
+The walkthrough is in _comun/walkthrough.py."""
 from core import Template, parse_state
 import lint
 from .._common.pieces import piston_door
@@ -7,10 +7,10 @@ from .._common.pieces import piston_door
 DIRV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 
 class Canvas(Template):
-    """Plantilla con atajos de dibujo."""
+    """Template with drawing shortcuts."""
 
     def box(self, x1, y1, z1, x2, y2, z2, wall, floor=None, ceil=None):
-        """Sala hueca: muros, suelo y techo opcionales; el interior queda con aire explícito."""
+        """Hollow room: optional walls, floor and ceiling; the interior is left with explicit air."""
         self.fill(x1, y1, z1, x2, y2, z2, wall)
         self.air(x1 + 1, y1 + (1 if floor else 0), z1 + 1, x2 - 1, y2 - (1 if ceil else 0), z2 - 1)
         if floor:
@@ -29,11 +29,11 @@ class Canvas(Template):
 
 
 def hidden_door(put, a, c, L, side, door_block, input_floor=True):
-    """Puerta secreta de 1 x 2 en el muro lateral (side=-1 oeste, +1 este) de la primera fila (z=c) de una sala, en el
-    rincón: los pistones (piston_door) quedan dentro del muro norte y retiran la puerta al bloque del rincón, que no
-    se ve desde ningún lado. Una antorcha sobre el bloque (a, L-1, c-2) alimenta el pistón de abajo y, por el bloque
-    que potencia encima, el de arriba; potenciar ese bloque abre. Con input_floor, palanca en el suelo del rincón y
-    polvo en cruz bajo el muro. Requiere muros macizos de 3 al norte y a ese lado."""
+    """1 x 2 secret door in the side wall (side=-1 west, +1 east) of the first row (z=c) of a room, in the
+    corner: the pistons (piston_door) sit inside the north wall and retract the door into the corner block, which cannot
+    be seen from either side. A torch on the block (a, L-1, c-2) powers the lower piston and, through the block
+    it powers above, the upper one; powering that block opens it. With input_floor, a lever on the corner floor and
+    cross-shaped dust under the wall. Requires solid walls 3 thick to the north and on that side."""
     dx = a + side
     piston_door(put, [(dx, L, c), (dx, L + 1, c)], (0, -1), "south", door_block)
     info = {"door": [(dx, L, c), (dx, L + 1, c)], "corner": [(dx, L, c - 1), (dx, L + 1, c - 1)],

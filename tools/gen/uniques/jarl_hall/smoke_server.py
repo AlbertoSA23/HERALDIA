@@ -1,19 +1,19 @@
-"""Prueba en un servidor 26.3 real del Salón del Jarl (complementa tools/smoke/server_smoke.py).
+"""Test on a real 26.3 server of Jarl's Hall (complements tools/smoke/server_smoke.py).
 
-1. Coloca la estructura entera con /place structure, mide cuánto tarda y cuenta sus entidades (guardián, guerreros de
-   piedra) tras unos segundos, y comprueba que el túmulo está bajo la casa larga (generadores, cofres, guardián).
-2. Coloca las plantillas sin girar en sitios conocidos y acciona los mecanismos: la combinación de las runas (con una
-   runa falsa se vuelve a cerrar), la puerta secreta del escaldo, el cable trampa y la placa de la dinamita.
-   /setblock de una palanca no avisa al bloque al que está sujeta: se emula el clic cambiando ese bloque y devolviéndolo.
-Uso (desde la raíz): python3 tools/gen/uniques/jarl_hall/smoke_server.py --jar build/libs/heraldia-X.jar [--work DIR]
+1. Places the whole structure with /place structure, measures how long it takes and counts its entities (guardian, stone
+   warriors) after a few seconds, and checks that the barrow is under the longhouse (spawners, chests, guardian).
+2. Places the unrotated templates at known spots and operates the mechanisms: the rune combination (with a
+   fake rune it closes again), the skald's secret door, the trap wire and the dynamite plate.
+   /setblock of a lever does not notify the block it is attached to: the click is emulated by changing that block and restoring it.
+Usage (from the root): python3 tools/gen/uniques/jarl_hall/smoke_server.py --jar build/libs/heraldia-X.jar [--work DIR]
 """
 import argparse, os, queue, re, subprocess, sys, threading, time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "smoke"))
 import server_smoke as sm                      # noqa: E402
 
-HALL, TOMB = (2000, 100, 0), (2200, 100, 0)       # origen de cada plantilla colocada sin girar
-TOMB_MIN = (14, -15, 30)                           # esquina mínima del túmulo en coordenadas de la obra (obra.CRYPT)
+HALL, TOMB = (2000, 100, 0), (2200, 100, 0)       # origin of each unrotated placed template
+TOMB_MIN = (14, -15, 30)                           # minimum corner of the barrow in build coordinates (construction.CRYPT)
 ARROWS = "{Items:[{Slot:0b,count:16},{Slot:1b,count:16},{Slot:2b,count:16}]}"
 
 
@@ -25,7 +25,7 @@ def at(base, p, crypt=False):
 
 
 def box(base):
-    """Selector de volumen (x, y, z, dx, dy, dz) que cubre de sobra una plantilla colocada en `base`."""
+    """Volume selector (x, y, z, dx, dy, dz) that amply covers a template placed at `base`."""
     return f"x={base[0] - 4},y={base[1] - 4},z={base[2] - 4},dx=100,dy=60,dz=100"
 
 
@@ -63,7 +63,7 @@ def main():
     blocks_at = {}
 
     def trap_diagnosis():
-        """Qué hay junto al cable trampa cuando sus dispensadores ya han disparado (fallo intermitente, ver LESSONS)."""
+        """What is next to the trap wire once its dispensers have fired (intermittent failure, see LESSONS)."""
         x, y, z = (int(c) for c in at(TOMB, (55, -6, 58), True).split())
         for d in ((54, -5, 58), (57, -5, 58)):
             cmd(f"data get block {at(TOMB, d, True)} Items", r"has the following block data|not a block entity|Items")
@@ -90,8 +90,8 @@ def main():
             time.sleep(sm.PLACE_RETRY_S)
         if "Generated" not in m.group(0):
             fails.append("place structure")
-        print(f"TIEMPO de /place structure del Salón del Jarl: {dt * 1000:.0f} ms")
-        ctx.wait_entity("@e[type=minecraft:zombie,tag=heraldia_guardian.salon_jarl]")   # aparecen tras los bloques
+        print(f"TIME of /place structure for Jarl's Hall: {dt * 1000:.0f} ms")
+        ctx.wait_entity("@e[type=minecraft:zombie,tag=heraldia_guardian.salon_jarl]")   # they appear after the blocks
         ctx.wait_entity("@e[type=minecraft:armor_stand,distance=..120,x=0,y=0,z=0]")
         for desc, sel in (("guardián con su etiqueta", "@e[type=minecraft:zombie,tag=heraldia_guardian.salon_jarl]"),
                           ("dos guerreros de piedra (soportes de armadura)", "@e[type=minecraft:armor_stand,distance=..120,x=0,y=0,z=0]")):
@@ -100,10 +100,10 @@ def main():
         check("el guardián lleva su hacha",
               "execute if entity @e[type=minecraft:zombie,tag=heraldia_guardian.salon_jarl,nbt={equipment:{mainhand:{id:\"minecraft:iron_axe\"}}}]")
         check("el guardián es adulto", "execute if entity @e[type=minecraft:zombie,tag=heraldia_guardian.salon_jarl,nbt={IsBaby:0b}]")
-        # 2. plantillas sin girar. Se colocan con el mundo congelado: /place template en terreno ya generado arranca las
-        # plantas que se quedan sin suelo (hierba, hojarasca...) y las suelta como objetos dentro de la plantilla; uno
-        # que caía sobre el cable trampa lo disparaba antes de comprobarlo (fallo intermitente de la CI, ver
-        # LESSONS). En la generación normal no pasa: la región de generación no suelta objetos.
+        # 2. unrotated templates. They are placed with the world frozen: /place template on already generated terrain tears out the
+        # plants left without ground (grass, leaf litter...) and drops them as items inside the template; one
+        # that fell on the trap wire fired it before it was checked (intermittent CI failure, see
+        # LESSONS). In normal generation this does not happen: the generation region does not drop items.
         cmd("tick freeze", r"frozen|already")
         for name, base in (("salon", HALL), ("tumulo", TOMB)):
             m = cmd(f"place template heraldia:unicas/salon_jarl/{name} {base[0]} {base[1]} {base[2]}",
@@ -112,7 +112,7 @@ def main():
                 fails.append("place template " + name)
         for name, base in (("salon", HALL), ("tumulo", TOMB)):
             m = cmd(f"kill @e[type=minecraft:item,{box(base)}]", r"Killed (\d+)|No entity was found")
-            print(f"OBJETOS sueltos al colocar la plantilla {name}: {m.group(1) or 0}")
+            print(f"Loose ITEMS when placing template {name}: {m.group(1) or 0}")
         cmd("tick unfreeze", r"running|not frozen")
         ctx.ticks(60)
         check("cofre de la alcoba del jarl", f"execute if data block {at(HALL, (40, 2, 62))} LootTable")
@@ -126,7 +126,7 @@ def main():
         for p in door:
             check(f"puerta de las runas cerrada al generarse {p}", f"execute if block {at(TOMB, p, True)} minecraft:polished_tuff")
         check("pistón de las runas extendido", f"execute if block {at(TOMB, (31, -5, 61), True)} minecraft:sticky_piston[extended=true]")
-        # puzle 1: runas (x 33 = piedra rúnica, x 34 = palanca; z 63 serpiente, 65 cuervo, 67 oso, 69 lobo)
+        # puzzle 1: runes (x 33 = runestone, x 34 = lever; z 63 serpent, 65 raven, 67 bear, 69 wolf)
         for z in (63, 65, 67, 69):
             blocks_at[(33, -5, z)] = "minecraft:chiseled_tuff"
         lever(TOMB, (34, -5, 65), (33, -5, 65), "east", True)
@@ -142,7 +142,7 @@ def main():
         lever(TOMB, (34, -5, 63), (33, -5, 63), "east", False)
         ctx.ticks(60)
         check("y al dormirla se abre otra vez", f"execute if block {at(TOMB, door[0], True)} minecraft:air")
-        # puzle 2: puerta secreta del escaldo
+        # puzzle 2: skald's secret door
         sec = [(41, -6, 46), (41, -5, 46)]
         for p in sec:
             check(f"puerta del escaldo cerrada {p}", f"execute if block {at(TOMB, p, True)} minecraft:chiseled_stone_bricks")
@@ -172,7 +172,7 @@ def main():
                 proc.wait(timeout=120)
             except subprocess.TimeoutExpired:
                 proc.kill()
-    print("PRUEBA SALÓN DEL JARL " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
+    print("JARL'S HALL TEST " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
     return 1 if fails else 0
 
 

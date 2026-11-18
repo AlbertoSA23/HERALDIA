@@ -1,6 +1,6 @@
-"""Estructuras medianas (medianas/): contrato de cada tipo, plantillas construidas (auditoría genérica de lint, tamaño,
-entrada, entidades, botín modesto, suelo sin vida), lo que escribe en el datapack, sus opciones y sus logros. Con casos
-negativos del contrato (medianas.errores) para que una mediana nueva que no lo cumpla falle aquí en segundos."""
+"""Medium structures (medianas/): contract of each type, built templates (generic lint audit, size,
+entrance, entities, modest loot, lifeless floor), what it writes to the datapack, its options and its advancements. With negative
+contract cases (medianas.errores) so that a new medium structure that does not meet it fails here in seconds."""
 import json
 import pytest
 import core
@@ -30,7 +30,7 @@ BATCH_1 = ["campamento", "ermita", "posada", "torre_vigia"]
 BATCH_2 = ["cazadores", "molino", "pescador", "templete"]
 NETHER = ["altar_magma", "atalaya_basalto", "puesto_piglin", "santuario_hongos"]      # T44 (test_nether_end.py)
 END = ["embarcadero_shulker", "mausoleo_purpura", "observatorio_vacio"]
-HUTS = ["choza_mago"]                 # T43: las chozas de mago
+HUTS = ["choza_mago"]                 # T43: the wizard huts
 
 
 def test_batches_and_discovery():
@@ -70,7 +70,7 @@ def test_audit_generic_and_walkthrough(reg, mid):
             continue
         assert lint.template_issues(t) == [], name
         cells = lint.walk(t)
-        # se entra por la cara norte y se llega a todos los contenedores (access_issues) y a buena parte del patio
+        # one enters by the north face and reaches all the containers (access_issues) and a good part of the courtyard
         assert len(cells) > 100, name
 
 
@@ -85,11 +85,11 @@ def test_entities_marked_persistent_and_anchored(reg):
             if n["id"] != "minecraft:villager":
                 mobs += 1
                 assert core.ANCHORED_TAG in tags, name
-    # campamento: 2 en cada una de sus 6 plantillas; torre alta (2 estilos): el arquero; pescador a (3 estilos): el gato;
-    # cazadores a (2 estilos): el lobo; templete a (2 estilos): dos custodios
-    # T44: puesto de piglins (2 renegados en a y 1 en b, 2 estilos), altar roto (2 cubos de magma, 2 estilos), atalaya
-    # entera (el vigía, 2 estilos) y embarcadero a (el shulker, 2 estilos)
-    # choza de mago a (6 estilos): el gato
+    # camp: 2 in each of its 6 templates; tall tower (2 styles): the archer; fisherman a (3 styles): the cat;
+    # hunters a (2 styles): the wolf; gazebo a (2 styles): two custodians
+    # T44: piglin outpost (2 renegades in a and 1 in b, 2 styles), broken altar (2 magma cubes, 2 styles), watchtower
+    # whole (the lookout, 2 styles) and pier a (the shulker, 2 styles)
+    # wizard hut a (6 styles): the cat
     assert mobs == 2 * 6 + 1 * 2 + 1 * 3 + 1 * 2 + 2 * 2 + 3 * 2 + 2 * 2 + 1 * 2 + 1 * 2 + 1 * 6
 
 
@@ -118,7 +118,7 @@ def test_hermitage_diary_translatable():
         assert k in hermitage.LANG["es_es"] and k in hermitage.LANG["en_us"]
 
 
-# ---------------------------------------------------------------- casos negativos del contrato
+# ---------------------------------------------------------------- negative contract cases
 class _Fake:
     DISPLAY_NAME = {"es_es": "Falsa", "en_us": "Fake"}
     SEPARATION = 600
@@ -151,14 +151,14 @@ def test_contract_valid():
 
 
 @pytest.mark.parametrize("change, text", [
-    (lambda t: t.fill(0, 0, 0, 12, 0, 12, "grass_block"), "suelo fértil"),
+    (lambda t: t.fill(0, 0, 0, 12, 0, 12, "grass_block"), "fertile ground"),
     (lambda t: [t.entity(1, 1, 1, {"id": "minecraft:pillager", "PersistenceRequired": core.B(1)}) for _ in range(5)],
-     "entidades"),
+     "entities"),
     (lambda t: t.entity(1, 1, 1, {"id": "minecraft:pillager"}), "PersistenceRequired"),
-    (lambda t: (t.set(1, 1, 1, "spawner"), t.set(2, 1, 1, "spawner")), "generadores"),
-    (lambda t: t.fill(0, 0, 0, 45, 0, 0, "dirt_path"), "tamaño"),
+    (lambda t: (t.set(1, 1, 1, "spawner"), t.set(2, 1, 1, "spawner")), "spawners"),
+    (lambda t: t.fill(0, 0, 0, 45, 0, 0, "dirt_path"), "size 46"),
     (lambda t: t.jigsaws.clear(), "entrada"),
-    (lambda t: t.chest(3, 1, 3, "north", "heraldia:unicas/castillo/premium"), "no es de su LOOT"),
+    (lambda t: t.chest(3, 1, 3, "north", "heraldia:unicas/castillo/premium"), "not from its LOOT"),
 ])
 def test_contract_detects(change, text):
     errs = _errors(_Fake, change)
@@ -170,9 +170,9 @@ def test_loot_premium_and_forbidden():
         LOOT = {"cofre": chest_loot.place_chest(((1, 1), [item("diamond_sword", 1)]), ((1, 1), [item("emerald", 1)])),
                 "premium": chest_loot.place_chest(((1, 1), [item("bread", 1)]), ((1, 1), [item("bread", 1)]))}
     errs = _errors(Rich)
-    assert any("no es botín modesto" in e for e in errs)
-    assert any("cofre premium" in e for e in errs)
-    assert any("la tabla premium no la usa" in e for e in errs)
+    assert any("is not modest loot" in e for e in errs)
+    assert any("no premium chest" in e for e in errs)
+    assert any("table premium is not used by any container" in e for e in errs)
 
 
 def test_no_name_and_separation_out_of_range():
@@ -183,7 +183,7 @@ def test_no_name_and_separation_out_of_range():
     assert any("NOMBRE" in e for e in errs) and any("SEPARACION" in e for e in errs)
 
 
-# ---------------------------------------------------------------- datapack, opciones y logros
+# ---------------------------------------------------------------- datapack, options and advancements
 def test_write(tmp_path):
     files = {}
     mediums.write(str(tmp_path), lambda out, rel, obj: files.__setitem__(rel, obj))
@@ -191,7 +191,7 @@ def test_write(tmp_path):
         st = files[f"data/heraldia/worldgen/structure_set/medianas/{mid}.json"]
         pl = st["placement"]
         assert pl["type"] == "heraldia:rejilla" and pl["grupo"] == f"medianas/{mid}" and pl["salt"] == mediums.salt(mid)
-        if mediums.dimension(m) == "overworld":        # las del Nether y el End: test_nether_end.py
+        if mediums.dimension(m) == "overworld":        # those of the Nether and the End: test_nether_end.py
             assert pl["exclusion_zone"]["other_set"] == "minecraft:villages"
             assert pl["bioma"] == f"heraldia:medianas/{mid}" and pl["bioma_y"] == mediums.BIOME_Y
         union = json.loads((tmp_path / f"data/heraldia/tags/worldgen/biome/medianas/{mid}.json").read_text())["values"]
@@ -211,7 +211,7 @@ def test_write(tmp_path):
 
 
 def test_biomes_conventional_valid():
-    """Las etiquetas extra de cada estilo resuelven en vanilla a un subconjunto de su lista (como biomas.comprobar)."""
+    """The extra tags of each style resolve in vanilla to a subset of their list (like biomas.comprobar)."""
     import biomes
     tags = biomes.conventional()
     for mid, m in MODS:
@@ -263,7 +263,7 @@ def _entities(reg, mid):
 
 
 def test_batch_2_styles_and_underserved_biomes():
-    """Cada tipo nuevo tiene varios estilos, 2 variantes en cada uno y biomas que el lote 1 no tenía (o casi)."""
+    """Each new type has several styles, 2 variants in each one and biomes that batch 1 did not have (or almost)."""
     batch_1 = {b for mid, m in MODS if mid in BATCH_1 for d in m.STYLES.values() for b in d["biomas"]}
     for mid, m in MODS:
         if mid not in BATCH_2:
@@ -312,14 +312,14 @@ def test_animals_and_custodians_of_the_batch_2(reg):
         for n in ns:
             assert n["id"] in ("minecraft:skeleton", "minecraft:husk"), name
             if n["id"] == "minecraft:husk":
-                assert core.ADULT_TAG in n["Tags"], name       # no sale bebé
+                assert core.ADULT_TAG in n["Tags"], name       # no baby comes out
             else:
-                assert n["equipment"]["head"]["id"] == "minecraft:chainmail_helmet", name   # no arde de día
+                assert n["equipment"]["head"]["id"] == "minecraft:chainmail_helmet", name   # does not burn in daylight
 
 
 def test_water_still_and_contained(reg):
-    """El agua de las medianas (caz del molino, trigal, acequias, pozo del templete) es toda fuente y no tiene ninguna
-    cara lateral abierta dentro de la plantilla: no corre."""
+    """The water of the medium structures (mill race, wheat field, irrigation ditches, gazebo well) is all source and has no
+    open side face inside the template: it does not flow."""
     for name, t in reg.templates.items():
         if not name.startswith("medianas/"):
             continue
@@ -330,7 +330,7 @@ def test_water_still_and_contained(reg):
             for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 neighbor = t.get(x + dx, y, z + dz)
                 if neighbor is None:
-                    assert y == 0, (name, (x, y, z), "agua sobre el terreno, junto al vacío")
+                    assert y == 0, (name, (x, y, z), "water on the terrain, next to the void")
                     continue
                 assert lint.bname(neighbor) == "water" or not lint.passable(neighbor), (name, (x, y, z), neighbor)
             below = t.get(x, y - 1, z)
@@ -340,10 +340,10 @@ def test_water_still_and_contained(reg):
 def test_mill_wheel_and_blades(reg):
     a = reg.templates["medianas/molino/llanura/a"]
     assert sum(1 for (x, _, _), (st, _) in a.blocks.items() if x == 12 and st == "minecraft:oak_planks") == 16  # aro
-    assert a.get(12, 0, 9).startswith("minecraft:water")              # la rueda moja en el caz
+    assert a.get(12, 0, 9).startswith("minecraft:water")              # the wheel wets in the race
     b = reg.templates["medianas/molino/llanura/b"]
     tarp = [p for p, (st, _) in b.blocks.items() if st == "minecraft:white_wool"]
-    assert len(tarp) == 16 and all(z == 12 for _, _, z in tarp)       # cuatro aspas en la cara sur
+    assert len(tarp) == 16 and all(z == 12 for _, _, z in tarp)       # four sails on the south face
 
 
 def test_dock_of_the_fisherman(reg):
@@ -358,7 +358,7 @@ def test_shrine_broken_columns_and_architrave(reg):
     t = reg.templates["medianas/templete/desierto/a"]
     for x in range(tp.P0, tp.P1 + 1):
         for z in (tp.P0, tp.P1):
-            assert t.get(x, 7, z) is not None          # arquitrabe entero al norte y al sur
+            assert t.get(x, 7, z) is not None          # whole architrave to the north and south
     broken_ones = {(x, z): max(y for (xx, y, zz), (st, _) in t.blocks.items() if (xx, zz) == (x, z) and st != "minecraft:air")
              for x in (tp.P0, tp.P1)
              for z in range(tp.P0 + 2, tp.P1 - 1, 2)}
@@ -386,7 +386,7 @@ def test_advancements_own_to_batch_2(reg):
     assert {p for p in advs if p.startswith("medianas/") and p.count("/") == 2} == {
         "medianas/molino/molienda", "medianas/pescador/pesca", "medianas/cazadores/pieles", "medianas/templete/custodios",
         "medianas/choza_mago/tratos", "medianas/choza_mago/malvado",
-        "medianas/puesto_piglin/renegados", "medianas/santuario_hongos/ofrendas"}      # los dos últimos, del Nether (T44)
+        "medianas/puesto_piglin/renegados", "medianas/santuario_hongos/ofrendas"}      # the last two, from the Nether (T44)
     keepers = advs["medianas/templete/custodios"]["criteria"]
     assert set(keepers) == {"skeleton", "husk"}
     assert keepers["husk"]["conditions"]["entity"]["predicate"]["minecraft:entity_tags"] == {"all_of": ["heraldia_mediana.templete"]}
@@ -397,11 +397,11 @@ def test_advancement_badly_defined():
         ADVANCEMENTS = [dict(id="x", icono="minecraft:cod", titulo=("a", "b"), descripcion=("c", "d"), tabla="no_existe"),
                   dict(id="y", icono="minecraft:cod", titulo=("a", "b"))]
     errs = _errors(WithAdvancement)
-    assert any("no está en LOOT" in e for e in errs) and any("logro 'y'" in e for e in errs)
+    assert any("which is not in LOOT" in e for e in errs) and any("advancement 'y'" in e for e in errs)
 
 
 def test_biome_neighbors_only_in_the_fisherman_and_in_range():
-    """Las playas son franjas: solo el pescador pide menos vecinos a la búsqueda de bioma de su rejilla."""
+    """Beaches are strips: only the fisherman asks for fewer neighbours in the biome search of its grid."""
     assert {mid: m.BIOME_NEIGHBORS for mid, m in MODS if hasattr(m, "BIOME_NEIGHBORS")} == {"pescador": 2}
 
     class Strip(_Fake):
@@ -410,7 +410,7 @@ def test_biome_neighbors_only_in_the_fisherman_and_in_range():
 
 
 def test_only_the_huts_yield_to_the_mines(tmp_path):
-    """Las chozas de mago buscan el interior de los mismos biomas que las minas: ceden ellas (etiqueta para el Java)."""
+    """The wizard huts look for the interior of the same biomes as the mines: they yield (tag for the Java)."""
     assert mediums.yield_to_mines() == [f"heraldia:medianas/choza_mago/{e}" for e in dict(MODS)["choza_mago"].STYLES]
     assert all(not getattr(m, "YIELDS_TO_MINES", False) for mid, m in MODS if mid != "choza_mago")
     assert mediums.YIELD_TO_MINES == "medianas/ceden_a_minas"

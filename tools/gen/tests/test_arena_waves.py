@@ -1,6 +1,6 @@
-"""Arena de oleadas (arena_oleadas.py): la plantilla cumple lo que dice arena.json (ruedo cerrado, cristal y techo,
-puntos de aparición, campana, puerta, reaparición, luz), solo materiales que no arden ni coge un enderman, sus textos,
-recompensas y logros, y su página en la Guía del Heraldo."""
+"""Wave arena (arena_oleadas.py): the template meets what arena.json says (closed ring, glass and roof,
+spawn points, bell, door, respawn, light), only materials that do not burn and that an enderman does not pick up, its texts,
+rewards and advancements, and its page in the Herald's Guide."""
 import json
 import math
 import os
@@ -30,14 +30,14 @@ def test_template_complies(t):
 
 def test_size_content(t):
     sx, sy, sz = t.size()
-    assert 48 <= sx <= 64 and 48 <= sz <= 64, "tamaño contenido: 48-64 bloques de lado"
+    assert 48 <= sx <= 64 and 48 <= sz <= 64, "contained size: 48-64 blocks per side"
     assert (sx, sy, sz) == tuple(a.dataset()["tamano"])
 
 
 def test_only_safe_materials(t):
     used_items = {name(st) for st, _ in t.blocks.values()}
     assert used_items <= a.PALETTE
-    # ninguno arde ni lo coge un enderman (#minecraft:enderman_holdable de 26.3, sin sus subetiquetas de tierra y flores)
+    # none burns or is picked up by an enderman (#minecraft:enderman_holdable of 26.3, without its earth and flower subtags)
     holdable = {"sand", "red_sand", "gravel", "tnt", "cactus", "clay", "pumpkin", "carved_pumpkin", "melon", "dirt",
                 "grass_block", "mud", "moss_block", "brown_mushroom", "red_mushroom"}
     assert not used_items & holdable
@@ -45,16 +45,16 @@ def test_only_safe_materials(t):
 
 
 def test_closed_ring_without_door(t):
-    """Con la puerta abierta (como está en la plantilla) se sale del ruedo; cerrada (rejas), no."""
+    """With the door open (as in the template) one can leave the ring; closed (bars), one cannot."""
     d = a.dataset()
     assert a.errors(t, d) == []
-    # si quitamos la puerta de la lista, la comprobación debe encontrar la salida
+    # if we remove the door from the list, the check must find the exit
     d2 = dict(d, puerta=[[0, 0, 0], [0, 0, 0]])
     assert any("no está cerrado" in e for e in a.errors(t, d2))
 
 
 def test_a_gap_in_the_glass_is_detected(t):
-    x, z = a.C + a.R_ARENA, a.C              # columna del muro, al este
+    x, z = a.C + a.R_ARENA, a.C              # wall column, to the east
     t2 = a.construct()
     t2.set(x, a.GLASS[0] + 2, z, "air")
     assert any("cristal" in e for e in a.errors(t2))
@@ -74,11 +74,11 @@ def test_spawn_points(t):
     assert len(d["puntos"]) >= 4
     for p in d["puntos"]:
         assert math.hypot(p[0] - a.C, p[2] - a.C) < a.R_ARENA - 1
-        assert name(t.get(p[0], 0, p[2])) == "chiseled_red_sandstone", "marca en el suelo"
+        assert name(t.get(p[0], 0, p[2])) == "chiseled_red_sandstone", "mark on the floor"
         assert name(t.get(*p)) == "air" and name(t.get(p[0], 2, p[2])) == "air"
-    # repartidos: ninguno en la entrada (sur) y lejos entre sí
+    # spread out: none at the entrance (south) and far from each other
     for i, p in enumerate(d["puntos"]):
-        assert not (abs(p[0] - a.C) <= 2 and p[2] > a.C), "un punto delante de la entrada"
+        assert not (abs(p[0] - a.C) <= 2 and p[2] > a.C), "a point in front of the entrance"
         for q in d["puntos"][i + 1:]:
             assert math.hypot(p[0] - q[0], p[2] - q[2]) >= 6
 
@@ -91,14 +91,14 @@ def test_bell_door_and_respawn(t):
         for y in range(y0, y1 + 1):
             for z in range(z0, z1 + 1):
                 assert name(t.get(x, y, z)) == "air"
-                assert a.R_ARENA <= math.hypot(x - a.C, z - a.C) < a.R_WALL, "la puerta corta el muro del ruedo"
+                assert a.R_ARENA <= math.hypot(x - a.C, z - a.C) < a.R_WALL, "the door cuts the ring wall"
     rp = d["reaparicion"]
     assert name(t.get(*rp)) == "air" and name(t.get(rp[0], rp[1] - 1, rp[2])) != "air"
-    assert rp[1] - 1 == a.FLOOR, "la reaparición está a ras del suelo exterior"
+    assert rp[1] - 1 == a.FLOOR, "the respawn is flush with the outer floor"
 
 
 def test_bleachers_protected_by_glass(t):
-    """Entre el ruedo y las gradas hay cristal hasta el techo de barreras en toda la vuelta (también sobre la puerta)."""
+    """Between the ring and the stands there is glass up to the barrier roof all the way round (also above the door)."""
     for g in range(0, 360, 5):
         r = math.radians(g)
         x, z = a.C + round(15 * math.cos(r)), a.C + round(15 * math.sin(r))
@@ -107,10 +107,10 @@ def test_bleachers_protected_by_glass(t):
 
 
 def test_entry_low_of_the_walkway_to_the_ring(t):
-    """La rampa de la entrada sube de peldaño en peldaño (escaleras) del suelo del ruedo al del paseo."""
+    """The entrance ramp rises step by step (stairs) from the ring floor to the walkway floor."""
     stories = []
     for z in range(a.DOOR_Z[0], a.N):
-        y = next(y for y in range(a.HEIGHT) if name(t.get(a.C, y, z)) == "air") - 1     # el piso: bajo el primer aire
+        y = next(y for y in range(a.HEIGHT) if name(t.get(a.C, y, z)) == "air") - 1     # the floor: below the first air
         stories.append(y)
     assert stories[0] == 0 and stories[-1] == a.FLOOR
     assert all(0 <= b - c <= 1 for c, b in zip(stories, stories[1:])), stories
@@ -132,7 +132,7 @@ def test_texts_complete():
         assert re.findall(r"%[sd]", es) == re.findall(r"%[sd]", lang["en_us"][k]), k
     for i in range(len(a.BOSSES)):
         assert f"heraldia.arena.jefe.{i}" in lang["es_es"]
-    # los textos de éxito no deben cortar la espera de las pruebas de servidor (ERROR_PATTERN de server_smoke)
+    # the success texts must not cut short the wait of the server tests (ERROR_PATTERN of server_smoke)
     for texts in lang.values():
         for k, v in texts.items():
             assert not re.search(r"Unknown|Incorrect|Failed|Invalid|error|not loaded", v), k
@@ -170,7 +170,7 @@ def test_guide_page():
     assert guide.lang()["es_es"]["heraldia.guia.pagina.arena.titulo"] == "La arena"
 
 
-# --- T41: modos, salón de la fama y logros de los modos ---
+# --- T41: modes, hall of fame and mode advancements ---
 
 def test_signs_of_the_hall_of_the_fame(t):
     d = a.dataset()
@@ -178,10 +178,10 @@ def test_signs_of_the_hall_of_the_fame(t):
     for p in d["fama"]:
         assert name(t.get(*p)) == "crimson_sign"
         assert t.get(*p) == "minecraft:crimson_sign[rotation=0]" or "rotation=0" in t.get(*p)
-        assert name(t.get(p[0], p[1] - 1, p[2])) not in ("air", None)      # sobre suelo
-        assert name(t.get(p[0], p[1], p[2] + 1)) == "air"                   # con sitio delante (al sur) para leerlo
+        assert name(t.get(p[0], p[1] - 1, p[2])) not in ("air", None)      # on the ground
+        assert name(t.get(p[0], p[1], p[2] + 1)) == "air"                   # with room in front (to the south) to read it
         assert a.R_BLEACHERS <= a.dist(p[0], p[2]) < 27 and not a.at_entrance(p[0], p[2])
-    assert "crimson_sign" in a.PALETTE                                         # madera del Nether: no arde
+    assert "crimson_sign" in a.PALETTE                                         # Nether wood: does not burn
 
 
 def test_errors_detects_a_sign_badly_outpost(t):
@@ -200,10 +200,10 @@ def test_advancements_of_the_modes():
     for lid in new_items:
         l = ls[lid]
         assert l["criteria"] == {"logro": {"trigger": "minecraft:impossible"}}
-        assert l["parent"].removeprefix("heraldia:") in ls                       # el padre existe
-    # los campeones, uno por modo (Java: Marcas.logroCampeon = arena/campeon_<id del modo>)
+        assert l["parent"].removeprefix("heraldia:") in ls                       # the parent exists
+    # the champions, one per mode (Java: Marcas.logroCampeon = arena/campeon_<mode id>)
     assert {f"arena/campeon_{m}" for m in a.MODES} <= new_items
-    # las cifras de los textos son las del Java (arena/Marcas)
+    # the figures in the texts are those of the Java (arena/Marcas)
     marks = open(os.path.join(ROOT, "src/main/java/io/github/albertosa23/heraldia/arena/Marks.java"), encoding="utf-8").read()
     assert f"TIME_TRIAL_WAVES = {a.TIME_ATTACK_WAVES};" in marks
     assert f"TIME_TRIAL_FAST_TICKS = {a.TIME_ATTACK_FAST_MIN} * 60 * 20;" in marks
@@ -217,18 +217,18 @@ def test_modes_and_their_texts():
     lang = a.lang()
     java = open(os.path.join(ROOT, "src/main/java/io/github/albertosa23/heraldia/arena/Mode.java"), encoding="utf-8").read()
     for m in a.MODES:
-        assert f'"{m}"' in java                                                  # el id del comando (Modo.id)
+        assert f'"{m}"' in java                                                  # the command id (Modo.id)
         for language in ("es_es", "en_us"):
             assert lang[language][f"heraldia.arena.modo.{m}"]
             assert lang[language][f"heraldia.arena.modo.{m}.ayuda"]
-    assert "%s" in lang["es_es"]["heraldia.arena.modo.timeattack.ayuda"]       # las oleadas del contrarreloj
+    assert "%s" in lang["es_es"]["heraldia.arena.modo.timeattack.ayuda"]       # the time-attack waves
 
 
 def test_the_sign_fits_and_gets_checks():
     assert a.text_errors() == []
     length = {**a.lang()["en_us"], "heraldia.arena.cartel.titulo": "Champion of the whole week"}
     assert any("cartel.titulo" in e for e in a.text_errors({"xx_xx": length}))
-    # el nombre del jugador va solo en su línea: uno típico cabe
+    # the player name goes alone on its line: a typical one fits
     import languages
     assert languages.sign_width(a.TYPICAL_NAME) <= languages.SIGN_WIDTH
 

@@ -1,25 +1,25 @@
-"""Textos de las herramientas de administración (Java, comando/): /heraldia review (ruta guiada de revisión),
-/heraldia status (resumen del servidor), /heraldia reload (recarga en caliente de la configuración), el aviso de versión
-nueva (/heraldia update check) y el aviso de los nombres antiguos de los comandos.
+"""Texts of the administration tools (Java, comando/): /heraldia review (guided review route),
+/heraldia status (server summary), /heraldia reload (hot reload of the configuration), the new-version notice
+(/heraldia update check) and the notice about the old command names.
 
-El Java toma el texto de respaldo de es_es (comando/Textos); las traducciones van en idiomas/<código>.json. Los puntos
-de la lista de cada tipo de parada son heraldia.revisar.mirar.<tipo>.<n> (cuántos: PUNTOS, el mismo número que
-RevisarCommand.PUNTOS) y los propios de una única, heraldia.revisar.mirar.unica.<id> (CON_PUNTO_PROPIO).
+The Java side takes the fallback text from es_es (comando/Textos); translations go in idiomas/<code>.json. The items
+in the list for each type of stop are heraldia.revisar.mirar.<type>.<n> (how many: POINTS, the same number as
+RevisarCommand.POINTS) and those specific to a unique structure, heraldia.revisar.mirar.unica.<id> (WITH_OWN_POINT).
 """
 NS = "heraldia"
 
-# tipo de parada -> puntos de su lista (RevisarCommand.PUNTOS)
+# stop type -> items in its list (RevisarCommand.POINTS)
 POINTS = {"aldea": 4, "unica": 4, "mediana": 3, "mina": 3, "costa": 3, "arena": 3, "camino": 3}
-# únicas con un punto propio en la lista (RevisarCommand.CON_PUNTO_PROPIO)
+# unique structures with an item of their own in the list (RevisarCommand.WITH_OWN_POINT)
 WITH_OWN_POINT = ("atlantida", "isla_corsario")
-# botones de la ruta (heraldia.revisar.boton.<id> y su ayuda, .ayuda)
+# route buttons (heraldia.revisar.boton.<id> and its help, .ayuda)
 BUTTONS = ("revisada", "nota", "problema", "saltar", "anterior", "siguiente", "lista", "generar", "ir")
 
 _TEXTS_ES = {
-    # --- nombres antiguos de los comandos (comando/Alias): «/heraldia guia» -> «/heraldia guide» ---
+    # --- old command names: "/heraldia guia" -> "/heraldia guide" ---
     "comando.obsoleto": ("«%s» está obsoleto y se quitará en una versión futura: usa %s.",
                          "“%s” is deprecated and will be removed in a future version: use %s."),
-    # --- aviso de versión nueva (comando/AvisoVersion) y /heraldia update check ---
+    # --- new-version notice (comando/AvisoVersion) and /heraldia update check ---
     "version.nueva": ("Hay una versión nueva de Heraldia: %s (tienes la %s) para Minecraft %s.",
                       "A new version of Heraldia is available: %s (you have %s) for Minecraft %s."),
     "version.descargar": ("[Descargar]", "[Download]"),
@@ -89,7 +89,7 @@ _TEXTS_ES = {
     "revisar.boton.generar.ayuda": ("Te lleva allí aunque se genere terreno nuevo", "Takes you there even if new terrain is generated"),
     "revisar.boton.ir": ("[Ir]", "[Go]"),
     "revisar.boton.ir.ayuda": ("Ir a esta parada", "Go to this stop"),
-    # qué mirar en cada tipo de parada
+    # what to look at in each type of stop
     "revisar.mirar.aldea.1": ("Plaza, calles y casas asentadas en el terreno, sin escalones sueltos ni bloques flotando",
                               "Square, streets and houses sit well on the terrain, with no loose steps or floating blocks"),
     "revisar.mirar.aldea.2": ("Interiores con sentido: muebles pegados al muro, sin tapar ventanas ni puertas",
@@ -178,7 +178,7 @@ _TEXTS_ES = {
                             "Require a server restart because they affect generation (%s); not applied:"),
     "recargar.pendiente": (" ✘ %s: %s en uso, %s en el fichero", " ✘ %s: %s in use, %s in the file"),
     "recargar.mobs": ("Dificultad recalculada en %s mobs de Heraldia cargados.", "Difficulty recalculated for %s loaded Heraldia mobs."),
-    # --- mapas web (mapas/MapasWeb): capas, marcadores y /heraldia webmap refresh ---
+    # --- web maps (mapas/MapasWeb): layers, markers and /heraldia webmap refresh ---
     "mapas_web.capa.unicas": ("Heraldia: estructuras únicas", "Heraldia: unique structures"),
     "mapas_web.capa.aldeas": ("Heraldia: aldeas", "Heraldia: villages"),
     "mapas_web.capa.medianas": ("Heraldia: estructuras medianas", "Heraldia: medium structures"),
@@ -208,7 +208,7 @@ _TEXTS_ES = {
 
 
 def lang():
-    """{"es_es": {...}, "en_us": {...}} con todos los textos de las herramientas de administración."""
+    """{"es_es": {...}, "en_us": {...}} with all the texts of the administration tools."""
     out = {"es_es": {}, "en_us": {}}
     for k, (es, en) in _TEXTS_ES.items():
         out["es_es"][f"{NS}.{k}"] = es
@@ -217,6 +217,6 @@ def lang():
 
 
 def keys_to_check():
-    """Claves de todos los puntos de las listas de qué mirar (las que el Java puede pedir)."""
+    """Keys of all the items in the what-to-look-at lists (the ones the Java side may request)."""
     out = [f"{NS}.revisar.mirar.{t}.{i}" for t, n in POINTS.items() for i in range(1, n + 1)]
     return out + [f"{NS}.revisar.mirar.unica.{u}" for u in WITH_OWN_POINT]

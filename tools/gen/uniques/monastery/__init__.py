@@ -1,4 +1,4 @@
-"""Monasterio de montaña: una sola plantilla rígida con su propio risco, terrazas, iglesia y cuevas (ver docs/unicas/monasterio.md)."""
+"""Mountain monastery: a single rigid template with its own crag, terraces, church and caves (see docs/unicas/monastery.md)."""
 from .._common.pieces import open_stairwells
 from . import construction, audit
 from .chest_loot import LOOT, LANG_ITEMS
@@ -17,8 +17,8 @@ DISPLAY_NAME = {"es_es": "Monasterio de montaña", "en_us": "Mountain Monastery"
 TROPHY = {"objeto": "amethyst_shard", "rareza": "rare",
           "nombre": ("Lágrima del relicario", "Tear of the Reliquary"),
           "lore": [("Dicen que lloró cuando cayó el último monje.", "They say it wept when the last monk fell."),
-                   ("La custodiaba Fray Tenebrio.", "Guarded by Friar Tenebrius.")]}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+                   ("La custodiaba Fray Tenebrio.", "Guarded by Friar Tenebrius.")]}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("En las praderas de la montaña, un monasterio cuelga del risco. Los monjes copiaban libros a la "
@@ -35,7 +35,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("las praderas de la montaña, donde un monasterio cuelga del risco",
               "the mountain meadows, where a monastery clings to the crag"),
 }
-ADVANCEMENT = {"icono": "minecraft:writable_book"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:writable_book"}   # advancements.py
 
 _TEXTS = {
     "cripta.1": ("Apagad las luces", "Put out the lights"), "cripta.2": ("de los difuntos", "of the departed"),
@@ -47,7 +47,7 @@ _TEXTS = {
 _TEXTS.update(LANG_ITEMS)
 LANG = lang(f"heraldia.unicas.{ID}.", _TEXTS)
 
-# Procesador de envejecimiento (solo cosmético: no abre huecos ni quita apoyos)
+# Ageing processor (cosmetic only: it opens no gaps and removes no supports)
 AGING = {"processors": [{"processor_type": "minecraft:rule", "rules": [
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:stone_bricks", "probability": p},
      "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": f"minecraft:{out}"}
@@ -62,5 +62,5 @@ def build(reg):
     reg.warnings.extend(f"monasterio: {e}" for e in errors)
     open_stairwells(t)   # huecos de escalera cortos
     name = reg.add(t, f"unica:{ID}")
-    reg.templates[name].lint_open = dict(t.open_items)          # convención común de lint.py: puertas secretas abiertas
+    reg.templates[name].lint_open = dict(t.open_items)          # common lint.py convention: secret doors open
     reg.pool(f"unicas/{ID}/inicio", [(name, 1, "rigid", AGING)])

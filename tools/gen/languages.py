@@ -1,15 +1,15 @@
-"""Idiomas del mod: es_es y en_us salen de los módulos (tuplas (es, en) y diccionarios LANG); los demás, de las
-traducciones de tools/gen/languages/<código>.json ({clave: texto}).
+"""Mod languages: es_es and en_us come from the modules ((es, en) tuples and LANG dictionaries); the others from the
+translations in tools/gen/languages/<code>.json ({key: text}).
 
-Fuente única de las claves: el es_es que arma el generador (writer.textos). Cada traducción debe tener exactamente esas
-claves (ni una de más ni de menos), los mismos huecos de formato que el inglés (%s, %1$s, %%: los mismos argumentos, en
-el orden que pida la frase) y caber en las páginas de libro donde se usa (botin.lineas_libro). Si algo falla, la
-generación se detiene (writer.write) y los tests lo dicen (tests/test_idiomas.py).
+Single source of the keys: the es_es built by the generator (writer.textos). Each translation must have exactly those
+keys (not one more or fewer), the same format slots as the English (%s, %1$s, %%: the same arguments, in
+the order the sentence needs) and fit in the book pages where it is used (chest_loot.book_lines). If anything fails,
+generation stops (writer.write) and the tests say so (tests/test_languages.py).
 
-Clientes sin el mod (Textos.idioma en Java): heraldia/idiomas.json dice qué código del .jar corresponde a cada lengua de
-Minecraft (la parte antes de «_»: fr_ca -> fr_fr, pt_pt -> pt_br, es_mx -> es_es); una lengua sin idioma propio, inglés.
+Clients without the mod (Textos.idioma in Java): heraldia/languages.json says which .jar code corresponds to each Minecraft
+language (the part before "_": fr_ca -> fr_fr, pt_pt -> pt_br, es_mx -> es_es); a language without its own translation gets English.
 
-Para comprobar una traducción a mano (tras generar con ./gradlew build): python3 tools/gen/languages.py fr_fr
+To check a translation by hand (after generating with ./gradlew build): python3 tools/gen/languages.py fr_fr
 """
 import json
 import os
@@ -17,7 +17,7 @@ import re
 import sys
 
 BASE = ("es_es", "en_us")
-# código del .jar -> nombre del idioma (en su lengua). El orden es el de los README y de /heraldia info.
+# .jar code -> language name (in its own language). The order is that of the READMEs and of /heraldia info.
 TRANSLATIONS = {
     "fr_fr": "Français",
     "de_de": "Deutsch",
@@ -27,20 +27,20 @@ TRANSLATIONS = {
     "gl_es": "Galego",
 }
 NAMES = {"en_us": "English", "es_es": "Español", **TRANSLATIONS}
-# README homólogo de cada idioma en el repositorio (el inglés es el principal); tests/test_readme.py los mantiene
-# sincronizados y con el selector de idiomas, en este orden.
+# counterpart README of each language in the repository (English is the main one); tests/test_readme.py keeps them
+# in sync and with the language selector, in this order.
 README = {"en_us": "README.md", "es_es": "README.es.md", "fr_fr": "README.fr.md", "de_de": "README.de.md",
           "it_it": "README.it.md", "pt_br": "README.pt-BR.md", "ca_es": "README.ca.md", "gl_es": "README.gl.md"}
-# Lenguas de Minecraft cuyo código no empieza por la de su idioma en el mod: valenciano (val_es) y andaluz (esan).
+# Minecraft languages whose code does not start with that of their language in the mod: Valencian (val_es) and Andalusian (esan).
 ALIAS = {"val": "ca_es", "esan": "es_es"}
 FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "languages")
-FILL = "X" * 24        # texto de un traducible que no es del mod (p. ej. el nombre vanilla de un objeto): peor caso
+FILL = "X" * 24        # text of a translatable that is not from the mod (e.g. a vanilla item name): worst case
 
 _MARK = re.compile(r"%(?:(\d+)\$)?([a-zA-Z%])")
 
 
 def everyone():
-    """Todos los códigos de idioma del mod, los base primero."""
+    """All the mod's language codes, the base ones first."""
     return list(BASE) + list(TRANSLATIONS)
 
 
@@ -49,7 +49,7 @@ def locale(lang_code):
 
 
 def mc_locales():
-    """{lengua: código del .jar} para heraldia/idiomas.json (lo lee Textos.codigo en Java)."""
+    """{language: .jar code} for heraldia/languages.json (read by Textos.codigo in Java)."""
     out = {locale(c): c for c in everyone()}
     out.update(ALIAS)
     return out
@@ -60,7 +60,7 @@ def route(lang_code):
 
 
 def load_data(lang_code):
-    """{clave: texto} de una traducción (tools/gen/languages/<código>.json); {} si aún no existe."""
+    """{key: text} of a translation (tools/gen/languages/<code>.json); {} if it does not exist yet."""
     if not os.path.exists(route(lang_code)):
         return {}
     with open(route(lang_code), encoding="utf-8") as f:
@@ -68,8 +68,8 @@ def load_data(lang_code):
 
 
 def markers(text):
-    """Argumentos que usa un texto de formato de Minecraft (TranslatableContents): ([índices 1..n], nº de %%) o
-    None si tiene un marcador que el juego no entiende (solo %s, %n$s y %%)."""
+    """Arguments used by a Minecraft format text (TranslatableContents): ([indices 1..n], number of %%) or
+    None if it has a placeholder the game does not understand (only %s, %n$s and %%)."""
     indices, literals, following = [], 0, 1
     for m in _MARK.finditer(text):
         pos, kind = m.groups()
@@ -86,7 +86,7 @@ def markers(text):
 
 
 def key_errors(base, translated, lang_code):
-    """Claves que faltan o sobran en la traducción `trad` frente a `base` (el es_es)."""
+    """Keys missing from or extra in the translation `translated` compared with `base` (the es_es)."""
     e = [f"{lang_code}: falta la clave {k}" for k in base if k not in translated]
     e += [f"{lang_code}: sobra la clave {k}" for k in translated if k not in base]
     e += [f"{lang_code}: {k} está vacía" for k, v in translated.items() if k in base and not str(v).strip()]
@@ -94,7 +94,7 @@ def key_errors(base, translated, lang_code):
 
 
 def marker_errors(en, translated, lang_code):
-    """Huecos de formato distintos de los del inglés (que son los mismos que los del español)."""
+    """Format slots different from those of the English (which are the same as those of the Spanish)."""
     e = []
     for k, t in translated.items():
         if k in en:
@@ -107,7 +107,7 @@ def marker_errors(en, translated, lang_code):
 
 
 def format_text(fmt, args):
-    """Como TranslatableContents: %s, %n$s y %%."""
+    """Like TranslatableContents: %s, %n$s and %%."""
     it = iter(range(len(args)))
 
     def sub(m):
@@ -120,7 +120,7 @@ def format_text(fmt, args):
 
 
 def text(comp, texts):
-    """Texto plano de un componente en el idioma `textos` (lo que pinta un cliente con el mod)."""
+    """Plain text of a component in the language `texts` (what a client with the mod renders)."""
     if isinstance(comp, (int, float)):
         return str(comp)
     if isinstance(comp, str):
@@ -136,8 +136,8 @@ def text(comp, texts):
 
 
 def book_pages(items):
-    """[(dónde, página)] de todos los libros escritos (written_book_content) que haya dentro de `objetos` (tablas de
-    botín, tratos, NBT de bloques...), con la página como componente."""
+    """[(where, page)] of all the written books (written_book_content) found inside `items` (loot tables,
+    trades, block NBT...), with the page as a component."""
     out = []
 
     def show(o, where):
@@ -157,7 +157,7 @@ def book_pages(items):
 
 
 def book_errors(pages, texts, lang_code):
-    """Páginas de libro que no caben en este idioma (14 líneas de 114 px, como el juego)."""
+    """Book pages that do not fit in this language (14 lines of 114 px, like the game)."""
     from uniques._common import chest_loot
     e = []
     for where, p in pages:
@@ -168,12 +168,12 @@ def book_errors(pages, texts, lang_code):
     return e
 
 
-SIGN_WIDTH = 90          # SignBlockEntity: ancho máximo de una línea de cartel, en px
+SIGN_WIDTH = 90          # SignBlockEntity: maximum width of a sign line, in px
 
 
 def sign_keys(items):
-    """Claves traducibles de las líneas de cartel (front_text/back_text) que haya dentro de `objetos` (NBT de bloques):
-    {clave: en negrita}. La negrita suma 1 px a cada carácter (el desplazamiento de la negrita de la fuente)."""
+    """Translatable keys of the sign lines (front_text/back_text) found inside `items` (block NBT):
+    {key: bold}. Bold adds 1 px to each character (the font's bold offset)."""
     out = {}
 
     def show(o):
@@ -193,9 +193,9 @@ def sign_keys(items):
 
 
 def sign_errors(keys, texts, lang_code):
-    """Líneas de cartel más anchas que el cartel (90 px) en este idioma, también en es/en: el cliente (SignRenderer)
-    corta la línea por palabras a 90 px y lo que sobra no se ve.
-    `claves`: las de claves_de_carteles ({clave: en negrita}) o un conjunto de claves (sin negrita)."""
+    """Sign lines wider than the sign (90 px) in this language, also in es/en: the client (SignRenderer)
+    wraps the line by words at 90 px and what is left over is not visible.
+    `keys`: those from claves_de_carteles ({key: bold}) or a set of keys (without bold)."""
     e = []
     for k in sorted(keys):
         if k in texts and sign_width(texts[k], isinstance(keys, dict) and keys[k]) > SIGN_WIDTH:
@@ -205,21 +205,21 @@ def sign_errors(keys, texts, lang_code):
 
 
 def sign_width(text, bold=False):
-    """Ancho en px de una línea de cartel: el de botin.ancho, más 1 px por carácter en negrita."""
+    """Width in px of a sign line: that of chest_loot.width, plus 1 px per bold character."""
     from uniques._common import chest_loot
     return chest_loot.width(text) + (len(text) if bold else 0)
 
 
 def sort_items(base, translated):
-    """La traducción con las claves en el orden del es_es (las que no están en él, al final)."""
+    """The translation with the keys in the order of the es_es (those not in it, at the end)."""
     return {**{k: translated[k] for k in base if k in translated}, **{k: v for k, v in translated.items() if k not in base}}
 
 
 def complete(base, pages=(), signs=()):
-    """{código: textos} de todos los idiomas a partir de los base ({"es_es": ..., "en_us": ...}) y las traducciones.
-    `paginas`: las de los libros escritos (paginas_de_libros), que deben caber en cada idioma; `carteles`: claves de
-    las líneas de cartel (claves_de_carteles). Lanza SystemExit con todos los errores si una traducción no está
-    completa o no cabe."""
+    """{code: texts} of all the languages from the base ones ({"es_es": ..., "en_us": ...}) and the translations.
+    `pages`: those of the written books (paginas_de_libros), which must fit in each language; `signs`: keys of
+    the sign lines (claves_de_carteles). Raises SystemExit with all the errors if a translation is not
+    complete or does not fit."""
     es, en = base["es_es"], base["en_us"]
     out, e = {"es_es": es, "en_us": en}, []
     for lang_code in BASE:
@@ -230,12 +230,12 @@ def complete(base, pages=(), signs=()):
         e += book_errors(pages, {**en, **translated}, lang_code) + sign_errors(signs, translated, lang_code)
         out[lang_code] = sort_items(es, translated)
     if e:
-        raise SystemExit("IDIOMAS:\n" + "\n".join(e[:200]) + (f"\n… y {len(e) - 200} más" if len(e) > 200 else ""))
+        raise SystemExit("IDIOMAS:\n" + "\n".join(e[:200]) + (f"\n… and {len(e) - 200} more" if len(e) > 200 else ""))
     return out
 
 
 def _check(lang_codes):
-    """Uso a mano: compara cada traducción con el es_es/en_us ya generados (build/generated/heraldia)."""
+    """Manual use: compares each translation with the already generated es_es/en_us (build/generated/heraldia)."""
     root = os.path.join(os.path.dirname(FOLDER), "..", "..", "build", "generated", "heraldia")
     lang = os.path.join(root, "assets", "heraldia", "lang")
     base = {}
@@ -248,7 +248,7 @@ def _check(lang_codes):
             if f.endswith(".json"):
                 with open(os.path.join(d, f), encoding="utf-8") as fh:
                     pages += book_pages([(f, json.load(fh))])
-    # los libros de los atriles de las plantillas (tablón, torre del mago) no están en data/: por su clave
+    # the books on the template lecterns (board, wizard tower) are not in data/: by their key
     pages += [(k, {"translate": k, "with": [FILL] * 3}) for k in base["es_es"]
                 if re.fullmatch(r"heraldia\.(tablon\.p\d+|unicas\.torre_mago\.diario\.\d+)", k)]
     signs = {k for k in base["es_es"] if ".cartel." in k}

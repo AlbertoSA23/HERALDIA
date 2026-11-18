@@ -1,14 +1,14 @@
-"""El puerto del corsario en la explanada del sur: muelle con el bergantín amarrado, la taberna (con su bodega y el
-escondite tras el tapiz), los almacenes, la horca, la subida al fuerte, el faro de la punta oeste, las palmeras y los
-caminos."""
+"""The corsair's harbor on the southern esplanade: pier with the moored brigantine, the tavern (with its cellar and the
+hideout behind the tapestry), the warehouses, the gallows, the climb to the fort, the west-point lighthouse, the palm trees and the
+roads."""
 import math
 from .._common import pieces
 from .construction import S, slab, stairs, h, bed, BASE, PL, LOG, SLOG, DPL, COB, SB, DV
 
-YP = 2                        # pies en la explanada del puerto (suelo a y = 1)
-DOCK = (43, 45, 79, 91)     # muelle: x0, x1, z0, z1 (tablero a y = 0)
-T_HEAD = (33, 55, 92, 94)      # cabeza del muelle en T
-SHIP = (27, 60, 100)         # bergantín: popa x, proa x, crujía z
+YP = 2                        # feet on the harbor esplanade (floor at y = 1)
+DOCK = (43, 45, 79, 91)     # pier: x0, x1, z0, z1 (deck at y = 0)
+T_HEAD = (33, 55, 92, 94)      # T-shaped pier head
+SHIP = (27, 60, 100)         # brigantine: stern x, bow x, centerline z
 HIDDEN_NOOK = []
 
 
@@ -37,8 +37,8 @@ def road(o, x, z):
 
 
 def stair_steps(o):
-    """Donde un camino sube un bloque (de la playa a la hierba), un peldaño en la celda baja mirando a la alta: el
-    recorrido no exige saltar."""
+    """Where a road rises one block (from the beach to the grass), a step on the lower cell facing the higher one: the
+    walkthrough does not require jumping."""
     for (x, z) in sorted(o.road):
         g = o.ground[(x, z)]
         for d, (a, b) in DV.items():
@@ -50,7 +50,7 @@ def stair_steps(o):
 
 
 def roads(o):
-    # del muelle a la plaza y de la plaza a la subida del fuerte y al faro
+    # from the pier to the square and from the square to the climb to the fort and to the lighthouse
     for z in range(66, 80):
         for x in (43, 44, 45):
             road(o, x, z)
@@ -70,10 +70,10 @@ def roads(o):
     stair_steps(o)
 
 
-# ------------------------------------------------------------------ edificios del puerto
+# ------------------------------------------------------------------ harbor buildings
 def basic_house(o, x0, x1, z0, z1, height=4, wall=PL, post=LOG, roof="dark_oak"):
-    """Planta rectangular con zócalo de piedra, muros de tablas con pies derechos y tejado a dos aguas (cumbrera a lo
-    largo de x). Suelo a y = 1."""
+    """Rectangular plan with a stone base, plank walls with posts and a gable roof (ridge along
+    x). Floor at y = 1."""
     y0 = YP
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):
@@ -108,8 +108,8 @@ def basic_house(o, x0, x1, z0, z1, height=4, wall=PL, post=LOG, roof="dark_oak")
 
 
 def tavern(o):
-    """La taberna de La Sirena Ahorcada: barra, mesas y chimenea; bodega bajo el suelo con los barriles y, tras el tapiz
-    del fondo, el escondite del tabernero."""
+    """The tavern of La Sirena Ahorcada: bar, tables and fireplace; cellar under the floor with the barrels and, behind the tapestry
+    at the back, the innkeeper's hideout."""
     x0, x1, z0, z1 = 27, 38, 55, 64
     top = basic_house(o, x0, x1, z0, z1, height=5)
     pieces.double_door(o.s, 32, YP, z1, "south", "east")
@@ -120,7 +120,7 @@ def tavern(o):
         o.s(x0, YP + 1, z, S("glass_pane"))
         o.s(x1, YP + 1, z, S("glass_pane"))
     o.sign(34, YP + 2, z1 + 1, "south", "taberna", [("La Sirena", "The Hanged"), ("Ahorcada", "Mermaid")])
-    # barra a lo largo del muro norte
+    # bar along the north wall
     for x in range(29, 36):
         o.s(x, YP, 58, stairs("spruce", "south", "top"))
     for x in range(29, 36, 3):
@@ -132,13 +132,13 @@ def tavern(o):
         o.table(x, YP, z)
         o.s(x - 1, YP, z, stairs("spruce", "west"))
         o.s(x + 1, YP, z, stairs("spruce", "east"))
-    # chimenea en el muro oeste
+    # fireplace on the west wall
     o.s(x0 + 1, YP, 60, "campfire[facing=east,lit=true,signal_fire=false,waterlogged=false]")
     o.f(x0, YP, 59, x0, top + 4, 61, "bricks")
     o.s(x0, YP, 60, "bricks")
     o.hang(32, YP + 4, 60)
     o.hang(32, YP + 4, 57)
-    # bodega: bajo la taberna (pies -3), a la que se baja por una escalera de mano en el rincón noreste
+    # cellar: under the tavern (feet -3), reached by a ladder in the northeast corner
     yb = -3
     for x in range(29, 37):
         for z in range(56, 63):
@@ -160,7 +160,7 @@ def tavern(o):
         o.s(29, yb, z, S("barrel", facing="east", open=False), {"id": "minecraft:barrel"})
     o.chest(30, yb, 62, "north", "bodega")
     o.hang(33, YP - 2, 59)
-    # escondite tras el tapiz del muro este de la bodega: paso de 1 x 2 y un cuartito
+    # hideout behind the tapestry on the cellar's east wall: a 1 x 2 opening and a small room
     o.a(37, yb, 59, 37, yb + 1, 59)
     o.s(37, yb + 2, 59, SB)
     o.s(36, yb + 2, 59, S("red_wall_banner", facing="west"))
@@ -189,7 +189,7 @@ def warehouse(o, x0, x1, z0, z1, tbl):
 
 
 def gallows(o, x, z):
-    """La horca de la plaza: tarima de tablas con escalones, dos postes y el travesaño con la cadena."""
+    """The square's gallows: plank platform with steps, two posts and the crossbeam with the chain."""
     for a in range(-1, 2):
         for b in range(-1, 2):
             o.s(x + a, YP, z + b, PL)
@@ -202,7 +202,7 @@ def gallows(o, x, z):
 
 
 def ascent(o):
-    """Escalinata de la explanada a la puerta del fuerte (pies 2 en z = 52 a pies 8 en la puerta)."""
+    """Stairway from the esplanade to the fort gate (feet 2 at z = 52 to feet 8 at the gate)."""
     for k in range(6):
         y, z = 2 + k, 51 - k
         for x in (70, 71, 72, 73):
@@ -218,7 +218,7 @@ def ascent(o):
         o.a(x, 2, 52, x, 4, 52)
 
 
-# ------------------------------------------------------------------ muelle y bergantín
+# ------------------------------------------------------------------ pier and brigantine
 def dock(o):
     x0, x1, z0, z1 = DOCK
     tx0, tx1, tz0, tz1 = T_HEAD
@@ -244,7 +244,7 @@ def dock(o):
 
 
 def hull_half_width(x, y):
-    """Semimanga del casco en la sección x a la altura y (None fuera del barco)."""
+    """Half-beam of the hull at section x at height y (None outside the ship)."""
     xs, xb, zc = SHIP
     if not xs <= x <= xb:
         return None
@@ -258,8 +258,8 @@ def hull_half_width(x, y):
 
 
 def brigantine(o):
-    """Bergantín de dos palos amarrado a la cabeza del muelle (casco de roble oscuro, cubierta a pies 2), con la bodega,
-    el castillo de popa con el camarote del capitán y la cadena del ancla hasta el fondo."""
+    """Two-masted brigantine moored at the pier head (dark oak hull, deck at feet 2), with the hold,
+    the stern castle with the captain's cabin and the anchor chain down to the floor."""
     xs, xb, zc = SHIP
     for x in range(xs, xb + 1):
         for y in range(-5, 3):
@@ -279,7 +279,7 @@ def brigantine(o):
                     o.s(x, y, z, DPL if shell else "air")
                 if y == 2:
                     o.a(x, 3, z, x, 6, z) if not shell else None
-    # bodega (pies -3) con escotilla y escala
+    # hold (feet -3) with hatch and ladder
     hx = 44
     for y in range(-3, 1):
         if o.free(hx, y, zc - 3):
@@ -291,7 +291,7 @@ def brigantine(o):
     for x in (48, 49, 50):
         o.s(x, -3, zc - 2, S("barrel", facing="up", open=False), {"id": "minecraft:barrel"})
     o.hang(46, 0, zc)
-    # castillo de popa: camarote (pies 2) y toldilla encima (pies 6)
+    # stern castle: cabin (feet 2) and poop deck above (feet 6)
     cx1 = xs + 7
     for x in range(xs, cx1 + 1):
         hw = hull_half_width(x, 1)
@@ -303,7 +303,7 @@ def brigantine(o):
             o.s(x, 6, z, "dark_oak_fence" if edge else "air")
     o.door(cx1, 2, zc, "east")
     o.a(cx1, 6, zc - 1, cx1, 6, zc + 1)
-    # escalera a la toldilla (por estribor, subiendo hacia la popa)
+    # staircase to the poop deck (on the starboard side, rising toward the stern)
     for k in range(3):
         o.s(cx1 + 3 - k, 2 + k, zc + 2, stairs("spruce", "west"))
         o.f(cx1 + 3 - k, 2, zc + 2, cx1 + 3 - k, 1 + k, zc + 2, PL) if k else None
@@ -318,10 +318,10 @@ def brigantine(o):
                                                     ("y poniente; nunca", "and west; never"), ("levante ni sur.", "east nor south.")])
     o.hang(xs + 4, 4, zc)
     o.s(xs + 2, 5, zc, "spruce_planks")
-    # timón en la toldilla
+    # helm on the poop deck
     o.s(xs + 2, 6, zc, "spruce_fence")
     o.s(xs + 2, 7, zc, S("spruce_trapdoor", facing="east", half="bottom", open=True, powered=False, waterlogged=False))
-    # palos, vergas y velas cuadras (velas de lana blanca y gris)
+    # masts, yards and square sails (white and gray wool sails)
     for mx, top in ((40, 19), (51, 17)):
         o.f(mx, -4, zc, mx, top, zc, "spruce_log[axis=y]")
         for (yv, width, y0, y1) in ((top - 2, 4, top - 7, top - 3), (top - 9, 4, 4, top - 10)):
@@ -334,20 +334,20 @@ def brigantine(o):
                         else:
                             o.s(mx + 1, y, z, "white_wool" if h(mx, y, z) > 0.12 else "light_gray_wool")
         o.s(mx, top + 1, zc, "spruce_fence")
-    # bauprés y cadena del ancla (por la amura de babor, hasta la fila inferior: se prolonga hasta el fondo)
+    # bowsprit and anchor chain (along the port bow, down to the bottom row: it extends to the floor)
     for k in range(6):
         o.s(xb + k, 3, zc, "spruce_log[axis=x]")
     ax = xb - 4
     az = zc - hull_half_width(ax, 1) - 1
     back = bed(ax, az)
     if back is None:
-        back = BASE - 1                       # el ancla cuelga de su cadena sobre el fondo (o queda enterrada)
+        back = BASE - 1                       # the anchor hangs from its chain above the floor (or ends up buried)
     o.s(ax, back + 1, az, "anvil[facing=north]")
     for y in range(back + 2, 2):
         o.s(ax, y, az, S("iron_chain", axis="y"))
     o.s(ax, 2, az, "dark_oak_fence")
     o.mech["ancla"] = (ax, az)
-    # pasarela del muelle a la cubierta: tablón sobre el agua, peldaño y hueco en la borda
+    # gangway from the pier to the deck: plank over the water, step and gap in the gunwale
     for x in (44, 45):
         o.s(x, 0, 95, "spruce_planks")
         o.s(x, 1, 95, stairs("spruce", "south"))
@@ -355,7 +355,7 @@ def brigantine(o):
         o.a(x, 2, zc - hull_half_width(x, 1), x, 2, zc - hull_half_width(x, 1))
 
 
-# ------------------------------------------------------------------ faro de la punta oeste
+# ------------------------------------------------------------------ west-point lighthouse
 def lighthouse(o):
     cx, cz = 20, 48
     for (x, z) in [(cx + a, cz + b) for a in range(-5, 6) for b in range(-5, 6) if a * a + b * b <= 26]:
@@ -380,7 +380,7 @@ def lighthouse(o):
     o.chest(cx, 2, cz - 1, "south", "faro")
     for y in (6, 10):
         o.s(cx, y, cz - 2, S("glass_pane"))
-    # sala de la linterna
+    # lantern room
     lan = [(cx + a, cz + b) for a in range(-2, 3) for b in range(-2, 3) if math.hypot(a, b) <= 2.9]
     for (x, z) in lan:
         o.s(x, 15, z, SB)

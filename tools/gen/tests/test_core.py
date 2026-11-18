@@ -1,4 +1,4 @@
-"""core.py: estados, NBT de plantillas y utilidades de Template."""
+"""core.py: states, template NBT and Template utilities."""
 import nbtlib
 import pytest
 from core import (parse_state, state_str, with_props, nsid, norm_id, to_tag, B, F, Template, adult, ADULT_TAG, anchored, ANCHORED_TAG, PICKS_UP_LOOT, BABY_ZOMBIE,
@@ -9,7 +9,7 @@ def test_parse_state_and_state_str():
     assert parse_state("stone") == ("minecraft:stone", {})
     bid, p = parse_state("minecraft:oak_stairs[half=bottom, facing=east]")
     assert bid == "minecraft:oak_stairs" and p == {"half": "bottom", "facing": "east"}
-    # las propiedades salen ordenadas: dos escrituras del mismo estado son la misma cadena
+    # the properties come out sorted: two writes of the same state are the same string
     assert state_str(bid, p) == "minecraft:oak_stairs[facing=east,half=bottom]"
     assert state_str("minecraft:air", {}) == "minecraft:air"
 
@@ -39,9 +39,9 @@ def test_to_tag_types():
 
 def test_template_set_get_fill_normalize():
     t = Template("x")
-    t.fill(2, 3, 4, 1, 3, 5, "stone")      # extremos al revés: fill los ordena
+    t.fill(2, 3, 4, 1, 3, 5, "stone")      # reversed extremes: fill sorts them
     assert len(t.blocks) == 4 and t.get(1, 3, 4) == "minecraft:stone"
-    t.set(1, 3, 4, "dirt", keep=True)       # keep no pisa un bloque que no es aire
+    t.set(1, 3, 4, "dirt", keep=True)       # keep does not overwrite a block that is not air
     assert t.get(1, 3, 4) == "minecraft:stone"
     t.jigsaw(1, 3, 5, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty")
     t.normalize()
@@ -60,9 +60,9 @@ def test_to_nbt_palette_and_order():
     n = t.to_nbt()
     assert int(n["DataVersion"]) == DATA_VERSION
     assert [int(c) for c in n["size"]] == [2, 2, 1]
-    assert len(n["palette"]) == 3                     # stone se reutiliza
+    assert len(n["palette"]) == 3                     # stone is reused
     assert str(n["palette"][0]["properties"]["axis"]) == "y"
-    # orden y, z, x: el (0,0,0) primero
+    # order y, z, x: (0,0,0) first
     assert [list(map(int, b["pos"])) for b in n["blocks"]][:2] == [[0, 0, 0], [1, 0, 0]]
     assert str(n["blocks"][3]["nbt"]["LootTable"]) == "heraldia:botin"
     e = n["entities"][0]
@@ -81,9 +81,9 @@ def test_anchored():
     assert z["Tags"] == ["a", ANCHORED_TAG]
     assert anchored(dict(z))["Tags"].count(ANCHORED_TAG) == 1       # idempotente
     assert anchored({"id": "minecraft:skeleton"})["Tags"] == [ANCHORED_TAG]
-    assert "Tags" not in anchored({"id": "minecraft:evoker"})          # no recoge objetos: solo si es guardián
+    assert "Tags" not in anchored({"id": "minecraft:evoker"})          # does not pick up objects: only if it is a guardian
     assert anchored({"id": "minecraft:evoker"}, always=True)["Tags"] == [ANCHORED_TAG]
-    assert "Tags" not in anchored({"id": "minecraft:villager"})        # los aldeanos recogen cosechas
+    assert "Tags" not in anchored({"id": "minecraft:villager"})        # villagers pick up crops
     assert BABY_ZOMBIE <= PICKS_UP_LOOT and "minecraft:wither_skeleton" in PICKS_UP_LOOT
     assert all(m.startswith("minecraft:") for m in PICKS_UP_LOOT)
 
@@ -107,7 +107,7 @@ def _nbtlib(t):
 
 
 def test_nbt_raw_same_as_nbtlib():
-    """El serializador directo de Template.nbt_raw da los mismos bytes que nbtlib (to_nbt + File.write)."""
+    """The direct serialiser Template.nbt_raw gives the same bytes as nbtlib (to_nbt + File.write)."""
     from uniques._common import pieces
     t = Template("x")
     t.fill(0, 0, 0, 3, 1, 2, "stone_bricks")
@@ -121,7 +121,7 @@ def test_nbt_raw_same_as_nbtlib():
     assert t.nbt_raw() == _nbtlib(t)
     blank = Template("v")
     blank.set(0, 0, 0, "air")
-    assert blank.nbt_raw() == _nbtlib(blank)          # sin entidades: lista vacía de compuestos
+    assert blank.nbt_raw() == _nbtlib(blank)          # without entities: empty list of compounds
 
 
 def test_nbt_bytes_deterministic():
@@ -130,7 +130,7 @@ def test_nbt_bytes_deterministic():
     t.set(0, 0, 0, "stone")
     a = t.nbt_bytes()
     assert a == t.nbt_bytes() and gzip.decompress(a) == t.nbt_raw()
-    assert a[4:8] == b"\x00\x00\x00\x00"              # mtime 0 en la cabecera gzip
+    assert a[4:8] == b"\x00\x00\x00\x00"              # mtime 0 in the gzip header
 
 
 def test_save(tmp_path):

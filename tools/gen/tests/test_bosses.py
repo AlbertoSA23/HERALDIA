@@ -1,5 +1,5 @@
-"""Contrato de los refuerzos de los guardianes (jefes.py, REFUERZOS de cada única) y el esquema heraldia/jefes.json
-que lee el Java (comun/jefes). Sin generar el datapack."""
+"""Contract of the guardians' reinforcements (jefes.py, REFUERZOS of each unique structure) and the schema heraldia/jefes.json
+read by the Java (comun/jefes). Without generating the datapack."""
 import types
 import pytest
 import bosses
@@ -9,7 +9,7 @@ import writer
 
 MODS = uniques.modules()
 IDS = [sid for sid, _ in MODS]
-# Tipo de mob del guardián final de cada única (lo que pack.tag_guardians deja en reg.guardianes), para el esquema.
+# Mob type of the final guardian of each unique structure (what pack.tag_guardians leaves in reg.guardianes), for the schema.
 GUARDIANS = {sid: {"minecraft:zombie": "minecraft:entities/zombie"} for sid in IDS}
 
 
@@ -33,7 +33,7 @@ def test_families_meet_and_cover_the_guardians():
         assert bosses.errors(fam, specs) == [], fam
     assert set(bosses.MOB_FAMILY.values()) <= set(bosses.FAMILIES)
     assert bosses.GENERIC in bosses.FAMILIES
-    # los tipos de los guardianes de hoy (piezas.guardian y el jefe de la Atlántida) tienen familia propia
+    # the guardian types of today (piezas.guardian and the Atlantis boss) have their own family
     for mob in ("zombie", "husk", "drowned", "skeleton", "stray", "bogged", "wither_skeleton", "evoker",
                 "vindicator", "elder_guardian"):
         assert bosses.family(mob) != bosses.GENERIC, mob
@@ -44,7 +44,7 @@ def test_family_unknown_es_the_generic():
     assert bosses.family("minecraft:creeper") == bosses.GENERIC
     out = bosses.reinforcements("x", mod(), {"minecraft:creeper": "t"})
     assert out == [bosses.normalize(s) for s in bosses.FAMILIES[bosses.GENERIC]]
-    assert bosses.reinforcements("x", mod(), {}) == out       # sin guardián conocido, también
+    assert bosses.reinforcements("x", mod(), {}) == out       # without a known guardian, too
 
 
 def test_without_own_reinforcements_uses_the_guardian_family():
@@ -61,15 +61,15 @@ def test_own_reinforcements_override_the_family():
 
 
 @pytest.mark.parametrize("bad, fragment", [
-    (["zombie"], "1 refuerzos"),
-    (["zombie"] * 4, "4 refuerzos"),
-    (["zombie", "hoglin"], "hoglin no puede"),
-    (["zombie", "wither"], "wither no puede"),
-    (["zombie", "vex"], "vex no puede"),
-    (["zombie", "heraldia:zombie"], "heraldia:zombie no puede"),
-    (["zombie", {"mob": "zombie", "equipo": {"mainhand": "netherite_sword"}}], "prohibido"),
-    (["zombie", {"mob": "zombie", "equipo": {"chest": "elytra"}}], "prohibido"),
-    (["zombie", {"mob": "zombie", "equipo": {"espalda": "stick"}}], "ranura espalda"),
+    (["zombie"], "1 reinforcements"),
+    (["zombie"] * 4, "4 reinforcements"),
+    (["zombie", "hoglin"], "hoglin cannot be a reinforcement"),
+    (["zombie", "wither"], "wither cannot be a reinforcement"),
+    (["zombie", "vex"], "vex cannot be a reinforcement"),
+    (["zombie", "heraldia:zombie"], "heraldia:zombie cannot be a reinforcement"),
+    (["zombie", {"mob": "zombie", "equipo": {"mainhand": "netherite_sword"}}], "is forbidden"),
+    (["zombie", {"mob": "zombie", "equipo": {"chest": "elytra"}}], "is forbidden"),
+    (["zombie", {"mob": "zombie", "equipo": {"espalda": "stick"}}], "slot espalda is not valid"),
     (["zombie", {"mob": "zombie", "nombre": "x"}], "claves desconocidas"),
     (["zombie", {"equipo": {}}], "ni un id"),
     ("zombie", "debe ser una lista"),
@@ -97,9 +97,9 @@ def test_schema():
     assert all(k.startswith("minecraft:") and v in s["familias"] for k, v in s["mob_familia"].items())
     for specs in list(s["unicas"].values()) + list(s["familias"].values()):
         assert all(set(r) <= {"mob", "equipo"} for r in specs)
-    # una única con REFUERZOS propios los lleva tal cual, sin mirar su guardián
+    # a unique structure with its own REFUERZOS carries them as they are, without looking at its guardian
     with_it = [sid for sid, m in MODS if hasattr(m, "REINFORCEMENTS")]
-    assert with_it, "ninguna única con REFUERZOS propios"
+    assert with_it, "no unique structure with its own REFUERZOS"
     for sid in with_it:
         assert s["unicas"][sid] == [bosses.normalize(r) for r in dict(MODS)[sid].REINFORCEMENTS]
 
@@ -112,7 +112,7 @@ def test_texts_and_options():
             k = f"heraldia.jefes.fase.{phase}{suf}"
             assert lang["es_es"][k].count("%s") == 1 and lang["en_us"][k].count("%s") == 1
     assert "heraldia.jefes.refuerzos" in lang["es_es"]
-    # en el idioma del mod (y así en el respaldo en español de los clientes sin el mod)
+    # in the mod's language (and so in the Spanish fallback of clients without the mod)
     assert all(writer.LANG["es_es"][k] == v for k, v in lang["es_es"].items())
     keys = {o["clave"]: o for o in options.schema()["opciones"]}
     for k in ("jefes.fases.activado", "jefes.refuerzos.activado", "jefes.barra.activado"):

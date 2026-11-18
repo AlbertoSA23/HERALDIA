@@ -1,11 +1,11 @@
-"""Santuario druídico: un claro del bosque de abedules con un círculo de menhires alrededor de un abedul sagrado
-enorme (tronco hueco con escalera hasta una plataforma en la copa), cabañas de los druidas, huerto de hierbas con
-colmenas, estanque y observatorio de piedras alineadas; bajo el árbol, raíces y galerías excavadas (diseño en
-docs/unicas/santuario.md).
+"""Druid sanctuary: a birch forest clearing with a circle of menhirs around an enormous sacred birch
+(hollow trunk with stairs up to a platform in the crown), druids' cabins, herb garden with
+beehives, pond and an observatory of aligned stones; under the tree, roots and dug-out galleries (design in
+docs/unicas/sanctuary.md).
 
-Dos piezas rígidas: el claro (y = 0 es el suelo) y las raíces, unidas por un jigsaw vertical, que rellenan toda su caja
-(roca donde no hay salas) para que el ajuste del terreno no abra un cráter ni cavidades junto a sus muros. La
-auditoría propia (auditoria.py) es condición para generar.
+Two rigid pieces: the clearing (y = 0 is the ground) and the roots, joined by a vertical jigsaw, which fill their whole box
+(rock where there are no rooms) so that terrain adjustment does not open a crater or cavities next to their walls. The
+own audit (audit.py) is a condition for generating.
 """
 from .._common.pieces import open_stairwells
 from .._common.chest_loot import lang
@@ -18,14 +18,14 @@ STRUCTURE = dict(biomes=["minecraft:birch_forest", "minecraft:old_growth_birch_f
                  step="surface_structures", start_height={"absolute": 0}, project_to="WORLD_SURFACE_WG",
                  spacing=250, separation=190)
 DISPLAY_NAME = {"es_es": "Santuario druídico", "en_us": "Druid Sanctuary"}
-# Refuerzos del guardián en cada fase (jefes.py): las criaturas del bosque marchito.
+# Guardian reinforcements in each phase (bosses.py): the creatures of the withered forest.
 REINFORCEMENTS = ["witch", "spider"]
 TROPHY = {"objeto": "golden_hoe", "rareza": "rare",
           "nombre": ("Hoz de oro de Cadoc", "Cadoc's Golden Sickle"),
           "lore": [("Segaba el muérdago del árbol sagrado.", "It reaped the mistletoe of the sacred tree."),
                    ("Al final segó también sus raíces.", "In the end it reaped its roots as well.")],
-          "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("En el bosque de abedules hallé un claro rodeado de menhires y, en medio, un abedul tan ancho como una"
@@ -40,7 +40,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("el bosque de abedules, donde un árbol sagrado alza su copa sobre un círculo de piedras",
               "the birch forest, where a sacred tree spreads its crown over a circle of stones"),
 }
-ADVANCEMENT = {"icono": "minecraft:birch_sapling"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:birch_sapling"}   # advancements.py
 MAP = {"decoration": "minecraft:red_x"}
 
 TEXTS = {"guardian": ("Archidruida Cadoc, el Marchito", "Archdruid Cadoc the Withered")}
@@ -59,7 +59,7 @@ def _lang(construction):
 
 def build(reg):
     construction = Construction().build()
-    for k, v in _lang(construction).items():        # writer.py lee LANG después de build()
+    for k, v in _lang(construction).items():        # writer.py reads LANG after build()
         LANG[k].update(v)
     area, sub, errors, rep = audit.prepare(construction)
     REPORT.update(rep, construction=construction)

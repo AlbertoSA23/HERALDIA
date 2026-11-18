@@ -1,4 +1,4 @@
-"""_comun/recorrido.py: recorrido estricto, sin vuelta, flotantes, luz y superficie dañada."""
+"""_comun/recorrido.py: strict walkthrough, no way back, floating blocks, light and damaged surface."""
 from uniques._common import walkthrough as rc
 from core import Template
 
@@ -21,24 +21,24 @@ def test_walk_flat():
 
 def test_walk_no_climbs_a_block_whole_and_yes_a_step():
     b = floor()
-    b[(2, 1, 0)] = "minecraft:stone"                      # escalón de un bloque: no se salta
+    b[(2, 1, 0)] = "minecraft:stone"                      # one-block step: it cannot be jumped
     v = rc.View(b)
     seen, _ = rc.strict_walk(v, (0, 1, 0), (0, 2, 0, 0))
     assert (2, 2, 0) not in seen
-    b[(1, 1, 0)] = "minecraft:oak_stairs[facing=east,half=bottom]"     # con un peldaño delante, sí
+    b[(1, 1, 0)] = "minecraft:oak_stairs[facing=east,half=bottom]"     # with a step in front, it can
     seen, _ = rc.strict_walk(rc.View(b), (0, 1, 0), (0, 2, 0, 0))
     assert (2, 2, 0) in seen
 
 
 def test_fall_without_return():
     b = {(x, 3, 0): "minecraft:stone" for x in range(2)}
-    b.update({(x, 0, 0): "minecraft:stone" for x in range(2, 5)})     # bajar 3 bloques: en el estricto no se baja
+    b.update({(x, 0, 0): "minecraft:stone" for x in range(2, 5)})     # dropping 3 blocks: the strict one does not drop
     seen, _ = rc.strict_walk(rc.View(b), (0, 4, 0), (0, 4, 0, 0))
     assert (2, 1, 0) not in seen
-    b[(2, 2, 0)] = "minecraft:stone"                       # bajar 1 (a y=3) y luego 2 hasta el suelo: tampoco
+    b[(2, 2, 0)] = "minecraft:stone"                       # dropping 1 (to y=3) and then 2 to the ground: neither
     b.update({(x, 1, 0): "minecraft:stone" for x in (3,)})
     seen, edges = rc.strict_walk(rc.View(b), (0, 4, 0), (0, 4, 0, 0))
-    # bajada de un bloque permitida; desde (2,3) a (3,2) también; la vuelta (3,2)->(2,3) sube 1: no
+    # one-block drop allowed; from (2,3) to (3,2) too; the way back (3,2)->(2,3) climbs 1: no
     assert (3, 2, 0) in seen and (3, 2, 0) in rc.no_return(edges, (0, 4, 0))
 
 
@@ -60,7 +60,7 @@ def test_swim():
     b[(3, 1, 0)] = "minecraft:stone"
     b[(3, 2, 0)] = "minecraft:stone"
     seen, _ = rc.strict_walk(rc.View(b), (0, 1, 0), (0, 3, 0, 0), water=True)
-    assert (3, 3, 0) in seen                               # se sale del agua subiendo
+    assert (3, 3, 0) in seen                               # one gets out of the water by climbing
     seen, _ = rc.strict_walk(rc.View(b), (0, 1, 0), (0, 3, 0, 0))
     assert (3, 3, 0) not in seen
 
@@ -75,7 +75,7 @@ def test_floating_and_near():
 def test_light_and_generator():
     b = {(x, 0, 0): "minecraft:air" for x in range(20)}
     b[(0, 0, 0)] = "minecraft:lantern[hanging=false]"
-    b[(10, 0, 0)] = "minecraft:stone"                       # un bloque macizo corta la luz
+    b[(10, 0, 0)] = "minecraft:stone"                       # a solid block cuts the light
     lv = rc.light(b)
     assert lv[(0, 0, 0)] == 15 and lv[(5, 0, 0)] == 10 and (11, 0, 0) not in lv
     assert rc.light_generator(lv, (9, 0, 0), span=1) == 7
@@ -103,7 +103,7 @@ def test_rules_and_expectation():
 def test_damaged_surface():
     b = {(x, y, z): "minecraft:stone_bricks" for x in range(3) for y in range(2) for z in range(3)}
     surf, frac = rc.damaged_surface(b, set(), [("stone_bricks", 0.1, "cracked_stone_bricks")], (-1, 3, -1, 3))
-    assert surf == 17 and abs(frac - 0.1) < 1e-9          # el centro de la capa baja no se ve
+    assert surf == 17 and abs(frac - 0.1) < 1e-9          # the centre of the lower layer is not seen
     surf, frac = rc.damaged_surface(b, {(1, 1, 1)}, [], (-1, 3, -1, 3))
     assert frac == 1 / 17
 

@@ -1,31 +1,31 @@
-"""Trofeos de los guardianes en un servidor dedicado 26.3 real, con un jugador simulado (complementa server_smoke.py).
+"""Guardian trophies on a real dedicated 26.3 server, with a simulated player (complements server_smoke.py).
 
-Uso: python3 tools/smoke/trophies.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-Sin cliente no hay jugadores y la condición killed_by_player no se cumple nunca desde la consola: esta prueba añade
-Carpet (versión fijada de Modrinth, comprobada con su sha512) y crea con /player un jugador simulado. Para cada
-guardián (tablas heraldia:guardianes/<id>/<mob> del .jar) invoca su tipo de mob con esa DeathLootTable y:
-  - lo mata con /kill (sin jugador): no cae el trofeo;
-  - lo mata el jugador (damage ... by <jugador>): cae un solo trofeo con su custom_data, su nombre traducible, su lore
-    y su rareza;
-  - el jugador lo recoge: progresa el desafío heraldia:unicas/trofeos, que solo se concede con todos.
-Que el guardián colocado con /place structure conserve esa DeathLootTable lo comprueba server_smoke.py.
+Usage: python3 tools/smoke/trophies.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+Without a client there are no players and the killed_by_player condition is never met from the console: this test adds
+Carpet (pinned Modrinth version, checked against its sha512) and creates a simulated player with /player. For each
+guardian (heraldia:guardianes/<id>/<mob> tables in the .jar) it summons its mob type with that DeathLootTable and:
+  - kills it with /kill (no player): the trophy does not drop;
+  - the player kills it (damage ... by <player>): a single trophy drops with its custom_data, its translatable name, its lore
+    and its rarity;
+  - the player picks it up: the heraldia:unicas/trofeos challenge progresses, and is only granted with all of them.
+That the guardian placed with /place structure keeps that DeathLootTable is checked by server_smoke.py.
 """
 import argparse, json, os, queue, shutil, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 from modrinth import MODS, fetch
 
-# Carpet (jugador simulado), fijado en modrinth.py: (fichero, url, sha512) para fetch()
+# Carpet (simulated player), pinned in modrinth.py: (file, url, sha512) for fetch()
 CARPET = (MODS["carpet"].file, MODS["carpet"].url, MODS["carpet"].sha512)
 PLAYER = "Testigo"
-X, Y, Z = 0, 101, 0            # jugador sobre una plataforma; los mobs a MOB_DZ bloques (no recoge lo que cae)
+X, Y, Z = 0, 101, 0            # player on a platform; the mobs at MOB_DZ blocks (it does not pick up what drops)
 MOB_DZ = 6
 ADV = "heraldia:unicas/trofeos"
 ITEMS = "@e[type=minecraft:item]"
 
 
 def trophies(jar):
-    """{id: (mob, tabla de muerte, objeto, rareza)} y textos en_us, leídos del .jar (en la CI no hay build/generated)."""
+    """{id: (mob, death table, item, rarity)} and en_us texts, read from the .jar (in CI there is no build/generated)."""
     out = {}
     with zipfile.ZipFile(jar) as z:
         names = z.namelist()
@@ -51,7 +51,7 @@ def main():
     found, lang, adv = trophies(a.jar)
     fails, ok = [], 0
     if sorted(adv["criteria"]) != sorted(found) or len(adv["requirements"]) != len(found):
-        fails.append(f"el desafío {ADV} no pide exactamente los {len(found)} trofeos: {sorted(adv['criteria'])}")
+        fails.append(f"the challenge {ADV} does not require exactly the {len(found)} trophies: {sorted(adv['criteria'])}")
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
     proc = subprocess.Popen(["java", "-Xmx2G", "-jar", launcher, "nogui"], cwd=a.work, text=True,
@@ -63,10 +63,10 @@ def main():
     test = ctx.test
 
     def until(cmd, want=True):
-        return ctx.until(cmd, want)     # límite holgado (s.UNTIL_S): la CI va lenta
+        return ctx.until(cmd, want)     # generous limit (s.UNTIL_S): CI is slow
 
     def settle():
-        """El jugador, en el suelo, sin golpe reciente y de vuelta en (X, Y, Z): ya no se desliza ni vuela."""
+        """The player, on the ground, with no recent hit and back at (X, Y, Z): no longer sliding or flying."""
         quiet = f"execute if entity @a[name={PLAYER},nbt={{OnGround:1b,HurtTime:0s}}]"
         if not until(quiet):
             return False
@@ -83,9 +83,9 @@ def main():
             time.sleep(s.PLACE_RETRY_S)
         ctx.run(f"player {PLAYER} spawn at {X} {Y} {Z}", r"joined the game|Player .* spawn|Unknown|Incorrect")
         if not until(f"execute if entity @a[name={PLAYER}]"):
-            raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
+            raise SystemExit(f"the simulated player {PLAYER} does not appear (Carpet)")
         ctx.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
-        # Sin monstruos naturales ni noche: el jugador simulado (en supervivencia) no debe depender de la hora del día.
+        # No natural monsters or night: the simulated player (in survival) must not depend on the time of day.
         for rule in ("spawn_mobs", "advance_time"):
             ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
         mz = Z + MOB_DZ
@@ -94,56 +94,56 @@ def main():
             near = f"@e[type=minecraft:item,x={X},y={Y},z={mz},distance=..3,nbt={{Item:{{components:{mark}}}}}]"
             summon = (f'summon minecraft:{mob} {X} {Y} {mz} {{NoAI:1b,PersistenceRequired:1b,Tags:["heraldia_prueba"],'
                       f'DeathLootTable:"{table}"}}')
-            # 1) sin jugador: /kill no suelta el trofeo
+            # 1) no player: /kill does not drop the trophy
             ctx.run(f"kill {ITEMS}", r"Killed|No entity was found")
             ctx.run(summon, r"Summoned")
             ctx.run("kill @e[tag=heraldia_prueba]", r"Killed|No entity was found")
-            ctx.ticks(20)           # el botín cae al morir: un segundo de juego basta para verlo (en ticks, no en reloj)
+            ctx.ticks(20)           # the loot drops on death: one second of play is enough to see it (in ticks, not wall-clock)
             if test(f"execute if entity {near}"):
-                fails.append(f"{sid}: /kill (sin jugador) suelta el trofeo")
+                fails.append(f"{sid}: /kill (no player) drops the trophy")
             else:
                 ok += 1
-            # 2) lo mata el jugador: un solo trofeo con su nombre, lore, rareza y custom_data
+            # 2) the player kills it: a single trophy with its name, lore, rarity and custom_data
             ctx.run(f"kill {ITEMS}", r"Killed|No entity was found")
             ctx.run(summon, r"Summoned")
             ctx.run(f"damage @e[tag=heraldia_prueba,limit=1] 2000 minecraft:player_attack by {PLAYER}", r"Applied|damage")
             if not until(f"execute if entity {near}"):
-                fails.append(f"{sid}: matado por el jugador no suelta el trofeo")
+                fails.append(f"{sid}: killed by the player it does not drop the trophy")
                 continue
             m = ctx.run(f"execute if entity {near}", r"Test passed\. Count: (\d+)|Test failed")
             if m.group(1) != "1":
-                fails.append(f"{sid}: {m.group(1)} trofeos en el suelo (debe ser 1)")
+                fails.append(f"{sid}: {m.group(1)} trophies on the ground (must be 1)")
             m = ctx.run(f"data get entity {near.replace(']', ',limit=1]')} Item", r"has the following entity data: (.*)|No entity")
             data = (m.group(1) or "").replace("\\", "")
             key = f"heraldia.trofeo.{sid}"
             want = [f'id: "{item}"', f'"{key}"', f'"{key}.lore1"', 'heraldia_trofeo: "' + sid]
             missing = [w for w in want if w not in data]
-            # la rareza se mira en los componentes efectivos (si es la de serie del objeto no sale en los datos)
+            # the rarity is read from the effective components (if it is the item's default it does not show in the data)
             if not test(f'execute if items entity {near.replace("]", ",limit=1]")} contents {item}[minecraft:rarity="{rarity}"]'):
                 missing.append(f"rareza {rarity}")
             if missing or key not in lang:
-                fails.append(f"{sid}: trofeo sin {missing or 'texto en_us'}: {data[:300]}")
+                fails.append(f"{sid}: trophy without {missing or 'en_us text'}: {data[:300]}")
             else:
                 ok += 1
-            # 3) el jugador lo recoge (el mensaje de /tp muestra el nombre que ve el jugador: item_name en en_us) y el
-            #    desafío solo se concede con el último trofeo
-            # Las espinas del guardián anciano (Guardian.hurtServer: 2 de daño al atacante cuerpo a cuerpo si no se
-            # mueve, siempre con NoAI) empujan al jugador ~2 bloques: antes de acercarle el trofeo, se espera a que
-            # aterrice y pase su invulnerabilidad (HurtTime 0) y se le devuelve a su sitio, quieto.
+            # 3) the player picks it up (the /tp message shows the name the player sees: item_name in en_us) and the
+            #    challenge is only granted with the last trophy
+            # The elder guardian's thorns (Guardian.hurtServer: 2 damage to the melee attacker if it does not
+            # move, always with NoAI) push the player ~2 blocks: before bringing the trophy close, wait for it to
+            # land and its invulnerability to pass (HurtTime 0) and put it back in place, still.
             if not settle():
-                fails.append(f"{sid}: el jugador no queda quieto tras el golpe")
+                fails.append(f"{sid}: the player does not stand still after the hit")
                 continue
             m = ctx.run(f"tp {near} {PLAYER}", r"Teleported (.+) to |No entity")
             if m.group(1) != lang.get(key):
-                fails.append(f"{sid}: el trofeo se ve como «{m.group(1)}», no «{lang.get(key)}»")
+                fails.append(f"{sid}: the trophy shows as '{m.group(1)}', not '{lang.get(key)}'")
             if not until(f"execute if entity @a[name={PLAYER},advancements={{{ADV}={{{sid}=true}}}}]"):
-                fails.append(f"{sid}: recogido, no cuenta para {ADV}")
+                fails.append(f"{sid}: picked up, does not count for {ADV}")
                 mark_sel = f"@e[type=minecraft:item,nbt={{Item:{{components:{mark}}}}},limit=1]"
                 for q in (f"data get entity {mark_sel}", f"data get entity {PLAYER} Pos", f"data get entity {PLAYER} Inventory",
                           f"data get entity {PLAYER} Health"):
                     print("DIAG", ctx.run(q, r"entity data: .*|No entity").group(0)[:300])
             elif test(f"execute if entity @a[name={PLAYER},advancements={{{ADV}=true}}]") != (i == len(found) - 1):
-                fails.append(f"{sid}: {ADV} concedido antes de tiempo o no concedido al final")
+                fails.append(f"{sid}: {ADV} granted too early or not granted at the end")
             else:
                 ok += 1
             print(f"trofeo {sid}: {lang.get(f'heraldia.trofeo.{sid}')} ({item}, {mob})")
@@ -160,7 +160,7 @@ def main():
     for bad in ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse",
                 "Found validation problems"):
         if bad in text:
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     print("TROFEOS:", f"OK ({len(found)} trofeos, {ok} comprobaciones)" if not fails else fails)
     return 1 if fails else 0
 

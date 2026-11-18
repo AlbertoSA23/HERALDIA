@@ -1,7 +1,7 @@
-"""Campamento de bandidos (heraldia:medianas/campamento/<estilo>): claro de 21 x 21 con tiendas de lona alrededor de
-una fogata con bancos de troncos, un tonel con el botín robado y dos bandidos (illagers persistentes y anclados, sin
-patrulla: ni capitán ni ronda; no vuelven a salir). Variante a: dos tiendas y dos saqueadores; b: tres tiendas,
-empalizada y un vindicador con un saqueador."""
+"""Bandit camp (heraldia:medianas/campamento/<estilo>): 21 x 21 clearing with canvas tents around a campfire
+with log benches, a barrel with the stolen loot and two bandits (persistent, anchored illagers, with no
+patrol: no captain or round; they do not spawn again). Variant a: two tents and two pillagers; b: three tents,
+palisade and a vindicator with a pillager."""
 from core import Template, B
 from loot import item, empty
 from uniques._common import chest_loot
@@ -37,8 +37,8 @@ def _floor(p):
 
 
 def _tent(t, p, x0, z0, is_open, color):
-    """Tienda de 5 de ancho (x0..x0+4) y 4 de fondo, con la entrada hacia `abierta` (north o south): dos faldones de
-    lona, cumbrera de lona y el fondo cerrado; dentro, un saco de dormir (cama) y un tonel."""
+    """Tent 5 wide (x0..x0+4) and 4 deep, with the entrance toward `is_open` (north or south): two canvas
+    flaps, a canvas ridge and the back closed; inside, a sleeping bag (bed) and a barrel."""
     tarp = f"{color}_wool"
     z1 = z0 + 3
     back = z1 if is_open == "north" else z0
@@ -52,7 +52,7 @@ def _tent(t, p, x0, z0, is_open, color):
             t.set(x, y, z, "air")
     for x, y in ((x0 + 1, 1), (x0 + 2, 1), (x0 + 3, 1), (x0 + 2, 2)):
         t.set(x, y, back, tarp)
-    step = -1 if is_open == "north" else 1        # del fondo hacia la entrada
+    step = -1 if is_open == "north" else 1        # from the back toward the entrance
     t.set(x0 + 1, 1, back + step, f"{p['cama']}_bed[facing={'south' if is_open == 'north' else 'north'},occupied=false,part=head]")
     t.set(x0 + 1, 1, back + 2 * step, f"{p['cama']}_bed[facing={'south' if is_open == 'north' else 'north'},occupied=false,part=foot]")
     t.set(x0 + 3, 1, back + step, f"{p['carpet']}_carpet")
@@ -60,7 +60,7 @@ def _tent(t, p, x0, z0, is_open, color):
 
 
 def _clearing(x, z):
-    """Claro redondo (sin empalizada): fuera queda el terreno natural."""
+    """Round clearing (no palisade): the natural terrain remains outside."""
     return (x - CX) ** 2 + (z - CX) ** 2 <= (CX + 0.5) ** 2
 
 
@@ -70,14 +70,14 @@ def _common(p, name, shops, rounded=True):
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=3, inside=_clearing if rounded else None)
     c.entrance(t, CX, "minecraft:dirt_path")
     t.set(CX, 1, CZ, "campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]")
-    for dx, dz, ax in ((-2, 0, "z"), (2, 0, "z"), (0, 2, "x")):    # bancos de troncos alrededor (abierto al norte)
+    for dx, dz, ax in ((-2, 0, "z"), (2, 0, "z"), (0, 2, "x")):    # log benches around (open to the north)
         for k in (-1, 0, 1):
             x, z = CX + dx + (k if ax == "x" else 0), CZ + dz + (k if ax == "z" else 0)
             t.set(x, 1, z, f"{p['tronco']}[axis={ax}]")
     cavities = []
     for x0, z0, is_open, color in shops:
         cavities.append(_tent(t, p, x0, z0, is_open, color))
-    # tonel del botín junto a la fogata y estandarte del grupo en un poste
+    # loot barrel next to the campfire and the group's banner on a pole
     c.place_chest(t, CX + 3, 1, CZ - 2, "up", MID, "botin", kind="barrel")
     t.set(CX - 3, 1, CZ - 3, f"{m}_fence")
     t.set(CX - 3, 2, CZ - 3, f"{m}_fence")
@@ -104,7 +104,7 @@ def two_tents(p, name):
 def palisade(p, name):
     t, cavities = _common(p, name, [(2, 4, "south", p["lonas"][0]), (14, 4, "south", p["lonas"][1]),
                                  (2, 14, "north", p["lonas"][0])], rounded=False)
-    # empalizada de troncos en el borde (con la entrada abierta al norte, ancho 3)
+    # log palisade at the edge (with the entrance open to the north, width 3)
     for x in range(L):
         for z in range(L):
             if (x in (0, L - 1) or z in (0, L - 1)) and not (z == 0 and abs(x - CX) <= 1):

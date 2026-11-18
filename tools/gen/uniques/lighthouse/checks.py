@@ -1,7 +1,7 @@
-"""Comprobaciones propias del faro: redstone de puzles y trampas, cueva estanca, ruina y recorrido a pie.
+"""Lighthouse-specific checks: puzzle and trap redstone, watertight cave, ruin and walkthrough.
 
-`run(t)` devuelve la lista de errores (el generador falla si no está vacía).
-`python3 -m unicas.faro.checks <carpeta>` (desde tools/gen) escribe planos de planta y renders en <carpeta>.
+`run(t)` returns the list of errors (the generator fails if it is not empty).
+`python3 -m uniques.lighthouse.checks <folder>` (from tools/gen) writes floor plans and renders into <folder>.
 """
 import itertools
 from core import parse_state, state_str
@@ -16,7 +16,7 @@ def add(p, d):
 
 
 def settle(t):
-    """Escribe en la plantilla el estado estable del circuito: forma y potencia del polvo y antorchas."""
+    """Writes the circuit's stable state into the template: shape and power of the dust and torches."""
     redstone.wire_shapes(t)
     sim = redstone.Sim(t)
     for p, lit in sim.torch.items():
@@ -32,7 +32,7 @@ def redstone_issues(t):
     out = list(errs)
     for k, p in LEVERS.items():
         if parse_state(t.get(*p))[1]["powered"] != str(REST[k]).lower():
-            out.append(f"palanca {k} no está en su posición de reposo")
+            out.append(f"lever {k} is not in its resting position")
     door = lambda sim: sim.powered(VAULT_DOOR)
     good = {"A": False, "B": True, "C": False}
     for combo in itertools.product((False, True), repeat=3):
@@ -47,14 +47,14 @@ def redstone_issues(t):
     sim = redstone.Sim(t, {(14, 9, 19): True, (16, 9, 19): True})
     for d in ((14, 10, 19), (16, 10, 19)):
         if not sim.powered(d):
-            out.append(f"el cable trampa no dispara el dispensador {d}")
+            out.append(f"the trap wire does not fire dispenser {d}")
     if not redstone.Sim(t, {(37, 9, 39): True}).powered((37, 7, 39)):
-        out.append("la placa no prende la TNT")
+        out.append("the plate does not ignite the TNT")
     return out
 
 
 def sealing_issues(t):
-    """Ninguna celda de aire bajo la cima toca el vacío (terreno natural) salvo en la boca de la cueva."""
+    """No air cell below the summit touches the void (natural terrain) except at the cave mouth."""
     from uniques.lighthouse.blueprint import TOP
     out = []
     for (x, y, z), (st, _) in t.blocks.items():
@@ -64,7 +64,7 @@ def sealing_issues(t):
             continue
         for v in D6:
             if add((x, y, z), v) not in t.blocks:
-                out.append(f"la cueva se abre al exterior en {(x, y, z)}")
+                out.append(f"the cave opens to the outside at {(x, y, z)}")
                 break
     return out[:5]
 
@@ -72,11 +72,11 @@ def sealing_issues(t):
 NATURAL = ("stone", "andesite", "tuff", "diorite", "dirt", "grass_block", "gravel", "water", "air")
 RUIN_PROB = {"stone_bricks": 0.22, "cobblestone": 0.25, "white_terracotta": 0.22, "red_terracotta": 0.20,
              "spruce_planks": 0.15, "glass_pane": 0.10}
-RUIN_SPOTS = 2 + 4 + 3 + 2 + 2 + 8 + 2 + 6   # cristales, tejado, barandilla, galería, pasillo, derrumbe, barrotes, telarañas
+RUIN_SPOTS = 2 + 4 + 3 + 2 + 2 + 8 + 2 + 6   # panes, roof, railing, gallery, corridor, cave-in, bars, cobwebs
 
 
 def ruin_share(t):
-    """Parte estimada de la superficie construida visible con detalles de ruina."""
+    """Estimated share of the visible built surface with ruin details."""
     vis, alt = 0, 0.0
     for p, (st, _) in t.blocks.items():
         b = bname(st)
@@ -89,7 +89,7 @@ def ruin_share(t):
 
 
 def access_points(t):
-    """Celdas que el jugador tiene que alcanzar (con los puzles resueltos)."""
+    """Cells the player has to reach (with the puzzles solved)."""
     from uniques.lighthouse.blueprint import LEVERS
     pts = {"palanca del sótano": (16, 17, 16), "cofre premium": (18, 10, 4), "boca de la cueva": (22, 9, 40)}
     pts.update({f"palanca {k}": p for k, p in LEVERS.items()})
@@ -100,15 +100,15 @@ def run(t):
     out = redstone_issues(t) + sealing_issues(t)
     share = ruin_share(t)
     if not 0.15 <= share <= 0.20:
-        out.append(f"superficie en ruina estimada {share:.0%}, fuera del 15-20 %")
+        out.append(f"estimated ruined surface {share:.0%}, outside 15-20 %")
     cells = walk(t)
     for name, (x, y, z) in access_points(t).items():
         if not any((x + dx, y + dy, z + dz) in cells for dx, dy, dz in itertools.product((-1, 0, 1), (-1, 0, 1), (-1, 0, 1))):
-            out.append(f"{name} {(x, y, z)} no se alcanza a pie")
+            out.append(f"{name} {(x, y, z)} is not reachable on foot")
     return out
 
 
-# ------------------------------------------------------------------ planos y renders
+# ------------------------------------------------------------------ floor plans and renders
 SYMBOL = {"chest": "C", "barrel": "b", "spawner": "S", "ladder": "H", "lever": "P", "tnt": "T", "tripwire": "t",
           "dispenser": "d", "lectern": "A", "iron_trapdoor": "=", "bookshelf": "L"}
 
@@ -119,12 +119,12 @@ def floor_plans(t, out_dir):
     from render import render
     os.makedirs(out_dir, exist_ok=True)
     cells = walk(t)
-    levels = ((9, "cueva (nivel del mar)"), (17, "sótano"), (22, "cima: casa y base del faro"),
-              (39, "sala de guardia"), (44, "linterna y galería"))
-    lines = ["Planos de planta del faro. Norte arriba (z=0, entrada); el mar al sur.",
-             "· alcanzable a pie (con los puzles resueltos)  # muro/roca  ~ agua  D puerta  C cofre  b barril",
+    levels = ((9, "cave (sea level)"), (17, "cellar"), (22, "summit: house and lighthouse base"),
+              (39, "sala de guardia"), (44, "lantern and gallery"))
+    lines = ["Lighthouse floor plans. North up (z=0, entrance); the sea to the south.",
+             "· reachable on foot (with the puzzles solved)  # wall/rock  ~ water  D door  C chest  b barrel",
              "S generador  H escalera de mano  P palanca  = trampilla  T TNT  t cable trampa  d dispensador",
-             "A atril  L estantería  / peldaño", ""]
+             "A lectern  L bookshelf  / step", ""]
     for y, title in levels:
         lines.append(f"== y={y}: {title}")
         for z in range(Z):
@@ -164,5 +164,5 @@ if __name__ == "__main__":
     import sys
     from uniques.lighthouse.blueprint import make
     t = make()
-    print("\n".join(run(t)) or "sin errores", f"ruina {ruin_share(t):.1%}")
+    print("\n".join(run(t)) or "no errors", f"ruina {ruin_share(t):.1%}")
     floor_plans(t, sys.argv[1])

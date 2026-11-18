@@ -1,22 +1,22 @@
-"""Opciones del fichero de configuración del servidor (config/heraldia.json).
+"""Options of the server configuration file (config/heraldia.json).
 
-Una sola fuente: el generador escribe el esquema en heraldia/opciones.json (dentro del .jar) y los textos de ayuda
-en los idiomas; el Java lo lee al arrancar, valida cada valor contra su rango y avisa en el log si no vale.
+A single source: the generator writes the schema to heraldia/options.json (inside the .jar) and the help texts
+in the languages; the Java side reads it at startup, validates each value against its range and warns in the log if it is not valid.
 """
 from themes import THEMES, FAMILIES
 import uniques
 import mediums
 
-VERSION = 2   # súbelo (y añade la migración en HeraldiaConfig.migrate) si cambia el formato del fichero
-# 1 → 2 (T36, perfiles): las opciones que fija el perfil solo se escriben si están fijadas a mano (presentes en el fichero);
-# al migrar se quitan las que tenían el valor por defecto (las escribía el mod), y las demás quedan fijadas.
+VERSION = 2   # raise it (and add the migration in HeraldiaConfig.migrate) if the file format changes
+# 1 → 2 (T36, profiles): the options a profile sets are only written if they are set by hand (present in the file);
+# on migrating, those that had the default value (written by the mod) are removed, and the rest stay set.
 
-# Rejilla de las aldeas (heraldia:aldeas): 94 x 16 = 1.504 bloques; la separación mínima guarda la proporción 62/94.
+# Village grid (heraldia:aldeas): 94 x 16 = 1,504 blocks; the minimum separation keeps the 62/94 proportion.
 VILLAGE_SPACING, VILLAGE_SEPARATION, VILLAGE_SALT = 94, 62, 261112013
 VANILLA_EXCLUSION_CHUNKS = 10
 
-# (clave, por defecto, mínimo, máximo, texto es_es, texto en_us); mínimo y máximo None en las opciones sí/no. En las de
-# lista, «mínimo» es la lista de valores (cadenas) y «máximo» None; el nombre de cada valor va en _VALUE_NAMES.
+# (key, default, minimum, maximum, es_es text, en_us text); minimum and maximum None in yes/no options. In
+# list options, "minimum" is the list of values (strings) and "maximum" None; the name of each value goes in _VALUE_NAMES.
 _FIXED = [
     ("perfil", "estandar", ["casual", "estandar", "hardcore", "personalizado"], None,
      "Perfil de juego: fija de una vez la dificultad, los refuerzos de los guardianes, el botín que se repone, la arena "
@@ -342,9 +342,9 @@ _FIXED = [
      "Maximum distance, in blocks, from each mark of the treasure map to the previous one (or to where the fragment is "
      "deciphered)"),
 ]
-# Perfiles de juego (opción «perfil»): cada uno fija de golpe estas opciones de juego (nunca de la generación). «estandar»
-# es exactamente el comportamiento de siempre (los valores por defecto); «personalizado» no fija nada (cada opción con su
-# valor del fichero o, si no está, el de por defecto). Una opción escrita en el fichero manda sobre el perfil.
+# Play profiles (option "perfil"): each one sets these gameplay options at once (never world generation ones). "estandar"
+# is exactly the usual behavior (the default values); "personalizado" sets nothing (each option with its
+# value from the file or, if absent, the default). An option written in the file overrides the profile.
 PROFILE = "perfil"
 PROFILES = {
     "casual": {
@@ -357,7 +357,7 @@ PROFILES = {
         "caravanas.prob_asalto": 15,
         "chozas_mago.prob_malvado": 10,
     },
-    "estandar": {},          # se rellena con los valores por defecto (abajo): idéntico al comportamiento de siempre
+    "estandar": {},          # filled in with the default values (below): identical to the usual behavior
     "hardcore": {
         "dificultad.nivel": "heroica", "dificultad.escalar_por_jugadores": True, "dificultad.escalar_botin": True,
         "botin.reponer.activado": False, "botin.reponer.dias": 14,
@@ -370,8 +370,8 @@ PROFILES = {
     },
 }
 CUSTOM = "personalizado"
-# Lo único que un perfil puede tocar: opciones de juego. La generación del mundo (dónde y cómo salen las estructuras, la
-# arena que se construye sola) queda siempre fuera; GENERACION marca esas opciones en el esquema (y los tests lo comprueban).
+# The only thing a profile may touch: gameplay options. World generation (where and how structures appear, the
+# arena that builds itself) always stays out; GENERATION marks those options in the schema (and the tests check it).
 PROFILE_PREFIXES = ("dificultad.", "botin.", "jefes.", "arena.", "caravanas.", "chozas_mago.")
 GENERATION = ("aldeas.", "unicas.", "medianas.", "minas.", "faros.", "naufragios.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
               "arena.activado")
@@ -382,33 +382,33 @@ def is_generation(key):
 
 
 def profile_options():
-    """Claves que fijan los perfiles, en el orden del esquema."""
+    """Keys that the profiles set, in schema order."""
     keys = set().union(*(set(v) for k, v in PROFILES.items() if k != "estandar"))
     return [k for k, *_ in _FIXED if k in keys]
 
 
 def profiles():
-    """{perfil: {clave: valor}} con «estandar» = los valores por defecto (comprueba que no tocan la generación)."""
+    """{profile: {key: value}} with "estandar" = the default values (checks that they do not touch generation)."""
     default = {k: d for k, d, *_ in _FIXED}
     keys = profile_options()
     out = {}
     for name, values in PROFILES.items():
         if name == "estandar":
             values = {k: default[k] for k in keys}
-        assert set(values) == set(keys), f"perfil {name}: tiene que fijar justo {keys}"
+        assert set(values) == set(keys), f"profile {name}: must set exactly {keys}"
         for k, v in values.items():
-            assert k.startswith(PROFILE_PREFIXES) and not is_generation(k), f"perfil {name}: {k} no es una opción de juego"
+            assert k.startswith(PROFILE_PREFIXES) and not is_generation(k), f"profile {name}: {k} is not a gameplay option"
             lo, hi = next((lo, hi) for kk, _, lo, hi, *_ in _FIXED if kk == k)
-            assert type(v) is type(default[k]), f"perfil {name}: {k}={v!r} no es del tipo de la opción"
+            assert type(v) is type(default[k]), f"profile {name}: {k}={v!r} is not of the option's type"
             if isinstance(lo, list):
-                assert v in lo, f"perfil {name}: {k}={v!r} no es uno de {lo}"
+                assert v in lo, f"profile {name}: {k}={v!r} is not one of {lo}"
             elif lo is not None:
-                assert lo <= v <= hi, f"perfil {name}: {k}={v} fuera de {lo}-{hi}"
+                assert lo <= v <= hi, f"profile {name}: {k}={v} outside {lo}-{hi}"
         out[name] = {k: values[k] for k in keys}
     return out
 
 
-# Opciones repetidas: (patrón, clave de texto, es_es, en_us); %s es el nombre de la familia, el estilo o la estructura.
+# Repeated options: (pattern, text key, es_es, en_us); %s is the name of the family, the style or the structure.
 _GROUPS = {
     "aldeas.familias.<familia>": ("familia", "Activa la familia de aldeas %s (sus 3 estilos)", "Enables the %s village family (its 3 styles)"),
     "aldeas.estilos.<estilo>": ("estilo", "Activa el estilo de aldea %s", "Enables the %s village style"),
@@ -423,7 +423,7 @@ _GROUPS = {
 UNIQUE_RANGE = (1000, 10000)
 MEDIUM_RANGE = mediums.SEPARATION_RANGE
 
-# Nombre corto de cada opción en la pantalla de configuración del cliente (la ayuda larga va en el tooltip).
+# Short name of each option on the client's configuration screen (the long help goes in the tooltip).
 _NAMES = {
     "perfil": ("Perfil de juego", "Gameplay profile"),
     "aldeas.separacion_bloques": ("Separación (bloques)", "Spacing (blocks)"),
@@ -506,7 +506,7 @@ _NAMES = {
     "tesoro.probabilidad": ("Fragmentos por cofre (%)", "Fragments per chest (%)"),
     "tesoro.radio_max": ("Distancia máxima entre marcas (bloques)", "Maximum distance between marks (blocks)"),
 }
-# Nombre de cada valor de las opciones de lista: {clave: {valor: (es_es, en_us)}}.
+# Name of each value of the list options: {key: {value: (es_es, en_us)}}.
 _VALUE_NAMES = {
     "perfil": {"casual": ("Casual", "Casual"), "estandar": ("Estándar", "Standard"), "hardcore": ("Hardcore", "Hardcore"),
                "personalizado": ("Personalizado", "Custom")},
@@ -522,8 +522,8 @@ _VALUE_NAMES = {
                          "pt_br": ("Português (Brasil)", "Português (Brasil)"), "ca_es": ("Català", "Català"),
                          "gl_es": ("Galego", "Galego")},
 }
-# Grupos: nombre corto (%s = nombre de la familia, el estilo o la estructura) y clave del nombre del argumento
-# (None: el id tal cual, como en el README).
+# Groups: short name (%s = name of the family, the style or the structure) and key of the argument's name
+# (None: the id as is, as in the README).
 _GROUP_NAMES = {
     "aldeas.familias.<familia>": ("%s", "%s", "heraldia.familia.%s"),
     "aldeas.estilos.<estilo>": ("%s", "%s", None),
@@ -532,7 +532,7 @@ _GROUP_NAMES = {
     "medianas.<id>.activada": ("%s", "%s", "heraldia.medianas.%s.nombre"),
     "medianas.<id>.separacion_bloques": ("%s: separación (bloques)", "%s: spacing (blocks)", "heraldia.medianas.%s.nombre"),
 }
-# Secciones de la pantalla, en orden de aparición: (id, es_es, en_us).
+# Screen sections, in order of appearance: (id, es_es, en_us).
 SECTIONS = [
     ("perfil", "Perfil de juego", "Gameplay profile"),
     ("aldeas", "Aldeas", "Villages"),
@@ -560,8 +560,8 @@ SECTIONS = [
     ("mapas_web", "Mapas web", "Web maps"),
     ("tesoro", "Búsqueda del tesoro", "Treasure hunt"),
 ]
-# Prefijo de la clave → sección; gana el primero que encaje, así que una opción nueva cae sola en su sección
-# (si no encaja en ninguna, la generación falla).
+# Key prefix -> section; the first one that fits wins, so a new option falls into its section on its own
+# (if it fits in none, generation fails).
 _SECTION_PREFIXES = [
     ("perfil", "perfil"),
     ("aldeas.familias.", "familias"), ("aldeas.estilos.", "estilos"), ("aldeas.vida.", "vida"), ("aldeas.caminos.", "caminos"),
@@ -575,7 +575,7 @@ _SECTION_PREFIXES = [
 ]
 
 
-# Textos de la propia pantalla (cliente).
+# Texts of the screen itself (client).
 SCREEN_ES = {
     "heraldia.config.pantalla.titulo": "Configuración de Heraldia",
     "heraldia.config.pantalla.buscar": "Buscar opciones…",
@@ -608,7 +608,7 @@ SCREEN_EN = {
     "heraldia.config.pantalla.fijada": "Set by hand: overrides the profile",
     "heraldia.config.pantalla.perfil_efectivo": "Effective profile: %s. Different from the profile: %s",
 }
-# /heraldia profile (comando nuevo, en inglés) y la ayuda del fichero.
+# /heraldia profile (new command, in English) and the file's help.
 PROFILE_ES = {
     "heraldia.perfil.titulo": "Perfil de juego: %s (en el fichero: %s)",
     "heraldia.perfil.opcion": " - %s = %s",
@@ -631,7 +631,7 @@ def _section(key):
     for prefix, sec in _SECTION_PREFIXES:
         if key.startswith(prefix):
             return sec
-    raise ValueError(f"opción {key} sin sección en la pantalla de configuración (añádela a opciones._SECTION_PREFIXES)")
+    raise ValueError(f"option {key} has no section on the configuration screen (add it to opciones._SECTION_PREFIXES)")
 
 
 def _key(k):
@@ -644,7 +644,7 @@ def _option(key, default, lo, hi, lang, args=(), pattern=None):
     if is_generation(key):
         o["generacion"] = True
     if isinstance(lo, list):
-        assert default in lo and all(isinstance(v, str) for v in lo), f"{key}: valores de lista no válidos"
+        assert default in lo and all(isinstance(v, str) for v in lo), f"{key}: invalid list values"
         o["valores"] = list(lo)
         o["nombres_valores"] = [_key(f"{key}.{v}") for v in lo]
     elif lo is not None:
@@ -657,7 +657,7 @@ def _option(key, default, lo, hi, lang, args=(), pattern=None):
 
 
 def unique_placements():
-    """{id: (spacing, separation)} de las estructuras únicas configurables (las que no traen colocación propia)."""
+    """{id: (spacing, separation)} of the configurable unique structures (those without their own placement)."""
     return {sid: (m.STRUCTURE.get("spacing", uniques.DEFAULT_SPACING), m.STRUCTURE.get("separation", uniques.DEFAULT_SEPARATION))
             for sid, m in uniques.modules() if "placement" not in m.STRUCTURE}
 
@@ -670,7 +670,7 @@ def schema():
     for th in THEMES:
         opts.append(_option(f"aldeas.estilos.{th['id']}", True, None, None, g["aldeas.estilos.<estilo>"], [th["id"]], "aldeas.estilos.<estilo>"))
     unique = unique_placements()
-    assert uniques.OLD_GRID <= set(unique), f"rejilla antigua de únicas que no existen: {uniques.OLD_GRID - set(unique)}"
+    assert uniques.OLD_GRID <= set(unique), f"old grid of unique structures that do not exist: {uniques.OLD_GRID - set(unique)}"
     for sid, (spacing, _) in unique.items():
         opts.append(_option(f"unicas.{sid}.activada", True, None, None, g["unicas.<id>.activada"], [sid], "unicas.<id>.activada"))
         default = min(max(spacing * 16, UNIQUE_RANGE[0]), UNIQUE_RANGE[1])
@@ -680,9 +680,9 @@ def schema():
         opts.append(_option(f"medianas.{mid}.activada", True, None, None, g["medianas.<id>.activada"], [mid], "medianas.<id>.activada"))
         opts.append(_option(f"medianas.{mid}.separacion_bloques", mod.SEPARATION, *MEDIUM_RANGE,
                             g["medianas.<id>.separacion_bloques"], [mid], "medianas.<id>.separacion_bloques"))
-    assert set(_NAMES) == {k for k, *_ in _FIXED}, "cada opción fija necesita su nombre corto en _NAMES"
+    assert set(_NAMES) == {k for k, *_ in _FIXED}, "every fixed option needs its short name in _NAMES"
     assert {k: list(v) for k, v in _VALUE_NAMES.items()} == {k: lo for k, _, lo, *_ in _FIXED if isinstance(lo, list)}, \
-        "cada opción de lista necesita el nombre de cada valor en _VALUE_NAMES"
+        "every list option needs the name of each value in _VALUE_NAMES"
     perf = profiles()
     for o in opts:
         if o["clave"] in perf["estandar"]:
@@ -699,7 +699,7 @@ def schema():
 
 
 def lang():
-    """Textos de ayuda de cada opción: {"es_es": {...}, "en_us": {...}}."""
+    """Help texts of each option: {"es_es": {...}, "en_us": {...}}."""
     out = {"es_es": {}, "en_us": {}}
     for k, _, _, _, es, en in _FIXED:
         out["es_es"][_key(k)], out["en_us"][_key(k)] = es, en

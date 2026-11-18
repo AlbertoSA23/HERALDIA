@@ -1,8 +1,8 @@
-"""Geometría de la Ciudadela enana: una sola plantilla con todas las salas.
+"""Geometry of the Dwarven Citadel: a single template with all the rooms.
 
-Coordenadas de diseño: x hacia el este, z hacia dentro de la montaña (la puerta mira al norte, z=0), y hacia arriba.
-Fuera de las salas no se coloca nada (structure_void implícito): la roca natural se conserva. Cada sala recibe
-una piel de dos bloques: muro labrado por dentro y piedra por fuera.
+Design coordinates: x toward the east, z into the mountain (the gate faces north, z=0), y upward.
+Nothing is placed outside the rooms (implicit structure_void): the natural rock is preserved. Each room gets
+a two-block skin: carved wall inside and stone outside.
 """
 import random
 from core import Template, B, F
@@ -11,7 +11,7 @@ from .._common import redstone
 NAME = "unicas/ciudadela/ciudadela"
 LOOT = "heraldia:unicas/ciudadela/"
 
-F0, FT, F1, FB, F2, F3 = 30, 33, 21, 15, 12, 3      # suelos por nivel (se pisa en suelo+1)
+F0, FT, F1, FB, F2, F3 = 30, 33, 21, 15, 12, 3      # floors per level (walked on at floor+1)
 W, T, P, C, COB = "deepslate_bricks", "deepslate_tiles", "polished_deepslate", "chiseled_deepslate", "cobbled_deepslate"
 BS, PB = "polished_blackstone_bricks", "polished_blackstone"
 WOOD, LOG = "spruce_planks", "spruce_log"
@@ -31,12 +31,12 @@ def sl(mat, typ="bottom"):
 class Blueprint:
     def __init__(self):
         self.t = Template(NAME)
-        self.mat = {}            # celda de aire -> material del muro de su sala
+        self.mat = {}            # air cell -> wall material of its room
         self.rng = random.Random(1717)
         self.ruin_piece = set()       # posiciones de detalles de ruina colocados a mano
-        self.lint_open = {}      # estados "abiertos" de los puzles para la auditoría de recorrido
-        self.circuits = {}       # nombre -> datos para redstone.py
-        self.marks = {}          # nombre -> posición (para la auditoría y los planos)
+        self.lint_open = {}      # "open" puzzle states for the walkthrough audit
+        self.circuits = {}       # name -> data for redstone.py
+        self.marks = {}          # name -> position (for the audit and the floor plans)
 
     # ------------------------------------------------------------ primitivas
     def set(self, x, y, z, s, nbt=None):
@@ -63,7 +63,7 @@ class Blueprint:
         self.ruin_piece.add((x, y, z))
 
     def stairs_down(self, x0, x1, z0, dz, ftop, n, mat=W, step="deepslate_brick_stairs"):
-        """Tramo de n peldaños que baja desde el suelo ftop avanzando dz por peldaño (headroom 4)."""
+        """Run of n steps going down from floor ftop advancing dz per step (headroom 4)."""
         up = "north" if dz > 0 else "south"
         for k in range(1, n + 1):
             z = z0 + dz * (k - 1)
@@ -102,17 +102,17 @@ class Blueprint:
         self.level3()
         self.shell()
         self.connect()
-        # la entrada (jigsaw) se coloca al final para que nada la sobrescriba
+        # the entrance (jigsaw) is placed last so that nothing overwrites it
         self.t.jigsaw(35, F0, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty",
                       final_state=f"minecraft:{T}")
         return self
 
     def porch(self):
         self.room(25, 0, 45, 7, F0, 14, W, T, ceil=T)
-        self.fill(25, 24, 0, 45, 29, 7, W)                       # cimiento por si la ladera baja
+        self.fill(25, 24, 0, 45, 29, 7, W)                       # foundation in case the hillside descends
         for x in range(25, 46):
             self.set(x, F0, 0, C if x % 4 == 3 else T)
-        # fachada de 3 de grueso con la gran puerta 5 x 7 en arco
+        # 3-thick facade with the great 5 x 7 arched gate
         self.fill(25, F0 + 1, 8, 45, F0 + 14, 10, W)
         self.fill(33, F0, 8, 37, F0, 10, T)
         self.carve(33, F0 + 1, 8, 37, F0 + 7, 10)
@@ -121,7 +121,7 @@ class Blueprint:
             self.set(37, F0 + 7, z, st("deepslate_brick_stairs", "east", "top"))
         for x in range(32, 39):
             self.set(x, F0 + 8, 8, "gold_block" if x in (33, 35, 37) else C)
-        # columnas adosadas a la fachada y estatuas de guardianes
+        # columns attached to the facade and guardian statues
         for x in (31, 39):
             self.pillar(x, 7, F0 + 1, F0 + 14)
         for x0 in (27, 42):
@@ -140,7 +140,7 @@ class Blueprint:
 
     def hall(self):
         self.room(18, 11, 52, 44, F0, 12, W, P, ceil=T)
-        for z in range(11, 45):                                   # pasillo central con incrustaciones
+        for z in range(11, 45):                                   # central corridor with inlays
             for x in range(33, 38):
                 self.set(x, F0, z, "gold_block" if (x == 35 and z % 6 == 2) else T)
         for xs in ((24, 25), (45, 46)):
@@ -148,7 +148,7 @@ class Blueprint:
                 for x in xs:
                     for z in (z0, z0 + 1):
                         self.pillar(x, z, F0 + 1, F0 + 12)
-        # pilar derrumbado: queda el capitel colgado del techo, el fuste caído y escombros
+        # collapsed pillar: the capital hangs from the ceiling, the shaft has fallen and there is rubble
         for x in (45, 46):
             for z in (32, 33):
                 self.fill(x, F0 + 4, z, x, F0 + 11, z, "air")
@@ -160,7 +160,7 @@ class Blueprint:
         for z in (17, 23, 29, 35, 41):
             for x in (30, 40):
                 self.lantern(x, F0 + 8, z)
-        # bancos de piedra contra los muros (respaldo hacia el muro)
+        # stone benches against the walls (backrest toward the wall)
         for zs in ((14, 17), (20, 23), (36, 39), (40, 43)):
             for z in range(zs[0], zs[1] + 1):
                 self.set(18, F0 + 1, z, st("polished_deepslate_stairs", "west"))
@@ -168,7 +168,7 @@ class Blueprint:
                     self.set(52, F0 + 1, z, st("polished_deepslate_stairs", "east"))
         self.chest(18, F0 + 1, 31, "east", "menor", "cofre_salon_o")
         self.chest(52, F0 + 1, 24, "west", "menor", "cofre_salon_e")
-        # paso al salón del trono: tres peldaños
+        # passage to the throne room: three steps
         self.carve(32, F0 + 1, 45, 38, F0 + 8, 47)
         for k, z in enumerate((45, 46, 47)):
             for x in range(32, 39):
@@ -185,12 +185,12 @@ class Blueprint:
         for x, z, f in beds:
             self.set(x, F0 + 1, z, f"red_bed[facing={f},part=head]")
             self.set(x + (1 if f == "west" else -1), F0 + 1, z, f"red_bed[facing={f},part=foot]")
-        # mesa con bancos en el centro
+        # table with benches in the center
         for x in range(5, 9):
             self.set(x, F0 + 1, 27, sl("spruce_slab", "top"))
             self.set(x, F0 + 1, 26, "spruce_stairs[facing=north,half=bottom,shape=straight]")
             self.set(x, F0 + 1, 28, "spruce_stairs[facing=south,half=bottom,shape=straight]")
-        # armero y cofres
+        # armorer and chests
         self.chest(2, F0 + 1, 25, "east", "barracones", "cofre_barracones_1")
         self.chest(2, F0 + 1, 29, "east", "barracones", "cofre_barracones_2")
         self.set(2, F0 + 1, 27, "grindstone[face=floor,facing=east]")
@@ -200,7 +200,7 @@ class Blueprint:
                                                       "chest": {"id": "minecraft:chainmail_chestplate", "count": 1}}})
         for z in (21, 34):
             self.lantern(6, F0 + 5, z)
-        # esquina noroeste hundida: hueco en el techo, escombros y telarañas
+        # northwest corner sunken: hole in the ceiling, rubble and cobwebs
         self.carve(2, F0 + 7, 16, 4, F0 + 8, 18)
         for (x, z, h) in ((2, 16, 3), (3, 16, 2), (2, 17, 2), (4, 16, 1), (3, 17, 1), (2, 18, 1)):
             for k in range(h):
@@ -216,7 +216,7 @@ class Blueprint:
         self.stairs_down(55, 57, 33, 1, F0, F0 - F1)
         self.chest(59, F0 + 1, 21, "west", "menor", "cofre_vestibulo")
         self.lantern(56, F0 + 5, 26)
-        # almacén
+        # storehouse
         self.carve(60, F0 + 1, 25, 60, F0 + 3, 27)
         self.fill(60, F0, 25, 60, F0, 27, T)
         self.room(61, 16, 69, 44, F0, 6, W, P, ceil=T)
@@ -232,7 +232,7 @@ class Blueprint:
             if z not in (28, 29):
                 for x in (64, 65):
                     barrel(x, z, 2 if (z + x) % 5 == 0 else 1)
-        # muro de barriles con un hueco junto al muro este: sala oculta 1
+        # wall of barrels with a gap next to the east wall: hidden room 1
         for x in range(61, 69):
             barrel(x, 39, 2)
         self.chest(61, F0 + 1, 43, "east", "oculto", "cofre_oculto_almacen")
@@ -249,7 +249,7 @@ class Blueprint:
         for x in (28, 42):
             for z in (51, 55, 59):
                 self.pillar(x, z, FT + 1, FT + 11)
-        # estrado y trono
+        # dais and throne
         self.fill(31, FT + 1, 58, 39, FT + 1, 63, T)
         self.fill(33, FT + 2, 60, 37, FT + 2, 63, C)
         for x in range(33, 38):
@@ -270,14 +270,14 @@ class Blueprint:
         for z in (51, 59):
             for x in (31, 39):
                 self.lantern(x, FT + 8, z)
-        # muro del fondo: 3 de grueso (cara, mecanismo, trasdós) con hornacinas
+        # back wall: 3 thick (face, mechanism, back face) with niches
         self.fill(24, FT, 65, 46, FT + 11, 67, W)
         for x in (29, 35, 41):
             self.carve(x, FT + 1, 65, x, FT + 2, 65)
         for x in (29, 41):
             self.set(x, FT + 1, 66, C)
             self.set(x, FT + 2, 66, C)
-        for x in (32, 38):                                        # hornacinas bajas de las palancas
+        for x in (32, 38):                                        # low niches of the levers
             self.carve(x, FT + 1, 65, x, FT + 1, 65)
         y1, y2 = FT + 1, FT + 2
         for y in (y1, y2):
@@ -289,7 +289,7 @@ class Blueprint:
         self.circuits["trono"] = dict(lever=(32, y1, 66), decoy=(38, y1, 66), pistons=[(33, y1, 66), (33, y2, 66)])
         for y in (y1, y2):
             self.lint_open[(35, y, 66)] = None
-        # cámara real (sala oculta 2)
+        # royal chamber (hidden room 2)
         self.carve(35, y1, 67, 35, y2, 67)
         self.room(31, 68, 39, 73, FT, 5, W, T, ceil=T)
         for x in range(33, 38):
@@ -339,7 +339,7 @@ class Blueprint:
         for x in (42, 58):
             self.lantern(x, F1 + 7, 54)
         self.stairs_down(38, 40, 49, -1, F1, F1 - F2, BS)
-        # pasillo y cervecería
+        # corridor and brewery
         self.carve(26, F1 + 1, 52, 35, F1 + 4, 54)
         self.fill(26, F1, 52, 35, F1, 54, P)
         self.room(8, 46, 25, 64, F1, 7, W, WOOD, ceil=T)
@@ -351,7 +351,7 @@ class Blueprint:
                     self.set(x, F1 + 5, z, sl("spruce_slab"))
             self.t.barrel(12, F1 + 2, z0 + 1, "east")
             self.set(12, F1 + 1, z0 + 1, WOOD)
-        # sala oculta 3: trampilla en el rincón entre dos cubas y escalera de mano a la bodega
+        # hidden room 3: trapdoor in the corner between two vats and ladder to the cellar
         self.set(8, F1 + 1, 57, "spruce_trapdoor[facing=east,half=bottom,open=false]")
         self.lint_open[(8, F1 + 1, 57)] = "spruce_trapdoor[facing=east,half=bottom,open=true]"
         self.room(8, 54, 14, 60, FB, 4, W, P, ceil=W)
@@ -364,7 +364,7 @@ class Blueprint:
         self.set(11, FB + 1, 60, "brewing_stand")
         self.ruin(14, FB + 4, 57, "cobweb")
         self.ruin(9, FB + 4, 54, "cobweb")
-        # mesa larga con sillas, calderos, soportes y barriles
+        # long table with chairs, cauldrons, stands and barrels
         for x in range(16, 23):
             self.set(x, F1 + 1, 55, sl("spruce_slab", "top"))
             self.set(x, F1 + 1, 54, "spruce_stairs[facing=north,half=bottom,shape=straight]")
@@ -382,7 +382,7 @@ class Blueprint:
             self.lantern(x, F1 + 6, z)
 
     def level2(self):
-        # estación
+        # station
         self.room(30, 26, 46, 40, F2, 6, W, P, ceil=T)
         for (x, z) in ((34, 28), (42, 28), (34, 38), (42, 38)):
             self.pillar(x, z, F2 + 1, F2 + 6)
@@ -396,7 +396,7 @@ class Blueprint:
         self.chest(30, F2 + 1, 27, "east", "menor", "cofre_estacion")
         for x in (38, 46):
             self.lantern(x, F2 + 5, 32)
-        # túnel oeste con marcos de madera
+        # west tunnel with wooden frames
         self.room(8, 33, 29, 35, F2, 4, COB, COB)
         for x in range(8, 30):
             self.set(x, F2 + 1, 34, "rail[shape=east_west]")
@@ -404,7 +404,7 @@ class Blueprint:
             for z in (33, 35):
                 self.fill(x, F2 + 1, z, x, F2 + 3, z, "spruce_fence")
             self.fill(x, F2 + 4, 33, x, F2 + 4, 35, WOOD)
-        # cubil de arañas con veta de menas
+        # spider den with an ore vein
         self.room(2, 30, 7, 38, F2, 5, COB, COB)
         for x in range(2, 8):
             self.set(x, F2 + 1, 34, "rail[shape=east_west]")
@@ -417,7 +417,7 @@ class Blueprint:
         for (x, y, z) in ((2, F2 + 5, 30), (3, F2 + 5, 30), (2, F2 + 4, 30), (7, F2 + 5, 38), (6, F2 + 5, 38),
                           (2, F2 + 5, 38), (5, F2 + 5, 31)):
             self.ruin(x, y, z, "cobweb")
-        # galería hundida, trampa de placa y escondite del minero
+        # sunken gallery, plate trap and the miner's hideout
         self.room(18, 18, 20, 32, F2, 4, COB, COB)
         for z in (25, 26, 27):
             for x in (18, 20):
@@ -441,7 +441,7 @@ class Blueprint:
         self.set(22, F2 + 1, 16, "red_bed[facing=east,part=head]")
         self.set(21, F2 + 1, 16, "red_bed[facing=east,part=foot]")
         self.set(15, F2 + 1, 16, "crafting_table")
-        # abismo con lava al fondo y puente
+        # abyss with lava at the bottom and a bridge
         self.carve(47, F2 + 1, 33, 47, F2 + 4, 35)
         self.fill(47, F2, 33, 47, F2, 35, T)
         self.carve(48, 6, 20, 58, 19, 52, "abismo")
@@ -463,13 +463,13 @@ class Blueprint:
                 self.fill(x, F2 + 2, z, x, 19, z, "iron_chain[axis=y]")
         self.carve(59, F2 + 1, 33, 59, F2 + 4, 35)
         self.fill(59, F2, 33, 59, F2, 35, T)
-        # rellano del abismo (mazmorra)
+        # landing of the abyss (dungeon)
         self.room(60, 29, 68, 38, F2, 5, W, P, ceil=W)
         self.spawner(67, F2 + 1, 30, "skeleton", "generador_esqueletos")
         self.chest(68, F2 + 1, 37, "west", "menor", "cofre_rellano")
         for (x, y, z) in ((60, F2 + 5, 29), (68, F2 + 5, 29), (68, F2 + 5, 38)):
             self.ruin(x, y, z, "cobweb")
-        # pasillo de la trampa de flechas
+        # corridor of the arrow trap
         self.room(63, 39, 65, 47, F2, 4, W, T, ceil=W)
         zt = 43
         self.fill(62, F2 + 1, 39, 62, F2 + 4, 47, W)
@@ -487,13 +487,13 @@ class Blueprint:
         self.stairs_down(63, 65, 48, 1, F2, F2 - F3)
 
     def level3(self):
-        # antecámara con la cerradura de combinación
+        # antechamber with the combination lock
         self.room(57, 57, 71, 63, F3, 6, W, T, ceil=T)
         for z in range(57, 64):
             self.set(64, F3, z, "gold_block" if z % 3 == 0 else C)
         self.spawner(58, F3 + 1, 58, "zombie", "generador_zombis")
         zw, y = 64, F3 + 2
-        self.fill(56, F3, zw, 72, F3 + 8, zw + 4, W)             # muro grueso de la bóveda (mecanismo dentro)
+        self.fill(56, F3, zw, 72, F3 + 8, zw + 4, W)             # thick vault wall (mechanism inside)
         order = [("A", "gold_block"), ("C", P), ("B", "gold_block"), ("D", P)]
         levers = {}
         for i, (k, blk) in enumerate(order):
@@ -507,7 +507,7 @@ class Blueprint:
                 self.set(x, y, zw + 1, "redstone_wire")
         for x in range(57, 62):
             self.set(x, y, zw + 2, "redstone_wire")
-        self.set(62, y, zw + 2, W)                                 # bloque X
+        self.set(62, y, zw + 2, W)                                 # block X
         self.set(63, y, zw + 2, "redstone_wall_torch[facing=east,lit=false]")
         self.set(63, y, zw + 1, "redstone_wire")
         dx = 64
@@ -517,7 +517,7 @@ class Blueprint:
         self.fill(dx, F3, zw + 1, dx, F3, zw + 4, T)
         self.circuits["boveda"] = dict(levers=levers, door=(dx, F3 + 1, zw), solution={"A": True, "B": True, "C": False, "D": False})
         self.marks["puerta_boveda"] = (dx, F3 + 1, zw)
-        # bóveda del tesoro
+        # treasure vault
         self.room(59, 69, 69, 80, F3, 7, W, T, ceil=T)
         for z in range(69, 81):
             self.set(64, F3, z, "gold_block" if z % 4 == 1 else C)
@@ -540,7 +540,7 @@ class Blueprint:
         self.t.entity(64, F3 + 1, 72, guardian())
         self.marks["guardian"] = (64, F3 + 1, 72)
 
-    # ------------------------------------------------------------ piel y conexiones
+    # ------------------------------------------------------------ skin and connections
     def shell(self):
         blocks = self.t.blocks
         air = [p for p, (s, _) in blocks.items() if s == "minecraft:air"]
@@ -568,7 +568,7 @@ class Blueprint:
             self.t.set(*q, HOST_ROCK)
 
     def connect(self):
-        """Estados de conexión que el juego calcularía con actualizaciones (no hay ninguna al generar)."""
+        """Connection states that the game would compute with updates (there are none during generation)."""
         g = self.t.get
         def solid(s):
             if s is None:

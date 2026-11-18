@@ -1,7 +1,7 @@
-"""Genera, valida y audita los recursos de estructuras de Heraldia.
+"""Generates, validates and audits the Heraldia structure resources.
 
-Uso: python3 main.py --out <carpeta de recursos> --registries <resumen mcmeta 26.3>
-Termina con código 1 ante cualquier error de validación o aviso de auditoría; solo escribe si todo pasa.
+Usage: python3 main.py --out <resources folder> --registries <mcmeta 26.3 summary>
+Exits with code 1 on any validation error or audit warning; only writes if everything passes.
 """
 import argparse, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,12 +24,12 @@ from lint import lint_registry, summarize
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--out", required=True, help="carpeta raíz de recursos donde se escribe data/heraldia/...")
+    ap.add_argument("--out", required=True, help="root resources folder where data/heraldia/... is written")
     ap.add_argument("--registries", default=os.environ.get("MCMETA_SUMMARY"),
                     help="clon de misode/mcmeta rama 26.3-summary (o variable MCMETA_SUMMARY)")
     args = ap.parse_args()
     if not args.registries:
-        ap.error("falta --registries (o la variable MCMETA_SUMMARY)")
+        ap.error("missing --registries (or the MCMETA_SUMMARY variable)")
     load_registries(args.registries)
 
     reg = build_all()
@@ -46,7 +46,7 @@ def main():
     res = lint_registry(reg)
     if res:
         c, ex = summarize(res)
-        print("AUDITORÍA DE DISEÑO:", {k: (n, ex[k]) for k, n in c.items()})
+        print("DESIGN AUDIT:", {k: (n, ex[k]) for k, n in c.items()})
         return 1
     write(reg, args.out)
     serr = validate_structures(args.out) + validate_advancements(args.out) + biomes.check(args.out, args.registries)
@@ -54,7 +54,7 @@ def main():
         print("ESTRUCTURAS O LOGROS NO CARGABLES:", serr)
         return 1
     n = sum(len(f) for _, _, f in os.walk(args.out))
-    print(f"OK: {len(reg.templates)} plantillas, {len(reg.pools)} pools, {n} ficheros en {args.out}")
+    print(f"OK: {len(reg.templates)} templates, {len(reg.pools)} pools, {n} files in {args.out}")
     return 0
 
 

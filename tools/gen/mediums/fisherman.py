@@ -1,7 +1,7 @@
-"""Cabaña de pescador (heraldia:medianas/pescador/<estilo>): patio de 17 x 21 en la orilla con una cabaña de 7 x 7, un
-secadero de pescado y un embarcadero de tablones sobre pilotes al sur. Variante a: el pescador (aldeano quieto con
-tratos fijos: compra cuerda, vende bacalao asado y una caña) y su gato; b: la cabaña cerrada, con un ahumadero y el
-embarcadero más largo con nasas, sin nadie. Sin monstruos."""
+"""Fisherman's cabin (heraldia:medianas/pescador/<estilo>): 17 x 21 courtyard on the shore with a 7 x 7 cabin, a
+fish-drying rack and a plank pier on piles to the south. Variant a: the fisherman (stationary villager with
+fixed trades: buys string, sells cooked cod and a fishing rod) and his cat; b: the closed cabin, with a smoker and a
+longer pier with fish traps, with nobody there. No monsters."""
 from core import Template, B
 from loot import item, empty
 from uniques._common import chest_loot
@@ -10,7 +10,7 @@ from . import _common as c
 MID = "pescador"
 DISPLAY_NAME = {"es_es": "Cabaña de pescador", "en_us": "Fisher's Hut"}
 SEPARATION = 576
-BIOME_NEIGHBORS = 2                  # las playas son franjas de pocas decenas de bloques
+BIOME_NEIGHBORS = 2                  # beaches are strips a few tens of blocks wide
 ADVANCEMENT_ICON = "minecraft:fishing_rod"
 LANG = chest_loot.lang("heraldia.medianas.pescador.", {
     "pescador": ("Pescador", "Fisher"),
@@ -34,9 +34,9 @@ LOOT = {
 }
 
 WIDTH, DEPTH = 17, 21
-X0, Z0, X1, Z1 = 2, 4, 8, 10       # cabaña (7 x 7), puerta al norte
+X0, Z0, X1, Z1 = 2, 4, 8, 10       # cabin (7 x 7), door to the north
 DOOR_COL = 5
-EX0, EX1 = 11, 13                  # embarcadero (3 de ancho), de z = 6 al fondo
+EX0, EX1 = 11, 13                  # pier (3 wide), from z = 6 to the end
 
 
 def offers():
@@ -57,7 +57,7 @@ def _cabin(p, name, shut):
     m = p["madera"]
     c.courtyard(t, 0, 0, WIDTH - 1, DEPTH - 1, _floor(p), air_block=3)
     c.entrance(t, DOOR_COL, p["senda"])
-    # cabaña sobre un zócalo, muros de tablones con postes, tejado a dos aguas
+    # cabin on a plinth, plank walls with posts, gable roof
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, f"{m}_planks")
     c.box(t, X0, 1, Z0, X1, 3, Z1, p["muro"], corner_block=f"{p['tronco']}[axis=y]")
@@ -67,14 +67,14 @@ def _cabin(p, name, shut):
     c.window(t, X0, 2, 7)
     c.window(t, X1, 2, 7)
     c.window(t, DOOR_COL, 2, Z1)
-    # dentro: cama, cofre, mesa de trabajo y el tonel de la pesca; farol en el centro
+    # inside: bed, chest, crafting table and the fishing barrel; lantern in the center
     c.bed(t, X0 + 1, Z1 - 1, "west", p["cama"])
     c.place_chest(t, X0 + 1, 1, Z0 + 1, "east", MID, "cabana")
     c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "pesca", kind="barrel")
     t.set(X1 - 1, 1, Z0 + 1, "smoker[facing=west,lit=false]" if shut else "crafting_table")
     t.set(X1 - 1, 1, Z1 - 2, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
     c.lantern(t, DOOR_COL, 3, 7)
-    # secadero de pescado al norte del embarcadero: dos postes con un travesaño de vallas
+    # fish-drying rack north of the pier: two posts with a fence crossbar
     for x in (EX0 - 1, EX1 + 1):
         t.set(x, 1, 2, f"{m}_fence")
         t.set(x, 2, 2, f"{m}_fence")
@@ -85,7 +85,7 @@ def _cabin(p, name, shut):
 
 
 def _dock(t, p, z1, fish_traps=False):
-    """Tablones en y = 1 de z = 6 a z1 sobre pilotes de tronco (y = 0) cada 3, con barandilla al final y un farol."""
+    """Planks at y = 1 from z = 6 to z1 on log piles (y = 0) every 3, with a railing at the end and a lantern."""
     m = p["madera"]
     t.set(EX0 + 1, 1, 5, f"{m}_stairs[facing=south,half=bottom,shape=straight,waterlogged=false]")
     for z in range(6, z1 + 1):
@@ -118,10 +118,10 @@ def with_fisherman(p, name):
 
 
 def smokehouse(p, name):
-    """Sin nadie: ahumadero de piedra adosado al este con una fogata, y embarcadero más largo con nasas."""
+    """With nobody there: a stone smokehouse attached to the east with a campfire, and a longer pier with fish traps."""
     t = _cabin(p, name, shut=True)
     _dock(t, p, DEPTH - 1, fish_traps=True)
-    # ahumadero 3 x 3 al sur de la cabaña, abierto al este, con la fogata bajo una campana de piedra
+    # 3 x 3 smokehouse south of the cabin, open to the east, with the campfire under a stone bell
     for x in range(X0 + 2, X0 + 5):
         for z in range(Z1 + 2, Z1 + 5):
             edge_block = x in (X0 + 2, X0 + 4) or z in (Z1 + 2, Z1 + 4)

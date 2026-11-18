@@ -1,13 +1,13 @@
-"""Trazado procedimental de la Atlántida: el mismo que coloca BasePiece.java (cambia los dos a la vez).
+"""Procedural layout of Atlantis: the same one that BasePiece.java places (change both at once).
 
-Coordenadas del plano: x, z relativas al centro de la ciudad; y absoluta.
+Plan coordinates: x, z relative to the city center; y absolute.
 """
 import math
 
-RADIUS, FLOOR, BASE, ROOF = 372, 31, 24, 62          # muralla exterior, pavimento, fondo del zócalo, agua despejada hasta
+RADIUS, FLOOR, BASE, ROOF = 372, 31, 24, 62          # outer wall, pavement, bottom of the plinth, water cleared up to
 WALL, WALL_HEIGHT, DOOR_COL, DOOR_HEIGHT, AVENUE, ROUND = 4, 13, 4, 8, 6, 10
-SIDE = 384                                            # la ciudad ocupa [-384, 384) en x y z: 3 x 3 distritos de 256
-TILE = 32                                           # las plantillas son teselas de 32 x 32 alineadas con los distritos
+SIDE = 384                                            # the city occupies [-384, 384) in x and z: 3 x 3 districts of 256
+TILE = 32                                           # the templates are 32 x 32 tiles aligned with the districts
 
 
 def _i32(v):
@@ -16,7 +16,7 @@ def _i32(v):
 
 
 def dispersion(x, z, salt):
-    """Idéntica a BasePiece.hash (aritmética de 32 bits de Java)."""
+    """Identical to BasePiece.hash (Java 32-bit arithmetic)."""
     h = _i32(x * 374761393 + z * 668265263 + salt * 1013904223)
     h = _i32((h ^ ((h & 0xFFFFFFFF) >> 13)) * 1274126177)
     return (h ^ ((h & 0xFFFFFFFF) >> 16)) & 0x7FFFFFFF
@@ -32,7 +32,7 @@ def wall_height(x, z):
 def pavement(x, z, r):
     ax, az = abs(x), abs(z)
     if ax <= AVENUE or az <= AVENUE:
-        # Java: z % 8 == 0 con resto con signo; múltiplos de 8 en ambos lenguajes
+        # Java: z % 8 == 0 with a signed remainder; multiples of 8 in both languages
         if (ax == 0 and z % 8 == 0) or (az == 0 and x % 8 == 0):
             return "minecraft:sea_lantern"
         return "minecraft:prismarine_bricks" if ax == AVENUE or az == AVENUE else "minecraft:dark_prismarine"
@@ -43,7 +43,7 @@ def pavement(x, z, r):
 
 
 def base(x, y, z):
-    """Estado que deja la pieza base en una celda del plano, o None fuera de la ciudad (terreno natural, desconocido)."""
+    """State that the base piece leaves in a plan cell, or None outside the city (natural terrain, unknown)."""
     d2 = x * x + z * z
     if d2 > RADIUS * RADIUS or y > ROOF:
         return None

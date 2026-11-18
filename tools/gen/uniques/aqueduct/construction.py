@@ -1,4 +1,4 @@
-"""Herramientas de obra sobre una plantilla global (coordenadas: x este, z sur, y = 0 el enlosado)."""
+"""Construction tools on a global template (coordinates: x east, z south, y = 0 the paving)."""
 from core import Template
 from .._common import pieces
 
@@ -11,10 +11,10 @@ class Construction:
     def __init__(self):
         self.t = Template("acueducto/global")
         self.area = 0          # superficie construida en planta (celdas)
-        self.ruin_piece = 0        # parte de esa superficie con daños
-        self.red = {}         # elementos de redstone con nombre -> posición
+        self.ruin_piece = 0        # part of that surface with damage
+        self.red = {}         # named redstone elements -> position
 
-    # --- básico ---
+    # --- basics ---
     def s(self, x, y, z, st, nbt=None):
         self.t.set(x, y, z, st, nbt)
 
@@ -38,7 +38,7 @@ class Construction:
         st = self.g(x, y, z)
         return st is not None and not st.startswith("minecraft:air")
 
-    # --- piezas de mobiliario y carpintería ---
+    # --- furniture and carpentry pieces ---
     def stair(self, x, y, z, facing, mat="smooth_sandstone_stairs", half="bottom"):
         self.s(x, y, z, f"{mat}[facing={facing},half={half},shape=straight,waterlogged=false]")
 
@@ -67,7 +67,7 @@ class Construction:
         self.s(x + dx, y, z + dz, f"{color}_bed[facing={facing},occupied=false,part=head]")
 
     def sign(self, x, y, z, facing, lines, mat="spruce"):
-        """Rótulo de pared con textos traducibles: lines = [(clave, respaldo)] (hasta 4)."""
+        """Wall sign with translatable texts: lines = [(key, fallback)] (up to 4)."""
         msgs = [{"translate": k, "fallback": fb} for k, fb in lines]
         msgs += [{"text": ""}] * (4 - len(msgs))
         nbt = {"id": "minecraft:sign", "is_waxed": True,
@@ -89,7 +89,7 @@ class Construction:
 
     # --- cubiertas ---
     def roof_tiles(self, x0, z0, x1, z1, y, axis, mat="brick_slab", gable_end="smooth_sandstone", cavity=None):
-        """Tejado de poca pendiente (media losa por bloque). Rectángulo con alero incluido; eje = cumbrera."""
+        """Low-pitch roof (half slab per block). Rectangle with eaves included; eje = ridge."""
         for x in range(x0, x1 + 1):
             for z in range(z0, z1 + 1):
                 if cavity and cavity(x, z):

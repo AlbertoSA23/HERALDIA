@@ -1,5 +1,5 @@
-"""Botín del Santuario druídico (solo vanilla): modesto en las cabañas y el claro, mejor bajo las raíces y en las salas
-ocultas, y el cofre premium al fondo (90 % vistoso, 10 % algo más fuerte). Cada tabla tiene su grupo extra marcado
+"""Loot of the Druid sanctuary (vanilla only): modest in the cabins and the clearing, better under the roots and in the hidden
+rooms, and the premium chest at the bottom (90 % showy, 10 % something stronger). Each table has its extra group marked
 solo_sin_lootr."""
 from .._common.chest_loot import place_chest, table, pool, item, empty, named as _named, potion, lang
 
@@ -46,13 +46,13 @@ LOOT = {
                             item("stick", 5, 2, 5), item("bow", 2, dmg=(0.3, 0.8)), item("honey_bottle", 3)]),
                   (1, [named("bow", "arco", 2, levels=(5, 10)), item("iron_ingot", 4, 1, 2), item("emerald", 3),
                        empty(8)])),
-    # sala oculta de la superficie
+    # hidden room of the surface
     "archidruida": place_chest(((3, 5), [item("gold_ingot", 8, 1, 3), item("emerald", 8, 1, 4), item("amethyst_shard", 5, 1, 4),
                                    named("glow_berries", "muerdago", 4, lo=1, hi=3), item("book", 4, rand_ench=True),
                                    potion("regeneration", 3), item("honeycomb", 4, 1, 3)]),
                          ((1, 2), [item("diamond", 3), item("golden_apple", 3), item("experience_bottle", 4, 2, 5),
                                    named("stick", "bordon", 2, ench={"minecraft:knockback": 1}), empty(6)])),
-    # bajo las raíces, nivel alto
+    # under the roots, upper level
     "biblioteca": place_chest(((3, 5), [item("book", 10, 1, 3), item("paper", 10, 2, 6), item("feather", 6, 1, 3),
                                   item("ink_sac", 6, 1, 3), item("candle", 4, 1, 2), item("writable_book", 3),
                                   named("paper", "corteza", 3, lo=1, hi=2)]),
@@ -74,7 +74,7 @@ LOOT = {
                               item("gold_nugget", 6, 2, 6), item("candle", 4, 1, 2), item("skeleton_skull", 1)]),
                     ((1, 2), [item("gold_ingot", 5, 1, 3), item("iron_ingot", 5, 1, 3), item("experience_bottle", 3, 1, 3),
                               empty(8)])),
-    # sala oculta del nivel alto (tras la puerta secreta de la biblioteca)
+    # hidden room of the upper level (behind the library's secret door)
     "secreto": place_chest(((3, 5), [item("book", 8, rand_ench=True), named("writable_book", "tratado", 3),
                                item("amethyst_shard", 5, 1, 4), item("lapis_lazuli", 6, 2, 6), item("emerald", 6, 1, 3),
                                item("experience_bottle", 4, 1, 3)]),
@@ -88,7 +88,7 @@ LOOT = {
                               item("amethyst_shard", 5, 1, 4), item("candle", 4, 1, 3), item("experience_bottle", 4, 2, 4),
                               named("iron_sword", "daga", 2, levels=(5, 12))]),
                     ((1, 2), [item("diamond", 3, 1, 2), item("emerald", 5, 2, 4), item("golden_apple", 2), empty(6)])),
-    # cámara del tesoro
+    # treasure chamber
     "premium": table(
         pool((3, 5), [named("golden_carrot", "semilla", 5), named("leather_helmet", "corona", 4, levels=(8, 15)),
                       named("bow", "arco", 4, levels=(10, 20)), named("glow_berries", "muerdago", 4, lo=2, hi=4),
@@ -98,6 +98,6 @@ LOOT = {
                       item("emerald", 6, 3, 8), item("book", 4, ench=(10, 20)), item("golden_apple", 3)]),
         pool((2, 4), [item("gold_ingot", 6, 1, 4), item("diamond", 3, 1, 2), item("emerald", 6, 2, 5),
                       item("experience_bottle", 5, 2, 6), item("honey_bottle", 4, 1, 3)], extra=True),
-        pool(1, [empty(90), item("diamond_axe", 3, ench=(20, 30)), item("diamond_leggings", 3, ench=(20, 30)),   # 10 % más fuerte
+        pool(1, [empty(90), item("diamond_axe", 3, ench=(20, 30)), item("diamond_leggings", 3, ench=(20, 30)),   # 10 % stronger
                  item("enchanted_golden_apple", 2), item("totem_of_undying", 2)])),
 }

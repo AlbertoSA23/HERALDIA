@@ -1,42 +1,42 @@
-"""Faros y naufragios de la costa (tools/gen/costa, T42) en un servidor dedicado 26.3 real (determinista: la semilla fija
-de server_smoke y orígenes de búsqueda fijos).
+"""Coastal lighthouses and shipwrecks (tools/gen/costa, T42) on a real 26.3 dedicated server (deterministic: the fixed seed
+of server_smoke and fixed search origins).
 
-Uso: python3 tools/smoke/coast.py --jar build/libs/heraldia-X.jar [--work build/smoke-costa]
-Dos arranques del mismo mundo (con -Dheraldia.depurar.costa=true: cada sitio elegido va al log, con su ancla, su altura
-y hacia dónde mira el mar):
-1. Con la configuración por defecto:
-   - el log: la rejilla de los dos tipos (separación, origen desplazado, candidata en las playas) y la regla de la costa;
-   - /locate de cada tipo desde varios orígenes, que lo genera de verdad (forceload) donde dijo /locate, y lo comprueba
-     bloque a bloque con la plantilla del generador girada como en el juego: el faro sobre tierra (lo que hay bajo la
-     plataforma no es agua), la luz de lo alto encendida (lámpara de redstone sobre su bloque de redstone, y sigue
-     encendida 5 s después), el embarcadero sobre el agua y el cofre con su tabla; el naufragio con la quilla, el mástil,
-     el cofre del camarote y, según la variante, la proa en tierra (encallado) o la bodega inundada con su ahogado anclado
-     (semihundido); en los dos, ninguna agua por encima del nivel del mar en su caja (nada se derrama);
-   - /heraldia info nearby desde cada uno: ninguna aldea ni única a menos de medianas.distancia_aldeas_unicas_bloques,
-     ni una mediana, una mina u otro de la costa de otro tipo a menos de medianas.distancia_minima.bloques;
-   - /place structure de las cuatro variantes (estilo templado) junto a playas que da /locate biome: en la orilla, con las
-     mismas comprobaciones;
-   - loot spawn de cada tabla, y /heraldia info con su línea y las 16 estructuras de la costa.
-2. Con faros.activado = false y naufragios.separacion_bloques = 2048: /locate ya no da ningún faro nuevo (solo el ya
-   generado, que se queda como en un mundo existente), y la rejilla de los
-   naufragios sale con la separación nueva.
-Código 0 si todo pasa.
+Usage: python3 tools/smoke/coast.py --jar build/libs/heraldia-X.jar [--work build/smoke-costa]
+Two starts of the same world (with -Dheraldia.depurar.costa=true: each chosen site goes to the log, with its anchor, its height
+and which way the sea faces):
+1. With the default configuration:
+   - the log: the grid of both types (spacing, shifted origin, candidate on the beaches) and the coast rule;
+   - /locate of each type from several origins, which really generates it (forceload) where /locate said, and checks it
+     block by block against the generator's template rotated as in the game: the lighthouse on land (what is under the
+     platform is not water), the top light on (redstone lamp on its redstone block, and still
+     on 5 s later), the pier over water and the chest with its table; the shipwreck with the keel, the mast,
+     the cabin chest and, depending on the variant, the bow on land (grounded) or the flooded hold with its anchored drowned
+     (half-sunk); in both, no water above sea level in its box (nothing spills);
+   - /heraldia info nearby from each one: no village or unique structure within mediums.distancia_aldeas_unicas_bloques,
+     nor a medium structure, a mine or another coastal one of a different type within mediums.distancia_minima.bloques;
+   - /place structure of the four variants (temperate style) next to beaches given by /locate biome: on the shore, with the
+     same checks;
+   - loot spawn of each table, and /heraldia info with its line and the 16 coastal structures.
+2. With faros.activado = false and naufragios.separacion_bloques = 2048: /locate no longer gives any new lighthouse (only the one already
+   generated, which stays as in an existing world), and the shipwreck
+   grid comes out with the new spacing.
+Exit code 0 if everything passes.
 """
 import argparse, glob, json, math, os, queue, re, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 
 sys.path.insert(0, os.path.join(s.ROOT, "tools", "gen"))
-import shore as coast                                    # noqa: E402  (el generador: plantillas, botín y huellas)
+import shore as coast                                    # noqa: E402  (the generator: templates, loot and footprints)
 from shore import constructions                         # noqa: E402
 
 SEA = 63
-ZONE, DISTANCE = 256, 192                      # opciones.py, por defecto
-# /locate de cada tipo desde estos orígenes (bloques); las variantes salen según la costa y el azar de la casilla.
+ZONE, DISTANCE = 256, 192                      # options.py, by default
+# /locate of each type from these origins (blocks); the variants come out depending on the coast and the cell's chance.
 ORIGINS = {"faro": [(0, 0), (-3000, 2000)], "naufragio": [(0, 0), (3000, -2000)]}
 LOCATE_MAX = 12000
-# /place de cada variante junto a una playa (la que da /locate biome desde cada origen, por orden, hasta que la orilla
-# sirve a la variante: no todas las playas tienen tierra llana para el faro o un bajío para el naufragio)
+# /place of each variant next to a beach (the one /locate biome gives from each origin, in order, until the shore
+# suits the variant: not every beach has flat land for the lighthouse or a shoal for the shipwreck)
 PLACE = [(20000, 20000), (-20000, 20000), (20000, -20000), (-20000, -20000), (24000, 0), (-24000, 0), (0, 24000),
          (0, -24000)]
 VARIANTS = [("faro", "a"), ("faro", "b"), ("naufragio", "a"), ("naufragio", "b")]
@@ -82,14 +82,14 @@ def load_data(ctx, x, z, r=64):
 
 
 class Site:
-    """Un faro o naufragio colocado: su ancla, la altura de su fila 0 y hacia dónde mira el mar; mapea la plantilla."""
+    """A placed lighthouse or shipwreck: its anchor, the height of its row 0 and which way the sea faces; maps the template."""
 
     def __init__(self, m):
         self.mode, self.x, self.y, self.z, self.sea = m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4)), m.group(5)
         self.no_shore = bool(m.group(7))
 
     def world(self, p):
-        """Punto de diseño (x a lo ancho, y, z hacia el mar; el ancla en 0, 0) en el mundo."""
+        """Design point (x across, y, z toward the sea; the anchor at 0, 0) in the world."""
         dx, dz = DIRS[self.sea]
         ex, ez = DIRS[CCW[self.sea]]
         x, y, z = p
@@ -104,7 +104,7 @@ def sites(ctx, start=0):
 
 
 def water_above(ctx, a, b):
-    """Bloques de agua por encima del nivel del mar en la caja de a a b (fill de agua por agua: no cambia nada)."""
+    """Water blocks above sea level in the box from a to b (water fill over water: it changes nothing)."""
     x0, x1 = sorted((a[0], b[0]))
     z0, z1 = sorted((a[2], b[2]))
     y1 = max(a[1], b[1])
@@ -114,34 +114,34 @@ def water_above(ctx, a, b):
 
 
 def check_lighthouse(ctx, st, v):
-    """El faro de la variante v (o la que sea, con v None) colocado en st; devuelve los fallos."""
+    """The lighthouse of variant v (or whichever, with v None) placed at st; returns the failures."""
     o, _, _ = coast.construction("faro", "templada", v or "a")
     fails = []
     lx, ly, lz = st.world(o.light)
     if not ctx.until(f"execute if block {lx} {ly} {lz} minecraft:redstone_lamp[lit=true]", timeout=60):
         return [f"{st}: sin la lámpara encendida en {lx} {ly} {lz}"]
     if not ctx.block((lx, ly - 1, lz), "minecraft:redstone_block"):
-        fails.append(f"{st}: la lámpara no está sobre su bloque de redstone")
+        fails.append(f"{st}: the lamp is not on its redstone block")
     ctx.ticks(100)
     if not ctx.block((lx, ly, lz), "minecraft:redstone_lamp[lit=true]"):
-        fails.append(f"{st}: la lámpara se apaga")
+        fails.append(f"{st}: the lamp goes out")
     if ly < SEA + 20:
-        fails.append(f"{st}: la luz a y = {ly}, no se ve de lejos")
-    for p in ((0, -1, -12), (-5, -1, -18), (5, -1, -3)):       # bajo la plataforma: tierra o cimientos, nunca agua
+        fails.append(f"{st}: the light at y = {ly} is not visible from afar")
+    for p in ((0, -1, -12), (-5, -1, -18), (5, -1, -3)):       # under the platform: land or foundations, never water
         w = st.world(p)
         if ctx.block(w, "minecraft:water") or ctx.block(w, "minecraft:air"):
-            fails.append(f"{st}: bajo la plataforma en {w} hay agua o aire")
-    cx, _, cz = st.world((0, -1, constructions.DOCK))              # bajo el final del embarcadero, el mar
+            fails.append(f"{st}: under the platform at {w} there is water or air")
+    cx, _, cz = st.world((0, -1, constructions.DOCK))              # under the end of the pier, the sea
     if not ctx.block((cx, SEA - 1, cz), "minecraft:water") and not st.no_shore:
-        fails.append(f"{st}: el embarcadero no acaba sobre el agua ({cx} {SEA - 1} {cz})")
+        fails.append(f"{st}: the pier does not end over water ({cx} {SEA - 1} {cz})")
     if not ctx.block(st.world((0, 0, constructions.DOCK)), "#minecraft:planks"):
-        fails.append(f"{st}: falta el embarcadero")
+        fails.append(f"{st}: the pier is missing")
     place_chest = st.world((-2, 12, constructions.TOWER_Z))
     if not ctx.block(place_chest, 'minecraft:chest{LootTable:"heraldia:costa/faro"}'):
-        fails.append(f"{st}: falta el cofre del faro en {place_chest}")
+        fails.append(f"{st}: the lighthouse chest is missing at {place_chest}")
     n = water_above(ctx, st.world((-8, 0, -21)), st.world((8, 27, constructions.DOCK + 1)))
     if n:
-        fails.append(f"{st}: {n} bloques de agua por encima del mar en su caja")
+        fails.append(f"{st}: {n} water blocks above sea level in its box")
     return fails
 
 
@@ -153,27 +153,27 @@ def check_shipwreck(ctx, st):
     if not ctx.until(f"execute if block {' '.join(map(str, keel))} #minecraft:logs", timeout=60):
         return [f"{st}: sin la quilla en {keel}"]
     if not ctx.block(st.world((0, 17, z0 + 12)), "#minecraft:logs"):
-        fails.append(f"{st}: sin el mástil mayor")
+        fails.append(f"{st}: no main mast")
     cabin_adv = st.world((-2, 6, z0 + 28))
     if not ctx.block(cabin_adv, 'minecraft:chest{LootTable:"heraldia:costa/camarote"}'):
-        fails.append(f"{st}: falta el cofre del camarote en {cabin_adv}")
+        fails.append(f"{st}: the cabin chest is missing at {cabin_adv}")
     if v == "b":
         hold = st.world((0, 3, z0 + 5))
         if not ctx.block(hold, "minecraft:water"):
-            fails.append(f"{st}: la bodega no está inundada ({hold})")
+            fails.append(f"{st}: the hold is not flooded ({hold})")
         bx, by, bz = st.world((-2, 2, z0 + 4))
         if not ctx.until(f"execute if entity @e[type=minecraft:drowned,tag=heraldia_anclado,x={bx},y={by},z={bz},distance=..6]", timeout=30):
-            fails.append(f"{st}: sin el ahogado anclado de la bodega")
+            fails.append(f"{st}: no anchored drowned in the hold")
         if not ctx.block(st.world((0, -1, z0 + 20)), "minecraft:water") and \
                 not ctx.block(st.world((0, -1, z0 + 20)), "#minecraft:logs"):
-            pass                                               # bajo la quilla: el fondo o la quilla alargada
+            pass                                               # under the keel: the sea floor or the extended keel
     else:
         bow = st.world((0, -1, z0 + 3))
         if ctx.block(bow, "minecraft:water") or ctx.block(bow, "minecraft:air"):
-            fails.append(f"{st}: la proa del encallado no está en tierra ({bow})")
+            fails.append(f"{st}: the grounded ship's bow is not on land ({bow})")
     n = water_above(ctx, st.world((-5, 0, z0 - 4)), st.world((5, 17, z0 + constructions.HULL_LENGTH)))
     if n:
-        fails.append(f"{st}: {n} bloques de agua por encima del mar en su caja")
+        fails.append(f"{st}: {n} water blocks above sea level in its box")
     return fails
 
 
@@ -189,12 +189,12 @@ def check_separation(ctx, kind, x, z):
     for sid, (dist, *_) in info_near(ctx, x, z, 600).items():
         if ":costa/" in sid:
             if f"costa/{kind}" not in sid and dist < DISTANCE:
-                fails.append(f"{kind} en {x}, {z} a {dist} bloques de {sid} (< {DISTANCE})")
+                fails.append(f"{kind} at {x}, {z} {dist} blocks from {sid} (< {DISTANCE})")
         elif ":medianas/" in sid or ":minas/" in sid:
             if dist < DISTANCE:
-                fails.append(f"{kind} en {x}, {z} a {dist} bloques de {sid} (< {DISTANCE})")
+                fails.append(f"{kind} at {x}, {z} {dist} blocks from {sid} (< {DISTANCE})")
         elif dist < ZONE:
-            fails.append(f"{kind} en {x}, {z} a {dist} bloques de {sid} (< {ZONE})")
+            fails.append(f"{kind} at {x}, {z} {dist} blocks from {sid} (< {ZONE})")
     return fails
 
 
@@ -206,26 +206,26 @@ def check_locate(ctx):
             m = ctx.run(f"execute positioned {ox} 64 {oz} run locate structure #heraldia:costa/{kind}",
                         r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
             if not m.group(1):
-                fails.append(f"/locate desde {ox}, {oz} no encuentra ningún {kind}")
+                fails.append(f"/locate from {ox}, {oz} finds no {kind}")
                 continue
             x, z = int(m.group(1)), int(m.group(2))
             d = math.hypot(x - ox, z - oz)
-            print(f"{kind}: /locate desde {ox}, {oz} en {x}, {z} a {d:.0f} bloques ({time.monotonic() - t0:.1f} s)")
+            print(f"{kind}: /locate from {ox}, {oz} at {x}, {z} {d:.0f} blocks away ({time.monotonic() - t0:.1f} s)")
             if d > LOCATE_MAX:
-                fails.append(f"{kind} a {d:.0f} bloques de {ox}, {oz} (> {LOCATE_MAX})")
+                fails.append(f"{kind} {d:.0f} blocks from {ox}, {oz} (> {LOCATE_MAX})")
             fails += check_separation(ctx, kind, x, z)
             before = len(ctx.seen)
             if not load_data(ctx, x + 8, z + 8, 80):
-                fails.append(f"{kind} en {x}, {z}: no se carga")
+                fails.append(f"{kind} at {x}, {z}: does not load")
                 continue
             cand = [st for st in sites(ctx) if (st.mode == "faro") == (kind == "faro")
                     and abs(st.x - x - 8) <= 64 and abs(st.z - z - 8) <= 64]
             if not cand:
-                fails.append(f"{kind} en {x}, {z}: el log no dice dónde quedó")
+                fails.append(f"{kind} at {x}, {z}: the log does not say where it ended up")
             else:
                 st = min(cand, key=lambda c: abs(c.x - x - 8) + abs(c.z - z - 8))
                 if any((v.x, v.z) == (st.x, st.z) for v in seen_all.get(kind, [])):
-                    print(f"  {st}: el mismo de antes")
+                    print(f"  {st}: same as before")
                     forceload(ctx, x + 8 - 80, z + 8 - 80, x + 8 + 79, z + 8 + 79, remove=True)
                     continue
                 seen_all.setdefault(kind, []).append(st)
@@ -251,7 +251,7 @@ def check_placed(ctx):
                 continue
             bx, bz = beaches[(ox, oz)]
             if not load_data(ctx, bx, bz, 96):
-                fails.append(f"/place {sid} en {bx}, {bz}: no se carga")
+                fails.append(f"/place {sid} at {bx}, {bz}: does not load")
                 continue
             before = len(ctx.seen)
             r = ctx.run(f"place structure {sid} {bx} 64 {bz}", r"Generated structure|Failed to place")
@@ -261,17 +261,17 @@ def check_placed(ctx):
                 fails.append(f"{sid}: /place: {r.string.strip()}")
                 break
             if st.no_shore:
-                print(f"/place {sid} junto a la playa de {bx}, {bz}: sin orilla que le sirva; otra playa")
+                print(f"/place {sid} next to the beach at {bx}, {bz}: no suitable shore; another beach")
                 continue
             load_data(ctx, bx, bz, 96)
             f = check_lighthouse(ctx, st, v) if kind == "faro" else check_shipwreck(ctx, st)
             forceload(ctx, bx - 96, bz - 96, bx + 95, bz + 95, remove=True)
-            print(f"/place {sid} junto a la playa de {bx}, {bz}: {st}: {'bien' if not f else f}")
+            print(f"/place {sid} next to the beach at {bx}, {bz}: {st}: {'bien' if not f else f}")
             fails += [f"/place {x}" for x in f]
             done = True
             break
         if not done and not any(sid in f for f in fails):
-            fails.append(f"{sid}: ninguna de las {len(PLACE)} playas tiene una orilla que le sirva")
+            fails.append(f"{sid}: none of the {len(PLACE)} beaches has a suitable shore")
     return fails
 
 
@@ -294,7 +294,7 @@ def check_log(ctx, lighthouses=True, sep_shipwreck=768):
         sp = round(sep / 16)
         if not re.search(rf"rejilla costa/{kind}: {'activada' if active else 'desactivada'}, cada {sp} chunks "
                          rf"\(separación mínima {(DISTANCE + 15) // 16}, origen desplazado\)[^\n]*candidata en el bioma #heraldia:litoral", log):
-            fails.append(f"falta en el log la rejilla de costa/{kind} (cada {sp} chunks)")
+            fails.append(f"the costa/{kind} grid is missing from the log (every {sp} chunks)")
     return fails
 
 
@@ -315,28 +315,28 @@ def main():
         fails += f
         if not re.search(r"costa: faros activados cada 1024 bloques, naufragios activados cada 768 bloques; 2 tipos, a 256 bloques",
                          ctx.log()):
-            fails.append("falta en el log la regla de la costa")
+            fails.append("the coast rule is missing from the log")
         fails += check_placed(ctx)
         fails += check_loot(ctx)
         ctx.run("heraldia info", r"Registered structures|Estructuras registradas")
         m = re.search(r"(?:Coast|Costa): (?:lighthouses|faros) (\w+), (?:every|cada) 1024 [^\n]*?; (\d+) (?:structures|estructuras)", ctx.log())
         if not m or int(m.group(2)) != len(coast.structures()):
-            fails.append(f"/heraldia info no resume la costa con sus {len(coast.structures())} estructuras")
+            fails.append(f"/heraldia info does not summarize the coast with its {len(coast.structures())} structures")
         modes = {st.mode for sts in seen_all.values() for st in sts}
-        print(f"vistos con /locate: {sorted(modes)}")
+        print(f"seen with /locate: {sorted(modes)}")
     finally:
         halt(proc)
     proc, ctx = start_up(a.work, jar, {"faros": {"activado": False}, "naufragios": {"separacion_bloques": 2048}}, False)
     try:
         fails += check_log(ctx, lighthouses=False, sep_shipwreck=2048)
-        # lo ya generado se queda y /locate lo sigue encontrando (como en un mundo existente): solo no debe salir uno nuevo
+        # what is already generated stays and /locate still finds it (as in an existing world): only a new one must not appear
         m = ctx.run("execute positioned -40000 64 40000 run locate structure #heraldia:costa/faro",
                     r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
         generated_many = {(st.x // 16, st.z // 16) for st in seen_all.get("faro", [])}
         if m.group(1) and not any(abs(int(m.group(1)) // 16 - cx) <= 6 and abs(int(m.group(2)) // 16 - cz) <= 6
                                   for cx, cz in generated_many):
-            fails.append(f"faros desactivados y /locate da uno nuevo en {m.group(1)}, {m.group(2)}")
-        print(f"faros desactivados: /locate da {m.group(1) and (m.group(1), m.group(2))} (los ya generados: {sorted(generated_many)})")
+            fails.append(f"lighthouses disabled and /locate gives a new one at {m.group(1)}, {m.group(2)}")
+        print(f"lighthouses disabled: /locate gives {m.group(1) and (m.group(1), m.group(2))} (already generated: {sorted(generated_many)})")
     finally:
         halt(proc)
     print(f"costa: {time.monotonic() - t0:.0f} s")

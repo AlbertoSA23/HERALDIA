@@ -1,5 +1,5 @@
-"""tesoro.py (T40, búsqueda del tesoro encadenada): la primera pista en el botín y su probabilidad, el cofre final, los
-textos en los 8 idiomas, la página de la Guía, los logros, las opciones y que lo que lee el Java coincide."""
+"""tesoro.py (T40, chained treasure hunt): the first hint in the loot and its probability, the final chest, the
+texts in the 8 languages, the Guide page, the advancements, the options and that what the Java reads matches."""
 import json
 import os
 import re
@@ -31,17 +31,17 @@ def _trans():
             for c in languages.TRANSLATIONS}
 
 
-# ------------------------------------------------------------------ la primera pista en el botín
+# ------------------------------------------------------------------ the first hint in the loot
 def test_with_hint_adds_a_group_with_the_condition_and_the_factor():
     tbl = {"type": "minecraft:chest", "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": "minecraft:bread"}]}]}
     for family, factor in treasure.FACTOR.items():
         t = treasure.with_hint(tbl, family)
-        assert t["pools"][:-1] == tbl["pools"], "no toca lo que había"
+        assert t["pools"][:-1] == tbl["pools"], "does not touch what was there"
         p = t["pools"][-1]
         assert p["rolls"] == 1 and p["entries"] == [{"type": "minecraft:loot_table", "value": treasure.FRAGMENT}]
         assert p["condition"] == {"type": treasure.CONDITION, "factor": factor}
-        assert "solo_sin_lootr" not in p, "con Lootr también: cada jugador el suyo"
-    assert len(tbl["pools"]) == 1, "no cambia la tabla original"
+        assert "solo_sin_lootr" not in p, "with Lootr too: each player gets their own"
+    assert len(tbl["pools"]) == 1, "does not change the original table"
 
 
 def test_probability_of_the_first_hint():
@@ -54,7 +54,7 @@ def test_probability_of_the_first_hint():
 
 
 def test_probability_simulation():
-    """Con la misma cuenta que PistaCondition (azar < probabilidad), la frecuencia observada se acerca a la esperada."""
+    """With the same computation as PistaCondition (chance < probability), the observed frequency approaches the expected one."""
     import random
     rnd = random.Random(40)
     for pct, factor in ((3.0, 1.0), (3.0, 0.5), (10.0, 5.0)):
@@ -86,7 +86,7 @@ def test_mediums_and_mines_carry_the_hint_in_all_their_tables(tmp_path):
 
 
 def test_only_in_chests_barrels_and_jars():
-    """Las tablas de las únicas que llevan la pista: las de algún contenedor (nunca la de un dispensador de trampa)."""
+    """The tables of the unique structures that carry the hint: those of some container (never that of a trap dispenser)."""
     def t(*blocks):
         return types.SimpleNamespace(blocks={i: b for i, b in enumerate(blocks)})
     reg = types.SimpleNamespace(templates={
@@ -108,7 +108,7 @@ def test_reward_of_the_board_feats():
 
 
 def test_pay_of_the_board_quests():
-    """T38: cada encargo entregado tira heraldia:tesoro/encargo (solo el fragmento, con el factor de los encargos)."""
+    """T38: each delivered quest rolls heraldia:tesoro/encargo (only the fragment, with the quest factor)."""
     t = treasure.quest()
     assert t["pools"] == [treasure.clue_pool("encargos")]
     assert treasure.QUEST == "heraldia:tesoro/encargo"
@@ -123,7 +123,7 @@ def test_the_writer_applies_the_hint_to_the_uniques():
     assert "treasure.write(out, jdump)" in w and "treasure.lang()" in w and "treasure.errors(" in w
 
 
-# ------------------------------------------------------------------ el fragmento y el cofre final
+# ------------------------------------------------------------------ the fragment and the final chest
 def _components(entrance):
     return next(m["components"] for m in entrance["modifier"] if m["type"] == "minecraft:set_components")
 
@@ -134,7 +134,7 @@ def test_fragment():
     assert e["name"] == "minecraft:paper"
     c = _components(e)
     assert c["minecraft:custom_data"] == "{heraldia_busqueda: {v: 1}}"
-    assert c["minecraft:max_stack_size"] == 1, "cada fragmento, su propia cadena"
+    assert c["minecraft:max_stack_size"] == 1, "each fragment, its own chain"
     assert c["minecraft:item_name"]["translate"] == treasure.key("fragmento.nombre")
     assert [l["translate"] for l in c["minecraft:lore"]] == [treasure.key("fragmento.lore"), treasure.key("fragmento.uso")]
     assert all(l["italic"] is False for l in c["minecraft:lore"])
@@ -166,10 +166,10 @@ def test_keepsake_with_name():
 
 
 def test_items_exist():
-    """Contra el registro real de 26.3 (resumen de mcmeta que deja la compilación); sin él, se salta."""
+    """Against the real 26.3 registry (mcmeta summary left by the build); without it, it is skipped."""
     f = os.path.join(ROOT, "build/mcmeta-summary/registries/data.json")
     if not os.path.isfile(f):
-        pytest.skip("sin build/mcmeta-summary")
+        pytest.skip("without build/mcmeta-summary")
     with open(f, encoding="utf-8") as fh:
         items = set(json.load(fh)["item"])
     names = re.findall(r'"name": "minecraft:([a-z0-9_]+)"', json.dumps([treasure.fragment(), treasure.place_chest()]))
@@ -183,7 +183,7 @@ def test_errors_detects_lore_long(monkeypatch):
     assert any("mapa.uso" in e for e in treasure.errors())
 
 
-# ------------------------------------------------------------------ textos en los 8 idiomas
+# ------------------------------------------------------------------ texts in the 8 languages
 def test_texts_in_the_two_base_languages():
     l = treasure.lang()
     assert l["es_es"].keys() == l["en_us"].keys()
@@ -198,12 +198,12 @@ def test_texts_in_the_translations():
     mark = re.compile(r"%(?:\d+\$)?s")
     for lang_code, t in _trans().items():
         for k, en in base.items():
-            assert t.get(k, "").strip(), f"{lang_code}: falta {k}"
+            assert t.get(k, "").strip(), f"{lang_code}: missing {k}"
             assert len(mark.findall(t[k])) == len(mark.findall(en)), f"{lang_code}: huecos de {k}"
         for k in ("heraldia.guia.pagina.tesoro", "heraldia.guia.pagina.tesoro.titulo", "heraldia.config.tesoro.activado",
                   "heraldia.config.tesoro.probabilidad", "heraldia.config.tesoro.radio_max", "heraldia.config.seccion.tesoro"):
-            assert t.get(k, "").strip(), f"{lang_code}: falta {k}"
-    assert treasure.errors(_trans()) == [], "el lore cabe en todos los idiomas"
+            assert t.get(k, "").strip(), f"{lang_code}: missing {k}"
+    assert treasure.errors(_trans()) == [], "the lore fits in all languages"
 
 
 def test_map_lore_fits_with_a_long_biome():
@@ -212,10 +212,10 @@ def test_map_lore_fits_with_a_long_biome():
         assert chest_loot.width(line) <= treasure.LORE_MAX_PX + 60, f"{lang_code}: {line}"
 
 
-# ------------------------------------------------------------------ la Guía
+# ------------------------------------------------------------------ the Guide
 def test_guide_page():
     ids = [pid for pid, _, _ in guide.PAGES]
-    assert "tesoro" in ids and ids.index("tesoro") == ids.index("mapas") + 1, "junto a los mapas del tesoro"
+    assert "tesoro" in ids and ids.index("tesoro") == ids.index("mapas") + 1, "next to the treasure maps"
     assert "tesoro" in guide.dataset(uniques.modules())["paginas"]
     es = guide.lang()["es_es"]
     assert "Ysolda" in es["heraldia.guia.pagina.tesoro"]
@@ -239,7 +239,7 @@ def test_advancements():
     assert a["tesoro/cofre"]["criteria"]["cofre"] == {"trigger": "minecraft:player_generates_container_loot",
                                                       "conditions": {"loot_tables": treasure.CHEST_TABLE}}
     assert a["tesoro/cofre"]["display"]["frame"] == "goal"
-    assert all(set(x.get("rewards", {})) <= {"experience"} for x in a.values()), "solo experiencia"
+    assert all(set(x.get("rewards", {})) <= {"experience"} for x in a.values()), "experience only"
     l = treasure.lang_advancements()["es_es"]
     for x in a.values():
         assert x["display"]["title"]["translate"] in l and x["display"]["description"]["translate"] in l
@@ -266,9 +266,9 @@ def test_options():
     assert o["tesoro.radio_max"]["defecto"] == treasure.DEFAULT_RADIUS
     assert o["tesoro.radio_max"]["min"] >= 300
     for k in ("tesoro.activado", "tesoro.probabilidad", "tesoro.radio_max"):
-        assert not o[k].get("generacion"), f"{k} no es de generación"
+        assert not o[k].get("generacion"), f"{k} is not a generation option"
         assert o[k]["seccion"] == "tesoro"
-        assert not o[k].get("perfil"), "los perfiles no la tocan"
+        assert not o[k].get("perfil"), "profiles do not touch it"
     j = _java("treasure/ClueCondition.java")
     assert all(f'"{k}"' in j for k in ("tesoro.activado", "tesoro.probabilidad", "tesoro.radio_max"))
 

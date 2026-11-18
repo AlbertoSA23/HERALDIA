@@ -1,7 +1,7 @@
-"""La Atlántida: una sola por mundo, sumergida en un océano grande (docs/unicas/atlantida.md).
+"""Atlantis: only one per world, submerged in a large ocean (docs/unicas/atlantis.md).
 
-Ciudad de plano fijo de 768 x 768 en 3 x 3 distritos. El tipo de estructura heraldia:atlantida (Java) coloca la pieza
-base (agua, pavimento, zócalo y muralla) y las teselas de 32 x 32 que salen de cortar el plano construido en ciudad.py.
+Fixed-plan city of 768 x 768 in 3 x 3 districts. The structure type heraldia:atlantida (Java) places the base piece
+(water, pavement, plinth and wall) and the 32 x 32 tiles obtained by cutting the plan built in city.py.
 """
 from . import urban_layout as U
 from . import city
@@ -9,15 +9,15 @@ from . import things
 
 ID = "unicas/atlantida"
 DISPLAY_NAME = {"es_es": "La Atlántida", "en_us": "Atlantis"}
-# Refuerzos del guardián en cada fase (jefes.py): vigías y un centinela con tridente.
+# Guardian's reinforcements in each phase (bosses.py): lookouts and a sentinel with a trident.
 REINFORCEMENTS = ["guardian", "guardian", {"mob": "drowned", "equipo": {"mainhand": "trident"}}]
 TROPHY = {"objeto": "trident", "rareza": "epic",
           "nombre": ("Tridente de Poseidón", "Trident of Poseidon"),
           "lore": [("Aún huele a sal y a tormenta.", "It still smells of salt and storm."),
                    ("Lo empuñó el último guardián de la ciudad hundida.", "Wielded by the last warden of the sunken city.")],
-          "encantamientos": {"minecraft:loyalty": 2, "minecraft:impaling": 2}}   # trofeo del guardián (_comun/botin.trofeo)
+          "encantamientos": {"minecraft:loyalty": 2, "minecraft:impaling": 2}}   # guardian's trophy (_comun/chest_loot.trophy)
 STRUCTURE = dict(
-    placement={"type": "heraldia:mundial"},   # siempre una, sin configuración
+    placement={"type": "heraldia:mundial"},   # always one, without configuration
     json={
         "type": "heraldia:atlantida", "biomes": ["minecraft:deep_frozen_ocean", "minecraft:deep_cold_ocean", "minecraft:deep_ocean",
                    "minecraft:deep_lukewarm_ocean", "minecraft:frozen_ocean", "minecraft:ocean", "minecraft:cold_ocean",
@@ -33,13 +33,13 @@ STRUCTURE = dict(
 from . import chest_loot
 LANG = things.LANG
 LOOT = chest_loot.tables()
-# /heraldia key: la tabla da el mismo objeto que sueltan el guardián y los cofres, y la cerradura es la de los cofres
+# /heraldia key: the table gives the same item that the guardian and the chests drop, and the lock is the chests' one
 KEYS = {which: {"tabla": things.key_table(which), "cerradura": things.lock(which)} for which in things.KEYS}
-# Logros (logros.py): el cofre único no tiene tabla de botín; cuenta conseguir uno de sus objetos con nombre. Cada sello
-# cuenta al abrir su cofre o al tener su llave (también con Lootr o si otro jugador la saca). El de Poseidón es el guardián.
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+# Advancements (advancements.py): the unique chest has no loot table; obtaining one of its named items counts. Each seal
+# counts when opening its chest or having its key (also with Lootr or if another player takes it out). Poseidon's is the guardian.
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "sello_academia",
-    "final": True,   # cierra la cadena: el último pliego la señala y este señala el primero
+    "final": True,   # closes the chain: the last sheet points to it and this one points to the first
     "relato": [
         ("Soy Ysolda, la última heraldo de la Atlántida. Nuestra orden trazaba los mapas del mundo y "
          "guardaba los blasones de cada reino. Cuando el mar se tragó la ciudad, salvé lo único que el "

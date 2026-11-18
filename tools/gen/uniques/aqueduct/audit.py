@@ -1,7 +1,7 @@
-"""Auditoría propia del acueducto sobre la estructura completa montada (coordenadas globales).
+"""Aqueduct's own audit on the complete assembled structure (global coordinates).
 
-Recorrido a pie con los puzles cerrados y resueltos, nada flotando, redstone simulada, porcentaje de ruina y
-planos de planta. `python3 -m unicas.acueducto.auditoria <carpeta>` (desde tools/gen) escribe planos y renders."""
+Walkthrough with the puzzles closed and solved, nothing floating, simulated redstone, ruin percentage and
+floor plans. `python3 -m uniques.aqueduct.auditoria <folder>` (from tools/gen) writes floor plans and renders."""
 import os, sys
 from collections import deque
 from core import Template, parse_state
@@ -12,11 +12,11 @@ from uniques._common import redstone as R
 def name(st):
     return R.bn(st) or "air"
 
-ENTRANCE = (47, 0, 98)          # fuera de la puerta sur
+ENTRANCE = (47, 0, 98)          # outside the south door
 
 
 def variant(o, mode):
-    """Copia de la plantilla global en un estado de los puzles: 'cerrado', 'p1' (castellum abierto) o 'resuelto'."""
+    """Copy of the global template in a puzzle state: 'cerrado', 'p1' (castellum open) or 'resuelto'."""
     t = Template("acueducto/" + mode)
     t.blocks = dict(o.t.blocks)
     r = o.red
@@ -31,13 +31,13 @@ def variant(o, mode):
             put((x, y, z + 2), "minecraft:sticky_piston[extended=false,facing=north]")
     if mode != "resuelto":
         for p in r["puerta_2"]:
-            put(p, "minecraft:stone")          # la puerta de hierro no se abre a mano
+            put(p, "minecraft:stone")          # the iron door cannot be opened by hand
         put(r["reja"], o.t.blocks[r["reja"]][0])
     else:
         put(r["reja"], "minecraft:ladder[facing=north,waterlogged=false]")
         put(r["trampilla_favissa"], "minecraft:ladder[facing=south,waterlogged=false]")
     x0, y0, z0, x1, y1, z1 = o.t.bounds()
-    for x in range(x0 - 1, x1 + 2):          # suelo natural explícito bajo lo que no tiene subsuelo
+    for x in range(x0 - 1, x1 + 2):          # explicit natural ground under what has no subsurface
         for z in range(z0 - 1, z1 + 2):
             for y in range(y0 - 1, 0):
                 if (x, y, z) not in t.blocks:
@@ -51,7 +51,7 @@ def reachable(t):
 
 
 def floating_blocks(o):
-    """Bloques no unidos al suelo (y <= 0) por una cadena de vecinos."""
+    """Blocks not connected to the ground (y <= 0) by a chain of neighbors."""
     b = {p for p, (st, _) in o.t.blocks.items() if name(st) != "air"}
     seen = {p for p in b if p[1] <= 0}
     q = deque(seen)
@@ -66,7 +66,7 @@ def floating_blocks(o):
 
 
 def redstone(o):
-    """Comprueba puzles y trampas con el simulador común; devuelve la lista de fallos."""
+    """Checks puzzles and traps with the common simulator; returns the list of failures."""
     r = o.red
     errs, sim = R.check_static(o.t)
     A, I, T = r["palanca_A"], r["palanca_I"], r["palanca_T"]
@@ -76,7 +76,7 @@ def redstone(o):
                 s = R.Sim(o.t, {A: bool(a), I: bool(i), T: bool(tt)})
                 p1, p2 = s.powered(r["piston_1"]), s.powered(r["piston_2"])
                 if p1 != p2:
-                    errs.append(f"puzle 1: los pistones no van a la par ({a}{i}{tt})")
+                    errs.append(f"puzzle 1: the pistons do not move together ({a}{i}{tt})")
                 if p1 != (not (a and not i and tt)):
                     errs.append(f"puzle 1: AQVA={a} IGNIS={i} TERRA={tt} -> {'cerrada' if p1 else 'abierta'}")
     mechs = r["dispensadores_1"] + r["dispensadores_28"] + r["dispensadores_30"] + r["puerta_2"] + [r["reja"]]
@@ -92,7 +92,7 @@ def redstone(o):
 
 
 def stabilize(o):
-    """Forma y nivel de señal estables del polvo, calculados como el juego (todo apagado)."""
+    """Stable shape and signal level of the dust, computed like the game (everything off)."""
     R.wire_shapes(o.t)
     R.set_wire_power(o.t)
 
@@ -115,15 +115,15 @@ def audit_it(o):
             errs.append(f"{n} inaccesible {p}")
     for x, y, z, nbt in o.t.entities:
         if not near((x, y, z)):
-            errs.append(f"guardián inaccesible {(x, y, z)}")
+            errs.append(f"unreachable guardian {(x, y, z)}")
     prem = o.red["premium"]
     p1 = reachable(variant(o, "p1"))
     closed = reachable(variant(o, "cerrado"))
     if any(c[1] < 0 and 64 <= c[0] <= 92 and -5 <= c[2] <= 44 for c in closed):
-        errs.append("las cloacas se alcanzan sin resolver el puzle 1")
+        errs.append("the sewers are reached without solving puzzle 1")
     for state_name, cs in (("cerrado", closed), ("p1", p1)):
         if any(abs(c[0] - prem[0]) + abs(c[2] - prem[2]) <= 1 and abs(c[1] - prem[1]) <= 1 for c in cs):
-            errs.append(f"el cofre premium se alcanza con los puzles en estado {state_name}")
+            errs.append(f"the premium chest is reached with the puzzles in state {state_name}")
     return errs, (closed, res, cells)
 
 
@@ -179,6 +179,6 @@ if __name__ == "__main__":
     from . import world
     o = world()
     errs, (closed, res, cells) = audit_it(o)
-    print("\n".join(errs) or "auditoría OK", f"ruina {o.ruin_piece / o.area:.1%}")
+    print("\n".join(errs) or "audit OK", f"ruina {o.ruin_piece / o.area:.1%}")
     blueprints(o, closed, cells, sys.argv[1])
     renders(o, sys.argv[1])

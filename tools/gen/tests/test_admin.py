@@ -1,6 +1,6 @@
-"""admin.py: textos de /heraldia review, status y reload en los 8 idiomas, y que el Java (comando/) pide solo claves
-que existen (las listas de qué mirar, los botones con su ayuda) y que la lista de opciones recargables (config/Recarga)
-nombra opciones reales."""
+"""admin.py: texts of /heraldia review, status and reload in the 8 languages, and that the Java (comando/) asks only for keys
+that exist (the lists of what to look at, the buttons with their help) and that the list of reloadable options (config/Recarga)
+names real options."""
 import os
 import re
 import pytest
@@ -23,7 +23,7 @@ def _java(*parts):
 
 
 def _ids_enum(src, name):
-    """Constante → id guardado de un enum del Java con ids explícitos (p. ej. VILLAGE("aldea"))."""
+    """Constant -> stored id of a Java enum with explicit ids (e.g. VILLAGE("aldea"))."""
     body = re.search(r"enum " + name + r" \{(.*?);", src, re.S).group(1)
     return dict(re.findall(r'(\w+)\("(\w+)"', body))
 
@@ -45,12 +45,12 @@ def test_each_translation_has_all_the_keys_with_the_gaps_of_the_english(lang_cod
     assert not missing, f"{lang_code}: faltan {missing}"
     for k in en:
         assert languages.markers(translated[k]) == languages.markers(en[k]), f"{lang_code} {k}: {translated[k]!r}"
-        assert translated[k].strip(), f"{lang_code} {k} vacío"
+        assert translated[k].strip(), f"{lang_code} {k} empty"
 
 
 @pytest.mark.parametrize("lang_code", list(languages.TRANSLATIONS))
 def test_translations_are_not_copied_english(lang_code):
-    """Salvo los textos que son solo huecos y símbolos (« ✔ %s = %s», «%s. %s (%s): %s»...) o «Lootr: %s»."""
+    """Except the texts that are only placeholders and symbols (" ✔ %s = %s", "%s. %s (%s): %s"...) or "Lootr: %s"."""
     translated, en = languages.load_data(lang_code), TEXTS["en_us"]
     copied = [k for k in en if translated[k] == en[k] and re.search(r"[A-Za-z]{4,}", re.sub(r"Lootr|Heraldia", "", en[k]))]
     assert len(copied) <= 3, f"{lang_code}: {copied}"
@@ -85,18 +85,18 @@ def test_buttons_with_its_help():
 
 
 def test_the_java_only_requests_keys_that_exist():
-    """Toda cadena literal «heraldia.revisar|estado|recargar|version|comando.*» del Java (completa: sin las que se terminan de armar
-    con + en el código) está en los textos."""
+    """Every literal string "heraldia.revisar|estado|recargar|version|comando.*" of the Java (complete: without those that are finished being assembled
+    with + in the code) is in the texts."""
     sources = ["ReviewCommand.java", "StatusCommand.java", "ReloadCommand.java", "VersionNotice.java", "HeraldiaCommands.java"]
     requested = set()
     for f in sources:
         for k in re.findall(r'"(heraldia\.(?:revisar|estado|recargar|version|comando)\.[\w.]+)"', _java("command", f)):
             if not k.endswith("."):
                 requested.add(k)
-    assert requested, "no se encontró ninguna clave en el Java"
+    assert requested, "no key found in the Java"
     missing = sorted(requested - TEXTS["es_es"].keys())
     assert not missing, missing
-    # estados de las marcas: heraldia.revisar.estado.<marca> (Revision.Marca en minúsculas) y pendiente
+    # states of the marks: heraldia.revisar.estado.<mark> (Revision.Marca in lowercase) and pendiente
     marks = _ids_enum(_java("command", "Revision.java"), "Mark").values()
     for m in list(marks) + ["pendiente"]:
         assert f"heraldia.revisar.estado.{m}" in TEXTS["es_es"], m
@@ -108,18 +108,18 @@ def test_reloadable_options_exist_and_generation_ones_are_not():
     only = re.findall(r'"([\w.]+)"', re.search(r"STARTUP_ONLY = List\.of\((.*?)\);", src, re.S).group(1))
     keys = [o["clave"] for o in options.schema()["opciones"]]
     for r in reloadables + only:
-        assert any(c.startswith(r) if r.endswith(".") else c == r for c in keys), f"{r} no nombra ninguna opción"
+        assert any(c.startswith(r) if r.endswith(".") else c == r for c in keys), f"{r} names no option"
 
     def reloadable(c):
         return c not in only and any(c.startswith(r) if r.endswith(".") else c == r for r in reloadables)
-    # lo que decide dónde y cómo se genera nunca se recarga en caliente
+    # what decides where and how it is generated is never hot-reloaded
     for c in keys:
         if c.startswith(("aldeas.separacion", "aldeas.maximo", "aldeas.porcentaje", "aldeas.distancia", "aldeas.familias.",
                          "aldeas.estilos.", "aldeas.caminos.", "aldeas.vida.tablon", "medianas.", "minas.",
                          "compatibilidad.", "unicas.rejilla", "unicas.distancia")) \
                 or re.fullmatch(r"unicas\.\w+\.(activada|separacion_bloques)", c) or c == "arena.generar_en_mundos_nuevos":
             assert not reloadable(c), c
-    # y lo que se lee cada vez que se usa, sí
+    # and what is read every time it is used, is
     for c in ("dificultad.nivel", "jefes.fases.activado", "botin.reponer.activado", "botin.reponer.dias", "arena.max_mobs_vivos",
               "guia.entregar_al_entrar", "golems.limite_grande", "aldeas.vida.asedios", "unicas.atlantida.cofre_unico_por_jugador"):
         assert reloadable(c), c

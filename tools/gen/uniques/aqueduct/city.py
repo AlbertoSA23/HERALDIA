@@ -1,4 +1,4 @@
-"""La ciudad: murallas, calles, insulae, foro con templo, termas y villa del gobernador (todo con y >= 0)."""
+"""The city: walls, streets, insulae, forum with a temple, baths and the governor's villa (all with y >= 0)."""
 import random
 from .construction import FACE
 
@@ -7,12 +7,12 @@ ROAD, SIDE, GROUND = "polished_andesite", "cut_sandstone", "sandstone"
 WALL, BASE, TRIM, CEIL = "smooth_sandstone", "cut_sandstone", "cut_sandstone", "spruce_planks"
 
 
-# ------------------------------------------------------------------ calles y muralla
+# ------------------------------------------------------------------ streets and wall
 def streets(o):
     o.f(X0 - 1, 0, Z0, X1 + 1, 0, Z1 + 1, GROUND)
     o.air(X0 - 1, 1, Z0, X1 + 1, 9, Z1 + 1)
 
-    def street_x(z0, x0, x1):         # calzada de 3 con aceras (z0-1 y z0+3)
+    def street_x(z0, x0, x1):         # 3-wide roadway with sidewalks (z0-1 and z0+3)
         o.f(x0, 0, z0 - 1, x1, 0, z0 + 3, SIDE)
         o.f(x0, 0, z0, x1, 0, z0 + 2, ROAD)
 
@@ -25,7 +25,7 @@ def streets(o):
     street_x(77, 1, 94)                 # calle sur (z 76-80)
     street_z(46, 61, 95)                # cardo sur
     street_z(21, 53, 95); street_z(72, 53, 95)    # cardines menores
-    street_z(78, 6, 18)                 # callejón del castellum
+    street_z(78, 6, 18)                 # castellum alley
 
 
 def city_wall(o):
@@ -41,7 +41,7 @@ def city_wall(o):
             if k % 2 == 0:
                 for (a, b) in ((cx + k, cz), (cx + k, cz + 4), (cx, cz + k), (cx + 4, cz + k)):
                     o.s(a, 8, b, BASE)
-    # puertas: sur (cardo), oeste y este (decumano), y la del castellum
+    # gates: south (cardo), west and east (decumanus), and the castellum's
     o.air(46, 1, Z1, 48, 4, Z1); o.f(45, 5, Z1, 49, 5, Z1, "chiseled_sandstone")
     o.air(X0, 1, 49, X0, 4, 51); o.f(X0, 5, 48, X0, 5, 52, "chiseled_sandstone")
     o.air(X1, 1, 49, X1, 4, 51); o.f(X1, 5, 48, X1, 5, 52, "chiseled_sandstone")
@@ -53,7 +53,7 @@ def city_wall(o):
     o.air(79, 1, Z0, 79, 2, Z0)
     o.sign(47, 5, Z1 + 1, "south", [("heraldia.unicas.acueducto.cartel.colonia1", "COLONIA"),
                                    ("heraldia.unicas.acueducto.cartel.colonia2", "AQVAE SICCAE")])
-    # dos tramos caídos (con escombros a ambos lados)
+    # two collapsed sections (with rubble on both sides)
     for (x, za, zb) in ((X0, 27, 33), (X1, 66, 71)):
         for z in range(za, zb + 1):
             top = 1 if za < z < zb else 2
@@ -64,7 +64,7 @@ def city_wall(o):
     o.area += 2 * (X1 - X0 + Z1 - Z0)
 
 
-# ------------------------------------------------------------------ casas y tiendas
+# ------------------------------------------------------------------ houses and shops
 ITEMS = {
     "casa": ["chest:menor", "crafting_table", "barrel:menor", "pot", "potted_dead_bush", "furnace"],
     "grande": ["chest:menor", "bookshelf", "barrel:menor", "pot", "crafting_table", "bookshelf", "smoker", "pot", "barrel:menor"],
@@ -95,7 +95,7 @@ def item(o, kind, x, y, z, facing):
 
 
 def ring_cells(ix0, iz0, ix1, iz1):
-    """Celdas interiores pegadas a los muros, en orden horario desde la esquina noroeste, con la dirección hacia dentro."""
+    """Interior cells next to the walls, in clockwise order from the northwest corner, with the inward direction."""
     out = []
     for x in range(ix0, ix1 + 1):
         out.append((x, iz0, "south"))
@@ -111,7 +111,7 @@ def ring_cells(ix0, iz0, ix1, iz1):
 def furnish(o, ix0, iz0, ix1, iz1, kind, free_cells, excl, beds=0, table_top=True, light=True):
     used = set(free_cells) | set(excl)
     sx, sz = ix1 - ix0 + 1, iz1 - iz0 + 1
-    for k in range(beds):                       # camas en las esquinas del fondo (norte), cabecera al muro
+    for k in range(beds):                       # beds in the back corners (north), head against the wall
         x = ix0 if k == 0 else ix1
         if {(x, iz0), (x, iz0 + 1)} & used:
             continue
@@ -153,7 +153,7 @@ def rubble(o, rng, x0, z0, x1, z1, y=1, arena=1):
 
 
 def house(o, x0, z0, x1, z1, door, kind="casa", ruin_piece=None, seed=0):
-    """Casa o tienda de una planta. puerta = (lado, coordenada a lo largo del muro). ruina = None | (tipo, zona)."""
+    """One-story house or shop. puerta = (side, coordinate along the wall). ruina = None | (type, zone)."""
     rng = random.Random(seed)
     side, p = door
     shop = kind in ("taberna", "alfareria")
@@ -164,12 +164,12 @@ def house(o, x0, z0, x1, z1, door, kind="casa", ruin_piece=None, seed=0):
     o.ring(x0, z0, x1, z1, 5, 5, TRIM)
     o.f(x0 + 1, 5, z0 + 1, x1 - 1, 5, z1 - 1, CEIL)
     o.roof_tiles(x0 - 1, z0 - 1, x1 + 1, z1 + 1, 6, axis)
-    # ventanas altas en los muros largos
+    # high windows in the long walls
     for z in range(z0 + 2, z1 - 1, 3):
         o.s(x0, 3, z, "iron_bars"); o.s(x1, 3, z, "iron_bars")
     for x in range(x0 + 2, x1 - 1, 3):
         o.s(x, 3, z0, "iron_bars"); o.s(x, 3, z1, "iron_bars")
-    # puerta o frente abierto de la tienda
+    # door or open front of the shop
     wall = {"north": z0, "south": z1, "west": x0, "east": x1}[side]
     inward = FACE[{"north": "south", "south": "north", "west": "east", "east": "west"}[side]]
     free_cells = set()
@@ -181,7 +181,7 @@ def house(o, x0, z0, x1, z1, door, kind="casa", ruin_piece=None, seed=0):
             o.air(x, 1, z, x, 3, z)
             o.s(x, 4, z, "chiseled_sandstone" if a in (cells[0], cells[-1]) else TRIM)
             free_cells.add((x + inward[0], z + inward[1]))
-        # mostrador con paso en un extremo
+        # counter with a passage at one end
         for a in cells[:-1]:
             x, z = (a, wall) if side in ("north", "south") else (wall, a)
             cx, cz = x + 2 * inward[0], z + 2 * inward[1]
@@ -265,19 +265,19 @@ PLOTS = [
 
 def plots(o):
     for i, (x0, z0, x1, z1, door, kind, ruin_piece) in enumerate(PLOTS):
-        if door[1] == 0:       # tiendas: el frente abierto no usa coordenada
+        if door[1] == 0:       # shops: the open front uses no coordinate
             door = (door[0], 0)
         house(o, x0, z0, x1, z1, door, kind, ruin_piece, seed=i)
 
 
-# ------------------------------------------------------------------ foro y templo
+# ------------------------------------------------------------------ forum and temple
 def forum(o):
     for x in range(33, 64):
         for z in range(24, 61):
             o.s(x, 0, z, "cut_sandstone" if (x % 6 == 0 or z % 6 == 0) else "smooth_sandstone")
-    o.f(33, 1, 24, 63, 5, 24, BASE)                      # muro del recinto del templo
+    o.f(33, 1, 24, 63, 5, 24, BASE)                      # wall of the temple precinct
     o.area += 31 * 37
-    for side in (-1, 1):                                 # pórticos oeste y este
+    for side in (-1, 1):                                 # west and east porticoes
         back, col, eave = (33, 37, 38) if side < 0 else (63, 59, 58)
         o.f(back, 1, 24, back, 7, 60, BASE)
         o.air(back, 1, 48, back, 4, 52)
@@ -296,7 +296,7 @@ def forum(o):
                     for k in range(6, 6 + d // 2):
                         o.s(x, k, z, BASE)
         o.lantern(back - side * 2, 4, 36); o.lantern(back - side * 2, 4, 56)
-    # columna caída del pórtico este (ruina) y tramo de cubierta perdido
+    # fallen column of the east portico (ruin) and lost section of roof
     o.air(59, 1, 31, 59, 4, 31)
     o.s(59, 1, 31, "quartz_pillar[axis=y]")
     for z in range(30, 33):
@@ -312,7 +312,7 @@ def forum(o):
     o.f(47, 1, 49, 49, 1, 51, "water")
     o.f(48, 1, 50, 48, 3, 50, "quartz_pillar[axis=y]")
     o.s(48, 4, 50, "chiseled_quartz_block")
-    # farolas sobre pedestal a los lados de la escalinata
+    # street lamps on pedestals at the sides of the stairway
     for x in (39, 57):
         o.s(x, 1, 45, "chiseled_sandstone"); o.s(x, 2, 45, "cut_sandstone")
         o.s(x, 3, 45, "lantern[hanging=false,waterlogged=false]")
@@ -335,13 +335,13 @@ def temple(o):
     o.f(41, 3, 25, 55, 3, 40, "smooth_quartz")
     for z in range(25, 41):
         o.s(41, 1, z, BASE); o.s(55, 1, z, BASE)
-    for x in (41, 42, 54, 55):                       # antas de la escalinata
+    for x in (41, 42, 54, 55):                       # antae of the stairway
         o.f(x, 1, 41, x, 3, 43, BASE)
     for k, z in enumerate((43, 42, 41)):
         for x in range(43, 54):
             o.f(x, 1, z, x, k, z, WALL) if k else None
             o.stair(x, k + 1, z, "north", "quartz_stairs")
-    # favissa dentro del podio
+    # favissa inside the podium
     o.air(47, 1, 27, 52, 2, 29)
     o.chest(47, 1, 28, "east", "oculto")
     o.pot(48, 1, 29, "north"); o.pot(50, 1, 29, "north"); o.pot(52, 1, 29, "west")
@@ -350,7 +350,7 @@ def temple(o):
         o.s(51, y, 27, "ladder[facing=south,waterlogged=false]")
     o.s(51, 3, 27, "spruce_trapdoor[facing=south,half=top,open=false,powered=false,waterlogged=false]")
     o.red["trampilla_favissa"] = (51, 3, 27)
-    # cella y pronaos
+    # cella and pronaos
     o.ring(43, 26, 53, 34, 4, 10, "quartz_block")
     o.air(47, 4, 34, 49, 7, 34)
     for x in range(43, 54, 2):
@@ -410,7 +410,7 @@ def baths(o):
     o.air(71, 1, 35, 73, 3, 35)                     # apodyterium -> frigidarium
     o.air(78, 1, 40, 78, 3, 41)                     # apodyterium -> tepidarium
     o.door(85, 43, "east")                          # tepidarium -> praefurnium
-    # apodyterium: bancos y taquillas
+    # apodyterium: benches and lockers
     for x in (68, 69, 70, 74, 75, 76):
         o.stair(x, 1, 36, "north")
     for z in range(37, 45):
@@ -424,7 +424,7 @@ def baths(o):
     o.lantern(72, 7, 30)
     for z in (27, 33):
         o.s(67, 1, z, "chiseled_sandstone"); o.s(67, 2, z, "quartz_pillar[axis=y]")
-    # tepidarium y escalera al caldarium elevado
+    # tepidarium and stairs to the raised caldarium
     for k, z in enumerate((37, 36, 35)):
         for x in (81, 82):
             o.f(x, 1, z, x, k, z, "bricks") if k else None
@@ -434,7 +434,7 @@ def baths(o):
         o.stair(84, 1, z, "east")
     o.s(80, 1, 44, "campfire[facing=north,lit=false,signal_fire=false,waterlogged=false]")
     o.lantern(81, 7, 41)
-    # caldarium sobre el hipocausto
+    # caldarium over the hypocaust
     o.air(79, 1, 26, 91, 2, 34)
     for x in (81, 84, 87, 90):
         for z in (28, 31):
@@ -452,13 +452,13 @@ def baths(o):
     o.chest(79, 1, 26, "south", "oculto")           # hipocausto: sala oculta
     o.pot(91, 1, 26, "south"); o.s(91, 1, 34, "skeleton_skull[powered=false,rotation=0]")
     # praefurnium
-    o.air(88, 1, 35, 88, 2, 35)                     # boca del hipocausto
+    o.air(88, 1, 35, 88, 2, 35)                     # mouth of the hypocaust
     o.s(87, 1, 36, "furnace[facing=south,lit=false]"); o.s(89, 1, 36, "blast_furnace[facing=south,lit=false]")
     o.f(91, 1, 40, 91, 2, 44, "stripped_acacia_log[axis=z]")
     o.barrel(86, 1, 45, "menor"); o.barrel(91, 1, 37, None)
     o.s(86, 1, 37, "coal_block")
     o.lantern(88, 7, 41)
-    # la bóveda del apodyterium se hundió en su lado oeste
+    # the vault of the apodyterium collapsed on its west side
     o.air(65, 8, 36, 72, 15, 47); o.s(72, 7, 40, "air")
     o.f(66, 8, 36, 66, 8, 46, TRIM)
     rubble(o, random.Random(11), 68, 37, 72, 44)
@@ -466,7 +466,7 @@ def baths(o):
     o.area += 27 * 22
 
 
-# ------------------------------------------------------------------ villa del gobernador
+# ------------------------------------------------------------------ governor's villa
 def villa(o):
     x0, z0, x1, z1 = 4, 24, 30, 46
     o.f(x0, 0, z0, x1, 0, z1, "smooth_sandstone")
@@ -501,7 +501,7 @@ def villa(o):
     o.f(10, 1, 37, 10, 4, 45, WALL); o.f(5, 1, 41, 9, 4, 41, WALL)
     o.door(10, 39, "west"); o.door(10, 43, "west")
     o.f(24, 1, 37, 24, 4, 45, WALL); o.air(24, 1, 40, 24, 3, 42)
-    # peristilo y jardín
+    # peristyle and garden
     for x in range(11, 24):
         for z in range(25, 30):
             o.s(x, 0, z, "grass_block[snowy=false]")
@@ -536,7 +536,7 @@ def villa(o):
         o.f(29, 1, z, 29, 3, z, "bookshelf")
     o.s(23, 1, 35, "lectern[facing=east,has_book=false,powered=false]"); o.chest(27, 1, 35, "north", "menor")
     o.lantern(26, 4, 34)
-    # atrio con impluvio
+    # atrium with impluvium
     o.ring(15, 39, 19, 42, 1, 1, "cut_sandstone"); o.f(16, 1, 40, 18, 1, 41, "water")
     o.pot(11, 1, 37, "south"); o.pot(23, 1, 37, "south"); o.pot(11, 1, 45, "north"); o.pot(23, 1, 44, "west")
     o.lantern(13, 4, 41); o.lantern(21, 4, 41)
@@ -544,7 +544,7 @@ def villa(o):
     o.bed(5, 1, 38, "north", "red"); o.chest(9, 1, 37, "south", "villa"); o.pot(5, 1, 40, "east")
     o.bed(5, 1, 43, "north", "white"); o.barrel(9, 1, 45, "menor"); o.s(5, 1, 45, "potted_dead_bush")
     o.lantern(7, 4, 39); o.lantern(7, 4, 43)
-    # triclinium (la mitad sur tiene el techo hundido)
+    # triclinium (the south half has a collapsed roof)
     o.s(27, 1, 38, "spruce_fence[east=false,north=false,south=false,waterlogged=false,west=false]")
     o.s(27, 2, 38, "brown_carpet")
     o.stair(26, 1, 38, "west", "spruce_stairs"); o.stair(28, 1, 38, "east", "spruce_stairs")
@@ -562,6 +562,6 @@ def construct(o):
     baths(o)
     villa(o)
     city_wall(o)
-    # salida de las cloacas: reja de hierro en la calle norte
+    # sewer exit: iron grate in the north street
     o.s(79, 0, 20, "iron_trapdoor[facing=north,half=top,open=false,powered=false,waterlogged=false]")
     o.red["reja"] = (79, 0, 20)

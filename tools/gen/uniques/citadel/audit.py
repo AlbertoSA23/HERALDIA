@@ -1,6 +1,6 @@
-"""Auditoría propia de la ciudadela (condición para generar) y planos/renders para la documentación.
+"""Citadel's own audit (condition for generating) and floor plans/renders for the documentation.
 
-Planos y renders: cd tools/gen && python3 -m unicas.ciudadela.documentar ../../docs/unicas/ciudadela
+Floor plans and renders: cd tools/gen && python3 -m uniques.ciudadela.documentar ../../docs/unicas/ciudadela
 """
 import itertools, os, sys
 from collections import deque
@@ -36,28 +36,28 @@ def reach_errors(pl, cells):
             errs.append(f"{name} inaccesible en {p}")
     for x, y, z, n in t.entities:
         if not near(cells, (x, y, z)):
-            errs.append(f"entidad {n['id']} inaccesible en {(x, y, z)}")
+            errs.append(f"entity {n['id']} unreachable at {(x, y, z)}")
         below, here = t.get(x, y - 1, z), t.get(x, y, z)
         on_rail = "minecart" in n["id"] and bname(here) == "rail"
         if not on_rail and (below is None or passable(below)):
-            errs.append(f"entidad {n['id']} flotando en {(x, y, z)}")
+            errs.append(f"entity {n['id']} floating at {(x, y, z)}")
     for (x, y, z), (s, _) in t.blocks.items():
         b = bname(s)
         if b in ("lever", "spawner", "lectern", "brewing_stand", "crafting_table", "smithing_table") and \
                 not near(cells, (x, y, z), 2 if b == "lever" else 1):
-            errs.append(f"{b} inaccesible en {(x, y, z)}")
+            errs.append(f"{b} unreachable at {(x, y, z)}")
     return errs
 
 
 def stair_runs(pl, cells):
-    """Cada peldaño de los tramos de escalera (mismo material en columna diagonal) se pisa."""
+    """Every step of the staircase runs (same material in a diagonal column) is walked on."""
     errs = []
     for (x, y, z), (s, _) in pl.t.blocks.items():
         if bname(s) in ("deepslate_brick_stairs", "polished_blackstone_brick_stairs") and "half=bottom" in s \
                 and (x, y + 1, z) not in cells and (x, y, z) not in cells:
             above = pl.t.get(x, y + 1, z)
             if above is None or bname(above) == "air":
-                errs.append(f"peldaño que no se pisa en {(x, y, z)}")
+                errs.append(f"step that is not walked on at {(x, y, z)}")
     return errs
 
 
@@ -68,11 +68,11 @@ def lava_errors(t):
             for d in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, -1, 0)):
                 n = t.get(x + d[0], y + d[1], z + d[2])
                 if n is None or bname(n) in ("air", "cobweb") or (passable(n) and bname(n) != "lava"):
-                    errs.append(f"lava sin contener en {(x, y, z)}")
+                    errs.append(f"uncontained lava at {(x, y, z)}")
                     break
     for (x, y, z), (s, _) in t.blocks.items():
         if bname(s) in ("water",):
-            errs.append(f"agua suelta en {(x, y, z)}")
+            errs.append(f"loose water at {(x, y, z)}")
     return errs
 
 
@@ -109,7 +109,7 @@ def spawner_errors(pl):
         x, y, z = p
         worst = max(lm.get((x + a, y + b, z + c), 0) for a in range(-4, 5) for b in (-1, 0, 1) for c in range(-4, 5))
         if worst > 0:
-            errs.append(f"{name}: hay luz {worst} en su zona de aparición")
+            errs.append(f"{name}: there is light {worst} in its spawn zone")
     return errs
 
 
@@ -138,9 +138,9 @@ def circuit_errors(pl):
     c = pl.circuits["trono"]
     off = redstone.Sim(t, {c["lever"]: False})
     if any(off.powered(p) for p in c["pistons"]):
-        errs.append("trono: la palanca buena no retira los pistones")
+        errs.append("throne: the right lever does not retract the pistons")
     if not all(redstone.Sim(t, {c["decoy"]: False}).powered(p) for p in c["pistons"]):
-        errs.append("trono: el señuelo mueve los pistones")
+        errs.append("throne: the decoy moves the pistons")
     v = pl.circuits["boveda"]
     keys = sorted(v["levers"])
     for combo in itertools.product((False, True), repeat=len(keys)):
@@ -152,15 +152,15 @@ def circuit_errors(pl):
     a = pl.circuits["flechas"]
     s = redstone.Sim(t, {h: True for h in a["hooks"]})
     if not all(s.powered(d) for d in a["dispensers"]):
-        errs.append("trampa de flechas: algún dispensador no dispara")
+        errs.append("arrow trap: some dispenser does not fire")
     tn = pl.circuits["tnt"]
     if not redstone.Sim(t, {tn["plate"]: True}).powered(tn["tnt"]):
-        errs.append("trampa de TNT: la placa no la activa")
+        errs.append("TNT trap: the plate does not activate it")
     return errs
 
 
 def locked_errors(pl):
-    """Con los puzles cerrados (sin abrir la puerta de pistones ni la de hierro) no se llega a sus salas."""
+    """With the puzzles closed (without opening the piston door or the iron one) their rooms are not reached."""
     t = pl.t
     blocks = dict(t.blocks)
     d = pl.circuits["boveda"]["door"]
@@ -170,7 +170,7 @@ def locked_errors(pl):
     errs = []
     for name in ("cofre_premium", "cofre_boveda_1", "cofre_real"):
         if near(cells, pl.marks[name]):
-            errs.append(f"{name} se alcanza sin resolver su puzle")
+            errs.append(f"{name} is reached without solving its puzzle")
     return errs
 
 
@@ -181,14 +181,14 @@ def audit_it(pl):
     errs += circuit_errors(pl) + locked_errors(pl)
     ratio, _ = ruin_ratio(pl)
     if not 0.15 <= ratio <= 0.20:
-        errs.append(f"proporción de ruina {ratio:.1%} fuera de 15-20 %")
+        errs.append(f"ruin proportion {ratio:.1%} outside 15-20 %")
     chests = sum(1 for _, (s, n) in t.blocks.items() if n and "LootTable" in n)
     if chests < 20:
-        errs.append(f"solo {chests} contenedores con botín")
+        errs.append(f"only {chests} containers with loot")
     return errs
 
 
-# ---------------------------------------------------------------- documentación
+# ---------------------------------------------------------------- documentation
 def blueprint_text(pl, cells):
     t = pl.t
     x0, _, z0, x1, _, z1 = t.bounds()

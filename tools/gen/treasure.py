@@ -1,42 +1,42 @@
-"""Búsqueda del tesoro encadenada (T40): un fragmento de mapa lleva, paso a paso, por estructuras reales de Heraldia hasta
-un cofre enterrado (lo arma el Java, paquete tesoro/).
+"""Chained treasure hunt (T40): a map fragment leads, step by step, through real Heraldia structures to a
+buried chest (assembled by the Java, package tesoro/).
 
-Aquí van los datos y los textos:
-  - heraldia:tesoro/fragmento   la primera pista: un fragmento de mapa (papel con nombre, lore y la marca custom_data
-                                {heraldia_busqueda: {v: 1}}); al usarlo (clic derecho) el Java elige la cadena y lo cambia
-                                por un mapa vanilla con la marca del primer destino.
-  - heraldia:tesoro/cofre       el botín del cofre final: bueno sin romper la progresión (nada de netherita ni élitros) y
-                                el recuerdo con nombre, la Brújula de Ysolda (custom_data heraldia_recuerdo_tesoro).
-  - con_pista(tabla, familia)   añade a una tabla de cofre un grupo con el fragmento bajo la condición heraldia:tesoro_pista
-                                (Java: loot/PistaCondition): sale con probabilidad tesoro.probabilidad % x FACTOR[familia],
-                                leída al tirar el botín (recargable con /heraldia reload) y nunca con tesoro.activado = false.
-  - los logros tesoro/fragmento y tesoro/cofre (los escribe logros.write con los demás), la página «tesoro» de la Guía (guia.py) y los textos heraldia.tesoro.*.
+Here go the data and the texts:
+  - heraldia:tesoro/fragmento   the first hint: a map fragment (named paper with lore and the custom_data mark
+                                {heraldia_busqueda: {v: 1}}); when used (right click) the Java picks the chain and swaps it
+                                for a vanilla map with the mark of the first destination.
+  - heraldia:tesoro/cofre       the final chest loot: good without breaking progression (no netherite or elytra) and
+                                the named keepsake, Ysolda's Compass (custom_data heraldia_recuerdo_tesoro).
+  - con_pista(table, family)    adds to a chest table a group with the fragment under the condition heraldia:tesoro_pista
+                                (Java: loot/PistaCondition): it comes out with probability treasure.probability % x FACTOR[family],
+                                read when the loot is rolled (reloadable with /heraldia reload) and never with treasure.switched_on = false.
+  - the advancements tesoro/fragmento and tesoro/cofre (written by advancements.write with the others), the "tesoro" page of the Guide (guide.py) and the texts heraldia.tesoro.*.
 
-Lo usan: las tablas de cofre de las medianas, de las entradas a mina y de las únicas, la recompensa de las hazañas del
-tablón y la paga de los encargos del tablón (T38: heraldia:tesoro/encargo, que tira Tesoro.recompensa en Encargos.pagar).
-Para otro origen, basta con anidar la tabla heraldia:tesoro/fragmento (o llamar a tesoro.Tesoro.fragmento en Java).
+Used by: the chest tables of the medium structures, the mine entrances and the unique structures, the reward of the board's
+feats and the payment of the board's quests (T38: heraldia:tesoro/encargo, rolled by Tesoro.recompensa in Encargos.pagar).
+For another source, it is enough to nest the table heraldia:tesoro/fragmento (or call treasure.Tesoro.fragmento in Java).
 """
 from loot import item
 from uniques._common import chest_loot
 
 NS = "heraldia"
-MARK = "heraldia_busqueda"                 # custom_data de las pistas: {heraldia_busqueda: {...}} (tesoro/Cadena en Java)
+MARK = "heraldia_busqueda"                 # custom_data of the hints: {heraldia_busqueda: {...}} (tesoro/Cadena in Java)
 MEMENTO_MARK = "heraldia_recuerdo_tesoro"
-# En SNBT (texto), no en JSON: un número JSON en custom_data llega al juego como double (1 -> 1.0d) y ya no casa con
-# un predicado {v: 1} (entero); el SNBT conserva el tipo (Cadena.fragmento en Java escribe el mismo entero).
+# In SNBT (text), not in JSON: a JSON number in custom_data reaches the game as a double (1 -> 1.0d) and no longer matches
+# a {v: 1} predicate (integer); SNBT keeps the type (Cadena.fragmento in Java writes the same integer).
 FRAGMENT_MARK = "{%s: {v: 1}}" % MARK
 MEMORY_MARK = "{%s: 1b}" % MEMENTO_MARK
 FRAGMENT = f"{NS}:tesoro/fragmento"
 CHEST_TABLE = f"{NS}:tesoro/cofre"
 CONDITION = f"{NS}:tesoro_pista"
-# Factor de cada familia de tablas sobre tesoro.probabilidad: las únicas tienen muchos cofres (la mitad por cofre); los
-# encargos del tablón, como un cofre; las hazañas del tablón, pocas y difíciles (cinco veces más).
+# Factor of each table family over treasure.probability: the unique structures have many chests (half per chest); the board
+# quests, like one chest; the board feats, few and hard (five times more).
 FACTOR = {"medianas": 1.0, "minas": 1.0, "costa": 0.5, "unicas": 0.5, "encargos": 1.0, "hazanas": 5.0}
-QUEST = f"{NS}:tesoro/encargo"   # la paga de cada encargo entregado del tablón (T38, Encargos.pagar -> Tesoro.recompensa)
-DEFAULT_PROBABILITY, DEFAULT_RADIUS = 3.0, 1500     # % por cofre y bloques (opciones.py)
-LORE_MAX_PX = 250                                    # ancho máximo de una línea de lore (el juego no la parte: que quepa en pantalla)
+QUEST = f"{NS}:tesoro/encargo"   # the payment of each delivered board quest (T38, Encargos.pagar -> Tesoro.recompensa)
+DEFAULT_PROBABILITY, DEFAULT_RADIUS = 3.0, 1500     # % per chest and blocks (options.py)
+LORE_MAX_PX = 250                                    # maximum width of a lore line (the game does not wrap it: it must fit on screen)
 
-# Textos (heraldia.tesoro.<clave>): (es_es, en_us). %s: números, nombres, biomas o direcciones (heraldia.info.dir.*).
+# Texts (heraldia.tesoro.<key>): (es_es, en_us). %s: numbers, names, biomes or directions (heraldia.info.dir.*).
 TEXTS = {
     "fragmento.nombre": ("Fragmento de mapa del tesoro", "Treasure map fragment"),
     "fragmento.lore": ("Una marca borrosa y unas letras de Ysolda", "A faded mark and a few words by Ysolda"),
@@ -87,7 +87,7 @@ TEXTS = {
     "estado.generada": ("generada", "generated"),
     "estado.prevista": ("prevista", "predicted"),
 }
-# Textos que van en el lore de los objetos (una línea cada uno, sin ajuste): se miden con LORE_MAX_PX en cada idioma.
+# Texts that go in the lore of the items (one line each, no wrapping): they are measured with LORE_MAX_PX in each language.
 LORE = ("fragmento.lore", "fragmento.uso", "mapa.uso", "pista.mediana", "pista.mina", "pista.tesoro", "pista.prevista",
         "recuerdo.lore")
 
@@ -115,7 +115,7 @@ def comp(k, *args, **style):
 
 
 def lang():
-    """Textos heraldia.tesoro.* (los de los logros, en lang_logros: van con los de logros.build)."""
+    """Texts heraldia.tesoro.* (those of the advancements are in lang_logros: they go with those of advancements.build)."""
     out = {"es_es": {}, "en_us": {}}
     for k, (es, en) in TEXTS.items():
         out["es_es"][key(k)], out["en_us"][key(k)] = es, en
@@ -132,12 +132,12 @@ def lang_advancements():
 
 
 def probability(percentage, factor):
-    """Probabilidad de que una tabla con con_pista(…, familia) dé el fragmento: lo mismo que PistaCondition en Java."""
+    """Probability that a table with con_pista(…, family) gives the fragment: the same as PistaCondition in Java."""
     return max(0.0, min(1.0, percentage / 100.0 * factor))
 
 
 def fragment():
-    """Tabla heraldia:tesoro/fragmento: el fragmento de mapa (papel con nombre, lore y la marca)."""
+    """Table heraldia:tesoro/fragmento: the map fragment (named paper with lore and the mark)."""
     comps = {
         "minecraft:item_name": comp("fragmento.nombre"),
         "minecraft:lore": [comp("fragmento.lore", color="gray", italic=False),
@@ -162,8 +162,8 @@ def memento():
     return {"type": "minecraft:item", "name": "minecraft:compass", "modifier": [{"type": "minecraft:set_components", "components": comps}]}
 
 
-# Botín del cofre final: como el de un cofre épico de aldea, algo más generoso y temático (buscadores de tesoros), sin
-# netherita, élitros ni manzanas encantadas.
+# Final chest loot: like that of an epic village chest, somewhat more generous and thematic (treasure hunters), without
+# netherite, elytra or enchanted apples.
 VALUABLE = [item("diamond", 6, 1, 3), item("emerald", 10, 4, 10), item("gold_ingot", 10, 3, 8), item("golden_apple", 5, 1, 2),
            item("book", 6, ench=(20, 30)), item("diamond_sword", 2, ench=(15, 25)), item("iron_chestplate", 3, ench=(15, 25)),
            item("experience_bottle", 6, 4, 10), item("name_tag", 3), item("spyglass", 3), item("heart_of_the_sea", 2),
@@ -174,7 +174,7 @@ FORBIDDEN = ("netherite", "elytra", "enchanted_golden_apple", "totem")
 
 
 def place_chest():
-    """Tabla heraldia:tesoro/cofre: el recuerdo siempre, 3-5 objetos valiosos y 2-4 de sustento."""
+    """Table heraldia:tesoro/cofre: the keepsake always, 3-5 valuable items and 2-4 of sustenance."""
     return {"type": "minecraft:chest", "pools": [
         {"rolls": 1, "entries": [memento()]},
         {"rolls": {"type": "minecraft:uniform", "min": 3, "max": 5}, "entries": VALUABLE},
@@ -188,16 +188,16 @@ def clue_pool(family):
 
 
 def with_hint(tbl, family):
-    """La tabla con un grupo más: el fragmento, con la probabilidad de tesoro.probabilidad x FACTOR[familia]."""
+    """The table with one more group: the fragment, with the probability of treasure.probability x FACTOR[family]."""
     return dict(tbl, pools=list(tbl["pools"]) + [clue_pool(family)])
 
 
-CONTAINERS = ("chest", "barrel", "decorated_pot")   # bloques en los que puede salir el fragmento (no dispensadores)
+CONTAINERS = ("chest", "barrel", "decorated_pot")   # blocks in which the fragment can appear (not dispensers)
 
 
 def tables_in_containers(reg):
-    """Ids de las tablas que usa algún cofre, barril o vasija de las plantillas (no dispensadores ni soltadores: el
-    fragmento no debe salir disparado de una trampa)."""
+    """Ids of the tables used by some chest, barrel or jar of the templates (not dispensers or droppers: the
+    fragment must not be shot out of a trap)."""
     out = set()
     for t in reg.templates.values():
         for state, nbt in t.blocks.values():
@@ -207,13 +207,13 @@ def tables_in_containers(reg):
 
 
 def quest():
-    """Tabla heraldia:tesoro/encargo: solo el fragmento, con la probabilidad de los encargos (la tira Tesoro.recompensa
-    al pagar cada encargo entregado del tablón)."""
+    """Table heraldia:tesoro/encargo: only the fragment, with the probability of the quests (rolled by Tesoro.recompensa
+    when paying each delivered board quest)."""
     return with_hint({"type": "minecraft:chest", "pools": []}, "encargos")
 
 
 def advancements():
-    """{ruta: advancement} de la búsqueda del tesoro (cuelgan de la raíz de la pestaña Heraldia)."""
+    """{path: advancement} of the treasure hunt (they hang from the root of the Heraldia tab)."""
     import advancements as lg
     out = {}
     criteria = {
@@ -230,8 +230,8 @@ def advancements():
 
 
 def errors(translations=None):
-    """[] si todo cabe: cada línea de lore en LORE_MAX_PX en cada idioma (con un bioma largo en los huecos) y nada
-    prohibido en el cofre. `traducciones`: {código: textos} de los idiomas que no son es/en."""
+    """[] if everything fits: each lore line within LORE_MAX_PX in each language (with a long biome in the placeholders) and nothing
+    forbidden in the chest. `translations`: {code: texts} of the languages other than es/en."""
     e = []
     languages = [("es", {key(k): v[0] for k, v in TEXTS.items()}), ("en", {key(k): v[1] for k, v in TEXTS.items()})]
     languages += list((translations or {}).items())
@@ -247,6 +247,6 @@ def errors(translations=None):
 
 def write(out, jdump):
     jdump(out, f"data/{NS}/loot_table/tesoro/fragmento.json", fragment())
-    jdump(out, f"data/{NS}/loot_table/tesoro/cofre.json", place_chest())   # los logros los escribe logros.write con los demás
+    jdump(out, f"data/{NS}/loot_table/tesoro/cofre.json", place_chest())   # the advancements are written by advancements.write with the others
     jdump(out, f"data/{NS}/loot_table/tesoro/encargo.json", quest())
     return lang()

@@ -1,12 +1,12 @@
-"""Caravanas por los caminos entre aldeas (T39): textos y el logro. La lógica va en Java (caravanas/): qué tramo de la ruta
-canónica recorre (Tramo), sus fases (Viaje), cuándo sale y qué paga (Reglas); nada en el datapack salvo esto.
+"""Caravans along the roads between villages (T39): texts and the advancement. The logic is in Java (caravanas/): which stretch of the canonical
+route it travels (Tramo), its phases (Viaje), when it departs and what it pays (Reglas); nothing in the datapack except this.
 
-Claves:
-  heraldia.caravanas.*          lo que se dice a los jugadores cerca de la caravana y /heraldia caravan (operadores)
-  heraldia.estado.caravanas*    las líneas de /heraldia status
-  advancements.heraldia.caravanas.<id>.title/.description   el logro (lo concede el Java, criterio «hecho»)
-Los nombres de los bandidos son los del campamento de bandidos (heraldia.medianas.campamento.saqueador/vindicador).
-Los argumentos (%s) los pone el Java (caravanas/Caravanas): no cambies su orden sin cambiarlo allí.
+Keys:
+  heraldia.caravanas.*          what is said to players near the caravan and /heraldia caravan (operators)
+  heraldia.estado.caravanas*    the lines of /heraldia status
+  advancements.heraldia.caravanas.<id>.title/.description   the advancement (granted by the Java side, criterion "hecho")
+The bandits' names are those of the bandit camp (heraldia.medianas.camp.saqueador/vindicador).
+The arguments (%s) are supplied by the Java side (caravanas/Caravanas): do not change their order without changing it there.
 """
 NS = "heraldia"
 K = f"{NS}.caravanas"
@@ -42,7 +42,7 @@ STATE = {
                          "Caravans on the road: %s (maximum %s; departure %s %%, ambush %s %%); since startup %s arrived and "
                          "%s were lost"),
 }
-# El logro (lo concede el Java: caravanas/Caravanas.premiar): (id, icono, marco, experiencia, (título), (descripción))
+# The advancement (granted by the Java side: caravanas/Caravanas.premiar): (id, icon, frame, experience, (title), (description))
 ADVANCEMENTS = [
     ("defensa", "minecraft:lead", "goal", 50, ("Camino seguro", "Safe Passage"),
      ("Defiende una caravana de los bandidos hasta que llegue a su aldea",
@@ -55,7 +55,7 @@ def _advancement_key(lid, part):
 
 
 def advancements():
-    """{ruta: json} del logro de las caravanas (criterio «impossible»: lo concede el Java)."""
+    """{path: json} of the caravan advancement ("impossible" criterion: granted by the Java side)."""
     out = {}
     for lid, emblem, frame, xp, title, desc in ADVANCEMENTS:
         out[f"caravanas/{lid}"] = {

@@ -1,5 +1,5 @@
-"""Botín del galeón: solo objetos vanilla; más rico cuanto más escondido. El extra de cada cofre va en
-un grupo "solo_sin_lootr" (con Lootr cada jugador abre el suyo y recibe solo lo modesto)."""
+"""Galleon loot: vanilla items only; richer the more hidden. Each chest's extra goes in
+a "solo_sin_lootr" group (with Lootr each player opens their own and gets only the modest part)."""
 from loot import item, empty, FOOD
 from .texts import LANG
 from .._common.chest_loot import pool, potion, place_chest  # noqa: F401

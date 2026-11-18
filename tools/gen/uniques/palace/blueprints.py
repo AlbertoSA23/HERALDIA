@@ -1,6 +1,6 @@
-"""Planos de planta en texto (celdas alcanzables con los puzles resueltos) y renders isométricos del palacio.
+"""Text floor plans (cells reachable with the puzzles solved) and isometric renders of the palace.
 
-Uso: python3 -m unicas.palacio.planos  (desde tools/gen)  -> docs/unicas/palacio/
+Usage: python3 -m uniques.palace.planos  (from tools/gen)  -> docs/unicas/palacio/
 """
 import os, sys
 from lint import bname, passable
@@ -8,9 +8,9 @@ from . import palace, audit
 from render import render
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "docs", "unicas", "palacio")
-LEVELS = [(2, "planta baja (patios) e interior de la plataforma"), (3, "edificios sobre zócalo y jardín"),
-          (8, "salón del trono (pies a 8)"), (10, "pabellón de la Puerta del Mediodía"),
-          (13, "pagoda, piso 3"), (23, "pagoda, piso 5 (cofre)")]
+LEVELS = [(2, "ground floor (courtyards) and interior of the platform"), (3, "buildings on the base and garden"),
+          (8, "throne hall (feet at 8)"), (10, "Midday Gate pavilion"),
+          (13, "pagoda, piso 3"), (23, "pagoda, floor 5 (chest)")]
 SYM = [("chest", "C"), ("barrel", "C"), ("trapped_chest", "T"), ("spawner", "S"), ("lever", "L"), ("piston", "P"),
        ("dispenser", "D"), ("tripwire", "t"), ("pressure_plate", "t"), ("ladder", "H"), ("_door", "d"), ("water", "~"),
        ("lectern", "a"), ("_bed", "b")]
@@ -40,16 +40,16 @@ def floor_plan(t, cells, y):
 def main():
     o, good, errs = palace()
     if errs:
-        print("auditoría:", errs)
+        print("audit:", errs)
         return 1
     _, cells = audit.check_walk(o)
     os.makedirs(OUT, exist_ok=True)
     ratio = audit.ruin_ratio(good, o.t)
-    head = ("Leyenda: . alcanzable (pies a esta altura, puzles resueltos)  # macizo  C cofre/barril  T cofre trampa  "
-            "S generador  L palanca  P pistón  D dispensador  t cable/placa  H escalera de mano  d puerta  ~ agua  "
-            "a atril  b cama\nNorte (puerta) arriba; x de oeste a este.\n")
+    head = ("Legend: . reachable (feet at this height, puzzles solved)  # solid  C chest/barrel  T trapped chest  "
+            "S spawner  L lever  P piston  D dispenser  t wire/plate  H ladder  d door  ~ water  "
+            "a lectern  b bed\nNorth (gate) at the top; x from west to east.\n")
     with open(os.path.join(OUT, "plantas.txt"), "w", encoding="utf-8") as f:
-        f.write(f"Palacio oriental: {len(cells)} celdas alcanzables, ruina {ratio[0]:.1%} de la superficie.\n{head}")
+        f.write(f"Oriental palace: {len(cells)} reachable cells, ruin {ratio[0]:.1%} of the surface.\n{head}")
         for y, title in LEVELS:
             f.write(f"\n=== y = {y}: {title} ===\n{floor_plan(o.t, cells, y)}\n")
     render(o.t, os.path.join(OUT, "iso.png"), scale=3)

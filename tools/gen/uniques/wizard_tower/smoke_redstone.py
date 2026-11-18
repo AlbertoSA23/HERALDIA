@@ -1,9 +1,9 @@
-"""Prueba en servidor real de los mecanismos de la torre de mago (colocada con /place template, sin rotar).
+"""Real-server test of the wizard tower's mechanisms (placed with /place template, unrotated).
 
-Uso: python3 tools/gen/uniques/wizard_tower/smoke_redstone.py --jar build/libs/heraldia-X.jar
-Comprueba: que todo queda quieto al colocarse (puertas cerradas, antorcha encendida, TNT y flechas en su sitio),
-que la estantería cincelada solo abre la puerta secreta con el sexto hueco, que el caldero solo abre la puerta de
-hierro lleno del todo y que el hilo del ala oeste dispara. Código 0 si todo pasa.
+Usage: python3 tools/gen/uniques/wizard_tower/smoke_redstone.py --jar build/libs/heraldia-X.jar
+Checks: that everything stays still when placed (doors closed, torch lit, TNT and arrows in place),
+that the chiseled bookshelf only opens the secret door with the sixth slot, that the cauldron only opens the
+iron door when completely full, and that the tripwire in the west wing fires. Exit code 0 if everything passes.
 """
 import argparse, os, queue, subprocess, sys, threading, time
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))
 import server_smoke as sm
 from uniques.wizard_tower import OX, OZ, FEET
 
-Y0 = 100      # altura de la base de la plantilla
+Y0 = 100      # height of the template base
 
 
 def P(x, y, z):
@@ -48,7 +48,7 @@ def main():
             fails.append(label)
 
     def wait(t):
-        ctx.ticks(20 * t)       # en ticks del juego: con el servidor atrasado, el reloj no basta
+        ctx.ticks(20 * t)       # in game ticks: with a lagging server, the wall clock is not enough
     try:
         sm.wait_for(lines, r"Heraldia: \d+ estructuras registradas", sm.START_TIMEOUT_S, seen)
         cmd("forceload add -16 -16 48 48", r"Marked|Added|force")
@@ -69,7 +69,7 @@ def main():
         check("antorcha encendida", P(-10, f2 + 1, -2), "minecraft:redstone_wall_torch[lit=true]")
         check("puerta de hierro cerrada", P(4, b1, 5), "minecraft:iron_door[open=false]")
         check("TNT en su sitio", P(0, 0, 11), "minecraft:tnt")
-        # estantería cincelada: un hueco que no es el sexto no abre
+        # chiseled bookshelf: a slot other than the sixth does not open it
         cmd(f"item replace block {P(-8, f2 + 1, -1)} container.4 with minecraft:book", r"Replaced|Unable|No ")
         wait(1)
         check("hueco 5 no abre", P(-9, f2, 0), "minecraft:bookshelf")
@@ -86,8 +86,8 @@ def main():
         cmd(f"setblock {P(-1, b1, 5)} minecraft:water_cauldron[level=3]", r"Changed|Could not")
         wait(1)
         check("caldero lleno abre la puerta de hierro", P(4, b1, 5), "minecraft:iron_door[open=true]")
-        # hilo del ala oeste
-        # sin IA, la gallina se queda sobre el hilo: si se va, el gancho se apaga y el dispensador deja de estar «triggered»
+        # tripwire in the west wing
+        # without AI, the chicken stays on the tripwire: if it leaves, the hook turns off and the dispenser stops being "triggered"
         cmd(f"summon minecraft:chicken {P(-6, b1, 0)} {{NoAI:1b,Silent:1b}}", r"Summoned|Unable")
         wait(1)
         check("el hilo acciona el gancho", P(-6, b1, -4), "minecraft:tripwire_hook[powered=true]")
@@ -101,7 +101,7 @@ def main():
         if proc.poll() is None:
             sm.send(proc, "stop")
             proc.wait(timeout=120)
-    print("PRUEBA DE REDSTONE", "FALLIDA: " + ", ".join(fails) if fails else "OK")
+    print("REDSTONE TEST", "FALLIDA: " + ", ".join(fails) if fails else "OK")
     return 1 if fails else 0
 
 

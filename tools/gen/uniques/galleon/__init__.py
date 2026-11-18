@@ -1,7 +1,7 @@
-"""Galeón varado: galeón de tres palos encallado en la playa, campamento de náufragos y cueva del tesoro.
+"""Stranded Galleon: a three-masted galleon run aground on the beach, castaway camp and treasure cave.
 
-Una sola plantilla (barco + campamento + peñón) colocada por el tipo propio heraldia:galeon, que busca la orilla
-en Java (el jigsaw no ve el agua). Diseño: docs/unicas/galeon.md.
+A single template (ship + camp + rock) placed by the custom type heraldia:galeon, which looks for the shore
+in Java (the jigsaw cannot see water). Design: docs/unicas/galleon.md.
 """
 from .._common.pieces import open_stairwells
 from core import Template
@@ -15,8 +15,8 @@ NAME = "unicas/galeon/galeon"
 DISPLAY_NAME = {"es_es": "Galeón varado", "en_us": "Stranded Galleon"}
 TROPHY = {"objeto": "spyglass", "rareza": "uncommon",
           "nombre": ("Catalejo del capitán ahogado", "The Drowned Captain's Spyglass"),
-          "lore": [("Aún busca un puerto al que nunca llegó.", "Still searching for a harbour it never reached.")]}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "lore": [("Aún busca un puerto al que nunca llegó.", "Still searching for a harbour it never reached.")]}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "capitan",
     "relato": [
         ("Embarqué en un galeón para cruzar el mar. Su capitán buscaba un puerto que no salía en ninguna "
@@ -33,7 +33,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("una playa, donde un galeón quedó varado con su capitán a bordo",
               "a beach, where a galleon ran aground with her captain still aboard"),
 }
-ADVANCEMENT = {"icono": "minecraft:oak_boat"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:oak_boat"}   # advancements.py
 STRUCTURE = dict(spacing=250, separation=190)
 PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:dark_oak_planks", "probability": 0.10},
@@ -41,7 +41,7 @@ PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
     {"input_predicate": {"predicate_type": "minecraft:random_block_match", "block": "minecraft:cobblestone", "probability": 0.2},
      "location_predicate": {"predicate_type": "minecraft:always_true"}, "output_state": "minecraft:mossy_cobblestone"},
 ]}]}
-# Sondas para Java (dx, dz respecto al ancla, en múltiplos de 8; intervalo de la altura del fondo respecto al mar).
+# Probes for Java (dx, dz relative to the anchor, in multiples of 8; range of the floor height relative to the sea).
 PROBES = ([dict(dx=8, dz=dz, min=-9, max=-2, required=True) for dz in (-24, -8, 8, 24)] +
           [dict(dx=-8, dz=dz, min=-3, max=3, required=True) for dz in (-24, -8, 8, 24)] +
           [dict(dx=16, dz=dz, min=-30, max=-2, required=True) for dz in (-16, 16)] +
@@ -64,7 +64,7 @@ def construct():
 
 
 def connections(o):
-    """Vallas y cristales unidos entre sí y a bloques macizos (al generarse no hay actualizaciones que lo hagan)."""
+    """Fences and glass joined to each other and to solid blocks (when generated there are no updates to do it)."""
     from lint import top_height, bname
     from .common import DIRV
     for (x, y, z), (st, nbt) in list(o.t.blocks.items()):

@@ -1,16 +1,16 @@
-"""Caminos entre aldeas en un servidor dedicado 26.3 real (complementa los tests JUnit de caminos/Trazado).
+"""Roads between villages on a real 26.3 dedicated server (complements the JUnit tests of caminos/Trazado).
 
-Uso: python3 tools/smoke/roads.py --jar build/libs/heraldia-X.jar --work build/smoke
-Tres arranques con la misma semilla y la rejilla mínima de las aldeas (1.000 bloques):
-1. Caminos activados: se localiza una aldea y se generan los chunks de su plaza; el mod escribe en el log las rutas que
-   los cruzan («camino entre las aldeas de ...»). Se elige una hasta otra aldea.
-2. Mundo nuevo con los caminos desactivados (aldeas.caminos.activado = false): el rasgo no se añade a los biomas (no hay
-   línea de coste al parar). Se genera la primera mitad del pasillo de la ruta y se cuenta lo que es del camino
-   (camino de tierra, losas de arenisca, barro compacto, faroles, antorchas y carteles, con una etiqueta de bloques de un
-   paquete de datos de prueba) chunk a chunk con `clone ... filtered`.
-3. El mismo mundo con los caminos activados: se genera el pasillo entero. En los chunks de la primera mitad (ya
-   generados) nada cambia; en los nuevos hay camino, farolas y el cartel de la aldea de destino, con su nombre y la
-   distancia. El coste por chunk del rasgo (medido por el mod con System.nanoTime) sale en el log al parar.
+Usage: python3 tools/smoke/roads.py --jar build/libs/heraldia-X.jar --work build/smoke
+Three starts with the same seed and the minimum village grid (1,000 blocks):
+1. Roads enabled: a village is located and the chunks of its plaza are generated; the mod writes to the log the routes that
+   cross them ("camino entre las aldeas de ..."). One is chosen to another village.
+2. New world with roads disabled (aldeas.caminos.activado = false): the feature is not added to the biomes (there is no
+   cost line on stop). The first half of the route's corridor is generated and what belongs to the road is counted
+   (dirt path, sandstone slabs, packed mud, lanterns, torches and signs, with a block tag from a test
+   data pack) chunk by chunk with `clone ... filtered`.
+3. The same world with roads enabled: the whole corridor is generated. In the chunks of the first half (already
+   generated) nothing changes; in the new ones there is a road, lamp posts and the destination village's sign, with its name and the
+   distance. The feature's cost per chunk (measured by the mod with System.nanoTime) appears in the log on stop.
 """
 import argparse, json, math, os, queue, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -22,15 +22,15 @@ CONFIG = {"aldeas": {"separacion_bloques": GRID, "maximo": 100}}
 PACK, TAG = "prueba_caminos", "prueba_caminos:camino"
 MATERIALS = ["minecraft:dirt_path", "minecraft:smooth_sandstone", "minecraft:smooth_red_sandstone", "minecraft:packed_mud",
               "minecraft:mud_bricks", "minecraft:lantern", "minecraft:torch", "#minecraft:standing_signs"]
-CORRIDOR = 3            # chunks a cada lado de la recta (serpenteo de 40 bloques como mucho, más el ancho)
-Y0, HEIGHT = 40, 128     # franja de alturas que se cuenta (clone: como mucho 32.768 bloques por orden)
+CORRIDOR = 3            # chunks on each side of the line (meander of 40 blocks at most, plus the width)
+Y0, HEIGHT = 40, 128     # band of heights that is counted (clone: at most 32,768 blocks per command)
 DESTINATION = (-4000, -4000)
 ROUTE = re.compile(r"camino entre las aldeas de (-?\d+) (-?\d+) y (-?\d+) (-?\d+): (\d+) bloques")
 SIGN = re.compile(r"cartel de camino en (-?\d+) (-?\d+) (-?\d+): «([^»]+)», (\d+) bloques")
 COST = re.compile(r"caminos: (\d+) chunks, (\d+) junto a una ruta \((\d+) columnas puestas\); media ([\d.]+) µs por chunk, ([\d.]+) µs "
                    r"en los que están junto a una ruta; percentiles 50/90/99 por debajo de (\d+)/(\d+)/(\d+) µs")
 WATER = ["#minecraft:is_ocean", "#minecraft:is_deep_ocean", "#minecraft:is_river", "#minecraft:is_beach"]
-# Coste máximo del rasgo (media por chunk). Holgado para la CI; las cifras medidas van en el PR y en LESSONS.
+# Maximum cost of the feature (mean per chunk). Generous for CI; the measured figures go in the PR and in LESSONS.
 MAX_MEAN_US, MAX_ROAD_US = 3000, 30000
 
 
@@ -47,7 +47,7 @@ def configure(work, switched_on, seed="heraldia"):
 
 
 def package(work):
-    """Etiqueta de bloques con lo que solo pone el camino en la superficie (world/datapacks: se activa al crear el mundo)."""
+    """Block tag with what only the road places on the surface (world/datapacks: enabled when the world is created)."""
     root = os.path.join(work, "world", "datapacks", PACK)
     os.makedirs(os.path.join(root, "data", "prueba_caminos", "tags", "block"), exist_ok=True)
     with open(os.path.join(root, "pack.mcmeta"), "w") as f:
@@ -57,7 +57,7 @@ def package(work):
 
 
 def chunks_of(a, b):
-    """Chunks del pasillo de la recta a-b, ordenados por avance desde a: [(t, cx, cz)]."""
+    """Chunks of the corridor of the line a-b, ordered by progress from a: [(t, cx, cz)]."""
     (ax, az), (bx, bz) = a, b
     L = math.dist(a, b)
     out = set()
@@ -78,11 +78,11 @@ def generate(ctx, chunks):
         ctx.run(f"forceload add {cx * 16} {cz * 16}", r"Marked|Added|force|already")
     for _, cx, cz in chunks:
         if not ctx.until(f"execute if loaded {cx * 16} 0 {cz * 16}", timeout=600):
-            raise SystemExit(f"el chunk {cx}, {cz} no se carga")
+            raise SystemExit(f"chunk {cx}, {cz} does not load")
 
 
 def count(ctx, chunks):
-    """{(cx, cz): bloques de la etiqueta} en la franja de alturas de cada chunk."""
+    """{(cx, cz): tag blocks} in the band of heights of each chunk."""
     dx, dz = DESTINATION
     out = {}
     for _, cx, cz in chunks:
@@ -100,7 +100,7 @@ def destination_ready(ctx):
 
 
 def land(ctx, a, b):
-    """Cuántos de 7 puntos de la recta a-b no caen en el mar, un río o una playa (carga un chunk por punto)."""
+    """How many of 7 points of the line a-b do not fall in the sea, a river or a beach (loads one chunk per point)."""
     n = 0
     for k in range(1, 8):
         x, z = int(a[0] + (b[0] - a[0]) * k / 8), int(a[1] + (b[1] - a[1]) * k / 8)
@@ -111,8 +111,8 @@ def land(ctx, a, b):
 
 
 def find_path(ctx):
-    """La ruta más en tierra firme de las que salen de una aldea localizada (las escribe el mod en el log al generar
-    los chunks de su plaza): (a, b, longitud)."""
+    """The route most over dry land among those leaving a located village (the mod writes them to the log when generating
+    the chunks of its plaza): (a, b, length)."""
     for x, z in [(0, 0), (GRID, 0), (0, GRID), (-GRID, 0), (0, -GRID), (GRID, GRID)]:
         m = ctx.run(f"execute positioned {x} 100 {z} run locate structure #heraldia:aldeas", r"is at \[(-?\d+), ~, (-?\d+)\]|Could not find")
         if not m.group(1):
@@ -127,7 +127,7 @@ def find_path(ctx):
                 routes.append((a, b, L) if math.dist(a, (vx, vz)) < 2 else (b, a, L))
         if routes:
             points = {r: land(ctx, r[0], r[1]) for r in routes}
-            print("rutas desde", (vx, vz), {f"{r[1]} ({r[2]} bloques)": f"{p}/7 en tierra" for r, p in points.items()})
+            print("routes from", (vx, vz), {f"{r[1]} ({r[2]} blocks)": f"{p}/7 en tierra" for r, p in points.items()})
             best = max(routes, key=lambda r: (points[r], -r[2]))
             if points[best] >= 5:
                 return best
@@ -135,9 +135,9 @@ def find_path(ctx):
 
 
 def halt(proc, ctx):
-    """Para el servidor y pasa a ctx.seen lo que escribió al parar (la línea de coste del rasgo)."""
+    """Stops the server and passes to ctx.seen what it wrote on stop (the feature's cost line)."""
     at.stop(proc)
-    while True:   # hasta el final de la salida (el lector pone None al cerrarse)
+    while True:   # until the end of the output (the reader puts None when it closes)
         try:
             line = ctx.lines.get(timeout=30)
         except queue.Empty:
@@ -157,7 +157,7 @@ def main():
     jar = os.path.abspath(a.jar)
     fails = []
 
-    # 1) qué ruta probar
+    # 1) which route to test
     launcher = s.prepare(a.work, jar, s.gradle_properties())
     configure(a.work, True)
     proc, ctx = at.start_server(a.work, launcher)
@@ -166,22 +166,22 @@ def main():
     finally:
         halt(proc, ctx)
     if route is None:
-        print("CAMINOS:", ["ninguna ruta desde las aldeas localizadas"])
+        print("CAMINOS:", ["no route from the located villages"])
         return 1
     va, vb, L = route
-    print(f"ruta de {va} a {vb}: {L} bloques")
+    print(f"route from {va} to {vb}: {L} blocks")
     corridor = chunks_of(va, vb)
     old = [c for c in corridor if c[0] < 0.5]
     new_items = [c for c in corridor if c[0] >= 0.5]
 
-    # 2) mundo nuevo sin caminos: la primera mitad
+    # 2) new world without roads: the first half
     launcher = s.prepare(a.work, jar, s.gradle_properties())
     configure(a.work, False)
     package(a.work)
     proc, ctx = at.start_server(a.work, launcher)
     try:
         if not re.search(r"caminos entre aldeas desactivados", ctx.log()):
-            fails.append("sin la línea «caminos entre aldeas desactivados» en el log")
+            fails.append("without the 'caminos entre aldeas desactivados' line in the log")
         destination_ready(ctx)
         generate(ctx, old)
         before = count(ctx, old)
@@ -190,9 +190,9 @@ def main():
         halt(proc, ctx)
     log2 = "".join(ctx.seen)
     if COST.search(log2) or ROUTE.search(log2):
-        fails.append("con aldeas.caminos.activado = false el rasgo se ha ejecutado")
+        fails.append("with aldeas.caminos.activado = false the feature has run")
 
-    # 3) el mismo mundo con caminos: el pasillo entero
+    # 3) the same world with roads: the whole corridor
     configure(a.work, True)
     proc, ctx = at.start_server(a.work, launcher)
     try:
@@ -202,36 +202,36 @@ def main():
         new_item = count(ctx, new_items)
         changed_list = {c: (before[c], after[c]) for c in before if before[c] != after[c]}
         if changed_list:
-            fails.append(f"chunks ya generados cambiados al activar los caminos: {dict(list(changed_list.items())[:8])}")
+            fails.append(f"already generated chunks changed when enabling the roads: {dict(list(changed_list.items())[:8])}")
         total = sum(new_item.values())
         with_it = sum(1 for v in new_item.values() if v)
-        print(f"pasillo: {len(old)} chunks viejos ({sum(before.values())} bloques de camino, sin cambios: {not changed_list}), "
+        print(f"corridor: {len(old)} old chunks ({sum(before.values())} road blocks, unchanged: {not changed_list}), "
               f"{len(new_items)} nuevos con {total} bloques de camino en {with_it} chunks")
         if total < 0.3 * L:
-            fails.append(f"solo {total} bloques de camino en los {len(new_items)} chunks nuevos del pasillo")
+            fails.append(f"only {total} road blocks in the {len(new_items)} new chunks of the corridor")
         signs = [m for m in SIGN.finditer(ctx.log())]
         toward = [m for m in signs if (int(m.group(1)) // 16, int(m.group(3)) // 16) in {(c[1], c[2]) for c in new_items}]
-        print(f"carteles en el log: {len(signs)} ({len(toward)} en el pasillo nuevo)")
+        print(f"signs in the log: {len(signs)} ({len(toward)} in the new corridor)")
         for m in toward[:3]:
             x, y, z = m.group(1), m.group(2), m.group(3)
             r = ctx.run(f"data get block {x} {y} {z} front_text", r"has the following block data: (.*)|not a block entity|Found no")
             text = r.group(1) or ""
             first = m.group(4).split(" ")[0]
             if first not in text or "heraldia.camino.cartel." not in text:
-                fails.append(f"cartel en {x} {y} {z} sin el nombre «{m.group(4)}» o la distancia: {r.string.strip()}")
+                fails.append(f"sign at {x} {y} {z} without the name '{m.group(4)}' or the distance: {r.string.strip()}")
         if not toward:
-            fails.append("ningún cartel en el pasillo nuevo (el de la aldea de destino)")
+            fails.append("no sign in the new corridor (the destination village's)")
     finally:
         halt(proc, ctx)
     m = COST.search("".join(ctx.seen))
     if not m:
-        fails.append("sin la línea de coste del rasgo al parar")
+        fails.append("without the feature's cost line on stop")
     else:
         n, c, cols, mean, road = int(m.group(1)), int(m.group(2)), int(m.group(3)), float(m.group(4)), float(m.group(5))
-        print(f"coste del rasgo: {n} chunks, {c} junto a una ruta ({cols} columnas puestas); media {mean} µs por chunk, {road} µs junto a una ruta; "
+        print(f"feature cost: {n} chunks, {c} next to a route ({cols} columns placed); mean {mean} µs per chunk, {road} µs next to a route; "
               f"percentiles 50/90/99 < {m.group(6)}/{m.group(7)}/{m.group(8)} µs")
         if mean > MAX_MEAN_US or road > MAX_ROAD_US:
-            fails.append(f"coste del rasgo: media {mean} µs por chunk y {road} µs con camino (máximo {MAX_MEAN_US} y {MAX_ROAD_US})")
+            fails.append(f"feature cost: mean {mean} µs per chunk and {road} µs with road (maximum {MAX_MEAN_US} and {MAX_ROAD_US})")
     print("CAMINOS:", "OK" if not fails else fails)
     return 1 if fails else 0
 

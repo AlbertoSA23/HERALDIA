@@ -1,8 +1,8 @@
-"""Ciudadela enana: ciudad excavada en una montaña con la puerta en la ladera (ver docs/unicas/ciudadela.md).
+"""Dwarven citadel: a city carved into a mountain with the gate on the hillside (see docs/unicas/citadel.md).
 
-Una sola plantilla colocada por el tipo de estructura propio heraldia:ciudadela (Java), que orienta la puerta
-hacia donde baja la ladera y comprueba que la ciudad quede bajo la roca. El generador escribe en el JSON la
-entrada y la rejilla de techos que usa esa comprobación.
+A single template placed by the own structure type heraldia:ciudadela (Java), which orients the gate
+toward where the hillside descends and checks that the city stays under the rock. The generator writes into the JSON the
+entrance and the ceiling grid used by that check.
 """
 import functools
 from .chest_loot import TABLES as LOOT
@@ -12,8 +12,8 @@ DISPLAY_NAME = {"es_es": "Ciudadela enana", "en_us": "Dwarven Citadel"}
 TROPHY = {"objeto": "iron_axe", "rareza": "rare",
           "nombre": ("Hacha de Borin Barbahierro", "Borin Ironbeard's Axe"),
           "lore": [("Ha partido roca, hierro y orgullo de trasgo.", "It has cleaved stone, iron and goblin pride.")],
-          "encantamientos": {"minecraft:efficiency": 3, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "encantamientos": {"minecraft:efficiency": 3, "minecraft:unbreaking": 2}}   # guardian's trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "real",
     "relato": [
         ("Subí a las cumbres de piedra hasta la ciudadela que los enanos excavaron en la montaña. Borin "
@@ -30,9 +30,9 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("las cumbres de piedra, donde los enanos excavaron una ciudadela en la roca",
               "the stony peaks, where dwarves carved a citadel into the rock"),
 }
-ADVANCEMENT = {"icono": "minecraft:iron_pickaxe"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:iron_pickaxe"}   # advancements.py
 ROOF_CELL = 8
-PORCH_DEPTH = 8          # filas del pórtico (z < 8): al aire libre, no cuentan para la cubierta de roca
+PORCH_DEPTH = 8          # rows of the portico (z < 8): in the open air, they do not count for the rock cover
 
 LANG = {
     "es_es": {
@@ -57,7 +57,7 @@ LANG = {
     },
 }
 
-# Degradación (ver auditoria.ruin_ratio): ~15-20 % de la superficie visible queda en mal estado.
+# Decay (see audit.ruin_ratio): ~15-20 % of the visible surface ends up in poor condition.
 DEGRADE = {"deepslate_bricks": ("cracked_deepslate_bricks", 0.25), "deepslate_tiles": ("cracked_deepslate_tiles", 0.20),
            "polished_deepslate": ("cobbled_deepslate", 0.10), "polished_blackstone_bricks": ("cracked_polished_blackstone_bricks", 0.20)}
 PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
@@ -68,7 +68,7 @@ PROCESSORS = {"processors": [{"processor_type": "minecraft:rule", "rules": [
 
 @functools.lru_cache(maxsize=None)
 def dataset():
-    """Plantilla normalizada, sus metadatos y el resultado de la auditoría propia."""
+    """Normalized template, its metadata and the result of the own audit."""
     from pack import fix_supports
     pl = blueprint.construct()
     t = pl.t
@@ -119,7 +119,7 @@ def _structure():
 
 
 class _Lazy(dict):
-    """STRUCTURE con el JSON calculado al leerlo (la plantilla se construye una sola vez)."""
+    """STRUCTURE with the JSON computed when it is read (the template is built only once)."""
     def get(self, k, default=None):
         if k == "json":
             return _structure()

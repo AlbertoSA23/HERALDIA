@@ -1,6 +1,6 @@
-"""actualizaciones.py (T46): los textos del panel de configuración, del idioma por jugador, de los arreglos y de
-/heraldia update, en los 8 idiomas, iguales en el módulo y en idiomas/<código>.json, con los mismos huecos, sin inglés
-copiado, y que el Java solo pide claves que existen (y todas las que pide existen)."""
+"""actualizaciones.py (T46): the texts of the configuration panel, the per-player language, the fixes and
+/heraldia update, in the 8 languages, equal in the module and in idiomas/<code>.json, with the same placeholders, without copied
+English, and that the Java asks only for keys that exist (and all the ones it asks for exist)."""
 import os
 import re
 import pytest
@@ -59,10 +59,10 @@ def test_new_option_has_text_in_all():
 def test_the_java_requests_keys_that_exist():
     src = _java()
     requested = set(re.findall(r'"(heraldia\.(?:panel|idioma|actualizar|arreglos)\.[a-z_.]*[a-z_])"', src))
-    assert requested, "no se encontraron claves en el Java"
+    assert requested, "no keys found in the Java"
     missing = sorted(k for k in requested if k not in TEXTS["es_es"])
     assert not missing, missing
-    # las que se arman con un trozo: un submenú, un perfil, un arreglo y un idioma
+    # those assembled from a piece: a submenu, a profile, a fix and a language
     for m in a.MENUS:
         assert f"heraldia.panel.menu.{m}" in TEXTS["es_es"] and f"heraldia.panel.menu.{m}.ayuda" in TEXTS["es_es"]
     for p in a.PROFILES:
@@ -84,7 +84,7 @@ def test_menus_and_arrays_as_in_java():
 
 
 def test_button_orders_are_canonical_commands():
-    """Lo que ejecutan los botones (/heraldia config ..., update ...) usa solo nombres en inglés de comandos.CANONICOS."""
+    """What the buttons run (/heraldia config ..., update ...) uses only English names from comandos.CANONICOS."""
     import commands
     src = _java()
     for cmd in re.findall(r'"heraldia ((?:config|update|language)[a-z \-]*)', src):

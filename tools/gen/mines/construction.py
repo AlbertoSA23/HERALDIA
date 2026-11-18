@@ -1,39 +1,39 @@
-"""Obra de una entrada a mina (tools/gen/mines): primitivas de excavación, forro, casco, rampa con vías y galería.
+"""Build of a mine entrance (tools/gen/mines): excavation, lining, shell, ramp with tracks and gallery primitives.
 
-Coordenadas de diseño: x hacia el este, y hacia arriba, z hacia el sur. La boca está en x = 0, z = 0; la capa y = 0 es
-el suelo del patio (los pies, en y = 1). El patio queda delante (z < 0) y la galería bajo el monte (z > 0). Lo excavado
-no es una caja: cada celda excavada lleva su forro (suelo, muro y techo de obra, sin bloques naturales: dentro no nacen
-manantiales ni liquen) y dos capas de casco alrededor; fuera, nada (structure_void), así que el terreno y las cuevas
-vanilla se quedan como estaban. Lo mismo que la Mina perdida (LESSONS, «Estructura subterránea sin caja»).
+Design coordinates: x to the east, y up, z to the south. The mouth is at x = 0, z = 0; layer y = 0 is
+the courtyard floor (the feet at y = 1). The courtyard lies in front (z < 0) and the gallery under the mountain (z > 0). What is excavated
+is not a box: each excavated cell carries its lining (floor, wall and ceiling of built material, no natural blocks: no
+springs or lichen spawn inside) and two layers of shell around it; outside, nothing (structure_void), so the terrain and the vanilla
+caves stay as they were. The same as the Lost Mine (LESSONS, "Estructura subterránea sin caja").
 """
 import zlib
 from uniques._common import pieces
 
 N6 = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
 DV = pieces.DIRV
-HEIGHT = 3                       # celdas de aire de un túnel (los pies en el suelo + 1 .. + 3)
-STEP = 8                       # distancia entre cruces de la galería
-SAMPLES_MAX = 12             # muestras de techo para el Java
-HULL_MOUTH = 4                 # junto a la boca (z < 4) el casco no sube por encima de y = 6: no asoma sobre el patio
+HEIGHT = 3                       # air cells of a tunnel (the feet on the floor + 1 .. + 3)
+STEP = 8                       # distance between gallery junctions
+SAMPLES_MAX = 12             # ceiling samples for the Java side
+HULL_MOUTH = 4                 # next to the mouth (z < 4) the shell does not rise above y = 6: it does not poke out over the courtyard
 
 
 def h(*a):
-    """Azar determinista en [0, 1) por posición (mismo resultado en cada generación)."""
+    """Deterministic randomness in [0, 1) per position (same result on every generation)."""
     return (zlib.crc32(repr(a).encode()) & 0xFFFF) / 65536.0
 
 
 class Construction:
     def __init__(self, t, pal, rng):
         self.t, self.p, self.r = t, pal, rng
-        self.carved = set()        # celdas de aire bajo tierra: llevan forro y casco
-        self.surface = set()    # celdas del patio (aire explícito, suelo, edificios): sin forro ni casco
+        self.carved = set()        # underground air cells: they carry lining and shell
+        self.surface = set()    # courtyard cells (explicit air, floor, buildings): no lining or shell
         self.chest_list = []           # (pos, tabla)
-        self.tracks = []             # tramos de vía: (inicio, sentido) para la auditoría
-        self.nodes = []            # cruces de la galería (x, y del suelo, z)
-        self.rooms = []            # (tipo, x0, x1, z0, z1, y del suelo)
-        self.roof = []            # (x, z, y del casco más alto) de muestra para el Java (terreno encima)
+        self.tracks = []             # track stretches: (start, direction) for the audit
+        self.nodes = []            # gallery junctions (x, floor y, z)
+        self.rooms = []            # (type, x0, x1, z0, z1, floor y)
+        self.roof = []            # sample (x, z, highest shell y) for the Java side (terrain above)
         self.generators = []
-        self.descent = None         # (x, y de los pies, z) al pie de la escalera de caracol (grande)
+        self.descent = None         # (x, feet y, z) at the foot of the spiral staircase (large)
 
     # ------------------------------------------------------------ primitivas
     def s(self, x, y, z, st, nbt=None):
@@ -67,10 +67,10 @@ class Construction:
 
     # ------------------------------------------------------------ marcos (entibado)
     def frame(self, x, y, z, axis, lantern=False):
-        """Cuadro de entibado en el plano del muro de un túnel de 3 de ancho con los pies en y: postes de tronco en los
-        dos muros y viga en el techo (enrasados con el forro; el paso queda libre) y, si se pide, un farol colgado de
-        la viga en el centro."""
-        if axis == "z":                         # el túnel va de norte a sur: postes al este y al oeste
+        """Timber frame in the plane of the wall of a 3-wide tunnel with the feet at y: log posts on both
+        walls and a beam on the ceiling (flush with the lining; the passage stays clear) and, if requested, a lantern hanging from
+        the beam in the center."""
+        if axis == "z":                         # the tunnel runs north to south: posts to the east and west
             for yy in range(y, y + HEIGHT):
                 self.s(x - 2, yy, z, self.trunk("y"))
                 self.s(x + 2, yy, z, self.trunk("y"))
@@ -85,10 +85,10 @@ class Construction:
         if lantern:
             self.lantern(x, y + HEIGHT - 1, z)
 
-    # ------------------------------------------------------------ túneles
+    # ------------------------------------------------------------ tunnels
     def corridor(self, a, b, y, tracks=False, frames=True, start=0):
-        """Túnel recto de 3 de ancho entre a = (x, z) y b (mismo x o mismo z), con los pies en y; marcos cada 4 (sin
-        tocar los cruces) y, si se pide, vía por el centro."""
+        """Straight 3-wide tunnel between a = (x, z) and b (same x or same z), with the feet at y; frames every 4 (without
+        touching the junctions) and, if requested, track through the center."""
         (ax, az), (bx, bz) = a, b
         axis = "z" if ax == bx else "x"
         n = abs(bz - az) if axis == "z" else abs(bx - ax)
@@ -109,12 +109,12 @@ class Construction:
         return axis
 
     def ramp(self, x, z0, y0, length, frames=True):
-        """Bajada hacia el sur desde (x, z0) con los pies en y0: `largo` celdas que bajan un bloque cada una, vía por el
-        centro (raíles en cuesta) y escalones a los dos lados (se sube andando sin saltar). Devuelve (z final, pies)."""
+        """Descent to the south from (x, z0) with the feet at y0: `length` cells that each go down one block, track through the
+        center (sloped rails) and steps on both sides (it can be climbed on foot without jumping). Returns (final z, feet)."""
         for k in range(1, length + 1):
             z, feet = z0 + k, y0 - k
             for w in (-1, 0, 1):
-                for yy in range(feet, feet + HEIGHT + 1):     # una fila más: la cabeza al pasar de un peldaño al otro
+                for yy in range(feet, feet + HEIGHT + 1):     # one more row: the head when passing from one step to the next
                     self.cavity(x + w, yy, z)
                 self.s(x + w, feet - 1, z, f"{self.p['escalon_piedra']}[facing=north,half=bottom,shape=straight,waterlogged=false]"
                        if w else self.mat(self.p["suelo"], x, feet - 1, z))
@@ -129,16 +129,16 @@ class Construction:
                     self.lantern(x, feet + HEIGHT, z)
         return z0 + length, y0 - length
 
-    # ------------------------------------------------------------ galería (red de túneles con cruces y salas)
+    # ------------------------------------------------------------ gallery (network of tunnels with junctions and rooms)
     def red(self, x0, z0, feet, ni, nj, rooms, extra=0.2, trunk_tracks=True):
-        """Red de túneles en una malla de (2 ni + 1) x nj cruces cada PASO bloques, con el primero (0, 0) en (x0, z0):
-        un árbol al azar (determinista) más algunos lazos, y salas en los extremos. `salas`: tipos de sala, en orden
-        (las primeras van en los cruces más lejanos). Devuelve {cruce: (x, z)} y la sala de cada tipo."""
+        """Network of tunnels on a mesh of (2 ni + 1) x nj junctions every STEP blocks, with the first (0, 0) at (x0, z0):
+        a random (deterministic) tree plus some loops, and rooms at the ends. `rooms`: room types, in order
+        (the first ones go at the farthest junctions). Returns {junction: (x, z)} and the room of each type."""
         r = self.r
         nodes = [(i, j) for j in range(nj) for i in range(-ni, ni + 1)]
         pos = {n: (x0 + n[0] * STEP, z0 + n[1] * STEP) for n in nodes}
         neighbors = lambda n: [m for m in ((n[0] + 1, n[1]), (n[0] - 1, n[1]), (n[0], n[1] + 1), (n[0], n[1] - 1)) if m in pos]
-        # árbol: búsqueda en profundidad al azar desde el cruce de llegada
+        # tree: random depth-first search from the arrival junction
         tree, seen_all, stack = set(), {(0, 0)}, [(0, 0)]
         while stack:
             n = stack[-1]
@@ -156,18 +156,18 @@ class Construction:
                 e = frozenset((n, m))
                 if e not in edges and r.random() < extra / 2:
                     edges.add(e)
-        # el tronco: la columna i = 0 lleva vía hasta el último cruce
+        # the trunk: column i = 0 carries track to the last junction
         trunk = {frozenset(((0, j), (0, j + 1))) for j in range(nj - 1)}
         edges |= trunk
         for e in sorted(edges, key=lambda e: sorted(e)):
             a, b = sorted(e)
             self.corridor(pos[a], pos[b], feet)
-        if trunk_tracks:                  # después de excavar los cruces (si no, un túnel de través borra la vía)
-            for z in range(pos[(0, 0)][1] - 1, pos[(0, nj - 1)][1] + 1):   # desde el túnel que llega (z0 - 1)
+        if trunk_tracks:                  # after excavating the junctions (otherwise a crossing tunnel erases the track)
+            for z in range(pos[(0, 0)][1] - 1, pos[(0, nj - 1)][1] + 1):   # from the tunnel that arrives (z0 - 1)
                 self.rail(x0, feet, z, "north_south")
         for n in nodes:
             self.nodes.append((pos[n][0], feet - 1, pos[n][1]))
-        # salas en los cruces con una sola arista (los más lejanos primero), luego en cualquiera
+        # rooms at junctions with a single edge (the farthest first), then at any
         degree = {n: sum(1 for e in edges if n in e) for n in nodes}
         far = lambda n: -(abs(n[0]) + n[1]) - r.random() * 0.5
         foliage = sorted((n for n in nodes if n != (0, 0) and n[0] != 0 and degree[n] == 1), key=far)
@@ -178,7 +178,7 @@ class Construction:
         return pos, chosen_items
 
     def room(self, kind, cx, cz, feet, rx=3, rz=2, height=4):
-        """Sala de (2 rx + 1) x (2 rz + 1) con los pies en `pies` y `alto` de aire; postes de tronco en las esquinas."""
+        """Room of (2 rx + 1) x (2 rz + 1) with the feet at `feet` and `height` of air; log posts at the corners."""
         self.box(cx - rx, cx + rx, feet, feet + height - 1, cz - rz, cz + rz)
         for dx in (-rx, rx):
             for dz in (-rz, rz):
@@ -190,9 +190,9 @@ class Construction:
         self.rooms.append((kind, cx - rx, cx + rx, cz - rz, cz + rz, feet))
         self.lantern(cx, feet + height - 1, cz)
 
-    # ------------------------------------------------------------ forro y casco
+    # ------------------------------------------------------------ lining and shell
     def lining(self):
-        """Forro de obra en cada celda sin escribir que toca una excavada: suelo, muro o techo según la cara."""
+        """Built lining in every unwritten cell that touches an excavated one: floor, wall or ceiling depending on the face."""
         p = self.p
         for (x, y, z) in sorted(self.carved):
             for dx, dy, dz in N6:
@@ -203,7 +203,7 @@ class Construction:
                 self.s(*q, self.mat(lst, *q))
 
     def shell(self, thickness=2):
-        """Dos capas de roca (6-vecinos) alrededor de todo lo escrito junto a lo excavado (menos el patio)."""
+        """Two layers of rock (6-neighbors) around everything written next to the excavated (except the courtyard)."""
         border = {q for (x, y, z) in self.carved for dx, dy, dz in N6
                     for q in [(x + dx, y + dy, z + dz)] if q in self.t.blocks and q not in self.carved
                     and q not in self.surface}
@@ -219,7 +219,7 @@ class Construction:
             border = new_one
 
     def veins(self, prob=0.06):
-        """Vetas de mineral en los muros de las galerías (solo en el forro de muro, no en el suelo ni en el techo)."""
+        """Ore veins in the gallery walls (only in the wall lining, not in the floor or the ceiling)."""
         for (x, y, z) in sorted(self.carved):
             for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 q = (x + dx, y, z + dz)
@@ -231,8 +231,8 @@ class Construction:
                     self.s(*q, self.mat(self.p["vetas"], *q, 5))
 
     def cobwebs(self, x0, x1, z0, z1, feet, n, height=HEIGHT):
-        """Telarañas en rincones altos (pegadas al techo o a un muro) de una zona: no tapan el paso a la altura de la
-        cabeza en el centro de los túneles."""
+        """Cobwebs in high corners (against the ceiling or a wall) of an area: they do not block the passage at head height in
+        the center of the tunnels."""
         done_list = 0
         for x in range(x0, x1 + 1):
             for z in range(z0, z1 + 1):
@@ -245,7 +245,7 @@ class Construction:
                     done_list += 1
 
     def roof_samples(self):
-        """Puntos (x, z, y más alta del casco) sobre la galería para que el Java mire que el monte la cubre."""
+        """Points (x, z, highest shell y) over the gallery so the Java side can check the mountain covers it."""
         height = {}
         for (x, y, z) in self.carved:
             if z >= 4:
@@ -253,13 +253,13 @@ class Construction:
         pts = {}
         for (x, y, z) in self.nodes:
             if (x, z) in height:
-                pts[(x, z)] = height[(x, z)] + 3       # techo (1) y casco (2)
+                pts[(x, z)] = height[(x, z)] + 3       # ceiling (1) and shell (2)
         for kind, x0, x1, z0, z1, feet in self.rooms:
             for x, z in ((x0, z0), (x1, z1)):
                 if (x, z) in height:
                     pts[(x, z)] = height[(x, z)] + 3
         pts = sorted(pts.items())
-        if len(pts) > SAMPLES_MAX:      # cada muestra cuesta una columna del terreno al buscar sitio: repartidas
+        if len(pts) > SAMPLES_MAX:      # each sample costs one terrain column when searching for a site: spread out
             step = len(pts) / SAMPLES_MAX
             pts = [pts[int(k * step)] for k in range(SAMPLES_MAX)]
         return pts

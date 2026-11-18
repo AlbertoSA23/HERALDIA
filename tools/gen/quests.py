@@ -1,15 +1,15 @@
-"""Encargos del tablón y reputación por aldea (T38): textos y logros. La lógica va en Java (encargos/): el tablón de cada
-aldea se rehace igual con la semilla, la aldea y el periodo (Generador), sin datos en el datapack.
+"""Quest board quests and reputation per village (T38): texts and advancements. The logic is in Java (encargos/): each village's
+board is rebuilt identically from the seed, the village and the period (Generador), with no data in the datapack.
 
-Claves:
-  heraldia.encargos.*          lo que dice el tablón en el chat, /heraldia quest y los avisos al jugador
-  heraldia.estado.encargos*    las líneas de /heraldia status
-  advancements.heraldia.encargos.<id>.title/.description   logros (los concede el Java, criterio «hecho»)
-Los argumentos (%s) los pone el Java (encargos/Encargos): no cambies su orden sin cambiarlo allí.
+Keys:
+  heraldia.encargos.*          what the board says in chat, /heraldia quest and the notices to the player
+  heraldia.estado.encargos*    the lines of /heraldia status
+  advancements.heraldia.encargos.<id>.title/.description   advancements (granted by the Java, criterion "hecho")
+The arguments (%s) are supplied by the Java (encargos/Encargos): do not change their order without changing it there.
 """
 NS = "heraldia"
 K = f"{NS}.encargos"
-# Los niveles de reputación (Reputacion.Nivel; los umbrales y descuentos están en Java y en la Guía).
+# The reputation levels (Reputacion.Nivel; the thresholds and discounts are in Java and in the Guide).
 LEVELS = ("desconocido", "conocido", "amigo", "heroe")
 TEXTS = {
     "preparando": ("El alguacil de %s repasa los encargos...", "The bailiff of %s is going over the jobs..."),
@@ -75,7 +75,7 @@ STATE = {
                               " - Yours: %s; friendly villages: %s; hero in %s"),
     "estado.encargos.tuyos.sin_reputacion": (" - Tuyos: %s", " - Yours: %s"),
 }
-# Logros (los concede el Java: encargos/Encargos.logros): (id, icono, marco, experiencia, (título), (descripción))
+# Advancements (granted by the Java: encargos/Encargos.logros): (id, icon, frame, experience, (title), (description))
 ADVANCEMENTS = [
     ("primero", "minecraft:writable_book", "task", 20, ("Manos a la obra", "Lending a Hand"),
      ("Entrega un encargo del tablón de una aldea de Heraldia", "Hand in a job from the board of a Heraldia village")),
@@ -93,7 +93,7 @@ def _advancement_key(lid, part):
 
 
 def advancements():
-    """{ruta: json} de los logros de los encargos (criterio «impossible»: los concede el Java)."""
+    """{path: json} of the quest advancements (criterion "impossible": the Java grants them)."""
     out = {}
     parent = f"{NS}:raiz"
     for lid, emblem, frame, xp, title, desc in ADVANCEMENTS:

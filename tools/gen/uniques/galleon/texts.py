@@ -1,4 +1,4 @@
-"""Textos del galeón (es_es y en_us)."""
+"""Galleon texts (es_es and en_us)."""
 LANG = {
     "es_es": {
         "heraldia.galeon.capitan": "El capitán ahogado",

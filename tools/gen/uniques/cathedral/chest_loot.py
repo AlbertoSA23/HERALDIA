@@ -1,4 +1,4 @@
-"""Botín (solo vanilla) y textos de la catedral."""
+"""Loot (vanilla only) and texts of the cathedral."""
 from loot import item, empty
 from .._common.chest_loot import named as common_named, pool, table
 
@@ -78,7 +78,7 @@ LOOT = {
                                   item("gold_nugget", 5, 2, 6), item("string", 4, 1, 3)]),
                     pool((1, 2), [item("skeleton_skull", 1), item("golden_apple", 2), item("emerald", 5, 2, 4),
                                   named("bone", 2, K + "obj.reliquia"), item("diamond", 1), empty(4)], extra=True)),
-    # escondidos: más ricos
+    # hidden ones: richer
     "oculto": table(pool((2, 4), [item("book", 6, ench=(10, 20)), item("gold_ingot", 8, 2, 5), item("emerald", 8, 2, 5),
                                   item("diamond", 4, 1, 2), item("experience_bottle", 5, 2, 6), item("name_tag", 2),
                                   item("golden_apple", 3), named("writable_book", 2, K + "obj.salterio")]),
@@ -89,7 +89,7 @@ LOOT = {
                                   item("iron_chestplate", 2, ench=(10, 20)), item("iron_sword", 2, ench=(10, 20)),
                                   named("gold_block", 2, K + "obj.caliz")]),
                     pool((1, 2), [item("diamond", 4, 1, 2), item("gold_block", 3), item("emerald", 4, 3, 6)], extra=True)),
-    # premium: pieza principal (90 % vistosa, 10 % algo más fuerte) + vistosos + valores + extra sin Lootr
+    # premium: main piece (90 % showy, 10 % somewhat stronger) + showy ones + valuables + extra without Lootr
     "premium": table(
         pool(1, [named("golden_sword", 18, K + "obj.espada", {"minecraft:sharpness": 3, "minecraft:unbreaking": 3}),
                  named("chainmail_helmet", 18, K + "obj.yelmo", {"minecraft:protection": 3}),

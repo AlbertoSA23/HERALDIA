@@ -1,7 +1,7 @@
-"""Construcción de la mansión encantada en coordenadas de la finca.
+"""Construction of the haunted mansion in estate coordinates.
 
-Finca x 0..61, z 0..71 (fachada al norte); y=0 es la capa de suelo y el sótano queda en y<0.
-Todo se construye en una plantilla única (la «obra») que luego se parte en las piezas casa (y>=0) y sotano (y<0).
+Estate x 0..61, z 0..71 (facade to the north); y=0 is the ground layer and the basement is at y<0.
+Everything is built in a single template (the "build") that is later split into the pieces house (y>=0) and basement (y<0).
 """
 import random
 from nbtlib import Compound, String, Byte, IntArray, Float, Int, List, Double
@@ -9,8 +9,8 @@ from core import Template, B, F
 from .._common.pieces import spawner, chest, guardian, painting, spiral_continuous
 from .._common import pieces
 
-X0, X1, Z0, Z1 = 12, 49, 14, 40          # muros de la casa principal
-GF, P1, P2, AT, CS = 2, 8, 13, 18, -5    # pies en cada planta (sótano CS)
+X0, X1, Z0, Z1 = 12, 49, 14, 40          # walls of the main house
+GF, P1, P2, AT, CS = 2, 8, 13, 18, -5    # feet on each floor (basement CS)
 WALL, TRIM, BASE = "deepslate_bricks", "polished_deepslate", "cobbled_deepslate"
 FLOOR, PART, BEAM = "spruce_planks", "spruce_planks", "stripped_spruce_log"
 GLASS, ROOF = "gray_stained_glass_pane", "deepslate_tile"
@@ -32,8 +32,8 @@ class Construction:
         self.r = random.Random(1887)
         self.chests = []          # (pos, tabla)
         self.spawners = []
-        self.hidden = []          # celdas que solo se alcanzan con los mecanismos
-        self.mech = {}            # posiciones de los mecanismos para el simulador
+        self.hidden = []          # cells reachable only with the mechanisms
+        self.mech = {}            # mechanism positions for the simulator
 
     # ------------------------------------------------------------ primitivas
     def s(self, x, y, z, st, nbt=None):
@@ -56,7 +56,7 @@ class Construction:
         self.s(x, y + 1, z, S(f"{m}_door", facing=facing, half="upper", hinge=hinge, open=False, powered=False))
 
     def ddoor(self, x, y, z, facing, m="spruce"):
-        """Puerta doble: hoja en x/z y su pareja al este (muro norte-sur) o al sur (muro este-oeste)."""
+        """Double door: leaf at x/z and its partner to the east (north-south wall) or to the south (east-west wall)."""
         pieces.double_door(self.s, x, y, z, facing, "east" if facing in ("north", "south") else "south", f"{m}_door")
 
     def bed(self, x, y, z, facing, color="red"):
@@ -95,7 +95,7 @@ class Construction:
     def painting(self, x, y, z, facing, variant):
         self.t.entity(x, y, z, painting(x, y, z, facing, variant))
 
-    # ------------------------------------------------------------ construcción
+    # ------------------------------------------------------------ construction
     def build(self):
         self.terrain()
         self.nearby_flag()
@@ -130,7 +130,7 @@ class Construction:
             for z in range(72):
                 v = r.random()
                 self.s(x, 0, z, "podzol" if v < 0.12 else "coarse_dirt" if v < 0.2 else "mud" if v < 0.25 else "grass_block")
-        self.a(0, 1, 0, 61, 4, 71)           # despeja la finca (terreno sobrante, plantas)
+        self.a(0, 1, 0, 61, 4, 71)           # clears the estate (excess terrain, plants)
         for z in range(0, 10):
             for x in (30, 31):
                 self.s(x, 0, z, "mossy_cobblestone" if r.random() < 0.35 else "cobblestone")
@@ -152,9 +152,9 @@ class Construction:
                     self.s(x, 3, z, S("soul_lantern", hanging=False, waterlogged=False))
             else:
                 self.s(x, 1, z, "mossy_cobblestone_wall" if r.random() < 0.4 else "cobblestone_wall")
-        for x, z in ((10, 70), (11, 69), (60, 50), (1, 21)):          # cascotes del muro caído
+        for x, z in ((10, 70), (11, 69), (60, 50), (1, 21)):          # rubble from the fallen wall
             self.s(x, 1, z, "mossy_cobblestone")
-        # verja: pilares, rejas y una hoja de la cancela abierta (la otra se perdió)
+        # gate: pillars, bars and one leaf of the gate open (the other was lost)
         for x in (28, 33):
             self.f(x, 1, 0, x, 3, 0, "stone_bricks")
             self.s(x, 4, 0, S("soul_lantern", hanging=False, waterlogged=False))
@@ -168,7 +168,7 @@ class Construction:
             self.f(x, 1, z, x, 2 if lit else 1, z, "spruce_fence")
             if lit:
                 self.s(x, 3, z, S("soul_lantern", hanging=False, waterlogged=False))
-        for cx in (19, 42):                    # árboles muertos simétricos
+        for cx in (19, 42):                    # symmetric dead trees
             m = 1 if cx < 30 else -1
             self.f(cx, 1, 6, cx, 8, 6, S("spruce_log", axis="y"))
             self.f(cx + m, 5, 6, cx + 2 * m, 5, 6, S("spruce_log", axis="x"))
@@ -179,12 +179,12 @@ class Construction:
             self.s(cx, 0, 6, "podzol")
         for x, z in ((24, 2), (25, 2), (37, 2), (36, 2), (14, 10), (47, 10), (5, 30), (56, 44)):
             self.s(x, 1, z, S("spruce_leaves", persistent=True, distance=7, waterlogged=False))
-        for _ in range(30):                    # matas secas sobre podsol
+        for _ in range(30):                    # dry shrubs on podzol
             x, z = r.randint(2, 59), r.randint(2, 12)
             if self.get(x, 1, z) == "minecraft:air" and not 26 <= x <= 35:
                 self.s(x, 0, z, "podzol")
                 self.s(x, 1, z, "dead_bush")
-        # cobertizo del jardín (oeste)
+        # garden shed (west)
         self.f(2, 1, 44, 6, 3, 48, PART)
         self.a(3, 1, 45, 5, 3, 47)
         self.f(2, 0, 44, 6, 0, 48, FLOOR)
@@ -197,10 +197,10 @@ class Construction:
         self.web(5, 3, 47)
         self.f(4, 0, 40, 4, 0, 43, "coarse_dirt")
 
-    # ---------------------------------------------------------------- casco de la casa
+    # ---------------------------------------------------------------- house shell
     def shell(self):
         self.f(X0, 0, Z0, X1, 0, Z1, BASE)
-        for y in range(2, 17):                 # interior despejado (los suelos se ponen después)
+        for y in range(2, 17):                 # cleared interior (floors are placed afterwards)
             self.a(X0 + 1, y, Z0 + 1, X1 - 1, y, Z1 - 1)
         for y in range(1, 18):
             for x in range(X0, X1 + 1):
@@ -211,7 +211,7 @@ class Construction:
                     self.s(x, y, z, self.wallmat(x, y, z))
         for y, m in ((1, FLOOR), (7, FLOOR), (12, FLOOR), (17, FLOOR)):
             self.f(X0 + 1, y, Z0 + 1, X1 - 1, y, Z1 - 1, m)
-        self.a(25, 7, 15, 36, 7, 24)          # vacío del vestíbulo
+        self.a(25, 7, 15, 36, 7, 24)          # lobby void
         # tabiques
         for y in range(2, 7):
             self.f(24, y, 15, 24, y, 39, WALL); self.f(37, y, 15, 37, y, 39, WALL)
@@ -224,7 +224,7 @@ class Construction:
             self.f(13, y, 25, 48, y, 25, PART); self.f(13, y, 29, 48, y, 29, PART)
             for x in (24, 37):
                 self.f(x, y, 15, x, y, 24, PART); self.f(x, y, 30, x, y, 39, PART)
-        # ventanas: (fachada, coordenada a lo largo, planta)
+        # windows: (facade, coordinate along it, floor)
         lv = {GF: (3, 5), P1: (9, 10), P2: (14, 15)}
         front = [16, 19, 22, 27, 34, 39, 42, 45]
         win = []
@@ -248,9 +248,9 @@ class Construction:
         # puertas interiores
         self.ddoor(30, GF, Z0, "south")                       # entrada
         self.door(24, GF, 17, "east"); self.door(37, GF, 17, "west")
-        self.ddoor(30, GF, 30, "south")                       # vestíbulo -> comedor
+        self.ddoor(30, GF, 30, "south")                       # lobby -> dining room
         self.door(24, GF, 35, "east")                         # comedor -> cocina
-        self.door(X1, GF, 27, "east")                         # salón -> invernadero
+        self.door(X1, GF, 27, "east")                         # lounge -> greenhouse
         self.ddoor(30, GF, Z1, "north", m="spruce")           # comedor -> terraza
         self.door(24, P1, 27, "west"); self.door(37, P1, 27, "east"); self.ddoor(30, P1, 30, "south")
         self.door(18, P1, 25, "north"); self.door(18, P1, 29, "south")
@@ -291,7 +291,7 @@ class Construction:
             for x in (25, 26, 35, 36):
                 self.f(x, 2, z, x, y - 1, z, "stripped_spruce_wood")
                 self.stair(x, y, z, "spruce", "south")
-        for x in (27, 34):                      # pilares bajo el rellano
+        for x in (27, 34):                      # pillars under the landing
             self.f(x, 2, 25, x, 6, 25, S(BEAM, axis="y"))
         for x in range(27, 35):
             self.s(x, 8, 25, "spruce_fence")
@@ -301,7 +301,7 @@ class Construction:
             self.s(x, 2, 15, TRIM); self.s(x, 3, 15, "potted_wither_rose")
         self.webs(25, 15, 36, 29, 11, 0.8)
         self.web(26, 10, 16); self.web(35, 11, 24)
-        for x, z in ((25, 17), (36, 17)):       # bancos contra el muro, junto a las puertas laterales
+        for x, z in ((25, 17), (36, 17)):       # benches against the wall, next to the side doors
             pass
         self.s(28, 2, 29, S("spruce_stairs", facing="south", half="bottom"))
         self.s(33, 2, 29, S("spruce_stairs", facing="south", half="bottom"))
@@ -317,12 +317,12 @@ class Construction:
             self.f(x, 2, 15, x, 6, 15, bs)
         for z in (15, 16, 19, 20, 21, 22, 23, 24, 25):
             self.f(23, 2, z, 23, 6, z, bs)
-        # cuerpo saliente que oculta el mecanismo y nicho de la puerta secreta
+        # projecting body that hides the mechanism, and niche of the secret door
         self.f(20, 2, 26, 21, 6, 26, bs)
         self.f(23, 2, 26, 23, 6, 26, bs)
         self.f(22, 4, 26, 22, 6, 26, bs)
         self.a(22, 2, 26, 22, 3, 26)
-        # mesa de lectura con sillas
+        # reading table with chairs
         self.table(17, 20, 18, 21, 2)
         self.stair(16, 2, 20, "spruce", "west"); self.stair(16, 2, 21, "spruce", "west")
         self.stair(19, 2, 20, "spruce", "east"); self.stair(19, 2, 21, "spruce", "east")
@@ -339,7 +339,7 @@ class Construction:
         self.web(16, 2, 16)
 
     def hidden_strip(self):
-        """Franja z 28..30 tras la estantería: mecanismo y escalera secreta."""
+        """Strip z 28..30 behind the bookshelf: mechanism and secret staircase."""
         self.f(13, 2, 28, 23, 6, 30, BASE)
         for x, z in ((22, 28), (22, 29), (22, 30), (21, 30), (20, 30), (19, 30), (18, 30)):
             self.a(x, 2, z, x, 3, z)
@@ -352,7 +352,7 @@ class Construction:
         for x in range(13, 24):
             for z in range(32, 40):
                 self.s(x, 1, z, "polished_tuff")
-        # hogar en el muro oeste
+        # hearth in the west wall
         self.a(12, 2, 35, 12, 3, 36)
         self.f(12, 1, 35, 12, 1, 36, "bricks")
         self.s(12, 2, 35, S("campfire", facing="east", lit=False, signal_fire=False, waterlogged=False))
@@ -361,7 +361,7 @@ class Construction:
         self.f(13, 4, 34, 13, 4, 37, S("brick_slab", type="top", waterlogged=False))
         self.s(13, 2, 33, S("cauldron"))
         self.s(13, 2, 37, S("smoker", facing="east", lit=False))
-        # encimera y despensa contra el muro norte
+        # counter and pantry against the north wall
         for x in range(15, 23):
             self.s(x, 2, 32, "smooth_stone")
         self.chest(16, 2, 32, "south", "cocina", "barrel")
@@ -371,7 +371,7 @@ class Construction:
         # mesa de trabajo
         self.table(18, 35, 19, 35, 2)
         self.stair(18, 2, 34, "spruce", "north"); self.stair(19, 2, 36, "spruce", "south")
-        # barandilla de la escalera de servicio
+        # railing of the service stairs
         self.s(17, 2, 38, "spruce_fence"); self.s(18, 2, 38, "spruce_fence"); self.s(19, 2, 39, "spruce_fence")
         self.lamp(18, 6, 34)
         self.webs(13, 32, 23, 39, 6, 0.8)
@@ -399,7 +399,7 @@ class Construction:
         for x in range(38, 49):
             for z in range(15, 40):
                 self.s(x, 1, z, "polished_blackstone" if (x + z) % 2 else "smooth_quartz")
-        # chimenea en el muro sur
+        # fireplace in the south wall
         self.a(43, 2, 40, 43, 3, 40)
         self.s(43, 1, 40, "bricks")
         self.s(43, 2, 40, S("soul_campfire", facing="north", lit=True, signal_fire=False, waterlogged=False))
@@ -410,9 +410,9 @@ class Construction:
         self.candle(42, 5, 39, 3) if False else None
         for z in (21, 27, 33):
             self.lamp(43, 5, z)
-        self.s(41, 2, 30, S("soul_lantern", hanging=False, waterlogged=False))   # lámpara caída
+        self.s(41, 2, 30, S("soul_lantern", hanging=False, waterlogged=False))   # fallen lamp
         self.web(41, 3, 30)
-        # asientos contra el muro oeste (respaldo al muro) y mesitas
+        # seats against the west wall (backs to the wall) and small tables
         for z in (20, 21, 33, 34):
             self.stair(38, 2, z, "spruce", "west")
         for z in (19, 22, 32, 35):
@@ -441,7 +441,7 @@ class Construction:
         for x in range(13, 24):
             self.s(x, y, 27, "red_carpet")
         self.lamp(18, 11, 27)
-        # dormitorio de invitados (pasa la escala de servicio por x=13 z=38)
+        # guest bedroom (the service ladder passes at x=13 z=38)
         self.bed(22, y, 33, "east", "gray")
         self.table(23, 32, 23, 32, y); self.candle(23, y + 1, 32, 1)
         self.chest(23, y, 36, "west", "menor")
@@ -449,7 +449,7 @@ class Construction:
         self.s(16, y, 39, "decorated_pot")
         self.lamp(18, 11, 34)
         self.webs(14, 30, 23, 39, 11, 0.8)
-        # estudio del señor
+        # master's study
         self.table(29, 36, 32, 36, y, "dark_oak")
         self.stair(30, y, 37, "spruce", "south"); self.stair(31, y, 37, "spruce", "south")
         self.candle(29, y + 1, 36, 3); self.candle(32, y + 1, 36, 1, True)
@@ -464,7 +464,7 @@ class Construction:
         self.chest(36, y, 35, "west", "biblioteca")
         self.lamp(30, 11, 34)
         self.webs(26, 31, 36, 38, 11, 0.8)
-        # galería de retratos
+        # portrait gallery
         for z in range(15, 40):
             self.s(43, y, z, "purple_carpet")
         arts = ["graham", "wanderer", "prairie_ride", "graham", "wanderer"]
@@ -485,12 +485,12 @@ class Construction:
             self.s(x, y, 27, "brown_carpet")
         for x in (18, 30, 43):
             self.lamp(x, 16, 27)
-        # dormitorio de invitados A (puerta al torreón)
+        # guest bedroom A (door to the tower)
         self.bed(22, y, 20, "east", "blue"); self.table(23, 19, 23, 19, y); self.candle(23, y + 1, 19, 1)
         self.chest(16, y, 24, "north", "menor")
         self.f(19, y, 15, 20, y + 1, 15, "spruce_planks")
         self.lamp(18, 16, 20)
-        # cuarto de los niños
+        # children's room
         self.bed(26, y, 16, "north", "white"); self.bed(28, y, 16, "north", "white")
         self.s(35, y, 16, "jukebox"); self.chest(33, y, 15, "south", "menor")
         self.s(30, y, 20, "white_carpet"); self.s(31, y, 20, "white_carpet")
@@ -499,7 +499,7 @@ class Construction:
         self.bed(39, y, 20, "west", "green"); self.table(38, 19, 38, 19, y); self.candle(38, y + 1, 19, 2)
         self.chest(45, y, 24, "north", "menor")
         self.lamp(43, 16, 20)
-        # servicio (llega la escala)
+        # servants' quarters (the ladder arrives)
         for z in (31, 33, 35):
             self.bed(22, y, z, "east", "brown")
         self.chest(18, y, 39, "north", "menor", "barrel")
@@ -510,7 +510,7 @@ class Construction:
         self.chest(35, y, 39, "north", "menor", "barrel"); self.chest(36, y, 31, "west", "menor")
         self.table(30, 34, 31, 35, y); self.stair(30, y, 33, "spruce", "north"); self.stair(31, y, 36, "spruce", "south")
         self.lamp(30, 16, 34)
-        # sala de música
+        # music room
         for x in (39, 40, 41):
             self.s(x, y, 39, "note_block")
         self.s(47, y, 39, "jukebox"); self.chest(48, y, 31, "west", "menor")
@@ -519,7 +519,7 @@ class Construction:
         for x0, z0, x1, z1 in ((15, 15, 23, 24), (25, 15, 36, 24), (38, 15, 48, 24), (14, 30, 23, 39), (25, 30, 36, 39), (38, 30, 48, 39)):
             self.webs(x0, z0, x1, z1, 16, 0.7)
 
-    # ---------------------------------------------------------------- torreón y escalera de caracol
+    # ---------------------------------------------------------------- tower and spiral staircase
     RING = [(10, 12), (11, 12), (12, 12), (12, 13), (12, 14), (11, 14), (10, 14), (10, 13)]
 
     def great_tower(self):
@@ -534,26 +534,26 @@ class Construction:
                         self.s(x, y, z, BASE if y == 1 else TRIM if corner or y in (7, 12, 17, 23) else WALL)
                     else:
                         self.s(x, y, z, "air")
-        for y in (1, 7, 12, 17, 23):            # rellanos en el anillo exterior
+        for y in (1, 7, 12, 17, 23):            # landings in the outer ring
             for x in range(9, 14):
                 for z in range(11, 16):
                     if not (10 <= x <= 12 and 12 <= z <= 14):
                         self.s(x, y, z, FLOOR)
         self.f(10, 1, 12, 12, 1, 14, FLOOR)
-        self.f(11, 1, 13, 11, 23, 13, TRIM)       # machón central
+        self.f(11, 1, 13, 11, 23, 13, TRIM)       # central pier
         spiral_continuous(self.t.set, self.RING, 2, 22, "minecraft:spruce_stairs", "stripped_spruce_wood")
         for x, z in (self.RING[6], self.RING[7]):
             self.s(x, 23, z, FLOOR)
         for y in (GF, P1, P2):
             self.door(14, y, 15, "east")
         self.door(13, AT, 16, "south")
-        # saeteras y ventanas del mirador
+        # arrow slits and windows of the lookout
         for y in (4, 10, 15, 20):
             self.s(8, y, 13, GLASS); self.s(11, y, 10, GLASS)
         for x, z in ((8, 12), (8, 14), (14, 12), (14, 14), (10, 10), (12, 10), (10, 16), (12, 16)):
             self.a(x, 24, z, x, 25, z)
             self.s(x, 24, z, "iron_bars")
-        # chapitel macizo y escalonado
+        # solid, stepped spire
         for k in range(4):
             lo, hi, y0 = 8 + k, 14 - k, 27 + 2 * k
             self.f(lo, y0, lo + 2, hi, y0, hi + 2, ROOF + "s")
@@ -570,7 +570,7 @@ class Construction:
         self.lamp(11, 26, 11)
         self.web(9, 26, 15); self.web(13, 26, 11); self.web(9, 6, 11)
 
-    # ---------------------------------------------------------------- tejado y buhardilla
+    # ---------------------------------------------------------------- roof and attic
     @staticmethod
     def H(z):
         return 18 + min(z - 13, 41 - z)
@@ -592,13 +592,13 @@ class Construction:
                 self.stair(x, h, z, ROOF, "south" if z < 27 else "north")
                 if x in (X0, X1) and Z0 <= z <= Z1:
                     self.f(x, 18, z, x, h - 1, z, WALL)
-        for x in (X0, X1):                         # ventanas de los hastiales
+        for x in (X0, X1):                         # gable windows
             for z in (26, 27, 28):
                 for y in (22, 23, 24):
                     self.s(x, y, z, GLASS)
             self.f(x, 25, 26, x, 25, 28, TRIM)
             self.s(x, 33, 27, S("lightning_rod", facing="up", powered=False, waterlogged=False))
-        for z in range(13, 18):                    # el tejado arranca junto al torreón
+        for z in range(13, 18):                    # the roof starts next to the tower
             for y in range(18, self.H(z)):
                 self.s(15, y, z, WALL) if z <= 16 else None
 
@@ -613,7 +613,7 @@ class Construction:
         for x in (19, 25, 36, 42):                 # vigas
             self.f(x, 24, 20, x, 24, 34, S(BEAM, axis="z"))
         self.f(13, 17, 15, 14, 17, 16, FLOOR) if False else None
-        for x, z in ((40, 19), (41, 20), (42, 19)):    # escombros bajo la gotera
+        for x, z in ((40, 19), (41, 20), (42, 19)):    # rubble under the eaves
             self.s(x, y, z, S(ROOF + "_slab", type="bottom", waterlogged=False))
         self.s(41, y, 19, BASE)
         self.chest(22, y, 27, "east", "desvan"); self.chest(39, y, 27, "west", "desvan")
@@ -636,7 +636,7 @@ class Construction:
                 for z in range(z0, z1 + 1):
                     if (x - x0 + z - z0) % 2 == 0:
                         self.s(x, top + 1, z, S("soul_campfire", facing="north", lit=False, signal_fire=False, waterlogged=False))
-        # la chimenea trasera atraviesa el alero
+        # the rear chimney goes through the eave
         for x in range(42, 45):
             for z in (41,):
                 self.s(x, 18, z, "bricks")
@@ -659,13 +659,13 @@ class Construction:
         for z in range(z0, z1 + 1, 4):
             self.f(x0, 7, z, x1, 7, z, S(BEAM, axis="x"))
         broken = [(x, z) for x in range(55, 60) for z in range(26, 36) if (x + 2 * z) % 3 != 0] + [(53, 31), (52, 33), (56, 29), (57, 33)]
-        for x, z in broken:                       # media cubierta caída
+        for x, z in broken:                       # half of the roof fallen
             if self.get(x, 7, z) == "minecraft:glass":
                 self.s(x, 7, z, "air")
         for x, z, y in ((59, 30, 5), (59, 30, 6), (59, 31, 4), (59, 31, 5), (59, 31, 6), (56, 35, 5), (57, 35, 6),
                         (52, 19, 4), (52, 19, 5), (59, 22, 3)):
             self.s(x, y, z, "air")
-        # bancales con tierra y plantas secas
+        # terraced beds with soil and dry plants
         for z in (21, 22, 32, 33):
             for x in range(52, 58):
                 self.s(x, 1, z, "coarse_dirt" if (x + z) % 3 else "rooted_dirt")
@@ -696,7 +696,7 @@ class Construction:
             for x in (30, 31):
                 self.s(x, 0, z, "cobblestone" if (x + z) % 3 else "mossy_cobblestone")
 
-    # ---------------------------------------------------------------- cementerio y panteón
+    # ---------------------------------------------------------------- cemetery and mausoleum
     def graveyard(self):
         r = self.r
         cx0, cx1, cz0, cz1 = 24, 58, 48, 69
@@ -725,7 +725,7 @@ class Construction:
                 if 32 <= x <= 38 and z == 59:
                     continue
                 n += 1
-                if n % 7 == 3:                         # lápida caída
+                if n % 7 == 3:                         # fallen gravestone
                     self.s(x, 1, z, S("stone_brick_slab", type="bottom", waterlogged=False))
                 else:
                     self.s(x, 1, z, S(stones[n % 4], up=True))
@@ -741,13 +741,13 @@ class Construction:
 
     def pantheon(self):
         x0, x1, z0, z1 = 44, 54, 55, 63          # muros
-        self.f(x0, 1, z0, x1, 5, z1, "stone_bricks")      # túmulo macizo con la cripta dentro
+        self.f(x0, 1, z0, x1, 5, z1, "stone_bricks")      # solid mound with the crypt inside
         self.a(x0 + 1, 2, z0 + 1, x1 - 1, 4, z1 - 1)     # cripta
         for z in range(z0, z1 + 1):
             for x in range(x0, x1 + 1):
                 if x in (x0, x1) or z in (z0, z1):
                     self.s(x, 1, z, "mossy_stone_bricks" if (x + z) % 3 == 0 else "stone_bricks")
-        for k in range(5):                         # escalinata al oeste
+        for k in range(5):                         # flight of steps to the west
             for z in (58, 59, 60):
                 self.stair(39 + k, 1 + k, z, "stone_brick", "east")
                 if k:
@@ -782,13 +782,13 @@ class Construction:
                 for y in range(11, h(z)):
                     if self.get(x, y, z) not in (None, "minecraft:air") and not self.get(x, y, z).startswith("minecraft:stone_brick_s"):
                         pass
-        # altar y sarcófago
+        # altar and sarcophagus
         self.f(53, 6, 58, 53, 6, 60, "polished_andesite")
         for z, n, lit in ((58, 3, False), (59, 1, True), (60, 2, False)):
             self.candle(53, 7, z, n, lit, "white")
         self.f(48, 6, 61, 50, 6, 61, "polished_andesite")
         self.f(48, 7, 61, 50, 7, 61, S("stone_brick_slab", type="bottom", waterlogged=False))
-        # escalera a la cripta por el lado norte
+        # stairs to the crypt on the north side
         for k in range(4):
             self.stair(47 + k, 5 - k, 56, "stone_brick", "west")
             self.a(47 + k, 6 - k, 56, 47 + k, 7 - k, 56)
@@ -796,7 +796,7 @@ class Construction:
             self.s(x, 6, 57, "iron_bars") if x > 47 else None
         self.s(51, 1, 56, "stone_bricks")
         self.lamp(49, 13, 59)
-        # cripta: nichos, placa y dinamita (como el templo del desierto)
+        # crypt: niches, plate and dynamite (like the desert temple)
         for x in (46, 48, 50):
             self.s(x, 2, 62, S("skeleton_skull", rotation=0))
         self.s(46, 2, 58, "bone_block"); self.s(46, 3, 58, S("skeleton_skull", rotation=4))
@@ -808,7 +808,7 @@ class Construction:
         self.mech["tnt"] = [(52, 0, 59), (51, 0, 59), (53, 0, 59), (52, 0, 58), (52, 0, 60)]
         self.web(45, 4, 57); self.web(53, 4, 62); self.web(45, 10, 62); self.web(53, 10, 56)
 
-    # ---------------------------------------------------------------- sótano
+    # ---------------------------------------------------------------- basement
     ROOMS = {   # nombre: (x0, x1, z0, z1, altura de techo interior, suelo, muro)
         "ante": (13, 20, 16, 26, -2, "deepslate_tiles", "tuff_bricks"),
         "pasaje": (21, 24, 19, 21, -4, "tuff_bricks", "tuff_bricks"),
@@ -826,7 +826,7 @@ class Construction:
         for x0, x1, z0, z1, top, fl, wl in self.ROOMS.values():
             self.a(x0, CS, z0, x1, top, z1)
             self.f(x0, -6, z0, x1, -6, z1, fl)
-        self.a(47, CS, 29, 47, -4, 31)            # paso a la cámara
+        self.a(47, CS, 29, 47, -4, 31)            # passage to the chamber
         self.f(47, -6, 29, 47, -6, 31, "polished_blackstone_bricks")
         self.door(37, CS, 22, "east")
         self.door(24, CS, 35, "east")
@@ -837,7 +837,7 @@ class Construction:
         self.s(29, -4, 30, S("stone_button", face="wall", facing="north", powered=False))
         self.mech["boton"] = (29, -4, 30)
         self.mech["puerta_almacen"] = (30, CS, 31)
-        # antecámara
+        # antechamber
         self.table(16, 20, 17, 21, CS, "dark_oak"); self.stair(16, CS, 22, "spruce", "south"); self.stair(17, CS, 19, "spruce", "north")
         self.candle(16, -4, 20, 2, True); self.candle(17, -4, 21, 1)
         self.chest(13, CS, 17, "east", "oculto")
@@ -845,7 +845,7 @@ class Construction:
             self.f(13, CS, z, 13, -2, z, "bookshelf")
         self.lamp(17, -2, 18)
         self.webs(13, 16, 20, 26, -2, 1.0)
-        # corredor con cable trampa (como el templo de la jungla)
+        # corridor with trap wire (like the jungle temple)
         self.s(22, CS, 19, S("tripwire_hook", facing="south", attached=True, powered=False))
         self.s(22, CS, 21, S("tripwire_hook", facing="north", attached=True, powered=False))
         self.s(22, CS, 20, S("tripwire", attached=True, disarmed=False, powered=False, north=True, south=True, east=False, west=False))
@@ -885,14 +885,14 @@ class Construction:
             self.web(x, CS, z)
         self.webs(38, 15, 48, 27, -2, 1.0)
         self.lamp(41, -2, 21); self.lamp(45, -2, 21)
-        # combinación: 4 palancas en el muro sur, velas encendidas bajo la 1.ª y la 4.ª
+        # combination: 4 levers in the south wall, candles lit under the 1st and the 4th
         self.mech["palancas"] = []
         for i, x in enumerate((39, 41, 43, 45)):
             self.s(x, -4, 27, S("lever", face="wall", facing="north", powered=False))
             self.candle(x, CS, 27, 1, i in (0, 3), "white")
             self.mech["palancas"].append((x, -4, 27))
         self.mech["puerta_camara"] = (47, CS, 28)
-        # cámara del tesoro
+        # treasure chamber
         for x, z in ((38, 32), (48, 32), (38, 39), (48, 39)):
             self.f(x, CS, z, x, -2, z, "gilded_blackstone")
         self.f(42, CS, 39, 44, CS, 39, "polished_blackstone_bricks")
@@ -903,7 +903,7 @@ class Construction:
         self.lamp(40, -2, 35); self.lamp(46, -2, 35)
         self.candle(42, CS + 1, 39, 4, True, "black"); self.candle(44, CS + 1, 39, 4, True, "black")
         self.webs(38, 32, 48, 39, -2, 0.6)
-        # almacén
+        # storeroom
         self.chest(25, CS, 39, "east", "menor"); self.chest(36, CS, 39, "west", "menor")
         for x, z in ((25, 33), (25, 34), (36, 33), (27, 39), (34, 39)):
             self.s(x, CS, z, S("barrel", facing="up", open=False))
@@ -920,8 +920,8 @@ class Construction:
         self.webs(17, 32, 23, 38, -2, 0.8)
 
     def crossed_stairs(self):
-        """Escaleras que bajan de la casa al sótano (secreta y de servicio)."""
-        # secreta: oeste por z=30 y luego al norte por x=14
+        """Stairs that go down from the house to the basement (secret and service)."""
+        # secret: west along z=30, then north along x=14
         for x, y in ((17, 1), (16, 0), (15, -1), (14, -2)):
             self.stair(x, y, 30, "spruce", "east")
             self.a(x, y + 1, 30, x, y + 2, 30)
@@ -930,7 +930,7 @@ class Construction:
             self.a(14, y + 1, z, 14, y + 2, z)
         self.s(17, 3, 30, "cobweb")
         self.hidden += [(14, CS, 22), (30, CS, 20), (43, CS, 22), (43, CS, 35)]
-        # de servicio: este por z=39 desde la cocina hasta la bodega
+        # service: east along z=39 from the kitchen to the cellar
         for k in range(7):
             x, y = 16 + k, 1 - k
             self.stair(x, y, 39, "spruce", "west")
@@ -942,7 +942,7 @@ class Construction:
 
     # ---------------------------------------------------------------- redstone (estados de reposo: ver redstone.py)
     def redstone(self):
-        # estantería secreta: palanca (18,3,26) -> soporte (18,3,27) -> antorcha (18,3,28) -> polvo -> repetidor -> pistones
+        # secret bookshelf: lever (18,3,26) -> support (18,3,27) -> torch (18,3,28) -> dust -> repeater -> pistons
         self.s(18, 3, 26, S("lever", face="wall", facing="north", powered=False))
         self.s(18, 3, 28, S("redstone_wall_torch", facing="south", lit=True))
         for x in (18, 19, 20):
@@ -956,7 +956,7 @@ class Construction:
             self.s(22, y, 27, "bookshelf")
         self.mech["palanca_biblioteca"] = (18, 3, 26)
         self.mech["puerta_secreta"] = [(22, 2, 27), (22, 3, 27)]
-        # combinación del laboratorio (capa oculta z 29..30 entre el laboratorio y la cámara)
+        # laboratory combination (hidden layer z 29..30 between the laboratory and the chamber)
         self.a(38, CS, 29, 46, -2, 30)
         self.f(38, CS, 29, 46, CS, 30, "tuff")
         self.f(38, -4, 29, 46, -2, 30, "tuff")

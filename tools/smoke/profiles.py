@@ -1,15 +1,15 @@
-"""Perfiles de juego (opción «perfil», T36) en un servidor dedicado 26.3 real, reiniciando el mismo mundo.
+"""Game profiles (the "perfil" option, T36) on a real 26.3 dedicated server, restarting the same world.
 
-Uso: python3 tools/smoke/profiles.py --jar build/libs/heraldia-X.jar [--work build/smoke-perfiles]
-Invoca un zombi anclado (heraldia_anclado, vida base 20, como dificultad.py) y reinicia con cada configuración:
-  - perfil hardcore: el zombi a vida 40 (heroica), el log dice el perfil, /heraldia profile (comando nuevo, en inglés)
-    lo nombra sin opciones fijadas a mano, y el fichero reescrito no lleva las opciones que da el perfil;
-  - perfil hardcore con dificultad.nivel = dificil en el fichero: manda el fichero (vida 30), el log y /heraldia profile
-    dicen que el perfil queda como personalizado y qué opción difiere, y el fichero la conserva;
-  - perfil casual: vida 15 (fácil) y el botín que se repone activado (el bloque «_perfil» del fichero);
-  - perfil estandar: vida 20, como siempre.
-En todos, las líneas de /heraldia info de la generación (aldeas, únicas, medianas y minas) son las mismas: el perfil no
-toca la generación del mundo. Código 0 si todo pasa.
+Usage: python3 tools/smoke/profiles.py --jar build/libs/heraldia-X.jar [--work build/smoke-perfiles]
+Summons an anchored zombie (heraldia_anclado, base health 20, like difficulty.py) and restarts with each configuration:
+  - hardcore profile: the zombie at health 40 (heroic), the log states the profile, /heraldia profile (new command, in English)
+    names it with no hand-set options, and the rewritten file does not carry the options the profile provides;
+  - hardcore profile with difficulty.level = dificil in the file: the file wins (health 30), the log and /heraldia profile
+    say the profile ends up as custom and which option differs, and the file keeps it;
+  - casual profile: health 15 (easy) and the loot restocking enabled (the file's "_perfil" block);
+  - estandar profile: health 20, as always.
+In all of them, the generation lines of /heraldia info (villages, unique structures, medium structures and mines) are the same: the profile does not
+touch world generation. Exit code 0 if everything passes.
 """
 import argparse, json, os, re, shutil, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -18,9 +18,9 @@ from guide import Server
 
 X, Y, Z = 0, 100, 0
 NUM = r"(-?\d+(?:\.\d+)?)"
-# Líneas de /heraldia info que dependen de la generación (en inglés: la consola usa en_us).
+# /heraldia info lines that depend on generation (in English: the console uses en_us).
 GENERATION = ("Villages:", "Unique structures", "Minimum distance", "Medium structures", "Mine entrances", "Registered structures")
-CASES = [   # (nombre, configuración extra, vida máxima esperada, efectivo, opciones que difieren)
+CASES = [   # (name, extra configuration, expected maximum health, effective, options that differ)
     ("hardcore", {"perfil": "hardcore"}, 40, "Hardcore", []),
     ("hardcore+dificil", {"perfil": "hardcore", "dificultad": {"nivel": "dificil"}}, 30, "Custom", ["dificultad.nivel"]),
     ("casual", {"perfil": "casual"}, 15, "Casual", []),
@@ -56,18 +56,18 @@ def main():
     def check(cond, msg):
         if not cond:
             fails.append(msg)
-            print("FALLA:", msg)
+            print("FAIL:", msg)
 
     def num(ctx, cmd):
         m = ctx.run(cmd, rf"(?:is|data:) {NUM}f?\b|No entity|Unknown|Can't find")
         return float(m.group(1)) if m.lastindex and m.group(1) else None
 
     def answer(ctx, cmd, finish):
-        """Las líneas que escribe una orden de varias líneas (hasta la que casa con `fin`)."""
+        """The lines written by a multi-line command (up to the one that matches `finish`)."""
         s.pending(ctx.lines, ctx.seen)
         n0 = len(ctx.seen)
         ctx.run(cmd, finish)
-        ctx.run("seed", r"Seed: \[")          # lo que quede de la respuesta llega antes que esta
+        ctx.run("seed", r"Seed: \[")          # whatever is left of the reply arrives before this one
         return "".join(ctx.seen[n0:])
 
     try:
@@ -83,7 +83,7 @@ def main():
                         f'Tags:["p_anclado","heraldia_anclado","heraldia_adulto"],attributes:[{{id:"minecraft:max_health",base:20}}]}}',
                         r"Summoned|Unable")
             if not ctx.until("execute if entity @e[tag=p_anclado]"):
-                raise SystemExit(f"{name}: no aparece el zombi de prueba")
+                raise SystemExit(f"{name}: the test zombie does not appear")
             got = num(ctx, "attribute @e[tag=p_anclado,limit=1] minecraft:max_health get")
             check(got is not None and abs(got - health) < 1e-3, f"{name}: vida máxima {got} (debe ser {health})")
             log = ctx.log()

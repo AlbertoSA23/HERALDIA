@@ -1,4 +1,4 @@
-"""Auditoría de diseño: jigsaws íntegros, apoyos, puertas con salida, escaleras completas y accesos."""
+"""Design audit: intact jigsaws, supports, doors with an exit, complete stairs and accesses."""
 from collections import deque, Counter
 from core import parse_state
 
@@ -29,7 +29,7 @@ def passable(st):
 
 
 def top_height(st):
-    """Altura de la superficie pisable dentro del bloque (None = no se pisa)."""
+    """Height of the walkable surface inside the block (None = not walkable)."""
     if st is None:
         return None
     b = bname(st)
@@ -50,7 +50,7 @@ def top_height(st):
     if b in ("lantern", "soul_lantern", "candle", "flower_pot", "bell", "brewing_stand", "campfire", "iron_chain",
              "decorated_pot", "lightning_rod", "skeleton_skull", "grindstone", "lectern", "composter",
              "cauldron", "water_cauldron", "lava_cauldron", "anvil", "stonecutter") or b.startswith("potted_"):
-        return 1.5      # obstáculo: no se camina por encima
+        return 1.5      # obstacle: cannot be walked over
     return 1.0
 
 
@@ -79,7 +79,7 @@ def prop(st, k):
 
 
 def resolved(t):
-    """Vista de la pieza con cada jigsaw sustituido por su estado final."""
+    """View of the piece with each jigsaw replaced by its final state."""
     class V:
         pass
     v = V()
@@ -88,7 +88,7 @@ def resolved(t):
         if nbt and nbt.get("id") == "minecraft:jigsaw":
             fs = nbt["final_state"]
             blocks[pos] = (None if "structure_void" in fs else fs, None)
-    # Estado "resuelto" que declara la plantilla (puzles abiertos): {pos: estado o None}
+    # "Resolved" state declared by the template (open puzzles): {pos: state or None}
     for pos, st in getattr(t, "lint_open", {}).items():
         blocks[pos] = (st, None)
     v.blocks = {p: b for p, b in blocks.items() if b[0] is not None}
@@ -171,7 +171,7 @@ def support_issues(t):
 
 # ---------------------------------------------------------------- recorrido a pie
 def climbable(g, x, y, z):
-    """Escalera de mano, o trampilla abierta justo encima de una (en el juego también se trepa)."""
+    """Ladder, or open trapdoor right above one (in the game you can also climb it)."""
     st = g(x, y, z)
     if bname(st) == "ladder":
         return True
@@ -182,20 +182,20 @@ FACE = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 
 
 def walk(t, extra_ground=True):
-    """Celdas (x, y, z) donde puede estar de pie un jugador que entra por el acceso de la pieza,
-    sin saltar ni romper bloques. Devuelve {celda: altura de los pies}."""
+    """Cells (x, y, z) where a player entering through the piece's access can stand,
+    without jumping or breaking blocks. Returns {cell: feet height}."""
     t = resolved(t)
     g = t.get
     x0, y0, z0, x1, y1, z1 = t.bounds()
 
     def surf(x, y, z, mdx=0, mdz=0):
-        """(altura al entrar, altura de apoyo) con los pies en la celda y, o None."""
+        """(height on entering, support height) with the feet in cell y, or None."""
         st = g(x, y, z)
         h = top_height(st)
         b = bname(st) if st else None
         if st is not None and b.endswith("_stairs") and "half=bottom" in st:
             fx, fz = FACE[prop(st, "facing")]
-            low = (mdx, mdz) == (fx, fz)            # se entra por el lado bajo subiendo
+            low = (mdx, mdz) == (fx, fz)            # you enter from the low side going up
             return (y + 0.5 if low else y + 1.0, y + 1.0)
         if h is not None and h <= 0.6:
             return (y + h, y + h)
@@ -249,14 +249,14 @@ def walk(t, extra_ground=True):
                 r = surf(nx, ny, nz, dx, dz)
                 if r is None:
                     if ny < y and not passable(g(nx, ny, nz)):
-                        break           # al bajar no se atraviesa un bloque macizo (techo de la sala de abajo)
+                        break           # going down you do not pass through a solid block (roof of the room below)
                     continue
                 enter, stand = r
                 if enter - s > 0.6 or stand > s + 1.01 or not headroom(nx, ny, nz, stand):
                     if passable(g(nx, ny, nz)):
-                        continue        # aire o escalera de mano: se sigue bajando por la misma columna
+                        continue        # air or ladder: keep going down the same column
                     break
-                # el paso debe estar libre a la altura del cuerpo
+                # the passage must be clear at body height
                 cand.append((nx, ny if stand < ny + 1 else ny + 1, nz, stand))
                 break
         here = g(x, y, z)
@@ -305,7 +305,7 @@ def access_issues(t):
                 out.append(("puerta sin salida o sin acceso", (x, y, z)))
         elif b == "ladder":
             if not climbable(g, x, y + 1, z):
-                # final de la escalera: debe dar a un suelo
+                # end of the stairs: must lead to a floor
                 if not any((x + dx, y + 1, z + dz) in cells or (x + dx, y, z + dz) in cells
                            for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1), (0, 0))) or \
                         not any((x + dx, yy, z + dz) in cells for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1))
@@ -326,16 +326,16 @@ def access_issues(t):
 
 
 def template_issues(t):
-    # puertas dobles y altura libre de las escaleras: en todas las plantillas, también las que se auditan aparte
+    # double doors and stair headroom: in all templates, including those audited separately
     iss = door_pair_issues(t) + stair_headroom_issues(t)
-    if not getattr(t, "no_generic_audit", False):   # estructuras que se auditan enteras en su módulo
-        # lint_view: la misma pieza con sus mecanismos accionados (p. ej. puertas secretas abiertas)
+    if not getattr(t, "no_generic_audit", False):   # structures audited as a whole in their module
+        # lint_view: the same piece with its mechanisms activated (e.g. secret doors open)
         iss += support_issues(t) + access_issues(getattr(t, "lint_view", None) or t)
     return iss
 
 
 def lint_registry(reg, only=None):
-    """{plantilla: avisos} de la auditoría genérica, en el orden del registro (repartida entre procesos)."""
+    """{template: warnings} of the generic audit, in registry order (split across processes)."""
     import parallel
     names = [n for n in reg.templates if not only or only(n)]
     found = parallel.map_obj(lambda n: template_issues(reg.templates[n]), names, chunksize=8)
@@ -353,25 +353,25 @@ def summarize(res):
     return c, ex
 
 
-# ---------------------------------------------------------------- puertas dobles y escaleras con techo
+# ---------------------------------------------------------------- double doors and stairs with a ceiling
 LEFT_OF = {"north": "west", "west": "south", "south": "east", "east": "north"}   # izquierda de quien mira hacia `facing`
 RIGHT_OF = {v: k for k, v in LEFT_OF.items()}
 OPPOSITE = {"north": "south", "south": "north", "east": "west", "west": "east"}
 
 
 def door_hinge(facing, side):
-    """Bisagra de la hoja de una puerta doble que mira a `facing`; `side` es hacia dónde queda la otra hoja.
-    Cada hoja lleva la bisagra en su lado de fuera (como al colocarlas a mano en el juego): así se abren en espejo."""
+    """Hinge of the leaf of a double door facing `facing`; `side` is the direction in which the other leaf lies.
+    Each leaf has its hinge on its outer side (as when placing them by hand in the game): so they open as mirror images."""
     if side == LEFT_OF[facing]:
         return "right"
     if side == RIGHT_OF[facing]:
         return "left"
-    raise ValueError(f"la otra hoja ({side}) no está al lado de una puerta que mira a {facing}")
+    raise ValueError(f"the other leaf ({side}) is not next to a door facing {facing}")
 
 
 def door_pair_issues(t):
-    """Parejas de puertas contiguas (lado con lado) que no forman una puerta doble correcta:
-    mismo `facing` y bisagras opuestas con la bisagra en el lado de fuera de cada hoja."""
+    """Pairs of adjacent doors (side by side) that do not form a correct double door:
+    same `facing` and opposite hinges with the hinge on the outer side of each leaf."""
     out = []
     for (x, y, z), (st, _) in t.blocks.items():
         if not st or not bname(st).endswith("_door") or prop(st, "half") != "lower":
@@ -399,11 +399,11 @@ def _blocks_body(st):
 
 
 def stair_headroom_issues(t):
-    """Escaleras de peldaños por las que no se pasa sin romper nada. Un tramo es una fila de dos o más peldaños
-    (escalón abajo, mismo `facing`) que sube de uno en uno y arranca de un suelo pisable (así se descartan los tejados).
-    Sobre cada peldaño hacen falta dos bloques pasables y, si sigue otro peldaño, un tercero: al subir, el jugador
-    (1,8 de alto y 0,6 de ancho) apoya los pies en el escalón siguiente (a +1,5 y +2) con el cuerpo aún sobre este.
-    En el rellano de arriba, dos bloques pasables sobre el suelo."""
+    """Stairs of steps that cannot be passed without breaking anything. A flight is a row of two or more steps
+    (step down, same `facing`) that rise one at a time and start from a walkable floor (this rules out roofs).
+    Above each step two passable blocks are needed and, if another step follows, a third: when going up, the player
+    (1.8 tall and 0.6 wide) puts their feet on the next step (at +1.5 and +2) with the body still over this one.
+    On the landing at the top, two passable blocks above the floor."""
     v = resolved(t)
     g = v.get
     out = []
@@ -413,8 +413,8 @@ def stair_headroom_issues(t):
         f = prop(st, "facing")
         fx, fz = FACE[f]
         if _bottom_stair(g(x - fx, y - 1, z - fz), f) or not _bottom_stair(g(x + fx, y + 1, z + fz), f):
-            continue        # solo desde el primer peldaño de cada tramo
-        bx, by, bz = x - fx, y, z - fz      # celda desde la que se pisa el primer peldaño
+            continue        # only from the first step of each flight
+        bx, by, bz = x - fx, y, z - fz      # cell from which the first step is stepped on
         base, under = g(bx, by, bz), g(bx, by - 1, bz)
         if not (passable(base) and (under is None and by <= 0 or under and top_height(under) == 1.0
                                      or bname(under) == "water" or _bottom_stair(under))
@@ -426,7 +426,7 @@ def stair_headroom_issues(t):
             steps.append((cx, cy, cz))
             cx, cy, cz = cx + fx, cy + 1, cz + fz
         if any(_bottom_stair(g(a, b + 1, c), f) for a, b, c in steps):
-            continue        # peldaños apilados: masa de un tejado, no una escalera
+            continue        # stacked steps: the mass of a roof, not a staircase
         for cx, cy, cz in steps:
             nxt = _bottom_stair(g(cx + fx, cy + 1, cz + fz), f)
             if any(_blocks_body(g(cx, cy + k, cz)) for k in (1, 2)):
@@ -437,7 +437,7 @@ def stair_headroom_issues(t):
                 ax, az = cx + fx, cz + fz
                 land, up = g(ax, cy, az), g(ax, cy + 1, az)
                 if up and (_bottom_stair(up) or bname(up).endswith("_slab") and "type=bottom" in up):
-                    # medio escalón más: pies a +1,5 con el cuerpo aún sobre el último peldaño
+                    # half a step more: feet at +1.5 with the body still over the last step
                     if any(_blocks_body(g(q, cy + k, r)) for k in (2, 3) for q, r in ((ax, az), (cx, cz))):
                         out.append(("escalera con techo bajo al llegar arriba", (cx, cy, cz)))
                 elif land and top_height(land) == 1.0 and not passable(land) and passable(up) \

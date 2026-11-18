@@ -1,4 +1,4 @@
-"""caminos.py: el rasgo heraldia:camino, su colocación, los textos del cartel y las opciones aldeas.caminos.*."""
+"""caminos.py: the heraldia:camino feature, its placement, the sign texts and the aldeas.caminos.* options."""
 import roads
 import options
 import writer
@@ -6,7 +6,7 @@ import writer
 
 def test_trait_and_placement():
     assert roads.feature() == {"type": "heraldia:camino"}
-    # sin modificadores: una vez por chunk, en su esquina (el Java pinta el chunk entero)
+    # without modifiers: once per chunk, at its corner (the Java paints the whole chunk)
     assert roads.placed_feature() == {"feature": "heraldia:camino", "placement": []}
 
 
@@ -23,9 +23,9 @@ def test_sign_texts_in_both_languages():
     for lang in roads.LANG.values():
         for key, text in lang.items():
             assert key.startswith("heraldia.camino.cartel.")
-            assert text.count("%s") == 1                      # la distancia
-            assert len(text % "1999") <= 15                    # cabe en una línea de cartel
-    # el Java usa el texto en español como respaldo (clientes sin el mod)
+            assert text.count("%s") == 1                      # the distance
+            assert len(text % "1999") <= 15                    # fits on a sign line
+    # the Java uses the Spanish text as a fallback (clients without the mod)
     assert roads.LANG["es_es"]["heraldia.camino.cartel.derecha"] == "%s bloques →"
     assert roads.LANG["es_es"]["heraldia.camino.cartel.izquierda"] == "← %s bloques"
 
@@ -34,7 +34,7 @@ def test_road_options():
     ops = {o["clave"]: o for o in options.schema()["opciones"]}
     assert ops["aldeas.caminos.activado"]["defecto"] is True
     d = ops["aldeas.caminos.distancia_maxima_bloques"]
-    # la separación mínima entre dos aldeas es de 672 bloques (rejilla mínima de 1.000): por debajo no se uniría ninguna
+    # the minimum separation between two villages is 672 blocks (minimum grid of 1,000): below that none would be joined
     assert d["defecto"] == 2000 and d["min"] == 500 and d["max"] == 4000
     w = ops["aldeas.caminos.ancho"]
     assert (w["defecto"], w["min"], w["max"]) == (3, 1, 5)
@@ -46,5 +46,5 @@ def test_road_options():
 
 
 def test_texts_in_the_mod_language():
-    # writer junta los textos de caminos con los demás (los mismos en los dos idiomas)
+    # writer merges the road texts with the others (the same in both languages)
     assert writer.LANG["es_es"].keys() == writer.LANG["en_us"].keys()

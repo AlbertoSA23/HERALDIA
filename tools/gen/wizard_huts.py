@@ -1,18 +1,18 @@
-"""Chozas de mago (T43): lo que no es la plantilla (medianas/choza_mago.py). La lógica va en Java (chozas/): con la
-semilla del mundo y el chunk del mago decide si es malvado (chozas_mago.prob_malvado) y si su botín lleva el premio
-(chozas_mago.prob_botin_premium); lo revela una sola vez y le pone su tabla de botín. Aquí van sus textos y esas tablas.
+"""Wizard huts (T43): everything that is not the template (medianas/wizard_hut.py). The logic is in Java (chozas/): with the
+world seed and the wizard's chunk it decides whether he is evil (wizard_huts.prob_malvado) and whether his loot carries the prize
+(wizard_huts.prob_botin_premium); it reveals him only once and gives him his loot table. This module holds their texts and those tables.
 
-Claves:
-  heraldia.chozas_mago.*        lo que se dice a los jugadores (revelación, nombre del Mago Malvado y de cada mago),
-                                /heraldia wizard (operadores)
-  heraldia.estado.chozas_mago*  la línea de /heraldia status
-Tablas de botín (mob, no cofre: no se reponen ni llevan la pista del tesoro):
-  heraldia:chozas_mago/malvado          la del Mago Malvado: de más nivel que una mediana (MALVADO)
-  heraldia:chozas_mago/malvado_premium  la misma más un objeto fuerte (PREMIUM), si sale el premio
-El evocador vanilla suelta siempre un tótem de la inmortalidad; el Mago Malvado no (lleva su tabla en vez de la del
-evocador): las chozas son frecuentes y un mago de cada cinco es malvado, así que el tótem queda como una de las
-opciones del premio (una de cada ~30 chozas malvadas con los valores por defecto), no como botín seguro.
-Los argumentos (%s) los pone el Java (chozas/Magos): no cambies su orden sin cambiarlo allí.
+Keys:
+  heraldia.chozas_mago.*        what is said to players (reveal, name of the Evil Wizard and of each wizard),
+                                /heraldia wizard (operators)
+  heraldia.estado.chozas_mago*  the /heraldia status line
+Loot tables (mob, not chest: they are not refilled and carry no treasure hint):
+  heraldia:chozas_mago/malvado          the Evil Wizard's: higher level than a medium structure (EVIL)
+  heraldia:chozas_mago/malvado_premium  the same plus a strong item (PREMIUM), if the prize drops
+The vanilla evoker always drops a totem of undying; the Evil Wizard does not (he carries his own table instead of the
+evoker's): huts are frequent and one wizard in five is evil, so the totem remains one of the
+prize options (one in ~30 evil huts with the default values), not guaranteed loot.
+The arguments (%s) are supplied by the Java code (chozas/Magos): do not change their order without changing it there.
 """
 from loot import item, empty
 from uniques._common import chest_loot
@@ -21,7 +21,7 @@ NS = "heraldia"
 K = f"{NS}.chozas_mago"
 EVIL_TABLE = f"{NS}:chozas_mago/malvado"
 PREMIUM_TABLE = f"{NS}:chozas_mago/malvado_premium"
-# Nombres de los magos (nombres propios, iguales en todos los idiomas) y sus apodos (traducidos): «Aldric de la Bruma».
+# Wizard names (proper names, the same in all languages) and their nicknames (translated): "Aldric de la Bruma".
 NAMES = ["Aldric", "Morwen", "Tobias", "Ysolde", "Bertrand", "Elowen", "Cassius", "Ilsa", "Fenwick", "Odile",
            "Lazlo", "Mirela", "Quillon", "Rhosyn", "Severin", "Tamsin"]
 NICKNAMES = [
@@ -58,14 +58,14 @@ def _nickname(i):
     return f"{K}.apodo.{i}"
 
 
-# ---- botín del Mago Malvado (más que una mediana; sin netherita, élitros ni manzanas encantadas)
+# ---- Evil Wizard loot (more than a medium structure; no netherite, elytra or enchanted apples)
 FORBIDDEN = ("netherite", "elytra", "enchanted_golden_apple")
 _PLAYER = {"type": "minecraft:killed_by_player"}
 
 
 def _pool(rolls, entries):
     p = chest_loot.pool(rolls, entries)
-    p["condition"] = _PLAYER           # solo si lo vence un jugador (ni lava ni caídas)
+    p["condition"] = _PLAYER           # only if a player defeats him (not lava or falls)
     return p
 
 
@@ -78,7 +78,7 @@ EVIL = [
               chest_loot.potion("long_night_vision", 2), item("diamond", 2, 1, 2), item("golden_apple", 2),
               item("iron_sword", 1, ench=(15, 25))]),
 ]
-# el premio: un objeto más fuerte que no rompe la progresión (Decisiones del dueño)
+# the prize: a stronger item that does not break progression (Decisiones del dueño)
 PREMIUM = _pool(1, [
     chest_loot.book(5, {"minecraft:mending": 1}),
     chest_loot.potion("strong_turtle_master", 3), chest_loot.potion("turtle_master", 3), chest_loot.potion("long_slow_falling", 3),
@@ -91,13 +91,13 @@ PREMIUM = _pool(1, [
 
 
 def tables():
-    """{id corto: tabla} del botín del Mago Malvado (para validate_loot y los tests)."""
+    """{short id: table} of the Evil Wizard's loot (for validate_loot and the tests)."""
     return {"chozas_mago/malvado": {"type": "minecraft:entity", "pools": list(EVIL)},
             "chozas_mago/malvado_premium": {"type": "minecraft:entity", "pools": list(EVIL) + [PREMIUM]}}
 
 
 def items(tbl):
-    """Ids de los objetos de una tabla (con espacio de nombres)."""
+    """Ids of the items in a table (with namespace)."""
     out = []
 
     def walk(o):
@@ -114,17 +114,17 @@ def items(tbl):
 
 
 def errors():
-    """Reglas del botín (falla la generación): nada prohibido, el premio en la tabla premium y solo en ella."""
+    """Loot rules (generation fails): nothing forbidden, the prize in the premium table and only there."""
     errs = []
     t = tables()
     for name, tbl in t.items():
         for o in items(tbl):
             if any(p in o for p in FORBIDDEN):
-                errs.append(f"{name}: {o} rompe la progresión (chozas_mago.PROHIBIDO)")
+                errs.append(f"{name}: {o} breaks progression (chozas_mago.PROHIBIDO)")
     if "minecraft:totem_of_undying" in items(t["chozas_mago/malvado"]):
-        errs.append("chozas_mago/malvado: el tótem solo puede salir en el premio")
+        errs.append("chozas_mago/malvado: the totem can only drop as the prize")
     if len(t["chozas_mago/malvado_premium"]["pools"]) != len(t["chozas_mago/malvado"]["pools"]) + 1:
-        errs.append("chozas_mago/malvado_premium: debe ser la normal más el grupo del premio")
+        errs.append("chozas_mago/malvado_premium: must be the normal one plus the prize group")
     return errs
 
 
@@ -140,7 +140,7 @@ def lang():
 
 
 def schema():
-    """heraldia/chozas_mago.json (dentro del .jar): nombres y número de apodos para el Java."""
+    """heraldia/wizard_huts.json (inside the .jar): names and number of nicknames for the Java code."""
     return {"nombres": NAMES, "apodos": len(NICKNAMES)}
 
 

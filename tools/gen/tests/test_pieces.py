@@ -1,4 +1,4 @@
-"""_comun/piezas.py: piezas comunes en estado coherente al colocarse."""
+"""_comun/piezas.py: common pieces in a coherent state when placed."""
 import pytest
 import lint
 from core import Template, ADULT_TAG, ANCHORED_TAG
@@ -42,7 +42,7 @@ def test_guardian_tags_and_attributes():
     g = pieces.guardian("zombie", "k", "Fb", 40, armor=4, attributes={"attack_damage": 5},
                         extra={"Tags": ["otra", pieces.GUARDIAN_TAG], "NoAI": 1})
     assert g["Tags"][0] == pieces.GUARDIAN_TAG and g["Tags"].count(pieces.GUARDIAN_TAG) == 1
-    assert "otra" in g["Tags"] and ADULT_TAG in g["Tags"]            # zombi: siempre adulto
+    assert "otra" in g["Tags"] and ADULT_TAG in g["Tags"]            # zombie: always adult
     ids = {a["id"]: a["base"] for a in g["attributes"]}
     assert ids == {"minecraft:max_health": 40.0, "minecraft:armor": 4.0, "minecraft:attack_damage": 5.0}
     assert g["NoAI"] == 1 and g["CustomName"] == {"translate": "k", "fallback": "Fb"}
@@ -58,7 +58,7 @@ def test_guardian_always_anchored(mob):
 def test_wire_shapes():
     t, put = new_one()
     pieces.wire(put, [(0, 0), (1, 0), (1, 1)], y=1)
-    assert "east=side" in t.get(0, 1, 0) and "west=side" in t.get(0, 1, 0)     # extremo suelto en línea recta
+    assert "east=side" in t.get(0, 1, 0) and "west=side" in t.get(0, 1, 0)     # loose end in a straight line
     assert "west=side" in t.get(1, 1, 0) and "south=side" in t.get(1, 1, 0)
     t, put = new_one()
     pieces.wire(put, [(0, 1, 0), (1, 2, 0)])
@@ -77,7 +77,7 @@ def test_double_door_without_hinge_failures():
     t, put = new_one()
     pieces.double_door(put, 0, 0, 0, "north", "east")
     assert lint.door_pair_issues(t) == []
-    # al cambiar la bisagra de una hoja, la auditoría lo ve
+    # when the hinge of a leaf changes, the audit sees it
     st = t.get(0, 0, 0)
     t.set(0, 0, 0, st.replace("hinge=left", "hinge=X").replace("hinge=right", "hinge=left").replace("hinge=X", "hinge=right"))
     assert lint.door_pair_issues(t)
@@ -98,8 +98,8 @@ def test_lever_door_stable_and_opens():
     r = pieces.lever_door(put, (0, 0, 0), "east", "north", "stone_bricks", "stone_bricks")
     assert rs.check_static(t)[0] == []
     pist = [(2, 0, 0), (2, 1, 0)]
-    assert all(rs.Sim(t).powered(p) for p in pist)                       # cerrada: pistones con señal
-    assert not any(rs.Sim(t, {r["lever"]: True}).powered(p) for p in pist)   # palanca: se recogen
+    assert all(rs.Sim(t).powered(p) for p in pist)                       # closed: pistons with signal
+    assert not any(rs.Sim(t, {r["lever"]: True}).powered(p) for p in pist)   # lever: they retract
     assert r["opened"][r["lever"]].endswith("powered=true]")
 
 
@@ -125,7 +125,7 @@ def test_spiral_stair_rises_six_per_flight():
     assert guard == pieces.GUARD
     steps = sorted(p for p, (st, _) in t.blocks.items() if "half=bottom" in st)
     assert sorted(y for _, y, _ in steps) == list(range(1, 13))
-    assert all(t.get(0, y, 0) == "minecraft:stone_bricks" for y in range(0, 14))   # machón
+    assert all(t.get(0, y, 0) == "minecraft:stone_bricks" for y in range(0, 14))   # buttress
 
 
 def test_spiral_slabs_and_slab_y():
@@ -151,7 +151,7 @@ def test_connect_fences_and_walls():
     pieces.connect(t)
     assert "east=true" in t.get(0, 0, 0) and "south=true" in t.get(0, 0, 0) and "west=false" in t.get(0, 0, 0)
     w = t.get(5, 0, 0)
-    assert "north=low" in w and "south=low" in w and "up=false" in w     # tramo recto: sin poste
+    assert "north=low" in w and "south=low" in w and "up=false" in w     # straight section: no post
 
 
 def test_open_stairwells_removes_the_roof_below():
@@ -160,7 +160,7 @@ def test_open_stairwells_removes_the_roof_below():
         put(x, -1, 0, "stone")
     for i in range(4):
         put(i, i, 0, "oak_stairs[facing=east,half=bottom]")
-    put(1, 4, 0, "stone")                   # techo a 3 del peldaño 1 cuando sigue otro peldaño
+    put(1, 4, 0, "stone")                   # ceiling 3 above step 1 when another step follows
     assert ("escalera con techo bajo en la subida", (1, 1, 0)) in lint.stair_headroom_issues(t)
     assert pieces.open_stairwells(t) == [(1, 4, 0)]
     assert t.get(1, 4, 0) == "minecraft:air"

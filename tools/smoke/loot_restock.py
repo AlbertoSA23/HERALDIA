@@ -1,19 +1,19 @@
-"""Botín que se repone (botin.reponer.*) en un servidor dedicado 26.3 real, con jugadores simulados (Carpet).
+"""Loot that is restocked (chest_loot.reponer.*) on a real 26.3 dedicated server, with simulated players (Carpet).
 
-Uso: python3 tools/smoke/loot_restock.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-Con botin.reponer.activado = true y botin.reponer.dias = 1, el reloj parado (advance_time false) y los días simulados
-con /time add 24000, un jugador simulado abre los cofres (player ... use once, como un clic derecho) y se comprueba:
-  - un cofre con tabla de Heraldia (heraldia:cofres/prueba_reponer, de un datapack de prueba con 7 flechas fijas): al
-    abrirlo se llena y queda apuntado (custom_data heraldia_botin con su tabla); vaciado, no se repone antes de un día y sí
-    al pasar el día;
-  - con 4 casillas ocupadas no se repone ni se toca nada; con 3 (casi vacío) sí, y lo que había (un diamante en la
-    casilla 0) sigue ahí;
-  - con otro jugador a 8 bloques no se repone; con él a 100 bloques, sí;
-  - no se apuntan el cofre de contenido fijo (heraldia_cofre_unico), uno con tabla de trofeo ni uno con tabla vanilla;
-  - un cofre ya generado y saqueado antes de activar la opción (el de la celda de una ermita generada de verdad, la que
-    da /locate, sin su LootTable y vacío): al abrirlo se reconoce su tabla original por la plantilla de la estructura y al día se repone;
-  - tras reiniciar con la opción desactivada (lo de por defecto), abrir un cofre de Heraldia no apunta nada.
-Sin Lootr (que desactiva todo esto) no se prueba aquí.
+Usage: python3 tools/smoke/loot_restock.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+With chest_loot.reponer.activado = true and chest_loot.reponer.dias = 1, the clock stopped (advance_time false) and the days simulated
+with /time add 24000, a simulated player opens the chests (player ... use once, like a right click) and it checks:
+  - a chest with a Heraldia table (heraldia:cofres/prueba_reponer, from a test datapack with 7 fixed arrows): when
+    opened it fills up and is marked (custom_data heraldia_botin with its table); once emptied, it is not restocked before a day has passed, and is
+    once the day passes;
+  - with 4 slots occupied it is not restocked and nothing is touched; with 3 (almost empty) it is, and what was there (a diamond in
+    slot 0) is still there;
+  - with another player 8 blocks away it is not restocked; with them 100 blocks away, it is;
+  - the fixed-content chest (heraldia_cofre_unico), one with a trophy table and one with a vanilla table are not marked;
+  - a chest already generated and looted before enabling the option (the one in the cell of a really generated hermitage, the one
+    /locate gives, without its LootTable and empty): when opened its original table is recognized from the structure template and a day later it is restocked;
+  - after restarting with the option disabled (the default), opening a Heraldia chest marks nothing.
+Without Lootr (which disables all this) it is not tested here.
 """
 import argparse, json, os, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -22,18 +22,18 @@ import server_smoke as s
 from guide import Server
 from trophies import CARPET
 from modrinth import fetch
-import mediums                      # noqa: E402  (plantillas de las medianas: dónde está el cofre de la ermita)
+import mediums                      # noqa: E402  (medium structure templates: where the hermitage chest is)
 from pack import Registry           # noqa: E402
 from medium_structures import forceload, wait_generated   # noqa: E402
 
-PLAYER, OTHER_ONE = "Testigo", "Aprendiz"     # los de guia.py (Carpet puede cambiar las mayúsculas de otros nombres)
+PLAYER, OTHER_ONE = "Testigo", "Aprendiz"     # those from guide.py (Carpet may change the capitalization of other names)
 DAY = 24000
 TABLE = "heraldia:cofres/prueba_reponer"
 ARROWS = 7
-C = (0, 100, 0)                       # cofre de prueba, en una losa; el jugador a 2 bloques
+C = (0, 100, 0)                       # test chest, on a slab; the player 2 blocks away
 PACK = "heraldia_prueba_botin"
 HERMITAGE, HERMITAGE_TABLE = "medianas/ermita", "heraldia:medianas/ermita/celda"
-# StructureTemplate.transform (sin espejo, pivote 0): (x, z) local -> desplazamiento en el mundo, por giro
+# StructureTemplate.transform (no mirror, pivot 0): local (x, z) -> offset in the world, per rotation
 TURNS = {"none": lambda x, z: (x, z), "cw90": lambda x, z: (-z, x), "cw180": lambda x, z: (-x, -z), "ccw90": lambda x, z: (z, -x)}
 
 
@@ -56,7 +56,7 @@ def config(work, switched_on):
 
 
 def hermitage_chests():
-    """Posiciones locales (x, y, z) de los cofres con la tabla de la celda en los estilos y variantes de la ermita."""
+    """Local positions (x, y, z) of the chests with the cell table in the hermitage's styles and variants."""
     reg = Registry()
     mediums.build(reg, "ermita")
     out = set()
@@ -74,7 +74,7 @@ def main():
     os.makedirs(a.work, exist_ok=True)
     local_coords = hermitage_chests()
     if len(local_coords) != 1:
-        raise SystemExit(f"la ermita debería tener un solo cofre de celda (en todos sus estilos y variantes): {local_coords}")
+        raise SystemExit(f"the hermitage should have a single cell chest (in all its styles and variants): {local_coords}")
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
     datapack(a.work)
@@ -89,14 +89,14 @@ def main():
             ok += 1
         else:
             fails.append(msg)
-            print("FALLA:", msg)
+            print("FAIL:", msg)
 
     def at(p):
         return " ".join(str(v) for v in p)
 
     def use(p, who=PLAYER):
         x, y, z = p
-        # las acciones de Carpet no responden nada en la consola: se envían y se espera con una orden que sí responde
+        # Carpet actions print nothing to the console: they are sent and we wait with a command that does respond
         s.send(srv.proc, f"player {who} look at {x + 0.5} {y + 0.5} {z + 0.5}")
         s.send(srv.proc, f"player {who} use once")
         ctx.ticks(4)
@@ -105,7 +105,7 @@ def main():
         return ctx.test(f"execute if data block {at(p)} Items[{extra}]")
 
     def arrows(p):
-        """¿Hay flechas del datapack? (el botín de cofre reparte una pila en varias casillas libres al azar)"""
+        """Are there arrows from the datapack? (chest loot spreads a stack over several free slots at random)"""
         return ctx.test(f'execute if data block {at(p)} Items[{{id:"minecraft:arrow"}}]')
 
     def record(p, tbl=None):
@@ -131,11 +131,11 @@ def main():
             ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
         ctx.run(f"player {PLAYER} spawn at {x + 2} {y} {z}", r"joined the game|Player .* spawn|Unknown|Incorrect")
         if not ctx.until(f"execute if entity @a[name={PLAYER}]"):
-            raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
-        s.send(srv.proc, f"gamemode survival {PLAYER}")  # sin respuesta en la consola si ya lo tenía
+            raise SystemExit(f"simulated player {PLAYER} (Carpet) does not appear")
+        s.send(srv.proc, f"gamemode survival {PLAYER}")  # no console response if it already had it
         check("botín que se repone activado: cada 1 días" in ctx.log(), "no sale en el log que la opción está activada")
 
-        # 1) cofre nuevo con tabla de Heraldia: se llena y queda apuntado; vaciado, espera un día
+        # 1) new chest with a Heraldia table: it fills up and is marked; once emptied, it waits a day
         ctx.run(f'setblock {at(C)} minecraft:chest{{LootTable:"{TABLE}"}}', r"Changed the block|Could not set")
         use(C)
         check(arrows(C), "el cofre nuevo no se llena con su tabla al abrirlo")
@@ -151,14 +151,14 @@ def main():
         use(C)
         check(arrows(C), "vacío y pasado el día, no se repone")
         use(C)
-        nearby_flag = f"@e[type=minecraft:item,x={x},y={y},z={z},distance=..8]"     # (no la hojarasca que suelta el terreno)
+        nearby_flag = f"@e[type=minecraft:item,x={x},y={y},z={z},distance=..8]"     # (not the leaves that the terrain drops)
         n = ctx.count(nearby_flag)
         if n:
             m = ctx.run(f"data get entity {nearby_flag[:-1]},limit=1] Item", r"has the following entity data: (.*)|No entity")
-            print("DIAG: objeto en el suelo:", m.group(1), ctx.pos(nearby_flag))
+            print("DIAG: item on the ground:", m.group(1), ctx.pos(nearby_flag))
         check(n == 0, f"{n} objetos han caído al suelo")
 
-        # 2) con cosas dentro: 4 casillas no; 3 (casi vacío) sí, sin tocar lo que había
+        # 2) with things inside: 4 slots no; 3 (almost empty) yes, without touching what was there
         ctx.run(f'data modify block {at(C)} Items set value [{{Slot:0b,id:"minecraft:diamond",count:1}},'
                 f'{{Slot:1b,id:"minecraft:dirt",count:5}},{{Slot:2b,id:"minecraft:dirt",count:5}},{{Slot:3b,id:"minecraft:dirt",count:5}}]',
                 r"Modified block data")
@@ -171,12 +171,12 @@ def main():
         check(items(C, '{Slot:0b,id:"minecraft:diamond",count:1}') and items(C, '{Slot:1b,id:"minecraft:dirt",count:5}')
               and items(C, '{Slot:2b,id:"minecraft:dirt",count:5}'), "al reponer se ha tocado lo que había")
 
-        # 3) otro jugador cerca lo impide
+        # 3) another player nearby prevents it
         empty(C)
         day()
         ctx.run(f"player {OTHER_ONE} spawn at {x + 8} {y} {z}", r"joined the game|Player .* spawn|Unknown|Incorrect")
         check(ctx.until(f"execute if entity @a[name={OTHER_ONE}]"), f"no aparece {OTHER_ONE}")
-        s.send(srv.proc, f"gamemode survival {OTHER_ONE}")  # sin respuesta en la consola si ya lo tenía
+        s.send(srv.proc, f"gamemode survival {OTHER_ONE}")  # no console response if it already had it
         use(C)
         check(not items(C), "se repone con otro jugador a 8 bloques")
         ctx.run(f"tp {OTHER_ONE} {x + 100} {y + 20} {z}", r"Teleported")
@@ -185,7 +185,7 @@ def main():
         check(arrows(C), "con el otro jugador a 100 bloques no se repone")
         ctx.run(f"player {OTHER_ONE} kill", r"left the game|Unknown|Incorrect")
 
-        # 4) lo que no se repone: contenido fijo, trofeo, vanilla
+        # 4) what is not restocked: fixed content, trophy, vanilla
         others = {"fijo": ((x + 4, y, z), 'minecraft:chest{components:{"minecraft:custom_data":{heraldia_cofre_unico:"atlantida"}},'
                           f'LootTable:"{TABLE}"}}'),
                  "trofeo": ((x + 6, y, z), 'minecraft:chest{LootTable:"heraldia:trofeos/castillo"}'),
@@ -198,15 +198,15 @@ def main():
             check(not record(p), f"el cofre {name} queda apuntado para reponerse")
         ctx.run(f"tp {PLAYER} {x + 2} {y} {z}", r"Teleported")
 
-        # 5) cofre ya generado y saqueado antes de activar la opción: se reconoce por la plantilla. Una ermita generada de
-        #    verdad (/place structure no guarda el inicio en los chunks: getStructureWithPieceAt no la vería)
+        # 5) chest already generated and looted before enabling the option: recognized by the template. A really generated
+        #    hermitage (/place structure does not save the start in the chunks: getStructureWithPieceAt would not see it)
         m = ctx.run("execute positioned 0 64 0 run locate structure #heraldia:medianas/ermita",
                     r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
         check(bool(m.lastindex and m.group(1)), "/locate no encuentra ninguna ermita")
         place_chest = None
         if m.lastindex and m.group(1):
             px, pz = int(m.group(1)), int(m.group(2))
-            ex, ez = px >> 4 << 4, pz >> 4 << 4         # el origen de la pieza es la esquina del chunk de inicio
+            ex, ez = px >> 4 << 4, pz >> 4 << 4         # the piece's origin is the corner of the start chunk
             forceload(ctx, ex - 32, ez - 32, ex + 31, ez + 31)
             check(wait_generated(ctx, ex, ez, "ermita"), f"la ermita de {px}, {pz} no se genera")
             lx, ly, lz = local_coords[0]
@@ -218,11 +218,11 @@ def main():
                         place_chest = p
                         break
                 if place_chest:
-                    print(f"cofre de la ermita de {px}, {pz} en {place_chest} (giro {turn})")
+                    print(f"hermitage chest at {px}, {pz} in {place_chest} (rotation {turn})")
                     break
             check(place_chest is not None, f"no se encuentra el cofre de la celda de la ermita de {px}, {pz}")
         if place_chest:
-            # «saqueado antes»: sin su tabla ni nada dentro, y sin apuntar
+            # "looted before": without its table or anything inside, and not marked
             ctx.run(f"data remove block {at(place_chest)} LootTable", r"Modified block data")
             empty(place_chest)
             cx, cy, cz = place_chest
@@ -237,7 +237,7 @@ def main():
             check(items(place_chest), "el cofre de la ermita no se repone pasado el día")
         srv.stop()
 
-        # 6) con la opción desactivada (por defecto), nada se apunta
+        # 6) with the option disabled (default), nothing is marked
         config(a.work, False)
         srv = Server(a.work, launcher)
         ctx = srv.ctx

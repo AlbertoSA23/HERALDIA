@@ -1,7 +1,7 @@
-"""Molino (heraldia:medianas/molino/<estilo>): patio de 19 x 19 con un molino y su campo. Variante a: molino de agua,
-casa de 7 x 9 con la muela (afiladera), la rueda de paletas en un caz con agua quieta al este y el molinero (aldeano
-quieto con tratos fijos: compra trigo, vende pan y harina para tarta); b: molino de viento, torre de 7 x 7 y tres plantas
-con las aspas al sur y un trigal con su acequia al este, sin nadie. Sin monstruos."""
+"""Mill (heraldia:medianas/molino/<estilo>): 19 x 19 courtyard with a mill and its field. Variant a: watermill,
+7 x 9 house with the millstone (grindstone), the paddle wheel in a still-water millrace to the east and the miller (stationary
+villager with fixed trades: buys wheat, sells bread and cake flour); b: windmill, 7 x 7 three-floor tower
+with the sails to the south and a wheat field with its irrigation ditch to the east, with nobody there. No monsters."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot
@@ -31,7 +31,7 @@ LOOT = {
 }
 
 L = 19
-DOOR_COL = 6                         # eje de la puerta (las dos variantes)
+DOOR_COL = 6                         # door axis (both variants)
 
 
 def offers():
@@ -53,7 +53,7 @@ def _courtyard(t, p):
 
 
 def _wheel(t, p, x, cy, cz, r=3):
-    """Rueda de paletas en el plano x (eje a lo largo de x): aro de tablones, radios de valla y el cubo de tronco."""
+    """Paddle wheel in the x plane (axis along x): plank rim, fence spokes and the log hub."""
     m = p["madera"]
     for dy in range(-r, r + 1):
         for dz in range(-r, r + 1):
@@ -67,7 +67,7 @@ def _wheel(t, p, x, cy, cz, r=3):
 
 
 def water(p, name):
-    """Molino de agua: casa de 7 x 9 (x 3..9, z 5..13), caz al este (x = 12) con la rueda y el molinero dentro."""
+    """Watermill: 7 x 9 house (x 3..9, z 5..13), millrace to the east (x = 12) with the wheel and the miller inside."""
     t = Template(name)
     _courtyard(t, p)
     m = p["madera"]
@@ -86,7 +86,7 @@ def water(p, name):
         c.window(t, X0, 2, z)
     c.window(t, X1, 2, 7)
     c.window(t, X1, 2, 11)
-    # caz: agua quieta en y = 0 (todo fuentes) entre dos pretiles, con la rueda encima; el eje entra por el muro este
+    # millrace: still water at y = 0 (all sources) between two parapets, with the wheel on top; the axle enters through the east wall
     for z in range(3, 16):
         t.set(11, 0, z, p["pretil"])
         t.set(13, 0, z, p["pretil"])
@@ -97,7 +97,7 @@ def water(p, name):
     t.set(X1, 4, 9, f"{p['tronco']}[axis=x]")
     t.set(10, 4, 9, f"{p['tronco']}[axis=x]")
     t.set(11, 4, 9, f"{p['tronco']}[axis=x]")
-    # dentro: la muela junto al eje, costales (toneles y paja), el cofre y la cama del molinero
+    # inside: the millstone next to the axle, sacks (barrels and hay), the chest and the miller's bed
     t.set(X1 - 1, 1, 9, "grindstone[face=floor,facing=north]")
     t.set(X1 - 1, 4, 9, f"stripped_{p['tronco']}[axis=x]")
     t.fill(X1 - 1, 2, 9, X1 - 1, 3, 9, f"{m}_fence")
@@ -111,7 +111,7 @@ def water(p, name):
     t.set(X0 + 1, 1, Z0 + 1, "crafting_table")
     c.lantern(t, DOOR_COL, 4, 9)
     t.entity(DOOR_COL, 1, 11, c.villager(MID, "molinero", "Molinero", "farmer", p["aldeano"], offers(), rot=0.0))
-    # fuera: sacos apilados junto a la puerta y una carreta de heno
+    # outside: stacked sacks next to the door and a hay cart
     t.set(DOOR_COL + 2, 1, 3, "hay_block[axis=x]")
     t.set(DOOR_COL + 3, 1, 3, "hay_block[axis=x]")
     t.set(DOOR_COL - 2, 1, 3, "composter[level=0]")
@@ -119,8 +119,8 @@ def water(p, name):
 
 
 def wind(p, name):
-    """Molino de viento: torre de 7 x 7 (x 3..9, z 5..11), tres plantas con escalera de mano, aspas en la cara sur y un
-    trigal con acequia al este; sin nadie."""
+    """Windmill: 7 x 7 tower (x 3..9, z 5..11), three floors with a ladder, sails on the south face and a
+    wheat field with an irrigation ditch to the east; with nobody there."""
     t = Template(name)
     _courtyard(t, p)
     m = p["madera"]
@@ -130,14 +130,14 @@ def wind(p, name):
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, f"{m}_planks")
     c.box(t, X0, 1, Z0, X1, roof - 1, Z1, p["muro"], corner_block=f"{p['tronco']}[axis=y]")
-    t.fill(X0, 1, Z0, X1, 4, Z1, p["zocalo"])                       # el primer piso, de piedra
+    t.fill(X0, 1, Z0, X1, 4, Z1, p["zocalo"])                       # the first floor, of stone
     for x, z in ((X0, Z0), (X0, Z1), (X1, Z0), (X1, Z1)):
         t.fill(x, 1, z, x, roof - 1, z, f"{p['tronco']}[axis=y]")
     t.fill(X0 + 1, 1, Z0 + 1, X1 - 1, roof - 1, Z1 - 1, "air")
     for y in (5, 9):
         t.fill(X0 + 1, y, Z0 + 1, X1 - 1, y, Z1 - 1, f"{m}_planks")
     t.fill(X0, roof, Z0, X1, roof, Z1, f"{m}_planks")
-    # tejado a cuatro aguas: anillos de escalones que se cierran hasta una cumbrera
+    # hipped roof: rings of steps that close up to a ridge
     for k in range(4):
         y = roof + 1 + k
         xa, xb, za, zb = X0 - 1 + k, X1 + 1 - k, Z0 - 1 + k, Z1 + 1 - k
@@ -153,13 +153,13 @@ def wind(p, name):
             for z in range(za + 1, zb):
                 t.set(x, y, z, p["cumbrera"])
     c.door(t, CX, 1, Z0, "south", f"{m}_door")
-    c.ladder(t, X0 + 1, Z1 - 1, 1, 9, "north")               # pegada al muro sur; atraviesa los dos forjados
+    c.ladder(t, X0 + 1, Z1 - 1, 1, 9, "north")               # against the south wall; passes through both floors
     for y in (2, 7, 11):
         c.window(t, X0, y, 8)
         c.window(t, X1, y, 8)
     c.window(t, CX, 7, Z0)
     c.window(t, CX, 11, Z0)
-    # aspas: eje de tronco que sale por el muro sur (y = 10) y cuatro brazos con su lona
+    # sails: log axle that sticks out of the south wall (y = 10) and four arms with their canvas
     hy, hz = 10, Z1 + 1
     t.set(CX, hy, Z1, f"{p['tronco']}[axis=z]")
     t.set(CX, hy, hz, f"{p['tronco']}[axis=z]")
@@ -173,7 +173,7 @@ def wind(p, name):
             t.set(CX - 1, hy - k, hz, p["lona"])
             t.set(CX + k, hy - 1, hz, p["lona"])
             t.set(CX - k, hy + 1, hz, p["lona"])
-    # planta baja: la muela y los costales; primera: grano; segunda: el eje con su rueda dentada
+    # ground floor: the millstone and the sacks; first: grain; second: the axle with its cog wheel
     t.set(X1 - 1, 1, Z0 + 2, "grindstone[face=floor,facing=north]")
     c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "molienda", kind="barrel")
     t.set(X1 - 1, 1, Z0 + 1, "hay_block[axis=y]")
@@ -184,9 +184,9 @@ def wind(p, name):
     c.place_chest(t, X1 - 1, 6, Z1 - 1, "west", MID, "molinero")
     c.lantern(t, CX, 8, 8)
     t.fill(CX, hy, Z0 + 2, CX, hy, Z1 - 1, f"stripped_{p['tronco']}[axis=z]")
-    t.set(CX, 10, Z0 + 1, f"{m}_planks")                            # cojinete del eje en el muro norte
+    t.set(CX, 10, Z0 + 1, f"{m}_planks")                            # axle bearing in the north wall
     c.lantern(t, X1 - 1, 12, Z0 + 1)
-    # trigal al este con su acequia (una fuente en el centro) y un espantapájaros
+    # wheat field to the east with its irrigation ditch (a fountain in the center) and a scarecrow
     x0, x1, z0, z1 = 12, 16, 4, 14
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):

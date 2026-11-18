@@ -1,5 +1,5 @@
-"""tools/smoke/generation_cost.py: funciones puras de la prueba de coste de generación (percentiles, duraciones de JFR,
-zonas de Chunky, resumen por chunk, agregado de pasadas, sobrecoste, comparación con la referencia y el Markdown)."""
+"""tools/smoke/generation_cost.py: pure functions of the generation cost test (percentiles, JFR durations,
+Chunky zones, per-chunk summary, aggregate of passes, overhead, comparison with the reference and the Markdown)."""
 import json, os, sys
 import pytest
 
@@ -15,7 +15,7 @@ def test_percentile_interpolated():
     assert c.percentile(v, 0) == 1 and c.percentile(v, 100) == 10
     assert c.percentile(v, 50) == pytest.approx(5.5)
     assert c.percentile(v, 90) == pytest.approx(9.1)
-    assert c.percentile(list(reversed(v)), 90) == pytest.approx(9.1)      # no depende del orden
+    assert c.percentile(list(reversed(v)), 90) == pytest.approx(9.1)      # does not depend on the order
     assert c.percentile(list(range(101)), 99) == pytest.approx(99)
 
 
@@ -29,7 +29,7 @@ def test_duration_jfr():
 
 
 def test_chunky_zone_includes_both_edges():
-    # Chunky con centro 0,0 y radio 128 procesa 289 chunks (17 × 17), medido en el servidor
+    # Chunky with centre 0,0 and radius 128 processes 289 chunks (17 × 17), measured on the server
     box = c.chunks_of_zone(0, 0, 128)
     assert box == (-8, -8, 8, 8) and (box[2] - box[0] + 1) ** 2 == 289
     assert c.chunks_of_zone(32, -1344, 160) == (-8, -94, 12, -74)
@@ -39,7 +39,7 @@ def test_chunky_zone_includes_both_edges():
 
 
 def test_separate_zones_far_from_warmup():
-    """Cada evento cae en una sola zona: las cajas con su margen no se tocan (ni con la de calentamiento)."""
+    """Each event falls in a single zone: the boxes with their margin do not touch (not even the warm-up one)."""
     all_items = c.ZONES + [c.WARMUP]
     for i, (n1, x1, z1, r1) in enumerate(all_items):
         a = c.chunks_of_zone(x1, z1, r1)
@@ -57,8 +57,8 @@ def _ev(cx, cz, step, ms):
 def test_summary_chunks_sums_steps_and_spreads_the_margin():
     box = (0, 0, 1, 0)                                  # 2 chunks
     ev = [_ev(0, 0, "terrain", 10), _ev(0, 0, "features", 2), _ev(1, 0, "terrain", 20),
-          _ev(0, 0, "light", 100), _ev(1, 0, "initialize_light", 50),      # luz: no cuenta en el ms por chunk
-          _ev(-1, 0, "structure_starts", 4),                               # vecino del margen: cuenta en la media
+          _ev(0, 0, "light", 100), _ev(1, 0, "initialize_light", 50),      # light: does not count in the ms per chunk
+          _ev(-1, 0, "structure_starts", 4),                               # margin neighbour: counts in the mean
           _ev(50, 50, "terrain", 1000)]                                    # otra zona: no cuenta
     r = c.chunks_summary(ev, box, margin=2)
     assert r["chunks"] == 2 and r["chunks_medidos"] == 2
@@ -71,7 +71,7 @@ def test_summary_chunks_sums_steps_and_spreads_the_margin():
 
 
 def test_merge_zones_weights_by_chunks(monkeypatch):
-    monkeypatch.setattr(c, "ZONES", [("a", 8, 8, 0), ("b", 1608, 8, 16)])      # 1 chunk y 3 × 3 chunks
+    monkeypatch.setattr(c, "ZONES", [("a", 8, 8, 0), ("b", 1608, 8, 16)])      # 1 chunk and 3 × 3 chunks
     ev = [_ev(0, 0, "terrain", 90)] + [_ev(cx, cz, "terrain", 10) for cx in range(99, 102) for cz in range(-1, 2)]
     zones = {n: c.chunks_summary(ev, c.chunks_of_zone(x, z, r), margin=0) for n, x, z, r in c.ZONES}
     assert zones["a"]["chunks"] == 1 and zones["b"]["chunks"] == 9
@@ -120,7 +120,7 @@ def test_aggregate_takes_the_median_of_the_passes():
     assert a["pasadas"] == 3 and a["chunks"] == 800
     assert a["ms_por_chunk"]["media_ms"] == 70 and a["ms_por_chunk"]["p99_ms"] == 140
     assert a["segundos"] == 12 and a["chunks_por_s"] == pytest.approx(800 / 12)
-    assert a["locate_ms"] == {"aldea": 7, "mina": 1000}                    # la que falta en una pasada no cuenta
+    assert a["locate_ms"] == {"aldea": 7, "mina": 1000}                    # the one missing in a pass does not count
     assert a["pasos_ms"] == {"minecraft:terrain": 70} and a["zonas_ms"] == {"aldea": 75, "origen": 65}
     assert a["mspt"]["p99"] == 3.0 and a["memoria_mb"] == 400
     assert c.add_entry([]) is None
@@ -135,20 +135,20 @@ def test_overcost():
 
 @pytest.mark.parametrize("current, ok", [(0.10, True), (0.15, True), (0.1749, True), (0.1751, False), (0.5, False), (-0.2, True)])
 def test_compare_with_threshold_and_margin(current, ok):
-    ref = {"sobrecoste": 0.10, "umbral_relativo": 0.25, "margen_absoluto": 0.05}     # límite 0,10 × 1,25 + 0,05 = 0,175
+    ref = {"sobrecoste": 0.10, "umbral_relativo": 0.25, "margen_absoluto": 0.05}     # limit 0.10 × 1.25 + 0.05 = 0.175
     r = c.compare(current, ref)
     assert r[0] is ok and r[1] == pytest.approx(0.175)
     assert ("REGRESIÓN" in r[2]) is (not ok)
 
 
 def test_compare_cases_limit():
-    assert c.compare(None, {"sobrecoste": 0.1})[0] is False                     # sin medida: falla
-    ok, limit, text = c.compare(0.9, None)                                   # sin referencia: pasa y lo dice
+    assert c.compare(None, {"sobrecoste": 0.1})[0] is False                     # without a measurement: fails
+    ok, limit, text = c.compare(0.9, None)                                   # without a reference: passes and says so
     assert ok and limit is None and "sin referencia" in text
-    # referencia negativa (ruido: Heraldia salió más rápida): el límite parte de 0, no de un valor negativo
+    # negative reference (noise: Heraldia came out faster): the limit starts from 0, not from a negative value
     assert c.compare(0.04, {"sobrecoste": -0.03})[1] == pytest.approx(0.08)
     assert c.compare(0.09, {"sobrecoste": -0.03})[0] is False
-    # valores por defecto si la referencia no los trae
+    # default values if the reference does not bring them
     assert c.compare(0.0, {"sobrecoste": 0.2})[1] == pytest.approx(0.2 * 1.25 + 0.08)
 
 
@@ -168,7 +168,7 @@ def test_new_reference_keeps_threshold_and_margin():
     assert new_one["commit"] == "abc1234"
     default = c.new_reference(r)
     assert default["umbral_relativo"] == 0.25 and default["margen_absoluto"] == 0.08
-    json.dumps(new_one)                                                       # se puede guardar tal cual
+    json.dumps(new_one)                                                       # it can be saved as is
 
 
 def test_summary_markdown():
@@ -177,8 +177,8 @@ def test_summary_markdown():
     assert md.startswith("## Coste de generación de Heraldia ✅")
     assert "| ms por chunk (media, sin luz) | 60.0 | 66.0 | +10% |" in md
     assert "| mina | — | 4800 |" in md and "| aldea_vanilla | 180 | 175 |" in md
-    assert md.index("| ladera |") < md.index("| reglas |")                 # perfil ordenado por tiempo total
-    assert "| aldea | 65.0 | 71.0 | +9% |" in md                              # por zona
+    assert md.index("| ladera |") < md.index("| reglas |")                 # profile sorted by total time
+    assert "| aldea | 65.0 | 71.0 | +9% |" in md                              # per zone
     assert "tools/smoke/cost_reference.json" in md
     bad = c.markdown(r, c.compare(0.9, {"sobrecoste": 0.08}))
     assert bad.startswith("## Coste de generación de Heraldia ❌") and "REGRESIÓN" in bad
@@ -195,8 +195,8 @@ def test_write_json_markdown_and_summary_of_the_job(tmp_path, monkeypatch):
 
 
 def test_from_a_json_and_update_the_reference(tmp_path, monkeypatch):
-    """--from-json rehace el resumen de una medición guardada (el artefacto de la CI) sin servidor, y con
-    --update-reference la guarda; sin --no-threshold, una regresión da código 1."""
+    """--from-json rebuilds the summary of a saved measurement (the CI artifact) without a server, and with
+    --update-reference saves it; without --no-threshold, a regression gives exit code 1."""
     monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
     r = _result()
     gauged = tmp_path / "coste_generacion.json"
@@ -214,18 +214,18 @@ def test_from_a_json_and_update_the_reference(tmp_path, monkeypatch):
 
 def test_repository_reference():
     ref = c.read_reference()
-    assert ref is not None, "falta tools/smoke/cost_reference.json"
+    assert ref is not None, "tools/smoke/cost_reference.json is missing"
     assert -0.5 < ref["sobrecoste"] < 1.0
     assert 0 < ref["umbral_relativo"] <= 1 and 0 <= ref["margen_absoluto"] <= 0.25
     assert ref["ms_por_chunk_con"] > 0 and ref["ms_por_chunk_sin"] > 0 and ref["pasadas"] >= 1
 
 
 def test_cpu_of_proc_stat():
-    # /proc/<pid>/stat con un nombre con espacios y paréntesis: utime (14) y stime (15) en ticks de reloj
+    # /proc/<pid>/stat with a name containing spaces and parentheses: utime (14) and stime (15) in clock ticks
     line = "4242 (java (x) y) S 1 4242 4242 0 -1 4194560 1000 0 0 0 1234 566 0 0 20 0 60 0 100 0 0"
     assert c.cpu_of_stat(line) == pytest.approx(18.0)
     assert c.cpu_of_stat(line, hz=1000) == pytest.approx(1.8)
-    assert c.process_cpu(-1) is None                                         # sin proceso: None, no excepción
+    assert c.process_cpu(-1) is None                                         # without a process: None, not an exception
     if os.path.isfile(f"/proc/{os.getpid()}/stat"):
         assert c.process_cpu(os.getpid()) >= 0
 
@@ -234,16 +234,16 @@ def test_cpu_decides_if_in_both():
     with_it, sin = c.add_entry([_pass(66)]), c.add_entry([_pass(60)])
     with_it["cpu_ms_por_chunk"], sin["cpu_ms_por_chunk"] = 33.0, 30.0
     assert c.overcost(with_it, sin) == pytest.approx(0.1) and c.metric(with_it) == 33
-    sin["cpu_ms_por_chunk"] = None                                           # falta en una: los pasos de JFR
+    sin["cpu_ms_por_chunk"] = None                                           # missing in one: the JFR steps
     assert c.overcost(with_it, sin) == pytest.approx(0.1) and c.metric(sin) == 60
     r = {"con": with_it, "sin": dict(sin, cpu_ms_por_chunk=30.0), "sobrecoste": 0.1}
     assert c.new_reference(r)["medida"] == "cpu" and c.new_reference(r)["ms_por_chunk_con"] == 33
 
 
 def test_configuration_by_default_without_the_arena():
-    """Lo que se mide es la configuración por defecto, salvo la arena de oleadas (una obra única junto al spawn de un
-    mundo nuevo, no generación); la opción existe y por defecto está activada."""
-    import options                                   # tools/gen está en sys.path (conftest)
+    """What is measured is the default configuration, except the wave arena (a unique build next to the spawn of a
+    new world, not generation); the option exists and is enabled by default."""
+    import options                                   # tools/gen is on sys.path (conftest)
     fixed_opts = {o[0]: o[1] for o in options._FIXED}
     assert fixed_opts["arena.generar_en_mundos_nuevos"] is True
     assert c.CONFIG == {"arena": {"generar_en_mundos_nuevos": False}}

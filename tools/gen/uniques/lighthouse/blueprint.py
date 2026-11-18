@@ -1,8 +1,8 @@
-"""Plantilla única del faro: promontorio, casa del farero, faro y cueva de contrabandistas.
+"""Unique lighthouse template: headland, keeper's house, lighthouse and smugglers' cave.
 
-Ejes de la plantilla: x hacia el este, z hacia el mar (sur), y hacia arriba. y=SEA es la fila de agua más alta
-(nivel del mar - 1): los suelos de la cueva están en esa fila, así que el interior queda por encima del mar.
-Coordenadas citadas en docs/unicas/faro.md.
+Template axes: x toward the east, z toward the sea (south), y upward. y=SEA is the highest water row
+(sea level - 1): the cave floors are on that row, so the interior sits above the sea.
+Coordinates cited in docs/unicas/lighthouse.md.
 """
 import zlib
 from core import Template
@@ -12,9 +12,9 @@ from uniques._common.pieces import spawner
 NAME = "unicas/faro/faro"
 LOOT = "heraldia:unicas/faro/"
 X, Z = 44, 48          # huella
-SEA = 8                # fila del agua (y del suelo de la cueva)
-TOP = 21               # hierba de la cima
-G = TOP + 1            # pies en la cima
+SEA = 8                # water row (and cave floor y)
+TOP = 21               # grass on the summit
+G = TOP + 1            # feet on the summit
 WATER = "water[level=0]"
 
 
@@ -23,7 +23,7 @@ def h(*a):
 
 
 def cliff(x):
-    """Último z con roca alta (borde del acantilado)."""
+    """Last z with high rock (cliff edge)."""
     return 42 + h("c", x) % 3 if 5 <= x <= 38 else 41 + h("c", x) % 2
 
 
@@ -83,7 +83,7 @@ def headland(t):
 # ------------------------------------------------------------------ cueva
 def cave(t):
     f = SEA
-    # gruta del muelle y boca al mar
+    # dock grotto and mouth to the sea
     t.air(13, f + 1, 25, 31, f + 5, 40)
     for x in range(15, 30):
         for z in range(27, 39):
@@ -108,11 +108,11 @@ def cave(t):
     for p in ((16, 30), (28, 30), (16, 37), (28, 37)):
         hang(t, p[0], f + 5, p[1])
     t.entity(22, f + 1, 35, {"id": "minecraft:spruce_chest_boat", "LootTable": LOOT + "bote"})
-    # corredor este-oeste
+    # east-west corridor
     t.air(3, f + 1, 23, 41, f + 3, 24)
     for x in (6, 36):
         hang(t, x, f + 3, 23)
-    # almacén oeste (generador de esqueletos)
+    # west storeroom (skeleton spawner)
     t.air(3, f + 1, 26, 11, f + 4, 38)
     t.air(12, f + 1, 30, 12, f + 2, 31)
     for z in range(27, 37, 2):
@@ -125,7 +125,7 @@ def cave(t):
         t.barrel(x, f + 1, 38)
     spawner(t.set, 7, f + 1, 35, "skeleton")
     hang(t, 7, f + 4, 29)
-    # almacén este (derrumbe y cofre señuelo con TNT)
+    # east storeroom (cave-in and decoy chest with TNT)
     t.air(33, f + 1, 26, 41, f + 4, 38)
     t.air(32, f + 1, 30, 32, f + 2, 31)
     t.chest(41, f + 1, 31, "west", LOOT + "almacen")
@@ -141,7 +141,7 @@ def cave(t):
     for x in (36, 38):
         t.set(x, f - 1, 39, "tnt[unstable=false]")
     hang(t, 37, f + 4, 30)
-    # dormitorio (y rendija a la gruta del alijo)
+    # bedroom (and crack to the stash grotto)
     t.air(3, f + 1, 14, 12, f + 4, 21)
     door(t, 8, f + 1, 22, "south")
     for z in (16, 18, 20):
@@ -155,7 +155,7 @@ def cave(t):
     t.barrel(6, f + 1, 14)
     t.air(5, f + 1, 11, 5, f + 2, 13)
     t.set(5, f + 2, 12, "cobweb")
-    # gruta del alijo (sala oculta)
+    # stash grotto (hidden room)
     t.air(3, f + 1, 6, 9, f + 3, 10)
     t.air(4, f + 4, 7, 8, f + 4, 9)
     t.chest(6, f + 1, 6, "south", LOOT + "oculto")
@@ -181,7 +181,7 @@ def cave(t):
         t.set(p[0], f + 4, p[1], "cobweb")
     spawner(t.set, 36, f + 1, 19, "zombie")
     hang(t, 33, f + 4, 20)
-    # despacho del capitán (puzle 2) y cámara del tesoro
+    # captain's office (puzzle 2) and treasure chamber
     t.air(18, f + 1, 14, 26, f + 4, 21)
     door(t, 22, f + 1, 22, "south")
     for z in range(16, 21):
@@ -223,7 +223,7 @@ def cave(t):
 
 
 
-# Puzle 2: tres palancas (A, B, C) en el muro norte del despacho (z=13). La puerta abre con A y C bajadas y B subida.
+# Puzzle 2: three levers (A, B, C) on the north wall of the office (z=13). The door opens with A and C down and B up.
 LEVERS = {"A": (22, SEA + 2, 14), "B": (24, SEA + 2, 14), "C": (26, SEA + 2, 14)}
 REST = {"A": True, "B": False, "C": False}
 VAULT_DOOR = (18, SEA + 1, 13)
@@ -234,8 +234,8 @@ def circuit(t):
     for k, (x, _, z) in LEVERS.items():
         t.set(x, y, z, f"lever[face=wall,facing=south,powered={str(REST[k]).lower()}]")
     door(t, 18, SEA + 1, W, "south", mat="iron")
-    t.set(19, y, W, "redstone_wall_torch[facing=west,lit=false]")      # tG, junto a la mitad alta de la puerta
-    t.set(24, y, W - 1, "redstone_wall_torch[facing=north,lit=true]")  # tB, inversor de la palanca B
+    t.set(19, y, W, "redstone_wall_torch[facing=west,lit=false]")      # tG, beside the upper half of the door
+    t.set(24, y, W - 1, "redstone_wall_torch[facing=north,lit=true]")  # tB, inverter of lever B
     dust = {(20, W - 1): "ns", (22, W - 1): "ns", (26, W - 1): "ns",
             (20, W - 2): "es", (21, W - 2): "ew", (22, W - 2): "ews", (23, W - 2): "ew",
             (24, W - 2): "ews", (25, W - 2): "ew", (26, W - 2): "ws"}
@@ -246,14 +246,14 @@ def circuit(t):
     sign(t, 24, y + 1, 14, "south", "heraldia.unicas.faro.cartel.despacho1", "heraldia.unicas.faro.cartel.despacho2")
 
 
-# ------------------------------------------------------------------ pasadizo secreto y sótano
+# ------------------------------------------------------------------ secret passage and cellar
 def passage(t):
     f = SEA
     t.air(15, f + 1, 16, 15, 15, 16)
     for y in range(f + 1, 16):
         t.set(15, y, 16, "ladder[facing=east,waterlogged=false]")
     t.air(15, f + 1, 17, 15, f + 2, 22)
-    # trampa 1: cable trampa con un dispensador encima de cada gancho
+    # trap 1: trap wire with a dispenser above each hook
     pieces.tripwire_trap(t.set, (14, 19), (16, 19), f + 1, "x",
                          [((14, f + 2, 19), "east"), ((16, f + 2, 19), "west")], arrows=9)
 
@@ -261,7 +261,7 @@ def passage(t):
 def cellar(t):
     t.air(15, 17, 15, 28, 20, 23)
     t.fill(15, 16, 15, 28, 16, 23, "cobblestone")
-    # puzle 1: trampilla de hierro; la palanca entre los barriles alimenta el suelo pegado a ella
+    # puzzle 1: iron trapdoor; the lever between the barrels powers the floor next to it
     t.set(15, 16, 16, "iron_trapdoor[facing=east,half=top,open=false,powered=false,waterlogged=false]")
     t.set(16, 17, 16, "lever[face=floor,facing=north,powered=false]")
     for x in (15, 16, 17):
@@ -278,7 +278,7 @@ def cellar(t):
     hang(t, 25, 20, 19)
 
 
-# ------------------------------------------------------------------ casa del farero
+# ------------------------------------------------------------------ keeper's house
 def house(t):
     x0, x1, z0, z1 = 15, 29, 14, 24
     t.fill(x0, TOP, z0, x1, TOP, z1, "cobblestone")
@@ -293,7 +293,7 @@ def house(t):
                     t.set(x, y, z, "spruce_log[axis=y]")
                 else:
                     t.set(x, y, z, "stone_bricks" if y == G else "spruce_planks")
-    # tejado a dos aguas (cumbrera este-oeste en z=19)
+    # gable roof (ridge east-west at z=19)
     for k in range(6):
         y = G + 4 + k
         for x in range(x0 - 1, x1 + 2):
@@ -310,7 +310,7 @@ def house(t):
     for x in range(x0 - 1, x1 + 2):
         t.set(x, G + 9, 19, "spruce_planks")
         t.set(x, G + 10, 19, "spruce_slab[type=bottom]")
-    # ruina: hueco en el faldón norte sobre la cocina
+    # ruin: gap in the north roof slope above the kitchen
     t.set(20, G + 6, 16, "air")
     t.set(21, G + 6, 16, "air")
     t.set(26, G + 7, 23, "air")
@@ -346,15 +346,15 @@ def house(t):
     t.set(26, G, 23, "cartography_table")
     hang(t, 19, G + 3, 19)
     hang(t, 25, G + 3, 19)
-    # pasillo cubierto hasta el faro
+    # covered corridor to the lighthouse
     t.fill(21, TOP, 25, 23, TOP, 27, "stone_bricks")
     t.fill(21, G, 25, 21, G + 2, 27, "spruce_planks")
     t.fill(23, G, 25, 23, G + 2, 27, "spruce_planks")
     t.air(22, G, 25, 22, G + 2, 27)
     t.fill(21, G + 3, 25, 23, G + 3, 27, "spruce_slab[type=bottom]")
-    t.set(21, G + 3, 26, "air")                   # ruina: tablas caídas del pasillo
+    t.set(21, G + 3, 26, "air")                   # ruin: fallen planks of the corridor
     t.set(22, G + 3, 26, "air")
-    # camino y jardín
+    # road and garden
     for z in range(0, z0):
         t.set(22, TOP, z, "dirt_path")
     for x, z in ((20, 4), (24, 4), (20, 10), (24, 10)):
@@ -367,7 +367,7 @@ def house(t):
 # ------------------------------------------------------------------ faro
 RING = [(23, 29), (24, 29), (25, 29)] + [(25, z) for z in range(30, 36)] + [(x, 35) for x in range(24, 18, -1)] \
     + [(19, 34), (19, 33)]
-FLOOR = G + 16          # suelo de la sala de guardia (y=38)
+FLOOR = G + 16          # floor of the guard room (y=38)
 
 
 def tower(t):
@@ -393,7 +393,7 @@ def tower(t):
     t.fill(19, FLOOR, 29, 25, FLOOR, 35, "spruce_planks")
     t.set(19, FLOOR, 35, "air")
     t.set(19, FLOOR, 34, "air")
-    t.set(19, FLOOR, 33, "stone_brick_stairs[facing=north,half=bottom,shape=straight]")   # último peldaño
+    t.set(19, FLOOR, 33, "stone_brick_stairs[facing=north,half=bottom,shape=straight]")   # last step
     for x, y, z, fc in ((20, G + 2, 29, "north"), (24, G + 4, 29, "north"), (25, G + 8, 32, "east"),
                         (22, G + 13, 35, "south"), (19, G + 2, 31, "west")):
         t.set(x, y, z, f"wall_torch[facing={fc}]")
@@ -416,16 +416,16 @@ def tower(t):
     for y in range(w, w + 5):
         t.set(22, y, 34, "ladder[facing=north,waterlogged=false]")
     hang(t, 22, w + 3, 31)
-    # galería, linterna y cubierta
+    # gallery, lantern and roof
     g = FLOOR + 5                                   # y=43
     t.fill(16, g, 26, 28, g, 38, "stone_bricks")
     t.set(22, g, 34, "ladder[facing=north,waterlogged=false]")
-    t.set(21, g, 38, "air")                       # ruina: losas desprendidas junto a la barandilla caída
+    t.set(21, g, 38, "air")                       # ruin: slabs detached beside the fallen railing
     t.set(22, g, 38, "air")
     for x in range(16, 29):
         for z in range(26, 39):
             if x in (16, 28) or z in (26, 38):
-                if not (z == 38 and 21 <= x <= 23):     # ruina: barandilla caída del lado del mar
+                if not (z == 38 and 21 <= x <= 23):     # ruin: railing fallen on the sea side
                     t.set(x, g + 1, z, "spruce_fence")
     for x in range(17, 28):
         for z in range(27, 38):
@@ -463,11 +463,11 @@ def make():
     cellar(t)
     house(t)
     tower(t)
-    for y in range(17, 22):                       # escalera de mano casa -> sótano (tras el suelo de la casa)
+    for y in range(17, 22):                       # ladder house -> cellar (behind the house floor)
         t.set(28, y, 15, "ladder[facing=west,waterlogged=false]")
     from uniques.lighthouse.checks import settle
     settle(t)
     t.jigsaw(22, TOP, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty", final_state="dirt_path")
-    # estado con los puzles resueltos, para el recorrido a pie de lint.py
+    # state with the puzzles solved, for lint.py's walkthrough
     t.lint_open = {(15, 16, 16): "iron_trapdoor[facing=east,half=top,open=true,powered=true,waterlogged=false]"}
     return t

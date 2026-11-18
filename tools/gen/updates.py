@@ -1,26 +1,26 @@
-"""Textos de las actualizaciones seguras (T46, Java: comando/PanelConfig, comando/Preferencias y actualizar/): el panel de
-configuración en diálogos (/heraldia config), el idioma de cada jugador (/heraldia language), los arreglos por versión
-(/heraldia update repair) y llevar lo nuevo a un mundo existente (/heraldia update analyze, apply y undo).
+"""Texts for the safe updates (T46, Java: comando/PanelConfig, comando/Preferencias and actualizar/): the configuration
+panel in dialogs (/heraldia config), each player's language (/heraldia language), per-version fixes
+(/heraldia update repair) and bringing new content to an existing world (/heraldia update analyze, apply and undo).
 
-Cada texto va en los 8 idiomas en este módulo, en el orden de IDIOMAS: es_es y en_us salen de lang(); los demás se copian
-a idiomas/<código>.json con `python3 tools/gen/updates.py` (lo comprueba tests/test_actualizaciones.py).
+Each text goes in all 8 languages in this module, in the order of LANGUAGES: es_es and en_us come from lang(); the others are copied
+to idiomas/<code>.json with `python3 tools/gen/updates.py` (checked by tests/test_updates.py).
 """
 import json
 import os
 
 NS = "heraldia"
 LANGUAGES = ("es_es", "en_us", "fr_fr", "de_de", "it_it", "pt_br", "ca_es", "gl_es")
-# nombre de cada idioma en su propia lengua (el mismo en todos los idiomas)
+# name of each language in its own language (the same in all languages)
 LANGUAGE_NAMES = {"es_es": "Español", "en_us": "English", "fr_fr": "Français", "de_de": "Deutsch", "it_it": "Italiano",
                   "pt_br": "Português (Brasil)", "ca_es": "Català", "gl_es": "Galego"}
-# submenús del panel (config/Menus.MENUS, en el mismo orden): id -> (título, ayuda) por idioma
+# panel submenus (config/Menus.MENUS, in the same order): id -> (title, help) per language
 MENUS = ("mundo", "aldeas", "combate", "botin", "arena", "jugadores", "avanzado")
 PROFILES = ("casual", "estandar", "hardcore")
-# opciones del generador en arreglos/ArreglosMobs.REGISTRO (heraldia.arreglos.<id>)
+# generator options in arreglos/ArreglosMobs.REGISTRY (heraldia.arreglos.<id>)
 FIXES = ("marcas", "bebes", "nautilos", "recoger", "armas")
 
 _T = {
-    # ---------------- panel de configuración (/heraldia config)
+    # ---------------- configuration panel (/heraldia config)
     "panel.titulo": ("Configuración de Heraldia", "Heraldia configuration", "Configuration de Heraldia",
                      "Heraldia-Einstellungen", "Configurazione di Heraldia", "Configuração do Heraldia",
                      "Configuració de Heraldia", "Configuración de Heraldia"),
@@ -168,7 +168,7 @@ _T = {
                                   "Compatibilidade, avisos de versão, mapas web e margem das atualizações",
                                   "Compatibilitat, avisos de versió, mapes web i marge de les actualitzacions",
                                   "Compatibilidade, avisos de versión, mapas web e marxe das actualizacións"),
-    # ---------------- idioma de cada jugador (/heraldia language)
+    # ---------------- each player's language (/heraldia language)
     "idioma.actual": ("Idioma de Heraldia: %s (elegido por ti).", "Heraldia language: %s (your choice).",
                       "Langue de Heraldia : %s (ton choix).", "Heraldia-Sprache: %s (deine Wahl).",
                       "Lingua di Heraldia: %s (scelta da te).", "Idioma do Heraldia: %s (escolhido por você).",
@@ -237,7 +237,7 @@ _T = {
                        "gardiens qui ont pu perdre leur arme (avertissement seulement)", "Wächter, die ihre Waffe verloren haben könnten (nur Hinweis)",
                        "guardiani che potrebbero aver perso l'arma (solo avviso)", "guardiões que podem ter perdido a arma (só aviso)",
                        "guardians que podrien haver perdut l'arma (només avís)", "gardiáns que puideron perder a súa arma (só aviso)"),
-    # ---------------- llevar lo nuevo a un mundo existente (/heraldia update analyze, apply, undo)
+    # ---------------- bringing new content to an existing world (/heraldia update analyze, apply, undo)
     "actualizar.analizando": ("Analizando el mundo principal fuera del hilo del servidor (puede tardar unos minutos)...",
                               "Analysing the overworld off the server thread (this can take a few minutes)...",
                               "Analyse du monde principal hors du fil du serveur (cela peut prendre quelques minutes)...",
@@ -447,9 +447,9 @@ _T = {
                             "Desfacer a actualización %s (%s): restáuranse as rexións copiadas e pérdese o cambiado nelas desde entón; "
                             "o servidor detense. Confirma con %s"),
     "actualizar.boton.deshacer": ("[Deshacer]", "[Undo]", "[Annuler]", "[Rückgängig]", "[Annulla]", "[Desfazer]", "[Desfés]", "[Desfacer]"),
-    # ---------------- la opción nueva (opciones.py: heraldia.config.actualizar.margen_bloques y su nombre)
+    # ---------------- the new option (options.py: heraldia.config.update.margen_bloques and its name)
 }
-# Traducciones de la opción nueva de config/heraldia.json (es y en salen de opciones.py).
+# Translations of the new option in config/heraldia.json (es and en come from options.py).
 OPTION = {
     "config.actualizar.margen_bloques": (
         "Marge de sécurité, en blocs, autour de toute construction de joueur détectée par /heraldia update analyze : rien n'y est régénéré ni placé",
@@ -466,7 +466,7 @@ OPTION = {
 
 
 def _all():
-    """{clave completa: (texto por idioma, en el orden de IDIOMAS)}."""
+    """{full key: (text per language, in the order of LANGUAGES)}."""
     out = {f"{NS}.{k}": v for k, v in _T.items()}
     for c in LANGUAGES:
         out[f"{NS}.idioma.nombre.{c}"] = tuple(LANGUAGE_NAMES[c] for _ in LANGUAGES)
@@ -476,7 +476,7 @@ def _all():
 
 
 def lang():
-    """{"es_es": {...}, "en_us": {...}} con los textos de las actualizaciones seguras (los de la opción, en opciones.py)."""
+    """{"es_es": {...}, "en_us": {...}} with the safe-update texts (those of the option are in options.py)."""
     out = {"es_es": {}, "en_us": {}}
     for k, v in _all().items():
         out["es_es"][k], out["en_us"][k] = v[0], v[1]
@@ -484,7 +484,7 @@ def lang():
 
 
 def translation(lang_code):
-    """Los textos de un idioma de idiomas/ (fr_fr, de_de...), también los de la opción nueva."""
+    """The texts of one language in idiomas/ (fr_fr, de_de...), including those of the new option."""
     i = LANGUAGES.index(lang_code)
     out = {k: v[i] for k, v in _all().items()}
     for k, v in OPTION.items():
@@ -493,7 +493,7 @@ def translation(lang_code):
 
 
 def write():
-    """Copia los textos de cada traducción a idiomas/<código>.json (conserva el resto, ordenado como estaba)."""
+    """Copies each translation's texts to idiomas/<code>.json (keeps the rest, ordered as it was)."""
     folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "languages")
     for c in LANGUAGES[2:]:
         p = os.path.join(folder, f"{c}.json")

@@ -1,9 +1,9 @@
-"""Utilidades comunes del galeón: coordenadas de diseño (y=0 es el nivel del mar) y piezas pequeñas."""
+"""Shared galleon utilities: design coordinates (y=0 is sea level) and small pieces."""
 import random
 
-SC = 64            # crujía del barco (X)
-ANCHOR = (SC, 0, 31)   # línea de flotación a media eslora: queda en el nivel del mar del mundo
-ZMIN = -12         # cara norte de la plantilla (entrada)
+SC = 64            # ship's centerline (X)
+ANCHOR = (SC, 0, 31)   # waterline at midship: it sits at the world's sea level
+ZMIN = -12         # north face of the template (entrance)
 
 DIRV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 VDIR = {v: k for k, v in DIRV.items()}
@@ -11,18 +11,18 @@ OPP = {"north": "south", "south": "north", "east": "west", "west": "east"}
 
 
 class Construction:
-    """Envoltorio de la plantilla con registro de ruina, superficie y circuitos."""
+    """Template wrapper with a record of ruin, surface and circuits."""
 
     def __init__(self, t):
         self.t = t
         self.rng = random.Random(1588)
-        self.ruin_piece = set()        # celdas dañadas a mano (huecos, desgarros, percebes)
+        self.ruin_piece = set()        # hand-damaged cells (holes, tears, barnacles)
         self.surface = set()   # celdas de obra expuesta (casco, cubiertas, velas)
         self.circuits = []       # escenarios de redstone a comprobar
-        self.torn = {}         # desgarro de cada columna de vela
-        t.lint_open = {}       # puertas de puzle abiertas para el recorrido a pie
+        self.torn = {}         # tear in each sail column
+        t.lint_open = {}       # puzzle doors opened for the walkthrough
 
-    # --- básicos
+    # --- basics
     def s(self, x, y, z, st, nbt=None):
         self.t.set(x, y, z, st, nbt)
 
@@ -36,7 +36,7 @@ class Construction:
         self.t.fill(x1, y1, z1, x2, y2, z2, "air")
 
     def smash(self, x, y, z, st="air"):
-        """Daño de ruina hecho a mano: cuenta en el porcentaje de superficie dañada."""
+        """Hand-made ruin damage: counts toward the damaged-surface percentage."""
         self.s(x, y, z, st)
         self.ruin_piece.add((x, y, z))
 
@@ -46,9 +46,9 @@ class Construction:
             self.s(x, y + dy, z, f"{mat}_door[facing={facing},half={half},hinge={hinge},open=false,powered=false]")
 
     def flight(self, x, z, y0, d, n, mat="spruce", width=1, support="spruce_planks"):
-        """Tramo de n peldaños que sube hacia d desde el nivel de pies y0. Despeja la cabeza y rellena el apoyo."""
+        """Flight of n steps rising toward d from foot level y0. Clears the head space and fills the support."""
         dx, dz = DIRV[d]
-        sx, sz = (dz != 0, dx != 0)   # eje de la anchura
+        sx, sz = (dz != 0, dx != 0)   # width axis
         for w in range(width):
             for i in range(n):
                 X, Y, Z = x + dx * i + sx * w, y0 + i, z + dz * i + sz * w
@@ -76,7 +76,7 @@ class Construction:
 
     def spawner(self, x, y, z, mob, dark=False):
         data = {"entity": {"id": f"minecraft:{mob}"}}
-        if dark:   # ahogados fuera del agua: reglas de luz propias en lugar de las del agua
+        if dark:   # drowned out of the water: their own light rules instead of the water ones
             data["custom_spawn_rules"] = {"block_light_limit": {"min_inclusive": 0, "max_inclusive": 7},
                                           "sky_light_limit": {"min_inclusive": 0, "max_inclusive": 7}}
         self.s(x, y, z, "spawner", {"id": "minecraft:mob_spawner", "SpawnData": data, "Delay": 20})
@@ -86,11 +86,11 @@ class Construction:
         self.s(x, y + 1, z, cloth)
 
     def chair(self, x, y, z, back):
-        """Silla: escalón con el respaldo (lado alto) hacia back."""
+        """Chair: a step with the backrest (high side) toward back."""
         self.s(x, y, z, f"spruce_stairs[facing={back},half=bottom,shape=straight,waterlogged=false]")
 
     def bed(self, x, y, z, facing, color="red"):
-        """Cama con la cabecera en (x,y,z) mirando hacia facing; los pies detrás."""
+        """Bed with the head at (x,y,z) facing facing; the foot behind."""
         dx, dz = DIRV[facing]
         self.s(x, y, z, f"{color}_bed[facing={facing},occupied=false,part=head]")
         self.s(x - dx, y, z - dz, f"{color}_bed[facing={facing},occupied=false,part=foot]")

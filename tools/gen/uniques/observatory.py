@@ -1,9 +1,9 @@
-"""Estructura única «Observatorio»: observatorio astronómico abandonado en una cumbre ventosa.
+"""Unique structure "Observatory": an abandoned astronomical observatory on a windy summit.
 
-Diseño completo en docs/unicas/observatorio.md. Se construye en una sola plantilla de diseño (coordenadas con
-y = 0 en la losa de la planta baja) que se audita entera y luego se parte en dos piezas rígidas unidas por un
-jigsaw vertical: superficie (y >= 0) y subsuelo (y < 0).
-Uso para planos y renders: python3 tools/gen/uniques/observatory.py --docs docs/unicas/observatorio
+Full design in docs/unicas/observatory.md. It is built in a single design template (coordinates with
+y = 0 on the ground-floor slab) that is audited whole and then split into two rigid pieces joined by a
+vertical jigsaw: surface (y >= 0) and underground (y < 0).
+Usage for floor plans and renders: python3 tools/gen/uniques/observatory.py --docs docs/unicas/observatorio
 """
 import os, sys
 from collections import deque
@@ -32,8 +32,8 @@ STRUCTURE = dict(
 DISPLAY_NAME = {"es_es": "Observatorio", "en_us": "Observatory"}
 TROPHY = {"objeto": "compass", "rareza": "uncommon",
           "nombre": ("Astrolabio del Custodio", "The Keeper's Astrolabe"),
-          "lore": [("Las estrellas giran; su aguja, no.", "The stars wheel; its needle does not.")]}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "lore": [("Las estrellas giran; su aguja, no.", "The stars wheel; its needle does not.")]}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "oculto",
     "relato": [
         ("En las colinas azotadas por el viento hay un observatorio que vigila el cielo. Su custodio "
@@ -49,7 +49,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("las colinas ventosas, donde un observatorio vigila las estrellas",
               "the windswept hills, where an observatory watches the stars"),
 }
-ADVANCEMENT = {"icono": "minecraft:spyglass"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:spyglass"}   # advancements.py
 
 # ------------------------------------------------------------------ textos
 _T = {
@@ -67,7 +67,7 @@ def text(k):
     return {"translate": f"heraldia.{SID}.{k}", "fallback": _T[k][0]}
 
 
-# ------------------------------------------------------------------ botín
+# ------------------------------------------------------------------ loot
 def nm(name, w, k, levels=None):
     return chest_loot.named(name, w, f"heraldia.{SID}.{k}", _T[k][0], levels=levels)
 
@@ -96,7 +96,7 @@ LOOT = {
                        item("globe_banner_pattern", 2), item("clock", 3), item("compass", 3)]),
         _pool((1, 2), [item("emerald", 5, 1, 3), item("gold_ingot", 5, 1, 2), item("experience_bottle", 4, 1, 3)],
               extra=True)),
-    # 90 % vistoso (primer grupo siempre; el segundo da algo fuerte solo el 10 % de las veces)
+    # 90 % showy (first group always; the second gives something strong only 10 % of the time)
     "premium": _table(
         _pool((4, 6), [nm("spyglass", 8, "catalejo"), nm("clock", 6, "reloj"),
                        nm("compass", 6, "brujula"), nm("iron_helmet", 5, "yelmo", (10, 20)),
@@ -116,7 +116,7 @@ PLANK, DARK = "spruce_planks", "dark_oak_planks"
 CU, CU2, CU3 = "waxed_oxidized_cut_copper", "waxed_weathered_cut_copper", "waxed_oxidized_copper"
 WALLB, FLOORB, CEILB, SHELL = "deepslate_bricks", "deepslate_tiles", "polished_deepslate", "stone"
 SIDES = ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0), (0, -1, 0))
-CX, CZ = 20, 20                    # centro de la rotonda
+CX, CZ = 20, 20                    # centre of the rotunda
 R_IN, R_OUT = 8.5 ** 2, 9.5 ** 2
 
 
@@ -159,8 +159,8 @@ UPPER = {"GN": (12, 7, 28, 10), "D1": (2, 7, 10, 19), "ST": (30, 7, 38, 19), "D2
          "E2": (30, 21, 38, 33), "GS": (12, 31, 28, 33)}
 FLOORS = {"V": TRIM, "L": PLANK, "O": TRIM, "W2": PLANK, "E2": TRIM, "GS": TRIM,
           "GN": DARK, "D1": PLANK, "ST": DARK, "D2": PLANK}
-FLIGHTS = []        # (x, y, z) de cada peldaño de los tramos principales: la auditoría exige pisarlos todos
-DAMAGE = set()      # celdas de la envolvente con ruina diseñada (para el cálculo del estado)
+FLIGHTS = []        # (x, y, z) of each step of the main flights: the audit requires stepping on all of them
+DAMAGE = set()      # envelope cells with designed ruin (for the state calculation)
 
 
 def surface(t):
@@ -171,7 +171,7 @@ def surface(t):
     for key, (x1, z1, x2, z2) in UPPER.items():
         t.air(x1, 7, z1, x2, 11, z2)
         t.fill(x1, 6, z1, x2, 6, z2, FLOORS.get(key, TRIM))
-    # rotonda: planetario abajo, sala del telescopio arriba, abierta a la cúpula
+    # rotunda: planetarium below, telescope room above, open to the dome
     for x in range(10, 31):
         for z in range(10, 31):
             dd = d2(x, z)
@@ -193,14 +193,14 @@ def surface(t):
                         ang = (x - CX, z - CZ)
                         rib = ang[0] == 0 or ang[1] == 0 or abs(ang[0]) == abs(ang[1])
                         t.set(x, y, z, CU3 if rib else (CU2 if (x + y + z) % 5 == 0 else CU))
-    # rendija de observación al norte
+    # observation slit to the north
     for x in range(CX - 1, CX + 2):
         for z in range(10, CZ + 1):
             for y in range(15, 22):
                 r = d2(x, z) + (y - 12) ** 2
                 if R_IN < r <= R_OUT + 4:
                     t.set(x, y, z, "air")
-    # paneles caídos al sureste de la cúpula (ruina) y sus escombros sobre el suelo del telescopio
+    # fallen panels south-east of the dome (ruin) and their rubble on the telescope floor
     for x in range(24, 29):
         for z in range(24, 29):
             for y in range(14, 18):
@@ -211,7 +211,7 @@ def surface(t):
     for (x, z, st) in ((24, 24, "cobblestone"), (25, 23, f"{CU}_slab[type=bottom]"), (23, 25, f"{CU2}_slab[type=bottom]"),
                        (24, 25, "gravel")):
         t.set(x, 7, z, st)
-    # cubierta, pretil, impostas y esquinas
+    # roof, parapet, string courses and corners
     for x in range(1, 40):
         for z in range(6, 35):
             if d2(x, z) > R_OUT:
@@ -225,7 +225,7 @@ def surface(t):
             t.fill(x, 0, z, x, 12, z, TRIM)
             t.set(x, 13, z, "stone_bricks")
             t.set(x, 14, z, "lantern[hanging=false]")
-    # esquina noreste del pretil derrumbada, con cascotes en la azotea
+    # north-east corner of the parapet collapsed, with rubble on the roof
     for x, z in ((35, 6), (36, 6), (37, 6), (38, 6), (39, 6), (39, 7), (39, 8), (39, 9)):
         t.set(x, 13, z, "air")
         t.set(x, 14, z, "air")
@@ -235,7 +235,7 @@ def surface(t):
     for x, z, st in ((37, 8, "cobblestone"), (36, 7, "stone_brick_slab[type=bottom]"), (38, 9, "mossy_cobblestone_slab[type=bottom]")):
         t.set(x, 13, z, st)
 
-    # ---- fachada y ventanas
+    # ---- facade and windows
     for y0 in (2, 8):
         for x in (4, 8, 14, 17, 23, 26):
             window(t, x, y0, 6)
@@ -248,12 +248,12 @@ def surface(t):
             window(t, x, y0, 6, "tinted_glass" if y0 == 2 else "glass_pane")
     for z, c in ((10, "purple"), (13, "light_blue"), (16, "cyan")):
         window(t, 39, 2, z, f"{c}_stained_glass_pane")
-    # ventanas rotas del dormitorio (fachada oeste)
+    # broken windows of the dormitory (west facade)
     for z in (13, 16):
         for y in (8, 9):
             t.set(1, y, z, "air")
             DAMAGE.add((1, y, z))
-    # pretil sur caído sobre la galería, con cascotes; ventanas rotas del rellano este
+    # south parapet fallen onto the gallery, with rubble; broken windows of the east landing
     for x in range(13, 18):
         t.set(x, 13, 34, "air")
         DAMAGE.add((x, 13, 34))
@@ -263,7 +263,7 @@ def surface(t):
         for y in (8, 9):
             t.set(39, y, z, "air")
             DAMAGE.add((39, y, z))
-    # portada con reloj
+    # portal with clock
     t.fill(19, 1, 6, 19, 4, 6, TRIM)
     t.fill(21, 1, 6, 21, 4, 6, TRIM)
     t.set(20, 3, 6, "chiseled_stone_bricks")
@@ -274,8 +274,8 @@ def surface(t):
     for x in range(19, 22):
         for y in range(8, 11):
             t.set(x, y, 6, "chiseled_quartz_block" if (x, y) == (20, 9) else "smooth_quartz")
-    t.set(20, 10, 5, "end_rod[facing=north]")      # aguja del reloj, sujeta a la esfera
-    # camino de acceso y farolas
+    t.set(20, 10, 5, "end_rod[facing=north]")      # clock hand, attached to the dial
+    # access road and street lamps
     t.fill(17, 0, 0, 23, 0, 5, TRIM)
     t.fill(19, 0, 0, 21, 0, 5, "polished_andesite")
     for x in (17, 23):
@@ -291,7 +291,7 @@ def surface(t):
     t.air(20, 1, 29, 20, 2, 29)
     t.air(20, 7, 29, 20, 8, 29)
 
-    # ---- escalera este: planta baja -> alta (x 36-37) y alta -> azotea (x 31-32)
+    # ---- east stairs: ground floor -> upper (x 36-37) and upper -> roof (x 31-32)
     for i in range(1, 7):
         z = 23 + i
         for x in (36, 37):
@@ -317,7 +317,7 @@ def surface(t):
         t.set(33, 13, z, "spruce_fence")
     for x in (31, 32):
         t.set(x, 13, 29, "spruce_fence")
-    # ---- escalera al archivo (antesala, x 5-7), peldaños bajo la losa: ver subsuelo()
+    # ---- stairs to the archive (antechamber, x 5-7), steps under the slab: see subsuelo()
     for z in range(23, 26):
         t.set(4, 1, z, "spruce_fence")
         t.set(8, 1, z, "spruce_fence")
@@ -330,14 +330,14 @@ def surface(t):
 
 
 def furnish_ground(t):
-    # vestíbulo
+    # lobby
     for x in list(range(13, 16)) + list(range(25, 28)):
         t.set(x, 1, 7, stair("spruce_stairs", "north"))
     for x in (16, 24):
         hang(t, x, 5, 9)
     for x in (12, 28):
         t.set(x, 1, 10, "potted_fern")
-    # planetario: sistema solar colgado del techo
+    # planetarium: solar system hanging from the ceiling
     t.set(CX, 5, CZ, "iron_chain[axis=y]")
     t.set(CX, 4, CZ, "shroomlight")
     for (x, z, n, st) in ((22, 20, 1, "polished_granite"), (18, 22, 1, "light_blue_glazed_terracotta"),
@@ -346,7 +346,7 @@ def furnish_ground(t):
         for k in range(n):
             t.set(x, 5 - k, z, "iron_chain[axis=y]")
         t.set(x, 5 - n, z, st)
-    # pista del puzle en el anillo del suelo: luna nueva y llena con luz al lado
+    # puzzle hint on the floor ring: new and full moon with a light beside them
     t.set(20, 0, 14, "black_concrete")
     t.set(20, 0, 26, "white_concrete")
     t.set(26, 0, 20, "light_gray_concrete")
@@ -377,7 +377,7 @@ def furnish_ground(t):
     chest(t, 10, 1, 11, "west", "menor")
     for x, z in ((4, 10), (8, 10), (4, 16), (8, 16)):
         hang(t, x, 5, z)
-    # taller de óptica
+    # optics workshop
     t.set(38, 1, 8, "furnace[facing=west,lit=false]")
     t.set(38, 1, 9, "blast_furnace[facing=west,lit=false]")
     t.set(38, 1, 11, "crafting_table")
@@ -397,7 +397,7 @@ def furnish_ground(t):
     t.set(34, 2, 13, "lantern[hanging=false]")
     for x, z in ((33, 10), (35, 16)):
         hang(t, x, 5, z)
-    # antesala del archivo
+    # archive antechamber
     for z in range(28, 33):
         t.barrel(2, 1, z)
     t.barrel(2, 2, 29)
@@ -406,7 +406,7 @@ def furnish_ground(t):
     t.set(10, 1, 23, "crafting_table")
     for x, z in ((6, 22), (6, 30)):
         hang(t, x, 5, z)
-    # escalera este y galería sur
+    # east stairs and south gallery
     t.barrel(30, 1, 33)
     for x, z in ((34, 22), (33, 31)):
         hang(t, x, 5, z)
@@ -415,13 +415,13 @@ def furnish_ground(t):
 
 
 def furnish_upper(t):
-    # galería norte: catalejos sobre trípode mirando por las ventanas
+    # north gallery: spyglasses on tripods looking out of the windows
     for x in (14, 26):
         t.set(x, 7, 7, "spruce_fence")
         t.set(x, 8, 7, "lightning_rod[facing=north,powered=false]")
     for x in (16, 24):
         hang(t, x, 11, 9)
-    # sala del telescopio
+    # telescope room
     t.set(20, 7, 20, "polished_deepslate")
     t.set(20, 8, 20, CU3)
     for k in range(6):
@@ -460,7 +460,7 @@ def furnish_upper(t):
     chest(t, 10, 7, 22, "west", "menor")
     for z in (23, 31):
         hang(t, 6, 11, z)
-    # gabinete del astrónomo jefe
+    # chief astronomer's study
     t.set(38, 7, 8, "cartography_table")
     t.set(38, 7, 11, "lectern[facing=west,has_book=false,powered=false]")
     for z in range(13, 19):
@@ -471,7 +471,7 @@ def furnish_upper(t):
     t.set(34, 8, 15, "lantern[hanging=false]")
     chest(t, 30, 7, 12, "east", "menor")
     hang(t, 34, 11, 11)
-    # rellano de la escalera y galería sur alta
+    # stair landing and upper south gallery
     for x, z in ((34, 31), (34, 22)):
         hang(t, x, 11, z)
     for x in (14, 26):
@@ -479,7 +479,7 @@ def furnish_upper(t):
 
 
 def roof(t):
-    # reloj de sol sobre el ala oeste; sensores de luz junto a las marcas de luna nueva (N) y llena (S)
+    # sundial above the west wing; light sensors next to the new moon (N) and full moon (S) marks
     cx, cz = 6, 20
     for x in range(2, 11):
         for z in range(16, 25):
@@ -495,7 +495,7 @@ def roof(t):
     t.set(6, 13, 22, "daylight_detector[inverted=false,power=0]")
     t.fill(6, 13, 20, 6, 14, 20, "stone_brick_wall")
     t.set(6, 15, 20, "lightning_rod[facing=up,powered=false]")
-    # catalejos sobre trípode en el ala este
+    # spyglasses on tripods in the east wing
     for x, z in ((33, 9), (36, 13)):
         t.set(x, 13, z, "spruce_fence")
         t.set(x, 14, z, "lightning_rod[facing=north,powered=false]")
@@ -515,12 +515,12 @@ ROOMS_B = {   # nombre: (x1, z1, x2, z2, y1, y2) interiores
     "guardian": (8, 5, 16, 15, -13, -9),
     "tesoro": (2, 8, 6, 12, -13, -10),
 }
-LEVERS = {25: True, 27: False, 29: True, 31: False}     # z de cada palanca de fase: debe estar levantada
-SOLVE = {}          # cambios del estado «resuelto» para la auditoría a pie
+LEVERS = {25: True, 27: False, 29: True, 31: False}     # z of each phase lever: it must be raised
+SOLVE = {}          # changes of the "solved" state for the walkthrough audit
 
 
 def underground(t):
-    t.fill(1, -3, 6, 39, -1, 34, SHELL)        # losa de roca bajo toda la planta: sella el subsuelo por arriba
+    t.fill(1, -3, 6, 39, -1, 34, SHELL)        # rock slab under the whole floor: seals the underground from above
     for k in (2, 1):
         for (x1, z1, x2, z2, y1, y2) in ROOMS_B.values():
             t.fill(x1 - k, y1 - k, z1 - k, x2 + k, min(y2 + k, -1), z2 + k, SHELL if k == 2 else WALLB,
@@ -530,7 +530,7 @@ def underground(t):
         t.fill(x1, y1 - 1, z1, x2, y1 - 1, z2, FLOORB)
         if y2 < -1:
             t.fill(x1, y2 + 1, z1, x2, y2 + 1, z2, CEILB)
-    # escalera desde la antesala
+    # stairs from the antechamber
     t.fill(5, -6, 23, 7, -1, 28, WALLB)
     for i in range(1, 7):
         z = 22 + i
@@ -539,7 +539,7 @@ def underground(t):
             for y in range(-i + 1, -i + 4):
                 t.set(x, y, z, "air")
             FLIGHTS.append((x, -i, z))
-    # pasillo con cable trampa (trampa 1)
+    # corridor with trap wire (trap 1)
     pieces.tripwire_trap(t.set, (11, 30), (11, 33), -6, "z", [((11, -5, 30), "south"), ((11, -5, 33), "north")])
     # archivo
     for z in (23, 26, 29):
@@ -556,7 +556,7 @@ def underground(t):
     t.set(14, -6, 27, "lectern[facing=east,has_book=false,powered=false]")
     for (x, y, z) in ((14, -2, 33), (26, -2, 20), (15, -2, 20), (25, -2, 27), (14, -2, 24), (21, -2, 30)):
         t.set(x, y, z, "cobweb")
-    # gabinete del bibliotecario (sala oculta 1): escalera de mano bajo la trampilla
+    # librarian's study (hidden room 1): ladder under the trapdoor
     for y in range(-6, 0):
         t.set(6, y, 17, "ladder[facing=north]")
     SOLVE[(6, 1, 17)] = "air"
@@ -569,7 +569,7 @@ def underground(t):
     t.set(5, -6, 13, stair("spruce_stairs", "south"))
     t.set(6, -5, 12, "candle[candles=3,lit=true]")
     t.set(8, -6, 12, "lectern[facing=south,has_book=false,powered=false]")
-    # gabinete de instrumentos (sala oculta 2) tras la puerta de pistones del nicho norte
+    # instrument study (hidden room 2) behind the piston door of the north niche
     piston_door(t)
     chest(t, 23, -6, 13, "west", "oculto")
     t.set(17, -6, 13, "cartography_table")
@@ -578,9 +578,9 @@ def underground(t):
     t.set(17, -5, 14, "lightning_rod[facing=east,powered=false]")
     t.set(20, -6, 13, "smithing_table")
     t.set(22, -6, 13, "candle[candles=2,lit=true]")
-    # puzle de las fases y puerta de hierro
+    # phase puzzle and iron door
     phase_puzzle(t)
-    # escalera a la cámara de las horas (x 28, baja hacia el norte)
+    # stairs to the hours chamber (x 28, going down to the north)
     for z in range(15, 21):
         y = -8 - (20 - z)
         t.set(28, y, z, stair("deepslate_brick_stairs", "south"))
@@ -588,7 +588,7 @@ def underground(t):
         for yy in range(y + 1, y + 4):
             t.set(28, yy, z, "air")
         FLIGHTS.append((28, y, z))
-    # cámara de las horas
+    # hours chamber
     for x in (26, 30):
         t.set(x, -13, 8, "polished_andesite")
         t.set(x, -12, 8, "daylight_detector[inverted=true,power=0]")
@@ -601,9 +601,9 @@ def underground(t):
     t.barrel(31, -13, 11, "west", f"{NSP}/archivo")
     for x in (26, 30):
         hang(t, x, -9, 11, "soul_lantern")
-    # pasillo de las losas (trampa 2)
+    # plate corridor (trap 2)
     pieces.plate_trap(t.set, [(20, -13, 10), (22, -13, 10)], "north")
-    # sala del guardián
+    # guardian room
     for x in (10, 14):
         for z in (7, 13):
             t.fill(x, -13, z, x, -9, z, "polished_deepslate")
@@ -613,7 +613,7 @@ def underground(t):
     t.set(6, -12, 11, "stone_button[face=wall,facing=west,powered=false]")
     t.set(16, -13, 5, "skeleton_skull[rotation=6]")
     t.entity(12, -13, 10, guardian())
-    # cámara del tesoro
+    # treasure chamber
     chest(t, 2, -13, 10, "east", "premium")
     for z in (8, 12):
         t.set(2, -13, z, "amethyst_cluster[facing=up,waterlogged=false]")
@@ -630,11 +630,11 @@ def guardian():
 
 
 def piston_door(t):
-    """Dos estanterías sujetas por pistones pegajosos extendidos; la antorcha (NO) los alimenta: arriba de forma
-    directa y abajo por casi-conectividad. La palanca apaga la antorcha y los pistones tiran del sello."""
+    """Two bookshelves held by extended sticky pistons; the torch (NOT) powers them: directly above
+    and below through quasi-connectivity. The lever turns the torch off and the pistons pull the seal."""
     t.fill(16, -7, 18, 24, -3, 18, SHELL)
-    t.air(20, -6, 19, 20, -5, 19)              # nicho visible desde el archivo
-    t.air(20, -6, 17, 20, -5, 17)              # paso al gabinete
+    t.air(20, -6, 19, 20, -5, 19)              # niche visible from the archive
+    t.air(20, -6, 17, 20, -5, 17)              # passage to the study
     for y in (-6, -5):
         t.set(18, y, 18, "sticky_piston[extended=true,facing=east]")
         t.set(19, y, 18, "piston_head[facing=east,short=false,type=sticky]")
@@ -646,10 +646,10 @@ def piston_door(t):
 
 
 def phase_puzzle(t):
-    """Palancas buenas -> antorcha (NO) -> línea O; malas -> polvo -> línea O; línea O -> soporte de la antorcha de
-    salida (NO), que abre la puerta. Todo a y = -5 y el último polvo entra por el lado del soporte: encima de él, la
-    antorcha de salida encendida le daría potencia a través del bloque de arriba y el circuito oscilaría."""
-    t.fill(28, -7, 22, 31, -2, 33, SHELL)       # macizo que envuelve el circuito
+    """Good levers -> torch (NOT) -> OR line; bad ones -> dust -> OR line; OR line -> support of the output torch
+    (NOT), which opens the door. All at y = -5 and the last dust enters from the side of the support: on top of it, the lit
+    output torch would power it through the block above and the circuit would oscillate."""
+    t.fill(28, -7, 22, 31, -2, 33, SHELL)       # solid mass that wraps the circuit
     for z, good in LEVERS.items():
         t.set(26, -5, z, "lever[face=wall,facing=west,powered=false]")
         t.set(27, -4, z, {25: "black_concrete", 27: "light_gray_concrete", 29: "white_concrete",
@@ -678,7 +678,7 @@ def build_full():
     redstone.wire_shapes(t)
     redstone.set_wire_power(t)
     redstone.set_torches(t)
-    # jigsaws al final: entrada (para la auditoría a pie) y unión vertical superficie-subsuelo
+    # jigsaws last: entrance (for the walkthrough audit) and vertical surface-underground joint
     t.jigsaw(20, 0, 0, "north_up", "heraldia:entrance", "minecraft:empty", "minecraft:empty",
              final_state="minecraft:polished_andesite")
     t.jigsaw(17, 0, 23, "down_north", f"{NSP}/a_subsuelo", f"{NSP}/a_superficie", f"{P}/subsuelo",
@@ -707,15 +707,15 @@ def solved(t):
     s.jigsaws = t.jigsaws
     for p, st in SOLVE.items():
         s.set(*p, st)
-    for y in (-6, -5):                      # pistones retraídos, cabezas fuera
+    for y in (-6, -5):                      # pistons retracted, heads out
         s.set(18, y, 18, "sticky_piston[extended=false,facing=east]")
         s.set(19, y, 18, "bookshelf")
     return s
 
 
 def exterior_damage(t):
-    """Fracción de la envolvente exterior de la superficie en mal estado (diseño + procesador). La envolvente son los
-    bloques que se ven desde fuera: el primero que encuentra cada rayo desde arriba y desde los cuatro lados."""
+    """Fraction of the surface's exterior envelope in poor condition (design + processor). The envelope is the
+    blocks seen from outside: the first one each ray finds from above and from the four sides."""
     blk = {p: st for p, (st, _) in t.blocks.items() if p[1] >= 0 and _b(st) not in ("air", "structure_void")}
     x0, _, z0, x1, y1, z1 = t.bounds()
     shell, holes = set(), set()
@@ -743,7 +743,7 @@ def exterior_damage(t):
 
 
 CRACK, MOSS = 0.14, 0.09
-PROC_P = CRACK + (1 - CRACK) * MOSS     # agrietado y, del resto, musgoso
+PROC_P = CRACK + (1 - CRACK) * MOSS     # cracked and, of the rest, mossy
 
 
 def audit(t):
@@ -757,29 +757,29 @@ def audit(t):
             issues.append(("acceso: " + m, (x, y - DY, z)))
     for p in FLIGHTS:
         if (p[0], p[1] + 1, p[2]) not in cells and p not in cells:
-            issues.append(("peldaño no pisado", p))
+            issues.append(("step not walked on", p))
     for p, (st, nbt) in t.blocks.items():
         if _b(st) in ("chest", "barrel", "spawner", "lever", "stone_button") or "_door" in _b(st) and "lower" in st:
             if not any((p[0] + dx, p[1] + dy, p[2] + dz) in cells for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1), (0, 0))
                        for dy in (-2, -1, 0, 1)):
-                issues.append((_b(st) + " fuera del recorrido", p))
-    # las salas ocultas no se alcanzan sin resolver nada
+                issues.append((_b(st) + " outside the walkthrough", p))
+    # the hidden rooms cannot be reached without solving anything
     pt = Template("sin_resolver")
     pt.blocks = {p: (("minecraft:stone", None) if _b(v[0]) == "iron_door" else v) for p, v in t.blocks.items()}
     pt.jigsaws = t.jigsaws
     plain = walk(pt)
     for p in ((3, -6, 13), (23, -6, 14), (2, -13, 11), (12, -13, 9)):
         if p in plain:
-            issues.append(("sala oculta alcanzable sin resolver", p))
+            issues.append(("hidden room reachable without solving", p))
         if p not in cells:
             issues.append(("sala no alcanzable resuelta", p))
-    # redstone: estado colocado estable, puzle de las fases y puerta de pistones (simulador común)
+    # redstone: stable placed state, phase puzzle and piston door (common simulator)
     errs, _ = redstone.check_static(t)
     levers = [(26, -5, z) for z in sorted(LEVERS)]
     errs += redstone.check_puzzle(t, "fases", levers, tuple(LEVERS[z] for z in sorted(LEVERS)), [(27, -6, 21)])
     errs += redstone.check_puzzle(t, "pistones", [(17, -5, 20)], (True,), [(18, -6, 18), (18, -5, 18)], "sin_potencia")
     issues += [("redstone: " + e, None) for e in errs]
-    # nada flotando: todo bloque unido a los demás
+    # nothing floating: every block attached to the others
     solid = {p for p, (st, _) in t.blocks.items() if _b(st) not in ("air", "structure_void")}
     start = next(iter(solid))
     seen = {start}
@@ -792,7 +792,7 @@ def audit(t):
                 seen.add(n)
                 q.append(n)
     for p in sorted(solid - seen)[:5]:
-        issues.append(("bloque flotando", p))
+        issues.append(("floating block", p))
     frac, _ = exterior_damage(t)
     if not 0.15 <= frac <= 0.20:
         issues.append(("estado exterior fuera de 80-85 %", round(1 - frac, 3)))
@@ -813,7 +813,7 @@ def build(reg):
         ("stone", "andesite", 0.12)]))])
 
 
-# ------------------------------------------------------------------ planos y renders
+# ------------------------------------------------------------------ floor plans and renders
 LEVELS = (("Planta baja", 1), ("Planta alta", 7), ("Azotea", 13), ("Archivo", -6), ("Cámara del tesoro", -13))
 
 
@@ -875,7 +875,7 @@ def docs(out_dir):
     render.render(b, os.path.join(out_dir, "subsuelo.png"), scale=4, flip=True)
     iss = audit(t)
     frac, n = exterior_damage(t)
-    print(f"auditoría: {len(iss)} avisos {iss[:10]}; envolvente {n} bloques, en buen estado {100 * (1 - frac):.1f} %")
+    print(f"audit: {len(iss)} warnings {iss[:10]}; envelope {n} blocks, in good condition {100 * (1 - frac):.1f} %")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Tablas de botín equilibradas (solo objetos vanilla)."""
+"""Balanced loot tables (vanilla items only)."""
 
 
 def item(name, w, lo=1, hi=1, ench=None, rand_ench=False, dmg=None):
@@ -57,7 +57,7 @@ TABLES = {
                              item("music_disc_cat", 1), item("music_disc_mellohi", 1), item("experience_bottle", 5, 4, 10)]),
                    ((2, 4), FOOD + [item("iron_ingot", 6, 2, 6), item("gold_ingot", 5, 2, 5)])),
 }
-# temáticos
+# themed
 TABLES["iglesia"] = table(((2, 4), [item("candle", 8, 1, 4), item("bread", 8, 1, 3), item("paper", 6, 2, 5),
                                     item("book", 5, 1, 2), item("glass_bottle", 6, 1, 3), item("redstone", 5, 2, 6),
                                     item("lapis_lazuli", 5, 2, 6), item("glowstone_dust", 3, 1, 4)]),

@@ -1,22 +1,22 @@
-"""Prueba en un servidor 26.3 real del Santuario druídico (complementa tools/smoke/server_smoke.py).
+"""Test on a real 26.3 server of the Druid sanctuary (complements tools/smoke/server_smoke.py).
 
-1. Coloca la estructura entera con /place structure, mide cuánto tarda y cuenta sus entidades tras unos segundos
-   (solo el guardián: el archidruida Cadoc, un evocador).
-2. Coloca las plantillas sin girar en sitios conocidos y comprueba cofres, generadores, agua y colmenas; acciona los
-   mecanismos: la combinación de las piedras de las estaciones (con una piedra falsa se vuelve a cerrar), la estantería
-   secreta del archivo, el cable trampa y las placas del nicho de las ofrendas.
-   /setblock de una palanca no avisa al bloque al que está sujeta: se emula el clic cambiando ese bloque y devolviéndolo.
-Uso (desde la raíz): python3 tools/gen/uniques/sanctuary/smoke_server.py --jar build/libs/heraldia-X.jar [--work DIR]
+1. Places the whole structure with /place structure, measures how long it takes and counts its entities after a few seconds
+   (only the guardian: the archdruid Cadoc, an evoker).
+2. Places the unrotated templates at known spots and checks chests, spawners, water and beehives; operates the
+   mechanisms: the combination of the season stones (with a false stone it closes again), the secret
+   bookshelf of the archive, the trap wire and the plates of the offerings niche.
+   /setblock of a lever does not notify the block it is attached to: the click is emulated by changing that block and restoring it.
+Usage (from the root): python3 tools/gen/uniques/sanctuary/smoke_server.py --jar build/libs/heraldia-X.jar [--work DIR]
 """
 import argparse, os, queue, subprocess, sys, threading, time
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "..", "..", "smoke"))
 import server_smoke as sm                      # noqa: E402
 
-LIGHT, ROOTS = (3000, 100, 0), (3200, 100, 0)     # origen de cada plantilla colocada sin girar
-ROOTS_MIN = (12, -14, 4)                          # esquina mínima del subsuelo en coordenadas de la obra (obra.CRYPT)
-THREE = "{Items:[{Slot:0b,count:16},{Slot:1b,count:16},{Slot:2b,count:16}]}"   # dispensador del cable (tripwire_trap)
-SINGLE = "{Items:[{Slot:0b,count:16}]}"                                          # dispensador de las placas (plate_trap)
+LIGHT, ROOTS = (3000, 100, 0), (3200, 100, 0)     # origin of each template placed unrotated
+ROOTS_MIN = (12, -14, 4)                          # minimum corner of the underground in build coordinates (construction.CRYPT)
+THREE = "{Items:[{Slot:0b,count:16},{Slot:1b,count:16},{Slot:2b,count:16}]}"   # wire dispenser (tripwire_trap)
+SINGLE = "{Items:[{Slot:0b,count:16}]}"                                          # plate dispenser (plate_trap)
 GUARDIAN = "@e[type=minecraft:evoker,tag=heraldia_guardian.santuario]"
 
 
@@ -81,24 +81,24 @@ def main():
             time.sleep(sm.PLACE_RETRY_S)
         if "Generated" not in m.group(0):
             fails.append("place structure")
-        print(f"TIEMPO de /place structure del Santuario druídico: {dt * 1000:.0f} ms")
-        ctx.wait_entity(GUARDIAN)     # las entidades aparecen unos segundos después que los bloques
+        print(f"TIME of /place structure of the Druid sanctuary: {dt * 1000:.0f} ms")
+        ctx.wait_entity(GUARDIAN)     # the entities appear a few seconds after the blocks
         m = check("guardián con su etiqueta", f"execute if entity {GUARDIAN}")
         print("  cuenta:", m.group(1))
         if m.group(1) != "1":
-            fails.append("un solo guardián")
+            fails.append("a single guardian")
         m = check("un solo evocador en la zona (la plantilla solo trae al guardián)",
                   "execute if entity @e[type=minecraft:evoker,x=0,y=0,z=0,distance=..200]")
         print("  EVOCADORES:", m.group(1))
         check("el guardián es persistente", f"execute if entity {GUARDIAN.replace(']', ',nbt={PersistenceRequired:1b}]')}")
-        # 2. plantillas sin girar
+        # 2. unrotated templates
         for name, base in (("claro", LIGHT), ("raices", ROOTS)):
             m = cmd(f"place template heraldia:unicas/santuario/{name} {base[0]} {base[1]} {base[2]}",
                     r"Loaded template|Failed|not loaded|error|Could not")
             if "Loaded" not in m.group(0):
                 fails.append("place template " + name)
         ctx.ticks(100)
-        # el claro
+        # the clearing
         has_loot("cofre de la alcoba del archidruida", (61, 1, 21))
         is_block("tapiz ante el paso a la alcoba", (58, 3, 21), "minecraft:green_wall_banner")
         is_block("paso tras el tapiz abierto", (59, 1, 21), "minecraft:air")
@@ -109,7 +109,7 @@ def main():
         is_block("bancal regado", (21, 0, 57), "minecraft:farmland[moisture=7]")
         is_block("estanque", (48, 1, 54), "minecraft:water[level=0]")
         is_block("el agua no se sale del estanque", (48, 2, 54), "minecraft:air")
-        # las raíces
+        # the roots
         for p, mob in (((32, -5, 21), "spider"), ((37, -5, 9), "zombie"), ((47, -11, 32), "skeleton")):
             check(f"generador de {mob}", f"execute if data block {at(p, True)} SpawnData.entity{{id:\"minecraft:{mob}\"}}")
         has_loot("cofre premium", (29, -11, 64), True)
@@ -118,8 +118,8 @@ def main():
         for p in door:
             is_block(f"puerta del sol cerrada al generarse {p}", p, "minecraft:mossy_stone_bricks", True)
         is_block("pistón del sol extendido", (37, -10, 50), "minecraft:sticky_piston[extended=true]", True)
-        # puzle 1: piedras de las estaciones (x 39 = piedra, x 40 = palanca; z 52 primavera, 54 verano, 56 otoño,
-        # 58 invierno). Solución: verano e invierno.
+        # puzzle 1: season stones (x 39 = stone, x 40 = lever; z 52 spring, 54 summer, 56 autumn,
+        # 58 winter). Solution: summer and winter.
         for z in (52, 54, 56, 58):
             blocks_at[(39, -10, z)] = "minecraft:chiseled_stone_bricks"
         lever((40, -10, 54), (39, -10, 54), "east", True)
@@ -135,7 +135,7 @@ def main():
         lever((40, -10, 52), (39, -10, 52), "east", False)
         ctx.ticks(60)
         is_block("y al apagarla se abre otra vez", door[0], "minecraft:air", True)
-        # puzle 2: estantería secreta del archivo
+        # puzzle 2: secret bookshelf of the archive
         sec = [(20, -5, 18), (20, -4, 18)]
         for p in sec:
             is_block(f"estantería del archivo cerrada {p}", p, "minecraft:bookshelf", True)
@@ -164,7 +164,7 @@ def main():
                 proc.wait(timeout=120)
             except subprocess.TimeoutExpired:
                 proc.kill()
-    print("PRUEBA SANTUARIO DRUÍDICO " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
+    print("DRUID SANCTUARY TEST " + ("OK" if not fails else "FALLIDA: " + ", ".join(fails)))
     return 1 if fails else 0
 
 

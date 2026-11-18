@@ -1,5 +1,5 @@
-"""tools/smoke/compat_mods.py y tools/smoke/modrinth.py: grupos, catálogo de mods fijados y las funciones puras de la prueba
-de compatibilidad (solapes entre inicios de estructura, lectura de regiones, excepciones de Heraldia, «Can't keep up!»)."""
+"""tools/smoke/compat_mods.py and tools/smoke/modrinth.py: groups, catalogue of pinned mods and the pure functions of the compatibility
+test (overlaps between structure starts, reading regions, Heraldia exceptions, "Can't keep up!")."""
 import io, json, os, struct, sys, zipfile, zlib
 import nbtlib
 import pytest
@@ -25,14 +25,14 @@ def test_groups_only_with_mods_pinned_and_chunky():
         assert (mods[-1] == "chunky") == (g not in c.NO_CHUNKY) and len(mods) == len(set(mods)), g
         assert "chunky" not in mods[:-1], g
         assert all(p in modrinth.MODS for p in mods), g
-    # Tectonic 3 y Terralith no cargan juntos; Distant Horizons y Chunky se cuelgan al arrancar: grupos distintos
+    # Tectonic 3 and Terralith do not load together; Distant Horizons and Chunky hang on startup: different groups
     assert not any({"tectonic", "terralith"} <= set(c.mods_of(g)) for g in c.GROUPS)
     assert not any({"distanthorizons", "chunky"} <= set(c.mods_of(g)) for g in c.GROUPS)
 
 
 def test_fetch_checks_the_sha512(tmp_path, monkeypatch):
     dataset = b"jar de prueba"
-    def fake(url, dest):          # como server_smoke.download: no descarga si ya está
+    def fake(url, dest):          # like server_smoke.download: it does not download if already there
         if not os.path.isfile(dest):
             with open(dest, "wb") as f:
                 f.write(dataset)
@@ -43,8 +43,8 @@ def test_fetch_checks_the_sha512(tmp_path, monkeypatch):
     assert p == os.path.join(str(tmp_path), "modrinth", "x.jar") and open(p, "rb").read() == dataset
     with pytest.raises(SystemExit):
         modrinth.fetch(str(tmp_path), "y.jar", "https://x", "0" * 128)
-    assert not os.path.exists(os.path.join(str(tmp_path), "modrinth", "y.jar"))   # la mala no se queda en caché
-    # una copia vieja con otro contenido (caché de la CI) se descarga otra vez en vez de fallar
+    assert not os.path.exists(os.path.join(str(tmp_path), "modrinth", "y.jar"))   # the bad one is not left in the cache
+    # an old copy with other content (CI cache) is downloaded again instead of failing
     with open(os.path.join(str(tmp_path), "modrinth", "z.jar"), "wb") as f:
         f.write(b"vieja")
     assert open(modrinth.fetch(str(tmp_path), "z.jar", "https://x", good), "rb").read() == dataset
@@ -59,15 +59,15 @@ def test_overlaps_only_heraldia_with_other_visible_mods():
         ("heraldia:castellana", (0, 0), [box(0, 0, 50, 50)]),
         ("towns_and_towers:village_plains", (2, 2), [box(40, 40, 90, 90)]),        # cruza: solape
         ("minecraft:village_plains", (1, 1), [box(10, 10, 30, 30)]),               # vanilla: no cuenta
-        ("dungeons_and_taverns:mazmorra", (0, 1), [box(0, 0, 50, 50, 0, 20)]),    # sin cruzarse en altura
-        ("explorify:cripta", (1, 0), [box(0, 0, 50, 50)]),                         # subterránea por su paso
+        ("dungeons_and_taverns:mazmorra", (0, 1), [box(0, 0, 50, 50, 0, 20)]),    # without crossing in height
+        ("explorify:cripta", (1, 0), [box(0, 0, 50, 50)]),                         # underground by its step
         ("structory:ruina", (9, 9), [box(100, 100, 120, 120)]),                    # lejos
-        ("otro:a", (5, 5), [box(51, 0, 60, 50)]),                                  # justo al lado
+        ("otro:a", (5, 5), [box(51, 0, 60, 50)]),                                  # right next to it
     ]
     got = c.overlaps(lst, {"explorify:cripta": "underground_structures"})
     assert got == [("heraldia:castellana", (0, 0), "towns_and_towers:village_plains", (2, 2))]
     assert c.overlaps([x for x in lst if x[0] != "towns_and_towers:village_plains"]) == \
-        [("heraldia:castellana", (0, 0), "explorify:cripta", (1, 0))]   # sin saber el paso, cuenta
+        [("heraldia:castellana", (0, 0), "explorify:cripta", (1, 0))]   # without knowing the step, it counts
 
 
 def test_mod_steps(tmp_path):
@@ -105,7 +105,7 @@ def test_errors_heraldia():
 
 
 def _region(path, chunks):
-    """Región .mca mínima: {(i): nbt} con i = índice del chunk en la región."""
+    """Minimal .mca region: {(i): nbt} with i = chunk index in the region."""
     header, body, sector = bytearray(8192), bytearray(), 2
     for i, nbt in chunks.items():
         buf = io.BytesIO()

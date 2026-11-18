@@ -1,4 +1,4 @@
-"""Escribe los planos por nivel y los renders de la ciudadela: python3 -m unicas.ciudadela.documentar <carpeta>."""
+"""Writes the per-level floor plans and the renders of the citadel: python3 -m uniques.ciudadela.documentar <folder>."""
 import os, sys
 from lint import walk
 from . import dataset
@@ -12,7 +12,7 @@ with open(os.path.join(dest, "planos.txt"), "w", encoding="utf-8") as f:
     f.write(blueprint_text(pl, cells) + "\n")
 renders(pl, os.path.join(dest, "niveles.png"))
 ratio, n = ruin_ratio(pl)
-print(f"auditoría: {len(errs)} errores; ruina {ratio:.1%} de {n} bloques de superficie; "
-      f"{len(cells)} celdas alcanzables; tamaño {pl.t.size()}")
+print(f"audit: {len(errs)} errors; ruin {ratio:.1%} of {n} surface blocks; "
+      f"{len(cells)} reachable cells; size {pl.t.size()}")
 for e in errs:
     print("  ", e)

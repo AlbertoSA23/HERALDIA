@@ -1,14 +1,14 @@
-"""Estructura única «Ciudadela de Ceniza» (Nether): la fortaleza de un mariscal que se negó a volver al mundo de arriba,
-en los deltas de basalto y el valle de las almas. Una plantilla rígida de 35 x 35: muralla de ladrillo de piedra negra
-pulida con portón al norte y cuatro torres en las esquinas (armería, jaula de los blazes con su generador, despensa y
-una torre sin puerta a la vista: la sala oculta, tras una puerta de pistones con palanca), patio con la forja y braseros
-de almas, y en medio el torreón (unicas/_recinto): pasillo con trampa de placa y flechas, salón del Mariscal (el
-guardián, con fases), cámara del tesoro tras una puerta de hierro con botones y planta alta con la biblioteca.
+"""Unique structure "Ash Citadel" (Nether): the fortress of a marshal who refused to return to the overworld,
+in the basalt deltas and the soul sand valley. A rigid 35 x 35 template: polished blackstone brick wall
+with a gate to the north and four corner towers (armory, blaze cage with its spawner, pantry and
+a tower with no visible door: the hidden room, behind a piston door with a lever), courtyard with the forge and soul
+braziers, and in the middle the keep (unicas/_recinto): corridor with a plate and arrow trap, the Marshal's hall (the
+guardian, with phases), treasure chamber behind an iron door with buttons and upper floor with the library.
 
-Se coloca con heraldia:dimension (dimensiones.py): el suelo se busca bajo el techo de bedrock, con aire para toda la
-altura de la plantilla, y el terreno se ajusta a la caja (beard_thin). Botín sin romper el progreso: ni equipo de
-netherita, ni lingotes, ni restos antiguos; como mucho un fragmento de netherita en el cofre premium (el tesoro de un
-bastión da hasta uno por cofre), lo comprueba dimensiones.fragmentos_de_mas."""
+It is placed with heraldia:dimension (dimensions.py): the ground is searched for under the bedrock ceiling, with air for the whole
+height of the template, and the terrain is fitted to the box (beard_thin). Loot that does not break progression: no
+netherite gear, no ingots, no ancient debris; at most one netherite scrap in the premium chest (a
+bastion's treasure gives up to one per chest), checked by dimensions.extra_fragments."""
 from core import Template, B, F
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -21,7 +21,7 @@ P = f"unicas/{SID}"
 NSP = f"heraldia:{P}"
 DIMENSION = dimensions.NETHER
 SIDE = 35
-HEIGHT = r.HEIGHT + 2          # alto de la plantilla (y = 0 a 12)
+HEIGHT = r.HEIGHT + 2          # height of the template (y = 0 to 12)
 BIOME_MAP = ["basalt_deltas", "soul_sand_valley"]
 
 STRUCTURE = dict(biomes=[f"minecraft:{b}" for b in BIOME_MAP], start_pool=f"{P}/inicio", size=1, max_distance=40,
@@ -30,7 +30,7 @@ STRUCTURE = dict(biomes=[f"minecraft:{b}" for b in BIOME_MAP], start_pool=f"{P}/
                                              dimensions.NETHER, 10, HEIGHT + dimensions.SLACK))
 DISPLAY_NAME = {"es_es": "Ciudadela de Ceniza", "en_us": "Ashen Citadel"}
 MAP = {"decoration": "minecraft:red_x"}
-REINFORCEMENTS = ["wither_skeleton", {"mob": "skeleton", "equipo": {"mainhand": "bow"}}]     # jefes.py: los que llama el Mariscal al bajar del 66 % y del 33 %
+REINFORCEMENTS = ["wither_skeleton", {"mob": "skeleton", "equipo": {"mainhand": "bow"}}]     # bosses.py: those the Marshal summons when dropping below 66 % and 33 %
 TROPHY = {"objeto": "golden_sword", "rareza": "epic",
           "nombre": ("Hoja de Brasa del Mariscal", "The Marshal's Ember Blade"),
           "lore": [("Forjada en la lava que nunca se enfría.", "Forged in lava that never cools."),
@@ -126,13 +126,13 @@ def construction():
     t = Template(f"{P}/ciudadela")
     p = PALETTE
     n = SIDE - 1
-    # patio: suelo variado y aire explícito encima (el terreno no asoma dentro de la muralla)
+    # courtyard: varied floor and explicit air above (the terrain does not show inside the wall)
     for x in range(SIDE):
         for z in range(SIDE):
             t.set(x, 0, z, COURTYARD[(x * 7 + z * 13 + x * z) % len(COURTYARD)])
             for y in range(1, 9):
                 t.set(x, y, z, "air", keep=True)
-    # muralla y portón al norte
+    # wall and gate to the north
     for x in range(SIDE):
         for z in range(SIDE):
             if x in (0, n) or z in (0, n):
@@ -146,7 +146,7 @@ def construction():
         for y in range(1, 8):
             t.set(x, y, 0, p["esquina"])
         r.lantern(t, x, 8, 0, hanging=False)
-    # torres de las esquinas
+    # corner towers
     r.tower(t, p, 0, 0, 8, (4, 2, "east"))
     place_chest(t, 2, 1, 1, "south", "armeria")
     t.set(1, 1, 3, "smithing_table")
@@ -159,9 +159,9 @@ def construction():
     place_chest(t, n - 2, 1, n - 1, "north", "oculto")
     t.set(n - 1, 1, n - 3, "red_bed[facing=north,occupied=false,part=head]")
     t.set(n - 1, 1, n - 2, "red_bed[facing=north,occupied=false,part=foot]")
-    # el torreón en medio
+    # the keep in the middle
     r.great_tower(t, p, 10, 12, place_chest, guardian())
-    # forja del patio (al oeste del torreón) y braseros de almas
+    # courtyard forge (west of the keep) and soul braziers
     t.set(5, 1, 14, "lava_cauldron")
     t.set(5, 1, 16, "anvil[facing=north]")
     t.set(6, 1, 14, "blast_furnace[facing=east,lit=false]")

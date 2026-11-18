@@ -1,6 +1,6 @@
-"""Acrópolis (centro) y subsuelo: templo de Poseidón, vestíbulo, galerías de N-1 y cámaras de N-2.
+"""Acropolis (center) and underground: temple of Poseidon, vestibule, N-1 galleries and N-2 chambers.
 
-Aquí se trabaja en coordenadas del plano con y absoluta (Vista con oy = 0 y sin giro).
+Here we work in plan coordinates with absolute y (Vista with oy = 0 and no rotation).
 """
 import math
 from . import urban_layout as U
@@ -11,14 +11,14 @@ from .buildings import BRICK, DARK, PRISMARINE, LANTERN, GLASS, QUARTZ, PILLAR, 
 from .districts import room, COMBINATION_CENTRAL
 
 S = U.FLOOR
-G0, G1 = 13, 18            # galerías de N-1: suelo y techo (interior 14..17)
-RING = 156               # las galerías forman un cuadrado de este semilado, más cuatro radiales bajo las avenidas
-VESTIBULE = 10             # semilado interior del vestíbulo bajo el templo
-SEGMENT = 24                 # longitud de cada tramo (seco o inundado) entre puertas
+G0, G1 = 13, 18            # N-1 galleries: floor and ceiling (interior 14..17)
+RING = 156               # the galleries form a square of this half-side, plus four radial ones under the avenues
+VESTIBULE = 10             # interior half-side of the vestibule under the temple
+SEGMENT = 24                 # length of each section (dry or flooded) between doors
 
 
 def temple(v):
-    """Basamento escalonado, columnata y cella con cúpula; en el centro, el pozo de cristal que baja al vestíbulo."""
+    """Stepped base, colonnade and domed cella; in the center, the glass shaft that goes down to the vestibule."""
     v.site("templo", -64, S, -64, 64, S + 27, 64)
     for k, r in enumerate((62, 54, 46)):                                    # tres gradas de 2 de alto
         y = S + 1 + 2 * k
@@ -28,7 +28,7 @@ def temple(v):
                 if d <= r + 0.3:
                     grand_stairs = min(abs(u), abs(w)) <= 4
                     if grand_stairs and d > r - 2.3 and k < 3:
-                        # escalinata en los cuatro ejes: dos peldaños por grada
+                        # stairway on the four axes: two steps per tier
                         toward = ("north" if w > 0 else "south") if abs(w) > abs(u) else ("west" if u > 0 else "east")
                         step = int(r + 0.3 - d)                               # 0 fuera, 1 dentro
                         v.set(u, y + step, w, f"prismarine_brick_stairs[facing={toward},half=bottom]")
@@ -65,7 +65,7 @@ def temple(v):
                                          C.text("templo.4", "cómo dejar una.", "how to leave one.")])
     v.set(2, top + 2, 0, QUARTZ)
     v.set(2, top + 1, 0, QUARTZ)
-    # pozo: tubo de cristal de 2 x 2 de agua desde la cella hasta el suelo del vestíbulo
+    # shaft: 2 x 2 glass tube of water from the cella to the vestibule floor
     for y in range(G0 + 1, top + 1):
         for u in range(-1, 3):
             for w in range(-1, 3):
@@ -76,30 +76,30 @@ def temple(v):
 
 
 def vestibule(v):
-    """Sala seca bajo el templo: el pozo de cristal en el centro, cuatro puertas a las galerías, las tres arcas
-    cerradas y la puerta de combinación que baja a N-2."""
+    """Dry room under the temple: the glass shaft in the center, four doors to the galleries, the three locked
+    arks and the combination door that goes down to N-2."""
     L = VESTIBULE + 1
     v.site("vestibulo", -L - 14, G0 - 1, -L - 6, L + 14, G1 + 3, L + 6)
     v.shell(-L, G0, -L, L, G1 + 2, L, BRICK, floor=DARK, roof=DARK)
     v.air(-L + 1, G0 + 1, -L + 1, L - 1, G1 + 1, L - 1)
-    for y in range(G0 + 1, G1 + 2):                                         # se repone el pozo (el aire lo ha pisado)
+    for y in range(G0 + 1, G1 + 2):                                         # the shaft is restored (the air has overwritten it)
         for u in range(-1, 3):
             for w in range(-1, 3):
                 inside = 0 <= u <= 1 and 0 <= w <= 1
                 v.set(u, y, w, "water" if inside else GLASS)
     v.fill(-1, G1 + 2, -1, 2, G1 + 2, 2, BRICK)
     v.fill(0, G1 + 2, 0, 1, G1 + 2, 1, "water")
-    door(v, 0, G0 + 1, -1, "north")                                       # salida del pozo
+    door(v, 0, G0 + 1, -1, "north")                                       # exit of the shaft
     v.set(0, G0 + 3, -1, GLASS)
     for u, w in ((-L + 1, -L + 1), (L - 1, -L + 1), (-L + 1, L - 1), (L - 1, L - 1), (-5, -5), (5, 5), (-5, 5), (5, -5)):
         v.set(u, G1 + 1, w, LANTERN)
-    # arcas (muro oeste, a los lados de la puerta de la galería oeste en w = 0) con su cartel
+    # arks (west wall, at the sides of the west gallery door at w = 0) with their sign
     for w, which in zip((-6, -3, 3), ("arsenal", "academia", "anfiteatro")):
         C.place_chest(v, -L + 1, G0 + 1, w, "east", "arca", key=which)
         C.sign(v, -L + 1, G0 + 2, w + 1, "east", [C.text("arca." + which, *{"arsenal": ("Arca: Arsenal", "Arsenal Coffer"),
                                                                               "academia": ("Arca: Academia", "Academy Coffer"),
                                                                               "anfiteatro": ("Arca: Anfiteatro", "Theatre Coffer")}[which])])
-    # combinación en el muro sur, hacia el este; el paso baja a N-2
+    # combination in the south wall, toward the east; the passage goes down to N-2
     finish = R.combination(v, -3, G0 + 2, L, COMBINATION_CENTRAL, "templo")
     v.mark("seca", 4, G0 + 1, -4)
     v.mark("vestibulo", 4, G0 + 1, -4)
@@ -107,9 +107,9 @@ def vestibule(v):
 
 
 def tunnels(v):
-    """N-1: cuatro radiales bajo las avenidas y un anillo cuadrado; tramos alternos secos e inundados con puertas."""
+    """N-1: four radials under the avenues and a square ring; alternating dry and flooded sections with doors."""
     def axis_segment(axis, constant, a, b, dry_part, salt):
-        """Galería recta a lo largo de 'eje' ('x' o 'z') en la coordenada fija, de a a b (a < b)."""
+        """Straight gallery along 'eje' ('x' or 'z') at the fixed coordinate, from a to b (a < b)."""
         for t in range(a, b + 1):
             for lat in range(-2, 3):
                 u, w = (t, constant + lat) if axis == "x" else (constant + lat, t)
@@ -130,7 +130,7 @@ def tunnels(v):
         door(v, u, G0 + 1, w, "west" if axis == "x" else "north")
 
     def tunnel(axis, constant, a, b, name, starts_dry):
-        """De a a b con tabiques cada TRAMO; devuelve [(a_i, b_i, seco)]."""
+        """From a to b with partitions every SEGMENT; returns [(a_i, b_i, dry)]."""
         v.m.site(name, *((a, G0 - 1, constant - 3, b, G1 + 1, constant + 3) if axis == "x" else (constant - 3, G0 - 1, a, constant + 3, G1 + 1, b)))
         segments, t, dry_part = [], a, starts_dry
         while t <= b:
@@ -141,7 +141,7 @@ def tunnels(v):
             segments.append((t, finish, dry_part))
             if finish < b:
                 partition(axis, constant, finish + 1)
-                # el tabique cierra el tubo: muros, suelo y techo en esa sección
+                # the partition closes the tube: walls, floor and ceiling in that section
                 for lat in (-2, 2):
                     u, w = (finish + 1, constant + lat) if axis == "x" else (constant + lat, finish + 1)
                     v.fill(u, G0, w, u, G1, w, BRICK)
@@ -154,10 +154,10 @@ def tunnels(v):
 
     everyone = []
     L = VESTIBULE + 1
-    # radiales: salen del vestíbulo por una puerta en cada muro
+    # radials: leave the vestibule through a door in each wall
     for axis, sgn in (("x", 1), ("x", -1), ("z", 1), ("z", -1)):
         if axis == "z" and sgn == 1:
-            a, b = L + 8, RING - 3            # el muro sur lleva la combinación: la radial sur arranca más lejos, por un codo
+            a, b = L + 8, RING - 3            # the south wall carries the combination: the south radial starts farther away, through an elbow
         else:
             a, b = L + 1, RING - 3
         lo, hi = (a, b) if sgn == 1 else (-b, -a)
@@ -171,14 +171,14 @@ def tunnels(v):
     for axis, constant in (("x", -RING), ("x", RING), ("z", -RING), ("z", RING)):
         tr = tunnel(axis, constant, -RING + 3, RING - 3, "anillo", starts_dry=False)
         everyone += [(axis, constant, t) for t in tr]
-    # nudos: cámaras inundadas de 7 x 7 en las esquinas y en los cruces con las radiales
+    # junctions: flooded 7 x 7 chambers at the corners and at the crossings with the radials
     junctions = [(sx * RING, sz * RING) for sx in (-1, 1) for sz in (-1, 1)] + [(0, -RING), (0, RING), (-RING, 0), (RING, 0)]
     for cu, cw in junctions:
         v.shell(cu - 4, G0, cw - 4, cu + 4, G1 + 2, cw + 4, BRICK, floor=DARK, roof=DARK)
         v.fill(cu - 3, G0 + 1, cw - 3, cu + 3, G1 + 1, cw + 3, "water")
         v.set(cu, G1 + 2, cw, LANTERN)
         v.m.site("nudo", cu - 4, G0 - 1, cw - 4, cu + 4, S + 8, cw + 4)
-        for du, dw in ((1, 0), (-1, 0), (0, 1), (0, -1)):                    # bocas hacia las galerías que lleguen
+        for du, dw in ((1, 0), (-1, 0), (0, 1), (0, -1)):                    # openings toward the galleries that arrive
             for lat in (-1, 0, 1):
                 u, w = cu + du * 4 + (lat if du == 0 else 0), cw + dw * 4 + (lat if dw == 0 else 0)
                 outside = v.get(u + du, G0 + 1, w + dw)
@@ -186,14 +186,14 @@ def tunnels(v):
                     v.fill(u, G0 + 1, w, u, G1 - 1, w, "water")
                 elif outside == "minecraft:air" and lat == 0:
                     door(v, u, G0 + 1, w, {(1, 0): "east", (-1, 0): "west", (0, 1): "south", (0, -1): "north"}[(du, dw)])
-        # pozo de acceso desde la calle: brocal con templete
+        # access shaft from the street: wellhead with a small shrine
         px, pw = cu + 2, cw + 2
         for y in range(G1 + 2, S + 1):
             for u in range(px - 1, px + 3):
                 for w in range(pw - 1, pw + 3):
                     inside = px <= u <= px + 1 and pw <= w <= pw + 1
                     v.set(u, y, w, "water" if inside else BRICK)
-        if v.get(px, S + 1, pw) == "minecraft:water" and v.get(px - 1, S + 1, pw - 1) == "minecraft:water":   # al aire libre: templete
+        if v.get(px, S + 1, pw) == "minecraft:water" and v.get(px - 1, S + 1, pw - 1) == "minecraft:water":   # in the open air: small shrine
             for u, w in ((px - 1, pw - 1), (px + 2, pw - 1), (px - 1, pw + 2), (px + 2, pw + 2)):
                 column(v, u, w, S + 1, S + 4)
             v.fill(px - 1, S + 5, pw - 1, px + 2, S + 5, pw + 2, DARK)
@@ -203,7 +203,7 @@ def tunnels(v):
 
 
 def populate_galleries(v, segments):
-    """Contenido de cada tramo: nichos con cofres, trampas, generadores y vigías."""
+    """Content of each section: niches with chests, traps, spawners and lookouts."""
     for n, (axis, constant, (a, b, dry_part)) in enumerate(segments):
         middle = (a + b) // 2
         def pos(t, lat):
@@ -213,7 +213,7 @@ def populate_galleries(v, segments):
             continue
         if dry_part:
             kind = salt % 4
-            if kind == 0:                                                    # nicho con cofre a un lado
+            if kind == 0:                                                    # niche with a chest at one side
                 u, w = pos(middle, 2)
                 v.set(u, G0 + 1, w, "air")
                 v.set(u, G0 + 2, w, "air")
@@ -255,10 +255,10 @@ def populate_galleries(v, segments):
 
 
 def chambers(v, finish):
-    """N-2: escalera seca desde la puerta de combinación, antecámara, sala del guardián final (inundada), tesoro
-    (seco) y la cripta oculta del cofre premium bajo una trampilla tapada."""
-    pu, py, pw = finish                                                         # celda tras la puerta, y = pies
-    # codo: pasillo hacia el este y escalera que baja hacia el este
+    """N-2: dry staircase from the combination door, antechamber, final guardian's room (flooded), treasure
+    (dry) and the hidden crypt of the premium chest under a covered trapdoor."""
+    pu, py, pw = finish                                                         # cell behind the door, y = feet
+    # elbow: corridor toward the east and staircase going down toward the east
     y = py
     u = pu
     v.m.site("bajada", pu - 2, -10, pw - 1, pu + 40, G1 + 3, pw + 4)
@@ -267,16 +267,16 @@ def chambers(v, finish):
     u, w = pu + 3, pw + 1
     lower = (py - (-6))
     for k in range(lower):
-        # cada peldaño: un bloque más abajo y un bloque más al este
+        # each step: one block lower and one block further east
         yy = py - k
         v.fill(u + k, yy - 2, w - 1, u + k, yy + 3, w + 1, BRICK)
         v.air(u + k, yy, w, u + k, yy + 2, w)
         v.set(u + k, yy - 1, w, "prismarine_brick_stairs[facing=west,half=bottom]")
         if k % 6 == 3:
             v.set(u + k, yy + 3, w, LANTERN)
-    ex = u + lower                                                            # x donde termina la escalera, pies en y = -6
+    ex = u + lower                                                            # x where the staircase ends, feet at y = -6
     story = -7
-    # antecámara seca
+    # dry antechamber
     room(v, ex - 1, w - 5, ex + 9, w + 5, story, story + 6)
     v.air(ex - 1, story + 1, w, ex - 1, story + 3, w)
     v.fill(ex - 1, story + 4, w, ex - 1, story + 4, w, BRICK)
@@ -286,14 +286,14 @@ def chambers(v, finish):
                                                   C.text("antecamara.3", "de Poseidón.", "of Poseidon.")])
     C.place_chest(v, ex + 1, story + 1, w - 4, "south", "media")
     v.mark("seca", ex + 4, story + 1, w + 2)
-    # sala del guardián final: 31 x 31 x 12, inundada
+    # final guardian's room: 31 x 31 x 12, flooded
     bx1, bx2, bz1, bz2 = ex + 9, ex + 41, w - 16, w + 16
     v.m.site("camaras", ex - 2, -24, bz1 - 1, bx2 + 24, story + 14, bz2 + 1)
     v.shell(bx1, story - 1, bz1, bx2, story + 12, bz2, BRICK, floor=DARK, roof=DARK)
     v.fill(bx1 + 1, story, bz1 + 1, bx2 - 1, story + 11, bz2 - 1, "water")
     door(v, bx1, story + 1, w, "west")
     v.set(bx1, story, w, DARK)
-    v.fill(bx1 + 1, story, w - 1, bx1 + 2, story, w + 1, DARK)               # rellano interior a la altura de la puerta
+    v.fill(bx1 + 1, story, w - 1, bx1 + 2, story, w + 1, DARK)               # interior landing at the height of the door
     cx = (bx1 + bx2) // 2
     for du in (-10, 0, 10):
         for dw in (-10, 10):
@@ -307,7 +307,7 @@ def chambers(v, finish):
     C.generator(v, cx - 13, story, w - 13, "guardian")
     C.generator(v, cx + 13, story, w + 13, "guardian")
     v.mark("jefe", cx, story + 5, w)
-    # tesoro (seco), al este
+    # treasure (dry), to the east
     tx1, tx2 = bx2, bx2 + 16
     room(v, tx1, w - 7, tx2, w + 7, story, story + 6)
     door(v, tx1, story + 1, w, "west")
@@ -320,7 +320,7 @@ def chambers(v, finish):
     v.fill(tx1 + 4, story + 1, w + 6, tx1 + 5, story + 1, w + 6, "gold_block")
     v.fill(tx1 + 3, story, w - 2, tx2 - 3, story, w + 2, "cyan_terracotta")
     v.mark("seca", tx1 + 6, story + 1, w)
-    # cripta oculta: bajo la trampilla de la esquina, tapada por una alfombra
+    # hidden crypt: under the corner trapdoor, covered by a carpet
     hu, hw = tx2 - 2, w - 1
     room(v, hu - 5, hw - 3, hu + 1, hw + 3, story - 7, story - 1)
     v.set(hu, story, hw, "warped_trapdoor[facing=north,half=top,open=false]")

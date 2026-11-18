@@ -1,6 +1,6 @@
-"""Planos de planta por nivel (celdas alcanzables a pie) y renders isométricos de la fortaleza de hielo.
+"""Floor plans by level (cells reachable on foot) and isometric renders of the ice fortress.
 
-Uso: python3 tools/gen/uniques/ice_fortress/blueprints.py [carpeta]   (por defecto docs/unicas/fortaleza_hielo)
+Usage: python3 tools/gen/uniques/ice_fortress/blueprints.py [folder]   (default docs/unicas/fortaleza_hielo)
 """
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -10,7 +10,7 @@ from lint import walk, bname, passable        # noqa: E402
 from render import render                     # noqa: E402
 import uniques.ice_fortress as F            # noqa: E402
 
-LEVELS = [(1, "Cámara del tesoro"), (6, "Criptas"), (11, "Patio y planta baja"), (20, "Adarve"), (26, "Atalayas")]
+LEVELS = [(1, "Treasure chamber"), (6, "Criptas"), (11, "Courtyard and ground floor"), (20, "Adarve"), (26, "Atalayas")]
 MARK = {"chest": "C", "barrel": "T", "spawner": "G", "dispenser": "D", "sticky_piston": "P", "piston_head": "P",
         "lever": "L", "ladder": "H", "tripwire_hook": "^", "tripwire": "^", "stone_pressure_plate": "_",
         "powder_snow": "~", "campfire": "F", "redstone_wire": "r"}
@@ -20,11 +20,11 @@ def floor_plans(t, cells):
     feet = {}
     for (x, y, z), s in cells.items():
         feet.setdefault((x, z), set()).add(int(s + 0.01))
-    out = ["Leyenda: · alcanzable a pie (puertas secretas abiertas)  # muro  C cofre  T tonel  G generador  D dispensador",
-           "         P pistón  L palanca  H escalera de mano  ^ cable trampa  _ placa  ~ nieve polvo  F hoguera  r redstone",
-           "         x de oeste a este, z de norte a sur (la entrada está al norte, z = 0)", ""]
+    out = ["Legend: · reachable on foot (secret doors open)  # wall  C chest  T barrel  G spawner  D dispenser",
+           "         P piston  L lever  H ladder  ^ trap wire  _ plate  ~ powder snow  F bonfire  r redstone",
+           "         x from west to east, z from north to south (the entrance is on the north, z = 0)", ""]
     for lv, title in LEVELS:
-        out.append(f"== {title} (pie a y = {lv}) ==")
+        out.append(f"== {title} (feet at y = {lv}) ==")
         for z in range(0, F.construct.D):
             row = []
             for x in range(F.construct.W):
@@ -58,7 +58,7 @@ def main():
     render(t, os.path.join(dest, "fortaleza.png"), scale=3)
     render(t, os.path.join(dest, "corte_planta_baja.png"), scale=3, cut_y=15)
     render(t, os.path.join(dest, "corte_criptas.png"), scale=3, cut_y=9)
-    print(f"{len(cells)} celdas alcanzables; superficie dañada estimada {F.REPORT['damaged']:.1%}; avisos: {reg.warnings}")
+    print(f"{len(cells)} reachable cells; estimated damaged surface {F.REPORT['damaged']:.1%}; warnings: {reg.warnings}")
 
 
 if __name__ == "__main__":

@@ -1,10 +1,10 @@
-"""Construcción de la Isla del corsario en un único sistema de coordenadas (ver docs/unicas/isla_corsario.md).
+"""Construction of the Corsair's island in a single coordinate system (see docs/unicas/corsair_island.md).
 
-x de oeste a este (0..W-1), z de norte a sur (0..D-1); y = 0 es la primera capa sobre el agua (el mar llega a y = -1)
-y la plantilla baja hasta BASE, cuya fila se prolonga hasta el fondo al colocarse (HastaElSueloProcessor). El islote
-trae su roca, su arena y sus palmeras: al norte y al este, un cerro con acantilados donde se alza el fuerte; al sur y al
-oeste, playas, el puerto con el muelle y el bergantín, la taberna, los almacenes, la horca y el faro de la punta. Bajo
-el cerro, las cuevas marinas (la ensenada oculta, la sala del mapa, la armería, los calabozos y la cámara del tesoro).
+x from west to east (0..W-1), z from north to south (0..D-1); y = 0 is the first layer above the water (the sea reaches y = -1)
+and the template goes down to BASE, whose row is extended down to the floor when placed (HastaElSueloProcessor). The islet
+brings its own rock, sand and palm trees: to the north and east, a hill with cliffs where the fort rises; to the south and
+west, beaches, the harbor with the pier and the brigantine, the tavern, the warehouses, the gallows and the point's lighthouse. Under
+the hill, the sea caves (the hidden cove, the map room, the armory, the dungeons and the treasure chamber).
 """
 import math, zlib
 from core import Template
@@ -15,13 +15,13 @@ SID = "isla_corsario"
 LOOT = f"heraldia:unicas/{SID}/"
 K = f"heraldia.{SID}."
 W, D = 112, 110
-BASE = -18                      # fila inferior de la plantilla (se prolonga hasta el fondo)
-CX, CZ, RX, RZ = 56, 48, 42, 37  # islote: superelipse (exponente 3) con la costa ondulada
-PLAT = 7                        # suelo del fuerte (pies a 8)
-HILL = (75, 28, 22, 19)         # meseta del fuerte: centro y semiejes (superelipse de exponente 4)
-TREES = 3                     # sin hierba (ni árboles) a menos de estos bloques de la obra
-FORT = (60, 84, 24, 45)       # recinto del fuerte en la meseta: x0, x1, z0, z1 (muros incluidos)
-TOWN = (24, 66, 52, 78)       # explanada del puerto (suelo a y = 1): x0, x1, z0, z1
+BASE = -18                      # bottom row of the template (extended down to the floor)
+CX, CZ, RX, RZ = 56, 48, 42, 37  # islet: superellipse (exponent 3) with a wavy coast
+PLAT = 7                        # fort floor (feet at 8)
+HILL = (75, 28, 22, 19)         # fort plateau: center and semi-axes (superellipse of exponent 4)
+TREES = 3                     # no grass (or trees) within this many blocks of the build
+FORT = (60, 84, 24, 45)       # fort enclosure on the plateau: x0, x1, z0, z1 (walls included)
+TOWN = (24, 66, 52, 78)       # harbor esplanade (floor at y = 1): x0, x1, z0, z1
 
 OPP = {"north": "south", "south": "north", "east": "west", "west": "east"}
 DV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
@@ -49,12 +49,12 @@ def stairs(m, facing, half="bottom"):
 
 
 def h(*a):
-    """Azar determinista en [0, 1) a partir de las coordenadas."""
+    """Deterministic randomness in [0, 1) from the coordinates."""
     return zlib.crc32(",".join(map(str, a)).encode()) % 1000 / 1000.0
 
 
 def form(x, z):
-    """Distancia normalizada a la costa (< 1 dentro del islote)."""
+    """Normalized distance to the coast (< 1 inside the islet)."""
     dx, dz = (x - CX) / RX, (z - CZ) / RZ
     a = math.atan2(dz, dx)
     w = 1 + 0.07 * math.sin(3 * a + 3.93) + 0.045 * math.sin(5 * a + 2.1) + 0.03 * math.sin(9 * a + 0.3)
@@ -62,32 +62,32 @@ def form(x, z):
 
 
 def outside_hill(x, z):
-    """Bloques (aprox.) desde el borde de la meseta del cerro; 0 dentro."""
+    """Blocks (approx.) from the edge of the hill plateau; 0 inside."""
     hx, hz, rx, rz = HILL
     d = ((abs(x - hx) / rx) ** 4 + (abs(z - hz) / rz) ** 4) ** 0.25
     return max(0, int(round((d - 1) * min(rx, rz))))
 
 
 def floor(x, z):
-    """Altura del bloque de superficie del islote en (x, z), o None si es mar."""
+    """Height of the islet's surface block at (x, z), or None if it is sea."""
     d = form(x, z)
     if d > 1:
         return None
     low = 0 if d > 0.86 else 1
     px0, px1, pz0, pz1 = TOWN
     if px0 <= x <= px1 and pz0 <= z <= pz1 and d <= 0.86:
-        low = 1                                   # la explanada del puerto, a nivel
+        low = 1                                   # the harbor esplanade, level
     e = outside_hill(x, z)
     hill = PLAT - (e * 3 + 1) // 2 if e else PLAT
     return max(low, hill)
 
 
 def bed(x, z):
-    """Cima del talud bajo el agua (y < 0) fuera de la costa, o None lejos del islote."""
+    """Top of the underwater slope (y < 0) off the coast, or None far from the islet."""
     d = form(x, z)
     if d <= 1:
         return None
-    k = (d - 1) * RX          # bloques (aprox.) desde la costa
+    k = (d - 1) * RX          # blocks (approx.) from the coast
     if k > 9:
         return None
     return max(BASE, -2 - int(k * 1.8))
@@ -98,16 +98,16 @@ class Construction:
         self.t = Template(f"unicas/{SID}/isla")
         self.chests = []           # (pos, tabla)
         self.spawners = []         # (pos, mob)
-        self.hidden = []           # celdas que solo se alcanzan resolviendo un puzle
-        self.secret = []           # celdas de salas ocultas sin puzle (tapices, nichos)
-        self.mech = {}             # mecanismos para el simulador y la prueba de servidor
-        self.ruin = set()          # posiciones dañadas a mano (estado de conservación)
+        self.hidden = []           # cells reachable only by solving a puzzle
+        self.secret = []           # cells of hidden rooms without a puzzle (tapestries, niches)
+        self.mech = {}             # mechanisms for the simulator and the server test
+        self.ruin = set()          # hand-damaged positions (state of wear)
         self.signs = []
-        self.ground = {}           # (x, z) -> altura del bloque de superficie del islote
-        self.lining = set()        # celdas de muro de las cuevas (no pueden ser roca natural)
-        self.water = set()          # agua de la plantilla (ensenada, canal)
-        self.road = set()        # celdas (x, z) de los caminos del islote
-        self.natural = {}          # roca, arena y hierba del islote tal como salen de islote() (no cuentan como obra)
+        self.ground = {}           # (x, z) -> height of the islet's surface block
+        self.lining = set()        # wall cells of the caves (cannot be natural rock)
+        self.water = set()          # template water (cove, channel)
+        self.road = set()        # (x, z) cells of the islet's roads
+        self.natural = {}          # rock, sand and grass of the islet as they come out of islote() (they do not count as build)
 
     # ------------------------------------------------------------ primitivas
     def s(self, x, y, z, st, nbt=None):
@@ -147,13 +147,13 @@ class Construction:
         self.s(x, y, z, S(f"{color}_wall_banner", facing=facing))
 
     def bed(self, x, y, z, facing, color="red"):
-        """Cama con la cabecera hacia `facing` (la cabecera en x, z; los pies detrás)."""
+        """Bed with the head toward `facing` (the head at x, z; the foot behind)."""
         dx, dz = DV[facing]
         self.s(x, y, z, S(f"{color}_bed", facing=facing, part="head", occupied=False))
         self.s(x - dx, y, z - dz, S(f"{color}_bed", facing=facing, part="foot", occupied=False))
 
     def sign(self, x, y, z, facing, key, lines, wood="spruce"):
-        """Cartel traducible: `lines` = [(es, en)] (las claves van a LANG con el sufijo .1, .2...)."""
+        """Translatable sign: `lines` = [(es, en)] (the keys go to LANG with the suffix .1, .2...)."""
         self.signs.append((key, lines))
         pieces.sign(self.s, x, y, z, facing, [text(f"{K}cartel.{key}.{i + 1}", es) for i, (es, _) in enumerate(lines)],
                     wood=wood)
@@ -170,8 +170,8 @@ class Construction:
         self.s(x, y, z, stairs("spruce", back))
 
     def flight(self, x, z, y0, d, n, mat="cobblestone", width=1, support=COB, air=3):
-        """Tramo de n peldaños que sube hacia d desde los pies y0 (el primer peldaño a y0). Despeja `air` bloques sobre
-        cada peldaño y rellena el apoyo por debajo hasta y0 - 1."""
+        """Flight of n steps rising toward d from feet y0 (the first step at y0). Clears `air` blocks above
+        each step and fills the support below down to y0 - 1."""
         dx, dz = DV[d]
         sx, sz = (dz != 0, dx != 0)
         for w in range(width):
@@ -186,8 +186,8 @@ class Construction:
 
     # ------------------------------------------------------------ islote
     def islet(self):
-        """Roca del islote desde BASE hasta la superficie, arena en las playas, hierba tierra adentro, piedra en el cerro
-        y talud de arena y grava bajo el agua alrededor."""
+        """Islet rock from BASE up to the surface, sand on the beaches, grass inland, stone on the hill
+        and a sand and gravel slope under the water around it."""
         for x in range(W):
             for z in range(D):
                 g = floor(x, z)
@@ -202,7 +202,7 @@ class Construction:
                         for y in range(-3, 1):
                             self.s(x, y, z, "sand" if y > -3 else "sandstone")
                     elif e == 0 or g >= 3:
-                        top = None                      # el cerro: roca, y hierba solo en la meseta
+                        top = None                      # the hill: rock, and grass only on the plateau
                         if e == 0 and d < 0.93:
                             self.s(x, g, z, "grass_block[snowy=false]")
                             self.s(x, g - 1, z, "dirt")
@@ -224,7 +224,7 @@ class Construction:
                     self.s(x, top - 1, z, "sandstone" if h(x, z, 4) < 0.5 else self.host_rock(x, top - 1, z))
 
     def islet_end(self):
-        """Recuerda el estado natural de cada celda del islote (para no contarla como obra en el estado de conservación)."""
+        """Remembers the natural state of each islet cell (so it is not counted as build in the state of wear)."""
         self.natural = {p: st for p, (st, _) in self.t.blocks.items()}
 
     def build(self):
@@ -239,7 +239,7 @@ class Construction:
         return self
 
     def construction_columns(self):
-        """Columnas (x, z) con obra por encima del suelo del islote (sin contar las palmeras)."""
+        """Columns (x, z) with build above the islet's ground (not counting the palm trees)."""
         out = set()
         for (x, y, z), (st, _) in self.t.blocks.items():
             g = self.ground.get((x, z))
@@ -249,9 +249,9 @@ class Construction:
         return out
 
     def no_trees(self):
-        """Los océanos tienen sus robles (trees_water) y su hierba: nacen sobre la hierba del islote. A menos de
-        ARBOLES bloques de la obra el suelo es tierra pisada (tierra de camino), donde no nace nada: ningún árbol
-        tapa una puerta ni crece contra un muro; en el resto de la isla, la hierba puede dar algún roble."""
+        """The oceans have their oaks (trees_water) and their grass: they grow on the islet's grass. Within
+        TREES blocks of the build the ground is trampled dirt (path dirt), where nothing grows: no tree
+        covers a door or grows against a wall; in the rest of the island, the grass may yield an oak."""
         cols = self.construction_columns()
         r = TREES
         for (x, z), g in self.ground.items():

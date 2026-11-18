@@ -1,8 +1,8 @@
-"""Auditoría propia del Templo-pirámide (sobre la obra completa, superficie y subsuelo juntos).
+"""Own audit of the Pyramid temple (on the whole build, surface and underground together).
 
-Recorrido a pie desde la plaza hasta cada cofre, generador, palanca, trampa y sala oculta; la puerta secreta
-cierra de verdad la cámara del tesoro; el foso tiene salida; nada flota; el agua está encerrada; los circuitos
-están en reposo coherente; y la fracción de superficie exterior en buen estado queda entre 0,80 y 0,85.
+Walkthrough from the plaza to every chest, spawner, lever, trap and hidden room; the secret door
+really closes the treasure chamber; the pit has an exit; nothing floats; the water is enclosed; the circuits
+are in a coherent resting state; and the fraction of exterior surface in good condition stays between 0.80 and 0.85.
 """
 from collections import deque
 from core import Template, parse_state
@@ -12,7 +12,7 @@ from .construction import CX
 
 ENTRANCE = (CX, 1, 0)
 GOOD_RANGE = (0.80, 0.85)
-WEAR = {"tuff_bricks": None, "polished_tuff": None, "red_terracotta": 0.15}   # None = probabilidad de erosión
+WEAR = {"tuff_bricks": None, "polished_tuff": None, "red_terracotta": 0.15}   # None = erosion probability
 RUIN_BLOCKS = {"tuff", "gravel", "moss_block", "cobblestone", "grass_block", "tuff_slab"}
 EXPECTED = {"cofre": 13, "generador": 4}
 
@@ -24,7 +24,7 @@ def view(o, solved=True, opened=True, start=ENTRANCE):
         if (opened and p in o.sealed) or (solved and p in o.puzzle):
             st = "minecraft:air"
         elif b == "water" or "waterlogged=true" in st and b != "sea_pickle":
-            st = "minecraft:ladder[facing=north,waterlogged=false]"      # nadar = moverse en las tres direcciones
+            st = "minecraft:ladder[facing=north,waterlogged=false]"      # swimming = moving in all three directions
         v.blocks[p] = (st, None)
     v.jigsaws = [dict(pos=start, name="heraldia:entrance")]
     return v
@@ -79,7 +79,7 @@ def conductor(st):
 def redstone_issues(o):
     out = []
     g = o.get
-    # cable trampa: ganchos enganchados, cuerda tendida y dispensador pegado al bloque de apoyo
+    # trap wire: hooks attached, string laid and dispenser against the support block
     for (x, y, z) in o.marks.get("trampa:cable", []):
         st = g(x, y, z)
         if bname(st) != "tripwire" or props(st).get("attached") != "true":
@@ -97,14 +97,14 @@ def redstone_issues(o):
                     if bname(g(*n)) == "dispenser"]
             if not disp or not o.t.blocks[disp[0]][1].get("Items"):
                 out.append(("trampa de cable sin dispensador cargado", base))
-    # losas de dardos: placa sobre dispensador hacia arriba con flechas
+    # dart slabs: plate over an upward-facing dispenser with arrows
     for (x, y, z) in o.marks.get("trampa:dardos", []):
         d = o.t.blocks.get((x, y - 1, z))
         if not d or bname(d[0]) != "dispenser" or props(d[0]).get("facing") != "up" or not d[1].get("Items"):
             out.append(("losa de dardos sin dispensador", (x, y, z)))
         if bname(g(x, y, z)) != "polished_blackstone_pressure_plate":
             out.append(("losa sin placa", (x, y, z)))
-    # foso: la placa carga su bloque y ese bloque toca una trampilla de hierro cerrada
+    # pit: the plate charges its block and that block touches a closed iron trapdoor
     for (x, y, z) in o.marks.get("trampa:foso", []):
         base = (x, y - 1, z)
         if not conductor(g(*base)):
@@ -130,7 +130,7 @@ def redstone_issues(o):
     lv = g(*d["lever"])
     if lv != "minecraft:lever[face=wall,facing=south,powered=false]" or d["lever"] != (d["X"][0], d["X"][1], d["X"][2] + 1):
         out.append(("palanca de la puerta", d["lever"]))
-    # nada más con corriente en reposo
+    # nothing else powered at rest
     for p, (st, _) in o.t.blocks.items():
         pr = props(st)
         if pr.get("powered") == "true" or pr.get("triggered") == "true" or (
@@ -140,7 +140,7 @@ def redstone_issues(o):
 
 
 def good_fraction(o, wear):
-    """Fracción esperada de superficie exterior en buen estado (pieza de superficie)."""
+    """Expected fraction of exterior surface in good condition (surface piece)."""
     g = o.get
     total, bad = 0, 0.0
     for (x, y, z), (st, _) in o.t.blocks.items():
@@ -165,7 +165,7 @@ def good_fraction(o, wear):
 
 
 def tune_wear(o):
-    """Probabilidad de erosión del ladrillo y la toba pulida para quedar en el centro del intervalo."""
+    """Erosion probability of the brick and polished tuff so as to land in the middle of the interval."""
     total, bad0 = good_fraction(o, 0.0)
     _, bad1 = good_fraction(o, 1.0)
     target = 1 - sum(GOOD_RANGE) / 2
@@ -189,22 +189,22 @@ def audit(o, wear):
     for k, n in EXPECTED.items():
         if counts[k] != n:
             issues.append((f"{k}: {counts[k]} (esperados {n})", None))
-    # la puerta secreta cierra el tesoro y el tapiado oculta su sala
+    # the secret door closes the treasure and the walling-up hides its room
     shut = walk(view(o, solved=False))
     if near(shut, o.marks["sala_oculta:tesoro"][0]):
-        issues.append(("el tesoro se alcanza sin abrir la puerta secreta", o.marks["sala_oculta:tesoro"][0]))
+        issues.append(("the treasure is reached without opening the secret door", o.marks["sala_oculta:tesoro"][0]))
     sealed = walk(view(o, opened=False))
     if near(sealed, o.marks["sala_oculta:tapiada"][0]):
-        issues.append(("la cámara tapiada se alcanza sin romper el tapiado", o.marks["sala_oculta:tapiada"][0]))
-    # del fondo del foso se vuelve a la plaza
+        issues.append(("the walled-up chamber is reached without breaking the walling", o.marks["sala_oculta:tapiada"][0]))
+    # from the bottom of the pit you return to the plaza
     pit = walk(view(o, start=o.marks["foso"][0]))
     if ENTRANCE not in pit:
-        issues.append(("el foso no tiene salida", o.marks["foso"][0]))
+        issues.append(("the pit has no exit", o.marks["foso"][0]))
     fl = floating(o)
     issues += [("bloque flotando", p) for p in fl[:10]]
     issues += water_issues(o)[:10]
     issues += redstone_issues(o)
-    # simulador común: estados estables al colocarse y la palanca abre la puerta (y solo ella)
+    # common simulator: stable states when placed and the lever opens the door (and only it)
     t = Template("redstone")
     t.blocks = {p: v for p, v in o.t.blocks.items() if p[1] < -20 or 0 <= p[1] <= 3}
     errs, _ = redstone.check_static(t)

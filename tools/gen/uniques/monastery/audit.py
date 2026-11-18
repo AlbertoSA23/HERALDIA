@@ -1,6 +1,6 @@
-"""Comprobaciones propias del monasterio: redstone coherente al colocarse, puzles con su solución, trampas,
-nada flotando, proporción de ruinas, cofres y enemigos. Uso a mano para planos y renders:
-    python3 -m unicas.monasterio.auditoria --docs ../../docs/unicas/monasterio   (desde tools/gen)
+"""The monastery's own checks: redstone coherent when placed, puzzles with their solution, traps,
+nothing floating, ruin proportion, chests and enemies. Manual use for floor plans and renders:
+    python3 -m uniques.monasterio.auditoria --docs ../../docs/unicas/monasterio   (from tools/gen)
 """
 import copy, os
 from collections import deque
@@ -28,7 +28,7 @@ def open_view(t):
     return v
 
 
-# ------------------------------------------------------------------ redstone (simulador común: unicas/_comun/redstone.py)
+# ------------------------------------------------------------------ redstone (common simulator: unicas/_comun/redstone.py)
 def check_redstone(t):
     from .._common import redstone
     errs, _ = redstone.check_static(t)
@@ -42,11 +42,11 @@ def check_redstone(t):
             wall = (h[0] - HOR[f][0], h[1], h[2] - HOR[f][2])
             if bid(t.get(*wall)) in (None, "air") or not any(
                     (wall[0] + d[0], wall[1] + d[1], wall[2] + d[2]) in [tuple(x) for x in c["dispensadores"]] for d in DIRS6):
-                errs.append(f"gancho {h}: sin muro o sin dispensador junto al bloque que activa")
+                errs.append(f"hook {h}: no wall or no dispenser next to the block it activates")
     for p in t.circuits.get("losas", {}).get("losas", []):
         below = t.get(p[0], p[1] - 1, p[2])
         if bid(below) != "dispenser" or props(below)["facing"] != "up":
-            errs.append(f"losa {p} sin dispensador hacia arriba debajo")
+            errs.append(f"slab {p} has no upward-facing dispenser below")
     return errs
 
 
@@ -76,26 +76,26 @@ def check(t):
     errs = check_redstone(t)
     fl = floating_blocks(t)
     if fl:
-        errs.append(f"{len(fl)} bloques flotando, p. ej. {fl[:5]} {[t.get(*p) for p in fl[:3]]}")
+        errs.append(f"{len(fl)} floating blocks, e.g. {fl[:5]} {[t.get(*p) for p in fl[:3]]}")
     f = ruins(t)
     if not 0.15 <= f <= 0.20:
-        errs.append(f"proporción de ruinas {f:.1%} fuera del 15-20 %")
+        errs.append(f"ruin proportion {f:.1%} outside 15-20 %")
     for pos, tbl in t.chest_list:
         if tbl not in LOOT:
-            errs.append(f"cofre {pos} con tabla inexistente {tbl}")
+            errs.append(f"chest {pos} with nonexistent table {tbl}")
         if not (t.blocks.get(pos) or (None, None))[1]:
-            errs.append(f"cofre {pos} sobrescrito")
+            errs.append(f"chest {pos} overwritten")
     spawners = [p for p, (st, _) in t.blocks.items() if bid(st) == "spawner"]
     if len(spawners) < 3:
         errs.append("faltan generadores de monstruos")
     if not any(e[3].get("CustomName") for e in t.entities):
-        errs.append("falta el guardián")
+        errs.append("guardian missing")
     if "premium" not in [tb for _, tb in t.chest_list]:
-        errs.append("falta el cofre premium")
+        errs.append("premium chest missing")
     return errs
 
 
-# ------------------------------------------------------------------ planos y renders
+# ------------------------------------------------------------------ floor plans and renders
 LEVELS = [(6, "Relicario y catacumbas"), (14, "Cuevas: gruta, ermitas, osario, archivo"), (19, "Despensa secreta"),
            (25, "T0 atrio y bodega"), (30, "Cripta"), (31, "T1 huerto y refectorio"), (37, "T2 claustro, iglesia"),
            (44, "Desván: escritorio oculto"), (59, "Campanario")]
@@ -159,6 +159,6 @@ if __name__ == "__main__":
     import sys
     from . import construction
     t = construction.construct()
-    print("\n".join(check(t)) or "auditoría propia: OK")
+    print("\n".join(check(t)) or "own audit: OK")
     if "--docs" in sys.argv:
         print("celdas alcanzables:", document(t, sys.argv[sys.argv.index("--docs") + 1]))

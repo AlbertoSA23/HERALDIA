@@ -1,8 +1,8 @@
-"""Templete en ruinas (heraldia:medianas/templete/<estilo>): claro de 19 x 19 con un templete de columnas sobre un podio
-de 11 x 11 (gradas al norte), las columnas de levante y poniente rotas y sus tambores caídos en el suelo, y vasijas con
-ofrendas. Variante a: el altar con el cofre de las ofrendas y dos custodios (esqueletos con casco en la jungla,
-momias en el desierto; persistentes y anclados); b: el pozo sagrado (agua quieta en un brocal) en el centro, con el
-cofre al lado y sin nadie."""
+"""Ruined small temple (heraldia:medianas/templete/<estilo>): 19 x 19 clearing with a columned small temple on an 11 x 11
+podium (steps to the north), the east and west columns broken and their drums fallen on the ground, and pots with
+offerings. Variant a: the altar with the offerings chest and two custodians (helmeted skeletons in the jungle,
+mummies in the desert; persistent and anchored); b: the sacred well (still water in a curb) in the center, with the
+chest beside it and nobody there."""
 from core import Template, F, adult
 from loot import item, empty
 from uniques._common import chest_loot
@@ -34,8 +34,8 @@ LOOT = {
 }
 
 L = 19
-B0, B1 = 4, 14                     # base del podio (11 x 11) en y = 0
-P0, P1 = 5, 13                     # podio en y = 1 (9 x 9); columnas en su borde, cada 2
+B0, B1 = 4, 14                     # podium base (11 x 11) at y = 0
+P0, P1 = 5, 13                     # podium at y = 1 (9 x 9); columns at its edge, every 2
 CX = 9
 
 
@@ -52,7 +52,7 @@ def _temple(p, name):
     t = Template(name)
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=7)
     c.entrance(t, CX, p["suelo"][0])
-    # base, podio (con piezas gastadas) y gradas al norte
+    # base, podium (with worn pieces) and steps to the north
     for x in range(B0, B1 + 1):
         for z in range(B0, B1 + 1):
             t.set(x, 0, z, p["base"])
@@ -60,7 +60,7 @@ def _temple(p, name):
                 t.set(x, 1, z, p["ruina"][_h(x, z) % len(p["ruina"])] if _h(x, z) % 7 == 0 else p["podio"])
     for x in range(CX - 1, CX + 2):
         t.set(x, 1, B0, f"{p['grada']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
-    # columnas: las del norte y el sur, enteras con su arquitrabe; las de levante y poniente, rotas a distinta altura
+    # columns: the north and south ones whole with their architrave; the east and west ones broken at different heights
     for x in range(P0, P1 + 1, 2):
         for z in range(P0, P1 + 1, 2):
             if not (x in (P0, P1) or z in (P0, P1)) or (x, z) == (CX, P0):
@@ -72,7 +72,7 @@ def _temple(p, name):
     for z in (P0, P1):
         for x in range(P0, P1 + 1):
             t.set(x, 7, z, p["arquitrabe"] if _h(x, 7 * z) % 9 else p["ruina"][0])
-    # tambores caídos fuera del podio y vasijas en las esquinas
+    # fallen drums outside the podium and pots at the corners
     for x, z, axis in ((1, 8, "z"), (1, 9, "z"), (16, 11, "x"), (17, 11, "x"), (12, 16, "x")):
         t.set(x, 1, z, p["tambor"] + (f"[axis={axis}]" if p["tambor"].endswith("_pillar") else ""))
     for x, z in ((P0 + 1, P0 + 1), (P1 - 1, P1 - 1)):
@@ -83,7 +83,7 @@ def _temple(p, name):
 
 def keeper(p, rot):
     extra = {}
-    if p["custodio"] == "skeleton":          # con casco: en la jungla no arde de día
+    if p["custodio"] == "skeleton":          # helmeted: in the jungle it does not burn by day
         extra = dict(equipment={"mainhand": {"id": "minecraft:bow", "count": 1},
                                 "head": {"id": "minecraft:chainmail_helmet", "count": 1}},
                      drop_chances={"head": F(0.0)})
@@ -91,7 +91,7 @@ def keeper(p, rot):
 
 
 def altar(p, name):
-    """Altar con el cofre de las ofrendas y velas; dos custodios a sus lados."""
+    """Altar with the offerings chest and candles; two custodians at its sides."""
     t = _temple(p, name)
     t.set(CX, 2, 11, p["capitel"])
     c.place_chest(t, CX, 3, 11, "north", MID, "ofrenda")
@@ -103,7 +103,7 @@ def altar(p, name):
 
 
 def well(p, name):
-    """Pozo sagrado: brocal de 5 x 5 con agua quieta (todo fuentes) a ras del podio, y el cofre de las ofrendas."""
+    """Sacred well: 5 x 5 curb with still water (all sources) flush with the podium, and the offerings chest."""
     t = _temple(p, name)
     for x in range(CX - 2, CX + 3):
         for z in range(8, 13):

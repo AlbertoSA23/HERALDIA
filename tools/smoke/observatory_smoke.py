@@ -1,13 +1,13 @@
-"""Prueba en servidor real del Observatorio: circuitos, trampas, puertas y guardián tal como quedan al colocarse.
+"""Real-server test of the Observatory: circuits, traps, doors and guardian as they end up when placed.
 
-Uso: python3 tools/smoke/observatory_smoke.py --jar build/libs/heraldia-X.jar [--work build/smoke_observatorio]
-Coloca la pieza del subsuelo con /place template (sin giro) y comprueba con /execute if block:
-- estado de reposo: puerta del puzle cerrada, antorchas como las calculó el generador, pistones extendidos;
-- puzle de las fases: con luna nueva y llena se abre; con una creciente de más se cierra;
-- puerta de pistones del gabinete: al alimentar el soporte de la antorcha se retraen y abren el paso;
-- trampas: el gancho y las placas activan sus dispensadores; la puerta de la cámara del tesoro se abre;
-- guardián: un esqueleto persistente con 40 de vida; y /place structure coloca también el subsuelo (segundo guardián).
-Las palancas se simulan con bloques de redstone en su soporte (equivale a la potencia fuerte de la palanca).
+Usage: python3 tools/smoke/observatory_smoke.py --jar build/libs/heraldia-X.jar [--work build/smoke_observatorio]
+Places the underground piece with /place template (no rotation) and checks with /execute if block:
+- resting state: puzzle door closed, torches as computed by the generator, pistons extended;
+- phases puzzle: it opens with a new and a full moon; with one extra crescent it closes;
+- the study's piston door: when the torch's support is powered they retract and open the way;
+- traps: the hook and the pressure plates activate their dispensers; the treasure chamber door opens;
+- guardian: a persistent skeleton with 40 health; and /place structure also places the underground part (second guardian).
+Levers are simulated with redstone blocks on their support (equivalent to the lever's strong power).
 """
 import argparse, os, queue, subprocess, sys, threading, time
 
@@ -46,10 +46,10 @@ def main():
 
     def put(pos, state):
         S.run(proc, lines, seen, f"setblock {at(*pos)} {state}", r"Changed the block|Could not set")
-        ctx.ticks(80)           # en ticks del juego: con el servidor atrasado, el reloj no basta
+        ctx.ticks(80)           # in game ticks: with the server lagging, the clock is not enough
 
     def count_until(sel, n):
-        """Cuenta el selector hasta que dé `n` (las entidades de una plantilla aparecen tras los bloques)."""
+        """Counts the selector until it gives `n` (a template's entities appear after the blocks)."""
         end = time.monotonic() + S.UNTIL_S
         while (got := ctx.count(sel)) != n and time.monotonic() < end:
             time.sleep(S.POLL_S)
@@ -91,7 +91,7 @@ def main():
         for y in (-6, -5):
             check(f"paso abierto a y={y}", (20, y, 18), "minecraft:air")
             check(f"estantería retirada a y={y}", (19, y, 18), "minecraft:bookshelf")
-        # trampas y cámara del tesoro
+        # traps and treasure chamber
         put((11, -6, 30), "minecraft:tripwire_hook[attached=true,facing=south,powered=true]")
         check("gancho dispara su dispensador", (11, -5, 30), "minecraft:dispenser[triggered=true]")
         put((20, -13, 10), "minecraft:stone_pressure_plate[powered=true]")
@@ -99,21 +99,21 @@ def main():
             check(f"placa activa el dispensador z={z}", (20, -13, z), "minecraft:dispenser[triggered=true]")
         put((7, -12, 11), "minecraft:redstone_block")
         check("puerta de la cámara del tesoro", vault, "minecraft:iron_door[open=true]")
-        # El guardián se busca por su etiqueta y su vida máxima (atributo), no por su vida actual: con IA puede pisar
-        # una trampa y herirse. Se espera a que aparezca (las entidades de una plantilla tardan más que los bloques).
+        # The guardian is searched by its tag and its maximum health (attribute), not by its current health: with AI it may step on
+        # a trap and get hurt. We wait for it to appear (a template's entities take longer than the blocks).
         sel = "@e[type=minecraft:skeleton,tag=heraldia_guardian.observatorio,nbt={PersistenceRequired:1b}]"
         n = count_until(sel, 1)
         if n != 1:
-            fails.append(f"guardián ausente o sin sus atributos ({n}; {ctx.diagnose(sel)})")
+            fails.append(f"guardian missing or without its attributes ({n}; {ctx.diagnose(sel)})")
         else:
             m = S.run(proc, lines, seen, f"attribute {sel[:-1]},limit=1] minecraft:max_health base get",
                       r"[Bb]ase value of attribute .* is (-?[\d.]+)|No entity")
             if m.group(1) is None or float(m.group(1)) != 40.0:
-                fails.append(f"guardián sin 40 de vida máxima: {m.string.strip()}")
+                fails.append(f"guardian without 40 maximum health: {m.string.strip()}")
         S.run(proc, lines, seen, f"data get entity {sel[:-1]},limit=1] CustomName", r"has the following|No entity|found")
         S.run(proc, lines, seen, "place structure heraldia:unicas/observatorio 64 ~ 64", r"Generated structure")
         if count_until(sel, 2) != 2:
-            fails.append("/place structure no coloca el subsuelo (falta el segundo guardián)")
+            fails.append("/place structure does not place the underground part (the second guardian is missing)")
     finally:
         if proc.poll() is None:
             S.send(proc, "stop")
@@ -124,11 +124,11 @@ def main():
     text = "".join(seen)
     for bad in ("Registry loading errors", "Failed to load", "Couldn't load", "Failed to parse"):
         if bad in text:
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     if fails:
         print("OBSERVATORIO: FALLOS:", fails)
         return 1
-    print("OBSERVATORIO OK: reposo coherente, puzle, pistones, trampas, cámara y guardián")
+    print("OBSERVATORY OK: consistent resting state, puzzle, pistons, traps, chamber and guardian")
     return 0
 
 

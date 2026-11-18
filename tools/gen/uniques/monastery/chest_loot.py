@@ -1,12 +1,12 @@
-"""Botín del monasterio (solo vanilla). Más rico cuanto más escondido; el grupo extra de cada cofre se omite con Lootr."""
+"""Monastery loot (vanilla only). Richer the more hidden; each chest's extra group is skipped with Lootr."""
 from .._common.chest_loot import item, empty, pool, table, named as _named
 
 ID = "monasterio"
-LANG_ITEMS = {}     # clave -> (es, en)
+LANG_ITEMS = {}     # key -> (es, en)
 
 
 def named(name, w, key, es, en, ench=None, levels=None, lo=1, hi=1):
-    """Objeto con nombre propio (pieza común), registrando su texto en los dos idiomas."""
+    """Object with its own name (common piece), registering its text in both languages."""
     LANG_ITEMS[key] = (es, en)
     return _named(name, w, f"heraldia.unicas.{ID}.{key}", es, ench=ench, lo=lo, hi=hi, levels=levels)
 
@@ -57,7 +57,7 @@ LOOT = {
                                      item("experience_bottle", 4, 2, 5), item("arrow", 5, 4, 10)]),
                        pool((1, 2), [item("diamond", 2), item("gold_ingot", 5, 1, 3), item("emerald", 5, 2, 4), empty(3)],
                             extra=True)),
-    # premium: un objeto principal (90 % vistoso, 10 % algo más fuerte), valores y el extra sin Lootr
+    # premium: one main item (90 % showy, 10 % something stronger), values and the extra without Lootr
     "premium": table(pool(1, [sub("premium_vistoso", 90), sub("premium_fuerte", 10)]),
                      pool((3, 5), [item("emerald", 10, 3, 8), item("gold_ingot", 8, 2, 6), item("diamond", 4, 1, 2),
                                    item("golden_apple", 5, 1, 2), item("experience_bottle", 6, 3, 8), item("book", 5, ench=(15, 25)),

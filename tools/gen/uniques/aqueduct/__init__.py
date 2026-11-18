@@ -1,4 +1,4 @@
-"""Acueducto con ciudad en ruinas (desierto y badlands). Diseño: docs/unicas/acueducto.md."""
+"""Aqueduct with a ruined city (desert and badlands). Design: docs/unicas/aqueduct.md."""
 from .._common.pieces import open_stairwells
 from loot import item, empty, table
 from .construction import Construction
@@ -16,8 +16,8 @@ TROPHY = {"objeto": "iron_chestplate", "rareza": "uncommon",
           "nombre": ("Lorica del Centurión Aquilio", "Lorica of Centurion Aquilius"),
           "lore": [("Forjada para la legión que custodiaba el agua.", "Forged for the legion that guarded the water.")],
           "encantamientos": {"minecraft:protection": 1},
-          "componentes": {"minecraft:trim": {"material": "minecraft:gold", "pattern": "minecraft:dune"}}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "componentes": {"minecraft:trim": {"material": "minecraft:gold", "pattern": "minecraft:dune"}}}   # guardian's trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "cisterna",
     "relato": [
         ("La colonia se llamaba Aquae Siccae, «aguas secas», y aun así su acueducto llevaba agua por el "
@@ -36,10 +36,10 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("el desierto, donde un acueducto de arcos lleva agua a una colonia de legionarios",
               "the desert, where an arched aqueduct carries water to a colony of legionaries"),
 }
-ADVANCEMENT = {"icono": "minecraft:water_bucket"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:water_bucket"}   # advancements.py
 
 K = "heraldia.unicas.acueducto."
-TEXTS = {   # clave: (español, inglés)
+TEXTS = {   # key: (Spanish, English)
     "cartel.colonia1": ("COLONIA", "COLONIA"), "cartel.colonia2": ("AQVAE SICCAE", "AQVAE SICCAE"),
     "cartel.cisterna": ("CISTERNA", "CISTERNA"), "cartel.termas": ("THERMAE", "THERMAE"),
     "cartel.villa": ("DOMVS PRAEFECTI", "DOMVS PRAEFECTI"),
@@ -107,7 +107,7 @@ LOOT = {
                   item("dune_armor_trim_smithing_template", 12), item("coast_armor_trim_smithing_template", 8),
                   item("wild_armor_trim_smithing_template", 6), item("sentry_armor_trim_smithing_template", 6),
                   item("book", 15, ench=(10, 20)), item("emerald", 15, 3, 8), item("gold_ingot", 10, 4, 8),
-                  # 10 %: algo más fuerte, sin romper la progresión
+                  # 10 %: somewhat stronger, without breaking the progression
                   item("diamond_sword", 3, ench=(20, 30)), item("diamond_chestplate", 3, ench=(20, 30)),
                   item("enchanted_golden_apple", 2), item("diamond", 2, 2, 3)])),
         2, [item("gold_ingot", 4, 2, 4), item("emerald", 4, 2, 4), item("experience_bottle", 3, 3, 6), item("golden_apple", 1)]),
@@ -126,7 +126,7 @@ PIECES = {
     "cloaca": underground.SEWER,
     "cisterna": underground.CISTERN,
 }
-# (padre, pos en el padre, orientación, hijo, pos en el hijo, orientación)
+# (parent, pos in the parent, orientation, child, pos in the child, orientation)
 JOINTS = [
     ("castellum", (82, 1, 4), "south_up", "ciudad", (82, 1, 5), "north_up"),
     ("castellum", (79, 14, -12), "north_up", "acueducto", (79, 14, -13), "south_up"),
@@ -170,7 +170,7 @@ def inside(p, b):
 
 
 def pieces(o):
-    """Corta la plantilla global en piezas y comprueba cajas y uniones. Devuelve ({nombre: Template}, errores)."""
+    """Cuts the global template into pieces and checks boxes and joints. Returns ({name: Template}, errors)."""
     from core import Template
     errs = []
     names = list(PIECES)
@@ -178,12 +178,12 @@ def pieces(o):
         for b in names[i + 1:]:
             A, Bx = PIECES[a], PIECES[b]
             if all(A[k] <= Bx[k + 3] and Bx[k] <= A[k + 3] for k in range(3)):
-                errs.append(f"las cajas de {a} y {b} se solapan")
+                errs.append(f"the boxes of {a} and {b} overlap")
     out = {n: Template(P + n) for n in names}
     for p, v in o.t.blocks.items():
         hit = [n for n in names if inside(p, PIECES[n])]
         if not hit:
-            errs.append(f"bloque fuera de toda pieza {p}")
+            errs.append(f"block outside any piece {p}")
             continue
         out[hit[0]].blocks[p] = v
     for x, y, z, nbt in o.t.entities:
@@ -192,14 +192,14 @@ def pieces(o):
     cx, cz = (c[0] + c[3]) / 2, (c[2] + c[5]) / 2
     for n, b in PIECES.items():
         if max(abs(b[0] - cx), abs(b[3] - cx), abs(b[2] - cz), abs(b[5] - cz)) > 116:
-            errs.append(f"{n} sale del radio 116")
+            errs.append(f"{n} goes beyond radius 116")
     for (pa, pp, po, ch, cp, co) in JOINTS:
         for piece, pos, ori in ((pa, pp, po), (ch, cp, co)):
             b, f = PIECES[piece], ori.split("_")[0]
             face = {"north": pos[2] == b[2], "south": pos[2] == b[5], "east": pos[0] == b[3], "west": pos[0] == b[0],
                     "down": pos[1] == b[1], "up": pos[1] == b[4]}[f]
             if not face or pos not in out[piece].blocks:
-                errs.append(f"unión {piece} {pos} no está en la cara de su caja")
+                errs.append(f"joint {piece} {pos} is not on the face of its box")
         fs = lambda t, pos: t.blocks[pos][0]
         out[pa].jigsaw(*pp, po, P + pa + "_" + ch, P + ch + "_" + pa, P + ch, final_state=fs(out[pa], pp))
         out[ch].jigsaw(*cp, co, P + ch + "_" + pa, P + pa + "_" + ch, "minecraft:empty", final_state=fs(out[ch], cp))

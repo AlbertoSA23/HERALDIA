@@ -1,4 +1,4 @@
-"""Botín del palacio: solo vanilla, más rico cuanto más escondido. El grupo extra de cada cofre es solo_sin_lootr."""
+"""Palace loot: vanilla only, richer the more hidden. Each chest's extra group is solo_sin_lootr."""
 from loot import item, empty
 from .._common.chest_loot import pool, table, lang, named as _named
 
@@ -16,7 +16,7 @@ NAMES = {   # clave -> (es_es, en_us)
 
 
 def named(name, w, key, ench=None):
-    """Objeto con nombre del palacio (clave item.heraldia.palacio.<key>, respaldo en español)."""
+    """Named object of the palace (key item.heraldia.palacio.<key>, Spanish fallback)."""
     return _named(name, w, f"item.heraldia.palacio.{key}", NAMES[key][0], levels=ench)
 
 
@@ -73,7 +73,7 @@ LOOT = {
                              item("bow", 3, ench=(10, 20)), item("golden_apple", 3), item("crossbow", 2, ench=(10, 20))]),
                     pool((1, 2), [item("diamond", 2, 1, 2), item("gold_ingot", 4, 2, 4), item("emerald", 4, 2, 5)], extra=True)),
     "premium": table(
-        # joya: 90 % vistosa (nombre, oro y hierro, encantamientos moderados), 10 % algo más fuerte
+        # jewel: 90 % showy (name, gold and iron, moderate enchantments), 10 % something stronger
         pool(1, [named("golden_sword", 20, "hoja", ench=(20, 30)), named("golden_chestplate", 18, "coraza", ench=(15, 25)),
                  named("iron_sword", 18, "sable", ench=(15, 25)), named("crossbow", 16, "ballesta", ench=(15, 25)),
                  named("golden_helmet", 18, "yelmo", ench=(15, 25)),

@@ -1,4 +1,4 @@
-"""Plano de la ciudad en vóxeles: se construye entero y luego se corta en teselas (plantillas)."""
+"""Voxel plan of the city: it is built whole and then cut into tiles (templates)."""
 import math, os, sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from core import Template, parse_state, state_str
@@ -21,7 +21,7 @@ def block_name(state):
 
 
 def rotate(state, k):
-    """Gira un estado k cuartos de vuelta en sentido horario visto desde arriba (norte -> este)."""
+    """Rotates a state k quarter turns clockwise seen from above (north -> east)."""
     if k % 4 == 0 or "[" not in state:
         return state
     bid, props = parse_state(state)
@@ -38,7 +38,7 @@ def rotate(state, k):
 
 
 def floodable(state):
-    """El bloque admite la propiedad waterlogged (según los registros de 26.3)."""
+    """The block supports the waterlogged property (according to the 26.3 registries)."""
     if not validate.BLOCKS:
         root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
         validate.load_registries(os.environ.get("MCMETA_SUMMARY") or os.path.join(root, "build", "mcmeta-summary"))
@@ -48,17 +48,17 @@ def floodable(state):
 
 class World:
     def __init__(self):
-        self.blocks = {}      # (x, y, z) -> (estado, nbt | None)
+        self.blocks = {}      # (x, y, z) -> (state, nbt | None)
         self.entities = []    # (x, y, z, nbt)
-        self.marks = {}      # nombre -> lista de celdas (para auditoría, planos y prueba de humo)
-        self.sites = []      # (nombre, x1, y1, z1, x2, y2, z2, ruinoso): cajas de lo construido
+        self.marks = {}      # name -> list of cells (for audit, floor plans and smoke test)
+        self.sites = []      # (name, x1, y1, z1, x2, y2, z2, ruinous): boxes of what is built
 
-    # --- básico ---
+    # --- basics ---
     def set(self, x, y, z, state, nbt=None):
         self.blocks[(x, y, z)] = (norm(state), nbt)
 
     def get(self, x, y, z):
-        """Estado final de la celda: lo construido o, si no hay nada, lo que deja la pieza base."""
+        """Final state of the cell: what was built or, if there is nothing, what the base piece leaves."""
         b = self.blocks.get((x, y, z))
         return b[0] if b else U.base(x, y, z)
 
@@ -84,7 +84,7 @@ class World:
 
     # --- agua ---
     def clean_algae(self):
-        """Quita las algas que han quedado sin base y remata las cortadas (otro elemento pisó parte del tallo)."""
+        """Removes the kelp left without a base and finishes the cut ones (another element overwrote part of the stem)."""
         change = True
         while change:
             change = False
@@ -102,7 +102,7 @@ class World:
                     change = True
 
     def flood(self):
-        """Pone waterlogged a cada bloque anegable según su entorno: anegado si toca agua y no toca aire."""
+        """Sets waterlogged on each waterloggable block according to its surroundings: waterlogged if it touches water and does not touch air."""
         changes = {}
         for (x, y, z), (st, nbt) in self.blocks.items():
             if st.startswith("minecraft:water") or st == "minecraft:air" or not floodable(st):
@@ -119,7 +119,7 @@ class World:
 
     # --- teselas ---
     def tiles(self, prefix):
-        """[(Template normalizada, (x, y, z) de su esquina mínima en el plano)], ordenadas."""
+        """[(normalized Template, (x, y, z) of its minimum corner in the plan)], sorted."""
         groups = {}
         for pos, v in self.blocks.items():
             groups.setdefault((pos[0] // U.TILE, pos[2] // U.TILE), ([], []))[0].append((pos, v))
@@ -134,15 +134,15 @@ class World:
             t.entities = list(en)
             x0, y0, z0, *_ = t.bounds()
             t.normalize()
-            t.no_generic_audit = True   # la auditoría se hace sobre el plano entero (auditoria.py)
+            t.no_generic_audit = True   # the audit is done on the whole plan (audit.py)
             out.append((t, (x0, y0, z0)))
         return out
 
 
 class View:
-    """Sistema local de un edificio: origen (ox, oz), altura oy y giro en cuartos de vuelta horarios.
+    """Local system of a building: origin (ox, oz), height oy and rotation in clockwise quarter turns.
 
-    Local: u hacia la derecha, v hacia el fondo; la fachada es la cara v = 0 y mira al «norte» local.
+    Local: u to the right, v toward the back; the facade is the face v = 0 and faces the local "north".
     """
 
     def __init__(self, m, ox, oz, turn=0, oy=0):
@@ -181,7 +181,7 @@ class View:
         self.fill(*c, "water")
 
     def shell(self, u1, y1, v1, u2, y2, v2, wall, floor=None, roof=None):
-        """Caja hueca: muros, suelo y techo; el interior no se toca."""
+        """Hollow box: walls, floor and ceiling; the interior is not touched."""
         floor, roof = floor or wall, roof or wall
         for u in range(u1, u2 + 1):
             for v in range(v1, v2 + 1):
@@ -200,7 +200,7 @@ class View:
                     self.fill(u, y1, v, u, y2, v, state)
 
     def dome(self, cu, cv, r, y0, state, rib=None, each=4):
-        """Semiesfera hueca de radio r apoyada en y0; nervio = material de los meridianos."""
+        """Hollow hemisphere of radius r resting on y0; nervio = material of the meridians."""
         for u in range(cu - r, cu + r + 1):
             for v in range(cv - r, cv + r + 1):
                 for y in range(0, r + 1):
@@ -210,7 +210,7 @@ class View:
                         self.set(u, y0 + y, v, rib if is_rib else state)
 
     def remove(self, u1, y1, v1, u2=None, y2=None, v2=None):
-        """Borra lo construido (vuelve a lo que deja la pieza base: agua sobre el suelo)."""
+        """Erases what is built (returns to what the base piece leaves: water over the ground)."""
         u2, y2, v2 = (u1 if u2 is None else u2), (y1 if y2 is None else y2), (v1 if v2 is None else v2)
         for u in range(min(u1, u2), max(u1, u2) + 1):
             for v in range(min(v1, v2), max(v1, v2) + 1):
@@ -223,7 +223,7 @@ class View:
         return self.m.built(x, self.oy + y, z)
 
     def facing(self, d):
-        """Dirección del mundo que corresponde a la dirección local d."""
+        """World direction that corresponds to the local direction d."""
         return TURN[(TURN.index(d) + self.turn) % 4]
 
     def entity(self, u, y, v, nbt):

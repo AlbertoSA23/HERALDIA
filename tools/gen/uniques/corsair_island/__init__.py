@@ -1,30 +1,30 @@
-"""Isla del corsario: un islote en mar abierto (océanos templados y cálidos, lejos de la costa y fuera de la
-Atlántida) con el fuerte de Roque Salitre en el cerro del norte (muralla, baluarte con cañones, casa del corsario,
-cuartel), el puerto del sur (muelle con un bergantín amarrado, la taberna de La Sirena Ahorcada con su escondite, los
-almacenes y la horca) y el faro de la punta oeste. Bajo el cerro, las cuevas marinas: la ensenada oculta (se entra en
-barca por el acantilado), el cuerpo de guardia, la sala del mapa con el puzle de la rosa de los vientos, la armería con
-la santabárbara secreta, los calabozos y, bajo el nivel del mar, la cámara del tesoro con el corsario (diseño en
-docs/unicas/isla_corsario.md).
+"""Corsair's island: an islet in open sea (temperate and warm oceans, far from the coast and outside the
+Atlantis area) with Roque Salitre's fort on the northern hill (wall, bastion with cannons, corsair's house,
+barracks), the southern harbor (pier with a moored brigantine, the tavern of La Sirena Ahorcada with its hideout, the
+warehouses and the gallows) and the lighthouse on the west point. Under the hill, the sea caves: the hidden cove (entered
+by boat through the cliff), the guardroom, the map room with the compass-rose puzzle, the armory with
+the secret powder magazine, the dungeons and, below sea level, the treasure chamber with the corsair (design in
+docs/unicas/corsair_island.md).
 
-Una sola plantilla que trae su roca, su arena y sus palmeras, colocada por el tipo propio heraldia:isla (Java), que
-busca mar abierto con el fondo a una profundidad media; la fila inferior se prolonga hasta el fondo
-(HastaElSueloProcessor), así que el islote nunca queda colgando. La auditoría propia es condición para generar.
+A single template that brings its own rock, sand and palm trees, placed by the custom type heraldia:isla (Java), which
+looks for open sea with the floor at a medium depth; the bottom row is extended down to the floor
+(HastaElSueloProcessor), so the islet never ends up hanging. Its own audit is a condition for generating.
 """
 import functools
 from .._common.chest_loot import lang
-from .chest_loot import LOOT, LANG as LANG_OBJECTS  # noqa: F401  (LOOT: contrato del módulo)
+from .chest_loot import LOOT, LANG as LANG_OBJECTS  # noqa: F401  (LOOT: module contract)
 from .construction import Construction, K, SID, BASE
 from . import audit
 
 DISPLAY_NAME = {"es_es": "Isla del corsario", "en_us": "Corsair's Isle"}
-# Refuerzos del guardián en cada fase (jefes.py): su tripulación.
+# Guardian reinforcements in each phase (bosses.py): its crew.
 REINFORCEMENTS = [{"mob": "skeleton", "equipo": {"mainhand": "iron_sword"}}, "skeleton", "drowned"]
 TROPHY = {"objeto": "bow", "rareza": "rare",
           "nombre": ("Arco de Roque Salitre", "Roque Salitre's Bow"),
           "lore": [("Disparó la última andanada de la isla.", "It loosed the isle's last broadside."),
                    ("Nunca arrió la bandera negra.", "It never struck the black flag.")],
-          "encantamientos": {"minecraft:power": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "encantamientos": {"minecraft:power": 2, "minecraft:unbreaking": 2}}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "cartas",
     "relato": [
         ("Un bergantín de bandera negra me recogió del agua y me llevó a su isla, un cerro con un fuerte en mitad del"
@@ -39,13 +39,13 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("un mar templado, donde una isla esconde un fuerte de corsarios y una ensenada en su acantilado",
               "a temperate sea, where an isle hides a corsairs' fort and a cove in its cliff"),
 }
-ADVANCEMENT = {"icono": "minecraft:spyglass"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:spyglass"}   # advancements.py
 MAP = {"decoration": "minecraft:red_x"}
-# Océanos templados y cálidos, no los profundos (la Atlántida busca los profundos) ni los fríos o helados. No hay
-# etiqueta convencional tan estrecha: #c:is_shallow_ocean incluye los fríos y helados (biomas.py).
+# Temperate and warm oceans, not the deep ones (Atlantis looks for the deep ones) nor the cold or frozen ones. There is no
+# conventional tag that narrow: #c:is_shallow_ocean includes the cold and frozen ones (biomes.py).
 BIOME_MAP = ["minecraft:ocean", "minecraft:lukewarm_ocean", "minecraft:warm_ocean"]
-RADIUS, MARGIN = 54, 24                   # huella del islote y del bergantín (bloques) y anillo de mar alrededor
-DEPTH = (-34, -7)                        # fondo admitido en la huella respecto al nivel del mar (bloques)
+RADIUS, MARGIN = 54, 24                   # footprint of the islet and the brigantine (blocks) and ring of sea around it
+DEPTH = (-34, -7)                        # floor depth allowed in the footprint relative to sea level (blocks)
 TO_THE_BOTTOM = ["stone", "andesite", "tuff", "sand", "gravel", "sandstone", "spruce_log"]
 
 TEXTS = {"guardian": ("Roque Salitre, el corsario", "Roque Salitre, the Corsair")}
@@ -55,7 +55,7 @@ REPORT = {}
 
 @functools.lru_cache(maxsize=1)
 def dataset():
-    """(plantilla, errores, textos, informe): la obra entera, auditada y normalizada."""
+    """(template, errors, texts, report): the whole build, audited and normalized."""
     construction = Construction().build()
     t, errors, rep = audit.prepare(construction)
     out = lang(K, TEXTS)
@@ -78,7 +78,7 @@ def _structure():
 
 
 class _Lazy(dict):
-    """STRUCTURE con el JSON calculado al leerlo."""
+    """STRUCTURE with the JSON computed when read."""
     def get(self, k, default=None):
         if k == "json":
             return _structure()
@@ -88,14 +88,14 @@ class _Lazy(dict):
         return self.get(k) if k == "json" else super().__getitem__(k)
 
 
-# rejilla heraldia:rejilla con la candidata buscada en sus océanos (el punto de la casilla más metido en ellos)
+# heraldia:rejilla grid with the candidate sought in its oceans (the point of the cell furthest inside them)
 STRUCTURE = _Lazy(start_pool=f"unicas/{SID}/inicio", size=1, max_distance=1, terrain_adaptation="none",
                   step="surface_structures", spacing=250, separation=190, candidata_en_bioma=True, candidata_y=62)
 
 
 def build(reg):
     t, errors, texts, rep = dataset()
-    for k, v in texts.items():           # writer.py lee LANG después de build()
+    for k, v in texts.items():           # writer.py reads LANG after build()
         LANG[k].update(v)
     REPORT.update(rep)
     reg.add(t, f"unica:{SID}")

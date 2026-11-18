@@ -1,6 +1,6 @@
-"""Botín de la Isla del corsario (solo vanilla): modesto en el puerto y el fuerte, mejor en el bergantín y en las
-cuevas, algo más en las salas ocultas y el cofre premium en la cámara del tesoro (90 % vistoso, 10 % algo más fuerte).
-Encantamientos moderados; nada de netherita ni élitros. Cada tabla lleva su grupo extra marcado solo_sin_lootr."""
+"""Corsair's island loot (vanilla only): modest in the harbor and the fort, better in the brigantine and in the
+caves, somewhat more in the hidden rooms and the premium chest in the treasure chamber (90 % showy, 10 % somewhat stronger).
+Moderate enchantments; no netherite or elytra. Each table carries its extra group marked solo_sin_lootr."""
 from .._common.chest_loot import place_chest, table, pool, item, empty, named as _named, lang
 
 K = "heraldia.isla_corsario."
@@ -34,7 +34,7 @@ CAVE = [item("gold_nugget", 8, 3, 9), item("iron_ingot", 6, 1, 3), item("emerald
          item("arrow", 5, 4, 10), item("gunpowder", 5, 2, 5), item("nautilus_shell", 2), item("prismarine_shard", 3, 1, 3)]
 
 LOOT = {
-    # el puerto
+    # the harbor
     "taberna": place_chest(((2, 4), TAVERN + [named("honey_bottle", "ron", 3)]),
                      (1, [item("emerald", 3), item("gold_nugget", 4, 2, 5), empty(8)])),
     "bodega": place_chest(((2, 4), TAVERN + [item("wheat", 4, 2, 5), item("sweet_berries", 3, 2, 5)]),
@@ -47,7 +47,7 @@ LOOT = {
                      (1, [item("iron_ingot", 4, 1, 2), item("emerald", 2), empty(8)])),
     "faro": place_chest(((2, 4), HARBOR[:6] + [item("candle", 4, 1, 3), item("spyglass", 2), item("glow_ink_sac", 3, 1, 3)]),
                   (1, [named("spyglass", "catalejo", 2), item("emerald", 2), empty(8)])),
-    # el bergantín
+    # the brigantine
     "bergantin": place_chest(((3, 5), HARBOR + [item("gunpowder", 5, 2, 5), item("iron_ingot", 4, 1, 3), item("saddle", 1)]),
                        ((1, 2), [item("emerald", 4, 1, 3), item("gold_ingot", 3, 1, 2), item("heart_of_the_sea", 1),
                                  empty(6)])),
@@ -56,7 +56,7 @@ LOOT = {
                                 item("book", 3, rand_ench=True)]),
                       ((1, 2), [named("compass", "brujula", 3), item("gold_ingot", 4, 1, 3), item("diamond", 1),
                                 empty(6)])),
-    # el fuerte
+    # the fort
     "polvorin": place_chest(((3, 5), [item("gunpowder", 10, 2, 6), item("flint", 5, 1, 3), item("fire_charge", 4, 1, 3),
                                 item("tnt", 2), named("string", "mecha", 4, lo=1, hi=3), item("arrow", 4, 4, 10)]),
                       (1, [item("tnt", 2, 1, 2), item("flint_and_steel", 2), empty(6)])),
@@ -69,7 +69,7 @@ LOOT = {
                                 named("paper", "carta", 3), item("book", 3, rand_ench=True), item("spyglass", 2),
                                 item("golden_carrot", 3, 1, 3)]),
                       ((1, 2), [item("diamond", 2), named("spyglass", "catalejo", 3), item("golden_apple", 2), empty(6)])),
-    # las cuevas
+    # the caves
     "ensenada": place_chest(((3, 5), CAVE[:6] + [item("cod", 4, 1, 3), item("oak_boat", 2), item("lead", 2)]),
                       ((1, 2), [item("diamond", 2), item("emerald", 4, 1, 3), item("heart_of_the_sea", 1), empty(6)])),
     "guardia": place_chest(((3, 5), FORT + [item("iron_ingot", 4, 1, 3), item("shield", 2, dmg=(0.2, 0.5))]),
@@ -107,7 +107,7 @@ LOOT = {
                       item("golden_apple", 3)]),
         pool((2, 4), [item("gold_ingot", 6, 1, 4), item("diamond", 3, 1, 2), item("emerald", 6, 2, 5),
                       item("experience_bottle", 5, 2, 6), named("gold_nugget", "real", 4, lo=4, hi=12)], extra=True),
-        pool(1, [empty(90), item("trident", 3, ench=(15, 25)),     # 10 % más fuerte
+        pool(1, [empty(90), item("trident", 3, ench=(15, 25)),     # 10 % stronger
                  item("diamond_sword", 2, ench=(20, 30)), item("enchanted_golden_apple", 2),
                  item("totem_of_undying", 2), item("diamond_chestplate", 1, ench=(20, 30))])),
 }

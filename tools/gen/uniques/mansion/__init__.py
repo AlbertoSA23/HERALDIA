@@ -1,7 +1,7 @@
-"""Mansión encantada: estructura única del pantano (diseño en docs/unicas/mansion.md).
+"""Haunted mansion: unique structure of the swamp (design in docs/unicas/mansion.md).
 
-Dos piezas rígidas: la casa (finca, casa, invernadero, cementerio y panteón; y=0 es el suelo) y el sótano, unido por
-un jigsaw vertical bajo el comedor. La auditoría propia (auditoria.py) es condición para generar.
+Two rigid pieces: the house (estate, house, greenhouse, cemetery and mausoleum; y=0 is the ground) and the basement, joined by
+a vertical jigsaw under the dining room. Its own audit (audit.py) is a condition for generating.
 """
 from .._common.pieces import open_stairwells
 from loot import item, empty
@@ -15,8 +15,8 @@ STRUCTURE = dict(biomes="#heraldia:pantano", start_pool="unicas/mansion/inicio",
 DISPLAY_NAME = {"es_es": "Mansión encantada", "en_us": "Haunted Mansion"}
 TROPHY = {"objeto": "clock", "rareza": "rare",
           "nombre": ("Reloj del Conde Malaquías", "Count Malachi's Pocket Watch"),
-          "lore": [("Se detuvo a medianoche y nunca volvió a andar.", "It stopped at midnight and never ran again.")]}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "lore": [("Se detuvo a medianoche y nunca volvió a andar.", "It stopped at midnight and never ran again.")]}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("En el pantano me acogió el conde Malaquías, en una mansión llena de relojes. La condesa "
@@ -34,7 +34,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("el pantano, donde los relojes de una mansión se pararon a medianoche",
               "the swamp, where the clocks of a mansion stopped at midnight"),
 }
-ADVANCEMENT = {"icono": "minecraft:jack_o_lantern"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:jack_o_lantern"}   # advancements.py
 MAP = {"decoration": "minecraft:mansion"}
 
 TEXTS = {   # clave: (es_es, en_us)
@@ -106,7 +106,7 @@ LOOT = {
                   item("gold_ingot", 6, 2, 6), item("emerald", 6, 3, 8), item("book", 4, ench=(10, 20)), item("golden_apple", 3)]),
         pool((2, 4), [item("gold_ingot", 6, 1, 4), item("diamond", 3, 1, 2), item("emerald", 6, 2, 5),
                   item("experience_bottle", 5, 2, 6), item("golden_carrot", 4, 1, 3)], extra=True),
-        pool(1, [empty(90), item("diamond_chestplate", 3, ench=(20, 30)), item("diamond_sword", 3, ench=(20, 30)),   # 10 % más fuerte
+        pool(1, [empty(90), item("diamond_chestplate", 3, ench=(20, 30)), item("diamond_sword", 3, ench=(20, 30)),   # 10 % stronger
              item("enchanted_golden_apple", 2), item("totem_of_undying", 2)])),
 }
 

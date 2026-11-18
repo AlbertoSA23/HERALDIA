@@ -1,5 +1,5 @@
-"""Guía del Heraldo (guia.py): textos completos en los dos idiomas y límites del libro vanilla (páginas de 14 líneas de
-114 px, título de 32 caracteres como mucho, 100 páginas como mucho)."""
+"""Herald's Guide (guia.py): complete texts in both languages and limits of the vanilla book (pages of 14 lines of
+114 px, title of at most 32 characters, at most 100 pages)."""
 import re
 import types
 import pytest
@@ -59,7 +59,7 @@ def test_entries_by_page_with_the_worst_case():
                              (guide.JOURNAL["pistas"], clues, d["pistas_por_pagina"])):
         assert n >= 1
         for i in (0, 1):
-            # las n entradas más largas, una por línea, tras la cabecera: caben; con una más, la peor ya no cabría
+            # the n longest entries, one per line, after the header: they fit; with one more, the worst would no longer fit
             worst_ones = sorted(entrances[i], key=chest_loot.book_lines, reverse=True)[:n]
             assert guide.page_lines(header[i], "\n".join(worst_ones)) <= chest_loot.BOOK_LINES
         worst = max(chest_loot.book_lines(e) for e in entrances[0] + entrances[1])
@@ -101,7 +101,7 @@ def test_data_for_the_java():
     d = guide.dataset(MODULES)
     assert d["paginas"] == [p[0] for p in guide.PAGES]
     assert d["marca"] == guide.MARK and d["autor"] == guide.AUTHOR
-    # una entrada de nombre corto ocupa una línea; con nombres cortos caben más por página que con largos
+    # an entry with a short name takes one line; with short names more fit per page than with long ones
     brief = guide.dataset([("x", module(name=("Uno", "One")))])
     assert brief["nombres_por_pagina"] == chest_loot.BOOK_LINES - 2 >= d["nombres_por_pagina"]
 
@@ -127,7 +127,7 @@ def test_delivery_option():
     assert "heraldia.config.guia.entregar_al_entrar.nombre" in lang["en_us"]
 
 
-# --- T41: el salón de la fama de la arena ---
+# --- T41: the arena hall of fame ---
 
 def test_hall_of_fame_fits_in_es_and_en():
     assert guide.fame_errors() == []

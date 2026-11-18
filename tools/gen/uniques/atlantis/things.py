@@ -1,4 +1,4 @@
-"""Objetos con datos: textos traducibles, cofres, llaves, generadores, mobs, carteles y dispensadores (NBT de 26.3)."""
+"""Objects with data: translatable texts, chests, keys, spawners, mobs, signs and dispensers (NBT of 26.3)."""
 from core import B, F, adult, anchored
 from .._common import pieces as P
 
@@ -7,7 +7,7 @@ TABLE = "heraldia:unicas/atlantida/"
 
 
 def text(lang_key, es, en, **style):
-    """Componente de texto traducible con respaldo en español; registra la clave en los dos idiomas."""
+    """Translatable text component with a Spanish fallback; registers the key in both languages."""
     k = "heraldia.atlantida." + lang_key
     LANG["es_es"][k], LANG["en_us"][k] = es, en
     c = P.text(k, es)
@@ -19,7 +19,7 @@ def item_name(lang_key, es, en, color="aqua"):
     return text(lang_key, es, en, color=color, italic=B(0))
 
 
-# --- llaves (objeto con nombre y dato propio; los cofres cerrados piden ese dato) ---
+# --- keys (named item with its own data; locked chests ask for that data) ---
 KEYS = {
     "arsenal": ("Llave del Arsenal", "Arsenal Key"),
     "academia": ("Llave de la Academia", "Academy Key"),
@@ -37,7 +37,7 @@ def key_components(which):
 
 
 def key_table(which):
-    """Tabla de botín que da exactamente la llave (cofres de recompensa y muerte del guardián final)."""
+    """Loot table that gives exactly the key (reward chests and final guardian's death)."""
     c = key_components(which)
     return {"type": "minecraft:chest", "pools": [{"rolls": 1, "entries": [{
         "type": "minecraft:item", "name": KEY_ITEM, "modifier": [
@@ -53,21 +53,21 @@ def lock(which):
 
 # --- cofres ---
 def place_chest(v, u, y, w, facing, tbl, key=None, kind="chest"):
-    """Cofre, cofre trampa o barril con tabla de botín (pieza común), opcionalmente cerrado con una llave."""
+    """Chest, trapped chest or barrel with a loot table (common piece), optionally locked with a key."""
     def put(x, y_, z, st, nbt):
         v.set(x, y_, z, st, dict(nbt, lock=lock(key)) if key else nbt)
     P.chest(put, u, y, w, facing, TABLE + tbl, kind=kind)
     v.mark("cofre", u, y, w)
 
 
-# Marca (custom_data del bloque) de un cofre de contenido fijo que, con la opción unicas.<id>.cofre_unico_por_jugador,
-# da a cada jugador su propia copia (loot/CofrePorJugador.java lee la misma clave).
+# Mark (block custom_data) of a fixed-content chest that, with the option unicas.<id>.cofre_unico_por_jugador,
+# gives each player their own copy (loot/CofrePorJugador.java reads the same key).
 MARK_PER_PLAYER = "heraldia_cofre_unico"
 
 
 def fixed_chest(v, u, y, w, facing, item_specs, key=None, per_player=None):
-    """Cofre con contenido fijo (sin tabla: Lootr no lo convierte). objetos = [(id, cantidad, componentes | None)].
-    por_jugador = id de la estructura: marca el cofre para la opción unicas.<id>.cofre_unico_por_jugador."""
+    """Chest with fixed content (no table: Lootr does not convert it). objetos = [(id, count, components | None)].
+    por_jugador = structure id: marks the chest for the option unicas.<id>.cofre_unico_por_jugador."""
     items = []
     for i, (oid, n, comp) in enumerate(item_specs):
         it = {"Slot": B(i), "id": "minecraft:" + oid, "count": n}
@@ -102,7 +102,7 @@ def mob(kind, name=None, hand=None, health=None, armour_set=None, chest_loot=Non
     if chest_loot:
         n["DeathLootTable"] = TABLE + chest_loot
     n.update(extra)
-    # Ahogados: adultos y anclados (core.ANCLADO_TAG: sin recoger objetos ni pasear hasta que los atacan); el jefe también.
+    # Drowned: adults and anchored (core.ANCHORED_TAG: no picking up items or wandering until attacked); the boss too.
     return anchored(adult(n), always=P.GUARDIAN_TAG in n.get("Tags", []))
 
 
@@ -125,11 +125,11 @@ def boss():
     return mob("elder_guardian", text("mob.jefe", "Guardián de Poseidón", "Warden of Poseidon", color="gold"), health=240, chest_loot="jefe",
                attributes=[{"id": "minecraft:max_health", "base": 240.0}, {"id": "minecraft:attack_damage", "base": 12.0},
                            {"id": "minecraft:armor", "base": 8.0}, {"id": "minecraft:scale", "base": 1.5}],
-               Tags=[P.GUARDIAN_TAG])   # el guardián final: logro heraldia:unicas/atlantida/guardian
+               Tags=[P.GUARDIAN_TAG])   # the final guardian: advancement heraldia:unicas/atlantida/guardian
 
 
 def generator(v, u, y, w, kind, trident=False):
-    """Generador (pieza común); con tridente, los ahogados salen armados."""
+    """Spawner (common piece); with a trident, the drowned spawn armed."""
     def put(x, y_, z, st, nbt):
         if trident:
             nbt["SpawnData"]["entity"].update(equipment={"mainhand": {"id": "minecraft:trident", "count": 1}}, drop_chances={"mainhand": F(0.03)})
@@ -138,9 +138,9 @@ def generator(v, u, y, w, kind, trident=False):
     v.mark("generador", u, y, w)
 
 
-# --- carteles y dispensadores ---
+# --- signs and dispensers ---
 def sign(v, u, y, w, facing, lines, wood="warped"):
-    """Cartel de pared (pieza común). mira = hacia dónde da la cara; lineas = hasta 4 componentes de texto."""
+    """Wall sign (common piece). mira = which way the face points; lineas = up to 4 text components."""
     P.sign(v.set, u, y, w, facing, lines, wood=wood)
 
 

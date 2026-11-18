@@ -1,10 +1,10 @@
-"""Acabado y auditoría de la Mina perdida: estado de reposo de la redstone, el puzle de las agujas (la vagoneta solo
-llega a la báscula con la combinación buena), la compuerta y el despacho secreto, las trampas, el recorrido a pie con
-los puzles cerrados y resueltos (también estricto, sin caídas de más de un bloque y nadando), la luz de los generadores,
-los forros (ningún bloque natural a la vista dentro), el casco cerrado (ningún hueco excavado toca el exterior de la
-plantilla), el estado de conservación y el castillete.
+"""Finishing and audit of the Lost Mine: redstone resting state, the needle puzzle (the minecart only
+reaches the weighbridge with the right combination), the hatch and the secret office, the traps, the walkthrough with
+the puzzles closed and solved (also strict, with no drops of more than one block and swimming), generator light,
+the linings (no natural block in view inside), the closed shell (no dug-out gap touches the outside of the
+template), the state of wear and the headframe.
 
-preparar(obra, castillete) devuelve (errores, informe); los errores pasan a reg.warnings y la compilación falla.
+preparar(obra, castillete) returns (errors, report); the errors go to reg.warnings and the compilation fails.
 """
 import lint
 from pack import fix_supports
@@ -16,12 +16,12 @@ from .._common.walkthrough import (lint_view, nearby_flag, floating_blocks, ligh
 from . import tracks
 from .construction import N6, NATURAL, SID
 
-# Desgaste repartido; con la ruina hecha a mano, 15-20 % de la superficie a la vista. Nada que sostenga un mecanismo
-# se cae: solo cambian de aspecto (el adoquín musgoso y el ladrillo agrietado conducen y se dejan arrastrar igual).
+# Wear spread out; with the hand-made ruin, 15-20 % of the surface in view. Nothing that supports a mechanism
+# falls: they only change appearance (mossy cobblestone and cracked brick conduct and get dragged just the same).
 DECAY = [("stone_bricks", 0.25, "cracked_stone_bricks"), ("stone_bricks", 0.12, "mossy_stone_bricks"),
          ("cobblestone", 0.22, "mossy_cobblestone")]
 PROCESSOR = processor(DECAY)
-INTERIOR_NATURAL = tuple(b for b in NATURAL if b not in ("gravel", "sand"))   # escombro y lecho del lago: aceptados
+INTERIOR_NATURAL = tuple(b for b in NATURAL if b not in ("gravel", "sand"))   # rubble and lake bed: accepted
 
 
 def prepare(construction, cast):
@@ -37,43 +37,43 @@ def prepare(construction, cast):
     v = m["vias"]
     blocks = {p: st for p, (st, _) in t.blocks.items()}
 
-    # puzle 1: las agujas; la báscula abre la compuerta y nada más la abre
+    # puzzle 1: the needles; the weighbridge opens the hatch and nothing else opens it
     errs += tracks.check(t, v)
     for p in v["agujas"] + [v["bascula"], v["salida"]]:
         if not tracks.is_rail(blocks.get(p)):
-            errs.append(f"falta la vía en {p}")
+            errs.append(f"missing track at {p}")
     sim_bas = rs.Sim(t, {v["bascula"]: True})
     open_bas = open_up(t, sim_bas)
     for p in v["puerta"]:
         if bn(blocks.get(p)) in ("air", None):
-            errs.append(f"la compuerta no está cerrada al generarse en {p}")
+            errs.append(f"the hatch is not closed when generated at {p}")
         if bn(open_bas.get(p)) != "air":
-            errs.append(f"la vagoneta en la báscula no abre la compuerta en {p}")
+            errs.append(f"the minecart on the weighbridge does not open the hatch at {p}")
     for lv in v["palancas"] + [v["arranque"]]:
         if not all(rs.Sim(t, {lv: True}).powered(p) for p in v["pistones"]):
-            errs.append(f"la palanca {lv} toca el circuito de la compuerta")
-    # puzle 2: la estantería del despacho del capataz
+            errs.append(f"lever {lv} touches the hatch circuit")
+    # puzzle 2: the foreman's office bookshelf
     desc_es = m["puerta_despacho"]
     open_des = open_up(t, rs.Sim(t, {desc_es["lever"]: True}))
     for p in (desc_es["door"], (desc_es["door"][0], desc_es["door"][1] + 1, desc_es["door"][2])):
         if bn(open_des.get(p)) != "air":
-            errs.append(f"la palanca no abre el despacho en {p}")
+            errs.append(f"the lever does not open the office at {p}")
         if bn(blocks.get(p)) in ("air", None):
-            errs.append(f"el panel del despacho no está cerrado al generarse en {p}")
-    # trampas: cable trampa y placa sobre la dinamita, sin señal en reposo
+            errs.append(f"the office panel is not closed when generated at {p}")
+    # traps: trap wire and plate over the dynamite, no signal at rest
     sim = rs.Sim(t, {p: True for p in m["ganchos"]})
     idle = rs.Sim(t)
     for p in m["dispensadores"]:
         if not sim.powered(p):
-            errs.append(f"el cable trampa no activa el dispensador {p}")
+            errs.append(f"the trap wire does not activate dispenser {p}")
         if idle.powered(p):
-            errs.append(f"dispensador con señal en reposo {p}")
+            errs.append(f"dispenser with signal at rest {p}")
     if not rs.Sim(t, {m["placa_tnt"]: True}).powered(m["tnt"]):
-        errs.append("la placa no prende la dinamita")
+        errs.append("the plate does not ignite the dynamite")
     if idle.powered(m["tnt"]):
-        errs.append("dinamita con señal en reposo")
+        errs.append("dynamite with signal at rest")
 
-    # recorrido: público (puzles cerrados) y resuelto (compuerta y despacho abiertos)
+    # walkthrough: public (puzzles closed) and solved (hatch and office open)
     trap = {p: None for p, st in blocks.items() if bn(st) == "tripwire"}
     resolved_map = dict(open_bas)
     for p, st in open_des.items():
@@ -87,10 +87,10 @@ def prepare(construction, cast):
     soln_blocks = {p: (st, t.blocks[p][1] if p in t.blocks else None) for p, st in resolved_map.items()}
     solv = lint_view(soln_blocks, trap, entrance)
     cells = set(lint.walk(solv, extra_ground=False))
-    submerged = {p for p, _ in construction.chests if "waterlogged=true" in blocks[p]}      # se llega buceando (andar)
+    submerged = {p for p, _ in construction.chests if "waterlogged=true" in blocks[p]}      # reached by diving (walking)
     for msg, pos in lint.access_issues(solv) + lint.support_issues(solv):
         if pos in submerged or (msg.startswith("cadena sin enganche") and pos[1] == construction_top(construction)):
-            continue                     # la cadena del pozo sigue en el tramo de encima
+            continue                     # the shaft chain continues in the section above
         errs.append(f"{msg} en {pos}")
     for msg, pos in lint.door_pair_issues(solv) + lint.stair_headroom_issues(solv):
         errs.append(f"{msg} en {pos}")
@@ -99,10 +99,10 @@ def prepare(construction, cast):
         if p not in cells:
             errs.append(f"zona oculta inalcanzable {p}")
         if p in cells_pub:
-            errs.append(f"zona oculta alcanzable sin resolver los puzles {p}")
+            errs.append(f"hidden area reachable without solving the puzzles {p}")
     for p in [q for q in construction.hidden_alcove if free(q)]:
         if p not in cells_pub:
-            errs.append(f"el alijo no se alcanza tras el tapiz {p}")
+            errs.append(f"the stash is not reachable behind the tapestry {p}")
     for p, mob in construction.spawners:
         if not nearby_flag(cells, p):
             errs.append(f"generador inalcanzable {p}")
@@ -111,28 +111,28 @@ def prepare(construction, cast):
             errs.append(f"palanca inalcanzable {p}")
     for p, _ in construction.chests:
         if p not in submerged and not nearby_flag(cells, p):
-            errs.append(f"cofre inalcanzable {p}")
+            errs.append(f"unreachable chest {p}")
     n_chests = len(construction.chests) + len(cast.chests)
     if not 15 <= n_chests <= 25:
-        errs.append(f"{n_chests} cofres (se piden 15-25)")
-    # recorrido estricto (sin caídas de más de un bloque, nadando) y vuelta a la entrada desde cualquier sitio
+        errs.append(f"{n_chests} chests (15-25 required)")
+    # strict walkthrough (no drops of more than one block, swimming) and return to the entrance from anywhere
     x0, y0, z0, x1, y1, z1 = t.bounds()
     vv = View({p: st for p, (st, _) in soln_blocks.items() if p not in trap})
     start = (entrance[0], 1, entrance[2])
     seen, edges = strict_walk(vv, start, (x0, x1, z0, z1), water=True)
     for c in no_return(edges, start)[:10]:
-        errs.append(f"celda sin vuelta a la entrada {c}")
+        errs.append(f"cell with no way back to the entrance {c}")
     for p, _ in construction.chests:
         if not nearby_flag(set(seen), p, 2):
-            errs.append(f"cofre inalcanzable sin saltos {p}")
+            errs.append(f"chest unreachable without jumps {p}")
     if not any(c[0] == m["entrada"][0] and c[2] == m["entrada"][2] and c[1] >= 20 for c in seen):
-        errs.append("no se sube por la escalera del pozo hasta arriba")
-    # luz: los generadores, a oscuras
+        errs.append("the shaft ladder cannot be climbed all the way up")
+    # light: the generators in the dark
     lv = light(blocks)
     for p, mob in construction.spawners:
         if light_generator(lv, p) > 0:
-            errs.append(f"generador de {mob} con luz cerca {p} ({light_generator(lv, p)})")
-    # forro: ningún bloque natural da a una celda excavada seca (manantiales, liquen, musgo, arcilla)
+            errs.append(f"{mob} generator with light nearby {p} ({light_generator(lv, p)})")
+    # lining: no natural block faces a dry dug-out cell (springs, lichen, moss, clay)
     seen_all = 0
     for p, st in blocks.items():
         if bn(st) in INTERIOR_NATURAL:
@@ -141,9 +141,9 @@ def prepare(construction, cast):
                 if q in construction.carved and bn(blocks.get(q)) in ("air", "water"):
                     seen_all += 1
                     if seen_all <= 3:
-                        errs.append(f"bloque natural a la vista dentro en {p} ({bn(st)})")
+                        errs.append(f"natural block in view inside at {p} ({bn(st)})")
                     break
-    # casco cerrado: ninguna celda excavada (ni lo que hay en ella) toca una celda sin escribir
+    # closed shell: no dug-out cell (nor what is in it) touches an unwritten cell
     open_ones = 0
     for p in construction.carved:
         for (a, b, c) in N6:
@@ -152,14 +152,14 @@ def prepare(construction, cast):
                                            and abs(p[2] - m["eje"][2]) <= 2):
                 open_ones += 1
                 if open_ones <= 3:
-                    errs.append(f"el casco no cierra junto a {p}")
-    # nada suelto: todo unido por caras al casco
+                    errs.append(f"the shell does not close near {p}")
+    # nothing loose: everything joined by faces to the shell
     fl = floating_blocks(blocks, (y0,))
     if fl:
-        errs.append(f"{len(fl)} bloques flotando, p. ej. {fl[:5]}")
+        errs.append(f"{len(fl)} floating blocks, e.g. {fl[:5]}")
     surf, damaged = state(t, construction)
     if not 0.15 <= damaged <= 0.20:
-        errs.append(f"superficie dañada {damaged:.1%} fuera de 15-20 %")
+        errs.append(f"damaged surface {damaged:.1%} outside 15-20 %")
     errs += audit_headframe(cast)
     construction.cells, construction.cells_pub = cells, cells_pub
     construction.report = {"superficie": surf, "danada": damaged, "luz": lv, "abierto": resolved_map, "cofres": n_chests,
@@ -173,8 +173,8 @@ def construction_top(construction):
 
 
 def state(t, construction):
-    """Fracción dañada de la superficie a la vista (caras de bloques que dan a una celda excavada seca, sin contar los
-    suelos, que solo dan hacia arriba): ruina hecha a mano + lo que se espera del procesador."""
+    """Damaged fraction of the surface in view (block faces looking onto a dry dug-out cell, not counting
+    floors, which only face upward): hand-made ruin + what is expected from the processor."""
     blocks = t.blocks
     surf, bad = 0, 0.0
     views = set()
@@ -183,7 +183,7 @@ def state(t, construction):
             continue
         for (a, b, c) in N6:
             if b == 1:
-                continue                         # el bloque de debajo (suelo) no cuenta
+                continue                         # the block below (floor) does not count
             views.add((p[0] + a, p[1] + b, p[2] + c))
     for q in views:
         st = blocks.get(q, (None,))[0]
@@ -196,7 +196,7 @@ def state(t, construction):
 
 
 def audit_headframe(c):
-    """El castillete: se llega a pie al cofre y a la escalera del pozo desde fuera de la huella."""
+    """The headframe: the chest and the shaft ladder are reached on foot from outside the footprint."""
     from .surface import FOOTPRINT
     errs = []
     x0, x1, z0, z1 = FOOTPRINT
@@ -205,10 +205,10 @@ def audit_headframe(c):
     seen, edges = strict_walk(v, start, (x0 - 2, x1 + 2, z0 - 2, z1 + 2))
     for p, _ in c.chests:
         if not nearby_flag(set(seen), p):
-            errs.append(f"castillete: cofre inalcanzable {p}")
+            errs.append(f"headframe: unreachable chest {p}")
     if not any(bn(c.t.get(x, y - 1, z)) == "ladder" or bn(c.t.get(x, y, z)) == "ladder" for (x, y, z) in seen
                if (x, z) == (-1, 0)):
-        errs.append("castillete: no se llega a la escalera del pozo")
+        errs.append("headframe: the shaft ladder is not reachable")
     for msg, pos in lint.door_pair_issues(c.t):
         errs.append(f"castillete: {msg} en {pos}")
     return errs

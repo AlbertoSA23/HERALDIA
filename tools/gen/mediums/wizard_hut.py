@@ -1,14 +1,14 @@
-"""Choza de mago (heraldia:medianas/choza_mago/<estilo>, T43): patio de 17 x 17 con una choza de 9 x 9 de tejado empinado
-y desván. Planta baja: estanterías, atril con las notas del mago, cofre del estudio, mostrador con soportes de pociones,
-racimo de amatista y velas, calderos, alfombra y chimenea con fogata y tiro hasta el tejado; desván por una escalera de
-mano: cama, cofre, telarañas y el mapa estelar (dos estandartes en los hastiales). Variante a: jardín de hierbas y setas
-vallado al este y el gato del mago; b: círculo de piedras con velas, setas y amatista al este y bancales delante de la
-puerta. El estilo del pantano va sobre pilotes (la choza 3 bloques por encima del suelo, con escalera de subida).
+"""Wizard hut (heraldia:medianas/choza_mago/<estilo>, T43): 17 x 17 courtyard with a 9 x 9 hut with a steep roof
+and an attic. Ground floor: bookshelves, lectern with the wizard's notes, study chest, counter with potion stands,
+amethyst cluster and candles, cauldrons, rug and a fireplace with a campfire and a flue up to the roof; attic via a
+ladder: bed, chest, cobwebs and the star map (two banners on the gables). Variant a: fenced herb and mushroom garden
+to the east and the wizard's cat; b: circle of stones with candles, mushrooms and amethyst to the east and terraces in front of the
+door. The swamp style goes on piles (the hut 3 blocks above the ground, with a staircase up).
 
-El mago (aldeano clérigo quieto, con tratos fijos: frascos, lapislázuli, pociones, un libro encantado modesto y perlas de
-ender) lleva la etiqueta heraldia_mago. El Java (chozas/) decide con la semilla y la choza si es malvado
-(chozas_mago.prob_malvado) y, si lo es, se revela al acercarse un jugador o al intentar comerciar: se convierte en el
-«Mago Malvado» (un evocador con las fases y la barra de jefe), con su botín propio (tools/gen/wizard_huts.py)."""
+The wizard (stationary cleric villager, with fixed trades: bottles, lapis lazuli, potions, a modest enchanted book and ender
+pearls) carries the tag heraldia_mago. The Java side (chozas/) decides with the seed and the hut whether he is evil
+(wizard_huts.prob_malvado) and, if so, he reveals himself when a player approaches or tries to trade: he turns into the
+"Mago Malvado" (an evoker with the phases and the boss bar), with his own loot (tools/gen/wizard_huts.py)."""
 from core import Template, B
 from loot import item, empty
 from uniques._common import chest_loot
@@ -18,11 +18,11 @@ MID = "choza_mago"
 DISPLAY_NAME = {"es_es": "Choza de mago", "en_us": "Wizard's Hut"}
 SEPARATION = 1024
 ADVANCEMENT_ICON = "minecraft:brewing_stand"
-# Busca el mismo interior de los mismos biomas que las entradas a mina (taigas, colinas, picos, cerezal, desierto): sin
-# esto le quitaría el sitio a la mina de al lado (las minas ceden siempre a las medianas). Así cede ella.
+# Looks for the same interior of the same biomes as the mine entrances (taigas, hills, peaks, cherry grove, desert): without
+# this it would take the spot from the mine next to it (mines always yield to medium structures). This way it yields.
 YIELDS_TO_MINES = True
-TAG_WIZARD = "heraldia_mago"           # la etiqueta que busca el Java (chozas/Magos.TAG)
-TAG_EVIL = "heraldia_mago_malvado"  # la del evocador en que se convierte (chozas/Magos.MALVADO)
+TAG_WIZARD = "heraldia_mago"           # the tag the Java side looks for (chozas/Magos.TAG)
+TAG_EVIL = "heraldia_mago_malvado"  # that of the evoker it turns into (chozas/Magos.EVIL)
 _K = f"heraldia.medianas.{MID}."
 LANG = chest_loot.lang(_K, {
     "mago": ("Mago de Heraldia", "Heraldia Wizard"),
@@ -74,9 +74,9 @@ LOOT = {
 }
 
 WIDTH = DEPTH = 17
-X0, Z0, X1, Z1 = 2, 5, 10, 13      # muros de la choza (9 x 9); puerta al norte en CX
+X0, Z0, X1, Z1 = 2, 5, 10, 13      # hut walls (9 x 9); door to the north at CX
 CX = 6
-GX0, GX1 = 12, 16                  # el anexo del este (jardín o círculo), de z = Z0 a Z1
+GX0, GX1 = 12, 16                  # the east annex (garden or circle), from z = Z0 to Z1
 
 
 def _p(n, s):
@@ -93,7 +93,7 @@ def _book(ench, level):
 
 
 def offers(p):
-    """Tratos del mago: frascos, lapislázuli, tres pociones del estilo, un libro modesto y perlas de ender."""
+    """The wizard's trades: bottles, lapis lazuli, three potions of the style, a modest book and ender pearls."""
     em = lambda n: {"id": "minecraft:emerald", "count": n}
     potions = [c.offer(em(n), _potion(pid), 4) for pid, n in p["pociones"]]
     ench, level = p["libro"]
@@ -122,22 +122,22 @@ def _banner(color, patterns):
 
 
 def _hut(p, name):
-    """La choza entera (patio, muros, tejado, chimenea, planta baja y desván). Devuelve (plantilla, H)."""
+    """The whole hut (courtyard, walls, roof, chimney, ground floor and attic). Returns (template, H)."""
     t = Template(name)
     m, H = p["madera"], p.get("pilotes", 0)
     c.courtyard(t, 0, 0, WIDTH - 1, DEPTH - 1, _floor(p), air_block=3)
     c.entrance(t, CX, p["senda"])
-    # base: a ras de suelo o sobre pilotes de tronco (esquinas y centros de cada lado)
+    # base: at ground level or on log piles (corners and centers of each side)
     if H:
         for x in (X0, CX, X1):
             for z in (Z0, (Z0 + Z1) // 2, Z1):
                 if (x, z) != (CX, (Z0 + Z1) // 2):
                     t.fill(x, 1, z, x, H - 1, z, f"{p['tronco']}[axis=y]")
-        for x in range(X0, X1 + 1):            # bajo la choza no queda nada del terreno
+        for x in range(X0, X1 + 1):            # nothing of the terrain is left under the hut
             for z in range(Z0, Z1 + 1):
                 for y in range(1, H):
                     t.set(x, y, z, "air", keep=True)
-        # escalera de subida a la puerta (de z = Z0 - 3 a Z0 - 1), con su apoyo
+        # staircase up to the door (from z = Z0 - 3 to Z0 - 1), with its support
         for i in range(H):
             z = Z0 - H + i
             t.set(CX, 1 + i, z, _p("south", f"{m}_stairs"))
@@ -145,7 +145,7 @@ def _hut(p, name):
                 t.set(CX, y, z, f"{m}_planks")
     t.fill(X0, H, Z0, X1, H, Z1, p["zocalo"])
     t.fill(X0 + 1, H, Z0 + 1, X1 - 1, H, Z1 - 1, p["suelo"])
-    # muros (planta baja de 4 de alto) y el suelo del desván en H + 5
+    # walls (ground floor 4 high) and the attic floor at H + 5
     c.box(t, X0, H + 1, Z0, X1, H + 5, Z1, p["muro"], corner_block=f"{p['tronco']}[axis=y]")
     t.fill(X0 + 1, H + 5, Z0 + 1, X1 - 1, H + 5, Z1 - 1, f"{m}_planks")
     c.roof_tiles(t, X0, Z0, X1, Z1, H + 5, p["teja"], p["cumbrera"], p["muro"])
@@ -154,7 +154,7 @@ def _hut(p, name):
         c.window(t, x, H + 2, Z0, p["vidrio"])
     c.window(t, X0, H + 2, 9, p["vidrio"])
     c.window(t, X1, H + 3, 8, p["vidrio"])
-    c.window(t, X0, H + 7, 9, p["vidrio"])       # ventanuco del desván en el hastial oeste
+    c.window(t, X0, H + 7, 9, p["vidrio"])       # small attic window in the west gable
     _chimney(t, p, H)
     _ground_floor(t, p, H)
     _attic(t, p, H)
@@ -162,26 +162,26 @@ def _hut(p, name):
 
 
 def _chimney(t, p, H):
-    """Hogar en el muro sur (fogata en un nicho de 1 x 2) y tiro hueco hasta un bloque por encima de la cumbrera."""
+    """Hearth in the south wall (campfire in a 1 x 2 niche) and a hollow flue up to one block above the ridge."""
     lad, summit = p["chimenea"], H + 11
     t.set(CX, H + 1, Z1, "campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]")
     t.set(CX, H + 1, Z1 - 1, "air")
     t.set(CX, H + 2, Z1 - 1, "air")
     for y in range(H + 2, summit + 1):
-        t.set(CX, y, Z1, "air")                  # el tiro
+        t.set(CX, y, Z1, "air")                  # the flue
     for y in range(H + 1, summit + 1):
         t.set(CX - 1, y, Z1, lad)
         t.set(CX + 1, y, Z1, lad)
     for y in range(1, summit + 1):
-        t.set(CX, y, Z1 + 1, lad)                # la cara exterior, desde el suelo
+        t.set(CX, y, Z1 + 1, lad)                # the outer face, from the ground
     for y in range(H + 3, summit + 1):
-        t.set(CX, y, Z1 - 1, lad)                # la campana del hogar y el pecho de la chimenea en el desván
+        t.set(CX, y, Z1 - 1, lad)                # the hearth hood and the chimney breast in the attic
 
 
 def _ground_floor(t, p, H):
     y = H + 1
-    xo, xe = X0 + 1, X1 - 1                      # x = 3 (oeste) y x = 9 (este)
-    # oeste: estanterías, cofre del estudio y atril con las notas bajo la ventana
+    xo, xe = X0 + 1, X1 - 1                      # x = 3 (west) and x = 9 (east)
+    # west: bookshelves, study chest and lectern with the notes under the window
     for z in (Z0 + 1, Z0 + 2, Z1 - 3, Z1 - 2, Z1 - 1):
         t.fill(xo, y, z, xo, y + 2, z, "bookshelf")
     t.set(xo, y + 3, Z0 + 1, "candle[candles=2,lit=true,waterlogged=false]")
@@ -190,7 +190,7 @@ def _ground_floor(t, p, H):
     t.set(xo, y, Z0 + 4, "lectern[facing=east,has_book=true,powered=false]", {
         "id": "minecraft:lectern", "Page": 0,
         "Book": {"id": "minecraft:written_book", "count": 1, "components": _NOTES["modifier"][0]["components"]}})
-    # este: tonel, mostrador con soportes de pociones, amatista y velas; escalera de mano al desván; caldero lleno
+    # east: barrel, counter with potion stands, amethyst and candles; ladder to the attic; full cauldron
     t.set(xe, y, Z0 + 1, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
     t.set(xe, y + 1, Z0 + 1, p["maceta"])
     for z in range(Z0 + 2, Z0 + 6):
@@ -205,7 +205,7 @@ def _ground_floor(t, p, H):
     t.set(xe, y, Z1 - 1, "water_cauldron[level=3]")
     t.set(xo + 1, y, Z1 - 1, "cauldron")
     t.set(CX + 1, y, Z1 - 1, "decorated_pot[cracked=false,facing=north,waterlogged=false]", {"id": "minecraft:decorated_pot"})
-    # alfombra en el centro y dos faroles colgados del suelo del desván
+    # rug in the center and two lanterns hanging from the attic floor
     t.fill(CX - 1, y, Z0 + 3, CX + 1, y, Z0 + 5, f"{p['alfombra']}_carpet")
     t.set(xo + 1, y, Z0 + 1, p["maceta"])
     c.lantern(t, CX, H + 4, Z0 + 2)
@@ -213,16 +213,16 @@ def _ground_floor(t, p, H):
 
 
 def _attic(t, p, H):
-    """Desván (pies en H + 6; de pie solo de z = 7 a 11): cama, cofre, telarañas, amatista, el mapa estelar."""
+    """Attic (feet at H + 6; standing only from z = 7 to 11): bed, chest, cobwebs, amethyst, the star map."""
     y, xo, xe = H + 6, X0 + 1, X1 - 1
-    t.set(xe, H + 5, Z1 - 2, "ladder[facing=west,waterlogged=false]")     # el hueco de la escalera
+    t.set(xe, H + 5, Z1 - 2, "ladder[facing=west,waterlogged=false]")     # the stairwell opening
     c.bed(t, xo, Z0 + 3, "west", p["cama"], y=y)
     c.place_chest(t, xo, y, Z0 + 5, "east", MID, "desvan")
     for x, yy, z in ((xo, y, Z0 + 1), (xe, y, Z0 + 1), (xo, y + 1, Z0 + 2), (xe, y + 1, Z0 + 2), (xo, y, Z1 - 1)):
         t.set(x, yy, z, "cobweb")
     t.set(xe, y, Z0 + 3, "amethyst_cluster[facing=up,waterlogged=false]")
     t.set(xe, y, Z0 + 4, "candle[candles=4,lit=true,waterlogged=false]")
-    # mapa estelar: dos estandartes colgados de los hastiales, mirando al centro
+    # star map: two banners hanging from the gables, facing the center
     t.set(xo, H + 8, Z0 + 4, "blue_wall_banner[facing=east]",
           _banner("blue", [("globe", "yellow"), ("border", "black")]))
     t.set(xe, H + 8, Z0 + 4, "black_wall_banner[facing=west]",
@@ -231,7 +231,7 @@ def _attic(t, p, H):
 
 
 def _terrace(t, x0, z0, x1, z1, land, floors):
-    """Bancal elevado (tierra en y = 1, plantas en y = 2): el patio de y = 0 sigue sin tierra fértil."""
+    """Raised bed (soil at y = 1, plants at y = 2): the y = 0 courtyard still has no fertile soil."""
     i = 0
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):
@@ -241,7 +241,7 @@ def _terrace(t, x0, z0, x1, z1, land, floors):
 
 
 def with_garden(p, name):
-    """Variante a: jardín de hierbas y setas vallado al este (dos bancales, farol en un poste) y el gato del mago."""
+    """Variant a: fenced herb and mushroom garden to the east (two beds, lantern on a post) and the wizard's cat."""
     t, H = _hut(p, name)
     m = p["madera"]
     for x in range(GX0, GX1 + 1):
@@ -260,8 +260,8 @@ def with_garden(p, name):
 
 
 def with_circle(p, name):
-    """Variante b: círculo de piedras con velas alrededor de un racimo de amatista y cuatro setas al este, y dos
-    bancales de hierbas delante de la puerta."""
+    """Variant b: circle of stones with candles around an amethyst cluster and four mushrooms to the east, and two
+    herb beds in front of the door."""
     t, H = _hut(p, name)
     cx, cz = (GX0 + GX1) // 2, (Z0 + Z1) // 2
     for dx, dz in ((-2, -2), (2, -2), (-2, 2), (2, 2), (0, -3), (0, 3)):

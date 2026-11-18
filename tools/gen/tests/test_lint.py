@@ -1,10 +1,10 @@
-"""lint.py (auditoría genérica) con plantillas sintéticas pequeñas."""
+"""lint.py (generic audit) with small synthetic templates."""
 import lint
 from core import Template
 
 
 def house(door=True, chest_inside=True):
-    """Sala de 5 x 5 con muros, entrada al norte (jigsaw heraldia:entrance) y una puerta en el muro."""
+    """5 x 5 room with walls, entrance to the north (jigsaw heraldia:entrance) and a door in the wall."""
     t = Template("x/houses/h")
     t.fill(0, 0, 0, 6, 0, 6, "stone")
     for y in (1, 2):
@@ -26,7 +26,7 @@ def test_passable_and_heights():
     assert lint.passable(None) and lint.passable("minecraft:air") and lint.passable("minecraft:oak_door[half=lower]")
     assert not lint.passable("minecraft:stone") and not lint.passable("minecraft:oak_fence")
     assert lint.passable("minecraft:oak_trapdoor[open=true]") and not lint.passable("minecraft:oak_trapdoor[open=false]")
-    assert not lint.passable("minecraft:stone_stairs")       # «stairs» contiene «air»: se compara el nombre exacto
+    assert not lint.passable("minecraft:stone_stairs")       # "stairs" contains "air": the exact name is compared
     assert lint.top_height("minecraft:stone_slab[type=bottom]") == 0.5
     assert lint.top_height("minecraft:oak_stairs[half=bottom]") == 0.5 and lint.top_height("minecraft:oak_fence") == 1.5
     assert lint.top_height("minecraft:white_carpet") == 0.0 and lint.top_height("minecraft:air") is None
@@ -43,7 +43,7 @@ def test_walk_and_access_correct_house():
 
 def test_walled_up_door_leaves_no_access():
     t = house()
-    t.set(3, 1, 1, "oak_planks")            # tabique justo detrás de la puerta
+    t.set(3, 1, 1, "oak_planks")            # partition right behind the door
     t.set(3, 2, 1, "oak_planks")
     msgs = {m for m, _ in lint.access_issues(t)}
     assert "puerta sin salida o sin acceso" in msgs and "chest inaccesible" in msgs
@@ -59,10 +59,10 @@ def test_supports():
     t = Template("x/houses/h")
     t.fill(0, 0, 0, 4, 0, 0, "stone")
     t.set(0, 2, 0, "lantern[hanging=true]")              # colgado de nada
-    t.set(1, 2, 0, "lantern[hanging=false]")             # de pie sobre aire
-    t.set(2, 1, 0, "iron_chain[axis=y]")                 # cadena sin enganche
-    t.set(3, 1, 0, "ladder[facing=north]")               # sin pared detrás
-    t.set(4, 1, 0, "wheat[age=0]")                       # cultivo sobre piedra
+    t.set(1, 2, 0, "lantern[hanging=false]")             # standing on air
+    t.set(2, 1, 0, "iron_chain[axis=y]")                 # chain without attachment
+    t.set(3, 1, 0, "ladder[facing=north]")               # without a wall behind
+    t.set(4, 1, 0, "wheat[age=0]")                       # crop on stone
     msgs = {m for m, _ in lint.support_issues(t)}
     assert {"farol colgante sin techo", "farol de pie sin apoyo", "cadena sin enganche",
             "escalera de mano sin pared detrás", "cultivo fuera de tierra labrada"} <= msgs
@@ -75,7 +75,7 @@ def test_jigsaw_overwritten():
 
 
 def test_walk_does_not_cross_a_solid_roof():
-    # terraza encima de una sala cerrada: desde la terraza no se «cae» a la sala atravesando el techo
+    # terrace on top of a closed room: from the terrace one does not "fall" into the room through the roof
     t = Template("x")
     t.fill(0, 0, 0, 4, 0, 4, "stone")
     t.fill(0, 4, 0, 4, 4, 4, "stone")
@@ -113,7 +113,7 @@ def test_staircase_with_roof_under():
 
 def test_roof_is_not_a_staircase():
     t = Template("x")
-    for i in range(3):                         # peldaños apilados sobre peldaños: masa de un tejado
+    for i in range(3):                         # steps stacked on steps: mass of a roof
         for k in range(i + 1):
             t.set(i, k, 0, "oak_stairs[facing=east,half=bottom]")
     assert lint.stair_headroom_issues(t) == []
@@ -129,6 +129,6 @@ def test_lint_registry_and_summarize():
     c, ex = lint.summarize(res)
     assert c[("houses/b", "puerta sin salida o sin acceso")] == 1
     assert lint.lint_registry(R, only=lambda n: n.endswith("/a")) == {}
-    # sin_auditoria_generica: solo puertas dobles y escaleras
+    # sin_auditoria_generica: only double doors and stairs
     R.templates["t/houses/b"].no_generic_audit = True
     assert lint.lint_registry(R) == {}

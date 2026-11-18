@@ -1,4 +1,4 @@
-"""paralelo.py: el reparto entre procesos da lo mismo que en serie y trae al padre lo que cambia en los módulos."""
+"""paralelo.py: the distribution among processes gives the same as in serial and brings back to the parent what changes in the modules."""
 import os, sys, types
 import pytest
 import parallel
@@ -11,7 +11,7 @@ def processes(request, monkeypatch):
 
 
 def test_map_in_order(processes):
-    dataset = [object() for _ in range(23)]              # no serializables: llegan a los hijos por fork
+    dataset = [object() for _ in range(23)]              # not serialisable: they reach the children by fork
     ids = {id(o): i for i, o in enumerate(dataset)}
     assert parallel.map_obj(lambda o: ids[id(o)] ** 2, dataset) == [i * i for i in range(23)]
     assert parallel.map_obj(lambda x: x, []) == []
@@ -41,7 +41,7 @@ def test_nbt_lists_serializable():
 
 @pytest.fixture
 def module(monkeypatch):
-    """Módulo del generador falso (como un unicas/<id>) con datos que un build cambia."""
+    """Fake generator module (like a unicas/<id>) with data that a build changes."""
     m = types.ModuleType("uniques._parallel_test")
     m.__file__ = os.path.join(os.path.dirname(parallel.__file__), "uniques", "_parallel_test.py")
     m.LANG = {"es_es": {}}
@@ -53,9 +53,9 @@ def module(monkeypatch):
 
 
 def test_map_with_state_brings_the_changes(processes, module):
-    alias = module.LANG                                   # otro módulo con una referencia al mismo dict
+    alias = module.LANG                                   # another module with a reference to the same dict
 
-    # cada cambio en una sola tarea (si no, ver test_conflicto)
+    # each change in a single task (otherwise, see test_conflicto)
     def only(i):
         if i == 2:
             module.LANG["es_es"]["k2"] = "v2"
@@ -66,7 +66,7 @@ def test_map_with_state_brings_the_changes(processes, module):
             module.N = 7
         return i * 10
     assert parallel.map_with_state(only, range(4), priority=lambda i: i) == [0, 10, 20, 30]
-    assert module.LANG == {"es_es": {"k2": "v2"}} and alias is module.LANG      # cambiado en su sitio
+    assert module.LANG == {"es_es": {"k2": "v2"}} and alias is module.LANG      # changed in place
     assert module.STRUCTURE["json"] == {"tipo": "propio"} and module.ITEM_LIST == ["x"] and module.N == 7
 
 

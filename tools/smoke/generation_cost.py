@@ -1,28 +1,28 @@
-"""Coste de generación de Heraldia: la misma zona del mismo mundo generada con el mod y sin él, y su comparación con la
-referencia guardada en el repositorio (tools/smoke/cost_reference.json).
+"""Heraldia generation cost: the same area of the same world generated with the mod and without it, and its comparison with the
+reference stored in the repository (tools/smoke/cost_reference.json).
 
-Uso:
+Usage:
   python3 tools/smoke/generation_cost.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-  python3 tools/smoke/generation_cost.py ... --update-reference     # mide y guarda la referencia nueva
-  python3 tools/smoke/generation_cost.py --from-json build/coste/coste_generacion.json [--update-reference]
-      # rehace el resumen (o la referencia) de una medición ya hecha, p. ej. el artefacto «coste-generacion» de la CI
+  python3 tools/smoke/generation_cost.py ... --update-reference     # measures and saves the new reference
+  python3 tools/smoke/generation_cost.py --from-json build/coste/generation_cost.json [--update-reference]
+      # rebuilds the summary (or the reference) from a measurement already taken, e.g. the CI artifact "coste-generacion"
 
-Cada pasada arranca un servidor dedicado 26.3 nuevo (mundo borrado, semilla fija SEMILLA, Fabric API y Chunky), una
-vez con el .jar de Heraldia (configuración por defecto y -Dheraldia.perfil=true) y otra sin él, alternando. En cada
-una: Chunky genera una zona de calentamiento (no cuenta), luego las ZONAS con el perfilador de Minecraft activo
-(/jfr start ... /jfr stop) y al final se mide /locate de LOCATES. Del .jfr salen, por chunk de las zonas, la suma del
-tiempo de cada paso de generación (evento minecraft.ChunkGeneration): ms por chunk (media, p50, p90, p99, máx.) y por
-paso; del resumen de /jfr, el MSPT (ms por tick) y la memoria; del log, el tiempo de cada /locate y el perfil propio de
-Heraldia (comun/Perfil.java: caminos, ladera, orilla, medianas, minas, zona de ajenas...).
+Each pass starts a fresh 26.3 dedicated server (world deleted, fixed seed SEED, Fabric API and Chunky), once
+with the Heraldia .jar (default configuration and -Dheraldia.perfil=true) and once without it, alternating. In each
+one: Chunky generates a warm-up area (not counted), then the ZONES with the Minecraft profiler active
+(/jfr start ... /jfr stop) and finally /locate is timed for LOCATES. From the .jfr we get, per chunk of the zones, the sum of the
+time of each generation step (minecraft.ChunkGeneration event): ms per chunk (mean, p50, p90, p99, max) and per
+step; from the /jfr summary, the MSPT (ms per tick) and memory; from the log, the time of each /locate and Heraldia's own
+profile (comun/Perfil.java: roads, hillside, shore, medium structures, mines, foreign-structure zone...).
 
-Sobrecoste = mediana de las pasadas con Heraldia / mediana sin ella - 1, en CPU del proceso del servidor por chunk
-(/proc/<pid>/stat mientras Chunky genera las zonas: no crece con la espera entre hilos, que sí infla la duración de los
-pasos de JFR, ±15 % entre pasadas iguales). Sin /proc (fuera de Linux), con la suma de los pasos de JFR por chunk sin
-los de luz (que son sobre todo espera en la cola del motor de luz). El cociente quita la velocidad de la máquina.
-Falla si pasa de referencia × (1 + umbral_relativo) + margen_absoluto (los dos en la referencia). Si falla, repite
-una ronda de pasadas y decide con todas (el ruido de la CI). Escribe <salida>/coste_generacion.json y
-<salida>/coste_generacion.md, y el Markdown también en $GITHUB_STEP_SUMMARY si existe. Código 0 si pasa.
-Las funciones puras se prueban en tools/gen/tests/test_generation_cost.py.
+Overhead = median of the passes with Heraldia / median without it - 1, in server-process CPU per chunk
+(/proc/<pid>/stat while Chunky generates the zones: it does not grow with the wait between threads, which does inflate the duration of the
+JFR steps, ±15 % between identical passes). Without /proc (outside Linux), with the sum of the JFR steps per chunk without
+the light ones (which are mostly waiting in the light engine queue). The ratio removes the machine's speed.
+Fails if it exceeds reference × (1 + umbral_relativo) + margen_absoluto (both in the reference). If it fails, it repeats
+one round of passes and decides with all of them (CI noise). Writes <output>/generation_cost.json and
+<output>/generation_cost.md, and the Markdown also to $GITHUB_STEP_SUMMARY if it exists. Exit code 0 if it passes.
+The pure functions are tested in tools/gen/tests/test_generation_cost.py.
 """
 import argparse, json, math, os, queue, re, shutil, statistics, subprocess, sys, threading, time
 
@@ -32,26 +32,26 @@ import modrinth
 
 REFERENCE = os.path.join(s.ROOT, "tools", "smoke", "cost_reference.json")
 SEED = "heraldia"
-# (nombre, x, z, medio lado en bloques): cuadrados de chunks enteros que Chunky genera. Lejos entre sí (más de
-# MARGEN_CHUNKS chunks) para que cada evento caiga en una sola zona. «aldea»: la aldea más cercana al 0,0 con la
-# configuración por defecto (pantano, 32 -1344) y el arranque de sus caminos; «origen»: el 0,0 (sin aldea de Heraldia).
+# (name, x, z, half side in blocks): squares of whole chunks that Chunky generates. Far from each other (more than
+# MARGIN_CHUNKS chunks) so that each event falls in a single zone. "aldea": the village closest to 0,0 with the
+# default configuration (swamp, 32 -1344) and the start of its roads; "origen": 0,0 (no Heraldia village).
 ZONES = [("aldea", 32, -1344, 160), ("origen", 0, 0, 160)]
 WARMUP = ("calentamiento", 6000, 6000, 64)
-MARGIN_CHUNKS = 12         # chunks alrededor de una zona que genera de paso (pasos previos de los vecinos)
-# Pasos de luz: su duración es sobre todo la espera en la cola del motor de luz (un solo hilo), no trabajo de la
-# generación, y es lo más ruidoso (±15 % entre pasadas iguales). No cuentan en el ms por chunk; se informan aparte.
+MARGIN_CHUNKS = 12         # chunks around a zone that it generates along the way (earlier steps of the neighbours)
+# Light steps: their duration is mostly waiting in the light engine queue (a single thread), not generation
+# work, and it is the noisiest (±15 % between identical passes). They do not count in ms per chunk; they are reported separately.
 LIGHT_STEPS = {"minecraft:initialize_light", "minecraft:light"}
-# Pasos donde trabaja el código de estructuras (reglas de colocación, inicios, piezas y rasgos como los caminos).
+# Steps where the structure code works (placement rules, starts, pieces and features such as roads).
 STRUCTURE_STEPS = {"minecraft:structure_starts", "minecraft:structure_references", "minecraft:features"}
-# /locate medidos al final de cada pasada, desde LOCATE_DESDE: (nombre, objetivo, solo con Heraldia)
+# /locate timed at the end of each pass, from LOCATE_FROM: (name, target, only with Heraldia)
 LOCATE_FROM = (8000, -8000)
 LOCATES = [("aldea", "#heraldia:aldeas", True), ("unica", "heraldia:unicas/castillo", True),
            ("mediana", "#heraldia:medianas", True), ("mina", "#heraldia:minas", True),
            ("aldea_vanilla", "#minecraft:village", False)]
 SWEEPS = 3
-# Configuración de Heraldia: la de por defecto (la del servidor de verdad), salvo la arena de oleadas, que en un mundo
-# nuevo se construye sola junto al spawn (una obra de un chunk por tick, en el hilo del servidor, justo mientras se
-# mide): no es coste de generación y en el mundo ya existente del servidor no se genera.
+# Heraldia configuration: the default one (the real server's), except the wave arena, which in a new world
+# builds itself next to spawn (one chunk of work per tick, on the server thread, right while it is
+# being measured): it is not generation cost and in the server's existing world it is not generated.
 CONFIG = {"arena": {"generar_en_mundos_nuevos": False}}
 XMX = "3G"
 CHUNKY_TIMEOUT_S = 900
@@ -62,10 +62,10 @@ _JFR_END = re.compile(r"Dumped flight recorder profiling to (\S+\.jfr)")
 _JFR_SUMMARY = re.compile(r"Dumped recording summary to (\S+\.json)")
 
 
-# ---------------------------------------------------------------- funciones puras (tests en test_coste_generacion.py)
+# ---------------------------------------------------------------- funciones puras (tests en test_generation_cost.py)
 
 def percentile(values, p):
-    """Percentil p (0-100) con interpolación lineal entre rangos (como numpy «linear»); None si no hay valores."""
+    """Percentile p (0-100) with linear interpolation between ranks (like numpy "linear"); None if there are no values."""
     v = sorted(values)
     if not v:
         return None
@@ -75,17 +75,17 @@ def percentile(values, p):
 
 
 def duration_ms(text):
-    """Duración de `jfr print --json` («PT0.000610953S», «PT1M2.5S», «PT0S») en ms."""
+    """Duration from `jfr print --json` ("PT0.000610953S", "PT1M2.5S", "PT0S") in ms."""
     m = re.fullmatch(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:([\d.]+)S)?", text)
     if not m:
-        raise ValueError(f"duración de JFR no reconocida: {text!r}")
+        raise ValueError(f"unrecognized JFR duration: {text!r}")
     h, mi, se = (float(g) if g else 0.0 for g in m.groups())
     return (h * 3600 + mi * 60 + se) * 1000
 
 
 def chunks_of_zone(x, z, r):
-    """(cx0, cz0, cx1, cz1) de los chunks que Chunky genera en el cuadrado de medio lado r centrado en (x, z): los de
-    x - r a x + r, ambos incluidos (centro 0,0 y radio 128: 17 × 17 = 289 chunks, lo que dice «Processed»)."""
+    """(cx0, cz0, cx1, cz1) of the chunks that Chunky generates in the square of half side r centered on (x, z): those from
+    x - r to x + r, both included (center 0,0 and radius 128: 17 × 17 = 289 chunks, what "Processed" says)."""
     return ((x - r) >> 4, (z - r) >> 4, (x + r) >> 4, (z + r) >> 4)
 
 
@@ -99,10 +99,10 @@ def inside(c, box, margin=0):
 
 
 def chunks_summary(events, box, margin=MARGIN_CHUNKS):
-    """De los eventos [(cx, cz, paso, ms)], los de la zona (caja de chunks y su margen), sin los PASOS_LUZ: por chunk de
-    la caja, la suma de sus pasos (p50, p90, p99, máx.); la media reparte entre los chunks de la caja todo lo de la zona y
-    su margen (los vecinos generan pasos previos por ella). `pasos_ms`, lo mismo por paso (con los de luz);
-    `estructuras_ms`, la parte de PASOS_ESTRUCTURAS; `con_luz_ms`, la media contando la luz."""
+    """From the events [(cx, cz, step, ms)], those of the zone (chunk box and its margin), without the LIGHT_STEPS: per chunk of
+    the box, the sum of its steps (p50, p90, p99, max); the mean spreads over the chunks of the box everything in the zone and
+    its margin (the neighbours generate earlier steps for it). `pasos_ms`, the same per step (with the light ones);
+    `estructuras_ms`, the STRUCTURE_STEPS part; `con_luz_ms`, the mean counting light."""
     per_chunk, steps = {}, {}
     for cx, cz, step, ms in events:
         if not inside((cx, cz), box, margin):
@@ -119,7 +119,7 @@ def chunks_summary(events, box, margin=MARGIN_CHUNKS):
 
 
 def join_zones(events, zones):
-    """ms por chunk de todas las zonas juntas: medias ponderadas por chunks y percentiles sobre todos los chunks (sin luz)."""
+    """ms per chunk of all the zones together: means weighted by chunks and percentiles over all chunks (without light)."""
     total = sum(v["chunks"] for v in zones.values())
     def pond(field):
         return sum(z[field] * z["chunks"] for z in zones.values()) / total
@@ -139,14 +139,14 @@ def join_zones(events, zones):
 
 
 def cpu_of_stat(line, hz=100):
-    """Segundos de CPU (usuario + sistema) de una línea de /proc/<pid>/stat (el nombre del proceso va entre paréntesis
-    y puede llevar espacios: se corta tras el último «)»)."""
+    """CPU seconds (user + system) from a /proc/<pid>/stat line (the process name is in parentheses
+    and may contain spaces: it is cut after the last ")")."""
     fields = line.rpartition(")")[2].split()
     return (int(fields[11]) + int(fields[12])) / hz
 
 
 def process_cpu(pid):
-    """CPU (s) que lleva gastada el proceso, o None si no hay /proc (fuera de Linux)."""
+    """CPU (s) the process has used so far, or None if there is no /proc (outside Linux)."""
     try:
         with open(f"/proc/{pid}/stat", encoding="ascii") as f:
             return cpu_of_stat(f.read(), os.sysconf("SC_CLK_TCK"))
@@ -155,7 +155,7 @@ def process_cpu(pid):
 
 
 def jfr_chunk_events(dataset):
-    """[(cx, cz, paso, ms)] de los minecraft.ChunkGeneration de `jfr print --json` (ya leído)."""
+    """[(cx, cz, step, ms)] from the minecraft.ChunkGeneration events of `jfr print --json` (already read)."""
     out = []
     for e in dataset["recording"]["events"]:
         v = e["values"]
@@ -170,7 +170,7 @@ def medium(values):
 
 
 def add_entry(sweeps):
-    """Mediana de las pasadas de una configuración (cada una, un dict de medidas de pasada()) campo a campo."""
+    """Median of the passes of a configuration (each one a dict of pasada() measurements), field by field."""
     if not sweeps:
         return None
     def median(f):
@@ -192,14 +192,14 @@ def add_entry(sweeps):
 
 
 def metric(aggregate):
-    """La medida que decide: la CPU del proceso por chunk si se pudo leer (lo más estable: no crece con la espera entre
-    hilos), si no la suma de los pasos de JFR por chunk (sin luz)."""
+    """The deciding measurement: process CPU per chunk if it could be read (the most stable: it does not grow with the wait between
+    threads), otherwise the sum of the JFR steps per chunk (without light)."""
     return aggregate.get("cpu_ms_por_chunk") or aggregate["ms_por_chunk"]["media_ms"]
 
 
 def overcost(with_it, sin):
-    """Sobrecoste relativo de Heraldia (0,12 = un 12 % más que sin ella) en la misma medida para las dos (metrica());
-    None si falta algo."""
+    """Relative overhead of Heraldia (0.12 = 12 % more than without it) in the same measurement for both (metrica());
+    None if something is missing."""
     if not with_it or not sin:
         return None
     if with_it.get("cpu_ms_por_chunk") and sin.get("cpu_ms_por_chunk"):
@@ -210,8 +210,8 @@ def overcost(with_it, sin):
 
 
 def compare(current, reference):
-    """(ok, límite, texto) del sobrecoste actual frente a la referencia: falla si pasa de
-    ref × (1 + umbral_relativo) + margen_absoluto. Sin referencia (o sin medida) pasa, y lo dice."""
+    """(ok, limit, text) of the current overhead against the reference: fails if it exceeds
+    ref × (1 + umbral_relativo) + margen_absoluto. With no reference (or no measurement) it passes, and says so."""
     if current is None:
         return False, None, "no se pudo medir el sobrecoste"
     if not reference or reference.get("sobrecoste") is None:
@@ -224,7 +224,7 @@ def compare(current, reference):
 
 
 def new_reference(result, previous=None):
-    """La referencia que se guarda a partir de una medición (conserva umbral y margen de la anterior)."""
+    """The reference that is saved from a measurement (keeps the threshold and margin of the previous one)."""
     previous = previous or {}
     return {"sobrecoste": round(result["sobrecoste"], 4),
             "umbral_relativo": previous.get("umbral_relativo", 0.25), "margen_absoluto": previous.get("margen_absoluto", 0.08),
@@ -239,7 +239,7 @@ def _f(v, fmt="{:.1f}"):
 
 
 def markdown(result, comparison):
-    """Resumen en Markdown (para el job de la CI y el artefacto)."""
+    """Markdown summary (for the CI job and the artifact)."""
     with_it, sin = result["con"], result["sin"]
     ok, limit, text = comparison
     L = [f"## Coste de generación de Heraldia {'✅' if ok else '❌'}", "", f"**{text}**", "",
@@ -283,7 +283,7 @@ def markdown(result, comparison):
 
 
 def medium_profile(profiles):
-    """Mediana campo a campo de los perfiles de Heraldia de varias pasadas ({tramo: {n, total_ms, media_us, max_us}})."""
+    """Field-by-field median of the Heraldia profiles from several passes ({section: {n, total_ms, media_us, max_us}})."""
     out = {}
     for t in sorted({t for p in profiles for t in p}):
         vs = [p[t] for p in profiles if t in p]
@@ -299,13 +299,13 @@ def last_profile(text):
 
 
 def mspt_of(summary):
-    """MSPT del resumen de /jfr (serverTick): media, p50, p90, p99 y máx. en ms."""
+    """MSPT from the /jfr summary (serverTick): mean, p50, p90, p99 and max in ms."""
     t = (summary or {}).get("serverTick") or {}
     return {"media": t.get("averageMs"), "p50": t.get("p50"), "p90": t.get("p90"), "p99": t.get("p99"), "max": t.get("maxMs")}
 
 
 def memory_of(heap_events):
-    """Máximo de heapUsed (MB) tras cada GC de los jdk.GCHeapSummary de `jfr print --json`."""
+    """Maximum heapUsed (MB) after each GC from the jdk.GCHeapSummary events of `jfr print --json`."""
     v = [e["values"]["heapUsed"] for e in heap_events if e["values"].get("when") == "After GC"]
     return max(v) / 2 ** 20 if v else None
 
@@ -321,7 +321,7 @@ def jfr_cli():
     c = os.path.join(os.path.dirname(os.path.realpath(java)), "jfr") if java else None
     if c and os.path.isfile(c):
         return c
-    raise SystemExit("no encuentro la herramienta jfr del JDK (JAVA_HOME/bin/jfr)")
+    raise SystemExit("could not find the JDK's jfr tool (JAVA_HOME/bin/jfr)")
 
 
 def read_jfr_events(fname, kind):
@@ -330,7 +330,7 @@ def read_jfr_events(fname, kind):
 
 
 def chunky(ctx, name, x, z, r):
-    """Genera con Chunky el cuadrado de medio lado r en (x, z): (chunks que dice Chunky, segundos de reloj)."""
+    """Generates with Chunky the square of half side r at (x, z): (chunks reported by Chunky, wall-clock seconds)."""
     ctx.run(f"chunky center {x} {z}", r"[Cc]enter|Chunky")
     ctx.run(f"chunky radius {r}", r"[Rr]adius|Chunky")
     s.pending(ctx.lines, ctx.seen)
@@ -342,13 +342,13 @@ def chunky(ctx, name, x, z, r):
             s.send(ctx.proc, "chunky confirm")
             m = s.wait_for(ctx.lines, _CHUNKY_END.pattern, CHUNKY_TIMEOUT_S, ctx.seen)
         else:
-            raise SystemExit(f"Chunky no empezó en {name}: {m.string.strip()}")
+            raise SystemExit(f"Chunky did not start at {name}: {m.string.strip()}")
     return int(m.group(2)), time.monotonic() - t0
 
 
 def locate(ctx, target):
-    """ms que tarda /locate (lo que dice el propio juego: «Locating element ... took N ms»), o None si no encuentra nada.
-    La línea del tiempo y la respuesta pueden llegar en cualquier orden."""
+    """ms that /locate takes (as reported by the game itself: "Locating element ... took N ms"), or None if it finds nothing.
+    The timing line and the reply may arrive in either order."""
     s.pending(ctx.lines, ctx.seen)
     s.send(ctx.proc, f"execute positioned {LOCATE_FROM[0]} 64 {LOCATE_FROM[1]} run locate structure {target}")
     ms, answer = None, None
@@ -364,7 +364,7 @@ def locate(ctx, target):
 
 
 def sweep(work, jar, with_it, launcher):
-    """Una pasada en un mundo nuevo (con o sin Heraldia): dict con las medidas."""
+    """One pass in a new world (with or without Heraldia): dict with the measurements."""
     for d in ("world", "logs", "debug"):
         shutil.rmtree(os.path.join(work, d), ignore_errors=True)
     mods = os.path.join(work, "mods")
@@ -383,9 +383,9 @@ def sweep(work, jar, with_it, launcher):
     try:
         s.wait_for(lines, r"Done \([\d.,]+s\)!", s.START_TIMEOUT_S, seen)
         if with_it and "Heraldia: perfil de la generación activado" not in ctx.log():
-            raise SystemExit("con Heraldia y sin su perfil: ¿no se cargó el mod?")
+            raise SystemExit("with Heraldia but without its profile: was the mod not loaded?")
         if not with_it and re.search(r"Heraldia: \d+ estructuras registradas", ctx.log()):
-            raise SystemExit("la pasada sin Heraldia ha cargado Heraldia")
+            raise SystemExit("the pass without Heraldia loaded Heraldia")
         chunky(ctx, *WARMUP)
         ctx.run("jfr start", r"[Ss]tarted flight recorder|JFR profiling started|already")
         seconds, cpu = 0.0, 0.0
@@ -396,7 +396,7 @@ def sweep(work, jar, with_it, launcher):
             cpu = None if c0 is None or c1 is None or cpu is None else cpu + c1 - c0
             c = chunks_of_zone(x, z, r)
             if n != (c[2] - c[0] + 1) * (c[3] - c[1] + 1):
-                raise SystemExit(f"Chunky generó {n} chunks en {name}; la zona medida tiene {(c[2] - c[0] + 1) * (c[3] - c[1] + 1)}")
+                raise SystemExit(f"Chunky generated {n} chunks at {name}; the measured zone has {(c[2] - c[0] + 1) * (c[3] - c[1] + 1)}")
             seconds += t
         m = ctx.run("jfr stop", _JFR_END.pattern)
         fname = os.path.join(work, m.group(1))
@@ -409,7 +409,7 @@ def sweep(work, jar, with_it, launcher):
                 continue
             ms = locate(ctx, target)
             if ms is None:
-                print(f"AVISO: /locate {target} no encuentra nada desde {LOCATE_FROM}")
+                print(f"WARNING: /locate {target} finds nothing from {LOCATE_FROM}")
             else:
                 measurements["locate_ms"][name] = ms
     finally:
@@ -419,17 +419,18 @@ def sweep(work, jar, with_it, launcher):
                 proc.wait(timeout=180)
             except (subprocess.TimeoutExpired, BrokenPipeError):
                 proc.kill()
-    s.pending(lines, seen)       # lo que el servidor escribió al parar (el perfil de Heraldia va ahí)
+    s.pending(lines, seen)       # what the server wrote when stopping (Heraldia's profile is in there)
     log = os.path.join(work, "logs", "latest.log")
     text = open(log, encoding="utf-8", errors="replace").read() if os.path.isfile(log) else "".join(seen)
     measurements["perfil"] = last_profile(text) if with_it else None
     if with_it and measurements["perfil"] is None:
-        raise SystemExit("con Heraldia no aparece «Heraldia: perfil: {...}» en el log al parar")
+        raise SystemExit("with Heraldia, 'Heraldia: perfil: {...}' does not appear in the log on stop")
     events = jfr_chunk_events(read_jfr_events(fname, "minecraft.ChunkGeneration"))
     measurements["memoria_mb"] = memory_of(read_jfr_events(fname, "jdk.GCHeapSummary")["recording"]["events"])
     zones = {n: chunks_summary(events, chunks_of_zone(x, z, r)) for n, x, z, r in ZONES}
-    measurements.update(chunks=sum(v["chunks"] for v in zones.values()), seconds=seconds, zones=zones,
-                   ms_per_chunk=join_zones(events, zones))
+    # the keys are those of generation_cost.json and cost_reference.json: they stay as they are
+    measurements.update(chunks=sum(v["chunks"] for v in zones.values()), segundos=seconds, zonas=zones,
+                        ms_por_chunk=join_zones(events, zones))
     total, v = measurements["chunks"], [measurements["ms_por_chunk"]["media_ms"]]
     measurements["cpu_ms_por_chunk"] = cpu * 1000 / total if cpu is not None else None
     print(f"PASADA {'con' if with_it else 'sin'} Heraldia: {total} chunks en {seconds:.1f} s, "
@@ -440,7 +441,7 @@ def sweep(work, jar, with_it, launcher):
 
 
 def measure(jar, work, sweeps):
-    """Pasadas alternas (sin, con, sin, con...) en `work`: (lista sin, lista con)."""
+    """Alternating passes (without, with, without, with...) in `work`: (list without, list with)."""
     os.makedirs(work, exist_ok=True)
     launcher = s.prepare(work, jar, s.gradle_properties())
     with open(os.path.join(work, "server.properties"), encoding="utf-8") as f:
@@ -494,13 +495,13 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--jar")
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-coste"))
-    ap.add_argument("--sweeps", type=int, default=SWEEPS, help=f"pasadas por configuración (por defecto {SWEEPS})")
-    ap.add_argument("--output", default=os.path.join(s.ROOT, "build", "coste"), help="carpeta del JSON y el Markdown")
+    ap.add_argument("--sweeps", type=int, default=SWEEPS, help=f"passes per configuration (default {SWEEPS})")
+    ap.add_argument("--output", default=os.path.join(s.ROOT, "build", "coste"), help="folder for the JSON and the Markdown")
     ap.add_argument("--reference", default=REFERENCE)
-    ap.add_argument("--update-reference", action="store_true", help="guarda la medición como referencia nueva")
-    ap.add_argument("--no-threshold", action="store_true", help="mide e informa, pero no falla por el umbral")
-    ap.add_argument("--no-retry", action="store_true", help="si pasa del umbral, no repite otra ronda de pasadas")
-    ap.add_argument("--from-json", help="no mide: usa este coste_generacion.json (p. ej. el artefacto de la CI)")
+    ap.add_argument("--update-reference", action="store_true", help="saves the measurement as the new reference")
+    ap.add_argument("--no-threshold", action="store_true", help="measures and reports, but does not fail on the threshold")
+    ap.add_argument("--no-retry", action="store_true", help="if it exceeds the threshold, does not repeat another round of passes")
+    ap.add_argument("--from-json", help="does not measure: uses this coste_generacion.json (e.g. the CI artifact)")
     a = ap.parse_args(argv)
     ref = read_reference(a.reference)
     if a.from_json:
@@ -508,13 +509,13 @@ def main(argv=None):
             res = json.load(f)
     else:
         if not a.jar:
-            ap.error("--jar es obligatorio (o --from-json)")
+            ap.error("--jar is required (or --from-json)")
         jar, work = os.path.abspath(a.jar), os.path.abspath(a.work)
         sin, with_it = measure(jar, work, a.sweeps)
         res = result_of(sin, with_it)
         comp = compare(res["sobrecoste"], ref)
         if not comp[0] and ref and not a.no_retry and not a.update_reference:
-            print(f"{comp[2]}: se repite una ronda de {a.sweeps} pasadas y se decide con todas", flush=True)
+            print(f"{comp[2]}: a round of {a.sweeps} passes is repeated and the decision is made with all of them", flush=True)
             without_it2, with_it2 = measure(jar, work, a.sweeps)
             res = result_of(sin + without_it2, with_it + with_it2)
     comp = compare(res["sobrecoste"], ref)

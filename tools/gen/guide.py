@@ -1,18 +1,18 @@
-"""Guía del Heraldo: el libro escrito que explica el mod a los jugadores y lleva su diario (lo arma el Java, comando/Guia).
+"""Herald's Guide: the written book that explains the mod to players and carries their journal (built by the Java side, comando/Guia).
 
-Aquí van los textos (claves heraldia.guia.*, en es_es y en_us) y heraldia/guia.json (dentro del .jar), que dice al Java
-qué páginas fijas lleva el libro y cuántas entradas caben en cada página del diario. Todo se comprueba con el mismo
-cálculo de líneas que los pliegos de la crónica (botin.lineas_libro: 14 líneas de 114 px): si una página no cabe en un
-idioma, la generación falla.
+Here are the texts (keys heraldia.guia.*, in es_es and en_us) and heraldia/guide.json (inside the .jar), which tells the Java side
+which fixed pages the book carries and how many entries fit on each page of the journal. Everything is checked with the same
+line calculation as the chronicle sheets (chest_loot.book_lines: 14 lines of 114 px): if a page does not fit in a
+language, generation fails.
 
-Páginas del libro:
-  - fijas (PAGINAS): un título en negrita y su texto, en este orden;
-  - el salón de la fama de la arena (T41, si está activada): los campeones de la semana anterior y los récords de cada
-    modo, en dos páginas tras el resumen del diario (las arma arena/Fama; errores_fama comprueba el peor caso);
-  - el diario: el resumen (cuántas únicas has descubierto de cuántas), la lista de las descubiertas (su nombre,
-    heraldia.unicas.<id>.nombre) y las pistas de las que faltan (la pista de su pliego de la crónica,
-    heraldia.historia.<id>.pista: bioma y rasgo, sin nombre ni coordenadas), repartidas en páginas de
-    `nombres_por_pagina` y `pistas_por_pagina` entradas (calculadas aquí con el peor caso de cada idioma).
+Pages of the book:
+  - fixed (PAGES): a bold title and its text, in this order;
+  - the arena hall of fame (T41, if enabled): the previous week's champions and the records of each
+    mode, on two pages after the journal summary (built by arena/Fama; errores_fama checks the worst case);
+  - the journal: the summary (how many unique structures you have discovered out of how many), the list of the discovered ones (their name,
+    heraldia.unicas.<id>.nombre) and the hints for the missing ones (the hint from their chronicle sheet,
+    heraldia.historia.<id>.pista: biome and trait, no name or coordinates), spread over pages of
+    `nombres_por_pagina` and `pistas_por_pagina` entries (computed here with the worst case of each language).
 """
 from uniques._common import chest_loot
 import advancements
@@ -20,13 +20,13 @@ import languages
 
 NS = "heraldia"
 KEY = f"{NS}.guia"
-TITLE = ("Guía del Heraldo", "The Herald's Guide")   # título del libro (cadena sin traducir, máx. TITULO_MAX)
+TITLE = ("Guía del Heraldo", "The Herald's Guide")   # book title (untranslated string, max TITLE_MAX)
 TITLE_MAX = 32                                         # WrittenBookContent.TITLE_MAX_LENGTH
 AUTHOR = "Heraldia"
-MAX_PAGES = 100                                       # WrittenBookContent: máximo de páginas de un libro
-MARK = "heraldia_guia_libro"                           # custom_data {heraldia_guia_libro: "<versión del mod>"}
+MAX_PAGES = 100                                       # WrittenBookContent: maximum number of pages in a book
+MARK = "heraldia_guia_libro"                           # custom_data {heraldia_guia_libro: "<mod version>"}
 
-# (id, (título es, en), (texto es, en)). La página es «título\n\ntexto» con el título en negrita.
+# (id, (title es, en), (text es, en)). The page is "title\n\ntext" with the title in bold.
 PAGES = [
     ("bienvenida", ("Guía del Heraldo", "The Herald's Guide"),
      ("Bienvenido, viajero. Este mundo guarda más de lo que parece: aldeas enormes, caminos, ruinas con historia y "
@@ -135,7 +135,7 @@ PAGES = [
       "To bring them up to date, ask for a new copy whenever you like with /heraldia guide.")),
 ]
 
-# Textos del diario y del objeto (heraldia.guia.<clave>). %s: números o componentes (nombre, pista).
+# Texts of the journal and the item (heraldia.guia.<key>). %s: numbers or components (name, hint).
 JOURNAL = {
     "nombre": ("Guía del Heraldo", "The Herald's Guide"),
     "lore": ("Edición de Heraldia %s", "Heraldia edition %s"),
@@ -155,7 +155,7 @@ JOURNAL = {
     "entregada": ("Te damos la Guía del Heraldo: ábrela para saber qué te espera en este mundo.",
                   "Here is the Herald's Guide: open it to learn what awaits you in this world."),
     "copia": ("Aquí tienes una copia al día de la Guía del Heraldo.", "Here is an up-to-date copy of the Herald's Guide."),
-    # T41: el salón de la fama de la arena (dos páginas tras el resumen, si la arena está activada; las arma arena/Fama)
+    # T41: the arena hall of fame (two pages after the summary, if the arena is enabled; built by arena/Fama)
     "fama.titulo": ("Salón de la fama", "Hall of fame"),
     "fama.ninguno": ("Aún no hay campeones de la arena. Quien acabe esta semana en cabeza de cada modo será el campeón de "
                      "la que viene: /heraldia arena leaderboard.",
@@ -167,7 +167,7 @@ JOURNAL = {
     "records.titulo": ("Récords", "Records"),
     "records.intro": ("La mejor marca de siempre en cada modo de la arena:", "The best result ever in each arena mode:"),
 }
-FAME_PAGES = 2                                         # páginas del salón de la fama (Java: arena/Fama.paginas)
+FAME_PAGES = 2                                         # hall of fame pages (Java: arena/Fama.paginas)
 
 
 def key(k):
@@ -175,7 +175,7 @@ def key(k):
 
 
 def lang():
-    """{"es_es": {...}, "en_us": {...}} con las páginas fijas y los textos del diario."""
+    """{"es_es": {...}, "en_us": {...}} with the fixed pages and the journal texts."""
     out = {"es_es": {}, "en_us": {}}
     for pid, title, text in PAGES:
         for i, language in enumerate(out):
@@ -188,18 +188,18 @@ def lang():
 
 
 def title_lines(title):
-    """Líneas de un título en negrita (cada carácter, 1 px más ancho)."""
+    """Lines of a bold title (each character, 1 px wider)."""
     return 1 if chest_loot.width(title) + len(title) <= chest_loot.BOOK_WIDTH else 2
 
 
 def page_lines(title, text):
-    """Líneas de una página «título (negrita)\\n\\ntexto»."""
+    """Lines of a page "title (bold)\\n\\ntext"."""
     return title_lines(title) + 1 + chest_loot.book_lines(text)
 
 
 def _entries(modules, translations=None):
-    """Por idioma (0 = es, 1 = en y luego cada traducción, {código: textos}): [(nombre de cada única)], [(pista de cada
-    única)] con el formato de su entrada."""
+    """Per language (0 = es, 1 = en and then each translation, {code: texts}): [(name of each unique structure)], [(hint of each unique
+    structure)] with the format of its entry."""
     names = [[JOURNAL["descubierta"][i] % advancements.unique_name(sid, m)[i] for sid, m in modules] for i in (0, 1)]
     clues = [[JOURNAL["pista"][i] % m.STORY["pista"][i] for sid, m in modules] for i in (0, 1)]
     for t in (translations or {}).values():
@@ -209,20 +209,20 @@ def _entries(modules, translations=None):
 
 
 def _header(k, translations):
-    """El título de una página del diario en todos los idiomas."""
+    """The title of a journal page in all languages."""
     return list(JOURNAL[k]) + [t[key(k)] for t in (translations or {}).values()]
 
 
 def per_page(header, entrances):
-    """Entradas por página: las que caben tras la cabecera (en negrita y una línea en blanco) con la más larga de todas."""
+    """Entries per page: those that fit after the header (in bold and a blank line) with the longest of all."""
     free_cells = chest_loot.BOOK_LINES - max(title_lines(c) for c in header) - 1
     worst = max(chest_loot.book_lines(e) for e in entrances)
     return free_cells // worst
 
 
 def dataset(modules, translations=None):
-    """Lo que lee el Java (heraldia/guia.json): páginas fijas en orden y entradas por página del diario (con el peor caso
-    de todos los idiomas: los base y las traducciones, {código: textos})."""
+    """What the Java side reads (heraldia/guide.json): fixed pages in order and entries per journal page (with the worst case
+    of all languages: the base ones and the translations, {code: texts})."""
     names, clues = _entries(modules, translations)
     return {
         "paginas": [pid for pid, _, _ in PAGES],
@@ -234,15 +234,15 @@ def dataset(modules, translations=None):
 
 
 def pages_max(modules, translations=None):
-    """Páginas del libro en el peor caso (todas descubiertas o ninguna): fijas + resumen + listas."""
+    """Pages of the book in the worst case (all discovered or none): fixed + summary + lists."""
     d, n = dataset(modules, translations), len(modules)
     lists = max(-(-n // d["nombres_por_pagina"]), -(-n // d["pistas_por_pagina"]))
     return len(PAGES) + 1 + FAME_PAGES + lists
 
 
 def fame_errors(translations=None):
-    """[] si las páginas del salón de la fama caben en cada idioma con el peor caso: los tres modos con el nombre de
-    jugador más ancho (16 «W») y la marca más larga de cada modo."""
+    """[] if the hall of fame pages fit in each language in the worst case: the three modes with the widest
+    player name (16 "W") and the longest record of each mode."""
     import arena_waves
     a = arena_waves.lang()
     e = []
@@ -269,15 +269,15 @@ def fame_errors(translations=None):
 
 
 def _texts_by_language(translations):
-    """[(nombre del idioma, {clave: texto} de la guía)] de los base y de cada traducción."""
+    """[(language name, {key: text} of the guide)] of the base languages and of each translation."""
     base = lang()
     return [("es", base["es_es"]), ("en", base["en_us"])] + [(c, t) for c, t in (translations or {}).items()]
 
 
 def errors(modules, translations=None):
-    """[] si todo cabe en cada idioma: cada página fija y el resumen (con números de dos cifras y la frase más larga),
-    el título del libro (el nombre de la guía), al menos una entrada por página del diario y el total de páginas.
-    `traducciones`: {código: textos} de los idiomas que no son es/en (idiomas.completar)."""
+    """[] if everything fits in each language: each fixed page and the summary (with two-digit numbers and the longest phrase),
+    the book title (the guide's name), at least one entry per journal page and the total number of pages.
+    `translations`: {code: texts} of the languages other than es/en (languages.complete)."""
     e = []
     for language, t in _texts_by_language(translations):
         for pid, _, _ in PAGES:
@@ -295,7 +295,7 @@ def errors(modules, translations=None):
             e.append(f"guía: el título «{t[key('nombre')]}» ({language}) pasa de {TITLE_MAX} caracteres")
     e += fame_errors(translations)
     import arena_waves
-    e += arena_waves.text_errors(translations)          # T41: las líneas de los carteles del salón de la fama
+    e += arena_waves.text_errors(translations)          # T41: the lines of the hall of fame signs
     for i in (0, 1):
         if len(TITLE[i]) > TITLE_MAX:
             e.append(f"guía: el título «{TITLE[i]}» pasa de {TITLE_MAX} caracteres")
@@ -308,7 +308,7 @@ def errors(modules, translations=None):
 
 
 def write(out, modules, jdump, translations=None):
-    """Escribe heraldia/guia.json y devuelve sus textos; falla si algo no cabe en el libro en algún idioma."""
+    """Writes heraldia/guide.json and returns its texts; fails if anything does not fit in the book in some language."""
     e = errors(modules, translations)
     if e:
         raise SystemExit("\n".join(e))

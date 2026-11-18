@@ -1,11 +1,11 @@
-"""Construcción del Templo-pirámide en coordenadas globales (y >= 0 superficie, y < 0 subsuelo)."""
+"""Construction of the Pyramid temple in global coordinates (y >= 0 surface, y < 0 underground)."""
 import zlib
 from core import Template, B, F, OPP
 from uniques._common import pieces
 
-CX, CZ = 30, 42                 # eje de la pirámide
+CX, CZ = 30, 42                 # axis of the pyramid
 W, D = 79, 70                   # huella: x 0..78, z 0..69
-UG = (8, 0, 52, 64)             # caja del subsuelo: x 8..52, z 0..64
+UG = (8, 0, 52, 64)             # underground box: x 8..52, z 0..64
 UG_Y = (-27, -1)
 AIR_TOP, AIR_TOP_PYR = 20, 36
 
@@ -28,15 +28,15 @@ class Construction:
     def __init__(self):
         self.t = Template("unicas/piramide/_global")
         self.carved = {}            # celda -> zona (aire interior)
-        self.ext_air = set()        # aire exterior explícito
+        self.ext_air = set()        # explicit exterior air
         self.marks = {}             # nombre -> [celdas]
-        self.sealed = set()         # tapiado que se rompe (pasable en la auditoría)
-        self.puzzle = []            # bloques de la puerta secreta
-        self.water_dive = set()     # agua por la que se bucea
-        self.ruin = set()           # ruina hecha a mano (para la fracción de buen estado)
-        self.collapse = set()       # aire del derrumbe: el núcleo de toba queda a la vista
+        self.sealed = set()         # walling-up that gets broken (passable in the audit)
+        self.puzzle = []            # blocks of the secret door
+        self.water_dive = set()     # water you dive through
+        self.ruin = set()           # hand-made ruin (for the good-condition fraction)
+        self.collapse = set()       # collapse air: the tuff core is left in view
 
-    # ------------------------------------------------------------ básicos
+    # ------------------------------------------------------------ basics
     def set(self, x, y, z, st, nbt=None):
         self.t.set(x, y, z, st, nbt)
 
@@ -65,12 +65,12 @@ class Construction:
         self.mark("generador:" + name, x, y, z)
 
     def flight(self, axis, lo, hi, u0, d, w0, n, zone, st="tuff_brick_stairs"):
-        """Tramo que baja n peldaños desde la cota w0 avanzando en el eje (x|z) con sentido d (+1/-1).
-        lo..hi es el ancho en el otro eje. Devuelve la coordenada del último peldaño."""
+        """Flight that goes down n steps from level w0 advancing along the axis (x|z) in direction d (+1/-1).
+        lo..hi is the width on the other axis. Returns the coordinate of the last step."""
         name = {("z", 1): "south", ("z", -1): "north", ("x", 1): "east", ("x", -1): "west"}[(axis, d)]
         face = OPP[name]
         for i in range(1, n + 1):
-            u, s = u0 + d * i, w0 - i + 1          # el primer peldaño queda a ras del rellano
+            u, s = u0 + d * i, w0 - i + 1          # the first step is flush with the landing
             for v in range(lo, hi + 1):
                 x, z = (v, u) if axis == "z" else (u, v)
                 self.carve(x, s, z, x, s + 2, z, zone)
@@ -78,7 +78,7 @@ class Construction:
         return u0 + d * n
 
     def up_flight(self, axis, lo, hi, u0, d, w0, n, st, clear_to=None):
-        """Escalera exterior que sube n peldaños desde la cota w0 (relleno macizo debajo)."""
+        """Exterior staircase that climbs n steps from level w0 (solid fill below)."""
         name = {("z", 1): "south", ("z", -1): "north", ("x", 1): "east", ("x", -1): "west"}[(axis, d)]
         for i in range(n):
             u, s = u0 + d * i, w0 + i
@@ -128,7 +128,7 @@ def tiers(o):
 
 
 def stair_ramp(o):
-    """Escalinata norte con alfardas y cabezas de serpiente."""
+    """North flight of steps with balustrades and serpent heads."""
     for s in range(1, 24):
         z = CZ - 32 + s
         for x in range(CX - 5, CX + 6):
@@ -150,7 +150,7 @@ def stair_ramp(o):
         o.set(x, 2, CZ - 32, "chiseled_tuff_bricks")
         o.set(x, 1, CZ - 33, "tuff_brick_stairs[facing=south,half=bottom,shape=straight,waterlogged=false]")
         o.set(x, 2, CZ - 33, "tuff_brick_slab[type=top,waterlogged=false]")
-    # alfarda este mellada (ruina)
+    # jagged east balustrade (ruin)
     for s in (14, 15, 16):
         z = CZ - 32 + s
         o.set(CX + 5, s + 1, z, "air")
@@ -174,21 +174,21 @@ def temple(o):
             o.set(x, 30, z, "tuff_bricks")
     # interior
     o.carve(x0 + 1, 24, z0 + 1, x1 - 1, 28, z1 - 1, "pir")
-    o.fill(x0 + 1, 24, CZ - 1, x1 - 1, 28, CZ - 1, "red_terracotta")      # muro del santuario
+    o.fill(x0 + 1, 24, CZ - 1, x1 - 1, 28, CZ - 1, "red_terracotta")      # sanctuary wall
     o.carve(CX - 1, 24, CZ - 1, CX + 1, 26, CZ - 1, "pir")
-    for x in (CX - 3, CX, CX + 3):                                          # vanos de la fachada
+    for x in (CX - 3, CX, CX + 3):                                          # facade openings
         w = 1 if x == CX else 0
         o.carve(x - w, 24, z0, x + w, 26, z0, "pir")
         o.fill(x - w, 27, z0, x + w, 27, z0, "polished_tuff")
     for x in (CX - 2, CX + 2, CX - 4, CX + 4):
         o.fill(x, 24, z0, x, 29, z0, "chiseled_tuff")
-    for x in range(x0, x1 + 1):                                             # cornisa del techo
+    for x in range(x0, x1 + 1):                                             # roof cornice
         for z in (z0 - 1, z1 + 1):
             o.set(x, 29, z, "tuff_brick_slab[type=top,waterlogged=false]")
     for z in range(z0, z1 + 1):
         for x in (x0 - 1, x1 + 1):
             o.set(x, 29, z, "tuff_brick_slab[type=top,waterlogged=false]")
-    # crestería calada (rota en el extremo este)
+    # openwork roof comb (broken at the east end)
     for x in range(CX - 4, CX + 5):
         for y in range(31, 36):
             if x % 2 == 0 or y in (33, 35) or x in (CX - 4, CX + 4):
@@ -210,18 +210,18 @@ def temple(o):
 
 
 def inscriptions(o):
-    """Escalera interior: tramo A (oeste, al norte) 24->12, rellano, tramo B (centro, al sur) 12->1."""
+    """Interior stairs: flight A (west, going north) 24->12, landing, flight B (centre, going south) 12->1."""
     o.carve(CX - 5, 24, CZ + 4, CX - 3, 26, CZ + 4, "pir")
     o.flight("z", CX - 5, CX - 3, CZ + 4, -1, 24, 12, "pir")          # z 45..34
-    # pretil del hueco en el santuario
+    # parapet of the opening in the sanctuary
     for z in range(CZ, CZ + 3):
         o.set(CX - 2, 24, z, "tuff_brick_wall[east=none,north=tall,south=tall,up=true,waterlogged=false,west=none]")
-    # rellano (cota 12) y tramo B
+    # landing (level 12) and flight B
     o.carve(CX - 5, 12, CZ - 10, CX + 5, 14, CZ - 9, "pir")
     o.flight("z", CX - 1, CX + 1, CZ - 9, 1, 12, 11, "pir")           # z 34..44 -> cota 1
     o.set(CX - 2, 14, CZ - 10, "lantern[hanging=true,waterlogged=false]")
     o.set(CX + 3, 14, CZ - 10, "lantern[hanging=true,waterlogged=false]")
-    # Cámara de las Ofrendas (oeste)
+    # Chamber of Offerings (west)
     o.carve(CX - 13, 12, CZ - 12, CX - 7, 14, CZ - 7, "pir")
     o.carve(CX - 6, 12, CZ - 10, CX - 6, 13, CZ - 10, "pir")
     o.chest(CX - 13, 12, CZ - 10, "east", "menor", "ofrendas")
@@ -230,7 +230,7 @@ def inscriptions(o):
     o.fill(CX - 10, 12, CZ - 12, CX - 10, 12, CZ - 12, "chiseled_tuff_bricks")
     o.set(CX - 10, 13, CZ - 12, "candle[candles=4,lit=true,waterlogged=false]")
     o.set(CX - 10, 14, CZ - 9, "lantern[hanging=true,waterlogged=false]")
-    # Cámara tapiada (este): puerta cegada con adoquín y grava sospechosa
+    # Walled-up Chamber (east): door blocked with cobblestone and suspicious gravel
     o.carve(CX + 7, 12, CZ - 12, CX + 13, 14, CZ - 7, "pir")
     o.carve(CX + 6, 12, CZ - 10, CX + 6, 13, CZ - 10, "pir")
     o.chest(CX + 13, 12, CZ - 10, "west", "oculto", "tapiada")
@@ -249,7 +249,7 @@ def seal_doorway(o):
 
 
 def hall(o):
-    """Sala del Cenote (cota 1) con la boca del pozo; brecha oeste con trampa de cable."""
+    """Cenote Hall (level 1) with the mouth of the well; west breach with a wire trap."""
     o.carve(CX - 12, 1, CZ + 3, CX + 12, 6, CZ + 19, "pir")
     for px in (CX - 9, CX + 8):
         for pz in (CZ + 6, CZ + 15):
@@ -269,13 +269,13 @@ def hall(o):
     o.chest(CX - 12, 1, CZ + 18, "east", "menor", "sala")
     o.set(CX - 12, 1, CZ + 17, "decorated_pot[cracked=false,facing=east,waterlogged=false]")
     o.set(CX - 12, 1, CZ + 19, "decorated_pot[cracked=true,facing=east,waterlogged=false]")
-    # escalera al subsuelo (esquina sureste): baja al sur de cota 1 a -6
+    # stairs to the underground (south-east corner): go down south from level 1 to -6
     o.flight("z", CX + 6, CX + 8, CZ + 8, 1, 1, 7, "pir", st="stone_brick_stairs")   # z 51..57
     for z in range(CZ + 10, CZ + 13):
         o.set(CX + 9, 1, z, "tuff_brick_wall[east=none,north=tall,south=tall,up=true,waterlogged=false,west=none]")
     for x in range(CX + 6, CX + 10):
         o.set(x, 1, CZ + 13, "tuff_brick_wall[east=tall,north=none,south=none,up=true,waterlogged=false,west=tall]")
-    # galería de la brecha oeste
+    # gallery of the west breach
     o.carve(CX - 23, 1, cz - 1, CX - 13, 3, cz + 1, "pir")
     o.carve(CX - 24, 1, cz - 1, CX - 24, 3, cz + 1, "brecha")
     for (x, y, z) in ((CX - 24, 4, cz), (CX - 24, 4, cz - 1), (CX - 24, 1, cz - 2), (CX - 24, 2, cz - 2),
@@ -287,7 +287,7 @@ def hall(o):
         o.ruin.add((x, 1, z))
     o.set(CX - 25, 2, cz - 2, "tuff_slab[type=bottom,waterlogged=false]")
     o.ruin.add((CX - 25, 2, cz - 2))
-    # trampa de cable: dos dispensadores de flechas a la altura de la cabeza
+    # wire trap: two arrow dispensers at head height
     tx = CX - 19
     pieces.tripwire_trap(o.set, (tx, cz - 1), (tx, cz + 1), 1, "z",
                          [((tx, 2, cz - 2), "south"), ((tx, 2, cz + 2), "north")])
@@ -328,7 +328,7 @@ def platforms(o):
 
 
 def ballcourt(o):
-    x0, z0, z1 = 57, CZ - 16, CZ + 16          # taludes x 57..61 y 71..75, callejón 63..69
+    x0, z0, z1 = 57, CZ - 16, CZ + 16          # slopes x 57..61 and 71..75, alley 63..69
     for xa, xb, bench, face in ((57, 61, 62, "west"), (71, 75, 70, "east")):
         o.fill(xa, 0, z0, xb, 6, z1, "tuff_bricks")
         for x in range(xa, xb + 1):
@@ -343,7 +343,7 @@ def ballcourt(o):
                 if not (y == 5 and z == CZ):
                     o.set(ring, y, z, "chiseled_tuff")
         o.up_flight("z", xa + 1, xb - 1, z0, 1, 1, 6, "tuff_brick_stairs", clear_to=6)
-    # adoratorio sobre el talud oeste
+    # shrine on the west slope
     sx0, sx1, sz0, sz1 = 57, 61, z1 - 6, z1
     for x in range(sx0, sx1 + 1):
         for z in range(sz0, sz1 + 1):
@@ -355,7 +355,7 @@ def ballcourt(o):
     o.carve(59, 7, sz0, 59, 8, sz0, "pir")
     o.chest(59, 7, sz1 - 1, "north", "menor", "juego_de_pelota")
     o.set(58, 7, sz1 - 1, "candle[candles=2,lit=true,waterlogged=false]")
-    # derrumbe del extremo sur del talud este
+    # collapse at the south end of the east slope
     for x in range(71, 76):
         for z in range(z1 - 5, z1 + 1):
             top = 2 + int(h(x, z) * 3) + max(0, z1 - 3 - z)
@@ -368,7 +368,7 @@ def ballcourt(o):
 
 
 def collapse_corner(o):
-    """Esquina sureste de los cuerpos 4-6 desplomada, con escombro en la terraza de abajo."""
+    """South-east corner of bodies 4-6 caved in, with rubble on the terrace below."""
     c = (CX + 13, 19, CZ + 13)
     for x in range(CX + 6, CX + 22):
         for y in range(12, 28):
@@ -388,14 +388,14 @@ def collapse_corner(o):
 
 # ====================================================================== subsuelo
 def underground(o):
-    C = (CX, CZ + 11)          # centro del pozo y del cenote (30, 53)
+    C = (CX, CZ + 11)          # centre of the well and the cenote (30, 53)
     cx, cz = C
-    # pozo: de la sala (y=0) al cenote
+    # well: from the hall (y=0) to the cenote
     for x in range(cx - 5, cx + 6):
         for z in range(cz - 5, cz + 6):
             if (x - cx) ** 2 + (z - cz) ** 2 <= 4.5 ** 2:
                 o.carve(x, -8, z, x, -1, z, "cen")
-    # --- L-1 galerías (cota -6)
+    # --- L-1 galleries (level -6)
     for x in range(cx - 8, cx + 9):
         for z in range(cz - 8, cz + 9):
             m = max(abs(x - cx), abs(z - cz))
@@ -406,7 +406,7 @@ def underground(o):
         for x in range(xa, xb + 1):
             for z in range(za, zb + 1):
                 o.set(x, -6, z, "stone_brick_wall[east=none,north=none,south=none,up=true,waterlogged=false,west=none]")
-    # norte: pasillo con trampa de foso y Cámara del Juicio
+    # north: corridor with pit trap and Chamber of Judgement
     o.carve(cx - 1, -6, cz - 14, cx + 1, -4, cz - 9, "l1")
     o.carve(cx - 5, -6, cz - 21, cx + 5, -3, cz - 15, "l1")
     pz = cz - 11                                   # fila de trampillas (z=42)
@@ -426,7 +426,7 @@ def underground(o):
     for x in (cx - 5, cx + 5):
         o.fill(x, -6, cz - 15, x, -3, cz - 15, "chiseled_stone_bricks")
     o.set(cx - 4, -6, cz - 21, "candle[candles=2,lit=true,waterlogged=false]")
-    # oeste: guarida de arañas
+    # west: spider lair
     o.carve(cx - 9, -6, cz, cx - 9, -5, cz, "l1")
     o.carve(cx - 17, -6, cz - 3, cx - 10, -3, cz + 3, "l1")
     o.spawner(cx - 15, -6, cz, "cave_spider", "arañas")
@@ -434,7 +434,7 @@ def underground(o):
                       (cx - 15, -5, cz), (cx - 11, -3, cz + 3), (cx - 16, -3, cz)):
         o.set(x, y, z, "cobweb")
     o.chest(cx - 17, -6, cz - 3, "east", "galeria", "arañas")
-    # este: osario
+    # east: ossuary
     o.carve(cx + 9, -6, cz - 6, cx + 9, -5, cz - 6, "l1")
     o.carve(cx + 10, -6, cz - 9, cx + 16, -3, cz - 3, "l1")
     o.spawner(cx + 14, -6, cz - 6, "skeleton", "osario")
@@ -442,7 +442,7 @@ def underground(o):
         o.set(x, -6, z, "bone_block[axis=y]")
         o.set(x, -5, z, "skeleton_skull[powered=false,rotation=4]")
     o.chest(cx + 16, -6, cz - 6, "west", "galeria", "osario")
-    # escalera L-1 -> L-2 (suroeste, al oeste)
+    # stairs L-1 -> L-2 (south-west, to the west)
     o.carve(cx - 9, -6, cz + 6, cx - 9, -4, cz + 8, "l1")
     o.flight("x", cz + 6, cz + 8, cx - 8, -1, -6, 8, "l1", st="stone_brick_stairs")      # x 21..14 -> -14
     o.carve(cx - 19, -14, cz + 2, cx - 17, -12, cz + 8, "cen")
@@ -464,7 +464,7 @@ def underground(o):
                     o.set(x, top + 1, z, "dripstone_block")
                 elif 6.5 < r <= 8 and h(x, z, 2) < 0.1:
                     o.set(x, top, z, "hanging_roots[waterlogged=false]")
-    # túnel sumergido y Cámara sumergida (este)
+    # submerged tunnel and Submerged Chamber (east)
     for x in range(cx + 7, cx + 14):
         for y in (-19, -18, -17):
             o.set(x, y, cz, "water[level=0]")
@@ -481,10 +481,10 @@ def underground(o):
     o.set(cx + 18, -14, cz + 2, "decorated_pot[cracked=false,facing=west,waterlogged=false]")
     o.set(cx + 15, -14, cz - 3, "soul_lantern[hanging=false,waterlogged=false]")
     o.mark("sala_oculta:sumergida", cx + 16, -14, cz)
-    # escalera L-2 -> L-3 (norte de la cornisa)
+    # stairs L-2 -> L-3 (north of the ledge)
     o.flight("z", cx - 1, cx + 1, cz - 9, -1, -14, 10, "l3", st="deepslate_tile_stairs")    # z 43..34 -> -24
     # --- L-3 tumba
-    o.carve(cx - 5, -24, cz - 27, cx + 5, -20, cz - 20, "l3")          # Sala de los Guardianes z 26..33
+    o.carve(cx - 5, -24, cz - 27, cx + 5, -20, cz - 20, "l3")          # Hall of the Guardians z 26..33
     o.spawner(cx - 5, -24, cz - 27, "zombie", "guardianes")
     o.chest(cx + 5, -24, cz - 22, "west", "galeria", "guardianes")
     for x in (cx - 3, cx + 3):
@@ -498,7 +498,7 @@ def underground(o):
                   {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 8}]})
             o.set(x, -24, z, "polished_blackstone_pressure_plate[powered=false]")
             o.mark("trampa:dardos", x, -24, z)
-    o.carve(cx - 7, -24, cz - 43, cx + 7, -18, cz - 34, "l3")          # Tumba del Rey z 10..19
+    o.carve(cx - 7, -24, cz - 43, cx + 7, -18, cz - 34, "l3")          # King's Tomb z 10..19
     o.fill(cx - 1, -24, cz - 41, cx + 1, -24, cz - 37, "polished_blackstone")
     o.fill(cx - 1, -23, cz - 41, cx + 1, -23, cz - 37, "polished_blackstone")
     for x, z in ((cx - 1, cz - 41), (cx + 1, cz - 41), (cx - 1, cz - 37), (cx + 1, cz - 37)):
@@ -513,7 +513,7 @@ def underground(o):
         o.set(x, -18, cz - 39, "soul_lantern[hanging=true,waterlogged=false]")
     o.t.entity(cx - 3, -24, cz - 38, guardian())
     o.mark("guardian", cx - 3, -24, cz - 38)
-    # Cámara del Tesoro (z 1..6) y puerta secreta (muro z 7..9)
+    # Treasure Chamber (z 1..6) and secret door (wall z 7..9)
     o.carve(cx - 4, -24, 1, cx + 4, -20, 6, "l3")
     o.chest(cx, -24, 1, "south", "premium", "tesoro")
     for x, z in ((cx - 4, 1), (cx + 4, 1)):
@@ -526,15 +526,15 @@ def underground(o):
 
 
 def secret_door(o):
-    """Puerta secreta: dos pistones pegajosos extendidos (antorcha encendida) sujetan los bloques de la puerta."""
-    cx, F, z = CX, -24, 8                  # capa central del muro z 7..9
-    o.carve(cx, F, z + 1, cx, F + 1, z + 1, "l3")      # nicho hacia la tumba (z 9)
-    o.carve(cx, F, z - 1, cx, F + 1, z - 1, "l3")      # vano hacia el tesoro (z 7)
+    """Secret door: two extended sticky pistons (lit torch) hold the door blocks."""
+    cx, F, z = CX, -24, 8                  # central layer of the wall z 7..9
+    o.carve(cx, F, z + 1, cx, F + 1, z + 1, "l3")      # niche towards the tomb (z 9)
+    o.carve(cx, F, z - 1, cx, F + 1, z - 1, "l3")      # opening towards the treasure (z 7)
     pieces.piston_door(o.set, [(cx, F, z), (cx, F + 1, z)], (1, 0), "west", "deepslate_tiles")
     o.puzzle += [(cx, F, z), (cx, F + 1, z)]
     o.set(cx + 3, F, z, "redstone_wall_torch[facing=west,lit=true]")
-    o.set(cx + 3, F + 1, z, "deepslate_tiles")                       # Y: carga fuerte desde la antorcha
-    o.set(cx + 4, F, z, "deepslate_tiles")                           # X: bloque de la antorcha
+    o.set(cx + 3, F + 1, z, "deepslate_tiles")                       # Y: strong charge from the torch
+    o.set(cx + 4, F, z, "deepslate_tiles")                           # X: torch block
     o.set(cx + 4, F, z + 1, "lever[face=wall,facing=south,powered=false]")
     o.mark("palanca", cx + 4, F, z + 1)
     o.door = dict(D=[(cx, F, z), (cx, F + 1, z)], heads=[(cx + 1, F, z), (cx + 1, F + 1, z)],
@@ -543,7 +543,7 @@ def secret_door(o):
 
 
 def guardian():
-    """El Rey Jaguar: zombi con corona y pectoral de oro y espada de hierro; sin refuerzos ni botín de equipo."""
+    """El Rey Jaguar: zombie with a gold crown and breastplate and an iron sword; no reinforcements or equipment loot."""
     n = pieces.guardian("zombie", "heraldia.piramide.guardian", "El Rey Jaguar", 40, armor=4,
                         equipment={"head": {"id": "minecraft:golden_helmet", "count": 1},
                                    "chest": {"id": "minecraft:golden_chestplate", "count": 1},
@@ -580,7 +580,7 @@ def plaza(o):
 
 
 def overgrowth(o):
-    """Enredaderas en la fachada norte y musgo en las terrazas."""
+    """Vines on the north facade and moss on the terraces."""
     for k in range(6):
         hf, b = 24 - 3 * k, 4 * k
         z = CZ - hf - 1
@@ -600,7 +600,7 @@ def overgrowth(o):
 
 
 def finish(o):
-    """Recubre la masa con su material: interior según la zona, exterior con ladrillo de toba."""
+    """Lines the mass with its material: interior according to the zone, exterior with tuff brick."""
     for (x, y, z), (st, nbt) in list(o.t.blocks.items()):
         b = st.replace("minecraft:", "")
         if b not in ("tuff", "stone") or (x, y, z) in o.ruin:

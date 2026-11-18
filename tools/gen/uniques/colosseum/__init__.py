@@ -1,4 +1,4 @@
-"""Coliseo en ruinas: anfiteatro elíptico con hipogeo (sabana). Diseño en docs/unicas/coliseo.md."""
+"""Ruined Colosseum: elliptical amphitheater with a hypogeum (savanna). Design in docs/unicas/colosseum.md."""
 from .._common.pieces import open_stairwells
 from .chest_loot import LOOT, LANG_ITEMS
 
@@ -11,18 +11,18 @@ STRUCTURE = dict(
     spacing=250, separation=190,
 )
 DISPLAY_NAME = {"es_es": "Coliseo en ruinas", "en_us": "Ruined Colosseum"}
-# Refuerzos del guardián en cada fase (jefes.py): gladiadores de la arena.
+# Guardian's reinforcements in each phase (bosses.py): arena gladiators.
 REINFORCEMENTS = [{"mob": "husk", "equipo": {"mainhand": "iron_sword"}},
              {"mob": "husk", "equipo": {"mainhand": "stone_sword", "offhand": "shield"}}]
 TROPHY = {"objeto": "shield", "rareza": "rare",
           "nombre": ("Escudo del Campeón de la Arena", "Shield of the Arena Champion"),
           "lore": [("Cien combates y ni una sola derrota.", "A hundred bouts and not a single defeat.")],
           "encantamientos": {"minecraft:unbreaking": 2},
-          # sin base_color: con él el escudo se llama «Escudo rojo» e ignora item_name; el fondo es la capa «base»
+          # without base_color: with it the shield is called "Red Shield" and ignores item_name; the background is the "base" layer
           "componentes": {"minecraft:banner_patterns": [
               {"pattern": "minecraft:base", "color": "red"}, {"pattern": "minecraft:triangles_bottom", "color": "yellow"}, {"pattern": "minecraft:circle", "color": "yellow"},
-              {"pattern": "minecraft:border", "color": "black"}]}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+              {"pattern": "minecraft:border", "color": "black"}]}}   # guardian's trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "lanista",
     "relato": [
         ("En la sabana se levanta un coliseo donde luchaba un campeón con cien combates y ni una sola "
@@ -39,7 +39,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("la sabana, donde un coliseo en ruinas aún oye el clamor de la arena",
               "the savanna, where a ruined colosseum still hears the roar of the arena"),
 }
-ADVANCEMENT = {"icono": "minecraft:shield"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:shield"}   # advancements.py
 
 LANG = {
     "es_es": {"heraldia.coliseo.campeon": "Campeón de la Arena"},

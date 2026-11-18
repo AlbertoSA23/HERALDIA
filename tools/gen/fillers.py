@@ -1,4 +1,4 @@
-"""Piezas de relleno junto a las calles (decoración grande temática) y piezas de aldeanos/gólems."""
+"""Filler pieces next to the streets (large themed decoration) and villager/golem pieces."""
 import math
 from core import Template, nsid, villager, golem, animal
 from build import *
@@ -40,7 +40,7 @@ def stone_like(th):
 
 
 def filler(th, rng, name, kind):
-    """Piezas pequeñas entre casas. Cada una es un conjunto completo y con sentido propio."""
+    """Small pieces between houses. Each one is a complete set that makes sense on its own."""
     t = Template(name)
     W = 7
     c = 3
@@ -263,7 +263,7 @@ def filler(th, rng, name, kind):
     return t
 
 
-# ------------------------------------------------------------------ aldeanos y gólems
+# ------------------------------------------------------------------ villagers and golems
 BED_COLOR = {"plains": "red", "taiga": "green", "snow": "light_blue", "desert": "orange", "savanna": "yellow",
              "jungle": "lime", "swamp": "brown"}
 
@@ -285,7 +285,7 @@ def villager_piece(vtype, name, depth=None, employed=True, bed=True):
 
 
 def rug_piece(vtype, name):
-    """Casa sin cama: en su lugar, una estera de dos alfombras para que el rincón no quede vacío."""
+    """House without a bed: in its place, a mat of two carpets so the corner is not left empty."""
     t = Template(name)
     col = BED_COLOR[vtype]
     t.jigsaw(0, 0, 0, "down_south", "heraldia:bottom", "heraldia:slot", "minecraft:empty",

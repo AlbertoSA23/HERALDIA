@@ -1,10 +1,10 @@
-"""Puesto de piglins renegados (heraldia:medianas/puesto_piglin/<estilo>, Nether): una empalizada de piedra negra de
-17 x 17 alrededor de un patio con una choza de techo de losas, desterrados de su bastión. Variante a: la choza con dos
-renegados de guardia (piglins brutos, persistentes y anclados) y el cofre del botín robado dentro; b: el corral de un
-hoglin, una hoguera de almas con su asador y el cofre junto al fuego.
+"""Renegade piglin outpost (heraldia:medianas/puesto_piglin/<estilo>, Nether): a 17 x 17 blackstone palisade around
+a courtyard with a slab-roofed hut, outcasts from their bastion. Variant a: the hut with two renegades on
+guard (brute piglins, persistent and anchored) and the stolen loot chest inside; b: a hoglin pen,
+a soul campfire with its spit and the chest next to the fire.
 
-Estilos: yermo (desiertos del Nether: piedra negra y ladrillo del Nether) y carmesí (bosque carmesí: tablones y tallos
-carmesí). Botín acorde: oro en pepitas, cuarzo, flechas, carne de cerdo; nada de netherita (dimensiones.PROHIBIDO)."""
+Styles: yermo (Nether wastes: blackstone and Nether brick) and carmesi (crimson forest: crimson planks and stems).
+Matching loot: gold nuggets, quartz, arrows, pork; no netherite (dimensions.FORBIDDEN)."""
 from core import Template, F, B
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -40,7 +40,7 @@ LOOT = {
 
 L = 17
 CX = 8
-H0, H1 = 5, 11          # choza de 7 x 7 (x y z de 5 a 11)
+H0, H1 = 5, 11          # 7 x 7 hut (x y z from 5 to 11)
 
 
 def _floor(p):
@@ -49,14 +49,14 @@ def _floor(p):
 
 
 def _enclosure(p, name):
-    """Patio, empalizada (muro de 2 de alto con postes cada 4) y portón al norte con dos braseros de almas."""
+    """Courtyard, palisade (2-high wall with posts every 4) and a gate to the north with two soul braziers."""
     t = Template(name)
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=7)
     for x in range(L):
         for z in range(L):
             if x in (0, L - 1) or z in (0, L - 1):
                 if z == 0 and CX - 1 <= x <= CX + 1:
-                    continue                                  # portón
+                    continue                                  # gate
                 post = x % 4 == 0 and z % 4 == 0
                 t.set(x, 1, z, p["poste"] if post else p["muro"])
                 t.set(x, 2, z, p["poste"] if post else p["muro"])
@@ -69,7 +69,7 @@ def _enclosure(p, name):
 
 
 def _hut(t, p):
-    """Choza de 7 x 7 con puerta al norte, ventanas de barrotes y techo de losas; un farol de almas dentro."""
+    """7 x 7 hut with a door to the north, bar windows and a slab roof; a soul lantern inside."""
     c.box(t, H0, 1, H0, H1, 4, H1, p["pared"], corner_block=p["poste"], floor=p["suelo"][0])
     t.fill(H0, 5, H0, H1, 5, H1, f"{p['losa']}[type=bottom,waterlogged=false]")
     for x in (H0 + 2, H1 - 2):
@@ -90,7 +90,7 @@ def renegade(rot):
 
 
 def hut(p, name):
-    """La choza con el botín robado y dos renegados de guardia en el patio."""
+    """The hut with the stolen loot and two renegades on guard in the courtyard."""
     t = _enclosure(p, name)
     _hut(t, p)
     c.place_chest(t, CX, 1, H1 - 1, "north", MID, "botin")
@@ -103,17 +103,17 @@ def hut(p, name):
 
 
 def pen(p, name):
-    """Corral de hoglins vacío (valla de ladrillo del Nether) con su renegado de guardia, hoguera de almas con el asador y
-    el cofre junto al fuego. Sin hoglin: saldría cría una de cada cinco veces (validate)."""
+    """Empty hoglin pen (Nether brick fence) with its renegade on guard, soul campfire with the spit and
+    the chest next to the fire. No hoglin: it would spawn as a baby one time in five (validate)."""
     t = _enclosure(p, name)
-    # corral al este: de x 10 a 14, z 9 a 14
+    # pen to the east: from x 10 to 14, z 9 to 14
     for x in range(10, 15):
         for z in range(9, 15):
             if x in (10, 14) or z in (9, 14):
                 t.set(x, 1, z, "nether_brick_fence")
-    t.set(12, 1, 12, "bone_block[axis=x]")                       # el corral, vacío: el hoglin se lo comieron
+    t.set(12, 1, 12, "bone_block[axis=x]")                       # the pen, empty: the hoglin was eaten
     t.entity(9, 1, 11, renegade(90.0))
-    # hoguera de almas con el asador (vasija) al oeste
+    # soul campfire with the spit (pot) to the west
     t.set(4, 1, 10, "soul_campfire[facing=north,lit=true,signal_fire=false,waterlogged=false]")
     c.place_chest(t, 2, 1, 10, "east", MID, "asador", kind="barrel")
     c.place_chest(t, 4, 1, 13, "north", MID, "botin")

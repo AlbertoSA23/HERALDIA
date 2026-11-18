@@ -1,13 +1,13 @@
-"""Laboratorio del micólogo: un antiguo jardín botánico de los campos de champiñones construido entre y dentro de tres
-champiñones gigantes (la casa del micólogo en el sombrero rojo grande, el dormitorio de los ayudantes en el pequeño y
-la biblioteca de esporas en el tallo del pardo, con el secadero en su sombrero), unidos por pasarelas; invernadero de
-cristal con cultivos raros, destilería de pociones y el corral de los champiñocas. Bajo el micelio, galerías húmedas y
-luminosas con los criaderos, el laboratorio y el cepario secreto, y abajo los experimentos fallidos, la sala de los
-reactivos y la cámara de la cepa madre (diseño en docs/unicas/laboratorio_micelio.md).
+"""Mycologist's laboratory: a former botanical garden in the mushroom fields built between and inside three
+giant mushrooms (the mycologist's house in the large red cap, the assistants' dormitory in the small one and
+the spore library in the stem of the brown one, with the drying room in its cap), joined by walkways; a glass
+greenhouse with rare crops, a potion distillery and the mooshroom pen. Under the mycelium, damp, luminous
+galleries with the nurseries, the laboratory and the secret strain vault, and below them the failed experiments, the reagent
+room and the mother strain chamber (design in docs/unicas/mycelium_lab.md).
 
-Dos piezas rígidas: el jardín (y = 0 es el suelo) y las galerías, unidas por un jigsaw vertical, que rellenan toda su
-caja (roca donde no hay salas) para que el ajuste del terreno no abra un cráter ni cavidades junto a sus muros. La
-auditoría propia (auditoria.py) es condición para generar.
+Two rigid pieces: the garden (y = 0 is the ground) and the galleries, joined by a vertical jigsaw, which fill their whole
+box (rock where there are no rooms) so that terrain adjustment does not open a crater or cavities next to their walls. The
+own audit (audit.py) is a condition for generating.
 """
 from .._common.pieces import open_stairwells
 from .._common.chest_loot import lang
@@ -19,16 +19,16 @@ STRUCTURE = dict(biomes=["minecraft:mushroom_fields"],
                  start_pool="unicas/laboratorio_micelio/inicio", size=2, max_distance=80,
                  terrain_adaptation="beard_thin", step="surface_structures", start_height={"absolute": 0},
                  project_to="WORLD_SURFACE_WG", spacing=250, separation=190,
-                 candidata_en_bioma=True)   # bioma raro: la candidata de cada casilla se busca en él (GridPlacement)
+                 candidata_en_bioma=True)   # rare biome: each cell's candidate is searched in it (GridPlacement)
 DISPLAY_NAME = {"es_es": "Laboratorio del micólogo", "en_us": "Mycologist's Laboratory"}
-# Refuerzos del guardián en cada fase (jefes.py): sus experimentos fallidos.
+# Guardian reinforcements in each phase (bosses.py): its failed experiments.
 REINFORCEMENTS = ["bogged", "witch"]
 TROPHY = {"objeto": "shears", "rareza": "rare",
           "nombre": ("Tijeras de Maese Ambrosio", "Master Ambrose's Shears"),
           "lore": [("Podaban las cepas de su jardín.", "They pruned the strains of his garden."),
                    ("Las esporas no se dejaron podar.", "The spores would not be pruned.")],
-          "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("En una isla de champiñones gigantes hallé el jardín de Maese Ambrosio, el micólogo. Vivía en el sombrero"
@@ -43,7 +43,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("una isla de champiñones gigantes, donde un sabio cultivaba esporas bajo un sombrero rojo",
               "an island of giant mushrooms, where a sage grew spores beneath a red cap"),
 }
-ADVANCEMENT = {"icono": "minecraft:red_mushroom"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:red_mushroom"}   # advancements.py
 MAP = {"decoration": "minecraft:red_x"}
 
 TEXTS = {"guardian": ("Maese Ambrosio, el Esporado", "Master Ambrose the Spore-Ridden")}
@@ -62,7 +62,7 @@ def _lang(construction):
 
 def build(reg):
     construction = Construction().build()
-    for k, v in _lang(construction).items():        # writer.py lee LANG después de build()
+    for k, v in _lang(construction).items():        # writer.py reads LANG after build()
         LANG[k].update(v)
     area, sub, errors, rep = audit.prepare(construction)
     REPORT.update(rep, construction=construction)

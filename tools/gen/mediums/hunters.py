@@ -1,8 +1,8 @@
-"""Puesto de cazadores (heraldia:medianas/cazadores/<estilo>): claro de 17 x 17 con una cabaña de troncos de 7 x 7
-(chimenea de piedra, literas y el arcón de las pieles), un tendedero de pieles, un tajo para la leña y una atalaya de caza
-sobre cuatro postes. Variante a: el cazador (aldeano quieto con tratos fijos: compra pieles de conejo, vende cuero,
-flechas y una pechera de cuero) y su lobo; b: el puesto vacío, con la fogata apagada y un ahumadero de carne. Sin
-monstruos."""
+"""Hunters' outpost (heraldia:medianas/cazadores/<estilo>): 17 x 17 clearing with a 7 x 7 log cabin
+(stone chimney, bunks and the furs chest), a fur drying rack, a chopping block for firewood and a hunting lookout
+on four posts. Variant a: the hunter (stationary villager with fixed trades: buys rabbit hides, sells leather,
+arrows and a leather chestplate) and his wolf; b: the empty outpost, with the campfire out and a meat smokehouse. No
+monsters."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot
@@ -34,7 +34,7 @@ LOOT = {
 }
 
 L = 17
-X0, Z0, X1, Z1 = 2, 5, 8, 11       # cabaña (7 x 7), puerta al norte
+X0, Z0, X1, Z1 = 2, 5, 8, 11       # cabin (7 x 7), door to the north
 DOOR_COL = 5
 
 
@@ -47,7 +47,7 @@ def offers():
 
 
 def _clearing(x, z):
-    """Claro redondo: fuera queda el terreno natural."""
+    """Round clearing: the natural terrain remains outside."""
     return (x - L // 2) ** 2 + (z - L // 2) ** 2 <= (L // 2 + 0.5) ** 2
 
 
@@ -60,12 +60,12 @@ def _outpost(p, name, lit):
     t = Template(name)
     m, tr = p["madera"], p["tronco"]
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=3, inside=_clearing)
-    for x in range(DOOR_COL - 1, DOOR_COL + 2):          # el claro es redondo: el borde norte del camino, explícito
+    for x in range(DOOR_COL - 1, DOOR_COL + 2):          # the clearing is round: the north edge of the path, explicit
         t.set(x, 0, 0, "minecraft:dirt_path")
         for y in (1, 2, 3):
             t.set(x, y, 0, "air")
     c.entrance(t, DOOR_COL, "minecraft:dirt_path")
-    # cabaña de troncos: troncos tumbados que se cruzan en las esquinas
+    # log cabin: horizontal logs that cross at the corners
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     t.fill(X0 + 1, 0, Z0 + 1, X1 - 1, 0, Z1 - 1, f"{m}_planks")
     for y in range(1, 4):
@@ -82,7 +82,7 @@ def _outpost(p, name, lit):
     c.door(t, DOOR_COL, 1, Z0, "south", f"{m}_door")
     c.window(t, X0, 2, 8)
     c.window(t, X1, 2, 7)
-    # chimenea de piedra en el muro este con el hogar dentro
+    # stone chimney in the east wall with the hearth inside
     t.set(X1, 1, 9, p["piedra"])
     t.set(X1 - 1, 1, 9, f"campfire[facing=west,lit={'true' if lit else 'false'},signal_fire=false,waterlogged=false]")
     for y in range(2, 4):
@@ -90,20 +90,20 @@ def _outpost(p, name, lit):
     t.set(X1, 2, 9, p["piedra"])
     t.set(X1, 3, 9, p["piedra"])
     t.fill(X1 - 1, 4, 9, X1 - 1, summit + 1, 9, p["piedra"])
-    # literas al oeste, arcón de las pieles y despensa
+    # bunks to the west, furs chest and pantry
     c.bed(t, X0 + 1, Z1 - 1, "west", p["cama"])
     c.bed(t, X0 + 1, Z1 - 3, "west", p["cama"])
     c.place_chest(t, X0 + 1, 1, Z0 + 1, "east", MID, "pieles")
     c.place_chest(t, X1 - 1, 1, Z1 - 1, "west", MID, "despensa", kind="barrel")
     t.set(X1 - 1, 1, Z0 + 1, "crafting_table")
     c.lantern(t, DOOR_COL, 3, 8)
-    # tendedero de pieles al este: dos postes con travesaño y cuero (alfombras marrones) en el suelo
+    # fur drying rack to the east: two posts with a crossbar and leather (brown carpets) on the ground
     for z in (6, 10):
         t.fill(14, 1, z, 14, 2, z, f"{m}_fence")
     t.fill(14, 2, 7, 14, 2, 9, f"{m}_fence")
     for z in range(7, 10):
         t.set(13, 1, z, f"{p['piel']}_carpet")
-    # tajo con el hacha clavada (un tronco y un leño apilado)
+    # chopping block with the axe stuck in (a log and a stacked log)
     t.set(13, 1, 12, f"stripped_{tr}[axis=y]")
     t.set(12, 1, 13, f"{tr}[axis=x]")
     t.set(13, 1, 13, f"{tr}[axis=x]")
@@ -111,8 +111,8 @@ def _outpost(p, name, lit):
 
 
 def _lookout(t, p, x0, z0):
-    """Atalaya de caza: plataforma de 3 x 3 en y = 4 sobre cuatro postes, con su escalera de mano (pegada a un poste al
-    sur) y un farol en cada esquina de la barandilla."""
+    """Hunting lookout: 3 x 3 platform at y = 4 on four posts, with its ladder (against a post to the
+    south) and a lantern at each corner of the railing."""
     m, tr = p["madera"], p["tronco"]
     for x in (x0, x0 + 2):
         for z in (z0, z0 + 2):
@@ -135,7 +135,7 @@ def with_hunter(p, name):
 
 
 def smokehouse(p, name):
-    """Sin nadie: la fogata apagada y, fuera, un ahumadero de carne (fogata con un tejadillo) junto a la atalaya."""
+    """With nobody there: the campfire out and, outside, a meat smokehouse (campfire with a small roof) next to the lookout."""
     t = _outpost(p, name, lit=False)
     _lookout(t, p, 10, 1)
     m = p["madera"]

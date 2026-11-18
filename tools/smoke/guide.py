@@ -1,15 +1,15 @@
-"""Guía del Heraldo en un servidor dedicado 26.3 real, con jugadores simulados (Carpet, como trofeos.py).
+"""Heralds' guide on a real 26.3 dedicated server, with simulated players (Carpet, like trophies.py).
 
-Uso: python3 tools/smoke/guide.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-Lee del .jar heraldia/guia.json, las únicas y los textos en_us, y comprueba:
-  - al entrar por primera vez, el jugador recibe un solo libro (written_book con la marca heraldia_guia_libro = versión
-    del mod), con el título, el autor, sus páginas traducibles con el respaldo en inglés (el idioma del jugador simulado),
-    tantas páginas como dice guia.json para 0 únicas descubiertas, y la pista de cada única;
-  - al salir y volver a entrar (y tras reiniciar el servidor) no se le da otra: «ya entregada» se guarda en el jugador;
-  - /heraldia guide da una copia al día: con una única descubierta (/advancement grant) sale su nombre en el diario y no
-    su pista; pedida otra vez, cambia la del inventario en vez de sumar otra;
-  - con guia.entregar_al_entrar = false, un jugador nuevo no la recibe al entrar, pero sí al pedirla.
-Mide lo que tarda en armarse y entregarse (línea «Guía del Heraldo ... entregada a ... en N µs» del log).
+Usage: python3 tools/smoke/guide.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+Reads from the .jar heraldia/guide.json, the unique structures and the en_us texts, and checks:
+  - on first join, the player receives a single book (written_book with the heraldia_guia_libro mark = mod
+    version), with the title, the author, its translatable pages with the English fallback (the simulated player's language),
+    as many pages as guide.json says for 0 discovered unique structures, and the hint for each unique structure;
+  - on leaving and rejoining (and after restarting the server) it is not given another: "already delivered" is stored on the player;
+  - /heraldia guide gives an up-to-date copy: with one unique structure discovered (/advancement grant) its name appears in the journal and not
+    its hint; when requested again, it replaces the one in the inventory instead of adding another;
+  - with guide.entregar_al_entrar = false, a new player does not receive it on joining, but does when requesting it.
+Measures how long it takes to assemble and deliver (the "Guía del Heraldo ... entregada a ... en N µs" log line).
 """
 import argparse, json, math, os, queue, re, shutil, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -52,14 +52,14 @@ class Server:
     def spawn(self, name):
         self.ctx.run(f"player {name} spawn at {X} {Y} {Z}", r"joined the game|Player .* spawn|Unknown|Incorrect")
         if not self.ctx.until(f"execute if entity @a[name={name}]"):
-            raise SystemExit(f"no aparece el jugador simulado {name} (Carpet)")
+            raise SystemExit(f"simulated player {name} (Carpet) does not appear")
 
     def leave(self, name):
         self.ctx.run(f"player {name} kill", r"left the game|Unknown|Incorrect")
         self.ctx.until(f"execute if entity @a[name={name}]", want=False)
 
     def books(self, name, version=None):
-        """Cuántas guías lleva (con la marca de `version`, o cualquier libro escrito si es None)."""
+        """How many guides it carries (with the `version` mark, or any written book if None)."""
         pred = "minecraft:written_book" + (f'[minecraft:custom_data={{heraldia_guia_libro:"{version}"}}]' if version else "")
         m = self.ctx.run(f"execute if items entity {name} container.* {pred}", r"Test passed\. Count: (\d+)|Test failed")
         return int(m.group(1) or 0)
@@ -70,7 +70,7 @@ class Server:
 
 
 def check_book(data, lang, dataset, uniques, discovered, fails, when):
-    """Comprueba el libro del inventario (SNBT de data get): título, autor, páginas y diario."""
+    """Checks the inventory book (SNBT from data get): title, author, pages and journal."""
     n = len(uniques) - len(discovered)
     pages = len(dataset["paginas"]) + 1 + math.ceil(len(discovered) / dataset["nombres_por_pagina"]) + \
         math.ceil(n / dataset["pistas_por_pagina"])
@@ -80,15 +80,15 @@ def check_book(data, lang, dataset, uniques, discovered, fails, when):
     want += [f'"heraldia.unicas.{sid}.nombre"' for sid in discovered]
     missing = [w for w in want if w not in data]
     if missing:
-        fails.append(f"{when}: al libro le falta {missing[:5]}: {data[:400]}")
+        fails.append(f"{when}: the book is missing {missing[:5]}: {data[:400]}")
     for sid in discovered:
         if f'"heraldia.historia.{sid}.pista"' in data:
-            fails.append(f"{when}: el diario da la pista de {sid}, que ya está descubierta")
+            fails.append(f"{when}: the journal gives the hint for {sid}, which is already discovered")
     titles = {k: len(re.findall(rf'"heraldia\.guia\.{k}"', data)) for k in
               ("pistas", "descubiertas", "resumen.titulo")}
     got = len(dataset["paginas"]) + titles["resumen.titulo"] + titles["descubiertas"] + titles["pistas"]
     if got != pages:
-        fails.append(f"{when}: {got} páginas ({titles}), deberían ser {pages}")
+        fails.append(f"{when}: {got} pages ({titles}), should be {pages}")
     return got
 
 
@@ -114,36 +114,36 @@ def main():
             time.sleep(s.PLACE_RETRY_S)
         for rule in ("spawn_mobs", "advance_time"):
             ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
-        # 1) primera vez: un solo libro, con todo el diario por descubrir
+        # 1) first time: a single book, with the whole journal still to discover
         srv.spawn(PLAYER)
         ctx.run(f"gamemode survival {PLAYER}", r"Set .* game mode|game mode")
         if not ctx.until(f"execute if items entity {PLAYER} container.* minecraft:written_book"):
-            fails.append("al entrar por primera vez no recibe la guía")
+            fails.append("on first join it does not receive the guide")
         elif srv.books(PLAYER, version) != 1:
-            fails.append(f"al entrar recibe {srv.books(PLAYER)} libros, no 1 con la marca de la versión {version}")
+            fails.append(f"on joining it receives {srv.books(PLAYER)} books, not 1 with the version mark {version}")
         else:
             pages = check_book(srv.inventory(PLAYER), lang, dataset, uniques, [], fails, "al entrar")
-            print(f"guía al entrar: {pages} páginas, {len(uniques)} únicas por descubrir")
-        # 2) volver a entrar: no se da otra
+            print(f"guide on joining: {pages} pages, {len(uniques)} unique structures to discover")
+        # 2) rejoin: no other is given
         ctx.run(f"clear {PLAYER} minecraft:written_book", r"Removed|No items")
         srv.leave(PLAYER)
         before = len(DELIVERY.findall("".join(srv.seen)))
         srv.spawn(PLAYER)
         if srv.books(PLAYER) or len(DELIVERY.findall("".join(srv.seen))) != before:
-            fails.append("al volver a entrar recibe otra guía")
-        # 3) /heraldia guide con una única descubierta; pedida dos veces, sigue habiendo una
+            fails.append("on rejoining it receives another guide")
+        # 3) /heraldia guide with one unique structure discovered; requested twice, there is still one
         ctx.run(f"advancement grant {PLAYER} only heraldia:unicas/{DISCOVERED}/descubrir", r"Granted|granted|Couldn't")
         for _ in range(2):
             ctx.run(f"execute as {PLAYER} run heraldia guide", r"entregada a \w+ en \d+ µs|Unknown|Incorrect")
         if srv.books(PLAYER, version) != 1:
-            fails.append(f"tras pedirla dos veces lleva {srv.books(PLAYER)} guías, no 1")
+            fails.append(f"after requesting it twice it carries {srv.books(PLAYER)} guides, not 1")
         else:
             check_book(srv.inventory(PLAYER), lang, dataset, uniques, [DISCOVERED], fails, "pedida")
         srv.leave(PLAYER)
     finally:
         srv.stop()
     timings += [int(m.group(4)) for m in DELIVERY.finditer("".join(srv.seen))]
-    # 4) tras reiniciar: lo entregado sigue guardado; con la opción desactivada, un jugador nuevo no la recibe al entrar
+    # 4) after restarting: what was delivered is still saved; with the option disabled, a new player does not receive it on joining
     cfg_path = os.path.join(a.work, "config", "heraldia.json")
     with open(cfg_path, encoding="utf-8") as f:
         cfg = json.load(f)
@@ -155,7 +155,7 @@ def main():
         ctx.run(f"forceload add {X} {Z}", r"Marked|force|already")
         srv.spawn(PLAYER)
         if srv.books(PLAYER, version) != 1 or DELIVERY.search("".join(srv.seen)):
-            fails.append(f"tras reiniciar el servidor recibe otra guía al entrar (no se guardó que ya la tenía): "
+            fails.append(f"after restarting the server it receives another guide on joining (it was not saved that it already had it): "
                          f"{srv.books(PLAYER)} libros")
         srv.leave(PLAYER)
     finally:
@@ -170,10 +170,10 @@ def main():
         ctx.run(f"forceload add {X} {Z}", r"Marked|force|already")
         srv.spawn(NEW_ITEM)
         if srv.books(NEW_ITEM):
-            fails.append("con guia.entregar_al_entrar = false, un jugador nuevo la recibe al entrar")
+            fails.append("with guia.entregar_al_entrar = false, a new player receives it on joining")
         ctx.run(f"execute as {NEW_ITEM} run heraldia guide", r"entregada a \w+ en \d+ µs|Unknown|Incorrect")
         if srv.books(NEW_ITEM, version) != 1:
-            fails.append("con la opción desactivada, /heraldia guide no da la guía")
+            fails.append("with the option disabled, /heraldia guide does not give the guide")
         srv.leave(NEW_ITEM)
     finally:
         srv.stop()
@@ -184,11 +184,11 @@ def main():
     for bad in ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse",
                 "Found validation problems"):
         if bad in text:
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     if timings:
-        print(f"guía armada y entregada {len(timings)} veces: {min(timings)}-{max(timings)} µs (mediana "
+        print(f"guide assembled and delivered {len(timings)} times: {min(timings)}-{max(timings)} µs (median "
               f"{sorted(timings)[len(timings) // 2]} µs)")
-    print("GUÍA:", "OK" if not fails else fails)
+    print("GUIDE:", "OK" if not fails else fails)
     return 1 if fails else 0
 
 

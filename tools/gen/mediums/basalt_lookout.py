@@ -1,10 +1,10 @@
-"""Atalaya de basalto (heraldia:medianas/atalaya_basalto/<estilo>, Nether): una torre de 5 x 5 de basalto pulido en un
-patio de 15 x 15, con escalera de mano hasta una terraza almenada y faroles de almas. Variante a: la atalaya entera, de
-cuatro plantas, con un arquero esqueleto en la terraza y el cofre del vigía arriba; b: la atalaya y el arranque de un
-puente de basalto (un tramo roto que vuela hacia el sur), con el cofre al pie y otro en el puente.
+"""Basalt lookout (heraldia:medianas/atalaya_basalto/<estilo>, Nether): a 5 x 5 polished basalt tower in a
+15 x 15 courtyard, with a ladder up to a battlemented terrace and soul lanterns. Variant a: the whole lookout, of
+four floors, with a skeleton archer on the terrace and the lookout's chest at the top; b: the lookout and the start of a
+basalt bridge (a broken stretch that juts out to the south), with the chest at the foot and another on the bridge.
 
-Estilos: deltas (deltas de basalto) y almas (valle de arena de almas: piedra negra, huesos y fuego de almas). Botín
-acorde: flechas, huesos, cuarzo, antorchas de almas, oro; nada de netherita."""
+Styles: deltas (basalt deltas) and almas (soul sand valley: blackstone, bones and soul fire). Matching
+loot: arrows, bones, quartz, soul torches, gold; no netherite."""
 from core import Template, F
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -29,7 +29,7 @@ LOOT = {
 }
 
 L = 15
-X0, Z0, X1, Z1 = 5, 5, 9, 9       # muros de la torre (5 x 5)
+X0, Z0, X1, Z1 = 5, 5, 9, 9       # tower walls (5 x 5)
 CX = 7
 
 
@@ -39,12 +39,12 @@ def _floor(p):
 
 
 def _tower(t, p, floors):
-    """Torre de `plantas` plantas de 4 de alto (suelos en y = 0, 4, 8...), escalera de mano pegada al muro sur y
-    terraza almenada encima. Devuelve la altura de la terraza."""
+    """Tower of `floors` floors 4 high (floors at y = 0, 4, 8...), ladder against the south wall and a
+    battlemented terrace on top. Returns the terrace height."""
     roof = 4 * floors
     t.fill(X0, 0, Z0, X1, 0, Z1, p["zocalo"])
     c.box(t, X0, 1, Z0, X1, roof, Z1, p["muro"], corner_block=p["esquina"])
-    for k in range(1, floors):                      # forjados de las plantas, con el hueco de la escalera
+    for k in range(1, floors):                      # floors of the levels, with the stairwell opening
         t.fill(X0 + 1, 4 * k, Z0 + 1, X1 - 1, 4 * k, Z1 - 1, p["forjado"])
     t.fill(X0, roof, Z0, X1, roof, Z1, p["forjado"])
     c.ladder(t, CX, Z1 - 1, 1, roof, "north")
@@ -54,13 +54,13 @@ def _tower(t, p, floors):
                 t.set(x, roof + 1, z, p["almena"])
     for x, z in ((X0, Z0), (X1, Z0), (X0, Z1), (X1, Z1)):
         t.set(x, roof + 2, z, "soul_lantern[hanging=false,waterlogged=false]")
-    for k in range(floors):                        # saeteras y faroles por planta
+    for k in range(floors):                        # arrow slits and lanterns per floor
         y = 4 * k + 2
         for x, z in ((CX, Z0), (X0, CX), (X1, CX)):
             if (x, z) != (CX, Z0) or k:
                 t.set(x, y, z, "iron_bars")
         c.lantern(t, CX - 1, 4 * k + 3, CX)
-    # puerta al norte
+    # door to the north
     t.set(CX, 1, Z0, "air")
     t.set(CX, 2, Z0, "air")
     c.door(t, CX, 1, Z0, "north", p["puerta"])
@@ -82,19 +82,19 @@ def whole(p, name):
 
 
 def bridge(p, name):
-    """Atalaya de tres plantas y el arranque del puente: un tablero de 3 de ancho que sale de la terraza hacia el sur
-    sobre pilas y se corta en seco (con su barandilla), y una escalera de losa desde el patio."""
+    """Three-floor lookout and the start of the bridge: a 3-wide deck that leaves the terrace to the south
+    on piers and stops abruptly (with its railing), and a slab staircase from the courtyard."""
     t = Template(name)
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=4)
     c.entrance(t, CX, p["suelo"][0])
     roof = _tower(t, p, 3)
-    # tablero del puente a la altura de la terraza, de z = Z1 + 1 a 13, con barandilla de muro
+    # bridge deck at terrace height, from z = Z1 + 1 to 13, with a wall railing
     for z in range(Z1 + 1, L - 1):
         for x in range(CX - 1, CX + 2):
             t.set(x, roof, z, p["forjado"])
         t.set(CX - 2, roof + 1, z, p["almena"])
         t.set(CX + 2, roof + 1, z, p["almena"])
-    t.set(CX, roof + 1, Z1, "air")                   # paso de la terraza al puente
+    t.set(CX, roof + 1, Z1, "air")                   # passage from the terrace to the bridge
     for z in (11, 13):                                 # pilas
         for y in range(1, roof):
             t.set(CX, y, z, p["esquina"])

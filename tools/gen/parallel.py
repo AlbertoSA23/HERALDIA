@@ -1,14 +1,14 @@
-"""Reparto del trabajo del generador entre procesos (fork), con resultados en el mismo orden que en serie.
+"""Distribution of the generator's work among processes (fork), with results in the same order as in serial.
 
-Los hijos heredan la memoria del padre al crearse (fork): las plantillas no se copian ni se serializan para ir, solo
-vuelven los resultados. Sin fork (Windows, macOS con spawn) o con HERALDIA_PROCESOS=1, todo va en serie, igual.
-La salida no depende del número de procesos: tools/gen/tests/test_parallel.py y la comparación de las generaciones
-descomprimidas (docs/DEVELOPMENT.md) lo comprueban.
+The children inherit the parent's memory when created (fork): the templates are neither copied nor serialised on the way there, only the
+results come back. Without fork (Windows, macOS with spawn) or with HERALDIA_PROCESOS=1, everything runs in serial, the same.
+The output does not depend on the number of processes: tools/gen/tests/test_parallel.py and the comparison of the
+decompressed generations (docs/DEVELOPMENT.md) verify it.
 """
 import multiprocessing as mp
 import os
 
-_TASK = None      # (función, elementos) que ven los hijos tras el fork
+_TASK = None      # (function, items) that the children see after the fork
 
 
 def _nbt_list(subkind, elements):
@@ -17,8 +17,8 @@ def _nbt_list(subkind, elements):
 
 
 def _serializable_nbt():
-    """Las listas de nbtlib son clases creadas al vuelo (List[Int], List[Float]...) que pickle no sabe rehacer: se
-    devuelven como (subtipo, elementos). Hace falta para traer plantillas de los hijos."""
+    """nbtlib lists are classes created on the fly (List[Int], List[Float]...) that pickle cannot rebuild: they are
+    returned as (subtype, items). Needed to bring templates back from the children."""
     from nbtlib.tag import List
     List.__reduce__ = lambda self: (_nbt_list, (self.subtype, list(self)))
 
@@ -27,7 +27,7 @@ _serializable_nbt()
 
 
 def processes():
-    """Procesos a usar: HERALDIA_PROCESOS o los núcleos disponibles."""
+    """Processes to use: HERALDIA_PROCESOS or the available cores."""
     n = os.environ.get("HERALDIA_PROCESOS")
     if n:
         return max(1, int(n))
@@ -43,8 +43,8 @@ def _one(i):
 
 
 def map_obj(fn, items, chunksize=4, new_item=False):
-    """[fn(x) for x in items], repartido entre procesos. fn y los elementos no tienen que poder serializarse (llegan
-    por fork); el resultado de cada fn sí. nuevo=True: cada elemento en un proceso recién creado (estado del padre)."""
+    """[fn(x) for x in items], distributed among processes. fn and the items do not need to be serialisable (they arrive
+    by fork); the result of each fn does. nuevo=True: each item in a freshly created process (parent state)."""
     global _TASK
     items = list(items)
     n = min(processes(), len(items))
@@ -62,15 +62,15 @@ def map_obj(fn, items, chunksize=4, new_item=False):
             pool.terminate()
             raise
         finally:
-            pool.join()       # sin hilos del reparto vivos: el siguiente fork no hereda ninguno a medias
+            pool.join()       # no distribution threads alive: the next fork does not inherit any half-finished
         return out
     finally:
         _TASK = None
 
 
 def _children(fn, items, n):
-    """Un fork por elemento desde el hilo principal (sin hilos auxiliares, a diferencia de Pool con
-    maxtasksperchild), como mucho n a la vez; cada hijo deja su resultado en un fichero temporal."""
+    """One fork per item from the main thread (no auxiliary threads, unlike Pool with
+    maxtasksperchild), at most n at a time; each child leaves its result in a temporary file."""
     import pickle, shutil, tempfile, traceback
     tmp = tempfile.mkdtemp(prefix="heraldia-gen-")
     alive, out, err = {}, [None] * len(items), []
@@ -108,7 +108,7 @@ def _children(fn, items, n):
             else:
                 err.append(r)
         if err:
-            raise RuntimeError("falló una parte del generador en paralelo:\n" + err[0])
+            raise RuntimeError("a part of the generator failed in parallel:\n" + err[0])
         return out
     finally:
         for pid in alive:
@@ -120,9 +120,9 @@ def _children(fn, items, n):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-# ------------------------------------------------------------------ estado de los módulos (build_all en paralelo)
-# Un build() puede dejar datos en su módulo (STRUCTURE["json"] del galeón, LANG, informes, cachés con lru_cache) que el
-# padre lee después al escribir. Cuando el build va en un hijo, esos cambios se devuelven y se aplican en el padre.
+# ------------------------------------------------------------------ module state (build_all in parallel)
+# A build() may leave data in its module (STRUCTURE["json"] of the galleon, LANG, reports, lru_cache caches) that the
+# parent reads later when writing. When the build runs in a child, those changes are returned and applied in the parent.
 _OWN = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -142,7 +142,7 @@ def _is_data(v):
 
 
 def snapshot():
-    """{(módulo, nombre): bytes} de los datos de nivel de módulo del generador (lo que se pueda serializar)."""
+    """{(module, name): bytes} of the generator's module-level data (whatever can be serialised)."""
     import pickle
     out = {}
     for mn, m in _modules():
@@ -157,7 +157,7 @@ def snapshot():
 
 
 def _caches():
-    """Funciones sin argumentos con lru_cache ya calculadas: {(módulo, nombre): función}."""
+    """Functions without arguments with an lru_cache already computed: {(module, name): function}."""
     out = {}
     for mn, m in _modules():
         for k, v in vars(m).items():
@@ -172,11 +172,11 @@ def _caches():
 
 
 def changes(before, caches_before):
-    """Lo que ha cambiado desde `antes` (foto) y las cachés calculadas desde entonces: {(módulo, nombre): valor}."""
+    """What has changed since `before` (snapshot) and the caches computed since then: {(module, name): value}."""
     import pickle, sys
     out = {}
-    # Solo los módulos que ya estaban importados en el padre: uno que el hijo importe durante el build no lo ve nadie
-    # del padre hasta que lo importe él mismo (y entonces lo calcula igual, todo es determinista).
+    # Only the modules that were already imported in the parent: one that the child imports during the build is seen by no one
+    # in the parent until it imports it itself (and then it computes it the same, everything is deterministic).
     modules = {mn for mn, _ in before}
     for key, b in snapshot().items():
         if key[0] in modules and before.get(key) != b:
@@ -188,8 +188,8 @@ def changes(before, caches_before):
 
 
 def apply(changed):
-    """Aplica en este proceso los cambios devueltos por un hijo. Los dict, list y set se cambian en su sitio (otros
-    módulos pueden tener una referencia al mismo objeto); las cachés vuelven a dar el valor calculado en el hijo."""
+    """Applies in this process the changes returned by a child. dicts, lists and sets are changed in place (other
+    modules may hold a reference to the same object); caches return the value computed in the child again."""
     import functools, sys
     for (mn, k), (kind, v) in changed.items():
         m = sys.modules[mn]
@@ -211,9 +211,9 @@ def apply(changed):
 
 
 def map_with_state(fn, items, priority=None):
-    """Como mapa(fn, items), pero fn puede cambiar datos de los módulos del generador: en los hijos se miden esos
-    cambios y se aplican en el padre en el orden de `items` (como en serie). `prioridad(x)`: los de valor más alto se
-    reparten antes (los largos primero acortan el total); el resultado sigue en el orden de `items`."""
+    """Like mapa(fn, items), but fn may change data of the generator's modules: in the children those
+    changes are measured and applied in the parent in the order of `items` (as in serial). `prioridad(x)`: those with the highest value are
+    distributed first (the long ones first shorten the total); the result stays in the order of `items`."""
     items = list(items)
     if min(processes(), len(items)) <= 1 or "fork" not in mp.get_all_start_methods():
         return [fn(x) for x in items]
@@ -229,7 +229,7 @@ def map_with_state(fn, items, priority=None):
         t1 = time.monotonic()
         c = changes(base, caches)
         return r, c, (t - t0, t1 - t, time.monotonic() - t1)
-    done_items = dict(zip(order, map_obj(task, order, new_item=True)))    # cada tarea en un hijo nuevo: solo trae lo suyo
+    done_items = dict(zip(order, map_obj(task, order, new_item=True)))    # each task in a new child: it only brings back its own
     who = {}
     for i in range(len(items)):
         for key in done_items[i][1]:

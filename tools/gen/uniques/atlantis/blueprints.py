@@ -1,4 +1,4 @@
-"""Planos de planta por nivel (PNG): una celda = un píxel ampliado. Uso: python3 -m unicas.atlantida.planos <carpeta>."""
+"""Floor plans per level (PNG): one cell = one enlarged pixel. Use: python3 -m uniques.atlantis.planos <folder>."""
 import os, sys
 from PIL import Image
 from . import urban_layout as U
@@ -38,7 +38,7 @@ def blueprint(m, y, route, box=None, scale=2):
 
 
 def view(m, site_name, route, scale=3, y_min=None):
-    """Render isométrico de lo construido en la caja de un sitio (sin agua ni aire)."""
+    """Isometric render of what is built in a site's box (without water or air)."""
     import render
     from core import Template
     _, x1, y1, z1, x2, y2, z2, _ = next(s for s in m.sites if s[0] == site_name)

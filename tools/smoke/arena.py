@@ -1,26 +1,26 @@
-"""Arena de oleadas (T31, Java: arena/) en un servidor dedicado 26.3 real, con un jugador simulado (Carpet).
+"""Wave arena (T31, Java: arena/) on a real 26.3 dedicated server, with a simulated player (Carpet).
 
-Uso: python3 tools/smoke/arena.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-arena"
-Primer arranque (mundo nuevo, con arena.generar_en_mundos_nuevos):
-  1. la arena se genera sola a 200-300 bloques del spawn; /heraldia arena remove (con confirmación) la quita; confirmar
-     sin propuesta falla; /heraldia arena place propone el sitio y «place confirm» la coloca (la campana, la
-     puerta abierta y el cristal, donde dice arena.json); otra vez «place» dice que ya hay una;
-  2. protección: el jugador simulado (creativo, sin ser operador) no rompe un bloque ni coloca piedra; como operador sí
-     rompe; una TNT dentro no rompe nada (y fuera sí); un pistón no empuja su muro (y otro fuera sí); un dispensador
-     pegado a la arena no vacía su cubo de lava (lo suelta como objeto) y otro lejos sí;
-  3. partida: el jugador (supervivencia, resistencia 255) toca la campana (T41: le ofrece los modos y se elige el
-     cooperativo con /heraldia arena start coop en su nombre): cuenta atrás, puerta cerrada, oleada 1 con 4
-     enemigos sin modificador de oleada y oleada 2 con 6 y +10 % de vida (heraldia:arena_vida 0,1); los mata
-     (/damage ... by el jugador): no sueltan objetos y dan el 15 % de la experiencia vanilla (log de cada oleada);
-     en la 5, el mini-jefe (heraldia_guardian) pasa de fase y sus refuerzos entran en la oleada; al superarla, récord
-     en el marcador, recompensa y logro heraldia:arena/oleada_5;
-  4. muerte en el ruedo (daño en la pausa): no suelta objetos ni experiencia, sus datos guardados conservan los
-     diamantes y los niveles (Carpet desconecta al jugador simulado al morir: la reaparición vanilla, COPY_FROM y el
-     teletransporte a la entrada no se pueden probar aquí) y la partida acaba (sin mobs, puerta abierta);
-  Lo que el servidor escribe en la consola sale en inglés (el servidor dedicado carga el en_us del mod).
-  5. otra partida (/heraldia arena start) con mobs vivos y la puerta cerrada; se guarda y se mata el proceso (como un
-     cierre en seco).
-Segundo arranque (el mismo mundo): los mobs de la arena se quitan al cargarse, la puerta está abierta y no hay partida.
+Usage: python3 tools/smoke/arena.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-arena"
+First start (new world, with arena.generar_en_mundos_nuevos):
+  1. the arena generates by itself 200-300 blocks from spawn; /heraldia arena remove (with confirmation) removes it; confirming
+     without a proposal fails; /heraldia arena place proposes the site and "place confirm" places it (the bell, the open
+     door and the glass, where arena.json says); "place" again says there is already one;
+  2. protection: the simulated player (creative, not an operator) cannot break a block or place stone; as an operator it
+     can break; TNT inside breaks nothing (and outside it does); a piston does not push its wall (and another outside does); a dispenser
+     next to the arena does not empty its lava bucket (it drops it as an item) and another far away does;
+  3. game: the player (survival, resistance 255) rings the bell (T41: it offers the modes and the
+     cooperative one is chosen with /heraldia arena start coop on its behalf): countdown, door closed, wave 1 with 4
+     enemies without a wave modifier and wave 2 with 6 and +10 % health (heraldia:arena_vida 0.1); it kills them
+     (/damage ... by the player): they drop no items and give 15 % of the vanilla experience (log of each wave);
+     in wave 5, the mini-boss (heraldia_guardian) changes phase and its reinforcements join the wave; on clearing it, record
+     on the scoreboard, reward and advancement heraldia:arena/oleada_5;
+  4. death in the ring (damage during the pause): it drops no items or experience, its saved data keeps the
+     diamonds and the levels (Carpet disconnects the simulated player on death: the vanilla respawn, COPY_FROM and the
+     teleport to the entrance cannot be tested here) and the game ends (no mobs, door open);
+  What the server writes to the console is in English (the dedicated server loads the mod's en_us).
+  5. another game (/heraldia arena start) with live mobs and the door closed; it saves and the process is killed (like a
+     hard shutdown).
+Second start (same world): the arena's mobs are removed on load, the door is open and there is no game.
 """
 import argparse, json, math, os, re, shutil, sys, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -53,11 +53,11 @@ class Test:
     def check(self, ok, msg):
         if not ok:
             self.fails.append(msg)
-            print("FALLA:", msg)
+            print("FAIL:", msg)
         return ok
 
     def wait_log(self, pattern, timeout=120):
-        """La primera coincidencia de `patron` en el log (lee lo que llega con órdenes baratas), o None."""
+        """The first match of `pattern` in the log (reads what arrives using cheap commands), or None."""
         end = time.monotonic() + timeout
         while True:
             m = re.search(pattern, self.ctx.log())
@@ -72,7 +72,7 @@ class Test:
         return len(re.findall(pattern, self.ctx.log()))
 
     def wait_times(self, pattern, n, timeout=120):
-        """¿Aparece `patron` al menos n veces en el log antes de `timeout` segundos?"""
+        """Does `pattern` appear at least n times in the log before `timeout` seconds?"""
         end = time.monotonic() + timeout
         while self.times(pattern) < n:
             if time.monotonic() > end:
@@ -101,7 +101,7 @@ def main():
     srv = Server(a.work, launcher)
     try:
         box = first_start(Test(srv.ctx, fails), pl)
-        # 5. una partida a medias: se guarda y se mata el proceso
+        # 5. a game in progress: it saves and the process is killed
         if box:
             half_done(Test(srv.ctx, fails), pl, box)
         srv.proc.kill()
@@ -118,7 +118,7 @@ def main():
             texts.append(srv.ctx.log())
     for bad in ("Registry loading errors", "Failed to load datapacks", "at io.github.albertosa23", "arena: mob ", "falta la plantilla"):
         if any(bad in t for t in texts):
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     print("ARENA:", "OK" if not fails else fails)
     return 1 if fails else 0
 
@@ -130,7 +130,7 @@ def rel(box, pl, key):
 
 def first_start(p, pl):
     ctx = p.ctx
-    # 1. generada sola en un mundo nuevo, a 200-300 bloques del spawn
+    # 1. generated by itself in a new world, 200-300 blocks from spawn
     m = p.wait_log(r"arena: sitio propuesto en (-?\d+) (-?\d+) (-?\d+) \(a (\d+) bloques del spawn")
     if not p.check(m, "mundo nuevo: no se busca sitio para la arena"):
         return None
@@ -142,12 +142,12 @@ def first_start(p, pl):
     for rule in ("spawn_mobs", "advance_time"):
         ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
     ctx.run("difficulty normal", r"difficulty|Difficulty")
-    # quitar, con confirmación
+    # remove, with confirmation
     ctx.run("heraldia arena remove", r"Se quitará la arena|will be removed")
     ctx.run("heraldia arena remove confirm", r"arena: quitada de|arena: obra terminada")
     p.check(p.wait_log(r"arena: quitada de"), "no se quita la arena")
     ctx.run("heraldia arena place confirm", r"Primero pide un sitio|First ask for a site")
-    # place: propuesta y confirmación
+    # place: proposal and confirmation
     m = ctx.run("heraldia arena place", r"arena: sitio propuesto en (-?\d+) (-?\d+) (-?\d+) \(a (\d+) bloques")
     p.check(200 <= int(m.group(4)) <= 300, f"propuesta a {m.group(4)} bloques del spawn")
     ctx.run("heraldia arena place confirm", r"Colocando la arena en|Building the arena at")
@@ -168,10 +168,10 @@ def first_start(p, pl):
     p.check(ctx.block((cx, miny + 11, cz), "minecraft:barrier"), "sin techo de barreras sobre el ruedo")
     ctx.run("heraldia arena", r"Arena de oleadas en|Wave arena at")
 
-    # 2. protección
+    # 2. protection
     ctx.run(f"player {P} spawn at {reap[0] + 0.5} {reap[1]} {reap[2] + 0.5}", r"joined the game|Player .* spawn|Unknown|Incorrect")
     if not ctx.until(f"execute if entity @a[name={P}]"):
-        raise SystemExit(f"no aparece el jugador simulado {P} (Carpet)")
+        raise SystemExit(f"simulated player {P} does not appear (Carpet)")
     ctx.run(f"gamemode survival {P}", r"Set .* game mode|game mode")
     ctx.run(f"gamemode creative {P}", r"Set .* game mode|game mode")
     floor = (reap[0], reap[1] - 1, reap[2] + 1)
@@ -191,7 +191,7 @@ def first_start(p, pl):
     p.check(ctx.block(floor, "minecraft:air"), "un operador no puede romper un bloque de la arena")
     ctx.run(f"deop {P}", r"no longer|Nothing changed|not an operator")
     ctx.run(f"setblock {' '.join(map(str, floor))} {state}", r"Changed the block|Could not set")
-    # explosión dentro (en el paseo, al norte) y fuera (control)
+    # explosion inside (on the walkway, to the north) and outside (control)
     tx, ty, tz = cx, miny + pl["suelo"] + 1, minz + 3
     neighbors = [(tx + dx, ty - 1, tz + dz) for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
     ctx.run(f"summon minecraft:tnt {tx} {ty} {tz} {{fuse:1}}", r"Summoned")
@@ -202,7 +202,7 @@ def first_start(p, pl):
     ctx.ticks(30)
     p.check(all(not ctx.block(v, "minecraft:air") for v in neighbors), "una TNT rompe bloques de la arena")
     p.check(ctx.block((fx, fy - 1, fz), "minecraft:air"), "control: la TNT de fuera no rompe nada (¿no explotó?)")
-    # pistón contra un pilar de la fachada (este) y otro fuera (control)
+    # piston against a facade pillar (east) and another outside (control)
     py = miny + pl["suelo"] + 3
     pillar = (maxx, py, cz)
     p.check(not ctx.block(pillar, "minecraft:air"), f"no hay pilar en {pillar}")
@@ -217,7 +217,7 @@ def first_start(p, pl):
     p.check(ctx.block((maxx + 1, py, cz), "minecraft:piston[extended=false]"), "un pistón empuja el muro de la arena")
     p.check(not ctx.block(pillar, "minecraft:air"), "el pilar de la arena se movió")
     p.check(ctx.block((gx, py, cz), "minecraft:piston[extended=true]"), "control: el pistón de fuera no se mueve")
-    # dispensador con un cubo de lava pegado a la fachada (oeste) y otro lejos (control): ArenaCuboMixin
+    # dispenser with a lava bucket next to the facade (west) and another far away (control): ArenaCuboMixin
     for x0, desc in ((minx - 2, "junto a la arena"), (maxx + 30, "lejos (control)")):
         ctx.run(f"fill {x0 - 2} {py - 1} {cz - 1} {x0 + 1} {py + 1} {cz + 1} minecraft:air", r"Successfully filled|No blocks")
         ctx.run(f"fill {x0 - 2} {py - 2} {cz - 1} {x0 + 1} {py - 2} {cz + 1} minecraft:stone", r"Successfully filled|No blocks")
@@ -234,7 +234,7 @@ def first_start(p, pl):
     ctx.run(f"fill {minx - 4} {py - 1} {cz - 1} {minx - 1} {py + 1} {cz + 1} minecraft:air", r"Successfully filled|No blocks")
     ctx.run(f"kill @e[type=minecraft:item,x={minx - 1},y={py},z={cz},distance=..6]", r"Killed|No entity")
 
-    # 3. partida con la campana
+    # 3. game with the bell
     ctx.run(f"gamemode survival {P}", r"Set .* game mode|game mode")
     ctx.run(f"effect give {P} minecraft:resistance infinite 255 true", r"Applied effect|Gave")
     ctx.run(f"give {P} minecraft:diamond 7", r"Gave")
@@ -243,8 +243,8 @@ def first_start(p, pl):
     s.send(ctx.proc, f"player {P} look at {bell[0] + 0.5} {bell[1] + 0.4} {bell[2] + 0.5}")
     ctx.ticks(5)
     s.send(ctx.proc, f"player {P} use once")
-    # T41: con los tres modos activados, la campana ofrece un botón por modo (/heraldia arena start <modo>); el jugador
-    # simulado no puede pulsarlo: se manda la orden en su nombre
+    # T41: with the three modes enabled, the bell offers one button per mode (/heraldia arena start <mode>); the simulated
+    # player cannot press it: the command is sent on its behalf
     if not p.check(p.wait_log(rf"arena: {P} elige modo \(coop, timeattack, survival\)", timeout=60),
                    "la campana no ofrece los modos"):
         return box
@@ -274,7 +274,7 @@ def first_start(p, pl):
     for n in (3, 4):
         p.check(p.wait_log(rf"arena: oleada {n}: \d+ enemigos", timeout=60), f"no empieza la oleada {n}")
         clean_up(p, n)
-    # oleada 5: el mini-jefe
+    # wave 5: the mini-boss
     p.check(p.wait_log(r"arena: oleada 5: 13 enemigos", timeout=60), "la oleada 5 no trae 12 enemigos y el mini-jefe")
     boss = "@e[tag=heraldia_arena,tag=heraldia_guardian,limit=1]"
     if p.check(p.wait_log(r"arena: mini-jefe minecraft:zombie en la oleada 5"), "no sale el mini-jefe en la oleada 5"):
@@ -291,12 +291,12 @@ def first_start(p, pl):
     p.check(p.num("scoreboard players get -servidor- heraldia_arena") == 5, "el marcador no tiene el récord 5 del servidor")
     p.check(p.wait_log(rf"arena: récord del servidor: {P} en la oleada 5"), "sin anuncio del récord")
 
-    # 4. muerte en el ruedo, en la pausa. Carpet desconecta al jugador simulado al morir (no pasa por la reaparición
-    # vanilla): se comprueba que no suelta nada y que, al volver a crearlo, sus datos guardados conservan lo que llevaba.
+    # 4. death in the ring, during the pause. Carpet disconnects the simulated player on death (it does not go through the vanilla
+    # respawn): it is checked that it drops nothing and that, when it is created again, its saved data keeps what it was carrying.
     level_before = p.num(f"experience query {P} levels")
     death = ctx.pos(f"@a[name={P}]")
     nearby_flag = f"x={death[0]:.1f},y={death[1]:.1f},z={death[2]:.1f},distance=..4" if death else "distance=..0"
-    ctx.run("kill @e[type=experience_orb]", r"Killed|No entity")       # los de los mobs (en la pausa no salen más)
+    ctx.run("kill @e[type=experience_orb]", r"Killed|No entity")       # those of the mobs (no more come out during the pause)
     orbs_before = ctx.count(f"@e[type=experience_orb,{nearby_flag}]")
     ctx.run(f"effect clear {P}", r"Removed|effect")
     ctx.run(f"damage {P} 1000 minecraft:generic", r"Applied|damage")
@@ -356,7 +356,7 @@ def wait_count(ctx, sel, n, timeout=60):
 
 
 def clean_up(p, n, timeout=180):
-    """Mata (a nombre del jugador) a los enemigos de la oleada n hasta que se supere."""
+    """Kills (in the player's name) the enemies of wave n until it is cleared."""
     ctx = p.ctx
     end = time.monotonic() + timeout
     while time.monotonic() < end:
@@ -381,7 +381,7 @@ def experience(p, n):
 
 
 def smash(ctx):
-    """El jugador simulado pica el bloque al que mira (en creativo, al instante): «attack once» de Carpet no rompe nada."""
+    """The simulated player mines the block it is looking at (in creative, instantly): Carpet's "attack once" breaks nothing."""
     s.send(ctx.proc, f"player {P} attack continuous")
     ctx.ticks(20)
     s.send(ctx.proc, f"player {P} stop")

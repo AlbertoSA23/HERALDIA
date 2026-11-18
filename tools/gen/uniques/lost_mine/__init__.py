@@ -1,13 +1,13 @@
-"""Mina perdida de Hondavena: la primera única subterránea. Una colonia minera de la Corona excavada en una gran caverna
-bajo las cuevas exuberantes o de espeleotemas, con su pozo maestro hasta la superficie (el castillete es lo único que se
-ve desde fuera), la estación del pozo, el almacén, la fundición, las casas de los mineros en la roca, la herrería, la
-carpintería, un lago subterráneo con embarcadero, la sima con su puente colgante, el cargadero de las agujas (puzle de
-la vagoneta), el frente viejo, el sector derrumbado e inundado y, tras la compuerta de la báscula, el filón madre con
-Tizón, el último capataz (diseño en docs/unicas/mina_perdida.md).
+"""Hondavena's Lost Mine: the first underground unique structure. A Crown mining colony dug into a great cavern
+under the lush or dripstone caves, with its master shaft up to the surface (the headframe is the only thing
+visible from outside), the shaft station, the warehouse, the smelter, the miners' houses in the rock, the smithy, the
+carpentry, an underground lake with a jetty, the chasm with its suspension bridge, the needle loading dock (minecart
+puzzle), the old face, the collapsed and flooded sector and, behind the weighbridge hatch, the mother lode with
+Tizón, the last foreman (design in docs/unicas/lost_mine.md).
 
-Cuatro plantillas que coloca el tipo propio heraldia:mina (Java): la colonia a una altura fija (PISO), los tramos del
-pozo (8 y 1 bloques) hasta el terreno y el castillete encima. La colonia no es una caja: solo lleva lo excavado, su
-forro y dos capas de roca maciza alrededor; fuera, structure_void. La auditoría propia es condición para generar.
+Four templates placed by the custom type heraldia:mina (Java): the colony at a fixed height (FLOOR_Y), the shaft sections
+(8 and 1 blocks) up to the terrain and the headframe on top. The colony is not a box: it carries only what was dug, its
+lining and two layers of solid rock around it; outside, structure_void. Its own audit is a condition for generating.
 """
 import functools
 from .._common.chest_loot import lang
@@ -17,14 +17,14 @@ from . import audit
 from .surface import Headframe, well, SHAFT_HEIGHT, FOUNDATION, FOOTPRINT
 
 DISPLAY_NAME = {"es_es": "Mina perdida de Hondavena", "en_us": "Lost Mine of Hondavena"}
-# Refuerzos del guardián en cada fase (jefes.py): mineros perdidos y arañas de las galerías.
+# Guardian reinforcements in each phase (bosses.py): lost miners and spiders of the galleries.
 REINFORCEMENTS = [{"mob": "zombie", "equipo": {"mainhand": "iron_pickaxe"}}, "cave_spider", "cave_spider"]
 TROPHY = {"objeto": "iron_pickaxe", "rareza": "rare",
           "nombre": ("Pico de Tizón", "Tizon's Pickaxe"),
           "lore": [("Abrió la última galería de Hondavena.", "It opened the last gallery of Hondavena."),
                    ("Nadie le mandó parar.", "No one told it to stop.")],
-          "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "despacho",
     "relato": [
         ("Bajé por el pozo maestro de Hondavena, una colonia minera de la Corona bajo las cuevas. Tizón, el"
@@ -39,10 +39,10 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("las cuevas exuberantes o de espeleotemas, bajo un castillete de mina que asoma en la superficie",
               "the lush or dripstone caves, beneath a mine headframe that rises at the surface"),
 }
-ADVANCEMENT = {"icono": "minecraft:iron_pickaxe"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:iron_pickaxe"}   # advancements.py
 MAP = {"decoration": "minecraft:red_x"}
 BIOME_MAP = ["minecraft:lush_caves", "minecraft:dripstone_caves"]
-WELL_MAX = 80                 # bloques de pozo como mucho (más, y la escalera se hace eterna): si no, otra casilla
+WELL_MAX = 80                 # shaft blocks at most (more, and the ladder becomes endless): otherwise, another cell
 
 TEXTS = {"guardian": ("Tizón, el último capataz", "Tizon, the Last Foreman")}
 LANG = {k: dict(v) for k, v in LANG_OBJECTS.items()}
@@ -51,7 +51,7 @@ REPORT = {}
 
 @functools.lru_cache(maxsize=1)
 def dataset():
-    """Plantillas (colonia, pozo, pozo corto, castillete), metadatos para Java y errores de la auditoría."""
+    """Templates (colony, shaft, short shaft, headframe), Java metadata and audit errors."""
     construction = Construction().build()
     cast = Headframe().build()
     errors, rep = audit.prepare(construction, cast)
@@ -71,7 +71,7 @@ def dataset():
     c = cast.t
     cx0, cy0, cz0, *_ = c.bounds()
     c.normalize()
-    axis_c = (-cx0, -cy0, -cz0)                     # eje del pozo y capa de suelo del castillete
+    axis_c = (-cx0, -cy0, -cz0)                     # shaft axis and headframe floor layer
     hx0, hx1, hz0, hz1 = FOOTPRINT
     p8, p1 = well(SHAFT_HEIGHT, "pozo"), well(1, "pozo_corto")
     for t in (col, c, p8, p1):
@@ -92,7 +92,7 @@ def _structure():
 
 
 class _Lazy(dict):
-    """STRUCTURE con el JSON calculado al leerlo (la obra se construye una sola vez)."""
+    """STRUCTURE with the JSON computed when read (the build is built only once)."""
     def get(self, k, default=None):
         if k == "json":
             return _structure()
@@ -102,7 +102,7 @@ class _Lazy(dict):
         return self.get(k) if k == "json" else super().__getitem__(k)
 
 
-# rejilla heraldia:rejilla con la candidata buscada en las cuevas a la altura del centro de la caverna
+# heraldia:rejilla grid with the candidate sought in the caves at the height of the cavern's center
 STRUCTURE = _Lazy(start_pool=f"unicas/{SID}/colonia", size=1, max_distance=1, terrain_adaptation="none",
                   step="underground_structures", spacing=250, separation=190, candidata_en_bioma=True,
                   candidata_y=FLOOR_Y + 6)
@@ -110,7 +110,7 @@ STRUCTURE = _Lazy(start_pool=f"unicas/{SID}/colonia", size=1, max_distance=1, te
 
 def build(reg):
     tpls, meta, errors, texts, rep = dataset()
-    for k, v in texts.items():           # writer.py lee LANG después de build()
+    for k, v in texts.items():           # writer.py reads LANG after build()
         LANG[k].update(v)
     REPORT.update(rep)
     col, c, p8, p1 = tpls

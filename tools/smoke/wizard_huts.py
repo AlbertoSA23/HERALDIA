@@ -1,20 +1,20 @@
-"""Chozas de mago (T43) en un servidor dedicado 26.3 real (complementa DecisionTest y ChozasOpcionesTest).
+"""Wizard huts (T43) on a real dedicated 26.3 server (complements DecisionTest and ChozasOpcionesTest).
 
-Uso: python3 tools/smoke/wizard_huts.py --jar build/libs/heraldia-X.jar [--work build/smoke-chozas-mago]
-Determinista: cada choza se coloca con /place template (sobre una losa, en chunks con forceload) y las probabilidades
-se fijan en la configuración (chozas_mago.prob_malvado y prob_botin_premium a 0 o a 100, con /heraldia reload entre
-medias); un jugador simulado de Carpet (en supervivencia, con resistencia V para que no muera).
-Primer arranque (malvados 0 %, premio 0 %):
-  1. Choza A (bondadosa): el mago tiene su nombre generado, la etiqueta de bondadoso y sus tratos (frascos, lapislázuli,
-     pociones, libro, perla); el jugador se acerca y hasta intenta comerciar: no se revela. /heraldia wizard lo lista.
-  2. Choza B: /heraldia wizard reveal (forzado): el aldeano desaparece, sale el Mago Malvado (evocador con su nombre, las
-     etiquetas de jefe y su tabla de botín normal) con 3 vexes; el jugador lo vence con /damage: suelta botín (sin el
-     tótem vanilla), sus vexes se deshacen, el logro se concede y el log lo cuenta. Una segunda orden no revela nada.
-  3. Premio al 100 % (reload) y choza C forzada: su tabla es la del premio; al vencerlo el log dice «premio: sí».
-  4. Malvados al 100 % (reload): la choza A sigue bondadosa (la decisión ya tomada no cambia); la choza D nace malvada
-     sin revelar y se revela sola al acercarse el jugador.
-Segundo arranque (mismo mundo, sin tocar nada): el Mago Malvado de D sigue siendo uno solo, A sigue bondadosa con su
-aldeano y nadie se revela otra vez; /heraldia status da la línea de las chozas.
+Usage: python3 tools/smoke/wizard_huts.py --jar build/libs/heraldia-X.jar [--work build/smoke-chozas-mago]
+Deterministic: each hut is placed with /place template (on a slab, in forceloaded chunks) and the probabilities
+are set in the configuration (wizard_huts.prob_malvado and prob_botin_premium at 0 or 100, with /heraldia reload in
+between); a Carpet simulated player (in survival, with resistance V so it does not die).
+First start (evil 0 %, prize 0 %):
+  1. Hut A (kindly): the wizard has its generated name, the kindly tag and its trades (vials, lapis lazuli,
+     potions, book, pearl); the player approaches and even tries to trade: it is not revealed. /heraldia wizard lists it.
+  2. Hut B: /heraldia wizard reveal (forced): the villager disappears, the Evil Wizard appears (an evoker with its name, the
+     boss tags and its normal loot table) with 3 vexes; the player defeats it with /damage: it drops loot (without the
+     vanilla totem), its vexes dissolve, the advancement is granted and the log reports it. A second command reveals nothing.
+  3. Prize at 100 % (reload) and hut C forced: its table is the prize one; on defeating it the log says "premio: sí".
+  4. Evil at 100 % (reload): hut A stays kindly (the decision already made does not change); hut D is born evil
+     unrevealed and reveals itself when the player approaches.
+Second start (same world, nothing touched): D's Evil Wizard is still just one, A is still kindly with its
+villager and nobody is revealed again; /heraldia status gives the huts line.
 """
 import argparse, json, os, queue, re, shutil, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -28,13 +28,13 @@ WIZARD, EVIL, VEX = "heraldia_mago", "heraldia_mago_malvado", "heraldia_mago_vex
 Y = 100
 SITES = {"A": (30000, 30000), "B": (30200, 30000), "C": (30400, 30000), "D": (30600, 30000)}
 TEMPLATE = {"A": "oscuro/a", "B": "pantano/b", "C": "taiga/a", "D": "desierto/b"}
-FAR = (30300, 30400)            # donde espera el jugador entre prueba y prueba (a más de 100 bloques de todas)
+FAR = (30300, 30400)            # where the player waits between tests (more than 100 blocks from all of them)
 DEFEATED = re.compile(r"Mago Malvado vencido en (-?\d+) (-?\d+) (-?\d+) \(premio: (sí|no)\)")
 REVEALS = re.compile(r"el mago de (-?\d+) (-?\d+) (-?\d+) se revela \((forzado|malvado); premio: (sí|no); (\d) vexes\)")
 
 
 def halt(proc, ctx):
-    """Para el servidor y pasa a ctx.seen lo que escribió al parar."""
+    """Stops the server and moves to ctx.seen what it wrote when stopping."""
     at.stop(proc)
     while True:
         try:
@@ -47,7 +47,7 @@ def halt(proc, ctx):
 
 
 def state(ctx, pattern):
-    """La primera línea de /heraldia status (recorre sus páginas) que casa con `patron`, o None."""
+    """The first line of /heraldia status (going through its pages) that matches `pattern`, or None."""
     pat = re.compile(pattern)
     for page in range(1, 8):
         m = ctx.run(f"execute as {PLAYER} at @s run heraldia status {page}",
@@ -90,14 +90,14 @@ def far(ctx):
 
 
 def beside_wizard(ctx, c):
-    """El jugador entra por la puerta de la choza (a 3 bloques del mago, en el centro de la planta baja)."""
+    """The player enters through the hut's door (3 blocks from the wizard, in the middle of the ground floor)."""
     x, z = SITES[c]
     h = 3 if TEMPLATE[c].startswith("pantano") else 0
     go(ctx, x + 6.5, Y + h + 1, z + 6.5)
 
 
 def inventory(ctx, item="*"):
-    """Cuántos objetos (o de cuál) lleva el jugador."""
+    """How many items (or of which one) the player carries."""
     m = ctx.run(f"clear {PLAYER} {item} 0", r"Found (\d+) matching|No items")
     return int(m.group(1) or 0)
 
@@ -114,15 +114,15 @@ def offer(ctx, c, i, field):
 
 def benign(ctx, fails):
     if not place(ctx, "A"):
-        fails.append("choza A: no aparece el mago")
+        fails.append("hut A: the wizard does not appear")
         return
     ctx.ticks(5)
     if tag_of(ctx, "A", "heraldia_mago.benigno") != 1 or tag_of(ctx, "A", "heraldia_mago.nombrado") != 1:
-        fails.append("choza A: el mago no queda decidido (bondadoso) y nombrado al cargarse")
+        fails.append("hut A: the wizard is not decided (kindly) and named on loading")
     name = ctx.run(f"data get entity @e[tag={WIZARD},{box('A')},limit=1] CustomName", r"entity data: (.*)").group(1)
     print(f"mago de A: {name.strip()[:160]}")
     if "heraldia.chozas_mago.nombre" not in name or "heraldia.chozas_mago.apodo." not in name:
-        fails.append(f"choza A: el mago no lleva su nombre generado: {name[:120]}")
+        fails.append(f"hut A: the wizard does not carry its generated name: {name[:120]}")
     trades = [offer(ctx, "A", i, "sell.id") for i in range(8)]
     print(f"tratos de A: {trades}")
     expected_items = ["minecraft:glass_bottle", "minecraft:lapis_lazuli", "minecraft:potion", "minecraft:potion",
@@ -132,10 +132,10 @@ def benign(ctx, fails):
     beside_wizard(ctx, "A")
     x, z = SITES["A"]
     s.send(ctx.proc, f"player {PLAYER} look at {x + 6.5} {Y + 1.6} {z + 8.5}")
-    s.send(ctx.proc, f"player {PLAYER} use once")      # no responde en la consola
+    s.send(ctx.proc, f"player {PLAYER} use once")      # does not answer on the console
     ctx.ticks(60)
     if ctx.count(f"@e[tag={WIZARD},{box('A')}]") != 1 or ctx.count(f"@e[tag={EVIL}]"):
-        fails.append("choza A (bondadosa): el mago se ha revelado o ha desaparecido con el jugador al lado")
+        fails.append("hut A (kindly): the wizard has been revealed or has disappeared with the player next to it")
     m = ctx.run(f"execute positioned {x + 6} {Y} {z + 8} run heraldia wizard", r"(?:Wizards within|Magos a menos de) 32 (?:blocks|bloques): (\d+)")
     lst = "".join(s.drain(ctx))
     if m.group(1) != "1" or not re.search(r"benign|bondadoso", lst):
@@ -144,12 +144,12 @@ def benign(ctx, fails):
 
 
 def defeat(ctx, fails, c, prize):
-    """Revela (forzado) el mago de la choza c, comprueba el Mago Malvado y lo vence el jugador."""
+    """Reveals (forced) the wizard of hut c, checks the Evil Wizard and the player defeats it."""
     if not place(ctx, c):
-        fails.append(f"choza {c}: no aparece el mago")
+        fails.append(f"hut {c}: the wizard does not appear")
         return
     x, z = SITES[c]
-    beside_wizard(ctx, c)      # con el jugador cerca: los vexes no son persistentes (lejos de todos, desaparecen)
+    beside_wizard(ctx, c)      # with the player nearby: the vexes are not persistent (far from everyone, they disappear)
     ctx.run(f"clear {PLAYER}", r"Removed|No items")
     ctx.ticks(5)
     mark = len(ctx.seen)
@@ -159,30 +159,30 @@ def defeat(ctx, fails, c, prize):
         else REVEALS.search("".join(ctx.seen[mark:]))
     print(f"choza {c}: {m.group(0)}")
     if m.group(4) != "forzado" or m.group(5) != ("sí" if prize else "no") or m.group(6) != "3":
-        fails.append(f"choza {c}: revelación {m.group(0)}")
+        fails.append(f"hut {c}: reveal {m.group(0)}")
     sel = f"@e[type=minecraft:evoker,tag={EVIL},{box(c, 4)}]"
     if ctx.count(sel) != 1:
         fails.append(f"choza {c}: {ctx.count(sel)} Magos Malvados (debe haber 1)")
     if ctx.count(f"@e[tag={WIZARD},{box(c)}]"):
-        fails.append(f"choza {c}: el aldeano sigue ahí tras revelarse")
+        fails.append(f"hut {c}: the villager is still there after being revealed")
     for t in ("heraldia_guardian", "heraldia_anclado"):
         if ctx.count(f"@e[type=minecraft:evoker,tag={EVIL},tag={t}]") != 1:
-            fails.append(f"choza {c}: el Mago Malvado sin la etiqueta {t} (fases y barra de jefe)")
+            fails.append(f"hut {c}: the Evil Wizard lacks the {t} tag (phases and boss bar)")
     vexes = ctx.count(f"@e[type=minecraft:vex,tag={VEX}]")
     if vexes != 3:
         fails.append(f"choza {c}: {vexes} vexes de entrada (deben ser 3)")
     tbl = ctx.run(f"data get entity {sel[:-1]},limit=1] DeathLootTable", r'entity data: "([^"]+)"|No entity').group(1)
     if tbl != ("heraldia:chozas_mago/malvado_premium" if prize else "heraldia:chozas_mago/malvado"):
-        fails.append(f"choza {c}: tabla de botín del Mago Malvado {tbl}")
+        fails.append(f"hut {c}: Evil Wizard loot table {tbl}")
     name = ctx.run(f"data get entity {sel[:-1]},limit=1] CustomName", r"entity data: (.*)|No entity").group(1) or ""
     if "heraldia.chozas_mago.malvado" not in name:
-        fails.append(f"choza {c}: el Mago Malvado no se llama así: {name[:100]}")
-    # otra orden no revela nada más (ya no queda mago sin revelar en 32 bloques)
+        fails.append(f"hut {c}: the Evil Wizard is not named that: {name[:100]}")
+    # another command reveals nothing more (no unrevealed wizard left within 32 blocks)
     ctx.run(f"execute positioned {x + 6} {Y} {z + 8} run heraldia wizard reveal",
             r"no unrevealed wizard|ningún mago sin revelar|Wizard revealed at|Mago revelado en")
     if ctx.count(f"@e[type=minecraft:evoker,tag={EVIL}]") != 1:
-        fails.append(f"choza {c}: una segunda revelación duplica al Mago Malvado")
-    # el jugador lo vence
+        fails.append(f"hut {c}: a second reveal duplicates the Evil Wizard")
+    # the player defeats it
     p = ctx.pos(sel)
     ctx.ticks(20)
     mark = len(ctx.seen)
@@ -191,38 +191,38 @@ def defeat(ctx, fails, c, prize):
         else DEFEATED.search("".join(ctx.seen[mark:]))
     ctx.ticks(20)
     nearby_flag = f"x={p[0]:.0f},y={p[1]:.0f},z={p[2]:.0f},distance=..10"
-    # lo que cae y lo que el jugador ya ha recogido
+    # what drops and what the player has already picked up
     items = ctx.count(f"@e[type=minecraft:item,{nearby_flag}]") + inventory(ctx)
     totems = ctx.count(f"@e[type=minecraft:item,{nearby_flag},nbt={{Item:{{id:\"minecraft:totem_of_undying\"}}}}]") \
         + inventory(ctx, "minecraft:totem_of_undying")
-    print(f"choza {c}: {v.group(0)}; {items} objetos en el suelo ({totems} tótems)")
+    print(f"hut {c}: {v.group(0)}; {items} items on the ground ({totems} totems)")
     if v.group(4) != ("sí" if prize else "no"):
-        fails.append(f"choza {c}: {v.group(0)} (premio {'sí' if prize else 'no'})")
+        fails.append(f"hut {c}: {v.group(0)} (prize {'sí' if prize else 'no'})")
     if items < 2:
-        fails.append(f"choza {c}: el Mago Malvado suelta {items} objetos")
+        fails.append(f"hut {c}: the Evil Wizard drops {items} items")
     if not prize and totems:
-        fails.append(f"choza {c}: sin premio suelta un tótem (el del evocador vanilla no debe salir)")
+        fails.append(f"hut {c}: without a prize it drops a totem (the vanilla evoker's must not appear)")
     if ctx.count(f"@e[type=minecraft:vex,tag={VEX}]"):
-        fails.append(f"choza {c}: quedan vexes del mago tras vencerlo")
+        fails.append(f"hut {c}: wizard's vexes remain after defeating it")
     if not ctx.test(f"execute if entity @a[name={PLAYER},advancements={{heraldia:medianas/choza_mago/malvado=true}}]"):
-        fails.append("logro medianas/choza_mago/malvado sin conceder")
+        fails.append("advancement medianas/choza_mago/malvado not granted")
     ctx.run(f"kill @e[type=minecraft:item,{nearby_flag}]", r"Killed|No entity")
     far(ctx)
 
 
 def natural(ctx, fails):
-    """Malvados al 100 %: A sigue bondadosa; D nace malvada y se revela sola al llegar el jugador."""
+    """Evil at 100 %: A stays kindly; D is born evil and reveals itself when the player arrives."""
     beside_wizard(ctx, "A")
     ctx.ticks(60)
     if ctx.count(f"@e[tag={WIZARD},tag=heraldia_mago.benigno,{box('A')}]") != 1 or ctx.count(f"@e[tag={EVIL},{box('A', 4)}]"):
-        fails.append("choza A: con malvados al 100 % la choza ya decidida cambia")
+        fails.append("hut A: with evil at 100 % the already decided hut changes")
     far(ctx)
     if not place(ctx, "D"):
-        fails.append("choza D: no aparece el mago")
+        fails.append("hut D: the wizard does not appear")
         return
     ctx.ticks(5)
     if tag_of(ctx, "D", "heraldia_mago.malvado") != 1 or ctx.count(f"@e[tag={EVIL},{box('D', 4)}]"):
-        fails.append("choza D: no nace malvada sin revelar")
+        fails.append("hut D: is not born evil and unrevealed")
     mark = len(ctx.seen)
     beside_wizard(ctx, "D")
     m = s.wait_for(ctx.lines, REVEALS.pattern, s.COMMAND_TIMEOUT_S, ctx.seen) if not REVEALS.search("".join(ctx.seen[mark:])) \
@@ -232,7 +232,7 @@ def natural(ctx, fails):
         fails.append(f"choza D: {m.group(0)}")
     ctx.ticks(10)
     if ctx.count(f"@e[type=minecraft:evoker,tag={EVIL},{box('D', 4)}]") != 1 or ctx.count(f"@e[tag={WIZARD},{box('D')}]"):
-        fails.append("choza D: al acercarse el jugador no se convierte en el Mago Malvado")
+        fails.append("hut D: when the player approaches it does not turn into the Evil Wizard")
     far(ctx)
 
 
@@ -241,8 +241,8 @@ def player(ctx):
     ctx.run(f"forceload add {far_x - 8} {far_z - 8} {far_x + 8} {far_z + 8}", r"Marked|[Aa]dded|force|already")
     ctx.run(f"player {PLAYER} spawn at {far_x} {Y + 2} {far_z}", r"joined the game")
     if not ctx.until(f"execute if entity @a[name={PLAYER}]"):
-        raise SystemExit(f"no aparece el jugador simulado {PLAYER} (Carpet)")
-    s.send(ctx.proc, f"gamemode survival {PLAYER}")      # puede no responder si ya lo está
+        raise SystemExit(f"the simulated player {PLAYER} does not appear (Carpet)")
+    s.send(ctx.proc, f"gamemode survival {PLAYER}")      # may not answer if it already is
     ctx.until(f"execute if entity @a[name={PLAYER},gamemode=survival]")
     ctx.run(f"effect give {PLAYER} minecraft:resistance infinite 4 true", r"Applied effect|Gave|Unable to apply")
     ctx.run(f"effect give {PLAYER} minecraft:regeneration infinite 4 true", r"Applied effect|Gave|Unable to apply")
@@ -275,7 +275,7 @@ def main():
     finally:
         halt(proc, ctx)
     revealed = len(REVEALS.findall(ctx.log()))
-    # segundo arranque: nada se revela de nuevo ni se duplica
+    # second start: nothing is revealed again or duplicated
     proc, ctx = at.start_server(a.work, launcher)
     try:
         player(ctx)
@@ -283,17 +283,17 @@ def main():
         ctx.ticks(20)
         bad_many = ctx.count(f"@e[type=minecraft:evoker,tag={EVIL}]")
         enD = ctx.count(f"@e[type=minecraft:evoker,tag={EVIL},{box('D', 8)}]")
-        print(f"tras reiniciar: {bad_many} Magos Malvados ({enD} en D); revelaciones en el primer arranque: {revealed}")
+        print(f"after restarting: {bad_many} Evil Wizards ({enD} at D); reveals in the first start: {revealed}")
         if bad_many != 1 or enD != 1:
-            fails.append(f"tras reiniciar: {bad_many} Magos Malvados, {enD} en D (debe quedar solo el de D)")
+            fails.append(f"after restarting: {bad_many} Evil Wizards, {enD} at D (only D's must remain)")
         if ctx.count(f"@e[tag={WIZARD},tag=heraldia_mago.benigno,{box('A')}]") != 1:
-            fails.append("tras reiniciar: el mago bondadoso de A no está")
+            fails.append("after restarting: A's kindly wizard is missing")
         beside_wizard(ctx, "A")
         ctx.ticks(60)
         if REVEALS.search(ctx.log()) or ctx.count(f"@e[tag={WIZARD},{box('A')}]") != 1:
-            fails.append("tras reiniciar: un mago se revela otra vez")
+            fails.append("after restarting: a wizard reveals itself again")
         if state(ctx, r"Wizard's huts: evil wizards 100 %, premium loot 100 %|Chozas de mago: magos malvados 100 %") is None:
-            fails.append("/heraldia status sin la línea de las chozas de mago")
+            fails.append("/heraldia status without the wizard huts line")
         ctx.run(f"player {PLAYER} kill", r"left the game")
     finally:
         halt(proc, ctx)
@@ -302,7 +302,7 @@ def main():
         for f in fails:
             print(" -", f)
         return 1
-    print("OK: mago bondadoso con tratos que no se revela, Mago Malvado forzado con vexes y vencido (botín sin tótem, "
+    print("OK: kindly wizard with trades that does not reveal itself, Evil Wizard forced with vexes and defeated (loot without totem, "
           "logro), premio al 100 %, decisión guardada, revelación al acercarse y reinicio sin duplicados")
     return 0
 

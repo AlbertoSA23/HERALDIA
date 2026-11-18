@@ -1,12 +1,12 @@
-"""Construcción de la colonia de la Mina perdida de Hondavena en un único sistema de coordenadas
-(diseño en docs/unicas/mina_perdida.md).
+"""Construction of Hondavena's Lost Mine colony in a single coordinate system
+(design in docs/unicas/lost_mine.md).
 
-x de oeste a este, z de norte a sur; y = 0 es la capa de suelo de la gran caverna (pies a y = 1), que en el mundo queda
-a y = PISO. Todo lo que se excava (aire o agua) se registra con su forro (suelo, muro, techo); al acabar, `forro()` pone
-ese forro en cada cara que da a lo excavado y `casco()` lo rodea de roca maciza (2 bloques más). Fuera del casco no se
-escribe nada: la plantilla deja el terreno (structure_void), así que la colonia no es una caja y una cueva vanilla que
-pase cerca solo ve roca irregular. El pozo sube por la columna EJE hasta la cara superior (y = YTOP); por encima siguen
-las piezas del pozo y el castillete (superficie.py), que coloca el tipo de estructura heraldia:mina en Java.
+x from west to east, z from north to south; y = 0 is the floor layer of the great cavern (feet at y = 1), which in the world is at
+y = FLOOR_Y. Everything that is dug out (air or water) is recorded with its lining (floor, wall, ceiling); at the end, `forro()` places
+that lining on every face that looks onto what was dug and `casco()` surrounds it with solid rock (2 more blocks). Nothing is
+written outside the shell: the template leaves the terrain (structure_void), so the colony is not a box and a vanilla cave that
+passes nearby only sees irregular rock. The shaft rises along the EJE column up to the top face (y = YTOP); above that continue
+the shaft pieces and the headframe (surface.py), which the structure type heraldia:mina places in Java.
 """
 import math, zlib
 from core import B
@@ -16,24 +16,24 @@ from .._common.pieces import spawner, chest, guardian, text
 SID = "mina_perdida"
 LOOT = f"heraldia:unicas/{SID}/"
 K = f"heraldia.{SID}."
-FLOOR_Y = 20                    # y del mundo de la capa de suelo de la caverna (ver docs: por qué esta altura)
-YTOP = 26                    # cara superior de la colonia: aquí empieza el pozo
-AXIS = (44, 7)                # eje del pozo maestro (x, z)
-DEEPER = -12                  # por debajo de esta capa (y del mundo < 8) el casco es de pizarra abismal
+FLOOR_Y = 20                    # world y of the cavern floor layer (see docs: why this height)
+YTOP = 26                    # top face of the colony: the shaft starts here
+AXIS = (44, 7)                # axis of the master shaft (x, z)
+DEEPER = -12                  # below this layer (world y < 8) the shell is deepslate
 
 # gran caverna: superelipse
 CX, CZ, RX, RZ, EXP = 44, 36, 27, 21, 6
-LAKE = (44, 49, 13, 5)       # centro y radios del lago (superelipse de exponente 4)
-CHASM = (75, 79, 25, 47)      # x0, x1, z0, z1 de la sima (y -15 .. 8)
-F_CHASM, F_DEEP, F_FLOODED = -15, -10, -5   # pies: fondo de la sima, filón madre, pasarela del sector inundado
+LAKE = (44, 49, 13, 5)       # center and radii of the lake (superellipse of exponent 4)
+CHASM = (75, 79, 25, 47)      # x0, x1, z0, z1 of the chasm (y -15 .. 8)
+F_CHASM, F_DEEP, F_FLOODED = -15, -10, -5   # feet: chasm bottom, mother lode, walkway of the flooded sector
 
 COB, MCOB, CDS = "cobblestone", "mossy_cobblestone", "cobbled_deepslate"
 SB, CSB, CRSB = "stone_bricks", "chiseled_stone_bricks", "cracked_stone_bricks"
 PL, LOG, SLOG = "spruce_planks", "spruce_log", "stripped_spruce_log"
 DT = "deepslate_tiles"
-# forros (suelo, muro, techo): nunca bloques naturales (`#base_stone_overworld`, tierra, grava...), para que dentro no
-# salgan manantiales, liquen, musgo ni charcas de arcilla de las cuevas exuberantes
-HOST_ROCK = ("roca", "roca", "roca")              # caverna y galerías: piedra labrada a pico (adoquín variado)
+# linings (floor, wall, ceiling): never natural blocks (`#base_stone_overworld`, dirt, gravel...), so that no
+# springs, lichen, moss or clay pools from the lush caves come out inside
+HOST_ROCK = ("roca", "roca", "roca")              # cavern and galleries: pick-hewn stone (mixed cobblestone)
 CONSTRUCTION = (SB, SB, SB)
 HOUSE = (PL, SB, PL)
 FOUNDATION = (DT, "bricks", DT)
@@ -67,7 +67,7 @@ def h(*a):
 
 
 def noise(x, z, noise_scale, salt=0):
-    """Ruido de valor suave en [-1, 1] (bilineal sobre una malla de paso `esc`)."""
+    """Smooth value noise in [-1, 1] (bilinear over a grid with step `noise_scale`)."""
     gx, gz = x / noise_scale, z / noise_scale
     x0, z0 = math.floor(gx), math.floor(gz)
     fx, fz = gx - x0, gz - z0
@@ -83,7 +83,7 @@ def superellipse(x, z, cx, cz, rx, rz, e):
 
 
 def host_rock(x, y, z):
-    """Piedra labrada a pico de las paredes de la caverna: adoquín con vetas de adoquín de pizarra."""
+    """Pick-hewn stone of the cavern walls: cobblestone with veins of cobbled deepslate."""
     return CDS if noise(x + y, z - y, 5, 7) > 0.45 else COB
 
 
@@ -94,14 +94,14 @@ class Construction:
         self.carved = {}           # celda excavada -> forro (suelo, muro, techo)
         self.chests = []           # (pos, tabla)
         self.spawners = []         # (pos, mob)
-        self.hidden = []           # celdas que solo se alcanzan resolviendo un puzle
-        self.hidden_alcove = []    # celdas tras el tapiz (sin puzle)
-        self.mech = {}             # mecanismos para la auditoría y la prueba de servidor
-        self.ruin = set()          # posiciones dañadas a mano
+        self.hidden = []           # cells reachable only by solving a puzzle
+        self.hidden_alcove = []    # cells behind the tapestry (no puzzle)
+        self.mech = {}             # mechanisms for the audit and the server test
+        self.ruin = set()          # hand-damaged positions
         self.signs = []
-        self.cavern = set()        # columnas (x, z) de la gran caverna
-        self.lake = set()          # columnas (x, z) del lago
-        self.hull = set()          # roca del casco (no forro)
+        self.cavern = set()        # (x, z) columns of the great cavern
+        self.lake = set()          # (x, z) columns of the lake
+        self.hull = set()          # shell rock (not lining)
 
     # ------------------------------------------------------------ primitivas
     def s(self, x, y, z, st, nbt=None):
@@ -149,13 +149,13 @@ class Construction:
         self.s(x - dx, y, z - dz, S(f"{color}_bed", facing=facing, part="foot", occupied=False))
 
     def sign(self, x, y, z, facing, key, lines, wood="spruce"):
-        """Cartel traducible: `lines` = [(es, en)] (las claves van a LANG con el sufijo .1, .2...)."""
+        """Translatable sign: `lines` = [(es, en)] (the keys go to LANG with the suffix .1, .2...)."""
         self.signs.append((key, lines))
         pieces.sign(self.s, x, y, z, facing, [text(f"{K}cartel.{key}.{i + 1}", es) for i, (es, _) in enumerate(lines)],
                     wood=wood)
 
     def sign_post(self, x, y, z, rotation, key, lines, wood="spruce"):
-        """Cartel de pie (rotación 0-15; 0 mira al sur) sobre el suelo."""
+        """Standing sign (rotation 0-15; 0 faces south) on the ground."""
         self.signs.append((key, lines))
         msgs = [text(f"{K}cartel.{key}.{i + 1}", es) for i, (es, _) in enumerate(lines)]
         msgs += [{"text": ""}] * (4 - len(msgs))
@@ -193,16 +193,16 @@ class Construction:
         self.collapsed_sector()
         self.lining()
         self.shell()
-        # lo que va dentro de muros y suelos (mecanismos, vetas, adornos) después del casco
+        # what goes inside walls and floors (mechanisms, veins, ornaments) after the shell
         self.furnish()
         self.lining()
         self.shell()
         self.t.blocks = {p: v for p, v in self.t.blocks.items() if p[1] <= YTOP}
         return self
 
-    # ------------------------------------------------------------ forro y casco
+    # ------------------------------------------------------------ lining and shell
     def lining(self):
-        """Pone el forro en cada celda sin escribir que toca una excavada (por su cara: suelo, muro o techo)."""
+        """Places the lining in every unwritten cell that touches a dug-out one (by its face: floor, wall or ceiling)."""
         for (x, y, z), pal in list(self.carved.items()):
             if self.get(x, y, z) not in ("minecraft:air", "minecraft:water", "minecraft:cave_air") and \
                     not self.get(x, y, z).startswith("minecraft:water"):
@@ -215,7 +215,7 @@ class Construction:
                 self.s(*p, host_rock(*p) if mat == "roca" else mat)
 
     def shell(self, thickness=2):
-        """Dos capas de roca maciza (6-vecinos) alrededor de todo lo escrito junto a una celda excavada."""
+        """Two layers of solid rock (6-neighbors) around everything written next to a dug-out cell."""
         frontier = set()
         for (x, y, z) in self.carved:
             for (dx, dy, dz) in N6:
@@ -234,7 +234,7 @@ class Construction:
                 self.hull.add(p)
             frontier = nxt
 
-    # ------------------------------------------------------------ la gran caverna
+    # ------------------------------------------------------------ the great cavern
     def roof(self, x, z):
         e = superellipse(x, z, CX, CZ, RX, RZ, 2)
         return 5 + int(round(11 * math.sqrt(max(0.0, 1 - min(e, 1.0))) + 1.2 * noise(x, z, 6, 3)))
@@ -247,11 +247,11 @@ class Construction:
                 self.cavern.add((x, z))
                 for y in range(1, self.roof(x, z) + 1):
                     self.carve(x, y, z, HOST_ROCK)
-        # suelo de la caverna: adoquín pisado; plaza de andesita pulida alrededor del pilar maestro
+        # cavern floor: trodden cobblestone; polished andesite plaza around the master pillar
         for (x, z) in self.cavern:
             d = math.hypot(x - CX, z - CZ)
             self.s(x, 0, z, "polished_andesite" if 3 < d <= 8.5 else (CDS if h(x, z, 4) < 0.2 else COB))
-        # pilar maestro: roca que los mineros dejaron para sostener la bóveda
+        # master pillar: rock the miners left to hold up the vault
         for x in range(CX - 3, CX + 4):
             for z in range(CZ - 3, CZ + 4):
                 d = math.hypot(x - CX, z - CZ)
@@ -269,7 +269,7 @@ class Construction:
                                                     ("el cargadero", "the loading bay")])
         self.sign(CX - 3, 2, CZ, "west", "casas", [("Al oeste:", "West:"), ("las casas", "the miners'"),
                                                    ("de los mineros", "houses")])
-        # derrumbes sueltos junto a las paredes (ruina) y faroles en los caminos
+        # loose cave-ins beside the walls (ruin) and lanterns on the roads
         for (x, z) in ((22, 26), (66, 44), (25, 50), (60, 22), (36, 18), (52, 54), (30, 52), (63, 33)):
             for (a, b, y) in ((0, 0, 1), (1, 0, 1), (0, 1, 1), (0, 0, 2)):
                 if (x + a, z + b) in self.cavern:
@@ -278,22 +278,22 @@ class Construction:
             self.hang(x, self.roof(x, z) - 3, z)
 
     def boundary(self, z, side):
-        """x de la primera columna de la caverna en la fila z, desde el oeste o el este."""
+        """x of the first column of the cavern in row z, from the west or the east."""
         xs = [x for (x, zz) in self.cavern if zz == z]
         return min(xs) if side == "west" else max(xs)
 
-    # ------------------------------------------------------------ estación del pozo (norte)
+    # ------------------------------------------------------------ shaft station (north)
     def station(self):
         ex, ez = AXIS
         self.room(43, 51, 3, 12, 1, 5, CONSTRUCTION)
-        self.room(ex - 1, ex + 1, ez - 1, ez + 1, 6, YTOP, WELL)          # el pozo maestro
-        self.room(45, 49, 13, 17, 1, 4, CONSTRUCTION)                            # a la caverna
+        self.room(ex - 1, ex + 1, ez - 1, ez + 1, 6, YTOP, WELL)          # the master shaft
+        self.room(45, 49, 13, 17, 1, 4, CONSTRUCTION)                            # to the cavern
         for y in range(1, YTOP + 1):
             self.s(ex - 1, y, ez, S("ladder", facing="east", waterlogged=False))
         for y in range(2, YTOP + 1):
             self.s(ex, y, ez, S("iron_chain", axis="y", waterlogged=False))
-        self.s(ex, 1, ez, "cauldron")                                    # la cubeta del malacate, en el fondo
-        for y in range(8, YTOP + 1, 4):                                  # marcos de madera del pozo
+        self.s(ex, 1, ez, "cauldron")                                    # the winch bucket, at the bottom
+        for y in range(8, YTOP + 1, 4):                                  # wooden frames of the shaft
             for d in (-1, 0, 1):
                 for (px, pz, ax) in ((ex + d, ez - 2, "x"), (ex + d, ez + 2, "x"), (ex - 2, ez + d, "z"), (ex + 2, ez + d, "z")):
                     self.s(px, y, pz, S(SLOG, axis=ax))
@@ -314,12 +314,12 @@ class Construction:
                 self.s(x, y, 13, S(LOG, axis="y"))
         for x in range(44, 51):
             self.s(x, 4, 13, S(LOG, axis="x"))
-        for z in range(13, 20):                                          # vía de las vagonetas hacia la plaza
+        for z in range(13, 20):                                          # minecart track toward the plaza
             if (47, z) in self.cavern or z <= 17:
                 self.rail(47, 1, z, "north_south")
         self.ruin_set(47, 1, 18, "air")                                  # un tramo arrancado
 
-    # ------------------------------------------------------------ almacén (noroeste)
+    # ------------------------------------------------------------ warehouse (northwest)
     def warehouse(self):
         self.room(24, 36, 5, 12, 1, 4, CONSTRUCTION)
         self.room(28, 32, 13, 18, 1, 3, CONSTRUCTION)
@@ -336,14 +336,14 @@ class Construction:
         self.sign(26, 2, 12, "north", "almacen", [("Almacén", "Storehouse"), ("Víveres y", "Stores and"),
                                                   ("herramientas", "tools")])
 
-    # ------------------------------------------------------------ fundición (noreste)
+    # ------------------------------------------------------------ smelter (northeast)
     def smelter(self):
         self.room(54, 68, 3, 12, 1, 6, FOUNDATION)
         self.room(58, 62, 13, 19, 1, 4, FOUNDATION)
         for x in (56, 59, 62, 65):
             self.s(x, 1, 3, S("blast_furnace", facing="south", lit=False), {"id": "minecraft:blast_furnace"})
             self.s(x, 2, 3, "bricks")
-        for x in range(55, 68):                                          # campana de ladrillo sobre los hornos
+        for x in range(55, 68):                                          # brick hood over the furnaces
             self.s(x, 4, 3, "bricks")
             self.s(x, 5, 3, "bricks")
             self.s(x, 4, 4, stair("brick", "north", "top"))
@@ -364,9 +364,9 @@ class Construction:
         self.sign(56, 2, 12, "north", "fundicion", [("Fundición", "Foundry"), ("Hierro y cobre", "Iron and copper"),
                                                     ("de Hondavena", "of Hondavena")])
 
-    # ------------------------------------------------------------ casas de los mineros (oeste)
+    # ------------------------------------------------------------ miners' houses (west)
     def facade(self, zd, half, side):
-        """x de la fachada (recta) para la casa de la fila zd, con porche hasta la caverna."""
+        """x of the (straight) facade for the house in row zd, with a porch to the cavern."""
         rows = range(zd - half, zd + half + 1)
         if side == "west":
             fx = min(self.boundary(z, "west") for z in rows) - 1
@@ -386,7 +386,7 @@ class Construction:
         fx = self.facade(zd, 3, "west")
         x1, x2 = fx - 7, fx - 1
         self.room(x1, x2, zd - 3, zd + 2, 1, 4, HOUSE)
-        for z in range(zd - 3, zd + 3):                       # fachada de ladrillo de piedra con puerta y ventana
+        for z in range(zd - 3, zd + 3):                       # stone brick facade with door and window
             for y in range(1, 5):
                 self.s(fx, y, z, SB)
         self.door(fx, 1, zd, "east", "left")
@@ -402,12 +402,12 @@ class Construction:
         self.s(x1 + 4, 1, zd + 2, slab("spruce", "top"))
         self.s(x1 + 5, 1, zd + 2, slab("spruce", "top"))
         self.s(x1 + 4, 2, zd + 2, S("flower_pot"))
-        if collapsed:                                        # techo hundido en la mitad del fondo
+        if collapsed:                                        # sunken ceiling in the back half
             for (x, z) in ((x1, zd + 2), (x1 + 1, zd + 2), (x1, zd + 1), (x1 + 1, zd + 1), (x1 + 2, zd + 2)):
                 self.ruin_set(x, 1, z, "gravel" if (x + z) % 2 else COB)
             self.ruin_set(x1, 2, zd + 2, "gravel")
             for (x, z) in ((x1, zd + 1), (x1 + 1, zd + 2)):
-                self.ruin_set(x, 5, z, "air")                 # el techo que cayó
+                self.ruin_set(x, 5, z, "air")                 # the ceiling that fell
                 self.carved[(x, 5, z)] = HOUSE
         return fx, x1, x2
 
@@ -419,7 +419,7 @@ class Construction:
         self.sign(self.facade_x[29] + 1, 3, 31, "east", "capataz", [("Casa del", "Foreman's"), ("capataz", "house")])
 
     def foreman_house(self, zd):
-        """Casa del capataz: más ancha; tras la estantería con palanca del muro oeste, su despacho (puzle 2)."""
+        """Foreman's house: wider; behind the bookshelf with a lever on the west wall, his office (puzzle 2)."""
         fx = self.facade(zd, 4, "west")
         self.facade_x = {zd: fx}
         x1, x2 = fx - 8, fx - 1
@@ -435,16 +435,16 @@ class Construction:
         self.chest(x2, 1, zd - 4, "south", "capataz")
         for x in range(x1 + 3, x1 + 6):
             self.s(x, 1, zd + 3, "bookshelf")
-        self.s(x1 + 4, 1, zd, slab("spruce", "top"))                     # mesa con dos sillas
+        self.s(x1 + 4, 1, zd, slab("spruce", "top"))                     # table with two chairs
         self.s(x1 + 4, 1, zd - 1, stair("spruce", "south"))
         self.s(x1 + 4, 1, zd + 1, stair("spruce", "north"))
         self.hang(x1 + 4, 4, zd - 2)
         self.hang(x1 + 4, 4, zd + 2)
-        # puerta secreta: en el muro oeste (de dos de grueso) un panel se recoge hacia el norte por dentro del muro; la
-        # palanca, en una estantería empotrada en el rincón (piezas.lever_door)
+        # secret door: in the west wall (two thick) a panel retracts to the north inside the wall; the
+        # lever, in a bookshelf set into the corner (pieces.lever_door)
         wall = x1 - 2
         rec = pieces.lever_door(self.s, (wall, 1, zd), "north", "east", SB, SB)
-        self.s(x1 - 1, 1, rec["lever"][2], "bookshelf")                 # el bloque de la palanca es una estantería
+        self.s(x1 - 1, 1, rec["lever"][2], "bookshelf")                 # the lever's block is a bookshelf
         for y in (1, 2):
             self.carved[(x1 - 1, y, zd)] = HOUSE
         self.mech["puerta_despacho"] = rec
@@ -465,7 +465,7 @@ class Construction:
         self.hidden += [(x, 1, z) for x in range(ox1, ox2 + 1) for z in range(zd - 2, zd + 3)]
         return fx, x1, x2
 
-    # ------------------------------------------------------------ herrería y carpintería (este)
+    # ------------------------------------------------------------ smithy and carpentry (east)
     def workshop(self, zd, key, tbl):
         fx = self.facade(zd, 3, "east")
         x1, x2 = fx + 1, fx + 7
@@ -499,7 +499,7 @@ class Construction:
         self.sign(x1, 3, 50, "east", "carpinteria", [("Carpintería", "Carpentry"), ("Entibos y", "Props and"),
                                                      ("traviesas", "sleepers")])
 
-    # ------------------------------------------------------------ lago subterráneo y embarcadero (sur)
+    # ------------------------------------------------------------ underground lake and jetty (south)
     def lake_and_dock(self):
         lx, lz, rx, rz = LAKE
         for x in range(lx - rx, lx + rx + 1):
@@ -509,7 +509,7 @@ class Construction:
                     self.carve(x, 0, z, HOST_ROCK)
                     for y in (-3, -2, -1):
                         self.carve(x, y, z, ("gravel" if h(x, z, 5) < 0.5 else "sand", "roca", "roca"), "water")
-        # el muelle: tablas a ras del suelo, pilotes hasta el fondo
+        # the dock: planks flush with the floor, piles down to the bottom
         for x in (43, 44, 45):
             for z in range(43, 50):
                 if (x, z) in self.lake:
@@ -522,14 +522,14 @@ class Construction:
         for x in (43, 45):
             self.s(x, 1, 49, "spruce_fence")
             self.stand(x, 2, 49)
-        self.ruin_set(45, 0, 47, "air")                                  # una tabla suelta
+        self.ruin_set(45, 0, 47, "air")                                  # a loose plank
         self.carved[(45, 0, 47)] = HOST_ROCK
         self.chest(43, 1, 43, "east", "embarcadero")
         self.barrel(45, 1, 43)
         self.t.entity(47, -1, 47, {"id": "minecraft:oak_boat", "PersistenceRequired": B(1)})
         self.mech["barca"] = (47, -1, 47)
         self.sign_post(44, 1, 42, 8, "embarcadero", [("Embarcadero", "Landing"), ("Prohibido", "No swimming")])
-        # el cobertizo de las barcas en la orilla sur y, tras el tapiz, el alijo
+        # the boat shed on the south shore and, behind the tapestry, the stash
         self.room(40, 48, 58, 63, 1, 4, HOUSE)
         for x in range(42, 47):
             for z in range(self.cz_sur(x), 58):
@@ -541,7 +541,7 @@ class Construction:
         for x in (40, 48):
             self.f(x, 1, 59, x, 1, 61, S(SLOG, axis="z"))
         self.hang(44, 4, 61)
-        self.banner(44, 3, 63, "north", "blue")                         # tapiz que tapa el paso al alijo
+        self.banner(44, 3, 63, "north", "blue")                         # tapestry covering the passage to the stash
         for y in (1, 2):
             self.carve(44, y, 64, HOUSE)
         self.room(41, 47, 65, 69, 1, 3, HOUSE)
@@ -553,7 +553,7 @@ class Construction:
     def cz_sur(self, x):
         return max(z for (xx, z) in self.cavern if xx == x) + 1
 
-    # ------------------------------------------------------------ la sima y el puente colgante (este)
+    # ------------------------------------------------------------ the chasm and the suspension bridge (east)
     def chasm(self):
         x0, x1, z0, z1 = CHASM
         for x in range(x0, x1 + 1):
@@ -561,11 +561,11 @@ class Construction:
                 top = 8 - (1 if h(x, z, 11) < 0.3 else 0)
                 for y in range(F_CHASM, top + 1):
                     self.carve(x, y, z, HOST_ROCK)
-        for z in range(34, 39):                                          # cornisa desde la caverna
+        for z in range(34, 39):                                          # ledge from the cavern
             for x in range(self.boundary(z, "east") + 1, x0):
                 for y in range(1, 5):
                     self.carve(x, y, z, HOST_ROCK)
-        for x in range(x0, x1 + 1):                                      # el puente: 3 de ancho, barandillas
+        for x in range(x0, x1 + 1):                                      # the bridge: 3 wide, railings
             for z in (35, 36, 37):
                 self.s(x, 0, z, PL if z == 36 else S("spruce_slab", type="top", waterlogged=False))
             for z in (35, 37):
@@ -576,15 +576,15 @@ class Construction:
                     if not (x == x1 and z == 37):
                         for y in range(2, 9):
                             self.s(x, y, z, S("iron_chain", axis="y", waterlogged=False))
-        for (x, z) in ((x0 + 1, 35), (x0 + 3, 37)):                      # tablas y barandilla que faltan, fuera del paso
+        for (x, z) in ((x0 + 1, 35), (x0 + 3, 37)):                      # missing planks and railing, off the path
             self.ruin_set(x, 0, z, "air")
             self.ruin_set(x, 1, z, "air")
-        for y in range(F_CHASM, 2):                                       # escalera de mano al fondo
+        for y in range(F_CHASM, 2):                                       # ladder to the bottom
             self.s(x1, y, 38, S("ladder", facing="west", waterlogged=False))
         self.hang(73, 4, 36)
         self.sign(x0 - 1, 2, 34, "south", "sima", [("La Sima", "The Chasm"), ("Puente para", "Bridge for"),
                                                    ("uno a uno", "one at a time")])
-        # fondo de la sima: huesos de los que cayeron, generador de esqueletos y un cofre
+        # bottom of the chasm: bones of those who fell, skeleton spawner and a chest
         y = F_CHASM
         self.spawner(77, y, 29, "skeleton")
         self.chest(76, y, 45, "north", "sima")
@@ -593,17 +593,17 @@ class Construction:
         self.s(78, y, 42, S("skeleton_skull", rotation=4))
         for (x, z, yy) in ((75, 26, y + 2), (79, 46, y + 1), (79, 30, y + 3)):
             self.s(x, yy, z, "cobweb")
-        self.ruin_set(78, y, 44, "rail[shape=east_west,waterlogged=false]")   # una vía caída del puente
+        self.ruin_set(78, y, 44, "rail[shape=east_west,waterlogged=false]")   # a track fallen from the bridge
 
-    # ------------------------------------------------------------ cargadero: el puzle de las agujas (este)
+    # ------------------------------------------------------------ loading dock: the needle puzzle (east)
     def loading_dock(self):
         from . import tracks
-        self.room(80, 81, 35, 37, 1, 3, HOST_ROCK)                           # galería del puente al cargadero
+        self.room(80, 81, 35, 37, 1, 3, HOST_ROCK)                           # gallery from the bridge to the loading dock
         self.room(82, 100, 26, 46, 1, 6, HOST_ROCK)
         for x in (83, 88, 94, 99):                                       # entibos de madera
             for z in (26, 46):
                 self.f(x, 1, z, x, 5, z, S(LOG, axis="y"))
-        # trampa 1: cable trampa en la boca de la galería (ganchos en las jambas, dispensadores encima)
+        # trap 1: trap wire at the gallery mouth (hooks on the jambs, dispensers above)
         pieces.tripwire_trap(self.s, (81, 35), (81, 37), 1, "z", [((81, 2, 35), "south"), ((81, 2, 37), "north")],
                              arrows=16)
         self.mech["ganchos"] = [(81, 1, 35), (81, 1, 37)]
@@ -620,7 +620,7 @@ class Construction:
         self.hang(95, 6, 33)
         self.hang(86, 6, 30)
 
-    # ------------------------------------------------------------ el frente viejo (sureste): zombis y vetas
+    # ------------------------------------------------------------ the old face (southeast): zombies and veins
     def old_face(self):
         self.room(89, 91, 47, 59, 1, 3, HOST_ROCK)
         self.room(84, 100, 60, 72, 1, 5, HOST_ROCK)
@@ -644,9 +644,9 @@ class Construction:
         self.sign(92, 2, 46, "north", "frente", [("Frente viejo", "Old face"), ("Cerrado por", "Closed after"),
                                                  ("el derrumbe", "the collapse")])
 
-    # ------------------------------------------------------------ el filón madre (bajo el cargadero)
+    # ------------------------------------------------------------ the mother lode (under the loading dock)
     def mother_lode(self):
-        # paso tras la compuerta y escalera de 11 peldaños hacia el norte
+        # passage behind the hatch and a staircase of 11 steps heading north
         for x in (91, 92, 93):
             self.carve(x, 1, 23, CONSTRUCTION)
             self.carve(x, 2, 23, CONSTRUCTION)
@@ -658,9 +658,9 @@ class Construction:
                 for yy in range(y + 1, y + 5):
                     self.carve(x, yy, z, CONSTRUCTION)
         self.room(84, 101, 1, 11, -10, -3, DEEP)
-        self.room(80, 83, 4, 8, -10, -6, DEEP)                          # cámara del tesoro, al oeste
+        self.room(80, 83, 4, 8, -10, -6, DEEP)                          # treasure chamber, to the west
         y = F_DEEP
-        # el filón: vetas de oro y una columna de oro en bruto en el centro
+        # the lode: gold veins and a column of raw gold in the center
         for yy in range(y, y + 4):
             for (x, z) in ((92, 6), (93, 6), (92, 7)):
                 self.s(x, yy, z, "raw_gold_block" if (x + yy) % 2 else "deepslate_gold_ore")
@@ -685,7 +685,7 @@ class Construction:
 
     # ------------------------------------------------------------ sector derrumbado e inundado (suroeste)
     def collapsed_sector(self):
-        # galería vieja: de la esquina suroeste de la caverna hacia el oeste
+        # old gallery: from the southwest corner of the cavern heading west
         for z in range(52, 59):
             for x in (24, 25, 26):
                 if (x, z) not in self.cavern:
@@ -700,21 +700,21 @@ class Construction:
                 if not (x == 17 and z == 60):
                     self.s(x, 3, z, S(LOG, axis="z"))
                     self.carved.pop((x, 3, z), None)
-        self.ruin_set(17, 1, 60, S(LOG, axis="x"))                      # el entibo caído
+        self.ruin_set(17, 1, 60, S(LOG, axis="x"))                      # the fallen timbering
         for x in range(9, 26):
             if x not in (14, 15, 20):
                 self.rail(x, 1, 59, "east_west")
         for (x, z) in ((14, 58), (15, 58), (14, 60), (15, 60), (16, 58)):
-            self.ruin_set(x, 1, z, "gravel")                             # el derrumbe: deja un paso por el centro
+            self.ruin_set(x, 1, z, "gravel")                             # the cave-in: leaves a passage through the center
         self.ruin_set(14, 2, 58, "gravel")
         for (x, y, z) in ((10, 3, 58), (19, 3, 60), (23, 2, 58)):
             self.s(x, y, z, "cobweb")
-        # trampa 2: la carga olvidada (placa sobre dinamita), con baldosas agrietadas de aviso
+        # trap 2: the forgotten charge (plate over dynamite), with cracked tiles as a warning
         pieces.tnt_trap(self.s, 21, 1, 59, warn=[(20, 0, 59), (22, 0, 59)])
         self.carved.pop((21, 1, 59), None)
         self.mech["placa_tnt"] = (21, 1, 59)
         self.mech["tnt"] = (21, -1, 59)
-        # el derrumbe: cámara con arañas de cueva
+        # the cave-in: chamber with cave spiders
         self.room(1, 7, 51, 57, 1, 4, HOST_ROCK)
         self.spawner(3, 1, 53, "cave_spider")
         self.chest(7, 1, 51, "south", "derrumbe")
@@ -722,7 +722,7 @@ class Construction:
             self.s(x, y, z, "cobweb")
         for (x, z) in ((1, 57), (2, 57), (1, 56)):
             self.ruin_set(x, 1, z, "gravel")
-        # bajada al sector inundado (6 peldaños hacia el sur) y la galería anegada
+        # descent to the flooded sector (6 steps heading south) and the waterlogged gallery
         for k in range(6):
             z, y = 61 + k, -k
             for x in (9, 10):
@@ -734,7 +734,7 @@ class Construction:
             for z in range(67, 77):
                 for y in (-8, -7, -6):
                     self.carve(x, y, z, ("gravel", "roca", "roca"), "water")
-        for x in range(4, 17):                                           # pasarela de tablas sobre el agua
+        for x in range(4, 17):                                           # plank walkway over the water
             for z in (67, 68):
                 if not (x in (13, 14) and z == 68):
                     self.s(x, -6, z, PL)
@@ -751,7 +751,7 @@ class Construction:
 
     # ------------------------------------------------------------ mobiliario dentro de muros
     def furnish(self):
-        """Vetas de mineral en los muros del frente viejo y del filón (a la vista, como en una mina en uso)."""
+        """Ore veins in the walls of the old face and the lode (in view, as in a mine in use)."""
         veins = [("coal_ore", 0.35), ("iron_ore", 0.25), ("copper_ore", 0.2), ("gold_ore", 0.08),
                  ("redstone_ore", 0.07), ("lapis_ore", 0.05)]
         for (x, y, z), (st, _) in list(self.t.blocks.items()):
@@ -773,9 +773,9 @@ class Construction:
                 self.s(x, y, z, "deepslate_gold_ore" if h(x, y, z, 24) < 0.5 else "deepslate_iron_ore")
 
 
-# ------------------------------------------------------------------ guardián
+# ------------------------------------------------------------------ guardian
 def foreman():
-    """Tizón, el último capataz: un vindicador (su hacha la pone el juego) con casco de minero y mandil de cuero."""
+    """Tizón, the last foreman: a vindicator (the game provides his axe) with a miner's helmet and leather apron."""
     return guardian("vindicator", K + "guardian", "Tizón, el último capataz", 70, armor=6,
                     equipment={"head": {"id": "minecraft:iron_helmet", "count": 1},
                                "chest": {"id": "minecraft:leather_chestplate", "count": 1,

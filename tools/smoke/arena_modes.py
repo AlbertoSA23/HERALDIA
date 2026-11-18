@@ -1,24 +1,24 @@
-"""Modos de la arena, clasificación semanal y salón de la fama (T41, Java: arena/Fama, Temporada, Semana, Modo) en un
-servidor dedicado 26.3 real, con un jugador simulado (Carpet).
+"""Arena modes, weekly leaderboard and hall of fame (T41, Java: arena/Fama, Temporada, Semana, Modo) on a real
+26.3 dedicated server, with a simulated player (Carpet).
 
-Uso: python3 tools/smoke/arena_modes.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-arena-modos"
-Primer arranque (mundo nuevo con la arena desactivada, como un mundo de antes con récords en el marcador):
-  1. migración: con la arena desactivada se crea el marcador vanilla heraldia_arena con récords (como lo dejaba la
-     arena de antes de T41); al activarla con /heraldia reload, el mejor pasa a ser el récord del cooperativo;
-  2. /heraldia arena place y confirm: los tres carteles del salón de la fama (madera carmesí) en su sitio del plano, con
-     «sin campeón»; se quita uno y se pone piedra en otro (como una arena colocada antes de T41 y un sitio ocupado);
-  3. la campana ofrece los tres modos; contrarreloj corto (arena.modos.oleadas_contrarreloj = 2): acaba solo al superar
-     la segunda oleada, apunta la marca (puesto 1 y récord del modo, anunciado) y no da el logro (pide 10 oleadas);
-  4. supervivencia corta: la oleada siguiente empieza sin pausa; el jugador cae en la tercera y su marca (2 oleadas)
-     queda apuntada;
-  5. /heraldia arena leaderboard: cada modo con su marca y el récord migrado; una semana que no se guarda falla;
-  6. /heraldia arena season reset: cierra la semana, anuncia los campeones, les da su logro, el cartel quitado vuelve,
-     el ocupado no se toca y los demás dicen el campeón; la semana pasada se consulta con leaderboard <modo> 1; la
-     Guía trae el salón de la fama; otro contrarreloj para la semana nueva.
-Segundo arranque (el mismo mundo, con el día de reinicio cambiado a hoy: el reinicio pasó con el servidor apagado):
-  la semana se cierra al arrancar con su campeón, el histórico tiene las dos semanas, el récord migrado sigue, el cartel
-  dice el campeón y los logros siguen.
-Lo que el servidor escribe en la consola sale en inglés (el servidor dedicado carga el en_us del mod).
+Usage: python3 tools/smoke/arena_modes.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-arena-modos"
+First start (new world with the arena disabled, like a world from before with records on the scoreboard):
+  1. migration: with the arena disabled the vanilla heraldia_arena scoreboard is created with records (as the
+     pre-T41 arena left it); when enabled with /heraldia reload, the best becomes the cooperative record;
+  2. /heraldia arena place and confirm: the three hall of fame signs (crimson wood) in their place in the plan, with
+     "sin campeón"; one is removed and stone is placed at another (like an arena placed before T41 and an occupied spot);
+  3. the bell offers the three modes; short time attack (arena.modos.oleadas_contrarreloj = 2): ends by itself on clearing
+     the second wave, records the mark (rank 1 and mode record, announced) and gives no advancement (it asks for 10 waves);
+  4. short survival: the next wave starts without a pause; the player falls in the third and their mark (2 waves)
+     is recorded;
+  5. /heraldia arena leaderboard: each mode with its mark and the migrated record; a week that is not saved fails;
+  6. /heraldia arena season reset: closes the week, announces the champions, gives them their advancement, the removed sign comes back,
+     the occupied one is not touched and the others show the champion; last week is queried with leaderboard <mode> 1; the
+     Guide includes the hall of fame; another time attack for the new week.
+Second start (same world, with the reset day changed to today: the reset happened while the server was off):
+  the week closes on startup with its champion, the history has both weeks, the migrated record remains, the sign
+  shows the champion and the advancements remain.
+What the server writes to the console is in English (the dedicated server loads the mod's en_us).
 """
 import argparse, datetime, json, os, re, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -62,7 +62,7 @@ def main():
         srv.stop()
         texts.append(srv.ctx.log())
     if box:
-        config(a.work, True, TODAY)              # el día de reinicio pasa a ser hoy: el reinicio «pasó» con el servidor apagado
+        config(a.work, True, TODAY)              # the reset day becomes today: the reset "happened" while the server was off
         srv = Server(a.work, launcher)
         try:
             second_start(Test(srv.ctx, fails), pl, box)
@@ -71,19 +71,19 @@ def main():
             texts.append(srv.ctx.log())
     for bad in ("Registry loading errors", "Failed to load datapacks", "at io.github.albertosa23", "arena: mob "):
         if any(bad in t for t in texts):
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     print("ARENA MODOS:", "OK" if not fails else fails)
     return 1 if fails else 0
 
 
 def sign(ctx, pos, line):
-    """El texto (SNBT) de la línea `linea` (0-3) del cartel de `pos`, o None si no es un cartel."""
+    """The text (SNBT) of line `line` (0-3) of the sign at `pos`, or None if it is not a sign."""
     m = ctx.run(f"data get block {pos[0]} {pos[1]} {pos[2]} front_text.messages[{line}]", SIGN)
     return m.group(1) if m.lastindex and m.group(1) else None
 
 
 def clean_up(p, n, times, timeout=180):
-    """Mata (a nombre del jugador) a los enemigos de la oleada n hasta que se supere por `veces`-ésima vez en el log."""
+    """Kills (in the player's name) the enemies of wave n until it is cleared for the `times`-th time in the log."""
     ctx = p.ctx
     end = time.monotonic() + timeout
     while time.monotonic() < end:
@@ -98,7 +98,7 @@ def clean_up(p, n, times, timeout=180):
 
 
 def hour(log, pattern, times=1):
-    """Segundos del día de la `veces`-ésima línea del log con `patron` ([HH:MM:SS] de su principio), o None."""
+    """Seconds of the day of the `times`-th log line with `pattern` ([HH:MM:SS] at its start), or None."""
     ls = [l for l in log.splitlines() if re.search(pattern, l)]
     if len(ls) < times:
         return None
@@ -116,7 +116,7 @@ def begin(p, mode, in_ring):
 
 def first_start(p, pl, work):
     ctx = p.ctx
-    # 1. migración del marcador vanilla de antes de T41
+    # 1. migration of the pre-T41 vanilla scoreboard
     p.check(p.wait_log(r"arena: desactivada", timeout=60), "la arena no arranca desactivada")
     ctx.run("scoreboard objectives add heraldia_arena dummy", r"Created new objective|already exists")
     for name, n in (("Veterano", 7), ("Otra", 3), ("-servidor-", 7)):
@@ -128,7 +128,7 @@ def first_start(p, pl, work):
     for rule in ("spawn_mobs", "advance_time"):
         ctx.run(f"gamerule {rule} false", rf"[Gg]ame ?rule .*{rule}")
     ctx.run("difficulty normal", r"difficulty|Difficulty")
-    # 2. la arena con sus carteles
+    # 2. the arena with its signs
     ctx.run("heraldia arena place", r"arena: sitio propuesto en")
     ctx.run("heraldia arena place confirm", r"Colocando la arena en|Building the arena at")
     m = p.wait_log(r"arena: colocada en (-?\d+) (-?\d+) (-?\d+) \(caja (-?\d+) (-?\d+) (-?\d+) a (-?\d+) (-?\d+) (-?\d+)\)")
@@ -145,18 +145,18 @@ def first_start(p, pl, work):
     p.check("heraldia.arena.cartel.nadie" in (sign(ctx, fame[0], 2) or ""), "el cartel no dice «sin campeón»")
     p.check("heraldia.arena.modo.coop" in (sign(ctx, fame[0], 1) or ""), "el primer cartel no es el del cooperativo")
     p.check("heraldia.arena.modo.timeattack" in (sign(ctx, fame[1], 1) or ""), "el segundo cartel no es el del contrarreloj")
-    # como una arena de antes de T41 (sin su cartel) y un sitio ocupado
+    # like a pre-T41 arena (without its sign) and an occupied spot
     ctx.run(f"setblock {fame[0][0]} {fame[0][1]} {fame[0][2]} minecraft:air", r"Changed the block")
     ctx.run(f"setblock {fame[2][0]} {fame[2][1]} {fame[2][2]} minecraft:stone", r"Changed the block")
     m = ctx.run("heraldia arena leaderboard", r"Arena leaderboard, week of ([\d/]+) \(current\)|Clasificación de la arena")
     p.check(p.wait_log(r"Record: Veterano, wave 7"), "la clasificación no enseña el récord migrado")
     p.check(p.wait_log(r"No results yet"), "la clasificación vacía no lo dice")
 
-    # 3. contrarreloj corto: la campana ofrece los modos
+    # 3. short time attack: the bell offers the modes
     reap, bell = rel(box, pl, "reaparicion"), rel(box, pl, "campana")
     ctx.run(f"player {P} spawn at {reap[0] + 0.5} {reap[1]} {reap[2] + 0.5}", r"joined the game|Player .* spawn|Unknown|Incorrect")
     if not ctx.until(f"execute if entity @a[name={P}]"):
-        raise SystemExit(f"no aparece el jugador simulado {P} (Carpet)")
+        raise SystemExit(f"simulated player {P} does not appear (Carpet)")
     ctx.run(f"gamemode survival {P}", r"Set .* game mode|game mode")
     ctx.run(f"tp {P} {bell[0] + 0.5} {bell[1]} {bell[2] - 1.5}", r"Teleported")
     s.send(ctx.proc, f"player {P} look at {bell[0] + 0.5} {bell[1] + 0.4} {bell[2] + 0.5}")
@@ -187,7 +187,7 @@ def first_start(p, pl, work):
     p.check(ctx.test(f"execute if entity @a[name={P},advancements={{heraldia:arena/contrarreloj=false}}]"),
             "un contrarreloj de 2 oleadas da el logro (pide 10)")
 
-    # 4. supervivencia corta: sin pausa entre oleadas; cae en la tercera
+    # 4. short survival: no pause between waves; it falls in the third
     if not p.check(begin(p, "survival", center), "no empieza la supervivencia"):
         return box
     p.check(p.wait_times(r"arena: oleada 1: 4 enemigos", 2, timeout=60), "la supervivencia no empieza")
@@ -208,7 +208,7 @@ def first_start(p, pl, work):
     ctx.run(f"player {P} spawn at {reap[0] + 0.5} {reap[1]} {reap[2] + 0.5}", r"joined the game|Player .* spawn|Unknown|Incorrect")
     ctx.until(f"execute if entity @a[name={P}]")
 
-    # 5. la clasificación
+    # 5. the leaderboard
     before = len(ctx.log())
     ctx.run("heraldia arena leaderboard timeattack", r"Arena leaderboard, week of")
     ctx.run("heraldia arena leaderboard survival", r"Arena leaderboard, week of")
@@ -242,12 +242,12 @@ def first_start(p, pl, work):
     new_item = ctx.log()[before:]
     p.check(re.search(rf"1\. {P}: \d+:\d\d", new_item) and "No results yet" in new_item,
             "la semana cerrada no tiene la marca o la nueva no está vacía")
-    # la Guía con el salón de la fama
+    # the Guide with the hall of fame
     ctx.run(f"execute as {P} run heraldia guide", r"Guide|Guía|guide")
     inv = ctx.run(f"data get entity {P} Inventory", r"has the following entity data: (.*)|No entity").group(1) or ""
     p.check("heraldia.guia.fama.titulo" in inv and "heraldia.guia.fama.semana" in inv and P in inv,
             "la Guía no trae el salón de la fama con el campeón")
-    # otro contrarreloj para la semana nueva (la que cerrará el segundo arranque)
+    # another time attack for the new week (the one the second start will close)
     if p.check(begin(p, "timeattack", center), "no empieza el segundo contrarreloj"):
         p.check(p.wait_times(r"arena: oleada 1: 4 enemigos", 3, timeout=60), "el segundo contrarreloj no empieza")
         clean_up(p, 1, 3)
@@ -278,7 +278,7 @@ def second_start(p, pl, box):
     p.check(ctx.until(f"execute if block {fame[1][0]} {fame[1][1]} {fame[1][2]} minecraft:crimson_sign", timeout=60),
             "tras reiniciar no está el cartel")
     ok = False
-    for _ in range(90):                           # los carteles se ponen al día cuando su chunk está cargado (cada minuto)
+    for _ in range(90):                           # the signs are updated when their chunk is loaded (every minute)
         if P in (sign(ctx, fame[1], 2) or ""):
             ok = True
             break

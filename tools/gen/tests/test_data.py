@@ -1,4 +1,4 @@
-"""logros.py, tratos.py, mapas.py y opciones.py: los datos que salen del registro de únicas y de los estilos."""
+"""logros.py, tratos.py, mapas.py and opciones.py: the data that comes from the registry of unique structures and styles."""
 import pytest
 import advancements, trades, maps, options
 import uniques
@@ -36,7 +36,7 @@ def test_advancements_per_unique_and_challenges(tree):
     advs, _ = tree
     for sid, m in MODS:
         assert f"unicas/{sid}/descubrir" in advs
-        assert f"unicas/{sid}/guardian" not in advs          # sin plantillas no hay guardianes
+        assert f"unicas/{sid}/guardian" not in advs          # without templates there are no guardians
     assert set(advs["unicas/trofeos"]["criteria"]) == {s for s, _ in MODS}
     assert set(advs["unicas/cronista"]["criteria"]) == {s for s, _ in MODS}
     assert set(advs["aldeas/todas"]["criteria"]) == set(FAMILIES)
@@ -123,7 +123,7 @@ def test_options_schema():
         assert o["seccion"] in sections_list
         if isinstance(o["defecto"], bool):
             assert "min" not in o
-        elif isinstance(o["defecto"], str):        # opción de lista
+        elif isinstance(o["defecto"], str):        # list option
             assert "min" not in o and o["defecto"] in o["valores"], o["clave"]
         else:
             assert o["min"] <= o["defecto"] <= o["max"], o["clave"]
@@ -142,5 +142,5 @@ def test_options_texts_complete():
 
 
 def test_option_without_section_fails():
-    with pytest.raises(ValueError, match="sin sección"):
+    with pytest.raises(ValueError, match="has no section"):
         options._section("inventada.algo")

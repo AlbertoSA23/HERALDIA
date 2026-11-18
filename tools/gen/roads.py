@@ -1,9 +1,9 @@
-"""Caminos entre aldeas (aldeas.caminos.*): el rasgo heraldia:camino y los textos de sus carteles.
+"""Roads between villages (aldeas.caminos.*): the heraldia:camino feature and the texts of its signs.
 
-El trazado y la colocación son Java (caminos/Trazado.java y caminos/CaminoFeature.java): un rasgo que el mod añade a
-todos los biomas del mundo principal (Fabric BiomeModifications, paso de decoración STRONGHOLDS) si la opción está
-activada. Aquí solo van los datos que el registro necesita: el rasgo (worldgen/feature) y su colocación sin
-modificadores (worldgen/placed_feature: una vez por chunk, en su esquina), más los textos de la distancia del cartel.
+The layout and placement are Java (caminos/Trazado.java and caminos/CaminoFeature.java): a feature that the mod adds to
+all the biomes of the overworld (Fabric BiomeModifications, decoration step STRONGHOLDS) if the option is
+enabled. Only the data that the registry needs goes here: the feature (worldgen/feature) and its placement without
+modifiers (worldgen/placed_feature: once per chunk, at its corner), plus the texts of the sign's distance.
 """
 from core import NS
 
@@ -30,7 +30,7 @@ def placed_feature():
 
 
 def write(out, jdump):
-    """Escribe el rasgo y su colocación; devuelve los textos por idioma."""
+    """Writes the feature and its placement; returns the texts per language."""
     jdump(out, f"data/{NS}/worldgen/feature/camino.json", feature())
     jdump(out, f"data/{NS}/worldgen/placed_feature/camino.json", placed_feature())
     return LANG

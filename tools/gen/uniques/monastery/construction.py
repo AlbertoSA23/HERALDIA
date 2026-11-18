@@ -1,6 +1,6 @@
-"""Monasterio de montaña: construcción de la plantilla única (macizo de roca, terrazas, edificios y cuevas).
+"""Mountain monastery: construction of the unique template (rock massif, terraces, buildings and caves).
 
-Coordenadas de plantilla: x 0..58, z 0..91 (la entrada en z = 0; se sube hacia z creciente), y 0..~70.
+Template coordinates: x 0..58, z 0..91 (entrance at z = 0; it climbs towards increasing z), y 0..~70.
 """
 import random
 from core import Template, villager, B
@@ -8,10 +8,10 @@ from .._common import pieces
 
 ID = "monasterio"
 P = f"heraldia:unicas/{ID}/"
-F0, F1, F2 = 24, 30, 36          # suelos de las terrazas (bloque de suelo; los pies van en +1)
-CAVE, DEEP = 13, 5               # suelo de las cuevas y del relicario
+F0, F1, F2 = 24, 30, 36          # terrace floors (floor block; the feet go at +1)
+CAVE, DEEP = 13, 5               # floor of the caves and the reliquary
 XMAX, ZMAX = 58, 91
-AIRH = 16                        # aire explícito sobre cada terraza (corta la ladera)
+AIRH = 16                        # explicit air above each terrace (cuts the slope)
 RECTS = [(25, 33, 0, 5, F0), (4, 54, 6, 27, F0), (4, 54, 28, 49, F1), (2, 56, 50, 87, F2)]
 
 # materiales
@@ -48,9 +48,9 @@ class Construction(Template):
         self.rng = random.Random(1187)
         self.ruins = []          # (x0, z0, x1, z1) huella en ruinas
         self.footprint = []          # (x0, z0, x1, z1) huella construida
-        self.open_items = {}        # pos -> estado en la vista de auditoría (puertas secretas abiertas)
+        self.open_items = {}        # pos -> state in the audit view (secret doors open)
         self.chest_list = []          # (pos, tabla)
-        self.circuits = {}       # nombre -> dict de componentes para la comprobación de redstone
+        self.circuits = {}       # name -> dict of components for the redstone check
         self.top = {}
 
     # ------------------------------------------------------------ utilidades
@@ -94,7 +94,7 @@ class Construction(Template):
         pieces.spawner(self.set, x, y, z, mob, light=11)
 
     def gable_z(self, x1, x2, z1, z2, y0, end=SB):
-        """Tejado a dos aguas con la cumbrera a lo largo de z; aleros de 1 bloque. Rellena los hastiales."""
+        """Gabled roof with the ridge running along z; 1-block eaves. Fills in the gables."""
         w = x2 - x1 + 3
         for i in range((w + 1) // 2):
             xa, xb, y = x1 - 1 + i, x2 + 1 - i, y0 + i
@@ -173,7 +173,7 @@ class Construction(Template):
                 for y in range(0, ht):
                     self.blocks[(x, y, z)] = ("minecraft:" + rock(x, y, z), None)
                 self.set(x, ht, z, "grass_block[snowy=false]" if h3(x, 1, z) % 4 else "coarse_dirt")
-        # caras de sillería hacia las terrazas más bajas, con contrafuertes
+        # ashlar faces towards the lower terraces, with buttresses
         for (x, z), h in top.items():
             for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                 hn = top.get((x + dx, z + dz))
@@ -182,13 +182,13 @@ class Construction(Template):
                         self.set(x, y, z, SB)
 
     def buttresses(self, z, xs, y0, y1, side):
-        """Contrafuertes delante de un muro de contención (side: hacia dónde sobresalen)."""
+        """Buttresses in front of a retaining wall (side: which way they project)."""
         dz = -1 if side == "north" else 1
         for x in xs:
             self.box(x, y0, z + dz, x, y1 - 1, z + dz, SB)
             self.set(x, y1, z + dz, stair(SBS, "south" if dz < 0 else "north"))
 
-    # ------------------------------------------------------------ camino y atrio (T0)
+    # ------------------------------------------------------------ road and atrium (T0)
     def road(self):
         for z in range(0, 6):
             for x in range(26, 33):
@@ -208,14 +208,14 @@ class Construction(Template):
             for x in (4, 54):
                 self.box(x, y, z, x, y + 1, z, SB)
                 self.set(x, y + 2, z, SBW)
-        # tramo caído del cementerio (ruina): muro bajo y piedras en el suelo
+        # fallen section of the cemetery (ruin): low wall and stones on the ground
         for z in range(11, 15):
             self.set(4, y + 2, z, "air")
             self.set(4, y + 1, z, "mossy_cobblestone" if z % 2 else "air")
         self.set(5, y, 12, "mossy_cobblestone")
         self.set(5, y, 13, f"{SBSL}[type=bottom,waterlogged=false]")
         self.ruins.append((4, 11, 5, 14))
-        for z in range(16, 20):                              # tramo caído de la cerca oriental
+        for z in range(16, 20):                              # fallen section of the eastern fence
             self.set(54, y + 2, z, "air")
             self.set(54, y + 1, z, "air" if z % 2 else "mossy_stone_bricks")
         self.set(53, y, 17, "mossy_cobblestone")
@@ -233,7 +233,7 @@ class Construction(Template):
         self.gable_x(x1, x2, z1, z2, y + 7)
         self.box(x1, y + 7, z1, x2, y + 7, z1, SB)
         self.box(x1, y + 7, z2, x2, y + 7, z2, SB)
-        for z in (z1, z2):                                   # arcos del paso
+        for z in (z1, z2):                                   # arches of the passage
             self.box(28, y + 1, z, 30, y + 4, z, "air")
             self.set(28, y + 4, z, stair(SBS, "west", "top"))
             self.set(30, y + 4, z, stair(SBS, "east", "top"))
@@ -242,7 +242,7 @@ class Construction(Template):
         self.box(28, y, z1, 30, y, z2, "cobblestone")
         self.hang(29, y + 6, 9)
         self.hang(29, y + 6, 11)
-        # portería (oeste)
+        # gatehouse (west)
         self.door(27, y + 1, 10, "east")
         self.bed(25, 12, y + 1, "west")
         self.chest(23, y + 1, 7, "east", "menor", "barrel")
@@ -253,7 +253,7 @@ class Construction(Template):
         self.hang(24, y + 6, 10)
         self.panes([(24, z1), (25, z1)], y + 2, y + 3)
         self.panes([(x1, 10)], y + 2, y + 3)
-        # sala de las limosnas (este)
+        # almonry (east)
         self.door(31, y + 1, 10, "west", hinge="right")
         for z in range(8, 12):
             self.set(35, y + 1, z, stair(PLS, "east"))
@@ -264,7 +264,7 @@ class Construction(Template):
         self.panes([(33, z1), (34, z1)], y + 2, y + 3)
         self.panes([(x2, 10)], y + 2, y + 3)
         self.set(33, y + 3, z2 - 1, "white_wall_banner[facing=north]")
-        # sala de limosnas: techo y cubierta hundidos (ruina); queda en pie el hastial
+        # almonry: ceiling and roof collapsed (ruin); the gable remains standing
         for x in range(32, 38):
             for z in range(z1 - 1, z2 + 2):
                 for yy in range(y + 7, y + 14):
@@ -293,7 +293,7 @@ class Construction(Template):
         self.flowers(21, 14, 37, 21, y, 0.12)
 
     def grand_stairs(self, xa, xb, z0, yb):
-        """Seis peldaños subiendo hacia +z, con zancas y pretil; el último queda a ras de la terraza alta."""
+        """Six steps climbing towards +z, with stringers and parapet; the last one is flush with the upper terrace."""
         for k in range(1, 7):
             z, ys = z0 + k - 1, yb + k
             for x in range(xa, xb + 1):
@@ -321,10 +321,10 @@ class Construction(Template):
                 self.set(gx, y + 1, gz, SBW)
                 if h3(gx, y, gz) % 3 == 0:
                     self.candle(gx, y + 1, gz + 2, 1, lit=False)
-        self.box(13, y + 1, 20, 13, y + 4, 20, TR)          # cruz del cementerio
+        self.box(13, y + 1, 20, 13, y + 4, 20, TR)          # cemetery cross
         self.set(12, y + 3, 20, TR)
         self.set(14, y + 3, 20, TR)
-        for x in range(9, 13):                                # muro caído
+        for x in range(9, 13):                                # fallen wall
             self.set(x, y + 1, z1, "air")
         self.set(10, y + 1, z1 + 1, "mossy_cobblestone")
         self.set(11, y + 1, z1 - 1, "cobblestone")
@@ -332,7 +332,7 @@ class Construction(Template):
         self.flowers(x1 + 1, z1 + 1, x2 - 1, z2 - 1, y, 0.06)
 
     def guesthouse(self):
-        """Hospedería en ruinas: sin tejado, muros mellados, escombros y un cofre entre ellos."""
+        """Ruined guesthouse: no roof, jagged walls, rubble and a chest among it."""
         y = F0
         x1, x2, z1, z2 = 38, 52, 15, 26
         self.ruins.append((x1, z1, x2, z2))
@@ -353,7 +353,7 @@ class Construction(Template):
         self.set(45, y + 3, 19, "air")
         for z in (17, 23):
             self.box(x2, y + 2, z, x2, y + 2, z, "air")
-        # escombros, vigas caídas y camas viejas
+        # rubble, fallen beams and old beds
         for x, z in ((40, 16), (41, 16), (40, 17), (49, 24), (51, 23), (47, 16), (43, 25)):
             self.set(x, y + 1, z, self.rng.choice(["cobblestone", "mossy_cobblestone", f"{SBSL}[type=bottom,waterlogged=false]"]))
         for x in range(46, 51):
@@ -376,7 +376,7 @@ class Construction(Template):
         for x in range(4, 55):
             if not 26 <= x <= 32:
                 self.set(x, y + 1, 28, SBW)
-        for x in (12, 20, 41):                                         # huecos de ruina en el pretil
+        for x in (12, 20, 41):                                         # ruin gaps in the parapet
             self.set(x, y + 1, 28, "air")
         for z in range(29, 44):                                        # paseo central
             for x in range(24, 35):
@@ -430,7 +430,7 @@ class Construction(Template):
         self.door(x2, yb + 1, 44, "east")
         self.panes([(x1, 43), (x1, 45)], yb + 2, yb + 2)
         self.gable_z(x1, x2, z1, z2, yb + 4, end=PL)
-        for x in range(x1 - 1, x2 + 2):                                 # media cubierta caída
+        for x in range(x1 - 1, x2 + 2):                                 # half of the roof fallen
             for z in range(z1 - 1, 44):
                 for yy in range(yb + 4, yb + 8):
                     if "deepslate" in (self.get(x, yy, z) or ""):
@@ -472,7 +472,7 @@ class Construction(Template):
         self.panes([(x1, z) for z in (32, 35, 42, 45)], y + 2, y + 4)
         self.panes([(x2, z) for z in (33, 37, 41, 45)], y + 2, y + 4)
         self.panes([(x, z1) for x in (38, 41, 44, 50)] + [(x, z2) for x in (38, 41, 44, 50)], y + 2, y + 4)
-        # mesa larga con bancos (respaldo hacia fuera) y mesa del abad
+        # long table with benches (backs outwards) and the abbot's table
         for z in range(33, 44):
             self.set(41, y + 1, z, f"{PLSL}[type=top,waterlogged=false]")
             self.set(40, y + 1, z, stair(PLS, "west"))
@@ -494,7 +494,7 @@ class Construction(Template):
             self.set(48, y + 1, z, "barrel[facing=up,open=false]")
         self.set(48, y + 1, 36, f"{PLSL}[type=top,waterlogged=false]")
         self.candle(48, y + 2, 36, 2)
-        # escalera a la bodega (baja hacia -z) con barandilla
+        # stairs to the cellar (going down towards -z) with railing
         for k in range(1, 7):
             z, ys = 46 - k, y - k
             for x in (50, 51):
@@ -534,13 +534,13 @@ class Construction(Template):
         self.chest(36, yb + 1, 39, "east", "bodega", "barrel")
         for x, z in ((38, 33), (46, 38), (42, 44), (49, 33)):
             self.hang(x, F1 - 1, z)
-        # rincón de la despensa secreta: trampilla tras dos pilas de cubas
+        # corner of the secret pantry: trapdoor behind two stacks of barrels
         self.box(46, yb + 1, 31, 46, yb + 2, 33, "barrel[facing=up,open=false]")
         self.box(43, yb + 1, 33, 45, yb + 1, 33, "barrel[facing=up,open=false]")
         self.set(44, yb + 1, 31, "spruce_trapdoor[facing=south,half=bottom,open=false,powered=false,waterlogged=false]")
         self.open_items[(44, yb + 1, 31)] = "minecraft:spruce_trapdoor[facing=south,half=bottom,open=true,powered=false,waterlogged=false]"
         self.box(44, 19, 31, 44, yb, 31, "ladder[facing=east,waterlogged=false]")
-        # despensa del cillerero (sala oculta)
+        # cellarer's pantry (hidden room)
         dx1, dx2, dz1, dz2, fy = 43, 50, 30, 35, 18
         self.box(dx1, fy, dz1, dx2, fy + 5, dz2, SB)
         self.box(dx1 + 1, fy + 1, dz1 + 1, dx2 - 1, fy + 4, dz2 - 1, "air")
@@ -553,7 +553,7 @@ class Construction(Template):
         self.candle(48, fy + 2, 34, 2)
         self.set(46, fy + 4, 33, "lantern[hanging=true,waterlogged=false]")
 
-    # ------------------------------------------------------------ T2: claustro, dormitorio, biblioteca, capítulo
+    # ------------------------------------------------------------ T2: cloister, dormitory, library, chapter house
     def t2(self):
         y = F2
         for z in range(72, 88):
@@ -583,7 +583,7 @@ class Construction(Template):
         for z in range(z1, z2 + 1):
             for x in (x1, x2):
                 self.set(x, y + 8, z, SBW)
-        ax1, ax2, az1, az2 = 18, 40, 54, 67           # línea de la arquería
+        ax1, ax2, az1, az2 = 18, 40, 54, 67           # line of the arcade
         for x in range(x1 + 1, x2):
             for z in range(z1 + 1, z2):
                 inner = ax1 < x < ax2 and az1 < z < az2
@@ -592,7 +592,7 @@ class Construction(Template):
                     continue
                 self.set(x, y + 6, z, PL)
                 self.set(x, y + 7, z, f"{RSL}[type=bottom,waterlogged=false]")
-        # arquería: columnas, arcos, pretil y dintel
+        # arcade: columns, arches, parapet and lintel
         def arcade_line(cells, along_x, gap):
             for i, (x, z) in enumerate(cells):
                 self.set(x, y + 5, z, SB)
@@ -624,7 +624,7 @@ class Construction(Template):
         for x, z in ((17, 56), (17, 62), (41, 56), (41, 62), (24, 53), (34, 53), (24, 68), (34, 68), (16, 52), (42, 52),
                      (42, 69)):
             self.hang(x, y + 5, z)
-        # puertas: entrada sur (desde T1), iglesia (norte), dormitorio y biblioteca
+        # doors: south entrance (from T1), church (north), dormitory and library
         self.box(28, y + 1, z1, 30, y + 3, z1, "air")
         self.set(28, y + 3, z1, stair(SBS, "west", "top"))
         self.set(30, y + 3, z1, stair(SBS, "east", "top"))
@@ -632,7 +632,7 @@ class Construction(Template):
         self.door(29, y + 1, z2, "north")
         self.door(x2, y + 1, 52, "east")
         self.door(x1, y + 1, 57, "west")
-        # jardín: caminos, pozo cubierto, flores y arbustos
+        # garden: paths, covered well, flowers and bushes
         for z in range(az1 + 1, az2):
             self.set(29, y, z, "dirt_path")
         for x in range(ax1 + 1, ax2):
@@ -649,7 +649,7 @@ class Construction(Template):
         for x, z in ((21, 57), (37, 57), (21, 65), (37, 65)):
             self.set(x, y + 1, z, "azalea")
         self.flowers(ax1 + 1, az1 + 1, ax2 - 1, az2 - 1, y, 0.14)
-        # esquina noroeste hundida: sin cubierta y con escombros (queda un paso libre)
+        # sunken north-west corner: no roof and with rubble (one free passage remains)
         for x in range(x1 + 1, ax1 + 1):
             for z in range(64, z2):
                 self.set(x, y + 6, z, "air")
@@ -669,12 +669,12 @@ class Construction(Template):
         self.box(x1, y, z1, x2, y, z2, PL)
         self.walls(x1, z1, x2, z2, y + 1, y + 8, SB, corner=TR)
         self.box(x1 + 1, y + 1, 62, x2 - 1, y + 8, 62, SB)
-        self.door(x2, y + 1, 57, "west")                               # puerta desde el claustro
-        self.box(x1 + 1, y + 7, z1 + 1, x2 - 1, y + 7, z2 - 1, PL)     # techo / suelo del desván
+        self.door(x2, y + 1, 57, "west")                               # door from the cloister
+        self.box(x1 + 1, y + 7, z1 + 1, x2 - 1, y + 7, z2 - 1, PL)     # ceiling / floor of the loft
         self.gable_z(x1, x2, z1, z2, y + 9)
         self.box(x1 + 1, y + 9, z1, x2 - 1, y + 9, z1, SB)
         self.box(x1 + 1, y + 9, z2, x2 - 1, y + 9, z2, SB)
-        for x in range(x1 + 1, x2):                                   # tabique del desván, bajo la cubierta
+        for x in range(x1 + 1, x2):                                   # partition of the loft, under the roof
             self.box(x, y + 8, 62, x, y + 8 + min(x - x1, x2 - x), 62, SB)
         # biblioteca
         for z in range(52, 60):
@@ -698,9 +698,9 @@ class Construction(Template):
         self.chest(12, y + 1, 52, "south", "biblioteca")
         for x, z in ((6, 54), (10, 54), (6, 59), (10, 59)):
             self.hang(x, y + 6, z)
-        # hueco tras la estantería del rincón: escala oculta al escritorio del desván
+        # gap behind the corner bookshelf: hidden ladder to the loft desk
         self.box(3, y + 1, 61, 3, y + 7, 61, "ladder[facing=east,waterlogged=false]")
-        self.box(5, y + 1, 60, 5, y + 3, 60, "bookshelf")              # pantalla que tapa el rincón
+        self.box(5, y + 1, 60, 5, y + 3, 60, "bookshelf")              # screen that covers the corner
         # escritorio oculto bajo cubierta (z 51..61)
         for x in range(5, 12):
             self.set(x, y + 8, 52, PL if x in (5, 11) else f"{PLSL}[type=top,waterlogged=false]")
@@ -728,7 +728,7 @@ class Construction(Template):
         self.set(8, y + 2, 70, stair(SBS, "south"))
         self.set(8, y + 4, 70, "white_wall_banner[facing=north]")
         self.hang(11, y + 6, 66)
-        # media cubierta caída sobre la sala capitular
+        # half of the roof fallen over the chapter room
         for x in range(x1 - 1, 9):
             for z in range(66, z2 + 2):
                 for yy in range(y + 7, y + 17):
@@ -747,7 +747,7 @@ class Construction(Template):
         self.footprint.append((x1, z1, x2, z2))
         self.box(x1 + 1, y, z1, x2, y, z2, PL)
         self.walls(x1, z1, x2, z2, y + 1, y + 5, SB, corner=TR)
-        self.door(x1, y + 1, 52, "east")                               # puerta desde el claustro
+        self.door(x1, y + 1, 52, "east")                               # door from the cloister
         self.box(x1 + 1, y + 5, z1 + 1, x2 - 1, y + 5, z2 - 1, PL)
         self.gable_z(x1, x2, z1, z2, y + 6)
         self.box(x1 + 1, y + 6, z1, x2 - 1, y + 6, z1, SB)
@@ -780,7 +780,7 @@ class Construction(Template):
                 continue
             self.set(55, y + 1, zc + 2, "barrel[facing=up,open=false]")
             self.candle(55, y + 2, zc + 2, 1, lit=(i % 2 == 1))
-        # celda del prior (la primera del este): escritorio y cofre
+        # prior's cell (the first one on the east): desk and chest
         self.chest(55, y + 1, 53, "west", "oculto")
         self.chest(45, y + 1, 61, "east", "celda")
         self.chest(55, y + 1, 65, "west", "celda")
@@ -789,7 +789,7 @@ class Construction(Template):
         self.door(50, y + 1, z2, "north")
         self.box(49, y + 1, 51, 51, y + 4, 51, "air")
         self.box(45, y + 1, 51, 47, y + 4, 53, "air")
-        # dos celdas del norte (este) sin techo: cubierta hundida
+        # two cells on the north (east) with no roof: collapsed roof
         for x in range(52, x2 + 2):
             for z in range(62, z2 + 2):
                 for yy in range(y + 5, y + 14):
@@ -817,7 +817,7 @@ class Construction(Template):
         for x in range(12, 45, 8):
             self.box(x, y + 11, z1 + 1, x, y + 11, z2 - 1, "dark_oak_log[axis=z]")
             self.hang(x, y + 9, 79)
-        # columnas y arquerías longitudinales
+        # longitudinal columns and arcades
         for zc in (76, 82):
             for x in range(10, 39):
                 self.set(x, y + 10, zc, SB)
@@ -831,14 +831,14 @@ class Construction(Template):
                     self.set(x - 1, y + 9, zc, stair(SBS, "east", "top"))
             self.box(x1 + 1, y + 10, zc, 9, y + 10, zc, SB)
             self.box(39, y + 10, zc, x2 - 1, y + 10, zc, SB)
-        # bancos de la nave (miran al altar, respaldo al oeste)
+        # nave benches (facing the altar, backs to the west)
         for x in range(12, 35, 2):
             for z in (77, 78, 80, 81):
                 self.set(x, y + 1, z, stair(PLS, "west"))
         for x in range(36, 40):
             self.set(x, y + 1, 77, stair(PLS, "north"))
             self.set(x, y + 1, 81, stair(PLS, "south"))
-        # presbiterio elevado, altar y vidriera
+        # raised presbytery, altar and stained-glass window
         for z in range(z1 + 1, z2):
             self.set(40, y + 1, z, stair(SBS, "east"))
             for x in range(41, x2):
@@ -858,7 +858,7 @@ class Construction(Template):
             for z in (z1, z2):
                 self.panes([(x, z)], y + 3, y + 7, "white_stained_glass_pane")
                 self.set(x, y + 8, z, "white_stained_glass_pane")
-        # portada oeste y rosetón
+        # west portal and rose window
         self.box(x1, y + 1, 78, x1, y + 4, 80, "air")
         self.set(x1, y + 4, 78, stair(SBS, "north", "top"))
         self.set(x1, y + 4, 80, stair(SBS, "south", "top"))
@@ -869,12 +869,12 @@ class Construction(Template):
                 if r2 <= 10:
                     c = "red_stained_glass_pane" if r2 <= 1 else "blue_stained_glass_pane" if r2 <= 5 else "yellow_stained_glass_pane"
                     self.set(x1, y + 12 + dy, 79 + dz, c)
-        for z in range(76, 83):                                     # escalones de la explanada oeste
+        for z in range(76, 83):                                     # steps of the west esplanade
             self.set(x1 - 1, y, z, SB)
-        # puerta sur (desde el claustro)
+        # south door (from the cloister)
         self.door(29, y + 1, z1, "north")
         self.set(29, y + 3, z1, "chiseled_stone_bricks")
-        # escalera a la cripta (nave norte, baja hacia +x)
+        # stairs to the crypt (north aisle, going down towards +x)
         for k in range(1, 8):
             x, ys = 32 + k, y - k
             for z in (83, 84):
@@ -915,7 +915,7 @@ class Construction(Template):
         self.crypt_puzzle()
 
     def crypt_puzzle(self):
-        """Puzle 1: dos palancas encendidas (O) mantienen extendidos dos pistones pegajosos que sostienen la lápida."""
+        """Puzzle 1: two lit levers (O) keep two sticky pistons extended that hold up the gravestone."""
         y = 30
         xd, zc, zm, zp = 41, 73, 72, 71
         for x in range(39, 49):
@@ -923,7 +923,7 @@ class Construction(Template):
                 self.set(x, yy, zm, DS)
                 self.set(x, yy, zp, DS)
         self.box(xd, y, zc, xd, y + 1, zc, "air")                      # nicho
-        pieces.piston_door(self.set, [(xd, y, zm), (xd, y + 1, zm)], (1, 0), "west", "chiseled_deepslate")   # lápida
+        pieces.piston_door(self.set, [(xd, y, zm), (xd, y + 1, zm)], (1, 0), "west", "chiseled_deepslate")   # gravestone
         self.box(xd, y, zp, xd, y + 1, zp, "air")
         levers = (45, 47)
         dust = {}
@@ -940,7 +940,7 @@ class Construction(Template):
             self.open_items[(xd + 2, yy, zm)] = "minecraft:sticky_piston[extended=false,facing=west]"
         self.circuits["cripta"] = dict(levers=[(lx, y + 1, zc + 1) for lx in levers], solucion=(False, False),
                                         salida=[(xd + 2, y, zm), (xd + 2, y + 1, zm)], abre_si="sin_potencia")
-        # pasadizo secreto: 16 peldaños hasta la gruta
+        # secret passage: 16 steps down to the grotto
         for k in range(1, 17):
             z, ys = zp - k, 29 - k
             self.set(xd, ys, z, stair("cobblestone_stairs", "south"))
@@ -957,14 +957,14 @@ class Construction(Template):
         self.box(x1 + 1, y + 1, z1 + 1, x2 - 1, top, z2 - 1, "air")
         self.box(x1 + 1, y + 1, z1 + 1, x2 - 1, y + 1, z2 - 1, SB)
         self.door(x1, y + 2, 76, "east")
-        # sacristía
+        # sacristy
         self.set(53, y + 2, 74, "brewing_stand[has_bottle_0=false,has_bottle_1=false,has_bottle_2=false]")
         self.set(49, y + 2, 74, SB)
         self.chest(49, y + 2, 78, "east", "oculto")
         self.set(50, y + 2, 78, "barrel[facing=up,open=false]")
         self.candle(50, y + 3, 78, 3)
         self.hang(51, y + 6, 75)
-        # pisos y escala
+        # floors and ladder
         for fy in (y + 7, y + 14, y + 22):
             self.box(x1 + 1, fy, z1 + 1, x2 - 1, fy, z2 - 1, PL)
         self.box(53, y + 2, 77, 53, y + 22, 77, "ladder[facing=west,waterlogged=false]")
@@ -972,7 +972,7 @@ class Construction(Template):
         self.hang(51, y + 21, 76)
         self.panes([(51, z1), (51, z2)], y + 10, y + 11)
         self.panes([(x2, 76)], y + 17, y + 18)
-        # campanas: arcos y barandilla
+        # bells: arches and railing
         by = y + 23
         for side in ("n", "s", "w", "e"):
             for i in (-1, 0, 1):
@@ -1010,10 +1010,10 @@ class Construction(Template):
 
     def caves(self):
         y = CAVE
-        # rellano y pasillo desde el pasadizo
+        # landing and corridor from the passage
         self.carve(40, y + 1, 50, 42, y + 4, 55)
         self.carve(34, y + 1, 49, 41, y + 3, 51)
-        # gruta de los eremitas
+        # hermits' grotto
         cx, cz, rx, rz = 29, 42, 13, 10
         for x in range(cx - rx, cx + rx + 1):
             for z in range(cz - rz, cz + rz + 1):
@@ -1027,7 +1027,7 @@ class Construction(Template):
             self.set(x, y + 9, z, "stone")
         for x, z in ((20, 44), (33, 37), (31, 49)):
             self.set(x, y + 1, z, "cobblestone")
-        # altar de los eremitas en el centro de la gruta
+        # hermits' altar in the middle of the grotto
         self.box(28, y + 1, 41, 30, y + 1, 41, "stone_bricks")
         self.set(29, y + 2, 41, "chiseled_stone_bricks")
         self.candle(28, y + 2, 41, 3)
@@ -1056,7 +1056,7 @@ class Construction(Template):
         px1, px2, pz1, pz2 = passage
         self.carve(px1, y + 1, pz1, px2, y + 3, pz2)
         self.box(px1, y, pz1, px2, y, pz2, "stone_bricks")
-        # altar contra el fondo, lecho de paja, cofre y cruz
+        # altar against the back wall, straw bed, chest and cross
         if door == "east":
             ax, az, chest, bed = x1, (z1 + z2) // 2, (x1, y + 1, z2), (x2 - 1, z1)
             self.set(ax, y + 1, az, "chiseled_stone_bricks")
@@ -1080,7 +1080,7 @@ class Construction(Template):
         self.cobweb(x1, y + 4, z1)
 
     def wire_trap(self, xc, z):
-        """Trampa 1 (como el templo de la jungla): cable trampa entre dos ganchos; cada gancho activa el dispensador de encima."""
+        """Trap 1 (like the jungle temple): tripwire between two hooks; each hook activates the dispenser above it."""
         y = CAVE + 1
         for x in (xc - 2, xc + 2):
             self.set(x, y, z, "stone_bricks")
@@ -1112,7 +1112,7 @@ class Construction(Template):
         self.box(x1 + 1, y, z1 + 1, x2 - 1, y, z2 - 1, "stone_bricks")
         self.carve(41, y + 1, 41, x1, y + 3, 43)
         self.box(41, y, 41, x1, y, 43, "stone_bricks")
-        for x in range(x1 + 2, x2 - 1, 2):                              # nichos con calaveras en el muro norte
+        for x in range(x1 + 2, x2 - 1, 2):                              # niches with skulls in the north wall
             self.set(x, y + 2, z1, "air")
             self.set(x, y + 2, z1 - 1, "bone_block[axis=y]")
         for x in range(x1 + 2, x2 - 1, 4):
@@ -1125,9 +1125,9 @@ class Construction(Template):
         self.charnel_puzzle()
 
     def charnel_puzzle(self):
-        """Puzle 2: abre la puerta del archivo solo con las palancas 1 y 3 subidas y la 2 bajada.
-        Palancas 1 y 3 -> antorchas inversoras; palanca 2 -> polvo; las tres salidas se suman en la línea z=49,
-        que alimenta el bloque de la antorcha final; esa antorcha abre la puerta de hierro."""
+        """Puzzle 2: opens the archive door only with levers 1 and 3 up and 2 down.
+        Levers 1 and 3 -> inverter torches; lever 2 -> dust; the three outputs are summed on the line z=49,
+        which feeds the block of the final torch; that torch opens the iron door."""
         y = CAVE + 1
         zl, zw, zt, zs, zb = 46, 47, 48, 49, 50
         a = 43
@@ -1180,7 +1180,7 @@ class Construction(Template):
         self.set(50, y + 1, z1 + 1, "lectern[facing=south,has_book=false,powered=false]")
         self.set(48, y + 4, 51, "lantern[hanging=true,waterlogged=false]")
         self.set(48, y + 5, 51, "iron_chain[axis=y,waterlogged=false]")
-        # escalera a las catacumbas (baja hacia +z)
+        # stairs to the catacombs (going down towards +z)
         for k in range(1, 9):
             z, ys = z2 - 1 + k, y - k
             for x in (48, 49):
@@ -1193,7 +1193,7 @@ class Construction(Template):
         self.box(45, y, 66, 52, y + 5, 75, "stone_bricks")
         self.carve(47, y + 1, 66, 50, y + 4, 74)
         self.box(47, y, 66, 50, y, 74, "cobblestone")
-        for z in range(67, 75, 2):                                     # nichos (lóculos)
+        for z in range(67, 75, 2):                                     # niches (loculi)
             for x in (46, 51):
                 self.set(x, y + 2, z, "bone_block[axis=y]" if z % 4 == 1 else "air")
                 if z % 4 == 3:
@@ -1203,7 +1203,7 @@ class Construction(Template):
         self.spawner(50, y + 1, 70, "zombie")
         for x, z, yy in ((47, 68, 4), (50, 73, 4), (48, 72, 1)):
             self.cobweb(x, y + yy, z)
-        # antecámara con la trampa 2: losas de presión sobre dispensadores que disparan hacia arriba
+        # antechamber with trap 2: pressure plates over dispensers that fire upwards
         self.box(45, y, 75, 52, y + 6, 79, "polished_blackstone_bricks")
         self.carve(47, y + 1, 75, 50, y + 5, 78)
         self.box(47, y, 75, 50, y, 78, "polished_blackstone")
@@ -1226,7 +1226,7 @@ class Construction(Template):
         for x in (45, 52):
             for z in (81, 84):
                 self.box(x, y + 1, z, x, y + 7, z, "chiseled_polished_blackstone")
-        for x in range(x1 + 1, x2):                                     # estrado del altar
+        for x in range(x1 + 1, x2):                                     # altar dais
             self.set(x, y + 1, 85, stair("polished_blackstone_brick_stairs", "south"))
             self.box(x, y + 1, 86, x, y + 1, z2 - 1, "polished_blackstone_bricks")
         self.set(48, y + 2, 87, "gilded_blackstone")
@@ -1239,14 +1239,14 @@ class Construction(Template):
             self.set(x, y + 6, z, "soul_lantern[hanging=true,waterlogged=false]")
         self.entity(49, y + 1, 83, guardian())
 
-    # ------------------------------------------------------------ habitantes y conexiones
+    # ------------------------------------------------------------ inhabitants and connections
     def monks(self):
         self.entity(51, F2 + 2, 76, villager("cleric", "plains"))
         self.entity(10, F2 + 1, 58, villager("librarian", "plains"))
         self.entity(14, F1 + 1, 35, villager("farmer", "plains"))
 
     def puzzle_tuning(self):
-        """Forma y potencia de los cables y estado de las antorchas: el estable que calcula el simulador común."""
+        """Shape and power of the wires and state of the torches: the stable one the common simulator computes."""
         from .._common import redstone
         redstone.wire_shapes(self)
         redstone.set_wire_power(self)

@@ -1,4 +1,4 @@
-"""Opciones de lista (dificultad.nivel) y las de botín y dificultad en el esquema que lee el Java (opciones.py)."""
+"""List options (dificultad.nivel) and the loot and difficulty ones in the schema read by the Java (opciones.py)."""
 import pytest
 
 import options
@@ -10,9 +10,9 @@ def _by_key():
 
 def test_loot_and_difficulty_options():
     o = _by_key()
-    assert o["botin.reponer.activado"]["defecto"] is False          # por defecto no cambia el mundo
+    assert o["botin.reponer.activado"]["defecto"] is False          # by default it does not change the world
     assert (o["botin.reponer.dias"]["defecto"], o["botin.reponer.dias"]["min"], o["botin.reponer.dias"]["max"]) == (7, 1, 60)
-    assert o["dificultad.nivel"]["defecto"] == "normal"              # normal = comportamiento de siempre
+    assert o["dificultad.nivel"]["defecto"] == "normal"              # normal = the usual behaviour
     assert o["dificultad.escalar_por_jugadores"]["defecto"] is False
     assert o["botin.reponer.activado"]["seccion"] == "botin" and o["dificultad.nivel"]["seccion"] == "dificultad"
 
@@ -99,7 +99,7 @@ def test_casual_more_easier_and_hardcore_more_harder():
     assert h["jefes.refuerzos.porcentaje"] > e["jefes.refuerzos.porcentaje"] > c["jefes.refuerzos.porcentaje"]
     assert h["jefes.refuerzos.maximo_vivos"] > e["jefes.refuerzos.maximo_vivos"] > c["jefes.refuerzos.maximo_vivos"]
     assert h["arena.experiencia_porcentaje"] < e["arena.experiencia_porcentaje"] < c["arena.experiencia_porcentaje"]
-    for v in p.values():   # la arena: los enemigos crecen más que su fuerza
+    for v in p.values():   # the arena: enemies grow more than their strength
         assert v["arena.oleada.stats_incremento"] <= v["arena.oleada.mobs_incremento"]
 
 
@@ -142,7 +142,7 @@ def test_profile_texts_in_the_eight_languages():
                 texts = json.load(f)
         for k in PROFILE_KEYS:
             assert texts.get(k), (code, k)
-        # mismos huecos de formato que el inglés
+        # same format placeholders as English
         for k in PROFILE_KEYS:
             assert texts[k].count("%s") == base["en_us"][k].count("%s"), (code, k)
     assert len(languages.everyone()) == 8

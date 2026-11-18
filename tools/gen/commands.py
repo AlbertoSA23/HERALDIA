@@ -1,13 +1,13 @@
-"""Nombres de los comandos del mod: en inglés desde T35b, con los antiguos en español como alias ocultos (Java:
-comando/Alias.ANTIGUOS, que test_comandos compara con este). Sirve para comprobar que ningún texto ni botón (run_command,
-suggest_command) del mod manda al jugador a un nombre antiguo.
+"""Names of the mod's commands: in English since T35b, with the old Spanish ones as hidden aliases (Java:
+comando/Alias.OLD, which test_comandos compares with this). Used to check that no text or button (run_command,
+suggest_command) of the mod sends the player to an old name.
 
-Regla permanente (docs/DEVELOPMENT.md): todo comando nuevo va en inglés; los textos que ve el jugador siguen traducidos.
+Permanent rule (docs/DEVELOPMENT.md): every new command is in English; the texts the player sees stay translated.
 """
 import itertools
 import re
 
-# ruta canónica bajo /heraldia -> nombre antiguo de su último tramo (el mismo mapa que comando/Alias.ANTIGUOS)
+# canonical path under /heraldia -> old name of its last segment (the same map as comando/Alias.OLD)
 OLD = {
     "guide": "guia",
     "key": "llave",
@@ -23,14 +23,14 @@ OLD = {
     "arena start": "empezar",
     "arena stop": "parar",
 }
-# valores de argumento antiguos: (ruta del comando, antiguo, nuevo)
+# old argument values: (command path, old, new)
 OLD_VALUES = [("key", "todas", "all")]
-# los subcomandos literales con su nombre canónico (los argumentos, entre <>), para comprobar el árbol de Java
+# the literal subcommands with their canonical name (arguments in <>), to check the Java tree
 CANONICAL = [
     "info", "info nearby", "info nearby <radius>", "info here", "guide", "key", "key <players>", "key <players> <key>",
     "arena", "arena leave", "arena place", "arena place confirm", "arena move", "arena move confirm", "arena remove",
     "arena remove confirm", "arena start", "arena stop",
-    "arena start coop", "arena start timeattack", "arena start survival",   # T41: modos de la arena
+    "arena start coop", "arena start timeattack", "arena start survival",   # T41: arena modes
     "arena leaderboard", "arena leaderboard coop", "arena leaderboard coop <week>", "arena leaderboard timeattack",
     "arena leaderboard timeattack <week>", "arena leaderboard survival", "arena leaderboard survival <week>",
     "arena season", "arena season reset",
@@ -38,15 +38,15 @@ CANONICAL = [
     "review goto <id> generate", "review mark", "review mark checked", "review mark checked <note>", "review mark problem",
     "review mark problem <note>", "review list", "review status", "review reset",
     "status", "status <page>", "reload", "update", "update check",
-    "profile",                                   # T36: el perfil de juego
+    "profile",                                   # T36: the play profile
     "webmap", "webmap refresh",
-    "treasure", "treasure give", "treasure give <players>", "treasure info",   # T40: búsqueda del tesoro (operadores)
+    "treasure", "treasure give", "treasure give <players>", "treasure info",   # T40: treasure hunt (operators)
     "quest", "quest list", "quest accept", "quest accept <number>", "quest abandon", "quest abandon <number>",
-    "quest turnin",                              # T38: los encargos del tablón
+    "quest turnin",                              # T38: the board quests
     "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",
-    "caravan clear",                             # T39: las caravanas (operadores)
-    "wizard", "wizard reveal",                   # T43: las chozas de mago (operadores)
-    # T46: panel de configuración en diálogos, idioma de cada jugador y actualizaciones seguras
+    "caravan clear",                             # T39: the caravans (operators)
+    "wizard", "wizard reveal",                   # T43: the wizard huts (operators)
+    # T46: configuration panel in dialogs, each player's language and safe updates
     "config", "config menu", "config menu <menu>", "config profile", "config profile <profile>", "config save",
     "config save <menu>", "config save <menu> <values>", "config set", "config set <option>", "config set <option> <value>",
     "language", "language <language>",
@@ -57,8 +57,8 @@ CANONICAL = [
 
 
 def old_paths():
-    """Todas las rutas (sin «/heraldia») en las que al menos un tramo usa el nombre antiguo: «guia», «arena colocar
-    confirmar», «arena place confirmar», «arena colocar confirm»..."""
+    """All the paths (without "/heraldia") in which at least one segment uses the old name: "guia", "arena colocar
+    confirmar", "arena place confirmar", "arena colocar confirm"..."""
     out = set()
     for route in OLD:
         segments = route.split()
@@ -82,18 +82,18 @@ PATTERN = _pattern()
 
 
 def old_in(text):
-    """Las menciones de un comando con un nombre antiguo («/heraldia guia», «heraldia arena colocar»...) en un texto."""
+    """The mentions of a command with an old name ("/heraldia guia", "heraldia arena colocar"...) in a text."""
     return [m.group(0) for m in PATTERN.finditer(text)]
 
 
 def text_errors(texts, where=""):
-    """[error] por cada texto de {clave: texto} que nombra un comando antiguo."""
+    """[error] for each text in {key: text} that names an old command."""
     return [f"{where}{k}: «{m}» es un nombre antiguo" for k, t in texts.items() if isinstance(t, str) for m in old_in(t)]
 
 
 def click_orders(obj):
-    """[(acción, orden)] de todos los click_event / clickEvent run_command y suggest_command de un JSON (componentes de
-    texto de tellraw, libros, carteles...)."""
+    """[(action, command)] of all the click_event / clickEvent run_command and suggest_command in a JSON (text
+    components of tellraw, books, signs...)."""
     out = []
     if isinstance(obj, dict):
         for k in ("click_event", "clickEvent"):
@@ -106,12 +106,12 @@ def click_orders(obj):
         for v in obj:
             out += click_orders(v)
     elif isinstance(obj, str) and ("run_command" in obj or "suggest_command" in obj):
-        # un componente escrito como texto JSON dentro de otro (SNBT de los carteles, tellraw de las funciones)
+        # a component written as JSON text inside another (SNBT of the signs, tellraw of the functions)
         for m in re.finditer(r'"(?:command|value)"\s*:\s*"([^"]*)"', obj):
             out.append(("texto", m.group(1)))
     return out
 
 
 def click_errors(obj, where=""):
-    """[error] por cada botón (run_command / suggest_command) que manda a un comando con un nombre antiguo."""
+    """[error] for each button (run_command / suggest_command) that sends to a command with an old name."""
     return [f"{where}{action} «{order}» usa un nombre antiguo" for action, order in click_orders(obj) if old_in(order)]

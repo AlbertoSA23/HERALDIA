@@ -1,10 +1,10 @@
-"""Construcción del Laboratorio del micólogo en un único sistema de coordenadas (ver docs/unicas/laboratorio_micelio.md).
+"""Construction of the Mycologist's laboratory in a single coordinate system (see docs/unicas/mycelium_lab.md).
 
-x de oeste a este (0..63), z de norte a sur (0..63; la entrada está al norte, z = 0); y = 0 es la capa de suelo del
-jardín (pies a y = 1). Tres champiñones gigantes: el rojo grande (la casa del micólogo, con la escalera de caracol que
-baja a las galerías), el rojo pequeño (los ayudantes) y el pardo (biblioteca de esporas en el tallo y secadero en el
-sombrero), unidos por pasarelas. Lo que queda por debajo de y = 0 (las galerías) es otra pieza, que rellena toda su
-caja. Todo se construye en una «obra» que luego se parte en dos plantillas (auditoria.preparar).
+x from west to east (0..63), z from north to south (0..63; the entrance is to the north, z = 0); y = 0 is the ground layer of the
+garden (feet at y = 1). Three giant mushrooms: the large red one (the mycologist's house, with the spiral staircase that
+goes down to the galleries), the small red one (the assistants) and the brown one (spore library in the stem and drying room in the
+cap), joined by walkways. What lies below y = 0 (the galleries) is another piece, which fills its whole
+box. Everything is built in a "build" that is later split into two templates (audit.prepare).
 """
 import math, zlib
 from core import Template, B
@@ -15,18 +15,18 @@ SID = "laboratorio_micelio"
 LOOT = f"heraldia:unicas/{SID}/"
 K = f"heraldia.{SID}."
 W = D = 64
-C = 31.5                      # centro del jardín (disco de radio R)
-R, R_COURTYARD = 32, 28           # disco del suelo; dentro de R_PATIO, tierra de camino (fuera, micelio)
-AIR_H = 8                     # aire explícito sobre el jardín (el terreno no asoma entre los edificios)
+C = 31.5                      # centre of the garden (disc of radius R)
+R, R_COURTYARD = 32, 28           # ground disc; inside R_COURTYARD, path dirt (outside, mycelium)
+AIR_H = 8                     # explicit air above the garden (the terrain does not poke out between the buildings)
 
-# champiñones gigantes: (x, z) del eje
-RX, RZ = 32, 34               # rojo grande: casa del micólogo (eje de la escalera de caracol)
-BX, BZ = 12, 30               # rojo pequeño: los ayudantes
-PX, PZ = 50, 15               # pardo: biblioteca de esporas y secadero
-F2, F1 = -11, -5              # pies de los dos niveles de galerías
-CAP = 13                      # pies de la sala del sombrero rojo grande y del secadero del pardo
-LOW = 7                       # pies del sombrero pequeño y de la pasarela baja
-TUNNELS = (4, 61, 6, 61, -14, -1)      # caja de la pieza del subsuelo: x0, x1, z0, z1, y0, y1
+# giant mushrooms: (x, z) of the axis
+RX, RZ = 32, 34               # large red: mycologist's house (axis of the spiral staircase)
+BX, BZ = 12, 30               # small red: the assistants
+PX, PZ = 50, 15               # brown: spore library and drying room
+F2, F1 = -11, -5              # feet of the two levels of galleries
+CAP = 13                      # feet of the large red cap's room and of the brown one's drying room
+LOW = 7                       # feet of the small cap and of the lower walkway
+TUNNELS = (4, 61, 6, 61, -14, -1)      # box of the underground piece: x0, x1, z0, z1, y0, y1
 NATURAL = ("minecraft:dirt", "minecraft:stone")
 
 STEM = "mushroom_stem"
@@ -66,7 +66,7 @@ def disc(cx, cz, r):
 
 
 def edge8(cells):
-    """Celdas de `cells` con algún vecino (también en diagonal) fuera: barandillas sin huecos en diagonal."""
+    """Cells of `cells` with some neighbour (also diagonal) outside: railings without diagonal gaps."""
     s = set(cells)
     return [(x, z) for (x, z) in cells if any((x + a, z + b) not in s for a in (-1, 0, 1) for b in (-1, 0, 1))]
 
@@ -76,11 +76,11 @@ class Construction:
         self.t = Template(f"unicas/{SID}/obra")
         self.chests = []           # (pos, tabla)
         self.spawners = []         # (pos, mob)
-        self.hidden = []           # celdas que solo se alcanzan resolviendo un puzle
-        self.hidden_alcove = []    # celdas tras el tapiz (se alcanzan sin puzle)
-        self.mech = {}             # mecanismos para el simulador y la prueba de servidor
-        self.ruin = set()          # posiciones dañadas a mano (estado de conservación)
-        self.carved = {}           # celdas de aire del subsuelo -> (suelo, muro, techo)
+        self.hidden = []           # cells reachable only by solving a puzzle
+        self.hidden_alcove = []    # cells behind the tapestry (reachable without a puzzle)
+        self.mech = {}             # mechanisms for the simulator and the server test
+        self.ruin = set()          # hand-damaged positions (state of preservation)
+        self.carved = {}           # underground air cells -> (floor, wall, ceiling)
         self.signs = []
         self.animals = []
 
@@ -119,13 +119,13 @@ class Construction:
         self.s(x, y, z, S(f"{color}_wall_banner", facing=facing))
 
     def bed(self, x, y, z, facing, color="red"):
-        """Cama con la cabecera hacia `facing` (la cabecera en x, z; los pies detrás)."""
+        """Bed with the head towards `facing` (the head at x, z; the foot behind)."""
         dx, dz = DV[facing]
         self.s(x, y, z, S(f"{color}_bed", facing=facing, part="head", occupied=False))
         self.s(x - dx, y, z - dz, S(f"{color}_bed", facing=facing, part="foot", occupied=False))
 
     def sign(self, x, y, z, facing, key, lines, wood="spruce"):
-        """Cartel traducible: `lines` = [(es, en)] (las claves van a LANG con el sufijo .1, .2...)."""
+        """Translatable sign: `lines` = [(es, en)] (the keys go to LANG with the suffix .1, .2...)."""
         self.signs.append((key, lines))
         pieces.sign(self.s, x, y, z, facing, [text(f"{K}cartel.{key}.{i + 1}", es) for i, (es, _) in enumerate(lines)],
                     wood=wood)
@@ -138,7 +138,7 @@ class Construction:
         self.s(x, y, z, "brewing_stand[has_bottle_0=false,has_bottle_1=false,has_bottle_2=false]",
                {"id": "minecraft:brewing_stand"})
 
-    # ------------------------------------------------------------ construcción
+    # ------------------------------------------------------------ construction
     def build(self):
         self.ground()
         self.avenue()
@@ -157,7 +157,7 @@ class Construction:
         return self
 
     def loose_debris(self):
-        """Lo que la ruina deja suelto (un trozo de sombrero entre dos huecos) se ha caído también."""
+        """What the ruin leaves loose (a piece of cap between two gaps) has fallen too."""
         from .._common.walkthrough import floating_blocks
         for _ in range(3):
             area = {p: st for p, (st, _) in self.t.blocks.items() if p[1] >= 0}
@@ -172,12 +172,12 @@ class Construction:
         return dist(x, z, C, C) <= R_COURTYARD
 
     def roofed(self, x, z):
-        """Hay algo macizo encima (invernadero, sombreros): ahí no cabe un champiñón gigante."""
+        """There is something solid above (greenhouse, caps): a giant mushroom does not fit there."""
         import lint
         return any(not lint.passable(self.get(x, y, z)) for y in range(2, 16) if self.get(x, y, z))
 
     def ground(self):
-        """Suelo: tierra de camino en el jardín (no nacen champiñones gigantes en ella); fuera, micelio."""
+        """Ground: path dirt in the garden (giant mushrooms do not grow on it); outside, mycelium."""
         for x in range(W):
             for z in range(D):
                 d = dist(x, z, C, C)
@@ -185,7 +185,7 @@ class Construction:
                     self.s(x, 0, z, "dirt_path" if d <= R_COURTYARD else "mycelium[snowy=false]")
 
     def avenue(self):
-        """Senda de ladrillo de piedra de la entrada a la puerta del champiñón grande, con un cartel."""
+        """Stone brick path from the entrance to the door of the large mushroom, with a sign."""
         for z in range(0, RZ - 3):
             for x in (31, 32, 33):
                 if dist(x, z, C, C) <= R:
@@ -195,9 +195,9 @@ class Construction:
         self.sign(29, 2, 3, "north", "entrada", [("Jardín del", "Garden of"), ("micólogo", "the mycologist"),
                                                 ("Se ruega no", "Please do not"), ("pisar las setas", "step on the fungi")])
 
-    # ------------------------------------------------------------ champiñones gigantes
+    # ------------------------------------------------------------ giant mushrooms
     def stem(self, cx, cz, r, y0, y1, hollow, floor=PL):
-        """Tallo de radio r, hueco hasta `hollow`, de y0 a y1; con `floor`, el suelo del hueco en y = 0."""
+        """Stem of radius r, hollow up to `hollow`, from y0 to y1; with `floor`, the floor of the hollow at y = 0."""
         for (x, z) in disc(cx, cz, r):
             d = dist(x, z, cx, cz)
             if floor:
@@ -206,7 +206,7 @@ class Construction:
                 self.s(x, y, z, "air" if d <= hollow else STEM)
 
     def cap(self, cx, cz, cy, rx, ry, block, floor_y, inner=1.3):
-        """Sombrero en cúpula macizo (rx, ry) desde floor_y, hueco por dentro: devuelve las celdas (x, z) de la sala."""
+        """Solid dome cap (rx, ry) from floor_y, hollow inside: returns the (x, z) cells of the room."""
         room = []
         for x in range(int(cx - rx) - 1, int(cx + rx) + 2):
             for z in range(int(cz - rx) - 1, int(cz + rx) + 2):
@@ -226,8 +226,8 @@ class Construction:
         return room
 
     def cut_door(self, cx, cz, y, side, kind="spruce_door"):
-        """Puerta en la pared del sombrero hacia `side`: abre el paso desde la sala y pone la hoja en la última celda
-        maciza. Devuelve la posición de la puerta."""
+        """Door in the cap wall towards `side`: opens the passage from the room and puts the leaf in the last
+        solid cell. Returns the position of the door."""
         dx, dz = DV[side]
         x, z = cx, cz
         last = None
@@ -248,12 +248,12 @@ class Construction:
         return last
 
     def great_mushroom(self):
-        """Champiñón rojo grande: tallo hueco de 7 de ancho con la escalera de caracol de las galerías al sombrero, y en el
-        sombrero la casa del micólogo (estudio, alambique, cama) con la alcoba tras el tapiz."""
+        """Large red mushroom: 7-wide hollow stem with the spiral staircase from the galleries to the cap, and in the
+        cap the mycologist's house (study, still, bed) with the alcove behind the tapestry."""
         self.stem(RX, RZ, 3.5, 0, CAP - 2, 1.5, floor=None)
         room = self.cap(RX, RZ, CAP - 1, 9.5, 7, RED, CAP - 1)
         self.great_room = set(room)
-        # hueco de la escalera: anillo de 3 x 3 desde el fondo de las galerías hasta la sala del sombrero
+        # stairwell: 3 x 3 ring from the bottom of the galleries to the cap room
         for y in range(F2, CAP + 1):
             for x in range(RX - 1, RX + 2):
                 for z in range(RZ - 1, RZ + 2):
@@ -262,14 +262,14 @@ class Construction:
                     elif y != CAP - 1:
                         self.s(x, y, z, "air")
         pieces.spiral_stair(self.s, RX, RZ, [F2, F1, 1, LOW], "spruce_stairs", STEM, PL, newel_top=CAP + 1)
-        for (dx, dz) in pieces.RING[:4]:                   # rellano de llegada al sombrero
+        for (dx, dz) in pieces.RING[:4]:                   # landing arriving at the cap
             self.s(RX + dx, CAP - 1, RZ + dz, PL)
-        dx, dz = pieces.RING[4]                             # hueco sobre el peldaño de debajo (altura libre)
+        dx, dz = pieces.RING[4]                             # gap above the step below (headroom)
         self.s(RX + dx, CAP - 1, RZ + dz, "air")
-        for f in (1, LOW):                                  # luz en el tallo
+        for f in (1, LOW):                                  # light in the stem
             self.s(RX - 2, f + 2, RZ, "shroomlight")
             self.s(RX + 2, f + 4, RZ, "shroomlight")
-        # puerta al jardín y a la pasarela baja (norte), y a la pasarela del secadero (este, desde la sala)
+        # door to the garden and to the lower walkway (north), and to the drying-room walkway (east, from the room)
         for f in (1, LOW):
             self.a(RX, f, RZ - 2, RX, f + 1, RZ - 2)
             self.door(RX, f, RZ - 3, "north")
@@ -278,7 +278,7 @@ class Construction:
 
     def house(self, cx, cz):
         y = CAP
-        # alcoba al sur, tras un tabique de tallo con un paso tapado por el tapiz
+        # alcove to the south, behind a stem partition with a passage covered by the tapestry
         zw = cz + 5
         for (x, z) in self.great_room:
             if z == zw:
@@ -292,7 +292,7 @@ class Construction:
         self.chest(cx + 2, y, zw + 2, "west", "alcoba")
         self.s(cx - 2, y, zw + 1, S("lectern", facing="south", has_book=False, powered=False))
         self.hang(cx, y + 3, zw + 2)
-        # estudio: mesa, atril, estanterías, alambique y la cama del micólogo
+        # study: table, lectern, bookshelves, still and the mycologist's bed
         self.bed(cx - 6, y, cz, "west", "red")
         self.s(cx - 6, y, cz - 2, S("barrel", facing="up"), {"id": "minecraft:barrel"})
         self.chest(cx - 5, y, cz + 3, "east", "estudio")
@@ -307,7 +307,7 @@ class Construction:
             self.hang(x, y + 3, z)
 
     def small_mushroom(self):
-        """Champiñón rojo pequeño: escalera de mano en el tallo y, en el sombrero, el dormitorio de los ayudantes."""
+        """Small red mushroom: ladder in the stem and, in the cap, the assistants' dormitory."""
         self.stem(BX, BZ, 2.5, 1, LOW - 2, 1.5)
         room = self.cap(BX, BZ, LOW - 1, 6.5, 4.5, RED, LOW - 1, inner=1.2)
         self.small_room = set(room)
@@ -326,7 +326,7 @@ class Construction:
         self.hang(BX + 1, y + 2, BZ)
 
     def brown_mushroom(self):
-        """Champiñón pardo: tallo ancho con la biblioteca de esporas y el herbario; en el sombrero plano, el secadero."""
+        """Brown mushroom: wide stem with the spore library and the herbarium; in the flat cap, the drying room."""
         top = CAP - 1
         self.stem(PX, PZ, 4.5, 1, top - 1, 3.0)
         for (x, z) in disc(PX, PZ, 8.5):
@@ -334,7 +334,7 @@ class Construction:
         mid = 6
         for (x, z) in disc(PX, PZ, 3.0):
             self.s(x, mid, z, PL)
-        # escalera de mano en el muro este, de la biblioteca al secadero
+        # ladder on the east wall, from the library to the drying room
         lx = PX + 3
         for y in range(1, top + 1):
             self.s(lx, y, PZ, S("ladder", facing="west", waterlogged=False))
@@ -350,7 +350,7 @@ class Construction:
                 continue
             for yy in (y, y + 1, y + 2):
                 self.s(x, yy, z, "bookshelf")
-        self.chest(PX, y, PZ - 3, "south", "biblioteca")          # su pliego de la Crónica de los Heraldos
+        self.chest(PX, y, PZ - 3, "south", "biblioteca")          # its sheet of the Chronicle of the Heralds
         self.s(PX, y, PZ + 3, S("lectern", facing="north", has_book=False, powered=False))
         self.s(PX, y, PZ, slab("spruce", "top"))
         self.s(PX, y + 1, PZ, S("candle", candles=3, lit=False, waterlogged=False))
@@ -359,7 +359,7 @@ class Construction:
         self.sign(PX - 1, y + 1, PZ - 2, "south", "biblioteca", [("Esporoteca:", "Spore library:"),
                                                                   ("cada cepa", "every strain"),
                                                                   ("en su frasco.", "in its jar.")])
-        # herbario (pies 7): vasijas con muestras y macetas
+        # herbarium (feet 7): pots with samples and flower pots
         y = mid + 1
         for (x, z) in ((PX - 2, PZ - 2), (PX + 2, PZ - 2), (PX - 2, PZ + 2), (PX + 2, PZ + 2), (PX - 3, PZ)):
             self.s(x, y, z, S("decorated_pot", cracked=False, facing="north", waterlogged=False))
@@ -368,7 +368,7 @@ class Construction:
             self.s(x, y, z, pot)
         self.chest(PX - 2, y, PZ - 1, "east", "herbario", kind="barrel")
         self.hang(PX, top - 1, PZ)
-        # secadero (pies 13 sobre el sombrero): barandilla, toneles, compostadores y faroles
+        # drying room (feet 13 above the cap): railing, barrels, composters and lanterns
         y = CAP
         cap = disc(PX, PZ, 8.5)
         rim = edge8(cap)
@@ -389,7 +389,7 @@ class Construction:
         self.chest(PX + 6, y, PZ, "west", "secadero", kind="barrel")
         for (x, z) in ((PX - 3, PZ - 7), (PX + 3, PZ - 7)):
             self.s(x, y + 1, z, S("lantern", hanging=False, waterlogged=False))
-        # el hueco de la escalera de mano en el sombrero
+        # the ladder opening in the cap
         self.s(lx, top, PZ, S("ladder", facing="west", waterlogged=False))
 
     # ------------------------------------------------------------ pasarelas
@@ -409,16 +409,16 @@ class Construction:
             self.s(x, y, z, S(STEM))
 
     def walkways(self):
-        """Pasarela baja (pies 7) del tallo grande al sombrero pequeño y alta (pies 13) del sombrero grande al secadero."""
+        """Lower walkway (feet 7) from the large stem to the small cap and upper (feet 13) from the large cap to the drying room."""
         y = LOW - 1
-        dz = RZ - 3 - 1                                     # delante de la puerta norte de la pasarela baja
+        dz = RZ - 3 - 1                                     # in front of the north door of the lower walkway
         door_small = self.mech["puerta_pequena"]
         self.deck(RX, y, dz, "z")
         for x in range(door_small[0] + 1, RX):
             self.deck(x, y, dz, "x")
         self.post(RX - 8, dz, y - 1)
         self.post(RX - 15, dz, y - 1)
-        # alta: sale por el este del sombrero grande, sigue hacia el este y gira al norte hasta el secadero
+        # upper: leaves the large cap on the east, continues east and turns north to the drying room
         y = CAP - 1
         ex, ez = self.mech["puerta_este"]
         for x in range(ex + 1, PX + 1):
@@ -433,10 +433,10 @@ class Construction:
         self.post(ex + 4, ez, y - 1)
         self.post(PX, PZ + 12, y - 1)
 
-    # ------------------------------------------------------------ invernadero, destilería y corral
+    # ------------------------------------------------------------ greenhouse, distillery and pen
     def greenhouse(self):
-        """Invernadero de cristal con cultivos raros: verruga del Nether, flor antorcha, bayas, cacao, coro y bayas
-        luminosas colgadas del caballete."""
+        """Glass greenhouse with rare crops: nether wart, torchflower, berries, cocoa, chorus and glow
+        berries hanging from the ridge."""
         x1, x2, z1, z2 = 9, 23, 41, 53
         for x in range(x1, x2 + 1):
             for z in range(z1, z2 + 1):
@@ -450,7 +450,7 @@ class Construction:
                 else:
                     for y in range(1, 5):
                         self.s(x, y, z, "air")
-        # cubierta a dos aguas de cristal con caballete de troncos
+        # glass gabled roof with a log ridge
         zc = (z1 + z2) // 2
         for x in range(x1, x2 + 1):
             for z in range(z1, z2 + 1):
@@ -476,7 +476,7 @@ class Construction:
             self.s(x, 1, z1 + 4, S("beetroots", age=3))
         for z in range(z1 + 1, z2):
             self.s(door_x, 0, z, "dirt_path" if z != z1 + 3 else SB)
-        # al fondo: bayas, cacao en troncos de jungla y un coro sobre piedra del End
+        # at the back: berries, cocoa on jungle logs and a chorus plant on end stone
         for x in range(x1 + 1, x2):
             if x == door_x:
                 continue
@@ -499,7 +499,7 @@ class Construction:
         self.s(x1 + 1, 1, z1 + 6, S("barrel", facing="up"), {"id": "minecraft:barrel"})
 
     def distillery(self):
-        """Destilería de pociones: muros de ladrillo con postes de tallo, alambiques en el mostrador, calderos y toneles."""
+        """Potion distillery: brick walls with stem posts, stills on the counter, cauldrons and barrels."""
         x1, x2, z1, z2 = 42, 54, 42, 52
         for x in range(x1, x2 + 1):
             for z in range(z1, z2 + 1):
@@ -512,7 +512,7 @@ class Construction:
                         self.s(x, y, z, S(STEM) if post else (SB if y < 4 else PL))
                     else:
                         self.s(x, y, z, "air")
-        # cubierta a dos aguas de tejas pardas (escaleras de pícea) sobre un forjado
+        # gabled roof of brown tiles (spruce stairs) over a floor slab
         for x in range(x1, x2 + 1):
             for z in range(z1, z2 + 1):
                 self.s(x, 5, z, PL)
@@ -540,7 +540,7 @@ class Construction:
         for z in ((z1 + z2) // 2 - 2, (z1 + z2) // 2 + 2):
             self.s(x1, 2, z, "glass_pane")
             self.s(x2, 2, z, "glass_pane")
-        # mostrador de los alambiques al sur, calderos al este y toneles al oeste
+        # counter of stills to the south, cauldrons to the east and barrels to the west
         for x in range(x1 + 2, x2 - 1):
             self.s(x, 1, z2 - 1, slab("smooth_stone", "top"))
         for x in (x1 + 3, x1 + 6, x2 - 3):
@@ -563,7 +563,7 @@ class Construction:
                                                              ("etiqueta.", "its label.")])
 
     def pen(self):
-        """Corral de los champiñocas: cercado, comedero de heno y un abrevadero."""
+        """Mooshroom pen: fence, hay trough and a watering trough."""
         x1, x2, z1, z2 = 10, 20, 9, 18
         for x in range(x1, x2 + 1):
             for z in range(z1, z2 + 1):
@@ -584,7 +584,7 @@ class Construction:
             self.t.entity(x, 1, z, {"id": "minecraft:mooshroom", "PersistenceRequired": B(1), "Type": variant,
                                     "Age": 0})
 
-    # ------------------------------------------------------------ acabados de la superficie
+    # ------------------------------------------------------------ surface finishes
     def garden_air(self):
         for x in range(W):
             for z in range(D):
@@ -595,7 +595,7 @@ class Construction:
                         self.s(x, y, z, "air")
 
     def spores(self):
-        """Setas pequeñas en el anillo de micelio (sobre micelio sobreviven con cualquier luz)."""
+        """Small mushrooms on the mycelium ring (on mycelium they survive in any light)."""
         for x in range(W):
             for z in range(D):
                 if self.get(x, 0, z) == "minecraft:mycelium[snowy=false]" and self.get(x, 1, z) is None \
@@ -603,9 +603,9 @@ class Construction:
                     self.s(x, 1, z, "red_mushroom" if h(x, z, 6) < 0.5 else "brown_mushroom")
 
     def weather(self):
-        """El jardín lleva años sin cuidar: los sombreros tienen la copa carcomida y manchas pardas de podredumbre, la
-        cubierta del invernadero ha perdido cristales, la de la destilería se ha hundido en una esquina y las barandillas
-        tienen tramos caídos."""
+        """The garden has gone uncared for for years: the caps are worm-eaten with brown patches of rot, the
+        greenhouse roof has lost panes, the distillery's has caved in at one corner and the railings
+        have fallen sections."""
         lamps = {(x, z) for (x, y, z), (st, _) in self.t.blocks.items() if "lantern" in st or "chain" in st}
         for (x, y, z), (st, _) in list(self.t.blocks.items()):
             if "red_mushroom_block" not in st or y < LOW:
@@ -616,24 +616,24 @@ class Construction:
             big = dist(x, z, RX, RZ) < 11 and y >= CAP + 3
             small = dist(x, z, BX, BZ) < 7 and y >= LOW + 2
             if (big or small) and h(x // 2, y // 2, z // 2, 13) < 0.42 and h(x, y, z, 6) < 0.85:
-                self.ruin_set(x, y, z)                              # agujeros en la copa
+                self.ruin_set(x, y, z)                              # holes in the cap
             elif h(x // 3, y // 2, z // 3, 41) < 0.35 and h(x, y, z, 42) < 0.8:
                 self.ruin_set(x, y, z, BROWN)                       # podredumbre parda
         peeled = S(STEM, down=False, east=False, north=False, south=False, up=False, west=False)
-        for (x, y, z), (st, _) in list(self.t.blocks.items()):   # piel del tallo desprendida (se ve la carne porosa)
+        for (x, y, z), (st, _) in list(self.t.blocks.items()):   # stem skin peeled off (the porous flesh shows)
             if st == "minecraft:" + STEM and y >= 1 and any(self.free(x + a, y, z + c) for a, _, c in N6[:2] + N6[4:]) \
                     and h(x // 2, y // 3, z // 2, 71) < 0.3 and h(x, y, z, 72) < 0.85:
                 self.ruin_set(x, y, z, peeled)
-        for (x, y, z), (st, _) in list(self.t.blocks.items()):   # cristales rotos de la cubierta del invernadero
+        for (x, y, z), (st, _) in list(self.t.blocks.items()):   # broken panes of the greenhouse roof
             if st == "minecraft:glass" and h(x // 2, z // 2, 31) < 0.55:
                 self.ruin_set(x, y, z)
-        for (x, y, z), (st, _) in list(self.t.blocks.items()):   # la esquina hundida de la cubierta de la destilería
+        for (x, y, z), (st, _) in list(self.t.blocks.items()):   # the caved-in corner of the distillery roof
             if "spruce_stairs" in st and y >= 6 and x >= 49 and z >= 48 and h(x, y, z, 51) < 0.75:
                 self.ruin_set(x, y, z)
-        for (x, y, z), (st, _) in list(self.t.blocks.items()):   # barandillas rotas en las pasarelas y el secadero
+        for (x, y, z), (st, _) in list(self.t.blocks.items()):   # broken railings on the walkways and the drying room
             if st.startswith("minecraft:spruce_fence[") and y >= LOW and h(x, y, z, 61) < 0.18:
                 self.ruin_set(x, y, z)
-        for (x, z) in ((10, 12), (20, 15), (13, 9)):             # cerca del corral rota
+        for (x, z) in ((10, 12), (20, 15), (13, 9)):             # broken pen fence
             self.ruin_set(x, 1, z)
 
     # ============================================================ subsuelo
@@ -645,7 +645,7 @@ class Construction:
                     self.carved[(x, y, z)] = (floor, wall, ceil)
 
     def lining(self, default=(SB, SB, SB)):
-        """Recubre las caras de la roca que dan al aire del subsuelo (sin manantiales ni liquen)."""
+        """Lines the rock faces that face the underground air (no springs or lichen)."""
         air = {p for p, (st, _) in self.t.blocks.items() if p[1] < 0 and st == "minecraft:air"}
         for (x, y, z) in air:
             mat = self.carved.get((x, y, z), default)
@@ -663,30 +663,30 @@ class Construction:
                     if self.get(x, y, z) is None:
                         self.s(x, y, z, "dirt" if y >= -2 else "stone")
         U, L = (F1, F1 + 3), (F2, F2 + 3)
-        DAMP = ("mycelium[snowy=false]", "mud_bricks", "packed_mud")       # galerías húmedas de los criaderos
+        DAMP = ("mycelium[snowy=false]", "mud_bricks", "packed_mud")       # damp galleries of the nurseries
         LAB = (SB, SB, SB)
         STEM_PROFILE = (PL, STEM, PL)
         OSC = (DS, CDS, DS)
         # nivel alto
-        self.room(RX, RX, RZ - 5, RZ - 2, F1, F1 + 1, *STEM_PROFILE)       # del tallo a los criaderos
+        self.room(RX, RX, RZ - 5, RZ - 2, F1, F1 + 1, *STEM_PROFILE)       # from the stem to the nurseries
         self.room(22, 42, 18, 28, *U, *DAMP)                          # criaderos de setas
-        self.room(21, 21, 23, 23, F1, F1 + 1, *LAB)                  # puerta del laboratorio
+        self.room(21, 21, 23, 23, F1, F1 + 1, *LAB)                  # laboratory door
         self.room(10, 20, 18, 28, *U, *LAB)                          # laboratorio
-        self.room(43, 43, 23, 23, F1, F1 + 1, *STEM_PROFILE)                # puerta del pasillo de las esporas
-        self.room(44, 52, 22, 23, F1, F1 + 2, *STEM_PROFILE)                # pasillo del cable trampa
-        self.room(53, 59, 16, 28, *U, *DAMP)                          # criadero abandonado (arañas)
+        self.room(43, 43, 23, 23, F1, F1 + 1, *STEM_PROFILE)                # spore corridor door
+        self.room(44, 52, 22, 23, F1, F1 + 2, *STEM_PROFILE)                # trap wire corridor
+        self.room(53, 59, 16, 28, *U, *DAMP)                          # abandoned nursery (spiders)
         # nivel bajo
-        self.room(RX, RX, RZ - 5, RZ - 2, F2, F2 + 1, *STEM_PROFILE)       # del tallo a la galería de la luz
-        self.room(22, 42, 20, 28, *L, *DAMP)                          # galería de la luz
-        self.room(21, 21, 24, 24, F2, F2 + 1, *DAMP)                  # puerta de los capullos
-        self.room(10, 20, 18, 28, *L, *DAMP)                          # sala de los capullos (arañas de cueva)
-        self.room(43, 43, 24, 24, F2, F2 + 1, *LAB)                  # puerta de los experimentos
+        self.room(RX, RX, RZ - 5, RZ - 2, F2, F2 + 1, *STEM_PROFILE)       # from the stem to the light gallery
+        self.room(22, 42, 20, 28, *L, *DAMP)                          # light gallery
+        self.room(21, 21, 24, 24, F2, F2 + 1, *DAMP)                  # cocoon door
+        self.room(10, 20, 18, 28, *L, *DAMP)                          # cocoon room (cave spiders)
+        self.room(43, 43, 24, 24, F2, F2 + 1, *LAB)                  # experiments door
         self.room(44, 56, 18, 28, *L, *LAB)                          # experimentos fallidos (zombis)
-        self.room(40, 40, 29, 35, F2, F2 + 1, *LAB)                  # pasillo a la sala de los reactivos
-        self.room(37, 43, 36, 52, *L, *LAB)                          # sala de los reactivos (puzle 1)
-        self.room(18, 32, 38, 52, F2, F2 + 5, *OSC)                  # cámara de la cepa madre (guardián)
-        self.room(25, 26, 53, 54, F2, F2 + 2, *OSC)                  # paso al tesoro
-        self.room(21, 30, 55, 59, *L, *STEM_PROFILE)                        # cámara del tesoro
+        self.room(40, 40, 29, 35, F2, F2 + 1, *LAB)                  # corridor to the reagent room
+        self.room(37, 43, 36, 52, *L, *LAB)                          # reagent room (puzzle 1)
+        self.room(18, 32, 38, 52, F2, F2 + 5, *OSC)                  # mother strain chamber (guardian)
+        self.room(25, 26, 53, 54, F2, F2 + 2, *OSC)                  # passage to the treasure
+        self.room(21, 30, 55, 59, *L, *STEM_PROFILE)                        # treasure chamber
         self.lining()
         self.nurseries()
         self.laboratory()
@@ -698,10 +698,10 @@ class Construction:
         self.reagents()
         self.mother_strain()
         self.treasury()
-        self.lining()                                                # lo que hayan abierto los mecanismos
+        self.lining()                                                # whatever the mechanisms have opened
 
     def bed_of_fungi(self, x1, x2, z1, z2, y):
-        """Bancal de micelio con setas, a ras de suelo (el micelio ya es el suelo de los criaderos)."""
+        """Mycelium bed with mushrooms, at ground level (the mycelium is already the floor of the nurseries)."""
         for x in range(x1, x2 + 1):
             for z in range(z1, z2 + 1):
                 self.s(x, y - 1, z, "mycelium[snowy=false]")
@@ -709,7 +709,7 @@ class Construction:
                     self.s(x, y, z, "red_mushroom" if h(x, z, 9) < 0.5 else "brown_mushroom")
 
     def nurseries(self):
-        """Criaderos de setas (nivel alto): bancales elevados con setas, setas luminosas en el techo y dos cofres."""
+        """Mushroom nurseries (upper level): raised beds with mushrooms, glowing mushrooms on the ceiling and two chests."""
         y = F1
         for (x1, x2) in ((24, 29), (35, 40)):
             for (z1, z2) in ((19, 21), (25, 27)):
@@ -731,8 +731,8 @@ class Construction:
                                                         ("Luz: la justa", "Light: just so")])
 
     def laboratory(self):
-        """Laboratorio (nivel alto): mesas, alambiques, calderos y la receta de la cura; tras el panel de tallo del muro
-        norte (puzle 2), el cepario."""
+        """Laboratory (upper level): tables, stills, cauldrons and the cure recipe; behind the stem panel of the north
+        wall (puzzle 2), the strain vault."""
         y = F1
         for x in range(12, 19):
             self.s(x, y, 28, slab("smooth_stone", "top"))
@@ -753,7 +753,7 @@ class Construction:
         self.hang(14, y + 3, 26)
         self.sign(19, y + 1, 18, "south", "receta", [("La cura del", "The cure for"), ("micelio: espora,", "mycelium: spore,"),
                                                      ("verruga y luz.", "wart and light."), ("Nada más.", "Nothing else.")])
-        # puerta secreta (puzle 2): un panel de tallo del muro norte se recoge; la palanca, a ras de suelo junto a él
+        # secret door (puzzle 2): a stem panel of the north wall retracts; the lever, at ground level next to it
         rec = pieces.lever_door(self.s, (13, y, 16), "east", "south", STEM, SB)
         self.mech["puerta_cepario"] = rec
         self.room(13, 13, 15, 15, y, y + 1, *(PL, STEM, PL))
@@ -776,7 +776,7 @@ class Construction:
         self.mech["dispensadores"] = [(48, y + 1, 21), (48, y + 1, 24)]
 
     def abandoned(self):
-        """Criadero abandonado: bancales podridos, telarañas, un generador de arañas y un cofre, a oscuras."""
+        """Abandoned nursery: rotten beds, cobwebs, a spider spawner and a chest, in the dark."""
         y = F1
         self.spawner(57, y, 25, "spider")
         for (x, yy, z) in ((53, y + 3, 16), (59, y + 3, 16), (55, y + 3, 27), (58, y, 17), (53, y + 2, 28)):
@@ -788,7 +788,7 @@ class Construction:
         self.s(56, y, 20, S("decorated_pot", cracked=True, facing="north", waterlogged=False))
 
     def light_gallery(self):
-        """Galería de la luz (nivel bajo): micelio, setas luminosas en el techo, liquen y un cofre."""
+        """Light gallery (lower level): mycelium, glowing mushrooms on the ceiling, lichen and a chest."""
         y = F2
         for (x, z) in ((30, 22), (34, 22), (30, 26), (34, 26), (32, 24)):
             self.s(x, y + 4, z, "shroomlight")
@@ -811,7 +811,7 @@ class Construction:
             self.s(x, y, z, "mushroom_stem")
 
     def failed(self):
-        """Experimentos fallidos: jaulas de barrotes vacías, mesas volcadas y un generador de zombis, a oscuras."""
+        """Failed experiments: empty bar cages, overturned tables and a zombie spawner, in the dark."""
         y = F2
         self.spawner(52, y, 21, "zombie")
         for (cx, cz) in ((46, 19), (46, 27), (55, 27)):
@@ -828,15 +828,15 @@ class Construction:
                                                            ("Prueba 32:", "Trial 32:"), ("en mí.", "on myself.")])
 
     def reagents(self):
-        """Sala de los reactivos (puzle 1): cinco frascos con su palanca; la cura del cartel del laboratorio (espora,
-        verruga y luz) abre la puerta; los falsos alimentan la línea directamente."""
+        """Reagent room (puzzle 1): five flasks with their lever; the cure on the laboratory sign (spore,
+        wart and light) opens the door; the false ones feed the line directly."""
         y = F2
-        for z in range(36, 53):                            # cara del muro de los reactivos
+        for z in range(36, 53):                            # face of the reagent wall
             for yy in range(y, y + 4):
                 self.s(36, yy, z, SB)
         good = [((37, y + 1, 46), (36, y + 1, 46)), ((37, y + 1, 50), (36, y + 1, 50)), ((37, y + 1, 52), (36, y + 1, 52))]
         rec = pieces.combo_door(self.s, (34, y, 40), "z", 1, good, name="reactivos", block=CSB)
-        for z in (44, 48):                                 # frascos falsos: polvo del bloque del frasco a la línea
+        for z in (44, 48):                                 # false flasks: dust from the flask's block to the line
             self.s(37, y + 1, z, S("lever", face="wall", facing="east", powered=False))
             self.s(35, y + 1, z, "redstone_wire[east=side,north=none,south=none,west=side,power=0]")
         for z in (44, 46, 48, 50, 52):
@@ -859,7 +859,7 @@ class Construction:
         self.mech["solucion"] = (False, True, False, True, True)
         self.hang(41, y + 3, 40, soul=True)
         self.hang(41, y + 3, 48, soul=True)
-        # la codicia: el armario de reactivos al fondo de un nicho con placas (trampa 2: flechas desde los lados)
+        # greed: the reagent cabinet at the back of a niche with plates (trap 2: arrows from the sides)
         self.a(44, y, 38, 45, y + 1, 38)
         pieces.plate_trap(self.s, [(44, y, 38), (45, y, 38)], "north", arrows=16)
         self.chest(46, y, 38, "west", "reactivos")
@@ -869,7 +869,7 @@ class Construction:
             self.s(43, y, z, S("barrel", facing="west"), {"id": "minecraft:barrel"})
 
     def mother_strain(self):
-        """Cámara de la cepa madre: un champiñón gigante creciendo bajo tierra, setas luminosas y el micólogo."""
+        """Mother strain chamber: a giant mushroom growing underground, glowing mushrooms and the mycologist."""
         y = F2
         cx, cz = 25, 45
         self.f(cx, y, cz, cx, y + 3, cz, STEM)
@@ -904,9 +904,9 @@ class Construction:
         self.hidden += [(x, y, z) for x in range(22, 30) for z in range(56, 59)] + [(25, y, 53), (26, y, 54)]
 
 
-# ------------------------------------------------------------------ guardián
+# ------------------------------------------------------------------ guardian
 def mycologist():
-    """Maese Ambrosio, el Esporado: un esqueleto pantanoso (las setas ya le crecen) con un sombrero de champiñón."""
+    """Maese Ambrosio, el Esporado: a bogged skeleton (mushrooms already grow on him) with a mushroom cap."""
     return guardian("bogged", K + "guardian", "Maese Ambrosio, el Esporado", 50, armor=4,
                     equipment={"head": {"id": "minecraft:red_mushroom_block", "count": 1}},
                     drop_chances={"head": 0.0},

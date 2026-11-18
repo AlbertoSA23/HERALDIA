@@ -1,4 +1,4 @@
-"""Simulador simplificado del ensamblado jigsaw (terreno plano) para validar conexiones y contar edificios."""
+"""Simplified simulator of jigsaw assembly (flat terrain) to validate connections and count buildings."""
 import random
 from collections import Counter
 
@@ -75,7 +75,7 @@ def simulate(reg, start_pool, size, maxdist, seed=0, verbose=False, aliases=None
     placed_kinds = Counter()
     placed_kinds[reg.kinds[loc]] += 1
     while queue:
-        # prioridad de colocación: mayor primero, FIFO
+        # placement priority: higher first, FIFO
         queue.sort(key=lambda q: -q[1])
         piece, _ = queue.pop(0)
         jl = piece.jigs()
@@ -151,13 +151,13 @@ def stats(reg, pieces):
         for (pos, (st, nbt)) in p.tpl.blocks.items():
             if "_bed[" in st and "part=head" in st:
                 c["camas"] += 1
-    # las camas de piezas de aldeano: la cabecera se cuenta arriba
+    # the beds of villager pieces: the head is counted above
     return c
 
 
 def variant_report(reg, seeds=40, themes=None):
-    """Ensambla `seeds` aldeas de cada estilo (estándar y grande) y cuenta, por edificio especial, cuántas veces sale
-    cada variante (y cuántas no cabe), además de casas, aldeanos, gólems y camas por aldea."""
+    """Assembles `seeds` villages of each style (standard and large) and counts, per special building, how many times
+    each variant comes out (and how many times it does not fit), as well as houses, villagers, golems and beds per village."""
     from themes import THEMES
     from writer import sizes, ALL_PROFS
     out = {}
@@ -188,7 +188,7 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from pack import Registry, build_common, build_theme
     from themes import THEMES
-    ap = argparse.ArgumentParser(description="Diversidad de los edificios especiales en ensamblados simulados")
+    ap = argparse.ArgumentParser(description="Diversity of the special buildings in simulated assemblies")
     ap.add_argument("--seeds", type=int, default=40)
     ap.add_argument("themes", nargs="*")
     a = ap.parse_args()

@@ -1,4 +1,4 @@
-"""Render isométrico sencillo de plantillas para revisión visual."""
+"""Simple isometric render of templates for visual review."""
 from PIL import Image, ImageDraw
 import hashlib
 
@@ -65,7 +65,7 @@ def render(t, path, scale=6, cut_y=None, flip=False):
         c = color_of(st)
         if c is None:
             continue
-        # proyección isométrica: cara superior, izquierda, derecha
+        # isometric projection: top face, left, right
         px = ox + (x - z) * scale * 2
         py = oy + (x + z) * scale - y * scale * 2
         s = scale
@@ -98,7 +98,7 @@ def render_many(ts, path, scale=4, cols=4, cut_y=None, flip=False):
 
 
 def variant_sheet(th, path, scale=3, seed=2026):
-    """Lámina de un estilo: una fila por edificio especial con sus variantes (vista desde la entrada)."""
+    """Sheet of a style: one row per special building with its variants (view from the entrance)."""
     import os, sys, tempfile
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from themes import THEMES
@@ -128,7 +128,7 @@ def variant_sheet(th, path, scale=3, seed=2026):
 
 
 if __name__ == "__main__":
-    # python3 tools/gen/render.py <carpeta> [estilo ...]: láminas de variantes de los especiales de cada estilo
+    # python3 tools/gen/render.py <folder> [style ...]: sheets of the special-building variants of each style
     import os, sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from themes import THEMES

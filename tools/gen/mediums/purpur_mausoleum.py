@@ -1,10 +1,10 @@
-"""Mausoleo púrpura (heraldia:medianas/mausoleo_purpura/<estilo>, End, islas exteriores): un recinto de 17 x 17 con un
-mausoleo de púrpura de 9 x 9, de bóveda escalonada, donde reposa un viajero que no volvió del vacío. Variante a: la
-cripta cerrada con el sarcófago (losas de púrpura sobre un zócalo), el cofre del ajuar a sus pies y un generador de
-endermites dentro del sarcófago; b: el mausoleo abierto (sin muro sur, pilares rotos) con dos tumbas y el cofre del ajuar.
+"""Purpur mausoleum (heraldia:medianas/mausoleo_purpura/<estilo>, End, outer islands): a 17 x 17 enclosure with a
+9 x 9 purpur mausoleum with a stepped vault, where a traveler who did not return from the void rests. Variant a: the
+closed crypt with the sarcophagus (purpur slabs on a plinth), the grave goods chest at its feet and an
+endermite spawner inside the sarcophagus; b: the open mausoleum (no south wall, broken pillars) with two tombs and the grave goods chest.
 
-Estilos: altas (tierras altas del End) y medias (tierras medias y yermos del End). Botín acorde: perlas de ender, fruta
-coral, oro, hierro, velas; nada de élitros ni netherita."""
+Styles: altas (End highlands) and medias (End midlands and barrens). Matching loot: ender pearls, chorus
+fruit, gold, iron, candles; no elytra or netherite."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -38,7 +38,7 @@ def _enclosure(p, name):
     t = Template(name)
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=9)
     c.entrance(t, CX, p["suelo"][0])
-    for x in range(L):                                        # pretil bajo alrededor, abierto al norte
+    for x in range(L):                                        # low parapet around, open to the north
         for z in range(L):
             if (x in (0, L - 1) or z in (0, L - 1)) and not (z == 0 and CX - 1 <= x <= CX + 1):
                 t.set(x, 1, z, p["pretil"])
@@ -49,7 +49,7 @@ def _enclosure(p, name):
 
 
 def _vault(t, p, y):
-    """Bóveda escalonada de tres hiladas sobre los muros (y es la primera)."""
+    """Stepped vault of three courses over the walls (y is the first)."""
     for k in range(3):
         a, b = M0 + k, M1 - k
         t.fill(a, y + k, a, b, y + k, b, p["muro"])
@@ -62,15 +62,15 @@ def crypt(p, name):
     t = _enclosure(p, name)
     c.box(t, M0, 1, M0, M1, 5, M1, p["muro"], corner_block=p["pilar"], floor=p["piso"])
     _vault(t, p, 6)
-    for y in (1, 2, 3):                                        # portada de 3 x 3 al norte
+    for y in (1, 2, 3):                                        # 3 x 3 portal to the north
         for x in (CX - 1, CX, CX + 1):
             t.set(x, y, M0, "air")
-    # sarcófago al fondo: zócalo y tapa de losas
+    # sarcophagus at the back: plinth and slab lid
     for x in (CX - 1, CX, CX + 1):
         t.set(x, 1, M1 - 2, p["zocalo"])
         t.set(x, 2, M1 - 2, f"{p['losa']}[type=bottom,waterlogged=false]")
     c.place_chest(t, CX, 1, M1 - 4, "north", MID, "ajuar")
-    pieces.spawner(t.set, CX, 1, M1 - 2, "endermite")           # dentro del sarcófago, bajo la tapa
+    pieces.spawner(t.set, CX, 1, M1 - 2, "endermite")           # inside the sarcophagus, under the lid
     for x in (M0 + 1, M1 - 1):
         t.set(x, 1, M1 - 1, "candle[candles=3,lit=true,waterlogged=false]")
         c.lantern(t, x, 5, M0 + 2)
@@ -85,7 +85,7 @@ def open_variant(p, name):
         height = 3 if (x, z) in ((M1, M1), (CX, M1)) else 6
         for y in range(1, height + 1):
             t.set(x, y, z, p["pilar"])
-    t.fill(M0, 7, M0, M1, 7, M0 + 4, p["muro"])                 # media bóveda que queda en pie, al norte
+    t.fill(M0, 7, M0, M1, 7, M0 + 4, p["muro"])                 # half vault left standing, to the north
     for x in (CX - 2, CX + 2):                                 # dos tumbas
         for z in (CX, CX + 1, CX + 2):
             t.set(x, 1, z, f"{p['losa']}[type=bottom,waterlogged=false]")

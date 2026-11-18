@@ -1,7 +1,7 @@
-"""Planta del Palacio oriental: una sola pieza rígida de 81 x 123, simétrica respecto a x = 40.
+"""Plan of the Oriental palace: a single rigid piece of 81 x 123, symmetric about x = 40.
 
-Coordenadas de plantilla: x este, z sur (la puerta está en z = 0), y = 0 zócalo, y = 1 pavimento, pies a y = 2.
-Ver docs/unicas/palacio.md para el recorrido y la función de cada sala.
+Template coordinates: x east, z south (the gate is at z = 0), y = 0 base, y = 1 paving, feet at y = 2.
+See docs/unicas/palace.md for the walkthrough and the function of each room.
 """
 import math, random
 from core import Template, parse_state, state_str, B
@@ -25,7 +25,7 @@ _SWAP = {"east": "west", "west": "east", "left": "right", "right": "left",
 
 
 def mirror_state(st):
-    """Estado reflejado respecto al eje x = 40 (este <-> oeste)."""
+    """State mirrored about the axis x = 40 (east <-> west)."""
     bid, p = parse_state(st)
     q = {}
     for k, v in p.items():
@@ -43,10 +43,10 @@ def mirror_state(st):
 class Construction:
     def __init__(self):
         self.t = Template(NAME)
-        self.lint_open = {}      # estado de los mecanismos abiertos (para la auditoría de recorrido)
-        self.secret = []          # posiciones que solo se alcanzan resolviendo un puzle
-        self.mech = []            # mecanismos de redstone para la auditoría
-        self.protect = set()      # celdas que la ruina no puede tocar
+        self.lint_open = {}      # state of the open mechanisms (for the walkthrough audit)
+        self.secret = []          # positions reachable only by solving a puzzle
+        self.mech = []            # redstone mechanisms for the audit
+        self.protect = set()      # cells the ruin cannot touch
         self.chests = []          # (pos, tabla)
 
     # ---------------------------------------------------------------- primitivas
@@ -101,8 +101,8 @@ class Construction:
             self.ring(x0, z0, x1, z1, y, st, sym=sym)
 
     def roof(self, x0, z0, x1, z1, y, kind, ov=2, rings=None, sym=False, ceiling=True):
-        """Tejado a cuatro aguas de escalones sobre el rectángulo de muros, con alero de `ov` bloques.
-        `rings` limita el número de hiladas (alero inferior de un tejado de doble alero)."""
+        """Four-sided stepped roof over the rectangle of walls, with an eave of `ov` blocks.
+        `rings` limits the number of courses (lower eave of a double-eave roof)."""
         st, slab, full = ROOF[kind]
         if ceiling:
             self.f(x0, y, z0, x1, y, z1, CEIL, sym=sym)
@@ -116,7 +116,7 @@ class Construction:
                 self.f(c0, yy - 1, d0, c1, yy, d1, full, sym=sym)
                 self.f(c0, yy + 1, d0, c1, yy + 1, d1, f"{slab}[type=bottom,waterlogged=false]", sym=sym)
                 break
-            if k > 0:      # tejado macizo bajo cada hilada: nada se apoya solo en una arista
+            if k > 0:      # solid roof under each course: nothing rests on a single edge
                 cells = [(x, z) for x in range(c0, c1 + 1) for z in (d0, d1)] + \
                         [(x, z) for z in range(d0, d1 + 1) for x in (c0, c1)]
                 for (x, z) in cells:
@@ -132,7 +132,7 @@ class Construction:
             for x, z, fc, sh in ((c0, d0, "south", "outer_left"), (c1, d0, "south", "outer_right"),
                                  (c0, d1, "north", "outer_right"), (c1, d1, "north", "outer_left")):
                 self.s(x, yy, z, f"{st}[facing={fc},half=bottom,shape={sh},waterlogged=false]", sym=sym)
-                if k == 0:   # puntas del alero levantadas
+                if k == 0:   # raised eave tips
                     self.s(x, yy + 1, z, f"{slab}[type=bottom,waterlogged=false]", sym=sym)
             k += 1
 
@@ -170,8 +170,8 @@ class Construction:
 
     # ---------------------------------------------------------------- redstone
     def piston_door(self, piston, facing, door_blocks, mat, lever=None, attached=None, label=""):
-        """Puerta de pistones pegajosos cerrada (extendidos y alimentados). `piston` es la lista de bases;
-        cada una empuja su bloque de puerta hacia `facing`. Se registra el estado abierto para auditar."""
+        """Closed sticky piston door (extended and powered). `piston` is the list of bases;
+        each one pushes its door block towards `facing`. The open state is recorded for auditing."""
         dx, dz = {"east": (1, 0), "west": (-1, 0), "south": (0, 1), "north": (0, -1)}[facing]
         pieces.piston_door(self.put(False), door_blocks, (-dx, -dz), facing, mat)
         for (x, y, z) in piston:
@@ -182,7 +182,7 @@ class Construction:
         self.mech.append(dict(kind="puerta", label=label, pistons=list(piston), facing=facing, door=door_blocks))
 
     def lever(self, x, y, z, facing, powered, label=""):
-        """Palanca en la cara de un muro; `facing` es hacia donde sobresale (el bloque de apoyo queda detrás)."""
+        """Lever on the face of a wall; `facing` is where it sticks out (the support block is behind)."""
         self.s(x, y, z, f"lever[face=wall,facing={facing},powered={'true' if powered else 'false'}]")
         self.protect.add((x, y, z))
         self.mech.append(dict(kind="palanca", label=label, pos=(x, y, z), facing=facing, powered=powered))
@@ -194,18 +194,18 @@ class Construction:
         self.protect.add((x, y, z))
 
     def tripwire(self, z, x0, x1, y=2, label=""):
-        """Cable trampa a lo ancho de un pasillo norte-sur entre los muros x0 y x1 (ganchos en x0+1 y x1-1)."""
+        """Tripwire across a north-south corridor between the walls x0 and x1 (hooks at x0+1 and x1-1)."""
         pieces.tripwire_trap(self.put(False), (x0 + 1, z), (x1 - 1, z), y, "x",
                              [((x0, y + 1, z), "east"), ((x1, y + 1, z), "west")])
         self.protect |= {(x, yy, z) for x in range(x0, x1 + 1) for yy in (y, y + 1)}
         self.mech.append(dict(kind="cable", label=label, z=z, x0=x0, x1=x1, y=y))
 
 
-# ==================================================================== construcción
+# ==================================================================== construction
 def construct():
     o = Construction()
     t = o.t
-    # ---- zócalo, pavimento y escalinata
+    # ---- base, paving and flight of stairs
     o.f(0, 0, 1, W - 1, 0, D - 1, FOUND)
     o.f(0, 1, 2, W - 1, 1, D - 1, PAVE)
     o.stairs_row(34, 46, 0, 0, "south")
@@ -227,13 +227,13 @@ def construct():
 
 
 def city_wall(o):
-    """Muralla perimetral de 3 de grueso: zócalo de piedra, cuerpo rojo y albardilla amarilla."""
+    """Perimeter wall 3 thick: stone base, red body and yellow coping."""
     st, slab, full = ROOF["amarillo"]
 
     def segment(x0, z0, x1, z1, axis):
         o.f(x0, 2, z0, x1, 3, z1, PAVE)
         o.f(x0, 4, z0, x1, 8, z1, RED)
-        if axis == "x":      # muro que corre de oeste a este (caras norte y sur)
+        if axis == "x":      # wall running from west to east (north and south faces)
             for x in range(x0, x1 + 1):
                 o.s(x, 9, z0, f"{st}[facing=south,half=bottom,shape=straight,waterlogged=false]")
                 o.s(x, 9, z0 + 1, full)
@@ -256,7 +256,7 @@ def city_wall(o):
 
 
 def noon_door(o):
-    """Puerta monumental: macizo de 17 x 7 con paso central, cuerpos de guardia y pabellón superior."""
+    """Monumental gate: 17 x 7 solid mass with a central passage, guard bodies and upper pavilion."""
     o.f(32, 2, 2, 48, 3, 8, PAVE)
     o.f(32, 4, 2, 48, 8, 8, RED)
     o.f(32, 9, 2, 48, 9, 8, AXIS)
@@ -282,7 +282,7 @@ def noon_door(o):
     o.s(37, 2, 3, "crafting_table", sym=True)
     o.lantern(35, 5, 4, sym=True)
     o.lantern(40, 4, 5)
-    # pabellón superior
+    # upper pavilion
     for x in (34, 37, 40, 43, 46):
         for z in (3, 7):
             o.f(x, 10, z, x, 13, z, COL)
@@ -298,7 +298,7 @@ def noon_door(o):
 
 
 def outer_courtyard(o):
-    # río de agua dorada con balaustrada y tres puentes arqueados
+    # river of golden water with balustrade and three arched bridges
     o.f(8, 1, 15, 72, 1, 17, "water[level=0]")
     bridges = [(36, 44), (23, 27), (53, 57)]
     inbridge = lambda x: any(a <= x <= b for a, b in bridges)
@@ -326,7 +326,7 @@ def outer_courtyard(o):
 
 
 def harmony_door(o):
-    """Muro intermedio con el salón-puerta de la Suprema Armonía (paso central y dos salas)."""
+    """Intermediate wall with the gate-hall of Supreme Harmony (central passage and two rooms)."""
     st, slab, full = ROOF["amarillo"]
     o.f(3, 2, 28, W - 4, 3, 30, PAVE)
     o.f(3, 4, 28, W - 4, 8, 30, RED)
@@ -353,7 +353,7 @@ def harmony_door(o):
     o.s(31, 3, 27, "red_bed[facing=west,occupied=false,part=foot]")
     o.s(48, 3, 31, "smoker[facing=north,lit=false]")
     o.lantern(32, 7, 29, sym=True)
-    # paso central con columnas
+    # central passage with columns
     for x in (28, 31, 34, 37, 43, 46, 49, 52):
         for z in (26, 32):
             o.f(x, 3, z, x, 7, z, COL)
@@ -364,7 +364,7 @@ def harmony_door(o):
 
 
 def library_treasury(o):
-    """Biblioteca (oeste) y tesorería (este): iguales por fuera, distintas por dentro."""
+    """Library (west) and treasury (east): the same outside, different inside."""
     o.plinth(3, 35, 18, 57, sym=True)
     o.walls(4, 36, 17, 56, 3, 7, RED, sym=True)
     o.f(5, 2, 37, 16, 2, 55, "spruce_planks", sym=True)
@@ -378,7 +378,7 @@ def library_treasury(o):
     o.door(17, 3, 46, "east", sym=True)
     o.stairs_col(19, 2, 45, 47, "west", sym=True)
     o.roof(4, 36, 17, 56, 8, "verde", ov=1, sym=True)
-    # ---- biblioteca: estanterías, atriles, estudio secreto tras el muro de libros (z = 41)
+    # ---- library: bookshelves, lecterns, secret study behind the book wall (z = 41)
     o.f(5, 3, 43, 5, 5, 55, "bookshelf")
     o.f(5, 3, 46, 5, 4, 46, "air")         # hueco de lectura
     o.f(6, 3, 55, 15, 5, 55, "bookshelf")
@@ -393,7 +393,7 @@ def library_treasury(o):
     o.lantern(10, 7, 48)
     o.lantern(10, 7, 38)
     o.f(5, 3, 41, 16, 7, 41, "bookshelf")
-    o.f(7, 3, 42, 8, 7, 42, "bookshelf")      # columnas de libros (la izquierda tapa los pistones)
+    o.f(7, 3, 42, 8, 7, 42, "bookshelf")      # columns of books (the left one hides the pistons)
     o.f(10, 3, 42, 11, 7, 42, "bookshelf")
     o.piston_door([(7, 3, 41), (7, 4, 41)], "east", [(9, 3, 41), (9, 4, 41)], "bookshelf", label="biblioteca")
     o.lever(7, 4, 43, "south", True, label="biblioteca")
@@ -403,12 +403,12 @@ def library_treasury(o):
     o.f(13, 3, 37, 15, 3, 37, "spruce_planks")
     o.s(14, 4, 37, "candle[candles=3,lit=false,waterlogged=false]")
     o.s(5, 3, 37, "bookshelf"); o.s(5, 4, 37, "bookshelf")
-    # ---- tesorería: barriles, cámara acorazada con puerta de hierro y cofre trampa
+    # ---- treasury: barrels, vault with iron door and trapped chest
     o.f(64, 3, 41, 75, 7, 41, "polished_andesite")
     o.f(69, 3, 42, 70, 7, 42, "polished_andesite")
     o.f(72, 3, 42, 73, 7, 42, "polished_andesite")
     o.door(71, 3, 41, "north", kind="iron_door")
-    o.s(71, 4, 42, "stone_button[face=wall,facing=west,powered=false]")     # en la cara de la columna, junto a la puerta
+    o.s(71, 4, 42, "stone_button[face=wall,facing=west,powered=false]")     # on the face of the column, next to the door
     o.s(70, 4, 40, "stone_button[face=wall,facing=north,powered=false]")
     o.barrel(64, 3, 55, "tesoreria_menor")
     o.barrel(75, 3, 55, "tesoreria_menor")
@@ -427,7 +427,7 @@ def library_treasury(o):
 
 
 def platform_and_hall(o):
-    """Plataforma de tres gradas, escalinatas en el eje y salón del trono de doble alero."""
+    """Three-tier platform, flights of steps on the axis and throne hall with a double eave."""
     o.f(22, 2, 36, 58, 3, 76, MARBLE)
     o.f(24, 4, 38, 56, 5, 74, MARBLE)
     o.f(26, 6, 40, 54, 7, 72, MARBLE)
@@ -450,11 +450,11 @@ def platform_and_hall(o):
         o.f(36, 1, zb, 44, 1 + k, zb, MARBLE)
         o.stairs_row(36, 38, 2 + k, zf, "south", sym=True)
         o.stairs_row(36, 38, 2 + k, zb, "north", sym=True)
-        o.f(39, 2 + k, zf, 41, 2 + k, zf, "chiseled_quartz_block")       # rampa del dragón
+        o.f(39, 2 + k, zf, 41, 2 + k, zf, "chiseled_quartz_block")       # dragon ramp
         o.f(39, 2 + k, zb, 41, 2 + k, zb, "chiseled_quartz_block")
         for x in (35, 45):
             o.s(x, 2 + k, zf, MARBLE); o.s(x, 2 + k, zb, MARBLE)
-    # ---- salón
+    # ---- hall
     o.f(28, 7, 46, 52, 7, 66, FLOOR)
     for x in (27, 30, 33, 36, 44, 47, 50, 53):
         for z in (45, 67):
@@ -480,7 +480,7 @@ def platform_and_hall(o):
             o.s(x, 17, z, "cyan_terracotta")
     o.roof(27, 45, 53, 67, 13, "amarillo", ov=1, rings=3, ceiling=False)
     o.roof(29, 47, 51, 65, 17, "amarillo", ov=2, ceiling=False)
-    # estrado y trono
+    # dais and throne
     o.f(36, 8, 55, 44, 8, 58, MTOP)
     o.stairs_row(38, 42, 8, 54, "south")
     o.s(40, 9, 57, "smooth_quartz_stairs[facing=south,half=bottom,shape=straight,waterlogged=false]")
@@ -493,7 +493,7 @@ def platform_and_hall(o):
     o.s(43, 9, 55, "decorated_pot[cracked=false,facing=north,waterlogged=false]")
     for x, z in ((34, 52), (46, 52), (40, 50), (34, 58), (46, 58)):
         o.lantern(x, 15, z)
-    # pasillo trasero: columnas gemelas; la izquierda esconde la puerta secreta, la derecha es un señuelo
+    # rear corridor: twin columns; the left one hides the secret door, the right one is a decoy
     o.f(38, 8, 62, 39, 16, 62, RED)
     o.f(41, 8, 62, 42, 16, 62, RED)
     o.piston_door([(38, 8, 63), (38, 9, 63)], "east", [(40, 8, 63), (40, 9, 63)], RED, label="trono")
@@ -502,43 +502,43 @@ def platform_and_hall(o):
     o.lever(42, 9, 61, "north", False, label="senuelo")
     o.dispenser(42, 8, 62, "north", arrows=6)
     o.mech.append(dict(kind="senuelo", label="senuelo", lever=(42, 9, 61), disp=(42, 8, 62)))
-    o.air(40, 8, 64, 40, 9, 64)               # alacena oculta en el muro trasero
+    o.air(40, 8, 64, 40, 9, 64)               # hidden cupboard in the rear wall
     o.chest(31, 8, 62, "east", "salon")
     o.s(49, 8, 62, "decorated_pot[cracked=false,facing=west,waterlogged=false]")
     o.lantern(33, 16, 61, sym=True)
 
 
 def below_the_hall(o):
-    """Interior de la plataforma (no es sótano: está sobre el zócalo). Antecámara, pasillo de trampas,
-    sala de los guerreros (generadores) y cámara del tesoro bajo el trono."""
+    """Interior of the platform (not a basement: it is above the base). Antechamber, trap corridor,
+    warriors' room (spawners) and treasure chamber under the throne."""
     o.f(27, 1, 41, 53, 6, 71, DUNGEON)
     o.f(28, 1, 42, 52, 1, 70, "polished_deepslate")
     rooms = [(37, 60, 43, 64), (29, 61, 35, 63), (29, 44, 31, 63), (33, 42, 47, 47), (34, 50, 46, 58)]
     for x0, z0, x1, z1 in rooms:
         o.air(x0, 2, z0, x1, 5, z1)
-    o.air(36, 2, 62, 36, 3, 62)                # antecámara -> pasillo
-    o.air(32, 2, 44, 32, 3, 45)                # pasillo -> sala de los guerreros
-    o.air(40, 2, 49, 40, 3, 49)                # paso de la cámara (muro de 2)
+    o.air(36, 2, 62, 36, 3, 62)                # antechamber -> corridor
+    o.air(32, 2, 44, 32, 3, 45)                # corridor -> warriors' room
+    o.air(40, 2, 49, 40, 3, 49)                # passage of the chamber (2-thick wall)
     o.lantern(40, 5, 61)
-    o.ladder(40, 2, 7, 64, "north")            # pozo desde la alacena del salón
-    # trampas: dos cables con dispensadores enfrentados
+    o.ladder(40, 2, 7, 64, "north")            # shaft from the hall's cupboard
+    # traps: two wires with facing dispensers
     o.tripwire(56, 28, 32, label="pasillo sur")
     o.tripwire(50, 28, 32, label="pasillo norte")
-    # sala de los guerreros: estatuas de terracota y dos generadores, sin luz
+    # warriors' room: terracotta statues and two spawners, no light
     for x in (34, 36, 38, 42, 44, 46):
         o.f(x, 2, 42, x, 3, 42, "terracotta")
         o.s(x, 4, 42, "brown_terracotta")
     pieces.spawner(o.s, 35, 2, 45, "zombie")
     pieces.spawner(o.s, 45, 2, 45, "skeleton")
     o.protect |= {(35, 2, 45), (45, 2, 45)}
-    # cerradura de dos palancas: bloque bajo hacia el oeste, alto hacia el este
+    # two-lever lock: low block to the west, high one to the east
     o.f(38, 2, 47, 39, 5, 47, DUNGEON)
     o.f(41, 2, 47, 42, 5, 47, DUNGEON)
     o.piston_door([(38, 2, 48)], "east", [(40, 2, 48)], DUNGEON, label="camara (bajo)")
     o.piston_door([(42, 3, 48)], "west", [(40, 3, 48)], DUNGEON, label="camara (alto)")
     o.lever(37, 2, 47, "north", True, label="camara (bajo)")
     o.lever(43, 3, 47, "north", True, label="camara (alto)")
-    # cámara del tesoro
+    # treasure chamber
     o.f(34, 1, 50, 46, 1, 58, "polished_blackstone_bricks")
     o.f(38, 1, 52, 42, 1, 56, "yellow_glazed_terracotta[facing=north]")
     o.chest(40, 2, 58, "north", "premium")
@@ -561,7 +561,7 @@ GUARDIAN = pieces.guardian(
 
 
 def garden_wall(o):
-    """Muro del jardín con puerta de luna en el eje y dos portillos."""
+    """Garden wall with a moon gate on the axis and two wicket gates."""
     st, slab, full = ROOF["amarillo"]
     o.f(3, 2, 80, W - 4, 3, 82, PAVE)
     o.f(3, 4, 80, W - 4, 8, 82, RED)
@@ -596,7 +596,7 @@ def garden(o):
         o.s(x, 2, z, "mossy_cobblestone", sym=True)
     for x, z in ((30, 91), (33, 99), (47, 92), (50, 100), (29, 96), (35, 89)):
         o.s(x, 2, z, "lily_pad")
-    # puente y pabellón del lago
+    # bridge and lake pavilion
     o.f(38, 2, 88, 42, 2, 102, "spruce_planks")
     o.stairs_row(38, 42, 2, 87, "south", st="spruce_stairs")
     o.stairs_row(38, 42, 2, 103, "north", st="spruce_stairs")
@@ -615,7 +615,7 @@ def garden(o):
     o.barrel(36, 3, 95, "jardin", facing="east")
     o.s(44, 3, 95, "spruce_stairs[facing=east,half=bottom,shape=straight,waterlogged=false]")
     o.lantern(40, 6, 95)
-    # árboles, bambú y linternas
+    # trees, bamboo and lanterns
     for x, z in ((8, 101), (24, 86), (22, 115)):
         o.tree(x, z, sym=True)
     for x0, z0 in ((19, 96), (29, 114)):
@@ -632,7 +632,7 @@ def garden(o):
 
 
 def pagoda(o):
-    """Pagoda de cinco pisos con pilar central; escaleras de mano alternas en el pilar."""
+    """Five-storey pagoda with a central pillar; alternating ladders on the pillar."""
     o.plinth(34, 105, 46, 117)
     o.stairs_row(38, 42, 2, 104, "south")
     stories = [(36, 107, 44, 115, 3, 6), (36, 107, 44, 115, 8, 11), (37, 108, 43, 114, 13, 16),
@@ -645,7 +645,7 @@ def pagoda(o):
         for (x, z) in ((mx, z0), (mx, z1), (x0, mz), (x1, mz)):
             if not (i == 0 and z == z0):
                 o.f(x, y0 + 1, z, x, y0 + 2, z, LATTICE)
-        o.f(x0, y1 + 1, z0, x1, y1 + 1, z1, CEIL)        # forjado (suelo del piso siguiente)
+        o.f(x0, y1 + 1, z0, x1, y1 + 1, z1, CEIL)        # floor slab (floor of the next storey)
         if i < 4:
             st, slab, full = ROOF["verde"]
             for (a0, b0, a1, b1, yy) in ((x0 - 2, z0 - 2, x1 + 2, z1 + 2, y1), (x0 - 1, z0 - 1, x1 + 1, z1 + 1, y1 + 1)):
@@ -660,7 +660,7 @@ def pagoda(o):
                     o.s(x, yy, z, f"{st}[facing={fc},half=bottom,shape={sh},waterlogged=false]")
             for x, z in ((x0 - 2, z0 - 2), (x1 + 2, z0 - 2), (x0 - 2, z1 + 2), (x1 + 2, z1 + 2)):
                 o.s(x, y1 + 1, z, f"{slab}[type=bottom,waterlogged=false]")
-            o.ring(x0 - 1, z0 - 1, x1 + 1, z1 + 1, y1, full)       # apoyo del alero
+            o.ring(x0 - 1, z0 - 1, x1 + 1, z1 + 1, y1, full)       # eave support
     o.f(37, 2, 108, 43, 2, 114, "spruce_planks")
     o.f(40, 3, 111, 40, 26, 111, COL)                      # pilar central
     o.door(40, 3, 107, "north")
@@ -670,7 +670,7 @@ def pagoda(o):
     o.ladder(41, 18, 22, 111, "east")
     o.roof(38, 109, 42, 113, 27, "verde", ov=2, ceiling=False)
     o.f(40, 32, 111, 40, 33, 111, "lightning_rod[facing=up,powered=false,waterlogged=false]")
-    # contenido de cada piso
+    # contents of each storey
     o.s(40, 3, 114, "yellow_glazed_terracotta[facing=north]")
     o.s(40, 4, 114, "candle[candles=4,lit=false,waterlogged=false]")
     o.s(38, 3, 114, "decorated_pot[cracked=false,facing=north,waterlogged=false]", sym=True)
@@ -687,7 +687,7 @@ def pagoda(o):
 
 
 def pavilions(o):
-    """Cuatro pabellones de las concubinas (dos por lado), puertas hacia el eje."""
+    """Four concubines' pavilions (two per side), doors towards the axis."""
     for z0 in (86, 106):
         z1, zc = z0 + 10, z0 + 5
         o.plinth(4, z0 - 1, 16, z1 + 1, sym=True)

@@ -1,8 +1,8 @@
-"""Modelo de la catedral en un único sistema de coordenadas.
+"""Cathedral model in a single coordinate system.
 
-x: eje de la nave (fachada oeste en x=6, ábside hacia +x); z: anchura (eje de simetría z=30); y=0: suelo
-(pies del jugador en y=1); y<0: cripta (pieza aparte). Se construye la mitad norte (z<=30), se refleja y se
-añaden las partes asimétricas (sacristía y biblioteca al norte, claustro al sur, cripta, mecanismos, ruina)."""
+x: axis of the nave (west facade at x=6, apse toward +x); z: width (axis of symmetry z=30); y=0: floor
+(player's feet at y=1); y<0: crypt (separate piece). The north half (z<=30) is built, mirrored, and the
+asymmetric parts are added (sacristy and library to the north, cloister to the south, crypt, mechanisms, ruin)."""
 import math
 from core import Template
 from .base import *
@@ -19,17 +19,17 @@ RING = pieces.SLAB_RING
 
 
 def vault(r):
-    """Cota del intradós de la bóveda según la distancia al eje (0..5)."""
+    """Height of the vault's intrados according to the distance to the axis (0..5)."""
     return {5: 23, 4: 25, 3: 26}.get(r, 27 if r <= 2 else 22)
 
 
 def roofh(r):
-    """Cota superior de la cubierta (pendiente 2:1) según la distancia al caballete (0..6)."""
+    """Upper height of the roof (2:1 slope) according to the distance to the ridge (0..6)."""
     return 40 - 2 * r
 
 
 def bay(x):
-    """(u, anchura, índice de tramo) o None si x es un pilar."""
+    """(u, width, bay index) or None if x is a pillar."""
     posts = NAVE_POSTS if x <= 59 else CHOIR_POSTS
     if x in posts or x < posts[0] or x > posts[-1]:
         return None
@@ -41,11 +41,11 @@ def bay(x):
 class Cathedral:
     def __init__(self):
         self.t = Template("unicas/catedral/_mundo")
-        self.chests = []        # (pos, tabla, nombre del sitio)
+        self.chests = []        # (pos, table, site name)
         self.spawners = []      # (pos, criatura)
         self.mech = []          # mecanismos de redstone
-        self.ruin = set()       # posiciones con daño de ruina explícito
-        self.flights = set()    # peldaños de escaleras transitables
+        self.ruin = set()       # positions with explicit ruin damage
+        self.flights = set()    # walkable stair steps
         self.entities = []
 
     # ------------------------------------------------------------------ primitivas
@@ -56,7 +56,7 @@ class Cathedral:
         return self.t.get(x, y, z)
 
     def fill(self, x1, y1, z1, x2, y2, z2, st):
-        if y2 >= y1:                       # un intervalo vacío (y2 < y1) no coloca nada
+        if y2 >= y1:                       # an empty interval (y2 < y1) places nothing
             self.t.fill(x1, y1, z1, x2, y2, z2, st)
 
     def air(self, x1, y1, z1, x2, y2, z2):
@@ -71,7 +71,7 @@ class Cathedral:
         self.chests.append(((x, y, z), tbl, site))
 
     def hang(self, x, y, z, top, soul=False):
-        """Farol colgado en y con cadena hasta el bloque de la cota top (excluido)."""
+        """Lantern hung at y with a chain up to the block at height top (excluded)."""
         for yy in range(y + 1, top):
             self.set(x, yy, z, "iron_chain[axis=y]")
         self.set(x, y, z, s("soul_lantern" if soul else "lantern", hanging=True))
@@ -96,7 +96,7 @@ class Cathedral:
                                     ring=pieces.SLAB_RING, props="")
         self.flights.update((x, pieces.slab_y(sv)[0], z) for (_, x, z, sv) in steps)
 
-    # ------------------------------------------------------------------ cuerpo simétrico (mitad norte)
+    # ------------------------------------------------------------------ symmetric body (north half)
     def build_symmetric(self):
         for x in range(18, 90):
             if 59 <= x <= 71:
@@ -156,9 +156,9 @@ class Cathedral:
                 if u == mid:
                     self.set(x, 22, z, self.window_glass(k))
             if nave_part:
-                self.set(x, 27, z, SB)          # pasillo de canalón (pies en 28)
+                self.set(x, 27, z, SB)          # gutter walkway (feet at 28)
             else:
-                self.set(x, 28, z, ROOF)        # alero del coro
+                self.set(x, 28, z, ROOF)        # choir eaves
         elif r <= 11:
             self.set(x, 0, z, PA)
             self.air(x, 1, z, x, 10, z)
@@ -166,7 +166,7 @@ class Cathedral:
             self.air(x, 12, z, x, 15, z)
             self.set(x, 16, z, SM)
             if r == 7 and nave_part:
-                self.set(x, 27, z, stairs("stone_brick", "south", "top"))     # cornisa bajo el pretil del canalón
+                self.set(x, 27, z, stairs("stone_brick", "south", "top"))     # cornice under the gutter parapet
                 self.set(x, 28, z, WALLB)
         elif r == 12:
             self.fill(x, 0, z, x, 16, z, SB)
@@ -237,7 +237,7 @@ class Cathedral:
     def transept_column(self, x, z):
         rx, r = abs(x - 65), 30 - z
         if rx > 6:
-            # esquinas del brazo: contrafuertes diagonales del hastial
+            # corners of the arm: diagonal buttresses of the gable
             if rx == 7 and r in (22, 23):
                 self.fill(x, 0, z, x, 22, z, SB)
                 self.set(x, 23, z, CSB)
@@ -254,7 +254,7 @@ class Cathedral:
             self.fill(x, H - 2, z, x, H, z, ROOF)
             return
         if r in (6, 7) and rx in (5, 6):
-            self.fill(x, 0, z, x, 27, z, PA)          # pilar del crucero
+            self.fill(x, 0, z, x, 27, z, PA)          # transept crossing pillar
             self.set(x, 1, z, CSB)
             self.set(x, 10, z, CSB)
             self.set(x, 22, z, CSB)
@@ -262,7 +262,7 @@ class Cathedral:
             return
         if rx == 6:
             if r <= 12:
-                # el colateral desemboca en el brazo; encima, muro con el paso de la pasarela alta
+                # the aisle opens into the arm; above, a wall with the high walkway passage
                 self.set(x, 0, z, PA)
                 self.air(x, 1, z, x, 10, z)
                 self.set(x, 11, z, SB)
@@ -285,10 +285,10 @@ class Cathedral:
                         self.fill(x, lo, z, x, 8, z, self.window_glass(z))
                         self.fill(x, 17, z, x, 22, z, self.window_glass(z + 1))
                 return
-            # r 22..23: esquina del hastial
+            # r 22..23: corner of the gable
             self.fill(x, 0, z, x, 28, z, SB)
             return
-        # rx <= 5: interior del brazo o del crucero
+        # rx <= 5: interior of the arm or the crossing
         if r <= 21:
             self.set(x, 0, z, PA if (x + z) % 2 else PD)
             U = vault(rx)
@@ -298,7 +298,7 @@ class Cathedral:
             self.air(x, 28, z, x, H - 3, z)
             self.fill(x, H - 2, z, x, H, z, ROOF)
             return
-        # hastial del brazo (z = 7..8): muro de dos capas hasta la cubierta, rosetón y portada
+        # gable of the arm (z = 7..8): two-layer wall up to the roof, rose window and portal
         H = roofh(rx)
         self.fill(x, 0, z, x, H, z, SB)
         cy, rr = 18.5, 5.6
@@ -320,7 +320,7 @@ class Cathedral:
                     self.set(x + (1 if x > 65 else -1), 0, 6, stairs("stone_brick", "south"))
 
     def rose_cell(self, dx, dy, dist, outer):
-        """Celda de un rosetón: tracería radial de piedra y vidrieras en la capa exterior."""
+        """Cell of a rose window: radial stone tracery and stained glass in the outer layer."""
         if not outer:
             return "air"
         if dist > 4.8 or dist < 1.0:
@@ -345,7 +345,7 @@ class Cathedral:
                     self.air(x, 1, z, x, 54, z)
                     for f in TOWER_FLOORS[1:]:
                         self.set(x, f, z, SB if f != 55 else SM)
-        # pretil almenado y pináculos de esquina
+        # crenellated parapet and corner pinnacles
         for x in range(x0, x1 + 1):
             for z in range(z0, z1 + 1):
                 if x in (x0, x1) or z in (z0, z1):
@@ -354,14 +354,14 @@ class Cathedral:
             self.fill(x, 56, z, x, 58, z, SB)
             self.set(x, 59, z, CSB)
             self.set(x, 60, z, WALLB)
-        # torreta de la escalera de caracol (esquina noroeste del interior)
+        # spiral staircase turret (northwest corner of the interior)
         tx0, tz0 = 8, 14
         self.fill(tx0, 0, tz0, tx0 + 4, 58, tz0 + 4, SB)
         self.air(tx0 + 1, 1, tz0 + 1, tx0 + 3, 58, tz0 + 3)
         self.fill(tx0 + 1, 0, tz0 + 1, tx0 + 3, 0, tz0 + 3, PA)
         self.fill(10, 0, 16, 10, 58, 16, SB)
         self.spiral(10, 16, start=0, k_max=110)
-        for k in range(4, 110, 12):                       # antorchas en el núcleo, a la altura de la cabeza
+        for k in range(4, 110, 12):                       # torches in the core, at head height
             dx, dz = RING[k % 8]
             if dx == 0 or dz == 0:
                 y = int(0.5 * (k + 1)) + 2
@@ -375,30 +375,30 @@ class Cathedral:
                     self.set(x, 60, z, ROOF)
         self.set(10, 61, 16, s("lightning_rod", facing="up"))
         for f in (1, 12, 17, 28, 40):
-            self.air(12, f, 16, 12, f + 1, 16)               # puerta este de la torreta
-        self.air(10, 56, 18, 10, 57, 18)                       # salida a la azotea
-        # puertas de las estancias
+            self.air(12, f, 16, 12, f + 1, 16)               # east door of the turret
+        self.air(10, 56, 18, 10, 57, 18)                       # exit to the roof
+        # doors of the rooms
         self.air(6, 1, 19, 7, 2, 20)                           # portada lateral
         self.door(6, 1, 19, "east", "left")
         self.door(6, 1, 20, "east", "right")
         self.fill(6, 4, 18, 6, 6, 21, CSB)
         for f in (1, 12, 17):
-            self.air(16, f, 20, 17, f + 1, 20)                 # al colateral, al triforio y a la terraza
+            self.air(16, f, 20, 17, f + 1, 20)                 # to the aisle, the triforium and the terrace
         for f in (1, 12, 28):
-            self.air(12, f, 22, 12, f + 1, 23)                 # al nártex, a la tribuna y a la terraza de la fachada
+            self.air(12, f, 22, 12, f + 1, 23)                 # to the narthex, the gallery and the facade terrace
         # ventanas en saetera
         for (y0, y1) in ((4, 8), (13, 14), (19, 24), (30, 36)):
             if y0 != 4:
                 self.fill(6, y0, 20, 7, y1, 20, "white_stained_glass_pane")
             self.fill(14, y0, 12, 14, y1, 13, "white_stained_glass_pane")
-        # campanario: vanos altos con celosía en las cuatro caras
+        # bell tower: high openings with lattice on all four faces
         for y in range(42, 52):
             for (x, z) in ((6, 20), (6, 21), (13, 12), (14, 12), (17, 19), (17, 20), (13, 23), (14, 23)):
                 self.set(x, y, z, "iron_bars")
             for (x, z) in ((7, 20), (7, 21), (13, 13), (14, 13), (16, 19), (16, 20), (13, 22), (14, 22)):
                 self.set(x, y, z, "air")
 
-    # ------------------------------------------------------------------ nártex, tribuna y fachada
+    # ------------------------------------------------------------------ narthex, gallery and facade
     def narthex(self):
         for x in range(6, 18):
             for z in range(24, 31):
@@ -416,7 +416,7 @@ class Cathedral:
                     self.set(x, 10, z, stairs("stone_brick", "west" if x == 15 else "south", "top") if x == 15 else SB)
         for z in range(24, 31):
             self.set(15, 12, z, WALLB)
-        # portada central: dos hojas a cada lado del parteluz
+        # central portal: two leaves on each side of the mullion
         self.air(6, 1, 28, 7, 2, 30)
         self.door(6, 1, 28, "east", "left")
         self.door(6, 1, 29, "east", "right")
@@ -424,12 +424,12 @@ class Cathedral:
         self.fill(6, 3, 27, 6, 9, 30, CSB)
         for z in range(24, 28):
             self.set(6, 9, z, stairs("stone_brick", "east", "bottom"))
-        # galería de los reyes: hornacinas ciegas
+        # gallery of the kings: blind niches
         for z in range(24, 31, 2):
             self.set(6, 11, z, WALLB)
             self.set(6, 10, z, CSB)
             self.set(6, 12, z, CSB)
-        # rosetón occidental
+        # west rose window
         cy, rr = 19.5, 5.6
         for z in range(24, 31):
             for y in range(13, 27):
@@ -437,7 +437,7 @@ class Cathedral:
                 if dist <= rr:
                     self.set(6, y, z, self.rose_cell(z - 30, y - cy, dist, True))
                     self.set(7, y, z, self.rose_cell(z - 30, y - cy, dist, True))
-        # galería superior abierta y terraza entre torres (pies en 28)
+        # open upper gallery and terrace between towers (feet at 28)
         for z in range(24, 31):
             self.set(6, 28, z, WALLB if z % 2 else PA)
             for y in range(29, 34):
@@ -446,15 +446,15 @@ class Cathedral:
             self.set(6, 33, z, SB)
             self.set(6, 34, z, CSB)
             self.set(7, 34, z, slab("stone_brick", "bottom"))
-        # hastial de la nave sobre la terraza, con puerta al desván
+        # gable of the nave over the terrace, with a door to the attic
         for z in range(25, 31):
             r = 30 - z
             self.fill(17, 28, z, 17, roofh(r) - 1, z, SB)
         self.air(17, 28, 30, 17, 29, 30)
 
-    # ------------------------------------------------------------------ contrafuertes y arbotantes
+    # ------------------------------------------------------------------ buttresses and flying buttresses
     def buttress(self, cells_out, cells_arch):
-        """cells_out: [(x, z, t)] con t = distancia (13..16); cells_arch: [(x, z, y)]."""
+        """cells_out: [(x, z, t)] with t = distance (13..16); cells_arch: [(x, z, y)]."""
         hgt = {13: 17, 14: 14, 15: 11, 16: 8}
         for (x, z, tt) in cells_out:
             h = hgt[tt]
@@ -495,7 +495,7 @@ class Cathedral:
                 if p not in seen:
                     seen.add(p)
                     if last and last[0] != p[0] and last[1] != p[1]:
-                        arch.append((p[0], last[1], y))      # celda de unión: sin ella el arco solo se toca por aristas
+                        arch.append((p[0], last[1], y))      # joining cell: without it the arch is only touched at its edges
                     arch.append((p[0], p[1], y))
                     last = p
                 t -= 0.2
@@ -522,18 +522,18 @@ class Cathedral:
                             self.air(x, 1, z, x, 7, z)
                             if dc <= 1.6:
                                 self.set(x, 8, z, "air")
-            # paso desde la girola
+            # passage from the ambulatory
             for x in range(int(cx) - 6, int(cx) + 6):
                 for z in range(int(cz) - 6, min(31, int(cz) + 6)):
                     d, aa = polar(x, z)
                     if 11.0 <= d <= 13.2 and angdist(aa, a) * math.pi / 180 * d <= 1.3:
                         self.set(x, 0, z, PA)
                         self.air(x, 1, z, x, 7, z)
-            # ventana al exterior en el eje
+            # window to the outside on the axis
             wx, wz = int(round(cx + 3.1 * ca)), int(round(cz + 3.1 * sa))
             self.fill(wx, 3, wz, wx, 6, wz, self.window_glass(int(a)))
 
-    # ------------------------------------------------------------------ atrio y escalinata
+    # ------------------------------------------------------------------ atrium and stairway
     def parvis(self):
         for x in range(0, 6):
             for z in range(10, 31):
@@ -543,7 +543,7 @@ class Cathedral:
                 else:
                     self.set(x, 0, z, SB if (x + z) % 3 else PA)
 
-    # ------------------------------------------------------------------ escalera a la cripta (brazo norte)
+    # ------------------------------------------------------------------ staircase to the crypt (north arm)
     def crypt_stairs(self):
         for k in range(8):
             z = 14 + k

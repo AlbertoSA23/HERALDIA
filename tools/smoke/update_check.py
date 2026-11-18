@@ -1,18 +1,18 @@
-"""Aviso de versión nueva y nombres antiguos de los comandos en un servidor dedicado 26.3 real (T35b).
+"""New-version notice and old command names on a real dedicated 26.3 server (T35b).
 
-Uso: python3 tools/smoke/update_check.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-Un servidor HTTP local hace de API de GitHub Releases (la propiedad del sistema heraldia.update_check.url apunta a él) y
-se comprueba, con jugadores simulados (Carpet):
-  1. con una versión 99.0.0 publicada para este Minecraft (más una pre-publicación más nueva y un borrador, que no
-     cuentan), el servidor lo dice en la consola con el enlace y la copia de seguridad; la petición lleva el User-Agent
-     genérico y ningún dato del servidor; un operador recibe el aviso al entrar, una sola vez en la sesión aunque vuelva
-     a entrar, y un jugador que no es operador, nunca; /heraldia update check responde con la versión nueva;
-  2. los nombres antiguos (/heraldia guia, info cerca, llave ... todas, arena parar) siguen funcionando y avisan de que
-     están obsoletos con el nombre nuevo;
-  3. sin red (un puerto que no responde: la conexión se queda colgada hasta el tiempo de espera), el servidor arranca
-     igual, responde a los comandos mientras tanto y solo deja una línea en el log; /heraldia update check dice que no
-     se pudo comprobar;
-  4. con update_check.activado = false no se pregunta nada.
+Usage: python3 tools/smoke/update_check.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+A local HTTP server acts as the GitHub Releases API (the heraldia.update_check.url system property points to it) and
+the following is checked, with simulated players (Carpet):
+  1. with a 99.0.0 version published for this Minecraft (plus a newer pre-release and a draft, which do not
+     count), the server says so on the console with the link and the backup; the request carries the generic
+     User-Agent and no server data; an operator receives the notice on joining, only once per session even if they join
+     again, and a non-operator player, never; /heraldia update check answers with the new version;
+  2. the old names (/heraldia guia, info cerca, llave ... todas, arena parar) still work and warn that
+     they are obsolete with the new name;
+  3. with no network (a port that does not respond: the connection hangs until the timeout), the server starts
+     anyway, answers commands in the meantime and leaves only one line in the log; /heraldia update check says it
+     could not check;
+  4. with update_check.activado = false nothing is asked.
 """
 import argparse, copy, http.server, json, os, queue, re, shutil, socket, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -42,7 +42,7 @@ def publications():
 
 
 class Api(http.server.BaseHTTPRequestHandler):
-    """La API de GitHub de mentira: la lista de publicaciones y el gradle.properties de cada etiqueta."""
+    """The fake GitHub API: the list of releases and the gradle.properties of each tag."""
     requests = []
     mc = "26.3"
 
@@ -68,7 +68,7 @@ class Api(http.server.BaseHTTPRequestHandler):
 
 
 def hole():
-    """Un puerto que acepta conexiones y nunca responde (como una red que se cuelga). Devuelve (puerto, socket)."""
+    """A port that accepts connections and never responds (like a network that hangs). Returns (port, socket)."""
     so = socket.socket()
     so.bind(("127.0.0.1", 0))
     so.listen(16)
@@ -102,7 +102,7 @@ class WebServer:
     def player(self, name):
         self.ctx.run(f"player {name} spawn at 0 100 0", r"joined the game|Player .* spawn|Unknown|Incorrect")
         if not self.ctx.until(f"execute if entity @a[name={name}]"):
-            raise SystemExit(f"no aparece el jugador simulado {name} (Carpet)")
+            raise SystemExit(f"the simulated player {name} does not appear (Carpet)")
 
     def hits(self, name):
         self.ctx.run(f"player {name} kill", r"left the game|Unknown|Incorrect")
@@ -134,7 +134,7 @@ def main():
     Api.mc = props["minecraft_version"]
     launcher = s.prepare(a.work, os.path.abspath(a.jar), props)
     shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
-    for f in ("ops.json", "usercache.json"):     # de una pasada anterior: el operador debe entrar sin serlo
+    for f in ("ops.json", "usercache.json"):     # from a previous run: the operator must join without being one
         if os.path.exists(os.path.join(a.work, f)):
             os.remove(os.path.join(a.work, f))
     api = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Api)
@@ -148,20 +148,20 @@ def main():
             ok += 1
         else:
             fails.append(msg)
-            print("FALLA:", msg)
+            print("FAIL:", msg)
 
     def warnings(srv, name):
         return len(re.findall(rf"Heraldia: aviso de la versión {re.escape(NEW_ONE)} a {name}\b", "".join(srv.seen)))
 
     srv = None
     try:
-        # ---------- 1 y 2: con una versión nueva publicada ----------
+        # ---------- 1 and 2: with a new version published ----------
         write(a.work, True)
         srv = WebServer(a.work, launcher, url)
         ctx = srv.ctx
         m = srv.wait(r"comprobación de versión nueva \(([^ ]+) para Minecraft ([^)]+)\): (\S+) en (\d+) ms")
         check(m.group(3) == NEW_ONE, f"la comprobación encuentra {m.group(3)}, se esperaba {NEW_ONE}")
-        print(f"comprobación: {m.group(1)} -> {m.group(3)} para Minecraft {m.group(2)} en {m.group(4)} ms")
+        print(f"check: {m.group(1)} -> {m.group(3)} for Minecraft {m.group(2)} in {m.group(4)} ms")
         m = srv.wait(r"A new version of Heraldia is available: (\S+) .*")
         line = m.group(0)
         check(NEW_ONE in line and DOWNLOAD in line and "back up" in line,
@@ -178,7 +178,7 @@ def main():
             check(not surplus, f"cabeceras de más en {p}: {surplus}")
             check("?" not in p or p.split("?", 1)[1] in ("per_page=20", f"ref=v{NEW_ONE}"), f"datos en la petición: {p}")
 
-        # el operador, al entrar (una vez por sesión); el invitado, nunca
+        # the operator, on joining (once per session); the guest, never
         srv.player(OPERATOR)
         srv.player(GUEST)
         ctx.run(f"op {OPERATOR}", r"Made .* a server operator|Nothing changed|Unknown|Incorrect")
@@ -197,12 +197,12 @@ def main():
         check(warnings(srv, OPERATOR) == 1, f"al volver a entrar en la misma sesión no se repite: {warnings(srv, OPERATOR)}")
         check(warnings(srv, GUEST) == 0, "un jugador que no es operador no debe recibir el aviso")
 
-        # /heraldia update check desde la consola
+        # /heraldia update check from the console
         ctx.run("heraldia update check", r"Checking for a new version|Comprobando si hay")
         m = srv.wait(rf"(?:A new version of Heraldia is available|Hay una versión nueva de Heraldia): {re.escape(NEW_ONE)}|"
                         r"Could not check|No se pudo comprobar|up to date|está al día")
         check(NEW_ONE in m.group(0), f"/heraldia update check: {m.string.strip()}")
-        # (que un jugador sin permisos no lo tiene lo comprueba ComandosTest: «execute as» conserva los de la consola)
+        # (that a player without permissions does not have it is checked by ComandosTest: "execute as" keeps the console's)
 
         # ---------- 2: nombres antiguos ----------
         obsolete = r"(?:“|«)([^”»]+)(?:”|») (?:is deprecated|está obsoleto)[^:]*: (?:use|usa) (/heraldia [\w ]+|\w+)"
@@ -215,25 +215,25 @@ def main():
             m = ctx.run(old, obsolete)
             check(m.lastindex and m.group(2).strip() == new_one, f"{old}: aviso de obsoleto {m.string.strip()}")
             s.drain(ctx, 3)
-        # hace lo mismo que el nombre nuevo: la guía al jugador
+        # does the same as the new name: the player's guide
         for order in ("heraldia guia", "heraldia guide"):
             m = ctx.run(f"execute as {OPERATOR} run {order}", r"entregada a (\w+) en \d+ µs|Unknown|Incorrect")
             check(m.lastindex and m.group(1) == OPERATOR, f"/{order} no da la guía: {m.string.strip()}")
         srv.stop()
         srv = None
 
-        # ---------- 3: sin red (la conexión se queda colgada) ----------
+        # ---------- 3: no network (the connection hangs) ----------
         harbor, cavity = hole()
         Api.requests.clear()
         srv = WebServer(a.work, launcher, f"http://127.0.0.1:{harbor}{ROUTE}/releases?per_page=20")
         ctx = srv.ctx
-        print(f"sin red: arrancado en {srv.start_s:.1f} s")
+        print(f"no network: started in {srv.start_s:.1f} s")
         t0 = time.monotonic()
         m = ctx.run("heraldia status", r"Heraldia \S+: (?:server status|estado del servidor)")
         check(m.group(0).startswith("Heraldia"), f"el servidor no responde mientras espera a la red: {m.string.strip()}")
         check(time.monotonic() - t0 < 10, "el servidor tarda en responder mientras espera a la red")
         m = srv.wait(r"no se pudo comprobar si hay una versión nueva \(([^:]+): ", 60)
-        print(f"sin red: {m.group(0).strip()}")
+        print(f"no network: {m.group(0).strip()}")
         ctx.run("heraldia update check", r"Checking for a new version|Comprobando si hay")
         m = srv.wait(r"Could not check for a new version|No se pudo comprobar si hay una versión nueva \(sin red|"
                         r"A new version of Heraldia", 60)

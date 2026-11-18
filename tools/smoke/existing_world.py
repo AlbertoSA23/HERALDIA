@@ -1,22 +1,22 @@
-"""Mundo existente: lo ya generado no cambia al actualizar Heraldia ni su configuración (servidor dedicado 26.3 real).
+"""Existing world: what is already generated does not change when updating Heraldia or its configuration (real 26.3 dedicated server).
 
-Uso: python3 tools/smoke/existing_world.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-mundo-existente"
-Tres arranques del mismo mundo (semilla de server_smoke), con la regla de ticks aleatorios a 0, sin mobs nuevos y, en los
-arranques 2 y 3, el mundo congelado (/tick freeze: se cargan y generan chunks, pero no corren los ticks de bloques,
-fluidos ni entidades), así que lo único que puede cambiar un chunk ya generado es el mod:
-1. «Versión anterior»: configuración con lo nuevo de la 0.1.0 sin publicar apagado (caminos, medianas, entradas a mina
-   y multiplicador de minas vanilla 1, arena, botín que se repone; rejilla_compatible activada) y la Guía sin entregar.
-   Se genera la zona A (LADO_A x LADO_A chunks) alrededor de la aldea Heraldia más cercana al 0,0 y se dejan pasar más
-   de 1.200 ticks (tick sprint): para la arena, el mundo ya no es nuevo.
-2. Se borra config/heraldia.json (como al instalar la versión nueva: se crea con los valores por defecto). Se carga la
-   zona A y se genera el anillo B alrededor (caminos, medianas y minas pueden salir en él). La arena no se construye
-   sola (log «mundo existente»).
-3. Configuración distinta en casi todo (otro nivel de dificultad, sin medianas, minas x5, caminos más anchos, botín que
-   se repone, jefes sin fases, rejilla_compatible desactivada...): se cargan A y B y se genera el anillo C.
-Tras cada arranque se comparan con la copia guardada los chunks de A (y, tras el 3, también los de B), leyendo las
-regiones (.mca): los bloques de cada sección, los bloques con datos (id y NBT, sin los campos que cambian solos), las
-alturas, los biomas y los inicios y referencias de estructuras. Las entidades: cada UUID de la zona sigue en el mundo
-(los mobs pueden andar). Código 0 si todo pasa.
+Usage: python3 tools/smoke/existing_world.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke-mundo-existente"
+Three starts of the same world (server_smoke's seed), with the random tick rule at 0, no new mobs and, on
+starts 2 and 3, the world frozen (/tick freeze: chunks are loaded and generated, but block, fluid and entity
+ticks do not run), so the only thing that can change an already generated chunk is the mod:
+1. "Previous version": configuration with everything new from the unreleased 0.1.0 turned off (roads, medium structures, mine entrances
+   and vanilla mine multiplier 1, arena, replenishing loot; rejilla_compatible enabled) and the Guide not given.
+   Area A (SIDE_A x SIDE_A chunks) is generated around the Heraldia village closest to 0,0 and more than 1,200
+   ticks are let pass (tick sprint): for the arena, the world is no longer new.
+2. config/heraldia.json is deleted (as when installing the new version: it is created with the default values). Area A is
+   loaded and ring B is generated around it (roads, medium structures and mines may appear in it). The arena is not built
+   by itself (log "mundo existente").
+3. Configuration different in almost everything (another difficulty level, no medium structures, mines x5, wider roads, replenishing
+   loot, bosses without phases, rejilla_compatible disabled...): A and B are loaded and ring C is generated.
+After each start, the chunks of A (and, after the 3rd, also those of B) are compared with the saved copy by reading the
+regions (.mca): the blocks of each section, the blocks with data (id and NBT, without the fields that change by themselves), the
+heights, the biomes and the structure starts and references. Entities: each UUID in the area is still in the world
+(mobs may walk around). Exit code 0 if everything passes.
 """
 import argparse, glob, io, json, os, queue, re, shutil, struct, subprocess, sys, threading, time, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,12 +24,12 @@ import server_smoke as s           # noqa: E402
 import nbtlib                      # noqa: E402
 
 SIDE_A, RING_B, RING_C = 8, 4, 3          # chunks
-# «Antes»: lo que no existía en la versión con la que se generó el mundo, apagado.
+# "Before": what did not exist in the version the world was generated with, turned off.
 CONFIG_BEFORE = {"unicas": {"rejilla_compatible": True}, "aldeas": {"caminos": {"activado": False}},
                 "medianas": {"activadas": False}, "minas": {"entradas": {"activado": False}, "vanilla": {"multiplicador": 1.0}},
                 "faros": {"activado": False}, "naufragios": {"activado": False},
                 "arena": {"activado": False}, "botin": {"reponer": {"activado": False}}, "guia": {"entregar_al_entrar": False}}
-# Tercer arranque: casi todo distinto de lo de por defecto.
+# Third start: almost everything different from the default.
 CONFIG_OTHER = {"unicas": {"rejilla_compatible": False, "distancia_minima": {"bloques": 1500}},
                "aldeas": {"porcentaje_grandes": 60, "caminos": {"activado": True, "ancho": 5, "distancia_maxima_bloques": 4000},
                           "vida": {"tablon": False}},
@@ -39,7 +39,7 @@ CONFIG_OTHER = {"unicas": {"rejilla_compatible": False, "distancia_minima": {"bl
                "botin": {"reponer": {"activado": True, "dias": 1}},
                "dificultad": {"nivel": "heroica", "escalar_por_jugadores": True, "escalar_botin": False},
                "arena": {"activado": True, "generar_en_mundos_nuevos": True}, "guia": {"entregar_al_entrar": True}}
-# Campos que cambian solos al guardar o con el reloj del mundo (no son del contenido del chunk).
+# Fields that change by themselves on saving or with the world clock (they are not part of the chunk's content).
 VOLATILE_CHUNK = {"LastUpdate", "InhabitedTime", "block_ticks", "fluid_ticks", "PostProcessing", "isLightOn",
                    "blending_data", "Status", "DataVersion", "xPos", "zPos", "yPos"}
 VOLATILE_BLOCK = {"keepPacked"}
@@ -55,7 +55,7 @@ def _region(world, folder, cx, cz):
 
 
 def read_chunk(world, cx, cz, folder="region"):
-    """NBT de un chunk (o del fichero de entidades, con carpeta="entities"), o None si no está guardado."""
+    """NBT of a chunk (or of the entities file, with carpeta="entities"), or None if it is not saved."""
     path = _region(world, folder, cx, cz)
     if not path:
         return None
@@ -73,14 +73,14 @@ def read_chunk(world, cx, cz, folder="region"):
         import gzip
         raw = gzip.decompress(raw)
     elif comp != 3:
-        raise SystemExit(f"compresión {comp} de la región no soportada (region-file-compression=deflate)")
+        raise SystemExit(f"region compression {comp} not supported (region-file-compression=deflate)")
     return nbtlib.File.parse(io.BytesIO(raw))
 
 
 def _blueprint(v):
-    """NBT de nbtlib a tipos de Python comparables con == (los arrays de longs, que nbtlib da como numpy, a listas)."""
+    """nbtlib NBT to Python types comparable with == (long arrays, which nbtlib gives as numpy, to lists)."""
     if isinstance(v, dict):
-        if len(v) == 1 and "" in v:               # elemento de una lista mixta (26.3 los envuelve así)
+        if len(v) == 1 and "" in v:               # element of a mixed list (26.3 wraps them like this)
             return _blueprint(v[""])
         return {str(k): _blueprint(x) for k, x in v.items()}
     if isinstance(v, (nbtlib.tag.ByteArray, nbtlib.tag.IntArray, nbtlib.tag.LongArray)):
@@ -101,7 +101,7 @@ def _stripped(d, remove):
 
 
 def footprint(n):
-    """Lo que no debe cambiar de un chunk guardado: {apartado: valor comparable}."""
+    """What must not change in a saved chunk: {section: comparable value}."""
     out = {}
     sections_list = {}
     for sec in n.get("sections", []):
@@ -120,11 +120,11 @@ def footprint(n):
 
 
 def states(bs):
-    """Lista de 4096 estados (nombre + propiedades) de una sección, para comparar aunque cambie el orden de la paleta."""
+    """List of 4096 states (name + properties) of a section, to compare even if the palette order changes."""
     if bs is None:
         return None
-    # 26.3: un estado sin propiedades es una cadena («minecraft:stone»; en una lista mixta, {"": ...}, que quita
-    # _plano) y uno con propiedades, {id, properties} (antes de 26.3, {Name, Properties})
+    # 26.3: a state without properties is a string ("minecraft:stone"; in a mixed list, {"": ...}, which removes the
+    # _plano) and one with properties, {id, properties} (before 26.3, {Name, Properties})
     pal = [(p, ()) if isinstance(p, str) else (p.get("Name", p.get("id")),
                                                 tuple(sorted((p.get("Properties") or p.get("properties") or {}).items())))
            for p in bs["palette"]]
@@ -143,7 +143,7 @@ def states(bs):
 
 
 def differences(a, b):
-    """Textos con lo que cambia entre dos huellas del mismo chunk ([] si nada)."""
+    """Texts describing what changes between two fingerprints of the same chunk ([] if nothing)."""
     e = []
     sa, sb = a["secciones"], b["secciones"]
     for y in sorted(set(sa) | set(sb)):
@@ -173,7 +173,7 @@ def differences(a, b):
 
 
 def snapshot(world, chunks):
-    """{(cx, cz): huella} de los chunks guardados enteros (Status full); los que no lo están, fuera."""
+    """{(cx, cz): fingerprint} of the fully saved chunks (Status full); those that are not are left out."""
     out = {}
     for c in chunks:
         n = read_chunk(world, *c)
@@ -183,7 +183,7 @@ def snapshot(world, chunks):
 
 
 def uuids(world, chunks):
-    """{uuid: id} de las entidades guardadas en esos chunks."""
+    """{uuid: id} of the entities saved in those chunks."""
     out = {}
     for c in chunks:
         n = read_chunk(world, *c, folder="entities")
@@ -194,15 +194,15 @@ def uuids(world, chunks):
 
 
 def compare(name, before, after):
-    """Fallos (textos) de comparar dos fotos de los mismos chunks."""
+    """Failures (texts) from comparing two snapshots of the same chunks."""
     failures = []
     for c in sorted(before):
         if c not in after:
-            failures.append(f"{name}: el chunk {c} ya no está guardado entero")
+            failures.append(f"{name}: chunk {c} is no longer fully saved")
             continue
         d = differences(before[c], after[c])
         if d:
-            failures.append(f"{name}: el chunk {c} cambia: " + "; ".join(d[:4]) + (f" (y {len(d) - 4} más)" if len(d) > 4 else ""))
+            failures.append(f"{name}: chunk {c} changes: " + "; ".join(d[:4]) + (f" (and {len(d) - 4} more)" if len(d) > 4 else ""))
     return failures
 
 
@@ -231,7 +231,7 @@ def halt(proc, ctx):
     if proc.poll() is None:
         s.send(proc, "stop")
         proc.wait(timeout=180)
-    while True:          # lo que escribió al parar (la línea de coste de los caminos) también a ctx.seen
+    while True:          # what it wrote on stopping (the roads' cost line) also to ctx.seen
         try:
             line = ctx.lines.get(timeout=10)
         except queue.Empty:
@@ -245,11 +245,11 @@ def square(c0x, c0z, side):
     return {(x, z) for x in range(c0x, c0x + side) for z in range(c0z, c0z + side)}
 
 
-FORCELOAD_MAX = 16          # /forceload acepta como mucho 256 chunks por orden: trozos de 16 x 16
+FORCELOAD_MAX = 16          # /forceload accepts at most 256 chunks per command: pieces of 16 x 16
 
 
 def fragments(chunks):
-    """Rectángulos (x0, z0, x1, z1) en bloques, de como mucho FORCELOAD_MAX x FORCELOAD_MAX chunks, que cubren los chunks."""
+    """Rectangles (x0, z0, x1, z1) in blocks, of at most FORCELOAD_MAX x FORCELOAD_MAX chunks, that cover the chunks."""
     xs, zs = [c[0] for c in chunks], [c[1] for c in chunks]
     out = []
     for cx in range(min(xs), max(xs) + 1, FORCELOAD_MAX):
@@ -260,22 +260,22 @@ def fragments(chunks):
 
 
 def freeze(ctx):
-    """/tick freeze: el mundo sigue cargando y generando chunks (y cargando sus entidades, que es cuando el mod las toca),
-    pero no corren los ticks de bloques, fluidos ni entidades. Sin esto, la lava y el agua de las cuevas de los bordes
-    siguen fluyendo, los aldeanos abren puertas y las bóvedas de las cámaras de pruebas cambian sus datos: cambios del
-    juego, no del mod, que taparían lo que se quiere ver."""
+    """/tick freeze: the world keeps loading and generating chunks (and loading their entities, which is when the mod touches them),
+    but block, fluid and entity ticks do not run. Without this, the lava and water of the caves at the edges
+    keep flowing, villagers open doors and the vaults of the trial chambers change their data: changes by the
+    game, not the mod, that would hide what we want to see."""
     ctx.run("tick freeze", r"[Ff]rozen|freeze|[Gg]ame")
 
 
 def load_data(ctx, chunks, frozen=False):
-    """Fuerza y carga los chunks (los genera si no lo están) y espera a que estén todos; luego los suelta."""
+    """Forces and loads the chunks (generating them if they are not), waits for all of them to be there, then releases them."""
     for x0, z0, x1, z1 in fragments(chunks):
         ctx.run(f"forceload add {x0} {z0} {x1} {z1}", r"Marked|[Aa]dded|force|already")
     for cx, cz in sorted(chunks):
         if not ctx.until(f"execute if loaded {cx * 16} 64 {cz * 16}", timeout=600):
-            raise SystemExit(f"el chunk {cx}, {cz} no se carga")
+            raise SystemExit(f"chunk {cx}, {cz} does not load")
     if frozen:
-        time.sleep(5)                 # con el mundo congelado el reloj no avanza: se deja terminar lo que quede
+        time.sleep(5)                 # with the world frozen the clock does not advance: whatever remains is allowed to finish
     else:
         ctx.ticks(60)
     for x0, z0, x1, z1 in fragments(chunks):
@@ -292,59 +292,59 @@ def main():
     world = os.path.join(a.work, "world")
     failures = []
 
-    # 1. versión anterior
+    # 1. previous version
     proc, ctx = start_up(a.work, launcher, CONFIG_BEFORE)
     try:
         m = ctx.run("locate structure #heraldia:aldeas", r"is at \[(-?\d+), ~, (-?\d+)\]|Could not find")
         if not m.lastindex:
-            raise SystemExit("no se localiza ninguna aldea Heraldia")
+            raise SystemExit("no Heraldia village is located")
         ax, az = int(m.group(1)) >> 4, int(m.group(2)) >> 4
-        print(f"Zona A: {SIDE_A} x {SIDE_A} chunks alrededor de la aldea en chunk {ax}, {az}")
+        print(f"Area A: {SIDE_A} x {SIDE_A} chunks around the village at chunk {ax}, {az}")
         A = square(ax - SIDE_A // 2, az - SIDE_A // 2, SIDE_A)
         load_data(ctx, A)
         ctx.run("tick sprint 1300", r"[Ss]print|ticks")
         s.wait_for(ctx.lines, r"[Ss]print completed|[Ss]print .*(finished|ended)|ticks per second", 300, ctx.seen)
         if ctx.gametime() < 1300:
-            failures.append(f"el mundo no llega a 1.300 ticks ({ctx.gametime()})")
+            failures.append(f"the world does not reach 1,300 ticks ({ctx.gametime()})")
     finally:
         halt(proc, ctx)
     snapshot_a, ents_a = snapshot(world, A), uuids(world, A)
     print(f"Zona A: {len(snapshot_a)} de {len(A)} chunks guardados enteros, {len(ents_a)} entidades")
     if len(snapshot_a) < len(A) * 3 // 4:
-        failures.append(f"solo {len(snapshot_a)} chunks de A guardados enteros")
-    backup = os.path.join(a.work, "world-tras-1")         # para mirar a mano qué cambió si falla
+        failures.append(f"only {len(snapshot_a)} chunks of A fully saved")
+    backup = os.path.join(a.work, "world-tras-1")         # to look by hand at what changed if it fails
     shutil.rmtree(backup, ignore_errors=True)
     shutil.copytree(world, backup)
 
-    # 2. versión nueva con la configuración por defecto
+    # 2. new version with the default configuration
     B = square(ax - SIDE_A // 2 - RING_B, az - SIDE_A // 2 - RING_B, SIDE_A + 2 * RING_B)
     proc, ctx = start_up(a.work, launcher, None)
     try:
         if not re.search(r"arena: mundo existente", ctx.log()):
-            failures.append("la arena no reconoce el mundo existente (línea «arena: mundo existente» del log)")
+            failures.append("the arena does not recognize the existing world (line 'arena: mundo existente' in the log)")
         freeze(ctx)
         load_data(ctx, B, frozen=True)
     finally:
         halt(proc, ctx)
     with open(os.path.join(a.work, "config", "heraldia.json"), encoding="utf-8") as f:
         by_default = json.load(f)
-    print("Configuración por defecto creada:", json.dumps({k: v for k, v in by_default.items() if not k.startswith("_")}, ensure_ascii=False)[:400])
+    print("Default configuration created:", json.dumps({k: v for k, v in by_default.items() if not k.startswith("_")}, ensure_ascii=False)[:400])
     failures += compare("arranque 2 (por defecto)", snapshot_a, snapshot(world, A))
     ents = uuids(world, B)
     losses = {u: t for u, t in ents_a.items() if u not in ents}
     if losses:
-        failures.append(f"arranque 2: {len(losses)} entidades de la zona A ya no están: {sorted(set(losses.values()))}")
+        failures.append(f"start 2: {len(losses)} entities of area A are no longer there: {sorted(set(losses.values()))}")
     snapshot_b = snapshot(world, B - A)
     print(f"Anillo B: {len(snapshot_b)} chunks nuevos guardados enteros")
     if re.search(r"arena: (mundo nuevo|colocada|sitio propuesto)", ctx.log()):
-        failures.append("arranque 2: la arena se construye sola en un mundo existente")
+        failures.append("start 2: the arena builds itself in an existing world")
     m = re.search(r"caminos: \d+ chunks, (\d+) junto a una ruta \((\d+) columnas", ctx.log())
     if not m or int(m.group(2)) == 0:
-        failures.append("arranque 2: no sale ningún camino en el anillo nuevo (la prueba no vería si toca lo viejo)")
+        failures.append("start 2: no road appears in the new ring (the test could not see whether it touches the old)")
     else:
-        print(f"Anillo B: {m.group(1)} chunks junto a una ruta, {m.group(2)} columnas de camino puestas")
+        print(f"Ring B: {m.group(1)} chunks next to a route, {m.group(2)} road columns placed")
 
-    # 3. otra configuración
+    # 3. another configuration
     C = square(ax - SIDE_A // 2 - RING_B - RING_C, az - SIDE_A // 2 - RING_B - RING_C,
                  SIDE_A + 2 * (RING_B + RING_C))
     proc, ctx = start_up(a.work, launcher, CONFIG_OTHER)
@@ -352,7 +352,7 @@ def main():
         freeze(ctx)
         load_data(ctx, C, frozen=True)
         if re.search(r"arena: (mundo nuevo|colocada|sitio propuesto)", ctx.log()):
-            failures.append("arranque 3: la arena se construye sola en un mundo existente")
+            failures.append("start 3: the arena builds itself in an existing world")
     finally:
         halt(proc, ctx)
     failures += compare("arranque 3 (otra configuración), zona A", snapshot_a, snapshot(world, A))
@@ -360,11 +360,11 @@ def main():
     ents = uuids(world, C)
     losses = {u: t for u, t in ents_a.items() if u not in ents}
     if losses:
-        failures.append(f"arranque 3: {len(losses)} entidades de la zona A ya no están: {sorted(set(losses.values()))}")
+        failures.append(f"start 3: {len(losses)} entities of area A are no longer there: {sorted(set(losses.values()))}")
 
     for f_ in failures:
         print("[FALLO]", f_)
-    print("PRUEBA MUNDO EXISTENTE " + ("OK" if not failures else f"FALLIDA ({len(failures)} fallos)"))
+    print("EXISTING WORLD TEST " + ("OK" if not failures else f"FALLIDA ({len(failures)} fallos)"))
     return 1 if failures else 0
 
 

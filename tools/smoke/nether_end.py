@@ -1,30 +1,30 @@
-"""Contenido de Heraldia en el Nether y el End (T44) en un servidor dedicado 26.3 real, con la configuración por defecto.
+"""Heraldia content in the Nether and the End (T44) on a real 26.3 dedicated server, with the default configuration.
 
-Uso: python3 tools/smoke/nether_end.py --jar build/libs/heraldia-X.jar [--work build/smoke-nether-end]
-Comprueba:
-- el log: la rejilla de cada mediana y única del Nether y el End con su separación por defecto, sin búsqueda de bioma
-  (solo lee el ruido del mundo principal) ni zona de exclusión de las aldeas vanilla;
-- /locate (con /execute in) de cada tipo en su dimensión, a una distancia razonable, y que en el mundo principal no
-  hay ninguna (sus rejillas no están allí);
-- que de verdad se generan donde dice /locate: se fuerza la carga alrededor y /heraldia info here, a la altura de la
-  pieza, dice que se está dentro; el guardián de cada única sale bajo el techo de bedrock (Nether) o sobre su isla (End),
-  con la tabla de su trofeo;
-- /place structure de cada estilo y de cada única en su dimensión (con sus guardianes);
-- /heraldia info nearby desde el Nether y el End: las de su dimensión;
-- loot spawn de cada tabla nueva, varias veces, sin nada de la lista prohibida (netherita, élitros, lo del dragón).
-Código 0 si todo pasa.
+Usage: python3 tools/smoke/nether_end.py --jar build/libs/heraldia-X.jar [--work build/smoke-nether-end]
+Checks:
+- the log: the grid of each medium and unique structure of the Nether and the End with its default spacing, without biome search
+  (it only reads the main world's noise) or exclusion zone around vanilla villages;
+- /locate (with /execute in) of each type in its dimension, at a reasonable distance, and that in the main world there
+  is none (their grids are not there);
+- that they really generate where /locate says: loading is forced around it and /heraldia info here, at the height of the
+  piece, says you are inside; each unique structure's guardian appears under the bedrock ceiling (Nether) or above its island (End),
+  with its trophy table;
+- /place structure of each style and of each unique structure in its dimension (with their guardians);
+- /heraldia info nearby from the Nether and the End: those of its dimension;
+- loot spawn of each new table, several times, with nothing from the forbidden list (netherite, elytra, the dragon's items).
+Exit code 0 if everything passes.
 """
 import argparse, json, math, os, queue, re, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 
 sys.path.insert(0, os.path.join(s.ROOT, "tools", "gen"))
-import dimensions                   # noqa: E402  (el generador: qué es de cada dimensión)
+import dimensions                   # noqa: E402  (the generator: what belongs to each dimension)
 import mediums                      # noqa: E402
 import uniques                        # noqa: E402
 
 DIM = {"nether": "minecraft:the_nether", "end": "minecraft:the_end"}
-# Desde dónde se busca: en el End, fuera de la isla central (las islas exteriores empiezan a ~1.000 bloques)
+# Where to search from: in the End, outside the central island (the outer islands start at ~1,000 blocks)
 ORIGIN = {"nether": [(0, 0), (1500, -1200)], "end": [(2000, 0), (-1800, 1800)]}
 LOCATE_MAX = 4000
 PLACE = {"nether": (4000, 4000), "end": (6000, 6000)}
@@ -53,8 +53,8 @@ def locate(ctx, dim, target, x, z):
 
 
 def inside(ctx, dim, x, z, route, ys):
-    """/heraldia info here en (x, y, z) para alguna y de `ys` y alrededor del inicio: ¿dice que se está en `ruta`?"""
-    # /locate da la esquina NO del chunk; el inicio va en su centro o a medio chunk de él (DimensionStructure.PUNTOS)
+    """/heraldia info here at (x, y, z) for some y in `ys` and around the start: does it say you are in `route`?"""
+    # /locate gives the corner, NOT of the chunk; the start is at its center or half a chunk from it (DimensionStructure.POINTS)
     for dx, dz in ((8, 8), (16, 8), (0, 8), (8, 16), (8, 0)):
         for y in ys:
             m = ctx.run(en(dim, f"positioned {x + dx} {y} {z + dz} run heraldia info here"),
@@ -65,7 +65,7 @@ def inside(ctx, dim, x, z, route, ys):
 
 
 def heights(dim):
-    # En el Nether, a ojo entre el mar de lava y el techo; en el End, cerca de la superficie de las islas
+    # In the Nether, by eye between the lava sea and the ceiling; in the End, near the surface of the islands
     return range(36, 118, 5) if dim == "nether" else range(46, 90, 5)
 
 
@@ -75,11 +75,11 @@ def check_log(ctx, median, unique_mods):
         sp = round(mod.SEPARATION / 16)
         m = re.search(rf"rejilla medianas/{mid}: activada, cada {sp} chunks \([^)]*origen desplazado\), sin máximo, exclusión ninguna([^\n]*)", log)
         if not m or "candidata en el bioma" in m.group(1):
-            fails.append(f"falta en el log la rejilla de medianas/{mid} (cada {sp} chunks, sin bioma ni exclusión)")
+            fails.append(f"the log is missing the grid of medianas/{mid} (every {sp} chunks, no biome or exclusion)")
     for sid, mod in unique_mods:
         sp = round(mod.STRUCTURE["spacing"])
         if not re.search(rf"rejilla unicas/{sid}: activada, cada {sp} chunks", log):
-            fails.append(f"falta en el log la rejilla de unicas/{sid} (cada {sp} chunks)")
+            fails.append(f"the log is missing the grid of unicas/{sid} (every {sp} chunks)")
     return fails
 
 
@@ -94,25 +94,25 @@ def check_locate(ctx, median, unique_mods):
                 p = locate(ctx, dim, target, x, z)
                 dt = time.monotonic() - t0
                 if p is None:
-                    fails.append(f"/locate no encuentra {target} en {dim} desde {x}, {z}")
+                    fails.append(f"/locate does not find {target} in {dim} from {x}, {z}")
                     continue
                 d = math.dist((x, z), p)
-                print(f"{target} ({dim}) desde {x}, {z}: en {p[0]}, {p[1]} a {d:.0f} bloques ({dt:.2f} s)")
+                print(f"{target} ({dim}) from {x}, {z}: at {p[0]}, {p[1]} {d:.0f} blocks away ({dt:.2f} s)")
                 if d > LOCATE_MAX * (2 if kind == "unicas" else 1):
-                    fails.append(f"{target} en {dim} desde {x}, {z} a {d:.0f} bloques")
+                    fails.append(f"{target} in {dim} from {x}, {z} at {d:.0f} blocks")
                 if dim == "end" and math.hypot(*p) < 1000:
-                    fails.append(f"{target}: en la isla central del End ({p})")
+                    fails.append(f"{target}: on the End's central island ({p})")
                 if k == 0:
                     generate.append((kind, i, dim, p))
-            # en el mundo principal no hay ninguna (la búsqueda acaba enseguida: no hay rejilla allí)
+            # in the main world there is none (the search ends right away: there is no grid there)
             m = ctx.run(f"execute positioned 0 64 0 run locate structure {target}", r"is at \[|Could not find|no structure|There is no")
             if m.group(0).startswith("is at"):
-                fails.append(f"{target} aparece en el mundo principal")
+                fails.append(f"{target} appears in the main world")
     return fails, generate
 
 
 def check_generated(ctx, generate):
-    """Genera de verdad la primera de cada tipo (forceload alrededor de lo que dijo /locate) y mira que está allí."""
+    """Really generates the first of each type (forceload around what /locate said) and checks that it is there."""
     fails = []
     for kind, i, dim, (x, z) in generate:
         forceload(ctx, dim, x - 24, z - 24, x + 24, z + 24)
@@ -124,7 +124,7 @@ def check_generated(ctx, generate):
             if not ok:
                 time.sleep(3)
         if not ok:
-            fails.append(f"{route} ({dim}) no está donde dijo /locate ({x}, {z})")
+            fails.append(f"{route} ({dim}) is not where /locate said ({x}, {z})")
         elif kind == "unicas":
             fails += guardian(ctx, i, dim)
         forceload(ctx, dim, x - 24, z - 24, x + 24, z + 24, remove=True)
@@ -132,21 +132,21 @@ def check_generated(ctx, generate):
 
 
 def guardian(ctx, sid, dim):
-    sel = f"@e[tag=heraldia_guardian.{sid},limit=1]"          # sin posición: busca en todas las dimensiones
+    sel = f"@e[tag=heraldia_guardian.{sid},limit=1]"          # no position: search in all dimensions
     if not ctx.wait_entity(sel):
         return [f"{sid}: no aparece su guardián"]
     fails = []
     p = ctx.pos(sel)
     if p and dim == "nether" and not (dimensions_and_min() <= p[1] < 123):
-        fails.append(f"{sid}: guardián a y = {p[1]:.0f}, fuera del Nether jugable (sobre la lava y bajo el techo)")
+        fails.append(f"{sid}: guardian at y = {p[1]:.0f}, outside the playable Nether (above the lava and below the ceiling)")
     if p and dim == "end" and p[1] < 45:
-        fails.append(f"{sid}: guardián a y = {p[1]:.0f} (sobre el vacío)")
+        fails.append(f"{sid}: guardian at y = {p[1]:.0f} (above the void)")
     m = ctx.run(f"data get entity {sel} DeathLootTable", r'has the following entity data: "([^"]+)"|No entity')
     if not (m.group(1) or "").startswith(f"heraldia:guardianes/{sid}/"):
-        fails.append(f"{sid}: el guardián no tiene la tabla del trofeo: {m.string.strip()}")
+        fails.append(f"{sid}: the guardian does not have the trophy table: {m.string.strip()}")
     m = ctx.run(f"data get entity {sel} Tags", r"has the following entity data: \[([^\]]*)\]|No entity")
     if "heraldia_guardian" not in (m.group(1) or ""):
-        fails.append(f"{sid}: el guardián sin la etiqueta de los logros")
+        fails.append(f"{sid}: the guardian lacks the advancements tag")
     return fails
 
 
@@ -165,10 +165,10 @@ def check_place(ctx, median, unique_mods):
         dim = dimensions.dimension_of(mod)
         x, z = PLACE[dim][0] + k * STEP, PLACE[dim][1] + 400
         k += 1
-        ctx.run(f"kill @e[tag=heraldia_guardian.{sid}]", r"Killed|No entity")       # el de la generada, si sigue cargado
-        fails += place(ctx, dim, f"heraldia:unicas/{sid}", x, z, remove=False)       # sus entidades, con el chunk cargado
+        ctx.run(f"kill @e[tag=heraldia_guardian.{sid}]", r"Killed|No entity")       # the one of the generated structure, if it is still loaded
+        fails += place(ctx, dim, f"heraldia:unicas/{sid}", x, z, remove=False)       # its entities, with the chunk loaded
         if not ctx.wait_entity(f"@e[tag=heraldia_guardian.{sid}]"):
-            fails.append(f"{sid}: /place sin guardián")
+            fails.append(f"{sid}: /place without a guardian")
         ctx.run(f"kill @e[tag=heraldia_guardian.{sid}]", r"Killed|No entity")
         forceload(ctx, dim, x - 24, z - 24, x + 48, z + 48, remove=True)
     return fails
@@ -201,10 +201,10 @@ def check_info(ctx, median, unique_mods):
             fails.append(f"/heraldia info nearby en {dim} no responde")
             continue
         if not any(v.startswith("heraldia:medianas/") or v.startswith("heraldia:unicas/") for v in seen_all):
-            fails.append(f"/heraldia info nearby en {dim} no da ninguna de Heraldia: {sorted(seen_all)}")
+            fails.append(f"/heraldia info nearby in {dim} gives none of Heraldia's: {sorted(seen_all)}")
         foreign = {v for v in seen_all if v.startswith("heraldia:aldeas") or v.startswith("heraldia:minas/")}
         if foreign:
-            fails.append(f"/heraldia info nearby en {dim} da estructuras del mundo principal: {sorted(foreign)}")
+            fails.append(f"/heraldia info nearby in {dim} gives main-world structures: {sorted(foreign)}")
         print(f"info nearby en {dim}: {sorted(seen_all)} (propias esperadas {sorted(own_items)})")
     return fails
 
@@ -222,7 +222,7 @@ def check_loot(ctx, median, unique_mods):
                 break
     for o in dimensions.FORBIDDEN:
         if ctx.test(f'execute if entity @e[type=minecraft:item,nbt={{Item:{{id:"minecraft:{o}"}}}}]'):
-            fails.append(f"el botín del Nether o el End da {o}")
+            fails.append(f"the Nether or End loot gives {o}")
     ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity was found")
     ctx.run("forceload remove 0 0 0 0", r"[Uu]nmarked|[Rr]emoved|force")
     return fails
@@ -238,7 +238,7 @@ def main():
     assert median and unique_mods
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     with open(os.path.join(a.work, "config", "heraldia.json"), "w") as f:
-        json.dump({}, f)                 # configuración por defecto
+        json.dump({}, f)                 # default configuration
     proc = subprocess.Popen(["java", "-Xmx2G", "-jar", launcher, "nogui"], cwd=a.work, text=True,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen, fails = queue.Queue(), [], []
@@ -255,12 +255,12 @@ def main():
         fails += check_info(ctx, median, unique_mods)
         fails += check_loot(ctx, median, unique_mods)
         if re.search(r"Registry loading errors|Failed to load structure|Missing data pack", ctx.log()):
-            fails.append("errores de carga en el log")
+            fails.append("loading errors in the log")
     finally:
         if proc.poll() is None:
             s.send(proc, "stop")
             proc.wait(timeout=120)
-    print("NETHER Y END:", "OK" if not fails else fails)
+    print("NETHER AND END:", "OK" if not fails else fails)
     return 1 if fails else 0
 
 

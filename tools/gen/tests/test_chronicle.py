@@ -1,4 +1,4 @@
-"""Crónica de los Heraldos: contrato HISTORIA (botin.historia_errores) y cadena (botin.historia_cadena, writer)."""
+"""Chronicle of the Heralds: HISTORIA contract (botin.historia_errores) and chain (botin.historia_cadena, writer)."""
 import types
 import pytest
 from uniques._common import chest_loot
@@ -36,7 +36,7 @@ def test_chain_by_id_with_the_final_to_the_end():
     mods = [("a", mod()), ("b", mod(final=True)), ("c", mod()), ("d", types.SimpleNamespace())]
     assert chest_loot.story_chain(mods) == ["a", "c", "b"]
     assert chest_loot.story_chain_errors(mods) == []
-    assert chest_loot.story_chain_errors([("a", mod())])                     # sin final
+    assert chest_loot.story_chain_errors([("a", mod())])                     # without a final one
     assert chest_loot.story_chain_errors([("a", mod(final=True)), ("b", mod(final=True))])   # dos finales
 
 
@@ -57,7 +57,7 @@ def test_chain_tables_form_a_cycle():
         map_obj = tbl["pools"][1]["entries"][0]["modifier"][0]["destination"]
         assert map_obj == f"#heraldia:unicas/{next_unique[sid]}"
         assert last["translate"].endswith(".final" if sid == "b" else ".siguiente")
-    assert next_unique == {"a": "c", "c": "b", "b": "a"}                              # la final vuelve a la primera
+    assert next_unique == {"a": "c", "c": "b", "b": "a"}                              # the final one goes back to the first
 
 
 def test_story_map_and_with_story():

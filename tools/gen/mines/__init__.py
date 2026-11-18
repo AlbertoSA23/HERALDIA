@@ -1,26 +1,26 @@
-"""Entradas a mina (heraldia:minas/<tamaño>/<estilo>): bocas de mina en laderas reales que bajan de verdad a una
-galería propia, en tres tamaños y cinco estilos por bioma (ver planos.py y superficie.py).
+"""Mine entrances (heraldia:minas/<size>/<style>): mine mouths on real hillsides that genuinely descend to a
+gallery of their own, in three sizes and five styles per biome (see blueprints.py and surface.py).
 
-  tamaños  pequena (boca con vías, vagoneta y faroles), mediana (campamento minero: cabaña del capataz, montón de
-           mineral, vagoneta de carga y fundición) y grande (complejo con la torre de extracción y su polea, vías y un
-           pozo vertical con escalera de caracol hasta una red mayor de dos niveles).
-  estilos  montana (roble y piedra), taiga (abeto; también la nieve), desierto (arenisca), badlands (terracota) y
-           picos (pizarra profunda, en los picos), cada uno con dos variantes (a, b: el patio reflejado y otra galería).
+  sizes    pequena (mouth with tracks, minecart and lanterns), mediana (mining camp: foreman's cabin, pile of
+           ore, cargo minecart and smelter) and grande (complex with the hoist tower and its pulley, tracks and a
+           vertical shaft with a spiral staircase down to a larger two-level network).
+  styles   montana (oak and stone), taiga (spruce; also snow), desierto (sandstone), badlands (terracotta) and
+           picos (deepslate, on the peaks), each with two variants (a, b: the mirrored courtyard and another gallery).
 
-Cada plantilla es una sola pieza: el patio y su cimiento, la boca, la bajada y la galería, sin caja (lo excavado lleva
-su forro y dos capas de casco; fuera, nada). La coloca el tipo propio heraldia:mina_entrada (Java, minas/), que busca
-una ladera: delante de la boca terreno seco y casi llano, detrás el monte más alto que el túnel y encima de la galería
-roca bastante (las muestras de `techo`). Su colocación es la rejilla heraldia:rejilla (grupo minas/<tamaño>, opciones
-minas.entradas.*) y la regla de minas/Minas.java (nunca junto a aldeas, únicas, medianas ni estructuras vanilla que
-asoman; entre los tres tamaños, la distancia mínima de las medianas).
+Each template is a single piece: the courtyard and its foundation, the mouth, the descent and the gallery, without a box (what is excavated carries
+its lining and two layers of shell; outside, nothing). It is placed by the own type heraldia:mina_entrada (Java, minas/), which looks for
+a hillside: in front of the mouth dry, nearly flat terrain, behind it a mountain higher than the tunnel and above the gallery
+enough rock (the `roof` samples). Its placement is the grid heraldia:rejilla (group minas/<size>, options
+mines.entrances.*) and the rule of minas/Minas.java (never next to villages, unique structures, medium structures or vanilla structures that
+poke out; between the three sizes, the minimum distance of the medium structures).
 
-Además, minas.vanilla.multiplicador multiplica la frecuencia de las minas abandonadas vanilla en los chunks nuevos
-(heraldia:minas_vanilla, que sustituye la colocación del structure_set minecraft:mineshafts; con 1, idéntica a vanilla).
+In addition, mines.vanilla.multiplicador multiplies the frequency of vanilla abandoned mines in new chunks
+(heraldia:minas_vanilla, which replaces the placement of the structure_set minecraft:mineshafts; with 1, identical to vanilla).
 
-Ids: estructura, plantilla y pool heraldia:minas/<tamaño>/<estilo>/<variante> (una estructura por variante: cada una
-sabe dónde está su boca), structure_set heraldia:minas/<tamaño> (sus 10 estructuras; el bioma elige el estilo), etiquetas
-de estructura #heraldia:minas y #heraldia:minas/<tamaño>, etiquetas de biomas #heraldia:minas (todos) y
-#heraldia:minas/<estilo>, botín heraldia:minas/<tabla>, textos heraldia.minas.*.
+Ids: structure, template and pool heraldia:minas/<size>/<style>/<variant> (one structure per variant: each
+knows where its mouth is), structure_set heraldia:minas/<size> (its 10 structures; the biome chooses the style), structure
+tags #heraldia:minas and #heraldia:minas/<size>, biome tags #heraldia:minas (all) and
+#heraldia:minas/<style>, loot heraldia:minas/<table>, texts heraldia.minas.*.
 """
 import functools
 from core import NS, nsid
@@ -31,8 +31,8 @@ PREFIX = "minas"
 SIZES = ("pequena", "mediana", "grande")
 DISPLAY_NAME = {"pequena": ("Boca de mina", "Mine Adit"), "mediana": ("Campamento minero", "Mining Camp"),
           "grande": ("Complejo minero", "Mining Complex")}
-# separación entre dos del mismo tamaño (bloques): la pequeña es la de la opción minas.entradas.separacion_bloques y
-# las otras guardan la proporción (GridPlacement escala las tres con la opción)
+# separation between two of the same size (blocks): the small one is that of the option mines.entrances.separacion_bloques and
+# the others keep the proportion (GridPlacement scales all three with the option)
 SEPARATION = {"pequena": 768, "mediana": 1152, "grande": 1920}
 SEPARATION_RANGE = (256, 4000)
 SALT = {"pequena": 1907261101, "mediana": 1907261102, "grande": 1907261103}
@@ -40,7 +40,7 @@ BIOME_Y = 96
 VANILLA_VILLAGE_EXCLUSION = 8
 VARIANTS = ("a", "b")
 
-# Estilos por bioma (listas vanilla; las etiquetas extra siguen las reglas de biomas.CONVENCIONALES).
+# Styles by biome (vanilla lists; the extra tags follow the rules of biomes.CONVENTIONAL).
 STYLES = {
     "montana": dict(
         biomas=["windswept_hills", "windswept_gravelly_hills", "windswept_forest", "meadow", "cherry_grove"],
@@ -97,7 +97,7 @@ STYLES = {
                                  "deepslate_copper_ore", "deepslate_coal_ore"])),
 }
 
-# Logros: una cadena pequeña -> mediana -> grande (logros.py los añade bajo la raíz).
+# Advancements: a small -> medium -> large chain (advancements.py adds them under the root).
 ADVANCEMENTS = {
     "pequena": dict(icono="minecraft:minecart", titulo=("Bajo la ladera", "Under the Hillside"),
                     descripcion=("Entra en una boca de mina de Heraldia", "Enter a Heraldia mine adit")),
@@ -133,10 +133,10 @@ def table_ident(tbl):
     return f"{NS}:{PREFIX}/{tbl}"
 
 
-# ------------------------------------------------------------------ construcción
+# ------------------------------------------------------------------ construction
 @functools.lru_cache(maxsize=None)
 def construction(size, style, variant):
-    """Obra de una variante (cacheada: la construyen build, la auditoría y las pruebas) y sus metadatos para Java."""
+    """Work of a variant (cached: build, the audit and the tests construct it) and its metadata for Java."""
     pal = STYLES[style]["paleta"]
     o = blueprints.construct(size, style, variant, pal, template(size, style, variant))
     x0, y0, z0, *_ = o.t.bounds()
@@ -148,18 +148,18 @@ def construction(size, style, variant):
 
 
 def build(reg, size):
-    """Plantillas y pools de un tamaño (una parte de pack.build_all) y los errores de su auditoría."""
+    """Templates and pools of a size (a part of pack.build_all) and the errors of its audit."""
     from . import audit
     for style in STYLES:
-        for v in VARIANTS:     # una estructura por variante: cada una con la posición de su boca en la plantilla
+        for v in VARIANTS:     # one structure per variant: each with the position of its mouth in the template
             o, _, _ = construction(size, style, v)
             reg.warnings += [f"{o.t.name}: {e}" for e in audit.errors(o, size)]
             reg.pool(template(size, style, v), [(reg.add(_copy(o.t), f"mina:{size}"), 1, "rigid", None)])
 
 
 def _copy(t):
-    """Otra plantilla con los mismos bloques (Registry.add la normaliza y le añade cadenas: la obra en caché, que usan
-    la auditoría y los metadatos del Java, se queda en coordenadas de diseño)."""
+    """Another template with the same blocks (Registry.add normalizes it and adds chains: the cached work, which the audit
+    and the Java metadata use, stays in design coordinates)."""
     from core import Template
     c = Template(t.name)
     c.blocks, c.entities, c.jigsaws = dict(t.blocks), list(t.entities), [dict(j) for j in t.jigsaws]
@@ -175,25 +175,25 @@ def structure(size, style, variant, biomes):
 
 
 def placement(size):
-    """heraldia:rejilla del tamaño (spacing y separation de por defecto; el Java los recalcula con la configuración)
-    con la candidata buscada en los biomas de todos los estilos (como las medianas)."""
+    """heraldia:rejilla of the size (default spacing and separation; the Java side recalculates them with the configuration)
+    with the candidate searched in the biomes of all the styles (like the medium structures)."""
     spacing = round(SEPARATION[size] / 16)
     return {"type": f"{NS}:rejilla", "grupo": f"{PREFIX}/{size}", "spacing": spacing, "separation": spacing // 3,
             "salt": salt(size), "bioma": f"{NS}:{PREFIX}", "bioma_y": BIOME_Y,
             "exclusion_zone": {"other_set": "minecraft:villages", "chunk_count": VANILLA_VILLAGE_EXCLUSION}}
 
 
-# Minas abandonadas vanilla (structure_set minecraft:mineshafts de 26.3): la misma colocación con el tipo propio, que
-# multiplica la frecuencia por minas.vanilla.multiplicador (1 = vanilla exacta: misma rejilla, sal y sorteo).
+# Vanilla abandoned mines (structure_set minecraft:mineshafts of 26.3): the same placement with the own type, which
+# multiplies the frequency by mines.vanilla.multiplicador (1 = exact vanilla: same grid, salt and roll).
 VANILLA_SET = {"structures": [{"structure": "minecraft:mineshaft", "weight": 1},
                               {"structure": "minecraft:mineshaft_mesa", "weight": 1}],
                "placement": {"type": f"{NS}:minas_vanilla", "frequency": 0.004,
                              "frequency_reduction_method": "legacy_type_3", "salt": 0, "separation": 0, "spacing": 1}}
-MULTIPLIER = (2.0, 1, 5)          # por defecto, mínimo y máximo de minas.vanilla.multiplicador
+MULTIPLIER = (2.0, 1, 5)          # default, minimum and maximum of mines.vanilla.multiplicador
 
 
 def write(out, jdump):
-    """Estructuras, etiquetas de biomas y de estructura, structure_sets, botín y la colocación de las minas vanilla."""
+    """Structures, biome and structure tags, structure_sets, loot and the placement of the vanilla mines."""
     import biomes
     from writer import lootr_aware
     import treasure
@@ -227,10 +227,10 @@ def lang():
 
 
 def tables():
-    """{id corto: tabla} de todo el botín de las minas (para validate_loot)."""
+    """{short id: table} of all the mines' loot (for validate_loot)."""
     return {f"{PREFIX}/{n}": t for n, t in LOOT.items()}
 
 
 def structures():
-    """Ids de todas las estructuras de las minas (para /heraldia info y las pruebas)."""
+    """Ids of all the mine structures (for /heraldia info and the tests)."""
     return [f"{NS}:{template(t, e, v)}" for t in SIZES for e in STYLES for v in VARIANTS]

@@ -1,6 +1,6 @@
-"""Mazmorra bajo la torre del homenaje: cuerpo de guardia, calabozos, cripta, cisterna, falsa tesorería con trampa,
-pasillo de saetas, sala del guardián con el acertijo de las tres palancas y la cámara del tesoro oculta.
-Coordenadas locales: x 0..47, z 0..55, y 0..15 (y=15 toca la base del castillo; pies a y=3)."""
+"""Dungeon under the keep: guardroom, cells, crypt, cistern, false treasury with a trap,
+arrow-slit corridor, guardian's room with the three-lever riddle and the hidden treasure chamber.
+Local coordinates: x 0..47, z 0..55, y 0..15 (y=15 touches the castle base; feet at y=3)."""
 import random
 from core import B
 from .util import Canvas, hidden_door
@@ -8,7 +8,7 @@ from .._common.pieces import (wire, connect, guardian as _guardian, spawner as _
                              tripwire_trap, tnt_trap)
 from .surface import NEWEL, LOOT
 
-OFF = (26, -16, 14)          # local + OFF = coordenadas del castillo
+OFF = (26, -16, 14)          # local + OFF = castle coordinates
 NX, NZ = NEWEL[0] - OFF[0], NEWEL[1] - OFF[2]
 D = 3                         # pies
 SB = "stone_bricks"
@@ -41,20 +41,20 @@ def build(below, rnd=None):
         t.set(x, y, z, ("soul_lantern" if soul else "lantern") + "[hanging=true,waterlogged=false]")
 
     room(3, 3, 30, 14, h=6, floor="mossy_stone_bricks")        # cisterna
-    room(34, 4, 44, 13, h=4, floor="polished_andesite")        # falsa tesorería
-    room(31, 9, 33, 9, h=2)                                    # túnel cisterna - tesorería
+    room(34, 4, 44, 13, h=4, floor="polished_andesite")        # false treasury
+    room(31, 9, 33, 9, h=2)                                    # cistern - treasury tunnel
     room(3, 17, 7, 38, h=4, floor="cobblestone")               # cripta
     room(5, 15, 5, 16, h=2)                                    # paso cripta - cisterna
     room(9, 26, 19, 32, h=5)                                   # cuerpo de guardia
-    room(21, 28, 44, 30, h=4)                                  # pasillo de los calabozos
-    room(42, 16, 44, 27, h=4)                                  # paso a la falsa tesorería
+    room(21, 28, 44, 30, h=4)                                  # corridor of the cells
+    room(42, 16, 44, 27, h=4)                                  # passage to the false treasury
     room(43, 14, 43, 15, h=2)
     for x0 in (22, 27, 32, 37):
         room(x0, 22, x0 + 3, 26, h=4, floor="cobblestone")
         room(x0, 32, x0 + 3, 36, h=4, floor="cobblestone")
-    room(13, 34, 15, 47, h=4)                                  # pasillo de las saetas
-    room(17, 42, 35, 52, h=7, floor="polished_andesite")       # sala del guardián
-    room(38, 42, 44, 50, h=5, floor="polished_deepslate")      # cámara del tesoro
+    room(13, 34, 15, 47, h=4)                                  # arrow-slit corridor
+    room(17, 42, 35, 52, h=7, floor="polished_andesite")       # guardian's room
+    room(38, 42, 44, 50, h=5, floor="polished_deepslate")      # treasure chamber
     for x1, z1, x2, z2, h, fl, wall in rooms:
         t.fill(x1 - 1, D - 1, z1 - 1, x2 + 1, D + h, z2 + 1, wall)
     for x1, z1, x2, z2, h, fl, wall in rooms:
@@ -72,7 +72,7 @@ def build(below, rnd=None):
     t.opening(NX, D, NZ + 2)
     t.jigsaw(NX, 15, NZ, "up_south", "unicas/castillo/subida", "unicas/castillo/bajada", "minecraft:empty",
              final_state=SB)
-    # vanos entre salas
+    # openings between rooms
     for x, z in ((20, 29), (8, 29), (14, 33)):
         t.opening(x, D, z)
     t.opening(16, D, 47)
@@ -150,7 +150,7 @@ def build(below, rnd=None):
     hang(16, D + 5, 8)
     t.set(30, D + 1, 14, "wall_torch[facing=north]")
 
-    # ---------------------------------------------------------------- falsa tesorería (trampa de dinamita)
+    # ---------------------------------------------------------------- false treasury (dynamite trap)
     t.fill(37, D, 4, 41, D, 4, "polished_blackstone_bricks")
     t.set(39, D, 4, "polished_andesite")
     t.set(39, D + 1, 4, "air")
@@ -167,13 +167,13 @@ def build(below, rnd=None):
         t.set(x, D + 2, 4, "red_wall_banner[facing=south]")
     hang(39, D + 3, 9, soul=False)
 
-    # ---------------------------------------------------------------- pasillo de las saetas
+    # ---------------------------------------------------------------- arrow-slit corridor
     arrows = {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": 16}]}
     tripwire_trap(t.set, (12, 40), (16, 40), D, "x",
                   [((x, y, z), f) for x, f in ((12, "east"), (16, "west")) for y, z in ((D + 1, 40), (D, 41), (D, 39))])
     t.set(14, D + 3, 35, "cobweb")
 
-    # ---------------------------------------------------------------- sala del guardián
+    # ---------------------------------------------------------------- guardian's room
     for x in (21, 26, 31):
         for z in (45, 49):
             t.fill(x, D, z, x, D + 6, z, "polished_deepslate")
@@ -183,7 +183,7 @@ def build(below, rnd=None):
         hang(x, D + 6, z)
     for z in (44, 50):
         t.set(35, D + 4, z, "red_wall_banner[facing=west]")
-    # puerta secreta de la cámara del tesoro (rincón noreste) y acertijo de las tres palancas
+    # secret door of the treasure chamber (northeast corner) and the three-lever riddle
     a, c = 35, 42
     info = hidden_door(t.set, a, c, D, +1, SB, input_floor=False)
     meta["secret"]["tesoro"] = info
@@ -201,10 +201,10 @@ def build(below, rnd=None):
     wire(t.set, [(xr, D + 1, c - 2), (xr + 1, D, c - 2), (xr + 2, D - 1, c - 2), (xr + 3, D - 1, c - 2),
                       (xr + 4, D - 1, c - 2)])
     meta["levers"] = {k: (x, D + 1, c) for k, x in levers.items()}
-    # guardián
+    # guardian
     t.entity(30, D, 47, guardian())
 
-    # ---------------------------------------------------------------- cámara del tesoro
+    # ---------------------------------------------------------------- treasure chamber
     t.opening(37, D, 42)
     t.set(41, D - 1, 50, "chiseled_stone_bricks")
     chest(41, D, 50, "north", "premium")

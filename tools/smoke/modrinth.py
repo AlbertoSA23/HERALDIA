@@ -1,12 +1,12 @@
-"""Mods de Modrinth de las pruebas de servidor: versión fijada para Minecraft 26.3 + Fabric y sha512 de cada .jar.
+"""Modrinth mods for the server tests: version pinned for Minecraft 26.3 + Fabric and sha512 of each .jar.
 
-No es una prueba (tools/test.py la excluye de la batería): lo importan trofeos.py (Carpet), terralith_biomas.py y
-compat_mods.py. Cada .jar se descarga una vez en <work>/modrinth/ (la CI guarda esa carpeta en caché) y se comprueba su
-sha512 antes de usarlo: una descarga distinta de la fijada hace fallar la prueba, no la cambia por otra.
+It is not a test (tools/test.py excludes it from the suite): it is imported by trophies.py (Carpet), terralith_biomes.py and
+compat_mods.py. Each .jar is downloaded once into <work>/modrinth/ (CI caches that folder) and its sha512 is checked
+before using it: a download different from the pinned one makes the test fail, it does not swap it for another.
 
-Uso para mantener la lista (consulta la API de Modrinth, no descarga nada):
-  python3 tools/smoke/modrinth.py --check          # ¿hay versiones 26.3 + Fabric más nuevas que las fijadas?
-  python3 tools/smoke/modrinth.py --find <slug>...   # versión 26.3 + Fabric más reciente de esos proyectos
+Usage to maintain the list (queries the Modrinth API, downloads nothing):
+  python3 tools/smoke/modrinth.py --check          # are there 26.3 + Fabric versions newer than the pinned ones?
+  python3 tools/smoke/modrinth.py --find <slug>...   # latest 26.3 + Fabric version of those projects
 """
 import argparse, collections, hashlib, json, os, shutil, sys, urllib.parse, urllib.request
 
@@ -19,14 +19,14 @@ FOLDER = "modrinth"
 
 Mod = collections.namedtuple("Mod", "slug version file url sha512")
 
-# Versiones fijadas (las publicadas en Modrinth para 26.3 + Fabric al escribir la prueba). Para cambiar una, usa
-# --find y copia versión, fichero, url y sha512; la caché de la CI cambia sola (su clave es el hash de este fichero).
+# Pinned versions (those published on Modrinth for 26.3 + Fabric when the test was written). To change one, use
+# --find and copy version, file, url and sha512; the CI cache changes by itself (its key is the hash of this file).
 MODS = {m.slug: m for m in [
-    # prueba de jugador simulado (trofeos, historia, aldeas_vida)
+    # simulated-player test (trophies, story, village life)
     Mod("carpet", "26.3+v260915", "fabric-carpet-26.3+v260915.jar",
         "https://cdn.modrinth.com/data/TQTTVgYE/versions/yt9oDFOj/fabric-carpet-26.3%2Bv260915.jar",
         "7a479ba69eb5049cb94365d5044bd58c9f970c50b3484861fe3675f1917f7c99c1b1f50a5e01bdd9ded940d76a995539009a3656e05be2f513f20ec14de991a7"),
-    # terreno y biomas
+    # terrain and biomes
     Mod("terralith", "2.6.5+26.3", "Terralith_26.3_v2.6.5+26.3.jar",
         "https://cdn.modrinth.com/data/8oi3bsk5/versions/aGE3hYAA/Terralith_26.3_v2.6.5%2B26.3.jar",
         "918b232df7a855bae89c7fa85affb5ce134e236c4726fa14a5bdaa179eb1e010f040a9fa981f006a0e26e421a2a961bc29a75e99a4500fd18361a8ba81478071"),
@@ -70,7 +70,7 @@ MODS = {m.slug: m for m in [
     Mod("explorify", "v1.6.6", "Explorify v1.6.6.mod.jar",
         "https://cdn.modrinth.com/data/HSfsxuTo/versions/oyrAnNG8/Explorify%20v1.6.6.mod.jar",
         "d4368c83b493c6fcf9b489cd91b4d1e468d695d099d9df3845a6fcee07ef58dc35074557d0108627b98c9941b1e6a6c0bcdbbcd121e8915514a21b91e9d38530"),
-    # rendimiento y generación
+    # performance and generation
     Mod("lithium", "mc26.3-0.26.3-fabric", "lithium-fabric-0.26.3+mc26.3.jar",
         "https://cdn.modrinth.com/data/gvQqBUqZ/versions/fWv5bnZk/lithium-fabric-0.26.3%2Bmc26.3.jar",
         "2ca92fb530135d2baddf0ba4cc4f93976234876a38c4aa02b487b2552400f005afcfbeebf5373fb4396fe2020537a42d7597b8da5a52b904355ef51d5fef07ad"),
@@ -86,7 +86,7 @@ MODS = {m.slug: m for m in [
     Mod("chunky", "1.5.66", "Chunky-Fabric-1.5.66.jar",
         "https://cdn.modrinth.com/data/fALzjamp/versions/86FKD9qx/Chunky-Fabric-1.5.66.jar",
         "6f0323daa69d61bd3b3fbe9d8b713664d9b7c69182183f8dcff6362b43783639778a96e32215dbfd329588f06b60a5d93656dbb1d391c660db203482aa972d5e"),
-    # servidor: botín por jugador, Distant Horizons y mapas
+    # server: per-player loot, Distant Horizons and maps
     Mod("lootr", "1.25.42.124", "lootr-fabric-26.3-1.25.42.124.jar",
         "https://cdn.modrinth.com/data/EltpO5cN/versions/gVwn7m2v/lootr-fabric-26.3-1.25.42.124.jar",
         "290786fd4af4011c4f09c425d262bacc80f6ef47e23fbf6424193c719b6045a70cae70308c95d30c5ab78bf1f5a3d089cc3b01db8cc4dacc1a74c0f2d70c245d"),
@@ -104,8 +104,8 @@ MODS = {m.slug: m for m in [
         "d461b24b3eeaf74ecc75911542cfbfeefe7148a2a260453f15af047d1a895f6484b8e21816de990dc25987d747cc1cccdd5386e8c51a5dcc72a1356b39139bf2"),
 ]}
 
-# Pedidos por el dueño que no tienen versión para 26.3 + Fabric en Modrinth (comprobado con --find el 16-11-2026);
-# la tabla de compatibilidad del README los da por «no probado». Se vuelven a mirar con --check.
+# Requested by the owner but with no version for 26.3 + Fabric on Modrinth (checked with --find on 16-11-2026);
+# the README's compatibility table lists them as "not tested". They are looked at again with --check.
 NO_VERSION = ["oh-the-biomes-weve-gone", "yungs-api", "yungs-better-dungeons", "yungs-better-mineshafts",
                "yungs-better-strongholds", "yungs-better-ocean-monuments", "yungs-better-desert-temples",
                "yungs-better-jungle-temples", "yungs-better-witch-huts", "yungs-bridges", "yungs-extras",
@@ -121,11 +121,11 @@ def sha512(path):
 
 
 def fetch(work, name, url, sha):
-    """Ruta del .jar `name` en <work>/modrinth/, descargado si falta; falla si su sha512 no es el fijado."""
+    """Path of the .jar `name` in <work>/modrinth/, downloaded if missing; fails if its sha512 is not the pinned one."""
     folder = os.path.join(work, FOLDER)
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, name)
-    for attempt in range(2):      # una copia vieja en caché con otro contenido se descarga otra vez
+    for attempt in range(2):      # an old cached copy with other content is downloaded again
         s.download(url, path)
         got = sha512(path)
         if got == sha:
@@ -140,7 +140,7 @@ def jar(work, slug):
 
 
 def install(work, slugs):
-    """Copia a <work>/mods los .jar de esos proyectos (descargados y comprobados)."""
+    """Copies to <work>/mods the .jar files of those projects (downloaded and checked)."""
     for slug in slugs:
         shutil.copy(jar(work, slug), os.path.join(work, "mods"))
 
@@ -153,7 +153,7 @@ def _api(path, **query):
 
 
 def last(slug):
-    """Mod con la versión 26.3 + Fabric más reciente del proyecto, o None si no hay ninguna."""
+    """Mod with the latest 26.3 + Fabric version of the project, or None if there is none."""
     versions = _api(f"project/{slug}/version", game_versions=[MC], loaders=[LOADER])
     if not versions:
         return None
@@ -165,21 +165,21 @@ def last(slug):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--check", action="store_true", help="compara las fijadas con las más recientes de Modrinth")
-    g.add_argument("--find", nargs="+", metavar="SLUG", help="versión 26.3 + Fabric más reciente de esos proyectos")
+    g.add_argument("--check", action="store_true", help="compares the pinned ones with the latest on Modrinth")
+    g.add_argument("--find", nargs="+", metavar="SLUG", help="latest 26.3 + Fabric version of those projects")
     a = ap.parse_args(argv)
     for slug in a.find or list(MODS) + NO_VERSION:
         m = last(slug)
         pinned = MODS.get(slug)
         if a.find:
-            print(f"{slug}: sin versión {MC} + {LOADER}" if m is None else
+            print(f"{slug}: no {MC} + {LOADER} version" if m is None else
                   f'    Mod("{m.slug}", "{m.version}", "{m.file}",\n        "{m.url}",\n        "{m.sha512}"),')
         elif m is None:
-            print(f"{slug}: sin versión {MC} + {LOADER}" + (" (¡la fijada ya no está!)" if pinned else ""))
+            print(f"{slug}: no {MC} + {LOADER} version" + (" (the pinned one is gone!)" if pinned else ""))
         elif pinned is None:
-            print(f"{slug}: ahora tiene {m.version} (antes sin versión)")
+            print(f"{slug}: now has {m.version} (previously no version)")
         else:
-            print(f"{slug}: {'al día' if m.version == pinned.version else f'fijada {pinned.version}, nueva {m.version}'}")
+            print(f"{slug}: {'up to date' if m.version == pinned.version else f'pinned {pinned.version}, new {m.version}'}")
     return 0
 
 

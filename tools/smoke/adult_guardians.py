@@ -1,16 +1,16 @@
-"""Mobs de plantilla que podrían salir bebés, en un servidor dedicado 26.3 real (complementa server_smoke.py).
+"""Template mobs that could spawn as babies, on a real 26.3 dedicated server (complements server_smoke.py).
 
-Uso: python3 tools/smoke/adult_guardians.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke" [--times N]
-Los mobs de una plantilla pasan por finalizeSpawn al colocarse como pieza de estructura, y el de los zombis (zombi,
-husk, ahogado, zombi aldeano, piglin zombificado) sortea un bebé (5 %, a veces en una gallina) sin mirar el IsBaby del
-NBT, cambia a veces el arma (ahogado: tridente o caña el 10 %) y monta en un nautilo zombi a la mitad de los ahogados con
-tridente. El mod lo evita en los que llevan la etiqueta heraldia_adulto (core.ADULTO_TAG; validate.py exige que la
-lleve todo mob de ese tipo). Para cada mob distinto de ese tipo en las plantillas del .jar (los guardianes del
-castillo, el Salón del Jarl, el galeón, la pirámide, el coliseo, el faro, el acueducto y los ahogados de la Atlántida)
-escribe un paquete de datos con una plantilla mínima (un bloque de piedra y encima un jigsaw que se borra) con ese mob
-tal cual y su pool, lo coloca --times veces con /place jigsaw (pieza de pool: mismo camino que al generar, con
-finalizeSpawn; /place template no lo llama) y comprueba que aparecen todos, que ninguno es bebé, que no hay monturas
-ni otras entidades nuevas y que todos conservan el arma de su plantilla.
+Usage: python3 tools/smoke/adult_guardians.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke" [--times N]
+Template mobs go through finalizeSpawn when placed as a structure piece, and the zombie one (zombie,
+husk, drowned, zombie villager, zombified piglin) rolls for a baby (5 %, sometimes on a chicken) ignoring the NBT's IsBaby,
+sometimes changes the weapon (drowned: trident or fishing rod 10 %) and mounts a zombie nautilus on half of the drowned with a
+trident. The mod prevents this for those carrying the heraldia_adulto tag (core.ADULT_TAG; validate.py requires that
+every mob of that type carries it). For each distinct mob of that type in the .jar templates (the castle guardians,
+the Jarl's Hall, the galleon, the pyramid, the colosseum, the lighthouse, the aqueduct and the Atlantis drowned)
+it writes a data pack with a minimal template (a stone block with a jigsaw on top that gets removed) with that mob
+as is and its pool, places it --times times with /place jigsaw (pool piece: same path as when generating, with
+finalizeSpawn; /place template does not call it) and checks that all of them appear, that none is a baby, that there are no mounts
+or other new entities and that all keep their template's weapon.
 """
 import argparse, gzip, io, json, os, queue, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -22,12 +22,12 @@ import core
 
 BABIES = ("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin")
 PACK, NS, ANCHOR_POINT = "heraldia_prueba_adultos", "heraldia_prueba", "heraldia_prueba:ancla"
-X0, Y, Z0 = 0, 150, 0           # rejilla de colocaciones sobre una plataforma en el aire (chunks forzados)
+X0, Y, Z0 = 0, 150, 0           # grid of placements on a platform in the air (forced chunks)
 COLS, STEP = 20, 3
 
 
 def mobs(jar):
-    """[(nombre, nbt)]: un mob de cada NBT distinto (sin posición) de los tipos con bebé en las plantillas del .jar."""
+    """[(name, nbt)]: one mob for each distinct NBT (without position) of the types that can be babies in the .jar templates."""
     out, seen = [], set()
     with zipfile.ZipFile(jar) as z:
         for n in sorted(z.namelist()):
@@ -49,8 +49,8 @@ def mobs(jar):
 
 
 def write_pack(work, found, times):
-    """Paquete de datos en world/datapacks (el servidor lo activa al crear el mundo): por mob, una plantilla
-    (jigsaw + el mob encima), su pool y una función con las colocaciones."""
+    """Data pack in world/datapacks (the server enables it when creating the world): per mob, a template
+    (jigsaw + the mob on top), its pool and a function with the placements."""
     root = os.path.join(work, "world", "datapacks", PACK)
     with open(os.path.join(os.makedirs(root, exist_ok=True) or root, "pack.mcmeta"), "w") as f:
         json.dump({"pack": {"description": "Heraldia: prueba de mobs adultos", "min_format": 121, "max_format": 121}}, f)
@@ -59,7 +59,7 @@ def write_pack(work, found, times):
         os.makedirs(os.path.join(data, d), exist_ok=True)
     for i, (_, nbt) in enumerate(found):
         t = core.Template(f"m{i}")
-        t.set(0, 0, 0, "minecraft:stone")       # su propio suelo: no depende de la plataforma
+        t.set(0, 0, 0, "minecraft:stone")       # its own floor: it does not depend on the platform
         t.jigsaw(0, 1, 0, "up_north", ANCHOR_POINT, "minecraft:empty", "minecraft:empty", joint="rollable")
         t.entity(0, 1, 0, nbt)
         nbtlib.File(t.to_nbt(), gzipped=True).save(os.path.join(data, "structure", f"m{i}.nbt"))
@@ -99,21 +99,21 @@ def main():
         s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
         m = ctx.run("datapack list enabled", r"data pack\(s\) enabled: (.*)|no data packs")
         if PACK not in m.group(0):
-            raise SystemExit(f"el paquete de prueba {PACK} no está activado: {m.string.strip()}")
+            raise SystemExit(f"test pack {PACK} is not enabled: {m.string.strip()}")
         ctx.run(f"forceload add {X0 - 2} {Z0 - 2} {x1 + 2} {z1 + 2}", r"Marked|Added|force|already")
-        for _ in range(s.PLACE_ATTEMPTS):   # los chunks forzados tardan en cargarse
+        for _ in range(s.PLACE_ATTEMPTS):   # forced chunks take a while to load
             m = ctx.run(f"fill {X0 - 2} {Y - 1} {Z0 - 2} {x1 + 2} {Y - 1} {z1 + 2} minecraft:stone", r"Successfully filled|No blocks")
             if "not loaded" not in m.string:
                 break
             time.sleep(s.PLACE_RETRY_S)
-        # Cerco de barrera alrededor de la plataforma (y techo a 5): los mobs tienen IA y, sin él, alguno podía caerse
-        # por el borde entre dos cuentas y faltar del área («N de 200 colocados» o «con otra arma» sin serlo).
+        # Barrier fence around the platform (and a ceiling at 5): the mobs have AI and, without it, some could fall
+        # over the edge between two counts and be missing from the area ("N of 200 placed" or "with another weapon" without being so).
         ctx.run(f"fill {X0 - 3} {Y - 1} {Z0 - 3} {x1 + 3} {Y + 5} {z1 + 3} minecraft:barrier outline",
                 r"Successfully filled|No blocks")
-        # De noche y sin que avance el tiempo: al sol arden, y la prueba (un mob tras otro) puede durar más que la noche.
+        # At night and with time not advancing: in sunlight they burn, and the test (one mob after another) can outlast the night.
         ctx.run("time set midnight", r"Set .*time")
         ctx.run("gamerule advance_time false", r"[Gg]ame ?rule .*advance_time")
-        print(f"adultos: {len(found)} mobs distintos con posible bebé en las plantillas")
+        print(f"adults: {len(found)} distinct mobs with a possible baby in the templates")
         for i, (name, nbt) in enumerate(found):
             mob = str(nbt["id"])
             adult = "heraldia_adulto" in [str(t) for t in nbt.get("Tags", [])]
@@ -122,7 +122,7 @@ def main():
             sel = f"@e[type={mob},{area}]"
             total = 0
             end = time.monotonic() + s.UNTIL_S
-            while True:                     # las entidades de la pieza tardan algo más que los bloques
+            while True:                     # the piece's entities take a bit longer than the blocks
                 total = count(sel)
                 if total >= a.times or time.monotonic() > end:
                     break
@@ -131,12 +131,12 @@ def main():
             mounts = count(f"@e[type=!{mob},type=!minecraft:item,{area}]")     # gallinas, nautilos zombis...
             hand = str(nbt.get("equipment", {}).get("mainhand", {}).get("id", ""))
             swapped = total - count(f'@e[type={mob},{area},nbt={{equipment:{{mainhand:{{id:"{hand}"}}}}}}]') if hand else 0
-            print(f"adultos: {name}: {total} colocados, {babies} bebés, {mounts} monturas, {swapped} con otra arma "
+            print(f"adults: {name}: {total} placed, {babies} babies, {mounts} mounts, {swapped} with another weapon "
                   f"(heraldia_adulto: {'sí' if adult else 'no'}, {time.monotonic() - t0:.1f} s)")
             if total != a.times:
                 fails.append(f"{name}: {total} de {a.times} colocados")
             if babies or mounts or swapped:
-                fails.append(f"{name}: {babies} bebés, {mounts} monturas y {swapped} sin su arma ({hand}) en {total}")
+                fails.append(f"{name}: {babies} babies, {mounts} mounts and {swapped} without their weapon ({hand}) out of {total}")
             ctx.run(f"kill @e[type=!minecraft:player,{area}]", r"Killed|No entity was found")
             ctx.run(f"kill @e[type=minecraft:item,{area}]", r"Killed|No entity was found")
     finally:
@@ -146,7 +146,7 @@ def main():
         except Exception:
             proc.kill()
     if not found:
-        fails.append("no hay mobs con posible bebé en las plantillas: la prueba no comprueba nada")
+        fails.append("there are no mobs with a possible baby in the templates: the test checks nothing")
     if fails:
         print("FALLOS:\n- " + "\n- ".join(fails))
         sys.exit(1)

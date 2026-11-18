@@ -1,5 +1,5 @@
-"""Piezas comunes de las estructuras únicas: todas quedan en un estado coherente al colocarse (sin depender de
-actualizaciones de bloque que no ocurren al generar)."""
+"""Common pieces of the unique structures: all end up in a consistent state when placed (without depending on
+block updates that do not happen during generation)."""
 from core import B, F, adult, anchored
 
 DIRV = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
@@ -11,10 +11,10 @@ def text(key, fallback):
     return {"translate": key, "fallback": fallback}
 
 
-# ------------------------------------------------------------------ entidades de bloque
+# ------------------------------------------------------------------ block entities
 def spawner(put, x, y, z, mob, potentials=False, light=None):
-    """Generador de monstruos de un solo tipo. `luz` (máx. de luz de bloque, 0-15) añade custom_spawn_rules para que
-    los monstruos salgan aunque haya algo de luz cerca (por defecto exigen luz de bloque 0)."""
+    """Spawner for a single mob type. `light` (max. block light, 0-15) adds custom_spawn_rules so that
+    the monsters spawn even if there is some light nearby (by default they require block light 0)."""
     e = {"entity": {"id": "minecraft:" + mob}}
     if light is not None:
         e["custom_spawn_rules"] = {"block_light_limit": {"min_inclusive": 0, "max_inclusive": light},
@@ -26,7 +26,7 @@ def spawner(put, x, y, z, mob, potentials=False, light=None):
 
 
 def chest(put, x, y, z, facing, loot, kind="chest", waterlogged=False):
-    """Cofre o barril con tabla de botín; `waterlogged` para un cofre bajo el agua."""
+    """Chest or barrel with a loot table; `waterlogged` for a chest underwater."""
     st = f"barrel[facing={facing}]" if kind == "barrel" else f"{kind}[facing={facing}]"
     if waterlogged:
         st = st[:-1] + ",type=single,waterlogged=true]"
@@ -34,7 +34,7 @@ def chest(put, x, y, z, facing, loot, kind="chest", waterlogged=False):
 
 
 def sign(put, x, y, z, facing, lines, wood="dark_oak"):
-    """Cartel de pared encerado; `lines`: hasta 4 componentes de texto (translate + fallback)."""
+    """Waxed wall sign; `lines`: up to 4 text components (translate + fallback)."""
     msgs = list(lines) + [{"text": ""}] * (4 - len(lines))
     put(x, y, z, f"{wood}_wall_sign[facing={facing}]",
         {"id": "minecraft:sign", "is_waxed": B(1),
@@ -42,16 +42,16 @@ def sign(put, x, y, z, facing, lines, wood="dark_oak"):
          "back_text": {"messages": [{"text": ""}] * 4, "color": "black", "has_glowing_text": B(0)}})
 
 
-GUARDIAN_TAG = "heraldia_guardian"   # etiqueta (Tags) de todo guardián final; el generador añade heraldia_guardian.<id>
+GUARDIAN_TAG = "heraldia_guardian"   # tag (Tags) of every final guardian; the generator adds heraldia_guardian.<id>
 
 
 def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chances=None, death_loot=None,
              attributes=None, extra=None):
-    """NBT de un guardián con nombre, persistente y con atributos moderados. `attributes` {id: base} añade
-    atributos (attack_damage, knockback_resistance...); `extra` se mezcla en el NBT (sus `Tags` se suman a la de
-    guardián, GUARDIAN_TAG, que usan los logros: pack.py añade además la de la estructura). Los tipos que podrían salir
-    bebés llevan además core.ADULTO_TAG (el IsBaby del NBT no basta: lo ignora finalizeSpawn), y todos core.ANCLADO_TAG
-    (no pasean fuera de su sala hasta que los atacan ni recogen objetos)."""
+    """NBT of a named, persistent guardian with moderate attributes. `attributes` {id: base} adds
+    attributes (attack_damage, knockback_resistance...); `extra` is merged into the NBT (its `Tags` are added to that of
+    guardian, GUARDIAN_TAG, which the advancements use: pack.py also adds that of the structure). The types that could spawn
+    as babies also get core.ADULT_TAG (the NBT's IsBaby is not enough: finalizeSpawn ignores it), and all get core.ANCHORED_TAG
+    (they do not wander outside their room until attacked, nor pick up items)."""
     n = {"id": "minecraft:" + mob, "PersistenceRequired": B(1), "CustomNameVisible": B(1),
          "CustomName": text(key, fallback), "Health": F(float(health)),
          "attributes": [{"id": "minecraft:max_health", "base": float(health)}]}
@@ -68,16 +68,16 @@ def guardian(mob, key, fallback, health, armor=None, equipment=None, drop_chance
     extra = dict(extra or {})
     n["Tags"] = [GUARDIAN_TAG] + [t for t in extra.pop("Tags", []) if t != GUARDIAN_TAG]
     n.update(extra)
-    # Zombis, husks y ahogados: nunca bebés (core.ADULTO_TAG). Todos: quietos en su sala hasta que los atacan y sin
-    # recoger objetos (core.ANCLADO_TAG).
+    # Zombies, husks and drowned: never babies (core.ADULT_TAG). All: stay still in their room until attacked and without
+    # recoger objetos (core.ANCHORED_TAG).
     return anchored(adult(n), always=True)
 
 
 # ------------------------------------------------------------------ redstone
 def piston_door(put, door, axis, side, block):
-    """Puerta secreta: cada bloque de `door` (x, y, z) queda sujeto por un pistón pegajoso EXTENDIDO situado a dos
-    casillas en la dirección `axis` (dx, dz), con la cabeza entre ambos mirando a `side`. La alimentación (palanca,
-    antorcha...) la pone quien llama; al quitarla, los pistones retiran los bloques y dejan la puerta abierta."""
+    """Secret door: each block of `door` (x, y, z) is held by an EXTENDED sticky piston located two
+    cells away in the direction `axis` (dx, dz), with the head between them facing `side`. The power (lever, torch...)
+    is supplied by the caller; when it is removed, the pistons retract the blocks and leave the door open."""
     ax, az = axis
     for (x, y, z) in door:
         put(x, y, z, block)
@@ -86,9 +86,9 @@ def piston_door(put, door, axis, side, block):
 
 
 def wire(put, path, y=None, ends=()):
-    """Polvo de redstone apagado a lo largo de `path` [(x, z)...] a la altura `y`, o [(x, y, z)...] con escalones de
-    un bloque (el polvo de abajo «sube» hacia el de arriba; quien llama deja aire sobre el polvo de abajo).
-    `ends` da, para el primero y el último, la dirección extra a la que apunta."""
+    """Unpowered redstone dust along `path` [(x, z)...] at height `y`, or [(x, y, z)...] with one-block
+    steps (the lower dust "climbs" to the upper one; the caller leaves air above the lower dust).
+    `ends` gives, for the first and the last, the extra direction it points to."""
     extra = dict(ends)
     pts = [(p[0], y, p[1]) if len(p) == 2 else tuple(p) for p in path]
     for i, (x, py, z) in enumerate(pts):
@@ -99,20 +99,20 @@ def wire(put, path, y=None, ends=()):
                 sides[VDIR[(nx - x, nz - z)]] = "up" if ny > py else "side"
         if i in extra:
             sides[extra[i]] = "side"
-        if len(sides) == 1:                       # un tramo suelto apunta en línea recta
+        if len(sides) == 1:                       # a loose segment points in a straight line
             sides[OPP[next(iter(sides))]] = "side"
         put(x, py, z, "redstone_wire[" + ",".join(f"{d}={sides.get(d, 'none')}"
                                                    for d in ("north", "south", "east", "west")) + ",power=0]")
 
 
 def comparator(put, x, y, z, facing):
-    """Comparador apagado que lee el bloque en `facing` y emite hacia el lado contrario."""
+    """Unpowered comparator that reads the block at `facing` and outputs to the opposite side."""
     put(x, y, z, f"comparator[facing={facing},mode=compare,powered=false]", {"id": "minecraft:comparator", "OutputSignal": 0})
 
 
 def tripwire_trap(put, hook_a, hook_b, y, along, dispensers, arrows=6):
-    """Trampa de hilo (templo de la jungla): ganchos en hook_a y hook_b (x, z) unidos en línea recta a lo largo de
-    `along` ('x' o 'z'); cada dispensador ((x, y, z), facing) va junto al bloque al que se agarra un gancho."""
+    """Tripwire trap (jungle temple): hooks at hook_a and hook_b (x, z) joined in a straight line along
+    `along` ('x' or 'z'); each dispenser ((x, y, z), facing) sits next to the block a hook is attached to."""
     (ax, az), (bx, bz) = hook_a, hook_b
     if along == "z":
         put(ax, y, az, f"tripwire_hook[attached=true,facing={'south' if bz > az else 'north'},powered=false]")
@@ -132,15 +132,15 @@ def tripwire_trap(put, hook_a, hook_b, y, along, dispensers, arrows=6):
 
 
 def door(put, x, y, z, facing, kind="spruce_door", hinge="left"):
-    """Puerta de dos bloques cerrada (también de hierro: se abre al recibir señal)."""
+    """Closed two-block door (also iron: it opens when it receives a signal)."""
     for h, dy in (("lower", 0), ("upper", 1)):
         put(x, y + dy, z, f"{kind}[facing={facing},half={h},hinge={hinge},open=false,powered=false]")
 
 
 def double_door(put, x, y, z, facing, side, kind="spruce_door"):
-    """Puerta doble cerrada: una hoja en (x, y, z) y la otra en la casilla contigua hacia `side` (dirección horizontal
-    perpendicular a `facing`). Las dos con el mismo `facing` y la bisagra en el lado de fuera (`lint.door_hinge`),
-    para que se abran en espejo y no choquen. `lint.door_pair_issues` audita todas las parejas."""
+    """Closed double door: one leaf at (x, y, z) and the other in the adjacent cell toward `side` (horizontal direction
+    perpendicular to `facing`). Both with the same `facing` and the hinge on the outer side (`lint.door_hinge`),
+    so that they open mirrored and do not collide. `lint.door_pair_issues` audits all the pairs."""
     from lint import FACE, OPPOSITE, door_hinge
     dx, dz = FACE[side]
     door(put, x, y, z, facing, kind, door_hinge(facing, side))
@@ -148,8 +148,8 @@ def double_door(put, x, y, z, facing, side, kind="spruce_door"):
 
 
 def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
-    """Trampa de losa (templo del desierto): placa en (x, y, z) sobre el suelo y TNT dos bloques más abajo;
-    `warn` [(x, y, z)] recibe ladrillos agrietados como aviso."""
+    """Pressure plate trap (desert temple): plate at (x, y, z) on the floor and TNT two blocks below;
+    `warn` [(x, y, z)] receives cracked bricks as a warning."""
     put(x, y, z, f"{plate}[powered=false]")
     put(x, y - 2, z, "tnt[unstable=false]")
     for p in warn or ():
@@ -157,13 +157,13 @@ def tnt_trap(put, x, y, z, plate="stone_pressure_plate", warn=None):
 
 
 def lever_door(put, door, slide, face, block, wall):
-    """Puerta secreta enrasada de 1 x 2 al fondo de un nicho, con su palanca (Coliseo, probada en servidor).
+    """Flush 1 x 2 secret door at the back of a niche, with its lever (Colosseum, tested on a server).
 
-    door: bloque inferior de la puerta; slide: dirección (dentro del muro) hacia la que se recoge; face: dirección de
-    la sala, donde quedan el nicho y la palanca. Usa `piston_door` y la alimenta con una antorcha de redstone en la cara
-    oculta del bloque de la palanca (y el bloque macizo de encima para el pistón superior): palanca encendida ->
-    antorcha apagada -> la puerta se abre. El resto del muro lo pone quien llama. Devuelve las posiciones y el estado
-    con la puerta abierta (pos -> estado) para auditar el recorrido."""
+    door: lower block of the door; slide: direction (inside the wall) toward which it retracts; face: direction of
+    the room, where the niche and the lever are. It uses `piston_door` and powers it with a redstone torch on the hidden
+    face of the lever's block (and the solid block above for the upper piston): lever on ->
+    torch off -> the door opens. The rest of the wall is placed by the caller. Returns the positions and the state
+    with the door open (pos -> state) to audit the walkthrough."""
     sx, sz = DIRV[slide]
     fx, fz = DIRV[face]
     x, y, z = door
@@ -189,8 +189,8 @@ def lever_door(put, door, slide, face, block, wall):
 
 
 def plate_trap(put, plates, side, arrows=6, plate="stone_pressure_plate"):
-    """Trampa de placas con flechas: cada placa (x, y, z) activa los dos dispensadores a ras de suelo que tiene a
-    los lados (`side` y su opuesto), que disparan hacia ella."""
+    """Arrow plate trap: each plate (x, y, z) activates the two floor-level dispensers on
+    its sides (`side` and its opposite), which fire toward it."""
     for (x, y, z) in plates:
         put(x, y, z, f"{plate}[powered=false]")
         for d in (side, OPP[side]):
@@ -200,7 +200,7 @@ def plate_trap(put, plates, side, arrows=6, plate="stone_pressure_plate"):
 
 
 def item_frame(x, y, z, facing_byte, item=None):
-    """NBT de un marco: sin `block_pos` el juego descarta la entidad al colocar la plantilla."""
+    """NBT of a frame: without `block_pos` the game discards the entity when the template is placed."""
     n = {"id": "minecraft:item_frame", "Facing": B(facing_byte), "block_pos": [x, y, z]}
     if item:
         n["Item"] = {"id": "minecraft:" + item, "count": 1}
@@ -214,10 +214,10 @@ GUARD = [(-2, 0), (-2, 1), (-2, 2), (-1, 2)]
 
 
 def spiral_stair(put, cx, cz, feet, stair, newel, landing, newel_top=None):
-    """Escalera de caracol de una casilla alrededor de un machón de 1x1 en (cx, cz): seis peldaños por tramo de 6 de
-    altura y rellano de dos casillas al norte. `feet`: alturas de los pies de cada planta de salida (cada 6). Abre el
-    hueco del forjado de llegada (HOLES) y devuelve las celdas a proteger con barandilla (GUARD) relativas al eje.
-    Cada tramo es un spiral_continuous de 6 peldaños con contrapeldaño invertido."""
+    """One-cell spiral staircase around a 1x1 pillar at (cx, cz): six steps per flight of 6 in
+    height and a two-cell landing to the north. `feet`: feet heights of each exit floor (every 6). It opens the
+    stairwell hole in the arrival floor (HOLES) and returns the cells to protect with a railing (GUARD) relative to the axis.
+    Each flight is a spiral_continuous of 6 steps with inverted riser."""
     top = newel_top if newel_top is not None else feet[-1] + 6
     for y in range(feet[0] - 1, top + 1):
         put(cx, y, cz, newel)
@@ -238,15 +238,15 @@ RING8 = [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
 
 
 def slab_y(s):
-    """(y, tipo) de la losa cuya superficie queda a la altura s (múltiplo de 0,5)."""
+    """(y, type) of the slab whose surface is at height s (a multiple of 0.5)."""
     return (int(s) - 1, "top") if s == int(s) else (int(s - 0.5), "bottom")
 
 
 def spiral_slabs(put, nx, nz, s0, s1, phase, slab, ring=None, props=",waterlogged=false"):
-    """Caracol continuo de losas de 3 x 3 alrededor de un machón en (nx, nz) (lo pone quien llama): cada peldaño sube
-    media altura, de los pies s0 a s1, sin rellanos. El peldaño i ocupa ring[(i + phase) % 8] (por defecto RING8,
-    sentido horario; SLAB_RING, antihorario); `phase` elige el lado de cada salida y `props` añade propiedades al
-    estado de la losa. Devuelve [(i, x, z, pies)]; la y de cada losa es slab_y(pies)[0]."""
+    """Continuous 3 x 3 slab spiral around a pillar at (nx, nz) (placed by the caller): each step rises
+    half a block, from feet s0 to s1, without landings. Step i occupies ring[(i + phase) % 8] (by default RING8,
+    clockwise; SLAB_RING, counterclockwise); `phase` chooses the side of each exit and `props` adds properties to the
+    slab state. Returns [(i, x, z, feet)]; the y of each slab is slab_y(feet)[0]."""
     ring = ring or RING8
     steps = []
     for i in range(int(round((s1 - s0) * 2)) + 1):
@@ -260,17 +260,17 @@ def spiral_slabs(put, nx, nz, s0, s1, phase, slab, ring=None, props=",waterlogge
 
 
 def circle(cx, cz, r):
-    """Celdas (x, z) de un círculo de radio r."""
+    """Cells (x, z) of a circle of radius r."""
     R = int(r) + 1
     return [(cx + dx, cz + dz) for dx in range(-R, R + 1) for dz in range(-R, R + 1) if dx * dx + dz * dz <= r * r]
 
 
 def spiral_continuous(put, ring, y0, n, stair, support=None, start=0, under=False):
-    """Caracol continuo de `n` peldaños desde y0 por las casillas contiguas de `ring` (absolutas, alrededor de un
-    machón), empezando en ring[start], sin rellanos propios: sirve cuando las plantas no van cada 6 y los rellanos
-    están fuera del anillo. Cada peldaño mira hacia donde se llega, así que en las esquinas también se entra por el
-    lado bajo; los de esquina no tocan el machón y llevan `support` debajo; con `under`, todos menos el primero
-    llevan debajo un peldaño invertido. Devuelve las posiciones de los peldaños."""
+    """Continuous spiral of `n` steps from y0 through the adjacent cells of `ring` (absolute, around a
+    pillar), starting at ring[start], without landings of its own: useful when the floors are not every 6 and the landings
+    are outside the ring. Each step faces where you arrive from, so at the corners you also enter from the
+    low side; the corner ones do not touch the pillar and carry `support` below; with `under`, all but the first
+    carry an inverted step below. Returns the positions of the steps."""
     out, k = [], len(ring)
     for i in range(start, start + n):
         x, z = ring[i % k]
@@ -289,8 +289,8 @@ def spiral_continuous(put, ring, y0, n, stair, support=None, start=0, under=Fals
 
 # ------------------------------------------------------------------ entidades
 def painting(x, y, z, facing, variant):
-    """NBT de un cuadro para Template.entity: `facing` en código 2D y `block_pos` como IntArray (verificado en 26.3;
-    1x2 ocupa la casilla y la de encima)."""
+    """NBT of a painting for Template.entity: `facing` in 2D code and `block_pos` as IntArray (verified in 26.3;
+    1x2 occupies the cell and the one above)."""
     from nbtlib import Compound, String, Byte, IntArray
     f2d = {"south": 0, "west": 1, "north": 2, "east": 3}[facing]
     return Compound({"id": String("minecraft:painting"), "variant": String("minecraft:" + variant),
@@ -306,7 +306,7 @@ NONFULL = ("air", "stairs", "slab", "fence", "pane", "bars", "_wall", "door", "c
 
 
 def connect(t):
-    """Vallas, cristales, barrotes y muros de piedra conectan con sus vecinos (el juego no los actualiza al colocar)."""
+    """Fences, glass panes, bars and stone walls connect to their neighbors (the game does not update them when placing)."""
     def name(st):
         return st.split("[")[0].replace("minecraft:", "") if st else ""
 
@@ -336,21 +336,21 @@ def connect(t):
         t.blocks[(x, y, z)] = (f"minecraft:{b}[" + ",".join(f"{k}={v}" for k, v in sorted(props.items())) + "]", nbt)
 
 
-# ------------------------------------------------------------------ añadidos de la catedral
+# ------------------------------------------------------------------ cathedral additions
 def combo_door(put, door, axis, sign, levers, name="", block=None):
-    """Puerta secreta de combinación (varias palancas; con una sola, mejor lever_door): dos bloques (door = bloque
-    inferior) con su alimentación: dos pistones pegajosos extendidos
-    (como piston_door) y, por cada palanca [(palanca, bloque al que se fija)], una antorcha de redstone al otro lado
-    de ese bloque (inversor) que enciende una línea de polvo a la altura del pistón superior, en la capa de la puerta.
-    La puerta se abre solo con todas las palancas activadas.
+    """Combination secret door (several levers; with only one, better lever_door): two blocks (door = lower
+    block) with their power supply: two extended sticky pistons
+    (like piston_door) and, for each lever [(lever, block it is attached to)], a redstone torch on the other side
+    of that block (inverter) that powers a line of dust at the height of the upper piston, in the door layer.
+    The door opens only with all the levers activated.
 
-    Con varias palancas, las antorchas van en una capa intermedia, junto a la línea y no dentro de ella: una antorcha
-    en la línea la corta en tramos y solo su tramo llega al pistón (se abriría con una sola palanca). Así, un muro de
-    cuatro de grueso: palancas | antorchas | puerta, pistones y polvo | cara opuesta. Con una palanca basta un muro
-    de tres (la antorcha cierra la línea). El polvo lleva escritas su forma y su potencia.
-    axis 'x' o 'z' y sign ±1: hacia dónde quedan los pistones. Con `block`, la puerta y sus pistones salen de
-    piston_door; sin él, el bloque de la puerta lo pone quien llama.
-    Devuelve un registro con posiciones (puerta, cabezas, pistones, antorchas, polvo, palancas)."""
+    With several levers, the torches go in an intermediate layer, next to the line and not inside it: a torch
+    in the line cuts it into segments and only its segment reaches the piston (it would open with a single lever). Thus, a wall
+    four blocks thick: levers | torches | door, pistons and dust | opposite face. With one lever a three-block
+    wall is enough (the torch closes the line). The dust has its shape and power written explicitly.
+    axis 'x' or 'z' and sign ±1: which way the pistons lie. With `block`, the door and its pistons come from
+    piston_door; without it, the door block is placed by the caller.
+    Returns a record with positions (door, heads, pistons, torches, dust, levers)."""
     x, y, z = door
     step = (sign, 0) if axis == "x" else (0, sign)
     pos = lambda k, dy=0: (x + step[0] * k, y + dy, z + step[1] * k)
@@ -360,7 +360,7 @@ def combo_door(put, door, axis, sign, levers, name="", block=None):
            "palancas": [], "falsas": []}
     if block:
         piston_door(put, [pos(0), pos(0, 1)], step, toward, block)
-    else:                                     # la puerta la pone quien llama
+    else:                                     # the door is placed by the caller
         for dy in (0, 1):
             put(*pos(1, dy), f"piston_head[facing={toward},short=false,type=sticky]")
             put(*pos(2, dy), f"sticky_piston[extended=true,facing={toward}]")
@@ -385,7 +385,7 @@ def combo_door(put, door, axis, sign, levers, name="", block=None):
             power[p] = max(power[p], max(power.get(q, 0) - 1 for q in nb(p)))
     for p in line:
         sides = {VDIR[(q[0] - p[0], q[2] - p[2])] for q in nb(p) if q in power} | adj(p)
-        if len(sides) == 1:                       # un extremo suelto apunta en línea recta (hacia el pistón)
+        if len(sides) == 1:                       # a loose end points in a straight line (toward the piston)
             sides.add(OPP[next(iter(sides))])
         put(*p, "redstone_wire[" + ",".join(f"{d}={'side' if d in sides else 'none'}"
                                             for d in ("north", "south", "east", "west")) + f",power={power[p]}]")
@@ -394,21 +394,21 @@ def combo_door(put, door, axis, sign, levers, name="", block=None):
 
 
 def lever_trap(put, lever, block, dispenser, facing, arrows=16):
-    """Palanca trampa: el dispensador, contiguo al bloque al que se fija la palanca, dispara al accionarla."""
+    """Trap lever: the dispenser, adjacent to the block the lever is attached to, fires when it is pulled."""
     out = VDIR[(lever[0] - block[0], lever[2] - block[2])]
     put(*lever, f"lever[face=wall,facing={out},powered=false]")
     put(*dispenser, f"dispenser[facing={facing},triggered=false]",
         {"id": "minecraft:dispenser", "Items": [{"Slot": B(0), "id": "minecraft:arrow", "count": arrows}]})
 
 
-SLAB_RING = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]   # E, NE, N, NO, O, SO, S, SE
+SLAB_RING = [(1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1)]   # E, NE, N, NW, W, SW, S, SE
 
 
 def open_stairwells(t):
-    """Alarga el hueco de escalera donde el forjado de arriba queda a 3 bloques del peldaño anterior al que sigue
-    subiendo (`lint.stair_headroom_issues`, «en la subida»): al pasar al peldaño siguiente el cuerpo del jugador
-    (1,8 de alto) aún está sobre ese peldaño y la cabeza llega a +3,3. Quita el bloque (x, y + 3, z) de la plantilla
-    acabada; si es un bloque con datos o un jigsaw, falla en vez de romperlo. Devuelve las posiciones abiertas."""
+    """Lengthens the stairwell hole where the floor above is 3 blocks from the previous step that the player keeps
+    climbing (`lint.stair_headroom_issues`, "on the way up"): when moving to the next step the player's body
+    (1.8 tall) is still over that step and the head reaches +3.3. It removes the block (x, y + 3, z) from the finished
+    template; if it is a block with data or a jigsaw, it fails instead of breaking it. Returns the opened positions."""
     import lint
     open_ones = []
     for msg, (x, y, z) in lint.stair_headroom_issues(t):
@@ -416,13 +416,13 @@ def open_stairwells(t):
             continue
         st, nbt = t.blocks.get((x, y + 3, z), (None, None))
         if nbt is not None or lint.bname(st) == "jigsaw":
-            raise ValueError(f"{t.name}: el techo bajo de la escalera en {(x, y, z)} es un bloque con datos")
-        cavity = t.get(x, y + 2, z)      # mismo medio que el hueco de debajo (aire o agua); sin bloque no se conserva el terreno
+            raise ValueError(f"{t.name}: the low ceiling of the staircase at {(x, y, z)} is a block with data")
+        cavity = t.get(x, y + 2, z)      # same medium as the hollow below (air or water); without a block the terrain is not preserved
         t.set(x, y + 3, z, cavity if lint.bname(cavity) in ("air", "water", "cave_air") else "minecraft:air")
         open_ones.append((x, y + 3, z))
         above, _ = t.blocks.get((x, y + 4, z), (None, None))
         b = lint.bname(above)
         if b and (b.endswith(("_fence", "_wall", "_pane")) or any(w in b for w in lint.NEEDS_FLOOR)):
-            t.set(x, y + 4, z, "minecraft:air")     # barandilla o adorno que se apoyaba en el forjado quitado
+            t.set(x, y + 4, z, "minecraft:air")     # railing or decoration that rested on the removed floor
             open_ones.append((x, y + 4, z))
     return open_ones

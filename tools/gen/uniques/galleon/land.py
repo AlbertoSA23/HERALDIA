@@ -1,15 +1,15 @@
-"""Suelo propio, campamento de náufragos y peñón con la cueva del tesoro (coordenadas de diseño)."""
+"""Own ground, castaway camp and rock with the treasure cave (design coordinates)."""
 from .common import SC, ZMIN
 from .ship import in_hull, hw
 
 ZMAX = 76
 CAMP_X = (24, 55)
-# peñón: superelipse centrada en (11, 46)
+# rock: superellipse centered at (11, 46)
 PX, PZ, RX, RZ = 11, 46, 14, 30
 
 
 def floor(o):
-    """Arena de 4 de grosor con base de arenisca hasta el casco y lecho bajo la quilla; aire que rebaja dunas."""
+    """Sand 4 thick with a sandstone base up to the hull and a bed under the keel; air that lowers dunes."""
     for z in range(ZMIN, ZMAX + 1):
         for x in range(CAMP_X[0], SC):
             for y in range(-6, 1):
@@ -54,7 +54,7 @@ def cavity(o, x1, y1, z1, x2, y2, z2):
 
 def cave(o):
     rock(o)
-    # boca y galería en bajada (3 de ancho)
+    # mouth and descending gallery (3 wide)
     for x in range(22, 27):
         cavity(o, x, 1, 38, x, 3, 40)
         for z in (38, 39, 40):
@@ -63,7 +63,7 @@ def cave(o):
         cavity(o, 16 + i, -4 + i, 38, 16 + i, -2 + i, 40)
     o.flight(16, 38, -5, "east", 6, width=3, support="cobblestone")
     cavity(o, 10, -5, 38, 15, -3, 40)
-    # trampa de cable: ganchos, cable y dispensadores a la altura de la cabeza
+    # wire trap: hooks, wire and dispensers at head height
     o.s(12, -5, 38, "tripwire_hook[attached=true,facing=south,powered=false]")
     o.s(12, -5, 40, "tripwire_hook[attached=true,facing=north,powered=false]")
     o.s(12, -5, 39, "tripwire[attached=true,disarmed=false,east=false,north=true,powered=false,south=true,west=false]")
@@ -71,7 +71,7 @@ def cave(o):
     o.dispenser(12, -4, 41, "north")
     o.circuits.append(("cable", [("cable", (12, -5, 39))], [("dispara", (12, -4, 37)), ("dispara", (12, -4, 41))]))
     o.spawner(14, -4, 41, "zombie")
-    # cueva de los huesos
+    # bone cave
     for x in range(1, 11):
         for z in range(32, 47):
             if ((x - 5.5) / 4.6) ** 2 + ((z - 39) / 6.6) ** 2 <= 1:
@@ -84,16 +84,16 @@ def cave(o):
         o.s(x, -5, z, "skeleton_skull[rotation=4]")
     for p in ((2, -1, 39), (9, -1, 37), (8, -1, 43), (3, -1, 36)):
         o.s(*p, "cobweb")
-    # nicho oculto tras una cortina de telarañas
+    # hidden niche behind a curtain of cobwebs
     cavity(o, 4, -5, 29, 6, -3, 31)
     o.s(5, -5, 32, "cobweb")
     o.s(5, -4, 32, "cobweb")
     o.chest(4, -5, 29, "south", "cueva")
     o.s(6, -5, 29, "skeleton_skull[rotation=8]")
     o.s(6, -5, 31, "candle[candles=2,lit=false,waterlogged=false]")
-    # paso a la antecámara
+    # passage to the antechamber
     cavity(o, 6, -5, 45, 8, -3, 47)
-    # antecámara del puzle de los faroles
+    # antechamber of the lantern puzzle
     cavity(o, 3, -5, 48, 11, -2, 52)
     for x in range(3, 12):
         for z in range(48, 53):
@@ -123,11 +123,11 @@ def cave(o):
         ("faroles_solo_rojo", [("palanca", (6, -4, 52))], [("abierta", (7, -5, 53)), ("cerrada", (9, -5, 55))]),
         ("faroles_popa", [("palanca", (4, -4, 52))], [("dispara", (4, -3, 53)), ("cerrada", (7, -5, 53))]),
     ]
-    # bajada a la cámara del tesoro
+    # descent to the treasure chamber
     cavity(o, 8, -5, 56, 10, -3, 56)
     cavity(o, 8, -6, 57, 10, -3, 58)
     o.flight(8, 58, -7, "north", 2, width=3, support="stone_bricks")
-    # cámara del tesoro
+    # treasure chamber
     for x in range(2, 17):
         for z in range(59, 72):
             o.s(x, -8, z, "polished_andesite")
@@ -163,7 +163,7 @@ def captain(langs):
 
 
 def camp(o):
-    # choza del vigía hecha con tablas del barco
+    # lookout's hut made from the ship's planks
     for x in range(29, 36):
         for z in range(2, 9):
             edge = x in (29, 35) or z in (2, 8)
@@ -180,7 +180,7 @@ def camp(o):
     o.s(37, 1, 9, "spruce_fence")
     o.s(37, 2, 9, "spruce_fence")
     o.s(37, 3, 9, "lantern[hanging=false,waterlogged=false]")
-    # dos tiendas hechas con velas
+    # two tents made from sails
     for x0, z0, wool, kind in ((40, 11, "white_wool", "chest"), (46, 20, "brown_wool", "barrel")):
         for z in range(z0, z0 + 5):
             for dx, y in ((0, 1), (4, 1), (1, 2), (3, 2), (2, 3)):
@@ -192,12 +192,12 @@ def camp(o):
             o.chest(x0 + 2, 1, z0 + 4, "north", "nafrago")
         else:
             o.barrel(x0 + 2, 1, z0 + 4, "nafrago")
-    # hoguera apagada con bancos
+    # extinguished bonfire with benches
     o.s(44, 1, 32, "campfire[facing=north,lit=false,signal_fire=false,waterlogged=false]")
     for z in (31, 32, 33):
         o.s(41, 1, z, "stripped_spruce_log[axis=z]")
         o.s(47, 1, z, "stripped_spruce_log[axis=z]")
-    # mastelero de trinquete caído y restos que salieron por la brecha
+    # fallen foretopmast and wreckage that came out through the breach
     for x in range(40, 55):
         o.s(x, 1, 27, "spruce_log[axis=x]")
     o.s(53, 1, 29, "polished_basalt[axis=z]")
@@ -213,7 +213,7 @@ def camp(o):
     for z in (47, 48, 49):
         o.s(40, 2, z, "spruce_fence")
     o.s(40, 1, 48, "dried_kelp_block")
-    # tumbas de los náufragos
+    # castaways' graves
     for x in (30, 33, 36):
         o.s(x, 0, 53, "coarse_dirt")
         o.s(x, 0, 54, "coarse_dirt")
@@ -225,7 +225,7 @@ def camp(o):
     o.s(36, 1, 54, "dead_bush")
     # bote salvavidas varado
     o.t.entity(52, 1, 46, {"id": "minecraft:oak_boat", "Rotation": [F(30.0), F(0.0)]})
-    # tesoros enterrados (arqueología) señalados con arbustos secos
+    # buried treasures (archaeology) marked with dead bushes
     for x, z in ((38, 40), (50, 8), (36, 66)):
         o.s(x, 0, z, "suspicious_sand[dusted=0]", {"id": "minecraft:brushable_block", "LootTable": "heraldia:unicas/galeon/arena"})
         o.s(x + 1, 1, z, "dead_bush")

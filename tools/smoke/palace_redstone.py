@@ -1,9 +1,9 @@
-"""Prueba en servidor real de los mecanismos del Palacio oriental (puertas de pistones y trampas).
+"""Real-server test of the Oriental Palace mechanisms (piston doors and traps).
 
-Uso: python3 tools/smoke/palace_redstone.py --jar build/libs/heraldia-X.jar  (después de ./gradlew build)
-Coloca la plantilla sin rotar en (0, 100, 0), quita cada palanca (su retirada actualiza a los vecinos del bloque
-de apoyo, como al accionarla) y comprueba que las puertas se abren; dispara los cables con un objeto y la placa con
-un cerdo, y comprueba que los dispensadores gastan una flecha (los de cable llevan 3 × 6 flechas, los de la placa 8). Código 0 si todo pasa.
+Usage: python3 tools/smoke/palace_redstone.py --jar build/libs/heraldia-X.jar  (after ./gradlew build)
+Places the template unrotated at (0, 100, 0), removes each lever (removing it updates the neighbours of the supporting
+block, as when operating it) and checks that the doors open; triggers the tripwires with an item and the pressure plate with
+a pig, and checks that the dispensers use up an arrow (the tripwire ones hold 3 × 6 arrows, the plate ones 8). Exit code 0 if everything passes.
 """
 import argparse, os, queue, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -36,7 +36,7 @@ def main():
 
     def cmd(c, pause=1.5):
         send(proc, c)
-        ctx.ticks(int(pause * 20))      # en ticks del juego: con el servidor atrasado, el reloj no basta
+        ctx.ticks(int(pause * 20))      # in game ticks: with the server lagging, the clock is not enough
 
     try:
         wait_for(lines, r"Heraldia: (\d+) estructuras registradas", START_TIMEOUT_S, seen)
@@ -48,7 +48,7 @@ def main():
                 break
             time.sleep(3)
         else:
-            fails.append("no se pudo colocar la plantilla")
+            fails.append("the template could not be placed")
         ctx.ticks(40)
         test(f"block {at(9, 3, 41)} minecraft:bookshelf", "biblioteca: puerta cerrada al colocar")
         test(f"block {at(7, 3, 41)} minecraft:sticky_piston[extended=true]", "biblioteca: pistón extendido al colocar")
@@ -81,9 +81,9 @@ def main():
         if proc.poll() is None:
             proc.kill()
     if fails:
-        print("PRUEBA DEL PALACIO FALLIDA:\n  " + "\n  ".join(fails))
+        print("PALACE TEST FAILED:\n  " + "\n  ".join(fails))
         return 1
-    print("PRUEBA DEL PALACIO OK: puertas de la biblioteca, del trono y de la cámara (dos palancas), dos cables y la placa")
+    print("PALACE TEST OK: library, throne and chamber doors (two levers), two tripwires and the plate")
     return 0
 
 

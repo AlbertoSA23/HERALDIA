@@ -1,7 +1,7 @@
-"""Comprobaciones propias del palacio (además de lint.py): redstone, puzles, recorrido, apoyos y ruina.
+"""The palace's own checks (besides lint.py): redstone, puzzles, walkthrough, supports and ruin.
 
-Cada función devuelve una lista de textos de error; build() los vuelca en reg.warnings, de modo que la
-generación falla si alguna no pasa."""
+Each function returns a list of error texts; build() dumps them into reg.warnings, so
+generation fails if any does not pass."""
 from collections import deque
 from core import parse_state
 import lint
@@ -14,7 +14,7 @@ VEC = {"east": (1, 0, 0), "west": (-1, 0, 0), "south": (0, 0, 1), "north": (0, 0
 
 
 def check_redstone(o):
-    """Con el modelo común (_comun.redstone): estado colocado estable y efecto de cada palanca, cable y placa."""
+    """With the common model (_common.redstone): stable placed state and effect of each lever, wire and plate."""
     t, errs = o.t, list(redstone.check_static(o.t)[0])
     mech = o.mech
     levers = {m["label"]: m for m in mech if m["kind"] == "palanca"}
@@ -26,14 +26,14 @@ def check_redstone(o):
     for g, ms in groups.items():
         own = [lv["pos"] for name, lv in levers.items() if name.split(" ")[0] == g]
         if not own:
-            errs.append(f"puerta {g} sin palanca")
+            errs.append(f"door {g} has no lever")
             continue
         sim = redstone.Sim(t, {p: False for p in own})
         errs += [f"puerta {g}: el pistón {p} sigue con energía con las palancas apagadas" for p in pistons(ms) if sim.powered(p)]
         if len(own) > 1:
             for lv in own:
                 if not any(redstone.Sim(t, {lv: False}).powered(p) for p in pistons(ms)):
-                    errs.append(f"puerta {g}: se abre entera con una sola palanca {lv}")
+                    errs.append(f"door {g}: it opens completely with a single lever {lv}")
         errs += [f"puerta {g}: el hueco {d} no queda libre al abrir" for m in ms for d in m["door"] if o.lint_open.get(d) != "air"]
     for m in mech:
         if m["kind"] == "cable":
@@ -41,7 +41,7 @@ def check_redstone(o):
             sim = redstone.Sim(t, {(x0 + 1, y, z): True, (x1 - 1, y, z): True})
             for d in ((x0, y + 1, z), (x1, y + 1, z)):
                 if bname(t.get(*d)) != "dispenser" or not sim.powered(d):
-                    errs.append(f"cable {m['label']}: el dispensador {d} no se activa")
+                    errs.append(f"wire {m['label']}: the dispenser {d} is not activated")
         elif m["kind"] == "placa":
             sim = redstone.Sim(t, {m["plate"]: True})
             errs += [f"placa {m['label']}: el dispensador {d} no se activa" for d in m["disp"]
@@ -49,10 +49,10 @@ def check_redstone(o):
         elif m["kind"] == "senuelo":
             sim = redstone.Sim(t, {m["lever"]: True, **{lv["pos"]: False for lv in levers.values() if lv["pos"] != m["lever"]}})
             if not sim.powered(m["disp"]):
-                errs.append("palanca señuelo sin efecto")
+                errs.append("decoy lever has no effect")
             if any(sim.powered(p) for ms in groups.values() for p in pistons(ms)):
-                errs.append("la palanca señuelo alimenta una puerta")
-    # cada dispensador de trampa dispara hacia una celda libre
+                errs.append("the decoy lever powers a door")
+    # each trap dispenser fires towards a free cell
     for p, (st, _) in t.blocks.items():
         if bname(st) == "dispenser":
             f = parse_state(st)[1]["facing"]
@@ -73,7 +73,7 @@ def near(cells, p, r=1):
 
 
 class Closed:
-    """Vista de la plantilla sin los mecanismos abiertos (todo cerrado, como se genera)."""
+    """View of the template without the mechanisms open (everything closed, as generated)."""
     def __init__(self, t):
         self.__dict__.update(t.__dict__)
         self.lint_open = {}
@@ -87,12 +87,12 @@ def check_walk(o):
     closed = set(lint.walk(Closed(t)))
     for p in o.secret:
         if near(closed, p):
-            errs.append(f"{p} se alcanza sin resolver ningún puzle")
+            errs.append(f"{p} is reached without solving any puzzle")
         if not near(opened, p):
-            errs.append(f"{p} no se alcanza ni con los puzles resueltos")
+            errs.append(f"{p} is not reached even with the puzzles solved")
     for (p, tbl) in o.chests:
         if not near(opened, p):
-            errs.append(f"cofre {tbl} {p} inaccesible")
+            errs.append(f"chest {tbl} {p} inaccessible")
     for m in o.mech:
         if m["kind"] == "palanca" and not near(opened, m["pos"]):
             errs.append(f"palanca {m['label']} inaccesible")
@@ -101,12 +101,12 @@ def check_walk(o):
         if b in ("trapped_chest", "stone_button", "loom", "smoker") and not near(opened, p):
             errs.append(f"{b} {p} inaccesible")
     if not near(opened, o.guardian, r=0):
-        errs.append("el guardián no está en una celda alcanzable")
+        errs.append("the guardian is not in a reachable cell")
     return errs, opened
 
 
 def check_floating(o):
-    """Nada flotando: todo bloque (agua incluida) unido por caras al zócalo y = 0."""
+    """Nothing floating: every block (water included) attached by faces to the base y = 0."""
     t = o.t
     solid = {p for p, (st, _) in t.blocks.items() if bname(st) not in ("air", "structure_void")}
     seen = {p for p in solid if p[1] == 0}
@@ -138,11 +138,11 @@ def exposed(t, keys):
 
 
 def ruin_ratio(good, ruined):
-    """Fracción de la superficie expuesta en ruina: bloques quitados o cambiados por la ruina, más el
-    desgaste esperado del procesador sobre lo que queda."""
+    """Fraction of the exposed surface in ruin: blocks removed or changed by the ruin, plus the
+    expected wear of the processor on what remains."""
     exp_good = exposed(good, good.blocks)
     changed = sum(1 for p in exp_good if ruined.get(*p) != good.get(*p))
-    # escombro, hiedra y musgo añadidos: cada uno tapa una cara de la superficie
+    # rubble, ivy and moss added: each one covers one face of the surface
     added = sum(1 for p, (st, _) in ruined.blocks.items() if bname(st) not in ("air", "jigsaw", "iron_chain")
                 and good.get(*p) in (None, "minecraft:air"))
     wear = sum(wear_probability(ruined.get(*p)) for p in exp_good if ruined.get(*p) == good.get(*p))

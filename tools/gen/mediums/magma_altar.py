@@ -1,10 +1,10 @@
-"""Altar de magma (heraldia:medianas/altar_magma/<estilo>, Nether): un claro de 17 x 17 con un anillo de pilares de
-basalto y piedra negra y, en medio, un altar de tres gradas con calderos de lava (la lava queda contenida: nunca suelta)
-y el cofre de las ofrendas. Variante a: el altar mayor con un generador de cubos de magma bajo el ara y braseros; b: el
-altar roto (pilares caídos, grietas de magma entre las losas) con dos cubos de magma de guardia.
+"""Magma altar (heraldia:medianas/altar_magma/<estilo>, Nether): a 17 x 17 clearing with a ring of basalt and
+blackstone pillars and, in the middle, a three-tier altar with lava cauldrons (the lava stays contained: it never spills)
+and the offerings chest. Variant a: the high altar with a magma cube spawner under the altar stone and braziers; b: the
+broken altar (fallen pillars, magma cracks between the slabs) with two magma cubes on guard.
 
-Estilos: deltas (deltas de basalto: basalto pulido y basalto liso) y yermo (desiertos del Nether: piedra negra y ladrillo
-rojo del Nether). Botín acorde: crema de magma, polvo de blaze, cargas ígneas, oro; nada de netherita."""
+Styles: deltas (basalt deltas: polished basalt and smooth basalt) and yermo (Nether wastes: blackstone and red Nether
+brick). Matching loot: magma cream, blaze powder, fire charges, gold; no netherite."""
 from core import Template
 from loot import item, empty
 from uniques._common import chest_loot, pieces
@@ -40,7 +40,7 @@ def _clearing(p, name, broken):
     t = Template(name)
     c.courtyard(t, 0, 0, L - 1, L - 1, _floor(p), air_block=8)
     c.entrance(t, CX, p["suelo"][0])
-    # anillo de pilares (los del norte, a los lados de la entrada; enteros o caídos)
+    # ring of pillars (the northern ones, at the sides of the entrance; whole or fallen)
     for i, (x, z) in enumerate(RING):
         if (x, z) == (CX, 2):
             continue
@@ -49,22 +49,22 @@ def _clearing(p, name, broken):
             t.set(x, y, z, p["pilar"])
         if height == 5:
             t.set(x, 6, z, p["capitel"])
-    # altar de tres gradas: 7 x 7, 5 x 5 y 3 x 3, escalones al norte
+    # three-tier altar: 7 x 7, 5 x 5 and 3 x 3, steps to the north
     for n, (a, b) in enumerate(((5, 11), (6, 10), (7, 9))):
         y = n + 1
         for x in range(a, b + 1):
             for z in range(a, b + 1):
                 t.set(x, y, z, p["grada"])
         t.set(CX, y, a, f"{p['escalon']}[facing=south,half=bottom,shape=straight,waterlogged=false]")
-    # calderos de lava en las esquinas de la grada baja
+    # lava cauldrons at the corners of the lowest tier
     for x, z in ((5, 5), (11, 5), (5, 11), (11, 11)):
         t.set(x, 2, z, "lava_cauldron")
     return t
 
 
 def main(p, name):
-    """Altar entero: el ara con el cofre de las ofrendas encima, el generador de cubos de magma debajo (encerrado en la
-    grada) y dos braseros (barriles) junto a la entrada."""
+    """Whole altar: the altar stone with the offerings chest on top, the magma cube spawner below (enclosed in the
+    tier) and two braziers (barrels) next to the entrance."""
     t = _clearing(p, name, broken=False)
     t.set(CX, 4, CX, p["ara"])
     c.place_chest(t, CX, 4, CX + 1, "north", MID, "ofrendas")
@@ -77,7 +77,7 @@ def main(p, name):
 
 
 def broken(p, name):
-    """Altar roto: pilares caídos (sus tambores en el suelo), grietas de magma y dos cubos de magma de guardia."""
+    """Broken altar: fallen pillars (their drums on the ground), magma cracks and two magma cubes on guard."""
     t = _clearing(p, name, broken=True)
     for x, z in ((1, 5), (1, 6), (15, 10), (15, 11), (10, 15)):
         t.set(x, 1, z, p["tambor"])

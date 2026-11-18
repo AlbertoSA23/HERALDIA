@@ -1,6 +1,6 @@
-"""Contrato de los módulos de unicas/ (unicas/__init__.py), sin construir sus plantillas: descubrimiento, sal,
-STRUCTURE, LOOT, TROFEO, HISTORIA, LLAVES, LANG, NOMBRE y MAPA. Si una única nueva no lo cumple, falla aquí en
-milisegundos en vez de al final de la generación."""
+"""Contract of the unicas/ modules (unicas/__init__.py), without building their templates: discovery, salt,
+STRUCTURE, LOOT, TROFEO, HISTORIA, LLAVES, LANG, NOMBRE and MAPA. If a new unique structure does not meet it, it fails here in
+milliseconds instead of at the end of the generation."""
 import pytest
 import uniques
 import writer
@@ -17,7 +17,7 @@ def test_discovery_sorted_and_without_private():
 
 
 def test_salt_stable_and_distinct():
-    # la sal fija la rejilla de cada tipo en los mundos ya existentes: no puede cambiar
+    # the salt fixes the grid of each type in already existing worlds: it cannot change
     assert uniques.salt("castillo") == uniques.salt("castillo") and 0 <= uniques.salt("castillo") < 2 ** 31
     import zlib
     assert uniques.salt("x") == zlib.crc32(b"heraldia:unicas/x") & 0x7FFFFFFF
@@ -26,7 +26,7 @@ def test_salt_stable_and_distinct():
 
 @pytest.mark.parametrize("sid, m", MODS, ids=IDS)
 def test_contract_structure(sid, m):
-    # dict.get / dict.keys: sin disparar los STRUCTURE perezosos (mina, ciudadela), que construyen la obra al leer "json"
+    # dict.get / dict.keys: without triggering the lazy STRUCTUREs (mine, citadel), which build the work when "json" is read
     st = m.STRUCTURE
     assert callable(m.build)
     keys = set(dict.keys(st))
@@ -34,7 +34,7 @@ def test_contract_structure(sid, m):
         assert dict.get(st, "start_pool").startswith(f"unicas/{sid}/")
         assert 1 <= dict.get(st, "size") <= 20 and 1 <= dict.get(st, "max_distance") <= 116
         assert dict.get(st, "terrain_adaptation", "beard_thin") in TERRAIN
-    else:      # tipo propio: build() escribe STRUCTURE["json"] (galeón)
+    else:      # own type: build() writes STRUCTURE["json"] (galleon)
         assert "json" in keys or "build" in dir(m)
     b = dict.get(st, "biomes")
     assert b is None or isinstance(b, list) and b or isinstance(b, str) and b.startswith("#heraldia:")
@@ -46,12 +46,12 @@ def test_contract_structure(sid, m):
 @pytest.mark.parametrize("sid, m", MODS, ids=IDS)
 def test_contract_loot_trophy_story(sid, m):
     loot = getattr(m, "LOOT", {})
-    assert loot, "sin LOOT"
+    assert loot, "no LOOT"
     assert chest_loot.trophy_errors(sid, getattr(m, "TROPHY", None)) == []
     assert chest_loot.story_errors(sid, getattr(m, "STORY", None), loot) == []
     for name, tbl in loot.items():
         assert tbl.get("pools"), name
-        writer.lootr_aware(tbl)                       # la marca solo_sin_lootr se convierte sin errores
+        writer.lootr_aware(tbl)                       # the solo_sin_lootr mark converts without errors
     for key, d in getattr(m, "KEYS", {}).items():
         assert {"tabla", "cerradura"} <= set(d), key
 

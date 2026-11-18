@@ -1,7 +1,7 @@
-"""Faro con cueva de contrabandistas (heraldia:unicas/faro). Diseño en docs/unicas/faro.md.
+"""Lighthouse with a smugglers' cave (heraldia:unicas/faro). Design in docs/unicas/lighthouse.md.
 
-Se sitúa junto al mar con el tipo de estructura propio heraldia:faro (Java), que busca la línea de costa y gira la
-plantilla para que la boca de la cueva mire al agua.
+It is placed next to the sea with the custom structure type heraldia:faro (Java), which looks for the coastline and rotates the
+template so that the cave mouth faces the water.
 """
 from .._common.pieces import open_stairwells
 from loot import item, empty
@@ -13,8 +13,8 @@ DISPLAY_NAME = {"es_es": "Faro de los contrabandistas", "en_us": "Smugglers' Lig
 TROPHY = {"objeto": "iron_sword", "rareza": "uncommon",
           "nombre": ("Alfanje del Capitán Bruma", "Captain Mist's Cutlass"),
           "lore": [("Con él se apagaban los faros ajenos.", "With it, rival lighthouses went dark.")],
-          "encantamientos": {"minecraft:sharpness": 1, "minecraft:unbreaking": 1}}   # trofeo del guardián (_comun/botin.trofeo)
-STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
+          "encantamientos": {"minecraft:sharpness": 1, "minecraft:unbreaking": 1}}   # guardian trophy (_comun/chest_loot.trophy)
+STORY = {   # its sheet of the Chronicle of the Heralds (docs/STORY.md, _comun/chest_loot.historia_*)
     "cofre": "despacho",
     "relato": [
         ("En la costa rocosa hay un faro que no siempre guía a los barcos. Su dueño, el capitán Bruma, "
@@ -32,7 +32,7 @@ STORY = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/bo
     "pista": ("la costa rocosa, donde los contrabandistas de un faro encienden la luz que les conviene",
               "the rocky shore, where the smugglers of a lighthouse light whatever lamp suits them"),
 }
-ADVANCEMENT = {"icono": "minecraft:lantern"}   # logros.py
+ADVANCEMENT = {"icono": "minecraft:lantern"}   # advancements.py
 LANG = {
     "es_es": {
         "heraldia.unicas.faro.guardian": "Capitán Bruma",
@@ -76,12 +76,12 @@ STRUCTURE = dict(spacing=uniques.DEFAULT_SPACING, separation=uniques.DEFAULT_SEP
 
 
 def named(name, w, key, ench=None, rand_ench=False):
-    """Objeto con nombre traducible; ench = niveles (mín, máx) de encantamiento al azar."""
+    """Item with a translatable name; ench = (min, max) levels of random enchantment."""
     return chest_loot.named(name, w, key, LANG["es_es"][key], levels=ench, mods=(chest_loot.random_ench(),) if rand_ench else ())
 
 
 def chest(base, extra, rolls=(3, 6), extra_rolls=(1, 3)):
-    """Grupo base (siempre) y grupo extra solo_sin_lootr (con Lootr, cada jugador abre el base)."""
+    """Base group (always) and extra group solo_sin_lootr (with Lootr, each player opens the base)."""
     return chest_loot.place_chest((rolls, base), (extra_rolls, extra))
 
 
@@ -122,7 +122,7 @@ LOOT = {
                   [item("gold_nugget", 4, 2, 6), empty(8)], rolls=(2, 5)),
     "tesoro": chest([item("gold_nugget", 10, 3, 10), item("gold_ingot", 8, 1, 4), item("raw_gold", 6, 1, 4),
                      item("emerald", 8, 2, 5)], [item("emerald", 4, 1, 3), item("gold_ingot", 4, 1, 2), empty(4)]),
-    # premium: grupo vistoso siempre; 10 % algo más fuerte; extra sin Lootr
+    # premium: showy group always; 10 % somewhat stronger; extra without Lootr
     "premium": chest_loot.table(
         chest_loot.pool((3, 4), [
             named("iron_sword", 6, "heraldia.unicas.faro.objeto.sable", ench=(10, 20)),

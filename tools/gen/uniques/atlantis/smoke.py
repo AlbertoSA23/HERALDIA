@@ -1,14 +1,14 @@
-"""Comprobaciones de la Atlántida en la prueba de humo (servidor dedicado real). La llama tools/smoke/server_smoke.py.
+"""Atlantis checks in the smoke test (real dedicated server). Called by tools/smoke/server_smoke.py.
 
-Genera por worldgen el distrito central (templo, vestíbulo, galerías y cámaras) y comprueba: /locate, celdas secas y
-de agua, puerta de combinación del vestíbulo, cofre premium (contenido y cerradura) y llave del guardián final.
+Generates the central district (temple, vestibule, galleries and chambers) via worldgen and checks: /locate, dry and
+water cells, the vestibule combination door, premium chest (content and lock) and the final guardian's key.
 """
 import re, time
 from . import blueprint, urban_layout as U
 from .districts import COMBINATION_CENTRAL
 
 ID = "heraldia:unicas/atlantida"
-MIDDLE = 128        # el distrito central ocupa [-128, 128) en x y z
+MIDDLE = 128        # the central district occupies [-128, 128) in x and z
 
 
 def check(ctx):
@@ -19,7 +19,7 @@ def check(ctx):
     X, Z = int(m.group(1)), int(m.group(2))
     r = ctx.run(f"locate structure {ID}", r"is at \[(-?\d+), [^,]+, (-?\d+)\]|Could not find")
     if r.group(1) is None or (int(r.group(1)), int(r.group(2))) != (X, Z):
-        failures.append(f"/locate no señala el ancla {X}, {Z}: {r.string.strip()}")
+        failures.append(f"/locate does not point to the anchor {X}, {Z}: {r.string.strip()}")
     pl = blueprint()
 
     def block(c, state):
@@ -31,7 +31,7 @@ def check(ctx):
     finish = time.monotonic() + 600
     while time.monotonic() < finish and not all(block(c, "minecraft:air") is not None for c in corners):
         time.sleep(5)
-    ctx.ticks(800)                      # margen (40 s de juego) para que el agua mal contenida, si la hubiera, llegase a correr
+    ctx.ticks(800)                      # margin (40 game seconds) so that poorly contained water, if any, has time to flow
     inside = lambda c: -MIDDLE <= c[0] < MIDDLE and -MIDDLE <= c[2] < MIDDLE
     for mark, state in (("seca", "minecraft:air"), ("agua", "minecraft:water")):
         cell_list = [c for c in pl.marks[mark] if inside(c)]
@@ -41,10 +41,10 @@ def check(ctx):
     for c, state in (((0, U.FLOOR, 104), "minecraft:sea_lantern"), ((3, U.FLOOR, 104), "minecraft:dark_prismarine"),
                       ((100, U.FLOOR + 5, 100), "minecraft:water"), ((100, U.BASE, 100), "minecraft:stone")):
         if not block(c, state):
-            failures.append(f"la pieza base no dejó {state} en {c}")
+            failures.append(f"the base piece did not leave {state} at {c}")
 
-    # puerta de combinación del vestíbulo: se accionan las palancas y se «toca» el bloque sobre cada componente,
-    # que es la actualización que provoca un jugador al accionarlas (setblock no avisa al bloque de apoyo)
+    # vestibule combination door: the levers are pulled and the block over each component is "touched",
+    # which is the update a player causes when pulling them (setblock does not notify the supporting block)
     levers, door, touches = pl.marks["palanca_templo"], pl.marks["puerta_templo"][0], pl.marks["toque_templo"]
 
     def put(states):
@@ -68,37 +68,37 @@ def check(ctx):
         if not is_open(required):
             failures.append(f"puerta del vestíbulo {name}: debería estar {'abierta' if required else 'cerrada'}")
 
-    # cofre premium: contenido fijo (dos tridentes), cerradura y marca del cofre por jugador (custom_data del bloque)
+    # premium chest: fixed content (two tridents), lock and the per-player chest mark (block custom_data)
     px, py, pz = pl.marks["premium"][0]
     r = ctx.run(f"data get block {X + px} {py} {Z + pz}", r"has the following block data: (.*)")
     dataset = r.group(1) if r.group(0).startswith("has") else ""
     if (dataset.count('id: "minecraft:trident"') < 2 or "LootTable" in dataset or 'heraldia_llave:"poseidon"' not in dataset.replace("\\", "")
             or not re.search(r'heraldia_cofre_unico:\s*"atlantida"', dataset.replace("\\", ""))):
-        failures.append(f"cofre premium incorrecto: {r.string.strip()[:300]}")
+        failures.append(f"incorrect premium chest: {r.string.strip()[:300]}")
 
-    # guardián final: existe y suelta la llave de Poseidón
-    # (su DeathLootTable es la del trofeo, _comun/botin.guardian_tabla, que incluye la de la llave)
+    # final guardian: exists and drops Poseidon's key
+    # (its DeathLootTable is the trophy one, _comun/chest_loot.guardian_table, which includes the key's)
     boss = '@e[type=minecraft:elder_guardian,nbt={DeathLootTable:"heraldia:guardianes/atlantida/elder_guardian"}]'
-    if not ctx.wait_entity(boss):       # las entidades aparecen unos segundos después que los bloques
-        failures.append("no está el guardián final")
+    if not ctx.wait_entity(boss):       # entities appear a few seconds after the blocks
+        failures.append("the final guardian is missing")
     failures += _info_here(ctx, X, Z, r"Guardian: alive|Guardián: vivo")
     ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity")
     ctx.run(f"kill {boss}", r"Killed|No entity")
-    ctx.ticks(20)                       # un segundo de juego (en ticks: con el servidor atrasado, el reloj no basta)
+    ctx.ticks(20)                       # one game second (in ticks: with the server lagging, the clock is not enough)
     failures += _info_here(ctx, X, Z, r"Guardian: defeated|Guardián: derrotado")
     key = '@e[type=minecraft:item,nbt={Item:{id:"minecraft:nautilus_shell",components:{"minecraft:custom_data":{heraldia_llave:"poseidon"}}}}]'
     if "passed" not in ctx.run(f"execute if entity {key}", r"Test passed|Test failed").group(0):
-        failures.append("el guardián final no suelta la llave de Poseidón")
+        failures.append("the final guardian does not drop Poseidon's key")
     trophy = '@e[type=minecraft:item,nbt={Item:{components:{"minecraft:custom_data":{heraldia_trofeo:"atlantida"}}}}]'
     if "failed" not in ctx.run(f"execute if entity {trophy}", r"Test passed|Test failed").group(0):
-        failures.append("el guardián final suelta su trofeo con /kill (sin jugador)")
+        failures.append("the final guardian drops its trophy with /kill (no player)")
     ctx.run(f"forceload remove {X - MIDDLE} {Z - MIDDLE} {X + MIDDLE - 1} {Z + MIDDLE - 1}", r"Unmarked|Removed|No chunks|force")
     return failures
 
 
 def _info_here(ctx, X, Z, guardian):
-    """/heraldia info here dentro del distrito central (generado por worldgen, con el distrito forzado): dice que es la
-    Atlántida y el estado del guardián (se busca por su etiqueta en la caja del distrito central)."""
+    """/heraldia info here inside the central district (generated by worldgen, with the district forced): says it is
+    Atlantis and the state of the guardian (looked up by its tag in the central district's box)."""
     c = f"execute positioned {X} {U.FLOOR} {Z + 104} run heraldia info here"
     m = ctx.run(c, r"(?:You are in|Estás en) .*\(heraldia:unicas/atlantida\)|no Heraldia structure|ninguna estructura Heraldia")
     if "atlantida" not in m.group(0):

@@ -1,25 +1,25 @@
-"""Etiquetas de biomas de Heraldia: biomas vanilla de cada familia de aldeas y de cada única, más etiquetas
-convencionales (#c:..., de Fabric API / NeoForge) y #minecraft:is_* para que también salgan en biomas de otros mods.
+"""Heraldia biome tags: vanilla biomes of each village family and each unique structure, plus conventional tags
+(#c:..., from Fabric API / NeoForge) and #minecraft:is_* so that they also appear in biomes from other mods.
 
-Regla: una etiqueta extra solo entra si, en vanilla (26.3 con Fabric API 0.166.2+26.3), resuelve a un subconjunto de
-la lista vanilla. Así el conjunto en vanilla queda idéntico al de la lista y los mods (Terralith, Biomes O' Plenty...)
-que añaden sus biomas a esas etiquetas reciben la estructura. Todas las entradas de etiqueta van con
-"required": false: si un mod o Fabric API no la define, el paquete carga igual. `comprobar` lo verifica al generar.
+Rule: an extra tag is only included if, in vanilla (26.3 with Fabric API 0.166.2+26.3), it resolves to a subset of
+the vanilla list. That way the set in vanilla is identical to the list and the mods (Terralith, Biomes O' Plenty...)
+that add their biomes to those tags receive the structure. All tag entries carry
+"required": false: if a mod or Fabric API does not define it, the pack loads anyway. `check` verifies this when generating.
 
-Sin etiqueta extra (no hay ninguna lo bastante estrecha; queda solo la lista vanilla):
-  taiga, sabana, cerezos y las únicas coliseo, observatorio, piramide, monasterio, ciudadela, palacio, salon_jarl e
-  isla_corsario (océano, templado y cálido; #c:is_shallow_ocean incluye los fríos y helados):
-  #c:is_taiga (= #minecraft:is_taiga) incluye snowy_taiga (familia nieve); #c:is_savanna incluye windswept_savanna
+Without an extra tag (none is narrow enough; only the vanilla list remains):
+  taiga, sabana, cerezos and the unique structures coliseo, observatorio, piramide, monasterio, ciudadela, palacio, salon_jarl and
+  isla_corsario (ocean, temperate and warm; #c:is_shallow_ocean includes the cold and frozen ones):
+  #c:is_taiga (= #minecraft:is_taiga) includes snowy_taiga (snow family); #c:is_savanna includes windswept_savanna
   (observatorio); #c:is_windswept, windswept_forest; #c:is_jungle, bamboo_jungle (palacio); #c:is_mountain/slope,
-  snowy_slopes y cherry_grove; #c:is_mountain/peak, frozen_peaks; #c:is_forest, dark_forest, pale_garden y grove
-  (torre de mago, nieve); #c:is_beach, snowy_beach (faro). Las #c:primary_wood_type/* hablan de la madera, no del clima.
+  snowy_slopes and cherry_grove; #c:is_mountain/peak, frozen_peaks; #c:is_forest, dark_forest, pale_garden and grove
+  (torre de mago, nieve); #c:is_beach, snowy_beach (faro). The #c:primary_wood_type/* are about the wood, not the climate.
 """
 import json, os
 
 NS = "heraldia"
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# nombre de la etiqueta heraldia:<nombre> -> etiquetas extra (sin "#"); familias de aldeas y unicas/<id>
+# name of the heraldia:<name> tag -> extra tags (without "#"); village families and unicas/<id>
 CONVENTIONAL = {
     "llanuras": ["c:is_plains"],
     "bosque": ["c:is_birch_forest", "c:is_flower_forest"],
@@ -41,12 +41,12 @@ CONVENTIONAL = {
     "unicas/atlantida": ["minecraft:is_ocean", "c:is_ocean"],
 }
 
-_WRITTEN = {}      # heraldia:<nombre> -> lista vanilla, para comprobar
+_WRITTEN = {}      # heraldia:<name> -> vanilla list, for checking
 
 
 def tag(out, name, vanilla):
-    """Escribe data/heraldia/tags/worldgen/biome/<nombre>.json y devuelve "#heraldia:<nombre>".
-    vanilla: ids de bioma ("plains" o "minecraft:plains")."""
+    """Writes data/heraldia/tags/worldgen/biome/<nombre>.json and returns "#heraldia:<nombre>".
+    vanilla: biome ids ("plains" or "minecraft:plains")."""
     ids = [b if ":" in b else f"minecraft:{b}" for b in vanilla]
     values = ids + [{"id": f"#{t}", "required": False} for t in CONVENTIONAL.get(name, [])]
     path = os.path.join(out, "data", NS, "tags", "worldgen", "biome", f"{name}.json")
@@ -58,7 +58,7 @@ def tag(out, name, vanilla):
 
 
 def for_unique(out, sid, biomes):
-    """biomes de una única: una lista vanilla pasa a la etiqueta heraldia:unicas/<id>; una etiqueta se deja igual."""
+    """biomes of a unique structure: a vanilla list becomes the tag heraldia:unicas/<id>; a tag is left as is."""
     return tag(out, f"unicas/{sid}", biomes) if isinstance(biomes, list) else biomes
 
 
@@ -68,10 +68,10 @@ def conventional():
 
 
 def check(out, summary_dir):
-    """Resuelve contra los registros de 26.3 (etiquetas vanilla de mcmeta y #c: de Fabric API) todas las etiquetas
-    de biomas de heraldia y los "biomes" de cada estructura. Errores si una etiqueta extra mete en vanilla un bioma
-    que no está en la lista, si falta algún id o etiqueta, o si una estructura no lista sus biomas con una etiqueta
-    de Heraldia."""
+    """Resolves against the 26.3 registries (vanilla tags from mcmeta and #c: from Fabric API) all the Heraldia biome
+    tags and the "biomes" of each structure. Errors if an extra tag puts into vanilla a biome
+    that is not in the list, if any id or tag is missing, or if a structure does not list its biomes with a
+    Heraldia tag."""
     with open(os.path.join(summary_dir, "data", "tag", "worldgen", "biome", "data.json"), encoding="utf-8") as f:
         vanilla_tags = {f"minecraft:{k}": v["values"] for k, v in json.load(f).items()}
     with open(os.path.join(summary_dir, "registries", "data.json"), encoding="utf-8") as f:
@@ -95,7 +95,7 @@ def check(out, summary_dir):
             if i.startswith("#"):
                 if i[1:] in tags:
                     found |= resolve(i[1:], stack + (tag,))
-                elif req or not tag.startswith("c:"):    # las de Fabric pueden citar etiquetas opcionales ajenas
+                elif req or not tag.startswith("c:"):    # the Fabric ones may cite optional tags from other mods
                     errs.append(f"{tag}: {i} no existe en 26.3 ni en Fabric API 0.166.2+26.3 (etiquetas_c.json)")
             elif i in biomes:
                 found.add(i)
@@ -116,15 +116,15 @@ def check(out, summary_dir):
             with open(os.path.join(root, fn), encoding="utf-8") as f:
                 b = json.load(f)["biomes"]
             if not (isinstance(b, str) and b[1:] in _WRITTEN):
-                errs.append(f"{os.path.relpath(os.path.join(root, fn), sdir)}: biomes {b!r} no es una etiqueta de Heraldia")
+                errs.append(f"{os.path.relpath(os.path.join(root, fn), sdir)}: biomes {b!r} is not a Heraldia tag")
             elif not resolve(b[1:]):
-                errs.append(f"{fn}: ningún bioma en vanilla")
+                errs.append(f"{fn}: no biome in vanilla")
     return errs
 
 
 def regenerate(jar, version):
-    """Rehace etiquetas_c.json desde el jar de fabric-convention-tags-v2 (o el de Fabric API completo que lo contenga):
-    python3 tools/gen/biomes.py <jar> "<versión de Fabric API>"."""
+    """Regenerates etiquetas_c.json from the fabric-convention-tags-v2 jar (or the full Fabric API jar that contains it):
+    python3 tools/gen/biomes.py <jar> "<Fabric API version>"."""
     import io, zipfile
     prefix, found = "data/c/tags/worldgen/biome/", {}
 

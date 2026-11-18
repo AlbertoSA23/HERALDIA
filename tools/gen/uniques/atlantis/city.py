@@ -1,4 +1,4 @@
-"""Plano de la Atlántida: trazado, solares y distritos."""
+"""Atlantis plan: layout, lots and districts."""
 import math
 from . import urban_layout as U
 from . import things as C
@@ -6,10 +6,10 @@ from . import buildings as E
 from .world import World, View
 
 S = U.FLOOR
-STEP = 24                 # retícula de solares
-CORE = 96               # radio reservado a la acrópolis
+STEP = 24                 # grid of lots
+CORE = 96               # radius reserved for the acropolis
 CARDINAL, DIAGONAL = 230, 156
-ZONES = {                 # distritos singulares: centro y radio reservado
+ZONES = {                 # special districts: center and reserved radius
     "agora": (0, -CARDINAL, 60), "termas": (CARDINAL, 0, 60), "puerto": (0, CARDINAL, 60), "academia": (-CARDINAL, 0, 60),
     "artesanos": (DIAGONAL, -DIAGONAL, 34), "arsenal": (DIAGONAL, DIAGONAL, 50), "jardines": (-DIAGONAL, DIAGONAL, 50),
     "anfiteatro": (-DIAGONAL, -DIAGONAL, 50),
@@ -17,7 +17,7 @@ ZONES = {                 # distritos singulares: centro y radio reservado
 
 
 def free(x, z, middle):
-    """El solar centrado en (x, z) con semilado medio no pisa avenidas, núcleo, muralla ni distritos singulares."""
+    """The lot centered at (x, z) with medium half-side does not overlap avenues, core, wall or special districts."""
     r = math.hypot(x, z)
     if r < CORE + middle or r > U.RADIUS - U.WALL - U.ROUND - middle * 1.5:
         return False
@@ -27,7 +27,7 @@ def free(x, z, middle):
 
 
 def turn_to_center(x, z):
-    """Giro para que la fachada mire a la avenida más cercana (hacia el eje dominante)."""
+    """Rotation so that the facade faces the nearest avenue (toward the dominant axis)."""
     if abs(x) >= abs(z):
         return 3 if x > 0 else 1
     return 0 if z > 0 else 2
@@ -40,7 +40,7 @@ def centered_view(m, x, z, w, d, turn):
 
 
 def plots(m):
-    """Barrios: retícula ortogonal simétrica; el tipo depende de |x|, |z| (simetría), el detalle de x, z."""
+    """Neighborhoods: symmetric orthogonal grid; the type depends on |x|, |z| (symmetry), the detail on x, z."""
     n, middle = 0, STEP // 2
     for i in range(-16, 16):
         for j in range(-16, 16):
@@ -50,7 +50,7 @@ def plots(m):
             kind = U.dispersion(i if i >= 0 else -i - 1, j if j >= 0 else -j - 1, 11) % 100
             salt = U.dispersion(i, j, 12) % 1000
             turn = turn_to_center(x, z)
-            ruinous = x < 0 and z > 0 or z > 0 and abs(x) < 110        # hacia los jardines y el puerto: más ruina
+            ruinous = x < 0 and z > 0 or z > 0 and abs(x) < 110        # toward the gardens and the harbor: more ruin
             w, d = 11 + 2 * (salt % 3), 11 + 2 * (salt // 3 % 2)
             if kind < (21 if ruinous else 5):
                 E.ruin_piece(centered_view(m, x, z, w, d, turn), w, d, salt, place_chest="menor" if salt % 6 == 0 else None)

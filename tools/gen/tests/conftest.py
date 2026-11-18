@@ -1,6 +1,6 @@
-"""Pruebas unitarias del generador (pytest). Rápidas y sin generar el datapack: cada prueba construye piezas pequeñas.
+"""Unit tests of the generator (pytest). Fast and without generating the datapack: each test builds small pieces.
 
-Ejecutar: python3 -m pytest tools/gen/tests -q   (o ./gradlew testGen, que va dentro de check)
+Run: python3 -m pytest tools/gen/tests -q   (or ./gradlew testGen, which is part of check)
 """
 import os, sys
 
@@ -13,7 +13,7 @@ from core import Template  # noqa: E402
 
 
 def template(blocks, name="prueba", jigsaws=()):
-    """Template a partir de {pos: estado} (sin normalizar) y jigsaws [(pos, orientación, nombre)]."""
+    """Template from {pos: state} (unnormalised) and jigsaws [(pos, orientation, name)]."""
     t = Template(name)
     for p, st in blocks.items():
         t.set(*p, st)
@@ -36,8 +36,8 @@ def write_json(path, obj):
 
 @pytest.fixture
 def mcmeta(tmp_path, monkeypatch):
-    """Resumen de mcmeta sintético y diminuto (bloques, registros, etiquetas de bioma) cargado en validate, con sus
-    registros globales vacíos al empezar (monkeypatch los restaura al terminar)."""
+    """Tiny synthetic mcmeta summary (blocks, registries, biome tags) loaded into validate, with its global
+    registries empty at the start (monkeypatch restores them at the end)."""
     import validate
     root = tmp_path / "mcmeta"
     write_json(str(root / "blocks" / "data.json"), {

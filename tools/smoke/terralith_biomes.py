@@ -1,20 +1,20 @@
-"""Prueba con Terralith (mod de biomas) en un servidor dedicado 26.3 real (complementa server_smoke.py).
+"""Test with Terralith (biome mod) on a real dedicated 26.3 server (complements server_smoke.py).
 
-Uso: python3 tools/smoke/terralith_biomes.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
-Descarga de Modrinth versiones fijadas de Terralith y Lithostitched (comprobadas con su sha512) y la pone junto a Heraldia y Fabric API.
-Comprueba: el servidor arranca sin errores de registro y con todas las estructuras; los biomas de Terralith que añaden
-sus etiquetas convencionales (#c:...) entran en las etiquetas de Heraldia (/locate biome + execute if biome) y los que
-no deben, no; y /locate sigue encontrando las únicas cuyo bioma comparte Terralith.
+Usage: python3 tools/smoke/terralith_biomes.py --jar build/libs/heraldia-X.jar --work "$PWD/build/smoke"
+Downloads pinned versions of Terralith and Lithostitched from Modrinth (checked against their sha512) and puts them next to Heraldia and Fabric API.
+Checks: the server starts with no registry errors and with all structures; the Terralith biomes that add
+their conventional tags (#c:...) end up in the Heraldia tags (/locate biome + execute if biome) and those that
+should not, do not; and /locate still finds the unique structures whose biome Terralith shares.
 """
 import argparse, os, queue, shutil, subprocess, sys, threading, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 import modrinth
-from modrinth import fetch     # la importan otras pruebas desde aquí
+from modrinth import fetch     # other tests import it from here
 
-# Mods de Modrinth fijados en modrinth.py: Terralith y su dependencia Lithostitched (las dos piden Fabric API).
+# Modrinth mods pinned in modrinth.py: Terralith and its dependency Lithostitched (both require Fabric API).
 MODS = [(m.file, m.url, m.sha512) for m in (modrinth.MODS["terralith"], modrinth.MODS["lithostitched"])]
-# (bioma de Terralith, etiqueta de Heraldia, ¿debe entrar?). Los positivos llegan por las #c: de biomas.CONVENCIONALES.
+# (Terralith biome, Heraldia tag, should it be included?). The positives arrive through the #c: tags of biomes.CONVENTIONAL.
 EXPECTED = [
     ("terralith:steppe", "llanuras", True), ("terralith:highlands", "unicas/castillo", True),
     ("terralith:lavender_forest", "unicas/catedral", True), ("terralith:birch_taiga", "bosque", True),
@@ -34,7 +34,7 @@ def main():
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-terralith"))
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
-    # en la CI este job solo tiene el .jar: las estructuras se cuentan dentro de él
+    # in CI this job only has the .jar: structures are counted inside it
     with zipfile.ZipFile(a.jar) as z:
         expected = sum(n.startswith("data/heraldia/worldgen/structure/") and n.endswith(".json") for n in z.namelist())
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
@@ -54,24 +54,24 @@ def main():
                 m = s.run(proc, lines, seen, f"locate biome {biome}", r"nearest.*?\[(-?\d+), (-?\d+), (-?\d+)\]|Could not find")
                 where[biome] = tuple(int(m.group(i)) for i in (1, 2, 3)) if m.group(1) else None
             if where[biome] is None:
-                fails.append(f"no se encuentra {biome}")
+                fails.append(f"{biome} not found")
                 continue
             x, y, z = where[biome]
             s.run(proc, lines, seen, f"forceload add {x} {z}", r"Marked|force|already")
-            for _ in range(s.PLACE_ATTEMPTS):     # el chunk tarda en cargarse: «That position is not loaded»
+            for _ in range(s.PLACE_ATTEMPTS):     # the chunk takes a while to load: "That position is not loaded"
                 m = s.run(proc, lines, seen, f"execute if biome {x} {y} {z} #heraldia:{tag}", r"Test passed|Test failed")
                 if "not loaded" not in m.string:
                     break
                 time.sleep(s.PLACE_RETRY_S)
             s.run(proc, lines, seen, f"forceload remove {x} {z}", r"Unmarked|force|not")
             if "Test " not in m.group(0) or ("passed" in m.group(0)) != inside:
-                fails.append(f"{biome} {'debería' if inside else 'no debería'} estar en #heraldia:{tag}: {m.string.strip()}")
+                fails.append(f"{biome} {'should' if inside else 'should not'} be in #heraldia:{tag}: {m.string.strip()}")
             else:
                 ok += 1
         for sid in LOCATE:
             m = s.run(proc, lines, seen, f"locate structure heraldia:unicas/{sid}", r"nearest.*?\[(-?\d+), ~?(-?\d+|~), (-?\d+)\]|Could not find")
             if not m.group(1):
-                fails.append(f"/locate no encuentra heraldia:unicas/{sid} con Terralith")
+                fails.append(f"/locate does not find heraldia:unicas/{sid} with Terralith")
             else:
                 ok += 1
     finally:
@@ -85,7 +85,7 @@ def main():
     text = open(log, encoding="utf-8", errors="replace").read() if os.path.isfile(log) else "".join(seen)
     for bad in ("Registry loading errors", "Failed to load datapacks", "Couldn't load", "Failed to parse"):
         if bad in text:
-            fails.append(f"el log contiene {bad!r}")
+            fails.append(f"the log contains {bad!r}")
     print("TERRALITH:", f"OK ({ok} comprobaciones)" if not fails else fails)
     return 1 if fails else 0
 

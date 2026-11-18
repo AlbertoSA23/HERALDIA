@@ -1,25 +1,25 @@
-"""Actualizaciones seguras (T46) en un servidor dedicado 26.3 real: /heraldia update analyze y apply con una «casa» puesta
-a mano, los arreglos por versión y el panel de configuración en diálogos.
+"""Safe updates (T46) on a real dedicated 26.3 server: /heraldia update analyze and apply with a hand-placed "house",
+the per-version fixes and the configuration panel in dialogs.
 
-Uso: python3 tools/smoke/update.py --jar build/libs/heraldia-X.jar [--work build/smoke-actualizar]
-Dos arranques del mismo mundo (semilla de server_smoke, sin mobs nuevos ni ticks aleatorios y, al comparar, con el mundo
-congelado: /tick freeze), con Carpet para un jugador simulado:
-1. Se genera una zona de LADO x LADO chunks lejos del spawn, se pone a mano una «casa» (suelo de tablones, cama, cofre y
-   mesa de trabajo) y unos bloques de oro de marca bajo tierra: unos a menos de 50 bloques de la casa y otros lejos. Se
-   invoca un zombi bebé con el nombre de un guardián de la 0.1.0 (sin etiquetas): el arreglo lo vuelve adulto y anclado
-   al cargarse, una vez.
-   - analyze no cambia nada: los chunks de la zona, leídos de las regiones, son los mismos antes y después, y deja el
-     informe, el mapa en texto y la imagen; protege la casa y propone regenerar chunks vírgenes;
-   - se vuelve el zombi bebé a mano (data merge);
-   - apply (desde la consola): pide confirmación con su id; al confirmar con copia, el servidor se para solo.
-2. Al arrancar a mano: copia de seguridad, chunks vírgenes borrados e informe. Con el mundo congelado:
-   - ningún chunk a 50 bloques o menos de la casa ha cambiado y las marcas de oro cercanas siguen;
-   - alguna marca lejana ha desaparecido (su chunk virgen se ha regenerado);
-   - el zombi sigue bebé (el arreglo no se repite: lleva la marca) hasta /heraldia update repair, que lo arregla
-     (repair dry-run antes no cambia nada);
-   - /heraldia config abre el diálogo (jugador simulado, operador) y su submenú, config set escribe el fichero y
-     /heraldia language fija el idioma del jugador.
-Código 0 si todo pasa.
+Usage: python3 tools/smoke/update.py --jar build/libs/heraldia-X.jar [--work build/smoke-actualizar]
+Two starts of the same world (smoke-test seed, no new mobs or random ticks and, when comparing, with the world
+frozen: /tick freeze), with Carpet for a simulated player:
+1. A SIDE x SIDE chunk zone is generated far from spawn, a hand-built "house" is placed (planks floor, bed, chest and
+   crafting table) and some marker gold blocks underground: some less than 50 blocks from the house and others far away. A
+   baby zombie is summoned with the name of a 0.1.0 guardian (no tags): the fix turns it into an adult and anchored
+   when loaded, once.
+   - analyze changes nothing: the chunks of the zone, read from the regions, are the same before and after, and it leaves the
+     report, the text map and the image; it protects the house and proposes regenerating pristine chunks;
+   - the zombie is turned back into a baby by hand (data merge);
+   - apply (from the console): asks for confirmation with its id; on confirming with a backup, the server stops by itself.
+2. On starting by hand: backup, pristine chunks deleted and report. With the world frozen:
+   - no chunk within 50 blocks of the house has changed and the nearby gold markers are still there;
+   - some far marker has disappeared (its pristine chunk has been regenerated);
+   - the zombie is still a baby (the fix is not repeated: it carries the mark) until /heraldia update repair, which fixes it
+     (repair dry-run beforehand changes nothing);
+   - /heraldia config opens the dialog (simulated player, operator) and its submenu, config set writes the file and
+     /heraldia language sets the player's language.
+Exit code 0 if everything passes.
 """
 import argparse, glob, json, math, os, re, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -28,12 +28,12 @@ import existing_world as me                   # noqa: E402
 from terralith_biomes import fetch             # noqa: E402
 from trophies import CARPET                     # noqa: E402
 
-SIDE, C0 = 20, 15                              # zona de chunks C0..C0+LADO-1 (bloques 240..559)
-HOUSE = (396, 150, 396, 404, 150, 404)          # suelo de la casa (minX, y, minZ, maxX, y, maxZ), en el aire
+SIDE, C0 = 20, 15                              # chunk zone C0..C0+SIDE-1 (blocks 240..559)
+HOUSE = (396, 150, 396, 404, 150, 404)          # house floor (minX, y, minZ, maxX, y, maxZ), in the air
 MARGIN = 50
 Y_MARK = -50
-NEARBY = [(440, 400), (400, 440), (360, 360)]   # a menos de 50 bloques de la casa (en chunks protegidos)
-FAR = [(520, 400), (520, 300), (300, 520), (280, 280), (540, 540)]   # a más de 100 bloques
+NEARBY = [(440, 400), (400, 440), (360, 360)]   # less than 50 blocks from the house (in protected chunks)
+FAR = [(520, 400), (520, 300), (300, 520), (280, 280), (540, 540)]   # more than 100 blocks away
 ZOMBIE = "prueba_arreglo"
 PLAYER = "Panel"
 
@@ -49,7 +49,7 @@ def block(ctx, x, y, z, b):
 
 
 def with_chunk(ctx, x, z, f):
-    """Carga el chunk del bloque (forceload), hace f() y lo suelta."""
+    """Loads the block's chunk (forceload), runs f() and releases it."""
     ctx.run(f"forceload add {x} {z}", r"Marked|[Aa]dded|force|already")
     ctx.until(f"execute if loaded {x} 64 {z}", timeout=120)
     try:
@@ -59,8 +59,8 @@ def with_chunk(ctx, x, z, f):
 
 
 def snapshot(world, chunks):
-    """Como mundo_existente.foto, con las referencias a estructuras sin orden: el juego las guarda en un conjunto y, al
-    volver a guardar el chunk, pueden salir en otro orden (visto aquí: las mismas dos referencias de una mina, al revés)."""
+    """Like existing_world.snapshot, with the structure references unordered: the game stores them in a set and, when
+    saving the chunk again, they can come out in another order (seen here: the same two references of a mine, reversed)."""
     out = me.snapshot(world, chunks)
     for h in out.values():
         refs = (h.get("estructuras") or {}).get("References")
@@ -70,13 +70,13 @@ def snapshot(world, chunks):
 
 
 def wait(ctx, pattern, timeout):
-    """Como server_smoke.wait_for, pero también vale si la línea ya salió (p. ej. durante el arranque)."""
+    """Like server_smoke.wait_for, but also valid if the line has already appeared (e.g. during startup)."""
     m = re.search(pattern, ctx.log())
     return m or s.wait_for(ctx.lines, pattern, timeout, ctx.seen)
 
 
 def wait_since(ctx, n0, pattern, timeout):
-    """La primera línea que case desde la línea n0 del log (también las que ya pasaron a ctx.seen), o la espera."""
+    """The first line that matches from line n0 of the log (including those that have already moved to ctx.seen), or waits for it."""
     m = re.search(pattern, "".join(ctx.seen[n0:]))
     return m or s.wait_for(ctx.lines, pattern, timeout, ctx.seen)
 
@@ -99,7 +99,7 @@ def main():
     def check(cond, msg):
         if not cond:
             fails.append(msg)
-            print("FALLA:", msg)
+            print("FAIL:", msg)
         return cond
 
     # ------------------------------------------------------------------ arranque 1
@@ -119,8 +119,8 @@ def main():
         ctx.run(f"setblock {x1 - 1} {y + 1} {z1 - 1} minecraft:crafting_table", r"Changed the block|Could not")
         for x, z in NEARBY + FAR:
             with_chunk(ctx, x, z, lambda: ctx.run(f"setblock {x} {Y_MARK} {z} minecraft:gold_block", r"Changed the block|Could not"))
-        # un guardián de la 0.1.0: nombre traducible de Heraldia, persistente, sin etiquetas y bebé (/summon con NBT no
-        # llama a finalizeSpawn, así que sale tal cual)
+        # a 0.1.0 guardian: translatable Heraldia name, persistent, no tags and baby (/summon with NBT does not
+        # call finalizeSpawn, so it comes out as is)
         ctx.run(f'summon minecraft:zombie 400 {y + 1} 400 {{IsBaby:1b,PersistenceRequired:1b,NoAI:1b,Tags:["{ZOMBIE}"],'
                 f'CustomName:{{translate:"heraldia.unicas.castillo.guardian",fallback:"Sir Aldric"}}}}',
                 r"Summoned|Unable|Invalid")
@@ -139,7 +139,7 @@ def main():
         m = wait_since(ctx, n0, r"update analyze: (\d+) chunks, (\d+) construcciones, (\d+) protegidos, (\d+) vírgenes \((\d+) se "
                        r"regenerarían\), (\d+) estructuras nuevas", 600)
         total, built, prot, virg, regen = (int(m.group(i)) for i in range(1, 6))
-        print(f"analyze: {total} chunks, {built} construcciones, {prot} protegidos, {virg} vírgenes, {regen} a regenerar")
+        print(f"analyze: {total} chunks, {built} structures, {prot} protected, {virg} pristine, {regen} to regenerate")
         check(total >= len(zone), f"analyze solo ha visto {total} chunks")
         check(built >= 3, f"analyze no ve la casa ({built} construcciones)")
         check(prot >= len(nearby), f"analyze protege {prot} chunks, menos que los {len(nearby)} a 50 bloques de la casa")
@@ -154,12 +154,12 @@ def main():
             text = open(maps[0], encoding="utf-8").read()
             check("#" in text and "R" in text, "el mapa en texto no marca la casa (#) y lo que se regenera (R)")
         check(not os.path.exists(os.path.join(folder, "plan.json")), "analyze ha dejado un plan")
-        # el guardián vuelve a ser bebé (a mano): el arreglo no debe repetirse al recargarlo
+        # the guardian is made a baby again (by hand): the fix must not repeat when it is reloaded
         ctx.run(f"data merge entity @e[tag={ZOMBIE},limit=1] {{IsBaby:1b}}", r"Modified|Unable|Nothing")
-        # sin chunks forzados al volver a arrancar: si no, sus fluidos corren antes de congelar el mundo (cambios del juego)
+        # without forced chunks on restart: otherwise their fluids run before freezing the world (game changes)
         for x0, z0, x1, z1 in me.fragments(nearby):
             ctx.run(f"forceload remove {x0} {z0} {x1} {z1}", r"[Rr]emoved|[Uu]nmarked|force|not")
-        # apply: confirmación con id, con copia
+        # apply: confirmation with id, with backup
         n0 = len(ctx.seen)
         ctx.run("heraldia update apply", r"Analizando|Analysing|Unknown|Incorrect")
         m = wait_since(ctx, n0, r"update apply confirm (\w+) backup", 600)
@@ -169,7 +169,7 @@ def main():
         wait_since(ctx, n0, r"update apply confirmado .*el servidor se para", 60)
         check(os.path.exists(os.path.join(folder, "plan.json")), "al confirmar no queda el plan")
         proc.wait(timeout=180)
-        print("el servidor se ha parado solo tras confirmar")
+        print("the server stopped by itself after confirming")
     finally:
         if proc.poll() is None:
             proc.kill()
@@ -205,7 +205,7 @@ def main():
         check(removed, "ninguna marca lejana ha desaparecido: no se ha regenerado ningún chunk virgen")
         check(with_chunk(ctx, *HOUSE[:1], HOUSE[2], lambda: block(ctx, HOUSE[0] + 1, HOUSE[1] + 1, HOUSE[2] + 1, "minecraft:red_bed")),
               "la cama de la casa ha desaparecido")
-        # los arreglos no se repiten: el guardián sigue bebé hasta repair
+        # the fixes are not repeated: the guardian stays a baby until repair
         ctx.run(f"forceload add 400 400", r"Marked|[Aa]dded|force|already")
         ctx.until("execute if loaded 400 64 400", timeout=120)
         check(ctx.until(f"execute if entity @e[tag={ZOMBIE}]"), "no está el guardián de prueba")
@@ -225,7 +225,7 @@ def main():
         ctx.run("heraldia update repair dry-run", r"Prueba|Dry run|Unknown|Incorrect")
         m = wait_since(ctx, n0, r"update repair dry-run: (\d+) mobs de plantilla revisados, (\d+) cambios", 30)
         check(m.group(2) == "0", f"tras repair aún quedan {m.group(2)} cambios (no es idempotente)")
-        # panel de configuración y preferencias
+        # configuration panel and preferences
         ctx.run(f"player {PLAYER} spawn at 0 100 0", r"joined the game|Player .* spawn|Unknown|Incorrect")
         check(ctx.until(f"execute if entity @a[name={PLAYER}]"), "no aparece el jugador simulado (Carpet)")
         ctx.run(f"op {PLAYER}", r"Made .* operator|Nothing changed")
@@ -246,7 +246,7 @@ def main():
     if fails:
         print(f"{len(fails)} fallos")
         return 1
-    print("actualizar: todo bien")
+    print("update: all good")
     return 0
 
 

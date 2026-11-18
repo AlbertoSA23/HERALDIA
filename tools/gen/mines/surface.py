@@ -1,9 +1,9 @@
-"""Superficie de las entradas a mina: patio sobre su cimiento, boca con su entibado y lo que hay delante según el tamaño
-(pequeña: boca con vías, vagoneta y faroles; mediana: campamento con la cabaña del capataz, el montón de mineral, la
-vagoneta de carga y la fundición; grande: complejo con la torre de extracción y su polea sobre el pozo, vías y oficina).
+"""Surface of the mine entrances: courtyard on its foundation, mouth with its timbering and what lies in front depending on the size
+(small: mouth with tracks, minecart and lanterns; medium: camp with the foreman's cabin, the pile of ore, the
+cargo minecart and the smelter; large: complex with the hoist tower and its pulley over the shaft, tracks and office).
 
-Todo se escribe con `Espejo`, que refleja el patio en x en la variante b (los estados con lado este u oeste también),
-así la misma obra sale con los edificios a un lado o al otro. La boca y las vías del centro (x = 0) no cambian."""
+Everything is written with `Mirror`, which mirrors the courtyard in x in variant b (states with an east or west side too),
+so the same build comes out with the buildings on one side or the other. The mouth and the tracks in the center (x = 0) do not change."""
 from uniques._common import pieces
 
 FLIP = {"east": "west", "west": "east"}
@@ -29,7 +29,7 @@ def _flip_state(st):
 
 
 class Mirror:
-    """Escritura del patio (todo va a la superficie de la obra) con reflejo en x si m = -1."""
+    """Writing of the courtyard (everything goes to the build's surface) with a mirror in x if m = -1."""
 
     def __init__(self, o, m):
         self.o, self.m = o, m
@@ -47,8 +47,8 @@ class Mirror:
 
 
 def courtyard(o, x0, x1, z0, z1, air_block=6, foundation=4):
-    """Suelo del patio en y = 0 sobre `cimiento` capas de obra (en ladera asoma como un muro de contención) y aire
-    explícito encima (lo que hubiera en el terreno no asoma)."""
+    """Courtyard floor at y = 0 over `foundation` layers of build (on a slope it sticks out like a retaining wall) and explicit
+    air above (whatever was in the terrain does not poke through)."""
     p = o.p
     for x in range(x0, x1 + 1):
         for z in range(z0, z1 + 1):
@@ -63,8 +63,8 @@ def courtyard(o, x0, x1, z0, z1, air_block=6, foundation=4):
 
 
 def mouth(o):
-    """Fachada de la boca en z = 0: muro de obra de 7 x 5 con el hueco del túnel (3 x 3), postes y dintel de tronco y
-    remates de escalón; los faroles a los lados sobre postes de valla."""
+    """Mouth facade at z = 0: 7 x 5 built wall with the tunnel opening (3 x 3), log posts and lintel, and
+    step finials; the lanterns at the sides on fence posts."""
     p = o.p
     for x in range(-3, 4):
         for y in range(1, 6):
@@ -85,27 +85,27 @@ def mouth(o):
 
 
 def post(o, x, z, height=2):
-    """Poste de valla con un farol de pie encima."""
+    """Fence post with a standing lantern on top."""
     for y in range(1, height + 1):
         o.s(x, y, z, f"{o.p['madera']}_fence")
     o.lantern(x, height + 1, z, hanging=False)
 
 
 def tracks(o, z0, z1, x=0):
-    """Vía recta de norte a sur por x de z0 a z1 (incluidos), a ras del patio."""
+    """Straight track from north to south along x from z0 to z1 (inclusive), flush with the courtyard."""
     for z in range(min(z0, z1), max(z0, z1) + 1):
         rail(o.s, o, x, z, "north_south")
 
 
 def rail(put, o, x, z, shape):
-    """Raíl del patio sobre un bloque macizo de cimiento (un raíl no se sostiene sobre un camino de tierra o una losa:
-    al primer aviso de un vecino saltaría)."""
+    """Courtyard rail on a solid foundation block (a rail is not supported on a dirt path or a slab:
+    at the first update from a neighbor it would pop off)."""
     put(x, 0, z, o.mat(o.p["cimiento"], x, 0, z, 5))
     put(x, 1, z, f"rail[shape={shape},waterlogged=false]")
 
 
 def heap(e, x0, z0, width, back):
-    """Montón de mineral en el patio: capas cada vez más estrechas de grava, piedra y menas."""
+    """Pile of ore in the courtyard: increasingly narrow layers of gravel, stone and ores."""
     o = e.o
     for layer in range(3):
         for x in range(x0 + layer, x0 + width - layer):
@@ -117,9 +117,9 @@ def heap(e, x0, z0, width, back):
 
 
 def shed(e, x0, z0, x1, z1, door, tbl, bed=True):
-    """Cabaña de tablas con esquinas de tronco, tejado a dos aguas (cumbrera de este a oeste), puerta en el muro
-    `puerta` (west o east, en coordenadas sin reflejar) y dentro una cama, una mesa, un banco de trabajo, un farol y el
-    cofre `tabla`."""
+    """Plank cabin with log corners, gable roof (ridge from east to west), door in the wall
+    `door` (west or east, in unmirrored coordinates) and inside a bed, a table, a workbench, a lantern and the
+    chest `tbl`."""
     o, p = e.o, e.o.p
     for y in range(1, 4):
         for x in range(x0, x1 + 1):
@@ -150,7 +150,7 @@ def shed(e, x0, z0, x1, z1, door, tbl, bed=True):
     e.s(cx, 2, z1 - 1, f"{p['madera']}_pressure_plate[powered=false]")
     e.s(cx + (1 if side == "east" else -1), 1, z1 - 1, f"{p['madera']}_stairs[facing={side},half=bottom,shape=straight,waterlogged=false]")
     e.s(cx, 3, cz, "lantern[hanging=true,waterlogged=false]")
-    # tejado a dos aguas a lo largo de x, con un bloque de vuelo
+    # gable roof along x, with one block of overhang
     za, zb, y = z0 - 1, z1 + 1, 4
     while za <= zb:
         for x in range(x0 - 1, x1 + 2):
@@ -169,8 +169,8 @@ def shed(e, x0, z0, x1, z1, door, tbl, bed=True):
 
 
 def smelter(e, x0, z0, tbl):
-    """Fundición pequeña: banco de ladrillo con el alto horno y el horno, chimenea con su fogata humeante, yunque, un
-    caldero y el tonel con lo fundido."""
+    """Small smelter: brick bench with the blast furnace and the furnace, chimney with its smoking campfire, anvil, a
+    cauldron and the barrel with what was smelted."""
     o = e.o
     for x in (x0, x0 + 1):
         for z in range(z0, z0 + 4):
@@ -188,7 +188,7 @@ def smelter(e, x0, z0, tbl):
 
 
 def sign(o, x, z, size):
-    """Cartel de la mina en la fachada (pegado al muro de la boca, mirando al patio)."""
+    """Mine sign on the facade (against the mouth wall, facing the courtyard)."""
     pieces.sign(o.s, x, 2, z, "north", [pieces.text(f"heraldia.minas.cartel.{size}.{i}", fb)
                                        for i, fb in ((1, SIGNS[size][0][0]), (2, SIGNS[size][1][0]))], wood=o.p["madera"])
 
@@ -199,9 +199,9 @@ SIGNS = {"pequena": (("Boca de mina", "Mine adit"), ("Ojo con el grisú", "Mind 
 
 
 def tower(e, cx, cz, height=14):
-    """Torre de extracción de tronco sobre el pozo (5 x 5 con el eje en cx, cz): cuatro patas, dos anillos de vigas,
-    el marco de arriba, la viga del eje y la polea (una rueda vertical de tronco con sus radios de valla) y la cadena
-    que baja por el pozo."""
+    """Log hoist tower over the shaft (5 x 5 with the axis at cx, cz): four legs, two rings of beams,
+    the frame at the top, the axle beam and the pulley (a vertical log wheel with its fence spokes) and the chain
+    that goes down the shaft."""
     o, p = e.o, e.o.p
     xs, zs = (cx - 2, cx + 2), (cz - 2, cz + 2)
     for x in xs:
@@ -226,7 +226,7 @@ def tower(e, cx, cz, height=14):
             elif r2 in (1, 2) and (dx == 0 or dy == 0):
                 e.s(cx + dx, hub + dy, cz, f"{p['madera']}_fence")
     e.s(cx, hub, cz, o.trunk("z"))
-    for y in range(hub - 3 + 1, height + 1):      # apoyo de la rueda sobre la viga del eje
+    for y in range(hub - 3 + 1, height + 1):      # wheel support on the axle beam
         e.s(cx, y, cz, o.trunk("y"))
     for y in range(2, height + 1):
         e.s(cx + 1, y, cz, "iron_chain[axis=y,waterlogged=false]")

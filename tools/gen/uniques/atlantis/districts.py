@@ -1,5 +1,5 @@
-"""Distritos singulares de la Atlántida. Cada función recibe una Vista centrada en el distrito cuyo «norte» local
-(v negativo) mira al centro de la ciudad; y = 0 es el pavimento."""
+"""Special districts of Atlantis. Each function receives a Vista centered on the district whose local "north"
+(negative v) faces the city center; y = 0 is the pavement."""
 import math
 from . import urban_layout as U
 from . import things as C
@@ -8,34 +8,34 @@ from . import redstone as R
 from .._common import pieces as P
 from .buildings import BRICK, DARK, PRISMARINE, LANTERN, GLASS, QUARTZ, PILLAR, CORALS, h, door, column
 
-COMBINATION_CENTRAL = [True, False, True, True]         # palancas del vestíbulo del templo: I, III y IV alzadas
+COMBINATION_CENTRAL = [True, False, True, True]         # levers of the temple vestibule: I, III and IV raised
 COMBINATION_ACADEMY = [False, True, True, False]
 
 
 def room(v, u1, v1, u2, v2, y1, y2, wall=BRICK, floor=DARK, roof=DARK):
-    """Sala seca: caja con aire dentro. y1 = suelo, y2 = techo."""
+    """Dry room: box with air inside. y1 = floor, y2 = ceiling."""
     v.shell(u1, y1, v1, u2, y2, v2, wall, floor=floor, roof=roof)
     v.air(u1 + 1, y1 + 1, v1 + 1, u2 - 1, y2 - 1, v2 - 1)
 
 
 def clue(n, es, en):
-    """Cartel con una cifra de la combinación del templo."""
+    """Sign with one digit of the temple combination."""
     return [C.text("pista.titulo", "Sello sagrado", "Temple seal", bold=C.B(1)),
             C.text(f"pista.{n}", es, en)]
 
 
-# ------------------------------------------------------------------ N: ágora
+# ------------------------------------------------------------------ N: agora
 def agora(v):
-    A, F = 44, 38                                   # semiancho y semifondo de la plaza porticada
+    A, F = 44, 38                                   # half-width and half-depth of the colonnaded square
     v.site("agora", -A, 0, -F, A, 12, F)
     for u in range(-A, A + 1):
         for w in range(-F, F + 1):
             edge_block = max(abs(u) - (A - 4), abs(w) - (F - 4))
             if abs(u) <= U.AVENUE:
-                continue                            # la avenida cruza la plaza
+                continue                            # the avenue crosses the square
             if edge_block >= 0:
                 v.set(u, 0, w, BRICK)
-                v.set(u, 7, w, DARK if edge_block in (0, 4) else BRICK)       # arquitrabe del pórtico
+                v.set(u, 7, w, DARK if edge_block in (0, 4) else BRICK)       # architrave of the portico
                 if edge_block == 0 and (u % 4 == 0 and abs(w) <= F - 4 or w % 4 == 0 and abs(u) <= A - 4):
                     column(v, u, w, 1, 6)
                 if edge_block == 4:
@@ -43,7 +43,7 @@ def agora(v):
                         v.set(u, 6, w, LANTERN)
             else:
                 v.set(u, 0, w, DARK if (u // 2 + w // 2) % 2 else PRISMARINE)
-    for side in (-1, 1):                            # estatuas del tridente a cada lado de la avenida
+    for side in (-1, 1):                            # trident statues on each side of the avenue
         cu = side * 22
         v.fill(cu - 2, 1, -2, cu + 2, 1, 2, QUARTZ)
         v.fill(cu - 1, 2, -1, cu + 1, 2, 1, QUARTZ)
@@ -54,11 +54,11 @@ def agora(v):
         v.fill(cu, 10, 0, cu, 12, 0, "waxed_oxidized_cut_copper")
         v.set(cu, 2, -2, LANTERN)
         v.set(cu, 2, 2, LANTERN)
-    # casa del consejo (seca), al fondo este de la plaza, con puerta a la plaza
+    # council house (dry), at the east end of the square, with a door to the square
     u1, u2, w1, w2 = 14, 34, 12, 28
     room(v, u1, w1, u2, w2, 0, 7)
     door(v, (u1 + u2) // 2, 1, w1, "north")
-    for u in range(u1 + 2, u2 - 1):                 # graderío de tres filas al fondo
+    for u in range(u1 + 2, u2 - 1):                 # three-row seating at the back
         for row in range(3):
             v.set(u, 1 + row, w2 - 1 - (2 - row), "prismarine_brick_stairs[facing=south,half=bottom]")
             for y in range(1, 1 + row):
@@ -80,7 +80,7 @@ def agora(v):
     E.windows(v, u1, "w", w1, w2, 3, 4)
     E.windows(v, u2, "w", w1, w2, 3, 4)
     E.ornament(v, u1, w1, u2, w2, 0, 7, step=5)
-    # mercado en ruinas (inundado), al fondo oeste
+    # ruined market (flooded), at the west end
     for k in range(4):
         cu, cw = -18 - (k % 2) * 10, 14 + (k // 2) * 10
         v.fill(cu - 2, 1, cw - 2, cu + 2, 1, cw - 2, "stripped_warped_stem[axis=x]")
@@ -101,21 +101,21 @@ def ends_of(side, u1, u2):
 
 def baths(v):
     v.site("termas", -36, 0, -30, 36, 22, 30)
-    # tres naves paralelas a la avenida, a cada lado: frigidario (inundado, cúpula), tepidario (seco) y caldario (magma)
+    # three halls parallel to the avenue, on each side: frigidarium (flooded, dome), tepidarium (dry) and caldarium (magma)
     for side in (-1, 1):
         u1, u2 = (10, 34) if side == 1 else (-34, -10)
-        # frigidario: gran sala inundada con cúpula de cristal
+        # frigidarium: large flooded hall with a glass dome
         v.shell(u1, 0, -28, u2, 9, -8, BRICK, floor=DARK, roof=DARK)
         cu, cw = (u1 + u2) // 2, -18
         v.remove(cu - 6, 9, cw - 6, cu + 6, 9, cw + 6)
         v.dome(cu, cw, 8, 9, GLASS, rib=DARK)
         v.disk(cu, cw, 8, 9, 9, DARK, cavity=7)
-        v.remove(u1 if side == 1 else u2, 1, cw - 1, u1 if side == 1 else u2, 3, cw + 1)        # portal a la avenida
+        v.remove(u1 if side == 1 else u2, 1, cw - 1, u1 if side == 1 else u2, 3, cw + 1)        # doorway to the avenue
         v.fill(cu - 4, 0, cw - 4, cu + 4, 0, cw + 4, PRISMARINE)
         v.disk(cu, cw, 3, 0, 0, LANTERN, cavity=2)
         for du, dw in ((-9, -8), (9, -8), (-9, 8), (9, 8)):
             column(v, cu + du, cw + dw, 1, 8)
-        # tepidario: sala seca con bancos
+        # tepidarium: dry room with benches
         room(v, u1, -8, u2, 8, 0, 7)
         door(v, cu, 1, -8, "north")
         for u in range(u1 + 2, u2 - 1, 2):
@@ -127,7 +127,7 @@ def baths(v):
         v.set(u2 - 1, 6, -7, LANTERN)
         v.mark("seca", cu, 1, 0)
         door(v, cu, 1, 8, "south")
-        # caldario: sala inundada con suelo de magma (arrastra al fondo) y un ascensor de burbujas a la galería alta
+        # caldarium: flooded room with a magma floor (drags to the bottom) and a bubble elevator to the upper gallery
         v.shell(u1, 0, 8, u2, 16, 28, BRICK, floor=DARK, roof=DARK)
         door(v, cu, 1, 8, "south")
         for u in range(u1 + 3, u2 - 2):
@@ -135,12 +135,12 @@ def baths(v):
                 if (u + w) % 3 == 0 and abs(u - ends_of(side, u1, u2)) > 2:
                     v.set(u, 0, w, "magma_block")
                     v.fill(u, 1, w, u, 8, w, "bubble_column[drag=true]")
-        v.fill(u1 + 1, 9, 9, u2 - 1, 9, 27, DARK)                                          # forjado de la galería
+        v.fill(u1 + 1, 9, 9, u2 - 1, 9, 27, DARK)                                          # floor slab of the gallery
         v.fill(u1 + 1, 10, 9, u2 - 1, 15, 27, "air")
         ex = u2 - 2 if side == 1 else u1 + 2                                                 # ascensor: columna de arena de almas
         v.set(ex, 0, 26, "soul_sand")
         v.fill(ex - 1, 1, 25, ex + 1, 8, 27, GLASS)
-        v.fill(ex, 1, 26, ex, 9, 26, "bubble_column[drag=false]")           # explícita: en la generación no hay actualizaciones
+        v.fill(ex, 1, 26, ex, 9, 26, "bubble_column[drag=false]")           # explicit: there are no updates during generation
         v.remove(ex, 1, 25, ex, 2, 25)
         v.set(u1 + 1, 15, 9, LANTERN)
         v.set(u2 - 1, 15, 27, LANTERN)
@@ -163,7 +163,7 @@ def baths(v):
 
 # ------------------------------------------------------------------ S: puerto hundido
 def ship(v, cu, cw, length, salt, wood="spruce"):
-    """Casco hundido y escorado, con la bodega abierta."""
+    """Sunken, listing hull, with the hold open."""
     for i in range(length):
         width = 3 if 2 <= i < length - 3 else 2 if 1 <= i < length - 1 else 1
         w = cw + i
@@ -204,7 +204,7 @@ def harbor(v):
                         v.set(uu, 1, w, "seagrass")
         ship(v, side * 24, -26, 20, 30 + side)
         ship(v, side * 36, 6, 22, 40 + side, wood="dark_oak")
-    # faro derruido al fondo
+    # ruined lighthouse at the back
     for k, (cu, cw) in enumerate(((-30, 0), (30, 0))):
         v.disk(cu, cw, 4, 3, 5 + (h(cu, cw, 24) % 4), BRICK, cavity=3)
         v.set(cu, 3, cw, "chest[facing=north]", {"id": "minecraft:chest", "LootTable": C.TABLE + "media"})
@@ -222,14 +222,14 @@ def academy(v):
         s = side
         u1, u2 = (10, 40) if side == 1 else (-40, -10)
         ua, ub = (u1, u2)
-        # ala: vestíbulo + biblioteca, toda seca; puerta doble a la avenida
+        # wing: vestibule + library, all dry; double door to the avenue
         room(v, ua, -26, ub, 26, 0, 9)
         face = u1 if side == 1 else u2
         P.double_door(v.set, face, 1, -1, "west" if side == 1 else "east", "south", E.DOOR_COL)
         for w in (-22, -14, -6, 6, 14, 22):                                   # ventanales
             back = u2 if side == 1 else u1
             v.fill(back, 3, w - 1, back, 6, w + 1, GLASS)
-        for w in range(-24, 25, 6):                                           # estanterías en espina
+        for w in range(-24, 25, 6):                                           # herringbone bookshelves
             if abs(w) < 4:
                 continue
             for u in range(min(ua, ub) + 4, max(ua, ub) - 3):
@@ -249,12 +249,12 @@ def academy(v):
         if side == 1:
             C.generator(v, ua + 2, 1, 20, "drowned", trident=False)
             C.place_chest(v, ub - 1, 1, 20, "west", "media")
-    # ala norte (lado 1, hacia v negativo): las cuatro pistas de la combinación, repartidas tras las estanterías
+    # north wing (side 1, toward negative v): the four combination hints, spread behind the bookshelves
     clues = [("academia.p1", "Primera: suelta", "First: released"), ("academia.p2", "Segunda: alzada", "Second: raised"),
               ("academia.p3", "Tercera: alzada", "Third: raised"), ("academia.p4", "Cuarta: suelta", "Fourth: released")]
     for (key, es, en), (u, w, facing) in zip(clues, ((39, -20, "west"), (-39, -20, "east"), (39, 20, "west"), (-39, 20, "east"))):
         C.sign(v, u, 2, w, facing, [C.text(key, es, en)])
-    # cámara del sello: tras la puerta de combinación, en el testero sur del ala este
+    # seal chamber: behind the combination door, at the south end wall of the east wing
     u0 = 14
     finish = R.combination(v, u0, 2, 26, COMBINATION_ACADEMY, "academia")
     room(v, u0 - 2, 29, u0 + 12, 37, 0, 5)
@@ -270,7 +270,7 @@ def academy(v):
 def arsenal(v):
     L = 34
     v.site("arsenal", -L, 0, -L, L, 20, L)
-    # recinto amurallado con torres en las esquinas y patio inundado
+    # walled enclosure with corner towers and a flooded courtyard
     for u in range(-L, L + 1):
         for w in range(-L, L + 1):
             if max(abs(u), abs(w)) >= L - 2:
@@ -284,31 +284,31 @@ def arsenal(v):
             v.disk(su * (L - 2), sw * (L - 2), 5, 0, 13, BRICK)
             v.disk(su * (L - 2), sw * (L - 2), 5, 14, 14, DARK)
             v.set(su * (L - 2), 15, sw * (L - 2), LANTERN)
-    v.remove(-2, 1, -L, 2, 5, -L + 2)                                        # puerta del recinto (al norte local)
+    v.remove(-2, 1, -L, 2, 5, -L + 2)                                        # enclosure door (at the local north)
     v.entity(0, 5, -16, C.elder())
     for u, w in ((-20, -20), (20, -20), (-22, 10), (22, 10)):
         v.entity(u, 3, w, C.guardian())
     C.generator(v, -L + 4, 1, 0, "guardian")
     C.generator(v, L - 4, 1, 0, "guardian")
-    # torre del homenaje (seca): puerta -> pasillo de trampas -> armería -> cámara del sello tras una palanca oculta
+    # keep (dry): door -> trap corridor -> armory -> seal chamber behind a hidden lever
     u1, u2, w1, w2 = -12, 12, -6, 26
     room(v, u1, w1, u2, w2, 0, 8)
     door(v, 0, 1, w1, "north")
     # pasillo de trampas: muros interiores dejan un corredor de 3 de ancho
     v.fill(-2, 1, w1 + 1, -2, 7, w1 + 12, BRICK)
     v.fill(2, 1, w1 + 1, 2, 7, w1 + 12, BRICK)
-    v.fill(u1 + 1, 1, w1 + 1, -3, 7, w1 + 12, BRICK)                       # macizo a los lados del corredor
+    v.fill(u1 + 1, 1, w1 + 1, -3, 7, w1 + 12, BRICK)                       # solid mass at the sides of the corridor
     v.fill(3, 1, w1 + 1, u2 - 1, 7, w1 + 12, BRICK)
     for k, w in enumerate(range(w1 + 3, w1 + 12, 2)):
-        if k % 2 == 0:                                                        # filas pares: trampas a los lados, centro seguro
+        if k % 2 == 0:                                                        # even rows: traps at the sides, safe center
             R.arrow_trap(v, 1, 1, w, "east")
             (R.water_trap if k == 2 else R.arrow_trap)(v, -1, 1, w, "west")
-        else:                                                                 # impares: dispensador bajo la baldosa central
+        else:                                                                 # odd rows: dispenser under the central tile
             C.dispenser(v, 0, 0, w, "up", "arrow", 24)
             v.set(0, 1, w, "stone_pressure_plate[powered=false]")
             v.mark("trampa", 0, 1, w)
     v.set(0, 7, w1 + 6, LANTERN)
-    # armería
+    # armory
     aw = w1 + 13
     for u in range(u1 + 2, u2 - 1, 3):
         if abs(u) > 2:
@@ -323,13 +323,13 @@ def arsenal(v):
     v.entity(4, 1, aw + 5, C.drowned(True))
     C.generator(v, u2 - 1, 1, aw + 1, "drowned", trident=True)
     v.mark("seca", 0, 1, aw + 3)
-    # cámara del sello: al este de la armería, tras una puerta de hierro que abre una palanca escondida tras un tapiz
+    # seal chamber: east of the armory, behind an iron door opened by a lever hidden behind a tapestry
     cu1, cu2 = u2, u2 + 9
     room(v, cu1, aw + 2, cu2, aw + 10, 0, 5)
     v.set(cu1, 1, aw + 6, "iron_door[facing=west,half=lower,hinge=left,open=false,powered=false]")
     v.set(cu1, 2, aw + 6, "iron_door[facing=west,half=upper,hinge=left,open=false,powered=false]")
     v.set(cu1, 2, aw + 5, BRICK)
-    v.set(cu1 - 1, 2, aw + 5, "lever[face=wall,facing=west,powered=false]")   # acciona el bloque contiguo a la puerta
+    v.set(cu1 - 1, 2, aw + 5, "lever[face=wall,facing=west,powered=false]")   # triggers the block adjacent to the door
     v.set(cu1 - 1, 3, aw + 5, "cyan_wall_banner[facing=west]", {"id": "minecraft:banner"})
     v.set(cu2 - 1, 4, aw + 3, LANTERN)
     C.place_chest(v, cu2 - 1, 1, aw + 6, "west", "sello_arsenal")
@@ -348,7 +348,7 @@ def gardens(v):
     for k, (cu, cw, r) in enumerate(((0, 0, 14), (-28, -24, 10), (26, -26, 9), (-26, 26, 9), (28, 24, 10))):
         v.disk(cu, cw, r, 0, 0, "sand")
         v.disk(cu, cw, r, 0, 1, BRICK, cavity=r - 1)
-        for u in range(cu - r, cu + r + 1):                                  # cúpula rota: faltan gajos
+        for u in range(cu - r, cu + r + 1):                                  # broken dome: segments missing
             for w in range(cw - r, cw + r + 1):
                 for y in range(0, r + 1):
                     d = math.sqrt((u - cu) ** 2 + (w - cw) ** 2 + y * y)
@@ -379,7 +379,7 @@ def gardens(v):
         if k:
             v.set(cu + r - 3, 1, cw, "barrel[facing=up]", {"id": "minecraft:barrel", "LootTable": C.TABLE + "menor"})
             v.mark("cofre", cu + r - 3, 1, cw)
-    # invernadero intacto y seco, al fondo: se entra buceando por debajo
+    # intact, dry greenhouse, at the back: entered by diving underneath
     gu, gw = 0, 34
     v.disk(gu, gw, 7, 0, 0, DARK)
     v.disk(gu, gw, 7, 1, 5, BRICK, cavity=6)
@@ -424,15 +424,15 @@ def amphitheater(v):
                 v.fill(u, 0, w, u, height, w, BRICK if (int(d) % 2) else PRISMARINE)
                 if int(d - R0) % 2 == 0 and not broken and d < R1 - 1:
                     v.set(u, height, w, DARK)
-    for u in range(-2, 3):                                                   # dinteles de los vomitorios
+    for u in range(-2, 3):                                                   # lintels of the vomitoria
         for w in range(-R1, R1 + 1):
             for (a, b) in ((u, w), (w, u)):
                 d = math.hypot(a, b)
                 if R0 + 14 < d <= R1 and v.built(a, 5, b) is None:
                     tier = min(12, 1 + int((d - R0) / 2))
                     v.fill(a, 5, b, a, tier, b, BRICK)
-    # arena: tarima central con el cofre del sello, generadores bajo rejas y guardián anciano
-    v.disk(-5, -5, 3, 1, 1, QUARTZ)                                         # tarima (descentrada: en el centro está el pozo)
+    # arena: central dais with the seal chest, spawners under grates and an ancient guardian
+    v.disk(-5, -5, 3, 1, 1, QUARTZ)                                         # dais (off-center: the shaft is in the center)
     C.place_chest(v, -5, 2, -5, "north", "sello_anfiteatro")
     v.set(-4, 2, -5, QUARTZ)
     C.sign(v, -4, 2, -6, "north", clue(3, "III: alzada", "III: raised"))
@@ -450,7 +450,7 @@ def amphitheater(v):
     v.mark("arena", 0, 2, 2)
 
 
-# ------------------------------------------------------------------ NE: lonja de los artesanos
+# ------------------------------------------------------------------ NE: artisans' exchange hall
 def artisans(v):
     u1, u2, w1, w2 = -17, 17, -9, 9
     v.site("lonja", u1, -6, w1, u2, 12, w2)
@@ -473,7 +473,7 @@ def artisans(v):
     v.fill(-4, 1, 0, 4, 1, 0, "warped_slab[type=top]")                      # mesa larga
     C.place_chest(v, u1 + 1, 1, 0, "east", "media")
     v.mark("seca", 0, 1, -4)
-    # sala oculta: sótano bajo una trampilla tapada por la alfombra, en la esquina
+    # hidden room: basement under a trapdoor covered by the carpet, in the corner
     tu, tw = u2 - 2, w1 + 2
     room(v, tu - 4, tw - 2, tu + 1, tw + 3, -5, -1)
     v.set(tu, 0, tw, "warped_trapdoor[facing=north,half=top,open=false]")

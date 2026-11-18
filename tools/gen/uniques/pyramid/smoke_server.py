@@ -1,10 +1,10 @@
-"""Prueba en un servidor dedicado 26.3 real: circuitos, guardián y agua del Templo-pirámide.
+"""Test on a real 26.3 dedicated server: circuits, guardian and water of the Pyramid temple.
 
-Uso: python3 tools/gen/uniques/pyramid/smoke_server.py --jar build/libs/heraldia-<versión>.jar
-Coloca las dos plantillas sin rotación con /place template (sin procesadores) y comprueba:
-el guardián existe con 40 de vida; la puerta secreta está cerrada en reposo, se abre al cargar el bloque de la
-antorcha (lo que hace la palanca) y se cierra al quitarlo; el cable trampa, las placas del foso y las losas de
-dardos disparan con una entidad encima; el agua no se sale. Código 0 si todo pasa.
+Usage: python3 tools/gen/uniques/pyramid/smoke_server.py --jar build/libs/heraldia-<version>.jar
+Places the two templates unrotated with /place template (no processors) and checks:
+the guardian exists with 40 health; the secret door is closed at rest, opens when the torch's block is charged
+(what the lever does) and closes when it is removed; the trap wire, the pit plates and the dart
+slabs fire with an entity on top; the water does not spill out. Exit code 0 if everything passes.
 """
 import argparse, os, queue, subprocess, sys, threading, time
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -40,7 +40,7 @@ def main():
 
     def check(name, c, until=False):
         ok = ctx.until(c) if until else ctx.test(c)
-        print(("OK   " if ok else "FALLA ") + name)
+        print(("OK   " if ok else "FAIL ") + name)
         if not ok:
             fails.append(name)
 
@@ -66,17 +66,17 @@ def main():
         cmd(f"setblock {w(d['X'])} minecraft:deepslate_tiles")
         ctx.ticks(40)
         check("la puerta se cierra otra vez", f"execute if block {w(d['D'][0])} minecraft:deepslate_tiles")
-        # trampas con una entidad encima
+        # traps with an entity on top
         tx, ty, tz = o.marks["trampa:cable"][0]
         cmd(f"summon minecraft:armor_stand {O[0] + tx + 0.5} {O[1] + ty} {O[2] + tz + 0.5}")
         disp = w((tx, ty + 1, tz - 2))
         end = time.monotonic() + S.UNTIL_S
-        while True:               # 3 ranuras de 6 flechas (piezas.tripwire_trap): alguna debe haber bajado
+        while True:               # 3 ranuras de 6 flechas (pieces.tripwire_trap): alguna debe haber bajado
             fired = any(ctx.test(f"execute unless data block {disp} Items[{{Slot:{i}b,count:6}}]") for i in range(3))
             if fired or time.monotonic() > end:
                 break
             time.sleep(S.POLL_S)
-        print(("OK   " if fired else "FALLA ") + "cable trampa dispara")
+        print(("OK   " if fired else "FAIL ") + "cable trampa dispara")
         if not fired:
             fails.append("cable trampa dispara")
         px, py, pz = o.marks["trampa:foso"][0]
@@ -97,7 +97,7 @@ def main():
                 proc.wait(timeout=120)
             except subprocess.TimeoutExpired:
                 proc.kill()
-    print("PRUEBA DE LA PIRÁMIDE " + ("FALLIDA: " + ", ".join(fails) if fails else "OK"))
+    print("PYRAMID TEST " + ("FALLIDA: " + ", ".join(fails) if fails else "OK"))
     return 1 if fails else 0
 
 

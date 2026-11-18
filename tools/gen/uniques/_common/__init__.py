@@ -1,11 +1,11 @@
-"""Piezas comunes y parametrizadas de las estructuras únicas (no es una estructura: el prefijo _ la excluye).
+"""Common, parameterized pieces of the unique structures (not a structure itself: the _ prefix excludes it).
 
-  botin.py   tablas de cofre con grupo extra solo_sin_lootr, objetos con nombre traducible, libros, pociones.
-  redstone.py simulador estático de redstone (forma de cables y reglas del juego) para auditar puzles.
-  piezas.py  generadores, guardianes, carteles, cofres, puertas secretas de pistones, trampas de hilo y de TNT,
-             escaleras de caracol (por tramos de 6, continua de peldaños o de losas de media altura), círculos,
-             cuadros y conexiones de vallas/cristales/muros.
-  recorrido.py vistas para lint.walk (con mecanismos cerrados o abiertos), alcance, recorrido estricto (andar, con
-             agua=True para nadar), caminos sin vuelta y bloques flotantes.
-Las piezas reciben `put(x, y, z, estado, nbt=None)`, así sirven para cualquier sistema de coordenadas.
+  chest_loot.py   chest tables with an extra solo_sin_lootr group, items with translatable names, books, potions.
+  redstone.py static redstone simulator (wire shape and game rules) to audit puzzles.
+  pieces.py  generators, guardians, signs, chests, secret piston doors, string and TNT traps,
+             spiral staircases (in runs of 6, continuous steps or half-height slabs), circles,
+             paintings and fence/glass/wall connections.
+  walkthrough.py views for lint.walk (with mechanisms closed or open), reach, strict walkthrough (walking, with
+             agua=True for swimming), dead-end-free roads and floating blocks.
+The pieces receive `put(x, y, z, state, nbt=None)`, so they work for any coordinate system.
 """

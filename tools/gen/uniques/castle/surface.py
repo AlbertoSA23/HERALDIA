@@ -1,15 +1,15 @@
-"""Castillo en superficie: foso, muralla con torres y adarve, puerta con rastrillo, patio de armas y torre del homenaje.
-Coordenadas de la plantilla: x, z en 0..99 (norte z=0, la puerta mira al sur); y=5 es la capa de terreno, los pies a y=6."""
+"""Castle on the surface: moat, wall with towers and wall walk, gate with portcullis, parade ground and keep.
+Template coordinates: x, z in 0..99 (north z=0, the gate faces south); y=5 is the terrain layer, feet at y=6."""
 import random
 from .util import Canvas, hidden_door
 from .._common.pieces import circle, spiral_slabs, connect, chest as put_chest
 from .._common import pieces
 
 N = 100
-G, L, W = 5, 6, 17          # capa de terreno, pies en el patio, pies en el adarve
+G, L, W = 5, 6, 17          # terrain layer, feet in the courtyard, feet on the wall walk
 SB, COB = "stone_bricks", "cobblestone"
 LOOT = "heraldia:unicas/castillo/"
-NEWEL = (40, 37)            # machón del caracol (baja a la mazmorra)
+NEWEL = (40, 37)            # spiral staircase pillar (goes down to the dungeon)
 SPIRAL = dict(s0=-13, s1=22, phase=5)
 
 
@@ -29,7 +29,7 @@ def build(rnd=None):
     def hang(x, y, z, soul=False):
         t.set(x, y, z, ("soul_lantern" if soul else "lantern") + "[hanging=true,waterlogged=false]")
 
-    # ------------------------------------------------------------ terreno, foso y muralla
+    # ------------------------------------------------------------ terrain, moat and wall
     for x in range(N):
         for z in range(N):
             r = ring(x, z)
@@ -58,7 +58,7 @@ def build(rnd=None):
                 k = rnd.random()
                 t.set(x, G, z, "coarse_dirt" if k < 0.08 else "grass_block[snowy=false]")
                 t.air(x, L, z, x, L + 3, z)
-    # faroles en el parapeto, cada 12 bloques
+    # lanterns on the parapet, every 12 blocks
     for k in range(18, 82, 12):
         for x, z in ((k, 10), (k, 89), (10, k), (89, k)):
             if (x + z) % 2 == 1:
@@ -140,7 +140,7 @@ def build(rnd=None):
                         t.set(nx, y, z, "vine[east=false,north=false,south=false,up=false,west=" +
                               ("true" if x > cx else "false") + "]" if x > cx else
                               "vine[east=true,north=false,south=false,up=false,west=false]")
-            # escombros dentro, en la planta baja
+            # rubble inside, on the ground floor
             for (x, z) in [(cx + 1, cz - 1), (cx - 1, cz + 1), (cx, cz)]:
                 t.set(x, L, z, rnd.choice(["cobblestone", "mossy_cobblestone", "gravel"]))
         if content:
@@ -166,7 +166,7 @@ def build(rnd=None):
     tower(11, 88, 1, -1, tw_sw)
     tower(88, 88, -1, -1, tw_se)
 
-    # ------------------------------------------------------------ bastiones a media muralla (este y oeste)
+    # ------------------------------------------------------------ mid-wall bastions (east and west)
     for cx, wx, side in ((11, 12, 1), (88, 87, -1)):
         cz = 50
         shell = circle(cx, cz, 4.5)
@@ -189,14 +189,14 @@ def build(rnd=None):
         hang(cx, 21, cz)
         t.set(cx - 4 * side, 19, cz, "iron_bars")
 
-    # ------------------------------------------------------------ escaleras al adarve
+    # ------------------------------------------------------------ stairs to the wall walk
     for k in range(11):
         t.fill(13, L, 30 + k, 13, L + k - 1, 30 + k, SB) if k else None
         t.set(13, L + k, 30 + k, "stone_brick_stairs[facing=south,half=bottom,shape=straight,waterlogged=false]")
         t.fill(86, L, 45 - k, 86, L + k - 1, 45 - k, SB) if k else None
         t.set(86, L + k, 45 - k, "stone_brick_stairs[facing=north,half=bottom,shape=straight,waterlogged=false]")
 
-    # ------------------------------------------------------------ puerta: barbacana, rastrillo y puente
+    # ------------------------------------------------------------ gate: barbican, portcullis and bridge
     t.fill(42, 0, 80, 57, 22, 92, SB)
     t.air(48, L, 80, 51, 10, 92)
     for x in range(48, 52):
@@ -243,7 +243,7 @@ def build(rnd=None):
         hang(x, 10, z)
     hang(46, 21, 84)
     hang(53, 21, 84)
-    # cuerpo de guardia (oeste) y almacén (este)
+    # guardroom (west) and storehouse (east)
     chest(43, L, 81, "east", "armeria")
     t.set(46, L, 81, "barrel[facing=up,open=false]")
     t.set(44, L, 86, "spruce_slab[type=top,waterlogged=false]")
@@ -253,7 +253,7 @@ def build(rnd=None):
     chest(56, L, 82, "west", "cocina", "barrel")
     t.set(53, L, 81, "hay_block[axis=y]")
     t.set(53, L, 86, "barrel[facing=up,open=false]")
-    # sala del torno
+    # winch room
     chest(56, W, 81, "west", "armeria")
     for z in (83, 85):
         t.set(44, W, z, "red_bed[facing=west,occupied=false,part=head]")
@@ -268,18 +268,18 @@ def build(rnd=None):
             t.set(x, L, z, "spruce_fence[east=false,north=true,south=true,waterlogged=false,west=false]")
     for x in (47, 52):
         t.fill(x, 1, 94, x, 4, 94, SB)
-    t.set(51, G, 94, "water[level=0]")          # tablón perdido
+    t.set(51, G, 94, "water[level=0]")          # lost plank
     for z in range(97, 100):
         for x in range(48, 52):
             t.set(x, G, z, "dirt_path")
 
-    # ------------------------------------------------------------ torre del homenaje
+    # ------------------------------------------------------------ keep
     keep(t, chest, hang, meta)
-    # ------------------------------------------------------------ capilla, herrería, caballerizas, pozo, huerto, liza
+    # ------------------------------------------------------------ chapel, smithy, stables, well, garden, tiltyard
     chapel(t, chest, hang)
     smithy(t, chest, hang)
     stables(t, chest, hang, rnd)
-    # pozo con cofre en el fondo
+    # well with a chest at the bottom
     t.fill(48, 1, 58, 51, G, 61, "cobblestone")
     t.fill(48, L, 58, 51, L, 61, "cobblestone_slab[type=bottom,waterlogged=false]")
     t.fill(49, 1, 59, 50, G, 60, "water[level=0]")
@@ -290,7 +290,7 @@ def build(rnd=None):
     t.fill(48, L + 3, 58, 51, L + 3, 61, "spruce_slab[type=bottom,waterlogged=false]")
     t.set(49, L + 2, 59, "iron_chain[axis=y,waterlogged=false]")
     t.set(49, L + 1, 59, "lantern[hanging=true,waterlogged=false]")
-    # huerto de la cocina
+    # kitchen garden
     for x in range(16, 28):
         for z in range(20, 35):
             edge = x in (16, 27) or z in (20, 34)
@@ -306,7 +306,7 @@ def build(rnd=None):
                 t.set(x, L, z, crop)
     t.set(17, G, 21, "dirt")
     t.set(17, L, 21, "composter[level=4]")
-    # liza: dianas y estafermo
+    # tiltyard: targets and quintain
     for x in (30, 34, 38):
         t.set(x, L, 64, "hay_block[axis=y]")
         t.set(x, L + 1, 64, "target[power=0]")
@@ -316,17 +316,17 @@ def build(rnd=None):
         t.set(x, L + 2, 72, "carved_pumpkin[facing=south]")
     t.set(28, L, 76, "hay_block[axis=x]")
     chest(29, L, 76, "north", "armeria", "barrel")
-    # farolas del patio
+    # courtyard lamps
     for x, z in ((46, 50), (53, 50), (46, 70), (53, 70), (30, 50), (69, 50), (30, 78), (69, 78)):
         t.set(x, L, z, "spruce_fence[east=false,north=false,south=false,waterlogged=false,west=false]")
         t.set(x, L + 1, z, "lantern[hanging=false,waterlogged=false]")
-    # escombros al pie de la torre en ruinas
+    # rubble at the foot of the ruined tower
     for _ in range(26):
         x, z = rnd.randint(76, 86), rnd.randint(15, 20)
         if t.get(x, L, z) in ("minecraft:air", None) or "grass" in (t.get(x, L, z) or ""):
             t.set(x, L, z, rnd.choice(["cobblestone", "mossy_cobblestone", "stone_brick_slab[type=bottom,waterlogged=false]",
                                        "gravel", "cracked_stone_bricks"]))
-    # parapeto norte desmochado junto a la torre en ruinas
+    # broken-off north parapet next to the ruined tower
     for x in range(68, 80):
         t.clear(x, W + 1, 10)
         if x % 3 == 0:
@@ -365,14 +365,14 @@ def keep(t, chest, hang, meta):
                 t.set(x, 22, z, SB)
                 if (x + z) % 2 == 0:
                     t.set(x, 23, z, SB)
-    F1, F2 = 15, 22                       # pies en la planta alta y en la azotea
+    F1, F2 = 15, 22                       # feet on the upper floor and on the roof
     # planta baja
     t.air(33, L, 17, 42, 13, 27)          # cocina
     t.air(33, L, 29, 42, 13, 33)          # despensa
     t.air(33, L, 35, 37, 13, 42)          # bodega
     t.air(38, L, 40, 42, 13, 42)
-    t.air(44, L, 17, 57, 20, 42)          # gran salón (doble altura)
-    t.air(59, L, 17, 66, 13, 28)          # armería
+    t.air(44, L, 17, 57, 20, 42)          # great hall (double height)
+    t.air(59, L, 17, 66, 13, 28)          # armory
     t.air(59, L, 30, 66, 13, 42)          # cuartel
     for x in range(33, 67):
         for z in range(17, 43):
@@ -380,15 +380,15 @@ def keep(t, chest, hang, meta):
     # planta alta
     t.air(33, F1, 17, 42, 20, 23)         # estudio
     t.air(33, F1, 25, 42, 20, 33)         # biblioteca
-    t.air(33, F1, 35, 37, 20, 42)         # antecámara
+    t.air(33, F1, 35, 37, 20, 42)         # antechamber
     t.air(38, F1, 40, 42, 20, 42)
-    t.air(59, F1, 17, 66, 20, 29)         # alcoba del señor
+    t.air(59, F1, 17, 66, 20, 29)         # lord's alcove
     t.air(59, F1, 31, 66, 20, 42)         # solana
     for x in list(range(33, 43)) + list(range(59, 67)):
         for z in range(17, 43):
             if t.get(x, F1, z) == "minecraft:air":
                 t.set(x, F1 - 1, z, "spruce_planks" if x > 58 else "dark_oak_planks")
-    # tribuna sobre el salón y escalera principal
+    # gallery over the hall and main staircase
     t.fill(44, 14, 17, 57, 14, 21, "spruce_planks")
     for x in (47, 51, 54):
         t.fill(x, L, 21, x, 13, 21, "spruce_log[axis=y]")
@@ -414,7 +414,7 @@ def keep(t, chest, hang, meta):
     for x in range(50, 52):
         for z in range(43, 46):
             t.set(x, G, z, "polished_andesite")
-    # caracol: de la mazmorra (-13) a la azotea (22)
+    # spiral staircase: from the dungeon (-13) to the roof (22)
     t.fill(38, 22, 35, 42, 24, 39, SB)
     t.fill(38, 25, 35, 42, 25, 39, "stone_brick_slab[type=bottom,waterlogged=false]")
     for x in range(39, 42):
@@ -446,7 +446,7 @@ def keep(t, chest, hang, meta):
         window(t, (67, 68, 69), range(16, 19), zs, axis="z")
     window(t, (61, 62), range(8, 11), (43, 44, 45))
     window(t, (61, 62), range(16, 19), (43, 44, 45))
-    # pasadizo en el grueso del muro oeste y gabinete secreto en el torreón SO
+    # passage in the thickness of the west wall and secret closet in the SW tower
     t.air(31, F1, 17, 31, F1 + 1, 40)
     t.air(28, F1, 41, 31, 19, 44)
     for z in (20, 26, 32, 38):
@@ -459,7 +459,7 @@ def keep(t, chest, hang, meta):
     t.set(28, F1, 41, "lectern[facing=east,has_book=false,powered=false]")
     t.set(30, F1, 44, "barrel[facing=up,open=false]")
     t.set(31, F1, 44, "candle[candles=3,lit=false,waterlogged=false]")
-    # estudio: pared de librerías y puerta secreta (palanca en el rincón noroeste)
+    # study: bookshelf wall and secret door (lever in the northwest corner)
     t.fill(32, F1, 17, 32, 18, 23, "bookshelf")
     info = hidden_door(t.set, 33, 17, F1, -1, "bookshelf")
     meta["secret"]["estudio"] = info
@@ -480,13 +480,13 @@ def keep(t, chest, hang, meta):
     chest(42, F1, 33, "west", "aposentos", "barrel")
     hang(37, 20, 27)
     hang(37, 20, 31)
-    # antecámara
+    # antechamber
     for x in range(33, 38):
         t.set(x, F1, 38, "red_carpet")
     t.set(33, F1, 42, "decorated_pot[cracked=false,facing=north,waterlogged=false]")
     t.set(33, F1 + 2, 37, "red_wall_banner[facing=east]")
     hang(35, 20, 40)
-    # alcoba del señor y solana
+    # lord's alcove and sun terrace
     for x in (62, 63):
         t.set(x, F1, 17, "red_bed[facing=north,occupied=false,part=head]")
         t.set(x, F1, 18, "red_bed[facing=north,occupied=false,part=foot]")
@@ -520,7 +520,7 @@ def keep(t, chest, hang, meta):
     t.fill(37, L, 21, 38, L, 24, "spruce_slab[type=top,waterlogged=false]")
     hang(37, 13, 19)
     hang(37, 13, 25)
-    # despensa y bodega
+    # pantry and cellar
     for z in range(29, 34):
         t.set(33, L, z, "barrel[facing=east,open=false]")
     chest(33, L, 31, "east", "cocina", "barrel")
@@ -534,7 +534,7 @@ def keep(t, chest, hang, meta):
     t.set(36, L, 35, "cobweb")
     t.set(33, 13, 42, "cobweb")
     hang(35, 13, 38)
-    # gran salón
+    # great hall
     t.fill(50, L, 26, 51, L, 38, "dark_oak_slab[type=top,waterlogged=false]")
     for z in range(26, 39, 2):
         t.set(49, L, z, "dark_oak_stairs[facing=west,half=bottom,shape=straight,waterlogged=false]")
@@ -558,7 +558,7 @@ def keep(t, chest, hang, meta):
     hang(49, 13, 19)
     hang(53, 13, 19)
     t.set(56, F1, 17, "note_block[instrument=harp,note=0,powered=false]")
-    # armería y cuartel
+    # armory and barracks
     chest(66, L, 17, "west", "armeria")
     chest(66, L, 28, "west", "armeria")
     t.set(59, L, 17, "fletching_table")
