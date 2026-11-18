@@ -10,7 +10,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.d
 sys.path.insert(0, os.path.join(ROOT, "tools", "smoke"))
 sys.path.insert(0, os.path.join(ROOT, "tools", "gen"))
 import server_smoke as sm
-from uniques.cathedral import model, pieces
+from uniques.cathedral import model, split_pieces as pieces
 
 BASE = (1000, 150, 1000)
 
