@@ -9,14 +9,14 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 
 /**
- * Versión del mod con la que se generó el mundo y la última con la que se abrió (T46), guardadas en el mundo principal
- * (adjunto persistente de Fabric API en el {@code ServerLevel}, como la arena). Un mundo que ya existía antes de que el mod
- * guardara esto (o antes de instalar el mod) queda como generado con {@link #PREVIOUS}: no se sabe con cuál.
+ * Mod version the world was generated with and the last one it was opened with (T46), saved in the overworld
+ * (Fabric API persistent attachment on the {@code ServerLevel}, like the arena). A world that already existed before the mod
+ * saved this (or before the mod was installed) is recorded as generated with {@link #PREVIOUS}: which one is unknown.
  *
- * @param generado      versión con la que se creó el mundo, o {@link #PREVIOUS}
- * @param ultima        última versión con la que se abrió (la de ahora tras arrancar)
- * @param nivelArreglos el {@link Fixes#NIVEL} de la versión con que se generó (0 si es {@link #PREVIOUS}): los
- *                      chunks y mobs de un mundo de un nivel menor pueden necesitar arreglos
+ * @param generated  version the world was created with, or {@link #PREVIOUS}
+ * @param latest     last version it was opened with (the current one after startup)
+ * @param fixesLevel the fix level ({@link Fixes}) of the version it was generated with (0 if it is {@link #PREVIOUS}): the
+ *                   chunks and mobs of a world with a lower level may need fixes
  */
 public record WorldVersion(String generated, String latest, int fixesLevel) {
 	public static final String PREVIOUS = "anterior";
@@ -26,9 +26,9 @@ public record WorldVersion(String generated, String latest, int fixesLevel) {
 			Codec.INT.optionalFieldOf("nivel_arreglos", 0).forGetter(WorldVersion::fixesLevel)).apply(i, WorldVersion::new));
 
 	/**
-	 * Lo que queda guardado al arrancar con la versión {@code actual} (lógica pura): si no había nada, un mundo nuevo
-	 * (con menos de {@code newTicks} de juego) se da por generado con la actual y uno viejo con {@link #PREVIOUS}; si
-	 * había, se conserva la de generación y se pone la actual como última.
+	 * What is saved at startup with version {@code actual} (pure logic): if there was nothing, a new world
+	 * (with less than {@code newTicks} of play) is treated as generated with the current one and an old one with {@link #PREVIOUS}; if
+	 * there was, the generation one is kept and the current one is set as latest.
 	 */
 	public static WorldVersion onStart(Optional<WorldVersion> saved, String actual, long gameTime, long newTicks, int tier) {
 		if (saved.isEmpty()) {
@@ -39,7 +39,7 @@ public record WorldVersion(String generated, String latest, int fixesLevel) {
 		return new WorldVersion(g.generated(), actual, g.fixesLevel());
 	}
 
-	/** ¿Se abre con una versión más antigua que la última con la que se abrió? (se avisa en el log). */
+	/** Is it opened with an older version than the last one it was opened with? (logged as a warning). */
 	public static boolean backsOff(Optional<WorldVersion> saved, String actual) {
 		if (saved.isEmpty()) {
 			return false;
@@ -48,7 +48,7 @@ public record WorldVersion(String generated, String latest, int fixesLevel) {
 		return before.isPresent() && now.isPresent() && now.get().compareTo(before.get()) < 0;
 	}
 
-	/** El adjunto, aparte para que los tests no registren nada al cargar la clase. */
+	/** The attachment, kept apart so the tests register nothing when the class loads. */
 	static final class Type {
 		static final AttachmentType<WorldVersion> VERSION = AttachmentRegistry.create(Heraldia.id("version_mundo"), b -> b.persistent(CODEC));
 

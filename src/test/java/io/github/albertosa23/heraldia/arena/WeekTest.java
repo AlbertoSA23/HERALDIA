@@ -12,7 +12,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import org.junit.jupiter.api.Test;
 
-/** La semana de la clasificación de la arena: día y hora de reinicio, zonas horarias, cambio de año y de hora. */
+/** The arena leaderboard week: reset day and hour, time zones, year change and clock change. */
 class WeekTest {
 	private static final ZoneId MADRID = ZoneId.of("Europe/Madrid"), UTC = ZoneId.of("UTC"), AUCKLAND = ZoneId.of("Pacific/Auckland");
 
@@ -22,62 +22,62 @@ class WeekTest {
 
 	@Test
 	void mondayAtMidnight() {
-		// martes 17-11-2026: la semana empezó el lunes 16
+		// Tuesday 17-11-2026: the week started on Monday 16
 		assertEquals(LocalDate.of(2026, 11, 16), Week.start(en("2026-11-17T15:00", MADRID), MADRID, DayOfWeek.MONDAY, 0));
-		// el propio lunes a las 00:00 ya es la semana nueva; un segundo antes, la anterior
+		// Monday itself at 00:00 is already the new week; one second earlier, the previous one
 		assertEquals(LocalDate.of(2026, 11, 16), Week.start(en("2026-11-16T00:00", MADRID), MADRID, DayOfWeek.MONDAY, 0));
 		assertEquals(LocalDate.of(2026, 11, 9), Week.start(en("2026-11-15T23:59:59", MADRID), MADRID, DayOfWeek.MONDAY, 0));
-		// el domingo es aún la semana del lunes anterior
+		// Sunday is still the week of the previous Monday
 		assertEquals(LocalDate.of(2026, 11, 16), Week.start(en("2026-11-22T23:00", MADRID), MADRID, DayOfWeek.MONDAY, 0));
 	}
 
 	@Test
 	void resetHour() {
-		// reinicio el lunes a las 6:00: el lunes a las 5:59 sigue la semana anterior
+		// reset on Monday at 6:00: on Monday at 5:59 it is still the previous week
 		assertEquals(LocalDate.of(2026, 11, 9), Week.start(en("2026-11-16T05:59", MADRID), MADRID, DayOfWeek.MONDAY, 6));
 		assertEquals(LocalDate.of(2026, 11, 16), Week.start(en("2026-11-16T06:00", MADRID), MADRID, DayOfWeek.MONDAY, 6));
 		assertEquals(en("2026-11-23T06:00", MADRID), Week.nextReset(en("2026-11-16T06:00", MADRID), MADRID, DayOfWeek.MONDAY, 6));
-		// hora fuera de rango: se acota
+		// hour out of range: it is clamped
 		assertEquals(Week.limit(LocalDate.of(2026, 11, 16), 23, MADRID), Week.limit(LocalDate.of(2026, 11, 16), 99, MADRID));
 	}
 
 	@Test
 	void anotherDay() {
-		// reinicio el viernes: el jueves 19-11 es la semana del viernes 13
+		// reset on Friday: Thursday 19-11 is the week of Friday 13
 		assertEquals(LocalDate.of(2026, 11, 13), Week.start(en("2026-11-19T12:00", MADRID), MADRID, DayOfWeek.FRIDAY, 0));
 		assertEquals(LocalDate.of(2026, 11, 20), Week.start(en("2026-11-20T00:00", MADRID), MADRID, DayOfWeek.FRIDAY, 0));
 		assertEquals(LocalDate.of(2026, 11, 20), Week.next(LocalDate.of(2026, 11, 13), DayOfWeek.FRIDAY));
-		// si cambia el día de reinicio, la siguiente es el primer día nuevo tras el inicio guardado
+		// if the reset day changes, the next one is the first new day after the saved start
 		assertEquals(LocalDate.of(2026, 11, 18), Week.next(LocalDate.of(2026, 11, 16), DayOfWeek.WEDNESDAY));
 		assertEquals(LocalDate.of(2026, 11, 23), Week.next(LocalDate.of(2026, 11, 16), DayOfWeek.MONDAY));
 	}
 
 	@Test
 	void yearChange() {
-		// jueves 31-12-2026: la semana empezó el lunes 28-12-2026; el lunes 4-1-2027 empieza otra
+		// Thursday 31-12-2026: the week started on Monday 28-12-2026; on Monday 4-1-2027 another starts
 		assertEquals(LocalDate.of(2026, 12, 28), Week.start(en("2026-12-31T23:30", MADRID), MADRID, DayOfWeek.MONDAY, 0));
 		assertEquals(LocalDate.of(2026, 12, 28), Week.start(en("2027-01-03T23:59", MADRID), MADRID, DayOfWeek.MONDAY, 0));
 		assertEquals(LocalDate.of(2027, 1, 4), Week.start(en("2027-01-04T00:00", MADRID), MADRID, DayOfWeek.MONDAY, 0));
 		assertEquals(LocalDate.of(2027, 1, 4), Week.next(LocalDate.of(2026, 12, 28), DayOfWeek.MONDAY));
-		// año bisiesto: del lunes 26-2-2024 al lunes 4-3-2024 (pasando por el 29-2)
+		// leap year: from Monday 26-2-2024 to Monday 4-3-2024 (passing through 29-2)
 		assertEquals(LocalDate.of(2024, 3, 4), Week.next(LocalDate.of(2024, 2, 26), DayOfWeek.MONDAY));
 	}
 
 	@Test
 	void timeZones() {
-		// el mismo instante (lunes 16-11-2026 a las 00:30 en Madrid = domingo 23:30 en UTC) es otra semana en cada zona
+		// the same instant (Monday 16-11-2026 at 00:30 in Madrid = Sunday 23:30 in UTC) is a different week in each zone
 		Instant i = en("2026-11-16T00:30", MADRID);
 		assertEquals(LocalDate.of(2026, 11, 16), Week.start(i, MADRID, DayOfWeek.MONDAY, 0));
 		assertEquals(LocalDate.of(2026, 11, 9), Week.start(i, UTC, DayOfWeek.MONDAY, 0));
-		// en Auckland (UTC+13 en noviembre) ya es lunes a mediodía
+		// in Auckland (UTC+13 in November) it is already Monday at noon
 		assertEquals(LocalDate.of(2026, 11, 16), Week.start(i, AUCKLAND, DayOfWeek.MONDAY, 0));
 		assertNotEquals(Week.nextReset(i, MADRID, DayOfWeek.MONDAY, 0), Week.nextReset(i, UTC, DayOfWeek.MONDAY, 0));
 	}
 
 	@Test
 	void dstChange() {
-		// Madrid adelanta la hora el domingo 29-3-2026 a las 2:00 (no existe de 2:00 a 3:00): un reinicio el domingo a
-		// las 2:00 cae a las 3:00 de verano, y una semana con el cambio dura 167 horas
+		// Madrid moves the clock forward on Sunday 29-3-2026 at 2:00 (2:00 to 3:00 does not exist): a reset on Sunday at
+		// 2:00 falls at 3:00 summer time, and a week with the change lasts 167 hours
 		ZonedDateTime l = Week.limit(LocalDate.of(2026, 3, 29), 2, MADRID);
 		assertEquals(3, l.getHour());
 		assertEquals(LocalDate.of(2026, 3, 22), Week.start(en("2026-03-29T01:59", MADRID), MADRID, DayOfWeek.SUNDAY, 2));
@@ -85,7 +85,7 @@ class WeekTest {
 		Instant a = Week.limit(LocalDate.of(2026, 3, 23), 0, MADRID).toInstant(), b = Week.limit(LocalDate.of(2026, 3, 30), 0, MADRID).toInstant();
 		assertEquals(167, java.time.Duration.between(a, b).toHours());
 		assertEquals(LocalDate.of(2026, 3, 30), Week.start(b, MADRID, DayOfWeek.MONDAY, 0));
-		// y el retraso de octubre (25-10-2026): 169 horas, la semana no se mueve
+		// and the October setback (25-10-2026): 169 hours, the week does not move
 		Instant c = Week.limit(LocalDate.of(2026, 10, 19), 0, MADRID).toInstant(), d = Week.limit(LocalDate.of(2026, 10, 26), 0, MADRID).toInstant();
 		assertEquals(169, java.time.Duration.between(c, d).toHours());
 		assertEquals(LocalDate.of(2026, 10, 19), Week.start(d.minusSeconds(1), MADRID, DayOfWeek.MONDAY, 0));

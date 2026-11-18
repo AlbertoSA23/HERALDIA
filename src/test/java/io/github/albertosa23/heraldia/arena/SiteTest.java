@@ -6,11 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/** Elección del sitio: a 200-300 bloques del spawn, en llano y sin agua. */
+/** Choice of the site: 200-300 blocks from spawn, flat and without water. */
 class SiteTest {
 	private static final int SIDE = 57, LOW = 7, HIGH = 7, MIN_Y = -64, MAX_Y = 320;
 
-	/** Terreno inventado: llano a 70, con lo que diga `alto` (altura) y `agua` (columnas con agua). */
+	/** Made-up terrain: flat at 70, with whatever `high` (height) and `water` (columns with water) say. */
 	private record Terrain(java.util.function.IntBinaryOperator high, java.util.function.BiPredicate<Integer, Integer> water)
 			implements Site.Heights {
 		@Override
@@ -40,7 +40,7 @@ class SiteTest {
 
 	@Test
 	void avoidsSlopesAndWater() {
-		// al este (x > 0) una ladera fuerte; al norte (z < 0), un lago; el llano, al oeste y al sur
+		// to the east (x > 0) a steep slope; to the north (z < 0), a lake; the flat area, to the west and south
 		Terrain t = new Terrain((x, z) -> x > 0 ? 70 + x / 3 : 70, (x, z) -> z < -100);
 		Site.Choice e = choose(0, 0, t).orElseThrow();
 		assertTrue(e.x() + SIDE / 2 + Site.MARGIN <= 0 || e.drop() <= 2, "no en la ladera: " + e);
@@ -50,7 +50,7 @@ class SiteTest {
 
 	@Test
 	void prefersSmallestDrop() {
-		// ondulado con amplitud que crece hacia el sur: el mejor sitio, al norte
+		// undulating with an amplitude that grows towards the south: the best site, to the north
 		Terrain t = new Terrain((x, z) -> 70 + (int) (Math.sin(x / 9.0) * Math.max(0, z + 320) / 60.0), (x, z) -> false);
 		Site.Choice e = choose(0, 0, t).orElseThrow();
 		assertTrue(e.z() < -150, "debería quedar al norte: " + e);
@@ -79,7 +79,7 @@ class SiteTest {
 	@Test
 	void avoidsAlreadyGeneratedStructures() {
 		Site.Choice free = choose(0, 0, new Terrain((x, z) -> 70, (x, z) -> false)).orElseThrow();
-		// la mejor posición sin estructuras pasa a estar ocupada (una aldea, una entrada de mina...): se elige otra
+		// the best position without structures becomes occupied (a village, a mine entrance...): another one is chosen
 		int ocx = free.x() >> 4, ocz = free.z() >> 4;
 		Site.Heights withVillage = new Terrain((x, z) -> 70, (x, z) -> false);
 		Site.Heights occupied = new Site.Heights() {
@@ -105,7 +105,7 @@ class SiteTest {
 				assertTrue(!occupied.occupied(cx, cz), "chunk ocupado en la huella: " + cx + ", " + cz);
 			}
 		}
-		// todo ocupado: sin sitio
+		// everything occupied: no site
 		Site.Heights everything = new Site.Heights() {
 			@Override
 			public int surface(int x, int z) {

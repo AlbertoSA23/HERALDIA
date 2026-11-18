@@ -9,10 +9,10 @@ import io.github.albertosa23.heraldia.roads.RoadLayout;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Elección del tramo y la ruta sobre el camino (lógica pura, con un trazado de prueba de dos aldeas vecinas). */
+/** Choice of the segment and the route along the road (pure logic, with a test layout of two neighboring villages). */
 class SegmentTest {
 	static final int CELL = 94 * 16;
-	/** Dos aldeas a 1.200 bloques en el eje x: la de la casilla (0, 0) en 8, 8 y la de la (1, 0) en 1208, 8. */
+	/** Two villages 1,200 blocks apart on the x axis: that of cell (0, 0) at 8, 8 and that of (1, 0) at 1208, 8. */
 	static final long A = RoadLayout.pack(8, 8), B = RoadLayout.pack(1208, 8);
 
 	static RoadLayout layout() {
@@ -24,7 +24,7 @@ class SegmentTest {
 		return layout().route(A, B);
 	}
 
-	/** Un punto a {@code side} bloques del vértice i de la ruta, por su normal. */
+	/** A point {@code side} blocks from vertex i of the route, along its normal. */
 	static int[] beside(RoadLayout.Route r, int i, double side) {
 		double[] n = r.normal(i);
 		return new int[]{(int) Math.round(r.x(i) + n[0] * side), (int) Math.round(r.z(i) + n[1] * side)};
@@ -40,7 +40,7 @@ class SegmentTest {
 		assertEquals(1, routes.size());
 		assertTrue(routes.get(0) == r, "la misma ruta que la generación (en memoria)");
 		assertEquals(List.of(), t.routesIn(x - 80, z + 500, x + 80, z + 660), "lejos del camino, ninguna");
-		// rutas(chunk) es rutasEn con la caja del chunk
+		// routes(chunk) is routesIn with the chunk's box
 		assertEquals(t.routes(Math.floorDiv(x, 16), Math.floorDiv(z, 16)),
 				t.routesIn(Math.floorDiv(x, 16) * 16, Math.floorDiv(z, 16) * 16, Math.floorDiv(x, 16) * 16 + 15, Math.floorDiv(z, 16) * 16 + 15));
 	}
@@ -58,7 +58,7 @@ class SegmentTest {
 		assertEquals(Segment.LENGTH + 1, t.vertices());
 		assertEquals(Segment.LENGTH, Math.abs(t.end() - t.start()));
 		assertTrue(t.length() > Segment.LENGTH * RoadLayout.STEP * 0.9 && t.length() < Segment.LENGTH * RoadLayout.STEP * 1.5, "unos 128 bloques: " + t.length());
-		// la llegada y la salida, fuera de las aldeas
+		// the arrival and the start, outside the villages
 		for (int i : new int[]{t.start(), t.end()}) {
 			assertTrue(i >= Segment.VILLAGE_MARGIN && i <= r.vertices() - 1 - Segment.VILLAGE_MARGIN, "vértice " + i);
 		}
@@ -74,7 +74,7 @@ class SegmentTest {
 	void headsTowardsPlayer() {
 		RoadLayout.Route r = route();
 		int m = r.vertices() / 2;
-		// el jugador junto al camino, 2 vértices más allá de m: la salida queda antes y la caravana va hacia él
+		// the player next to the road, 2 vertices past m: the start is before and the caravan heads towards them
 		int[] p = beside(r, m + 2, 0);
 		Segment t = Segment.choose(List.of(r), p[0], p[1], 0);
 		assertNotNull(t);
@@ -96,13 +96,13 @@ class SegmentTest {
 	@Test
 	void nearAVillageSpawnsOutsideAndHeadsToOtherSide() {
 		RoadLayout.Route r = route();
-		// el jugador en la plaza de A: la salida no puede estar en la aldea (margen) y cabe hacia B
+		// the player in A's plaza: the start cannot be in the village (margin) and it fits towards B
 		Segment t = Segment.choose(List.of(r), RoadLayout.px(A), RoadLayout.pz(A), 1);
 		assertNotNull(t);
 		assertTrue(t.start() >= Segment.VILLAGE_MARGIN);
 		assertEquals(1, t.step(), "hacia B: hacia A no cabe");
 		assertEquals(B, t.destination());
-		// y junto a B, hacia A
+		// and next to B, towards A
 		Segment u = Segment.choose(List.of(r), RoadLayout.px(B), RoadLayout.pz(B), 0);
 		assertNotNull(u);
 		assertEquals(-1, u.step());

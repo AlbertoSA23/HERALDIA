@@ -14,13 +14,13 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** Cuándo sale una caravana, cómo es, qué paga, la reputación con su aldea de destino y qué entidades sobran. */
+/** When a caravan spawns, what it is like, what it pays, the reputation with its destination village and which entities are leftovers. */
 class RulesTest {
 	static final long WAIT = Rules.WAIT_TICKS;
 
 	@Test
 	void spawnDecision() {
-		// activada, sin ninguna en camino, pasada la espera y con el sorteo a favor
+		// enabled, with none on the way, the wait over and the roll in favor
 		assertTrue(Rules.outcome(true, 0, 1, WAIT, 0, 10, 0.05));
 		assertFalse(Rules.outcome(true, 0, 1, WAIT, 0, 10, 0.10), "10 %: sale con azar < 0,10");
 		assertFalse(Rules.outcome(false, 0, 1, WAIT, 0, 100, 0), "desactivadas: nunca");
@@ -29,7 +29,7 @@ class RulesTest {
 		assertFalse(Rules.outcome(true, 0, 1, WAIT - 1, 0, 100, 0), "la espera tras la anterior");
 		assertFalse(Rules.outcome(true, 0, 1, 1_000_000, 0, 0, 0), "frecuencia 0: solo con el comando");
 		assertTrue(Rules.outcome(true, 0, 1, 1_000_000, 0, 100, 0.999), "frecuencia 100: siempre");
-		// al arrancar no hay espera (la última terminó «hace» ESPERA ticks)
+		// at startup there is no wait (the last one ended WAIT ticks "ago")
 		assertTrue(Rules.outcome(true, 0, 1, 0, -WAIT, 100, 0));
 	}
 
@@ -81,7 +81,7 @@ class RulesTest {
 			Rules.Reward r = Rules.reward(5, true, a);
 			assertTrue(r.item().startsWith("minecraft:") && r.amount() >= 1);
 		}
-		// modesto: nada de netherita, diamantes ni élitros (como el botín de una mediana)
+		// modest: no netherite, diamonds or elytra (like a medium structure's loot)
 		for (Object[] o : Rules.ITEMS) {
 			String id = (String) o[0];
 			assertFalse(id.contains("netherite") || id.contains("diamond") || id.contains("elytra") || id.contains("totem"), id);
@@ -90,11 +90,11 @@ class RulesTest {
 
 	@Test
 	void reputationWithDestinationVillage() {
-		// el trazado da la plaza de la aldea (chunk del inicio * 16 + 8): la reputación es la de ese chunk
+		// the layout gives the village's plaza (start chunk * 16 + 8): the reputation is that chunk's
 		long village = RoadLayout.pack(-37 * 16 + 8, 12 * 16 + 8);
 		assertArrayEquals(new int[]{-37, 12}, Rules.chunk(village));
 		String key = Reputation.key(-37, 12);
-		// lo que suma Encargos.sumarReputacion: con una caravana defendida y dos acompañadas, de desconocido a conocido
+		// what Quests.addReputation adds: with one defended caravan and two escorted, from unknown to known
 		Data d = Data.EMPTY.addReputation(key, Rules.reward(9, true, 0).reputation());
 		assertEquals(15, d.reputation(key));
 		assertEquals(Reputation.Tier.UNKNOWN, d.tier(key));
@@ -109,7 +109,7 @@ class RulesTest {
 		Set<UUID> active = new HashSet<>(Set.of(mine));
 		assertFalse(Rules.orphan(Set.of(Rules.TAG, Rules.MERCHANT), mine, active), "de una caravana en camino");
 		assertTrue(Rules.orphan(Set.of(Rules.TAG, Rules.LLAMA), old, active), "de una que ya no está");
-		// tras reiniciar no hay ninguna activa: todas sobran
+		// after a restart there is no active one: they are all leftovers
 		for (String paper : new String[]{Rules.MERCHANT, Rules.LLAMA, Rules.GUARD, Rules.BANDIT}) {
 			assertTrue(Rules.orphan(Set.of(Rules.TAG, paper), mine, Set.of()), paper);
 		}

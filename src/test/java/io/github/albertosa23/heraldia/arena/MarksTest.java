@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** Tiempos, logros de los modos, cómo se enseña cada marca y los ids de los modos (T41). */
+/** Times, mode advancements, how each mark is shown and the mode ids (T41). */
 class MarksTest {
 	private static final UUID A = UUID.randomUUID();
 

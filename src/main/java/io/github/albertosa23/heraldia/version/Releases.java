@@ -14,22 +14,22 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * Publicaciones del mod (lógica pura, sin red): lee la respuesta de la API de GitHub Releases
- * (GET /repos/&lt;dueño&gt;/&lt;repo&gt;/releases, donde publica .github/workflows/publish.yml de main) o la de versiones de
- * Modrinth (GET /v2/project/&lt;id&gt;/version), y elige la más nueva que sirve en este servidor. Tolerante: lo que no
- * entiende lo salta; una respuesta que no es una lista lanza {@link IllegalArgumentException}.
+ * Releases of the mod (pure logic, no network): reads the response of the GitHub Releases API
+ * (GET /repos/&lt;owner&gt;/&lt;repo&gt;/releases, where .github/workflows/publish.yml on main publishes) or that of
+ * Modrinth's versions (GET /v2/project/&lt;id&gt;/version), and picks the newest one that works on this server. Tolerant: whatever it
+ * does not understand it skips; a response that is not a list throws {@link IllegalArgumentException}.
  */
 public final class Releases {
-	/** Cuántas publicaciones de GitHub, como mucho, se miran para saber su Minecraft (una petición cada una). */
+	/** At most how many GitHub releases are checked to know their Minecraft (one request each). */
 	public static final int MAX_MC_QUERIES = 3;
 
 	private Releases() {
 	}
 
 	/**
-	 * Una publicación. `minecraft`: las versiones de Minecraft que declara (Modrinth); vacía si la fuente no lo dice
-	 * (GitHub: se mira en el gradle.properties de su etiqueta). `cargadores`: vacía si no lo dice (GitHub: el mod solo
-	 * es de Fabric).
+	 * A release. `minecraft`: the Minecraft versions it declares (Modrinth); empty if the source does not say
+	 * (GitHub: it is looked up in its tag's gradle.properties). `loaders`: empty if it does not say (GitHub: the mod is only
+	 * for Fabric).
 	 */
 	public record Release(String name, Version version, boolean prerelease, String url, String tag,
 			List<String> minecraft, List<String> loaders) {
@@ -39,7 +39,7 @@ public final class Releases {
 		}
 	}
 
-	/** Lee una respuesta de GitHub Releases o de Modrinth (se distinguen por sus campos). */
+	/** Reads a GitHub Releases or Modrinth response (they are told apart by their fields). */
 	public static List<Release> read(String json) {
 		JsonElement root;
 		try {
@@ -77,7 +77,7 @@ public final class Releases {
 				bool(o, "prerelease") || v.get().prerelease(), url, tag, List.of(), List.of()));
 	}
 
-	/** Una publicación de GitHub sin ningún .jar del mod (ni -sources ni -dev) no tiene nada que descargar. */
+	/** A GitHub release without any .jar of the mod (neither -sources nor -dev) has nothing to download. */
 	private static boolean withJar(JsonObject o) {
 		if (!o.has("assets") || !o.get("assets").isJsonArray()) {
 			return true;
@@ -109,9 +109,9 @@ public final class Releases {
 	}
 
 	/**
-	 * La más nueva que la `actual`, para este Minecraft y con Fabric (sin pre-publicaciones salvo `prepublicaciones`).
-	 * `minecraftDe` da el Minecraft de una publicación que no lo declara (GitHub); se pregunta como mucho por
-	 * {@link #MAX_MC_QUERIES}, de la más nueva a la más vieja. Vacío si no hay ninguna (o no se sabe para cuál sirve).
+	 * The newest one above `actual`, for this Minecraft and with Fabric (no prereleases unless `prereleases`).
+	 * `minecraftOf` gives the Minecraft of a release that does not declare it (GitHub); it is asked at most
+	 * {@link #MAX_MC_QUERIES} times, from newest to oldest. Empty if there is none (or it is unknown which one it works for).
 	 */
 	public static Optional<Release> choose(List<Release> all, Version actual, String minecraft, boolean prereleases,
 			Function<Release, Optional<String>> minecraftOf) {
@@ -143,8 +143,8 @@ public final class Releases {
 	}
 
 	/**
-	 * El minecraft_version de un gradle.properties (el de la etiqueta de la publicación, de la API de contenidos de
-	 * GitHub): el texto tal cual o el JSON de la API con el contenido en base64.
+	 * The minecraft_version of a gradle.properties (that of the release's tag, from GitHub's contents API): the
+	 * plain text or the API's JSON with the content in base64.
 	 */
 	public static Optional<String> minecraftFromProperties(String response) {
 		if (response == null) {
@@ -172,7 +172,7 @@ public final class Releases {
 		return Optional.empty();
 	}
 
-	/** Solo enlaces web: lo que se ofrece para hacer clic no puede ser otra cosa. */
+	/** Web links only: what is offered for clicking cannot be anything else. */
 	static boolean web(String url) {
 		return url.startsWith("https://") || url.startsWith("http://");
 	}

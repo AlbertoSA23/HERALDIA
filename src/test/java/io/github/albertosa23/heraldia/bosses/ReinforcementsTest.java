@@ -24,7 +24,7 @@ import net.minecraft.world.entity.MobCategory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Elección de refuerzos por única y por familia, y el jefes.json generado contra los registros del juego. */
+/** Choice of reinforcements per unique and per family, and the generated jefes.json against the game's registries. */
 class ReinforcementsTest {
 	private static final String JSON = """
 			{"version": 1, "generica": "generica",
@@ -44,15 +44,15 @@ class ReinforcementsTest {
 	@Test
 	void perUniqueAndPerFamily() {
 		Reinforcements r = Reinforcements.read(new StringReader(JSON));
-		List<Reinforcements.Reinforcement> col = r.stop("coliseo", "minecraft:zombie");     // la única manda sobre el tipo
+		List<Reinforcements.Reinforcement> col = r.stop("coliseo", "minecraft:zombie");     // the unique overrides the type
 		assertEquals(3, col.size());
 		assertEquals("minecraft:husk", col.get(0).mob());
 		assertEquals(Map.of("mainhand", "minecraft:iron_sword"), col.get(0).equipment());
 		assertEquals(Map.of(), col.get(1).equipment());
-		// única desconocida (o guardián sin id de un mundo viejo): la familia de su tipo
+		// unknown unique (or guardian without an id from an old world): the family of its type
 		assertEquals("minecraft:husk", r.stop("ya_no_existe", "minecraft:husk").get(0).mob());
 		assertEquals("minecraft:husk", r.stop(null, "minecraft:husk").get(1).mob());
-		// tipo sin familia, o con una familia que no está: la genérica
+		// type without a family, or with a family that does not exist: the generic one
 		assertEquals(List.of("minecraft:zombie", "minecraft:skeleton"), mobs(r.stop(null, "minecraft:creeper")));
 		assertEquals(List.of("minecraft:zombie", "minecraft:skeleton"), mobs(r.stop(null, "minecraft:raro")));
 	}
@@ -61,7 +61,7 @@ class ReinforcementsTest {
 		return l.stream().map(Reinforcements.Reinforcement::mob).toList();
 	}
 
-	/** El del .jar (build/generated): cada única con 2-3 refuerzos de mobs y objetos que existen, en ranuras válidas. */
+	/** The one in the .jar (build/generated): each unique with 2-3 reinforcements of mobs and items that exist, in valid slots. */
 	@Test
 	void generated() throws IOException {
 		Path gen = Path.of(System.getProperty("heraldia.generated"));
@@ -90,7 +90,7 @@ class ReinforcementsTest {
 				}
 			}
 		}
-		// el jefe de la Atlántida (guardián anciano) llama a vigías del mar
+		// the Atlantis boss (elder guardian) calls sea scouts
 		assertTrue(mobs(r.stop("atlantida", "minecraft:elder_guardian")).contains("minecraft:guardian"));
 	}
 }

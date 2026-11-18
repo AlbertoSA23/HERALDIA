@@ -8,7 +8,7 @@ import io.github.albertosa23.heraldia.difficulty.ModDifficulty;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** Récords y la dificultad de los mobs de la arena (dificultad.nivel se respeta y suma). */
+/** Records and the difficulty of the arena mobs (dificultad.nivel is respected and adds up). */
 class ArenaScoreboardTest {
 	@Test
 	void records() {

@@ -7,59 +7,59 @@ import java.util.function.Predicate;
 import net.minecraft.core.Direction;
 
 /**
- * Elección de la orilla del puerto de una aldea de la costa (lógica pura: el fondo y los obstáculos llegan como
- * funciones, así que se prueba con mapas de alturas sintéticos).
+ * Choice of the shore for a coastal village's port (pure logic: the bottom and the obstacles come in as
+ * functions, so it is tested with synthetic height maps).
  *
- * <p>Se mira el fondo en una malla de {@link #STEP} bloques dentro de un círculo de radio {@code reach} alrededor de la
- * plaza, de dentro afuera. Cada nudo de tierra baja (de 0 a {@link #SHALLOW} bloques sobre el mar) con un vecino de agua da
- * una orilla candidata hacia ese vecino, afinada entre los dos con una búsqueda binaria. Así salen todas las orillas a lo
- * largo de la costa y no solo las de cuatro rayos (que seguían las avenidas y caían junto a la plaza o sobre una calle).
- * Las piezas de la aldea no cuestan terreno, así que se miran antes: las direcciones de un nudo en las que el puerto
- * chocaría en cualquier punto entre el nudo y su vecino se descartan sin consultar el fondo, y en cada candidata se
- * comprueban los obstáculos antes que el agua: fondo bajo la punta, a la mitad, más allá y a los lados (mar abierto, no una ensenada). Gana la
- * más cercana libre; si no hay ninguna libre, la más cercana que solo desplaza casas. El fondo de cada columna se pide
- * una vez como mucho (la caché va en la función) y solo hasta encontrar una orilla libre.
+ * <p>The bottom is checked on a grid of {@link #STEP} blocks within a circle of radius {@code reach} around the
+ * plaza, inside out. Each low land node (0 to {@link #SHALLOW} blocks above the sea) with a water neighbor gives
+ * a candidate shore towards that neighbor, refined between the two with a binary search. So all the shores along
+ * the coast come out, not only those of four rays (which followed the avenues and fell next to the plaza or on a street).
+ * The village's pieces cost no terrain lookups, so they are checked first: the directions of a node in which the port
+ * would collide at any point between the node and its neighbor are discarded without querying the bottom, and in each
+ * candidate the obstacles are checked before the water: bottom under the tip, halfway, beyond and to the sides (open sea,
+ * not an inlet). The nearest free one wins; if none is free, the nearest one that only displaces houses. The bottom of
+ * each column is requested at most once (the cache lives in the function) and only until a free shore is found.
  */
 final class Shoreline {
-	/** Paso de la malla. */
+	/** Grid step. */
 	static final int STEP = 16;
-	/** Altura máxima sobre el mar de la tierra de la orilla (una playa; un risco junto al agua no sirve). */
+	/** Maximum height above the sea of the shore's land (a beach; a cliff next to the water does not work). */
 	static final int SHALLOW = 4;
-	/** Mar más allá de la punta y a cada lado de ella (los botes del muelle). */
+	/** Sea beyond the tip and on each side of it (the pier's boats). */
 	static final int BEYOND = 6, SIDE = 7;
 
 	private Shoreline() {
 	}
 
-	/** Altura del fondo ({@code OCEAN_FLOOR_WG}) de una columna. */
+	/** Bottom height ({@code OCEAN_FLOOR_WG}) of a column. */
 	@FunctionalInterface
 	interface Seabed {
 		int en(int x, int z);
 	}
 
-	/** Orilla candidata: último punto de tierra baja antes del agua, con la dirección hacia el mar. */
+	/** Candidate shore: last low land point before the water, with the direction to the sea. */
 	record Shore(int x, int z, int y, Direction sea) {
 	}
 
 	/**
-	 * Orilla elegida (null si no hay) con lo que desplaza, y cuentas para el registro: orillas candidatas, sin fondo,
-	 * bloqueadas, direcciones de nudo descartadas por las piezas antes de mirar el terreno, y llamadas al fondo.
+	 * Chosen shore (null if none) with what it displaces, and counts for the log: candidate shores, without bottom,
+	 * blocked, node directions discarded by the pieces before looking at the terrain, and bottom queries.
 	 */
 	record Choice<R>(Shore shore, R gone, int candidates, int noSeabed, int blocked, int discarded, int queries) {
 	}
 
-	/** Distancias desde el nudo a las que se estima la orilla para descartar direcciones solo con las piezas. */
+	/** Distances from the node at which the shore is estimated to discard directions using only the pieces. */
 	private static final int[] ESTIMATE = {2, 8, 14};
-	/** Desplazamientos a lo largo de la costa de la línea de un nudo cuando las piezas la tapan. */
+	/** Offsets along the coast of a node's line when the pieces cover it. */
 	private static final int[] LATERAL = {0, 8, -8};
 
 	/**
-	 * Busca la orilla. {@code obstacle} da, para una orilla, lo que habría que quitar de la aldea para poner allí el
-	 * puerto o null si choca con algo que no se quita; {@code free} dice si eso no quita nada. Antes de mirar el fondo de
-	 * un nudo se prueba cada dirección con la orilla estimada a 2, 8 y 14 bloques (altura del mar + 1): si choca en las
-	 * tres, se prueba la línea paralela 8 bloques a cada lado (a lo largo de la costa) y, si también, esa dirección no se
-	 * mira (las piezas no cuestan terreno; el centro de la aldea no gasta consultas). Una línea de al lado solo se consulta
-	 * donde la malla ya ve costa (nudo de tierra baja y vecino de agua).
+	 * Looks for the shore. {@code obstacle} gives, for a shore, what would have to be removed from the village to put the
+	 * port there, or null if it collides with something that is not removed; {@code free} says whether that removes nothing. Before checking the bottom of
+	 * a node, each direction is tried with the shore estimated at 2, 8 and 14 blocks (sea level + 1): if it collides in all
+	 * three, the parallel line 8 blocks to each side (along the coast) is tried and, if that too, that direction is not
+	 * checked (the pieces cost no terrain lookups; the village's center spends no queries). A side line is only queried
+	 * where the grid already sees coast (low land node and water neighbor).
 	 */
 	static <R> Choice<R> choose(Seabed depth, int sea, int cx, int cz, int reach, int length, Function<Shore, R> obstacle,
 								  Predicate<R> free) {
@@ -74,7 +74,7 @@ final class Shoreline {
 		int[] off = new int[4];
 		for (int[] n : knots(k)) {
 			int gx = cx + n[0] * STEP, gz = cz + n[1] * STEP;
-			// la línea del nudo hacia cada dirección o, si las piezas la tapan, la de al lado (8 bloques a lo largo de la costa)
+			// the node's line towards each direction or, if the pieces cover it, the one beside it (8 blocks along the coast)
 			boolean some = false;
 			for (Direction d : Direction.Plane.HORIZONTAL) {
 				off[d.get2DDataValue()] = line(obstacle, gx, gz, sea, d);
@@ -93,7 +93,7 @@ final class Shoreline {
 			}
 			for (Direction d : Direction.Plane.HORIZONTAL) {
 				int o = off[d.get2DDataValue()];
-				// la malla debe ver costa en esta dirección (nudo de tierra baja, vecino de agua) antes de afinar
+				// the grid must see coast in this direction (low land node, water neighbor) before refining
 				if (o == NONE || h.en(gx + d.getStepX() * STEP, gz + d.getStepZ() * STEP) >= sea) {
 					continue;
 				}
@@ -129,10 +129,10 @@ final class Shoreline {
 		return new Choice<>(null, null, candidates, noSeabed, blocked, discarded, queries[0]);
 	}
 
-	/** Ninguna línea posible (en {@link #line}). */
+	/** No possible line (in {@link #line}). */
 	static final int NONE = Integer.MIN_VALUE;
 
-	/** Desplazamiento lateral de la primera línea del nudo hacia d en la que las piezas dejan poner el puerto, o NINGUNA. */
+	/** Lateral offset of the node's first line towards d in which the pieces allow placing the port, or NONE. */
 	static <R> int line(Function<Shore, R> obstacle, int x, int z, int sea, Direction d) {
 		Direction side = d.getClockWise();
 		for (int o : LATERAL) {
@@ -143,7 +143,7 @@ final class Shoreline {
 		return NONE;
 	}
 
-	/** ¿Alguna orilla estimada entre el nudo y su vecino en la dirección d deja poner el puerto? (sin mirar el terreno) */
+	/** Does some estimated shore between the node and its neighbor in direction d allow placing the port? (without looking at the terrain) */
 	static <R> boolean possible(Function<Shore, R> obstacle, int x, int z, int sea, Direction d) {
 		for (int lo : ESTIMATE) {
 			if (obstacle.apply(new Shore(x + d.getStepX() * lo, z + d.getStepZ() * lo, sea + 1, d)) != null) {
@@ -153,7 +153,7 @@ final class Shoreline {
 		return false;
 	}
 
-	/** Nudos (i, j) de la malla dentro del círculo de radio k, de dentro afuera (mismo orden siempre). */
+	/** Grid nodes (i, j) within the circle of radius k, inside out (always the same order). */
 	static List<int[]> knots(int k) {
 		List<int[]> out = new ArrayList<>();
 		for (int r2 = 0; r2 <= k * k; r2++) {
@@ -169,8 +169,8 @@ final class Shoreline {
 	}
 
 	/**
-	 * Entre el nudo de tierra (x, z, con fondo f) y su vecino de agua en la dirección d: el último punto de tierra con
-	 * paso 2 (búsqueda binaria, 3 columnas). Null si ese punto ya no es tierra baja.
+	 * Between the land node (x, z, with bottom f) and its water neighbor in direction d: the last land point with
+	 * step 2 (binary search, 3 columns). Null if that point is no longer low land.
 	 */
 	static Shore refine(Seabed h, int sea, int x, int z, int f, Direction d) {
 		int lo = 0, hi = STEP, flo = f;
@@ -187,8 +187,8 @@ final class Shoreline {
 	}
 
 	/**
-	 * Agua para el muelle desde la orilla: fondo de 2 bajo la punta, agua a la mitad, más allá de la punta y a los lados
-	 * (mar abierto, no una ensenada que acabe en tierra). De lo más probable a lo menos, para cortar pronto.
+	 * Water for the pier from the shore: bottom of 2 under the tip, water halfway, beyond the tip and to the sides
+	 * (open sea, not an inlet that ends in land). From most to least likely, to cut short early.
 	 */
 	static boolean seaSide(Seabed h, int sea, Shore s, int length) {
 		Direction d = s.sea(), side = d.getClockWise();

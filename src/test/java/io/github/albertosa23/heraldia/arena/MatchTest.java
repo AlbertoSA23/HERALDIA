@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** La partida: cuenta atrás, oleadas por tandas, pausa, mini-jefe, fin y reinicio. */
+/** The match: countdown, waves in batches, pause, mini-boss, end and reset. */
 class MatchTest {
 	private static final UUID A = UUID.randomUUID(), B = UUID.randomUUID();
 
-	/** Avanza ticks hasta que empiece la oleada siguiente; devuelve cuántos segundos se anunciaron. */
+	/** Advances ticks until the next wave starts; returns how many seconds were announced. */
 	private static int untilWave(Match p) {
 		int seconds = 0;
 		for (int i = 0; i < 10000; i++) {
@@ -27,7 +27,7 @@ class MatchTest {
 		throw new AssertionError("no empieza la oleada");
 	}
 
-	/** Mata a todos los enemigos de la oleada saliendo en tandas de como mucho `max`; devuelve las tandas. */
+	/** Kills all the enemies of the wave spawning in batches of at most `max`; returns the batches. */
 	private static int clean(Match p, int max) {
 		int batches = 0;
 		while (p.state() == Match.State.WAVE) {
@@ -53,7 +53,7 @@ class MatchTest {
 		assertEquals(Match.State.COUNTDOWN, p.state());
 		assertEquals(5, p.seconds());
 		assertTrue(p.participants(List.of(A, B)));
-		assertEquals(4, untilWave(p));          // 4, 3, 2, 1 y luego empieza
+		assertEquals(4, untilWave(p));          // 4, 3, 2, 1 and then it starts
 		assertEquals(Match.State.WAVE, p.state());
 		assertEquals(1, p.wave());
 		assertEquals(4, p.total());
@@ -67,7 +67,7 @@ class MatchTest {
 		p.start();
 		p.participants(List.of(A));
 		untilWave(p);
-		for (int i = 1; i < 10; i++) {          // a la oleada 10: 22 enemigos y el mini-jefe
+		for (int i = 1; i < 10; i++) {          // at wave 10: 22 enemies and the mini-boss
 			clean(p, 100);
 			untilWave(p);
 		}
@@ -97,7 +97,7 @@ class MatchTest {
 		assertEquals(Match.State.PAUSE, p.state());
 		assertEquals(1, p.cleared());
 		assertFalse(p.dies(), "en la pausa no hay enemigos");
-		assertEquals(9, untilWave(p));          // 10 s de pausa: 9 avisos y empieza
+		assertEquals(9, untilWave(p));          // 10 s of pause: 9 notices and it starts
 		assertEquals(2, p.wave());
 		assertEquals(6, p.total());
 	}
@@ -150,7 +150,7 @@ class MatchTest {
 		assertEquals(0, p.wave());
 		assertEquals(0, p.remaining());
 		assertTrue(p.participants().isEmpty());
-		// otra partida empieza de cero
+		// another match starts from scratch
 		assertTrue(p.start());
 		p.participants(List.of(A));
 		untilWave(p);

@@ -213,7 +213,7 @@ public final class VersionNotice {
 				message(p, actual, mc, (who.getPlayer() != null ? Texts.language(who.getPlayer()) : Texts.language(Texts.ES)))
 						.forEach(m -> who.sendSystemMessage(m));
 				if (who.getPlayer() != null) {
-					NOTIFIED.markStop(who.getPlayer().getUUID(), p.version().toString());
+					NOTIFIED.shouldNotify(who.getPlayer().getUUID(), p.version().toString());
 				}
 			}
 		}
@@ -223,7 +223,7 @@ public final class VersionNotice {
 	private static void onJoin(ServerPlayer player) {
 		Release p = fresh;
 		if (p == null || !player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
-				|| !NOTIFIED.markStop(player.getUUID(), p.version().toString())) {
+				|| !NOTIFIED.shouldNotify(player.getUUID(), p.version().toString())) {
 			return;
 		}
 		message(p, version(), SharedConstants.getCurrentVersion().name(), Texts.language(player))

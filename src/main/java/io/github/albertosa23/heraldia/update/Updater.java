@@ -48,26 +48,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Actualizaciones seguras (T46): la versión del mod con la que se generó el mundo ({@link WorldVersion}), los arreglos
- * por versión aplicados de forma perezosa ({@link Fixes}, {@link MobFixes}) y llevar lo nuevo a un mundo existente
- * ({@link Analysis}, {@link Execution}). Comandos de operador bajo /heraldia update (en inglés, en comando/Comandos):
+ * Safe updates (T46): the mod version the world was generated with ({@link WorldVersion}), the per-version fixes
+ * applied lazily ({@link Fixes}, {@link MobFixes}) and bringing what is new to an existing world
+ * ({@link Analysis}, {@link Execution}). Operator commands under /heraldia update (in English, in command/HeraldiaCommands):
  * <ul>
- * <li>{@code analyze}: informe de lo que se protegería, regeneraría y colocaría; no cambia nada;</li>
- * <li>{@code apply}: el mismo análisis y un diálogo para confirmar, con o sin copia de seguridad (sin copia, otra
- * confirmación del riesgo); al confirmar, avisa a los jugadores y para el servidor, que el administrador vuelve a
- * arrancar a mano: el trabajo se hace al arrancar;</li>
- * <li>{@code undo}: restaura la copia del último apply (también al arrancar);</li>
- * <li>{@code repair [dry-run]}: fuerza los arreglos en todo lo cargado (o solo dice qué cambiaría).</li>
+ * <li>{@code analyze}: report of what would be protected, regenerated and placed; it changes nothing;</li>
+ * <li>{@code apply}: the same analysis and a dialog to confirm, with or without a backup (without a backup, another
+ * confirmation of the risk); on confirming, it warns the players and stops the server, which the administrator starts
+ * again by hand: the work is done at startup;</li>
+ * <li>{@code undo}: restores the backup of the last apply (also at startup);</li>
+ * <li>{@code repair [dry-run]}: forces the fixes on everything loaded (or only says what it would change).</li>
  * </ul>
- * Una línea en Heraldia.onInitialize.
+ * One line in Heraldia.onInitialize.
  */
 public final class Updater {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
-	/** Un mundo es nuevo (se da por generado con esta versión) si al arrancar por primera vez no ha pasado este tiempo. */
+	/** A world is new (it is treated as generated with this version) if less than this time has passed at its first startup. */
 	static final long NEW_WORLD_TICKS = 1200;
-	/** Lo que dura un análisis para apply: pasado esto, hay que repetirlo. */
+	/** How long an analysis for apply lasts: after this, it has to be repeated. */
 	static final long VALIDITY_MS = 15 * 60_000;
-	/** Ticks entre el aviso a los jugadores y la parada del servidor. */
+	/** Ticks between the warning to the players and the server stopping. */
 	static final int NOTICE_TICKS = 200;
 	private static final AtomicBoolean ANALYZING = new AtomicBoolean();
 	private static volatile Analysis.Report last;
@@ -77,7 +77,7 @@ public final class Updater {
 	private Updater() {
 	}
 
-	/** Marca de arreglos de cada mob revisado (el nivel de {@link MobFixes#LEDGER}); aparte para los tests. */
+	/** Fix mark of each checked mob (the level of {@link MobFixes#LEDGER}); kept apart for the tests. */
 	static final class Type {
 		static final AttachmentType<Integer> FIXES = AttachmentRegistry.create(Heraldia.id("arreglos"), b -> b.persistent(Codec.INT));
 
@@ -96,7 +96,7 @@ public final class Updater {
 		ServerTickEvents.END_SERVER_TICK.register(Updater::tick);
 	}
 
-	// ------------------------------------------------------------------ versión del mundo
+	// ------------------------------------------------------------------ world version
 
 	static String version() {
 		return FabricLoader.getInstance().getModContainer(Heraldia.MOD_ID).map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?");
@@ -116,17 +116,17 @@ public final class Updater {
 				now.generated(), before.map(WorldVersion::latest).orElse("ninguna"), actual, MobFixes.LEDGER.tier());
 	}
 
-	/** La versión guardada del mundo (para /heraldia status y las pruebas). */
+	/** The world's saved version (for /heraldia status and the tests). */
 	public static Optional<WorldVersion> worldVersion(MinecraftServer server) {
 		return Optional.ofNullable(server.overworld().getAttached(WorldVersion.Type.VERSION));
 	}
 
-	// ------------------------------------------------------------------ arreglos perezosos
+	// ------------------------------------------------------------------ lazy fixes
 
-	/** Al cargar una entidad: si es un mob de plantilla sin la marca del nivel actual, sus arreglos pendientes. */
+	/** When an entity loads: if it is a template mob without the current level's mark, its pending fixes. */
 	static void onLoad(Entity entity) {
 		if (!(entity instanceof Mob mob) || mob.entityTags().isEmpty() && !mob.hasCustomName()) {
-			return;                       // salida temprana: casi todas las entidades
+			return;                       // early exit: almost all entities
 		}
 		MobView v = new MobView(mob);
 		if (!MobFixes.fromTemplate(v)) {
@@ -145,7 +145,7 @@ public final class Updater {
 		}
 	}
 
-	/** /heraldia update repair: los arreglos en todos los mobs cargados, sin mirar la marca. */
+	/** /heraldia update repair: the fixes on all loaded mobs, without looking at the mark. */
 	static Fixes.Tally repair(MinecraftServer server, boolean dryRun) {
 		Fixes.Tally tally = new Fixes.Tally();
 		for (ServerLevel level : server.getAllLevels()) {
@@ -177,7 +177,7 @@ public final class Updater {
 		return sb.append('}').toString();
 	}
 
-	/** {@link MobFixes.Mob} sobre un mob de verdad. */
+	/** {@link MobFixes.Mob} over a real mob. */
 	record MobView(Mob mob) implements MobFixes.Mob {
 		private static String route(Entity e) {
 			return BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()).getPath();
@@ -263,9 +263,9 @@ public final class Updater {
 		}
 	}
 
-	// ------------------------------------------------------------------ comandos
+	// ------------------------------------------------------------------ commands
 
-	/** /heraldia update analyze | apply ... | undo ... | repair [dry-run] (se suma al «update» de AvisoVersion). */
+	/** /heraldia update analyze | apply ... | undo ... | repair [dry-run] (added to VersionNotice's "update"). */
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("update")
 				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -316,7 +316,7 @@ public final class Updater {
 		return 1;
 	}
 
-	/** El resumen del análisis en líneas traducibles. */
+	/** The analysis summary as translatable lines. */
 	static List<Component> lines(Map<String, String> l, Analysis.Report i) {
 		Detector.Result r = i.result();
 		List<Component> out = new ArrayList<>();
@@ -334,7 +334,7 @@ public final class Updater {
 		return out;
 	}
 
-	/** apply: el diálogo (o las órdenes, en la consola) para confirmar, con o sin copia. */
+	/** apply: the dialog (or the commands, in the console) to confirm, with or without a backup. */
 	private static void offer(CommandSourceStack src, Map<String, String> l, Analysis.Report i) {
 		if (i.regenerate().isEmpty() && i.place().isEmpty()) {
 			src.sendSuccess(() -> Texts.t(l, "heraldia.actualizar.nada_que_hacer").withStyle(ChatFormatting.GREEN), true);
@@ -374,7 +374,7 @@ public final class Updater {
 			src.sendFailure(Texts.t(l, "heraldia.actualizar.protecciones", String.join(", ", Analysis.protections())));
 			return 0;
 		}
-		if (!backup && !risk) {         // sin copia: otra confirmación, explícita
+		if (!backup && !risk) {         // without a backup: another, explicit confirmation
 			String cmd = "heraldia update apply confirm " + id + " nobackup risk";
 			ServerPlayer p = src.getPlayer();
 			if (p == null) {

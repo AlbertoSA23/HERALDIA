@@ -17,8 +17,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * El salón de la fama (T41) como lo ve un cliente sin el mod (cada traducible con su respaldo del .jar): las páginas de
- * la Guía con y sin campeones, en español y en inglés, y las líneas de los carteles; y el plano con sus carteles.
+ * The hall of fame (T41) as a client without the mod sees it (each translatable with its fallback from the .jar): the
+ * Guide pages with and without champions, in Spanish and in English, and the sign lines; and the blueprint with its signs.
  */
 class FameTest {
 	private static final UUID A = UUID.randomUUID(), B = UUID.randomUUID();
@@ -62,13 +62,13 @@ class FameTest {
 		assertTrue(fame.contains("• Supervivencia: nadie"), fame);
 		String records = p.get(1).getValue().getString();
 		assertTrue(records.contains("• Cooperativo: Ana, oleada 12") && records.contains("Bea, 4:32"), records);
-		// en inglés, con el respaldo inglés
+		// in English, with the English fallback
 		String en1 = Fame.pages(withChampions(), L23, List.of(Mode.values()), en).get(0).getValue().getString();
 		assertTrue(en1.contains("• Time attack: Bea, 4:32 (10 waves)") && en1.contains("• Co-op: Ana, wave 12"), en1);
-		// solo los modos activados
+		// only the enabled modes
 		String alone = Fame.pages(withChampions(), L23, List.of(Mode.TIME_TRIAL), es).get(0).getValue().getString();
 		assertTrue(!alone.contains("Cooperativo") && alone.contains("Bea"), alone);
-		// la semana siguiente ya no son los de la semana anterior
+		// the next week they are no longer the previous week's
 		String after = Fame.pages(withChampions(), L23.plusWeeks(1), List.of(Mode.values()), es).get(0).getValue().getString();
 		assertTrue(after.startsWith("Aún no hay campeones"), after);
 	}
@@ -104,7 +104,7 @@ class FameTest {
 		Zone z = new Zone(100, 60, -200, p);
 		assertTrue(z.mentions(z.world(p.fame().get(2))[0], z.world(p.fame().get(2))[1], z.world(p.fame().get(2))[2]),
 				"los carteles están dentro de la caja protegida");
-		// un plano de antes de T41 (sin carteles) se sigue leyendo
+		// a pre-T41 blueprint (without signs) is still read
 		Blueprint oldValue = ZoneTest.plan();
 		assertTrue(oldValue.fame().isEmpty());
 		assertEquals(0, oldValue.fameRotation());

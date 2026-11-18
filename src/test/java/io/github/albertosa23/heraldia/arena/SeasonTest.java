@@ -18,9 +18,9 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /**
- * La clasificación semanal de la arena: orden y desempates de cada modo, una marca por jugador, récords, cierre de la
- * semana (también con el servidor apagado en el reinicio), histórico acotado, campeones, reinicio forzado, migración del
- * marcador vanilla y lo que se guarda.
+ * The weekly arena leaderboard: order and tiebreaks of each mode, one mark per player, records, closing of the
+ * week (also with the server off at the reset), bounded history, champions, forced reset, migration of the
+ * vanilla scoreboard and what is saved.
  */
 class SeasonTest {
 	private static final UUID A = UUID.nameUUIDFromBytes("a".getBytes()), B = UUID.nameUUIDFromBytes("b".getBytes()),
@@ -43,7 +43,7 @@ class SeasonTest {
 
 	@Test
 	void orderAndTiebreaks() {
-		// más oleadas gana; con las mismas, menos tiempo; con el mismo, antes; y luego por nombre
+		// more waves wins; with the same, less time; with the same, earlier; and then by name
 		Season.Entry a10 = e(A, "Ana", 10, 5000, 3), b12 = e(B, "Bea", 12, 9000, 2), c10 = e(C, "Cid", 10, 4000, 9);
 		Season t = started(L16).register(Mode.COOP, a10).register(Mode.COOP, b12).register(Mode.COOP, c10);
 		assertEquals(List.of(b12, c10, a10), t.ranking(Mode.COOP));
@@ -51,14 +51,14 @@ class SeasonTest {
 		assertTrue(Season.best(y, x), "a igual marca, el que la hizo antes");
 		assertTrue(Season.best(e(A, "Ana", 7, 100, 4), e(B, "Bea", 7, 100, 4)), "y por nombre");
 		assertTrue(Season.best(x, null));
-		// tiempo desconocido (migrado): detrás de cualquiera con tiempo y las mismas oleadas
+		// unknown time (migrated): behind anyone with a time and the same waves
 		assertTrue(Season.best(e(A, "Ana", 7, 99999, 9), e(Season.NO_PLAYER, "Viejo", 7, -1, 0)));
 		assertTrue(Season.best(e(Season.NO_PLAYER, "Viejo", 8, -1, 0), e(A, "Ana", 7, 1, 9)));
 	}
 
 	@Test
 	void timeTrialScoresTime() {
-		// acabado (10 de 10): decide el tiempo; a medias va detrás de cualquiera acabado
+		// finished (10 of 10): time decides; half-done goes behind any finished one
 		Season.Entry fast = ta(A, "Ana", 10, 12000, 5, 10), slow = ta(B, "Bea", 10, 15000, 1, 10),
 				halves = ta(C, "Cid", 7, 3000, 1, 10);
 		Season t = started(L16);
@@ -69,7 +69,7 @@ class SeasonTest {
 		assertTrue(fast.complete() && !halves.complete());
 		assertFalse(e(A, "Ana", 10, 1, 1).complete(), "fuera del contrarreloj no hay «completa»");
 		assertEquals(fast, t.record(Mode.TIME_TRIAL).orElseThrow());
-		// los modos no se mezclan
+		// the modes do not mix
 		assertTrue(t.ranking(Mode.SURVIVAL).isEmpty());
 		assertTrue(t.record(Mode.COOP).isEmpty());
 	}
@@ -87,7 +87,7 @@ class SeasonTest {
 				.register(Mode.COOP, e(A, "Ana", 8, 900, 2))
 				.register(Mode.COOP, e(A, "Ana", 6, 50, 3));
 		assertEquals(List.of(e(A, "Ana", 8, 900, 2)), t.ranking(Mode.COOP));
-		// con otro nombre (lo cambió) sigue siendo el mismo jugador
+		// with another name (they changed it) it is still the same player
 		t = t.register(Mode.COOP, e(A, "Ana2", 9, 1, 4));
 		assertEquals(1, t.ranking(Mode.COOP).size());
 		assertEquals("Ana2", t.ranking(Mode.COOP).get(0).name());
@@ -120,7 +120,7 @@ class SeasonTest {
 		assertNull(c.closed());
 		assertEquals(L16.toEpochDay(), c.season().week());
 		assertTrue(c.season().history().isEmpty());
-		// la misma semana otra vez: nada
+		// the same week again: nothing
 		Season.Closing d = c.season().advance(L16, MONDAY, 8);
 		assertNull(d.closed());
 		assertSame(c.season(), d.season());
@@ -144,13 +144,13 @@ class SeasonTest {
 		assertEquals("Bea", camp.get(Mode.TIME_TRIAL).name());
 		assertEquals(Set.of(Mode.TIME_TRIAL), n.won(B));
 		assertTrue(n.won(C).isEmpty());
-		// una semana después ya no son «los de la semana anterior»
+		// a week later they are no longer "the previous week's"
 		assertTrue(n.champions(L30).isEmpty());
 	}
 
 	@Test
 	void serverOffDuringReset() {
-		// se apagó el domingo 22 y arranca el martes 24: la semana del 16 se cierra al arrancar y sus campeones valen
+		// it went off on Sunday 22 and starts on Tuesday 24: the week of the 16th closes at startup and its champions count
 		Season t = started(L16).register(Mode.SURVIVAL, e(A, "Ana", 11, 100, 1));
 		Season.Closing c = t.advance(L23, MONDAY, 8);
 		assertEquals(L23.toEpochDay(), c.closed().closing());
@@ -159,8 +159,8 @@ class SeasonTest {
 
 	@Test
 	void serverOffMoreThanAWeek() {
-		// se apagó el 20 y arranca el 2-12 (semana del 30-11): la del 16 se cierra (al 23, no al 30); la semana anterior
-		// (la del 23) nadie jugó: sin campeones, pero los de la del 16 conservan su logro
+		// it went off on the 20th and starts on 2-12 (week of 30-11): the week of the 16th closes (at the 23rd, not the 30th); the previous week
+		// (that of the 23rd) nobody played: no champions, but those of the 16th keep their advancement
 		Season t = started(L16).register(Mode.COOP, e(A, "Ana", 9, 100, 1));
 		Season.Closing c = t.advance(L30, MONDAY, 8);
 		assertEquals(L16.toEpochDay(), c.closed().start());
@@ -173,12 +173,12 @@ class SeasonTest {
 
 	@Test
 	void resetDayChange() {
-		// la guardada empezó el lunes 16; el día pasa a ser el miércoles: el jueves 19 (semana del miércoles 18) cierra
+		// the saved one started on Monday 16; the day becomes Wednesday: Thursday 19 (week of Wednesday 18) closes
 		Season t = started(L16).register(Mode.COOP, e(A, "Ana", 3, 1, 1));
 		Season.Closing c = t.advance(LocalDate.of(2026, 11, 18), DayOfWeek.WEDNESDAY, 8);
 		assertEquals(LocalDate.of(2026, 11, 18).toEpochDay(), c.closed().closing());
 		assertEquals("Ana", c.season().champions(LocalDate.of(2026, 11, 18)).get(Mode.COOP).name());
-		// un inicio anterior al guardado (p. ej. de miércoles a lunes a mitad de semana) no cierra nada
+		// a start earlier than the saved one (e.g. from Wednesday to Monday mid-week) closes nothing
 		Season u = Season.EMPTY.advance(LocalDate.of(2026, 11, 18), DayOfWeek.WEDNESDAY, 8).season();
 		assertNull(u.advance(L16, MONDAY, 8).closed());
 	}
@@ -198,7 +198,7 @@ class SeasonTest {
 		assertEquals(12, t.closed(1).orElseThrow().champion(Mode.COOP).orElseThrow().waves());
 		assertTrue(t.closed(6).isEmpty());
 		assertTrue(t.closed(0).isEmpty());
-		// bajar la opción recorta ya; subirla no inventa semanas
+		// lowering the option trims now; raising it does not invent weeks
 		assertEquals(2, t.trim(2).history().size());
 		assertEquals(5, t.trim(40).history().size());
 		assertEquals(1, t.trim(0).history().size(), "al menos una");
@@ -207,7 +207,7 @@ class SeasonTest {
 
 	@Test
 	void forcedReset() {
-		// a mitad de la semana del 16 (miércoles 18): se cierra ya, con cierre = hoy, y sus campeones valen en seguida
+		// in the middle of the week of the 16th (Wednesday 18): it closes now, with closing = today, and its champions count right away
 		Season t = started(L16).register(Mode.TIME_TRIAL, ta(A, "Ana", 10, 8000, 1, 10));
 		LocalDate today = LocalDate.of(2026, 11, 18);
 		Season.Closing c = t.force(today, L16, 8);
@@ -216,12 +216,12 @@ class SeasonTest {
 		assertEquals(L16.toEpochDay(), n.week(), "la semana de calendario no cambia");
 		assertTrue(n.actual().isEmpty());
 		assertEquals("Ana", n.champions(L16).get(Mode.TIME_TRIAL).name());
-		// y el lunes 23 se cierra otra vez (la parte que quedaba de semana), con sus propios campeones
+		// and on Monday 23 it closes again (the rest of the week), with its own champions
 		n = n.register(Mode.TIME_TRIAL, ta(B, "Bea", 10, 9000, 2, 10));
 		Season.Closing d = n.advance(L23, MONDAY, 8);
 		assertEquals(2, d.season().history().size());
 		assertEquals("Bea", d.season().champions(L23).get(Mode.TIME_TRIAL).name());
-		// sin semana empezada, el forzado parte de la de calendario
+		// with no week started, the forced one starts from the calendar one
 		Season.Closing v = Season.EMPTY.force(today, L16, 8);
 		assertEquals(L16.toEpochDay(), v.closed().start());
 		assertTrue(v.season().champions(L16).isEmpty());
@@ -239,12 +239,12 @@ class SeasonTest {
 		assertEquals(-1, r.ticks());
 		assertEquals(Season.NO_PLAYER, r.player());
 		assertTrue(t.actual().isEmpty() && t.history().isEmpty(), "solo el récord: la semana empieza limpia");
-		// una sola vez
+		// only once
 		assertSame(t, t.migrate(Map.of("Zoe", 99), "-servidor-", 1));
-		// un récord mejor que el del marcador no se pisa
+		// a better record than the scoreboard's is not overwritten
 		Season best = Season.EMPTY.register(Mode.COOP, e(A, "Ana", 20, 5, 1)).migrate(scoreboard, "-servidor-", 1);
 		assertEquals(20, best.record(Mode.COOP).orElseThrow().waves());
-		// sin marcador (mundo sin arena o desde cero)
+		// without a scoreboard (world without an arena or from scratch)
 		Season empty = Season.EMPTY.migrate(Map.of(), "-servidor-", 1);
 		assertTrue(empty.migrated() && empty.records().isEmpty());
 		Season alone = Season.EMPTY.migrate(Map.of("-servidor-", 4), "-servidor-", 1);
@@ -267,7 +267,7 @@ class SeasonTest {
 		JsonElement j = Season.CODEC.encodeStart(JsonOps.INSTANCE, t).getOrThrow();
 		Season u = Season.CODEC.parse(JsonOps.INSTANCE, j).getOrThrow();
 		assertEquals(t, u);
-		// un estado vacío (o de una versión sin estos datos) se lee como VACIA
+		// an empty state (or from a version without this data) is read as EMPTY
 		assertEquals(Season.EMPTY, Season.CODEC.parse(JsonOps.INSTANCE, new com.google.gson.JsonObject()).getOrThrow());
 	}
 }

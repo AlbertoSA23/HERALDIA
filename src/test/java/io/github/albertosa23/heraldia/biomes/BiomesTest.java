@@ -20,9 +20,9 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 /**
- * Las etiquetas de biomas de Heraldia citan etiquetas convencionales (#c:...) que define Fabric API. El generador las
- * resuelve con la copia tools/gen/etiquetas_c.json; esta prueba compara esa copia con las del jar de Fabric API del
- * classpath (la versión de gradle.properties) y comprueba que toda #c: citada existe ahí.
+ * Heraldia's biome tags cite conventional tags (#c:...) that Fabric API defines. The generator resolves them
+ * with the copy tools/gen/etiquetas_c.json; this test compares that copy with those of the Fabric API jar on the
+ * classpath (the gradle.properties version) and checks that every cited #c: exists there.
  */
 class BiomesTest {
 	private static final String DIR = "data/c/tags/worldgen/biome/";

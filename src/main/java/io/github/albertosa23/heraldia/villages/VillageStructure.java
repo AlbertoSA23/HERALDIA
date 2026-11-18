@@ -36,22 +36,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Aldea de Heraldia: el jigsaw de siempre ({@code theVillage}) más lo que el jigsaw no ve. Con {@code port} (aldeas de la
- * costa), el puerto va aparte: una caseta (rígida) y un muelle ({@code terrain_matching}, para que el ajuste del terreno
- * no levante tierra bajo las tablas) que se colocan en la orilla libre más cercana a la plaza, con el muelle hacia el mar.
- * La orilla se elige en {@link Shoreline} entre todas las de una malla alrededor de la plaza, solo con el fondo de
- * generación ({@code OCEAN_FLOOR_WG}, con caché), y solo al crear la aldea (no en /locate ni en los mapas). Si el sitio
- * lo ocupan casas, rellenos o torres, se quitan (el puerto ocupa su lugar) cuando no hay ninguna orilla libre; las que
- * chocan con la plaza, un edificio especial o una calle bajo el muelle se descartan. Si no queda ninguna, la aldea sale
- * sin puerto (la avenida ya tiene la posada). Todas las aldeas usan este tipo: si el tablón de encargos está desactivado
- * ({@code aldeas.vida.tablon}), su pieza se quita al crear la aldea; si no y no hay puerto, el stub es el del jigsaw.
+ * Heraldia village: the usual jigsaw ({@code theVillage}) plus what the jigsaw does not see. With {@code port} (coastal
+ * villages), the port goes separately: a shed (rigid) and a pier ({@code terrain_matching}, so the terrain adaptation
+ * does not raise dirt under the planks) placed on the free shore nearest to the plaza, with the pier towards the sea.
+ * The shore is chosen in {@link Shoreline} among all those of a grid around the plaza, using only the generation
+ * bottom ({@code OCEAN_FLOOR_WG}, cached), and only when the village is created (not in /locate or the maps). If the spot
+ * is taken by houses, fillers or towers, they are removed (the port takes their place) when there is no free shore; those that
+ * collide with the plaza, a special building or a street under the pier are discarded. If none is left, the village spawns
+ * without a port (the avenue already has the inn). All villages use this type: if the quest board is disabled
+ * ({@code aldeas.vida.tablon}), its piece is removed when the village is created; if not and there is no port, the stub is the jigsaw's.
  */
 public final class VillageStructure extends Structure {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
-	/** Con {@code -Dheraldia.depurar.puerto=true} se registra el puerto de cada aldea de la costa (no solo con /place). */
+	/** With {@code -Dheraldia.depurar.puerto=true} the port of each coastal village is logged (not only with /place). */
 	private static final boolean DEBUG = Boolean.getBoolean("heraldia.depurar.puerto");
 
-	/** Pools de la caseta y del muelle, posición de su jigsaw de unión en cada plantilla, largo del muelle y alcance. */
+	/** Pools of the shed and the pier, position of their joining jigsaw in each template, pier length and reach. */
 	public record Port(Holder<StructureTemplatePool> shed, Holder<StructureTemplatePool> pier, BlockPos shedJoint,
 			BlockPos pierJoint, int length, int reach) {
 		public static final Codec<Port> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -89,11 +89,11 @@ public final class VillageStructure extends Structure {
 		Profiler.end(Profiler.Segment.VILLAGE, tp);
 		boolean noBoard = !HeraldiaConfig.get().getBool(BOARD_OPTION);
 		if ((port.isEmpty() && !noBoard) || stub.isEmpty()) {
-			return stub;   // lo normal tierra adentro: el stub del jigsaw tal cual, sin coste añadido
+			return stub;   // the normal case inland: the jigsaw's stub as is, at no extra cost
 		}
 		GenerationStub village = stub.get();
 		boolean forced = Generation.forced(ctx, biomes());
-		// El generador de piezas solo corre al crear la aldea de verdad: /locate y los mapas no pagan la búsqueda.
+		// The piece generator only runs when the village is really created: /locate and the maps do not pay for the search.
 		return Optional.of(new GenerationStub(village.position(), builder -> {
 			long t0 = System.nanoTime();
 			List<StructurePiece> pieces = new ArrayList<>(village.getPiecesBuilder().build().pieces());
@@ -108,30 +108,30 @@ public final class VillageStructure extends Structure {
 			for (StructurePiece piece : pieces) {
 				builder.addPiece(piece);
 			}
-			if ((forced || DEBUG) && result != null) {   // con /place structure (la prueba lo lee) o depurando
+			if ((forced || DEBUG) && result != null) {   // with /place structure (the test reads it) or when debugging
 				LOGGER.info("Heraldia: aldea de costa en {} {}: {} en {} µs (ensamblar la aldea: {} µs)", village.position().getX(),
 						village.position().getZ(), result, (System.nanoTime() - t1) / 1000, (t1 - t0) / 1000);
 			}
 		}));
 	}
 
-	/** Opción que pone el tablón de encargos en la plaza (si está desactivada, la pieza se quita al crear la aldea). */
+	/** Option that puts the quest board in the plaza (if disabled, the piece is removed when the village is created). */
 	public static final String BOARD_OPTION = "aldeas.vida.tablon";
 
-	/** Pieza del tablón de encargos (atril con su libro y el alguacil): plantilla {@code <style>/tablon}. */
+	/** Quest board piece (lectern with its book and the bailiff): template {@code <style>/tablon}. */
 	private static boolean board(StructurePiece piece) {
 		return piece instanceof PoolElementStructurePiece pe && pe.getElement() instanceof SinglePoolElement e
 				&& isBoard(e.getTemplateLocation().getPath());
 	}
 
-	/** Ruta de plantilla del tablón de encargos ({@code <style>/tablon}). */
+	/** Template path of the quest board ({@code <style>/tablon}). */
 	static boolean isBoard(String path) {
 		return path.endsWith("/tablon");
 	}
 
 	/**
-	 * Casas, rellenos, torres y puertas del final de las calles y lo que va dentro (aldeanos, gólems, decoración): lo
-	 * único que el puerto puede desplazar.
+	 * Houses, fillers, towers and gates at the end of the streets and what goes inside them (villagers, golems, decoration): the
+	 * only thing the port can displace.
 	 */
 	private static boolean removable(StructurePiece piece) {
 		if (!(piece instanceof PoolElementStructurePiece pe)) {
@@ -140,33 +140,33 @@ public final class VillageStructure extends Structure {
 		return removable(pe.getElement() instanceof SinglePoolElement e ? e.getTemplateLocation().getPath() : "");
 	}
 
-	/** Lo mismo por la ruta de la plantilla (sin la pieza): lo único que decide. */
+	/** The same by template path (without the piece): the only thing that decides. */
 	static boolean removable(String path) {
 		return path.contains("/houses/") || path.contains("/fillers/") || path.contains("/decor/") || path.contains("/terminators/")
 				|| path.startsWith("villagers/") || path.equals("golem");
 	}
 
-	/** Calle o avenida: pieza de pool que se adapta al terreno (terrain_matching). */
+	/** Street or avenue: a pool piece that adapts to the terrain (terrain_matching). */
 	private static boolean street(StructurePiece piece) {
 		return piece instanceof PoolElementStructurePiece pe
 				&& pe.getElement().getProjection() == StructureTemplatePool.Projection.TERRAIN_MATCHING;
 	}
 
 	/**
-	 * Piezas de la aldea que habría que quitar para poner el puerto en estas cajas, o null si choca con algo que no se
-	 * quita (plaza, edificios especiales). Las calles ({@code terrain_matching}) llegan a la orilla (sobre el agua el
-	 * procesador de calle pone tablas): bajo la caseta no cuentan (la caseta, rígida y colocada después, las cubre), pero
-	 * una calle cuya planta pisa la del muelle descarta la orilla (sus tablas quedarían bajo las del muelle, un bloque más
-	 * abajo, y quitarla dejaría casas sin camino). Una pieza rígida en la planta de {@code seaSide} (el agua más allá de la
-	 * punta y a los lados del muelle) también cuenta: el ajuste del terreno levanta tierra bajo ella y taparía la punta.
-	 * Con cada casa se van las piezas que quedan dentro de ella (su aldeano, su cama).
+	 * Village pieces that would have to be removed to put the port in these boxes, or null if it collides with something that is not
+	 * removed (plaza, special buildings). The streets ({@code terrain_matching}) reach the shore (over water the
+	 * street processor places planks): under the shed they do not count (the shed, rigid and placed afterwards, covers them), but
+	 * a street whose footprint overlaps the pier's discards the shore (its planks would sit under the pier's, one block
+	 * lower, and removing it would leave houses without a path). A rigid piece in the footprint of {@code seaSide} (the water beyond the
+	 * tip and on the sides of the pier) also counts: the terrain adaptation raises dirt under it and would cover the tip.
+	 * Along with each house go the pieces inside it (its villager, its bed).
 	 */
 	private static List<StructurePiece> displaced(List<StructurePiece> village, BoundingBox shed, BoundingBox pier,
 												  BoundingBox seaSide) {
 		return displaced(village, StructurePiece::getBoundingBox, VillageStructure::street, VillageStructure::removable, shed, pier, seaSide);
 	}
 
-	/** displaced sin piezas del juego (para las pruebas): caja, si es calle y si se puede quitar, de cada pieza. */
+	/** displaced without game pieces (for the tests): box, whether it is a street and whether it can be removed, for each piece. */
 	static <P> List<P> displaced(List<P> village, Function<P, BoundingBox> box, Predicate<P> street, Predicate<P> removable,
 								 BoundingBox shed, BoundingBox pier, BoundingBox seaSide) {
 		List<P> out = new ArrayList<>();
@@ -199,18 +199,18 @@ public final class VillageStructure extends Structure {
 		return out;
 	}
 
-	/** Busca la orilla ({@link Shoreline}) y añade a {@code village} la caseta y el muelle (quitando las casas que ocupen su sitio). */
+	/** Looks for the shore ({@link Shoreline}) and adds the shed and the pier to {@code village} (removing the houses in their way). */
 	private static String addPort(GenerationContext ctx, Port p, List<StructurePiece> village) {
 		Heights h = new Heights(ctx);
 		StructureTemplateManager manager = ctx.structureTemplateManager();
 		StructurePoolElement shedElement = p.shed().value().getRandomTemplate(ctx.random());
 		StructurePoolElement pierElement = p.pier().value().getRandomTemplate(ctx.random());
-		// cajas de las dos plantillas en cada giro, una sola vez: cada orilla probada solo las desplaza
+		// boxes of both templates in each rotation, only once: each tried shore only shifts them
 		Blueprint[] blueprints = new Blueprint[4];
 		for (Direction d : Direction.Plane.HORIZONTAL) {
 			blueprints[d.get2DDataValue()] = plan(manager, p, shedElement, pierElement, d);
 		}
-		// la plaza es la primera pieza; la posición del inicio es una esquina de su chunk
+		// the plaza is the first piece; the start position is a corner of its chunk
 		BlockPos center = village.get(0).getBoundingBox().getCenter();
 		int x0 = ctx.chunkPos().getMinBlockX(), z0 = ctx.chunkPos().getMinBlockZ();
 		Shoreline.Choice<List<StructurePiece>> e = Shoreline.choose(h::floor, h.sea, center.getX(), center.getZ(), p.reach(), p.length(),
@@ -240,20 +240,20 @@ public final class VillageStructure extends Structure {
 	}
 
 	/**
-	 * Giro, orígenes y cajas de la caseta y el muelle con la unión de la caseta en la orilla y el muelle hacia el mar, y
-	 * el mar que debe quedar libre de piezas rígidas alrededor del muelle.
+	 * Rotation, origins and boxes of the shed and the pier with the shed's joint on the shore and the pier towards the sea, and
+	 * the sea that must be free of rigid pieces around the pier.
 	 */
 	private record Site(Rotation rot, BlockPos shedOrigin, BlockPos pierOrigin, BoundingBox shed, BoundingBox pier,
 						 BoundingBox seaSide) {
 	}
 
 	/**
-	 * Caseta y muelle girados hacia un lado del mar: giro, uniones giradas y cajas con el origen en 0, 0, 0 (se calculan
-	 * una vez por aldea y giro; pedirlas a las plantillas en cada orilla probada era lo más caro de la búsqueda).
+	 * Shed and pier rotated towards one side of the sea: rotation, rotated joints and boxes with the origin at 0, 0, 0 (computed
+	 * once per village and rotation; asking the templates for them on each tried shore was the most expensive part of the search).
 	 */
 	private record Blueprint(Direction sea, Rotation rot, BlockPos shedJoint, BlockPos pierJoint, BoundingBox shed,
 						 BoundingBox pier) {
-		/** Sitio con la unión de la caseta (su cara hacia el mar) en la orilla y la del muelle un bloque mar adentro. */
+		/** Spot with the shed's joint (its face towards the sea) on the shore and the pier's one block offshore. */
 		Site en(Shoreline.Shore s) {
 			BlockPos shore = new BlockPos(s.x(), s.y(), s.z());
 			BlockPos co = shore.subtract(shedJoint), mo = shore.relative(sea).subtract(pierJoint);
@@ -271,15 +271,15 @@ public final class VillageStructure extends Structure {
 	}
 
 	/**
-	 * Una pieza solo se coloca en los chunks a 8 o menos de su chunk de inicio (ChunkGenerator.createReferences): ¿cabe la
-	 * caja entera? (x0, z0: primer bloque del chunk de inicio)
+	 * A piece is only placed in the chunks within 8 of its start chunk (ChunkGenerator.createReferences): does the whole
+	 * box fit? (x0, z0: first block of the start chunk)
 	 */
 	static boolean inWindow(BoundingBox b, int x0, int z0) {
 		int lo = -8 * 16, hi = 8 * 16 + 15;
 		return b.minX() - x0 >= lo && b.maxX() - x0 <= hi && b.minZ() - z0 >= lo && b.maxZ() - z0 <= hi;
 	}
 
-	/** Agua que debe quedar libre de piezas rígidas: el muelle más {@link Shoreline#BEYOND} tras la punta y 4 a cada lado. */
+	/** Water that must stay free of rigid pieces: the pier plus {@link Shoreline#BEYOND} past the tip and 4 to each side. */
 	static BoundingBox openSea(BoundingBox pier, Direction sea) {
 		int ax = sea.getAxis() == Direction.Axis.X ? 0 : 4, az = 4 - ax;
 		int fx = sea.getStepX() * Shoreline.BEYOND, fz = sea.getStepZ() * Shoreline.BEYOND;
@@ -287,7 +287,7 @@ public final class VillageStructure extends Structure {
 				pier.maxX() + ax + Math.max(fx, 0), pier.maxY(), pier.maxZ() + az + Math.max(fz, 0));
 	}
 
-	/** Giro que lleva el +z de las plantillas (de la caseta hacia el muelle) a la dirección dada. */
+	/** Rotation that turns the templates' +z (from the shed towards the pier) to the given direction. */
 	static Rotation facing(Direction d) {
 		for (Rotation r : Rotation.values()) {
 			BlockPos v = new BlockPos(0, 0, 1).rotate(r);

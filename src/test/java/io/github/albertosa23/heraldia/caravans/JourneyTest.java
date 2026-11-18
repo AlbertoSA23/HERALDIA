@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/** El viaje de una caravana: avance por los vértices, asalto, llegada, muerte del mercader, alejamiento y atascos. */
+/** A caravan's journey: progress along the vertices, ambush, arrival, merchant death, moving away and getting stuck. */
 class JourneyTest {
-	/** Mercader vivo y cargado, en el vértice (distancia 0), con un jugador cerca y sin bandidos. */
+	/** Merchant alive and loaded, at the vertex (distance 0), with a player nearby and no bandits. */
 	static Journey.View arrives() {
 		return new Journey.View(true, true, 0, 1, 0, true);
 	}
@@ -39,11 +39,11 @@ class JourneyTest {
 	@Test
 	void ambushMidRouteAndCleared() {
 		Journey v = new Journey(6, 2);
-		assertEquals(Journey.Step.ADVANCES, v.step(arrives()));                 // alcanza el 1
-		assertEquals(Journey.Step.AMBUSH, v.step(arrives()));                 // alcanza el 2: salen los bandidos
+		assertEquals(Journey.Step.ADVANCES, v.step(arrives()));                 // reaches 1
+		assertEquals(Journey.Step.AMBUSH, v.step(arrives()));                 // reaches 2: the bandits spawn
 		assertTrue(v.ambushed());
 		assertEquals(Journey.Phase.AMBUSH, v.phase());
-		// mientras queden bandidos no sigue, aunque esté en el vértice
+		// while bandits remain it does not go on, even if it is at the vertex
 		Journey.View withBandits = new Journey.View(true, true, 0, 2, 3, true);
 		assertEquals(Journey.Step.CONTINUES, v.step(withBandits));
 		assertEquals(3, v.next());
@@ -66,7 +66,7 @@ class JourneyTest {
 		assertEquals(Journey.End.LOST, v.end());
 		assertFalse(v.end().farewell());
 		assertFalse(v.cleared(), "perdida: ni superada ni premio");
-		// y terminar otra vez no cambia el motivo
+		// and ending again does not change the reason
 		v.finish(Journey.End.CLEANUP);
 		assertEquals(Journey.End.LOST, v.end());
 	}
@@ -108,7 +108,7 @@ class JourneyTest {
 		int advances = 0;
 		Journey.Step p;
 		do {
-			p = v.step(farFromVertex(10));       // no se acerca nunca
+			p = v.step(farFromVertex(10));       // it never gets closer
 			advances += p == Journey.Step.ADVANCES ? 1 : 0;
 		} while (p != Journey.Step.END);
 		assertEquals(Journey.MAX_STUCK, advances, "salta un vértice por atasco");
@@ -121,7 +121,7 @@ class JourneyTest {
 		double d = 1000;
 		Journey.Step p;
 		do {
-			d -= 1;                                 // se acerca muy despacio: ni atascada ni llega
+			d -= 1;                                 // it gets closer very slowly: neither stuck nor arriving
 			p = v.step(farFromVertex(d));
 		} while (p != Journey.Step.END);
 		assertEquals(Journey.End.TIMEOUT, v.end());
@@ -143,7 +143,7 @@ class JourneyTest {
 		assertFalse(v.forceAmbush(), "una vez");
 		assertEquals(Journey.Step.CLEARED, v.step(arrives()));
 		assertFalse(v.forceAmbush(), "ya asaltada");
-		// el asalto previsto ya no se repite
+		// the planned ambush does not repeat
 		Journey w = new Journey(5, 2);
 		assertTrue(w.forceAmbush());
 		w.step(arrives());

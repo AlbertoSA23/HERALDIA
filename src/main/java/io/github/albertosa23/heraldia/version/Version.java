@@ -6,10 +6,10 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Versión semántica (lógica pura): números separados por puntos («0.1.0», «26.3»; una «v» delante se ignora), una
- * pre-publicación opcional tras «-» («1.2.0-beta.1») y metadatos de compilación tras «+» que no cuentan («0.2.0+26.3»).
- * Se compara como en semver: números (los que faltan valen 0), y a igualdad la pre-publicación va antes que la versión
- * final; entre pre-publicaciones, identificador a identificador (los numéricos, por valor y antes que los de texto).
+ * Semantic version (pure logic): numbers separated by dots ("0.1.0", "26.3"; a leading "v" is ignored), an
+ * optional prerelease after "-" ("1.2.0-beta.1") and build metadata after "+" that does not count ("0.2.0+26.3").
+ * It compares as in semver: numbers (missing ones are 0), and on a tie the prerelease goes before the final
+ * version; between prereleases, identifier by identifier (numeric ones, by value and before text ones).
  */
 public record Version(List<Integer> numbers, List<String> pre) implements Comparable<Version> {
 	public Version {
@@ -17,7 +17,7 @@ public record Version(List<Integer> numbers, List<String> pre) implements Compar
 		pre = List.copyOf(pre);
 	}
 
-	/** La versión de un texto, o vacío si no lo es (sin números, partes vacías, más de 4 números o números enormes). */
+	/** The version of a text, or empty if it is not one (no numbers, empty parts, more than 4 numbers or huge numbers). */
 	public static Optional<Version> of(String text) {
 		if (text == null) {
 			return Optional.empty();
@@ -63,7 +63,7 @@ public record Version(List<Integer> numbers, List<String> pre) implements Compar
 		return !pre.isEmpty();
 	}
 
-	/** El número `i` (0 si no lo tiene). */
+	/** Number `i` (0 if it does not have it). */
 	public int number(int i) {
 		return i < numbers.size() ? numbers.get(i) : 0;
 	}
@@ -98,9 +98,9 @@ public record Version(List<Integer> numbers, List<String> pre) implements Compar
 	}
 
 	/**
-	 * ¿Sirve una versión del mod compilada para Minecraft `compilada` en un servidor `servidor`? Como el «~» con el que el
-	 * mod declara su Minecraft en fabric.mod.json («~26.3»: de la 26.3 a la 26.4, sin incluirla): misma versión mayor y
-	 * menor, y el servidor igual o posterior. Falso si alguna no es una versión.
+	 * Does a version of the mod compiled for Minecraft `compiled` work on a `server` server? Like the "~" with which the
+	 * mod declares its Minecraft in fabric.mod.json ("~26.3": from 26.3 to 26.4, not included): same major and
+	 * minor version, and the server equal or later. False if either is not a version.
 	 */
 	public static boolean sameMinecraft(String compiled, String server) {
 		Optional<Version> c = of(compiled), s = of(server);

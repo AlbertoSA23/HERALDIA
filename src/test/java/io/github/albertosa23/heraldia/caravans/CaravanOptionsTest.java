@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Las opciones de las caravanas (por defecto, recargables, desactivadas, el perfil) y qué cuenta como camino. */
+/** The caravan options (defaults, reloadable, disabled, the profile) and what counts as a road. */
 class CaravanOptionsTest {
 	@TempDir
 	Path dir;
@@ -66,7 +66,7 @@ class CaravanOptionsTest {
 		HeraldiaConfig.load(file);
 		HeraldiaConfig c = HeraldiaConfig.get();
 		assertFalse(c.getBool(Caravans.ENABLED));
-		// desactivadas, el sorteo nunca saca una aunque todo lo demás lo permita
+		// disabled, the roll never draws one even if everything else allows it
 		assertFalse(Rules.outcome(c.getBool(Caravans.ENABLED), 0, c.getInt(Caravans.MAX_ACTIVE), 1_000_000, 0, 100, 0));
 		assertEquals(3, c.getInt(Caravans.MAX_ACTIVE));
 		v.put(Caravans.ENABLED, new JsonPrimitive(true));
@@ -98,7 +98,7 @@ class CaravanOptionsTest {
 		Files.writeString(file, "{\"perfil\": \"estandar\"}");
 		int standard = HeraldiaConfig.load(file).getInt(Caravans.AMBUSH_PROB);
 		assertTrue(casual < standard && standard < hardcore, casual + " < " + standard + " < " + hardcore);
-		// el perfil no toca si salen ni cuántas a la vez
+		// the profile does not touch whether they spawn nor how many at once
 		assertEquals(1, HeraldiaConfig.get().getInt(Caravans.MAX_ACTIVE));
 	}
 

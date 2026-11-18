@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
-/** Plano (arena.json), caja de protección (AABB) y permisos, y el ruedo. */
+/** Blueprint (arena.json), protection box (AABB) and permissions, and the ring. */
 class ZoneTest {
 	static final String JSON = """
 			{"version": 1, "plantilla": "heraldia:arena/arena", "tamano": [57, 14, 57], "suelo": 7, "centro": [28, 1, 28],
@@ -60,7 +60,7 @@ class ZoneTest {
 
 	@Test
 	void bucketsDeniedNearArenaExceptOperators() {
-		Zone z = Zone.centered(300, -100, 70, plan());     // caja x 272..328, como en el test de la caja
+		Zone z = Zone.centered(300, -100, 70, plan());     // box x 272..328, as in the box test
 		assertTrue(z.bucketDenied(300, 70, -100, false), "dentro");
 		assertTrue(z.bucketDenied(272 - Zone.BUCKET_RADIUS, 70, -100, false), "un dispensador pegado por fuera, a 6 bloques");
 		assertFalse(z.bucketDenied(271 - Zone.BUCKET_RADIUS, 70, -100, false), "más lejos, sí se puede");
@@ -79,7 +79,7 @@ class ZoneTest {
 	@Test
 	void ring() {
 		Zone z = Zone.centered(0, 0, 64, plan());
-		// el suelo del ruedo está 7 bloques bajo el exterior: los pies, a y = 58
+		// the ring's floor is 7 blocks below the outside: the feet, at y = 58
 		assertEquals(57, z.minY());
 		assertTrue(z.inRing(0.5, 58, 0.5));
 		assertTrue(z.inRing(13.0, 58, 0.5));
@@ -101,7 +101,7 @@ class ZoneTest {
 		String gen = System.getProperty("heraldia.generated");
 		Path f = gen == null ? null : Path.of(gen, "heraldia", "arena.json");
 		if (f == null || !Files.isRegularFile(f)) {
-			return;      // sin generar (p. ej. ./gradlew test sin generateStructures): lo cubre el JSON de arriba
+			return;      // not generated (e.g. ./gradlew test without generateStructures): the JSON above covers it
 		}
 		Blueprint p;
 		try (Reader r = Files.newBufferedReader(f, StandardCharsets.UTF_8)) {

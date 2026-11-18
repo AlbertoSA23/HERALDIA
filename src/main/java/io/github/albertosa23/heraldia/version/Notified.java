@@ -5,15 +5,15 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * A quién se ha avisado ya de la versión nueva (lógica pura): a cada operador, una vez por sesión del servidor y por
- * versión; si aparece otra más nueva, se vuelve a avisar a todos. No se guarda nada: al reiniciar se avisa otra vez.
+ * Who has already been notified of the new version (pure logic): each operator, once per server session and per
+ * version; if a newer one appears, everyone is notified again. Nothing is saved: after a restart they are notified again.
  */
 public final class Notified {
 	private String version;
 	private final Set<UUID> already = new HashSet<>();
 
-	/** True si hay que avisar ahora a `jugador` de `version` (y lo apunta). */
-	public synchronized boolean markStop(UUID player, String version) {
+	/** True if `player` must be notified of `version` now (and records it). */
+	public synchronized boolean shouldNotify(UUID player, String version) {
 		if (!version.equals(this.version)) {
 			this.version = version;
 			already.clear();

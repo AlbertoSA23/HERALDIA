@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** Curva de oleadas, tandas con el límite de vivos, rotación de tipos y mini-jefe, experiencia y recompensas. */
+/** Wave curve, batches with the alive limit, type rotation and mini-boss, experience and rewards. */
 class WavesTest {
 	private static final int MOBS = 50, STATS = 10;
 
@@ -49,7 +49,7 @@ class WavesTest {
 				}
 			}
 		}
-		// por defecto, estrictamente más
+		// by default, strictly more
 		for (int n = 2; n < 60; n++) {
 			assertTrue((double) Waves.mobs(n, MOBS) / Waves.mobs(1, MOBS) > Waves.stats(n, STATS));
 		}
@@ -92,7 +92,7 @@ class WavesTest {
 			List<String> t = Waves.types(n, MOBS);
 			assertEquals(Waves.mobs(n, MOBS), t.size());
 			assertTrue(Waves.batch(n).mobs().containsAll(t));
-			// repartidos por turnos: con mobs de sobra salen todos los tipos de la tanda
+			// dealt in turns: with plenty of mobs all the batch's types spawn
 			if (t.size() >= Waves.batch(n).mobs().size()) {
 				assertEquals(new HashSet<>(Waves.batch(n).mobs()), new HashSet<>(t));
 			}
@@ -115,7 +115,7 @@ class WavesTest {
 
 	@Test
 	void experienceAtFifteenPercent() {
-		// 15 % de 5 (un zombi) = 0,75: 1 con azar < 0,75, 0 si no
+		// 15 % of 5 (a zombie) = 0.75: 1 with random < 0.75, 0 otherwise
 		assertEquals(1, Waves.experience(5, 15, 0.0));
 		assertEquals(1, Waves.experience(5, 15, 0.74));
 		assertEquals(0, Waves.experience(5, 15, 0.75));
@@ -123,7 +123,7 @@ class WavesTest {
 		assertEquals(0, Waves.experience(5, 0, 0.0));
 		assertEquals(5, Waves.experience(5, 100, 0.99));
 		assertEquals(0, Waves.experience(0, 15, 0.0));
-		// de media, exactamente el porcentaje
+		// on average, exactly the percentage
 		double sum = 0;
 		int n = 10000;
 		for (int i = 0; i < n; i++) {

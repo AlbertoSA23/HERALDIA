@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/** Los modos de la partida (T41): pausa de cada modo, fin del contrarreloj, tiempo de partida y lo que puntúa. */
+/** The match modes (T41): pause of each mode, end of the time trial, match time and what scores. */
 class MatchModesTest {
 	private static final UUID A = UUID.randomUUID(), B = UUID.randomUUID();
 
-	/** Ticks hasta que empieza la oleada siguiente. */
+	/** Ticks until the next wave starts. */
 	private static int untilWave(Match p) {
 		for (int i = 1; i < 10000; i++) {
 			if (p.tick() == Match.Step.WAVE_STARTS) {
@@ -22,7 +22,7 @@ class MatchModesTest {
 		throw new AssertionError("no empieza la oleada");
 	}
 
-	/** Saca y mata a todos los enemigos de la oleada (sin pasar ticks); true si se superó. */
+	/** Spawns and kills all the enemies of the wave (without passing ticks); true if it was cleared. */
 	private static boolean clean(Match p) {
 		boolean cleared = false;
 		while (p.state() == Match.State.WAVE) {
@@ -65,7 +65,7 @@ class MatchModesTest {
 		for (int n = 1; n <= 3; n++) {
 			assertEquals(n, p.wave());
 			for (int i = 0; i < 40; i++) {
-				p.tick();                         // 2 s de lucha por oleada
+				p.tick();                         // 2 s of fighting per wave
 			}
 			assertTrue(clean(p));
 			assertEquals(n == 3, p.completed(), "oleada " + n);
@@ -74,7 +74,7 @@ class MatchModesTest {
 			}
 		}
 		assertEquals(3, p.cleared());
-		// 3 oleadas de 40 ticks y 2 pausas de 100: lo que puntúa (los ticks al superar la última)
+		// 3 waves of 40 ticks and 2 pauses of 100: what scores (the ticks when the last one is cleared)
 		assertEquals(3 * 40 + 2 * Mode.TIME_TRIAL.pause(), p.clearedTicks());
 		p.finish();
 		assertEquals(Mode.COOP, p.mode(), "al terminar vuelve al de siempre");
