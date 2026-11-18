@@ -339,7 +339,7 @@ DURATION_S = {
     **{f"{COMPAT}::{g}": s for g, s in {"base": 75, "rendimiento": 75, "biomas": 90, "servidor": 90, "distanthorizons": 90,
                                          "estructuras": 100, "terreno": 110, "tectonic": 140, "wwoo": 170}.items()},
     "tools/smoke/anchored_guardians.py": 450,
-    "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
+    "tools/smoke/medium_structures.py": 614,          # measured locally (4 cores), with the inhabitants settling on 18 located structures (±80 blocks generated each); 3 min 20 s before them
     "tools/smoke/guide.py": 120,                      # three server starts
     "tools/smoke/search_cache.py": 90,                # measured locally (4 cores): 50 s, three starts, eleven searches
     "tools/smoke/journal.py": 90,                     # one start and a few commands as simulated players (with the end of the Chronicle)
