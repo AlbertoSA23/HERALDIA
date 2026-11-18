@@ -69,6 +69,7 @@ El fitxer `config/heraldia.json` es crea en la primera arrencada del servidor, a
 | `arena.temporada.dia_reinicio` | `lunes` | Dia en què es tanca la classificació setmanal de l'arena i se n'anuncien els campions (a mitjanit, hora del servidor). |
 | `encargos.activado` | `true` | Encàrrecs del tauler (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputació per poble i els seus descomptes. |
+| `reputacion.aldea_visible` | `true` | El poble mostra la seva millor reputació amb blocs vanilla: flors, estendards, fanals (o porticons tancats); mai sobre el bloc d'un jugador. |
 | `dialogos.activado` | `true` | Converses amb els vilatans d'Heraldia (ajupit + clic dret comercia directament). |
 | `caravanas.activado` | `true` | Caravanes pels camins (operadors: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Gent de pas pels camins, cada tipus amb la seva opció (operadors: `/heraldia caravan wayfarer`). |

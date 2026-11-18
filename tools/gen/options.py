@@ -455,7 +455,17 @@ _FIXED = [
     ("tesoro.radio_max", 1500, 300, 4000,
      "Distancia máxima, en bloques, de cada marca del mapa del tesoro a la anterior (o a donde se descifra el fragmento)",
      "Maximum distance, in blocks, from each mark of the treasure map to the previous one (or to where the fragment is "
-     "deciphered)"),
+     "deciphered)"),    ("reputacion.aldea_visible", True, None, None,
+     "La reputación se ve en la aldea: con la mejor reputación que tenga cualquier jugador, flores en la fuente "
+     "(conocido); estandartes en las entradas de la plaza, junto al tablón, en las puertas de la muralla y en las "
+     "torres (amigo); más flores, faroles en las puertas y una alfombra ante el tablón (héroe); si todos los que la "
+     "tratan tienen reputación negativa, las torres cierran sus contraventanas. Solo bloques vanilla y solo donde hay "
+     "aire: nunca toca un bloque de un jugador. Desactivada, cada aldea quita lo que puso al cargarse",
+     "Reputation shows in the village: with the best reputation any player has there, flowers on the fountain (known); "
+     "banners at the square's entrances, by the job board, at the wall gates and on the towers (friend); more flowers, "
+     "lanterns on the gates and a carpet before the job board (hero); if everyone who deals with it has negative "
+     "reputation, the towers close their shutters. Vanilla blocks only and only on air: it never touches a player's "
+     "block. Disabled, each village takes down what it put up when it loads"),
 ]
 # Play profiles (option "perfil"): each one sets these gameplay options at once (never world generation ones). "estandar"
 # is exactly the usual behavior (the default values); "personalizado" sets nothing (each option with its
@@ -669,6 +679,7 @@ _NAMES = {
     "tesoro.activado": ("Búsqueda del tesoro", "Treasure hunt"),
     "tesoro.probabilidad": ("Fragmentos por cofre (%)", "Fragments per chest (%)"),
     "tesoro.radio_max": ("Distancia máxima entre marcas (bloques)", "Maximum distance between marks (blocks)"),
+    "reputacion.aldea_visible": ("La reputación se ve en la aldea", "Reputation shows in the village"),
 }
 # Name of each value of the list options: {key: {value: (es_es, en_us)}}.
 _VALUE_NAMES = {

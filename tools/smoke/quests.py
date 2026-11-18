@@ -14,6 +14,9 @@ First start:
   - a plaza villager with a fixed trade of 10 emeralds: with no reputation the price does not change; with "conocido", it drops
     to 9 (10 %);
   - hitting that villager lowers the reputation; another is accepted and abandoned; /heraldia status counts the quests.
+  - reputation visible in the village (reputacion.aldea_visible): before "conocido" a block not placed by the mod is put on
+    one corner of the fountain's rim; on reaching "conocido" the other three corners get flower pots and that block is left
+    as it was (never destroy a player's block).
   - villager conversations (P9a), with the test villager tagged as a Heraldia one (dialogos.viajeros_porcentaje = 100:
     every villager is a wayfarer): the simulated player's click opens the trades (a Carpet bot, like a trading
     automation's fake player, does not send the network packet the conversation listens to); /heraldia talk with
@@ -24,6 +27,8 @@ Second start (same world): the board is the same, the player keeps what was hand
 their reputation and the reduced price; the wayfarer remembers it already told its hint (saved in the villager) and,
 with dialogos.activado set to false and /heraldia reload, there is no conversation; with quests.switched_on and
 reputacion.activado set to false and /heraldia reload, the quests say they are disabled and the price goes back to 10.
+The flower pots are still there after restarting; with reputation disabled the mod takes down exactly the three pots it put
+up and the other block stays.
 """
 import argparse, json, os, re, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -244,6 +249,40 @@ def conversation(srv, fails, spot, y, floor_bottom):
     srv.run("tag @e[tag=heraldia_prueba] remove heraldia", r"Removed tag|Nothing changed")
 
 
+# Reputation visible in the village (welcome/Welcome): the four corners of the fountain's rim (streets.plaza: centre 11,
+# rim at distance 3, y 1), where a "conocido" village puts flower pots at y 2. One corner gets a block the mod did not place.
+RIM = [(8, 8), (14, 8), (8, 14), (14, 14)]
+OTHER_BLOCK = "minecraft:mossy_cobblestone"
+LOOK = r"Heraldia: village look: (-?\d+,-?\d+) {}: placed (\d+), removed (\d+), left alone (\d+)"
+
+
+def rim_cells(found):
+    """World (x, y, z) of the cells above the fountain's rim corners."""
+    import math
+    style, to_world, y, sheriff_pos = found
+    out = []
+    for p in RIM:
+        wx, wz = to_world(p)
+        out.append((math.floor(wx), math.floor(y) + 1, math.floor(wz)))
+    return out
+
+
+def look_line(srv, look, timeout):
+    """The village look log line for that look (already seen, or within `timeout` s), or None."""
+    pat = LOOK.format(look)
+    for line in srv.seen[-400:]:
+        m = re.search(pat, line)
+        if m:
+            return m
+    return maybe(srv, pat, timeout)
+
+
+def pots(srv, cells):
+    """Which of the cells hold a potted plant (any of #minecraft:flower_pots but the empty pot)."""
+    return [srv.test(f"execute if block {x} {y} {z} #minecraft:flower_pots") and
+            not srv.test(f"execute if block {x} {y} {z} minecraft:flower_pot") for x, y, z in cells]
+
+
 def first_lap(srv, fails, found):
     style, to_world, y, sheriff_pos = found
     spot, floor_bottom = to_world(SPOT), to_world(BOT)
@@ -297,6 +336,11 @@ def first_lap(srv, fails, found):
     if rep1 != 10:
         fails.append(f"fetch: reputation {rep1} (must be 10)")
     print(f"fetch handed in: {em1} emeralds, reputation {rep1}")
+    cells = rim_cells(found)
+    x0, y0, z0 = cells[0]
+    srv.run(f"setblock {x0} {y0} {z0} {OTHER_BLOCK}", r"Changed the block|Could not set")
+    if any(pots(srv, cells)):
+        fails.append(f"village look: flower pots on the rim with reputation {rep1} (must be none before 'conocido')")
     # 4) guardian: a mob with its tags next to the quest site, killed by the player
     tx, tz = gx + 40, gz
     srv.run(f"forceload add {tx} {tz}", r"Marked|force|already")
@@ -324,6 +368,17 @@ def first_lap(srv, fails, found):
     if not srv.test(f"execute if entity @a[name={PLAYER},advancements={{heraldia:encargos/primero=true}}]"):
         fails.append("advancement encargos/primero not granted")
     print(f"guardian handed in: {em2} emeralds, reputation {rep2} ({level})")
+    m = look_line(srv, "conocida", 20)
+    if m is None:
+        fails.append("village look: reaching 'conocido' does not change the village")
+    else:
+        print(f"village look {m.group(1)}: placed {m.group(2)}, removed {m.group(3)}, left alone {m.group(4)}")
+        if (m.group(2), m.group(3)) != ("3", "0"):
+            fails.append(f"village look: placed {m.group(2)} and removed {m.group(3)} (must be 3 and 0: one corner is taken)")
+    if pots(srv, cells) != [False, True, True, True]:
+        fails.append(f"village look: flower pots on the rim {pots(srv, cells)} (must be [False, True, True, True])")
+    if not srv.test(f"execute if block {x0} {y0} {z0} {OTHER_BLOCK}"):
+        fails.append("village look: the block that was not the mod's was touched")
     # 5) price in the plaza with "conocido": 10 % discount (before the quests there was none: see above)
     inside = price(srv, spot, y, floor_bottom)
     print(f"price in the plaza: before {before}, with reputation 'conocido' {inside}")
@@ -382,8 +437,18 @@ def second_lap(srv, fails, found, first_item, work):
     as_player(srv, WITH, r"Conversations with villagers are disabled|conversaciones con los aldeanos están desactivadas")
     srv.run("tag @e[tag=heraldia_prueba] remove heraldia", r"Removed tag|Nothing changed")
     # options disabled and reloaded without restarting
+    cells = rim_cells(found)
+    if pots(srv, cells) != [False, True, True, True]:
+        fails.append(f"village look: after restarting, flower pots on the rim {pots(srv, cells)} (must be [False, True, True, True])")
     write_config(work, {"encargos": {"activado": False}, "reputacion": {"activado": False}})
     srv.run("heraldia reload", r"Heraldia: configuración recargada")
+    m = look_line(srv, "normal", 30)
+    if m is None or (m.group(2), m.group(3)) != ("0", "3"):
+        fails.append(f"village look: with reputation disabled, {m.group(0) if m else 'nothing'} (must place 0 and remove 3)")
+    if any(pots(srv, cells)):
+        fails.append(f"village look: with reputation disabled, flower pots left {pots(srv, cells)}")
+    if not srv.test(f"execute if block {cells[0][0]} {cells[0][1]} {cells[0][2]} {OTHER_BLOCK}"):
+        fails.append("village look: with reputation disabled, the block that was not the mod's was touched")
     as_player(srv, "heraldia quest", r"quests are disabled|están desactivados")
     sin = existing_price(srv, spot, y, floor_bottom)
     if sin != 0:
@@ -423,7 +488,7 @@ def main():
             print(" -", f)
         return 1
     print("OK: board, accepting, fetch and guardian handed in, reputation, reduced price, villager conversations and hint, "
-          "restart and disabled options")
+          "restart and disabled options; reputation visible in the village without touching a block that is not the mod's")
     return 0
 
 

@@ -1916,5 +1916,7 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Vilatans que coneixen un lloc (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Reputació per a una pista",
   "heraldia.config.seccion.dialogos": "Converses",
-  "heraldia.dialogos.no_habla": "Aquest no és un vilatà d'Heraldia dins del seu poble: no té conversa."
+  "heraldia.dialogos.no_habla": "Aquest no és un vilatà d'Heraldia dins del seu poble: no té conversa.",
+  "heraldia.config.reputacion.aldea_visible": "La reputació es veu al poble: segons la millor reputació que hi tingui qualsevol jugador, flors a la font (conegut); estendards a les entrades de la plaça, al costat del tauler, a les portes de la muralla i a les torres (amic); més flors, fanals a les portes i una catifa davant del tauler (heroi); si tots els qui el tracten tenen reputació negativa, les torres tanquen els porticons. Només blocs vanilla i només on hi ha aire: mai no toca un bloc d'un jugador. Desactivada, cada poble treu el que va posar en carregar-se",
+  "heraldia.config.reputacion.aldea_visible.nombre": "La reputació es veu al poble"
 }

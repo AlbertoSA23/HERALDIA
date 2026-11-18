@@ -73,7 +73,8 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
                  "tools/gen/houses.py", "tools/gen/fillers.py", "tools/gen/traces.py", "tools/gen/specials.py",
                  "tools/gen/streets.py", "tools/gen/pack.py", "tools/gen/board.py", "tools/gen/arena_waves.py",
                  "tools/gen/caravans.py", JAVA + "Heraldia.java", JAVA + "villages/*", JAVA + "caravans/*", JAVA + "arena/*",
-                 JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*"]
+                 JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*",
+                 JAVA + "welcome/*"]
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
@@ -145,6 +146,8 @@ MAP = [
     (JAVA + "quests/*", QUESTS), (JAVA + "mixin/VillagerPricesMixin.java", QUESTS), ("tools/gen/quests.py", QUESTS),
     # villager conversations (P9a): their scenario lives in the quests test (a real village and a simulated player)
     (JAVA + "dialogue/*", QUESTS), ("tools/gen/dialogue.py", QUESTS), ("tools/gen/dialogue/*", QUESTS),
+    # reputation visible in the village: its scenario lives in the quests test too (the same village reaches "conocido")
+    (JAVA + "welcome/*", QUESTS),
     # caravans along the roads (T39)
     (JAVA + "caravans/*", CARAVANS), ("tools/gen/caravans.py", CARAVANS), ("tools/smoke/wayfarers.py", CARAVANS),
     # chozas de mago (T43)

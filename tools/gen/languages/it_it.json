@@ -1916,5 +1916,7 @@
   "heraldia.config.dialogos.viajeros_porcentaje.nombre": "Abitanti che conoscono un luogo (%)",
   "heraldia.config.dialogos.pista_reputacion.nombre": "Reputazione per un indizio",
   "heraldia.config.seccion.dialogos": "Conversazioni",
-  "heraldia.dialogos.no_habla": "Quello non è un abitante di Heraldia nel suo villaggio: non ha conversazione."
+  "heraldia.dialogos.no_habla": "Quello non è un abitante di Heraldia nel suo villaggio: non ha conversazione.",
+  "heraldia.config.reputacion.aldea_visible": "La reputazione si vede nel villaggio: secondo la migliore reputazione che vi abbia un giocatore, fiori sulla fontana (conosciuto); stendardi agli ingressi della piazza, accanto alla bacheca, alle porte delle mura e sulle torri (amico); più fiori, lanterne sulle porte e un tappeto davanti alla bacheca (eroe); se tutti quelli che lo frequentano hanno reputazione negativa, le torri chiudono le imposte. Solo blocchi vanilla e solo sull'aria: non tocca mai un blocco di un giocatore. Disattivata, ogni villaggio toglie ciò che ha messo quando si carica",
+  "heraldia.config.reputacion.aldea_visible.nombre": "La reputazione si vede nel villaggio"
 }
