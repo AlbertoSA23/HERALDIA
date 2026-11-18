@@ -90,9 +90,9 @@ public final class WebMaps {
 
 	private static Map<String, String> adapters() {
 		Map<String, String> m = new LinkedHashMap<>();
-		m.put("bluemap", WebMaps.class.getPackageName() + ".bluemap.BlueMapAdaptador");
-		m.put("dynmap", WebMaps.class.getPackageName() + ".dynmap.DynmapAdaptador");
-		m.put("squaremap", WebMaps.class.getPackageName() + ".squaremap.SquaremapAdaptador");
+		m.put("bluemap", WebMaps.class.getPackageName() + ".bluemap.BlueMapAdapter");
+		m.put("dynmap", WebMaps.class.getPackageName() + ".dynmap.DynmapAdapter");
+		m.put("squaremap", WebMaps.class.getPackageName() + ".squaremap.SquaremapAdapter");
 		return Map.copyOf(m);
 	}
 

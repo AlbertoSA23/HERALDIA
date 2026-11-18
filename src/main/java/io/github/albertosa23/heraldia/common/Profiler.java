@@ -22,31 +22,38 @@ public final class Profiler {
 	/** Tramos medidos (el nombre en minúsculas es la clave del JSON). */
 	public enum Segment {
 		/** El mixin de las reglas de colocación entero (tryGenerateStructure: aldeas, únicas, medianas, minas, ajenas). */
-		RULES,
+		RULES("reglas"),
 		/** Lo mismo en /locate y los mapas (StructureCheck.canCreateStructure). */
-		RULES_LOCATE,
+		RULES_LOCATE("reglas_locate"),
 		/** Estructuras de otros mods junto a una aldea o una única ({@link ForeignZone}). */
-		FOREIGN_ZONE,
+		FOREIGN_ZONE("zona_ajenas"),
 		/** Distancia mínima entre únicas (UniqueSeparation.blocked). */
-		UNIQUE_SEPARATION,
+		UNIQUE_SEPARATION("separacion_unicas"),
 		/** Regla de colocación de las medianas ({@link MediumStructures#rejects}). */
-		MEDIUMS,
+		MEDIUMS("medianas"),
 		/** Regla de colocación de las entradas a mina (Minas.rechaza). */
-		MINES,
+		MINES("minas"),
 		/** Búsqueda de la ladera de una entrada a mina (Ladera.buscar). */
-		HILLSIDE,
+		HILLSIDE("ladera"),
 		/** La misma búsqueda, adelantada en otros hilos para /locate (minas/LocateParalelo; no cuenta en LADERA). */
-		HILLSIDE_EARLY,
+		HILLSIDE_EARLY("ladera_anticipada"),
 		/** Punto de inicio de una aldea (el jigsaw de vanilla más lo propio). */
-		VILLAGE,
+		VILLAGE("aldea"),
 		/** Búsqueda de la orilla y colocación del puerto de una aldea de costa. */
-		SHORE,
+		SHORE("orilla"),
 		/** Rasgo de los caminos entre aldeas, por chunk. */
-		ROADS,
+		ROADS("caminos"),
 		/** Regla de colocación de los faros y naufragios (costa/Costa: la de las minas con su familia). */
-		COAST,
+		COAST("costa"),
 		/** Búsqueda de la orilla de un faro o un naufragio (costa/Orilla). */
-		COAST_SHORE
+		COAST_SHORE("costa_orilla");
+
+		/** Saved id (files, NBT and translation keys): never renamed. */
+		public final String id;
+
+		Segment(String id) {
+			this.id = id;
+		}
 	}
 
 	/** Contadores de un perfil (instancia aparte para poder probarlos sin la propiedad del sistema). */
@@ -117,7 +124,7 @@ public final class Profiler {
 				}
 				long total = nanos(t);
 				sb.append(String.format(Locale.ROOT, "\"%s\":{\"n\":%d,\"total_ms\":%.3f,\"media_us\":%.1f,\"max_us\":%.1f}",
-						t.name().toLowerCase(Locale.ROOT), k, total / 1e6, total / 1e3 / k, maximum(t) / 1e3));
+						t.id, k, total / 1e6, total / 1e3 / k, maximum(t) / 1e3));
 			}
 			return sb.append('}').toString();
 		}

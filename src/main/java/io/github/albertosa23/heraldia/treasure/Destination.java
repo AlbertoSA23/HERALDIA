@@ -10,14 +10,26 @@ import net.minecraft.nbt.CompoundTag;
  */
 public record Destination(Type type, String structure, int x, int z, boolean generated, String biome) {
 	public enum Type {
-		MEDIUM, MINE, TREASURE;
+		MEDIUM("mediana"), MINE("mina"), TREASURE("tesoro");
+
+		/** Saved id (NBT): never renamed. */
+		private final String id;
+
+		Type(String id) {
+			this.id = id;
+		}
 
 		public String id() {
-			return name().toLowerCase(Locale.ROOT);
+			return id;
 		}
 
 		static Type of(String id) {
-			return valueOf(id.toUpperCase(Locale.ROOT));
+			for (Type t : values()) {
+				if (t.id.equals(id)) {
+					return t;
+				}
+			}
+			throw new IllegalArgumentException("No destination type " + id);
 		}
 	}
 

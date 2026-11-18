@@ -2,6 +2,7 @@ package io.github.albertosa23.heraldia.update;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -25,23 +26,38 @@ public final class Plan {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
 	/** Un chunk a regenerar y su InhabitedTime al analizar (si ha subido al arrancar, ya no se borra). */
-	public record Chunk(int cx, int cz, long inhabited) {
+	public record Chunk(int cx, int cz, @SerializedName("habitado") long inhabited) {
 	}
 
 	/** Una estructura nueva que colocar: su id, su chunk de inicio y su caja al analizar {minX, minY, minZ, maxX, maxY, maxZ}. */
-	public record Placement(String structure, int cx, int cz, int[] box) {
+	public record Placement(@SerializedName("estructura") String structure, int cx, int cz, @SerializedName("caja") int[] box) {
 	}
 
 	public String id;
+	@SerializedName("fecha")
 	public String date;
+	@SerializedName("fase")
 	public String phase = PENDING;
+	@SerializedName("copia")
 	public boolean backup;
+	@SerializedName("margen")
 	public int margin;
+	@SerializedName("regenerar")
 	public List<Chunk> regenerate = new ArrayList<>();
+	@SerializedName("colocar")
 	public List<Placement> place = new ArrayList<>();
 	// resultado
-	public int regenerated, skipped, placed, skippedPlacements;
+	@SerializedName("regenerados")
+	public int regenerated;
+	@SerializedName("omitidos")
+	public int skipped;
+	@SerializedName("colocadas")
+	public int placed;
+	@SerializedName("colocacionesOmitidas")
+	public int skippedPlacements;
+	@SerializedName("carpetaCopia")
 	public String backupFolder;
+	@SerializedName("notas")
 	public List<String> notes = new ArrayList<>();
 
 	/** Los ficheros de región que tocan los chunks a regenerar y las cajas de las estructuras a colocar. */

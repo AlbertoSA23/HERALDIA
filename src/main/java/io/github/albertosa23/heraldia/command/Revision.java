@@ -45,12 +45,21 @@ public final class Revision {
 	private Revision() {
 	}
 
-	public enum Type { VILLAGE, UNIQUE, MEDIUM, MINE, COAST, ARENA, ROAD }
+	public enum Type {
+		VILLAGE("aldea"), UNIQUE("unica"), MEDIUM("mediana"), MINE("mina"), COAST("costa"), ARENA("arena"), ROAD("camino");
+
+		/** Saved id (files, NBT and translation keys): never renamed. */
+		public final String id;
+
+		Type(String id) {
+			this.id = id;
+		}
+	}
 
 	/** Una parada: id estable (p. ej. «unica/castillo»), su tipo y lo que la distingue (familia, única, tipo o tamaño). */
 	public record Stop(String id, Type type, String sub) {
 		static Stop of(Type t, String sub) {
-			return new Stop(t.name().toLowerCase(Locale.ROOT) + (sub.isEmpty() ? "" : "/" + sub), t, sub);
+			return new Stop(t.id + (sub.isEmpty() ? "" : "/" + sub), t, sub);
 		}
 	}
 
@@ -139,7 +148,24 @@ public final class Revision {
 
 	// --- progreso ---
 
-	public enum Mark { REVIEWED, PROBLEM, SKIPPED }
+	public enum Mark {
+		REVIEWED("revisada"), PROBLEM("problema"), SKIPPED("saltada");
+
+		/** Saved id (files, NBT and translation keys): never renamed. */
+		public final String id;
+
+		Mark(String id) {
+			this.id = id;
+		}
+		static Mark of(String id) {
+			for (Mark t : values()) {
+				if (t.id.equals(id)) {
+					return t;
+				}
+			}
+			throw new IllegalArgumentException("No review mark " + id);
+		}
+	}
 
 	/** Marca de una parada: cuándo (milisegundos de época) y una nota opcional (vacía si no hay). */
 	public record Note(Mark mark, String note, long when) {
@@ -206,7 +232,7 @@ public final class Revision {
 				JsonObject ns = new JsonObject();
 				p.notes.forEach((k, n) -> {
 					JsonObject x = new JsonObject();
-					x.addProperty("marca", n.mark().name().toLowerCase(Locale.ROOT));
+					x.addProperty("marca", n.mark().id);
 					if (!n.note().isEmpty()) {
 						x.addProperty("nota", n.note());
 					}
@@ -235,7 +261,7 @@ public final class Revision {
 					if (o.has("paradas") && o.get("paradas").isJsonObject()) {
 						for (Map.Entry<String, JsonElement> n : o.getAsJsonObject("paradas").entrySet()) {
 							JsonObject x = n.getValue().getAsJsonObject();
-							Mark m = Mark.valueOf(x.get("marca").getAsString().toUpperCase(Locale.ROOT));
+							Mark m = Mark.of(x.get("marca").getAsString());
 							p.notes.put(n.getKey(), new Note(m, x.has("nota") ? clean(x.get("nota").getAsString()) : "",
 									x.has("cuando") ? x.get("cuando").getAsLong() : 0));
 						}

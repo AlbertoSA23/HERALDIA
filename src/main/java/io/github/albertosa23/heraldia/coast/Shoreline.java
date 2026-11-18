@@ -58,10 +58,21 @@ public final class Shoreline {
 	 * </ul>
 	 */
 	public enum Mode {
-		LIGHTHOUSE, STRANDED, SUNKEN;
+		LIGHTHOUSE("faro"), STRANDED("encallado"), SUNKEN("hundido");
 
-		public static Mode of(String s) {
-			return valueOf(s.toUpperCase(Locale.ROOT));
+		/** Saved id (files, NBT and translation keys): never renamed. */
+		public final String id;
+
+		Mode(String id) {
+			this.id = id;
+		}
+		public static Mode of(String id) {
+			for (Mode t : values()) {
+				if (t.id.equals(id)) {
+					return t;
+				}
+			}
+			throw new IllegalArgumentException("No coast mode " + id);
 		}
 	}
 

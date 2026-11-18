@@ -199,7 +199,7 @@ public final class ReviewCommand {
 
 	/** Claves de la lista de qué mirar de una parada. */
 	static List<String> points(Stop p) {
-		String type = p.type().name().toLowerCase(Locale.ROOT);
+		String type = p.type().id;
 		List<String> out = new ArrayList<>();
 		for (int i = 1; i <= POINTS.get(p.type()); i++) {
 			out.add("heraldia.revisar.mirar." + type + "." + i);
@@ -654,7 +654,7 @@ public final class ReviewCommand {
 	}
 
 	static Component state(Mark m) {
-		return Texts.t("heraldia.revisar.estado." + m.name().toLowerCase(Locale.ROOT));
+		return Texts.t("heraldia.revisar.estado." + m.id);
 	}
 
 	/** Botones de la parada: marcar (revisada, con nota o con problema), saltar, anterior, siguiente y lista. */

@@ -54,7 +54,7 @@ public final class CoastStructure extends Structure implements io.github.alberto
 	public static final MapCodec<CoastStructure> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
 			settingsCodec(i),
 			StructureTemplatePool.CODEC.fieldOf("start_pool").forGetter(s -> s.pool),
-			Codec.STRING.fieldOf("modo").forGetter(s -> s.shape.mode().name().toLowerCase(java.util.Locale.ROOT)),
+			Codec.STRING.fieldOf("modo").forGetter(s -> s.shape.mode().id),
 			Codec.INT.listOf(2, 2).fieldOf("ancla").forGetter(s -> List.of(s.anchorX, s.anchorZ)),
 			Codec.INT.listOf(4, 4).fieldOf("tierra").forGetter(s -> list(s.shape.land())),
 			Codec.INT.listOf(4, 4).fieldOf("mar").forGetter(s -> list(s.shape.seaSide())),
@@ -118,7 +118,7 @@ public final class CoastStructure extends Structure implements io.github.alberto
 		StructurePoolElement element = pool.value().getRandomTemplate(ctx.random());
 		BoundingBox box = element.getBoundingBox(manager, origin, rotation);
 		if (forced || DEBUG || REGISTERED.getAndIncrement() < LOGGED) {
-			LOGGER.info("Heraldia: costa ({}) en {} {} {} hacia el {} (nota {}{}): orilla en {} µs", shape.mode().name().toLowerCase(java.util.Locale.ROOT),
+			LOGGER.info("Heraldia: costa ({}) en {} {} {} hacia el {} (nota {}{}): orilla en {} µs", shape.mode().id,
 					site.x(), y, site.z(), site.seaSide().getSerializedName(), site.note(), noShore ? ", sin orilla" : "",
 					(System.nanoTime() - t0) / 1000);
 		}

@@ -93,7 +93,7 @@ class ReviewCommandTest {
 			}
 		}
 		for (Revision.Mark m : Revision.Mark.values()) {
-			assertTrue(es.containsKey("heraldia.revisar.estado." + m.name().toLowerCase(java.util.Locale.ROOT)), m.toString());
+			assertTrue(es.containsKey("heraldia.revisar.estado." + m.id), m.toString());
 		}
 		assertEquals("Un tramo de camino", ReviewCommand.spanishName(new Stop("camino", Type.ROAD, "")));
 		assertTrue(ReviewCommand.spanishName(new Stop("aldea/llanuras", Type.VILLAGE, "llanuras")).contains("Aldea"));

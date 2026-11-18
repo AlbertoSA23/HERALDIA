@@ -25,11 +25,14 @@ public final class ModDifficulty {
 
 	/** Niveles de la opción dificultad.nivel; {@link #NORMAL} es el comportamiento de siempre (sin modificadores). */
 	public enum Tier {
-		EASY(0.75, 0.75, 0.75), NORMAL(1, 1, 1), HARD(1.5, 1.25, 1.25), HEROIC(2, 1.5, 1.5);
+		EASY("facil", 0.75, 0.75, 0.75), NORMAL("normal", 1, 1, 1), HARD("dificil", 1.5, 1.25, 1.25), HEROIC("heroica", 2, 1.5, 1.5);
 
 		public final double health, damage, loot;
+		/** Option value: never renamed. */
+		private final String id;
 
-		Tier(double health, double damage, double loot) {
+		Tier(String id, double health, double damage, double loot) {
+			this.id = id;
 			this.health = health;
 			this.damage = damage;
 			this.loot = loot;
@@ -46,7 +49,7 @@ public final class ModDifficulty {
 		}
 
 		public String id() {
-			return name().toLowerCase(Locale.ROOT);
+			return id;
 		}
 
 		/** Cantidad del modificador de vida (operación ADD_MULTIPLIED_TOTAL: valor final x (1 + cantidad)); 0 = sin modificador. */

@@ -43,7 +43,7 @@ class WebMapsIsolationTest {
 
 	@Test
 	void commonClassesLoadWithoutApis() throws ClassNotFoundException {
-		for (String c : List.of("MapasWeb", "Marcadores", "Registro", "Sitio", "Marcador", "Capa", "Iconos", "MapaWeb")) {
+		for (String c : List.of("WebMaps", "Markers", "Ledger", "Site", "MapMarker", "Layer", "Icons", "WebMap")) {
 			Class.forName("io.github.albertosa23.heraldia.maps." + c, true, getClass().getClassLoader());
 		}
 		Class.forName("io.github.albertosa23.heraldia.mixin.PlayerAdvancementsMixin", false, getClass().getClassLoader());
@@ -58,7 +58,7 @@ class WebMapsIsolationTest {
 			Path f = root.resolve(clazz.replace('.', '/') + ".class");
 			assertTrue(Files.isRegularFile(f), f.toString());
 			try {
-				assertTrue(mentions(Files.readAllBytes(f), "io/github/albertosa23/heraldia/maps/MapaWeb"), clazz + " implementa MapaWeb");
+				assertTrue(mentions(Files.readAllBytes(f), "io/github/albertosa23/heraldia/maps/WebMap"), clazz + " implements WebMap");
 			} catch (IOException e) {
 				throw new IllegalStateException(e);
 			}

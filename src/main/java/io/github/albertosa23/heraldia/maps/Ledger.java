@@ -90,7 +90,7 @@ public final class Ledger {
 			for (JsonElement e : root.getAsJsonObject().getAsJsonArray("sitios")) {
 				try {
 					JsonObject s = e.getAsJsonObject();
-					Layer layer = Layer.valueOf(s.get("capa").getAsString().toUpperCase(Locale.ROOT));
+					Layer layer = Layer.of(s.get("capa").getAsString());
 					Site site = new Site(s.get("estructura").getAsString(), layer, s.get("sub").getAsString(),
 							s.get("x").getAsInt(), s.get("y").getAsInt(), s.get("z").getAsInt());
 					if (sites.putIfAbsent(site.key(), site) == null) {

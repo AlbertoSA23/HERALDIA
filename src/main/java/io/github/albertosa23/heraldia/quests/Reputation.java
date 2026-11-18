@@ -16,17 +16,21 @@ public final class Reputation {
 	public static final int VILLAGER_HIT = -5, VILLAGER_DEATH = -40, GOLEM_HIT = -3, GOLEM_DEATH = -20;
 
 	public enum Tier {
-		UNKNOWN(0), KNOWN(10), FRIEND(20), HERO(30);
+		UNKNOWN("desconocido", 0), KNOWN("conocido", 10), FRIEND("amigo", 20), HERO("heroe", 30);
 
 		/** Descuento en los tratos de sus aldeanos, en % del precio base (como Héroe de la aldea: 30 % con el I). */
 		public final int discount;
 
-		Tier(int discount) {
+		/** Id used in translation keys: never renamed. */
+		private final String id;
+
+		Tier(String id, int discount) {
+			this.id = id;
 			this.discount = discount;
 		}
 
 		public String id() {
-			return name().toLowerCase(Locale.ROOT);
+			return id;
 		}
 	}
 

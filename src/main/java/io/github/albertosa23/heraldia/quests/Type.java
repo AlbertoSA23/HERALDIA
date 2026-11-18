@@ -9,29 +9,38 @@ import java.util.Locale;
  */
 public enum Type {
 	/** Traer N objetos al alguacil (comida, materiales del bioma, menas moderadas): se comprueban al entregar. */
-	BRING(10),
+	BRING("traer", 10),
 	/** Vencer al guardián de una estructura única concreta (cercana o lejana). */
-	GUARDIAN(30),
+	GUARDIAN("guardian", 30),
 	/** Llegar a una estructura mediana o a una entrada de mina concreta (pista de rumbo y distancia, sin coordenadas). */
-	EXPLORE(15),
+	EXPLORE("explorar", 15),
 	/** Superar la oleada N en la arena. */
-	ARENA(20),
+	ARENA("arena", 20),
 	/** Llevar un mensaje a una aldea vecina por el camino (llegar a ella). */
-	JOURNEY(15);
+	JOURNEY("viaje", 15);
 
 	/** Reputación que da con la aldea que lo encarga. */
 	public final int reputation;
 
-	Type(int reputation) {
+	/** Saved id (NBT, JSON and translation keys): never renamed. */
+	private final String id;
+
+	Type(String id, int reputation) {
+		this.id = id;
 		this.reputation = reputation;
 	}
 
 	public String id() {
-		return name().toLowerCase(Locale.ROOT);
+		return id;
 	}
 
 	public static Type of(String id) {
-		return valueOf(id.toUpperCase(Locale.ROOT));
+		for (Type t : values()) {
+			if (t.id.equals(id)) {
+				return t;
+			}
+		}
+		throw new IllegalArgumentException("No quest type " + id);
 	}
 
 	public static final Codec<Type> CODEC = Codec.STRING.xmap(Type::of, Type::id);
