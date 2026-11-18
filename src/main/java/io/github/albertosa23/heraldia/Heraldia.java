@@ -45,6 +45,7 @@ public final class Heraldia implements ModInitializer {
 		io.github.albertosa23.heraldia.common.ToGroundProcessor.register();
 		io.github.albertosa23.heraldia.common.Anchoring.register();
 		io.github.albertosa23.heraldia.bosses.Bosses.register();
+		io.github.albertosa23.heraldia.chronicle.ChronicleEnding.register();
 		io.github.albertosa23.heraldia.villages.VillageStructure.register();
 		io.github.albertosa23.heraldia.roads.Roads.register();
 		io.github.albertosa23.heraldia.uniques.galleon.GalleonUnique.register();

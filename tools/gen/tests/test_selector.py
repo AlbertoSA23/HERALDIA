@@ -245,6 +245,9 @@ def test_admin_tools():
     assert (pick("tools/gen/admin.py")[0], sorted(pick("tools/gen/admin.py")[1])) == journal
     assert pick(J + "command/Journal.java") == (False, ["tools/smoke/journal.py"])
     assert pick("tools/smoke/journal.py") == (False, ["tools/smoke/journal.py"])
+    # the end of the Chronicle: its scenario runs inside journal.py (the server groups are full)
+    assert pick(J + "chronicle/ChronicleEnding.java") == (False, ["tools/smoke/journal.py"])
+    assert pick("tools/gen/chronicle_ending.py") == (False, ["tools/smoke/journal.py"])
     assert pick("tools/smoke/admin.py") == admin
     assert pick(J + "config/HeraldiaConfig.java")[0]           # the rest of config/: common, full suite
 

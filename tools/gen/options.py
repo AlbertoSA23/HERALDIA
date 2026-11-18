@@ -175,6 +175,13 @@ _FIXED = [
      "instalar o actualizar Heraldia (una vez por versión; /heraldia guide da otra copia cuando quiera)",
      "Herald's Guide: gives each player the book that explains the mod and keeps their diary the first time they join "
      "after Heraldia is installed or updated (once per version; /heraldia guide gives a new copy at any time)"),
+    ("guia.final_cronica", True, None, None,
+     "Final de la Crónica de los Heraldos: quien vence (o ve caer cerca) a los guardianes de todas las estructuras únicas "
+     "del mundo principal recibe el último pliego, el título de Heraldo de la Atlántida y el estandarte de los Heraldos "
+     "(una vez por jugador; cuentan también los guardianes que ya derrotó antes de esta versión)",
+     "End of the Chronicle of the Heralds: whoever defeats (or sees fall nearby) the guardians of every unique structure "
+     "in the main world gets the last leaf, the title of Herald of Atlantis and the Standard of the Heralds (once per "
+     "player; guardians they defeated before this version count too)"),
     ("botin.reponer.activado", False, None, None,
      "Botín que se repone: los cofres y barriles de las aldeas, estructuras medianas y únicas de Heraldia vuelven a llenarse "
      "con su tabla de botín cuando han pasado los días indicados desde que se saquearon, al abrirlos, si no hay otro jugador "
@@ -575,6 +582,7 @@ _NAMES = {
     "jefes.barra.activado": ("Barra de jefe", "Boss bar"),
     "jefes.apagar_generadores": ("Apagar generadores al vencer", "Turn off spawners on victory"),
     "guia.entregar_al_entrar": ("Dar la guía al entrar", "Give the guide on joining"),
+    "guia.final_cronica": ("Final de la Crónica", "End of the Chronicle"),
     "botin.reponer.activado": ("Botín que se repone", "Restocking loot"),
     "botin.reponer.dias": ("Días hasta reponerse", "Days until restocked"),
     "botin.reponer.premium_vencido_modesto": ("Premium modesto en únicas vencidas", "Modest premium in cleared uniques"),

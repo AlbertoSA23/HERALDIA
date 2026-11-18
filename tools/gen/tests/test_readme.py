@@ -7,6 +7,7 @@ import re
 import pytest
 import arena_waves
 import caravans
+import chronicle_ending
 import shore as coast
 import quests
 import languages
@@ -128,13 +129,14 @@ def figures():
         templates = {f"unicas/{sid}/x": _Template(sid) for sid, _ in MODS}
     advs, _ = advancements.build(_Registry, MODS, mediums.modules(), mines, coast)
     advancements_n = len(advs) + len(board.ADVANCEMENTS) + len(arena_waves.advancements()) + len(quests.ADVANCEMENTS) + len(caravans.ADVANCEMENTS)
+    advancements_n += len(chronicle_ending.ADVANCEMENTS)   # the end of the Chronicle (granted by the Java side)
     return {"estructuras": structures, "logros": advancements_n}
 
 
 def test_figures_of_the_generator():
     c = figures()
     # those also checked on the server (server_smoke.py counts the generated files)
-    assert c == {"estructuras": 180, "logros": 122}, "if they change, change them in the READMEs and in docs/"
+    assert c == {"estructuras": 180, "logros": 124}, "if they change, change them in the READMEs and in docs/"
 
 
 def test_figures_of_the_readme():

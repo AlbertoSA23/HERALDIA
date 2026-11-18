@@ -177,6 +177,8 @@ MAP = [
     # Herald's Guide: its Java (and the per-language texts it uses), its generator and its test
     # each player's journal (/heraldia journal): its Java and its texts; it reads the advancements /heraldia status counts
     (JAVA + "command/Journal.java", ["tools/smoke/journal.py"]),
+    # the end of the Chronicle: its Java and its generator (texts, last leaf, advancements); its scenario runs inside journal.py
+    (JAVA + "chronicle/*", ["tools/smoke/journal.py"]), ("tools/gen/chronicle_ending.py", ["tools/smoke/journal.py"]),
     (JAVA + "command/Guide*", ["tools/smoke/guide.py"]), (JAVA + "command/Texts.java", ["tools/smoke/guide.py"]),
     ("tools/gen/guide.py", ["tools/smoke/guide.py"]),
     # mod languages (translations and their check): the Guide is the only thing the server delivers in the client's language
@@ -334,7 +336,7 @@ DURATION_S = {
     "tools/smoke/medium_structures.py": 200,          # measured locally (4 cores): 3 min 20 s with the start; 2 min 40 s with the 8 types
     "tools/smoke/guide.py": 120,                      # three server starts
     "tools/smoke/search_cache.py": 90,                # measured locally (4 cores): 50 s, three starts, eleven searches
-    "tools/smoke/journal.py": 60,                     # one start and a few commands as a simulated player
+    "tools/smoke/journal.py": 90,                     # one start and a few commands as simulated players (with the end of the Chronicle)
     "tools/smoke/mine_entrances.py": 250,                     # two starts (multiplier 1 and 5), the mines' generation and /locate far away
     "tools/smoke/coast.py": 280,                     # measured locally: ~3 min 50 s (two starts, four /locate with their generation and /place next to beaches)
     "tools/smoke/profiles.py": 110,                  # four starts of the same world
