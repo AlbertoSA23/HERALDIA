@@ -294,7 +294,7 @@ def changed_list(base):
 # into similar groups; a test that is not here counts as DEFAULT_S.
 DURATION_S = {
     "tools/smoke/village_life.py": 170, "tools/smoke/village_variants.py": 135, "tools/smoke/village_terrain.py": 185,
-    "tools/smoke/village_routes.py": 200,          # measured locally: see the test (3 villages, 14,000 ticks)
+    "tools/smoke/village_routes.py": 110,          # measured locally: ~105 s (3 villages on a flat world, 14,000 ticks)
     "tools/gen/uniques/corsair_island/smoke_server.py": 100, "tools/gen/uniques/lost_mine/smoke_server.py": 95,
     "tools/smoke/trophies.py": 90, "tools/smoke/citadel_check.py": 80, "tools/smoke/observatory_smoke.py": 75,
     "tools/smoke/adult_guardians.py": 72, "tools/gen/uniques/sanctuary/smoke_server.py": 70,

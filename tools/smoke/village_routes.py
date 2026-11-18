@@ -1,41 +1,47 @@
 """Villager routes on a real dedicated 26.3 server: do the villagers of a Heraldia village walk around it during the day?
 
 Usage: python3 tools/smoke/village_routes.py --jar build/libs/heraldia-X.jar --work build/smoke [--measure] [--sites N]
-Places several villages (different styles, standard and large) with /place structure, far enough apart not to share
-villagers, and lets one in-game day pass at an accelerated tick rate (/tick rate) with the village chunks forced. Vanilla
-villager AI does the rest: each villager claims a bed (home), a workstation of its profession (job site) and a bell
-(meeting point) within 48 blocks, and its schedule sends it to the job site in the morning, to the bell at midday and to
-bed at night. Every sample reads each villager's position, whether it sleeps and, at the end, its brain memories.
+       [--terrain]
+Places several villages (different styles, standard and large) with /place structure on a superflat world (--terrain:
+on the seed's terrain, whose hills and lakes cut some paths), far enough apart not to share villagers, and lets one
+in-game day pass at an accelerated tick rate (/tick rate) with the village chunks forced. Vanilla villager AI does the
+rest: each villager claims a bed (home), a workstation of its profession (job site) and a bell (meeting point) within 48
+blocks, and its schedule sends it to the job site in the morning, to the bell at midday and to bed at night. Every
+sample reads each villager's position and whether it sleeps and, at the end, its brain memories.
 
 Per village and in total it counts:
 - moving: villagers whose positions during the day span 8 blocks or more (the rest are "still");
-- commuting: those whose working position (mean of the work samples) is 12 blocks or more from where they spend the night;
-- sleeping: those asleep in a bed in the night sample;
-- home and job site memories and their distance; meeting point (bell) claimed.
-It fails (unless --measure, which only prints the table, e.g. to compare with an earlier .jar) if fewer than MIN_MOVING of
-the villagers move, fewer than MIN_COMMUTE commute, fewer than MIN_SLEEP sleep at night or fewer than MIN_MEETING have a
-meeting point. The heaviest part is the simulated day (14,000 ticks): about 4 minutes on 4 cores with the 4 default villages,
-about 7 with --sites 8.
+- commuting: those whose working position (mean of the work samples) is 12 blocks or more from their night position;
+- sleeping: those asleep in a bed in the last night sample;
+- home and job site memories and their distance (and how many work under 6 blocks from their bed); bell claimed.
+It fails (unless --measure, which only prints the table, e.g. to compare with an earlier .jar) when a total is below
+its MIN_* limit or above MAX_SAME_HOUSE. The heaviest part is the simulated day (14,000 ticks): about 3 minutes on 4
+cores with the 3 default villages, about 8 with --sites 8.
 """
 import argparse, math, os, queue, re, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 
 # (structure, x, z): one style of each house shape (rectangular, round, stilts, long) and large villages. The first
-# DEFAULT_SITES are placed by default (CI); --sites 8 places them all (the figures in the CHANGELOG).
-SITES = [("heraldia:llanuras_castellana", 0, 0), ("heraldia:sabana_paja", 0, 600),
-         ("heraldia:pantano_palafitos", 600, 600), ("heraldia:nieve_alpina_grande", 600, -600),
-         ("heraldia:taiga_nordica", 600, 0), ("heraldia:desierto_obelisco", -600, 0),
+# DEFAULT_SITES are placed by default (CI): those where the placement before this test left most villagers still (the
+# large snowy village, the desert one with its workshops next to the beds) and a long-house one; --sites 8 places them
+# all (the figures in the CHANGELOG).
+SITES = [("heraldia:nieve_alpina_grande", 600, -600), ("heraldia:desierto_obelisco", -600, 0),
+         ("heraldia:taiga_nordica", 600, 0), ("heraldia:llanuras_castellana", 0, 0),
+         ("heraldia:sabana_paja", 0, 600), ("heraldia:pantano_palafitos", 600, 600),
          ("heraldia:cerezos_japonesa", 0, -600), ("heraldia:llanuras_castellana_grande", -600, -600)]
-DEFAULT_SITES = 4
+DEFAULT_SITES = 3
 RADIUS = 120            # forced box around each village (16 x 16 chunks, the forceload limit) and villager search radius
-TICK_RATE = 80          # /tick rate during the simulated day (the server goes as fast as it can if it does not keep up)
+TICK_RATE = 200         # /tick rate during the simulated day (the server goes as fast as it can if it does not keep up)
 SETTLE_UNTIL = 1500     # day time until which the villagers claim their bed, job site and bell (no sample)
 WORK = (3000, 4500, 6000, 7500)          # day times of the work samples (the schedule's WORK runs 2000-9000)
 MEET = (9800, 10600)                     # MEET runs 9000-11000: gathering at the bell
 NIGHT = (13000, 14000)                   # REST from 12000: in bed
 MOVE_SPAN, COMMUTE = 8, 12              # blocks
-MIN_MOVING, MIN_COMMUTE, MIN_SLEEP, MIN_MEETING = 0.75, 0.5, 0.6, 0.6
+# Limits of the check (fractions of the villagers). Measured on a superflat world with the 3 default villages: before
+# the route placement 0.77 moving, 0.26 commuting, 0.72 asleep, 0.53 with a bell and 0.28 working under 6 blocks from
+# their bed; after, 0.91, 0.53, 0.67, 0.77 and 0.14.
+MIN_MOVING, MIN_COMMUTE, MIN_SLEEP, MIN_MEETING, MAX_SAME_HOUSE = 0.85, 0.4, 0.5, 0.65, 0.2
 _ARR = r"\[I; (-?\d+), (-?\d+), (-?\d+), (-?\d+)\]"
 _NUM = r"(-?[\d.]+(?:E-?\d+)?)d"
 
@@ -150,10 +156,16 @@ def main():
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke"))
     ap.add_argument("--measure", action="store_true", help="only print the figures, without failing")
+    ap.add_argument("--terrain", action="store_true",
+                    help="the seed's terrain instead of a superflat world (its hills and lakes cut some paths: fewer "
+                         "villagers find a bed; the default measures the placement alone)")
     ap.add_argument("--sites", type=int, default=DEFAULT_SITES, help=f"how many of the SITES to place (up to {len(SITES)})")
     a = ap.parse_args()
     os.makedirs(a.work, exist_ok=True)
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
+    if not a.terrain:
+        with open(os.path.join(a.work, "server.properties"), "a") as f:
+            f.write("level-type=minecraft:flat\n")
     proc = subprocess.Popen(["java", "-Xmx3G", "-jar", launcher, "nogui"], cwd=a.work, text=True,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     lines, seen = queue.Queue(), []
@@ -210,6 +222,9 @@ def main():
             for key, lim in (("moving", MIN_MOVING), ("commute", MIN_COMMUTE), ("sleeping", MIN_SLEEP), ("meeting", MIN_MEETING)):
                 if tot[key] < lim * n:
                     fails.append(f"only {tot[key]} of {n} villagers {key} (at least {lim:.0%} expected)")
+            if tot["same_house"] > MAX_SAME_HOUSE * n:
+                fails.append(f"{tot['same_house']} of {n} villagers work under 6 blocks from their bed "
+                             f"(at most {MAX_SAME_HOUSE:.0%} expected)")
     finally:
         s.send(proc, "stop")
         try:
