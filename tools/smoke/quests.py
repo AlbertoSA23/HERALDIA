@@ -87,13 +87,14 @@ def price(srv, spot, y, floor_bottom):
 def clear_spot(srv, spot, y):
     """The plaza villagers (with AI) walk up to the player (SetLookAndInteract); if `use once` hits one, it trades and
     follows the player (LookAndFollowTradingPlayerSink), every retry hits it again and the test villager never opens its
-    trades (its specialPrice stays 0, which the NBT omits). The ones near the spot are removed and the rest frozen."""
+    trades (its specialPrice stays 0, which the NBT omits). The ones near the spot are removed and the rest cannot walk (slowness 255)."""
     for kind in ("minecraft:villager", "minecraft:wandering_trader"):
         srv.run(f"execute positioned {spot[0]} {y} {spot[1]} run kill "
                 f"@e[type={kind},tag=!heraldia_prueba,tag=!heraldia_alguacil,distance=..6]", r"Killed|No entity was found")
-    srv.run(f"execute positioned {spot[0]} {y} {spot[1]} as @e[type=minecraft:villager,tag=!heraldia_prueba,"
-            f"tag=!heraldia_alguacil,distance=..48] run data merge entity @s {{NoAI:1b}}",
-            r"Modified entity data|Nothing changed|No entity was found|Unable to modify")
+    # (not `execute as ... run data merge`: with no villager left it prints nothing and the console wait times out)
+    srv.run(f"execute positioned {spot[0]} {y} {spot[1]} run effect give @e[type=minecraft:villager,tag=!heraldia_prueba,"
+            f"tag=!heraldia_alguacil,distance=..48] minecraft:slowness infinite 255 true",
+            r"Applied effect|No entity was found|Unable to apply")
 
 
 def open_trades(srv, spot, y, floor_bottom):
