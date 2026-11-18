@@ -30,7 +30,7 @@ K = f"{NS}.dialogos"
 FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dialogue")
 REFERENCE = "es_es"
 # Group files and which pools go in each (a pool belongs to exactly one group).
-GROUPS = ("professions", "village")
+GROUPS = ("professions", "village", "events")
 # Vanilla professions (minecraft:<id>), as Villager.getVillagerData().profession() gives them.
 PROFESSIONS = ("none", "armorer", "butcher", "cartographer", "cleric", "farmer", "fisherman", "fletcher",
                "leatherworker", "librarian", "mason", "nitwit", "shepherd", "toolsmith", "weaponsmith")
@@ -44,6 +44,15 @@ HINT_KINDS = ("unique", "medium", "mine")
 
 BODY_SLOTS = {1, 2}          # %1$s player's name, %2$s village name
 HINT_SLOTS = {1, 2, 3}       # %1$s the place, %2$s the direction ("north"), %3$s approximate distance in blocks
+# Village events (events/VillageEvents in Java): what each figure says, by event kind (events/Kind ids) and moment.
+EVENT_POOLS = {
+    "market": ("call", "greet", "guest"),
+    "wedding": ("ceremony", "greet", "thanks", "ask", "guest"),
+    "funeral": ("eulogy", "greet", "thanks", "ask", "guest"),
+    "festival": ("call", "greet", "song", "guest"),
+}
+# Pools said in order, line by line (ids "1", "2", "3"): the wedding's ceremony and the funeral's eulogy (events/Rules.steps).
+EVENT_SEQUENCES = ("event.wedding.ceremony", "event.funeral.eulogy")
 
 
 def pools():
@@ -64,6 +73,9 @@ def pools():
         out[f"hint.{k}"] = ("village", HINT_SLOTS)
     for p in ("general", "rumor", "busy", "farewell", "hint.withheld", "hint.told", "hint.nothing"):
         out[p] = ("village", BODY_SLOTS)
+    for kind, moments in EVENT_POOLS.items():
+        for m in moments:
+            out[f"event.{kind}.{m}"] = ("events", BODY_SLOTS)
     return out
 
 
@@ -130,6 +142,14 @@ def errors():
         g = known[pool][0]
         if g in ref and not ref[g].get(pool):
             e.append(f"{REFERENCE}/{g}: {pool} necesita al menos una frase")
+    if "events" in ref:
+        for kind, moments in EVENT_POOLS.items():
+            for m in moments:
+                if not ref["events"].get(f"event.{kind}.{m}"):
+                    e.append(f"{REFERENCE}/events: event.{kind}.{m} necesita al menos una frase")
+        for pool in EVENT_SEQUENCES:
+            if sorted(ref["events"].get(pool, {})) != ["1", "2", "3"]:
+                e.append(f"{REFERENCE}/events: {pool} se dice en orden y necesita exactamente las frases 1, 2 y 3")
     return e
 
 

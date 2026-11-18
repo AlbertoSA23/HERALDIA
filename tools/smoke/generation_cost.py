@@ -75,7 +75,8 @@ SWEEPS = 3
 # Heraldia configuration: the default one (the real server's), except the wave arena, which in a new world
 # builds itself next to spawn (one chunk of work per tick, on the server thread, right while it is
 # being measured): it is not generation cost and in the server's existing world it is not generated.
-CONFIG = {"arena": {"generar_en_mundos_nuevos": False}}
+CONFIG = {"arena": {"generar_en_mundos_nuevos": False},
+          "casa_heraldo": {"generar_en_mundos_nuevos": False}}   # the Herald's House builds itself at spawn, likewise
 XMX = "3G"
 CHUNKY_TIMEOUT_S = 900
 _CHUNKY_END = re.compile(r"Task finished for (\S+)\. Processed: (\d+) chunks")

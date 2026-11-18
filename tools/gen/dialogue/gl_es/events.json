@@ -1,0 +1,87 @@
+{
+  "event.market.call": {
+    "1": "Pan do día e torta de cabaza! Que se acaba!",
+    "2": "Achegádevos, que en %2$s o mercado só é hoxe!",
+    "3": "Bo prezo, boa mercadoría e mellor conversa!"
+  },
+  "event.market.greet": {
+    "1": "Bos días, %1$s! Mira sen compromiso, que mirar é de balde.",
+    "2": "Benvido ao mercado de %2$s. O mellor da comarca, aquí.",
+    "3": "Buscas algo en concreto? Se non o teño eu, téno o do lado."
+  },
+  "event.market.guest": {
+    "1": "Veño cada semana e sempre levo algo que non necesito.",
+    "2": "Din que o peixe de hoxe vén de moi lonxe. Eu non o creo.",
+    "3": "Aparta, que chego tarde á torta."
+  },
+  "event.wedding.ceremony": {
+    "1": "Queridos veciños de %2$s: estamos aquí para unir a estes dous mozos.",
+    "2": "Que compartan o pan, o teito e as penas, e que as penas sexan poucas.",
+    "3": "Coa campá por testemuña, declárovos marido e muller!"
+  },
+  "event.wedding.greet": {
+    "1": "%1$s, que alegría que viñeses!",
+    "2": "Pasa, pasa. Hoxe en %2$s ninguén é forasteiro.",
+    "3": "Casamos, podes crelo? Eu aínda non."
+  },
+  "event.wedding.thanks": {
+    "1": "Grazas, %1$s! Gardarémolo con cariño.",
+    "2": "Que detalle! Isto non se esquece en %2$s.",
+    "3": "Grazas de corazón. Quédate á festa, que hai torta."
+  },
+  "event.wedding.ask": {
+    "1": "Grazas por vir. Trouxeches algo para os noivos?",
+    "2": "Aquí é costume traer flores, aínda que sexa unha.",
+    "3": "Que ben que esteas aquí! Xa sabes, un detalle nunca sobra."
+  },
+  "event.wedding.guest": {
+    "1": "Eu xa sabía que acabarían xuntos. Sabíao toda a aldea.",
+    "2": "Que guapa vai a noiva! E el... bo, tamén.",
+    "3": "Saltei o almorzo para facerlle sitio á torta."
+  },
+  "event.funeral.eulogy": {
+    "1": "Hoxe despedimos a un dos nosos, veciño de %2$s toda a súa vida.",
+    "2": "Traballou a terra, compartiu a súa mesa e nunca pechou a porta.",
+    "3": "Que descanse en paz. A súa lembranza queda en %2$s."
+  },
+  "event.funeral.greet": {
+    "1": "Grazas por acompañarnos, %1$s.",
+    "2": "Era un bo home. Todo %2$s o sabe.",
+    "3": "Quédate un momento connosco, se podes."
+  },
+  "event.funeral.thanks": {
+    "1": "Grazas, %1$s. Gustaríalle.",
+    "2": "É un xesto que non esqueceremos en %2$s.",
+    "3": "Grazas. Déixaa ao seu carón, por favor."
+  },
+  "event.funeral.ask": {
+    "1": "Aquí é costume deixar unha flor. Se tes unha...",
+    "2": "Grazas por vir. El sempre recibía ben aos forasteiros.",
+    "3": "Non fai falta nada. Pero unha vela alumaríalle o camiño."
+  },
+  "event.funeral.guest": {
+    "1": "Ensinoume a muxir cando era un cativo.",
+    "2": "Sempre dicía que a campá soaba demasiado cedo.",
+    "3": "Que silencio hai hoxe na praza."
+  },
+  "event.festival.call": {
+    "1": "Veña, todo o mundo a bailar, que a noite é nova!",
+    "2": "Galletas, torta e foguetes! A festa de %2$s é a mellor da comarca!",
+    "3": "Unha rolda máis para os músicos!"
+  },
+  "event.festival.greet": {
+    "1": "%1$s! Chegas xusto a tempo para o baile.",
+    "2": "Benvido á festa de %2$s. Come, bebe e baila.",
+    "3": "Bailas? Se non sabes, aquí ninguén sabe tampouco."
+  },
+  "event.festival.song": {
+    "1": "Outra? Esta é para ti, %1$s!",
+    "2": "Esta tocabámola de nenos en %2$s. A ver se me lembro!",
+    "3": "Pide o que queiras, que hoxe non se cobra."
+  },
+  "event.festival.guest": {
+    "1": "Non pares, non pares, que se me cae o sombreiro!",
+    "2": "O ano pasado bailei ata o amencer. Este, tamén.",
+    "3": "A miña avoa baila mellor ca min, e ten noventa anos."
+  }
+}

@@ -15,6 +15,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 - 🗼 **Fari e relitti.** Fari sulla terraferma vicino al mare, con la luce sempre accesa, la casa del guardiano e un pontile, e galeoni spezzati, arenati sulla spiaggia o semiaffondati nelle secche, con la stiva e la cabina del capitano. Ognuno nello stile della sua costa: temperata, calda, fredda o innevata.
 - 🔱 **Atlantide.** Una sola per mondo: un'immensa città sommersa nell'oceano profondo, con sale asciutte, tre sigilli con le loro chiavi e il Guardiano di Poseidone, custode del più grande tesoro di Heraldia.
 - 🏟️ **Arena a ondate.** Un colosseo vicino allo spawn: suona la campana e resisti a ondate sempre più forti, con un campione ogni quinta ondata, record e ricompense. Se cadi nell'arena, conservi l'inventario. Tre modalità (cooperativa, a tempo e sopravvivenza) con una classifica settimanale, `/heraldia arena leaderboard`: i campioni della settimana precedente compaiono sui cartelli dell'albo d'oro dell'arena e nella Guida dell'Araldo.
+- 🏯 **La Casa dell'Araldo.** La prima cosa che vedi in un mondo nuovo: una città fortificata di 96 × 96 blocchi allo spawn, con la sua campana, la bacheca degli incarichi, una locanda e una pensione, una cappella, botteghe con i loro abitanti, giardini, una stalla, un pozzo e un portale del Nether che solo un operatore può accendere. Nessuno tranne un operatore può costruire o rompere entro 50 blocchi dalle sue mura, e lì non compaiono mostri. Il suo mercato ha bancarelle che i giocatori affittano con smeraldi quando il server le attiva. In un mondo che esiste già, la piazza un operatore con `/heraldia herald place`.
 
 ## Come si gioca
 
@@ -24,6 +25,7 @@ Una mod per Fabric per **Minecraft 26.3** che riempie l'Overworld di luoghi che 
 - 📋 **Incarichi dei villaggi.** Tocca il leggio della bacheca nella piazza di un villaggio (o usa lì `/heraldia quest`): in chat compaiono da 2 a 4 incarichi (portare oggetti, sconfiggere un guardiano, esplorare, viaggiare al villaggio vicino, l'arena) che cambiano ogni pochi giorni. Pagano smeraldi, esperienza e reputazione con quel villaggio: da conosciuto, amico ed eroe del villaggio, i suoi abitanti abbassano i prezzi del 10, 20 e 30 %. Attaccare i suoi abitanti o golem la fa scendere.
 - 🐪 **Carovane.** Di tanto in tanto, vicino a te, un mercante di Heraldia con i suoi lama (e a volte una guardia) percorre la strada tra due villaggi vicini. Se i banditi lo assaltano, difendilo: all'arrivo ti paga smeraldi e reputazione con il suo villaggio di destinazione. Se il mercante muore, la carovana è perduta.
 - 🚶 **Viandanti.** Vita sulle strade, anche vicino a te: un pellegrino diretto a un monastero o a una cattedrale, un pastore con il suo gregge, un messaggero di fretta, una coppia di guardie di pattuglia o un cacciatore che torna con il suo cane, secondo la zona. Percorrono un tratto e se ne vanno; il pastore e il cacciatore commerciano, e se fai loro del male il loro villaggio lo saprà.
+- 🎪 **Nei villaggi succedono cose.** Ogni tanto la piazza del villaggio in cui ti trovi ospita per qualche minuto un giorno di mercato, un matrimonio, un funerale o una festa: bancarelle e mercanti, un arco e gli sposi, un feretro e la campana, un falò con musicisti e ballerini. Compra, fai un regalo, chiedi una canzone: il villaggio se lo ricorda. Poi se ne va tutto e la piazza resta com'era.
 - 💬 **Parla con gli abitanti.** Fai clic destro su un abitante di un villaggio di Heraldia e ti parla in chat: frasi secondo il suo mestiere, la sua terra, l'ora, il tempo e quanto ti conosce il villaggio, con pulsanti per continuare, chiedere le novità o commerciare (accovacciato + clic destro commercia direttamente; gli abitanti vanilla commerciano come sempre). Uno su dieci ha viaggiato e, se il villaggio si fida di te, ti dice una volta in che direzione e a che distanza si trova una struttura.
 - 🏆 **Progressi.** Una scheda Heraldia con 124 progressi: un villaggio di ogni famiglia, ogni struttura unica con il suo guardiano e il suo tesoro, le miniere, i fari e i relitti, le strutture medie, la bacheca degli incarichi, l'arena e le carovane.
 - 🗿 **Trofei.** Ognuno dei 22 guardiani lascia il suo trofeo, un oggetto con un nome e una storia. Raccoglili tutti per completare la Sala dei trofei.
@@ -69,6 +71,7 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `arena.temporada.dia_reinicio` | `lunes` | Giorno in cui si chiude la classifica settimanale dell'arena e si annunciano i suoi campioni (a mezzanotte, ora del server). |
 | `encargos.activado` | `true` | Incarichi della bacheca (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputazione per villaggio e i suoi sconti. |
+| `reputacion.aldea_visible` | `true` | Il villaggio mostra la sua migliore reputazione con blocchi vanilla: fiori, stendardi, lanterne (o imposte chiuse); mai sul blocco di un giocatore. |
 | `dialogos.activado` | `true` | Conversazioni con gli abitanti di Heraldia (accovacciato + clic destro commercia direttamente). |
 | `caravanas.activado` | `true` | Carovane lungo le strade (operatori: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Viandanti lungo le strade, ogni tipo con la sua opzione (operatori: `/heraldia caravan wayfarer`). |
@@ -79,6 +82,9 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 | `actualizar.margen_bloques` | 50 | Margine di sicurezza attorno alle costruzioni dei giocatori per `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Sulla mappa web solo le strutture già scoperte. |
 | `tesoro.probabilidad` | 3.0 | Probabilità (%) di un frammento di mappa del tesoro in ogni forziere delle strutture medie e delle miniere. |
+| `casa_heraldo.activado` | `true` | La Casa dell'Araldo allo spawn e la sua protezione. |
+| `casa_heraldo.mercado.activado` | `false` | Bancarelle in affitto al mercato della Casa dell'Araldo (prezzi: `casa_heraldo.mercado.*`). |
+| `eventos.activado` | `true` | Eventi nei villaggi: giorno di mercato, matrimonio, funerale e festa nelle piazze (operatori: `/heraldia event`; più rari con `eventos.espera_minutos`; disattivati nel profilo leggero). |
 
 ## Per saperne di più
 

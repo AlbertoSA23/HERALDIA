@@ -62,6 +62,12 @@ CANONICAL = [
     "journal", "journal villages", "journal uniques", "journal mediums", "journal mines", "journal coast",
     "journal nether", "journal end",             # each player's journal: found and missing, by kind
     "journal chronicle", "journal chronicle book",   # the end of the Chronicle: guardians defeated; a copy of the last leaf
+    "herald", "herald place", "herald place here", "herald place confirm",   # the Herald's House (operators place it)
+    "herald stall", "herald stall claim", "herald stall claim <stall>", "herald stall pay", "herald stall pay <stall>",
+    "herald stall pay <stall> <periods>", "herald stall leave", "herald stall leave <stall>", "herald stall evict",
+    "herald stall evict <stall>",                # its market stalls for rent
+    "event", "event list", "event start", "event start market", "event start wedding", "event start funeral",
+    "event start festival", "event stop", "event stop all", "event with", "event with <entity>",   # village events (operators)
 ]
 
 

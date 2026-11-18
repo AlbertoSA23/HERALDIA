@@ -1,0 +1,87 @@
+{
+  "event.market.call": {
+    "1": "Fresh bread and pumpkin pie! Get it while it lasts!",
+    "2": "Come closer, market day in %2$s is only today!",
+    "3": "Good prices, good wares and better company!"
+  },
+  "event.market.greet": {
+    "1": "Morning, %1$s! Have a look, looking is free.",
+    "2": "Welcome to the market of %2$s. The best of the land, right here.",
+    "3": "Looking for something? If I haven't got it, my neighbour has."
+  },
+  "event.market.guest": {
+    "1": "I come every week and I always buy something I don't need.",
+    "2": "They say today's fish comes from far away. I don't believe it.",
+    "3": "Out of my way, I'm late for the cake."
+  },
+  "event.wedding.ceremony": {
+    "1": "Dear neighbours of %2$s: we are gathered here to join these two young people.",
+    "2": "May they share their bread, their roof and their sorrows, and may the sorrows be few.",
+    "3": "With the bell as our witness, I now pronounce you husband and wife!"
+  },
+  "event.wedding.greet": {
+    "1": "%1$s, how wonderful that you came!",
+    "2": "Come in, come in. Today nobody is a stranger in %2$s.",
+    "3": "We're getting married, can you believe it? I still can't."
+  },
+  "event.wedding.thanks": {
+    "1": "Thank you, %1$s! We'll treasure it.",
+    "2": "How kind! %2$s won't forget this.",
+    "3": "Thank you, truly. Stay for the party, there's cake."
+  },
+  "event.wedding.ask": {
+    "1": "Thank you for coming. Did you bring something for the couple?",
+    "2": "Here it's the custom to bring flowers, even just one.",
+    "3": "So glad you're here! You know, a little gift never goes amiss."
+  },
+  "event.wedding.guest": {
+    "1": "I always knew they'd end up together. The whole village knew.",
+    "2": "Doesn't the bride look lovely! And him... well, him too.",
+    "3": "I skipped breakfast to make room for the cake."
+  },
+  "event.funeral.eulogy": {
+    "1": "Today we say farewell to one of our own, a neighbour of %2$s all his life.",
+    "2": "He worked the land, shared his table and never closed his door.",
+    "3": "May he rest in peace. His memory stays in %2$s."
+  },
+  "event.funeral.greet": {
+    "1": "Thank you for being with us, %1$s.",
+    "2": "He was a good man. All of %2$s knows it.",
+    "3": "Stay with us a moment, if you can."
+  },
+  "event.funeral.thanks": {
+    "1": "Thank you, %1$s. He would have liked that.",
+    "2": "%2$s will not forget this kindness.",
+    "3": "Thank you. Lay it beside him, please."
+  },
+  "event.funeral.ask": {
+    "1": "It's the custom here to leave a flower. If you have one...",
+    "2": "Thank you for coming. He always welcomed strangers.",
+    "3": "There's no need for anything. But a candle would light his way."
+  },
+  "event.funeral.guest": {
+    "1": "He taught me to milk a cow when I was a boy.",
+    "2": "He always said the bell rang far too early.",
+    "3": "How quiet the square is today."
+  },
+  "event.festival.call": {
+    "1": "Come on, everybody dance, the night is young!",
+    "2": "Cookies, cake and fireworks! The festival of %2$s is the best for miles!",
+    "3": "One more round for the band!"
+  },
+  "event.festival.greet": {
+    "1": "%1$s! You're just in time for the dance.",
+    "2": "Welcome to the festival of %2$s. Eat, drink and dance.",
+    "3": "Will you dance? If you can't, nobody here can either."
+  },
+  "event.festival.song": {
+    "1": "Another one? This one's for you, %1$s!",
+    "2": "We used to play this one as children in %2$s. Let's see if I remember it!",
+    "3": "Ask for whatever you like, there's no charge today."
+  },
+  "event.festival.guest": {
+    "1": "Don't stop, don't stop, my hat's falling off!",
+    "2": "Last year I danced until sunrise. This year too.",
+    "3": "My grandmother dances better than I do, and she's ninety."
+  }
+}

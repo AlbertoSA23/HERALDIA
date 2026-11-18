@@ -1,0 +1,87 @@
+{
+  "event.market.call": {
+    "1": "Pa del dia i coca de carbassa! Que s'acaba!",
+    "2": "Acosteu-vos, que a %2$s el mercat només és avui!",
+    "3": "Bon preu, bona mercaderia i millor conversa!"
+  },
+  "event.market.greet": {
+    "1": "Bon dia, %1$s! Mira sense compromís, que mirar és de franc.",
+    "2": "Benvingut al mercat de %2$s. El millor de la comarca, aquí.",
+    "3": "Busques res en concret? Si no ho tinc jo, ho té el del costat."
+  },
+  "event.market.guest": {
+    "1": "Vinc cada setmana i sempre m'emporto alguna cosa que no em cal.",
+    "2": "Diuen que el peix d'avui ve de molt lluny. Jo no m'ho crec.",
+    "3": "Aparta, que arribo tard al pastís."
+  },
+  "event.wedding.ceremony": {
+    "1": "Estimats veïns de %2$s: som aquí per unir aquests dos joves.",
+    "2": "Que comparteixin el pa, el sostre i les penes, i que les penes siguin poques.",
+    "3": "Amb la campana com a testimoni, us declaro marit i muller!"
+  },
+  "event.wedding.greet": {
+    "1": "%1$s, quina alegria que hagis vingut!",
+    "2": "Passa, passa. Avui a %2$s ningú és foraster.",
+    "3": "Ens casem, t'ho pots creure? Jo encara no."
+  },
+  "event.wedding.thanks": {
+    "1": "Gràcies, %1$s! Ho guardarem amb estima.",
+    "2": "Quin detall! A %2$s no ho oblidarem.",
+    "3": "Gràcies de tot cor. Queda't a la festa, que hi ha pastís."
+  },
+  "event.wedding.ask": {
+    "1": "Gràcies per venir. Has portat alguna cosa per als nuvis?",
+    "2": "Aquí és costum portar flors, encara que sigui una.",
+    "3": "Que bé que siguis aquí! Ja saps, un detall mai no sobra."
+  },
+  "event.wedding.guest": {
+    "1": "Jo ja sabia que acabarien junts. Ho sabia tot el poble.",
+    "2": "Que guapa que va la núvia! I ell... bé, també.",
+    "3": "M'he saltat l'esmorzar per fer lloc al pastís."
+  },
+  "event.funeral.eulogy": {
+    "1": "Avui acomiadem un dels nostres, veí de %2$s tota la vida.",
+    "2": "Va treballar la terra, va compartir la seva taula i mai no va tancar la porta.",
+    "3": "Que descansi en pau. El seu record es queda a %2$s."
+  },
+  "event.funeral.greet": {
+    "1": "Gràcies per acompanyar-nos, %1$s.",
+    "2": "Era un bon home. Tot %2$s ho sap.",
+    "3": "Queda't un moment amb nosaltres, si pots."
+  },
+  "event.funeral.thanks": {
+    "1": "Gràcies, %1$s. Li hauria agradat.",
+    "2": "És un gest que no oblidarem a %2$s.",
+    "3": "Gràcies. Deixa-la al seu costat, si us plau."
+  },
+  "event.funeral.ask": {
+    "1": "Aquí és costum deixar una flor. Si en tens una...",
+    "2": "Gràcies per venir. Ell sempre rebia bé els forasters.",
+    "3": "No cal res. Però una espelma li il·luminaria el camí."
+  },
+  "event.funeral.guest": {
+    "1": "Em va ensenyar a munyir quan era un marrec.",
+    "2": "Sempre deia que la campana sonava massa d'hora.",
+    "3": "Quin silenci que hi ha avui a la plaça."
+  },
+  "event.festival.call": {
+    "1": "Som-hi, tothom a ballar, que la nit és jove!",
+    "2": "Galetes, pastís i coets! La festa de %2$s és la millor de la comarca!",
+    "3": "Una ronda més per als músics!"
+  },
+  "event.festival.greet": {
+    "1": "%1$s! Arribes just a temps per al ball.",
+    "2": "Benvingut a la festa de %2$s. Menja, beu i balla.",
+    "3": "Balles? Si no en saps, aquí tampoc no en sap ningú."
+  },
+  "event.festival.song": {
+    "1": "Una altra? Aquesta és per a tu, %1$s!",
+    "2": "Aquesta la tocàvem de petits a %2$s. A veure si me'n recordo!",
+    "3": "Demana el que vulguis, que avui no es cobra."
+  },
+  "event.festival.guest": {
+    "1": "No paris, no paris, que se'm cau el barret!",
+    "2": "L'any passat vaig ballar fins a l'alba. Aquest, també.",
+    "3": "La meva àvia balla millor que jo, i té noranta anys."
+  }
+}

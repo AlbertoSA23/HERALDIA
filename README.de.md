@@ -15,6 +15,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 - 🗼 **Leuchttürme und Wracks.** Leuchttürme auf festem Boden am Meer mit stets brennendem Licht, dem Haus des Wärters und einem Steg, und zerbrochene Galeonen, am Strand auf Grund gelaufen oder halb versunken im seichten Wasser, mit Laderaum und Kapitänskajüte. Jeweils im Stil ihrer Küste: gemäßigt, warm, kalt oder verschneit.
 - 🔱 **Atlantis.** Nur eines pro Welt: eine riesige Stadt, versunken im tiefen Ozean, mit trockenen Hallen, drei Siegeln samt Schlüsseln und dem Hüter des Poseidon, der den größten Schatz von Heraldia bewacht.
 - 🏟️ **Wellenarena.** Ein Kolosseum nahe dem Spawn: Läute die Glocke und halte immer stärkeren Wellen stand, mit einem Champion in jeder fünften Welle, Rekorden und Belohnungen. Fällst du im Rund, behältst du dein Inventar. Drei Modi (Koop, Zeitrennen und Überleben) mit einer Wochenrangliste, `/heraldia arena leaderboard`: Die Champions der Vorwoche stehen auf den Schildern der Ruhmeshalle der Arena und im Leitfaden des Herolds.
+- 🏯 **Das Haus des Herolds.** Das Erste, was du in einer neuen Welt siehst: eine ummauerte Stadt von 96 × 96 Blöcken am Spawn, mit ihrer Glocke, der Auftragstafel, einem Gasthaus und einer Herberge, einer Kapelle, Läden mit ihren Dorfbewohnern, Gärten, einem Stall, einem Brunnen und einem Netherportal, das nur ein Operator entzünden kann. Niemand außer einem Operator kann im Umkreis von 50 Blöcken um seine Mauern bauen oder abbauen, und dort erscheinen keine Monster. Sein Markt hat Stände, die Spieler mit Smaragden mieten, wenn der Server sie einschaltet. In einer bestehenden Welt setzt es ein Operator mit `/heraldia herald place`.
 
 ## So spielst du
 
@@ -24,6 +25,7 @@ Ein Fabric-Mod für **Minecraft 26.3**, der die Oberwelt mit Orten füllt, für 
 - 📋 **Dorfaufträge.** Berühre das Pult des Auftragsbretts auf einem Dorfplatz (oder nutze dort `/heraldia quest`): 2 bis 4 Aufträge erscheinen im Chat (Gegenstände bringen, einen Wächter besiegen, erkunden, ins Nachbardorf reisen, die Arena) und wechseln alle paar Tage. Sie zahlen Smaragde, Erfahrung und Ruf bei diesem Dorf: als Bekannter, Freund und Held des Dorfes senken seine Dorfbewohner ihre Preise um 10, 20 und 30 %. Wer seine Dorfbewohner oder Golems angreift, verliert Ruf.
 - 🐪 **Karawanen.** Ab und zu zieht in deiner Nähe ein Händler von Heraldia mit seinen Lamas (und manchmal einer Wache) über den Weg zwischen zwei benachbarten Dörfern. Überfallen ihn Banditen, verteidige ihn: Bei der Ankunft zahlt er Smaragde und Ruf bei seinem Zieldorf. Stirbt der Händler, ist die Karawane verloren.
 - 🚶 **Reisende.** Leben auf den Straßen, auch in deiner Nähe: ein Pilger auf dem Weg zu einem Kloster oder einer Kathedrale, ein Hirte mit seiner Herde, ein eiliger Bote, ein Wachenpaar auf Patrouille oder ein Jäger, der mit seinem Hund heimkehrt, je nach Gegend. Sie legen ein Stück zurück und gehen; Hirte und Jäger handeln, und wer ihnen schadet, von dem erfährt ihr Dorf.
+- 🎪 **In den Dörfern ist etwas los.** Ab und zu gibt es auf dem Platz des Dorfs, in dem du bist, für ein paar Minuten einen Markttag, eine Hochzeit, ein Begräbnis oder ein Fest: Stände und Händler, ein Bogen und das Brautpaar, eine Bahre und die Glocke, ein Feuer mit Musikanten und Tänzern. Kauf etwas, bring ein Geschenk, wünsch dir ein Lied: Das Dorf merkt es sich. Danach verschwindet alles, und der Platz bleibt, wie er war.
 - 💬 **Sprich mit den Dorfbewohnern.** Ein Rechtsklick auf einen Dorfbewohner eines Heraldia-Dorfs, und er spricht im Chat mit dir: Sätze je nach Beruf, Land, Tageszeit, Wetter und wie gut dich das Dorf kennt, mit Knöpfen zum Weiterreden, nach Neuigkeiten fragen oder Handeln (Schleichen + Rechtsklick handelt direkt; Vanilla-Dorfbewohner handeln wie immer). Einer von zehn ist gereist und verrät dir, wenn das Dorf dir vertraut, einmal, in welcher Richtung und wie weit ein Bauwerk liegt.
 - 🏆 **Fortschritte.** Ein Heraldia-Reiter mit 124 Fortschritten: ein Dorf jeder Familie, jedes einzigartige Bauwerk mit seinem Hüter und seinem Schatz, die Minen, die Leuchttürme und Wracks, die mittelgroßen Bauwerke, das Auftragsbrett, die Arena und die Karawanen.
 - 🗿 **Trophäen.** Jeder der 22 Hüter lässt seine Trophäe fallen, einen Gegenstand mit Namen und Geschichte. Sammle sie alle, um den Trophäensaal zu vervollständigen.
@@ -69,6 +71,7 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `arena.temporada.dia_reinicio` | `lunes` | Tag, an dem die Wochenrangliste der Arena endet und ihre Champions verkündet werden (um Mitternacht, Serverzeit). |
 | `encargos.activado` | `true` | Aufträge des Auftragsbretts (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Ruf je Dorf und seine Rabatte. |
+| `reputacion.aldea_visible` | `true` | Das Dorf zeigt seinen besten Ruf mit Vanilla-Blöcken: Blumen, Banner, Laternen (oder geschlossene Fensterläden); nie auf dem Block eines Spielers. |
 | `dialogos.activado` | `true` | Gespräche mit Heraldia-Dorfbewohnern (Schleichen + Rechtsklick handelt direkt). |
 | `caravanas.activado` | `true` | Karawanen auf den Wegen (Operatoren: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Reisende auf den Wegen, jede Art mit eigener Option (Operatoren: `/heraldia caravan wayfarer`). |
@@ -79,6 +82,9 @@ Die Datei `config/heraldia.json` wird beim ersten Serverstart angelegt, mit eine
 | `actualizar.margen_bloques` | 50 | Sicherheitsabstand um Spielerbauten für `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Auf der Webkarte nur bereits entdeckte Bauwerke. |
 | `tesoro.probabilidad` | 3.0 | Wahrscheinlichkeit (%) eines Schatzkartenfragments in jeder Truhe der mittelgroßen Bauwerke und Minen. |
+| `casa_heraldo.activado` | `true` | Das Haus des Herolds am Spawn und sein Schutz. |
+| `casa_heraldo.mercado.activado` | `false` | Marktstände zur Miete im Haus des Herolds (Preise: `casa_heraldo.mercado.*`). |
+| `eventos.activado` | `true` | Dorfereignisse: Markttag, Hochzeit, Begräbnis und Fest auf den Plätzen (Operatoren: `/heraldia event`; seltener mit `eventos.espera_minutos`; im leichten Profil aus). |
 
 ## Mehr erfahren
 

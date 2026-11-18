@@ -4,8 +4,10 @@ import json, os, sys
 import pytest
 
 SMOKE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "smoke")
+_path = list(sys.path)      # tools/smoke only while importing (see test_compat_mods.py)
 sys.path.insert(0, SMOKE)
 import generation_cost as c  # noqa: E402
+sys.path[:] = _path
 
 
 def test_percentile_interpolated():
@@ -246,7 +248,8 @@ def test_configuration_by_default_without_the_arena():
     import options                                   # tools/gen is on sys.path (conftest)
     fixed_opts = {o[0]: o[1] for o in options._FIXED}
     assert fixed_opts["arena.generar_en_mundos_nuevos"] is True
-    assert c.CONFIG == {"arena": {"generar_en_mundos_nuevos": False}}
+    assert fixed_opts["casa_heraldo.generar_en_mundos_nuevos"] is True     # the Herald's House, likewise
+    assert c.CONFIG == {"arena": {"generar_en_mundos_nuevos": False}, "casa_heraldo": {"generar_en_mundos_nuevos": False}}
 
 
 # ---------------------------------------------------------------- peaks and the continuous strip
@@ -405,10 +408,12 @@ def test_parse_variant_reads_json_values():
 
 def test_config_of_nests_the_options_over_the_base_configuration():
     cfg = c.config_of("ligero", {"medianas.frecuencia_porcentaje": 100, "medianas.distancia_minima.bloques": 192})
-    assert cfg == {"arena": {"generar_en_mundos_nuevos": False}, "perfil": "ligero",
+    assert cfg == {"arena": {"generar_en_mundos_nuevos": False}, "casa_heraldo": {"generar_en_mundos_nuevos": False},
+                   "perfil": "ligero",
                    "medianas": {"frecuencia_porcentaje": 100, "distancia_minima": {"bloques": 192}}}
     assert c.config_of() == c.CONFIG and c.config_of() is not c.CONFIG
-    assert c.CONFIG == {"arena": {"generar_en_mundos_nuevos": False}}, "the base is not modified"
+    assert c.CONFIG == {"arena": {"generar_en_mundos_nuevos": False},
+                        "casa_heraldo": {"generar_en_mundos_nuevos": False}}, "the base is not modified"
 
 
 def test_medium_starts_counts_only_medium_structures():

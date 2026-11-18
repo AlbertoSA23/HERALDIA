@@ -466,7 +466,66 @@ _FIXED = [
     ("tesoro.radio_max", 1500, 300, 4000,
      "Distancia máxima, en bloques, de cada marca del mapa del tesoro a la anterior (o a donde se descifra el fragmento)",
      "Maximum distance, in blocks, from each mark of the treasure map to the previous one (or to where the fragment is "
-     "deciphered)"),
+     "deciphered)"),    ("reputacion.aldea_visible", True, None, None,
+     "La reputación se ve en la aldea: con la mejor reputación que tenga cualquier jugador, flores en la fuente "
+     "(conocido); estandartes en las entradas de la plaza, junto al tablón, en las puertas de la muralla y en las "
+     "torres (amigo); más flores, faroles en las puertas y una alfombra ante el tablón (héroe); si todos los que la "
+     "tratan tienen reputación negativa, las torres cierran sus contraventanas. Solo bloques vanilla y solo donde hay "
+     "aire: nunca toca un bloque de un jugador. Desactivada, cada aldea quita lo que puso al cargarse",
+     "Reputation shows in the village: with the best reputation any player has there, flowers on the fountain (known); "
+     "banners at the square's entrances, by the job board, at the wall gates and on the towers (friend); more flowers, "
+     "lanterns on the gates and a carpet before the job board (hero); if everyone who deals with it has negative "
+     "reputation, the towers close their shutters. Vanilla blocks only and only on air: it never touches a player's "
+     "block. Disabled, each village takes down what it put up when it loads"),
+    ("casa_heraldo.activado", True, None, None,
+     "La Casa del Heraldo: el pueblo amurallado del spawn (96 × 96 bloques) con su anillo protegido de 50 bloques, donde solo "
+     "un operador puede construir o romper y no aparecen monstruos. Desactivada, no se construye ni se protege",
+     "The Herald's House: the walled spawn town (96 × 96 blocks) with its 50-block protected ring, where only an operator "
+     "can build or break and no monsters spawn. Disabled, it is neither built nor protected"),
+    ("casa_heraldo.generar_en_mundos_nuevos", True, None, None,
+     "En un mundo nuevo, la Casa del Heraldo se construye sola en el spawn, que pasa a la plaza (en un mundo ya existente, "
+     "nunca: la coloca un operador con /heraldia herald place)",
+     "In a new world, the Herald's House is built on its own at spawn, and spawn moves to its plaza (never in an existing "
+     "world: an operator places it with /heraldia herald place)"),
+    ("casa_heraldo.mercado.activado", False, None, None,
+     "Puestos del mercado de alquiler: los jugadores pagan una entrada y un alquiler en esmeraldas por un puesto del mercado "
+     "de la Casa del Heraldo; quien deja de pagar lo pierde (sus cosas van a un barril de devoluciones)",
+     "Market stalls for rent: players pay an entry fee and rent in emeralds for a stall in the Herald's House market; "
+     "whoever stops paying loses it (their things go to a return barrel)"),
+    ("casa_heraldo.mercado.entrada_esmeraldas", 16, 0, 256,
+     "Esmeraldas de entrada para quedarse un puesto libre (se paga una vez, junto con el primer alquiler)",
+     "Entry fee in emeralds to take a free stall (paid once, together with the first rent)"),
+    ("casa_heraldo.mercado.alquiler_esmeraldas", 4, 0, 256,
+     "Esmeraldas de alquiler por periodo (0: el puesto no caduca)",
+     "Rent in emeralds per period (0: the stall never runs out)"),
+    ("casa_heraldo.mercado.periodo_dias", 7, 1, 60,
+     "Duración de cada periodo de alquiler, en días del juego (20 minutos con el servidor en marcha)",
+     "Length of each rent period, in game days (20 minutes of the server running)"),
+    ("casa_heraldo.mercado.gracia_dias", 3, 0, 30,
+     "Días del juego de gracia tras vencer el alquiler antes de perder el puesto (se avisa al inquilino un día antes de "
+     "vencer y durante la gracia)",
+     "Game days of grace after the rent runs out before the stall is lost (the tenant is warned a day before it is due "
+     "and during the grace)"),
+    ("eventos.activado", True, None, None,
+     "Eventos en las aldeas: de vez en cuando, con un jugador en una aldea de Heraldia, su plaza celebra un día de "
+     "mercado, una boda, un funeral o una fiesta durante unos minutos (puestos, un arco, un féretro o una hoguera, y "
+     "hasta 15 aldeanos sin IA que hablan, comercian o aceptan regalos); al acabar todo se va. Solo pone bloques sobre "
+     "aire y solo quita lo que puso; uno por aldea",
+     "Village events: now and then, with a player in a Heraldia village, its square holds a market day, a wedding, a "
+     "funeral or a festival for a few minutes (stalls, an arch, a bier or a bonfire, and up to 15 villagers without AI "
+     "who speak, trade or take gifts); when it ends everything goes. It only places blocks on air and only removes what "
+     "it placed; one per village"),
+    ("eventos.frecuencia", 20, 0, 100,
+     "Probabilidad (%) de que empiece un evento en cada sorteo (uno cada 30 s por aldea con un jugador dentro, a más de "
+     "24 bloques de la plaza); 0: solo con /heraldia event start",
+     "Chance (%) of an event starting at each draw (one every 30 s per village with a player inside, more than 24 "
+     "blocks from the square); 0: only with /heraldia event start"),
+    ("eventos.espera_minutos", 20, 5, 240,
+     "Minutos de juego que descansa cada aldea entre un evento y el siguiente (súbelo para que sean más raros)",
+     "Minutes of play each village rests between one event and the next (raise it to make them rarer)"),
+    ("eventos.max_activos", 2, 1, 4,
+     "Eventos a la vez en todo el servidor, como mucho (cada uno, unas 15 entidades durante 3 a 6 minutos)",
+     "Maximum events at once on the whole server (each one, about 15 entities for 3 to 6 minutes)"),
 ]
 # Play profiles (option "perfil"): each one sets these gameplay options at once (never world generation ones). "estandar"
 # is exactly the usual behavior (the default values); "personalizado" sets nothing (each option with its
@@ -509,6 +568,7 @@ LIGHT_OPTIONS = {
     "medianas.distancia_minima.bloques": 320,
     "minas.vanilla.multiplicador": 1.0,          # vanilla abandoned mineshafts as in vanilla (the default doubles them)
     "caravanas.activado": False,                 # no caravan entities walking between villages (server ticks)
+    "eventos.activado": False,                   # no village events (up to ~15 entities each while one lasts)
     "medianas.habitantes": False,                # no villagers with AI in the medium structures (server ticks)
 }
 GENERATION_PROFILES = (LIGHT,)
@@ -517,6 +577,16 @@ GENERATION_PROFILES = (LIGHT,)
 PROFILE_PREFIXES = ("dificultad.", "botin.", "jefes.", "arena.", "caravanas.", "chozas_mago.")
 GENERATION = ("aldeas.", "unicas.", "medianas.", "minas.", "faros.", "naufragios.", "compatibilidad.", "arena.generar_en_mundos_nuevos",
               "arena.activado")
+
+
+# Marked as generation (so no gameplay profile touches them) and yet applied by /heraldia reload (config/Reload.RELOADABLE):
+# the flag only keeps the profiles away, it does not mean "needs a restart". arena.activado is gameplay that profiles must
+# not switch (the arena builds itself); the other three fall under a generation prefix (aldeas., unicas.) but act while
+# playing. Unmarking them would change the generation fingerprint that worlds have saved (ProfileNotice, the
+# generacion_mundo attachment, and the search memory key in SearchCaches), so they stay marked and are listed here;
+# test_options checks this list against Reload.java, so a new overlap has to be added here on purpose.
+GENERATION_RELOADABLE = ("aldeas.vida.tratos_estilo", "aldeas.vida.asedios", "arena.activado",
+                         "unicas.atlantida.cofre_unico_por_jugador")
 
 
 def is_generation(key):
@@ -682,6 +752,18 @@ _NAMES = {
     "tesoro.activado": ("Búsqueda del tesoro", "Treasure hunt"),
     "tesoro.probabilidad": ("Fragmentos por cofre (%)", "Fragments per chest (%)"),
     "tesoro.radio_max": ("Distancia máxima entre marcas (bloques)", "Maximum distance between marks (blocks)"),
+    "reputacion.aldea_visible": ("La reputación se ve en la aldea", "Reputation shows in the village"),
+    "casa_heraldo.activado": ("Casa del Heraldo", "Herald's House"),
+    "casa_heraldo.generar_en_mundos_nuevos": ("Construirla en mundos nuevos", "Build it in new worlds"),
+    "casa_heraldo.mercado.activado": ("Puestos de alquiler", "Stalls for rent"),
+    "casa_heraldo.mercado.entrada_esmeraldas": ("Entrada (esmeraldas)", "Entry fee (emeralds)"),
+    "casa_heraldo.mercado.alquiler_esmeraldas": ("Alquiler (esmeraldas)", "Rent (emeralds)"),
+    "casa_heraldo.mercado.periodo_dias": ("Periodo de alquiler (días)", "Rent period (days)"),
+    "casa_heraldo.mercado.gracia_dias": ("Días de gracia", "Days of grace"),
+    "eventos.activado": ("Eventos en las aldeas", "Village events"),
+    "eventos.frecuencia": ("Frecuencia de los eventos (%)", "Event frequency (%)"),
+    "eventos.espera_minutos": ("Descanso entre eventos (min)", "Rest between events (min)"),
+    "eventos.max_activos": ("Eventos a la vez", "Events at once"),
 }
 # Name of each value of the list options: {key: {value: (es_es, en_us)}}.
 _VALUE_NAMES = {
@@ -739,6 +821,8 @@ SECTIONS = [
     ("actualizaciones", "Actualizaciones", "Updates"),
     ("mapas_web", "Mapas web", "Web maps"),
     ("tesoro", "Búsqueda del tesoro", "Treasure hunt"),
+    ("casa_heraldo", "Casa del Heraldo", "Herald's House"),
+    ("eventos", "Eventos en las aldeas", "Village events"),
 ]
 # Key prefix -> section; the first one that fits wins, so a new option falls into its section on its own
 # (if it fits in none, generation fails).
@@ -752,6 +836,8 @@ _SECTION_PREFIXES = [
     ("botin.", "botin"), ("dificultad.", "dificultad"), ("arena.", "arena"), ("encargos.", "encargos"), ("reputacion.", "encargos"), ("dialogos.", "dialogos"),
     ("caravanas.", "caravanas"), ("viajeros.", "viajeros"), ("chozas_mago.", "chozas_mago"), ("ambiente.", "ambiente"),
     ("update_check.", "actualizaciones"), ("actualizar.", "actualizaciones"), ("mapas_web.", "mapas_web"), ("tesoro.", "tesoro"),
+    ("casa_heraldo.", "casa_heraldo"),
+    ("eventos.", "eventos"),
 ]
 
 

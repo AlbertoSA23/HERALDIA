@@ -28,6 +28,9 @@ site; the passes without Heraldia use the same ones, where there is only terrain
                 (with the ambush) that sets off next to them at the start of the window.
   aldea_arena   one player in the village and another in the wave arena (placed next to spawn), with a game running:
                 every WAVE_KILL_S seconds one of its enemies is killed in the player's name, so the waves advance.
+  aldea_evento  "aldea" with a village event (EVENT_KIND, a wedding: the biggest, 15 figures and its fireworks) started in the
+                player's village just before the warm-up (/heraldia event start; natural events are off: eventos.frecuencia 0).
+  dos_aldeas_evento  "dos_aldeas" with one in each village: two events at once, the case the owner's caps were set for.
   mediana       one player at the roadside inn closest to 0,0 (#heraldia:medianas/posada: its inhabitants, the innkeeper
                 with the gardener or with two pigs; the medium structure with the most of them), alone in the open.
 And, with Heraldia, the margin (ESCALATION): in the "aldea" scenario, villagers are added in steps (unemployed: they search
@@ -61,10 +64,18 @@ WARMUP_S, MEASURE_S, SWEEPS = 30, 60, 1
 WAVE_KILL_S = 8
 PREGEN_R = VIEW * 16 + 48   # blocks around each position that Chunky generates first (the player's view plus a margin)
 PLAYERS = ("Medidor1", "Medidor2")
-SCENARIOS = ["campo", "aldea_vanilla", "aldea", "dos_aldeas", "caravana", "aldea_arena", "mediana"]
-SINGLE = ("campo", "aldea_vanilla", "aldea", "mediana")    # one player
+SCENARIOS = ["campo", "aldea_vanilla", "aldea", "dos_aldeas", "caravana", "aldea_arena"]
+# Village events (events/VillageEvents): the same as "aldea" and "dos_aldeas" with a wedding (the biggest event: 15 figures
+# and its fireworks) started in each player's village just before the window (without Heraldia: the same positions).
+SCENARIOS += ["aldea_evento", "dos_aldeas_evento"]
 # Scenarios where Heraldia has something of its own (the others are the control and the vanilla village).
-OWN = ["aldea", "dos_aldeas", "caravana", "aldea_arena", "mediana"]
+OWN = ["aldea", "dos_aldeas", "caravana", "aldea_arena"]
+OWN += ["aldea_evento", "dos_aldeas_evento"]
+EVENT_KIND = "wedding"
+EVENT_STARTS = r"Heraldia: events: event \d+ starts: \w+ in .*?, (\d+) figures|Heraldia: events: \w+ not started: (\w+)"
+SCENARIOS += ["mediana"]           # the medium structures' inhabitants (mediums/_inhabitants.py)
+SINGLE = ("campo", "aldea_vanilla", "aldea", "aldea_evento", "mediana")    # one player
+OWN += ["mediana"]
 ESCALATION = [0, 25, 50, 100, 150]          # villagers added (cumulative) in the margin steps
 ESCALATION_WARMUP_S, ESCALATION_MEASURE_S = 40, 60
 ESCALATION_RADIUS = 24                      # around the square
@@ -267,7 +278,9 @@ def markdown(result, comparison=None):
 
 def config():
     return {"arena": {"generar_en_mundos_nuevos": False}, "caravanas": {"frecuencia": 0},
-            "update_check": {"activado": False}}
+            "update_check": {"activado": False},
+            "casa_heraldo": {"generar_en_mundos_nuevos": False},
+            "eventos": {"frecuencia": 0}}     # village events only with the command (the *_evento scenarios)
 
 
 def properties(work, jmx_port):
@@ -435,8 +448,14 @@ class Pass:
         self.nobody()
         x, z = pos["aldea"]
         during = None
-        if sc in SINGLE:
+        if sc in ("campo", "aldea_vanilla", "aldea", "mediana"):      # one player at the scenario's own position
             self.player(PLAYERS[0], *pos[sc])
+        elif sc == "aldea_evento":
+            self.player(PLAYERS[0], x, z)
+            self.start_events(PLAYERS[:1])
+        elif sc == "dos_aldeas_evento":
+            self.player(PLAYERS[0], x, z); self.player(PLAYERS[1], *pos["aldea_b"])
+            self.start_events(PLAYERS)
         elif sc == "dos_aldeas":
             self.player(PLAYERS[0], x, z); self.player(PLAYERS[1], *pos["aldea_b"])
         elif sc == "caravana":
@@ -474,10 +493,22 @@ class Pass:
                 c.run("heraldia arena stop", r"arena|Arena|No hay|There is no")
             if sc == "caravana":
                 c.run("kill @e[tag=heraldia_caravana]", r"Killed|No entity")
+            if sc in ("aldea_evento", "dos_aldeas_evento"):
+                out["heraldia_evento"] = c.count("@e[tag=heraldia_evento]")
+                c.run("heraldia event stop all", r"Events stopped|Eventos parados|Unknown|Incorrect")
         print(f"{'CON' if self.with_it else 'SIN'} {sc}: media {_f(st.get('media'))}, p50 {_f(st.get('p50'))}, p95 {_f(st.get('p95'))}, "
               f"p99 {_f(st.get('p99'))}, peor {_f(st.get('max'))} ms, {st['ticks']} ticks ({_f(st.get('tps'))} TPS); "
               f"entidades {out['entidades']}", flush=True)
         return out
+
+    def start_events(self, names):
+        """A wedding in each player's village (with Heraldia; without it there is nothing to start)."""
+        if not self.with_it:
+            return
+        for n in names:
+            m = self.ctx.run(f"execute as {n} at @s run heraldia event start {EVENT_KIND}", EVENT_STARTS)
+            if not m.group(1):
+                print(f"WARNING: no {EVENT_KIND} next to {n}: {m.group(0)}", flush=True)
 
     def place_arena(self):
         c = self.ctx

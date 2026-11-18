@@ -15,6 +15,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - 🗼 **Faróis e naufrágios.** Faróis em terra firme junto ao mar, com a luz sempre acesa, a casa do faroleiro e um píer, e galeões partidos, encalhados na praia ou meio afundados nos baixios, com o porão e a cabine do capitão. Cada um no estilo da sua costa: temperada, quente, fria ou nevada.
 - 🔱 **Atlântida.** Só uma por mundo: uma cidade enorme afundada no oceano profundo, com salões secos, três selos com suas chaves e o Guardião de Poseidon, que guarda o maior tesouro de Heraldia.
 - 🏟️ **Arena de hordas.** Um coliseu perto do spawn: toque o sino e resista a hordas cada vez mais fortes, com um campeão a cada cinco hordas, recordes e recompensas. Se você cair na arena, mantém o seu inventário. Três modos (cooperativo, contra o relógio e sobrevivência) com classificação semanal, `/heraldia arena leaderboard`: os campeões da semana anterior aparecem nas placas do hall da fama da arena e no Guia do Arauto.
+- 🏯 **A Casa do Arauto.** A primeira coisa que você vê em um mundo novo: uma cidade murada de 96 × 96 blocos no spawn, com seu sino, o quadro de encomendas, uma estalagem e uma pensão, uma capela, lojas com seus aldeões, jardins, um estábulo, um poço e um portal do Nether que só um operador pode acender. Ninguém além de um operador pode construir ou quebrar a menos de 50 blocos das suas muralhas, e ali não surgem monstros. Seu mercado tem barracas que os jogadores alugam com esmeraldas quando o servidor as ativa. Em um mundo que já existe, um operador a coloca com `/heraldia herald place`.
 
 ## Como jogar
 
@@ -24,6 +25,7 @@ Um mod de Fabric para o **Minecraft 26.3** que enche a Superfície de lugares qu
 - 📋 **Tarefas das vilas.** Toque no atril do quadro na praça de uma vila (ou use `/heraldia quest` ali): aparecem no chat de 2 a 4 tarefas (trazer itens, derrotar um guardião, explorar, viajar a uma vila vizinha, a arena) que mudam a cada poucos dias. Pagam esmeraldas, experiência e reputação com essa vila: como conhecido, amigo e herói da vila, seus aldeões baixam os preços em 10, 20 e 30 %. Atacar seus aldeões ou golens a faz cair.
 - 🐪 **Caravanas.** De vez em quando, perto de você, um mercador de Heraldia com suas lhamas (e às vezes um guarda) percorre a estrada entre duas vilas vizinhas. Se bandidos o atacarem, defenda-o: ao chegar, ele paga esmeraldas e reputação com a vila de destino. Se o mercador morrer, a caravana se perde.
 - 🚶 **Viajantes.** Vida nas estradas, também perto de você: um peregrino a caminho de um mosteiro ou de uma catedral, um pastor com seu rebanho, um mensageiro apressado, uma dupla de guardas em patrulha ou um caçador que volta com seu cão, conforme a região. Percorrem um trecho e vão embora; o pastor e o caçador negociam, e se você os machucar a vila deles fica sabendo.
+- 🎪 **Nas aldeias acontecem coisas.** De vez em quando a praça da aldeia em que você está recebe por alguns minutos um dia de feira, um casamento, um funeral ou uma festa: barracas e feirantes, um arco e os noivos, um caixão e o sino, uma fogueira com músicos e dançarinos. Compre, dê um presente, peça uma música: a aldeia se lembra. Depois tudo vai embora e a praça fica como estava.
 - 💬 **Converse com os aldeões.** Clique com o botão direito num aldeão de uma vila de Heraldia e ele fala com você no chat: frases conforme a profissão, a terra, a hora, o tempo e o quanto a vila te conhece, com botões para continuar, perguntar as novidades ou negociar (agachado + clique direito negocia diretamente; os aldeões vanilla negociam como sempre). Um em cada dez viajou e, se a vila confia em você, conta uma vez em que direção e a que distância fica uma estrutura.
 - 🏆 **Progressos.** Uma aba Heraldia com 124 progressos: uma vila de cada família, cada estrutura única com seu guardião e seu tesouro, as minas, os faróis e naufrágios, as estruturas médias, o quadro de tarefas, a arena e as caravanas.
 - 🗿 **Troféus.** Cada um dos 22 guardiões solta seu troféu, um item com nome e história. Reúna todos para completar a Sala de troféus.
@@ -69,6 +71,7 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `arena.temporada.dia_reinicio` | `lunes` | Dia em que fecha a classificação semanal da arena e seus campeões são anunciados (à meia-noite, horário do servidor). |
 | `encargos.activado` | `true` | Tarefas do quadro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputação por vila e seus descontos. |
+| `reputacion.aldea_visible` | `true` | A vila mostra sua melhor reputação com blocos vanilla: flores, estandartes, lanternas (ou janelas fechadas); nunca sobre o bloco de um jogador. |
 | `dialogos.activado` | `true` | Conversas com os aldeões de Heraldia (agachado + clique direito negocia diretamente). |
 | `caravanas.activado` | `true` | Caravanas pelas estradas (operadores: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Viajantes pelas estradas, cada tipo com sua opção (operadores: `/heraldia caravan wayfarer`). |
@@ -79,6 +82,9 @@ O arquivo `config/heraldia.json` é criado na primeira inicialização do servid
 | `actualizar.margen_bloques` | 50 | Margem de segurança em volta das construções dos jogadores para `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | No mapa web, só as estruturas já descobertas. |
 | `tesoro.probabilidad` | 3.0 | Chance (%) de um fragmento de mapa do tesouro em cada baú das estruturas médias e das minas. |
+| `casa_heraldo.activado` | `true` | A Casa do Arauto no spawn e sua proteção. |
+| `casa_heraldo.mercado.activado` | `false` | Barracas para alugar no mercado da Casa do Arauto (preços: `casa_heraldo.mercado.*`). |
+| `eventos.activado` | `true` | Eventos nas aldeias: dia de feira, casamento, funeral e festa nas praças (operadores: `/heraldia event`; mais raros com `eventos.espera_minutos`; desativados no perfil leve). |
 
 ## Saiba mais
 

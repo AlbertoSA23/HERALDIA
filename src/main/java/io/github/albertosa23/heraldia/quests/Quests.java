@@ -181,6 +181,7 @@ public final class Quests {
 
 	static void save(Player p, Data d) {
 		p.setAttached(Attachments.PLAYER, d);
+		io.github.albertosa23.heraldia.welcome.Welcome.reputationSaved(p, d);   // the village shows its best reputation
 	}
 
 	public static World world(MinecraftServer server) {
@@ -224,7 +225,13 @@ public final class Quests {
 	/** The Heraldia village whose box contains {@code pos} (see {@link #villageAt}), or null. On the server thread. */
 	public static @Nullable VillageView villageView(ServerLevel level, BlockPos pos) {
 		Village a = villageAt(level, pos);
-		return a == null ? null : new VillageView(a.cx(), a.cz(), a.style(), family(a.style()), a.name());
+		if (a == null) {        // the Herald's House: its villagers talk as a village's do
+			int[] h = io.github.albertosa23.heraldia.herald.HeraldHouse.villageAt(level, pos);
+			String style = io.github.albertosa23.heraldia.herald.HeraldHouse.style();
+			return h == null ? null : new VillageView(h[0], h[1], style, family(style),
+					io.github.albertosa23.heraldia.herald.HeraldHouse.NAME);
+		}
+		return new VillageView(a.cx(), a.cz(), a.style(), family(a.style()), a.name());
 	}
 
 	/**

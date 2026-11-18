@@ -5,9 +5,13 @@ import nbtlib
 import pytest
 
 SMOKE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "smoke")
+# tools/smoke only while importing: left at the head of sys.path, the server tests that share a name with a generator
+# module (treasure, guide, quests...) would shadow it in every test module collected afterwards.
+_path = list(sys.path)
 sys.path.insert(0, SMOKE)
 import compat_mods as c  # noqa: E402
 import modrinth  # noqa: E402
+sys.path[:] = _path
 
 
 def test_catalog_pinned():

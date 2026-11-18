@@ -15,6 +15,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 - 🗼 **Lighthouses and wrecks.** Lighthouses on firm ground by the sea, with their light always lit, the keeper's house and a jetty, and broken galleons run aground on the beach or half-sunk in the shallows, with their hold and the captain's cabin. Each in the style of its coast: temperate, warm, cold or snowy.
 - 🔱 **Atlantis.** Only one per world: a vast city sunk in the deep ocean, with dry halls, three seals with their keys and the Guardian of Poseidon, keeper of the greatest treasure in Heraldia.
 - 🏟️ **Wave arena.** A coliseum near spawn: ring the bell and hold out against ever stronger waves, with a champion every fifth wave, records and rewards. If you fall in the ring, you keep your inventory. Three modes (co-op, time attack and survival) with a weekly leaderboard, `/heraldia arena leaderboard`: last week's champions go up on the signs of the arena's hall of fame and in the Herald's Guide.
+- 🏯 **The Herald's House.** The first thing you see in a new world: a walled town of 96 × 96 blocks at spawn, with its bell, the job board, an inn and a guest house, a chapel, shops with their villagers, gardens, a stable, a well and a Nether portal that only an operator can light. Nobody but an operator can build or break within 50 blocks of its walls, and no monsters spawn there. Its market has stalls players can rent with emeralds when the server turns them on. In a world that already exists, an operator places it with `/heraldia herald place`.
 
 ## How to play
 
@@ -24,6 +25,7 @@ A Fabric mod for **Minecraft 26.3** that fills the Overworld with places worth t
 - 📋 **Village quests.** Touch the job board lectern on a village square (or use `/heraldia quest` there): 2 to 4 quests show up in chat (bring items, defeat a guardian, explore, travel to a neighbouring village, the arena) and change every few days. They pay emeralds, experience and reputation with that village: as known, friend and village hero, its villagers lower their prices by 10, 20 and 30 %. Attacking its villagers or golems lowers it.
 - 🐪 **Caravans.** Now and then a Heraldia merchant with its llamas (and sometimes a guard) travels the road between two neighbouring villages near you. If bandits ambush it, defend it: when it arrives it pays emeralds and reputation with its destination village. If the merchant dies, the caravan is lost.
 - 🚶 **Wayfarers.** Life on the roads, also near you: a pilgrim on the way to a monastery or cathedral, a shepherd with its flock, a messenger in a hurry, a pair of guards on patrol or a hunter coming back with its dog, as fits the area. They walk a stretch and go; the shepherd and the hunter trade, and hurting them is known in their village.
+- 🎪 **Things happen in the villages.** Now and then the square of the village you are in holds a market day, a wedding, a funeral or a festival for a few minutes: stalls and traders, an arch and the couple, a bier and the bell, a bonfire with a band and dancers. Buy, give a gift, ask the band for a song: the village remembers. Then everything goes and the square is left as it was.
 - 💬 **Talk to the villagers.** Right-click a villager in a Heraldia village and it talks to you in chat: lines by its trade, its land, the hour, the weather and how well the village knows you, with buttons to keep talking, ask for news or trade (sneak + right click trades directly; vanilla villagers trade as always). One in ten has travelled and, if the village trusts you, tells you once which way and how far a structure lies.
 - 🏆 **Advancements.** A Heraldia tab with 124 advancements: a village of each family, every unique structure with its guardian and its treasure, the mines, the lighthouses and wrecks, the medium structures, the job board, the arena and the caravans.
 - 🗿 **Trophies.** Each of the 22 guardians drops its trophy, an item with a name and a story. Collect them all to complete the Hall of Trophies.
@@ -69,6 +71,7 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `arena.temporada.dia_reinicio` | `lunes` | Day the arena's weekly leaderboard closes and its champions are announced (at midnight, server time). |
 | `encargos.activado` | `true` | Job board quests (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputation per village and its discounts. |
+| `reputacion.aldea_visible` | `true` | The village shows its best reputation with vanilla blocks: flowers, banners, lanterns (or shutters closed); never on a player's block. |
 | `dialogos.activado` | `true` | Conversations with Heraldia villagers (sneak + right click trades directly). |
 | `caravanas.activado` | `true` | Caravans along the roads (operators: `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Wayfarers along the roads, each kind with its own option (operators: `/heraldia caravan wayfarer`). |
@@ -79,6 +82,9 @@ The file `config/heraldia.json` is created on the server's first start, with a h
 | `actualizar.margen_bloques` | 50 | Safety margin around player builds for `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Only structures already discovered appear on the web map. |
 | `tesoro.probabilidad` | 3.0 | Chance (%) of a treasure map fragment in each chest of medium structures and mines. |
+| `casa_heraldo.activado` | `true` | The Herald's House at spawn and its protection. |
+| `casa_heraldo.mercado.activado` | `false` | Market stalls for rent at the Herald's House (prices: `casa_heraldo.mercado.*`). |
+| `eventos.activado` | `true` | Village events: market day, wedding, funeral and festival in the squares (operators: `/heraldia event`; rarer with `eventos.espera_minutos`; off in the light profile). |
 
 ## Learn more
 

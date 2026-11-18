@@ -44,6 +44,8 @@ TEST_CONFIG = {"aldeas": {"separacion_bloques": 50, "maximo": 12, "familias": {"
                "arena": {"generar_en_mundos_nuevos": False},
                # without asking GitHub for new versions: the tests do not depend on the network (update_check.py tests it)
                "update_check": {"activado": False},
+               # nor the Herald's House at spawn (tools/smoke/arena.py tests it)
+               "casa_heraldo": {"generar_en_mundos_nuevos": False},
                "inventada": 1}
 CONFIG_LOG = [
     r"configuración migrada de la versión 0 a la 3",

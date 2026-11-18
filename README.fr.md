@@ -15,6 +15,7 @@ Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valen
 - 🗼 **Phares et épaves.** Des phares sur la terre ferme au bord de la mer, à la lumière toujours allumée, avec la maison du gardien et un ponton, et des galions brisés, échoués sur la plage ou à moitié coulés sur les hauts-fonds, avec leur cale et la cabine du capitaine. Chacun au style de sa côte : tempérée, chaude, froide ou enneigée.
 - 🔱 **L'Atlantide.** Une seule par monde : une immense cité engloutie dans l'océan profond, avec des salles au sec, trois sceaux et leurs clés, et le Gardien de Poséidon, qui veille sur le plus grand trésor de Heraldia.
 - 🏟️ **L'arène des vagues.** Un colisée près du point d'apparition : sonnez la cloche et tenez bon face à des vagues toujours plus fortes, avec un champion toutes les cinq vagues, des records et des récompenses. Si vous tombez sur la piste, vous gardez votre inventaire. Trois modes (coopératif, contre-la-montre et survie) avec un classement hebdomadaire, `/heraldia arena leaderboard` : les champions de la semaine précédente s'affichent sur les panneaux du panthéon de l'arène et dans le Guide du Héraut.
+- 🏯 **La Maison du Héraut.** La première chose que vous voyez dans un nouveau monde : une ville fortifiée de 96 × 96 blocs au point d'apparition, avec sa cloche, le tableau des commandes, une auberge et une pension, une chapelle, des boutiques avec leurs villageois, des jardins, une écurie, un puits et un portail du Nether que seul un opérateur peut allumer. Personne d'autre qu'un opérateur ne peut construire ni casser à moins de 50 blocs de ses remparts, et aucun monstre n'y apparaît. Son marché a des étals que les joueurs louent avec des émeraudes quand le serveur les active. Dans un monde qui existe déjà, un opérateur la place avec `/heraldia herald place`.
 
 ## Comment jouer
 
@@ -24,6 +25,7 @@ Un mod Fabric pour **Minecraft 26.3** qui remplit l'Overworld de lieux qui valen
 - 📋 **Missions des villages.** Touche le lutrin du tableau sur la place d'un village (ou utilise `/heraldia quest` sur place) : 2 à 4 missions apparaissent dans le chat (apporter des objets, vaincre un gardien, explorer, aller au village voisin, l'arène) et changent tous les quelques jours. Elles paient en émeraudes, expérience et réputation auprès de ce village : connu, ami et héros du village, ses villageois baissent leurs prix de 10, 20 et 30 %. Attaquer ses villageois ou ses golems la fait baisser.
 - 🐪 **Caravanes.** De temps en temps, près de toi, un marchand d'Heraldia avec ses lamas (et parfois un garde) parcourt la route entre deux villages voisins. Si des brigands l'attaquent, défends-le : à l'arrivée, il te paie en émeraudes et en réputation avec son village de destination. Si le marchand meurt, la caravane est perdue.
 - 🚶 **Gens de passage.** De la vie sur les routes, près de toi aussi : un pèlerin en route vers un monastère ou une cathédrale, un berger avec son troupeau, un messager pressé, un duo de gardes en patrouille ou un chasseur qui rentre avec son chien, selon la région. Ils parcourent un tronçon et s'en vont ; le berger et le chasseur font du commerce, et si tu leur fais du mal, leur village le saura.
+- 🎪 **Il se passe des choses dans les villages.** De temps en temps, la place du village où tu te trouves accueille un jour de marché, un mariage, des funérailles ou une fête pendant quelques minutes : étals et marchands, une arche et les mariés, un cercueil et la cloche, un feu de joie avec des musiciens et des danseurs. Achète, offre un cadeau, demande une chanson : le village s'en souvient. Puis tout s'en va et la place reste comme elle était.
 - 💬 **Parle aux villageois.** Fais un clic droit sur un villageois d'un village d'Heraldia et il te parle dans le chat : des phrases selon son métier, sa terre, l'heure, le temps et ce que le village sait de toi, avec des boutons pour continuer, demander les nouvelles ou commercer (accroupi + clic droit pour commercer directement ; les villageois vanilla commercent comme toujours). Un sur dix a voyagé et, si le village te fait confiance, te dit une fois dans quelle direction et à quelle distance se trouve une structure.
 - 🏆 **Progrès.** Un onglet Heraldia avec 124 progrès : un village de chaque famille, chaque structure unique avec son gardien et son trésor, les mines, les phares et épaves, les structures moyennes, le tableau des contrats, l'arène et les caravanes.
 - 🗿 **Trophées.** Chacun des 22 gardiens lâche son trophée, un objet avec un nom et une histoire. Réunissez-les tous pour compléter la Salle des trophées.
@@ -69,6 +71,7 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `arena.temporada.dia_reinicio` | `lunes` | Jour de clôture du classement hebdomadaire de l'arène et d'annonce de ses champions (à minuit, heure du serveur). |
 | `encargos.activado` | `true` | Missions du tableau (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Réputation par village et ses réductions. |
+| `reputacion.aldea_visible` | `true` | Le village montre sa meilleure réputation avec des blocs vanilla : fleurs, bannières, lanternes (ou volets fermés) ; jamais sur un bloc d'un joueur. |
 | `dialogos.activado` | `true` | Conversations avec les villageois d'Heraldia (accroupi + clic droit pour commercer directement). |
 | `caravanas.activado` | `true` | Caravanes sur les routes (opérateurs : `/heraldia caravan`). |
 | `viajeros.activado` | `true` | Gens de passage sur les routes, chaque type avec son option (opérateurs : `/heraldia caravan wayfarer`). |
@@ -79,6 +82,9 @@ Le fichier `config/heraldia.json` est créé au premier démarrage du serveur, a
 | `actualizar.margen_bloques` | 50 | Marge de sécurité autour des constructions des joueurs pour `/heraldia update`. |
 | `mapas_web.solo_descubiertas` | `true` | Sur la carte web, seulement les structures déjà découvertes. |
 | `tesoro.probabilidad` | 3.0 | Probabilité (%) d'un fragment de carte au trésor dans chaque coffre des structures moyennes et des mines. |
+| `casa_heraldo.activado` | `true` | La Maison du Héraut au point d'apparition et sa protection. |
+| `casa_heraldo.mercado.activado` | `false` | Étals à louer au marché de la Maison du Héraut (prix : `casa_heraldo.mercado.*`). |
+| `eventos.activado` | `true` | Événements de village : jour de marché, mariage, funérailles et fête sur les places (opérateurs : `/heraldia event` ; plus rares avec `eventos.espera_minutos` ; désactivés dans le profil léger). |
 
 ## En savoir plus
 
