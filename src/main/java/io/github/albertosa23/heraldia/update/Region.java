@@ -19,11 +19,11 @@ import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 
 /**
- * Ficheros de región (.mca) leídos y tocados directamente, sin el juego (T46): la cabecera de 4 KiB con la posición de
- * cada uno de los 32 × 32 chunks, la de 4 KiB con sus fechas y, en sectores de 4 KiB, cada chunk (longitud, tipo de
- * compresión y el NBT). Sirve para el análisis de /heraldia update (solo lee) y para regenerar chunks vírgenes: borrar un
- * chunk es poner a 0 su entrada de las dos cabeceras (el juego lo da por no generado y lo vuelve a generar; los
- * sectores que ocupaba los reutiliza al guardar). Solo se escribe con el servidor sin el mundo cargado.
+ * Region files (.mca) read and touched directly, without the game (T46): the 4 KiB header with the position of
+ * each of the 32 × 32 chunks, the 4 KiB one with their timestamps and, in 4 KiB sectors, each chunk (length, compression
+ * type and the NBT). It serves the /heraldia update analysis (read only) and regenerating pristine chunks: deleting a
+ * chunk means zeroing its entry in both headers (the game treats it as not generated and generates it again; it reuses the
+ * sectors it occupied when saving). It is only written with the server running without the world loaded.
  */
 public final class Region {
 	public static final int SECTOR = 4096, SIDE = 32;
@@ -32,7 +32,7 @@ public final class Region {
 	private Region() {
 	}
 
-	/** Coordenadas de región de un fichero «r.X.Z.mca», o vacío si no lo es. */
+	/** Region coordinates of an "r.X.Z.mca" file, or empty if it is not one. */
 	public static Optional<int[]> coordinatesOf(Path p) {
 		Matcher m = NAME.matcher(p.getFileName().toString());
 		return m.matches() ? Optional.of(new int[] {Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2))}) : Optional.empty();
@@ -42,12 +42,12 @@ public final class Region {
 		return "r." + rx + "." + rz + ".mca";
 	}
 
-	/** Índice de un chunk en la cabecera de su región (coordenadas de chunk del mundo). */
+	/** Index of a chunk in its region's header (world chunk coordinates). */
 	public static int index(int cx, int cz) {
 		return (cx & 31) + (cz & 31) * SIDE;
 	}
 
-	/** Las entradas presentes de la cabecera: índices de los chunks guardados en el fichero. */
+	/** The header's present entries: indices of the chunks saved in the file. */
 	public static List<Integer> present(byte[] header) {
 		List<Integer> out = new ArrayList<>();
 		for (int i = 0; i < SIDE * SIDE; i++) {
@@ -62,7 +62,7 @@ public final class Region {
 		return (header[i * 4] & 0xFF) << 24 | (header[i * 4 + 1] & 0xFF) << 16 | (header[i * 4 + 2] & 0xFF) << 8 | header[i * 4 + 3] & 0xFF;
 	}
 
-	/** Lee la cabecera de posiciones (los primeros 4 KiB); un fichero más corto se da por vacío. */
+	/** Reads the positions header (the first 4 KiB); a shorter file is treated as empty. */
 	public static byte[] header(Path file) throws IOException {
 		byte[] out = new byte[SECTOR];
 		try (RandomAccessFile f = new RandomAccessFile(file.toFile(), "r")) {
@@ -74,8 +74,8 @@ public final class Region {
 	}
 
 	/**
-	 * El NBT de un chunk del fichero (índice de la cabecera), o vacío si no está. Admite las compresiones de 26.3
-	 * (gzip, zlib, ninguna y LZ4) y los chunks grandes guardados aparte (.mcc junto al fichero).
+	 * The NBT of a chunk in the file (header index), or empty if it is not there. It supports the 26.3 compressions
+	 * (gzip, zlib, none and LZ4) and large chunks saved separately (.mcc next to the file).
 	 */
 	public static Optional<CompoundTag> read(Path file, int index) throws IOException {
 		try (RandomAccessFile f = new RandomAccessFile(file.toFile(), "r")) {
@@ -95,7 +95,7 @@ public final class Region {
 			int length = f.readInt();
 			int type = f.readUnsignedByte();
 			InputStream data;
-			if ((type & 0x80) != 0) {    // chunk de más de 1 MiB: va en c.X.Z.mcc
+			if ((type & 0x80) != 0) {    // chunk over 1 MiB: goes in c.X.Z.mcc
 				coordinatesOf(file).orElseThrow(() -> new IOException("nombre de región raro: " + file));
 				int[] r = coordinatesOf(file).get();
 				int cx = r[0] * SIDE + index % SIDE, cz = r[1] * SIDE + index / SIDE;
@@ -125,8 +125,8 @@ public final class Region {
 	}
 
 	/**
-	 * Borra chunks de un fichero de región: pone a 0 su posición y su fecha en la cabecera (el resto del fichero no se
-	 * toca). Devuelve cuántos estaban y se han borrado. Si el fichero no existe o es más corto que las cabeceras, nada.
+	 * Deletes chunks from a region file: zeroes their position and timestamp in the header (the rest of the file is not
+	 * touched). Returns how many were there and were deleted. If the file does not exist or is shorter than the headers, nothing.
 	 */
 	public static int delete(Path file, List<Integer> indices) throws IOException {
 		if (!Files.isRegularFile(file) || Files.size(file) < 2 * SECTOR) {

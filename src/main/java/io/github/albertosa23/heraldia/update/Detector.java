@@ -11,54 +11,54 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Detección de construcciones de jugadores y clasificación de los chunks para /heraldia update (T46), lógica pura sobre
- * los resúmenes de los chunks guardados ({@link ChunkSummary}) y unos puntos sueltos. Una construcción es cualquiera de:
+ * Detection of player builds and classification of the chunks for /heraldia update (T46), pure logic over
+ * the summaries of the saved chunks ({@link ChunkSummary}) and some loose points. A build is any of:
  * <ul>
- * <li>un bloque típico de jugador ({@link PlayerBlocks}) fuera de las piezas de las estructuras guardadas;</li>
- * <li>columnas cuya cima no coincide con la de la regeneración con la misma semilla (sin contar las cimas naturales: árboles,
- * nieve, fluidos...) en un chunk donde ha estado algún jugador ({@link Parameters#minDifferences} o más);</li>
- * <li>un chunk muy habitado (InhabitedTime de {@link Parameters#inhabitedBase} o más: alguien pasó ahí mucho tiempo);</li>
- * <li>el punto de aparición del mundo, las camas y puntos de reaparición de los jugadores y su última posición;</li>
- * <li>las zonas reclamadas con mods de protección, si se pueden leer.</li>
+ * <li>a typical player block ({@link PlayerBlocks}) outside the pieces of the saved structures;</li>
+ * <li>columns whose top does not match that of the regeneration with the same seed (not counting natural tops: trees,
+ * snow, fluids...) in a chunk where some player has been ({@link Parameters#minDifferences} or more);</li>
+ * <li>a heavily inhabited chunk (InhabitedTime of {@link Parameters#inhabitedBase} or more: someone spent a lot of time there);</li>
+ * <li>the world spawn point, the players' beds and respawn points and their last position;</li>
+ * <li>areas claimed with protection mods, if they can be read.</li>
  * </ul>
- * Alrededor de cada construcción hay un margen ({@link Parameters#margin}, 50 bloques por defecto, en horizontal): un chunk
- * con algún bloque a esa distancia o menos queda <em>protegido</em>, y ahí no se borra ni se coloca nada. Un chunk es
- * <em>virgen</em> si está generado del todo, casi nadie ha pasado por él (InhabitedTime menor que
- * {@link Parameters#inhabitedPristine}), no tiene bloques de jugador fuera de las estructuras y no está protegido (lo de
- * dentro de las estructuras lo vuelve a poner la regeneración), ni él ni ninguno de sus 8 vecinos están protegidos (al
- * regenerarse, sus rasgos del terreno escriben también en los vecinos). Los bloques de jugador que la generación también
- * pone sueltos ({@link PlayerBlocks#ambiguous}) solo cuentan en chunks por los que ha pasado alguien.
+ * Around each build there is a margin ({@link Parameters#margin}, 50 blocks by default, horizontally): a chunk
+ * with any block at that distance or less is <em>protected</em>, and nothing is deleted or placed there. A chunk is
+ * <em>pristine</em> if it is fully generated, almost nobody has passed through it (InhabitedTime less than
+ * {@link Parameters#inhabitedPristine}), it has no player blocks outside the structures and it is not protected (what is
+ * inside the structures is put back by the regeneration), and neither it nor any of its 8 neighbors are protected (when
+ * regenerated, its terrain features also write into the neighbors). The player blocks that generation also
+ * places on its own ({@link PlayerBlocks#ambiguous}) only count in chunks someone has passed through.
  */
 public final class Detector {
 	public enum Reason { BLOCKS, DIFFERENCE, INHABITED, SPAWN, RESPAWN, PLAYER, CLAIM }
 
 	public enum Kind {
-		/** Tiene una construcción. */
+		/** It has a build. */
 		BUILD,
-		/** A menos del margen de una construcción. */
+		/** Within the margin of a build. */
 		PROTECTED,
-		/** Se puede regenerar. */
+		/** It can be regenerated. */
 		PRISTINE,
-		/** Generado, ni virgen ni protegido: ahí se pueden colocar estructuras nuevas. */
+		/** Generated, neither pristine nor protected: new structures can be placed there. */
 		NORMAL,
-		/** A medio generar: no se toca. */
+		/** Half generated: not touched. */
 		INCOMPLETE
 	}
 
 	/**
-	 * @param margen         bloques alrededor de cada construcción donde no se toca nada (actualizar.margen_bloques)
-	 * @param habitadoVirgen InhabitedTime por debajo del cual un chunk puede ser virgen (ticks)
-	 * @param habitadoBase   InhabitedTime desde el cual el chunk cuenta como construcción (ticks)
-	 * @param minDiferencias columnas distintas de la regeneración para que el chunk cuente como construcción
+	 * @param margin            blocks around each build where nothing is touched (actualizar.margen_bloques)
+	 * @param inhabitedPristine InhabitedTime below which a chunk can be pristine (ticks)
+	 * @param inhabitedBase     InhabitedTime from which the chunk counts as a build (ticks)
+	 * @param minDifferences    columns differing from the regeneration for the chunk to count as a build
 	 */
 	public record Parameters(int margin, long inhabitedPristine, long inhabitedBase, int minDifferences) {
-		/** 50 bloques; virgen con menos de 1 min de jugadores cerca; construcción desde 1 h; 3 columnas de 16. */
+		/** 50 blocks; pristine with less than 1 min of players nearby; build from 1 h; 3 columns out of 16. */
 		public static Parameters defaults(int margin) {
 			return new Parameters(margin, 1200, 72_000, 3);
 		}
 	}
 
-	/** Una construcción: el rectángulo (en bloques, inclusive) que ocupa y por qué cuenta. */
+	/** A build: the rectangle (in blocks, inclusive) it occupies and why it counts. */
 	public record Build(int minX, int minZ, int maxX, int maxZ, Reason reason) {
 		public static Build point(int x, int z, Reason m) {
 			return new Build(x, z, x, z, m);
@@ -83,19 +83,19 @@ public final class Detector {
 	private Detector() {
 	}
 
-	/** Distancia horizontal (euclídea, en bloques) entre dos rectángulos de bloques; 0 si se tocan o se solapan. */
+	/** Horizontal distance (Euclidean, in blocks) between two block rectangles; 0 if they touch or overlap. */
 	public static double distance(int aMinX, int aMinZ, int aMaxX, int aMaxZ, int bMinX, int bMinZ, int bMaxX, int bMaxZ) {
 		int dx = Math.max(0, Math.max(aMinX - bMaxX, bMinX - aMaxX));
 		int dz = Math.max(0, Math.max(aMinZ - bMaxZ, bMinZ - aMaxZ));
 		return Math.sqrt((double) dx * dx + (double) dz * dz);
 	}
 
-	/** ¿Tiene el chunk algún bloque a {@code margin} bloques o menos de la construcción? */
+	/** Does the chunk have any block within {@code margin} blocks of the build? */
 	public static boolean near(Build c, int cx, int cz, int margin) {
 		return distance(c.minX(), c.minZ(), c.maxX(), c.maxZ(), cx * 16, cz * 16, cx * 16 + 15, cz * 16 + 15) <= margin;
 	}
 
-	/** Los chunks a {@code margin} o menos de alguna construcción (los de la construcción incluidos). */
+	/** The chunks within {@code margin} of some build (the build's own included). */
 	public static Set<Long> protectedChunks(Collection<Build> cs, int margin) {
 		Set<Long> out = new HashSet<>();
 		for (Build c : cs) {
@@ -112,17 +112,17 @@ public final class Detector {
 		return out;
 	}
 
-	/** ¿Está el bloque dentro de la caja {minX, minY, minZ, maxX, maxY, maxZ}? */
+	/** Is the block inside the box {minX, minY, minZ, maxX, maxY, maxZ}? */
 	public static boolean inside(int[] bb, int x, int y, int z) {
 		return x >= bb[0] && y >= bb[1] && z >= bb[2] && x <= bb[3] && y <= bb[4] && z <= bb[5];
 	}
 
-	/** ¿Se solapan en planta dos cajas? */
+	/** Do two boxes overlap in plan view? */
 	public static boolean overlap(int[] a, int[] b) {
 		return a[0] <= b[3] && b[0] <= a[3] && a[2] <= b[5] && b[2] <= a[5];
 	}
 
-	/** Las piezas de las estructuras guardadas, por cada chunk que toca su caja (en planta). */
+	/** The pieces of the saved structures, per chunk their box touches (in plan view). */
 	public static Map<Long, List<int[]>> piecesByChunk(Collection<ChunkSummary> chunks) {
 		Map<Long, List<int[]>> out = new HashMap<>();
 		for (ChunkSummary r : chunks) {
@@ -139,12 +139,12 @@ public final class Detector {
 		return out;
 	}
 
-	/** Los bloques de jugador de un chunk que no están dentro de ninguna pieza de estructura: {x, z}. */
+	/** A chunk's player blocks that are not inside any structure piece: {x, z}. */
 	static List<int[]> outsideStructures(ChunkSummary r, List<int[]> pieces) {
 		List<int[]> out = new ArrayList<>();
 		for (int i = 0; i < r.player().length; i++) {
 			if (r.ambiguous(i) && r.inhabited() <= 0) {
-				continue;            // tablones, vallas, raíles y cofres que pone la generación: sin jugadores cerca no cuentan
+				continue;            // planks, fences, rails and chests that generation places: without players nearby they do not count
 			}
 			int[] b = r.playerBlock(i);
 			boolean inside = false;
@@ -162,10 +162,10 @@ public final class Detector {
 	}
 
 	/**
-	 * Detecta las construcciones y clasifica cada chunk guardado.
+	 * Detects the builds and classifies each saved chunk.
 	 *
-	 * @param diferencias columnas {x, z} distintas de la regeneración, por chunk (solo de los chunks que se compararon)
-	 * @param extra       construcciones que no salen de los chunks: spawn, camas y reaparición, jugadores, reclamos
+	 * @param differences columns {x, z} differing from the regeneration, per chunk (only of the chunks that were compared)
+	 * @param extra       builds that do not come from the chunks: spawn, beds and respawn, players, claims
 	 */
 	public static Result classify(Collection<ChunkSummary> chunks, Map<Long, List<int[]>> differences, List<Build> extra,
 									   Parameters p) {
@@ -198,8 +198,8 @@ public final class Detector {
 			withBuild.add(ChunkSummary.key(Math.floorDiv(c.minX(), 16), Math.floorDiv(c.minZ(), 16)));
 		}
 		Set<Long> protectedChunks = protectedChunks(cs, p.margin());
-		// al regenerarse, los rasgos de un chunk (vetas, árboles, rocas) escriben también en los 8 de alrededor: un chunk
-		// junto a uno protegido no se regenera (visto en tools/smoke/actualizar.py: vetas de andesita en un chunk protegido)
+		// when regenerated, a chunk's features (veins, trees, rocks) also write into the 8 around it: a chunk
+		// next to a protected one is not regenerated (seen in tools/smoke/actualizar.py: andesite veins in a protected chunk)
 		Set<Long> beside = new HashSet<>();
 		for (long k : protectedChunks) {
 			for (int dx = -1; dx <= 1; dx++) {
@@ -218,7 +218,7 @@ public final class Detector {
 				c = Kind.PROTECTED;
 			} else if (!r.complete()) {
 				c = Kind.INCOMPLETE;
-			} else if (r.inhabited() < p.inhabitedPristine() && !beside.contains(k)) {   // y sin bloques de jugador fuera de estructuras (si no, sería construcción)
+			} else if (r.inhabited() < p.inhabitedPristine() && !beside.contains(k)) {   // and without player blocks outside structures (otherwise, it would be a build)
 				c = Kind.PRISTINE;
 			} else {
 				c = Kind.NORMAL;
@@ -231,13 +231,13 @@ public final class Detector {
 	}
 
 	/**
-	 * Qué chunks vírgenes se pueden borrar para que se regeneren sin dejar estructuras cortadas: un chunk virgen se borra
-	 * solo si cada estructura que cambiaría al regenerarlo (una nueva que ahora empezaría ahí, o una guardada que ya no
-	 * saldría igual) cae entera en chunks que también se borran o que aún no están generados. Se repite hasta que no
-	 * cambia (quitar uno puede obligar a quitar otro).
+	 * Which pristine chunks can be deleted so they regenerate without leaving cut structures: a pristine chunk is deleted
+	 * only if every structure that would change when regenerating it (a new one that would now start there, or a saved one that would no
+	 * longer spawn the same) falls entirely in chunks that are also deleted or not generated yet. It repeats until it does not
+	 * change (removing one may force removing another).
 	 *
-	 * @param requisitos por chunk virgen, las cajas de las estructuras que cambiarían al regenerarlo
-	 * @param generados  todos los chunks guardados
+	 * @param requirements per pristine chunk, the boxes of the structures that would change when regenerating it
+	 * @param generated    all the saved chunks
 	 */
 	public static Set<Long> regenerable(Set<Long> pristine, Set<Long> generated, Map<Long, List<int[]>> requirements) {
 		Set<Long> out = new HashSet<>(pristine);
@@ -257,7 +257,7 @@ public final class Detector {
 		return out;
 	}
 
-	/** ¿Cae la caja entera en chunks que se borran o que no están generados? */
+	/** Does the whole box fall in chunks that are deleted or not generated? */
 	static boolean covers(int[] bb, Set<Long> deleted, Set<Long> generated) {
 		for (int cx = Math.floorDiv(bb[0], 16); cx <= Math.floorDiv(bb[3], 16); cx++) {
 			for (int cz = Math.floorDiv(bb[2], 16); cz <= Math.floorDiv(bb[5], 16); cz++) {
@@ -271,9 +271,9 @@ public final class Detector {
 	}
 
 	/**
-	 * ¿Se puede colocar ahí una estructura nueva (vía B)? Su caja (en planta) no toca ningún chunk protegido ni con
-	 * construcción, ni las piezas de otra estructura guardada o ya elegida, y su chunk de inicio está generado (normal, o
-	 * virgen que no se regenera) y no se va a regenerar.
+	 * Can a new structure be placed there (path B)? Its box (in plan view) touches no protected chunk or chunk with a
+	 * build, nor the pieces of another saved or already chosen structure, and its start chunk is generated (normal, or
+	 * pristine but not regenerated) and is not going to be regenerated.
 	 */
 	public static boolean placeable(int[] box, long start, Result r, Set<Long> regenerate, Map<Long, List<int[]>> pieces,
 									List<int[]> chosen) {

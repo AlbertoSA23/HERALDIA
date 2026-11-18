@@ -5,11 +5,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Mapa del análisis de /heraldia update (T46), lógica pura: un carácter (o un píxel) por chunk, con el norte arriba.
- * Si el mundo es muy grande, cada carácter junta varios chunks y enseña el de más prioridad (lo protegido antes que lo
- * que se regenera). Leyenda: {@code #} construcción, {@code P} protegido, {@code R} se regenera, {@code v} virgen que no
- * se regenera (dejaría una estructura cortada), {@code E} se coloca una estructura nueva, {@code .} generado,
- * {@code ~} a medio generar, {@code S} spawn del mundo, espacio: sin generar.
+ * Map of the /heraldia update analysis (T46), pure logic: one character (or one pixel) per chunk, with north up.
+ * If the world is very large, each character groups several chunks and shows the highest-priority one (protected before what
+ * regenerates). Legend: {@code #} build, {@code P} protected, {@code R} regenerates, {@code v} pristine that does not
+ * regenerate (it would leave a cut structure), {@code E} a new structure is placed, {@code .} generated,
+ * {@code ~} half generated, {@code S} world spawn, space: not generated.
  */
 public final class RegionMap {
 	public static final int MAX_WIDTH = 200;
@@ -19,7 +19,7 @@ public final class RegionMap {
 	private RegionMap() {
 	}
 
-	/** Carácter de un chunk. */
+	/** Character of a chunk. */
 	static char symbol(Detector.Kind c, boolean regenerate, boolean structure) {
 		if (c == null) {
 			return ' ';
@@ -36,7 +36,7 @@ public final class RegionMap {
 		};
 	}
 
-	/** Prioridad al juntar varios chunks en un carácter (mayor gana). */
+	/** Priority when grouping several chunks into a character (higher wins). */
 	static int priority(char s) {
 		return switch (s) {
 			case 'S' -> 9;
@@ -51,7 +51,7 @@ public final class RegionMap {
 		};
 	}
 
-	/** Límites {minCx, minCz, maxCx, maxCz} de los chunks clasificados (o null si no hay ninguno). */
+	/** Bounds {minCx, minCz, maxCx, maxCz} of the classified chunks (or null if there are none). */
 	static int[] bounds(Map<Long, Detector.Kind> classes) {
 		if (classes.isEmpty()) {
 			return null;
@@ -68,9 +68,9 @@ public final class RegionMap {
 	}
 
 	/**
-	 * El mapa en texto, con una cabecera (qué chunks junta cada carácter y dónde empieza) y la leyenda.
+	 * The text map, with a header (which chunks each character groups and where it starts) and the legend.
 	 *
-	 * @param spawn chunk del spawn {cx, cz}, o null
+	 * @param spawn spawn chunk {cx, cz}, or null
 	 */
 	public static String text(Map<Long, Detector.Kind> classes, Set<Long> regenerate, Set<Long> structures, int[] spawn) {
 		int[] l = bounds(classes);
@@ -105,7 +105,7 @@ public final class RegionMap {
 		return sb.toString();
 	}
 
-	/** Color (RGB) de cada símbolo en la imagen. */
+	/** Color (RGB) of each symbol in the image. */
 	static int color(char s) {
 		return switch (s) {
 			case '#' -> 0xC62828;
@@ -120,7 +120,7 @@ public final class RegionMap {
 		};
 	}
 
-	/** El mapa como imagen: un píxel por chunk (o por grupo si pasa de {@code maxSide}), {@code zoom} veces más grande. */
+	/** The map as an image: one pixel per chunk (or per group if it exceeds {@code maxSide}), {@code zoom} times larger. */
 	public static BufferedImage image(Map<Long, Detector.Kind> classes, Set<Long> regenerate, Set<Long> structures, int[] spawn,
 									   int maxSide, int zoom) {
 		int[] l = bounds(classes);

@@ -3,12 +3,12 @@ package io.github.albertosa23.heraldia.update;
 import java.util.Set;
 
 /**
- * Bloques típicos de jugador (T46), lógica pura sobre el nombre del bloque: lo que el terreno no genera solo y casi
- * siempre pone alguien (camas, cofres, barriles, carteles, mesas de trabajo, hornos, raíles, vallas, puertas, antorchas,
- * tablones, cristal, lana, ladrillos, tierra de cultivo...). Las estructuras también los traen (aldeas, minas
- * abandonadas, ruinas): el análisis solo cuenta los que quedan fuera de las piezas de las estructuras guardadas en el
- * chunk. Y la «cima natural» para comparar con la regeneración: troncos, hojas, setas, nieve, hielo, plantas que crecen
- * y fluidos, que cambian sin que nadie construya.
+ * Typical player blocks (T46), pure logic over the block's name: what the terrain does not generate on its own and almost
+ * always someone places (beds, chests, barrels, signs, crafting tables, furnaces, rails, fences, doors, torches,
+ * planks, glass, wool, bricks, farmland...). Structures also bring them (villages, abandoned
+ * mineshafts, ruins): the analysis only counts the ones outside the pieces of the structures saved in the
+ * chunk. And the "natural top" to compare with the regeneration: logs, leaves, mushrooms, snow, ice, growing plants
+ * and fluids, which change without anyone building.
  */
 public final class PlayerBlocks {
 	private static final Set<String> EXACT = Set.of("chest", "trapped_chest", "barrel", "crafting_table", "furnace",
@@ -36,9 +36,9 @@ public final class PlayerBlocks {
 			"budding_amethyst", "creaking_heart", "resin_clump", "leaf_litter", "firefly_bush", "bush", "cactus_flower");
 
 	/**
-	 * Bloques de jugador que la generación también pone fuera de las cajas de las estructuras: tablones y cadenas de las
-	 * minas abandonadas (los puentes bajo las galerías), vallas y raíles, y los cofres de las mazmorras (que son un rasgo
-	 * del terreno, no una estructura). Visto en un mundo de prueba de 26.3 (tools/smoke/actualizar.py).
+	 * Player blocks that generation also places outside the structure boxes: planks and chains of the
+	 * abandoned mineshafts (the bridges under the galleries), fences and rails, and the dungeon chests (which are a terrain
+	 * feature, not a structure). Seen in a 26.3 test world (tools/smoke/actualizar.py).
 	 */
 	private static final Set<String> AMBIGUOUS_EXACT = Set.of("chest", "rail", "chain", "iron_chain");
 	private static final String[] AMBIGUOUS_SUFFIXES = {"_planks", "_fence"};
@@ -47,8 +47,8 @@ public final class PlayerBlocks {
 	}
 
 	/**
-	 * ¿Bloque de jugador que también sale solo? Esos solo cuentan como construcción en un chunk por el que ha pasado algún
-	 * jugador (InhabitedTime mayor que 0): para ponerlos a mano hay que estar cerca.
+	 * A player block that also spawns on its own? Those only count as a build in a chunk some
+	 * player has passed through (InhabitedTime greater than 0): to place them by hand one has to be nearby.
 	 */
 	public static boolean ambiguous(String id) {
 		String r = route(id);
@@ -68,7 +68,7 @@ public final class PlayerBlocks {
 		return i >= 0 ? id.substring(i + 1) : id;
 	}
 
-	/** ¿Bloque típico de jugador? ({@code minecraft:oak_planks}, {@code red_bed}...) Los de otros mods no cuentan. */
+	/** Typical player block? ({@code minecraft:oak_planks}, {@code red_bed}...) Other mods' do not count. */
 	public static boolean playerSource(String id) {
 		if (id.indexOf(':') >= 0 && !id.startsWith("minecraft:")) {
 			return false;
@@ -86,8 +86,8 @@ public final class PlayerBlocks {
 	}
 
 	/**
-	 * ¿Puede estar en la cima de una columna sin que nadie haya construido? (árboles, setas gigantes, nieve, hielo, plantas
-	 * que crecen, fluidos, rocas de los rasgos del terreno). Una cima así no cuenta como diferencia con la regeneración.
+	 * Can it be at the top of a column without anyone having built? (trees, huge mushrooms, snow, ice, growing
+	 * plants, fluids, terrain-feature rocks). Such a top does not count as a difference with the regeneration.
 	 */
 	public static boolean naturalTop(String id) {
 		String r = route(id);

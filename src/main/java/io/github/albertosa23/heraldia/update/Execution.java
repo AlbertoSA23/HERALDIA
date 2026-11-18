@@ -34,18 +34,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Lo que /heraldia update apply deja hecho al arrancar (T46). Con el servidor parado no se puede hacer nada, así que el
- * plan ({@link Plan}) espera al siguiente arranque, que el administrador hace a mano:
+ * What /heraldia update apply gets done at startup (T46). With the server stopped nothing can be done, so the
+ * plan ({@link Plan}) waits for the next startup, which the administrator does by hand:
  * <ol>
- * <li>al empezar a arrancar, <em>antes de cargar el mundo</em> ({@code SERVER_STARTING}): si se pidió, copia los ficheros
- * de región, entidades y PDI afectados a {@code heraldia/actualizar/copia-<id>/}; luego borra de las regiones los chunks
- * vírgenes del plan que siguen igual (si su InhabitedTime ha subido, alguien ha pasado: se dejan), para que se
- * regeneren cuando alguien se acerque;</li>
- * <li>con el servidor en marcha ({@code SERVER_STARTED}): coloca las estructuras nuevas del plan, una por tick, si siguen
- * saliendo igual y no hay ya otra; las registra en su chunk de inicio (para /locate y los mapas) y en los que toca;</li>
- * <li>deja el informe en {@code heraldia/actualizar/informe-<id>.txt} y el plan como {@code hecho-<id>.json}.</li>
+ * <li>when startup begins, <em>before loading the world</em> ({@code SERVER_STARTING}): if requested, copies the affected
+ * region, entity and POI files to {@code heraldia/actualizar/copia-<id>/}; then deletes from the regions the plan's
+ * pristine chunks that are unchanged (if their InhabitedTime has risen, someone has passed: they are left), so they
+ * regenerate when someone comes near;</li>
+ * <li>with the server running ({@code SERVER_STARTED}): places the plan's new structures, one per tick, if they still
+ * spawn the same and there is not already another one; registers them in their start chunk (for /locate and the maps) and in those they touch;</li>
+ * <li>leaves the report in {@code heraldia/actualizar/informe-<id>.txt} and the plan as {@code hecho-<id>.json}.</li>
  * </ol>
- * Deshacer ({@code deshacer.json}) restaura la copia antes de cargar el mundo.
+ * Undo ({@code deshacer.json}) restores the backup before loading the world.
  */
 public final class Execution {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -64,7 +64,7 @@ public final class Execution {
 		return Analysis.folder(server).resolve("deshacer.json");
 	}
 
-	/** SERVER_STARTING: deshacer y la fase de ficheros del plan, con el mundo aún sin cargar. */
+	/** SERVER_STARTING: undo and the plan's file phase, with the world not loaded yet. */
 	static void onBegin(MinecraftServer server) {
 		Path dir = Analysis.folder(server), ow = Analysis.overworld(server);
 		boolean loaded = server.getAllLevels().iterator().hasNext();
@@ -103,7 +103,7 @@ public final class Execution {
 		}
 	}
 
-	/** Copia los ficheros de las regiones del plan (región, entidades y PDI) a {@code destination}; devuelve cuántos. */
+	/** Copies the files of the plan's regions (region, entities and POI) to {@code destination}; returns how many. */
 	static int copy(Plan p, Path ow, Path destination) throws IOException {
 		int n = 0;
 		for (String folder : FOLDERS) {
@@ -120,7 +120,7 @@ public final class Execution {
 		return n;
 	}
 
-	/** Borra los chunks del plan que siguen igual que al analizar (InhabitedTime sin subir). */
+	/** Deletes the plan's chunks that are the same as at analysis time (InhabitedTime has not risen). */
 	static void delete(Plan p, Path ow) throws IOException {
 		Map<String, List<Integer>> byRegion = new LinkedHashMap<>();
 		for (Plan.Chunk c : p.regenerate) {
@@ -144,7 +144,7 @@ public final class Execution {
 		}
 	}
 
-	/** Restaura una copia (deshacer): vuelve a poner sus ficheros en su sitio. */
+	/** Restores a backup (undo): puts its files back in place. */
 	static void restore(Plan d, Path dir, Path ow) {
 		Path backup = d.backupFolder == null ? null : Path.of(d.backupFolder);
 		int n = 0;
@@ -174,7 +174,7 @@ public final class Execution {
 		}
 	}
 
-	/** SERVER_STARTED: pone en cola las estructuras del plan (una por tick) o, si no hay, cierra el plan. */
+	/** SERVER_STARTED: queues the plan's structures (one per tick) or, if there are none, closes the plan. */
 	static void onStart(MinecraftServer server) {
 		Optional<Plan> op = Plan.read(plan(server));
 		if (op.isEmpty() || !Plan.REGENERATED.equals(op.get().phase)) {
@@ -188,7 +188,7 @@ public final class Execution {
 		}
 	}
 
-	/** Cada tick, mientras haya cola: una estructura. */
+	/** Every tick, while there is a queue: one structure. */
 	static void tick(MinecraftServer server) {
 		if (inProgress == null) {
 			return;
@@ -212,9 +212,9 @@ public final class Execution {
 	}
 
 	/**
-	 * Coloca una estructura nueva en un chunk ya generado: la vuelve a calcular (si ya no sale igual, o ya hay una, no
-	 * hace nada), la registra en su chunk de inicio y en los que toca, y pone sus piezas en los chunks ya generados (los
-	 * que aún no lo están las pondrán al generarse).
+	 * Places a new structure in an already generated chunk: computes it again (if it no longer spawns the same, or there already is one, it
+	 * does nothing), registers it in its start chunk and in those it touches, and puts its pieces in the already generated chunks (those
+	 * not generated yet will put them when they generate).
 	 */
 	static boolean place(ServerLevel level, Plan.Placement c) {
 		Identifier id = Identifier.tryParse(c.structure());
@@ -243,7 +243,7 @@ public final class Execution {
 		for (int cx = x0; cx <= x1; cx++) {
 			for (int cz = z0; cz <= z1; cz++) {
 				if (!generated(level, regions, cx, cz)) {
-					continue;           // al generarse, sus referencias lo encuentran y pone las piezas
+					continue;           // when it generates, its references find it and it places the pieces
 				}
 				ChunkAccess ch = level.getChunk(cx, cz);
 				ch.addReferenceForStructure(st.get(), pos.pack());
@@ -257,7 +257,7 @@ public final class Execution {
 		return true;
 	}
 
-	/** ¿Está el chunk generado? (cargado, o guardado en su región) */
+	/** Is the chunk generated? (loaded, or saved in its region) */
 	static boolean generated(ServerLevel level, Path regions, int cx, int cz) {
 		if (level.getChunkSource().getChunkNow(cx, cz) != null) {
 			return true;
@@ -266,7 +266,7 @@ public final class Execution {
 			Path f = regions.resolve(Region.name(cx >> 5, cz >> 5));
 			return Files.isRegularFile(f) && Region.entry(Region.header(f), Region.index(cx, cz)) != 0;
 		} catch (IOException e) {
-			return true;     // en la duda, como generado: se cargará
+			return true;     // when in doubt, as generated: it will load
 		}
 	}
 
@@ -313,7 +313,7 @@ public final class Execution {
 		return sb.toString();
 	}
 
-	/** El último plan hecho con copia (para deshacer), si hay. */
+	/** The last plan done with a backup (for undo), if any. */
 	static Optional<Plan> lastWithBackup(MinecraftServer server) {
 		Path dir = Analysis.folder(server);
 		if (!Files.isDirectory(dir)) {

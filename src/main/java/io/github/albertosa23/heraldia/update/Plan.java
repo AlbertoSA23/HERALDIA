@@ -15,21 +15,21 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 /**
- * El trabajo que /heraldia update apply deja para el siguiente arranque (T46), en
- * {@code <world>/heraldia/actualizar/plan.json}. Fases: {@link #PENDING} (se acaba de confirmar; al arrancar, antes
- * de cargar el mundo, se copia lo afectado si se pidió y se borran los chunks vírgenes), {@link #REGENERATED} (con el
- * servidor en marcha, se colocan las estructuras nuevas) y {@link #DONE} (queda el informe). Un plan de deshacer
- * ({@link #UNDO}) restaura la copia antes de cargar el mundo.
+ * The work /heraldia update apply leaves for the next startup (T46), in
+ * {@code <world>/heraldia/actualizar/plan.json}. Phases: {@link #PENDING} (just confirmed; at startup, before
+ * loading the world, the affected files are copied if requested and the pristine chunks are deleted), {@link #REGENERATED} (with the
+ * server running, the new structures are placed) and {@link #DONE} (the report remains). An undo plan
+ * ({@link #UNDO}) restores the backup before loading the world. The JSON keys are the published Spanish ones ({@code SerializedName}).
  */
 public final class Plan {
 	public static final String PENDING = "pendiente", REGENERATED = "regenerado", DONE = "hecho", UNDO = "deshacer";
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-	/** Un chunk a regenerar y su InhabitedTime al analizar (si ha subido al arrancar, ya no se borra). */
+	/** A chunk to regenerate and its InhabitedTime at analysis time (if it has risen at startup, it is no longer deleted). */
 	public record Chunk(int cx, int cz, @SerializedName("habitado") long inhabited) {
 	}
 
-	/** Una estructura nueva que colocar: su id, su chunk de inicio y su caja al analizar {minX, minY, minZ, maxX, maxY, maxZ}. */
+	/** A new structure to place: its id, its start chunk and its box at analysis time {minX, minY, minZ, maxX, maxY, maxZ}. */
 	public record Placement(@SerializedName("estructura") String structure, int cx, int cz, @SerializedName("caja") int[] box) {
 	}
 
@@ -46,7 +46,7 @@ public final class Plan {
 	public List<Chunk> regenerate = new ArrayList<>();
 	@SerializedName("colocar")
 	public List<Placement> place = new ArrayList<>();
-	// resultado
+	// result
 	@SerializedName("regenerados")
 	public int regenerated;
 	@SerializedName("omitidos")
@@ -60,7 +60,7 @@ public final class Plan {
 	@SerializedName("notas")
 	public List<String> notes = new ArrayList<>();
 
-	/** Los ficheros de región que tocan los chunks a regenerar y las cajas de las estructuras a colocar. */
+	/** The region files touched by the chunks to regenerate and the boxes of the structures to place. */
 	public TreeSet<String> regions() {
 		TreeSet<String> out = new TreeSet<>();
 		regenerate.forEach(c -> out.add(Region.name(c.cx() >> 5, c.cz() >> 5)));

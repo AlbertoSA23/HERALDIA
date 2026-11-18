@@ -52,36 +52,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * El análisis de /heraldia update analyze y apply (T46), en el mundo principal. En el hilo del servidor solo se guarda
- * el mundo y se apuntan el spawn y los jugadores conectados; lo demás va en un hilo propio, sin tocar el mundo cargado:
+ * The analysis of /heraldia update analyze and apply (T46), in the overworld. On the server thread it only saves
+ * the world and records the spawn and the online players; the rest runs on its own thread, without touching the loaded world:
  * <ol>
- * <li>lee cada chunk guardado de las regiones ({@link Region}, {@link ChunkSummary});</li>
- * <li>compara la cima de unas columnas de los chunks por donde ha pasado algún jugador con la de la regeneración con la
- * misma semilla ({@code getBaseHeight} del generador, que es puro), sin contar las cimas naturales;</li>
- * <li>lee las camas, puntos de reaparición y últimas posiciones de los jugadores que no están conectados;</li>
- * <li>clasifica ({@link Detector}) con el margen de actualizar.margen_bloques;</li>
- * <li>en los chunks vírgenes y en los normales que alguna rejilla tiene por candidatos, calcula qué inicios de estructura
- * saldrían hoy en un chunk vacío con el generador del mundo ({@code createStructures} sobre un {@link ProtoChunk}: con
- * las mismas reglas que la generación) y los compara con los guardados: de ahí salen qué chunks vírgenes se pueden borrar
- * sin cortar estructuras (vía A) y qué estructuras nuevas de Heraldia caben en sitios seguros (vía B);</li>
- * <li>escribe el informe, el mapa en texto y en imagen en {@code <world>/heraldia/actualizar/}.</li>
+ * <li>reads each saved chunk of the regions ({@link Region}, {@link ChunkSummary});</li>
+ * <li>compares the top of some columns of the chunks some player has passed through with that of the regeneration with the
+ * same seed (the generator's {@code getBaseHeight}, which is pure), not counting natural tops;</li>
+ * <li>reads the beds, respawn points and last positions of the offline players;</li>
+ * <li>classifies ({@link Detector}) with the actualizar.margen_bloques margin;</li>
+ * <li>in the pristine chunks and in the normal ones some grid has as candidates, computes which structure starts
+ * would spawn today in an empty chunk with the world's generator ({@code createStructures} on a {@link ProtoChunk}: with
+ * the same rules as generation) and compares them with the saved ones: from that comes which pristine chunks can be deleted
+ * without cutting structures (path A) and which new Heraldia structures fit in safe spots (path B);</li>
+ * <li>writes the report, the text map and the image map to {@code <world>/heraldia/actualizar/}.</li>
  * </ol>
- * No cambia nada del mundo.
+ * It changes nothing in the world.
  */
 public final class Analysis {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
-	/** Diferencia de altura (bloques) con la regeneración a partir de la cual una columna cuenta como distinta. */
+	/** Height difference (blocks) with the regeneration from which a column counts as different. */
 	static final int TOLERANCE = 4;
-	/** Mods de protección conocidos: si hay alguno, sus reclamaciones no se pueden leer y apply no se ejecuta. */
+	/** Known protection mods: if any is present, its claims cannot be read and apply does not run. */
 	static final List<String> PROTECTION = List.of("flan", "goml", "ftbchunks", "openpartiesandclaims", "cadmus", "fabricclaims",
 			"claimpoints", "griefdefender");
 	private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss", Locale.ROOT);
 
-	/** Lo que sale del análisis. */
+	/** What comes out of the analysis. */
 	public record Report(String id, String date, int chunks, Detector.Result result, Set<Long> regenerate,
 						  List<Plan.Placement> place, int cutPristine, int unsafePlacements, List<String> protections,
 						  int margin, String textMap, Path folder, Path file, Path mapTxt, Path mapPng, Map<Long, Long> inhabited) {
-		/** El plan que dejaría apply. */
+		/** The plan apply would leave. */
 		public Plan plan(boolean backup) {
 			Plan p = new Plan();
 			p.id = id;
@@ -95,31 +95,31 @@ public final class Analysis {
 		}
 	}
 
-	/** Lo apuntado en el hilo del servidor antes de empezar. */
+	/** What was recorded on the server thread before starting. */
 	record Start(Path world, Path overworld, int minY, List<Build> extra, ServerLevel level) {
 	}
 
 	private Analysis() {
 	}
 
-	/** La carpeta de /heraldia update dentro del mundo. */
+	/** The /heraldia update folder inside the world. */
 	public static Path folder(MinecraftServer server) {
 		return server.getWorldPath(LevelResource.ROOT).resolve("heraldia").resolve("actualizar");
 	}
 
-	/** La carpeta del mundo principal (con region/, entities/ y poi/). */
+	/** The overworld's folder (with region/, entities/ and poi/). */
 	public static Path overworld(MinecraftServer server) {
 		return DimensionType.getStorageFolder(Level.OVERWORLD, server.getWorldPath(LevelResource.ROOT));
 	}
 
-	/** Mods de protección cargados (con reclamaciones que no se pueden leer). */
+	/** Loaded protection mods (with claims that cannot be read). */
 	public static List<String> protections() {
 		return PROTECTION.stream().filter(FabricLoader.getInstance()::isModLoaded).toList();
 	}
 
 	/**
-	 * Empieza el análisis: en el hilo del servidor guarda el mundo y apunta el spawn y los jugadores; el resto, en un hilo
-	 * propio. {@code progress} recibe mensajes de avance (desde ese hilo).
+	 * Starts the analysis: on the server thread it saves the world and records the spawn and the players; the rest, on its own
+	 * thread. {@code progress} receives progress messages (from that thread).
 	 */
 	public static CompletableFuture<Report> start(MinecraftServer server, Consumer<String> progress) {
 		server.saveEverything(true, true, true);
@@ -160,19 +160,19 @@ public final class Analysis {
 		long t0 = System.nanoTime();
 		String date = LocalDateTime.now().format(DATE);
 		String id = Long.toHexString(Double.doubleToLongBits(Math.random()) ^ System.nanoTime()).substring(0, 6);
-		// 1) los chunks guardados
+		// 1) the saved chunks
 		Map<Long, ChunkSummary> chunks = readChunks(ini.overworld().resolve("region"), ini.minY(), progress);
 		progress.accept(chunks.size() + " chunks");
-		// 2) la regeneración
+		// 2) the regeneration
 		Map<Long, List<int[]>> pieces = Detector.piecesByChunk(chunks.values());
 		Map<Long, List<int[]>> dif = differences(ini.level(), chunks.values(), pieces);
-		// 3) los jugadores desconectados
+		// 3) the offline players
 		List<Build> extra = new ArrayList<>(ini.extra());
 		extra.addAll(savedPlayers(ini.world().resolve("players").resolve("data")));
-		// 4) clasificar
+		// 4) classify
 		Detector.Parameters params = Detector.Parameters.defaults(margin);
 		Detector.Result r = Detector.classify(chunks.values(), dif, extra, params);
-		// 5) estructuras: qué saldría hoy en cada chunk
+		// 5) structures: what would spawn today in each chunk
 		Set<Long> pristine = new HashSet<>(), generated = chunks.keySet();
 		r.classes().forEach((k, c) -> {
 			if (c == Detector.Kind.PRISTINE) {
@@ -187,7 +187,7 @@ public final class Analysis {
 			Detector.Kind cl = r.classes().get(c.key());
 			if (cl != Detector.Kind.PRISTINE && cl != Detector.Kind.NORMAL || !today.candidate(c.cx(), c.cz())) {
 				if (cl == Detector.Kind.PRISTINE && !c.structureStarts().isEmpty()) {
-					requirements.put(c.key(), startBoxes(c.structureStarts()));   // hoy no sale nada ahí: lo guardado cambiaría
+					requirements.put(c.key(), startBoxes(c.structureStarts()));   // nothing spawns there today: what is saved would change
 				}
 				continue;
 			}
@@ -219,7 +219,7 @@ public final class Analysis {
 		Set<Long> regenerate = Detector.regenerable(pristine, generated, requirements);
 		Map<Long, Long> inhabitedCount = new HashMap<>();
 		regenerate.forEach(k -> inhabitedCount.put(k, chunks.get(k).inhabited()));
-		// 6) vía B: estructuras nuevas de Heraldia en sitios seguros
+		// 6) path B: new Heraldia structures in safe spots
 		List<Plan.Placement> place = new ArrayList<>();
 		List<int[]> chosen = new ArrayList<>();
 		int unsafe = 0;
@@ -233,7 +233,7 @@ public final class Analysis {
 				}
 			}
 		}
-		// 7) informe y mapas
+		// 7) report and maps
 		Set<Long> withStructure = new HashSet<>();
 		place.forEach(c -> withStructure.add(ChunkSummary.key(c.cx(), c.cz())));
 		BlockPos sp = BlockPos.ZERO;
@@ -262,7 +262,7 @@ public final class Analysis {
 	record New(String id, int[] box) {
 	}
 
-	/** El informe en texto (en inglés y español: es para el administrador, en la consola o el fichero). */
+	/** The text report (in English and Spanish: it is for the administrator, in the console or the file). */
 	static String reportText(Report i, long ms) {
 		Detector.Result r = i.result();
 		StringBuilder sb = new StringBuilder();
@@ -291,7 +291,7 @@ public final class Analysis {
 		return sb.toString();
 	}
 
-	/** Lee el resumen de cada chunk guardado en las regiones del mundo principal. */
+	/** Reads the summary of each saved chunk in the overworld's regions. */
 	static Map<Long, ChunkSummary> readChunks(Path region, int minY, Consumer<String> progress) throws IOException {
 		Map<Long, ChunkSummary> out = new LinkedHashMap<>();
 		if (!Files.isDirectory(region)) {
@@ -318,7 +318,7 @@ public final class Analysis {
 					LOGGER.warn("Heraldia: update analyze: no se pudo leer un chunk de {} ({}); se da por construcción", f.getFileName(), e.getMessage());
 					int[] rr = Region.coordinatesOf(f).get();
 					int cx = rr[0] * 32 + idx % 32, cz = rr[1] * 32 + idx / 32;
-					// un chunk ilegible no se toca: se marca como muy habitado (construcción)
+					// an unreadable chunk is not touched: it is marked as heavily inhabited (build)
 					out.put(ChunkSummary.key(cx, cz), new ChunkSummary(cx, cz, true, Long.MAX_VALUE, minY, new int[0], Map.of(),
 							new int[0], new String[0]));
 				}
@@ -331,9 +331,9 @@ public final class Analysis {
 	}
 
 	/**
-	 * Columnas {x, z} cuya cima no coincide con la de la regeneración con la misma semilla, por chunk, en los chunks por
-	 * donde ha pasado algún jugador (InhabitedTime mayor que 0) y fuera de las piezas de estructuras. La regeneración es
-	 * la altura del terreno base del generador ({@code OCEAN_FLOOR_WG}): árboles, nieve, fluidos y plantas no cuentan.
+	 * Columns {x, z} whose top does not match that of the regeneration with the same seed, per chunk, in the chunks
+	 * some player has passed through (InhabitedTime greater than 0) and outside structure pieces. The regeneration is
+	 * the generator's base terrain height ({@code OCEAN_FLOOR_WG}): trees, snow, fluids and plants do not count.
 	 */
 	static Map<Long, List<int[]>> differences(ServerLevel level, Iterable<ChunkSummary> chunks, Map<Long, List<int[]>> pieces) {
 		Map<Long, List<int[]>> out = new HashMap<>();
@@ -373,7 +373,7 @@ public final class Analysis {
 		return out;
 	}
 
-	/** Posición, cama y punto de reaparición (en el mundo principal) de los jugadores guardados en players/data. */
+	/** Position, bed and respawn point (in the overworld) of the players saved in players/data. */
 	static List<Build> savedPlayers(Path dir) {
 		List<Build> out = new ArrayList<>();
 		if (!Files.isDirectory(dir)) {
@@ -394,7 +394,7 @@ public final class Analysis {
 		return out;
 	}
 
-	/** De los datos de un jugador: su última posición (si estaba en el mundo principal) y su punto de reaparición. */
+	/** From a player's data: their last position (if they were in the overworld) and their respawn point. */
 	static List<Build> playerSource(CompoundTag t) {
 		List<Build> out = new ArrayList<>();
 		String dim = t.getStringOr("Dimension", "minecraft:overworld");
@@ -411,8 +411,8 @@ public final class Analysis {
 	}
 
 	/**
-	 * ¿La misma caja en planta? (la altura no cuenta: algunas piezas vanilla, como naufragios o ruinas, se bajan al
-	 * suelo al colocarse y guardan otra y)
+	 * The same box in plan view? (height does not count: some vanilla pieces, like shipwrecks or ruins, are lowered to the
+	 * ground when placed and store another y)
 	 */
 	static boolean sameFootprint(int[] a, int[] b) {
 		return b != null && a[0] == b[0] && a[2] == b[2] && a[3] == b[3] && a[5] == b[5];
@@ -424,7 +424,7 @@ public final class Analysis {
 		return out;
 	}
 
-	/** La caja que envuelve varias. */
+	/** The box enclosing several. */
 	static int[] union(List<int[]> boxes) {
 		int[] u = {Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE};
 		for (int[] b : boxes) {
@@ -437,9 +437,9 @@ public final class Analysis {
 	}
 
 	/**
-	 * Lo que saldría hoy en un chunk vacío con el generador del mundo: {@code createStructures} sobre un ProtoChunk nuevo,
-	 * con las reglas de colocación de siempre (también las de Heraldia, en sus mixins). Solo en los chunks donde alguna
-	 * rejilla tiene candidata (la comprobación es barata).
+	 * What would spawn today in an empty chunk with the world's generator: {@code createStructures} on a new ProtoChunk,
+	 * with the usual placement rules (Heraldia's too, in its mixins). Only in the chunks where some
+	 * grid has a candidate (the check is cheap).
 	 */
 	static final class Today {
 		private final ServerLevel level;
@@ -460,7 +460,7 @@ public final class Analysis {
 			return false;
 		}
 
-		/** id de la estructura → caja de sus piezas, de cada inicio que sale hoy en el chunk. */
+		/** structure id → box of its pieces, for each start that spawns today in the chunk. */
 		Map<String, int[]> structureStarts(int cx, int cz) {
 			ProtoChunk p = generate(level, new ChunkPos(cx, cz));
 			Map<String, int[]> out = new LinkedHashMap<>();
@@ -478,7 +478,7 @@ public final class Analysis {
 		}
 	}
 
-	/** Un ProtoChunk vacío con los inicios de estructura que le daría hoy la generación. */
+	/** An empty ProtoChunk with the structure starts today's generation would give it. */
 	static ProtoChunk generate(ServerLevel level, ChunkPos pos) {
 		ProtoChunk p = new ProtoChunk(pos, UpgradeData.EMPTY, level, level.palettedContainerFactory(), null);
 		level.getChunkSource().getGenerator().createStructures(level.registryAccess(), level.getChunkSource().getGeneratorState(),
@@ -486,7 +486,7 @@ public final class Analysis {
 		return p;
 	}
 
-	/** La caja de las piezas de un inicio, {minX, minY, minZ, maxX, maxY, maxZ}. */
+	/** The box of a start's pieces, {minX, minY, minZ, maxX, maxY, maxZ}. */
 	static int[] box(StructureStart s) {
 		List<int[]> boxes = new ArrayList<>();
 		for (StructurePiece piece : s.getPieces()) {

@@ -10,20 +10,20 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 
 /**
- * Lo que el análisis de /heraldia update necesita de un chunk guardado (T46), sacado de su NBT sin el juego: posición,
- * si está generado del todo, su InhabitedTime, los bloques típicos de jugador (con su posición), los inicios de
- * estructura que guarda (con la caja de cada pieza), y la altura y el bloque de la cima de unas columnas de muestra para
- * compararlas con la regeneración. Se queda con poco (no guarda el NBT): un mundo grande tiene cientos de miles.
+ * What the /heraldia update analysis needs from a saved chunk (T46), taken from its NBT without the game: position,
+ * whether it is fully generated, its InhabitedTime, the typical player blocks (with their position), the structure starts
+ * it stores (with each piece's box), and the height and block of the top of some sample columns to
+ * compare them with the regeneration. It keeps little (it does not keep the NBT): a large world has hundreds of thousands.
  *
- * @param jugador   bloques de jugador, cada uno empaquetado con {@link #pack} (como mucho {@link #MAX_BLOCKS})
- * @param inicios   inicios de estructura de este chunk: id → cajas de sus piezas {minX, minY, minZ, maxX, maxY, maxZ}
- * @param cimas     por cada columna de muestra ({@link #SAMPLE}), la y de su cima (OCEAN_FLOOR) o {@link Integer#MIN_VALUE}
- * @param bloquesCima el bloque de esa cima (null si no se sabe)
+ * @param player          player blocks, each packed with {@link #pack} (at most {@link #MAX_BLOCKS})
+ * @param structureStarts structure starts of this chunk: id → boxes of their pieces {minX, minY, minZ, maxX, maxY, maxZ}
+ * @param tops            for each sample column ({@link #SAMPLE}), the y of its top (OCEAN_FLOOR) or {@link Integer#MIN_VALUE}
+ * @param topBlocks       the block at that top (null if unknown)
  */
 public record ChunkSummary(int cx, int cz, boolean complete, long inhabited, int minY, int[] player, Map<String, List<int[]>> structureStarts,
 						   int[] tops, String[] topBlocks) {
 	public static final int MAX_BLOCKS = 4096;
-	/** Columnas de muestra (x, z dentro del chunk) para comparar con la regeneración: una rejilla de 4 × 4. */
+	/** Sample columns (x, z inside the chunk) to compare with the regeneration: a 4 × 4 grid. */
 	public static final int[][] SAMPLE;
 
 	static {
@@ -36,20 +36,20 @@ public record ChunkSummary(int cx, int cz, boolean complete, long inhabited, int
 		}
 	}
 
-	/** Marca de bloque ambiguo ({@link PlayerBlocks#ambiguous}) en el valor empaquetado. */
+	/** Ambiguous block flag ({@link PlayerBlocks#ambiguous}) in the packed value. */
 	static final int AMBIGUOUS = 1 << 24;
 
-	/** Un bloque del chunk en un int: x y z locales (4 bits cada uno) e y sobre la más baja del mundo (16 bits). */
+	/** A block of the chunk in an int: local x and z (4 bits each) and y above the world's lowest (16 bits). */
 	public static int pack(int lx, int y, int lz, int minY) {
 		return lx & 15 | (lz & 15) << 4 | (y - minY & 0xFFFF) << 8;
 	}
 
-	/** ¿Es ambiguo el bloque {@code i} de {@link #player()}? (también lo pone la generación fuera de las estructuras) */
+	/** Is block {@code i} of {@link #player()} ambiguous? (generation also places it outside structures) */
 	public boolean ambiguous(int i) {
 		return (player[i] & AMBIGUOUS) != 0;
 	}
 
-	/** El bloque {@code i} de {@link #player()} en coordenadas del mundo {x, y, z}. */
+	/** Block {@code i} of {@link #player()} in world coordinates {x, y, z}. */
 	public int[] playerBlock(int i) {
 		int v = player[i];
 		return new int[] {cx * 16 + (v & 15), minY + (v >>> 8 & 0xFFFF), cz * 16 + (v >> 4 & 15)};
@@ -72,11 +72,11 @@ public record ChunkSummary(int cx, int cz, boolean complete, long inhabited, int
 	}
 
 	/**
-	 * Lee el resumen del NBT de un chunk de 26.3 ({@code xPos}, {@code zPos}, {@code Status}, {@code InhabitedTime},
-	 * {@code sections} con su {@code block_states}, {@code block_entities}, {@code structures.starts} y
-	 * {@code Heightmaps.OCEAN_FLOOR}). Lo que falte o no se entienda se deja vacío.
+	 * Reads the summary from the NBT of a 26.3 chunk ({@code xPos}, {@code zPos}, {@code Status}, {@code InhabitedTime},
+	 * {@code sections} with their {@code block_states}, {@code block_entities}, {@code structures.starts} and
+	 * {@code Heightmaps.OCEAN_FLOOR}). Whatever is missing or not understood is left empty.
 	 *
-	 * @param minY la y más baja del mundo (−64 en el mundo principal)
+	 * @param minY the world's lowest y (−64 in the overworld)
 	 */
 	public static ChunkSummary of(CompoundTag nbt, int minY) {
 		int cx = nbt.getIntOr("xPos", 0), cz = nbt.getIntOr("zPos", 0);
@@ -131,7 +131,7 @@ public record ChunkSummary(int cx, int cz, boolean complete, long inhabited, int
 		return new ChunkSummary(cx, cz, complete, inhabited, minY, java.util.Arrays.copyOf(player, nPlayer), structureStarts, tops, blocks);
 	}
 
-	/** Valor de un mapa de alturas de 26.3: 9 bits por columna, 7 por long, sin cruzar de un long a otro. */
+	/** Value of a 26.3 heightmap: 9 bits per column, 7 per long, never crossing from one long to another. */
 	static int height(long[] data, int i) {
 		int bits = 9, perLong = 64 / bits;
 		int l = i / perLong;
@@ -141,7 +141,7 @@ public record ChunkSummary(int cx, int cz, boolean complete, long inhabited, int
 		return (int) (data[l] >>> (i % perLong) * bits & (1L << bits) - 1);
 	}
 
-	/** Una sección de 16 × 16 × 16: su paleta y sus índices. */
+	/** A 16 × 16 × 16 section: its palette and its indices. */
 	record Section(String[] palette, long[] data, boolean[] playerSource, boolean[] ambiguous) {
 		static Section of(CompoundTag bs) {
 			ListTag pal = bs.getListOrEmpty("palette");
@@ -195,7 +195,7 @@ public record ChunkSummary(int cx, int cz, boolean complete, long inhabited, int
 			return palette[index(y * 256 + z * 16 + x)];
 		}
 
-		/** Añade a {@code out} (desde {@code n}) los bloques de jugador de la sección; devuelve cuántos hay en total. */
+		/** Adds the section's player blocks to {@code out} (from {@code n}); returns how many there are in total. */
 		int playerPositions(int by, int minY, int[] out, int n) {
 			for (int i = 0; i < 4096 && n < out.length; i++) {
 				int k = index(i);

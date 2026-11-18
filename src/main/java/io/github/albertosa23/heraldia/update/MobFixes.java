@@ -6,41 +6,41 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Arreglos iniciales de los mobs de plantilla (T46): fallos ya corregidos en el código que pueden seguir en mundos
- * generados con versiones anteriores (ver CHANGELOG y APRENDIZAJES). Sobre una vista mínima del mob ({@link Mob}), así la
- * lógica se prueba sin el juego; {@code Updater} la monta sobre el mob de verdad.
+ * Initial fixes for template mobs (T46): bugs already fixed in the code that may remain in worlds
+ * generated with earlier versions (see CHANGELOG and docs/LESSONS.md). Over a minimal view of the mob ({@link Mob}), so the
+ * logic is tested without the game; {@code Updater} builds it over the real mob.
  * <ol>
- * <li>{@code marcas}: los guardianes y mobs con nombre de la 0.1.0 no llevaban etiquetas; se reconocen por su nombre
- * traducible {@code heraldia.*} (y persistentes) y reciben las de ahora: {@code heraldia_anclado} (no pasean fuera de su
- * sala —la «deriva»— ni recogen objetos), {@code heraldia_adulto} si son de la familia de los zombis y
- * {@code heraldia_guardian} si su nombre es el de un guardián (fases de jefe, barra y refuerzos).</li>
- * <li>{@code bebes}: un zombi, husk, ahogado, zombi aldeano o piglin zombificado de plantilla que salió bebé pasa a adulto
- * (y si iba en una gallina, se baja y la gallina de jinete se quita).</li>
- * <li>{@code nautilos}: un ahogado de plantilla montado en un nautilo zombi se baja y el nautilo se quita (si no tiene
- * nombre ni otro jinete).</li>
- * <li>{@code recoger}: un mob de plantilla que puede recoger objetos deja de poder ({@code CanPickUpLoot}).</li>
- * <li>{@code armas}: un ahogado de plantilla con un tridente o una caña sin nada especial, o un zombi con una pala, lanza o
- * espada de hierro sin nada especial, pudo perder el arma de su plantilla; no se sabe cuál era, así que solo se cuenta en
- * el informe (aviso), sin cambiarlo.</li>
+ * <li>{@code marcas}: the guardians and named mobs of 0.1.0 had no tags; they are recognized by their
+ * translatable name {@code heraldia.*} (and persistence) and get today's: {@code heraldia_anclado} (they do not wander out of their
+ * room —the "drift"— nor pick up items), {@code heraldia_adulto} if they are of the zombie family and
+ * {@code heraldia_guardian} if their name is a guardian's (boss phases, bar and reinforcements).</li>
+ * <li>{@code bebes}: a template zombie, husk, drowned, zombie villager or zombified piglin that spawned as a baby becomes an adult
+ * (and if it was riding a chicken, it gets off and the jockey chicken is removed).</li>
+ * <li>{@code nautilos}: a template drowned riding a zombie nautilus gets off and the nautilus is removed (if it has no
+ * name or other rider).</li>
+ * <li>{@code recoger}: a template mob that can pick up items can no longer do so ({@code CanPickUpLoot}).</li>
+ * <li>{@code armas}: a template drowned with a plain trident or fishing rod, or a zombie with a plain iron shovel, spear or
+ * sword, may have lost its template's weapon; which one it was is unknown, so it is only counted in
+ * the report (warning), without changing it.</li>
  * </ol>
  */
 public final class MobFixes {
 	public static final String ADULT = "heraldia_adulto", ANCHORED = "heraldia_anclado", GUARDIAN = "heraldia_guardian";
-	/** Tipos que pueden salir bebés al colocarse (core.BEBE_ZOMBI del generador). */
+	/** Types that can spawn as babies when placed (the generator's core.BEBE_ZOMBI). */
 	static final Set<String> ZOMBIES = Set.of("zombie", "husk", "drowned", "zombie_villager", "zombified_piglin");
 	static final Set<String> DROWNED_WEAPONS = Set.of("trident", "fishing_rod");
 	static final Set<String> ZOMBIE_WEAPONS = Set.of("iron_shovel", "iron_sword", "iron_spear");
 
-	/** Lo que los arreglos necesitan ver y tocar de un mob. */
+	/** What the fixes need to see and touch of a mob. */
 	public interface Mob {
-		/** Tipo sin espacio de nombres («zombie»). */
+		/** Type without namespace ("zombie"). */
 		String type();
 
 		Set<String> tags();
 
 		void tagIt(String tag);
 
-		/** Clave de su nombre si es traducible, o null. */
+		/** Key of its name if it is translatable, or null. */
 		String nameKey();
 
 		boolean persistent();
@@ -49,30 +49,30 @@ public final class MobFixes {
 
 		void makeAdult();
 
-		/** Tipo de lo que monta, sin espacio de nombres, o null. */
+		/** Type of what it rides, without namespace, or null. */
 		String mount();
 
-		/** ¿La montura tiene nombre u otro jinete? (entonces no se quita) */
+		/** Does the mount have a name or another rider? (then it is not removed) */
 		boolean ownMount();
 
-		/** Se baja y quita la montura. */
+		/** Gets off and removes the mount. */
 		void removeMount();
 
 		boolean picksUp();
 
 		void noPickup();
 
-		/** Objeto de la mano principal sin espacio de nombres, o null. */
+		/** Main-hand item without namespace, or null. */
 		String weapon();
 
-		/** ¿El arma tiene nombre o encantamientos? (entonces es de la plantilla) */
+		/** Does the weapon have a name or enchantments? (then it is the template's) */
 		boolean specialWeapon();
 	}
 
 	private MobFixes() {
 	}
 
-	/** ¿Es un mob de una plantilla de Heraldia? Lleva una de sus etiquetas, o es persistente con un nombre heraldia.*. */
+	/** Is it a mob from a Heraldia template? It carries one of its tags, or it is persistent with a heraldia.* name. */
 	public static boolean fromTemplate(Mob m) {
 		Set<String> t = m.tags();
 		if (!t.isEmpty() && (t.contains(ADULT) || t.contains(ANCHORED) || t.contains(GUARDIAN))) {
@@ -85,7 +85,7 @@ public final class MobFixes {
 		return key != null && key.startsWith("heraldia.");
 	}
 
-	/** ¿Es el nombre de un guardián? (heraldia.unicas.castillo.guardian, heraldia.ciudadela.guardian...) */
+	/** Is it a guardian's name? (heraldia.unicas.castillo.guardian, heraldia.ciudadela.guardian...) */
 	static boolean guardianName(String key) {
 		return heraldiaName(key) && key.contains("guardian");
 	}
@@ -154,7 +154,7 @@ public final class MobFixes {
 		return suspicious ? Effect.NOTICE : Effect.NOTHING;
 	}
 
-	/** Los arreglos de los mobs de plantilla (solo se ejecutan sobre los que {@link #fromTemplate} reconoce). */
+	/** The template mob fixes (they only run on those {@link #fromTemplate} recognizes). */
 	public static final Fixes.Ledger<Mob> LEDGER = new Fixes.Ledger<>(List.of(
 			new Fix<>(1, "marcas", Fixes.Scope.ENTITY, MobFixes::marks),
 			new Fix<>(2, "bebes", Fixes.Scope.ENTITY, MobFixes::babies),
