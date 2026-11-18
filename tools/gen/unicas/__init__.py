@@ -44,7 +44,7 @@ Contrato de cada módulo (el generador lo descubre solo; no hace falta tocar mai
   # Sin TROFEO (o sin nombre, lore..., o con netherita/élitros) la compilación falla. El logro unicas/trofeos sale solo.
   REFUERZOS = ["husk", {"mob": "husk", "equipo": {"mainhand": "iron_sword"}}]   # opcional (jefes.py): 2-3 mobs que el
   # guardián llama en cada fase (al bajar del 66 % y del 33 %); sin él, los de la familia del tipo de su guardián.
-  HISTORIA = {"cofre": "biblioteca",                   # OBLIGATORIO: su pliego de la Crónica de los Heraldos (docs/historia.md)
+  HISTORIA = {"cofre": "biblioteca",                   # OBLIGATORIO: su pliego de la Crónica de los Heraldos (docs/STORY.md)
               # cofre: tabla de LOOT de un cofre menor o de una sala oculta que ya esté en sus plantillas (mejor uno solo)
               "relato": [(es, en), (es, en)],              # 1-2 páginas (máx. botin.MAX_PAGINA caracteres): su parte
               "pista": (es, en),                           # cómo la señala el pliego anterior: bioma y rasgo, sin nombre

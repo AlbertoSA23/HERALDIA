@@ -317,7 +317,7 @@ def _tabla(*pools):
 
 
 # Una recompensa por jugador cada 5 oleadas, mejor según la oleada (nivel 1: la 5; 2: la 10; 3: la 15; 4: la 20 y
-# siguientes). Solo vanilla, sin netherita ni élitros (Decisiones de Alberto).
+# siguientes). Solo vanilla, sin netherita ni élitros (Decisiones del dueño).
 RECOMPENSAS = {
     1: _tabla((3, [item("iron_ingot", 6, 2, 5), item("bread", 4, 3, 6), item("arrow", 4, 8, 16), item("emerald", 4, 2, 5),
                    item("golden_carrot", 3, 2, 4)]),

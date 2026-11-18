@@ -12,7 +12,7 @@ import java.util.function.Predicate;
  * Old (Spanish) command names, which keep working as hidden aliases since the commands moved to English
  * (T35b): the server runs them like the new name, warns that they are deprecated and gives the new
  * name, and they are not sent to the clients (CommandsMixin), so they do not show up in autocompletion. They will be
- * removed in a future version (docs/DESARROLLO.md). Pure logic over Brigadier: the tests walk it without a server.
+ * removed in a future version (docs/DEVELOPMENT.md). Pure logic over Brigadier: the tests walk it without a server.
  */
 public final class Alias {
 	/**
@@ -37,7 +37,7 @@ public final class Alias {
 	private Alias() {
 	}
 
-	/** How the use of an old name is reported: old and new routes, with the slash ("/heraldia guia", "/heraldia guide"). */
+	/** How the use of an old name is reported: old and new routes, with the slash («/heraldia guia», «/heraldia guide»). */
 	@FunctionalInterface
 	public interface Notice<S> {
 		void warn(S source, String old, String fresh);

@@ -366,7 +366,7 @@ Todos llevan `custom_data` `{heraldia_trofeo:"<id>"}`. Para probar: `/loot give 
 
 ## Crónica de los Heraldos
 
-Un hilo narrativo opcional une las estructuras únicas (trasfondo completo en [`docs/historia.md`](historia.md)): Ysolda, la última heraldo de la Atlántida, escribió el camino de vuelta a la ciudad hundida en pliegos y confió cada uno al guardián de una estructura, que juró custodiarlo. Cada única guarda su **pliego**, un libro escrito («Crónica de los Heraldos: <estructura>») en un cofre que ya tenía, que cuenta su parte de la historia y termina señalando la siguiente estructura con una pista de bioma y rasgo; a veces (10 %) viene con su mapa del tesoro. La cadena pasa por todas y la de la Torre de mago señala la Atlántida, cuyo pliego vuelve a señalar la primera.
+Un hilo narrativo opcional une las estructuras únicas (trasfondo completo, en inglés, en [`docs/STORY.md`](STORY.md)): Ysolda, la última heraldo de la Atlántida, escribió el camino de vuelta a la ciudad hundida en pliegos y confió cada uno al guardián de una estructura, que juró custodiarlo. Cada única guarda su **pliego**, un libro escrito («Crónica de los Heraldos: <estructura>») en un cofre que ya tenía, que cuenta su parte de la historia y termina señalando la siguiente estructura con una pista de bioma y rasgo; a veces (10 %) viene con su mapa del tesoro. La cadena pasa por todas y la de la Torre de mago señala la Atlántida, cuyo pliego vuelve a señalar la primera.
 
 | Estructura | Cofre del pliego | Señala |
 |---|---|---|

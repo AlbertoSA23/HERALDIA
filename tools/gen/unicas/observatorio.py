@@ -33,7 +33,7 @@ NOMBRE = {"es_es": "Observatorio", "en_us": "Observatory"}
 TROFEO = {"objeto": "compass", "rareza": "uncommon",
           "nombre": ("Astrolabio del Custodio", "The Keeper's Astrolabe"),
           "lore": [("Las estrellas giran; su aguja, no.", "The stars wheel; its needle does not.")]}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "oculto",
     "relato": [
         ("En las colinas azotadas por el viento hay un observatorio que vigila el cielo. Su custodio "

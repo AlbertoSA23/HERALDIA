@@ -22,7 +22,7 @@ TROFEO = {"objeto": "shield", "rareza": "rare",
           "componentes": {"minecraft:banner_patterns": [
               {"pattern": "minecraft:base", "color": "red"}, {"pattern": "minecraft:triangles_bottom", "color": "yellow"}, {"pattern": "minecraft:circle", "color": "yellow"},
               {"pattern": "minecraft:border", "color": "black"}]}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "lanista",
     "relato": [
         ("En la sabana se levanta un coliseo donde luchaba un campeón con cien combates y ni una sola "

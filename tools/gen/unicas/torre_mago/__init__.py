@@ -21,7 +21,7 @@ REFUERZOS = ["vindicator", "witch"]
 TROFEO = {"objeto": "blaze_rod", "rareza": "epic",
           "nombre": ("Báculo del Archimago Malvarius", "Staff of Archmage Malvarius"),
           "lore": [("Todavía chisporrotea con su último conjuro.", "It still crackles with his final spell.")]}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "escondite",
     "relato": [
         ("En el bosque oscuro vive el archimago Malvarius, en una torre llena de libros, calderos y "

@@ -79,7 +79,7 @@ Il file `config/heraldia.json` viene creato al primo avvio del server, con un te
 - [Riferimento completo dei contenuti](docs/CONTENT.md) (in inglese): ogni stile di villaggio, struttura unica, struttura media e miniera, gli scontri con i guardiani, i progressi, l'arena e altro ancora.
 - [Installazione, comandi e configurazione](docs/CONFIGURATION.md) (in inglese): comandi di prova e di amministrazione (`/heraldia info`, `/heraldia review`, `/heraldia status`, `/heraldia reload`, `/heraldia key`...), tutte le opzioni e la schermata di configurazione nel gioco.
 - [Compatibilità con altre mod](docs/COMPATIBILITY.md) (in inglese): mod di biomi, mod di strutture, Lootr e le altre.
-- [Compilazione e test](docs/BUILDING.md) (in inglese), [guida allo sviluppo](docs/DESARROLLO.md) (in spagnolo) e [registro delle modifiche](CHANGELOG.md) (in inglese).
+- [Compilazione e test](docs/BUILDING.md) (in inglese), [guida allo sviluppo](docs/DEVELOPMENT.md) (in inglese) e [registro delle modifiche](CHANGELOG.md) (in inglese).
 
 ## Licenza e riconoscimenti
 

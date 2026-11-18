@@ -20,7 +20,7 @@ REFUERZO_MOBS = frozenset({
     "vindicator", "pillager", "witch", "guardian", "spider", "cave_spider",
 })
 RANURAS = ("mainhand", "offhand", "head", "chest", "legs", "feet")
-PROHIBIDOS = ("netherite", "elytra")      # Decisiones de Alberto: nada de netherita en equipo ni élitros
+PROHIBIDOS = ("netherite", "elytra")      # Decisiones del dueño: nada de netherita en equipo ni élitros
 MIN_REFUERZOS, MAX_REFUERZOS = 2, 3
 
 # Familias: refuerzos por defecto según el tipo del guardián.

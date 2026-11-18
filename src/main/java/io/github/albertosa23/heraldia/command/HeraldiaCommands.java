@@ -53,7 +53,7 @@ public final class HeraldiaCommands {
 		return root;
 	}
 
-	/** Old-name notice: "/heraldia guia" is deprecated, use "/heraldia guide" (clickable), in the player's language. */
+	/** Old-name notice: «/heraldia guia» is deprecated, use «/heraldia guide» (clickable), in the player's language. */
 	public static void warn(CommandSourceStack src, String old, String fresh) {
 		Component cmd = Component.literal(fresh).withStyle(s -> s.withColor(ChatFormatting.GREEN).withUnderlined(true)
 				.withClickEvent(new ClickEvent.SuggestCommand(fresh.startsWith("/") ? fresh + " " : fresh))

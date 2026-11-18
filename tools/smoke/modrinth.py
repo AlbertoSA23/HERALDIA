@@ -104,7 +104,7 @@ MODS = {m.slug: m for m in [
         "d461b24b3eeaf74ecc75911542cfbfeefe7148a2a260453f15af047d1a895f6484b8e21816de990dc25987d747cc1cccdd5386e8c51a5dcc72a1356b39139bf2"),
 ]}
 
-# Pedidos por Alberto que no tienen versión para 26.3 + Fabric en Modrinth (comprobado con --buscar el 16-11-2026);
+# Pedidos por el dueño que no tienen versión para 26.3 + Fabric en Modrinth (comprobado con --buscar el 16-11-2026);
 # la tabla de compatibilidad del README los da por «no probado». Se vuelven a mirar con --comprobar.
 SIN_VERSION = ["oh-the-biomes-weve-gone", "yungs-api", "yungs-better-dungeons", "yungs-better-mineshafts",
                "yungs-better-strongholds", "yungs-better-ocean-monuments", "yungs-better-desert-temples",

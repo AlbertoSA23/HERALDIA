@@ -63,7 +63,7 @@ def main():
     blocks_at = {}
 
     def diagnostico_trampa():
-        """Qué hay junto al cable trampa cuando sus dispensadores ya han disparado (fallo intermitente, ver APRENDIZAJES)."""
+        """Qué hay junto al cable trampa cuando sus dispensadores ya han disparado (fallo intermitente, ver LESSONS)."""
         x, y, z = (int(c) for c in at(TUM, (55, -6, 58), True).split())
         for d in ((54, -5, 58), (57, -5, 58)):
             cmd(f"data get block {at(TUM, d, True)} Items", r"has the following block data|not a block entity|Items")
@@ -103,7 +103,7 @@ def main():
         # 2. plantillas sin girar. Se colocan con el mundo congelado: /place template en terreno ya generado arranca las
         # plantas que se quedan sin suelo (hierba, hojarasca...) y las suelta como objetos dentro de la plantilla; uno
         # que caía sobre el cable trampa lo disparaba antes de comprobarlo (fallo intermitente de la CI, ver
-        # APRENDIZAJES). En la generación normal no pasa: la región de generación no suelta objetos.
+        # LESSONS). En la generación normal no pasa: la región de generación no suelta objetos.
         cmd("tick freeze", r"frozen|already")
         for name, base in (("salon", SALON), ("tumulo", TUM)):
             m = cmd(f"place template heraldia:unicas/salon_jarl/{name} {base[0]} {base[1]} {base[2]}",

@@ -28,7 +28,7 @@ TROFEO = {"objeto": "shears", "rareza": "rare",
           "lore": [("Podaban las cepas de su jardín.", "They pruned the strains of his garden."),
                    ("Las esporas no se dejaron podar.", "The spores would not be pruned.")],
           "encantamientos": {"minecraft:efficiency": 2, "minecraft:unbreaking": 2}}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "biblioteca",
     "relato": [
         ("En una isla de champiñones gigantes hallé el jardín de Maese Ambrosio, el micólogo. Vivía en el sombrero"

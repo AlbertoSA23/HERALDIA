@@ -1,147 +1,147 @@
-# Templo-pirámide (`heraldia:unicas/piramide`)
+# Pyramid temple (`heraldia:unicas/piramide`)
 
-Gran pirámide escalonada de estilo mesoamericano en la selva, con escalinata central, templo en la cima,
-dos plataformas laterales y un juego de pelota adosado. Por dentro baja en espiral de salas hasta un cenote
-interior y, en lo más hondo, la tumba del Rey Jaguar y la cámara del tesoro.
+A great stepped pyramid in Mesoamerican style in the jungle, with a central staircase, a temple at the top,
+two side platforms and an attached ball court. Inside it spirals down through rooms to an inner cenote
+and, at the deepest point, the tomb of the Jaguar King and the treasure chamber.
 
-- Biomas: `minecraft:jungle` y `minecraft:sparse_jungle` (la jungla de bambú queda fuera: el bambú la taparía).
-- Rareza: la del contrato (`spacing` 250 / `separation` 190 chunks, una cada ~3.000-5.000 bloques).
-- Tamaño: 79 × 70 bloques de huella; 36 de alto sobre el suelo y 27 de sótano. Dos piezas jigsaw (radio 80).
+- Biomes: `minecraft:jungle` and `minecraft:sparse_jungle` (the bamboo jungle is left out: the bamboo would cover it).
+- Rarity: the contract's (`spacing` 250 / `separation` 190 chunks, one every ~3,000-5,000 blocks).
+- Size: a footprint of 79 × 70 blocks; 36 high above the ground and 27 of basement. Two jigsaw pieces (radius 80).
 
-## En qué se distingue de las vanilla
+## How it differs from the vanilla ones
 
-| | Templo de la jungla | Pirámide del desierto | Templo-pirámide |
+| | Jungle temple | Desert pyramid | Pyramid temple |
 |---|---|---|---|
-| Forma | caja de piedra de 3 pisos | pirámide lisa con 2 torres | 6 cuerpos en talud-tablero con escalinata saliente, templo con crestería, juego de pelota |
-| Material | adoquín y adoquín musgoso | arenisca | toba (ladrillos, pulida, cincelada), estuco rojo de terracota; sótano de ladrillo de piedra, roca natural y pizarra profunda |
-| Interior | un pasillo, 2 cofres | una cámara con TNT | 6 niveles, 13 cofres, 4 generadores, guardián, 3 salas ocultas |
+| Shape | a 3-story stone box | a smooth pyramid with 2 towers | 6 talud-tablero tiers with a projecting staircase, a temple with a roof comb, a ball court |
+| Material | cobblestone and mossy cobblestone | sandstone | tuff (bricks, polished, chiseled), red terracotta stucco; a basement of stone brick, natural rock and deepslate |
+| Inside | one corridor, 2 chests | one chamber with TNT | 6 levels, 13 chests, 4 spawners, a guardian, 3 hidden rooms |
 
-## Piezas y terreno
+## Pieces and terrain
 
-- `superficie` (rígida, `beard_thin`): todo lo que está de y = 0 hacia arriba. El pavimento de la plaza está en
-  y = 0, de modo que el terreno se rellena hasta él. Todo el volumen de la huella hasta y = 20 (y hasta la cima
-  sobre la pirámide) va explícitamente en aire: una loma no puede atravesar la pirámide.
-- `subsuelo` (rígida): de y = -1 a -27, colgada de la primera con un jigsaw vertical (`down_north` → `up_north`,
-  unión `aligned`, misma rotación). Es un bloque macizo de roca con las salas talladas: el ajuste del terreno de
-  esa pieza actúa a 27 bloques de profundidad (donde la densidad del terreno es alta) y no hunde la superficie;
-  lo que haya alrededor no puede abrir agujeros porque cada sala está rodeada de roca de la propia plantilla.
+- `superficie` (rigid, `beard_thin`): everything from y = 0 upwards. The square's paving is at
+  y = 0, so the terrain is filled up to it. The whole volume of the footprint up to y = 20 (and up to the top
+  above the pyramid) is explicitly air: a hill cannot go through the pyramid.
+- `subsuelo` (rigid): from y = -1 to -27, hanging from the first with a vertical jigsaw (`down_north` → `up_north`,
+  `aligned` joint, same rotation). It is a solid block of rock with the rooms carved into it: that piece's terrain
+  adjustment acts 27 blocks deep (where the terrain's density is high) and does not sink the surface;
+  whatever is around cannot open holes because every room is surrounded by the template's own rock.
 
-## Plantas por nivel (cota = altura de los pies)
+## Floor plans by level (level = height of the feet)
 
-**Exterior (cota 1).** Plaza de toba con calzada (sacbé) hacia la escalinata. Dos plataformas laterales de 9 × 9
-(cota 4) delante de la pirámide: la del oeste con el altar de las ofrendas y un cofre; la del este con un
-*tzompantli* (empalizada de cráneos). Dos estelas. Al este, el juego de pelota: callejón de 7 entre dos taludes
-con banco inclinado, muro y aro de piedra en cada lado; en lo alto del talud oeste, un pequeño adoratorio con
-cofre. El extremo sur del talud este está derrumbado.
+**Exterior (level 1).** A tuff square with a causeway (sacbe) towards the staircase. Two 9 × 9 side platforms
+(level 4) in front of the pyramid: the west one with the offering altar and a chest; the east one with a
+*tzompantli* (a skull rack). Two stelae. To the east, the ball court: a 7-wide alley between two slopes
+with a sloping bench, a wall and a stone ring on each side; at the top of the west slope, a small shrine with a
+chest. The south end of the east slope has collapsed.
 
-**Pirámide.** Seis cuerpos de 4 de alto (mitad 24, 21, 18, 15, 12, 9) en talud-tablero: talud de escalones,
-moldura, tablero rehundido con relieves y cornisa. Escalinata de 9 de ancho que sobresale 7 bloques, con alfardas
-y cabezas de serpiente al pie. Cima a cota 24.
+**Pyramid.** Six tiers 4 high (half-widths 24, 21, 18, 15, 12, 9) in talud-tablero: a stepped slope, a
+molding, a recessed panel with reliefs and a cornice. A 9-wide staircase that projects 7 blocks, with balustrades
+and serpent heads at the foot. Top at level 24.
 
-**Templo de la cima (cota 24).** Pórtico con tres vanos y santuario con altar, cofre de ofrendas y la boca de la
-Escalera de las Inscripciones (hueco con pretil). Crestería calada sobre el techo, rota en su extremo este.
+**Temple at the top (level 24).** A portico with three openings and a sanctuary with an altar, an offering chest and the mouth of the
+Staircase of the Inscriptions (an opening with a parapet). An openwork roof comb above the roof, broken at its east end.
 
-**Escalera de las Inscripciones.** Tramo A (3 de ancho) hacia el norte de cota 24 a 12; rellano; tramo B central
-hacia el sur de cota 12 a 1. Del rellano salen la Cámara de las Ofrendas (oeste, cofre) y la **Cámara tapiada**
-(este): su puerta está cegada con adoquín y una grava sospechosa; quien la abre encuentra un cofre oculto.
+**Staircase of the Inscriptions.** Flight A (3 wide) towards the north from level 24 to 12; a landing; central flight B
+towards the south from level 12 to 1. From the landing branch off the Offering Chamber (west, chest) and the **Walled-up
+Chamber** (east): its door is blocked with cobblestone and suspicious gravel; whoever opens it finds a hidden chest.
 
-**Sala del Cenote (cota 1).** Sala de columnas de 25 × 17 en el corazón de la pirámide. En el centro, la boca del
-pozo (octógono de radio 4) con pretil, que cae 15 bloques hasta el agua del cenote. Desde aquí se llega también por
-la **Brecha oeste**: el muro de la base está reventado y una galería lleva a la sala; a media galería, un cable
-trampa dispara dos dispensadores de flechas. En la esquina sureste baja la escalera al subsuelo.
+**Cenote Hall (level 1).** A 25 × 17 hall of columns in the heart of the pyramid. In the center, the mouth of the
+shaft (an octagon of radius 4) with a parapet, which drops 15 blocks to the cenote's water. You can also get here through
+the **West breach**: the wall at the base is burst open and a gallery leads to the hall; halfway along the gallery, a
+tripwire fires two arrow dispensers. In the southeast corner the staircase goes down to the underground.
 
-**Galerías del inframundo (cota -6).** Corredor en U alrededor del pozo con tres ventanas a él. Salidas:
-- Norte: pasillo con **trampa de foso**: tres placas de presión abren tres trampillas de hierro; el foso (3 de
-  hondo, sin daño) tiene salida propia por una escalera al corredor. Al fondo, la Cámara del Juicio (cofre).
-- Oeste: guarida de arañas (generador de arañas de cueva, telarañas, cofre).
-- Este: osario (generador de esqueletos, huesos, cofre).
-- Suroeste: escalera al cenote.
+**Galleries of the underworld (level -6).** A U-shaped corridor around the shaft with three windows onto it. Exits:
+- North: a corridor with a **pit trap**: three pressure plates open three iron trapdoors; the pit (3
+  deep, no damage) has its own exit by a staircase to the corridor. At the back, the Chamber of Judgment (chest).
+- West: a spider den (cave spider spawner, cobwebs, chest).
+- East: an ossuary (skeleton spawner, bones, chest).
+- Southwest: stairs to the cenote.
 
-**Cenote (cota -14).** Caverna natural de radio 9 con bóveda, estalactitas y raíces; poza de radio 6 y 5 de hondo
-con pepinos de mar en el fondo; cornisa transitable alrededor. Bajo el agua, al este, un túnel (los pepinos lo
-señalan) lleva a la **Cámara sumergida**: sala seca con cofre oculto. Al norte de la cornisa baja la escalera a la
-tumba.
+**Cenote (level -14).** A natural cavern of radius 9 with a vault, stalactites and roots; a pool of radius 6 and 5 deep
+with sea pickles at the bottom; a walkable ledge around it. Under the water, to the east, a tunnel (the pickles
+mark it) leads to the **Submerged Chamber**: a dry room with a hidden chest. North of the ledge the staircase goes down to the
+tomb.
 
-**Tumba (cota -24).** Sala de los Guardianes (generador de zombis, estatuas, cofre), pasillo de **losas de dardos**
-(seis placas sobre dispensadores que disparan hacia arriba) y Tumba del Rey: sarcófago, ajuar (cofre) y el
-**guardián «El Rey Jaguar»** (zombi con corona y pectoral de oro y espada de hierro; 40 de vida, daño 5,
-armadura 4, sin refuerzos ni botín de equipo, `PersistenceRequired`). En el muro norte, un nicho ciego: es la
-**puerta secreta**. Una palanca escondida a ras de suelo en un rebaje del mismo muro apaga una antorcha de
-redstone; los dos pistones pegajosos que sostienen los bloques de la puerta se retraen y se abren al
-**Cámara del Tesoro** (cofre premium).
+**Tomb (level -24).** The Hall of the Guardians (zombie spawner, statues, chest), a corridor of **dart plates**
+(six plates over dispensers that fire upwards) and the King's Tomb: a sarcophagus, grave goods (chest) and the
+**guardian "The Jaguar King"** (a zombie with a gold crown and pectoral and an iron sword; 40 health, 5 damage,
+armor 4, no reinforcements and no equipment drop, `PersistenceRequired`). In the north wall, a blind niche: it is the
+**secret door**. A lever hidden at floor level in a recess of the same wall turns off a redstone
+torch; the two sticky pistons holding the door's blocks retract and open onto the
+**Treasure Chamber** (premium chest).
 
-## Recorrido del jugador
+## Player route
 
-Plaza → plataformas (2 cofres) → juego de pelota (1) → escalinata → templo (1) → Escalera de las Inscripciones
-→ Cámara de las Ofrendas (1) y Cámara tapiada (oculta, 1) → Sala del Cenote (1). Alternativa: Brecha oeste con la
-trampa de cable → Sala del Cenote. Bajada a las galerías: Cámara del Juicio tras la trampa de foso (1), arañas
-(1), osario (1) → cenote: buceo a la Cámara sumergida (oculta, 1) → Sala de los Guardianes (1) → losas de dardos →
-Tumba (ajuar, 1; guardián) → palanca → Cámara del Tesoro (premium). Atajo para valientes: saltar al pozo desde la
-Sala del Cenote (cae en 5 bloques de agua).
+Square → platforms (2 chests) → ball court (1) → staircase → temple (1) → Staircase of the Inscriptions
+→ Offering Chamber (1) and Walled-up Chamber (hidden, 1) → Cenote Hall (1). Alternative: the West breach with the
+tripwire trap → Cenote Hall. Down to the galleries: the Chamber of Judgment behind the pit trap (1), spiders
+(1), ossuary (1) → cenote: a dive to the Submerged Chamber (hidden, 1) → Hall of the Guardians (1) → dart plates →
+Tomb (grave goods, 1; guardian) → lever → Treasure Chamber (premium). A shortcut for the brave: jump down the shaft from the
+Cenote Hall (you land in 5 blocks of water).
 
-## Redstone: por qué funciona al generarse
+## Redstone: why it works when generated
 
-Todo circuito está en un estado de reposo coherente y nada necesita una actualización de bloque al colocarse:
-- Cable trampa: ganchos `attached=true` y cuerda `attached=true` (como el templo de la jungla); el gancho activa
-  con fuerza su bloque de apoyo y el dispensador está pegado a ese bloque.
-- Foso: la placa activa con fuerza el bloque que pisa y ese bloque toca la trampilla de hierro; en reposo nada
-  tiene corriente.
-- Dardos: la placa está encima del dispensador, que la recibe directamente.
-- Puerta secreta: el único circuito con corriente en reposo. Antorcha encendida, bloque de encima con carga
-  fuerte, pistones extendidos con su cabeza pegajosa y los bloques de la puerta delante. La palanca carga el
-  bloque de la antorcha → se apaga → los pistones se retraen tirando de la puerta. Al bajar la palanca, se cierra.
+Every circuit is in a consistent rest state and nothing needs a block update when placed:
+- Tripwire: hooks `attached=true` and string `attached=true` (like the jungle temple); the hook strongly powers
+  its support block and the dispenser is stuck to that block.
+- Pit: the plate strongly powers the block it rests on and that block touches the iron trapdoor; at rest nothing
+  is powered.
+- Darts: the plate is on top of the dispenser, which receives it directly.
+- Secret door: the only circuit powered at rest. A lit torch, the block above strongly
+  powered, the pistons extended with their sticky head and the door's blocks in front. The lever powers the
+  torch's block → it turns off → the pistons retract pulling the door. Pulling the lever down closes it.
 
-Se comprueba en la auditoría (estados y adyacencias) y en un servidor real (`prueba_servidor.py`, que coloca las
-plantillas y fuerza cada circuito).
+It is checked in the audit (states and adjacencies) and on a real server (`prueba_servidor.py`, which places the
+templates and forces each circuit).
 
-## Generadores y enemigos
+## Spawners and enemies
 
-Arañas de cueva (guarida), esqueletos (osario), zombis (Sala de los Guardianes) y esqueletos cenagosos (Cámara del Juicio),
-todos en el subsuelo. Guardián final en la tumba. Sin aldeanos ni gólems: es una ruina sellada.
+Cave spiders (den), skeletons (ossuary), zombies (Hall of the Guardians) and bogged (Chamber of Judgment),
+all underground. A final guardian in the tomb. No villagers or golems: it is a sealed ruin.
 
-## Estado (80-85 % en buen estado)
+## Condition (80-85 % in good condition)
 
-Procesadores de la pieza: ladrillo y toba pulida → toba (erosión), terracota roja → terracota (estuco lavado),
-ladrillo de piedra → musgoso o agrietado, pizarra → agrietada. Huecos con sentido hechos a mano: esquina sureste de
-los cuerpos 4-6 desplomada con escombro en la terraza de abajo, brecha de la base oeste, crestería rota, alfarda
-este mellada, extremo del juego de pelota derrumbado, enredaderas y musgo. La auditoría calcula la fracción de
-superficie exterior intacta (esperada, con las probabilidades de los procesadores) y exige 0,80-0,85.
+The piece's processors: tuff brick and polished tuff → tuff (erosion), red terracotta → terracotta (washed stucco),
+stone brick → mossy or cracked, deepslate → cracked. Hand-made gaps that make sense: the southeast corner of
+tiers 4-6 slumped with rubble on the terrace below, the west base breach, the broken roof comb, the notched
+east balustrade, the collapsed end of the ball court, vines and moss. The audit computes the fraction of
+the outer surface that is intact (expected, with the processors' probabilities) and requires 0.80-0.85.
 
-## Botín (solo vanilla; el grupo extra de cada cofre lleva `solo_sin_lootr`)
+## Loot (vanilla only; the extra pool of each chest has `solo_sin_lootr`)
 
-| Tabla | Dónde | Contenido |
+| Table | Where | Contents |
 |---|---|---|
-| `menor` | plataformas, juego de pelota, templo, ofrendas, sala | comida, cacao, flechas, velas, pepitas y lingotes de oro, esmeralda suelta |
-| `galeria` | juicio, arañas, osario, guardianes | lo anterior más hierro, oro, lapislázuli, botella de experiencia, libro encantado modesto |
-| `oculto` | cámara tapiada, cámara sumergida | oro, esmeraldas, diamante suelto, manzana de oro, fragmentos de cerámica, adorno de armadura salvaje, libro encantado |
-| `tumba` | ajuar del rey | oro, esmeraldas, equipo de oro encantado, adorno salvaje, disco |
-| `premium` | cámara del tesoro | base de oro, esmeraldas y experiencia; y un lote: 90 % vistoso (corona y cetro con nombre, encantamientos moderados, adornos de armadura, discos, fragmentos) o 10 % algo más fuerte (espada o pectoral de diamante con nombre y encantamientos 20-30, manzana de oro encantada) |
+| `menor` | platforms, ball court, temple, offerings, hall | food, cocoa, arrows, candles, gold nuggets and ingots, a loose emerald |
+| `galeria` | judgment, spiders, ossuary, guardians | the above plus iron, gold, lapis lazuli, bottle o' enchanting, a modest enchanted book |
+| `oculto` | walled-up chamber, submerged chamber | gold, emeralds, a loose diamond, golden apple, pottery sherds, wild armor trim, enchanted book |
+| `tumba` | the king's grave goods | gold, emeralds, enchanted gold gear, wild trim, disc |
+| `premium` | treasure chamber | a base of gold, emeralds and experience; and a lot: 90 % showy (a named crown and scepter, moderate enchantments, armor trims, discs, sherds) or 10 % something stronger (a named diamond sword or pectoral with enchantments 20-30, an enchanted golden apple) |
 
-Sin netherita en equipo, sin élitros, sin tótems.
+No netherite gear, no elytra, no totems.
 
-## Contraste con el criterio de diseño
+## Against the design criteria
 
-- Escaleras completas (escalinata, tres tramos interiores y tres escaleras de sótano, todas de peldaño en peldaño);
-  la única caída es el foso de la trampa, de 3 bloques y con salida.
-- Ninguna puerta ni sala sin salida; las tres salas ocultas tienen acceso real (romper el tapiado, bucear, palanca).
-- Nada flotando: la auditoría exige que todo bloque esté unido al suelo; faroles con cadena; el agua está encerrada
-  por todos los lados salvo por arriba.
-- Simetría en la pirámide, el templo, las plataformas y el juego de pelota; los derrumbes rompen la simetría a
-  propósito.
+- Complete staircases (the grand staircase, three inner flights and three basement staircases, all step by step);
+  the only drop is the trap's pit, 3 blocks and with an exit.
+- No door or room without an exit; the three hidden rooms have real access (breaking the wall, diving, a lever).
+- Nothing floating: the audit requires every block to be joined to the ground; lanterns on chains; the water is enclosed
+  on every side except from above.
+- Symmetry in the pyramid, the temple, the platforms and the ball court; the collapses break the symmetry on
+  purpose.
 
-## Resultado y comprobaciones
+## Result and checks
 
-- Auditoría (condición para generar): 13 cofres y 4 generadores alcanzables a pie desde la plaza (10.854 celdas),
-  con la palanca, las trampas, el guardián y las tres salas ocultas; sin abrir la puerta secreta el tesoro no se
-  alcanza y sin romper el tapiado la cámara tapiada tampoco; desde el fondo del foso se vuelve a la plaza; nada
-  flota; el agua está encerrada; ningún bloque tiene corriente salvo la antorcha de la puerta. Superficie exterior
-  en buen estado: 0,825 (erosión del ladrillo y la toba pulida calculada para el centro del intervalo: 13,7 %).
-- Servidor dedicado 26.3 (`prueba_servidor.py`, plantillas sin rotación): guardián con 40 de vida; puerta cerrada
-  en reposo, abierta al cargar el bloque de la antorcha y cerrada otra vez; cable trampa, placas del foso y losas
-  de dardos disparan con un soporte de armadura encima; el agua no se sale; el cofre premium lleva su tabla.
-- Prueba de humo: la estructura se coloca con `/place structure` y todas sus tablas de botín se abren.
-- Sin comprobar: el aspecto en el juego (faltan capturas de Alberto) y el ajuste del terreno en una jungla real
-  con `/place structure` en distintos relieves.
+- Audit (a condition for generating): 13 chests and 4 spawners reachable on foot from the square (10,854 cells),
+  with the lever, the traps, the guardian and the three hidden rooms; without opening the secret door the treasure cannot be
+  reached and without breaking the wall the walled-up chamber cannot either; from the bottom of the pit you can get back to the square; nothing
+  floats; the water is enclosed; no block is powered except the door's torch. Outer surface
+  in good condition: 0.825 (erosion of the brick and polished tuff computed for the middle of the range: 13.7 %).
+- 26.3 dedicated server (`prueba_servidor.py`, templates unrotated): the guardian with 40 health; the door closed
+  at rest, open when the torch's block is powered and closed again; the tripwire, the pit plates and the dart plates
+  fire with an armor stand on top; the water does not leak; the premium chest has its table.
+- Smoke test: the structure is placed with `/place structure` and all its loot tables open.
+- Not checked: the look in game (missing screenshots from the owner) and the terrain adjustment in a real jungle
+  with `/place structure` on different reliefs.
 
-Planos de planta por nivel en [`piramide/planos.txt`](piramide/planos.txt) (`.` alcanzable a pie) y renders en
-`piramide/*.png`. Se regeneran con `python3 tools/gen/unicas/piramide/planos.py`.
+Floor plans by level in [`piramide/planos.txt`](piramide/planos.txt) (`.` reachable on foot) and renders in
+`piramide/*.png`. They are regenerated with `python3 tools/gen/unicas/piramide/planos.py`.

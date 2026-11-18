@@ -16,7 +16,7 @@ NOMBRE = {"es_es": "Galeón varado", "en_us": "Stranded Galleon"}
 TROFEO = {"objeto": "spyglass", "rareza": "uncommon",
           "nombre": ("Catalejo del capitán ahogado", "The Drowned Captain's Spyglass"),
           "lore": [("Aún busca un puerto al que nunca llegó.", "Still searching for a harbour it never reached.")]}   # trofeo del guardián (_comun/botin.trofeo)
-HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/historia.md, _comun/botin.historia_*)
+HISTORIA = {   # su pliego de la Crónica de los Heraldos (docs/STORY.md, _comun/botin.historia_*)
     "cofre": "capitan",
     "relato": [
         ("Embarqué en un galeón para cruzar el mar. Su capitán buscaba un puerto que no salía en ninguna "
