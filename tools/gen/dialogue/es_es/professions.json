@@ -1,0 +1,77 @@
+{
+  "profession.none": {
+    "1": "Todavía no sé a qué dedicarme. ¿Tú cómo supiste lo tuyo?",
+    "2": "Si alguien deja un banco de trabajo libre en %2$s, que me avise.",
+    "3": "Hoy he ayudado un poco a todos y nadie me ha dado las gracias."
+  },
+  "profession.armorer": {
+    "1": "Una buena coraza no se nota hasta el día que la necesitas.",
+    "2": "El fuelle de mi alto horno silba cuando va a llover. No falla.",
+    "3": "Si vuelves con la armadura abollada, tráemela antes de que se oxide."
+  },
+  "profession.butcher": {
+    "1": "El humo del ahumador se queda en la ropa una semana entera.",
+    "2": "En %2$s nadie pasa hambre mientras yo tenga sal y leña.",
+    "3": "Las mejores chuletas, las de invierno. Lo dice mi abuela, y mi abuela no se equivoca."
+  },
+  "profession.cartographer": {
+    "1": "Cada camino que dibujo acaba en otro que todavía no conozco.",
+    "2": "Un mapa en blanco es la cosa más bonita del mundo, %1$s.",
+    "3": "Me falta medio mundo por dibujar y ya me tiemblan las manos."
+  },
+  "profession.cleric": {
+    "1": "Las velas del altar duran más cuando la aldea está en paz.",
+    "2": "He visto cosas en las noches sin luna que prefiero no contar.",
+    "3": "Que la campana de %2$s te guarde en el camino."
+  },
+  "profession.farmer": {
+    "1": "Este año el trigo viene alto. Si no llueve de más, habrá pan para todos.",
+    "2": "Los cuervos no se atreven con mi espantapájaros. Bueno, casi nunca.",
+    "3": "La tierra de %2$s es agradecida si la tratas con cariño."
+  },
+  "profession.fisherman": {
+    "1": "El pez más grande siempre es el que se escapa.",
+    "2": "Al amanecer el agua está tan quieta que parece cristal.",
+    "3": "Una vez saqué una bota llena de agua. Ni rastro del dueño."
+  },
+  "profession.fletcher": {
+    "1": "Las mejores plumas son las de gallina vieja. No me preguntes por qué.",
+    "2": "Una flecha recta vale más que diez torcidas.",
+    "3": "Si ves pedernal por el camino, guárdamelo, %1$s."
+  },
+  "profession.leatherworker": {
+    "1": "El cuero bien curtido aguanta más que muchos hierros.",
+    "2": "Huelo a caldero todo el día, pero alguien tiene que hacerlo.",
+    "3": "Tus botas piden a gritos un remiendo, ¿lo sabías?"
+  },
+  "profession.librarian": {
+    "1": "Hay un libro en mi estantería que nadie ha abierto nunca. Ni yo.",
+    "2": "Las historias de %2$s caben en tres tomos, y uno es de recetas.",
+    "3": "Leer de noche gasta velas, pero ahorra aburrimiento."
+  },
+  "profession.mason": {
+    "1": "Una pared bien hecha dura más que quien la levanta.",
+    "2": "La piedra de esta tierra es terca, como la gente de %2$s.",
+    "3": "Si oyes crujir una viga, avísame antes que al alcalde."
+  },
+  "profession.nitwit": {
+    "1": "¿Sabías que las ovejas no saben nadar hacia atrás? Me lo he inventado.",
+    "2": "Hoy he contado las nubes. Me salieron siete. O seis.",
+    "3": "No trabajo, pero opino de todo. Alguien tiene que hacerlo."
+  },
+  "profession.shepherd": {
+    "1": "Mis ovejas reconocen mi silbido desde el otro lado del valle.",
+    "2": "La lana de este año es tan suave que da pena teñirla.",
+    "3": "Si ves una oveja suelta, es mía. Siempre es mía."
+  },
+  "profession.toolsmith": {
+    "1": "Un pico mal templado se rompe en la peor galería.",
+    "2": "Afilo mejor con la luna creciente. Superstición, dirás. Resultados, digo yo.",
+    "3": "Las herramientas de %2$s se conocen por el sonido del yunque."
+  },
+  "profession.weaponsmith": {
+    "1": "Una espada no hace al guerrero, pero ayuda mucho.",
+    "2": "Por aquí pasan muchos aventureros. Pocos vuelven a pagar el afilado.",
+    "3": "Ten cuidado ahí fuera, %1$s. Los saqueadores no avisan."
+  }
+}

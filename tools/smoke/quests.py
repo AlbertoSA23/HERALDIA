@@ -14,9 +14,16 @@ First start:
   - a plaza villager with a fixed trade of 10 emeralds: with no reputation the price does not change; with "conocido", it drops
     to 9 (10 %);
   - hitting that villager lowers the reputation; another is accepted and abandoned; /heraldia status counts the quests.
+  - villager conversations (P9a), with the test villager tagged as a Heraldia one (dialogos.viajeros_porcentaje = 100:
+    every villager is a wayfarer): the simulated player's click opens the trades (a Carpet bot, like a trading
+    automation's fake player, does not send the network packet the conversation listens to); /heraldia talk with
+    opens a conversation as a real click would; "keep talking" answers; "any news?" with reputation "conocido" gives the
+    hint (a real structure, direction and distance, no coordinates in the chat line); "trade" opens the trades; a
+    second conversation while it rests says it is busy and does not tell the hint again.
 Second start (same world): the board is the same, the player keeps what was handed in (cannot accept 1 again),
-their reputation and the reduced price; with quests.switched_on and reputacion.activado set to false and /heraldia reload, the
-quests say they are disabled and the price goes back to 10.
+their reputation and the reduced price; the wayfarer remembers it already told its hint (saved in the villager) and,
+with dialogos.activado set to false and /heraldia reload, there is no conversation; with quests.switched_on and
+reputacion.activado set to false and /heraldia reload, the quests say they are disabled and the price goes back to 10.
 """
 import argparse, json, os, re, shutil, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -152,6 +159,91 @@ def state(srv):
     return None
 
 
+TALK_STAT = "heraldia_trato"     # minecraft.custom:minecraft.talked_to_villager: rises each time the trades are asked for
+TALK = rf"Heraldia: diálogos: {PLAYER} habla con un aldeano de (.+?) \((\w+), (\w*), (\w+), (\w+), (\w+)\)"
+BUSY = rf"Heraldia: diálogos: {PLAYER} habla con un aldeano de .*: está ocupado"
+HINT = (rf"Heraldia: diálogos: un viajero de .* le cuenta a {PLAYER} dónde está (\S+) \((-?\d+), (-?\d+)\): (\w+) a unos "
+        r"(\d+) bloques")
+TOLD = rf"Heraldia: diálogos: un viajero de .* ya contó su pista \({PLAYER} pregunta\)"
+DIALOGUE_CONFIG = {"dialogos": {"viajeros_porcentaje": 100, "espera_segundos": 600}}   # every villager a wayfarer; long rest
+
+
+def maybe(srv, pattern, timeout):
+    """The log line, or None if it does not show within `timeout` seconds."""
+    try:
+        return s.wait_for(srv.ctx.lines, pattern, timeout, srv.seen)
+    except SystemExit:
+        return None
+
+
+def talk_score(srv):
+    m = srv.run(f"scoreboard players get {PLAYER} {TALK_STAT}", r"has (\d+) \[|Can't get value|has no score")
+    return int(m.group(1)) if m.group(1) else 0
+
+
+def click_villager(srv, spot, y, floor_bottom):
+    """The simulated player right-clicks the test villager (retrying if a plaza villager gets in the way): True if its
+    trades opened (the talked_to_villager statistic rose)."""
+    before = talk_score(srv)
+    for _ in range(5):
+        close_out(srv)
+        clear_spot(srv, spot, y)
+        look_and_use(srv, (spot[0], y + 1.2, spot[1]), floor_bottom, y)
+        srv.ctx.ticks(4)
+        if talk_score(srv) > before:
+            return True
+    return False
+
+
+WITH = "heraldia talk with @e[tag=heraldia_prueba,limit=1]"
+
+
+def conversation(srv, fails, spot, y, floor_bottom):
+    """P9a in the plaza, with the reputation already at "conocido" (see the docstring)."""
+    srv.run(f"scoreboard objectives add {TALK_STAT} minecraft.custom:minecraft.talked_to_villager", r"Created new objective|already exists")
+    srv.run(f"scoreboard players set {PLAYER} {TALK_STAT} 0", r"Set \[")
+    srv.run("tag @e[tag=heraldia_prueba,limit=1] add heraldia", r"Added tag|Nothing changed")
+    # a Carpet bot's click does not go through the network packet (nor would a trading automation's fake player): it trades
+    if not click_villager(srv, spot, y, floor_bottom):
+        fails.append("conversation: a simulated player's click no longer opens the trades")
+    if maybe(srv, TALK, 2) is not None:
+        fails.append("conversation: a simulated player's click opened a conversation")
+    close_out(srv)
+    srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
+    m = as_player(srv, WITH, TALK)
+    print(f"conversation in {m.group(1)}: profession {m.group(2)}, family {m.group(3)}, {m.group(4)}, {m.group(5)}, {m.group(6)}")
+    if m.group(2) != "librarian" or m.group(6) != "conocido":
+        fails.append(f"conversation: context {m.groups()[1:]} (must be librarian, ..., conocido)")
+    as_player(srv, "heraldia talk more", r"Keep talking|Seguir hablando|Goodbye|Adiós")
+    as_player(srv, "heraldia talk rumor", r"Goodbye|Adiós")
+    m = maybe(srv, HINT, 60)
+    if m is None:
+        fails.append("conversation: the wayfarer (100 %) with reputation 'conocido' does not tell its hint")
+    else:
+        place, px, pz, bearing, dist = m.group(1), m.group(2), m.group(3), m.group(4), int(m.group(5))
+        print(f"hint: {place} at {px}, {pz} ({bearing}, about {dist} blocks)")
+        if dist % 100 or dist < 100:
+            fails.append(f"hint: distance {dist} (must be rounded to 100)")
+        chat = [l for l in srv.seen[-60:] if ("blocks" in l or "bloques" in l) and "Heraldia: diálogos" not in l]
+        if not chat:
+            fails.append("hint: its line does not reach the chat")
+        elif any(px in l and pz in l for l in chat):
+            fails.append(f"hint: the chat line shows the coordinates: {chat[-1].strip()}")
+    before = talk_score(srv)
+    as_player(srv, "heraldia talk trade", rf"Heraldia: diálogos: {PLAYER} comercia con")
+    srv.ctx.ticks(4)
+    if talk_score(srv) <= before:
+        fails.append(f"conversation: [Trade] does not open the trades (statistic {talk_score(srv)})")
+    close_out(srv)
+    srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
+    as_player(srv, WITH, BUSY)
+    as_player(srv, "heraldia talk rumor", r"Goodbye|Adiós")      # asked already in this conversation: busy, no new hint
+    if maybe(srv, HINT, 2) is not None:
+        fails.append("conversation: the hint was told twice")
+    close_out(srv)
+    srv.run("tag @e[tag=heraldia_prueba] remove heraldia", r"Removed tag|Nothing changed")
+
+
 def first_lap(srv, fails, found):
     style, to_world, y, sheriff_pos = found
     spot, floor_bottom = to_world(SPOT), to_world(BOT)
@@ -249,6 +341,9 @@ def first_lap(srv, fails, found):
         as_player(srv, "heraldia quest accept 3", rf"Heraldia: encargos: {PLAYER} acepta")
         as_player(srv, "heraldia quest abandon 1", r"Job abandoned|Encargo abandonado")
         as_player(srv, "heraldia quest abandon 1", r"no job number 1|No hay encargo número 1")
+    # 8) villager conversations (P9a)
+    srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
+    conversation(srv, fails, spot, y, floor_bottom)
     delivered = state(srv)
     if delivered != "2":
         fails.append(f"/heraldia status: {delivered} encargos entregados (deben ser 2)")
@@ -275,6 +370,17 @@ def second_lap(srv, fails, found, first_item, work):
     if inside != -1:
         fails.append(f"after restarting, price in the plaza {inside} (must be -1: the reputation is kept)")
     close_out(srv)
+    # P9a: the wayfarer remembers its hint, saved in the villager (no wait between conversations from now on)
+    write_config(work, {"dialogos": {"viajeros_porcentaje": 100, "espera_segundos": 0}})
+    srv.run("heraldia reload", r"Heraldia: configuración recargada")
+    srv.run("tag @e[tag=heraldia_prueba] add heraldia", r"Added tag|Nothing changed")
+    srv.run(f"tp {PLAYER} {floor_bottom[0]} {y} {floor_bottom[1]}", r"Teleported")
+    as_player(srv, WITH, TALK)
+    as_player(srv, "heraldia talk rumor", TOLD)
+    write_config(work, {"dialogos": {"activado": False}})
+    srv.run("heraldia reload", r"Heraldia: configuración recargada")
+    as_player(srv, WITH, r"Conversations with villagers are disabled|conversaciones con los aldeanos están desactivadas")
+    srv.run("tag @e[tag=heraldia_prueba] remove heraldia", r"Removed tag|Nothing changed")
     # options disabled and reloaded without restarting
     write_config(work, {"encargos": {"activado": False}, "reputacion": {"activado": False}})
     srv.run("heraldia reload", r"Heraldia: configuración recargada")
@@ -294,7 +400,7 @@ def main():
     fails = []
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     shutil.copy(fetch(a.work, *CARPET), os.path.join(a.work, "mods"))
-    write_config(a.work)
+    write_config(a.work, DIALOGUE_CONFIG)
     srv = Server(a.work, launcher)
     first_item = found = None
     try:
@@ -316,7 +422,8 @@ def main():
         for f in fails:
             print(" -", f)
         return 1
-    print("OK: board, accepting, fetch and guardian handed in, reputation, reduced price, restart and disabled options")
+    print("OK: board, accepting, fetch and guardian handed in, reputation, reduced price, villager conversations and hint, "
+          "restart and disabled options")
     return 0
 
 

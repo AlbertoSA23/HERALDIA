@@ -10,6 +10,7 @@ Back to the [README](../README.md).
 - **Atlantis**: a single sunken city per world (see below).
 - **Caravans**: merchants with llamas travelling the roads between villages; defend them from bandits (see [Caravans](#caravans)).
 - **Wayfarers**: pilgrims, shepherds, messengers, pairs of guards and hunters passing along the roads near you, by area (see [Wayfarers](#wayfarers)).
+- **Villager conversations**: talk to the villagers of Heraldia villages; one in ten has travelled and, if the village trusts you, tells you where a structure lies (see [Villager conversations](#villager-conversations)).
 - **Wizard's huts**: a wizard with trades in a richly decorated hut; one in five is an evil wizard in disguise (see [Wizard's huts](#wizards-huts)).
 - **Wave arena**: a coliseum near spawn to play in waves, with records and rewards (see [Wave arena](#wave-arena)).
 - **Nether and End**: 7 medium structures and 2 unique structures beyond the portals (see [Nether and End](#nether-and-end)).
@@ -146,6 +147,57 @@ Heraldia villages have trades with character, a job board and, in the fortified 
 - **Sieges** (`aldeas.vida.asedios`, **off**: it affects balance): in fortified villages (`oscuro_fortificada`, `nieve_fortaleza`, `badlands_canon`) the weaponsmith sells at level 3 the "Siege Challenge", a level I ominous bottle (10 emeralds, once): whoever drinks it and returns to the village triggers a vanilla raid. There is no raider outpost next to the village: raiders attack villagers within 32 blocks even without seeing them, so it would have to sit outside the village, and a large village already reaches almost the 8 chunks from its start, the furthest the game places pieces; they would also be persistent mobs loaded all the time.
 
 Cost: one more entity per village (the bailiff, without AI) and no periodic function; trades and deeds are only evaluated when a villager levels up or a player kills, wins a raid or picks something up (vanilla advancement criteria).
+
+## Villager conversations
+
+The villagers of Heraldia villages talk (`dialogos.*` in the [configuration](CONFIGURATION.md#configuration); also in villages already generated). Everything goes in chat with clickable buttons, like the job board, so it works with vanilla clients, in each player's language.
+
+- **The gesture**: a right click on a **Heraldia villager standing inside a Heraldia village** first opens a conversation: a greeting and a line. The buttons below it: **[Keep talking]** (two more lines at most), **[Any news?]**, **[Trade]** (opens its trades as always) and **[Goodbye]**. **Sneak + right click goes straight to the trades**, and so does any other villager: vanilla ones, those of other mods, a Heraldia villager that has wandered out of its village, the job board's bailiff and the wizards of the huts. Holding a name tag, a lead or a spawn egg keeps their vanilla use, and babies, sleeping villagers and villagers already trading are left alone. Simulated players (Carpet bots, the fake players of trading automation) do not send the client's click, so they trade as always. With `dialogos.activado` set to `false` the whole system is off.
+- **What they say** depends on who they are and where: their **profession** (each of the 15 vanilla ones, unemployed and nitwit included), the **land of the village** (its family: plains, forest, dark forest, taiga, snow, desert, savanna, jungle, swamp, cherry grove, badlands, coast), the **moment of the day** (morning, afternoon, evening, night), the **weather** at the villager (clear, rain, snow, thunderstorm; bad weather is talked about more) and **your reputation** with the village (stranger, known, friend, hero: it sets the greeting too). Each player remembers the last 24 lines they heard from any villager (in their file), so the same line does not come up twice in a row.
+- **Rest**: each villager rests `dialogos.espera_segundos` (60) between one conversation and the next; meanwhile it says it is busy and offers its trades.
+- **Wayfarers and their secret**: one villager in ten (`dialogos.viajeros_porcentaje`) has travelled and knows a place. Which villagers they are comes from each villager's UUID (nothing is saved; there is no telltale sign: ask around). Asked **[Any news?]** by a player with at least `dialogos.pista_reputacion` (20, *known*) reputation with the village, it tells **where a Heraldia structure lies: the direction and the distance rounded to 100 blocks, never coordinates**, like the board's explore quests. Only structures that really spawn there count: the same search as the job board (the unique structures with a guardian within 4,000 blocks, the medium structures and mine entrances within 1,500, `/locate` rules, without loading or generating chunks), one of the six nearest, chosen from the villager. **Once in its life**: it is saved in the villager (`heraldia:dialogo_aldeano`), so clicking again, another player or a restart do not get it twice; afterwards it says it has already told what it knew. Without enough reputation it hints that it knows something; with reputation disabled it tells anyone. The other villagers answer with a rumour.
+- **Operators**: `/heraldia talk with <villager>` opens a conversation with that villager as a click would (to preview the lines and take screenshots).
+
+Performance: nothing runs every tick. Everything happens on a click or a button: one structure lookup to know the village (the same as the board's), a line drawn from lists already in memory (each language's file is read once) and, for a wayfarer's hint, the board's search, done once per village and server start off the server thread. What is kept: two fields in each villager that has talked and the last 24 line keys in each player's file; the conversation in course lives only in memory and is dropped when the player leaves.
+
+### How to add a line
+
+The lines are data, not code: `tools/gen/dialogue/<language>/<group>.json`, one folder per language (`es_es`, `en_us`, `fr_fr`, `de_de`, `it_it`, `pt_br`, `ca_es`, `gl_es`) and two files in each: `professions.json` (the `profession.*` pools) and `village.json` (all the others). The generator merges each language into `heraldia/dialogos/<code>.json` inside the `.jar`.
+
+```json
+{
+  "profession.farmer": {
+    "1": "The wheat is growing tall this year.",
+    "2": "The soil of %2$s is grateful if you treat it kindly."
+  }
+}
+```
+
+1. **Write it in Spanish first** (`es_es` is the reference: its pools and ids are the complete set). Add it to its pool with the next free id (`"4"` after `"3"`). Ids are what each player's memory stores: never reuse an id for another meaning; to remove a line, remove it in every language.
+2. **Then add the same pool and id to every other language that has that file**, `en_us` included. A language may lack a whole file (its players then get the English line); but a file that exists must have every Spanish line of that file, no more, with the same format slots.
+3. **Slots** (all optional): in every pool `%1$s` is the player's name and `%2$s` the village's name; in `hint.unique`, `hint.medium` and `hint.mine`, `%1$s` is the place ("Castle of the Plains", "roadside inn"), `%2$s` the direction ("north") and `%3$s` the approximate distance in blocks. Only `%s`-style slots: a literal percent sign is `%%`. Quote the place name with the language's inner quotes (the whole line goes inside the outer ones), and phrase hints so they read well with any name (no article glued to it).
+4. Check: `python3 -m pytest tools/gen/tests/test_dialogue.py -q` (it names every missing or extra line and every slot that differs) and `./gradlew build` (the generation fails on the same errors). `HERALDIA_FRASES_COMPLETAS=1 python3 -m pytest tools/gen/tests/test_dialogue.py -q` also fails while a language lacks a file.
+
+The pools (`dialogue.pools()` in `tools/gen/dialogue.py`; the target is about 40 lines per profession and per context, some 350-400 per language):
+
+| Pool | When | File |
+|---|---|---|
+| `profession.<id>` | the villager's profession: `none`, `armorer`, `butcher`, `cartographer`, `cleric`, `farmer`, `fisherman`, `fletcher`, `leatherworker`, `librarian`, `mason`, `nitwit`, `shepherd`, `toolsmith`, `weaponsmith` (weight 40) | `professions.json` |
+| `family.<family>` | the village's land: `llanuras`, `bosque`, `oscuro`, `taiga`, `nieve`, `desierto`, `sabana`, `jungla`, `pantano`, `cerezos`, `badlands`, `costa` (weight 20) | `village.json` |
+| `time.<moment>` | `morning`, `afternoon`, `evening`, `night` (weight 10) | `village.json` |
+| `weather.<weather>` | `clear` (weight 5), `rain`, `snow`, `thunder` (weight 15) | `village.json` |
+| `reputation.<tier>` | the player's level with the village: `desconocido`, `conocido`, `amigo`, `heroe` (weight 8) | `village.json` |
+| `general` | anything, anywhere (weight 12) | `village.json` |
+| `greeting.<tier>` | the first line of every conversation, by reputation level | `village.json` |
+| `rumor` | [Any news?] to a villager that is not a wayfarer | `village.json` |
+| `hint.unique`, `hint.medium`, `hint.mine` | a wayfarer tells its place (slots: place, direction, distance) | `village.json` |
+| `hint.withheld` | a wayfarer that does not trust the player yet | `village.json` |
+| `hint.told` | a wayfarer that has already told its place | `village.json` |
+| `hint.nothing` | a wayfarer with no structure around its village | `village.json` |
+| `busy` | a click while the villager rests | `village.json` |
+| `farewell` | [Goodbye], or the end of the conversation | `village.json` |
+
+A body line is drawn among the six context pools by those weights (a pool with no line, or with every line heard lately, does not count); a pool may be left empty, except `general`, `rumor`, `busy`, `farewell`, the four `greeting.*` and the six `hint.*`, which need at least one line.
 
 ## Roads between villages
 
