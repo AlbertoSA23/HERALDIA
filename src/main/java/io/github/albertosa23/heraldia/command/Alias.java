@@ -9,15 +9,15 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * Nombres antiguos (en español) de los comandos, que siguen funcionando como alias ocultos desde que los comandos pasaron
- * al inglés (T35b): el servidor los ejecuta igual que el nombre nuevo, avisa de que están obsoletos y dice el nombre
- * nuevo, y no se envían a los clientes (CommandsMixin), así que no salen en el autocompletado. Se quitarán en una versión
- * futura (docs/DESARROLLO.md). Lógica pura sobre Brigadier: los tests la recorren sin servidor.
+ * Old (Spanish) command names, which keep working as hidden aliases since the commands moved to English
+ * (T35b): the server runs them like the new name, warns that they are deprecated and gives the new
+ * name, and they are not sent to the clients (CommandsMixin), so they do not show up in autocompletion. They will be
+ * removed in a future version (docs/DESARROLLO.md). Pure logic over Brigadier: the tests walk it without a server.
  */
 public final class Alias {
 	/**
-	 * Ruta canónica bajo /heraldia (tramos separados por espacios; los argumentos, por su nombre) -> nombre antiguo de su
-	 * último tramo. Una ruta antigua entera («arena colocar confirmar») y las mezclas («arena place confirmar») funcionan.
+	 * Canonical route under /heraldia (segments separated by spaces; arguments, by their name) -> old name of its
+	 * last segment. A whole old route ("arena colocar confirmar") and mixes ("arena place confirmar") work.
 	 */
 	public static final Map<String, String> LEGACY = Map.ofEntries(
 			Map.entry("guide", "guia"),
@@ -37,13 +37,13 @@ public final class Alias {
 	private Alias() {
 	}
 
-	/** Cómo se avisa de que se ha usado un nombre antiguo: rutas antigua y nueva, con la barra («/heraldia guia», «/heraldia guide»). */
+	/** How the use of an old name is reported: old and new routes, with the slash ("/heraldia guia", "/heraldia guide"). */
 	@FunctionalInterface
 	public interface Notice<S> {
 		void warn(S source, String old, String fresh);
 	}
 
-	/** Raíz de un alias antiguo: el servidor lo ejecuta, pero no se envía a los clientes (no sale en el autocompletado). */
+	/** Root of an old alias: the server runs it, but it is not sent to the clients (it does not show in autocompletion). */
 	public static final class Hidden<S> extends LiteralCommandNode<S> {
 		private final CommandNode<S> destination;
 
@@ -52,21 +52,21 @@ public final class Alias {
 			this.destination = destination;
 		}
 
-		/** El nodo con el nombre nuevo del que es alias. */
+		/** The node with the new name it is an alias of. */
 		public CommandNode<S> destination() {
 			return destination;
 		}
 	}
 
-	/** ¿Se envía este nodo a los clientes? Todos menos los alias antiguos (CommandsMixin). */
+	/** Is this node sent to the clients? All but the old aliases (CommandsMixin). */
 	public static boolean visible(CommandNode<?> node) {
 		return !(node instanceof Hidden);
 	}
 
 	/**
-	 * Añade bajo `raiz` (el nodo /heraldia, ya con todos sus subcomandos) un alias oculto por cada ruta de `antiguos` que
-	 * exista: una copia del subárbol con los nombres antiguos, los mismos requisitos y argumentos, y cada orden envuelta
-	 * para avisar antes de ejecutarse. Devuelve cuántos alias ha añadido.
+	 * Adds under `root` (the /heraldia node, already with all its subcommands) a hidden alias for each route of `legacyNames` that
+	 * exists: a copy of the subtree with the old names, the same requirements and arguments, and each command wrapped
+	 * to warn before running. Returns how many aliases it added.
 	 */
 	public static <S> int add(CommandNode<S> root, Map<String, String> legacyNames, Notice<S> notice) {
 		return walk(root, "", "/" + root.getName(), legacyNames, notice);
@@ -110,7 +110,7 @@ public final class Alias {
 		for (CommandNode<S> child : orig.getChildren()) {
 			String r = route + " " + child.getName();
 			if (child instanceof LiteralCommandNode) {
-				// con su nombre antiguo y con el nuevo («arena colocar confirmar» y «arena colocar confirm»)
+				// with its old name and with the new one ("arena colocar confirmar" and "arena colocar confirm")
 				String oldValue = legacyNames.get(r);
 				if (oldValue != null) {
 					c.addChild(backup(child, oldValue, r, old + " " + oldValue, fresh + " " + child.getName(), legacyNames, notice, false));

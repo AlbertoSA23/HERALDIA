@@ -1,25 +1,25 @@
 package io.github.albertosa23.heraldia.caravans;
 
 /**
- * El viaje de una caravana por su tramo (lógica pura, sin el juego): una máquina de estados que el juego alimenta cada
- * {@link #EVERY} ticks con lo que ve ({@link View}) y que dice qué hacer ({@link Step}). Fases: en camino, asaltada y
- * terminada (con su {@link End}). Todo por vértices del tramo (0 = salida, {@code vertices - 1} = llegada).
+ * A caravan's journey along its segment (pure logic, without the game): a state machine that the game feeds every
+ * {@link #EVERY} ticks with what it sees ({@link View}) and that says what to do ({@link Step}). Phases: on the way,
+ * ambushed and finished (with its {@link End}). Everything by segment vertices (0 = start, {@code vertices - 1} = arrival).
  */
 public final class Journey {
-	/** Cada cuántos ticks se mira la caravana activa (1 s). */
+	/** Every how many ticks the active caravan is checked (1 s). */
 	public static final int EVERY = 20;
-	/** A cuántos bloques del vértice se da por alcanzado. */
+	/** How many blocks from the vertex count as reaching it. */
 	public static final double REACHES = 2.5;
-	/** Sin ningún jugador a {@link Caravans#PLAYER_RADIUS} bloques durante este tiempo, la caravana se despide. */
+	/** With no player within {@link Caravans#PLAYER_RADIUS} blocks for this long, the caravan says goodbye. */
 	public static final int FAR_TICKS = 30 * 20;
-	/** Lo más que dura un viaje (10 min) y un asalto (3 min). */
+	/** The longest a journey (10 min) and an ambush (3 min) last. */
 	public static final int MAX_TICKS = 10 * 60 * 20, AMBUSH_MAX_TICKS = 3 * 60 * 20;
-	/** Sin acercarse al vértice siguiente durante este tiempo, se salta al siguiente; tras {@link #MAX_STUCK}, se despide. */
+	/** Without getting closer to the next vertex for this long, it skips to the following one; after {@link #MAX_STUCK}, it says goodbye. */
 	public static final int STUCK_TICKS = 20 * 20, MAX_STUCK = 3;
 
 	public enum Phase { ROAD, AMBUSH, END }
 
-	/** Cómo acaba: llegada (con o sin asalto superado), el mercader muerto, o se despide (jugadores lejos, sin camino...). */
+	/** How it ends: arrival (with or without a cleared ambush), the merchant dead, or it says goodbye (players far, no road...). */
 	public enum End {
 		ARRIVAL("llegada"), LOST("perdida"), FAR("lejos"), NO_ROAD("sin_camino"), STUCK("atascada"),
 		TIMEOUT("tiempo"), CLEANUP("limpieza");
@@ -30,35 +30,35 @@ public final class Journey {
 			this.id = id;
 		}
 
-		/** ¿Se despide sin más (ni premio ni pérdida)? */
+		/** Does it just say goodbye (no reward, no loss)? */
 		public boolean farewell() {
 			return this != ARRIVAL && this != LOST;
 		}
 	}
 
-	/** Qué tiene que hacer el juego tras un paso. */
+	/** What the game has to do after a step. */
 	public enum Step {
-		/** Nada nuevo: seguir hacia el vértice {@link #next()}. */
+		/** Nothing new: keep going towards vertex {@link #next()}. */
 		CONTINUES,
-		/** Ha alcanzado un vértice: el objetivo pasa a {@link #next()}. */
+		/** It has reached a vertex: the target becomes {@link #next()}. */
 		ADVANCES,
-		/** Empieza el asalto: que salgan los bandidos. */
+		/** The ambush starts: spawn the bandits. */
 		AMBUSH,
-		/** Ya no queda ningún bandido vivo: sigue el viaje. */
+		/** No bandit is left alive: the journey goes on. */
 		CLEARED,
-		/** Se acabó ({@link #end()}): recompensa, pérdida o despedida, y quitar sus entidades. */
+		/** It is over ({@link #end()}): reward, loss or goodbye, and remove its entities. */
 		END
 	}
 
 	/**
-	 * Lo que ve el juego en un paso.
+	 * What the game sees in a step.
 	 *
-	 * @param mercaderVivo     el mercader sigue vivo (si murió, la caravana se pierde)
-	 * @param cargado          el mercader y el vértice siguiente están en chunks cargados (si no, los jugadores se han ido)
-	 * @param distSiguiente    distancia en el plano del mercader al vértice siguiente
-	 * @param jugadores        jugadores a {@link Caravans#PLAYER_RADIUS} bloques del mercader
-	 * @param bandidos         bandidos vivos (en el asalto)
-	 * @param caminoSiguiente  hay camino en el vértice siguiente (false: en un mundo existente el camino acaba ahí)
+	 * @param merchantAlive the merchant is still alive (if it died, the caravan is lost)
+	 * @param loaded        the merchant and the next vertex are in loaded chunks (if not, the players have left)
+	 * @param distNext      horizontal distance from the merchant to the next vertex
+	 * @param players       players within {@link Caravans#PLAYER_RADIUS} blocks of the merchant
+	 * @param bandits       bandits alive (during the ambush)
+	 * @param nextRoad      there is a road at the next vertex (false: in an existing world the road ends there)
 	 */
 	public record View(boolean merchantAlive, boolean loaded, double distNext, int players, int bandits, boolean nextRoad) {
 	}
@@ -73,8 +73,8 @@ public final class Journey {
 	private boolean ambushed, cleared;
 
 	/**
-	 * @param vertices vértices del tramo (al menos 2)
-	 * @param asaltoEn vértice del tramo en el que la asaltan (entre 1 y {@code vertices - 2}), o -1 si no hay asalto
+	 * @param vertices vertices of the segment (at least 2)
+	 * @param ambushAt vertex of the segment where it is ambushed (between 1 and {@code vertices - 2}), or -1 if there is no ambush
 	 */
 	public Journey(int vertices, int ambushAt) {
 		if (vertices < 2) {
@@ -84,7 +84,7 @@ public final class Journey {
 		this.ambushAt = ambushAt;
 	}
 
-	/** Vértice del tramo en el que conviene poner el asalto: hacia la mitad (entre el 40 y el 60 % según {@code rng}). */
+	/** Vertex of the segment where the ambush should go: towards the middle (between 40 and 60 % depending on {@code rng}). */
 	public static int ambushPoint(int vertices, double rng) {
 		int k = (int) Math.round((vertices - 1) * (0.4 + 0.2 * rng));
 		return Math.max(1, Math.min(vertices - 2, k));
@@ -98,7 +98,7 @@ public final class Journey {
 		return end;
 	}
 
-	/** Vértice del tramo hacia el que va. */
+	/** Vertex of the segment it is heading to. */
 	public int next() {
 		return next;
 	}
@@ -115,7 +115,7 @@ public final class Journey {
 		return ambushed;
 	}
 
-	/** Hubo asalto y no quedó ningún bandido vivo. */
+	/** There was an ambush and no bandit was left alive. */
 	public boolean cleared() {
 		return cleared;
 	}
@@ -124,7 +124,7 @@ public final class Journey {
 		return ticks;
 	}
 
-	/** Un paso de {@link #EVERY} ticks. */
+	/** One step of {@link #EVERY} ticks. */
 	public Step step(View v) {
 		if (phase == Phase.END) {
 			return Step.END;
@@ -189,7 +189,7 @@ public final class Journey {
 		return Step.CONTINUES;
 	}
 
-	/** Asalto ya (/heraldia caravan raid): solo en camino y si aún no la han asaltado. */
+	/** Ambush now (/heraldia caravan raid): only on the way and if it has not been ambushed yet. */
 	public boolean forceAmbush() {
 		if (phase != Phase.ROAD || ambushed) {
 			return false;
@@ -205,7 +205,7 @@ public final class Journey {
 		return Step.AMBUSH;
 	}
 
-	/** Termina ya (el mercader muerto, una limpieza o el servidor que se para). */
+	/** Ends now (the merchant dead, a cleanup or the server stopping). */
 	public Step finish(End f) {
 		if (phase != Phase.END) {
 			phase = Phase.END;

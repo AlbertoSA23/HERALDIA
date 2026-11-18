@@ -49,14 +49,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Panel de configuración en el juego para clientes sin el mod (T46): /heraldia config (operadores) abre un diálogo vanilla
- * (Dialog API del servidor) con el perfil de juego arriba y un botón por submenú ({@link Menus}). Cada submenú lleva sus
- * opciones con una frase que las explica, el valor recomendado y, si hace falta, el aviso de que se aplican al reiniciar;
- * «Guardar» escribe config/heraldia.json y aplica con el mismo camino que /heraldia reload ({@link ReloadCommand#apply});
- * lo que no es recargable ({@link Reload}) queda guardado y se avisa de que espera al reinicio. Lo técnico que no está en
- * los submenús se cambia en el fichero (o con /heraldia config set &lt;opción&gt; &lt;valor&gt;, también desde la consola).
- * <p>Los botones ejecutan subcomandos de /heraldia config (en inglés, en {@code command/HeraldiaCommands}): menu, profile, save y
- * set. Nada por tick: el diálogo se construye al pedirlo.
+ * In-game configuration panel for clients without the mod (T46): /heraldia config (operators) opens a vanilla dialog
+ * (the server's Dialog API) with the gameplay profile on top and one button per submenu ({@link Menus}). Each submenu has its
+ * options with a sentence explaining them, the recommended value and, when needed, the notice that they apply on restart;
+ * "Save" writes config/heraldia.json and applies it through the same path as /heraldia reload ({@link ReloadCommand#apply});
+ * what is not reloadable ({@link Reload}) stays saved and the player is told it waits for the restart. Technical options that are
+ * not in the submenus are changed in the file (or with /heraldia config set &lt;option&gt; &lt;value&gt;, also from the console).
+ * <p>The buttons run /heraldia config subcommands (in English, in {@code command/HeraldiaCommands}): menu, profile, save and
+ * set. Nothing per tick: the dialog is built on request.
  */
 public final class ConfigPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
@@ -85,7 +85,7 @@ public final class ConfigPanel {
 								.executes(c -> setLanguage(c, StringArgumentType.getString(c, "option"), StringArgumentType.getString(c, "value"))))));
 	}
 
-	// ------------------------------------------------------------------ comandos
+	// ------------------------------------------------------------------ commands
 
 	private static int open(CommandSourceStack src, String menu) {
 		Map<String, ConfigOption> options = options();
@@ -97,7 +97,7 @@ public final class ConfigPanel {
 			src.sendFailure(Texts.t(l, "heraldia.panel.no_existe", menu));
 			return 0;
 		}
-		if (p == null) {           // consola: el mismo contenido en texto
+		if (p == null) {           // console: the same content as text
 			text(l, m.orElse(null), options, optionValues).forEach(t -> src.sendSystemMessage(t));
 			return 1;
 		}
@@ -145,8 +145,8 @@ public final class ConfigPanel {
 	}
 
 	/**
-	 * Escribe los cambios en el fichero (con lo que ya tenía) y los aplica como /heraldia reload. Al jugador le enseña el
-	 * resultado en un aviso con un botón para volver; a la consola, en texto.
+	 * Writes the changes to the file (with what it already had) and applies them like /heraldia reload. It shows the player the
+	 * result in a notice with a button to go back; the console, as text.
 	 */
 	private static int save(CommandSourceStack src, Map<String, JsonPrimitive> changes, List<String> invalid, Menus.Menu back) {
 		ServerPlayer p = src.getPlayer();
@@ -178,11 +178,11 @@ public final class ConfigPanel {
 		return 1;
 	}
 
-	// ------------------------------------------------------------------ diálogos
+	// ------------------------------------------------------------------ dialogs
 
 	/**
-	 * Diálogo principal: el perfil en uso, un botón por perfil (en el orden de {@link Menus#PROFILES}) y uno por submenú
-	 * (en el de {@link Menus#MENUS}). Los botones, en {@link #mainActions()}.
+	 * Main dialog: the profile in use, one button per profile (in the order of {@link Menus#PROFILES}) and one per submenu
+	 * (in that of {@link Menus#MENUS}). The buttons, in {@link #mainActions()}.
 	 */
 	public static MultiActionDialog main(Map<String, String> l, String chosen, String effective) {
 		List<DialogBody> body = List.of(
@@ -206,7 +206,7 @@ public final class ConfigPanel {
 				Optional.empty())), 3);
 	}
 
-	/** Lo que ejecuta cada botón del diálogo principal, en orden (para los tests). */
+	/** What each button of the main dialog runs, in order (for the tests). */
 	public static List<String> mainActions() {
 		List<String> out = new ArrayList<>();
 		Menus.PROFILES.forEach(p -> out.add(CMD + " profile " + p));
@@ -215,9 +215,9 @@ public final class ConfigPanel {
 	}
 
 	/**
-	 * Un submenú: una línea por opción (nombre, frase, valor recomendado y aviso de reinicio), un control por opción con
-	 * su valor actual (claves o0, o1...) y los botones Guardar (manda los valores, en el orden del menú, a
-	 * /heraldia config save) y Volver.
+	 * A submenu: one line per option (name, sentence, recommended value and restart notice), one control per option with
+	 * its current value (keys o0, o1...) and the Save button (sends the values, in menu order, to
+	 * /heraldia config save) and Back.
 	 */
 	public static MultiActionDialog submenu(Map<String, String> l, Menus.Menu m, Map<String, ConfigOption> options,
 											Map<String, JsonPrimitive> optionValues, String profile) {
@@ -248,7 +248,7 @@ public final class ConfigPanel {
 		return new MultiActionDialog(c, buttons, Optional.of(button(Texts.t(l, "heraldia.panel.volver"), null, CMD, 140)), 2);
 	}
 
-	/** El resultado de guardar, con un botón para volver al submenú (o al principal). */
+	/** The result of saving, with a button to go back to the submenu (or the main one). */
 	static NoticeDialog notice(Map<String, String> l, List<Component> lines, Menus.Menu back) {
 		List<DialogBody> body = new ArrayList<>();
 		lines.forEach(t -> body.add(new PlainMessage(t, WIDTH)));
@@ -257,7 +257,7 @@ public final class ConfigPanel {
 		return new NoticeDialog(c, button(Texts.t(l, "heraldia.panel.volver"), null, back == null ? CMD : CMD + " menu " + back.id(), 140));
 	}
 
-	/** El control de una opción con su valor actual: casilla, lista o deslizador (con el paso de {@link Menus#step}). */
+	/** The control of an option with its current value: checkbox, list or slider (with the step of {@link Menus#step}). */
 	static InputControl control(Map<String, String> l, ConfigOption o, JsonPrimitive v) {
 		Component tag = name(l, o.key());
 		if (o.isBoolean()) {
@@ -276,7 +276,7 @@ public final class ConfigPanel {
 						Optional.of((float) Menus.step(o))));
 	}
 
-	/** El valor recomendado: el del perfil elegido para las opciones del perfil; el de por defecto para las demás. */
+	/** The recommended value: the chosen profile's for the profile options; the default one for the others. */
 	static JsonPrimitive recommended(ConfigOption o, String profile) {
 		Profiles ps = HeraldiaConfig.profiles();
 		if (ps.keys().contains(o.key())) {
@@ -288,7 +288,7 @@ public final class ConfigPanel {
 		return o.defaultValue();
 	}
 
-	/** Texto de un valor para leerlo: sí/no, el nombre de un valor de lista o el número. */
+	/** Readable text of a value: yes/no, the name of a list value or the number. */
 	static Component readableValue(Map<String, String> l, ConfigOption o, JsonPrimitive v) {
 		if (o.isBoolean()) {
 			return Texts.t(l, v.getAsBoolean() ? "heraldia.panel.si" : "heraldia.panel.no");
@@ -300,7 +300,7 @@ public final class ConfigPanel {
 		return Component.literal(v.getAsString());
 	}
 
-	/** Lo mismo que los diálogos, en líneas de texto (consola). */
+	/** The same as the dialogs, as text lines (console). */
 	static List<Component> text(Map<String, String> l, Menus.Menu m, Map<String, ConfigOption> options, Map<String, JsonPrimitive> optionValues) {
 		List<Component> out = new ArrayList<>();
 		out.add(Texts.t(l, "heraldia.panel.titulo").withStyle(ChatFormatting.GOLD));

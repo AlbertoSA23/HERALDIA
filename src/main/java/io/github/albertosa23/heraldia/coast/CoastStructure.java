@@ -28,22 +28,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Faro o naufragio de la costa (heraldia:costa, tools/gen/litoral): una sola plantilla que se pone en la orilla que busca
- * {@link Shoreline} con la caché compartida de alturas de generación ({@link HeightCache}), girada para que su +z mire al
- * mar y con su ancla en el último bloque de tierra. El faro queda a la altura del terreno (la plataforma; sus cimientos y
- * pilotes bajan hasta el suelo con el procesador de la plantilla); el naufragio, con la fila {@code fila_mar} en el nivel
- * del mar - 1. El estilo es el del clima de esa costa: alguna de las parejas {@code climates} (bioma de la tierra en el
- * ancla y del mar 12 bloques mar adentro); el resto de estilos del structure_set no sale ahí. Con /place (que acepta
- * cualquier bioma) se coloca en la orilla que encuentre o, sin ella, en el centro mirando al sur.
+ * Coast lighthouse or shipwreck (heraldia:costa, tools/gen/litoral): a single template placed on the shore that
+ * {@link Shoreline} finds with the shared generation height cache ({@link HeightCache}), rotated so its +z faces the
+ * sea and with its anchor on the last land block. The lighthouse sits at terrain height (the platform; its foundations and
+ * piles go down to the ground with the template's processor); the shipwreck, with row {@code fila_mar} at sea
+ * level - 1. The style is that of the coast's climate: one of the {@code climates} pairs (land biome at the
+ * anchor and sea biome 12 blocks offshore); the structure_set's other styles do not spawn there. With /place (which accepts
+ * any biome) it is placed on whatever shore it finds or, without one, in the center facing south.
  */
 public final class CoastStructure extends Structure implements io.github.albertosa23.heraldia.mines.ParallelLocate.Precomputable {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	private static final AtomicInteger REGISTERED = new AtomicInteger(); // las primeras, en el registro (pruebas)
+	private static final AtomicInteger REGISTERED = new AtomicInteger(); // the first ones, in the log (tests)
 	private static final int LOGGED = 6, OFFSHORE = 12;
-	/** Con -Dheraldia.depurar.costa=true, cada sitio al log (tools/smoke/costa.py lo lee para saber dónde quedó cada una). */
+	/** With -Dheraldia.depurar.costa=true, each site goes to the log (tools/smoke/costa.py reads it to know where each one ended up). */
 	private static final boolean DEBUG = Boolean.getBoolean("heraldia.depurar.costa");
 
-	/** Pareja de clima: bioma de la tierra en la orilla y del mar de delante. */
+	/** Climate pair: land biome on the shore and sea biome in front. */
 	public record Climate(TagKey<Biome> land, TagKey<Biome> seaSide) {
 		static final Codec<Climate> CODEC = RecordCodecBuilder.create(i -> i.group(
 				TagKey.hashedCodec(Registries.BIOME).fieldOf("tierra").forGetter(Climate::land),
@@ -101,7 +101,7 @@ public final class CoastStructure extends Structure implements io.github.alberto
 		Shoreline.Site site = Shoreline.search(terrain(c), sea, mx, mz, shape);
 		Profiler.end(Profiler.Segment.COAST_SHORE, t0);
 		if (site != null && !forced && !climate(ctx, site, c, sea)) {
-			return Optional.empty();                     // otro estilo del set: el de esta costa es otro
+			return Optional.empty();                     // another style of the set: this coast's is a different one
 		}
 		boolean noShore = site == null;
 		if (site == null) {
@@ -128,8 +128,8 @@ public final class CoastStructure extends Structure implements io.github.alberto
 	}
 
 	/**
-	 * Lo que miraría {@link #findGenerationPoint} en ese chunk (la búsqueda de la orilla), solo para llenar la caché
-	 * compartida de alturas: lo usa /locate desde otros hilos (minas/LocateParalelo). No crea nada ni escribe en el log.
+	 * What {@link #findGenerationPoint} would look at in that chunk (the shore search), only to fill the shared
+	 * height cache: /locate uses it from other threads (mines/ParallelLocate). It creates nothing and writes nothing to the log.
 	 */
 	@Override
 	public void precompute(GenerationContext ctx) {
@@ -139,7 +139,7 @@ public final class CoastStructure extends Structure implements io.github.alberto
 		Profiler.end(Profiler.Segment.HILLSIDE_EARLY, t0);
 	}
 
-	/** El giro que lleva el +z de la plantilla hacia d. */
+	/** The rotation that turns the template's +z towards d. */
 	public static Rotation rotation(Direction d) {
 		for (Rotation r : Rotation.values()) {
 			BlockPos v = new BlockPos(0, 0, 1).rotate(r);
@@ -150,7 +150,7 @@ public final class CoastStructure extends Structure implements io.github.alberto
 		return Rotation.NONE;
 	}
 
-	/** ¿Es el clima de esta orilla uno de los del estilo? Dos lecturas del ruido de biomas (baratas: no evalúan terreno). */
+	/** Is this shore's climate one of the style's? Two biome-noise reads (cheap: they do not evaluate terrain). */
 	private boolean climate(GenerationContext ctx, Shoreline.Site s, HeightCache c, int sea) {
 		Holder<Biome> land = biome(ctx, s.x(), c.floor(s.x(), s.z()), s.z());
 		Holder<Biome> seaSide = biome(ctx, s.x() + s.seaSide().getStepX() * OFFSHORE, sea - 1, s.z() + s.seaSide().getStepZ() * OFFSHORE);
@@ -166,7 +166,7 @@ public final class CoastStructure extends Structure implements io.github.alberto
 		return ctx.biomeResolver().getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(y), QuartPos.fromBlock(z));
 	}
 
-	/** El terreno de la búsqueda sobre la caché compartida del mundo. */
+	/** The search terrain over the world's shared cache. */
 	public static Shoreline.Terrain terrain(HeightCache c) {
 		return new Shoreline.Terrain() {
 			@Override

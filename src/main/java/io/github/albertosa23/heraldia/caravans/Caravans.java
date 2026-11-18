@@ -62,37 +62,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Caravanas por los caminos entre aldeas (T39): lo que toca el juego. La lógica pura está en {@link Segment} (qué tramo de
- * la ruta canónica recorre), {@link Journey} (sus fases), {@link Rules} (cuándo sale, cómo es, qué paga) y {@link Ground}
- * (si el camino existe de verdad en el mundo).
+ * Caravans along the roads between villages (T39): the part that touches the game. The pure logic is in {@link Segment} (which
+ * stretch of the canonical route it travels), {@link Journey} (its phases), {@link Rules} (when it spawns, what it is like,
+ * what it pays) and {@link Ground} (whether the road really exists in the world).
  * <ul>
- * <li>Cada minuto, con jugadores en el mundo principal, se sortea una caravana (caravanas.frecuencia %) junto a uno de
- * ellos: la ruta más cercana a 80 bloques como mucho se busca fuera del hilo del servidor (el trazado está en memoria; no
- * carga ni genera chunks) y la caravana sale solo si su vértice de salida está en un chunk cargado con entidades y el
- * camino está ahí de verdad (en un mundo existente, no en los chunks de antes de los caminos).</li>
- * <li>Un mercader de Heraldia (vendedor ambulante) con 1-3 llamas de carga y a veces un gólem de guardia recorre unos
- * 128 bloques hacia la aldea de destino: el objetivo de IA del propio vendedor ({@code setWanderTarget}) lo lleva de
- * vértice en vértice; las llamas y el guardia lo siguen. Con caravanas.prob_asalto %, a media ruta salen de 2 a 4
- * bandidos (los del campamento de bandidos: saqueadores y un vindicador jefe, anclados y con la dificultad de Heraldia).</li>
- * <li>Al llegar, cada jugador que la acompaña cobra esmeraldas (más un objeto si la defendió de un asalto) y gana
- * reputación con la aldea de destino ({@link Quests#addReputation}); defenderla da el logro. Si el mercader muere,
- * la caravana se pierde y sus entidades no sueltan nada.</li>
- * <li>Sin trabajo por tick salvo la caravana activa (un paso por segundo). Si los jugadores se alejan, el camino se acaba o
- * pasa el tiempo, se despide y se quitan todas sus entidades. Nada se guarda: al parar el servidor se quitan las cargadas
- * y, al arrancar, cualquier entidad de caravana que se cargue se quita ({@code ENTITY_LOAD}): sin huérfanas ni duplicadas.</li>
+ * <li>Every minute, with players in the overworld, a caravan is rolled (caravanas.frecuencia %) next to one of
+ * them: the nearest route within 80 blocks is searched off the server thread (the layout is in memory; it neither
+ * loads nor generates chunks) and the caravan only spawns if its starting vertex is in a chunk loaded with entities and
+ * the road really is there (in an existing world, not in the chunks from before the roads).</li>
+ * <li>A Heraldia merchant (wandering trader) with 1-3 pack llamas and sometimes a guard golem travels about
+ * 128 blocks towards the destination village: the trader's own AI goal ({@code setWanderTarget}) takes it from
+ * vertex to vertex; the llamas and the guard follow it. With caravanas.prob_asalto %, halfway along 2 to 4
+ * bandits spawn (those of the bandit camp: pillagers and a vindicator leader, anchored and with Heraldia's difficulty).</li>
+ * <li>On arrival, each player escorting it earns emeralds (plus an item if they defended it from an ambush) and gains
+ * reputation with the destination village ({@link Quests#addReputation}); defending it grants the advancement. If the
+ * merchant dies, the caravan is lost and its entities drop nothing.</li>
+ * <li>No per-tick work except the active caravan (one step per second). If the players move away, the road ends or
+ * time runs out, it says goodbye and all its entities are removed. Nothing is saved: when the server stops the loaded ones
+ * are removed and, at startup, any caravan entity that loads is removed ({@code ENTITY_LOAD}): no orphans or duplicates.</li>
  * </ul>
- * Las opciones caravanas.* se leen en cada uso: se recargan con /heraldia reload.
+ * The caravanas.* options are read on each use: they reload with /heraldia reload.
  */
 public final class Caravans {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	public static final String ENABLED = "caravanas.activado", FREQUENCY = "caravanas.frecuencia", AMBUSH_PROB = "caravanas.prob_asalto",
 			MAX_ACTIVE = "caravanas.max_activas";
-	/** Jugadores que cuentan como cerca del mercader (los que la acompañan), y los que cobran al llegar. */
+	/** Players who count as near the merchant (those escorting it), and those who get paid on arrival. */
 	public static final double PLAYER_RADIUS = 64, REWARD_RADIUS = 48;
-	/** Logro (tools/gen/caravanas.py): heraldia:caravanas/defensa, criterio «hecho». */
+	/** Advancement (tools/gen/caravanas.py): heraldia:caravanas/defensa, criterion "hecho". */
 	static final String ADVANCEMENT = "caravanas/defensa";
 	private static final Map<Integer, Caravan> ACTIVE = new LinkedHashMap<>();
-	/** Entidad → su caravana: las que no están aquí y llevan la etiqueta sobran. */
+	/** Entity → its caravan: tagged entities missing from here are leftovers. */
 	private static final Map<UUID, Caravan> BY_ENTITY = new HashMap<>();
 	private static int counter, searching, arrivals, losses;
 	private static long lastEnd = -Rules.WAIT_TICKS;
@@ -100,18 +100,18 @@ public final class Caravans {
 	private Caravans() {
 	}
 
-	/** Una caravana en camino (solo en el hilo del servidor). */
+	/** A caravan on its way (server thread only). */
 	static final class Caravan {
 		final int id;
 		final ServerLevel level;
 		final Segment segment;
 		final Journey journey;
 		final UUID merchant;
-		final List<UUID> escort = new ArrayList<>();      // llamas y guardia, en orden de marcha
+		final List<UUID> escort = new ArrayList<>();      // llamas and guard, in marching order
 		final List<UUID> bandits = new ArrayList<>();
 		final String origin, destination;
 		final long seed;
-		/** Vértice del tramo cuyo camino ya se comprobó (para no mirarlo cada segundo). */
+		/** Vertex of the segment whose road has already been checked (so it is not checked every second). */
 		int checked = 0;
 
 		Caravan(int id, ServerLevel level, Segment segment, Journey journey, UUID merchant, long seed) {
@@ -133,7 +133,7 @@ public final class Caravans {
 		}
 	}
 
-	/** Una línea en Heraldia.onInitialize. */
+	/** One line in Heraldia.onInitialize. */
 	public static void register() {
 		ServerEntityEvents.ENTITY_LOAD.register(Caravans::onLoad);
 		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> onDeath(entity));
@@ -153,7 +153,7 @@ public final class Caravans {
 		});
 	}
 
-	/** El mercader, las llamas y el guardia no sueltan nada (los bandidos, lo suyo). */
+	/** The merchant, the llamas and the guard drop nothing (the bandits, their own). */
 	static boolean noLoot(Set<String> tags) {
 		return !tags.isEmpty() && tags.contains(Rules.TAG) && !tags.contains(Rules.BANDIT);
 	}
@@ -167,7 +167,7 @@ public final class Caravans {
 		return n[0] + " " + n[1];
 	}
 
-	// --- entidades sobrantes ---
+	// --- leftover entities ---
 
 	private static void onLoad(Entity e, ServerLevel level) {
 		if (Rules.orphan(e.entityTags(), e.getUUID(), BY_ENTITY.keySet())) {
@@ -185,16 +185,16 @@ public final class Caravans {
 		Caravan c = BY_ENTITY.get(e.getUUID());
 		if (c != null) {
 			c.journey.finish(Journey.End.LOST);
-			finish(c);       // ya, en el mismo tick: las llamas no llegan a soltar nada
+			finish(c);       // now, in the same tick: the llamas never get to drop anything
 		}
 	}
 
-	// --- cada tick: solo la caravana activa y el sorteo de cada minuto ---
+	// --- every tick: only the active caravan and the per-minute roll ---
 
 	private static void tick(MinecraftServer server) {
 		int t = server.getTickCount();
 		if (!ACTIVE.isEmpty() && t % Journey.EVERY == 0 && !cfg().getBool(ENABLED)) {
-			clean(Journey.End.CLEANUP);      // desactivadas con /heraldia reload: se van las que había
+			clean(Journey.End.CLEANUP);      // disabled with /heraldia reload: the existing ones leave
 		}
 		if (!ACTIVE.isEmpty() && t % Journey.EVERY == 0) {
 			for (Caravan c : new ArrayList<>(ACTIVE.values())) {
@@ -228,10 +228,10 @@ public final class Caravans {
 	}
 
 	/**
-	 * Busca el tramo junto a (x, z) fuera del hilo del servidor y, de vuelta en él, crea la caravana.
+	 * Searches for the segment near (x, z) off the server thread and, back on it, creates the caravan.
 	 *
-	 * @param asalto true/false para fijar si la asaltan (el comando); null, con caravanas.prob_asalto
-	 * @param aviso  lo que se dice si no sale (o cuando sale)
+	 * @param ambush true/false to force whether it is ambushed (the command); null, with caravanas.prob_asalto
+	 * @param notice what is said if it does not spawn (or when it does)
 	 */
 	static void search(ServerLevel level, int x, int z, @Nullable Boolean ambush, Consumer<Component> notice) {
 		MinecraftServer server = level.getServer();
@@ -255,9 +255,9 @@ public final class Caravans {
 				}, server);
 	}
 
-	// --- crear ---
+	// --- create ---
 
-	/** La altura del suelo en (x, z) si su chunk está cargado con entidades; si no, null (no carga nada). */
+	/** Ground height at (x, z) if its chunk is loaded with entities; otherwise null (loads nothing). */
 	static @Nullable BlockPos ground(ServerLevel level, int x, int z) {
 		BlockPos p = new BlockPos(x, level.getMinY(), z);
 		if (!level.isPositionEntityTicking(p)) {
@@ -266,7 +266,7 @@ public final class Caravans {
 		return new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
 	}
 
-	/** ¿Hay camino de verdad en (x, z)? Solo con su 3 × 3 cargado; null si no se puede saber sin cargar chunks. */
+	/** Is there really a road at (x, z)? Only with its 3 × 3 loaded; null if it cannot be known without loading chunks. */
 	static @Nullable Boolean hasRoad(ServerLevel level, int x, int z) {
 		int n = 0;
 		for (int dx = -1; dx <= 1; dx++) {
@@ -295,19 +295,19 @@ public final class Caravans {
 			notice.accept(Texts.t("heraldia.caravanas.sin_camino", Segment.DIST_MAX));
 			return;
 		}
-		// la salida: cargada y con camino de verdad
+		// the start: loaded and with a real road
 		BlockPos departure = ground(level, segment.x(0), segment.z(0));
 		if (departure == null || !Boolean.TRUE.equals(hasRoad(level, segment.x(0), segment.z(0)))) {
 			notice.accept(Texts.t("heraldia.caravanas.sin_camino", Segment.DIST_MAX));
 			LOGGER.info("Heraldia: caravanas: sin camino en la salida {} {} ({})", segment.x(0), segment.z(0), departure == null ? "sin cargar" : "no hay camino");
 			return;
 		}
-		// en un mundo existente el camino puede acabar antes: el tramo llega hasta el último vértice cargado con camino
+		// in an existing world the road may end earlier: the segment goes up to the last loaded vertex with a road
 		int until = segment.vertices() - 1;
 		for (int k = 1; k < segment.vertices(); k++) {
 			Boolean there = hasRoad(level, segment.x(k), segment.z(k));
 			if (there == null) {
-				break;              // aún sin cargar: se mira al llegar
+				break;              // not loaded yet: checked on arrival
 			}
 			if (!there) {
 				until = k - 1;
@@ -326,7 +326,7 @@ public final class Caravans {
 		int llamas = Rules.llamas(rnd.nextDouble());
 		boolean guard = Rules.guard(rnd.nextDouble());
 		int id = ++counter;
-		// rumbo: del vértice de salida al siguiente
+		// heading: from the starting vertex to the next
 		double dx = t.x(1) - t.x(0), dz = t.z(1) - t.z(0), len = Math.max(1e-6, Math.hypot(dx, dz));
 		dx /= len;
 		dz /= len;
@@ -341,10 +341,10 @@ public final class Caravans {
 		m.setCustomName(Texts.t("heraldia.caravanas.mercader").withStyle(ChatFormatting.GOLD));
 		m.setCustomNameVisible(true);
 		m.setPersistenceRequired();
-		m.setDespawnDelay(Journey.MAX_TICKS + 2 * Rules.DRAW_TICKS);   // lo quita la caravana, no el reloj del vendedor
+		m.setDespawnDelay(Journey.MAX_TICKS + 2 * Rules.DRAW_TICKS);   // the caravan removes it, not the trader's clock
 		var health = m.getAttribute(Attributes.MAX_HEALTH);
 		if (health != null) {
-			health.setBaseValue(MERCHANT_HEALTH);   // aguanta un asalto el tiempo de llegar a defenderlo
+			health.setBaseValue(MERCHANT_HEALTH);   // it withstands an ambush long enough for someone to come defend it
 			m.setHealth((float) MERCHANT_HEALTH);
 		}
 		Journey journey = new Journey(t.vertices(), ambushAt);
@@ -355,7 +355,7 @@ public final class Caravans {
 			return;
 		}
 		ACTIVE.put(id, c);
-		// las llamas detrás, en fila; el guardia a un lado
+		// llamas behind, in a line; the guard to one side
 		for (int i = 1; i <= llamas; i++) {
 			TraderLlama l = EntityTypes.TRADER_LLAMA.create(level, EntitySpawnReason.EVENT);
 			if (l != null) {
@@ -366,7 +366,7 @@ public final class Caravans {
 		if (guard) {
 			IronGolem g = EntityTypes.IRON_GOLEM.create(level, EntitySpawnReason.EVENT);
 			if (g != null) {
-				g.setPlayerCreated(true);       // no se vuelve contra los jugadores sin motivo
+				g.setPlayerCreated(true);       // it does not turn on the players for no reason
 				add(c, g, Rules.GUARD, departure, -dz * 3, dx * 3, yaw);
 			}
 		}
@@ -378,7 +378,7 @@ public final class Caravans {
 		for (int k = 0; k < t.vertices(); k++) {
 			vertices.append(k == 0 ? "" : "; ").append(t.x(k)).append(' ').append(t.z(k));
 		}
-		LOGGER.info("Heraldia: caravanas: vértices de la caravana {}: {}", id, vertices);   // los sigue la prueba de servidor
+		LOGGER.info("Heraldia: caravanas: vértices de la caravana {}: {}", id, vertices);   // the server test follows them
 		notice.accept(Texts.t("heraldia.caravanas.creada", id, c.origin, c.destination, Math.round(t.length())));
 		warn(c, m, "heraldia.caravanas.sale", ChatFormatting.YELLOW, c.origin, c.destination);
 	}
@@ -402,7 +402,7 @@ public final class Caravans {
 		}
 	}
 
-	// --- cada segundo, la caravana activa ---
+	// --- every second, the active caravan ---
 
 	private static @Nullable Entity entity(Caravan c, UUID u) {
 		Entity e = c.level.getEntity(u);
@@ -443,7 +443,7 @@ public final class Caravans {
 		}
 	}
 
-	/** El mercader hacia el vértice siguiente (con el objetivo de IA del vendedor) y su séquito detrás. */
+	/** The merchant towards the next vertex (with the trader's AI goal) and its escort behind. */
 	private static void goTo(Caravan c, @Nullable WanderingTrader m) {
 		if (m == null || c.journey.phase() == Journey.Phase.END) {
 			return;
@@ -490,7 +490,7 @@ public final class Caravans {
 		}
 	}
 
-	// --- el asalto ---
+	// --- the ambush ---
 
 	private static void ambush(Caravan c, @Nullable WanderingTrader m, int players) {
 		if (m == null) {
@@ -498,7 +498,7 @@ public final class Caravans {
 		}
 		int n = Rules.bandits(players);
 		boolean boss = Rules.withBoss(n);
-		// delante de la caravana, a los dos lados del camino
+		// ahead of the caravan, on both sides of the road
 		int k = Math.min(c.segment.vertices() - 1, c.journey.next());
 		double[] nrm = c.segment.route().normal(c.segment.vertex(k));
 		double ax = (m.getX() + c.segment.x(k) + 0.5) / 2, az = (m.getZ() + c.segment.z(k) + 0.5) / 2;
@@ -518,13 +518,13 @@ public final class Caravans {
 				continue;
 			}
 			b.snapTo(s.getX() + 0.5, s.getY(), s.getZ() + 0.5, c.level.getRandom().nextFloat() * 360f, 0f);
-			// las etiquetas antes de añadirlo: la dificultad y el anclaje de Heraldia miran ENTITY_LOAD
+			// tags before adding it: Heraldia's difficulty and anchoring look at ENTITY_LOAD
 			b.addTag(Rules.TAG);
 			b.addTag(Rules.BANDIT);
 			b.addTag(ModDifficulty.ANCHORED);
 			b.finalizeSpawn(c.level, c.level.getCurrentDifficultyAt(s), EntitySpawnReason.EVENT, null);
 			if (b instanceof Raider r) {
-				r.setPatrolLeader(false);       // sin estandarte ni mal presagio
+				r.setPatrolLeader(false);       // no banner and no bad omen
 				r.setCanJoinRaid(false);
 			}
 			b.setCustomName(Texts.t(isBoss ? "heraldia.medianas.campamento.vindicador" : "heraldia.medianas.campamento.saqueador"));
@@ -544,9 +544,9 @@ public final class Caravans {
 				Math.round(ax), Math.round(az));
 	}
 
-	// --- el final ---
+	// --- the end ---
 
-	/** Termina la caravana: premia (si llegó), avisa y quita todas sus entidades cargadas. */
+	/** Ends the caravan: rewards (if it arrived), notifies and removes all its loaded entities. */
 	static void finish(Caravan c) {
 		if (!ACTIVE.containsKey(c.id)) {
 			return;
@@ -567,7 +567,7 @@ public final class Caravans {
 		for (UUID u : c.all()) {
 			BY_ENTITY.remove(u);
 			Entity e = entity(c, u);
-			if (e != null && e.isAlive()) {      // el mercader que acaba de morir se queda (es su cadáver)
+			if (e != null && e.isAlive()) {      // the merchant who just died stays (it is its corpse)
 				if (u.equals(c.merchant)) {
 					c.level.sendParticles(ParticleTypes.POOF, e.getX(), e.getY() + 1, e.getZ(), 12, 0.5, 0.5, 0.5, 0.02);
 				}
@@ -587,7 +587,7 @@ public final class Caravans {
 		for (ServerPlayer p : players) {
 			Rules.Reward r = Rules.reward(c.segment.vertices(), c.journey.cleared(), rnd.nextDouble());
 			Map<String, String> l = Texts.language(p);
-			p.getInventory().placeItemBackInInventory(new ItemStack(Items.EMERALD, r.emeralds()), Prediction.SERVER_ONLY);   // al suelo si no cabe
+			p.getInventory().placeItemBackInInventory(new ItemStack(Items.EMERALD, r.emeralds()), Prediction.SERVER_ONLY);   // on the ground if it does not fit
 			MutableComponent pays = Texts.t(l, "heraldia.caravanas.paga", r.emeralds());
 			if (r.withItem()) {
 				Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(r.item()));
@@ -611,7 +611,7 @@ public final class Caravans {
 				c.journey.cleared() ? " tras superar el asalto" : "", players.size());
 	}
 
-	/** Termina todas (al parar el servidor o con /heraldia caravan clear); devuelve cuántas había. */
+	/** Ends them all (when the server stops or with /heraldia caravan clear); returns how many there were. */
 	static int clean(Journey.End end) {
 		int n = ACTIVE.size();
 		for (Caravan c : new ArrayList<>(ACTIVE.values())) {
@@ -621,7 +621,7 @@ public final class Caravans {
 		return n;
 	}
 
-	// --- comandos: /heraldia caravan [spawn [raid | peaceful] | raid | list | clear] (operadores) ---
+	// --- commands: /heraldia caravan [spawn [raid | peaceful] | raid | list | clear] (operators) ---
 
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("caravan").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -703,7 +703,7 @@ public final class Caravans {
 		CommandSourceStack src = ctx.getSource();
 		Map<String, String> l = language(src);
 		int n = clean(Journey.End.CLEANUP);
-		// y las que quedaran sueltas en chunks cargados (no debería haber: se quitan al cargarse)
+		// and any left loose in loaded chunks (there should be none: they are removed when they load)
 		int loose = 0;
 		for (ServerLevel level : src.getServer().getAllLevels()) {
 			List<Entity> extra = new ArrayList<>();
@@ -722,7 +722,7 @@ public final class Caravans {
 		return n;
 	}
 
-	/** Para /heraldia status. */
+	/** For /heraldia status. */
 	public static List<Component> state() {
 		HeraldiaConfig cfg = cfg();
 		if (!cfg.getBool(ENABLED)) {
@@ -732,7 +732,7 @@ public final class Caravans {
 				cfg.getInt(AMBUSH_PROB), arrivals, losses));
 	}
 
-	/** Caravanas en camino (para los tests y el estado). */
+	/** Caravans on their way (for the tests and the status). */
 	static int active() {
 		return ACTIVE.size();
 	}

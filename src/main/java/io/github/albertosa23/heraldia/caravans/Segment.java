@@ -5,40 +5,40 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Tramo de camino que recorre una caravana (lógica pura): de un vértice de la ruta canónica entre dos aldeas vecinas
- * ({@link RoadLayout.Route}) a otro, en un sentido. La caravana sale de un vértice a entre {@link #DIST_MIN} y
- * {@link #DIST_MAX} bloques del jugador (nunca encima de él ni dentro de una aldea) y va hacia el punto de la ruta más
- * cercano al jugador, de modo que pasa por delante de él; recorre como mucho {@link #LENGTH} vértices y para antes de la
- * plaza de la aldea de destino.
+ * Stretch of road a caravan travels (pure logic): from one vertex of the canonical route between two neighboring villages
+ * ({@link RoadLayout.Route}) to another, in one direction. The caravan starts at a vertex between {@link #DIST_MIN} and
+ * {@link #DIST_MAX} blocks from the player (never on top of them nor inside a village) and heads to the point of the route
+ * closest to the player, so it passes in front of them; it travels at most {@link #LENGTH} vertices and stops before the
+ * destination village's plaza.
  *
- * @param inicio índice del vértice de salida en la ruta
- * @param fin    índice del vértice de llegada
- * @param paso   +1 (de {@code route.from} a {@code route.until}) o -1
+ * @param start index of the starting vertex in the route
+ * @param end   index of the arrival vertex
+ * @param step  +1 (from {@code route.from} to {@code route.until}) or -1
  */
 public record Segment(RoadLayout.Route route, int start, int end, int step) {
-	/** Vértices que recorre como mucho (16 bloques cada uno: unos 128 bloques) y como poco. */
+	/** Vertices it travels at most (16 blocks each: about 128 blocks) and at least. */
 	public static final int LENGTH = 8, MIN = 4;
-	/** Vértices que deja libres en cada punta de la ruta: la salida no está en una aldea y la llegada no es la plaza. */
+	/** Vertices left free at each end of the route: the start is not in a village and the arrival is not the plaza. */
 	public static final int VILLAGE_MARGIN = 3;
-	/** Distancia en bloques (en el plano) del jugador al vértice de salida. */
+	/** Distance in blocks (horizontal) from the player to the starting vertex. */
 	public static final int DIST_MIN = 24, DIST_MAX = 80;
 
-	/** Aldea a la que va (su plaza, empaquetada con {@link RoadLayout#pack}). */
+	/** Village it is going to (its plaza, packed with {@link RoadLayout#pack}). */
 	public long destination() {
 		return step > 0 ? route.until : route.from;
 	}
 
-	/** Aldea de la que viene. */
+	/** Village it comes from. */
 	public long origin() {
 		return step > 0 ? route.from : route.until;
 	}
 
-	/** Vértices del tramo, contando la salida y la llegada. */
+	/** Vertices of the segment, counting the start and the arrival. */
 	public int vertices() {
 		return Math.abs(end - start) + 1;
 	}
 
-	/** Índice en la ruta del k-ésimo vértice del tramo (0 = salida). */
+	/** Route index of the segment's k-th vertex (0 = start). */
 	public int vertex(int k) {
 		return start + k * step;
 	}
@@ -51,16 +51,16 @@ public record Segment(RoadLayout.Route route, int start, int end, int step) {
 		return (int) Math.floor(route.z(vertex(k)));
 	}
 
-	/** Longitud del tramo en bloques (a lo largo del camino). */
+	/** Length of the segment in blocks (along the road). */
 	public double length() {
 		return Math.abs(route.arc(end) - route.arc(start));
 	}
 
 	/**
-	 * El tramo para una caravana junto al jugador en (x, z), o null si no pasa ninguna ruta lo bastante cerca. De las
-	 * rutas dadas se toma el vértice de salida válido más cercano al jugador (a igual distancia, el de la ruta anterior
-	 * en la lista y el índice menor: determinista); el sentido, hacia el vértice de esa ruta más cercano al jugador (si es
-	 * el mismo, el que dice {@code seed}), y si en ese sentido no caben {@link #MIN} vértices, el otro.
+	 * The segment for a caravan near the player at (x, z), or null if no route passes close enough. Of the
+	 * given routes, the valid starting vertex closest to the player is taken (at equal distance, the one from the earlier
+	 * route in the list and the lower index: deterministic); the direction, towards that route's vertex closest to the
+	 * player (if it is the same one, the one {@code seed} says), and if {@link #MIN} vertices do not fit that way, the other.
 	 */
 	public static @Nullable Segment choose(List<RoadLayout.Route> routes, int x, int z, long seed) {
 		Segment best = null;
@@ -69,7 +69,7 @@ public record Segment(RoadLayout.Route route, int start, int end, int step) {
 			int n = r.vertices();
 			int lo = VILLAGE_MARGIN, hi = n - 1 - VILLAGE_MARGIN;
 			if (hi - lo < MIN) {
-				continue;           // ruta demasiado corta para un tramo fuera de las aldeas
+				continue;           // route too short for a segment outside the villages
 			}
 			int near = 0;
 			double nearD = Double.MAX_VALUE;
@@ -105,7 +105,7 @@ public record Segment(RoadLayout.Route route, int start, int end, int step) {
 		return Math.hypot(r.x(i) - x, r.z(i) - z);
 	}
 
-	/** Recorta el tramo para que acabe en su k-ésimo vértice (el camino no sigue más allá en un mundo existente). */
+	/** Trims the segment so it ends at its k-th vertex (the road does not go further in an existing world). */
 	public Segment until(int k) {
 		return new Segment(route, start, vertex(k), step);
 	}

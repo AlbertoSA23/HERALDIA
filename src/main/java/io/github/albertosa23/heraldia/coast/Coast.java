@@ -24,20 +24,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Faros y naufragios de la costa (heraldia:costa/&lt;tipo&gt;/&lt;estilo&gt;/&lt;variante&gt;, tools/gen/litoral, T42): un
- * structure_set por tipo con su rejilla heraldia:rejilla (grupo costa/&lt;tipo&gt;, opciones faros.* y naufragios.*) y el
- * tipo propio {@link CoastStructure}, que busca la orilla. La regla de colocación es la de las minas ({@link Mines#family}),
- * con su familia propia, y cede además a las minas:
+ * Lighthouses and shipwrecks on the coast (heraldia:costa/&lt;type&gt;/&lt;style&gt;/&lt;variant&gt;, tools/gen/litoral, T42): one
+ * structure_set per type with its heraldia:rejilla grid (group costa/&lt;type&gt;, options faros.* and naufragios.*) and the
+ * own type {@link CoastStructure}, which looks for the shore. The placement rule is the mines' one ({@link Mines#family}),
+ * with its own family, and it also yields to the mines:
  * <ul>
- * <li>nunca en la zona de una aldea o una única que sale (medianas.distancia_aldeas_unicas_bloques), junto a una
- * estructura vanilla o de otro mod que asoma (los naufragios y ruinas marinas vanilla incluidos) ni en la Atlántida;</li>
- * <li>a menos de medianas.distancia_minima.bloques de una mediana o una entrada a mina que sale (ceden siempre: ni las
- * medianas ni las minas saben de la costa, así que nada de lo ya hecho cambia de sitio);</li>
- * <li>entre un faro y un naufragio, esa misma distancia (la recursión por rangos de las únicas). Dos del mismo tipo los
- * separa su rejilla.</li>
+ * <li>never in the zone of a village or a unique that wins (medianas.distancia_aldeas_unicas_bloques), next to a
+ * vanilla or other mod's structure that shows above ground (vanilla shipwrecks and ocean ruins included) nor in Atlantis;</li>
+ * <li>within medianas.distancia_minima.bloques of a medium structure or a mine entrance that wins (they always yield: neither
+ * the mediums nor the mines know about the coast, so nothing already made changes place);</li>
+ * <li>between a lighthouse and a shipwreck, that same distance (the uniques' range recursion). Two of the same type are
+ * kept apart by their grid.</li>
  * </ul>
- * Los caminos no pasan por encima: su trazado salta las cajas de las estructuras de superficie. Solo corre en los chunks
- * candidatos (uno por tipo cada 48-64 chunks de lado, y solo en las playas).
+ * Roads do not run over them: their layout skips the boxes of surface structures. It only runs in the candidate chunks
+ * (one per type every 48-64 chunks per side, and only on beaches).
  */
 public final class Coast {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -54,17 +54,17 @@ public final class Coast {
 		this.family = family;
 	}
 
-	/** Tipo de estructura de los faros y naufragios. Una línea en Heraldia. */
+	/** Structure type of the lighthouses and shipwrecks. One line in Heraldia. */
 	public static void register() {
 		Registry.register(BuiltInRegistries.STRUCTURE_TYPE, Heraldia.id("costa"), CoastStructure.TYPE);
 	}
 
-	/** Barato: solo las heraldia:costa/* pasan de aquí. */
+	/** Cheap: only heraldia:costa/* get past here. */
 	public static boolean isCoast(Identifier id) {
 		return id.getNamespace().equals(Heraldia.MOD_ID) && id.getPath().startsWith(PREFIX);
 	}
 
-	/** Prefijo de las opciones de un tipo («faros» o «naufragios»), o null si no es de la costa. */
+	/** Prefix of a type's options ("faros" or "naufragios"), or null if it is not a coast one. */
 	public static @Nullable String option(String type) {
 		return switch (type) {
 			case "faro" -> LIGHTHOUSES;
@@ -73,12 +73,12 @@ public final class Coast {
 		};
 	}
 
-	/** Tipo de una estructura de la costa (heraldia:costa/&lt;tipo&gt;/...): «faro» o «naufragio». */
+	/** Type of a coast structure (heraldia:costa/&lt;type&gt;/...): "faro" or "naufragio". */
 	public static String type(Identifier id) {
 		return id.getPath().split("/")[1];
 	}
 
-	/** ¿Puede salir el tipo con la configuración en uso? */
+	/** Can the type spawn with the configuration in use? */
 	public static boolean enabled(HeraldiaConfig cfg, String type) {
 		String o = option(type);
 		return o != null && cfg.getBool(o + ".activado");
@@ -100,12 +100,12 @@ public final class Coast {
 		return t;
 	}
 
-	/** La regla de la familia (pruebas e /heraldia info). */
+	/** The family's rule (tests and /heraldia info). */
 	public Mines family() {
 		return family;
 	}
 
-	/** El faro o naufragio id con inicio en (chunkX, chunkZ) no sale (ver la clase). Solo para la costa; el resto, falso. */
+	/** The lighthouse or shipwreck id starting at (chunkX, chunkZ) does not win (see the class). Only for the coast; the rest, false. */
 	public boolean rejects(Identifier id, int chunkX, int chunkZ, long seed, RegistryAccess access, ChunkGenerator generator,
 						   BiomeSource biomeSource, Climate.Sampler sampler, RandomState randomState, StructureTemplateManager templates,
 						   LevelHeightAccessor height, ResourceKey<Level> dimension) {
