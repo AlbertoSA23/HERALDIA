@@ -23,6 +23,7 @@ Un mod de Fabric para **Minecraft 26.3** que enche o Mundo Superior de lugares q
 - 🧭 **O teu diario.** `/heraldia journal` amósache no chat, tipo por tipo e cunha barra de progreso, o que atopaches e o que che falta: familias de aldeas, estruturas únicas, estruturas medianas, tamaños de mina, faros e naufraxios, o Nether e o End. Preme nun tipo para ver os nomes. Sen coordenadas: atopalas é cousa túa.
 - 📋 **Encargos das aldeas.** Toca o atril do taboleiro da praza dunha aldea (ou usa alí `/heraldia quest`): saen no chat de 2 a 4 encargos (traer obxectos, vencer un gardián, explorar, viaxar a unha aldea veciña, a area) que cambian cada poucos días. Pagan esmeraldas, experiencia e reputación con esa aldea: como coñecido, amigo e heroe da aldea, os seus aldeáns rebaixan os prezos un 10, 20 e 30 %. Atacar os seus aldeáns ou gólems faina baixar.
 - 🐪 **Caravanas.** De cando en vez, preto de ti, un mercador de Heraldia coas súas llamas (e ás veces un garda) percorre o camiño entre dúas aldeas veciñas. Se o asaltan os bandidos, defendeo: ao chegar págache esmeraldas e reputación coa súa aldea de destino. Se o mercador morre, a caravana pérdese.
+- 🚶 **Xente de paso.** Vida nos camiños, tamén preto de ti: un peregrino camiño dun mosteiro ou dunha catedral, un pastor co seu rabaño, un mensaxeiro con présa, unha parella de gardas de patrulla ou un cazador que volve co seu can, segundo a zona. Percorren un treito e vanse; o pastor e o cazador comercian, e se lles fas dano saberase na súa aldea.
 - 🏆 **Logros.** Unha lapela Heraldia con 122 logros: unha aldea de cada familia, cada estrutura única co seu gardián e o seu tesouro, as minas, os faros e naufraxios, as estruturas medianas, o taboleiro de encargos, a area e as caravanas.
 - 🗿 **Trofeos.** Cada un dos 22 gardiáns solta o seu trofeo, un obxecto con nome e historia. Reúneos todos para completar a Sala de trofeos.
 - 🗺️ **Mapas do tesouro.** Cada mapa marca a estrutura única máis próxima do seu tipo. Saen nos cofres épicos das aldeas e véndenos os cartógrafos.
@@ -68,6 +69,7 @@ O ficheiro `config/heraldia.json` créase no primeiro arranque do servidor, cun 
 | `encargos.activado` | `true` | Encargos do taboleiro (`/heraldia quest`). |
 | `reputacion.activado` | `true` | Reputación por aldea e os seus descontos. |
 | `caravanas.activado` | `true` | Caravanas polos camiños (operadores: `/heraldia caravan`). |
+| `viajeros.activado` | `true` | Xente de paso polos camiños, cada tipo coa súa opción (operadores: `/heraldia caravan wayfarer`). |
 | `chozas_mago.prob_malvado` | 20 | Probabilidade (%) de que o mago dunha choza de mago sexa un mago malvado disfrazado. |
 | `guia.entregar_al_entrar` | `true` | Dálle a Guía do Heraldo a cada xogador ao entrar. |
 | `update_check.activado` | `true` | Avisa os operadores cando hai unha versión nova. |

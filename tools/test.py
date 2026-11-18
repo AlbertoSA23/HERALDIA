@@ -82,7 +82,7 @@ PROFILES = ["tools/smoke/profiles.py", "tools/smoke/light_profile.py"]
 # Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements.
 QUESTS = ["tools/smoke/quests.py"]
 # Caravans along the roads (T39): their Java and their texts and advancement.
-CARAVANS = ["tools/smoke/caravans.py"]
+CARAVANS = ["tools/smoke/caravans.py", "tools/smoke/wayfarers.py"]
 # The medium structure types bring anchored mobs (and adult zombies): the tests that go through all the template mobs.
 MEDIUMS_MOBS = MEDIUMS + ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"]
 # Nether and End content (T44): medium and unique structures with DIMENSION, their structure type and their placement
@@ -317,6 +317,7 @@ DURATION_S = {
     "tools/smoke/nether_end.py": 300,                # T44: one start, /locate and generation in the Nether and the End, /place of 16 styles
     "tools/smoke/wizard_huts.py": 100,               # measured locally: ~75 s (two starts, four huts and three Evil Wizards)
     "tools/smoke/caravans.py": 240,                 # measured locally: ~3.5 min (two starts, 387 corridor chunks and 5 caravans)
+    "tools/smoke/wayfarers.py": 240,                # one start, the caravans' corridor and 7 wayfarers (estimate; see the PR)
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined

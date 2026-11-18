@@ -9,6 +9,7 @@ Back to the [README](../README.md).
 - **Huge villages**: 72 structures (36 biome styles, each in a standard and a large size).
 - **Atlantis**: a single sunken city per world (see below).
 - **Caravans**: merchants with llamas travelling the roads between villages; defend them from bandits (see [Caravans](#caravans)).
+- **Wayfarers**: pilgrims, shepherds, messengers, pairs of guards and hunters passing along the roads near you, by area (see [Wayfarers](#wayfarers)).
 - **Wizard's huts**: a wizard with trades in a richly decorated hut; one in five is an evil wizard in disguise (see [Wizard's huts](#wizards-huts)).
 - **Wave arena**: a coliseum near spawn to play in waves, with records and rewards (see [Wave arena](#wave-arena)).
 - **Nether and End**: 7 medium structures and 2 unique structures beyond the portals (see [Nether and End](#nether-and-end)).
@@ -167,6 +168,23 @@ Caravans sometimes travel the [roads](#roads-between-villages) (`caravanas.*` in
 - **Farewell**: if no player is within 64 blocks for 30 s, if its chunks unload, if the road ends, if it gets stuck or after 10 minutes (3 under attack), it takes its leave and all its entities are removed (the bandits too).
 
 Performance: no per-tick work except the caravan on the road (one step per second with a few entities) and the draw every minute; the route is looked up off the server thread with the road layout, which is already in memory. Nothing is saved: when the server stops its entities are removed and, at startup, any caravan entity that loads (from a chunk unloaded mid-journey) is removed, so there are never orphaned or duplicated ones.
+
+## Wayfarers
+
+Besides the caravans, people pass along the [roads](#roads-between-villages) near the players: life you come across without looking for it (`viajeros.*` in the [configuration](CONFIGURATION.md#configuration), each kind with its own switch; also in an existing world, only along roads that really exist). They use the caravans' engine: the same search for a stretch of road 24 to 80 blocks from the player in chunks already loaded, the same journey of up to 8 waypoints (about 128 blocks, away from the squares) and the same goodbye and cleanup.
+
+- **When**: every minute (half a minute after the caravans' draw), with chance `viajeros.frecuencia` (30 %) next to a player, at least 2 minutes after the previous one and with at most `viajeros.max_activos` (1) on the road on the whole server, apart from the caravans; never within 160 blocks of another caravan or wayfarer. People travel by day; by night only the guards patrol. Operators bring one whenever they want with `/heraldia caravan wayfarer [pilgrim | shepherd | messenger | patrol | hunter]` (without a kind, the draw chooses one that fits the area; with a kind, it ignores the area and the hour), and `/heraldia caravan list` and `clear` include them. When one sets off, the players within 64 blocks read in the action bar who passes and where it goes.
+- **Who**, by the area's village family (the biome tags of the village styles):
+  - **Pilgrim** (1 entity): walks alone, with its staff, towards the nearest **monastery** or **cathedral** that really spawns within 3,000 blocks (the same check as `/locate`); if there is none, there is no pilgrim, and it walks the stretch in the direction that takes it closer. It does not trade.
+  - **Shepherd** (4 to 6): drives 3 to 5 sheep towards the neighbouring village, mostly white and the rest in the colors of the land (grey and brown in the taiga, black in the dark forest, pink in the cherry groves...); not in desert, badlands, jungle or swamp. Sells 2 wool of its flock's colors (1 emerald, 4 times per color), 4 cooked mutton (1 emerald, twice) and buys 18 wheat for 1 emerald (3 times).
+  - **Messenger** (1): runs twice as fast as a merchant with a letter for the neighbouring village and does not stop: it does not trade.
+  - **Pair of guards** (2): two iron golems of the village of origin ("Guard of ...") patrol towards the next one, by day and by night; they fight the monsters they meet and defend each other.
+  - **Hunter** (2): comes back to its village with the area's game in its hands (rabbit in open land, boar in the taiga and the dark forest, fowl in jungle and swamp) and its dog, a tame wolf of the local variant that defends it. Sells 3 cooked game (1 emerald), hides, leather or feathers (1 emerald), 8 arrows (1 emerald) and, where there are rabbits, a rabbit's foot (3 emeralds, once).
+- **Trades**: cheap and few (a wayfarer passes once and does not restock), with nothing that breaks the progression (no enchantments, netherite or elytra). There is no reward for meeting them: they are life on the road.
+- **Attacking them**: hurting one costs reputation with its village of origin, as hurting a villager or a golem of the village does (−5 for a person, −3 for a guard, −2 for an animal; once per player and encounter), and killing it costs more (−40, −20, −10); the player is told that word will reach that village. The guards answer together and the hunter's dog defends its owner. Killing them drops nothing (no farming).
+- **Farewell**: as the caravans, if no player is within 64 blocks for 30 s, if its chunks unload, if the road ends, if it gets stuck or after 10 minutes. At the end of its stretch, if a player is within 32 blocks, it does not vanish in sight: it walks on towards its village and is removed when nobody is near (1 minute at most). If its leader dies, the rest are removed.
+
+Performance: the same as a caravan, and lighter. One encounter at a time (configurable up to 3), from 1 to 6 vanilla entities with simple goal AI (wandering traders, iron golems, sheep and a wolf: no villager brains, beds or job sites), on the road for about a minute (the messenger, half; the slowest, the guards, about two) and 10 minutes at most; one step per second for the one on the road and a draw per minute; the stretch and the shrine are looked up off the server thread (the shrine check is done once per candidate cell and remembered). Nothing is saved: their entities carry the caravans' tag and are removed when the server stops or if they load without their encounter.
 
 ## Atlantis
 

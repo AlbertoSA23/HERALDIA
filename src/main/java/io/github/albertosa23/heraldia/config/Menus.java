@@ -34,7 +34,7 @@ public final class Menus {
 			new Menu("arena", List.of("arena.activado", "arena.max_mobs_vivos", "arena.experiencia_porcentaje",
 					"arena.modos.cooperativo", "arena.modos.contrarreloj", "arena.modos.supervivencia", "arena.temporada.dia_reinicio")),
 			new Menu("jugadores", List.of("guia.entregar_al_entrar", "encargos.activado", "reputacion.activado",
-					"caravanas.activado", "caravanas.frecuencia", "caravanas.prob_asalto")),
+					"caravanas.activado", "caravanas.frecuencia", "caravanas.prob_asalto", "viajeros.activado", "viajeros.frecuencia")),
 			new Menu("avanzado", List.of("unicas.rejilla_compatible", "compatibilidad.zona_estructuras_ajenas_bloques",
 					"aldeas.distancia_aldeas_vanilla_bloques", "actualizar.margen_bloques", "update_check.activado",
 					"mapas_web.activado", "mapas_web.solo_descubiertas")));

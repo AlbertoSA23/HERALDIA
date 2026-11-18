@@ -300,12 +300,15 @@ def test_ci_matrix_says_yes_goes_the_cost():
 
 
 def test_caravans():
-    p = ["tools/smoke/caravans.py"]
+    p = ["tools/smoke/caravans.py", "tools/smoke/wayfarers.py"]      # the wayfarers run on the caravans' engine
     assert pick(J + "caravans/Caravans.java") == (False, p)
     assert pick(J + "caravans/Journey.java") == (False, p)
+    assert pick(J + "caravans/Wayfarers.java") == (False, p)
     assert pick("tools/gen/caravans.py") == (False, p)
-    assert pick("tools/smoke/caravans.py") == (False, p)
+    assert pick("tools/smoke/caravans.py") == (False, ["tools/smoke/caravans.py"])
+    assert pick("tools/smoke/wayfarers.py") == (False, ["tools/smoke/wayfarers.py"])
     assert sel.DURATION_S["tools/smoke/caravans.py"] > 0
+    assert sel.DURATION_S["tools/smoke/wayfarers.py"] > 0
 
 
 def test_wizard_huts():
