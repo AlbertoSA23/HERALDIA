@@ -10,9 +10,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso): de noche, un ahogado en el agua cerca de la superficie sale a buscar la orilla
- * ({@code DrownedGoToBeachGoal}) sin mirar {@code noActionTime}. Un ahogado anclado ({@link Anchoring}) que
- * aún no ha entrado en combate no lo usa (es la pareja nocturna de {@link DrownedWaterMixin}).
+ * Mixin (last resort): at night, a drowned in the water near the surface goes looking for the shore
+ * ({@code DrownedGoToBeachGoal}) without looking at {@code noActionTime}. An anchored drowned ({@link Anchoring}) that
+ * has not entered combat yet does not use it (it is the night-time partner of {@link DrownedWaterMixin}).
  */
 @Mixin(targets = "net.minecraft.world.entity.monster.zombie.Drowned$DrownedGoToBeachGoal")
 abstract class DrownedBeachMixin {

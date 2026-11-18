@@ -10,9 +10,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso: no hay evento para la experiencia de una muerte): los mobs de la arena dan el
- * arena.experiencia_porcentaje % (15 por defecto) de la experiencia vanilla, ya escalada por el juego (encantamientos).
- * Salida temprana con el conjunto de etiquetas (casi siempre vacío).
+ * Mixin (last resort: there is no event for the experience of a kill): arena mobs give
+ * arena.experiencia_porcentaje % (15 by default) of the vanilla experience, already scaled by the game (enchantments).
+ * Early exit with the tag set (almost always empty).
  */
 @Mixin(LivingEntity.class)
 abstract class ArenaExperienceMixin {

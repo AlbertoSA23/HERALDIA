@@ -19,10 +19,10 @@ import org.dynmap.markers.MarkerSet;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Dynmap (DynmapCoreAPI 3.x): un conjunto de marcadores (no persistente: se rehace al arrancar) por capa, con iconos
- * propios, en el mundo del Overworld (Dynmap lo nombra con el nombre del nivel). Solo se carga si Dynmap está
- * (MapasWeb.ADAPTADORES). La API de marcadores de Dynmap no es segura entre hilos: todo se aplica en el hilo del servidor
- * (unas decenas o centenares de marcadores, al descubrir algo).
+ * Dynmap (DynmapCoreAPI 3.x): one marker set (not persistent: rebuilt at startup) per layer, with own
+ * icons, in the Overworld's world (Dynmap names it with the level name). Only loaded if Dynmap is there
+ * (WebMaps.ADAPTERS). Dynmap's marker API is not thread-safe: everything is applied on the server thread
+ * (a few dozen or hundred markers, when something is discovered).
  */
 public final class DynmapAdapter extends DynmapCommonAPIListener implements WebMap {
 	private final WebMaps.Context ctx;

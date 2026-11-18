@@ -9,11 +9,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Mixin (último recurso: no hay evento al calcular los precios de un aldeano): al final de
- * {@code Villager.updateSpecialPrices}, que vanilla llama al abrir los tratos (tras sumar los cotilleos y Héroe de la
- * aldea, y antes de enviar las ofertas), la rebaja por la reputación del jugador con la aldea (T38). Vanilla la
- * deshace al cerrar los tratos ({@code resetSpecialPrices}), así que no se guarda en el aldeano. Salida temprana sin
- * datos de reputación.
+ * Mixin (last resort: there is no event when a villager's prices are computed): at the end of
+ * {@code Villager.updateSpecialPrices}, which vanilla calls when the trades open (after adding gossip and Hero of the
+ * Village, and before sending the offers), the discount for the player's reputation with the village (T38). Vanilla
+ * undoes it when the trades close ({@code resetSpecialPrices}), so it is not saved on the villager. Early exit without
+ * reputation data.
  */
 @Mixin(Villager.class)
 abstract class VillagerPricesMixin {

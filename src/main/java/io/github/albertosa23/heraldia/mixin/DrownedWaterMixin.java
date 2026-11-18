@@ -10,10 +10,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso): de día, un ahogado fuera del agua va hacia el agua que haya a 10 bloques
- * ({@code DrownedGoToWaterGoal}); el objetivo no mira {@code noActionTime} y no hay forma de quitárselo con datos ni con
- * la API. Un ahogado anclado ({@link Anchoring}) que aún no ha entrado en combate no lo usa: el capitán del galeón salía
- * así de su camarote. Salida temprana con el conjunto de etiquetas.
+ * Mixin (last resort): by day, a drowned out of the water heads to any water within 10 blocks
+ * ({@code DrownedGoToWaterGoal}); the goal does not look at {@code noActionTime} and there is no way to remove it with data or
+ * the API. An anchored drowned ({@link Anchoring}) that has not entered combat yet does not use it: the galleon's captain
+ * used to leave his cabin this way. Early exit with the tag set.
  */
 @Mixin(targets = "net.minecraft.world.entity.monster.zombie.Drowned$DrownedGoToWaterGoal")
 abstract class DrownedWaterMixin {

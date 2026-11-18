@@ -11,9 +11,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mapas web: avisa cuando un jugador consigue un criterio de un logro (descubrir una estructura). Mixin porque ni Fabric
- * API ni los datos tienen un evento por criterio (la recompensa de un logro solo llega al terminarlo entero). Salida
- * temprana barata: nada si no hay mapas web o el logro no es de Heraldia.
+ * Web maps: notifies when a player earns a criterion of an advancement (discovering a structure). A mixin because neither Fabric
+ * API nor the data have a per-criterion event (an advancement's reward only arrives when it is fully finished). Cheap early
+ * exit: nothing if there are no web maps or the advancement is not Heraldia's.
  */
 @Mixin(PlayerAdvancements.class)
 abstract class PlayerAdvancementsMixin {

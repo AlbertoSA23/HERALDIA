@@ -50,35 +50,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Marcadores de Heraldia en los mapas web del servidor (BlueMap, Dynmap y squaremap), dependencias opcionales: cada mapa
- * se detecta al iniciar con {@code FabricLoader.isModLoaded} y solo entonces se carga su adaptador (por nombre, en su
- * paquete); sin ninguno no se registra ningún evento y el mod no cambia nada.
+ * Heraldia markers on the server's web maps (BlueMap, Dynmap and squaremap), optional dependencies: each map
+ * is detected at startup with {@code FabricLoader.isModLoaded} and only then is its adapter loaded (by name, from its
+ * package); with none of them no event is registered and the mod changes nothing.
  * <ul>
- * <li>De dónde salen: cada chunk del Overworld que se carga (evento de Fabric, en el hilo del servidor) trae los inicios de
- * estructura que empiezan en él: los de Heraldia se apuntan en el {@link Ledger} (unas búsquedas en un mapa; casi
- * siempre vacío) y la arena, de {@link Arena#center()}.</li>
- * <li>Qué sale: {@link Markers} (opciones mapas_web.*; con solo_descubiertas, lo mismo que cuenta /heraldia status).</li>
- * <li>Cuándo: al arrancar (lee el registro y los logros de los jugadores fuera del hilo), cuando alguien consigue un logro de
- * Heraldia (PlayerAdvancementsMixin), cuando aparece una estructura nueva, tras /heraldia reload y con /heraldia webmap
- * refresh. Todo el trabajo va en un hilo propio, agrupado (una actualización cada {@value #WAIT_MS} ms como mucho).</li>
+ * <li>Where they come from: each Overworld chunk that loads (Fabric event, on the server thread) brings the structure starts
+ * that begin in it: Heraldia's are recorded in the {@link Ledger} (a few map lookups; almost
+ * always empty) and the arena, from {@link Arena#center()}.</li>
+ * <li>What shows: {@link Markers} (options mapas_web.*; with solo_descubiertas, the same as /heraldia status counts).</li>
+ * <li>When: at startup (reads the ledger and the players' advancements off the thread), when someone earns a Heraldia
+ * advancement (PlayerAdvancementsMixin), when a new structure appears, after /heraldia reload and with /heraldia webmap
+ * refresh. All the work runs on its own thread, batched (at most one update every {@value #WAIT_MS} ms).</li>
  * </ul>
  */
 public final class WebMaps {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
 	public static final String ENABLED = "mapas_web.activado", ONLY_DISCOVERED = "mapas_web.solo_descubiertas",
 			LANGUAGE = "mapas_web.idioma";
-	/** id del mod → adaptador (por nombre: así su clase, y la API del mapa, solo se cargan si el mod está). */
+	/** mod id → adapter (by name: so its class, and the map's API, are only loaded if the mod is there). */
 	public static final Map<String, String> ADAPTERS = adapters();
 	static final long WAIT_MS = 2000;
 
 	private static List<String> present = List.of();
 	private static volatile List<WebMap> maps = List.of();
 	private static final Ledger LEDGER = new Ledger();
-	/** Logros de todos los jugadores; solo se tocan desde el hilo de los mapas web. */
+	/** Advancements of all players; only touched from the web maps' thread. */
 	private static State.Achievements advancements = new State.Achievements();
 	private static @Nullable ScheduledExecutorService thread;
 	private static final AtomicBoolean PENDING = new AtomicBoolean();
-	/** Si un mapa aún no está listo, se reintenta (cada {@value #WAIT_MS} ms) hasta este número de veces. */
+	/** If a map is not ready yet, it is retried (every {@value #WAIT_MS} ms) up to this many times. */
 	static final int MAX_RETRIES = 60;
 	private static final java.util.concurrent.atomic.AtomicInteger RETRIES = new java.util.concurrent.atomic.AtomicInteger();
 	private static volatile @Nullable Path file;
@@ -96,12 +96,12 @@ public final class WebMaps {
 		return Map.copyOf(m);
 	}
 
-	/** Los mods de mapa que están cargados, en orden (lógica pura). */
+	/** The map mods that are loaded, in order (pure logic). */
 	public static List<String> detected(Predicate<String> loaded) {
 		return ADAPTERS.keySet().stream().sorted().filter(loaded).toList();
 	}
 
-	/** Una línea en Heraldia.onInitialize. Sin mapas web cargados no registra nada. */
+	/** One line in Heraldia.onInitialize. Without web maps loaded it registers nothing. */
 	public static void register() {
 		present = detected(FabricLoader.getInstance()::isModLoaded);
 		if (present.isEmpty()) {
@@ -113,12 +113,12 @@ public final class WebMaps {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> stop());
 	}
 
-	/** ¿Hay algún mapa web en uso? */
+	/** Is any web map in use? */
 	public static boolean inUse() {
 		return !maps.isEmpty();
 	}
 
-	// --- eventos ---
+	// --- events ---
 
 	private static void start(MinecraftServer server) {
 		familyStyle = styles(HeraldiaConfig.get());
@@ -181,7 +181,7 @@ public final class WebMaps {
 		advancements = new State.Achievements();
 	}
 
-	/** Hilo del servidor: los inicios de estructura de Heraldia que empiezan en este chunk. Salida temprana barata. */
+	/** Server thread: the Heraldia structure starts that begin in this chunk. Cheap early exit. */
 	private static void onChunkLoad(ServerLevel level, LevelChunk chunk, boolean generated) {
 		if (maps.isEmpty() || level.dimension() != Level.OVERWORLD) {
 			return;
@@ -213,8 +213,8 @@ public final class WebMaps {
 	}
 
 	/**
-	 * Hilo del servidor (PlayerAdvancementsMixin): un jugador acaba de conseguir un criterio de un logro de Heraldia.
-	 * Se suma a los logros conocidos y se actualizan los mapas (agrupado).
+	 * Server thread (PlayerAdvancementsMixin): a player has just earned a criterion of a Heraldia advancement.
+	 * It is added to the known advancements and the maps are updated (batched).
 	 */
 	public static void onAward(ServerPlayer player, AdvancementHolder holder, String criterion) {
 		ScheduledExecutorService ex = thread;
@@ -228,7 +228,7 @@ public final class WebMaps {
 		schedule();
 	}
 
-	/** Pide una actualización de los mapas (se agrupan: como mucho una cada {@value #WAIT_MS} ms). */
+	/** Requests a map update (they are batched: at most one every {@value #WAIT_MS} ms). */
 	public static void schedule() {
 		ScheduledExecutorService ex = thread;
 		if (ex == null || maps.isEmpty() || !PENDING.compareAndSet(false, true)) {
@@ -240,13 +240,13 @@ public final class WebMaps {
 				refresh();
 			}, WAIT_MS, TimeUnit.MILLISECONDS);
 		} catch (RuntimeException e) {
-			PENDING.set(false);   // parando
+			PENDING.set(false);   // stopping
 		}
 	}
 
-	// --- la actualización (hilo de los mapas web) ---
+	// --- the update (web maps' thread) ---
 
-	/** Opciones en uso (lee la configuración cada vez: se recargan con /heraldia reload). */
+	/** Options in use (reads the configuration every time: they reload with /heraldia reload). */
 	static Markers.Options options(HeraldiaConfig cfg) {
 		Set<Layer> layers = EnumSet.noneOf(Layer.class);
 		for (Layer c : Layer.values()) {
@@ -257,12 +257,12 @@ public final class WebMaps {
 		return new Markers.Options(cfg.getBool(ENABLED), cfg.getBool(ONLY_DISCOVERED), layers);
 	}
 
-	/** Código de idioma de los textos de los mapas: el de mapas_web.idioma o, con «auto», el de la JVM. */
+	/** Language code of the map texts: that of mapas_web.idioma or, with "auto", the JVM's. */
 	static String language(String option, Locale jvm) {
 		return "auto".equals(option) ? (jvm.getLanguage() + "_" + jvm.getCountry()).toLowerCase(Locale.ROOT) : option;
 	}
 
-	/** Recalcula y publica los marcadores; devuelve cuántos hay. */
+	/** Recomputes and publishes the markers; returns how many there are. */
 	static int refresh() {
 		List<WebMap> ms = maps;
 		if (ms.isEmpty()) {
@@ -285,7 +285,7 @@ public final class WebMaps {
 			}
 		}
 		if (!ready && RETRIES.getAndIncrement() < MAX_RETRIES) {
-			schedule();        // algún mapa arranca después que el servidor: otra vez dentro de un rato
+			schedule();        // some map starts after the server: again in a while
 		} else if (ready) {
 			RETRIES.set(0);
 		}
@@ -324,7 +324,7 @@ public final class WebMaps {
 				.then(Commands.literal("refresh").executes(ctx -> refreshByHand(ctx.getSource())));
 	}
 
-	/** Vuelve a leer los logros de todos los jugadores (los conectados, de memoria) y publica; contesta al acabar. */
+	/** Reads the advancements of all players again (online ones, from memory) and publishes; replies when done. */
 	private static int refreshByHand(CommandSourceStack src) {
 		ScheduledExecutorService ex = thread;
 		if (maps.isEmpty() || ex == null) {
@@ -361,13 +361,13 @@ public final class WebMaps {
 	}
 
 	/**
-	 * Lo que reciben los adaptadores: el nombre del nivel (Dynmap nombra así el Overworld), el hilo del servidor y el
-	 * Overworld (BlueMap lo acepta para encontrar su mundo).
+	 * What the adapters get: the level name (Dynmap names the Overworld that way), the server thread and the
+	 * Overworld (BlueMap accepts it to find its world).
 	 */
 	public record Context(String levelName, Executor serverThread, Object overworld) {
 	}
 
-	/** Para las pruebas: el registro en uso. */
+	/** For the tests: the ledger in use. */
 	static Ledger ledger() {
 		return LEDGER;
 	}

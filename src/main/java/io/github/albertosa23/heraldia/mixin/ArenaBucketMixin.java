@@ -14,10 +14,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso: Fabric API no tiene evento para lo que vacía un dispensador): un dispensador junto a la arena
- * no vacía en ella cubos de agua, lava ni nieve polvo ({@code emptyContents} devuelve false y el dispensador suelta el
- * cubo como objeto, como cuando no puede vaciarlo). Los jugadores ya los para {@code Arena.useItem}. Salida
- * temprana sin arena o en otro mundo.
+ * Mixin (last resort: Fabric API has no event for what a dispenser empties): a dispenser next to the arena
+ * does not empty water, lava or powder snow buckets into it ({@code emptyContents} returns false and the dispenser drops the
+ * bucket as an item, like when it cannot empty it). Players are already stopped by {@code Arena.useItem}. Early
+ * exit without an arena or in another world.
  */
 @Mixin({BucketItem.class, SolidBucketItem.class})
 abstract class ArenaBucketMixin {

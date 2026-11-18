@@ -33,19 +33,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Entradas a mina (heraldia:minas/&lt;tamaño&gt;/&lt;estilo&gt;/&lt;variante&gt;, tools/gen/minas): un structure_set por tamaño
- * con su rejilla heraldia:rejilla (grupo minas/&lt;tamaño&gt;). Una candidata se descarta con las reglas de las medianas
- * ({@link MediumStructures}), sin cambiar las de estas:
+ * Mine entrances (heraldia:minas/&lt;size&gt;/&lt;style&gt;/&lt;variant&gt;, tools/gen/minas): one structure_set per size
+ * with its heraldia:rejilla grid (group minas/&lt;size&gt;). A candidate is discarded with the mediums' rules
+ * ({@link MediumStructures}), without changing theirs:
  * <ul>
- * <li>en la zona de una aldea o una única que sale (medianas.distancia_aldeas_unicas_bloques), junto a una estructura
- * vanilla o de otro mod que asoma, o dentro de la Atlántida;</li>
- * <li>a menos de medianas.distancia_minima.bloques de una mediana que sale ({@link MediumStructures#near}): la mina cede siempre
- * (las medianas no saben de las minas, así que ninguna mediana cambia de sitio por ellas);</li>
- * <li>a menos de esa misma distancia de una entrada de otro tamaño de rango mayor que sobrevive ({@link UniqueSeparation},
- * la recursión por rangos de las únicas). Dos del mismo tamaño ya las separa su rejilla.</li>
+ * <li>in the zone of a village or a unique that wins (medianas.distancia_aldeas_unicas_bloques), next to a vanilla
+ * or other mod's structure that shows above ground, or inside Atlantis;</li>
+ * <li>within medianas.distancia_minima.bloques of a medium that wins ({@link MediumStructures#near}): the mine always yields
+ * (the mediums do not know about the mines, so no medium changes place because of them);</li>
+ * <li>within that same distance of an entrance of another, higher-ranked size that survives ({@link UniqueSeparation},
+ * the uniques' range recursion). Two of the same size are already kept apart by their grid.</li>
  * </ul>
- * Solo corre en los chunks candidatos de una entrada (uno por tamaño cada 48-120 chunks de lado); las viabilidades (la
- * búsqueda de ladera) y las decisiones quedan en memoria por semilla. Inmutable salvo las memorias.
+ * It only runs in an entrance's candidate chunks (one per size every 48-120 chunks per side); the viabilities (the
+ * hillside search) and the decisions are memoized per seed. Immutable except the memos.
  */
 public final class Mines {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -66,7 +66,7 @@ public final class Mines {
 	private record Memory(long seed, ConcurrentHashMap<Long, Boolean> decisions, ConcurrentHashMap<Long, Boolean> exits) {
 	}
 
-	/** Pública para las pruebas: tamaños, ids y estructuras de cada uno, sus rejillas y la distancia mínima (bloques). */
+	/** Public for the tests: sizes, ids and structures of each, their grids and the minimum distance (blocks). */
 	public Mines(Object source, List<Identifier> types, List<List<Identifier>> ids, List<List<Structure>> styles,
 				 List<RandomSpreadStructurePlacement> placements, int distance) {
 		this.source = source;
@@ -85,13 +85,13 @@ public final class Mines {
 				Collections.nCopies(types.size(), false), distance > 0, distance);
 	}
 
-	/** Tipo de estructura y colocación de las minas vanilla multiplicadas. Una línea en Heraldia. */
+	/** Structure type and placement of the multiplied vanilla mineshafts. One line in Heraldia. */
 	public static void register() {
 		Registry.register(BuiltInRegistries.STRUCTURE_TYPE, Heraldia.id("mina_entrada"), MineEntranceStructure.TYPE);
 		Registry.register(BuiltInRegistries.STRUCTURE_PLACEMENT, Heraldia.id("minas_vanilla"), VanillaMinesPlacement.CODEC);
 	}
 
-	/** Barato: solo las heraldia:minas/* pasan de aquí. */
+	/** Cheap: only heraldia:minas/* get past here. */
 	public static boolean isMine(Identifier id) {
 		return id.getNamespace().equals(Heraldia.MOD_ID) && id.getPath().startsWith(PREFIX);
 	}
@@ -117,9 +117,9 @@ public final class Mines {
 	}
 
 	/**
-	 * La regla de una familia de estructuras con rejilla heraldia:rejilla de grupo «&lt;prefijo&gt;&lt;tipo&gt;» (las minas;
-	 * también los faros y naufragios de costa/Costa, que la reutilizan tal cual): un tipo por structure_set, separados
-	 * entre sí por {@code distance}. Sin escribir en el log.
+	 * The rule of a family of structures with a heraldia:rejilla grid of group "&lt;prefix&gt;&lt;type&gt;" (the mines;
+	 * also the lighthouses and shipwrecks of coast/Coast, which reuse it as is): one type per structure_set, kept apart
+	 * from each other by {@code distance}. Without writing to the log.
 	 */
 	public static Mines family(Registry<StructureSet> sets, RegistryAccess access, String prefix, int distance) {
 		Registry<Structure> structures = access.lookupOrThrow(Registries.STRUCTURE);
@@ -160,7 +160,7 @@ public final class Mines {
 		return types[i];
 	}
 
-	/** En el juego: ¿sale algún estilo del tamaño j ahí (bioma y ladera)? En memoria: es la búsqueda de ladera. */
+	/** In the game: does some style of size j win there (biome and hillside)? Memoized: it is the hillside search. */
 	public MediumStructures.Styles styles(RegistryAccess access, ChunkGenerator generator, BiomeSource biomeSource, Climate.Sampler sampler,
 									 RandomState randomState, StructureTemplateManager templates, long seed, LevelHeightAccessor height) {
 		return (j, x, z) -> {
@@ -185,7 +185,7 @@ public final class Mines {
 		};
 	}
 
-	/** La entrada id con inicio en (chunkX, chunkZ) no sale (ver la clase). Solo para minas (esMina); el resto, falso. */
+	/** The entrance id starting at (chunkX, chunkZ) does not win (see the class). Only for mines (isMine); the rest, false. */
 	public boolean rejects(Identifier id, int chunkX, int chunkZ, long seed, RegistryAccess access, ChunkGenerator generator,
 						   BiomeSource biomeSource, Climate.Sampler sampler, RandomState randomState, StructureTemplateManager templates,
 						   LevelHeightAccessor height, ResourceKey<Level> dimension) {
@@ -199,7 +199,7 @@ public final class Mines {
 				c.atlantis(), (x, z) -> med.near(x, z, distance, seed, c));
 	}
 
-	/** Lógica pura (pruebas): zona, estilos, Atlántida y medianas cercanas inyectados. En memoria por tamaño, chunk y semilla. */
+	/** Pure logic (tests): zone, styles, Atlantis and nearby mediums injected. Memoized per size, chunk and seed. */
 	public boolean rejects(int i, int chunkX, int chunkZ, long seed, MediumStructures.Zone zone, MediumStructures.Styles styles, MediumStructures.Zone atlantis,
 						   MediumStructures.Zone mediums) {
 		Memory m = memory(seed);
@@ -217,9 +217,9 @@ public final class Mines {
 	}
 
 	/**
-	 * ¿Sale una entrada (de cualquier tipo de la familia) a menos de `bloques` del chunk? La usan los faros y naufragios
-	 * (costa/Costa), que ceden el sitio a las minas sin que estas sepan de ellos: así su regla no cambia. Lógica pura
-	 * (pruebas): con la zona, los estilos, la Atlántida y las medianas cercanas de {@link #rejects(int, int, int, long,
+	 * Does an entrance (of any type of the family) win within `blocks` of the chunk? The lighthouses and shipwrecks use it
+	 * (coast/Coast), which yield their site to the mines without the latter knowing about them: so their rule does not change. Pure logic
+	 * (tests): with the zone, the styles, Atlantis and the nearby mediums of {@link #rejects(int, int, int, long,
 	 * MediumStructures.Zone, MediumStructures.Styles, MediumStructures.Zone, MediumStructures.Zone)}.
 	 */
 	public boolean near(int chunkX, int chunkZ, int blocks, long seed, MediumStructures.Zone zone, MediumStructures.Styles styles,

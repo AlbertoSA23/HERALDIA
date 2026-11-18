@@ -9,9 +9,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 /**
- * Mixin (último recurso: el juego envía al cliente todo nodo que el jugador puede usar, y ninguna API deja ejecutar un
- * nodo sin enviarlo): los alias antiguos de los comandos ({@link Alias.Hidden}) no van en el árbol que recibe el cliente,
- * así que no salen en el autocompletado, pero el servidor los sigue ejecutando. Solo mira el tipo del nodo.
+ * Mixin (last resort: the game sends the client every node the player can use, and no API allows running a
+ * node without sending it): the old command aliases ({@link Alias.Hidden}) do not go into the tree the client receives,
+ * so they do not show up in autocompletion, but the server still runs them. It only checks the node's type.
  */
 @Mixin(Commands.class)
 abstract class CommandsMixin {

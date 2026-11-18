@@ -13,11 +13,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Mixin (último recurso): el {@code populateDefaultEquipmentSlots} de los zombis, que {@code finalizeSpawn} llama al
- * colocar los mobs de una plantilla, cambia el arma del NBT sin mirarla (zombi y husk: pala, lanza o espada de hierro el
- * 1-5 %; ahogado: tridente o caña el 10 %, y con tridente monta un nautilo zombi la mitad de las veces). Los mobs con la
- * etiqueta {@link Heraldia#ADULT} conservan el equipo de su plantilla. Ahogado y piglin zombificado lo redefinen sin
- * llamar al del zombi: por eso van los tres.
+ * Mixin (last resort): the zombies' {@code populateDefaultEquipmentSlots}, which {@code finalizeSpawn} calls when
+ * a template's mobs are placed, changes the NBT weapon without looking at it (zombie and husk: iron shovel, spear or sword
+ * 1-5 %; drowned: trident or fishing rod 10 %, and with a trident it rides a zombie nautilus half of the time). Mobs with the
+ * {@link Heraldia#ADULT} tag keep their template's gear. Drowned and zombified piglin redefine it without
+ * calling the zombie's: that is why all three are here.
  */
 @Mixin({Zombie.class, Drowned.class, ZombifiedPiglin.class})
 abstract class ZombieEquipmentMixin {

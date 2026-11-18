@@ -24,10 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * BlueMap (API 2.x): un conjunto de marcadores por capa en cada mapa del Overworld, con marcadores de punto (POI) y el
- * icono de la capa guardado en los recursos del mapa. Solo se carga si BlueMap está (MapasWeb.ADAPTADORES). BlueMap
- * arranca su API aparte (puede ser después que el servidor): se publica al activarse y en cada actualización. Sus
- * conjuntos de marcadores son seguros entre hilos (ConcurrentHashMap).
+ * BlueMap (API 2.x): one marker set per layer on each Overworld map, with point markers (POI) and the
+ * layer's icon saved in the map's assets. Only loaded if BlueMap is there (WebMaps.ADAPTERS). BlueMap
+ * starts its API separately (possibly after the server): it publishes on enable and on every update. Its
+ * marker sets are thread-safe (ConcurrentHashMap).
  */
 public final class BlueMapAdapter implements WebMap {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -98,7 +98,7 @@ public final class BlueMapAdapter implements WebMap {
 		}
 	}
 
-	/** Escribe (una vez por mapa) los iconos en los recursos del mapa y devuelve su dirección. */
+	/** Writes (once per map) the icons into the map's assets and returns their address. */
 	private static Map<Layer, String> icons(BlueMapMap map) {
 		Map<Layer, String> out = new EnumMap<>(Layer.class);
 		AssetStorage st = map.getAssetStorage();

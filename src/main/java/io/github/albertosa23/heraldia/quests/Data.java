@@ -8,18 +8,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Lo que se guarda de cada jugador (adjunto persistente de Fabric en su .dat, sin enviarlo al cliente): los encargos
- * aceptados, la reputación con cada aldea, cuántos ha entregado y los ids de los últimos entregados (para no cobrar dos
- * veces el mismo). Inmutable: cada cambio da otro valor (y {@code setAttached}).
+ * What is saved for each player (Fabric persistent attachment in their .dat, not sent to the client): the accepted
+ * quests, the reputation with each village, how many they have delivered and the ids of the last delivered ones (so the
+ * same one is not paid twice). Immutable: each change gives another value (and {@code setAttached}).
  */
 public record Data(List<Active> active, Map<String, Integer> reputation, int completed, List<String> finished) {
-	/** Encargos aceptados a la vez, como mucho. */
+	/** Quests accepted at once, at most. */
 	public static final int MAX_ACTIVE = 5;
-	/** Ids de entregados que se recuerdan (los más recientes): de sobra para varios periodos de todas las aldeas visitadas. */
+	/** Ids of delivered quests that are remembered (the most recent): more than enough for several periods of all visited villages. */
 	public static final int MAX_DONE = 200;
 	public static final Data EMPTY = new Data(List.of(), Map.of(), 0, List.of());
 
-	/** Un encargo aceptado y si ya se cumplió lo que pide (los de traer se comprueban al entregar). */
+	/** An accepted quest and whether what it asks for is already met (bring quests are checked on delivery). */
 	public record Active(Quest quest, boolean met) {
 		public static final Codec<Active> CODEC = RecordCodecBuilder.create(i -> i.group(
 				Quest.CODEC.fieldOf("encargo").forGetter(Active::quest),
@@ -46,7 +46,7 @@ public record Data(List<Active> active, Map<String, Integer> reputation, int com
 		return Reputation.tier(reputation(village));
 	}
 
-	/** ¿Lo tiene aceptado (por id)? */
+	/** Is it accepted (by id)? */
 	public boolean has(String id) {
 		return active.stream().anyMatch(a -> a.quest().id().equals(id));
 	}
@@ -55,7 +55,7 @@ public record Data(List<Active> active, Map<String, Integer> reputation, int com
 		return finished.contains(id);
 	}
 
-	/** Por qué no se puede aceptar (clave del motivo) o null si se puede. */
+	/** Why it cannot be accepted (key of the reason) or null if it can. */
 	public String notAcceptable(Quest e) {
 		if (done(e.id())) {
 			return "hecho";
@@ -75,7 +75,7 @@ public record Data(List<Active> active, Map<String, Integer> reputation, int com
 		return new Data(l, reputation, completed, finished);
 	}
 
-	/** Quita el aceptado número {@code i} (0..); sin cambios si no existe. */
+	/** Removes accepted quest number {@code i} (0..); no change if it does not exist. */
 	public Data abandon(int i) {
 		if (i < 0 || i >= active.size()) {
 			return this;
@@ -85,7 +85,7 @@ public record Data(List<Active> active, Map<String, Integer> reputation, int com
 		return new Data(l, reputation, completed, finished);
 	}
 
-	/** Marca como cumplidos los aceptados que cumplen la condición. */
+	/** Marks as met the accepted quests that meet the condition. */
 	public Data complete(java.util.function.Predicate<Quest> cond) {
 		boolean changes = false;
 		List<Active> l = new ArrayList<>(active.size());
@@ -101,8 +101,8 @@ public record Data(List<Active> active, Map<String, Integer> reputation, int com
 	}
 
 	/**
-	 * Entrega el aceptado con ese id: lo quita, lo apunta como hecho, suma uno a los completados y, si
-	 * {@code withReputation}, su reputación a su aldea.
+	 * Delivers the accepted quest with that id: removes it, records it as done, adds one to the completed count and, if
+	 * {@code withReputation}, its reputation to its village.
 	 */
 	public Data deliver(String id, boolean withReputation) {
 		Active a = active.stream().filter(x -> x.quest().id().equals(id)).findFirst().orElse(null);
@@ -126,12 +126,12 @@ public record Data(List<Active> active, Map<String, Integer> reputation, int com
 		return new Data(active, m, completed, finished);
 	}
 
-	/** Cuántas aldeas tienen al menos ese nivel con el jugador. */
+	/** How many villages have at least that level with the player. */
 	public long villagesWith(Reputation.Tier tier) {
 		return reputation.values().stream().filter(v -> Reputation.tier(v).compareTo(tier) >= 0).count();
 	}
 
-	/** Mejor nivel con alguna aldea. */
+	/** Best level with any village. */
 	public Reputation.Tier bestLevel() {
 		return Reputation.tier(reputation.values().stream().mapToInt(Integer::intValue).max().orElse(0));
 	}

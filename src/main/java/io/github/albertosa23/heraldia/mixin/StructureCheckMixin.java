@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** Mixin (último recurso): /locate y los mapas comprueban aquí si una estructura saldría; deben seguir las mismas reglas que la generación. */
+/** Mixin (last resort): /locate and the maps check here whether a structure would spawn; they must follow the same rules as generation. */
 @Mixin(StructureCheck.class)
 abstract class StructureCheckMixin {
 	@Shadow
@@ -93,7 +93,7 @@ abstract class StructureCheckMixin {
 		long island = IslandZone.candidate(id, dimension, sep, seed, pos.x(), pos.z());
 		if (island != IslandZone.NONE && IslandZone.outcome(sep, island, seed, sep.viability(registryAccess, chunkGenerator, biomeSource,
 				climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
-			cir.setReturnValue(false); // como la generación: nada ajeno dentro de la isla del corsario
+			cir.setReturnValue(false); // like generation: nothing foreign inside the corsair's island
 			return;
 		}
 		ForeignZone zone = ForeignZone.of(registryAccess);
@@ -102,11 +102,11 @@ abstract class StructureCheckMixin {
 			if (near != null && zone.occupied(near, sep, seed, sep.viability(registryAccess, chunkGenerator, biomeSource, climateSampler,
 					randomState, structureTemplateManager, seed, heightAccessor, dimension), zone.village(registryAccess, chunkGenerator,
 					biomeSource, climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
-				cir.setReturnValue(false); // como la generación: nada de otros mods encima de una aldea o una única
+				cir.setReturnValue(false); // like generation: no other mods' structures on top of a village or a unique
 				return;
 			}
 		}
-		if (UniqueSeparation.isUnique(id)) { // misma separación que la generación: /locate y los mapas no señalan descartadas
+		if (UniqueSeparation.isUnique(id)) { // same separation as generation: /locate and the maps do not point at discarded ones
 			int i = sep.indexOf(id);
 			if (i >= 0 && sep.enabled() && sep.blocked(i, pos.x(), pos.z(), seed, sep.viability(registryAccess, chunkGenerator, biomeSource,
 					climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
@@ -115,14 +115,15 @@ abstract class StructureCheckMixin {
 		}
 		if (MediumStructures.isMedium(id) && MediumStructures.of(registryAccess).rejects(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator,
 				biomeSource, climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
-			cir.setReturnValue(false); // como la generación: /locate no señala una mediana descartada
+			cir.setReturnValue(false); // like generation: /locate does not point at a discarded medium
 		}
 	}
 
 	/**
-	 * Las entradas a mina (y los faros y naufragios, con la misma regla), al final: su regla (aldeas, únicas, medianas y minas vecinas cerca) es mucho más cara que ver
-	 * si la propia entrada sale (bioma y ladera), y /locate solo necesita la regla donde la entrada sale. Mismo resultado
-	 * que mirarla antes (las dos condiciones tienen que cumplirse), sin pagarla en los candidatos sin bioma ni ladera.
+	 * The mine entrances (and the lighthouses and shipwrecks, with the same rule), at the end: their rule (villages, uniques,
+	 * mediums and neighboring mines nearby) is much more expensive than checking whether the entrance itself wins (biome and
+	 * hillside), and /locate only needs the rule where the entrance wins. Same result as checking it first (both conditions
+	 * must hold), without paying for it in the candidates without biome or hillside.
 	 */
 	@Inject(method = "canCreateStructure", at = @At("RETURN"), cancellable = true)
 	private void heraldia$minesRules(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
@@ -139,7 +140,7 @@ abstract class StructureCheckMixin {
 					climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)
 					: Coast.of(registryAccess).rejects(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource,
 					climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
-				cir.setReturnValue(false); // ni una entrada a mina, faro o naufragio descartados
+				cir.setReturnValue(false); // nor a discarded mine entrance, lighthouse or shipwreck
 			}
 		} finally {
 			Profiler.end(Profiler.Segment.RULES_LOCATE, t0);

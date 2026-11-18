@@ -21,9 +21,9 @@ import xyz.jpenilla.squaremap.api.marker.Marker;
 import xyz.jpenilla.squaremap.api.marker.MarkerOptions;
 
 /**
- * squaremap (API 1.x): una capa (SimpleLayerProvider) por clase de estructura en el Overworld, con iconos registrados en
- * su registro de iconos. Solo se carga si squaremap está (MapasWeb.ADAPTADORES). Sus capas son seguras entre hilos
- * (ConcurrentHashMap) y squaremap las escribe solo en su web cada pocos segundos.
+ * squaremap (API 1.x): one layer (SimpleLayerProvider) per structure kind in the Overworld, with icons registered in
+ * its icon registry. Only loaded if squaremap is there (WebMaps.ADAPTERS). Its layers are thread-safe
+ * (ConcurrentHashMap) and squaremap writes them to its web output by itself every few seconds.
  */
 public final class SquaremapAdapter implements WebMap {
 	private static final WorldIdentifier OVERWORLD = WorldIdentifier.create("minecraft", "overworld");
@@ -48,11 +48,11 @@ public final class SquaremapAdapter implements WebMap {
 		try {
 			api = SquaremapProvider.get();
 		} catch (IllegalStateException e) {
-			return false;           // squaremap aún no ha arrancado
+			return false;           // squaremap has not started yet
 		}
 		Optional<MapWorld> w = api.getWorldIfEnabled(OVERWORLD);
 		if (w.isEmpty()) {
-			return true;            // el Overworld no tiene mapa: nada que hacer
+			return true;            // the Overworld has no map: nothing to do
 		}
 		if (!icons) {
 			for (Layer c : Layer.values()) {
@@ -98,7 +98,7 @@ public final class SquaremapAdapter implements WebMap {
 		return true;
 	}
 
-	/** Las claves de squaremap solo admiten [a-z0-9._-]. */
+	/** squaremap keys only allow [a-z0-9._-]. */
 	static String key(String id) {
 		return "heraldia_" + id.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9._-]", "_");
 	}

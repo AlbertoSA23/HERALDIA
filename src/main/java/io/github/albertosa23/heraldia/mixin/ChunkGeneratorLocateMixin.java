@@ -18,9 +18,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso): /locate de las entradas a mina en paralelo ({@link ParallelLocate}). Solo adelanta en otros
- * hilos las alturas que el hilo del servidor va a pedir; lo que decide qué estructura sale y dónde sigue siendo vanilla.
- * Salida temprana barata para cualquier otra rejilla (una comprobación de tipo).
+ * Mixin (last resort): parallel /locate for the mine entrances ({@link ParallelLocate}). It only runs ahead, on other
+ * threads, the heights the server thread is going to ask for; what decides which structure spawns and where is still vanilla.
+ * Cheap early exit for any other grid (one type check).
  */
 @Mixin(ChunkGenerator.class)
 abstract class ChunkGeneratorLocateMixin {

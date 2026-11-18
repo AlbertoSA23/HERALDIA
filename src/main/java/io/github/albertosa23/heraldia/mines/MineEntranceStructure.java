@@ -22,16 +22,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Entrada a mina de Heraldia (heraldia:mina_entrada, tools/gen/minas): una sola plantilla con el patio, la boca, la
- * bajada y la galería, colocada en una ladera que busca {@link Hillside} con el mapa de alturas de generación (con caché,
- * {@link Heights}, y columnas en una malla de 4 bloques que comparten las muestras). Antes de buscar mira el bioma en el
- * centro del chunk (una columna): un structure_set con un estilo por bioma prueba sus entradas una a una, y las que no
- * son de ese bioma salen sin pagar la búsqueda. La boca (z = 0 de la plantilla) mira cuesta abajo; si nada sirve no se
- * genera, salvo con /place (que acepta cualquier bioma), que la coloca igualmente.
+ * Heraldia mine entrance (heraldia:mina_entrada, tools/gen/minas): a single template with the yard, the mouth, the
+ * descent and the gallery, placed on a hillside that {@link Hillside} finds with the generation height map (cached,
+ * {@link Heights}, and columns on a 4-block lattice that share the samples). Before searching it checks the biome at the
+ * chunk's center (one column): a structure_set with one style per biome tries its entries one by one, and those not
+ * of that biome return without paying for the search. The mouth (template z = 0) faces downhill; if nothing works it is not
+ * generated, except with /place (which accepts any biome), which places it anyway.
  */
 public final class MineEntranceStructure extends Structure implements ParallelLocate.Precomputable {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	private static final AtomicInteger REGISTERED = new AtomicInteger(); // las primeras, en el registro (pruebas)
+	private static final AtomicInteger REGISTERED = new AtomicInteger(); // the first ones, in the log (tests)
 	private static final int LOGGED = 6;
 
 	public static final MapCodec<MineEntranceStructure> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -61,7 +61,7 @@ public final class MineEntranceStructure extends Structure implements ParallelLo
 		Hillside.Terrain terrain = terrain(HeightCache.of(ctx));
 		int mx = ctx.chunkPos().getMiddleBlockX(), mz = ctx.chunkPos().getMiddleBlockZ();
 		if (!forced && !Generation.biome(ctx, biomes(), mx, terrain.ground(mx, mz), mz)) {
-			return Optional.empty();                    // otro estilo del set: sin buscar nada
+			return Optional.empty();                    // another style of the set: no search at all
 		}
 		long t0 = System.nanoTime();
 		Hillside.Site site = Hillside.search(terrain, mx, mz, shape, ctx.heightAccessor().getMinY(), forced);
@@ -83,9 +83,9 @@ public final class MineEntranceStructure extends Structure implements ParallelLo
 	}
 
 	/**
-	 * Precalcula lo que miraría {@link #findGenerationPoint} en ese chunk (el bioma del centro y, si es el suyo, la
-	 * búsqueda de ladera): solo llena la caché compartida de alturas, sin crear nada ni escribir en el log. Lo usa
-	 * {@link ParallelLocate} desde otros hilos para que /locate encuentre las columnas ya calculadas.
+	 * Precomputes what {@link #findGenerationPoint} would look at in that chunk (the center's biome and, if it is its own, the
+	 * hillside search): it only fills the shared height cache, without creating anything or writing to the log.
+	 * {@link ParallelLocate} uses it from other threads so /locate finds the columns already computed.
 	 */
 	@Override
 	public void precompute(GenerationContext ctx) {
@@ -99,15 +99,15 @@ public final class MineEntranceStructure extends Structure implements ParallelLo
 	}
 
 	/**
-	 * El terreno de la búsqueda sobre la caché compartida del mundo ({@link HeightCache}): los estilos y variantes del
-	 * structure_set, /locate y la regla de colocación miran las mismas columnas y ya no las vuelven a calcular. Mismos
-	 * valores que con una caché por búsqueda ({@link Heights}, lo de antes): lo comprueba MinasDeterminismoTest.
+	 * The search terrain over the world's shared cache ({@link HeightCache}): the styles and variants of the
+	 * structure_set, /locate and the placement rule look at the same columns and no longer compute them again. Same
+	 * values as with a per-search cache ({@link Heights}, the old way): MinesDeterminismTest checks it.
 	 */
 	public static Hillside.Terrain terrain(HeightCache c) {
 		return terrain(c::floor, c::water);
 	}
 
-	/** Lo de antes (una caché por búsqueda): solo para comparar en las pruebas. */
+	/** The old way (one cache per search): only for comparison in the tests. */
 	public static Hillside.Terrain terrain(Heights a) {
 		return terrain(a::floor, a::water);
 	}
@@ -126,7 +126,7 @@ public final class MineEntranceStructure extends Structure implements ParallelLo
 		};
 	}
 
-	/** Columnas en una malla de 4 bloques (centro de cada celda): las muestras vecinas comparten caché. */
+	/** Columns on a 4-block lattice (center of each cell): neighboring samples share the cache. */
 	static int mesh(int v) {
 		return (v >> 2 << 2) + 2;
 	}

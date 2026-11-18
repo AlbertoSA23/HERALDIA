@@ -29,12 +29,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso): un structure_set no tiene forma de saltarse entradas desactivadas ni de elegir el tamaño
- * según la configuración; al fallar aquí, el set prueba la siguiente estructura igual que cuando no vale el bioma.
- * También impide que otras estructuras (monumentos, naufragios, ruinas) nazcan dentro de la Atlántida o de la isla del
- * corsario ({@link IslandZone}), que las de otros mods nazcan encima de una aldea o una única ({@link ForeignZone}), que dos
- * estructuras únicas distintas salgan a menos de la distancia mínima ({@link UniqueSeparation}) y que una mediana salga
- * junto a una aldea, una única u otra mediana ({@link MediumStructures}), ni una entrada a mina junto a ellas ({@link Mines}).
+ * Mixin (last resort): a structure_set has no way of skipping disabled entries or choosing the size
+ * by configuration; on failing here, the set tries the next structure just like when the biome does not match.
+ * It also prevents other structures (monuments, shipwrecks, ruins) from being born inside Atlantis or the corsair's
+ * island ({@link IslandZone}), other mods' structures from being born on top of a village or a unique ({@link ForeignZone}), two
+ * different unique structures from spawning closer than the minimum distance ({@link UniqueSeparation}), a medium from spawning
+ * next to a village, a unique or another medium ({@link MediumStructures}), and a mine entrance next to them ({@link Mines}).
  */
 @Mixin(ChunkGenerator.class)
 abstract class ChunkGeneratorMixin {
@@ -54,7 +54,7 @@ abstract class ChunkGeneratorMixin {
 	private void heraldia$rules(StructureSet.StructureSelectionEntry selected, RegistryAccess registryAccess, RandomState randomState,
 								 StructureTemplateManager templateManager, long seed, ChunkAccess centerChunk, ChunkPos sourceChunkPos,
 								 ResourceKey<Level> level, Climate.Sampler climateSampler, CallbackInfoReturnable<Boolean> cir) {
-		// sin lambda que capture (ruta caliente de la generación): dos búsquedas en tablas hash y salida temprana
+		// no capturing lambda (hot generation path): two hash table lookups and an early exit
 		Optional<ResourceKey<Structure>> key = selected.structure().unwrapKey();
 		if (key.isEmpty()) {
 			return;
@@ -69,7 +69,7 @@ abstract class ChunkGeneratorMixin {
 		long island = IslandZone.candidate(id, level, sep, seed, sourceChunkPos.x(), sourceChunkPos.z());
 		if (island != IslandZone.NONE && IslandZone.outcome(sep, island, seed, sep.viability(registryAccess, (ChunkGenerator) (Object) this,
 				((ChunkGenerator) (Object) this).getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level))) {
-			cir.setReturnValue(false); // un inicio ajeno junto a una isla que sale de verdad (raro: solo cerca de sus candidatas)
+			cir.setReturnValue(false); // a foreign start next to an island that really wins (rare: only near its candidates)
 			return;
 		}
 		ForeignZone zone = ForeignZone.of(registryAccess);
@@ -82,11 +82,11 @@ abstract class ChunkGeneratorMixin {
 					zone.village(registryAccess, self, self.getBiomeSource(), climateSampler, randomState, templateManager, seed, centerChunk, level));
 			Profiler.end(Profiler.Segment.FOREIGN_ZONE, tz);
 			if (occupied) {
-				cir.setReturnValue(false); // una estructura de otro mod junto a una aldea o una única de Heraldia que sale ahí
+				cir.setReturnValue(false); // another mod's structure next to a Heraldia village or unique that wins there
 				return;
 			}
 		}
-		if (UniqueSeparation.isUnique(id)) { // solo en los chunks candidatos de una estructura única: unos pocos por mundo
+		if (UniqueSeparation.isUnique(id)) { // only in the candidate chunks of a unique structure: a few per world
 			int i = sep.indexOf(id);
 			long ts = Profiler.start();
 			boolean blocked = i >= 0 && sep.enabled() && sep.blocked(i, sourceChunkPos.x(), sourceChunkPos.z(), seed, sep.viability(registryAccess,
@@ -97,7 +97,7 @@ abstract class ChunkGeneratorMixin {
 				cir.setReturnValue(false);
 			}
 		}
-		if (MediumStructures.isMedium(id)) { // solo en los chunks candidatos de una mediana: lejos de aldeas, únicas y otras medianas
+		if (MediumStructures.isMedium(id)) { // only in the candidate chunks of a medium: away from villages, uniques and other mediums
 			ChunkGenerator self = (ChunkGenerator) (Object) this;
 			long tm = Profiler.start();
 			boolean rejected = MediumStructures.of(registryAccess).rejects(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
@@ -107,7 +107,7 @@ abstract class ChunkGeneratorMixin {
 				cir.setReturnValue(false);
 			}
 		}
-		if (Mines.isMine(id)) { // solo en los chunks candidatos de una entrada a mina: cede a aldeas, únicas, medianas y vanilla
+		if (Mines.isMine(id)) { // only in the candidate chunks of a mine entrance: yields to villages, uniques, mediums and vanilla
 			ChunkGenerator self = (ChunkGenerator) (Object) this;
 			long tm = Profiler.start();
 			boolean rejected = Mines.of(registryAccess).rejects(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,
@@ -117,7 +117,7 @@ abstract class ChunkGeneratorMixin {
 				cir.setReturnValue(false);
 			}
 		}
-		if (Coast.isCoast(id)) { // solo en los chunks candidatos de un faro o naufragio: cede a todo lo anterior y a las minas
+		if (Coast.isCoast(id)) { // only in the candidate chunks of a lighthouse or shipwreck: yields to all of the above and to the mines
 			ChunkGenerator self = (ChunkGenerator) (Object) this;
 			long tc = Profiler.start();
 			boolean rejected = Coast.of(registryAccess).rejects(id, sourceChunkPos.x(), sourceChunkPos.z(), seed, registryAccess, self,

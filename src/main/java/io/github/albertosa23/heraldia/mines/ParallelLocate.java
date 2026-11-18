@@ -26,19 +26,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * /locate de las entradas a mina (y de los faros y naufragios de la costa) en paralelo. Vanilla (ChunkGenerator.getNearestGeneratedStructure) recorre cada anillo
- * de casillas en orden y, en cada una, comprueba si la entrada sale (bioma y ladera) en el hilo del servidor: casi todo
- * el tiempo es la altura del terreno de las columnas de la ladera. Al empezar un anillo de una rejilla de minas, aquí se
- * mandan sus casillas, en el mismo orden, a unos hilos aparte que solo <em>precalculan</em> esas columnas en la caché
- * compartida de alturas ({@link MineEntranceStructure#precompute}); el hilo del servidor sigue haciendo lo de siempre,
- * casilla a casilla, y antes de cada una espera (o hace él mismo, si nadie la ha empezado) su precálculo. Así el
- * resultado es exactamente el mismo (lo decide el mismo código, en el mismo orden, con los mismos valores) y tarda mucho
- * menos. Al acabar el anillo se descarta lo que quede por empezar. Solo /locate y los mapas pasan por aquí; la
- * generación del mundo, nunca.
+ * Parallel /locate for the mine entrances (and the coast's lighthouses and shipwrecks). Vanilla
+ * (ChunkGenerator.getNearestGeneratedStructure) walks each ring of cells in order and, in each one, checks whether the
+ * entrance wins (biome and hillside) on the server thread: almost all the time goes to the terrain height of the hillside
+ * columns. When a ring of a mine grid starts, its cells are sent here, in the same order, to separate threads that only
+ * <em>precompute</em> those columns into the shared height cache ({@link MineEntranceStructure#precompute}); the server
+ * thread keeps doing the usual, cell by cell, and before each one it waits for (or does itself, if nobody has started it)
+ * its precomputation. So the result is exactly the same (the same code decides, in the same order, with the same
+ * values) and it takes much less time. When the ring ends, whatever is left to start is discarded. Only /locate and the
+ * maps go through here; world generation, never.
  */
 public final class ParallelLocate {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	/** Hilos aparte: los núcleos menos el del servidor (como poco 1, como mucho 7). */
+	/** Separate threads: the cores minus the server's (at least 1, at most 7). */
 	static final int THREADS = Math.max(1, Math.min(7, Runtime.getRuntime().availableProcessors() - 1));
 	private static volatile @Nullable ThreadPoolExecutor pool;
 	private static final ThreadLocal<Ring> PENDING = new ThreadLocal<>();
@@ -47,14 +47,14 @@ public final class ParallelLocate {
 	private ParallelLocate() {
 	}
 
-	/** Las tareas del anillo en curso, por casilla de la rejilla (la de la candidata: así la encuentra {@link #await}). */
+	/** The current ring's tasks, per grid cell (the candidate's: so {@link #await} finds it). */
 	private record Ring(Long2ObjectOpenHashMap<FutureTask<Void>> tasks, int offsetX, int offsetZ, int spacing) {
 		long cell(int chunkX, int chunkZ) {
 			return ParallelLocate.cell(chunkX, chunkZ, offsetX, offsetZ, spacing);
 		}
 	}
 
-	/** Casilla de la rejilla (desplazada) a la que pertenece un chunk: la misma para cualquier chunk de ella y su candidata. */
+	/** Grid cell (shifted) a chunk belongs to: the same for any of its chunks and its candidate. */
 	static long cell(int chunkX, int chunkZ, int offsetX, int offsetZ, int spacing) {
 		return ChunkPos.pack(Math.floorDiv(chunkX - offsetX, spacing), Math.floorDiv(chunkZ - offsetZ, spacing));
 	}
@@ -71,7 +71,7 @@ public final class ParallelLocate {
 						t.setDaemon(true);
 						return t;
 					});
-					p.allowCoreThreadTimeOut(true);           // sin /locate, ningún hilo vivo
+					p.allowCoreThreadTimeOut(true);           // without /locate, no thread alive
 					pool = p;
 				}
 			}
@@ -79,7 +79,7 @@ public final class ParallelLocate {
 		return p;
 	}
 
-	/** Casillas del anillo r alrededor de (x, z) en el orden de vanilla (chunks de origen de cada casilla). */
+	/** Cells of ring r around (x, z) in vanilla's order (origin chunks of each cell). */
 	static List<int[]> ring(int x, int z, int r, int spacing) {
 		List<int[]> out = new ArrayList<>();
 		for (int i = -r; i <= r; i++) {
@@ -94,14 +94,14 @@ public final class ParallelLocate {
 	}
 
 	/**
-	 * Una estructura que sabe adelantar lo caro de su búsqueda (las alturas de la caché compartida) sin crear nada: las
-	 * entradas a mina (la ladera) y los faros y naufragios (la orilla, costa/CostaStructure).
+	 * A structure that knows how to run the expensive part of its search ahead (the heights in the shared cache) without creating anything: the
+	 * mine entrances (the hillside) and the lighthouses and shipwrecks (the shore, coast/CoastStructure).
 	 */
 	public interface Precomputable {
 		void precompute(Structure.GenerationContext ctx);
 	}
 
-	/** Al empezar un anillo (HEAD de getNearestGeneratedStructure): manda sus casillas si la rejilla es de minas o de la costa. */
+	/** When a ring starts (HEAD of getNearestGeneratedStructure): sends its cells if the grid belongs to the mines or the coast. */
 	public static void start(Set<Holder<Structure>> structures, LevelReader level, int x, int z, int r, long seed,
 							   RandomSpreadStructurePlacement placement) {
 		finish();
@@ -130,9 +130,9 @@ public final class ParallelLocate {
 				continue;
 			}
 			FutureTask<Void> t = new FutureTask<>(() -> {
-				// la candidata de la casilla (con su búsqueda de bioma, que la rejilla guarda) también en este hilo
+				// the cell's candidate (with its biome search, which the grid memoizes) also on this thread
 				ChunkPos pos = placement.getPotentialStructureChunk(seed, c[0], c[1]);
-				// el muestreador del clima de StructureCheck guarda caché (no es para varios hilos): uno sin caché por tarea
+				// StructureCheck's climate sampler keeps a cache (not for several threads): one without a cache per task
 				var climate = randomState.createClimateSampler(SamplerContext.EMPTY_UNCACHED);
 				for (Structure m : mines) {
 					((Precomputable) m).precompute(new Structure.GenerationContext(access, generator, generator.getBiomeSource(), climate,
@@ -147,8 +147,8 @@ public final class ParallelLocate {
 	}
 
 	/**
-	 * Antes de que vanilla mire una casilla (HEAD de getStructureGeneratingAt): su precálculo, hecho por otro hilo o, si
-	 * aún nadie lo ha empezado, aquí mismo. Si algo falla, no pasa nada: vanilla lo calcula como siempre.
+	 * Before vanilla looks at a cell (HEAD of getStructureGeneratingAt): its precomputation, done by another thread or, if
+	 * nobody has started it yet, right here. If something fails, nothing happens: vanilla computes it as usual.
 	 */
 	public static void await(ChunkPos pos) {
 		Ring a = PENDING.get();
@@ -156,7 +156,7 @@ public final class ParallelLocate {
 		if (t == null) {
 			return;
 		}
-		t.run();                                          // no hace nada si otro hilo ya la tiene
+		t.run();                                          // does nothing if another thread already has it
 		try {
 			t.get();
 		} catch (InterruptedException e) {
@@ -168,7 +168,7 @@ public final class ParallelLocate {
 		}
 	}
 
-	/** Al acabar el anillo (o antes del siguiente): lo que nadie ha empezado ya no hace falta. */
+	/** When the ring ends (or before the next one): what nobody has started is no longer needed. */
 	public static void finish() {
 		Ring a = PENDING.get();
 		if (a != null) {

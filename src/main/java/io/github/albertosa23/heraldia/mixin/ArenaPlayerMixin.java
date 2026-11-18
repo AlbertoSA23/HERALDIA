@@ -10,9 +10,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso: la regla keepInventory es de todo el mundo y Fabric API no deja cancelar lo que suelta un
- * jugador al morir): quien cae en el ruedo durante una partida no suelta su inventario ni su experiencia; al reaparecer
- * se le devuelven (ServerPlayerEvents.COPY_FROM, arena/Juego). Salida temprana: sin partida no se mira nada más.
+ * Mixin (last resort: the keepInventory rule is world-wide and Fabric API does not allow cancelling what a player
+ * drops on death): whoever falls in the ring during a match drops neither their inventory nor their experience; on respawn
+ * they get them back (ServerPlayerEvents.COPY_FROM, arena/Game). Early exit: without a match nothing else is checked.
  */
 @Mixin(Player.class)
 abstract class ArenaPlayerMixin {
