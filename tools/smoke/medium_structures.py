@@ -151,14 +151,21 @@ def check_settled(ctx, mid, px, pz, long_stay=False):
     while with_mem("job_site") < n and time.monotonic() < end:
         time.sleep(3)
     job = with_mem("job_site")
-    ctx.run("time set 13000", r"Set the time|time to|Set minecraft:\w+ to")           # night: to bed
-    end = time.monotonic() + 150
-    while (with_mem("home") < n or with_mem("last_slept") < n) and time.monotonic() < end:
-        time.sleep(3)
-    home, slept = with_mem("home"), with_mem("last_slept")
+    # to nightfall by running the day, not by jumping the clock: a jump wakes a sleeping villager abruptly
+    sprint(ctx, 11000)
+    nights = 1
+    while True:
+        end = time.monotonic() + 150
+        while (with_mem("home") < n or with_mem("last_slept") < n) and time.monotonic() < end:
+            time.sleep(3)
+        home, slept = with_mem("home"), with_mem("last_slept")
+        if (home == n and slept == n) or nights == 2:
+            break
+        sprint(ctx, 24000)              # two villagers wanting the same bed: the one who loses tries again later
+        nights += 1
     SETTLED.append((mid, px, pz, n, job, home, slept))
-    print(f"{mid} at {px}, {pz}: {n} inhabitants, {job} with their workstation, {home} with their bed, {slept} asleep")
-    ctx.run("time set 2000", r"Set the time|time to|Set minecraft:\w+ to")
+    print(f"{mid} at {px}, {pz}: {n} inhabitants, {job} with their workstation, {home} with their bed, {slept} asleep "
+          f"(night {nights})")
     fails = []
     if job < n or home < n or slept < n:
         fails.append(f"{mid} at {px}, {pz}: of {n} inhabitants, {job} took a workstation, {home} a bed and {slept} slept")
@@ -167,7 +174,18 @@ def check_settled(ctx, mid, px, pz, long_stay=False):
     return fails
 
 
-STAY_TICKS = 3 * 24000 + 11000        # three and a half in-game days with /tick sprint, from 2000 to nightfall (13000)
+STAY_TICKS = 3 * 24000                # three more in-game days with /tick sprint, from one nightfall to another
+
+
+def sprint(ctx, ticks):
+    """Runs `ticks` game ticks at full speed (/tick sprint; its reply only comes at the end: the game time says when).
+    Returns the ticks really run."""
+    t0 = ctx.gametime()
+    s.send(ctx.proc, f"tick sprint {ticks}")
+    end = time.monotonic() + 900
+    while ctx.gametime() < t0 + ticks and time.monotonic() < end:
+        time.sleep(3)
+    return ctx.gametime() - t0
 ROAM = 80                             # blocks forceloaded around an inhabited structure (by day they stroll 20-35 blocks
                                       # from it, as any villager; in a smaller area they stop ticking at its edge)
 STAY_BOX = 24                         # blocks around the located chunk: the piece (at most 21 x 21) plus a few
@@ -177,13 +195,7 @@ def check_stay(ctx, mid, px, pz, sel, n, with_mem):
     """Invulnerable villagers with AI stay home: after STAY_TICKS run at full speed, ending at nightfall, they are all
     still alive, back inside the structure's box within a few minutes (not wandered off, fallen or stuck) and still
     remember their bed and workstation. By day they stroll about like any villager; at night they must be home."""
-    t0 = ctx.gametime()
-    s.send(ctx.proc, f"tick sprint {STAY_TICKS}")          # its reply only comes at the end: the game time says when
-    end = time.monotonic() + 900
-    while ctx.gametime() < t0 + STAY_TICKS and time.monotonic() < end:
-        time.sleep(5)
-    days = (ctx.gametime() - t0) / 24000
-    ctx.run("time set 13000", r"Set the time|time to|Set minecraft:\w+ to")
+    days = sprint(ctx, STAY_TICKS) / 24000
     near = (f"@e[type=minecraft:villager,tag=heraldia_habitante,tag=heraldia_mediana.{mid},"
             f"x={px + 8 - STAY_BOX},y=-64,z={pz + 8 - STAY_BOX},dx={2 * STAY_BOX},dy=420,dz={2 * STAY_BOX}]")
     end = time.monotonic() + 180
@@ -193,8 +205,7 @@ def check_stay(ctx, mid, px, pz, sel, n, with_mem):
     STAYED.append((mid, px, pz, n, alive, home_now, job, home, days))
     print(f"{mid} at {px}, {pz}: after {days:.1f} days, {alive} of {n} inhabitants alive, {home_now} inside the structure, "
           f"{job} with their workstation and {home} with their bed")
-    ctx.run("time set 2000", r"Set the time|time to|Set minecraft:\w+ to")
-    if days < 3.4 or alive < n or home_now < n or job < n or home < n:
+    if days < 2.9 or alive < n or home_now < n or job < n or home < n:
         return [f"{mid} at {px}, {pz}: after {days:.1f} days, {alive}/{n} alive, {home_now}/{n} at home, {job}/{n} with a "
                 f"workstation, {home}/{n} with a bed"]
     return []
