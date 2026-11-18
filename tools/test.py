@@ -364,7 +364,8 @@ DURATION_S = {
     "tools/smoke/update_path_b.py": 160,         # five starts, a zone of ~200 chunks, path B and undo
     "tools/smoke/loot_restock.py": 70,             # two starts and a generated hermitage
     "tools/smoke/difficulty.py": 100,                # four starts of the same world
-    "tools/smoke/arena.py": 140,                     # two starts, three builds and five waves
+    "tools/smoke/arena.py": 180,                     # two starts, three builds and five waves, and the Herald's House
+                                                     # (LOCAL measurement, 161 s twice + 10 %: not a CI one; refresh it)
     "tools/smoke/arena_modes.py": 155,               # two starts, one build, seven short waves and the two-week close
     "tools/smoke/admin.py": 85,                      # two starts and two medium structures loaded or generated
     "tools/smoke/update_check.py": 110,              # three starts (with the fake API, without network and disabled)
