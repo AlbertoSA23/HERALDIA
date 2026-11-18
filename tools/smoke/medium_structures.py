@@ -193,14 +193,22 @@ def wait_loaded(ctx, px, pz, r, timeout=180):
     return False
 
 
+SPRINT_STEP = 6000
+
+
 def sprint(ctx, ticks):
     """Runs `ticks` game ticks at full speed (/tick sprint; its reply only comes at the end: the game time says when).
     Returns the ticks really run."""
     t0 = ctx.gametime()
-    s.send(ctx.proc, f"tick sprint {ticks}")
     end = time.monotonic() + 900
     while ctx.gametime() < t0 + ticks and time.monotonic() < end:
-        time.sleep(3)
+        # in steps of SPRINT_STEP: right after one 72,000-tick sprint the hermit read as having an empty brain (no
+        # bed, workstation or bell; back after a restart, so nothing was lost); in steps it never happened (4 days)
+        step = min(SPRINT_STEP, t0 + ticks - ctx.gametime())
+        t1 = ctx.gametime()
+        s.send(ctx.proc, f"tick sprint {step}")
+        while ctx.gametime() < t1 + step and time.monotonic() < end:
+            time.sleep(2)
     return ctx.gametime() - t0
 ROAM = 80                             # blocks forceloaded around an inhabited structure (by day they stroll 20-35 blocks
                                       # from it, as any villager; in a smaller area they stop ticking at its edge)
