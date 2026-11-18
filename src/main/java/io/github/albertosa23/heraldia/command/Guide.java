@@ -234,18 +234,18 @@ public final class Guide {
 			List<Map.Entry<String, Component>> fame) {
 		List<Component> out = new ArrayList<>();
 		for (String p : data.pages()) {
-			out.add(pagina(texts, CLAVE + "pagina." + p + ".titulo", Texts.t(texts, CLAVE + "pagina." + p)));
+			out.add(page(texts, CLAVE + "pagina." + p + ".titulo", Texts.t(texts, CLAVE + "pagina." + p)));
 		}
 		Comparator<String> byName = Comparator.comparing(sid -> texts.getOrDefault(nameKey(sid), sid), collator(texts));
 		List<String> done = uniques.stream().filter(Unique::discovered).map(Unique::id).sorted(byName).toList();
 		List<String> missing = uniques.stream().filter(u -> !u.discovered()).map(Unique::id).sorted(byName).toList();
 		String queue = done.isEmpty() ? "resumen.ninguna" : missing.isEmpty() ? "resumen.todas" : "resumen.faltan";
-		out.add(pagina(texts, CLAVE + "resumen.titulo", Component.empty()
+		out.add(page(texts, CLAVE + "resumen.titulo", Component.empty()
 				.append(Texts.t(texts, CLAVE + "resumen", done.size(), uniques.size()))
 				.append("\n\n")
 				.append(Texts.t(texts, CLAVE + queue, missing.size()))));
 		for (Map.Entry<String, Component> f : fame) {
-			out.add(pagina(texts, f.getKey(), f.getValue()));
+			out.add(page(texts, f.getKey(), f.getValue()));
 		}
 		list(out, texts, "descubiertas", done, data.namesPerPage(),
 				sid -> Texts.t(texts, CLAVE + "descubierta", Texts.t(texts, nameKey(sid))));
@@ -264,12 +264,12 @@ public final class Guide {
 				}
 				body.append(entry.apply(ids.get(j)));
 			}
-			out.add(pagina(texts, CLAVE + title, body));
+			out.add(page(texts, CLAVE + title, body));
 		}
 	}
 
 	/** "title (bold)\n\nbody": what tools/gen/guia.lineas_pagina measures. */
-	static Component pagina(Map<String, String> texts, String title, Component body) {
+	static Component page(Map<String, String> texts, String title, Component body) {
 		return Component.empty()
 				.append(Texts.t(texts, title).withStyle(ChatFormatting.BOLD, ChatFormatting.DARK_RED))
 				.append("\n\n")

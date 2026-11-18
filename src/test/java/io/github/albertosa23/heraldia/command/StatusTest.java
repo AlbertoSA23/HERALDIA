@@ -91,10 +91,10 @@ class StatusTest {
 		assertEquals(3, State.pages(19, 8));
 		assertEquals(1, State.pages(0, 8));
 		assertEquals(1, State.pages(8, 8));
-		assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8), State.pagina(l, 1, 8));
-		assertEquals(List.of(17, 18, 19), State.pagina(l, 3, 8));
-		assertEquals(List.of(17, 18, 19), State.pagina(l, 99, 8), "se acota a la última");
-		assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8), State.pagina(l, -2, 8));
-		assertEquals(List.of(), State.pagina(List.of(), 1, 8));
+		assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8), State.page(l, 1, 8));
+		assertEquals(List.of(17, 18, 19), State.page(l, 3, 8));
+		assertEquals(List.of(17, 18, 19), State.page(l, 99, 8), "se acota a la última");
+		assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8), State.page(l, -2, 8));
+		assertEquals(List.of(), State.page(List.of(), 1, 8));
 	}
 }

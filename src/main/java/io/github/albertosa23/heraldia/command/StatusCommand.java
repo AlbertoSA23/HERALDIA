@@ -72,7 +72,7 @@ public final class StatusCommand {
 						 List<String> guardians) {
 	}
 
-	private static int show(CommandSourceStack src, int pagina) {
+	private static int show(CommandSourceStack src, int page) {
 		MinecraftServer server = src.getServer();
 		boolean op = Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(src);
 		Types types = types(server);
@@ -93,7 +93,7 @@ public final class StatusCommand {
 		}
 		Path dir = server.getWorldPath(LevelResource.PLAYER_ADVANCEMENTS_DIR);
 		CompletableFuture.runAsync(() -> readFiles(dir, online, advancements), Util.ioPool())
-				.thenRunAsync(() -> send(src, server, op, types, advancements, pagina), server)
+				.thenRunAsync(() -> send(src, server, op, types, advancements, page), server)
 				.exceptionally(e -> {
 					LOGGER.error("Heraldia: /heraldia status falló", e);
 					src.sendFailure(Component.literal(String.valueOf(e.getMessage())));
@@ -158,7 +158,7 @@ public final class StatusCommand {
 		return new Types(List.copyOf(families), List.copyOf(uniques), List.copyOf(mediums), List.copyOf(mines), coast, guardians);
 	}
 
-	private static void send(CommandSourceStack src, MinecraftServer server, boolean op, Types t, State.Achievements l, int pagina) {
+	private static void send(CommandSourceStack src, MinecraftServer server, boolean op, Types t, State.Achievements l, int page) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		List<Component> lines = new ArrayList<>();
 		if (op) {
@@ -202,9 +202,9 @@ public final class StatusCommand {
 			lines.add(Texts.t("heraldia.estado.mods", mods.size(), mods.isEmpty() ? "-" : String.join(", ", mods)));
 		}
 		int pages = State.pages(lines.size(), State.PER_PAGE);
-		int p = Math.clamp(pagina, 1, pages);
+		int p = Math.clamp(page, 1, pages);
 		src.sendSuccess(() -> Texts.t("heraldia.estado.titulo", version(), p, pages).withStyle(ChatFormatting.GOLD), false);
-		for (Component c : State.pagina(lines, p, State.PER_PAGE)) {
+		for (Component c : State.page(lines, p, State.PER_PAGE)) {
 			src.sendSuccess(() -> c, false);
 		}
 		if (pages > 1) {

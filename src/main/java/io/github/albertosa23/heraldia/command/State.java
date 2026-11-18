@@ -101,8 +101,8 @@ public final class State {
 	}
 
 	/** The lines of page {@code page} (from 1; clamped to the existing ones). */
-	public static <T> List<T> pagina(List<T> lines, int pagina, int perPage) {
-		int p = Math.clamp(pagina, 1, pages(lines.size(), perPage));
+	public static <T> List<T> page(List<T> lines, int page, int perPage) {
+		int p = Math.clamp(page, 1, pages(lines.size(), perPage));
 		int from = (p - 1) * perPage;
 		return lines.subList(Math.min(from, lines.size()), Math.min(from + perPage, lines.size()));
 	}
