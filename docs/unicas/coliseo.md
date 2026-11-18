@@ -1,122 +1,122 @@
-# Coliseo en ruinas (`heraldia:unicas/coliseo`)
+# Ruined coliseum (`heraldia:unicas/coliseo`)
 
-Anfiteatro elíptico de 87 × 73 bloques y 27 de alto sobre un hipogeo de dos niveles (14 bloques bajo la arena).
-Bioma: sabana y meseta de sabana (lista explícita `minecraft:savanna`, `minecraft:savanna_plateau`; la sabana
-azotada queda fuera por su relieve). Rareza por defecto del contrato (`spacing` 250 / `separation` 190 chunks).
+An elliptical amphitheater of 87 × 73 blocks and 27 high over a two-level hypogeum (14 blocks below the arena).
+Biome: savanna and savanna plateau (explicit list `minecraft:savanna`, `minecraft:savanna_plateau`; windswept
+savanna is left out because of its relief). The contract's default rarity (`spacing` 250 / `separation` 190 chunks).
 
-Coordenadas de este documento: `(dx, dz)` respecto al centro de la arena (+x este, +z sur) y `y` respecto al suelo de
-la arena (arena en y=0; el jugador pisa y=1). "Anillo r" = distancia constante desde el borde de la arena
-(elipses concéntricas de semiejes 16,5 + r y 9,5 + r).
+Coordinates in this document: `(dx, dz)` relative to the center of the arena (+x east, +z south) and `y` relative to the floor of
+the arena (sand at y=0; the player stands at y=1). "Ring r" = a constant distance from the edge of the arena
+(concentric ellipses with semi-axes 16.5 + r and 9.5 + r).
 
-## Piezas y adaptación al terreno
+## Pieces and terrain adaptation
 
-- `unicas/coliseo/coliseo` (inicio, rígida, proyectada a `WORLD_SURFACE_WG`): todo lo que está de y=0 hacia arriba.
-  Su base está a ras de suelo, así que `beard_thin` solo allana alrededor (como en las aldeas) y un anillo de losas
-  (r 25-26) hace de peldaño de acceso.
-- `unicas/coliseo/hipogeo` (hija, rígida): de y=-14 a y=-1, unida por un jigsaw vertical bajo la arena.
-  La pieza rellena **toda** su caja (roca donde no hay salas), de modo que el rebaje de `beard_thin` bajo su base no
-  abre huecos visibles: el terreno de alrededor queda por debajo de y=-2 y fuera de la vista. Así el sótano no hunde
-  el terreno de superficie (el problema de la guía).
+- `unicas/coliseo/coliseo` (start, rigid, projected to `WORLD_SURFACE_WG`): everything from y=0 upwards.
+  Its base is at ground level, so `beard_thin` only levels around it (as in the villages) and a ring of slabs
+  (r 25-26) works as an access step.
+- `unicas/coliseo/hipogeo` (child, rigid): from y=-14 to y=-1, joined by a vertical jigsaw under the arena.
+  The piece fills **all** of its box (rock where there are no rooms), so that the lowering by `beard_thin` under its base does not
+  open visible holes: the surrounding terrain stays below y=-2 and out of sight. That way the basement does not sink
+  the surface terrain (the problem described in the guide).
 
-## Plantas por nivel
+## Floor plans by level
 
-| Nivel | Pisa en | Contenido |
+| Level | Feet at | Contents |
 |---|---|---|
-| Ático y terraza superior | y=19 | Terraza r 20-21 tras el ático (ventanas), nicho del velario con cofre, mástiles del velario en la coronación. |
-| Graderío II | y=12-19 | 8 filas de asientos (r 12-19), escaleras que suben del pasillo I a la terraza. Tramo derrumbado al noroeste. |
-| Galería alta G2 | y=8 | Anillo r 19-21 tras la segunda arcada (con balaustrada). Seis vomitorios suben de G2 al pasillo I. |
-| Pasillo I (praecinctio) | y=11 | Anillo r 10-11 entre graderíos, con las bocas de los vomitorios. |
-| Graderío I y podio | y=5-11 | Podio de mármol (r 1-3) con palco imperial (sur) y palco del editor (norte); 6 filas (r 4-9). |
-| Planta baja G1 | y=1 | Anillo r 19-21 tras 40 arcos; túneles este (Puerta Triunfal) y oeste (Libitinaria) a la arena; pasos norte y sur a los palcos; dos tabernas; cuatro escaleras a G2; escalera oeste al hipogeo. |
-| Arena | y=1 | Arena con trampillas de los montacargas y el pozo central abierto con escalera de mano. |
-| Hipogeo H1 | y=-6 | Corredor central este-oeste, dos corredores laterales, 8 montacargas, 12 celdas de fieras, barracones (oeste), armería (este). |
-| Hipogeo H2 (oculto) | y=-13 | Despacho del lanista, pasillo de las placas, cámara del tesoro, tramo bajo del pasadizo de Cómodo. |
+| Attic and upper terrace | y=19 | Terrace r 20-21 behind the attic (windows), the velarium niche with a chest, the velarium masts on the crown. |
+| Stands II | y=12-19 | 8 rows of seats (r 12-19), stairs going up from walkway I to the terrace. A collapsed stretch to the northwest. |
+| Upper gallery G2 | y=8 | Ring r 19-21 behind the second arcade (with a balustrade). Six vomitoria go up from G2 to walkway I. |
+| Walkway I (praecinctio) | y=11 | Ring r 10-11 between the stands, with the mouths of the vomitoria. |
+| Stands I and podium | y=5-11 | A marble podium (r 1-3) with the imperial box (south) and the editor's box (north); 6 rows (r 4-9). |
+| Ground floor G1 | y=1 | Ring r 19-21 behind 40 arches; east (Triumphal Gate) and west (Libitinarian) tunnels to the arena; north and south passages to the boxes; two taverns; four staircases to G2; a west staircase to the hypogeum. |
+| Arena | y=1 | Sand with the lifts' trapdoors and the open central shaft with a ladder. |
+| Hypogeum H1 | y=-6 | A central east-west corridor, two side corridors, 8 lifts, 12 beast cells, barracks (west), armory (east). |
+| Hypogeum H2 (hidden) | y=-13 | The lanista's office, the plates corridor, the treasure chamber, the lower stretch of Commodus's passage. |
 
-Los planos en texto (celdas alcanzables) y los renders están en [`coliseo/`](coliseo/); se regeneran con
+The text plans (reachable cells) and the renders are in [`coliseo/`](coliseo/); they are regenerated with
 `python3 tools/gen/unicas/coliseo/auditoria.py --planos`.
 
-## Recorrido del jugador
+## Player route
 
-1. Cualquier arco de la planta baja da a G1. Desde G1: tabernas, túneles a la arena, pasos a los palcos y escaleras a G2.
-2. G2 → vomitorio → pasillo I → graderíos → terraza superior (vista y cofre del velario).
-3. Arena: el pozo central baja por escalera de mano al corredor central del hipogeo; también se baja por la escalera
-   que sale de G1 al oeste (junto a la Puerta Libitinaria) y desemboca en el vestíbulo de los barracones.
-4. H1: barracones (cofre, generador de esqueletos), celdas de fieras (cofre del domador, generadores de arañas y de
-   zombis), corredor de la armería con la trampa de cable, armería (cofre).
-5. Puzle 1 en la armería → trampilla de hierro → escalera al despacho del lanista (H2, cofre raro) → pasillo con
-   trampa de placas → cámara del tesoro.
-6. Alternativa: puzle 2 en el palco imperial → pasadizo de Cómodo (capilla con cofre raro, generador) → cámara del tesoro
-   por el sur.
-7. Cámara del tesoro: el Campeón de la Arena y el cofre premium sobre el estrado.
+1. Any arch of the ground floor leads to G1. From G1: taverns, tunnels to the arena, passages to the boxes and stairs to G2.
+2. G2 → vomitorium → walkway I → stands → upper terrace (view and the velarium chest).
+3. Arena: the central shaft goes down by ladder to the hypogeum's central corridor; you can also go down by the staircase
+   that leaves G1 to the west (next to the Libitinarian Gate) and comes out in the barracks' vestibule.
+4. H1: barracks (chest, skeleton spawner), beast cells (the tamer's chest, spider and
+   zombie spawners), the armory corridor with the tripwire trap, armory (chest).
+5. Puzzle 1 in the armory → iron trapdoor → stairs to the lanista's office (H2, rare chest) → corridor with a
+   plate trap → treasure chamber.
+6. Alternative: puzzle 2 in the imperial box → Commodus's passage (a chapel with a rare chest, a spawner) → the treasure chamber
+   from the south.
+7. Treasure chamber: the Champion of the Arena and the premium chest on the dais.
 
-## Cofres (11)
+## Chests (11)
 
-| Cofre | Dónde | Tabla |
+| Chest | Where | Table |
 |---|---|---|
-| Taberna NE / Taberna SO | G1, salas bajo el graderío II | `taberna` |
-| Velario | Nicho del ático en la terraza superior | `velario` |
-| Palco del editor | Palco norte | `palco_menor` |
-| Palco imperial | Junto al trono, palco sur | `palco` |
-| Barracones | H1 oeste | `barracones` |
-| Domador | Celda de fieras sur-este | `fieras` |
-| Armería | H1 este | `armeria` |
-| Capilla de Cómodo (oculto) | Rellano del pasadizo, H1 | `cripta` |
-| Lanista (oculto) | H2 bajo la armería | `lanista` |
-| Premium | Estrado de la cámara del tesoro | `premium` |
+| NE tavern / SW tavern | G1, rooms under stands II | `taberna` |
+| Velarium | The attic niche on the upper terrace | `velario` |
+| Editor's box | North box | `palco_menor` |
+| Imperial box | Next to the throne, south box | `palco` |
+| Barracks | H1 west | `barracones` |
+| Tamer | South-east beast cell | `fieras` |
+| Armory | H1 east | `armeria` |
+| Commodus's chapel (hidden) | Passage landing, H1 | `cripta` |
+| Lanista (hidden) | H2 under the armory | `lanista` |
+| Premium | Dais of the treasure chamber | `premium` |
 
-## Puzles, trampas, generadores y guardián
+## Puzzles, traps, spawners and guardian
 
-- **Puzle 1, "la ofrenda"** (armería): pedestal con un marco vacío; detrás, un comparador lee el marco y alimenta una
-  trampilla de hierro del suelo. Cualquier objeto en el marco la abre. Todo está apagado al generarse (marco vacío,
-  comparador sin señal, trampilla cerrada): no depende de ninguna actualización.
-- **Puzle 2, "el nicho del emperador"** (palco imperial): en la pared oeste hay un nicho ciego y, en la misma pared,
-  una palanca. La pared del fondo del nicho es una puerta de pistones enrasada: dos pistones pegajosos extendidos la
-  sujetan, alimentados por una antorcha de redstone en la cara oculta del bloque de la palanca. Al bajar la palanca la
-  antorcha se apaga, los pistones recogen los dos bloques y se abre el pasadizo de Cómodo; al subirla se cierra.
-  Se guardan los estados coherentes (antorcha encendida, pistones extendidos con cabeza, palanca apagada), así que
-  nada cambia al generarse. La prueba `tools/smoke/coliseo_redstone.py` lo comprueba en un servidor real.
-- **Trampa 1** (corredor de la armería): cable trampa de lado a lado; cada gancho activa el bloque al que está
-  sujeto y este el dispensador con flechas que tiene encima, que dispara a la altura del pecho.
-- **Trampa 2** (pasillo de las placas, H2): tres placas de piedra; cada una activa los dos dispensadores de las paredes
-  que tiene al lado, a ras de suelo.
-- **Generadores**: arañas (celda de fieras norte), zombis (celda de fieras sur), esqueletos (barracones), esqueletos
-  (tramo bajo del pasadizo de Cómodo). Están lejos de toda luz (la auditoría calcula la luz de bloque y exige 0 en su
-  radio de aparición).
-- **Guardián**: el Campeón de la Arena, un husk (no arde al sol y encaja con la sabana) con `PersistenceRequired`,
-  40 de vida, casco de oro, peto y botas de hierro, grebas de cota, espada de hierro y escudo; poca probabilidad de
-  soltar el equipo.
-- Sin aldeanos ni gólems: es una ruina abandonada.
+- **Puzzle 1, "the offering"** (armory): a pedestal with an empty item frame; behind it, a comparator reads the frame and powers an
+  iron trapdoor in the floor. Any item in the frame opens it. Everything is off when generated (empty frame,
+  comparator without signal, trapdoor closed): it does not depend on any update.
+- **Puzzle 2, "the emperor's niche"** (imperial box): in the west wall there is a blind niche and, in the same wall,
+  a lever. The back wall of the niche is a flush piston door: two extended sticky pistons
+  hold it, powered by a redstone torch on the hidden face of the lever's block. When the lever is pulled down the
+  torch turns off, the pistons pull in the two blocks and Commodus's passage opens; when it is raised it closes.
+  The consistent states are saved (torch lit, pistons extended with their head, lever off), so
+  nothing changes when generated. The test `tools/smoke/coliseo_redstone.py` checks it on a real server.
+- **Trap 1** (armory corridor): a tripwire from side to side; each hook activates the block it is
+  attached to and that one the arrow dispenser above it, which fires at chest height.
+- **Trap 2** (plates corridor, H2): three stone plates; each one activates the two wall dispensers
+  next to it, at floor level.
+- **Spawners**: spiders (north beast cell), zombies (south beast cell), skeletons (barracks), skeletons
+  (lower stretch of Commodus's passage). They are far from any light (the audit computes the block light and requires 0 within their
+  spawning radius).
+- **Guardian**: the Champion of the Arena, a husk (it does not burn in the sun and fits the savanna) with `PersistenceRequired`,
+  40 health, gold helmet, iron chestplate and boots, chainmail leggings, iron sword and shield; a low chance of
+  dropping its equipment.
+- No villagers or golems: it is an abandoned ruin.
 
-## Ruina (objetivo 80-85 % en buen estado)
+## Ruin (target 80-85 % in good condition)
 
-- Tramo derrumbado: 5 de los 40 vanos al noroeste. El ático y el tercer orden caen a una línea quebrada, el graderío II
-  y la terraza se convierten en un talud de escombros (adoquín, arenisca, tierra gruesa con arbustos secos) que deja a
-  la vista la bóveda de G2.
-- Cornisas: faltan tramos de las impostas (y=6, 12, 18) y de la cornisa superior, y hay muescas en la coronación.
-- Asientos sueltos rotos o desaparecidos (pocos, deterministas).
-- Procesador de piezas: arenisca lisa y tallada se meteoriza a arenisca (6 %); en el hipogeo los ladrillos de piedra
-  se agrietan (15 %) o crían musgo (6 %).
-- La auditoría mide la superficie expuesta (cara superior de cada columna y fachada) y el porcentaje dañado.
+- Collapsed stretch: 5 of the 40 bays to the northwest. The attic and the third order drop to a broken line, stands II
+  and the terrace turn into a slope of rubble (cobblestone, sandstone, coarse dirt with dead bushes) that leaves
+  the G2 vault in sight.
+- Cornices: stretches of the string courses (y=6, 12, 18) and of the upper cornice are missing, and there are notches in the crown.
+- Loose seats broken or missing (a few, deterministic).
+- Piece processor: smooth and cut sandstone weather to sandstone (6 %); in the hypogeum the stone bricks
+  crack (15 %) or grow moss (6 %).
+- The audit measures the exposed surface (the top face of each column and the façade) and the damaged percentage.
 
-## Botín
+## Loot
 
-Menores modestos, más ricos cuanto más escondidos; cada cofre tiene un grupo extra `solo_sin_lootr`.
-Solo objetos vanilla, sin netherita en equipo ni élitros.
+Modest smaller chests, richer the more hidden they are; each chest has an extra `solo_sin_lootr` pool.
+Vanilla items only, no netherite gear or elytra.
 
-- `taberna`, `barracones`, `fieras`, `velario`: comida, cuerda, cuero, huesos, pepitas de hierro, cubos, riendas.
-- `palco_menor`, `palco`, `armeria`: oro y esmeraldas en poca cantidad, equipo de hierro o cota gastado, escudo,
-  flechas, zanahorias doradas.
-- `cripta`, `lanista`: lingotes, esmeraldas, libro encantado al azar, manzana dorada, armadura de caballo, etiqueta.
-- `premium` (90 % vistoso): un trofeo con nombre propio (Gladius del Campeón, Yelmo de la Victoria, Escudo del
-  Coliseo o Corona de Laurel) con encantamientos moderados, dos de entre adornos de armadura (centinela, explorador,
-  modelador, anfitrión, criador) y discos, oro, esmeraldas y algún diamante; **10 %**: algo más fuerte (Espada del
-  Emperador de diamante encantada o una manzana dorada encantada).
+- `taberna`, `barracones`, `fieras`, `velario`: food, string, leather, bones, iron nuggets, buckets, leads.
+- `palco_menor`, `palco`, `armeria`: small amounts of gold and emeralds, worn iron or chainmail gear, a shield,
+  arrows, golden carrots.
+- `cripta`, `lanista`: ingots, emeralds, a random enchanted book, a golden apple, horse armor, a name tag.
+- `premium` (90 % showy): a named trophy (the Champion's Gladius, the Helm of Victory, the Shield of the
+  Coliseum or the Laurel Crown) with moderate enchantments, two among armor trims (sentry, wayfinder,
+  shaper, host, raiser) and discs, gold, emeralds and the odd diamond; **10 %**: something stronger (the
+  Emperor's Sword, an enchanted diamond sword, or an enchanted golden apple).
 
-## Contraste con el criterio de Alberto
+## Against the owner's criteria
 
-- Escaleras: todos los cambios de nivel son peldaños o escaleras de mano completas; la auditoría propia recorre a pie
-  sin saltos y exige poder volver desde cada celda alcanzada.
-- Puertas: solo puertas con salida; las secretas se comprueban abiertas (camino) y cerradas (la cámara no se alcanza).
-- Nada flotando: faroles con cadena o techo, cadenas con enganche, comprobación de bloques sólidos sin apoyo tras la ruina.
-- Simetría: planta elíptica simétrica en los dos ejes salvo la ruina y los palcos (imperial al sur, editor al norte).
-- Cada elemento con función: arcos y galerías de circulación, vomitorios, montacargas, celdas, barracones, armería.
+- Stairs: every level change is made with steps or complete ladders; its own audit walks
+  without jumps and requires a way back from every reached cell.
+- Doors: only doors with an exit; the secret ones are checked open (path) and closed (the chamber cannot be reached).
+- Nothing floating: lanterns on a chain or ceiling, chains with an anchor, a check for solid blocks without support after the ruin.
+- Symmetry: an elliptical plan symmetric on both axes except for the ruin and the boxes (imperial to the south, editor to the north).
+- Every element with a function: arches and galleries for circulation, vomitoria, lifts, cells, barracks, armory.

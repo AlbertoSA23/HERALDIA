@@ -1,129 +1,129 @@
-# Faro con cueva de contrabandistas (`heraldia:unicas/faro`)
+# Lighthouse with smugglers' cave (`heraldia:unicas/faro`)
 
-Una sola variante, diseñada a mano. Faro blanco y rojo sobre un promontorio rocoso de la costa con la casa del
-farero; bajo el promontorio, al nivel del mar, la cueva de unos contrabandistas con muelle escondido. Se entra a pie
-por la casa (pasadizo secreto) o por mar, por la boca de la cueva.
+A single variant, designed by hand. A white and red lighthouse on a rocky headland on the coast with the keeper's
+house; under the headland, at sea level, a smugglers' cave with a hidden dock. It is entered on foot
+through the house (secret passage) or by sea, through the mouth of the cave.
 
-## Situación junto al mar (por qué hace falta Java)
+## Placement next to the sea (why Java is needed)
 
-El jigsaw no sabe dónde hay agua y gira la pieza al azar, así que no puede garantizar ni que haya mar ni que la boca
-de la cueva mire hacia él. Se registra un tipo de estructura propio, `heraldia:faro`
-(`io.github.albertosa23.heraldia.unicas.faro.FaroStructure`), que:
+The jigsaw does not know where there is water and rotates the piece at random, so it can guarantee neither that there is sea nor that the mouth
+of the cave faces it. A custom structure type is registered, `heraldia:faro`
+(`io.github.albertosa23.heraldia.unicas.faro.FaroStructure`), which:
 
-1. Busca en una rejilla de 7 x 7 puntos (cada 8 bloques alrededor del centro de la casilla) los que caen en un bioma
-   de la estructura (`#heraldia:unicas/faro`: costa pedregosa y playa). Si ninguno cae, termina sin consultar alturas:
-   las casillas de interior y las búsquedas de mapas y `/locate` son baratas.
-2. Para cada candidato y cada una de las 4 direcciones consulta los mapas de alturas de generación
-   (`OCEAN_FLOOR_WG` y `WORLD_SURFACE_WG`, con caché): detrás tiene que haber tierra entre el nivel del mar + 4 y + 16;
-   delante, a 24-40 bloques, agua con al menos 3 de fondo; y en toda la huella nada más alto que la cima del
-   promontorio (para que el terreno no tape la casa).
-3. Coloca la plantilla girada para que la boca de la cueva mire al mar, centrada en el punto elegido y con la fila de
-   agua del muelle en el nivel del mar (`sea_row`). Adaptación al terreno `none`: el promontorio trae su propia roca y
-   por encima de ella no se toca el terreno natural.
-4. Con `/place structure` (el predicado de bioma acepta cualquiera) y sin costa a la vista, se coloca igualmente en el
-   centro del chunk, para probar.
+1. Looks on a 7 x 7 grid of points (every 8 blocks around the center of the cell) for those that fall in one of the structure's
+   biomes (`#heraldia:unicas/faro`: stony shore and beach). If none does, it ends without querying heights:
+   inland cells and map and `/locate` searches are cheap.
+2. For each candidate and each of the 4 directions it queries the generation heightmaps
+   (`OCEAN_FLOOR_WG` and `WORLD_SURFACE_WG`, cached): behind it there must be land between sea level + 4 and + 16;
+   in front, 24-40 blocks away, water at least 3 deep; and across the whole footprint nothing higher than the top of the
+   headland (so that the terrain does not cover the house).
+3. It places the template rotated so the mouth of the cave faces the sea, centered on the chosen point and with the dock's
+   water row at sea level (`sea_row`). Terrain adaptation `none`: the headland brings its own rock and
+   above it the natural terrain is not touched.
+4. With `/place structure` (the biome predicate accepts any) and no coast in sight, it is still placed at the
+   center of the chunk, for testing.
 
-Estado del agua: todo el interior de la cueva está por encima del nivel del mar (el suelo de los muelles es la fila
-del agua), así que el mar no puede inundarla; el agua del canal es de fuentes colocadas por la plantilla, a ras del mar.
+Water: the whole inside of the cave is above sea level (the docks' floor is the water
+row), so the sea cannot flood it; the channel's water is source blocks placed by the template, at sea level.
 
-## Medidas
+## Measurements
 
-Plantilla de 44 x 52 x 48 (x, y, z), una sola pieza. y=8 es la fila del agua (nivel del mar - 1); la cima del
-promontorio (hierba) está en y=21 (13 bloques sobre el mar) y el pararrayos del faro en y=51. La boca mira a +z (sur
-de la plantilla) y la entrada a pie está en z=0.
+A 44 x 52 x 48 template (x, y, z), a single piece. y=8 is the water row (sea level - 1); the top of the
+headland (grass) is at y=21 (13 blocks above the sea) and the lighthouse's lightning rod at y=51. The mouth faces +z (the
+template's south) and the entrance on foot is at z=0.
 
-## Plantas por nivel (pies del jugador)
+## Floor plans by level (player's feet)
 
-**Cima, y=22.** Camino de tierra desde la entrada (z=0) hasta la puerta norte de la casa del farero (15 x 11, muros
-de piedra y abeto, tejado a dos aguas). Dentro: dormitorio (cama, arcón), cocina (ahumador, horno, mesa con dos sillas)
-y estudio (estantería, atril, mesa de cartografía); **cofre `casa`**; escalera de mano al sótano. Al sur, pasillo
-cubierto hasta el faro.
+**Top, y=22.** A dirt path from the entrance (z=0) to the north door of the keeper's house (15 x 11, walls
+of stone and spruce, a gable roof). Inside: bedroom (bed, chest), kitchen (smoker, furnace, a table with two chairs)
+and study (bookshelf, lectern, cartography table); **`casa` chest**; a ladder to the cellar. To the south, a
+covered corridor to the lighthouse.
 
-**Faro.** Torre de 9 x 9, bandas blancas y rojas, núcleo macizo de 5 x 5 y escalera de caracol de 17 peldaños contra
-los muros, con ventanas al mar. Sala de guardia (y=39): atril, **cofre `faro`**, barril, ventanas en los cuatro lados.
-Escalera de mano a la linterna (y=44): cristal alrededor, dos bombillas de cobre encendidas (no necesitan
-alimentación), galería exterior con barandilla y ménsulas.
+**Lighthouse.** A 9 x 9 tower, white and red bands, a solid 5 x 5 core and a 17-step spiral staircase against
+the walls, with windows to the sea. Watch room (y=39): lectern, **`faro` chest**, barrel, windows on all four sides.
+A ladder to the lantern (y=44): glass all round, two lit copper bulbs (they need no
+power), an outer gallery with a railing and corbels.
 
-**Sótano, y=17** (bajo la casa). Barriles de vino (**barril `bodega`**), cartel con la pista y una **trampilla de
-hierro** en el suelo. **Puzle 1:** la trampilla se abre con la palanca escondida entre los barriles (la palanca
-alimenta el bloque del suelo pegado a la trampilla). Debajo, escalera de mano hasta la cueva.
+**Cellar, y=17** (under the house). Wine barrels (**`bodega` barrel**), a sign with the clue and an **iron
+trapdoor** in the floor. **Puzzle 1:** the trapdoor opens with the lever hidden among the barrels (the lever
+powers the floor block next to the trapdoor). Below, a ladder down to the cave.
 
-**Cueva, y=9** (nivel del mar).
-- Pasadizo secreto (1 de ancho) desde la escalera hasta el corredor. **Trampa 1** (como el templo de la jungla):
-  cable trampa entre dos ganchos; cada gancho dispara el dispensador que tiene encima (flechas en cruz a la altura de
-  la cabeza).
-- Corredor este-oeste que une las salas del norte con la gran gruta.
-- Gruta del muelle: canal de agua de 5 de ancho hasta la boca, muelles de abeto con norays, cajas y un **bote con
-  cofre (`bote`)** amarrado.
-- Almacén oeste: barriles y cajas, **cofre `almacen`**, **generador de esqueletos** al fondo. Detrás de una pila de
-  barriles queda una rendija que lleva a la **gruta del alijo** (sala oculta, **cofre `oculto`**).
-- Almacén este: **cofre `almacen`**, derrumbe en una esquina, y en un nicho un **cofre señuelo** con placa de presión
-  y TNT debajo (**trampa 2**, como el templo del desierto).
-- Dormitorio: cuatro literas, mesa, **cofre `dormitorio`**.
-- Calabozo: celdas con barrotes (una rota), **generador de zombis**, **cofre `calabozo`** en una celda.
-- Despacho del capitán: escritorio, sillas, atril, mapa, **cofre `despacho`**, estanterías. **Puzle 2:** tres
-  palancas en el muro norte y un cartel ("Ni proa ni popa: manda el centro"). La puerta de hierro de la cámara solo se
-  abre con la central subida y las otras dos bajadas. Circuito escondido tras el muro: la palanca A y la C alimentan
-  una línea de polvo; la B pasa por una antorcha inversora; la línea alimenta el bloque de una segunda antorcha, que
-  es la que abre la puerta. En reposo (A subida, B y C bajadas) la puerta está cerrada.
-- Cámara del tesoro (5 de alto): **guardián con nombre** ("Capitán Bruma", ahogado con espada de hierro y cota de
-  malla, 40 de vida, `PersistenceRequired`, sin soltar el equipo), **cofre premium** sobre un estrado y dos
-  **barriles `tesoro`**.
+**Cave, y=9** (sea level).
+- A secret passage (1 wide) from the ladder to the corridor. **Trap 1** (like the jungle temple):
+  a tripwire between two hooks; each hook fires the dispenser above it (crossed arrows at
+  head height).
+- An east-west corridor joining the northern rooms with the great grotto.
+- The dock grotto: a 5-wide water channel to the mouth, spruce docks with bollards, crates and a **boat with a
+  chest (`bote`)** moored.
+- West storeroom: barrels and crates, **`almacen` chest**, a **skeleton spawner** at the back. Behind a stack of
+  barrels there is a gap leading to the **stash grotto** (hidden room, **`oculto` chest**).
+- East storeroom: **`almacen` chest**, a collapse in one corner, and in a niche a **decoy chest** with a pressure plate
+  and TNT underneath (**trap 2**, like the desert temple).
+- Dormitory: four bunks, a table, **`dormitorio` chest**.
+- Dungeon: cells with bars (one broken), a **zombie spawner**, a **`calabozo` chest** in a cell.
+- The captain's office: desk, chairs, lectern, map, **`despacho` chest**, bookshelves. **Puzzle 2:** three
+  levers on the north wall and a sign ("Neither bow nor stern: the middle rules"). The iron door of the chamber only
+  opens with the middle one up and the other two down. A circuit hidden behind the wall: levers A and C power
+  a line of dust; B goes through an inverting torch; the line powers the block of a second torch, which
+  is the one that opens the door. At rest (A up, B and C down) the door is closed.
+- Treasure chamber (5 high): a **named guardian** ("Captain Bruma", a drowned with an iron sword and chainmail,
+  40 health, `PersistenceRequired`, does not drop its equipment), the **premium chest** on a dais and two
+  **`tesoro` barrels**.
 
-Recorrido: casa → sótano (puzle 1) → pasadizo (trampa 1) → corredor → salas del norte y gruta → almacenes (generador,
-sala oculta, trampa 2) → despacho (puzle 2) → cámara (guardián, premium). Por mar se llega a la gruta sin pasar por
-la casa, pero el despacho y la cámara solo se abren con los puzles.
+Route: house → cellar (puzzle 1) → passage (trap 1) → corridor → northern rooms and grotto → storerooms (spawner,
+hidden room, trap 2) → office (puzzle 2) → chamber (guardian, premium). By sea you reach the grotto without going through
+the house, but the office and the chamber only open with the puzzles.
 
-## Ruina (80-85 % en buen estado)
+## Ruin (80-85 % in good condition)
 
-Procesador: un 10 % de ladrillos de piedra agrietados y un 8 % musgosos; un 15 % del adoquín musgoso. Huecos con
-sentido: dos cristales rotos en la casa, un hueco en la barandilla de la galería del lado del mar, derrumbe de grava y
-adoquín en el almacén este, barrotes rotos en una celda y telarañas en el calabozo. La auditoría estima el porcentaje
-de superficie alterada y lo exige entre el 15 y el 20 %.
+Processor: 10 % of the stone bricks cracked and 8 % mossy; 15 % of the cobblestone mossy. Gaps that make
+sense: two broken panes in the house, a gap in the gallery railing on the sea side, a collapse of gravel and
+cobblestone in the east storeroom, broken bars in a cell and cobwebs in the dungeon. The audit estimates the percentage
+of altered surface and requires it to be between 15 and 20 %.
 
-Aldeanos o gólems: ninguno. El faro está abandonado y la cueva tomada por los muertos de la banda; un aldeano solo
-tendría sentido si el faro siguiera en uso.
+Villagers or golems: none. The lighthouse is abandoned and the cave taken over by the gang's dead; a villager would only
+make sense if the lighthouse were still in use.
 
-## Botín (solo vanilla; cada cofre con su grupo extra `solo_sin_lootr`)
+## Loot (vanilla only; each chest with its extra `solo_sin_lootr` pool)
 
-| Tabla | Dónde | Contenido |
+| Table | Where | Contents |
 |---|---|---|
-| `casa` | casa | comida, velas, papel, hilo; brújula rara |
-| `faro` | sala de guardia | catalejo, brújula, mapa vacío, papel, tinta luminosa, farol, lingotes de hierro |
-| `bodega` | sótano | pan, manzanas, botellas de miel, bayas, bacalao |
-| `almacen` | almacenes | cuero, lana, hilo, pólvora, azúcar, lingotes de hierro, pepitas de oro, esmeraldas sueltas |
-| `senuelo` | señuelo (trampa) | huesos, carne podrida, hilo, pólvora |
-| `dormitorio` | dormitorio | comida, pepitas de oro, armadura de cuero gastada, libro, reloj raro |
-| `calabozo` | calabozo | huesos, pepitas de hierro, cadenas, rienda, etiqueta rara |
-| `despacho` | despacho | mapa, brújula, lingotes de oro, esmeraldas, libro encantado (20 %), frascos de experiencia |
-| `oculto` | gruta del alijo | oro, esmeraldas, diamante (15 %), pieza de hierro encantada (5-15), manzana de oro (10 %) |
-| `bote` | bote con cofre | pólvora, esmeraldas, salmón, caparazón de nautilo, corazón del mar (5 %) |
-| `tesoro` | cámara | pepitas y lingotes de oro, oro en bruto, esmeraldas |
-| `premium` | cámara | 90 %: objetos con nombre (sable del capitán, catalejo, brújula), plantilla de adorno *costa*, disco, libro encantado, manzana de oro; 10 %: espada de diamante encantada (20-30), tridente, manzana de oro encantada o 3-5 diamantes |
+| `casa` | house | food, candles, paper, string; a rare compass |
+| `faro` | watch room | spyglass, compass, empty map, paper, glow ink, lantern, iron ingots |
+| `bodega` | cellar | bread, apples, honey bottles, berries, cod |
+| `almacen` | storerooms | leather, wool, string, gunpowder, sugar, iron ingots, gold nuggets, a few emeralds |
+| `senuelo` | decoy (trap) | bones, rotten flesh, string, gunpowder |
+| `dormitorio` | dormitory | food, gold nuggets, worn leather armor, book, a rare clock |
+| `calabozo` | dungeon | bones, iron nuggets, chains, lead, a rare name tag |
+| `despacho` | office | map, compass, gold ingots, emeralds, enchanted book (20 %), bottles o' enchanting |
+| `oculto` | stash grotto | gold, emeralds, diamond (15 %), an enchanted iron piece (5-15), golden apple (10 %) |
+| `bote` | chest boat | gunpowder, emeralds, salmon, nautilus shell, heart of the sea (5 %) |
+| `tesoro` | chamber | gold nuggets and ingots, raw gold, emeralds |
+| `premium` | chamber | 90 %: named items (the captain's saber, spyglass, compass), *coast* trim template, disc, enchanted book, golden apple; 10 %: an enchanted diamond sword (20-30), a trident, an enchanted golden apple or 3-5 diamonds |
 
-Sin netherita en equipo ni élitros.
+No netherite gear or elytra.
 
-## Verificado en el servidor
+## Verified on the server
 
-`/locate structure heraldia:unicas/faro` encontró una en la semilla de prueba y la generación natural la colocó;
-guardián y bote presentes, agua delante de la boca y aire dentro de la gruta. Puzle 1 abre la trampilla; puzle 2 solo
-abre la puerta con (A, B, C) = (bajada, subida, bajada) entre cinco combinaciones probadas. Planos y renders:
-`docs/unicas/faro/`. El aspecto visual no está validado con capturas del juego.
+`/locate structure heraldia:unicas/faro` found one with the test seed and natural generation placed it;
+guardian and boat present, water in front of the mouth and air inside the grotto. Puzzle 1 opens the trapdoor; puzzle 2 only
+opens the door with (A, B, C) = (down, up, down) among the five combinations tried. Plans and renders:
+`docs/unicas/faro/`. The visual look has not been validated with screenshots from the game.
 
-## Contraste con el criterio de diseño
+## Against the design criteria
 
-- Escaleras completas y sin saltos: caracol de peldaños; las escaleras de mano terminan en suelo (la trampilla
-  abierta sobre la escalera cuenta como escalón, igual que en el juego).
-- Puertas con salida y nada inaccesible: lo comprueba el recorrido a pie con los puzles resueltos.
-- Muebles contra los muros, centro libre salvo mesas con sillas; faroles colgados de cadenas o techo.
-- Simetría en el faro y la casa; la cueva, natural e irregular salvo las salas construidas.
-- Cada elemento con función: norays, cajas en el muelle, literas, celdas, estrado del tesoro.
+- Complete staircases without jumps: a spiral of steps; the ladders end on a floor (the open trapdoor
+  over the ladder counts as a step, just like in the game).
+- Doors with an exit and nothing inaccessible: checked by the walk with the puzzles solved.
+- Furniture against the walls, center free except for tables with chairs; lanterns hanging from chains or the ceiling.
+- Symmetry in the lighthouse and the house; the cave natural and irregular except for the built rooms.
+- Every element with a function: bollards, crates on the dock, bunks, cells, the treasure dais.
 
-## Comprobaciones propias del módulo
+## The module's own checks
 
-`tools/gen/unicas/faro/checks.py` (se ejecutan al construir y fallan la generación):
-- Recorrido a pie con los puzles resueltos (estado abierto declarado por la plantilla, que también usa `lint.py`).
-- Simulación de redstone de los dos puzles y las trampas: estado de reposo coherente con lo colocado (nada depende de
-  una actualización que no ocurra al generar) y la puerta solo se abre con la combinación buena (8 combinaciones).
-- Cueva estanca: ninguna celda de aire del interior bajo la cima toca el exterior salvo la boca.
-- Porcentaje de superficie alterada entre el 15 y el 20 %.
+`tools/gen/unicas/faro/checks.py` (they run when building and fail generation):
+- Walk with the puzzles solved (the open state declared by the template, which `lint.py` also uses).
+- Redstone simulation of the two puzzles and the traps: a rest state consistent with what is placed (nothing depends on
+  an update that does not happen during generation) and the door only opens with the correct combination (8 combinations).
+- Watertight cave: no air cell of the inside below the top touches the outside except the mouth.
+- Percentage of altered surface between 15 and 20 %.
