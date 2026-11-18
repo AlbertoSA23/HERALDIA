@@ -3,7 +3,7 @@ package io.github.albertosa23.heraldia;
 import io.github.albertosa23.heraldia.config.GridPlacement;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.loot.WithoutLootrCondition;
-import io.github.albertosa23.heraldia.unicas.atlantida.Atlantida;
+import io.github.albertosa23.heraldia.uniques.atlantis.Atlantis;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -20,50 +20,50 @@ import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Punto de entrada. El contenido es de datos (data/heraldia); aquí se registra lo que los datos no pueden expresar. */
+/** Entry point. The content is data (data/heraldia); this registers what the data cannot express. */
 public final class Heraldia implements ModInitializer {
 	public static final String MOD_ID = "heraldia";
-	/** Etiqueta (Tags) de los mobs de plantilla que no deben salir bebés (core.ADULTO_TAG del generador; ZombieMixin, ZombieEquipoMixin y DrownedMixin). */
-	public static final String ADULTO = "heraldia_adulto";
+	/** Tag of the template mobs that must not spawn as babies (the generator's core.ADULTO_TAG; ZombieMixin, ZombieEquipmentMixin and DrownedMixin). */
+	public static final String ADULT = "heraldia_adulto";
 	private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {
-		// Antes de que se lea ningún datapack: la rejilla heraldia:rejilla toma sus valores de aquí.
+		// Before any datapack is read: the heraldia:rejilla grid takes its values from here.
 		HeraldiaConfig.load(FabricLoader.getInstance().getConfigDir().resolve("heraldia.json"));
 		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("sin_lootr"), WithoutLootrCondition.CODEC);
 		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("opcion"), io.github.albertosa23.heraldia.loot.OptionCondition.CODEC);
 		Registry.register(BuiltInRegistries.STRUCTURE_PLACEMENT, id("rejilla"), GridPlacement.CODEC);
 		GridPlacement.registerBiomeSearch();
-		Atlantida.register();
-		io.github.albertosa23.heraldia.unicas.ciudadela.Ciudadela.register();
-		io.github.albertosa23.heraldia.unicas.mina.Mina.register();
-		io.github.albertosa23.heraldia.minas.Minas.registrar();
-		io.github.albertosa23.heraldia.costa.Costa.registrar();
-		io.github.albertosa23.heraldia.unicas.faro.Faro.init();
-		io.github.albertosa23.heraldia.dimensiones.Dimensiones.registrar();
-		io.github.albertosa23.heraldia.comun.HastaElSueloProcessor.register();
-		io.github.albertosa23.heraldia.comun.Anclaje.registrar();
-		io.github.albertosa23.heraldia.jefes.Jefes.registrar();
-		io.github.albertosa23.heraldia.aldeas.AldeaStructure.registrar();
-		io.github.albertosa23.heraldia.caminos.Caminos.registrar();
-		io.github.albertosa23.heraldia.unicas.galeon.GaleonUnica.registrar();
-		io.github.albertosa23.heraldia.unicas.isla.Isla.register();
-		io.github.albertosa23.heraldia.comando.LlaveCommand.register();
-		io.github.albertosa23.heraldia.comando.Guia.register();
-		io.github.albertosa23.heraldia.comando.Comandos.registrar();
-		io.github.albertosa23.heraldia.comando.AvisoVersion.registrar();
-		io.github.albertosa23.heraldia.loot.CofrePorJugador.register();
-		io.github.albertosa23.heraldia.loot.BotinRepuesto.registrar();
-		io.github.albertosa23.heraldia.dificultad.DificultadMobs.registrar();
-		io.github.albertosa23.heraldia.arena.Arena.registrar();
-		io.github.albertosa23.heraldia.encargos.Encargos.registrar();
-		io.github.albertosa23.heraldia.caravanas.Caravanas.registrar();
-		io.github.albertosa23.heraldia.comun.Perfil.registrar();
-		io.github.albertosa23.heraldia.mapas.MapasWeb.registrar();
-		io.github.albertosa23.heraldia.tesoro.Tesoro.registrar();
-		io.github.albertosa23.heraldia.chozas.Magos.registrar();
-		io.github.albertosa23.heraldia.actualizar.Actualizar.registrar();
+		Atlantis.register();
+		io.github.albertosa23.heraldia.uniques.citadel.Citadel.register();
+		io.github.albertosa23.heraldia.uniques.mine.Mine.register();
+		io.github.albertosa23.heraldia.mines.Mines.register();
+		io.github.albertosa23.heraldia.coast.Coast.register();
+		io.github.albertosa23.heraldia.uniques.lighthouse.Lighthouse.init();
+		io.github.albertosa23.heraldia.dimensions.Dimensions.register();
+		io.github.albertosa23.heraldia.common.ToGroundProcessor.register();
+		io.github.albertosa23.heraldia.common.Anchoring.register();
+		io.github.albertosa23.heraldia.bosses.Bosses.register();
+		io.github.albertosa23.heraldia.villages.VillageStructure.register();
+		io.github.albertosa23.heraldia.roads.Roads.register();
+		io.github.albertosa23.heraldia.uniques.galleon.GalleonUnique.register();
+		io.github.albertosa23.heraldia.uniques.island.Island.register();
+		io.github.albertosa23.heraldia.command.KeyCommand.register();
+		io.github.albertosa23.heraldia.command.Guide.register();
+		io.github.albertosa23.heraldia.command.HeraldiaCommands.register();
+		io.github.albertosa23.heraldia.command.VersionNotice.register();
+		io.github.albertosa23.heraldia.loot.PerPlayerChest.register();
+		io.github.albertosa23.heraldia.loot.RestockedLoot.register();
+		io.github.albertosa23.heraldia.difficulty.MobDifficulty.register();
+		io.github.albertosa23.heraldia.arena.Arena.register();
+		io.github.albertosa23.heraldia.quests.Quests.register();
+		io.github.albertosa23.heraldia.caravans.Caravans.register();
+		io.github.albertosa23.heraldia.common.Profiler.register();
+		io.github.albertosa23.heraldia.maps.WebMaps.register();
+		io.github.albertosa23.heraldia.treasure.Treasure.register();
+		io.github.albertosa23.heraldia.huts.Wizards.register();
+		io.github.albertosa23.heraldia.update.Updater.register();
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::logRegisteredStructures);
 		ServerLifecycleEvents.SERVER_STARTED.register(Heraldia::publishGolemSettings);
 	}
@@ -72,8 +72,8 @@ public final class Heraldia implements ModInitializer {
 		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 
-	/** Deja en el log cuántas estructuras y logros del mod se han cargado, para comprobar la carga sin entrar al juego
-	 *  (sin jugadores, /advancement no llega a mirar el logro). Una vez, al arrancar. */
+	/** Logs how many of the mod's structures and advancements have loaded, to check loading without joining the game
+	 *  (without players, /advancement never looks at the advancement). Once, at startup. */
 	private static void logRegisteredStructures(MinecraftServer server) {
 		long count = server.registryAccess().lookupOrThrow(Registries.STRUCTURE).keySet().stream()
 				.filter(id -> MOD_ID.equals(id.getNamespace()))
@@ -85,7 +85,7 @@ public final class Heraldia implements ModInitializer {
 		LOGGER.info("Heraldia: {} logros cargados", advancements);
 	}
 
-	/** Pasa a las funciones de gólems (marcador heraldia_cfg) la limpieza y los límites de la configuración (al arrancar y con /heraldia reload). */
+	/** Passes the configuration's cleanup and limits to the golem functions (heraldia_cfg scoreboard) (at startup and on /heraldia reload). */
 	public static void publishGolemSettings(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		Scoreboard board = server.getScoreboard();

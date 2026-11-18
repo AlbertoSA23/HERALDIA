@@ -5,7 +5,7 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-/** Botón de configuración en la lista de Mod Menu. Si Mod Menu no está, Fabric no carga esta clase. */
+/** Configuration button in Mod Menu's list. Without Mod Menu, Fabric does not load this class. */
 @Environment(EnvType.CLIENT)
 public final class ModMenuIntegration implements ModMenuApi {
 	@Override

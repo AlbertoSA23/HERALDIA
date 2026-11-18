@@ -15,7 +15,7 @@ import writer
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 JAVA = os.path.join(ROOT, "src", "main", "java")
-ALIAS = os.path.join(JAVA, "io", "github", "albertosa23", "heraldia", "comando", "Alias.java")
+ALIAS = os.path.join(JAVA, "io", "github", "albertosa23", "heraldia", "command", "Alias.java")
 MODS = unicas.modules()
 
 

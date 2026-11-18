@@ -12,18 +12,18 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 /**
- * Mixin (último recurso): {@code Zombie.finalizeSpawn}, que las plantillas llaman al colocar sus mobs, sortea un bebé (5 %)
- * y un jinete de gallina sin mirar el {@code IsBaby} del NBT; los datos no pueden evitarlo. A los mobs de plantilla con la
- * etiqueta {@link Heraldia#ADULTO} (zombi, husk, ahogado, zombi aldeano, piglin zombificado) les pasa un grupo «adulto, sin
- * jinete», como el juego hace en las conversiones. Solo en la colocación de estructuras (salida temprana con el motivo).
+ * Mixin (last resort): {@code Zombie.finalizeSpawn}, which templates call when placing their mobs, rolls a baby (5 %)
+ * and a chicken jockey without looking at the NBT's {@code IsBaby}; the data cannot prevent it. Template mobs with the
+ * {@link Heraldia#ADULT} tag (zombie, husk, drowned, zombie villager, zombified piglin) get an "adult, no
+ * jockey" group, as the game does on conversions. Only during structure placement (early exit by the spawn reason).
  */
 @Mixin(Zombie.class)
 abstract class ZombieMixin {
 	@ModifyVariable(method = "finalizeSpawn", at = @At("HEAD"), argsOnly = true)
-	private @Nullable SpawnGroupData heraldia$adulto(@Nullable SpawnGroupData groupData, ServerLevelAccessor level,
+	private @Nullable SpawnGroupData heraldia$adult(@Nullable SpawnGroupData groupData, ServerLevelAccessor level,
 			DifficultyInstance difficulty, EntitySpawnReason spawnReason) {
 		if (spawnReason != EntitySpawnReason.STRUCTURE || groupData != null
-				|| !((Zombie) (Object) this).entityTags().contains(Heraldia.ADULTO)) {
+				|| !((Zombie) (Object) this).entityTags().contains(Heraldia.ADULT)) {
 			return groupData;
 		}
 		return new Zombie.ZombieGroupData(false, false);

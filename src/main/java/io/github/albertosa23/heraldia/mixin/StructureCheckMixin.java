@@ -1,14 +1,14 @@
 package io.github.albertosa23.heraldia.mixin;
 
-import io.github.albertosa23.heraldia.comun.Medianas;
-import io.github.albertosa23.heraldia.comun.Perfil;
-import io.github.albertosa23.heraldia.comun.ZonaAjenas;
+import io.github.albertosa23.heraldia.common.MediumStructures;
+import io.github.albertosa23.heraldia.common.Profiler;
+import io.github.albertosa23.heraldia.common.ForeignZone;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.config.UniqueSeparation;
-import io.github.albertosa23.heraldia.costa.Costa;
-import io.github.albertosa23.heraldia.minas.Minas;
-import io.github.albertosa23.heraldia.unicas.atlantida.AtlantisAnchor;
-import io.github.albertosa23.heraldia.unicas.isla.IslaZona;
+import io.github.albertosa23.heraldia.coast.Coast;
+import io.github.albertosa23.heraldia.mines.Mines;
+import io.github.albertosa23.heraldia.uniques.atlantis.AtlantisAnchor;
+import io.github.albertosa23.heraldia.uniques.island.IslandZone;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -30,7 +30,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** Mixin (último recurso): /locate y los mapas comprueban aquí si una estructura saldría; deben seguir las mismas reglas que la generación. */
+/** Mixin (last resort): /locate and the maps check here whether a structure would spawn; they must follow the same rules as generation. */
 @Mixin(StructureCheck.class)
 abstract class StructureCheckMixin {
 	@Shadow
@@ -71,15 +71,15 @@ abstract class StructureCheckMixin {
 
 	@Inject(method = "canCreateStructure", at = @At("HEAD"), cancellable = true)
 	private void heraldia$villageRules(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
-		long t0 = Perfil.inicio();
+		long t0 = Profiler.start();
 		try {
-			heraldia$reglas(pos, structure, cir);
+			heraldia$rules(pos, structure, cir);
 		} finally {
-			Perfil.fin(Perfil.Tramo.REGLAS_LOCATE, t0);
+			Profiler.end(Profiler.Segment.RULES_LOCATE, t0);
 		}
 	}
 
-	private void heraldia$reglas(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
+	private void heraldia$rules(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
 		Identifier id = registryAccess.lookupOrThrow(Registries.STRUCTURE).getKey(structure);
 		if (id != null && (!HeraldiaConfig.get().villages().allows(id, seed, pos.x(), pos.z())
 				|| AtlantisAnchor.excludes(id, dimension, seed, pos.x(), pos.z()))) {
@@ -90,59 +90,60 @@ abstract class StructureCheckMixin {
 			return;
 		}
 		UniqueSeparation sep = UniqueSeparation.of(registryAccess);
-		long isla = IslaZona.candidata(id, dimension, sep, seed, pos.x(), pos.z());
-		if (isla != IslaZona.NINGUNA && IslaZona.sale(sep, isla, seed, sep.viability(registryAccess, chunkGenerator, biomeSource,
+		long island = IslandZone.candidate(id, dimension, sep, seed, pos.x(), pos.z());
+		if (island != IslandZone.NONE && IslandZone.outcome(sep, island, seed, sep.viability(registryAccess, chunkGenerator, biomeSource,
 				climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
-			cir.setReturnValue(false); // como la generación: nada ajeno dentro de la isla del corsario
+			cir.setReturnValue(false); // like generation: nothing foreign inside the corsair's island
 			return;
 		}
-		ZonaAjenas zona = ZonaAjenas.of(registryAccess);
-		if (zona.activa(dimension) && ZonaAjenas.deOtroMod(id) && ZonaAjenas.visible(structure.step())) {
-			long[] cerca = zona.cercanas(sep, seed, pos.x(), pos.z());
-			if (cerca != null && zona.ocupada(cerca, sep, seed, sep.viability(registryAccess, chunkGenerator, biomeSource, climateSampler,
-					randomState, structureTemplateManager, seed, heightAccessor, dimension), zona.aldea(registryAccess, chunkGenerator,
+		ForeignZone zone = ForeignZone.of(registryAccess);
+		if (zone.active(dimension) && ForeignZone.fromOtherMod(id) && ForeignZone.visible(structure.step())) {
+			long[] near = zone.nearby(sep, seed, pos.x(), pos.z());
+			if (near != null && zone.occupied(near, sep, seed, sep.viability(registryAccess, chunkGenerator, biomeSource, climateSampler,
+					randomState, structureTemplateManager, seed, heightAccessor, dimension), zone.village(registryAccess, chunkGenerator,
 					biomeSource, climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
-				cir.setReturnValue(false); // como la generación: nada de otros mods encima de una aldea o una única
+				cir.setReturnValue(false); // like generation: no other mods' structures on top of a village or a unique
 				return;
 			}
 		}
-		if (UniqueSeparation.isUnique(id)) { // misma separación que la generación: /locate y los mapas no señalan descartadas
+		if (UniqueSeparation.isUnique(id)) { // same separation as generation: /locate and the maps do not point at discarded ones
 			int i = sep.indexOf(id);
 			if (i >= 0 && sep.enabled() && sep.blocked(i, pos.x(), pos.z(), seed, sep.viability(registryAccess, chunkGenerator, biomeSource,
 					climateSampler, randomState, structureTemplateManager, seed, heightAccessor, dimension))) {
 				cir.setReturnValue(false);
 			}
 		}
-		if (Medianas.esMediana(id) && Medianas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator,
+		if (MediumStructures.isMedium(id) && MediumStructures.of(registryAccess).rejects(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator,
 				biomeSource, climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
-			cir.setReturnValue(false); // como la generación: /locate no señala una mediana descartada
+			cir.setReturnValue(false); // like generation: /locate does not point at a discarded medium
 		}
 	}
 
 	/**
-	 * Las entradas a mina (y los faros y naufragios, con la misma regla), al final: su regla (aldeas, únicas, medianas y minas vecinas cerca) es mucho más cara que ver
-	 * si la propia entrada sale (bioma y ladera), y /locate solo necesita la regla donde la entrada sale. Mismo resultado
-	 * que mirarla antes (las dos condiciones tienen que cumplirse), sin pagarla en los candidatos sin bioma ni ladera.
+	 * The mine entrances (and the lighthouses and shipwrecks, with the same rule), at the end: their rule (villages, uniques,
+	 * mediums and neighboring mines nearby) is much more expensive than checking whether the entrance itself wins (biome and
+	 * hillside), and /locate only needs the rule where the entrance wins. Same result as checking it first (both conditions
+	 * must hold), without paying for it in the candidates without biome or hillside.
 	 */
 	@Inject(method = "canCreateStructure", at = @At("RETURN"), cancellable = true)
-	private void heraldia$reglasMinas(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
+	private void heraldia$minesRules(ChunkPos pos, Structure structure, CallbackInfoReturnable<Boolean> cir) {
 		if (!cir.getReturnValueZ()) {
 			return;
 		}
 		Identifier id = registryAccess.lookupOrThrow(Registries.STRUCTURE).getKey(structure);
-		if (id == null || !Minas.esMina(id) && !Costa.esCosta(id)) {
+		if (id == null || !Mines.isMine(id) && !Coast.isCoast(id)) {
 			return;
 		}
-		long t0 = Perfil.inicio();
+		long t0 = Profiler.start();
 		try {
-			if (Minas.esMina(id) ? Minas.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource,
+			if (Mines.isMine(id) ? Mines.of(registryAccess).rejects(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource,
 					climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)
-					: Costa.of(registryAccess).rechaza(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource,
+					: Coast.of(registryAccess).rejects(id, pos.x(), pos.z(), seed, registryAccess, chunkGenerator, biomeSource,
 					climateSampler, randomState, structureTemplateManager, heightAccessor, dimension)) {
-				cir.setReturnValue(false); // ni una entrada a mina, faro o naufragio descartados
+				cir.setReturnValue(false); // nor a discarded mine entrance, lighthouse or shipwreck
 			}
 		} finally {
-			Perfil.fin(Perfil.Tramo.REGLAS_LOCATE, t0);
+			Profiler.end(Profiler.Segment.RULES_LOCATE, t0);
 		}
 	}
 }

@@ -1,0 +1,254 @@
+package io.github.albertosa23.heraldia.command;
+
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import io.github.albertosa23.heraldia.Heraldia;
+import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.version.Notified;
+import io.github.albertosa23.heraldia.version.Releases;
+import io.github.albertosa23.heraldia.version.Releases.Release;
+import io.github.albertosa23.heraldia.version.Version;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * New version notice. At startup and every 24 h, on its own thread (never on the server's nor delaying
+ * startup), it asks the GitHub Releases API, where .github/workflows/publish.yml publishes (on main; it also publishes
+ * to CurseForge, whose API requires a key), whether there is a newer version of the mod for the server's Minecraft
+ * ({@link Releases}: semver, no prereleases unless update_check.prereleases; the Minecraft of each release
+ * comes from its tag's gradle.properties). If there is one, it says so in the console and in the chat to each operator on
+ * join, once per server session ({@link Notified}), in their language, with the download link and the advice to
+ * make a backup first. /heraldia update check (operators) checks right away.
+ * <p>No telemetry: one GET request with no server or player data, a generic User-Agent and short
+ * timeouts. Without network, or with an odd response, it only leaves a line in the log. Option update_check.activado; the
+ * system property heraldia.update_check.url changes the address (the tests point it at a local server).
+ */
+public final class VersionNotice {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
+	public static final String OPTION = "update_check.activado", PRE_OPTION = "update_check.prereleases";
+	/** GitHub releases of the mod's repository (contact.sources in fabric.mod.json). */
+	static final String URL = "https://api.github.com/repos/Stufanplay/HERALDIA/releases?per_page=20";
+	static final String URL_PROPERTY = "heraldia.update_check.url";
+	static final String USER_AGENT = "Heraldia-update-check";
+	static final Duration CONNECTION = Duration.ofSeconds(5), RESPONSE = Duration.ofSeconds(10);
+	static final long PERIOD_H = 24;
+	/** The most that is read of a response (GitHub's with 20 releases and their changelogs takes a few hundred kB). */
+	static final int MAX_BYTES = 4 << 20;
+	private static final Notified NOTIFIED = new Notified();
+	private static volatile Release fresh;
+	private static ScheduledExecutorService thread;
+
+	private VersionNotice() {
+	}
+
+	public static void register() {
+		ServerLifecycleEvents.SERVER_STARTED.register(VersionNotice::start);
+		ServerLifecycleEvents.SERVER_STOPPING.register(server -> stop());
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.schedule(server.wrapRunnable(() -> {
+			if (!handler.player.hasDisconnected()) {
+				onJoin(handler.player);
+			}
+		})));
+	}
+
+	/** /heraldia update check (operators): checks now, even if update_check.activado is disabled. */
+	static LiteralArgumentBuilder<CommandSourceStack> node() {
+		return Commands.literal("update")
+				.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+				.then(Commands.literal("check").executes(ctx -> {
+					CommandSourceStack src = ctx.getSource();
+					src.sendSuccess(() -> Texts.t("heraldia.version.comprobando"), false);
+					MinecraftServer server = src.getServer();
+					Thread t = new Thread(() -> check(server, src), "Heraldia update check");
+					t.setDaemon(true);
+					t.start();
+					return 1;
+				}));
+	}
+
+	private static synchronized void start(MinecraftServer server) {
+		stop();
+		fresh = null;
+		if (!HeraldiaConfig.get().getBool(OPTION)) {
+			LOGGER.info("Heraldia: aviso de versión nueva desactivado ({} = false)", OPTION);
+			return;
+		}
+		thread = Executors.newSingleThreadScheduledExecutor(r -> {
+			Thread t = new Thread(r, "Heraldia update check");
+			t.setDaemon(true);
+			t.setPriority(Thread.MIN_PRIORITY);
+			return t;
+		});
+		thread.scheduleAtFixedRate(() -> check(server, null), 0, PERIOD_H, TimeUnit.HOURS);
+	}
+
+	private static synchronized void stop() {
+		if (thread != null) {
+			thread.shutdownNow();
+			thread = null;
+		}
+	}
+
+	/** On its own thread: asks and passes the result to the server thread. Never throws. */
+	private static void check(MinecraftServer server, CommandSourceStack who) {
+		long t0 = System.nanoTime();
+		String actual = version(), mc = SharedConstants.getCurrentVersion().name();
+		try {
+			Optional<Version> va = Version.of(actual);
+			if (va.isEmpty()) {
+				throw new IOException("la versión instalada «" + actual + "» no es una versión");
+			}
+			Optional<Release> p = query(url(), va.get(), mc, HeraldiaConfig.get().getBool(PRE_OPTION));
+			long ms = (System.nanoTime() - t0) / 1_000_000;
+			LOGGER.info("Heraldia: comprobación de versión nueva ({} para Minecraft {}): {} en {} ms", actual, mc,
+					p.map(x -> x.version().toString()).orElse("ninguna"), ms);
+			server.execute(() -> result(server, p.orElse(null), actual, mc, who));
+		} catch (Exception e) {
+			LOGGER.info("Heraldia: no se pudo comprobar si hay una versión nueva ({}: {})", e.getClass().getSimpleName(), e.getMessage());
+			if (who != null) {
+				server.execute(() -> who.sendFailure(Texts.t("heraldia.version.sin_respuesta")));
+			}
+		}
+	}
+
+	static String url() {
+		String u = System.getProperty(URL_PROPERTY);
+		return u == null || u.isBlank() ? URL : u;
+	}
+
+	/** Fetches the list and picks; for GitHub ones, each candidate's Minecraft comes from its tag's gradle.properties. */
+	static Optional<Release> query(String url, Version actual, String mc, boolean pre) throws IOException, InterruptedException {
+		HttpClient client = HttpClient.newBuilder().connectTimeout(CONNECTION).followRedirects(HttpClient.Redirect.NORMAL).build();
+		List<Release> all = Releases.read(request(client, url, "application/vnd.github+json, application/json"));
+		return Releases.choose(all, actual, mc, pre, p -> {
+			String props = properties(url, p.tag());
+			if (props == null) {
+				return Optional.empty();
+			}
+			try {
+				return Releases.minecraftFromProperties(request(client, props, "application/vnd.github.raw"));
+			} catch (IOException e) {
+				LOGGER.info("Heraldia: no se pudo leer el Minecraft de la {} ({})", p.tag(), e.getMessage());
+				return Optional.empty();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return Optional.empty();
+			}
+		});
+	}
+
+	/** .../repos/&lt;owner&gt;/&lt;repo&gt;/releases?... -> .../repos/&lt;owner&gt;/&lt;repo&gt;/contents/gradle.properties?ref=&lt;tag&gt;. */
+	static String properties(String url, String tag) {
+		int i = url.indexOf("/releases");
+		if (i < 0 || tag == null || tag.isEmpty()) {
+			return null;
+		}
+		return url.substring(0, i) + "/contents/gradle.properties?ref=" + URLEncoder.encode(tag, StandardCharsets.UTF_8);
+	}
+
+	private static String request(HttpClient client, String url, String accept) throws IOException, InterruptedException {
+		HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(RESPONSE).header("User-Agent", USER_AGENT)
+				.header("Accept", accept).GET().build();
+		HttpResponse<InputStream> r = client.send(req, HttpResponse.BodyHandlers.ofInputStream());
+		try (InputStream in = r.body()) {
+			if (r.statusCode() != 200) {
+				throw new IOException("HTTP " + r.statusCode() + " de " + URI.create(url).getHost());
+			}
+			byte[] data = in.readNBytes(MAX_BYTES + 1);
+			if (data.length > MAX_BYTES) {
+				throw new IOException("respuesta demasiado grande");
+			}
+			return new String(data, StandardCharsets.UTF_8);
+		}
+	}
+
+	/** On the server thread. */
+	private static void result(MinecraftServer server, Release p, String actual, String mc, CommandSourceStack who) {
+		Release before = fresh;
+		fresh = p;
+		if (p != null && (before == null || !before.version().equals(p.version()))) {
+			Map<String, String> en = Texts.language(Texts.EN);
+			LOGGER.warn("Heraldia: {} {}: {}. {}", format(en, "heraldia.version.nueva", p.version(), actual, mc),
+					en.get("heraldia.version.descargar"), p.url(), en.get("heraldia.version.copia"));
+			for (ServerPlayer player : new ArrayList<>(server.getPlayerList().getPlayers())) {
+				if (who == null || player != who.getPlayer()) {
+					onJoin(player);
+				}
+			}
+		}
+		if (who != null) {
+			if (p == null) {
+				who.sendSuccess(() -> Texts.t("heraldia.version.al_dia", actual, mc), false);
+			} else {
+				message(p, actual, mc, (who.getPlayer() != null ? Texts.language(who.getPlayer()) : Texts.language(Texts.ES)))
+						.forEach(m -> who.sendSystemMessage(m));
+				if (who.getPlayer() != null) {
+					NOTIFIED.shouldNotify(who.getPlayer().getUUID(), p.version().toString());
+				}
+			}
+		}
+	}
+
+	/** When a player joins (and, on finding a new version, to the online ones): if they are an operator and have not been told yet. */
+	private static void onJoin(ServerPlayer player) {
+		Release p = fresh;
+		if (p == null || !player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
+				|| !NOTIFIED.shouldNotify(player.getUUID(), p.version().toString())) {
+			return;
+		}
+		message(p, version(), SharedConstants.getCurrentVersion().name(), Texts.language(player))
+				.forEach(player::sendSystemMessage);
+		LOGGER.info("Heraldia: aviso de la versión {} a {}", p.version(), player.getGameProfile().name());
+	}
+
+	/** The notice lines in the chat: the new version, the clickable link and the backup advice. */
+	static List<Component> message(Release p, String actual, String mc, Map<String, String> texts) {
+		MutableComponent link = Texts.t(texts, "heraldia.version.descargar").withStyle(s -> s.withColor(ChatFormatting.GREEN)
+				.withUnderlined(true).withClickEvent(new ClickEvent.OpenUrl(URI.create(p.url())))
+				.withHoverEvent(new HoverEvent.ShowText(Component.literal(p.url()))));
+		return List.of(
+				Texts.t(texts, "heraldia.version.nueva", p.version().toString(), actual, mc).withStyle(ChatFormatting.GOLD)
+						.append(" ").append(link),
+				Texts.t(texts, "heraldia.version.copia").withStyle(ChatFormatting.YELLOW));
+	}
+
+	private static String format(Map<String, String> texts, String key, Object... args) {
+		String t = texts.getOrDefault(key, key);
+		return String.format(Locale.ROOT, t, args);
+	}
+
+	static String version() {
+		return FabricLoader.getInstance().getModContainer(Heraldia.MOD_ID)
+				.map(c -> c.getMetadata().getVersion().getFriendlyString()).orElse("?");
+	}
+}

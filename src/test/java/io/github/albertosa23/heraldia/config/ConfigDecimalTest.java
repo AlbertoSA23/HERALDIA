@@ -14,11 +14,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Opciones con decimales (el valor por defecto con punto en el esquema, como minas.vanilla.multiplicador = 2.0). */
+/** Options with decimals (the default value with a dot in the schema, like minas.vanilla.multiplicador = 2.0). */
 class ConfigDecimalTest {
 	private static final ConfigOption DECIMAL = ConfigOption.of(JsonParser.parseString("""
 			{"clave": "m.x", "defecto": 2.0, "min": 1, "max": 5, "ayuda": "k", "seccion": "s", "nombre": "n"}""").getAsJsonObject());
-	private static final ConfigOption ENTERA = ConfigOption.of(JsonParser.parseString("""
+	private static final ConfigOption INTEGER = ConfigOption.of(JsonParser.parseString("""
 			{"clave": "m.y", "defecto": 2, "min": 1, "max": 5, "ayuda": "k", "seccion": "s", "nombre": "n"}""").getAsJsonObject());
 
 	@TempDir
@@ -30,35 +30,35 @@ class ConfigDecimalTest {
 	}
 
 	@Test
-	void distingueDecimalesDeEnteras() {
+	void tellsDecimalsFromIntegers() {
 		assertTrue(DECIMAL.decimal());
-		assertFalse(ENTERA.decimal());
+		assertFalse(INTEGER.decimal());
 		assertFalse(DECIMAL.isBoolean());
 	}
 
 	@Test
-	void aceptaDecimalesEnElRango() {
+	void acceptsDecimalsInRange() {
 		assertEquals(Optional.of(new JsonPrimitive(1.5)), DECIMAL.accept(new JsonPrimitive(1.5)));
 		assertEquals(Optional.of(new JsonPrimitive(5.0)), DECIMAL.accept(new JsonPrimitive(5)));
 		assertTrue(DECIMAL.accept(new JsonPrimitive(5.01)).isEmpty());
 		assertTrue(DECIMAL.accept(new JsonPrimitive(0.99)).isEmpty());
 		assertTrue(DECIMAL.accept(new JsonPrimitive(Double.NaN)).isEmpty());
 		assertTrue(DECIMAL.accept(new JsonPrimitive("2")).isEmpty() || DECIMAL.accept(new JsonPrimitive("2")).isPresent());
-		assertTrue(ENTERA.accept(new JsonPrimitive(1.5)).isEmpty(), "las enteras siguen sin admitir decimales");
+		assertTrue(INTEGER.accept(new JsonPrimitive(1.5)).isEmpty(), "las enteras siguen sin admitir decimales");
 	}
 
 	@Test
-	void pantallaLeeDecimales() {
+	void screenReadsDecimals() {
 		assertEquals(Optional.of(new JsonPrimitive(2.5)), DECIMAL.parse(" 2.5 "));
 		assertEquals(Optional.of(new JsonPrimitive(3.0)), DECIMAL.parse("3"));
 		for (String bad : new String[] {"", "2,5", "1e3", "6", "0.5", "abc", "2.", ".5"}) {
 			assertTrue(DECIMAL.parse(bad).isEmpty(), bad);
 		}
-		assertTrue(ENTERA.parse("2.5").isEmpty());
+		assertTrue(INTEGER.parse("2.5").isEmpty());
 	}
 
 	@Test
-	void elMultiplicadorDeLasMinasEsDecimal() throws IOException {
+	void minesMultiplierIsDecimal() throws IOException {
 		ConfigOption o = HeraldiaConfig.options().stream().filter(x -> x.key().equals("minas.vanilla.multiplicador")).findFirst().orElseThrow();
 		assertTrue(o.decimal());
 		assertEquals(2.0, o.defaultValue().getAsDouble());

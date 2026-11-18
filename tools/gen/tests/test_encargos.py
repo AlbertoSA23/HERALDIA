@@ -53,7 +53,7 @@ def test_traducidas_en_cada_idioma(codigo):
 
 def test_el_java_solo_usa_claves_que_existen():
     lang = encargos.lang()["es_es"]
-    src = _java("encargos/Encargos.java")
+    src = _java("quests/Quests.java")
     usadas = set(re.findall(r'"(heraldia\.(?:encargos|estado\.encargos)[a-z_.]*)"', src))
     dinamicas = {k for k in usadas if k.endswith(".")}
     for k in usadas - dinamicas:
@@ -72,9 +72,9 @@ def test_el_java_solo_usa_claves_que_existen():
 
 
 def test_niveles_iguales_que_en_java():
-    src = _java("encargos/Reputacion.java")
-    m = re.search(r"enum Nivel \{\s*(.*?);", src, re.S)
-    assert [x.split("(")[0].strip().lower() for x in m.group(1).split(",")] == list(encargos.NIVELES)
+    src = _java("quests/Reputation.java")
+    m = re.search(r"enum Tier \{\s*(.*?);", src, re.S)
+    assert re.findall(r'\("(\w+)"', m.group(1)) == list(encargos.NIVELES)
 
 
 def test_logros():
@@ -91,7 +91,7 @@ def test_logros():
         assert a["display"]["title"]["translate"] in encargos.lang()["es_es"]
         assert a["display"]["description"]["translate"] in encargos.lang()["es_es"]
         padre = f"heraldia:{ruta}"
-    src = _java("encargos/Encargos.java")
+    src = _java("quests/Quests.java")
     for lid in ids:
         assert f'"encargos/{lid}"' in src, f"el Java no concede encargos/{lid}"
     assert '"hecho"' in src
@@ -132,7 +132,7 @@ def test_opciones():
         assert "generacion" not in esquema[k]
         assert k not in opciones.opciones_perfil(), "el perfil no los toca (no son de dificultad)"
     assert "encargos" in [s for s, *_ in opciones.SECTIONS]
-    recarga = _java("config/Recarga.java")
+    recarga = _java("config/Reload.java")
     assert '"encargos."' in recarga and '"reputacion."' in recarga
 
 
@@ -144,7 +144,7 @@ def test_comando_en_ingles():
     # ningún texto ni botón manda a un nombre antiguo
     assert comandos.errores_textos(_todas()["es_es"]) == []
     assert comandos.errores_textos(_todas()["en_us"]) == []
-    src = _java("encargos/Encargos.java")
+    src = _java("quests/Quests.java")
     for orden in re.findall(r'RunCommand\("([^"]*)', src) + re.findall(r'"(/heraldia quest[^"]*)"', src):
         assert orden.startswith("/heraldia quest"), orden
         assert not comandos.antiguos_en(orden)
@@ -156,8 +156,8 @@ def test_prueba_de_servidor_en_el_mapa():
     t = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(t)
     todas = ["tools/smoke/encargos.py", "tools/smoke/aldeas_vida.py"]
-    for ruta in ("src/main/java/io/github/albertosa23/heraldia/encargos/Encargos.java",
-                 "src/main/java/io/github/albertosa23/heraldia/mixin/VillagerPreciosMixin.java", "tools/gen/encargos.py",
+    for ruta in ("src/main/java/io/github/albertosa23/heraldia/quests/Quests.java",
+                 "src/main/java/io/github/albertosa23/heraldia/mixin/VillagerPricesMixin.java", "tools/gen/encargos.py",
                  "tools/smoke/encargos.py"):
         assert t.para(ruta, todas) == ["tools/smoke/encargos.py"], ruta
     assert "tools/smoke/encargos.py" in t.DURACION_S

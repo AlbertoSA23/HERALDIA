@@ -65,10 +65,10 @@ def test_simulacion_de_la_probabilidad():
 
 
 def test_la_misma_cuenta_que_el_java():
-    java = _java("tesoro/PistaCondition.java")
-    assert "Math.max(0, Math.min(1, porcentaje / 100.0 * factor))" in java
+    java = _java("treasure/ClueCondition.java")
+    assert "Math.max(0, Math.min(1, percent / 100.0 * factor))" in java
     assert 'optionalFieldOf("factor", 1.0)' in java
-    assert f'"{tesoro.CONDICION.split(":")[1]}"' in _java("tesoro/Tesoro.java")
+    assert f'"{tesoro.CONDICION.split(":")[1]}"' in _java("treasure/Treasure.java")
 
 
 def test_medianas_y_minas_llevan_la_pista_en_todas_sus_tablas(tmp_path):
@@ -112,8 +112,8 @@ def test_paga_de_los_encargos_del_tablon():
     t = tesoro.encargo()
     assert t["pools"] == [tesoro.pool_pista("encargos")]
     assert tesoro.ENCARGO == "heraldia:tesoro/encargo"
-    assert 'Heraldia.id("tesoro/encargo")' in _java("tesoro/Tesoro.java")
-    assert "Tesoro.recompensa(p)" in _java("encargos/Encargos.java")
+    assert 'Heraldia.id("tesoro/encargo")' in _java("treasure/Treasure.java")
+    assert "Treasure.reward(p)" in _java("quests/Quests.java")
 
 
 def test_el_escritor_aplica_la_pista_a_las_unicas():
@@ -141,7 +141,7 @@ def test_fragmento():
 
 
 def test_la_marca_es_la_del_java_y_distinta_de_las_demas():
-    assert f'MARCA = "{tesoro.MARCA}"' in _java("tesoro/Cadena.java")
+    assert f'MARK = "{tesoro.MARCA}"' in _java("treasure/Chain.java")
     import logros
     assert tesoro.MARCA not in (logros.TREASURE_MARK, botin.HISTORIA_MARCA, guia.MARCA)
 
@@ -252,7 +252,7 @@ def test_los_logros_van_con_los_demas():
 
 
 def test_el_java_usa_las_tablas():
-    t = _java("tesoro/Tesoro.java")
+    t = _java("treasure/Treasure.java")
     assert 'Heraldia.id("tesoro/fragmento")' in t and 'Heraldia.id("tesoro/cofre")' in t
     assert tesoro.FRAGMENTO == "heraldia:tesoro/fragmento" and tesoro.COFRE == "heraldia:tesoro/cofre"
 
@@ -269,9 +269,9 @@ def test_opciones():
         assert not o[k].get("generacion"), f"{k} no es de generación"
         assert o[k]["seccion"] == "tesoro"
         assert not o[k].get("perfil"), "los perfiles no la tocan"
-    j = _java("tesoro/PistaCondition.java")
+    j = _java("treasure/ClueCondition.java")
     assert all(f'"{k}"' in j for k in ("tesoro.activado", "tesoro.probabilidad", "tesoro.radio_max"))
 
 
 def test_opciones_recargables_en_java():
-    assert re.search(r'RECARGABLES = List\.of\([^;]*"tesoro\."', _java("config/Recarga.java"), re.S)
+    assert re.search(r'RELOADABLE = List\.of\([^;]*"tesoro\."', _java("config/Reload.java"), re.S)

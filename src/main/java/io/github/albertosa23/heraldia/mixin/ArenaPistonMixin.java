@@ -14,9 +14,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso: no hay evento de pistones): un pistón no mueve, rompe ni empuja nada dentro de la arena (ni
- * mete su cabeza o un bloque en ella): {@code resolve} devuelve false y el pistón no se mueve, como ante obsidiana.
- * Salida temprana sin arena o en otro mundo.
+ * Mixin (last resort: there is no piston event): a piston does not move, break or push anything inside the arena (nor
+ * put its head or a block into it): {@code resolve} returns false and the piston does not move, as with obsidian.
+ * Early exit without an arena or in another world.
  */
 @Mixin(PistonStructureResolver.class)
 abstract class ArenaPistonMixin {
@@ -42,17 +42,17 @@ abstract class ArenaPistonMixin {
 
 	@Inject(method = "resolve", at = @At("RETURN"), cancellable = true)
 	private void heraldia$arena(CallbackInfoReturnable<Boolean> cir) {
-		if (!cir.getReturnValueZ() || !Arena.hayArena(level)) {
+		if (!cir.getReturnValueZ() || !Arena.hasArena(level)) {
 			return;
 		}
-		boolean toca = Arena.protegido(level, startPos);
-		for (int i = 0; i < toPush.size() && !toca; i++) {
-			toca = Arena.protegido(level, toPush.get(i)) || Arena.protegido(level, toPush.get(i).relative(pushDirection));
+		boolean touches = Arena.isProtected(level, startPos);
+		for (int i = 0; i < toPush.size() && !touches; i++) {
+			touches = Arena.isProtected(level, toPush.get(i)) || Arena.isProtected(level, toPush.get(i).relative(pushDirection));
 		}
-		for (int i = 0; i < toDestroy.size() && !toca; i++) {
-			toca = Arena.protegido(level, toDestroy.get(i));
+		for (int i = 0; i < toDestroy.size() && !touches; i++) {
+			touches = Arena.isProtected(level, toDestroy.get(i));
 		}
-		if (toca) {
+		if (touches) {
 			cir.setReturnValue(false);
 		}
 	}

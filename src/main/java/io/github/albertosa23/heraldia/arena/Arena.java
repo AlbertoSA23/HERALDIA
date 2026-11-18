@@ -3,7 +3,7 @@ package io.github.albertosa23.heraldia.arena;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.albertosa23.heraldia.Heraldia;
-import io.github.albertosa23.heraldia.comando.Textos;
+import io.github.albertosa23.heraldia.command.Texts;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import java.util.List;
 import java.util.Optional;
@@ -47,457 +47,457 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Arena de oleadas cerca del spawn (T31). Una por mundo, en el mundo principal; la colocan los operadores
- * (/heraldia arena place, con confirmación) o se genera sola en un mundo nuevo (arena.generar_en_mundos_nuevos).
+ * Wave arena near spawn (T31). One per world, in the overworld; operators place it
+ * (/heraldia arena place, with confirmation) or it generates on its own in a new world (arena.generar_en_mundos_nuevos).
  * <ul>
- * <li>Protección ({@link #protegido}): la caja de la plantilla, una AABB de enteros en memoria ({@link Zona}). Ningún
- * jugador que no sea operador puede romper, colocar ni usar bloques (salvo la campana), ni usar cubos cerca; las
- * explosiones, los pistones y los endermen que dejan bloques no la tocan (mixins con salida temprana barata); el fuego
- * y los endermen que cogen bloques, por diseño (sus materiales no arden ni se pueden coger).</li>
- * <li>Partidas: {@link Juego} y {@link Partida}.</li>
- * <li>Obras (colocar, mover, quitar): {@link Obras}, un chunk por tick.</li>
+ * <li>Protection ({@link #isProtected}): the template's box, an integer AABB in memory ({@link Zone}). No
+ * non-operator player can break, place or use blocks (except the bell), nor use buckets nearby; explosions, pistons
+ * and endermen that drop blocks do not touch it (mixins with a cheap early exit); fire and endermen that pick up
+ * blocks, by design (its materials neither burn nor can be picked up).</li>
+ * <li>Matches: {@link Game} and {@link Match}.</li>
+ * <li>Works (place, move, remove): {@link Works}, one chunk per tick.</li>
  * </ul>
- * Sin trabajo por tick si no hay partida, obra ni propuesta (tres comprobaciones de un campo).
+ * No per-tick work without a match, work or proposal (three field checks).
  */
 public final class Arena {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	/** Etiqueta (Tags) de los mobs de la arena. */
+	/** Tag of the arena mobs. */
 	public static final String TAG = "heraldia_arena";
-	/** Un mundo es nuevo (la arena se genera sola) si al arrancar por primera vez con el mod no ha pasado este tiempo. */
-	static final long MUNDO_NUEVO_TICKS = 1200;
-	private static final int PROPUESTA_TICKS = 6000, CADA_PARTICULAS = 20;
+	/** A world is new (the arena generates on its own) if less than this time has passed when it first starts with the mod. */
+	static final long NEW_WORLD_TICKS = 1200;
+	private static final int PROPOSAL_TICKS = 6000, PARTICLES_EVERY = 20;
 
-	private static @Nullable Plano plano;
-	private static volatile @Nullable Zona zona;
-	private static @Nullable ServerLevel nivel;
-	private static @Nullable MinecraftServer servidor;
-	private static boolean activada;
+	private static @Nullable Blueprint plan;
+	private static volatile @Nullable Zone zone;
+	private static @Nullable ServerLevel arenaLevel;
+	private static @Nullable MinecraftServer arenaServer;
+	private static boolean turnedOn;
 
-	/** Un sitio propuesto que espera confirmación (o se coloca solo, en un mundo nuevo). */
-	private record Propuesta(Zona zona, Sitio.Eleccion eleccion, long hasta, @Nullable ServerPlayer quien) {
+	/** A proposed site awaiting confirmation (or placed on its own, in a new world). */
+	private record Proposal(Zone zone, Site.Choice choice, long until, @Nullable ServerPlayer who) {
 	}
 
-	private static @Nullable Propuesta propuesta;
+	private static @Nullable Proposal proposal;
 
 	private Arena() {
 	}
 
-	public static void registrar() {
-		plano = Plano.delJar();
-		Guardada.Tipo.ARENA.identifier();   // registra los adjuntos al arrancar
-		Fama.registrarAdjunto();
-		ServerLifecycleEvents.SERVER_STARTED.register(Arena::alArrancar);
+	public static void register() {
+		plan = Blueprint.fromJar();
+		Saved.Type.ARENA.identifier();   // registers the attachments at startup
+		Fame.registerAttachment();
+		ServerLifecycleEvents.SERVER_STARTED.register(Arena::onStart);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
-			Juego.alParar();
-			Fama.alParar();
-			zona = null;
-			nivel = null;
-			servidor = null;
-			propuesta = null;
+			Game.onStop();
+			Fame.onStop();
+			zone = null;
+			arenaLevel = null;
+			arenaServer = null;
+			proposal = null;
 		});
-		// los logros de campeón de las semanas que se cerraron sin él (en la cola del servidor: Carpet carga los datos
-		// del jugador falso después del JOIN; ver comando/Guia)
+		// champion advancements of the weeks that closed without the player (on the server queue: Carpet loads the fake
+		// player's data after JOIN; see command/Guide)
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
 				server.schedule(server.wrapRunnable(() -> {
-					if (activada && !handler.player.hasDisconnected()) {
-						Fama.alEntrar(handler.player);
+					if (turnedOn && !handler.player.hasDisconnected()) {
+						Fame.onJoin(handler.player);
 					}
 				})));
 		ServerTickEvents.END_SERVER_TICK.register(Arena::tick);
-		ServerEntityEvents.ENTITY_LOAD.register(Juego::alCargar);
-		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> Juego.alMorir(entity));
-		ServerPlayerEvents.COPY_FROM.register(Juego::copiar);
-		ServerPlayerEvents.AFTER_RESPAWN.register((viejo, nuevo, vivo) -> Juego.reaparecer(nuevo));
-		PlayerBlockBreakEvents.BEFORE.register((level, player, pos, state, be) -> !protegido(level, pos, player));
-		UseBlockCallback.EVENT.register(Arena::usarBloque);
-		UseItemCallback.EVENT.register(Arena::usarObjeto);
+		ServerEntityEvents.ENTITY_LOAD.register(Game::onLoad);
+		ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> Game.onDeath(entity));
+		ServerPlayerEvents.COPY_FROM.register(Game::copy);
+		ServerPlayerEvents.AFTER_RESPAWN.register((oldValue, newValue, alive) -> Game.respawn(newValue));
+		PlayerBlockBreakEvents.BEFORE.register((level, player, pos, state, be) -> !isProtected(level, pos, player));
+		UseBlockCallback.EVENT.register(Arena::useBlock);
+		UseItemCallback.EVENT.register(Arena::useItem);
 		LootTableEvents.MODIFY_DROPS.register((table, context, drops) -> {
 			Entity e = context.getOptional(LootContextParams.THIS_ENTITY);
 			if (e != null && !drops.isEmpty() && e.entityTags().contains(TAG)) {
-				drops.clear();                       // los mobs de la arena no sueltan nada
+				drops.clear();                       // arena mobs drop nothing
 			}
 		});
 	}
 
-	static Plano plano() {
-		return plano;
+	static Blueprint plan() {
+		return plan;
 	}
 
-	static @Nullable Zona zona() {
-		return zona;
+	static @Nullable Zone zone() {
+		return zone;
 	}
 
-	static @Nullable ServerLevel nivel() {
-		return nivel;
+	static @Nullable ServerLevel arenaLevel() {
+		return arenaLevel;
 	}
 
-	static @Nullable MinecraftServer servidor() {
-		return servidor;
+	static @Nullable MinecraftServer arenaServer() {
+		return arenaServer;
 	}
 
-	/** ¿Arena activada (arena.activado)? */
-	public static boolean activada() {
-		return activada;
+	/** Arena enabled (arena.activado)? */
+	public static boolean turnedOn() {
+		return turnedOn;
 	}
 
-	static void fijarZona(@Nullable Zona z) {
-		zona = z;
+	static void setZone(@Nullable Zone z) {
+		zone = z;
 	}
 
-	/** Guarda en el mundo la arena colocada (o ninguna) y empieza (o deja) de protegerla. */
-	static void guardar(ServerLevel level, @Nullable Zona z) {
-		Guardada g = Optional.ofNullable(level.getAttached(Guardada.Tipo.ARENA)).orElse(Guardada.VACIA);
-		level.setAttached(Guardada.Tipo.ARENA, g.conOrigen(z == null ? null : new BlockPos(z.ox(), z.oy(), z.oz())));
-		nivel = level;
-		zona = z;
+	/** Saves the placed arena (or none) in the world and starts (or stops) protecting it. */
+	static void save(ServerLevel level, @Nullable Zone z) {
+		Saved g = Optional.ofNullable(level.getAttached(Saved.Type.ARENA)).orElse(Saved.EMPTY);
+		level.setAttached(Saved.Type.ARENA, g.withOrigin(z == null ? null : new BlockPos(z.ox(), z.oy(), z.oz())));
+		arenaLevel = level;
+		zone = z;
 		if (z != null) {
-			Fama.carteles(level.getServer());   // el salón de la fama de la arena recién colocada
+			Fame.signs(level.getServer());   // the hall of fame of the freshly placed arena
 		}
-		io.github.albertosa23.heraldia.mapas.MapasWeb.programar();   // su marcador en los mapas web (si hay)
+		io.github.albertosa23.heraldia.maps.WebMaps.schedule();   // its marker on the web maps (if any)
 	}
 
-	// --- protección ---
+	// --- protection ---
 
-	/** ¿Está protegido este bloque frente a quien actúa (null: explosión, pistón, enderman)? Salida temprana barata. */
-	public static boolean protegido(Level level, BlockPos pos, @Nullable Player quien) {
-		Zona z = zona;
-		if (z == null || level != nivel || !z.contiene(pos.getX(), pos.getY(), pos.getZ())) {
+	/** Is this block protected against whoever acts (null: explosion, piston, enderman)? Cheap early exit. */
+	public static boolean isProtected(Level level, BlockPos pos, @Nullable Player who) {
+		Zone z = zone;
+		if (z == null || level != arenaLevel || !z.mentions(pos.getX(), pos.getY(), pos.getZ())) {
 			return false;
 		}
-		return z.protegido(pos.getX(), pos.getY(), pos.getZ(), quien != null && esOperador(quien));
+		return z.isProtected(pos.getX(), pos.getY(), pos.getZ(), who != null && isOperator(who));
 	}
 
-	public static boolean protegido(Level level, BlockPos pos) {
-		return protegido(level, pos, null);
+	public static boolean isProtected(Level level, BlockPos pos) {
+		return isProtected(level, pos, null);
 	}
 
 	/**
-	 * Para ArenaCuboMixin: ¿se niega vaciar un cubo (de agua, lava, nieve polvo...) en {@code pos}? Sí a menos de
-	 * {@link Zona#RADIO_CUBOS} bloques de la arena si lo vacía un dispensador ({@code quien} null) o un jugador que no es
-	 * operador (a los jugadores ya los para {@link #usarObjeto}; esto cubre los dispensadores pegados a la arena).
+	 * For ArenaBucketMixin: is emptying a bucket (of water, lava, powder snow...) at {@code pos} denied? Yes within
+	 * {@link Zone#BUCKET_RADIUS} blocks of the arena if a dispenser empties it ({@code who} null) or a player who is not an
+	 * operator (players are already stopped by {@link #useItem}; this covers dispensers stuck to the arena).
 	 */
-	public static boolean cuboNegado(Level level, BlockPos pos, @Nullable LivingEntity quien) {
-		Zona z = zona;
-		if (z == null || level != nivel) {
+	public static boolean bucketDenied(Level level, BlockPos pos, @Nullable LivingEntity who) {
+		Zone z = zone;
+		if (z == null || level != arenaLevel) {
 			return false;
 		}
-		return z.cuboNegado(pos.getX(), pos.getY(), pos.getZ(), quien instanceof Player p && esOperador(p));
+		return z.bucketDenied(pos.getX(), pos.getY(), pos.getZ(), who instanceof Player p && isOperator(p));
 	}
 
-	/** ¿Hay arena en este mundo? (salida temprana de los mixins) */
-	public static boolean hayArena(Level level) {
-		return zona != null && level == nivel;
+	/** Is there an arena in this world? (early exit for the mixins) */
+	public static boolean hasArena(Level level) {
+		return zone != null && level == arenaLevel;
 	}
 
-	/** Para ArenaJugadorMixin: ¿conserva el inventario al morir (cae en el ruedo durante una partida)? */
-	public static boolean conservaAlMorir(Player p) {
-		if (zona == null) {
-			if (p.hasAttached(Guardada.Tipo.CONSERVAR)) {
-				p.removeAttached(Guardada.Tipo.CONSERVAR);
+	/** For ArenaPlayerMixin: does the player keep the inventory on death (falls in the ring during a match)? */
+	public static boolean keepsOnDeath(Player p) {
+		if (zone == null) {
+			if (p.hasAttached(Saved.Type.KEEP)) {
+				p.removeAttached(Saved.Type.KEEP);
 			}
 			return false;
 		}
-		return Juego.conservaAlMorir(p);
+		return Game.keepsOnDeath(p);
 	}
 
-	/** Para ArenaJugadorMixin: ¿está conservando (no suelta experiencia)? */
-	public static boolean conservando(Player p) {
-		return Juego.conservando(p);
+	/** For ArenaPlayerMixin: is the player keeping (drops no experience)? */
+	public static boolean keeping(Player p) {
+		return Game.keeping(p);
 	}
 
-	/** Para ArenaExperienciaMixin: experiencia de un mob de la arena (arena.experiencia_porcentaje % de la vanilla). */
-	public static int experiencia(int vanilla, double azar) {
-		int r = Oleadas.experiencia(vanilla, Juego.experienciaPct(), azar);
-		Juego.sumarExperiencia(vanilla, r);
+	/** For ArenaExperienceMixin: experience of an arena mob (arena.experiencia_porcentaje % of vanilla). */
+	public static int experience(int vanilla, double rng) {
+		int r = Waves.experience(vanilla, Game.experiencePct(), rng);
+		Game.addExperience(vanilla, r);
 		return r;
 	}
 
-	static boolean esOperador(Player p) {
+	static boolean isOperator(Player p) {
 		return p instanceof ServerPlayer sp && sp.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
 	}
 
-	private static InteractionResult usarBloque(Player player, Level level, net.minecraft.world.InteractionHand hand,
+	private static InteractionResult useBlock(Player player, Level level, net.minecraft.world.InteractionHand hand,
 			net.minecraft.world.phys.BlockHitResult hit) {
-		Zona z = zona;
-		if (z == null || level != nivel || !(player instanceof ServerPlayer p)) {
+		Zone z = zone;
+		if (z == null || level != arenaLevel || !(player instanceof ServerPlayer p)) {
 			return InteractionResult.PASS;
 		}
 		BlockPos pos = hit.getBlockPos();
-		BlockPos junto = pos.relative(hit.getDirection());
-		boolean dentro = z.contiene(pos.getX(), pos.getY(), pos.getZ()) || z.contiene(junto.getX(), junto.getY(), junto.getZ());
-		if (!dentro) {
+		BlockPos beside = pos.relative(hit.getDirection());
+		boolean inside = z.mentions(pos.getX(), pos.getY(), pos.getZ()) || z.mentions(beside.getX(), beside.getY(), beside.getZ());
+		if (!inside) {
 			return InteractionResult.PASS;
 		}
-		if (z.esCampana(pos.getX(), pos.getY(), pos.getZ()) && !p.isSecondaryUseActive()) {
-			if (activada && hand == net.minecraft.world.InteractionHand.MAIN_HAND) {
-				Juego.campana(p, z);
+		if (z.isBell(pos.getX(), pos.getY(), pos.getZ()) && !p.isSecondaryUseActive()) {
+			if (turnedOn && hand == net.minecraft.world.InteractionHand.MAIN_HAND) {
+				Game.bell(p, z);
 			}
-			return InteractionResult.PASS;          // y la campana suena (vanilla)
+			return InteractionResult.PASS;          // and the bell rings (vanilla)
 		}
-		if (esOperador(p)) {
+		if (isOperator(p)) {
 			return InteractionResult.PASS;
 		}
-		negar(p, "heraldia.arena.prohibido");
+		deny(p, "heraldia.arena.prohibido");
 		return InteractionResult.FAIL;
 	}
 
-	private static InteractionResult usarObjeto(Player player, Level level, net.minecraft.world.InteractionHand hand) {
-		Zona z = zona;
-		if (z == null || level != nivel || !(player instanceof ServerPlayer p) || esOperador(p)) {
+	private static InteractionResult useItem(Player player, Level level, net.minecraft.world.InteractionHand hand) {
+		Zone z = zone;
+		if (z == null || level != arenaLevel || !(player instanceof ServerPlayer p) || isOperator(p)) {
 			return InteractionResult.PASS;
 		}
 		ItemStack s = p.getItemInHand(hand);
-		if (s.getItem() instanceof BucketItem && z.cerca(p.getBlockX(), p.getBlockY(), p.getBlockZ(), Zona.RADIO_CUBOS)) {
-			negar(p, "heraldia.arena.prohibido");
+		if (s.getItem() instanceof BucketItem && z.near(p.getBlockX(), p.getBlockY(), p.getBlockZ(), Zone.BUCKET_RADIUS)) {
+			deny(p, "heraldia.arena.prohibido");
 			return InteractionResult.FAIL;
 		}
-		if (s.is(Items.ENDER_PEARL) && Juego.partida().estado() != Partida.Estado.LIBRE && z.enRuedo(p.getX(), p.getY(), p.getZ())) {
-			negar(p, "heraldia.arena.perla");
+		if (s.is(Items.ENDER_PEARL) && Game.match().state() != Match.State.FREE && z.inRing(p.getX(), p.getY(), p.getZ())) {
+			deny(p, "heraldia.arena.perla");
 			return InteractionResult.FAIL;
 		}
 		return InteractionResult.PASS;
 	}
 
-	private static void negar(ServerPlayer p, String clave) {
-		p.sendOverlayMessage(Textos.t(clave).withStyle(ChatFormatting.RED));
-		p.inventoryMenu.sendAllDataToRemote();      // el cliente pudo dar por gastado el objeto
-		LOGGER.debug("Heraldia: arena: {} para {}", clave, p.getGameProfile().name());
+	private static void deny(ServerPlayer p, String key) {
+		p.sendOverlayMessage(Texts.t(key).withStyle(ChatFormatting.RED));
+		p.inventoryMenu.sendAllDataToRemote();      // the client may have counted the item as used up
+		LOGGER.debug("Heraldia: arena: {} para {}", key, p.getGameProfile().name());
 	}
 
-	// --- arranque y tick ---
+	// --- startup and tick ---
 
-	private static void alArrancar(MinecraftServer server) {
+	private static void onStart(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
-		servidor = server;
-		activada = cfg.getBool("arena.activado");
-		Juego.configurar(cfg);
-		Fama.configurar(cfg);
+		arenaServer = server;
+		turnedOn = cfg.getBool("arena.activado");
+		Game.configure(cfg);
+		Fame.configure(cfg);
 		ServerLevel ow = server.overworld();
-		Guardada g = Optional.ofNullable(ow.getAttached(Guardada.Tipo.ARENA)).orElse(Guardada.VACIA);
-		if (!activada) {
+		Saved g = Optional.ofNullable(ow.getAttached(Saved.Type.ARENA)).orElse(Saved.EMPTY);
+		if (!turnedOn) {
 			LOGGER.info("Heraldia: arena: desactivada (arena.activado = false)");
 			return;
 		}
-		Marcador.objetivo(server);
-		if (g.origen().isPresent()) {
-			cargar(ow, g.origen().get());
+		ArenaScoreboard.target(server);
+		if (g.origin().isPresent()) {
+			load(ow, g.origin().get());
 		}
-		Fama.alArrancar(server);          // migración de los récords, cierre de la semana y carteles
-		if (g.origen().isEmpty() && !g.decidida()) {
-			boolean nuevo = ow.getGameTime() < MUNDO_NUEVO_TICKS;
-			ow.setAttached(Guardada.Tipo.ARENA, g.decidir());
-			if (nuevo && cfg.getBool("arena.generar_en_mundos_nuevos")) {
+		Fame.onStart(server);          // record migration, week close and signs
+		if (g.origin().isEmpty() && !g.decided()) {
+			boolean newValue = ow.getGameTime() < NEW_WORLD_TICKS;
+			ow.setAttached(Saved.Type.ARENA, g.decide());
+			if (newValue && cfg.getBool("arena.generar_en_mundos_nuevos")) {
 				LOGGER.info("Heraldia: arena: mundo nuevo: se busca sitio para la arena");
-				buscar(server, null, true);
+				search(server, null, true);
 			} else {
 				LOGGER.info("Heraldia: arena: mundo existente: sin arena hasta que un operador la coloque (/heraldia arena place)");
 			}
 		}
 	}
 
-	/** La arena guardada en {@code o} pasa a estar en uso (al arrancar o al activarla con /heraldia reload). */
-	private static void cargar(ServerLevel ow, BlockPos o) {
-		nivel = ow;
-		zona = new Zona(o.getX(), o.getY(), o.getZ(), plano);
-		Juego.puerta(ow, zona, false);           // por si el servidor se paró en mitad de una partida
-		io.github.albertosa23.heraldia.mapas.MapasWeb.programar();
-		LOGGER.info("Heraldia: arena: en {} {} {}", zona.columnaX(), zona.sueloY(), zona.columnaZ());
+	/** The arena saved in {@code o} comes into use (at startup or when enabled with /heraldia reload). */
+	private static void load(ServerLevel ow, BlockPos o) {
+		arenaLevel = ow;
+		zone = new Zone(o.getX(), o.getY(), o.getZ(), plan);
+		Game.gate(ow, zone, false);           // in case the server stopped in the middle of a match
+		io.github.albertosa23.heraldia.maps.WebMaps.schedule();
+		LOGGER.info("Heraldia: arena: en {} {} {}", zone.columnX(), zone.groundY(), zone.columnZ());
 	}
 
 	/**
-	 * /heraldia reload: aplica las opciones arena.* en uso (incrementos, máximo de vivos, experiencia y arena.activado;
-	 * arena.generar_en_mundos_nuevos solo cuenta al arrancar). Con una partida en marcha no cambia nada (sus oleadas
-	 * siguen con lo que empezaron) y devuelve false: se aplica con otra recarga al acabar.
+	 * /heraldia reload: applies the arena.* options in use (increments, max alive, experience and arena.activado;
+	 * arena.generar_en_mundos_nuevos only counts at startup). With a match running it changes nothing (its waves
+	 * carry on with what they started with) and returns false: it applies with another reload once it ends.
 	 */
-	public static boolean recargar(MinecraftServer server) {
+	public static boolean reload(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
-		Fama.configurar(cfg);              // la semana (día, hora, histórico) se aplica aunque haya partida
-		if (activada) {
-			Fama.recargar(server);
+		Fame.configure(cfg);              // the week (day, hour, history) applies even during a match
+		if (turnedOn) {
+			Fame.reload(server);
 		}
-		if (Juego.partida().estado() != Partida.Estado.LIBRE) {
+		if (Game.match().state() != Match.State.FREE) {
 			return false;
 		}
-		boolean antes = activada;
-		activada = cfg.getBool("arena.activado");
-		Juego.configurar(cfg);
+		boolean before = turnedOn;
+		turnedOn = cfg.getBool("arena.activado");
+		Game.configure(cfg);
 		ServerLevel ow = server.overworld();
-		if (activada && !antes) {
-			Marcador.objetivo(server);
-			Optional.ofNullable(ow.getAttached(Guardada.Tipo.ARENA)).flatMap(Guardada::origen).ifPresent(o -> cargar(ow, o));
-			Fama.alArrancar(server);
-		} else if (!activada && antes) {
-			zona = null;                         // sin partidas ni protección, como si arrancara desactivada
-			nivel = null;
+		if (turnedOn && !before) {
+			ArenaScoreboard.target(server);
+			Optional.ofNullable(ow.getAttached(Saved.Type.ARENA)).flatMap(Saved::origin).ifPresent(o -> load(ow, o));
+			Fame.onStart(server);
+		} else if (!turnedOn && before) {
+			zone = null;                         // no matches or protection, as if it started disabled
+			arenaLevel = null;
 			LOGGER.info("Heraldia: arena: desactivada (arena.activado = false)");
 		}
 		return true;
 	}
 
-	/** Centro del ruedo (columna de la campana, a la altura del suelo) de la arena en uso, o null si no hay. */
-	public static @Nullable BlockPos centro() {
-		Zona z = zona;
-		return z == null ? null : new BlockPos(z.columnaX(), z.sueloY(), z.columnaZ());
+	/** Center of the ring (the bell's column, at ground height) of the arena in use, or null if there is none. */
+	public static @Nullable BlockPos center() {
+		Zone z = zone;
+		return z == null ? null : new BlockPos(z.columnX(), z.groundY(), z.columnZ());
 	}
 
-	/** Récord del servidor (oleadas superadas en una partida), 0 si no hay o la arena está desactivada (no crea el marcador). */
+	/** Server record (waves cleared in a match), 0 if none or the arena is disabled (does not create the scoreboard). */
 	public static int record(MinecraftServer server) {
-		return activada ? Marcador.record(server) : 0;
+		return turnedOn ? ArenaScoreboard.record(server) : 0;
 	}
 
 	private static void tick(MinecraftServer server) {
-		Obras.tick(server);
-		Juego.tick(server);
-		if (activada) {
-			Fama.tick(server);               // una comparación por minuto
+		Works.tick(server);
+		Game.tick(server);
+		if (turnedOn) {
+			Fame.tick(server);               // one comparison per minute
 		}
-		Propuesta pr = propuesta;
-		if (pr != null && server.getTickCount() % CADA_PARTICULAS == 0) {
-			if (server.overworld().getGameTime() > pr.hasta()) {
-				propuesta = null;
+		Proposal pr = proposal;
+		if (pr != null && server.getTickCount() % PARTICLES_EVERY == 0) {
+			if (server.overworld().getGameTime() > pr.until()) {
+				proposal = null;
 			} else {
-				particulas(server.overworld(), pr);
+				particles(server.overworld(), pr);
 			}
 		}
 	}
 
-	/** Marca el sitio propuesto: columnas de partículas en las esquinas y el centro, visibles de lejos. */
-	private static void particulas(ServerLevel level, Propuesta pr) {
-		Zona z = pr.zona();
+	/** Marks the proposed site: particle columns at the corners and the center, visible from afar. */
+	private static void particles(ServerLevel level, Proposal pr) {
+		Zone z = pr.zone();
 		int[][] cols = {{z.minX(), z.minZ()}, {z.maxX(), z.minZ()}, {z.minX(), z.maxZ()}, {z.maxX(), z.maxZ()},
-				{z.columnaX(), z.columnaZ()}};
+				{z.columnX(), z.columnZ()}};
 		for (ServerPlayer p : level.players()) {
-			if (!esOperador(p)) {
+			if (!isOperator(p)) {
 				continue;
 			}
 			for (int[] c : cols) {
 				for (int y = 1; y <= 24; y += 2) {
-					level.sendParticles(p, ParticleTypes.END_ROD, true, true, c[0] + 0.5, z.sueloY() + y, c[1] + 0.5, 1, 0, 0, 0, 0);
+					level.sendParticles(p, ParticleTypes.END_ROD, true, true, c[0] + 0.5, z.groundY() + y, c[1] + 0.5, 1, 0, 0, 0, 0);
 				}
 			}
 		}
 	}
 
-	// --- búsqueda de sitio ---
+	// --- site search ---
 
-	/** Busca sitio fuera del hilo del servidor; al tenerlo, lo propone (o lo coloca, en un mundo nuevo). */
-	private static void buscar(MinecraftServer server, @Nullable ServerPlayer quien, boolean colocarSolo) {
+	/** Searches for a site off the server thread; once found, proposes it (or places it, in a new world). */
+	private static void search(MinecraftServer server, @Nullable ServerPlayer who, boolean placeAlone) {
 		ServerLevel ow = server.overworld();
 		BlockPos spawn = ow.getRespawnData().pos();
 		ChunkGenerator gen = ow.getChunkSource().getGenerator();
 		RandomState rs = ow.getChunkSource().randomState();
-		Sitio.Alturas alturas = new Sitio.Alturas() {
+		Site.Heights heights = new Site.Heights() {
 			@Override
-			public int superficie(int x, int z) {
+			public int surface(int x, int z) {
 				return gen.getBaseHeight(x, z, Heightmap.Types.WORLD_SURFACE_WG, ow, rs);
 			}
 
 			@Override
-			public int fondo(int x, int z) {
+			public int depth(int x, int z) {
 				return gen.getBaseHeight(x, z, Heightmap.Types.OCEAN_FLOOR_WG, ow, rs);
 			}
 
 			@Override
-			public boolean ocupado(int chunkX, int chunkZ) {
-				return Estructuras.ocupado(ow, chunkX, chunkZ);
+			public boolean occupied(int chunkX, int chunkZ) {
+				return Structures.occupied(ow, chunkX, chunkZ);
 			}
 		};
-		Plano pl = plano;
-		int lado = Math.max(pl.tamano()[0], pl.tamano()[2]);
-		int bajo = pl.suelo(), alto = pl.tamano()[1] - pl.suelo();
+		Blueprint pl = plan;
+		int side = Math.max(pl.size()[0], pl.size()[2]);
+		int low = pl.ground(), high = pl.size()[1] - pl.ground();
 		long t0 = System.nanoTime();
-		CompletableFuture.supplyAsync(() -> Sitio.elegir(spawn.getX(), spawn.getZ(), lado, bajo, alto, ow.getMinY(), ow.getMaxY(), alturas),
+		CompletableFuture.supplyAsync(() -> Site.choose(spawn.getX(), spawn.getZ(), side, low, high, ow.getMinY(), ow.getMaxY(), heights),
 						Util.backgroundExecutor())
 				.thenAcceptAsync(res -> {
 					long ms = (System.nanoTime() - t0) / 1_000_000;
 					if (res.isEmpty()) {
-						LOGGER.info("Heraldia: arena: sin sitio llano a {}-{} bloques del spawn ({} ms)", Sitio.RADIO_MIN, Sitio.RADIO_MAX, ms);
-						if (quien != null) {
-							quien.sendSystemMessage(Textos.t("heraldia.arena.sin_sitio").withStyle(ChatFormatting.RED));
+						LOGGER.info("Heraldia: arena: sin sitio llano a {}-{} bloques del spawn ({} ms)", Site.RADIUS_MIN, Site.RADIUS_MAX, ms);
+						if (who != null) {
+							who.sendSystemMessage(Texts.t("heraldia.arena.sin_sitio").withStyle(ChatFormatting.RED));
 						}
 						return;
 					}
-					Sitio.Eleccion e = res.get();
-					Zona z = Zona.centrada(e.x(), e.z(), e.suelo(), pl);
+					Site.Choice e = res.get();
+					Zone z = Zone.centered(e.x(), e.z(), e.ground(), pl);
 					LOGGER.info("Heraldia: arena: sitio propuesto en {} {} {} (a {} bloques del spawn {} {}, desnivel {}) en {} ms",
-							e.x(), e.suelo(), e.z(), e.distancia(), spawn.getX(), spawn.getZ(), e.desnivel(), ms);
-					if (colocarSolo) {
-						Obras.empezar(ow, null, z, null);
+							e.x(), e.ground(), e.z(), e.distance(), spawn.getX(), spawn.getZ(), e.drop(), ms);
+					if (placeAlone) {
+						Works.start(ow, null, z, null);
 						return;
 					}
-					propuesta = new Propuesta(z, e, ow.getGameTime() + PROPUESTA_TICKS, quien);
-					if (quien != null) {
-						proponer(quien, e, zona != null);
+					proposal = new Proposal(z, e, ow.getGameTime() + PROPOSAL_TICKS, who);
+					if (who != null) {
+						propose(who, e, zone != null);
 					}
 				}, server);
 	}
 
-	private static void proponer(ServerPlayer p, Sitio.Eleccion e, boolean mover) {
-		String orden = "/heraldia arena " + (mover ? "move" : "place") + " confirm";
-		p.sendSystemMessage(Textos.t("heraldia.arena.propuesta", e.x(), e.suelo() + 1, e.z(), e.distancia()).withStyle(ChatFormatting.GOLD));
-		p.sendSystemMessage(Textos.t("heraldia.arena.copia").withStyle(ChatFormatting.YELLOW));
-		MutableComponent cmd = Component.literal(orden).withStyle(s -> s.withColor(ChatFormatting.GREEN).withUnderlined(true)
-				.withClickEvent(new ClickEvent.SuggestCommand(orden)));
-		p.sendSystemMessage(Textos.t("heraldia.arena.propuesta.confirmar", cmd));
+	private static void propose(ServerPlayer p, Site.Choice e, boolean move) {
+		String order = "/heraldia arena " + (move ? "move" : "place") + " confirm";
+		p.sendSystemMessage(Texts.t("heraldia.arena.propuesta", e.x(), e.ground() + 1, e.z(), e.distance()).withStyle(ChatFormatting.GOLD));
+		p.sendSystemMessage(Texts.t("heraldia.arena.copia").withStyle(ChatFormatting.YELLOW));
+		MutableComponent cmd = Component.literal(order).withStyle(s -> s.withColor(ChatFormatting.GREEN).withUnderlined(true)
+				.withClickEvent(new ClickEvent.SuggestCommand(order)));
+		p.sendSystemMessage(Texts.t("heraldia.arena.propuesta.confirmar", cmd));
 	}
 
-	// --- comandos ---
+	// --- commands ---
 
 	/**
-	 * /heraldia arena [leave | leaderboard [modo [semana]] | place [confirm] | move [confirm] | remove [confirm] |
-	 * start [coop | timeattack | survival] | stop | season [reset]] (lo registra comando/Comandos). start lo puede usar
-	 * cualquiera desde el ruedo (los botones del menú de modos de la campana); los operadores y la consola, desde donde sea.
+	 * /heraldia arena [leave | leaderboard [mode [week]] | place [confirm] | move [confirm] | remove [confirm] |
+	 * start [coop | timeattack | survival] | stop | season [reset]] (registered by command/HeraldiaCommands). Anyone can use
+	 * start from the ring (the buttons of the bell's mode menu); operators and the console, from anywhere.
 	 */
-	public static LiteralArgumentBuilder<CommandSourceStack> nodo() {
+	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("arena")
 				.executes(Arena::info)
 				.then(Commands.literal("leave").executes(ctx -> {
 					ServerPlayer p = ctx.getSource().getPlayerOrException();
-					if (!Juego.salir(p)) {
-						ctx.getSource().sendFailure(Textos.t("heraldia.arena.salir.no"));
+					if (!Game.leave(p)) {
+						ctx.getSource().sendFailure(Texts.t("heraldia.arena.salir.no"));
 						return 0;
 					}
 					return 1;
 				}))
-				.then(Commands.literal("place").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> proponerCmd(ctx, false))
-						.then(Commands.literal("confirm").executes(ctx -> confirmar(ctx, false))))
-				.then(Commands.literal("move").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> proponerCmd(ctx, true))
-						.then(Commands.literal("confirm").executes(ctx -> confirmar(ctx, true))))
-				.then(Commands.literal("remove").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(Arena::quitarAviso)
-						.then(Commands.literal("confirm").executes(Arena::quitar)))
-				.then(Fama.leaderboard())
-				.then(empezarNodo())
+				.then(Commands.literal("place").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> proposeCmd(ctx, false))
+						.then(Commands.literal("confirm").executes(ctx -> confirm(ctx, false))))
+				.then(Commands.literal("move").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> proposeCmd(ctx, true))
+						.then(Commands.literal("confirm").executes(ctx -> confirm(ctx, true))))
+				.then(Commands.literal("remove").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(Arena::clearNotice)
+						.then(Commands.literal("confirm").executes(Arena::clear)))
+				.then(Fame.leaderboard())
+				.then(startNode())
 				.then(Commands.literal("stop").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)).executes(ctx -> {
-					if (Juego.partida().estado() == Partida.Estado.LIBRE) {
-						ctx.getSource().sendFailure(Textos.t("heraldia.arena.info.libre"));
+					if (Game.match().state() == Match.State.FREE) {
+						ctx.getSource().sendFailure(Texts.t("heraldia.arena.info.libre"));
 						return 0;
 					}
-					Juego.terminar(nivel, zona, "parada por un operador");
-					ctx.getSource().sendSuccess(() -> Textos.t("heraldia.arena.parada"), true);
+					Game.finish(arenaLevel, zone, "parada por un operador");
+					ctx.getSource().sendSuccess(() -> Texts.t("heraldia.arena.parada"), true);
 					return 1;
 				}))
-				.then(Fama.season());
+				.then(Fame.season());
 	}
 
-	private static LiteralArgumentBuilder<CommandSourceStack> empezarNodo() {
-		LiteralArgumentBuilder<CommandSourceStack> n = Commands.literal("start").executes(ctx -> empezarCmd(ctx, null));
-		for (Modo m : Modo.values()) {
-			n.then(Commands.literal(m.id()).executes(ctx -> empezarCmd(ctx, m)));
+	private static LiteralArgumentBuilder<CommandSourceStack> startNode() {
+		LiteralArgumentBuilder<CommandSourceStack> n = Commands.literal("start").executes(ctx -> startCmd(ctx, null));
+		for (Mode m : Mode.values()) {
+			n.then(Commands.literal(m.id()).executes(ctx -> startCmd(ctx, m)));
 		}
 		return n;
 	}
 
-	private static boolean comprobar(CommandSourceStack src, boolean libre) {
-		if (!activada) {
-			src.sendFailure(Textos.t("heraldia.arena.desactivada"));
+	private static boolean check(CommandSourceStack src, boolean free) {
+		if (!turnedOn) {
+			src.sendFailure(Texts.t("heraldia.arena.desactivada"));
 			return false;
 		}
-		if (Obras.ocupado()) {
-			src.sendFailure(Textos.t("heraldia.arena.trabajando"));
+		if (Works.occupied()) {
+			src.sendFailure(Texts.t("heraldia.arena.trabajando"));
 			return false;
 		}
-		if (libre && Juego.partida().estado() != Partida.Estado.LIBRE) {
-			src.sendFailure(Textos.t("heraldia.arena.ocupada"));
+		if (free && Game.match().state() != Match.State.FREE) {
+			src.sendFailure(Texts.t("heraldia.arena.ocupada"));
 			return false;
 		}
 		return true;
@@ -505,145 +505,145 @@ public final class Arena {
 
 	private static int info(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack src = ctx.getSource();
-		Zona z = zona;
+		Zone z = zone;
 		if (z == null) {
-			src.sendFailure(Textos.t(activada ? "heraldia.arena.no_existe" : "heraldia.arena.desactivada"));
+			src.sendFailure(Texts.t(turnedOn ? "heraldia.arena.no_existe" : "heraldia.arena.desactivada"));
 			return 0;
 		}
-		src.sendSuccess(() -> Textos.t("heraldia.arena.info", z.columnaX(), z.sueloY() + 1, z.columnaZ()).withStyle(ChatFormatting.GOLD), false);
-		Partida pa = Juego.partida();
-		src.sendSuccess(() -> pa.estado() == Partida.Estado.LIBRE ? Textos.t("heraldia.arena.info.libre")
-				: Textos.t("heraldia.arena.info.partida.modo", Textos.t(pa.modo().texto()), Math.max(1, pa.oleada()),
-						pa.participantes().size()), false);
+		src.sendSuccess(() -> Texts.t("heraldia.arena.info", z.columnX(), z.groundY() + 1, z.columnZ()).withStyle(ChatFormatting.GOLD), false);
+		Match pa = Game.match();
+		src.sendSuccess(() -> pa.state() == Match.State.FREE ? Texts.t("heraldia.arena.info.libre")
+				: Texts.t("heraldia.arena.info.partida.modo", Texts.t(pa.mode().text()), Math.max(1, pa.wave()),
+						pa.participants().size()), false);
 		ServerPlayer p = src.getPlayer();
 		MinecraftServer server = src.getServer();
-		int propio = p == null ? 0 : Marcador.leer(server, p.getScoreboardName());
-		src.sendSuccess(() -> Textos.t("heraldia.arena.info.record", propio, Marcador.record(server)), false);
+		int own = p == null ? 0 : ArenaScoreboard.read(server, p.getScoreboardName());
+		src.sendSuccess(() -> Texts.t("heraldia.arena.info.record", own, ArenaScoreboard.record(server)), false);
 		return 1;
 	}
 
-	private static int proponerCmd(CommandContext<CommandSourceStack> ctx, boolean mover) {
+	private static int proposeCmd(CommandContext<CommandSourceStack> ctx, boolean move) {
 		CommandSourceStack src = ctx.getSource();
-		if (!comprobar(src, true)) {
+		if (!check(src, true)) {
 			return 0;
 		}
-		Zona z = zona;
-		if (!mover && z != null) {
-			src.sendFailure(Textos.t("heraldia.arena.ya_existe", z.columnaX(), z.sueloY() + 1, z.columnaZ()));
+		Zone z = zone;
+		if (!move && z != null) {
+			src.sendFailure(Texts.t("heraldia.arena.ya_existe", z.columnX(), z.groundY() + 1, z.columnZ()));
 			return 0;
 		}
-		if (mover && z == null) {
-			src.sendFailure(Textos.t("heraldia.arena.no_existe"));
+		if (move && z == null) {
+			src.sendFailure(Texts.t("heraldia.arena.no_existe"));
 			return 0;
 		}
-		buscar(src.getServer(), src.getPlayer(), false);
+		search(src.getServer(), src.getPlayer(), false);
 		return 1;
 	}
 
-	private static int confirmar(CommandContext<CommandSourceStack> ctx, boolean mover) {
+	private static int confirm(CommandContext<CommandSourceStack> ctx, boolean move) {
 		CommandSourceStack src = ctx.getSource();
-		if (!comprobar(src, true)) {
+		if (!check(src, true)) {
 			return 0;
 		}
-		Propuesta pr = propuesta;
-		String orden = "/heraldia arena " + (mover ? "move" : "place");
+		Proposal pr = proposal;
+		String order = "/heraldia arena " + (move ? "move" : "place");
 		if (pr == null) {
-			src.sendFailure(Textos.t("heraldia.arena.sin_propuesta", orden));
+			src.sendFailure(Texts.t("heraldia.arena.sin_propuesta", order));
 			return 0;
 		}
-		Zona vieja = zona;
-		if (!mover && vieja != null) {
-			src.sendFailure(Textos.t("heraldia.arena.ya_existe", vieja.columnaX(), vieja.sueloY() + 1, vieja.columnaZ()));
+		Zone old = zone;
+		if (!move && old != null) {
+			src.sendFailure(Texts.t("heraldia.arena.ya_existe", old.columnX(), old.groundY() + 1, old.columnZ()));
 			return 0;
 		}
-		if (mover && vieja == null) {
-			src.sendFailure(Textos.t("heraldia.arena.no_existe"));
+		if (move && old == null) {
+			src.sendFailure(Texts.t("heraldia.arena.no_existe"));
 			return 0;
 		}
-		propuesta = null;
-		Zona z = pr.zona();
-		if (!Obras.empezar(src.getServer().overworld(), vieja, z, src.getPlayer())) {
+		proposal = null;
+		Zone z = pr.zone();
+		if (!Works.start(src.getServer().overworld(), old, z, src.getPlayer())) {
 			return 0;
 		}
-		src.sendSuccess(() -> Textos.t("heraldia.arena.colocando", z.columnaX(), z.sueloY() + 1, z.columnaZ()), true);
+		src.sendSuccess(() -> Texts.t("heraldia.arena.colocando", z.columnX(), z.groundY() + 1, z.columnZ()), true);
 		return 1;
 	}
 
-	private static int quitarAviso(CommandContext<CommandSourceStack> ctx) {
-		Zona z = zona;
+	private static int clearNotice(CommandContext<CommandSourceStack> ctx) {
+		Zone z = zone;
 		if (z == null) {
-			ctx.getSource().sendFailure(Textos.t("heraldia.arena.no_existe"));
+			ctx.getSource().sendFailure(Texts.t("heraldia.arena.no_existe"));
 			return 0;
 		}
-		ctx.getSource().sendSuccess(() -> Textos.t("heraldia.arena.quitar.confirmar", z.columnaX(), z.sueloY() + 1, z.columnaZ())
+		ctx.getSource().sendSuccess(() -> Texts.t("heraldia.arena.quitar.confirmar", z.columnX(), z.groundY() + 1, z.columnZ())
 				.withStyle(ChatFormatting.YELLOW), false);
 		return 1;
 	}
 
-	private static int quitar(CommandContext<CommandSourceStack> ctx) {
+	private static int clear(CommandContext<CommandSourceStack> ctx) {
 		CommandSourceStack src = ctx.getSource();
-		if (!comprobar(src, true)) {
+		if (!check(src, true)) {
 			return 0;
 		}
-		Zona z = zona;
+		Zone z = zone;
 		if (z == null) {
-			src.sendFailure(Textos.t("heraldia.arena.no_existe"));
+			src.sendFailure(Texts.t("heraldia.arena.no_existe"));
 			return 0;
 		}
-		return Obras.empezar(src.getServer().overworld(), z, null, src.getPlayer()) ? 1 : 0;
+		return Works.start(src.getServer().overworld(), z, null, src.getPlayer()) ? 1 : 0;
 	}
 
 	/**
-	 * /heraldia arena start [modo]. Un operador (o la consola) la empieza desde donde sea (sin modo: la cooperativa, como
-	 * siempre, o el primer modo activado). Cualquier otro jugador, solo desde el ruedo (son los botones del menú de la
-	 * campana); sin modo, le enseña ese menú.
+	 * /heraldia arena start [mode]. An operator (or the console) starts it from anywhere (without a mode: the coop one, as
+	 * always, or the first enabled mode). Any other player, only from the ring (they are the buttons of the bell's
+	 * menu); without a mode, it shows them that menu.
 	 */
-	private static int empezarCmd(CommandContext<CommandSourceStack> ctx, @Nullable Modo modo) {
+	private static int startCmd(CommandContext<CommandSourceStack> ctx, @Nullable Mode mode) {
 		CommandSourceStack src = ctx.getSource();
-		Zona z = zona;
-		if (!comprobar(src, false) || z == null || nivel == null) {
-			if (z == null && activada) {
-				src.sendFailure(Textos.t("heraldia.arena.no_existe"));
+		Zone z = zone;
+		if (!check(src, false) || z == null || arenaLevel == null) {
+			if (z == null && turnedOn) {
+				src.sendFailure(Texts.t("heraldia.arena.no_existe"));
 			}
 			return 0;
 		}
 		boolean op = Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(src);
 		ServerPlayer p = src.getPlayer();
-		if (!op && (p == null || p.level() != nivel || !p.isAlive() || p.isSpectator() || !z.enRuedo(p.getX(), p.getY(), p.getZ()))) {
-			src.sendFailure(Textos.t("heraldia.arena.modo.ruedo"));
+		if (!op && (p == null || p.level() != arenaLevel || !p.isAlive() || p.isSpectator() || !z.inRing(p.getX(), p.getY(), p.getZ()))) {
+			src.sendFailure(Texts.t("heraldia.arena.modo.ruedo"));
 			return 0;
 		}
-		if (Juego.partida().estado() != Partida.Estado.LIBRE) {
-			src.sendFailure(Textos.t("heraldia.arena.en_marcha"));
+		if (Game.match().state() != Match.State.FREE) {
+			src.sendFailure(Texts.t("heraldia.arena.en_marcha"));
 			return 0;
 		}
-		List<Modo> activos = Juego.modos();
-		if (activos.isEmpty()) {
-			src.sendFailure(Textos.t("heraldia.arena.modo.ninguno"));
+		List<Mode> active = Game.modes();
+		if (active.isEmpty()) {
+			src.sendFailure(Texts.t("heraldia.arena.modo.ninguno"));
 			return 0;
 		}
-		if (modo == null) {
-			if (!op && activos.size() > 1) {
-				Juego.menu(p);
+		if (mode == null) {
+			if (!op && active.size() > 1) {
+				Game.menu(p);
 				return 1;
 			}
-			modo = activos.contains(Modo.COOPERATIVO) ? Modo.COOPERATIVO : activos.get(0);
+			mode = active.contains(Mode.COOP) ? Mode.COOP : active.get(0);
 		}
-		if (!Juego.activado(modo)) {
-			src.sendFailure(Textos.t("heraldia.arena.modo.desactivado", Textos.t(modo.texto())));
+		if (!Game.enabled(mode)) {
+			src.sendFailure(Texts.t("heraldia.arena.modo.desactivado", Texts.t(mode.text())));
 			return 0;
 		}
-		Modo m = modo;
-		if (!Juego.empezar(nivel, z, src.getTextName(), m)) {
-			src.sendFailure(Textos.t("heraldia.arena.en_marcha"));
+		Mode m = mode;
+		if (!Game.start(arenaLevel, z, src.getTextName(), m)) {
+			src.sendFailure(Texts.t("heraldia.arena.en_marcha"));
 			return 0;
 		}
-		src.sendSuccess(() -> Textos.t("heraldia.arena.cuenta.modo", Textos.t(m.texto())), false);
+		src.sendSuccess(() -> Texts.t("heraldia.arena.cuenta.modo", Texts.t(m.text())), false);
 		return 1;
 	}
 
-	/** Para los tests: identificador del adjunto. */
-	static String adjunto() {
+	/** For tests: the attachment's identifier. */
+	static String attachment() {
 		return Heraldia.id("arena").toString();
 	}
 }

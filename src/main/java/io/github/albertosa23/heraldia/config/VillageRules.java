@@ -9,8 +9,8 @@ import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 
 /**
- * Qué aldeas puede generar el structure_set heraldia:aldeas en una casilla. Inmutable: se consulta desde los hilos de
- * generación. Si una estructura no vale, el set prueba la siguiente (igual que cuando falla el bioma).
+ * Which villages the heraldia:aldeas structure_set can generate in a cell. Immutable: queried from the
+ * generation threads. If a structure is not valid, the set tries the next one (just like when the biome fails).
  */
 public final class VillageRules {
 	private static final int SIZE_SALT = 1845613097;
@@ -24,13 +24,13 @@ public final class VillageRules {
 		for (Map.Entry<String, JsonElement> e : config.schema().getAsJsonObject("aldeas").getAsJsonObject("estilos").entrySet()) {
 			String style = e.getKey(), family = e.getValue().getAsString();
 			boolean on = config.getBool("aldeas.familias." + family) && config.getBool("aldeas.estilos." + style);
-			Identifier std = Identifier.fromNamespaceAndPath("heraldia", style), grande = Identifier.fromNamespaceAndPath("heraldia", style + "_grande");
+			Identifier std = Identifier.fromNamespaceAndPath("heraldia", style), largeVariant = Identifier.fromNamespaceAndPath("heraldia", style + "_grande");
 			all.add(std);
-			all.add(grande);
-			big.add(grande);
+			all.add(largeVariant);
+			big.add(largeVariant);
 			if (!on) {
 				off.add(std);
-				off.add(grande);
+				off.add(largeVariant);
 			}
 		}
 		this.villages = Set.copyOf(all);
@@ -39,7 +39,7 @@ public final class VillageRules {
 		this.largePercent = config.getInt("aldeas.porcentaje_grandes");
 	}
 
-	/** Falso si la estructura es una aldea de Heraldia desactivada o de otro tamaño que el que toca en esta casilla. */
+	/** False if the structure is a Heraldia village that is disabled or of a different size than the one due in this cell. */
 	public boolean allows(Identifier structure, long seed, int chunkX, int chunkZ) {
 		if (!villages.contains(structure)) {
 			return true;
@@ -50,7 +50,7 @@ public final class VillageRules {
 		return large.contains(structure) == isLarge(seed, chunkX, chunkZ);
 	}
 
-	/** Tamaño de la aldea de una casilla: determinista por semilla y posición, sin datos guardados. */
+	/** Village size of a cell: deterministic by seed and position, no saved data. */
 	private boolean isLarge(long seed, int chunkX, int chunkZ) {
 		WorldgenRandom random = new WorldgenRandom(new LegacyRandomSource(0L));
 		random.setLargeFeatureWithSalt(seed, chunkX, chunkZ, SIZE_SALT);

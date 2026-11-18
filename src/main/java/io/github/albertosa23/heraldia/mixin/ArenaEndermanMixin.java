@@ -10,16 +10,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Mixin (último recurso: la regla mobGriefing es de todo el mundo): un enderman no deja el bloque que lleva dentro de la
- * arena. Que no coja ninguno de ella lo asegura el diseño (sus materiales no están en {@code #enderman_holdable}; lo
- * comprueba el generador). Salida temprana sin arena.
+ * Mixin (last resort: the mobGriefing rule is world-wide): an enderman does not drop the block it carries inside the
+ * arena. That it picks up none of its blocks is ensured by design (its materials are not in {@code #enderman_holdable}; the
+ * generator checks it). Early exit without an arena.
  */
 @Mixin(targets = "net.minecraft.world.entity.monster.Enderman$EndermanLeaveBlockGoal")
 abstract class ArenaEndermanMixin {
 	@Inject(method = "canPlaceBlock", at = @At("HEAD"), cancellable = true)
 	private void heraldia$arena(Level level, BlockPos pos, BlockState carried, BlockState at, BlockState below, BlockPos belowPos,
 			CallbackInfoReturnable<Boolean> cir) {
-		if (Arena.protegido(level, pos)) {
+		if (Arena.isProtected(level, pos)) {
 			cir.setReturnValue(false);
 		}
 	}

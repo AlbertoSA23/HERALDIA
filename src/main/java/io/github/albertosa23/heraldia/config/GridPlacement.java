@@ -30,31 +30,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * heraldia:rejilla: un random_spread cuya separación, activación, máximo de casillas y zona de exclusión salen de
- * config/heraldia.json. Los valores del JSON del datapack (spacing, separation, exclusion_zone) son los de por defecto
- * y marcan la proporción; el grupo ("aldeas", "unicas/&lt;id&gt;" o "medianas/&lt;id&gt;") dice qué opciones se aplican.
- * Las medianas, como las únicas, con el origen desplazado por tipo; su separación se divide por la raíz de la frecuencia
- * común (medianas.frecuencia_porcentaje) y la interna es la distancia mínima entre medianas. Todo se calcula al
- * leer el datapack y queda inmutable. Hereda de random_spread para que /locate la recorra como a las vanilla.
- * <p>En las únicas la separación del datapack no se usa: la mínima es la distancia mínima entre únicas (así dos del
- * mismo tipo tampoco quedan más cerca) y el origen de la rejilla se desplaza por tipo (según la sal). Con la proporción
- * 190/250 y origen común, las candidatas de todos los tipos caían en la misma esquina de 960 bloques de cada casilla.
- * <p>Con «bioma» (una etiqueta de biomas, opcional) la candidata de cada casilla deja de ser un chunk al azar: es el
- * punto de una malla de 128 bloques, dentro de la misma ventana que el random_spread (así se conserva la separación
- * mínima), que cae en ese bioma y tiene más vecinos a 64 bloques también en él (el más metido en el bioma). Sirve para
- * biomas tan raros que una candidata al azar casi nunca acierta (los campos de champiñones). La búsqueda solo lee el
- * ruido de biomas del mundo principal (sin cargar chunks), se hace una vez por casilla y queda en memoria.
- * «bioma_y» (opcional, por defecto 64) es la altura a la que se mira el bioma: para los de cueva (la Mina perdida),
- * la del centro de la estructura. «bioma_vecinos» (opcional, 1-9, por defecto 6) son los puntos de la malla, de los 9
- * del punto y sus vecinos, que deben caer en el bioma: con 6 una franja de menos de ~100 bloques (las playas) casi
- * nunca vale; con menos se acepta, y sigue ganando el punto con más vecinos.
- * <p>«rejilla_antigua» marca las únicas que ya estaban en la 0.1.0. Con la opción unicas.rejilla_compatible (mundos
- * creados con esa versión) usan la rejilla de entonces: separación interna con la proporción del datapack (190/250),
- * origen común y sin búsqueda de bioma; isPlacementChunk y getPotentialStructureChunk acaban en el random_spread de
- * vanilla con desfase 0, el mismo coste que entonces. Así /locate, los mapas y la distancia mínima vuelven a dar con las
- * ya generadas. Las demás siguen con la rejilla nueva (y {@link UniqueSeparation} da prioridad a las antiguas).
+ * heraldia:rejilla: a random_spread whose separation, activation, maximum cells and exclusion zone come from
+ * config/heraldia.json. The datapack JSON's values (spacing, separation, exclusion_zone) are the defaults
+ * and set the ratio; the group ("aldeas", "unicas/&lt;id&gt;" or "medianas/&lt;id&gt;") says which options apply.
+ * The mediums, like the uniques, with the origin shifted per type; their separation is divided by the square root of the
+ * common frequency (medianas.frecuencia_porcentaje) and the internal one is the minimum distance between mediums. Everything is
+ * computed when the datapack is read and stays immutable. It extends random_spread so /locate walks it like vanilla ones.
+ * <p>In the uniques the datapack's separation is not used: the minimum is the minimum distance between uniques (so two of the
+ * same type are not closer either) and the grid's origin is shifted per type (by the salt). With the 190/250
+ * ratio and a common origin, the candidates of all types fell in the same 960-block corner of each cell.
+ * <p>With "bioma" (an optional biome tag) the candidate of each cell is no longer a random chunk: it is the
+ * point of a 128-block lattice, inside the same window as the random_spread (so the minimum separation is kept), that
+ * falls in that biome and has the most neighbors at 64 blocks also in it (the one deepest in the biome). It serves
+ * biomes so rare that a random candidate almost never hits them (mushroom fields). The search only reads the
+ * overworld's biome noise (without loading chunks), is done once per cell and is memoized.
+ * "bioma_y" (optional, 64 by default) is the height at which the biome is checked: for cave ones (the Lost Mine),
+ * that of the structure's center. "bioma_vecinos" (optional, 1-9, 6 by default) is how many lattice points, of the 9
+ * of the point and its neighbors, must fall in the biome: with 6 a strip narrower than ~100 blocks (beaches) almost
+ * never works; with fewer it is accepted, and the point with the most neighbors still wins.
+ * <p>"rejilla_antigua" marks the uniques that already existed in 0.1.0. With the option unicas.rejilla_compatible (worlds
+ * created with that version) they use the grid of back then: internal separation with the datapack's ratio (190/250),
+ * common origin and no biome search; isPlacementChunk and getPotentialStructureChunk end up in vanilla's random_spread
+ * with offset 0, the same cost as back then. So /locate, the maps and the minimum distance find the already generated
+ * ones again. The others keep the new grid (and {@link UniqueSeparation} gives priority to the old ones).
  */
-@SuppressWarnings("deprecation") // ExclusionZone está marcada obsoleta en vanilla, pero es la que usan sus aldeas
+@SuppressWarnings("deprecation") // ExclusionZone is marked deprecated in vanilla, but it is the one its villages use
 public final class GridPlacement extends RandomSpreadStructurePlacement {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	public static final MapCodec<GridPlacement> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -68,35 +68,35 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			Codec.intRange(1, 9).optionalFieldOf("bioma_vecinos", 6).forGetter(p -> p.minScore),
 			Codec.BOOL.optionalFieldOf("rejilla_antigua", false).forGetter(p -> p.oldGrid)
 	).apply(i, GridPlacement::create));
-	/** Malla de la búsqueda de bioma (chunks), vecinos a medio paso y vecinos mínimos (de 9) para aceptar un punto. */
+	/** Biome search lattice (chunks), neighbors at half a step and minimum neighbors (out of 9) to accept a point. */
 	private static final int STEP = 8, HALF = STEP / 2, MIN_SCORE = 6, SAMPLE_Y = 64, CACHE_MAX = 1 << 14;
 	private static final long NONE = Long.MIN_VALUE;
-	/** ¿Está el punto (en cuartos de bloque) en la etiqueta? En el juego, el ruido de biomas del mundo principal. */
+	/** Is the point (in quarter blocks) in the tag? In the game, the overworld's biome noise. */
 	@FunctionalInterface
 	interface BiomeSample {
 		boolean in(TagKey<Biome> tag, int quartX, int quartY, int quartZ);
 	}
 	private record BiomeContext(long seed, BiomeSample sample) {
 	}
-	/** Candidatas por casilla de un contexto: van juntas para que un hilo que aún calcula con el contexto anterior (otro
-	 *  mundo) nunca deje su resultado en la memoria del nuevo. */
+	/** Candidates per cell of one context: they go together so that a thread still computing with the previous context (another
+	 *  world) never leaves its result in the new one's memo. */
 	private record Memory(BiomeContext ctx, ConcurrentHashMap<Long, Long> candidates) {
 	}
 	private static volatile @Nullable BiomeContext context;
 	private static volatile int searchesLogged;
 
 	private final String group;
-	private final boolean oldGrid; // marcada en el datapack (existía en la 0.1.0)
-	private final boolean legacy;  // y la opción unicas.rejilla_compatible está activada: rejilla de la 0.1.0
+	private final boolean oldGrid; // marked in the datapack (it existed in 0.1.0)
+	private final boolean legacy;  // and the option unicas.rejilla_compatible is enabled: the 0.1.0 grid
 	private final int baseSpacing, baseSeparation, baseSalt;
 	private final Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion;
 	private final boolean enabled;
-	private final Set<Long> cells; // null = sin límite
-	private final int offsetX, offsetZ; // desfase del origen de la rejilla, en chunks (0 en las aldeas)
+	private final Set<Long> cells; // null = no limit
+	private final int offsetX, offsetZ; // offset of the grid's origin, in chunks (0 for villages)
 	private final Optional<TagKey<Biome>> biome;
-	private final int sampleY; // altura a la que se mira el bioma (la del mar; más abajo, para biomas de cueva)
-	private final int minScore; // puntos de la malla (de 9) que deben caer en el bioma (MIN_SCORE; menos, biomas en franja)
-	private volatile @Nullable Memory memory; // casilla -> chunk (o NONE) del contexto en uso
+	private final int sampleY; // height at which the biome is checked (sea level; lower, for cave biomes)
+	private final int minScore; // lattice points (out of 9) that must fall in the biome (MIN_SCORE; fewer, strip-shaped biomes)
+	private volatile @Nullable Memory memory; // cell -> chunk (or NONE) of the context in use
 
 	private GridPlacement(String group, int baseSpacing, int baseSeparation, int salt,
 						  Optional<AbstractSpreadingStructurePlacement.ExclusionZone> baseExclusion, Optional<TagKey<Biome>> biome, int sampleY,
@@ -137,31 +137,31 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		} else if (group.startsWith("unicas/") && cfg.has(group.replace('/', '.') + ".separacion_bloques")) {
 			String key = group.replace('/', '.');
 			int sp = chunks(cfg.getInt(key + ".separacion_bloques"));
-			if (oldGrid && cfg.getBool(LEGACY_OPTION)) { // la de la 0.1.0, tal cual: proporción del datapack y origen común
+			if (oldGrid && cfg.getBool(LEGACY_OPTION)) { // the 0.1.0 one, as is: the datapack's ratio and a common origin
 				s = new Settings(cfg.getBool(key + ".activada"), sp, scaled(sp, spacing, separation), -1, exclusion, false, true);
 			} else {
 				int sep = Math.clamp((cfg.getInt("unicas.distancia_minima.bloques") + 15) / 16, 0, sp - 1);
 				s = new Settings(cfg.getBool(key + ".activada"), sp, sep, -1, exclusion, true, false);
 			}
 		} else if (group.startsWith("medianas/") && cfg.has(group.replace('/', '.') + ".separacion_bloques")) {
-			// estructuras medianas: su separación escalada por la frecuencia común (densidad x f -> separación / raíz de f);
-			// separación interna (dos del mismo tipo) = la distancia mínima entre medianas, como mucho media casilla
+			// medium structures: their separation scaled by the common frequency (density x f -> separation / sqrt of f);
+			// internal separation (two of the same type) = the minimum distance between mediums, at most half a cell
 			String key = group.replace('/', '.');
 			double f = cfg.getInt("medianas.frecuencia_porcentaje") / 100.0;
 			int sp = chunks((int) Math.round(cfg.getInt(key + ".separacion_bloques") / Math.sqrt(f)));
 			int sep = Math.clamp((cfg.getInt("medianas.distancia_minima.bloques") + 15) / 16, 0, sp / 2);
 			s = new Settings(cfg.getBool("medianas.activadas") && cfg.getBool(key + ".activada"), sp, sep, -1, exclusion, true, false);
 		} else if (group.startsWith("minas/")) {
-			// entradas a mina: la separación del datapack es la de por defecto de su tamaño; la opción (la de las pequeñas)
-			// las escala a las tres en proporción. Separación interna = la distancia mínima entre medianas
-			int defecto = HeraldiaConfig.defaults().get("minas.entradas.separacion_bloques").getAsInt();
-			int sp = chunks((int) Math.round((double) cfg.getInt("minas.entradas.separacion_bloques") * spacing * 16 / defecto));
+			// mine entrances: the datapack's separation is the default of its size; the option (the small ones')
+			// scales all three proportionally. Internal separation = the minimum distance between mediums
+			int defaults = HeraldiaConfig.defaults().get("minas.entradas.separacion_bloques").getAsInt();
+			int sp = chunks((int) Math.round((double) cfg.getInt("minas.entradas.separacion_bloques") * spacing * 16 / defaults));
 			int sep = Math.clamp((cfg.getInt("medianas.distancia_minima.bloques") + 15) / 16, 0, sp / 2);
 			s = new Settings(cfg.getBool("minas.entradas.activado"), sp, sep, -1, exclusion, true, false);
-		} else if (group.startsWith("costa/") && io.github.albertosa23.heraldia.costa.Costa.opcion(group.substring("costa/".length())) != null) {
-			// faros y naufragios: su separación (bloques) y su activación; separación interna = la distancia mínima entre
-			// medianas, como mucho media casilla
-			String key = io.github.albertosa23.heraldia.costa.Costa.opcion(group.substring("costa/".length()));
+		} else if (group.startsWith("costa/") && io.github.albertosa23.heraldia.coast.Coast.option(group.substring("costa/".length())) != null) {
+			// lighthouses and shipwrecks: their separation (blocks) and activation; internal separation = the minimum distance between
+			// mediums, at most half a cell
+			String key = io.github.albertosa23.heraldia.coast.Coast.option(group.substring("costa/".length()));
 			int sp = chunks(cfg.getInt(key + ".separacion_bloques"));
 			int sep = Math.clamp((cfg.getInt("medianas.distancia_minima.bloques") + 15) / 16, 0, sp / 2);
 			s = new Settings(cfg.getBool(key + ".activado"), sp, sep, -1, exclusion, true, false);
@@ -179,20 +179,20 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		return new GridPlacement(group, spacing, separation, salt, exclusion, biome, sampleY, minScore, oldGrid, s);
 	}
 
-	/** Contexto de búsqueda de bioma sin mundo (pruebas): null lo quita. */
+	/** Biome search context without a world (tests): null removes it. */
 	static void testContext(long seed, @Nullable BiomeSample sample) {
 		context = sample == null ? null : new BiomeContext(seed, sample);
 	}
 
-	/** Grupo de opciones de la rejilla («aldeas», «unicas/&lt;id&gt;», «medianas/&lt;id&gt;», «minas/&lt;tamaño&gt;» o «costa/&lt;tipo&gt;»). */
+	/** Options group of the grid ("aldeas", "unicas/&lt;id&gt;", "medianas/&lt;id&gt;", "minas/&lt;size&gt;" or "costa/&lt;type&gt;"). */
 	public String group() {
 		return group;
 	}
 
-	/** Opción de los mundos creados con la 0.1.0: las únicas de entonces vuelven a su rejilla. */
+	/** Option for worlds created with 0.1.0: the uniques of back then go back to their grid. */
 	public static final String LEGACY_OPTION = "unicas.rejilla_compatible";
 
-	/** Usa la rejilla de la 0.1.0 (marcada en el datapack y con unicas.rejilla_compatible activada). */
+	/** Uses the 0.1.0 grid (marked in the datapack and with unicas.rejilla_compatible enabled). */
 	public boolean legacy() {
 		return legacy;
 	}
@@ -201,12 +201,12 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		return Math.clamp(Math.round(blocks / 16.0F), 2, 4096);
 	}
 
-	/** Separación mínima con la misma proporción que la del datapack (62/94 en las aldeas). */
+	/** Minimum separation with the same ratio as the datapack's (62/94 for villages). */
 	private static int scaled(int spacing, int baseSpacing, int baseSeparation) {
 		return Math.clamp(Math.round((float) spacing * baseSeparation / baseSpacing), 0, spacing - 1);
 	}
 
-	/** Las n casillas cuyo centro está más cerca del 0,0 (empates por z y luego x): deterministas, sin datos guardados. */
+	/** The n cells whose center is closest to 0,0 (ties by z and then x): deterministic, no saved data. */
 	private static Set<Long> nearestCells(int n) {
 		int r = (int) Math.ceil(Math.sqrt(n)) + 1;
 		List<int[]> all = new ArrayList<>();
@@ -228,7 +228,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		return enabled && (cells == null || cells.contains(ChunkPos.pack(Math.floorDiv(chunkX - offsetX, spacing()), Math.floorDiv(chunkZ - offsetZ, spacing()))));
 	}
 
-	/** Desfase del origen de la rejilla en chunks: la casilla de un chunk x es floorDiv(x - offsetX(), spacing()). */
+	/** Offset of the grid's origin in chunks: the cell of a chunk x is floorDiv(x - offsetX(), spacing()). */
 	public int offsetX() {
 		return offsetX;
 	}
@@ -237,7 +237,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		return offsetZ;
 	}
 
-	/** La de random_spread con la rejilla desplazada: la usan /locate, los mapas y UniqueSeparation. */
+	/** random_spread's one with the shifted grid: /locate, the maps and UniqueSeparation use it. */
 	@Override
 	public ChunkPos getPotentialStructureChunk(long seed, int chunkX, int chunkZ) {
 		if (biome.isPresent()) {
@@ -259,7 +259,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			return false;
 		}
 		if (biome.isPresent() && context != null) {
-			// Solo los puntos de la malla pueden ser candidatos: los demás chunks salen sin tocar la memoria.
+			// Only lattice points can be candidates: the other chunks return without touching the memo.
 			int wx = Math.floorMod(chunkX - offsetX, spacing()) - first(), wz = Math.floorMod(chunkZ - offsetZ, spacing()) - first();
 			if (wx < 0 || wz < 0 || wx % STEP != 0 || wz % STEP != 0) {
 				return false;
@@ -267,26 +267,26 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			long c = biomeCandidate(state.getLevelSeed(), chunkX, chunkZ);
 			return c != NONE && (int) (c >> 32) == chunkX && (int) c == chunkZ;
 		}
-		// Ruta caliente (cada chunk): mismo coste que vanilla, una sola ChunkPos y sin pasar por la versión desplazada.
+		// Hot path (every chunk): same cost as vanilla, a single ChunkPos and without going through the shifted version.
 		ChunkPos c = super.getPotentialStructureChunk(state.getLevelSeed(), chunkX - offsetX, chunkZ - offsetZ);
 		return c.x() + offsetX == chunkX && c.z() + offsetZ == chunkZ;
 	}
 
-	/** /locate no pasa por isPlacementChunk sino por aquí: así no señala casillas desactivadas o fuera del máximo. */
+	/** /locate does not go through isPlacementChunk but through here: so it does not point at disabled cells or cells past the maximum. */
 	@Override
 	public boolean applyAdditionalChunkRestrictions(int chunkX, int chunkZ, long seed) {
 		return allowed(chunkX, chunkZ) && (biome.isEmpty() || context == null || biomeCandidate(seed, chunkX, chunkZ) != NONE)
 				&& super.applyAdditionalChunkRestrictions(chunkX, chunkZ, seed);
 	}
 
-	/** Ancho (chunks) de la ventana donde random_spread pone la candidata de cada casilla. */
+	/** Width (chunks) of the window where random_spread puts each cell's candidate. */
 	private int window() {
 		return spacing() - separation();
 	}
 
 	/**
-	 * Candidata de la casilla del chunk (chunkX, chunkZ) según el bioma, empaquetada (x << 32 | z), o NONE si la casilla
-	 * no tiene un sitio bueno. Sin mundo cargado (o con otra semilla), NONE: se usa la candidata de siempre.
+	 * Candidate of the cell of chunk (chunkX, chunkZ) by biome, packed (x << 32 | z), or NONE if the cell
+	 * has no good spot. Without a loaded world (or with another seed), NONE: the usual candidate is used.
 	 */
 	private long biomeCandidate(long seed, int chunkX, int chunkZ) {
 		BiomeContext ctx = context;
@@ -294,7 +294,7 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 			return NONE;
 		}
 		Memory mem = memory;
-		if (mem == null || mem.ctx != ctx) { // otro mundo: memoria nueva (la anterior se queda con los hilos que aún la usen)
+		if (mem == null || mem.ctx != ctx) { // another world: a new memo (the previous one stays with the threads still using it)
 			mem = new Memory(ctx, new ConcurrentHashMap<>());
 			memory = mem;
 		}
@@ -319,32 +319,32 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		return found;
 	}
 
-	/** Primer punto de la malla dentro de la ventana (chunks desde el origen de la casilla). */
+	/** First lattice point inside the window (chunks from the cell's origin). */
 	private int first() {
 		return window() >= STEP ? HALF : window() / 2;
 	}
 
 	/**
-	 * Malla de STEP chunks en la ventana de la casilla; puntuación = vecinos (de 9, a HALF chunks) en el bioma. Los vecinos
-	 * de dos puntos de la malla se tocan (caen en la misma retícula de HALF chunks): cada punto de la retícula se mira una
-	 * sola vez por búsqueda ({@code visto}), con el mismo resultado que mirarlo cada vez.
+	 * Lattice of STEP chunks in the cell's window; score = neighbors (out of 9, at HALF chunks) in the biome. The neighbors
+	 * of two lattice points touch (they fall on the same grid of HALF chunks): each point of that grid is checked only
+	 * once per search ({@code seen}), with the same result as checking it every time.
 	 */
 	private long search(BiomeContext ctx, long seed, int x0, int z0) {
 		int win = window(), n = Math.max(1, win / STEP), first = first();
 		TagKey<Biome> tag = biome.orElseThrow();
-		int lado = 2 * n + 1;
-		byte[] visto = new byte[lado * lado];          // 0 sin mirar, 1 fuera, 2 dentro del bioma
+		int side = 2 * n + 1;
+		byte[] seen = new byte[side * side];          // 0 not checked, 1 outside, 2 inside the biome
 		long best = NONE, bestKey = Long.MIN_VALUE;
 		for (int a = 0; a < n; a++) {
 			for (int b = 0; b < n; b++) {
 				int cx = x0 + first + a * STEP, cz = z0 + first + b * STEP;
-				if (!in(ctx, tag, visto, lado, 2 * a + 1, 2 * b + 1, cx, cz, sampleY)) {
+				if (!in(ctx, tag, seen, side, 2 * a + 1, 2 * b + 1, cx, cz, sampleY)) {
 					continue;
 				}
 				int score = 1;
 				for (int dx = -HALF; dx <= HALF; dx += HALF) {
 					for (int dz = -HALF; dz <= HALF; dz += HALF) {
-						if ((dx != 0 || dz != 0) && in(ctx, tag, visto, lado, 2 * a + 1 + dx / HALF, 2 * b + 1 + dz / HALF, cx + dx, cz + dz, sampleY)) {
+						if ((dx != 0 || dz != 0) && in(ctx, tag, seen, side, 2 * a + 1 + dx / HALF, 2 * b + 1 + dz / HALF, cx + dx, cz + dz, sampleY)) {
 							score++;
 						}
 					}
@@ -362,21 +362,21 @@ public final class GridPlacement extends RandomSpreadStructurePlacement {
 		return best;
 	}
 
-	/** {@link #in(BiomeContext, TagKey, int, int, int)} con la memoria de la búsqueda (punto i, j de la retícula). */
-	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, byte[] visto, int lado, int i, int j, int chunkX, int chunkZ, int y) {
-		int k = i * lado + j;
-		if (visto[k] == 0) {
-			visto[k] = in(ctx, tag, chunkX, chunkZ, y) ? (byte) 2 : (byte) 1;
+	/** {@link #in(BiomeContext, TagKey, int, int, int)} with the search's memo (point i, j of the grid). */
+	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, byte[] seen, int side, int i, int j, int chunkX, int chunkZ, int y) {
+		int k = i * side + j;
+		if (seen[k] == 0) {
+			seen[k] = in(ctx, tag, chunkX, chunkZ, y) ? (byte) 2 : (byte) 1;
 		}
-		return visto[k] == 2;
+		return seen[k] == 2;
 	}
 
-	/** El bioma en la esquina del chunk (donde el jigsaw comprueba el suyo), a la altura y (la del mar por defecto). */
+	/** The biome at the chunk's corner (where the jigsaw checks its own), at height y (sea level by default). */
 	private static boolean in(BiomeContext ctx, TagKey<Biome> tag, int chunkX, int chunkZ, int y) {
 		return ctx.sample.in(tag, QuartPos.fromBlock(chunkX * 16), QuartPos.fromBlock(y), QuartPos.fromBlock(chunkZ * 16));
 	}
 
-	/** Prepara la búsqueda de bioma al cargar el mundo principal (y la olvida al parar el servidor). Una línea en Heraldia. */
+	/** Prepares the biome search when the overworld loads (and forgets it when the server stops). One line in Heraldia. */
 	public static void registerBiomeSearch() {
 		ServerLevelEvents.LOAD.register((server, level) -> {
 			if (level.dimension() == Level.OVERWORLD) {

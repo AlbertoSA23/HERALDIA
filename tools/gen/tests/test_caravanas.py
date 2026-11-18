@@ -56,7 +56,7 @@ def test_traducidas_en_cada_idioma(codigo):
 
 def test_el_java_solo_usa_claves_que_existen():
     lang = caravanas.lang()["es_es"]
-    src = _java("caravanas/Caravanas.java")
+    src = _java("caravans/Caravans.java")
     usadas = set(re.findall(r'"(heraldia\.(?:caravanas|estado\.caravanas)[a-z_.]*)"', src))
     dinamicas = {k for k in usadas if k.endswith(".")}
     assert {"heraldia.caravanas.fase."} == dinamicas
@@ -77,8 +77,8 @@ def test_logro():
     assert a["criteria"] == {"hecho": {"trigger": "minecraft:impossible"}}
     assert a["parent"] == "heraldia:raiz"
     assert a["display"]["title"]["translate"] in caravanas.lang()["es_es"]
-    assert '"caravanas/defensa"' in _java("caravanas/Caravanas.java")
-    assert 'award(h, "hecho")' in _java("caravanas/Caravanas.java")
+    assert '"caravanas/defensa"' in _java("caravans/Caravans.java")
+    assert 'award(h, "hecho")' in _java("caravans/Caravans.java")
 
 
 def test_pagina_de_la_guia_en_cada_idioma():
@@ -100,14 +100,14 @@ def test_opciones_y_perfil():
     assert p["casual"]["caravanas.prob_asalto"] < p["estandar"]["caravanas.prob_asalto"] < p["hardcore"]["caravanas.prob_asalto"]
     assert "caravanas.activado" not in p["casual"] and "caravanas.max_activas" not in p["hardcore"]
     # recargables en Java
-    assert '"caravanas."' in _java("config/Recarga.java")
+    assert '"caravanas."' in _java("config/Reload.java")
 
 
 def test_comando_en_ingles_y_registrado():
     for r in ("caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list", "caravan clear"):
         assert r in comandos.CANONICOS
         assert all(re.fullmatch(r"[a-z]+", t) for t in r.split())
-    assert "Caravanas.nodo()" in _java("comando/Comandos.java")
-    assert "Caravanas.estado()" in _java("comando/EstadoCommand.java")
-    assert "Caravanas.registrar()" in _java("Heraldia.java")
-    assert "LEVEL_GAMEMASTERS" in _java("caravanas/Caravanas.java"), "solo para operadores"
+    assert "Caravans.node()" in _java("command/HeraldiaCommands.java")
+    assert "Caravans.state()" in _java("command/StatusCommand.java")
+    assert "Caravans.register()" in _java("Heraldia.java")
+    assert "LEVEL_GAMEMASTERS" in _java("caravans/Caravans.java"), "solo para operadores"

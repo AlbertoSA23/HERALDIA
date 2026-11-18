@@ -96,11 +96,11 @@ def test_errores_heraldia():
         "\tat net.minecraft.world.level.chunk.ChunkGenerator.handler$zzz000$heraldia$villageRules(ChunkGenerator.java:1)",
         "\tat net.minecraft.Util.run(Util.java:2)",
         "Caused by: java.lang.RuntimeException",
-        "\tat io.github.albertosa23.heraldia.comun.ZonaAjenas.ocupada(ZonaAjenas.java:3)",
+        "\tat io.github.albertosa23.heraldia.common.ForeignZone.occupied(ForeignZone.java:3)",
         "[10:00:02] [Server thread/INFO]: Done",
     ])
     got = c.errores_heraldia(log)
-    assert len(got) == 1 and "NullPointerException" in got[0] and "ZonaAjenas" in got[0]
+    assert len(got) == 1 and "NullPointerException" in got[0] and "ForeignZone" in got[0]
     assert c.errores_heraldia("[x] [main/INFO]: Heraldia: 87 estructuras registradas") == []
 
 

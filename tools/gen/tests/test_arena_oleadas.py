@@ -204,10 +204,10 @@ def test_logros_de_los_modos():
     # los campeones, uno por modo (Java: Marcas.logroCampeon = arena/campeon_<id del modo>)
     assert {f"arena/campeon_{m}" for m in a.MODOS} <= nuevos
     # las cifras de los textos son las del Java (arena/Marcas)
-    marcas = open(os.path.join(RAIZ, "src/main/java/io/github/albertosa23/heraldia/arena/Marcas.java"), encoding="utf-8").read()
-    assert f"CONTRARRELOJ_OLEADAS = {a.CONTRARRELOJ_OLEADAS};" in marcas
-    assert f"CONTRARRELOJ_RAPIDO_TICKS = {a.CONTRARRELOJ_RAPIDO_MIN} * 60 * 20;" in marcas
-    assert f"SUPERVIVENCIA_OLEADAS = {a.SUPERVIVENCIA_OLEADAS};" in marcas
+    marcas = open(os.path.join(RAIZ, "src/main/java/io/github/albertosa23/heraldia/arena/Marks.java"), encoding="utf-8").read()
+    assert f"TIME_TRIAL_WAVES = {a.CONTRARRELOJ_OLEADAS};" in marcas
+    assert f"TIME_TRIAL_FAST_TICKS = {a.CONTRARRELOJ_RAPIDO_MIN} * 60 * 20;" in marcas
+    assert f"SURVIVAL_WAVES = {a.SUPERVIVENCIA_OLEADAS};" in marcas
     lang = a.lang()
     for lid in nuevos:
         assert f"advancements.heraldia.{lid.replace('/', '.')}.title" in lang["es_es"]
@@ -215,7 +215,7 @@ def test_logros_de_los_modos():
 
 def test_modos_y_sus_textos():
     lang = a.lang()
-    java = open(os.path.join(RAIZ, "src/main/java/io/github/albertosa23/heraldia/arena/Modo.java"), encoding="utf-8").read()
+    java = open(os.path.join(RAIZ, "src/main/java/io/github/albertosa23/heraldia/arena/Mode.java"), encoding="utf-8").read()
     for m in a.MODOS:
         assert f'"{m}"' in java                                                  # el id del comando (Modo.id)
         for idioma in ("es_es", "en_us"):

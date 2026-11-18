@@ -7,19 +7,19 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Los submenús del panel de configuración en el juego (/heraldia config, T46), lógica pura: en qué orden salen, qué
- * opciones lleva cada uno (de 5 a 8, las que más se tocan; lo técnico va en «avanzado» o en el fichero), el paso del
- * deslizador de cada número y cómo se leen los valores que devuelve el diálogo. El diálogo (comando/PanelConfig) solo
- * pinta lo que dice esta clase.
+ * The submenus of the in-game configuration panel (/heraldia config, T46), pure logic: the order they appear in, which
+ * options each one has (5 to 8, the most tweaked ones; the technical ones go in "advanced" or in the file), the
+ * slider step of each number and how the values the dialog returns are read. The dialog (command/ConfigPanel) only
+ * draws what this class says.
  */
 public final class Menus {
-	/** Un submenú: su id (heraldia.panel.menu.&lt;id&gt;) y sus opciones, en el orden en que salen. */
-	public record Menu(String id, List<String> claves) {
+	/** A submenu: its id (heraldia.panel.menu.&lt;id&gt;) and its options, in the order they appear. */
+	public record Menu(String id, List<String> keys) {
 	}
 
-	/** Los perfiles que se eligen arriba del panel, en orden (personalizado sale solo al fijar opciones a mano). */
-	public static final List<String> PERFILES = List.of("casual", Perfiles.ESTANDAR, "hardcore");
-	public static final int MIN_OPCIONES = 5, MAX_OPCIONES = 8;
+	/** The profiles chosen at the top of the panel, in order (custom only appears when options are set by hand). */
+	public static final List<String> PROFILES = List.of("casual", Profiles.STANDARD, "hardcore");
+	public static final int MIN_OPTIONS = 5, MAX_OPTIONS = 8;
 
 	public static final List<Menu> MENUS = List.of(
 			new Menu("mundo", List.of("medianas.activadas", "medianas.frecuencia_porcentaje", "minas.entradas.activado",
@@ -39,8 +39,8 @@ public final class Menus {
 					"aldeas.distancia_aldeas_vanilla_bloques", "actualizar.margen_bloques", "update_check.activado",
 					"mapas_web.activado", "mapas_web.solo_descubiertas")));
 
-	/** Lo más que salta un deslizador de un extremo a otro: con más pasos no se puede elegir un valor concreto. */
-	static final int MAX_PASOS = 100;
+	/** The most a slider can jump from one end to the other: with more steps a specific value cannot be chosen. */
+	static final int MAX_STEPS = 100;
 
 	private Menus() {
 	}
@@ -49,35 +49,35 @@ public final class Menus {
 		return MENUS.stream().filter(m -> m.id().equals(id)).findFirst();
 	}
 
-	/** Paso del deslizador: 1 si el rango cabe en {@link #MAX_PASOS}; si no, un número redondo (2, 5, 10, 25, 50, 100...). */
-	public static double paso(ConfigOption o) {
+	/** Slider step: 1 if the range fits in {@link #MAX_STEPS}; otherwise, a round number (2, 5, 10, 25, 50, 100...). */
+	public static double step(ConfigOption o) {
 		if (o.decimal()) {
 			return 0.1;
 		}
-		int ancho = o.max() - o.min();
+		int width = o.max() - o.min();
 		for (int p : new int[] {1, 2, 5, 10, 25, 50, 100, 250, 500, 1000}) {
-			if (ancho / p <= MAX_PASOS) {
+			if (width / p <= MAX_STEPS) {
 				return p;
 			}
 		}
 		return 1000;
 	}
 
-	/** El valor más cercano que puede dar el deslizador (los del rango múltiplos del paso desde el mínimo). */
-	public static double ajustar(ConfigOption o, double v) {
-		double p = paso(o);
+	/** The closest value the slider can give (those of the range that are multiples of the step from the minimum). */
+	public static double adjust(ConfigOption o, double v) {
+		double p = step(o);
 		double r = o.min() + Math.round((v - o.min()) / p) * p;
 		r = Math.max(o.min(), Math.min(o.max(), r));
 		return o.decimal() ? Math.round(r * 10) / 10.0 : r;
 	}
 
 	/**
-	 * Lo que devuelve el diálogo para una opción («true», «heroica», «1500», «1500.0», «2.5»), validado; vacío si no vale.
-	 * Si el valor en uso no cae en la rejilla del deslizador y lo devuelto es el valor ajustado a ella, se conserva el que
-	 * estaba (el jugador no lo ha movido: no se cambia una opción sin querer).
+	 * What the dialog returns for an option ("true", "heroica", "1500", "1500.0", "2.5"), validated; empty if invalid.
+	 * If the value in use does not fall on the slider's grid and what was returned is the value snapped to it, the existing
+	 * one is kept (the player did not move it: an option is not changed by accident).
 	 */
-	public static Optional<JsonPrimitive> leer(ConfigOption o, String texto, JsonPrimitive actual) {
-		String t = texto == null ? "" : texto.strip();
+	public static Optional<JsonPrimitive> read(ConfigOption o, String text, JsonPrimitive actual) {
+		String t = text == null ? "" : text.strip();
 		if (o.isBoolean() || o.isChoice()) {
 			return o.parse(t);
 		}
@@ -90,7 +90,7 @@ public final class Menus {
 		if (!Double.isFinite(d)) {
 			return Optional.empty();
 		}
-		if (actual != null && actual.isNumber() && Math.abs(ajustar(o, actual.getAsDouble()) - d) < 1e-6) {
+		if (actual != null && actual.isNumber() && Math.abs(adjust(o, actual.getAsDouble()) - d) < 1e-6) {
 			return Optional.of(actual);
 		}
 		JsonPrimitive v = o.decimal() ? new JsonPrimitive(Math.round(d * 10) / 10.0) : new JsonPrimitive(Math.round(d));
@@ -98,25 +98,25 @@ public final class Menus {
 	}
 
 	/**
-	 * Los valores de un submenú tal como los devuelve el diálogo (uno por opción, en el orden del menú), leídos con
-	 * {@link #leer}. Las que no se entienden se dejan fuera (y salen en {@code invalidas}).
+	 * The values of a submenu as the dialog returns them (one per option, in menu order), read with
+	 * {@link #read}. Those that cannot be understood are left out (and show up in {@code invalid}).
 	 */
-	public record Leidos(Map<String, JsonPrimitive> valores, List<String> invalidas) {
+	public record Loaded(Map<String, JsonPrimitive> optionValues, List<String> invalid) {
 	}
 
-	public static Leidos leer(Menu menu, List<String> textos, Map<String, ConfigOption> opciones, Map<String, JsonPrimitive> actuales) {
+	public static Loaded read(Menu menu, List<String> texts, Map<String, ConfigOption> options, Map<String, JsonPrimitive> current) {
 		Map<String, JsonPrimitive> out = new LinkedHashMap<>();
-		List<String> malas = new java.util.ArrayList<>();
-		for (int i = 0; i < menu.claves().size(); i++) {
-			String k = menu.claves().get(i);
-			ConfigOption o = opciones.get(k);
-			Optional<JsonPrimitive> v = o == null || i >= textos.size() ? Optional.empty() : leer(o, textos.get(i), actuales.get(k));
+		List<String> bad = new java.util.ArrayList<>();
+		for (int i = 0; i < menu.keys().size(); i++) {
+			String k = menu.keys().get(i);
+			ConfigOption o = options.get(k);
+			Optional<JsonPrimitive> v = o == null || i >= texts.size() ? Optional.empty() : read(o, texts.get(i), current.get(k));
 			if (v.isPresent()) {
 				out.put(k, v.get());
 			} else {
-				malas.add(k);
+				bad.add(k);
 			}
 		}
-		return new Leidos(out, List.copyOf(malas));
+		return new Loaded(out, List.copyOf(bad));
 	}
 }

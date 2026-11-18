@@ -3,7 +3,7 @@ package io.github.albertosa23.heraldia.client;
 import com.google.gson.JsonPrimitive;
 import io.github.albertosa23.heraldia.config.ConfigOption;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
-import io.github.albertosa23.heraldia.config.Perfiles;
+import io.github.albertosa23.heraldia.config.Profiles;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -39,12 +39,12 @@ import net.minecraft.util.FormattedCharSequence;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Pantalla de configuración (widgets vanilla, al estilo de la de reglas del juego). Se construye entera a partir del
- * esquema del .jar ({@link HeraldiaConfig#options()}): una opción nueva en tools/gen/opciones.py sale sola, en su
- * sección, con su rango y su ayuda. Edita config/heraldia.json de este cliente; no envía nada al servidor.
- * <p>Perfil de juego: al cambiarlo, las opciones del perfil que tenían el valor del perfil anterior toman el del nuevo; las
- * que no (fijadas a mano) se quedan como estaban, en dorado, y mandan sobre el perfil. Al guardar se escriben fijadas a
- * mano las que no tienen el valor del perfil ({@link HeraldiaConfig#save(Path, Map)}).
+ * Configuration screen (vanilla widgets, in the style of the game rules screen). It is built entirely from the .jar's
+ * schema ({@link HeraldiaConfig#options()}): a new option in tools/gen/opciones.py shows up on its own, in its
+ * section, with its range and its help. It edits this client's config/heraldia.json; it sends nothing to the server.
+ * <p>Gameplay profile: when it changes, the profile options that had the previous profile's value take the new one's; the
+ * ones that did not (set by hand) stay as they were, in gold, and override the profile. On save, the ones without the
+ * profile's value are written as set by hand ({@link HeraldiaConfig#save(Path, Map)}).
  */
 @Environment(EnvType.CLIENT)
 public final class ConfigScreen extends Screen {
@@ -57,9 +57,9 @@ public final class ConfigScreen extends Screen {
 	private final @Nullable Screen parent;
 	private final Path file;
 	private final HeaderAndFooterLayout layout;
-	/** Valores válidos que se guardarán (los de una casilla con texto no válido se quedan en el último válido). */
+	/** Valid values to be saved (a box with invalid text keeps the last valid one). */
 	private final Map<String, JsonPrimitive> working;
-	/** Texto escrito en cada casilla numérica, para conservarlo al filtrar aunque no sea válido. */
+	/** Text typed in each number box, kept while filtering even if it is not valid. */
 	private final Map<String, String> typed = new HashMap<>();
 	private final Set<String> invalid = new HashSet<>();
 	private @Nullable OptionList list;
@@ -118,7 +118,7 @@ public final class ConfigScreen extends Screen {
 		return Math.min(320, this.width - 40);
 	}
 
-	/** La cabecera crece con los avisos (más líneas en pantallas estrechas). */
+	/** The header grows with the notices (more lines on narrow screens). */
 	private void fitHeader() {
 		if (this.header != null) {
 			this.notices.forEach(n -> n.setMaxWidth(textWidth()));
@@ -189,44 +189,44 @@ public final class ConfigScreen extends Screen {
 	}
 
 	private String profile() {
-		JsonPrimitive p = this.working.get(Perfiles.CLAVE);
-		return p != null ? p.getAsString() : Perfiles.ESTANDAR;
+		JsonPrimitive p = this.working.get(Profiles.KEY);
+		return p != null ? p.getAsString() : Profiles.STANDARD;
 	}
 
-	/** ¿Opción del perfil con un valor que no es el del perfil elegido? (se guardará fijada a mano) */
+	/** Profile option with a value other than the chosen profile's? (it will be saved as set by hand) */
 	private boolean fixedByHand(String key) {
-		Map<String, JsonPrimitive> p = HeraldiaConfig.profiles().valores(profile());
-		return p.containsKey(key) && !Perfiles.PERSONALIZADO.equals(profile()) && !p.get(key).equals(this.working.get(key));
+		Map<String, JsonPrimitive> p = HeraldiaConfig.profiles().optionValues(profile());
+		return p.containsKey(key) && !Profiles.CUSTOM.equals(profile()) && !p.get(key).equals(this.working.get(key));
 	}
 
-	/** Cambia el perfil: lo que tenía el valor del perfil anterior pasa al del nuevo; lo fijado a mano se queda. */
-	private void changeProfile(String perfil) {
-		Perfiles ps = HeraldiaConfig.profiles();
-		Map<String, JsonPrimitive> antes = ps.valores(profile()), ahora = ps.valores(perfil);
-		for (String k : ps.claves()) {
-			if (Perfiles.PERSONALIZADO.equals(profile()) || antes.get(k).equals(this.working.get(k))) {
-				this.working.put(k, Perfiles.PERSONALIZADO.equals(perfil) ? this.working.get(k) : ahora.get(k));
+	/** Changes the profile: what had the previous profile's value takes the new one's; what was set by hand stays. */
+	private void changeProfile(String profile) {
+		Profiles ps = HeraldiaConfig.profiles();
+		Map<String, JsonPrimitive> before = ps.optionValues(profile()), now = ps.optionValues(profile);
+		for (String k : ps.keys()) {
+			if (Profiles.CUSTOM.equals(profile()) || before.get(k).equals(this.working.get(k))) {
+				this.working.put(k, Profiles.CUSTOM.equals(profile) ? this.working.get(k) : now.get(k));
 				this.typed.remove(k);
 				this.invalid.remove(k);
 			}
 		}
-		this.working.put(Perfiles.CLAVE, new JsonPrimitive(perfil));
+		this.working.put(Profiles.KEY, new JsonPrimitive(profile));
 		filter(this.search == null ? "" : this.search.getValue());
 		updateSaveButton();
 	}
 
-	/** Líneas del perfil en la ayuda de una opción: el valor que da el perfil y si está fijada a mano. */
+	/** Profile lines in an option's help: the value the profile gives and whether it is set by hand. */
 	private List<FormattedCharSequence> profileLines(ConfigOption o) {
 		List<FormattedCharSequence> out = new ArrayList<>();
-		Perfiles ps = HeraldiaConfig.profiles();
-		if (o.key().equals(Perfiles.CLAVE)) {
-			List<String> distintas = ps.claves().stream().filter(this::fixedByHand).toList();
-			Component efectivo = Component.translatable("heraldia.config.perfil." + (distintas.isEmpty() ? profile() : Perfiles.PERSONALIZADO));
-			out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.perfil_efectivo", efectivo,
-					distintas.isEmpty() ? "-" : String.join(", ", distintas)).withStyle(ChatFormatting.AQUA), 200));
-		} else if (ps.claves().contains(o.key()) && !Perfiles.PERSONALIZADO.equals(profile())) {
+		Profiles ps = HeraldiaConfig.profiles();
+		if (o.key().equals(Profiles.KEY)) {
+			List<String> distinct = ps.keys().stream().filter(this::fixedByHand).toList();
+			Component effective = Component.translatable("heraldia.config.perfil." + (distinct.isEmpty() ? profile() : Profiles.CUSTOM));
+			out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.perfil_efectivo", effective,
+					distinct.isEmpty() ? "-" : String.join(", ", distinct)).withStyle(ChatFormatting.AQUA), 200));
+		} else if (ps.keys().contains(o.key()) && !Profiles.CUSTOM.equals(profile())) {
 			out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.perfil_valor",
-					Component.translatable("heraldia.config.perfil." + profile()), ps.valores(profile()).get(o.key()).getAsString())
+					Component.translatable("heraldia.config.perfil." + profile()), ps.optionValues(profile()).get(o.key()).getAsString())
 					.withStyle(ChatFormatting.AQUA), 200));
 			if (fixedByHand(o.key())) {
 				out.addAll(this.font.split(Component.translatable("heraldia.config.pantalla.fijada").withStyle(ChatFormatting.GOLD), 200));
@@ -235,7 +235,7 @@ public final class ConfigScreen extends Screen {
 		return out;
 	}
 
-	/** Nombre (con el de la familia o la estructura traducido) y ayuda de una opción, como componentes traducibles. */
+	/** An option's name (with the family or structure name translated) and help, as translatable components. */
 	private static Object[] args(ConfigOption o) {
 		Object[] out = new Object[o.args().size()];
 		for (int i = 0; i < out.length; i++) {
@@ -420,7 +420,7 @@ public final class ConfigScreen extends Screen {
 		}
 	}
 
-	/** Opción de lista: botón que recorre sus valores, cada uno con su nombre traducido. */
+	/** List option: a button that cycles through its values, each with its translated name. */
 	@Environment(EnvType.CLIENT)
 	private final class ChoiceEntry extends OptionEntry {
 		private final CycleButton<String> button;
@@ -432,8 +432,8 @@ public final class ConfigScreen extends Screen {
 					.withValues(option.values())
 					.displayOnlyValue()
 					.create(0, 0, WIDGET_WIDTH, 20, name, (b, value) -> {
-						if (option.key().equals(Perfiles.CLAVE)) {
-							ConfigScreen.this.minecraft.schedule(() -> changeProfile(value)); // rehace la lista: después del clic
+						if (option.key().equals(Profiles.KEY)) {
+							ConfigScreen.this.minecraft.schedule(() -> changeProfile(value)); // rebuild the list: after the click
 						} else {
 							ConfigScreen.this.working.put(option.key(), new JsonPrimitive(value));
 						}
