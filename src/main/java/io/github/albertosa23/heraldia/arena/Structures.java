@@ -12,10 +12,10 @@ import net.minecraft.world.level.levelgen.GenerationStep;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 /**
- * ¿Tiene ya un chunk guardado piezas de alguna estructura de superficie (aldeas, entradas de mina, únicas, estructuras
- * vanilla o de otros mods)? Lee solo las referencias del chunk en disco con el escáner de StructureCheck (como
- * /heraldia info nearby): seguro fuera del hilo del servidor, sin cargar ni generar chunks. Las subterráneas (minas
- * vanilla, fortalezas del End...) no cuentan: no asoman donde va la arena. Un chunk sin guardar no tiene nada.
+ * Does a saved chunk already have pieces of some surface structure (villages, mine entrances, uniques, vanilla
+ * or other mods' structures)? It only reads the chunk's references on disk with StructureCheck's scanner (like
+ * /heraldia info nearby): safe off the server thread, without loading or generating chunks. Underground ones (vanilla
+ * mineshafts, End strongholds...) do not count: they do not show where the arena goes. An unsaved chunk has nothing.
  */
 final class Structures {
 	private Structures() {
@@ -44,7 +44,7 @@ final class Structures {
 		return there[0];
 	}
 
-	/** Pasos de generación de las estructuras que asoman (lógica pura). */
+	/** Generation steps of the structures that show above ground (pure logic). */
 	static boolean surface(GenerationStep.Decoration step) {
 		return step != GenerationStep.Decoration.UNDERGROUND_STRUCTURES && step != GenerationStep.Decoration.UNDERGROUND_DECORATION
 				&& step != GenerationStep.Decoration.STRONGHOLDS;

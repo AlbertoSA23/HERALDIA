@@ -16,11 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Barra de jefe vanilla ({@link ServerBossEvent}, la ve cualquier cliente) de cada guardián en combate: con su nombre,
- * su vida, el color de su fase y los jugadores a menos de {@link Phases#RADIUS} bloques. Empieza al recibir o dar un
- * golpe y se quita al morir, al descargarse o cuando no queda ningún jugador a menos de {@link Phases#OUTSIDE_RADIUS}.
- * Solo en memoria (el hilo del servidor): tras un reinicio, el siguiente golpe la vuelve a crear. Se repasa una vez por
- * segundo y solo si hay combates (el mapa casi siempre está vacío).
+ * Vanilla boss bar ({@link ServerBossEvent}, any client sees it) of each guardian in combat: with its name,
+ * its health, the color of its phase and the players within {@link Phases#RADIUS} blocks. It starts on receiving or
+ * dealing a hit and is removed on death, on unload or when no player is left within {@link Phases#OUTSIDE_RADIUS}.
+ * In memory only (the server thread): after a restart, the next hit creates it again. It is swept once per
+ * second and only if there are fights (the map is almost always empty).
  */
 final class Bars {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -33,12 +33,12 @@ final class Bars {
 	private Bars() {
 	}
 
-	/** El guardián entra (o sigue) en combate: crea su barra si no la tiene y la pone al día. */
+	/** The guardian enters (or stays) in combat: creates its bar if it has none and updates it. */
 	static void combat(Mob boss) {
 		Combat c = ACTIVE.get(boss.getUUID());
 		if (c == null) {
 			if (!(boss.level() instanceof ServerLevel level) || !Bosses.hasPlayers(level, boss, Phases.RADIUS)) {
-				return;      // nadie la vería: no se crea (ni se escribe en el log)
+				return;      // nobody would see it: it is not created (nor logged)
 			}
 			c = new Combat(boss, new ServerBossEvent(UUID.randomUUID(), boss.getDisplayName(), color(1),
 					BossEvent.BossBarOverlay.NOTCHED_6));
@@ -88,7 +88,7 @@ final class Bars {
 				bar.removePlayer(p);
 			}
 		}
-		// los que se han ido a otra dimensión
+		// those who went to another dimension
 		List<ServerPlayer> outside = new ArrayList<>();
 		for (ServerPlayer p : bar.getPlayers()) {
 			if (p.level() != level || p.isRemoved()) {
@@ -104,7 +104,7 @@ final class Bars {
 		}
 	}
 
-	/** Amarilla en la fase 1, roja en la 2 y morada en la 3. */
+	/** Yellow in phase 1, red in 2 and purple in 3. */
 	static BossEvent.BossBarColor color(int phase) {
 		return switch (phase) {
 			case 1 -> BossEvent.BossBarColor.YELLOW;

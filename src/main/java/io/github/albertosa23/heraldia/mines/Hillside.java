@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Busca una ladera para la boca de una mina (lógica pura: el terreno llega por {@link Terrain}, en el juego el mapa de
- * alturas de generación con caché, {@code comun/Heights}). La misma idea que la ciudadela (delante de la puerta llano
+ * alturas de generación con caché, {@code common/Heights}). La misma idea que la ciudadela (delante de la puerta llano
  * y seco, detrás el monte), pero barata, porque las minas son frecuentes:
  * <ol>
  * <li>cinco columnas (el centro y cuatro a {@link #RADIUS} bloques) dan la pendiente; si el terreno no sube hacia ningún

@@ -4,18 +4,18 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Modos de partida de la arena (T41), sin clases del juego. Se eligen al empezar (campana o
- * /heraldia arena start &lt;modo&gt;); todos guardan las reglas de siempre (sin botín, experiencia reducida, inventario
- * conservado, mini-jefe cada 5 oleadas, dificultad y perfil):
+ * Arena match modes (T41), without game classes. They are chosen at the start (bell or
+ * /heraldia arena start &lt;mode&gt;); all keep the usual rules (no loot, reduced experience, inventory
+ * kept, mini-boss every 5 waves, difficulty and profile):
  * <ul>
- * <li>{@link #COOP}: el de siempre (T31), sin cambios: oleadas hasta que caen todos, con pausa entre ellas; puntúa
- * la oleada superada (y su récord sigue en el marcador vanilla).</li>
- * <li>{@link #TIME_TRIAL}: N oleadas fijas (arena.modos.oleadas_contrarreloj) contra el reloj, con una pausa corta;
- * acaba al superar la última y puntúa el tiempo.</li>
- * <li>{@link #SURVIVAL}: oleadas sin pausa entre ellas hasta que caen todos; puntúa la oleada más alta superada.</li>
+ * <li>{@link #COOP}: the usual one (T31), unchanged: waves until everyone falls, with a pause between them; it scores
+ * the wave cleared (and its record stays on the vanilla scoreboard).</li>
+ * <li>{@link #TIME_TRIAL}: N fixed waves (arena.modos.oleadas_contrarreloj) against the clock, with a short pause;
+ * it ends when the last one is cleared and scores the time.</li>
+ * <li>{@link #SURVIVAL}: waves without a pause between them until everyone falls; it scores the highest wave cleared.</li>
  * </ul>
- * El {@link #id()} es el argumento del comando (inglés, minúsculas, ASCII); {@link #key()}, el de la configuración
- * (arena.modos.&lt;clave&gt;) y los textos (heraldia.arena.modo.&lt;id&gt;).
+ * The {@link #id()} is the command argument (English, lowercase, ASCII); {@link #key()}, the configuration one
+ * (arena.modos.&lt;key&gt;) and the texts' (heraldia.arena.modo.&lt;id&gt;).
  */
 public enum Mode {
 	COOP("coop", "cooperativo", Match.PAUSE_TICKS),
@@ -31,17 +31,17 @@ public enum Mode {
 		this.pause = pause;
 	}
 
-	/** Argumento del comando y clave de los datos guardados (no cambia). */
+	/** Command argument and key of the saved data (never changes). */
 	public String id() {
 		return id;
 	}
 
-	/** Nombre en la configuración (arena.modos.&lt;clave&gt;). */
+	/** Name in the configuration (arena.modos.&lt;key&gt;). */
 	public String key() {
 		return key;
 	}
 
-	/** Ticks de pausa entre oleadas (0: la siguiente empieza en el tick siguiente al superar la anterior). */
+	/** Pause ticks between waves (0: the next one starts on the tick after the previous one is cleared). */
 	public int pause() {
 		return pause;
 	}
@@ -54,7 +54,7 @@ public enum Mode {
 		return "heraldia.arena.modo." + id;
 	}
 
-	/** El modo de un id del comando o de los datos guardados ({@code coop}, {@code timeattack}, {@code survival}). */
+	/** The mode of a command or saved-data id ({@code coop}, {@code timeattack}, {@code survival}). */
 	public static Optional<Mode> fromId(String id) {
 		if (id == null) {
 			return Optional.empty();

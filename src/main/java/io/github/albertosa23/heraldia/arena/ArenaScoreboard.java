@@ -16,10 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Récords de la arena en el marcador vanilla (lo guarda el juego con el mundo): el objetivo {@link #OBJECTIVE}, con la
- * oleada más alta superada por cada jugador y la del servidor ({@link #SERVER}: no puede ser el nombre de un jugador,
- * y se muestra con su nombre traducido). Se ve en la barra lateral mientras dura una partida, si nadie la usa para otra
- * cosa. Al batir el récord del servidor se anuncia en el chat; el personal, solo al jugador.
+ * Arena records on the vanilla scoreboard (the game saves it with the world): the {@link #OBJECTIVE} objective, with the
+ * highest wave cleared by each player and the server's ({@link #SERVER}: it cannot be a player name, and it is shown with
+ * its translated name). It shows in the sidebar while a match lasts, if nobody uses it for something else. Beating the
+ * server record is announced in the chat; a personal one, only to the player.
  */
 final class ArenaScoreboard {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
@@ -29,7 +29,7 @@ final class ArenaScoreboard {
 	private ArenaScoreboard() {
 	}
 
-	/** ¿Es un récord nuevo? (lógica pura) */
+	/** Is it a new record? (pure logic) */
 	static boolean improves(int previous, int cleared) {
 		return cleared > previous;
 	}
@@ -53,7 +53,7 @@ final class ArenaScoreboard {
 		return read(server, SERVER);
 	}
 
-	/** Un participante ha superado la oleada {@code n}: récord personal y del servidor. */
+	/** A participant has cleared wave {@code n}: personal and server record. */
 	static void cleared(MinecraftServer server, ServerPlayer p, int n) {
 		Scoreboard board = server.getScoreboard();
 		Objective obj = target(server);
@@ -74,7 +74,7 @@ final class ArenaScoreboard {
 		}
 	}
 
-	/** Barra lateral con los récords, si está libre. */
+	/** Sidebar with the records, if it is free. */
 	static void show(MinecraftServer server) {
 		Scoreboard board = server.getScoreboard();
 		if (board.getDisplayObjective(DisplaySlot.SIDEBAR) == null) {
@@ -82,7 +82,7 @@ final class ArenaScoreboard {
 		}
 	}
 
-	/** Quita la barra lateral si es la de la arena. */
+	/** Removes the sidebar if it is the arena's. */
 	static void hide(MinecraftServer server) {
 		Scoreboard board = server.getScoreboard();
 		Objective obj = board.getObjective(OBJECTIVE);

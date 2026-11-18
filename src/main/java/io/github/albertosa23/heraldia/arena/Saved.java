@@ -9,9 +9,9 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.minecraft.core.BlockPos;
 
 /**
- * Lo que se guarda de la arena en el mundo principal (adjunto persistente de Fabric API en el {@code ServerLevel}): el
- * origen de la arena colocada (si hay) y si ya se decidió generarla sola (en un mundo nuevo) o no (en uno existente),
- * para no volver a decidirlo en cada arranque.
+ * What is saved of the arena in the overworld (Fabric API persistent attachment on the {@code ServerLevel}): the
+ * origin of the placed arena (if any) and whether it was already decided to generate it on its own (in a new world) or
+ * not (in an existing one), so it is not decided again on every startup.
  */
 public record Saved(Optional<BlockPos> origin, boolean decided) {
 	public static final Codec<Saved> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -27,10 +27,10 @@ public record Saved(Optional<BlockPos> origin, boolean decided) {
 		return new Saved(origin, true);
 	}
 
-	/** El adjunto, aparte para que los tests no registren nada al cargar la clase. */
+	/** The attachment, kept apart so the tests register nothing when the class loads. */
 	static final class Type {
 		static final AttachmentType<Saved> ARENA = AttachmentRegistry.create(Heraldia.id("arena"), b -> b.persistent(CODEC));
-		/** En el jugador que cae en el ruedo: conserva su inventario y su experiencia al reaparecer (se guarda con él). */
+		/** On the player who falls in the ring: keeps their inventory and experience on respawn (saved with them). */
 		static final AttachmentType<Boolean> KEEP = AttachmentRegistry.create(Heraldia.id("arena_conservar"),
 				b -> b.persistent(Codec.BOOL));
 

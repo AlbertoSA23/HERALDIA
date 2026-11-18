@@ -6,36 +6,36 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Lógica pura de las fases de los guardianes (sin clases del juego, para los tests). El estado vive en las etiquetas
- * (Tags) del propio guardián, que el juego guarda con él: {@code heraldia_fase.2} y {@code heraldia_fase.3}. Así un
- * guardián ya generado (con {@link #GUARDIAN}) gana las fases sin datos aparte, y cada fase ocurre una sola vez aunque
- * se cure, se recargue el chunk o se reinicie el servidor.
+ * Pure logic of the guardian phases (no game classes, for the tests). The state lives in the guardian's own
+ * tags, which the game saves with it: {@code heraldia_fase.2} and {@code heraldia_fase.3}. So an
+ * already generated guardian (with {@link #GUARDIAN}) gains the phases without extra data, and each phase happens only
+ * once even if it heals, the chunk reloads or the server restarts.
  */
 public final class Phases {
-	/** Etiqueta de los guardianes finales (piezas.GUARDIAN_TAG). */
+	/** Tag of the final guardians (piezas.GUARDIAN_TAG). */
 	public static final String GUARDIAN = "heraldia_guardian";
-	/** Prefijo de la etiqueta con el id de su única (pack.tag_guardians): {@code heraldia_guardian.<id>}. */
+	/** Prefix of the tag with the id of its unique (pack.tag_guardians): {@code heraldia_guardian.<id>}. */
 	public static final String UNIQUE = GUARDIAN + ".";
-	/** Prefijo de la etiqueta de cada fase alcanzada: {@code heraldia_fase.<n>}. */
+	/** Prefix of the tag of each phase reached: {@code heraldia_fase.<n>}. */
 	public static final String PHASE = "heraldia_fase.";
-	/** Etiqueta de los refuerzos (no son guardianes: no pasan de fase ni sueltan su botín). */
+	/** Tag of the reinforcements (they are not guardians: they do not change phase nor drop their loot). */
 	public static final String REINFORCEMENT = "heraldia_refuerzo";
-	/** Fase 2 al bajar del 66 % de vida; fase 3 al bajar del 33 %. */
+	/** Phase 2 when dropping below 66 % health; phase 3 below 33 %. */
 	public static final float THRESHOLD_2 = 0.66f;
 	public static final float THRESHOLD_3 = 0.33f;
 	public static final int MAX_PHASE = 3;
-	/** Refuerzos vivos a la vez cerca de un guardián, como mucho. */
+	/** Reinforcements alive at once near a guardian, at most. */
 	public static final int MAX_ALIVE = 4;
 
 	private Phases() {
 	}
 
-	/** ¿Guardián final? (salida temprana: casi todas las entidades no llevan etiquetas). */
+	/** Final guardian? (early exit: almost no entity has tags). */
 	public static boolean isGuardian(Set<String> tags) {
 		return !tags.isEmpty() && tags.contains(GUARDIAN);
 	}
 
-	/** Id de la única del guardián ({@code heraldia_guardian.<id>}), o null si no la lleva. */
+	/** Id of the guardian's unique ({@code heraldia_guardian.<id>}), or null if it has none. */
 	public static @Nullable String unique(Set<String> tags) {
 		for (String t : tags) {
 			if (t.startsWith(UNIQUE) && t.length() > UNIQUE.length()) {
@@ -45,7 +45,7 @@ public final class Phases {
 		return null;
 	}
 
-	/** Fase que corresponde a la vida: 1 por encima del 66 %, 2 por debajo, 3 por debajo del 33 %. */
+	/** Phase that matches the health: 1 above 66 %, 2 below, 3 below 33 %. */
 	public static int healthPhase(float health, float max) {
 		if (!(max > 0)) {
 			return 1;
@@ -54,7 +54,7 @@ public final class Phases {
 		return r < THRESHOLD_3 ? 3 : r < THRESHOLD_2 ? 2 : 1;
 	}
 
-	/** Fase más alta ya alcanzada según sus etiquetas (1 si ninguna). */
+	/** Highest phase already reached according to its tags (1 if none). */
 	public static int reached(Set<String> tags) {
 		for (int f = MAX_PHASE; f >= 2; f--) {
 			if (tags.contains(PHASE + f)) {
@@ -65,8 +65,8 @@ public final class Phases {
 	}
 
 	/**
-	 * Fases que hay que aplicar ahora, en orden: las que corresponden a la vida y aún no tienen su etiqueta. Un golpe
-	 * que baje del 100 % al 20 % da las dos. Vacía si las fases y los refuerzos están desactivados o si ya murió.
+	 * Phases to apply now, in order: those matching the health that do not have their tag yet. A hit
+	 * that drops from 100 % to 20 % gives both. Empty if phases and reinforcements are disabled or if it already died.
 	 */
 	public static List<Integer> pending(Set<String> tags, float health, float max, boolean phases, boolean reinforcements) {
 		List<Integer> out = new ArrayList<>(2);
@@ -82,14 +82,14 @@ public final class Phases {
 		return out;
 	}
 
-	/** Cuántos refuerzos de los {@code listed} se llaman con {@code alive} ya cerca (tope {@link #MAX_ALIVE}). */
+	/** How many of the {@code listed} reinforcements are called with {@code alive} already nearby (cap {@link #MAX_ALIVE}). */
 	public static int howMany(int listed, int alive) {
 		return howMany(listed, alive, 100, MAX_ALIVE);
 	}
 
 	/**
-	 * Con las opciones jefes.refuerzos.porcentaje (de los listados, redondeando; 100 = los de siempre) y
-	 * jefes.refuerzos.maximo_vivos (el tope; 4 = el de siempre). Con 100 y 4, lo mismo que {@link #howMany(int, int)}.
+	 * With the options jefes.refuerzos.porcentaje (of the listed ones, rounding; 100 = the usual) and
+	 * jefes.refuerzos.maximo_vivos (the cap; 4 = the usual). With 100 and 4, the same as {@link #howMany(int, int)}.
 	 */
 	public static int howMany(int listed, int alive, int percent, int maximum) {
 		int requested = (int) Math.round(listed * percent / 100.0);
@@ -97,8 +97,8 @@ public final class Phases {
 	}
 
 	/**
-	 * Clave del mensaje de la barra de acción al pasar a {@code phase}: con las fases activadas, el de la fase (con
-	 * «llama a sus refuerzos» si los ha llamado); solo con refuerzos, el de los refuerzos; si no hay nada que contar, null.
+	 * Key of the action bar message when entering {@code phase}: with phases enabled, the phase's (with
+	 * "calls its reinforcements" if it called them); with reinforcements only, the reinforcements'; if there is nothing to tell, null.
 	 */
 	public static @Nullable String key(int phase, boolean phases, int called) {
 		if (phases) {
@@ -107,11 +107,11 @@ public final class Phases {
 		return called > 0 ? "heraldia.jefes.refuerzos" : null;
 	}
 
-	/** Radio (bloques) en el que un jugador ve la barra y recibe los avisos; la pierde al alejarse más de {@link #OUTSIDE_RADIUS}. */
+	/** Radius (blocks) in which a player sees the bar and gets the notices; they lose it when farther than {@link #OUTSIDE_RADIUS}. */
 	public static final int RADIUS = 32;
 	public static final int OUTSIDE_RADIUS = 48;
 
-	/** ¿Se le muestra la barra a un jugador a esa distancia al cuadrado? true: añadir; false: quitar; null: dejar como esté. */
+	/** Is the bar shown to a player at that squared distance? true: add; false: remove; null: leave as is. */
 	public static @Nullable Boolean sees(double distance2) {
 		if (distance2 <= (double) RADIUS * RADIUS) {
 			return Boolean.TRUE;
@@ -119,7 +119,7 @@ public final class Phases {
 		return distance2 > (double) OUTSIDE_RADIUS * OUTSIDE_RADIUS ? Boolean.FALSE : null;
 	}
 
-	/** Progreso de la barra (0-1). */
+	/** Bar progress (0-1). */
 	public static float progress(float health, float max) {
 		return max > 0 ? Math.clamp(health / max, 0f, 1f) : 0f;
 	}

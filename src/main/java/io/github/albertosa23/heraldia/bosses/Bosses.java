@@ -40,18 +40,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Jefes: fases, refuerzos y barra de jefe de los guardianes finales (etiqueta {@link Phases#GUARDIAN}), también de los
- * ya generados. Todo sale de eventos de Fabric API (daño, muerte, descarga) con salida temprana por etiquetas; el
- * único trabajo periódico es {@link Bars}, una vez por segundo y solo con combates en marcha (casi siempre ninguno).
- * Sin mixins: el daño lo da {@code ServerLivingEntityEvents.AFTER_DAMAGE}.
+ * Bosses: phases, reinforcements and boss bar of the final guardians (tag {@link Phases#GUARDIAN}), also the
+ * already generated ones. Everything comes from Fabric API events (damage, death, unload) with an early exit by tags; the
+ * only periodic work is {@link Bars}, once per second and only with fights going on (almost always none).
+ * No mixins: the damage comes from {@code ServerLivingEntityEvents.AFTER_DAMAGE}.
  * <ul>
- * <li>Fases: al bajar del 66 % y del 33 % de vida (una vez cada una, etiqueta {@code heraldia_fase.<n>} en el propio
- * guardián): velocidad, resistencia y fuerza breve, partículas, sonido y un aviso traducible en la barra de acción a
- * los jugadores cercanos.</li>
- * <li>Refuerzos: en cada fase, los de su única ({@link Reinforcements}), con {@code heraldia_anclado} y
- * {@code heraldia_adulto} (las mismas protecciones que los mobs de plantilla: ni bebés, ni monturas, ni armas cambiadas,
- * ni recoger objetos), sin su tabla de botín ni su trofeo, sin persistencia (desaparecen como cualquier monstruo si
- * todos se van) y nunca más vivos cerca que el tope (jefes.refuerzos.maximo_vivos, 4 por defecto).</li>
+ * <li>Phases: on dropping below 66 % and 33 % health (once each, tag {@code heraldia_fase.<n>} on the guardian
+ * itself): speed, resistance and brief strength, particles, sound and a translatable notice in the action bar for
+ * nearby players.</li>
+ * <li>Reinforcements: in each phase, those of its unique ({@link Reinforcements}), with {@code heraldia_anclado} and
+ * {@code heraldia_adulto} (the same protections as template mobs: no babies, no mounts, no swapped weapons,
+ * no item pickup), without their loot table or trophy, without persistence (they despawn like any monster if
+ * everyone leaves) and never more alive nearby than the cap (jefes.refuerzos.maximo_vivos, 4 by default).</li>
  * </ul>
  */
 public final class Bosses {
@@ -84,7 +84,7 @@ public final class Bosses {
 				guardianHurt(mob, source);
 			}
 		} else if (entity instanceof ServerPlayer && source.getEntity() instanceof Mob boss && Phases.isGuardian(boss.entityTags())) {
-			// el guardián ha golpeado a un jugador: también empieza el combate
+			// the guardian has hit a player: the fight starts too
 			if (HeraldiaConfig.get().getBool("jefes.barra.activado")) {
 				Bars.combat(boss);
 			}
@@ -96,7 +96,7 @@ public final class Bosses {
 			return;
 		}
 		if (!hasPlayers(level, boss, Phases.OUTSIDE_RADIUS)) {
-			return;      // daño sin nadie cerca (sol, lava, asfixia): ni fases ni barra; la fase llega con el siguiente golpe
+			return;      // damage with nobody nearby (sun, lava, suffocation): no phases or bar; the phase comes with the next hit
 		}
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		boolean phases = cfg.getBool("jefes.fases.activado");
@@ -134,7 +134,7 @@ public final class Bosses {
 		}
 	}
 
-	/** Velocidad y resistencia mientras dura la fase y una fuerza breve; partículas y un rugido. */
+	/** Speed and resistance while the phase lasts and brief strength; particles and a roar. */
 	private static void enrage(ServerLevel level, Mob boss, int phase) {
 		boolean latest = phase >= Phases.MAX_PHASE;
 		boss.addEffect(new MobEffectInstance(MobEffects.SPEED, latest ? 600 : 400, latest ? 1 : 0));
@@ -146,7 +146,7 @@ public final class Bosses {
 		level.playSound(null, boss.getX(), boss.getY(), boss.getZ(), SoundEvents.RAVAGER_ROAR, SoundSource.HOSTILE, 1.5f, latest ? 0.7f : 0.9f);
 	}
 
-	/** Llama a los refuerzos de una fase, sin pasar del tope de vivos cerca (jefes.refuerzos.maximo_vivos). Devuelve cuántos. */
+	/** Calls a phase's reinforcements, without going over the cap of alive ones nearby (jefes.refuerzos.maximo_vivos). Returns how many. */
 	private static int call(ServerLevel level, Mob boss, @Nullable Entity attacker) {
 		Set<String> tags = boss.entityTags();
 		List<Reinforcements.Reinforcement> list = reinforcements.stop(Phases.unique(tags), BuiltInRegistries.ENTITY_TYPE.getKey(boss.getType()).toString());
@@ -158,7 +158,7 @@ public final class Bosses {
 		LivingEntity target = attacker instanceof Player p && p.canBeSeenAsEnemy() ? p : null;
 		int finished = 0;
 		for (int i = 0; i < n; i++) {
-			if (spawn(level, boss, list.get(i % list.size()), i, target)) {   // con más del 100 %, la lista se repite
+			if (spawn(level, boss, list.get(i % list.size()), i, target)) {   // with more than 100 %, the list repeats
 				finished++;
 			}
 		}
@@ -172,8 +172,8 @@ public final class Bosses {
 			LOGGER.warn("Heraldia: jefes: refuerzo {} desconocido o no es un mob", r.mob());
 			return false;
 		}
-		// Antes de finalizeSpawn, como un mob de plantilla: ZombieMixin, ZombieEquipoMixin y DrownedMixin miran la
-		// etiqueta de adulto con el motivo STRUCTURE (ni bebé, ni montura, ni arma al azar), y Anclaje la de anclado.
+		// Before finalizeSpawn, like a template mob: ZombieMixin, ZombieEquipmentMixin and DrownedMixin check the
+		// adult tag with the STRUCTURE reason (no baby, no mount, no random weapon), and Anchoring the anchored one.
 		mob.addTag(Phases.REINFORCEMENT);
 		mob.addTag(Anchoring.TAG);
 		mob.addTag(Heraldia.ADULT);
@@ -189,18 +189,18 @@ public final class Bosses {
 			}
 			EquipmentSlot slot = EquipmentSlot.byName(e.getKey());
 			mob.setItemSlot(slot, new ItemStack(obj));
-			mob.setDropChance(slot, 0f);       // no regalan su equipo
+			mob.setDropChance(slot, 0f);       // they do not give away their gear
 		}
-		// sin jinetes ni monturas (la araña sortea un esqueleto jinete en finalizeSpawn): no entrarían en el tope
+		// no riders or mounts (the spider rolls for a skeleton rider in finalizeSpawn): they would not count towards the cap
 		mob.ejectPassengers();
 		mob.stopRiding();
 		if (target != null) {
-			mob.setTarget(target);             // antes de entrar al mundo: Anclaje no lo deja quieto
+			mob.setTarget(target);             // before entering the world: Anchoring does not keep it still
 		}
 		return level.addFreshEntity(mob);
 	}
 
-	/** Un sitio libre a 2 bloques del guardián (cada refuerzo en un lado), o el del propio guardián. */
+	/** A free spot 2 blocks from the guardian (each reinforcement on one side), or the guardian's own. */
 	private static Vec3 site(ServerLevel level, EntityType<?> type, Mob boss, int i) {
 		int[][] sides = {{2, 0}, {-2, 0}, {0, 2}, {0, -2}, {2, 2}, {-2, -2}, {2, -2}, {-2, 2}};
 		for (int k = 0; k < sides.length; k++) {
@@ -213,7 +213,7 @@ public final class Bosses {
 		return boss.position();
 	}
 
-	/** ¿Algún jugador (no espectador) a menos de {@code radius} bloques? */
+	/** Any player (not a spectator) within {@code radius} blocks? */
 	static boolean hasPlayers(ServerLevel level, Entity boss, int radius) {
 		for (ServerPlayer p : level.players()) {
 			if (!p.isSpectator() && p.distanceToSqr(boss) <= (double) radius * radius) {
@@ -223,7 +223,7 @@ public final class Bosses {
 		return false;
 	}
 
-	/** Nombre para el log: su única (o su tipo) y el principio de su UUID. */
+	/** Name for the log: its unique (or its type) and the beginning of its UUID. */
 	static String name(Entity e) {
 		String sid = Phases.unique(e.entityTags());
 		return (sid != null ? sid : BuiltInRegistries.ENTITY_TYPE.getKey(e.getType()).getPath()) + "/" + e.getUUID().toString().substring(0, 8);

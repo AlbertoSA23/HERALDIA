@@ -16,13 +16,13 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Qué refuerzos llama cada guardián: heraldia/jefes.json (tools/gen/jefes.py), leído una vez del .jar. Por única (su
- * REFUERZOS o la familia de su guardián, ya resuelto por el generador) y, para un guardián que no se reconozca (sin
- * {@code heraldia_guardian.<id>} o de una única que ya no existe), la familia de su tipo de mob o la genérica.
- * Sin clases del juego: lo prueban los tests.
+ * Which reinforcements each guardian calls: heraldia/jefes.json (tools/gen/jefes.py), read once from the .jar. Per unique (its
+ * REFUERZOS or its guardian's family, already resolved by the generator) and, for a guardian that is not recognized (without
+ * {@code heraldia_guardian.<id>} or from a unique that no longer exists), the family of its mob type or the generic one.
+ * No game classes: the tests check it.
  */
 public final class Reinforcements {
-	/** Un refuerzo: tipo de mob ({@code minecraft:husk}) y equipo por ranura ({@code mainhand} → {@code minecraft:iron_sword}). */
+	/** A reinforcement: mob type ({@code minecraft:husk}) and gear per slot ({@code mainhand} → {@code minecraft:iron_sword}). */
 	public record Reinforcement(String mob, Map<String, String> equipment) {
 	}
 
@@ -39,7 +39,7 @@ public final class Reinforcements {
 		this.generic = generic;
 	}
 
-	/** Refuerzos de un guardián de la única {@code sid} (null si no se sabe) y tipo {@code mob}. */
+	/** Reinforcements of a guardian of unique {@code sid} (null if unknown) and type {@code mob}. */
 	public List<Reinforcement> stop(@Nullable String sid, String mob) {
 		if (sid != null) {
 			List<Reinforcement> r = uniques.get(sid);
@@ -61,7 +61,7 @@ public final class Reinforcements {
 		return new Reinforcements(Map.copyOf(uniques), Map.copyOf(families), Map.copyOf(mobFamily), generic);
 	}
 
-	/** El del .jar (heraldia/jefes.json). */
+	/** The one in the .jar (heraldia/jefes.json). */
 	public static Reinforcements fromJar() {
 		String path = "/heraldia/jefes.json";
 		try (InputStream in = Reinforcements.class.getResourceAsStream(path)) {

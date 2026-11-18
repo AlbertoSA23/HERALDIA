@@ -8,7 +8,7 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 /**
- * Condición {@code heraldia:option}: se cumple si la opción sí/no {@code key} de {@code config/heraldia.json} está
+ * Condición {@code heraldia:opcion}: se cumple si la opción sí/no {@code key} de {@code config/heraldia.json} está
  * activada. La usan los tratos de los aldeanos ({@code merchant_predicate}) para que se puedan desactivar sin tocar los
  * datos. Una clave que no existe o que no es sí/no hace fallar la carga de los datos (con su error en el log).
  */

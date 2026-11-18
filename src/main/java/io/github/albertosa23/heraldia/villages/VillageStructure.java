@@ -44,11 +44,11 @@ import org.slf4j.LoggerFactory;
  * lo ocupan casas, rellenos o torres, se quitan (el puerto ocupa su lugar) cuando no hay ninguna orilla libre; las que
  * chocan con la plaza, un edificio especial o una calle bajo el muelle se descartan. Si no queda ninguna, la aldea sale
  * sin puerto (la avenida ya tiene la posada). Todas las aldeas usan este tipo: si el tablón de encargos está desactivado
- * ({@code villages.health.board}), su pieza se quita al crear la aldea; si no y no hay puerto, el stub es el del jigsaw.
+ * ({@code aldeas.vida.tablon}), su pieza se quita al crear la aldea; si no y no hay puerto, el stub es el del jigsaw.
  */
 public final class VillageStructure extends Structure {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);
-	/** Con {@code -Dheraldia.depurar.port=true} se registra el puerto de cada aldea de la costa (no solo con /place). */
+	/** Con {@code -Dheraldia.depurar.puerto=true} se registra el puerto de cada aldea de la costa (no solo con /place). */
 	private static final boolean DEBUG = Boolean.getBoolean("heraldia.depurar.puerto");
 
 	/** Pools de la caseta y del muelle, posición de su jigsaw de unión en cada plantilla, largo del muelle y alcance. */
@@ -118,13 +118,13 @@ public final class VillageStructure extends Structure {
 	/** Opción que pone el tablón de encargos en la plaza (si está desactivada, la pieza se quita al crear la aldea). */
 	public static final String BOARD_OPTION = "aldeas.vida.tablon";
 
-	/** Pieza del tablón de encargos (atril con su libro y el alguacil): plantilla {@code <style>/board}. */
+	/** Pieza del tablón de encargos (atril con su libro y el alguacil): plantilla {@code <style>/tablon}. */
 	private static boolean board(StructurePiece piece) {
 		return piece instanceof PoolElementStructurePiece pe && pe.getElement() instanceof SinglePoolElement e
 				&& isBoard(e.getTemplateLocation().getPath());
 	}
 
-	/** Ruta de plantilla del tablón de encargos ({@code <style>/board}). */
+	/** Ruta de plantilla del tablón de encargos ({@code <style>/tablon}). */
 	static boolean isBoard(String path) {
 		return path.endsWith("/tablon");
 	}

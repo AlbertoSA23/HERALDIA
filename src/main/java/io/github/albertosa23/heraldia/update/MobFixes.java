@@ -10,16 +10,16 @@ import java.util.Set;
  * generados con versiones anteriores (ver CHANGELOG y APRENDIZAJES). Sobre una vista mínima del mob ({@link Mob}), así la
  * lógica se prueba sin el juego; {@code Updater} la monta sobre el mob de verdad.
  * <ol>
- * <li>{@code marks}: los guardianes y mobs con nombre de la 0.1.0 no llevaban etiquetas; se reconocen por su nombre
+ * <li>{@code marcas}: los guardianes y mobs con nombre de la 0.1.0 no llevaban etiquetas; se reconocen por su nombre
  * traducible {@code heraldia.*} (y persistentes) y reciben las de ahora: {@code heraldia_anclado} (no pasean fuera de su
  * sala —la «deriva»— ni recogen objetos), {@code heraldia_adulto} si son de la familia de los zombis y
  * {@code heraldia_guardian} si su nombre es el de un guardián (fases de jefe, barra y refuerzos).</li>
- * <li>{@code babies}: un zombi, husk, ahogado, zombi aldeano o piglin zombificado de plantilla que salió bebé pasa a adulto
+ * <li>{@code bebes}: un zombi, husk, ahogado, zombi aldeano o piglin zombificado de plantilla que salió bebé pasa a adulto
  * (y si iba en una gallina, se baja y la gallina de jinete se quita).</li>
- * <li>{@code nautiluses}: un ahogado de plantilla montado en un nautilo zombi se baja y el nautilo se quita (si no tiene
+ * <li>{@code nautilos}: un ahogado de plantilla montado en un nautilo zombi se baja y el nautilo se quita (si no tiene
  * nombre ni otro jinete).</li>
- * <li>{@code collect}: un mob de plantilla que puede recoger objetos deja de poder ({@code CanPickUpLoot}).</li>
- * <li>{@code weapons}: un ahogado de plantilla con un tridente o una caña sin nada especial, o un zombi con una pala, lanza o
+ * <li>{@code recoger}: un mob de plantilla que puede recoger objetos deja de poder ({@code CanPickUpLoot}).</li>
+ * <li>{@code armas}: un ahogado de plantilla con un tridente o una caña sin nada especial, o un zombi con una pala, lanza o
  * espada de hierro sin nada especial, pudo perder el arma de su plantilla; no se sabe cuál era, así que solo se cuenta en
  * el informe (aviso), sin cambiarlo.</li>
  * </ol>

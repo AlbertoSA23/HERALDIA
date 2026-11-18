@@ -4,12 +4,13 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Elección del sitio de la arena, sin clases del juego (lo prueban los tests con un terreno inventado): candidatos en
- * anillos de {@link #RADIUS_MIN} a {@link #RADIUS_MAX} bloques del spawn, cada {@link #DEGREE_STEP}°, y en cada uno una
- * malla de {@link #SAMPLES}² alturas sobre la huella de la arena y un margen. Vale el que no tiene agua y menos desnivel
- * (como mucho {@link #MAX_DROP}) y ninguna estructura ya generada en sus chunks; a igualdad, el más cercano a {@link #PREFERRED_RADIUS} y luego el primero en orden.
- * Las alturas salen del generador del mundo ({@code ChunkGenerator.getBaseHeight}: solo ruido, sin cargar chunks), así
- * que la búsqueda puede ir fuera del hilo del servidor.
+ * Choice of the arena site, without game classes (the tests check it with made-up terrain): candidates in
+ * rings from {@link #RADIUS_MIN} to {@link #RADIUS_MAX} blocks from spawn, every {@link #DEGREE_STEP}°, and in each a
+ * {@link #SAMPLES}² grid of heights over the arena's footprint plus a margin. A valid one has no water, the smallest drop
+ * (at most {@link #MAX_DROP}) and no already generated structure in its chunks; on a tie, the one closest to
+ * {@link #PREFERRED_RADIUS} and then the first in order.
+ * Heights come from the world generator ({@code ChunkGenerator.getBaseHeight}: noise only, no chunk loading), so
+ * the search can run off the server thread.
  */
 public final class Site {
 	public static final int RADIUS_MIN = 200, RADIUS_MAX = 300, RADIUS_STEP = 25, PREFERRED_RADIUS = 250, DEGREE_STEP = 15;
@@ -18,31 +19,31 @@ public final class Site {
 	private Site() {
 	}
 
-	/** Alturas del terreno natural en una columna. */
+	/** Natural terrain heights in a column. */
 	public interface Heights {
-		/** Primer bloque libre sobre la superficie (agua incluida). */
+		/** First free block above the surface (water included). */
 		int surface(int x, int z);
 
-		/** Primer bloque libre o con agua sobre el suelo sólido. */
+		/** First free or water block above solid ground. */
 		int depth(int x, int z);
 
-		/** ¿Hay ya en ese chunk alguna pieza de una estructura de superficie (aldea, entrada de mina...)? */
+		/** Is there already a piece of a surface structure (village, mine entrance...) in that chunk? */
 		default boolean occupied(int chunkX, int chunkZ) {
 			return false;
 		}
 	}
 
 	/**
-	 * Un sitio: columna del centro, y del bloque de suelo (la mediana de las alturas: lo que se nivela), desnivel y
-	 * distancia al spawn.
+	 * A site: center column, and y of the ground block (the median of the heights: what gets levelled), drop and
+	 * distance to spawn.
 	 */
 	public record Choice(int x, int z, int ground, int drop, int distance) {
 	}
 
 	/**
-	 * El mejor sitio para una arena de {@code side} bloques alrededor del spawn, o vacío si no hay ninguno llano y sin agua.
-	 * {@code minY} y {@code maxY}: alturas del mundo; la arena (de {@code low} bloques bajo el suelo a {@code high} por
-	 * encima) tiene que caber.
+	 * The best site for an arena of {@code side} blocks around spawn, or empty if none is flat and dry.
+	 * {@code minY} and {@code maxY}: world heights; the arena (from {@code low} blocks below the ground to {@code high}
+	 * above) has to fit.
 	 */
 	public static Optional<Choice> choose(int spawnX, int spawnZ, int side, int low, int high, int minY, int maxY, Heights a) {
 		Choice best = null;
@@ -63,7 +64,7 @@ public final class Site {
 		return Optional.ofNullable(best);
 	}
 
-	/** El sitio con centro en (cx, cz), o null si hay agua o demasiado desnivel. */
+	/** The site centered at (cx, cz), or null if there is water or too much drop. */
 	static Choice evaluateAt(int cx, int cz, int spawnX, int spawnZ, int side, Heights a) {
 		int width = side + 2 * MARGIN;
 		int[] heights = new int[SAMPLES * SAMPLES];
@@ -74,7 +75,7 @@ public final class Site {
 				int z = cz - width / 2 + v * (width - 1) / (SAMPLES - 1);
 				int s = a.surface(x, z);
 				if (s > a.depth(x, z)) {
-					return null;                // agua
+					return null;                // water
 				}
 				heights[i++] = s - 1;
 			}
@@ -88,7 +89,7 @@ public final class Site {
 		return new Choice(cx, cz, heights[heights.length / 2], drop, dist);
 	}
 
-	/** ¿Ningún chunk de la huella y su margen tiene ya una estructura? (solo se mira si el sitio mejora al elegido) */
+	/** Does no chunk of the footprint and its margin already have a structure? (only checked if the site beats the chosen one) */
 	static boolean free(Choice e, int side, Heights a) {
 		int m = side / 2 + MARGIN;
 		for (int cx = (e.x() - m) >> 4; cx <= (e.x() + m) >> 4; cx++) {
@@ -101,7 +102,7 @@ public final class Site {
 		return true;
 	}
 
-	/** ¿{@code a} es mejor que {@code b}? Menos desnivel; a igualdad, más cerca de {@link #PREFERRED_RADIUS}. */
+	/** Is {@code a} better than {@code b}? Less drop; on a tie, closer to {@link #PREFERRED_RADIUS}. */
 	static boolean best(Choice a, Choice b) {
 		if (a.drop() != b.drop()) {
 			return a.drop() < b.drop();

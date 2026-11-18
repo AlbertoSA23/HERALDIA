@@ -7,7 +7,7 @@ import net.minecraft.nbt.CompoundTag;
  * Lógica pura del botín que se repone (opciones botin.reponer.*), sin clases del mundo: qué tablas se reponen, qué se
  * guarda en el cofre y cuándo toca volver a llenarlo. La aplica {@link RestockedLoot} al abrir el cofre.
  *
- * <p>Lo único que se guarda está en el custom_data del bloque: {@code heraldia_botin: {table: "<id>", looted: <reloj>}},
+ * <p>Lo único que se guarda está en el custom_data del bloque: {@code heraldia_botin: {tabla: "<id>", saqueado: <reloj>}},
  * con el reloj del mundo principal ({@code getOverworldClockTime}, el que mueve /time add) del último saqueo.
  */
 public final class Restock {
@@ -42,7 +42,7 @@ public final class Restock {
 
 	/**
 	 * ¿Se repone un cofre con esta tabla? Solo las de cofre de las aldeas ({@code heraldia:cofres/}), las medianas, las
-	 * entradas a mina ({@code heraldia:mines/}), los faros y naufragios ({@code heraldia:coast/}) y las únicas; nunca los trofeos (ni nada que no sea de Heraldia).
+	 * entradas a mina ({@code heraldia:minas/}), los faros y naufragios ({@code heraldia:costa/}) y las únicas; nunca los trofeos (ni nada que no sea de Heraldia).
 	 */
 	public static boolean tableRestocks(String table) {
 		if (table == null || !table.startsWith(NS) || table.contains("trofeo")) {

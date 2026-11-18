@@ -17,7 +17,7 @@ import java.util.function.BiConsumer;
  * fichero (la 0 es un fichero escrito a mano, sin campo de versión). Antes de reescribir un fichero de una versión
  * anterior se guarda una copia, {@code heraldia.json.v<versión>.bak} (si ya existe, con un número detrás), para poder
  * volver atrás a mano. Lógica pura salvo {@link #copy}.
- * <p>Para cambiar el formato del fichero: sube {@code options.VERSION} en el generador y añade aquí el paso
+ * <p>Para cambiar el formato del fichero: sube {@code opciones.VERSION} en el generador y añade aquí el paso
  * {@code VERSION - 1 → VERSION} (con su test en {@code ConfigMigrationTest}).
  */
 public final class ConfigMigration {

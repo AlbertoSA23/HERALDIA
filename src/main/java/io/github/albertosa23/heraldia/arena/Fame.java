@@ -47,17 +47,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Clasificación semanal, récords y campeones de la arena (T41). El estado ({@link Season}) va en el mundo principal
- * (adjunto persistente heraldia:arena_temporada); la lógica pura está en {@link Season}, {@link Week} y
+ * Weekly leaderboard, records and champions of the arena (T41). The state ({@link Season}) lives in the overworld
+ * (persistent attachment heraldia:arena_temporada); the pure logic is in {@link Season}, {@link Week} and
  * {@link Marks}.
  * <ul>
- * <li>La semana se cierra el día arena.temporada.dia_reinicio a la hora arena.temporada.hora_reinicio (hora del
- * servidor; también si el servidor estaba apagado: al arrancar) o con /heraldia arena season reset: pasa al histórico
- * (arena.temporada.historico semanas), se anuncian sus campeones en el chat y ganan su logro (los que no están, al
- * entrar). Se comprueba al arrancar, una vez por minuto (una comparación) y antes de apuntar una marca.</li>
- * <li>Los campeones de la semana anterior salen en el salón de la fama: los carteles de la arena (en el paseo, junto a la
- * entrada: el plano dice dónde; en una arena ya colocada se ponen solo si su sitio está libre) y dos páginas de la Guía.</li>
- * <li>Al arrancar por primera vez con T41 se copia el récord del marcador vanilla (cooperativo) a los récords.</li>
+ * <li>The week closes on day arena.temporada.dia_reinicio at hour arena.temporada.hora_reinicio (server
+ * time; also if the server was off: at startup) or with /heraldia arena season reset: it goes to the history
+ * (arena.temporada.historico weeks), its champions are announced in the chat and earn their advancement (those absent,
+ * when they join). It is checked at startup, once per minute (one comparison) and before recording a mark.</li>
+ * <li>The previous week's champions appear in the hall of fame: the arena signs (on the walkway, next to the
+ * entrance: the blueprint says where; in an already placed arena they are only put if their spot is free) and two
+ * pages of the Guide.</li>
+ * <li>On the first startup with T41 the vanilla scoreboard record (coop) is copied to the records.</li>
  * </ul>
  */
 public final class Fame {
@@ -67,16 +68,16 @@ public final class Fame {
 
 	private static DayOfWeek day = DayOfWeek.MONDAY;
 	private static int hour, history = 8;
-	/** La zona horaria del servidor (los tests de la lógica pura usan otras). */
+	/** The server's time zone (the pure logic tests use others). */
 	private static ZoneId zone = ZoneId.systemDefault();
-	/** Cuándo acaba la semana en curso (epoch ms); Long.MAX_VALUE sin servidor. */
+	/** When the current week ends (epoch ms); Long.MAX_VALUE without a server. */
 	private static long next = Long.MAX_VALUE;
 	private static boolean signs;
 
 	private Fame() {
 	}
 
-	/** El adjunto, aparte para que los tests no registren nada al cargar Fama. */
+	/** The attachment, kept apart so the tests register nothing when Fame loads. */
 	static final class Type {
 		static final AttachmentType<Season> SEASON = AttachmentRegistry.create(Heraldia.id("arena_temporada"),
 				b -> b.persistent(Season.CODEC));
@@ -89,7 +90,7 @@ public final class Fame {
 		LOGGER.debug("Heraldia: adjunto {} registrado", Type.SEASON.identifier());
 	}
 
-	/** Lee arena.temporada.* (al arrancar y con /heraldia reload; se aplica aunque haya partida). */
+	/** Reads arena.temporada.* (at startup and on /heraldia reload; applies even during a match). */
 	static void configure(HeraldiaConfig cfg) {
 		day = Week.day(cfg.getString("arena.temporada.dia_reinicio"));
 		hour = cfg.getInt("arena.temporada.hora_reinicio");
@@ -108,9 +109,9 @@ public final class Fame {
 		return Week.start(Instant.now(), zone, day, hour);
 	}
 
-	// --- arranque, recarga y tick ---
+	// --- startup, reload and tick ---
 
-	/** Al arrancar (con la arena activada): migración del marcador, cierre de la semana si pasó el reinicio y carteles. */
+	/** At startup (with the arena enabled): scoreboard migration, week close if the reset has passed, and signs. */
 	static void onStart(MinecraftServer server) {
 		Season t = read(server);
 		if (!t.migrated()) {
@@ -126,7 +127,7 @@ public final class Fame {
 		signs = true;
 	}
 
-	/** /heraldia reload: arena.temporada.* (el histórico se recorta ya; el día y la hora cuentan desde ahora). */
+	/** /heraldia reload: arena.temporada.* (the history is trimmed now; the day and hour count from now). */
 	static void reload(MinecraftServer server) {
 		save(server, read(server).trim(history));
 		check(server);
@@ -138,7 +139,7 @@ public final class Fame {
 		signs = false;
 	}
 
-	/** Una vez por minuto: ¿ha pasado el reinicio? ¿Carteles por poner (su chunk se cargó)? Salida temprana barata. */
+	/** Once per minute: has the reset passed? Signs to place (their chunk loaded)? Cheap early exit. */
 	static void tick(MinecraftServer server) {
 		if (server.getTickCount() % CHECK_EVERY != 0) {
 			return;
@@ -151,7 +152,7 @@ public final class Fame {
 		}
 	}
 
-	/** Cierra la semana guardada si ya no es la en curso (y anuncia sus campeones); calcula el próximo reinicio. */
+	/** Closes the saved week if it is no longer the current one (and announces its champions); computes the next reset. */
 	static void check(MinecraftServer server) {
 		Instant now = Instant.now();
 		LocalDate ini = Week.start(now, zone, day, hour);
@@ -163,7 +164,7 @@ public final class Fame {
 		}
 	}
 
-	/** /heraldia arena season reset: cierra ya la semana en curso. */
+	/** /heraldia arena season reset: closes the current week now. */
 	static Season.Closed force(MinecraftServer server) {
 		Instant now = Instant.now();
 		LocalDate ini = Week.start(now, zone, day, hour);
@@ -198,9 +199,9 @@ public final class Fame {
 		signs(server);
 	}
 
-	// --- marcas ---
+	// --- marks ---
 
-	/** Una marca de una partida terminada (antes, por si acaba de pasar el reinicio y aún no se ha comprobado). */
+	/** A mark from a finished match (first, in case the reset has just passed and has not been checked yet). */
 	static void register(MinecraftServer server, Mode m, Season.Entry e) {
 		if (System.currentTimeMillis() >= next) {
 			check(server);
@@ -212,13 +213,13 @@ public final class Fame {
 		int place = t.ranking(m).indexOf(e) + 1;
 		LOGGER.info("Heraldia: arena: marca de {} en {}: {} oleadas en {} ticks (puesto {} de la semana{})", e.name(), m.id(),
 				e.waves(), e.ticks(), place <= 0 ? "-" : place, record ? ", récord" : "");
-		if (record && m != Mode.COOP) {          // el del cooperativo ya lo anuncia el marcador (Marcador)
+		if (record && m != Mode.COOP) {          // the coop one is already announced by the scoreboard (ArenaScoreboard)
 			server.getPlayerList().broadcastSystemMessage(Texts.t("heraldia.arena.record.modo", e.name(), Texts.t(m.text()),
 					points(m, e)).withStyle(ChatFormatting.GOLD), false);
 		}
 	}
 
-	/** Al entrar un jugador: los logros de las semanas que ganó y no tiene (estaba desconectado al cerrarse). */
+	/** When a player joins: the advancements of the weeks they won and do not have (they were offline at the close). */
 	static void onJoin(ServerPlayer p) {
 		MinecraftServer server = p.level().getServer();
 		for (Mode m : read(server).won(p.getUUID())) {
@@ -234,7 +235,7 @@ public final class Fame {
 		}
 	}
 
-	/** La marca para enseñarla (en el idioma por defecto del .jar o en el de {@code texts}). */
+	/** The mark to show it (in the .jar's default language or in that of {@code texts}). */
 	static MutableComponent points(Map<String, String> texts, Mode m, Season.Entry e) {
 		Object[] p = Marks.points(m, e);
 		Object[] args = new Object[p.length - 1];
@@ -264,12 +265,12 @@ public final class Fame {
 		return out;
 	}
 
-	// --- carteles del salón de la fama ---
+	// --- hall of fame signs ---
 
 	/**
-	 * Escribe en los carteles de la arena el campeón de la semana anterior de cada modo (uno por modo, en el orden de
-	 * {@link Mode}). Solo si su chunk está cargado (si no, queda pendiente y se mira cada minuto); en una arena colocada
-	 * antes de T41 pone el cartel si su sitio está vacío y con suelo, y si hay otra cosa, no toca nada.
+	 * Writes the previous week's champion of each mode on the arena signs (one per mode, in the order of
+	 * {@link Mode}). Only if its chunk is loaded (if not, it stays pending and is checked every minute); in an arena placed
+	 * before T41 it puts the sign if its spot is empty and has ground, and if there is something else, it touches nothing.
 	 */
 	static void signs(MinecraftServer server) {
 		Zone z = Arena.zone();
@@ -289,7 +290,7 @@ public final class Fame {
 		for (int i = 0; i < Math.min(sites.size(), modes.length); i++) {
 			BlockPos pos = BlockPos.containing(z.world(sites.get(i))[0], z.world(sites.get(i))[1], z.world(sites.get(i))[2]);
 			if (!level.isLoaded(pos)) {
-				return;                          // sigue pendiente
+				return;                          // still pending
 			}
 			Mode m = modes[i];
 			signpost(level, pos, z.plan().fameRotation(), lines(m, champions.get(m), week));
@@ -299,8 +300,8 @@ public final class Fame {
 	}
 
 	/**
-	 * Las 4 líneas del cartel de un modo: título, modo, campeón (o nadie) y su marca (el contrarreloj acabado, solo su
-	 * tiempo: «m:ss (10 oleadas)» no cabe en 90 px) o, sin campeón, la fecha de la semana anterior.
+	 * The 4 lines of a mode's sign: title, mode, champion (or nobody) and their mark (a finished time trial, only its
+	 * time: "m:ss (10 waves)" does not fit in 90 px) or, without a champion, the date of the previous week.
 	 */
 	static Component[] lines(Mode m, Season.@Nullable Entry e, long week) {
 		return new Component[] {
@@ -335,11 +336,11 @@ public final class Fame {
 		level.sendBlockUpdated(pos, st, st, Block.UPDATE_ALL);
 	}
 
-	// --- la Guía ---
+	// --- the Guide ---
 
 	/**
-	 * Las páginas del salón de la fama para la Guía (título y cuerpo; las pone {@code command/Guide} tras el resumen del
-	 * diario): los campeones de la semana anterior y los récords de cada modo activado. Vacío sin arena activada.
+	 * The hall of fame pages for the Guide (title and body; {@code command/Guide} adds them after the journal summary):
+	 * the previous week's champions and the records of each enabled mode. Empty without the arena enabled.
 	 */
 	public static List<Map.Entry<String, Component>> pages(MinecraftServer server, Map<String, String> texts) {
 		if (!Arena.turnedOn()) {
@@ -348,7 +349,7 @@ public final class Fame {
 		return pages(read(server), currentStart(), Game.modes(), texts);
 	}
 
-	/** Lo mismo con el estado dado (lo prueban los tests: el texto y lo que cabe). */
+	/** The same with the given state (the tests check it: the text and what fits). */
 	static List<Map.Entry<String, Component>> pages(Season t, LocalDate currentStart, List<Mode> modes, Map<String, String> texts) {
 		Map<Mode, Season.Entry> champions = t.champions(currentStart);
 		MutableComponent fame = Component.empty();
@@ -372,9 +373,9 @@ public final class Fame {
 				new AbstractMap.SimpleImmutableEntry<>("heraldia.guia.records.titulo", records));
 	}
 
-	// --- comandos ---
+	// --- commands ---
 
-	/** /heraldia arena leaderboard [coop|timeattack|survival [week]] (cualquier jugador). */
+	/** /heraldia arena leaderboard [coop|timeattack|survival [week]] (any player). */
 	static LiteralArgumentBuilder<CommandSourceStack> leaderboard() {
 		LiteralArgumentBuilder<CommandSourceStack> n = Commands.literal("leaderboard").executes(ctx -> ranking(ctx, null, 0));
 		for (Mode m : Mode.values()) {
@@ -385,7 +386,7 @@ public final class Fame {
 		return n;
 	}
 
-	/** /heraldia arena season [reset] (operadores): la semana en curso y el próximo reinicio; reset la cierra ya. */
+	/** /heraldia arena season [reset] (operators): the current week and the next reset; reset closes it now. */
 	static LiteralArgumentBuilder<CommandSourceStack> season() {
 		return Commands.literal("season").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 				.executes(ctx -> {

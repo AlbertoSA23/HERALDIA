@@ -17,34 +17,34 @@ import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Clasificación semanal de la arena por modo (T41), inmutable y sin clases del juego (la prueban los tests): lo que se
- * guarda en el mundo principal (adjunto persistente heraldia:arena_temporada, ver {@link Fame}).
+ * Weekly arena leaderboard per mode (T41), immutable and without game classes (the tests check it): what is
+ * saved in the overworld (persistent attachment heraldia:arena_temporada, see {@link Fame}).
  * <ul>
- * <li>{@link #week}: inicio (día de época, {@link LocalDate#toEpochDay()}) de la semana en curso, o {@link #NO_WEEK}
- * antes de la primera; {@link #actual}: su clasificación por modo (id de {@link Mode} → las mejores marcas, una por
- * jugador, ordenadas con {@link #ORDER}, como mucho {@link #MAX_PER_MODE}).</li>
- * <li>{@link #history}: las últimas semanas cerradas, la más reciente primero (arena.temporada.historico).</li>
- * <li>{@link #records}: la mejor marca de siempre de cada modo; {@link #migrated}: ya se copió el récord del marcador
- * vanilla de antes de T41 (el del cooperativo).</li>
+ * <li>{@link #week}: start (epoch day, {@link LocalDate#toEpochDay()}) of the current week, or {@link #NO_WEEK}
+ * before the first one; {@link #actual}: its leaderboard per mode ({@link Mode} id → the best marks, one per
+ * player, sorted with {@link #ORDER}, at most {@link #MAX_PER_MODE}).</li>
+ * <li>{@link #history}: the last closed weeks, most recent first (arena.temporada.historico).</li>
+ * <li>{@link #records}: the all-time best mark of each mode; {@link #migrated}: the pre-T41 vanilla scoreboard record
+ * (the coop one) has already been copied.</li>
  * </ul>
- * Todos los modos se ordenan igual (más oleadas superadas, luego menos tiempo, luego antes): en el contrarreloj, las
- * partidas acabadas tienen todas las oleadas y deciden por el tiempo; en el cooperativo y la supervivencia, la oleada.
+ * All modes sort the same way (more waves cleared, then less time, then earlier): in the time trial, finished
+ * matches have all the waves and are decided by time; in coop and survival, by the wave.
  */
 public record Season(long week, Map<String, List<Entry>> actual, List<Closed> history, Map<String, Entry> records,
 		boolean migrated) {
 	public static final long NO_WEEK = Long.MIN_VALUE;
-	/** Marcas que se guardan por modo y semana (la clasificación enseña las 10 primeras). */
+	/** Marks kept per mode and week (the leaderboard shows the top 10). */
 	public static final int MAX_PER_MODE = 10;
-	/** Tope de semanas en el histórico, sea cual sea la opción. */
+	/** Cap on weeks in the history, whatever the option. */
 	public static final int MAX_HISTORY = 52;
-	/** Jugador de las marcas migradas del marcador vanilla (solo se sabía su nombre). */
+	/** Player of the marks migrated from the vanilla scoreboard (only their name was known). */
 	public static final UUID NO_PLAYER = new UUID(0L, 0L);
 	public static final Season EMPTY = new Season(NO_WEEK, Map.of(), List.of(), Map.of(), false);
 
 	/**
-	 * Una marca: quién, cuántas oleadas superó, en cuántos ticks de partida (desde que empezó la primera oleada hasta que
-	 * superó la última; -1 si no se sabe, en las migradas), cuándo (milisegundos de época) y, en el contrarreloj, cuántas
-	 * oleadas había que superar (0 en los demás modos).
+	 * A mark: who, how many waves they cleared, in how many match ticks (from the start of the first wave until they
+	 * cleared the last; -1 if unknown, in the migrated ones), when (epoch milliseconds) and, in the time trial, how many
+	 * waves had to be cleared (0 in the other modes).
 	 */
 	public record Entry(UUID player, String name, int waves, long ticks, long date, int target) {
 		static final Codec<UUID> UUID_CODEC = Codec.STRING.xmap(UUID::fromString, UUID::toString);
@@ -56,18 +56,18 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 				Codec.LONG.optionalFieldOf("fecha", 0L).forGetter(Entry::date),
 				Codec.INT.optionalFieldOf("objetivo", 0).forGetter(Entry::target)).apply(i, Entry::new));
 
-		/** ¿Acabó el contrarreloj (superó todas las oleadas)? */
+		/** Did the time trial finish (all waves cleared)? */
 		public boolean complete() {
 			return target > 0 && waves >= target;
 		}
 
-		/** Clave para quedarse con una marca por jugador (las migradas, por nombre). */
+		/** Key to keep one mark per player (the migrated ones, by name). */
 		String who() {
 			return NO_PLAYER.equals(player) ? "nombre:" + name : player.toString();
 		}
 	}
 
-	/** Una semana cerrada: su inicio, el día en que se cerró (el inicio de la siguiente, u hoy si se forzó) y su clasificación. */
+	/** A closed week: its start, the day it closed (the start of the next one, or today if forced) and its leaderboard. */
 	public record Closed(long start, long closing, Map<String, List<Entry>> ranking) {
 		static final Codec<Map<String, List<Entry>>> RANKING = Codec.unboundedMap(Codec.STRING, Entry.CODEC.listOf());
 		public static final Codec<Closed> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -79,7 +79,7 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 			ranking = backup(ranking);
 		}
 
-		/** El primero de un modo, si lo hay. */
+		/** The first of a mode, if any. */
 		public Optional<Entry> champion(Mode m) {
 			List<Entry> l = ranking.get(m.id());
 			return l == null || l.isEmpty() ? Optional.empty() : Optional.of(l.get(0));
@@ -93,7 +93,7 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 			Codec.unboundedMap(Codec.STRING, Entry.CODEC).optionalFieldOf("records", Map.of()).forGetter(Season::records),
 			Codec.BOOL.optionalFieldOf("migrada", false).forGetter(Season::migrated)).apply(i, Season::new));
 
-	/** Mejor primero: más oleadas, luego menos ticks (los desconocidos, al final), luego antes y por nombre. */
+	/** Best first: more waves, then fewer ticks (unknown ones last), then earlier and by name. */
 	public static final Comparator<Entry> ORDER = Comparator.comparingInt(Entry::waves).reversed()
 			.thenComparingLong(e -> e.ticks() < 0 ? Long.MAX_VALUE : e.ticks())
 			.thenComparingLong(Entry::date)
@@ -111,12 +111,12 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 		return java.util.Collections.unmodifiableMap(out);
 	}
 
-	/** ¿Es {@code a} mejor marca que {@code b} (o no hay {@code b})? */
+	/** Is {@code a} a better mark than {@code b} (or there is no {@code b})? */
 	public static boolean best(Entry a, @Nullable Entry b) {
 		return b == null || ORDER.compare(a, b) < 0;
 	}
 
-	/** La lista con {@code e} añadida: una marca por jugador (la mejor), ordenada y recortada a {@link #MAX_PER_MODE}. */
+	/** The list with {@code e} added: one mark per player (the best), sorted and trimmed to {@link #MAX_PER_MODE}. */
 	static List<Entry> with(List<Entry> list, Entry e) {
 		Map<String, Entry> best = new LinkedHashMap<>();
 		for (Entry x : list) {
@@ -128,7 +128,7 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 		return List.copyOf(out.subList(0, Math.min(out.size(), MAX_PER_MODE)));
 	}
 
-	/** Añade una marca de una partida terminada (a la semana en curso y, si lo es, al récord del modo). */
+	/** Adds a mark from a finished match (to the current week and, if it is one, to the mode's record). */
 	public Season register(Mode m, Entry e) {
 		Map<String, List<Entry>> a = new LinkedHashMap<>(actual);
 		a.put(m.id(), with(a.getOrDefault(m.id(), List.of()), e));
@@ -139,7 +139,7 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 		return new Season(week, a, history, r, migrated);
 	}
 
-	/** La clasificación de un modo en la semana en curso. */
+	/** A mode's leaderboard in the current week. */
 	public List<Entry> ranking(Mode m) {
 		return actual.getOrDefault(m.id(), List.of());
 	}
@@ -148,17 +148,17 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 		return Optional.ofNullable(records.get(m.id()));
 	}
 
-	/** Resultado de {@link #advance} y {@link #force}: el estado nuevo y la semana que se cerró (si se cerró alguna). */
+	/** Result of {@link #advance} and {@link #force}: the new state and the week that closed (if one did). */
 	public record Closing(Season season, @Nullable Closed closed) {
 	}
 
 	/**
-	 * Al arrancar y cada poco: si la semana en curso ya no es la guardada (ha pasado el día de reinicio, también con el
-	 * servidor apagado), la guardada se cierra (pasa al histórico, como mucho {@code max} semanas) y empieza otra vacía.
-	 * Si el servidor estuvo apagado más de una semana, la cerrada no es la de la semana anterior: su {@code closing} es el
-	 * inicio de la que la siguió, y no tiene campeones de la semana anterior ({@link #champions}). Antes de la primera
-	 * semana solo apunta su inicio. Un {@code currentStart} anterior al guardado (cambio del día de reinicio) no cierra
-	 * nada hasta que lo pase.
+	 * At startup and every so often: if the current week is no longer the saved one (the reset day has passed, also with
+	 * the server off), the saved one closes (goes to the history, at most {@code max} weeks) and an empty one starts.
+	 * If the server was off for more than a week, the closed one is not the previous week's: its {@code closing} is the
+	 * start of the one that followed it, and it has no previous-week champions ({@link #champions}). Before the first
+	 * week it only records its start. A {@code currentStart} earlier than the saved one (reset day changed) closes
+	 * nothing until it passes it.
 	 */
 	public Closing advance(LocalDate currentStart, DayOfWeek day, int max) {
 		long today = currentStart.toEpochDay();
@@ -173,8 +173,8 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 	}
 
 	/**
-	 * /heraldia arena season reset: cierra ya la semana en curso (su {@code closing} es hoy) y empieza otra vacía con el
-	 * mismo inicio de calendario: el reinicio automático sigue cayendo el día de siempre.
+	 * /heraldia arena season reset: closes the current week now (its {@code closing} is today) and starts an empty one with
+	 * the same calendar start: the automatic reset keeps falling on the usual day.
 	 */
 	public Closing force(LocalDate today, LocalDate currentStart, int max) {
 		long ini = week == NO_WEEK ? currentStart.toEpochDay() : week;
@@ -190,16 +190,16 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 		return new Closing(t, c);
 	}
 
-	/** El histórico recortado a {@code max} semanas (entre 1 y {@link #MAX_HISTORY}). */
+	/** The history trimmed to {@code max} weeks (between 1 and {@link #MAX_HISTORY}). */
 	public Season trim(int max) {
 		int n = Math.clamp(max, 1, MAX_HISTORY);
 		return history.size() <= n ? this : new Season(week, actual, history.subList(0, n), records, migrated);
 	}
 
 	/**
-	 * Campeones de la semana anterior a la que empieza en {@code currentStart}, por modo: el primero de cada modo de la
-	 * última semana cerrada, si se cerró al empezar esta (o después, si se forzó); vacío si no hay o si la última cerrada
-	 * es más antigua (el servidor estuvo apagado toda la semana anterior: nadie jugó).
+	 * Champions of the week before the one starting at {@code currentStart}, per mode: the first of each mode of the
+	 * last closed week, if it closed when this one started (or later, if forced); empty if none or if the last closed one
+	 * is older (the server was off the whole previous week: nobody played).
 	 */
 	public Map<Mode, Entry> champions(LocalDate currentStart) {
 		Map<Mode, Entry> out = new EnumMap<>(Mode.class);
@@ -213,12 +213,12 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 		return out;
 	}
 
-	/** La semana cerrada de hace {@code ago} semanas (1 = la anterior), si se guarda. */
+	/** The closed week from {@code ago} weeks ago (1 = the previous one), if it is kept. */
 	public Optional<Closed> closed(int ago) {
 		return ago >= 1 && ago <= history.size() ? Optional.of(history.get(ago - 1)) : Optional.empty();
 	}
 
-	/** Modos en los que este jugador ganó alguna de las semanas guardadas (para sus logros, aunque no estuviera al cerrarse). */
+	/** Modes in which this player won one of the kept weeks (for their advancements, even if absent at the close). */
 	public Set<Mode> won(UUID player) {
 		Set<Mode> out = new HashSet<>();
 		for (Closed c : history) {
@@ -230,9 +230,9 @@ public record Season(long week, Map<String, List<Entry>> actual, List<Closed> hi
 	}
 
 	/**
-	 * Migración (una vez) del marcador vanilla de antes de T41 (objetivo heraldia_arena: oleadas superadas por jugador y
-	 * la del servidor, {@code server}): el mejor jugador pasa a ser el récord del cooperativo, si es mejor que el que
-	 * hubiera, sin tiempo (no se sabía). El marcador no se toca: sigue siendo el del cooperativo.
+	 * One-time migration of the pre-T41 vanilla scoreboard (objective heraldia_arena: waves cleared per player and
+	 * the server's, {@code server}): the best player becomes the coop record, if better than any existing one,
+	 * without a time (it was not known). The scoreboard is untouched: it is still the coop one.
 	 */
 	public Season migrate(Map<String, Integer> points, String server, long date) {
 		if (migrated) {

@@ -47,23 +47,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Arena de oleadas cerca del spawn (T31). Una por mundo, en el mundo principal; la colocan los operadores
- * (/heraldia arena place, con confirmación) o se genera sola en un mundo nuevo (arena.generar_en_mundos_nuevos).
+ * Wave arena near spawn (T31). One per world, in the overworld; operators place it
+ * (/heraldia arena place, with confirmation) or it generates on its own in a new world (arena.generar_en_mundos_nuevos).
  * <ul>
- * <li>Protección ({@link #isProtected}): la caja de la plantilla, una AABB de enteros en memoria ({@link Zone}). Ningún
- * jugador que no sea operador puede romper, colocar ni usar bloques (salvo la campana), ni usar cubos cerca; las
- * explosiones, los pistones y los endermen que dejan bloques no la tocan (mixins con salida temprana barata); el fuego
- * y los endermen que cogen bloques, por diseño (sus materiales no arden ni se pueden coger).</li>
- * <li>Partidas: {@link Game} y {@link Match}.</li>
- * <li>Obras (colocar, mover, quitar): {@link Works}, un chunk por tick.</li>
+ * <li>Protection ({@link #isProtected}): the template's box, an integer AABB in memory ({@link Zone}). No
+ * non-operator player can break, place or use blocks (except the bell), nor use buckets nearby; explosions, pistons
+ * and endermen that drop blocks do not touch it (mixins with a cheap early exit); fire and endermen that pick up
+ * blocks, by design (its materials neither burn nor can be picked up).</li>
+ * <li>Matches: {@link Game} and {@link Match}.</li>
+ * <li>Works (place, move, remove): {@link Works}, one chunk per tick.</li>
  * </ul>
- * Sin trabajo por tick si no hay partida, obra ni propuesta (tres comprobaciones de un campo).
+ * No per-tick work without a match, work or proposal (three field checks).
  */
 public final class Arena {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	/** Etiqueta (Tags) de los mobs de la arena. */
+	/** Tag of the arena mobs. */
 	public static final String TAG = "heraldia_arena";
-	/** Un mundo es nuevo (la arena se genera sola) si al arrancar por primera vez con el mod no ha pasado este tiempo. */
+	/** A world is new (the arena generates on its own) if less than this time has passed when it first starts with the mod. */
 	static final long NEW_WORLD_TICKS = 1200;
 	private static final int PROPOSAL_TICKS = 6000, PARTICLES_EVERY = 20;
 
@@ -73,7 +73,7 @@ public final class Arena {
 	private static @Nullable MinecraftServer arenaServer;
 	private static boolean turnedOn;
 
-	/** Un sitio propuesto que espera confirmación (o se coloca solo, en un mundo nuevo). */
+	/** A proposed site awaiting confirmation (or placed on its own, in a new world). */
 	private record Proposal(Zone zone, Site.Choice choice, long until, @Nullable ServerPlayer who) {
 	}
 
@@ -84,7 +84,7 @@ public final class Arena {
 
 	public static void register() {
 		plan = Blueprint.fromJar();
-		Saved.Type.ARENA.identifier();   // registra los adjuntos al arrancar
+		Saved.Type.ARENA.identifier();   // registers the attachments at startup
 		Fame.registerAttachment();
 		ServerLifecycleEvents.SERVER_STARTED.register(Arena::onStart);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -95,8 +95,8 @@ public final class Arena {
 			arenaServer = null;
 			proposal = null;
 		});
-		// los logros de campeón de las semanas que se cerraron sin él (en la cola del servidor: Carpet carga los datos
-		// del jugador falso después del JOIN; ver comando/Guia)
+		// champion advancements of the weeks that closed without the player (on the server queue: Carpet loads the fake
+		// player's data after JOIN; see command/Guide)
 		net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
 				server.schedule(server.wrapRunnable(() -> {
 					if (turnedOn && !handler.player.hasDisconnected()) {
@@ -114,7 +114,7 @@ public final class Arena {
 		LootTableEvents.MODIFY_DROPS.register((table, context, drops) -> {
 			Entity e = context.getOptional(LootContextParams.THIS_ENTITY);
 			if (e != null && !drops.isEmpty() && e.entityTags().contains(TAG)) {
-				drops.clear();                       // los mobs de la arena no sueltan nada
+				drops.clear();                       // arena mobs drop nothing
 			}
 		});
 	}
@@ -135,7 +135,7 @@ public final class Arena {
 		return arenaServer;
 	}
 
-	/** ¿Arena activada (arena.activado)? */
+	/** Arena enabled (arena.activado)? */
 	public static boolean turnedOn() {
 		return turnedOn;
 	}
@@ -144,21 +144,21 @@ public final class Arena {
 		zone = z;
 	}
 
-	/** Guarda en el mundo la arena colocada (o ninguna) y empieza (o deja) de protegerla. */
+	/** Saves the placed arena (or none) in the world and starts (or stops) protecting it. */
 	static void save(ServerLevel level, @Nullable Zone z) {
 		Saved g = Optional.ofNullable(level.getAttached(Saved.Type.ARENA)).orElse(Saved.EMPTY);
 		level.setAttached(Saved.Type.ARENA, g.withOrigin(z == null ? null : new BlockPos(z.ox(), z.oy(), z.oz())));
 		arenaLevel = level;
 		zone = z;
 		if (z != null) {
-			Fame.signs(level.getServer());   // el salón de la fama de la arena recién colocada
+			Fame.signs(level.getServer());   // the hall of fame of the freshly placed arena
 		}
-		io.github.albertosa23.heraldia.maps.WebMaps.schedule();   // su marcador en los mapas web (si hay)
+		io.github.albertosa23.heraldia.maps.WebMaps.schedule();   // its marker on the web maps (if any)
 	}
 
-	// --- protección ---
+	// --- protection ---
 
-	/** ¿Está protegido este bloque frente a quien actúa (null: explosión, pistón, enderman)? Salida temprana barata. */
+	/** Is this block protected against whoever acts (null: explosion, piston, enderman)? Cheap early exit. */
 	public static boolean isProtected(Level level, BlockPos pos, @Nullable Player who) {
 		Zone z = zone;
 		if (z == null || level != arenaLevel || !z.mentions(pos.getX(), pos.getY(), pos.getZ())) {
@@ -172,9 +172,9 @@ public final class Arena {
 	}
 
 	/**
-	 * Para ArenaCuboMixin: ¿se niega vaciar un cubo (de agua, lava, nieve polvo...) en {@code pos}? Sí a menos de
-	 * {@link Zone#BUCKET_RADIUS} bloques de la arena si lo vacía un dispensador ({@code who} null) o un jugador que no es
-	 * operador (a los jugadores ya los para {@link #useItem}; esto cubre los dispensadores pegados a la arena).
+	 * For ArenaBucketMixin: is emptying a bucket (of water, lava, powder snow...) at {@code pos} denied? Yes within
+	 * {@link Zone#BUCKET_RADIUS} blocks of the arena if a dispenser empties it ({@code who} null) or a player who is not an
+	 * operator (players are already stopped by {@link #useItem}; this covers dispensers stuck to the arena).
 	 */
 	public static boolean bucketDenied(Level level, BlockPos pos, @Nullable LivingEntity who) {
 		Zone z = zone;
@@ -184,12 +184,12 @@ public final class Arena {
 		return z.bucketDenied(pos.getX(), pos.getY(), pos.getZ(), who instanceof Player p && isOperator(p));
 	}
 
-	/** ¿Hay arena en este mundo? (salida temprana de los mixins) */
+	/** Is there an arena in this world? (early exit for the mixins) */
 	public static boolean hasArena(Level level) {
 		return zone != null && level == arenaLevel;
 	}
 
-	/** Para ArenaJugadorMixin: ¿conserva el inventario al morir (cae en el ruedo durante una partida)? */
+	/** For ArenaPlayerMixin: does the player keep the inventory on death (falls in the ring during a match)? */
 	public static boolean keepsOnDeath(Player p) {
 		if (zone == null) {
 			if (p.hasAttached(Saved.Type.KEEP)) {
@@ -200,12 +200,12 @@ public final class Arena {
 		return Game.keepsOnDeath(p);
 	}
 
-	/** Para ArenaJugadorMixin: ¿está conservando (no suelta experiencia)? */
+	/** For ArenaPlayerMixin: is the player keeping (drops no experience)? */
 	public static boolean keeping(Player p) {
 		return Game.keeping(p);
 	}
 
-	/** Para ArenaExperienciaMixin: experiencia de un mob de la arena (arena.experiencia_porcentaje % de la vanilla). */
+	/** For ArenaExperienceMixin: experience of an arena mob (arena.experiencia_porcentaje % of vanilla). */
 	public static int experience(int vanilla, double rng) {
 		int r = Waves.experience(vanilla, Game.experiencePct(), rng);
 		Game.addExperience(vanilla, r);
@@ -232,7 +232,7 @@ public final class Arena {
 			if (turnedOn && hand == net.minecraft.world.InteractionHand.MAIN_HAND) {
 				Game.bell(p, z);
 			}
-			return InteractionResult.PASS;          // y la campana suena (vanilla)
+			return InteractionResult.PASS;          // and the bell rings (vanilla)
 		}
 		if (isOperator(p)) {
 			return InteractionResult.PASS;
@@ -260,11 +260,11 @@ public final class Arena {
 
 	private static void deny(ServerPlayer p, String key) {
 		p.sendOverlayMessage(Texts.t(key).withStyle(ChatFormatting.RED));
-		p.inventoryMenu.sendAllDataToRemote();      // el cliente pudo dar por gastado el objeto
+		p.inventoryMenu.sendAllDataToRemote();      // the client may have counted the item as used up
 		LOGGER.debug("Heraldia: arena: {} para {}", key, p.getGameProfile().name());
 	}
 
-	// --- arranque y tick ---
+	// --- startup and tick ---
 
 	private static void onStart(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
@@ -282,7 +282,7 @@ public final class Arena {
 		if (g.origin().isPresent()) {
 			load(ow, g.origin().get());
 		}
-		Fame.onStart(server);          // migración de los récords, cierre de la semana y carteles
+		Fame.onStart(server);          // record migration, week close and signs
 		if (g.origin().isEmpty() && !g.decided()) {
 			boolean newValue = ow.getGameTime() < NEW_WORLD_TICKS;
 			ow.setAttached(Saved.Type.ARENA, g.decide());
@@ -295,23 +295,23 @@ public final class Arena {
 		}
 	}
 
-	/** La arena guardada en {@code o} pasa a estar en uso (al arrancar o al activarla con /heraldia reload). */
+	/** The arena saved in {@code o} comes into use (at startup or when enabled with /heraldia reload). */
 	private static void load(ServerLevel ow, BlockPos o) {
 		arenaLevel = ow;
 		zone = new Zone(o.getX(), o.getY(), o.getZ(), plan);
-		Game.gate(ow, zone, false);           // por si el servidor se paró en mitad de una partida
+		Game.gate(ow, zone, false);           // in case the server stopped in the middle of a match
 		io.github.albertosa23.heraldia.maps.WebMaps.schedule();
 		LOGGER.info("Heraldia: arena: en {} {} {}", zone.columnX(), zone.groundY(), zone.columnZ());
 	}
 
 	/**
-	 * /heraldia reload: aplica las opciones arena.* en uso (incrementos, máximo de vivos, experiencia y arena.activado;
-	 * arena.generar_en_mundos_nuevos solo cuenta al arrancar). Con una partida en marcha no cambia nada (sus oleadas
-	 * siguen con lo que empezaron) y devuelve false: se aplica con otra recarga al acabar.
+	 * /heraldia reload: applies the arena.* options in use (increments, max alive, experience and arena.activado;
+	 * arena.generar_en_mundos_nuevos only counts at startup). With a match running it changes nothing (its waves
+	 * carry on with what they started with) and returns false: it applies with another reload once it ends.
 	 */
 	public static boolean reload(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
-		Fame.configure(cfg);              // la semana (día, hora, histórico) se aplica aunque haya partida
+		Fame.configure(cfg);              // the week (day, hour, history) applies even during a match
 		if (turnedOn) {
 			Fame.reload(server);
 		}
@@ -327,20 +327,20 @@ public final class Arena {
 			Optional.ofNullable(ow.getAttached(Saved.Type.ARENA)).flatMap(Saved::origin).ifPresent(o -> load(ow, o));
 			Fame.onStart(server);
 		} else if (!turnedOn && before) {
-			zone = null;                         // sin partidas ni protección, como si arrancara desactivada
+			zone = null;                         // no matches or protection, as if it started disabled
 			arenaLevel = null;
 			LOGGER.info("Heraldia: arena: desactivada (arena.activado = false)");
 		}
 		return true;
 	}
 
-	/** Centro del ruedo (columna de la campana, a la altura del suelo) de la arena en uso, o null si no hay. */
+	/** Center of the ring (the bell's column, at ground height) of the arena in use, or null if there is none. */
 	public static @Nullable BlockPos center() {
 		Zone z = zone;
 		return z == null ? null : new BlockPos(z.columnX(), z.groundY(), z.columnZ());
 	}
 
-	/** Récord del servidor (oleadas superadas en una partida), 0 si no hay o la arena está desactivada (no crea el marcador). */
+	/** Server record (waves cleared in a match), 0 if none or the arena is disabled (does not create the scoreboard). */
 	public static int record(MinecraftServer server) {
 		return turnedOn ? ArenaScoreboard.record(server) : 0;
 	}
@@ -349,7 +349,7 @@ public final class Arena {
 		Works.tick(server);
 		Game.tick(server);
 		if (turnedOn) {
-			Fame.tick(server);               // una comparación por minuto
+			Fame.tick(server);               // one comparison per minute
 		}
 		Proposal pr = proposal;
 		if (pr != null && server.getTickCount() % PARTICLES_EVERY == 0) {
@@ -361,7 +361,7 @@ public final class Arena {
 		}
 	}
 
-	/** Marca el sitio propuesto: columnas de partículas en las esquinas y el centro, visibles de lejos. */
+	/** Marks the proposed site: particle columns at the corners and the center, visible from afar. */
 	private static void particles(ServerLevel level, Proposal pr) {
 		Zone z = pr.zone();
 		int[][] cols = {{z.minX(), z.minZ()}, {z.maxX(), z.minZ()}, {z.minX(), z.maxZ()}, {z.maxX(), z.maxZ()},
@@ -378,9 +378,9 @@ public final class Arena {
 		}
 	}
 
-	// --- búsqueda de sitio ---
+	// --- site search ---
 
-	/** Busca sitio fuera del hilo del servidor; al tenerlo, lo propone (o lo coloca, en un mundo nuevo). */
+	/** Searches for a site off the server thread; once found, proposes it (or places it, in a new world). */
 	private static void search(MinecraftServer server, @Nullable ServerPlayer who, boolean placeAlone) {
 		ServerLevel ow = server.overworld();
 		BlockPos spawn = ow.getRespawnData().pos();
@@ -441,12 +441,12 @@ public final class Arena {
 		p.sendSystemMessage(Texts.t("heraldia.arena.propuesta.confirmar", cmd));
 	}
 
-	// --- comandos ---
+	// --- commands ---
 
 	/**
-	 * /heraldia arena [leave | leaderboard [modo [semana]] | place [confirm] | move [confirm] | remove [confirm] |
-	 * start [coop | timeattack | survival] | stop | season [reset]] (lo registra comando/Comandos). start lo puede usar
-	 * cualquiera desde el ruedo (los botones del menú de modos de la campana); los operadores y la consola, desde donde sea.
+	 * /heraldia arena [leave | leaderboard [mode [week]] | place [confirm] | move [confirm] | remove [confirm] |
+	 * start [coop | timeattack | survival] | stop | season [reset]] (registered by command/HeraldiaCommands). Anyone can use
+	 * start from the ring (the buttons of the bell's mode menu); operators and the console, from anywhere.
 	 */
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("arena")
@@ -594,9 +594,9 @@ public final class Arena {
 	}
 
 	/**
-	 * /heraldia arena start [modo]. Un operador (o la consola) la empieza desde donde sea (sin modo: la cooperativa, como
-	 * siempre, o el primer modo activado). Cualquier otro jugador, solo desde el ruedo (son los botones del menú de la
-	 * campana); sin modo, le enseña ese menú.
+	 * /heraldia arena start [mode]. An operator (or the console) starts it from anywhere (without a mode: the coop one, as
+	 * always, or the first enabled mode). Any other player, only from the ring (they are the buttons of the bell's
+	 * menu); without a mode, it shows them that menu.
 	 */
 	private static int startCmd(CommandContext<CommandSourceStack> ctx, @Nullable Mode mode) {
 		CommandSourceStack src = ctx.getSource();
@@ -642,7 +642,7 @@ public final class Arena {
 		return 1;
 	}
 
-	/** Para los tests: identificador del adjunto. */
+	/** For tests: the attachment's identifier. */
 	static String attachment() {
 		return Heraldia.id("arena").toString();
 	}

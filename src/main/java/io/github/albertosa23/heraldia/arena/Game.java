@@ -55,14 +55,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * La partida en marcha: mueve la {@link Match} cada tick (salida temprana si no hay ninguna), saca los mobs por
- * tandas en los puntos de aparición, los mantiene en el ruedo, lleva la barra de jefe, los títulos, los récords
- * ({@link ArenaScoreboard}), las recompensas y los logros, y cierra y abre la puerta del ruedo. Los mobs de la arena llevan la
- * etiqueta {@link Arena#TAG}; solo cuentan los de esta partida (en memoria): los demás se quitan al cargarse.
+ * The running match: moves the {@link Match} every tick (early exit if there is none), spawns the mobs in batches at
+ * the spawn points, keeps them in the ring, runs the boss bar, the titles, the records ({@link ArenaScoreboard}),
+ * the rewards and the advancements, and closes and opens the ring's gate. Arena mobs carry the {@link Arena#TAG}
+ * tag; only this match's count (in memory): the others are removed when they load.
  */
 final class Game {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
-	/** Modificadores propios (se suman a los de la dificultad y los jefes sin pisarlos). */
+	/** Own modifiers (added to those of the difficulty and the bosses without overwriting them). */
 	static final Identifier HEALTH = Heraldia.id("arena_vida"), DAMAGE = Heraldia.id("arena_dano"),
 			BOSS_HEALTH = Heraldia.id("arena_jefe_vida"), BOSS_DAMAGE = Heraldia.id("arena_jefe_dano");
 	private static final int SPAWN_EVERY = 10, SWEEP_EVERY = 20, BAR_RADIUS = 24;
@@ -71,23 +71,23 @@ final class Game {
 
 	private static Match match = new Match(50);
 	private static final Map<UUID, Mob> MOBS = new HashMap<>();
-	/** Jugadores que reaparecen en la arena (cayeron en el ruedo); en memoria, se usa en el mismo tick. */
+	/** Players who respawn in the arena (they fell in the ring); in memory, used in the same tick. */
 	private static final Set<UUID> RESPAWN = new HashSet<>();
 	private static @Nullable ServerBossEvent bar;
 	private static int leftPlayers;
-	/** Experiencia de la oleada en curso: la que daría vanilla y la que se da (para el log). */
+	/** Experience of the current wave: what vanilla would give and what is given (for the log). */
 	private static long xpVanilla, xpGiven;
 	private static int mobsPct = 50, statsPct = 10, maxAlive = 20, xpPct = 15;
-	/** Modos activados (arena.modos.*) y oleadas del contrarreloj (arena.modos.oleadas_contrarreloj). */
+	/** Enabled modes (arena.modos.*) and time trial waves (arena.modos.oleadas_contrarreloj). */
 	private static java.util.EnumSet<Mode> modes = java.util.EnumSet.allOf(Mode.class);
 	private static int timeTrialWaves = 10;
-	/** Nombre de cada participante de la partida en curso (para su marca aunque se desconecte). */
+	/** Name of each participant in the current match (for their mark even if they disconnect). */
 	private static final Map<UUID, String> NAMES = new HashMap<>();
 
 	private Game() {
 	}
 
-	/** Lee la configuración (al arrancar) y deja la arena sin partida. */
+	/** Reads the configuration (at startup) and leaves the arena without a match. */
 	static void configure(HeraldiaConfig cfg) {
 		mobsPct = cfg.getInt("arena.oleada.mobs_incremento");
 		int requested = cfg.getInt("arena.oleada.stats_incremento");
@@ -111,7 +111,7 @@ final class Game {
 		NAMES.clear();
 	}
 
-	/** Modos activados, en orden (cooperativo, contrarreloj, supervivencia). */
+	/** Enabled modes, in order (coop, time trial, survival). */
 	static java.util.List<Mode> modes() {
 		return List.copyOf(modes);
 	}
@@ -137,11 +137,11 @@ final class Game {
 		xpGiven += given;
 	}
 
-	// --- empezar y acabar ---
+	// --- start and end ---
 
 	/**
-	 * Alguien toca la campana: con un solo modo activado empieza su cuenta atrás (como siempre); con varios, le ofrece en
-	 * el chat un botón por modo (/heraldia arena start &lt;modo&gt;, que puede usar cualquiera desde el ruedo).
+	 * Someone rings the bell: with a single mode enabled its countdown starts (as always); with several, it offers in the
+	 * chat one button per mode (/heraldia arena start &lt;mode&gt;, which anyone can use from the ring).
 	 */
 	static void bell(ServerPlayer p, Zone z) {
 		if (match.state() != Match.State.FREE) {
@@ -160,7 +160,7 @@ final class Game {
 		menu(p);
 	}
 
-	/** El menú de modos en el chat: un botón por modo activado (lo escribe en el log para las pruebas). */
+	/** The mode menu in the chat: one button per enabled mode (it writes it to the log for the tests). */
 	static void menu(ServerPlayer p) {
 		java.util.Map<String, String> texts = Texts.language(p);
 		net.minecraft.network.chat.MutableComponent line = Component.empty();
@@ -179,12 +179,12 @@ final class Game {
 				String.join(", ", modes().stream().map(Mode::id).toList()));
 	}
 
-	/** Empieza la cuenta atrás de una partida cooperativa (/heraldia arena start sin modo). */
+	/** Starts the countdown of a coop match (/heraldia arena start without a mode). */
 	static boolean start(ServerLevel level, Zone z, String who) {
 		return start(level, z, who, Mode.COOP);
 	}
 
-	/** Empieza la cuenta atrás (con la campana o con /heraldia arena start [modo]). Falso si ya hay partida. */
+	/** Starts the countdown (with the bell or with /heraldia arena start [mode]). False if there is already a match. */
 	static boolean start(ServerLevel level, Zone z, String who, Mode mode) {
 		if (!match.start(mode, timeTrialWaves)) {
 			return false;
@@ -201,7 +201,7 @@ final class Game {
 		return true;
 	}
 
-	/** Acaba la partida: quita sus mobs, abre la puerta, quita la barra y avisa. */
+	/** Ends the match: removes its mobs, opens the gate, removes the bar and notifies. */
 	static void finish(@Nullable ServerLevel level, @Nullable Zone z, String reason) {
 		if (match.state() == Match.State.FREE) {
 			return;
@@ -213,7 +213,7 @@ final class Game {
 		MinecraftServer server = level != null ? level.getServer() : Arena.arenaServer();
 		if (match.inGame() && server != null) {
 			for (UUID u : match.participants()) {
-				mark(server, u);                 // los que siguen en el ruedo (los que salieron ya tienen la suya)
+				mark(server, u);                 // those still in the ring (those who left already have theirs)
 			}
 		}
 		for (Mob m : MOBS.values()) {
@@ -221,7 +221,7 @@ final class Game {
 		}
 		MOBS.clear();
 		if (level != null && z != null) {
-			// también los que se hubieran quedado fuera de la cuenta (refuerzos, mobs recargados)
+			// also those left out of the count (reinforcements, reloaded mobs)
 			for (Mob m : level.getEntitiesOfClass(Mob.class, box(z), m -> m.entityTags().contains(Arena.TAG))) {
 				m.discard();
 			}
@@ -247,8 +247,8 @@ final class Game {
 	}
 
 	/**
-	 * La marca de un participante al acabar su partida (al caer, salir o terminarse): oleadas superadas y su tiempo, a la
-	 * clasificación de la semana ({@link Fame}); sus logros del modo. Nada si no superó ninguna.
+	 * A participant's mark when their match ends (on falling, leaving or finishing): waves cleared and their time, to the
+	 * week's leaderboard ({@link Fame}); their mode advancements. Nothing if they cleared none.
 	 */
 	private static void mark(MinecraftServer server, UUID u) {
 		int waves = match.cleared();
@@ -267,7 +267,7 @@ final class Game {
 		}
 	}
 
-	// --- cada tick ---
+	// --- every tick ---
 
 	static void tick(MinecraftServer server) {
 		if (match.state() == Match.State.FREE) {
@@ -302,7 +302,7 @@ final class Game {
 
 	private static void second(ServerLevel level, Zone z, boolean counted) {
 		if (!counted && match.mode() != Mode.COOP) {
-			return;                          // pausas cortas o sin pausa: sin aviso por segundo
+			return;                          // short pauses or no pause: no per-second notice
 		}
 		int s = match.seconds();
 		for (ServerPlayer p : inRing(level, z)) {
@@ -317,11 +317,11 @@ final class Game {
 		}
 	}
 
-	/** Fin de la cuenta atrás: juegan los que están en el ruedo. Falso (y se acaba) si no hay nadie. */
+	/** End of the countdown: those in the ring play. False (and it ends) if nobody is there. */
 	private static boolean matchStarts(ServerLevel level, Zone z) {
 		List<UUID> inside = inRing(level, z).stream().map(Entity::getUUID).toList();
 		if (!match.participants(inside)) {
-			match.finish();      // vuelve a LIBRE sin oleadas
+			match.finish();      // back to FREE without waves
 			gate(level, z, false);
 			for (ServerPlayer p : level.players()) {
 				if (z.near(p.getBlockX(), p.getBlockY(), p.getBlockZ(), BAR_RADIUS)) {
@@ -332,7 +332,7 @@ final class Game {
 			return false;
 		}
 		if (match.mode() == Mode.COOP) {
-			ArenaScoreboard.show(level.getServer());   // el marcador vanilla es el récord del cooperativo
+			ArenaScoreboard.show(level.getServer());   // the vanilla scoreboard is the coop record
 		}
 		for (ServerPlayer p : inRing(level, z)) {
 			NAMES.put(p.getUUID(), p.getGameProfile().name());
@@ -358,7 +358,7 @@ final class Game {
 				String.format(java.util.Locale.ROOT, "%.2f", Waves.stats(n, statsPct)));
 	}
 
-	/** Saca la siguiente tanda (sin pasar de arena.max_mobs_vivos vivos). */
+	/** Spawns the next batch (without going over arena.max_mobs_vivos alive). */
 	private static void spawn(ServerLevel level, Zone z) {
 		int n = match.spawn(maxAlive);
 		if (n == 0) {
@@ -388,11 +388,11 @@ final class Game {
 			LOGGER.warn("Heraldia: arena: mob {} desconocido", type);
 			return false;
 		}
-		// Antes de finalizeSpawn, como los refuerzos de los jefes: adultos (ZombieMixin...) y con la etiqueta de la arena
+		// Before finalizeSpawn, like the bosses' reinforcements: adults (ZombieMixin...) and with the arena tag
 		mob.addTag(Arena.TAG);
 		mob.addTag(Heraldia.ADULT);
 		if (boss) {
-			mob.addTag(Phases.GUARDIAN);          // fases, refuerzos y barra de los jefes (jefes/)
+			mob.addTag(Phases.GUARDIAN);          // boss phases, reinforcements and bar (bosses/)
 		}
 		double x = p[0] + 0.5, y = p[1], zz = p[2] + 0.5;
 		mob.snapTo(x, y, zz, level.getRandom().nextFloat() * 360f, 0f);
@@ -408,7 +408,7 @@ final class Game {
 		}
 		prepare(mob, wave, boss);
 		if (!NO_SUN.contains(type) && mob.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
-			mob.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));    // que no ardan al sol
+			mob.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));    // so they do not burn in the sun
 		}
 		ServerPlayer target = nearest(mob, players);
 		if (target != null) {
@@ -428,7 +428,7 @@ final class Game {
 		return true;
 	}
 
-	/** Vida y daño de la oleada (y del mini-jefe), sin soltar nada y sin desaparecer. */
+	/** Health and damage of the wave (and of the mini-boss), dropping nothing and without despawning. */
 	private static void prepare(Mob mob, int wave, boolean boss) {
 		double mod = Waves.modifier(wave, statsPct);
 		MobDifficulty.put(mob.getAttribute(Attributes.MAX_HEALTH), HEALTH, mod);
@@ -445,7 +445,7 @@ final class Game {
 		mob.setPersistenceRequired();
 	}
 
-	/** Una vez por segundo: participantes, mobs (fuera del ruedo, muertos sin aviso, sin objetivo) y barra. */
+	/** Once per second: participants, mobs (outside the ring, dead without notice, without a target) and bar. */
 	private static void sweep(MinecraftServer server, ServerLevel level, Zone z) {
 		if (match.inGame()) {
 			for (UUID u : match.participants()) {
@@ -467,19 +467,19 @@ final class Game {
 			if (m.isRemoved()) {
 				Entity.RemovalReason r = m.getRemovalReason();
 				if (r == Entity.RemovalReason.UNLOADED_TO_CHUNK || r == Entity.RemovalReason.UNLOADED_WITH_PLAYER) {
-					continue;                 // sigue en su chunk: vuelve con ENTITY_LOAD
+					continue;                 // still in its chunk: comes back with ENTITY_LOAD
 				}
-				MOBS.remove(m.getUUID());     // quitado sin morir (no debería pasar): cuenta como uno menos
+				MOBS.remove(m.getUUID());     // removed without dying (should not happen): counts as one fewer
 				if (match.dies()) {
 					cleared(level, z);
 					if (match.state() == Match.State.FREE) {
-						return;                   // el contrarreloj acabó con esta oleada
+						return;                   // the time trial ended with this wave
 					}
 				}
 				continue;
 			}
 			if (!m.isAlive()) {
-				continue;                     // muriendo: AFTER_DEATH lo cuenta
+				continue;                     // dying: AFTER_DEATH counts it
 			}
 			if (!z.inRing(m.getX(), m.getY(), m.getZ())) {
 				int[] p = z.point(level.getRandom().nextInt(z.points()));
@@ -541,9 +541,9 @@ final class Game {
 		}
 	}
 
-	// --- eventos ---
+	// --- events ---
 
-	/** Muere una entidad: un mob de la partida (cuenta) o un participante (cae). */
+	/** An entity dies: a match mob (counts) or a participant (falls). */
 	static void onDeath(LivingEntity e) {
 		Zone z = Arena.zone();
 		ServerLevel level = Arena.arenaLevel();
@@ -560,7 +560,7 @@ final class Game {
 		}
 	}
 
-	/** Al cargarse una entidad: los mobs de la arena que no son de esta partida se quitan; los refuerzos del mini-jefe se suman. */
+	/** When an entity loads: arena mobs not from this match are removed; the mini-boss's reinforcements are added. */
 	static void onLoad(Entity e, ServerLevel level) {
 		if (!(e instanceof Mob m)) {
 			return;
@@ -576,7 +576,7 @@ final class Game {
 				LOGGER.info("Heraldia: arena: quitado un mob de arena de una partida anterior ({})",
 						BuiltInRegistries.ENTITY_TYPE.getKey(m.getType()).getPath());
 			} else if (ours != m) {
-				MOBS.put(m.getUUID(), m);     // se recargó su chunk
+				MOBS.put(m.getUUID(), m);     // its chunk reloaded
 			}
 			return;
 		}
@@ -601,7 +601,7 @@ final class Game {
 		}
 	}
 
-	/** Se supera la oleada: récords, recompensas, logros y pausa. */
+	/** The wave is cleared: records, rewards, advancements and pause. */
 	private static void cleared(ServerLevel level, Zone z) {
 		int n = match.wave();
 		LOGGER.info("Heraldia: arena: oleada {} superada (experiencia: {} de vanilla, {} dada, al {} %)", n, xpVanilla, xpGiven, xpPct);
@@ -612,9 +612,9 @@ final class Game {
 		for (ServerPlayer p : participants(level)) {
 			title(p, Texts.t("heraldia.arena.oleada.superada", n).withStyle(ChatFormatting.GREEN), sub);
 			if (match.mode() == Mode.COOP) {
-				ArenaScoreboard.cleared(level.getServer(), p, n);   // el récord de siempre (marcador vanilla), solo del cooperativo
+				ArenaScoreboard.cleared(level.getServer(), p, n);   // the usual record (vanilla scoreboard), coop only
 			}
-			io.github.albertosa23.heraldia.quests.Quests.waveCleared(p, n);   // encargos del tablón (T38)
+			io.github.albertosa23.heraldia.quests.Quests.waveCleared(p, n);   // board quests (T38)
 			if (tier > 0) {
 				reward(level, p, n, tier);
 			}
@@ -647,15 +647,15 @@ final class Game {
 		LOGGER.info("Heraldia: arena: recompensa {} ({} objetos) para {} en la oleada {}", tier, n, p.getGameProfile().name(), wave);
 	}
 
-	// --- muerte en el ruedo: se conserva el inventario y la experiencia ---
+	// --- death in the ring: inventory and experience are kept ---
 
-	/** Llamado por PlayerArenaMixin al soltar el equipo al morir: ¿lo conserva? (cae en el ruedo durante una partida). */
+	/** Called by ArenaPlayerMixin when the gear drops on death: is it kept? (falls in the ring during a match). */
 	static boolean keepsOnDeath(Player player) {
 		Zone z = Arena.zone();
 		if (!(player instanceof ServerPlayer p) || z == null || p.level() != Arena.arenaLevel() || !match.inGame()
 				|| !match.participates(p.getUUID()) || !z.inRing(p.getX(), p.getY(), p.getZ())) {
 			if (player.hasAttached(Saved.Type.KEEP)) {
-				player.removeAttached(Saved.Type.KEEP);   // de una caída anterior sin reaparición vanilla
+				player.removeAttached(Saved.Type.KEEP);   // from an earlier fall without a vanilla respawn
 			}
 			return false;
 		}
@@ -664,12 +664,12 @@ final class Game {
 		return true;
 	}
 
-	/** ¿Está conservando (no suelta experiencia)? */
+	/** Is the player keeping (drops no experience)? */
 	static boolean keeping(Player player) {
 		return Boolean.TRUE.equals(player.getAttached(Saved.Type.KEEP));
 	}
 
-	/** Al reaparecer (COPY_FROM): le devuelve lo que llevaba. */
+	/** On respawn (COPY_FROM): gives back what they carried. */
 	static void copy(ServerPlayer oldValue, ServerPlayer newValue, boolean alive) {
 		if (alive || !keeping(oldValue)) {
 			return;
@@ -683,7 +683,7 @@ final class Game {
 		newValue.sendSystemMessage(Texts.t("heraldia.arena.conservado").withStyle(ChatFormatting.GOLD));
 	}
 
-	/** Tras reaparecer: a la entrada de la arena. */
+	/** After respawning: to the arena entrance. */
 	static void respawn(ServerPlayer newValue) {
 		Zone z = Arena.zone();
 		ServerLevel level = Arena.arenaLevel();
@@ -709,9 +709,9 @@ final class Game {
 		return true;
 	}
 
-	// --- utilidades ---
+	// --- utilities ---
 
-	/** Cierra (rejas) o abre (aire) la puerta del ruedo. */
+	/** Closes (bars) or opens (air) the ring's gate. */
 	static void gate(ServerLevel level, Zone z, boolean close) {
 		int[] a = z.gateMin(), b = z.gateMax();
 		BlockState s = close ? Blocks.IRON_BARS.defaultBlockState() : Blocks.AIR.defaultBlockState();
@@ -782,7 +782,7 @@ final class Game {
 		p.connection.send(new ClientboundSetTitleTextPacket(title));
 	}
 
-	/** Al pararse el servidor: la partida se acaba limpia (mobs fuera, puerta abierta). */
+	/** When the server stops: the match ends cleanly (mobs out, gate open). */
 	static void onStop() {
 		finish(Arena.arenaLevel(), Arena.zone(), "el servidor se para");
 		RESPAWN.clear();

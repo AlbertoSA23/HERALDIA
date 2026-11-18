@@ -30,24 +30,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Obras de la arena: colocarla, quitarla o moverla (quitar la vieja y colocar la nueva), repartido en ticks para no
- * parar el servidor: cada tick trabaja un solo chunk (unos miles de bloques). Fases:
+ * Arena works: placing it, removing it or moving it (removing the old one and placing the new one), spread over ticks so
+ * as not to stall the server: each tick works on a single chunk (a few thousand blocks). Phases:
  * <ol>
- * <li>cargar (y generar, si hace falta) los chunks de la nueva y su anillo de vecinos;</li>
- * <li>quitar (la vieja): su caja queda como terreno llano (piedra, tierra y hierba hasta el suelo, aire encima);</li>
- * <li>nivelar (la nueva y {@link Site#MARGIN} bloques alrededor): aire sobre la caja hasta lo más alto del terreno y,
- * en el margen, relleno de tierra hasta el suelo;</li>
- * <li>plantilla: la plantilla del chunk ({@code StructurePlaceSettings.setBoundingBox}), con sus formas al día.</li>
+ * <li>load (and generate, if needed) the chunks of the new one and their ring of neighbors;</li>
+ * <li>clear (the old one): its box is left as flat terrain (stone, dirt and grass up to the ground, air above);</li>
+ * <li>level (the new one and {@link Site#MARGIN} blocks around): air over the box up to the top of the terrain and,
+ * in the margin, dirt fill up to the ground;</li>
+ * <li>template: the chunk's part of the template ({@code StructurePlaceSettings.setBoundingBox}), with its shapes up to date.</li>
  * </ol>
- * Al acabar, los objetos sueltos de la caja se quitan y las demás entidades van a la reaparición (no se quedan dentro
- * de un muro), y la arena se guarda en el mundo y empieza a protegerse. Una obra a la vez.
+ * When done, loose items in the box are removed and the other entities go to the respawn point (they are not left inside
+ * a wall), and the arena is saved in the world and starts being protected. One work at a time.
  */
 final class Works {
 	private static final Logger LOGGER = LoggerFactory.getLogger("heraldia");
 	/**
-	 * Sin avisar a los vecinos (nada de física en cadena) ni cambiar sus formas: con las formas, una planta del terreno
-	 * que pierde su otra mitad o su suelo se rompe y suelta su objeto (la actualización de forma de los vecinos no
-	 * respeta UPDATE_SUPPRESS_DROPS). La plantilla pone bien las formas de sus propios bloques.
+	 * Without notifying neighbors (no chain physics) or changing their shapes: with shapes, a terrain plant
+	 * that loses its other half or its ground breaks and drops its item (the neighbors' shape update does not
+	 * respect UPDATE_SUPPRESS_DROPS). The template sets the shapes of its own blocks properly.
 	 */
 	private static final int FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS;
 
@@ -71,7 +71,7 @@ final class Works {
 		return actual != null;
 	}
 
-	/** Empieza una obra (quitar {@code old}, colocar {@code fresh}, o las dos). Falso si falta la plantilla. */
+	/** Starts a work (clear {@code old}, place {@code fresh}, or both). False if the template is missing. */
 	static boolean start(ServerLevel level, @Nullable Zone old, @Nullable Zone fresh, @Nullable ServerPlayer who) {
 		Identifier id = Identifier.parse(Arena.plan().template());
 		Optional<StructureTemplate> t = level.getStructureTemplateManager().get(id);
@@ -84,8 +84,8 @@ final class Works {
 			chunks(steps, Phase.CLEAR, old, 0);
 		}
 		if (fresh != null) {
-			// antes, los chunks de alrededor ya generados: la decoración de un chunk que se genera después escribe en
-			// sus vecinos (manchas de flores sobre el suelo de la arena, que saltan como objetos)
+			// first, the already generated surrounding chunks: the decoration of a chunk generated later writes into
+			// its neighbors (flower patches on the arena floor, which pop off as items)
 			chunks(steps, Phase.LOAD, fresh, Site.MARGIN + 16);
 			chunks(steps, Phase.LEVEL, fresh, Site.MARGIN);
 			chunks(steps, Phase.TEMPLATE, fresh, 0);
@@ -93,7 +93,7 @@ final class Works {
 		actual = new Work(level, old, fresh, who, steps, t.get());
 		index = ticks = 0;
 		nanos = 0;
-		Arena.setZone(null);           // mientras dura la obra no hay arena (ni protección ni partidas)
+		Arena.setZone(null);           // while the work lasts there is no arena (no protection, no matches)
 		return true;
 	}
 
@@ -192,7 +192,7 @@ final class Works {
 		}
 		AABB box = new AABB(z.minX(), z.minY(), z.minZ(), z.maxX() + 1, z.maxY() + 1, z.maxZ() + 1);
 		int[] r = z.respawn();
-		// lo que soltaron las plantas del margen al quedarse sin suelo (las formas de los vecinos no respetan SUPPRESS_DROPS)
+		// what the margin plants dropped when left without ground (the neighbors' shapes do not respect SUPPRESS_DROPS)
 		for (Entity e : o.level().getEntities((Entity) null, box.inflate(Site.MARGIN + 4, 16, Site.MARGIN + 4),
 				e -> e instanceof ItemEntity || e instanceof ExperienceOrb)) {
 			e.discard();

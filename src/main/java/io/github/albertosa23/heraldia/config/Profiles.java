@@ -35,8 +35,8 @@ public final class Profiles {
 	private final Map<String, JsonPrimitive> defaults;
 
 	/**
-	 * @param esquema  el de heraldia/opciones.json: {@code profiles} ({perfil: {clave: valor}}) y en cada opción
-	 *                 {@code profile} (la fija el perfil) y {@code generation} (es de la generación)
+	 * @param esquema  el de heraldia/opciones.json: {@code perfiles} ({perfil: {clave: valor}}) y en cada opción
+	 *                 {@code perfil} (la fija el perfil) y {@code generacion} (es de la generación)
 	 */
 	Profiles(JsonObject schema) {
 		Map<String, Map<String, JsonPrimitive>> p = new LinkedHashMap<>();

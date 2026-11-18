@@ -6,18 +6,18 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Estado de una partida de la arena, sin clases del juego (lo prueban los tests): cuenta atrás, oleadas, pausas,
- * participantes y enemigos que faltan. Solo en memoria: al reiniciar el servidor no queda ninguna partida (la arena
- * quita sus mobs al cargarlos). La mueve {@link Arena} una vez por tick y con los eventos (mob muerto, jugador que cae o
- * sale del ruedo).
+ * State of an arena match, without game classes (the tests check it): countdown, waves, pauses,
+ * participants and enemies left. In memory only: when the server restarts there is no match left (the arena
+ * removes its mobs when they load). {@link Arena} moves it once per tick and with the events (mob killed, player who
+ * falls or leaves the ring).
  */
 public final class Match {
-	/** Cuenta atrás antes de la primera oleada y pausa entre oleadas del cooperativo, en ticks (cada modo, la suya: {@link Mode#pause()}). */
+	/** Countdown before the first wave and pause between coop waves, in ticks (each mode has its own: {@link Mode#pause()}). */
 	public static final int COUNTDOWN_TICKS = 100, PAUSE_TICKS = 200;
 
 	public enum State { FREE, COUNTDOWN, WAVE, PAUSE }
 
-	/** Lo que ha pasado en un tick (lo que tiene que hacer quien mueve la partida). */
+	/** What happened in a tick (what whoever moves the match has to do). */
 	public enum Step { NOTHING, SECOND, WAVE_STARTS }
 
 	private final int mobsPct;
@@ -25,24 +25,24 @@ public final class Match {
 	private final Set<UUID> participants = new LinkedHashSet<>();
 	private int wave, total, pending, alive, counter;
 	private boolean bossPending;
-	/** Modo (T41) y, en el contrarreloj, cuántas oleadas hay que superar (0 en los demás). */
+	/** Mode (T41) and, in the time trial, how many waves must be cleared (0 in the others). */
 	private Mode mode = Mode.COOP;
 	private int target;
-	/** Ticks de partida (desde que empieza la primera oleada) y los que llevaba al superar la última oleada superada. */
+	/** Match ticks (since the first wave started) and the ones it had when the last cleared wave was cleared. */
 	private long ticks, clearedTicks;
 
 	public Match(int mobsPct) {
 		this.mobsPct = mobsPct;
 	}
 
-	/** Toca la campana: empieza la cuenta atrás de una partida cooperativa (solo si no hay partida). */
+	/** Rings the bell: starts the countdown of a coop match (only if there is no match). */
 	public boolean start() {
 		return start(Mode.COOP, 0);
 	}
 
 	/**
-	 * Empieza la cuenta atrás de una partida del modo {@code mode} (solo si no hay partida); {@code waves}: las del
-	 * contrarreloj (al menos 1; en los demás modos no cuenta).
+	 * Starts the countdown of a match in mode {@code mode} (only if there is no match); {@code waves}: the time
+	 * trial's (at least 1; in the other modes it does not count).
 	 */
 	public boolean start(Mode mode, int waves) {
 		if (state != State.FREE) {
@@ -56,7 +56,7 @@ public final class Match {
 		return true;
 	}
 
-	/** Los que juegan (los que están en el ruedo al acabar la cuenta atrás). Falso si no hay nadie. */
+	/** Those who play (those in the ring when the countdown ends). False if nobody is there. */
 	public boolean participants(Collection<UUID> players) {
 		participants.clear();
 		participants.addAll(players);
@@ -64,8 +64,8 @@ public final class Match {
 	}
 
 	/**
-	 * Un tick. En la cuenta atrás y en la pausa, {@link Step#SECOND} cada segundo y {@link Step#WAVE_STARTS} al
-	 * llegar a cero (la partida ya está en la oleada siguiente, con sus enemigos pendientes).
+	 * One tick. During the countdown and the pause, {@link Step#SECOND} every second and {@link Step#WAVE_STARTS} on
+	 * reaching zero (the match is already on the next wave, with its enemies pending).
 	 */
 	public Step tick() {
 		if (inGame()) {
@@ -87,7 +87,7 @@ public final class Match {
 		return counter % 20 == 0 ? Step.SECOND : Step.NOTHING;
 	}
 
-	/** Cuántos enemigos salen ahora (sin pasar de {@code maxAlive} vivos); quedan contados como vivos. */
+	/** How many enemies spawn now (without going over {@code maxAlive} alive); they are counted as alive. */
 	public int spawn(int maxAlive) {
 		if (state != State.WAVE) {
 			return 0;
@@ -98,14 +98,14 @@ public final class Match {
 		return n;
 	}
 
-	/** El mini-jefe sale con la primera tanda de su oleada: true una sola vez. */
+	/** The mini-boss spawns with the first batch of its wave: true only once. */
 	public boolean takeBoss() {
 		boolean j = bossPending;
 		bossPending = false;
 		return j;
 	}
 
-	/** Un enemigo que no se pudo crear: vuelve a pendientes. */
+	/** An enemy that could not be created: back to pending. */
 	public void fail() {
 		if (alive > 0) {
 			alive--;
@@ -113,7 +113,7 @@ public final class Match {
 		}
 	}
 
-	/** Un enemigo más que no estaba en la cuenta (los refuerzos que llama el mini-jefe). */
+	/** One more enemy that was not in the count (the reinforcements the mini-boss calls). */
 	public void extra() {
 		if (state == State.WAVE) {
 			alive++;
@@ -122,9 +122,9 @@ public final class Match {
 	}
 
 	/**
-	 * Muere (o desaparece) un enemigo. True si con él se supera la oleada: empieza la pausa del modo (en la supervivencia,
-	 * de 0 ticks: la siguiente oleada empieza en el tick siguiente). En el contrarreloj, tras la última oleada la partida
-	 * queda {@link #completed()} (en pausa, hasta que quien la mueve la termine).
+	 * An enemy dies (or disappears). True if that clears the wave: the mode's pause starts (in survival, of 0 ticks: the
+	 * next wave starts on the next tick). In the time trial, after the last wave the match is
+	 * {@link #completed()} (paused, until whoever moves it ends it).
 	 */
 	public boolean dies() {
 		if (state != State.WAVE || alive <= 0) {
@@ -140,18 +140,18 @@ public final class Match {
 		return false;
 	}
 
-	/** ¿Contrarreloj acabado (superadas todas sus oleadas)? */
+	/** Time trial finished (all its waves cleared)? */
 	public boolean completed() {
 		return mode == Mode.TIME_TRIAL && cleared() >= target;
 	}
 
-	/** Un participante cae o sale del ruedo. True si ya no queda ninguno (la partida acaba). */
+	/** A participant falls or leaves the ring. True if none is left (the match ends). */
 	public boolean outcome(UUID player) {
 		participants.remove(player);
 		return inGame() && participants.isEmpty();
 	}
 
-	/** Acaba la partida y deja la arena libre para la siguiente. */
+	/** Ends the match and leaves the arena free for the next one. */
 	public void finish() {
 		state = State.FREE;
 		participants.clear();
@@ -178,22 +178,22 @@ public final class Match {
 		return mode;
 	}
 
-	/** Oleadas del contrarreloj (0 en los demás modos). */
+	/** Time trial waves (0 in the other modes). */
 	public int target() {
 		return target;
 	}
 
-	/** Ticks de partida desde que empezó la primera oleada (la cuenta atrás no cuenta). */
+	/** Match ticks since the first wave started (the countdown does not count). */
 	public long ticks() {
 		return ticks;
 	}
 
-	/** Ticks de partida al superar la última oleada superada (lo que puntúa: el tiempo del contrarreloj). */
+	/** Match ticks when the last cleared wave was cleared (what scores: the time trial's time). */
 	public long clearedTicks() {
 		return clearedTicks;
 	}
 
-	/** Oleadas ya superadas: en la pausa, la actual; durante una oleada, la anterior. */
+	/** Waves already cleared: during the pause, the current one; during a wave, the previous one. */
 	public int cleared() {
 		return state == State.PAUSE ? wave : Math.max(0, wave - 1);
 	}
@@ -202,7 +202,7 @@ public final class Match {
 		return total;
 	}
 
-	/** Enemigos que quedan: los vivos y los que faltan por salir. */
+	/** Enemies left: the alive ones and those still to spawn. */
 	public int remaining() {
 		return alive + pending;
 	}
@@ -215,7 +215,7 @@ public final class Match {
 		return pending;
 	}
 
-	/** Segundos que faltan de cuenta atrás o pausa (redondeando hacia arriba). */
+	/** Seconds left of countdown or pause (rounded up). */
 	public int seconds() {
 		return (counter + 19) / 20;
 	}

@@ -20,16 +20,16 @@ import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Punto de entrada. El contenido es de datos (data/heraldia); aquí se registra lo que los datos no pueden expresar. */
+/** Entry point. The content is data (data/heraldia); this registers what the data cannot express. */
 public final class Heraldia implements ModInitializer {
 	public static final String MOD_ID = "heraldia";
-	/** Etiqueta (Tags) de los mobs de plantilla que no deben salir bebés (core.ADULTO_TAG del generador; ZombieMixin, ZombieEquipoMixin y DrownedMixin). */
+	/** Tag of the template mobs that must not spawn as babies (the generator's core.ADULTO_TAG; ZombieMixin, ZombieEquipmentMixin and DrownedMixin). */
 	public static final String ADULT = "heraldia_adulto";
 	private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {
-		// Antes de que se lea ningún datapack: la rejilla heraldia:rejilla toma sus valores de aquí.
+		// Before any datapack is read: the heraldia:rejilla grid takes its values from here.
 		HeraldiaConfig.load(FabricLoader.getInstance().getConfigDir().resolve("heraldia.json"));
 		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("sin_lootr"), WithoutLootrCondition.CODEC);
 		Registry.register(BuiltInRegistries.LOOT_CONDITION_TYPE, id("opcion"), io.github.albertosa23.heraldia.loot.OptionCondition.CODEC);
@@ -72,8 +72,8 @@ public final class Heraldia implements ModInitializer {
 		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 
-	/** Deja en el log cuántas estructuras y logros del mod se han cargado, para comprobar la carga sin entrar al juego
-	 *  (sin jugadores, /advancement no llega a mirar el logro). Una vez, al arrancar. */
+	/** Logs how many of the mod's structures and advancements have loaded, to check loading without joining the game
+	 *  (without players, /advancement never looks at the advancement). Once, at startup. */
 	private static void logRegisteredStructures(MinecraftServer server) {
 		long count = server.registryAccess().lookupOrThrow(Registries.STRUCTURE).keySet().stream()
 				.filter(id -> MOD_ID.equals(id.getNamespace()))
@@ -85,7 +85,7 @@ public final class Heraldia implements ModInitializer {
 		LOGGER.info("Heraldia: {} logros cargados", advancements);
 	}
 
-	/** Pasa a las funciones de gólems (marcador heraldia_cfg) la limpieza y los límites de la configuración (al arrancar y con /heraldia reload). */
+	/** Passes the configuration's cleanup and limits to the golem functions (heraldia_cfg scoreboard) (at startup and on /heraldia reload). */
 	public static void publishGolemSettings(MinecraftServer server) {
 		HeraldiaConfig cfg = HeraldiaConfig.get();
 		Scoreboard board = server.getScoreboard();

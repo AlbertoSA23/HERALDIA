@@ -13,23 +13,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Plano de la arena: lo que el generador (tools/gen/arena_oleadas.py) escribe en heraldia/arena.json. Posiciones
- * relativas a la esquina mínima de la plantilla. Sin clases del juego: lo prueban los tests.
+ * Arena blueprint: what the generator (tools/gen/arena_oleadas.py) writes to heraldia/arena.json. Positions
+ * relative to the template's minimum corner. No game classes: the tests check it.
  *
- * @param plantilla  id de la plantilla (heraldia:arena/arena)
- * @param tamano     lado x, alto y lado z de la plantilla
- * @param suelo      y de la plantilla que va a la altura del terreno
- * @param centro     centro del ruedo (columna y altura de los pies)
- * @param radio      radio del ruedo
- * @param ruedoY     alturas (pies) entre las que se está en el ruedo
- * @param puntos     puntos de aparición de los mobs (pies)
- * @param campana    la campana que empieza la partida
- * @param puerta     esquinas mínima y máxima de la puerta (rejas mientras dura una partida)
- * @param reaparicion sitio (pies) donde reaparece quien cae y adonde va quien sale
- * @param jefes      nombres de mini-jefe que hay (heraldia.arena.jefe.0..n-1)
- * @param fama       sitios (pies) de los carteles del salón de la fama, uno por modo en el orden de {@link Mode} (T41;
- *                   vacío en un plano anterior)
- * @param famaRotacion rotación (0-15) de esos carteles de pie
+ * @param template   template id (heraldia:arena/arena)
+ * @param size       x side, height and z side of the template
+ * @param ground     template y that goes at terrain height
+ * @param center     center of the ring (column and feet height)
+ * @param radius     radius of the ring
+ * @param ringY      heights (feet) between which one is in the ring
+ * @param points     mob spawn points (feet)
+ * @param bell       the bell that starts the match
+ * @param gate       minimum and maximum corners of the gate (bars while a match lasts)
+ * @param respawn    spot (feet) where whoever falls respawns and where whoever leaves goes
+ * @param bosses     mini-boss names there are (heraldia.arena.jefe.0..n-1)
+ * @param fame       spots (feet) of the hall of fame signs, one per mode in the order of {@link Mode} (T41;
+ *                   empty in an older blueprint)
+ * @param fameRotation rotation (0-15) of those standing signs
  */
 public record Blueprint(String template, int[] size, int ground, int[] center, int radius, int[] ringY, List<int[]> points,
 		int[] bell, int[][] gate, int[] respawn, int bosses, List<int[]> fame, int fameRotation) {
@@ -55,7 +55,7 @@ public record Blueprint(String template, int[] size, int ground, int[] center, i
 				o.has("fama_rotacion") ? o.get("fama_rotacion").getAsInt() : 0);
 	}
 
-	/** El del .jar (heraldia/arena.json). */
+	/** The one in the .jar (heraldia/arena.json). */
 	public static Blueprint fromJar() {
 		String path = "/heraldia/arena.json";
 		try (InputStream in = Blueprint.class.getResourceAsStream(path)) {

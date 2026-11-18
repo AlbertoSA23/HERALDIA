@@ -14,11 +14,11 @@ import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.network.chat.Component;
 
 /**
- * Punto de entrada del cliente (solo se carga en el cliente: el servidor dedicado nunca ve este source set).
- * En un jugador la configuración se lee al arrancar el juego ({@code Heraldia.onInitialize}); para que lo guardado en la
- * pantalla se aplique al volver a abrir un mundo sin reiniciar el juego, se vuelve a leer al cerrar el servidor
- * integrado y, si no hay ninguno abierto, nada más guardar; con uno abierto, al guardar se recarga en caliente lo que no
- * afecta a la generación (como /heraldia reload).
+ * Client entry point (only loaded on the client: the dedicated server never sees this source set).
+ * In single player the configuration is read when the game starts ({@code Heraldia.onInitialize}); so that what the
+ * screen saves applies when a world is reopened without restarting the game, it is read again when the integrated server
+ * closes and, if none is open, right after saving; with one open, saving hot-reloads what does not affect generation
+ * (like /heraldia reload).
  */
 @Environment(EnvType.CLIENT)
 public final class HeraldiaClient implements ClientModInitializer {
@@ -32,9 +32,9 @@ public final class HeraldiaClient implements ClientModInitializer {
 	}
 
 	/**
-	 * Tras guardar: si no hay un mundo de un jugador abierto, la configuración nueva pasa a estar en uso ya. Si lo hay, el
-	 * mismo camino que /heraldia reload (en el hilo de su servidor): se aplican ya las opciones que no afectan a la
-	 * generación y el informe sale en el chat; las demás esperan a volver a abrir el mundo.
+	 * After saving: if no single-player world is open, the new configuration is in use right away. If one is, the same path
+	 * as /heraldia reload (on its server thread): the options that do not affect generation apply now and the report goes
+	 * to the chat; the others wait until the world is reopened.
 	 */
 	static void applyIfIdle(Minecraft minecraft) {
 		IntegratedServer server = minecraft.getSingleplayerServer();

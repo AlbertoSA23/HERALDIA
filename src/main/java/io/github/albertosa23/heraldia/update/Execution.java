@@ -38,14 +38,14 @@ import org.slf4j.LoggerFactory;
  * plan ({@link Plan}) espera al siguiente arranque, que el administrador hace a mano:
  * <ol>
  * <li>al empezar a arrancar, <em>antes de cargar el mundo</em> ({@code SERVER_STARTING}): si se pidió, copia los ficheros
- * de región, entidades y PDI afectados a {@code heraldia/update/backup-<id>/}; luego borra de las regiones los chunks
+ * de región, entidades y PDI afectados a {@code heraldia/actualizar/copia-<id>/}; luego borra de las regiones los chunks
  * vírgenes del plan que siguen igual (si su InhabitedTime ha subido, alguien ha pasado: se dejan), para que se
  * regeneren cuando alguien se acerque;</li>
  * <li>con el servidor en marcha ({@code SERVER_STARTED}): coloca las estructuras nuevas del plan, una por tick, si siguen
  * saliendo igual y no hay ya otra; las registra en su chunk de inicio (para /locate y los mapas) y en los que toca;</li>
- * <li>deja el informe en {@code heraldia/update/report-<id>.txt} y el plan como {@code done-<id>.json}.</li>
+ * <li>deja el informe en {@code heraldia/actualizar/informe-<id>.txt} y el plan como {@code hecho-<id>.json}.</li>
  * </ol>
- * Deshacer ({@code undo.json}) restaura la copia antes de cargar el mundo.
+ * Deshacer ({@code deshacer.json}) restaura la copia antes de cargar el mundo.
  */
 public final class Execution {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Heraldia.MOD_ID);

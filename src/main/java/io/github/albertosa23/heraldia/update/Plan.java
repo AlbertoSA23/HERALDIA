@@ -16,7 +16,7 @@ import java.util.TreeSet;
 
 /**
  * El trabajo que /heraldia update apply deja para el siguiente arranque (T46), en
- * {@code <world>/heraldia/update/plan.json}. Fases: {@link #PENDING} (se acaba de confirmar; al arrancar, antes
+ * {@code <world>/heraldia/actualizar/plan.json}. Fases: {@link #PENDING} (se acaba de confirmar; al arrancar, antes
  * de cargar el mundo, se copia lo afectado si se pidió y se borran los chunks vírgenes), {@link #REGENERATED} (con el
  * servidor en marcha, se colocan las estructuras nuevas) y {@link #DONE} (queda el informe). Un plan de deshacer
  * ({@link #UNDO}) restaura la copia antes de cargar el mundo.

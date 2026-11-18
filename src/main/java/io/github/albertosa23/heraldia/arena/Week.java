@@ -11,33 +11,33 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Cálculo de la semana de la clasificación de la arena (T41), lógica pura: la semana empieza el día
- * arena.temporada.dia_reinicio a la hora arena.temporada.hora_reinicio (hora del servidor) y se identifica por la fecha
- * de ese día (su «inicio»). Con fechas locales, y no con instantes, el cambio de hora (verano/invierno) y el de año no
- * mueven la semana; una hora que no existe por el cambio de hora (p. ej. las 2:00 de la noche del cambio) se toma como
- * la primera hora válida de después (como {@link LocalDate#atTime} con {@link ZonedDateTime#of}).
+ * Computing the week of the arena leaderboard (T41), pure logic: the week starts on day
+ * arena.temporada.dia_reinicio at hour arena.temporada.hora_reinicio (server time) and is identified by that day's
+ * date (its "start"). With local dates, not instants, the clock change (summer/winter) and the year change do not
+ * move the week; an hour that does not exist because of the clock change (e.g. 2:00 on the night of the change) is taken
+ * as the first valid hour after it (like {@link LocalDate#atTime} with {@link ZonedDateTime#of}).
  */
 public final class Week {
-	/** Valores de arena.temporada.dia_reinicio, de lunes a domingo (el orden de {@link DayOfWeek}). */
+	/** Values of arena.temporada.dia_reinicio, Monday to Sunday (the order of {@link DayOfWeek}). */
 	public static final List<String> DAYS = List.of("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo");
 
 	private Week() {
 	}
 
-	/** El día de arena.temporada.dia_reinicio (lunes si no se reconoce). */
+	/** The day of arena.temporada.dia_reinicio (Monday if not recognized). */
 	public static DayOfWeek day(String value) {
 		int i = value == null ? -1 : DAYS.indexOf(value.toLowerCase(Locale.ROOT));
 		return DayOfWeek.of(i < 0 ? 1 : i + 1);
 	}
 
-	/** El momento en que empieza la semana que empieza el día {@code start} (a la hora {@code hour} en {@code zone}). */
+	/** The moment the week starting on day {@code start} begins (at hour {@code hour} in {@code zone}). */
 	public static ZonedDateTime limit(LocalDate start, int hour, ZoneId zone) {
 		return ZonedDateTime.of(start, LocalTime.of(Math.clamp(hour, 0, 23), 0), zone);
 	}
 
 	/**
-	 * Inicio (fecha del día de reinicio) de la semana en curso en el instante {@code now}: el último día {@code day} a
-	 * la hora {@code hour} que no es posterior a {@code now}.
+	 * Start (date of the reset day) of the current week at instant {@code now}: the last day {@code day} at
+	 * hour {@code hour} that is not after {@code now}.
 	 */
 	public static LocalDate start(Instant now, ZoneId zone, DayOfWeek day, int hour) {
 		ZonedDateTime z = now.atZone(zone);
@@ -48,12 +48,12 @@ public final class Week {
 		return d;
 	}
 
-	/** Inicio de la semana siguiente a la que empieza en {@code start} (con el día de reinicio {@code day}). */
+	/** Start of the week after the one starting at {@code start} (with reset day {@code day}). */
 	public static LocalDate next(LocalDate start, DayOfWeek day) {
 		return start.plusDays(1).with(TemporalAdjusters.nextOrSame(day));
 	}
 
-	/** Momento en que acaba la semana en curso (empieza la siguiente). */
+	/** Moment the current week ends (the next one starts). */
 	public static Instant nextReset(Instant now, ZoneId zone, DayOfWeek day, int hour) {
 		return limit(next(start(now, zone, day, hour), day), hour, zone).toInstant();
 	}

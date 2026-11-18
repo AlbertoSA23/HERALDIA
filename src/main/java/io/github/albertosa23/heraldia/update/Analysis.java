@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * saldrían hoy en un chunk vacío con el generador del mundo ({@code createStructures} sobre un {@link ProtoChunk}: con
  * las mismas reglas que la generación) y los compara con los guardados: de ahí salen qué chunks vírgenes se pueden borrar
  * sin cortar estructuras (vía A) y qué estructuras nuevas de Heraldia caben en sitios seguros (vía B);</li>
- * <li>escribe el informe, el mapa en texto y en imagen en {@code <world>/heraldia/update/}.</li>
+ * <li>escribe el informe, el mapa en texto y en imagen en {@code <world>/heraldia/actualizar/}.</li>
  * </ol>
  * No cambia nada del mundo.
  */
