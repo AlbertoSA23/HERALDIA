@@ -1,0 +1,324 @@
+{
+  "greeting.desconocido": {
+    "1": "Xente de fóra? Nunca te vira por %2$s.",
+    "2": "Boas. Vés de lonxe?",
+    "3": "Ola, camiñante. Aquí somos xente de paz.",
+    "4": "Hum. E ti de quen es?",
+    "5": "Se vés mercar, ben. Se non, tamén, pero non me toques nada.",
+    "6": "Por %2$s non pasa moita xente. Perdiches o camiño?",
+    "7": "Boas tardes... ou o que sexa. Non adoito falar con xente que non coñezo.",
+    "8": "Xa che aviso: o gólem non se fía de quen chega con présa."
+  },
+  "greeting.conocido": {
+    "1": "Ah, %1$s! Outra vez por aquí.",
+    "2": "Esa cara sóame. Botaches unha man co taboleiro, non si?",
+    "3": "Boas, %1$s. Que te trae por %2$s?",
+    "4": "Mira ti, %1$s. Que tal o camiño?",
+    "5": "Xa me parecía a min que esas botas me soaban.",
+    "6": "%1$s! Xa pensaba que non volvías.",
+    "7": "Boas. Esta vez non te perdiches, eh?",
+    "8": "Mira, quen fai os recados. Como vai iso, %1$s?"
+  },
+  "greeting.amigo": {
+    "1": "%1$s, que alegría! Senta un anaco.",
+    "2": "Que ledicia verte. En %2$s fálase ben de ti.",
+    "3": "Mira quen volveu! Pasa, pasa.",
+    "4": "%1$s! Agora mesmo falabamos de ti. Ben, ben, non te asustes.",
+    "5": "Ven acó, que teño pan acabado de cocer e ninguén con quen partilo.",
+    "6": "Canto tempo, %1$s. En %2$s botabámoste de menos.",
+    "7": "Xa estás aquí! Os cativos preguntaban por ti.",
+    "8": "Ai, que gusto! Como te trata o mundo?"
+  },
+  "greeting.heroe": {
+    "1": "A lenda de %2$s! Os cativos non paran de falar de ti.",
+    "2": "%1$s, é unha honra. O que precises.",
+    "3": "Abride paso! É %1$s.",
+    "4": "%1$s en persoa! Agarda, que sacudo o po.",
+    "5": "Todo %2$s che debe algo. Eu, o primeiro.",
+    "6": "Miña avoa reza por ti cada noite. E xa te meteu no testamento.",
+    "7": "Volveu %1$s! Que alguén toque a campá!",
+    "8": "Contigo aquí, ata o gólem se pon dereito."
+  },
+  "reputation.desconocido": {
+    "1": "Aquí desconfiamos un chisco da xente de fóra. Non é nada contra ti.",
+    "2": "Se queres que te coñezan, bótalle unha ollada ao taboleiro da praza.",
+    "3": "Non o tomes a mal, pero aínda non sei se fiarme de ti.",
+    "4": "As palabras lévaas o vento. En %2$s miramos o que fas."
+  },
+  "reputation.conocido": {
+    "1": "O alguacil di que cumpres o que prometes. Iso aquí vale moito.",
+    "2": "Xa non te miran raro na feira, decatácheste?",
+    "3": "Hai quen xa te saúda polo nome. Bo sinal.",
+    "4": "Segue así e en %2$s axiña serás da casa."
+  },
+  "reputation.amigo": {
+    "1": "Gárdoche o mellor da semana, que o saibas.",
+    "2": "En %2$s tes casa cando queiras.",
+    "3": "Se algún día precisas unha man, aquí tes unhas cantas.",
+    "4": "Xa non pecho a porta cando te vexo vir, %1$s."
+  },
+  "reputation.heroe": {
+    "1": "Algún día alguén vai compoñer unha cantiga sobre ti. Oxalá rime.",
+    "2": "Mentres ti andes preto, durmimos tranquilos.",
+    "3": "O teu nome xa se conta á beira da lareira, %1$s.",
+    "4": "Se %2$s tivese estatuas, a primeira sería a túa."
+  },
+  "family.llanuras": {
+    "1": "Dende aquí vese vir calquera a unha legua.",
+    "2": "O vento da chaira leva as penas e mais os sombreiros.",
+    "3": "Aquí o trigo chega ata onde alcanza a vista.",
+    "4": "Os cabalos da chaira non se deixan montar á primeira.",
+    "5": "Na chaira non hai onde esconderse. Nin da chuvia nin das linguas longas.",
+    "6": "As papoulas saen soas nas lindes. Ninguén as planta."
+  },
+  "family.bosque": {
+    "1": "No bosque hai cogomelos que curan e cogomelos que non. Aprende a distinguilos.",
+    "2": "Os bidueiros cantan cando sopra o vento. Escoita.",
+    "3": "Aquí leña nunca falta, pero hai que pedirlle permiso ao bosque.",
+    "4": "Se oes un lobo, non corras. Eles corren máis.",
+    "5": "Os carballos máis vellos xa estaban aquí antes de que houbese aldea.",
+    "6": "No outono, o chan do bosque renxe coma pan torrado."
+  },
+  "family.oscuro": {
+    "1": "Baixo estes carballos nunca é de día de todo.",
+    "2": "Non te afastes das lanternas despois do solpor. Faime caso.",
+    "3": "Os cogomelos xigantes medran onde non chega a luz. Coma outras cousas.",
+    "4": "Aquí as árbores tócanse por riba. O ceo é só un rumor.",
+    "5": "Meu avó dicía que o bosque escuro ten memoria. E rancor.",
+    "6": "Nunca asubíes entre os carballos negros. Podería responderche algo... ou alguén."
+  },
+  "family.taiga": {
+    "1": "Os abetos cheiran a resina e a inverno que chega.",
+    "2": "Por aquí os raposos rouban ata os ovos do galiñeiro.",
+    "3": "As bagas doces pican, pero a marmelada de bagas paga a pena.",
+    "4": "Na taiga o inverno non avisa: un día está aí, e xa.",
+    "5": "Os antigos gravaban runas nos troncos para non se perderen.",
+    "6": "Unha boa machada, un bo lume e un bo abrigo. O demais sobra."
+  },
+  "family.nieve": {
+    "1": "Aquí aprendes axiña a non deixar o lume apagado.",
+    "2": "A neve tápao todo, ata as pegadas dos lobos.",
+    "3": "Non te fíes do xeo do lago. Renxe antes de romper, pero pouco antes.",
+    "4": "Os osos polares son tranquilos. Ata que deixan de selo.",
+    "5": "En %2$s contamos os invernos, non os anos.",
+    "6": "Coidado coa neve en po: houbo quen se afundiu e non volveu saír."
+  },
+  "family.desierto": {
+    "1": "A auga aquí vale máis que o ouro. Ben, case.",
+    "2": "De día abrasa e de noite xea. O deserto non coñece o termo medio.",
+    "3": "Meu avó plantaba palmeiras á beira da levada. Aínda dan sombra.",
+    "4": "A area garda os segredos mellor ca calquera cofre.",
+    "5": "Á tardiña, o patio da fonte é o mellor recuncho do mundo.",
+    "6": "O cacto non pide nada e aguanta todo. Aprende del."
+  },
+  "family.sabana": {
+    "1": "As acacias dan pouca sombra, pero dana a todos por igual.",
+    "2": "Os cabalos bravos baixan beber ao serán.",
+    "3": "Aquí a herba seca arde con nada. Ollo cos fachos.",
+    "4": "As llamas da meseta cospen, pero cargan co que lles botes.",
+    "5": "Na sabana, ao mediodía, o horizonte treme coa calor.",
+    "6": "Cando chega a chuvia á sabana, saímos todos a mollarnos."
+  },
+  "family.jungla": {
+    "1": "Na selva medra todo, sobre todo o que non queres.",
+    "2": "Os papagaios repiten o que dicimos. Ollo co que falas.",
+    "3": "Cacao coma o de aquí non o hai en toda a comarca.",
+    "4": "Se un ocelote te mira, non te movas. Só está a decidir.",
+    "5": "As lianas pechan o camiño nunha semana. Sempre hai que abrilo outra vez.",
+    "6": "Din que a selva come os templos. Paseniño, pero cómeos."
+  },
+  "family.pantano": {
+    "1": "A brétema do pantano esconde máis do que parece.",
+    "2": "As ras cantan toda a noite. Acostúmaste. Máis ou menos.",
+    "3": "Se ves unha choza con caldeiros fumegando, non chames á porta.",
+    "4": "O lodo de aquí cura os calos. Iso di a vella do muíño.",
+    "5": "Os slimes saen coa lúa chea. Non preguntes por que.",
+    "6": "Nunca bebas nada que che ofreza unha muller de chapeu picudo. Meigas non hai, pero habelas, hainas."
+  },
+  "family.cerezos": {
+    "1": "Cando caen os pétalos parece que neva rosa.",
+    "2": "As abellas das cerdeiras dan o mel máis doce da comarca.",
+    "3": "Baixo as cerdeiras fálase baixiño. É costume.",
+    "4": "Cada primavera alguén pide casamento baixo a cerdeira grande.",
+    "5": "Varro os pétalos cada mañá. Cada tarde volven estar aí.",
+    "6": "En %2$s dicimos que a flor da cerdeira dura pouco para que a mires con calma."
+  },
+  "family.badlands": {
+    "1": "Esta terra vermella garda ouro, se sabes onde mirar.",
+    "2": "As minas abandonadas renxen de noite. Eu non me achegaría.",
+    "3": "Aquí o sol coce a arxila de cores. Parece pintada a man.",
+    "4": "Máis dun veu buscar fortuna e quedou a criar cabras.",
+    "5": "O po vermello métese en todo: na roupa, na comida, nos soños.",
+    "6": "Por aquí, quen atopa un filón non llo conta nin á súa nai."
+  },
+  "family.costa": {
+    "1": "O mar trae de todo: peixes, madeiras e algunha que outra botella.",
+    "2": "Cando o faro se apaga, sabemos que vén temporal.",
+    "3": "Aquí todo sabe a sal, ata o pan.",
+    "4": "As tartarugas volven á mesma praia cada ano. Coma os mariñeiros.",
+    "5": "Nunca lle deas as costas ao mar. El nunca chas dá a ti.",
+    "6": "Meu pai dicía que nas buguinas se oen os afogados."
+  },
+  "time.morning": {
+    "1": "Madrugar en %2$s é doado: o galo non perdoa.",
+    "2": "Bo día para comezar algo novo, non che parece?",
+    "3": "Aínda teño as legañas postas. Fálame amodo.",
+    "4": "O orballo da mañá é o mellor do día. Despois todo se complica.",
+    "5": "Xa en pé, %1$s? Ou durmiches pouco ou durmiches moi ben."
+  },
+  "time.afternoon": {
+    "1": "A estas horas só os gatos dormen a sesta en paz.",
+    "2": "Metade do traballo xa está feito. A outra metade, mañá.",
+    "3": "Coa barriga chea pénsase peor. Dio todo o mundo.",
+    "4": "A media tarde a praza queda baleira. Bo momento para darlle á lingua.",
+    "5": "Aínda queda luz para un bo anaco de faena."
+  },
+  "time.evening": {
+    "1": "O sol xa se vai. Axiña haberá que se pechar na casa.",
+    "2": "A esta hora o ceo de %2$s vístese de todas as cores.",
+    "3": "Xa cheira a cea en todas as casas.",
+    "4": "Recolle o que teñas fóra, %1$s. A noite non tarda.",
+    "5": "É a hora en que os morcegos saen das covas."
+  },
+  "time.night": {
+    "1": "Que fas en pé a estas horas? Aí fóra hai zombis.",
+    "2": "De noite óense cousas raras alén da muralla.",
+    "3": "Fala baixiño, que os veciños dormen.",
+    "4": "As estrelas vense mellor dende aquí que dende calquera outro sitio.",
+    "5": "Se oes ósos bater aí fóra, non é o vento."
+  },
+  "weather.clear": {
+    "1": "Que día tan limpo. Vese ata o horizonte.",
+    "2": "Con este sol, a roupa tendida sécase nun suspiro.",
+    "3": "Nin unha nube. Ata o gólem parece contento.",
+    "4": "Con este ceo dan ganas de saír de viaxe.",
+    "5": "Bo tempo para traballar a leira. E para non traballala."
+  },
+  "weather.rain": {
+    "1": "Esta chuvia vén ben aos campos, pero mal aos meus xeonllos.",
+    "2": "Se segue chovendo así, o río vai saír de madre.",
+    "3": "Entra a resgardarte, que te vas mollar ata os ósos.",
+    "4": "O tellado da miña casa pinga xusto enriba da cama. Sempre.",
+    "5": "Coa chuvia, os peixes pican mellor. Iso din os pescadores."
+  },
+  "weather.snow": {
+    "1": "Outra nevarada. Haberá que quitar a neve do tellado outra vez.",
+    "2": "Con este frío ata os esqueletos tremen.",
+    "3": "Os cativos xa están a facer bonecos de neve na praza.",
+    "4": "Abrígate, %1$s. A neve engana: parece branda e morde.",
+    "5": "Cando neva así, o mundo queda en silencio."
+  },
+  "weather.thunder": {
+    "1": "Ese raio caeu preto! Arrédate das árbores.",
+    "2": "Con treboada nin os creepers saen. Ben, si que saen.",
+    "3": "Din que un raio converteu un porco nunha cousa horrible. Eu non o dubido.",
+    "4": "Cada trono faime dar un chouto. Non te rías.",
+    "5": "Con esta treboada, mellor non saír de %2$s. Faime caso."
+  },
+  "general": {
+    "1": "A vida en %2$s é sinxela, e iso gústame.",
+    "2": "O gólem de ferro mírame raro dende que lle pintei unha flor.",
+    "3": "O pozo da praza dá a auga máis fresca da comarca.",
+    "4": "Din que o alcalde ronca tanto que asusta os morcegos.",
+    "5": "Coídate, %1$s. O mundo é grande e non sempre amable.",
+    "6": "A miña cama é o único que de verdade é meu. E defendoa.",
+    "7": "Aquí cada campá ten o seu son. A da praza é a máis rosmona.",
+    "8": "Non sei ler, pero sei contar esmeraldas. Abóndame con iso.",
+    "9": "Os gatos de %2$s mandan máis que o alcalde.",
+    "10": "Se ves alguén de túnica verde e cara de poucos amigos, ese é meu primo.",
+    "11": "Levo a vida enteira en %2$s e aínda me perdo na feira.",
+    "12": "Un bo veciño vale máis ca un cofre cheo.",
+    "13": "Cando era novo quería ver mundo. Despois vin un zombi e pasóuseme.",
+    "14": "As galiñas poñen máis se lles cantas. Non me mires así.",
+    "15": "En %2$s coñecémonos todos. Para o bo e para o malo.",
+    "16": "O traballo sae mellor cunha cantiga. Mágoa que non saiba ningunha.",
+    "17": "Teño unha esmeralda gardada para un mal día. Aínda non chegou.",
+    "18": "O que non se arranxa con paciencia, arránxase con pan.",
+    "19": "Vés de fóra, nótase. Cheiras a camiño.",
+    "20": "Aquí o que máis se oe son as campás, as galiñas e o que di a xente."
+  },
+  "rumor": {
+    "1": "Din que onte á noite pasou un mercador con tres llamas e ningunha présa.",
+    "2": "A filla do ferreiro está prometida. Ou iso di ela.",
+    "3": "Alguén viu luces raras nos outeiros. Seguro que non é nada.",
+    "4": "Na aldea veciña fan un pan horrible. Non llelo digas.",
+    "5": "Hai días que non vemos o vendedor ambulante. Oxalá estea ben.",
+    "6": "O pastor xura que unha das súas ovellas volveu tinguida de rosa. E que el non foi.",
+    "7": "De noite alguén deixa flores na porta do bibliotecario. Ninguén sabe quen.",
+    "8": "Un leñador oíu campás no medio do bosque, onde non hai campá ningunha.",
+    "9": "Os cativos din que viron un esqueleto montado nunha araña. Eu non lles creo. Polo menos, non de todo.",
+    "10": "Onte chegou un viaxeiro coa roupa queimada e non quixo dicir de onde viña.",
+    "11": "O clérigo merca máis velas das que precisa. Para que quererá tantas?",
+    "12": "Din que alguén sacou un tridente do mar. E que o mar o quería de volta.",
+    "13": "Na última caravana viña un home que non falaba con ninguén. Marchou de noite.",
+    "14": "Un pescador asegura que viu unha cidade baixo a auga. Iso si, bebe coma unha esponxa.",
+    "15": "Volveron verse bandidos polos camiños. Se viaxas, non o fagas en solitario.",
+    "16": "A vella da casa do fondo di que fala cos gatos. E que eles lle responden.",
+    "17": "Hai semanas que o gólem queda mirando cara ao bosque. Algo vería.",
+    "18": "Alguén atopou un compás que non sinala o norte. Vendeuno axiña, claro.",
+    "19": "Din que nas montañas hai covas onde se oe respirar a pedra.",
+    "20": "Pasou por aquí un cartógrafo cun mapa a medio facer. Dixo que había cousas que non se atrevía a debuxar."
+  },
+  "busy": {
+    "1": "Agora non podo, teño faena. Se queres mercar, adiante.",
+    "2": "Logo falamos, que se me queima o caldo.",
+    "3": "Dáme un intre, que me colles no medio da faena.",
+    "4": "Chis, estou a descansar. Volve máis tarde.",
+    "5": "Agora mesmo non, %1$s. Teño a cabeza noutra parte.",
+    "6": "Déixame, que levo todo o día de pé."
+  },
+  "farewell": {
+    "1": "Que che vaia ben, %1$s.",
+    "2": "Volve cando queiras. Aquí estaremos.",
+    "3": "Vai con tino por eses camiños.",
+    "4": "Ata outra. E non te esquezas de %2$s.",
+    "5": "Anda con ollo, que a noite non avisa.",
+    "6": "Se ves meu primo por aí, dille que me debe unha esmeralda.",
+    "7": "Boa viaxe. E come algo, que estás nos ósos.",
+    "8": "Que o camiño che sexa leve, %1$s."
+  },
+  "hint.unique": {
+    "1": "Vouche contar algo que non sabe ninguén: hai moitos anos vin «%1$s», ao %2$s, a uns %3$s bloques. Nunca máis volvín.",
+    "2": "Meu pai faloume de «%1$s». Está ao %2$s, a uns %3$s bloques. Din que algo garda aquel lugar.",
+    "3": "Se buscas aventuras de verdade: «%1$s», ao %2$s, a uns %3$s bloques. Eu dei a volta na porta.",
+    "4": "Unha vez durmín ao raso á sombra de «%1$s». Ao %2$s, a uns %3$s bloques. Non preguei ollo.",
+    "5": "Ao %2$s, a uns %3$s bloques, érguese «%1$s». De lonxe todo parece tranquilo. De preto, non.",
+    "6": "O máis grande que vin na vida: «%1$s». Camiña cara ao %2$s uns %3$s bloques e saberás que é alí antes de chegar."
+  },
+  "hint.medium": {
+    "1": "Cando andaba de viaxe parei nun sitio así: «%1$s», ao %2$s, a uns %3$s bloques de aquí.",
+    "2": "Cara ao %2$s, a uns %3$s bloques, está «%1$s». Pregunta por min, se aínda queda alguén alí.",
+    "3": "Non llo digas a ninguén: «%1$s», ao %2$s, uns %3$s bloques. Paga a pena a camiñada.",
+    "4": "Unha noite de chuvia acubilleime en «%1$s». Ao %2$s, a uns %3$s bloques. Tratáronme ben. Coido.",
+    "5": "Vai ao %2$s, uns %3$s bloques. Alí está «%1$s». Leva merenda, que o camiño faise longo.",
+    "6": "A miña última parada antes de volver foi «%1$s», ao %2$s, a uns %3$s bloques. Aínda me lembro do cheiro."
+  },
+  "hint.mine": {
+    "1": "Hai «%1$s» ao %2$s, a uns %3$s bloques. Baixei unha vez e oín picos na escuridade.",
+    "2": "Se buscas mineral: «%1$s», ao %2$s, a uns %3$s bloques. Leva fachos de sobra.",
+    "3": "Traballei unha tempada en «%1$s». Ao %2$s, a uns %3$s bloques. Deixeino cando o meu facho se apagou só.",
+    "4": "Ao %2$s, a uns %3$s bloques, báixase a «%1$s». As vagonetas aínda rodan. Ninguén as empuxa.",
+    "5": "Un mineiro vello levoume a «%1$s», ao %2$s, uns %3$s bloques. Saín cos petos cheos e as mans tremendo.",
+    "6": "«%1$s», ao %2$s, a uns %3$s bloques. Alí abaixo o aire sabe a ferro. E a algo máis."
+  },
+  "hint.withheld": {
+    "1": "Vin mundo, si... pero non llo conto a calquera. Gáñate a confianza de %2$s.",
+    "2": "Sei dun sitio, pero aínda non te coñezo abondo, %1$s.",
+    "3": "Bota unha man co taboleiro e quizais che conte o que vin nas miñas viaxes.",
+    "4": "Os segredos do camiño hai que gañalos, %1$s. Aínda non che toca.",
+    "5": "Volve cando en %2$s digan o teu nome sen engurrar o cello.",
+    "6": "Podería contarche moitas cousas. Pero primeiro quero ver o que vales."
+  },
+  "hint.told": {
+    "1": "Xa che contei o único que sei. O demais terás que descubrilo ti.",
+    "2": "O meu segredo xa está contado. A ver se alguén de %2$s sabe algo máis.",
+    "3": "Fuches xa ver o que che dixen? Pois non teño máis que contar.",
+    "4": "O que sabía xa é teu, %1$s. Coídao ben."
+  },
+  "hint.nothing": {
+    "1": "Viaxei moito, pero por esta comarca non vin nada que mereza contarse.",
+    "2": "O que vin nas miñas viaxes queda moi lonxe de aquí.",
+    "3": "Por estes arredores só hai campo e máis campo. Faime caso, percorrino enteiro.",
+    "4": "Gustaríame axudarte, %1$s, pero arredor de %2$s non hai nada digno dunha aventura."
+  }
+}
