@@ -1,0 +1,226 @@
+"""Villager routes on a real dedicated 26.3 server: do the villagers of a Heraldia village walk around it during the day?
+
+Usage: python3 tools/smoke/village_routes.py --jar build/libs/heraldia-X.jar --work build/smoke [--measure] [--sites N]
+Places several villages (different styles, standard and large) with /place structure, far enough apart not to share
+villagers, and lets one in-game day pass at an accelerated tick rate (/tick rate) with the village chunks forced. Vanilla
+villager AI does the rest: each villager claims a bed (home), a workstation of its profession (job site) and a bell
+(meeting point) within 48 blocks, and its schedule sends it to the job site in the morning, to the bell at midday and to
+bed at night. Every sample reads each villager's position, whether it sleeps and, at the end, its brain memories.
+
+Per village and in total it counts:
+- moving: villagers whose positions during the day span 8 blocks or more (the rest are "still");
+- commuting: those whose working position (mean of the work samples) is 12 blocks or more from where they spend the night;
+- sleeping: those asleep in a bed in the night sample;
+- home and job site memories and their distance; meeting point (bell) claimed.
+It fails (unless --measure, which only prints the table, e.g. to compare with an earlier .jar) if fewer than MIN_MOVING of
+the villagers move, fewer than MIN_COMMUTE commute, fewer than MIN_SLEEP sleep at night or fewer than MIN_MEETING have a
+meeting point. The heaviest part is the simulated day (14,000 ticks): about 4 minutes on 4 cores with the 4 default villages,
+about 7 with --sites 8.
+"""
+import argparse, math, os, queue, re, subprocess, sys, threading, time
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import server_smoke as s
+
+# (structure, x, z): one style of each house shape (rectangular, round, stilts, long) and large villages. The first
+# DEFAULT_SITES are placed by default (CI); --sites 8 places them all (the figures in the CHANGELOG).
+SITES = [("heraldia:llanuras_castellana", 0, 0), ("heraldia:sabana_paja", 0, 600),
+         ("heraldia:pantano_palafitos", 600, 600), ("heraldia:nieve_alpina_grande", 600, -600),
+         ("heraldia:taiga_nordica", 600, 0), ("heraldia:desierto_obelisco", -600, 0),
+         ("heraldia:cerezos_japonesa", 0, -600), ("heraldia:llanuras_castellana_grande", -600, -600)]
+DEFAULT_SITES = 4
+RADIUS = 120            # forced box around each village (16 x 16 chunks, the forceload limit) and villager search radius
+TICK_RATE = 80          # /tick rate during the simulated day (the server goes as fast as it can if it does not keep up)
+SETTLE_UNTIL = 1500     # day time until which the villagers claim their bed, job site and bell (no sample)
+WORK = (3000, 4500, 6000, 7500)          # day times of the work samples (the schedule's WORK runs 2000-9000)
+MEET = (9800, 10600)                     # MEET runs 9000-11000: gathering at the bell
+NIGHT = (13000, 14000)                   # REST from 12000: in bed
+MOVE_SPAN, COMMUTE = 8, 12              # blocks
+MIN_MOVING, MIN_COMMUTE, MIN_SLEEP, MIN_MEETING = 0.75, 0.5, 0.6, 0.6
+_ARR = r"\[I; (-?\d+), (-?\d+), (-?\d+), (-?\d+)\]"
+_NUM = r"(-?[\d.]+(?:E-?\d+)?)d"
+
+
+def uuid_of(ints):
+    h = "".join(f"{(int(i) & 0xffffffff):08x}" for i in ints)
+    return f"{h[:8]}-{h[8:12]}-{h[12:16]}-{h[16:20]}-{h[20:]}"
+
+
+def collect(ctx, cmd, pattern, n, timeout=s.COMMAND_TIMEOUT_S):
+    """Sends a command that answers with n lines (execute as ...) and returns the n matches of `pattern`."""
+    s.pending(ctx.lines, ctx.seen)
+    s.send(ctx.proc, cmd)
+    return [s.wait_for(ctx.lines, pattern, timeout, ctx.seen) for _ in range(n)]
+
+
+def place(ctx, sid, x, z):
+    for x0, x1 in ((x - RADIUS, x - 1), (x, x + RADIUS - 1)):
+        ctx.run(f"forceload add {x0} {z - RADIUS} {x1} {z + RADIUS - 1}", r"Marked|Added|force|already")
+    for _ in range(s.PLACE_ATTEMPTS):
+        m = ctx.run(f"place structure {sid} {x} ~ {z}", r"Generated structure")
+        if "not loaded" not in m.group(0):
+            return "Generated" in m.group(0)
+        time.sleep(s.PLACE_RETRY_S)
+    return False
+
+
+def villagers(ctx, x, z):
+    """UUIDs of the villagers with AI around (x, z) (not the bailiff of the job board, who has NoAI)."""
+    sel = f"@e[type=villager,x={x - RADIUS},y=-64,z={z - RADIUS},dx={2 * RADIUS},dy=400,dz={2 * RADIUS},nbt=!{{NoAI:1b}}]"
+    n = ctx.count(sel)
+    if not n:
+        return []
+    ms = collect(ctx, f"execute as {sel} run data get entity @s UUID", rf"has the following entity data: {_ARR}", n)
+    return [uuid_of(m.groups()) for m in ms]
+
+
+def read(ctx, u):
+    """(position, asleep) of a villager, or None if it no longer exists."""
+    m = ctx.run(f"data get entity {u} Pos", rf"has the following entity data: \[{_NUM}, {_NUM}, {_NUM}\]|No entity was found")
+    if not m.group(1):
+        return None
+    pos = tuple(float(v) for v in m.groups())
+    sl = ctx.run(f"data get entity {u} sleeping_pos", r"has the following entity data: \[I;|Found no elements|No entity was found")
+    return pos, "has the following" in sl.group(0)
+
+
+def memories(ctx, u):
+    """{memory: (x, y, z)} of home, job_site and meeting_point (those it has)."""
+    out = {}
+    for mem in ("home", "job_site", "meeting_point"):
+        m = ctx.run(f'data get entity {u} Brain.memories."minecraft:{mem}".value.pos',
+                    r"has the following entity data: \[I; (-?\d+), (-?\d+), (-?\d+)\]|Found no elements|No entity was found")
+        if m.group(1):
+            out[mem] = tuple(int(v) for v in m.groups())
+    return out
+
+
+def wait_daytime(ctx, target, start):
+    """Waits until the day time reaches `target`. In 26.3 `/time query daytime` no longer exists (the day is a timeline
+    clock): the world clock was set to 0 with time stopped and runs since `start` (the game time then), one tick per tick.
+    Returns the day time reached."""
+    end = time.monotonic() + 3600
+    while time.monotonic() < end:
+        now = ctx.gametime() - start
+        if now >= target:
+            return now
+        time.sleep(1)
+    raise SystemExit(f"the server does not reach day time {target}")
+
+
+def hdist(a, b):
+    return math.hypot(a[0] - b[0], a[2] - b[2])
+
+
+def mean(ps):
+    return tuple(sum(p[i] for p in ps) / len(ps) for i in range(3))
+
+
+def analyse(samples, mem):
+    """Figures of one villager from its samples {day time: (pos, asleep)} and its memories."""
+    ps = [p for p, _ in samples.values()]
+    span = max((hdist(a, b) for a in ps for b in ps), default=0)
+    work = [samples[t][0] for t in WORK if t in samples]
+    night = [samples[t] for t in NIGHT if t in samples]
+    night_pos = [p for p, _ in night]
+    commute = hdist(mean(work), mean(night_pos)) if work and night_pos else 0
+    home, job = mem.get("home"), mem.get("job_site")
+    return dict(moving=span >= MOVE_SPAN, span=span, commute=commute >= COMMUTE, commute_d=commute,
+                sleeping=bool(night) and night[-1][1], home=home is not None, job=job is not None,
+                meeting=mem.get("meeting_point") is not None,
+                home_job=hdist(home, job) if home and job else None)
+
+
+def summary(rows):
+    n = len(rows)
+    hj = [r["home_job"] for r in rows if r["home_job"] is not None]
+    c = lambda k: sum(1 for r in rows if r[k])
+    return dict(n=n, moving=c("moving"), still=n - c("moving"), commute=c("commute"), sleeping=c("sleeping"),
+                home=c("home"), job=c("job"), meeting=c("meeting"),
+                home_job=(sum(hj) / len(hj)) if hj else 0, same_house=sum(1 for d in hj if d < 6))
+
+
+def line(name, r):
+    return (f"{name:42s} {r['n']:3d} villagers: {r['moving']:3d} move, {r['still']:3d} still, {r['commute']:3d} commute, "
+            f"{r['sleeping']:3d} sleep at night | home {r['home']}, job site {r['job']} (home-job {r['home_job']:.1f} blocks, "
+            f"{r['same_house']} under 6), bell {r['meeting']}")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--jar", required=True)
+    ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke"))
+    ap.add_argument("--measure", action="store_true", help="only print the figures, without failing")
+    ap.add_argument("--sites", type=int, default=DEFAULT_SITES, help=f"how many of the SITES to place (up to {len(SITES)})")
+    a = ap.parse_args()
+    os.makedirs(a.work, exist_ok=True)
+    launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
+    proc = subprocess.Popen(["java", "-Xmx3G", "-jar", launcher, "nogui"], cwd=a.work, text=True,
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    lines, seen = queue.Queue(), []
+    threading.Thread(target=s.reader, args=(proc, lines), daemon=True).start()
+    ctx = s.Context(proc, lines, seen)
+    fails = []
+    try:
+        s.wait_for(lines, r"Heraldia: (\d+) estructuras registradas", s.START_TIMEOUT_S, seen)
+        for cmd in ("difficulty peaceful", "gamerule advance_weather false", "weather clear", "gamerule spawn_mobs false",
+                    "gamerule advance_time false", "time set 0"):
+            ctx.run(cmd, r"Set|set|Changed|changed|Gamerule|now|weather|difficulty|already")
+        sites = SITES[:a.sites]
+        placed = []
+        for sid, x, z in sites:
+            if place(ctx, sid, x, z):
+                placed.append((sid, x, z))
+            else:
+                fails.append(f"/place structure {sid} failed at {x}, {z}")
+        ctx.ticks(100)    # the template entities appear a few ticks after the blocks
+        who = {(sid, x, z): villagers(ctx, x, z) for sid, x, z in placed}
+        for k, us in who.items():
+            print(f"RUTAS: {k[0]} at {k[1]}, {k[2]}: {len(us)} villagers")
+            if not us:
+                fails.append(f"{k[0]}: no villagers")
+        ctx.run("gamerule advance_time true", r"Gamerule|set|now")
+        ctx.run(f"tick rate {TICK_RATE}", r"rate|Set|set")
+        start = ctx.gametime()
+        wait_daytime(ctx, SETTLE_UNTIL, start)
+        samples = {u: {} for us in who.values() for u in us}
+        for t in sorted(WORK + MEET + NIGHT):
+            got = wait_daytime(ctx, t, start)
+            for u in samples:
+                r = read(ctx, u)
+                if r:
+                    samples[u][t] = r
+            print(f"RUTAS: sample at day time {t} (read at {got})")
+        ctx.run("tick rate 20", r"rate|Set|set")
+        rows_all = []
+        print("RUTAS: results")
+        for (sid, x, z), us in who.items():
+            mems = {u: memories(ctx, u) for u in us if samples[u]}
+            rows = [analyse(samples[u], mems[u]) for u in mems]
+            rows_all += rows
+            print("RUTAS: " + line(sid, summary(rows)))
+            bells = {}
+            for m in mems.values():
+                if "meeting_point" in m:
+                    bells[m["meeting_point"]] = bells.get(m["meeting_point"], 0) + 1
+            print(f"RUTAS:   bells claimed: " + ", ".join(f"{b} by {n}" for b, n in sorted(bells.items())))
+        tot = summary(rows_all)
+        print("RUTAS: " + line("TOTAL", tot))
+        if not a.measure and tot["n"]:
+            n = tot["n"]
+            for key, lim in (("moving", MIN_MOVING), ("commute", MIN_COMMUTE), ("sleeping", MIN_SLEEP), ("meeting", MIN_MEETING)):
+                if tot[key] < lim * n:
+                    fails.append(f"only {tot[key]} of {n} villagers {key} (at least {lim:.0%} expected)")
+    finally:
+        s.send(proc, "stop")
+        try:
+            proc.wait(timeout=120)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+    if fails:
+        print("FAIL:\n  " + "\n  ".join(fails))
+        sys.exit(1)
+    print("OK: village routes")
+
+
+if __name__ == "__main__":
+    main()

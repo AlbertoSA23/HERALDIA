@@ -33,8 +33,20 @@ def bed_slot(t, th, x, y, z, pool):
     t.set(x, y + 1, z, "air"); t.set(x, y + 1, z + 1, "air")
 
 
+def store(th, depth):
+    """Storage block of a house: a barrel, which is also the fisherman's workstation; in a fisherman's house, a chopping
+    block (an upright stripped log) so that they go to work elsewhere too."""
+    return log(th["stripped"], "y") if depth == "fisherman" else "barrel[facing=up]"
+
+
 def villager_pool(th, depth, fixed=False):
     return nsid(f"villagers/{th['vtype']}/{'fixed_' if fixed else ''}{depth}")
+
+
+def room_pool(th, depth):
+    """Bed of an inn or tavern room: always a bed (pack.build_common), unlike a house's, which may be a rug. The staff of
+    the special buildings have no bed at work and claim the closest free one within 48 blocks: these, on the avenues."""
+    return nsid(f"villagers/{th['vtype']}/room_{depth}")
 
 
 class Room:
@@ -80,13 +92,14 @@ class Room:
         return c
 
 
-def furnish(t, th, rng, room, *, depth=None, tier=None, kind="living", ceil=None, hearth=False, table_len=1):
+def furnish(t, th, rng, room, *, job=None, tier=None, kind="living", ceil=None, hearth=False, table_len=1):
     """Furnishes a room sensibly: everything goes against a wall, nothing blocks windows and the center stays free
-    except for the dining table."""
+    except for the dining table. `job` is the profession of the workstation the room holds (not the resident's: see
+    make_house)."""
     y = room.y
     items = []
-    if depth:
-        items.append(("ws", WORKSTATION[depth]))
+    if job:
+        items.append(("ws", WORKSTATION[job]))
     if tier:
         items.append(("chest", tier))
     if kind == "living":
@@ -140,7 +153,7 @@ def furnish(t, th, rng, room, *, depth=None, tier=None, kind="living", ceil=None
         t.set(cx, ceil, lz, lantern(th, True))
 
 
-def rect_house(th, rng, name, size, depth, tier):
+def rect_house(th, rng, name, size, depth, tier, job):
     t = Template(name)
     s = th["stilts"]
     if th["shape"] == "long":
@@ -227,7 +240,7 @@ def rect_house(th, rng, name, size, depth, tier):
             t.set(ax0 + 1, fy + 3, z, f"{th['roof_slab']}[type=top]")
             t.set(ax1, fy + 3, z, f"{th['roof_slab']}[type=bottom]")
             t.set(ax0, fy + 1, z, log(th["log"], "x"))
-        t.set(ax0 + 1, fy + 1, az1, "barrel[facing=up]")
+        t.set(ax0 + 1, fy + 1, az1, store(th, depth))
     # --- flat roof: exposed beams and dome on the large houses
     if th["roof_type"] == "flat":
         ry = fy + H
@@ -262,26 +275,24 @@ def rect_house(th, rng, name, size, depth, tier):
     pool = villager_pool(th, depth)
     tl = 0 if size == "small" else (3 if (zb - zf) >= 9 else 1)
     bx, bz = 1, zb - 2                     # bed always in the back corner, away from the chimney
-    if floors == 1:
-        bed_slot(t, th, bx, fy, bz, pool)
-        reserved |= {(bx, bz), (bx, bz + 1), (bx + 1, bz), (bx + 1, bz + 1)}
-        room = Room(t, 1, zf + 1, W - 2, zb - 1, fy + 1, reserved)
-        furnish(t, th, rng, room, depth=depth, tier=tier, kind="living", ceil=fy + 3, hearth=chimney, table_len=tl)
-    else:
-        room = Room(t, 1, zf + 1, W - 2, zb - 1, fy + 1, reserved)
-        furnish(t, th, rng, room, depth=depth, tier=None, kind="living", ceil=fy + 3, hearth=chimney, table_len=tl)
+    # The bed is always on the ground floor: villagers do not plan paths up ladders, so a bed upstairs was never
+    # claimed by anyone downstairs, and whoever was born up there could not come down to work.
+    bed_slot(t, th, bx, fy, bz, pool)
+    reserved |= {(bx, bz), (bx, bz + 1), (bx + 1, bz), (bx + 1, bz + 1)}
+    room = Room(t, 1, zf + 1, W - 2, zb - 1, fy + 1, reserved)
+    furnish(t, th, rng, room, job=job, tier=tier if floors == 1 else None, kind="living", ceil=fy + 3, hearth=chimney,
+            table_len=tl)
+    if floors == 2:                        # loft with the chest, shelves and a rug
         uy = fy + 4
         ureserved = {(1, zf + 1), (1, zf + 2), (2, zf + 1), (2, zf + 2)}
         if chimney:
             ureserved |= {(hx, hz), (hx, hz - 1)}
-        bed_slot(t, th, bx, uy, bz, pool)
-        ureserved |= {(bx, bz), (bx, bz + 1), (bx + 1, bz), (bx + 1, bz + 1)}
         uroom = Room(t, 1, zf + 1, W - 2, zb - 1, uy + 1, ureserved)
         furnish(t, th, rng, uroom, tier=tier, kind="bedroom", ceil=uy + 3)
     return t
 
 
-def round_house(th, rng, name, size, depth, tier):
+def round_house(th, rng, name, size, depth, tier, job):
     t = Template(name)
     r = {"small": 3, "medium": 4, "large": 5}[size]
     cx, cz = r + 1, r + 3
@@ -312,13 +323,13 @@ def round_house(th, rng, name, size, depth, tier):
     pool = villager_pool(th, depth)
     bed_slot(t, th, cx + r - 1, fy, cz, pool)
     y = fy + 1
-    t.set(cx - r + 1, y, cz + 1, facing_state(WORKSTATION[depth], "east"))
+    t.set(cx - r + 1, y, cz + 1, facing_state(WORKSTATION[job], "east"))
     t.set(cx - r + 1, y, cz - 1, "crafting_table")
     t.set(cx - r + 1, y, cz, f"{th['wslab']}[type=top]")
     t.set(cx - r + 1, y + 1, cz, potted(rng.choice(th["plants"])))
     if tier:
         t.chest(cx - 1, y, cz + r - 1, "north", LOOT[tier])
-    t.set(cx + 1, y, cz + r - 1, "barrel[facing=up]")
+    t.set(cx + 1, y, cz + r - 1, store(th, depth))
     col = rng.choice(th["carpet"])
     for ddx in (-1, 0, 1):
         for ddz in (-1, 0, 1):
@@ -328,8 +339,13 @@ def round_house(th, rng, name, size, depth, tier):
     return t
 
 
-def make_house(th, rng, name, size, depth):
+def make_house(th, rng, name, size, depth, job):
+    """House whose bed slot gets a villager of profession `depth` and whose workstation is that of `job`, another
+    profession (pack.build_theme pairs the houses): a villager who worked next to their own bed would spend the whole day
+    indoors, while one whose workstation is in another house or in a special building walks the streets to it in the
+    morning and back at night (vanilla AI: job site and bed are claimed within 48 blocks, the closest first)."""
+    assert job != depth, f"{name}: the workstation must belong to another profession"
     tier = pick_tier(rng, size)
     if th["shape"] == "round":
-        return round_house(th, rng, name, size, depth, tier)
-    return rect_house(th, rng, name, size, depth, tier)
+        return round_house(th, rng, name, size, depth, tier, job)
+    return rect_house(th, rng, name, size, depth, tier, job)
