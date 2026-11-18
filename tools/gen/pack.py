@@ -13,6 +13,7 @@ from streets import (straight, crossroad, terminator_end, watchtower, gate, plaz
 from specials import SPECIALS, VARIANTS
 from fillers import filler, villager_piece, golem_piece, rug_piece
 import board
+import traces
 import trades
 import parallel
 
@@ -153,6 +154,10 @@ def build_theme(reg, th, seed):
     for k in fills:
         t = filler(th, rng, f"{tid}/fillers/{k}", k)
         els.append((reg.add(t, "filler"), 1, "rigid", bld_proc))
+    # traces of work in progress (aldeas.vida.rastros): a plot with its trace, on its own random source (tools/gen/traces.py)
+    plot = traces.build(reg, th, seed)
+    if plot:
+        els.append((plot, traces.PLOT_WEIGHT, "rigid", bld_proc))
     reg.pool(f"{tid}/houses", els)
     # ---- especiales
     # the coast has an inn on the avenue like the rest; its port (hut + pier) is placed separately, on the shore, by

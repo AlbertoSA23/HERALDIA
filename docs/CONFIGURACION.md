@@ -165,6 +165,7 @@ cuando cambie su formato. Se lee al arrancar el servidor y afecta a los chunks q
 | `aldeas.estilos.<estilo>` | `true` | `true`/`false` | Activa un estilo (estándar y grande). Si una casilla elige uno desactivado, se prueba otro estilo de su bioma. |
 | `aldeas.vida.tratos_estilo` | `true` | `true`/`false` | Tratos propios de cada estilo y mapa de la única de la zona en los cartógrafos de cada familia ([Vida de las aldeas](CONTENIDO.md#vida-de-las-aldeas)). |
 | `aldeas.vida.tablon` | `true` | `true`/`false` | Tablón de encargos y alguacil en la plaza de las aldeas nuevas. |
+| `aldeas.vida.rastros` | `true` | `true`/`false` | Rastros de trabajo a medias en unos pocos solares de las aldeas nuevas (una casa a medio construir, ropa tendida, una comida a medias, un taller, un carro cargado, pescado secándose, una hoguera): solo bloques; apagada, los solares quedan vacíos. |
 | `aldeas.vida.asedios` | `false` | `true`/`false` | El armero de las aldeas fortificadas vende una botella ominosa para provocar un asalto de saqueadores. |
 | `aldeas.caminos.activado` | `true` | `true`/`false` | Caminos entre aldeas cercanas, con puentes, farolas y carteles ([Caminos entre aldeas](CONTENIDO.md#caminos-entre-aldeas)); solo en los chunks nuevos. Desactivado, el rasgo ni se añade a los biomas. |
 | `aldeas.caminos.distancia_maxima_bloques` | 2000 | 500-4000 | Solo se unen aldeas a menos de esta distancia. Dos aldeas nunca están a menos de unos 670 bloques (con la separación mínima, 1000), así que con menos de eso no habría ningún camino. |

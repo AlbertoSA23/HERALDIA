@@ -107,6 +107,20 @@ class VillageStructureTest {
 	}
 
 	@Test
+	void tracesOfWorkInProgress() {
+		// the traces sit on their plots (fillers): the port can displace them with the plot, and the option removes only them
+		for (String t : List.of("llanuras_castellana/traces/laundry", "costa_pescadores/traces/fish_rack")) {
+			assertTrue(VillageStructure.isTrace(t), t);
+			assertTrue(VillageStructure.removable(t), t);
+		}
+		for (String no : List.of("llanuras_castellana/fillers/plot", "llanuras_castellana/houses/small_0", "llanuras_castellana/tablon",
+				"villagers/plains/e_farmer", "golem")) {
+			assertFalse(VillageStructure.isTrace(no), no);
+		}
+		assertTrue(VillageStructure.removable("llanuras_castellana/fillers/plot"));
+	}
+
+	@Test
 	void rotationTowardsSea() {
 		for (Direction d : Direction.Plane.HORIZONTAL) {
 			Rotation r = VillageStructure.facing(d);
