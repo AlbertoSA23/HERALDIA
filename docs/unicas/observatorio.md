@@ -1,140 +1,140 @@
-# Observatorio (`heraldia:unicas/observatorio`)
+# Observatory (`heraldia:unicas/observatorio`)
 
-Observatorio astronómico abandonado en una cumbre ventosa. Una sola variante, diseñada a mano en
-`tools/gen/unicas/observatorio.py`. Planos de planta y renders en `docs/unicas/observatorio/`.
+An abandoned astronomical observatory on a windswept summit. A single variant, designed by hand in
+`tools/gen/unicas/observatorio.py`. Floor plans and renders in `docs/unicas/observatorio/`.
 
-## Colocación
-- Biomas: `windswept_hills`, `windswept_gravelly_hills`, `windswept_savanna` (colinas ventosas, colinas
-  pedregosas ventosas y meseta de sabana ventosa; ninguna otra estructura única las usa).
-- Rejilla por defecto: `spacing` 250 / `separation` 190 chunks (una cada ~3.000-5.000 bloques).
-- Dos piezas rígidas unidas por un jigsaw vertical: **superficie** (planta baja, planta alta, azotea y
-  cúpula; 41 × 35 × 23) y **subsuelo** (archivo y cámara del tesoro). Adaptación `beard_thin`: el terreno
-  se allana alrededor de la base de la pieza de superficie. El subsuelo es una pieza aparte para que su
-  caja no hunda el terreno (la corrección de `beard_thin` solo actúa a ±12 bloques de la base de cada
-  pieza y a esa profundidad el terreno es macizo); sus salas van envueltas en roca propia (dos bloques) y
-  solo se colocan bloques donde hay salas, de modo que no aparece un cubo de piedra en la ladera.
+## Placement
+- Biomes: `windswept_hills`, `windswept_gravelly_hills`, `windswept_savanna` (windswept hills, windswept
+  gravelly hills and windswept savanna; no other unique structure uses them).
+- Default grid: `spacing` 250 / `separation` 190 chunks (one every ~3,000-5,000 blocks).
+- Two rigid pieces joined by a vertical jigsaw: **surface** (ground floor, upper floor, roof terrace and
+  dome; 41 × 35 × 23) and **underground** (archive and treasure chamber). `beard_thin` adaptation: the terrain
+  is leveled around the base of the surface piece. The underground part is a separate piece so that its
+  box does not sink the terrain (the `beard_thin` correction only acts within ±12 blocks of the base of each
+  piece and at that depth the terrain is solid); its rooms are wrapped in their own rock (two blocks) and
+  blocks are only placed where there are rooms, so no stone cube appears on the hillside.
 
-## Coordenadas
-x crece hacia el este, z hacia el sur, y = 0 es la losa de la planta baja (se pisa a y = 1).
-La entrada está al norte (z = 0). Rotonda centrada en (20, 20), radio 9.
+## Coordinates
+x grows towards the east, z towards the south, y = 0 is the ground floor slab (you stand at y = 1).
+The entrance is to the north (z = 0). A rotunda centered on (20, 20), radius 9.
 
-## Plantas
-### Planta baja (y 1-5)
-| Sala | Zona | Contenido |
+## Floor plans
+### Ground floor (y 1-5)
+| Room | Area | Contents |
 |---|---|---|
-| Camino y escalinata | x 18-22, z 0-5 | Pavimento, farolas sobre pilares |
-| Vestíbulo | x 12-28, z 7-10 | Bancos, faroles; puertas a biblioteca, taller y planetario |
-| Planetario (rotonda) | r < 8,5 | Planetario mecánico colgado del techo (sol de piedra luminosa y planetas de cobre con cadenas), techo de estrellas, mesas de cartografía y atriles en el muro |
-| Biblioteca de los astrónomos | x 2-10, z 7-19 | Estanterías entre ventanas, atriles bajo las ventanas, mesa de lectura con sillas; **alfombra con trampilla oculta** (sala oculta 1) |
-| Taller de óptica | x 30-38, z 7-19 | Vidrieras de cristal tintado, hornos, mesa de trabajo, muela, caldero, cristales expuestos; cofre menor |
-| Antesala del archivo | x 2-10, z 21-33 | Almacén con barriles; escalera que baja al archivo; cofre menor |
-| Escalera este | x 30-38, z 21-33 | Tramos a la planta alta y a la azotea |
-| Galería sur | x 12-28, z 31-33 | Une las dos alas y entra al planetario por el sur |
+| Path and steps | x 18-22, z 0-5 | Paving, street lamps on pillars |
+| Vestibule | x 12-28, z 7-10 | Benches, lanterns; doors to the library, workshop and planetarium |
+| Planetarium (rotunda) | r < 8.5 | A mechanical planetarium hanging from the ceiling (a glowstone sun and copper planets on chains), a starry ceiling, cartography tables and lecterns along the wall |
+| The astronomers' library | x 2-10, z 7-19 | Bookshelves between windows, lecterns under the windows, a reading table with chairs; **a carpet with a hidden trapdoor** (hidden room 1) |
+| Optics workshop | x 30-38, z 7-19 | Stained glass windows, furnaces, a crafting table, a grindstone, a cauldron, glass on display; smaller chest |
+| Archive anteroom | x 2-10, z 21-33 | A storeroom with barrels; stairs going down to the archive; smaller chest |
+| East staircase | x 30-38, z 21-33 | Flights to the upper floor and the roof terrace |
+| South gallery | x 12-28, z 31-33 | Joins the two wings and enters the planetarium from the south |
 
-### Planta alta (y 7-11)
-| Sala | Zona | Contenido |
+### Upper floor (y 7-11)
+| Room | Area | Contents |
 |---|---|---|
-| Sala del telescopio | r < 8,5, abierta a la cúpula | Gran telescopio de cobre sobre pedestal apuntando a la rendija norte de la cúpula; cofre menor |
-| Galería norte | x 12-28, z 7-10 | Catalejos sobre trípode junto a las ventanas |
-| Dormitorio de los astrónomos | x 2-10, z 7-19 | 4 camas contra el muro oeste (sin tapar ventanas), mesillas, cofre menor |
-| Comedor | x 2-10, z 21-33 | Mesa con sillas (respaldo hacia fuera), ahumador, barriles |
-| Gabinete del astrónomo jefe | x 30-38, z 7-19 | Escritorio, estanterías, mesa de cartografía, cofre menor |
-| Galería sur alta y rellano | x 12-38, z 21-33 | Unión con la escalera este |
+| Telescope room | r < 8.5, open to the dome | A large copper telescope on a pedestal pointing at the dome's north slit; smaller chest |
+| North gallery | x 12-28, z 7-10 | Spyglasses on tripods next to the windows |
+| The astronomers' dormitory | x 2-10, z 7-19 | 4 beds against the west wall (not covering windows), nightstands, smaller chest |
+| Dining room | x 2-10, z 21-33 | A table with chairs (facing outwards), smoker, barrels |
+| The head astronomer's study | x 30-38, z 7-19 | Desk, bookshelves, cartography table, smaller chest |
+| Upper south gallery and landing | x 12-38, z 21-33 | Connects with the east staircase |
 
-### Azotea (y 13)
-Pretil de muro de piedra, **reloj de sol** sobre la ala oeste (esfera de piedra lisa, gnomon y marcas
-horarias con sensores de luz solar), catalejos en trípode sobre el ala este, cúpula de cobre oxidado en el
-centro con una rendija de observación al norte.
+### Roof terrace (y 13)
+A stone wall parapet, a **sundial** over the west wing (a smooth stone dial, a gnomon and hour
+marks with daylight detectors), spyglasses on tripods over the east wing, a weathered copper dome in the
+center with an observation slit to the north.
 
-### Archivo (subsuelo, y −6 a −2)
-| Sala | Zona | Contenido |
+### Archive (underground, y −6 to −2)
+| Room | Area | Contents |
 |---|---|---|
-| Rellano de la escalera | x 4-8, z 29-33 | Final de la escalera desde la antesala |
-| Pasillo del hilo | x 9-13, z 30-33 | **Trampa 1**: cable trampa con dos dispensadores de flechas (como el templo de la jungla) |
-| Archivo | x 14-26, z 20-33 | Estanterías en pasillos, **2 generadores** (zombi y araña) a oscuras, 2 cofres de archivo, telarañas. **Puzle de las fases** en el muro este. **Sala oculta 2** tras la estantería del muro norte |
-| Gabinete del bibliotecario (sala oculta 1) | x 3-9, z 12-17 | Se llega solo por la trampilla bajo la alfombra de la biblioteca; cofre oculto |
-| Gabinete de instrumentos (sala oculta 2) | x 17-23, z 13-16 | Puerta de pistones tras la estantería del nicho; palanca junto al nicho; cofre oculto |
+| Stair landing | x 4-8, z 29-33 | The end of the staircase from the anteroom |
+| Wire corridor | x 9-13, z 30-33 | **Trap 1**: a tripwire with two arrow dispensers (like the jungle temple) |
+| Archive | x 14-26, z 20-33 | Bookshelves in aisles, **2 spawners** (zombie and spider) in the dark, 2 archive chests, cobwebs. The **phases puzzle** on the east wall. **Hidden room 2** behind the bookshelf of the north wall |
+| The librarian's cabinet (hidden room 1) | x 3-9, z 12-17 | Reached only through the trapdoor under the library's carpet; hidden chest |
+| Instrument cabinet (hidden room 2) | x 17-23, z 13-16 | A piston door behind the niche's bookshelf; a lever next to the niche; hidden chest |
 
-### Cámara del tesoro (subsuelo, y −13 a −9)
-| Sala | Zona | Contenido |
+### Treasure chamber (underground, y −13 to −9)
+| Room | Area | Contents |
 |---|---|---|
-| Escalera | x 28, z 15-21 | Tras la puerta de hierro del puzle |
-| Cámara de las horas | x 25-31, z 7-14 | Sensores de luz y relojes de piedra; barril de archivo |
-| Pasillo de las losas | x 18-24, z 10 | **Trampa 2**: placas de presión con dispensadores de flechas a ambos lados |
-| Sala del guardián | x 8-17, z 5-15 | Columnas, **1 generador** (esqueleto) y el **guardián** |
-| Cámara del tesoro | x 2-6, z 8-12 | Puerta de hierro con botones; **cofre premium** |
+| Staircase | x 28, z 15-21 | Behind the puzzle's iron door |
+| Chamber of hours | x 25-31, z 7-14 | Daylight detectors and stone clocks; archive barrel |
+| Plates corridor | x 18-24, z 10 | **Trap 2**: pressure plates with arrow dispensers on both sides |
+| Guardian's hall | x 8-17, z 5-15 | Columns, **1 spawner** (skeleton) and the **guardian** |
+| Treasure chamber | x 2-6, z 8-12 | An iron door with buttons; **premium chest** |
 
-## Recorrido del jugador
-Entrada → vestíbulo → biblioteca, taller y planetario (cofres menores a la vista) → escalera este →
-planta alta (dormitorio, comedor, gabinete, telescopio) → azotea (reloj de sol, pista del puzle) →
-de vuelta abajo, antesala → archivo (trampa del hilo, generadores) → salas ocultas → puzle de las fases →
-cámara de las horas → pasillo de las losas (trampa) → guardián → cofre premium.
-El recorrido completo lo comprueba la auditoría a pie en estado «resuelto» (palanca y puzle accionados,
-trampilla abierta).
+## Player route
+Entrance → vestibule → library, workshop and planetarium (smaller chests in sight) → east staircase →
+upper floor (dormitory, dining room, study, telescope) → roof terrace (sundial, the puzzle's clue) →
+back down, anteroom → archive (wire trap, spawners) → hidden rooms → phases puzzle →
+chamber of hours → plates corridor (trap) → guardian → premium chest.
+The audit checks the complete route on foot in the "solved" state (lever and puzzle operated,
+trapdoor open).
 
-## Puzle de las fases
-Cuatro palancas en el muro este del archivo, cada una bajo un glifo de fase lunar: luna nueva (bloque de
-carbón), creciente, llena (luz perla) y menguante. La puerta de hierro se abre solo con **luna nueva y
-luna llena** levantadas y las dos crecientes bajadas. Pista: el suelo del planetario y la esfera del
-reloj de sol marcan esas dos fases con los mismos bloques.
-Circuito (todo en reposo y coherente al colocarse, sin depender de actualizaciones):
-- Palancas de las fases «buenas» → bloque → antorcha de redstone (NO) → línea O.
-- Palancas «malas» → bloque → polvo → línea O.
-- Línea O → (el último polvo entra por el lado del soporte) → bloque → antorcha de salida (NO) junto a la hoja
-  superior de la puerta. Si el polvo fuera encima de ese bloque, la antorcha encendida alimentaría el bloque de encima y
-  este al polvo: reloj de redstone y antorcha fundida (fallo real encontrado en la prueba en servidor).
-- En reposo la línea O está alimentada por las dos antorchas encendidas, con la potencia calculada en
-  cada polvo; la antorcha de salida está apagada y la puerta cerrada. La auditoría simula el circuito
-  para las 16 combinaciones y exige que solo una abra.
+## Phases puzzle
+Four levers on the east wall of the archive, each under a moon phase glyph: new moon (coal
+block), waxing, full (pearlescent froglight) and waning. The iron door only opens with **new moon and
+full moon** up and the two crescents down. Clue: the planetarium's floor and the sundial's dial
+mark those two phases with the same blocks.
+Circuit (everything at rest and consistent when placed, without depending on updates):
+- "Good" phase levers → block → redstone torch (NOT) → OR line.
+- "Bad" levers → block → dust → OR line.
+- OR line → (the last dust comes in from the side of the support) → block → output torch (NOT) next to the door's upper
+  leaf. If the dust went on top of that block, the lit torch would power the block above and
+  that one the dust: a redstone clock and a burnt-out torch (a real bug found in the server test).
+- At rest the OR line is powered by the two lit torches, with the power computed on
+  each dust; the output torch is off and the door closed. The audit simulates the circuit
+  for the 16 combinations and requires only one to open.
 
-## Sala oculta 2: puerta de pistones
-Dos pistones pegajosos extendidos (alimentados por una antorcha de redstone y casi-conectividad)
-sujetan dos estanterías en el fondo de un nicho. La palanca junto al nicho apaga la antorcha: los pistones
-se retraen, tiran de las estanterías y abren el paso. La auditoría comprueba la geometría del circuito.
+## Hidden room 2: piston door
+Two extended sticky pistons (powered by a redstone torch and quasi-connectivity)
+hold two bookshelves at the back of a niche. The lever next to the niche turns off the torch: the pistons
+retract, pull the bookshelves and open the way. The audit checks the circuit's geometry.
 
-## Trampas
-1. Cable trampa en el pasillo del archivo: los ganchos alimentan el bloque al que están sujetos y este
-   activa un dispensador con flechas sobre cada gancho, a la altura del pecho.
-2. Placas de presión de piedra en el pasillo de las losas: cada placa activa los dispensadores que tiene
-   a cada lado.
+## Traps
+1. A tripwire in the archive corridor: the hooks power the block they are attached to and that one
+   activates an arrow dispenser above each hook, at chest height.
+2. Stone pressure plates in the plates corridor: each plate activates the dispensers it has
+   on each side.
 
-## Enemigos
-- Generadores: zombi y araña en el archivo, esqueleto en la sala del guardián (zonas sin luz).
-- Guardián: esqueleto «Custodio de las Estrellas» (`PersistenceRequired`), 40 de vida, arco con Poder II,
-  casco de oro y cota de malla; probabilidad de soltar el equipo baja.
-- Sin aldeanos ni gólems: el observatorio está abandonado e infestado.
+## Enemies
+- Spawners: zombie and spider in the archive, skeleton in the guardian's hall (unlit areas).
+- Guardian: a skeleton, "Keeper of the Stars" (`PersistenceRequired`), 40 health, a bow with Power II,
+  a gold helmet and chainmail; a low chance of dropping its equipment.
+- No villagers or golems: the observatory is abandoned and infested.
 
-## Botín (solo vanilla; `solo_sin_lootr` en el grupo extra de cada cofre)
-| Tabla | Cofres | Contenido |
+## Loot (vanilla only; `solo_sin_lootr` in each chest's extra pool)
+| Table | Chests | Contents |
 |---|---|---|
-| `menor` | 7 en superficie | Papel, libros, velas, comida, carbón, cobre, cristal, fragmentos de amatista; a veces brújula, reloj o catalejo |
-| `archivo` | 3 en el subsuelo | Libros, mapas, lapislázuli, oro, botellas de experiencia, un libro encantado al azar, etiqueta |
-| `oculto` | 2 salas ocultas | Esmeraldas, diamante (1-2), libro encantado (10-20), manzana de oro, catalejo, estandarte del globo |
-| `premium` | 1, cámara final | 90 % vistoso: catalejo, reloj y brújula con nombre, casco de hierro con nombre y encantamiento moderado, adornos *wayfinder* y *shaper*, disco *far* o *mall*, estandarte del globo, oro y amatista. 10 %: diamantes, libro encantado 25-30 o peto de diamante encantado 15-25. Sin netherita ni élitros |
+| `menor` | 7 at the surface | Paper, books, candles, food, coal, copper, glass, amethyst shards; sometimes a compass, clock or spyglass |
+| `archivo` | 3 underground | Books, maps, lapis lazuli, gold, bottles o' enchanting, a random enchanted book, name tag |
+| `oculto` | 2 hidden rooms | Emeralds, diamond (1-2), enchanted book (10-20), golden apple, spyglass, globe banner |
+| `premium` | 1, final chamber | 90 % showy: a named spyglass, clock and compass, a named iron helmet with a moderate enchantment, *wayfinder* and *shaper* trims, the *far* or *mall* disc, a globe banner, gold and amethyst. 10 %: diamonds, an enchanted book 25-30 or a diamond chestplate enchanted 15-25. No netherite or elytra |
 
-## Estado (80-85 % en buen estado)
-- Procesador en la pieza de superficie: ladrillo de piedra → agrietado (14 %) o, del resto, musgoso (9 %). En el subsuelo: ladrillo y baldosa de pizarra agrietados y algo de andesita en la roca.
-- Ruina diseñada con sentido: paneles de cobre caídos en el sureste de la cúpula (con escombros sobre el
-  suelo del telescopio, no colgando), esquina noreste del pretil derrumbada con cascotes en la azotea,
-  ventanas rotas en las fachadas oeste y este, tramo del pretil sur caído, telarañas en el subsuelo.
-- La auditoría calcula la fracción dañada de la envolvente exterior (bloques visibles desde fuera) y exige
-  que quede entre el 15 y el 20 % (resultado: 84,0 % en buen estado sobre 2.976 bloques visibles).
+## Condition (80-85 % in good condition)
+- Processor on the surface piece: stone brick → cracked (14 %) or, of the rest, mossy (9 %). Underground: cracked deepslate brick and tile and some andesite in the rock.
+- Ruin designed to make sense: copper panels fallen in the southeast of the dome (with rubble on the
+  telescope floor, not hanging), the northeast corner of the parapet collapsed with debris on the roof terrace,
+  broken windows on the west and east façades, a fallen stretch of the south parapet, cobwebs underground.
+- The audit computes the damaged fraction of the outer envelope (blocks visible from outside) and requires
+  it to be between 15 and 20 % (result: 84.0 % in good condition over 2,976 visible blocks).
 
-## Contraste con el criterio de Alberto
-- Escaleras completas sin saltos; cada puerta con salida; ninguna sala inaccesible (auditoría a pie).
-- Muebles contra muro, sin tapar ventanas; centro libre salvo mesas con sillas de respaldo hacia fuera.
-- Faroles colgados con cadena hasta el techo; el planetario mecánico cuelga de cadenas; escombros en el suelo.
-- Simetría en la fachada, la rotonda y las alas; cada elemento tiene función (telescopio, reloj de sol,
-  catalejos, vidrieras de taller, archivo).
+## Against the owner's criteria
+- Complete staircases without jumps; every door with an exit; no inaccessible room (walk audit).
+- Furniture against the wall, not covering windows; center free except for tables with chairs facing outwards.
+- Lanterns hanging on chains up to the ceiling; the mechanical planetarium hangs from chains; rubble on the floor.
+- Symmetry in the façade, the rotunda and the wings; every element has a function (telescope, sundial,
+  spyglasses, workshop stained glass, archive).
 
-## Comprobaciones
-- Construcción con `_comun/piezas.py` (puertas, generadores, guardián, trampa de cable y de losas, conexiones),
-  botín con `_comun/botin.py`, circuito con `_comun/redstone.py` y recorrido con sótano con `_comun/recorrido.py`.
-- `build(reg)` audita la plantilla completa antes de partirla y cualquier aviso detiene la generación: apoyos
-  (`lint.support_issues`), recorrido a pie en estado resuelto (puertas, cofres, barriles, palancas, botones,
-  escaleras de mano y cada peldaño de los tramos), salas ocultas inalcanzables sin resolver, simulación del
-  circuito con `redstone.check_static` y `check_puzzle` (16 combinaciones; estado colocado estable), puerta de pistones,
-  nada flotando (todo bloque unido al resto) y estado exterior entre 80 y 85 %.
-- `tools/smoke/observatorio_smoke.py`: en un servidor dedicado 26.3 coloca el subsuelo y comprueba reposo, puzle,
-  pistones, trampas, cámara del tesoro y guardián, y que `/place structure` coloca también el subsuelo.
-- No comprobado: el aspecto en el juego (faltan capturas de Alberto) ni la colocación natural en los biomas.
+## Checks
+- Built with `_comun/piezas.py` (doors, spawners, guardian, tripwire and plate traps, connections),
+  loot with `_comun/botin.py`, the circuit with `_comun/redstone.py` and the walk with a basement with `_comun/recorrido.py`.
+- `build(reg)` audits the complete template before splitting it and any warning stops generation: supports
+  (`lint.support_issues`), the walk in the solved state (doors, chests, barrels, levers, buttons,
+  ladders and every step of the flights), hidden rooms unreachable without solving, circuit simulation
+  with `redstone.check_static` and `check_puzzle` (16 combinations; the placed state stable), the piston door,
+  nothing floating (every block joined to the rest) and the exterior condition between 80 and 85 %.
+- `tools/smoke/observatorio_smoke.py`: on a 26.3 dedicated server it places the underground part and checks the rest state, puzzle,
+  pistons, traps, treasure chamber and guardian, and that `/place structure` also places the underground part.
+- Not checked: the look in game (missing screenshots from the owner) or the natural placement in the biomes.
