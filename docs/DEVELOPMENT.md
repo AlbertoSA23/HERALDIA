@@ -157,6 +157,12 @@ Unique structures:
 - Well built inside, thorough exploration: smaller chests scattered around, hidden rooms and a final chamber with the premium chest.
 - Atlantis: only one per world (always 1, not configurable), submerged in a large ocean, the largest the game allows (see its own session).
 
+#### The Herald's House roads (`herald/SpawnRoads`)
+
+Measured locally (4 cores, Linux, one pass of 60 s, `--scenarios casa_heraldo --no-escalation`; the town at 700, 700, so its arena is too far to be joined and the build makes the four gates' roads and four huts): develop `8.8 / 8.5 / 11.8 / 16.4` ms (mean / p50 / p95 / p99), with the roads `8.4 / 7.9 / 11.4 / 16.6` ms, 20 → 24 villagers in range: the difference is inside one pass's noise. What the villagers cost by the per-villager figures above (about 0.16 ms mean and 0.24 ms p95 each, with AI): the default 5 (the guide and one per road) is about +0.8 ms mean and at most +1.2 ms p95 here, roughly double that on a machine half as fast; `casa_heraldo.caminos.aldeanos` lowers it (0: roads and lamps only, no hut) or raises it to the owner's cap of 8. The roads and their lamp posts are blocks: nothing ticks.
+
+Build (the server test, `tools/smoke/spawn_roads.py`, and the runtime scenario): the four roads and four huts in 124-152 ticks and 83-234 ms of server thread (the slowest step 28-43 ms); with the arena road (about 170 blocks, partly over water), 157 ticks and 551 ms (the slowest step 182 ms, a hut); the arena road alone, placed after the town, 93 ticks and 16 ms. Chunks a road needs are asked for a few steps ahead without waiting (they generate on the worker threads): before that, the worst step generating land nobody had visited was 1,055 ms.
+
 ## Technical lessons from 26.3 (each one cost a real bug)
 - Pack format 121; DataVersion 5023 in the NBT files.
 - The game rejects the whole pack if one structure cannot be read. `max_distance_from_center` + 12 cannot exceed 128 (maximum 116). Symptom: "Registry loading errors" in `logs/latest.log`. Validation checks it.

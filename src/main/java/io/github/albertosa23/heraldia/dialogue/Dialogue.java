@@ -402,6 +402,9 @@ public final class Dialogue {
 			return 0;
 		}
 		Entity e = EntityArgument.getEntity(ctx, "villager");
+		if (e instanceof Villager g && io.github.albertosa23.heraldia.herald.SpawnRoads.isGuide(g) && e.level() == p.level()) {
+			return io.github.albertosa23.heraldia.herald.SpawnRoads.talk(p, g) ? 1 : 0;   // the Herald's House road guide
+		}
 		Quests.VillageView a = e instanceof Villager v && e.getType() == EntityTypes.VILLAGER && v.entityTags().contains(HERALDIA_VILLAGER)
 				&& !v.entityTags().contains(Quests.BAILIFF) && e.level() == p.level() ? Quests.villageView(p.level(), e.blockPosition()) : null;
 		if (a == null) {

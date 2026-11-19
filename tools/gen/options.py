@@ -512,6 +512,18 @@ _FIXED = [
      "vencer y durante la gracia)",
      "Game days of grace after the rent runs out before the stall is lost (the tenant is warned a day before it is due "
      "and during the grace)"),
+    ("casa_heraldo.caminos.activado", True, None, None,
+     "Caminos de la Casa del Heraldo: al colocarse el pueblo, de cada puerta sale un camino empedrado e iluminado con "
+     "faroles (sin monstruos encima) con chozas de comerciantes humildes; el que más mira a la arena llega hasta ella, con "
+     "la choza del guía a la salida. En un mundo cuyo pueblo ya existía, solo con /heraldia herald roads",
+     "Herald's House roads: when the town is placed, a road lit with lanterns (no monsters spawn on it) goes out of each "
+     "gate, with the huts of humble traders by it; the one that points to the arena reaches it, with the guide's hut at "
+     "the town's exit. In a world whose town was already there, only with /heraldia herald roads"),
+    ("casa_heraldo.caminos.aldeanos", 5, 0, 8,
+     "Aldeanos de las chozas de los caminos, en total (el guía incluido; uno por choza): cada aldeano con su IA cuesta "
+     "algo de tiempo de servidor mientras haya un jugador cerca",
+     "Villagers in the roadside huts, in all (the guide included; one per hut): each villager with its AI costs some server "
+     "time while a player is near"),
     ("eventos.activado", True, None, None,
      "Eventos en las aldeas: de vez en cuando, con un jugador en una aldea de Heraldia, su plaza celebra un día de "
      "mercado, una boda, un funeral o una fiesta durante unos minutos (puestos, un arco, un féretro o una hoguera, y "
@@ -762,6 +774,8 @@ _NAMES = {
     "reputacion.aldea_visible": ("La reputación se ve en la aldea", "Reputation shows in the village"),
     "casa_heraldo.activado": ("Casa del Heraldo", "Herald's House"),
     "casa_heraldo.generar_en_mundos_nuevos": ("Construirla en mundos nuevos", "Build it in new worlds"),
+    "casa_heraldo.caminos.activado": ("Caminos y chozas", "Roads and huts"),
+    "casa_heraldo.caminos.aldeanos": ("Aldeanos de las chozas", "Hut villagers"),
     "casa_heraldo.mercado.activado": ("Puestos de alquiler", "Stalls for rent"),
     "casa_heraldo.mercado.entrada_esmeraldas": ("Entrada (esmeraldas)", "Entry fee (emeralds)"),
     "casa_heraldo.mercado.alquiler_esmeraldas": ("Alquiler (esmeraldas)", "Rent (emeralds)"),

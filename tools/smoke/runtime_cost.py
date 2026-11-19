@@ -34,8 +34,9 @@ site; the passes without Heraldia use the same ones, where there is only terrain
   mediana       one player at the roadside inn closest to 0,0 (#heraldia:medianas/posada: its inhabitants, the innkeeper
                 with the gardener or with two pigs; the medium structure with the most of them), alone in the open.
   casa_heraldo  one player on the plaza of the Herald's House (its 18 residents, the bailiff, the watch's golems, the
-                animals): the town does not build itself in these worlds, so an operator places it (/heraldia herald
-                place here) at HOUSE_AT from 0,0 (far from every other scenario) before its window.
+                animals, and the roads' huts with their villagers, built right after the town: herald/SpawnRoads): the town
+                does not build itself in these worlds, so an operator places it (/heraldia herald place here) at HOUSE_AT
+                from 0,0 (far from every other scenario) before its window.
 And, with Heraldia, the margin (ESCALATION): in the "aldea" scenario, villagers are added in steps (unemployed: they search
 for a bed and a job site, the most expensive case) and each step is measured: from the line that fits the MSPT against
 the villagers loaded, how many more the server takes before its tick gets close to the 50 ms it has.
@@ -82,6 +83,7 @@ SINGLE = ("campo", "aldea_vanilla", "aldea", "aldea_evento", "mediana", "casa_he
 OWN += ["mediana", "casa_heraldo"]
 HOUSE_AT = 700                     # blocks from 0,0 (and from every other position) where the town is placed
 HOUSE_PLACED = re.compile(r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+)")
+ROADS_BUILT = re.compile(r"herald's house roads: built in (\d+) ticks .*?(\d+) new villagers")
 ESCALATION = [0, 25, 50, 100, 150]          # villagers added (cumulative) in the margin steps
 ESCALATION_WARMUP_S, ESCALATION_MEASURE_S = 40, 60
 ESCALATION_RADIUS = 24                      # around the square
@@ -305,7 +307,7 @@ class Pass:
     """One server (with or without Heraldia) and its measurements."""
 
     def __init__(self, work, jar, with_it, launcher, fresh=True):
-        self.work, self.with_it = work, with_it
+        self.work, self.with_it, self.jar = work, with_it, jar
         for d in (("world", "logs") if fresh else ("logs",)):
             shutil.rmtree(os.path.join(work, d), ignore_errors=True)
         own = os.path.join(work, "mods", os.path.basename(jar))
@@ -551,8 +553,17 @@ class Pass:
             s.send(c.proc, f"execute as {PLAYERS[0]} run heraldia herald place confirm")
             m = s.wait_for(self.lines, HOUSE_PLACED.pattern, 900, self.seen)
             self._house = (int(m.group(1)), int(m.group(3)) + 13)
+            if self.has_roads():           # its roads and huts (herald/SpawnRoads) are built right after: measured with it
+                m = s.wait_for(self.lines, ROADS_BUILT.pattern + r"|herald's house roads: disabled", 900, self.seen)
+                print("casa_heraldo:", m.group(0), flush=True)
             time.sleep(5)
         return self._house
+
+    def has_roads(self):
+        """Does this .jar build the Herald's House roads (herald/SpawnRoads)? The reference .jar of a measurement may not."""
+        import zipfile
+        with zipfile.ZipFile(self.jar) as z:
+            return "heraldia/caminos_casa.json" in z.namelist()
 
     def find_road_point(self, pos):
         """A point of the road halfway between the two villages where a caravan really leaves (with Heraldia): tried at the

@@ -77,6 +77,9 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
                  JAVA + "welcome/*", "tools/gen/mediums/*", JAVA + "inhabitants/*"]
 RUNTIME_PATHS += [JAVA + "events/*"]          # village events: up to 25 entities in a square while one lasts
 RUNTIME_PATHS += [JAVA + "herald/*", "tools/gen/herald_house.py"]   # the Herald's House (scenario casa_heraldo)
+RUNTIME_PATHS += ["tools/gen/spawn_roads.py", JAVA + "roads/SpawnRoadLayout.java", JAVA + "roads/BuiltRoads.java"]   # its roads' huts (the same scenario)
+# The Herald's House roads (herald/SpawnRoads): both placement orders and a town from before the roads.
+SPAWN_ROADS = ["tools/smoke/spawn_roads.py"]
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
@@ -221,6 +224,9 @@ MAP = [
     # wave arena (T31) and its modes (T41): its Java, its mixins and its generator (template, data, loot and advancements)
     (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_waves.py", ARENA),
     # roads between villages: their Java and their data
+    # the Herald's House roads (built, not generated): their layout, their build, the huts and the guide
+    (JAVA + "roads/SpawnRoadLayout.java", SPAWN_ROADS), (JAVA + "roads/BuiltRoads.java", SPAWN_ROADS),
+    ("tools/gen/spawn_roads.py", SPAWN_ROADS), (JAVA + "herald/SpawnRoads.java", SPAWN_ROADS + ["tools/smoke/arena.py"]),
     (JAVA + "roads/*", ["tools/smoke/roads.py"]), ("tools/gen/roads.py", ["tools/smoke/roads.py"]),
     # common code: full suite
     ("tools/gen/uniques/_common/*", FULL), ("tools/gen/uniques/__init__.py", FULL), ("tools/gen/writer.py", FULL),
@@ -388,6 +394,7 @@ DURATION_S = {
     "tools/smoke/wizard_huts.py": 75,               # two starts, four huts and three Evil Wizards
     "tools/smoke/caravans.py": 350,                 # two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py
     "tools/smoke/ambience.py": 135,                 # one start, three /locate'd structures, ~11,000 sprinted ticks
+    "tools/smoke/spawn_roads.py": 160,              # the Herald's House roads: four starts, two towns, two arenas, three road builds; measured locally (4 cores): 143 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/village_events.py": 185,         # measured locally (4 cores): 160 and 156 s of server log in two runs (four starts, one after a kill; ~20,000 sprinted ticks) + 10 % + setup; replace with its CI time
 }
 DEFAULT_S = 90
