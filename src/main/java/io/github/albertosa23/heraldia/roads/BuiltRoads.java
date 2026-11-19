@@ -855,6 +855,18 @@ public final class BuiltRoads {
 		return true;
 	}
 
+	/** A column described for the log: its heights and the blocks from its floor to 3 over its top. */
+	public static String column(ServerLevel level, int x, int z) {
+		LevelChunk chunk = level.getChunk(x >> 4, z >> 4);
+		int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+		int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15);
+		StringBuilder b = new StringBuilder("top " + top + ", floor " + floor + ":");
+		for (int y = Math.min(floor, top); y <= top + 3; y++) {
+			b.append(' ').append(BuiltInRegistries.BLOCK.getKey(chunk.getBlockState(new BlockPos(x, y, z)).getBlock()).getPath());
+		}
+		return b.toString();
+	}
+
 	/**
 	 * A lamp post in shallow water (at most 2 deep, over natural ground) at (x, z): on a cobblestone footing up to the
 	 * water's surface, so it stands by the road in a marsh instead of on the road itself.

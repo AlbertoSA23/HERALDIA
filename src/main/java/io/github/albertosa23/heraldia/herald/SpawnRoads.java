@@ -610,10 +610,8 @@ public final class SpawnRoads {
 					if (BuiltRoads.lamp(level, l[0], l[1], l[2], l[3], (x, z) -> skip(w, x, z) || onHutSlot(w, x, z) || onRoad(w, x, z))) {
 						w.lampsPlaced++;
 					} else if (w.unlit++ < 8) {
-						LOGGER.info("Heraldia: herald's house roads: no lamp post at {} {} (road {}, hut {}, top {}; edge {} {})", l[0], l[1],
-								onRoad(w, l[0], l[1]), onHutSlot(w, l[0], l[1]), level.getBlockState(new BlockPos(l[0],
-								level.getChunk(l[0] >> 4, l[1] >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, l[0] & 15, l[1] & 15),
-								l[1])), l[2], l[3]);
+						LOGGER.info("Heraldia: herald's house roads: no lamp post at {} {} (on a road {}, a hut's place {}; {})", l[0], l[1],
+								onRoad(w, l[0], l[1]), onHutSlot(w, l[0], l[1]), BuiltRoads.column(level, l[0], l[1]));
 					}
 				}
 			}
