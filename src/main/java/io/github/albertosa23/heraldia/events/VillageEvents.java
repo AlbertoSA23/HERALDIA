@@ -395,21 +395,22 @@ public final class VillageEvents {
 				|| level.players().isEmpty()) {
 			return;
 		}
-		Map<StructureStart, ServerPlayer> byVillage = new LinkedHashMap<>();
+		Map<String, ServerPlayer> near = new LinkedHashMap<>();
+		Map<String, Site> sites = new LinkedHashMap<>();
 		for (ServerPlayer p : level.players()) {
 			if (p.isSpectator() || !p.isAlive()) {
 				continue;
 			}
-			StructureStart s = level.structureManager().getStructureAt(p.blockPosition(), villages);
-			if (s.isValid()) {
-				byVillage.putIfAbsent(s, p);
+			Site s = siteAt(level, p.blockPosition());
+			if (s != null && !sites.containsKey(s.key())) {
+				sites.put(s.key(), s);
+				near.put(s.key(), p);
 			}
 		}
 		Record r = record(server);
 		long now = level.getGameTime();
-		for (Map.Entry<StructureStart, ServerPlayer> v : byVillage.entrySet()) {
-			ChunkPos c = v.getKey().getChunkPos();
-			String key = Reputation.key(c.x(), c.z());
+		for (Map.Entry<String, Site> v : sites.entrySet()) {
+			String key = v.getKey();
 			if (ACTIVE.containsKey(key)) {
 				continue;
 			}
@@ -421,7 +422,7 @@ public final class VillageEvents {
 			Kind kind = Kind.pick(Kind.possible(level.getOverworldClockTime(), level.isRaining(), last == null ? null : Kind.byId(last.kind())),
 					level.getRandom().nextDouble());
 			if (kind != null) {
-				String why = start(level, v.getKey(), kind, v.getValue(), false);
+				String why = start(level, v.getValue(), kind, near.get(key), false);
 				if (why != null) {
 					LOGGER.debug("Heraldia: events: no {} in {}: {}", kind.id, key, why);
 				}
@@ -433,6 +434,28 @@ public final class VillageEvents {
 
 	/** The square of a village: its box and the job board's (null if the square is not there: a skipped event). */
 	record Square(BoundingBox box, List<BoundingBox> boards) {
+	}
+
+	/** Where an event can happen: a Heraldia village (its square) or the Herald's House plaza; keyed like the reputation. */
+	record Site(String key, int cx, int cz, @Nullable Square square) {
+	}
+
+	/** The site at {@code pos}: the Herald's House plaza (version 2 on) or the Heraldia village there; null if none. */
+	static @Nullable Site siteAt(ServerLevel level, BlockPos pos) {
+		int[] h = io.github.albertosa23.heraldia.herald.HeraldHouse.eventSquare(level, pos);
+		if (h != null) {
+			BoundingBox box = new BoundingBox(h[0], h[1], h[2], h[0] + h[3] - 1, h[1] + 8, h[2] + h[3] - 1);
+			return new Site(Reputation.key(h[4], h[5]), h[4], h[5], h[3] == Layout.N ? new Square(box, List.of()) : null);
+		}
+		if (villages == null) {
+			return null;
+		}
+		StructureStart s = level.structureManager().getStructureAt(pos, villages);
+		if (!s.isValid()) {
+			return null;
+		}
+		ChunkPos c = s.getChunkPos();
+		return new Site(Reputation.key(c.x(), c.z()), c.x(), c.z(), square(s));
 	}
 
 	static @Nullable Square square(StructureStart start) {
@@ -459,11 +482,10 @@ public final class VillageEvents {
 	 * Starts an event of {@code kind} in that village; null if it started, otherwise why not (a text for the command).
 	 * {@code forced}: by an operator (ignores the frequency, the hour and the village's wait, never the caps or the room).
 	 */
-	static @Nullable String start(ServerLevel level, StructureStart start, Kind kind, @Nullable ServerPlayer near, boolean forced) {
+	static @Nullable String start(ServerLevel level, Site site, Kind kind, @Nullable ServerPlayer near, boolean forced) {
 		HeraldiaConfig cfg = cfg();
-		ChunkPos c = start.getChunkPos();
-		String key = Reputation.key(c.x(), c.z());
-		Square sq = square(start);
+		String key = site.key();
+		Square sq = site.square();
 		if (sq == null) {
 			return "sin_plaza";
 		}
@@ -494,7 +516,7 @@ public final class VillageEvents {
 		}
 		Quests.VillageView view = Quests.villageView(level, centre);
 		String name = view != null ? view.name() : key;
-		Event e = new Event(++counter, kind, level, key, name, c.x(), c.z(), x0, y0, z0, plan);
+		Event e = new Event(++counter, kind, level, key, name, site.cx(), site.cz(), x0, y0, z0, plan);
 		// record first, then place: a crash in between leaves nothing that is not taken down at the next start
 		List<Record.Placed> blocks = new ArrayList<>();
 		for (Layout.Placed p : plan.props()) {
@@ -1213,13 +1235,12 @@ public final class VillageEvents {
 		return p == null ? Texts.language("es_es") : Texts.language(p);
 	}
 
-	private static @Nullable StructureStart villageHere(CommandSourceStack src) {
+	private static @Nullable Site villageHere(CommandSourceStack src) {
 		ServerLevel level = src.getLevel();
-		if (villages == null || level.dimension() != Level.OVERWORLD) {
+		if (level.dimension() != Level.OVERWORLD) {
 			return null;
 		}
-		StructureStart s = level.structureManager().getStructureAt(BlockPos.containing(src.getPosition()), villages);
-		return s.isValid() ? s : null;
+		return siteAt(level, BlockPos.containing(src.getPosition()));
 	}
 
 	private static int startCommand(CommandContext<CommandSourceStack> ctx, Kind kind) {
@@ -1229,7 +1250,7 @@ public final class VillageEvents {
 			src.sendFailure(Texts.t(l, K + "desactivados"));
 			return 0;
 		}
-		StructureStart s = villageHere(src);
+		Site s = villageHere(src);
 		if (s == null) {
 			src.sendFailure(Texts.t(l, K + "sin_aldea"));
 			return 0;
@@ -1240,7 +1261,7 @@ public final class VillageEvents {
 			LOGGER.info("Heraldia: events: {} not started: {}", kind.id, why);
 			return 0;
 		}
-		Event e = ACTIVE.get(Reputation.key(s.getChunkPos().x(), s.getChunkPos().z()));
+		Event e = ACTIVE.get(s.key());
 		src.sendSuccess(() -> Texts.t(l, K + "creado", Texts.t(l, K + kind.id + ".nombre"), e.name, e.figures.size(), e.placed.size()), true);
 		return 1;
 	}
@@ -1252,8 +1273,8 @@ public final class VillageEvents {
 		if (all) {
 			which.addAll(ACTIVE.values());
 		} else {
-			StructureStart s = villageHere(src);
-			Event e = s == null ? null : ACTIVE.get(Reputation.key(s.getChunkPos().x(), s.getChunkPos().z()));
+			Site s = villageHere(src);
+			Event e = s == null ? null : ACTIVE.get(s.key());
 			if (e != null) {
 				which.add(e);
 			}

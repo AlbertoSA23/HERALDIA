@@ -33,6 +33,9 @@ site; the passes without Heraldia use the same ones, where there is only terrain
   dos_aldeas_evento  "dos_aldeas" with one in each village: two events at once, the case the owner's caps were set for.
   mediana       one player at the roadside inn closest to 0,0 (#heraldia:medianas/posada: its inhabitants, the innkeeper
                 with the gardener or with two pigs; the medium structure with the most of them), alone in the open.
+  casa_heraldo  one player on the plaza of the Herald's House (its 18 residents, the bailiff, the watch's golems, the
+                animals): the town does not build itself in these worlds, so an operator places it (/heraldia herald
+                place here) at HOUSE_AT from 0,0 (far from every other scenario) before its window.
 And, with Heraldia, the margin (ESCALATION): in the "aldea" scenario, villagers are added in steps (unemployed: they search
 for a bed and a job site, the most expensive case) and each step is measured: from the line that fits the MSPT against
 the villagers loaded, how many more the server takes before its tick gets close to the 50 ms it has.
@@ -74,8 +77,11 @@ OWN += ["aldea_evento", "dos_aldeas_evento"]
 EVENT_KIND = "wedding"
 EVENT_STARTS = r"Heraldia: events: event \d+ starts: \w+ in .*?, (\d+) figures|Heraldia: events: \w+ not started: (\w+)"
 SCENARIOS += ["mediana"]           # the medium structures' inhabitants (mediums/_inhabitants.py)
-SINGLE = ("campo", "aldea_vanilla", "aldea", "aldea_evento", "mediana")    # one player
-OWN += ["mediana"]
+SCENARIOS += ["casa_heraldo"]      # the Herald's House (herald/, tools/gen/herald_house.py)
+SINGLE = ("campo", "aldea_vanilla", "aldea", "aldea_evento", "mediana", "casa_heraldo")    # one player
+OWN += ["mediana", "casa_heraldo"]
+HOUSE_AT = 700                     # blocks from 0,0 (and from every other position) where the town is placed
+HOUSE_PLACED = re.compile(r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+)")
 ESCALATION = [0, 25, 50, 100, 150]          # villagers added (cumulative) in the margin steps
 ESCALATION_WARMUP_S, ESCALATION_MEASURE_S = 40, 60
 ESCALATION_RADIUS = 24                      # around the square
@@ -368,6 +374,13 @@ class Pass:
         if not m:
             raise SystemExit("/locate does not find a roadside inn (the medium structure scenario)")
         pos["mediana"] = (m[0] + 8, m[1] + 8)
+        others = [pos["aldea"], pos["aldea_vanilla"], pos["mediana"], (0, 0)]
+        for cand in ((HOUSE_AT, HOUSE_AT), (-HOUSE_AT, HOUSE_AT), (HOUSE_AT, -HOUSE_AT), (-HOUSE_AT, -HOUSE_AT)):
+            if all(math.dist(cand, o) >= HOUSE_AT for o in others):
+                pos["casa_heraldo"] = cand
+                break
+        else:
+            raise SystemExit("no spot for the Herald's House far from the other scenarios")
         self.pregen("aldea", pos["aldea"])
         routes = []
         for r in ROUTE.finditer(c.log()):
@@ -450,6 +463,11 @@ class Pass:
         during = None
         if sc in ("campo", "aldea_vanilla", "aldea", "mediana"):      # one player at the scenario's own position
             self.player(PLAYERS[0], *pos[sc])
+        elif sc == "casa_heraldo":
+            hx, hz = pos[sc]
+            if self.with_it:
+                hx, hz = self.place_house(hx, hz)
+            self.player(PLAYERS[0], hx, hz)
         elif sc == "aldea_evento":
             self.player(PLAYERS[0], x, z)
             self.start_events(PLAYERS[:1])
@@ -520,6 +538,19 @@ class Pass:
             s.wait_for(self.lines, r"arena: obra terminada", 600, self.seen)
         return self._arena_box
 
+    def place_house(self, x, z):
+        """The Herald's House placed by an operator (a simulated player) at (x, z); returns its spawn (the plaza)."""
+        c = self.ctx
+        if not hasattr(self, "_house"):
+            self.player(PLAYERS[0], x, z)
+            c.run(f"op {PLAYERS[0]}", r"Made .* operator|already|Nothing changed")
+            c.run(f"execute as {PLAYERS[0]} at @s run heraldia herald place here", r"Proposed site|Sitio propuesto|No site|No hay sitio")
+            c.run(f"execute as {PLAYERS[0]} run heraldia herald place confirm", r"Building the Herald|Construyendo la Casa|There is no|No hay")
+            m = s.wait_for(self.lines, HOUSE_PLACED.pattern, 900, self.seen)
+            self._house = (int(m.group(1)), int(m.group(3)) + 13)
+            time.sleep(5)
+        return self._house
+
     def find_road_point(self, pos):
         """A point of the road halfway between the two villages where a caravan really leaves (with Heraldia): tried at the
         same fractions as tools/smoke/caravans.py; the first one that works is used by every pass."""
@@ -548,7 +579,7 @@ def sweep(work, jar, with_it, launcher, pos, seconds, warmup, escalation):
             pos = p.find_positions()
             pos["camino"] = p.find_road_point(pos)
             pos["arena_plano"] = arena_blueprint(jar)
-        for name in ("aldea", "aldea_b", "campo", "aldea_vanilla", "camino", "arena", "mediana"):
+        for name in ("aldea", "aldea_b", "campo", "aldea_vanilla", "camino", "arena", "mediana", "casa_heraldo"):
             p.pregen(name, pos[name])
         # a clean start: what Chunky generated is unloaded and saved, and the scenarios start from the saved world
         p.stop()

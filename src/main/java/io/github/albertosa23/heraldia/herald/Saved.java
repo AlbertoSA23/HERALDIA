@@ -15,9 +15,12 @@ import net.minecraft.core.UUIDUtil;
 /**
  * What is saved of the Herald's House in the overworld (new persistent attachment heraldia:casa_heraldo): the origin of
  * the placed house (if any), whether it was already decided to build it on its own (in a new world) or not (in an existing
- * one), the stall tenancies and the return barrels assigned to a player. A world without it reads as {@link #EMPTY}.
+ * one), the stall tenancies, the return barrels assigned to a player and the version of the town that was placed
+ * ({@code version}: absent in a world that placed it before there were versions, which reads as 1, the 96 x 96 town; the
+ * blueprint of that version stays in the .jar so such a world keeps its town, protection, stalls and barrels exactly as
+ * they were). A world without it reads as {@link #EMPTY}.
  */
-public record Saved(Optional<BlockPos> origin, boolean decided, List<Tenancy> tenancies, List<Return> returns) {
+public record Saved(Optional<BlockPos> origin, boolean decided, List<Tenancy> tenancies, List<Return> returns, int version) {
 
 	/**
 	 * A rented stall: its number, the tenant, the tick it is paid until, and the last warning given for that
@@ -53,15 +56,17 @@ public record Saved(Optional<BlockPos> origin, boolean decided, List<Tenancy> te
 			BlockPos.CODEC.optionalFieldOf("origen").forGetter(Saved::origin),
 			Codec.BOOL.optionalFieldOf("decidida", false).forGetter(Saved::decided),
 			Tenancy.CODEC.listOf().optionalFieldOf("puestos", List.of()).forGetter(Saved::tenancies),
-			Return.CODEC.listOf().optionalFieldOf("devoluciones", List.of()).forGetter(Saved::returns)).apply(i, Saved::new));
-	public static final Saved EMPTY = new Saved(Optional.empty(), false, List.of(), List.of());
+			Return.CODEC.listOf().optionalFieldOf("devoluciones", List.of()).forGetter(Saved::returns),
+			Codec.INT.optionalFieldOf("version", 1).forGetter(Saved::version)).apply(i, Saved::new));
+	public static final Saved EMPTY = new Saved(Optional.empty(), false, List.of(), List.of(), 1);
 
-	public Saved withOrigin(BlockPos o) {
-		return new Saved(Optional.ofNullable(o), true, tenancies, returns);
+	/** The town placed at {@code o}, of that blueprint version. */
+	public Saved withOrigin(BlockPos o, int version) {
+		return new Saved(Optional.ofNullable(o), true, tenancies, returns, version);
 	}
 
 	public Saved decide() {
-		return new Saved(origin, true, tenancies, returns);
+		return new Saved(origin, true, tenancies, returns, version);
 	}
 
 	public Optional<Tenancy> tenancy(int stall) {
@@ -83,7 +88,7 @@ public record Saved(Optional<BlockPos> origin, boolean decided, List<Tenancy> te
 		if (t != null) {
 			out.add(t);
 		}
-		return new Saved(origin, decided, List.copyOf(out), returns);
+		return new Saved(origin, decided, List.copyOf(out), returns, version);
 	}
 
 	public Optional<Return> returnAt(int barrel) {
@@ -101,7 +106,7 @@ public record Saved(Optional<BlockPos> origin, boolean decided, List<Tenancy> te
 		if (r != null) {
 			out.add(r);
 		}
-		return new Saved(origin, decided, tenancies, List.copyOf(out));
+		return new Saved(origin, decided, tenancies, List.copyOf(out), version);
 	}
 
 	/** The attachment, kept apart so the tests register nothing when the class loads. */

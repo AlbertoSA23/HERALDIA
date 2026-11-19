@@ -49,7 +49,7 @@ public record Grounds(int ox, int oy, int oz, HousePlan plan) {
 		return world(plan.spawn());
 	}
 
-	/** In the 96 x 96 box (template heights)? */
+	/** In the template's box (template heights)? */
 	public boolean inFootprint(int x, int y, int z) {
 		return x >= ox && z >= oz && x <= maxX() && z <= maxZ() && y >= oy && y <= maxY();
 	}

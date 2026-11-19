@@ -19,6 +19,8 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Mirror;
@@ -47,6 +49,8 @@ import org.slf4j.LoggerFactory;
  * down to the ground (over water or a hollow); in the {@link Siting#MARGIN} around it, the terrain blended from the
  * house's ground to the natural height (a slope of dirt and grass, not a cliff);</li>
  * <li>template: the chunk's part of the template, with its villagers, horses and golem;</li>
+ * <li>beds: every bed set again, both halves (a bed across a chunk border is lost when its chunks are placed one by
+ * one);</li>
  * <li>roads: from each gate, a dirt path through the protected ring with a signpost at its end; the first gate that
  * meets water within reach gets the dock instead.</li>
  * </ol>
@@ -62,7 +66,7 @@ final class Building {
 	/** The dock only if the water starts this close to the wall (its far end stays inside the protected ring). */
 	private static final int DOCK_REACH = 32;
 
-	private enum Phase { LOAD, LEVEL, TEMPLATE, ROAD }
+	private enum Phase { LOAD, LEVEL, TEMPLATE, BEDS, ROAD }
 
 	private record Step(Phase phase, int cx, int cz, @Nullable String side) {
 	}
@@ -95,6 +99,7 @@ final class Building {
 		chunks(steps, Phase.LOAD, g, Siting.MARGIN + 16);
 		chunks(steps, Phase.LEVEL, g, Siting.MARGIN);
 		chunks(steps, Phase.TEMPLATE, g, 0);
+		steps.add(new Step(Phase.BEDS, 0, 0, null));
 		for (String side : g.plan().gates().keySet()) {
 			steps.add(new Step(Phase.ROAD, 0, 0, side));
 		}
@@ -126,6 +131,7 @@ final class Building {
 				case LOAD -> o.level().getChunk(p.cx(), p.cz());
 				case LEVEL -> level(o.level(), o.level().getChunk(p.cx(), p.cz()), o.g());
 				case TEMPLATE -> template(o.level(), p, o.g(), o.template());
+				case BEDS -> beds(o.level(), o.g(), o.template());
 				case ROAD -> road(o.level(), o.g(), p.side());
 			}
 			nanos += System.nanoTime() - t0;
@@ -202,6 +208,33 @@ final class Building {
 		BlockPos origin = new BlockPos(g.ox(), g.oy(), g.oz());
 		t.placeInWorld(level, origin, origin, new StructurePlaceSettings().setBoundingBox(bb).setIgnoreEntities(false)
 				.setFinalizeEntities(false), level.getRandom(), FLAGS);
+	}
+
+	/**
+	 * Every bed of the template again, both halves, once all the chunks are placed. Placing a chunk's part of the
+	 * template updates the shape of the blocks at its edge against what is beyond it, and a bed whose other half lies in
+	 * the next chunk (air yet) is removed, and then its other half too: which beds those are depends on where the
+	 * town falls on the chunk grid (seen on seed terrain: the workshop's two beds were missing and its residents never
+	 * had one). Set with {@link #FLAGS} (no shape updates), the two halves stay, and their POIs are registered.
+	 */
+	private static void beds(ServerLevel level, Grounds g, StructureTemplate t) {
+		BlockPos origin = new BlockPos(g.ox(), g.oy(), g.oz());
+		StructurePlaceSettings settings = new StructurePlaceSettings();
+		int n = 0;
+		for (Block b : BuiltInRegistries.BLOCK) {
+			if (!(b instanceof BedBlock)) {
+				continue;
+			}
+			for (StructureTemplate.StructureBlockInfo info : t.filterBlocks(origin, settings, b)) {
+				if (!level.getBlockState(info.pos()).equals(info.state())) {
+					level.setBlock(info.pos(), info.state(), FLAGS);
+					n++;
+				}
+			}
+		}
+		if (n > 0) {
+			LOGGER.info("Heraldia: herald's house: {} bed halves set again (they straddled a chunk border)", n);
+		}
 	}
 
 	// --- roads and the dock ---
