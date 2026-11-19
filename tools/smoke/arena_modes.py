@@ -114,6 +114,54 @@ def begin(p, mode, in_ring):
     return p.wait_log(rf"arena: cuenta atrás \(la empieza {P}, modo {mode}", timeout=60)
 
 
+MENU = rf"Heraldia: choice: {P} sees arena as (\w+) \(session (\d+): ([\w, ]*)\)"
+
+
+def menu_choice(p, work, center, bell):
+    """The bell's mode menu as a client without Heraldia gets it (a Carpet bot: no channel), see choice/Choices: a
+    container menu with one slot per mode (2-row window: modes at 11, 13 and 15). Replies a modified client could send are
+    refused (an earlier session, a mode that is not on offer); a mode disabled with /heraldia reload after the menu
+    opened is refused when clicked; the click on time attack starts it. The player's inventory does not change."""
+    ctx = p.ctx
+    m = p.wait_log(MENU, timeout=30)
+    if not p.check(m is not None and m.group(1) == "menu", f"la campana no abre el menú de contenedor ({m.group(0) if m else 'nada'})"):
+        return False
+    session, ids = int(m.group(2)), m.group(3).split(", ")
+    p.check(ids == ["coop", "timeattack", "survival"], f"el menú ofrece {ids}")
+    before = ctx.run(f"data get entity {P} Inventory", r"has the following entity data: (.*)|Found no elements").group(0)
+    ctx.run(f"tp {P} {center[0] + 0.5} {center[1]} {center[2] + 0.5}", r"Teleported")      # in the ring, as begin() does
+    for sess, opt in ((session - 1, "coop"), (session, "reward"), (session + 1, "coop")):
+        r = ctx.run(f"execute as {P} run heraldia choice reply {sess} {opt}", r"choice reply (accepted|refused)")
+        p.check(r.group(1) == "refused", f"menú de la arena: se acepta la respuesta {sess} {opt}")
+    # survival disabled while the menu is open: it is still in the window, but picking it is refused
+    cfg = json.load(open(os.path.join(work, "config", "heraldia.json")))
+    cfg["arena"]["modos"]["supervivencia"] = False
+    json.dump(cfg, open(os.path.join(work, "config", "heraldia.json"), "w"))
+    ctx.run("heraldia reload", r"[Rr]eload|[Rr]ecarg|[Cc]onfig")
+    ctx.run(f"execute as {P} run heraldia choice click 15", r"choice click: slot")
+    p.check(p.wait_log(rf"arena: {P} elige survival en el menú: rechazado", timeout=10), "se acepta un modo desactivado")
+    p.check(not re.search(r"arena: cuenta atrás", ctx.log()), "un modo desactivado empieza una partida")
+    cfg["arena"]["modos"].pop("supervivencia")
+    json.dump(cfg, open(os.path.join(work, "config", "heraldia.json"), "w"))
+    ctx.run("heraldia reload", r"[Rr]eload|[Rr]ecarg|[Cc]onfig")
+    # the refusal closed nothing it should not: the bell again (a new menu), and time attack picked with a click
+    p.check("choice: none (no window" in ctx.run(f"execute as {P} run heraldia choice", r"choice: [^\n]*").group(0),
+            "el menú de la arena sigue abierto tras rechazar un modo")
+    ctx.run(f"tp {P} {bell[0] + 0.5} {bell[1]} {bell[2] - 1.5}", r"Teleported")      # the bell again: a new menu
+    s.send(ctx.proc, f"player {P} look at {bell[0] + 0.5} {bell[1] + 0.4} {bell[2] + 0.5}")
+    ctx.ticks(5)
+    s.send(ctx.proc, f"player {P} use once")
+    m = p.wait_log(MENU.replace("(\\d+)", f"({session + 1}|{session + 2}|{session + 3})", 1), timeout=10)
+    if not p.check(m is not None, "sin menú de la arena por segunda vez"):
+        return False
+    ctx.run(f"tp {P} {center[0] + 0.5} {center[1]} {center[2] + 0.5}", r"Teleported")
+    ctx.run(f"execute as {P} run heraldia choice click 13", r"choice click: slot")
+    ok = p.wait_log(rf"arena: cuenta atrás \(la empieza {P}, modo timeattack, 2 oleadas\)", timeout=30)
+    after = ctx.run(f"data get entity {P} Inventory", r"has the following entity data: (.*)|Found no elements").group(0)
+    p.check(after == before, "el menú de la arena cambia el inventario")
+    return ok is not None
+
+
 def first_start(p, pl, work):
     ctx = p.ctx
     # 1. migration of the pre-T41 vanilla scoreboard
@@ -165,8 +213,7 @@ def first_start(p, pl, work):
     p.check(p.wait_log(rf"arena: {P} elige modo \(coop, timeattack, survival\)", timeout=60), "la campana no ofrece los modos")
     p.check(not re.search(r"arena: cuenta atrás", ctx.log()), "la campana empieza una partida sin elegir modo")
     center = (box[0] + pl["centro"][0], box[1] + pl["centro"][1], box[2] + pl["centro"][2] - 3)
-    if not p.check(begin(p, "timeattack", center) and p.wait_log(r"modo timeattack, 2 oleadas\)"),
-                   "no empieza el contrarreloj de 2 oleadas"):
+    if not p.check(menu_choice(p, work, center, bell), "no empieza el contrarreloj de 2 oleadas desde el menú de la campana"):
         return box
     door = tuple(box[i] + pl["puerta"][0][i] for i in range(3))
     p.check(p.wait_log(r"partida empieza con 1 participantes \(modo timeattack\)"), "el contrarreloj no empieza con el jugador")

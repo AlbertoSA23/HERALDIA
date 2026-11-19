@@ -45,6 +45,7 @@ public final class HeraldiaCommands {
 				.then(io.github.albertosa23.heraldia.maps.WebMaps.node())
 				.then(io.github.albertosa23.heraldia.quests.Quests.node())
 				.then(io.github.albertosa23.heraldia.dialogue.Dialogue.node())
+				.then(io.github.albertosa23.heraldia.choice.Choices.node())
 				.then(io.github.albertosa23.heraldia.treasure.Treasure.node())
 				.then(io.github.albertosa23.heraldia.caravans.Caravans.node())
 				.then(io.github.albertosa23.heraldia.huts.Wizards.node())

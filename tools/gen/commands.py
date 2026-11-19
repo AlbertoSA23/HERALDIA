@@ -45,6 +45,8 @@ CANONICAL = [
     "quest turnin",                              # T38: the board quests
     "talk", "talk more", "talk rumor", "talk trade", "talk bye",   # P9a: the answer buttons of a villager conversation
     "talk with", "talk with <villager>",         # and a conversation started by an operator (preview, tests)
+    "choice", "choice click", "choice click <slot>", "choice click <slot> <input>", "choice click <slot> <input> <button>",
+    "choice reply", "choice reply <session>", "choice reply <session> <option>",   # the choice windows, as a client (operators, tests)
     "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",
     "caravan clear",                             # T39: the caravans (operators)
     "caravan wayfarer", "caravan wayfarer pilgrim", "caravan wayfarer shepherd", "caravan wayfarer messenger",
