@@ -224,6 +224,11 @@ public final class Dialogue {
 				? Texts.t(o.l(), "heraldia.casa_heraldo.nombre") : Component.literal(a.name()));
 	}
 
+	/**
+	 * The line goes as its text already in the player's language ({@link Out#lines}): its "heraldia.dialogos.frase.*" key
+	 * is in no language file on purpose (see DialogueLogicTest#linesAreNotKeysOfTheLanguageFiles), so every client shows
+	 * the text the server picked, which follows the player's /heraldia language; the key only formats the slots.
+	 */
 	static void sayWith(Out o, Villager v, Lines.@Nullable Line line, Object... args) {
 		if (line == null) {
 			return;
