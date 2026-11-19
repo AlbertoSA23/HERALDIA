@@ -93,7 +93,7 @@ public final class BuiltRoads {
 	/** A tree larger than this (logs) is not a tree: left as it is. */
 	static final int MAX_LOGS = 320;
 	/** Leaves looked at around a felled tree, at most (and at most {@link LeavesBlock#DECAY_DISTANCE} blocks from it). */
-	static final int MAX_LEAVES = 4000;
+	static final int MAX_LEAVES = 12000;
 
 	/** Natural growth over the ground, cleared from the road: trees (logs, leaves), plants, mushrooms, snow. */
 	static boolean growth(BlockState s) {
@@ -299,6 +299,12 @@ public final class BuiltRoads {
 		if (skip.test(x, z)) {
 			return 0;
 		}
+		int post = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+		if (lampPost(chunk, x, post, z, pos) && !inside(boxes, x, post, z)) {
+			for (int y = post; y > post - 3; y--) {   // an earlier road's lamp post on this one (the arena road, built later)
+				level.setBlock(pos.set(x, y, z), Blocks.AIR.defaultBlockState(), FLAGS);
+			}
+		}
 		int g = loaded.ground(chunk, x, z);
 		BlockState ground = chunk.getBlockState(pos.set(x, g, z));
 		if (inside(boxes, x, g, z) || inside(boxes, x, g + 1, z)) {
@@ -318,9 +324,9 @@ public final class BuiltRoads {
 			k = kind;
 		}
 		int top = Math.max(t + HEAD, g);
-		for (int y = t + 1; y <= top; y++) {     // everything to clear must be natural
+		for (int y = t + 1; y <= top; y++) {     // everything to clear must be natural (or an earlier road's sign)
 			BlockState s = chunk.getBlockState(pos.set(x, y, z));
-			if (!s.isAir() && (!growth(s) && !terrain(s) || inside(boxes, x, y, z))) {
+			if (!s.isAir() && (!growth(s) && !terrain(s) && !ourSign(chunk, s, pos) || inside(boxes, x, y, z))) {
 				return 0;
 			}
 		}
@@ -335,6 +341,26 @@ public final class BuiltRoads {
 		level.setBlock(pos.set(x, t, z), deck(k, edge), FLAGS);
 		clear(level, chunk, x, t + 1, top, z, felled, pos);
 		return 1;
+	}
+
+	/** A lamp post of these roads with its lantern at y: a lantern on two fence posts of a wood, on the ground. */
+	static boolean lampPost(LevelChunk chunk, int x, int y, int z, BlockPos.MutableBlockPos pos) {
+		return chunk.getBlockState(pos.set(x, y, z)).is(Blocks.LANTERN) && chunk.getBlockState(pos.set(x, y - 1, z)).is(BlockTags.WOODEN_FENCES)
+				&& chunk.getBlockState(pos.set(x, y - 2, z)).is(BlockTags.WOODEN_FENCES)
+				&& !chunk.getBlockState(pos.set(x, y - 3, z)).is(BlockTags.WOODEN_FENCES);
+	}
+
+	/** A sign of these roads (a standing sign, waxed: {@link #sign}) at pos. */
+	static boolean ourSign(LevelChunk chunk, BlockState s, BlockPos pos) {
+		return s.is(BlockTags.STANDING_SIGNS) && chunk.getBlockEntity(pos) instanceof SignBlockEntity e && e.isWaxed();
+	}
+
+	/**
+	 * Fells the trees whose logs were just removed at {@code felled} (by a hut's site, say), as a road does: the rest of
+	 * their logs and the leaves no other log holds. Loaded chunks only. Returns the trees felled.
+	 */
+	public static int fell(ServerLevel level, List<BlockPos> felled, BiPredicate<Integer, Integer> skip) {
+		return felled.isEmpty() ? 0 : fell(level, new Loaded(level), felled, skip, List.of());
 	}
 
 	/** Clears from y0 to y1 (natural blocks: checked), and then any growth standing on what was cleared (not leaves). */
@@ -765,9 +791,7 @@ public final class BuiltRoads {
 		int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ex & 15, ez & 15);
 		BlockState deck = level.getBlockState(pos.set(ex, top, ez));
 		boolean bridge = deck.is(BlockTags.PLANKS) && level.getBlockState(pos.set(ex, top - 1, ez)).getFluidState().is(FluidTags.WATER);
-		boolean paved = deck.getFluidState().isEmpty() && deck.isFaceSturdy(level, pos.set(ex, top, ez), Direction.UP)
-				&& !inside(boxes(level, chunk), ex, top + 1, ez);
-		if ((bridge || paved) && free(level, pos, ex, top + 1, ez)) {
+		if (bridge && free(level, pos, ex, top + 1, ez)) {      // on land the shoulder (or one beyond) always fits
 			post(level, pos, ex, top + 1, ez);
 			return true;
 		}

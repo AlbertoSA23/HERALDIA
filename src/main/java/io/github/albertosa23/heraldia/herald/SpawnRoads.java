@@ -280,6 +280,7 @@ public final class SpawnRoads {
 		final List<RoadLayout.Route> routes = new ArrayList<>();
 		final Map<RoadLayout.Route, RoadProfile> profiles = new HashMap<>();   // each road's height and paving along it
 		final Set<Long> chunks = new LinkedHashSet<>();   // the chunks paved (the audit)
+		final Map<Long, RoadLayout.Cell[]> painted = new HashMap<>();   // the road columns by chunk (no lamp or sign on them)
 		final List<int[]> lamps = new ArrayList<>();      // {x, z, edge x, edge z}
 		final List<String> huts = new ArrayList<>();      // keys still to try, in order
 		final List<long[]> paved = new ArrayList<>();     // {x, y, z} of the paved columns (the light check)
@@ -605,7 +606,7 @@ public final class SpawnRoads {
 			case LAMPS -> {
 				for (int i = st.cx(); i < st.cz(); i++) {
 					int[] l = w.lamps.get(i);
-					if (BuiltRoads.lamp(level, l[0], l[1], l[2], l[3], (x, z) -> skip(w, x, z) || onHutSlot(w, x, z))) {
+					if (BuiltRoads.lamp(level, l[0], l[1], l[2], l[3], (x, z) -> skip(w, x, z) || onHutSlot(w, x, z) || onRoad(w, x, z))) {
 						w.lampsPlaced++;
 					}
 				}
@@ -613,8 +614,12 @@ public final class SpawnRoads {
 			case SIGN -> {
 				Map<String, String> es = Texts.texts("es_es");
 				Component first = Texts.t(es, st.key()), second = Texts.t(es, HeraldHouse.K + "camino.cartel2", st.extra()[1]);
-				if (BuiltRoads.sign(level, st.cx(), st.cz(), st.extra()[0], first, second, (x, z) -> skip(w, x, z) || onHutSlot(w, x, z))) {
-					w.signs++;
+				for (int[] o : AROUND) {               // beside the road: its place, or the first free one next to it
+					if (BuiltRoads.sign(level, st.cx() + o[0], st.cz() + o[1], st.extra()[0], first, second,
+							(x, z) -> skip(w, x, z) || onHutSlot(w, x, z) || onRoad(w, x, z))) {
+						w.signs++;
+						break;
+					}
 				}
 			}
 			case HUT -> {
@@ -675,6 +680,15 @@ public final class SpawnRoads {
 		}
 		SpawnRoadLayout.Box a = arenaBox();
 		return a != null && a.in(x, z, 0);
+	}
+
+	private static final int[][] AROUND = {{0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
+
+	/** Is (x, z) a column of one of these roads (or of a road of this world built before)? No lamp or sign stands there. */
+	private static boolean onRoad(Work w, int x, int z) {
+		RoadLayout.Cell[] c = w.painted.computeIfAbsent(RoadLayout.pack(x >> 4, z >> 4),
+				k -> w.layout.paint(w.routes, x >> 4, z >> 4, blueprint().params().width(), false));
+		return c[(x & 15) * 16 + (z & 15)] != null;
 	}
 
 	/** Is (x, z) on one of the huts' places (built or not: the guide's hut may come later)? */
@@ -755,7 +769,8 @@ public final class SpawnRoads {
 			LOGGER.info("Heraldia: herald's house roads: no hut {} ({} at its site)", key, why);
 			return false;
 		}
-		// foundation down to the ground and room above (trees, a hillside)
+		// foundation down to the ground and room above (trees, felled whole; a hillside)
+		List<BlockPos> logs = new ArrayList<>();
 		for (int lx = 0; lx < sx; lx++) {
 			for (int lz = 0; lz < sz; lz++) {
 				int[] c = SpawnRoadLayout.hutCell(gate, side, slot.side(), slot.along(), sx, bp.edge(), lx, lz);
@@ -766,13 +781,20 @@ public final class SpawnRoads {
 					}
 					level.setBlock(pos, Blocks.COBBLESTONE.defaultBlockState(), BuiltRoads.FLAGS);
 				}
-				for (int y = y0 + bp.size()[1]; y <= y0 + CLEAR; y++) {
-					if (!level.getBlockState(pos.set(c[0], y, c[1])).isAir()) {
-						level.setBlock(pos, Blocks.AIR.defaultBlockState(), BuiltRoads.FLAGS);
+				for (int y = y0 + 1; y <= y0 + CLEAR; y++) {
+					BlockState s = level.getBlockState(pos.set(c[0], y, c[1]));
+					if (s.is(BlockTags.LOGS)) {
+						logs.add(pos.immutable());     // a tree in the hut's room: felled whole below
+					}
+					if (y >= y0 + bp.size()[1] || s.is(BlockTags.LOGS) || s.is(BlockTags.LEAVES)) {
+						if (!s.isAir()) {
+							level.setBlock(pos, Blocks.AIR.defaultBlockState(), BuiltRoads.FLAGS);
+						}
 					}
 				}
 			}
 		}
+		w.trees += BuiltRoads.fell(level, logs, (x, z) -> skip(w, x, z));
 		w.hut = new Hut(key, template, t.get(), frame, y0, guide);
 		return true;
 	}
