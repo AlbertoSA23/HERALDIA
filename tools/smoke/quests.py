@@ -43,7 +43,7 @@ the test player's data are edited with the server stopped, and what each look pu
     unchanged one is exactly as it was before the shutters.
 The block that was not the mod's on the fountain stays through all of it.
 """
-import argparse, json, os, re, shutil, sys, time
+import argparse, json, os, re, shutil, sys, time, zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 from terralith_biomes import fetch
@@ -214,14 +214,14 @@ def click_villager(srv, spot, y, floor_bottom):
 
 
 WITH = "heraldia talk with @e[tag=heraldia_prueba,limit=1]"
-DIALOGUE_LINES = os.path.join(s.ROOT, "build", "generated", "heraldia", "heraldia", "dialogos")
+JAR = {}                               # {"path": the mod's .jar under test} (main): the lines are read from it
 SPOKEN = re.compile(r": \u201c(.+)\u201d")       # "Librarian: “...”" (heraldia.dialogos.linea), as the console prints it
 
 
 def line_patterns(code):
     """Every villager line of a .jar language, as a regex of its text with the slots (%1$s...) as wildcards."""
-    with open(os.path.join(DIALOGUE_LINES, code + ".json"), encoding="utf-8") as f:
-        pools = json.load(f)
+    with zipfile.ZipFile(JAR["path"]) as z:      # CI's server jobs only have the .jar, not build/generated
+        pools = json.loads(z.read(f"heraldia/dialogos/{code}.json").decode("utf-8"))
     return [re.compile(".*?".join(re.escape(part) for part in re.split(r"%(?:\d+\$)?s", text)) + "$")
             for lines in pools.values() for text in lines.values() if text.strip()]
 
@@ -944,6 +944,7 @@ def main():
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-encargos"))
     a = ap.parse_args()
+    JAR["path"] = os.path.abspath(a.jar)
     os.makedirs(a.work, exist_ok=True)
     fails = []
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
