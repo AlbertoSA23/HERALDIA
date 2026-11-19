@@ -648,8 +648,8 @@ public final class BuiltRoads {
 				continue;
 			}
 			int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
-			if (inside(boxes, x, top, z) || inside(boxes, x, top + 1, z)) {
-				continue;
+			if (inside(boxes, x, top, z) || inside(boxes, x, top + 1, z) || lampPost(chunk, x, top, z, pos)) {
+				continue;                          // a structure's, or a lamp post on the kerb by deep water
 			}
 			int y = top;
 			while (y > level.getMinY() && growth(chunk.getBlockState(pos.set(x, y, z)))) {
@@ -781,11 +781,12 @@ public final class BuiltRoads {
 				c[i] = null;
 				continue;
 			}
-			int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+			int top = new Loaded(level).ground(chunk, x, z);
 			lo = Math.min(lo, top);
 			hi = Math.max(hi, top);
 		}
-		return lo > hi ? 0 : orphans(level, chunk, c, lo - 12, hi + 24, new ArrayList<>(), true);
+		// a box larger than the audit's (its top and bottom hold whatever lies beyond: nothing the audit sees is left)
+		return lo > hi ? 0 : orphans(level, chunk, c, lo - 20, hi + 32, new ArrayList<>(), true);
 	}
 
 	/** Is the column (lx, lz), local to the chunk (it may be outside it), within r blocks of one of its road cells? */
@@ -820,7 +821,10 @@ public final class BuiltRoads {
 		int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ex & 15, ez & 15);
 		BlockState deck = level.getBlockState(pos.set(ex, top, ez));
 		boolean bridge = deck.is(BlockTags.PLANKS) && level.getBlockState(pos.set(ex, top - 1, ez)).getFluidState().is(FluidTags.WATER);
-		if (bridge && free(level, pos, ex, top + 1, ez)) {      // on land the shoulder (or one beyond) always fits
+		boolean kerb = deck.is(Blocks.COARSE_DIRT) || deck.is(Blocks.COBBLESTONE) || deck.is(Blocks.CUT_SANDSTONE)
+				|| deck.is(Blocks.CUT_RED_SANDSTONE) || deck.is(Blocks.MUD_BRICKS);
+		// on the road's own edge: a bridge's deck, or its kerb by deep water (where neither the shoulder nor a footing fit)
+		if ((bridge || kerb && !inside(boxes(level, chunk), ex, top + 1, ez)) && free(level, pos, ex, top + 1, ez)) {
 			post(level, pos, ex, top + 1, ez);
 			return true;
 		}
@@ -834,9 +838,9 @@ public final class BuiltRoads {
 		}
 		LevelChunk chunk = level.getChunk(x >> 4, z >> 4);
 		int surf = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
-		int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15) + 1;
 		BlockState top = level.getBlockState(pos.set(x, surf - 1, z));
-		if (surf == floor && !inside(boxes(level, chunk), x, surf, z) && top.isFaceSturdy(level, pos, Direction.UP)
+		// dry ground (not OCEAN_FLOOR against the top: that heightmap counts leaves, so a canopy overhead looked like water)
+		if (top.getFluidState().isEmpty() && !inside(boxes(level, chunk), x, surf, z) && top.isFaceSturdy(level, pos, Direction.UP)
 				&& (RoadFeature.ground(top, 0.5, true) != null || top.is(Blocks.DIRT_PATH) || top.is(BlockTags.DIRT))
 				&& free(level, pos, x, surf, z)) {
 			post(level, pos, x, surf, z);
@@ -855,6 +859,9 @@ public final class BuiltRoads {
 		return true;
 	}
 
+	/** The deepest water a lamp post stands in on a footing. */
+	static final int FOOTING = 6;
+
 	/** A column described for the log: its heights and the blocks from its floor to 3 over its top. */
 	public static String column(ServerLevel level, int x, int z) {
 		LevelChunk chunk = level.getChunk(x >> 4, z >> 4);
@@ -868,7 +875,7 @@ public final class BuiltRoads {
 	}
 
 	/**
-	 * A lamp post in shallow water (at most 2 deep, over natural ground) at (x, z): on a cobblestone footing up to the
+	 * A lamp post in shallow water (at most {@link #FOOTING} deep, over natural ground) at (x, z): on a cobblestone footing up to the
 	 * water's surface, so it stands by the road in a marsh instead of on the road itself.
 	 */
 	private static boolean footing(ServerLevel level, BlockPos.MutableBlockPos pos, int x, int z, BiPredicate<Integer, Integer> skip) {
@@ -876,10 +883,12 @@ public final class BuiltRoads {
 			return false;
 		}
 		LevelChunk chunk = level.getChunk(x >> 4, z >> 4);
-		int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
-		int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15);
+		int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15), floor = top;
+		while (floor > level.getMinY() && top - floor <= FOOTING && level.getBlockState(pos.set(x, floor, z)).is(Blocks.WATER)) {
+			floor--;
+		}
 		BlockState w = level.getBlockState(pos.set(x, top, z));
-		if (!w.is(Blocks.WATER) || top - floor > 2 || top <= floor || kind(level.getBlockState(pos.set(x, floor, z))) == null
+		if (!w.is(Blocks.WATER) || top - floor > FOOTING || top <= floor || kind(level.getBlockState(pos.set(x, floor, z))) == null
 				|| inside(boxes(level, chunk), x, top, z) || !free(level, pos, x, top + 1, z)) {
 			return false;
 		}
