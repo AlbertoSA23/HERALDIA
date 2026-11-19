@@ -394,6 +394,7 @@ DURATION_S = {
     "tools/smoke/wizard_huts.py": 75,               # two starts, four huts and three Evil Wizards
     "tools/smoke/caravans.py": 350,                 # two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py
     "tools/smoke/ambience.py": 135,                 # one start, three /locate'd structures, ~11,000 sprinted ticks
+    "tools/smoke/spawn_roads.py": 160,              # the Herald's House roads: four starts, two towns, two arenas, three road builds; measured locally (4 cores): 143 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/village_events.py": 185,         # measured locally (4 cores): 160 and 156 s of server log in two runs (four starts, one after a kill; ~20,000 sprinted ticks) + 10 % + setup; replace with its CI time
 }
 DEFAULT_S = 90

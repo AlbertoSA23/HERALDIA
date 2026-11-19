@@ -57,6 +57,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -93,7 +94,7 @@ public final class SpawnRoads {
 	public static final String ENABLED = "casa_heraldo.caminos.activado", VILLAGERS = "casa_heraldo.caminos.aldeanos";
 	static final String K = HeraldHouse.K + "caminos.";
 	static final String HUT_TAG = "heraldia_choza", GUIDE_TAG = "heraldia_guia";
-	static final int REST = 2, SLOW_MS = 50, LIGHT_WAIT = 60, FOUNDATION = 10, CLEAR = 12, STEEP = 4;
+	static final int REST = 2, AHEAD = 4, MAX_WAIT = 200, SLOW_MS = 50, LIGHT_WAIT = 60, FOUNDATION = 10, CLEAR = 12, STEEP = 4;
 	/** The guide's conversation only answers this close. */
 	static final double RANGE = 8;
 
@@ -279,13 +280,15 @@ public final class SpawnRoads {
 		final List<int[]> lamps = new ArrayList<>();      // {x, z, edge x, edge z}
 		final List<String> huts = new ArrayList<>();      // keys still to try, in order
 		final List<long[]> paved = new ArrayList<>();     // {x, y, z} of the paved columns (the light check)
+		final Map<Long, CompletableFuture<?>> loading = new HashMap<>();   // chunks asked for ahead (prefetch)
 		final RoadLayout layout;
 		final RoadLayout.Seabed seabed;
 		SpawnRoadLayout.@Nullable Result arenaRoad;
 		@Nullable BlockPos arenaOrigin;
 		@Nullable String arenaSide;
-		int index, rest, ticks, allowed, newHuts, newVillagers, roads, lampsPlaced, signs, pavedN, bridged, left;
+		int index, rest, ticks, waited, dark, lightChecked, allowed, newHuts, newVillagers, roads, lampsPlaced, signs, pavedN, bridged, left;
 		long nanos, worst;
+		String worstStep = "";
 		boolean waiting, again;
 
 		Work(ServerLevel level, Grounds g, @Nullable ServerPlayer who) {
@@ -479,7 +482,6 @@ public final class SpawnRoads {
 
 	private static void finishSteps(Work w) {
 		w.steps.add(new Step(Kind.WAIT, 0, 0));
-		w.steps.add(new Step(Kind.LIGHT, 0, 0));
 		w.steps.add(new Step(Kind.FINISH, 0, 0));
 	}
 
@@ -501,6 +503,14 @@ public final class SpawnRoads {
 		if (st.kind() == Kind.FINISH && w.waiting) {
 			return;
 		}
+		prefetch(w);
+		if (st.kind() == Kind.PAVE && w.level.getChunkSource().getChunkNow(st.cx(), st.cz()) == null) {
+			CompletableFuture<?> f = w.loading.get(RoadLayout.pack(st.cx(), st.cz()));
+			if (f != null && !f.isDone() && w.waited++ < MAX_WAIT) {
+				return;                            // its chunk is still being loaded or generated off the server thread
+			}
+		}
+		w.waited = 0;
 		long t0 = System.nanoTime();
 		w.index++;
 		try {
@@ -510,9 +520,31 @@ public final class SpawnRoads {
 		}
 		long ns = System.nanoTime() - t0;
 		w.nanos += ns;
-		w.worst = Math.max(w.worst, ns);
+		if (ns > w.worst) {
+			w.worst = ns;
+			w.worstStep = st.kind() + (st.key() != null ? " " + st.key() : " " + st.cx() + " " + st.cz());
+		}
 		if (ns > SLOW_MS * 1_000_000L) {
 			w.rest = REST;                         // a slow step (a chunk generated): let the server breathe
+		}
+	}
+
+	/**
+	 * The chunks of the next {@link #AHEAD} road steps, asked for without waiting (they generate on the worker threads):
+	 * a road through land nobody has visited yet does not stop the server thread while each chunk is generated.
+	 */
+	private static void prefetch(Work w) {
+		int found = 0;
+		for (int i = w.index; i < w.steps.size() && found < AHEAD; i++) {
+			Step st = w.steps.get(i);
+			if (st.kind() != Kind.PAVE) {
+				continue;
+			}
+			found++;
+			long key = RoadLayout.pack(st.cx(), st.cz());
+			if (!w.loading.containsKey(key) && w.level.getChunkSource().getChunkNow(st.cx(), st.cz()) == null) {
+				w.loading.put(key, w.level.getChunkSource().getChunkFuture(st.cx(), st.cz(), ChunkStatus.FULL, true));
+			}
 		}
 	}
 
@@ -565,8 +597,11 @@ public final class SpawnRoads {
 					save(level, saved(level).withArena(w.arenaOrigin));
 				}
 			}
-			case WAIT -> w.rest = LIGHT_WAIT;
-			case LIGHT -> light(w);
+			case WAIT -> {
+				w.rest = LIGHT_WAIT;
+				lightSteps(w);
+			}
+			case LIGHT -> light(w, st.cx(), st.cz());
 			case FINISH -> finish(w);
 		}
 	}
@@ -726,25 +761,46 @@ public final class SpawnRoads {
 
 	// --- the end ---
 
-	/** How many road columns outside the protected ring have no block light (logged; a monster could spawn there). */
-	private static void light(Work w) {
-		int dark = 0, checked = 0;
+	/**
+	 * After the wait: one LIGHT step per chunk with road columns outside the protected ring (the chunk loaded again if it
+	 * was unloaded meanwhile: its light is saved with it), each counting the columns with no block light.
+	 */
+	private static void lightSteps(Work w) {
+		Set<Long> chunks = new LinkedHashSet<>();
+		for (long[] c : w.paved) {
+			if (!w.g.inArea((int) c[0], (int) c[2])) {
+				chunks.add(RoadLayout.pack((int) c[0] >> 4, (int) c[2] >> 4));
+			}
+		}
+		int at = w.index;
+		for (long c : chunks) {
+			w.steps.add(at++, new Step(Kind.LIGHT, RoadLayout.px(c), RoadLayout.pz(c)));
+		}
+	}
+
+	/** The road columns of one chunk (outside the protected ring) with no block light: a monster could spawn there. */
+	private static void light(Work w, int cx, int cz) {
+		w.level.getChunk(cx, cz);
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 		for (long[] c : w.paved) {
 			int x = (int) c[0], z = (int) c[2];
-			if (w.g.inArea(x, z) || w.level.getChunkSource().getChunkNow(x >> 4, z >> 4) == null) {
+			if (x >> 4 != cx || z >> 4 != cz || w.g.inArea(x, z)) {
 				continue;
 			}
-			checked++;
+			w.lightChecked++;
 			if (w.level.getBrightness(LightLayer.BLOCK, pos.set(x, (int) c[1], z)) == 0) {
-				dark++;
+				if (w.dark++ < 8) {
+					LOGGER.info("Heraldia: herald's house roads: a dark road column at {} {} {}", x, c[1], z);
+				}
 			}
 		}
-		LOGGER.info("Heraldia: herald's house roads: light: {} of {} road columns outside the protected ring are dark", dark, checked);
 	}
 
 	private static void finish(Work w) {
 		work = null;
+		LOGGER.info("Heraldia: herald's house roads: the slowest step: {}", w.worstStep);
+		LOGGER.info("Heraldia: herald's house roads: light: {} of {} road columns outside the protected ring are dark ({} of {} lamp "
+				+ "posts placed)", w.dark, w.lightChecked, w.lampsPlaced, w.lamps.size());
 		Saved s = saved(w.level);
 		LOGGER.info("Heraldia: herald's house roads: built in {} ticks ({} ms on the server thread, the slowest step {} ms): {} roads, "
 						+ "{} columns paved, {} on bridges, {} left, {} lamp posts, {} signs, {} new huts, {} new villagers ({} huts in all)",

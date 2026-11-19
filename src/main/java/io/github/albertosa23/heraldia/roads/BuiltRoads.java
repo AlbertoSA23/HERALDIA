@@ -173,32 +173,45 @@ public final class BuiltRoads {
 	}
 
 	/**
-	 * A lamp post (two fence posts of the biome's wood and a lantern) at (x, z) on firm natural ground, or, if that
-	 * column is water beside a bridge, on the bridge's edge at (ex, ez). False if neither fits.
+	 * A lamp post (two fence posts of the biome's wood and a lantern) at (x, z) on firm natural ground; failing that (water,
+	 * a tree, a player's block), one block farther out; failing that, on the road's own edge at (ex, ez): on its paving
+	 * or on a bridge's deck. False if none fits.
 	 */
 	public static boolean lamp(ServerLevel level, int x, int z, int ex, int ez, BiPredicate<Integer, Integer> skip) {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-		if (!skip.test(x, z)) {
-			LevelChunk chunk = level.getChunk(x >> 4, z >> 4);
-			List<BoundingBox> boxes = boxes(level, chunk);
-			int surf = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
-			int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15) + 1;
-			BlockState top = level.getBlockState(pos.set(x, surf - 1, z));
-			if (surf == floor && !inside(boxes, x, surf, z) && top.isFaceSturdy(level, pos, Direction.UP)
-					&& (RoadFeature.ground(top, 0.5, true) != null || top.is(Blocks.DIRT_PATH)) && free(level, pos, x, surf, z)) {
-				post(level, pos, x, surf, z);
-				return true;
-			}
+		int ox = Integer.signum(x - ex), oz = Integer.signum(z - ez);
+		if (ground(level, pos, x, z, skip) || (ox != 0 || oz != 0) && ground(level, pos, x + ox, z + oz, skip)) {
+			return true;
 		}
 		if (skip.test(ex, ez)) {
 			return false;
 		}
 		LevelChunk chunk = level.getChunk(ex >> 4, ez >> 4);
-		int surf = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ex & 15, ez & 15);
-		BlockState deck = level.getBlockState(pos.set(ex, surf, ez));
-		if (deck.is(BlockTags.PLANKS) && level.getBlockState(pos.set(ex, surf - 1, ez)).getFluidState().is(FluidTags.WATER)
-				&& free(level, pos, ex, surf + 1, ez)) {
-			post(level, pos, ex, surf + 1, ez);
+		int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ex & 15, ez & 15);
+		BlockState deck = level.getBlockState(pos.set(ex, top, ez));
+		boolean bridge = deck.is(BlockTags.PLANKS) && level.getBlockState(pos.set(ex, top - 1, ez)).getFluidState().is(FluidTags.WATER);
+		boolean paved = deck.getFluidState().isEmpty() && deck.isFaceSturdy(level, pos.set(ex, top, ez), Direction.UP)
+				&& !inside(boxes(level, chunk), ex, top + 1, ez);
+		if ((bridge || paved) && free(level, pos, ex, top + 1, ez)) {
+			post(level, pos, ex, top + 1, ez);
+			return true;
+		}
+		return false;
+	}
+
+	/** A lamp post on firm natural ground (or a path) at (x, z), outside any structure. */
+	private static boolean ground(ServerLevel level, BlockPos.MutableBlockPos pos, int x, int z, BiPredicate<Integer, Integer> skip) {
+		if (skip.test(x, z)) {
+			return false;
+		}
+		LevelChunk chunk = level.getChunk(x >> 4, z >> 4);
+		int surf = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
+		int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15) + 1;
+		BlockState top = level.getBlockState(pos.set(x, surf - 1, z));
+		if (surf == floor && !inside(boxes(level, chunk), x, surf, z) && top.isFaceSturdy(level, pos, Direction.UP)
+				&& (RoadFeature.ground(top, 0.5, true) != null || top.is(Blocks.DIRT_PATH) || top.is(BlockTags.DIRT))
+				&& free(level, pos, x, surf, z)) {
+			post(level, pos, x, surf, z);
 			return true;
 		}
 		return false;

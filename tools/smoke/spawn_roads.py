@@ -32,7 +32,7 @@ GUIDE = "@e[type=minecraft:villager,tag=heraldia_guia]"
 BUILT = (r"herald's house roads: built in (\d+) ticks \((\d+) ms on the server thread, the slowest step (\d+) ms\): (\d+) roads, "
          r"(\d+) columns paved, (\d+) on bridges, (\d+) left, (\d+) lamp posts, (\d+) signs, (\d+) new huts, (\d+) new villagers "
          r"\((\d+) huts in all\)")
-LIGHT = r"herald's house roads: light: (\d+) of (\d+) road columns outside the protected ring are dark"
+LIGHT = r"herald's house roads: light: (\d+) of (\d+) road columns outside the protected ring are dark \((\d+) of (\d+) lamp"
 ARENA_ROAD = r"herald's house roads: arena road from the (\w+) gate, (\d+) blocks"
 BUILDING = r"herald's house roads: building"
 PLACED = r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+) \(box (-?\d+) (-?\d+) (-?\d+) to (-?\d+) (-?\d+) (-?\d+)\)"
@@ -90,7 +90,7 @@ def light(p, n, what):
         return
     m = list(re.finditer(LIGHT, p.ctx.log()))[n - 1]
     dark, checked = int(m.group(1)), int(m.group(2))
-    print(f"ROADS {what}: light: {dark} dark of {checked}", flush=True)
+    print(f"ROADS {what}: light: {dark} dark of {checked}; {m.group(3)} of {m.group(4)} lamp posts", flush=True)
     p.check(checked > 0, f"{what}: no road column checked for light")
     p.check(dark <= DARK_SHARE * checked, f"{what}: {dark} of {checked} road columns are dark")
 
