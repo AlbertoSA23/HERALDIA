@@ -76,6 +76,7 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
                  JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*",
                  JAVA + "welcome/*", "tools/gen/mediums/*", JAVA + "inhabitants/*"]
 RUNTIME_PATHS += [JAVA + "events/*"]          # village events: up to 25 entities in a square while one lasts
+RUNTIME_PATHS += [JAVA + "herald/*", "tools/gen/herald_house.py"]   # the Herald's House (scenario casa_heraldo)
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
