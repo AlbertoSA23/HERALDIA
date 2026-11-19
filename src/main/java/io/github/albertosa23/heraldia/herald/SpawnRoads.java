@@ -96,6 +96,7 @@ public final class SpawnRoads {
 	public static final String ENABLED = "casa_heraldo.caminos.activado", VILLAGERS = "casa_heraldo.caminos.aldeanos";
 	static final String K = HeraldHouse.K + "caminos.";
 	static final String HUT_TAG = "heraldia_choza", GUIDE_TAG = "heraldia_guia";
+	static final int LAMPS_PER_STEP = 4;
 	static final int REST = 2, AHEAD = 4, MAX_WAIT = 200, SLOW_MS = 50, LIGHT_WAIT = 60, FOUNDATION = 10, CLEAR = 12, STEEP = 4;
 	/** The guide's conversation only answers this close. */
 	static final double RANGE = 8;
@@ -425,7 +426,9 @@ public final class SpawnRoads {
 			int ez = d == 0 ? l[1] : (int) Math.floor(q[1] + dz / d * (p.width() / 2.0 - 0.5));
 			w.lamps.add(new int[] {l[0], l[1], ex, ez});
 		}
-		w.steps.add(new Step(Kind.LAMPS, w.lamps.size() - lamps.size(), w.lamps.size()));
+		for (int i = w.lamps.size() - lamps.size(); i < w.lamps.size(); i += LAMPS_PER_STEP) {   // a few lamp posts per step
+			w.steps.add(new Step(Kind.LAMPS, i, Math.min(i + LAMPS_PER_STEP, w.lamps.size())));
+		}
 	}
 
 	/** The nearest point of the polyline to (x, z). */
@@ -543,6 +546,9 @@ public final class SpawnRoads {
 				return;                            // its chunk is still being loaded or generated off the server thread
 			}
 		}
+		if (!around(w, st)) {
+			return;                                // the chunks it reads are still being loaded off the server thread
+		}
 		w.waited = 0;
 		long t0 = System.nanoTime();
 		w.index++;
@@ -584,6 +590,41 @@ public final class SpawnRoads {
 				w.loading.put(key, w.level.getChunkSource().getChunkFuture(st.cx(), st.cz(), ChunkStatus.FULL, true));
 			}
 		}
+	}
+
+	/**
+	 * Whether the chunks a step reads beside its own are loaded, asking for them without waiting if not (at most
+	 * {@link #MAX_WAIT} ticks): the leaves' steps read the 3 x 3 chunks around theirs (a chunk not loaded counts as holding
+	 * its leaves, so they would be left), the lamp posts' those of their places.
+	 */
+	private static boolean around(Work w, Step st) {
+		List<long[]> need = new ArrayList<>();
+		if (st.kind() == Kind.TIDY || st.kind() == Kind.AUDIT) {
+			for (int dx = -1; dx <= 1; dx++) {
+				for (int dz = -1; dz <= 1; dz++) {
+					need.add(new long[] {st.cx() + dx, st.cz() + dz});
+				}
+			}
+		} else if (st.kind() == Kind.LAMPS) {
+			for (int i = st.cx(); i < st.cz(); i++) {
+				int[] l = w.lamps.get(i);
+				for (int dx = -1; dx <= 1; dx++) {   // its place and the one beyond
+					for (int dz = -1; dz <= 1; dz++) {
+						need.add(new long[] {(l[0] + dx) >> 4, (l[1] + dz) >> 4});
+					}
+				}
+			}
+		}
+		boolean ready = true;
+		for (long[] c : need) {
+			int cx = (int) c[0], cz = (int) c[1];
+			if (w.level.getChunkSource().getChunkNow(cx, cz) == null) {
+				CompletableFuture<?> f = w.loading.computeIfAbsent(RoadLayout.pack(cx, cz),
+						k -> w.level.getChunkSource().getChunkFuture(cx, cz, ChunkStatus.FULL, true));
+				ready &= f.isDone();
+			}
+		}
+		return ready || w.waited++ >= MAX_WAIT;
 	}
 
 	private static void step(Work w, Step st) {
