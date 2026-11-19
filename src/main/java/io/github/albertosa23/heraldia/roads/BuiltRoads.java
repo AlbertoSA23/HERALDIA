@@ -714,9 +714,23 @@ public final class BuiltRoads {
 			for (int iz = 0; iz < n; iz++) {
 				LevelChunk ch = loaded.chunk(x0 + ix, z0 + iz);
 				boolean side = ix == 0 || iz == 0 || ix == n - 1 || iz == n - 1;
+				int sec = Integer.MIN_VALUE;
+				boolean trees = true;
 				for (int iy = 0; iy < h; iy++) {
 					boolean rim = side || iy == 0 || iy == h - 1;
 					int idx = (ix * n + iz) * h + iy;
+					if (ch != null) {
+						int si = ch.getSectionIndex(y0 + iy);
+						if (si != sec) {             // a section with no log or leaves in its palette is skipped whole
+							sec = si;
+							trees = si >= 0 && si < ch.getSections().length
+									&& ch.getSection(si).maybeHas(b -> b.is(BlockTags.LOGS) || b.is(BlockTags.LEAVES));
+						}
+						if (!trees) {
+							d[idx] = -1;
+							continue;
+						}
+					}
 					BlockState s = ch == null ? null : ch.getBlockState(pos.set(x0 + ix, y0 + iy, z0 + iz));
 					boolean leaf = s != null && s.is(BlockTags.LEAVES) && !s.getValue(LeavesBlock.PERSISTENT);
 					if (s == null || s.is(BlockTags.LOGS) || leaf && rim) {
