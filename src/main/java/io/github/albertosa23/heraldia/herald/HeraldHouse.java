@@ -83,6 +83,8 @@ public final class HeraldHouse {
 	public static final String ENABLED = "casa_heraldo.activado", NEW_WORLDS = "casa_heraldo.generar_en_mundos_nuevos";
 
 	private static @Nullable HousePlan plan;
+	/** Every blueprint version the .jar knows (a world keeps the version it placed). */
+	private static java.util.Map<Integer, HousePlan> plans = java.util.Map.of();
 	private static volatile @Nullable Grounds grounds;
 	private static @Nullable ServerLevel houseLevel;
 	private static boolean turnedOn;
@@ -97,6 +99,7 @@ public final class HeraldHouse {
 
 	/** One line in Heraldia.onInitialize. */
 	public static void register() {
+		plans = HousePlan.allFromJar();
 		plan = HousePlan.fromJar();
 		Saved.Type.HOUSE.identifier();       // the attachment, registered before the world loads (see LESSONS)
 		ServerLifecycleEvents.SERVER_STARTED.register(HeraldHouse::onStart);
@@ -118,8 +121,20 @@ public final class HeraldHouse {
 		}));
 	}
 
+	/** The blueprint of the placed town (its own version), or the current one if there is none yet. */
 	static HousePlan plan() {
-		return plan;
+		Grounds g = grounds;
+		return g != null ? g.plan() : plan;
+	}
+
+	/** The blueprint of that version; an unknown one (a world opened with an older .jar after a newer one) is the current. */
+	static HousePlan planFor(int version) {
+		HousePlan p = plans.get(version);
+		if (p == null) {
+			LOGGER.warn("Heraldia: herald's house: blueprint version {} unknown to this .jar, using version {}", version, plan.version());
+			return plan;
+		}
+		return p;
 	}
 
 	static @Nullable Grounds grounds() {
@@ -305,7 +320,7 @@ public final class HeraldHouse {
 			LOGGER.info("Heraldia: herald's house: disabled ({} = false)", ENABLED);
 			return;
 		}
-		s.origin().ifPresent(o -> load(ow, o));
+		s.origin().ifPresent(o -> load(ow, o, s.version()));
 		if (s.origin().isEmpty() && !s.decided()) {
 			boolean fresh = ow.getGameTime() < NEW_WORLD_TICKS;
 			ow.setAttached(Saved.Type.HOUSE, s.decide());
@@ -320,10 +335,11 @@ public final class HeraldHouse {
 		}
 	}
 
-	private static void load(ServerLevel ow, BlockPos o) {
+	private static void load(ServerLevel ow, BlockPos o, int version) {
 		houseLevel = ow;
-		grounds = new Grounds(o.getX(), o.getY(), o.getZ(), plan);
-		LOGGER.info("Heraldia: herald's house: at {} {} {}", grounds.centerX(), grounds.groundY(), grounds.centerZ());
+		grounds = new Grounds(o.getX(), o.getY(), o.getZ(), planFor(version));
+		LOGGER.info("Heraldia: herald's house: at {} {} {} (version {})", grounds.centerX(), grounds.groundY(), grounds.centerZ(),
+				grounds.plan().version());
 	}
 
 	/** /heraldia reload: casa_heraldo.activado on or off (the market options are read on every use). */
@@ -332,7 +348,8 @@ public final class HeraldHouse {
 		turnedOn = HeraldiaConfig.get().getBool(ENABLED);
 		ServerLevel ow = server.overworld();
 		if (turnedOn && !before) {
-			saved(ow).origin().ifPresent(o -> load(ow, o));
+			Saved s = saved(ow);
+			s.origin().ifPresent(o -> load(ow, o, s.version()));
 		} else if (!turnedOn && before) {
 			grounds = null;
 			houseLevel = null;
@@ -352,7 +369,7 @@ public final class HeraldHouse {
 
 	/** Called by {@link Building} when done: saved, protected and, in a new world, the spawn on the plaza. */
 	static void placed(ServerLevel level, Grounds g, boolean newWorld) {
-		save(level, saved(level).withOrigin(new BlockPos(g.ox(), g.oy(), g.oz())));
+		save(level, saved(level).withOrigin(new BlockPos(g.ox(), g.oy(), g.oz()), g.plan().version()));
 		houseLevel = level;
 		grounds = g;
 		if (newWorld) {
@@ -547,6 +564,20 @@ public final class HeraldHouse {
 			return null;
 		}
 		return new int[] {g.centerX() >> 4, g.centerZ() >> 4};
+	}
+
+	/**
+	 * For the village events (events/VillageEvents): the plaza's event square if {@code pos} is in the house's columns
+	 * and its version has one: {minimum corner x, floor y, z, side, the house's chunk x, z}; else null.
+	 */
+	public static int @Nullable [] eventSquare(Level level, BlockPos pos) {
+		Grounds g = grounds;
+		if (g == null || level != houseLevel || !g.inColumns(pos.getX(), pos.getZ()) || g.plan().square() == null) {
+			return null;
+		}
+		int[] sq = g.plan().square();
+		int[] w = g.world(new int[] {sq[0], sq[1], sq[2]});
+		return new int[] {w[0], w[1], w[2], sq[3], g.centerX() >> 4, g.centerZ() >> 4};
 	}
 
 	/** The village style the house's villagers speak as. */

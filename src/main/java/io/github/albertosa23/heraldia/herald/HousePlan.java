@@ -30,16 +30,41 @@ import java.util.Map;
  * @param returns   the return barrels
  * @param dock      the dock template and its size (width, height, length)
  * @param style     the village style the villagers' conversations use
+ * @param version   the template's version (1: the 96 x 96 town of the first release; 2: the 128 x 128 one)
+ * @param square    the village-event square in the plaza (minimum corner x, floor y, z, side), or null (version 1 has none)
  */
 public record HousePlan(String template, int[] size, int ground, int[] spawn, int[] bell, Map<String, int[]> gates, int[] road,
-		int[][] portal, List<Stall> stalls, List<int[]> returns, String dockTemplate, int[] dockSize, String style) {
+		int[][] portal, List<Stall> stalls, List<int[]> returns, String dockTemplate, int[] dockSize, String style, int version,
+		int @org.jspecify.annotations.Nullable [] square) {
 
 	/** A stall: its number, the box the tenant may use (min and max corners) and its sign. */
 	public record Stall(int id, int[] min, int[] max, int[] sign) {
 	}
 
+	/** The current blueprint (the one a new placement uses). */
 	public static HousePlan read(Reader r) {
+		return parse(JsonParser.parseReader(r).getAsJsonObject());
+	}
+
+	/**
+	 * Every version of the blueprint the .jar knows, by version: the current one and the earlier ones it carries
+	 * ({@code anteriores}), so a world that placed an earlier town keeps its protection, stalls and barrels where they are.
+	 */
+	public static Map<Integer, HousePlan> readAll(Reader r) {
 		JsonObject o = JsonParser.parseReader(r).getAsJsonObject();
+		Map<Integer, HousePlan> out = new LinkedHashMap<>();
+		HousePlan current = parse(o);
+		out.put(current.version(), current);
+		if (o.has("anteriores")) {
+			for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("anteriores").entrySet()) {
+				HousePlan p = parse(e.getValue().getAsJsonObject());
+				out.putIfAbsent(p.version(), p);
+			}
+		}
+		return Map.copyOf(out);
+	}
+
+	private static HousePlan parse(JsonObject o) {
 		Map<String, int[]> gates = new LinkedHashMap<>();
 		for (Map.Entry<String, JsonElement> e : o.getAsJsonObject("puertas").entrySet()) {
 			gates.put(e.getKey(), ints(e.getValue().getAsJsonArray()));
@@ -62,17 +87,24 @@ public record HousePlan(String template, int[] size, int ground, int[] spawn, in
 				ints(o.getAsJsonArray("camino")),
 				new int[][] {ints(portal.get(0).getAsJsonArray()), ints(portal.get(1).getAsJsonArray())}, List.copyOf(stalls),
 				List.copyOf(returns), dock.get("plantilla").getAsString(), ints(dock.getAsJsonArray("tamano")),
-				o.get("estilo").getAsString());
+				o.get("estilo").getAsString(), o.has("version") ? o.get("version").getAsInt() : 1,
+				o.has("plaza_eventos") ? ints(o.getAsJsonArray("plaza_eventos")) : null);
 	}
 
-	/** The one in the .jar (heraldia/casa_heraldo.json). */
+	/** The current one in the .jar (heraldia/casa_heraldo.json). */
 	public static HousePlan fromJar() {
+		Map<Integer, HousePlan> all = allFromJar();
+		return all.values().stream().max(java.util.Comparator.comparingInt(HousePlan::version)).orElseThrow();
+	}
+
+	/** Every version in the .jar, by version. */
+	public static Map<Integer, HousePlan> allFromJar() {
 		String path = "/heraldia/casa_heraldo.json";
 		try (InputStream in = HousePlan.class.getResourceAsStream(path)) {
 			if (in == null) {
 				throw new IllegalStateException("Missing " + path + " in the Heraldia .jar");
 			}
-			return read(new InputStreamReader(in, StandardCharsets.UTF_8));
+			return readAll(new InputStreamReader(in, StandardCharsets.UTF_8));
 		} catch (IOException e) {
 			throw new IllegalStateException("Could not read " + path, e);
 		}

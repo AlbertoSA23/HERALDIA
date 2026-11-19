@@ -103,7 +103,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
     ap.add_argument("--work", default=os.path.join(s.ROOT, "build", "smoke-arena"))
+    ap.add_argument("--settle", action="store_true",
+                    help="after placing the Herald's House, run three in-game days and count who holds a bed, a "
+                         "workstation and a meeting point (slow; not in CI)")
     a = ap.parse_args()
+    global SETTLE
+    SETTLE = a.settle
     os.makedirs(a.work, exist_ok=True)
     pl = blueprint(a.jar)
     with zipfile.ZipFile(a.jar) as z:
@@ -372,7 +377,8 @@ def herald_house(p, hp, arena_box):
     m = p.wait_log(r"herald's house: site at (-?\d+) (-?\d+) (-?\d+) \((\d+) blocks from spawn", timeout=120)
     if not p.check(m, "herald: no site proposed near spawn"):
         return
-    p.check(int(m.group(4)) <= 48, f"herald: site {m.group(4)} blocks from spawn (at most 48)")
+    # Siting.RADIUS (48) is per axis: a candidate on the ring's corner is up to 48 * sqrt(2) = 68 blocks away
+    p.check(int(m.group(4)) <= 68, f"herald: site {m.group(4)} blocks from spawn (at most 48 along each axis)")
     ctx.run("heraldia herald place confirm", r"Building the Herald's House|Construyendo la Casa del Heraldo")
     m = p.wait_log(r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+) \(box (-?\d+) (-?\d+) (-?\d+) to (-?\d+) (-?\d+) (-?\d+)\)",
                    timeout=400)
@@ -380,7 +386,11 @@ def herald_house(p, hp, arena_box):
         return
     b = [int(g) for g in m.groups()[3:]]
     print("HERALD: build:", re.search(r"herald's house: built in .*", ctx.log()).group(0))
-    p.check(b[3] - b[0] == 95 and b[5] - b[2] == 95, f"herald: box {b} is not 96 x 96")
+    side = hp["tamano"][0]
+    p.check(b[3] - b[0] == side - 1 and b[5] - b[2] == side - 1, f"herald: box {b} is not {side} x {side}")
+    m2 = re.search(r"herald's house: built in (\d+) ticks \((\d+) ms", ctx.log())
+    if m2:
+        BUILD.append((int(m2.group(1)), int(m2.group(2))))
     ax0, az0, ax1, az1 = arena_box[0], arena_box[2], arena_box[3], arena_box[5]
     p.check(ax1 < b[0] - 50 or ax0 > b[3] + 50 or az1 < b[2] - 50 or az0 > b[5] + 50,
             "herald: the protected ring touches the arena")
@@ -395,6 +405,19 @@ def herald_house(p, hp, arena_box):
     sign = w(hp["puestos"][0]["cartel"])
     p.check(ctx.block(sign, "#minecraft:all_signs"), "herald: stall 1 has no sign")
     ctx.run("heraldia herald", r"The Herald's House is at|La Casa del Heraldo está en")
+    # its villagers: the 18 residents and the bailiff, all where the template put them
+    res = f"@e[type=minecraft:villager,tag=heraldia_casa,tag=!heraldia_alguacil,x={b[0]},y={b[1]},z={b[2]},dx={side},dy=40,dz={side}]"
+    p.check(ctx.count(res) == 18, f"herald: {ctx.count(res)} resident villagers (18)")
+    # a village event on the plaza (version 2: its middle is a village square)
+    sq = hp.get("plaza_eventos")
+    if sq:
+        cx, cy, cz = o[0] + sq[0] + sq[3] // 2, o[1] + sq[1] + 1, o[2] + sq[2] + sq[3] // 2
+        ctx.run(f"execute positioned {cx} {cy} {cz} run heraldia event start market",
+                r"starts in|Empieza el evento|not started|no cabe|No hay|There is no|room|sitio")
+        p.check(p.wait_log(r"events: event \d+ starts: market in", timeout=30), "herald: no market day on the plaza")
+        ctx.run("heraldia event stop all", r"stopped|parad|[Ee]vent")
+    if SETTLE:
+        settle(p, b, res)
     # protection: a creative player who is not an operator
     sx, sy, sz = w(hp["aparicion"])
     ctx.run(f"deop {P}", r"no longer|Nothing changed|not an operator")
@@ -470,6 +493,45 @@ def herald_house(p, hp, arena_box):
     # monsters not spawning in the area (HeraldSpawnMixin) is not checked here: in this world spawn_mobs and advance_time
     # were turned off at the start and turning them back on does not bring natural spawning back (see LESSONS)
     ctx.run(f"tp {P} {sx + 0.5} {sy} {sz + 0.5}", r"Teleported")
+
+
+SETTLE = False          # --settle: three in-game days, counting who holds a bed, a workstation and a meeting point
+BUILD = []
+
+
+def settle(p, b, res):
+    """On the seed's real terrain (wherever the site search put the town): at the end of each of three in-game days,
+    how many residents hold a bed, a workstation and a meeting point (their Brain memories, which the game saves).
+    Forceloads the town and 48 blocks around (they stroll by day; /forceload takes at most 256 chunks), waits for it to load and runs the clock in steps
+    (see LESSONS on testing villagers over several days)."""
+    import medium_structures as ms
+    ctx = p.ctx
+    m = 48
+    ctx.run(f"forceload add {b[0] - m} {b[2] - m} {b[3] + m} {b[5] + m}", r"Marked|force|already|[Tt]oo many")
+    cx, cz = (b[0] + b[3]) // 2, (b[2] + b[5]) // 2
+    ms.wait_loaded(ctx, cx - 8, cz - 8, (b[3] - b[0]) // 2 + m - 16)
+    ctx.run("gamerule advance_time true", r"[Gg]ame ?rule")
+    ctx.run("time set 1000", r"Set the time|time to|Set minecraft:\w+ to|already")
+    n = ctx.count(res)
+    mem = lambda k: ctx.count(f"{res[:-1]},nbt={{Brain:{{memories:{{\"minecraft:{k}\":{{}}}}}}}}]")
+    out = []
+    for day in (1, 2, 3):
+        ms.sprint(ctx, 12000 if day == 1 else 24000)            # to the night of that day
+        time.sleep(20)
+        row = (day, n, mem("home"), mem("job_site"), mem("meeting_point"), ctx.count(res))
+        out.append(row)
+        print(f"HERALD: settle: day {day}: of {n} residents, {row[2]} with a bed, {row[3]} with a workstation, "
+              f"{row[4]} with a meeting point ({row[5]} alive)")
+    nohome = f"{res[:-1]},nbt=!{{Brain:{{memories:{{\"minecraft:home\":{{}}}}}}}}]"
+    if ctx.count(nohome):
+        s.send(ctx.proc, f"execute as {nohome} run data get entity @s VillagerData.profession")
+        s.send(ctx.proc, f"execute as {nohome} run data get entity @s Pos")
+        ctx.ticks(5)
+        print("HERALD: settle: without a bed:", "; ".join(re.findall(r"Villager has the following entity data: (.*)", ctx.log())[-2 * ctx.count(nohome):]))
+    ctx.run("gamerule advance_time false", r"[Gg]ame ?rule")
+    last = out[-1]
+    p.check(last[2] >= n - 1 and last[3] >= n - 1 and last[4] >= n - 1,
+            f"herald: after three days only {last[2]}/{n} beds, {last[3]}/{n} workstations, {last[4]}/{n} meeting points")
 
 
 def wait_count(ctx, sel, n, timeout=60):

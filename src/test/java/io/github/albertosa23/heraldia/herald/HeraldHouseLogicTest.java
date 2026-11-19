@@ -19,8 +19,11 @@ class HeraldHouseLogicTest {
 
 	@Test
 	void blueprintFromTheJar() {
-		assertEquals(96, PLAN.size()[0]);
-		assertEquals(96, PLAN.size()[2]);
+		assertEquals(128, PLAN.size()[0]);
+		assertEquals(128, PLAN.size()[2]);
+		assertEquals(2, PLAN.version());
+		assertNotNull(PLAN.square(), "the plaza's event square");
+		assertEquals(23, PLAN.square()[3], "the same side as a village square (events/Layout.N)");
 		assertEquals(8, PLAN.stalls().size());
 		assertEquals(12, PLAN.returns().size());
 		assertEquals(4, PLAN.gates().size());
@@ -28,15 +31,45 @@ class HeraldHouseLogicTest {
 		assertEquals("llanuras_castellana", PLAN.style());
 	}
 
+	/**
+	 * A world that placed the first town (96 x 96, before there were versions) keeps it exactly as it was: its saved
+	 * attachment has no version and reads as 1, and the .jar still carries that blueprint, so its protected area, stalls
+	 * and return barrels stay where they were built.
+	 */
+	@Test
+	void aWorldKeepsTheVersionItPlaced() {
+		java.util.Map<Integer, HousePlan> all = HousePlan.allFromJar();
+		assertEquals(java.util.Set.of(1, 2), all.keySet());
+		HousePlan v1 = all.get(1);
+		assertEquals(96, v1.size()[0]);
+		assertEquals(96, v1.size()[2]);
+		assertEquals(null, v1.square(), "no event square in the old town");
+		Grounds old = new Grounds(1000, 60, -2000, v1);
+		assertTrue(old.inArea(1000 + 95 + 50, -2000));
+		assertFalse(old.inArea(1000 + 95 + 51, -2000), "the old ring does not grow");
+		assertEquals(8, v1.stalls().size());
+		assertEquals(12, v1.returns().size());
+		// the stall boxes and barrels of version 1, as built by the first release
+		assertEquals(java.util.List.of(7, 5, 65), java.util.Arrays.stream(v1.stall(1).min()).boxed().toList());
+		assertEquals(java.util.List.of(43, 5, 84), java.util.Arrays.stream(v1.returns().getFirst()).boxed().toList());
+		// the attachment: absent version -> 1; a new placement saves the current one
+		com.mojang.serialization.Dynamic<com.google.gson.JsonElement> before = new com.mojang.serialization.Dynamic<>(
+				com.mojang.serialization.JsonOps.INSTANCE, com.google.gson.JsonParser.parseString(
+						"{\"origen\": [1000, 60, -2000], \"decidida\": true}"));
+		Saved s = Saved.CODEC.parse(before).getOrThrow();
+		assertEquals(1, s.version());
+		assertEquals(2, s.withOrigin(net.minecraft.core.BlockPos.ZERO, PLAN.version()).version());
+	}
+
 	@Test
 	void protectedAreaIsTheFootprintAndFiftyBlocks() {
 		assertTrue(Grounds.RING >= 50);
 		assertTrue(G.inArea(1000 - 50, -2000 - 50));
 		assertFalse(G.inArea(1000 - 51, -2000));
-		assertTrue(G.inArea(1000 + 95 + 50, -2000 + 95 + 50));
-		assertFalse(G.inArea(1000 + 95 + 51, -2000));
+		assertTrue(G.inArea(1000 + 127 + 50, -2000 + 127 + 50));
+		assertFalse(G.inArea(1000 + 127 + 51, -2000));
 		int side = PLAN.size()[0] + 2 * Grounds.RING;
-		assertEquals(196, side, "about 196 x 196 in all");
+		assertEquals(228, side, "about 228 x 228 in all");
 		// every height: no tunnelling under it, no towering over it
 		assertTrue(G.isProtected(1000 - 20, -60, -2000, false, 0));
 		assertTrue(G.isProtected(1000 - 20, 300, -2000, false, 0));
@@ -146,7 +179,7 @@ class HeraldHouseLogicTest {
 	}
 
 	private static Optional<Siting.Choice> choose(Site.Heights h, Siting.Forbidden f) {
-		return Siting.choose(0, 0, 96, PLAN.ground(), PLAN.size()[1] - PLAN.ground(), -64, 320, h, f);
+		return Siting.choose(0, 0, PLAN.size()[0], PLAN.ground(), PLAN.size()[1] - PLAN.ground(), -64, 320, h, f);
 	}
 
 	@Test
@@ -168,7 +201,7 @@ class HeraldHouseLogicTest {
 		// an arena everywhere: none
 		assertTrue(choose(new Terrain((x, z) -> 70, (x, z) -> false), (a, b, c2, d) -> true).isEmpty());
 		// never further than RADIUS, so the ring stays clear of the arena's search (200-300 blocks)
-		assertTrue(Siting.RADIUS + 48 + Grounds.RING < Site.RADIUS_MIN - 57 / 2);
+		assertTrue(Siting.RADIUS + PLAN.size()[0] / 2 + Grounds.RING < Site.RADIUS_MIN - 57 / 2);
 	}
 
 	@Test
