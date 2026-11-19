@@ -414,7 +414,9 @@ public final class SpawnRoads {
 			}
 		}
 		for (long c : chunks) {
-			w.steps.add(new Step(Kind.PAVE, RoadLayout.px(c), RoadLayout.pz(c)));
+			for (int half = 0; half < 2; half++) {    // each chunk in two halves, a step each
+				w.steps.add(new Step(Kind.PAVE, RoadLayout.px(c), RoadLayout.pz(c), null, new int[] {half}));
+			}
 			w.chunks.add(c);
 		}
 		List<int[]> lamps = SpawnRoadLayout.lamps(pts, before, p);
@@ -633,7 +635,7 @@ public final class SpawnRoads {
 			case PAVE -> {
 				LevelChunk chunk = level.getChunk(st.cx(), st.cz());
 				RoadLayout.Cell[] cells = new RoadLayout.Cell[256];
-				BuiltRoads.Painted pr = BuiltRoads.pave(level, chunk, w.layout, w.routes, w.profiles, blueprint().params().width(),
+				BuiltRoads.Painted pr = BuiltRoads.pave(level, chunk, st.extra()[0], w.layout, w.routes, w.profiles, blueprint().params().width(),
 						w.seabed, (x, z) -> skip(w, x, z), cells);
 				w.pavedN += pr.paved();
 				w.bridged += pr.bridged();

@@ -232,7 +232,7 @@ public final class BuiltRoads {
 	}
 
 	/**
-	 * Paves the road columns of {@code routes} in this chunk, at the height and with the paving of each route's
+	 * Paves the road columns of {@code routes} in one half of this chunk ({@code half} 0: x 0-7 in it, 1: x 8-15), at the height and with the paving of each route's
 	 * {@code profiles} (one per route), and tidies the one-block shoulder on each side. {@code skip}: columns never to
 	 * touch (the town's footprint, the arena's box). {@code seabed}: the terrain's bottom height (noise: the vertices may
 	 * lie in chunks not loaded). Returns the cells painted (x * 16 + z, null = no road) with the counts.
@@ -248,11 +248,11 @@ public final class BuiltRoads {
 	 * </ul>
 	 * Anything that is not natural (a player's block, a structure's piece) is never touched: its column is left.
 	 */
-	public static Painted pave(ServerLevel level, LevelChunk chunk, RoadLayout layout, List<RoadLayout.Route> routes,
+	public static Painted pave(ServerLevel level, LevelChunk chunk, int half, RoadLayout layout, List<RoadLayout.Route> routes,
 			Map<RoadLayout.Route, RoadProfile> profiles, int width, RoadLayout.Seabed seabed, BiPredicate<Integer, Integer> skip,
 			RoadLayout.Cell[] cells) {
 		var cp = chunk.getPos();
-		double half = Math.max(width / 2.0, RoadLayout.CORE);
+		double edge = Math.max(width / 2.0, RoadLayout.CORE);
 		RoadLayout.Cell[] c = layout.paint(routes, cp.x(), cp.z(), width + 2, false);
 		List<BoundingBox> boxes = boxes(level, chunk);
 		Loaded loaded = new Loaded(level);
@@ -262,9 +262,9 @@ public final class BuiltRoads {
 		int paved = 0, bridged = 0, left = 0, sea = level.getSeaLevel();
 		Arrays.fill(cells, null);
 		for (int pass = 0; pass < 2; pass++) {    // the road first, then its shoulders (which look at the road's height)
-			for (int i = 0; i < 256; i++) {
+			for (int i = half * 128; i < half * 128 + 128; i++) {   // one half of the chunk (8 rows of x) per step
 				RoadLayout.Cell cell = c[i];
-				if (cell == null || (cell.dist() <= half) != (pass == 0)) {
+				if (cell == null || (cell.dist() <= edge) != (pass == 0)) {
 					continue;
 				}
 				int x = cp.getMinBlockX() + i / 16, z = cp.getMinBlockZ() + i % 16;
@@ -275,7 +275,7 @@ public final class BuiltRoads {
 					}
 					continue;
 				}
-				int r = column(level, chunk, loaded, profile, sampler, cell, x, z, cell.dist() > half - 0.75, width, seabed, sea,
+				int r = column(level, chunk, loaded, profile, sampler, cell, x, z, cell.dist() > edge - 0.75, width, seabed, sea,
 						boxes, skip, felled, pos);
 				if (r == 1) {
 					paved++;
