@@ -61,6 +61,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
@@ -756,6 +757,7 @@ public final class SpawnRoads {
 		String why = null;
 		SpawnRoadLayout.Box arena = arenaBox();
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		Map<Long, List<BoundingBox>> boxes = new HashMap<>();   // by chunk
 		for (int lx = 0; lx < sx && why == null; lx++) {
 			for (int lz = 0; lz < sz && why == null; lz++) {
 				int[] c = SpawnRoadLayout.hutCell(gate, side, slot.side(), slot.along(), sx, bp.edge(), lx, lz);
@@ -767,7 +769,8 @@ public final class SpawnRoads {
 					why = "too steep";
 				} else if (w.g.inColumns(c[0], c[1]) || arena != null && arena.in(c[0], c[1], 2)) {
 					why = "the town or the arena";
-				} else if (!BuiltRoads.boxes(level, chunk).stream().allMatch(b -> !b.isInside(c[0], y + 1, c[1]))) {
+				} else if (boxes.computeIfAbsent(RoadLayout.pack(c[0] >> 4, c[1] >> 4), k -> BuiltRoads.boxes(level, chunk)).stream()
+						.anyMatch(b -> b.isInside(c[0], y + 1, c[1]))) {
 					why = "a structure";
 				}
 			}

@@ -89,7 +89,7 @@ public final class BuiltRoads {
 	/** Air over the shoulder (the lamp posts stand on it). */
 	static final int SHOULDER_HEAD = 3;
 	/** At most this many blocks of ground cut away, or filled in, under the road to keep it level. */
-	static final int CUT = 6, FILL = 6;
+	static final int CUT = 10, FILL = 10;
 	/** A tree larger than this (logs) is not a tree: left as it is. */
 	static final int MAX_LOGS = 320;
 	/** Leaves looked at around a felled tree, at most (and at most {@link LeavesBlock#DECAY_DISTANCE} blocks from it). */
@@ -663,7 +663,7 @@ public final class BuiltRoads {
 			tops[i] = y;
 			lo = Math.min(lo, y);
 			hi = Math.max(hi, y);
-			if (!paving(s)) {
+			if (!paving(s) && (kind(s) != null || growth(s))) {   // a dock's or a player's block was left on purpose
 				unpaved++;
 				example(examples, "not paved", x, y, z, s);
 			}
@@ -808,7 +808,9 @@ public final class BuiltRoads {
 	public static boolean lamp(ServerLevel level, int x, int z, int ex, int ez, BiPredicate<Integer, Integer> skip) {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 		int ox = Integer.signum(x - ex), oz = Integer.signum(z - ez);
-		if (ground(level, pos, x, z, skip) || (ox != 0 || oz != 0) && ground(level, pos, x + ox, z + oz, skip)) {
+		boolean out = ox != 0 || oz != 0;
+		if (ground(level, pos, x, z, skip) || footing(level, pos, x, z, skip)
+				|| out && (ground(level, pos, x + ox, z + oz, skip) || footing(level, pos, x + ox, z + oz, skip))) {
 			return true;
 		}
 		if (skip.test(ex, ez)) {
@@ -845,10 +847,34 @@ public final class BuiltRoads {
 
 	private static boolean free(ServerLevel level, BlockPos.MutableBlockPos pos, int x, int y, int z) {
 		for (int yy = y; yy < y + 3; yy++) {
-			if (!clearable(level.getBlockState(pos.set(x, yy, z)))) {
-				return false;
+			BlockState s = level.getBlockState(pos.set(x, yy, z));
+			if (!clearable(s) && !(growth(s) && !s.is(BlockTags.LOGS) && s.getFluidState().isEmpty())) {
+				return false;                      // a flower, a bush or a pumpkin gives way; a trunk or a player's block does not
 			}
 		}
+		return true;
+	}
+
+	/**
+	 * A lamp post in shallow water (at most 2 deep, over natural ground) at (x, z): on a cobblestone footing up to the
+	 * water's surface, so it stands by the road in a marsh instead of on the road itself.
+	 */
+	private static boolean footing(ServerLevel level, BlockPos.MutableBlockPos pos, int x, int z, BiPredicate<Integer, Integer> skip) {
+		if (skip.test(x, z)) {
+			return false;
+		}
+		LevelChunk chunk = level.getChunk(x >> 4, z >> 4);
+		int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+		int floor = chunk.getHeight(Heightmap.Types.OCEAN_FLOOR, x & 15, z & 15);
+		BlockState w = level.getBlockState(pos.set(x, top, z));
+		if (!w.is(Blocks.WATER) || top - floor > 2 || top <= floor || kind(level.getBlockState(pos.set(x, floor, z))) == null
+				|| inside(boxes(level, chunk), x, top, z) || !free(level, pos, x, top + 1, z)) {
+			return false;
+		}
+		for (int y = floor + 1; y <= top; y++) {
+			level.setBlock(pos.set(x, y, z), Blocks.COBBLESTONE.defaultBlockState(), Block.UPDATE_ALL);
+		}
+		post(level, pos, x, top + 1, z);
 		return true;
 	}
 
