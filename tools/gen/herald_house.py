@@ -84,9 +84,7 @@ STALL_W = 5
 STALL_X = (25, 31, 37, 43)                 # west x of each stall in a row
 STALL_ROWS = ((66, "south"), (76, "north"))  # (north z of the row, side the counter faces)
 RETURNS = 12                               # return barrels in the office
-CLEAR_FRONT = 3                            # walkable, free cells straight out of every door
-FACE_CLEAR = 8                             # how far out of a door no other building's wall may stand
-GAP = 4                                    # free blocks between any two buildings
+from doors import CLEAR as CLEAR_FRONT, FACE as FACE_CLEAR, GAP   # the door rule (doors.py)
 BED_PATH, BELL_PATH = 16, 24               # blocks' walk: a resident's bed from its workstation; its bell from both
 
 # materials (none burns: crimson wood is fireproof; the sheltered flammables are checked by fire_errors)
@@ -2030,37 +2028,24 @@ def walk_cells(t, player=False):
 
 
 def placement_errors(blds, t=None, cells=None):
-    """Where the buildings are: every door has CLEAR_FRONT free, walkable blocks straight out of it, no other
-    building stands within FACE_CLEAR blocks in front of a door (3 wide), any two buildings are GAP blocks apart and,
-    with the template, every door can be walked to from a street and the paths laid from the doors reach one."""
+    """The door rule (doors.py, the owner's, mandatory here) on the town's buildings: doors.footprint_errors on the
+    footprints (room in front of every door, no door facing another building's wall, buildings apart) and, with the
+    template, the cells in front of each door free and walkable, every door walkable from the plaza and the path laid
+    from it reaching a street."""
     e = []
-    rects = [(b, b.rect(True)) for b in blds]
-    for i, (a, ra) in enumerate(rects):
-        for b, rb in rects[i + 1:]:
-            gap = max(rb[0] - ra[2], ra[0] - rb[2], rb[1] - ra[3], ra[1] - rb[3]) - 1
-            if gap < GAP:
-                e.append(f"casa_heraldo: {a.name} and {b.name} are {max(gap, 0)} blocks apart (at least {GAP})")
-    for b in blds:
-        for side, x, y, z in b.doors():
-            dx, dz = OPEN_DIR[side]
-            for k in range(1, CLEAR_FRONT + 1):
-                cx, cz = x + dx * k, z + dz * k
-                hit = [o.name for o in blds if o is not b and o.inside(cx, cz)]
-                if hit:
-                    e.append(f"casa_heraldo: the door of {b.name} at {x} {z} opens onto {hit[0]} {k} blocks out")
-                    break
-                if t is not None and not (lint.passable(t.get(cx, y, cz)) and lint.passable(t.get(cx, y + 1, cz))
-                                          and lint.top_height(t.get(cx, y - 1, cz)) == 1.0):
-                    e.append(f"casa_heraldo: the door of {b.name} at {x} {z}: {cx} {y} {cz} ({k} out) is not free and walkable")
-                    break
-            faced = set()
-            for k in range(1, FACE_CLEAR + 1):
-                for w in (-1, 0, 1):
-                    cx, cz = (x + dx * k + w * (dz != 0), z + dz * k + w * (dx != 0))
-                    for o in blds:
-                        if o is not b and o.inside(cx, cz, True) and o.name not in faced:
-                            faced.add(o.name)
-                            e.append(f"casa_heraldo: the door of {b.name} at {x} {z} faces the wall of {o.name} {k} blocks away")
+    if t is not None:
+        for b in blds:
+            for side, x, y, z in b.doors():
+                dx, dz = OPEN_DIR[side]
+                for k in range(1, CLEAR_FRONT + 1):
+                    cx, cz = x + dx * k, z + dz * k
+                    if not (lint.passable(t.get(cx, y, cz)) and lint.passable(t.get(cx, y + 1, cz))
+                            and lint.top_height(t.get(cx, y - 1, cz)) == 1.0):
+                        e.append(f"casa_heraldo: the door of {b.name} at {x} {z}: {cx} {y} {cz} ({k} out) is not free and walkable")
+                        break
+    import doors
+    e += ["casa_heraldo: " + m for m in doors.footprint_errors(
+        [(b.name, b.rect(True), [(side, x, z) for side, x, y, z in b.doors()]) for b in blds])]
     if t is not None:
         cells = walk_cells(t, player=True)          # players: they open gates (the towers' entrances)
         for b in blds:

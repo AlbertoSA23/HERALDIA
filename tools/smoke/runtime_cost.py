@@ -544,8 +544,10 @@ class Pass:
         if not hasattr(self, "_house"):
             self.player(PLAYERS[0], x, z)
             c.run(f"op {PLAYERS[0]}", r"Made .* operator|already|Nothing changed")
-            c.run(f"execute as {PLAYERS[0]} at @s run heraldia herald place here", r"Proposed site|Sitio propuesto|No site|No hay sitio")
-            c.run(f"execute as {PLAYERS[0]} run heraldia herald place confirm", r"Building the Herald|Construyendo la Casa|There is no|No hay")
+            # its reply goes to the player's chat, which a Carpet bot's does not reach the console (see LESSONS)
+            s.send(c.proc, f"execute as {PLAYERS[0]} at @s run heraldia herald place here")
+            c.ticks(5)
+            s.send(c.proc, f"execute as {PLAYERS[0]} run heraldia herald place confirm")
             m = s.wait_for(self.lines, HOUSE_PLACED.pattern, 900, self.seen)
             self._house = (int(m.group(1)), int(m.group(3)) + 13)
             time.sleep(5)
