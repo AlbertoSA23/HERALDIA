@@ -310,10 +310,11 @@ public final class RoadLayout {
 		private final byte[] water;     // Water.ordinal() + 1 per vertex (0 = not computed)
 
 		Route(long from, long until, long milestone, long seed) {
-			this.from = from;
-			this.until = until;
-			long h = mix(seed ^ mix(from) ^ mix(until * 31));
-			this.lantern = (h & 1) == 0;
+			this(from, until, points(from, until, milestone, mix(seed ^ mix(from) ^ mix(until * 31))),
+					(mix(seed ^ mix(from) ^ mix(until * 31)) & 1) == 0);
+		}
+
+		private static List<double[]> points(long from, long until, long milestone, long h) {
 			List<double[]> pts = new ArrayList<>();
 			if (milestone == NONE) {
 				segment(pts, px(from), pz(from), px(until), pz(until), h, true);
@@ -321,6 +322,17 @@ public final class RoadLayout {
 				segment(pts, px(from), pz(from), px(milestone), pz(milestone), h, true);
 				segment(pts, px(milestone), pz(milestone), px(until), pz(until), mix(h + 1), false);
 			}
+			return pts;
+		}
+
+		/**
+		 * A route through vertices already laid out (the Herald's House roads, {@link SpawnRoadLayout}): the same
+		 * painting, water handling and box as a road between villages. {@code from} and {@code until}: its ends, packed.
+		 */
+		Route(long from, long until, List<double[]> pts, boolean lantern) {
+			this.from = from;
+			this.until = until;
+			this.lantern = lantern;
 			int n = pts.size();
 			xs = new double[n];
 			zs = new double[n];
@@ -349,10 +361,14 @@ public final class RoadLayout {
 
 		/** Vertices of a straight segment with meander (two sines of random phase and frequency, zero at the ends). */
 		private static void segment(List<double[]> pts, int ax, int az, int bx, int bz, long h, boolean first) {
+			segment(pts, ax, az, bx, bz, h, first, Math.min(MAX_MEANDER, Math.hypot(bx - ax, bz - az) * 0.05));
+		}
+
+		/** The same with the meander's amplitude given (0: straight). */
+		static void segment(List<double[]> pts, double ax, double az, double bx, double bz, long h, boolean first, double amp) {
 			double dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
 			int n = Math.max(1, (int) Math.round(len / STEP));
 			double nx = len == 0 ? 0 : -dz / len, nz = len == 0 ? 0 : dx / len;
-			double amp = Math.min(MAX_MEANDER, len * 0.05);
 			double f1 = 1 + (h >>> 8 & 1), f2 = 3 + (h >>> 9 & 3);
 			double p1 = ((h >>> 16) & 0xFFFF) / 65536.0 * 2 * Math.PI, p2 = ((h >>> 32) & 0xFFFF) / 65536.0 * 2 * Math.PI;
 			for (int i = first ? 0 : 1; i <= n; i++) {

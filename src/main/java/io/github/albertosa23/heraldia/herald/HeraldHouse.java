@@ -102,6 +102,7 @@ public final class HeraldHouse {
 		plans = HousePlan.allFromJar();
 		plan = HousePlan.fromJar();
 		Saved.Type.HOUSE.identifier();       // the attachment, registered before the world loads (see LESSONS)
+		SpawnRoads.register();              // its roads (their attachment too)
 		ServerLifecycleEvents.SERVER_STARTED.register(HeraldHouse::onStart);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			grounds = null;
@@ -381,6 +382,7 @@ public final class HeraldHouse {
 
 	private static void tick(MinecraftServer server) {
 		Building.tick(server);
+		SpawnRoads.tick(server);
 		if (grounds != null && server.getTickCount() % Market.CHECK_TICKS == 0) {
 			Market.check(server);
 		}
@@ -472,7 +474,7 @@ public final class HeraldHouse {
 
 	// --- commands ---
 
-	/** /heraldia herald [place [here | confirm] | stall ...] (registered by command/HeraldiaCommands). */
+	/** /heraldia herald [place [here | confirm] | roads | stall ...] (registered by command/HeraldiaCommands). */
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("herald")
 				.executes(HeraldHouse::info)
@@ -480,6 +482,8 @@ public final class HeraldHouse {
 						.executes(ctx -> place(ctx, false))
 						.then(Commands.literal("here").executes(ctx -> place(ctx, true)))
 						.then(Commands.literal("confirm").executes(HeraldHouse::confirm)))
+				.then(Commands.literal("roads").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+						.executes(SpawnRoads::command))
 				.then(Market.node());
 	}
 

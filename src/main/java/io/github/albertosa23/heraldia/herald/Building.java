@@ -360,6 +360,7 @@ final class Building {
 			}
 		}
 		HeraldHouse.placed(o.level(), g, o.newWorld());
+		SpawnRoads.townPlaced(o.level(), g, o.who());       // its roads out of the gates, the huts and the arena road
 		LOGGER.info("Heraldia: herald's house: placed at {} {} {} (box {} {} {} to {} {} {})", g.centerX(), g.groundY(),
 				g.centerZ(), g.ox(), g.oy(), g.oz(), g.maxX(), g.maxY(), g.maxZ());
 		if (o.who() != null && !o.who().hasDisconnected()) {

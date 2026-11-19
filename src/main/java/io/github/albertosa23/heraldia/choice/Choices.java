@@ -103,7 +103,17 @@ public final class Choices {
 	 * @param still while this holds, the choice stays open and its options can be picked
 	 */
 	public static boolean show(ServerPlayer p, String what, Choice.Prompt prompt, Predicate<ServerPlayer> still, Handler handler) {
-		Choice.Presentation how = presentation(p);
+		return show(p, what, prompt, still, handler, false);
+	}
+
+	/**
+	 * The same; with {@code always}, in a window even with dialogos.en_pantalla off (a choice that never goes to the
+	 * chat: the Herald's House road guide). False then only if no window can open (automation's fake players).
+	 */
+	public static boolean show(ServerPlayer p, String what, Choice.Prompt prompt, Predicate<ServerPlayer> still, Handler handler,
+			boolean always) {
+		Choice.Presentation how = always ? Choice.Presentation.of(true, !(p instanceof FakePlayer),
+				ServerPlayNetworking.canSend(p, ChoicePayloads.Open.TYPE)) : presentation(p);
 		if (how == Choice.Presentation.CHAT) {
 			PENDING.remove(p.getUUID());
 			return false;

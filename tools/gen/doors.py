@@ -14,6 +14,8 @@ Two levels, because what "another building" is depends on what is being checked:
     and no wall (two solid blocks high) stands within FACE blocks straight out of it, inside the template. Report
     mode only (registry_report): it does not fail generation.
 """
+import sys
+
 import lint
 
 CLEAR, FACE, GAP = 3, 8, 4
@@ -144,7 +146,16 @@ def main():
         print(f"  {k}: {v}")
     for n, v in sorted(rep.items(), key=lambda kv: -len(kv[1]))[:25]:
         print(f"{n}: {len(v)}: {v[0]}")
+    # mandatory: the Herald's House and the huts by its roads (their templates and their places beside the four roads)
+    import herald_house
+    import spawn_roads
+    t = herald_house.construct()
+    must = herald_house.placement_errors(t.blds, t, herald_house.walk_cells(t)) + spawn_roads.errors()
+    print(f"mandatory (the Herald's House and its roadside huts): {len(must)} errors")
+    for m in must:
+        print(f"  {m}")
+    return 1 if must else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

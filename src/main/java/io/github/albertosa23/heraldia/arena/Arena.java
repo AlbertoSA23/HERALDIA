@@ -152,6 +152,7 @@ public final class Arena {
 		zone = z;
 		if (z != null) {
 			Fame.signs(level.getServer());   // the hall of fame of the freshly placed arena
+			io.github.albertosa23.heraldia.herald.SpawnRoads.arenaPlaced(level);   // the road from the town, if it has its roads
 		}
 		io.github.albertosa23.heraldia.maps.WebMaps.schedule();   // its marker on the web maps (if any)
 	}
@@ -339,6 +340,17 @@ public final class Arena {
 		Zone z = zone;
 		return z != null && minX <= z.maxX() + Site.MARGIN && maxX >= z.minX() - Site.MARGIN
 				&& minZ <= z.maxZ() + Site.MARGIN && maxZ >= z.minZ() - Site.MARGIN;
+	}
+
+	/** The columns of the arena in use: {min x, min z, max x, max z} of its box, or null if there is none. */
+	public static int @Nullable [] box() {
+		Zone z = zone;
+		return z == null ? null : new int[] {z.minX(), z.minZ(), z.maxX(), z.maxZ()};
+	}
+
+	/** Does that saved chunk hold a surface structure's pieces (read from disk; safe off the server thread)? */
+	public static boolean structureAt(ServerLevel level, int chunkX, int chunkZ) {
+		return Structures.occupied(level, chunkX, chunkZ);
 	}
 
 	/** Center of the ring (the bell's column, at ground height) of the arena in use, or null if there is none. */
