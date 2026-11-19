@@ -92,10 +92,14 @@ def template_report(t):
         dx, dz = OPEN_DIR[open_sides[0]]
         for k in range(1, CLEAR + 1):
             cx, cz = x + dx * k, z + dz * k
-            if not inb(cx, cz):
-                break                                  # the template ends: the street beyond is not known here
-            if not (lint.passable(g(cx, y, cz)) and lint.passable(g(cx, y + 1, cz))
-                    and (lint.top_height(g(cx, y - 1, cz)) == 1.0 or y - 1 < y0)):
+            if not inb(cx, cz) or g(cx, y - 1, cz) is None and g(cx, y, cz) is None:
+                break                                  # the template ends (or leaves the cell to whatever joins it:
+                #                                        a street jigsaw, structure void): what is beyond is not known
+            below = g(cx, y - 1, cz)
+            free = lint.passable(g(cx, y, cz)) and lint.passable(g(cx, y + 1, cz))
+            if free and below is not None and lint.top_height(below) == 0.5:
+                break                                  # a step down (stair or slab) to the street: a way out
+            if not (free and (lint.top_height(below) == 1.0 or y - 1 < y0)):
                 out.append(f"door at {x} {y} {z}: {cx} {y} {cz} ({k} out) is not free and walkable")
                 break
         else:
