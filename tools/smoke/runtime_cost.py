@@ -467,6 +467,7 @@ class Pass:
             hx, hz = pos[sc]
             if self.with_it:
                 hx, hz = self.place_house(hx, hz)
+                self.nobody()                       # the operator who placed it, out: the window starts clean
             self.player(PLAYERS[0], hx, hz)
         elif sc == "aldea_evento":
             self.player(PLAYERS[0], x, z)
@@ -703,12 +704,15 @@ def main(argv=None):
     ap.add_argument("--seconds", type=int, default=MEASURE_S, help=f"measured seconds per scenario (default {MEASURE_S})")
     ap.add_argument("--warmup", type=int, default=WARMUP_S, help=f"seconds to settle before each window (default {WARMUP_S})")
     ap.add_argument("--no-escalation", action="store_true", help="without the margin steps (villagers added)")
+    ap.add_argument("--scenarios", help="comma-separated: measure only these scenarios (e.g. casa_heraldo)")
     ap.add_argument("--reference", default=REFERENCE)
     ap.add_argument("--update-reference", action="store_true")
     ap.add_argument("--no-threshold", action="store_true")
     ap.add_argument("--no-retry", action="store_true")
     ap.add_argument("--from-json", help="does not measure: uses this coste_juego.json (e.g. the CI artifact)")
     a = ap.parse_args(argv)
+    if a.scenarios:
+        SCENARIOS[:] = [sc for sc in SCENARIOS if sc in a.scenarios.split(",")]
     ref = read_reference(a.reference)
     if a.from_json:
         with open(a.from_json, encoding="utf-8") as f:
