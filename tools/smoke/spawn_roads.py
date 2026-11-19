@@ -38,7 +38,7 @@ BUILT = (r"herald's house roads: built in (\d+) ticks \((\d+) ms on the server t
          r"\((\d+) huts in all\)")
 LIGHT = r"herald's house roads: light: (\d+) of (\d+) road columns outside the protected ring are dark \((\d+) of (\d+) lamp"
 AUDIT = (r"herald's house roads: audit: (\d+) road columns on land, (\d+) blocked \(.*?\), (\d+) not paved, (\d+) steps of more "
-         r"than one block, (\d+) leaves no tree holds near the road; (\d+) trees felled")
+         r"than one block, (\d+) leaves no tree holds near the road; (\d+) trees felled, (\d+) hanging leaves taken away")
 ARENA_ROAD = r"herald's house roads: arena road from the (\w+) gate, (\d+) blocks"
 BUILDING = r"herald's house roads: building"
 PLACED = r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+) \(box (-?\d+) (-?\d+) (-?\d+) to (-?\d+) (-?\d+) (-?\d+)\)"
@@ -95,9 +95,9 @@ def audit(p, n, what):
     m = list(re.finditer(AUDIT, p.ctx.log()))
     if not p.check(len(m) >= n, f"{what}: no road audit in the log"):
         return
-    cols, blocked, unpaved, steps, orphans, trees = (int(g) for g in m[n - 1].groups())
+    cols, blocked, unpaved, steps, orphans, trees, tidied = (int(g) for g in m[n - 1].groups())
     print(f"ROADS {what}: audit: {cols} columns, {blocked} blocked, {unpaved} not paved, {steps} steps over one block, "
-          f"{orphans} hanging leaves, {trees} trees felled", flush=True)
+          f"{orphans} hanging leaves, {trees} trees felled, {tidied} hanging leaves taken away", flush=True)
     p.check(cols > 0, f"{what}: no road column audited")
     p.check(blocked == 0, f"{what}: {blocked} of {cols} road columns have a trunk, leaves, a plant or ground on the paving")
     p.check(unpaved == 0, f"{what}: {unpaved} of {cols} road columns are not the road's paving (loose patches, grass)")

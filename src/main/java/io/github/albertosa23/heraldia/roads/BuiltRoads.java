@@ -690,7 +690,7 @@ public final class BuiltRoads {
 				example(examples, "step to " + tops[i + 1] + " south", x, tops[i], z, chunk.getBlockState(pos.set(x, tops[i], z)));
 			}
 		}
-		int orphans = columns == 0 ? 0 : orphans(level, chunk, c, lo - 12, hi + 24, examples);
+		int orphans = columns == 0 ? 0 : orphans(level, chunk, c, lo - 12, hi + 24, examples, false);
 		return new Audit(columns, blocked, unpaved, steps, orphans, examples);
 	}
 
@@ -698,7 +698,8 @@ public final class BuiltRoads {
 	 * Natural leaves within 6 blocks (across) of the road's columns in this chunk, between y0 and y1, with no log within
 	 * {@link LeavesBlock#DECAY_DISTANCE} - 1 steps through the leaves (worked out from scratch, not from their state).
 	 */
-	private static int orphans(ServerLevel level, LevelChunk chunk, RoadLayout.Cell[] cells, int y0, int y1, List<String> examples) {
+	private static int orphans(ServerLevel level, LevelChunk chunk, RoadLayout.Cell[] cells, int y0, int y1, List<String> examples,
+			boolean remove) {
 		var cp = chunk.getPos();
 		int m = LeavesBlock.DECAY_DISTANCE + 6, x0 = cp.getMinBlockX() - m, z0 = cp.getMinBlockZ() - m, n = 16 + 2 * m, h = y1 - y0 + 1;
 		Loaded loaded = new Loaded(level);
@@ -751,7 +752,9 @@ public final class BuiltRoads {
 					if (d[(ix * n + iz) * h + iy] == 8) {
 						out++;
 						BlockState o = loaded.get(x0 + ix, y0 + iy, z0 + iz);
-						if (o != null) {
+						if (o != null && remove) {
+							level.setBlock(pos.set(x0 + ix, y0 + iy, z0 + iz), Blocks.AIR.defaultBlockState(), FLAGS);
+						} else if (o != null) {
 							example(examples, "hanging (distance " + o.getValue(LeavesBlock.DISTANCE) + ")", x0 + ix, y0 + iy, z0 + iz, o);
 						}
 					}
@@ -759,6 +762,30 @@ public final class BuiltRoads {
 			}
 		}
 		return out;
+	}
+
+	/**
+	 * Takes away the natural leaves within 6 blocks of the road's columns in this chunk that no log holds any more (their
+	 * distance worked out again from the logs, as their decay would): leaves of trees cut by anything that did not fell
+	 * them whole (the town's blended margin, a hut's site, a template), left hanging over or beside the road. Loaded
+	 * chunks only; leaves at the edge of what is looked at, or next to a chunk not loaded, stay. Returns how many went.
+	 */
+	public static int tidy(ServerLevel level, LevelChunk chunk, RoadLayout layout, List<RoadLayout.Route> routes, int width,
+			BiPredicate<Integer, Integer> skip) {
+		var cp = chunk.getPos();
+		RoadLayout.Cell[] c = layout.paint(routes, cp.x(), cp.z(), width, false);
+		int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+		for (int i = 0; i < 256; i++) {
+			int x = cp.getMinBlockX() + i / 16, z = cp.getMinBlockZ() + i % 16;
+			if (c[i] == null || skip.test(x, z)) {
+				c[i] = null;
+				continue;
+			}
+			int top = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+			lo = Math.min(lo, top);
+			hi = Math.max(hi, top);
+		}
+		return lo > hi ? 0 : orphans(level, chunk, c, lo - 12, hi + 24, new ArrayList<>(), true);
 	}
 
 	/** Is the column (lx, lz), local to the chunk (it may be outside it), within r blocks of one of its road cells? */
