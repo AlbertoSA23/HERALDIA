@@ -265,7 +265,7 @@ public final class SpawnRoads {
 
 	// --- the work ---
 
-	enum Kind { PAVE, LAMPS, SIGN, HUT, HUT_PLACE, BUILT, ARENA_DONE, WAIT, TIDY, LIGHT, AUDIT, FINISH }
+	enum Kind { PAVE, FELL, LAMPS, SIGN, HUT, HUT_PLACE, BUILT, ARENA_DONE, WAIT, TIDY, LIGHT, AUDIT, FINISH }
 
 	record Step(Kind kind, int cx, int cz, @Nullable String key, int[] extra) {
 		Step(Kind kind, int cx, int cz) {
@@ -284,6 +284,7 @@ public final class SpawnRoads {
 		final Map<Long, RoadLayout.Cell[]> painted = new HashMap<>();   // the road columns by chunk (no lamp or sign on them)
 		final List<int[]> lamps = new ArrayList<>();      // {x, z, edge x, edge z}
 		final List<String> huts = new ArrayList<>();      // keys still to try, in order
+		final List<List<BlockPos>> felling = new ArrayList<>();   // the logs a paved chunk cleared, for its FELL step
 		final List<long[]> paved = new ArrayList<>();     // {x, y, z} of the paved columns (the light check)
 		final Map<Long, CompletableFuture<?>> loading = new HashMap<>();   // chunks asked for ahead (prefetch)
 		final RoadLayout layout;
@@ -596,7 +597,10 @@ public final class SpawnRoads {
 				w.pavedN += pr.paved();
 				w.bridged += pr.bridged();
 				w.left += pr.left();
-				w.trees += pr.trees();
+				if (!pr.felled().isEmpty()) {
+					w.felling.add(pr.felled());
+					w.steps.add(w.index, new Step(Kind.FELL, st.cx(), st.cz()));   // its trees, next tick
+				}
 				for (int i = 0; i < 256; i++) {
 					if (cells[i] != null) {
 						int x = chunk.getPos().getMinBlockX() + i / 16, z = chunk.getPos().getMinBlockZ() + i % 16;
@@ -604,10 +608,16 @@ public final class SpawnRoads {
 					}
 				}
 			}
+			case FELL -> {
+				if (!w.felling.isEmpty()) {
+					w.trees += BuiltRoads.fell(level, w.felling.remove(0), (x, z) -> skip(w, x, z));
+				}
+			}
 			case LAMPS -> {
 				for (int i = st.cx(); i < st.cz(); i++) {
 					int[] l = w.lamps.get(i);
-					if (BuiltRoads.lamp(level, l[0], l[1], l[2], l[3], (x, z) -> skip(w, x, z) || onHutSlot(w, x, z) || onRoad(w, x, z))) {
+					if (BuiltRoads.lamp(level, l[0], l[1], l[2], l[3], (x, z) -> skip(w, x, z) || onHutSlot(w, x, z) || onRoad(w, x, z),
+							(x, z) -> skip(w, x, z) || onHutSlot(w, x, z))) {
 						w.lampsPlaced++;
 					} else if (w.unlit++ < 8) {
 						LOGGER.info("Heraldia: herald's house roads: no lamp post at {} {} (on a road {}, a hut's place {}; {})", l[0], l[1],

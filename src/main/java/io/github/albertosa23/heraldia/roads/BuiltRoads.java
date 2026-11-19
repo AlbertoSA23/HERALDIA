@@ -228,7 +228,7 @@ public final class BuiltRoads {
 	}
 
 	/** What the painted chunk did: columns paved, bridged, left (not natural ground, a structure, the arena...), trees felled. */
-	public record Painted(int paved, int bridged, int left, int trees) {
+	public record Painted(int paved, int bridged, int left, List<BlockPos> felled) {
 	}
 
 	/**
@@ -239,8 +239,8 @@ public final class BuiltRoads {
 	 * <ul>
 	 * <li>Land: the ground is cut or filled (at most {@link #CUT} / {@link #FILL} blocks) to the profile's height, the
 	 * paving laid, and {@link #HEAD} blocks of air left over it: every trunk, leaf, plant or bump of ground in that space
-	 * goes. A tree that stood on the road, or had a log in its air or on its shoulder, is felled whole: its logs and then
-	 * the leaves no other tree holds.</li>
+	 * goes. A tree that stood on the road, or had a log in its air or on its shoulder, is felled whole afterwards: the
+	 * logs cleared are returned ({@link Painted#felled}) for {@link #fell(ServerLevel, List, BiPredicate)}, a step of its own.</li>
 	 * <li>The shoulder (one block beyond each edge): its ground cut or filled to one block from the road at most, keeping
 	 * its own surface (grass, sand...), and trees and leaves cleared up to {@link #SHOULDER_HEAD} blocks over it; its
 	 * flowers and grass stay where its ground was not touched.</li>
@@ -288,8 +288,7 @@ public final class BuiltRoads {
 				}
 			}
 		}
-		int trees = fell(level, loaded, felled, skip, boxes);
-		return new Painted(paved, bridged, left, trees);
+		return new Painted(paved, bridged, left, List.copyOf(felled));
 	}
 
 	/** One road column: 1 paved, 2 bridge or walkway, 0 left as it is. */
@@ -360,7 +359,12 @@ public final class BuiltRoads {
 	 * their logs and the leaves no other log holds. Loaded chunks only. Returns the trees felled.
 	 */
 	public static int fell(ServerLevel level, List<BlockPos> felled, BiPredicate<Integer, Integer> skip) {
-		return felled.isEmpty() ? 0 : fell(level, new Loaded(level), felled, skip, List.of());
+		if (felled.isEmpty()) {
+			return 0;
+		}
+		BlockPos p = felled.get(0);
+		LevelChunk chunk = level.getChunkSource().getChunkNow(p.getX() >> 4, p.getZ() >> 4);
+		return fell(level, new Loaded(level), felled, skip, chunk == null ? List.of() : boxes(level, chunk));
 	}
 
 	/** Clears from y0 to y1 (natural blocks: checked), and then any growth standing on what was cleared (not leaves). */
@@ -806,7 +810,8 @@ public final class BuiltRoads {
 	 * a tree, a player's block), one block farther out; failing that, on the road's own edge at (ex, ez): on its paving
 	 * or on a bridge's deck. False if none fits.
 	 */
-	public static boolean lamp(ServerLevel level, int x, int z, int ex, int ez, BiPredicate<Integer, Integer> skip) {
+	public static boolean lamp(ServerLevel level, int x, int z, int ex, int ez, BiPredicate<Integer, Integer> skip,
+			BiPredicate<Integer, Integer> edgeSkip) {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 		int ox = Integer.signum(x - ex), oz = Integer.signum(z - ez);
 		boolean out = ox != 0 || oz != 0;
@@ -814,7 +819,7 @@ public final class BuiltRoads {
 				|| out && (ground(level, pos, x + ox, z + oz, skip) || footing(level, pos, x + ox, z + oz, skip))) {
 			return true;
 		}
-		if (skip.test(ex, ez)) {
+		if (edgeSkip.test(ex, ez)) {               // the edge is the road's own: only what must never be touched
 			return false;
 		}
 		LevelChunk chunk = level.getChunk(ex >> 4, ez >> 4);
