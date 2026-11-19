@@ -51,9 +51,13 @@ public final class Lines {
 		return pools.values().stream().mapToInt(List::size).sum();
 	}
 
-	/** The lines in a .jar language ("es_es", "fr_fr"...); a code without its own file gets the English lines. */
+	/**
+	 * The lines in a .jar language ("es_es", "fr_fr"...); a code without its own file gets the English lines. The Spanish
+	 * is passed as its own language too: with no language file, {@link #resolve} would give the English first (the bug the
+	 * owner saw: a Spanish client heard the villagers in English).
+	 */
 	public static Lines of(String code) {
-		return CACHE.computeIfAbsent(code, c -> resolve(read(ES), read(EN), ES.equals(c) ? Map.of() : read(c)));
+		return CACHE.computeIfAbsent(code, c -> resolve(read(ES), read(EN), read(c)));
 	}
 
 	/**

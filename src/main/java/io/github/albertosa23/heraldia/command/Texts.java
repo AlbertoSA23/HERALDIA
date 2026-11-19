@@ -66,6 +66,11 @@ public final class Texts {
 		return code(Preferences.language(p).orElse(p.clientInformation().language()), LOCALES);
 	}
 
+	/** The .jar language code for a language a client declares ("es_mx" gives "es_es"; null or unknown, English). */
+	public static String code(String client) {
+		return code(client, LOCALES);
+	}
+
 	/** The .jar texts for language {@code code} (or that of its language, or English): see {@link #language(String)}. */
 	public static Map<String, String> texts(String code) {
 		return language(code);

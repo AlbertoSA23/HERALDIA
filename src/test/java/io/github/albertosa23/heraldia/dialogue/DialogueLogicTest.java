@@ -281,4 +281,64 @@ class DialogueLogicTest {
 		assertNotEquals(es.get("general").get("1"), l.pool("general").getFirst().text(), "English text, not the Spanish");
 		assertNotNull(Lines.of("es_es"));
 	}
+
+	/**
+	 * The lines are not keys of the language files, on purpose: the server picks each one in the player's language
+	 * (their /heraldia language, which a client-side translation would ignore) and every window flattens it on the server
+	 * anyway (choice/Choices#text), so a "heraldia.dialogos.frase.*" key would only repeat every line once more per language in the .jar
+	 * and, on a client with the mod, override the player's choice.
+	 */
+	@Test
+	void linesAreNotKeysOfTheLanguageFiles() throws IOException {
+		Path dir = Path.of(System.getProperty("heraldia.generated"), "assets/heraldia/lang");
+		try (var files = Files.list(dir)) {
+			for (Path f : files.toList()) {
+				var o = JsonParser.parseString(Files.readString(f, StandardCharsets.UTF_8)).getAsJsonObject();
+				assertTrue(o.keySet().stream().noneMatch(k -> k.startsWith(Dialogue.K + "frase.")), f.getFileName().toString());
+			}
+		}
+	}
+
+	/**
+	 * The lines a player hears, from the .jar's files, for the language code the server picks for them
+	 * (Texts.code: their /heraldia language, else their client's). The owner's report: a client in Spanish heard the
+	 * villagers in English, because Lines.of("es_es") resolved the English first.
+	 */
+	@Test
+	void eachPlayerHearsTheLinesOfTheirLanguage() throws IOException {
+		Path dir = Path.of(System.getProperty("heraldia.generated"), "heraldia/dialogos");
+		Map<String, Map<String, Map<String, String>>> files = new HashMap<>();
+		for (String code : List.of("es_es", "en_us", "pt_br")) {
+			files.put(code, Lines.parse(JsonParser.parseString(Files.readString(dir.resolve(code + ".json"), StandardCharsets.UTF_8))
+					.getAsJsonObject()));
+		}
+		// client language (or none) -> the .jar file whose lines they must hear
+		Map<String, String> expected = new LinkedHashMap<>();
+		expected.put("es_es", "es_es");
+		expected.put("es_mx", "es_es");
+		expected.put("ES_AR", "es_es");
+		expected.put("pt_pt", "pt_br");
+		expected.put("en_us", "en_us");
+		expected.put("ja_jp", "en_us");      // a language the mod does not have: English
+		expected.put(null, "en_us");         // no language at all: English
+		for (Map.Entry<String, String> e : expected.entrySet()) {
+			String code = io.github.albertosa23.heraldia.command.Texts.code(e.getKey());
+			assertEquals(e.getValue(), code, "the .jar language for a client in " + e.getKey());
+			Lines heard = Lines.of(code);
+			Map<String, Map<String, String>> want = files.get(e.getValue());
+			int checked = 0;
+			for (String pool : List.of("general", "farewell", "busy", "greeting.desconocido", "profession.librarian")) {
+				for (Lines.Line line : heard.pool(pool)) {
+					String text = want.getOrDefault(pool, Map.of()).get(line.id());
+					if (text != null && !text.isBlank()) {
+						assertEquals(text, line.text(), "a client in " + e.getKey() + " hears " + line.key() + " in " + e.getValue());
+						checked++;
+					}
+				}
+			}
+			assertTrue(checked > 10, "lines checked for " + e.getKey() + ": " + checked);
+		}
+		assertNotEquals(files.get("en_us").get("general").get("1"), Lines.of("es_es").pool("general").getFirst().text(),
+				"a Spanish client does not hear the English");
+	}
 }

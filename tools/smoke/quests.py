@@ -214,6 +214,28 @@ def click_villager(srv, spot, y, floor_bottom):
 
 
 WITH = "heraldia talk with @e[tag=heraldia_prueba,limit=1]"
+DIALOGUE_LINES = os.path.join(s.ROOT, "build", "generated", "heraldia", "heraldia", "dialogos")
+SPOKEN = re.compile(r": \u201c(.+)\u201d")       # "Librarian: “...”" (heraldia.dialogos.linea), as the console prints it
+
+
+def line_patterns(code):
+    """Every villager line of a .jar language, as a regex of its text with the slots (%1$s...) as wildcards."""
+    with open(os.path.join(DIALOGUE_LINES, code + ".json"), encoding="utf-8") as f:
+        pools = json.load(f)
+    return [re.compile(".*?".join(re.escape(part) for part in re.split(r"%(?:\d+\$)?s", text)) + "$")
+            for lines in pools.values() for text in lines.values() if text.strip()]
+
+
+def spoken_language(srv, fails, what):
+    """The language ("es_es", "en_us" or None) of the last villager line the console saw, as a player hears it: its text
+    is the one the server picked for them (the lines are not keys of the language files, see Dialogue#sayWith)."""
+    said = [m.group(1) for m in map(SPOKEN.search, srv.seen[-40:]) if m]
+    if not said:
+        fails.append(f"conversation language: {what}: no villager line in the chat")
+        return None
+    es, en = (any(p.match(said[-1]) for p in line_patterns(c)) for c in ("es_es", "en_us"))
+    print(f"conversation language: {what}: \u201c{said[-1]}\u201d (Spanish {es}, English {en})")
+    return "es_es" if es and not en else "en_us" if en and not es else None
 
 
 def conversation(srv, fails, spot, y, floor_bottom):
@@ -232,7 +254,16 @@ def conversation(srv, fails, spot, y, floor_bottom):
     print(f"conversation in {m.group(1)}: profession {m.group(2)}, family {m.group(3)}, {m.group(4)}, {m.group(5)}, {m.group(6)}")
     if m.group(2) != "librarian" or m.group(6) != "conocido":
         fails.append(f"conversation: context {m.groups()[1:]} (must be librarian, ..., conocido)")
+    # the owner's report: a player in Spanish heard the villagers in English. The bot declares no language (English); with
+    # /heraldia language es_es the next line must be a Spanish one, and with auto, English again
     as_player(srv, "heraldia talk more", r"Keep talking|Seguir hablando|Goodbye|Adiós")
+    if spoken_language(srv, fails, "no language chosen") != "en_us":
+        fails.append("conversation language: a player with no language chosen (client en_us) does not hear English")
+    as_player(srv, "heraldia language es_es", rf"Heraldia: idioma de {PLAYER}: es_es")
+    as_player(srv, "heraldia talk more", r"Keep talking|Seguir hablando|Goodbye|Adiós")
+    if spoken_language(srv, fails, "es_es") != "es_es":
+        fails.append("conversation language: a player in es_es does not hear the villager in Spanish")
+    as_player(srv, "heraldia language auto", rf"Heraldia: idioma de {PLAYER}: auto")
     as_player(srv, "heraldia talk rumor", r"Goodbye|Adiós")
     m = maybe(srv, HINT, 60)
     if m is None:
