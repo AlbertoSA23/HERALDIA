@@ -10,13 +10,14 @@ import org.jspecify.annotations.Nullable;
  * <ul>
  * <li>The natural ground (under any tree, plant or snow) is sampled on the axis, one sample per block of length.</li>
  * <li>The road's height at a block of length is the mean of the samples {@link #LEVEL} blocks before and after it (the
- * highest and the lowest left out), and never more than one block from the height next to it: the whole width at that
- * length sits at that one height, and a slope climbs in regular one-block steps.</li>
+ * highest and the lowest left out), and never more than one block from the height next to it (the heights are worked
+ * out as one unbroken stretch): the whole width at that length sits at that one height, and a slope climbs in regular
+ * one-block steps.</li>
  * <li>Its kind of ground (and so its paving) is the one most samples {@link #KIND} blocks around it have (the nearest
  * weigh more): a road changes from dirt to sand at one line across it, not in loose patches.</li>
  * </ul>
  * Every sample and every height is kept once computed, so the chunks the road crosses (built one by one, in any order)
- * agree at their borders. A sample whose chunk is not loaded yet is not kept (it is asked for again later) and does not
+ * agree at their borders and never break the one-block rule. A sample whose chunk is not loaded yet is not kept (it is asked for again later) and does not
  * count. No game classes: the tests check it.
  */
 public final class RoadProfile {
@@ -85,41 +86,62 @@ public final class RoadProfile {
 		return s;
 	}
 
-	/** The road's height at {@code arc} blocks along it (the y of its paving), or {@link #MISSING}. */
+	/**
+	 * The road's height at {@code arc} blocks along it (the y of its paving), or {@link #MISSING}. The heights known are
+	 * always one unbroken stretch of the road: a height outside it extends it block by block from its nearer end, each
+	 * within one of the one before, so no two neighbouring heights are ever more than one apart, whatever order the
+	 * chunks ask in. A stretch with no land sample (water) carries the height it reached.
+	 */
 	public int height(double arc, Sampler f) {
 		int i = index(arc);
 		Integer known = heights.get(i);
 		if (known != null) {
 			return known;
 		}
-		int n = 0, lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+		if (heights.isEmpty()) {
+			int h = raw(i, f);
+			if (h == MISSING) {
+				return MISSING;
+			}
+			heights.put(i, h);
+			lo = hi = i;
+			return h;
+		}
+		while (hi < i) {
+			int before = heights.get(hi), h = raw(hi + 1, f);
+			heights.put(++hi, h == MISSING ? before : Math.clamp(h, before - 1, before + 1));
+		}
+		while (lo > i) {
+			int after = heights.get(lo), h = raw(lo - 1, f);
+			heights.put(--lo, h == MISSING ? after : Math.clamp(h, after - 1, after + 1));
+		}
+		return heights.get(i);
+	}
+
+	/** The first and last block of length whose height is known (with {@link #heights} not empty). */
+	private int lo, hi;
+
+	/** The mean of the land samples LEVEL blocks around i (the highest and the lowest left out), or MISSING. */
+	private int raw(int i, Sampler f) {
+		int n = 0, min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
 		long sum = 0;
 		for (int j = Math.max(0, i - LEVEL); j <= Math.min(last(), i + LEVEL); j++) {
 			Sample s = sample(j, f);
 			if (s != null && s.ground() != null) {
 				n++;
 				sum += s.y();
-				lo = Math.min(lo, s.y());
-				hi = Math.max(hi, s.y());
+				min = Math.min(min, s.y());
+				max = Math.max(max, s.y());
 			}
 		}
 		if (n == 0) {
 			return MISSING;
 		}
 		if (n >= 5) {
-			sum -= lo + hi;
+			sum -= min + max;
 			n -= 2;
 		}
-		int h = (int) Math.round((double) sum / n);
-		Integer before = heights.get(i - 1), after = heights.get(i + 1);
-		if (before != null) {
-			h = Math.clamp(h, before - 1, before + 1);
-		}
-		if (after != null) {
-			h = Math.clamp(h, after - 1, after + 1);
-		}
-		heights.put(i, h);
-		return h;
+		return (int) Math.round((double) sum / n);
 	}
 
 	/** The road's kind of ground at {@code arc} blocks along it, or null with no land sample near. */

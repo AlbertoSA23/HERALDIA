@@ -63,6 +63,19 @@ class RoadProfileTest {
 	}
 
 	@Test
+	void scatteredAsksKeepOneBlockSteps() {
+		RoadProfile.Sampler steep = (x, z) -> new RoadProfile.Sample(RoadProfile.Ground.DIRT, 64 + 3 * x);   // three up per block
+		RoadProfile p = new RoadProfile(straight(96));
+		for (int a : new int[] {0, 60, 30, 90, 15, 45, 75}) {     // as chunks (or their halves) ask, out of order
+			p.height(a, steep);
+		}
+		for (int a = 0; a < 96; a++) {
+			int d = p.height(a + 1, steep) - p.height(a, steep);
+			assertTrue(Math.abs(d) <= 1, "a step of " + d + " at " + a);
+		}
+	}
+
+	@Test
 	void groundChangesAtOneLine() {
 		RoadProfile p = new RoadProfile(straight(96));
 		Set<Integer> changes = new HashSet<>();

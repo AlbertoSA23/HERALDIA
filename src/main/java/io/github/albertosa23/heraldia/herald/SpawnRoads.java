@@ -621,8 +621,12 @@ public final class SpawnRoads {
 		for (long[] c : need) {
 			int cx = (int) c[0], cz = (int) c[1];
 			if (w.level.getChunkSource().getChunkNow(cx, cz) == null) {
-				CompletableFuture<?> f = w.loading.computeIfAbsent(RoadLayout.pack(cx, cz),
-						k -> w.level.getChunkSource().getChunkFuture(cx, cz, ChunkStatus.FULL, true));
+				long key = RoadLayout.pack(cx, cz);
+				CompletableFuture<?> f = w.loading.get(key);
+				if (f == null || f.isDone()) {     // never asked, or loaded once and unloaded since: asked for (again)
+					f = w.level.getChunkSource().getChunkFuture(cx, cz, ChunkStatus.FULL, true);
+					w.loading.put(key, f);
+				}
 				ready &= f.isDone();
 			}
 		}
