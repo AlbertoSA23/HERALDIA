@@ -491,6 +491,14 @@ public final class RoadLayout {
 	 * column), so it does not look straight. It only depends on the column and the routes, not the chunk: neighbors match at the border.
 	 */
 	public Cell[] paint(List<Route> routes, int chunkX, int chunkZ, int width) {
+		return paint(routes, chunkX, chunkZ, width, true);
+	}
+
+	/**
+	 * As {@link #paint(List, int, int, int)}; with {@code jagged} false the edge is kept whole (a road that is built, not
+	 * generated: herald/SpawnRoads, whose edge is a deliberate kerb).
+	 */
+	public Cell[] paint(List<Route> routes, int chunkX, int chunkZ, int width, boolean jagged) {
 		Cell[] out = new Cell[256];
 		// with a half width of 0.71 or more (square root of 2 over 2) the road's columns stay connected through their faces in
 		// any direction: one can walk without passing diagonally between two corners
@@ -522,7 +530,7 @@ public final class RoadLayout {
 				}
 			}
 		}
-		for (int idx = 0; idx < 256; idx++) {
+		for (int idx = 0; jagged && idx < 256; idx++) {
 			Cell c = out[idx];
 			if (c != null && c.dist > Math.max(half - 0.5, CORE) && rng(seed, pack(x0 + idx / 16, z0 + idx % 16), 7) < 0.35) {
 				out[idx] = null; // jagged edge

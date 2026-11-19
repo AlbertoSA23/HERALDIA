@@ -181,7 +181,8 @@ final class Building {
 					}
 					continue;
 				}
-				int natural = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) - 1;
+				// the natural ground's top block (ChunkAccess.getHeight is the highest block itself, not the air over it)
+				int natural = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
 				if (!level.getBlockState(pos.set(x, natural, z)).getFluidState().isEmpty()) {
 					continue;                       // water around the house stays (the dock may need it)
 				}
@@ -254,9 +255,14 @@ final class Building {
 		int gx = g.ox() + gate[0], gz = g.oz() + gate[1];
 		int[] across = g.plan().road();
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		// with the gates' roads on (SpawnRoads, built next) they are the road: a path here would show as a straight stub
+		// beside theirs where they bend, and they put the sign by their own end
+		boolean paths = !SpawnRoads.enabled();
 		int reached = Grounds.RING;
 		for (int step = 1; step <= Grounds.RING; step++) {
 			int x0 = gx + d.getStepX() * step, z0 = gz + d.getStepZ() * step;
+			// the top block (ChunkAccess.getHeight is the highest block itself); the dock is placed from the block under it
+			// (its template has y = 1 at the water's surface) and only where that one is water too, as it always was
 			int y = level.getChunk(x0 >> 4, z0 >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x0 & 15, z0 & 15) - 1;
 			if (!level.getBlockState(pos.set(x0, y, z0)).getFluidState().isEmpty()) {
 				if (!docked && step <= DOCK_REACH) {
@@ -265,9 +271,10 @@ final class Building {
 				reached = step - 1;
 				break;
 			}
-			for (int a = across[0]; a <= across[1]; a++) {
+			for (int a = across[0]; paths && a <= across[1]; a++) {
 				int x = x0 + (d.getAxis() == Direction.Axis.Z ? a : 0), z = z0 + (d.getAxis() == Direction.Axis.X ? a : 0);
-				int yy = level.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) - 1;
+				// the top block itself (it was the one under it: the path went under the grass and never showed)
+				int yy = level.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
 				BlockState s = level.getBlockState(pos.set(x, yy, z));
 				if (pathable(s)) {
 					BlockState above = level.getBlockState(pos.set(x, yy + 1, z));
@@ -278,7 +285,7 @@ final class Building {
 				}
 			}
 		}
-		if (reached >= 4) {
+		if (paths && reached >= 4) {
 			signpost(level, g, d, gx, gz, reached, across);
 		}
 	}
@@ -288,7 +295,8 @@ final class Building {
 		int a = across[1] + 1;
 		int x = gx + d.getStepX() * step + (d.getAxis() == Direction.Axis.Z ? a : 0);
 		int z = gz + d.getStepZ() * step + (d.getAxis() == Direction.Axis.X ? a : 0);
-		int y = level.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
+		// over the top block (ChunkAccess.getHeight is that block: the post stood in the grass and was never placed)
+		int y = level.getChunk(x >> 4, z >> 4).getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15) + 1;
 		BlockPos post = new BlockPos(x, y, z);
 		if (!level.getBlockState(post).canBeReplaced() || !level.getBlockState(post.above()).canBeReplaced()
 				|| !level.getBlockState(post.below()).isFaceSturdy(level, post.below(), Direction.UP)) {

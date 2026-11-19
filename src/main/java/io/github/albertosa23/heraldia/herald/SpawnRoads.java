@@ -15,6 +15,7 @@ import io.github.albertosa23.heraldia.command.Texts;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
 import io.github.albertosa23.heraldia.roads.BuiltRoads;
 import io.github.albertosa23.heraldia.roads.RoadLayout;
+import io.github.albertosa23.heraldia.roads.RoadProfile;
 import io.github.albertosa23.heraldia.roads.SpawnRoadLayout;
 import java.io.IOException;
 import java.io.InputStream;
@@ -263,7 +264,7 @@ public final class SpawnRoads {
 
 	// --- the work ---
 
-	enum Kind { PAVE, LAMPS, SIGN, HUT, BUILT, ARENA_DONE, WAIT, LIGHT, FINISH }
+	enum Kind { PAVE, LAMPS, SIGN, HUT, BUILT, ARENA_DONE, WAIT, LIGHT, AUDIT, FINISH }
 
 	record Step(Kind kind, int cx, int cz, @Nullable String key, int[] extra) {
 		Step(Kind kind, int cx, int cz) {
@@ -277,6 +278,8 @@ public final class SpawnRoads {
 		final @Nullable ServerPlayer who;
 		final List<Step> steps = new ArrayList<>();
 		final List<RoadLayout.Route> routes = new ArrayList<>();
+		final Map<RoadLayout.Route, RoadProfile> profiles = new HashMap<>();   // each road's height and paving along it
+		final Set<Long> chunks = new LinkedHashSet<>();   // the chunks paved (the audit)
 		final List<int[]> lamps = new ArrayList<>();      // {x, z, edge x, edge z}
 		final List<String> huts = new ArrayList<>();      // keys still to try, in order
 		final List<long[]> paved = new ArrayList<>();     // {x, y, z} of the paved columns (the light check)
@@ -287,7 +290,8 @@ public final class SpawnRoads {
 		@Nullable BlockPos arenaOrigin;
 		@Nullable String arenaSide;
 		int index, rest, ticks, waited, dark, lightChecked, allowed, newHuts, newVillagers, roads, lampsPlaced, signs, pavedN, bridged, left;
-		long nanos, worst;
+		int trees, audited, blocked, unpaved, jumps, orphans;
+		long nanos, worst, auditNanos, auditWorst;
 		String worstStep = "";
 		boolean waiting, again;
 
@@ -344,10 +348,15 @@ public final class SpawnRoads {
 		if (!s.built()) {
 			for (Map.Entry<String, int[]> e : gates.entrySet()) {
 				List<double[]> nr = SpawnRoadLayout.normal(e.getValue(), e.getKey(), seed, p);
+				boolean whole = true;
 				if (e.getKey().equals(arenaSide) && arenaMissing && SpawnRoadLayout.hitsArena(nr, arena, p)) {
 					nr = SpawnRoadLayout.head(nr, p);           // the arena comes too close to the bend: the arena road takes over
+					whole = false;
 				}
 				addRoad(w, nr, null, p);
+				if (whole) {
+					endSign(w, nr, g, p);                       // the sign by its end (the arena road has its own)
+				}
 			}
 			w.steps.add(new Step(Kind.BUILT, 0, 0));
 		}
@@ -384,6 +393,7 @@ public final class SpawnRoads {
 	private static void addRoad(Work w, List<double[]> pts, double @Nullable [] before, SpawnRoadLayout.Params p) {
 		RoadLayout.Route r = SpawnRoadLayout.toRoute(pts);
 		w.routes.add(r);
+		w.profiles.put(r, new RoadProfile(r));
 		w.roads++;
 		Set<Long> chunks = new LinkedHashSet<>();
 		for (int i = 0; i + 1 < pts.size(); i++) {      // the chunks along each segment (with the road's half width and a margin)
@@ -400,6 +410,7 @@ public final class SpawnRoads {
 		}
 		for (long c : chunks) {
 			w.steps.add(new Step(Kind.PAVE, RoadLayout.px(c), RoadLayout.pz(c)));
+			w.chunks.add(c);
 		}
 		List<int[]> lamps = SpawnRoadLayout.lamps(pts, before, p);
 		for (int[] l : lamps) {
@@ -480,6 +491,24 @@ public final class SpawnRoads {
 				new int[] {BuiltRoads.rotation(-1, 0), total}));
 	}
 
+	/**
+	 * The sign by the end of a gate's road (on its right going out), its text facing out along it, for whoever comes
+	 * towards the town: the Herald's House and how far it is (the sign the town's own path had, at the road's end).
+	 */
+	private static void endSign(Work w, List<double[]> pts, Grounds g, SpawnRoadLayout.Params p) {
+		double[] e = pts.get(pts.size() - 1), b = pts.get(pts.size() - 2);
+		double dx = e[0] - b[0], dz = e[1] - b[1], d = Math.hypot(dx, dz);
+		if (d == 0) {
+			return;
+		}
+		dx /= d;
+		dz /= d;
+		double off = p.width() / 2.0 + 1;
+		int x = (int) Math.floor(e[0] - dx * 2 - dz * off), z = (int) Math.floor(e[1] - dz * 2 + dx * off);
+		int blocks = (int) Math.round(Math.hypot(x - g.centerX(), z - g.centerZ()));
+		w.steps.add(new Step(Kind.SIGN, x, z, HeraldHouse.K + "camino.cartel", new int[] {BuiltRoads.rotation(dx, dz), blocks}));
+	}
+
 	private static void finishSteps(Work w) {
 		w.steps.add(new Step(Kind.WAIT, 0, 0));
 		w.steps.add(new Step(Kind.FINISH, 0, 0));
@@ -519,8 +548,13 @@ public final class SpawnRoads {
 			LOGGER.error("Heraldia: herald's house roads: step {} failed", st, e);
 		}
 		long ns = System.nanoTime() - t0;
-		w.nanos += ns;
-		if (ns > w.worst) {
+		if (st.kind() == Kind.AUDIT) {             // the audit is counted apart: it only reads, and is not the build
+			w.auditNanos += ns;
+			w.auditWorst = Math.max(w.auditWorst, ns);
+		} else {
+			w.nanos += ns;
+		}
+		if (st.kind() != Kind.AUDIT && ns > w.worst) {
 			w.worst = ns;
 			w.worstStep = st.kind() + (st.key() != null ? " " + st.key() : " " + st.cx() + " " + st.cz());
 		}
@@ -554,11 +588,12 @@ public final class SpawnRoads {
 			case PAVE -> {
 				LevelChunk chunk = level.getChunk(st.cx(), st.cz());
 				RoadLayout.Cell[] cells = new RoadLayout.Cell[256];
-				BuiltRoads.Painted pr = BuiltRoads.pave(level, chunk, w.layout, w.routes, blueprint().params().width(), w.seabed,
-						(x, z) -> skip(w, x, z), cells);
+				BuiltRoads.Painted pr = BuiltRoads.pave(level, chunk, w.layout, w.routes, w.profiles, blueprint().params().width(),
+						w.seabed, (x, z) -> skip(w, x, z), cells);
 				w.pavedN += pr.paved();
 				w.bridged += pr.bridged();
 				w.left += pr.left();
+				w.trees += pr.trees();
 				for (int i = 0; i < 256; i++) {
 					if (cells[i] != null) {
 						int x = chunk.getPos().getMinBlockX() + i / 16, z = chunk.getPos().getMinBlockZ() + i % 16;
@@ -602,6 +637,15 @@ public final class SpawnRoads {
 				lightSteps(w);
 			}
 			case LIGHT -> light(w, st.cx(), st.cz());
+			case AUDIT -> {
+				LevelChunk chunk = level.getChunk(st.cx(), st.cz());
+				BuiltRoads.Audit a = BuiltRoads.audit(level, chunk, w.layout, w.routes, blueprint().params().width(), (x, z) -> skip(w, x, z));
+				w.audited += a.columns();
+				w.blocked += a.blocked();
+				w.unpaved += a.unpaved();
+				w.jumps += a.steps();
+				w.orphans += a.orphans();
+			}
 			case FINISH -> finish(w);
 		}
 	}
@@ -776,6 +820,9 @@ public final class SpawnRoads {
 		for (long c : chunks) {
 			w.steps.add(at++, new Step(Kind.LIGHT, RoadLayout.px(c), RoadLayout.pz(c)));
 		}
+		for (long c : w.chunks) {               // and how the roads stand, chunk by chunk (logged: the server test reads it)
+			w.steps.add(at++, new Step(Kind.AUDIT, RoadLayout.px(c), RoadLayout.pz(c)));
+		}
 	}
 
 	/** The road columns of one chunk (outside the protected ring) with no block light: a monster could spawn there. */
@@ -799,6 +846,10 @@ public final class SpawnRoads {
 	private static void finish(Work w) {
 		work = null;
 		LOGGER.info("Heraldia: herald's house roads: the slowest step: {}", w.worstStep);
+		LOGGER.info("Heraldia: herald's house roads: audit: {} road columns on land, {} blocked (a trunk, leaves, a plant or ground "
+				+ "within 3 blocks over the paving), {} not paved, {} steps of more than one block, {} leaves no tree holds near the "
+				+ "road; {} trees felled ({} ms, the slowest chunk {} ms)", w.audited, w.blocked, w.unpaved, w.jumps, w.orphans, w.trees,
+				w.auditNanos / 1_000_000, w.auditWorst / 1_000_000);
 		LOGGER.info("Heraldia: herald's house roads: light: {} of {} road columns outside the protected ring are dark ({} of {} lamp "
 				+ "posts placed)", w.dark, w.lightChecked, w.lampsPlaced, w.lamps.size());
 		Saved s = saved(w.level);
