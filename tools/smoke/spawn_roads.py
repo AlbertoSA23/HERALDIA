@@ -16,6 +16,10 @@ World B (a new world; the town first, the arena later):
   5. the town is placed and its roads built on their own: four roads, the huts without the guide (its place kept);
   6. the arena is placed: its road and the guide's hut are built then, on their own, once; /heraldia herald roads says
      there is nothing left.
+After every build, the build's own audit of every road column on land, chunk by chunk, as the roads stand (in the log):
+  7. no trunk, leaves, plant or bump of ground on the paving or in the 3 blocks over it; every column paved with the
+     road's paving (one material and its kerb: BuiltRoads.deck); no two neighbouring columns more than a block apart; no
+     leaves left hanging near the road with no tree to hold them (the felled trees go whole).
 The build's cost (ticks, server-thread ms, the slowest step) is printed for each build. Exit code 0 if everything passes.
 """
 import argparse, json, os, re, shutil, sys, time
@@ -33,6 +37,8 @@ BUILT = (r"herald's house roads: built in (\d+) ticks \((\d+) ms on the server t
          r"(\d+) columns paved, (\d+) on bridges, (\d+) left, (\d+) lamp posts, (\d+) signs, (\d+) new huts, (\d+) new villagers "
          r"\((\d+) huts in all\)")
 LIGHT = r"herald's house roads: light: (\d+) of (\d+) road columns outside the protected ring are dark \((\d+) of (\d+) lamp"
+AUDIT = (r"herald's house roads: audit: (\d+) road columns on land, (\d+) blocked \(.*?\), (\d+) not paved, (\d+) steps of more "
+         r"than one block, (\d+) leaves no tree holds near the road; (\d+) trees felled, (\d+) hanging leaves taken away")
 ARENA_ROAD = r"herald's house roads: arena road from the (\w+) gate, (\d+) blocks"
 BUILDING = r"herald's house roads: building"
 PLACED = r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+) \(box (-?\d+) (-?\d+) (-?\d+) to (-?\d+) (-?\d+) (-?\d+)\)"
@@ -82,6 +88,21 @@ def built(p, n, what):
     print(f"ROADS {what}: {m.group(0)}", flush=True)
     return {"ticks": g[0], "ms": g[1], "slowest": g[2], "roads": g[3], "paved": g[4], "bridged": g[5], "left": g[6],
             "lamps": g[7], "signs": g[8], "huts": g[9], "villagers": g[10], "all": g[11]}
+
+
+def audit(p, n, what):
+    """The n-th build's audit of its road columns: none blocked, unpaved or a jump apart, and no leaves left hanging."""
+    m = list(re.finditer(AUDIT, p.ctx.log()))
+    if not p.check(len(m) >= n, f"{what}: no road audit in the log"):
+        return
+    cols, blocked, unpaved, steps, orphans, trees, tidied = (int(g) for g in m[n - 1].groups())
+    print(f"ROADS {what}: audit: {cols} columns, {blocked} blocked, {unpaved} not paved, {steps} steps over one block, "
+          f"{orphans} hanging leaves, {trees} trees felled, {tidied} hanging leaves taken away", flush=True)
+    p.check(cols > 0, f"{what}: no road column audited")
+    p.check(blocked == 0, f"{what}: {blocked} of {cols} road columns have a trunk, leaves, a plant or ground on the paving")
+    p.check(unpaved == 0, f"{what}: {unpaved} of {cols} road columns are not the road's paving (loose patches, grass)")
+    p.check(steps == 0, f"{what}: {steps} pairs of road columns more than a block apart")
+    p.check(orphans == 0, f"{what}: {orphans} leaves near the road hang with no tree")
 
 
 def light(p, n, what):
@@ -182,6 +203,7 @@ def world_a(work, launcher, fails, texts):
             count(p, HUTS, r["villagers"], "A: hut villagers")
             count(p, GUIDE, 1, "A: guides")
             light(p, 1, "A")
+            audit(p, 1, "A")
             nothing_left(p, "A")
             count(p, HUTS, r["villagers"], "A: hut villagers after the second command")
             guide_talk(srv, p)
@@ -204,6 +226,7 @@ def world_b(work, launcher, fails, texts):
         if not r:
             return
         p.check(r["roads"] == 4, f"B: {r['roads']} roads before the arena (four)")
+        audit(p, 1, "B (town first)")
         p.check(1 <= r["villagers"] <= 4, f"B: {r['villagers']} villagers before the arena (one per road at most, the guide's place kept)")
         load_ring(p, box)
         count(p, GUIDE, 0, "B: guides before the arena")
@@ -216,6 +239,7 @@ def world_b(work, launcher, fails, texts):
             count(p, GUIDE, 1, "B: guides after the arena")
             count(p, HUTS, r["villagers"] + 1, "B: hut villagers after the arena")
             light(p, 2, "B")
+            audit(p, 2, "B (arena later)")
             nothing_left(p, "B")
     finally:
         srv.stop()
