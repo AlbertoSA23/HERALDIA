@@ -264,7 +264,7 @@ public final class SpawnRoads {
 
 	// --- the work ---
 
-	enum Kind { PAVE, LAMPS, SIGN, HUT, BUILT, ARENA_DONE, WAIT, LIGHT, AUDIT, FINISH }
+	enum Kind { PAVE, LAMPS, SIGN, HUT, HUT_PLACE, BUILT, ARENA_DONE, WAIT, LIGHT, AUDIT, FINISH }
 
 	record Step(Kind kind, int cx, int cz, @Nullable String key, int[] extra) {
 		Step(Kind kind, int cx, int cz) {
@@ -290,9 +290,10 @@ public final class SpawnRoads {
 		@Nullable BlockPos arenaOrigin;
 		@Nullable String arenaSide;
 		int index, rest, ticks, waited, dark, lightChecked, allowed, newHuts, newVillagers, roads, lampsPlaced, signs, pavedN, bridged, left;
-		int trees, audited, blocked, unpaved, jumps, orphans;
+		int trees, audited, blocked, unpaved, jumps, orphans, examples;
 		long nanos, worst, auditNanos, auditWorst;
 		String worstStep = "";
+		@Nullable Hut hut;                                 // a hut whose site is ready, placed on the next tick
 		boolean waiting, again;
 
 		Work(ServerLevel level, Grounds g, @Nullable ServerPlayer who) {
@@ -617,13 +618,25 @@ public final class SpawnRoads {
 				}
 			}
 			case HUT -> {
+				int at = w.index;
 				if (st.key() != null) {
-					hut(w, st.key());                  // the guide's
-				} else if (!w.huts.isEmpty() && w.allowed > 0) {
-					hut(w, w.huts.remove(0));
-					if (!w.huts.isEmpty() && w.allowed > 0) {
-						w.steps.add(w.index, new Step(Kind.HUT, 0, 0));   // the next one, next tick
+					if (hut(w, st.key())) {            // the guide's
+						w.steps.add(at++, new Step(Kind.HUT_PLACE, 0, 0));
 					}
+				} else if (!w.huts.isEmpty() && w.allowed > 0) {
+					if (hut(w, w.huts.remove(0))) {
+						w.steps.add(at++, new Step(Kind.HUT_PLACE, 0, 0));   // its template, next tick
+					}
+					if (!w.huts.isEmpty() && w.allowed > 0) {
+						w.steps.add(at, new Step(Kind.HUT, 0, 0));   // the next one after it
+					}
+				}
+			}
+			case HUT_PLACE -> {
+				Hut h = w.hut;
+				w.hut = null;
+				if (h != null) {
+					place(w, h);
 				}
 			}
 			case BUILT -> save(level, saved(level).withBuilt());
@@ -645,6 +658,11 @@ public final class SpawnRoads {
 				w.unpaved += a.unpaved();
 				w.jumps += a.steps();
 				w.orphans += a.orphans();
+				for (String e : a.examples()) {
+					if (w.examples++ < 24) {
+						LOGGER.info("Heraldia: herald's house roads: audit: {}", e);
+					}
+				}
 			}
 			case FINISH -> finish(w);
 		}
@@ -679,15 +697,22 @@ public final class SpawnRoads {
 
 	// --- the huts ---
 
-	/** The hut "side:slot": its site checked, the ground prepared, the template placed and its beds set again. */
-	private static void hut(Work w, String key) {
+	/** A hut whose site is ready: what {@link #place} needs. */
+	record Hut(String key, String template, StructureTemplate t, int[] frame, int y0, boolean guide) {
+	}
+
+	/**
+	 * The hut "side:slot": its site checked and the ground prepared (foundation, room above); true if so, and its
+	 * template is then placed on the next tick ({@link #place}): two steps, each well under the slow-step mark.
+	 */
+	private static boolean hut(Work w, String key) {
 		Blueprint bp = blueprint();
 		String side = key.substring(0, key.indexOf(':')), name = key.substring(key.indexOf(':') + 1);
 		boolean guide = name.equals(bp.guide().name());
 		Slot slot = guide ? bp.guide() : bp.slots().stream().filter(s -> s.name().equals(name)).findFirst().orElse(null);
 		int[] gate = gates(w.g).get(side);
 		if (slot == null || gate == null || saved(w.level).huts().contains(key)) {
-			return;
+			return false;
 		}
 		String template;
 		if (guide) {
@@ -700,7 +725,7 @@ public final class SpawnRoads {
 		Optional<StructureTemplate> t = level.getStructureTemplateManager().get(Identifier.parse(template));
 		if (t.isEmpty()) {
 			LOGGER.error("Heraldia: herald's house roads: missing template {}", template);
-			return;
+			return false;
 		}
 		int sx = bp.size()[0], sz = bp.size()[2];
 		int[] frame = SpawnRoadLayout.hutFrame(gate, side, slot.side(), slot.along(), sx, bp.edge());
@@ -728,7 +753,7 @@ public final class SpawnRoads {
 		}
 		if (why != null) {
 			LOGGER.info("Heraldia: herald's house roads: no hut {} ({} at its site)", key, why);
-			return;
+			return false;
 		}
 		// foundation down to the ground and room above (trees, a hillside)
 		for (int lx = 0; lx < sx; lx++) {
@@ -748,6 +773,18 @@ public final class SpawnRoads {
 				}
 			}
 		}
+		w.hut = new Hut(key, template, t.get(), frame, y0, guide);
+		return true;
+	}
+
+	/** The prepared hut's template placed, its beds set again and its villager named (the guide). */
+	private static void place(Work w, Hut h) {
+		ServerLevel level = w.level;
+		String key = h.key(), template = h.template();
+		int[] frame = h.frame();
+		int y0 = h.y0();
+		boolean guide = h.guide();
+		Optional<StructureTemplate> t = Optional.of(h.t());
 		Rotation rot = switch (frame[0]) {
 			case 1 -> Rotation.CLOCKWISE_90;
 			case 2 -> Rotation.CLOCKWISE_180;

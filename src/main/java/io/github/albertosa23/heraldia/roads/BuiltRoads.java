@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
@@ -589,7 +590,13 @@ public final class BuiltRoads {
 	}
 
 	/** What {@link #audit} found in a chunk's road columns. */
-	public record Audit(int columns, int blocked, int unpaved, int steps, int orphans) {
+	public record Audit(int columns, int blocked, int unpaved, int steps, int orphans, List<String> examples) {
+	}
+
+	private static void example(List<String> out, String what, int x, int y, int z, BlockState s) {
+		if (out.size() < 6) {
+			out.add(what + " at " + x + " " + y + " " + z + " (" + BuiltInRegistries.BLOCK.getKey(s.getBlock()) + ")");
+		}
 	}
 
 	/**
@@ -608,6 +615,7 @@ public final class BuiltRoads {
 		int[] tops = new int[256];
 		Arrays.fill(tops, Integer.MIN_VALUE);
 		int columns = 0, blocked = 0, unpaved = 0, steps = 0, lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+		List<String> examples = new ArrayList<>();
 		for (int i = 0; i < 256; i++) {
 			int x = cp.getMinBlockX() + i / 16, z = cp.getMinBlockZ() + i % 16;
 			if (c[i] == null || skip.test(x, z)) {
@@ -631,11 +639,13 @@ public final class BuiltRoads {
 			hi = Math.max(hi, y);
 			if (!paving(s)) {
 				unpaved++;
+				example(examples, "not paved", x, y, z, s);
 			}
 			for (int yy = y + 1; yy <= y + 3; yy++) {
 				BlockState b = chunk.getBlockState(pos.set(x, yy, z));
 				if (!b.isAir() && !b.is(Blocks.SNOW)) {
 					blocked++;
+					example(examples, "blocked", x, yy, z, b);
 					break;
 				}
 			}
@@ -644,22 +654,25 @@ public final class BuiltRoads {
 			if (tops[i] == Integer.MIN_VALUE) {
 				continue;
 			}
+			int x = cp.getMinBlockX() + i / 16, z = cp.getMinBlockZ() + i % 16;
 			if (i / 16 < 15 && tops[i + 16] != Integer.MIN_VALUE && Math.abs(tops[i + 16] - tops[i]) > 1) {
 				steps++;
+				example(examples, "step to " + tops[i + 16] + " east", x, tops[i], z, chunk.getBlockState(pos.set(x, tops[i], z)));
 			}
 			if (i % 16 < 15 && tops[i + 1] != Integer.MIN_VALUE && Math.abs(tops[i + 1] - tops[i]) > 1) {
 				steps++;
+				example(examples, "step to " + tops[i + 1] + " south", x, tops[i], z, chunk.getBlockState(pos.set(x, tops[i], z)));
 			}
 		}
-		int orphans = columns == 0 ? 0 : orphans(level, chunk, c, lo - 2, hi + 16);
-		return new Audit(columns, blocked, unpaved, steps, orphans);
+		int orphans = columns == 0 ? 0 : orphans(level, chunk, c, lo - 12, hi + 24, examples);
+		return new Audit(columns, blocked, unpaved, steps, orphans, examples);
 	}
 
 	/**
 	 * Natural leaves within 6 blocks (across) of the road's columns in this chunk, between y0 and y1, with no log within
 	 * {@link LeavesBlock#DECAY_DISTANCE} - 1 steps through the leaves (worked out from scratch, not from their state).
 	 */
-	private static int orphans(ServerLevel level, LevelChunk chunk, RoadLayout.Cell[] cells, int y0, int y1) {
+	private static int orphans(ServerLevel level, LevelChunk chunk, RoadLayout.Cell[] cells, int y0, int y1, List<String> examples) {
 		var cp = chunk.getPos();
 		int m = LeavesBlock.DECAY_DISTANCE + 6, x0 = cp.getMinBlockX() - m, z0 = cp.getMinBlockZ() - m, n = 16 + 2 * m, h = y1 - y0 + 1;
 		Loaded loaded = new Loaded(level);
@@ -669,8 +682,9 @@ public final class BuiltRoads {
 		for (int ix = 0; ix < n; ix++) {
 			for (int iz = 0; iz < n; iz++) {
 				LevelChunk ch = loaded.chunk(x0 + ix, z0 + iz);
-				boolean rim = ix == 0 || iz == 0 || ix == n - 1 || iz == n - 1;
+				boolean side = ix == 0 || iz == 0 || ix == n - 1 || iz == n - 1;
 				for (int iy = 0; iy < h; iy++) {
+					boolean rim = side || iy == 0 || iy == h - 1;
 					int idx = (ix * n + iz) * h + iy;
 					BlockState s = ch == null ? null : ch.getBlockState(pos.set(x0 + ix, y0 + iy, z0 + iz));
 					boolean leaf = s != null && s.is(BlockTags.LEAVES) && !s.getValue(LeavesBlock.PERSISTENT);
@@ -710,6 +724,10 @@ public final class BuiltRoads {
 				for (int iy = 0; iy < h; iy++) {
 					if (d[(ix * n + iz) * h + iy] == 8) {
 						out++;
+						BlockState o = loaded.get(x0 + ix, y0 + iy, z0 + iz);
+						if (o != null) {
+							example(examples, "hanging (distance " + o.getValue(LeavesBlock.DISTANCE) + ")", x0 + ix, y0 + iy, z0 + iz, o);
+						}
 					}
 				}
 			}
