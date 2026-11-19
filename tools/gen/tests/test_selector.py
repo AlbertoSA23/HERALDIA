@@ -12,6 +12,7 @@ _spec.loader.exec_module(sel)
 ALL_COMBOS = sel.discover()
 J = sel.JAVA
 EVERY_UNIQUE = set(sel.OF_EVERY_UNIQUE)
+AQUATIC = "tools/smoke/aquatic_dry.py"
 COMPAT = [p for p in ALL_COMBOS if sel.is_compat(p)]
 NO_COMPAT = [p for p in ALL_COMBOS if not sel.is_compat(p)]
 
@@ -107,10 +108,12 @@ def test_unique_without_own_test():
 
 
 def test_java_of_a_unique():
-    assert set(pick(J + "uniques/island/IslandStructure.java")[1]) == {"tools/gen/uniques/corsair_island/smoke_server.py"} | EVERY_UNIQUE
+    assert set(pick(J + "uniques/island/IslandStructure.java")[1]) == {"tools/gen/uniques/corsair_island/smoke_server.py",
+                                                                        AQUATIC} | EVERY_UNIQUE
     # the island zone also decides which foreign structures spawn nearby: it drags in the compatibility ones
-    assert set(pick(J + "uniques/island/IslandZone.java")[1]) == {"tools/gen/uniques/corsair_island/smoke_server.py"} | EVERY_UNIQUE | set(COMPAT)
-    assert set(pick(J + "uniques/galleon/GalleonStructure.java")[1]) == {"tools/smoke/galleon_test.py"} | EVERY_UNIQUE
+    assert set(pick(J + "uniques/island/IslandZone.java")[1]) == {"tools/gen/uniques/corsair_island/smoke_server.py",
+                                                                   AQUATIC} | EVERY_UNIQUE | set(COMPAT)
+    assert set(pick(J + "uniques/galleon/GalleonStructure.java")[1]) == {"tools/smoke/galleon_test.py", AQUATIC} | EVERY_UNIQUE
     assert set(pick(J + "uniques/mine/Mine.java")[1]) == {"tools/gen/uniques/lost_mine/smoke_server.py"} | EVERY_UNIQUE
 
 
@@ -212,9 +215,9 @@ def test_search_cache():
 def test_coast():
     c = ["tools/smoke/coast.py"]
     mobs = ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"] + c
-    assert pick("tools/gen/shore/constructions.py") == (False, mobs), "the drowned of the half-sunk one"
-    assert pick("tools/gen/shore/__init__.py") == (False, mobs)
-    assert pick(J + "coast/Shoreline.java") == (False, c)
+    assert pick("tools/gen/shore/constructions.py") == (False, sorted(mobs + [AQUATIC])), "the drowned of the half-sunk one"
+    assert pick("tools/gen/shore/__init__.py") == (False, sorted(mobs + [AQUATIC]))
+    assert pick(J + "coast/Shoreline.java") == (False, sorted(c + [AQUATIC])), "the dry rooms of the aquatic structures"
     assert pick("tools/smoke/coast.py") == (False, c)
     assert sel.cost([J + "coast/Shoreline.java"]) and sel.cost(["tools/gen/shore/constructions.py"])
 
@@ -372,3 +375,15 @@ def test_safe_updates():
     assert pick(J + "command/ConfigPanel.java") == (False, ["tools/smoke/update.py"])
     assert pick("tools/smoke/update_path_b.py") == (False, ["tools/smoke/update_path_b.py"])
     assert sel.DURATION_S["tools/smoke/update_path_b.py"] > 0
+
+
+def test_aquatic_dry():
+    """The dry rooms' test runs with the aquatic structures and the coast, not with the mines (which reuse the coast's rule)."""
+    for p in ("tools/gen/uniques/atlantis/districts.py", J + "uniques/atlantis/BasePiece.java", "tools/gen/uniques/galleon/ship.py",
+              "tools/gen/uniques/corsair_island/caves.py", "tools/gen/uniques/lighthouse/blueprint.py",
+              J + "uniques/lighthouse/LighthouseStructure.java", "tools/gen/shore/constructions.py", J + "coast/CoastStructure.java",
+              AQUATIC):
+        assert AQUATIC in pick(p)[1], p
+    assert AQUATIC not in pick(J + "mines/Hillside.java")[1]
+    assert AQUATIC not in pick("tools/gen/uniques/castle/__init__.py")[1]
+    assert sel.DURATION_S[AQUATIC] > 0

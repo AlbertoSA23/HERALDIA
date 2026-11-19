@@ -37,10 +37,12 @@ COMPAT = "tools/smoke/compat_mods.py"
 SMOKE_OF_UNIQUE = {
     "citadel": ["tools/smoke/citadel_check.py"],
     "colosseum": ["tools/smoke/colosseum_redstone.py"],
-    "galleon": ["tools/smoke/galleon_test.py"],
+    "galleon": ["tools/smoke/galleon_test.py", "tools/smoke/aquatic_dry.py"],
     "ash_citadel": ["tools/smoke/nether_end.py"], "void_sanctum": ["tools/smoke/nether_end.py"],
     "observatory": ["tools/smoke/observatory_smoke.py"],
     "palace": ["tools/smoke/palace_redstone.py"],
+    # the dry rooms of the aquatic structures stay dry (and by the rules of the coast, AQUATIC)
+    "atlantis": ["tools/smoke/aquatic_dry.py"], "corsair_island": ["tools/smoke/aquatic_dry.py"], "lighthouse": ["tools/smoke/aquatic_dry.py"],
 }
 # What every new or changed unique structure must also pass besides its own: its trophy, its chronicle sheet and its adult
 # and anchored guardians.
@@ -98,6 +100,9 @@ SEARCH_CACHE = ["tools/smoke/search_cache.py", "tools/smoke/mine_entrances.py"]
 # mines (minas/Minas.familia), and the drowned of the half-sunk one enters the tests that go through the template mobs.
 COAST = ["tools/smoke/coast.py"]
 COAST_MOBS = COAST + ["tools/smoke/adult_guardians.py", "tools/smoke/anchored_guardians.py"]
+# The dry rooms of the aquatic structures (Atlantis, galleon, Corsair's isle, lighthouse, coastal lighthouses and shipwrecks
+# and the harbors): with the coast's own rules, not with the mines' (which reuse COAST).
+AQUATIC = ["tools/smoke/aquatic_dry.py"]
 # Game profiles ("perfil" option, T36): their server test (restarts with each profile and an option set by hand).
 PROFILES = ["tools/smoke/profiles.py", "tools/smoke/light_profile.py"]
 # Board quests and per-village reputation (T38): their Java, the prices mixin and their texts and advancements; also the
@@ -145,7 +150,7 @@ MAP = [
     # inhabitants of the medium structures: their option, applied when each one first loads
     (JAVA + "inhabitants/*", MEDIUMS),
     ("tools/gen/mines/*", MINES), (JAVA + "mines/*", MINES + COAST),
-    ("tools/gen/shore/*", COAST_MOBS), (JAVA + "coast/*", COAST),
+    ("tools/gen/shore/*", COAST_MOBS + AQUATIC), (JAVA + "coast/*", COAST + AQUATIC),
     # /locate of the mines (T36): the shared height cache and the parallel look-ahead computation are only used by the mines
     (JAVA + "common/HeightCache.java", MINES), (JAVA + "mixin/ChunkGeneratorLocateMixin.java", MINES),
     # the world's search memory: /locate, the maps, /heraldia info nearby and the Chronicle folios answered from what was asked before
@@ -395,6 +400,7 @@ DURATION_S = {
     "tools/smoke/caravans.py": 350,                 # two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py
     "tools/smoke/ambience.py": 135,                 # one start, three /locate'd structures, ~11,000 sprinted ticks
     "tools/smoke/spawn_roads.py": 160,              # the Herald's House roads: four starts, two towns, two arenas, three road builds; measured locally (4 cores): 143 s + 10 % (LOCAL: replace with its CI time)
+    "tools/smoke/aquatic_dry.py": 150,             # one start, seven /locate'd aquatic structures and their chunks, 200 ticks, the regions read back; measured locally (4 cores): 124-136 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/village_events.py": 185,         # measured locally (4 cores): 160 and 156 s of server log in two runs (four starts, one after a kill; ~20,000 sprinted ticks) + 10 % + setup; replace with its CI time
 }
 DEFAULT_S = 90
