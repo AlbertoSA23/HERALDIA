@@ -2269,6 +2269,8 @@ TEXTS = {
     # chat
     "prohibido": ("La Casa del Heraldo está protegida: aquí no se puede construir ni cambiar nada",
                   "The Herald's House is protected: nothing can be built or changed here"),
+    "solo_ver": ("En la Casa del Heraldo puedes mirar, pero no llevarte nada",
+                 "In the Herald's House you can look, but not take anything"),
     "portal.prohibido": ("Solo un operador puede encender el portal de la Casa del Heraldo",
                          "Only an operator can light the Herald's House portal"),
     "tablon": ("Tablón de encargos de la Casa del Heraldo:", "The Herald's House job board:"),

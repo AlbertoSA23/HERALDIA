@@ -2097,5 +2097,8 @@
   "heraldia.config.casa_heraldo.alrededores.activado": "Arredores da Casa do Heraldo: ao colocarse a vila (despois dos seus camiños), o anel protexido que a rodea aplánase nun terreo suave e camiñable que se funde co natural no seu bordo (nunca se corta nin se enche máis de 10 bloques), con unhas poucas cerdeiras e casas pequenas cun cofre de botín (sen aldeáns). Nun mundo cuxa vila xa existía, só con /heraldia herald grounds",
   "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Arredores aplanados",
   "heraldia.config.casa_heraldo.alrededores.casas": "Casas pequenas nos arredores da Casa do Heraldo (non se constrúe ningunha onde o terreo non o permite)",
-  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Casas dos arredores"
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Casas dos arredores",
+  "heraldia.casa_heraldo.solo_ver": "Na Casa do Heraldo podes mirar, pero non levar nada",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver": "Os cofres, barrís e demais contedores da Casa do Heraldo e do seu anel protexido ábrense para mirar: quen non é operador ve o que gardan, pero non pode sacar nin meter nada (o seu posto alugado, o seu barril de devolucións e o seu cofre de Ender seguen sendo seus). Desactivada, non se poden abrir",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver.nombre": "Contedores só para mirar"
 }

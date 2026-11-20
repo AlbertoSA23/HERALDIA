@@ -47,6 +47,10 @@ CANONICAL = [
     "talk with", "talk with <villager>",         # and a conversation started by an operator (preview, tests)
     "choice", "choice click", "choice click <slot>", "choice click <slot> <input>", "choice click <slot> <input> <button>",
     "choice reply", "choice reply <session>", "choice reply <session> <option>",   # the choice windows, as a client (operators, tests)
+    "choice send", "choice send button", "choice send button <id>", "choice send slot-state", "choice send slot-state <slot>",
+    "choice send slot-state <slot> <on>", "choice send bundle", "choice send bundle <slot>", "choice send bundle <slot> <index>",
+    "choice send pick", "choice send pick <x>", "choice send pick <x> <y>", "choice send pick <x> <y> <z>",
+    "choice send pick <x> <y> <z> <data>", "choice send recipe", "choice send recipe <recipe>",   # the other window packets (tests)
     "caravan", "caravan spawn", "caravan spawn raid", "caravan spawn peaceful", "caravan raid", "caravan list",
     "caravan clear",                             # T39: the caravans (operators)
     "caravan wayfarer", "caravan wayfarer pilgrim", "caravan wayfarer shepherd", "caravan wayfarer messenger",

@@ -2097,5 +2097,8 @@
   "heraldia.config.casa_heraldo.alrededores.activado": "Abords de la Maison du Héraut : quand le bourg est placé (après ses chemins), l'anneau protégé qui l'entoure est aplani en un terrain doux et praticable qui se fond dans le relief naturel à son bord (jamais plus de 10 blocs creusés ou remblayés), avec quelques cerisiers et de petites maisons avec un coffre de butin (sans villageois). Dans un monde dont le bourg existait déjà, seulement avec /heraldia herald grounds",
   "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Abords aplanis",
   "heraldia.config.casa_heraldo.alrededores.casas": "Petites maisons aux abords de la Maison du Héraut (aucune n'est construite là où le terrain ne le permet pas)",
-  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Maisons des abords"
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Maisons des abords",
+  "heraldia.casa_heraldo.solo_ver": "Dans la Maison du Héraut, tu peux regarder, mais rien emporter",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver": "Les coffres, tonneaux et autres conteneurs de la Maison du Héraut et de son anneau protégé s'ouvrent pour regarder : un joueur qui n'est pas opérateur voit ce qu'ils contiennent mais ne peut rien prendre ni déposer (son étal loué, son tonneau de retours et son coffre de l'Ender restent à lui). Désactivée, ils ne s'ouvrent pas",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver.nombre": "Conteneurs à regarder seulement"
 }

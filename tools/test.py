@@ -85,6 +85,8 @@ RUNTIME_PATHS += ["tools/gen/herald_grounds.py"]   # its grounds' houses and tre
 SPAWN_ROADS = ["tools/smoke/spawn_roads.py"]
 # The Herald's House grounds (herald/Outskirts): a town from before them (the command) and a new world (after its roads).
 HERALD_GROUNDS = ["tools/smoke/herald_grounds.py"]
+# Look, do not take (herald/HeraldHouse.opened and its mixins): the area's containers as a player who is not an operator.
+HERALD_LOOK = ["tools/smoke/herald_look.py"]
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
@@ -167,6 +169,10 @@ MAP = [
     (JAVA + "dialogue/*", QUESTS), ("tools/gen/dialogue.py", QUESTS), ("tools/gen/dialogue/*", QUESTS),
     # the choice windows (conversations and the arena bell's menu in the middle of the screen): their scenarios live in
     # the quests test (the conversation as a vanilla client gets it) and the arena modes test (the bell's menu)
+    # the look-only windows of the Herald's House area: the mark, the packets dropped and the test's packet commands
+    (JAVA + "herald/LookOnly.java", HERALD_LOOK), (JAVA + "mixin/HeraldLook*", HERALD_LOOK),
+    (JAVA + "mixin/HeraldOpenMenuMixin.java", HERALD_LOOK), (JAVA + "mixin/HeraldCompoundContainerMixin.java", HERALD_LOOK),
+    (JAVA + "choice/ClientPackets.java", HERALD_LOOK + QUESTS),
     (JAVA + "choice/*", QUESTS + ["tools/smoke/arena_modes.py"]),
     # reputation visible in the village: its scenario lives in the quests test too (the same village reaches "conocido")
     (JAVA + "welcome/*", QUESTS),
@@ -412,6 +418,7 @@ DURATION_S = {
     "tools/smoke/aquatic_dry.py": 150,             # one start, seven /locate'd aquatic structures and their chunks, 200 ticks, the regions read back; measured locally (4 cores): 124-136 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/village_events.py": 185,         # measured locally (4 cores): 160 and 156 s of server log in two runs (four starts, one after a kill; ~20,000 sprinted ticks) + 10 % + setup; replace with its CI time
     "tools/smoke/filler_loot.py": 40,             # one start, 17 tables rolled ten times, 7 templates placed and 13 containers unpacked; measured locally (4 cores): 31 and 34 s + 10 % (LOCAL: replace with its CI time)
+    "tools/smoke/herald_look.py": 120,            # PLACEHOLDER
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined

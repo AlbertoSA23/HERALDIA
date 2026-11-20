@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.herald.LookOnly;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.Slot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -279,6 +281,7 @@ public final class Choices {
 								.then(Commands.argument("button", IntegerArgumentType.integer(0, 40))
 										.executes(ctx -> click(ctx, StringArgumentType.getString(ctx, "input"),
 												IntegerArgumentType.getInteger(ctx, "button")))))))
+				.then(ClientPackets.node())
 				.then(Commands.literal("reply").then(Commands.argument("session", IntegerArgumentType.integer(0))
 						.then(Commands.argument("option", StringArgumentType.word())
 								.executes(ctx -> {
@@ -302,12 +305,26 @@ public final class Choices {
 		ServerPlayer p = ctx.getSource().getPlayerOrException();
 		Pending pending = PENDING.get(p.getUUID());
 		String menu = p.containerMenu instanceof ChoiceMenu m ? "choice menu " + m.session() : p.containerMenu == p.inventoryMenu
-				? "no window" : "another window";
+				? "no window" : "another window" + lookOnly(p);
 		String line = pending == null ? "choice: none (" + menu + ", would show as " + presentation(p).name().toLowerCase(Locale.ROOT) + ")"
 				: "choice: session " + pending.offer().session() + ", " + pending.what() + ", "
 						+ pending.how().name().toLowerCase(Locale.ROOT) + " (" + menu + "): " + String.join(", ", pending.offer().ids());
 		ctx.getSource().sendSuccess(() -> Component.literal(line), false);
 		return pending == null ? 0 : pending.offer().session();
+	}
+
+	/** For the Herald's House test: ", look-only, N stacks shown" for a look-only window (its stacks outside the player's inventory). */
+	private static String lookOnly(ServerPlayer p) {
+		if (!(p.containerMenu instanceof LookOnly l) || !l.heraldia$lookOnly()) {
+			return "";
+		}
+		int n = 0;
+		for (Slot slot : p.containerMenu.slots) {
+			if (slot.container != p.getInventory() && !slot.getItem().isEmpty()) {
+				n++;
+			}
+		}
+		return ", look-only, " + n + " stacks shown";
 	}
 
 	private static int click(CommandContext<CommandSourceStack> ctx, String input, int button) throws CommandSyntaxException {

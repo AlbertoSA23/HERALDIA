@@ -493,6 +493,13 @@ _FIXED = [
      "nunca: la coloca un operador con /heraldia herald place)",
      "In a new world, the Herald's House is built on its own at spawn, and spawn moves to its plaza (never in an existing "
      "world: an operator places it with /heraldia herald place)"),
+    ("casa_heraldo.contenedores_solo_ver", True, None, None,
+     "Los cofres, barriles y demás contenedores de la Casa del Heraldo y su anillo protegido se abren para mirar: quien "
+     "no es operador ve lo que guardan, pero no puede sacar ni meter nada (su puesto alquilado, su barril de devoluciones "
+     "y su cofre de ender siguen siendo suyos). Desactivada, no se pueden abrir",
+     "The chests, barrels and other containers of the Herald's House and its protected ring open to look at: a player who "
+     "is not an operator sees what they hold but cannot take or put anything (their rented stall, their return barrel "
+     "and their ender chest stay theirs). Disabled, they cannot be opened"),
     ("casa_heraldo.mercado.activado", False, None, None,
      "Puestos del mercado de alquiler: los jugadores pagan una entrada y un alquiler en esmeraldas por un puesto del mercado "
      "de la Casa del Heraldo; quien deja de pagar lo pierde (sus cosas van a un barril de devoluciones)",
@@ -790,6 +797,7 @@ _NAMES = {
     "casa_heraldo.caminos.aldeanos": ("Aldeanos de las chozas", "Hut villagers"),
     "casa_heraldo.alrededores.activado": ("Alrededores allanados", "Levelled grounds"),
     "casa_heraldo.alrededores.casas": ("Casas de los alrededores", "Houses around the town"),
+    "casa_heraldo.contenedores_solo_ver": ("Contenedores solo para mirar", "Look-only containers"),
     "casa_heraldo.mercado.activado": ("Puestos de alquiler", "Stalls for rent"),
     "casa_heraldo.mercado.entrada_esmeraldas": ("Entrada (esmeraldas)", "Entry fee (emeralds)"),
     "casa_heraldo.mercado.alquiler_esmeraldas": ("Alquiler (esmeraldas)", "Rent (emeralds)"),

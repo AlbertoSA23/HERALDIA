@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import io.github.albertosa23.heraldia.arena.Site;
 import io.github.albertosa23.heraldia.command.Texts;
 import io.github.albertosa23.heraldia.config.HeraldiaConfig;
+import io.github.albertosa23.heraldia.mixin.HeraldCompoundContainerMixin;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -30,6 +31,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.util.Util;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -38,11 +40,15 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SolidBucketItem;
 import net.minecraft.world.item.component.WrittenBookContent;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -81,6 +87,8 @@ public final class HeraldHouse {
 	static final long NEW_WORLD_TICKS = 1200;
 	private static final int PROPOSAL_TICKS = 6000, PARTICLES_EVERY = 20;
 	public static final String ENABLED = "casa_heraldo.activado", NEW_WORLDS = "casa_heraldo.generar_en_mundos_nuevos";
+	/** Containers in the area open to look at, nothing taken (see {@link #opened}); off: they stay shut, as before. */
+	public static final String LOOK = "casa_heraldo.contenedores_solo_ver";
 
 	private static @Nullable HousePlan plan;
 	/** Every blueprint version the .jar knows (a world keeps the version it placed). */
@@ -245,6 +253,10 @@ public final class HeraldHouse {
 		if (!placing && Grounds.usable(block)) {
 			return InteractionResult.PASS;
 		}
+		if (!placing && level.getBlockEntity(pos) instanceof BaseContainerBlockEntity && g.containerAccess(pos.getX(), pos.getY(),
+				pos.getZ(), false, own, HeraldHouse::rented, look()) != Grounds.Access.SHUT) {
+			return InteractionResult.PASS;                  // vanilla opens it (its loot rolls); opened() makes it look-only
+		}
 		if (!placing && block.equals("lectern") && level.getBlockEntity(pos) instanceof LecternBlockEntity lectern) {
 			read(p, lectern.getBook());
 			return InteractionResult.FAIL;
@@ -265,6 +277,97 @@ public final class HeraldHouse {
 			return InteractionResult.FAIL;
 		}
 		return InteractionResult.PASS;
+	}
+
+	// --- look, do not take: the containers of the area (the owner: "only come in and look") ---
+
+	private static boolean look() {
+		return HeraldiaConfig.get().getBool(LOOK);
+	}
+
+	/** Does someone hold (or still have their things in) that stall? */
+	private static boolean rented(int stall) {
+		ServerLevel level = houseLevel;
+		return level != null && saved(level).tenancy(stall).isPresent();
+	}
+
+	/**
+	 * A window the player just opened (HeraldOpenMenuMixin): if it shows a container in the area that is not theirs to
+	 * use, it becomes look-only (HeraldLookPacketMixin drops whatever its client sends to change it). Theirs: an operator,
+	 * a tenant in their own stall, the owner of a return barrel (Market lets only them open it), and what is no block or
+	 * entity of the world (the ender chest, the workstations' own grids, the player's inventory). Only when a window opens.
+	 */
+	public static void opened(ServerPlayer p, AbstractContainerMenu menu) {
+		Grounds g = grounds;
+		if (g == null || p.level() != houseLevel || menu == p.inventoryMenu || isOperator(p) || !look()) {
+			return;
+		}
+		int own = Market.stallOf(p);
+		Container last = null;
+		for (Slot slot : menu.slots) {
+			Container c = slot.container;
+			if (c == last || c == p.getInventory()) {
+				continue;
+			}
+			last = c;
+			if (guarded(g, c, own)) {
+				((LookOnly) menu).heraldia$markLookOnly();
+				p.sendOverlayMessage(Texts.t(Texts.language(p), K + "solo_ver").withStyle(ChatFormatting.GOLD));
+				return;
+			}
+		}
+	}
+
+	/** A mount's inventory just opened (HeraldOpenMenuMixin): look-only if the animal is in the area (its saddle, its chest). */
+	public static void openedMount(ServerPlayer p, Entity mount) {
+		Grounds g = grounds;
+		if (g == null || p.level() != houseLevel || p.containerMenu == p.inventoryMenu || isOperator(p) || !look()) {
+			return;
+		}
+		BlockPos pos = mount.blockPosition();
+		if (g.isProtected(pos.getX(), pos.getY(), pos.getZ(), false, Market.stallOf(p))) {
+			((LookOnly) p.containerMenu).heraldia$markLookOnly();
+			p.sendOverlayMessage(Texts.t(Texts.language(p), K + "solo_ver").withStyle(ChatFormatting.GOLD));
+		}
+	}
+
+	/** Is this container (a double chest: either half) a block or an entity of the area that the player may not change? */
+	private static boolean guarded(Grounds g, Container c, int own) {
+		if (c instanceof HeraldCompoundContainerMixin both) {
+			return guarded(g, both.heraldia$first(), own) || guarded(g, both.heraldia$second(), own);
+		}
+		BlockPos pos;
+		if (c instanceof BlockEntity be) {
+			pos = be.getBlockPos();
+			if (g.barrelAt(pos.getX(), pos.getY(), pos.getZ()) >= 0) {
+				return false;                               // a return barrel: only its owner opens it, and empties it
+			}
+		} else if (c instanceof Entity e) {
+			pos = e.blockPosition();
+		} else {
+			return false;
+		}
+		return g.isProtected(pos.getX(), pos.getY(), pos.getZ(), false, own);
+	}
+
+	/**
+	 * For HeraldLookPacketMixin: is the player's open window look-only? Then the packet is dropped and the client is sent
+	 * the window and the inventory as they are (it may have shown the move it predicted). One field read otherwise.
+	 */
+	public static boolean refused(ServerPlayer p) {
+		if (!(p.containerMenu instanceof LookOnly m) || !m.heraldia$lookOnly()) {
+			return false;
+		}
+		p.containerMenu.sendAllDataToRemote();
+		deny(p, "solo_ver");
+		return true;
+	}
+
+	/** For HeraldLookPacketMixin: a creative pick-block with data (Ctrl) of a protected block copies it without its contents. */
+	public static boolean copyDenied(ServerPlayer p, BlockPos pos) {
+		Grounds g = grounds;
+		return g != null && p.level() == houseLevel && g.inArea(pos.getX(), pos.getZ()) && !isOperator(p)
+				&& g.isProtected(pos.getX(), pos.getY(), pos.getZ(), false, Market.stallOf(p));
 	}
 
 	/** Hitting or using an entity: villagers trade and talk; animals, villagers and decorations cannot be hurt or changed. */
