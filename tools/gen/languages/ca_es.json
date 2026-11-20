@@ -2097,5 +2097,8 @@
   "heraldia.config.casa_heraldo.alrededores.activado": "Voltants de la Casa de l'Herald: quan es col·loca el poble (després dels seus camins), l'anell protegit que l'envolta s'aplana en un terreny suau i transitable que es fon amb el natural a la vora (mai no es retalla ni s'omple més de 10 blocs), amb uns quants cirerers i cases petites amb un cofre de botí (sense vilatans). En un món on el poble ja hi era, només amb /heraldia herald grounds",
   "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Voltants aplanats",
   "heraldia.config.casa_heraldo.alrededores.casas": "Cases petites als voltants de la Casa de l'Herald (no se'n construeix cap on el terreny no ho permet)",
-  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Cases dels voltants"
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Cases dels voltants",
+  "heraldia.casa_heraldo.solo_ver": "A la Casa de l'Herald pots mirar, però no endur-te res",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver": "Els cofres, barrils i altres contenidors de la Casa de l'Herald i del seu anell protegit s'obren per mirar: qui no és operador veu el que guarden, però no en pot treure ni hi pot posar res (la seva parada llogada, el seu barril de devolucions i el seu cofre de l'Ender continuen sent seus). Desactivada, no es poden obrir",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver.nombre": "Contenidors només per mirar"
 }

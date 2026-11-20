@@ -2097,5 +2097,8 @@
   "heraldia.config.casa_heraldo.alrededores.activado": "Umgebung des Hauses des Herolds: Wenn die Stadt platziert wird (nach ihren Wegen), wird der geschützte Ring um sie zu sanftem, begehbarem Gelände eingeebnet, das am Rand in das natürliche übergeht (nie mehr als 10 Blöcke abgetragen oder aufgefüllt), mit ein paar Kirschbäumen und kleinen Häusern mit einer Beutetruhe (ohne Dorfbewohner). In einer Welt, deren Stadt schon stand, nur mit /heraldia herald grounds",
   "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Eingeebnete Umgebung",
   "heraldia.config.casa_heraldo.alrededores.casas": "Kleine Häuser in der Umgebung des Hauses des Herolds (wo der Boden es nicht erlaubt, wird keines gebaut)",
-  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Häuser der Umgebung"
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Häuser der Umgebung",
+  "heraldia.casa_heraldo.solo_ver": "Im Haus des Herolds darfst du schauen, aber nichts mitnehmen",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver": "Truhen, Fässer und andere Behälter des Hauses des Herolds und seines geschützten Rings lassen sich zum Anschauen öffnen: Wer kein Operator ist, sieht ihren Inhalt, kann aber nichts herausnehmen oder hineinlegen (der eigene gemietete Stand, das eigene Rückgabefass und die eigene Endertruhe bleiben die eigenen). Deaktiviert lassen sie sich nicht öffnen",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver.nombre": "Behälter nur zum Anschauen"
 }

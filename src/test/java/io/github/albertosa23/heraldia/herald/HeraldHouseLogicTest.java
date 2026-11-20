@@ -118,6 +118,27 @@ class HeraldHouseLogicTest {
 	}
 
 	@Test
+	void containerAccess() {
+		int[] in = G.world(PLAN.stall(3).min());
+		int x = G.centerX(), y = G.groundY(), z = G.centerZ();
+		java.util.function.IntPredicate none = n -> false, all = n -> true;
+		// the town and its ring: a look, nothing taken (the option off: shut, as before it)
+		assertEquals(Grounds.Access.LOOK, G.containerAccess(x, y, z, false, 0, none, true));
+		assertEquals(Grounds.Access.SHUT, G.containerAccess(x, y, z, false, 0, none, false));
+		assertEquals(Grounds.Access.LOOK, G.containerAccess(G.ox() - Grounds.RING, y, z, false, 0, none, true));
+		// outside the area and for an operator: theirs to use
+		assertEquals(Grounds.Access.OPEN, G.containerAccess(G.ox() - Grounds.RING - 1, y, z, false, 0, none, true));
+		assertEquals(Grounds.Access.OPEN, G.containerAccess(x, y, z, true, 0, all, true));
+		assertEquals(Grounds.Access.OPEN, G.containerAccess(in[0], in[1], in[2], true, 0, all, false));
+		// a stall: its tenant opens it; someone else's rented stall stays shut; a free one is looked at
+		assertEquals(Grounds.Access.OPEN, G.containerAccess(in[0], in[1], in[2], false, 3, all, true));
+		assertEquals(Grounds.Access.OPEN, G.containerAccess(in[0], in[1], in[2], false, 3, all, false));
+		assertEquals(Grounds.Access.SHUT, G.containerAccess(in[0], in[1], in[2], false, 2, all, true));
+		assertEquals(Grounds.Access.SHUT, G.containerAccess(in[0], in[1], in[2], false, 0, all, true));
+		assertEquals(Grounds.Access.LOOK, G.containerAccess(in[0], in[1], in[2], false, 0, none, true));
+	}
+
+	@Test
 	void centeredOnTheSpawn() {
 		Grounds g = Grounds.centered(10, -20, 70, PLAN);
 		assertEquals(10, g.centerX());

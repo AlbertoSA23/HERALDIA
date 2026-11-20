@@ -2097,5 +2097,8 @@
   "heraldia.config.casa_heraldo.alrededores.activado": "Arredores da Casa do Arauto: quando a vila é colocada (depois de seus caminhos), o anel protegido ao redor dela é aplainado em um terreno suave e caminhável que se funde com o natural na borda (nunca mais de 10 blocos cortados ou aterrados), com algumas cerejeiras e casas pequenas com um baú de saque (sem aldeões). Em um mundo cuja vila já existia, só com /heraldia herald grounds",
   "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Arredores aplainados",
   "heraldia.config.casa_heraldo.alrededores.casas": "Casas pequenas nos arredores da Casa do Arauto (nenhuma é construída onde o terreno não permite)",
-  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Casas dos arredores"
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Casas dos arredores",
+  "heraldia.casa_heraldo.solo_ver": "Na Casa do Arauto você pode olhar, mas não levar nada",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver": "Baús, barris e outros contêineres da Casa do Arauto e do seu anel protegido se abrem para olhar: quem não é operador vê o que guardam, mas não pode tirar nem colocar nada (sua banca alugada, seu barril de devoluções e seu baú do Ender continuam sendo seus). Desativada, não se abrem",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver.nombre": "Contêineres só para olhar"
 }

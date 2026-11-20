@@ -2097,5 +2097,8 @@
   "heraldia.config.casa_heraldo.alrededores.activado": "Dintorni della Casa dell'Araldo: quando il borgo viene posizionato (dopo le sue strade), l'anello protetto che lo circonda viene livellato in un terreno dolce e percorribile che sul bordo si fonde con quello naturale (mai più di 10 blocchi scavati o riempiti), con pochi ciliegi e piccole case con un baule di bottino (senza abitanti). In un mondo il cui borgo esisteva già, solo con /heraldia herald grounds",
   "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Dintorni livellati",
   "heraldia.config.casa_heraldo.alrededores.casas": "Piccole case nei dintorni della Casa dell'Araldo (non se ne costruisce nessuna dove il terreno non lo permette)",
-  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Case dei dintorni"
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Case dei dintorni",
+  "heraldia.casa_heraldo.solo_ver": "Nella Casa dell'Araldo puoi guardare, ma non prendere nulla",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver": "Bauli, barili e altri contenitori della Casa dell'Araldo e del suo anello protetto si aprono per guardare: chi non è operatore vede cosa contengono ma non può prendere né mettere nulla (la sua bancarella in affitto, il suo barile delle restituzioni e la sua cassa dell'Ender restano sue). Disattivata, non si aprono",
+  "heraldia.config.casa_heraldo.contenedores_solo_ver.nombre": "Contenitori solo da guardare"
 }

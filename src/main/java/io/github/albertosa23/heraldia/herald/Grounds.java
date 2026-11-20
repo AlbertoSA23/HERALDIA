@@ -1,6 +1,7 @@
 package io.github.albertosa23.heraldia.herald;
 
 import java.util.Set;
+import java.util.function.IntPredicate;
 
 /**
  * The Herald's House placed in the world: its origin (the template's minimum corner) and its blueprint. It answers, with
@@ -123,6 +124,25 @@ public record Grounds(int ox, int oy, int oz, HousePlan plan) {
 			return false;
 		}
 		return ownStall == 0 || stallAt(x, y, z) != ownStall;
+	}
+
+	/** What opening a container in the area gives: everything (its owner), a look without taking anything, or nothing. */
+	public enum Access { OPEN, LOOK, SHUT }
+
+	/**
+	 * Opening the container at this block (return barrels aside: they are only their owner's, see Market). Outside the
+	 * area, for an operator or in the actor's own stall: OPEN. In a stall someone else rents ({@code rented}): SHUT,
+	 * those are their things. Anywhere else in the area: LOOK, or SHUT with the option off ({@code look} false).
+	 */
+	public Access containerAccess(int x, int y, int z, boolean operator, int ownStall, IntPredicate rented, boolean look) {
+		if (!isProtected(x, y, z, operator, ownStall)) {
+			return Access.OPEN;
+		}
+		int stall = stallAt(x, y, z);
+		if (stall != 0 && rented.test(stall)) {
+			return Access.SHUT;
+		}
+		return look ? Access.LOOK : Access.SHUT;
 	}
 
 	private static final Set<String> USABLE = Set.of("bell", "crafting_table", "cartography_table", "smithing_table",

@@ -206,7 +206,7 @@ class HeraldiaCommandsTest {
 		assertEquals(List.of("peaceful", "raid"), AliasTest.suggestions(client, "heraldia caravan spawn ", op));
 		assertEquals(List.of("abandon", "accept", "list", "turnin"), AliasTest.suggestions(client, "heraldia quest ", op));
 		assertEquals(List.of("bye", "more", "rumor", "trade", "with"), AliasTest.suggestions(client, "heraldia talk ", op));
-		assertEquals(List.of("click", "reply"), AliasTest.suggestions(client, "heraldia choice ", op));
+		assertEquals(List.of("click", "reply", "send"), AliasTest.suggestions(client, "heraldia choice ", op));
 		assertEquals(List.of("give", "info"), AliasTest.suggestions(client, "heraldia treasure ", op));
 		assertEquals(List.of("leaderboard", "leave", "move", "place", "remove", "season", "start", "stop"),
 				AliasTest.suggestions(client, "heraldia arena ", op));
