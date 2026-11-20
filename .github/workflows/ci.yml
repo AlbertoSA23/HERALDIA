@@ -50,6 +50,11 @@ jobs:
       - name: Instalar dependencias del generador
         run: pip install -r tools/gen/requirements.txt
 
+      # el resumen de registros de 26.3 (como fetchRegistries en Gradle): sin él, las pruebas que construyen el registro
+      # entero (test_filler_loot: ningún contenedor sin botín) se saltarían
+      - name: Resumen de registros de 26.3 (misode/mcmeta)
+        run: git -c advice.detachedHead=false clone --quiet --depth 1 --branch "$(sed -n 's/^mcmeta_summary_branch=//p' gradle.properties)" https://github.com/misode/mcmeta.git build/mcmeta-summary
+
       - name: Tests unitarios del generador (pytest)
         run: python3 -m pytest -q -p no:cacheprovider tools/gen/tests
 

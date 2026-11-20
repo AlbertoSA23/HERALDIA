@@ -31,6 +31,7 @@ the town included); generation fails on any error.
 import math
 
 from core import Template, NS, F, B
+import filler_loot
 import doors
 import lint
 
@@ -447,7 +448,8 @@ def hut(profession, guide=False):
     t.set(fx, fy, fz, f"{color}_bed[facing=south,part=foot,occupied=false]")
     t.set(hx, hy, hz, f"{color}_bed[facing=south,part=head,occupied=false]")
     st = STATIONS[profession]
-    t.set(*STATION, st, {"id": "minecraft:barrel"} if st.startswith("barrel") else None)
+    # the fisherman's workstation barrel holds what a fisherman keeps (filler_loot: no container is left empty)
+    t.set(*STATION, st, {"id": "minecraft:barrel", "LootTable": filler_loot.table_id("pesca")} if st.startswith("barrel") else None)
     t.set(*BELL, "bell[attachment=floor,facing=east,powered=false]")
     t.set(*LANTERN, "lantern[hanging=true,waterlogged=false]")
     t.set(5, 3, 1, "lantern[hanging=true,waterlogged=false]")       # under the awning

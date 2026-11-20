@@ -38,6 +38,7 @@ import os
 import random
 
 from core import Template, NS, B, F, villager
+import filler_loot
 import board
 import build
 import lint
@@ -84,6 +85,16 @@ STALL_W = 5
 STALL_X = (25, 31, 37, 43)                 # west x of each stall in a row
 STALL_ROWS = ((66, "south"), (76, "north"))  # (north z of the row, side the counter faces)
 RETURNS = 12                               # return barrels in the office
+# the return barrels hold a former stall tenant's things (Market.java): a barrel is free only while it is empty
+RETURN_EMPTY = "return barrel: Market only uses it while it is empty"
+
+
+def fill_nbt(block, table):
+    """Block nbt of a container with filler table heraldia:relleno/<table> (filler_loot): the town has no rule of its
+    own, each container gets the table that fits its room."""
+    return {"id": "minecraft:" + block, "LootTable": filler_loot.table_id(table)}
+
+
 from doors import CLEAR as CLEAR_FRONT, FACE as FACE_CLEAR, GAP   # the door rule (doors.py)
 BED_PATH, BELL_PATH = 16, 24               # blocks' walk: a resident's bed from its workstation; its bell from both
 
@@ -344,7 +355,7 @@ def station(t, x, z, block, facing="north", y=FLOOR + 1):
           "barrel": "barrel[facing=up,open=false]", "composter": "composter[level=0]",
           "brewing_stand": "brewing_stand[has_bottle_0=false,has_bottle_1=false,has_bottle_2=false]",
           "cauldron": "cauldron"}.get(block, block)
-    t.set(x, y, z, st, {"id": "minecraft:barrel"} if block == "barrel" else None)
+    t.set(x, y, z, st, fill_nbt("barrel", "pesca") if block == "barrel" else None)
     t.stations.append((block, x, z))
 
 
@@ -510,9 +521,9 @@ def inn(t, b):
     for x in range(x0 + 14, x1):
         t.set(x, FLOOR + 1, z0 + 3, "polished_deepslate_slab[type=top]")
     for x in range(x0 + 14, x1):
-        t.set(x, FLOOR + 1, z0 + 1, "barrel[facing=south,open=false]", {"id": "minecraft:barrel"})
+        t.set(x, FLOOR + 1, z0 + 1, "barrel[facing=south,open=false]", fill_nbt("barrel", "bodega"))
         if x % 2:
-            t.set(x, FLOOR + 2, z0 + 1, "barrel[facing=south,open=false]", {"id": "minecraft:barrel"})
+            t.set(x, FLOOR + 2, z0 + 1, "barrel[facing=south,open=false]", fill_nbt("barrel", "bodega"))
     t.set(x0 + 13, FLOOR + 1, z0 + 1, "polished_deepslate_slab[type=top]")
     t.set(x0 + 13, FLOOR + 2, z0 + 1, "brewing_stand[has_bottle_0=false,has_bottle_1=false,has_bottle_2=false]")
     station(t, x1 - 1, z0 + 2, "barrel")
@@ -546,9 +557,9 @@ def inn(t, b):
     for x in (x0 + 2, x0 + 3):
         t.set(x, mid + 1, z0 + 1, stairs(WSTAIRS, "north"))
     for x in range(x0 + 7, x0 + 12):
-        t.set(x, mid + 1, z0 + 1, "barrel[facing=south,open=false]", {"id": "minecraft:barrel"})
+        t.set(x, mid + 1, z0 + 1, "barrel[facing=south,open=false]", fill_nbt("barrel", "despensa"))
         if x % 2:
-            t.set(x, mid + 2, z0 + 1, "barrel[facing=south,open=false]", {"id": "minecraft:barrel"})
+            t.set(x, mid + 2, z0 + 1, "barrel[facing=south,open=false]", fill_nbt("barrel", "despensa"))
     t.set(x0 + 14, mid + 1, z0 + 1, f"{WOOD_SLAB}[type=top]")
     t.set(x0 + 14, mid + 2, z0 + 1, "potted_cornflower")
     t.set(x0 + 15, mid + 1, z0 + 1, stairs(WSTAIRS, "north"))
@@ -626,7 +637,7 @@ def chapel(t, b):
     t.fill(vx + 1, FLOOR + 5, z1 - 3, x1 - 1, FLOOR + 5, z1 - 1, "stone_bricks")
     door_at(t, "south", vx + 2, z1 - 4, sill=False)
     bed(t, x1 - 1, z1 - 2, "east", "white")
-    t.set(vx + 1, FLOOR + 1, z1 - 1, "chest[facing=north,type=single]", {"id": "minecraft:chest"})
+    t.set(vx + 1, FLOOR + 1, z1 - 1, "chest[facing=north,type=single]", fill_nbt("chest", "templo"))
     t.set(vx + 2, FLOOR + 4, z1 - 2, LANTERN)
     window(t, x1 - 2, FLOOR + 2, z1, "south", "slit", glass="yellow_stained_glass_pane")
     # a small belfry spire over the west gable (decorative: no bell, the town's bell is the plaza's)
@@ -667,7 +678,7 @@ def library(t, b):
     door_at(t, "north", x1 - 2, z1 - 4, sill=False)
     bed(t, x1 - 1, z1 - 2, "east", "blue")
     bed(t, bx + 1, z1 - 1, "south", "blue")
-    t.set(bx + 2, FLOOR + 1, z1 - 1, "chest[facing=north,type=single]", {"id": "minecraft:chest"})
+    t.set(bx + 2, FLOOR + 1, z1 - 1, "chest[facing=north,type=single]", fill_nbt("chest", "casa"))
     t.set(x1 - 3, top - 1, z1 - 2, LANTERN)
     # two reading tables with the lecterns
     for lx in (x0 + 8, x0 + 12):
@@ -777,7 +788,7 @@ def stable(t, b):
     station(t, x1 - 1, z1 - 1, "cauldron")
     resident(t, "leatherworker", x1 - 2, z1 - 1)
     bed(t, x1 - 1, z0 + 1, "north", "brown")
-    t.set(x1 - 1, FLOOR + 1, z0 + 3, "chest[facing=west,type=single]", {"id": "minecraft:chest"})
+    t.set(x1 - 1, FLOOR + 1, z0 + 3, "chest[facing=west,type=single]", fill_nbt("chest", "granja"))
     for z, item in ((z0 + 5, "saddle"), (z0 + 6, "lead"), (z0 + 9, "leather")):
         frame(t, x1 - 1, FLOOR + 3, z, "west", item)
     for z in (z0 + 3, z0 + 7):
@@ -811,7 +822,7 @@ def herbalist(t, b):
     t.set(x1 - 4, FLOOR + 1, z0 + 1, f"{WOOD_SLAB}[type=top]")
     t.set(x1 - 4, FLOOR + 2, z0 + 1, "decorated_pot[facing=south]")
     bed(t, x1 - 1, z1 - 2, "east", "green")
-    t.set(x1 - 1, FLOOR + 1, z1 - 4, "chest[facing=west,type=single]", {"id": "minecraft:chest"})
+    t.set(x1 - 1, FLOOR + 1, z1 - 4, "chest[facing=west,type=single]", fill_nbt("chest", "granja"))
     for x, item in ((x0 + 4, "glass_bottle"), (x0 + 5, "nether_wart"), (x0 + 6, "glow_berries")):
         frame(t, x, FLOOR + 3, z0 + 1, "south", item)
     t.set(x0 + 4, top - 1, z0 + 4, LANTERN)
@@ -846,8 +857,8 @@ def bakery(t, b):
     for x, item in ((x1 - 2, "bread"), (x1 - 3, "cookie")):
         frame(t, x, FLOOR + 3, z0 + 1, "south", item)
     for z in (z0 + 7, z0 + 8):
-        t.set(x1 - 1, FLOOR + 1, z, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
-    t.set(x1 - 1, FLOOR + 2, z0 + 8, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
+        t.set(x1 - 1, FLOOR + 1, z, "barrel[facing=up,open=false]", fill_nbt("barrel", "molino"))
+    t.set(x1 - 1, FLOOR + 2, z0 + 8, "barrel[facing=up,open=false]", fill_nbt("barrel", "molino"))
     station(t, x0 + 1, z0 + 3, "composter")
     resident(t, "farmer", x0 + 2, z0 + 4)
     bed(t, x0 + 1, z1 - 1, "west", "yellow")
@@ -867,7 +878,7 @@ def granary(t, b):
     t.set(x0 + 1, FLOOR + 1, z1 - 1, "hay_block[axis=y]")
     t.set(x0 + 1, FLOOR + 2, z1 - 1, "hay_block[axis=y]")
     t.set(x0 + 2, FLOOR + 1, z1 - 1, "hay_block[axis=x]")
-    t.set(x0 + 1, FLOOR + 1, z1 - 2, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
+    t.set(x0 + 1, FLOOR + 1, z1 - 2, "barrel[facing=up,open=false]", fill_nbt("barrel", "granja"))
     frame(t, x0 + 3, FLOOR + 3, z1 - 1, "north", "wheat")
     window(t, x0, FLOOR + 2, z0 + 2, "west", "tall", shutter=TRAPDOOR)
     window(t, x1, FLOOR + 2, z0 + 2, "east", "tall", shutter=TRAPDOOR)
@@ -903,7 +914,7 @@ def cartographer(t, b):
     t.fill(px, FLOOR + 1, z0 + 1, px, top - 1, z1 - 1, "bricks")
     door_at(t, "west", px, z0 + 4, sill=False)
     bed(t, x1 - 1, z0 + 1, "north", "light_blue")
-    t.set(x1 - 1, FLOOR + 1, z0 + 3, "chest[facing=west,type=single]", {"id": "minecraft:chest"})
+    t.set(x1 - 1, FLOOR + 1, z0 + 3, "chest[facing=west,type=single]", fill_nbt("chest", "casa"))
     t.set(x1 - 2, top - 1, z0 + 5, LANTERN)
     t.set(x0 + 4, top - 1, z0 + 3, LANTERN)
     t.set(x0 + 4, top - 1, z1 - 2, LANTERN)
@@ -934,7 +945,7 @@ def weaver(t, b):
     for x, c in ((x0 + 5, "red"), (x0 + 7, "blue")):
         t.set(x, FLOOR + 3, z0 + 1, f"{c}_wall_banner[facing=south]")
     bed(t, x1 - 1, z1 - 1, "south", "white")
-    t.set(x0 + 1, FLOOR + 1, z1 - 1, "chest[facing=east,type=single]", {"id": "minecraft:chest"})
+    t.set(x0 + 1, FLOOR + 1, z1 - 1, "chest[facing=east,type=single]", fill_nbt("chest", "mercado"))
     for x in range(x0 + 3, x0 + 7):
         t.set(x, FLOOR + 1, z1 - 3, "white_carpet")
     frame(t, x0 + 1, FLOOR + 3, z0 + 5, "east", "shears")
@@ -1040,7 +1051,7 @@ def workshop(t, b):
     door_at(t, "south", x0 + 5, z1 - 4, sill=False)
     bed(t, x0 + 1, z1 - 3, "west", "orange")
     bed(t, x0 + 1, z1 - 1, "west", "orange")
-    t.set(x1 - 1, FLOOR + 1, z1 - 1, "chest[facing=west,type=single]", {"id": "minecraft:chest"})
+    t.set(x1 - 1, FLOOR + 1, z1 - 1, "chest[facing=west,type=single]", fill_nbt("chest", "casa"))
     t.set(x0 + 5, top - 1, z1 - 2, LANTERN)
     t.set(x0 + 5, top - 1, z0 + 3, LANTERN)
     chimney(t, x0, z0 + 6, FLOOR + 1, top + 5)
@@ -1056,7 +1067,7 @@ def office(t, b):
     for i in range(RETURNS):
         z = z0 + 1 + i % 6
         y = FLOOR + 1 + i // 6
-        t.set(x1 - 1, y, z, "barrel[facing=west,open=false]", {"id": "minecraft:barrel"})
+        t.set(x1 - 1, y, z, "barrel[facing=west,open=false]", filler_loot.empty_nbt("barrel", RETURN_EMPTY))
         t.returns.append([x1 - 1, y, z])
     pieces.sign(t.set, x1 - 2, FLOOR + 3, z1 - 1, "west", [text("devolucion.cartel1"), text("devolucion.cartel2")],
                 wood="crimson")
@@ -1172,14 +1183,14 @@ def gate_tower(t, b, guard):
         t.set(x0 + 3, FLOOR + 2, z0 + 4, "candle[candles=1,lit=true]")
         for z, item in ((z0 + 3, "iron_sword"), (z0 + 4, "shield"), (z0 + 5, "bow")):
             frame(t, x1 - 1, FLOOR + 3, z, "west", item)
-        t.set(x1 - 1, FLOOR + 1, z1 - 1, "chest[facing=west,type=single]", {"id": "minecraft:chest"})
+        t.set(x1 - 1, FLOOR + 1, z1 - 1, "chest[facing=west,type=single]", fill_nbt("chest", "almacen"))
     else:
         for z in range(z0 + 2, z1 - 1):
-            t.set(x1 - 1, FLOOR + 1, z, "barrel[facing=west,open=false]", {"id": "minecraft:barrel"})
+            t.set(x1 - 1, FLOOR + 1, z, "barrel[facing=west,open=false]", fill_nbt("barrel", "almacen"))
             if z % 2:
-                t.set(x1 - 1, FLOOR + 2, z, "barrel[facing=west,open=false]", {"id": "minecraft:barrel"})
-        t.set(x0 + 1, FLOOR + 1, z1 - 1, "chest[facing=east,type=single]", {"id": "minecraft:chest"})
-        t.set(x0 + 1, FLOOR + 1, z1 - 2, "barrel[facing=up,open=false]", {"id": "minecraft:barrel"})
+                t.set(x1 - 1, FLOOR + 2, z, "barrel[facing=west,open=false]", fill_nbt("barrel", "almacen"))
+        t.set(x0 + 1, FLOOR + 1, z1 - 1, "chest[facing=east,type=single]", fill_nbt("chest", "almacen"))
+        t.set(x0 + 1, FLOOR + 1, z1 - 2, "barrel[facing=up,open=false]", fill_nbt("barrel", "almacen"))
 
 
 def corner_tower(t, b):
@@ -1338,7 +1349,7 @@ def town_hall(t, b):
     t.set(x0 + 7, mid + 2, b.along, "candle[candles=1,lit=true]")
     for x in (x1 - 1,):
         for z in (z0 + 4, z0 + 5):
-            t.set(x, mid + 1, z, "chest[facing=west,type=single]", {"id": "minecraft:chest"})
+            t.set(x, mid + 1, z, "chest[facing=west,type=single]", fill_nbt("chest", "estudio"))
     for x in (x0 + 4, x0 + 10):
         t.set(x, top - 1, b.along, LANTERN)
     for x, item in ((x0 + 6, "map"), (x0 + 8, "writable_book")):
@@ -1702,7 +1713,7 @@ def market(t):
     # stacked crates (barrels) and a cart at the lane's west end
     for x, z, h in ((STALL_X[0] - 3, lane[0], 2), (STALL_X[0] - 3, lane[0] + 1, 1), (STALL_X[-1] + 6, lane[1] + 5, 2)):
         for y in range(FLOOR + 1, FLOOR + 1 + h):
-            t.set(x, y, z, "barrel[facing=west,open=false]", {"id": "minecraft:barrel"})
+            t.set(x, y, z, "barrel[facing=west,open=false]", fill_nbt("barrel", "mercado"))
 
 
 def portal(t):
