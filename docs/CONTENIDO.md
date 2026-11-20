@@ -623,6 +623,15 @@ Pestaña de logros **Heraldia** (124 logros), con textos en los 8 idiomas del mo
 
 Notas: una estructura cuenta al entrar en sus piezas, no basta con verla. Si se desactiva una familia o una estructura en la [configuración](CONFIGURACION.md#configuración), su logro y el desafío correspondiente no se pueden conseguir. Con Lootr, el logro del tesoro depende de que Lootr avise al juego al abrir el cofre (sin comprobar). Los logros de las estructuras únicas se generan solos a partir del registro de únicas, así que una estructura nueva trae los suyos.
 
+## Botín de relleno: ningún cofre vacío
+
+Ningún cofre, cofre trampa, barril, dispensador ni vagoneta con cofre de una estructura de Heraldia está vacío la primera vez que se abre. Los que no tienen tabla propia (los toneles de las posadas y tabernas, las cajas de mercados y calles, los barriles de casas, minas, barcos, faros y almacenes, las ruinas de la Atlántida, las estancias de la Casa del Heraldo...) llevan una tabla de **relleno**, `heraldia:relleno/<nombre>`, según el sitio: `casa` (una casa humilde), `despensa` (despensa o bodega de casa), `bodega` (toneles), `mercado`, `herreria` (carbón, pepitas, herramientas de piedra gastadas, algún lingote raro), `molino`, `pesca`, `barco` (la bodega de un barco), `almacen` (un almacén: flechas, cuerda, pedernal), `mina` (carbón, antorchas, algo de raíl), `estudio`, `templo`, `granja`, `canon` (los cañones del fuerte corsario: pólvora y metralla), `nether`, `fin` y `ruinas` (lo que dejó el mar).
+
+- **Pobre a propósito**: de uno a tres montones baratos, nunca nada; sin esmeraldas, diamantes, encantamientos, objetos con nombre ni fragmentos de mapa del tesoro. **No se repone nunca** (diga lo que diga `botin.reponer.activado`) y la dificultad no lo escala: saquear una aldea entera da pan, palos, lana y semillas, no un sueldo, y los cofres de las aldeas y estructuras conservan su valor.
+- **Vacíos a propósito**, solo dos: los **barriles de devolución** de la Casa del Heraldo (12; el mercado guarda las cosas de un antiguo inquilino en un barril libre, y un barril está libre solo mientras está vacío) y el dispensador dentro de la columna del trono del palacio (una pieza del circuito de la puerta secreta, que escupiría su botín).
+- No se cuentan hornos, ahumadores, altos hornos, soportes de pociones, atriles, vasijas decoradas ni estanterías cinceladas: el juego no les puede dar tabla de botín y no son almacenamiento.
+- **En un mundo ya creado**, solo lo tienen los chunks generados después de actualizar: un contenedor ya generado se queda como estaba (uno vacío sigue vacío), y la Casa del Heraldo, que se construye una vez por mundo, conserva sus estancias como se colocaron.
+
 ## Botín que se repone y dificultad
 
 Dos funciones opcionales del servidor (bastan clientes vanilla). Las dos valen también en un **mundo ya creado**, en lo ya generado.

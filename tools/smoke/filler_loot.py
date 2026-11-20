@@ -17,7 +17,7 @@ from guide import Server
 import nbtlib
 
 PREFIX = "heraldia:relleno/"
-SAMPLES = ["taiga_nordica/houses/medium_1", "llanuras_castellana/specials/inn", "minas/pequena/taiga/a",
+SAMPLES = ["taiga_eslava/houses/medium_3", "llanuras_castellana/specials/inn", "minas/pequena/taiga/a",
            "costa/naufragio/templada/a", "medianas/pescador/playa/b", "unicas/mansion/sotano", "casa_heraldo/choza_fisherman"]
 PER_TEMPLATE = 2
 ROLLS = 10
@@ -81,7 +81,7 @@ def main():
         for name in tables:
             counts = []
             for _ in range(ROLLS):
-                m = ctx.run(f"loot spawn {x0} {y0} {z0} loot {PREFIX}{name}", r"Dropped (\d+) item|No loot|[Uu]nknown|[Ii]nvalid")
+                m = ctx.run(f"loot spawn {x0} {y0} {z0} loot {PREFIX}{name}", r"Dropped (\d+)|No loot|[Uu]nknown|[Ii]nvalid")
                 counts.append(int(m.group(1)) if m.group(1) else 0)
             check(min(counts) >= 1, f"{PREFIX}{name}: a roll gave nothing ({counts})")
             ctx.run("kill @e[type=minecraft:item]", r"Killed|No entity")

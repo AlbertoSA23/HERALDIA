@@ -199,34 +199,45 @@ def rule_for(name, block):
     return None
 
 
+def _pending(t):
+    """[(position, block id)] of the containers of t without a table, without Items and not marked empty; then the
+    same for its container entities ("entity" as position). One pass; the states are classified once each."""
+    kinds, out = {}, []
+    for p, (st, nbt) in t.blocks.items():
+        bid = kinds.get(st)
+        if bid is None:
+            bid = kinds[st] = st.split("[")[0] if is_container(st) else ""
+        if bid and not has_loot(nbt) and not (nbt and nbt.get(EMPTY_MARK)):
+            out.append((p, bid))
+    for i, (*_, n) in enumerate(t.entities):
+        if is_container_entity(n) and not has_loot(n):
+            out.append((("entity", i), str(n["id"])))
+    return out
+
+
 def unfilled(t):
     """[(position or "entity", what)] of the containers of t without a table, without Items, not marked empty and with
     no rule that fills them."""
-    out = []
-    for p, (st, nbt) in t.blocks.items():
-        bid = st.split("[")[0]
-        if is_container(st) and not has_loot(nbt) and not (nbt and nbt.get(EMPTY_MARK)) and rule_for(t.name, bid) is None:
-            out.append((p, bid))
-    for x, y, z, n in t.entities:
-        if is_container_entity(n) and not has_loot(n) and rule_for(t.name, str(n["id"])) is None:
-            out.append(("entity", str(n["id"])))
-    return out
+    return [(p if p[0] != "entity" else "entity", bid) for p, bid in _pending(t) if rule_for(t.name, bid) is None]
 
 
 def fill(t):
     """Gives each container of t without a table its rule's filler table; FillerError if one has neither table nor
     rule nor the empty mark. Idempotent."""
-    missing = unfilled(t)
+    pending = _pending(t)
+    rules = {bid: rule_for(t.name, bid) for bid in {b for _, b in pending}}
+    missing = [(p if p[0] != "entity" else "entity", bid) for p, bid in pending if rules[bid] is None]
     if missing:
         raise FillerError(f"{t.name}: container(s) without a loot table: {missing[:5]}"
                           f"{' ...' if len(missing) > 5 else ''} (give them a table, a rule in filler_loot.RULES"
                           f" or filler_loot.leave_empty with a reason)")
-    for p, (st, nbt) in list(t.blocks.items()):
-        if is_container(st) and not has_loot(nbt) and not (nbt and nbt.get(EMPTY_MARK)):
-            t.blocks[p] = (st, dict(nbt or {"id": st.split("[")[0]}, LootTable=table_id(rule_for(t.name, st.split("[")[0]))))
-    for i, (x, y, z, n) in enumerate(t.entities):
-        if is_container_entity(n) and not has_loot(n):
-            t.entities[i] = (x, y, z, dict(n, LootTable=table_id(rule_for(t.name, str(n["id"])))))
+    for p, bid in pending:
+        if p[0] == "entity":
+            x, y, z, n = t.entities[p[1]]
+            t.entities[p[1]] = (x, y, z, dict(n, LootTable=table_id(rules[bid])))
+        else:
+            st, nbt = t.blocks[p]
+            t.blocks[p] = (st, dict(nbt or {"id": bid}, LootTable=table_id(rules[bid])))
     return t
 
 

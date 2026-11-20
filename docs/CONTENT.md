@@ -619,6 +619,15 @@ A **Heraldia** advancement tab (124 advancements), with texts in the mod's 8 lan
 
 Notes: a structure counts when you step inside its pieces; seeing it is not enough. If a family or a structure is disabled in the [configuration](CONFIGURATION.md#configuration), its advancement and the related challenge cannot be earned. With Lootr, the treasure advancement depends on Lootr notifying the game when the chest is opened (not checked). The unique-structure advancements are generated from the unique-structure registry, so a new structure brings its own.
 
+## Filler loot: no empty chest
+
+No chest, trapped chest, barrel, dispenser or chest minecart of any Heraldia structure is empty when it is first opened. Those that have no table of their own (the kegs of the inns and taverns, the crates of markets and streets, the barrels of houses, mines, ships, lighthouses and storerooms, Atlantis's ruins, the rooms of the Herald's House...) get a **filler** table, `heraldia:relleno/<name>`, chosen by the place: `casa` (a humble house), `despensa` (a pantry or a cellar), `bodega` (kegs), `mercado`, `herreria` (coal, nuggets, worn stone tools, a rare ingot), `molino`, `pesca`, `barco` (a ship's hold), `almacen` (a storeroom: arrows, string, flint), `mina` (coal, torches, some rail), `estudio`, `templo`, `granja`, `canon` (the corsair fort's cannons: powder and shot), `nether`, `fin` and `ruinas` (what the sea left).
+
+- **Poor on purpose**: one to three cheap stacks, never nothing; no emeralds, diamonds, enchantments, named items or treasure-map fragments. They **never restock** (whatever `botin.reponer.activado` says) and the difficulty does not scale them: looting a whole village gives bread, sticks, wool and seeds, not a living, and the chests of the villages and structures keep their worth.
+- **Empty on purpose**, only two: the Herald's House **return barrels** (12; the market keeps a former tenant's things in a free barrel, and a barrel is free only while it is empty) and the dispenser inside the palace's throne column (a part of the secret door's circuit, which would spit its loot out).
+- Furnaces, smokers, blast furnaces, brewing stands, lecterns, decorated pots and chiseled bookshelves are not counted: the game cannot give them a loot table and they are not storage.
+- **In an existing world**, only chunks generated after the update get it: a container already generated stays as it was (an empty one stays empty), and the Herald's House, built once per world, keeps its rooms as they were placed.
+
 ## Restocking loot and difficulty
 
 Two optional server-side features (vanilla clients are enough). Both also work in an **existing world**, on what is already generated.
