@@ -89,7 +89,7 @@ public final class BuiltRoads {
 	/** Air over the shoulder (the lamp posts stand on it). */
 	static final int SHOULDER_HEAD = 3;
 	/** At most this many blocks of ground cut away, or filled in, under the road to keep it level. */
-	static final int CUT = 10, FILL = 10;
+	public static final int CUT = 10, FILL = 10;
 	/** A tree larger than this (logs) is not a tree: left as it is. */
 	static final int MAX_LOGS = 320;
 	/** Leaves looked at around a felled tree, at most (and at most {@link LeavesBlock#DECAY_DISTANCE} blocks from it). */
@@ -176,6 +176,19 @@ public final class BuiltRoads {
 			}
 		}
 		return false;
+	}
+
+	/** The half width a road's profile reads its edges at (the outermost road columns' centres). */
+	public static double halfWidth(int width) {
+		return Math.max(width / 2.0, RoadLayout.CORE) - 0.5;
+	}
+
+	/**
+	 * A road's whole profile worked out at once ({@link RoadProfile#prepare}) from the loaded chunks, within this paving's
+	 * caps. False if a column it reads is not loaded yet.
+	 */
+	public static boolean prepare(ServerLevel level, RoadProfile profile, int width) {
+		return profile.prepare(new Loaded(level)::sample, halfWidth(width), CUT, FILL);
 	}
 
 	/**
@@ -317,7 +330,8 @@ public final class BuiltRoads {
 			return 0;                              // not natural ground (a player's block): left alone
 		}
 		int t = profile == null ? RoadProfile.MISSING : profile.height(c.arc(), sampler);
-		t = t == RoadProfile.MISSING ? g : Math.clamp(t, g - CUT, g + FILL);
+		int cut = profile != null && profile.prepared() ? profile.cut() : CUT, fill0 = profile != null && profile.prepared() ? profile.fill() : FILL;
+		t = t == RoadProfile.MISSING ? g : Math.clamp(t, g - cut, g + fill0);
 		RoadProfile.Ground k = profile == null ? null : profile.ground(c.arc(), sampler);
 		if (k == null) {
 			k = kind;
@@ -330,7 +344,7 @@ public final class BuiltRoads {
 			}
 		}
 		BlockState fill = fill(k);
-		for (int y = t - 1; y >= t - FILL; y--) { // the dip filled, down to firm ground
+		for (int y = t - 1; y >= t - fill0; y--) { // the dip filled, down to firm ground
 			BlockState s = chunk.getBlockState(pos.set(x, y, z));
 			if (!(s.isAir() || growth(s) || !s.getFluidState().isEmpty()) || inside(boxes, x, y, z)) {
 				break;

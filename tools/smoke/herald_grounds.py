@@ -10,9 +10,12 @@ feature):
   3. /heraldia herald grounds builds them; a second /heraldia herald grounds says there is nothing left to do.
 World B (a new world, the roads on): the town is placed; its roads are built, and then, on their own, its grounds.
 After every build, the build's own audit of every column of the ring as it stands (in the log):
-  4. no step of more than one block between side by side columns of natural ground further in than the outermost rows
-     (where the ground meets the natural one beyond, which keeps its own), but where a road, a structure or a cliff the
-     caps cannot soften forces one (at most STEP_SHARE of the columns); no loose column, no hole;
+  4. no ramps: at most RAMP_SHARE of the columns' one-block steps in runs of four or more one after another (the "rice
+     terraces" the owner saw at the spawn passed the old audit, which counted only steps of more than one block); no
+     step of more than one block left bare (not a terrace's retaining wall) between side by side columns of natural
+     ground further in than the outermost rows (where the ground meets the natural one beyond, which keeps its own), but
+     where a road, a structure or a cliff the caps cannot soften forces one (at most STEP_SHARE of the columns); no loose
+     column, no hole; no water standing in the air;
   5. the houses: at least MIN_HOUSES, every chest with its loot table, no door blocked; the cherry trees: at least
      MIN_TREES, none floating;
   6. its cost: no step over SLOW_MS ms on the server thread (ticks, total ms and the slowest step printed);
@@ -27,22 +30,24 @@ from arena import Test
 
 BUILDING = r"herald's house grounds: building \((\d+) chunks, up to (\d+) houses\)"
 PLAN = (r"herald's house grounds: plan in (\d+) ms: (\d+) columns to level \(cut up to (\d+), filled up to (\d+)\), (\d+) too steep "
-        r"to level within \d+ blocks, (\d+) narrow pits to cover; steps of more than one block: (\d+) before, (\d+) in the plan; (\d+) houses, "
-        r"(\d+) cherry trees")
+        r"to level within \d+ blocks, (\d+) narrow pits to cover; steps of more than one block: (\d+) before, (\d+) in the plan \((\d+) of them "
+        r"terraces' walls\); one-block steps in ramps: (\d+) before, (\d+) in the plan; (\d+) houses, (\d+) cherry trees")
 BUILT = (r"herald's house grounds: built in (\d+) ticks \((\d+) ms on the server thread, the slowest step (\d+) ms; the plan (\d+) ms "
          r"off it\): (\d+) columns levelled \((\d+) narrow pits covered with a lid\), (\d+) left, (\d+) too steep to level fully, (\d+) trees "
          r"felled, (\d+) houses, (\d+) cherry trees")
 AUDIT = (r"herald's house grounds: audit: (\d+) columns on land, (\d+) steps of more than one block \((\d+) before; (\d+) of them in "
-         r"the outermost \d+ rows, where the natural ground keeps its own\), (\d+) loose columns, (\d+) holes \(further in\); (\d+) houses, "
-         r"(\d+) of (\d+) chests with loot, (\d+) doors blocked; (\d+) cherry trees, (\d+) floating, (\d+) left out by a fire source, "
-         r"(\d+) that did not fit")
+         r"the outermost \d+ rows, where the natural ground keeps its own; (\d+) faced with a retaining wall, (\d+) bare further in\), "
+         r"(\d+) one-block steps in ramps \((\d+) before\), (\d+) loose columns, (\d+) holes \(further in\), (\d+) blocks of water standing "
+         r"in the air; (\d+) houses, (\d+) of (\d+) chests with loot, (\d+) doors blocked; (\d+) cherry trees, (\d+) floating, "
+         r"(\d+) left out by a fire source, (\d+) that did not fit")
 SLOWEST = r"herald's house grounds: the slowest step: (.+)"
 ROADS_BUILT = r"herald's house roads: built in (\d+) ticks \((\d+) ms on the server thread, the slowest step (\d+) ms\)"
 ROADS_AUDIT = (r"herald's house roads: audit: (\d+) road columns on land, (\d+) blocked \(.*?\), (\d+) not paved, (\d+) steps of more "
                r"than one block, (\d+) leaves no tree holds near the road")
 PLACED = r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+)"
 SLOW_MS = 100              # the orchestrator's cap for any step on the server thread
-STEP_SHARE = 0.01          # steps a road, a structure or a cliff forces, of the columns further in
+STEP_SHARE = 0.01          # bare steps a road, a structure or a cliff forces, of the columns further in
+RAMP_SHARE = 0.04          # one-block steps in ramps (OutskirtsPlan.RAMP or more one after another), of the columns (14 % on this seed before terraces)
 MIN_HOUSES, MIN_TREES = 4, 3
 COSTS = []
 
@@ -86,11 +91,13 @@ def check_build(p, n, what):
     if not p.check(audit, f"{what}: no audit line"):
         return
     a = [int(x) for x in audit.groups()]
-    cols, steps, before, edge, pillars, holes, houses, looted, chests, blocked, trees, floating, fire, unfit = a
-    inner = steps - edge
+    cols, steps, before, edge, faced, bare, ramps, ramps0, pillars, holes, wet, houses, looted, chests, blocked, trees, floating, fire, \
+        unfit = a
     p.check(cols > 20000, f"{what}: only {cols} columns audited")
-    p.check(inner <= STEP_SHARE * cols, f"{what}: {inner} steps further in than the edge (of {cols} columns; {before} before)")
+    p.check(bare <= STEP_SHARE * cols, f"{what}: {bare} bare steps further in than the edge (of {cols} columns; {before} before)")
+    p.check(ramps <= RAMP_SHARE * cols, f"{what}: {ramps} one-block steps in ramps (of {cols} columns; {ramps0} before)")
     p.check(pillars == 0 and holes == 0, f"{what}: {pillars} loose columns and {holes} holes")
+    p.check(wet == 0, f"{what}: {wet} blocks of water standing in the air")
     p.check(houses >= MIN_HOUSES, f"{what}: only {houses} houses")
     p.check(chests >= houses and looted == chests, f"{what}: {looted} of {chests} chests with loot ({houses} houses)")
     p.check(blocked == 0, f"{what}: {blocked} doors blocked")

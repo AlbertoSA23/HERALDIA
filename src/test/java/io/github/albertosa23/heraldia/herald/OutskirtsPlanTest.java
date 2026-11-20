@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 class OutskirtsPlanTest {
 	static final int RING = 50, SIDE = 128, N = SIDE + 2 * RING, GROUND = 70;
 	static final OutskirtsPlan.Params P = new OutskirtsPlan.Params(10, 10, 6, 1, 5);
+	/** The rows by the area's edge where two fixed points (the natural edge, a road cut into it) may not be joined walking. */
+	static final int BLEND = 8;
 
 	/** A grid from a height function (world x, z from 0 at the area's corner), the town in the middle. */
 	static OutskirtsPlan grid(IntBinaryOperator height, byte[] kind, int[] h) {
@@ -74,6 +76,39 @@ class OutskirtsPlanTest {
 		for (int k = 0; k < N; k++) {
 			for (int i : new int[] {k, (N - 1) * N + k, k * N, k * N + N - 1}) {
 				assertEquals(h[i], t[i], "the edge moved");
+			}
+		}
+	}
+
+	/**
+	 * The ground as the owner asked for it: no ramps (hardly a one-block step after another), every step of more than a
+	 * block a terrace's riser (at most RISE + 1: two levels' rounding), and walkable next to every kept column.
+	 */
+	static void terraced(byte[] kind, int[] h, OutskirtsPlan.Result res) {
+		int[] t = res.target();
+		int land = 0;
+		for (byte k : kind) {
+			land += k == OutskirtsPlan.LAND ? 1 : 0;
+		}
+		assertTrue(res.ramps() <= land / 100, res.ramps() + " one-block steps in ramps (of " + land + " columns)");
+		for (int x = 0; x < N; x++) {
+			for (int z = 0; z < N; z++) {
+				int i = x * N + z;
+				if (kind[i] != OutskirtsPlan.LAND) {
+					continue;
+				}
+				for (int j : new int[] {i + N, i + 1}) {
+					if (j < N * N && kind[j] == OutskirtsPlan.LAND) {
+						assertTrue(Math.abs(t[j] - t[i]) <= OutskirtsPlan.RISE + 1, "a riser of " + (t[j] - t[i]) + " at " + x + " " + z);
+					}
+				}
+				// the blend into the natural edge (which keeps its own height, a road cut into it too) is the edge's
+				boolean edge = x < BLEND || z < BLEND || x >= N - BLEND || z >= N - BLEND;
+				for (int j : new int[] {i + N, i - N, i + 1, i - 1}) {
+					if (!edge && j >= 0 && j < N * N && kind[j] == OutskirtsPlan.KEPT) {
+						assertTrue(Math.abs(t[i] - h[j]) <= 1, "the ground beside a kept column is not walkable at " + x + " " + z);
+					}
+				}
 			}
 		}
 	}
@@ -142,7 +177,7 @@ class OutskirtsPlanTest {
 		OutskirtsPlan p = grid((x, z) -> GROUND + (x - N / 2) / 8 + (int) (3 * Math.sin(z / 7.0)), kind, h);
 		OutskirtsPlan.Result res = plan(p, List.of(), 0, List.of());
 		int[] t = res.target();
-		assertEquals(0, steps(kind, t));
+		terraced(kind, h, res);                            // the cone down from the town to the low side: terraces, not a ramp
 		caps(kind, h, t);
 		edge(h, t);
 		for (int z = RING; z < RING + SIDE; z++) {          // beside the wall: within a block of the town's ground
@@ -195,11 +230,12 @@ class OutskirtsPlanTest {
 		}
 		OutskirtsPlan p = grid((x, z) -> x >= N / 2 - 2 && x <= N / 2 + 2 && z < RING ? GROUND - (RING - z) / 8 : GROUND + 3
 				+ (x / 5 + z / 7) % 2, kind, h);
-		int[] t = plan(p, List.of(), 0, List.of()).target();
+		OutskirtsPlan.Result res = plan(p, List.of(), 0, List.of());
+		int[] t = res.target();
 		caps(kind, h, t);
-		// the road reaches the area's edge cut 6 blocks into ground that stays natural there: two fixed points the plan
-		// cannot join, so steps are allowed only in the edge's blend
-		assertEquals(0, stepsInside(kind, t, 8), "steps against the road");
+		// the road reaches the area's edge cut 6 blocks into ground that stays natural there: the ground climbs from it in
+		// a walkable ramp by the road and then in terraces
+		terraced(kind, h, res);
 	}
 
 	@Test
@@ -221,7 +257,7 @@ class OutskirtsPlanTest {
 				}
 			}
 		}
-		assertEquals(0, steps(kind, t));
+		terraced(kind, h, res);
 		caps(kind, h, t);
 		assertFalse(res.cherries().stream().anyMatch(c -> c[0] == 24 && c[1] == 24), "a tree on a house's plot");
 		assertEquals(3, res.cherries().size());
@@ -277,5 +313,104 @@ class OutskirtsPlanTest {
 				new OutskirtsPlan.Slot(2, 20, 60, 29, 68, 0), new OutskirtsPlan.Slot(3, 190, 60, 199, 68, 1));
 		OutskirtsPlan.Result res = plan(p, slots, 4, List.of());
 		assertEquals(List.of(1, 2), res.houses().stream().map(hs -> hs.slot().index()).sorted().toList());
+	}
+
+	/** The ramp count: runs of three or more one-block steps the same way, each within two columns of the next. */
+	@Test
+	void rampsAreRunsOfOneBlockStepsOneAfterAnother() {
+		int n = 12;
+		boolean[] in = new boolean[n * n];
+		java.util.Arrays.fill(in, true);
+		int[] y = new int[n * n];
+		for (int u = 0; u < n; u++) {
+			for (int v = 0; v < n; v++) {
+				y[u * n + v] = u == 0 ? v : u == 1 ? v / 3 : u == 2 ? (v < 6 ? v : 20 + v) : u == 3 ? (v % 2) : 0;
+			}
+		}
+		// row 0: a staircase of 11 one-block steps (11); row 1: a step every 3 columns (none); row 2: 5 steps, a wall, 5 steps
+		// (5 + 5); row 3: up and down (none); down the columns (v, v / 3, v or 20 + v, v % 2, then 0) no four steps go the same way
+		assertEquals(11 + 5 + 5, OutskirtsPlan.ramps(n, y, in));
+		in[5] = false;                                        // a column not counted (a road's, water) ends a run: 4, then 5
+		assertEquals(4 + 5 + 5 + 5, OutskirtsPlan.ramps(n, y, in));
+	}
+
+	/**
+	 * The town on a hilltop (the ground falls a block every two columns all round it, 25 blocks over the ring, as at the
+	 * owner's spawn): a walkable plan would be concentric "rice terraces", dozens of one-block steps one after another
+	 * all round the wall. Planned as terraces instead: hardly a ramp left, each terrace's riser at most RISE blocks
+	 * (the cone the caps cannot soften aside), the caps and the edge kept, and next to the kept road a walkable ramp.
+	 */
+	@Test
+	void aSteepHillsideBecomesTerracesNotRiceTerraces() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		for (int z = 0; z < RING; z++) {                    // a built road out of the north gate, 5 wide
+			for (int x = N / 2 - 2; x <= N / 2 + 2; x++) {
+				kind[x * N + z] = OutskirtsPlan.KEPT;
+			}
+		}
+		IntBinaryOperator hill = (x, z) -> {
+			int d = Math.max(Math.max(RING - x, x - (RING + SIDE - 1)), Math.max(RING - z, z - (RING + SIDE - 1)));
+			return GROUND - Math.max(0, d) / 2;
+		};
+		OutskirtsPlan p = grid(hill, kind, h);
+		OutskirtsPlan.Result res = plan(p, List.of(), 0, List.of());
+		int[] t = res.target();
+		int land = 0;
+		for (byte k : kind) {
+			land += k == OutskirtsPlan.LAND ? 1 : 0;
+		}
+		assertTrue(res.rampsBefore() > land / 4, "the hillside is a ramp all round: " + res.rampsBefore());
+		assertTrue(res.ramps() < land / 50, res.ramps() + " one-block steps in ramps left (of " + land + " columns)");
+		assertTrue(res.walls() > 0, "terraces' walls");
+		caps(kind, h, t);
+		edge(h, t);
+		for (int x = 0; x < N; x++) {
+			for (int z = 0; z < N; z++) {
+				int i = x * N + z;
+				if (kind[i] != OutskirtsPlan.LAND) {
+					continue;
+				}
+				for (int j : new int[] {i + N, i + 1}) {
+					if (j < N * N && kind[j] == OutskirtsPlan.LAND) {
+						assertTrue(Math.abs(t[j] - t[i]) <= OutskirtsPlan.RISE + 1, "a riser of " + (t[j] - t[i]) + " at " + x + " " + z);
+					}
+				}
+				for (int j : new int[] {i + N, i - N, i + 1, i - 1}) {
+					if (j >= 0 && j < N * N && kind[j] == OutskirtsPlan.KEPT) {
+						assertTrue(Math.abs(t[i] - h[j]) <= 1, "the ground beside the road is not walkable at " + x + " " + z);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * A pond high up beside the town, in ground the caps cannot bring down to the town's (too steep): the plan does what
+	 * it can there, and before this it could put a shore column under the pond's surface (with nothing beside it, still
+	 * water stands in the air for good). Never: every shore column stays at least as high as the water beside it.
+	 */
+	@Test
+	void theShoreHoldsEvenWhereTheGroundIsTooSteep() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		for (int x = 30; x < 42; x++) {
+			for (int z = 100; z < 112; z++) {
+				kind[x * N + z] = OutskirtsPlan.WATER;
+			}
+		}
+		OutskirtsPlan p = grid((x, z) -> x >= 30 && x < 42 && z >= 100 && z < 112 ? GROUND + 24 : x < RING ? GROUND + 25 : GROUND, kind, h);
+		OutskirtsPlan.Result res = plan(p, List.of(), 0, List.of());
+		assertTrue(res.steep() > 0, "too steep to level there");
+		int[] t = res.target();
+		for (int x = 28; x <= 43; x++) {
+			for (int z = 98; z <= 113; z++) {
+				int i = x * N + z;
+				if (kind[i] == OutskirtsPlan.LAND && (kind[i + N] == OutskirtsPlan.WATER || kind[i - N] == OutskirtsPlan.WATER
+						|| kind[i + 1] == OutskirtsPlan.WATER || kind[i - 1] == OutskirtsPlan.WATER)) {
+					assertTrue(t[i] >= GROUND + 24, "a shore column under the pond's surface at " + x + " " + z + ": " + t[i]);
+				}
+			}
+		}
 	}
 }

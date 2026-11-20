@@ -22,6 +22,12 @@ import java.util.List;
  * room the column takes the shape clamped between them: a 1-Lipschitz height, so no step. Where they do not (a cliff
  * no 10-block cut or fill can soften) it does what the caps allow and the column is counted as {@link #steep}: it may
  * keep a step, and the log says how many.</li>
+ * <li>Terraces: where the planned ground still climbs faster than {@link #GENTLE} blocks a column (a hillside,
+ * the cone round the town or a cliff the caps could not soften: the "rice terraces" of one-block steps one after another),
+ * it is gathered into terraces about {@link #TREAD} columns wide, each a few blocks over the next ({@link #RISE} at
+ * most): Outskirts faces each riser with a retaining wall of stone. Never next to what the ground must meet walking (a
+ * road, a hut, a house, the water, the edge): there the riser grows a block per column away from it, so the walls
+ * start where the ground leaves them.</li>
  * <li>Houses: each slot in order (at most one per group: the others are its second places), while the count asked
  * for is not reached, whose plot (and a block around it) is all
  * natural ground off the {@code avoid} columns, within the caps and whose planned ground varies by at most
@@ -49,10 +55,22 @@ public final class OutskirtsPlan {
 	public record House(Slot slot, int y) {
 	}
 
-	/** The result: the planned heights (LAND columns; the rest as surveyed), the houses, the trees and the counts. */
+	/**
+	 * The result: the planned heights (LAND columns; the rest as surveyed), the houses, the trees and the counts: the
+	 * steps of more than one block (as planned, and before), the one-block steps in ramps ({@link #ramps}, as planned and
+	 * before) and the risers of the terraces (side by side columns of natural ground two or more blocks apart, each faced
+	 * with a retaining wall).
+	 */
 	public record Result(int[] target, List<House> houses, List<int[]> cherries, int changed, int maxCut, int maxFill, int steep,
-			int steps, int before, int lids) {
+			int steps, int before, int lids, int ramps, int rampsBefore, int walls) {
 	}
+
+	/** A terrace is about TREAD columns wide, its riser at most RISE blocks; the slope is the mean over a (2 SLOPE + 1)^2 window. */
+	public static final int TREAD = 5, RISE = 4, SLOPE = 4;
+	/** Ground that climbs more than this per column (a block every 2.2 columns or less) is a ramp to gather into terraces. */
+	public static final double GENTLE = 0.45;
+	/** A ramp: RAMP or more one-block steps the same way along a row or a column, each within RAMP_GAP columns of the next. */
+	public static final int RAMP = 4, RAMP_GAP = 2;
 
 	/** The window (a square of 2 NARROW + 1) a pit or a spike must fit in to be taken as one, not as a valley or a hill. */
 	public static final int NARROW = 3;
@@ -179,6 +197,7 @@ public final class OutskirtsPlan {
 			steep[0] = 0;
 			t = solve(shape, fixed, steep);
 		}
+		terrace(t, fixed, avoid);
 		List<int[]> trees = new ArrayList<>();
 		for (int[] c : sites) {
 			if (trees.size() >= cherries) {
@@ -197,7 +216,191 @@ public final class OutskirtsPlan {
 				maxFill = Math.max(maxFill, t[i] - ref[i]);
 			}
 		}
-		return new Result(t, List.copyOf(chosen), List.copyOf(trees), changed, maxCut, maxFill, steep[0], steps(t), steps(h), lids);
+		boolean[] in = new boolean[n * n];
+		for (int i = 0; i < n * n; i++) {
+			in[i] = kind[i] == LAND && !edge(i);
+		}
+		return new Result(t, List.copyOf(chosen), List.copyOf(trees), changed, maxCut, maxFill, steep[0], steps(t), steps(h), lids,
+				ramps(n, t, in), ramps(n, h, in), walls(t));
+	}
+
+	/**
+	 * The ramps gathered into terraces (in place, LAND columns that are neither the edge's nor fixed: a house's pad). The
+	 * slope at each column is the mean, over the (2 {@link #SLOPE} + 1)^2 window, of how much the ground climbs per column
+	 * there; ground no steeper than {@link #GENTLE} blocks a column stays as it is, steeper ground gets a riser of
+	 * about TREAD times its slope (2 to {@link #RISE} blocks): its height rounded to the levels that riser makes from the
+	 * town's ground (halfway, towards the town's: ground a block from the town's stays at it). The riser is at most the
+	 * Chebyshev distance to an anchor (a kept column, the water, the edge, a pad, a column the roads will cross), so the
+	 * ground still meets each of those walking; and the caps hold. A column the levels
+	 * would leave two or more blocks over or under all four round it moves to them, or, if its caps hold it, they go back
+	 * to the walkable plan's heights there.
+	 */
+	void terrace(int[] t, int[] fixed, boolean[] avoid) {
+		int[] before = t.clone();
+		boolean[] free = new boolean[n * n];
+		int[] dist = new int[n * n];
+		double[] slope = new double[n * n];
+		for (int i = 0; i < n * n; i++) {
+			free[i] = kind[i] == LAND && !edge(i) && fixed[i] == Integer.MIN_VALUE;
+			boolean anchor = kind[i] == KEPT || kind[i] == WATER || kind[i] == LAND && (edge(i) || fixed[i] != Integer.MIN_VALUE)
+					|| avoid[i] && kind[i] != TOWN;
+			dist[i] = anchor ? 0 : FAR;
+		}
+		chebyshev(dist);
+		for (int u = 0; u < n; u++) {
+			for (int v = 0; v < n; v++) {
+				int i = u * n + v;
+				if (!free[i]) {
+					continue;
+				}
+				int du = Math.abs(height(t, u + 1, v, i) - height(t, u - 1, v, i)), dv = Math.abs(height(t, u, v + 1, i) - height(t, u, v - 1, i));
+				slope[i] = Math.max(du, dv) / 2.0;
+			}
+		}
+		double[] mean = boxMean(slope, free, SLOPE);
+		for (int i = 0; i < n * n; i++) {
+			if (!free[i] || mean[i] <= GENTLE) {
+				continue;
+			}
+			int r = Math.min(Math.clamp(Math.round(TREAD * mean[i]), 2, RISE), dist[i]);
+			if (r <= 1) {
+				continue;
+			}
+			int d = t[i] - groundY, q = groundY + Integer.signum(d) * ((Math.abs(d) + (r - 1) / 2) / r) * r;   // ties to the town's
+			t[i] = Math.clamp(q, ref[i] - p.cut(), ref[i] + p.fill());
+		}
+		for (int pass = 0, moved = 1; pass < 16 && moved > 0; pass++) {   // a lone column the levels left over or under all four round it
+			moved = 0;
+			for (int i = 0; i < n * n; i++) {
+				if (!free[i]) {
+					continue;
+				}
+				int u = i / n, v = i % n, hi = Integer.MIN_VALUE, lo = Integer.MAX_VALUE;
+				for (int[] q : new int[][] {{u + 1, v}, {u - 1, v}, {u, v + 1}, {u, v - 1}}) {
+					int y = height(t, q[0], q[1], i);
+					hi = Math.max(hi, y);
+					lo = Math.min(lo, y);
+				}
+				if (hi <= t[i] - 2 || lo >= t[i] + 2) {
+					int y = Math.clamp(hi <= t[i] - 2 ? hi : lo, ref[i] - p.cut(), ref[i] + p.fill());
+					if (hi <= y - 2 || lo >= y + 2) {          // the caps hold it there: the levels round it go back instead
+						for (int j : new int[] {i, i + n, i - n, i + 1, i - 1}) {
+							if (j >= 0 && j < n * n && free[j] && (j == i || Math.abs(j - i) == n || j / n == u) && t[j] != before[j]) {
+								t[j] = before[j];
+								moved++;
+							}
+						}
+						continue;
+					}
+					moved += y != t[i] ? 1 : 0;
+					t[i] = y;
+				}
+			}
+		}
+	}
+
+	/** A neighbour's planned height for the slope: that of natural, kept or the town's ground; the column's own otherwise. */
+	private int height(int[] t, int u, int v, int self) {
+		if (u < 0 || v < 0 || u >= n || v >= n) {
+			return t[self];
+		}
+		int j = u * n + v;
+		return kind[j] == WATER ? t[self] : kind[j] == TOWN ? groundY : t[j];
+	}
+
+	/** The mean of {@code a} over the (2 r + 1)^2 window round each column, counting only the {@code in} columns. */
+	private double[] boxMean(double[] a, boolean[] in, int r) {
+		double[] sum = new double[(n + 1) * (n + 1)];
+		int[] cnt = new int[(n + 1) * (n + 1)];
+		for (int u = 0; u < n; u++) {
+			double row = 0;
+			int rc = 0;
+			for (int v = 0; v < n; v++) {
+				if (in[u * n + v]) {
+					row += a[u * n + v];
+					rc++;
+				}
+				sum[(u + 1) * (n + 1) + v + 1] = sum[u * (n + 1) + v + 1] + row;
+				cnt[(u + 1) * (n + 1) + v + 1] = cnt[u * (n + 1) + v + 1] + rc;
+			}
+		}
+		double[] out = new double[n * n];
+		for (int u = 0; u < n; u++) {
+			int a0 = Math.max(0, u - r), b0 = Math.min(n - 1, u + r);
+			for (int v = 0; v < n; v++) {
+				int c0 = Math.max(0, v - r), d0 = Math.min(n - 1, v + r);
+				int k = cnt[(b0 + 1) * (n + 1) + d0 + 1] - cnt[a0 * (n + 1) + d0 + 1] - cnt[(b0 + 1) * (n + 1) + c0] + cnt[a0 * (n + 1) + c0];
+				double s0 = sum[(b0 + 1) * (n + 1) + d0 + 1] - sum[a0 * (n + 1) + d0 + 1] - sum[(b0 + 1) * (n + 1) + c0] + sum[a0 * (n + 1) + c0];
+				out[u * n + v] = k == 0 ? 0 : s0 / k;
+			}
+		}
+		return out;
+	}
+
+	/** In place, each value the least of itself and (its 8 neighbours' + 1): the Chebyshev distance to the zeros (two sweeps). */
+	private void chebyshev(int[] d) {
+		for (int pass = 0; pass < 2; pass++) {
+			for (int k = 0; k < n * n; k++) {
+				int i = pass == 0 ? k : n * n - 1 - k, u = i / n, v = i % n, s = pass == 0 ? -1 : 1;
+				for (int[] q : new int[][] {{u + s, v - 1}, {u + s, v}, {u + s, v + 1}, {u, v + s}}) {
+					if (q[0] >= 0 && q[1] >= 0 && q[0] < n && q[1] < n) {
+						d[i] = Math.min(d[i], d[q[0] * n + q[1]] + 1);
+					}
+				}
+			}
+		}
+	}
+
+	/** The terraces' risers: pairs of side by side natural columns two or more blocks apart (further in than the edge). */
+	int walls(int[] t) {
+		int out = 0;
+		for (int u = 0; u < n; u++) {
+			for (int v = 0; v < n; v++) {
+				int i = u * n + v;
+				if (kind[i] != LAND || edge(i)) {
+					continue;
+				}
+				if (u + 1 < n && kind[i + n] == LAND && Math.abs(t[i + n] - t[i]) > 1) {
+					out++;
+				}
+				if (v + 1 < n && kind[i + 1] == LAND && Math.abs(t[i + 1] - t[i]) > 1) {
+					out++;
+				}
+			}
+		}
+		return out;
+	}
+
+	/**
+	 * The one-block steps that make ramps: along each row and each column of an n x n grid of heights, runs of {@link #RAMP}
+	 * or more steps of exactly one block the same way, each within {@link #RAMP_GAP} columns of the one before (the "rice
+	 * terraces" a walkable plan left on a hillside). Only pairs of columns both {@code in} count; any other column, or a step
+	 * of two or more blocks (a terrace's wall), ends a run. Used by the plan and by Outskirts' audit of the built ground.
+	 */
+	public static int ramps(int n, int[] y, boolean[] in) {
+		int out = 0;
+		for (int axis = 0; axis < 2; axis++) {
+			for (int a = 0; a < n; a++) {
+				int run = 0, dir = 0, last = -FAR;
+				for (int b = 0; b + 1 < n; b++) {
+					int i = axis == 0 ? a * n + b : b * n + a, j = axis == 0 ? i + 1 : i + n;
+					int d = in[i] && in[j] ? y[j] - y[i] : Integer.MAX_VALUE;
+					if (d == 0) {
+						continue;
+					}
+					if (Math.abs(d) == 1 && d == dir && b - last <= RAMP_GAP) {
+						run++;
+					} else {
+						out += run >= RAMP ? run : 0;
+						run = Math.abs(d) == 1 ? 1 : 0;
+						dir = Math.abs(d) == 1 ? d : 0;
+					}
+					last = b;
+				}
+				out += run >= RAMP ? run : 0;
+			}
+		}
+		return out;
 	}
 
 	/** The shape: the window's mean, then the mean of its two 1-Lipschitz envelopes. */
@@ -265,7 +468,8 @@ public final class OutskirtsPlan {
 
 	/** The heights: the shape clamped between the bounds (fixed: extra fixed points, MIN_VALUE where none). */
 	int[] solve(double[] shape, int[] fixed, int[] steep) {
-		int[] lo = new int[n * n], up = new int[n * n];
+		int[] lo = new int[n * n], up = new int[n * n], shore = new int[n * n];
+		java.util.Arrays.fill(shore, Integer.MIN_VALUE);
 		for (int i = 0; i < n * n; i++) {
 			if (fixed[i] != Integer.MIN_VALUE) {
 				lo[i] = up[i] = fixed[i];
@@ -285,7 +489,8 @@ public final class OutskirtsPlan {
 				int[][] nb = {{u + 1, v}, {u - 1, v}, {u, v + 1}, {u, v - 1}};
 				for (int[] q : nb) {
 					if (q[0] >= 0 && q[1] >= 0 && q[0] < n && q[1] < n && kind[q[0] * n + q[1]] == WATER) {
-						lo[i] = Math.max(lo[i], Math.min(h[q[0] * n + q[1]], up[i]));
+						shore[i] = Math.max(shore[i], Math.min(h[q[0] * n + q[1]], up[i]));
+						lo[i] = Math.max(lo[i], shore[i]);
 					}
 				}
 			}
@@ -315,18 +520,20 @@ public final class OutskirtsPlan {
 				free[i] = true;
 				t[i] = Math.clamp(s, up[i], lo[i]);
 			}
-			t[i] = Math.clamp(t[i], ref[i] - p.cut(), ref[i] + p.fill());
+			t[i] = Math.max(Math.clamp(t[i], ref[i] - p.cut(), ref[i] + p.fill()), shore[i]);
 		}
-		relax(t, free);
+		relax(t, free, shore);
 		return t;
 	}
 
 	/**
 	 * Where the bounds left no room ({@code free}: the columns counted as too steep): a few passes that move each of them
 	 * to the height that leaves the fewest steps with its neighbours, within the caps; a column the bounds did leave room
-	 * for is never moved (it is already within a block of all of its own), so the harm cannot spread.
+	 * for is never moved (it is already within a block of all of its own), so the harm cannot spread. A shore column never
+	 * goes under the water beside it ({@code shore}): with nothing to hold it, still water stands in the air for good
+	 * (water placed by world generation has no fluid tick).
 	 */
-	private void relax(int[] t, boolean[] free) {
+	private void relax(int[] t, boolean[] free, int[] shore) {
 		for (int pass = 0; pass < 8; pass++) {
 			boolean moved = false;
 			for (int i = 0; i < n * n; i++) {
@@ -334,7 +541,7 @@ public final class OutskirtsPlan {
 					continue;
 				}
 				int u = i / n, v = i % n, best = t[i], worst = Integer.MAX_VALUE;
-				for (int y = ref[i] - p.cut(); y <= ref[i] + p.fill(); y++) {
+				for (int y = Math.max(ref[i] - p.cut(), shore[i]); y <= ref[i] + p.fill(); y++) {
 					int bad = 0;
 					int[][] nb = {{u + 1, v}, {u - 1, v}, {u, v + 1}, {u, v - 1}};
 					for (int[] q : nb) {
