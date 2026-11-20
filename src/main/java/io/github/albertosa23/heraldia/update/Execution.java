@@ -27,6 +27,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ProtoChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
@@ -261,7 +262,14 @@ public final class Execution {
 		for (int cx = x0; cx <= x1; cx++) {
 			for (int cz = z0; cz <= z1; cz++) {
 				if (!generated(level, regions, cx, cz)) {
-					continue;           // when it generates, its references find it and it places the pieces
+					if (!pastReferences(level, cx, cz)) {
+						continue;       // when it generates, its references find it and it places the pieces
+					}
+					// Loading the start chunk above can generate a neighbour that was deleted to regenerate (path A) as far as
+					// the light steps, before the start was set: its references step has already run without it, so it would
+					// never get its pieces. It is taken as generated (update_path_b.py: the box's last row, chunk 253, -247).
+					LOGGER.info("Heraldia: update apply: chunk {}, {} of {} already past its references step; its reference is added",
+							cx, cz, c.structure());
 				}
 				ChunkAccess ch = level.getChunk(cx, cz);
 				ch.addReferenceForStructure(st.get(), pos.pack());
@@ -273,6 +281,12 @@ public final class Execution {
 		}
 		LOGGER.info("Heraldia: update apply: colocada {} en el chunk {}, {}", c.structure(), c.cx(), c.cz());
 		return true;
+	}
+
+	/** Is the chunk in memory, at whatever generation step, already past the one that records structure references? */
+	static boolean pastReferences(ServerLevel level, int cx, int cz) {
+		ChunkAccess ch = level.getChunkSource().getChunk(cx, cz, ChunkStatus.EMPTY, false);
+		return ch != null && ch.getPersistedStatus().isOrAfter(ChunkStatus.STRUCTURE_REFERENCES);
 	}
 
 	/** Is the chunk generated? (loaded, or saved in its region) */

@@ -3,9 +3,9 @@
 The check that lets several sessions write lines in parallel and be merged with confidence: every language that ships
 a group file has, in it, exactly the Spanish pools and ids (not one more or fewer), with the same format slots in each
 line, and only the slots its pool allows. A language may still lack a whole group file (its players get the English
-line); `test_report_missing_files` prints which ones, and `test_every_language_complete` fails while any is missing:
-it only runs with `HERALDIA_FRASES_COMPLETAS=1` (`HERALDIA_FRASES_COMPLETAS=1 python3 -m pytest
-tools/gen/tests/test_dialogue.py -q`), to check that the content sessions have finished.
+line); `test_report_missing_files` prints which ones, and `test_every_language_complete` fails while any is missing.
+Since Nov 2026 all 8 languages have every group file, so that check always runs (it used to wait behind
+`HERALDIA_FRASES_COMPLETAS=1` for the content sessions to finish).
 """
 import json
 import os
@@ -70,8 +70,8 @@ def test_report_missing_files(capsys):
                   + ", ".join(f"{c}/{g}.json" for c, g in missing))
 
 
-@pytest.mark.skipif(not os.environ.get("HERALDIA_FRASES_COMPLETAS"), reason="the 8 languages are not required yet")
 def test_every_language_complete():
+    """The 8 languages have every group of lines (complete since Nov 2026; the skip that waited for it is gone)."""
     assert dialogue.missing_files() == []
 
 
