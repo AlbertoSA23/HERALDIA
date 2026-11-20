@@ -25,9 +25,10 @@ This is a diagnosis and a proposal. The taste is the owner's: section 3 lists wh
 3. **The wall is a 450-block ruler.** One profile, one material mix, no buttress, no intermediate tower, no change of
    height between the corners; from outside it is a grey band. The gatehouse towers are two blank deepslate cubes
    (`diagnosis/05_spawn_gatehouse.png`).
-4. **Roofs are single planes of a single block.** Eight roofs are one flat sheet of oxidized copper, the rest one sheet
-   of brick, mud brick or deepslate: no ridge, no dormer, no eaves line, few chimneys. Seen from the wall walk and from
-   the roads coming in, the roofs are most of what there is to see.
+4. **Roofs are single planes of a single block.** The materials are well chosen and varied (weathered and exposed
+   copper, brick, mud brick, deepslate tile), but every roof is one unbroken sheet of one block: no ridge, no eaves
+   line, no dormer, few chimneys. Seen from the wall walk and from the roads coming in, the roofs are most of what
+   there is to see.
 5. **The plaza reads as paving, not as a place.** Good centre (dais, canopy, bell); around it, 33 x 33 of chequered
    stone with four benches and four lamp posts (`diagnosis/04_spawn_plaza.png`).
 6. **What is around the town.** The eight roadside huts are the same flat-roofed cube with a different awning colour
@@ -101,9 +102,9 @@ Only new chunks and new towns change: nothing here rewrites what a world already
    leaf burns). The only fireproof "tree" is a built one (crimson or warped stems with wart blocks). Proposal: no fake
    trees; hedges of mossy stone walls, potted plants and vines of stone, and real trees only outside the wall, where the
    grounds already plant cherries.
-3. **The copper roofs.** Eight oxidized-copper roofs make the town read green-on-green. Proposal: keep copper for the
-   landmarks (towers, clock tower, canopy, chapel) and give the ordinary buildings tile (brick, mud brick, deepslate)
-   with copper only as ridge and gutter.
+3. *(withdrawn)* An earlier draft asked whether to cut down the "eight oxidized copper roofs". That came from a colour
+   bug in the first renders (every waxed copper drew as oxidized); the town's roofs are already a varied palette and
+   their materials stay as they are.
 4. **How far villages may change shape.** Asymmetric houses inside today's footprints are safe. Styles with a building
    type of their own (4.) change what an existing style looks like in new chunks: yes or no.
 5. **Wear.** How ruined should things look? Proposal: lived-in, not abandoned: moss and cracks low on walls and near

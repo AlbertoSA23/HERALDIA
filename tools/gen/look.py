@@ -54,7 +54,7 @@ def props_of(state):
 
 def _candidates(n):
     """Texture file names to try for a block, most specific first."""
-    base = n[7:] if n.startswith("waxed_") else n
+    base = n[6:] if n.startswith("waxed_") else n
     out = [base + "_top", base]
     for suf in SUFFIXES:
         if base.endswith(suf):
