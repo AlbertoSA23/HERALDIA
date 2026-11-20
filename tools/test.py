@@ -66,7 +66,7 @@ COST_PATHS = [COST, "tools/smoke/cost_reference.json", "tools/gen/*", "gradle.pr
                JAVA + "villages/*", JAVA + "roads/*", JAVA + "common/*", JAVA + "config/*", JAVA + "mines/*", JAVA + "coast/*",
                JAVA + "uniques/*",
                JAVA + "mixin/ChunkGeneratorMixin.java", JAVA + "mixin/StructureCheckMixin.java"]
-COST_WITHOUT = ["tools/gen/tests/*", "*.md", "tools/gen/render.py"]
+COST_WITHOUT = ["tools/gen/tests/*", "*.md", "tools/gen/render.py", "tools/gen/look.py"]
 # Play cost (tick time with players in villages, the arena and a caravan, with and without Heraldia, compared with
 # tools/smoke/runtime_reference.json): CI's own job ("juego"), like the generation cost. In the full suite always; in a PR
 # only if something that runs while playing, or what villages hold (their entities), changes; not tests and documentation.
@@ -139,7 +139,7 @@ SAFE_UPDATE_JAVA = SAFE_UPDATE + ["tools/smoke/update_path_b.py"]
 MAP = [
     # no server tests: documentation, unit tests, client, changelog
     ("docs/*", []), ("*.md", []), ("tools/gen/tests/*", []), ("src/test/*", []), ("src/client/*", []),
-    ("tools/changelog.py", []), ("tools/gen/render.py", []), ("tools/gen/README.md", []), (".gitignore", []),
+    ("tools/changelog.py", []), ("tools/gen/render.py", []), ("tools/gen/look.py", []), ("tools/gen/README.md", []), (".gitignore", []),
     # the play cost: its own CI job (RUNTIME_PATHS), no server group
     (RUNTIME, []), ("tools/smoke/TickSampler.java", []), ("tools/smoke/runtime_reference.json", []),
     # villages: piece generator and its Java
