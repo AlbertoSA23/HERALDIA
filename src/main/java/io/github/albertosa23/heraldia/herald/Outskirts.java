@@ -295,7 +295,7 @@ public final class Outskirts {
 
 	// --- the work ---
 
-	enum Kind { SURVEY, PLAN, LEVEL, FELL, HOUSE, CHERRY, AUDIT, CHECK, FINISH }
+	enum Kind { SURVEY, PLAN, LEVEL, FELL, HOUSE, CHERRY, AUDIT, CHECK, TREE_CHECK, FINISH }
 
 	record Step(Kind kind, int a, int b) {
 	}
@@ -320,7 +320,7 @@ public final class Outskirts {
 		final List<String> placed = new ArrayList<>();
 		final List<int[]> trees = new ArrayList<>();               // {x, y, z} of the trunk's foot
 		boolean waiting;
-		int index, rest, ticks, waited, levelled, left, felled, burning, lids;
+		int index, rest, ticks, waited, levelled, left, felled, burning, lids, notGrown;
 		int audited, steps2, edgeSteps, pillars, holes, chests, looted, doorsBlocked, floating;
 		long nanos, worst, planMs;
 		String worstStep = "";
@@ -506,8 +506,8 @@ public final class Outskirts {
 				need.add(new long[] {st.a() + 1, st.b()});
 				need.add(new long[] {st.a(), st.b() + 1});
 			}
-			case HOUSE, CHERRY -> {
-				int[] c = st.kind() == Kind.HOUSE ? plotOf(w, st.a()) : treeBox(w, st.a());
+			case HOUSE, CHERRY, CHECK, TREE_CHECK -> {
+				int[] c = st.kind() == Kind.HOUSE || st.kind() == Kind.CHECK ? plotOf(w, st.a()) : treeBox(w, st.a());
 				for (int cx = c[0] >> 4; cx <= c[2] >> 4; cx++) {
 					for (int cz = c[1] >> 4; cz <= c[3] >> 4; cz++) {
 						need.add(new long[] {cx, cz});
@@ -548,7 +548,8 @@ public final class Outskirts {
 			case HOUSE -> house(w, st.a());
 			case CHERRY -> cherry(w, st.a());
 			case AUDIT -> audit(w, chunk(w, st.a(), st.b()));
-			case CHECK -> check(w);
+			case CHECK -> check(w, st.a());
+			case TREE_CHECK -> treeCheck(w, st.a());
 			case FINISH -> finish(w);
 		}
 	}
@@ -666,10 +667,10 @@ public final class Outskirts {
 		for (int[] c : bp.sites()) {
 			sites.add(new int[] {w.g.ox() + c[0], w.g.oz() + c[1]});
 		}
-		OutskirtsPlan op = new OutskirtsPlan(w.x0, w.z0, w.n, w.kind, w.h, w.g.groundY(), bp.params());
 		long t0 = System.nanoTime();
-		w.waiting = true;
-		CompletableFuture.supplyAsync(() -> op.plan(slots, w.houses, sites, bp.cherries(), w.avoid), Util.backgroundExecutor())
+		w.waiting = true;                              // the plan, its reference heights included, off the server thread
+		CompletableFuture.supplyAsync(() -> new OutskirtsPlan(w.x0, w.z0, w.n, w.kind, w.h, w.g.groundY(), bp.params())
+						.plan(slots, w.houses, sites, bp.cherries(), w.avoid), Util.backgroundExecutor())
 				.whenCompleteAsync((res, err) -> {
 					if (work != w) {
 						return;
@@ -699,7 +700,12 @@ public final class Outskirts {
 					for (long c : w.chunks) {
 						w.steps.add(new Step(Kind.AUDIT, RoadLayout.px(c), RoadLayout.pz(c)));
 					}
-					w.steps.add(new Step(Kind.CHECK, 0, 0));
+					for (int k = 0; k < res.houses().size(); k++) {
+						w.steps.add(new Step(Kind.CHECK, k, 0));
+					}
+					for (int k = 0; k < res.cherries().size(); k++) {
+						w.steps.add(new Step(Kind.TREE_CHECK, k, 0));
+					}
 					w.steps.add(new Step(Kind.FINISH, 0, 0));
 				}, w.level.getServer());
 	}
@@ -889,6 +895,7 @@ public final class Outskirts {
 		int y = ground(chunk, x, z, w.level.getMinY(), pos, object);
 		BlockState s = chunk.getBlockState(pos.set(x, y, z));
 		if (object[0] || BuiltRoads.kind(s) != RoadProfile.Ground.DIRT || s.is(Blocks.DIRT_PATH) || s.is(Blocks.FARMLAND)) {
+			w.notGrown++;                              // not on grass or dirt (sand, stone, a path)
 			return;
 		}
 		if (fireNear(w.level, x, y, z)) {
@@ -900,6 +907,7 @@ public final class Outskirts {
 		}
 		BlockPos foot = new BlockPos(x, y + 1, z);
 		if (!w.level.getBlockState(foot).isAir() && !BuiltRoads.growth(w.level.getBlockState(foot))) {
+			w.notGrown++;
 			return;
 		}
 		w.level.setBlock(foot, Blocks.AIR.defaultBlockState(), BuiltRoads.FLAGS);
@@ -907,6 +915,7 @@ public final class Outskirts {
 		boolean grown = w.level.registryAccess().lookupOrThrow(Registries.FEATURE).get(TreeFeatures.CHERRY)
 				.map(f -> f.value().place(w.level, w.level.getChunkSource().getGenerator(), random, foot)).orElse(false);
 		if (!grown) {
+			w.notGrown++;                              // no room for it (vanilla's own check)
 			return;
 		}
 		w.trees.add(new int[] {x, y + 1, z});
@@ -994,16 +1003,17 @@ public final class Outskirts {
 		return false;
 	}
 
-	/** The houses' chests (a loot table each, until opened) and doors (room in front), and the trees' feet. */
-	private static void check(Work w) {
+	/** A house's chests (a loot table each, until opened) and its door (room in front), its chunks loaded. */
+	private static void check(Work w, int k) {
 		OutskirtsPlan.Result plan = w.plan;
 		if (plan == null) {
 			return;
 		}
-		for (OutskirtsPlan.House hs : plan.houses()) {
+		{
+			OutskirtsPlan.House hs = plan.houses().get(k);
 			Slot slot = blueprint().slots().get(hs.slot().index());
 			if (!w.placed.contains(slot.name())) {
-				continue;
+				return;
 			}
 			House house = blueprint().houses().get(slot.house());
 			StructureTemplate t = w.level.getStructureTemplateManager().get(Identifier.parse(house.template())).orElse(null);
@@ -1020,8 +1030,8 @@ public final class Outskirts {
 			int[] d = SpawnRoadLayout.outward(slot.facing());
 			BlockPos door = new BlockPos(w.g.ox() + slot.door()[0], hs.y() + 1, w.g.oz() + slot.door()[1]);
 			boolean free = w.level.getBlockState(door).getBlock() instanceof DoorBlock;
-			for (int k = 1; k <= 3 && free; k++) {
-				BlockPos f = door.offset(d[0] * k, 0, d[1] * k);
+			for (int out = 1; out <= 3 && free; out++) {
+				BlockPos f = door.offset(d[0] * out, 0, d[1] * out);
 				free = w.level.getBlockState(f).getCollisionShape(w.level, f).isEmpty()
 						&& w.level.getBlockState(f.above()).getCollisionShape(w.level, f.above()).isEmpty();
 			}
@@ -1029,7 +1039,19 @@ public final class Outskirts {
 				w.doorsBlocked++;
 			}
 		}
+	}
+
+	/** A cherry tree's foot: its trunk on grass or dirt (none floating). */
+	private static void treeCheck(Work w, int k) {
+		OutskirtsPlan.Result plan = w.plan;
+		if (plan == null) {
+			return;
+		}
+		int[] site = plan.cherries().get(k);
 		for (int[] c : w.trees) {
+			if (c[0] != site[0] || c[2] != site[1]) {
+				continue;
+			}
 			BlockPos foot = new BlockPos(c[0], c[1], c[2]);
 			BlockState under = w.level.getBlockState(foot.below());
 			if (!w.level.getBlockState(foot).is(BlockTags.LOGS) || !under.is(BlockTags.DIRT) && !under.is(Blocks.GRASS_BLOCK)) {
@@ -1053,9 +1075,9 @@ public final class Outskirts {
 		LOGGER.info("Heraldia: herald's house grounds: the slowest step: {}", w.worstStep);
 		LOGGER.info("Heraldia: herald's house grounds: audit: {} columns on land, {} steps of more than one block ({} before; {} of them in "
 						+ "the outermost {} rows, where the natural ground keeps its own), {} loose columns, {} holes (further in); {} houses, {} of {} chests "
-						+ "with loot, {} doors blocked; {} cherry trees, {} floating, {} left out by a fire source",
+						+ "with loot, {} doors blocked; {} cherry trees, {} floating, {} left out by a fire source, {} that did not fit (not on grass, no room)",
 				w.audited, w.steps2, plan == null ? 0 : plan.before(), w.edgeSteps, EDGE_BLEND, w.pillars, w.holes, w.placed.size(), w.looted,
-				w.chests, w.doorsBlocked, w.trees.size(), w.floating, w.burning);
+				w.chests, w.doorsBlocked, w.trees.size(), w.floating, w.burning, w.notGrown);
 		LOGGER.info("Heraldia: herald's house grounds: built in {} ticks ({} ms on the server thread, the slowest step {} ms; the plan {} ms "
 						+ "off it): {} columns levelled ({} narrow pits covered with a lid), {} left, {} too steep to level fully, {} trees felled, {} houses, "
 						+ "{} cherry trees", w.ticks, w.nanos / 1_000_000, w.worst / 1_000_000, w.planMs, w.levelled, w.lids, w.left,

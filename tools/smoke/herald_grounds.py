@@ -34,7 +34,8 @@ BUILT = (r"herald's house grounds: built in (\d+) ticks \((\d+) ms on the server
          r"felled, (\d+) houses, (\d+) cherry trees")
 AUDIT = (r"herald's house grounds: audit: (\d+) columns on land, (\d+) steps of more than one block \((\d+) before; (\d+) of them in "
          r"the outermost \d+ rows, where the natural ground keeps its own\), (\d+) loose columns, (\d+) holes \(further in\); (\d+) houses, "
-         r"(\d+) of (\d+) chests with loot, (\d+) doors blocked; (\d+) cherry trees, (\d+) floating, (\d+) left out by a fire source")
+         r"(\d+) of (\d+) chests with loot, (\d+) doors blocked; (\d+) cherry trees, (\d+) floating, (\d+) left out by a fire source, "
+         r"(\d+) that did not fit")
 SLOWEST = r"herald's house grounds: the slowest step: (.+)"
 ROADS_BUILT = r"herald's house roads: built in (\d+) ticks \((\d+) ms on the server thread, the slowest step (\d+) ms\)"
 ROADS_AUDIT = (r"herald's house roads: audit: (\d+) road columns on land, (\d+) blocked \(.*?\), (\d+) not paved, (\d+) steps of more "
@@ -85,7 +86,7 @@ def check_build(p, n, what):
     if not p.check(audit, f"{what}: no audit line"):
         return
     a = [int(x) for x in audit.groups()]
-    cols, steps, before, edge, pillars, holes, houses, looted, chests, blocked, trees, floating, fire = a
+    cols, steps, before, edge, pillars, holes, houses, looted, chests, blocked, trees, floating, fire, unfit = a
     inner = steps - edge
     p.check(cols > 20000, f"{what}: only {cols} columns audited")
     p.check(inner <= STEP_SHARE * cols, f"{what}: {inner} steps further in than the edge (of {cols} columns; {before} before)")
