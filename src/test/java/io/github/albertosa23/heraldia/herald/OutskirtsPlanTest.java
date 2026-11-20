@@ -242,4 +242,40 @@ class OutskirtsPlanTest {
 		OutskirtsPlan.Result res = plan(p, slots, 3, List.of());
 		assertEquals(List.of(2), res.houses().stream().map(hs -> hs.slot().index()).toList());
 	}
+
+	/** A cave's mouth 40 deep in a plain: covered with a lid at the plain's height, no crater dug round it, not counted steep. */
+	@Test
+	void aNarrowPitIsCoveredNotCratered() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		OutskirtsPlan p = grid((x, z) -> x >= 20 && x < 24 && z >= 100 && z < 104 ? GROUND - 40 : GROUND, kind, h);
+		OutskirtsPlan.Result res = plan(p, List.of(), 0, List.of());
+		int[] t = res.target();
+		assertEquals(0, res.steep());
+		assertEquals(16, res.lids());
+		for (int x = 15; x < 30; x++) {
+			for (int z = 95; z < 110; z++) {
+				assertEquals(GROUND, t[x * N + z], "the plain round the pit (and its lid) at " + x + " " + z);
+				assertEquals(x >= 20 && x < 24 && z >= 100 && z < 104, p.lid(x * N + z, t[x * N + z]));
+			}
+		}
+		assertEquals(0, steps(kind, t));
+	}
+
+	/** Two places of one house (a group): the second only if the first does not fit, never both. */
+	@Test
+	void oneHousePerGroup() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		for (int x = 18; x < 32; x++) {
+			for (int z = 18; z < 32; z++) {
+				kind[x * N + z] = OutskirtsPlan.WATER;
+			}
+		}
+		OutskirtsPlan p = grid((x, z) -> GROUND, kind, h);
+		List<OutskirtsPlan.Slot> slots = List.of(new OutskirtsPlan.Slot(0, 20, 20, 28, 29, 0), new OutskirtsPlan.Slot(1, 190, 30, 199, 38, 1),
+				new OutskirtsPlan.Slot(2, 20, 60, 29, 68, 0), new OutskirtsPlan.Slot(3, 190, 60, 199, 68, 1));
+		OutskirtsPlan.Result res = plan(p, slots, 4, List.of());
+		assertEquals(List.of(1, 2), res.houses().stream().map(hs -> hs.slot().index()).sorted().toList());
+	}
 }

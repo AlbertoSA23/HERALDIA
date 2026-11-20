@@ -143,9 +143,9 @@ public final class OutskirtsPlan {
 		return u < p.edge() || v < p.edge() || u >= n - p.edge() || v >= n - p.edge();
 	}
 
-	/** The value the shape is made from: the ground, the water's surface, the town's ground. */
+	/** The value the shape is made from: the ground (a narrow pit's lid), the water's surface, the town's ground. */
 	private int value(int i) {
-		return kind[i] == TOWN ? groundY : h[i];
+		return kind[i] == TOWN ? groundY : ref[i];
 	}
 
 	/** The whole plan: heights, then the houses (and the heights again with their pads), then the trees. */
