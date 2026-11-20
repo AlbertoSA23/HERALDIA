@@ -37,6 +37,8 @@ POND_DEPTH, POND_OVER = 5, 9
 RING, BLEND = 50, 4                 # herald/Grounds.RING; Outskirts.EDGE_BLEND (the natural ground's own rows)
 MARGIN = 8                          # herald/Siting.MARGIN
 RAMP, RAMP_GAP = 4, 2               # herald/OutskirtsPlan.RAMP, RAMP_GAP
+LAWN_SHARE = 0.10                   # of the land columns just outside the wall, at most this share of grass (83 % before)
+FORECOURT = 9                       # herald_house: the template's rows outside its south wall
 RAMP_SHARE, STEP_SHARE = 0.04, 0.01     # (herald_grounds.py; 33 % of the columns in ramps here before terraces)
 PLACED = r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+) \(box (-?\d+) (-?\d+) (-?\d+) to (-?\d+) (-?\d+) (-?\d+)\)"
 SHORES = r"herald's house: shores: (\d+) ponds left open drained \((\d+) blocks of water\), (\d+) blocks of water banked; (\d+) blocks"
@@ -187,6 +189,14 @@ def read_back(p, work, box, ground_y):
     wet = standing(world, cols)
     print(f"READ BACK: {len(wet)} blocks of water standing in the air" + (f", e.g. {wet[:5]}" if wet else ""), flush=True)
     p.check(not wet, f"read back: {len(wet)} blocks of water standing in the air in the town, its margin and the ring: {wet[:5]}")
+    # the town does not lay a lawn on the desert: its margin and its forecourt keep the land's own ground
+    out = lambda x, z: max(ox - x, x - mx, oz - z, z - mz, 0)
+    edge = [c[1] for (x, z), c in cols.items() if c is not None and c[1] != "water"
+            and (1 <= out(x, z) <= MARGIN or out(x, z) == 0 and z > mz - FORECOURT)]
+    lawn = sum(b == "grass_block" for b in edge)
+    print(f"READ BACK: {lawn} of {len(edge)} land columns of the margin and the forecourt are grass", flush=True)
+    p.check(len(edge) > 3000, f"read back: only {len(edge)} land columns in the margin and the forecourt")
+    p.check(lawn <= LAWN_SHARE * len(edge), f"read back: {lawn} of {len(edge)} columns round the wall are grass on desert land")
     inside = {}
     for (x, z), c in cols.items():
         if c is None or town(x, z) or blend(x, z) or not ground(c[1]) or c[1] in PAVING or c[1] in KERB:

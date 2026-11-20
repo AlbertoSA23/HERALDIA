@@ -32,10 +32,12 @@ import java.util.Map;
  * @param style     the village style the villagers' conversations use
  * @param version   the template's version (1: the 96 x 96 town of the first release; 2: the 128 x 128 one)
  * @param square    the village-event square in the plaza (minimum corner x, floor y, z, side), or null (version 1 has none)
+ * @param exterior  the part of the template outside the wall (x0, z0, x1, z1: the forecourt), whose bare ground takes the
+ *                  land's own surface when the town is placed, or null (blueprints written before it)
  */
 public record HousePlan(String template, int[] size, int ground, int[] spawn, int[] bell, Map<String, int[]> gates, int[] road,
 		int[][] portal, List<Stall> stalls, List<int[]> returns, String dockTemplate, int[] dockSize, String style, int version,
-		int @org.jspecify.annotations.Nullable [] square) {
+		int @org.jspecify.annotations.Nullable [] square, int @org.jspecify.annotations.Nullable [] exterior) {
 
 	/** A stall: its number, the box the tenant may use (min and max corners) and its sign. */
 	public record Stall(int id, int[] min, int[] max, int[] sign) {
@@ -88,7 +90,8 @@ public record HousePlan(String template, int[] size, int ground, int[] spawn, in
 				new int[][] {ints(portal.get(0).getAsJsonArray()), ints(portal.get(1).getAsJsonArray())}, List.copyOf(stalls),
 				List.copyOf(returns), dock.get("plantilla").getAsString(), ints(dock.getAsJsonArray("tamano")),
 				o.get("estilo").getAsString(), o.has("version") ? o.get("version").getAsInt() : 1,
-				o.has("plaza_eventos") ? ints(o.getAsJsonArray("plaza_eventos")) : null);
+				o.has("plaza_eventos") ? ints(o.getAsJsonArray("plaza_eventos")) : null,
+				o.has("exterior") ? ints(o.getAsJsonArray("exterior")) : null);
 	}
 
 	/** The current one in the .jar (heraldia/casa_heraldo.json). */

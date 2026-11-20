@@ -78,7 +78,7 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
                  JAVA + "mixin/*", JAVA + "common/*", JAVA + "bosses/*", JAVA + "quests/*", JAVA + "difficulty/*",
                  JAVA + "welcome/*", "tools/gen/mediums/*", JAVA + "inhabitants/*"]
 RUNTIME_PATHS += [JAVA + "events/*"]          # village events: up to 25 entities in a square while one lasts
-RUNTIME_PATHS += [JAVA + "herald/*", "tools/gen/herald_house.py"]   # the Herald's House (scenario casa_heraldo)
+RUNTIME_PATHS += [JAVA + "herald/*", "tools/gen/herald_house.py", "tools/gen/herald_dress.py"]   # the Herald's House (scenario casa_heraldo)
 RUNTIME_PATHS += ["tools/gen/spawn_roads.py", JAVA + "roads/SpawnRoadLayout.java", JAVA + "roads/BuiltRoads.java"]   # its roads' huts (the same scenario)
 RUNTIME_PATHS += ["tools/gen/herald_grounds.py"]   # its grounds' houses and trees (the same scenario; no entities)
 # The Herald's House roads (herald/SpawnRoads): both placement orders and a town from before the roads.
