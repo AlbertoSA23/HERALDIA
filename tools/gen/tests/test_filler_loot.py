@@ -118,6 +118,12 @@ def test_filler_tables_do_not_restock_nor_scale():
 def all_templates():
     """Every template the mod ships: the generated registry, the Herald's House and its dock, the spawn roads' huts and
     the arena (the same set the .jar carries)."""
+    # building the registry needs the 26.3 registry summary (Atlantis floods by block properties): the build leaves it in
+    # build/mcmeta-summary and CI's unit-test job clones it; without it (a bare checkout) this is skipped, and the same
+    # rule is still enforced by the generation itself (Template.save, in ./gradlew build)
+    summary = os.environ.get("MCMETA_SUMMARY") or os.path.join(ROOT, "build", "mcmeta-summary")
+    if not os.path.isfile(os.path.join(summary, "blocks", "data.json")):
+        pytest.skip(f"without the 26.3 registry summary ({summary}): run ./gradlew fetchRegistries or set MCMETA_SUMMARY")
     from pack import build_all
     import herald_house, spawn_roads, arena_waves
     reg = build_all()
