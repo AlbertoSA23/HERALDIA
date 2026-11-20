@@ -194,7 +194,15 @@ def run(proc, lines, seen, cmd, ok):
     queue: the line from more than one earlier command (e.g. two "Test passed") is not taken as this one's reply."""
     pending(lines, seen)
     send(proc, cmd)
-    return wait_for(lines, f"{ok}|{ERROR_PATTERN}", COMMAND_TIMEOUT_S, seen)
+    end = time.monotonic() + COMMAND_TIMEOUT_S
+    while True:
+        m = wait_for(lines, f"{ok}|{ERROR_PATTERN}", max(0.1, end - time.monotonic()), seen)
+        # The mod's own log lines ("[...]: Heraldia: ...") are no command's error reply: "Heraldia: village look: ... (some
+        # chunks not loaded yet)" (welcome/Welcome), logged while /time query gametime was awaited, was taken as its reply
+        # and caravans.py died with a TypeError (CI, Nov 2026). Such a line still counts if `ok` itself matches it.
+        if "]: Heraldia: " in m.string and not re.search(ok, m.string):
+            continue
+        return m
 
 
 # Condition waits of the server tests: the check is repeated for up to UNTIL_S seconds (generous: CI is

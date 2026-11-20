@@ -163,6 +163,10 @@ def arrives(ctx, fails, w):
 
 def hurt_guard(ctx, fails, w):
     mark = len(ctx.seen)
+    # the reputation logged is the village's new total, not the change: an escorted caravan earlier in the same start
+    # leaves +15 with its destination, and when the guards come from that village 15 -> 12 is right (CI, Nov 2026)
+    before = re.findall(rf"de {re.escape(w['origen'])}: reputación (-?\d+)", "".join(ctx.seen[:mark]))
+    expected = str((int(before[-1]) if before else 0) - 3)
     lead = f"@e[tag={LEADER}.{w['kind']},limit=1]"
     ctx.run(f"damage {lead} 1 minecraft:player_attack by {PLAYER}", r"Applied|damage")
     ctx.run(f"damage {lead} 1 minecraft:player_attack by {PLAYER}", r"Applied|damage")
@@ -170,8 +174,8 @@ def hurt_guard(ctx, fails, w):
     log = "".join(ctx.seen[mark:]) + "".join(s.drain(ctx))
     hits = re.findall(rf"encargos: {PLAYER} golpea a un viajero \(guardias\) de (.+?): reputación (-?\d+)", log)
     print(f"hurting a guard twice: {hits}")
-    if len(hits) != 1 or hits[0][0] != w["origen"] or hits[0][1] != "-3":
-        fails.append(f"hurting a guard: the reputation with {w['origen']} should drop once by 3 ({hits})")
+    if len(hits) != 1 or hits[0][0] != w["origen"] or hits[0][1] != expected:
+        fails.append(f"hurting a guard: the reputation with {w['origen']} should drop once by 3, to {expected} ({hits})")
     target = ctx.run(f"data get entity @e[tag={PARTNER},limit=1] AngryAt", r"has the following entity data: (.+)|Found no elements|No entity")
     print(f"the other guard: {target.group(0).strip()[-80:]}")
 

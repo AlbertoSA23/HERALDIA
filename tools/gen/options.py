@@ -484,9 +484,9 @@ _FIXED = [
      "reputation, the towers close their shutters. Vanilla blocks only and only on air: it never touches a player's "
      "block. Disabled, each village takes down what it put up when it loads"),
     ("casa_heraldo.activado", True, None, None,
-     "La Casa del Heraldo: el pueblo amurallado del spawn (96 × 96 bloques) con su anillo protegido de 50 bloques, donde solo "
+     "La Casa del Heraldo: el pueblo amurallado del spawn (128 × 128 bloques) con su anillo protegido de 50 bloques, donde solo "
      "un operador puede construir o romper y no aparecen monstruos. Desactivada, no se construye ni se protege",
-     "The Herald's House: the walled spawn town (96 × 96 blocks) with its 50-block protected ring, where only an operator "
+     "The Herald's House: the walled spawn town (128 × 128 blocks) with its 50-block protected ring, where only an operator "
      "can build or break and no monsters spawn. Disabled, it is neither built nor protected"),
     ("casa_heraldo.generar_en_mundos_nuevos", True, None, None,
      "En un mundo nuevo, la Casa del Heraldo se construye sola en el spawn, que pasa a la plaza (en un mundo ya existente, "
