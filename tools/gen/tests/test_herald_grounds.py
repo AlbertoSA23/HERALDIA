@@ -23,7 +23,7 @@ def test_several_different_houses_each_with_loot_and_a_door():
     for name, t in ts.items():
         assert len(doors.doors_of(t)) == 1, name
         chests = [nbt for st, nbt in t.blocks.values() if g._name(st) == "chest"]
-        assert chests and all(n["LootTable"].startswith("heraldia:cofres/") for n in chests), name
+        assert chests and all(n["LootTable"].startswith("heraldia:relleno/") for n in chests), name
         assert not t.entities, name
 
 

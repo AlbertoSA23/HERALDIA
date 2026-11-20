@@ -5,7 +5,8 @@ What the owner asked for: wherever the town lands, the protected margin around i
 the 128 x 128 town) flattened and decorated: a few cherry trees and small, eye-catching houses around it with contents
 inside. The orchestrator's decisions: "flattened" is walkable, gentle ground (no vertical cuts, no loose columns, no
 holes, its outer edge blended into the natural terrain), not one plateau; cut and fill capped (as the roads do); a few
-cherry trees, not a forest; several different small houses, each with a chest whose contents come from a loot table;
+cherry trees, not a forest; several different small houses, each with a chest whose contents come from a filler loot table
+(heraldia:relleno/*: a few cheap stacks, never empty, never restocked nor scaled by the difficulty);
 no new villagers (nothing in them a villager would claim: no bed, bell or workstation).
 
 Like the town and its roads it is not world generation: the Java side (herald/Outskirts, herald/OutskirtsPlan) BUILDS it
@@ -24,7 +25,7 @@ template's door (doors.template_report), the loot tables, the fire rule and the 
 import herald_house as hh
 import doors
 import lint
-import loot
+import filler_loot
 import spawn_roads as sr
 from core import Template, NS
 
@@ -131,7 +132,7 @@ def _lantern_post(t, x, z):
 def cherry_cottage():
     """White and pink, a granite roof: the house that goes with the cherry trees."""
     t = _house("casita_cerezo", 9, 10, "white_terracotta", "stripped_crimson_stem[axis=y]", "granite_stairs",
-               "pink_terracotta", "crimson_planks", 4, f"{NS}:cofres/posada")
+               "pink_terracotta", "crimson_planks", 4, filler_loot.table_id("casa"))
     _windows(t, [(2, 2, 3), (6, 2, 3), (1, 2, 6), (7, 2, 6), (4, 2, 9)])
     _flowers(t, [(1, 1), (2, 1), (6, 1), (7, 1)], ["pink_tulip", "allium", "pink_tulip", "lily_of_the_valley"])
     t.chest(6, 1, 8, "north", t.loot)
@@ -147,7 +148,7 @@ def cherry_cottage():
 def brick_house():
     """Brick walls, a dark tiled roof and a chimney: the widest house."""
     t = _house("casa_ladrillo", 11, 10, "bricks", "stone_bricks", "deepslate_tile_stairs", "bricks",
-               "polished_andesite", 5, f"{NS}:cofres/comun")
+               "polished_andesite", 5, filler_loot.table_id("despensa"))
     _windows(t, [(2, 2, 3), (3, 2, 3), (7, 2, 3), (8, 2, 3), (1, 2, 6), (9, 2, 6)])
     for y in range(1, 9):                               # the chimney (no fire: only its stack)
         t.set(8, y, 9, "bricks")
@@ -166,7 +167,7 @@ def brick_house():
 def stone_house():
     """Stone bricks gone mossy, a blackstone roof, candles on the sill: the old house."""
     t = _house("casa_piedra", 9, 10, "mossy_stone_bricks", "polished_andesite", "polished_blackstone_brick_stairs",
-               "stone_bricks", "stone_bricks", 4, f"{NS}:cofres/granja")
+               "stone_bricks", "stone_bricks", 4, filler_loot.table_id("granja"))
     _windows(t, [(2, 2, 3), (6, 2, 3), (1, 2, 7), (7, 2, 7)], "iron_bars")
     t.chest(2, 1, 8, "north", t.loot)
     t.set(6, 1, 8, "crafting_table")
@@ -183,7 +184,7 @@ def stone_house():
 def mud_house():
     """Mud brick walls and roof, a waxed copper lantern: the warm one."""
     t = _house("casa_barro", 10, 9, "mud_bricks", "packed_mud", "mud_brick_stairs", "packed_mud", "packed_mud", 5,
-               f"{NS}:cofres/molino")
+               filler_loot.table_id("molino"))
     _windows(t, [(3, 2, 3), (7, 2, 3), (1, 2, 6), (8, 2, 6)])
     t.chest(7, 1, 7, "north", t.loot)
     t.set(2, 1, 7, "furnace[facing=north,lit=false]")
@@ -198,7 +199,7 @@ def mud_house():
 def tuff_house():
     """Tuff bricks, a polished tuff roof, a bench in the yard: the reading house."""
     t = _house("casa_toba", 9, 11, "tuff_bricks", "chiseled_tuff_bricks", "polished_tuff_stairs", "polished_tuff",
-               "polished_tuff", 4, f"{NS}:cofres/biblioteca")
+               "polished_tuff", 4, filler_loot.table_id("estudio"))
     _windows(t, [(2, 2, 3), (6, 2, 3), (1, 2, 7), (7, 2, 7), (4, 2, 10)])
     t.chest(6, 1, 9, "north", t.loot)
     t.set(2, 1, 9, "crafting_table")
@@ -406,8 +407,8 @@ def template_errors(ts=None):
             e.append(f"herald_grounds: house {name}: no chest")
         for p, nbt in chests:
             tbl = str((nbt or {}).get("LootTable", ""))
-            if not tbl.startswith(f"{NS}:cofres/") or tbl.removeprefix(f"{NS}:cofres/") not in loot.TABLES:
-                e.append(f"herald_grounds: house {name}: the chest at {p} has no loot table of the mod ({tbl!r})")
+            if tbl not in {filler_loot.table_id(k) for k in filler_loot.TABLES}:
+                e.append(f"herald_grounds: house {name}: the chest at {p} has no filler loot table ({tbl!r})")
         for p, (st, _) in t.blocks.items():
             n = _name(st)
             if any(n == k or n.endswith(k) for k in POI):

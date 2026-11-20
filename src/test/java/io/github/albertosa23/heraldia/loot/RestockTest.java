@@ -37,10 +37,11 @@ class RestockTest {
 		}
 		for (String t : List.of("heraldia:trofeos/castillo", "heraldia:guardianes/castillo/zombie", "heraldia:llaves/castillo/llave",
 				"heraldia:mapas/castillo", "heraldia:encargos/a", "heraldia:unicas/castillo/trofeo", "minecraft:chests/simple_dungeon",
-				"heraldia:cofres/", "heraldia:unicas", "", "otro:cofres/x")) {
+				"heraldia:cofres/", "heraldia:unicas", "", "otro:cofres/x", "heraldia:relleno/casa", "heraldia:relleno/mina")) {
 			assertFalse(Restock.tableRestocks(t), t);
 		}
 		assertFalse(Restock.tableRestocks(null));
+		assertTrue(Restock.isFiller("heraldia:relleno/casa") && !Restock.isFiller(VILLAGE) && !Restock.isFiller(null));
 	}
 
 	@Test
@@ -111,8 +112,9 @@ class RestockTest {
 	}
 
 	/**
-	 * Every Heraldia loot table in a container of the generated templates (chests, barrels) restocks, with no
-	 * exception: if a new generator places a chest with another table, this test says so (and one has to decide whether it restocks).
+	 * Every Heraldia loot table in a container of the generated templates (chests, barrels) restocks, except the filler
+	 * tables (heraldia:relleno/, decided: they never restock): if a new generator places a chest with another table, this
+	 * test says so (and one has to decide whether it restocks).
 	 */
 	@Test
 	void templateTablesAreRestocked() throws IOException {
@@ -121,13 +123,18 @@ class RestockTest {
 		try (Stream<Path> s = Files.walk(root)) {
 			s.filter(p -> p.toString().endsWith(".nbt")).forEach(files::add);
 		}
-		TreeSet<String> seen = new TreeSet<>(), bad = new TreeSet<>();
+		TreeSet<String> seen = new TreeSet<>(), bad = new TreeSet<>(), filler = new TreeSet<>();
 		for (Path f : files) {
 			CompoundTag t = NbtIo.readCompressed(f, NbtAccounter.unlimitedHeap());
 			for (Tag b : t.getListOrEmpty("blocks")) {
 				CompoundTag nbt = ((CompoundTag) b).getCompoundOrEmpty("nbt");
 				String id = nbt.getStringOr("id", ""), table = nbt.getStringOr("LootTable", "");
-				if (table.startsWith("heraldia:") && (id.endsWith("chest") || id.endsWith("barrel"))) {
+				if (Restock.isFiller(table)) {
+					filler.add(table);
+					if (Restock.tableRestocks(table)) {
+						bad.add(table + " (filler, " + root.relativize(f) + ")");
+					}
+				} else if (table.startsWith("heraldia:") && (id.endsWith("chest") || id.endsWith("barrel"))) {
 					seen.add(table);
 					if (!Restock.tableRestocks(table)) {
 						bad.add(table + " (" + root.relativize(f) + ")");
@@ -140,6 +147,7 @@ class RestockTest {
 		assertTrue(seen.stream().anyMatch(v -> v.startsWith("heraldia:medianas/")), "ninguna de mediana");
 		assertTrue(seen.stream().anyMatch(v -> v.startsWith("heraldia:unicas/")), "ninguna de única");
 		assertTrue(seen.stream().anyMatch(v -> v.startsWith("heraldia:minas/")), "ninguna de entrada a mina");
+		assertTrue(filler.size() > 10, "few filler tables in the templates: " + filler);
 		assertTrue(bad.isEmpty(), "tablas de cofre que no se repondrían: " + bad);
 	}
 }

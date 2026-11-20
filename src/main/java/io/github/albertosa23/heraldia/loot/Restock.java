@@ -23,6 +23,12 @@ public final class Restock {
 	public static final int MAX_OCCUPIED = 3;
 	private static final String NS = "heraldia:";
 	private static final String[] PREFIXES = {"cofres/", "unicas/", "medianas/", "minas/", "costa/"};
+	/**
+	 * Filler tables (tools/gen/filler_loot.py): the poor loot of every container that has no table of its own. They
+	 * never restock (and the difficulty does not scale them, {@code MobDifficulty.isChestLoot}): with thousands of such
+	 * barrels, restocking them would turn every village into an endless pantry.
+	 */
+	public static final String FILLER_PREFIX = NS + "relleno/";
 
 	private Restock() {
 	}
@@ -47,7 +53,7 @@ public final class Restock {
 	 * never the trophies (nor anything that is not Heraldia's).
 	 */
 	public static boolean tableRestocks(String table) {
-		if (table == null || !table.startsWith(NS) || table.contains("trofeo")) {
+		if (table == null || !table.startsWith(NS) || table.contains("trofeo") || isFiller(table)) {
 			return false;
 		}
 		String path = table.substring(NS.length());
@@ -57,6 +63,11 @@ public final class Restock {
 			}
 		}
 		return false;
+	}
+
+	/** Is this a filler table ({@link #FILLER_PREFIX})? */
+	public static boolean isFiller(String table) {
+		return table != null && table.startsWith(FILLER_PREFIX);
 	}
 
 	/**
