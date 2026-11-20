@@ -103,7 +103,11 @@ def _info_here(ctx, X, Z, guardian):
     m = ctx.run(c, r"(?:You are in|Estás en) .*\(heraldia:unicas/atlantida\)|no Heraldia structure|ninguna estructura Heraldia")
     if "atlantida" not in m.group(0):
         return [f"/heraldia info here no reconoce la Atlántida: {m.string.strip()}"]
-    m = ctx.run("say fin de info aqui", r"(?:Guardian|Guardián): .*|fin de info aqui")
+    # The guardian line comes in the same tick as the line above: ctx.run would first drain it from the queue unread
+    # (server_smoke.pending), so the marker is sent and the queue read on in order (1 of 2 local runs failed so).
+    import server_smoke as s         # tools/smoke, on the path of whichever server test runs this
+    s.send(ctx.proc, "say fin de info aqui")
+    m = s.wait_for(ctx.lines, r"(?:Guardian|Guardián): .*|fin de info aqui", s.COMMAND_TIMEOUT_S, ctx.seen)
     if not re.search(guardian, m.group(0)):
         return [f"/heraldia info here: se esperaba «{guardian}»: {m.string.strip()}"]
     return []
