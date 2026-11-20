@@ -17,7 +17,7 @@ One world (roads and grounds off, the market on); an operator places the town fr
      player) and a crafter slot toggle are dropped;
   5. a chest minecart in the area is look-only too; the ender chest is not (Miron puts an item in it);
   6. the option off (/heraldia config set): the chest does not open at all, as before it;
-  7. the market: Miron rents stall 1 and puts in and takes out of the chest in its box; "Vecino" (not an operator) cannot
+  7. the market: Miron rents stall 1 and puts in and takes out of the chest in its box; "vecino" (not an operator) cannot
      open it; evicted, its things go to a return barrel that Miron opens and empties;
   8. Miron as an operator: takes from a town chest, places a recipe in the furnace and toggles the crafter's slot (the
      same packets as above do change them: the test's packets are not inert).
@@ -31,7 +31,7 @@ from arena import Test
 from trophies import CARPET
 from modrinth import fetch
 
-P, Q = "Miron", "Vecino"
+P, Q = "Miron", "vecino"   # Carpet spawns this one lowercase (its cached profile)
 PLACED = r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+) \(box (-?\d+) (-?\d+) (-?\d+) to"
 DATA = r"has the following (?:block|entity) data: ([^\n]*)|Found no elements matching [^\n]*|is not a block entity|No entity was found"
 STATUS = r"choice: [^\n]*"
@@ -89,33 +89,47 @@ class Look:
     def air(self, pos):
         return self.ctx.block(pos, "minecraft:air")
 
-    def stand(self, pos):
+    def stands(self, pos):
         """Where a player can stand to reach the block: on top of it, or on a side with two blocks of air."""
         x, y, z = pos
+        out = []
         if self.air((x, y + 1, z)) and self.air((x, y + 2, z)):
-            return (x + 0.5, y + 1, z + 0.5)
+            out.append((x + 0.5, y + 1, z + 0.5))
         for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
             if self.air((x + dx, y, z + dz)) and self.air((x + dx, y + 1, z + dz)) and not self.air((x + dx, y - 1, z + dz)):
-                return (x + dx + 0.5, y, z + dz + 0.5)
-        return None
+                out.append((x + dx + 0.5, y, z + dz + 0.5))
+        return out
+
+    def stand(self, pos):
+        st = self.stands(pos)
+        return st[0] if st else None
+
+    @staticmethod
+    def aim(pos, at):
+        """The centre of the face turned to the player (a block stacked above, as the return barrels are, is not hit)."""
+        x, y, z = pos
+        if at[1] > y:
+            return (x + 0.5, y + 0.5, z + 0.5)
+        return (x + 0.5 + (at[0] - x - 0.5) * 0.4, y + 0.2, z + 0.5 + (at[2] - z - 0.5) * 0.4)   # low, just inside the face
 
     def open(self, who, pos):
-        """The player walks up to the block and uses it (Carpet: the real use, through UseBlockCallback and vanilla)."""
-        at = self.stand(pos)
-        if at is None:
-            return False
-        self.close(who)
-        self.ctx.run(f"tp {who} {at[0]} {at[1]} {at[2]}", r"Teleported")
-        s.send(self.ctx.proc, f"player {who} look at {pos[0] + 0.5} {pos[1] + 0.5} {pos[2] + 0.5}")
-        self.ctx.ticks(3)
-        s.send(self.ctx.proc, f"player {who} use once")
-        self.ctx.ticks(5)
-        return "no window" not in self.status(who)
+        """The player walks up to the block and uses it (Carpet: the real use, through UseBlockCallback and vanilla), from
+        each place it can stand until a window opens."""
+        for at in self.stands(pos):
+            self.close(who)
+            self.ctx.run(f"tp {who} {at[0]} {at[1]} {at[2]}", r"Teleported")
+            t = self.aim(pos, at)
+            s.send(self.ctx.proc, f"player {who} look at {t[0]} {t[1]} {t[2]}")
+            self.ctx.ticks(3)
+            s.send(self.ctx.proc, f"player {who} use once")
+            self.ctx.ticks(5)
+            if "no window" not in self.status(who):
+                return True
+        return False
 
     def close(self, who):
-        """Walking away closes the window (stillValid), as a client's Escape would; the cursor goes back to the inventory."""
-        if "no window" in self.status(who):
-            return
+        """Walking away closes the window (stillValid), as a client's Escape would; the cursor goes back to the inventory.
+        Always: a player left standing where the next one stands would take its click (Carpet aims at entities too)."""
         self.ctx.run(f"execute as {who} at @s run tp @s ~40 ~ ~", r"Teleported")
         self.ctx.ticks(3)
         self.p.check("no window" in self.status(who), f"{who}'s window does not close when walking away")
@@ -360,7 +374,8 @@ def run(p, ctx, hp, chests):
         if p.check(full, "no return barrel holds the diamonds"):
             p.check(not L.open(Q, full), f"{Q} opens {P}'s return barrel")
             L.close(Q)
-            if p.check(L.open(P, full) and "look-only" not in L.status(P), "the owner's return barrel is look-only or shut"):
+            opened = L.open(P, full)
+            if p.check(opened and "look-only" not in L.status(P), "the owner's return barrel is look-only or shut"):
                 for slot in range(27):
                     L.click(P, slot, "quick_move", 0)
                 ctx.ticks(1)
