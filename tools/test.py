@@ -85,6 +85,9 @@ RUNTIME_PATHS += ["tools/gen/herald_grounds.py"]   # its grounds' houses and tre
 SPAWN_ROADS = ["tools/smoke/spawn_roads.py"]
 # The Herald's House grounds (herald/Outskirts): a town from before them (the command) and a new world (after its roads).
 HERALD_GROUNDS = ["tools/smoke/herald_grounds.py"]
+# The Herald's House on the owner's own steep spawn (herald/Building, Shores, Outskirts, SpawnRoads): no water standing in
+# the air, no ramps of one-block steps, no step on the roads; the saved world read back from its region files.
+HERALD_STEEP = ["tools/smoke/herald_steep.py"]
 # Look, do not take (herald/HeraldHouse.opened and its mixins): the area's containers as a player who is not an operator.
 HERALD_LOOK = ["tools/smoke/herald_look.py"]
 MEDIUMS = ["tools/smoke/medium_structures.py"]
@@ -241,11 +244,14 @@ MAP = [
     (JAVA + "arena/*", ARENA), (JAVA + "mixin/Arena*", ARENA), ("tools/gen/arena_waves.py", ARENA),
     # roads between villages: their Java and their data
     # the Herald's House roads (built, not generated): their layout, their build, the huts and the guide
-    (JAVA + "roads/SpawnRoadLayout.java", SPAWN_ROADS), (JAVA + "roads/BuiltRoads.java", SPAWN_ROADS),
-    ("tools/gen/spawn_roads.py", SPAWN_ROADS), (JAVA + "herald/SpawnRoads.java", SPAWN_ROADS + ["tools/smoke/arena.py"]),
+    (JAVA + "roads/SpawnRoadLayout.java", SPAWN_ROADS), (JAVA + "roads/BuiltRoads.java", SPAWN_ROADS + HERALD_STEEP),
+    ("tools/gen/spawn_roads.py", SPAWN_ROADS), (JAVA + "herald/SpawnRoads.java", SPAWN_ROADS + ["tools/smoke/arena.py"] + HERALD_STEEP),
+    (JAVA + "roads/RoadProfile.java", SPAWN_ROADS + HERALD_STEEP),   # only the built roads (SpawnRoads) use it
     # the Herald's House grounds (built, not generated): their plan, their build, the houses and the trees; the roads
     # cross them and go round their houses
-    (JAVA + "herald/Outskirts*.java", HERALD_GROUNDS + SPAWN_ROADS), ("tools/gen/herald_grounds.py", HERALD_GROUNDS + SPAWN_ROADS),
+    (JAVA + "herald/Outskirts*.java", HERALD_GROUNDS + SPAWN_ROADS + HERALD_STEEP), ("tools/gen/herald_grounds.py", HERALD_GROUNDS + SPAWN_ROADS),
+    # the town's build (its shores) and the shores' own code: the town placed by the arena's test too
+    (JAVA + "herald/Shores.java", HERALD_STEEP + HERALD_GROUNDS), (JAVA + "herald/Building.java", HERALD_STEEP + HERALD_GROUNDS + ["tools/smoke/arena.py"]),
     (JAVA + "roads/*", ["tools/smoke/roads.py"]), ("tools/gen/roads.py", ["tools/smoke/roads.py"]),
     # common code: full suite
     ("tools/gen/uniques/_common/*", FULL), ("tools/gen/uniques/__init__.py", FULL), ("tools/gen/writer.py", FULL),
@@ -421,6 +427,7 @@ DURATION_S = {
     "tools/smoke/aquatic_dry.py": 170,             # one start, seven /locate'd aquatic structures and their chunks, 200 ticks, the regions read back; measured locally (4 cores): 124-136 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/village_events.py": 195,         # measured locally (4 cores): 160 and 156 s of server log in two runs (four starts, one after a kill; ~20,000 sprinted ticks) + 10 % + setup; replace with its CI time
     "tools/smoke/filler_loot.py": 40,             # one start, 17 tables rolled ten times, 7 templates placed and 13 containers unpacked; measured locally (4 cores): 31 and 34 s + 10 % (LOCAL: replace with its CI time)
+    "tools/smoke/herald_steep.py": 105,            # one start (the owner's seed, large biomes), a pond, the town, its roads and grounds, the regions read back; measured locally (4 cores): 81-95 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/herald_look.py": 110,            # one start, the town placed (roads and grounds off), two simulated players and ~150 window packets; measured locally (4 cores): 100 s + 10 % (LOCAL: replace with its CI time)
 }
 DEFAULT_S = 90

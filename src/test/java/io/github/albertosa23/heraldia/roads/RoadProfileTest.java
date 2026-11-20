@@ -98,4 +98,65 @@ class RoadProfileTest {
 		assertEquals(RoadProfile.MISSING, p.height(40, (x, z) -> null));
 		assertEquals(64, p.height(40, RoadProfileTest::ground));
 	}
+
+	/**
+	 * A cliff across the road (the ground 18 up in two blocks, on a road at least 3 wide): no cut or fill of 10 alone
+	 * keeps a road walkable there. Worked out block by block as each chunk asks (as before), the road meets the cliff at
+	 * its own pace and the columns' clamp (the ground cut or filled at most 10) leaves a step of several blocks; worked
+	 * out whole ({@link RoadProfile#prepare}), the climb starts early enough that every column stays within the caps and
+	 * one block of the next: what the owner's spawn (drop 29, 27 steps on its roads) needed.
+	 */
+	@Test
+	void aCliffIsClimbedFromAfarWhenTheWholeRoadIsKnown() {
+		RoadProfile.Sampler cliff = (x, z) -> new RoadProfile.Sample(RoadProfile.Ground.DIRT, x < 40 ? 64 : x < 42 ? 64 + 9 * (x - 39) : 82);
+		RoadProfile lazy = new RoadProfile(straight(96));
+		int worstLazy = 0;
+		for (int a : new int[] {0, 60, 30, 90, 15, 45, 75}) {
+			lazy.height(a, cliff);
+		}
+		for (int a = 0; a < 96; a++) {
+			worstLazy = Math.max(worstLazy, Math.abs(column(lazy.height(a + 1, cliff), a + 1, cliff, 10, 10) - column(lazy.height(a, cliff), a, cliff, 10, 10)));
+		}
+		assertTrue(worstLazy > 1, "block by block the cliff leaves a step (the old way): " + worstLazy);
+		RoadProfile whole = new RoadProfile(straight(96));
+		assertTrue(whole.prepare(cliff, 1.5, 10, 10));
+		assertTrue(whole.prepared());
+		assertEquals(10, whole.cut());
+		assertEquals(10, whole.fill());
+		for (int a = 0; a < 96; a++) {
+			int h0 = column(whole.height(a, cliff), a, cliff, whole.cut(), whole.fill());
+			int h1 = column(whole.height(a + 1, cliff), a + 1, cliff, whole.cut(), whole.fill());
+			assertTrue(Math.abs(h1 - h0) <= 1, "a step of " + (h1 - h0) + " at " + a);
+			assertEquals(whole.height(a, cliff), h0, "a column clamped off the road's height at " + a);
+		}
+	}
+
+	/** A cliff higher than both caps and the run together: the caps widen only as far as that cliff needs, and no step is left. */
+	@Test
+	void aCliffTooHighForTheCapsWidensThemJustEnough() {
+		RoadProfile.Sampler wall = (x, z) -> new RoadProfile.Sample(RoadProfile.Ground.STONE, x < 48 ? 64 : 100);   // 36 up at once
+		RoadProfile whole = new RoadProfile(straight(96));
+		assertTrue(whole.prepare(wall, 1.5, 10, 10));
+		assertTrue(whole.cut() > 10 && whole.cut() <= RoadProfile.MAX_CAP, "caps widened: " + whole.cut());
+		for (int a = 0; a < 96; a++) {
+			int h0 = column(whole.height(a, wall), a, wall, whole.cut(), whole.fill());
+			int h1 = column(whole.height(a + 1, wall), a + 1, wall, whole.cut(), whole.fill());
+			assertTrue(Math.abs(h1 - h0) <= 1, "a step of " + (h1 - h0) + " at " + a);
+		}
+	}
+
+	/** Not every chunk loaded yet: nothing kept, the road is worked out later. */
+	@Test
+	void prepareWaitsForEveryColumn() {
+		RoadProfile p = new RoadProfile(straight(96));
+		assertTrue(!p.prepare((x, z) -> x > 50 ? null : new RoadProfile.Sample(RoadProfile.Ground.DIRT, 64), 1.5, 10, 10));
+		assertTrue(!p.prepared());
+		assertTrue(p.columns(1.5).size() >= 97);
+	}
+
+	/** A road column's paving height as BuiltRoads lays it: the road's height, cut or filled at most so much. */
+	private static int column(int t, int a, RoadProfile.Sampler f, int cut, int fill) {
+		int g = f.at(a, 0).y();
+		return Math.clamp(t, g - cut, g + fill);
+	}
 }

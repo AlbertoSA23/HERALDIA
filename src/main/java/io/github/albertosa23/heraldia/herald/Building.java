@@ -2,9 +2,11 @@ package io.github.albertosa23.heraldia.herald;
 
 import io.github.albertosa23.heraldia.command.Texts;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -51,6 +53,9 @@ import org.slf4j.LoggerFactory;
  * <li>template: the chunk's part of the template, with its villagers, horses and golem;</li>
  * <li>beds: every bed set again, both halves (a bed across a chunk border is lost when its chunks are placed one by
  * one);</li>
+ * <li>shores: no still water left standing in the air in the footprint or its margin (a pond the template or the blended
+ * margin cut open drains, a bigger body gets a bank: {@link Shores}), and in the footprint no water but the template's
+ * (what a pond or a lake beside it let run in when the template's edge was placed);</li>
  * <li>roads: from each gate, a dirt path through the protected ring with a signpost at its end; the first gate that
  * meets water within reach gets the dock instead.</li>
  * </ol>
@@ -66,7 +71,7 @@ final class Building {
 	/** The dock only if the water starts this close to the wall (its far end stays inside the protected ring). */
 	private static final int DOCK_REACH = 32;
 
-	private enum Phase { LOAD, LEVEL, TEMPLATE, BEDS, ROAD }
+	private enum Phase { LOAD, LEVEL, TEMPLATE, BEDS, SHORE, ROAD }
 
 	private record Step(Phase phase, int cx, int cz, @Nullable String side) {
 	}
@@ -79,6 +84,10 @@ final class Building {
 	private static int index, ticks;
 	private static long nanos;
 	private static boolean docked;
+	private static Shores.Settled settled = Shores.NONE;
+	private static int cleared;
+	/** The template's own water blocks (world positions), kept by the shores' step. */
+	private static Set<BlockPos> ownWater = Set.of();
 
 	private Building() {
 	}
@@ -100,6 +109,7 @@ final class Building {
 		chunks(steps, Phase.LEVEL, g, Siting.MARGIN);
 		chunks(steps, Phase.TEMPLATE, g, 0);
 		steps.add(new Step(Phase.BEDS, 0, 0, null));
+		chunks(steps, Phase.SHORE, g, Siting.MARGIN);
 		for (String side : g.plan().gates().keySet()) {
 			steps.add(new Step(Phase.ROAD, 0, 0, side));
 		}
@@ -107,6 +117,14 @@ final class Building {
 		index = ticks = 0;
 		nanos = 0;
 		docked = false;
+		settled = Shores.NONE;
+		cleared = 0;
+		Set<BlockPos> own = new HashSet<>();
+		BlockPos origin = new BlockPos(g.ox(), g.oy(), g.oz());
+		for (StructureTemplate.StructureBlockInfo info : t.get().filterBlocks(origin, new StructurePlaceSettings(), Blocks.WATER)) {
+			own.add(info.pos());
+		}
+		ownWater = Set.copyOf(own);
 		return true;
 	}
 
@@ -132,12 +150,19 @@ final class Building {
 				case LEVEL -> level(o.level(), o.level().getChunk(p.cx(), p.cz()), o.g());
 				case TEMPLATE -> template(o.level(), p, o.g(), o.template());
 				case BEDS -> beds(o.level(), o.g(), o.template());
+				case SHORE -> {
+					LevelChunk c = o.level().getChunk(p.cx(), p.cz());
+					cleared += Shores.clear(o.level(), c, (x, z) -> o.g().inColumns(x, z), ownWater, o.g().oy(), o.g().maxY());
+					settled = settled.plus(Shores.settle(o.level(), c, (x, z) -> outside(o.g(), x, z) <= Siting.MARGIN));
+				}
 				case ROAD -> road(o.level(), o.g(), p.side());
 			}
 			nanos += System.nanoTime() - t0;
 			return;
 		}
 		actual = null;
+		LOGGER.info("Heraldia: herald's house: shores: {} ponds left open drained ({} blocks of water), {} blocks of water banked; {} "
+				+ "blocks of water that ran into the footprint taken away", settled.ponds(), settled.drained(), settled.banked(), cleared);
 		finish(o);
 		nanos += System.nanoTime() - t0;
 		LOGGER.info("Heraldia: herald's house: built in {} ticks ({} ms on the server thread, at most a chunk per tick)",

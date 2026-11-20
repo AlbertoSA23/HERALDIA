@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -270,7 +271,7 @@ public final class SpawnRoads {
 
 	// --- the work ---
 
-	enum Kind { PAVE, FELL, LAMPS, SIGN, HUT, HUT_PLACE, BUILT, ARENA_DONE, WAIT, TIDY, LIGHT, AUDIT, FINISH }
+	enum Kind { PROFILE, PAVE, FELL, LAMPS, SIGN, HUT, HUT_PLACE, BUILT, ARENA_DONE, WAIT, TIDY, LIGHT, AUDIT, FINISH }
 
 	record Step(Kind kind, int cx, int cz, @Nullable String key, int[] extra) {
 		Step(Kind kind, int cx, int cz) {
@@ -404,6 +405,7 @@ public final class SpawnRoads {
 		w.routes.add(r);
 		w.profiles.put(r, new RoadProfile(r));
 		w.roads++;
+		w.steps.add(new Step(Kind.PROFILE, w.routes.size() - 1, 0));   // its heights, all at once, before it is paved
 		Set<Long> chunks = new LinkedHashSet<>();
 		for (int i = 0; i + 1 < pts.size(); i++) {      // the chunks along each segment (with the road's half width and a margin)
 			double ax = pts.get(i)[0], az = pts.get(i)[1], bx = pts.get(i + 1)[0], bz = pts.get(i + 1)[1];
@@ -593,7 +595,9 @@ public final class SpawnRoads {
 			}
 			found++;
 			long key = RoadLayout.pack(st.cx(), st.cz());
-			if (!w.loading.containsKey(key) && w.level.getChunkSource().getChunkNow(st.cx(), st.cz()) == null) {
+			CompletableFuture<?> f = w.loading.get(key);
+			// never asked, or loaded once and unloaded since (a road's PROFILE step reads all its chunks at once): asked for again
+			if ((f == null || f.isDone()) && w.level.getChunkSource().getChunkNow(st.cx(), st.cz()) == null) {
 				w.loading.put(key, w.level.getChunkSource().getChunkFuture(st.cx(), st.cz(), ChunkStatus.FULL, true));
 			}
 		}
@@ -606,7 +610,14 @@ public final class SpawnRoads {
 	 */
 	private static boolean around(Work w, Step st) {
 		List<long[]> need = new ArrayList<>();
-		if (st.kind() == Kind.TIDY || st.kind() == Kind.AUDIT) {
+		if (st.kind() == Kind.PROFILE) {
+			Set<Long> seen = new HashSet<>();
+			for (int[] c : w.profiles.get(w.routes.get(st.cx())).columns(BuiltRoads.halfWidth(blueprint().params().width()))) {
+				if (seen.add(RoadLayout.pack(c[0] >> 4, c[1] >> 4))) {
+					need.add(new long[] {c[0] >> 4, c[1] >> 4});
+				}
+			}
+		} else if (st.kind() == Kind.TIDY || st.kind() == Kind.AUDIT) {
 			for (int dx = -1; dx <= 1; dx++) {
 				for (int dz = -1; dz <= 1; dz++) {
 					need.add(new long[] {st.cx() + dx, st.cz() + dz});
@@ -641,6 +652,16 @@ public final class SpawnRoads {
 	private static void step(Work w, Step st) {
 		ServerLevel level = w.level;
 		switch (st.kind()) {
+			case PROFILE -> {
+				RoadProfile pr = w.profiles.get(w.routes.get(st.cx()));
+				if (!BuiltRoads.prepare(level, pr, blueprint().params().width())) {
+					LOGGER.info("Heraldia: herald's house roads: road {}: its chunks were not all loaded; its heights are worked out as it is paved",
+							st.cx());
+				} else if (pr.cut() > BuiltRoads.CUT || pr.fill() > BuiltRoads.FILL) {
+					LOGGER.info("Heraldia: herald's house roads: road {}: a rise no cut or fill of {} could keep walkable: up to {} cut and {} filled there",
+							st.cx(), BuiltRoads.CUT, pr.cut(), pr.fill());
+				}
+			}
 			case PAVE -> {
 				LevelChunk chunk = level.getChunk(st.cx(), st.cz());
 				RoadLayout.Cell[] cells = new RoadLayout.Cell[256];

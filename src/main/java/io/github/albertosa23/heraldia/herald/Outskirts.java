@@ -74,9 +74,11 @@ import org.slf4j.LoggerFactory;
  * <li>Steps (a few per tick, within {@link #BUDGET_MS} ms; a slow one gives the server {@link #REST} ticks): the arena
  * road's plan if there is an arena (off the server thread), each chunk read ({@link #survey}: the natural ground's
  * height under trees and plants, and what must not move), the plan ({@link OutskirtsPlan}, off the server thread),
- * each chunk levelled ({@link #level}) and its trees felled whole, each house, each cherry tree, and each chunk looked
- * at again ({@link #audit}: the steps, loose columns and holes left, the chests' loot, the doors, the trees; in the
- * log, which the server test reads). The chunks are asked for ahead ({@link #AHEAD}) so the server thread never waits
+ * each chunk levelled ({@link #level}: each terrace's riser faced with a retaining wall, {@link #wall}) and its trees
+ * felled whole, each chunk's shores settled ({@link Shores}: no still water left standing in the air), each house, each
+ * cherry tree, and each chunk looked at again ({@link #audit}: the ramps of one-block steps, the steps left bare, the
+ * loose columns and holes, the water standing in the air, the chests' loot, the doors, the trees; in the log, which the
+ * server test reads). The chunks are asked for ahead ({@link #AHEAD}) so the server thread never waits
  * for one to be generated.</li>
  * <li>What it keeps: the roads that were built, their huts, lamps and signs, structures, players' blocks, water, the
  * town. Houses: the roads never touch them ({@link #inHouse}, through SpawnRoads.skip) and the arena road goes round
@@ -295,7 +297,7 @@ public final class Outskirts {
 
 	// --- the work ---
 
-	enum Kind { SURVEY, PLAN, LEVEL, FELL, HOUSE, CHERRY, AUDIT, CHECK, TREE_CHECK, FINISH }
+	enum Kind { SURVEY, PLAN, LEVEL, FELL, SHORE, HOUSE, CHERRY, AUDIT, CHECK, TREE_CHECK, FINISH }
 
 	record Step(Kind kind, int a, int b) {
 	}
@@ -321,7 +323,9 @@ public final class Outskirts {
 		final List<int[]> trees = new ArrayList<>();               // {x, y, z} of the trunk's foot
 		boolean waiting;
 		int index, rest, ticks, waited, levelled, left, felled, burning, lids, notGrown;
-		int audited, steps2, edgeSteps, pillars, holes, chests, looted, doorsBlocked, floating;
+		int audited, steps2, edgeSteps, pillars, holes, chests, looted, doorsBlocked, floating, faced, bare, standing, walled;
+		Shores.Settled settled = Shores.NONE;
+		final int[] seen;                                          // the audited ground's height (MIN_VALUE: not audited)
 		long nanos, worst, planMs;
 		String worstStep = "";
 
@@ -337,6 +341,8 @@ public final class Outskirts {
 			this.kind = new byte[n * n];
 			this.h = new int[n * n];
 			this.avoid = new boolean[n * n];
+			this.seen = new int[n * n];
+			java.util.Arrays.fill(seen, Integer.MIN_VALUE);
 			this.layout = new RoadLayout(level.getSeed(), 16, 0, (x, z) -> RoadLayout.NONE, RoadLayout.Milestones.NO_MILESTONES);
 		}
 
@@ -471,7 +477,7 @@ public final class Outskirts {
 	}
 
 	private static boolean chunkStep(Step st) {
-		return st.kind() == Kind.SURVEY || st.kind() == Kind.LEVEL || st.kind() == Kind.AUDIT;
+		return st.kind() == Kind.SURVEY || st.kind() == Kind.LEVEL || st.kind() == Kind.SHORE || st.kind() == Kind.AUDIT;
 	}
 
 	/** The chunks of the next steps that read one, asked for without waiting (generated on the worker threads). */
@@ -501,10 +507,12 @@ public final class Outskirts {
 		List<long[]> need = new ArrayList<>();
 		switch (st.kind()) {
 			case SURVEY, LEVEL -> need.add(new long[] {st.a(), st.b()});
-			case AUDIT -> {
+			case AUDIT, SHORE -> {
 				need.add(new long[] {st.a(), st.b()});
 				need.add(new long[] {st.a() + 1, st.b()});
 				need.add(new long[] {st.a(), st.b() + 1});
+				need.add(new long[] {st.a() - 1, st.b()});
+				need.add(new long[] {st.a(), st.b() - 1});
 			}
 			case HOUSE, CHERRY, CHECK, TREE_CHECK -> {
 				int[] c = st.kind() == Kind.HOUSE || st.kind() == Kind.CHECK ? plotOf(w, st.a()) : treeBox(w, st.a());
@@ -545,6 +553,8 @@ public final class Outskirts {
 					w.felled += BuiltRoads.fell(w.level, w.felling.remove(0), (x, z) -> w.g.inColumns(x, z));
 				}
 			}
+			case SHORE -> w.settled = w.settled.plus(Shores.settle(w.level, chunk(w, st.a(), st.b()),
+					(x, z) -> w.in(x, z) && !w.g.inColumns(x, z)));
 			case HOUSE -> house(w, st.a());
 			case CHERRY -> cherry(w, st.a());
 			case AUDIT -> audit(w, chunk(w, st.a(), st.b()));
@@ -685,11 +695,15 @@ public final class Outskirts {
 					w.plan = res;
 					LOGGER.info("Heraldia: herald's house grounds: plan in {} ms: {} columns to level (cut up to {}, filled up to {}), "
 									+ "{} too steep to level within {} blocks, {} narrow pits to cover; steps of more than one block: {} before, {} in the "
-									+ "plan; {} houses, {} cherry trees", w.planMs, res.changed(), res.maxCut(), res.maxFill(), res.steep(),
-							Math.max(bp.params().cut(), bp.params().fill()), res.lids(), res.before(), res.steps(), res.houses().size(),
-							res.cherries().size());
+									+ "plan ({} of them terraces' walls); one-block steps in ramps: {} before, {} in the plan; {} houses, {} cherry trees",
+							w.planMs, res.changed(), res.maxCut(), res.maxFill(), res.steep(),
+							Math.max(bp.params().cut(), bp.params().fill()), res.lids(), res.before(), res.steps(), res.walls(), res.rampsBefore(),
+							res.ramps(), res.houses().size(), res.cherries().size());
 					for (long c : w.chunks) {
 						w.steps.add(new Step(Kind.LEVEL, RoadLayout.px(c), RoadLayout.pz(c)));
+					}
+					for (long c : w.chunks) {
+						w.steps.add(new Step(Kind.SHORE, RoadLayout.px(c), RoadLayout.pz(c)));
 					}
 					for (int k = 0; k < res.houses().size(); k++) {
 						w.steps.add(new Step(Kind.HOUSE, k, 0));
@@ -743,12 +757,16 @@ public final class Outskirts {
 				}
 				int i = w.index(x, z);
 				int t = plan.target()[i];
-				if (w.kind[i] != OutskirtsPlan.LAND || t == w.h[i]) {
+				if (w.kind[i] != OutskirtsPlan.LAND) {
 					continue;
 				}
 				int g = ground(chunk, x, z, w.level.getMinY(), pos, object);
 				BlockState top = chunk.getBlockState(pos.set(x, g, z));
-				if (object[0] || !top.getFluidState().isEmpty() || t == g) {
+				if (object[0] || !top.getFluidState().isEmpty()) {
+					continue;
+				}
+				if (t == g) {
+					wall(w, chunk, x, z, t, top, pos);   // as planned already: its riser faced, if it has one
 					continue;
 				}
 				Blueprint bp = blueprint();
@@ -786,6 +804,7 @@ public final class Outskirts {
 						w.level.setBlock(pos, fill.getBlock() instanceof FallingBlock ? Blocks.DIRT.defaultBlockState() : fill, BuiltRoads.FLAGS);
 					}
 				}
+				wall(w, chunk, x, z, t, top, pos);
 				w.levelled++;
 			}
 		}
@@ -810,6 +829,62 @@ public final class Outskirts {
 			}
 			set(w, chunk, pos, Blocks.AIR.defaultBlockState(), logs);
 		}
+	}
+
+	/**
+	 * A terrace's riser: the side of the column (top at {@code t}) that faces a lower neighbour two or more blocks down (as
+	 * planned: natural ground, or a kept column such as a road's cut) made a retaining wall of stone, from the neighbour's
+	 * height up to under the column's surface, so the step reads as built and not as bare earth. The town's side and the
+	 * water's are left as they are; so is anything that is not ground (a lid's air under it, a buried structure).
+	 */
+	private static void wall(Work w, LevelChunk chunk, int x, int z, int t, BlockState top, BlockPos.MutableBlockPos pos) {
+		OutskirtsPlan.Result plan = w.plan;
+		RoadProfile.Ground kind = BuiltRoads.kind(top);
+		if (plan == null || kind == null) {
+			return;
+		}
+		int low = t;
+		for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+			int nx = x + d[0], nz = z + d[1];
+			if (!w.in(nx, nz)) {
+				continue;
+			}
+			int j = w.index(nx, nz);
+			if (w.kind[j] == OutskirtsPlan.LAND) {
+				low = Math.min(low, plan.target()[j]);
+			} else if (w.kind[j] == OutskirtsPlan.KEPT) {
+				low = Math.min(low, w.h[j]);
+			}
+		}
+		for (int y = low + 1; y <= t - 1 && t - low >= 2; y++) {
+			BlockState s = chunk.getBlockState(pos.set(x, y, z));
+			if (BuiltRoads.terrain(s) && !wallBlock(s)) {
+				w.level.setBlock(pos, wallBlock(kind, x, y, z), BuiltRoads.FLAGS);
+				w.walled++;
+			}
+		}
+	}
+
+	/** A retaining wall's block for ground of this kind: two materials mixed (a quarter of the second), by position. */
+	static BlockState wallBlock(RoadProfile.Ground kind, int x, int y, int z) {
+		boolean second = Math.floorMod(x * 7 + y * 13 + z * 5, 4) == 0;
+		return (switch (kind) {
+			case DIRT -> second ? Blocks.MOSSY_COBBLESTONE : Blocks.COBBLESTONE;
+			case SAND -> second ? Blocks.SMOOTH_SANDSTONE : Blocks.CUT_SANDSTONE;
+			case RED -> second ? Blocks.SMOOTH_RED_SANDSTONE : Blocks.CUT_RED_SANDSTONE;
+			case MUD -> second ? Blocks.PACKED_MUD : Blocks.MUD_BRICKS;
+			case STONE -> second ? Blocks.MOSSY_STONE_BRICKS : Blocks.STONE_BRICKS;
+		}).defaultBlockState();
+	}
+
+	/** Is it a retaining wall's block (what the audit takes for a faced riser)? */
+	static boolean wallBlock(BlockState s) {
+		for (RoadProfile.Ground g : RoadProfile.Ground.values()) {
+			if (s.is(wallBlock(g, 0, 0, 0).getBlock()) || s.is(wallBlock(g, 0, 0, 1).getBlock())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// --- the houses and the trees ---
@@ -973,10 +1048,17 @@ public final class Outskirts {
 				w.audited++;
 				int x = cp.getMinBlockX() - 1 + ix, z = cp.getMinBlockZ() - 1 + iz;
 				boolean blend = Math.min(Math.min(x - w.x0, w.x0 + w.n - 2 - x), Math.min(z - w.z0, w.z0 + w.n - 2 - z)) < EDGE_BLEND;
+				if (!blend) {
+					w.seen[w.index(x, z)] = y;
+				}
 				int e = tops[(ix + 1) * 18 + iz], s = tops[ix * 18 + iz + 1];
 				int found = (e != Integer.MIN_VALUE && Math.abs(e - y) > 1 ? 1 : 0) + (s != Integer.MIN_VALUE && Math.abs(s - y) > 1 ? 1 : 0);
+				int faced = (e != Integer.MIN_VALUE && Math.abs(e - y) > 1 && faced(w, x, y, z, x + 1, e, z, pos) ? 1 : 0)
+						+ (s != Integer.MIN_VALUE && Math.abs(s - y) > 1 && faced(w, x, y, z, x, s, z + 1, pos) ? 1 : 0);
 				w.steps2 += found;
 				w.edgeSteps += blend ? found : 0;
+				w.faced += faced;
+				w.bare += blend ? 0 : found - faced;
 				int[] nb = {tops[(ix - 1) * 18 + iz], e, tops[ix * 18 + iz - 1], s};
 				boolean pillar = true, hole = true;
 				for (int o : nb) {
@@ -985,8 +1067,21 @@ public final class Outskirts {
 				}
 				w.pillars += pillar && !blend ? 1 : 0;
 				w.holes += hole && !blend ? 1 : 0;
+				if ((pillar || hole) && !blend && w.pillars + w.holes <= 4) {
+					OutskirtsPlan.Result plan = w.plan;
+					LOGGER.info("Heraldia: herald's house grounds: audit: a {} at {} {} {} (planned {}, natural {}; round it {} {} {} {})",
+							pillar ? "loose column" : "hole", x, y, z, plan == null ? "?" : plan.target()[w.index(x, z)], w.h[w.index(x, z)],
+							nb[0], nb[1], nb[2], nb[3]);
+				}
 			}
 		}
+		w.standing += Shores.standing(w.level, chunk, (x, z) -> w.in(x, z)).size();
+	}
+
+	/** A step between (x, y, z) and its neighbour (nx, ny, nz) faced: the higher one's side over the lower one is a wall's block. */
+	private static boolean faced(Work w, int x, int y, int z, int nx, int ny, int nz, BlockPos.MutableBlockPos pos) {
+		int hx = y > ny ? x : nx, hz = y > ny ? z : nz, low = Math.min(y, ny);
+		return wallBlock(w.level.getBlockState(pos.set(hx, low + 1, hz)));
 	}
 
 	private static boolean inPlots(Work w, int x, int z) {
@@ -1073,11 +1168,20 @@ public final class Outskirts {
 		built = null;
 		OutskirtsPlan.Result plan = w.plan;
 		LOGGER.info("Heraldia: herald's house grounds: the slowest step: {}", w.worstStep);
+		boolean[] in = new boolean[w.n * w.n];
+		for (int i = 0; i < in.length; i++) {
+			in[i] = w.seen[i] != Integer.MIN_VALUE;
+		}
+		int ramps = OutskirtsPlan.ramps(w.n, w.seen, in);
 		LOGGER.info("Heraldia: herald's house grounds: audit: {} columns on land, {} steps of more than one block ({} before; {} of them in "
-						+ "the outermost {} rows, where the natural ground keeps its own), {} loose columns, {} holes (further in); {} houses, {} of {} chests "
+						+ "the outermost {} rows, where the natural ground keeps its own; {} faced with a retaining wall, {} bare further in), {} one-block "
+						+ "steps in ramps ({} before), {} loose columns, {} holes (further in), {} blocks of water standing in the air; {} houses, {} of {} chests "
 						+ "with loot, {} doors blocked; {} cherry trees, {} floating, {} left out by a fire source, {} that did not fit (not on grass, no room)",
-				w.audited, w.steps2, plan == null ? 0 : plan.before(), w.edgeSteps, EDGE_BLEND, w.pillars, w.holes, w.placed.size(), w.looted,
+				w.audited, w.steps2, plan == null ? 0 : plan.before(), w.edgeSteps, EDGE_BLEND, w.faced, w.bare, ramps,
+				plan == null ? 0 : plan.rampsBefore(), w.pillars, w.holes, w.standing, w.placed.size(), w.looted,
 				w.chests, w.doorsBlocked, w.trees.size(), w.floating, w.burning, w.notGrown);
+		LOGGER.info("Heraldia: herald's house grounds: shores: {} ponds left open drained ({} blocks of water), {} blocks of water banked; "
+				+ "{} blocks of retaining wall", w.settled.ponds(), w.settled.drained(), w.settled.banked(), w.walled);
 		LOGGER.info("Heraldia: herald's house grounds: built in {} ticks ({} ms on the server thread, the slowest step {} ms; the plan {} ms "
 						+ "off it): {} columns levelled ({} narrow pits covered with a lid), {} left, {} too steep to level fully, {} trees felled, {} houses, "
 						+ "{} cherry trees", w.ticks, w.nanos / 1_000_000, w.worst / 1_000_000, w.planMs, w.levelled, w.lids, w.left,
