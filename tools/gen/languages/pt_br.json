@@ -2088,5 +2088,14 @@
   "heraldia.config.casa_heraldo.caminos.activado": "Estradas da Casa do Arauto: quando a cidade é colocada, de cada portão sai uma estrada iluminada com lanternas (sem monstros aparecendo nela), com as cabanas de comerciantes humildes; a que aponta para a arena chega até ela, com a cabana do guia na saída da cidade. Em um mundo cuja cidade já existia, só com /heraldia herald roads",
   "heraldia.config.casa_heraldo.caminos.activado.nombre": "Estradas e cabanas",
   "heraldia.config.casa_heraldo.caminos.aldeanos": "Aldeões das cabanas das estradas, no total (o guia incluído; um por cabana): cada aldeão com sua IA custa um pouco de tempo do servidor enquanto houver um jogador perto",
-  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Aldeões das cabanas"
+  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Aldeões das cabanas",
+  "heraldia.casa_heraldo.alrededores.construyendo": "Preparando os arredores da Casa do Arauto…",
+  "heraldia.casa_heraldo.alrededores.hechos": "Arredores da Casa do Arauto prontos: %s colunas aplainadas, %s casas, %s cerejeiras",
+  "heraldia.casa_heraldo.alrededores.nada": "Os arredores da Casa do Arauto já estão prontos: não resta nada a fazer",
+  "heraldia.casa_heraldo.alrededores.desactivados": "Os arredores da Casa do Arauto estão desativados (casa_heraldo.alrededores.activado)",
+  "heraldia.casa_heraldo.alrededores.ocupado": "Algo da Casa do Arauto já está sendo construído: espere terminar",
+  "heraldia.config.casa_heraldo.alrededores.activado": "Arredores da Casa do Arauto: quando a vila é colocada (depois de seus caminhos), o anel protegido ao redor dela é aplainado em um terreno suave e caminhável que se funde com o natural na borda (nunca mais de 10 blocos cortados ou aterrados), com algumas cerejeiras e casas pequenas com um baú de saque (sem aldeões). Em um mundo cuja vila já existia, só com /heraldia herald grounds",
+  "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Arredores aplainados",
+  "heraldia.config.casa_heraldo.alrededores.casas": "Casas pequenas nos arredores da Casa do Arauto (nenhuma é construída onde o terreno não permite)",
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Casas dos arredores"
 }

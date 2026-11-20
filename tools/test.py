@@ -80,8 +80,11 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
 RUNTIME_PATHS += [JAVA + "events/*"]          # village events: up to 25 entities in a square while one lasts
 RUNTIME_PATHS += [JAVA + "herald/*", "tools/gen/herald_house.py"]   # the Herald's House (scenario casa_heraldo)
 RUNTIME_PATHS += ["tools/gen/spawn_roads.py", JAVA + "roads/SpawnRoadLayout.java", JAVA + "roads/BuiltRoads.java"]   # its roads' huts (the same scenario)
+RUNTIME_PATHS += ["tools/gen/herald_grounds.py"]   # its grounds' houses and trees (the same scenario; no entities)
 # The Herald's House roads (herald/SpawnRoads): both placement orders and a town from before the roads.
 SPAWN_ROADS = ["tools/smoke/spawn_roads.py"]
+# The Herald's House grounds (herald/Outskirts): a town from before them (the command) and a new world (after its roads).
+HERALD_GROUNDS = ["tools/smoke/herald_grounds.py"]
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
@@ -234,6 +237,9 @@ MAP = [
     # the Herald's House roads (built, not generated): their layout, their build, the huts and the guide
     (JAVA + "roads/SpawnRoadLayout.java", SPAWN_ROADS), (JAVA + "roads/BuiltRoads.java", SPAWN_ROADS),
     ("tools/gen/spawn_roads.py", SPAWN_ROADS), (JAVA + "herald/SpawnRoads.java", SPAWN_ROADS + ["tools/smoke/arena.py"]),
+    # the Herald's House grounds (built, not generated): their plan, their build, the houses and the trees; the roads
+    # cross them and go round their houses
+    (JAVA + "herald/Outskirts*.java", HERALD_GROUNDS + SPAWN_ROADS), ("tools/gen/herald_grounds.py", HERALD_GROUNDS + SPAWN_ROADS),
     (JAVA + "roads/*", ["tools/smoke/roads.py"]), ("tools/gen/roads.py", ["tools/smoke/roads.py"]),
     # common code: full suite
     ("tools/gen/uniques/_common/*", FULL), ("tools/gen/uniques/__init__.py", FULL), ("tools/gen/writer.py", FULL),
@@ -401,7 +407,8 @@ DURATION_S = {
     "tools/smoke/wizard_huts.py": 75,               # two starts, four huts and three Evil Wizards
     "tools/smoke/caravans.py": 350,                 # two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py
     "tools/smoke/ambience.py": 135,                 # one start, three /locate'd structures, ~11,000 sprinted ticks
-    "tools/smoke/spawn_roads.py": 185,              # the Herald's House roads: four starts, two towns, two arenas, three road builds and their audits; measured locally (4 cores): 160-168 s in nine runs + 10 % (LOCAL: replace with its CI time)
+    "tools/smoke/spawn_roads.py": 200,              # the Herald's House roads: four starts, two towns, two arenas, three road builds and their audits; measured locally (4 cores): 160-168 s in nine runs; with the grounds built after the town in both worlds 182 s + 10 % (LOCAL: replace with its CI time)
+    "tools/smoke/herald_grounds.py": 185,           # the Herald's House grounds: three starts, two towns, two grounds' builds (one after its roads) and their audits; measured locally (4 cores): 168 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/aquatic_dry.py": 150,             # one start, seven /locate'd aquatic structures and their chunks, 200 ticks, the regions read back; measured locally (4 cores): 124-136 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/village_events.py": 185,         # measured locally (4 cores): 160 and 156 s of server log in two runs (four starts, one after a kill; ~20,000 sprinted ticks) + 10 % + setup; replace with its CI time
     "tools/smoke/filler_loot.py": 40,             # one start, 17 tables rolled ten times, 7 templates placed and 13 containers unpacked; measured locally (4 cores): 31 and 34 s + 10 % (LOCAL: replace with its CI time)

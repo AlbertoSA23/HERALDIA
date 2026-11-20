@@ -197,7 +197,7 @@ class HeraldiaCommandsTest {
 		var client = new CommandDispatcher<>(AliasTest.fromClient(d.getRoot(), op));
 		List<String> root = AliasTest.suggestions(client, "heraldia ", op);
 		assertEquals(List.of("arena", "caravan", "choice", "config", "event", "guide", "herald", "info", "journal", "key", "language", "profile", "quest", "reload", "review", "status", "talk", "treasure", "update", "webmap", "wizard"), root);
-		assertEquals(List.of("place", "roads", "stall"), AliasTest.suggestions(client, "heraldia herald ", op));
+		assertEquals(List.of("grounds", "place", "roads", "stall"), AliasTest.suggestions(client, "heraldia herald ", op));
 		assertEquals(List.of("confirm", "here"), AliasTest.suggestions(client, "heraldia herald place ", op));
 		assertEquals(List.of("claim", "evict", "leave", "pay"), AliasTest.suggestions(client, "heraldia herald stall ", op));
 		assertEquals(List.of("chronicle", "coast", "end", "mediums", "mines", "nether", "uniques", "villages"), AliasTest.suggestions(client, "heraldia journal ", op));

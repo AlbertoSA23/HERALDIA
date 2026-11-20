@@ -2088,5 +2088,14 @@
   "heraldia.config.casa_heraldo.caminos.activado": "Camiños da Casa do Heraldo: ao colocarse o pobo, de cada porta sae un camiño iluminado con lanternas (sen monstros enriba) coas cabanas de comerciantes humildes; o que mira cara á area chega ata ela, coa cabana do guía á saída do pobo. Nun mundo cuxo pobo xa existía, só con /heraldia herald roads",
   "heraldia.config.casa_heraldo.caminos.activado.nombre": "Camiños e cabanas",
   "heraldia.config.casa_heraldo.caminos.aldeanos": "Aldeáns das cabanas dos camiños, en total (o guía incluído; un por cabana): cada aldeán coa súa IA custa algo de tempo de servidor mentres haxa un xogador preto",
-  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Aldeáns das cabanas"
+  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Aldeáns das cabanas",
+  "heraldia.casa_heraldo.alrededores.construyendo": "Preparando os arredores da Casa do Heraldo…",
+  "heraldia.casa_heraldo.alrededores.hechos": "Arredores da Casa do Heraldo listos: %s columnas aplanadas, %s casas, %s cerdeiras",
+  "heraldia.casa_heraldo.alrededores.nada": "Os arredores da Casa do Heraldo xa están preparados: non queda nada por facer",
+  "heraldia.casa_heraldo.alrededores.desactivados": "Os arredores da Casa do Heraldo están desactivados (casa_heraldo.alrededores.activado)",
+  "heraldia.casa_heraldo.alrededores.ocupado": "Xa se está a construír algo da Casa do Heraldo: agarda a que remate",
+  "heraldia.config.casa_heraldo.alrededores.activado": "Arredores da Casa do Heraldo: ao colocarse a vila (despois dos seus camiños), o anel protexido que a rodea aplánase nun terreo suave e camiñable que se funde co natural no seu bordo (nunca se corta nin se enche máis de 10 bloques), con unhas poucas cerdeiras e casas pequenas cun cofre de botín (sen aldeáns). Nun mundo cuxa vila xa existía, só con /heraldia herald grounds",
+  "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Arredores aplanados",
+  "heraldia.config.casa_heraldo.alrededores.casas": "Casas pequenas nos arredores da Casa do Heraldo (non se constrúe ningunha onde o terreo non o permite)",
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Casas dos arredores"
 }

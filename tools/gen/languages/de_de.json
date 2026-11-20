@@ -2088,5 +2088,14 @@
   "heraldia.config.casa_heraldo.caminos.activado": "Wege des Hauses des Herolds: Wenn die Stadt platziert wird, führt aus jedem Tor ein mit Laternen beleuchteter Weg (auf dem keine Monster erscheinen), gesäumt von den Hütten einfacher Händler; der zur Arena weisende führt bis zu ihr, mit der Hütte des Führers am Stadtausgang. In einer Welt, deren Stadt schon stand, nur mit /heraldia herald roads",
   "heraldia.config.casa_heraldo.caminos.activado.nombre": "Wege und Hütten",
   "heraldia.config.casa_heraldo.caminos.aldeanos": "Dorfbewohner in den Hütten am Weg, insgesamt (der Führer eingeschlossen; einer pro Hütte): Jeder Dorfbewohner mit seiner KI kostet etwas Serverzeit, solange ein Spieler in der Nähe ist",
-  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Dorfbewohner der Hütten"
+  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Dorfbewohner der Hütten",
+  "heraldia.casa_heraldo.alrededores.construyendo": "Die Umgebung des Hauses des Herolds wird vorbereitet…",
+  "heraldia.casa_heraldo.alrededores.hechos": "Die Umgebung des Hauses des Herolds ist fertig: %s Säulen eingeebnet, %s Häuser, %s Kirschbäume",
+  "heraldia.casa_heraldo.alrededores.nada": "Die Umgebung des Hauses des Herolds ist bereits vorbereitet: Es gibt nichts mehr zu tun",
+  "heraldia.casa_heraldo.alrededores.desactivados": "Die Umgebung des Hauses des Herolds ist deaktiviert (casa_heraldo.alrededores.activado)",
+  "heraldia.casa_heraldo.alrededores.ocupado": "Am Haus des Herolds wird bereits gebaut: Warte, bis es fertig ist",
+  "heraldia.config.casa_heraldo.alrededores.activado": "Umgebung des Hauses des Herolds: Wenn die Stadt platziert wird (nach ihren Wegen), wird der geschützte Ring um sie zu sanftem, begehbarem Gelände eingeebnet, das am Rand in das natürliche übergeht (nie mehr als 10 Blöcke abgetragen oder aufgefüllt), mit ein paar Kirschbäumen und kleinen Häusern mit einer Beutetruhe (ohne Dorfbewohner). In einer Welt, deren Stadt schon stand, nur mit /heraldia herald grounds",
+  "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Eingeebnete Umgebung",
+  "heraldia.config.casa_heraldo.alrededores.casas": "Kleine Häuser in der Umgebung des Hauses des Herolds (wo der Boden es nicht erlaubt, wird keines gebaut)",
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Häuser der Umgebung"
 }

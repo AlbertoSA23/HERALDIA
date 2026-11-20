@@ -96,7 +96,7 @@ public final class BuiltRoads {
 	static final int MAX_LEAVES = 12000;
 
 	/** Natural growth over the ground, cleared from the road: trees (logs, leaves), plants, mushrooms, snow. */
-	static boolean growth(BlockState s) {
+	public static boolean growth(BlockState s) {
 		if (s.is(BlockTags.LEAVES) || s.is(Blocks.MANGROVE_ROOTS)) {
 			return true;                            // waterlogged too (mangroves)
 		}
@@ -137,7 +137,7 @@ public final class BuiltRoads {
 	}
 
 	/** Ground that may be cut away under a road: natural terrain and the ores near the surface. */
-	static boolean terrain(BlockState s) {
+	public static boolean terrain(BlockState s) {
 		return kind(s) != null || s.is(BlockTags.IRON_ORES) || s.is(BlockTags.COPPER_ORES) || s.is(Blocks.COAL_ORE)
 				|| s.is(Blocks.DEEPSLATE) || s.is(Blocks.SNOW_BLOCK) || s.is(Blocks.ICE) || s.is(Blocks.PACKED_ICE);
 	}
@@ -158,7 +158,7 @@ public final class BuiltRoads {
 	}
 
 	/** What fills the ground under a road (or a shoulder) raised over a dip. */
-	static BlockState fill(RoadProfile.Ground g) {
+	public static BlockState fill(RoadProfile.Ground g) {
 		return (switch (g) {
 			case MUD -> Blocks.PACKED_MUD;
 			case DIRT -> Blocks.DIRT;

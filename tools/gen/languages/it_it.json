@@ -2088,5 +2088,14 @@
   "heraldia.config.casa_heraldo.caminos.activado": "Strade della Casa dell'Araldo: quando la città viene posizionata, da ogni porta parte una strada illuminata da lanterne (su cui non compaiono mostri), con le capanne di umili mercanti; quella rivolta verso l'arena arriva fino a lei, con la capanna della guida all'uscita della città. In un mondo la cui città esisteva già, solo con /heraldia herald roads",
   "heraldia.config.casa_heraldo.caminos.activado.nombre": "Strade e capanne",
   "heraldia.config.casa_heraldo.caminos.aldeanos": "Abitanti delle capanne lungo le strade, in tutto (la guida compresa; uno per capanna): ogni abitante con la sua IA costa un po' di tempo del server finché un giocatore è vicino",
-  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Abitanti delle capanne"
+  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Abitanti delle capanne",
+  "heraldia.casa_heraldo.alrededores.construyendo": "Preparazione dei dintorni della Casa dell'Araldo…",
+  "heraldia.casa_heraldo.alrededores.hechos": "I dintorni della Casa dell'Araldo sono pronti: %s colonne livellate, %s case, %s ciliegi",
+  "heraldia.casa_heraldo.alrededores.nada": "I dintorni della Casa dell'Araldo sono già pronti: non resta nulla da fare",
+  "heraldia.casa_heraldo.alrededores.desactivados": "I dintorni della Casa dell'Araldo sono disattivati (casa_heraldo.alrededores.activado)",
+  "heraldia.casa_heraldo.alrededores.ocupado": "Si sta già costruendo qualcosa della Casa dell'Araldo: aspetta che finisca",
+  "heraldia.config.casa_heraldo.alrededores.activado": "Dintorni della Casa dell'Araldo: quando il borgo viene posizionato (dopo le sue strade), l'anello protetto che lo circonda viene livellato in un terreno dolce e percorribile che sul bordo si fonde con quello naturale (mai più di 10 blocchi scavati o riempiti), con pochi ciliegi e piccole case con un baule di bottino (senza abitanti). In un mondo il cui borgo esisteva già, solo con /heraldia herald grounds",
+  "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Dintorni livellati",
+  "heraldia.config.casa_heraldo.alrededores.casas": "Piccole case nei dintorni della Casa dell'Araldo (non se ne costruisce nessuna dove il terreno non lo permette)",
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Case dei dintorni"
 }

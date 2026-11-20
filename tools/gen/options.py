@@ -524,6 +524,18 @@ _FIXED = [
      "algo de tiempo de servidor mientras haya un jugador cerca",
      "Villagers in the roadside huts, in all (the guide included; one per hut): each villager with its AI costs some server "
      "time while a player is near"),
+    ("casa_heraldo.alrededores.activado", True, None, None,
+     "Alrededores de la Casa del Heraldo: al colocarse el pueblo (tras sus caminos), el anillo protegido que lo rodea se "
+     "allana en un terreno suave y caminable que se funde con el natural en su borde (sin tajos de más de 10 bloques), con "
+     "unos pocos cerezos y casas pequeñas con un cofre de botín (sin aldeanos). En un mundo cuyo pueblo ya existía, solo "
+     "con /heraldia herald grounds",
+     "Herald's House grounds: when the town is placed (after its roads), the protected ring around it is levelled into "
+     "gentle, walkable ground that blends into the natural terrain at its edge (never cut or filled by more than 10 "
+     "blocks), with a few cherry trees and small houses with a loot chest (no villagers). In a world whose town was "
+     "already there, only with /heraldia herald grounds"),
+    ("casa_heraldo.alrededores.casas", 8, 0, 12,
+     "Casas pequeñas en los alrededores de la Casa del Heraldo (no se construye ninguna donde el suelo no lo permite)",
+     "Small houses in the Herald's House grounds (none is built where the ground does not allow it)"),
     ("eventos.activado", True, None, None,
      "Eventos en las aldeas: de vez en cuando, con un jugador en una aldea de Heraldia, su plaza celebra un día de "
      "mercado, una boda, un funeral o una fiesta durante unos minutos (puestos, un arco, un féretro o una hoguera, y "
@@ -776,6 +788,8 @@ _NAMES = {
     "casa_heraldo.generar_en_mundos_nuevos": ("Construirla en mundos nuevos", "Build it in new worlds"),
     "casa_heraldo.caminos.activado": ("Caminos y chozas", "Roads and huts"),
     "casa_heraldo.caminos.aldeanos": ("Aldeanos de las chozas", "Hut villagers"),
+    "casa_heraldo.alrededores.activado": ("Alrededores allanados", "Levelled grounds"),
+    "casa_heraldo.alrededores.casas": ("Casas de los alrededores", "Houses around the town"),
     "casa_heraldo.mercado.activado": ("Puestos de alquiler", "Stalls for rent"),
     "casa_heraldo.mercado.entrada_esmeraldas": ("Entrada (esmeraldas)", "Entry fee (emeralds)"),
     "casa_heraldo.mercado.alquiler_esmeraldas": ("Alquiler (esmeraldas)", "Rent (emeralds)"),

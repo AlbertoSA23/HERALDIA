@@ -34,6 +34,7 @@ import parallel
 import herald_house
 import filler_loot
 import spawn_roads
+import herald_grounds
 from uniques._common import chest_loot
 
 STD = dict(size=6, maxdist=92)
@@ -355,7 +356,8 @@ def write(reg, out):
     jdump(out, "data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     advancements.write(out, reg, unique_mods, jdump)
     for writes in (board.write, roads.write, arena_waves.write, quests.write, caravans.write,
-                    wizard_huts.write, chronicle_ending.write, dialogue.write, herald_house.write, spawn_roads.write):
+                    wizard_huts.write, chronicle_ending.write, dialogue.write, herald_house.write, spawn_roads.write,
+                    herald_grounds.write):
         writes(out, jdump)
     translated = languages.complete(texts(reg), book_pages(reg, out),
                                    languages.sign_keys(nbt for t in reg.templates.values() for _, nbt in t.blocks.values() if nbt))
@@ -384,7 +386,8 @@ def texts(reg):
             out[lang].update(lang_texts)
     parts = [maps.lang(dimensions.overworld_only(unique_mods)), advancements.build(reg, unique_mods, mediums.modules(), mines, coast)[1], trades.lang(),
               board.lang(), roads.LANG, mediums.lang(), mines.lang(), coast.lang(), guide.lang(), arena_waves.lang(), admin.lang(), updates.lang(), light_profile.lang(), quests.lang(), caravans.lang(), wizard_huts.lang(),
-              trophies_lang(), chest_loot.story_lang(unique_mods), treasure.lang(), chronicle_ending.lang(), dialogue.lang(), herald_house.lang(), spawn_roads.lang(), village_events.lang()]
+              trophies_lang(), chest_loot.story_lang(unique_mods), treasure.lang(), chronicle_ending.lang(), dialogue.lang(), herald_house.lang(), spawn_roads.lang(), village_events.lang(),
+              herald_grounds.lang()]
     for part in parts:
         assert part["es_es"].keys() == part["en_us"].keys()
         for lang, lang_texts in part.items():
