@@ -1867,6 +1867,8 @@ def construct(dressed=True):
             dx, dz = OPEN_DIR[side]
             start = (x + dx, z + dz)
             t.paths.append((b.name, start, path(t, start, plots)))
+    if dressed:
+        herald_dress.lanes(t)
     golems(t)
     t.blds = blds
     return t

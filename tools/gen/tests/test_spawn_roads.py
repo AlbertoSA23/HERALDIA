@@ -241,3 +241,14 @@ def test_the_texts_in_every_language():
         for k in base["es_es"]:
             assert k in t, (code, k)
     assert s.text_errors({c: languages.load_data(c) for c in languages.TRANSLATIONS}) == []
+
+
+def test_the_door_rule_is_really_checked_on_each_hut():
+    """A block in front of a hut's door breaks the rule: no porch cover hides the door from the check (a door under a
+    cover on its way out is skipped by doors.template_report, so a hut's porch stays open over its door)."""
+    for name, t in s.templates().items():
+        x, y, z = s.DOOR
+        assert doors.template_report(t) == [], name
+        t.set(x, 1, z - 2, "cobblestone")
+        t.set(x, 2, z - 2, "cobblestone")
+        assert doors.template_report(t), name

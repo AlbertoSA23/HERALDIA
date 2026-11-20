@@ -470,6 +470,32 @@ def forecourt(t):
                     t.set(x, y, z, stone(x, y, z, 0, hh.FLOOR * 3, along=x + z))
 
 
+LANE = ("cobblestone", "cobblestone", "cobblestone", "mossy_cobblestone", "andesite", "stone", "gravel", "dirt_path")
+VERGE = ("coarse_dirt", "rooted_dirt", "gravel")
+
+
+def lanes(t):
+    """The paths from each door to its street, cobbled: a worn mix instead of one thread of dirt path, and a verge that
+    fades into the grass in patches. Full blocks or a path under every step: a villager walks it as before."""
+    hh = _hh()
+    F = hh.FLOOR
+    done = set()
+    for _, _, cells in t.paths:
+        for x, z in cells or ():
+            if (x, z) in done or t.street.get((x, z)) or _name(t.get(x, F, z)) != "dirt_path":
+                continue
+            done.add((x, z))
+            t.set(x, F, z, LANE[hh._h(x, 3, z) % len(LANE)])
+    for x, z in done:
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            n = (x + dx, z + dz)
+            if n in done or _name(t.get(n[0], F, n[1])) != "grass_block" or not t.is_free(n[0], F + 1, n[1]):
+                continue
+            if _noise(n[0] * 2, n[1] * 2, 11) > 0.55:
+                t.set(n[0], F, n[1], VERGE[hh._h(n[0], 5, n[1]) % len(VERGE)])
+    return len(done)
+
+
 def dress(t, blds):
     forecourt(t)
     wall(t, blds)
