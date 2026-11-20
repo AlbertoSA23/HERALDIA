@@ -5,6 +5,7 @@ See docs/unicas/palace.md for the walkthrough and the function of each room.
 """
 import math, random
 from core import Template, parse_state, state_str, B
+import filler_loot
 from .._common import pieces
 
 W, D, CX = 81, 123, 40
@@ -499,6 +500,9 @@ def platform_and_hall(o):
     o.piston_door([(38, 8, 63), (38, 9, 63)], "east", [(40, 8, 63), (40, 9, 63)], RED, label="trono")
     o.lever(38, 9, 61, "north", True, label="trono")
     o.dispenser(38, 8, 62, "north", arrows=0, triggered=True)
+    # the throne column's dispenser is only a block of the secret door's circuit (its lever keeps it powered): left
+    # empty on purpose, or the circuit would spit its loot out each time the door is worked
+    filler_loot.leave_empty(o.t, 38, 8, 62, "palace: redstone part of the secret door, not storage")
     o.lever(42, 9, 61, "north", False, label="senuelo")
     o.dispenser(42, 8, 62, "north", arrows=6)
     o.mech.append(dict(kind="senuelo", label="senuelo", lever=(42, 9, 61), disp=(42, 8, 62)))

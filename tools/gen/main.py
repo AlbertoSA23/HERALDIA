@@ -18,6 +18,7 @@ import biomes
 import trades, board
 import arena_waves
 import wizard_huts
+import filler_loot
 from themes import THEMES
 from lint import lint_registry, summarize
 
@@ -39,7 +40,7 @@ def main():
                          + [{s: chest_loot.trophy(s, m.TROPHY) for s, m in uniques.modules() if getattr(m, "TROPHY", None)}]
                          + [history_tables(uniques.modules()) if not reg.warnings else {}]
                          + [trades.items(uniques.modules()), board.items(THEMES), board.tables(), mediums.tables(), mines.tables(), coast.tables(),
-                            arena_waves.tables(), wizard_huts.tables()])
+                            arena_waves.tables(), wizard_huts.tables(), filler_loot.tables()])
     if errs or lerrs or reg.warnings:
         print("ERRORES:", errs, lerrs, reg.warnings[:20])
         return 1

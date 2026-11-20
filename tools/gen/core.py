@@ -5,6 +5,7 @@ from nbtlib import Compound, List, Int, String, Double, Byte, Float, File
 
 DATA_VERSION = 5023          # Minecraft 26.3
 NS = "heraldia"
+EMPTY_MARK = "heraldia_empty_on_purpose"   # a container left empty on purpose (filler_loot.leave_empty); never written
 
 _STATE_RE = re.compile(r"^([a-z0-9_:./]+)(?:\[(.*)\])?$")
 
@@ -153,6 +154,7 @@ class Template:
                     e["properties"] = Compound({k: String(v) for k, v in props.items()})
                 palette.append(Compound(e))
             b = {"pos": List[Int]([Int(c) for c in pos]), "state": Int(index[st])}
+            nbt = _written(nbt)
             if nbt:
                 b["nbt"] = to_tag(nbt)
             blocks.append(Compound(b))
@@ -194,7 +196,7 @@ class Template:
             if st not in index:
                 index[st] = len(palette)
                 palette.append(st)
-            blocks.append((pos, index[st], nbt))
+            blocks.append((pos, index[st], _written(nbt)))
         _tag(w, 9, "palette")
         w(b"\x0a" + _I.pack(len(palette)))
         for st in palette:
@@ -243,11 +245,22 @@ class Template:
         return gzip.compress(self.nbt_raw(), compresslevel=9, mtime=0)
 
     def save(self, root_dir):
+        """Writes the template; first every container without a table gets its filler table (filler_loot.fill, which
+        fails if one has neither a table, nor a rule, nor the empty-on-purpose mark)."""
+        import filler_loot
+        filler_loot.fill(self)
         path = os.path.join(root_dir, "data", NS, "structure", self.name + ".nbt")
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "wb") as f:
             f.write(self.nbt_bytes())
         return path
+
+
+def _written(nbt):
+    """A block's nbt as it goes into the .nbt: without the generator's own mark EMPTY_MARK."""
+    if nbt and EMPTY_MARK in nbt:
+        return {k: v for k, v in nbt.items() if k != EMPTY_MARK}
+    return nbt
 
 
 _I, _D, _H = struct.Struct(">i"), struct.Struct(">d"), struct.Struct(">H")

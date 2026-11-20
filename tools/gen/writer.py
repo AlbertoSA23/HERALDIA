@@ -32,6 +32,7 @@ import languages
 import treasure
 import parallel
 import herald_house
+import filler_loot
 import spawn_roads
 from uniques._common import chest_loot
 
@@ -262,6 +263,7 @@ def write(reg, out):
         if name == "epico":
             table = maps.with_maps(table, with_map)
         jdump(out, f"data/{NS}/loot_table/cofres/{name}.json", lootr_aware(table))
+    filler_loot.write(out, jdump)                         # the poor filler of every container without a table of its own
     maps.write(out, with_map, jdump)
     trades.write(out, unique_mods, jdump)
     with_hint = treasure.tables_in_containers(reg)       # the treasure fragment, only in chests, barrels and pots
