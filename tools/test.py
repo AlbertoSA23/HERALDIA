@@ -80,8 +80,11 @@ RUNTIME_PATHS = [RUNTIME, "tools/smoke/TickSampler.java", "tools/smoke/runtime_r
 RUNTIME_PATHS += [JAVA + "events/*"]          # village events: up to 25 entities in a square while one lasts
 RUNTIME_PATHS += [JAVA + "herald/*", "tools/gen/herald_house.py"]   # the Herald's House (scenario casa_heraldo)
 RUNTIME_PATHS += ["tools/gen/spawn_roads.py", JAVA + "roads/SpawnRoadLayout.java", JAVA + "roads/BuiltRoads.java"]   # its roads' huts (the same scenario)
+RUNTIME_PATHS += ["tools/gen/herald_grounds.py"]   # its grounds' houses and trees (the same scenario; no entities)
 # The Herald's House roads (herald/SpawnRoads): both placement orders and a town from before the roads.
 SPAWN_ROADS = ["tools/smoke/spawn_roads.py"]
+# The Herald's House grounds (herald/Outskirts): a town from before them (the command) and a new world (after its roads).
+HERALD_GROUNDS = ["tools/smoke/herald_grounds.py"]
 MEDIUMS = ["tools/smoke/medium_structures.py"]
 ADMIN = ["tools/smoke/admin.py"]
 UPDATE = ["tools/smoke/update_check.py"]
@@ -232,6 +235,9 @@ MAP = [
     # the Herald's House roads (built, not generated): their layout, their build, the huts and the guide
     (JAVA + "roads/SpawnRoadLayout.java", SPAWN_ROADS), (JAVA + "roads/BuiltRoads.java", SPAWN_ROADS),
     ("tools/gen/spawn_roads.py", SPAWN_ROADS), (JAVA + "herald/SpawnRoads.java", SPAWN_ROADS + ["tools/smoke/arena.py"]),
+    # the Herald's House grounds (built, not generated): their plan, their build, the houses and the trees; the roads
+    # cross them and go round their houses
+    (JAVA + "herald/Outskirts*.java", HERALD_GROUNDS + SPAWN_ROADS), ("tools/gen/herald_grounds.py", HERALD_GROUNDS + SPAWN_ROADS),
     (JAVA + "roads/*", ["tools/smoke/roads.py"]), ("tools/gen/roads.py", ["tools/smoke/roads.py"]),
     # common code: full suite
     ("tools/gen/uniques/_common/*", FULL), ("tools/gen/uniques/__init__.py", FULL), ("tools/gen/writer.py", FULL),

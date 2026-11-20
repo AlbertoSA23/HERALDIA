@@ -240,11 +240,15 @@ public final class SpawnRoads {
 
 	/** The town was just placed (Building finished): its roads, if the feature is on. */
 	static void townPlaced(ServerLevel level, Grounds g, @Nullable ServerPlayer who) {
+		Outskirts.queue(level, g, who);                 // the grounds around it, once its roads are done
 		if (!enabled()) {
 			LOGGER.info("Heraldia: herald's house roads: disabled ({} = false)", ENABLED);
+			Outskirts.roadsDone(level);
 			return;
 		}
-		start(level, g, who);
+		if (!start(level, g, who)) {
+			Outskirts.roadsDone(level);
+		}
 	}
 
 	/** The arena was just placed: its road, if this world has the town's roads and that road is still missing. */
@@ -254,9 +258,9 @@ public final class SpawnRoads {
 		if (g == null || level != HeraldHouse.level() || !enabled() || !s.built() || s.arena().isPresent()) {
 			return;
 		}
-		if (work != null || Building.busy()) {
+		if (work != null || Building.busy() || Outskirts.busy()) {
 			if (work != null) {
-				work.again = true;                  // once the work in course ends
+				work.again = true;                  // once the work in course ends (the grounds' end asks again too)
 			}
 			return;
 		}
@@ -454,8 +458,9 @@ public final class SpawnRoads {
 			boolean guide, String side, boolean built) {
 		ServerLevel level = w.level;
 		Map<Long, Boolean> memo = new HashMap<>();
-		SpawnRoadLayout.Structures structures = (cx, cz) -> memo.computeIfAbsent(RoadLayout.pack(cx, cz),
-				k -> Arena.structureAt(level, cx, cz));
+		Set<Long> houses = Outskirts.houseChunks();         // the grounds' houses: gone round as any structure
+		SpawnRoadLayout.Structures structures = (cx, cz) -> houses.contains(RoadLayout.pack(cx, cz))
+				|| memo.computeIfAbsent(RoadLayout.pack(cx, cz), k -> Arena.structureAt(level, cx, cz));
 		long t0 = System.nanoTime();
 		CompletableFuture.supplyAsync(() -> SpawnRoadLayout.arenaPlan(gates, arena, seed, structures, town(w.g), p), Util.backgroundExecutor())
 				.whenCompleteAsync((plan, err) -> {
@@ -736,9 +741,9 @@ public final class SpawnRoads {
 		}
 	}
 
-	/** Columns the roads never touch: the town's footprint and the arena's box. */
+	/** Columns the roads never touch: the town's footprint, the arena's box and the grounds' houses. */
 	private static boolean skip(Work w, int x, int z) {
-		if (w.g.inColumns(x, z)) {
+		if (w.g.inColumns(x, z) || Outskirts.inHouse(x, z)) {
 			return true;
 		}
 		SpawnRoadLayout.Box a = arenaBox();
@@ -988,6 +993,7 @@ public final class SpawnRoads {
 		if (w.who != null && !w.who.hasDisconnected()) {
 			w.who.sendSystemMessage(Texts.t(K + "hechos", w.roads, w.newHuts, w.newVillagers).withStyle(ChatFormatting.GOLD));
 		}
+		Outskirts.roadsDone(w.level);                   // a town just placed: its grounds, now that its roads are done
 		if (w.again) {
 			arenaPlaced(w.level);
 		}
@@ -1007,7 +1013,7 @@ public final class SpawnRoads {
 			src.sendFailure(Texts.t(HeraldHouse.K + "no_existe"));
 			return 0;
 		}
-		if (work != null || Building.busy()) {
+		if (work != null || Building.busy() || Outskirts.busy()) {
 			src.sendFailure(Texts.t(K + "ocupado"));
 			return 0;
 		}

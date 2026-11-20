@@ -2088,5 +2088,14 @@
   "heraldia.config.casa_heraldo.caminos.activado": "Camins de la Casa de l'Herald: quan es col·loca el poble, de cada porta en surt un camí il·luminat amb fanals (sense monstres a sobre) amb les cabanes de comerciants humils; el que mira cap a l'arena hi arriba, amb la cabana del guia a la sortida del poble. En un món on el poble ja existia, només amb /heraldia herald roads",
   "heraldia.config.casa_heraldo.caminos.activado.nombre": "Camins i cabanes",
   "heraldia.config.casa_heraldo.caminos.aldeanos": "Vilatans de les cabanes dels camins, en total (el guia inclòs; un per cabana): cada vilatà amb la seva IA costa una mica de temps de servidor mentre hi hagi un jugador a prop",
-  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Vilatans de les cabanes"
+  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Vilatans de les cabanes",
+  "heraldia.casa_heraldo.alrededores.construyendo": "Preparant els voltants de la Casa de l'Herald…",
+  "heraldia.casa_heraldo.alrededores.hechos": "Voltants de la Casa de l'Herald enllestits: %s columnes aplanades, %s cases, %s cirerers",
+  "heraldia.casa_heraldo.alrededores.nada": "Els voltants de la Casa de l'Herald ja estan preparats: no queda res per fer",
+  "heraldia.casa_heraldo.alrededores.desactivados": "Els voltants de la Casa de l'Herald estan desactivats (casa_heraldo.alrededores.activado)",
+  "heraldia.casa_heraldo.alrededores.ocupado": "Ja s'està construint alguna cosa de la Casa de l'Herald: espera que acabi",
+  "heraldia.config.casa_heraldo.alrededores.activado": "Voltants de la Casa de l'Herald: quan es col·loca el poble (després dels seus camins), l'anell protegit que l'envolta s'aplana en un terreny suau i transitable que es fon amb el natural a la vora (mai no es retalla ni s'omple més de 10 blocs), amb uns quants cirerers i cases petites amb un cofre de botí (sense vilatans). En un món on el poble ja hi era, només amb /heraldia herald grounds",
+  "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Voltants aplanats",
+  "heraldia.config.casa_heraldo.alrededores.casas": "Cases petites als voltants de la Casa de l'Herald (no se'n construeix cap on el terreny no ho permet)",
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Cases dels voltants"
 }

@@ -103,6 +103,7 @@ public final class HeraldHouse {
 		plan = HousePlan.fromJar();
 		Saved.Type.HOUSE.identifier();       // the attachment, registered before the world loads (see LESSONS)
 		SpawnRoads.register();              // its roads (their attachment too)
+		Outskirts.register();               // its grounds (their attachment too)
 		ServerLifecycleEvents.SERVER_STARTED.register(HeraldHouse::onStart);
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			grounds = null;
@@ -383,6 +384,7 @@ public final class HeraldHouse {
 	private static void tick(MinecraftServer server) {
 		Building.tick(server);
 		SpawnRoads.tick(server);
+		Outskirts.tick(server);
 		if (grounds != null && server.getTickCount() % Market.CHECK_TICKS == 0) {
 			Market.check(server);
 		}
@@ -474,7 +476,7 @@ public final class HeraldHouse {
 
 	// --- commands ---
 
-	/** /heraldia herald [place [here | confirm] | roads | stall ...] (registered by command/HeraldiaCommands). */
+	/** /heraldia herald [place [here | confirm] | roads | grounds | stall ...] (registered by command/HeraldiaCommands). */
 	public static LiteralArgumentBuilder<CommandSourceStack> node() {
 		return Commands.literal("herald")
 				.executes(HeraldHouse::info)
@@ -484,6 +486,8 @@ public final class HeraldHouse {
 						.then(Commands.literal("confirm").executes(HeraldHouse::confirm)))
 				.then(Commands.literal("roads").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
 						.executes(SpawnRoads::command))
+				.then(Commands.literal("grounds").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+						.executes(Outskirts::command))
 				.then(Market.node());
 	}
 

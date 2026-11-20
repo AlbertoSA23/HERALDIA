@@ -1,0 +1,245 @@
+package io.github.albertosa23.heraldia.herald;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.function.IntBinaryOperator;
+import org.junit.jupiter.api.Test;
+
+/**
+ * OutskirtsPlan: the grounds' heights on made-up terrain. Walkable where the caps allow it (no two side by side columns
+ * more than a block apart), within the caps everywhere, the town's ground at its footprint, the edge as it was, the
+ * shore never under the water, the houses on flat pads, the trees on gentle ground.
+ */
+class OutskirtsPlanTest {
+	static final int RING = 50, SIDE = 128, N = SIDE + 2 * RING, GROUND = 70;
+	static final OutskirtsPlan.Params P = new OutskirtsPlan.Params(10, 10, 6, 1, 5);
+
+	/** A grid from a height function (world x, z from 0 at the area's corner), the town in the middle. */
+	static OutskirtsPlan grid(IntBinaryOperator height, byte[] kind, int[] h) {
+		for (int x = 0; x < N; x++) {
+			for (int z = 0; z < N; z++) {
+				int i = x * N + z;
+				boolean town = x >= RING && z >= RING && x < RING + SIDE && z < RING + SIDE;
+				if (kind[i] == 0 && !town) {
+					kind[i] = OutskirtsPlan.LAND;
+				}
+				if (town) {
+					kind[i] = OutskirtsPlan.TOWN;
+				}
+				h[i] = town ? GROUND : height.applyAsInt(x, z);
+			}
+		}
+		return new OutskirtsPlan(0, 0, N, kind, h, GROUND, P);
+	}
+
+	static OutskirtsPlan.Result plan(OutskirtsPlan p, List<OutskirtsPlan.Slot> slots, int houses, List<int[]> sites) {
+		return p.plan(slots, houses, sites, 10, new boolean[N * N]);
+	}
+
+	static int steps(byte[] kind, int[] t) {
+		int out = 0;
+		for (int x = 0; x < N; x++) {
+			for (int z = 0; z < N; z++) {
+				int i = x * N + z;
+				if (kind[i] != OutskirtsPlan.LAND) {
+					continue;
+				}
+				if (x + 1 < N && kind[i + N] != OutskirtsPlan.WATER && Math.abs(t[i + N] - t[i]) > 1) {
+					out++;
+				}
+				if (z + 1 < N && kind[i + 1] != OutskirtsPlan.WATER && Math.abs(t[i + 1] - t[i]) > 1) {
+					out++;
+				}
+			}
+		}
+		return out;
+	}
+
+	static void caps(byte[] kind, int[] h, int[] t) {
+		for (int i = 0; i < N * N; i++) {
+			if (kind[i] == OutskirtsPlan.LAND) {
+				assertTrue(t[i] >= h[i] - P.cut() && t[i] <= h[i] + P.fill(), "a cut or fill over the caps at " + i);
+			} else {
+				assertEquals(h[i], t[i], "a column that is not natural ground was changed");
+			}
+		}
+	}
+
+	static void edge(int[] h, int[] t) {
+		for (int k = 0; k < N; k++) {
+			for (int i : new int[] {k, (N - 1) * N + k, k * N, k * N + N - 1}) {
+				assertEquals(h[i], t[i], "the edge moved");
+			}
+		}
+	}
+
+	/** Steps of more than a block between LAND columns at least {@code from} columns in from the area's edge. */
+	static int stepsInside(byte[] kind, int[] t, int from) {
+		int out = 0;
+		for (int x = from; x < N - from; x++) {
+			for (int z = from; z < N - from; z++) {
+				int i = x * N + z;
+				if (kind[i] != OutskirtsPlan.LAND) {
+					continue;
+				}
+				if (x + 1 < N - from && kind[i + N] == OutskirtsPlan.LAND && Math.abs(t[i + N] - t[i]) > 1
+						|| z + 1 < N - from && kind[i + 1] == OutskirtsPlan.LAND && Math.abs(t[i + 1] - t[i]) > 1) {
+					out++;
+				}
+			}
+		}
+		return out;
+	}
+
+	/** Gentle natural ground (no step over a block, as most of a plain): it stays so, and its bumps go. */
+	@Test
+	void bumpyPlainBecomesWalkable() {
+		Random r = new Random(1);
+		int[] base = new int[N];
+		for (int k = 1; k < N; k++) {
+			base[k] = Math.clamp(base[k - 1] + r.nextInt(3) - 1, -4, 4);
+		}
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		OutskirtsPlan.Result res = plan(grid((x, z) -> GROUND + (base[x] + base[z]) / 2, kind, h), List.of(), 0, List.of());
+		assertEquals(0, steps(kind, res.target()), "steps left on a plain");
+		assertEquals(0, res.steep());
+		caps(kind, h, res.target());
+		edge(h, res.target());
+	}
+
+	/**
+	 * Rough natural ground (lone humps and pits of 3, steps of 2 everywhere): every step it had goes but those of the blend
+	 * into the natural ground at the edge (which keeps its own) in the outermost rows.
+	 */
+	@Test
+	void roughGroundKeepsStepsOnlyWhereItMeetsTheNaturalEdge() {
+		Random r = new Random(2);
+		int[] noise = new int[N * N];
+		for (int i = 0; i < N * N; i++) {
+			noise[i] = r.nextInt(3) + (r.nextInt(30) == 0 ? 3 : 0) - (r.nextInt(30) == 0 ? 3 : 0);
+		}
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		OutskirtsPlan.Result res = plan(grid((x, z) -> GROUND + noise[x * N + z], kind, h), List.of(), 0, List.of());
+		assertTrue(res.before() > 1000, "the made-up ground is rough: " + res.before());
+		assertEquals(0, stepsInside(kind, res.target(), 4), "steps further in than the edge's blend");
+		assertTrue(res.steps() < res.before() / 20, res.steps() + " steps left of " + res.before());
+		caps(kind, h, res.target());
+		edge(h, res.target());
+	}
+
+	@Test
+	void hillsideIsGentleAndMeetsTheTown() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		// a slope of a block every eight along x (the site the search picks: its median at the town's ground)
+		OutskirtsPlan p = grid((x, z) -> GROUND + (x - N / 2) / 8 + (int) (3 * Math.sin(z / 7.0)), kind, h);
+		OutskirtsPlan.Result res = plan(p, List.of(), 0, List.of());
+		int[] t = res.target();
+		assertEquals(0, steps(kind, t));
+		caps(kind, h, t);
+		edge(h, t);
+		for (int z = RING; z < RING + SIDE; z++) {          // beside the wall: within a block of the town's ground
+			assertTrue(Math.abs(t[(RING - 1) * N + z] - GROUND) <= 1 && Math.abs(t[(RING + SIDE) * N + z] - GROUND) <= 1);
+		}
+	}
+
+	@Test
+	void aCliffTooHighIsDoneAsWellAsTheCapsAllowAndCounted() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		OutskirtsPlan p = grid((x, z) -> x < 20 ? GROUND + 40 : GROUND, kind, h);   // a 40-block cliff in the ring
+		OutskirtsPlan.Result res = plan(p, List.of(), 0, List.of());
+		assertTrue(res.steep() > 0, "a cliff no cap can soften is reported");
+		caps(kind, h, res.target());                       // and never cut or filled over the caps
+		edge(h, res.target());
+	}
+
+	@Test
+	void theShoreStaysOverTheWater() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		for (int x = 10; x < 30; x++) {
+			for (int z = 10; z < 40; z++) {
+				kind[x * N + z] = OutskirtsPlan.WATER;
+			}
+		}
+		OutskirtsPlan p = grid((x, z) -> x >= 10 && x < 30 && z >= 10 && z < 40 ? GROUND - 2 : GROUND + 1 + (x / 9 + z / 13) % 2, kind, h);
+		int[] t = plan(p, List.of(), 0, List.of()).target();
+		for (int x = 9; x <= 30; x++) {
+			for (int z = 9; z <= 40; z++) {
+				int i = x * N + z;
+				if (kind[i] == OutskirtsPlan.LAND && (kind[i + N] == OutskirtsPlan.WATER || kind[i - N] == OutskirtsPlan.WATER
+						|| kind[i + 1] == OutskirtsPlan.WATER || kind[i - 1] == OutskirtsPlan.WATER)) {
+					assertTrue(t[i] >= GROUND - 2, "a shore column under the water's surface at " + x + " " + z);
+				}
+			}
+		}
+		assertEquals(0, steps(kind, t));
+	}
+
+	@Test
+	void keptColumnsStayAndTheGroundMeetsThem() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		for (int z = 0; z < RING; z++) {                    // a built road out of the north gate, 5 wide, as it was laid
+			for (int x = N / 2 - 2; x <= N / 2 + 2; x++) {
+				kind[x * N + z] = OutskirtsPlan.KEPT;
+			}
+		}
+		OutskirtsPlan p = grid((x, z) -> x >= N / 2 - 2 && x <= N / 2 + 2 && z < RING ? GROUND - (RING - z) / 8 : GROUND + 3
+				+ (x / 5 + z / 7) % 2, kind, h);
+		int[] t = plan(p, List.of(), 0, List.of()).target();
+		caps(kind, h, t);
+		// the road reaches the area's edge cut 6 blocks into ground that stays natural there: two fixed points the plan
+		// cannot join, so steps are allowed only in the edge's blend
+		assertEquals(0, stepsInside(kind, t, 8), "steps against the road");
+	}
+
+	@Test
+	void housesSitOnFlatPadsAndTreesOnGentleGround() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		OutskirtsPlan p = grid((x, z) -> GROUND + (int) (4 * Math.sin(x / 15.0) + 3 * Math.cos(z / 11.0)), kind, h);
+		List<OutskirtsPlan.Slot> slots = List.of(new OutskirtsPlan.Slot(0, 20, 20, 28, 29), new OutskirtsPlan.Slot(1, 190, 30, 199, 38),
+				new OutskirtsPlan.Slot(2, 100, 190, 110, 199), new OutskirtsPlan.Slot(3, 20, 100, 29, 108));
+		List<int[]> sites = new ArrayList<>(List.of(new int[] {40, 12}, new int[] {12, 160}, new int[] {215, 120}, new int[] {24, 24}));
+		OutskirtsPlan.Result res = plan(p, slots, 3, sites);
+		assertEquals(3, res.houses().size(), "three asked for, three fit");
+		int[] t = res.target();
+		for (OutskirtsPlan.House hs : res.houses()) {
+			OutskirtsPlan.Slot s = hs.slot();
+			for (int x = s.x0() - 1; x <= s.x1() + 1; x++) {
+				for (int z = s.z0() - 1; z <= s.z1() + 1; z++) {
+					assertEquals(hs.y(), t[x * N + z], "a pad that is not flat");
+				}
+			}
+		}
+		assertEquals(0, steps(kind, t));
+		caps(kind, h, t);
+		assertFalse(res.cherries().stream().anyMatch(c -> c[0] == 24 && c[1] == 24), "a tree on a house's plot");
+		assertEquals(3, res.cherries().size());
+	}
+
+	@Test
+	void aSlotOnWaterOrTooSteepIsSkipped() {
+		byte[] kind = new byte[N * N];
+		int[] h = new int[N * N];
+		for (int x = 18; x < 32; x++) {
+			for (int z = 18; z < 32; z++) {
+				kind[x * N + z] = OutskirtsPlan.WATER;
+			}
+		}
+		OutskirtsPlan p = grid((x, z) -> z > 170 ? GROUND + (z - 170) * 2 : GROUND, kind, h);
+		List<OutskirtsPlan.Slot> slots = List.of(new OutskirtsPlan.Slot(0, 20, 20, 28, 29), new OutskirtsPlan.Slot(1, 100, 200, 110, 210),
+				new OutskirtsPlan.Slot(2, 20, 100, 29, 108));
+		OutskirtsPlan.Result res = plan(p, slots, 3, List.of());
+		assertEquals(List.of(2), res.houses().stream().map(hs -> hs.slot().index()).toList());
+	}
+}

@@ -2088,5 +2088,14 @@
   "heraldia.config.casa_heraldo.caminos.activado": "Routes de la Maison du Héraut : quand la ville est placée, une route éclairée de lanternes (aucun monstre n'y apparaît) part de chaque porte, bordée des cabanes de modestes marchands ; celle qui regarde vers l'arène va jusqu'à elle, avec la cabane du guide à la sortie de la ville. Dans un monde dont la ville existait déjà, seulement avec /heraldia herald roads",
   "heraldia.config.casa_heraldo.caminos.activado.nombre": "Routes et cabanes",
   "heraldia.config.casa_heraldo.caminos.aldeanos": "Villageois des cabanes au bord des routes, en tout (le guide compris ; un par cabane) : chaque villageois avec son IA coûte un peu de temps serveur tant qu'un joueur est proche",
-  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Villageois des cabanes"
+  "heraldia.config.casa_heraldo.caminos.aldeanos.nombre": "Villageois des cabanes",
+  "heraldia.casa_heraldo.alrededores.construyendo": "Préparation des abords de la Maison du Héraut…",
+  "heraldia.casa_heraldo.alrededores.hechos": "Les abords de la Maison du Héraut sont prêts : %s colonnes aplanies, %s maisons, %s cerisiers",
+  "heraldia.casa_heraldo.alrededores.nada": "Les abords de la Maison du Héraut sont déjà prêts : il ne reste rien à faire",
+  "heraldia.casa_heraldo.alrededores.desactivados": "Les abords de la Maison du Héraut sont désactivés (casa_heraldo.alrededores.activado)",
+  "heraldia.casa_heraldo.alrededores.ocupado": "Quelque chose de la Maison du Héraut est déjà en construction : attends que ce soit fini",
+  "heraldia.config.casa_heraldo.alrededores.activado": "Abords de la Maison du Héraut : quand le bourg est placé (après ses chemins), l'anneau protégé qui l'entoure est aplani en un terrain doux et praticable qui se fond dans le relief naturel à son bord (jamais plus de 10 blocs creusés ou remblayés), avec quelques cerisiers et de petites maisons avec un coffre de butin (sans villageois). Dans un monde dont le bourg existait déjà, seulement avec /heraldia herald grounds",
+  "heraldia.config.casa_heraldo.alrededores.activado.nombre": "Abords aplanis",
+  "heraldia.config.casa_heraldo.alrededores.casas": "Petites maisons aux abords de la Maison du Héraut (aucune n'est construite là où le terrain ne le permet pas)",
+  "heraldia.config.casa_heraldo.alrededores.casas.nombre": "Maisons des abords"
 }

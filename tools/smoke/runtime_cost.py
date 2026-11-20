@@ -84,6 +84,7 @@ OWN += ["mediana", "casa_heraldo"]
 HOUSE_AT = 700                     # blocks from 0,0 (and from every other position) where the town is placed
 HOUSE_PLACED = re.compile(r"herald's house: placed at (-?\d+) (-?\d+) (-?\d+)")
 ROADS_BUILT = re.compile(r"herald's house roads: built in (\d+) ticks .*?(\d+) new villagers")
+GROUNDS_BUILT = re.compile(r"herald's house grounds: built in (\d+) ticks")
 ESCALATION = [0, 25, 50, 100, 150]          # villagers added (cumulative) in the margin steps
 ESCALATION_WARMUP_S, ESCALATION_MEASURE_S = 40, 60
 ESCALATION_RADIUS = 24                      # around the square
@@ -556,6 +557,9 @@ class Pass:
             if self.has_roads():           # its roads and huts (herald/SpawnRoads) are built right after: measured with it
                 m = s.wait_for(self.lines, ROADS_BUILT.pattern + r"|herald's house roads: disabled", 900, self.seen)
                 print("casa_heraldo:", m.group(0), flush=True)
+            if self.has("heraldia/alrededores_casa.json"):   # and then its grounds (herald/Outskirts): not measured while built
+                m = s.wait_for(self.lines, GROUNDS_BUILT.pattern + r"|herald's house grounds: disabled", 900, self.seen)
+                print("casa_heraldo:", m.group(0), flush=True)
             time.sleep(5)
         return self._house
 
@@ -564,6 +568,12 @@ class Pass:
         import zipfile
         with zipfile.ZipFile(self.jar) as z:
             return "heraldia/caminos_casa.json" in z.namelist()
+
+    def has(self, resource):
+        """Does this .jar hold that resource (a feature the reference .jar of a measurement may not have)?"""
+        import zipfile
+        with zipfile.ZipFile(self.jar) as z:
+            return resource in z.namelist()
 
     def find_road_point(self, pos):
         """A point of the road halfway between the two villages where a caravan really leaves (with Heraldia): tried at the

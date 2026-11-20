@@ -149,9 +149,11 @@ def main():
     # mandatory: the Herald's House and the huts by its roads (their templates and their places beside the four roads)
     import herald_house
     import spawn_roads
+    import herald_grounds
     t = herald_house.construct()
     must = herald_house.placement_errors(t.blds, t, herald_house.walk_cells(t)) + spawn_roads.errors()
-    print(f"mandatory (the Herald's House and its roadside huts): {len(must)} errors")
+    must += herald_grounds.errors()
+    print(f"mandatory (the Herald's House, its roadside huts and the houses around it): {len(must)} errors")
     for m in must:
         print(f"  {m}")
     return 1 if must else 0

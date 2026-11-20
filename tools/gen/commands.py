@@ -66,6 +66,7 @@ CANONICAL = [
     "journal chronicle", "journal chronicle book",   # the end of the Chronicle: guardians defeated; a copy of the last leaf
     "herald", "herald place", "herald place here", "herald place confirm",   # the Herald's House (operators place it)
     "herald roads",                              # its roads, huts and the arena road (operators, in a world whose town came first)
+    "herald grounds",                            # its levelled grounds, houses and cherry trees (operators, idem)
     "herald stall", "herald stall claim", "herald stall claim <stall>", "herald stall pay", "herald stall pay <stall>",
     "herald stall pay <stall> <periods>", "herald stall leave", "herald stall leave <stall>", "herald stall evict",
     "herald stall evict <stall>",                # its market stalls for rent
