@@ -127,6 +127,38 @@ Standing in the finished town, for comparison (default config, a funeral event r
 median 10.57 ms, p95 15.6, p99 21.1, worst 61.2, **zero ticks over 100 ms**, and **CPU over tick clock of
 0.985** — 98.5 % of the time inside ticks the thread was executing, not waiting.
 
+## The owner's criterion is already broken today, and the suite passes green
+
+Not measured here: this is the **"Coste de jugar" job of CI run 44922417286** (the run of PR #137, commit
+`52b87be`, seed `heraldia`, view and simulation distance 10, 4 cores, Linux, one 60 s pass per scenario). The
+figures were read from that job's own log, not relayed.
+
+| scenario | worst tick, no mod | worst tick, with mod |
+| --- | --- | --- |
+| **campo** (the control: one player standing in the open at 0,0) | **100.3 ms** | **105.2 ms** |
+| aldea_vanilla | 32.5 | 51.3 |
+| aldea | 26.2 | 47.7 |
+| dos_aldeas | 41.9 | 33.7 |
+| caravana | 35.2 | 31.7 |
+| aldea_arena | 58.4 | 32.0 |
+| aldea_evento | 34.8 | 40.4 |
+| dos_aldeas_evento | 45.8 | 52.8 |
+| mediana | 26.8 | 34.3 |
+| casa_heraldo | 29.0 | 44.5 |
+
+Three things follow, and the third is the one that matters:
+
+1. **The criterion is violated today**, in the project as it stands, in one scenario of ten, by about 5 ms.
+2. **It is violated in vanilla too**: 100.3 ms with none of the mod installed. The mod adds 4.9 ms.
+3. **The job passed green**, with an explicit `dentro de los límites` on that very line. A tick of 105.2 ms went
+   through the whole barrier without anyone noticing, because all three limits are percentiles — and the
+   report printed `0.1%` in its own "Ticks > 50 ms" column while doing it.
+
+That turns "the instrument is not missing, the wiring is" from an inference into a demonstrated fact, and it
+settles the shape of any threshold for exploring: **an absolute 100 ms limit on `campo` would fail CI because
+of vanilla**. The only workable form is relative — the mod may not add more than N ticks above the value
+compared with the pass without it.
+
 ## Method, and what it does not cover
 
 - Per-tick durations read from the server's own JMX bean **from outside the game**, so the figures mean the
