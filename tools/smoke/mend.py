@@ -43,7 +43,7 @@ INN_DOOR, INN_OLD_CHEST, INN_NEW_CHEST, INN_WINDOW = (16, 1, 8), (15, 1, 8), (12
 # the wharf's guard post (tools/gen/mediums/shulker_dock.py: CX, 1, AZ - 3) and the guard's name
 POST = (6, 1, 18)
 GUARD = "heraldia.medianas.embarcadero_shulker.guardia"
-MEND_DONE = r"Heraldia: update mend (scan|apply) (\S+): (\d+) steps, (\d+) ms on the server thread, the slowest (\S+ -?\d+ -?\d+) (\d+) ms[^;]*; (.*)"
+MEND_DONE = r"Heraldia: update mend (scan|apply) (\S+): (\d+) steps, (\d+) ms on the server thread, the slowest (\S+ -?\d+ -?\d+(?: \(part\))?) (\d+) ms[^;]*; (.*)"
 CONFIRM = r"heraldia update mend apply all confirm (\S+)"
 
 

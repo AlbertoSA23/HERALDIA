@@ -708,6 +708,9 @@ public final class GenerationMend {
 		}
 		// settling is not: a column per step (Shores.settle looks for each standing block's pond, up to 4,096 blocks; a
 		// whole chunk at once took 132 ms of the server thread, read in the log of a world from an earlier jar)
+		if (j.column == 0 && Repairs.standing(level, chunk, g::inArea) == 0) {
+			return true;                               // nothing standing in this chunk: no column to settle
+		}
 		int c = j.column, x = (t.cx << 4) + (c & 15), z = (t.cz << 4) + (c >> 4);
 		java.util.function.BiPredicate<Integer, Integer> in = (a, b) -> a == x && b == z && g.inArea(a, b);
 		if (g.inArea(x, z) && Repairs.standing(level, chunk, in) > 0) {
