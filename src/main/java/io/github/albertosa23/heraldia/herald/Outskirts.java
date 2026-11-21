@@ -500,7 +500,7 @@ public final class Outskirts {
 	private static final ThreadMXBean THREADS = ManagementFactory.getThreadMXBean();
 
 	/** The CPU time this thread has used, in nanoseconds (-1 where the JVM does not measure it): work, not waiting. */
-	private static long cpuNanos() {
+	static long cpuNanos() {
 		try {
 			return THREADS.isCurrentThreadCpuTimeSupported() ? THREADS.getCurrentThreadCpuTime() : -1;
 		} catch (UnsupportedOperationException e) {

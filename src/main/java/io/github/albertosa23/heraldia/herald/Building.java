@@ -91,6 +91,14 @@ final class Building {
 	private static @Nullable Work actual;
 	private static int index, ticks;
 	private static long nanos;
+	/**
+	 * Per kind of step, to say where a build's time went: how many, their time by the clock in all and the longest, and the
+	 * server thread's own CPU time in all and of that longest one (ns). The clock is what a player feels (the tick is held
+	 * either way); the CPU time tells working from waiting, which decides what kind of remedy a slow step needs.
+	 */
+	private static final long[][] byKind = new long[Phase.values().length][5];
+	private static String slowest = "";
+	private static long worst, worstCpu;
 	private static boolean docked;
 	private static Shores.Settled settled = Shores.NONE;
 	private static int cleared, dried;
@@ -125,6 +133,11 @@ final class Building {
 		actual = new Work(level, g, who, newWorld, steps, t.get());
 		index = ticks = 0;
 		nanos = 0;
+		for (long[] k : byKind) {
+			java.util.Arrays.fill(k, 0);
+		}
+		slowest = "";
+		worst = worstCpu = 0;
 		docked = false;
 		settled = Shores.NONE;
 		cleared = dried = 0;
@@ -146,12 +159,16 @@ final class Building {
 		}
 	}
 
+	private static String ms(long nanos) {
+		return nanos < 0 ? "?" : nanos / 1_000_000 + " ms";
+	}
+
 	static void tick(MinecraftServer server) {
 		Work o = actual;
 		if (o == null) {
 			return;
 		}
-		long t0 = System.nanoTime();
+		long t0 = System.nanoTime(), c0 = Outskirts.cpuNanos();
 		ticks++;
 		if (index < o.steps().size()) {
 			Step p = o.steps().get(index++);
@@ -168,7 +185,21 @@ final class Building {
 				case DRY -> dried += Shores.dry(o.level(), o.level().getChunk(p.cx(), p.cz()));
 				case ROAD -> road(o.level(), o.g(), p.side());
 			}
-			nanos += System.nanoTime() - t0;
+			long took = System.nanoTime() - t0, c1 = Outskirts.cpuNanos(), cpu = c0 < 0 || c1 < 0 ? -1 : c1 - c0;
+			nanos += took;
+			long[] k = byKind[p.phase().ordinal()];
+			k[0]++;
+			k[1] += took;
+			k[3] = cpu < 0 || k[3] < 0 ? -1 : k[3] + cpu;
+			if (took > k[2]) {
+				k[2] = took;
+				k[4] = cpu;
+			}
+			if (slowest.isEmpty() || took >= worst) {
+				worst = took;
+				worstCpu = cpu;
+				slowest = p.phase() + " " + p.cx() + " " + p.cz();
+			}
 			return;
 		}
 		actual = null;
@@ -179,6 +210,18 @@ final class Building {
 		nanos += System.nanoTime() - t0;
 		LOGGER.info("Heraldia: herald's house: built in {} ticks ({} ms on the server thread, at most a chunk per tick)",
 				ticks, nanos / 1_000_000);
+		StringBuilder kinds = new StringBuilder();
+		for (Phase ph : Phase.values()) {
+			long[] k = byKind[ph.ordinal()];
+			if (k[0] > 0) {
+				kinds.append(kinds.isEmpty() ? "" : ", ").append(ph).append(' ').append(k[0]).append(" (").append(k[1] / 1_000_000)
+						.append(" ms by the clock, ").append(ms(k[3])).append(" of CPU; the longest ").append(k[2] / 1_000_000)
+						.append(" ms, ").append(ms(k[4])).append(" of CPU)");
+			}
+		}
+		LOGGER.info("Heraldia: herald's house: the slowest step: {} ({} ms by the clock, {} of them the server thread's own work)",
+				slowest, worst / 1_000_000, ms(worstCpu));
+		LOGGER.info("Heraldia: herald's house: by kind of step: {}", kinds);
 	}
 
 	// --- terrain ---
