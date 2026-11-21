@@ -40,9 +40,11 @@ def test_the_detail_is_modest_in_blocks(t, plain):
 
 def test_nothing_that_was_kept_free_is_filled(t, plain):
     """What players and villagers walk on and through at ground level stays as it was, but for the towers' feet and the
-    wall's buttresses (on grass the plain town leaves empty)."""
+    wall's buttresses (on grass the plain town leaves empty). The planting (trees, hedges, pots) has its own tests
+    below: it stands on lawn away from every way, and the town's own rules (walks, doors, fire) still hold with it."""
+    planted = t.trees | {(x, h.FLOOR + 1, z) for x, z in t.pots}
     filled = [p for p, (st, _) in t.blocks.items() if p[1] in (h.FLOOR + 1, h.FLOOR + 2) and st != "minecraft:air"
-              and plain.blocks[p][0] == "minecraft:air"]
+              and plain.blocks[p][0] == "minecraft:air" and p not in planted]
     assert filled
     for x, y, z in filled:
         assert h._name(plain.get(x, h.FLOOR, z)) == "grass_block", (x, y, z)
@@ -131,3 +133,40 @@ def test_door_lanes_are_cobbled_and_still_walkable(t, plain):
         assert t.is_free(x, h.FLOOR + 1, z) and t.is_free(x, h.FLOOR + 2, z), (x, z)
         stone += h._name(st) != "dirt_path"
     assert stone > 0.7 * len(cells)
+
+
+def test_real_trees_stand_on_the_lawns_and_the_town_does_not_burn(t, plain):
+    trunks = {(x, z) for (x, y, z) in t.trees if h._name(t.get(x, y, z)).endswith("_log")}
+    assert len(trunks) >= 20
+    for x, z in trunks:
+        assert h._name(plain.get(x, h.FLOOR, z)) == "grass_block" and h._name(t.get(x, h.FLOOR, z)) == "rooted_dirt"
+        assert all(max(abs(x - a), abs(z - b)) >= d.TREE_APART for a, b in trunks if (a, b) != (x, z))
+        # bare lawn round the trunk in the plain town: no path, no door's way out, no building under the crown
+        assert all(h._name(plain.get(x + a, h.FLOOR, z + b)) == "grass_block" and plain.is_free(x + a, h.FLOOR + 1, z + b)
+                   for a in range(-2, 3) for b in range(-2, 3)), (x, z)
+    assert h.fire_errors(t) == []
+
+
+def test_the_fire_rule_sees_a_tree_beside_something_that_burns():
+    """The check that lets trees in can say no: a carpet under a crown is reached by a fire in the tree."""
+    tt = h.construct()
+    x, y, z = next(p for p in sorted(tt.trees) if h._name(tt.get(*p)).endswith("_leaves") and p[1] > h.FLOOR + 3)
+    tt.set(x, y + 1, z, "red_carpet") if tt.is_free(x, y + 1, z) else tt.set(x, y, z, "red_carpet")
+    assert any("carpet" in e for e in h.fire_errors(tt))
+
+
+def test_wood_and_leaves_only_where_the_planting_put_them(t):
+    tt = h.construct()
+    tt.set(60, h.FLOOR + 1, 60, "oak_log[axis=y]")
+    assert any("oak_log burns" in e for e in h.errors(tt))
+    assert not any("burns" in e for e in h.errors(t))
+
+
+def test_hedges_and_pots_keep_off_the_ways(t, plain):
+    assert len(t.hedges) >= 100 and len(t.pots) >= 20
+    ways = {c for _, start, cells in t.paths for c in [start] + list(cells or ())}
+    for x, z in list(t.hedges) + list(t.pots):
+        assert h._name(plain.get(x, h.FLOOR, z)) == "grass_block" and plain.is_free(x, h.FLOOR + 1, z)
+        assert all(max(abs(x - a), abs(z - b)) > 2 for a, b in ways), (x, z)
+    assert all(h._name(t.get(x, h.FLOOR + 1, z)).endswith("_leaves") for x, z in t.hedges)
+    assert all(h._name(t.get(x, h.FLOOR + 1, z)).startswith("potted_") for x, z in t.pots)
