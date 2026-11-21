@@ -16,13 +16,17 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.Mob;
@@ -47,6 +51,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -148,24 +153,33 @@ final class Building {
 	}
 
 	/**
-	 * One villager made and thrown away, when the server starts. The first villager a server ever makes costs the server
-	 * thread 78 ms (measured on the development container, 4 cores): the classes of its brain and of every behaviour in it
-	 * are loaded and the brain is built for the first time. Whichever step of the build placed the town's first villager
-	 * paid that on top of its own work, so the {@link Phase#TEMPLATE} step of that one chunk took 87-120 ms where the
-	 * other 63 took 26 ms, over the 100 ms a step may take. Paid here instead, in a tick nobody is playing through, the
-	 * slowest step of the build comes down to 65-75 ms (three passes). Every other kind of entity the town holds (horse, donkey, item
-	 * frame, cat, iron golem, chicken, sheep, armour stand) costs 0-2 ms the first time, so none of them is warmed up: a
-	 * new one that did cost would show up as a slow step in the build's own report, not in silence.
+	 * Two villagers made and thrown away, when the server starts. The first villager a server ever makes costs the server
+	 * thread 76 ms, and the first one read from a tag 11 ms more (measured one step at a time on the development
+	 * container, 4 cores; a second villager costs 1 ms): the classes of the brain and of every behaviour in it are loaded,
+	 * the brain is built, and the save format's codecs are read for the first time. Whichever {@link Phase#TEMPLATE} step
+	 * placed the town's first villager paid all of that on top of its own work: that chunk's step was the slowest of the
+	 * build in four runs of four, 87-120 ms where the other 63 chunks took 26 ms, and a step may take 100 ms. Paid here
+	 * instead, in a tick nobody is playing through, no chunk's step stands out any more -- the slowest is 53-68 ms and it
+	 * moves from run to run, most of it the collector and not this thread's own work.
 	 * <p>
-	 * The villager is never added to the world, so it is collected with nothing left behind.
+	 * Both are made the way {@code StructureTemplate.placeInWorld} makes the town's: one from nothing, one from a tag,
+	 * which is the path every entity of a template takes. Neither is ever added to the world, so nothing is left behind
+	 * and no other mod's entity hook sees them (adding and discarding one as well was measured at 2 ms more: not worth
+	 * the visit). Every other kind of entity the town holds -- horse, donkey, item frame, cat, iron golem, chicken,
+	 * sheep, armour stand -- costs 0-2 ms the first time, so none of them is warmed up; one added later that did cost
+	 * would show up as a slow step in the build's own report, not in silence.
 	 */
 	static void warmUp(ServerLevel level) {
 		long t0 = System.nanoTime();
 		if (EntityTypes.VILLAGER.create(level, EntitySpawnReason.STRUCTURE) == null) {
 			return;
 		}
-		LOGGER.info("Heraldia: herald's house: a villager's brain built once and thrown away in {} ms (it would otherwise fall on "
-				+ "whichever step of a town's build placed the first one)", (System.nanoTime() - t0) / 1_000_000);
+		CompoundTag tag = new CompoundTag();
+		tag.putString("id", EntityType.getKey(EntityTypes.VILLAGER).toString());
+		EntityType.create(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), tag), level,
+				new EntitySpawnRequest(EntitySpawnReason.STRUCTURE, false));
+		LOGGER.info("Heraldia: herald's house: a villager's brain and the save format read once, and thrown away, in {} ms (they would "
+				+ "otherwise fall on whichever step of a town's build placed the first villager)", (System.nanoTime() - t0) / 1_000_000);
 	}
 
 	/** Starts building {@code g}. False if the template is missing. */
