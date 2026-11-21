@@ -118,8 +118,25 @@ Not implemented, because the price is real and is the owner's to weigh:
 - The world changes between ticks, so a sliced search could answer slightly differently from the synchronous
   one. Probably irrelevant, but not identical by construction.
 
-The zero-code alternative: `/heraldia info nearby` already answers the same question off the thread. What the
-mod lacks is not the machinery but players typing it instead of `/locate`.
+The zero-code alternative: `/heraldia info nearby` already answers the same question off the thread, and it
+costs the server thread **nothing**. Measured the same way (the command times itself and reports how much of
+it was on the thread):
+
+| case | structures found | total | **on the server thread** | worst tick in the window |
+| --- | --- | --- | --- | --- |
+| radius 2000, new world, first time | 8 | 1,228 ms | **0 ms** | 42.3 ms |
+| radius 2000, repeated | 8 | 4 ms | **0 ms** | 136.2 ms (see below) |
+| radius 8000 (the whole grid), first time | 21 | **11,557 ms** | **0 ms** | 25.3 ms |
+| radius 2000, after a restart | 8 | 72 ms | **0 ms** | 31.7 ms |
+
+A search of **11.5 seconds** costs the server thread **0 ms** — nine times longer than the `/locate` that
+freezes it for 2.3 s, and nobody playing notices. So the machinery for a safe answer exists and works; what the
+mod lacks is players typing it instead of `/locate`. The price of this option is in the answer's latency, not
+in the tick.
+
+One honest loose end: the "repeated" window holds a tick of **136.2 ms** that the command does not account for
+— it took 4 ms and reported 0 ms on the thread, and its second worst tick is 27.3 ms. It was **not** identified;
+attributing it would need a run that timestamps each tick. It is recorded here rather than left out.
 
 ## Exploring: measured for the first time
 
@@ -199,7 +216,6 @@ compared with the pass without it.
   verified against the entity's own final position (792 and 3,113 blocks), not assumed — an earlier attempt
   with a Carpet player walking moved it 16 blocks in 140 s and would otherwise have been reported as
   exploration.
-- `/heraldia info nearby`'s on-thread cost is **not measured here**.
 
 ## A correctness reservation about the Atlantis anchor
 
