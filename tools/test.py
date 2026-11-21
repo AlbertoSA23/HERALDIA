@@ -422,13 +422,13 @@ DURATION_S = {
     "tools/smoke/wizard_huts.py": 85,               # two starts, four huts and three Evil Wizards
     "tools/smoke/caravans.py": 380,                 # two starts, 387 corridor chunks, 5 caravans and the 9 wayfarers of wayfarers.py
     "tools/smoke/ambience.py": 145,                 # one start, three /locate'd structures, ~11,000 sprinted ticks
-    "tools/smoke/spawn_roads.py": 215,              # the Herald's House roads: four starts, two towns, two arenas, three road builds and their audits; measured locally (4 cores): 160-168 s in nine runs; with the grounds built after the town in both worlds 182 s + 10 % (LOCAL: replace with its CI time)
-    "tools/smoke/herald_grounds.py": 250,           # the Herald's House grounds: three starts, two towns, two grounds' builds (one after its roads) and their audits; measured locally (4 cores): 168 s + 10 % (LOCAL: replace with its CI time)
+    "tools/smoke/spawn_roads.py": 230,            # the Herald's House roads: four starts, two towns, two arenas, three road builds and their audits; CI: 205 s (run 44858433926, Nov 2026, with the dry pass) + 10 %
+    "tools/smoke/herald_grounds.py": 245,            # the Herald's House grounds: three starts, two towns, two grounds' builds (one after its roads) and their audits; CI: 222 s (run 44858433926, Nov 2026, with the dry pass) + 10 %
     "tools/smoke/aquatic_dry.py": 170,             # one start, seven /locate'd aquatic structures and their chunks, 200 ticks, the regions read back; measured locally (4 cores): 124-136 s + 10 % (LOCAL: replace with its CI time)
     "tools/smoke/village_events.py": 195,         # measured locally (4 cores): 160 and 156 s of server log in two runs (four starts, one after a kill; ~20,000 sprinted ticks) + 10 % + setup; replace with its CI time
     "tools/smoke/filler_loot.py": 40,             # one start, 17 tables rolled ten times, 7 templates placed and 13 containers unpacked; measured locally (4 cores): 31 and 34 s + 10 % (LOCAL: replace with its CI time)
-    "tools/smoke/herald_steep.py": 125,            # (92-114 s locally with the dry pass and the two read-back checks, + 10 %) one start (the owner's seed, large biomes), a pond, the town, its roads and grounds, the regions read back; measured locally (4 cores): 81-95 s + 10 % (LOCAL: replace with its CI time)
-    "tools/smoke/herald_look.py": 116,            # one start, the town placed (roads and grounds off), two simulated players and ~150 window packets; measured locally (4 cores): 100 s + 10 % (LOCAL: replace with its CI time)
+    "tools/smoke/herald_steep.py": 125,            # one start (the owner's seed, large biomes), a pond, the town, its roads and grounds, the regions read back; CI: 111 s (run 44858433926, Nov 2026, with the dry pass) + 10 %
+    "tools/smoke/herald_look.py": 120,            # one start, the town placed (roads and grounds off), two simulated players and ~150 window packets; CI: 108 s (run 44858433926, Nov 2026, with the dry pass) + 10 %
 }
 DEFAULT_S = 90
 # Each CI job pays ~25 s of setup (machine, Java, Python, caches) before the test: short tests are combined
