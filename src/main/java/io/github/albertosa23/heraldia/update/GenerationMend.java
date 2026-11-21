@@ -1064,7 +1064,12 @@ public final class GenerationMend {
 		List<Target> out = new ArrayList<>();
 		for (Target t : j.targets) {
 			boolean any = j.findings.stream().anyMatch(f -> f.kind == t.kind && f.outcome == Outcome.REPAIR && within(f.at, t));
-			if (any || t.kind == Kind.STREAMS && j.findings.stream().anyMatch(f -> f.kind == Kind.STREAMS && f.outcome == Outcome.REPAIR)) {
+			// the streams are looked at again over the whole area if anything there is repaired: draining a pond that stood in
+			// the air leaves running water with no source that was fed when the scan ran (read back from a world of an
+			// earlier jar: 739 blocks), as a town built today dries after it settles its shores
+			boolean area = t.kind == Kind.STREAMS && j.findings.stream().anyMatch(f -> (f.kind == Kind.STREAMS || f.kind == Kind.WATER)
+					&& f.outcome == Outcome.REPAIR);
+			if (any || area) {
 				out.add(t);
 			}
 		}
