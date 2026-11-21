@@ -31,6 +31,13 @@ hedges and potted plants.
 Nobody's walk changes: `herald_house.errors` (walks to bed, workstation and bell; the door rule; look-don't-take) passes
 unchanged. Only blocks: no entity, block entity or light source added.
 
+A hedge is a step of one block, and a villager that gets to where it cannot come down from loses its bed (measured on a
+server for the hunters' lodge: a drop of more than 3 blocks is a trap). So a test walks the template from the spawn
+point (a step up of one block, a drop of at most three, leaves as solid ground): with the planting 15,859 cells are
+reached and none is without a way back, and nothing above a hedge's top is reached that was not reached without the
+planting. What that shows and what it does not: it is a model of steps, not the game's path search; it says a hedge
+leads nowhere, and nothing about ladders or pushing, of which this phase adds none.
+
 ## Cost
 
 In play (what the owner cares about most): `runtime_cost.py --scenarios casa_heraldo`, one player inside the town, 60 s
@@ -44,10 +51,12 @@ measured, two rounds alternated on one machine, 20.0 TPS throughout. With Herald
 | phase 2b, round 2 | 9.1 | 8.6 | 12.7 | 15.6 | 32.2 |
 
 No measurable change: the two builds differ by less than one build's two rounds do. The 45.5 ms tick of round 1 did
-not come back in round 2; the same scenario without Heraldia gave worst ticks of 30.8, 18.3 and 81.8 ms on that
-machine, so a single worst tick says little. It is noted, not explained.
+not come back in round 2. The same scenario **without the mod** gave worst ticks of 30.8, 18.3 and **81.8 ms** on that
+machine (with a mean of 7.8): the machine alone produces a single worse tick than that one, so a lone worst tick says
+nothing here.
 
 Creating the world (a new world's first start; it matters less to the owner): the longest TEMPLATE step of the town's
-build was 76 to 143 ms on `develop` (8 runs) and 86 to 130 ms here with one run at 279 (7 runs): the ranges overlap, the
-279 is unexplained. The 64 TEMPLATE steps together take more, about 1.8 s against 1.4 s (medians; there are more blocks
+build was 76 to 143 ms on `develop` (8 runs) and 86 to 130 ms here with one run at 279 (7 runs): the ranges overlap. The
+279 is probably the JVM building its first villager inside that step (found by the work on the build's slow steps: 76 ms
+the first time, 1 ms the second); not checked on this branch. The 64 TEMPLATE steps together take more, about 1.8 s against 1.4 s (medians; there are more blocks
 to place). The ground's own part of those steps is 9 to 14 ms in all.
