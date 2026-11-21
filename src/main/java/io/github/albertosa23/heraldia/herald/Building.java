@@ -92,12 +92,6 @@ final class Building {
 	private static @Nullable Work actual;
 	private static int index, ticks;
 	private static long nanos;
-	/** Per kind of step: how many, their time in all and the longest (ns), to say where a build's time went. */
-	private static final long[][] byKind = new long[Phase.values().length][3];
-	private static String slowest = "";
-	private static long worst;
-	/** Of the TEMPLATE steps, the part spent giving the town's bare ground the land's own surface: in all and the longest. */
-	private static long groundNanos, groundWorst;
 	private static boolean docked;
 	private static Shores.Settled settled = Shores.NONE;
 	private static int cleared, dried;
@@ -132,12 +126,6 @@ final class Building {
 		actual = new Work(level, g, who, newWorld, steps, t.get());
 		index = ticks = 0;
 		nanos = 0;
-		for (long[] k : byKind) {
-			java.util.Arrays.fill(k, 0);
-		}
-		slowest = "";
-		worst = 0;
-		groundNanos = groundWorst = 0;
 		docked = false;
 		settled = Shores.NONE;
 		cleared = dried = 0;
@@ -181,18 +169,7 @@ final class Building {
 				case DRY -> dried += Shores.dry(o.level(), o.level().getChunk(p.cx(), p.cz()));
 				case ROAD -> road(o.level(), o.g(), p.side());
 			}
-			long took = System.nanoTime() - t0;
-			nanos += took;
-			long[] k = byKind[p.phase().ordinal()];
-			k[0]++;
-			k[1] += took;
-			if (took > k[2]) {
-				k[2] = took;
-			}
-			if (slowest.isEmpty() || took >= worst) {
-				worst = took;
-				slowest = p.phase() + " " + p.cx() + " " + p.cz();
-			}
+			nanos += System.nanoTime() - t0;
 			return;
 		}
 		actual = null;
@@ -203,17 +180,6 @@ final class Building {
 		nanos += System.nanoTime() - t0;
 		LOGGER.info("Heraldia: herald's house: built in {} ticks ({} ms on the server thread, at most a chunk per tick)",
 				ticks, nanos / 1_000_000);
-		StringBuilder kinds = new StringBuilder();
-		for (Phase ph : Phase.values()) {
-			long[] k = byKind[ph.ordinal()];
-			if (k[0] > 0) {
-				kinds.append(kinds.isEmpty() ? "" : ", ").append(ph).append(' ').append(k[0]).append(" (").append(k[1] / 1_000_000)
-						.append(" ms, the longest ").append(k[2] / 1_000_000).append(')');
-			}
-		}
-		LOGGER.info("Heraldia: herald's house: the slowest step {} ms ({}); by kind of step: {}; of TEMPLATE, the land's own "
-				+ "ground {} ms in all, the longest {} ms", worst / 1_000_000, slowest, kinds, groundNanos / 1_000_000,
-				groundWorst / 1_000_000);
 	}
 
 	// --- terrain ---
@@ -340,12 +306,8 @@ final class Building {
 		BlockPos origin = new BlockPos(g.ox(), g.oy(), g.oz());
 		t.placeInWorld(level, origin, origin, new StructurePlaceSettings().setBoundingBox(bb).setIgnoreEntities(false)
 				.setFinalizeEntities(false), level.getRandom(), FLAGS);
-		long t1 = System.nanoTime();
 		exterior(level, g, bb);
 		interior(level, g, bb);
-		long own = System.nanoTime() - t1;
-		groundNanos += own;
-		groundWorst = Math.max(groundWorst, own);
 	}
 
 	/**
