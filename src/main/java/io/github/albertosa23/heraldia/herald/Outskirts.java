@@ -17,6 +17,8 @@ import io.github.albertosa23.heraldia.roads.SpawnRoadLayout;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -297,7 +299,7 @@ public final class Outskirts {
 
 	// --- the work ---
 
-	enum Kind { SURVEY, PLAN, LEVEL, FELL, SHORE, HOUSE, CHERRY, AUDIT, CHECK, TREE_CHECK, FINISH }
+	enum Kind { SURVEY, PLAN, LEVEL, FELL, SHORE, DRY, HOUSE, CHERRY, AUDIT, CHECK, TREE_CHECK, FINISH }
 
 	record Step(Kind kind, int a, int b) {
 	}
@@ -325,9 +327,14 @@ public final class Outskirts {
 		int index, rest, ticks, waited, levelled, left, felled, burning, lids, notGrown;
 		int audited, steps2, edgeSteps, pillars, holes, chests, looted, doorsBlocked, floating, faced, bare, standing, walled;
 		Shores.Settled settled = Shores.NONE;
+		int dried;
 		final int[] seen;                                          // the audited ground's height (MIN_VALUE: not audited)
-		long nanos, worst, planMs;
+		long nanos, worst, worstCpu, planMs;
 		String worstStep = "";
+		// per kind of step: how many, the clock's time and the server thread's own CPU time, in all and of the longest one
+		final int[] kindSteps = new int[Kind.values().length];
+		final long[] kindNanos = new long[Kind.values().length], kindCpu = new long[Kind.values().length];
+		final long[] kindWorst = new long[Kind.values().length], kindWorstCpu = new long[Kind.values().length];
 
 		Work(ServerLevel level, Grounds g, @Nullable ServerPlayer who, int houses) {
 			this.level = level;
@@ -457,27 +464,69 @@ public final class Outskirts {
 			}
 			w.waited = 0;
 			w.index++;
-			long t0 = System.nanoTime();
+			long c0 = cpuNanos(), t0 = System.nanoTime();
 			try {
 				step(w, st);
 			} catch (RuntimeException e) {
 				LOGGER.error("Heraldia: herald's house grounds: step {} failed", st, e);
 			}
-			long ns = System.nanoTime() - t0;
+			long ns = System.nanoTime() - t0, cpu = c0 < 0 ? -1 : cpuNanos() - c0;
 			w.nanos += ns;
+			int k = st.kind().ordinal();
+			w.kindSteps[k]++;
+			w.kindNanos[k] += ns;
+			w.kindCpu[k] += Math.max(cpu, 0);
+			if (ns > w.kindWorst[k]) {
+				w.kindWorst[k] = ns;
+				w.kindWorstCpu[k] = cpu;
+			}
 			if (ns > w.worst) {
 				w.worst = ns;
+				w.worstCpu = cpu;
 				w.worstStep = st.kind() + " " + st.a() + " " + st.b();
 			}
 			if (ns > SLOW_MS * 1_000_000L) {
+				// The clock's time counts whatever stopped the process during the step (a collector's pause, the machine giving
+				// the CPU to something else); the thread's own CPU time counts only its work. Far apart: the step waited, it did
+				// not work. Logged at once, so the line's own time says when.
+				LOGGER.info("Heraldia: herald's house grounds: a slow step: {} {} {}: {} ms by the clock, {} of them the server "
+						+ "thread's own work", st.kind(), st.a(), st.b(), ns / 1_000_000, cpu < 0 ? "? (not measured here)" : cpu / 1_000_000 + " ms");
 				w.rest = REST;                         // a slow step (a chunk loaded from disk): let the server breathe
 				return;
 			}
 		}
 	}
 
+	private static final ThreadMXBean THREADS = ManagementFactory.getThreadMXBean();
+
+	/** The CPU time this thread has used, in nanoseconds (-1 where the JVM does not measure it): work, not waiting. */
+	private static long cpuNanos() {
+		try {
+			return THREADS.isCurrentThreadCpuTimeSupported() ? THREADS.getCurrentThreadCpuTime() : -1;
+		} catch (UnsupportedOperationException e) {
+			return -1;
+		}
+	}
+
+	/** "SURVEY 192 steps 45 ms (40 ms of work), the longest 3 ms (3 ms of work); ..." of the kinds that ran. */
+	private static String byKind(Work w) {
+		StringBuilder sb = new StringBuilder();
+		for (Kind k : Kind.values()) {
+			int i = k.ordinal();
+			if (w.kindSteps[i] == 0) {
+				continue;
+			}
+			sb.append(sb.isEmpty() ? "" : "; ").append(k).append(' ').append(w.kindSteps[i]).append(" steps ")
+					.append(w.kindNanos[i] / 1_000_000).append(" ms (").append(w.kindCpu[i] / 1_000_000).append(" ms of work), the longest ")
+					.append(w.kindWorst[i] / 1_000_000).append(" ms (")
+					.append(w.kindWorstCpu[i] < 0 ? "?" : String.valueOf(w.kindWorstCpu[i] / 1_000_000)).append(" ms of work)");
+		}
+		return sb.toString();
+	}
+
 	private static boolean chunkStep(Step st) {
-		return st.kind() == Kind.SURVEY || st.kind() == Kind.LEVEL || st.kind() == Kind.SHORE || st.kind() == Kind.AUDIT;
+		return st.kind() == Kind.SURVEY || st.kind() == Kind.LEVEL || st.kind() == Kind.SHORE || st.kind() == Kind.DRY
+				|| st.kind() == Kind.AUDIT;
 	}
 
 	/** The chunks of the next steps that read one, asked for without waiting (generated on the worker threads). */
@@ -507,7 +556,7 @@ public final class Outskirts {
 		List<long[]> need = new ArrayList<>();
 		switch (st.kind()) {
 			case SURVEY, LEVEL -> need.add(new long[] {st.a(), st.b()});
-			case AUDIT, SHORE -> {
+			case AUDIT, SHORE, DRY -> {
 				need.add(new long[] {st.a(), st.b()});
 				need.add(new long[] {st.a() + 1, st.b()});
 				need.add(new long[] {st.a(), st.b() + 1});
@@ -555,6 +604,7 @@ public final class Outskirts {
 			}
 			case SHORE -> w.settled = w.settled.plus(Shores.settle(w.level, chunk(w, st.a(), st.b()),
 					(x, z) -> w.in(x, z) && !w.g.inColumns(x, z)));
+			case DRY -> w.dried += Shores.dry(w.level, chunk(w, st.a(), st.b()));
 			case HOUSE -> house(w, st.a());
 			case CHERRY -> cherry(w, st.a());
 			case AUDIT -> audit(w, chunk(w, st.a(), st.b()));
@@ -667,6 +717,7 @@ public final class Outskirts {
 	// --- the plan ---
 
 	private static void plan(Work w) {
+		long p0 = System.nanoTime();
 		Blueprint bp = blueprint();
 		List<OutskirtsPlan.Slot> slots = new ArrayList<>();
 		for (int i = 0; i < bp.slots().size(); i++) {
@@ -705,6 +756,9 @@ public final class Outskirts {
 					for (long c : w.chunks) {
 						w.steps.add(new Step(Kind.SHORE, RoadLayout.px(c), RoadLayout.pz(c)));
 					}
+					for (long c : w.chunks) {             // once all are settled: what ran out and has no source left
+						w.steps.add(new Step(Kind.DRY, RoadLayout.px(c), RoadLayout.pz(c)));
+					}
 					for (int k = 0; k < res.houses().size(); k++) {
 						w.steps.add(new Step(Kind.HOUSE, k, 0));
 					}
@@ -722,6 +776,9 @@ public final class Outskirts {
 					}
 					w.steps.add(new Step(Kind.FINISH, 0, 0));
 				}, w.level.getServer());
+		// what this step does on the server thread, in its two halves: if it is ever slow, which one (or neither: a pause)
+		LOGGER.info("Heraldia: herald's house grounds: the plan handed to the background pool: {} ms getting it ready, {} ms handing it over",
+				(t0 - p0) / 1_000_000, (System.nanoTime() - t0) / 1_000_000);
 	}
 
 	// --- levelling ---
@@ -1186,7 +1243,9 @@ public final class Outskirts {
 		level.setAttached(Type.GROUNDS, new Saved(true, List.copyOf(houses)));
 		built = null;
 		OutskirtsPlan.Result plan = w.plan;
-		LOGGER.info("Heraldia: herald's house grounds: the slowest step: {}", w.worstStep);
+		LOGGER.info("Heraldia: herald's house grounds: the slowest step: {} ({} ms by the clock, {} of them the server thread's own work)",
+				w.worstStep, w.worst / 1_000_000, w.worstCpu < 0 ? "?" : w.worstCpu / 1_000_000 + " ms");
+		LOGGER.info("Heraldia: herald's house grounds: by kind of step: {}", byKind(w));
 		boolean[] in = new boolean[w.n * w.n];
 		for (int i = 0; i < in.length; i++) {
 			in[i] = w.seen[i] != Integer.MIN_VALUE;
@@ -1200,7 +1259,8 @@ public final class Outskirts {
 				plan == null ? 0 : plan.rampsBefore(), w.pillars, w.holes, w.standing, w.placed.size(), w.looted,
 				w.chests, w.doorsBlocked, w.trees.size(), w.floating, w.burning, w.notGrown);
 		LOGGER.info("Heraldia: herald's house grounds: shores: {} ponds left open drained ({} blocks of water), {} blocks of water banked; "
-				+ "{} blocks of retaining wall", w.settled.ponds(), w.settled.drained(), w.settled.banked(), w.walled);
+				+ "{} blocks of retaining wall; {} blocks of running water left without a source taken away", w.settled.ponds(),
+				w.settled.drained(), w.settled.banked(), w.walled, w.dried);
 		LOGGER.info("Heraldia: herald's house grounds: built in {} ticks ({} ms on the server thread, the slowest step {} ms; the plan {} ms "
 						+ "off it): {} columns levelled ({} narrow pits covered with a lid), {} left, {} too steep to level fully, {} trees felled, {} houses, "
 						+ "{} cherry trees", w.ticks, w.nanos / 1_000_000, w.worst / 1_000_000, w.planMs, w.levelled, w.lids, w.left,

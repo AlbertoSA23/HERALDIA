@@ -1,7 +1,7 @@
 """Villager routes on a real dedicated 26.3 server: do the villagers of a Heraldia village walk around it during the day?
 
 Usage: python3 tools/smoke/village_routes.py --jar build/libs/heraldia-X.jar --work build/smoke [--measure] [--sites N]
-       [--terrain | --natural N [--seed S]] [--structures ID,...] [--verbose]
+       [--terrain | --natural N [--seed S]] [--structures ID,...] [--verbose] [--fault bells]
 Places several villages (different styles, standard and large) with /place structure on a superflat world (--terrain:
 on the seed's terrain, whose hills and lakes cut some paths, at fixed coordinates whatever the biome: the worst case;
 --natural N: the N villages the game places closest to the origin, naturally generated with its terrain adaptation and
@@ -18,22 +18,27 @@ Per village and in total it counts:
 - sleeping: those asleep in a bed in the last night sample;
 - home and job site memories and their distance (and how many work under 6 blocks from their bed); bell claimed.
 It fails (unless --measure, which only prints the table, e.g. to compare with an earlier .jar) when a total is below
-its MIN_* limit or above MAX_SAME_HOUSE. The heaviest part is the simulated day (14,000 ticks): about 3 minutes on 4
-cores with the 3 default villages, about 8 with --sites 8.
+its MIN_* limit or above MAX_SAME_HOUSE, and prints every figure's margin over its limit, in villagers, pass or fail.
+The heaviest part is the simulated day (14,000 ticks): about 3 minutes on 4 cores with the 8 villages.
+
+--fault bells takes every bell away before the day starts: the proof that the check can fail (no villager can claim a
+meeting point, so that figure must drop to 0 and the test must fail). Never part of a normal run.
 """
 import argparse, json, math, os, queue, re, subprocess, sys, threading, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import server_smoke as s
 
-# (structure, x, z): one style of each house shape (rectangular, round, stilts, long) and large villages. The first
-# DEFAULT_SITES are placed by default (CI): those where the placement before this test left most villagers still (the
-# large snowy village, the desert one with its workshops next to the beds) and a long-house one; --sites 8 places them
-# all (the figures in the CHANGELOG).
+# (structure, x, z): one style of each house shape (rectangular, round, stilts, long) and large villages. All of them are
+# placed by default (CI): the limits below are fractions of THIS sample. The first three are the worst ones (those where
+# the placement before this test left most villagers still: the large snowy village, the desert one with its workshops
+# next to the beds, and a long-house one): --sites 3 places only them, a quicker look at the hard cases, NOT a sample
+# the limits apply to. CI ran those three against the limits of the eight until Nov 2026: 37 villagers whose figures
+# sit on the limits (bell 22-30 against 25, moving 31-35 against 32), red about four runs in ten with nothing wrong.
 SITES = [("heraldia:nieve_alpina_grande", 600, -600), ("heraldia:desierto_obelisco", -600, 0),
          ("heraldia:taiga_nordica", 600, 0), ("heraldia:llanuras_castellana", 0, 0),
          ("heraldia:sabana_paja", 0, 600), ("heraldia:pantano_palafitos", 600, 600),
          ("heraldia:cerezos_japonesa", 0, -600), ("heraldia:llanuras_castellana_grande", -600, -600)]
-DEFAULT_SITES = 3
+DEFAULT_SITES = len(SITES)
 RADIUS = 120            # forced box around each village (16 x 16 chunks, the forceload limit) and villager search radius
 TICK_RATE = 200         # /tick rate during the simulated day (the server goes as fast as it can if it does not keep up)
 SETTLE_UNTIL = 1500     # day time until which the villagers claim their bed, job site and bell (no sample)
@@ -41,9 +46,11 @@ WORK = (3000, 4500, 6000, 7500)          # day times of the work samples (the sc
 MEET = (9800, 10600)                     # MEET runs 9000-11000: gathering at the bell
 NIGHT = (13000, 14000)                   # REST from 12000: in bed
 MOVE_SPAN, COMMUTE = 8, 12              # blocks
-# Limits of the check (fractions of the villagers). Measured on a superflat world with the 3 default villages: before
-# the route placement 0.77 moving, 0.26 commuting, 0.72 asleep, 0.53 with a bell and 0.28 working under 6 blocks from
-# their bed; after, 0.91, 0.53, 0.67, 0.77 and 0.14.
+# Limits of the check (fractions of the villagers). Measured on a superflat world with the 8 SITES (107 villagers):
+# before the route placement 0.77 moving, 0.26 commuting, 0.72 asleep, 0.53 with a bell and 0.28 working under 6 blocks
+# from their bed; after, 0.91, 0.53, 0.67, 0.77 and 0.14. Thirteen runs in Nov 2026, all passing: moving 93-101 of 107
+# (limit 91), commuting 50-58 (43), asleep 65-74 (54), with a bell 77-87 (70), under 6 blocks 9-14 (at most 21).
+# "Moving" is the tight one: its worst runs passed by 2 and 3 villagers.
 MIN_MOVING, MIN_COMMUTE, MIN_SLEEP, MIN_MEETING, MAX_SAME_HOUSE = 0.85, 0.4, 0.5, 0.65, 0.2
 _ARR = r"\[I; (-?\d+), (-?\d+), (-?\d+), (-?\d+)\]"
 _NUM = r"(-?[\d.]+(?:E-?\d+)?)d"
@@ -190,6 +197,25 @@ def line(name, r):
             f"{r['same_house']} under 6), bell {r['meeting']}")
 
 
+def limits(n):
+    """[(figure, limit in villagers, True if it is a minimum)] for n villagers: the same comparisons the check makes."""
+    return [(k, math.ceil(lim * n), True) for k, lim in (("moving", MIN_MOVING), ("commute", MIN_COMMUTE),
+                                                          ("sleeping", MIN_SLEEP), ("meeting", MIN_MEETING))] \
+        + [("same_house", math.floor(MAX_SAME_HOUSE * n), False)]
+
+
+def remove_bells(ctx, sites):
+    """--fault bells: every bell of the placed villages becomes air."""
+    ctx.run("gamerule max_block_modifications 4000000", r"Gamerule|set|now")
+    gone = 0
+    for _, x, z in sites:
+        for x0, x1 in ((x - RADIUS, x - 1), (x, x + RADIUS - 1)):
+            m = ctx.run(f"fill {x0} -64 {z - RADIUS} {x1} 0 {z + RADIUS - 1} air replace bell",
+                        r"Successfully filled (\d+) block|No blocks were filled")
+            gone += int(m.group(1) or 0)
+    return gone
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--jar", required=True)
@@ -206,7 +232,11 @@ def main():
                     help="place these villages (at the SITES' coordinates) instead of the SITES' own: e.g. the styles that "
                          "--natural found, on a flat world, as their reference")
     ap.add_argument("--sites", type=int, default=DEFAULT_SITES, help=f"how many of the SITES to place (up to {len(SITES)})")
+    ap.add_argument("--fault", choices=["bells"], default=None,
+                    help="inject a real fault to prove the check fails: 'bells' removes every bell (flat world only)")
     a = ap.parse_args()
+    if a.fault and (a.terrain or a.natural):
+        ap.error("--fault only on the flat world (the bells are searched between y -64 and 0)")
     os.makedirs(a.work, exist_ok=True)
     launcher = s.prepare(a.work, os.path.abspath(a.jar), s.gradle_properties())
     if a.natural:
@@ -255,6 +285,11 @@ def main():
             print(f"RUTAS: {k[0]} at {k[1]}, {k[2]}: {len(us)} villagers")
             if not us:
                 fails.append(f"{k[0]}: no villagers")
+        if a.fault == "bells":
+            gone = remove_bells(ctx, placed)
+            print(f"RUTAS: FAULT INJECTED: {gone} bells removed")
+            if not gone:
+                fails.append("--fault bells removed no bell: the fault was not injected")
         ctx.run("gamerule advance_time true", r"Gamerule|set|now")
         ctx.run(f"tick rate {TICK_RATE}", r"rate|Set|set")
         start = ctx.gametime()
@@ -288,8 +323,13 @@ def main():
             print(f"RUTAS:   bells claimed: " + ", ".join(f"{b} by {n}" for b, n in sorted(bells.items())))
         tot = summary(rows_all)
         print("RUTAS: " + line("TOTAL", tot))
-        if not a.measure and tot["n"]:
-            n = tot["n"]
+        n = tot["n"]
+        # the margin of every figure, pass or fail: a figure drifting towards its limit shows here before it is a red run
+        for key, lim, least in limits(n) if n else []:
+            margin = tot[key] - lim if least else lim - tot[key]
+            print(f"RUTAS: margin {key:10s} {tot[key]:3d} of {n} ({'at least' if least else 'at most'} {lim}): "
+                  f"{margin:+d} villagers")
+        if not a.measure and n:
             for key, lim in (("moving", MIN_MOVING), ("commute", MIN_COMMUTE), ("sleeping", MIN_SLEEP), ("meeting", MIN_MEETING)):
                 if tot[key] < lim * n:
                     fails.append(f"only {tot[key]} of {n} villagers {key} (at least {lim:.0%} expected)")

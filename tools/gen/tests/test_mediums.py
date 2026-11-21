@@ -159,6 +159,9 @@ def test_contract_valid():
     (lambda t: t.fill(0, 0, 0, 45, 0, 0, "dirt_path"), "size 46"),
     (lambda t: t.jigsaws.clear(), "entrada"),
     (lambda t: t.chest(3, 1, 3, "north", "heraldia:unicas/castillo/premium"), "not from its LOOT"),
+    (lambda t: (t.set(4, 1, 4, "end_stone_brick_wall"),
+                t.entity(4, 2, 4, {"id": "minecraft:shulker", "PersistenceRequired": core.B(1)})), "not a full block"),
+    (lambda t: t.entity(4, 6, 4, {"id": "minecraft:shulker", "PersistenceRequired": core.B(1)}), "attached to nothing"),
 ])
 def test_contract_detects(change, text):
     errs = _errors(_Fake, change)
@@ -411,3 +414,44 @@ def test_only_the_huts_yield_to_the_mines(tmp_path):
     assert mediums.yield_to_mines() == [f"heraldia:medianas/choza_mago/{e}" for e in dict(MODS)["choza_mago"].STYLES]
     assert all(not getattr(m, "YIELDS_TO_MINES", False) for mid, m in MODS if mid != "choza_mago")
     assert mediums.YIELD_TO_MINES == "medianas/ceden_a_minas"
+
+
+def test_a_shulker_on_a_full_block_keeps_its_place(reg):
+    """Every shulker of every medium structure sits on a full block (the wharf guard of the midlands style sat on an end
+    stone brick wall and left its post every time: 12 placements out of 12 on a server, against 0 of 12 on the
+    highlands style's purpur pillar)."""
+    seen = 0
+    for name, t in reg.templates.items():
+        if name.startswith("medianas/"):
+            seen += sum(n.get("id") == "minecraft:shulker" for *_, n in t.entities)
+            assert mediums.shulker_errors(t) == [], name
+    assert seen >= 2
+    t = core.Template("x")
+    t.set(1, 0, 1, "purpur_pillar[axis=y]")
+    t.entity(1, 1, 1, {"id": "minecraft:shulker"})
+    assert mediums.shulker_errors(t) == []
+    t.set(1, 2, 1, "purpur_slab[type=bottom]")              # hanging from a slab's underside
+    t.entities[0][3]["AttachFace"] = core.B(1)
+    assert mediums.shulker_errors(t) != []
+
+
+def test_the_inn_room_has_its_own_door(reg):
+    """The Roadside Inn's bedroom opens to the yard: with the street door alone the innkeeper, behind the house, had a
+    free bed 6 blocks away through the wall and some 30 on foot, did not claim it and spent two nights outside (1 run in
+    9 on a server; a villager summoned against that wall claimed the bed 3 times in 9 without the door, 6 in 6 with it).
+    Without the door the longest walk to a bed from the inn's own yard is 47 steps; with it, 30."""
+    from mediums import _inhabitants as inh, inn
+    seen = 0
+    for name, t in reg.templates.items():
+        if not name.startswith("medianas/posada/"):
+            continue
+        seen += 1
+        assert t.blocks[(inn.X1, 1, 8)][0].split("[")[0].endswith("_door"), name
+        with_door = inh.worst_walk(t)[0]
+        walled = core.Template(name + "#walled")
+        walled.blocks = dict(t.blocks)
+        wall = t.blocks[(inn.X1, 1, 7)]
+        walled.blocks[(inn.X1, 1, 8)] = walled.blocks[(inn.X1, 2, 8)] = wall
+        walled.jigsaws, walled.entities = t.jigsaws, t.entities
+        assert inh.worst_walk(walled)[0] >= with_door + 10, (name, with_door, inh.worst_walk(walled)[0])
+    assert seen == 6

@@ -41,6 +41,9 @@ AUDIT = (r"herald's house grounds: audit: (\d+) columns on land, (\d+) steps of 
          r"in the air; (\d+) houses, (\d+) of (\d+) chests with loot, (\d+) doors blocked; (\d+) cherry trees, (\d+) floating, "
          r"(\d+) left out by a fire source, (\d+) that did not fit")
 SLOWEST = r"herald's house grounds: the slowest step: (.+)"
+BY_KIND = r"herald's house grounds: by kind of step: .+"
+HANDED = r"herald's house grounds: the plan handed to the background pool: .+"
+SLOW_STEP = r"herald's house grounds: a slow step: .+"
 ROADS_BUILT = r"herald's house roads: built in (\d+) ticks \((\d+) ms on the server thread, the slowest step (\d+) ms\)"
 ROADS_AUDIT = (r"herald's house roads: audit: (\d+) road columns on land, (\d+) blocked \(.*?\), (\d+) not paved, (\d+) steps of more "
                r"than one block, (\d+) leaves no tree holds near the road")
@@ -84,6 +87,9 @@ def check_build(p, n, what):
     print(f"GROUNDS {what}: {built.group(0)}", flush=True)
     print(f"GROUNDS {what}: {audit.group(0) if audit else 'no audit line'}", flush=True)
     print(f"GROUNDS {what}: the slowest step: {slowest.group(1) if slowest else '?'}", flush=True)
+    for pattern in (BY_KIND, HANDED):                   # where the server thread's time went, and whether it was work
+        m = nth(p, pattern, n)
+        print(f"GROUNDS {what}: {m.group(0) if m else 'no line for ' + pattern}", flush=True)
     b = [int(x) for x in built.groups()]
     COSTS.append((what, b[0], b[1], b[2], b[3]))
     p.check(b[2] <= SLOW_MS, f"{what}: a step of {b[2]} ms on the server thread (at most {SLOW_MS})")
@@ -176,6 +182,9 @@ def main():
     for bad in ("Registry loading errors", "at io.github.albertosa23", "grounds: step", "missing template", "the plan failed"):
         if any(bad in t for t in texts):
             fails.append(f"the log contains {bad!r}")
+    for text in texts:                                  # every step over the mod's own "slow" mark, with its clock and work times
+        for m in re.finditer(SLOW_STEP, text):
+            print(f"SLOW STEP: {m.group(0)}", flush=True)
     for what, ticks, ms, slowest, plan in COSTS:
         print(f"COST {what}: {ticks} ticks, {ms} ms on the server thread, the slowest step {slowest} ms (the plan {plan} ms off it)")
     print(f"HERALD GROUNDS: {time.monotonic() - t0:.0f} s;", "OK" if not fails else fails)

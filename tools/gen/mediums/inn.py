@@ -88,7 +88,10 @@ def _house(p, name):
     for x in (4, 8, 13):
         c.window(t, x, 2, Z0)
         c.window(t, x, 2, Z1)
-    c.window(t, X1, 2, 8)
+    # The room's own door, in the east wall. With the street door alone, a villager behind the house had its bed a few
+    # blocks away through the wall and some thirty on foot, round the house and through the common room: more than its
+    # path search covers (26.3: 16 blocks, 256 nodes). It could not get home, gave the bed up and spent its nights outside.
+    c.door(t, X1, 1, 8, "west", f"{m}_door")
     # common room: counter to the south (with a gap to the west), innkeeper behind it, barrels, two tables and lanterns
     for x in range(8, PARTITION):
         t.set(x, 1, Z1 - 2, f"stripped_{p['tronco']}[axis=x]")
@@ -100,10 +103,10 @@ def _house(p, name):
     c.table_top(t, 5, 10, m)
     c.lantern(t, 5, 4, 8)
     c.lantern(t, 9, 4, 7)
-    # room: two beds against the east wall, chest between them, lantern
+    # room: two beds against the east wall, the back door between them, chest in the corner, lantern
     c.bed(t, X1 - 1, Z0 + 1, "east", p["cama"])
     c.bed(t, X1 - 1, Z1 - 1, "east", p["cama"])
-    c.place_chest(t, X1 - 1, 1, 8, "west", MID, "cuarto")
+    c.place_chest(t, PARTITION + 1, 1, Z0 + 1, "south", MID, "cuarto")     # in the corner: the way in from the east door stays clear
     c.lantern(t, 13, 4, 8)
     inh.bell(t, DOOR_COL - 2, 2)                              # the call bell by the door: the inhabitants' meeting point
     return t

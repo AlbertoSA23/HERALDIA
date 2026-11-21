@@ -125,6 +125,38 @@ def _fence_traps(t, cells):
     return out
 
 
+def worst_walk(t, straight=16):
+    """(steps, cell, bed): the longest walk to a bed's side from a walkable cell of the template within `straight` blocks
+    of that bed in a straight line. A REPORT, not a contract (tools/gen/inhabitant_walks.py prints it for every template):
+    the game only claims a bed whose path fits its search (26.3: nodes within 16 blocks, 256 of them), and a bed a few
+    blocks away through a wall with the door at the far end is not claimed (the Roadside Inn's innkeeper, Nov 2026). No
+    limit is set on this figure: a long walk over open ground is found; what number of steps through doors is not, is
+    not measured yet."""
+    import collections
+    import math
+    import lint
+    cells = set(lint.walk(_no_ladders(t)))
+    worst = (0, None, None)
+    for b, (st, _) in t.blocks.items():
+        if not (_name(st).endswith("_bed") and "part=head" in st):
+            continue
+        dist = {c: 0 for c in ((b[0] + dx, b[1] + dy, b[2] + dz) for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                               for dy in (0, -1, 1)) if c in cells}
+        queue = collections.deque(dist)
+        while queue:
+            c = queue.popleft()
+            for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                for dy in (0, 1, -1):
+                    n = (c[0] + dx, c[1] + dy, c[2] + dz)
+                    if n in cells and n not in dist:
+                        dist[n] = dist[c] + 1
+                        queue.append(n)
+        for c, d in dist.items():
+            if d > worst[0] and math.hypot(c[0] - b[0], c[2] - b[2]) <= straight:
+                worst = (d, c, b)
+    return worst
+
+
 def issues(t):
     """Contract of the inhabitants of a template (empty list = fine)."""
     import lint
