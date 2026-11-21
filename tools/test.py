@@ -379,7 +379,7 @@ def changed_list(base):
 # making the longest test shorter means MORE groups (each group is at most as long as the longest test).
 DURATION_S = {
     "tools/smoke/village_life.py": 175, "tools/smoke/village_variants.py": 150, "tools/smoke/village_terrain.py": 260,
-    "tools/smoke/village_routes.py": 120,          # 3 villages on a flat world, 14,000 ticks
+    "tools/smoke/village_routes.py": 210,          # the 8 villages on a flat world, 14,000 ticks; measured locally (4 cores, two at once): 175-199 s in ten runs + 10 % (LOCAL: replace with its CI time)
     "tools/gen/uniques/corsair_island/smoke_server.py": 125, "tools/gen/uniques/lost_mine/smoke_server.py": 85,
     "tools/smoke/trophies.py": 100, "tools/smoke/citadel_check.py": 65, "tools/smoke/observatory_smoke.py": 85,
     "tools/smoke/adult_guardians.py": 140, "tools/gen/uniques/sanctuary/smoke_server.py": 70,
