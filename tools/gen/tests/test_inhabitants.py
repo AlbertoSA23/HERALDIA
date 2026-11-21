@@ -186,3 +186,52 @@ def test_a_step_against_a_fence_is_a_trap(reg):
             t.blocks[p] = ("minecraft:air", None)
             t.blocks[(p[0], p[1], p[2] + 1)] = (st, None)        # back against the fence, as it was
     assert any("hops over" in e for e in inh.issues(t))
+
+
+def _walled(t, door_xz, wall_xz):
+    """A copy of the template with the door at door_xz (y 1 and 2) bricked up with the wall block at wall_xz."""
+    import core
+    w = core.Template(t.name + "#walled")
+    w.blocks = dict(t.blocks)
+    wall = t.blocks[(wall_xz[0], 1, wall_xz[1])]
+    w.blocks[(door_xz[0], 1, door_xz[1])] = w.blocks[(door_xz[0], 2, door_xz[1])] = wall
+    w.jigsaws, w.entities = t.jigsaws, t.entities
+    return w
+
+
+def test_no_inhabitant_is_trapped_behind_its_bedroom_wall(reg):
+    """Every inhabited template passes the trap check (mediums/_paths.trap_walk), and the two templates seen failing on a
+    server fail it again with their bedroom door bricked up: the inn without its back door (traps 26.1 and 36.1 blocks'
+    walk from the beds; 7 villagers in 16 did not get home) and the hermitage without its cell door (31.8; 5 in 8)."""
+    from mediums import _paths, hermitage, inn
+    seen = 0
+    for name, t in reg.templates.items():
+        if name.startswith("medianas/") and any(inh.is_inhabitant(n) for *_, n in t.entities):
+            seen += 1
+            assert inh.trap_issues(t) == [], name
+    assert seen == 28
+    t = reg.templates["medianas/posada/llanura/a"]
+    old = _walled(t, (inn.X1, 8), (inn.X1, 7))
+    assert sorted(w for _, _, w in _paths.trap_walk(old)) == [26.1, 36.1]
+    assert len(inh.trap_issues(old)) == 2 and inh.issues(old) != []
+    t = reg.templates["medianas/ermita/oscuro/a"]
+    old = _walled(t, (hermitage.X1 - 2, hermitage.Z1), (hermitage.X1 - 3, hermitage.Z1))
+    assert [w for _, _, w in _paths.trap_walk(old)] == [31.8]
+    assert len(inh.trap_issues(old)) == 1
+
+
+def test_a_trap_is_where_the_search_stops_short(reg):
+    """The model of the 26.3 search: a walk of 16 or more is never found (the hard limit), a shorter one is; the partial
+    path of a failed search ends at the explored cell closest to the bed in a straight line."""
+    import core
+    from mediums import _paths
+    t = core.Template("wall")
+    for z in range(-6, 7):
+        for y in (0, 1, 2):
+            t.set(5, y, z, "stone")               # a wall at x = 5 from z -6 to 6, ground of the platform under it
+    t.set(0, 0, 0, "stone")
+    g = _paths.Ground(t)
+    ok, end = _paths.find_path(g, (3, 0, 0), (8, 0, 0))   # 5 blocks across, some 17 round the end of the wall
+    assert not ok and end == (4, 0, 0)
+    ok, _ = _paths.find_path(g, (3, 0, 6), (8, 0, 6))      # near the end of the wall: a short way round
+    assert ok
