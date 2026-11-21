@@ -35,7 +35,10 @@ from modrinth import fetch
 from herald_grounds import AUDIT, BUILT, SLOW_MS, ROADS_AUDIT, PLACED as PLACED_AT
 
 SEED, LEVEL_TYPE = "-2071092601429184301", "minecraft\\:large_biomes"
-SPAWN = (0, 91, 48)                 # where the owner's town stands (its ground at 90)
+# Where this test places the town by hand (`herald place here`; its ground at 90), on the owner's seed: steep land with a
+# pond across the wall's line, chosen for that. It is NOT where the game puts the town in a new world of that seed: the
+# site search, left to itself, picks 48 86 0 (dry, no dock). What is measured here is the hard case, not the owner's town.
+SPAWN = (0, 91, 48)
 P = "rep"                           # Carpet's player (it spawns lowercase)
 POND_DEPTH, POND_OVER = 5, 9
 RING, BLEND = 50, 4                 # herald/Grounds.RING; Outskirts.EDGE_BLEND (the natural ground's own rows)
@@ -62,7 +65,6 @@ WET = ("water", "flowing_water", "seagrass", "tall_seagrass", "kelp", "kelp_plan
 OPEN = ("air", "cave_air", "short_grass", "tall_grass", "fern", "large_fern", "dead_bush", "snow", "short_dry_grass", "tall_dry_grass",
         "bush")
 ROAD_PIECE = 30                     # a paved stretch at least this many columns is a road (a house's yard path is smaller)
-TEMPLATE = "data/heraldia/structure/casa_heraldo/casa.nbt"      # the town's own template: its box is the footprint
 WALLS = ("cobblestone", "mossy_cobblestone", "cut_sandstone", "smooth_sandstone", "cut_red_sandstone", "smooth_red_sandstone",
          "mud_bricks", "packed_mud", "stone_bricks", "mossy_stone_bricks")                  # Outskirts.wallBlock
 
@@ -174,17 +176,35 @@ def orphans(world, cols):
     return sorted(set(lost))
 
 
-def dry_decks(world, cols, town):
-    """Road walkways over no water: a column outside the town whose top is planks with no source water in the three
-    blocks under it (a bridge stands over a river's or a pond's water; these were laid over water that was only passing)."""
-    out = []
+HUT_AT = r"herald's house roads: hut \S+ \(\S+\) at (-?\d+) -?\d+ (-?\d+)"
+HOUSE_AT = r"herald's house grounds: house \S+ \(\S+\) at (-?\d+) -?\d+ (-?\d+)"
+HUT_REACH, HOUSE_REACH = 6, 10     # a 7 x 7 hut and a house of at most 11 x 11, turned any way about the corner the log gives
+TEMPLATE = "data/heraldia/structure/casa_heraldo/casa.nbt"      # the town's own template: its box is the footprint
+
+
+def roofs(log):
+    """Whether a column is under a roadside hut or a house of the grounds: (x, z) -> bool, from where the log says each
+    was placed. Their roofs and porches can be of planks too, and they are not road walkways."""
+    at = [(int(m.group(1)), int(m.group(2)), r) for pat, r in ((HUT_AT, HUT_REACH), (HOUSE_AT, HOUSE_REACH))
+          for m in re.finditer(pat, log)]
+    return lambda x, z: any(abs(x - bx) <= r and abs(z - bz) <= r for bx, bz, r in at)
+
+
+def dry_decks(world, cols, town, roof):
+    """Road walkways over no water: a column outside the town and off every hut and house whose top is planks with no
+    source water in the three blocks under it (a bridge stands over a river's or a pond's water; these were laid over
+    water that was only passing). Returns (those columns, how many plank tops were set aside as a building's)."""
+    out, aside = [], 0
     for (x, z), c in cols.items():
         if c is None or town(x, z) or not c[1].endswith("_planks"):
+            continue
+        if roof(x, z):
+            aside += 1
             continue
         under = [world.block(x, c[0] - k, z) or "" for k in (1, 2, 3)]
         if "water" not in under and not under[0].endswith("_fence"):     # a bridge's post down to the bottom is waterlogged
             out.append((x, c[0], z))
-    return out
+    return out, aside
 
 
 def ramps(cols, inside):
@@ -280,7 +300,7 @@ def drowned(path, foot, own):
     return sorted(out), missing
 
 
-def read_back(p, work, jar, foot, ground_y):
+def read_back(p, work, jar, foot, ground_y, log):
     """The world as it was saved, measured here (step 4)."""
     world = World(os.path.join(work, "world"))
     ox, oz, mx, mz = foot[0], foot[2], foot[3], foot[5]
@@ -307,8 +327,9 @@ def read_back(p, work, jar, foot, ground_y):
     lost = orphans(world, cols)
     print(f"READ BACK: {len(lost)} blocks of running water with no source" + (f", e.g. {lost[:5]}" if lost else ""), flush=True)
     p.check(not lost, f"read back: {len(lost)} blocks of running water with no source in the town, its margin and the ring: {lost[:5]}")
-    decks = dry_decks(world, cols, town)
-    print(f"READ BACK: {len(decks)} walkway columns over no water" + (f", e.g. {decks[:5]}" if decks else ""), flush=True)
+    decks, aside = dry_decks(world, cols, town, roofs(log))
+    print(f"READ BACK: {len(decks)} walkway columns over no water ({aside} plank tops set aside: a hut's or a house's)"
+          + (f", e.g. {decks[:5]}" if decks else ""), flush=True)
     p.check(not decks, f"read back: {len(decks)} plank walkway columns with no water under them: {decks[:5]}")
     # the town does not lay a lawn on the desert: its margin and its forecourt keep the land's own ground
     out = lambda x, z: max(ox - x, x - mx, oz - z, z - mz, 0)
@@ -419,7 +440,7 @@ def main():
         if bad in ctx.log() and (bad != "step " or re.search(r"herald's house (grounds|roads): step .* failed", ctx.log())):
             fails.append(f"the log contains {bad!r}")
     if box:
-        read_back(p, a.work, os.path.abspath(a.jar), box, ground_y)
+        read_back(p, a.work, os.path.abspath(a.jar), box, ground_y, ctx.log())
     print(f"HERALD STEEP: {time.monotonic() - t0:.0f} s;", "OK" if not fails else fails)
     return 1 if fails else 0
 
