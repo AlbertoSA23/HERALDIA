@@ -65,7 +65,10 @@ def sentry(p, name):
     t = _pier(p, name)
     c.place_chest(t, 2, 1, 5, "east", MID, "capitan")
     t.set(3, 1, 3, "barrel[facing=up,open=false]")
-    t.set(CX, 1, AZ - 3, p["noray"])
+    # the guard's post is a full block whatever the style's bollards are: a shulker cannot stay on a wall block (its top
+    # face is not full), and on the midlands style's end stone brick wall it left its post the moment it was placed, to
+    # anywhere within eight blocks, under the pier included (mediums.template_errors now refuses it)
+    t.set(CX, 1, AZ - 3, p["pilar"])
     t.entity(CX, 2, AZ - 3, c.mob("shulker", MID, "guardia", "Guardia del muelle", Color=10, Peek=0))
     pieces.connect(t)
     return t
