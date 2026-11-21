@@ -256,12 +256,23 @@ def _ladder_columns(t):
 
 def stranded(t):
     """[(cell, ladder)]: cells a villager can get to (walking, and climbing a ladder, which it does by just walking into
-    one; its path search never uses ladders) from which its search finds no way back to any bed of the template: up
+    one; its path search never uses ladders) from which its search finds no way back to a bed the inhabitants use: up
     there it cannot get home or to work, and after 1,200 ticks the game makes it give both up. Seen in CI: the hunters'
     lodge's two inhabitants on top of its lookout, 4 blocks above the ground (a search allows drops of 3 at most)."""
+    from . import _inhabitants as inh
     g = Ground(t)
-    beds_ = beds(t)
-    targets = {c for b in beds_ for c in _beside(g, b)}
+    # the beds an inhabitant can use: those its search reaches from where the inhabitants spawn (a bed up a ladder is
+    # not one: the watchtower's upper bed, which its search never claims)
+    spawn = [tuple(int(v // 1) for v in (x, y, z)) for x, y, z, n in t.entities
+             if n["id"] == "minecraft:villager" and inh.is_inhabitant(n)]
+    ground, todo = set(), [c for x, y, z in spawn for c in ((x, y, z), (x, y + 1, z)) if g.floor(*c) is not None]
+    ground.update(todo)
+    while todo:
+        for m in g.neighbors(todo.pop()):
+            if m not in ground:
+                ground.add(m)
+                todo.append(m)
+    targets = {c for b in beds(t) for c in _beside(g, b) if c in ground}
     if not targets:
         return []
     ladders = _ladder_columns(t)
