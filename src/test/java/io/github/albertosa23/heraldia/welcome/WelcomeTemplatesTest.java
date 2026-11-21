@@ -3,6 +3,9 @@ package io.github.albertosa23.heraldia.welcome;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import io.github.albertosa23.heraldia.welcome.Spots.Piece;
 import io.github.albertosa23.heraldia.welcome.Spots.Spot;
@@ -92,6 +95,44 @@ class WelcomeTemplatesTest {
 		assertEquals(72, checked.getOrDefault(Piece.TOWER, 0), checked.toString());
 		assertEquals(72, checked.getOrDefault(Piece.PLAZA, 0), checked.toString());
 		assertEquals(36, checked.getOrDefault(Piece.BOARD, 0), checked.toString());
+	}
+
+	/**
+	 * A support the village's own processor weathered is still the template's block: every block-for-block rule of every
+	 * style's building processor is one {@link Spots#AGED} knows, so no decoration is refused on a wall for being mossy.
+	 */
+	@Test
+	void everyWeatheringOfTheBuildingProcessorsIsKnown() throws IOException {
+		Path root = Path.of(System.getProperty("heraldia.generated"), "data/heraldia/worldgen/processor_list");
+		List<Path> files;
+		try (Stream<Path> s = Files.walk(root)) {
+			files = s.filter(p -> p.endsWith("building.json")).toList();
+		}
+		assertEquals(36, files.size(), "one building processor per style");
+		int rules = 0;
+		for (Path f : files) {
+			JsonObject o = JsonParser.parseString(Files.readString(f)).getAsJsonObject();
+			for (JsonElement p : o.getAsJsonArray("processors")) {
+				if (!p.getAsJsonObject().get("processor_type").getAsString().equals("minecraft:rule")) {
+					continue;
+				}
+				for (JsonElement r : p.getAsJsonObject().getAsJsonArray("rules")) {
+					JsonObject in = r.getAsJsonObject().getAsJsonObject("input_predicate");
+					String from = in.get("block").getAsString(), to = r.getAsJsonObject().get("output_state").getAsString();
+					assertEquals("minecraft:random_block_match", in.get("predicate_type").getAsString(), f.toString());
+					assertTrue(Spots.own(from, to) && !from.equals(to), f + ": " + from + " -> " + to + " is not in Spots.AGED");
+					rules++;
+				}
+			}
+		}
+		assertTrue(rules > 0, "no weathering rule was read");
+		assertTrue(Spots.own("minecraft:cobblestone", "minecraft:cobblestone"));
+		assertTrue(Spots.own("minecraft:stone_bricks", "minecraft:cracked_stone_bricks"));
+		assertTrue(!Spots.own("minecraft:cobblestone", "minecraft:mossy_stone_bricks"), "not another block's weathering");
+		assertTrue(!Spots.own("minecraft:mossy_cobblestone", "minecraft:cobblestone"), "weathering goes one way");
+		assertTrue(!Spots.own("minecraft:oak_planks", "minecraft:mossy_cobblestone"));
+		assertEquals(List.of("minecraft:cobblestone"), Spots.fresh("minecraft:mossy_cobblestone"));
+		assertEquals(List.of(), Spots.fresh("minecraft:glass"));
 	}
 
 	@Test

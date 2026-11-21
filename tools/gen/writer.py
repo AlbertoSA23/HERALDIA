@@ -206,6 +206,8 @@ def write(reg, out):
                 rule(th["path"], "lava", th["found"] if "log" not in th["found"] else "cobblestone"),
             ]}]})
         rules = []
+        # every block-for-block rule here must be in the Java side's welcome/Spots.AGED: a village's decorations only go
+        # up on the template's own block, and a weathered one has to count as that (WelcomeTemplatesTest checks it)
         stone_like = {"cobblestone": "mossy_cobblestone", "stone_bricks": "mossy_stone_bricks"}
         if th["family"] in ("bosque", "oscuro", "pantano", "jungla", "llanuras", "nieve", "costa", "taiga"):
             for a, b in stone_like.items():
