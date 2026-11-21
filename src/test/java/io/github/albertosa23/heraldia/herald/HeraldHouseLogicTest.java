@@ -44,6 +44,13 @@ class HeraldHouseLogicTest {
 		assertEquals(96, v1.size()[0]);
 		assertEquals(96, v1.size()[2]);
 		assertEquals(null, v1.square(), "no event square in the old town");
+		assertEquals(null, v1.exterior(), "the old blueprint names no ground outside its wall");
+		// the current one does: the forecourt, the template's rows south of the wall, the whole width
+		int[] e = PLAN.exterior();
+		assertEquals(0, e[0]);
+		assertEquals(PLAN.size()[0] - 1, e[2]);
+		assertEquals(PLAN.size()[2] - 1, e[3]);
+		assertTrue(e[1] > PLAN.gates().get("south")[1] - 12 && e[1] < e[3], "the forecourt lies outside the south wall");
 		Grounds old = new Grounds(1000, 60, -2000, v1);
 		assertTrue(old.inArea(1000 + 95 + 50, -2000));
 		assertFalse(old.inArea(1000 + 95 + 51, -2000), "the old ring does not grow");

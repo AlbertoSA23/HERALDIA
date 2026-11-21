@@ -932,9 +932,28 @@ public final class Outskirts {
 				}
 			}
 		}
+		// the pad's own surface (sand, terracotta, mud...), read before the template covers it with its grass
+		int sx = hs.slot().x1() - hs.slot().x0() + 1;
+		BlockState[] pad = new BlockState[sx * (hs.slot().z1() - hs.slot().z0() + 1)];
+		for (int x = hs.slot().x0(); x <= hs.slot().x1(); x++) {
+			for (int z = hs.slot().z0(); z <= hs.slot().z1(); z++) {
+				pad[(z - hs.slot().z0()) * sx + x - hs.slot().x0()] = w.level.getBlockState(pos.set(x, y, z));
+			}
+		}
 		BlockPos origin = new BlockPos(w.g.ox() + slot.origin()[0], y, w.g.oz() + slot.origin()[1]);
 		StructurePlaceSettings settings = new StructurePlaceSettings().setRotation(slot.rotation()).setIgnoreEntities(true);
 		t.get().placeInWorld(w.level, origin, origin, settings, w.level.getRandom(), BuiltRoads.FLAGS);
+		// off grassland the plot's bare grass goes back to that surface: a house on the sand, not on a green doormat
+		for (int x = hs.slot().x0(); x <= hs.slot().x1(); x++) {
+			for (int z = hs.slot().z0(); z <= hs.slot().z1(); z++) {
+				BlockState was = pad[(z - hs.slot().z0()) * sx + x - hs.slot().x0()];
+				RoadProfile.Ground kind = BuiltRoads.kind(was);
+				if (kind != null && kind != RoadProfile.Ground.DIRT && w.level.getBlockState(pos.set(x, y, z)).is(Blocks.GRASS_BLOCK)
+						&& w.level.getBlockState(pos.set(x, y + 1, z)).isAir()) {
+					w.level.setBlock(pos.set(x, y, z), surface(was), BuiltRoads.FLAGS);
+				}
+			}
+		}
 		w.felled += BuiltRoads.fell(w.level, logs, (x, z) -> w.g.inColumns(x, z));
 		w.placed.add(slot.name());
 		LOGGER.info("Heraldia: herald's house grounds: house {} ({}) at {} {} {}", slot.name(), slot.house(), origin.getX(), y, origin.getZ());

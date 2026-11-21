@@ -41,6 +41,7 @@ from core import Template, NS, B, F, villager
 import filler_loot
 import board
 import build
+import herald_dress
 import lint
 import traces
 from themes import THEMES
@@ -1810,7 +1811,9 @@ def golems(t):
 
 
 # ------------------------------------------------------------------ the whole town
-def construct():
+def construct(dressed=True):
+    """The town's template. `dressed` False leaves out herald_dress (the relief, texture and skyline over the plain
+    build): the tests compare the two."""
     t = Template(TEMPLATE)
     t.villagers, t.beds, t.stalls, t.returns, t.stations, t.bells, t.paths = [], [], [], [], [], [], []
     stone, grass, air = ("minecraft:stone", None), ("minecraft:grass_block[snowy=false]", None), ("minecraft:air", None)
@@ -1854,6 +1857,7 @@ def construct():
     paste_trace(t, "meal", 100, 84)
     neighbourhood_bells(t)
     job_board(t)
+    t.mural_towers = herald_dress.dress(t, blds) if dressed else []
     # paths from each door to the nearest street
     plots = {(x, z) for b in blds for x in range(b.x0, b.x1 + 1) for z in range(b.z0, b.z1 + 1)}
     for b in blds:
@@ -1925,6 +1929,8 @@ def dataset(t=None):
         "estilo": STYLE,
         "huerto": list(FARM_CELL),
         "plaza_eventos": [SQ0[0], FLOOR, SQ0[1], SQUARE],
+        # outside the wall (the forecourt): its bare ground takes the land's own surface (herald/Building.exterior)
+        "exterior": [0, SOUTH + WALL_T, N - 1, N - 1],
         "anteriores": previous(),
     }
 

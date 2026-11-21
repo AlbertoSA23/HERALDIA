@@ -1,6 +1,8 @@
 package io.github.albertosa23.heraldia.herald;
 
 import io.github.albertosa23.heraldia.command.Texts;
+import io.github.albertosa23.heraldia.roads.BuiltRoads;
+import io.github.albertosa23.heraldia.roads.RoadProfile;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +72,12 @@ final class Building {
 	private static final int FOUNDATION = 48;
 	/** The dock only if the water starts this close to the wall (its far end stays inside the protected ring). */
 	private static final int DOCK_REACH = 32;
+	/** How far down the land's own ground is looked for under what stands on it (a cactus is three blocks). */
+	private static final int LOOK_DOWN = 4;
+	/** The foundation's outermost columns built as masonry (the wall's thickness). */
+	private static final int EDGE = 4;
+	/** How many of the margin's columns stand on each kind of land (the town's forecourt takes the commonest). */
+	private static final int[] census = new int[RoadProfile.Ground.values().length];
 
 	private enum Phase { LOAD, LEVEL, TEMPLATE, BEDS, SHORE, ROAD }
 
@@ -119,6 +127,7 @@ final class Building {
 		docked = false;
 		settled = Shores.NONE;
 		cleared = 0;
+		java.util.Arrays.fill(census, 0);
 		Set<BlockPos> own = new HashSet<>();
 		BlockPos origin = new BlockPos(g.ox(), g.oy(), g.oz());
 		for (StructureTemplate.StructureBlockInfo info : t.get().filterBlocks(origin, new StructurePlaceSettings(), Blocks.WATER)) {
@@ -182,6 +191,53 @@ final class Building {
 		return ground + Math.round((natural - ground) * (float) k / (Siting.MARGIN + 1));
 	}
 
+	/**
+	 * The land's own ground at a column, looking down from {@code y} through what grows or stands on it (a cactus, a dead
+	 * bush, snow): the block and its kind, or null if there is none within {@link #LOOK_DOWN} blocks (water, a structure).
+	 */
+	static @Nullable BlockState land(ServerLevel level, BlockPos.MutableBlockPos pos, int x, int y, int z) {
+		for (int k = 0; k <= LOOK_DOWN; k++) {
+			BlockState s = level.getBlockState(pos.set(x, y - k, z));
+			if (!s.getFluidState().isEmpty()) {
+				return null;
+			}
+			if (BuiltRoads.kind(s) != null) {
+				return s;
+			}
+		}
+		return null;
+	}
+
+	/** The surface a kind of land shows where the town lays bare ground of its own. */
+	static BlockState surface(RoadProfile.Ground kind) {
+		return (switch (kind) {
+			case MUD -> Blocks.MUD;
+			case DIRT -> Blocks.GRASS_BLOCK;
+			case RED -> Blocks.RED_SAND;
+			case SAND -> Blocks.SAND;
+			case STONE -> Blocks.GRAVEL;
+		}).defaultBlockState();
+	}
+
+	/** The kind of land most of the margin's columns stand on (grassland until the margin has been read). */
+	static RoadProfile.Ground dominant() {
+		RoadProfile.Ground best = RoadProfile.Ground.DIRT;
+		for (RoadProfile.Ground k : RoadProfile.Ground.values()) {
+			if (census[k.ordinal()] > census[best.ordinal()]) {
+				best = k;
+			}
+		}
+		return best;
+	}
+
+	/** The masonry of the foundation under the town's edge, where it shows over lower land: the wall's own stone. */
+	static BlockState masonry(int x, int y, int z) {
+		int h = (x * 73856093 ^ y * 19349663 ^ z * 83492791) & 0xFFFF;
+		int v = h % 20;
+		return (v < 3 ? Blocks.MOSSY_STONE_BRICKS : v < 6 ? Blocks.COBBLESTONE : v < 8 ? Blocks.CRACKED_STONE_BRICKS
+				: v < 9 ? Blocks.MOSSY_COBBLESTONE : Blocks.STONE_BRICKS).defaultBlockState();
+	}
+
 	private static void level(ServerLevel level, LevelChunk chunk, Grounds g) {
 		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 		BlockState air = Blocks.AIR.defaultBlockState(), dirt = Blocks.DIRT.defaultBlockState(),
@@ -197,12 +253,14 @@ final class Building {
 							level.setBlock(pos, air, FLAGS);
 						}
 					}
+					// under the town's edge the foundation shows wherever the land is lower: masonry there, not bare stone
+					boolean edge = Math.min(Math.min(x - g.ox(), g.maxX() - x), Math.min(z - g.oz(), g.maxZ() - z)) < EDGE;
 					for (int y = g.oy() - 1; y > g.oy() - FOUNDATION && y > level.getMinY(); y--) {
 						BlockState s = level.getBlockState(pos.set(x, y, z));
 						if (!s.isAir() && s.getFluidState().isEmpty() && !s.canBeReplaced()) {
 							break;
 						}
-						level.setBlock(pos, stone, FLAGS);
+						level.setBlock(pos, edge ? masonry(x, y, z) : stone, FLAGS);
 					}
 					continue;
 				}
@@ -210,6 +268,16 @@ final class Building {
 				int natural = chunk.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x & 15, z & 15);
 				if (!level.getBlockState(pos.set(x, natural, z)).getFluidState().isEmpty()) {
 					continue;                       // water around the house stays (the dock may need it)
+				}
+				// the margin keeps the land's own ground (sand on sand, terracotta on badlands): grass only on grassland
+				BlockState own = land(level, pos, x, natural, z), surface = grass, fill = dirt;
+				if (own != null) {
+					RoadProfile.Ground kind = BuiltRoads.kind(own);
+					census[kind.ordinal()]++;
+					if (kind != RoadProfile.Ground.DIRT) {
+						surface = own.is(Blocks.FARMLAND) || own.is(Blocks.DIRT_PATH) ? surface(kind) : own;
+						fill = BuiltRoads.fill(kind);
+					}
 				}
 				int target = blend(ground, natural, k);
 				for (int y = target + 1; y <= Math.max(top, natural) + 1; y++) {
@@ -222,7 +290,7 @@ final class Building {
 					if (y < target && !s.isAir() && s.getFluidState().isEmpty() && !s.canBeReplaced()) {
 						break;
 					}
-					level.setBlock(pos, y == target ? grass : dirt, FLAGS);
+					level.setBlock(pos, y == target ? surface : fill, FLAGS);
 				}
 			}
 		}
@@ -234,6 +302,29 @@ final class Building {
 		BlockPos origin = new BlockPos(g.ox(), g.oy(), g.oz());
 		t.placeInWorld(level, origin, origin, new StructurePlaceSettings().setBoundingBox(bb).setIgnoreEntities(false)
 				.setFinalizeEntities(false), level.getRandom(), FLAGS);
+		exterior(level, g, bb);
+	}
+
+	/**
+	 * Outside the wall (the forecourt) the template's bare grass takes the land's own surface, so the town does not lay a
+	 * lawn on a desert: only grass with nothing on it (the gardens' beds keep their soil), and only off grassland.
+	 */
+	private static void exterior(ServerLevel level, Grounds g, BoundingBox bb) {
+		int[] e = g.plan().exterior();
+		RoadProfile.Ground kind = dominant();
+		if (e == null || kind == RoadProfile.Ground.DIRT) {
+			return;
+		}
+		BlockState surface = surface(kind);
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		int y = g.groundY();
+		for (int x = Math.max(bb.minX(), g.ox() + e[0]); x <= Math.min(bb.maxX(), g.ox() + e[2]); x++) {
+			for (int z = Math.max(bb.minZ(), g.oz() + e[1]); z <= Math.min(bb.maxZ(), g.oz() + e[3]); z++) {
+				if (level.getBlockState(pos.set(x, y, z)).is(Blocks.GRASS_BLOCK) && level.getBlockState(pos.set(x, y + 1, z)).isAir()) {
+					level.setBlock(pos.set(x, y, z), surface, FLAGS);
+				}
+			}
+		}
 	}
 
 	/**
