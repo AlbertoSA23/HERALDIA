@@ -765,12 +765,8 @@ public final class GenerationMend {
 		// the area (and a chunk round it) that it reaches are asked for and the step is run again once they are all loaded;
 		// beyond them nothing is loaded or generated, and what lies there counts as fed.
 		Set<Long> unseen = new HashSet<>();
-		List<String> dbgSources = new ArrayList<>();
 		Set<Long> unfed = Streams.unfed(seeds, p -> {
 			Streams.Water w = water(level, p);
-			if (w == Streams.Water.SOURCE && dbgSources.size() < 6) {
-				dbgSources.add(BlockPos.of(p).toShortString() + "=" + level.getBlockState(BlockPos.of(p)));
-			}
 			if (w == Streams.Water.UNSEEN) {
 				int x = BlockPos.getX(p), z = BlockPos.getZ(p);
 				if (g.areaOverlaps(x - 16, z - 16, x + 16, z + 16)) {
@@ -779,8 +775,6 @@ public final class GenerationMend {
 			}
 			return w;
 		});
-		LOGGER.info("Heraldia: update mend DEBUG streams {} {}: {} seeds, {} unfed, {} unseen chunks, sources touched {}", t.cx, t.cz,
-				seeds.size(), unfed.size(), unseen.size(), dbgSources);
 		if (!unseen.isEmpty()) {
 			for (long c : unseen) {
 				ask(level, ChunkPos.getX(c), ChunkPos.getZ(c), 0);
@@ -788,8 +782,10 @@ public final class GenerationMend {
 			j.held.addAll(unseen);
 			return false;
 		}
-		j.streamSeen.addAll(seeds);
+		// what an earlier chunk's step already found is not counted (nor taken away) twice; this chunk's own seeds are
+		// marked only after that (marking them first dropped them from their own stream: 35 of 193 blocks, read back)
 		unfed.removeIf(j.streamSeen::contains);
+		j.streamSeen.addAll(seeds);
 		j.streamSeen.addAll(unfed);
 		if (unfed.isEmpty()) {
 			return true;
@@ -993,6 +989,15 @@ public final class GenerationMend {
 			}
 			if (j.apply) {
 				s.teleportTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
+				// held by the post's top from now: a shulker only looks at its hold when it ticks, and in a chunk nobody is
+				// near it would keep the face it had where it was (under the pier, read back: AttachFace 1, "up")
+				var out = net.minecraft.world.level.storage.TagValueOutput.createWithContext(net.minecraft.util.ProblemReporter.DISCARDING,
+						level.registryAccess());
+				s.saveWithoutId(out);
+				CompoundTag tag = out.buildResult();
+				tag.putByte("AttachFace", (byte) net.minecraft.core.Direction.DOWN.get3DDataValue());
+				s.load(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING,
+						level.registryAccess(), tag));
 			}
 			j.findings.add(new Finding(Kind.WHARF, Outcome.REPAIR, at, "guard at " + s.getBlockX() + " " + s.getBlockY() + " " + s.getBlockZ()));
 			guards.remove(s);
