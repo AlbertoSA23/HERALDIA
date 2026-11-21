@@ -113,13 +113,42 @@ def town_world(work):
     return hs.World(os.path.join(work, "world"))
 
 
+class GameWorld(hs.World):
+    """The saved world as the game sees water: a waterlogged block (a wall, a lantern, a slab with water in it) is a
+    source, as it is in the game (it pours water and keeps what runs from it). herald_steep's rule counts only water
+    blocks: in a town whose template was placed into a pond (a world from f865237) the walls came out waterlogged and
+    feed a stream of 735 blocks that no tick would ever dry; that is not a stream from nowhere."""
+
+    def block(self, x, y, z):
+        cx, cz, sy = x >> 4, z >> 4, y >> 4
+        if (cx, cz) not in self.chunks:
+            n = ew.read_chunk(self.path, cx, cz)
+            self.chunks[(cx, cz)] = n if n is not None and str(n.get("Status", "")).endswith("full") else None
+        n = self.chunks[(cx, cz)]
+        if n is None:
+            return None
+        key = (cx, cz, sy)
+        if key not in self.sections:
+            st = None
+            for sec in n.get("sections", []):
+                if int(sec["Y"]) == sy and sec.get("block_states") is not None:
+                    st = ["water" if dict(q[1]).get("waterlogged") == "true" else hs.name(q)
+                          for q in ew.states(ew._blueprint(sec["block_states"]))]
+            self.sections[key] = st
+        st = self.sections[key]
+        return "air" if st is None else st[((y & 15) << 8) | ((z & 15) << 4) | (x & 15)]
+
+
 def orphans_in(work, box, ground_y):
-    """herald_steep's own rules on the saved world: (running water with no source, still water standing in the air, world)."""
+    """On the saved world: (running water with no source by the game's rule, still water standing in the air, the
+    running water that only herald_steep's rule calls sourceless (fed by waterlogged blocks), world)."""
     world = town_world(work)
     ox, oz, mx, mz = box
     area = (ox - hs.RING, oz - hs.RING, mx + hs.RING, mz + hs.RING)
     cols = hs.survey(world, area, ground_y - 70, ground_y + 60)
-    return hs.orphans(world, cols), hs.standing(world, cols), world
+    plain = hs.orphans(world, cols)
+    game = hs.orphans(GameWorld(os.path.join(work, "world")), cols)
+    return game, hs.standing(world, cols), sorted(set(plain) - set(game)), world
 
 
 def read_state(work, inn_areas, wharf_areas):
@@ -401,9 +430,9 @@ def main():
     # ---- the earlier world: the faults are there
     inns, wharfs = read_state(a.work, inn_area, wharf_area)
     if town:
-        lost, wet, world = orphans_in(a.work, town, ground_y)
-        print(f"BEFORE: {len(lost)} blocks of running water with no source, {len(wet)} of still water standing in the air; "
-              f"fountain {world.block(*fountain)}", flush=True)
+        lost, wet, logged, world = orphans_in(a.work, town, ground_y)
+        print(f"BEFORE: {len(lost)} blocks of running water with no source, {len(wet)} of still water standing in the air, "
+              f"{len(logged)} running from waterlogged blocks; fountain {world.block(*fountain)}", flush=True)
         # which of the two an earlier jar leaves depends on the jar (the shores fix came first, the running-water one after)
         p.check(lost or wet, "before: neither a stream from nowhere nor water standing in the air by the town")
         p.check(world.block(*fountain) == "water", f"before: the fountain is {world.block(*fountain)}")
@@ -430,8 +459,9 @@ def main():
                 f"the second run still finds something to repair: {m.group(7)}")
     # ---- read back
     if town:
-        lost, wet, world = orphans_in(a.work, town, ground_y)
-        print(f"AFTER: {len(lost)} blocks of running water with no source, {len(wet)} of still water standing in the air; "
+        lost, wet, logged, world = orphans_in(a.work, town, ground_y)
+        print(f"AFTER: {len(lost)} blocks of running water with no source, {len(wet)} of still water standing in the air, "
+              f"{len(logged)} running from waterlogged blocks (not repaired: fed, by the game's rule); "
               f"fountain {world.block(*fountain)}", flush=True)
         p.check(not lost, f"after: {len(lost)} blocks of running water with no source by the town: {lost[:5]}")
         p.check(not wet, f"after: {len(wet)} blocks of still water standing in the air by the town: {wet[:5]}")

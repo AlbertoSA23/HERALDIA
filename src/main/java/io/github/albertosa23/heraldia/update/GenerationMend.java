@@ -197,6 +197,9 @@ public final class GenerationMend {
 		int @Nullable [] ringY;
 		boolean @Nullable [] ringIn;
 		int ringX, ringZ, ringN;
+		/** The step left the target half done on purpose (it goes on, within the tick's budget); the column it is at. */
+		boolean more;
+		int column;
 
 		Job(String id, boolean apply, Set<Kind> kinds, List<Target> targets, CommandSourceStack source, Map<String, String> lang) {
 			this.id = id;
@@ -607,6 +610,17 @@ public final class GenerationMend {
 				done = true;
 			}
 			long ns = System.nanoTime() - t0, cpuNs = c0 < 0 ? -1 : cpu() - c0;
+			if (j.more) {                              // a step of a target done in several (one column at a time)
+				j.more = false;
+				j.steps++;
+				j.nanos += ns;
+				if (ns > j.worst) {
+					j.worst = ns;
+					j.worstCpu = cpuNs;
+					j.worstStep = t.kind.word + " " + t.cx + " " + t.cz + " (part)";
+				}
+				continue;
+			}
 			if (!done) {
 				if (++j.waited > MAX_WAIT) {
 					j.findings.add(new Finding(t.kind, Outcome.LEFT, new BlockPos(t.cx << 4, 0, t.cz << 4), "not loaded"));
@@ -685,17 +699,27 @@ public final class GenerationMend {
 		if (chunk == null || g == null) {
 			return chunk != null;
 		}
-		java.util.function.BiPredicate<Integer, Integer> in = g::inArea;
-		int n = Repairs.standing(level, chunk, in);
-		if (n == 0) {
+		if (!j.apply) {                                // counting is cheap: the whole chunk at once
+			int n = Repairs.standing(level, chunk, g::inArea);
+			if (n > 0) {
+				j.findings.add(new Finding(Kind.WATER, Outcome.REPAIR, new BlockPos(t.cx << 4, g.groundY(), t.cz << 4), String.valueOf(n)));
+			}
 			return true;
 		}
-		String detail = String.valueOf(n);
-		if (j.apply) {
+		// settling is not: a column per step (Shores.settle looks for each standing block's pond, up to 4,096 blocks; a
+		// whole chunk at once took 132 ms of the server thread, read in the log of a world from an earlier jar)
+		int c = j.column, x = (t.cx << 4) + (c & 15), z = (t.cz << 4) + (c >> 4);
+		java.util.function.BiPredicate<Integer, Integer> in = (a, b) -> a == x && b == z && g.inArea(a, b);
+		if (g.inArea(x, z) && Repairs.standing(level, chunk, in) > 0) {
 			int[] s = Repairs.settle(level, chunk, in);
-			detail = n + " (" + s[0] + " ponds drained, " + s[1] + " blocks; " + s[2] + " banked)";
+			j.findings.add(new Finding(Kind.WATER, Outcome.REPAIR, new BlockPos(x, g.groundY(), z),
+					s[0] + " ponds drained (" + s[1] + " blocks), " + s[2] + " banked"));
 		}
-		j.findings.add(new Finding(Kind.WATER, Outcome.REPAIR, new BlockPos(t.cx << 4, g.groundY(), t.cz << 4), detail));
+		if (++j.column < 256) {
+			j.more = true;
+			return false;
+		}
+		j.column = 0;
 		return true;
 	}
 
