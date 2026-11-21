@@ -79,7 +79,7 @@ final class Building {
 	/** How many of the margin's columns stand on each kind of land (the town's forecourt takes the commonest). */
 	private static final int[] census = new int[RoadProfile.Ground.values().length];
 
-	private enum Phase { LOAD, LEVEL, TEMPLATE, BEDS, SHORE, ROAD }
+	private enum Phase { LOAD, LEVEL, TEMPLATE, BEDS, SHORE, DRY, ROAD }
 
 	private record Step(Phase phase, int cx, int cz, @Nullable String side) {
 	}
@@ -93,7 +93,7 @@ final class Building {
 	private static long nanos;
 	private static boolean docked;
 	private static Shores.Settled settled = Shores.NONE;
-	private static int cleared;
+	private static int cleared, dried;
 	/** The template's own water blocks (world positions), kept by the shores' step. */
 	private static Set<BlockPos> ownWater = Set.of();
 
@@ -118,6 +118,7 @@ final class Building {
 		chunks(steps, Phase.TEMPLATE, g, 0);
 		steps.add(new Step(Phase.BEDS, 0, 0, null));
 		chunks(steps, Phase.SHORE, g, Siting.MARGIN);
+		chunks(steps, Phase.DRY, g, Siting.MARGIN);     // once every chunk's water is settled: what ran out of it and has no source
 		for (String side : g.plan().gates().keySet()) {
 			steps.add(new Step(Phase.ROAD, 0, 0, side));
 		}
@@ -126,7 +127,7 @@ final class Building {
 		nanos = 0;
 		docked = false;
 		settled = Shores.NONE;
-		cleared = 0;
+		cleared = dried = 0;
 		java.util.Arrays.fill(census, 0);
 		Set<BlockPos> own = new HashSet<>();
 		BlockPos origin = new BlockPos(g.ox(), g.oy(), g.oz());
@@ -164,6 +165,7 @@ final class Building {
 					cleared += Shores.clear(o.level(), c, (x, z) -> o.g().inColumns(x, z), ownWater, o.g().oy(), o.g().maxY());
 					settled = settled.plus(Shores.settle(o.level(), c, (x, z) -> outside(o.g(), x, z) <= Siting.MARGIN));
 				}
+				case DRY -> dried += Shores.dry(o.level(), o.level().getChunk(p.cx(), p.cz()));
 				case ROAD -> road(o.level(), o.g(), p.side());
 			}
 			nanos += System.nanoTime() - t0;
@@ -171,7 +173,8 @@ final class Building {
 		}
 		actual = null;
 		LOGGER.info("Heraldia: herald's house: shores: {} ponds left open drained ({} blocks of water), {} blocks of water banked; {} "
-				+ "blocks of water that ran into the footprint taken away", settled.ponds(), settled.drained(), settled.banked(), cleared);
+				+ "blocks of water that ran into the footprint taken away; {} blocks of running water left without a source taken away",
+				settled.ponds(), settled.drained(), settled.banked(), cleared, dried);
 		finish(o);
 		nanos += System.nanoTime() - t0;
 		LOGGER.info("Heraldia: herald's house: built in {} ticks ({} ms on the server thread, at most a chunk per tick)",

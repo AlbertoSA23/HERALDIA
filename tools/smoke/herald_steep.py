@@ -134,6 +134,54 @@ def standing(world, cols):
     return found
 
 
+def orphans(world, cols):
+    """The running water with no source: from each wet column's top down, every flowing block from which no source is
+    reached through water going sideways or up (water never runs up: whatever feeds a block lies that way). A stream the
+    town left when it drained what fed it stays for good, because the build takes water away without block updates."""
+    flowing = set()
+    for (x, z), c in cols.items():
+        if c is None or c[1] != "water":
+            continue
+        y = c[0]
+        while world.block(x, y, z) in ("water", "flowing_water"):
+            if world.block(x, y, z) == "flowing_water":
+                flowing.add((x, y, z))
+            y -= 1
+    fed, lost = set(), []
+    for start in sorted(flowing):
+        if start in fed or start in lost:
+            continue
+        seen, todo, source = {start}, [start], False
+        while todo and not source:
+            x, y, z = todo.pop()
+            for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1), (0, 1, 0)):
+                o = (x + dx, y + dy, z + dz)
+                if o in seen:
+                    continue
+                b = world.block(*o)
+                if b is None or b == "water" or o in fed:
+                    source = True
+                    break
+                if b == "flowing_water":
+                    seen.add(o)
+                    todo.append(o)
+        (fed.update if source else lost.extend)(seen)
+    return sorted(set(lost))
+
+
+def dry_decks(world, cols, town):
+    """Road walkways over no water: a column outside the town whose top is planks with no source water in the three
+    blocks under it (a bridge stands over a river's or a pond's water; these were laid over water that was only passing)."""
+    out = []
+    for (x, z), c in cols.items():
+        if c is None or town(x, z) or not c[1].endswith("_planks"):
+            continue
+        under = [world.block(x, c[0] - k, z) or "" for k in (1, 2, 3)]
+        if "water" not in under and not under[0].endswith("_fence"):     # a bridge's post down to the bottom is waterlogged
+            out.append((x, c[0], z))
+    return out
+
+
 def ramps(cols, inside):
     """OutskirtsPlan.ramps over the columns in `inside` ({(x, z): y})."""
     xs = sorted({x for x, _ in inside}) if inside else []
@@ -189,6 +237,14 @@ def read_back(p, work, box, ground_y):
     wet = standing(world, cols)
     print(f"READ BACK: {len(wet)} blocks of water standing in the air" + (f", e.g. {wet[:5]}" if wet else ""), flush=True)
     p.check(not wet, f"read back: {len(wet)} blocks of water standing in the air in the town, its margin and the ring: {wet[:5]}")
+    # no stream from nowhere, and no walkway over one: the pond the town cut open ran down the hillside before it was
+    # drained, and what had run out stayed (193 and 105 blocks in two runs of the same build) with plank walkways over it
+    lost = orphans(world, cols)
+    print(f"READ BACK: {len(lost)} blocks of running water with no source" + (f", e.g. {lost[:5]}" if lost else ""), flush=True)
+    p.check(not lost, f"read back: {len(lost)} blocks of running water with no source in the town, its margin and the ring: {lost[:5]}")
+    decks = dry_decks(world, cols, town)
+    print(f"READ BACK: {len(decks)} walkway columns over no water" + (f", e.g. {decks[:5]}" if decks else ""), flush=True)
+    p.check(not decks, f"read back: {len(decks)} plank walkway columns with no water under them: {decks[:5]}")
     # the town does not lay a lawn on the desert: its margin and its forecourt keep the land's own ground
     out = lambda x, z: max(ox - x, x - mx, oz - z, z - mz, 0)
     edge = [c[1] for (x, z), c in cols.items() if c is not None and c[1] != "water"
