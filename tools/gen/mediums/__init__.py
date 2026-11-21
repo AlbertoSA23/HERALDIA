@@ -204,6 +204,28 @@ def errors(reg, mid, mod):
     return errs
 
 
+ATTACH = {0: (0, -1, 0), 1: (0, 1, 0), 2: (0, 0, -1), 3: (0, 0, 1), 4: (-1, 0, 0), 5: (1, 0, 0)}   # Shulker AttachFace
+
+
+def shulker_errors(t):
+    """A shulker holds on to the block behind its attach face (the one under it unless AttachFace says otherwise) only
+    if that block's face is full (26.3, Shulker.canStayAt): on a wall, a fence, a slab or a stair it lets go the moment
+    it loads and teleports to anywhere within eight blocks, so the mob the template places is not where it was placed."""
+    import lint
+    errs = []
+    for x, y, z, n in t.entities:
+        if n.get("id") != "minecraft:shulker":
+            continue
+        dx, dy, dz = ATTACH[int(n.get("AttachFace", 0))]
+        st = t.get(int(x) + dx, int(y) + dy, int(z) + dz)
+        name = lint.bname(st) if st else "nothing"
+        full = st is not None and lint.top_height(st) == 1.0 and not name.endswith(("_stairs", "_slab", "_wall", "_fence"))
+        if not full:
+            errs.append(f"the shulker at {(int(x), int(y), int(z))} is attached to {name}, not a full block: it would "
+                        f"leave its place as soon as it loads")
+    return errs
+
+
 def template_errors(t, mid, loot, dim="overworld"):
     from uniques._common.pieces import GUARDIAN_TAG
     import dimensions
@@ -223,6 +245,7 @@ def template_errors(t, mid, loot, dim="overworld"):
             errs.append("a medium structure has no final guardian (or trophy)")
         if n["id"] not in ("minecraft:armor_stand", "minecraft:item_frame") and not n.get("PersistenceRequired"):
             errs.append(f"{n['id']} without PersistenceRequired (it would despawn before anyone arrives)")
+    errs += shulker_errors(t)
     generators = 0
     for (x, y, z), (st, nbt) in t.blocks.items():
         if st.startswith("minecraft:spawner"):
