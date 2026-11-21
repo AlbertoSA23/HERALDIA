@@ -31,7 +31,10 @@ from modrinth import fetch
 from herald_grounds import AUDIT, BUILT, SLOW_MS, ROADS_AUDIT, PLACED as PLACED_AT
 
 SEED, LEVEL_TYPE = "-2071092601429184301", "minecraft\\:large_biomes"
-SPAWN = (0, 91, 48)                 # where the owner's town stands (its ground at 90)
+# Where this test places the town by hand (`herald place here`; its ground at 90), on the owner's seed: steep land with a
+# pond across the wall's line, chosen for that. It is NOT where the game puts the town in a new world of that seed: the
+# site search, left to itself, picks 48 86 0 (dry, no dock). What is measured here is the hard case, not the owner's town.
+SPAWN = (0, 91, 48)
 P = "rep"                           # Carpet's player (it spawns lowercase)
 POND_DEPTH, POND_OVER = 5, 9
 RING, BLEND = 50, 4                 # herald/Grounds.RING; Outskirts.EDGE_BLEND (the natural ground's own rows)
