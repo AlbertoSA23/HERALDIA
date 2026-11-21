@@ -40,6 +40,9 @@ def templates():
     return {n: t for n, t in reg.templates.items() if n.startswith("medianas/")}
 
 
+SHULKER_SETTLE_S = 4       # a shulker with nothing to hold on to has let go well within this
+
+
 def forceload(ctx, x0, z0, x1, z1, remove=False):
     ctx.run(f"forceload {'remove' if remove else 'add'} {x0} {z0} {x1} {z1}", r"Marked|[Aa]dded|[Rr]emoved|force|already|[Uu]nmarked")
 
@@ -266,6 +269,16 @@ def check_templates(ctx, ts):
                     time.sleep(1)
                 if ctx.count(sel) != n:
                     fails.append(f"{name}: {ctx.count(sel)} entidades, esperadas {n}")
+            # a shulker stays where the template puts it: one attached to a block whose face is not full lets go as it
+            # loads and teleports within eight blocks (the midlands wharf guard did, every time, sometimes out of the
+            # box above: that was this test's intermittent failure, and a mob that was never where it was placed)
+            posts = [(ex, ey, ez) for ex, ey, ez, e in t.entities if e.get("id") == "minecraft:shulker"]
+            if posts:
+                time.sleep(SHULKER_SETTLE_S)
+            for ex, ey, ez in posts:
+                at = f"x={x + int(ex) + 0.5},y={y + int(ey)},z={z + int(ez) + 0.5},distance=..0.8"
+                if ctx.count(f"@e[type=minecraft:shulker,{at}]") != 1:
+                    fails.append(f"{name}: the shulker placed at {int(ex), int(ey), int(ez)} is not at its post")
         fails += check_water(ctx, name, t, (x, y, z))
         fails += check_villagers(ctx, name, t, (x, y, z))
         forceload(ctx, x - 8, z - 8, x + 47, z + 47, remove=True)
