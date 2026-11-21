@@ -202,6 +202,34 @@ public final class Spots {
 		return Action.NONE;
 	}
 
+	/**
+	 * What a village's building processor turns a block into as the village generates (the generator's
+	 * {@code processor_list/<style>/building}: a share of the cobblestone and the stone bricks comes out mossy or cracked).
+	 * A support in one of these forms is still the template's own block, only weathered.
+	 */
+	public static final Map<String, List<String>> AGED = Map.of(
+			"minecraft:cobblestone", List.of("minecraft:mossy_cobblestone"),
+			"minecraft:stone_bricks", List.of("minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks"));
+
+	/** The template blocks that can have weathered into {@code block} (empty for a block no processor makes). */
+	public static List<String> fresh(String block) {
+		List<String> l = new ArrayList<>();
+		for (Map.Entry<String, List<String>> e : AGED.entrySet()) {
+			if (e.getValue().contains(block)) {
+				l.add(e.getKey());
+			}
+		}
+		return l;
+	}
+
+	/**
+	 * Is the block now at a support's place the template's own: the block the template has there, or what the village's
+	 * processor makes of it. {@code template}: the block the template has at that place.
+	 */
+	public static boolean own(String template, String now) {
+		return template.equals(now) || AGED.getOrDefault(template, List.of()).contains(now);
+	}
+
 	/** The family of a style id ({@code llanuras_castellana} → {@code llanuras}). */
 	public static String family(String style) {
 		int i = style.indexOf('_');
