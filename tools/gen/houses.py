@@ -304,9 +304,11 @@ def rect_house(th, rng, name, size, depth, tier, job):
     # --- flat roof: exposed beams and dome on the large houses
     if th["roof_type"] == "flat":
         ry = fy + H
-        r = rng.random()
+        # by the house's number, so the houses of one size never all get the same terrace
+        k = int(name.rsplit("_", 1)[-1]) if name.rsplit("_", 1)[-1].isdigit() else 0
+        r = (0.2, 0.6, 0.9, 0.2, 0.6)[k % 5]
         if not (size == "large" and th["dome"]) and W >= 7:
-            bx0 = rng.choice([1, W - 4])
+            bx0 = (1, W - 4)[(k // 2) % 2]
             if r < 0.4:                                    # a roof room in a back corner: the terrace's own little house
                 for x in range(bx0, bx0 + 3):
                     for z in range(zb - 3, zb):
@@ -323,7 +325,7 @@ def rect_house(th, rng, name, size, depth, tier, job):
                             t.set(x, y, z, th["fence"])
                 for x in range(bx0, bx0 + 3):
                     for z in range(zb - 3, zb):
-                        t.set(x, ry + 4, z, f"{th['wool']}_carpet" if (x + z) % 2 else f"{rng.choice(th['carpet'])}_carpet")
+                        t.set(x, ry + 4, z, f"{th['wool']}_wool" if (x + z) % 2 else f"{th['carpet'][0]}_wool")
         for x in range(1, W - 1, 2):
             if abs(x - dx) > 0:
                 t.set(x, ry, zf - 1, log(th["stripped"], "z"))
