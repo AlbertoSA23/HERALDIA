@@ -33,6 +33,12 @@ import net.minecraft.world.level.levelgen.Heightmap;
  * top down (a cave's water underground is left alone), never a waterlogged block. Loaded chunks only: what lies in one
  * that is not loaded counts as holding the water. In the town's own footprint, water its template does not have (a pond
  * or a lake beside it that ran in when the template's edge was placed) goes first ({@link #clear}).
+ * <p>
+ * And no running water left without a source ({@link #dry}). Draining a pond and clearing the footprint take water away
+ * without block updates (as all of the build does), so the water that had already run out of it (a pond the template cut
+ * open pours down the hillside before its step comes) is never told its source is gone: it stays, a stream from nowhere,
+ * for good, and the gates' roads, built next, lay plank walkways over it. Every running block from which no source is
+ * reached going sideways or up is taken away, and so is what ran on from it.
  */
 final class Shores {
 	/** The most blocks a pond may have to be drained; a bigger body of water is banked instead. */
@@ -209,6 +215,96 @@ final class Shores {
 			}
 		}
 		return new Settled(1, drained, 0);
+	}
+
+	/** The most blocks one stream is followed for; a longer one is left (it counts as fed). */
+	static final int STREAM = 8192;
+	private static final Direction[] UPSTREAM = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP};
+
+	/** Running water: a water block that is not a source. */
+	static boolean running(BlockState s) {
+		return s.is(Blocks.WATER) && !s.getFluidState().isSource();
+	}
+
+	/**
+	 * The running water with no source of one chunk's columns, and what ran on from it into any loaded chunk: removed.
+	 * A running block is fed if a source is reached from it through water going sideways or up (water never runs up, so
+	 * whatever feeds it lies that way); if none is, neither is any block on that way, and all of them go. What an unloaded
+	 * chunk or a stream longer than {@link #STREAM} hides counts as a source. Returns how many blocks went.
+	 */
+	static int dry(ServerLevel level, LevelChunk chunk) {
+		var cp = chunk.getPos();
+		BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+		ArrayDeque<BlockPos> starts = new ArrayDeque<>();
+		for (int lx = 0; lx < 16; lx++) {
+			for (int lz = 0; lz < 16; lz++) {
+				int x = cp.getMinBlockX() + lx, z = cp.getMinBlockZ() + lz;
+				int top = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, lx, lz);
+				for (int y = top; y > top - DEPTH && y > level.getMinY(); y--) {
+					BlockState s = chunk.getBlockState(pos.set(x, y, z));
+					if (running(s)) {
+						starts.add(pos.immutable());
+					} else if (!s.isAir() && !s.canBeReplaced()) {
+						break;                         // the ground: what is under it is not this column's surface water
+					}
+				}
+			}
+		}
+		int out = 0;
+		Set<BlockPos> fed = new HashSet<>();
+		while (!starts.isEmpty()) {
+			BlockPos start = starts.poll();
+			if (fed.contains(start) || !running(state(level, start))) {
+				continue;
+			}
+			Set<BlockPos> seen = new HashSet<>();
+			ArrayDeque<BlockPos> todo = new ArrayDeque<>();
+			seen.add(start);
+			todo.add(start);
+			boolean source = false;
+			while (!todo.isEmpty() && !source) {
+				BlockPos p = todo.poll();
+				for (Direction d : UPSTREAM) {
+					BlockPos o = p.relative(d);
+					if (seen.contains(o)) {
+						continue;
+					}
+					BlockState s = state(level, o);
+					if (s == null || still(s) || fed.contains(o) || seen.size() >= STREAM || s.getFluidState().isSource()) {
+						source = true;                 // a source, a waterlogged block, or what cannot be seen
+						break;
+					}
+					if (running(s)) {
+						seen.add(o);
+						todo.add(o);
+					}
+				}
+			}
+			if (source) {
+				fed.addAll(seen);
+				continue;
+			}
+			for (BlockPos p : seen) {
+				level.setBlock(p, Blocks.AIR.defaultBlockState(), BuiltRoads.FLAGS);
+				out++;
+			}
+			for (BlockPos p : seen) {                  // what ran on from it has lost its water too
+				for (Direction d : AROUND) {
+					BlockPos o = p.relative(d);
+					BlockState s = state(level, o);
+					if (s != null && running(s)) {
+						starts.add(o);
+					}
+				}
+			}
+		}
+		return out;
+	}
+
+	/** A block's state, or null in a chunk that is not loaded. */
+	private static @org.jspecify.annotations.Nullable BlockState state(ServerLevel level, BlockPos p) {
+		LevelChunk c = level.getChunkSource().getChunkNow(p.getX() >> 4, p.getZ() >> 4);
+		return c == null ? null : c.getBlockState(p);
 	}
 
 	/** A water block made into its bank: the fill of the ground under its water (its surface, if open to the sky). */
