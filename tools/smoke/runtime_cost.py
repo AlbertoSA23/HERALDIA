@@ -410,7 +410,17 @@ class Pass:
         s.send(c.proc, f"gamemode {mode} {name}")          # no reply if it already is in that mode
         if not c.until(f"execute if entity @a[name={name},gamemode={mode}]", timeout=30):
             raise SystemExit(f"{name} is not in {mode} mode")
-        c.run(f"execute positioned {x} 320 {z} positioned over motion_blocking_no_leaves run tp {name} ~ ~ ~", r"Teleported|No entity")
+        # the player has just logged in 200 blocks up: its column may not be loaded for a moment yet, and then there is
+        # no ground to be put on ("That position is not loaded"). Left up there, it is in no village, and what the
+        # scenario starts next has nobody to start for
+        for _ in range(60):
+            m = c.run(f"execute positioned {x} 320 {z} positioned over motion_blocking_no_leaves run tp {name} ~ ~ ~",
+                      r"Teleported|No entity|not loaded")
+            if "not loaded" not in m.group(0):
+                break
+            time.sleep(0.5)
+        else:
+            raise SystemExit(f"{name}: the column at {x} {z} did not load in 30 s")
         if mode == "survival":
             for e in ("resistance", "saturation"):      # "Unable": it still has it from an earlier scenario (saved player data)
                 c.run(f"effect give {name} minecraft:{e} infinite 255 true", r"Applied effect|Gave|Unable")
