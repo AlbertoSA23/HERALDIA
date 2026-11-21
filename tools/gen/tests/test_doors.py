@@ -50,3 +50,63 @@ def test_template_door_facing_a_wall():
         for y in (1, 2):
             t.set(x, y, 10, "stone_bricks")
     assert doors.template_report(t) == ["door at 3 1 5: a wall 5 blocks in front of it (2 10)"]
+
+
+def _eave(t):
+    """The same hut with its roof carried one block out over the door (an eave, a porch): the door's way out is covered."""
+    for x in range(1, 6):
+        t.set(x, 4, 6, "stone_brick_slab[type=bottom]")
+    return t
+
+
+def test_a_door_under_a_cover_is_still_checked():
+    """Until Nov 2026 a door with a roof over the cell in front of it was skipped without a word (1,386 of the mod's
+    2,153 doors: every house with eaves). The way out is found on foot instead, and the same rule applies."""
+    assert [k for *_, k, _ in doors.survey(_eave(_house()))] == ["covered"]
+    assert doors.survey(_eave(_house()))[0][4] == "south"
+    assert doors.template_report(_eave(_house())) == []
+    assert doors.template_report(_eave(_house(front="cobblestone")))
+    assert doors.template_report(_eave(_house(front="oak_fence")))
+
+
+def test_what_cannot_be_checked_is_said():
+    """A door between two rooms, a door at the template's edge and a gate with the sky on both sides are not outside
+    doors of one building: survey() names each, template_report() leaves them, and nothing is passed over in silence."""
+    t = Template("x")                                  # two roofed rooms and a door between them
+    for x in range(0, 11):
+        for z in range(0, 7):
+            t.set(x, 0, z, "stone")
+            t.set(x, 4, z, "stone")
+            for y in (1, 2, 3):
+                t.set(x, y, z, "stone_bricks" if x in (0, 5, 10) or z in (0, 6) else "air")
+    t.set(5, 1, 3, "oak_door[facing=east,half=lower,hinge=left,open=false]")
+    t.set(5, 2, 3, "oak_door[facing=east,half=upper,hinge=left,open=false]")
+    assert [k for *_, k, _ in doors.survey(t)] == ["inner"]
+    g = Template("y")                                  # a gate in a yard wall, open to the sky on both sides
+    for x in range(0, 7):
+        for z in range(0, 7):
+            g.set(x, 0, z, "stone")
+    for x in range(0, 7):
+        g.set(x, 1, 3, "cobblestone_wall")
+    g.set(3, 1, 3, "oak_door[facing=south,half=lower,hinge=left,open=false]")
+    g.set(3, 2, 3, "oak_door[facing=south,half=upper,hinge=left,open=false]")
+    assert [k for *_, k, _ in doors.survey(g)] == ["open"]
+    e = _house()                                       # the hut cut at its own door: what is beyond is another piece
+    e.blocks = {p: v for p, v in e.blocks.items() if p[2] <= 5}
+    assert [k for *_, k, _ in doors.survey(e)] == ["edge"]
+    for tt in (t, g, e):
+        assert doors.template_report(tt) == []
+    assert set(doors.CHECKED) | set(doors.UNCHECKED) == {"sky", "covered", "inner", "edge", "open", "through"}
+
+
+def test_the_report_counts_every_door():
+    class Reg:
+        templates = {"a": _house(), "b": _eave(_house()), "c": _eave(_house(front="cobblestone"))}
+    assert doors.registry_survey(Reg) == {"sky": 1, "covered": 2}
+    assert set(doors.registry_report(Reg)) == {"c"}
+
+
+def test_a_layer_of_snow_does_not_block_a_door():
+    t = _house()
+    t.set(3, 1, 6, "snow[layers=1]")
+    assert doors.template_report(t) == []
