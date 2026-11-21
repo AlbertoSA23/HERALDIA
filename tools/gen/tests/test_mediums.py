@@ -433,3 +433,25 @@ def test_a_shulker_on_a_full_block_keeps_its_place(reg):
     t.set(1, 2, 1, "purpur_slab[type=bottom]")              # hanging from a slab's underside
     t.entities[0][3]["AttachFace"] = core.B(1)
     assert mediums.shulker_errors(t) != []
+
+
+def test_the_inn_room_has_its_own_door(reg):
+    """The Roadside Inn's bedroom opens to the yard: with the street door alone the innkeeper, behind the house, had a
+    free bed 6 blocks away through the wall and some 30 on foot, did not claim it and spent two nights outside (1 run in
+    9 on a server; a villager summoned against that wall claimed the bed 3 times in 9 without the door, 6 in 6 with it).
+    Without the door the longest walk to a bed from the inn's own yard is 47 steps; with it, 30."""
+    from mediums import _inhabitants as inh, inn
+    seen = 0
+    for name, t in reg.templates.items():
+        if not name.startswith("medianas/posada/"):
+            continue
+        seen += 1
+        assert t.blocks[(inn.X1, 1, 8)][0].split("[")[0].endswith("_door"), name
+        with_door = inh.worst_walk(t)[0]
+        walled = core.Template(name + "#walled")
+        walled.blocks = dict(t.blocks)
+        wall = t.blocks[(inn.X1, 1, 7)]
+        walled.blocks[(inn.X1, 1, 8)] = walled.blocks[(inn.X1, 2, 8)] = wall
+        walled.jigsaws, walled.entities = t.jigsaws, t.entities
+        assert inh.worst_walk(walled)[0] >= with_door + 10, (name, with_door, inh.worst_walk(walled)[0])
+    assert seen == 6
