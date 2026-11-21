@@ -351,9 +351,35 @@ def mend(a, p):
             return out
         out["scan"] = m.group(0)
         print(f"MEND {m.group(0)}", flush=True)
+        # declined: the operator is offered the repair and does not confirm it (the dialog's Cancel only closes it): a
+        # scan afterwards finds exactly what the first one found, and the offer's id no longer confirms anything
+        k = len(re.findall(MEND_DONE, ctx.log()))
+        ctx.run("heraldia update mend apply all", r"Looking for|Buscando|Unknown|Incorrect")
+        declined = p.wait_log(CONFIRM, 900)
+        ctx.ticks(100)
+        ctx.run("heraldia update mend scan", r"Looking for|Buscando|Unknown|Incorrect")
+        end = time.monotonic() + 900
+        while time.monotonic() < end and len(re.findall(MEND_DONE, ctx.log())) < k + 2:
+            ctx.ticks(20)
+        later = list(re.finditer(MEND_DONE, ctx.log()))[k:]
+        if p.check(declined and len(later) >= 2, "the declined offer or the scan after it does not finish"):
+            p.check(later[-1].group(7) == m.group(7), f"not confirming changed something: {m.group(7)} -> {later[-1].group(7)}")
+            # a stale id (a later scan replaced that offer): refused, nothing runs
+            r = ctx.run(f"heraldia update mend apply all confirm {declined.group(1)}",
+                        r"Repairing|Reparando|no longer valid|ya no vale")
+            p.check("no longer valid" in r.group(0) or "ya no vale" in r.group(0), f"a stale confirmation was not refused: {r.group(0)}")
+            ctx.ticks(40)
+            p.check(not any(x.group(1) == "apply" for x in re.finditer(MEND_DONE, ctx.log())), "a stale confirmation repaired")
+            print("MEND declined and stale confirmations: nothing changed, nothing ran", flush=True)
         n_before = len(re.findall(MEND_DONE, ctx.log()))
         ctx.run("heraldia update mend apply all", r"Looking for|Buscando|Unknown|Incorrect")
-        c = p.wait_log(CONFIRM, 900)
+        c = None
+        end = time.monotonic() + 900
+        while time.monotonic() < end and c is None:
+            found = list(re.finditer(CONFIRM, ctx.log()))
+            c = found[-1] if declined and found and found[-1].group(1) != declined.group(1) else (found[-1] if found and not declined else None)
+            if c is None:
+                ctx.ticks(20)
         if not p.check(c, "apply all does not offer its confirmation"):
             return out
         ctx.run(f"heraldia update mend apply all confirm {c.group(1)}", r"Repairing|Reparando|no longer|ya no")
