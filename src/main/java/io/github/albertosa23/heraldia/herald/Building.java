@@ -159,8 +159,8 @@ final class Building {
 	 * the brain is built, and the save format's codecs are read for the first time. Whichever {@link Phase#TEMPLATE} step
 	 * placed the town's first villager paid all of that on top of its own work: that chunk's step was the slowest of the
 	 * build in four runs of four, 87-120 ms where the other 63 chunks took 26 ms, and a step may take 100 ms. Paid here
-	 * instead, in a tick nobody is playing through, no chunk's step stands out any more -- the slowest is 53-68 ms and it
-	 * moves from run to run, most of it the collector and not this thread's own work.
+	 * instead, in a tick nobody is playing through, the slowest step of the build is 64-73 ms (three passes) and which
+	 * chunk it falls on moves from run to run, most of it the collector and not this thread's own work.
 	 * <p>
 	 * Both are made the way {@code StructureTemplate.placeInWorld} makes the town's: one from nothing, one from a tag,
 	 * which is the path every entity of a template takes. Neither is ever added to the world, so nothing is left behind
