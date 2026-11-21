@@ -371,9 +371,16 @@ public final class Welcome {
 	private static boolean supported(ServerLevel level, Resolved r, BlockState state) {
 		BlockState support = level.getBlockState(r.support());
 		if (r.template() != null) {
-			Set<BlockPos> at = templateBlocks(level, r.template(), support.getBlock());
 			BlockPos local = new BlockPos(r.spot().sx(), r.spot().sy(), r.spot().sz());
-			if (!at.contains(local)) {
+			boolean own = templateBlocks(level, r.template(), support.getBlock()).contains(local);
+			if (!own) {
+				// the village's processor weathers a share of the stone as it generates: mossy or cracked, it is still the wall
+				for (String fresh : Spots.fresh(BuiltInRegistries.BLOCK.getKey(support.getBlock()).toString())) {
+					Optional<Block> b = BuiltInRegistries.BLOCK.getOptional(Identifier.parse(fresh));
+					own |= b.isPresent() && templateBlocks(level, r.template(), b.get()).contains(local);
+				}
+			}
+			if (!own) {
 				return false;
 			}
 		} else if (!support.isFaceSturdy(level, r.support(), Direction.UP)) {
