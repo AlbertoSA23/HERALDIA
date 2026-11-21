@@ -170,3 +170,55 @@ def test_hedges_and_pots_keep_off_the_ways(t, plain):
         assert all(max(abs(x - a), abs(z - b)) > 2 for a, b in ways), (x, z)
     assert all(h._name(t.get(x, h.FLOOR + 1, z)).endswith("_leaves") for x, z in t.hedges)
     assert all(h._name(t.get(x, h.FLOOR + 1, z)).startswith("potted_") for x, z in t.pots)
+
+
+def _reach(tt):
+    """Where a walker gets to from the spawn point (a step up of one block, a drop of at most three, two free blocks
+    to stand in; leaves count as solid ground), and the cells among them with no way back."""
+    import lint
+    from collections import deque
+    B = tt.blocks
+    free = lambda p: p not in B or lint.passable(B[p][0])
+    stand = {(x, y + 1, z) for (x, y, z), (st, _) in B.items() if not lint.passable(st)
+             and free((x, y + 1, z)) and free((x, y + 2, z))}
+    step = {}
+    for (x, y, z) in stand:
+        out = []
+        for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            for dy in (1, 0, -1, -2, -3):
+                q = (x + dx, y + dy, z + dz)
+                if q in stand and (dy != 1 or free((x, y + 2, z))) \
+                        and all(free((x + dx, y + k, z + dz)) for k in range(dy + 2, 2)):
+                    out.append(q)
+                    break
+        step[(x, y, z)] = out
+    start = tuple(h.SPAWN)
+    there, todo = {start}, deque([start])
+    while todo:
+        for n in step[todo.popleft()]:
+            if n not in there:
+                there.add(n)
+                todo.append(n)
+    back = {}
+    for p in there:
+        for n in step[p]:
+            back.setdefault(n, []).append(p)
+    home, todo = {start}, deque([start])
+    while todo:
+        for n in back.get(todo.popleft(), ()):
+            if n not in home:
+                home.add(n)
+                todo.append(n)
+    return there, there - home
+
+
+def test_the_planting_is_no_way_up_and_no_trap(t, monkeypatch):
+    """A hedge is a step of one block: nothing above a hedge's top becomes reachable by it, and nowhere a walker gets
+    to is without a way back (a villager that climbs to where its path search cannot bring it down loses its bed).
+    Compared with the same dressed town with nothing planted."""
+    there, stuck = _reach(t)
+    monkeypatch.setattr(d, "trees", lambda tt: [])
+    monkeypatch.setattr(d, "hedges", lambda tt, blds: ([], []))
+    before, _ = _reach(h.construct())
+    assert not stuck, sorted(stuck)[:5]
+    assert not [p for p in there - before if p[1] > h.FLOOR + 2]
