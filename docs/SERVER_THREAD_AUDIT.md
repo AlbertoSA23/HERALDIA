@@ -50,6 +50,32 @@ What makes it a freeze rather than a slowdown is the second worst tick: **32.9 m
 badly for a second; a single tick eats 1,258.7 ms and the rest are fine. That is 25 ticks' worth of server
 time gone in one block, for everyone connected, because one player typed a command.
 
+### What actually makes a `/locate` expensive
+
+Measured in one session on a world that already has the town built, restarted cold:
+
+| case | the game reports | **worst tick** | 2nd worst | clock vs CPU in the window |
+| --- | --- | --- | --- | --- |
+| mines **from the spawn**, cold after a restart | 2,268 ms | **2,281.7 ms** | 130.6 ms | 6,769 vs 4,983 → **1,786 ms waiting** |
+| mines from the spawn, repeated | 10 ms | 18.5 ms | 16.3 ms | no wait |
+| villages from the spawn, cold | 763 ms | **769.3 ms** | 52.3 ms | 4,240 vs 3,608 |
+| mines from (8000, −8000), **same session** | 12 ms | 22.0 ms | 19.2 ms | no wait |
+
+The fourth row corrects the way this problem was being stated. It is not "the first `/locate`", and it is not
+"far from the spawn": searching from (8000, −8000) in the same session costs 12 ms, because the answer is the
+same mine already found.
+
+> **What is expensive is not where you search from: it is whether the answer lies in ungenerated terrain.**
+
+From the spawn it is *worse*, not better — the nearest mine on this seed is 3,632 blocks out, so every ring up
+to it is ungenerated, and the hillside precomputation dominates (`ladera_anticipada`: 354 calls, 3,369 ms of
+pool CPU, one single call of 190 ms).
+
+And the villages row is a different problem wearing the same clothes: 769 ms with **zero** waits in the probe,
+because villages do not use the hillside precomputation. That tick is **work on the thread**, not blocking. So
+the two need different fixes: warming helps whatever uses the hillside precomputation (the mines, the coast)
+and does nothing for villages, which only slicing would help.
+
 **The clock-versus-CPU signature appears here and nowhere else**: 6,479 ms of tick clock against 5,639 ms of
 the thread's own CPU in that window, so roughly 840 ms of that tick the thread was not executing anything.
 It was waiting, cell by cell, in `ParallelLocate.await` — which the probe logs by name:
@@ -198,8 +224,15 @@ These outlive the figures and are kept in `LESSONS.md`:
 - **The instrument is not missing; the wiring is.** `runtime_cost.py` computes the worst tick and the count of
   slow ticks, combines them correctly across passes, prints them in three places — and `compare()` never reads
   them. The four limits in `runtime_reference.json` are two percentiles and two ratios.
-- **A probe that does not fire is not a probe that found nothing.** The `Structures.occupied` probe came back
-  empty because the measurement's own config had switched off the only things that call it.
+- **A probe that does not fire is not a probe that found nothing — and an empty measurement looks a lot like a
+  good result.** The `Structures.occupied` probe came back empty because the measurement's own config had
+  switched off the only things that call it. Later, a measurement of `/heraldia info nearby` sent the wrong
+  command entirely (a generated script whose text replacement had eight spaces of indentation against a line
+  with four, applied without checking that it had changed anything) and the server answered
+  `There is no structure with type "minecraft:2000"` three times. Its output looked healthy: clean tick
+  windows, nothing above 31.5 ms, clock equal to CPU. It would have been reported as "`info nearby` freezes
+  nothing", which is true by accident, measured on a server that was only answering an error. Hence:
+  **a text replacement that does not check that it applied is a silent failure waiting to happen** — assert it.
 - **Clock far above CPU is the signature of a wait**; clock equal to CPU means the thread is working, however
   slow it looks. Without both numbers, a busy tick and a blocked tick are indistinguishable.
 - **An acceptance pattern must not contain the words of the failure.**
