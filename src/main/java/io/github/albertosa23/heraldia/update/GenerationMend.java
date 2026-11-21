@@ -341,18 +341,18 @@ public final class GenerationMend {
 		CommandSourceStack src = ctx.getSource();
 		Map<String, String> l = language(src);
 		if (job != null || discovering) {
-			src.sendFailure(Texts.t(l, "heraldia.reparar.ocupado"));
+			src.sendFailure(Texts.t(l, "heraldia.actualizar.reparar.ocupado"));
 			return 0;
 		}
 		discovering = true;
-		src.sendSuccess(() -> Texts.t(l, "heraldia.reparar.buscando").withStyle(ChatFormatting.GRAY), true);
+		src.sendSuccess(() -> Texts.t(l, "heraldia.actualizar.reparar.buscando").withStyle(ChatFormatting.GRAY), true);
 		MinecraftServer server = src.getServer();
 		String id = LocalDateTime.now().format(DATE);
 		discover(server, kinds, m -> LOGGER.info("Heraldia: update mend: {}", m)).whenComplete((targets, err) -> server.execute(() -> {
 			discovering = false;
 			if (err != null) {
 				LOGGER.error("Heraldia: update mend: the search failed", err);
-				src.sendFailure(Texts.t(l, "heraldia.reparar.error", String.valueOf(err.getMessage())));
+				src.sendFailure(Texts.t(l, "heraldia.actualizar.reparar.error", String.valueOf(err.getMessage())));
 				return;
 			}
 			Job j = new Job(id, false, kinds, targets, src, l);
@@ -369,11 +369,11 @@ public final class GenerationMend {
 		String id = StringArgumentType.getString(ctx, "id");
 		Scan s = last;
 		if (s == null || !s.id.equals(id) || System.currentTimeMillis() - s.at > VALIDITY_MS || !s.kinds.containsAll(kinds)) {
-			src.sendFailure(Texts.t(l, "heraldia.reparar.caducado"));
+			src.sendFailure(Texts.t(l, "heraldia.actualizar.reparar.caducado"));
 			return 0;
 		}
 		if (job != null || discovering) {
-			src.sendFailure(Texts.t(l, "heraldia.reparar.ocupado"));
+			src.sendFailure(Texts.t(l, "heraldia.actualizar.reparar.ocupado"));
 			return 0;
 		}
 		// only the targets the scan found to repair: everything else stays exactly as it is
@@ -387,7 +387,7 @@ public final class GenerationMend {
 		last = null;
 		job = new Job(id, true, kinds, todo, src, l);
 		LOGGER.info("Heraldia: update mend apply {} confirmed by {}: {} targets ({})", id, src.getTextName(), todo.size(), kinds);
-		src.sendSuccess(() -> Texts.t(l, "heraldia.reparar.reparando", todo.size()).withStyle(ChatFormatting.GOLD), true);
+		src.sendSuccess(() -> Texts.t(l, "heraldia.actualizar.reparar.reparando", todo.size()).withStyle(ChatFormatting.GOLD), true);
 		return 1;
 	}
 
@@ -403,22 +403,22 @@ public final class GenerationMend {
 			n += s.count(k, Outcome.REPAIR);
 		}
 		if (n == 0) {
-			j.source.sendSuccess(() -> Texts.t(l, "heraldia.reparar.nada").withStyle(ChatFormatting.GREEN), true);
+			j.source.sendSuccess(() -> Texts.t(l, "heraldia.actualizar.reparar.nada").withStyle(ChatFormatting.GREEN), true);
 			return;
 		}
 		String word = j.kinds.size() == 1 ? j.kinds.iterator().next().word : "all";
 		String cmd = "heraldia update mend apply " + word + " confirm " + s.id;
 		ServerPlayer p = j.source.getPlayer();
 		if (p == null) {
-			j.source.sendSuccess(() -> Texts.t(l, "heraldia.reparar.confirmar_consola", cmd), false);
+			j.source.sendSuccess(() -> Texts.t(l, "heraldia.actualizar.reparar.confirmar_consola", cmd), false);
 			return;
 		}
 		List<DialogBody> body = new ArrayList<>();
 		summary(l, s.kinds, s.findings, false).forEach(t -> body.add(new PlainMessage(t, 300)));
-		body.add(new PlainMessage(Texts.t(l, "heraldia.reparar.aviso").withStyle(ChatFormatting.YELLOW), 300));
-		ActionButton yes = new ActionButton(new CommonButtonData(Texts.t(l, "heraldia.reparar.boton.reparar"),
-				Optional.of(Texts.t(l, "heraldia.reparar.boton.reparar.ayuda")), 150), Optional.of(new StaticAction(new ClickEvent.RunCommand(cmd))));
-		p.openDialog(Holder.direct(new MultiActionDialog(new CommonDialogData(Texts.t(l, "heraldia.reparar.dialogo"), Optional.empty(),
+		body.add(new PlainMessage(Texts.t(l, "heraldia.actualizar.reparar.aviso").withStyle(ChatFormatting.YELLOW), 300));
+		ActionButton yes = new ActionButton(new CommonButtonData(Texts.t(l, "heraldia.actualizar.reparar.boton.reparar"),
+				Optional.of(Texts.t(l, "heraldia.actualizar.reparar.boton.reparar.ayuda")), 150), Optional.of(new StaticAction(new ClickEvent.RunCommand(cmd))));
+		p.openDialog(Holder.direct(new MultiActionDialog(new CommonDialogData(Texts.t(l, "heraldia.actualizar.reparar.dialogo"), Optional.empty(),
 				true, false, DialogAction.CLOSE, body, List.of()), List.of(yes),
 				Optional.of(new ActionButton(new CommonButtonData(Texts.t(l, "heraldia.actualizar.boton.cancelar"), 150), Optional.empty())), 1)));
 	}
@@ -433,7 +433,7 @@ public final class GenerationMend {
 			if (k == Kind.RING) {
 				// reported, never repaired: the reason is in the text itself, so no operator takes it for something forgotten
 				findings.stream().filter(f -> f.kind == Kind.RING).findFirst().ifPresent(f ->
-						out.add(Texts.t(l, "heraldia.reparar.anillo", f.detail).withStyle(ChatFormatting.GRAY)));
+						out.add(Texts.t(l, "heraldia.actualizar.reparar.anillo", f.detail).withStyle(ChatFormatting.GRAY)));
 				continue;
 			}
 			long[] n = new long[Outcome.values().length];
@@ -442,13 +442,13 @@ public final class GenerationMend {
 					n[f.outcome.ordinal()]++;
 				}
 			}
-			out.add(Texts.t(l, "heraldia.reparar.linea" + (applied ? ".hecho" : ""), Texts.t(l, "heraldia.reparar." + k.word),
+			out.add(Texts.t(l, "heraldia.actualizar.reparar.linea" + (applied ? ".hecho" : ""), Texts.t(l, "heraldia.actualizar.reparar." + k.word),
 					n[Outcome.REPAIR.ordinal()], n[Outcome.FINE.ordinal()], n[Outcome.LEFT.ordinal()], n[Outcome.NOTICE.ordinal()])
 					.withStyle(ChatFormatting.YELLOW));
 			int shown = 0;
 			for (Finding f : findings) {
 				if (f.kind == k && f.outcome != Outcome.FINE && shown++ < SHOWN) {
-					out.add(Texts.t(l, "heraldia.reparar.donde." + f.outcome.name().toLowerCase(Locale.ROOT), f.at.getX(), f.at.getY(),
+					out.add(Texts.t(l, "heraldia.actualizar.reparar.donde." + f.outcome.name().toLowerCase(Locale.ROOT), f.at.getX(), f.at.getY(),
 							f.at.getZ(), f.detail).withStyle(ChatFormatting.GRAY));
 				}
 			}
@@ -1072,16 +1072,16 @@ public final class GenerationMend {
 			LOGGER.warn("Heraldia: update mend: the report could not be written ({})", e.getMessage());
 		}
 		Map<String, String> l = j.lang;
-		j.source.sendSuccess(() -> Texts.t(l, j.apply ? "heraldia.reparar.titulo.hecho" : "heraldia.reparar.titulo", j.steps,
+		j.source.sendSuccess(() -> Texts.t(l, j.apply ? "heraldia.actualizar.reparar.titulo.hecho" : "heraldia.actualizar.reparar.titulo", j.steps,
 				j.worst / 1_000_000).withStyle(ChatFormatting.GOLD), true);
 		summary(l, j.kinds, j.findings, j.apply).forEach(c -> j.source.sendSuccess(() -> c, false));
-		j.source.sendSuccess(() -> Texts.t(l, "heraldia.reparar.informe", file.toString()).withStyle(ChatFormatting.GRAY), false);
+		j.source.sendSuccess(() -> Texts.t(l, "heraldia.actualizar.reparar.informe", file.toString()).withStyle(ChatFormatting.GRAY), false);
 		if (!j.apply) {
 			last = new Scan(j.id, System.currentTimeMillis(), j.kinds, targetsToRepair(j), List.copyOf(j.findings));
 			if (j.onDone != null) {
 				j.onDone.run();
 			} else {
-				j.source.sendSuccess(() -> Texts.t(l, "heraldia.reparar.nada_cambia").withStyle(ChatFormatting.GRAY), false);
+				j.source.sendSuccess(() -> Texts.t(l, "heraldia.actualizar.reparar.nada_cambia").withStyle(ChatFormatting.GRAY), false);
 			}
 		}
 	}

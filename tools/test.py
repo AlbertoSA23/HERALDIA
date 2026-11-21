@@ -193,7 +193,7 @@ MAP = [
     # village events (their spoken lines are in tools/gen/dialogue/*/events.json, matched above by the conversations' rule)
     (JAVA + "events/*", EVENTS), ("tools/gen/village_events.py", EVENTS),
     # safe updates (T46): their Java, the panel, the preferences, the menus, the migration and their texts
-    (JAVA + "update/*", SAFE_UPDATE_JAVA + MEND), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
+    (JAVA + "update/Updater.java", SAFE_UPDATE_JAVA + MEND), (JAVA + "update/*", SAFE_UPDATE_JAVA), (JAVA + "command/ConfigPanel.java", SAFE_UPDATE),
     (JAVA + "command/Preferences.java", SAFE_UPDATE), (JAVA + "config/Menus.java", SAFE_UPDATE),
     (JAVA + "config/ConfigMigration.java", SAFE_UPDATE), ("tools/gen/updates.py", SAFE_UPDATE),
     # game profiles (T36): their logic and their command (the rest of the configuration is common: full suite)
@@ -412,6 +412,7 @@ DURATION_S = {
     "tools/smoke/light_profile.py": 55,             # three starts and 1,300 sprinted ticks
     "tools/smoke/update.py": 165,                # two starts and a zone of 400 chunks
     "tools/smoke/update_path_b.py": 160,         # five starts, a zone of ~200 chunks, path B and undo
+    "tools/smoke/mend.py": 195,                  # CI mode (no --old-jar): three starts, 6 inns and 8 wharfs found and loaded; measured locally (4 cores): 177 s + 10 %
     "tools/smoke/loot_restock.py": 95,             # two starts and a generated hermitage
     "tools/smoke/difficulty.py": 80,                # four starts of the same world
     "tools/smoke/arena.py": 215,                     # two starts, three builds and five waves, and the Herald's House (v2: 18 residents, a market day on its plaza); measured locally (4 cores): 184 s + 10 %
