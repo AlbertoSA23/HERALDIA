@@ -397,7 +397,7 @@ DURATION_S = {
     **{f"{COMPAT}::{g}": s for g, s in {"base": 90, "rendimiento": 60, "biomas": 105, "servidor": 70, "distanthorizons": 70,
                                          "estructuras": 115, "terreno": 110, "tectonic": 150, "wwoo": 280}.items()},
     "tools/smoke/anchored_guardians.py": 655,
-    "tools/smoke/medium_structures.py": 290,          # measured locally (4 cores): 263 s + 10 %, with the inhabitants settling on the first located structure of each kind (6; the other 12 and the three-day stay behind --stay: 639 s)
+    "tools/smoke/medium_structures.py": 300,          # 267 s on CI + 10 % and the 8 s the shulkers are given to settle; measured locally (4 cores): 263 s + 10 %, with the inhabitants settling on the first located structure of each kind (6; the other 12 and the three-day stay behind --stay: 639 s)
     "tools/smoke/guide.py": 55,                      # three server starts
     "tools/smoke/search_cache.py": 50,                # three starts, eleven searches
     "tools/smoke/journal.py": 45,                     # one start and a few commands as simulated players (with the end of the Chronicle)
