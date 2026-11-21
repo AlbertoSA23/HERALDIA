@@ -115,3 +115,19 @@ def test_long_gables_get_dormers(t, plain):
     for x, y, z in panes:                       # a dormer's pane stands on the roof, between two posts
         assert not t.is_free(x, y - 1, z)
         assert sum(h._name(t.get(x + dx, y, z + dz)) == h.BEAM for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1))) == 2
+
+
+def test_door_lanes_are_cobbled_and_still_walkable(t, plain):
+    """Every cell of a door's path that the plain town lays as dirt path is a full block or a path in the dressed one,
+    with the same free space over it; most of them are stone now."""
+    import lint
+    cells = {c for _, _, cs in plain.paths for c in cs or () if h._name(plain.get(c[0], h.FLOOR, c[1])) == "dirt_path"
+             and not plain.street.get(c)}
+    assert len(cells) > 100
+    stone = 0
+    for x, z in cells:
+        st = t.get(x, h.FLOOR, z)
+        assert lint.top_height(st) in (1.0, 0.9375) or h._name(st) == "dirt_path", (x, z, st)
+        assert t.is_free(x, h.FLOOR + 1, z) and t.is_free(x, h.FLOOR + 2, z), (x, z)
+        stone += h._name(st) != "dirt_path"
+    assert stone > 0.7 * len(cells)
