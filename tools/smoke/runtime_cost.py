@@ -416,7 +416,7 @@ class Pass:
         for _ in range(60):
             m = c.run(f"execute positioned {x} 320 {z} positioned over motion_blocking_no_leaves run tp {name} ~ ~ ~",
                       r"Teleported|No entity|not loaded")
-            if "not loaded" not in m.group(0):
+            if "not loaded" not in m.string:            # the whole reply, not only the part of it that matched
                 break
             time.sleep(0.5)
         else:
