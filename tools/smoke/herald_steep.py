@@ -273,9 +273,15 @@ def drowned(path, foot, own):
     The pond the town cuts into is the one that fills them. StructureTemplate.placeInWorld keeps the water a cell held
     by default: it sets the template's block and then puts that water back inside it if it can hold any (a wall, a
     stair, a slab, a lantern), and the ones whose water was not a source are waterlogged again from any source beside
-    them. Freshly generated nothing runs out of them (placed water has had no fluid tick), so no measure of running
-    water sees this; one block update next to the wall is enough to start it. Read from the saved region files, so it
-    measures the result and not what the mod says it did."""
+    them.
+
+    Why no measure of water finds it: placeLiquid schedules a fluid tick, so the wall does pour, while the town is
+    still being built -- and the build's own shores step takes that water away again (on the .jar before the fix this
+    world cleared 347 blocks out of the footprint and dried 80 of running water; with it, 0 and 64). So the finished
+    world has no standing water, no running water without a source and no walkway over none of it, and every water
+    check passes over a wall that is still full of it. What is left is the waterlogged blocks, which pour again at the
+    first block update beside them. Read from the saved region files, so it measures the result and not what the mod
+    says it did."""
     ox, oy, oz, mx, my, mz = foot
     out, missing = [], 0
     for cx in range(ox >> 4, (mx >> 4) + 1):
