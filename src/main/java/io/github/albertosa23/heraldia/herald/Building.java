@@ -592,6 +592,13 @@ final class Building {
 		}
 	}
 
+	/**
+	 * One chunk's part of the template. A chunk a step on purpose, neither smaller nor larger: {@code placeInWorld} walks
+	 * the whole template on every call whatever its bounding box holds (557,056 entries for this one, 20.6 ms of the server
+	 * thread at the median and 47.9 at worst, measured with a box that holds nothing), so smaller boxes pay that walk more
+	 * often -- four 8 x 8 cells per chunk took the phase from 1.9 to 6.2 s and still left an 86 ms step -- and larger ones
+	 * stop the shape-update pass running along the chunk borders inside the town, which can move a block (docs/LESSONS.md).
+	 */
 	private static void template(ServerLevel level, Step p, Grounds g, StructureTemplate t) {
 		BoundingBox bb = new BoundingBox(Math.max(g.ox(), p.a() << 4), g.oy(), Math.max(g.oz(), p.b() << 4),
 				Math.min(g.maxX(), (p.a() << 4) + 15), g.maxY(), Math.min(g.maxZ(), (p.b() << 4) + 15));
